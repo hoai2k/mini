@@ -2,6 +2,7 @@
 // the calls (rtc.js), my camera and effects (studio.js), the minigames
 // (gamehost.js) and the controls together.
 
+import { COLORS, colorName, themedColor, setColorTheme } from './palette.js';
 import { createNet } from './net.js';
 import { createRtc, STUN_SERVERS } from './rtc.js';
 import { createStudio } from './studio.js';
@@ -12,12 +13,11 @@ import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
 import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
-import { assetUrl, iconUrl } from './assets.js';
+import { assetUrl, iconUrl, setIconTheme } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
 
-const COLORS = ['#ff5fa2', '#ff8c42', '#ffd43b', '#69db7c', '#3fe0d0', '#4dabf7', '#9775fa', '#f783ac'];
 const $ = sel => document.querySelector(sel);
 
 const settings = {
@@ -26,21 +26,40 @@ const settings = {
   volume: 0.6,
   reduceMotion: false,
   autoLight: true,
+  theme: 'teen',
   ...load('settings', {}),
 };
 const saveSettings = () => save('settings', settings);
 
 // The player's colour accents the whole interface. Text on it is dark or
 // light depending on how bright the colour is.
-function applyAccent(color) {
+function applyAccent(saved) {
   const root = document.documentElement.style;
+  const color = themedColor(saved);
   root.setProperty('--accent', color);
+  // Dark or white text, whichever stands out more (WCAG contrast).
   const n = parseInt(color.slice(1), 16);
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  root.setProperty('--on-accent', lum > 0.62 ? '#1d1533' : '#fff');
+  const lin = v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  const dark = 0.012; // #1d1533
+  root.setProperty('--on-accent', (L + 0.05) / (dark + 0.05) > 1.05 / (L + 0.05) ? '#1d1533' : '#fff');
 }
 applyAccent(settings.color);
+
+// The theme (Settings > Theme): the look of the whole UI (themes.css), the
+// icon set and the title art.
+const THEMES = ['teen', 'kid', 'art', 'classic'];
+function applyTheme(t) {
+  const theme = THEMES.includes(t) ? t : 'teen';
+  document.documentElement.dataset.theme = theme;
+  setIconTheme(theme);
+  setColorTheme(theme);
+  applyAccent(settings.color);
+  document.querySelectorAll('.swatch[data-color]').forEach(b => { b.style.background = themedColor(b.dataset.color); });
+  document.querySelectorAll('[data-color-of]').forEach(e => e.style.setProperty('--c', themedColor(e.dataset.colorOf)));
+  updateTitleArt(theme);
+  refreshIcons();
+}
 setVolume(settings.volume);
 document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
 
@@ -71,9 +90,11 @@ function colorPicker(container, onPick) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'swatch';
-    b.style.background = c;
+    b.dataset.color = c;
+    b.style.background = themedColor(c);
     b.setAttribute('role', 'radio');
-    b.setAttribute('aria-label', `Colour ${c}`);
+    b.setAttribute('aria-label', colorName(c) ?? c);
+    b.title = colorName(c) ?? '';
     b.setAttribute('aria-checked', String(c === settings.color));
     b.addEventListener('click', () => {
       settings.color = c;
@@ -136,20 +157,51 @@ document.addEventListener('webkitfullscreenchange', markFullscreen);
 
 // --- title screen ----------------------------------------------------------
 
+// The title logo and background for a theme: its own art when delivered.
+// Kid and Teen fall back to the original art; Art and Classical draw a
+// styled text logo on a CSS background until theirs arrive.
+function updateTitleArt(theme) {
+  const own = n => assetUrl(`${n}-${theme}`);
+  const original = theme === 'kid' || theme === 'teen';
+  const logo = theme === 'kid' ? assetUrl('logo') : own('logo') ?? (original ? assetUrl('logo') : null);
+  $('#logo-img').hidden = !logo;
+  if (logo) $('#logo-img').src = logo;
+  $('#logo').classList.toggle('has-img', !!logo);
+  const bg = theme === 'kid' ? assetUrl('title-bg') : own('title-bg') ?? (original ? assetUrl('title-bg') : null);
+  $('#title').style.backgroundImage = bg ? `url("${bg}")` : '';
+  $('#title').classList.toggle('has-bg', !!bg);
+}
+
+// Swaps every effect and game icon for the current theme's.
+function refreshIcons() {
+  document.querySelectorAll('#effect-list .fx-item[data-fx]').forEach(b => {
+    const fx = effects.find(e => e.id === b.dataset.fx);
+    if (fx) setButtonIcon(b, iconUrl('fx', fx.id), fx.emoji);
+  });
+  document.querySelectorAll('.game-card[data-game]').forEach(b => {
+    const g = games?.games.get(b.dataset.game);
+    if (!g) return;
+    const ico = b.querySelector('.ico');
+    const url = iconUrl('game', g.id);
+    ico.textContent = '';
+    if (url) {
+      const im = document.createElement('img');
+      im.src = url;
+      im.alt = '';
+      ico.append(im);
+    } else ico.textContent = g.emoji;
+  });
+  const fav = $('#fav-list');
+  if (fav) {
+    delete fav.dataset.sig;
+    if (openTab === 'favs') renderFavorites();
+  }
+}
+
 function initTitle() {
   const favicon = assetUrl('icon');
   if (favicon) $('#favicon').href = favicon;
-  const logo = assetUrl('logo');
-  if (logo) {
-    $('#logo-img').src = logo;
-    $('#logo-img').hidden = false;
-    $('#logo').classList.add('has-img');
-  }
-  const bg = assetUrl('title-bg');
-  if (bg) {
-    $('#title').style.backgroundImage = `url("${bg}")`;
-    $('#title').classList.add('has-bg');
-  }
+  applyTheme(settings.theme);
   $('#name-input').value = settings.name;
   colorPicker($('#color-picker'));
   $('#join-form').addEventListener('submit', e => {
@@ -436,7 +488,8 @@ function updateTileLabel(rec, p) {
   if (p.name && p.name !== rec.name) flashName(rec);
   rec.name = p.name || rec.name;
   rec.label.textContent = p.name || '…';
-  rec.el.style.setProperty('--c', p.color || '#ff5fa2');
+  rec.el.dataset.colorOf = p.color || COLORS[0];
+  rec.el.style.setProperty('--c', themedColor(p.color || COLORS[0]));
   rec.flags.textContent = '';
   const flag = (text, cls) => {
     const f = document.createElement('span');
@@ -1060,27 +1113,34 @@ function showKind(kind) {
   centerEffect(fx?.kind === kind ? fx.id : '', false, false);
 }
 
+// Puts an icon (or the emoji) on a lens button, keeping its label.
+function setButtonIcon(b, url, emoji) {
+  const label = b.querySelector('.fx-label');
+  b.textContent = '';
+  if (url) {
+    const im = document.createElement('img');
+    im.src = url;
+    im.alt = '';
+    b.append(im);
+  } else {
+    b.append(document.createTextNode(emoji));
+  }
+  // Themed icons (all but the first set) bring their own tile: show it whole and big.
+  b.classList.toggle('tile-icon', !!url && !/\/assets\/icons\//.test(url));
+  if (label) b.append(label);
+}
+
 function effectButton(fx, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'fx-item';
   b.setAttribute('aria-label', fx.name);
   b.title = fx.name;
-  const iconUrl = fx.icon;
-  if (iconUrl) {
-    const im = document.createElement('img');
-    im.src = iconUrl;
-    im.alt = '';
-    b.append(im);
-    // Second-set icons bring their own rounded tile: show it whole and big.
-    if (/\/icons2\//.test(iconUrl)) b.classList.add('tile-icon');
-  } else {
-    b.textContent = fx.emoji;
-  }
   const label = document.createElement('span');
   label.className = 'fx-label';
   label.textContent = fx.name;
   b.append(label);
+  setButtonIcon(b, fx.icon, fx.emoji);
   b.addEventListener('click', onClick);
   return b;
 }
@@ -1399,6 +1459,7 @@ async function initGames() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'game-card';
+    b.dataset.game = g.id;
     const ico = document.createElement('span');
     ico.className = 'ico';
     const gameIcon = iconUrl('game', g.id);
@@ -1513,7 +1574,8 @@ function addMessage(text, from, color) {
     const who = document.createElement('span');
     who.className = 'from';
     who.textContent = from === me.id ? 'You' : nameOf(from);
-    who.style.setProperty('--c', color || '');
+    if (color) who.dataset.colorOf = color;
+    who.style.setProperty('--c', themedColor(color) || '');
     el.append(who, document.createTextNode(text));
   }
   log.append(el);
@@ -1599,6 +1661,12 @@ function initSettings() {
   const name = $('#set-name');
   const vol = $('#set-volume');
   const motion = $('#set-motion');
+  const themeSel = $('#set-theme');
+  themeSel.addEventListener('change', () => {
+    settings.theme = themeSel.value;
+    applyTheme(settings.theme);
+    saveSettings();
+  });
   const light = $('#set-light');
   light.addEventListener('change', () => {
     settings.autoLight = light.checked;
@@ -1643,6 +1711,7 @@ function initSettings() {
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
     motion.checked = !!settings.reduceMotion;
+    themeSel.value = settings.theme || 'teen';
     light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
       colorPicker($('#color-picker'));

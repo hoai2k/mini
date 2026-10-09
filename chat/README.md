@@ -12,6 +12,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | Path | What it is |
 | --- | --- |
 | `index.html`, `styles.css` | The page: title screen, call screen, trays, dialogs |
+| `themes.css`, `js/palette.js` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) and each theme's shade of every player colour |
 | `js/main.js` | Wires everything together: tiles, controls, trays, invites, chat, settings |
 | `js/net.js` | The shared room on the mini-rooms relay: join or host, reconnect, presence, topics |
 | `js/rtc.js` | Mesh WebRTC calls, negotiated over the relay |
@@ -70,6 +71,25 @@ so the picture stays clear:
 - An open game takes the whole screen between the two bars, and the videos
   shrink to bubbles in the top bar; games marked `fullBleed` (Hoops) draw
   under the bars too.
+
+Themes: Settings > Theme picks the look. Teen (the default) is dark and
+sleek with the teen icon set; Kid is the original candy look with the first
+icon set; Art borrows mid-century French New Wave cinema posters (paper,
+black outlines, offset shadows, red, Jost); Classical is 18th-century French
+Rococo (ivory, double gold borders, gilt buttons, Garamond). `themes.css`
+restyles the page through `html[data-theme]`; text over the video keeps a
+dark backing in every theme, and the game area keeps its dark palette.
+The colour you pick is a colour name rather than an exact shade: each
+theme has its own blue, pink and so on (`js/palette.js`: candy for Kid, neon
+for Teen, printing inks for Art, Rococo pastels for Classical), and frames
+itself with it: a glow in Teen, the poster's spot colour and offset shadows
+in Art, a ribbon inside the gilt frames in Classical. The Kid shade is what
+gets saved and sent to the others, so everyone sees your colour in their own
+theme's shade.
+Icons fall back through the theme's own set, then the teen set, then the
+first set (`themedIconName` in `js/assets.js`); the title logo and
+background do the same, with a styled text logo until Art and Classical get
+theirs.
 
 Full screen: Start and the top-right button ask for full screen with
 whichever API the browser has (the prefixed one too, which iPhone Safari
@@ -196,6 +216,9 @@ itself to HTTPS.
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, joining a game from an invite, and a background tab pausing
   the camera and mic (needs `npm ci` in `multiplayer/server`)
+- `chat/publish.sh local/pages/chat && node chat/test/theme-shots.mjs`:
+  title, call, effects, settings and games in every theme (`--color=#4dabf7`
+  picks the player colour), screenshots in `local/chat-shots/themes/`
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
 hand.
@@ -291,9 +314,11 @@ with its state (see `js/gamehost.js`).
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
-  Theme artwork generation is paused after delivering all six title assets
-  and Art icons CH-N01–CH-N20. The remaining 75 Art and 95 Classical
-  icons are still requested; their exact prompts are in the request document.
+- Artwork (themes): all six title backgrounds and logos are delivered in
+  `assets/themes/`, along with Art icons CH-N01–CH-N20 in `assets/icons-art/`.
+  Generation is paused; the remaining 75 Art and 95 Classical icons are
+  still requested in `design/image-requests.md`. Themes use Teen fallbacks
+  for their pending icons.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`

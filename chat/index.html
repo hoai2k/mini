@@ -19,7 +19,11 @@
     location.replace('https:' + location.href.slice(5));
   }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Jost:wght@400;600;700;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,600;1,600&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="themes.css">
 <script src="mini-rooms.js"></script>
 <script type="module" src="js/main.js"></script>
 </head>
@@ -234,6 +238,12 @@
       <div class="field"><span>Your name</span><button id="set-name-show" class="name-show" type="button" title="Change your name"><span id="set-name-text"></span> <span aria-hidden="true">✎</span></button><input id="set-name" maxlength="20" aria-label="Your name" hidden></div>
       <div class="field"><span>Your colour</span><div class="colors" id="set-colors" role="radiogroup" aria-label="Your colour"></div></div>
       <label class="field range"><span>Sound effects</span><input id="set-volume" type="range" min="0" max="1" step="0.05"></label>
+      <label class="field"><span>Theme</span><select id="set-theme">
+        <option value="teen">Teen</option>
+        <option value="kid">Kid</option>
+        <option value="art">Art (French New Wave posters)</option>
+        <option value="classic">Classical (18th-century French)</option>
+      </select></label>
       <label class="field check"><input id="set-light" type="checkbox"><span>Auto light: brighten my picture when it's dark</span></label>
       <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
       <div class="field"><span>Ratings</span><button id="open-ratings" class="btn ghost" type="button">See everyone's thumbs up and down</button></div>
