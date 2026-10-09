@@ -33,29 +33,37 @@ test('expressions come through from blendshapes', () => {
   assert.ok(f.wink > 0.5);
 });
 
-test('Hoops is forgiving: rough tosses go in, wild ones miss', () => {
-  const run = (power, aim, from = hoops.REST, hoop = hoops.SPOTS[0]) => {
-    const b = hoops.newBall(from, hoops.solveShot(from, power, aim, hoop), hoop);
-    while (!b.done) hoops.stepBall(b);
-    return b.scored;
-  };
-  // Any reasonable speed, a little off line, let go anywhere, at every hoop spot.
-  const froms = [hoops.REST, { x: -0.5, y: 1.6, z: 0 }, { x: 0.5, y: 2.5, z: 0 }];
-  for (const hoop of hoops.SPOTS) {
-    for (const from of froms) {
-      for (const power of [0.3, 1, 2.6]) {
-        for (const aim of [-0.2, 0, 0.2]) assert.equal(run(power, aim, from, hoop), true, `power ${power} aim ${aim} from ${JSON.stringify(from)} hoop ${JSON.stringify(hoop)}`);
-      }
+test('Hoops throws go where they are thrown: no helping', () => {
+  const run = (up, targetX, from = hoops.REST, hoop = hoops.SPOTS[0]) => {
+    const b = hoops.newBall(from, hoops.throwVelocity(from, up, targetX, hoop.z), hoop);
+    let crossX = null;
+    while (!b.done) {
+      const z0 = b.z;
+      hoops.stepBall(b);
+      if (crossX === null && z0 < hoop.z && b.z >= hoop.z) crossX = b.x;
     }
-  }
-  assert.equal(run(0.1, 0), false);
-  assert.equal(run(1, 0.5), false);
-  assert.equal(run(1, -0.5), false);
+    return { scored: b.scored, crossX };
+  };
+  const hoop = hoops.SPOTS[0];
+  // Somewhere in between too soft and too hard there is a right speed...
+  const speeds = [];
+  for (let up = 1.2; up <= 5; up += 0.02) if (run(up, hoop.x).scored) speeds.push(up);
+  assert.ok(speeds.length > 0, 'some throw speed scores');
+  assert.equal(run(speeds[0] * 0.8, hoop.x).scored, false, 'too soft misses');
+  assert.equal(run(speeds[speeds.length - 1] * 1.2, hoop.x).scored, false, 'too hard misses');
+  // ...and the window is narrow: skill, not a funnel.
+  assert.ok(speeds[speeds.length - 1] - speeds[0] < 0.8, `speed window ${speeds[0]}..${speeds[speeds.length - 1]}`);
+  // A good speed aimed off to the side misses, and the ball arrives where aimed.
+  const good = speeds[Math.floor(speeds.length / 2)];
+  assert.equal(run(good, hoop.x + 0.45).scored, false);
+  assert.equal(run(good, hoop.x - 0.45).scored, false);
+  const off = run(good, hoop.x + 0.45);
+  assert.ok(Math.abs(off.crossX - (hoop.x + 0.45)) < 0.02, `arrives at ${off.crossX}`);
 });
 
 test('Hoops physics is deterministic, so ghosts replay exactly', () => {
   const from = { x: 0.2, y: 2.1, z: 0 }, hoop = hoops.SPOTS[2];
-  const v = hoops.solveShot(from, 1.17, 0.05, hoop);
+  const v = hoops.throwVelocity(from, 4.1, 0.1, hoop.z);
   const a = hoops.newBall(from, v, hoop), b = hoops.newBall(from, v, hoop);
   while (!a.done) hoops.stepBall(a);
   while (!b.done) hoops.stepBall(b);

@@ -288,8 +288,10 @@ button { cursor: pointer; }
   border: 2px solid var(--c, rgba(255, 255, 255, 0.8)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 #call.has-game .stage .name, #call.has-game .stage .flags, #call.has-game .stage-note { display: none; }
-#call.has-game .ctrl { width: 48px; padding: 9px 4px; }
-#call.has-game .ctrl .lbl { display: none; }
+/* While a game is on the bottom UI goes away (the game gets the whole
+   screen below the top bar); the ✕ beside the game's name closes it. */
+#call.has-game { --bottom-ui: calc(var(--safe-b) + 8px); }
+#call.has-game .controls, #call.has-game .strip-wrap, #call.has-game #tray-games, #call.has-game .ui-grip, #call.has-game .grab-fx { display: none; }
 
 .fly { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 .toasts { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 32px); bottom: calc(var(--bottom-ui) + 40px); z-index: 40; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }

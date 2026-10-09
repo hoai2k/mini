@@ -2,8 +2,9 @@
 // basketball game: a big hoop near the top, the ball near the bottom and a
 // long lens, so the ball only shrinks a little on its way up. The ball follows
 // your finger while you hold it and flies from wherever you let go, with the
-// speed and direction of your toss; the shot is helped along so that a toss
-// roughly at the hoop and roughly hard enough goes in. Every five shots the
+// speed and direction of your toss and nothing nudging it in: the up speed
+// sets how high (and, at a fixed throwing angle, how far) it goes, and the
+// direction of the swipe on screen is where it heads. Every five shots the
 // hoop moves somewhere else.
 //
 // Every basket adds to your all-time total, kept on this device, and baskets
@@ -34,14 +35,14 @@ const HOLD = { x0: -0.6, x1: 0.6, y0: 1.45, y1: 2.7 };
 const EYE = { x: 0, y: 2.3, z: -6 };
 const STEP = 1 / 240;
 const SHOT_TIME = 3.2;
-// Forgiveness: tosses within AIM_SLACK of the ideal direction (sideways per
-// unit up) fly dead centre, and any toss speed between POWER_LO and POWER_HI
-// times GOOD_SPEED reaches the rim. Slower than MIN_SPEED isn't a throw.
-const AIM_SLACK = 0.14;
-const POWER_LO = 0.3, POWER_HI = 2.6;
-const GOOD_SPEED = 3.5;  // m/s upwards at the ball, about a brisk flick
+// The throw: the ball leaves at THROW_GAIN times the finger's speed (both in
+// metres per second at the ball), and goes forward DEPTH metres for every
+// metre it rises, a fixed throwing angle (a swipe on a screen can't say how
+// far). Slower than MIN_SPEED isn't a throw: the ball is just put down.
+const THROW_GAIN = 2.4;
+const DEPTH = 0.43;
 const MIN_SPEED = 0.8;
-const CHARGE_MAX = 3.2;  // top of the Space / controller power meter
+const CHARGE_MAX = 6;    // top of the Space / controller meter (finger m/s)
 
 // The backboard matches the delivered art: it reaches 0.36 m above the rim,
 // 0.08 m below it and 0.35 m to each side, 0.38 m behind the rim's centre.
@@ -51,19 +52,14 @@ function boardOf(hoop) {
 
 // --- physics -------------------------------------------------------------
 
-// Initial velocity that carries the ball from `from` into `hoop` with a high
-// arc, so it drops in from above. `aim` is how far the toss was off the ideal
-// direction (sideways per unit up); `power` is its speed, 1 being a good one.
-function solveShot(from, power, aim, hoop) {
-  const off = Math.sign(aim) * Math.max(0, Math.abs(aim) - AIM_SLACK);
-  const long = power < POWER_LO ? power - POWER_LO : power > POWER_HI ? power - POWER_HI : 0;
-  const tz = hoop.z + long * 1.2;
-  const tx = hoop.x + off * 1.1;
-  const ty = hoop.y + 0.02;
-  const apex = Math.max(hoop.y + 0.6, from.y + 0.5);
-  const vy = Math.sqrt(2 * G * (apex - from.y));
-  const t = vy / G + Math.sqrt((2 * (apex - ty)) / G);
-  return [(tx - from.x) / t, vy, (tz - from.z) / t];
+// The ball's starting velocity for a toss: `up` is the upward speed of the
+// throw (m/s at the ball), `targetX` where the swipe was heading, sideways,
+// at the hoop's distance `hoopZ`. Nothing else is adjusted.
+function throwVelocity(from, up, targetX, hoopZ) {
+  const vy = up * THROW_GAIN;
+  const vz = vy * DEPTH;
+  const t = Math.max(0.05, (hoopZ - from.z) / vz);
+  return [(targetX - from.x) / t, vy, vz];
 }
 
 function newBall(from, v, hoop) {
@@ -298,9 +294,15 @@ export default {
 
     const ready = () => !ball && !move && now >= resetAt;
 
-    function shoot(from, power, aimRatio) {
+    // Throws from `from` with upward speed `up` (m/s at the ball) along a
+    // screen direction `ratio` (sideways pixels per pixel up): where that line
+    // crosses the rim's height on screen is where the ball heads.
+    function shoot(from, up, ratio) {
       if (!ready()) return false;
-      const v = solveShot(from, power, aimRatio, hoop);
+      const p = project(cam, from.x, from.y, from.z), q = project(cam, hoop.x, hoop.y, hoop.z);
+      const sx = p.x + ratio * (p.y - q.y);
+      const targetX = EYE.x + ((sx - cam.cx) * (hoop.z - EYE.z)) / cam.f;
+      const v = throwVelocity(from, up, targetX, hoop.z);
       ball = newBall(from, v, hoop);
       shotsTaken++;
       sessionShots++;
@@ -368,6 +370,20 @@ export default {
       grab.samples.push({ t, x: e.offsetX, y: e.offsetY });
       while (grab.samples.length > 2 && t - grab.samples[0].t > 120) grab.samples.shift();
     }
+    // Pixels per second from timed samples, by least squares.
+    function fitVelocity(pts) {
+      if (pts.length < 2) return { x: 0, y: 0 };
+      const t0 = pts[0].t;
+      let st = 0, sx = 0, sy = 0, stt = 0, stx = 0, sty = 0;
+      for (const q of pts) {
+        const t = (q.t - t0) / 1000;
+        st += t; sx += q.x; sy += q.y; stt += t * t; stx += t * q.x; sty += t * q.y;
+      }
+      const n = pts.length, den = n * stt - st * st;
+      if (den <= 1e-9) return { x: 0, y: 0 };
+      return { x: (n * stx - st * sx) / den, y: (n * sty - st * sy) / den };
+    }
+
     function onUp(e) {
       if (!grab || e.pointerId !== grab.id) return;
       onMove(e);
@@ -376,24 +392,19 @@ export default {
       // The ball leaves from exactly where the finger let go of it.
       const from = toWorld(grab.sx + ox, grab.sy + oy);
       grab = null;
-      // The toss: finger velocity over the last ~0.1 s, in metres per second
-      // at the ball.
-      const a = s[0], b = s[s.length - 1];
-      const dt = Math.max(0.016, (b.t - a.t) / 1000);
+      // The toss: the finger's velocity at release, a least-squares fit over
+      // its last ~90 ms (steadier than two samples), in m/s at the ball.
+      const end = s[s.length - 1].t;
+      const pts = s.filter(q => end - q.t <= 90);
+      const use = pts.length >= 2 ? pts : s.slice(-2);
+      const vel = fitVelocity(use);
       const scale = (REST.z - EYE.z) / cam.f;
-      const up = ((a.y - b.y) / dt) * scale;
-      if (up < MIN_SPEED || now < resetAt) {
-        Object.assign(held, from); // just put down; it drifts back
-        return;
-      }
-      const side = ((b.x - a.x) / dt) * scale;
-      // Compare the toss with the line from where the flick began to the
-      // hoop on screen.
+      const up = -vel.y * scale;
       Object.assign(held, from);
-      const q = project(cam, hoop.x, hoop.y, hoop.z);
-      const ideal = (q.x - (a.x + ox)) / Math.max(1, a.y + oy - q.y);
-      lastToss = { from, power: up / GOOD_SPEED, aim: side / up - ideal };
-      shoot(from, Math.min(3.4, up / GOOD_SPEED), side / up - ideal);
+      lastToss = { from, up, ratio: vel.x / -vel.y, thrown: false };
+      if (up < MIN_SPEED || now < resetAt) return; // just put down; it drifts back
+      lastToss.thrown = true;
+      shoot(from, up, vel.x / -vel.y);
     }
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
@@ -405,14 +416,14 @@ export default {
       if (typing(e) || !api.el.isConnected) return;
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
-        if (e.type === 'keydown' && !charge && !e.repeat) charge = { power: 0.3, dir: 1 };
+        if (e.type === 'keydown' && !charge && !e.repeat) charge = { power: MIN_SPEED, dir: 1 };
         if (e.type === 'keyup' && charge) {
           shoot({ ...held }, charge.power, aim);
           charge = null;
         }
       } else if (e.type === 'keydown' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) {
         e.preventDefault();
-        aim = Math.max(-0.5, Math.min(0.5, aim + (e.code === 'ArrowLeft' ? -0.05 : 0.05)));
+        aim = Math.max(-0.5, Math.min(0.5, aim + (e.code === 'ArrowLeft' ? -0.02 : 0.02)));
       }
     }
     window.addEventListener('keydown', onKey);
@@ -433,9 +444,9 @@ export default {
     // --- loop --------------------------------------------------------------
     function update(dt) {
       if (charge) {
-        charge.power += charge.dir * dt * 1.6;
+        charge.power += charge.dir * dt * 3;
         if (charge.power > CHARGE_MAX) { charge.power = CHARGE_MAX; charge.dir = -1; }
-        if (charge.power < 0.3) { charge.power = 0.3; charge.dir = 1; }
+        if (charge.power < MIN_SPEED) { charge.power = MIN_SPEED; charge.dir = 1; }
       }
       // The held ball moves with the finger; let go without a toss and it
       // drifts back to its spot.
@@ -625,8 +636,6 @@ export default {
         const mh = h * 0.4, mx = w - 26, my = h * 0.5 - mh / 2;
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(mx, my, 14, mh);
-        ctx.fillStyle = 'rgba(105,219,124,0.5)';
-        ctx.fillRect(mx, my + mh * (1 - POWER_HI / CHARGE_MAX), 14, mh * ((POWER_HI - POWER_LO) / CHARGE_MAX));
         ctx.fillStyle = '#ffd43b';
         const ph = (charge.power / CHARGE_MAX) * mh;
         ctx.fillRect(mx + 3, my + mh - ph, 8, ph);
@@ -635,7 +644,7 @@ export default {
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y - 30);
-        ctx.lineTo(a.x + aim * 160, a.y - 110);
+        ctx.lineTo(a.x + aim * 80, a.y - 110);
         ctx.stroke();
       }
 
@@ -693,7 +702,7 @@ export default {
       // For tests: where the ball and hoop are, in page pixels of the canvas.
       _view() {
         const b = ball || held, p = project(cam, b.x, b.y, b.z), q = project(cam, hoop.x, hoop.y, hoop.z);
-        return { ball: { x: p.x, y: p.y }, hoop: { x: q.x, y: q.y }, spot, flying: !!ball, held: !!grab, ready: ready(), lastToss };
+        return { ball: { x: p.x, y: p.y, z: b.z }, hoop: { x: q.x, y: q.y, z: hoop.z }, spot, flying: !!ball, held: !!grab, ready: ready(), lastToss, total: record.total };
       },
       destroy() {
         cancelAnimationFrame(raf);
@@ -703,7 +712,7 @@ export default {
       },
       onPad(pad) {
         aim = Math.max(-0.5, Math.min(0.5, pad.x * 0.5));
-        if (pad.pressed[0] && !charge) charge = { power: 0.3, dir: 1 };
+        if (pad.pressed[0] && !charge) charge = { power: MIN_SPEED, dir: 1 };
         if (!pad.pressed[0] && charge) {
           shoot({ ...held }, charge.power, aim);
           charge = null;
@@ -714,4 +723,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _physics = { solveShot, newBall, stepBall, SPOTS, REST };
+export const _physics = { throwVelocity, newBall, stepBall, SPOTS, REST, THROW_GAIN, DEPTH };

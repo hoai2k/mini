@@ -138,6 +138,7 @@ try {
   if (!joined) console.log('DEBUG', await b.evaluate(() => ({ cur: window.__chat.games.current?.game.id, players: window.__chat.games.current?.api.players().map(p => p.name), sessions: window.__chat.games.sessions().map(s => s.sid), toasts: [...document.querySelectorAll('.toast')].map(t => t.textContent), invites: [...document.querySelectorAll('.invite')].map(i => i.textContent) })));
   check(joined, 'Bo joins Ana’s Hoops session');
   check(await until(a, () => window.__chat.games.current?.api.players().length === 2), 'Ana sees Bo in the session');
+  check(await a.evaluate(() => !document.querySelector('#controls').checkVisibility()), 'the bottom controls hide while a game is on');
   await a.waitForTimeout(800);
   await a.screenshot({ path: `${outDir}call-ana-hoops.png` });
   await b.screenshot({ path: `${outDir}call-bo-hoops.png` });
