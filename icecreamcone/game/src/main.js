@@ -830,7 +830,7 @@ function celebrationInput(dt) {
 const earnedSet = () => new Set(BIRDS.map((_, i) => i).filter((i) => ALL_OPEN || passed(i)));
 const pictures = () => backgrounds(BIRD_IDS, (i) => ALL_OPEN || passed(i));
 // The picture behind the stickers: the bird's own painting for the book
-// (IC-B01..B28, drawn across both pages) once delivered, its game's scene
+// (IC-SB01..SB28, drawn across both pages) once delivered, its game's scene
 // (pasted in) until then.
 const bookPicture = () => {
   const bg = shownBackground(pictures(), book.bg);

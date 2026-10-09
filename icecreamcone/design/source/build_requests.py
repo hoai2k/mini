@@ -871,12 +871,36 @@ BOOK = [
 DELIVERED_BOOK = set(['bobolinks', 'broomwhisk', 'buttonbeaks', 'coot', 'crow', 'cupadee', 'dodo', 'drippet', 'garbagecanary', 'glovedove', 'gullfinch', 'keycrane', 'ladlelark', 'milkmidge', 'niffy', 'peeper', 'piffle', 'plugsocketswift', 'plume', 'radiobird', 'saltshakershrike', 'sawbird', 'shuttercluck', 'snippit', 'steampressersparrow', 'titthrush', 'waterglassgoose', 'wetweatherwren'])
 for n, (bid, name, scene) in enumerate(BOOK, 1):
     REQUESTS.append({
-        "id": f"IC-B{n:02d}", "section": "book", "name": f"Sticker book: {name}", "key": f"book.{bid}",
+        "id": f"IC-SB{n:02d}", "section": "book", "name": f"Sticker book: {name}", "key": f"book.{bid}",
         "file": f"assets/book/{bid}.webp", "size": "2048 x 1024, opaque",
         "used": f"A background for the sticker book's pages, unlocked by passing {name}.",
         "standin": f"{name}'s game scene.",
         "status": "delivered" if bid in DELIVERED_BOOK else "requested",
         "prompt": STYLE + " " + BOOK_PLATE + scene,
+    })
+
+# The first sticker-book pictures came back as soft, realistic watercolours
+# with no pen line; each is redrawn in the book's own look into the same file.
+BOOK_REDO = (
+    "The delivered picture ({0}) has the right place and composition but the wrong look: it is a "
+    "soft, realistic, glossy watercolour with no ink line, saturated colour, glowing light and "
+    "photographic depth, so it does not match the rest of this game. Draw the same place again in "
+    "the game's own look, matching its scene for the same bird ({1}): every shape outlined in fine "
+    "brown-black pen line, shade done with crosshatching and stippling, flat transparent washes in "
+    "the faded palette with plenty of cream paper showing through, simple flattened perspective "
+    "and fewer, larger shapes: an illustration printed in a 1971 picture book, not a painting. "
+)
+DELIVERED_BOOK_REDOS: set[str] = set()
+GAME_URL = REF_URL.replace("reference/", "game/")
+for n, (bid, name, scene) in enumerate(BOOK, 1):
+    REQUESTS.append({
+        "id": f"IC-SB{n:02d}b", "section": "book", "name": f"Sticker book: {name}, redrawn in ink",
+        "key": f"bookredo.{bid}", "file": f"assets/book/{bid}.webp", "size": "2048 x 1024, opaque",
+        "used": "Replaces the delivered sticker-book picture of the same bird in the same file.",
+        "standin": "The delivered picture, as it is.",
+        "status": "delivered" if bid in DELIVERED_BOOK_REDOS else "requested",
+        "prompt": STYLE + " " + BOOK_REDO.format(GAME_URL + f"assets/book/{bid}.webp", GAME_URL + f"assets/scenes/{bid}.webp")
+        + BOOK_PLATE + scene,
     })
 
 

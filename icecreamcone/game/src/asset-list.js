@@ -749,5 +749,117 @@ export const ASSETS = {
   "book.radiobird": {
     "file": "assets/book/radiobird.webp",
     "delivered": true
+  },
+  "bookredo.coot": {
+    "file": "assets/book/coot.webp",
+    "delivered": false
+  },
+  "bookredo.cupadee": {
+    "file": "assets/book/cupadee.webp",
+    "delivered": false
+  },
+  "bookredo.shuttercluck": {
+    "file": "assets/book/shuttercluck.webp",
+    "delivered": false
+  },
+  "bookredo.gullfinch": {
+    "file": "assets/book/gullfinch.webp",
+    "delivered": false
+  },
+  "bookredo.plume": {
+    "file": "assets/book/plume.webp",
+    "delivered": false
+  },
+  "bookredo.bobolinks": {
+    "file": "assets/book/bobolinks.webp",
+    "delivered": false
+  },
+  "bookredo.peeper": {
+    "file": "assets/book/peeper.webp",
+    "delivered": false
+  },
+  "bookredo.piffle": {
+    "file": "assets/book/piffle.webp",
+    "delivered": false
+  },
+  "bookredo.dodo": {
+    "file": "assets/book/dodo.webp",
+    "delivered": false
+  },
+  "bookredo.crow": {
+    "file": "assets/book/crow.webp",
+    "delivered": false
+  },
+  "bookredo.milkmidge": {
+    "file": "assets/book/milkmidge.webp",
+    "delivered": false
+  },
+  "bookredo.waterglassgoose": {
+    "file": "assets/book/waterglassgoose.webp",
+    "delivered": false
+  },
+  "bookredo.niffy": {
+    "file": "assets/book/niffy.webp",
+    "delivered": false
+  },
+  "bookredo.broomwhisk": {
+    "file": "assets/book/broomwhisk.webp",
+    "delivered": false
+  },
+  "bookredo.buttonbeaks": {
+    "file": "assets/book/buttonbeaks.webp",
+    "delivered": false
+  },
+  "bookredo.keycrane": {
+    "file": "assets/book/keycrane.webp",
+    "delivered": false
+  },
+  "bookredo.snippit": {
+    "file": "assets/book/snippit.webp",
+    "delivered": false
+  },
+  "bookredo.garbagecanary": {
+    "file": "assets/book/garbagecanary.webp",
+    "delivered": false
+  },
+  "bookredo.steampressersparrow": {
+    "file": "assets/book/steampressersparrow.webp",
+    "delivered": false
+  },
+  "bookredo.wetweatherwren": {
+    "file": "assets/book/wetweatherwren.webp",
+    "delivered": false
+  },
+  "bookredo.glovedove": {
+    "file": "assets/book/glovedove.webp",
+    "delivered": false
+  },
+  "bookredo.titthrush": {
+    "file": "assets/book/titthrush.webp",
+    "delivered": false
+  },
+  "bookredo.plugsocketswift": {
+    "file": "assets/book/plugsocketswift.webp",
+    "delivered": false
+  },
+  "bookredo.saltshakershrike": {
+    "file": "assets/book/saltshakershrike.webp",
+    "delivered": false
+  },
+  "bookredo.ladlelark": {
+    "file": "assets/book/ladlelark.webp",
+    "delivered": false
+  },
+  "bookredo.drippet": {
+    "file": "assets/book/drippet.webp",
+    "delivered": false
+  },
+  "bookredo.sawbird": {
+    "file": "assets/book/sawbird.webp",
+    "delivered": false
+  },
+  "bookredo.radiobird": {
+    "file": "assets/book/radiobird.webp",
+    "delivered": false
   }
 };
