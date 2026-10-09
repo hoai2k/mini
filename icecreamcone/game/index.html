@@ -22,11 +22,15 @@
   <div id="app">
     <canvas id="stage" aria-hidden="true"></canvas>
 
+    <!-- Loading: every delivered picture loads before anything is shown -->
+    <section id="loading" class="screen" aria-label="Loading">
+      <div class="loading-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="loading-fill"></div></div>
+    </section>
+
     <!-- Title -->
-    <section id="title" class="screen" aria-labelledby="logo-text">
+    <section id="title" class="screen" hidden aria-label="The Ice-Cream Cone Coot and Other Rare Birds">
       <div class="title-block">
-        <img id="logo-img" alt="The Ice-Cream Cone Coot and Other Rare Birds" hidden>
-        <h1 id="logo-text" class="logo-text"><span class="l1">The Ice-Cream Cone Coot</span><span class="l2">and Other Rare Birds</span></h1>
+        <h1><img id="logo-img" src="assets/ui/logo.png" alt="The Ice-Cream Cone Coot and Other Rare Birds"></h1>
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
       </div>

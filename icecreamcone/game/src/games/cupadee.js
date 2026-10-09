@@ -644,9 +644,12 @@ export default function create(env) {
       c.restore();
     }
 
-    // the queue, back to front
-    const order = g.birds.slice().reverse();
+    // the queue back to front, then the filled ones leaving, and last, in
+    // front of them all, the one the tea is pouring for
     const fb = front();
+    const waiting = g.birds.filter((b) => b.state === 'queue').reverse();
+    const leaving = g.birds.filter((b) => b.state === 'done' || b.state === 'leave');
+    const order = [...waiting, ...leaving, ...(fb ? [fb] : [])];
     for (const b of order) {
       const pose = { fill: 0, tip: 0.22 - Math.sin(t * 1.6) * 0.03 + b.tilt, open: true };
       const wobble = b.walk ? Math.sin(b.walk) * 0.05 : 0;

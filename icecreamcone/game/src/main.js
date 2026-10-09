@@ -27,7 +27,7 @@ let settings = loadSettings();
 let progress = loadProgress();
 
 const S = {
-  screen: 'title',
+  screen: 'loading',
   modals: [], // stack of open modal ids
   titleUtil: false,
   bird: 0, // index into BIRDS
@@ -44,30 +44,36 @@ const S = {
 
 // ---------- assets ----------
 
+// Every delivered picture, loaded before the game shows anything, with a
+// loading bar meanwhile: nothing drawn in code ever stands in for a picture
+// that has been delivered.
 async function loadArt() {
   const map = new Map();
+  const todo = Object.entries(ASSETS).filter(([, a]) => a.delivered);
+  let done = 0;
+  const bar = $('#loading-fill');
   await Promise.all(
-    Object.entries(ASSETS)
-      .filter(([, a]) => a.delivered)
-      .map(
-        ([key, a]) =>
-          new Promise((res) => {
-            const img = new Image();
-            img.onload = () => {
-              map.set(key, img);
-              res();
-            };
-            img.onerror = () => res();
-            img.src = a.file;
-          }),
-      ),
+    todo.map(
+      ([key, a]) =>
+        new Promise((res) => {
+          const img = new Image();
+          img.onload = () => {
+            map.set(key, img);
+            res();
+          };
+          img.onerror = () => {
+            console.warn('[art] could not load', a.file);
+            res();
+          };
+          img.src = a.file;
+        }).then(() => {
+          done++;
+          bar.style.width = `${Math.round((done / todo.length) * 100)}%`;
+          bar.parentElement.setAttribute('aria-valuenow', Math.round((done / todo.length) * 100));
+        }),
+    ),
   );
   setArt(map);
-  if (map.has('logo')) {
-    $('#logo-img').src = ASSETS.logo.file;
-    $('#logo-img').hidden = false;
-    $('#logo-text').hidden = true;
-  }
 }
 
 // ---------- canvas sizing ----------
@@ -894,7 +900,7 @@ function render(dt = 0) {
   }
   fitView();
   logical();
-  if (S.screen === 'title') renderTitle(t);
+  if (S.screen === 'title') renderTitle();
   else if (S.screen === 'page') renderPage(t);
   else if (S.screen === 'gathering') renderGathering(t);
   else if (S.screen === 'guide') drawCards(t);
@@ -912,24 +918,12 @@ function updateHud() {
   } else tm.hidden = true;
 }
 
-function renderTitle(t) {
+function renderTitle() {
   const bg = art('titleBg');
-  if (bg) {
-    g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
-    const s = Math.max(view.cw / bg.width, view.ch / bg.height);
-    g.drawImage(bg, (view.cw - bg.width * s) / 2, (view.ch - bg.height * s) / 2, bg.width * s, bg.height * s);
-    return;
-  }
-  band(g, -200, 760, W + 400, 300, PAL.sage, 0.45, 4);
-  band(g, -200, 800, W + 400, 300, PAL.green, 0.3, 5);
-  // a parade of birds walking across the bottom
-  const speed = settings.reduceMotion ? 0 : 40;
-  BIRDS.forEach((b, i) => {
-    const span = W + 600;
-    const x = ((i * 230 - t * speed) % span + span) % span - 300;
-    const hop = settings.reduceMotion ? 0 : Math.abs(Math.sin(t * 3 + i)) * 6;
-    drawBird(g, b.id, { x, y: 860 - hop, size: 200, t: t + i, pose: { growth: 0.85, light: ['red', 'amber', 'green'][Math.floor(t / 2) % 3], fill: 0.5, sing: 0.5 } });
-  });
+  if (!bg) return;
+  g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+  const s = Math.max(view.cw / bg.width, view.ch / bg.height);
+  g.drawImage(bg, (view.cw - bg.width * s) / 2, (view.ch - bg.height * s) / 2, bg.width * s, bg.height * s);
 }
 
 // A bird on its own page, gently doing its thing.
@@ -1023,12 +1017,13 @@ addEventListener('gamepadconnected', () => toast('Controller connected.'));
 
 applySettings();
 resize();
-show('title');
-loadArt();
 requestAnimationFrame((n) => {
   last = n;
   frame(n);
 });
-
 // For automated checks.
 globalThis.__coot = { S, act, BIRDS, startBird, show, get progress() { return progress; } };
+
+await loadArt();
+$('#loading').remove();
+show('title');
