@@ -89,7 +89,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .text-btn { padding: 8px 18px; font-family: var(--serif); font-weight: 600; }
 .row-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .row-buttons .menu-btn { width: auto; flex: 1 1 160px; margin: 0; }
-#result .row-buttons .menu-btn { white-space: nowrap; padding-left: 12px; padding-right: 12px; }
 
 /* ---------- title ---------- */
 
@@ -319,6 +318,26 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .controls-list li { margin: 3px 0; }
 .tips { color: var(--muted); font-size: 0.95rem; }
 .result-score { font: 800 1.6rem var(--serif); margin: 4px 0; }
+/* The result card stays a moment, its little bar running down, then goes. */
+#result { cursor: pointer; }
+.result-timer { height: 6px; margin: 12px auto 0; width: 60%; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }
+#result-time { height: 100%; width: 100%; background: var(--accent); }
+.result-hint { font-size: 0.85rem; margin: 8px 0 0; }
+
+/* The sticker celebration is drawn on the stage; taps go through to it. */
+#celebrate { pointer-events: none; justify-content: flex-start; align-items: flex-end; }
+.celebrate-hint { background: rgba(250, 244, 228, 0.8); padding: 2px 12px; border-radius: 999px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
+/* A card just opened after a celebration: turned over, with a New tab. */
+.card.unlocking { z-index: 3; transition: none; box-shadow: 0 0 0 4px rgba(192, 64, 122, 0.55), 0 0 22px 6px rgba(239, 217, 106, 0.7); }
+.card.new::after {
+  content: 'New!';
+  position: absolute; top: 4px; left: 4px;
+  background: var(--accent); color: #fff8ef;
+  font: 700 0.75rem var(--serif);
+  padding: 1px 8px; border: 2px solid var(--ink); border-radius: 8px;
+  transform: rotate(-8deg);
+}
 
 .scroll { overflow-y: auto; text-align: left; flex: 1; min-height: 0; padding-right: 6px; }
 .settings-list { display: flex; flex-direction: column; gap: 8px; }

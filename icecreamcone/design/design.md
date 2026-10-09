@@ -31,13 +31,28 @@ says "New World Record!" and nothing more specific.
    Play, starts the game; B, Esc or the × in the corner goes back to the
    guide.
 4. **Play.** A 3-2-1 count, the game, then "Time!".
-5. **Result.** Your score, under "New World Record!" when it beats your best
-   and reaches the score that opens the next page ("Personal Best!" when it
-   beats your best but falls short; otherwise "Time!" and your best), and the score that opens the next page
-   if you haven't reached it yet. Two buttons: Next Bird (or, after the last
-   bird, All the Birds Together) when the round reached the score, Play Again
-   when it didn't, and Back to Field Guide. The first is coloured and chosen
-   by default.
+5. **Result.** The first time a round reaches the bird's score there is no
+   result card but a celebration (about six seconds), drawn in the book's
+   ink and watercolour: the bird's portrait pops in as a die-cut sticker (a
+   cream margin following its outline, a cut edge, a shadow, a light sweeping
+   across it) with its name; the field guide's sticker book opens under it,
+   two facing pages with a place for every bird in the guide's order, the
+   stickers already earned stuck in theirs and the rest pencilled outlines
+   with their page numbers; the new sticker flies to its place and sticks
+   with a slap and a puff ("A new page is open: ..."). Then the guide comes
+   back, the next card still locked; it turns over to show its bird, with a
+   New tab, and is chosen, ready to play (after the last bird, the bird
+   itself is chosen). Any press (A, Enter, Space, a click or tap) jumps to
+   the next step; B, Esc or a long press skips to the end. With reduced
+   motion the steps fade instead of flying and turning.
+
+   Every other round shows the result card for about three seconds: the
+   score, under "New World Record!" when it beats your best and reaches the
+   score that opens the next page ("Personal Best!" when it beats your best
+   but falls short; otherwise "Time!" and your best), the score that opens
+   the next page if you haven't reached it yet, and the game's own summary
+   lines. It has no buttons: a little bar runs down, any press goes on
+   sooner, and the guide comes back with the bird just played chosen.
 6. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
 

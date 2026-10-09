@@ -36,6 +36,8 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | File | What it is |
 | --- | --- |
 | `game/src/main.js` | Screens, menus and navigation, the guide, bird pages, running a minigame (count-in, HUD, pause, results, best scores) |
+| `game/src/reward.js` | After a round: celebration or brief result, the celebration's steps and timing, the sticker book's layout |
+| `game/src/celebrate.js` | The sticker celebration, drawn on the stage: die-cut stickers from the portraits, the sticker book, the flight |
 | `game/src/birds.js` | The ten birds: names, rhymes, goals, tips, the score that opens the next page |
 | `game/src/subjects.js` | The undiscovered birds Shuttercluck photographs (the book's other 18 and ten of our own): names, rarity, their stand-in drawings and where each painting goes |
 | `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
@@ -58,10 +60,13 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 
 ```sh
 cd icecreamcone/game
-python3 -m http.server 8125        # then open http://localhost:8125/ (?all opens every page)
+python3 -m http.server 8125        # then open http://localhost:8125/
+                                   # ?debug opens every page, and every round that reaches
+                                   # its score plays the sticker celebration (?all: pages only)
 node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game
-node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result,
-                                   # keyboard round, then every minigame to its result card
+node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result → guide,
+                                   # first pass → sticker celebration → next card opening, repeat → result,
+                                   # ?debug, keyboard round, then every minigame to its end
 python3 ../design/source/build_requests.py --check
 ```
 

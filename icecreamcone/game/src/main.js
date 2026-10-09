@@ -8,6 +8,8 @@ import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
+import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD } from './reward.js';
+import { drawCelebration, sticker } from './celebrate.js';
 import './subjects.js';
 import { loadMoreBirds } from './more/index.js';
 
@@ -15,7 +17,10 @@ const W = 1600;
 const H = 900;
 const params = new URLSearchParams(location.search);
 const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
-const ALL_OPEN = params.has('all');
+// ?debug opens every page (?all is the old name for it), and every round
+// that reaches its score plays the whole celebration, as if for the first time.
+const DEBUG = params.has('debug');
+const ALL_OPEN = DEBUG || params.has('all');
 // Preview: the book's other birds whose games are built but not yet in the guide.
 if (params.has('more')) BIRDS.push(...(await loadMoreBirds((params.get('more') || '').split(',').filter(Boolean))));
 
@@ -34,6 +39,10 @@ const S = {
   game: null,
   gameId: null,
   phase: 'idle', // 'loading' | 'count' | 'play' | 'over' | 'result'
+  resultT: 0, // how long the brief result card has been up
+  cele: null, // the sticker celebration, while it runs (screen 'celebrate')
+  unlock: null, // the guide's next card opening, after a celebration
+  last: null, // how the last round ended: { id, score, outcome }
   count: 0,
   overT: 0,
   paused: false,
@@ -127,7 +136,7 @@ function logical() {
 
 // ---------- screens and modals ----------
 
-const SCREENS = ['title', 'guide', 'page', 'gathering'];
+const SCREENS = ['title', 'guide', 'page', 'gathering', 'celebrate'];
 
 function show(screen) {
   S.screen = screen;
@@ -140,6 +149,8 @@ function show(screen) {
     S.game = null;
   }
   input.lockHeld();
+  if (screen !== 'celebrate') S.cele = null;
+  if (screen !== 'guide') S.unlock = null;
   if (screen === 'title') {
     S.titleUtil = false;
     $('#title-hint').hidden = false;
@@ -151,6 +162,9 @@ function show(screen) {
   } else if (screen === 'page') {
     fillPage();
     audio.playMusic(BIRDS[S.bird].tune === 'night' ? 'night' : 'menu');
+  } else if (screen === 'celebrate') {
+    audio.playMusic('menu');
+    document.activeElement?.blur?.();
   } else if (screen === 'gathering') {
     $('#gathering-count').textContent = `Every one of the ${BIRDS.length} rare birds, spotted.`;
     audio.playMusic('menu');
@@ -280,31 +294,28 @@ function moveFocus(dx, dy) {
 
 const best = (id) => progress[id]?.best || 0;
 const passed = (i) => passes(BIRDS[i], best(BIRDS[i].id));
-const unlocked = (i) => ALL_OPEN || i === 0 || passed(i - 1);
+// The card opening after a celebration shows locked until it flips, even in
+// ?debug.
+const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || i === 0 || passed(i - 1));
 
 function buildGuide() {
   const wrap = $('#cards');
   wrap.textContent = '';
   BIRDS.forEach((b, i) => {
-    const open = unlocked(i);
-    const hi = best(b.id);
     const card = document.createElement('button');
-    card.className = 'card' + (open ? '' : ' locked');
     card.dataset.nav = '';
     card.dataset.bird = i;
-    card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + hi : ''}` : `Page ${i + 1}, not yet spotted`);
     const cv = document.createElement('canvas');
     cv.setAttribute('aria-hidden', 'true');
     const name = document.createElement('span');
     name.className = 'card-name';
-    name.textContent = open ? b.name.replace(/^The /, '') : 'Not yet spotted';
     const sub = document.createElement('span');
     sub.className = 'card-sub';
-    sub.textContent = open ? (hi ? `${b.game} · best ${hi}` : b.game) : `Page ${i + 1}`;
     card.append(cv, name, sub);
+    fillCard(card);
     card.addEventListener('click', () => {
       audio.unlock();
-      if (!open) {
+      if (!unlocked(i)) {
         toast(`Score ${BIRDS[i - 1].pass} on page ${i} to open this one.`);
         audio.sfx('back');
         return;
@@ -320,6 +331,78 @@ function buildGuide() {
   $('#gathering-btn').hidden = spotted < BIRDS.length && !ALL_OPEN;
   const target = wrap.children[Math.min(S.bird, BIRDS.length - 1)];
   target?.focus();
+}
+
+// A card's words, open or locked.
+function fillCard(card) {
+  const i = Number(card.dataset.bird);
+  const b = BIRDS[i];
+  const open = unlocked(i);
+  const hi = best(b.id);
+  card.classList.toggle('locked', !open);
+  card.classList.add('card');
+  card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + hi : ''}` : `Page ${i + 1}, not yet spotted`);
+  card.querySelector('.card-name').textContent = open ? b.name.replace(/^The /, '') : 'Not yet spotted';
+  card.querySelector('.card-sub').textContent = open ? (hi ? `${b.game} · best ${hi}` : b.game) : `Page ${i + 1}`;
+}
+
+// After a celebration: back to the guide with `sel` chosen; with `open`, that
+// card shows locked, then flips open and shines first (a press skips it).
+function toGuide(sel, open = -1) {
+  S.bird = sel;
+  show('guide');
+  if (open < 0) return;
+  S.unlock = { i: open, t: 0, revealed: false };
+  const card = guideCard(open);
+  fillCard(card);
+  document.activeElement?.blur?.();
+  card.classList.add('unlocking');
+  card.scrollIntoView?.({ block: 'nearest' });
+  $('#guide-live').textContent = '';
+}
+const guideCard = (i) => $(`#cards .card[data-bird="${i}"]`);
+
+function tickUnlock(dt) {
+  const u = S.unlock;
+  u.t += dt;
+  const card = guideCard(u.i);
+  if (!card) {
+    S.unlock = null;
+    return;
+  }
+  const flip = (u.t - UNLOCK.wait) / UNLOCK.flip;
+  if (!u.revealed && flip >= 0.5) revealCard(u, card);
+  if (!settings.reduceMotion) {
+    const a = flip <= 0 ? Math.sin(u.t * 40) * 1.5 * Math.min(1, u.t * 4) : flip < 1 ? 180 * flip : 180;
+    const lift = Math.sin(Math.PI * Math.max(0, Math.min(1, flip)));
+    // a half turn, with the face shown the right way round after the middle
+    const deg = flip <= 0 ? a : flip < 0.5 ? a : a - 180;
+    card.style.transform = flip <= 0 ? `rotate(${deg * 0.4}deg)` : `perspective(700px) rotateY(${deg}deg) scale(${1 + 0.12 * lift})`;
+  }
+  if (u.t >= UNLOCK_TIME) endUnlock();
+}
+
+function revealCard(u, card) {
+  u.revealed = true;
+  fillCard(card);
+  card.classList.add('new');
+  audio.sfx('bloom');
+  $('#guide-live').textContent = `A new page is open: ${BIRDS[u.i].name}.`;
+}
+
+// The card is open, and chosen, ready to play.
+function endUnlock() {
+  const u = S.unlock;
+  if (!u) return;
+  const card = guideCard(u.i);
+  if (card && !u.revealed) revealCard(u, card);
+  S.unlock = null;
+  if (card) {
+    card.classList.remove('unlocking');
+    card.style.transform = '';
+    card.focus();
+  }
+  input.lockHeld();
 }
 
 function drawCards(t) {
@@ -340,9 +423,54 @@ function drawCards(t) {
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const size = Math.min(h * 0.92, w * 1.0);
     const opts = { x: w / 2 + size * 0.08, y: h * 0.96, size, t: card === document.activeElement ? t : 0, pose: { growth: 0.2, light: 'green', fill: 0.6 } }; // the Plume as a sprout, so it fits its card
-    if (unlocked(i)) drawBird(c, BIRDS[i].id, opts);
+    const u = S.unlock?.i === i ? S.unlock : null;
+    if (u && settings.reduceMotion) {
+      // no turning over: the shadow fades and the bird shows through
+      const k = Math.max(0, Math.min(1, (u.t - UNLOCK.wait) / UNLOCK.flip));
+      c.globalAlpha = k;
+      drawBird(c, BIRDS[i].id, opts);
+      c.globalAlpha = 1 - k;
+      drawSilhouette(c, BIRDS[i].id, opts);
+      c.globalAlpha = 1;
+    } else if (unlocked(i)) drawBird(c, BIRDS[i].id, opts);
     else drawSilhouette(c, BIRDS[i].id, opts);
+    if (u && u.revealed && !settings.reduceMotion) shineCard(c, w, h, (u.t - UNLOCK.wait - UNLOCK.flip * 0.5) / (UNLOCK.flip * 0.5 + UNLOCK.shine), t);
   }
+}
+
+// A light sweeping across a card's bird as it opens, and a few glints.
+function shineCard(c, w, h, k, t) {
+  if (k < 0 || k > 1) return;
+  c.save();
+  c.globalCompositeOperation = 'source-atop';
+  const x = -w * 0.5 + k * w * 2;
+  const grd = c.createLinearGradient(x - w * 0.3, 0, x + w * 0.3, h * 0.4);
+  grd.addColorStop(0, 'rgba(255,250,225,0)');
+  grd.addColorStop(0.5, 'rgba(255,250,225,0.75)');
+  grd.addColorStop(1, 'rgba(255,250,225,0)');
+  c.fillStyle = grd;
+  c.fillRect(0, 0, w, h);
+  c.globalCompositeOperation = 'source-over';
+  for (let j = 0; j < 5; j++) {
+    const tw = Math.max(0, Math.sin(t * 6 + j * 2.1)) * (1 - k);
+    if (tw < 0.05) continue;
+    const gx = w * (0.15 + ((j * 0.37) % 0.7));
+    const gy = h * (0.15 + ((j * 0.53) % 0.6));
+    const s = Math.min(w, h) * 0.07 * tw;
+    c.globalAlpha = tw;
+    c.beginPath();
+    c.moveTo(gx, gy - s);
+    c.quadraticCurveTo(gx, gy, gx + s, gy);
+    c.quadraticCurveTo(gx, gy, gx, gy + s);
+    c.quadraticCurveTo(gx, gy, gx - s, gy);
+    c.quadraticCurveTo(gx, gy, gx, gy - s);
+    c.fillStyle = '#fff6c8';
+    c.fill();
+    c.lineWidth = 1.2;
+    c.strokeStyle = '#b08a30';
+    c.stroke();
+  }
+  c.restore();
 }
 
 // ---------- a bird's page ----------
@@ -520,13 +648,23 @@ function resume() {
 // A score word for one: blooms, dishes, glasses → bloom, dish, glass.
 const one = (word) => word.replace(/(ches|shes|sses|xes)$/, (m) => m.slice(0, -2)).replace(/s$/, '');
 
+// The round is over. The first time a bird's score is reached (every time it
+// is reached, in ?debug) the sticker celebration plays; otherwise the result
+// card shows for a moment, then the guide comes back with the bird chosen.
 function finish() {
   const b = BIRDS[S.bird];
   const score = Math.round(S.game.score);
   const before = passed(S.bird);
   const record = recordScore(progress, b.id, score) && score > 0;
   const now = passed(S.bird);
+  const outcome = roundOutcome({ wasPassed: before, isPassed: now, reached: passes(b, score), debug: DEBUG });
+  S.last = { id: b.id, score, outcome };
+  if (outcome === 'celebrate') {
+    celebrate(S.bird);
+    return;
+  }
   S.phase = 'result';
+  S.resultT = 0;
   // A best that still falls short of the next page is only a personal one.
   $('#result-title').textContent = !record ? 'Time!' : passes(b, score) ? 'New World Record!' : 'Personal Best!';
   $('#result-score').textContent = `${score} ${score === 1 ? one(b.score) : b.score}`;
@@ -538,21 +676,98 @@ function finish() {
     p.textContent = line;
     extra.append(p);
   }
-  if (!before && now && S.bird + 1 < BIRDS.length) {
-    const p = document.createElement('p');
-    p.innerHTML = `<strong>A new page is open: ${BIRDS[S.bird + 1].name}!</strong>`;
-    extra.append(p);
-  }
-  // Two choices: on to the next bird after a round that reaches the score,
-  // or another go after one that doesn't; the first is the default.
-  const go = $('#result-go');
-  const won = passes(b, score);
-  go.dataset.action = won ? 'next' : 'restart';
-  go.textContent = !won ? 'Play Again' : S.bird + 1 < BIRDS.length ? 'Next Bird' : 'All the Birds Together';
+  $('#result-hint').textContent = pad() ? 'A: back to the field guide' : input.kind === 'keyboard' ? 'Enter: back to the field guide' : 'Tap: back to the field guide';
+  const bar = $('#result-time');
+  bar.style.width = '100%';
   $('#result').hidden = false;
   audio.sfx('medal', { level: record ? 2 : now ? 1 : 0 });
   input.lockHeld();
-  focusFirst();
+  document.activeElement?.blur?.();
+}
+
+// From the result card back to the guide, the bird just played chosen.
+function leaveResult() {
+  if (S.phase !== 'result') return;
+  toGuide(S.bird);
+}
+
+// ---------- the sticker celebration ----------
+
+function celebrate(i) {
+  const earned = new Set(BIRDS.map((_, j) => j).filter((j) => j !== i && passed(j)));
+  const n = nextPage(i, BIRDS.length);
+  S.cele = { index: i, birds: BIRDS, earned, next: n >= 0 ? BIRDS[n] : null, t: 0, hold: 0, fired: new Set() };
+  // the stickers are cut out now, not in the middle of the show
+  for (const b of BIRDS) sticker(b.id);
+  show('celebrate');
+  const b = BIRDS[i];
+  $('#celebrate-live').textContent = `Spotted! ${b.name}. A new sticker for your field guide.` + (n >= 0 ? ` A new page is open: ${BIRDS[n].name}.` : '');
+  celebrateHint();
+}
+
+function celebrateHint() {
+  const h = $('#celebrate-hint');
+  const text = pad() ? 'A: next · B: skip' : input.kind === 'keyboard' ? 'Space: next · Esc: skip' : 'Tap: next · hold: skip';
+  if (h.textContent !== text) h.textContent = text;
+}
+
+// Sounds at their moments, unless a press jumped well past them.
+const CELE_SOUNDS = [
+  [0.05, () => audio.sfx('medal', { level: 2 })],
+  [0.4, () => audio.sfx('bloom')],
+  [1.6, () => audio.sfx('page')],
+  [3.5, () => { audio.sfx('plop'); audio.sfx('catch', { pitch: 7 }); vibrate(60); }],
+  [3.55, () => audio.sfx('right')],
+];
+
+function tickCelebration(dt) {
+  const c = S.cele;
+  c.t += dt;
+  for (const [when, play] of CELE_SOUNDS) {
+    if (c.t >= when && !c.fired.has(when)) {
+      c.fired.add(when);
+      if (c.t - when < 0.3) play();
+    }
+  }
+  if (c.t >= END) endCelebration(false);
+}
+
+// Over: back to the guide, where the next page opens (shown, unless skipped)
+// and is chosen; after the last bird, the bird itself is chosen.
+function endCelebration(skipped) {
+  const c = S.cele;
+  if (!c) return;
+  const n = nextPage(c.index, BIRDS.length);
+  const sel = selectAfter(c.index, BIRDS.length, 'celebrate');
+  if (skipped || n < 0) {
+    toGuide(sel);
+    if (n < 0) toast(`Every one of the ${BIRDS.length} rare birds, spotted!`);
+  } else toGuide(sel, n);
+}
+
+// Any press: the next step; B or a long press: straight to the end.
+function celebrationInput(dt) {
+  const c = S.cele;
+  celebrateHint();
+  const n = input.nav();
+  const st = input.state();
+  if (n.back) {
+    endCelebration(true);
+    return;
+  }
+  const fresh = st.actionPressed || n.confirm || input.padAnyPressed();
+  if (fresh) c.hold = 0.0001;
+  else if (c.hold > 0 && st.action) c.hold += dt;
+  else c.hold = 0;
+  if (c.hold >= HOLD_TO_SKIP) {
+    endCelebration(true);
+    return;
+  }
+  if (fresh) {
+    const to = skipFrom(c.t);
+    if (to >= END) endCelebration(false);
+    else c.t = to;
+  }
 }
 
 function vibrate(ms = 80) {
@@ -603,10 +818,6 @@ function act(action, el) {
     case 'quit-guide':
       confirm('Leave this game?', 'Your score in this round will not count.', () => show('guide'));
       break;
-    case 'next':
-      if (S.bird + 1 < BIRDS.length) startBird(S.bird + 1);
-      else show('gathering');
-      break;
     case 'close':
       closeModal();
       break;
@@ -635,10 +846,27 @@ function confirm(title, text, fn) {
   openModal('confirm');
 }
 
+// While a new card opens in the guide, a click only hurries it along.
+document.addEventListener(
+  'click',
+  (e) => {
+    if (S.screen !== 'guide' || !S.unlock) return;
+    e.preventDefault();
+    e.stopPropagation();
+    endUnlock();
+  },
+  true,
+);
+
 document.addEventListener('click', (e) => {
+  // The result card: a click or tap anywhere goes on to the guide.
+  if (S.screen === 'play' && S.phase === 'result') {
+    if (S.resultT >= RESULT_GUARD) leaveResult();
+    return;
+  }
   // A click on the dim backdrop outside a dialog: back to the game (or, for
   // a question, No).
-  if (e.target.classList?.contains('modal') && e.target.id !== 'result') {
+  if (e.target.classList?.contains('modal')) {
     audio.sfx('back');
     if (S.modals.at(-1) === 'confirm') closeModal();
     else toGame();
@@ -664,7 +892,7 @@ function back() {
     return;
   }
   if (S.screen === 'play') {
-    if (!$('#result').hidden) act('guide');
+    if (S.phase === 'result') leaveResult();
     else if (!$('#pause').hidden) resume();
     else pause();
     return;
@@ -875,6 +1103,20 @@ function frame(now) {
     // In play only pause is read here; the game reads the rest.
     const n = input.nav();
     if (n.pause || (n.back && input.kind !== 'keyboard')) pause();
+  } else if (S.screen === 'play' && S.phase === 'result' && !S.modals.length) {
+    // The result card: gone after a moment, or at any press.
+    S.resultT += dt;
+    $('#result-time').style.width = `${Math.max(0, 100 * (1 - S.resultT / RESULT_TIME))}%`;
+    const n = input.nav();
+    const st = input.state();
+    if (S.resultT >= RESULT_TIME || (S.resultT >= RESULT_GUARD && (n.confirm || n.back || st.actionPressed || input.padAnyPressed()))) leaveResult();
+  } else if (S.screen === 'celebrate' && S.cele && !S.modals.length) {
+    celebrationInput(dt);
+    if (S.cele) tickCelebration(dt);
+  } else if (S.screen === 'guide' && S.unlock && !S.modals.length) {
+    const n = input.nav();
+    if (n.confirm || n.back || input.padAnyPressed() || input.state().actionPressed) endUnlock();
+    else tickUnlock(dt);
   } else menuInput(dt);
   if (S.screen === 'page' && S.pageKind !== input.kind) {
     S.pageKind = input.kind;
@@ -906,12 +1148,30 @@ function render(dt = 0) {
     updateHud();
     return;
   }
+  if (S.screen === 'celebrate' && S.cele) {
+    renderCelebration();
+    return;
+  }
   fitView();
   logical();
   if (S.screen === 'title') renderTitle();
   else if (S.screen === 'page') renderPage(t);
   else if (S.screen === 'gathering') renderGathering(t);
   else if (S.screen === 'guide') drawCards(t);
+}
+
+// The celebration has its own stage: 1600 x 900 on a wide screen, 900 x
+// 1600 on an upright one, so the book stays big on a phone either way.
+function renderCelebration() {
+  const { cw, ch, dpr } = view;
+  const wide = cw >= ch * 0.95;
+  const lw = wide ? W : H;
+  const lh = wide ? H : W;
+  const s = Math.min(cw / lw, ch / lh);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  paper(g, cw, ch);
+  g.setTransform(dpr * s, 0, 0, dpr * s, dpr * (cw - lw * s) / 2, dpr * (ch - lh * s) / 2);
+  drawCelebration(g, S.cele, S.cele.t, { lw, lh, px: dpr * s, reduce: settings.reduceMotion, wide });
 }
 
 function updateHud() {
@@ -1030,7 +1290,7 @@ requestAnimationFrame((n) => {
   frame(n);
 });
 // For automated checks.
-globalThis.__coot = { S, act, BIRDS, startBird, show, get progress() { return progress; } };
+globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; } };
 
 await loadArt();
 $('#loading').remove();

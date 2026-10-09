@@ -55,6 +55,7 @@
       <header class="screen-head">
         <h2 id="guide-title">A Field Guide to Rare Birds</h2>
         <p class="muted" id="guide-count"></p>
+        <p class="sr-only" id="guide-live" role="status" aria-live="polite"></p>
       </header>
       <div id="cards" class="cards"></div>
       <footer class="screen-foot">
@@ -129,11 +130,16 @@
         <p class="result-score" id="result-score"></p>
         <p class="muted" id="result-best"></p>
         <div id="result-extra" class="muted"></div>
-        <div class="row-buttons">
-          <button class="menu-btn primary" data-nav data-action="restart" id="result-go">Play Again</button>
-          <button class="menu-btn" data-nav data-action="guide">Back to Field Guide</button>
-        </div>
+        <div class="result-timer" aria-hidden="true"><div id="result-time"></div></div>
+        <p class="muted result-hint" id="result-hint"></p>
       </div>
+    </section>
+
+    <!-- The first time a bird's score is reached: its sticker goes in the book
+         (drawn on the stage; this layer only carries the hint and the words) -->
+    <section id="celebrate" class="screen" hidden aria-label="A new sticker">
+      <p class="sr-only" id="celebrate-live" role="status" aria-live="polite"></p>
+      <p class="hint celebrate-hint" id="celebrate-hint"></p>
     </section>
 
     <section id="gathering" class="screen" hidden aria-labelledby="gathering-title">
