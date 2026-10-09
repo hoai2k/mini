@@ -228,6 +228,12 @@ Trace a tangled balloon string down to its knot and snip there.
 
 **Changes made**
 
+Done (4484368); details in `snippit.md`.
+1. A pink notch marks the snip point under the hinge, magenta when a knot is in reach; the tip says so.
+2. Knots and balloons spread over x 400–1200; `span` is 1000 (was 1180).
+3. A wrong string costs 5 (was 10).
+Pass stays 120; beginner bots 155–180, good 540–600, mashing 0–35, idle 0.
+
 ## Buttonbeaks: Button Up
 
 Pick the button a coat is missing from the bowls and toss it up into its hole.
@@ -247,6 +253,11 @@ Pick the button a coat is missing from the bowls and toss it up into its hole.
    matches (a pulse), so the child sees where to run.
 
 **Changes made**
+
+Done (4484368); details in `buttonbeaks.md`.
+1. Pass lowered from 12 to 10.
+2. While the pair hold a button, every hole on the line it fits pulses pink.
+The shared "slides past" shape is kept: it is a fetch-and-deliver game; keep it apart from Snip Snap and Just a Pinch in the guide order. Bots: beginner 12–14, good 25–26, mashing 4–5, idle 0.
 
 ## Broomwhisk: Clean Sweep
 
@@ -282,6 +293,14 @@ skidding.
 
 **Changes made**
 
+Done (4484368); details in `broomwhisk.md`.
+1. A dotted line shows where pushed things will slide; swept things glow for the 3 s they count.
+2. The pan's mouth is wider (110 from its middle, was 84) and pulls in near misses within 130.
+3. Gusts every 12 s rising to every 8 s (was 9 and 5), a third weaker, and they never move a swept thing.
+4. Darker dust, wider leaves.
+5. The phone view leans towards the pan, with a "pan" arrow when it is far off.
+6. Pass 15 (was 14). Bots over 10 seeds: beginner 16–23, good 22–32, smooth wandering 4–9, flailing 0–5, zigzag 0–1, idle 0; the tests assert the last four stay below the pass.
+
 ## Key Crane: Lucky Dip
 
 Move the trolley, let the swinging Crane settle, drop onto a prize's ring,
@@ -303,6 +322,12 @@ carry it to the chute.
 3. On a phone, show a small chute arrow at the left edge while carrying.
 
 **Changes made**
+
+Done (577d8b2); details in `keycrane.md`.
+1. Rings shrink only to about 40 px across; pass 5 (was 6).
+2. The rail is lower, clear of the HUD clock (IC-M07a's prompt moved with it).
+3. On a phone the view widens to take in the trolley and the chute while a prize is carried, instead of an edge arrow.
+Bots: beginner 7–9, good 8–12, mashing 0, idle 0.
 
 ## Garbage Canary: Bin Day
 
@@ -333,6 +358,13 @@ sparrow.
 
 **Changes made**
 
+Done (577d8b2); details in `garbagecanary.md`.
+1. Everything that isn't rubbish shares a gold glow, ring and star; all things are drawn 1.3 times bigger (IC-M08b's note updated).
+2. The canary head is larger (IC-M08c and d now ask for a head a third of the lid's width).
+3. Arrivals are always at least 0.5 s apart, gusts included; a test checks it.
+4. Pops no longer stack on each other.
+Shared item 2: swallowing something that isn't rubbish costs 1 (was 2); the lid stays shut 0.9 s while the Canary splutters. Pass 18; bots: beginner 23–35, good 41–44, lid always open 0–12, mashing about 6, idle 0.
+
 ## Steampresser Sparrow: Pressing Business
 
 Run the iron along each crease to press it out; steam presses faster; don't
@@ -362,6 +394,13 @@ linger or the cloth scorches.
 4. Keep the steam and heat mechanic here; let the Glove Dove change.
 
 **Changes made**
+
+Done (577d8b2); details in `steampressersparrow.md`.
+1. With a pointer only a tap on the iron puffs steam; the touch hint says so.
+2. The cloth is plain where creases go (IC-M09b revised); scorches are a clear iron shape.
+3. Keyboard movement eases in; the stick stays direct. Tests cover both rules.
+4. The steam-and-heat core is kept; the Glove Dove is being redesigned instead.
+Shared item 2: a scorch costs 1 (was 2). Pass 16; bots: beginner 19–25, good 36–39, steaming on the spot 0, sweeping 0–1, idle 0.
 
 ## Wetweather Wren: Puddle Hop
 
