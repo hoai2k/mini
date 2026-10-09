@@ -581,12 +581,20 @@ def build_ui(write: bool) -> dict:
     # The pause menu pictures (HK-U06), once delivered: one badge per button.
     badges = SRC / "ui" / "pause-icons.png"
     if badges.exists():
-        names = ["resume", "controls", "hint", "howto", "settings", "next", "title", "close"]
-        ui["pause"] = {name: cell["file"] for name, cell in zip(names, cut_grid(badges, 4, 2, "ui/pause", write))}
-        # HK-U07 regenerates the close badge (a bold cloth X) once delivered.
-        close = SRC / "ui" / "close-badge.png"
-        if close.exists():
-            ui["pause"]["close"] = cut_grid(close, 1, 1, "ui/close", write)[0]["file"]
+        # The first badge (resume) and the last (crossed pins, for close) are
+        # no longer used: clicking outside the menu resumes, and the close
+        # button keeps a plain drawn X.
+        names = [None, "controls", "hint", "howto", "settings", "next", "title", None]
+        ui["pause"] = {}
+        for name, cell in zip(names, cut_grid(badges, 4, 2, "ui/pause", write)):
+            if name:
+                ui["pause"][name] = cell["file"]
+            elif write:
+                (OUT / cell["file"]).unlink(missing_ok=True)
+        # HK-U07: the title screen's fullscreen badge, beside How to play and Settings.
+        full = SRC / "ui" / "fullscreen-badge.png"
+        if full.exists():
+            ui["pause"]["fullscreen"] = cut_grid(full, 1, 1, "ui/fullscreen", write)[0]["file"]
     controls = SRC / "ui" / "control-drawings.png"
     if controls.exists():
         names = ["stick", "trigger", "button", "shoulder", "dpad", "controller", "controllers", "moon-controller"]
