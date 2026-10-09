@@ -173,7 +173,6 @@ function show(screen) {
   if (screen !== 'stickers') S.sb = null;
   if (screen === 'title') {
     S.titleUtil = false;
-    $('#title-hint').hidden = false;
     focusFirst();
     audio.playMusic('title');
   } else if (screen === 'guide') {
@@ -1497,7 +1496,6 @@ function menuInput(dt) {
     const [sx, sy] = n.stick;
     if (!S.titleUtil && (Math.abs(sx) > 0.5 || Math.abs(sy) > 0.5)) {
       S.titleUtil = true;
-      $('#title-hint').hidden = true;
       $('#press-start').focus();
       repeat = { dir: 'x', t: 0.35 };
       return;
