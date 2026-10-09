@@ -1,134 +1,149 @@
-# Ten O'clock Tit Trush: Set the Clocks (50 s)
+# Ten O'clock Tit Trush: Clock Hop (45 s)
 
 Bird 12 of the book's other birds. The Ten O'clock Tit Trush is a gold pocket
 watch whose face shows ten o'clock. Code: `game/src/games/titthrush.js`;
 entry: `game/src/more/titthrush.js`; tests: `game/test/titthrush.test.mjs`.
 
+It replaces Set the Clocks (turn a big watch's hands to the time a town clock
+calls), which read well but played slowly: a lot of turning, then one press,
+and telling the time is a school skill some players don't have yet.
+
+## Why this game
+
+A pocket watch's whole life is hands going round. In Clock Hop the Trush
+rides them: it perches on the tip of a clock's long hand, is carried round
+and round, and lets go to fly to the next clock. One button, readable in
+a second ("press when the dotted line points at a clock"), with something
+happening all the time. There is a whoosh, a clang, a song and a
+star-burst on every landing, and a tumble on the cobbles when it misses. The
+skill grows from "any line through the clock" to threading bullseyes through
+the middle of small, swaying clocks whose hands sweep fast. It is also a
+shape the collection doesn't have yet.
+
+Alternatives considered:
+
+- **Round the Clock** (a rhythm game: notes sit round the watch face and
+  you press as the sweeping hand reaches each). It's lively and very much a
+  watch, but it's the Gramophone Gullfinch's game (notes riding a record to
+  the needle).
+- **Chime Back** (the town clocks chime a little tune, and you play it back
+  by pointing the stick at each clock). It's gentle and musical, but it's the
+  Waterglass Goose's Glass Harp, and a memory game is slow to play.
+- **Wind the Town** (fly round the square winding the clocks before each runs
+  down). It's a juggling game like Lights On and Bloom, and holding to wind
+  isn't much fun from moment to moment.
+
 ## Rules
 
-The town's clocks want the Trush to keep their time. One after another a
-town clock (the church clock, the station clock, the town hall clock, the
-cuckoo clock) shows a time and calls it out in a speech bubble: "Half past
-three!", with the digits underneath. Turn the hands of the Trush's big watch
-face to match, then press the action (the crown) to set it. The hour hand
-follows the minute hand like a real clock's, so going from ten o'clock to
-half past three means turning the long hand round five and a half times, or
-backwards six and a half. The watch starts, of course, at ten o'clock.
+Clocks hang in the air over the town square: the church clock, the station
+clock and the town hall clock, then from a third of the way in the cuckoo
+clock too, which runs backwards (a little red arrow over it says so). There
+is always the clock the Trush is on and two more to hop to.
 
-- Set the right time and the clock rings, the Trush hops and sings, and the
-  next clock calls.
-- Press on the wrong time and the crown jams for a second ("Not quite!", or
-  "Wrong hour!").
-- A clock left waiting too long gives up, and the next one calls. Its
-  patience (the bar under the bubble) is 9 s at first and 6 s by the end,
-  plus a second for every hour the hands have to travel.
-- Every fifth clock calls ten o'clock, the Trush's own hour, when that is
-  within three hours of the hands: worth two.
+- The Trush perches on the tip of its clock's long hand, which sweeps round
+  (clockwise, or backwards on the cuckoo clock). A dotted line runs on from
+  the tip the way the hand points. When it passes through another clock it
+  turns pink and a dashed pink ring goes round that clock (thicker when it
+  would be a bullseye).
+- Press the action to let go. The Trush flies straight along the line.
+  Reaching another clock's dial, it grabs that clock's long hand where it
+  arrives and rides on from there. The clock it left chimes and fades, and
+  a new one swings in somewhere else, never just where the hand is about to
+  point (it always comes round to it).
+- Through the middle of the dial (within 0.4 of its radius) is a
+  **bullseye**.
+- Miss every clock and the Trush tumbles onto the cobbles (or flies off
+  the edge and drops back in), then after a moment flutters back to the
+  clock it left. Nothing is taken off: the miss costs only time (about two
+  seconds) and the run.
+- The Trush needs a quarter of a second to get a grip on a new hand. Pressing
+  before then makes it grab on again ("Hold on!"), so mashing never lets go.
+- Now and then (every 8 to 11 s from 7 s in) **the gold ten o'clock watch**,
+  the Trush's own hour, shows up with a glow and a gold arc that runs down
+  over six seconds; then it goes.
 
 ## Scoring
 
-One per clock set (two for ten o'clock). The page opens at 9.
+| Event | Points |
+| --- | --- |
+| Reach a clock | 1 |
+| Bullseye | +1 |
+| The gold ten o'clock watch | 3 (4 with a bullseye) |
+| Every fifth hop in a row | +1 |
+
+The HUD shows the points and the run ("Points 22 · 10 in a row"). The page
+opens at **14**.
 
 ## Getting harder
 
-Every time is within three hours of where the hands are. The first three
-are o'clocks, with a faint pink
-ghost of the right hands on the face to match against; then half pasts; then
-quarter past and quarter to; then five-minute times in words ("twenty-five to
-nine"); then, only from the sixteenth clock, any minute ("7:43"), to be set to the
-minute. The digits are shown under the words throughout.
+Over the 45 s: the long hand goes round in 3.4 s at first and 2.1 s by the
+end; dials shrink from radius 100 to 72; the dotted line shortens from 1000
+to 420 (by the end a far clock is out of its reach, and you judge the
+rest); from 30% in, new clocks sway up and down; from 33%, the cuckoo
+clock (backwards) joins; from 60%, new clocks drift slowly sideways.
 
-Bots (`node --test test/titthrush.test.mjs`): a slow beginner (reads for 1.6
-s, spins gently, sometimes presses too soon) sets 11 to 13 over eight seeds;
-a good spinner 25 to 27; a keyboard player with ↑ / ↓ and ← / → 23 to 24. Spinning while
-mashing the button, mashing alone and idling score 0.
+## Balance
+
+Bots (`node --test test/titthrush.test.mjs`) watch the hand come round and
+press a moment ahead, with their timing off by up to `noise` either way:
+
+| Bot | How it plays | Scores (seeds 1–8) |
+| --- | --- | --- |
+| Beginner | ±0.11 s, takes any line through a clock, lets a quarter of chances go by | 16–38 (all pass) |
+| Clumsy | ±0.16 s, lets a third go by, slow to settle | 13–24 (7 of 8 pass) |
+| Good | ±0.035 s, waits for bullseyes, goes for the gold watch | 45–54 (seeds 1–4) |
+| Hopping blind | presses three times a second without looking | 1–13 (mean 5) |
+| Mashing | presses every few frames | 0 |
+| Idle | | 0 |
 
 ## Controls
 
-| Device | Turn the hands | Set |
-| --- | --- | --- |
-| Controller | spin the left stick (one turn of the stick is one hour); or push it left or right and hold: a minute, then faster and faster; flick the stick (or the D-pad) up or down for a whole hour | A |
-| Keyboard | hold ← / → (a tap is one minute); ↑ / ↓ jump a whole hour | Space or Enter |
-| Mouse / touch | drag the long hand round the face (clockwise is later); grab the short hand to drag whole hours | tap (without dragging) |
+| Device | Let go and hop |
+| --- | --- |
+| Controller | A (or RT) |
+| Keyboard | Space or Enter |
+| Mouse / touch | click or tap anywhere |
 
-Resting hands settle on the nearest whole minute. On a narrow screen the view
-keeps the watch face and the town clock's call in view.
+Nothing else is needed: the hand does the aiming. Clock centres stay within
+x 470 to 1130 and y 290 to 650, so a narrow screen (`span` 1060 round x 800)
+sees every clock, and the Trush perched on a hand pointing straight up stays
+below the top of the picture.
 
 ## Images
 
-- **IC-M12a, the scene** (`scene.titthrush`): a small town square in the
-  morning, kept calm where the game draws the watch, the town clock and its
-  bubble, with no clocks of its own.
-- **IC-M12b, the big watch face** (`sprites.watchFace`): the Trush's face
-  without hands, its enamel face at a fixed size so the game's hands fit it.
-- **IC-M12c, town clocks** (`sprites.townClocks`, 2 x 2): the church, station,
-  town hall and cuckoo clocks without hands, each dial centred at a fixed size.
-- **IC-M12d, the Trush singing** (`sprites.titthrushSing`): shown for a moment
-  after each clock is set; until then the portrait hops.
-- **IC-M12e, the Trush flustered** (`sprites.titthrushFluster`): after a wrong
-  setting (while the crown is jammed) or when a clock gives up; until it
-  arrives the portrait shakes.
+Reused, all delivered:
 
-## Changes after the audit
+- **IC-M12a, the scene** (`scene.titthrush`): the town square; the clocks
+  hang over its middle.
+- **IC-M12b, the big watch face** (`sprites.watchFace`) and **IC-M12f, the
+  crown** (`sprites.watchCrown`): the gold ten o'clock watch, drawn at the
+  bonus clock's size (its tick ring is 0.36 of the image round 0.5, 0.495).
+- **IC-M12c, town clocks** (`sprites.townClocks`, 2 x 2): the clocks to hop
+  between, each dial a quarter of its cell, so a clock of radius r is drawn 4r
+  wide.
+- **IC-M12d, singing** (`sprites.titthrushSing`): for half a second after
+  each landing.
+- **IC-M12e, flustered** (`sprites.titthrushFluster`): tumbling on the
+  cobbles.
 
-1. Targets now lie at most three hours from the hands (and the ten o'clock
-   clock is called only when ten is within three hours), so there are at most
-   three turns of the stick. Whole-hour jumps on every device: ↑ / ↓ on the
-   keyboard, the D-pad or a quick flick of the stick on the controller (a
-   flick from the middle with the stick not turning, so spinning never jumps),
-   and on touch, grabbing near the short hand drags whole hours. The hint in
-   the first seconds names the controls for the device in use.
-2. Patience is 9 s falling to 6 s, plus a second per hour the hands must
-   travel.
-3. "Any minute" now starts at the sixteenth clock (it was the fourteenth);
-   five-minute times come in words with the digits under them, as before.
+Requested:
 
-Re-tuned: pass 8 → 9. Beginner bot 11 to 13 over eight seeds, good spinner
-25 to 27, keyboard bot 23 to 24; spinning while mashing, mashing and idling
-still score 0. New tests: an hour at a time on the controller and by
-dragging the short hand; targets within three hours with patience growing
-with the distance.
+- **IC-M12g, Tit Trush hopping** (`sprites.titthrushHop`, 2 x 1). Cell 1:
+  perched, crouched, its claws closed at (0.5, 0.92) of the cell, drawn so the
+  bird is 170 tall with its claws on the hand's tip. Cell 2: flying, level,
+  lid shut, the case centred, turned along the flight and mirrored for
+  rightward hops. Until it arrives, the portrait stands on the tip, and in
+  flight it tilts the way it flies.
+- **IC-M12h, clock hands** (`sprites.clockHands`, 2 x 1): the long hand (tip
+  0.46 of the cell above its centred pivot) and the short hand (0.26),
+  turned about the cell's centre. Until they arrive, tapered blue-black hands
+  are drawn in code, the long one with a knob at its tip.
 
-## Matched to the painting
+## Feel
 
-The painting is a gold pocket watch with its lid open at the front, showing
-ten o'clock. Flipped to face the big watch, its face read backwards, so the
-Trush now always faces left, unflipped, at the far left (x 180, its beak
-still on screen); the singing and flustered variants are drawn unflipped too.
-The singing notes rise from its painted head. The variant requests
-(IC-M12d sing, IC-M12e fluster) and the big watch face (IC-M12b) now describe
-the painting: the hinged lid at the front, the crown and ring bow on its head,
-the pink crest and wing, the chain tail, and the cream face with black
-numerals.
-
-## Matched to the delivered art
-
-The town square scene (IC-M12a) keeps the middle quiet as asked: the big
-watch sits over the square on the left, the town clock and its bubble over
-the houses on the right, and the Trush stands on the cobbles at the bottom
-left among the painted leaves. Nothing needed moving. Still drawn in code:
-the big watch face (IC-M12b), the town clocks and their frames (IC-M12c, so
-the church tower and cuckoo house stand-ins float over the painted houses
-until it arrives), and the singing and flustered poses (IC-M12d, IC-M12e),
-all requested.
-
-The watch face, the town clocks and the Trush's singing and flustered poses
-have arrived (IC-M12b to IC-M12e). Measured on the art: the watch face's tick
-ring is a circle of radius 0.36 of the image round (0.5, 0.495) and its gold
-case reaches 0.464 (its top at 0.028), so the face is drawn 694 px wide with
-the game's hands (radius 250, the ring) exactly over its numbers; the watch
-moved to x 660 so the case clears the Trush. The four town clocks' dials are
-each centred in their cells (centre dot at 0.5, 0.5) with a radius of 0.25 of
-the cell, which is how the game already drew them. The singing and flustered
-poses are drawn whole at the portrait's scale on their measured feet (0.98 and
-0.979 of the image down), unflipped like the portrait. The code-drawn chain
-loops are gone (the Trush has its own chain).
-
-Requested (IC-M12f, `sprites.watchCrown`): the winding crown and ring bow
-that sit on top of the big watch's case, which the face painting leaves off.
-Until it arrives the game draws a ribbed gold box there, the only part of the
-watch still drawn in code.
-
-## Second audit (2026-10-09)
-
-Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.
+Every hour mark the long hand passes ticks. Letting go whooshes. Landing
+rings the clock (pitched by kind), the clock wobbles, stars burst (pink for
+a bullseye, gold for the gold watch), the Trush sings with notes rising, and
+there's a short rumble. A fifth hop in a row plays a little fanfare. A miss
+bonks on the cobbles with a puff of dust and a wilting note. The music stays
+`clockwork`.

@@ -18,7 +18,7 @@ covers everything.
 | Tiptoe Bounce | `tiptoe-bounce.mp3` | Bouncy games: Say Cheese, Left Foot Right Foot, Hot off the Press, Milk Round, Snip Snap, Button Up, Puddle Hop, Slippery Dishes | 2:04 |
 | Cartoon Busy | `cartoon-busy.mp3` | Busy games: Safe Crossing, Clean Sweep, Bin Day, Pressing Business, Lights On, Drip Drop Dash | 2:11 |
 | Sunny Gentle Shuffle | `sunny-gentle-shuffle.mp3` | Gentle games: Tea Time, Bloom, Soup's On, Stitch in Time | 3:03 |
-| Clockwork Concentration | `clockwork-concentration.mp3` | Careful games: Spot the Dodo, Set the Clocks, Just a Pinch, Saw It Straight | 2:03 |
+| Clockwork Concentration | `clockwork-concentration.mp3` | Careful games: Spot the Dodo, Clock Hop, Just a Pinch, Saw It Straight | 2:03 |
 | Seaside Carousel Waltz | `seaside-carousel-waltz.mp3` | Scoop Stack, Lucky Dip, Snip the String, and the finale (all the birds together) | 1:57 |
 | Celebration fanfare | `../sfx/celebration.mp3` | The first-pass sticker celebration (the music dips under it) | 0:05 |
 

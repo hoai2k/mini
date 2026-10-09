@@ -1,90 +1,65 @@
-// Ten O'clock Tit Trush: Set the Clocks.
+// Ten O'clock Tit Trush: Clock Hop.
 //
-// The Ten O'clock Tit Trush is a gold pocket watch, and the clocks of the
-// town want it to keep their time. One after another a town clock (the
-// church, the station, the town hall, the cuckoo clock) calls out the time
-// it shows; turn the hands of the big watch face to match and press the
-// action to set it. Spin the stick (one turn of the stick is one hour round
-// the face), drag the long hand round with the mouse or a finger (grab the
-// short hand to turn whole hours), or hold ← / → (or push the stick and hold
-// it) to turn the hands; ↑ / ↓ (keys, D-pad, or a flick of the stick) jump a
-// whole hour. The hour hand follows the minute hand like a real clock's. Setting
-// the wrong time jams the crown for a moment; a clock left waiting too long
-// gives up and the next one calls. The times get harder: o'clock, then half
-// past, quarter past and to, five-minute times, then any minute; and every
-// so often a clock strikes ten, the Tit Trush's own hour, worth double.
-// Score: clocks set.
+// The Ten O'clock Tit Trush is a gold pocket watch, and it gets about town on
+// clock hands. Clocks hang in the air over the town square (the church clock,
+// the station clock, the town hall clock, later the cuckoo clock, which runs
+// backwards); the Trush perches on the tip of one clock's long hand and is
+// carried round and round as it sweeps. A dotted line runs on from the tip
+// the way the hand points: press the action to let go, and the Trush flies
+// straight along it. Reach another clock and it grabs that clock's hand
+// (+1, +2 for a bullseye through the middle of the dial); the clock it left
+// chimes and fades, and a new one swings in. Miss them all and it tumbles
+// onto the cobbles and flutters back to the clock it left, which costs only
+// time. Pressing again before it has a grip on a new hand only makes it
+// grab on again. Now and then the gold ten o'clock watch, the Trush's own hour, shows
+// up for a few seconds: reaching it is worth three. Every fifth hop in a row
+// earns one more. As time goes on the hands sweep faster, the clocks get
+// smaller and start to sway and drift, and the dotted line gets shorter.
+// Score: points.
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, lerp } from './index.js';
 
 Object.assign(SHEETS, {
-  'sprites.watchFace': [1, 1], // the big gold watch face, no hands
+  'sprites.watchFace': [1, 1], // the gold watch face, no hands (the ten o'clock bonus clock)
   'sprites.townClocks': [2, 2], // church tower clock, station clock, town hall clock, cuckoo clock: faces without hands
-  'sprites.titthrushSing': [1, 1], // the Tit Trush with its beak open, singing
-  'sprites.watchCrown': [1, 1], // the watch's winding crown and ring bow, on top of the big face
-  'sprites.titthrushFluster': [1, 1], // flustered: a wrong setting, or a clock gave up
+  'sprites.titthrushSing': [1, 1], // the Tit Trush with its beak open, singing (landing)
+  'sprites.watchCrown': [1, 1], // the watch's winding crown and ring bow, on top of the gold watch
+  'sprites.titthrushFluster': [1, 1], // flustered (a tumble on the cobbles)
+  'sprites.titthrushHop': [2, 1], // perched on a hand's tip (claws at 0.5, 0.92), flying (lid shut, case centred)
+  'sprites.clockHands': [2, 1], // long hand, short hand; pointing up, the pivot at the cell's centre
 });
 
-const DURATION = 50;
-const DX = 660; // the big watch face
-const DY = 470;
-const DR = 250; // the watch face's radius (to the outer edge of its ring of minute ticks)
-// The delivered watch face (sprites.watchFace, 1024 px): the face's tick ring
-// is a circle of radius 0.36 of the image round (0.5, 0.495); the gold case
-// reaches 0.464 of the image round the middle.
-const FACE_W = DR / 0.36; // how wide to draw the whole image
-const FACE_DY = (0.5 - 0.495) * FACE_W; // the image's middle sits this far below the face's
-const CASE_R = 0.464 * FACE_W;
-const CASE_TOP = DY + FACE_DY - FACE_W / 2 + 0.028 * FACE_W; // the top of the gold case
-const TX = 1180; // the town clock
-const TY = 330;
-const TR = 130;
-const BIRD_X = 180;
-const BIRD_SIZE = 340;
-// The singing and flustered variants are painted at the portrait's framing
-// (1024 px = 420 units, the bird centred): drawn whole at the portrait's
-// scale, standing on their feet (measured: 0.98 and 0.979 of the image down).
-const BIRD_CELL = (420 * BIRD_SIZE) / 400;
-const BIRD_Y = 840;
-const JAM = 1; // seconds the crown sticks after a wrong setting
-const MIN_PER_RAD = 60 / (Math.PI * 2); // one turn of the stick is an hour
-const CLOCKS = [
-  { name: 'The church clock', rim: '#a9a090', face: '#f2ead8', roman: true },
-  { name: 'The station clock', rim: '#3a3a40', face: '#fbf8ee', roman: false },
-  { name: 'The town hall clock', rim: '#c9a83a', face: '#f6efd8', roman: true },
-  { name: 'The cuckoo clock', rim: '#8a5a30', face: '#efe2c0', roman: false },
+const DURATION = 45;
+const GOLD = 4; // the kind of the gold ten o'clock watch
+const KINDS = [
+  { name: 'church', rim: '#a9a090', face: '#f2ead8', roman: true, pitch: -5 },
+  { name: 'station', rim: '#3a3a40', face: '#fbf8ee', roman: false, pitch: -1 },
+  { name: 'town hall', rim: '#c9a83a', face: '#f6efd8', roman: true, pitch: 2 },
+  { name: 'cuckoo', rim: '#8a5a30', face: '#efe2c0', roman: false, pitch: 5 },
+  { name: 'gold', rim: '#d8b040', face: '#fbf6e4', roman: false, pitch: 9 },
 ];
-const NUM = ['twelve', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 const ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+// Where clock centres may be: kept to the middle of the square so a narrow
+// screen sees them all, and low enough that the Trush, perched on a hand
+// pointing straight up, stays on screen.
+export const BOX = { x0: 470, x1: 1130, y0: 290, y1: 650 };
+const GROUND = 830; // the cobbles
+const HOP_H = 170; // the Trush's height while hopping
+const REACH = 1.2; // the long hand's length, in dial radii (it reaches out past the dial)
+const SPEED = 1500; // flight, units a second
+const GRIP = 0.25; // seconds after landing before the Trush can let go
+const BULL = 0.4; // a bullseye passes this close to the middle, in dial radii
+const CATCH = 4; // how far outside the dial a passing Trush still grabs it
+const MISS_T = 1.6; // seconds on the cobbles before fluttering back
+const BACK_T = 0.45; // the flutter back
+const GOLD_LIFE = 6;
+// The singing and flustered poses are painted at the portrait's framing
+// (1024 px = 420 units at a 400-unit bird, standing on 0.98 of the image).
+const POSE_CELL = (420 * HOP_H) / 400;
 
-const wrap = (m) => ((m % 720) + 720) % 720;
-// The shortest way round from a to b, in minutes (-360..360).
-const diff = (a, b) => {
-  let d = wrap(b - a);
-  if (d > 360) d -= 720;
-  return d;
-};
-const hourOf = (m) => Math.floor(wrap(m) / 60) % 12 || 12;
-export const digits = (m) => {
-  const w = Math.round(wrap(m)) % 720;
-  return `${Math.floor(w / 60) % 12 || 12}:${String(w % 60).padStart(2, '0')}`;
-};
-// The time as a child would say it.
-export function words(m) {
-  const w = Math.round(wrap(m)) % 720;
-  const h = Math.floor(w / 60) % 12 || 12;
-  const mm = w % 60;
-  const next = (h % 12) + 1;
-  const small = { 5: 'five', 10: 'ten', 20: 'twenty', 25: 'twenty-five' };
-  if (mm === 0) return `${NUM[h]} o’clock`;
-  if (mm === 30) return `half past ${NUM[h]}`;
-  if (mm === 15) return `quarter past ${NUM[h]}`;
-  if (mm === 45) return `quarter to ${NUM[next]}`;
-  if (mm < 30 && small[mm]) return `${small[mm]} past ${NUM[h]}`;
-  if (mm > 30 && small[60 - mm]) return `${small[60 - mm]} to ${NUM[next]}`;
-  return digits(w);
-}
+const TAU = Math.PI * 2;
+const dirOf = (a) => [Math.sin(a), -Math.cos(a)]; // a: 0 = twelve o'clock, clockwise
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -93,112 +68,247 @@ export default function create(env) {
     score: 0,
     done: false,
     elapsed: 0,
-    m: 600, // the watch's time, in minutes past twelve (it starts at ten o'clock, of course)
-    target: 0,
-    clock: 0, // which town clock is calling
-    round: 0,
-    wait: 0, // how long this clock has waited
-    patience: 12,
-    tol: 2,
-    jam: 0,
-    still: 0, // seconds since the hands last turned
-    holdT: 0, // how long ← / → has been held
-    holdDir: 0,
-    prevY: 0,
-    dragA: null,
-    turning: 0,
-    set: 0,
-    tens: 0,
-    gaveUp: 0,
-    wrong: 0,
+    clocks: [],
+    on: null, // the clock the Trush rides
+    from: null, // the clock it last let go of
+    state: 'ride', // ride | fly | fall | back
+    bx: 0, // the Trush, while not riding
+    by: 0,
+    vx: 0,
+    vy: 0,
+    launch: null, // where and which way it let go: [x, y, dx, dy]
+    grip: 0.6,
+    missT: 0,
+    backT: 0,
+    backFrom: [0, 0],
     sing: 0,
-    ring: 0, // the town clock's ring after a set
     shake: 0,
-    callT: 0, // the town clock's call, for its bubble's pop
+    streak: 0,
+    best: 0,
+    hops: 0,
+    bulls: 0,
+    golds: 0,
+    misses: 0,
+    fumbles: 0,
+    fumbleT: 0,
+    goldT: 7, // until the gold watch shows up
+    spawnT: 0,
+    tickA: 0,
     pops: [],
+    bits: [],
     notes: [],
-    nextT: 0, // the pause after a clock is set
-    fluster: 0, // seconds left looking flustered after a clock gave up
-    dragHour: false, // the pointer is dragging the short hand
-    dragged: 0, // how far the pointer has dragged the hands this press
-    downT: 0,
-    lastDownT: 0,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  g.period = () => lerp(3.4, 2.1, progress()); // seconds for the long hand to go round
+  g.radius = () => lerp(100, 72, progress());
+  g.aimLen = () => lerp(1000, 420, progress());
+  const reach = (k) => k.r * REACH;
+
   function pop(text, x, y, color = INK, size = 44) {
-    // Stack above a pop still showing nearby rather than on top of it.
-    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
-    g.pops.push({ text, x, y, color, size, life: 1.3 });
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 180 && Math.abs(p.y - y) < size)) y -= size;
+    g.pops.push({ text, x: clamp(x, 470, W - 470), y: Math.max(y, 150), color, size, life: 1.3 });
   }
 
-  // The next time to set: harder kinds as the rounds go by, a little way
-  // round from where the hands are, and now and then ten o'clock.
-  function call() {
-    const r = g.round;
-    g.clock = r % CLOCKS.length;
-    let t;
-    if (r > 0 && r % 5 === 4 && Math.abs(diff(g.m, 600)) > 40 && Math.abs(diff(g.m, 600)) <= 180) {
-      t = 600;
-      g.isTen = true;
-    } else {
-      g.isTen = false;
-      const step = r < 3 ? 60 : r < 6 ? 30 : r < 9 ? 15 : r < 15 ? 5 : 1; // any minute only from the sixteenth clock
-      const far = lerp(110, 140, Math.min(1, r / 12)); // never more than three hours round
-      for (let k = 0; k < 20; k++) {
-        const off = (rng() < 0.5 ? -1 : 1) * (40 + rng() * far);
-        t = wrap(Math.round((g.m + off) / step) * step);
-        if (r < 3 || t % 60 !== 0) break; // after the first rounds, not just o'clock again
+  // ---------- the clocks ----------
+
+  function apart(a, b) {
+    return a.r + b.r + Math.max(reach(a), reach(b)) + 40;
+  }
+  function makeClock(kind, x, y, r) {
+    return {
+      kind, x, y, bx: x, by: y, r,
+      a: rng() * TAU,
+      hour: kind === GOLD ? (10 / 12) * TAU : rng() * TAU,
+      dir: kind === 3 ? -1 : 1,
+      born: 0,
+      fade: 0, // fading out once left (or the gold watch's time is up)
+      ring: 0,
+      phase: rng() * TAU,
+      sway: progress() > 0.3 ? lerp(14, 30, progress()) : 0,
+      vx: progress() > 0.6 ? (rng() < 0.5 ? -1 : 1) * lerp(30, 60, rng()) : 0,
+      life: kind === GOLD ? GOLD_LIFE : Infinity,
+    };
+  }
+  // A new clock never swings in just where the hand is about to point: it
+  // comes round to it.
+  function ahead(x, y, r) {
+    if (!g.on) return false;
+    const bearing = Math.atan2(x - g.on.x, -(y - g.on.y));
+    const half = Math.asin(Math.min(1, (r + CATCH) / Math.max(1, Math.hypot(x - g.on.x, y - g.on.y)))) + 0.1;
+    const sweep = (TAU / g.period()) * 0.8; // the next 0.8 s of the hand
+    let d = (bearing - g.on.a) * g.on.dir;
+    d = ((d % TAU) + TAU) % TAU;
+    return d < sweep + half || d > TAU - half;
+  }
+  // Somewhere free, a hop away from the clock the Trush is on.
+  function place(kind, r, strict = false) {
+    const probe = { r };
+    let best = null;
+    let bestScore = -Infinity;
+    for (let k = 0; k < 200; k++) {
+      const x = lerp(BOX.x0, BOX.x1, rng());
+      const y = lerp(BOX.y0, BOX.y1, rng());
+      let worst = Infinity;
+      for (const c of g.clocks) {
+        if (c.fade > 0) continue;
+        const d = Math.hypot(c.x - x, c.y - y) - apart(c, probe);
+        worst = Math.min(worst, d);
       }
-      if (step === 30 && t % 60 === 0) t = wrap(t + 30);
+      const far = g.on ? Math.hypot(g.on.x - x, g.on.y - y) : 500;
+      const score = Math.min(worst, 0) * 4 - Math.max(0, far - 720) - (ahead(x, y, r) ? 200 : 0);
+      if (worst >= 0 && far <= 720 && !ahead(x, y, r)) return makeClock(kind, x, y, r);
+      if (score > bestScore) {
+        bestScore = score;
+        best = [x, y];
+      }
     }
-    g.target = wrap(t);
-    g.tol = g.round >= 15 ? 1 : 2;
-    g.wait = 0;
-    // patience: a base, and a second more for every hour the hands must travel
-    g.patience = lerp(9, 6, progress()) + Math.abs(diff(g.m, g.target)) / 60;
-    g.callT = 0.4;
-    sfx('ding', { pitch: -5 + g.clock * 2 });
+    return strict ? null : makeClock(kind, best[0], best[1], r);
+  }
+  function pickKind() {
+    const kinds = progress() > 0.33 ? [0, 1, 2, 3] : [0, 1, 2];
+    const used = g.clocks.filter((c) => c.fade <= 0).map((c) => c.kind);
+    const fresh = kinds.filter((k) => !used.includes(k));
+    const from = fresh.length ? fresh : kinds;
+    return from[Math.floor(rng() * from.length)];
+  }
+  function spawn(kind = pickKind()) {
+    const c = place(kind, kind === GOLD ? g.radius() * 0.85 : g.radius() * (0.92 + rng() * 0.16), kind === GOLD);
+    if (!c) return null; // no room for the gold watch just now
+    g.clocks.push(c);
+    sfx('ui');
+    return c;
+  }
+  const targets = () => g.clocks.filter((c) => c !== g.on && c.fade <= 0);
+  const plain = () => targets().filter((c) => c.kind !== GOLD).length;
+
+  // The start: the church clock in the middle and two more.
+  {
+    const first = makeClock(0, 800, 470, g.radius());
+    first.a = (10 / 12) * TAU; // ten o'clock, of course
+    first.born = 1;
+    g.clocks.push(first);
+    g.on = first;
+    for (let i = 0; i < 2; i++) spawn().born = 1;
   }
 
-  function turn(minutes) {
-    if (!minutes) return;
-    g.m = wrap(g.m + minutes);
-    g.still = 0;
-    g.turning = Math.min(1, g.turning + Math.abs(minutes) / 10);
-    // a tick for every minute mark passed
-    g.tickAcc = (g.tickAcc || 0) + Math.abs(minutes);
-    if (g.tickAcc > 5) {
-      g.tickAcc = 0;
-      sfx('tick');
+  // The tip of a clock's long hand, where the Trush perches.
+  g.tip = (k = g.on) => {
+    const [dx, dy] = dirOf(k.a);
+    return [k.x + dx * reach(k), k.y + dy * reach(k)];
+  };
+
+  // The first clock the dotted line (run on as far as it likes) passes
+  // through, and how near its middle (0 = dead centre, 1 = the dial's edge).
+  g.aim = (a = g.on.a) => {
+    const [dx, dy] = dirOf(a);
+    const x = g.on.x + dx * reach(g.on);
+    const y = g.on.y + dy * reach(g.on);
+    let hit = null;
+    for (const c of targets()) {
+      const rx = c.x - x;
+      const ry = c.y - y;
+      const along = rx * dx + ry * dy;
+      if (along <= 0) continue;
+      const off = Math.abs(rx * dy - ry * dx);
+      if (off > c.r + CATCH) continue;
+      if (!hit || along < hit.dist) hit = { clock: c, off: off / c.r, dist: along };
     }
+    return hit;
+  };
+
+  // ---------- hopping ----------
+
+  function letGo() {
+    const [x, y] = g.tip();
+    const [dx, dy] = dirOf(g.on.a);
+    g.state = 'fly';
+    g.bx = x;
+    g.by = y;
+    g.vx = dx * SPEED;
+    g.vy = dy * SPEED;
+    g.launch = [x, y, dx, dy];
+    g.from = g.on;
+    g.on = null;
+    sfx('shuffle');
+    sfx('catch', { pitch: 7 });
   }
 
-  function setIt() {
-    const off = Math.abs(diff(g.m, g.target));
-    if (off <= g.tol + 0.5) {
-      const worth = g.isTen ? 2 : 1;
-      g.score += worth;
-      g.set++;
-      if (g.isTen) g.tens++;
-      g.m = g.target;
-      g.sing = 1.2;
-      g.ring = 1;
-      sfx('right');
-      env.vibrate?.(30);
-      const quick = g.wait < 3;
-      pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, DY - DR * 0.32, PAL.magenta, 50); // on the face, clear of the clock above
-      for (let i = 0; i < 5; i++) g.notes.push({ x: BIRD_X - 10, y: BIRD_Y - 290, vx: -60 + i * 40, vy: -120 - i * 20, life: 1.2 });
-      g.round++;
-      g.nextT = 0.7;
+  function land(c) {
+    const [x0, y0, dx, dy] = g.launch;
+    const off = Math.abs((c.x - x0) * dy - (c.y - y0) * dx) / c.r;
+    const bull = off <= BULL;
+    const gold = c.kind === GOLD;
+    let worth = gold ? 3 : 1;
+    if (bull) worth++;
+    g.hops++;
+    g.streak++;
+    g.best = Math.max(g.best, g.streak);
+    if (bull) g.bulls++;
+    if (gold) {
+      g.golds++;
+      c.life = Infinity;
+    }
+    g.score += worth;
+    const ty = c.y - c.r - 70;
+    if (gold) pop(`Ten o’clock! Tit-trush! +${worth}`, c.x, ty, PAL.magenta, 46);
+    else if (bull) pop('Bullseye! +2', c.x, ty, PAL.magenta, 46);
+    else pop(c.kind === 3 ? 'Cuckoo! +1' : '+1', c.x, ty, INK, 44);
+    if (g.streak % 5 === 0) {
+      g.score++;
+      pop(`${g.streak} in a row! +1`, c.x, ty - 52, PAL.ochre, 40);
+      sfx('medal', { level: Math.min(2, g.streak / 5 - 1) });
+    }
+    // grab the hand where it arrives
+    c.a = Math.atan2(g.bx - c.x, -(g.by - c.y));
+    c.ring = 1;
+    g.on = c;
+    g.state = 'ride';
+    g.grip = GRIP;
+    g.sing = 0.55;
+    g.shake = 0.15;
+    sfx('ding', { pitch: KINDS[c.kind].pitch });
+    if (bull || gold) sfx('right');
+    if (gold) sfx('bloom');
+    env.vibrate?.(bull || gold ? 40 : 25);
+    for (let i = 0; i < (bull || gold ? 16 : 9); i++) {
+      const a = (i / 9) * TAU + rng() * 0.5;
+      const v = 160 + rng() * 220;
+      g.bits.push({ kind: 'star', x: g.bx, y: g.by, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.6 + rng() * 0.3, color: gold ? PAL.mustard : bull ? PAL.magenta : PAL.ochre });
+    }
+    for (let i = 0; i < 3; i++) g.notes.push({ x: g.bx - 30, y: g.by - HOP_H, vx: -50 + i * 50, vy: -110 - i * 25, life: 1 });
+    // the clock it left chimes and goes, and another swings in
+    if (g.from && g.from !== c) {
+      g.from.fade = 0.001;
+      g.from.ring = 1;
+    }
+    g.from = null;
+    g.spawnT = 0.3;
+  }
+
+  function miss(onGround) {
+    g.misses++;
+    g.streak = 0;
+    g.state = 'fall';
+    g.missT = MISS_T;
+    g.shake = onGround ? 0.3 : 0;
+    if (onGround) {
+      g.by = GROUND;
+      g.vy = -380;
+      g.vx *= 0.15;
+      sfx('bonk');
+      for (let i = 0; i < 8; i++) g.bits.push({ kind: 'dust', x: g.bx + (rng() - 0.5) * 60, y: GROUND, vx: (rng() - 0.5) * 240, vy: -60 - rng() * 140, life: 0.5 });
     } else {
-      g.wrong++;
-      g.jam = JAM;
-      g.shake = 0.4;
-      sfx('wrong');
-      env.vibrate?.(60);
-      pop(off > 60 ? 'Wrong hour!' : 'Not quite!', DX, DY - DR * 0.32, PAL.brick, 44);
+      // off the edge: it drops back in and tumbles down onto the cobbles
+      g.bx = clamp(g.bx, 90, W - 90);
+      g.by = clamp(g.by, -60, GROUND);
+      g.vx = g.bx < W / 2 ? 120 : -120;
+      g.vy = 0;
+      sfx('miss');
     }
+    sfx('wilt');
+    env.vibrate?.(60);
+    pop(onGround ? 'Bump! Missed' : 'Whoops! Missed', g.bx, GROUND - 230, PAL.brick, 40);
   }
 
   g.update = (dt, input) => {
@@ -210,99 +320,116 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    if (!g.called) {
-      g.called = true;
-      call();
-    }
-    g.jam = Math.max(0, g.jam - dt);
-    g.fluster = Math.max(0, g.fluster - dt);
-    g.shake = Math.max(0, g.shake - dt);
+    const t = g.elapsed;
     g.sing = Math.max(0, g.sing - dt);
-    g.ring = Math.max(0, g.ring - dt * 1.5);
-    g.callT = Math.max(0, g.callT - dt);
-    g.turning = Math.max(0, g.turning - dt * 3);
-    g.still += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.grip = Math.max(0, g.grip - dt);
 
-    // Between clocks: a moment to enjoy it, then the next one calls.
-    if (g.nextT > 0) {
-      g.nextT -= dt;
-      if (g.nextT <= 0) call();
-    } else {
-      // Turning the hands.
-      // 1. The stick spun round (clockwise is forward).
-      turn((input.spin || 0) * MIN_PER_RAD);
-      // 2. The minute hand dragged round the face.
-      const p = input.pointer;
-      if (p && p.active && p.down) {
-        const dx = p.x - DX;
-        const dy = p.y - DY;
-        const a = Math.atan2(dx, -dy);
-        if (g.dragA === null) {
-          // grabbing near the short hand turns the hours; anywhere else, the minutes
-          const ha = (wrap(g.m) / 720) * Math.PI * 2;
-          let off = a - ha;
-          off = Math.atan2(Math.sin(off), Math.cos(off));
-          g.dragHour = Math.abs(off) < 0.45 && Math.hypot(dx, dy) < DR * 0.62;
+    // The clocks: hands sweep round, some sway and drift, the left ones fade.
+    const w = TAU / g.period();
+    for (const c of g.clocks) {
+      c.born = Math.min(1, c.born + dt / 0.35);
+      c.ring = Math.max(0, c.ring - dt * 1.6);
+      c.a += c.dir * w * dt;
+      c.hour += c.dir * (w / 12) * dt;
+      if (c.vx) {
+        c.bx += c.vx * dt;
+        if (c.bx < BOX.x0 || c.bx > BOX.x1) {
+          c.vx = -c.vx;
+          c.bx = clamp(c.bx, BOX.x0, BOX.x1);
         }
-        if (g.dragA !== null && Math.hypot(dx, dy) > 40) {
-          let d = a - g.dragA;
-          if (d > Math.PI) d -= Math.PI * 2;
-          if (d < -Math.PI) d += Math.PI * 2;
-          turn(d * (g.dragHour ? 720 / (Math.PI * 2) : MIN_PER_RAD));
-          g.dragged += Math.abs(d) * Math.hypot(dx, dy);
-        } else if (g.dragA === null) g.dragged = 0;
-        g.dragA = a;
-        g.downT += dt;
-      } else {
-        g.dragA = null;
-        g.downT = 0;
       }
-      // 3. ← / → (or the stick pushed and held): a minute, then faster.
-      if (!(p && p.active)) {
-        const x = input.x || 0;
-        const dir = Math.abs(x) > 0.85 && Math.abs(input.y || 0) < 0.45 && Math.abs(input.spin || 0) < 0.02 ? Math.sign(x) : 0;
-        if (dir && dir === g.holdDir) {
-          g.holdT += dt;
-          if (g.holdT > 0.22) turn(dir * lerp(20, 200, clamp((g.holdT - 0.22) / 1.2, 0, 1)) * dt);
-        } else if (dir) {
-          g.holdDir = dir;
-          g.holdT = 0;
-          turn(dir);
-        } else {
-          g.holdDir = 0;
-          g.holdT = 0;
-        }
-        // ↑ / ↓ (keys, D-pad, or a quick flick of the stick): a whole hour.
-        // A spun stick sweeps through up and down smoothly, so only a jump
-        // from the middle counts.
-        const y = input.y || 0;
-        if (Math.abs(y) > 0.85 && Math.abs(g.prevY) < 0.5 && Math.abs(x) < 0.45 && Math.abs(input.spin || 0) < 0.01) turn(y < 0 ? 60 : -60);
-        g.prevY = y;
+      c.x = c.bx;
+      c.y = c.by + Math.sin(t * 1.7 + c.phase) * c.sway;
+      if (c.life !== Infinity && c !== g.on) {
+        c.life -= dt;
+        if (c.life <= 0 && c.fade <= 0) c.fade = 0.001;
       }
-      // Resting hands settle on the nearest whole minute.
-      if (g.still > 0.12) g.m = wrap(approach(g.m, Math.round(g.m), 20, dt));
+      if (c.fade > 0) c.fade += dt / 0.45;
+    }
+    g.clocks = g.clocks.filter((c) => c.fade < 1 || c === g.on || c === g.from);
 
-      // Press the crown to set it. With the mouse or a finger, a drag turns
-      // the hands and a tap (a press let go without dragging) sets it.
-      const pointing = p && p.active;
-      const tapped = pointing && input.actionReleased && g.dragged < 16 && g.lastDownT < 0.5;
-      if (pointing) g.lastDownT = g.downT || g.lastDownT;
-      if ((!pointing && input.actionPressed) || tapped) {
-        if (g.jam > 0) sfx('bonk');
-        else setIt();
-      }
-      // A clock kept waiting too long gives up.
-      g.wait += dt;
-      if (g.nextT <= 0 && g.wait > g.patience) {
-        g.gaveUp++;
-        g.fluster = 1;
-        sfx('wilt');
-        pop('Too slow! The next clock calls', TX - 60, TY + TR + 80, PAL.brick, 34);
-        g.round++;
-        call();
+    // Keep two clocks to hop to, and now and then the gold watch.
+    if (g.spawnT > 0) g.spawnT -= dt;
+    if (g.spawnT <= 0 && g.state === 'ride' && plain() < 2) spawn();
+    g.goldT -= dt;
+    if (g.goldT <= 0) {
+      g.goldT = 8 + rng() * 3;
+      if (g.state === 'ride' && !g.clocks.some((c) => c.kind === GOLD && c.fade <= 0)) {
+        const c = spawn(GOLD);
+        if (c) {
+          sfx('ding', { pitch: 12 });
+          pop('The gold watch! +3', c.x, c.y - c.r * 1.5 - 40, PAL.mustard, 40);
+        } else g.goldT = 1; // try again in a moment
       }
     }
 
+    if (g.state === 'ride') {
+      // a tick for every hour mark the long hand passes
+      const steps = Math.floor((g.on.a * 12) / TAU);
+      if (steps !== g.tickA) sfx('tick');
+      g.tickA = steps;
+      if (input.actionPressed) {
+        if (g.grip <= 0) letGo();
+        else {
+          // too soon: it hasn't a grip yet, and has to grab on again
+          g.grip = GRIP;
+          g.fumbles++;
+          g.shake = 0.2;
+          sfx('bonk');
+          if (g.fumbles === 1 || g.elapsed - g.fumbleT > 2) pop('Hold on!', g.tip()[0], g.tip()[1] - HOP_H - 30, PAL.brick, 36);
+          g.fumbleT = g.elapsed;
+        }
+      }
+    } else if (g.state === 'fly') {
+      const n = Math.ceil((SPEED * dt) / 20);
+      for (let i = 0; i < n && g.state === 'fly'; i++) {
+        g.bx += (g.vx * dt) / n;
+        g.by += (g.vy * dt) / n;
+        const hit = targets().find((c) => c !== g.from && c.born > 0.3 && Math.hypot(c.x - g.bx, c.y - g.by) < c.r + CATCH);
+        if (hit) land(hit);
+        else if (g.by >= GROUND) miss(true);
+        else if (g.bx < -120 || g.bx > W + 120 || g.by < -160) miss(false);
+      }
+    } else if (g.state === 'fall') {
+      g.missT -= dt;
+      g.vy += 1800 * dt;
+      g.bx += g.vx * dt;
+      g.by = Math.min(GROUND, g.by + g.vy * dt);
+      if (g.by >= GROUND && g.vy > 0) {
+        if (g.vy > 300) {
+          sfx('bonk');
+          g.shake = 0.2;
+        }
+        g.vy = -g.vy * 0.35;
+        g.vx *= 0.5;
+      }
+      if (g.missT <= 0) {
+        g.state = 'back';
+        g.backT = 0;
+        g.backFrom = [clamp(g.bx, -60, W + 60), clamp(g.by, -60, GROUND)];
+      }
+    } else if (g.state === 'back') {
+      g.backT += dt / BACK_T;
+      const [tx, ty] = g.tip(g.from);
+      const k = Math.min(1, g.backT);
+      g.bx = lerp(g.backFrom[0], tx, k);
+      g.by = lerp(g.backFrom[1], ty, k) - Math.sin(k * Math.PI) * 120;
+      if (k >= 1) {
+        g.on = g.from;
+        g.from = null;
+        g.state = 'ride';
+        g.grip = GRIP;
+      }
+    }
+
+    for (const b of g.bits) {
+      b.vy += (b.kind === 'dust' ? 500 : 200) * dt;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.life -= dt;
+    }
+    g.bits = g.bits.filter((b) => b.life > 0);
     for (const n of g.notes) {
       n.x += n.vx * dt;
       n.y += n.vy * dt;
@@ -316,13 +443,11 @@ export default function create(env) {
     g.pops = g.pops.filter((p) => p.life > 0);
   };
 
-  g.hud = () => `Clocks ${g.score}`;
+  g.hud = () => `Points ${g.score}${g.streak >= 2 ? ` · ${g.streak} in a row` : ''}`;
   g.summary = () => {
-    const lines = [`${g.set} clock${g.set === 1 ? '' : 's'} set${g.tens ? `, ${g.tens} of them at ten o’clock (double)` : ''}.`];
-    const woes = [];
-    if (g.wrong) woes.push(`${g.wrong} wrong setting${g.wrong === 1 ? '' : 's'}`);
-    if (g.gaveUp) woes.push(`${g.gaveUp} clock${g.gaveUp === 1 ? '' : 's'} gave up waiting`);
-    lines.push(woes.length ? `Along the way: ${woes.join(', ')}.` : 'Every clock set right first time!');
+    const lines = [`${g.hops} hop${g.hops === 1 ? '' : 's'} from clock to clock${g.bulls ? `, ${g.bulls} of them bullseye${g.bulls === 1 ? '' : 's'}` : ''}.`];
+    if (g.golds) lines.push(`Reached the gold ten o’clock watch ${g.golds === 1 ? 'once' : `${g.golds} times`}.`);
+    lines.push(g.misses ? `Longest run: ${g.best} in a row; ${g.misses} tumble${g.misses === 1 ? '' : 's'} on the cobbles.` : 'Not a single tumble!');
     return lines;
   };
 
@@ -331,7 +456,6 @@ export default function create(env) {
   function standinSquare(c) {
     band(c, 0, 0, W, 560, '#e8d8a8', 0.5, 1);
     band(c, 0, 0, W, 200, '#e0b890', 0.3, 2);
-    // rooftops and chimneys round the square
     const fronts = ['#d9a4a0', '#c9c09a', '#b8c0a0', '#d0b890', '#c0a8b8'];
     for (let i = 0; i < 8; i++) {
       const x0 = -40 + i * 215;
@@ -339,11 +463,7 @@ export default function create(env) {
       poly(c, [[x0, 640], [x0, 640 - tall], [x0 + 100, 560 - tall], [x0 + 200, 640 - tall], [x0 + 200, 640]], i + 5, 1.5);
       wash(c, fronts[i % fronts.length], 0.45);
       ink(c, 1.4);
-      poly(c, [[x0 + 140, 600 - tall], [x0 + 165, 600 - tall], [x0 + 165, 560 - tall], [x0 + 140, 560 - tall]], i, 1);
-      wash(c, PAL.brick, 0.5);
-      ink(c, 1.2);
     }
-    // cobbles
     band(c, 0, 640, W, H - 640, '#b8b0a0', 0.6, 9);
     c.save();
     c.globalAlpha = 0.3;
@@ -357,215 +477,271 @@ export default function create(env) {
     c.restore();
   }
 
-  function hands(c, cx, cy, r, m, color = INK, w = 1) {
-    const ma = (wrap(m) / 60) * Math.PI * 2;
-    const ha = (wrap(m) / 720) * Math.PI * 2;
-    const hand = (a, len, width, col) => {
-      c.save();
-      c.translate(cx, cy);
-      c.rotate(a);
-      c.beginPath();
-      c.moveTo(-width * 0.6, r * 0.12);
-      c.lineTo(-width * 0.5, -len * 0.7);
-      c.lineTo(0, -len);
-      c.lineTo(width * 0.5, -len * 0.7);
-      c.lineTo(width * 0.6, r * 0.12);
-      c.closePath();
-      c.fillStyle = col;
-      c.fill();
-      ink(c, 1.4 * w);
-      c.stroke();
-      c.restore();
-    };
-    hand(ha, r * 0.52, r * 0.075, color);
-    hand(ma, r * 0.8, r * 0.05, color);
-    c.beginPath();
-    c.arc(cx, cy, r * 0.06, 0, Math.PI * 2);
-    c.fillStyle = PAL.ochre;
-    c.fill();
-    ink(c, 1.6 * w);
-    c.stroke();
-  }
-
-  function numerals(c, cx, cy, r, roman, size) {
-    for (let i = 0; i < 12; i++) {
-      const a = (i / 12) * Math.PI * 2;
-      label(c, roman ? ROMAN[i] : String(i || 12), cx + Math.sin(a) * r, cy - Math.cos(a) * r, { size, weight: 700 });
-    }
-  }
-  function ticks(c, cx, cy, r) {
-    for (let i = 0; i < 60; i++) {
-      const a = (i / 60) * Math.PI * 2;
-      const l = i % 5 === 0 ? 16 : 7;
-      c.beginPath();
-      c.moveTo(cx + Math.sin(a) * r, cy - Math.cos(a) * r);
-      c.lineTo(cx + Math.sin(a) * (r - l), cy - Math.cos(a) * (r - l));
-      ink(c, i % 5 === 0 ? 2.4 : 1.2);
-      c.stroke();
-    }
-  }
-
-  function drawWatch(c, t) {
-    const sh = g.shake > 0 && !env.reduceMotion ? Math.sin(g.shake * 60) * 6 : 0;
-    const x = DX + sh;
-    // the crown on top of the case (it glows brick red while jammed)
-    if (!drawSprite(c, 'sprites.watchCrown', 0, x, CASE_TOP + 12, { h: 96 })) {
-      poly(c, [[x - 26, CASE_TOP - 62], [x + 26, CASE_TOP - 62], [x + 26, CASE_TOP + 8], [x - 26, CASE_TOP + 8]], 3, 1);
-      wash(c, '#d8b040');
-      ink(c, 2.2);
-      hatch(c, x - 26, CASE_TOP - 62, x + 26, CASE_TOP + 8, 6, 0.4, 0);
-    }
-    if (g.jam > 0) {
-      c.save();
-      c.globalAlpha = 0.45 * Math.min(1, g.jam * 2);
-      c.fillStyle = PAL.brick;
-      c.beginPath();
-      c.arc(x, CASE_TOP - 28, 40, 0, Math.PI * 2);
-      c.fill();
-      c.restore();
-    }
-    if (!drawSprite(c, 'sprites.watchFace', 0, x, DY + FACE_DY, { w: FACE_W, anchor: 'center', whole: true })) {
-      c.beginPath();
-      c.arc(x, DY, DR + 20, 0, Math.PI * 2);
-      c.fillStyle = '#d8b040';
-      c.fill();
-      ink(c, 3);
-      c.stroke();
-      c.beginPath();
-      c.arc(x, DY, DR + 6, 0, Math.PI * 2);
-      ink(c, 1.6, '#a88a30');
-      c.stroke();
-      c.beginPath();
-      c.arc(x, DY, DR - 4, 0, Math.PI * 2);
-      c.fillStyle = '#fbf6e4';
-      c.fill();
-      ink(c, 2);
-      c.stroke();
-      ticks(c, x, DY, DR - 8);
-      numerals(c, x, DY, DR - 52, false, 44);
-    }
-    // a faint ghost of the time to set, to match the hands against
-    if (g.nextT <= 0 && g.round < 3) {
-      c.save();
-      c.globalAlpha = 0.18;
-      hands(c, x, DY, DR, g.target, PAL.magenta);
-      c.restore();
-    }
-    hands(c, x, DY, DR, g.m, '#2c2c34', 1.6);
-    // the time, on a little card under the case, where the hands never cover it
-    const ty = DY + CASE_R + 36;
-    poly(c, [[x - 66, ty - 24], [x + 66, ty - 24], [x + 66, ty + 24], [x - 66, ty + 24]], 9, 0.6);
-    c.fillStyle = 'rgba(250,244,228,0.95)';
-    c.fill();
-    ink(c, 2);
-    label(c, digits(g.m), x, ty + 2, { size: 34, color: INK, weight: 700 });
-    if (g.jam > 0) label(c, 'Jammed!', x, DY + DR * 0.42, { size: 34, color: PAL.brick, weight: 800, halo: true });
-  }
-
-  function drawTownClock(c, t) {
-    const C = CLOCKS[g.clock];
-    const ring = g.ring > 0 && !env.reduceMotion ? Math.sin(g.ring * 40) * 0.05 * g.ring : 0;
+  // A tapered hand from the pivot, pointing at angle a, `len` long.
+  function hand(c, x, y, a, len, width, cell) {
+    const key = 'sprites.clockHands';
+    // the delivered hands point up with the pivot at the cell's centre: the
+    // long hand's tip is 0.46 of the cell above it, the short one's 0.26
+    if (drawSprite(c, key, cell, x, y, { w: len / (cell ? 0.26 : 0.46), anchor: 'center', whole: true, rot: a })) return;
     c.save();
-    c.translate(TX, TY);
-    c.rotate(ring);
-    // (each dial is centred in its cell, half the cell wide, its surround round it)
-    if (!drawSprite(c, 'sprites.townClocks', g.clock, 0, 0, { w: TR * 4, anchor: 'center', whole: true })) {
-      // its frame: a stone tower, a hanging station clock, a gold town hall
-      // clock, a wooden cuckoo house
-      if (g.clock === 0) {
-        poly(c, [[-TR - 30, -TR - 80], [0, -TR - 160], [TR + 30, -TR - 80], [TR + 30, TR + 200], [-TR - 30, TR + 200]], 1, 1.5);
-        wash(c, '#c8bca8');
-        ink(c, 2.4);
-        hatch(c, -TR - 30, -TR - 150, TR + 30, TR + 200, 18, 0.15, 1);
-      } else if (g.clock === 1) {
-        c.beginPath();
-        c.moveTo(0, -TR - 10);
-        c.lineTo(0, -TR - 120);
-        ink(c, 10, '#3a3a40');
-        c.stroke();
-      } else if (g.clock === 3) {
-        poly(c, [[-TR - 40, -TR + 10], [0, -TR - 110], [TR + 40, -TR + 10], [TR + 30, TR + 60], [-TR - 30, TR + 60]], 4, 1.5);
-        wash(c, '#a8784a');
-        ink(c, 2.4);
-        blob(c, 0, -TR - 40, 26, 22, 3, 0.1);
-        wash(c, '#e8c060');
+    c.translate(x, y);
+    c.rotate(a);
+    c.beginPath();
+    c.moveTo(-width * 0.6, len * 0.18);
+    c.lineTo(-width * 0.5, -len * 0.7);
+    c.lineTo(0, -len);
+    c.lineTo(width * 0.5, -len * 0.7);
+    c.lineTo(width * 0.6, len * 0.18);
+    c.closePath();
+    c.fillStyle = '#2c2c40';
+    c.fill();
+    ink(c, 1.4);
+    c.stroke();
+    if (!cell) {
+      // a knob at the tip for the Trush to hold
+      c.beginPath();
+      c.arc(0, -len, width * 0.55, 0, TAU);
+      c.fillStyle = '#2c2c40';
+      c.fill();
+      ink(c, 1.2);
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  function standinClock(c, k) {
+    const C = KINDS[k.kind];
+    const R = k.r;
+    const s = R / 130;
+    c.save();
+    c.scale(s, s);
+    const TR = 130;
+    if (k.kind === 0) {
+      poly(c, [[-TR - 30, -TR - 40], [0, -TR - 120], [TR + 30, -TR - 40], [TR + 30, TR + 40], [-TR - 30, TR + 40]], 1, 1.5);
+      wash(c, '#c8bca8');
+      ink(c, 2.4);
+      hatch(c, -TR - 30, -TR - 110, TR + 30, TR + 40, 18, 0.15, 1);
+    } else if (k.kind === 1) {
+      c.beginPath();
+      c.moveTo(0, -TR - 10);
+      c.lineTo(0, -TR - 70);
+      c.lineTo(TR + 40, -TR - 70);
+      ink(c, 10, '#3a3a40');
+      c.stroke();
+    } else if (k.kind === 3) {
+      poly(c, [[-TR - 40, -TR + 10], [0, -TR - 110], [TR + 40, -TR + 10], [TR + 30, TR + 60], [-TR - 30, TR + 60]], 4, 1.5);
+      wash(c, '#a8784a');
+      ink(c, 2.4);
+    } else if (k.kind === 2) {
+      for (const sx of [-1, 1]) {
+        blob(c, sx * (TR + 10), 20, 26, 70, sx + 3, 0.2);
+        wash(c, PAL.green, 0.7);
+        ink(c, 1.4);
+      }
+    }
+    c.beginPath();
+    c.arc(0, 0, TR + 14, 0, TAU);
+    c.fillStyle = C.rim;
+    c.fill();
+    ink(c, 2.4);
+    c.stroke();
+    c.beginPath();
+    c.arc(0, 0, TR, 0, TAU);
+    c.fillStyle = C.face;
+    c.fill();
+    ink(c, 1.6);
+    c.stroke();
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * TAU;
+      label(c, C.roman ? ROMAN[i] : String(i || 12), Math.sin(a) * (TR - 28), -Math.cos(a) * (TR - 28), { size: C.roman ? 22 : 26, weight: 700 });
+    }
+    c.restore();
+  }
+
+  function drawClock(c, k, t) {
+    const grow = k.born < 1 ? 1 - Math.pow(1 - k.born, 3) + Math.sin(k.born * Math.PI) * 0.12 : 1;
+    const fade = clamp(1 - k.fade, 0, 1);
+    const wob = k.ring > 0 && !env.reduceMotion ? Math.sin(k.ring * 30) * 0.06 * k.ring : 0;
+    c.save();
+    c.globalAlpha *= fade;
+    c.translate(k.x, k.y);
+    c.scale(grow * (1 + (1 - fade) * 0.2), grow * (1 + (1 - fade) * 0.2));
+    c.save();
+    c.rotate(wob);
+    if (k.kind === GOLD) {
+      // the gold watch: its face (tick ring 0.36 of the image round 0.5, 0.495), the crown on top
+      const fw = k.r / 0.36;
+      const glow = 0.3 + 0.2 * Math.sin(t * 6);
+      c.save();
+      c.globalAlpha *= glow;
+      const grd = c.createRadialGradient(0, 0, k.r * 0.8, 0, 0, k.r * 1.9);
+      grd.addColorStop(0, 'rgba(255,230,140,0.9)');
+      grd.addColorStop(1, 'rgba(255,230,140,0)');
+      c.fillStyle = grd;
+      c.fillRect(-k.r * 2, -k.r * 2, k.r * 4, k.r * 4);
+      c.restore();
+      const top = -fw * 0.5 + 0.028 * fw + 0.005 * fw;
+      if (!drawSprite(c, 'sprites.watchCrown', 0, 0, top + 6, { h: k.r * 0.42 })) {
+        poly(c, [[-12, top - 34], [12, top - 34], [12, top + 4], [-12, top + 4]], 3, 0.8);
+        wash(c, '#d8b040');
         ink(c, 1.8);
       }
-      c.beginPath();
-      c.arc(0, 0, TR + 14, 0, Math.PI * 2);
-      c.fillStyle = C.rim;
-      c.fill();
-      ink(c, 2.4);
-      c.stroke();
-      c.beginPath();
-      c.arc(0, 0, TR, 0, Math.PI * 2);
-      c.fillStyle = C.face;
-      c.fill();
-      ink(c, 1.6);
-      c.stroke();
-      ticks(c, 0, 0, TR - 4);
-      numerals(c, 0, 0, TR - 30, C.roman, C.roman ? 22 : 26);
+      if (!drawSprite(c, 'sprites.watchFace', 0, 0, 0.005 * fw, { w: fw, anchor: 'center', whole: true })) {
+        c.beginPath();
+        c.arc(0, 0, k.r * 1.25, 0, TAU);
+        c.fillStyle = '#d8b040';
+        c.fill();
+        ink(c, 2.6);
+        c.stroke();
+        c.beginPath();
+        c.arc(0, 0, k.r * 1.04, 0, TAU);
+        c.fillStyle = '#fbf6e4';
+        c.fill();
+        ink(c, 1.8);
+        c.stroke();
+        for (let i = 0; i < 12; i++) {
+          const a = (i / 12) * TAU;
+          label(c, String(i || 12), Math.sin(a) * k.r * 0.8, -Math.cos(a) * k.r * 0.8, { size: k.r * 0.22, weight: 700 });
+        }
+      }
+      // how long it will wait: a gold arc round the case
+      if (k.life !== Infinity) {
+        c.beginPath();
+        c.arc(0, 0, k.r * 1.38, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(k.life / GOLD_LIFE, 0, 1));
+        ink(c, 6, k.life < 2 && Math.sin(t * 14) > 0 ? PAL.brick : PAL.mustard);
+        c.stroke();
+      }
+    } else if (!drawSprite(c, 'sprites.townClocks', k.kind, 0, 0, { w: k.r * 4, anchor: 'center', whole: true })) {
+      standinClock(c, k);
     }
-    if (g.nextT <= 0 || g.ring > 0) hands(c, 0, 0, TR, g.target, INK, 1);
     c.restore();
-
-    // its call, in a speech bubble
-    if (g.nextT > 0 && g.ring <= 0) return;
-    const bx = TX;
-    const by = TY + TR + 120;
-    const s = 1 + g.callT * 0.5;
-    const text = g.isTen ? 'Ten o’clock!' : words(g.target);
-    const cap = text.charAt(0).toUpperCase() + text.slice(1);
+    // its hands (not wobbling with the frame, so the aim stays true)
+    c.restore();
     c.save();
-    c.translate(bx, by);
-    c.scale(s, s);
-    blob(c, 0, 0, 230, 70, 8, 0.04, 24);
-    wash(c, '#fbf6e4', 0.95);
-    ink(c, 2.2);
-    poly(c, [[-20, -66], [0, -110], [24, -64]], 2, 0.5);
-    wash(c, '#fbf6e4', 0.95);
-    label(c, `${C.name} says:`, 0, -30, { size: 24, color: '#7a6a50', weight: 600 });
-    label(c, `${cap}`, 0, 12, { size: cap.length > 18 ? 34 : 42, color: g.isTen ? PAL.magenta : INK, weight: 800 });
-    if (/[a-z]/.test(text)) label(c, digits(g.target), 0, 46, { size: 20, color: '#7a6a50', weight: 600 });
+    c.globalAlpha *= fade;
+    hand(c, k.x, k.y, k.hour, k.r * 0.55, k.r * 0.13, 1);
+    hand(c, k.x, k.y, k.a, reach(k), k.r * 0.09, 0);
+    c.beginPath();
+    c.arc(k.x, k.y, k.r * 0.07, 0, TAU);
+    c.fillStyle = PAL.ochre;
+    c.fill();
+    ink(c, 1.4);
+    c.stroke();
+    if (k.dir < 0 && k.fade <= 0) {
+      // a little backwards arrow over the cuckoo clock
+      c.beginPath();
+      c.arc(k.x, k.y, k.r + 22, -Math.PI * 0.35, -Math.PI * 0.65, true);
+      ink(c, 3, PAL.brick);
+      c.stroke();
+      const ax = k.x + Math.cos(-Math.PI * 0.65) * (k.r + 22);
+      const ay = k.y + Math.sin(-Math.PI * 0.65) * (k.r + 22);
+      poly(c, [[ax - 12, ay - 6], [ax + 6, ay - 12], [ax + 2, ay + 8]], 2, 0.3);
+      c.fillStyle = PAL.brick;
+      c.fill();
+    }
     c.restore();
-    // its patience: a little sand line under the bubble
-    if (g.nextT <= 0) {
-      const left = 1 - clamp(g.wait / g.patience, 0, 1);
-      c.fillStyle = left < 0.3 && Math.sin(t * 12) > 0 ? PAL.brick : PAL.ochre;
-      c.fillRect(bx - 160, by + 90, 320 * left, 10);
-      c.strokeStyle = INK;
-      c.lineWidth = 1.5;
-      c.strokeRect(bx - 160, by + 90, 320, 10);
+  }
+
+  // The dotted line on from the hand's tip.
+  function drawAim(c, t) {
+    if (g.state !== 'ride' || !g.on) return;
+    const [x, y] = g.tip();
+    const [dx, dy] = dirOf(g.on.a);
+    const hit = g.aim();
+    const len = g.aimLen();
+    const lined = hit && hit.dist <= len + hit.clock.r;
+    const col = !lined ? INK : hit.clock.kind === GOLD ? PAL.mustard : PAL.magenta;
+    const ready = g.grip <= 0;
+    c.save();
+    for (let s = 34, i = 0; s < len; s += 26, i++) {
+      const k = 1 - s / len;
+      c.globalAlpha = (lined ? 1 : 0.8) * Math.min(1, k * 2.5) * (ready ? 1 : 0.45);
+      c.beginPath();
+      c.arc(x + dx * s, y + dy * s, lined ? 8 : 6, 0, TAU);
+      c.fillStyle = col;
+      c.fill();
+      c.lineWidth = 2;
+      c.strokeStyle = 'rgba(250,244,228,0.9)';
+      c.stroke();
+    }
+    c.restore();
+    if (lined) {
+      // ring the clock it would reach
+      const k = hit.clock;
+      c.save();
+      c.setLineDash([12, 10]);
+      c.lineDashOffset = -t * 40;
+      c.beginPath();
+      c.arc(k.x, k.y, k.r + CATCH + 6, 0, TAU);
+      ink(c, hit.off <= BULL ? 5 : 3, col);
+      c.stroke();
+      c.restore();
     }
   }
 
   function drawTrush(c, t) {
-    const hop = g.sing > 0 && !env.reduceMotion ? Math.abs(Math.sin(g.sing * 9)) * 26 : 0;
-    const sq = g.sing > 0 ? Math.sin(g.sing * 18) * 0.04 : 0;
-    c.save();
-    c.translate(BIRD_X, BIRD_Y - hop);
-    c.scale(1 + sq, 1 - sq);
-    const flustered = g.sing <= 0 && (g.jam > 0 || g.fluster > 0);
-    let drawn = false;
-    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, (1 - 0.98) * BIRD_CELL, { w: BIRD_CELL, whole: true });
-    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, (1 - 0.979) * BIRD_CELL, { w: BIRD_CELL, whole: true });
-    if (!drawn) {
-      if (flustered && !env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.05); // the stand-in shakes
-      // never flipped: a mirrored watch face would read backwards
-      drawBird(c, 'titthrush', { x: 0, y: 0, size: BIRD_SIZE, t });
+    let x = g.bx;
+    let y = g.by;
+    if (g.state === 'ride' && g.on) [x, y] = g.tip();
+    if (g.state === 'ride') {
+      const sh = g.shake > 0 && !env.reduceMotion ? Math.sin(g.shake * 70) * 3 : 0;
+      c.save();
+      c.translate(x + sh, y);
+      if (g.sing > 0) {
+        if (!drawSprite(c, 'sprites.titthrushSing', 0, 0, (1 - 0.98) * POSE_CELL, { w: POSE_CELL, whole: true })) drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t, squash: Math.sin(g.sing * 20) * 0.08 });
+      } else {
+        // perched: the claws (0.5, 0.92 of the cell) on the tip
+        const cell = HOP_H / 0.7;
+        if (!drawSprite(c, 'sprites.titthrushHop', 0, 0, 0.08 * cell, { w: cell, whole: true })) drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t });
+      }
+      c.restore();
+    } else if (g.state === 'fly' || g.state === 'back') {
+      const dx = g.state === 'fly' ? g.vx : g.tip(g.from)[0] - g.backFrom[0];
+      const dy = g.state === 'fly' ? g.vy : -1;
+      const right = dx > 0;
+      const ang = Math.atan2(dy, dx);
+      const rot = right ? ang : ang - Math.PI;
+      // a streak behind it
+      if (g.state === 'fly') {
+        c.save();
+        c.globalAlpha = 0.35;
+        for (let i = 1; i <= 5; i++) {
+          c.beginPath();
+          c.arc(x - (g.vx / SPEED) * i * 26, y - (g.vy / SPEED) * i * 26, 7 - i, 0, TAU);
+          c.fillStyle = PAL.mustard;
+          c.fill();
+        }
+        c.restore();
+      }
+      c.save();
+      c.translate(x, y);
+      const cell = HOP_H / 0.7;
+      if (!drawSprite(c, 'sprites.titthrushHop', 1, 0, 0, { w: cell, anchor: 'center', whole: true, flip: right, rot: g.state === 'fly' ? rot : 0 })) {
+        c.rotate(g.state === 'fly' ? rot * 0.6 : 0);
+        drawBird(c, 'titthrush', { x: 0, y: HOP_H * 0.5, size: HOP_H, t, flip: right });
+      }
+      c.restore();
+    } else {
+      // tumbled on the cobbles
+      c.save();
+      c.translate(x, y);
+      if (!drawSprite(c, 'sprites.titthrushFluster', 0, 0, (1 - 0.979) * POSE_CELL, { w: POSE_CELL, whole: true })) {
+        if (!env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.08);
+        drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t });
+      }
+      c.restore();
     }
-    c.restore();
     for (const n of g.notes) {
       c.save();
       c.globalAlpha = clamp(n.life, 0, 1);
       c.beginPath();
-      c.ellipse(n.x, n.y, 11, 8, -0.4, 0, Math.PI * 2);
+      c.ellipse(n.x, n.y, 10, 7, -0.4, 0, TAU);
       c.fillStyle = PAL.magenta;
       c.fill();
       c.beginPath();
-      c.moveTo(n.x + 10, n.y - 2);
-      c.lineTo(n.x + 10, n.y - 40);
-      c.quadraticCurveTo(n.x + 26, n.y - 30, n.x + 22, n.y - 18);
+      c.moveTo(n.x + 9, n.y - 2);
+      c.lineTo(n.x + 9, n.y - 34);
+      c.quadraticCurveTo(n.x + 23, n.y - 26, n.x + 20, n.y - 16);
       ink(c, 3, PAL.magenta);
       c.stroke();
       c.restore();
@@ -574,9 +750,42 @@ export default function create(env) {
 
   g.draw = (c, t) => {
     scene(c, 'titthrush', W, H, standinSquare);
-    drawTownClock(c, t);
+    // a soft shadow on the cobbles under the Trush
+    const sx = g.state === 'ride' && g.on ? g.tip()[0] : g.bx;
+    c.save();
+    c.globalAlpha = 0.15;
+    c.fillStyle = INK;
+    c.beginPath();
+    c.ellipse(sx, GROUND + 6, 50, 9, 0, 0, TAU);
+    c.fill();
+    c.restore();
+
+    for (const k of g.clocks) if (k !== g.on) drawClock(c, k, t);
+    if (g.on) drawClock(c, g.on, t);
+    drawAim(c, t);
     drawTrush(c, t);
-    drawWatch(c, t);
+
+    for (const b of g.bits) {
+      c.save();
+      c.globalAlpha = clamp(b.life * 2, 0, 1);
+      if (b.kind === 'star') {
+        c.translate(b.x, b.y);
+        c.rotate(b.life * 6);
+        const pts = [];
+        for (let i = 0; i < 10; i++) {
+          const r = i % 2 ? 4 : 11;
+          pts.push([Math.cos((i / 10) * TAU) * r, Math.sin((i / 10) * TAU) * r]);
+        }
+        poly(c, pts, 1, 0.2);
+        c.fillStyle = b.color;
+        c.fill();
+        ink(c, 1);
+      } else {
+        blob(c, b.x, b.y, 9, 6, 1, 0.2, 8);
+        wash(c, '#c8bca8', 0.8);
+      }
+      c.restore();
+    }
 
     for (const p of g.pops) {
       const k = Math.min(1, (1.3 - p.life) * 8);
@@ -584,27 +793,21 @@ export default function create(env) {
       c.globalAlpha = Math.min(1, p.life * 2);
       c.translate(p.x, p.y);
       c.scale(0.6 + 0.4 * k, 0.6 + 0.4 * k);
-      c.lineWidth = 7;
-      c.strokeStyle = 'rgba(250,244,228,0.9)';
-      c.font = `800 ${p.size}px Fraunces, Georgia, serif`;
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.strokeText(p.text, 0, 0);
-      label(c, p.text, 0, 0, { size: p.size, color: p.color, weight: 800 });
+      label(c, p.text, 0, 0, { size: p.size, color: p.color, weight: 800, halo: true });
       c.restore();
     }
 
-    if (g.elapsed < 4.5) {
+    if (g.elapsed < 5) {
       c.save();
-      c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      const msg = g.kind === 'pointer' ? 'Drag the hands to match the town clock · tap to set' : g.kind === 'controller' ? 'Spin the stick · flick ↑ ↓ for hours · A to set' : 'Hold ← → to turn · ↑ ↓ for hours · Space to set';
-      hint(c, msg, W / 2, 878, { focus: g.focus(), span: g.span, size: 30 });
+      c.globalAlpha = Math.min(1, 5 - g.elapsed);
+      const how = g.kind === 'pointer' ? 'Tap' : g.kind === 'controller' ? 'Press A' : 'Press Space';
+      hint(c, `${how} when the dotted line points at a clock · through the middle is a bullseye`, W / 2, 870, { focus: g.focus(), span: g.span, size: 30 });
       c.restore();
     }
   };
 
-  // On a narrow screen: the watch face, and the call beside it when there's room.
-  g.focus = () => 900;
+  // On a narrow screen: the middle of the square, where all the clocks are.
+  g.focus = () => 800;
   g.span = 1060;
 
   return g;
