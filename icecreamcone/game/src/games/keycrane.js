@@ -25,14 +25,19 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const RAIL_Y = 150; // low enough that the trolley clears the HUD clock
+// The painted brass rod (scene IC-M07a) runs 92 px down; the trolley's
+// wheels ride on it.
+const RAIL_Y = 114;
 const PIVOT_Y = RAIL_Y + 26; // where the string leaves the trolley
 const FLOOR = 812; // the cabinet's floor, where the prizes stand
 const X_MIN = 150;
 const X_MAX = 1470;
+// The chute: the painted box's top face runs from x 60 to 355, its round
+// hole centred at (200, 577).
 const CHUTE_X0 = 64;
-const CHUTE_X1 = 320; // the chute's mouth, at the left
-const CHUTE_Y = 520;
+const CHUTE_X1 = 340; // the chute's top, at the left
+const CHUTE_Y = 577;
+const HOLE = { x: 200, y: 577, rx: 82, ry: 22 };
 const PILE_X0 = 430; // the prizes lie between here and X_MAX
 const SLOTS = [470, 600, 730, 860, 990, 1120, 1250, 1380];
 const BIRD = 220; // the Crane's drawn size
@@ -131,7 +136,7 @@ export default function create(env) {
     g.score += n;
     g.caught++;
     if (p.golden) g.golden++;
-    pop(p.golden ? 'Golden!  +3' : '+1', (CHUTE_X0 + CHUTE_X1) / 2, CHUTE_Y - 90, p.golden ? '#b8862a' : PAL.magenta, p.golden ? 52 : 50);
+    pop(p.golden ? 'Golden!  +3' : '+1', HOLE.x, CHUTE_Y - 90, p.golden ? '#b8862a' : PAL.magenta, p.golden ? 52 : 50);
     sfx(p.golden ? 'bloom' : 'right');
     env.vibrate?.(40);
     g.respawn.push(1.1);
@@ -620,7 +625,7 @@ export default function create(env) {
     ink(c, 2.4);
     hatch(c, CHUTE_X0 - 20, CHUTE_Y, CHUTE_X1 + 20, H - 40, 16, 0.2, 2);
     c.beginPath();
-    c.ellipse((CHUTE_X0 + CHUTE_X1) / 2, CHUTE_Y + 4, (CHUTE_X1 - CHUTE_X0) / 2, 22, 0, 0, Math.PI * 2);
+    c.ellipse(HOLE.x, HOLE.y, HOLE.rx, HOLE.ry, 0, 0, Math.PI * 2);
     c.fillStyle = '#2a2018';
     c.fill();
     ink(c, 2.4);
@@ -628,7 +633,7 @@ export default function create(env) {
     // a painted arrow on the glass, pointing down into the chute
     c.save();
     c.globalAlpha = 0.5;
-    const ax = (CHUTE_X0 + CHUTE_X1) / 2;
+    const ax = HOLE.x;
     poly(c, [[ax - 16, CHUTE_Y - 150], [ax + 16, CHUTE_Y - 150], [ax + 16, CHUTE_Y - 100], [ax + 34, CHUTE_Y - 100], [ax, CHUTE_Y - 62], [ax - 34, CHUTE_Y - 100], [ax - 16, CHUTE_Y - 100]], 7, 1);
     wash(c, PAL.lemon);
     ink(c, 2);
@@ -650,7 +655,7 @@ export default function create(env) {
       c.save();
       c.globalAlpha = 0.3 + 0.2 * Math.sin(t * 8);
       c.beginPath();
-      c.ellipse((CHUTE_X0 + CHUTE_X1) / 2, CHUTE_Y + 4, (CHUTE_X1 - CHUTE_X0) / 2 + 8, 28, 0, 0, Math.PI * 2);
+      c.ellipse(HOLE.x, HOLE.y, HOLE.rx + 8, HOLE.ry + 6, 0, 0, Math.PI * 2);
       ink(c, 6, PAL.lemon);
       c.stroke();
       c.restore();
@@ -687,7 +692,13 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Move · stop · let it settle · drop on a ring', W / 2 + 120, 470, { size: 34, weight: 600 });
+      // two short lines, centred on what a narrow screen shows, on a soft
+      // paper backing so they read over the painting
+      const hx = clamp(g.focus(), 390, W - 390);
+      const hl = ['Move, stop, and let it settle,', 'then drop onto a ring'];
+      c.fillStyle = 'rgba(250,244,228,0.75)';
+      c.fillRect(hx - 370, 430 - 34, 740, 112);
+      hl.forEach((s, i) => label(c, s, hx, 430 + i * 44, { size: 34, weight: 600 }));
       c.restore();
     }
   };

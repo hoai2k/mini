@@ -69,3 +69,16 @@ the code-drawn claws are only drawn on the stand-in now. The hanging poses
 shaft's middle on the centre line 35% down, the claw tips 93% down), and
 their prompts now describe the painting's design: the bow head with the eye
 inside it, the top hat, the collared shaft and the pink-and-olive feathers.
+
+## Matched to the delivered art
+
+The cabinet scene (IC-M07a) is in. Its brass rod runs 92 px down (higher
+than asked), so the trolley's wheels now ride on it (`RAIL_Y` 114); only the
+wheels pass under the HUD clock. The chute is the painted box: its top face
+runs from x 60 to 355 and its hole is centred at (200, 577), so the catch
+line, the glow round the hole while a prize is carried and the "+1" all sit
+on the painted hole. The prizes stand on the painted velvet (812 px, between
+its back edge at 720 and front at 855). The opening hint is two short lines
+on a paper backing, centred on the view so a phone shows all of it. Still
+stand-in: the prizes (IC-M07b) and the hanging and startled Crane (IC-M07c,
+IC-M07d), drawn from the standing portrait meanwhile.

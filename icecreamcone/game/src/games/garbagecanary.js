@@ -28,7 +28,9 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const PAVE = 770; // the pavement, where the bin's feet stand
+// The pavement, where the bin's feet stand: on the painted street (IC-M08a)
+// the paving runs from the house fronts at 582 px down to the kerb at 705.
+const PAVE = 690;
 const BIN_X = 470;
 const SIZE = 330;
 const K = SIZE / 400;
@@ -706,7 +708,13 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, 'Hold to open the lid for rubbish · keep it shut for anything else', W / 2 + 100, 170, { size: 32, weight: 600 });
+      // two short lines, centred on what a narrow screen shows, on a soft
+      // paper backing so they read over the painting
+      const hx = clamp(g.focus(), 390, W - 390);
+      const hl = ['Hold to open the lid for rubbish,', 'keep it shut for anything that glows'];
+      c.fillStyle = 'rgba(250,244,228,0.75)';
+      c.fillRect(hx - 370, 170 - 34, 740, 112);
+      hl.forEach((s, i) => label(c, s, hx, 170 + i * 44, { size: 34, weight: 600 }));
       c.restore();
     }
   };
