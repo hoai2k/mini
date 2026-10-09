@@ -9,7 +9,7 @@ export default {
   tips: ['A ring round the bulb shows how long they will wait.', 'Once they fall asleep, unplug their lamp to save power.', 'Three lamps are safe; any more and the fuse heats up.', 'If the fuse blows, fly to the fuse box and flip it back on.'],
   score: 'rooms lit',
   controls: [['Fly', 'move', 'Tap a window to fly there and plug in'], ['Plug in or unplug', 'action']],
-  pass: 12,
+  pass: 11,
   tune: 'night',
   color: '#e0b84a',
 };

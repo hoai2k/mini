@@ -13,7 +13,7 @@
 // leaves. The soup swirls faster, the orders grow and patience shortens as
 // the queue goes on. Score: points.
 
-import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -24,20 +24,32 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 50;
-const CX = 665; // the broth's surface, an ellipse, over the painted range
-const CY = 560;
-const RX = 400;
-const RY = 150;
+// The broth's surface, an ellipse: the painted pot's own broth oval (measured
+// in its 1024 px cell: centre (510, 559), 305 by 75 px), drawn 1.18 times
+// size, the pot standing over the painted range.
+const CX = 650;
+const CY = 490;
+const RX = 360;
+const RY = 88;
+const POT_K = RX / 305;
 const CATCH = 0.2; // the ring's radius, in units of the surface
 const DIP = 0.42; // seconds a dip takes
 const SCOOP_AT = 0.16; // into the dip, when the ladle takes what's in the ring
 const BITS = 15;
 const KINDS = ['carrot', 'pea', 'dumpling', 'mushroom', 'boot'];
+const BIT_H = { carrot: 34, pea: 34, dumpling: 36, mushroom: 34, boot: 60 };
 const NAMES = { carrot: ['carrot', 'carrots'], pea: ['pea', 'peas'], dumpling: ['dumpling', 'dumplings'], mushroom: ['mushroom', 'mushrooms'] };
-const BOWL = { x: 1250, y: 655 }; // on the painted counter's top
+const BOWL = { x: 1250, y: 585 }; // the broth in the serving bowl, its foot on the painted counter's top
 const COUNTER_TOP = 648; // the queue stands behind the counter
 const QUEUE_X = [1390, 1510, 1590];
 const SIZE = 300;
+// The pose sheet (hovering, dipping, rising; 1024 px cells): the bowl's lowest
+// point from each cell's centre, and the drawn scale.
+const POSE_BOWL = [[88, 172], [100, 200], [94, 158]];
+const POSE_K = 0.41;
+// The serving bowl (the pot sheet's second cell): its broth centred at
+// (512, 710), the bowl's foot at 917; drawn 0.42 times size.
+const BOWL_K = 0.42;
 const BUBBLE_X = 900; // the order, over the pot so a narrow screen shows it
 const SAY = [900, 390]; // where the creature's words pop up
 const K = SIZE / 400;
@@ -300,7 +312,9 @@ export default function create(env) {
   // ---------- drawing ----------
 
   function bit(c, kind, x, y, s = 1, rot = 0) {
-    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x, y, { h: (kind === 'pea' ? 26 : kind === 'boot' ? 52 : 34) * s, anchor: 'center', rot })) return;
+    // painted bits (their trims include a few drops of broth): sized so the
+    // pea is about 26 px, and only rocked, since they're painted at a slant
+    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x, y, { h: BIT_H[kind] * s, anchor: 'center', rot: Math.sin(rot) * 0.25 })) return;
     c.save();
     c.translate(x, y);
     c.rotate(rot);
@@ -481,7 +495,9 @@ export default function create(env) {
       c.clip();
     }
     // the painted poses have the ladle's bowl at the centre of the cell
-    if (!drawSprite(c, 'sprites.larkPoses', pose, sx, bottom - 40 * K, { h: SIZE * 1.4, anchor: 'center', whole: true })) {
+    // the painted poses, placed by the bowl's lowest point (measured per cell)
+    const [bdx, bdy] = POSE_BOWL[pose];
+    if (!drawSprite(c, 'sprites.larkPoses', pose, sx - bdx * POSE_K, bottom - bdy * POSE_K, { h: 1024 * POSE_K, anchor: 'center', whole: true })) {
       // wings: beating while it hovers, swept up as it dips (the portrait has its own)
       const flap = pose ? -0.8 : Math.sin(t * 16) * 0.5;
       for (const d of art('subject.ladlelark') ? [] : [-1, 1]) {
@@ -520,11 +536,8 @@ export default function create(env) {
   }
 
   function pot(c, t) {
-    const sc = spriteCell('sprites.larkPot', 0);
-    if (sc) {
-      const w = 2 * (RX + 26);
-      const h = (sc.trim.h * w) / sc.trim.w;
-      drawSprite(c, 'sprites.larkPot', 0, CX, CY - (RY + 10) + h, { w });
+    if (drawSprite(c, 'sprites.larkPot', 0, CX - (510 - 512) * POT_K, CY - (559 - 512) * POT_K, { h: 1024 * POT_K, anchor: 'center', whole: true })) {
+      // the painted pot
     } else {
       // the stove's flames (the painted scene has its own range)
       for (let i = 0; i < (art('scene.ladlelark') ? 0 : 7); i++) {
@@ -623,7 +636,7 @@ export default function create(env) {
     // queue: the two behind, then the one at the front
     // with the painted counter, the queue stands behind it: only what's above its top shows
     const behind = !!art('scene.ladlelark');
-    const feet = behind ? 90 : 0;
+    const feet = behind ? (art('sprites.larkQueue') ? 40 : 90) : 0;
     c.save();
     if (behind) {
       c.beginPath();
@@ -644,7 +657,7 @@ export default function create(env) {
     c.restore();
 
     // the bowl on the counter, and what's in it
-    if (!drawSprite(c, 'sprites.larkPot', 1, BOWL.x, BOWL.y + 46, { w: 190 })) {
+    if (!drawSprite(c, 'sprites.larkPot', 1, BOWL.x, BOWL.y - (710 - 512) * BOWL_K, { h: 1024 * BOWL_K, anchor: 'center', whole: true })) {
       c.beginPath();
       c.moveTo(BOWL.x - 92, BOWL.y);
       c.quadraticCurveTo(BOWL.x, BOWL.y + 100, BOWL.x + 92, BOWL.y);

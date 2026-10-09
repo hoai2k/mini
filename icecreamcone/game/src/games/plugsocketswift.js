@@ -31,6 +31,10 @@ const GROUND = 800;
 const FUSE = { x: 255, y: 600 }; // on the blank patch of the painted garden wall
 const SAFE = 3; // lamps the fuse carries without warming
 const SIZE = 190; // the Swift
+// In the pose sheet (three 1024 px cells: flying, plugging in, singed): the
+// socket's offset from each cell's centre, and the bulb's from the socket.
+const POSE_SOCKET = [[-135, 144], [-4, 116], [-32, 116]];
+const POSE_BULB = [[-56, -237], [-232, -42], [-84, -223]];
 const CREATURES = ['#c9a080', '#a9b0b8', '#d9b0a0', '#b8a070']; // mouse, rabbit, hedgehog, mole: their fur in the dark
 
 export default function create(env) {
@@ -455,7 +459,11 @@ export default function create(env) {
     c.moveTo(x + 40, y + 110);
     c.quadraticCurveTo(x + 90, GROUND - 20, COLS[0] - 120, GROUND - 70);
     ink(c, 4, '#3a3028');
-    if (drawSprite(c, 'sprites.swiftHouse', g.blown ? 5 : 4, x + sh, y + 175, { h: 190 })) {
+    // The painted box (measured in its 512 px cell: x 108-401, y 33-433; the
+    // blown one sits left of centre, x 57-340, its smoke trailing right) is
+    // drawn 190 tall with its foot at y + 175.
+    const FK = 190 / 400;
+    if (drawSprite(c, 'sprites.swiftHouse', g.blown ? 5 : 4, x + sh + (g.blown ? (256 - 198) * FK : 0), y + 175 - (433 - 256) * FK, { h: 512 * FK, anchor: 'center', whole: true })) {
       // the painted box sits below a little card of lamps and the heat gauge
       poly(c, [[x - 84, y - 108], [x + 84, y - 108], [x + 84, y - 18], [x - 84, y - 18]], 8, 0.8);
       wash(c, '#f2ead6', 0.95);
@@ -501,8 +509,17 @@ export default function create(env) {
     wash(c, '#f2ead6', 0.95);
     ink(c, 1.6);
     label(c, 'FUSE', x, y - 137, { size: 26, weight: 800, color: '#3a3028' });
-    if (g.blown && Math.sin(t * 8) > -0.3) label(c, 'Flip me!', x, y + 150, { size: 34, weight: 800, color: PAL.brick });
-    else if (!g.blown && g.load() > SAFE && Math.sin(t * 10) > 0) label(c, 'Too many lamps!', x + 20, y + 150, { size: 30, weight: 800, color: PAL.brick });
+    // warnings below the box, on the lawn, with a paper outline to read on the painting
+    const warn = g.blown ? (Math.sin(t * 8) > -0.3 ? 'Flip me!' : '') : g.load() > SAFE && Math.sin(t * 10) > 0 ? 'Too many lamps!' : '';
+    if (warn) {
+      c.lineWidth = 7;
+      c.strokeStyle = 'rgba(250,244,228,0.92)';
+      c.font = '800 32px Fraunces, Georgia, serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.strokeText(warn, x + 20, y + 205);
+      label(c, warn, x + 20, y + 205, { size: 32, weight: 800, color: PAL.brick });
+    }
   }
 
   function drawSwift(c, t) {
@@ -518,7 +535,11 @@ export default function create(env) {
     const painted = !!art('subject.plugsocketswift');
     const body = painted ? 192 : 160;
     // the painted poses are framed like the portrait, the body at the cell's centre
-    if (!drawSprite(c, 'sprites.swiftPoses', pose, x, y, { h: SIZE * 1.5, anchor: 'center', flip, whole: true })) {
+    // the painted poses, placed by their socket (measured in each 1024 px cell)
+    const [sdx, sdy] = POSE_SOCKET[pose];
+    const PK = (SIZE * 1.5) / 1024;
+    const sprite = drawSprite(c, 'sprites.swiftPoses', pose, x - (flip ? -sdx : sdx) * PK, y - sdy * PK, { h: 1024 * PK, anchor: 'center', flip, whole: true });
+    if (!sprite) {
       // wings: beating, swept back for the plug-in dive, drooping when singed
       const flap = singed ? 0.9 : plugging ? -0.5 : Math.sin(t * 22) * 0.6;
       // (the portrait has its own wings; the stand-in gets these)
@@ -554,8 +575,14 @@ export default function create(env) {
     // the bulb, in bird units across from the socket and up from the feet:
     // painting (0, -326) (bulb at 39%, 20% of the PNG), stand-in (-10, -290)
     const [bx, by] = painted ? [0, -326] : [-10, -290];
-    const hx = x + (flip ? -bx : bx) * s;
-    const hy = y + body * s + by * s;
+    let hx = x + (flip ? -bx : bx) * s;
+    let hy = y + body * s + by * s;
+    if (sprite) {
+      // the painted pose's bulb, from its socket
+      const [ux, uy] = POSE_BULB[pose];
+      hx = x + (flip ? -ux : ux) * PK;
+      hy = y + uy * PK;
+    }
     const glow = 0.35 + g.flash * 2.5;
     const grd = c.createRadialGradient(hx, hy, 6, hx, hy, 90);
     grd.addColorStop(0, `rgba(255,240,160,${Math.min(0.9, glow)})`);

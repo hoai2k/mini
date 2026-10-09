@@ -35,11 +35,11 @@ Swift follows the pointer; a click or tap on a window (or the fuse box)
 sends the Swift there and acts when it arrives. The window the Swift is at
 is outlined. On a narrow screen the view follows the Swift, 820 wide.
 
-**Pass.** 12 rooms lit. Bots over seeds 1–5: a beginner (slower, lets a
-fourth lamp in, sometimes picks a window at random) 13–16; a good
+**Pass.** 11 rooms lit. Bots over seeds 1–5: a beginner (slower, lets a
+fourth lamp in, sometimes picks a window at random) 12–14; a good
 electrician (never more than three, unplugs the nearest sleeper first,
 serves the most impatient window) 19–20; plugging in everything and never
-unplugging 5–7; flying at random mashing 2–5; idle 0.
+unplugging 5–8; flying at random mashing 2–9; idle 0.
 
 **Images.** IC-M13a is the garden at dusk with the tall house, its front
 wall left blank for the game's windows and a clear patch on the garden wall
@@ -78,3 +78,10 @@ The painted garden at dusk (IC-M13a) is in.
 - The window rows moved down to y 320, 497 and 674, so the top row sits under the painted eaves (about y 230) and the bottom row clears the lawn (about y 790).
 - The fuse box moved to the blank patch on the painted garden wall, centred at (255, 600). Its "FUSE" name now sits on a little card so it reads against the wall and the hedge.
 - Still drawn in code until IC-M13b and IC-M13c arrive: the windows and their creatures, the fuse box, the cable, and the Swift's flight poses (it shows its portrait). The night deepening is a wash in code over the painting.
+
+Sprites delivered (IC-M13b windows and fuse box, IC-M13c poses). Every anchor was measured on the PNGs.
+- **Windows:** drawn 156 tall, centred on each window's place. The painted mouse replaces the code creatures, so every room now has the mouse.
+- **Fuse box:** placed by the box itself (x 108–401, y 33–433 in its 512 px cell), drawn 190 tall with its foot at y + 175. The blown box sits left of centre in its cell (x 57–340, smoke to the right), so it is shifted to keep the box in the same place. The lamp count and heat gauge sit on a card just above the box. The "Flip me!" and "Too many lamps!" warnings moved below it onto the lawn, outlined.
+- **Poses:** flying, plugging in (head down, bulb blazing) and singed. Each is placed by its socket (offset from its cell's centre: (−135, 144), (−4, 116), (−32, 116); drawn at 0.278 scale), so the hitbox (the socket) doesn't jump between poses. The bulb glow follows each pose's painted bulb. The code wings and smoke are no longer drawn.
+- **Still drawn in code:** the cable from the box to the house, the bubbles and timer rings, the reading bars, the lamp count card, the night wash and the frown on a window that gave up. No pose is missing: the portrait is shown on the page, and the three poses cover play.
+- **Pass:** lowered to 11. The fuse box moved, so the beginner bot's lowest score is now 12 (beginner 12–14, good 19–20, greedy 5–8, mashing 2–9).

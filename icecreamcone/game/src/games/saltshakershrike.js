@@ -14,7 +14,7 @@
 // faster and the plates want more salt as the lunch rush builds. Score:
 // points.
 
-import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -34,11 +34,11 @@ const CAP_Y = RAIL_Y + 268 * S; // where the salt comes out (the Shrike hangs he
 const TX = 860;
 const TY = 560;
 const TRX = 600;
-const TRY = 95;
+const TRY = 108; // the plates' rim, 87% of the way out on the painted top
 const FOOD_UP = 42; // salt lands this far above a plate's foot
 const FOOD_HALF = 50; // how wide a plate catches salt
-const DINER_X = 150;
-const DINER_Y = 610;
+const DINER_X = 320; // behind the table's left end, the table hiding the diner's waist
+const DINER_Y = 600;
 const WALL_Y = 470; // where the wall meets the floor
 const SALT_V = 250; // the pinch leaves the cap downward at this speed
 const SALT_G = 1800;
@@ -52,7 +52,10 @@ const COOL = 0.2; // between shakes
 // its cap hangs at the same height, and shifted so the cap is over the salt's line.
 const PORTRAIT_SIZE = Math.round((268 * SIZE) / 375);
 const PORTRAIT_CAP_DX = (83 * PORTRAIT_SIZE) / 400;
-const CELL = (CAP_Y - RAIL_Y) / 0.75; // a painted pose: claws at the top, cap 75% down
+// The cap's holes in each pose cell (still, shaking, pleased, flinching).
+const POSE_CAP = [[503, 782], [503, 763], [484, 763], [521, 726]];
+// How high each dish's food stands above its plate's foot, as drawn.
+const FOOD_TOP = [50, 64, 64, 52, 66, 70, 92, 110];
 const DESSERTS = [6, 7];
 
 export default function create(env) {
@@ -401,7 +404,7 @@ export default function create(env) {
     const x = DINER_X;
     const y = DINER_Y;
     const bounce = mood > 0.5 && d.t > 0 ? Math.abs(Math.sin(t * 14)) * 10 : 0;
-    if (drawSprite(c, 'sprites.shrikeDiners', who + (frown ? 4 : 0), x, y - bounce, { h: 300 })) return;
+    if (drawSprite(c, 'sprites.shrikeDiners', who + (frown ? 4 : 0), x, y - bounce, { h: 220 })) return;
     const fur = ['#6a5a50', '#b0a8a0', '#8aa860', '#8a8478'][who];
     c.save();
     c.translate(x, y - bounce);
@@ -443,13 +446,11 @@ export default function create(env) {
 
   // The revolving table, its top an ellipse round the plates' rim.
   function drawTable(c, t) {
-    const sc = spriteCell('sprites.shrikeTable', 0);
-    if (sc) {
-      // painted with its top's outer oval spanning the full width, its top edge at the top
-      const w = 2 * (TRX + 90);
-      drawSprite(c, 'sprites.shrikeTable', 0, TX, TY - (TRY + 55) + (sc.trim.h * w) / sc.trim.w, { w });
-      return;
-    }
+    // The painted table (one 2048 x 1024 cell): its top is an oval centred at
+    // (1024, 222), 1002 px across to each side (measured); drawn so that oval
+    // is 690 to each side round (TX, TY).
+    const k = (TRX + 90) / 1002;
+    if (drawSprite(c, 'sprites.shrikeTable', 0, TX, TY + (512 - 222) * k, { h: 1024 * k, anchor: 'center', whole: true })) return;
     // the pedestal and its foot
     poly(c, [[TX - 40, TY + 80], [TX + 40, TY + 80], [TX + 50, H - 70], [TX - 50, H - 70]], 3, 1);
     wash(c, '#8a5a34');
@@ -500,7 +501,11 @@ export default function create(env) {
     c.translate(0, jig - bounce);
     // The painted poses already hang head down, claws on the rail at the top of
     // the cell; the portrait (or stand-in) is turned upside down instead.
-    if (!drawSprite(c, 'sprites.shrikePoses', pose, 0, CELL / 2, { h: CELL, anchor: 'center', flip: true, whole: true })) {
+    // The painted poses hang from claws at the top of each 1024 px cell; each
+    // is placed by its cap's holes (measured per cell) over the salt's line.
+    const [capX] = POSE_CAP[pose];
+    const PK = (CAP_Y - RAIL_Y) / 772;
+    if (!drawSprite(c, 'sprites.shrikePoses', pose, -(capX - 512) * PK, 512 * PK, { h: 1024 * PK, anchor: 'center', whole: true })) {
       c.scale(1, -1);
       if (flinch) c.scale(1, 0.94);
       if (art('subject.saltshakershrike')) {
@@ -565,6 +570,7 @@ export default function create(env) {
       c.restore();
     });
 
+    diner(c, t); // behind the table: its top hides the diner's waist
     drawTable(c, t);
 
     // the brass rail
@@ -583,7 +589,6 @@ export default function create(env) {
       ink(c, 4, '#a08038');
     }
 
-    diner(c, t);
 
     // spilt salt
     for (const h of g.heaps) {
@@ -611,7 +616,7 @@ export default function create(env) {
         for (let i = 0; i < p.got * 7; i++) {
           const a = i * 2.39;
           const rr = 6 + (i % 7) * 6;
-          c.fillRect(p.x + Math.cos(a) * rr * 1.3 - 2, p.y - FOOD_UP - 6 + Math.sin(a) * rr * 0.35, 4, 4);
+          c.fillRect(p.x + Math.cos(a) * rr * 1.3 - 2, p.y - FOOD_TOP[p.kind] + Math.sin(a) * rr * 0.35, 4, 4);
         }
       }
       flag(c, p, t);

@@ -81,3 +81,11 @@ The soup kitchen (IC-M15a) and the repainted Lark are in. The new painting is on
 - The queue now stands behind the counter: only what is above its top (y 648) shows.
 - The pose request IC-M15e now describes the one-piece ladle with its crest.
 - Still drawn in code until their sprites arrive: the pot and the bowl (IC-M15b), the bits (IC-M15c), the queue (IC-M15d) and the Lark's flying and dipping poses (IC-M15e; the portrait is shown).
+
+Sprites delivered (IC-M15b pot and bowl, IC-M15c bits, IC-M15d queue, IC-M15e poses). Every anchor was measured on the PNGs.
+- **Pot and play area:** the painted broth is a flatter oval than the code pot's (centre (510, 559) of its 1024 px cell, 305 by 75 px). The play area now follows it: the surface is centred at (650, 490), 360 by 88, with the pot drawn 1.18 times size. The pot is big and stands over the range, its foot below the screen. In units of the surface the rules are unchanged, so the bots' scores barely move (beginner 46–58, good 44–104, grabbing 24–58, mashing 0–6, on the spot 0–8). On screen the ring is now 72 by 18 px.
+- **Serving bowl:** placed by its broth (centre (512, 710) of its cell, 0.42 scale), its foot on the painted counter.
+- **Bits:** their trims include a few drops of broth, so they are sized per kind (the pea about 26 px). They are only rocked, not spun, since they are painted at a slant.
+- **Queue:** the four creatures stand behind the counter, feet hidden, with the yuck row for a "Yuck!" or a walk-out.
+- **Lark poses:** hovering, dipping and rising, each placed by the bowl's lowest point ((88, 172), (100, 200), (94, 158) from each cell's centre; 0.41 scale). Hovering is drawn at 60% as before. The code wings and brimming soup are no longer drawn.
+- **Still drawn in code:** the ring, ripples and splashes, the order bubble and patience bar, and the flying bits. No pose is missing.

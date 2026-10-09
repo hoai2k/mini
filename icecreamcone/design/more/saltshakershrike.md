@@ -84,3 +84,10 @@ The repainted café (IC-M14a) is in: striped wall, menu board, shelves, clock, t
 - The diner stands at the left before the shelves.
 - Nothing needed moving.
 - Still drawn in code until their sprites arrive: the revolving table (IC-M14e), the plates and food (IC-M14b), the diners (IC-M14c) and the Shrike's hanging poses (IC-M14d; the portrait is shown turned upside down). The brass rail and the salt are always drawn in code.
+
+Sprites delivered (IC-M14b plates, IC-M14c diners, IC-M14d hanging poses, IC-M14e table). Every anchor was measured on the PNGs.
+- **Table:** its top oval is centred at (1024, 222) of the 2048 × 1024 sheet, 1002 px to each side. It is drawn 0.689 times size so the oval spans 690 to each side round (860, 560); its foot runs off the bottom of the screen. The plates' rim moved out to 108 (from 95) to sit 87% of the way out on the painted top.
+- **Hanging poses:** each hangs from claws at the top of its cell, so the claws are on the rail (0.277 scale). Each is placed by its own cap holes ((503, 782), (503, 763), (484, 763), (521, 726)) so the salt still falls from the cap. They are no longer mirrored.
+- **Diners:** they now stand behind the table's left end (x 320, waist at y 600, 220 tall), drawn before the table so its top hides the cut-off waist. The plate arrives in front of them.
+- **Plates:** 200 wide by their painted plate. The salt dots sit on each dish's food height as drawn.
+- **Still drawn in code:** the brass rail, the salt and its spills, and the flags. The painted table doesn't show itself turning (the turning knots were only on the code table); the plates going round show it. No pose is missing.
