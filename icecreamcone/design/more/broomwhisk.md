@@ -69,3 +69,13 @@ pleased when something lands in the pan.
 
 No new art is needed: the arrow, line and glow are drawn by the game over
 any art.
+
+## Matched to the painting
+
+The painting is the same size and stance as the stand-in (feet on the
+floor point, about 400 units tall), so the push circle, shadow, lean and
+flips needed no change; the pose sheets are now drawn at its full height.
+In the painting the straw hangs like a skirt above its legs rather than
+reaching the floor, so IC-M06d and IC-M06e now describe the painting (a
+broomstick neck, bound straw body, crest and slate-blue beak) and ask for
+the straw to brush the floor in the sweeping poses.

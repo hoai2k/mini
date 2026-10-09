@@ -12,6 +12,7 @@
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { subjectShape } from '../subjects.js';
 
 Object.assign(SHEETS, {
   'sprites.balloons': [6, 2], // round balloons in the six colours, then diamond kites in the same six
@@ -22,16 +23,17 @@ Object.assign(SHEETS, {
 const DURATION = 45;
 const PEG_Y = 706; // where the strings are tied, on top of the rail
 const RAIL_Y = 714;
-const GROUND = 880; // the Snippit's feet
+const GROUND = 894; // the Snippit's feet
 const SKY_Y = 300; // the middle of the bunch
 const X0 = 400; // the outermost knots
 const X1 = 1200;
 const REACH = 72; // how far from a knot the blades still find it
-const SIZE = 320;
-const K = SIZE / 400;
 // The stand-in's hinge (its eye) is at (-30, -220) from its feet: the snip point.
-const HINGE_DX = -30 * K;
-const HINGE_Y = GROUND - 220 * K;
+// The snip point is the hinge (its eye), held just above the knots: the bird
+// is sized so its eye is there. In the painting the eye is 322 units above
+// its feet and 25 to the left of them; in the stand-in, 220 and 30.
+const HINGE_Y = PEG_Y - 10;
+const hinge = () => (subjectShape('snippit').feet ? { dx: -25, up: 322 } : { dx: -30, up: 220 });
 const RIGHT = 10;
 const QUICK = 5;
 const QUICK_T = 3;
@@ -375,10 +377,14 @@ export default function create(env) {
     const s = g.snipT > 0 ? g.snipT / 0.25 : 0;
     const jam = g.jam > 0 && !env.reduceMotion ? Math.sin(g.jam * 50) * 0.05 : 0;
     const walk = g.moving ? Math.sin(t * 14) * 0.04 : 0;
-    const fx = g.x - HINGE_DX;
-    // The painted poses: snipping, jammed, watching a balloon go, striding;
-    // otherwise standing with its blades open.
-    const o = { h: SIZE * 0.8, rot: jam + (g.moving ? walk * 0.5 : 0) };
+    const hg = hinge();
+    const size = ((GROUND - HINGE_Y) / hg.up) * 400;
+    const k = size / 400;
+    const fx = g.x - hg.dx * k;
+    // The painted poses (same framing as the painting, about 386 units tall):
+    // snipping, jammed, watching a balloon go, striding; otherwise standing
+    // with its blades open.
+    const o = { h: 386 * k, rot: jam + (g.moving ? walk * 0.5 : 0) };
     const pose = s > 0.2 ? ['sprites.snippitSnip', 1] : g.jam > 0 ? ['sprites.snippitPoses', 1] : g.happyT > 0 ? ['sprites.snippitPoses', 2] : g.moving && Math.floor(t * 7) % 2 ? ['sprites.snippitPoses', 0] : null;
     if (pose && drawSprite(c, pose[0], pose[1], fx, GROUND, o)) return;
     if (drawSprite(c, 'sprites.snippitSnip', 0, fx, GROUND, o)) return;
@@ -387,7 +393,7 @@ export default function create(env) {
     c.rotate(jam + walk - s * 0.12 + g.happyT * 0.12);
     c.scale(1 + s * 0.06, 1 - s * 0.08);
     c.translate(-g.x, -HINGE_Y);
-    drawBird(c, 'snippit', { x: fx, y: GROUND, size: SIZE, t });
+    drawBird(c, 'snippit', { x: fx, y: GROUND, size, t });
     c.restore();
     // shut blades: two ink strokes closing over the hinge
     if (s > 0) {
@@ -395,8 +401,11 @@ export default function create(env) {
       c.globalAlpha = s;
       c.beginPath();
       for (const a of [-0.5, 0, 0.5]) {
-        c.moveTo(g.x - 70 + Math.cos(a) * 10, PEG_Y - 4 + Math.sin(a) * 10);
-        c.lineTo(g.x - 70 + Math.cos(a + Math.PI) * 28, PEG_Y - 4 + Math.sin(a + Math.PI) * 28);
+        // over the blades, just ahead of the hinge
+        const bx = g.x - 60 * k;
+        const by = HINGE_Y - 12 * k;
+        c.moveTo(bx + Math.cos(a) * 10, by + Math.sin(a) * 10);
+        c.lineTo(bx + Math.cos(a + Math.PI) * 28, by + Math.sin(a + Math.PI) * 28);
       }
       ink(c, 3, PAL.magenta);
       c.restore();
@@ -535,11 +544,11 @@ export default function create(env) {
     ink(c, 2, under ? PAL.magenta : 'rgba(59,43,32,0.4)');
     c.restore();
     drawSnippit(c, t);
-    // the snip point: a little pink notch just above the knots, under the hinge
-    poly(c, [[g.x - 11, PEG_Y - 30], [g.x + 11, PEG_Y - 30], [g.x, PEG_Y - 12]], 1, 0.4);
+    // the snip point: a little pink notch on the rail, pointing up at the hinge
+    poly(c, [[g.x - 11, PEG_Y + 30], [g.x + 11, PEG_Y + 30], [g.x, PEG_Y + 12]], 1, 0.4);
     wash(c, under ? PAL.magenta : PAL.strawberry, 0.95);
     ink(c, 1.6);
-    if (g.jam > 0) label(c, 'Jammed!', g.x, HINGE_Y - 150, { size: 32, color: PAL.brick, weight: 800 });
+    if (g.jam > 0) label(c, 'Jammed!', g.x, HINGE_Y - 110, { size: 32, color: PAL.brick, weight: 800 });
 
     for (const p of g.pops) {
       const k = Math.min(1, (1.3 - p.life) * 8);

@@ -52,3 +52,15 @@ at a balloon it let go; standing still it uses IC-M04c's open blades.
 3. **Wrong string costs 5, not 10.** The 0.8 s jam already stings. Mashing
    still stays far below the pass mark (0–35 against 120). The pass mark
    stays at 120: a beginner now scores 155–180.
+
+## Matched to the painting
+
+The snip point is the painting's eye, at the hinge where its blades cross
+(322 units above its feet, 25 to the left), held just above the knots: the
+Snippit is sized from that (about 246 px tall, feet at the bottom edge),
+and the stand-in keeps its own hinge until the painting loads. The pink
+notch now sits on the rail pointing up at the eye instead of covering it;
+the closing-blade strokes and "Jammed!" sit on the blades and above the
+head. The pose sheets are drawn at the painting's framing. IC-M04c and
+IC-M04d now describe the painting (pink scissors, grey blades pointing up
+and to the left, eye at the hinge, finger loops as head and body, pink tail).

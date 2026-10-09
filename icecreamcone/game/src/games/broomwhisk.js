@@ -522,7 +522,7 @@ export default function create(env) {
       : Math.abs(b.vx) > 120 ? ['sprites.broomwhiskSweep', 0, flip]
       : Math.abs(b.vy) > 80 ? ['sprites.broomwhiskPoses', 0, flip]
       : g.proudT > 0 ? ['sprites.broomwhiskPoses', 2, flip] : null;
-    if (pose && drawSprite(c, pose[0], pose[1], b.x, b.y + 6, { h: SIZE * 0.95 * s, flip: pose[2], rot: lean * 0.5 })) return;
+    if (pose && drawSprite(c, pose[0], pose[1], b.x, b.y + 6, { h: SIZE * s, flip: pose[2], rot: lean * 0.5 })) return;
     c.save();
     c.translate(b.x, b.y + 6 - g.proudT * 20 * s);
     c.rotate(lean + (braced && !env.reduceMotion ? g.gust.dir * -0.12 + Math.sin(t * 30) * 0.02 : 0));

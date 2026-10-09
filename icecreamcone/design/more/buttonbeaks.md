@@ -54,3 +54,13 @@ all games). Button Up already differs by being fetch-and-deliver (two
 trips, reading a button's colour, shape and holes) rather than timing one
 press; its place in the guide order is for the lead to keep apart from
 Snip Snap and Just a Pinch. There were no point penalties to drop.
+
+## Matched to the painting
+
+The painted pair stands taller than the stand-in (362 units against 230),
+so the held button now sits between their two heads, above the pink one's
+beak and clear of the yellow one's eye, with a thread to each beak; tosses,
+the aim line and the dizzy stars start from there, and the pose sheets are
+drawn at the painting's height. IC-M05e and IC-M05f now describe the
+painting (the taller yellow-headed bird on the left, the smaller pink one
+on the right, bodies of overlapping buttons).
