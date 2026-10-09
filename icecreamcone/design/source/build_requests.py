@@ -581,6 +581,32 @@ for n, (sid, name, where, look) in enumerate(SUBJECTS, 1):
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " " + refnote,
     })
 
+# Delivered paintings that need painting again: the fix replaces the same file
+# once it arrives (the delivered one stays in the game until then).
+REDOS = [
+    ("ladlelark", "The Soupladle Lark, painted again",
+     "The delivered painting (" + REF_URL.replace("reference/", "game/") + "assets/subjects/ladlelark.png"
+     ") has the ladle's hook drawn as a separate piece floating above the bird's back. Paint the "
+     "same bird again, matching it in every other way (the speckled grey enamel bowl as the body, "
+     "the long handle as the neck rising to the head with its yellow beak and staring eye, the "
+     "grey-blue wings and tail, the ochre legs), but with the ladle in ONE piece: the hook at the "
+     "end of the handle curls back from the top of the head as a crest, part of the same handle. "
+     "Nothing floats apart from the bird."),
+]
+for sid, name, fix in REDOS:
+    REQUESTS.append({
+        "id": "IC-R" + str([s[0] for s in SUBJECTS].index(sid) + 1).zfill(2) + "b",
+        "section": "subject",
+        "name": name,
+        "key": f"redo.{sid}",
+        "file": f"assets/subjects/{sid}.png",
+        "size": "1024 x 1024, transparent",
+        "used": "Replaces the delivered painting of the same name in the same file.",
+        "standin": "The delivered painting, as it is.",
+        "status": "requested",
+        "prompt": STYLE + " " + BIRD + " " + fix + " " + PORTRAIT,
+    })
+
 # Ten new birds in Lobel's manner, kept for later (not loaded by the game).
 POCKET = [
     ("hourglassheron", "The Hourglass Heron",

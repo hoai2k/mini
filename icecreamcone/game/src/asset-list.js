@@ -178,6 +178,10 @@ export const ASSETS = {
     "file": "assets/subjects/radiobird.png",
     "delivered": true
   },
+  "redo.ladlelark": {
+    "file": "assets/subjects/ladlelark.png",
+    "delivered": false
+  },
   "pocket.hourglassheron": {
     "file": "assets/pocket/hourglassheron.png",
     "delivered": true
