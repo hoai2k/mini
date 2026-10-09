@@ -108,115 +108,115 @@ export const ASSETS = {
   },
   "subject.milkmidge": {
     "file": "assets/subjects/milkmidge.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.waterglassgoose": {
     "file": "assets/subjects/waterglassgoose.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.niffy": {
     "file": "assets/subjects/niffy.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.snippit": {
     "file": "assets/subjects/snippit.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.buttonbeaks": {
     "file": "assets/subjects/buttonbeaks.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.broomwhisk": {
     "file": "assets/subjects/broomwhisk.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.keycrane": {
     "file": "assets/subjects/keycrane.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.garbagecanary": {
     "file": "assets/subjects/garbagecanary.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.steampressersparrow": {
     "file": "assets/subjects/steampressersparrow.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.wetweatherwren": {
     "file": "assets/subjects/wetweatherwren.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.glovedove": {
     "file": "assets/subjects/glovedove.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.titthrush": {
     "file": "assets/subjects/titthrush.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.plugsocketswift": {
     "file": "assets/subjects/plugsocketswift.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.saltshakershrike": {
     "file": "assets/subjects/saltshakershrike.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.ladlelark": {
     "file": "assets/subjects/ladlelark.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.drippet": {
     "file": "assets/subjects/drippet.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.sawbird": {
     "file": "assets/subjects/sawbird.png",
-    "delivered": false
+    "delivered": true
   },
   "subject.radiobird": {
     "file": "assets/subjects/radiobird.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.hourglassheron": {
     "file": "assets/pocket/hourglassheron.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.spectaclesnipe": {
     "file": "assets/pocket/spectaclesnipe.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.bellowsbittern": {
     "file": "assets/pocket/bellowsbittern.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.lampshadeloon": {
     "file": "assets/pocket/lampshadeloon.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.concertinacurlew": {
     "file": "assets/pocket/concertinacurlew.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.weathervanewarbler": {
     "file": "assets/pocket/weathervanewarbler.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.mousetrapmagpie": {
     "file": "assets/pocket/mousetrapmagpie.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.hatboxhoopoe": {
     "file": "assets/pocket/hatboxhoopoe.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.candlestickkiwi": {
     "file": "assets/pocket/candlestickkiwi.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.rollingpinrail": {
     "file": "assets/pocket/rollingpinrail.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",

@@ -537,7 +537,26 @@ SUBJECTS = [
      "body, a long curving striped neck with a crested head, and long thin legs."),
 ]
 # Which subjects have been delivered (filled in on integration).
-DELIVERED_SUBJECTS: set[str] = set()
+DELIVERED_SUBJECTS: set[str] = {
+    'milkmidge',
+    'waterglassgoose',
+    'niffy',
+    'snippit',
+    'buttonbeaks',
+    'broomwhisk',
+    'keycrane',
+    'garbagecanary',
+    'steampressersparrow',
+    'wetweatherwren',
+    'glovedove',
+    'titthrush',
+    'plugsocketswift',
+    'saltshakershrike',
+    'ladlelark',
+    'drippet',
+    'sawbird',
+    'radiobird',
+}
 
 for n, (sid, name, where, look) in enumerate(SUBJECTS, 1):
     ref = "newspaper-peeper.jpg" if sid == "waterglassgoose" else ENDPAPERS
@@ -605,6 +624,19 @@ POCKET = [
      "with a small rail's head and beak, on quick little legs.",
      "Roll out the pastry evenly before it tears."),
 ]
+DELIVERED_POCKET: set[str] = {
+    'hourglassheron',
+    'spectaclesnipe',
+    'bellowsbittern',
+    'lampshadeloon',
+    'concertinacurlew',
+    'weathervanewarbler',
+    'mousetrapmagpie',
+    'hatboxhoopoe',
+    'candlestickkiwi',
+    'rollingpinrail',
+}
+
 for n, (pid, name, look, game) in enumerate(POCKET, 1):
     REQUESTS.append({
         "id": f"IC-N{n:02d}",
@@ -616,7 +648,7 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
         "used": "Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; "
         "later, a page of its own. A game idea: " + game,
         "standin": "The object drawn in code in ink and wash, with an eye, a beak and legs.",
-        "status": "requested",
+        "status": "delivered" if pid in DELIVERED_POCKET else "requested",
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
         "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",
     })
