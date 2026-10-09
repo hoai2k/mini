@@ -97,6 +97,25 @@ What recurs:
   (up to 3.4 times as long), so mashing scores 20–33; a careful beginner bot
   still scores 44–57, and the pass is now 40 (it was 45, which the beginner
   bot only just reached on one seed).
+- **Item 2 (done in every game).** Where a mistake already costs time, the
+  point penalty is gone or down to 1: Snip the String −5 (was −10), Bin Day
+  −1, Pressing Business −1, Snip Snap only a daze, Milk Round's plain smash
+  free, Just a Pinch and Soup's On −1, Tune In's wrong station a short
+  grumble, Slippery Dishes loses nothing for a smash.
+- **Item 3 (done).** The guide order (`MORE_IDS` in `src/more/index.js`) keeps
+  the slide-past games apart: Milk Round 1st, Snip Snap 3rd, Button Up 5th,
+  Just a Pinch 14th; Snip the String moved from 4th to 7th so it no longer
+  sits beside Snip Snap. Just a Pinch now rides a revolving table and reads
+  differently.
+- **Item 4 (done).** The Glove Dove's game is rebuilt as Slippery Dishes.
+- **Item 5 (done).** The goose's crack counter, the radio's speaker and
+  station, the dustpan (an arrow), the chute (a wider view while carrying)
+  and the fuse box (a copy at the edge) all stay in the phone view.
+- **Matched to the paintings.** The 28 undiscovered birds' paintings arrived
+  during the audit; every game was re-fitted to its painting (where the beak,
+  blade, spout or sole really is, sizes, hitboxes, effects), and every pose
+  request now describes the painting. See each bird's "Matched to the
+  painting" section.
 
 ## Milkbottle Midge: Milk Round
 
@@ -137,6 +156,15 @@ Hold to wind up, let go to lob a pint up a garden path onto the doorstep.
 
 **Changes made**
 
+Done (55319b8); details in `milkmidge.md`.
+1. A chalk throw lane always runs up the street from the Midge's hand, green when a house that wants milk is on it.
+2. The landing ring is bigger and filled, green when it would land on the step.
+3. The step's depth window stays ±30 px all game; the full wind-up is slower (1.35 s, falling to 1.15 s).
+4. A plain smash costs nothing but a 0.7 s pause; a woken dog or a "No milk" house costs 1. A pint in the middle of the step scores 2, so the unit is now points.
+5. The phone view keeps the Midge and the next house.
+6. The stand-in dog reads as a dog.
+Pass 16 (was 9). Bots: beginner 19–25, good 38–44, mashing 0–2, idle 0.
+
 ## Waterglass Goose: Glass Harp
 
 Watch the Goose tap a tune on the glasses, then tap it back.
@@ -169,6 +197,13 @@ Watch the Goose tap a tune on the glasses, then tap it back.
    or draw it beside the HUD.
 
 **Changes made**
+
+Done (55319b8); details in `waterglassgoose.md`.
+1. A right note within 0.8 s of the last scores one extra, so the most is 84 and the good bot no longer hits a ceiling every time; eight tunes kept, so a game stays about a minute.
+2. The fifth glass is orange, not mauve.
+3. The glass the Goose is at lifts, with a shadow and a pulsing outline.
+4. The crack counter sits under the tune's dots, inside the phone view.
+Pass 30 (was 22). Bots: beginner 32–63, good 84, random tapping 0–2, idle 0.
 
 ## Jackknife Niffy: Snip Snap
 
@@ -203,6 +238,14 @@ from walkers; avoid balloons and the Park Keeper's gaze.
 5. Keep it clear of Snip the String in the guide order; both are "snip".
 
 **Changes made**
+
+Done (55319b8); details in `niffy.md`.
+1. The Keeper's warning is a pulsing red "!" while he turns and a plain red-rimmed eye while he looks, with a red tint on the sky.
+2. Walkers keep at least 330 px apart; a pink ring marks what a swoop would take (red for a balloon string).
+3. Steadier scores: walker speed ±5%, spawn gaps ±15%, two things on a walker only late on. A snap at the air makes people nearby hold on to their things for 2.5 s, so aiming matters.
+4. Being caught costs only a 1.6 s daze; a balloon costs 1.
+5. Guide order: Snip the String moved away from Snip Snap (see the shared changes).
+Pass 9 (was 7). Bots: beginner 10–17, careful 15–22, non-stop swooping 1–5, idle 0.
 
 ## Cutitup Snippit: Snip the String
 
@@ -431,6 +474,12 @@ puddles; shelter little birds; walk under awnings with it shut.
 
 **Changes made**
 
+Done (71aebe9); details in `wetweatherwren.md`.
+1. The inside-out rule and the landing settle are gone; a press on the ground always hops. Mashing is held back by wider puddles and the awnings instead.
+2. No narrow puddle under an awning.
+3. The streak pop says +2, what it adds.
+4. Re-tuned: pass 15 (was 13). Bots: beginner 18–29, good 23–30, eight mashing rhythms 3–12, holding and idle 0; the test asserts every mashing rhythm stays below the pass.
+
 ## Glove Dove: Squeaky Clean
 
 Move onto a spot on the dish and rub to wear it away; soap scrubs faster but
@@ -463,6 +512,12 @@ too much foams over.
 
 **Changes made**
 
+Reimplemented (71aebe9) as **Slippery Dishes**; details in `glovedove.md`.
+1. A new core around the painting, sharing no mechanic with Pressing Business: wet dishes pop out of the sink and the Dove runs to catch them on its long level glove neck; a press as one lands flicks it up into the rack ("Hup!"), too soon is only a hop, no press lets it slip. A dish in the rack is put away; one that falls smashes, with no points lost.
+2. Not needed: there is no rubbing any more.
+3. Scoring climbs steadily: 1 per Hup, 3 per dish put away.
+Its art is revised: side-on dishes, catching and flicking poses (IC-M11b, e, f); the grime and scrubbing requests are dropped. Pass 35. Bots: beginner 54–73, good 75–92, mashing under dishes 8–29, never pressing 0, idle 0.
+
 ## Ten O'clock Tit Trush: Set the Clocks
 
 Turn the watch's hands to the time a town clock calls, then press to set it.
@@ -492,6 +547,12 @@ Turn the watch's hands to the time a town clock calls, then press to set it.
 
 **Changes made**
 
+Done (71aebe9); details in `titthrush.md`.
+1. Targets stay within three hours, and there is a whole-hour jump on every device (↑/↓, the D-pad or a quick stick flick, and dragging the short hand on touch).
+2. Patience is 9 s falling to 6 s, plus 1 s for every hour the hands must travel.
+3. "Any minute" times start only from the sixteenth clock.
+Pass 9 (was 8). Bots: beginner 11–13, good 25–27, keyboard 23–24, whirling and mashing 0, idle 0.
+
 ## Plugsocket Swift: Lights On
 
 Fly to asking windows and plug their lamps in; unplug sleepers to keep the
@@ -514,6 +575,11 @@ fuse under its limit; flip the fuse when it blows.
 2. On a phone, show a small fuse warning at the view's edge when it heats.
 
 **Changes made**
+
+Done (c9139be); details in `plugsocketswift.md`.
+1. The fuse box's first three lamp places are pale green and the rest pale red; the lamps light green, then amber for the fourth, then red.
+2. On a narrow screen, when the fuse box is out of view and heating or blown, a small copy of the count and the heat shows at the view's edge.
+Pass stays 12. Bots: beginner 13–16, good 19–20, greedy 5–7, mashing 2–5, idle 0.
 
 ## Saltshaker Shrike: Just a Pinch
 
@@ -542,6 +608,11 @@ puddings want none.
 
 **Changes made**
 
+Done (c9139be); details in `saltshakershrike.md`.
+1 and 3. The counter is gone: plates ride a revolving table that creeps at the ends and swings fast through the middle, where shaking on the spot would sit; a narrower catch; orders of two to five pinches after the first nine seconds. It no longer looks like the other slide-past games. New art: the table (IC-M14e) and a café scene with no counter (IC-M14a).
+2. Pass stays 30, not 32, since the beginner bot's lowest over twelve seeds is exactly 30.
+A salted pudding costs 1 (was 2). Bots: beginner 30–45, good 36–57, shaking on the spot 0–13 (asserted below 20), mashing 0–14, over-salting 0–4, idle 0.
+
 ## Soupladle Lark: Soup's On
 
 Put the ring round exactly what the creature ordered in the swirling soup and
@@ -563,6 +634,12 @@ dip.
 2. Draw peas larger (about 26 px).
 
 **Changes made**
+
+Done (c9139be); details in `ladlelark.md`.
+1. The Lark hovers well above the ring, drawn smaller while only hovering; while it dips, the part below the soup is hidden behind ripples.
+2. Peas are bigger (26 px, was 20).
+A Yuck costs 1 (was 2). Pass stays 36. Bots: beginner 44–55, good 55–82, careless grabbing 34–52, mashing 0–13, idle 0.
+The delivered painting has the ladle's hook floating apart; it is requested again in one piece (IC-R15b, 5411aa4).
 
 ## Drippet: Drip Drop Dash
 
@@ -586,6 +663,12 @@ drips leave; hop over puddles.
    pushes), so the trail you lay changes where you go.
 
 **Changes made**
+
+Done (31b7f8e); details in `drippet.md`.
+1. Hops cost more: a 1 s rest after landing (stumbling at first), landing in any puddle skids, a landing shakes out more drips, skids last 2.2 s; puddles come faster and filling a thing takes 0.7 s.
+2. The tests assert that hopping everywhere and running straight without looking both stay below the pass.
+3. The cat's bowl slides away from slippery puddles.
+Pass 11 (was 10). Bots: beginner 11–17, good 17–22, hopping 7–10, never looking 5–10, circling, mashing and idle 0. Tuning is tight: across 10 seeds one beginner seed scored 11 and one hopping seed 15.
 
 ## Saw Bird: Saw It Straight
 
@@ -615,6 +698,12 @@ the chalk line.
    or test several plank layouts.
 
 **Changes made**
+
+Done (31b7f8e); details in `sawbird.md`.
+1. One job per control: holding the action pushes the saw and letting go pulls it, so the stick only steers on a controller; stick strokes still work.
+2. Knots are obstacles on the line to steer round (none on the first plank, then more); sawing into one nearly stalls the saw. It no longer plays like following Stitch in Time's seam. Grades are tighter.
+3. Knot layout and plank length vary by seed; the tests use six seeds.
+Pass stays 30. Bots: beginner 38–44 (44–54 holding A), good 67–70, never steering 7–10, jiggling 1, mashing 0, idle 0.
 
 ## Radio Bird: Tune In
 
@@ -649,3 +738,11 @@ on it while its song plays.
    or a small copy at the view's edge.
 
 **Changes made**
+
+Done (31b7f8e); the game is largely rebuilt, details in `radiobird.md`.
+1. Songs are shorter (1.8 s) and each scores 10 plus up to 10 for a quick find, so skill shows: score is now points.
+2. A station is pencilled only once played or rested on; stations drift from the start.
+3. The magic-eye meter is gone: the speaker crackles and the nearest station's picture fades in through the static, and the listeners lean forward as you near the one they want.
+4. A plays the station (or letting go of the needle with a pointer); a wrong one costs a 0.7 s grumble, no points. The needle settles on a nearby station when left alone.
+5. The speaker and a tag for the wanted station ride under the needle, which the phone view follows.
+Pass 75. Bots: beginner 85–207, good 251–317, sweeping, creeping, mashing and idle all below 75 (asserted).
