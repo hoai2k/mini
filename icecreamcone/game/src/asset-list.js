@@ -436,7 +436,7 @@ export const ASSETS = {
   },
   "sprites.dishShards": {
     "file": "assets/sprites/dish-shards.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
@@ -460,7 +460,7 @@ export const ASSETS = {
   },
   "sprites.watchCrown": {
     "file": "assets/sprites/watch-crown.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
@@ -556,7 +556,7 @@ export const ASSETS = {
   },
   "sprites.knots": {
     "file": "assets/sprites/knots.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
@@ -580,7 +580,7 @@ export const ASSETS = {
   },
   "sprites.radioParts": {
     "file": "assets/sprites/radio-parts.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
