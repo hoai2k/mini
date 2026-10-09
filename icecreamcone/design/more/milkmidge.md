@@ -95,8 +95,16 @@ wings) and ask for the portrait's framing.
   place, and the Midge stands on its crates.
 - **Midge.** The painted wind-up holds the bottle in its wing, so the game
   no longer draws a second bottle beside it once `sprites.midgeThrow` is in.
-- **Still drawn in code:** the green wash of the front gardens, the path up
-  to each step and the low fence along the pavement. Requested as IC-M01g
-  (`sprites.milkGarden`, a path to cut off at the step and a tileable
-  length of fence); the game is wired to draw them as soon as they arrive.
-  The chalk lane, ring, pops and glass bits stay in code as game feedback.
+- **Garden path and fence (IC-M01g, delivered).** The left cell's painted
+  path (385 x 521 px of paint, narrowing to about a quarter of its width at
+  the top) is drawn for every house from the fence up to its doorstep: only
+  its lower part is used, cut where the path is as wide as that step wants
+  (narrower for houses further back), 120 px wide at the fence and
+  stretched to the path's length. The right cell's fence (813 x 143 px of
+  paint) is laid end to end along the back of the pavement in 200 px
+  lengths, about 35 px tall, with a gap cut where each path comes through.
+  The code-drawn path, stepping stones and ink fence are now only the
+  stand-ins for when the sheet is missing.
+- **Still drawn in code:** the faint green wash of each front garden, and
+  the chalk lane, ring, pops and glass bits as game feedback. No new
+  requests.

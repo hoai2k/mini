@@ -15,7 +15,7 @@
 // far, and the dogs and cards come more often as the round goes on.
 // Score: points.
 
-import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
 Object.assign(SHEETS, {
@@ -443,14 +443,21 @@ export default function create(env) {
     // the front garden and its path, down to the fence
     poly(c, [[x - wHouse / 2 - 20 * s, h.stepY], [x + wHouse / 2 + 20 * s, h.stepY], [x + wHouse / 2 + 30, FENCE], [x - wHouse / 2 - 30, FENCE]], h.x, 1);
     wash(c, PAL.green, 0.35);
-    // the painted path is one long path, cut off at the doorstep
-    c.save();
-    c.beginPath();
-    c.rect(x - 80, h.stepY, 160, FENCE - h.stepY + 6);
-    c.clip();
-    const painted = drawSprite(c, 'sprites.milkGarden', 0, x, FENCE + 6, { w: 100 });
-    c.restore();
-    if (!painted) {
+    // The painted path (milk-garden.png, left cell: a flagstone path whose
+    // painted part is 385 x 521 px, narrowing to about a quarter of its
+    // width at the top). Only its lower part is used, cut where the path is
+    // as wide as this doorstep wants (narrower further back), and stretched
+    // from the fence up to the step.
+    const pc = art('sprites.milkGarden') && spriteCell('sprites.milkGarden', 0);
+    if (pc) {
+      const r = pc.trim;
+      const bw = 120; // its width at the fence
+      const want = clamp((62 * s) / bw, 0.25, 1); // its width at the step, as a share of that
+      const v = clamp((1 - want) / 0.77, 0, 1); // how far up the painting that is
+      const sh = r.h * v;
+      const top = h.stepY - 3;
+      c.drawImage(pc.img, r.x, r.y + r.h - sh, r.w, sh, x - bw / 2, top, bw, FENCE + 8 - top);
+    } else {
       poly(c, [[x - 20 * s, h.stepY], [x + 20 * s, h.stepY], [x + 34, FENCE], [x - 34, FENCE]], h.x + 1, 1);
       wash(c, '#d9cfb0', 0.7);
       // stepping stones up the path
