@@ -3,7 +3,7 @@
 // or pointer, players joining and leaving, the pointer as a hand, sound, the
 // card of controls found, settings and pause. See design/design.md.
 
-import { createGame, step, addPlayer, removePlayer, shift, describe, setupPower, AWAKE, INPUTS, W, H, radius } from './collage.js';
+import { createGame, step, addPlayer, removePlayer, shift, describe, setupPower, AWAKE, INPUTS, W, H, radius, pieceName, inputKind } from './collage.js';
 import { createRenderer } from './render.js';
 import { createOverlay } from './overlay.js';
 import { createInput, BTN, KEYMAP } from './input.js';
@@ -71,11 +71,14 @@ function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   if (id === 'card') fillCard();
+  if (id === 'hint') fillHint();
   if (id === 'settings') fillSettings();
   if (id === 'pause') $('#pause-reason').textContent = ui.pauseReason || '';
   el.hidden = false;
   ui.modals = ui.modals.filter((m) => m !== id);
   ui.modals.push(id);
+  // Each panel opened sits over the ones beneath it.
+  el.style.zIndex = String(20 + ui.modals.length);
   ui.focus = 0;
   input.lockHeld();
   refreshFocus(true);
@@ -213,7 +216,6 @@ function hint() {
       : k === 'touch'
         ? 'Drag the pieces · double-tap one to make it bloom · pinch one to stretch it'
         : 'Drag the pieces · double-click one to make it bloom · wheel to stretch it';
-  $('#title-hint').textContent = k === 'controller' ? 'Move left stick for options' : k === 'touch' || coarse ? 'Tap Press Start' : 'Press Enter or click Press Start';
 }
 
 // The pause and on-screen controls switches stay out of sight while playing
@@ -247,6 +249,54 @@ function chips() {
     el.innerHTML = `<i></i><span>${playerLabel(pl)} · <b>${found}</b> of ${INPUTS.length} found${ready ? ' · something big is ready' : ''}</span>`;
     box.append(el);
   }
+}
+
+// The hint: for each player, the big control that carries the picture on,
+// the piece it is centred on, and what wakes it, mostly as pictures.
+const CONTROL_DRAWING = { stick: 'stick', trigger: 'trigger', button: 'button' };
+const SETUP_PICTURE = {
+  centre: '<svg viewBox="0 0 64 40" aria-hidden="true"><rect x="2" y="2" width="60" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="20" r="7" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/><path d="M9 33 L24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M20 23h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  link: '<svg viewBox="0 0 64 40" aria-hidden="true"><circle cx="12" cy="22" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="52" cy="24" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 20 Q22 12 26 14 M38 15 Q44 14 46 22" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.5"/></svg>',
+  meet: '<svg viewBox="0 0 64 40" aria-hidden="true"><circle cx="16" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="48" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M27 20h10M33 16l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+function fillHint() {
+  const body = $('#hint-body');
+  body.innerHTML = '';
+  const lines = data.ui.lines || [];
+  const drawing = (name) => lines.find((l) => l.name === name)?.file;
+  const pieceFile = (p) => (p.stage >= 0 ? game.chains[p.chain]?.[p.stage]?.file : null) || p.file;
+  for (const pl of game.players) {
+    const key = (inp) => (pl.id === 'kb' && !ui.touchPad ? KEY_NAMES[inp] : inp);
+    for (const b of Object.values(pl.bindings)) {
+      if (b.scale !== 'large' || !b.setup) continue;
+      const anchor = game.pieces[b.setup.anchor];
+      if (!anchor) continue;
+      const kind = inputKind(b.input);
+      const lean = kind === 'stick' ? 'push' : kind === 'trigger' ? 'hold' : 'press';
+      const helper = Object.values(pl.bindings).find((h) => h.setsUp === b.input);
+      const awake = setupPower(game, b) >= AWAKE;
+      const what = pieceName(anchor);
+      const goal = b.setup.type === 'centre' ? `Bring ${what} to the middle`
+        : b.setup.type === 'link' ? `Sew ${b.setup.need} pieces to ${what}`
+          : `Bring ${what} to ${pieceName(game.pieces[b.setup.other])}`;
+      const text = awake ? `Ready: ${lean} ${key(b.input)}.`
+        : `${goal}${helper ? ` (${key(helper.input)})` : ''}, then ${lean} ${key(b.input)}.`;
+      const other = b.setup.type === 'meet' ? game.pieces[b.setup.other] : null;
+      const row = document.createElement('div');
+      row.className = 'hint-row';
+      row.style.setProperty('--c', pl.colour);
+      row.innerHTML = `
+        <span class="hint-dot" aria-hidden="true"></span>
+        <figure class="hint-pic"><img src="web/${drawing(CONTROL_DRAWING[kind]) || ''}" alt=""><figcaption>${key(b.input)}</figcaption></figure>
+        <img class="hint-piece" src="web/${pieceFile(anchor)}" alt="">
+        <span class="hint-setup">${awake ? '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 21l8 8 16-18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : SETUP_PICTURE[b.setup.type]}</span>
+        ${other ? `<img class="hint-piece" src="web/${pieceFile(other)}" alt="">` : ''}
+        <p class="hint-text">${text}</p>`;
+      body.append(row);
+    }
+  }
+  if (!body.children.length) body.innerHTML = '<p class="hint-text">Try every stick, trigger and button.</p>';
 }
 
 function fillCard() {
@@ -675,11 +725,20 @@ function handleMenus(nav, now) {
   if (!items.length && !top) return;
   // Directional focus with a dead zone and a repeat delay.
   const [sx, sy] = nav.stick;
+  // In a grid of pictures (the pause menu), up and down move a whole row.
+  const grid = items[ui.focus]?.closest('[data-cols]');
+  const row = grid ? Number(grid.dataset.cols) : 1;
   let dir = 0;
-  if (nav.up || nav.left && !isRange(items[ui.focus])) dir = -1;
-  if (nav.down || nav.right && !isRange(items[ui.focus])) dir = 1;
+  if (nav.up) dir = -row;
+  else if (nav.left && !isRange(items[ui.focus])) dir = -1;
+  if (nav.down) dir = row;
+  else if (nav.right && !isRange(items[ui.focus])) dir = 1;
   if (!dir && Math.abs(sy) > 0.6 && now > ui.repeatAt) {
-    dir = Math.sign(sy);
+    dir = Math.sign(sy) * row;
+    ui.repeatAt = now + 260;
+  }
+  if (!dir && grid && Math.abs(sx) > 0.6 && now > ui.repeatAt) {
+    dir = Math.sign(sx);
     ui.repeatAt = now + 260;
   }
   if (Math.abs(sy) < 0.3) ui.repeatAt = Math.min(ui.repeatAt, now);
@@ -730,6 +789,7 @@ function wire() {
       case 'resume': return closeAllAndResume();
       case 'close': return closeModal();
       case 'card': return openModal('card');
+      case 'hint': return openModal('hint');
       case 'next-scene':
         closeAllAndResume();
         return shift(game, 'pour');
@@ -798,6 +858,16 @@ async function boot() {
     const at = Math.max(0, data.scenes.findIndex((s) => s.key === first));
     game = createGame(data.scenes, { chains: data.chains, seed, scene: at });
     game.driftFiles = data.drift || [];
+    // Delivered pause menu pictures (HK-U06) replace the icons drawn in code.
+    for (const [name, file] of Object.entries(data.ui.pause || {})) {
+      for (const el of $$(`[data-icon="${name}"]`)) {
+        const img = document.createElement('img');
+        img.src = `web/${file}`;
+        img.alt = '';
+        img.className = 'badge';
+        el.querySelector('svg, img')?.replaceWith(img);
+      }
+    }
     if (data.music) audio.setSong(`web/${data.music.file}`, data.music.root);
     applySettings();
     await renderer.loadScene(game.scene, data.chains, data.drift);

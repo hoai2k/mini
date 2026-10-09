@@ -578,6 +578,11 @@ def build_ui(write: bool) -> dict:
         for size in (512, 192, 180, 48):
             icon.resize((size, size), Image.LANCZOS).save(OUT / "icons" / f"icon-{size}.png")
     ui["lines"] = build_sheet(SRC / "ui" / "line-drawings.png", LINE_DRAWINGS, "ui/lines", write, rows_first=False)
+    # The pause menu pictures (HK-U06), once delivered: one badge per button.
+    badges = SRC / "ui" / "pause-icons.png"
+    if badges.exists():
+        names = ["resume", "controls", "hint", "howto", "settings", "next", "title", "close"]
+        ui["pause"] = {name: cell["file"] for name, cell in zip(names, cut_grid(badges, 4, 2, "ui/pause", write))}
     controls = SRC / "ui" / "control-drawings.png"
     if controls.exists():
         names = ["stick", "trigger", "button", "shoulder", "dpad", "controller", "controllers", "moon-controller"]

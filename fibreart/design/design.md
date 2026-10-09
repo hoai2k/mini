@@ -155,6 +155,25 @@ its reach and tightens as its setup nears waking; player chips count what each
 player has found; the scene's name shows as it begins; and short messages
 mark a big find or a rearrangement.
 
+**Text is kept to a minimum** (the owner's ask). The title screen has the title,
+its one-line byline and Press Start, with no hint line under it (so the
+guidelines' "Move left stick for options" is left out; the stick still opens
+the corner buttons). The pause menu is pictures, not words: resume, controls
+found, hint, how to play, settings, next picture, back to the title, as round
+badges in a 4 x 2 grid (up and down move a row). Each badge's name is its
+accessible name and shows small on hover or focus. Panels close with an X in
+the top right. The instructions are three sentences, the controller diagram,
+a short table and one line for mouse and touch. The badges are drawn in code
+until the appliqué set (HK-U06) arrives, which `build_web.py` cuts and the game
+swaps in.
+
+**Hint.** The eye in the pause menu opens a card for each player's big control:
+a drawing of the control, the piece it is centred on (cut from the picture),
+a small picture of what wakes it (to the middle, sewn together, brought to a
+partner, or a tick when it is ready), and one line, such as "Bring a tree to
+the middle (LS), then hold RT." It names the small control that moves the
+piece, so it says plainly how to carry the picture on.
+
 The pause and on-screen controls switches are out of sight while playing and
 come up for a moment when the mouse moves or the screen is touched, so a
 player with only a mouse or a touch screen can still reach the pause menu.

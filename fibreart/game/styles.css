@@ -333,3 +333,89 @@ html, body {
   .play-hint { left: max(1rem, env(safe-area-inset-left)); text-align: right; }
   .caption { bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 2.4rem); }
 }
+
+/* Close: an X in the top right of a panel, instead of a button with words. */
+.panel { position: relative; }
+.close-x {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 2px dashed var(--thread);
+  background: #fffaf0;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.close-x svg { width: 1.2rem; height: 1.2rem; }
+.close-x:hover { background: #fff; }
+.close-x:focus-visible, .close-x.focused { outline: 4px solid var(--focus); outline-offset: 2px; }
+.panel h2 { padding-right: 2.8rem; }
+
+/* The pause menu: pictures to choose between, no words. Each one's name is
+   its accessible name, shown small on hover or focus. */
+.pause-panel { width: auto; padding: 1.6rem 1.8rem; }
+.pause-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 1.1rem 1.3rem; justify-content: center; }
+.pic-btn {
+  position: relative;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-radius: 50%;
+  border: 2.5px dashed var(--thread);
+  outline: 5px solid var(--cloth);
+  background: #fffaf0;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s, background 0.12s;
+}
+.pic-btn svg { width: 2.6rem; height: 2.6rem; }
+.pic-btn img { width: 3.6rem; height: 3.6rem; object-fit: contain; }
+.pic-btn:hover { background: #fff; transform: scale(1.05); }
+.pic-btn:active { transform: scale(0.96); }
+.pic-btn:focus-visible, .pic-btn.focused { outline: 5px solid var(--focus); background: #fff; }
+.pic-btn .btn-label {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--cloth);
+  font-size: 0.78rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+.pic-btn:hover .btn-label, .pic-btn:focus-visible .btn-label, .pic-btn.focused .btn-label { opacity: 1; }
+#pause-reason:empty { display: none; }
+#pause-reason { max-width: 20rem; margin: 0 auto 0.8rem; text-align: center; }
+
+/* Delivered appliqué badges fill their round buttons. */
+.pic-btn img.badge { width: 100%; height: 100%; object-fit: contain; }
+.pic-btn:has(img.badge) { border: none; background: transparent; box-shadow: none; outline-color: transparent; }
+.pic-btn:has(img.badge):focus-visible, .pic-btn.focused:has(img.badge) { outline: 5px solid var(--focus); }
+.close-x img.badge { width: 2.4rem; height: 2.4rem; }
+.close-x:has(img.badge) { border: none; background: transparent; }
+
+/* The hint: the control, the piece, what wakes it, and one short line. */
+.hint-row { display: flex; align-items: center; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px dashed #cdbb98; flex-wrap: wrap; }
+.hint-row:last-child { border-bottom: none; }
+.hint-dot { width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--c); flex: none; }
+.hint-pic { margin: 0; display: flex; flex-direction: column; align-items: center; width: 4rem; }
+.hint-pic img { width: 3.4rem; height: 3.4rem; object-fit: contain; }
+.hint-pic figcaption { font-weight: 700; color: var(--c); font-size: 0.85rem; }
+.hint-piece { width: 4.6rem; height: 4.6rem; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25)); }
+.hint-setup { width: 4rem; color: var(--thread); display: grid; place-items: center; }
+.hint-setup svg { width: 100%; height: auto; }
+.hint-text { flex: 1 1 14rem; margin: 0; font-size: 1.05rem; }
