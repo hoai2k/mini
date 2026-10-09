@@ -1070,7 +1070,7 @@ function updatePlay(dt) {
   // The army on the player's beats.
   while (g.armyBeats.length && g.armyBeats[0].t <= t && !g.ended) {
     const beat = g.armyBeats.shift();
-    if (beat.order) issueOrder(g.battle, beat.order.command, beat.order.power, beat.order.u);
+    if (beat.order) issueOrder(g.battle, beat.order.command, beat.order.power, beat.order.u, beat.order.tier);
     events.push(...stepArmy(g.battle, beat.t));
   }
   // The Han on their war drum.
@@ -1084,6 +1084,10 @@ function updatePlay(dt) {
   for (const ev of events) {
     battleSound(ev);
     if (ev.type === 'trample') input.rumble(300, 1);
+    if (ev.type === 'marchHit') {
+      feedback(T.battle.marchHit, P.bronzeLight);
+      input.rumble(120, 0.7);
+    }
     if (ev.type === 'wound') input.rumble(80, 0.4);
     if (ev.type === 'deflect' && ev.kind === 'children') {
       // The lesson in blocking: two stones blocked and the children give up.

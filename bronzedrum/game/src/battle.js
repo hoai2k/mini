@@ -19,6 +19,10 @@ export const ENEMY_TYPES = {
 const MELEE_REACH = 3;
 const ARCHER_REACH = 12;
 const CONTACT_GAP = 1.5;
+// A stronger march (tier II, III) that reaches the enemy line spends the
+// ground it had left in a hit on the front enemy: this much per field unit
+// left, times the march's power (at most about half a spear blow).
+const MARCH_HIT = 2;
 // Attacks travel: a Han blow is launched on his war drum and lands a moment
 // later (seconds in flight), visible all the way. The guard (separate from
 // the drum) raises a shield wall over the whole army: for `up` seconds, and
@@ -78,8 +82,8 @@ export function orderFor(state, command, spirit) {
 }
 
 /** Give the army an order for its next four beats; u is the player's beat length. */
-export function issueOrder(state, command, power, u = 0.6) {
-  state.order = { command, power, beat: 0, flourishes: 0, u };
+export function issueOrder(state, command, power, u = 0.6, tier = 1) {
+  state.order = { command, power, beat: 0, flourishes: 0, u, tier };
 }
 
 export function addFlourish(state) {
@@ -103,10 +107,13 @@ export function blocker(state) {
   return best;
 }
 
+/** Move the army up to dist, never through the nearest enemy; returns the ground left unused. */
 function advance(state, dist) {
   const b = blocker(state);
   const limit = b ? b.x - CONTACT_GAP : Infinity;
+  const from = state.army.x;
   state.army.x = Math.min(state.army.x + dist, Math.max(state.army.x, limit));
+  return dist - (state.army.x - from);
 }
 
 function damage(state, enemy, amount, events, source) {
@@ -138,9 +145,17 @@ function runOrder(state, events) {
   const p = o.power * (1 + 0.1 * o.flourishes);
   const front = state.army.x;
   switch (o.command) {
-    case 'march':
-      advance(state, 2 * o.power);
+    case 'march': {
+      const b = blocker(state);
+      const arriving = b && front < b.x - CONTACT_GAP - 1e-6; // not yet at the line
+      const left = advance(state, 2 * o.power);
+      // A stronger march crashes into the line as it arrives, with the ground it had left.
+      if (arriving && o.tier >= 2 && left > 0.01) {
+        damage(state, b, MARCH_HIT * left * p, events, 'march');
+        events.push({ type: 'marchHit', target: b.id, x: b.x });
+      }
       break;
+    }
     case 'strike':
       if (o.beat === 1 || o.beat === 3) {
         const near = living(state).filter((e) => e.x - front <= MELEE_REACH + CONTACT_GAP);
