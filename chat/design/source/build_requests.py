@@ -627,7 +627,7 @@ V2_FX = [
     ("snow360", "Snow 360", "a teen cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow"),
     ("candy360", "Candy 360", "a teen cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow"),
     ("volcano360", "Volcano 360", "a teen cut out in front of an erupting volcano and rivers of glowing lava, a circular 360-degree arrow"),
-    ("blurbg", "Blur", "a sharp teen in the foreground in front of a softly blurred bedroom with glowing bokeh lights"),
+    ("blurbg", "Blur", "a crisp, sharply drawn teen in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them"),
     ("colorpop", "Colour Pop", "a teen in full vivid colour in front of a room that is entirely black and white"),
     ("neonaura", "Neon Aura", "a dark silhouette of a teen outlined by a glowing neon pink and cyan aura on a black background"),
     ("disco", "Disco", "a teen lit by coloured disco beams from a mirror ball above, light spots on the face, dark room behind"),

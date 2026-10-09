@@ -275,10 +275,13 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: a second, teen-styled icon set is requested (CH-K01 to CH-K95 in
-  `design/image-requests.md`, files in `assets/icons2/`): each icon shows
-  what its effect or game does. The app uses each one as it arrives
-  (`iconUrl` in `js/assets.js`) and the first-set icon until then.
+- Artwork: a second, teen-styled icon set (CH-K01 to CH-K95 in
+  `design/image-requests.md`, files in `assets/icons2/`) shows what each
+  effect or game does. 79 are in: every effect except Blur (re-requested:
+  its delivered background was sharp) and the first five games; the other
+  fifteen game icons are still requested. The app uses each as it arrives
+  (`iconUrl` in `js/assets.js`), shown as a full-size rounded tile, and the
+  first-set icon until then.
 - Artwork (first set): all 158 earlier image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
