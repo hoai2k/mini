@@ -34,6 +34,7 @@ html[data-theme="art"], html[data-theme="classic"] { color-scheme: light; }
 :is(html[data-theme="art"], html[data-theme="classic"]) .vote:hover { background: rgba(0, 0, 0, 0.1); }
 :is(html[data-theme="art"], html[data-theme="classic"]) .sheet-grip { background: rgba(0, 0, 0, 0.35); }
 :is(html[data-theme="art"], html[data-theme="classic"]) .strip-wrap:not(.grid) .sheet-grip { background: rgba(255, 255, 255, 0.75); }
+:is(html[data-theme="art"], html[data-theme="classic"]) .strip-wrap.grid { background: var(--panel); }
 :is(html[data-theme="art"], html[data-theme="classic"]) .strip-wrap.grid .fx-label { color: var(--ink); text-shadow: none; }
 :is(html[data-theme="art"], html[data-theme="classic"]) :is(.field input:not([type]), .field input[type="text"], #name-input, #set-name, .chat-form input, select) {
   background-color: rgba(255, 255, 255, 0.75); color: var(--ink); border-color: var(--line);
@@ -133,7 +134,7 @@ html[data-theme="teen"] body {
 }
 html[data-theme="teen"] :is(.join-form, .dialog, .panel-sheet) { border: 1px solid var(--accent-soft); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 28px color-mix(in srgb, var(--accent) 22%, transparent), 0 20px 40px rgba(0, 0, 0, 0.45); }
 html[data-theme="teen"] .controls { box-shadow: 0 -1px 0 var(--accent-soft) inset, 0 10px 30px rgba(0, 0, 0, 0.4); }
-html[data-theme="teen"] .ctrl[aria-expanded="true"] { box-shadow: 0 0 16px var(--accent-soft); }
+html[data-theme="teen"] .ctrl[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 16px var(--accent-soft); }
 html[data-theme="teen"] .dialog h2 { text-shadow: 0 0 18px var(--accent-soft); }
 
 html[data-theme="art"] {

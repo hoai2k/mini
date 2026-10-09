@@ -36,6 +36,13 @@ for (const theme of ['teen', 'kid', 'art', 'classic']) {
   const item = p.locator('#effect-list .fx-item[data-fx]').nth(2);
   if (await item.count()) { await item.evaluate(e => { e.scrollIntoView({ inline: 'center' }); e.click(); }); await p.waitForTimeout(800); }
   await p.screenshot({ path: `${outDir}${theme}${tag}-3-effects.png` });
+  // Tapping the strip's grip opens the grid of every effect.
+  const grip = p.locator('#tray-effects .sheet-grip');
+  if (await grip.count()) {
+    await grip.click(); await p.waitForTimeout(700);
+    await p.screenshot({ path: `${outDir}${theme}${tag}-3b-grid.png` });
+    await grip.click(); await p.waitForTimeout(500);
+  }
   const set = p.locator('.round-btn[data-open="settings"]').first();
   if (await set.count()) { await set.click(); await p.waitForTimeout(500); await p.screenshot({ path: `${outDir}${theme}${tag}-4-settings.png` }); await p.keyboard.press('Escape'); await p.waitForTimeout(300); }
   const gm = p.locator('#btn-games').first();
