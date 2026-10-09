@@ -816,28 +816,28 @@ export const ASSET_LIST = {
     "status": "delivered"
   },
   "title-bg-teen": {
-    "file": "assets/themes/title-bg-teen.webp",
-    "status": "requested"
+    "file": "assets/themes/title-bg-teen-v2.webp",
+    "status": "delivered"
   },
   "logo-teen": {
-    "file": "assets/themes/logo-teen.png",
-    "status": "requested"
+    "file": "assets/themes/logo-teen-v2.png",
+    "status": "delivered"
   },
   "title-bg-art": {
     "file": "assets/themes/title-bg-art.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "logo-art": {
-    "file": "assets/themes/logo-art.png",
-    "status": "requested"
+    "file": "assets/themes/logo-art-v2.png",
+    "status": "delivered"
   },
   "title-bg-classic": {
     "file": "assets/themes/title-bg-classic.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "logo-classic": {
-    "file": "assets/themes/logo-classic.png",
-    "status": "requested"
+    "file": "assets/themes/logo-classic-v2.png",
+    "status": "delivered"
   },
   "art-fx-bubble": {
     "file": "assets/icons-art/art-fx-bubble.png",

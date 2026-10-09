@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-255 delivered, 196 requested, 451 in total.
+261 delivered, 190 requested, 451 in total.
 
 ## Brand
 
@@ -1962,26 +1962,26 @@ A title background and logo for each theme you can pick in Settings > Theme: Tee
 
 ### CH-T01 · Teen theme: title background
 
-- **File:** `chat/assets/themes/title-bg-teen.webp`
+- **File:** `chat/assets/themes/title-bg-teen-v2.webp`
 - **Size:** 1920 x 1080, opaque
 - **Used for:** Behind the title screen and join form in the Teen theme.
 - **Stand-in until delivered:** The Kid theme's title background.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Full-bleed background: a deep indigo night city scene seen from a rooftop, neon signs and city lights softly out of focus, a few glowing phone screens and speech-bubble shapes drifting like lanterns. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Full-bleed background: a deep indigo night city scene seen from a rooftop, neon signs and city lights softly out of focus, a few glowing phone screens and speech-bubble shapes drifting like lanterns. Keep the middle third calm and uncluttered for the logo and the join form. No border.  Edit: Recompose as a clean DRAWN 2D vector-style indigo rooftop city background. Remove ALL people, portrait cards, central camera logo, textbox and join button. The entire middle third is calm dark indigo negative space for a separately rendered logo and join form. Crisp vector shapes, abstract gently blurred neon skyline behind, only a few small glowing phone rectangles and speech bubbles near outer edges. No text, logos, controls or photorealism. Full bleed 1920x1080.
 ```
 
 ### CH-T02 · Teen theme: logo
 
-- **File:** `chat/assets/themes/logo-teen.png`
+- **File:** `chat/assets/themes/logo-teen-v2.png`
 - **Size:** 1600 x 800, transparent
 - **Used for:** The title screen logo in the Teen theme.
 - **Stand-in until delivered:** The Kid theme's logo.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No other text, no watermark, no photorealism. A sleek logo: "GAMES" in a bold modern sans serif with a soft neon glow over "CHAT" set inside a rounded speech bubble outline, white and electric violet with one hot-pink accent. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No other text, no watermark, no photorealism. A sleek logo: "GAMES" in a bold modern sans serif with a soft neon glow over "CHAT" set inside a rounded speech bubble outline, white and electric violet with one hot-pink accent. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Edit: Simplify to ONLY the lettering GAMES over CHAT inside a rounded speech-bubble outline. Remove both people, portrait cards, microphones, video controls, hangup buttons, hearts, crown and controller. Bold modern sans-serif, uppercase GAMES CHAT, white electric-violet glow with cyan and mint accents, exclusively blue/green/purple spectrum, no orange/pink/red. Crisp vector brandmark, no photographs. Generous clear margins, 1600x800 transparent.
 ```
 
 ### CH-T03 · Art theme: title background
@@ -1990,7 +1990,7 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 1920 x 1080, opaque
 - **Used for:** Behind the title screen and join form in the Art theme.
 - **Stand-in until delivered:** The Kid theme's title background.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Full-bleed background: a Nouvelle Vague film-poster composition: two stylised faces in profile facing each other across a café table, cut-paper shapes in vermilion, black and mustard, a big abstract sun and the Eiffel Tower as a tiny black silhouette. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
@@ -1998,14 +1998,14 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 
 ### CH-T04 · Art theme: logo
 
-- **File:** `chat/assets/themes/logo-art.png`
+- **File:** `chat/assets/themes/logo-art-v2.png`
 - **Size:** 1600 x 800, transparent
 - **Used for:** The title screen logo in the Art theme.
 - **Stand-in until delivered:** The Kid theme's logo.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No other text, no watermark. A film-title logo: "Games Chat" in a hand-cut condensed display face like a 1960s Nouvelle Vague title card, red and black on off-white paper, with a small cut-paper speech bubble. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No other text, no watermark. A film-title logo: "Games Chat" in a hand-cut condensed display face like a 1960s Nouvelle Vague title card, red and black on off-white paper, with a small cut-paper speech bubble. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Edit: Remove the man and woman portraits and cigarette entirely. Keep ONLY Games Chat lettering, red and black hand-cut condensed 1960s film-title style on off-white letter shapes, with one SMALL red/black cut-paper speech bubble. Centre the text with generous even margins on a 1600x800 transparent canvas. No people or yellow bubble. Retain paper grain and confident Nouvelle Vague style.
 ```
 
 ### CH-T05 · Classical theme: title background
@@ -2014,7 +2014,7 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 1920 x 1080, opaque
 - **Used for:** Behind the title screen and join form in the Classical theme.
 - **Stand-in until delivered:** The Kid theme's title background.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Full-bleed background: a Rococo garden party at Versailles: powdered aristocrats in silks chatting on a swing and around a fountain, cherubs, roses, ribbons and pastel clouds, framed by gilt scrollwork. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
@@ -2022,14 +2022,14 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 
 ### CH-T06 · Classical theme: logo
 
-- **File:** `chat/assets/themes/logo-classic.png`
+- **File:** `chat/assets/themes/logo-classic-v2.png`
 - **Size:** 1600 x 800, transparent
 - **Used for:** The title screen logo in the Classical theme.
 - **Stand-in until delivered:** The Kid theme's logo.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No other text, no watermark. An ornate Rococo cartouche logo: "Games Chat" in elegant engraved copperplate script with gold leaf, inside a gilded scrolling frame with ribbons and a small cherub. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No other text, no watermark. An ornate Rococo cartouche logo: "Games Chat" in elegant engraved copperplate script with gold leaf, inside a gilded scrolling frame with ribbons and a small cherub. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Edit: Remove the two aristocrat figures on the sides entirely. Keep the ornate gilded Rococo cartouche, elegant copperplate Games Chat lettering, ribbons and small top cherub. Centre and balance the cartouche logo within 1600x800 with even clear margins and actual transparent background. Preserve painterly style and gold leaf.
 ```
 
 ## Effect and game icons, Art theme
