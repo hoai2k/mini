@@ -350,6 +350,14 @@ export const ASSETS = {
     "file": "assets/sprites/broomwhisk-poses.png",
     "delivered": true
   },
+  "redo.broomwhiskSweep": {
+    "file": "assets/sprites/broomwhisk-sweep.png",
+    "delivered": false
+  },
+  "redo.broomwhiskPoses": {
+    "file": "assets/sprites/broomwhisk-poses.png",
+    "delivered": false
+  },
   "scene.keycrane": {
     "file": "assets/scenes/keycrane.webp",
     "delivered": true
