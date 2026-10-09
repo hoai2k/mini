@@ -1061,7 +1061,7 @@ export const ASSET_LIST = {
   },
   "art-fx-tinyface": {
     "file": "assets/icons-art/art-fx-tinyface.png",
-    "status": "delivered"
+    "status": "requested"
   },
   "art-fx-chubby": {
     "file": "assets/icons-art/art-fx-chubby-v2.png",

@@ -314,11 +314,12 @@ with its state (see `js/gamehost.js`).
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
-- Artwork (themes): all six title assets, all 95 Art icons (CH-N01–CH-N95),
-  and all 95 Classical icons (CH-R01–CH-R95) are delivered. All 451
-  requests in `design/image-requests.md` are delivered. Art generation is
-  complete and this image-generation task is paused.
-
+- Artwork (themes): all six title assets, all 95 Classical icons
+  (CH-R01–CH-R95) and 94 of the 95 Art icons are delivered and checked in
+  the effects strip, grid and games sheet (`theme-shots.mjs`). Art's Tiny
+  Face (CH-N56) is re-requested: at icon size its tiny features vanished
+  and the face read as blank. Until it arrives, Art shows the Teen icon
+  there.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
