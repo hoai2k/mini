@@ -314,8 +314,8 @@ with its state (see `js/gamehost.js`).
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
-- Artwork (themes): all six title assets and Art icons CH-N01–CH-N60
-  are delivered. Generation is continuing on the remaining 35 Art and
+- Artwork (themes): all six title assets and Art icons CH-N01–CH-N80
+  are delivered. Generation is continuing on the remaining 15 Art and
   95 Classical icons in `design/image-requests.md`. Themes use Teen
   fallbacks for pending icons. The first 40 Art icons were checked in the
   effects strip and grid (`theme-shots.mjs`): each matches its
