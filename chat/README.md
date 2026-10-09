@@ -121,14 +121,17 @@ own video, or hold RT instead.
 
 Hoops (laid out like Messenger's: a big hoop and the ball at the bottom; pick
 the ball up, carry it and toss it, or just flick it straight off its spot; it
-moves with your finger and flies on from where you let go at the speed and in
-the direction you threw it, with no help: too soft falls short, too hard goes
-long, and it heads for wherever on screen your swipe was pointing; the hoop
-moves every five shots), Flappy Face (your face is the bird; tap to
+moves with your finger and flies on from where you let go, with no help. It
+is essentially 2D: every ball reaches the hoop and never goes past it; the
+swipe's speed sets how high it is when it gets there (an S-curve centred on
+a good throw, so speeds near it change the height gently and far ones a lot)
+and its direction on screen where it is sideways; the hoop moves every five
+shots), Flappy Face (your face is the bird; tap to
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
-holes played together with friends' ghost balls), Bowling, Beach Bump (bump
+holes played together with friends' ghost balls; pull back to aim and the
+arrow sits behind the ball, following your finger, pointing the way it will go), Bowling, Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
 your head), Asteroid Dodge (steer with your head or by tilting the phone),
 Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
@@ -275,10 +278,13 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: a second, teen-styled icon set is requested (CH-K01 to CH-K95 in
-  `design/image-requests.md`, files in `assets/icons2/`): each icon shows
-  what its effect or game does. The app uses each one as it arrives
-  (`iconUrl` in `js/assets.js`) and the first-set icon until then.
+- Artwork: a second, teen-styled icon set (CH-K01 to CH-K95 in
+  `design/image-requests.md`, files in `assets/icons2/`) shows what each
+  effect or game does. 79 are in: every effect except Blur (re-requested:
+  its delivered background was sharp) and the first five games; the other
+  fifteen game icons are still requested. The app uses each as it arrives
+  (`iconUrl` in `js/assets.js`), shown as a full-size rounded tile, and the
+  first-set icon until then.
 - Artwork (first set): all 158 earlier image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`

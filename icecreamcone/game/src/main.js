@@ -3,7 +3,7 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, loadStickers, saveStickers, resetStickers } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, loadStickers, saveStickers, resetStickers } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
@@ -333,7 +333,7 @@ const best = (id) => progress[id]?.best || 0;
 const passed = (i) => passes(BIRDS[i], best(BIRDS[i].id));
 // The card opening after a celebration shows locked until it flips, even in
 // ?debug.
-const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || i === 0 || passed(i - 1));
+const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
 
 function buildGuide() {
   const wrap = $('#cards');
@@ -548,7 +548,6 @@ function fillPage() {
   S.pageKind = input.kind;
   $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
-  if (settings.readAloud) readAloud();
 }
 
 function fillList(ul, lines) {
@@ -560,18 +559,6 @@ function fillList(ul, lines) {
   }
 }
 
-function readAloud() {
-  const b = BIRDS[S.bird];
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(`${b.name}. ${b.rhyme.join(' ')}`);
-    u.rate = 0.9;
-    speechSynthesis.speak(u);
-  } catch {
-    toast('Reading aloud is not available in this browser.');
-  }
-}
-
 function turnPage(d) {
   let i = S.bird + d;
   if (i < 0 || i >= BIRDS.length) return;
@@ -580,7 +567,6 @@ function turnPage(d) {
     return;
   }
   S.bird = i;
-  try { speechSynthesis.cancel(); } catch { /* no speech */ }
   audio.sfx('page');
   fillPage();
 }
@@ -808,7 +794,8 @@ function endCelebration(skipped) {
   if (!c) return;
   const n = nextPage(c.index, BIRDS.length);
   const sel = selectAfter(c.index, BIRDS.length, 'celebrate');
-  if (skipped || n < 0) {
+  // With every page open already (Unlock all), there's nothing to unlock.
+  if (skipped || n < 0 || (settings.unlockAll && !DEBUG)) {
     toGuide(sel);
     if (n < 0) toast(`Every one of the ${BIRDS.length} rare birds, spotted!`);
   } else toGuide(sel, n);
@@ -1254,7 +1241,6 @@ function act(action, el) {
       show('title');
       break;
     case 'guide':
-      try { speechSynthesis.cancel(); } catch { /* no speech */ }
       show('guide');
       break;
     case 'stickers':
@@ -1272,7 +1258,6 @@ function act(action, el) {
       show('gathering');
       break;
     case 'play':
-      try { speechSynthesis.cancel(); } catch { /* no speech */ }
       startBird(S.bird);
       break;
     case 'pause':
@@ -1298,14 +1283,23 @@ function act(action, el) {
       break;
     }
     case 'reset-progress':
-      confirm('Forget all scores?', 'Every bird’s best score is cleared, only the first page stays open, and the sticker book is emptied.', () => {
+      confirm('Forget all scores?', 'Every bird’s best score is cleared, only the first page stays open, and the sticker book is emptied. (They are kept aside: Restore my scores brings them back.)', () => {
         resetProgress();
         progress = loadProgress();
         resetStickers();
         book = emptyBook();
         if (S.screen === 'guide') buildGuide();
+        syncSettingsUi();
         toast('Scores forgotten.');
       });
+      break;
+    case 'restore-progress':
+      progress = restoreProgress(progress);
+      book = normalizeBook(loadStickers(), BIRD_IDS, SPREADS);
+      if (S.screen === 'guide') buildGuide();
+      syncSettingsUi();
+      focusFirst(true);
+      toast('Scores restored: the best of then and now.');
       break;
   }
 }
@@ -1397,6 +1391,7 @@ function toggleFullscreen() {
 // ---------- settings ----------
 
 function syncSettingsUi() {
+  $('#restore-btn').hidden = !canRestore(progress);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = !!settings[k];
@@ -1420,6 +1415,7 @@ document.addEventListener('input', (e) => {
   saveSettings(settings);
   applySettings();
   syncSettingsUi();
+  if (k === 'unlockAll') buildGuide();
 });
 
 // ---------- toast ----------
@@ -1868,7 +1864,6 @@ function gatheringName(atlas, toPic, toUnits, k) {
 function away() {
   pause('The game paused while you were away.');
   audio.suspend(true);
-  try { speechSynthesis.cancel(); } catch { /* no speech */ }
 }
 function returned() {
   if (!document.hidden && document.hasFocus()) audio.suspend(false);

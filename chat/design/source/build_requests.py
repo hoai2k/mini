@@ -566,6 +566,8 @@ MORE_EFFECT_ICONS = [
     ("womanface", "Woman", "a woman's face with long lashes, rosy cheeks and red lips"),
     ("thinner", "Thinner", "a tall skinny face squeezed between two inward arrows"),
     ("fatter", "Fatter", "a wide round face stretched between two outward arrows"),
+    # Baby replaced Kid; the Kid icon (CH-I91) is kept as history.
+    ("baby", "Baby", "a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair"),
 ]
 for i, (gid, name, subject) in enumerate(EFFECT_ICONS, 1):
     req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
@@ -627,7 +629,7 @@ V2_FX = [
     ("snow360", "Snow 360", "a teen cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow"),
     ("candy360", "Candy 360", "a teen cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow"),
     ("volcano360", "Volcano 360", "a teen cut out in front of an erupting volcano and rivers of glowing lava, a circular 360-degree arrow"),
-    ("blurbg", "Blur", "a sharp teen in the foreground in front of a softly blurred bedroom with glowing bokeh lights"),
+    ("blurbg", "Blur", "a crisp, sharply drawn teen in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them"),
     ("colorpop", "Colour Pop", "a teen in full vivid colour in front of a room that is entirely black and white"),
     ("neonaura", "Neon Aura", "a dark silhouette of a teen outlined by a glowing neon pink and cyan aura on a black background"),
     ("disco", "Disco", "a teen lit by coloured disco beams from a mirror ball above, light spots on the face, dark room behind"),
@@ -684,6 +686,15 @@ V2_GAMES = [
     ("trivia", "Trivia", "a quiz-show buzzer being slammed with four coloured answer panels behind it"),
     ("wordblitz", "Word Blitz", "a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word"),
 ]
+# Added after the set was numbered, so it goes at the end: Baby replaced Kid
+# (the Kid icon, CH-K72, is kept as history).
+V2_LATE = [
+    ("baby", "Baby", "a split face: left half a teen, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin"),
+]
+for i, (gid, name, subject) in enumerate(V2_LATE, len(V2_FX) + len(V2_GAMES) + 1):
+    req("icons2", f"CH-K{i:02d}", f"fx2-{gid}", f"{name} icon (second set)", "256 x 256",
+        f"The {name} button on the effect strips, replacing the first-set icon.", f"Icon: {subject}.",
+        "The first-set icon, or the emoji.")
 for i, (gid, name, subject) in enumerate(V2_FX + V2_GAMES, 1):
     kind = "fx" if i <= len(V2_FX) else "game"
     where = "button on the effect strips" if kind == "fx" else "card in the game picker"

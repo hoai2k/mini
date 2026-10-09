@@ -522,3 +522,16 @@ body:not(.in-call) .field.in-call { display: none; }
 .ui-grip[hidden] { display: none; }
 .ui-grip span { width: 54px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.75); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
 .ui-grip.dragging { transition: none; }
+
+/* Second-set icons are complete rounded tiles: shown at the full size of the
+   lens, square-ish, rather than shrunk inside a dark circle. */
+.fx-item.tile-icon { border-radius: 22%; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; overflow: visible; }
+.fx-item.tile-icon img { width: 100%; height: 100%; border-radius: 22%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+.fx-item.tile-icon[aria-selected="true"] { background: none; }
+.fx-item.tile-icon[aria-selected="true"] img { box-shadow: 0 0 0 3px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.45); }
+.strip-wrap.grid .fx-item.tile-icon { width: 68px; height: 68px; }
+.strip-wrap.grid .fx-item.tile-icon img { width: 100%; height: 100%; }
+.game-card .ico img[src*="/icons2/"] { width: 76px; height: 76px; border-radius: 22%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+.game-card .ico:has(img[src*="/icons2/"]) { width: 76px; height: 76px; }
+/* The ring that marks the effect that's on matches the tile icons' shape. */
+.strip-ring { border-radius: 28%; }

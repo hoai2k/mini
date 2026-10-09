@@ -22,7 +22,7 @@ export function createOverlay(canvas, base = 'web/') {
   }
 
   function event(e, game) {
-    if (e.type === 'found') {
+    if (e.type === 'found' || e.type === 'retarget') {
       pins.push({ player: e.player, input: e.input, target: e.target, scale: e.scale || game.players.find((p) => p.id === e.player)?.bindings[e.input]?.scale, t: 0 });
       while (pins.length > 4) pins.shift();
     }

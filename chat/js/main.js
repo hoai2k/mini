@@ -1072,6 +1072,8 @@ function effectButton(fx, onClick) {
     im.src = iconUrl;
     im.alt = '';
     b.append(im);
+    // Second-set icons bring their own rounded tile: show it whole and big.
+    if (/\/icons2\//.test(iconUrl)) b.classList.add('tile-icon');
   } else {
     b.textContent = fx.emoji;
   }
