@@ -2,6 +2,7 @@
 // the calls (rtc.js), my camera and effects (studio.js), the minigames
 // (gamehost.js) and the controls together.
 
+import { COLORS, colorName, themedColor, setColorTheme } from './palette.js';
 import { createNet } from './net.js';
 import { createRtc, STUN_SERVERS } from './rtc.js';
 import { createStudio } from './studio.js';
@@ -17,7 +18,6 @@ import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
 
-const COLORS = ['#ff5fa2', '#ff8c42', '#ffd43b', '#69db7c', '#3fe0d0', '#4dabf7', '#9775fa', '#f783ac'];
 const $ = sel => document.querySelector(sel);
 
 const settings = {
@@ -33,13 +33,16 @@ const saveSettings = () => save('settings', settings);
 
 // The player's colour accents the whole interface. Text on it is dark or
 // light depending on how bright the colour is.
-function applyAccent(color) {
+function applyAccent(saved) {
   const root = document.documentElement.style;
+  const color = themedColor(saved);
   root.setProperty('--accent', color);
+  // Dark or white text, whichever stands out more (WCAG contrast).
   const n = parseInt(color.slice(1), 16);
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  root.setProperty('--on-accent', lum > 0.62 ? '#1d1533' : '#fff');
+  const lin = v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  const dark = 0.012; // #1d1533
+  root.setProperty('--on-accent', (L + 0.05) / (dark + 0.05) > 1.05 / (L + 0.05) ? '#1d1533' : '#fff');
 }
 applyAccent(settings.color);
 
@@ -50,6 +53,10 @@ function applyTheme(t) {
   const theme = THEMES.includes(t) ? t : 'teen';
   document.documentElement.dataset.theme = theme;
   setIconTheme(theme);
+  setColorTheme(theme);
+  applyAccent(settings.color);
+  document.querySelectorAll('.swatch[data-color]').forEach(b => { b.style.background = themedColor(b.dataset.color); });
+  document.querySelectorAll('[data-color-of]').forEach(e => e.style.setProperty('--c', themedColor(e.dataset.colorOf)));
   updateTitleArt(theme);
   refreshIcons();
 }
@@ -83,9 +90,11 @@ function colorPicker(container, onPick) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'swatch';
-    b.style.background = c;
+    b.dataset.color = c;
+    b.style.background = themedColor(c);
     b.setAttribute('role', 'radio');
-    b.setAttribute('aria-label', `Colour ${c}`);
+    b.setAttribute('aria-label', colorName(c) ?? c);
+    b.title = colorName(c) ?? '';
     b.setAttribute('aria-checked', String(c === settings.color));
     b.addEventListener('click', () => {
       settings.color = c;
@@ -479,7 +488,8 @@ function updateTileLabel(rec, p) {
   if (p.name && p.name !== rec.name) flashName(rec);
   rec.name = p.name || rec.name;
   rec.label.textContent = p.name || '…';
-  rec.el.style.setProperty('--c', p.color || '#ff5fa2');
+  rec.el.dataset.colorOf = p.color || COLORS[0];
+  rec.el.style.setProperty('--c', themedColor(p.color || COLORS[0]));
   rec.flags.textContent = '';
   const flag = (text, cls) => {
     const f = document.createElement('span');
@@ -1564,7 +1574,8 @@ function addMessage(text, from, color) {
     const who = document.createElement('span');
     who.className = 'from';
     who.textContent = from === me.id ? 'You' : nameOf(from);
-    who.style.setProperty('--c', color || '');
+    if (color) who.dataset.colorOf = color;
+    who.style.setProperty('--c', themedColor(color) || '');
     el.append(who, document.createTextNode(text));
   }
   log.append(el);
