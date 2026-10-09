@@ -23,6 +23,7 @@ export const GAME_IDS = [
   'battleship',
   'trivia',
   'wordblitz',
+  'gofish',
 ];
 
 export async function loadGames() {
