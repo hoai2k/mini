@@ -312,23 +312,23 @@ export const ASSETS = {
   },
   "sprites.buttons": {
     "file": "assets/sprites/buttons.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.coats": {
     "file": "assets/sprites/coats.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.buttonBowl": {
     "file": "assets/sprites/button-bowl.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.buttonbeaksToss": {
     "file": "assets/sprites/buttonbeaks-toss.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.buttonbeaksPoses": {
     "file": "assets/sprites/buttonbeaks-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.broomwhisk": {
     "file": "assets/scenes/broomwhisk.webp",
@@ -336,19 +336,19 @@ export const ASSETS = {
   },
   "sprites.sweepings": {
     "file": "assets/sprites/sweepings.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.dustpan": {
     "file": "assets/sprites/dustpan.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.broomwhiskSweep": {
     "file": "assets/sprites/broomwhisk-sweep.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.broomwhiskPoses": {
     "file": "assets/sprites/broomwhisk-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.keycrane": {
     "file": "assets/scenes/keycrane.webp",
