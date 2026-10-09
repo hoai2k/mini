@@ -330,8 +330,11 @@ with its state (see `js/gamehost.js`).
   first features vanished at icon size.
 - Artwork (Go Fish): the thirteen creature cards (CH-G25 to CH-G37), the card
   back (CH-G38), the pond (CH-G39) and the Go Fish icon in each set (CH-I97,
-  CH-K97, CH-N96, CH-R96) are requested. Until they arrive the game draws
-  each creature itself, a wave-pattern back and a painted pond.
+  CH-K97, CH-N96, CH-R96) are delivered and checked in play
+  (`gofish-play.mjs`) and in the games sheet of every theme. The angler
+  stands on the pond's painted jetty, and the fish shadows are drawn darker
+  over the painted water. The game's own creature drawings remain as
+  stand-ins for any art that fails to load.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
