@@ -12,10 +12,6 @@ html[data-theme="teen"] {
   --line: rgba(255, 255, 255, 0.13); --ink: #f5f5fa; --muted: #a8a7bf; --glass: rgba(12, 11, 20, 0.62);
   --font: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-html[data-theme="teen"] body {
-  background: radial-gradient(ellipse at 15% -10%, #2a1c5a 0%, transparent 55%),
-              radial-gradient(ellipse at 100% 110%, #0f3047 0%, transparent 50%), var(--bg);
-}
 html[data-theme="teen"] .press-start { border-radius: 14px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 800;
   background: var(--accent); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 8px 28px var(--accent-soft); }
 html[data-theme="teen"] .press-start:active { transform: translateY(2px); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset; }
@@ -72,13 +68,6 @@ html[data-theme="art"] {
   --pink: #d8321e; --aqua: #1f7a74; --sun: #e0a321; --danger: #c8281a;
   --font: "Jost", "Futura", "Avenir Next", system-ui, sans-serif;
 }
-html[data-theme="art"] body {
-  background:
-    radial-gradient(circle at 82% 18%, #d8321e 0 13%, transparent 13.2%),
-    linear-gradient(115deg, transparent 0 62%, rgba(22, 22, 22, 0.9) 62% 63%, transparent 63%),
-    repeating-radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 3px),
-    var(--bg);
-}
 html[data-theme="art"] :is(.join-form, .dialog, .panel-sheet, .invite, .toast, .controls, .strip-wrap.grid, .pill, .round-btn, .grab-fx, .icon-btn) {
   border: 2px solid var(--ink); border-radius: 3px; box-shadow: 5px 5px 0 rgba(22, 22, 22, 0.85);
   backdrop-filter: none; -webkit-backdrop-filter: none;
@@ -109,12 +98,6 @@ html[data-theme="classic"] {
   --gold: linear-gradient(180deg, #f7e3a1, #d9b45a 45%, #b48a2e);
   --font: "EB Garamond", "Garamond", Georgia, serif;
 }
-html[data-theme="classic"] body {
-  background:
-    radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.9) 0%, transparent 60%),
-    radial-gradient(ellipse at 10% 110%, rgba(217, 138, 159, 0.35) 0%, transparent 50%),
-    radial-gradient(ellipse at 95% 105%, rgba(127, 181, 176, 0.35) 0%, transparent 50%), var(--bg);
-}
 html[data-theme="classic"] :is(.join-form, .dialog, .panel-sheet, .invite, .strip-wrap.grid) {
   border: 3px double var(--line); border-radius: 18px; box-shadow: 0 0 0 1px rgba(196, 162, 76, 0.4) inset, 0 14px 34px rgba(80, 55, 20, 0.28);
 }
@@ -138,3 +121,61 @@ html[data-theme="classic"] #logo-text {
 html[data-theme="classic"] :is(.tagline, #title.has-bg .tagline) { border: 1px solid var(--line); color: var(--ink); font-style: italic; background: rgba(252, 246, 234, 0.85); padding: 4px 12px; border-radius: 999px; display: inline-block; }
 html[data-theme="classic"] .fx-item.tile-icon img { border-radius: 14px; }
 html[data-theme="art"] .controls .ctrl .lbl { font-weight: 700; letter-spacing: 0.01em; }
+
+/* ---------- Your colour in each theme ----------
+   The colour picked on the title screen is a colour name; each theme has
+   its own shade of it (js/palette.js), set as --accent, and frames itself
+   with it in its own way: a neon glow in Teen, the poster's spot colour in Art, and
+   the ribbon threaded through the gilt in Classical. */
+html[data-theme="teen"] body {
+  background: radial-gradient(ellipse at 15% -10%, color-mix(in srgb, var(--accent) 34%, #0d0c15) 0%, transparent 55%),
+              radial-gradient(ellipse at 100% 110%, color-mix(in srgb, var(--accent) 18%, #0d0c15) 0%, transparent 50%), var(--bg);
+}
+html[data-theme="teen"] :is(.join-form, .dialog, .panel-sheet) { border: 1px solid var(--accent-soft); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 28px color-mix(in srgb, var(--accent) 22%, transparent), 0 20px 40px rgba(0, 0, 0, 0.45); }
+html[data-theme="teen"] .controls { box-shadow: 0 -1px 0 var(--accent-soft) inset, 0 10px 30px rgba(0, 0, 0, 0.4); }
+html[data-theme="teen"] .ctrl[aria-expanded="true"] { box-shadow: 0 0 16px var(--accent-soft); }
+html[data-theme="teen"] .dialog h2 { text-shadow: 0 0 18px var(--accent-soft); }
+
+html[data-theme="art"] {
+  --spot: var(--accent);
+  --spot-ink: color-mix(in srgb, var(--accent) 70%, #161616);
+}
+html[data-theme="art"] .press-start { background: var(--spot); color: var(--on-accent); }
+html[data-theme="art"] :is(.join-form, .dialog, .panel-sheet, .strip-wrap.grid) { box-shadow: 6px 6px 0 var(--spot); }
+html[data-theme="art"] .join-form { border-top: 10px solid var(--spot); }
+html[data-theme="art"] .dialog { border-left: 10px solid var(--spot); }
+html[data-theme="art"] :is(.tagline, #title.has-bg .tagline) { box-shadow: 3px 3px 0 var(--spot); }
+html[data-theme="art"] .ctrl[aria-expanded="true"] { background: var(--spot); color: var(--on-accent); outline: 2px solid var(--ink); outline-offset: -2px; }
+html[data-theme="art"] .dialog h2 { color: var(--spot-ink); }
+html[data-theme="art"] .btn:not(.ghost):not(.danger) { background: var(--spot); color: var(--on-accent); }
+html[data-theme="art"] body {
+  background:
+    radial-gradient(circle at 82% 18%, var(--spot) 0 13%, transparent 13.2%),
+    linear-gradient(115deg, transparent 0 62%, rgba(22, 22, 22, 0.9) 62% 63%, transparent 63%),
+    repeating-radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 3px),
+    var(--bg);
+}
+
+html[data-theme="classic"] {
+  --ribbon: var(--accent);
+  --ribbon-deep: color-mix(in srgb, var(--accent) 55%, #3b2a19);
+}
+/* A ribbon of your colour inside each gilt frame. */
+html[data-theme="classic"] :is(.join-form, .dialog, .panel-sheet, .strip-wrap.grid) {
+  box-shadow: 0 0 0 4px var(--panel-solid) inset, 0 0 0 6px var(--ribbon) inset, 0 14px 34px rgba(80, 55, 20, 0.28);
+}
+html[data-theme="classic"] .controls { box-shadow: 0 0 0 3px var(--panel-solid) inset, 0 0 0 4.5px var(--ribbon) inset, 0 4px 14px rgba(80, 55, 20, 0.25); }
+html[data-theme="classic"] .ctrl[aria-expanded="true"] { background: color-mix(in srgb, var(--ribbon) 60%, #fbf5e9); color: var(--ink); box-shadow: 0 0 0 1px #b48a2e inset; }
+html[data-theme="classic"] :is(.dialog h2, .sheet-head h2) { color: var(--ribbon-deep); }
+html[data-theme="classic"] .press-start { box-shadow: 0 0 0 3px var(--ribbon) inset, 0 5px 0 #8a6a24, 0 10px 24px rgba(150, 110, 30, 0.35); }
+html[data-theme="classic"] .msg.mine { background: color-mix(in srgb, var(--ribbon) 45%, #fbf5e9); }
+html[data-theme="classic"] body {
+  background:
+    radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse at 10% 110%, color-mix(in srgb, var(--accent) 35%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 95% 105%, rgba(127, 181, 176, 0.35) 0%, transparent 50%), var(--bg);
+}
+/* The title art gets a frame of your colour too. */
+html[data-theme="teen"] #title.has-bg { box-shadow: inset 0 0 90px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 0 0 2px var(--accent-soft); }
+html[data-theme="art"] #title.has-bg { box-shadow: inset 0 0 0 10px var(--spot), inset 0 0 0 12px var(--ink); }
+html[data-theme="classic"] #title.has-bg { box-shadow: inset 0 0 0 7px var(--ribbon), inset 0 0 0 9px #c4a24c, inset 0 0 40px rgba(80, 55, 20, 0.25); }

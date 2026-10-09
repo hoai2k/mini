@@ -132,3 +132,14 @@ test('everyone lands in the same room, and it survives the host leaving', async 
   b.leave();
   c.leave();
 });
+
+test('each theme has its own shade of every colour name', async () => {
+  const { PALETTES, COLOR_NAMES, themedColor, colorName } = await import('../js/palette.js');
+  for (const [t, p] of Object.entries(PALETTES)) {
+    assert.equal(p.length, COLOR_NAMES.length, t);
+    assert.equal(new Set(p).size, p.length, `${t} shades are distinct`);
+  }
+  assert.equal(colorName('#4DABF7'), 'blue');
+  assert.equal(themedColor('#4dabf7', 'art'), PALETTES.art[5]);
+  assert.equal(themedColor('#123456', 'art'), '#123456');
+});

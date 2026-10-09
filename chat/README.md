@@ -12,7 +12,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | Path | What it is |
 | --- | --- |
 | `index.html`, `styles.css` | The page: title screen, call screen, trays, dialogs |
-| `themes.css` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) |
+| `themes.css`, `js/palette.js` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) and each theme's shade of every player colour |
 | `js/main.js` | Wires everything together: tiles, controls, trays, invites, chat, settings |
 | `js/net.js` | The shared room on the mini-rooms relay: join or host, reconnect, presence, topics |
 | `js/rtc.js` | Mesh WebRTC calls, negotiated over the relay |
@@ -79,6 +79,13 @@ black outlines, offset shadows, red, Jost); Classical is 18th-century French
 Rococo (ivory, double gold borders, gilt buttons, Garamond). `themes.css`
 restyles the page through `html[data-theme]`; text over the video keeps a
 dark backing in every theme, and the game area keeps its dark palette.
+The colour you pick is a colour name rather than an exact shade: each
+theme has its own blue, pink and so on (`js/palette.js`: candy for Kid, neon
+for Teen, printing inks for Art, Rococo pastels for Classical), and frames
+itself with it: a glow in Teen, the poster's spot colour and offset shadows
+in Art, a ribbon inside the gilt frames in Classical. The Kid shade is what
+gets saved and sent to the others, so everyone sees your colour in their own
+theme's shade.
 Icons fall back through the theme's own set, then the teen set, then the
 first set (`themedIconName` in `js/assets.js`); the title logo and
 background do the same, with a styled text logo until Art and Classical get
@@ -210,8 +217,8 @@ itself to HTTPS.
   popping, chat, joining a game from an invite, and a background tab pausing
   the camera and mic (needs `npm ci` in `multiplayer/server`)
 - `chat/publish.sh local/pages/chat && node chat/test/theme-shots.mjs`:
-  title, call, effects, settings and games in every theme, screenshots in
-  `local/chat-shots/themes/`
+  title, call, effects, settings and games in every theme (`--color=#4dabf7`
+  picks the player colour), screenshots in `local/chat-shots/themes/`
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
 hand.
