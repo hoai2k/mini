@@ -1,5 +1,7 @@
-// Sound, all synthesised in the browser: soft plinks, pours, clicks and honks
-// for the games, and a little music-box tune for the menus and each game.
+// Sound: soft plinks, pours, clicks and honks synthesised in the browser for
+// the games, recorded music for the menus and each kind of game (a little
+// synthesised music-box tune stands in for any track that doesn't load), and
+// a recorded fanfare for the sticker celebration.
 // Nothing plays until the first user gesture (browsers require one).
 
 let ctx = null;
@@ -44,12 +46,21 @@ export function setVolumes(s) {
 export function unlock() {
   const c = ensure();
   if (c && c.state === 'suspended') c.resume();
+  loadSting();
+  // A track asked for before the first gesture could not start; now it can.
+  if (rec && rec.el.paused && !away) rec.el.play().catch(() => {});
 }
 
+let away = false;
 export function suspend(on) {
+  away = on;
   if (!ctx) return;
   if (on) ctx.suspend();
   else ctx.resume();
+  if (rec) {
+    if (on) rec.el.pause();
+    else rec.el.play().catch(() => {});
+  }
 }
 
 function tone(freq, { type = 'sine', dur = 0.15, gain = 0.25, when = 0, slide = 0, attack = 0.005, bus = sfxBus } = {}) {
@@ -143,10 +154,9 @@ const TUNES = {
 
 let music = null;
 
-export function playMusic(name) {
-  if (!ensure()) return;
+function playTune(name) {
   if (music && music.name === name) return;
-  stopMusic();
+  stopTune();
   const tune = TUNES[name];
   if (!tune) return;
   music = { name, tune, next: ctx.currentTime + 0.1, i: 0, timer: null };
@@ -171,7 +181,129 @@ export function playMusic(name) {
   step();
 }
 
-export function stopMusic() {
+function stopTune() {
   if (music && music.timer) clearTimeout(music.timer);
   music = null;
+}
+
+// ---------- recorded music ----------
+
+// Each piece of music by name, the recording (in assets/music/) and the
+// synthesised tune that stands in for it if the file can't be played.
+// See icecreamcone/design/music.md.
+const TRACKS = {
+  title: { file: 'title', tune: 'menu' },
+  guide: { file: 'field-guide', tune: 'menu' },
+  bouncy: { file: 'tiptoe-bounce', tune: 'play' },
+  busy: { file: 'cartoon-busy', tune: 'play' },
+  gentle: { file: 'sunny-gentle-shuffle', tune: 'menu' },
+  clockwork: { file: 'clockwork-concentration', tune: 'menu' },
+  carousel: { file: 'seaside-carousel-waltz', tune: 'play' },
+};
+const REC_LEVEL = 0.32; // under the effects: the recordings are mastered loud
+const FADE = 0.8;
+let rec = null; // { name, el, gain }
+
+function fadeOut(r) {
+  const t = ctx.currentTime;
+  r.gain.gain.cancelScheduledValues(t);
+  r.gain.gain.setValueAtTime(r.gain.gain.value, t);
+  r.gain.gain.linearRampToValueAtTime(0, t + FADE);
+  setTimeout(() => {
+    r.el.pause();
+    r.el.removeAttribute('src');
+    r.el.load();
+  }, FADE * 1000 + 50);
+}
+
+function playTrack(name) {
+  const track = TRACKS[name];
+  if (rec && rec.name === name) return;
+  if (rec) fadeOut(rec);
+  const el = new Audio(`assets/music/${track.file}.mp3`);
+  el.loop = true;
+  el.preload = 'auto';
+  let gain;
+  try {
+    gain = ctx.createGain();
+    gain.gain.value = 0;
+    ctx.createMediaElementSource(el).connect(gain);
+    gain.connect(musicBus);
+  } catch {
+    rec = null;
+    playTune(track.tune);
+    return;
+  }
+  const r = { name, el, gain };
+  rec = r;
+  // If the recording can't be played, its tune stands in.
+  el.addEventListener('error', () => {
+    if (rec !== r) return;
+    rec = null;
+    playTune(track.tune);
+  });
+  gain.gain.linearRampToValueAtTime(REC_LEVEL / 0.25, ctx.currentTime + FADE);
+  if (!away) el.play().catch(() => {});
+}
+
+// Music for a screen or kind of game, by name ('none' for silence). The same
+// name again carries on where it is.
+export function playMusic(name) {
+  if (!ensure()) return;
+  if (TRACKS[name]) {
+    stopTune();
+    playTrack(name);
+    return;
+  }
+  if (rec) fadeOut(rec);
+  rec = null;
+  if (name === 'none') stopTune();
+  else playTune(name);
+}
+
+export function stopMusic() {
+  stopTune();
+  if (rec && ctx) fadeOut(rec);
+  rec = null;
+}
+
+// ---------- the celebration fanfare ----------
+
+let sting = null; // the decoded recording, once fetched
+let stingUntil = 0;
+// True while the fanfare is sounding (the chimes it replaces stay quiet).
+export const stingPlaying = () => !!ctx && ctx.currentTime < stingUntil;
+export function loadSting() {
+  if (sting || !ensure()) return;
+  sting = 'loading';
+  fetch('assets/sfx/celebration.mp3')
+    .then((r) => r.arrayBuffer())
+    .then((b) => ctx.decodeAudioData(b))
+    .then((buf) => (sting = buf))
+    .catch(() => (sting = null));
+}
+
+// Plays the fanfare, the music dipping under it; false if it isn't ready
+// (the caller plays the synthesised chime instead).
+export function playSting() {
+  if (!ctx || ctx.state !== 'running' || !(sting instanceof AudioBuffer)) return false;
+  const s = ctx.createBufferSource();
+  s.buffer = sting;
+  const g = ctx.createGain();
+  g.gain.value = 0.9;
+  s.connect(g);
+  g.connect(sfxBus);
+  s.start();
+  stingUntil = ctx.currentTime + sting.duration;
+  if (rec) {
+    const t = ctx.currentTime;
+    const p = rec.gain.gain;
+    const full = REC_LEVEL / 0.25;
+    p.cancelScheduledValues(t);
+    p.setValueAtTime(p.value, t);
+    p.linearRampToValueAtTime(full * 0.25, t + 0.2);
+    p.setValueAtTime(full * 0.25, t + sting.duration - 0.6);
+    p.linearRampToValueAtTime(full, t + sting.duration + 0.6);
+  }
+  return true;
 }

@@ -301,8 +301,10 @@ near-miss that costs points.
   the book's colours, with a wobbly ink outline (`game/src/draw.js`).
 - Type: a clean, slightly old-fashioned sans for the rhymes, as in the book,
   and a friendly serif for headings.
-- Sound is synthesised in the browser: soft music-box and woodwind tunes, and
-  plinks, pours, clicks and honks for the games.
+- Music is recorded (see `music.md`): a title theme, a field-guide piece, four
+  moods for the games and a seaside carousel, with a fanfare for the sticker
+  celebration. The games' plinks, pours, clicks and honks are synthesised in
+  the browser.
 
 ## Later
 

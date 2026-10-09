@@ -317,7 +317,9 @@ with its state (see `js/gamehost.js`).
 - Artwork (themes): all six title assets and Art icons CH-N01–CH-N60
   are delivered. Generation is continuing on the remaining 35 Art and
   95 Classical icons in `design/image-requests.md`. Themes use Teen
-  fallbacks for pending icons.
+  fallbacks for pending icons. The first 40 Art icons were checked in the
+  effects strip and grid (`theme-shots.mjs`): each matches its
+  effect and reads well at size.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`

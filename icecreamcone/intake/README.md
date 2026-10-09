@@ -26,6 +26,11 @@ is a bird in Lobel's manner. Then:
    request, citing the delivered portrait. Push any new requests to `main`
    at once.
 
+**Music.** A track goes to `../game/assets/music/` (trimmed of silence at each
+end, 112 kbps MP3) and is listed in [`../design/music.md`](../design/music.md)
+with where it plays; `game/src/audio.js` and the `GAME_MUSIC` table in
+`game/src/main.js` choose it.
+
 Every round of new image requests goes to `main` as soon as it is written,
 before the feature that uses it is finished, so the art can be started.
 
