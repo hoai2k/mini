@@ -94,3 +94,7 @@ fullscreen icon; the title button loads it via data-icon. Only UI outputs were
 rebuilt; existing art and music were preserved. Generated-data checks and a
 focused installed-Chrome check passed. The title screenshot was reviewed:
 the new badge loads, fits the button, and produces no browser errors.
+
+Incoming main changes removed the resume and close picture badges and switched
+the title buttons to the pause-badge style. The merge preserves these UI changes
+and integrates fullscreen into their builder.

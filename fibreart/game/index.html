@@ -22,7 +22,8 @@
     <canvas id="overlay" aria-label="The collage"></canvas>
 
     <section id="loading" class="screen">
-      <p class="loading-text">Laying out the cloth…</p>
+      <div class="stitch-bar" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100"><span class="stitch-fill"></span></div>
+      <p class="loading-text" hidden></p>
     </section>
 
     <section id="title" class="screen" hidden aria-labelledby="logo-text">
@@ -33,15 +34,15 @@
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
       </div>
       <div class="corner-buttons">
-        <button class="icon-btn" data-nav data-open="instructions" aria-label="Instructions" title="Instructions">
+        <button class="pic-btn" data-nav data-open="instructions" data-icon="howto" aria-label="How to play" title="How to play">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a5 5 0 0 1 5 5v11H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.8"/></svg>
-          <span class="btn-label">Instructions</span>
+          <span class="btn-label">How to play</span>
         </button>
-        <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
+        <button class="pic-btn" data-nav data-open="settings" data-icon="settings" aria-label="Settings" title="Settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
           <span class="btn-label">Settings</span>
         </button>
-        <button class="icon-btn" data-nav data-action="fullscreen" data-icon="fullscreen" aria-label="Fullscreen" title="Fullscreen">
+        <button class="pic-btn" data-nav data-action="fullscreen" data-icon="fullscreen" aria-label="Fullscreen" title="Fullscreen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
           <span class="btn-label">Fullscreen</span>
         </button>
@@ -75,7 +76,7 @@
       <div class="panel wide">
         <h2 id="card-title">Controls Found</h2>
         <div id="card-body" class="scroll" tabindex="0"></div>
-        <button class="close-x" data-nav data-action="close" data-icon="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
     </section>
 
@@ -83,7 +84,7 @@
       <div class="panel wide">
         <h2 id="hint-title">Hint</h2>
         <div id="hint-body" class="scroll" tabindex="0"></div>
-        <button class="close-x" data-nav data-action="close" data-icon="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
     </section>
 
@@ -91,11 +92,7 @@
       <div class="panel pause-panel">
         <h2 id="pause-title" class="visually-hidden">Paused</h2>
         <p id="pause-reason" class="muted"></p>
-        <div class="pause-grid" data-cols="4">
-          <button class="pic-btn" data-nav data-action="resume" data-icon="resume" aria-label="Resume" title="Resume">
-            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 11 L37 24 L17 37 Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-            <span class="btn-label">Resume</span>
-          </button>
+        <div class="pause-grid" data-cols="3">
           <button class="pic-btn" data-nav data-action="card" data-icon="controls" aria-label="Controls Found" title="Controls Found">
             <img src="web/ui/controls-6.webp" alt="">
             <span class="btn-label">Controls Found</span>
@@ -171,7 +168,7 @@
           <p>Mouse or touch: drag a piece; double-tap to bloom; pinch, twist or scroll to stretch and turn.</p>
           <p class="muted">After the work of Hanneke de Neve. Music: <em>Aksak Folk Dance</em> by hoai2k.</p>
         </div>
-        <button class="close-x" data-nav data-action="close" data-icon="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
     </section>
 
@@ -186,7 +183,7 @@
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
           <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
         </div>
-        <button class="close-x" data-nav data-action="close" data-icon="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
     </section>
 
