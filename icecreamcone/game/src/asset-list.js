@@ -404,19 +404,19 @@ export const ASSETS = {
   },
   "sprites.wrenPoses": {
     "file": "assets/sprites/wren-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.rainStreet": {
     "file": "assets/sprites/rain-street.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.wrenSplash": {
     "file": "assets/sprites/wren-splash.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.wrenWalk": {
     "file": "assets/sprites/wren-walk.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
@@ -424,15 +424,15 @@ export const ASSETS = {
   },
   "sprites.dishes": {
     "file": "assets/sprites/dishes.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.glovedovePoses": {
     "file": "assets/sprites/glovedove-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.glovedoveToss": {
     "file": "assets/sprites/glovedove-toss.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
@@ -440,7 +440,7 @@ export const ASSETS = {
   },
   "sprites.watchFace": {
     "file": "assets/sprites/watch-face.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.townClocks": {
     "file": "assets/sprites/town-clocks.png",
@@ -448,11 +448,11 @@ export const ASSETS = {
   },
   "sprites.titthrushSing": {
     "file": "assets/sprites/titthrush-sing.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.titthrushFluster": {
     "file": "assets/sprites/titthrush-fluster.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
@@ -460,11 +460,11 @@ export const ASSETS = {
   },
   "sprites.swiftHouse": {
     "file": "assets/sprites/swift-house.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.swiftPoses": {
     "file": "assets/sprites/swift-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.saltshakershrike": {
     "file": "assets/scenes/saltshakershrike.webp",
