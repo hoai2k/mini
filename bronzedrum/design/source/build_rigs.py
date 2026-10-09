@@ -75,11 +75,19 @@ RIGS = {
         },
     },
 }
-# The water puppets' part sheets (BD-WR01, BD-WR02) were drawn to the same
-# layout as the shadow puppets' (checked: same size, outlines 94-95% the
-# same), so they are cut with the same boxes and pins.
+# Water rigs retain the joint hierarchy but use independently measured crop boxes.
+import copy
 for _name in ("sister-trac", "sister-nhi"):
-    RIGS[f"wp-{_name}"] = {**RIGS[_name], "sheet": f"wp-rig-{_name}.png"}
+    RIGS[f"wp-{_name}"] = copy.deepcopy(RIGS[_name])
+    RIGS[f"wp-{_name}"]["sheet"] = f"wp-rig-{_name}.png"
+
+for _part, _box in {'skirt': [1050, 2092, 3156, 4028], 'legL': [544, 2840, 1190, 4050], 'legR': [2998, 2838, 3894, 4014], 'torso': [1570, 1224, 2664, 2104], 'head': [1630, 70, 2470, 1208], 'cape': [52, 1542, 1258, 3426], 'sashA': [2896, 1900, 4050, 2764], 'sashB': [2690, 1936, 3918, 3194], 'capL': [1032, 446, 1460, 1060], 'foreL': [908, 936, 1544, 1962], 'capR': [2664, 518, 3100, 1116], 'armR': [2972, 968, 3376, 1910], 'stick': [3082, 62, 3882, 1596]}.items():
+    RIGS["wp-sister-trac"]["pieces"][_part]["box"] = tuple(_box)
+
+for _part, _box in {'skirt': [890, 2280, 3376, 4078], 'legL': [68, 2516, 704, 3882], 'legR': [3442, 2544, 4024, 3908], 'torso': [1496, 1248, 2782, 2258], 'head': [1318, 20, 2552, 1258], 'armL': [60, 844, 1252, 2548], 'foreL': [164, 26, 964, 1226], 'armR': [2844, 844, 4048, 2548], 'foreR': [3406, 190, 4028, 1360]}.items():
+    RIGS["wp-sister-nhi"]["pieces"][_part]["box"] = tuple(_box)
+RIGS["wp-sister-nhi"]["pieces"]["armL"]["pivot"] = (1146, 938)
+RIGS["wp-sister-nhi"]["pieces"]["armR"]["pivot"] = (2936, 938)
 
 PAD = 6  # sheet pixels kept around each piece's box
 

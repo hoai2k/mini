@@ -151,16 +151,13 @@ kept light and every clock is read precisely:
 Settings, Style chooses between the shadow puppets and the water puppets (see
 `design/design.md`, Two looks). All 60 water-puppet images (BD-W01 onwards)
 are delivered and load under `wp-` ids: lacquer scenery, a pond strip, chapter
-cards, props, effects and figures. The scenery, props and cards work as
-lacquer painting; the 18 figure images (the sisters and their part sheets,
-the army, the drummers, the children, the dancers, the Han) traced the shadow
-sprites and came out as cut-paper figures in lacquer colours rather than
-carved puppets like the style frame's, so their requests are marked
-`regenerate` with a revised prompt, as is the communal house (BD-WP11), whose
-water pavilion is missing. The game keeps loading the current takes until the
-new ones arrive. The water sisters' part sheets share the shadow sheets'
-layout, so `build_rigs.py` cuts them with the same measurements
-(`wp-sister-trac`, `wp-sister-nhi`) and the sisters drum in the water style too.
+cards, props, effects and figures. The scenery, props and cards use lacquer painting. The 18 figure and rig sheets
+were regenerated as rounded carved wooden puppets, and BD-WP11 now includes
+the water pavilion. The water sisters use independently measured crop boxes;
+shadow art and rigs are retained. Replacement provenance and native/export sizes
+are recorded in `design/image-regenerations-water-puppets.json`.
+BD-WC15 now faces left, but its running frames still need more distinct opposite
+leg poses, so that request remains marked `regenerate`.
 
 All 152 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
