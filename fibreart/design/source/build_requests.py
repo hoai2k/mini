@@ -795,6 +795,7 @@ for key, name, how in MASKS:
     })
 
 DELIVERED_IDS = {
+    "HK-U07",
     "HK-U06",
     "HK-A01",
     "HK-A02",

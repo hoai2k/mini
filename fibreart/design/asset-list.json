@@ -37,7 +37,7 @@
   "fullscreenBadge": {
     "id": "HK-U07",
     "file": "assets/ui/fullscreen-badge.png",
-    "delivered": false
+    "delivered": true
   },
   "controlDrawings": {
     "id": "HK-U05",

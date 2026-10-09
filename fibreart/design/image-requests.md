@@ -15,7 +15,7 @@ Artwork for Fibre Art, the shifting collage in `fibreart/` (see [`design.md`](de
 
 ## Status
 
-1 requested, 61 delivered, 62 in total.
+0 requested, 62 delivered, 62 in total.
 
 ## Brand and interface
 
@@ -96,7 +96,7 @@ Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist
 - **Stand-in until delivered:** A cream cloth circle with a drawn four-corner frame.
 - **Reference:** [`fibercollage-moons-and-hearts.jpg`](../reference/fibre/fibercollage-moons-and-hearts.jpg)
 - **Note:** Attach HK-U06 (assets/ui/pause-icons.png) and match its badges exactly: the same cream linen, the same dashed red running stitch border, the same size and light.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. One round appliqué badge, matching the attached set of pause menu badges exactly (the same circle of cream linen, the same dashed red running stitch round its edge, the same size, lighting and style), for a game's fullscreen button. On it, a small rectangle of patterned cotton (a little picture, like a window) with four bold corner brackets of deep red felt sewn just outside its corners, each bracket an L pointing outward, as if the picture is growing to fill the frame. It must read plainly as fullscreen even at 48 px: bold shapes, strong contrast against the cream. No words, no letters. Centred, nothing else on the badge. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.

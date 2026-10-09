@@ -1369,7 +1369,8 @@
    "settings": "ui/pause-5.webp",
    "next": "ui/pause-6.webp",
    "title": "ui/pause-7.webp",
-   "close": "ui/pause-8.webp"
+   "close": "ui/pause-8.webp",
+   "fullscreen": "ui/fullscreen-1.webp"
   }
  },
  "drift": [
