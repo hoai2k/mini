@@ -426,8 +426,14 @@ if (!only) {
   await wait(page, 400);
   f = await inView();
   f.bird === cols * 2 ? ok('right past the end of a row goes on to the next') : fail(`right past the row: ${JSON.stringify(f)}`);
-  for (let i = 0; i < 6; i++) await press(page, 13);
-  await wait(page, 700);
+  // Down a row at a time until the last row (one more would go on to the buttons).
+  for (let i = 0; i < 6; i++) {
+    f = await inView();
+    if (typeof f.bird === 'number' && f.bird >= 28 - cols) break;
+    await press(page, 13);
+    await wait(page, 250);
+  }
+  await wait(page, 500);
   f = await inView();
   f.bird >= 28 - cols && f.visible ? ok(`down to the last row, card ${f.bird} kept in view`) : fail(`the last row: ${JSON.stringify(f)}`);
   await shot(page, '15-guide-end');

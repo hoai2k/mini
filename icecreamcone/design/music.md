@@ -24,6 +24,11 @@ covers everything.
 
 Wind and Sing, Glass Harp and Tune In play no music: they make their own.
 
+The title theme runs on into the field guide: going from the title to the
+cards (or a bird's page, or the sticker book) lets it play to its end, and the
+Field Guide loop starts after it. Coming back to the title starts the theme
+again.
+
 The tracks were delivered through `intake/` as 128 kbps MP3s at about -16
 LUFS; they were trimmed of silence at each end and re-encoded at 112 kbps. The
 fanfare was generated with ElevenLabs' sound-effects model from the prompt:
