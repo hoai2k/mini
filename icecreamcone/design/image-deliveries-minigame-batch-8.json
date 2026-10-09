@@ -515,6 +515,18 @@
     "grid_gutters": true,
     "visual_review": "All selected images inspected.",
     "browser": "Tit Thrush, Radio Bird, Drippet, Milk Midge and Soupladle Lark played to result without page errors; clock hands visually aligned.",
-    "publish_copy": true
+    "publish_copy": true,
+    "current_request_audit": {
+      "IC-M15e": {
+        "canonical_prompt_sha256": "60cb8be3036a7f0ccecaf3a40c161c63ab32ee2097a073e31bc99b2de02214a3",
+        "result": "Latest wording describes the corrected one-piece handle and hook. The generated three-pose sheet already uses the corrected portrait and connected hook, satisfying the revised request."
+      },
+      "IC-M18a": {
+        "canonical_prompt_sha256": "fd2ae25753a4c80a910ce801255094ed25d7274e402b9526d989fc0770c3ec46",
+        "result": "Updated overlay-speaker wording does not change the scene art; accepted existing background as recorded in batch 1."
+      },
+      "open_requests": 0,
+      "missing_delivered_assets": 0
+    }
   }
 }
