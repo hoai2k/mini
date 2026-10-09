@@ -120,6 +120,12 @@
     text-shadow: 0 0 18px rgba(0, 255, 0, 0.7);
   }
 
+  .shelf-title { margin: 56px 0 4px; font-size: 1.5rem; }
+  .shelf-note { margin: 0 0 24px; color: var(--muted); }
+  .prototypes { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+  .prototypes .info h2 { font-size: 1.05rem; }
+  .prototypes .info p { font-size: 0.88rem; }
+
   footer { margin-top: 40px; color: var(--muted); font-size: 0.95rem; }
   footer a { color: var(--ink); }
 </style>
@@ -133,8 +139,8 @@
 
   <!-- Newest game first, by when the game was made rather than when it joined
        this repo: Tank Wars is the oldest. A new game's card goes at the top.
-       Exception: Gliders sits at the very end, after Tank Wars, at the
-       owner's request. -->
+       Games that haven't turned out as hoped yet go on the prototypes shelf
+       below, in the same order. -->
   <section class="shelf" aria-label="Games">
     <a class="game fibreart" href="fibreart/">
       <div class="cover">
@@ -147,17 +153,6 @@
       </div>
     </a>
 
-    <a class="game onemonster" href="onemonster/">
-      <div class="cover">
-        <span class="tag">Friends</span>
-        <img src="onemonster/sprites/ui/logo.webp" alt="One Monster After Another">
-      </div>
-      <div class="info">
-        <h2>One Monster After Another</h2>
-        <p>Sally Ann's letter goes from monster to monster, after Mercer Mayer's book. Play each one as it snatches the letter: sneak, swoop, lurk, ram and chase, alone or two players head to head.</p>
-        <span class="play">Play →</span>
-      </div>
-    </a>
 
     <a class="game icecreamcone" href="icecreamcone/">
       <div class="cover">
@@ -221,6 +216,22 @@
       <div class="info">
         <h2>Tank Wars</h2>
         <p>Top-down tank battles against the CPU or friends: couch play with controllers, or online rooms for up to eight.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+  </section>
+
+  <h2 class="shelf-title">Prototypes</h2>
+  <p class="shelf-note">Still on the workbench: playable, but not quite what we hoped for yet.</p>
+  <section class="shelf prototypes" aria-label="Prototypes">
+    <a class="game onemonster" href="onemonster/">
+      <div class="cover">
+        <span class="tag">Friends</span>
+        <img src="onemonster/sprites/ui/logo.webp" alt="One Monster After Another">
+      </div>
+      <div class="info">
+        <h2>One Monster After Another</h2>
+        <p>Sally Ann's letter goes from monster to monster, after Mercer Mayer's book. Play each one as it snatches the letter: sneak, swoop, lurk, ram and chase, alone or two players head to head.</p>
         <span class="play">Play →</span>
       </div>
     </a>
