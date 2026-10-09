@@ -1081,83 +1081,83 @@ export const ASSET_LIST = {
   },
   "art-fx-bigmouth": {
     "file": "assets/icons-art/art-fx-bigmouth.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-fisheye": {
     "file": "assets/icons-art/art-fx-fisheye.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-noir": {
     "file": "assets/icons-art/art-fx-noir.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-vhs": {
     "file": "assets/icons-art/art-fx-vhs.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-popart": {
     "file": "assets/icons-art/art-fx-popart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-kaleidoscope": {
     "file": "assets/icons-art/art-fx-kaleidoscope.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-snow": {
     "file": "assets/icons-art/art-fx-snow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-confetti": {
     "file": "assets/icons-art/art-fx-confetti.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-moneyrain": {
     "file": "assets/icons-art/art-fx-moneyrain.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-fireworks": {
     "file": "assets/icons-art/art-fx-fireworks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-manface": {
     "file": "assets/icons-art/art-fx-manface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-womanface": {
     "file": "assets/icons-art/art-fx-womanface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-thinner": {
-    "file": "assets/icons-art/art-fx-thinner.png",
-    "status": "requested"
+    "file": "assets/icons-art/art-fx-thinner-v2.png",
+    "status": "delivered"
   },
   "art-fx-fatter": {
-    "file": "assets/icons-art/art-fx-fatter.png",
-    "status": "requested"
+    "file": "assets/icons-art/art-fx-fatter-v2.png",
+    "status": "delivered"
   },
   "art-fx-baby": {
     "file": "assets/icons-art/art-fx-baby.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-hoops": {
     "file": "assets/icons-art/art-game-hoops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-flappy": {
     "file": "assets/icons-art/art-game-flappy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-airhockey": {
     "file": "assets/icons-art/art-game-airhockey.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-connect4": {
     "file": "assets/icons-art/art-game-connect4.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-quickdraw": {
     "file": "assets/icons-art/art-game-quickdraw.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-stare": {
     "file": "assets/icons-art/art-game-stare.png",
@@ -1381,223 +1381,223 @@ export const ASSET_LIST = {
   },
   "classic-fx-volcano360": {
     "file": "assets/icons-classic/classic-fx-volcano360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-blurbg": {
     "file": "assets/icons-classic/classic-fx-blurbg.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-colorpop": {
     "file": "assets/icons-classic/classic-fx-colorpop.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-neonaura": {
     "file": "assets/icons-classic/classic-fx-neonaura.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-disco": {
     "file": "assets/icons-classic/classic-fx-disco.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-matrix": {
     "file": "assets/icons-classic/classic-fx-matrix.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-sunset": {
     "file": "assets/icons-classic/classic-fx-sunset.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-echo": {
     "file": "assets/icons-classic/classic-fx-echo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-delayghost": {
     "file": "assets/icons-classic/classic-fx-delayghost.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-timewarp": {
     "file": "assets/icons-classic/classic-fx-timewarp.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-timewarpside": {
     "file": "assets/icons-classic/classic-fx-timewarpside.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-slitscan": {
     "file": "assets/icons-classic/classic-fx-slitscan.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-strobe": {
     "file": "assets/icons-classic/classic-fx-strobe.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-clones": {
     "file": "assets/icons-classic/classic-fx-clones.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-motionglow": {
     "file": "assets/icons-classic/classic-fx-motionglow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-tinyface": {
     "file": "assets/icons-classic/classic-fx-tinyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-chubby": {
     "file": "assets/icons-classic/classic-fx-chubby.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-babyface": {
     "file": "assets/icons-classic/classic-fx-babyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-symmetry": {
     "file": "assets/icons-classic/classic-fx-symmetry.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-cyclops": {
     "file": "assets/icons-classic/classic-fx-cyclops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-bigmouth": {
     "file": "assets/icons-classic/classic-fx-bigmouth.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-fisheye": {
     "file": "assets/icons-classic/classic-fx-fisheye.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-noir": {
     "file": "assets/icons-classic/classic-fx-noir.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-vhs": {
     "file": "assets/icons-classic/classic-fx-vhs.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-popart": {
     "file": "assets/icons-classic/classic-fx-popart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-kaleidoscope": {
     "file": "assets/icons-classic/classic-fx-kaleidoscope.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-snow": {
     "file": "assets/icons-classic/classic-fx-snow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-confetti": {
     "file": "assets/icons-classic/classic-fx-confetti.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-moneyrain": {
     "file": "assets/icons-classic/classic-fx-moneyrain.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-fireworks": {
     "file": "assets/icons-classic/classic-fx-fireworks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-manface": {
     "file": "assets/icons-classic/classic-fx-manface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-womanface": {
     "file": "assets/icons-classic/classic-fx-womanface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-thinner": {
     "file": "assets/icons-classic/classic-fx-thinner.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-fatter": {
     "file": "assets/icons-classic/classic-fx-fatter.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-baby": {
     "file": "assets/icons-classic/classic-fx-baby.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-hoops": {
     "file": "assets/icons-classic/classic-game-hoops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-flappy": {
     "file": "assets/icons-classic/classic-game-flappy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-airhockey": {
     "file": "assets/icons-classic/classic-game-airhockey.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-connect4": {
     "file": "assets/icons-classic/classic-game-connect4.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-quickdraw": {
     "file": "assets/icons-classic/classic-game-quickdraw.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-stare": {
     "file": "assets/icons-classic/classic-game-stare.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-copycat": {
     "file": "assets/icons-classic/classic-game-copycat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-rps": {
     "file": "assets/icons-classic/classic-game-rps.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-doodle": {
     "file": "assets/icons-classic/classic-game-doodle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-memory": {
     "file": "assets/icons-classic/classic-game-memory.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-minigolf": {
     "file": "assets/icons-classic/classic-game-minigolf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-bowling": {
     "file": "assets/icons-classic/classic-game-bowling.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-beachbump": {
     "file": "assets/icons-classic/classic-game-beachbump.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-burger": {
     "file": "assets/icons-classic/classic-game-burger.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-asteroids": {
     "file": "assets/icons-classic/classic-game-asteroids.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-dontsmile": {
     "file": "assets/icons-classic/classic-game-dontsmile.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-snake": {
     "file": "assets/icons-classic/classic-game-snake.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-battleship": {
     "file": "assets/icons-classic/classic-game-battleship.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-trivia": {
     "file": "assets/icons-classic/classic-game-trivia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-wordblitz": {
     "file": "assets/icons-classic/classic-game-wordblitz.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-bubble": {
     "file": "assets/icons2/fx2-bubble.png",
