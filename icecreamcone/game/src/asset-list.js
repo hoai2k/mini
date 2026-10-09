@@ -218,6 +218,146 @@ export const ASSETS = {
     "file": "assets/pocket/rollingpinrail.png",
     "delivered": false
   },
+  "scene.snippit": {
+    "file": "assets/scenes/snippit.webp",
+    "delivered": false
+  },
+  "sprites.balloons": {
+    "file": "assets/sprites/balloons.png",
+    "delivered": false
+  },
+  "sprites.snippitSnip": {
+    "file": "assets/sprites/snippit-snip.png",
+    "delivered": false
+  },
+  "scene.buttonbeaks": {
+    "file": "assets/scenes/buttonbeaks.webp",
+    "delivered": false
+  },
+  "sprites.buttons": {
+    "file": "assets/sprites/buttons.png",
+    "delivered": false
+  },
+  "sprites.coats": {
+    "file": "assets/sprites/coats.png",
+    "delivered": false
+  },
+  "sprites.buttonBowl": {
+    "file": "assets/sprites/button-bowl.png",
+    "delivered": false
+  },
+  "sprites.buttonbeaksToss": {
+    "file": "assets/sprites/buttonbeaks-toss.png",
+    "delivered": false
+  },
+  "scene.broomwhisk": {
+    "file": "assets/scenes/broomwhisk.webp",
+    "delivered": false
+  },
+  "sprites.sweepings": {
+    "file": "assets/sprites/sweepings.png",
+    "delivered": false
+  },
+  "sprites.dustpan": {
+    "file": "assets/sprites/dustpan.png",
+    "delivered": false
+  },
+  "sprites.broomwhiskSweep": {
+    "file": "assets/sprites/broomwhisk-sweep.png",
+    "delivered": false
+  },
+  "scene.wetweatherwren": {
+    "file": "assets/scenes/wetweatherwren.webp",
+    "delivered": false
+  },
+  "sprites.wrenPoses": {
+    "file": "assets/sprites/wren-poses.png",
+    "delivered": false
+  },
+  "sprites.rainStreet": {
+    "file": "assets/sprites/rain-street.png",
+    "delivered": false
+  },
+  "scene.glovedove": {
+    "file": "assets/scenes/glovedove.webp",
+    "delivered": false
+  },
+  "sprites.dishes": {
+    "file": "assets/sprites/dishes.png",
+    "delivered": false
+  },
+  "sprites.grime": {
+    "file": "assets/sprites/grime.png",
+    "delivered": false
+  },
+  "sprites.glovedoveScrub": {
+    "file": "assets/sprites/glovedove-scrub.png",
+    "delivered": false
+  },
+  "scene.titthrush": {
+    "file": "assets/scenes/titthrush.webp",
+    "delivered": false
+  },
+  "sprites.watchFace": {
+    "file": "assets/sprites/watch-face.png",
+    "delivered": false
+  },
+  "sprites.townClocks": {
+    "file": "assets/sprites/town-clocks.png",
+    "delivered": false
+  },
+  "sprites.titthrushSing": {
+    "file": "assets/sprites/titthrush-sing.png",
+    "delivered": false
+  },
+  "scene.drippet": {
+    "file": "assets/scenes/drippet.webp",
+    "delivered": false
+  },
+  "sprites.drippetThings": {
+    "file": "assets/sprites/drippet-things.png",
+    "delivered": false
+  },
+  "sprites.puddles": {
+    "file": "assets/sprites/puddles.png",
+    "delivered": false
+  },
+  "sprites.drippetPoses": {
+    "file": "assets/sprites/drippet-poses.png",
+    "delivered": false
+  },
+  "scene.sawbird": {
+    "file": "assets/scenes/sawbird.webp",
+    "delivered": false
+  },
+  "sprites.planks": {
+    "file": "assets/sprites/planks.png",
+    "delivered": false
+  },
+  "sprites.sawhorse": {
+    "file": "assets/sprites/sawhorse.png",
+    "delivered": false
+  },
+  "sprites.sawbirdSawing": {
+    "file": "assets/sprites/sawbird-sawing.png",
+    "delivered": false
+  },
+  "scene.radiobird": {
+    "file": "assets/scenes/radiobird.webp",
+    "delivered": false
+  },
+  "sprites.stations": {
+    "file": "assets/sprites/stations.png",
+    "delivered": false
+  },
+  "sprites.listeners": {
+    "file": "assets/sprites/listeners.png",
+    "delivered": false
+  },
+  "sprites.dialPanel": {
+    "file": "assets/sprites/dial-panel.png",
+    "delivered": false
+  },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
     "delivered": true

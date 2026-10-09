@@ -1,0 +1,42 @@
+[
+  {
+    "id": "IC-M11a",
+    "name": "Glove Dove scene",
+    "key": "scene.glovedove",
+    "file": "assets/scenes/glovedove.webp",
+    "size": "1920 x 1080, opaque",
+    "used": "Behind Squeaky Clean (the Glove Dove): the kitchen sink where each dirty dish lies to be scrubbed, with the draining board and its rack on the right.",
+    "standin": "A sink, counter, taps and plate rack drawn in code, seen from above.",
+    "prompt": "{STYLE} {SCENE}An old-fashioned kitchen seen from high above and in front, looking down into a deep white ceramic sink. Along the top 20% of the picture, a tiled wall with a small window showing grey rain and two old chrome taps at the middle of the sink's back edge. The sink's basin fills the middle of the picture, from about 29% to 71% of the width and 22% to 89% of the height, full of still, soapy, pale grey-blue water with its flat bottom seen through it; this is where the game lays each dish and the bird scrubs it, so the water must be a plain, quiet, even area with no dishes, cloths, bubbles or reflections in it. On the left, a plain wooden counter top with nothing on it (the game stands a bottle of washing-up liquid and a foam gauge there, at 20% to 27% of the width). On the right, from 75% to 98% of the width, a wooden draining board with an empty wire plate rack, its thin upright wires in a row across the middle of the height (the game stands the washed dishes in it). Cosy, a little steamy."
+  },
+  {
+    "id": "IC-M11b",
+    "name": "Dishes from above",
+    "key": "sprites.dishes",
+    "file": "assets/sprites/dishes.png",
+    "size": "3072 x 2048, transparent",
+    "used": "Squeaky Clean: the clean dishes lying in the sink (the game paints the grime on them and turns them as they float).",
+    "standin": "Round dishes drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 3 x 2 grid of six clean dishes, each in its own 1024 x 1024 cell, all seen from directly above. Each dish's round body is exactly centred in its cell and is 55% of the cell's width across (a handle, where there is one, sticks out to the right of it, still inside the cell): 1) a white dinner plate with a slate-blue dashed band round its rim; 2) a cream soup bowl with a mustard rim, its hollow shaded; 3) a mauve-rimmed tea mug seen from above, a round opening with its handle out to the right; 4) a steel saucepan with a straight handle out to the right; 5) a black iron frying pan with a long dark handle out to the right; 6) a glazed ochre pie dish with a fluted rim. All clean and shining, empty, with no food on them."
+  },
+  {
+    "id": "IC-M11c",
+    "name": "Grime",
+    "key": "sprites.grime",
+    "file": "assets/sprites/grime.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Squeaky Clean: the spots on each dish that the Glove Dove rubs away (the game fades and shrinks each as it is scrubbed).",
+    "standin": "Coloured blobs, a ring and squiggles drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 3 x 2 grid of six splotches of food on a plate, seen from directly above, each a roughly round, flat splotch about 280 px across, centred in its cell: 1) a smear of strawberry jam, glossy red-pink; 2) a runny fried egg yolk, yellow with a darker orange middle; 3) a brown gravy splash; 4) a tangle of a few strands of tomato-orange spaghetti; 5) a burnt-on, blackened, crusty brown patch, crosshatched; 6) a brown coffee ring (just the ring, clear in the middle). Messy but cheerful, not disgusting."
+  },
+  {
+    "id": "IC-M11d",
+    "name": "Glove Dove scrubbing",
+    "key": "sprites.glovedoveScrub",
+    "file": "assets/sprites/glovedove-scrub.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Squeaky Clean: the Glove Dove scrubbing with its feet on the sponge, two frames swapped while it rubs.",
+    "standin": "The portrait, jiggling.",
+    "prompt": "{STYLE} {VARIANT} The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two frames side by side, each in its own half and at the same scale, facing left, feet at the bottom: scrubbing the floor with its feet like a dance, its body leaning forward and its head lowered to look down; left, the left foot scrubbing forward and the right back; right, the other way about. A small heap of white soap suds and bubbles round its feet. No sponge (the game draws it). {ALPHA}"
+  }
+]

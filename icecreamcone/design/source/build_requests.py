@@ -628,12 +628,12 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
 MORE_DIR = Path(__file__).resolve().parent / "more"
 SHARED = {"STYLE": STYLE, "BIRD": BIRD, "SHEET": SHEET, "VARIANT": VARIANT, "SCENE": SCENE,
           "ALPHA": ALPHA, "REF_URL": REF_URL}
-for f in sorted(MORE_DIR.glob("*.json")):
-    for r in json.loads(f.read_text()):
-        prompt = r["prompt"]
-        for k, v in SHARED.items():
-            prompt = prompt.replace("{" + k + "}", v)
-        REQUESTS.append({**r, "section": "more", "prompt": prompt, "status": r.get("status", "requested")})
+MORE = sorted((r for f in MORE_DIR.glob("*.json") for r in json.loads(f.read_text())), key=lambda r: r["id"])
+for r in MORE:
+    prompt = r["prompt"]
+    for k, v in SHARED.items():
+        prompt = prompt.replace("{" + k + "}", v)
+    REQUESTS.append({**r, "section": "more", "prompt": prompt, "status": r.get("status", "requested")})
 
 SPRITES = [
     ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",

@@ -1,0 +1,458 @@
+// The Saw Bird: Saw It Straight.
+//
+// A long plank lies across two sawhorses with a chalk line along it, and the
+// Saw Bird (a carpenter's handsaw) cuts along the line from the right-hand
+// end to the left. Push and pull the saw with long strokes (stick or arrows
+// left and right, or drag back and forth): each stroke bites once it gets
+// going, so short jiggles barely cut and a steady back-and-forth builds up
+// speed. The cut heads the way the saw is tipped (stick or arrows up and
+// down, or point where it should go), and the grain and the knots push it
+// off the line, so keep steering it back. When the cut reaches the end the
+// plank falls in two and is marked by how straight the cut is: dead
+// straight, straight, a bit crooked or crooked. Planks get longer, the grain
+// pulls harder and knots appear as time goes on. Score: points.
+
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { clamp, lerp, approach } from './index.js';
+
+Object.assign(SHEETS, {
+  'sprites.planks': [1, 3], // three long planks seen from above at a slant: pale pine, honey oak, reddish cedar
+  'sprites.sawhorse': [1, 1],
+  'sprites.sawbirdSawing': [1, 1], // the Saw Bird with its blade level, teeth down, legs tucked
+});
+
+const DURATION = 50;
+const PLANK_TOP = 430; // the plank's far edge
+const PLANK_BOT = 610; // its near edge
+const LINE_Y = 520; // the chalk line, give or take
+const SAW_SIZE = 300;
+const K = SAW_SIZE / 400;
+const TEETH = -183; // the teeth's edge in the stand-in's units
+const STROKE = 120; // half the stroke, in pixels
+const MAXV = 5; // fastest the saw can travel, stroke-widths per second
+const DEAD = 0.35; // each stroke cuts only after it has travelled this far
+const BITE = 26; // pixels of cut per stroke-width travelled
+const TURN = 0.38; // how much the saw's tip steers the cut
+const GRADES = [
+  [6, 10, 'Dead straight!', PAL.magenta],
+  [14, 7, 'Straight!', PAL.green],
+  [26, 4, 'A bit crooked', PAL.ochre],
+  [Infinity, 1, 'Crooked!', PAL.brick],
+];
+const WOODS = ['#e2c48a', '#cf9f62', '#c27a58'];
+
+export default function create(env) {
+  const { W, H, rng, sfx } = env;
+  const g = {
+    time: DURATION,
+    score: 0,
+    done: false,
+    elapsed: 0,
+    s: 0, // the saw along its stroke, -1 (pushed forward, left) .. 1 (pulled back)
+    tilt: 0, // which way the saw heads, -1 (up the page) .. 1 (down)
+    dir: 0, // which way the stroke is going
+    strokeFrom: 0,
+    strokeLen: 0,
+    rhythm: 0, // long strokes in a row, for the bite
+    idle: 0,
+    plank: null,
+    planks: 0,
+    grades: [],
+    falling: [], // the two halves of a finished plank
+    dust: [],
+    pops: [],
+    ref: null, // pointer: where the drag started
+    sawSound: 0,
+  };
+
+  const progress = () => Math.min(1, g.elapsed / DURATION);
+
+  function pop(text, x, y, color = INK, size = 46) {
+    g.pops.push({ text, x, y, color, size, life: 1.4 });
+  }
+
+  function newPlank() {
+    const p = progress();
+    const len = lerp(640, 1000, p) * (0.95 + rng() * 0.1);
+    const left = W / 2 - len / 2;
+    const right = W / 2 + len / 2;
+    const lineY = LINE_Y + (rng() - 0.5) * 30;
+    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.05, 0.14, p) * (0.8 + rng() * 0.4);
+    const knots = [];
+    if (g.planks >= 1) {
+      const n = g.planks >= 3 ? 2 : 1;
+      for (let i = 0; i < n; i++) knots.push({ x: lerp(left + 120, right - 160, (i + 0.3 + rng() * 0.4) / n), push: (rng() < 0.5 ? -1 : 1) * lerp(14, 22, p), hit: false });
+    }
+    g.plank = { left, right, len, lineY, grain, knots, cutX: right, drift: 0, path: [[right, lineY]], slide: 1, wood: g.planks % 3, seed: Math.floor(rng() * 100) };
+  }
+  newPlank();
+  g.plank.slide = 0;
+
+  g.cutY = () => g.plank.lineY + g.plank.drift;
+
+  function finish() {
+    const p = g.plank;
+    const offs = p.path.map(([, y]) => Math.abs(y - p.lineY));
+    const mean = offs.reduce((a, b) => a + b, 0) / Math.max(1, offs.length);
+    const [, pts, text, color] = GRADES.find(([lim]) => mean <= lim);
+    g.score += pts;
+    g.planks++;
+    g.grades.push(text);
+    pop(text, (p.left + p.right) / 2, PLANK_TOP - 70, color, 54);
+    pop('+' + pts, (p.left + p.right) / 2, PLANK_TOP - 130, color, 42);
+    sfx(pts >= 7 ? 'right' : 'plop');
+    env.vibrate?.(40);
+    g.falling = [
+      { plank: p, half: 'top', y: 0, vy: -40, rot: 0, vr: -0.05 },
+      { plank: p, half: 'bottom', y: 0, vy: 60, rot: 0, vr: 0.12 },
+    ];
+    newPlank();
+  }
+
+  g.update = (dt, input) => {
+    if (g.done) return;
+    g.elapsed += dt;
+    g.time = Math.max(0, DURATION - g.elapsed);
+    if (g.time <= 0) {
+      g.done = true;
+      return;
+    }
+    const p = g.plank;
+
+    // Where the hand wants the saw: along the stroke, and its tip's heading.
+    let sT = g.s;
+    let tT = 0;
+    const ptr = input.pointer;
+    if (ptr && ptr.active) {
+      if (ptr.down) {
+        if (!g.ref) g.ref = { x: ptr.x, s: g.s };
+        sT = clamp(g.ref.s + (ptr.x - g.ref.x) / STROKE, -1, 1);
+        tT = clamp((ptr.y - g.cutY()) / 70, -1, 1);
+      } else g.ref = null;
+    } else {
+      sT = clamp(input.x || 0, -1, 1);
+      tT = clamp(input.y || 0, -1, 1);
+    }
+    g.tilt = approach(g.tilt, tT, 10, dt);
+    const prev = g.s;
+    const want = approach(g.s, sT, 16, dt) - g.s;
+    g.s += clamp(want, -MAXV * dt, MAXV * dt);
+    const ds = g.s - prev;
+
+    // Strokes: a turn of direction ends one.
+    const d = Math.abs(ds) > 0.0008 ? Math.sign(ds) : 0;
+    if (d && d !== g.dir) {
+      if (g.dir) {
+        const len = g.strokeLen;
+        if (len > 1.1) g.rhythm = Math.min(5, g.rhythm + 1);
+        else if (len < 0.6) g.rhythm = 0;
+      }
+      g.dir = d;
+      g.strokeLen = 0;
+    }
+    g.strokeLen += Math.abs(ds);
+    if (Math.abs(ds) < 0.0008) {
+      g.idle += dt;
+      if (g.idle > 0.8) g.rhythm = 0;
+    } else g.idle = 0;
+
+    // Cutting.
+    if (p.slide <= 0 && g.strokeLen > DEAD) {
+      const bite = Math.abs(ds) * BITE * (1 + g.rhythm * 0.1);
+      let adv = Math.min(bite, p.cutX - p.left);
+      for (const k of p.knots) if (Math.abs(p.cutX - k.x) < 30) adv *= 0.55;
+      if (adv > 0) {
+        p.cutX -= adv;
+        p.drift += (g.tilt * TURN + p.grain) * adv;
+        for (const k of p.knots) {
+          if (!k.hit && p.cutX < k.x) {
+            k.hit = true;
+            p.drift += k.push;
+            pop('Knot!', k.x, PLANK_TOP - 30, PAL.brick, 34);
+            sfx('bonk');
+          }
+        }
+        p.drift = clamp(p.drift, PLANK_TOP + 12 - p.lineY, PLANK_BOT - 12 - p.lineY);
+        const last = p.path[p.path.length - 1];
+        if (last[0] - p.cutX >= 6) p.path.push([p.cutX, g.cutY()]);
+        if (rng() < adv * 0.4) g.dust.push({ x: p.cutX + 20 + rng() * 40, y: g.cutY(), vx: (rng() - 0.3) * 120, vy: -40 - rng() * 80, life: 0.7 + rng() * 0.5 });
+        g.sawSound -= adv;
+        if (g.sawSound <= 0) {
+          sfx('shuffle');
+          g.sawSound = 22;
+        }
+        if (p.cutX <= p.left + 0.5) finish();
+      }
+    }
+
+    // A new plank slides in from the right.
+    if (g.plank.slide > 0) g.plank.slide = Math.max(0, g.plank.slide - dt / 0.9);
+
+    for (const f of g.falling) {
+      f.vy += 1400 * dt;
+      f.y += f.vy * dt;
+      f.rot += f.vr * dt * 3;
+    }
+    g.falling = g.falling.filter((f) => f.y < 900);
+    for (const b of g.dust) {
+      b.vy += 500 * dt;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.life -= dt;
+    }
+    g.dust = g.dust.filter((b) => b.life > 0);
+    for (const q of g.pops) {
+      q.life -= dt;
+      q.y -= 36 * dt;
+    }
+    g.pops = g.pops.filter((q) => q.life > 0);
+  };
+
+  g.hud = () => `Points ${g.score}`;
+  g.summary = () => {
+    if (!g.planks) return ['Not a plank sawn through.'];
+    const lines = [`${g.planks} plank${g.planks === 1 ? '' : 's'} sawn through.`];
+    const n = g.grades.filter((x) => x === GRADES[0][2]).length;
+    if (n) lines.push(`${n} dead straight!`);
+    return lines;
+  };
+
+  // ---------- drawing ----------
+
+  function drawYard(c) {
+    band(c, 0, 0, W, 330, '#d9e4e0', 0.7, 2);
+    // the workshop's wall and window behind
+    poly(c, [[0, 120], [W, 110], [W, 360], [0, 370]], 1, 2);
+    wash(c, '#c79a6a', 0.55);
+    ink(c, 1.6);
+    poly(c, [[0, 120], [W, 110], [W, 360], [0, 370]], 1, 2);
+    hatch(c, 0, 110, W, 370, 22, 0.15, 0.1);
+    for (let x = 60; x < W; x += 120) {
+      c.beginPath();
+      c.moveTo(x, 118);
+      c.lineTo(x + 2, 366);
+      ink(c, 1, '#8a6040');
+    }
+    // tools hanging on the wall
+    for (const [x, kind] of [[260, 'hammer'], [420, 'saw'], [1180, 'square'], [1330, 'hammer']]) {
+      c.beginPath();
+      c.arc(x, 150, 4, 0, Math.PI * 2);
+      c.fillStyle = INK;
+      c.fill();
+      if (kind === 'hammer') {
+        poly(c, [[x - 4, 152], [x + 4, 152], [x + 4, 250], [x - 4, 250]], x, 0.6);
+        wash(c, '#b07a48');
+        ink(c, 1.4);
+        poly(c, [[x - 22, 150], [x + 24, 150], [x + 24, 168], [x - 22, 168]], x + 1, 0.6);
+        wash(c, '#7a848c');
+        ink(c, 1.4);
+      } else if (kind === 'square') {
+        poly(c, [[x - 6, 152], [x + 6, 152], [x + 6, 280], [x + 70, 280], [x + 70, 292], [x - 6, 292]], x, 0.6);
+        wash(c, '#9aa4ac');
+        ink(c, 1.4);
+      } else {
+        poly(c, [[x - 30, 156], [x + 60, 170], [x + 60, 200], [x - 30, 196]], x, 0.6);
+        wash(c, '#b0b8c0', 0.6);
+        ink(c, 1.2);
+      }
+    }
+    // the yard
+    band(c, 0, 360, W, H - 360, '#cbb98a', 0.75, 3);
+    c.save();
+    c.globalAlpha = 0.25;
+    for (let i = 0; i < 70; i++) {
+      const x = (i * 197) % W;
+      const y = 380 + ((i * 83) % 500);
+      c.beginPath();
+      c.ellipse(x, y, 10, 3, 0, 0, Math.PI * 2);
+      c.fillStyle = '#a07a48';
+      c.fill();
+    }
+    c.restore();
+  }
+
+  function sawhorse(c, x) {
+    if (drawSprite(c, 'sprites.sawhorse', 0, x, 760, { h: 160 })) return;
+    poly(c, [[x - 110, PLANK_BOT - 10], [x + 110, PLANK_BOT - 10], [x + 110, PLANK_BOT + 14], [x - 110, PLANK_BOT + 14]], x, 1);
+    wash(c, '#a77a4a');
+    ink(c, 2);
+    for (const [a, b] of [[-90, -130], [-70, -40], [70, 40], [90, 130]]) {
+      c.beginPath();
+      c.moveTo(x + a, PLANK_BOT + 10);
+      c.lineTo(x + b, 760);
+      ink(c, 12, '#9a6e40');
+      ink(c, 1.6);
+    }
+  }
+
+  // The plank's face, between two edges, from x0 to x1.
+  function plankBody(c, p, x0, x1) {
+    // The painted plank is stretched to the plank's length: its top face
+    // fills PLANK_TOP..PLANK_BOT and its near edge the 18 px below.
+    const sp = spriteCell('sprites.planks', p.wood);
+    if (sp) c.drawImage(sp.img, sp.trim.x, sp.trim.y, sp.trim.w, sp.trim.h, x0, PLANK_TOP, x1 - x0, PLANK_BOT + 18 - PLANK_TOP);
+    else {
+      poly(c, [[x0, PLANK_TOP], [x1, PLANK_TOP], [x1, PLANK_BOT], [x0, PLANK_BOT]], p.seed, 1);
+      wash(c, WOODS[p.wood]);
+      c.save();
+      c.clip();
+      c.globalAlpha = 0.35;
+      c.beginPath();
+      for (let i = 0; i < 9; i++) {
+        const y = PLANK_TOP + 14 + i * 20;
+        c.moveTo(x0, y);
+        for (let x = x0; x <= x1; x += 60) c.lineTo(x, y + Math.sin(x * 0.01 + i + p.seed) * 5);
+      }
+      ink(c, 1.2, '#7a5030');
+      c.restore();
+      // the near edge, seen a little from above
+      poly(c, [[x0, PLANK_BOT], [x1, PLANK_BOT], [x1, PLANK_BOT + 18], [x0, PLANK_BOT + 18]], p.seed + 1, 0.6);
+      wash(c, '#a77a4a');
+      ink(c, 1.6);
+      poly(c, [[x0, PLANK_TOP], [x1, PLANK_TOP], [x1, PLANK_BOT], [x0, PLANK_BOT]], p.seed, 1);
+      ink(c, 2.2);
+    }
+    for (const k of p.knots) {
+      blob(c, k.x, p.lineY + k.push * 1.6, 16, 10, k.x, 0.12);
+      wash(c, '#7a4a28', 0.8);
+      ink(c, 1.4);
+      blob(c, k.x, p.lineY + k.push * 1.6, 26, 16, k.x + 1, 0.1);
+      ink(c, 1, '#7a4a28');
+    }
+  }
+
+  function drawPlank(c, p, t) {
+    const dx = p.slide * 1200;
+    c.save();
+    c.translate(dx, 0);
+    plankBody(c, p, p.left, p.right);
+    // the chalk line, and a faint band either side of it
+    c.save();
+    c.globalAlpha = 0.18;
+    c.fillStyle = '#ffffff';
+    c.fillRect(p.left, p.lineY - 8, p.right - p.left, 16);
+    c.restore();
+    c.beginPath();
+    c.moveTo(p.left - 6, p.lineY);
+    c.lineTo(p.right + 6, p.lineY);
+    ink(c, 5, 'rgba(250,252,255,0.7)');
+    c.setLineDash([18, 6]);
+    ink(c, 3, '#3f72b8');
+    c.setLineDash([]);
+    // the cut so far
+    if (p.path.length > 1) {
+      c.beginPath();
+      p.path.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+      c.lineTo(p.cutX, g.cutY());
+      ink(c, 6, '#3a2414');
+      ink(c, 2, '#140a04');
+    }
+    c.restore();
+  }
+
+  function drawHalf(c, f) {
+    const p = f.plank;
+    c.save();
+    c.translate(0, f.y);
+    c.translate((p.left + p.right) / 2, (PLANK_TOP + PLANK_BOT) / 2);
+    c.rotate(f.rot * (f.half === 'top' ? -0.2 : 1));
+    c.translate(-(p.left + p.right) / 2, -(PLANK_TOP + PLANK_BOT) / 2);
+    c.beginPath();
+    if (f.half === 'top') {
+      c.moveTo(p.left, PLANK_TOP - 30);
+      c.lineTo(p.right, PLANK_TOP - 30);
+    } else {
+      c.moveTo(p.left, PLANK_BOT + 40);
+      c.lineTo(p.right, PLANK_BOT + 40);
+    }
+    for (let i = p.path.length - 1; i >= 0; i--) c.lineTo(p.path[i][0], p.path[i][1]);
+    c.closePath();
+    c.clip();
+    plankBody(c, p, p.left, p.right);
+    c.restore();
+  }
+
+  function drawSaw(c, t) {
+    const p = g.plank;
+    const x = (p.slide > 0 ? p.right + 40 : p.cutX) - 10 + g.s * STROKE + 150 * K;
+    const y = (p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY()) - TEETH * K;
+    const rot = g.tilt * 0.12;
+    c.save();
+    c.translate(x, y + TEETH * K);
+    c.rotate(rot);
+    c.translate(0, -TEETH * K);
+    // The painted sawing pose: its toothed edge is the bottom of the picture.
+    if (!drawSprite(c, 'sprites.sawbirdSawing', 0, -45 * K, TEETH * K + 4, { w: 330 * K })) {
+      drawBird(c, 'sawbird', { x: 0, y: 0, size: SAW_SIZE, t });
+    }
+    c.restore();
+  }
+
+  g.draw = (c, t) => {
+    scene(c, 'sawbird', W, H, drawYard);
+    sawhorse(c, 600);
+    sawhorse(c, 1000);
+    drawPlank(c, g.plank, t);
+    for (const f of g.falling) drawHalf(c, f);
+    drawSaw(c, t);
+
+    for (const b of g.dust) {
+      c.save();
+      c.globalAlpha = clamp(b.life * 2, 0, 1);
+      c.beginPath();
+      c.arc(b.x, b.y, 3, 0, Math.PI * 2);
+      c.fillStyle = '#e8c890';
+      c.fill();
+      c.restore();
+    }
+
+    // The stroke gauge: the saw's travel, with the rhythm lighting up.
+    const gx = W / 2;
+    const gy = 810;
+    poly(c, [[gx - 230, gy - 12], [gx + 230, gy - 12], [gx + 230, gy + 12], [gx - 230, gy + 12]], 3, 0.6);
+    c.fillStyle = 'rgba(250,244,228,0.9)';
+    c.fill();
+    ink(c, 1.8);
+    for (const e of [-1, 1]) {
+      c.fillStyle = 'rgba(160,190,120,0.55)';
+      c.fillRect(gx + e * 230 - (e > 0 ? 70 : 0), gy - 12, 70, 24);
+    }
+    c.beginPath();
+    c.arc(gx + g.s * 220, gy, 13, 0, Math.PI * 2);
+    c.fillStyle = PAL.slate;
+    c.fill();
+    ink(c, 2);
+    for (let i = 0; i < 5; i++) {
+      c.beginPath();
+      c.arc(gx - 48 + i * 24, gy + 40, 8, 0, Math.PI * 2);
+      c.fillStyle = i < g.rhythm ? PAL.orange : 'rgba(0,0,0,0.1)';
+      c.fill();
+      ink(c, 1.2);
+    }
+
+    for (const q of g.pops) {
+      c.save();
+      c.globalAlpha = Math.min(1, q.life * 2);
+      c.lineWidth = 7;
+      c.strokeStyle = 'rgba(250,244,228,0.9)';
+      c.font = `800 ${q.size}px Fraunces, Georgia, serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.strokeText(q.text, q.x, q.y);
+      label(c, q.text, q.x, q.y, { size: q.size, color: q.color, weight: 800 });
+      c.restore();
+    }
+
+    if (g.elapsed < 4.5) {
+      c.save();
+      c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
+      label(c, 'Long strokes back and forth · steer up and down to stay on the line', W / 2, 395, { size: 32, weight: 600 });
+      c.restore();
+    }
+  };
+
+  g.focus = () => clamp(g.plank.cutX + 60, 380, W - 380);
+  g.span = 760;
+
+  return g;
+}

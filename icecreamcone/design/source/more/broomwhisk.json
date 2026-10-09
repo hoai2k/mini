@@ -1,0 +1,42 @@
+[
+  {
+    "id": "IC-M06a",
+    "name": "Clean Sweep: the courtyard",
+    "key": "scene.broomwhisk",
+    "file": "assets/scenes/broomwhisk.webp",
+    "size": "1920 x 1080, opaque",
+    "used": "Clean Sweep (the Broomwhisk): the whole background. The leaves, the dust, the dustpan and the broom are drawn on top.",
+    "standin": "A plastered wall with a window and a blue door, a fig tree in a tub, and flagstones in perspective, painted in code.",
+    "prompt": "{STYLE} {SCENE}A small sunny paved courtyard behind a house, seen from slightly above. The back wall, warm cream plaster, fills the top half down to a straight horizontal line where it meets the floor, 52% of the way down. In the wall: a small four-paned window left of centre and a plain slate-blue wooden door right of centre. At the top left a fig tree in a big terracotta tub stands against the wall, its broad leafy branches overhanging the top of the picture towards the middle. The floor below is wide, plain, pale stone flagstones in gentle perspective, from the wall line to the bottom edge and from side to side, clean and empty, with no leaves, puddles, furniture or plants on it. Keep the whole floor clear and evenly lit, because the leaves, the dust and the broom move all over it."
+  },
+  {
+    "id": "IC-M06b",
+    "name": "Leaves and dust",
+    "key": "sprites.sweepings",
+    "file": "assets/sprites/sweepings.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Clean Sweep: what the Broomwhisk sweeps (leaves lie flat on the floor; the game turns them as they slide).",
+    "standin": "Leaf shapes and a fuzzy grey dust ball drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 4 x 2 grid of eight small things lying on a floor, seen from above at a slant, each about 300 px across, row by row: 1, an olive-green fig leaf; 2, a mustard-yellow leaf; 3, a brick-red leaf; 4, a sage-green leaf, all four lying flat, pointing right; 5, a fluffy grey ball of dust with a few hairs and threads sticking out; 6, a small curled grey feather; 7, a shining golden leaf, the same shape as the first, with a tiny sparkle; 8, a crumpled pink sweet wrapper."
+  },
+  {
+    "id": "IC-M06c",
+    "name": "Dustpan",
+    "key": "sprites.dustpan",
+    "file": "assets/sprites/dustpan.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Clean Sweep: the dustpan the leaves are swept into, against a side wall (the game mirrors it for the right wall) or against the back wall.",
+    "standin": "A blue-grey dustpan drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 2 x 1 pair of the same old painted tin dustpan in pale blue-grey with a short upright handle, each about 600 px across: left, seen from the side, lying flat on the floor with its wide open mouth facing right and its handle rising up and to the left; right, seen from the front, its wide low open mouth facing straight at us and its handle rising straight up behind it. Both with a little wear and dents, sitting on the floor (bottom edge flat)."
+  },
+  {
+    "id": "IC-M06d",
+    "name": "Broomwhisk sweeping",
+    "key": "sprites.broomwhiskSweep",
+    "file": "assets/sprites/broomwhisk-sweep.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Clean Sweep: the Broomwhisk as it sweeps across the floor and as it flicks its bristles.",
+    "standin": "Its stand-in, leaning into the sweep, with an ink swish for the flick.",
+    "prompt": "{STYLE} {VARIANT} The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in two poses side by side on one sheet, each in its own half, facing left: left, mid-sweep, the handle leaning back and the straw bristles bent and dragged back to the right along the floor; right, flicking, the bristles fanned out and swept hard forward to the left with a few bits of straw flying. The bristles touch the bottom of each cell. {ALPHA}"
+  }
+]
