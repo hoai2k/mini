@@ -1771,6 +1771,20 @@ function renderTitle(t) {
   // Kept whole on screen when the picture is cropped at the sides.
   const x = Math.min(ox + spot.x * k * s, view.cw - size * 0.42);
   drawBird(g, 'coot', { x, y: oy + spot.y * k * s, size, t, pose: pagePose(t) });
+  placePressStart(oy + CAMERA_TOP * k * s);
+}
+
+// Press Start sits on the horizon, halfway between the logo's foot and the
+// top of the camera bird's handle (y 700 on the 1920 x 1080 picture).
+const CAMERA_TOP = 700;
+let pressAt = '';
+function placePressStart(cameraTop) {
+  const logo = $('#logo-img').getBoundingClientRect();
+  const btn = $('#press-start');
+  const top = Math.round(logo.height ? (logo.bottom + cameraTop) / 2 : cameraTop - btn.offsetHeight);
+  if (`${top}` === pressAt) return;
+  pressAt = `${top}`;
+  btn.style.top = `${top}px`;
 }
 
 // A bird on its own page, gently doing its thing.
