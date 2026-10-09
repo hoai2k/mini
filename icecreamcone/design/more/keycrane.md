@@ -40,3 +40,5 @@ empty for the crane and the pile. IC-M07b is the eight trinkets, painted
 without rings (the game draws each ring at its true size, since the rings
 shrink). IC-M07c is the Key Crane hanging from its shaft with its claws
 open and shut, to swing on the string in place of the standing portrait.
+IC-M07d is the same hanging Crane startled, legs kicked apart, shown for a
+moment when a prize slips or the claws close on nothing.

@@ -20,6 +20,8 @@ Object.assign(SHEETS, {
   'sprites.keycranePrizes': [4, 2],
   // hanging on its string with its claws open; with them closed on a ring
   'sprites.keycraneHang': [2, 1],
+  // startled: legs kicked apart, eye wide (a prize slips, or the claws close on nothing)
+  'sprites.keycraneStartle': [1, 1],
 });
 
 const DURATION = 45;
@@ -137,6 +139,7 @@ export default function create(env) {
     g.flying.push({ p, x: fx, y: fy + KINDS[p.kind].h * 0.5 + p.ringR, vx, vy: -g.om * g.L * Math.sin(g.th) * 0.5, rot: g.th, spin: g.om * 0.6 });
     if (slipped) {
       g.slips++;
+      g.startle = 0.7;
       pop('Slipped!', fx, fy + 40, PAL.brick, 40);
       sfx('bonk');
     }
@@ -158,6 +161,7 @@ export default function create(env) {
       return;
     }
     g.stateT += dt;
+    g.startle = Math.max(0, (g.startle || 0) - dt);
 
     // The trolley: free at the top, held still while the Crane is down.
     const atTop = g.state === 'top';
@@ -226,6 +230,7 @@ export default function create(env) {
         g.stateT = 0;
         if (!g.carry) {
           g.misses++;
+          g.startle = 0.5;
           sfx('miss');
           const [fx2, fy2] = g.foot();
           for (let i = 0; i < 6; i++) g.dust.push({ x: fx2 + (rng() - 0.5) * 40, y: fy2, vx: (rng() - 0.5) * 120, vy: -40 - rng() * 60, life: 0.5 });
@@ -519,7 +524,10 @@ export default function create(env) {
     c.save();
     c.translate(ax, ay);
     c.rotate(-g.th);
-    if (!drawSprite(c, 'sprites.keycraneHang', g.claw > 0.5 ? 1 : 0, 0, HANG, { h: BIRD * 0.95 })) {
+    const startled = g.startle > 0 && drawSprite(c, 'sprites.keycraneStartle', 0, 0, HANG, { h: BIRD * 0.95 });
+    if (!startled && !drawSprite(c, 'sprites.keycraneHang', g.claw > 0.5 ? 1 : 0, 0, HANG, { h: BIRD * 0.95 })) {
+      // the stand-in startles with a jolt
+      if (g.startle > 0 && !env.reduceMotion) c.rotate(Math.sin(g.startle * 40) * 0.08);
       drawBird(c, 'keycrane', { x: 0, y: HANG, size: BIRD, t, pose: { claw: g.claw } });
       // the claws, opening and closing
       for (const s of [-1, 1]) {
