@@ -61,6 +61,26 @@ BG_STYLE = (
     "watermark, no photorealism."
 )
 
+# The second icon set: aimed at teenagers. It shows what each effect or game
+# actually does, in a sharper, less childish style.
+ICON2_STYLE = (
+    "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, "
+    "in the confident graphic style of a polished social or music app: crisp vector shapes, "
+    "subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean "
+    "thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no "
+    "chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are "
+    "stylish older-teen characters with natural proportions and varied looks. The picture must "
+    "show what the effect or game actually does, so someone can tell what they will get before "
+    "tapping it. No text, no watermark, no photorealism."
+)
+ICON2 = (
+    "Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo "
+    "rounded-square tile (corner radius about 22%), the same backing for every icon in the set, "
+    "with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, "
+    "no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not "
+    "possible, flat pure magenta #FF00FF outside the tile."
+)
+
 LOGO_STYLE = STYLE.replace("No text, no watermark", "No other text, no watermark")
 
 ALPHA = (
@@ -99,6 +119,13 @@ SECTIONS = {
         "picker. Memory Match also uses the effect icons as its card faces. Until they arrive "
         "the app shows an emoji.",
     ),
+    "icons2": (
+        "Effect and game icons, second set (teen style)",
+        "A new icon for every effect and game, replacing the first set as each one arrives (the "
+        "app keeps the first-set icon, or the emoji, until then). Aimed at teenagers: sharper and "
+        "less childish, on one shared dark tile, and each picture shows what the effect or game "
+        "actually does: the face with the effect on, or the moment of play.",
+    ),
 }
 
 DELIVERIES_FILE = ROOT / "design" / "generated" / "deliveries.json"
@@ -111,16 +138,20 @@ REQUESTS: list[dict] = []
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested"):
     ext = "png" if alpha else "webp"
-    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "worlds": "worlds"}[section]
+    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds"}[section]
     file = f"assets/{folder}/{asset}.{ext}"
     style = STYLE if alpha else BG_STYLE
     if rid == "CH-U01":
         style = LOGO_STYLE
+    if section == "icons2":
+        style = ICON2_STYLE
     parts = [style, prompt]
     if face:
         parts.append(FACE_TEXT)
     if section == "icons":
         parts.append(ICON)
+    elif section == "icons2":
+        parts.append(ICON2)
     elif alpha:
         parts.append(ALPHA)
     delivery = DELIVERIES.get(rid)
@@ -551,6 +582,114 @@ for i, (gid, name, subject) in enumerate(NEW_GAME_ICONS, 31 + len(NEW_EFFECT_ICO
 for i, (gid, name, subject) in enumerate(MORE_EFFECT_ICONS, 31 + len(NEW_EFFECT_ICONS) + len(NEW_GAME_ICONS)):
     req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
         f"The {name} button on the effect strip.", f"Icon of {subject}.", "An emoji.")
+
+
+# --- Second icon set: one per effect and game, showing what it does --------
+V2_FX = [
+    ("bubble", "Bubble Blow", "a teen in profile with pursed lips blowing a big shimmering soap bubble that drifts away towards the edge, a second small bubble popping with a burst of droplets"),
+    ("puppy", "Puppy", "a teen's face wearing realistic-looking floppy brown dog ears and a black dog nose, mouth open with a long pink dog tongue hanging out"),
+    ("hearteyes", "Heart Eyes", "a teen's grinning face with glowing red heart shapes in place of the eyes, three small hearts floating up from the head"),
+    ("dragon", "Dragon", "a teen with small curved dragon horns and scaly cheeks, mouth wide open blasting a jet of orange fire sideways"),
+    ("rainbow", "Rainbow Mouth", "a teen's face with mouth wide open and a thick bright rainbow pouring out of it and curving down out of frame"),
+    ("bigeyes", "Big Eyes", "a teen's face with eyes magnified huge like a bulging lens, the rest of the face normal, a subtle warp ring around each eye"),
+    ("bobblehead", "Bobblehead", "a teen drawn with a giant head on a small body, the head tilted mid-wobble with two motion arcs"),
+    ("alien", "Alien", "a teen's face tinted lime green with large glossy black almond eyes and two antennae with glowing tips"),
+    ("dealwithit", "Deal With It", "pixel-art black sunglasses dropping down onto a smirking teen's face, motion lines above them"),
+    ("crown", "Royalty", "a confident teen wearing a heavy gold jewelled crown slightly tilted, a few gold sparkles"),
+    ("fancy", "Fancy", "a teen with raised eyebrows, a curled handlebar mustache and a gold monocle on a chain falling from one eye"),
+    ("clown", "Clown", "a teen with a round red clown nose and a huge rainbow curly afro wig, mouth open in a honk"),
+    ("storm", "Storm Cloud", "a small dark rain cloud hovering over a teen's frowning head, rain falling on them and a lightning bolt striking"),
+    ("noodle", "Noodle Face", "a teen's face stretched long and wavy like in a funhouse mirror, eyes and mouth pulled into a tall S-curve"),
+    ("swirl", "Swirl", "a teen's face twisted into a spiral around the nose, as if being pulled down a whirlpool"),
+    ("space", "Outer Space", "a teen's head and shoulders cut out against a deep starfield with a ringed planet and a nebula behind them"),
+    ("underwater", "Under the Sea", "a teen's head and shoulders in blue-green water light, rippling caustics on the face, bubbles rising and a small tropical fish passing"),
+    ("pixel", "8-Bit", "a teen's face rendered in big chunky square pixels with a limited retro console palette, half the face still smooth to show the change"),
+    ("comic", "Comic Book", "a teen's face in comic-book style with halftone dots and bold ink lines, mouth open and a jagged POW burst shape beside it"),
+    ("thermal", "Heat Vision", "a teen's face as a thermal camera image, hot yellow and red cheeks fading to purple and blue at the edges"),
+    ("flowercrown", "Flower Crown", "a teen wearing a crown of pink peonies, white daisies and green leaves, soft petals drifting"),
+    ("kitty", "Kitty", "a teen with pointed cat ears, a small pink cat nose and thin white whiskers, mouth open mid-meow"),
+    ("bunny", "Bunny", "a teen with tall white rabbit ears, one ear flopped over, and a little pink bunny nose"),
+    ("hotdog", "Hotdog", "a person dressed in a full hotdog costume, face showing through the bun, jumping in the air"),
+    ("lasereyes", "Laser Eyes", "a teen with raised eyebrows firing two straight red laser beams from the eyes towards the viewer, glowing hot"),
+    ("crying", "Waterworks", "a teen's face crying two exaggerated arcing fountains of tears from the corners of the eyes, splashing below"),
+    ("devil", "Devil", "a teen with a sly smile and two small glossy red devil horns, a faint red glow and a few embers behind"),
+    ("angel", "Angel", "a teen with a golden halo floating above the head and soft white feathered wings behind the shoulders"),
+    ("pirate", "Pirate", "a teen in a black tricorn pirate hat with a skull emblem and a black eyepatch, mid-shout"),
+    ("viking", "Viking", "a teen in a horned steel Viking helmet with a braided orange beard"),
+    ("wizard", "Wizard", "a teen in a tall starry midnight-blue wizard hat, eyebrows raised, purple magic sparks bursting around the head"),
+    ("butterflies", "Butterflies", "a teen's head with a ring of blue and pink butterflies circling it, two flying off"),
+    ("makeup", "Glam", "a teen's face with bold winged eyeliner, glossy red lips and contoured cheeks, a sparkle on the cheekbone"),
+    ("beach360", "Beach 360", "a teen cut out in front of a tropical beach with palm trees and turquoise sea, a circular 360-degree arrow around the scene"),
+    ("space360", "Space 360", "a teen cut out in front of a space-station window looking down at Earth, a circular 360-degree arrow around the scene"),
+    ("reef360", "Reef 360", "a teen cut out in front of a coral reef with a sea turtle, a circular 360-degree arrow around the scene"),
+    ("forest360", "Forest 360", "a teen cut out in front of a misty fantasy forest with a waterfall and glowing mushrooms, a circular 360-degree arrow"),
+    ("city360", "City 360", "a teen cut out on a rooftop in front of neon skyscrapers at night, a circular 360-degree arrow around the scene"),
+    ("snow360", "Snow 360", "a teen cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow"),
+    ("candy360", "Candy 360", "a teen cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow"),
+    ("volcano360", "Volcano 360", "a teen cut out in front of an erupting volcano and rivers of glowing lava, a circular 360-degree arrow"),
+    ("blurbg", "Blur", "a sharp teen in the foreground in front of a softly blurred bedroom with glowing bokeh lights"),
+    ("colorpop", "Colour Pop", "a teen in full vivid colour in front of a room that is entirely black and white"),
+    ("neonaura", "Neon Aura", "a dark silhouette of a teen outlined by a glowing neon pink and cyan aura on a black background"),
+    ("disco", "Disco", "a teen lit by coloured disco beams from a mirror ball above, light spots on the face, dark room behind"),
+    ("matrix", "Code Rain", "a teen with a green-tinted face in front of falling columns of green code characters on black"),
+    ("sunset", "Sunset", "a black silhouette of a teen's head and shoulders against a huge orange and pink sunset over the sea"),
+    ("echo", "Time Trails", "a teen mid-move leaving a trail of four fading see-through copies, each tinted a different rainbow colour"),
+    ("delayghost", "Delay Ghost", "a teen with a pale translucent ghost copy of themselves a step behind, copying their pose a moment late"),
+    ("timewarp", "Time Warp", "a teen's face stretched and frozen above a glowing blue horizontal scan line moving down the picture"),
+    ("timewarpside", "Side Warp", "a teen's face smeared sideways into a long streak left of a glowing blue vertical scan line"),
+    ("slitscan", "Wobble Time", "a teen's face sliced into horizontal bands, each band shifted in time so the face ripples like a wave"),
+    ("strobe", "Stop Motion", "three frozen film frames of a teen in jerky poses side by side, like stop-motion animation on a film strip"),
+    ("clones", "Clones", "three identical copies of the same teen in different poses side by side in one room"),
+    ("motionglow", "Motion Glow", "a teen waving one hand, the hand leaving bright neon light-painting trails in the air"),
+    ("tinyface", "Tiny Face", "a normal-sized teen head with comically tiny eyes, nose and mouth squeezed together in the middle"),
+    ("chubby", "Chubby Cheeks", "a teen's face with hugely puffed-out round cheeks, lips pressed together holding air"),
+    ("babyface", "Baby Face", "a teen's face turned into a baby's: huge round eyes, a button nose, chubby cheeks and a tiny mouth"),
+    ("symmetry", "Mirror Face", "a teen's face split down the middle with one half mirrored onto the other, a thin glowing line down the centre"),
+    ("cyclops", "Cyclops", "a teen's face with a single large eye in the middle of the forehead instead of two"),
+    ("bigmouth", "Big Mouth", "a teen's face with an enormous wide grinning mouth taking up the lower half of the face"),
+    ("fisheye", "Fisheye", "a teen leaning close to the lens, nose and face bulging out through a round fisheye distortion"),
+    ("noir", "Film Noir", "a teen in black and white with film grain and a dramatic slatted window shadow across the face"),
+    ("vhs", "VHS", "a teen's face on an old VHS tape picture with colour bleeding, tracking lines and a glitch band across the middle"),
+    ("popart", "Pop Art", "four copies of the same teen's face in a 2x2 grid, each in a different loud pop-art colour scheme"),
+    ("kaleidoscope", "Kaleidoscope", "a teen's face repeated into a symmetrical kaleidoscope star pattern in bright colours"),
+    ("snow", "Snowfall", "a teen in a beanie with big snowflakes falling around them and a few settling on the hat"),
+    ("confetti", "Confetti", "a smiling teen with bursts of multicoloured confetti and streamers exploding around their head"),
+    ("moneyrain", "Make It Rain", "a teen with mouth open while green banknotes rain down and flutter around them"),
+    ("fireworks", "Fireworks", "a teen with mouth open as a firework launches upward and bursts into a big colourful flower in the night sky behind"),
+    ("kid", "Kid", "a split face: left half a teen, right half the same person as a young kid with a rounder face and bigger eyes"),
+    ("manface", "Man", "a split face: left half a teen, right half the same person as a grown man with a squarer jaw, heavier brows and stubble"),
+    ("womanface", "Woman", "a split face: left half a teen, right half the same person with winged eyeliner, fuller lips and a slimmer jaw"),
+    ("thinner", "Thinner", "a teen's head and shoulders squeezed narrow from both sides, two arrows pressing inward"),
+    ("fatter", "Fatter", "a teen's head and shoulders stretched wide sideways, two arrows pulling outward"),
+]
+V2_GAMES = [
+    ("hoops", "Hoops", "a hand flicking a basketball up towards a hoop with a glass backboard, a faint ghost ball in another colour following"),
+    ("flappy", "Flappy Face", "a person's face as a round bird with small white wings, flapping through a gap between two tall pillars"),
+    ("airhockey", "Air Hockey", "a top-down air hockey table, a paddle striking the puck with speed lines towards the goal"),
+    ("connect4", "Connect Four", "a blue Connect Four grid with red and yellow discs, the last disc dropping in to make four in a row"),
+    ("quickdraw", "Quick Draw", "two cowboy silhouettes facing off on a dusty street at sunset, one already drawing"),
+    ("stare", "Staring Contest", "two faces nose to nose glaring, wide-open eyes, a fly buzzing between them"),
+    ("copycat", "Copy Cat", "two faces side by side pulling the same silly expression, tongue out and one eye shut"),
+    ("rps", "Rock Paper Scissors", "three hands thrown at once in a circle: a fist, a flat hand and a V for scissors"),
+    ("doodle", "Doodle Guess", "a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark"),
+    ("memory", "Memory Match", "a grid of face-down cards with two flipped face-up showing the same effect picture"),
+    ("minigolf", "Mini Golf", "a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it"),
+    ("bowling", "Bowling", "a bowling ball curving down a lane and smashing into white pins mid-strike"),
+    ("beachbump", "Beach Bump", "a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind"),
+    ("burger", "Burger Stack", "a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge"),
+    ("asteroids", "Asteroid Dodge", "a small rocket weaving between tumbling asteroids in space, a gold star to grab"),
+    ("dontsmile", "Don't Smile", "a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat"),
+    ("snake", "Snake", "two neon snakes of different colours racing across a dark grid towards a glowing apple"),
+    ("battleship", "Battleship", "a top-down grid of sea with a grey battleship and a red explosion hit marker on it"),
+    ("trivia", "Trivia", "a quiz-show buzzer being slammed with four coloured answer panels behind it"),
+    ("wordblitz", "Word Blitz", "a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word"),
+]
+for i, (gid, name, subject) in enumerate(V2_FX + V2_GAMES, 1):
+    kind = "fx" if i <= len(V2_FX) else "game"
+    where = "button on the effect strips" if kind == "fx" else "card in the game picker"
+    req("icons2", f"CH-K{i:02d}", f"{kind}2-{gid}", f"{name} icon (second set)", "256 x 256",
+        f"The {name} {where}, replacing the first-set icon.", f"Icon: {subject}.",
+        "The first-set icon, or the emoji.")
 
 
 def render_doc() -> str:
