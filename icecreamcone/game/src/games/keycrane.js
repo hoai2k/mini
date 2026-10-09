@@ -12,7 +12,7 @@
 // carrying and the prize slips off. Rings get smaller as time goes on.
 // Score: prizes in the chute; a golden pocket watch counts as three.
 
-import { drawBird, drawSprite, scene, art, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, art, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -47,10 +47,20 @@ const BIRD = 220; // the Crane's drawn size
 // painting's centre line, so the painting is drawn that much to the left.
 const HANG = 0.615 * BIRD;
 const FEET_X = 36;
-// The hanging sprites (IC-M07c, IC-M07d) are whole cells at the portrait's
-// scale, the tie point 35% down and the claw tips 93% down.
-const CELL = 1.05 * BIRD;
-const CELL_FOOT = HANG + 0.07 * CELL;
+// The hanging sprites (IC-M07c, IC-M07d), measured on their 1024 px cells:
+// where the string ties on (the shaft's middle above the feet) and where the
+// claws hook. Each is drawn so its tie point is the knot on the string, at
+// the scale that puts the open claws HANG below it. The startled pose's
+// shaft tips down about 10 degrees; it is drawn as painted, a jolt.
+const HANG_CELLS = {
+  open: { key: 'sprites.keycraneHang', i: 0, tie: [584, 350] }, // claws at (584, 900)
+  shut: { key: 'sprites.keycraneHang', i: 1, tie: [550, 349] }, // gripping at (550, 890)
+  startle: { key: 'sprites.keycraneStartle', i: 0, tie: [578, 391] }, // feet splayed about (578, 880)
+};
+const HANG_SCALE = HANG / (900 - 350);
+// The prizes (IC-M07b), 512 px cells: how far the middle of each one's top
+// (where the ring goes) is from the middle of its painted width, in cell px.
+const PRIZE_TOP_DX = [3, -1, -1, 4, 26, 2, 12, 15];
 const L_TOP = 230; // string + bird at rest, pivot to claws
 const L_MAX = FLOOR - PIVOT_Y - 4;
 const GRAV = 1800; // px/s², for the swing
@@ -380,7 +390,10 @@ export default function create(env) {
     c.stroke();
     ink(c, 1.4);
     c.stroke();
-    if (!drawSprite(c, 'sprites.keycranePrizes', k.i, 0, 0, { h: k.h })) drawObject(c, p.kind, k);
+    // the painted object, shifted so the middle of its top sits under the ring
+    const cell = spriteCell('sprites.keycranePrizes', k.i);
+    const dx = cell ? (-PRIZE_TOP_DX[k.i] * k.h) / cell.trim.h : 0;
+    if (!drawSprite(c, 'sprites.keycranePrizes', k.i, dx, 0, { h: k.h })) drawObject(c, p.kind, k);
     c.restore();
   }
 
@@ -539,8 +552,11 @@ export default function create(env) {
     c.save();
     c.translate(ax, ay);
     c.rotate(-g.th);
-    const startled = g.startle > 0 && drawSprite(c, 'sprites.keycraneStartle', 0, 0, CELL_FOOT, { h: CELL, whole: true });
-    if (!startled && !drawSprite(c, 'sprites.keycraneHang', g.claw > 0.5 ? 1 : 0, 0, CELL_FOOT, { h: CELL, whole: true })) {
+    // the claws show shut only with a prize in them (the painted pose grips a ring)
+    const pose = g.startle > 0 ? HANG_CELLS.startle : g.carry ? HANG_CELLS.shut : HANG_CELLS.open;
+    const S = HANG_SCALE;
+    const painted = drawSprite(c, pose.key, pose.i, (512 - pose.tie[0]) * S, (1024 - pose.tie[1]) * S, { h: 1024 * S, whole: true });
+    if (!painted) {
       // the stand-in startles with a jolt
       if (g.startle > 0 && !env.reduceMotion) c.rotate(Math.sin(g.startle * 40) * 0.08);
       const painted = !!art('subject.keycrane');

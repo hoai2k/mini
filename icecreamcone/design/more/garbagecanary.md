@@ -87,3 +87,12 @@ the stand-in's. The opening hint is two short lines on a paper backing,
 centred on the view, and now says to keep the lid shut for "anything that
 glows". Still stand-in: the things on the wind (IC-M08b) and the lid pieces
 and calls (IC-M08c, IC-M08d), which are cut from the portrait meanwhile.
+
+The sprites are in too (IC-M08b, IC-M08c, IC-M08d). The things on the wind
+are drawn by their painted longer side (about 92 px; the cat 130, the
+sparrow 84, the fish bones 112), measured per cell, with the gold glow
+still added behind the four that aren't rubbish. The bin and lid pieces are
+drawn at the portrait's framing, the lid swung up about its painted back
+corner (cell (745, 322), 95 units behind the middle and 276 up), and the
+squawking and singing lids swap in over it; the code-drawn dark mouth is
+left out, as the painted bin has its own. Nothing is stand-in any more.

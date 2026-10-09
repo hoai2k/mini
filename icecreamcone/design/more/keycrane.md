@@ -82,3 +82,15 @@ its back edge at 720 and front at 855). The opening hint is two short lines
 on a paper backing, centred on the view so a phone shows all of it. Still
 stand-in: the prizes (IC-M07b) and the hanging and startled Crane (IC-M07c,
 IC-M07d), drawn from the standing portrait meanwhile.
+
+The sprites are in too (IC-M07b, IC-M07c, IC-M07d). The prizes are drawn at
+their painted shapes with each one's top middle (measured per cell: the
+basket's handle side, the kettle's lid knob) under the code-drawn ring,
+which stays in code because the rings shrink. The hanging Crane is drawn
+from measured points on its cells: the string ties on at the shaft's middle
+above the feet ((584, 350) open, (550, 349) gripping, (578, 391) startled)
+at the scale that puts the open claws (584, 900) the game's hook distance
+below it. The gripping pose shows only with a prize in the claws, since it
+is painted holding a ring (the prize's own ring is drawn behind it); a miss
+shows the startled pose instead, drawn as painted with its shaft tipped
+about 10 degrees, a jolt. Nothing is stand-in any more.
