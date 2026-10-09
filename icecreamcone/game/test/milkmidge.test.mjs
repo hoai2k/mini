@@ -117,7 +117,7 @@ test('milkmidge: a pint at the edge of the step scores one', () => {
 test('milkmidge: a smash near a sleeping dog wakes it and costs one', () => {
   const game = create(env(4));
   const h = game.houses[2];
-  h.dog = { side: 1, x: h.x + 120, y: (h.stepY + 668) / 2, awake: 0, woke: false };
+  h.dog = { side: 1, x: h.x + 120, y: (h.stepY + 615) / 2, awake: 0, woke: false };
   game.score = 5;
   // a quick tap: the bottle falls short, in the garden by the dog
   game.fx = h.x;

@@ -80,3 +80,23 @@ are now drawn as whole square cells framed like the portrait (feet on the
 now describe the painting (the checked cloth cap, the milk inside, the ochre
 wings) and ask for the portrait's framing.
 
+
+## Matched to the delivered art
+
+- **Street.** The painted pavement runs from 615 to 700 (738–840 of 1080
+  px) and the road below, so the garden fences now stand at y 615 (was 668).
+  A bottle let go at once lands on the pavement at 650 (was 690), and the
+  nearest doorstep is at 565 (was 600) so even near houses keep a short
+  path. The beginner bot now scores 17–24; pass stays 16.
+- **Houses, props, float.** The painted houses, bottle, spilt milk, dogs,
+  card and doormat replace the stand-ins in place. The doormat is drawn
+  smaller (0.95 x the step's half-width, was 1.4) so it sits on the painted
+  step instead of covering it. The painted float matches the stand-in's
+  place, and the Midge stands on its crates.
+- **Midge.** The painted wind-up holds the bottle in its wing, so the game
+  no longer draws a second bottle beside it once `sprites.midgeThrow` is in.
+- **Still drawn in code:** the green wash of the front gardens, the path up
+  to each step and the low fence along the pavement. Requested as IC-M01g
+  (`sprites.milkGarden`, a path to cut off at the step and a tileable
+  length of fence); the game is wired to draw them as soon as they arrive.
+  The chalk lane, ring, pops and glass bits stay in code as game feedback.
