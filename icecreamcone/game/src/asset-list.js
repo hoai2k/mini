@@ -384,15 +384,15 @@ export const ASSETS = {
   },
   "sprites.garbagecanaryNeck": {
     "file": "assets/sprites/garbagecanary-neck.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.garbagecanaryLidOnly": {
     "file": "assets/sprites/garbagecanary-lid-only.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.garbagecanaryWalk": {
     "file": "assets/sprites/garbagecanary-walk.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.steampressersparrow": {
     "file": "assets/scenes/steampressersparrow.webp",
@@ -432,15 +432,15 @@ export const ASSETS = {
   },
   "sprites.wrenWalkCycle": {
     "file": "assets/sprites/wren-walk-cycle.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.wrenHop": {
     "file": "assets/sprites/wren-hop.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.wrenFly": {
     "file": "assets/sprites/wren-fly.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
@@ -464,7 +464,7 @@ export const ASSETS = {
   },
   "sprites.glovedoveBump": {
     "file": "assets/sprites/glovedove-bump.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
