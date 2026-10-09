@@ -1,47 +1,88 @@
 ### The Garbage Canary: Bin Day (45 s)
 
-A windy street on bin day. The Garbage Canary stands on the pavement, a
-dustbin with a canary peering from under the lid, facing into the wind, and
-everything the wind picks up blows down the street towards it: paper,
-banana peel, tins, apple cores, fish bones, old boots, and also a
-gentleman's hat, a letter, a ginger cat and a sparrow. Hold the action and
-the lid swings up (the canary's head rises with it); let go and it shuts.
-Whatever reaches the bin's rim while the lid is up goes in; whatever finds
-it shut bumps over the top and goes on its way. The mechanic is a one-
-button gate: judge each thing as it comes, then open just in time and shut
-again before the next.
+A windy street on bin day, and all sorts of things blowing down it from the
+right at every depth, some along the pavement, some out over the cobbles:
+paper, banana peel, tins, apple cores, fish bones, old boots, and also a
+gentleman's hat, a letter, a ginger cat and a sparrow. The Garbage Canary is
+a dustbin on legs with a canary living inside it. You walk the bin about,
+left and right a little (x 200 to 900) and back and forth across the
+pavement and the road (its feet from 612 to 862 px, drawn a little bigger
+nearer the front, everything drawn in depth order), and you hold the action
+to lift its lid. The mechanic is lining up and timing a catch in 2.5D: get
+into the lane of what you want, lift the lid as it comes, and step out of
+the way (or keep the lid shut) for what you don't.
 
-**Scoring.** Rubbish in the bin: +1. Something that isn't rubbish
-swallowed: the Canary splutters it out, −1 (never below zero), and its lid
-stays shut for 0.9 s. Rubbish that
-finds the lid shut is lost and lies in the gutter. Five in a row without a
-slip earns a bonus that grows with the run: +1 at five, +2 at ten, +3 at
-fifteen.
+**The canary.** It lives in the bin and helps by itself. Lid shut: its head
+peeps out under the lid (the delivered lid piece). Lid up: it rises out of
+the mouth on its neck, ready; when something passes within reach in the
+bin's lane (its lane: within 40 px of depth) it stretches towards it, grips
+it in its beak, pulls it down into the bin and pops back up. Anything that
+comes down into the open mouth falls in as well (something passing above
+the rim needs the canary). It climbs out at its own pace (about a fifth of
+a second), so a lid flapped up and down never gets it out. And it only
+manages one thing at a time and has no patience: left gaping for 1.3 s
+without a catch, it gets bored and ducks back down ("Yawn…"), and after
+2.4 s the wind starts whisking the top piece of rubbish back out of the
+bin (−1, every 1.2 s), so holding the lid up for ages is pointless. Its
+states: in, rise, up, reach, pull, pop.
 
-**Getting harder.** Things come every 1.5 s at first and every 0.6 s by
-the end, and faster (330 to 560 px a second). About one in five isn't
-rubbish at first, nearly half by the end; the very first thing is always
-rubbish. From 10 s on, something that isn't rubbish often follows close
-behind rubbish (as little as 0.5 s behind), so the lid must snap shut.
-From 14 s, gusts hurry some things along partway, shown by streaks of
-wind. Nothing ever arrives less than half a second after the thing before
-it.
+**The lid is physical.** Shutting it while the canary pulls something in
+slams that home; shutting it while the canary is still reaching pushes
+canary and catch into the bin; shutting it on something at the mouth
+catches that too (snap down on top). Lifting it with something just above
+or behind the lid knocks that thing back, up and away over the bin, not
+caught. With the lid shut, anything in the lane bumps over the top.
 
-**Controls.** Controller: hold A. Keyboard: hold Space or Enter. Mouse or
-touch: hold anywhere. Nothing else to move. On a narrow screen the view
-keeps the bin at the left and the street coming in from the right.
+**Scoring.** Rubbish in the bin: +1. Five in a row: a bonus that grows with
+the run (+1 at five, +2 at ten, ...). Something that isn't rubbish caught:
+the canary splutters it out, −1 (never below zero), the run ends and the
+lid stays shut for 2.2 s. Rubbish that bumps over a shut lid ends the run.
+The four things that aren't rubbish glow gold. Their shadows on the ground,
+like everyone's, darken when they are in the bin's lane.
 
-**Pass.** 18 points. Bots: a beginner (opens 0.5 s early, reacts 0.3 s
-late, timing off by up to 0.2 s; seeds 1–8) 23–35; a sharp minder 41–44;
-holding the lid open all the time 0–11; mashing about 6; idle 0.
+**Getting harder.** Things come every 1.25 s at first and every 0.55 s by
+the end. They are gentle for the first 15 s (230 rising to 300 px a
+second), then faster, up to 520. Each starts 300 px off the right edge,
+shown there by an arrow at its height (bold when it is in the bin's lane,
+gold when it isn't rubbish), so a slower child has time to line up. The
+first thing is always rubbish; for the first 8 s rubbish comes near the
+bin's lane, and after that three in ten still do, the rest anywhere. A third of things aren't rubbish at first, half by the end, and
+those come towards wherever the bin is; cats and sparrows that see the lid
+up turn towards it (140 px a second of depth, within 400 px). From 14 s
+gusts hurry some along.
 
-**Images.** IC-M08a is the street: houses, pavement, kerb and lamp-post,
-with the band where things blow kept plain. IC-M08b is the ten things on
-the wind, rubbish and not, which must read at a glance at about 70 px.
-IC-M08c is the Canary in two pieces, the bin without its lid and the lid
-with the canary's head, drawn in place, so the game can swing the lid up on
-its hinge. IC-M08d is the lid piece again with the canary squawking (as it
-spits something out) and singing (when a run earns a bonus).
+**Controls.** Controller: left stick or D-pad walks (up and down crosses the
+street), hold A for the lid. Keyboard: arrows or WASD, hold Space or Enter.
+Mouse or touch: press anywhere and the bin walks there with its lid shut
+(drag and it follows); press on the bin itself and hold to lift the lid,
+dragging walks it with the lid up. On a narrow screen the view follows the
+bin, keeping the street coming in from the right in sight.
+
+**Pass.** 15 points. Bots (all lift the lid as things come, 0.7–0.9 s
+early; seeds 1–16):
+
+| Bot | Scores | Average |
+| --- | --- | --- |
+| Clumsy beginner (stick at 60%, 0.3 s late, timing off by 0.2 s) | 10–24, passes on 13 of 16 (8 of seeds 1–8) | 17.8 |
+| Beginner (stick at 80%, 0.2 s late) | 15–28, passes on all | 22.2 |
+| Sharp minder | 15–43 | 30.9 |
+| Wandering, holding the lid up | 0–6 | 0.8 |
+| Wandering, flapping the lid (twice a second) | 0–7 | 3.1 |
+| Wandering, flapping it slowly | 0–9 | 2.4 |
+| Standing still, lid up | 0–4 | 0.7 |
+| Idle | 0 | 0 |
+
+**Images.** IC-M08a is the street. IC-M08b is the ten things on the wind.
+IC-M08c is the bin and the lid-with-head in two pieces (the head shows under
+the shut lid), IC-M08d the lid with the canary squawking and singing. For
+the redesign: IC-M08e is the canary out of the bin, head and neck only, in
+six poses (ready, reaching, gripping with a gap for the caught thing,
+pulling in, squawking, singing), each registered with its neck's base on
+the cell's centre line 88% down so the game can anchor it at the mouth and
+turn it to aim; IC-M08f is the lid alone, to swing up while the canary is
+out; IC-M08g is the bin piece walking, four frames. Until they arrive the
+canary out of the bin, the lid alone and the walk (a bob) are drawn in
+code.
 
 ## Changes after the audit
 
@@ -96,3 +137,33 @@ drawn at the portrait's framing, the lid swung up about its painted back
 corner (cell (745, 322), 95 units behind the middle and 276 up), and the
 squawking and singing lids swap in over it; the code-drawn dark mouth is
 left out, as the painted bin has its own. Nothing is stand-in any more.
+
+## Redesigned at the owner's request
+
+The bin now walks about the street, left and right and across the pavement
+and road, and things blow along at every depth, so you line up with what
+you want and step aside from what you don't (before, the bin stood still
+and everything came at one height). The canary is a helper living in the
+bin: lifting the lid lets it rise out (no longer cut off by the lid),
+reach, grip, pull things in and pop back up, and the lid's timing matters
+in both directions (slam it home, push in a half-caught thing, snap down
+on something at the mouth, knock back what's above it). Catching is
+generous: anything that passes within the canary's reach, or through the
+open mouth, is caught, rather than being judged at one edge.
+
+Rule and balance changes: catching something that isn't rubbish still
+costs 1, but the lid now stays shut for 2.2 s (was 0.9 s); more things
+aren't rubbish (a third rising to a half, was a quarter rising to just
+under a half), and they come towards the bin, cats and sparrows turning
+towards an open one, so wandering with the lid up doesn't pay. The pass
+mark is 16 (was 18). The bots now walk and use the lid. Pointer play is
+new: press on the bin to lift the lid, anywhere else to walk.
+
+Widening the margins (after the redesign): a clumsier child scored about
+10 against a mark of 16, and wandering with the lid held up reached 15. Now
+the canary gets bored of a gaping bin and the wind whisks rubbish back out
+of it; it climbs out at its own pace, so flapping the lid doesn't work; the
+open mouth only takes what comes down into it, not what passes above;
+things come 300 px off the edge with an arrow showing them, slower for the
+first 15 s; and three in ten bits of rubbish keep coming near the bin. The
+pass mark is 15 (the table above).

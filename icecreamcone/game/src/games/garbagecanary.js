@@ -1,19 +1,32 @@
 // Garbage Canary: Bin Day.
 //
-// A windy street on bin day. The Garbage Canary stands on the pavement, a
-// dustbin with a canary peering out from under its lid, and the wind blows
-// all sorts of things down the street towards it. Hold the action to lift
-// the lid: rubbish that reaches the bin while the lid is up goes in (+1).
-// But not everything is rubbish: a cat, a gentleman's hat, a letter, a
-// sparrow. Anything that isn't must find the lid shut, so it bumps over the
-// top and goes on its way; swallow one and the Canary splutters it out (−1)
-// and can't open its lid for a moment.
-// Rubbish that finds the lid shut blows past and is lost. Every five in a row
-// without a slip earns a bonus that grows with the run (+1 at five, +2 at
-// ten, ...). Things come faster and closer together as time goes on, more
-// of them aren't rubbish (often hard on rubbish's heels), and gusts hurry
-// some along.
-// Score: points.
+// A windy street on bin day, and things blowing down it from the right at
+// all depths, some along the pavement, some out over the cobbles. The Garbage
+// Canary is a dustbin on legs with a canary living inside it. You walk the
+// bin about (left and right a little, and back and forth across the pavement
+// and the road) and hold the action to lift its lid. While the lid is up the
+// canary rises out of the bin, reaches for whatever passes within reach in
+// the bin's lane, grips it in its beak, pulls it down into the bin and pops
+// back up. Anything that passes right through the open mouth falls in too.
+//
+// Rubbish in the bin: +1, and every five in a row earns a bonus that grows
+// with the run. But not everything is rubbish: a cat, a gentleman's hat, a
+// letter, a sparrow (each glows gold). Swallow one and the canary splutters
+// it out (−1) and the lid stays shut a moment. Keep the lid shut, or step
+// into another lane, to let those go by; with the lid shut they bump over it.
+//
+// The lid is physical. Shut it while the canary is pulling something in and
+// the lid slams it home; shut it while the canary is still reaching and the
+// lid pushes canary and catch into the bin; shut it on something just at the
+// mouth and that is caught too (snap down on top). Open it under something
+// just above or behind the lid and the lid knocks that thing back out of the
+// way. Things come faster and closer together as time goes on, more of them
+// aren't rubbish, and gusts hurry some along. Score: points.
+//
+// Controls: the stick, D-pad, arrows or WASD walk the bin (up and down is
+// across the street); hold the action for the lid. Mouse or touch: press on
+// the bin and hold to lift the lid, dragging moves it with the lid up; press
+// anywhere else and the bin walks to that spot with its lid shut.
 
 import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
@@ -25,16 +38,28 @@ Object.assign(SHEETS, {
   'sprites.garbagecanaryLid': [2, 1],
   // the lid piece again, the canary squawking (spitting something out); singing (a run)
   'sprites.garbagecanaryCall': [2, 1],
+  // the canary out of the bin: ready, reaching, gripping; pulling in, squawking, singing
+  'sprites.garbagecanaryNeck': [3, 2],
+  // the lid alone, no canary under it
+  'sprites.garbagecanaryLidOnly': [1, 1],
+  // the bin piece walking, four frames
+  'sprites.garbagecanaryWalk': [4, 1],
 });
 
 const DURATION = 45;
-// The pavement, where the bin's feet stand: on the painted street (IC-M08a)
-// the paving runs from the house fronts at 582 px down to the kerb at 705.
-const PAVE = 690;
-const BIN_X = 470;
-const SIZE = 330;
-const K = SIZE / 400;
-const CROSS_X = BIN_X + 80; // where something meets the bin's front rim
+// The street (IC-M08a): the paving runs from the house fronts at 582 px to
+// the kerb at 705, the cobbles from 745 to the bottom. The bin's feet walk
+// anywhere from just in front of the houses to well out on the road, and
+// things blow along at any depth in that band.
+const PAVE = 690; // (the stand-in street's pavement)
+const DEPTH0 = 612;
+const DEPTH1 = 862;
+const X0 = 200; // how far the bin may walk left and right
+const X1 = 900;
+const WALK = 430; // px/s left and right
+const STEP = 300; // px/s across the street
+const SIZE = 300; // the bin's drawn size at the middle of the band
+const depthScale = (y) => lerp(0.88, 1.12, (y - DEPTH0) / (DEPTH1 - DEPTH0));
 // The bin's rim and the lid's hinge, in bird units (feet at 0, facing left
 // as drawn; the game flips it to face the wind). The painting's rim slants a
 // little, higher at the front; measured on the 1024 px painting: front rim
@@ -44,13 +69,35 @@ const RIM = {
   standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250] },
 };
 const OPEN_ANGLE = 1.15;
-const JAM = 0.9; // seconds the lid stays shut after swallowing something that isn't rubbish
+const JAM = 2.2; // seconds the lid stays shut after swallowing something that isn't rubbish
+const LANE = 40; // how close in depth something must pass to be in the bin's lane
+const CURIOUS = 200; // px/s: how fast cats and sparrows turn towards an open bin
+// The canary's reach, in bird units: its head sits NECK_UP above the mouth
+// when ready and can stretch NECK_REACH towards something.
+const NECK_UP = 80;
+const NECK_REACH = 130;
+const HEAD_SPEED = 1900; // px/s, reaching
+const RISE_SPEED = 280; // px/s, climbing out of the bin
+const PULL_SPEED = 420; // px/s, pulling something down into the bin (slow enough to see)
+// A bin left gaping: after FRESH seconds open without catching anything the
+// canary loses interest and ducks back in; after WHISK seconds the wind
+// starts whisking the top piece of rubbish back out, every WHISK_EVERY.
+const FRESH = 1.3;
+const WHISK = 2.4;
+const WHISK_EVERY = 1.2;
+const NEAR = 0.3; // after the first 8 s, this share of the rubbish still comes near the bin's lane
+const LEAD_IN = 300; // things start this far off the right edge, shown by an arrow there
+const MOUTH_R = 95; // bird units: anything passing this close to the mouth's middle falls in
+// The canary neck sheet (IC-M08e): each cell's neck base on its centre line
+// 88% down.
+const NECK_BASE = 0.88;
 const BIG = 1.3; // things on the wind are drawn this much bigger than their base size
 // The painted things on the wind (IC-M08b), measured: each one's painted
 // width and height in its 512 px cell, and the length the game draws its
 // longer side at.
 const ITEM_BOX = [[281, 238], [400, 244], [306, 199], [183, 282], [404, 179], [255, 205], [299, 227], [405, 222], [273, 230], [330, 218]];
 const ITEM_LONG = { cat: 130, sparrow: 84, fishbone: 112, peel: 100, boot: 100, letter: 92 };
+const ITEM_R = 40; // a thing's catching radius at depth scale 1
 
 // What blows down the street. `rub`: rubbish. `move`: how it travels.
 const KINDS = {
@@ -71,56 +118,47 @@ const KEEP = ['hat', 'letter', 'cat', 'sparrow'];
 export default function create(env) {
   const { W, H, rng, sfx } = env;
   const rim = art('subject.garbagecanary') ? RIM.painted : RIM.standin;
-  const RIM_Y = PAVE + ((rim.front[1] + rim.back[1]) / 2) * K; // the bin's open top
-  const MOUTH_Y = RIM_Y - 18; // the height things cross at
-  const HINGE = [BIN_X - rim.hinge[0] * K, PAVE + rim.hinge[1] * K]; // the lid hinges at the back
-  // The rim as a line across the bird, in the canvas (flipped), for cutting
-  // the drawing into the bin and its lid.
-  const rimCut = (c, above) => {
-    const [fx, fy] = [BIN_X - rim.front[0] * K, PAVE + rim.front[1] * K];
-    const [bx, by] = [BIN_X - rim.back[0] * K, PAVE + rim.back[1] * K];
-    const ext = 120;
-    const sl = (fy - by) / (fx - bx);
-    const y0 = by - sl * ext;
-    const y1 = fy + sl * ext;
-    c.beginPath();
-    c.moveTo(bx - ext, y0);
-    c.lineTo(fx + ext, y1);
-    if (above) {
-      c.lineTo(fx + ext, y1 - 400);
-      c.lineTo(bx - ext, y0 - 400);
-    } else {
-      c.lineTo(fx + ext, PAVE + 60);
-      c.lineTo(bx - ext, PAVE + 60);
-    }
-    c.closePath();
-    c.clip();
-  };
+  const RIM_U = (rim.front[1] + rim.back[1]) / 2; // the mouth's height, bird units (negative)
   const g = {
     time: DURATION,
     score: 0,
     done: false,
     elapsed: 0,
+    bx: 520, // the bin's feet
+    by: 700,
+    walkT: 0, // walk cycle, in steps
+    moving: 0,
+    target: null, // where a pointer sent it
+    grabbed: null, // pointer holding the bin: offset from finger to feet
     open: 0, // the lid, 0 shut .. 1 up
     holding: false,
+    // the canary: 'in' (under the lid) | 'rise' | 'up' | 'reach' | 'pull' | 'pop'
+    can: 'in',
+    canT: 0,
+    head: [0, 0], // the head, relative to the mouth, px
+    held: null, // what it has in its beak
+    aim: null, // what it is reaching for
     items: [],
     pops: [],
-    litter: [], // missed rubbish left lying in the gutter
-    wind: [], // streaks
-    spawnT: 1.2,
+    litter: [],
+    wind: [],
+    spawnT: 1.0,
     streak: 0,
     binned: 0,
     swallowed: 0,
     missed: 0,
     letPast: 0,
+    knocked: 0,
+    slams: 0,
     gulp: 0,
     spit: 0,
+    sing: 0,
+    jam: 0,
     lastKeep: false,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   function pop(text, x, y, color = INK, size = 44) {
-    // stack above any pop still showing nearby, rather than on top of it
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
@@ -128,120 +166,143 @@ export default function create(env) {
     g.score = Math.max(0, g.score + n);
   };
 
+  // The bin's geometry, for its current place (also for the tests and bots).
+  g.scale = () => depthScale(g.by);
+  g.ks = () => (SIZE * g.scale()) / 400; // px per bird unit
+  g.mouth = () => [g.bx, g.by + RIM_U * g.ks()];
+  g.inLane = (it) => Math.abs(it.lane - g.by) < LANE;
+  const itemR = (it) => ITEM_R * depthScale(it.lane);
+
   function spawn() {
     const p = progress();
     // the first one is always rubbish; never three keepers in a row
-    const keepChance = g.items.length === 0 && g.binned + g.missed === 0 ? 0 : lerp(0.22, 0.45, p);
-    let keep = g.forceKeep || rng() < keepChance;
-    if (g.lastKeep && keep && !g.forceKeep && rng() < 0.5) keep = false;
-    g.forceKeep = false;
+    const keepChance = g.binned + g.missed + g.items.length === 0 ? 0 : lerp(0.35, 0.5, p);
+    let keep = rng() < keepChance;
+    if (g.lastKeep && keep && rng() < 0.5) keep = false;
     g.lastKeep = keep;
     const kind = keep ? KEEP[Math.floor(rng() * KEEP.length)] : RUBBISH[Math.floor(rng() * RUBBISH.length)];
     const k = KINDS[kind];
-    let speed = lerp(330, 560, p) * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
-    // never catch up with the one in front: arrive at least half a second after it
-    const prev = g.coming().pop();
-    if (prev) {
-      const dist = W + 80 - CROSS_X;
-      const after = g.eta(prev) + 0.5;
-      if (dist / speed < after) speed = dist / after;
-    }
-    // later, a gust may hurry it along part of the way
-    const gust = g.elapsed > 14 && rng() < lerp(0.1, 0.4, p) ? 1100 - rng() * 300 : null;
-    g.items.push({
-      kind,
-      rub: k.rub,
-      x: W + 80,
-      y: MOUTH_Y,
-      vx: -speed,
-      t: 0,
-      phase: rng() * 6,
-      amp: 50 + rng() * 70,
-      hop: 220 + rng() * 140,
-      gust,
-      gusted: false,
-      state: 'come', // 'come' | 'in' | 'over' | 'spat'
-      rot: 0,
-      spin: (rng() - 0.5) * 4,
-      vy: 0,
-      life: 0,
-    });
-    let gap = lerp(1.5, 0.6, p) * (0.75 + rng() * 0.5);
-    // later, something that isn't rubbish often follows hard on rubbish's heels
-    if (!keep && g.elapsed > 10 && rng() < lerp(0.2, 0.5, p)) {
-      gap = lerp(0.65, 0.5, p);
-      g.forceKeep = true;
-    }
-    g.spawnT = Math.max(0.5, gap);
+    // gentle for the first 15 s
+    const base = g.elapsed < 15 ? lerp(230, 300, g.elapsed / 15) : lerp(300, 520, p);
+    const speed = base * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
+    // early on, rubbish comes near the bin's lane; later, anywhere
+    const near = clamp(g.by + (rng() - 0.5) * lerp(160, 400, p), DEPTH0 + 8, DEPTH1 - 8);
+    // things that aren't rubbish tend to come your way (step aside, or keep
+    // the lid shut); rubbish comes anywhere, but near you at first
+    const anywhere = DEPTH0 + 8 + rng() * (DEPTH1 - DEPTH0 - 16);
+    const lane = !k.rub ? clamp(g.by + (rng() - 0.5) * 140, DEPTH0 + 8, DEPTH1 - 8) : g.elapsed < 8 || rng() < NEAR ? near : anywhere;
+    const gust = g.elapsed > 14 && rng() < lerp(0.1, 0.35, p) ? 1100 - rng() * 300 : null;
+    g.items.push({ kind, rub: k.rub, lane, x: W + LEAD_IN, y: lane, vx: -speed, vy: 0, t: 0, phase: rng() * 6, amp: 40 + rng() * 60, hop: 220 + rng() * 140, gust, gusted: false, state: 'come', rot: 0, spin: (rng() - 0.5) * 4, life: 0 });
+    g.spawnT = Math.max(0.45, lerp(1.25, 0.55, p) * (0.75 + rng() * 0.5));
   }
 
-  // Where it is on its way to the bin: its height at x.
-  function pathY(it) {
+  // How high it is above its lane's ground: it drifts about, and settles to
+  // the height of a bin's mouth as it comes up to the bin.
+  function altitude(it) {
     const k = KINDS[it.kind];
-    const dx = it.x - CROSS_X;
-    const fade = clamp((dx - 40) / 600, 0, 1);
-    if (k.move === 'flutter') return MOUTH_Y + Math.sin(it.phase + it.t * 3.2) * it.amp * fade - 10 * fade;
-    if (k.move === 'fly') return MOUTH_Y - 30 * fade + Math.sin(it.phase + it.t * 9) * 12 * fade;
-    if (k.move === 'bounce') return MOUTH_Y - Math.abs(Math.sin((Math.PI * dx) / it.hop)) * 110 * Math.min(1, fade + 0.6);
-    // the cat trots along the pavement, then leaps over the bin
+    const mouthH = -RIM_U * (SIZE * depthScale(it.lane)) / 400;
+    const dx = it.x - g.bx;
+    const fade = clamp((Math.abs(dx) - 40) / 600, 0, 1);
+    if (k.move === 'flutter') return mouthH + 10 + Math.sin(it.phase + it.t * 3.2) * it.amp * fade;
+    if (k.move === 'fly') return mouthH + 30 * fade + Math.sin(it.phase + it.t * 9) * 12 * fade;
+    if (k.move === 'bounce') return mouthH + Math.abs(Math.sin((Math.PI * dx) / it.hop)) * 100 * Math.min(1, fade + 0.5);
+    // the cat trots along, and leaps as it comes up to the bin
     const r = 260;
-    if (dx > r) return PAVE - 10;
-    const top = PAVE - 10 - (MOUTH_Y - 20);
-    return PAVE - 10 - top * (1 - (dx / r) * (dx / r)) * 1.0;
+    if (Math.abs(dx) > r) return 10;
+    return 10 + (mouthH + 20) * (1 - (dx / r) * (dx / r));
   }
 
-  // Bot and test helpers: things still to come, nearest first, and how soon
-  // each reaches the bin.
+  // Bot and test helpers.
   g.coming = () => g.items.filter((it) => it.state === 'come').sort((a, b) => a.x - b.x);
-  g.eta = (it) => (it.x - CROSS_X) / -it.vx;
+  g.eta = (it) => (it.x - g.bx) / -it.vx;
+  g.distToMouth = (it) => {
+    const [mx, my] = g.mouth();
+    return Math.hypot(it.x - mx, it.y - my);
+  };
 
-  function arrive(it) {
-    const open = g.open > 0.55;
-    if (open && it.rub) {
-      it.state = 'in';
-      it.life = 0.35;
+  // Into the bin it goes: rubbish scores, anything else is spat out.
+  function stow(it, how = 'in') {
+    const [mx, my] = g.mouth();
+    g.gape = 0;
+    if (it.rub) {
+      it.state = 'gone';
+      it.dead = true;
       g.binned++;
       g.streak++;
       add(1);
       g.gulp = 0.25;
       sfx('catch', { pitch: Math.min(12, g.streak) });
-      pop('+1', BIN_X, RIM_Y - 120, PAL.green, 44);
+      pop(how === 'slam' ? 'Slam! +1' : '+1', mx, my - 130, PAL.green, 44);
       if (g.streak % 5 === 0) {
-        // the bonus grows with the run: +1 at five, +2 at ten, ...
         const b = g.streak / 5;
         add(b);
         sfx('bloom');
         g.sing = 0.8;
-        pop(`${g.streak} in a row!  +${b}`, BIN_X + 60, RIM_Y - 180, PAL.magenta, 46);
+        pop(`${g.streak} in a row!  +${b}`, mx + 60, my - 190, PAL.magenta, 46);
       }
-    } else if (open) {
-      // swallowed something that wasn't rubbish: spit it out
+    } else {
       it.state = 'spat';
       it.vx = -260 - rng() * 80;
       it.vy = -680;
-      it.x = BIN_X;
-      it.y = RIM_Y - 10;
+      it.x = mx;
+      it.y = my - 10;
+      it.lane = g.by;
       g.swallowed++;
       g.streak = 0;
       add(-1);
-      g.spit = 0.5;
+      g.spit = 0.6;
       g.jam = JAM;
       sfx('squawk');
       env.vibrate?.(120);
-      pop(`Not rubbish!  −1`, BIN_X + 40, RIM_Y - 150, PAL.brick, 46);
-    } else {
-      // the lid's shut: over the top it goes
-      it.state = 'over';
-      it.vy = it.kind === 'cat' ? -200 : -380;
-      it.vx = Math.min(it.vx, -300);
-      sfx(it.rub ? 'bonk' : 'tick');
-      if (it.rub) {
-        g.missed++;
-        g.streak = 0;
-        pop('Missed', BIN_X + 30, RIM_Y - 110, PAL.slate, 36);
-      } else {
-        g.letPast++;
-        if (it.kind === 'cat') sfx('ding', { pitch: -5 });
+      pop('Not rubbish!  −1', mx + 40, my - 160, PAL.brick, 46);
+    }
+    if (g.held === it) g.held = null;
+    if (g.aim === it) g.aim = null;
+  }
+
+  // The lid comes down: whatever the canary has, or is just reaching, goes
+  // in with it, and so does anything right at the mouth.
+  function slam() {
+    const [mx, my] = g.mouth();
+    const ks = g.ks();
+    if (g.held) {
+      g.slams++;
+      stow(g.held, 'slam');
+    }
+    if (g.aim && g.aim.state === 'come' && Math.hypot(g.aim.x - mx - g.head[0], g.aim.y - my - g.head[1]) < itemR(g.aim) + 40 * ks) {
+      g.slams++;
+      stow(g.aim, 'slam');
+    }
+    for (const it of g.items) {
+      if (it.state !== 'come' || !g.inLane(it)) continue;
+      if (Math.abs(it.x - mx) < (MOUTH_R + 30) * ks + itemR(it) && it.y < my + 10 * ks && it.y > my - 140 * ks) {
+        g.slams++;
+        stow(it, 'slam');
+      }
+    }
+    g.aim = null;
+    g.can = 'pop';
+    g.canT = 0;
+    sfx('switch');
+  }
+
+  // The lid flies up: anything just above or behind it is knocked back.
+  function knock() {
+    const [mx, my] = g.mouth();
+    const ks = g.ks();
+    for (const it of g.items) {
+      if (it.state !== 'come' || !g.inLane(it)) continue;
+      const dx = it.x - mx;
+      // above the shut lid, over its length (not at the mouth, where the
+      // canary will have it)
+      if (dx > -150 * ks && dx < 110 * ks && it.y < my - 70 * ks && it.y > my - 230 * ks) {
+        it.state = 'knocked';
+        it.vx = -200 - rng() * 120;
+        it.vy = -620 - rng() * 200;
+        it.spin = (rng() < 0.5 ? -1 : 1) * 9;
+        g.knocked++;
+        sfx('bonk');
+        pop('Bonk!', it.x, it.y - 50, PAL.slate, 34);
       }
     }
   }
@@ -255,16 +316,161 @@ export default function create(env) {
       return;
     }
 
-    // The lid: up while the action is held.
+    // Walking: the stick, or towards where a pointer sent it.
+    const p = input.pointer;
+    let lidHeld = !!input.action;
+    if (p.active) {
+      const sc = g.scale();
+      if (input.actionPressed) {
+        const onBin = Math.abs(p.x - g.bx) < 130 * sc && p.y > g.by - 320 * sc && p.y < g.by + 30;
+        g.grabbed = onBin ? [g.bx - p.x, g.by - p.y] : null;
+      }
+      if (p.down || input.action) g.target = g.grabbed ? [p.x + g.grabbed[0], p.y + g.grabbed[1]] : [p.x, p.y];
+      lidHeld = !!input.action && !!g.grabbed;
+      if (!input.action) g.grabbed = null;
+    }
+    const x0 = g.bx;
+    const y0 = g.by;
+    if (p.active && g.target) {
+      const dx = g.target[0] - g.bx;
+      const dy = g.target[1] - g.by;
+      g.bx += clamp(dx * 8, -WALK, WALK) * dt;
+      g.by += clamp(dy * 8, -STEP, STEP) * dt;
+    } else {
+      g.bx += clamp(input.x, -1, 1) * WALK * dt;
+      g.by += clamp(input.y, -1, 1) * STEP * dt;
+    }
+    g.bx = clamp(g.bx, X0, X1);
+    g.by = clamp(g.by, DEPTH0, DEPTH1);
+    const moved = Math.hypot(g.bx - x0, g.by - y0);
+    g.moving = approach(g.moving, moved / dt > 20 ? 1 : 0, 12, dt);
+    g.walkT += moved / (60 * g.scale());
+
+    // The lid: up while held (and not spluttering).
     const was = g.holding;
-    g.holding = !!input.action;
+    g.holding = lidHeld;
     if (g.holding && !was) sfx('switch');
-    // spluttering after a swallow, the lid stays shut for a moment
-    g.jam = Math.max(0, (g.jam || 0) - dt);
+    g.jam = Math.max(0, g.jam - dt);
+    const wasOpen = g.open;
     g.open = clamp(g.open + (g.holding && g.jam <= 0 ? 9 : -12) * dt, 0, 1);
+    if (wasOpen < 0.05 && g.open >= 0.05) knock();
+    if (wasOpen >= 0.5 && g.open < 0.5 && g.can !== 'in' && g.can !== 'pop') slam();
     g.gulp = Math.max(0, g.gulp - dt);
     g.spit = Math.max(0, g.spit - dt);
-    g.sing = Math.max(0, (g.sing || 0) - dt);
+    g.sing = Math.max(0, g.sing - dt);
+
+    // The canary.
+    const ks = g.ks();
+    const [mx, my] = g.mouth();
+    g.canT += dt;
+    const ready = [0, -NECK_UP * ks];
+    const toward = (pt, rate) => {
+      const dx = pt[0] - g.head[0];
+      const dy = pt[1] - g.head[1];
+      const d = Math.hypot(dx, dy);
+      const step = rate * dt;
+      if (d <= step) g.head = [pt[0], pt[1]];
+      else g.head = [g.head[0] + (dx / d) * step, g.head[1] + (dy / d) * step];
+      return d <= step;
+    };
+    // how long the lid has been gaping without a catch
+    g.gape = g.open > 0.5 ? (g.gape || 0) + dt : 0;
+    const bored = g.gape > FRESH;
+    if (g.gape > WHISK && g.score > 0 && !g.held) {
+      g.whiskT = (g.whiskT || 0) - dt;
+      if (g.whiskT <= 0) {
+        // the wind takes the top piece back out of the gaping bin
+        g.whiskT = WHISK_EVERY;
+        g.whisked = (g.whisked || 0) + 1;
+        g.streak = 0;
+        add(-1);
+        const kind = RUBBISH[Math.floor(rng() * RUBBISH.length)];
+        g.items.push({ kind, rub: true, lane: g.by, x: mx, y: my - 10, vx: -380 - rng() * 120, vy: -520, t: 0, phase: 0, amp: 0, hop: 260, gust: null, gusted: true, state: 'over', landed: true, rot: 0, spin: 7, life: 0 });
+        sfx('wind');
+        sfx('wilt');
+        pop('Whoosh!  −1', mx - 40, my - 170, PAL.slate, 42);
+      }
+    } else g.whiskT = 0.3;
+    if (g.can === 'in') {
+      g.head = [0, 0];
+      if (g.open > 0.5 && !bored) {
+        g.can = 'rise';
+        g.canT = 0;
+      }
+    } else if (g.can === 'rise') {
+      // it climbs out at its own pace: a lid flapped up and down never gets it out
+      if (toward(ready, RISE_SPEED)) g.can = 'up';
+    } else if (g.can === 'up' && bored) {
+      // nothing to do: it ducks back down into the bin
+      if (toward([0, 40 * ks], PULL_SPEED)) {
+        g.can = 'in';
+        pop('Yawn…', mx, my - 150, PAL.slate, 32);
+      }
+    } else if (g.can === 'up') {
+      toward(ready, HEAD_SPEED);
+      // the nearest thing within reach in its lane
+      let best = null;
+      let bd = Infinity;
+      for (const it of g.items) {
+        if (it.state !== 'come' || !g.inLane(it)) continue;
+        const d = Math.hypot(it.x - mx, it.y - (my - NECK_UP * ks));
+        if (d < (NECK_REACH + 20) * ks + itemR(it) && d < bd) {
+          best = it;
+          bd = d;
+        }
+      }
+      if (best && g.spit <= 0) {
+        g.aim = best;
+        g.can = 'reach';
+        g.canT = 0;
+      }
+    } else if (g.can === 'reach') {
+      const it = g.aim;
+      if (!it || it.state !== 'come' || !g.inLane(it)) {
+        g.aim = null;
+        g.can = 'up';
+      } else {
+        // stretch towards it, as far as the neck goes
+        let rx = it.x - mx;
+        let ry = it.y - my;
+        const d = Math.hypot(rx, ry);
+        const max = NECK_REACH * ks;
+        if (d > max) {
+          rx *= max / d;
+          ry *= max / d;
+        }
+        toward([rx, ry], HEAD_SPEED);
+        if (Math.hypot(it.x - mx - g.head[0], it.y - my - g.head[1]) < itemR(it) + 26 * ks) {
+          g.held = it;
+          g.aim = null;
+          it.state = 'held';
+          g.can = 'pull';
+          g.canT = 0;
+          sfx('tick');
+        } else if (d > max + itemR(it) + 60 * ks) {
+          g.aim = null;
+          g.can = 'up';
+        }
+      }
+    } else if (g.can === 'pull') {
+      // down into the bin with it
+      if (toward([0, 40 * ks], PULL_SPEED)) {
+        stow(g.held);
+        g.can = 'pop';
+        g.canT = 0;
+      }
+    } else if (g.can === 'pop') {
+      if (g.open < 0.5) {
+        g.head = [0, 0];
+        if (g.canT > 0.18) g.can = 'in';
+      } else if (toward(ready, HEAD_SPEED * 0.8)) g.can = 'up';
+    }
+    if (g.held) {
+      // in the beak, which points into the wind
+      g.held.x = mx + g.head[0] + 70 * ks;
+      g.held.y = my + g.head[1] + 22 * ks;
+      g.held.lane = g.by;
+    }
 
     g.spawnT -= dt;
     if (g.spawnT <= 0) spawn();
@@ -275,31 +481,57 @@ export default function create(env) {
       if (it.state === 'come') {
         if (it.gust && !it.gusted && it.x < it.gust) {
           it.gusted = true;
-          // a gust hurries it, but never to within half a second of the one ahead
-          const ahead = g.items.filter((o) => o !== it && o.state === 'come' && o.x < it.x).sort((p, q) => q.x - p.x)[0];
-          let vx = it.vx * 1.55;
-          if (ahead) {
-            const soonest = g.eta(ahead) + 0.5;
-            if ((it.x - CROSS_X) / -vx < soonest) vx = Math.max(vx, -(it.x - CROSS_X) / soonest);
-          }
-          it.vx = Math.min(it.vx, vx);
+          it.vx *= 1.5;
           for (let i = 0; i < 3; i++) g.wind.push({ x: it.x + 40 + i * 30, y: it.y - 40 + i * 30, life: 0.6 });
         }
-        const px = it.x;
+        // an open bin smells interesting: cats and sparrows nearby turn
+        // towards it
+        if (g.open > 0.5 && (it.kind === 'cat' || it.kind === 'sparrow') && it.x - g.bx > 0 && it.x - g.bx < 350) {
+          it.lane += clamp(g.by - it.lane, -CURIOUS * dt, CURIOUS * dt);
+        }
         it.x += it.vx * dt;
-        it.y = pathY(it);
-        if (px > CROSS_X && it.x <= CROSS_X) arrive(it);
-      } else if (it.state === 'in') {
-        // dropping into the bin
-        it.x = approach(it.x, BIN_X, 10, dt);
-        it.y += 500 * dt;
-        it.life -= dt;
-        if (it.life <= 0) it.dead = true;
-      } else {
+        it.y = it.lane - altitude(it);
+        if (!g.inLane(it)) {
+          if (it.x < -120) {
+            it.dead = true;
+            if (it.rub) g.missed++;
+          }
+          continue;
+        }
+        const r = itemR(it);
+        // straight through the open mouth: in it falls
+        // (only what comes down into it: something passing above the rim
+        // needs the canary)
+        if (g.open > 0.55 && g.jam <= 0 && it.y > my - 4 * ks && Math.hypot(it.x - mx, it.y - my) < MOUTH_R * ks + r * 0.6) {
+          stow(it);
+          continue;
+        }
+        // into a shut bin: over the top it goes
+        // (the painted rim is 187 bird units across)
+        const front = mx + 94 * ks;
+        if (g.open < 0.3 && it.x + r > mx - 94 * ks && it.x - r * 0.5 < front && it.y > my - 150 * ks && it.y < g.by) {
+          it.state = 'over';
+          it.vy = it.kind === 'cat' ? -260 : -420;
+          it.vx = Math.min(it.vx, -300);
+          sfx(it.rub ? 'bonk' : 'tick');
+          if (it.rub) {
+            g.missed++;
+            g.streak = 0;
+            pop('Missed', mx + 30, my - 110, PAL.slate, 36);
+          } else {
+            g.letPast++;
+            if (it.kind === 'cat') sfx('ding', { pitch: -5 });
+          }
+        }
+        if (it.x < -120) {
+          it.dead = true;
+          if (it.rub) g.missed++;
+        }
+      } else if (it.state === 'over' || it.state === 'spat' || it.state === 'knocked') {
         it.vy += 1500 * dt;
         it.x += it.vx * dt;
         it.y += it.vy * dt;
-        const floor = it.kind === 'cat' || it.kind === 'boot' || it.kind === 'tin' ? PAVE - 10 : PAVE + 30;
+        const floor = it.lane - 10;
         if (it.kind === 'sparrow') {
           it.vy = Math.min(it.vy, -40);
         } else if (it.y > floor) {
@@ -307,9 +539,10 @@ export default function create(env) {
           it.vy = -Math.abs(it.vy) * 0.3;
           if (it.state === 'over' && it.rub && !it.landed) {
             it.landed = true;
-            g.litter.push({ kind: it.kind, x: it.x - 60 - rng() * 120, rot: rng() * 6 });
+            g.litter.push({ kind: it.kind, x: it.x - 60 - rng() * 120, lane: it.lane, rot: rng() * 6 });
             if (g.litter.length > 8) g.litter.shift();
           }
+          if (it.state === 'knocked') it.state = 'over';
         }
         if (it.x < -120 || it.y < -150) it.dead = true;
       }
@@ -322,11 +555,11 @@ export default function create(env) {
       w.life -= dt;
     }
     g.wind = g.wind.filter((w) => w.life > 0);
-    for (const p of g.pops) {
-      p.life -= dt;
-      p.y -= 40 * dt;
+    for (const q of g.pops) {
+      q.life -= dt;
+      q.y -= 40 * dt;
     }
-    g.pops = g.pops.filter((p) => p.life > 0);
+    g.pops = g.pops.filter((q) => q.life > 0);
   };
 
   g.hud = () => `Points ${g.score}${g.streak >= 2 ? ` · ${g.streak} in a row` : ''}`;
@@ -338,11 +571,11 @@ export default function create(env) {
   };
 
   // ---------- drawing ----------
-
-  function drawItem(c, it, x, y, rot) {
+  function drawItem(c, it, x, y, rot, sc = 1) {
     const k = KINDS[it.kind];
     c.save();
     c.translate(x, y);
+    if (sc !== 1) c.scale(sc, sc);
     const flap = it.kind === 'sparrow' || it.kind === 'cat';
     if (!flap) c.rotate(rot);
     const h = (it.kind === 'cat' ? 92 : it.kind === 'sparrow' ? 56 : it.kind === 'letter' ? 52 : 64) * BIG;
@@ -531,95 +764,6 @@ export default function create(env) {
       ink(c, 1.6);
     }
   }
-
-  // The stand-in canary's head, larger than the stand-in drawing's, peeping
-  // out under the lid's front edge and watching whatever comes next.
-  function drawHead(c, shake) {
-    const x = BIN_X + 58 * K + shake;
-    const y = RIM_Y - 30;
-    const next = g.coming()[0];
-    const tx = next ? next.x : W;
-    const ty = next ? next.y : MOUTH_Y;
-    const a = Math.atan2(ty - y, tx - x);
-    blob(c, x, y, 40, 34, 7, 0.05);
-    wash(c, '#f2d24a');
-    ink(c, 2.4);
-    hatch(c, x - 40, y - 34, x + 40, y + 34, 10, 0.15, 2);
-    // the beak points into the wind, open while squawking or singing
-    const open = g.spit > 0 || g.sing > 0 ? 9 : 2;
-    poly(c, [[x + 30, y - 4 - open], [x + 74, y + 2], [x + 30, y + 8 + open]], 3, 0.6);
-    wash(c, PAL.ochre);
-    ink(c, 2);
-    // a round staring eye, its pupil following the next thing on the wind
-    const ex = x + 12;
-    const ey = y - 10;
-    c.beginPath();
-    c.arc(ex, ey, 13, 0, Math.PI * 2);
-    c.fillStyle = '#fff';
-    c.fill();
-    ink(c, 2);
-    c.stroke();
-    c.beginPath();
-    c.arc(ex + Math.cos(a) * 6, ey + Math.sin(a) * 6, 5, 0, Math.PI * 2);
-    c.fillStyle = INK;
-    c.fill();
-    // a little crest
-    for (let i = 0; i < 3; i++) {
-      c.beginPath();
-      c.moveTo(x - 10 + i * 8, y - 32);
-      c.quadraticCurveTo(x - 22 + i * 6, y - 56, x - 34 + i * 8, y - 52);
-      ink(c, 2.4, '#c9a42a');
-      c.stroke();
-    }
-  }
-
-  // The Canary: the bin's body, then its lid (with the canary's head under
-  // it) hinged up at the back. Faces right, into the wind.
-  function drawCanary(c, t) {
-    const a = g.open * OPEN_ANGLE + (g.spit > 0 ? Math.sin(g.spit * 40) * 0.08 : 0);
-    const shake = g.gulp > 0 && !env.reduceMotion ? Math.sin(g.gulp * 60) * 3 : 0;
-    const [hx, hy] = HINGE;
-    const lidSheet = 'sprites.garbagecanaryLid';
-    // the dark open mouth
-    if (g.open > 0.05 && !art('sprites.garbagecanaryLid')) {
-      // (the painted bin has its own dark open top)
-      c.save();
-      c.beginPath();
-      // along the rim, which slants on the painting
-      const tilt = Math.atan2(rim.back[1] - rim.front[1], rim.front[0] - rim.back[0]);
-      c.ellipse(BIN_X, RIM_Y + 4, 94 * K, 18 * g.open + 4, tilt, 0, Math.PI * 2);
-      c.fillStyle = '#2a2420';
-      c.fill();
-      c.restore();
-    }
-    const body = () => {
-      if (!drawSprite(c, lidSheet, 0, BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
-        c.save();
-        rimCut(c, false);
-        drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
-        c.restore();
-      }
-    };
-    const lid = () => {
-      c.save();
-      c.translate(hx, hy);
-      c.rotate(-a);
-      c.translate(-hx, -hy);
-      const at = [BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
-      const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
-      const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...at)) || drawSprite(c, lidSheet, 1, ...at);
-      if (!drawn) {
-        rimCut(c, true);
-        drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
-        if (!art('subject.garbagecanary')) drawHead(c, shake);
-      }
-      c.restore();
-    };
-    body();
-    // things dropping in show between the mouth and the bin's front
-    lid();
-  }
-
   function drawStreet(c) {
     // the sky and the houses across the street
     band(c, 0, 0, W, 360, PAL.sky, 0.55, 1);
@@ -668,6 +812,216 @@ export default function create(env) {
     ink(c, 2);
   }
 
+  // ---------- the bin and its canary ----------
+
+  // Where the bin is drawn: its feet, size, and the lid's hinge.
+  function binPose() {
+    const S = SIZE * g.scale();
+    const ks = S / 400;
+    const bob = env.reduceMotion ? 0 : g.moving * Math.abs(Math.sin(g.walkT * Math.PI)) * 5 * ks;
+    const shake = g.gulp > 0 && !env.reduceMotion ? Math.sin(g.gulp * 60) * 3 : 0;
+    const x = g.bx + shake;
+    const y = g.by - bob;
+    return { x, y, S, ks, hinge: [x - rim.hinge[0] * ks, y + rim.hinge[1] * ks] };
+  }
+  // The portrait cut along its rim, for when the bin's pieces aren't painted.
+  function rimCut(c, P, above) {
+    const [fx, fy] = [P.x - rim.front[0] * P.ks, P.y + rim.front[1] * P.ks];
+    const [bx, by] = [P.x - rim.back[0] * P.ks, P.y + rim.back[1] * P.ks];
+    const ext = 120 * P.ks;
+    const sl = (fy - by) / (fx - bx);
+    const y0 = by - sl * ext;
+    const y1 = fy + sl * ext;
+    c.beginPath();
+    c.moveTo(bx - ext, y0);
+    c.lineTo(fx + ext, y1);
+    if (above) {
+      c.lineTo(fx + ext, y1 - 400 * P.ks);
+      c.lineTo(bx - ext, y0 - 400 * P.ks);
+    } else {
+      c.lineTo(fx + ext, P.y + 60);
+      c.lineTo(bx - ext, P.y + 60);
+    }
+    c.closePath();
+    c.clip();
+  }
+  const cellAt = (P) => [P.x, P.y + 0.033 * P.S, { h: 1.05 * P.S, whole: true, flip: true }];
+
+  function drawBody(c, t, P) {
+    // the bin's shadow on the ground
+    c.save();
+    c.globalAlpha = 0.22;
+    c.fillStyle = INK;
+    c.beginPath();
+    c.ellipse(P.x, g.by + 4, 110 * P.ks, 18 * P.ks, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+    const walking = g.moving > 0.4;
+    const frame = Math.floor(g.walkT * 2) % 4;
+    if (walking && drawSprite(c, 'sprites.garbagecanaryWalk', frame, ...cellAt(P))) return;
+    if (drawSprite(c, 'sprites.garbagecanaryLid', 0, ...cellAt(P))) return;
+    c.save();
+    rimCut(c, P, false);
+    drawBird(c, 'garbagecanary', { x: P.x, y: P.y, size: P.S, t, flip: true });
+    c.restore();
+    if (!art('subject.garbagecanary') || g.open > 0.05) {
+      // the dark open mouth (the painted bin piece has its own)
+      const [mx, my] = [P.x, P.y + RIM_U * P.ks];
+      c.save();
+      c.beginPath();
+      const tilt = Math.atan2(rim.back[1] - rim.front[1], rim.front[0] - rim.back[0]);
+      c.ellipse(mx, my + 4 * P.ks, 94 * P.ks, 22 * P.ks, tilt, 0, Math.PI * 2);
+      c.fillStyle = '#2a2420';
+      c.fill();
+      c.restore();
+    }
+  }
+
+  // The lid shut down (or swinging) with the canary's head peeping under it.
+  function drawLidWithHead(c, t, P, angle, lift) {
+    c.save();
+    c.translate(P.hinge[0], P.hinge[1] - lift);
+    c.rotate(-angle);
+    c.translate(-P.hinge[0], -P.hinge[1]);
+    const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
+    const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...cellAt(P))) || drawSprite(c, 'sprites.garbagecanaryLid', 1, ...cellAt(P));
+    if (!drawn) {
+      rimCut(c, P, true);
+      drawBird(c, 'garbagecanary', { x: P.x, y: P.y, size: P.S, t, flip: true });
+    }
+    c.restore();
+  }
+
+  // The lid alone, up on its hinge while the canary is out.
+  function drawLidOnly(c, P, angle) {
+    c.save();
+    c.translate(P.hinge[0], P.hinge[1]);
+    c.rotate(-angle);
+    c.translate(-P.hinge[0], -P.hinge[1]);
+    if (!drawSprite(c, 'sprites.garbagecanaryLidOnly', 0, ...cellAt(P))) {
+      // stand-in: a dented galvanised lid with a handle on top
+      const ks = P.ks;
+      const cx = P.x + 8 * ks;
+      const cy = P.y + (RIM_U - 14) * ks;
+      c.beginPath();
+      c.ellipse(cx, cy, 108 * ks, 26 * ks, -0.06, Math.PI, 0);
+      c.lineTo(cx + 112 * ks, cy + 8 * ks);
+      c.ellipse(cx, cy + 8 * ks, 112 * ks, 12 * ks, -0.06, 0, Math.PI);
+      c.closePath();
+      wash(c, '#a8aeb0');
+      ink(c, 2.4);
+      hatch(c, cx - 110 * ks, cy - 26 * ks, cx + 110 * ks, cy + 14 * ks, 9, 0.18, 1);
+      c.fillStyle = 'rgba(160,90,40,0.35)';
+      for (const [dx, dy] of [[-50, -8], [30, -14], [70, 0]]) {
+        c.beginPath();
+        c.arc(cx + dx * ks, cy + dy * ks, 5 * ks, 0, Math.PI * 2);
+        c.fill();
+      }
+      poly(c, [[cx - 24 * ks, cy - 24 * ks], [cx - 20 * ks, cy - 44 * ks], [cx + 20 * ks, cy - 44 * ks], [cx + 24 * ks, cy - 24 * ks]], 5, 0.6, false);
+      ink(c, 5 * ks + 1, '#8a9094');
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  // The canary out of the bin: its neck from the mouth, its head, and what
+  // it has in its beak. Clipped at the mouth, so going down into the bin
+  // hides it.
+  function drawCanaryOut(c, t, P) {
+    const ks = P.ks;
+    const [mx, my] = [P.x, P.y + RIM_U * ks];
+    const [hx, hy] = [mx + g.head[0], my + g.head[1]];
+    c.save();
+    c.beginPath();
+    c.rect(mx - 600 * ks, my - 700 * ks, 1200 * ks, 700 * ks + 6 * ks);
+    c.clip();
+    const pose = g.spit > 0 ? 4 : g.sing > 0 ? 5 : g.can === 'reach' ? 1 : g.can === 'pull' ? (g.head[1] < -30 * ks ? 2 : 3) : 0;
+    const ang = Math.atan2(g.head[0], -g.head[1]);
+    const cellH = 1.05 * P.S;
+    c.save();
+    c.translate(mx, my);
+    c.rotate(ang);
+    const painted = drawSprite(c, 'sprites.garbagecanaryNeck', pose, 0, (1 - NECK_BASE) * cellH, { h: cellH, whole: true, flip: true });
+    c.restore();
+    if (!painted) {
+      // stand-in: a feathery yellow neck and the canary's head
+      const bx = mx;
+      const by = my + 10 * ks;
+      const cx = bx + g.head[0] * 0.15;
+      const cy = (by + hy) / 2;
+      c.beginPath();
+      c.moveTo(bx, by);
+      c.quadraticCurveTo(cx, cy, hx, hy + 14 * ks);
+      ink(c, 40 * ks, INK);
+      c.stroke();
+      ink(c, 34 * ks, '#efcf46');
+      c.stroke();
+      for (let i = 1; i < 4; i++) {
+        const u = i / 4;
+        const px = (1 - u) * (1 - u) * bx + 2 * u * (1 - u) * cx + u * u * hx;
+        const py = (1 - u) * (1 - u) * by + 2 * u * (1 - u) * cy + u * u * (hy + 14 * ks);
+        c.beginPath();
+        c.arc(px - 6 * ks, py, 6 * ks, 0.3, 2.6);
+        ink(c, 1.4, '#a8862a');
+        c.stroke();
+      }
+      // the head: facing into the wind, or at what it reaches for
+      const aimAt = g.aim || g.held;
+      const dir = aimAt && g.can === 'reach' ? Math.atan2(aimAt.y - hy, aimAt.x - hx) : g.spit > 0 || g.sing > 0 ? -0.6 : g.can === 'pull' ? 0.5 : 0;
+      blob(c, hx, hy, 46 * ks, 40 * ks, 7, 0.05);
+      wash(c, '#f2d24a');
+      ink(c, 2.4);
+      hatch(c, hx - 46 * ks, hy - 40 * ks, hx + 46 * ks, hy + 40 * ks, 9, 0.12, 2);
+      const open = g.spit > 0 || g.sing > 0 || (g.can === 'reach' && !g.held) ? 0.32 : 0.06;
+      c.save();
+      c.translate(hx, hy);
+      c.rotate(dir);
+      for (const s of [-1, 1]) {
+        poly(c, [[30 * ks, 0], [100 * ks, s * open * 34 * ks], [30 * ks, s * 13 * ks]], 3 + s, 0.4);
+        wash(c, PAL.ochre);
+        ink(c, 1.8);
+      }
+      c.restore();
+      c.beginPath();
+      c.arc(hx + 10 * ks, hy - 13 * ks, 16 * ks, 0, Math.PI * 2);
+      c.fillStyle = '#fff';
+      c.fill();
+      ink(c, 2);
+      c.stroke();
+      c.beginPath();
+      c.arc(hx + 10 * ks + Math.cos(dir) * 7 * ks, hy - 13 * ks + Math.sin(dir) * 7 * ks, 6 * ks, 0, Math.PI * 2);
+      c.fillStyle = INK;
+      c.fill();
+      for (let i = 0; i < 3; i++) {
+        c.beginPath();
+        c.moveTo(hx - 10 * ks + i * 10 * ks, hy - 38 * ks);
+        c.quadraticCurveTo(hx - 26 * ks + i * 8 * ks, hy - 68 * ks, hx - 42 * ks + i * 10 * ks, hy - 62 * ks);
+        ink(c, 2.4, '#c9a42a');
+        c.stroke();
+      }
+    }
+    if (g.held) drawItem(c, g.held, g.held.x, g.held.y, g.held.rot, depthScale(g.by) * 0.9);
+    c.restore();
+  }
+
+  function drawBin(c, t) {
+    const P = binPose();
+    const angle = g.open * OPEN_ANGLE + (g.spit > 0 && g.open < 0.5 ? Math.sin(g.spit * 40) * 0.08 : 0);
+    drawBody(c, t, P);
+    const out = g.can !== 'in' && !(g.can === 'pop' && g.open < 0.5);
+    if (!out && g.can === 'in' && g.open > 0.05) {
+      // up, with the canary down inside (bored, or not yet risen)
+      drawLidOnly(c, P, angle);
+    } else if (out) {
+      drawCanaryOut(c, t, P);
+      drawLidOnly(c, P, angle);
+    } else {
+      // after a slam, the head pops back up under the lid
+      const lift = g.can === 'pop' ? Math.sin(Math.min(1, g.canT / 0.18) * Math.PI) * 8 * P.ks : 0;
+      drawLidWithHead(c, t, P, angle, lift);
+    }
+  }
+
   g.draw = (c, t) => {
     scene(c, 'garbagecanary', W, H, drawStreet);
 
@@ -682,24 +1036,45 @@ export default function create(env) {
       c.restore();
     }
 
-    for (const l of g.litter) drawItem(c, { kind: l.kind, t: 0 }, l.x, PAVE + 34, l.rot);
-
-    // things dropping into the bin go behind its front
-    for (const it of g.items) if (it.state === 'in') drawItem(c, it, it.x, it.y, it.rot);
-    drawCanary(c, t);
+    // Everything in depth order: litter, the things on the wind and the bin.
+    const list = [];
+    for (const l of g.litter) list.push([l.lane - 1, () => drawItem(c, { kind: l.kind, t: 0 }, l.x, l.lane - 6, l.rot, depthScale(l.lane))]);
     for (const it of g.items) {
-      if (it.state === 'in') continue;
-      // a soft shadow on the pavement shows where it is
-      if (it.state === 'come') {
-        c.save();
-        c.globalAlpha = 0.18;
-        c.fillStyle = INK;
-        c.beginPath();
-        c.ellipse(it.x, PAVE + 20, 30, 6, 0, 0, Math.PI * 2);
-        c.fill();
-        c.restore();
-      }
-      drawItem(c, it, it.x, it.y, it.rot);
+      if (it.state === 'held' || it.dead) continue;
+      list.push([it.lane, () => {
+        if (it.state === 'come') {
+          // its shadow on the ground, darker when it's in the bin's lane
+          c.save();
+          c.globalAlpha = g.inLane(it) ? 0.38 : 0.16;
+          c.fillStyle = INK;
+          c.beginPath();
+          c.ellipse(it.x, it.lane, 30 * depthScale(it.lane), 6 * depthScale(it.lane), 0, 0, Math.PI * 2);
+          c.fill();
+          c.restore();
+        }
+        drawItem(c, it, it.x, it.y, it.rot, depthScale(it.lane));
+      }]);
+    }
+    list.push([g.by + 0.5, () => drawBin(c, t)]);
+    list.sort((a, b) => a[0] - b[0]);
+    for (const [, f] of list) f();
+
+    // Coming in from the right: an arrow at the edge at each thing's height,
+    // bold when it's in the bin's lane, gold when it isn't rubbish.
+    for (const it of g.items) {
+      if (it.state !== 'come' || it.x < W - 40) continue;
+      const lane = g.inLane(it);
+      const ay = clamp(it.y, 120, H - 40);
+      const k = (lane ? 1.9 : 1.3) * depthScale(it.lane);
+      c.save();
+      c.translate(W - 30, ay);
+      c.scale(k, k);
+      c.globalAlpha = lane ? 0.95 : 0.55;
+      poly(c, [[-26, 0], [6, -20], [6, -8], [22, -8], [22, 8], [6, 8], [6, 20]], 70, 0.6);
+      wash(c, it.rub ? '#f4ecd8' : '#f2cf5a');
+      ink(c, lane ? 3 : 2, it.rub ? INK : '#a8862a');
+      c.stroke();
+      c.restore();
     }
 
     for (const p of g.pops) {
@@ -715,22 +1090,22 @@ export default function create(env) {
       c.restore();
     }
 
-    if (g.elapsed < 4.5) {
+    if (g.elapsed < 5) {
       c.save();
-      c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
+      c.globalAlpha = Math.min(1, 5 - g.elapsed);
       // two short lines, centred on what a narrow screen shows, on a soft
       // paper backing so they read over the painting
       const hx = clamp(g.focus(), 390, W - 390);
-      const hl = ['Hold to open the lid for rubbish,', 'keep it shut for anything that glows'];
-      c.fillStyle = 'rgba(250,244,228,0.75)';
-      c.fillRect(hx - 370, 170 - 34, 740, 112);
-      hl.forEach((s, i) => label(c, s, hx, 170 + i * 44, { size: 34, weight: 600 }));
+      const hl = ['Walk into the rubbish’s lane, hold to open:', 'the canary grabs it. Dodge what glows!'];
+      c.fillStyle = 'rgba(250,244,228,0.78)';
+      c.fillRect(hx - 380, 170 - 34, 760, 112);
+      hl.forEach((s, i) => label(c, s, hx, 170 + i * 44, { size: 32, weight: 600 }));
       c.restore();
     }
   };
 
-  g.focus = () => BIN_X + 260;
-  g.span = 820;
+  g.focus = () => clamp(g.bx + 260, 450, W - 450);
+  g.span = 900;
 
   return g;
 }
