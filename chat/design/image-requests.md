@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-238 delivered, 15 requested, 253 in total.
+237 delivered, 16 requested, 253 in total.
 
 ## Brand
 
@@ -2442,14 +2442,14 @@ Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illu
 
 ### CH-K42 · Blur icon (second set)
 
-- **File:** `chat/assets/icons2/fx2-blurbg-v2.png`
+- **File:** `chat/assets/icons2/fx2-blurbg.png`
 - **Size:** 256 x 256, transparent
 - **Used for:** The Blur button on the effect strips, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** delivered
+- **Status:** requested
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a sharp teen in the foreground in front of a softly blurred bedroom with glowing bokeh lights. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Edit: Change only the face: draw anatomically natural older-teen eyes, much smaller than current giant cartoon eyes, and a relaxed subtle smile with normal lips. No giant baby eyes or exaggerated duck lips. Preserve crisp illustrated graphic medium, sharp foreground character, blurred room background, dark rounded tile and transparent exterior. This is a background-blur effect, no face distortion.
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a crisp, sharply drawn teen in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 ```
 
 ### CH-K43 · Colour Pop icon (second set)
