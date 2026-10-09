@@ -11,7 +11,7 @@
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK, PAPER } from '../draw.js';
 import { clamp, approach } from './index.js';
-import { SUBJECTS, SUBJECT_IDS, drawSubject } from '../subjects.js';
+import { SUBJECTS, SUBJECT_IDS, drawSubject, subjectShape } from '../subjects.js';
 
 const SHOTS = 10;
 const SAFETY = 60; // the film's light runs out after this, shots or not
@@ -25,7 +25,7 @@ const STRIP_Y = 790; // the photos along the bottom
 // drawBird's 400-unit space (feet at the origin) and where the head is, for
 // peeking out of the knothole.
 const BOX = Object.fromEntries(SUBJECT_IDS.map((id) => {
-  const { box, head } = SUBJECTS[id];
+  const { box, head } = subjectShape(id);
   return [id, { ...box, hx: head[0], hy: head[1] }];
 }));
 
