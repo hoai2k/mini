@@ -64,3 +64,15 @@ Shared item 2 (penalties): swallowing something that isn't rubbish now costs
 time: the Canary splutters and the lid stays shut for 0.9 s, so rubbish
 arriving then is lost. Holding the lid open all game scores 0–12 on seeds
 1–16, below the pass mark of 18.
+
+## Matched to the painting
+
+The bin's rim, the lid's hinge and the height things cross at are taken
+from the painting when it has loaded (rim slanting from 303 units up at the
+front to 285 at the back, hinge 87 units behind the middle), so the lid is
+cut along the painted rim and swings up on its painted hinge with the
+canary's head under it; the dark mouth follows the rim's slant. The lid
+sprites (IC-M08c, IC-M08d) are placed at the portrait's own feet line (97%
+down), and their prompts now describe the painted bin: fluted, rusty and
+dented, with its ring handle, the canary's wing and paper-scrap tail, and
+the lid tipped up at the front.

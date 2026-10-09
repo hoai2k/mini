@@ -58,3 +58,14 @@ moment when a prize slips or the claws close on nothing.
 
 Shared items: no point penalties here; the chute was the one display that
 fell off the narrow view (item 3).
+
+## Matched to the painting
+
+The Key Crane hangs by the middle of its painted shaft (measured on the
+painting: 246 of its 400 units above the feet), drawn 36 units to the left
+so its two painted feet sit either side of the hook point under the string;
+the code-drawn claws are only drawn on the stand-in now. The hanging poses
+(IC-M07c, IC-M07d) are drawn as whole cells with a fixed placement (the
+shaft's middle on the centre line 35% down, the claw tips 93% down), and
+their prompts now describe the painting's design: the bow head with the eye
+inside it, the top hat, the collared shaft and the pink-and-olive feathers.

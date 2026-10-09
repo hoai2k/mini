@@ -63,3 +63,17 @@ scorch.
 
 Shared item 2 (penalties): a scorch now costs 1, not 2; it also loses the
 garment's +2 bonus. Standing still and puffing steam still scores 0.
+
+## Matched to the painting
+
+The painted iron's sole is tipped (toe up 0.19 rad) and sits 23 units right
+of the painting's centre, so the game now draws the Sparrow from the middle
+of its sole, levelled, over the middle of the pressing footprint (it used to
+sit off to the right of the glow), at a size (250) where the sole is as long
+as the footprint. Steam puffs rise from the row of holes just above the
+sole. The pressing poses (IC-M09c, IC-M09d) are drawn as whole cells with
+the sole's middle on the centre line and its underside 80% down, and their
+prompts now describe the painted sad iron (wooden handle on curled posts,
+the knob, the row of steam holes, the sparrow wing and head) and ask for a
+level sole, and for no steam at all in the dry pose, since the portrait is
+painted steaming.

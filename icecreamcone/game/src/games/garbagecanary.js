@@ -32,10 +32,15 @@ const PAVE = 770; // the pavement, where the bin's feet stand
 const BIN_X = 470;
 const SIZE = 330;
 const K = SIZE / 400;
-const RIM_Y = PAVE - 250 * K; // the bin's open top
-const MOUTH_Y = RIM_Y - 18; // the height things cross at
 const CROSS_X = BIN_X + 80; // where something meets the bin's front rim
-const HINGE = [BIN_X - 92 * K, RIM_Y]; // the lid hinges at the back
+// The bin's rim and the lid's hinge, in bird units (feet at 0, facing left
+// as drawn; the game flips it to face the wind). The painting's rim slants a
+// little, higher at the front; measured on the 1024 px painting: front rim
+// (278, 245) px, back rim and hinge (725, 290) px.
+const RIM = {
+  painted: { front: [-140, -303], back: [140, -285], hinge: [87, -288] },
+  standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250] },
+};
 const OPEN_ANGLE = 1.15;
 const JAM = 0.9; // seconds the lid stays shut after swallowing something that isn't rubbish
 const BIG = 1.3; // things on the wind are drawn this much bigger than their base size
@@ -58,6 +63,32 @@ const KEEP = ['hat', 'letter', 'cat', 'sparrow'];
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
+  const rim = art('subject.garbagecanary') ? RIM.painted : RIM.standin;
+  const RIM_Y = PAVE + ((rim.front[1] + rim.back[1]) / 2) * K; // the bin's open top
+  const MOUTH_Y = RIM_Y - 18; // the height things cross at
+  const HINGE = [BIN_X - rim.hinge[0] * K, PAVE + rim.hinge[1] * K]; // the lid hinges at the back
+  // The rim as a line across the bird, in the canvas (flipped), for cutting
+  // the drawing into the bin and its lid.
+  const rimCut = (c, above) => {
+    const [fx, fy] = [BIN_X - rim.front[0] * K, PAVE + rim.front[1] * K];
+    const [bx, by] = [BIN_X - rim.back[0] * K, PAVE + rim.back[1] * K];
+    const ext = 120;
+    const sl = (fy - by) / (fx - bx);
+    const y0 = by - sl * ext;
+    const y1 = fy + sl * ext;
+    c.beginPath();
+    c.moveTo(bx - ext, y0);
+    c.lineTo(fx + ext, y1);
+    if (above) {
+      c.lineTo(fx + ext, y1 - 400);
+      c.lineTo(bx - ext, y0 - 400);
+    } else {
+      c.lineTo(fx + ext, PAVE + 60);
+      c.lineTo(bx - ext, PAVE + 60);
+    }
+    c.closePath();
+    c.clip();
+  };
   const g = {
     time: DURATION,
     score: 0,
@@ -542,17 +573,17 @@ export default function create(env) {
     if (g.open > 0.05) {
       c.save();
       c.beginPath();
-      c.ellipse(BIN_X, RIM_Y + 4, 92 * K, 18 * g.open + 4, 0, 0, Math.PI * 2);
+      // along the rim, which slants on the painting
+      const tilt = Math.atan2(rim.back[1] - rim.front[1], rim.front[0] - rim.back[0]);
+      c.ellipse(BIN_X, RIM_Y + 4, 94 * K, 18 * g.open + 4, tilt, 0, Math.PI * 2);
       c.fillStyle = '#2a2420';
       c.fill();
       c.restore();
     }
     const body = () => {
-      if (!drawSprite(c, lidSheet, 0, BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
+      if (!drawSprite(c, lidSheet, 0, BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
         c.save();
-        c.beginPath();
-        c.rect(BIN_X - 200, RIM_Y, 400, PAVE - RIM_Y + 40);
-        c.clip();
+        rimCut(c, false);
         drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
         c.restore();
       }
@@ -562,13 +593,11 @@ export default function create(env) {
       c.translate(hx, hy);
       c.rotate(-a);
       c.translate(-hx, -hy);
-      const at = [BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
+      const at = [BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
       const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
       const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...at)) || drawSprite(c, lidSheet, 1, ...at);
       if (!drawn) {
-        c.beginPath();
-        c.rect(BIN_X - 200, RIM_Y - 300, 400, 300);
-        c.clip();
+        rimCut(c, true);
         drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
         if (!art('subject.garbagecanary')) drawHead(c, shake);
       }

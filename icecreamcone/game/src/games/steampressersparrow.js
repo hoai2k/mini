@@ -14,7 +14,7 @@
 // have more creases, less time, and some are delicate silk that scorches
 // sooner. Score: points.
 
-import { drawBird, drawSprite, scene, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -56,6 +56,11 @@ const STILL = 400; // at or above this speed, the cloth doesn't heat
 const SPEED = 640;
 const SIZE = 290;
 const K = SIZE / 400;
+// The painting, measured on its 1024 px square: the sole runs from the toe
+// (240, 566) px down to the heel (895, 694) px, tipped 0.19 rad, its middle
+// 23 units right of centre and 140 units above the feet; drawn at this size
+// its sole is as long as the footprint the game presses with.
+const PAINTED = { size: 250, sole: [23, -140], tilt: 0.19 };
 
 const GARMENTS = [
   { kind: 'hanky', w: 520, h: 300, col: '#f4f0e4', i: 1 },
@@ -225,7 +230,7 @@ export default function create(env) {
     g.scorchT = Math.max(0, (g.scorchT || 0) - dt);
     g.tank = Math.min(TANK, g.tank + dt / REFILL);
     const steaming = g.steam > 0;
-    if (steaming && Math.random() < 0.6) g.puffs.push({ x: g.x + (Math.random() - 0.5) * 120, y: g.y + 10, vx: (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 80, life: 0.9, r: 12 + Math.random() * 10 });
+    if (steaming && Math.random() < 0.6) g.puffs.push({ x: g.x - 10 + (Math.random() - 0.5) * 140, y: g.y - 18, vx: (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 80, life: 0.9, r: 12 + Math.random() * 10 });
 
     const G = g.garment;
     G.slide = Math.max(0, G.slide - dt * 4);
@@ -486,17 +491,28 @@ export default function create(env) {
     const lean = clamp(g.vx / SPEED, -1, 1) * 0.06;
     const shake = hot > 0.75 && !env.reduceMotion ? Math.sin(t * 50) * 2 : 0;
     const frame = steaming ? 1 : 0;
+    // Everything is drawn from the middle of the sole, over the footprint's
+    // middle. The pressing sprites (IC-M09c, IC-M09d) are whole cells at the
+    // painting's scale with the sole's middle at the cell's centre line and
+    // its underside 80% down.
+    const painted = !!art('subject.steampressersparrow');
+    const size = painted ? PAINTED.size : SIZE;
+    const cell = 1.05 * size;
     c.save();
-    c.translate(g.x + shake, g.y + 6);
+    c.translate(g.x - 10 + shake, g.y + 6);
     c.rotate(lean);
-    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0, { h: SIZE * 0.7 });
-    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0, { h: SIZE * 0.62 })) {
-      // the stand-in jumps off the cloth when it scorches
+    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0.2 * cell, { h: cell, whole: true });
+    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0.2 * cell, { h: cell, whole: true })) {
+      // the bird jumps off the cloth when it scorches
       if (g.scorchT > 0) c.translate(0, -30 * Math.sin((g.scorchT / 0.7) * Math.PI));
+      // the painting's sole is tipped: level it on the cloth
+      if (painted) c.rotate(-PAINTED.tilt);
       c.beginPath();
-      c.rect(-SIZE, -SIZE * 1.2, SIZE * 2, SIZE * 1.2);
+      c.rect(-size, -size * 1.2, size * 2, size * 1.2);
       c.clip();
-      drawBird(c, 'steampressersparrow', { x: 0, y: 130 * K, size: SIZE, t });
+      const k = size / 400;
+      if (painted) drawBird(c, 'steampressersparrow', { x: -PAINTED.sole[0] * k, y: -PAINTED.sole[1] * k, size, t });
+      else drawBird(c, 'steampressersparrow', { x: 10, y: 130 * k, size, t });
     }
     c.restore();
   }
