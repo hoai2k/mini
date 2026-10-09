@@ -836,30 +836,30 @@ export const ASSETS = {
   },
   "bookredo.titthrush": {
     "file": "assets/book/titthrush.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.plugsocketswift": {
     "file": "assets/book/plugsocketswift.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.saltshakershrike": {
     "file": "assets/book/saltshakershrike.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.ladlelark": {
     "file": "assets/book/ladlelark.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.drippet": {
     "file": "assets/book/drippet.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.sawbird": {
     "file": "assets/book/sawbird.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.radiobird": {
     "file": "assets/book/radiobird.webp",
-    "delivered": false
+    "delivered": true
   }
 };

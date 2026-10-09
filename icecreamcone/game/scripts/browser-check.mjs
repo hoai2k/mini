@@ -119,6 +119,7 @@ async function newPage(query = '') {
   await page.addInitScript(FAKE_PADS);
   await page.goto(url + '?dt=0.05' + query);
   await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
   return { page, errors };
 }
 const shot = async (page, name) => shots && page.screenshot({ path: join(shots, name + '.png') });
@@ -437,6 +438,7 @@ if (!only) {
   const load = async () => {
     await page.goto(url + '?dt=0.05');
     await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+    await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
     await page.evaluate(() => window.__pad(0, {}));
     await wait(page, 100);
   };
