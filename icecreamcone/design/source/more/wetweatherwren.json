@@ -15,7 +15,7 @@
     "key": "sprites.wrenPoses",
     "file": "assets/sprites/wren-poses.png",
     "size": "3072 x 1024, transparent",
-    "used": "Puddle Hop: the Wren with its umbrella popped open, floating over a puddle and walking with it open, and blown inside out (after snagging an awning or snapping it open and shut too often). The game flips it to face the way it walks.",
+    "used": "Puddle Hop: the Wren with its umbrella popped open, floating over a puddle and walking with it open, and blown inside out after snagging an awning. The game flips it to face the way it walks.",
     "standin": "A black canopy drawn in code above the furled stand-in.",
     "prompt": "{STYLE} {VARIANT} The Wetweather Wren (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/wetweatherwren.png ), the furled black umbrella with a wren's head, in three poses in a 3 x 1 row, one per 1024 x 1024 cell, all at the same scale, each facing left with its feet at the bottom of its cell and the top of the canopy near the top, about 85% of the cell high: 1) umbrella popped wide open as a round black canopy with its ribs and scalloped edge, the shaft upright, the wren's head with its round eye and long beak peeking out at the very top of the canopy as the tip, the crook handle hanging below as a tail, the thin legs dangling and toes pointed, floating; 2) the same, open, but standing on the ground mid-stride, one leg forward; 3) the canopy blown inside out into a cup shape, ribs bent and showing, a rib or two sprung loose, the wren's eye wide and legs splayed in surprise. Same black cloth, same wren's head and colours as the portrait. {ALPHA}"
   },
