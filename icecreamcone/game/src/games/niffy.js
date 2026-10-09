@@ -3,17 +3,19 @@
 // The Niffy hovers over the park promenade while people stroll along below,
 // each with a little something that wants snipping: a long hat feather, a
 // buttonhole flower, a loose thread from a coat hem, a price tag left on a
-// new hat. Move along the sky and press the action to swoop down and snip
-// whatever is right below at the bottom of the dive (with the pointer, the
-// swoop heads for where you tap). A pink ring shows what a swoop from where
-// the Niffy is would go for; it takes a moment to get down, so the ring
-// leads the walker. Every snip scores one (a price tag two), and the Niffy
-// flies it off to its nest. A child's balloon string is not for snipping
-// (−1). And now and then the Park Keeper looks round: first a red "!" (and
-// a reddening sky), then a red eye while he looks; a Niffy caught swooping
-// then is whistled at and dazed for a moment (that is the cost, no points).
-// People come in steadily, never more than two bunched together; they get
-// quicker, and the Keeper looks round more often and with less warning.
+// new hat. Fly along the sky, and up and down between a high line and a low
+// one; press the action to swoop. A pink ring shows what a swoop would go
+// for (the nearest thing whose spot, when the blade arrives, is within
+// reach: less reach while flying flat out); the swoop homes onto it, so a
+// ringed thing is snipped. Swoops take longer the further down they go, so
+// cruising low snips quickly. Every snip scores one (a price tag two), and
+// the Niffy flies it off to its nest. A child's balloon string is not for
+// snipping (−1). A swoop at nothing makes people nearby hold on to their
+// things for a moment. Now and then the Park Keeper looks round (a red "!",
+// then his eye): while he looks, his noticing fills, slowly for a Niffy
+// high and still, fast for one low down, faster still for one swooping; full,
+// and he whistles and dazes it (no points lost). People come in steadily,
+// never bunched; they get quicker, and the Keeper looks round more often.
 // Score: snips.
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
@@ -28,16 +30,23 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const HOVER = 230; // the Niffy's cruising height (its blade tip)
+const HOVER = 230; // where the Niffy starts cruising (its blade tip)
+const HIGH = 150; // the highest it cruises
+// the lowest: about 70 px above the highest thing anyone carries (a feather
+// in the hat band of the tallest walker, size 1.05: 800 - 326 x 1.05 = 458)
+const LOW = 385;
 const GROUND = 800; // the walkers' feet
-const DOWN = 0.32; // seconds from the sky to the snip
-const UP = 0.42;
-const REACH = 38; // how close the blade must be, across, to snip
-const DEPTH = 46; // and up and down
+const AIM = 90; // a swoop goes for a thing whose blade-arrival spot is within this, across
+const AIM_FAST = 35; // or only this, when the Niffy is flying along at full speed
+const CLIMB = 420; // px a second the stick moves the cruising height
+// Swoops take longer the further they have to go: down to the thing, and back
+// up to the cruising height.
+const downTime = (dy) => Math.max(0.14, Math.abs(dy) / 1050);
+const upTime = (dy) => Math.max(0.16, Math.abs(dy) / 900);
 const SIZE = 210;
 const KEEPER_X = 1420;
 const GAP = 420; // the least room between two people walking the same way
-const WARY = 2.5; // seconds people hold on to their things after a snap at the air nearby
+const WARY = 1.8; // seconds people hold on to their things after a snap at the air nearby
 const WARY_R = 170;
 const DAZE = 1.6; // seconds the Niffy is dazed after the Keeper's whistle
 // Where the blade's tip is, from the feet, in bird units (400 = the bird's
@@ -84,7 +93,11 @@ export default function create(env) {
     face: -1, // which way the Niffy looks: -1 left, 1 right
     state: 'hover', // hover | down | up | dazed
     st: 0,
-    dive: null, // { x0, x1, depth, snipped }
+    dive: null, // { x0, y0, x1, depth, dur, up, target }
+    cruise: HOVER, // the height the Niffy cruises at, HIGH..LOW
+    aimRef: W / 2, // where a press now would swoop for (the Niffy, or the pointer)
+    speed: 0, // how fast the Niffy is flying along, smoothed
+    notice: 0, // the Keeper's noticing, 0..1: full, and he whistles
     walkers: [],
     flying: [], // snipped things on their way to the nest
     balloons: [], // let go, floating away
@@ -107,8 +120,9 @@ export default function create(env) {
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
-  g.DOWN = DOWN;
-  g.REACH = REACH;
+  g.HIGH = HIGH;
+  g.LOW = LOW;
+  g.downTime = downTime;
   // Is the Keeper looking (or about to)?
   g.watching = () => g.keeper.state === 'watch';
 
@@ -163,61 +177,69 @@ export default function create(env) {
     return out;
   };
 
-  // What a swoop to x would go for: the nearest thing below, where it will
-  // be when the blade gets down (or null).
-  g.aim = (x1 = g.x) => {
+  // What a swoop aimed at x would go for: the nearest thing whose spot,
+  // when the blade gets down to it from where the Niffy is, is within AIM
+  // across (or null). The swoop then homes onto that thing, so if the ring
+  // shows it, a swoop snips it.
+  g.aim = (x1 = g.aimRef) => {
     let hit = null;
-    let best = 1e9;
+    let best = g.aimWindow();
     for (const o of g.targets()) {
-      const d = Math.abs(o.x + o.vx * DOWN - x1);
-      if (d < 110 && d < best) {
+      const dur = downTime(o.y - g.y);
+      const px = o.x + o.vx * dur;
+      const d = Math.abs(px - x1);
+      if (d < best) {
         best = d;
-        hit = o;
+        hit = { ...o, px, dur };
       }
     }
     return hit;
   };
+  // A Niffy lined up and hovering takes good aim; one flying flat out, less.
+  g.aimWindow = () => lerp(AIM, AIM_FAST, clamp(g.speed / 820, 0, 1));
+  const refFor = (input) => (input.pointer.active ? clamp(input.pointer.x, g.x - 300, g.x + 300) : g.x);
 
   function startDive(input) {
     const x0 = g.x;
-    let x1 = x0;
-    if (input.pointer.active) x1 = clamp(input.pointer.x, x0 - 300, x0 + 300);
-    // Dive to the height of the nearest thing below the blade's path.
-    const aim = g.aim(x1);
-    const depth = aim ? aim.y : 590;
-    g.dive = { x0, x1, depth, snipped: false };
+    const ref = refFor(input);
+    const aim = g.aim(ref);
+    if (aim) {
+      g.dive = { x0, y0: g.y, x1: aim.px, depth: aim.y, dur: aim.dur, target: { w: aim.w, it: aim.it } };
+    } else {
+      const depth = Math.max(590, g.y + 120);
+      g.dive = { x0, y0: g.y, x1: ref, depth, dur: downTime(depth - g.y), target: null };
+    }
     g.state = 'down';
     g.st = 0;
-    if (x1 !== x0) g.face = x1 < x0 ? -1 : 1;
+    if (Math.abs(g.dive.x1 - x0) > 4) g.face = g.dive.x1 < x0 ? -1 : 1;
     sfx('wind');
   }
 
-  function snip() {
-    let hit = null;
-    let best = 1e9;
-    for (const o of g.targets()) {
-      const d = Math.abs(o.x - g.x) + Math.abs(o.y - g.y) * 0.5;
-      if (Math.abs(o.x - g.x) <= REACH && Math.abs(o.y - g.y) <= DEPTH && d < best) {
-        best = d;
-        hit = o;
+  // A snap at the air makes the people close by hold on to their things.
+  function startle() {
+    let holding = false;
+    for (const w of g.walkers) {
+      if (Math.abs(w.x - g.x) < WARY_R) {
+        if (w.wary > 0 && w.items.some((it) => !it.snipped)) holding = true;
+        w.wary = WARY;
+        w.huh = 1;
       }
     }
+    return holding;
+  }
+
+  function snip() {
+    const tg = g.dive.target;
+    const hit = tg && !tg.it.snipped && !(tg.w.wary > 0) ? { ...tg, x: g.x, y: g.y } : null;
     sfx('shutter');
     if (!hit) {
-      pop('Snap!', g.x, g.y + 40, PAL.grey, 30);
-      // a snap at the air makes the people close by look up and hold on to
-      // their things for a moment
-      for (const w of g.walkers) {
-        if (Math.abs(w.x - g.x) < WARY_R) {
-          w.wary = WARY;
-          w.huh = 1;
-        }
-      }
+      const holding = startle() || (tg && tg.w.wary > 0);
+      if (holding) pop('They’re holding on!', g.x, g.y - 40, PAL.brick, 34);
+      else pop('Snap!', g.x, g.y + 40, PAL.grey, 30);
       return;
     }
     hit.it.snipped = true;
     hit.w.huh = 1;
-    g.dive.snipped = true;
     if (hit.it.kind === 'balloon') {
       g.popped++;
       add(-1);
@@ -241,6 +263,7 @@ export default function create(env) {
     g.state = 'dazed';
     g.st = 0;
     g.whistle = 1.2;
+    g.notice = 0.6; // it drains away while the Niffy is dazed
     pop('Peep! Caught!', g.x, g.y - 70, PAL.brick, 44);
     sfx('honk');
     env.vibrate?.(150);
@@ -292,37 +315,63 @@ export default function create(env) {
 
     // The Niffy.
     g.st += dt;
+    let moving = false;
     if (g.state === 'hover') {
       const was = g.x;
-      if (input.pointer.active) g.x = approach(g.x, input.pointer.x, 9, dt);
-      else g.x += input.x * 820 * dt;
+      if (input.pointer.active) {
+        g.x = approach(g.x, input.pointer.x, 9, dt);
+        g.cruise = clamp(approach(g.cruise, input.pointer.y, 6, dt), HIGH, LOW);
+      } else {
+        g.x += input.x * 820 * dt;
+        g.cruise = clamp(g.cruise + input.y * CLIMB * dt, HIGH, LOW);
+      }
       g.x = clamp(g.x, 80, W - 80);
-      if (Math.abs(g.x - was) > 0.6) g.face = g.x < was ? -1 : 1;
-      g.y = approach(g.y, HOVER + Math.sin(g.elapsed * 3) * 8, 6, dt);
+      moving = Math.abs(g.x - was) > 0.6;
+      g.speed = approach(g.speed, Math.abs(g.x - was) / Math.max(dt, 1e-6), 12, dt);
+      if (moving) g.face = g.x < was ? -1 : 1;
+      g.y = approach(g.y, g.cruise + Math.sin(g.elapsed * 3) * 8, 7, dt);
+      g.aimRef = refFor(input);
       if (input.actionPressed && g.time > 0) startDive(input);
     } else if (g.state === 'down') {
-      const k = Math.min(1, g.st / DOWN);
-      const e = k * k;
-      g.x = lerp(g.dive.x0, g.dive.x1, Math.sin((k * Math.PI) / 2));
-      g.y = lerp(HOVER, g.dive.depth, e);
+      const d = g.dive;
+      const k = Math.min(1, g.st / d.dur);
+      // home onto the thing as it walks along, arriving exactly on it
+      let tx = d.x1;
+      let ty = d.depth;
+      if (d.target && !d.target.it.snipped) [tx, ty] = g.spot(d.target.w, d.target.it);
+      g.x = lerp(d.x0, tx, Math.sin((k * Math.PI) / 2));
+      g.y = lerp(d.y0, ty, k * k);
       if (k >= 1) {
+        d.depth = g.y;
+        d.up = upTime(g.y - g.cruise);
         snip();
         g.state = 'up';
         g.st = 0;
       }
     } else if (g.state === 'up') {
-      const k = Math.min(1, g.st / UP);
-      g.y = lerp(g.dive.depth, HOVER, 1 - (1 - k) * (1 - k));
+      const k = Math.min(1, g.st / g.dive.up);
+      g.y = lerp(g.dive.depth, g.cruise, 1 - (1 - k) * (1 - k));
       if (k >= 1) {
         g.state = 'hover';
         g.dive = null;
       }
     } else if (g.state === 'dazed') {
-      g.y = approach(g.y, HOVER - 30, 5, dt);
+      g.y = approach(g.y, Math.max(HIGH, g.cruise - 40), 5, dt);
       if (g.st > DAZE) g.state = 'hover';
     }
-    // Spotted swooping while the Keeper is looking.
-    if ((g.state === 'down' || g.state === 'up') && g.watching() && g.y > HOVER + 70) caught();
+    // The Keeper's noticing: while he looks, it rises slowly for a Niffy
+    // cruising high and still, fast for one low down, faster again while it
+    // swoops; it drains while he looks away. Full: he whistles.
+    const alt = clamp((g.y - HIGH) / (LOW - HIGH), 0, 2);
+    if (g.watching() && g.state !== 'dazed') {
+      let rate = lerp(0.18, 0.9, Math.min(1, alt)) + Math.max(0, alt - 1) * 0.8;
+      if (g.state === 'down' || g.state === 'up') rate *= 1.5;
+      else if (moving) rate += 0.1;
+      g.notice = Math.min(1, g.notice + rate * dt);
+      if (g.notice >= 1) caught();
+    } else {
+      g.notice = Math.max(0, g.notice - (g.keeper.state === 'turning' ? 0.25 : 0.5) * dt);
+    }
 
     for (const f of g.flying) {
       f.t += dt / 0.9;
@@ -535,16 +584,46 @@ export default function create(env) {
       }
       else drawItem(c, it.kind, x, y, s, t + w.phase);
       if (w.wary > 0) {
-        // holding on to it: a hand over it
-        blob(c, x + 6, y + 4, 17 * s, 13 * s, 41, 0.08);
-        wash(c, '#f0d8bc');
-        ink(c, 1.8);
+        // holding on to it: a hand cupped over it, fingers drawn in ink
+        const hx = x + 4 * s;
+        const hy = y + 2 * s;
+        blob(c, hx, hy, 19 * s, 14 * s, 41, 0.06);
+        wash(c, '#efcfae');
+        ink(c, 2);
+        c.beginPath();
+        for (let i = -1; i <= 1; i++) {
+          c.moveTo(hx + i * 8 * s, hy - 12 * s);
+          c.lineTo(hx + i * 8 * s, hy + 2 * s);
+        }
+        ink(c, 1.4);
       }
     }
-    if (w.huh > 0) {
+    if (w.wary > 0) {
+      // holding on: a stern little "!" over them for as long as it lasts,
+      // fading in its last moments
+      c.save();
+      c.globalAlpha = Math.min(1, w.wary * 3);
+      const jig = env.reduceMotion ? 0 : Math.sin(t * 14 + w.phase) * 3;
+      const by = GROUND - 410 * s;
+      blob(c, w.x + jig, by, 24, 26, 43, 0.06);
+      wash(c, '#fbf8ee');
+      ink(c, 2.4);
+      label(c, '!', w.x + jig, by + 2, { size: 40, color: PAL.brick, weight: 800 });
+      if (w.huh > 0) {
+        c.lineWidth = 6;
+        c.strokeStyle = 'rgba(250,244,228,0.9)';
+        c.font = '800 30px Fraunces, Georgia, serif';
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        const hy = by - 46 - (1 - w.huh) * 20;
+        c.strokeText('Hmph!', w.x, hy);
+        label(c, 'Hmph!', w.x, hy, { size: 30, color: PAL.brick, weight: 800 });
+      }
+      c.restore();
+    } else if (w.huh > 0) {
       c.save();
       c.globalAlpha = Math.min(1, w.huh * 2);
-      label(c, w.wary > 0 ? 'Hey!' : 'Hm?', w.x, GROUND - 400 * s, { size: 34, color: w.wary > 0 ? PAL.brick : INK, weight: 800 });
+      label(c, 'Hm?', w.x, GROUND - 400 * s, { size: 34, color: INK, weight: 800 });
       c.restore();
     }
   }
@@ -610,7 +689,7 @@ export default function create(env) {
       }
     }
     // the same warning over him, bigger
-    if (k.state !== 'away') warning(c, x, y - 430, t, 1.3);
+    if (k.state !== 'away' || g.notice > 0.02) warning(c, x, y - 430, t, 1.3);
     if (g.whistle > 0) {
       c.save();
       c.globalAlpha = Math.min(1, g.whistle * 2);
@@ -620,13 +699,17 @@ export default function create(env) {
   }
 
   // A red "!" (turning) or a wide-open red-rimmed eye (looking), at (x, y).
+  // The Keeper's warning and how much he has noticed, at (x, y): a red "!"
+  // as he turns, then his eye while he looks, opening wider as he notices
+  // more; round it an ink arc fills with his noticing (and drains after).
   function warning(c, x, y, t, k) {
-    const look = g.keeper.state === 'watch';
+    const st = g.keeper.state;
     c.save();
     c.translate(x, y);
     c.scale(k, k);
-    if (!look) {
+    if (st === 'turning') {
       const pulse = 1 + 0.12 * Math.sin(t * 16);
+      c.save();
       c.scale(pulse, pulse);
       c.beginPath();
       c.arc(0, 0, 30, 0, Math.PI * 2);
@@ -634,15 +717,19 @@ export default function create(env) {
       c.fill();
       ink(c, 2.4);
       label(c, '!', 0, 2, { size: 46, color: '#fbf8ee', weight: 800 });
-    } else {
-      // an eye: almond white, a big iris and pupil, lashes on top
+      c.restore();
+    } else if (st === 'watch') {
+      // an eye: almond white, a big iris and pupil, lashes on top; wider as he notices
+      const open = 0.45 + 0.75 * g.notice;
       c.beginPath();
       c.moveTo(-46, 0);
-      c.quadraticCurveTo(0, -38, 46, 0);
-      c.quadraticCurveTo(0, 38, -46, 0);
+      c.quadraticCurveTo(0, -38 * open, 46, 0);
+      c.quadraticCurveTo(0, 38 * open, -46, 0);
       c.fillStyle = '#fbf8ee';
       c.fill();
       ink(c, 5, '#c0403a');
+      c.save();
+      c.clip();
       c.beginPath();
       c.arc(0, 0, 15, 0, Math.PI * 2);
       c.fillStyle = '#5a7a9a';
@@ -651,12 +738,23 @@ export default function create(env) {
       c.arc(0, 0, 7, 0, Math.PI * 2);
       c.fillStyle = INK;
       c.fill();
+      c.restore();
       c.beginPath();
       for (let i = -2; i <= 2; i++) {
-        c.moveTo(i * 16, -18 + Math.abs(i) * 3);
-        c.lineTo(i * 22, -32 + Math.abs(i) * 4);
+        c.moveTo(i * 16, (-18 + Math.abs(i) * 3) * open);
+        c.lineTo(i * 22, (-32 + Math.abs(i) * 4) * open - 4);
       }
       ink(c, 3, '#c0403a');
+    }
+    if (g.notice > 0.02 || st === 'watch') {
+      // the noticing meter: a faint ink ring, filling clockwise from the top
+      c.beginPath();
+      c.arc(0, 0, 58, 0, Math.PI * 2);
+      ink(c, 3, 'rgba(59,43,32,0.25)');
+      c.beginPath();
+      c.arc(0, 0, 58, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * g.notice);
+      ink(c, 8, g.notice > 0.7 ? '#c0403a' : PAL.ochre);
+      ink(c, 1.4);
     }
     c.restore();
   }
@@ -666,7 +764,7 @@ export default function create(env) {
     const f = g.face;
     let rot = 0;
     if (g.state === 'down') rot = 0.95 * Math.min(1, g.st / 0.1);
-    else if (g.state === 'up') rot = 0.95 * (1 - Math.min(1, g.st / UP)) - 0.2;
+    else if (g.state === 'up') rot = 0.95 * (1 - Math.min(1, g.st / g.dive.up)) - 0.2;
     else if (g.state === 'dazed') rot = Math.sin(g.st * 20) * 0.3;
     else rot = Math.sin(t * 4) * 0.05;
     c.save();
@@ -689,7 +787,7 @@ export default function create(env) {
     c.restore();
     // The Keeper's warning, right beside the Niffy (he may be off a narrow
     // screen): a red "!" as he turns, then a red eye while he looks.
-    if (g.keeper.state !== 'away') warning(c, g.x + 100 * -g.face, g.y - 60, t, 1);
+    if (g.keeper.state !== 'away' || g.notice > 0.02) warning(c, g.x + 100 * -g.face, g.y - 60, t, 1);
     if (g.state === 'dazed') {
       for (let i = 0; i < 3; i++) {
         const a = t * 5 + (i * Math.PI * 2) / 3;
@@ -786,7 +884,7 @@ export default function create(env) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
       // Under the Niffy, clear of the clock, and whole on a phone.
-      hint(c, 'Move along the sky · press to swoop and snip', W / 2, 330, { focus: g.focus(), span: g.span, size: 36 });
+      hint(c, 'Fly along, higher or lower · press to swoop and snip', W / 2, 330, { focus: g.focus(), span: g.span, size: 36 });
       c.restore();
     }
   };
