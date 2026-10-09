@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-450 delivered, 1 requested, 451 in total.
+451 delivered, 451 in total.
 
 ## Brand
 
@@ -2698,11 +2698,11 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 
 ### CH-N56 · Tiny Face icon (Art theme)
 
-- **File:** `chat/assets/icons-art/art-fx-tinyface.png`
+- **File:** `chat/assets/icons-art/art-fx-tinyface-v2.png`
 - **Size:** 256 x 256, transparent
 - **Used for:** The Tiny Face button on the effect strips in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's big round head with a comically small face bunched in the very middle: two bold black dot eyes with short brows, a small nose line and small red lips, all squeezed close together and filling about a third of the face so they still read clearly at 48 px; lots of empty off-white cheek and forehead around them. The face must never look blank. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
