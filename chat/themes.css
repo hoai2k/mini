@@ -98,7 +98,7 @@ html[data-theme="art"] #logo-text {
   font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; background: none; color: var(--pink);
   -webkit-text-fill-color: var(--pink); filter: none; text-shadow: 5px 5px 0 var(--ink);
 }
-html[data-theme="art"] .tagline { color: var(--ink); background: rgba(246, 240, 224, 0.9); padding: 4px 10px; display: inline-block; border: 2px solid var(--ink); }
+html[data-theme="art"] :is(.tagline, #title.has-bg .tagline) { border-radius: 2px; box-shadow: 3px 3px 0 var(--ink); color: var(--ink); background: rgba(246, 240, 224, 0.9); padding: 4px 10px; display: inline-block; border: 2px solid var(--ink); }
 html[data-theme="art"] .fx-item.tile-icon img { border-radius: 4px; box-shadow: 3px 3px 0 rgba(22, 22, 22, 0.85); }
 
 /* ---------- Classical: 18th-century French Rococo ---------- */
@@ -135,6 +135,6 @@ html[data-theme="classic"] #logo-text {
   font-weight: 600; letter-spacing: 0.01em; background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 0 rgba(120, 85, 20, 0.5));
 }
-html[data-theme="classic"] .tagline { color: var(--ink); font-style: italic; background: rgba(252, 246, 234, 0.85); padding: 4px 12px; border-radius: 999px; display: inline-block; }
+html[data-theme="classic"] :is(.tagline, #title.has-bg .tagline) { border: 1px solid var(--line); color: var(--ink); font-style: italic; background: rgba(252, 246, 234, 0.85); padding: 4px 12px; border-radius: 999px; display: inline-block; }
 html[data-theme="classic"] .fx-item.tile-icon img { border-radius: 14px; }
 html[data-theme="art"] .controls .ctrl .lbl { font-weight: 700; letter-spacing: 0.01em; }
