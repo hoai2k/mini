@@ -3409,7 +3409,7 @@
     "id": "CH-T03",
     "file": "assets/themes/title-bg-art.webp",
     "size": "1920 x 1080",
-    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Full-bleed background: a Nouvelle Vague film-poster composition: two stylised faces in profile facing each other across a café table, cut-paper shapes in vermilion, black and mustard, a big abstract sun and the Eiffel Tower as a tiny black silhouette. Keep the middle third calm and uncluttered for the logo and the join form. No border. ",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Full-bleed background: a Nouvelle Vague film-poster composition: two stylised faces in profile facing each other across a caf\u00e9 table, cut-paper shapes in vermilion, black and mustard, a big abstract sun and the Eiffel Tower as a tiny black silhouette. Keep the middle third calm and uncluttered for the logo and the join form. No border. ",
     "tool": "built-in image_gen",
     "source_size": [
       1672,
@@ -4174,16 +4174,15 @@
   },
   {
     "id": "CH-N56",
-    "file": "assets/icons-art/art-fx-tinyface.png",
+    "file": "assets/icons-art/art-fx-tinyface-v2.png",
     "size": "256 x 256",
-    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a normal-sized person head with comically tiny eyes, nose and mouth squeezed together in the middle. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or UI controls.",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's big round head with a comically small face bunched in the very middle: two bold black dot eyes with short brows, a small nose line and small red lips, all squeezed close together and filling about a third of the face so they still read clearly at 48 px; lots of empty off-white cheek and forehead around them. The face must never look blank. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
     "tool": "built-in image_gen",
     "source_size": [
       1254,
       1254
     ],
-    "accepted": false,
-    "review": "Rejected in the app check: at strip and grid size the tiny features vanish and the face reads as blank. Re-requested with features that stay small but clearly visible."
+    "accepted": true
   },
   {
     "id": "CH-N57",
