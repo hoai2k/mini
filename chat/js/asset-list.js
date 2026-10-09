@@ -921,83 +921,83 @@ export const ASSET_LIST = {
   },
   "art-fx-flowercrown": {
     "file": "assets/icons-art/art-fx-flowercrown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-kitty": {
     "file": "assets/icons-art/art-fx-kitty.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-bunny": {
     "file": "assets/icons-art/art-fx-bunny.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-hotdog": {
     "file": "assets/icons-art/art-fx-hotdog.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-lasereyes": {
     "file": "assets/icons-art/art-fx-lasereyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-crying": {
     "file": "assets/icons-art/art-fx-crying.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-devil": {
     "file": "assets/icons-art/art-fx-devil.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-angel": {
     "file": "assets/icons-art/art-fx-angel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-pirate": {
     "file": "assets/icons-art/art-fx-pirate.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-viking": {
     "file": "assets/icons-art/art-fx-viking.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-wizard": {
     "file": "assets/icons-art/art-fx-wizard.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-butterflies": {
     "file": "assets/icons-art/art-fx-butterflies.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-makeup": {
     "file": "assets/icons-art/art-fx-makeup.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-beach360": {
     "file": "assets/icons-art/art-fx-beach360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-space360": {
     "file": "assets/icons-art/art-fx-space360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-reef360": {
     "file": "assets/icons-art/art-fx-reef360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-forest360": {
     "file": "assets/icons-art/art-fx-forest360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-city360": {
-    "file": "assets/icons-art/art-fx-city360.png",
-    "status": "requested"
+    "file": "assets/icons-art/art-fx-city360-v2.png",
+    "status": "delivered"
   },
   "art-fx-snow360": {
     "file": "assets/icons-art/art-fx-snow360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-candy360": {
     "file": "assets/icons-art/art-fx-candy360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-volcano360": {
     "file": "assets/icons-art/art-fx-volcano360.png",
