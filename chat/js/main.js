@@ -12,7 +12,7 @@ import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
 import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
-import { assetUrl } from './assets.js';
+import { assetUrl, iconUrl } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
@@ -1043,7 +1043,7 @@ async function initEffects() {
   const list = $('#effect-list');
   const none = { id: null, name: 'No effect', emoji: '🚫' };
   for (const fx of [none, ...effects]) {
-    const b = effectButton({ ...fx, icon: fx.id && assetUrl(`fx-${fx.id}`) }, () => {
+    const b = effectButton({ ...fx, icon: fx.id && iconUrl('fx', fx.id) }, () => {
       if (effectGrid()) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
       else centerEffect(b.dataset.fx, true);
     });
@@ -1256,7 +1256,7 @@ function renderFavorites() {
     list.textContent = '';
     for (const it of items) {
       const src = it.fx || it.game;
-      const b = effectButton({ name: src.name, emoji: src.emoji, icon: assetUrl(it.fx ? `fx-${src.id}` : `game-${src.id}`) }, () => {
+      const b = effectButton({ name: src.name, emoji: src.emoji, icon: iconUrl(it.fx ? 'fx' : 'game', src.id) }, () => {
         if (it.fx) selectEffect(studio.effect?.id === it.fx.id ? null : it.fx);
         else {
           sfx('click');
@@ -1341,10 +1341,10 @@ async function initGames() {
     b.className = 'game-card';
     const ico = document.createElement('span');
     ico.className = 'ico';
-    const iconUrl = assetUrl(`game-${g.id}`);
-    if (iconUrl) {
+    const gameIcon = iconUrl('game', g.id);
+    if (gameIcon) {
       const im = document.createElement('img');
-      im.src = iconUrl;
+      im.src = gameIcon;
       im.alt = '';
       ico.append(im);
     } else {

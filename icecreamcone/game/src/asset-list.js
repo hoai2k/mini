@@ -752,87 +752,87 @@ export const ASSETS = {
   },
   "bookredo.coot": {
     "file": "assets/book/coot.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.cupadee": {
     "file": "assets/book/cupadee.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.shuttercluck": {
     "file": "assets/book/shuttercluck.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.gullfinch": {
     "file": "assets/book/gullfinch.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.plume": {
     "file": "assets/book/plume.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.bobolinks": {
     "file": "assets/book/bobolinks.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.peeper": {
     "file": "assets/book/peeper.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.piffle": {
     "file": "assets/book/piffle.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.dodo": {
     "file": "assets/book/dodo.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.crow": {
     "file": "assets/book/crow.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.milkmidge": {
     "file": "assets/book/milkmidge.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.waterglassgoose": {
     "file": "assets/book/waterglassgoose.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.niffy": {
     "file": "assets/book/niffy.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.broomwhisk": {
     "file": "assets/book/broomwhisk.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.buttonbeaks": {
     "file": "assets/book/buttonbeaks.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.keycrane": {
     "file": "assets/book/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.snippit": {
     "file": "assets/book/snippit.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.garbagecanary": {
     "file": "assets/book/garbagecanary.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.steampressersparrow": {
     "file": "assets/book/steampressersparrow.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.wetweatherwren": {
     "file": "assets/book/wetweatherwren.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.glovedove": {
     "file": "assets/book/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.titthrush": {
     "file": "assets/book/titthrush.webp",

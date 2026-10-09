@@ -10,6 +10,9 @@ const CARDS = PAIRS * 2;
 const MAX_PLAYERS = 4;
 const SHOW_MISS = 1000;   // ms a mismatched pair stays face up
 
+// The second-set icon when delivered, else the first.
+const faceArtOf = (api, sym) => api.img(FACES[sym].img.replace(/^fx-/, 'fx2-')) || api.img(FACES[sym].img);
+
 // Card faces, in order: the face-effect emoji and the delivered icon name.
 const FACES = [
   { e: '🫧', img: 'fx-bubble' },
@@ -86,6 +89,7 @@ export default {
   needsFace: false,
 
   create(api) {
+    const faceArt = sym => faceArtOf(api, sym);
     // --- dom -------------------------------------------------------------
     const root = document.createElement('div');
     root.className = 'mm';
@@ -238,7 +242,7 @@ export default {
 
     function setFace(c, sym) {
       c.sym = sym;
-      c.art = api.img(FACES[sym].img);
+      c.art = faceArt(sym);
       c.face.replaceChildren(c.tag);
       if (c.art) c.face.prepend(imgEl(c.art));
       else c.face.prepend(document.createTextNode(FACES[sym].e));
@@ -265,7 +269,7 @@ export default {
             continue;
           }
           setFace(c, sym);
-        } else if (!c.art && api.img(FACES[sym].img)) setFace(c, sym);   // art just arrived
+        } else if (!c.art && faceArt(sym)) setFace(c, sym);   // art just arrived
         if (c.backArt !== backArt) {
           c.backArt = backArt;
           c.back.replaceChildren(...(backArt ? [imgEl(backArt)] : []));
