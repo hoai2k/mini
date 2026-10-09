@@ -744,7 +744,7 @@
       "anchor": "bottom centre"
     },
     "reveller-lady-idle-b": {
-      "status": "delivered",
+      "status": "requested",
       "file": "reveller-lady-idle-b.webp",
       "size": [
         220,

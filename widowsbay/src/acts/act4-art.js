@@ -466,7 +466,8 @@ function hanging(k, st) {
   c.save();
   if (kClimb < 0) {
     c.translate(s.x, s.y); c.scale(s.face, 1);
-    if (!k.asset('sailor-hang', 0, 0, 67, 134)) drawSailor(k, 'leap', -20);
+    // his hands (the sprite's top centre) grip just inside the edge
+    if (!k.asset('sailor-hang', HANG.off + 7, 0, 67, 134)) drawSailor(k, 'leap', -20);
   } else if (kClimb < 0.75 && k.img('sailor-pullup')) {
     c.translate(s.x, e.y + 91 * 0.25); c.scale(s.face, 1);
     k.asset('sailor-pullup', 0, 0, 79, 91);

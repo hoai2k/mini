@@ -77,7 +77,8 @@ IDLE_PEOPLE = [
         'the opposite leg is kicked out and the belled cap tips the other way.',
         'standing on both feet with a small bow, one arm swept across the body, bells swinging.')),
     ('reveller-lady', 'The lady reveller in stripes', 220, 420, SPRITE, (
-        'she holds her skirt out to the other side and points the opposite toe.',
+        'she holds her skirt out to the other side and points the opposite toe. Keep the grey lace veil that hangs '
+        'behind her hat exactly as in the still (the first take lost it, so it blinked as the frames flicked).',
         'both feet together on tiptoe, skirt lifted in both hands, the hat feathers bobbing.')),
     ('sea-spirit', 'The sea spirit', 300, 600, SPRITE.replace(
         'stencil-tinted colour: sepia-grey line and tone with translucent washes of', 'pale ghostly white with only the faintest washes of'), (

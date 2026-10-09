@@ -427,17 +427,27 @@ tricks on each person (uneven cranking, a boil, a slow sway on the feet, a
 breath; `src/animation.js`, `idlePose`), so the still alone already moves
 and the two frames only need small changes.
 
-All 18 C15 images are generated and in the game. The PNGs are also retained in
-intake; [review A/B/C and the A/B/A/C sequence](generated/round-4/index.html).
-Full-size originals, exact prompts and delivered-frame references are preserved.
+Checked on integration (9 October 2026): every frame is its still's size
+with real transparency, and the feet sit on exactly the same row as the
+still's. 17 of 18 hold the same figure and costume with only the asked-for
+movement, and flick cleanly in the game (workbench, *Extra Animations ·
+everything*). `reveller-lady-idle-b` lost the lace veil behind her hat, so
+the veil blinked; it is withdrawn to `generated/round-4/rejected/` and
+re-requested with the veil called out. Until it returns the lady flicks
+A, C, A, C. [Review A/B/C and the A/B/A/C sequence](generated/round-4/index.html);
+full-size originals and exact prompts are preserved there.
 
 **Also delivered, 8 October 2026:** two Act IV frames for the new ledge
 hang ([C17](#c17-fourth-round-act-iv-ledge-hang)), `sailor-hang` and
-`sailor-pullup`. They are generated and registered in the game.
+`sailor-pullup`. In the game: the pull-up's ledge line lands on the
+platform top as drawn; the hang is drawn 7 px toward the platform so his
+hands grip its corner rather than the water beside it.
 
 **And delivered for Act II:** `clam-open-empty`
 ([C16](#c16-fourth-round-act-ii-regrowing-clams)), the open clam without
-its pearl, so each clam can regrow its pearl in view.
+its pearl, so each clam can regrow its pearl in view. Same framing as
+`clam-open`; the growing pearl sits where the painted one did, and the
+patched stand-in is no longer used.
 
 See the [C16–C17 delivery gallery and prompts](generated/ledge-additions/index.html).
 
@@ -1736,7 +1746,7 @@ Old-film idle loops for the watched characters, replacing the Part D motion loop
 
 220 × 420 px, anchor bottom centre.
 
-> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-lady` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: she holds her skirt out to the other side and points the opposite toe. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-lady` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: she holds her skirt out to the other side and points the opposite toe. Keep the grey lace veil that hangs behind her hat exactly as in the still (the first take lost it, so it blinked as the frames flicked). Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 #### `reveller-lady-idle-c` — The lady reveller in stripes, idle frame C
 
