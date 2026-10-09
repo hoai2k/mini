@@ -130,3 +130,28 @@ puddles and awnings are drawn from IC-M10c, the awnings over the poles the
 game draws. Bots unchanged: beginner 18 to 29, good 23 to 30, mashing at
 most 12, pass 15. Nothing the Wren shows is drawn in code any more apart from
 the rain, gusts, ripples and splash drops, which are effects.
+
+### The walk cycle, hop and flying sheets (IC-M10f, IC-M10g, IC-M10h)
+
+These sheets arrived without the requested registration, and at different
+scales (the hop sheet paints the bird at 0.62 to 0.79 of the portrait's
+size, the flying sheet at 1.41). So the game draws every cell at a scale
+measured on the art: the wren's eye (a cream disc, 43.2 px across on the
+portrait) was measured on every cell, checked against a template match of
+the head, and the cell is drawn at that ratio, standing on its lowest pixel
+(its feet) with its body (walking) or shaft (open) on the Wren's place. The
+table is `WREN_POSES` in the game; `test/wetweatherwren.test.mjs` re-measures
+the eye on every cell from the PNGs and checks it is within 4% of the
+walking pose's on screen (all are within 3.4%). Measured scales: walk cycle
+1.015 (all six), crouch 0.79, spring 0.62, landing 0.78, dropping 0.76, small
+and wide umbrella 1.41, walking open 1.11, inside out 1.30, drenched 1.05.
+
+Wired in: the six-frame walk advances a frame every 34 px the street moves
+(frame 0 when stopped); the crouch shows for the first 0.05 s of a hop, the
+spring while rising through the first 40 px, the small umbrella while rising
+or falling fast, the wide one while floating down slowly or lifted by a gust,
+the furled drop when let go in the air, and the landing for 0.12 s. The rule
+sizes come from the same measurements: furled height 185 px, small canopy 84
+px each side, the wide canopy 115 px (it shelters more of the rain and
+reaches further for awnings and little birds). The old two-frame walk (IC-M10e)
+and the floating cell of IC-M10b are no longer drawn.

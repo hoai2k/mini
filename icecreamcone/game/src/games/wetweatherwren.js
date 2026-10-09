@@ -16,8 +16,10 @@ import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, l
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
-  'sprites.wrenPoses': [3, 1], // umbrella open (floating), umbrella open and walking, snagged inside-out
-  'sprites.wrenWalk': [2, 1], // furled, walking: two strides, without the portrait's rain and puddle
+  'sprites.wrenPoses': [3, 1], // umbrella open (floating, no longer used), umbrella open and walking, snagged inside-out
+  'sprites.wrenWalkCycle': [3, 2], // furled walk: contact, down, passing, for each leg
+  'sprites.wrenHop': [2, 2], // crouch, spring (bursting open), landing, furled and dropping
+  'sprites.wrenFly': [2, 1], // in the air: small open umbrella, wide umbrella (floating down)
   'sprites.wrenSplash': [1, 1], // furled, standing in a puddle, drenched and dripping
   'sprites.rainStreet': [2, 2], // small puddle, long puddle, pink striped awning, green striped awning
 });
@@ -30,24 +32,44 @@ const HOP = 760; // the gust under a freshly opened umbrella
 const G_OPEN = 1500;
 const G_SHUT = 3400;
 const FALL_OPEN = 170; // floating down under the canopy
-const TOP_SHUT = Math.round((383 * SIZE) / 400); // how tall the Wren stands, furled (the painting's top)
-// The pose sheets (wren-poses, wren-walk, wren-splash) are painted at the
-// portrait's framing (1024 px = 420 units): each cell is drawn whole at the
-// portrait's scale, standing on its feet, measured on the sheets as
-// [feet down the cell, feet (or shaft) across it].
-const CELL = (420 * SIZE) / 400;
-const FEET = {
-  float: [0.951, 0.49],
-  openWalk: [0.985, 0.47],
-  insideOut: [0.938, 0.49],
-  walk: [0.936, 0.5],
-  splash: [0.93, 0.53],
+// The pose sheets were painted at different scales from the portrait (and
+// from each other), so each cell is drawn at a scale measured on the art,
+// not from its cell or its height: the wren's eye (a round cream disc,
+// 43.2 px across on the 1024 px portrait) was measured on every cell, and
+// checked against a template match of the head. Measured scale s (the
+// cell's eye / the portrait's), where the cell stands: `ax` is the
+// cell's x (px) that goes on the Wren's place (its body, or its shaft when
+// open), `bot` the y of its lowest painted pixel (its feet), `cw` the cell
+// size, and the eye's centre (for the test). Drawn at PXK / s screen px per sheet px, so every pose shows the
+// bird at one size. (tests check it: test/wetweatherwren.test.mjs)
+const PXK = (420 / 1024) * (SIZE / 400); // screen px per portrait px
+export const WREN_POSES = {
+  // eye diameters on the cells: 43.5 44.2 42.7 44.1 45.2 43.5, so one scale for the cycle
+  walk0: ['sprites.wrenWalkCycle', 0, 1.015, 539, 958, 1024, 188, 322],
+  walk1: ['sprites.wrenWalkCycle', 1, 1.015, 552, 905, 1024, 213, 329],
+  walk2: ['sprites.wrenWalkCycle', 2, 1.015, 540, 973, 1024, 210, 314],
+  walk3: ['sprites.wrenWalkCycle', 3, 1.015, 535, 906, 1024, 186, 264],
+  walk4: ['sprites.wrenWalkCycle', 4, 1.015, 547, 849, 1024, 206, 274],
+  walk5: ['sprites.wrenWalkCycle', 5, 1.015, 535, 929, 1024, 202, 264],
+  crouch: ['sprites.wrenHop', 0, 0.79, 542, 738, 1024, 342, 454],
+  spring: ['sprites.wrenHop', 1, 0.62, 520, 793, 1024, 464, 240],
+  land: ['sprites.wrenHop', 2, 0.78, 508, 707, 1024, 317, 446],
+  drop: ['sprites.wrenHop', 3, 0.76, 524, 755, 1024, 336, 431],
+  fly: ['sprites.wrenFly', 0, 1.41, 778, 1438, 1536, 717, 519],
+  glide: ['sprites.wrenFly', 1, 1.41, 778, 1529, 1536, 719, 517],
+  openWalk: ['sprites.wrenPoses', 1, 1.11, 472, 1008, 1024, 423, 81],
+  insideOut: ['sprites.wrenPoses', 2, 1.3, 462, 959, 1024, 358, 85],
+  splash: ['sprites.wrenSplash', 0, 1.05, 530, 988, 1024, 244, 321],
 };
-const TOP_OPEN = Math.round((0.951 - 0.02) * CELL); // and with its canopy open (the head on top)
+export const WREN_EYE = 43.2; // on the portrait
+// Sizes for the rules, from the same measurements (screen px):
+const TOP_SHUT = Math.round((798 / 1.015) * PXK); // the furled walking bird's height
+const TOP_OPEN = Math.round((996 / 1.41) * PXK); // the small open umbrella, feet to head
+const CANOPY_R = Math.round((1005 / 2 / 1.41) * PXK); // its canopy's half-width
+const GLIDE_R = Math.round((1376 / 2 / 1.41) * PXK); // the wide one's
+const CANOPY_TOP = Math.round(((1438 - 645) / 1.41) * PXK); // the canopy's dome above the feet
 const AWN_H = 330; // an awning's lower edge, above the pavement
 const FOOT = 22; // how much of a puddle's rim is safe to stand on
-const CANOPY_R = Math.round(0.44 * CELL); // the open canopy's half-width on the sheet
-const CANOPY_TOP = Math.round((0.951 - 0.2) * CELL); // its dome, above the feet
 const PAVE_Y = 728; // the near pavement's kerb in the delivered scene (874 of 1080)
 
 export default function create(env) {
@@ -68,6 +90,8 @@ export default function create(env) {
     wet: 0,
     tilt: 0,
     snagT: 0,
+    airT: 0, // seconds since leaving the ground
+    landT: 0, // the landing pose
     puddles: [], // { x0, x1, hit, counted }
     awnings: [], // { x0, x1, hit, color }
     chicks: [], // { x, state: 'wait' | 'dry' | 'cold', t, color }
@@ -185,6 +209,8 @@ export default function create(env) {
     g.noOpen = Math.max(0, g.noOpen - dt);
     g.snagT = Math.max(0, g.snagT - dt);
     g.wet = Math.max(0, g.wet - dt);
+    g.airT += dt;
+    g.landT = Math.max(0, g.landT - dt);
 
     // The umbrella: press to pop it open (a hop from the ground), hold to
     // keep it open, let go to furl it.
@@ -193,6 +219,7 @@ export default function create(env) {
       sfx('switch');
       if (g.grounded) {
         g.grounded = false;
+        g.airT = 0;
         g.vy = HOP;
         sfx('pour');
       }
@@ -222,6 +249,7 @@ export default function create(env) {
         g.h = 0;
         g.vy = 0;
         g.grounded = true;
+        g.landT = 0.12;
         sfx('plop');
       }
     }
@@ -249,7 +277,7 @@ export default function create(env) {
     // Awnings catch an open (or too high) umbrella.
     for (const a of g.awnings) {
       if (a.hit) continue;
-      const reach = g.open ? CANOPY_R * 0.8 : 30;
+      const reach = g.open ? (g.poseName() === 'glide' ? GLIDE_R : CANOPY_R) * 0.8 : 30;
       // an open canopy is too wide to pass under one; a furled hop too high bumps it
       if (g.d + reach > a.x0 && g.d - reach < a.x1 && (g.open || top() > AWN_H)) snag(a);
     }
@@ -543,30 +571,49 @@ export default function create(env) {
     c.restore();
   }
 
+  // Which painted pose the Wren shows now.
+  g.poseName = () => {
+    if (g.snagT > 0) return 'insideOut';
+    if (g.grounded) {
+      if (g.wet > 1.2 && !g.open) return 'splash';
+      if (g.open) return 'openWalk';
+      if (g.landT > 0) return 'land';
+      return g.speed < 30 ? 'walk0' : 'walk' + (Math.floor(g.d / 34) % 6);
+    }
+    if (g.airT < 0.05) return 'crouch';
+    if (!g.open) return 'drop';
+    if (g.vy > 0 && g.h < 40) return 'spring';
+    // floating down slowly (or lifted by a gust): the wide umbrella
+    return g.gust > 0 || (g.vy <= -FALL_OPEN + 1) ? 'glide' : 'fly';
+  };
+  // A pose drawn at its measured scale, its feet (or shaft) on the origin,
+  // flipped to face the way the Wren walks.
+  function drawPose(c, name) {
+    const [key, i, s, ax, bot, cw] = WREN_POSES[name];
+    const q = PXK / s;
+    return drawSprite(c, key, i, (ax - cw / 2) * q, (cw - bot) * q, { w: cw * q, whole: true, flip: true });
+  }
+
   function drawWren(c, t) {
     const feetY = GROUND - g.h;
-    const walk = g.grounded && g.speed > 30 ? Math.abs(Math.sin(g.d / 40)) * 6 : 0;
     const shake = g.snagT > 0 && !env.reduceMotion ? Math.sin(g.snagT * 50) * 4 : 0;
     // its shadow on the pavement
     c.save();
     c.globalAlpha = 0.18 * clamp(1 - g.h / 500, 0.3, 1);
     c.fillStyle = INK;
     c.beginPath();
-    c.ellipse(WREN_X, GROUND + 6, (g.open ? CANOPY_R : 70) * (1 - g.h / 1200), 10, 0, 0, Math.PI * 2);
+    c.ellipse(WREN_X, GROUND + 6, (g.open ? (g.poseName() === 'glide' ? GLIDE_R : CANOPY_R) : 70) * (1 - g.h / 1200), 10, 0, 0, Math.PI * 2);
     c.fill();
     c.restore();
 
     const pose = g.snagT > 0 ? 2 : g.open ? (g.grounded ? 1 : 0) : -1;
     c.save();
-    c.translate(WREN_X + shake, feetY - walk);
+    c.translate(WREN_X + shake, feetY);
     c.rotate(g.tilt);
     let drawn = false;
     const soaked = g.wet > 1.2 && g.grounded && pose < 0; // just splashed: standing in the puddle, drenched
-    // (flipped to face the way it walks, so the feet's offset is mirrored)
-    const cell = (key, i, [fy, fx]) => drawSprite(c, key, i, (fx - 0.5) * CELL, (1 - fy) * CELL, { w: CELL, whole: true, flip: true });
-    if (pose >= 0) drawn = cell('sprites.wrenPoses', pose, [FEET.float, FEET.openWalk, FEET.insideOut][pose]);
-    else if (soaked) drawn = cell('sprites.wrenSplash', 0, FEET.splash);
-    else drawn = cell('sprites.wrenWalk', g.grounded ? Math.floor(g.d / 90) % 2 : 1, FEET.walk);
+    const name = g.poseName();
+    drawn = drawPose(c, name);
     if (!drawn && soaked) c.scale(1.08, 0.9); // the stand-in sags
     if (!drawn) {
       if (g.open) {
@@ -605,7 +652,8 @@ export default function create(env) {
   // Rain: streaks slanting down, stopped by the open canopy.
   function rain(c, t) {
     const lean = g.gust > 0 ? 0.55 : 0.22;
-    const shelter = g.open ? { x0: WREN_X - CANOPY_R, x1: WREN_X + CANOPY_R, y: GROUND - g.h - CANOPY_TOP } : null;
+    const R = g.poseName() === 'glide' ? GLIDE_R : CANOPY_R;
+    const shelter = g.open ? { x0: WREN_X - R, x1: WREN_X + R, y: GROUND - g.h - CANOPY_TOP } : null;
     c.save();
     c.strokeStyle = 'rgba(70,100,130,0.45)';
     c.lineWidth = 2;

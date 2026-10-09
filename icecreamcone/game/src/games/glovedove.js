@@ -34,41 +34,42 @@ const DURATION = 45;
 // wires' tops at about 304 to 380.
 const COUNTER = 540; // where the Dove's feet stand, near the front of the counter top
 const SIZE = 290;
-// From the art: the long glove is the Dove's neck, held level behind its head
-// (the portrait, subjects/glovedove.png), and bracing to catch it lowers the
-// glove to a level tray (sprites.glovedoveToss, cell 0) whose top is 252
-// units above the feet, its middle 84 units behind them (measured on the
-// sheet: glove top at 0.38 of the cell, feet at 0.979, middle at x 0.7). The
-// Dove braces whenever a dish is about to come down on it, so dishes meet the
-// glove at the braced height. It always faces left, towards the sink, with
-// the glove reaching back towards the rack. The pose sheets are painted at the
-// portrait's framing (1024 px = 420 units, feet centred): they are drawn whole
-// at the portrait's scale, standing on their measured feet.
+// The Dove's art was painted at different scales: the portrait
+// (subjects/glovedove.png), the cheer/dismay sheet and the crouch-and-bump
+// sheet each show the bird at its own size. So every cell is drawn at a
+// scale measured on the art, not fitted to its cell or its height (a crouch
+// is shorter and would grow). Measured on every cell against the portrait:
+// the eye's diameter, the square root of the blue-grey feather area, and the
+// square root of the ochre leg area; the scale s is their common value
+// (portrait 1; cheer and dismay 0.92; the bump sheet 0.68, its deep crouch
+// 0.655). Each cell stands with its feet (`fx`, the middle of the feet
+// along the bottom of its painting, `bot` its lowest pixel) where the
+// portrait's feet are. The test test/glovedove.test.mjs re-measures the
+// three features on every cell and checks they stay within 4% of the
+// portrait's on screen.
 const K_SIZE = SIZE / 400;
-const HANDS = COUNTER - Math.round(252 * K_SIZE); // where a falling dish meets the glove
-const ARM_C = Math.round(84 * K_SIZE); // the middle of the glove, behind the Dove's feet
-const CELL = 420 * K_SIZE; // a pose cell, drawn at the portrait's scale
-// [sheet, cell, feet down the cell, feet across the cell]
-const POSE = {
-  brace: ['sprites.glovedoveToss', 0, 0.979, 0.51],
-  flick: ['sprites.glovedoveToss', 1, 0.979, 0.495],
-  cheer: ['sprites.glovedovePoses', 0, 1.0, 0.46],
-  dismay: ['sprites.glovedovePoses', 1, 1.0, 0.51],
-  // the crouch-and-bump sheet (IC-M11h): feet on y 1002 of 1024, midway at x 512
-  sink: ['sprites.glovedoveBump', 0, 0.979, 0.5],
-  crouch: ['sprites.glovedoveBump', 1, 0.979, 0.5],
-  turn: ['sprites.glovedoveBump', 2, 0.979, 0.5],
-  aim: ['sprites.glovedoveBump', 3, 0.979, 0.5],
-  bump: ['sprites.glovedoveBump', 4, 0.979, 0.5],
-  look: ['sprites.glovedoveBump', 5, 0.979, 0.5],
+const PXK = (420 / 1024) * K_SIZE; // screen px per portrait px
+const FEET_X = (432 - 512) * PXK; // the portrait's feet, from the middle of its image
+// [sheet, cell, s, fx, bot, cell size, eye x, eye y] (px on the sheets)
+export const DOVE_POSES = {
+  stand: ['subject.glovedove', 0, 1, 432, 997, 1024, 235, 193],
+  sink: ['sprites.glovedoveBump', 0, 0.68, 496, 1014, 1024, 337, 522],
+  crouch: ['sprites.glovedoveBump', 1, 0.655, 535, 1015, 1024, 339, 583],
+  turn: ['sprites.glovedoveBump', 2, 0.68, 490, 1015, 1024, 409, 579],
+  aim: ['sprites.glovedoveBump', 3, 0.68, 536, 1019, 1024, 472, 555],
+  bump: ['sprites.glovedoveBump', 4, 0.68, 530, 1020, 1024, 485, 419],
+  look: ['sprites.glovedoveBump', 5, 0.68, 481, 1022, 1024, 319, 528],
+  cheer: ['sprites.glovedovePoses', 0, 0.92, 460, 1023, 1024, 254, 290],
+  dismay: ['sprites.glovedovePoses', 1, 0.92, 527, 1023, 1024, 221, 388],
 };
-// Until that sheet arrives the crouch is the braced pose squashed down, and
-// the bump is the flick pose.
-const STANDIN = { sink: ['brace', 0.95], crouch: ['brace', 0.88], turn: ['brace', 0.88], aim: ['brace', 0.88], bump: ['flick', 1], look: [null, 1] };
-// The crouched glove's top: 148 painting units up on the requested sheet (a
-// level line at y 640 of 1024), 252 x 0.88 on the squashed stand-in.
-const CROUCH_Y_ART = COUNTER - Math.round(148 * K_SIZE);
-const CROUCH_Y_STANDIN = COUNTER - Math.round(252 * 0.88 * K_SIZE);
+// The glove's top: standing (the portrait), 832 px above its feet over the
+// middle of the glove; crouched (bump sheet cells 1 to 3), a level line 378
+// px above the feet on cells drawn at 0.655 to 0.68: 378 / 0.665 portrait px.
+const HANDS = COUNTER - Math.round(832 * PXK); // where a falling dish meets the standing glove
+const CROUCH_Y = COUNTER - Math.round((378 / 0.665) * PXK); // the crouched glove's level top
+// The middle of the crouched glove's level part (sheet x 650, 115 px behind
+// the feet), from the Dove's x: where a dish is caught and rests.
+const ARM_C = Math.round(FEET_X + (115 / 0.665) * PXK);
 const SINK_X1 = 360; // the sink, left of here
 const SINK_Y = 390; // its suds
 const RACK_X0 = 1250; // the plate rack
@@ -153,7 +154,7 @@ export default function create(env) {
   // When (seconds) and where (x) a falling dish next reaches the fingers, or null.
   g.catchX = () => g.x + ARM_C;
   // The glove's top: lower while crouched.
-  g.gloveY = () => (g.crouch ? (spriteCell('sprites.glovedoveBump', 1) ? CROUCH_Y_ART : CROUCH_Y_STANDIN) : HANDS);
+  g.gloveY = () => (g.crouch ? CROUCH_Y : HANDS);
   g.landing = (d) => {
     if (d.held) return null;
     const dy = g.gloveY() - d.y;
@@ -190,7 +191,7 @@ export default function create(env) {
     if (hup) {
       const air = flight(d.vy, Math.max(0, RACK_Y - d.y));
       d.vx = clamp((RACK_MID - d.x) / air, 120, HUP_REACH);
-    } else d.vx = 150 + 230 * power;
+    } else d.vx = 110 + 170 * power;
     d.spin = (rng() - 0.5) * 10;
     d.flicks++;
     g.flicks++;
@@ -255,7 +256,7 @@ export default function create(env) {
     }
     // a dish just coming down past the rising glove is caught in the spring
     for (const d of g.dishes) {
-      if (!d.held && !d.slipped && d.vy > 0 && d.y > HANDS - 30 && d.y < CROUCH_Y_ART + 10 && Math.abs(d.x - g.catchX()) < REACH) bump(d, g.power);
+      if (!d.held && !d.slipped && d.vy > 0 && d.y > HANDS - 30 && d.y < CROUCH_Y + 10 && Math.abs(d.x - g.catchX()) < REACH) bump(d, g.power);
     }
   }
 
@@ -550,23 +551,12 @@ export default function create(env) {
     else if (g.cheer > 0) pose = 'cheer';
     else if (g.lookT > 0) pose = 'look';
     let drawn = false;
-    let squash = 1;
     if (pose) {
-      const [key, i, fy, fx] = POSE[pose];
-      drawn = drawSprite(c, key, i, (0.5 - fx) * CELL, (1 - fy) * CELL, { w: CELL, whole: true, flip });
-      if (!drawn && STANDIN[pose]) {
-        // the requested crouch-and-bump frame is not here yet: its stand-in
-        const [alt, sq] = STANDIN[pose];
-        squash = sq;
-        if (alt) {
-          const [k2, i2, fy2, fx2] = POSE[alt];
-          c.save();
-          c.scale(1, sq);
-          drawn = drawSprite(c, k2, i2, (0.5 - fx2) * CELL, (1 - fy2) * CELL, { w: CELL, whole: true, flip });
-          c.restore();
-        }
-      }
+      const [key, i, sc, fx, bot, cw] = DOVE_POSES[pose];
+      const q = PXK / sc;
+      drawn = drawSprite(c, key, i, FEET_X + (cw / 2 - fx) * q, (cw - bot) * q, { w: cw * q, whole: true, flip });
     }
+    const squash = pose === 'sink' ? 0.95 : pose === 'crouch' || pose === 'turn' || pose === 'aim' ? 0.88 : 1;
     if (!drawn) {
       // the portrait: tipped back for the bump, squashed for the crouch,
       // hopping to cheer, drooping in dismay
@@ -582,7 +572,7 @@ export default function create(env) {
       const n = 5;
       for (let i = 0; i < n; i++) {
         c.beginPath();
-        c.arc(ARM_C - 60 + i * 30, -(COUNTER - g.gloveY()) - 34, 7, 0, Math.PI * 2);
+        c.arc(ARM_C - 60 + i * 30, -(COUNTER - g.gloveY()) - 66, 7, 0, Math.PI * 2);
         c.fillStyle = i < Math.round(f * n) ? PAL.magenta : 'rgba(250,244,228,0.7)';
         c.fill();
         ink(c, 1.4);

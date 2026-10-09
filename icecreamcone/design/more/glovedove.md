@@ -167,3 +167,31 @@ The timed "Hup!" press, its fumble and the automatic brace are gone; a dish
 now settles on the crouched glove and can be carried, and how long the
 crouch was held (not the timing of a press) decides between a "Hup!" and a
 hop. Pass 30 kept (beginners 44 to 63, clumsy 34 to 52, mashing at most 21).
+
+### The crouch-and-bump sheet (IC-M11h), and one size for every pose
+
+The bump sheet arrived painted at about two thirds of the portrait's size,
+and the cheer/dismay sheet at 0.92; fitting cells by their height made the
+Dove grow as it crouched. Now every cell is drawn at a scale measured on the
+art: on each cell the eye's diameter, the square root of the blue-grey
+feather area and the square root of the ochre leg area were measured against
+the portrait's, and their common value is the cell's scale (portrait 1;
+cheer and dismay 0.92; sinking, turning, aiming, bump and look-back 0.68;
+the deep crouch 0.655). Each cell stands with the middle of its feet where
+the portrait's feet are. The table is `DOVE_POSES` in the game;
+`test/glovedove.test.mjs` re-measures the three features on every cell from
+the PNGs and checks that their median stays within 4% of the portrait's on
+screen (all within 2.5%).
+
+From the same measurements: the standing glove's top (where a dish bounces)
+is 247 px above the feet, the crouched glove's level top 166 px, and a
+caught dish rests on the middle of its level part, 28 px behind the Dove's
+x. The crouch's wind-up dots moved up above the resting dish. The braced and
+flick poses (IC-M11f) and the squashed stand-ins are no longer used.
+
+Two cut-off slivers along the bottom edge of the crouch cell, and a speck in
+the head-turn cell, were erased from glovedove-bump.png (nothing of the
+painting itself was changed). Hops without a full crouch now go a little
+less far (110 to 280 px a second along), so a slow rhythm of crouch-and-let-go
+stays under the pass mark: beginners 53 to 60, clumsy 32 to 45, good 85 to 89,
+mashing at most 15, pass 30.
