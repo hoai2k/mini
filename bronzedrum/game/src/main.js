@@ -507,8 +507,9 @@ function confirm(text, color) {
 input.on('drum', ({ drum, time }) => strike(drum, time));
 input.on('action', ({ action, time }) => {
   // The Oath has no shields and its calls need no reset: there A and Y (Space
-  // and R) only stir a breeze over the incense while held (see view()).
-  if (game && game.stage.caller === 'mourning' && !game.success) return;
+  // and R) only stir a breeze over the incense while held (see view()). The
+  // opening card and the success moment still take A to go on.
+  if (game && game.stage.caller === 'mourning' && !game.success && !game.opening) return;
   act(action, time);
 });
 
@@ -1643,6 +1644,22 @@ document.addEventListener('click', (e) => {
   else action(el.dataset.action);
 });
 $('#press-start').addEventListener('click', pressStart);
+// A click outside a menu's panel (on the dimmed backdrop) is "back", like B:
+// it closes a dialog, or leaves the pause menu for the game. Only a click
+// that both starts and ends on the backdrop counts, so a drag out of the
+// panel does not.
+let backdropDown = null;
+document.addEventListener('pointerdown', (e) => {
+  backdropDown = e.target.classList && e.target.classList.contains('modal') ? e.target : null;
+});
+document.addEventListener('click', (e) => {
+  const el = e.target;
+  if (!backdropDown || el !== backdropDown) return;
+  backdropDown = null;
+  if (el.classList.contains('dialog')) {
+    if (dialogs.length && dialogs[dialogs.length - 1] === el.id) closeDialog();
+  } else if (el.id === 'pause' && screen === 'pause' && !dialogs.length) resume();
+});
 // A setting's (i): a tap shows or hides its tip (hover does on a mouse); it never changes the setting.
 document.addEventListener('click', (e) => {
   const tip = e.target.closest && e.target.closest('.info');
