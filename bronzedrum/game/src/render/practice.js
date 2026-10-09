@@ -374,10 +374,9 @@ export const practice = {
       }
       g.restore();
     };
-    // What the player is drumming: the strokes so far as read, then rings for
-    // the rest. Only ghosts until the rhythm is complete: how the strokes
-    // group can change as more come (four quick strokes may be two pairs
-    // until the last has landed), so nothing is final yet.
+    // What the player is drumming: the beats settled so far (PracticeSession
+    // shown: they never regroup), as ghosts, then rings for the rest. The
+    // last beats appear when the rhythm is complete.
     const entering = (y, r = dotR, c = cell) => {
       const part = p.partial;
       // Rings for the beats still to come (a beat may hold up to three strokes).
@@ -431,7 +430,7 @@ export const practice = {
           this.pattern(rowX(p.loop.beats, c), upperY, p.loop, dotR * 0.62, c, p.loopPos ? p.loopPos.played : 0, false, false, 0.45);
         }
         entering(rowY);
-        label(`Beat ${Math.min(p.beats, p.partial ? p.partial.beats : 1)} of ${p.beats}`, cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
+        label('Listening…', cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
       } else if (p.loop) {
         // The rhythm repeating: each stroke lights as it sounds.
         const x0 = rowX(p.loop.beats);

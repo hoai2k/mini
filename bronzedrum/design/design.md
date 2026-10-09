@@ -381,8 +381,23 @@ shorter than the beats set would end in silent beats, so those count as rests
 too (otherwise `L R L R L R` drummed a little unevenly read as three pairs at
 half the tempo and three silent beats). Measured with simulated players
 (steady drift, uneven strokes up to ±12% of a beat), plain rhythms now read
-right 95% of the time, against 72% before, and with a rest 2% against 25%. While the rhythm is being drummed its last beat may still fill, and the
-dots show the reading as ghosts, which may regroup.
+right 95% of the time, against 72% before, and with a rest 2% against 25%. 
+
+**A steady reading.** The beats set (4 by default) pin the tempo (`pinned`):
+the first stroke opens the first beat and the last falls in the last beat, so
+the rhythm spans a little under n - 1 to n beats, and pairs cannot be read as
+beats nor beats as pairs. The loop plays back at that tempo, the speed drummed;
+the tempo already in the air (the loop just cleared) only breaks ties among the
+readings the strokes allow, as when a rhythm opens with a pair. While the
+rhythm is drummed the dots show only settled beats (`shown`): a beat appears
+as a ghost once strokes have landed two beats past it and two readings in a
+row agree on it, on everything before it and on the tempo, and it never
+changes; the rest appear when the rhythm is complete, and the final reading
+keeps to what is shown unless the strokes plainly say otherwise. Measured with
+simulated players (whole sessions, uneven strokes up to ±12% of a beat),
+beats already shown changed in 0–4% of rhythms, against 71–79% before, with
+the readings as accurate as before (97–100% right) and the playback within 6%
+of the speed drummed in 97–100%.
 
 The rhythm is complete just before the beat after its last beat, at the tempo
 its strokes have set, so a closing pair or triplet still fits. With no rests to
