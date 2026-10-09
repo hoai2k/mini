@@ -315,7 +315,7 @@ export function shift(game, how = 'pour', at = null) {
 }
 
 // The per-player input for one frame:
-// { LS: [x, y], RS: [x, y], LT: 0..1, RT: 0..1, pressed: Set of buttons }
+// { LS: [x, y], RS: [x, y], LT: 0..1, RT: 0..1, pressed: Set of buttons, dpad: -1|0|1 }
 export function step(game, dt, inputs = new Map()) {
   dt = Math.min(dt, 1 / 20);
   game.time += dt;
@@ -373,6 +373,19 @@ function applyPlayer(game, pl, inp, dt) {
       activity += amount;
     }
     if (amount > 0.02) apply(game, pl, b, { amount, vec, pressed }, dt);
+  }
+  // D-pad steps the most recently used binding to the next target of the same kind.
+  if (inp.dpad && pl.last && pl.bindings[pl.last]) {
+    const b = pl.bindings[pl.last];
+    if (b.target < 1000 && b.scale !== 'large') {
+      const cur = game.pieces[b.target];
+      const same = game.pieces.filter((p) => p.kind === cur.kind);
+      const pool = same.length > 1 ? same : game.pieces;
+      const at = pool.indexOf(cur);
+      b.target = pool[(at + inp.dpad + pool.length) % pool.length].i;
+      game.events.push({ type: 'retarget', player: pl.id, input: pl.last, target: b.target });
+      activity += 1;
+    }
   }
   return activity;
 }
