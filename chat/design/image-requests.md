@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-237 delivered, 18 requested, 255 in total.
+255 delivered, 196 requested, 451 in total.
 
 ## Brand
 
@@ -1950,10 +1950,2374 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baby button on the effect strip.
 - **Stand-in until delivered:** An emoji.
+- **Status:** delivered
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Actual transparent alpha outside the tile, no magenta. Output canvas 256 x 256.
+```
+
+## Theme title screens
+
+A title background and logo for each theme you can pick in Settings > Theme: Teen (the default), Art (mid-century French New Wave cinema posters) and Classical (18th-century French Rococo). The Kid theme keeps the original title art.
+
+### CH-T01 · Teen theme: title background
+
+- **File:** `chat/assets/themes/title-bg-teen.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Behind the title screen and join form in the Teen theme.
+- **Stand-in until delivered:** The Kid theme's title background.
 - **Status:** requested
 
 ```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Full-bleed background: a deep indigo night city scene seen from a rooftop, neon signs and city lights softly out of focus, a few glowing phone screens and speech-bubble shapes drifting like lanterns. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
+```
+
+### CH-T02 · Teen theme: logo
+
+- **File:** `chat/assets/themes/logo-teen.png`
+- **Size:** 1600 x 800, transparent
+- **Used for:** The title screen logo in the Teen theme.
+- **Stand-in until delivered:** The Kid theme's logo.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No other text, no watermark, no photorealism. A sleek logo: "GAMES" in a bold modern sans serif with a soft neon glow over "CHAT" set inside a rounded speech bubble outline, white and electric violet with one hot-pink accent. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-T03 · Art theme: title background
+
+- **File:** `chat/assets/themes/title-bg-art.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Behind the title screen and join form in the Art theme.
+- **Stand-in until delivered:** The Kid theme's title background.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Full-bleed background: a Nouvelle Vague film-poster composition: two stylised faces in profile facing each other across a café table, cut-paper shapes in vermilion, black and mustard, a big abstract sun and the Eiffel Tower as a tiny black silhouette. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
+```
+
+### CH-T04 · Art theme: logo
+
+- **File:** `chat/assets/themes/logo-art.png`
+- **Size:** 1600 x 800, transparent
+- **Used for:** The title screen logo in the Art theme.
+- **Stand-in until delivered:** The Kid theme's logo.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No other text, no watermark. A film-title logo: "Games Chat" in a hand-cut condensed display face like a 1960s Nouvelle Vague title card, red and black on off-white paper, with a small cut-paper speech bubble. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-T05 · Classical theme: title background
+
+- **File:** `chat/assets/themes/title-bg-classic.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Behind the title screen and join form in the Classical theme.
+- **Stand-in until delivered:** The Kid theme's title background.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Full-bleed background: a Rococo garden party at Versailles: powdered aristocrats in silks chatting on a swing and around a fountain, cherubs, roses, ribbons and pastel clouds, framed by gilt scrollwork. Keep the middle third calm and uncluttered for the logo and the join form. No border. 
+```
+
+### CH-T06 · Classical theme: logo
+
+- **File:** `chat/assets/themes/logo-classic.png`
+- **Size:** 1600 x 800, transparent
+- **Used for:** The title screen logo in the Classical theme.
+- **Stand-in until delivered:** The Kid theme's logo.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No other text, no watermark. An ornate Rococo cartouche logo: "Games Chat" in elegant engraved copperplate script with gold leaf, inside a gilded scrolling frame with ribbons and a small cherub. Spell it exactly: Games Chat. Centred, wide landscape composition with even margins. Apart from the words Games Chat, no text. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+## Effect and game icons, Art theme
+
+The Art theme's icon for every effect and game: mid-century French New Wave cinema poster art, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
+
+### CH-N01 · Bubble Blow icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-bubble.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bubble Blow button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in profile with pursed lips blowing a big shimmering soap bubble that drifts away towards the edge, a second small bubble popping with a burst of droplets. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N02 · Puppy icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-puppy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Puppy button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face wearing realistic-looking floppy brown dog ears and a black dog nose, mouth open with a long pink dog tongue hanging out. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N03 · Heart Eyes icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-hearteyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Heart Eyes button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's grinning face with glowing red heart shapes in place of the eyes, three small hearts floating up from the head. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N04 · Dragon icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-dragon.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Dragon button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with small curved dragon horns and scaly cheeks, mouth wide open blasting a jet of orange fire sideways. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N05 · Rainbow Mouth icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-rainbow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Rainbow Mouth button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with mouth wide open and a thick bright rainbow pouring out of it and curving down out of frame. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N06 · Big Eyes icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-bigeyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Big Eyes button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with eyes magnified huge like a bulging lens, the rest of the face normal, a subtle warp ring around each eye. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N07 · Bobblehead icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-bobblehead.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bobblehead button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person drawn with a giant head on a small body, the head tilted mid-wobble with two motion arcs. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N08 · Alien icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-alien.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Alien button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face tinted lime green with large glossy black almond eyes and two antennae with glowing tips. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N09 · Deal With It icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-dealwithit.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Deal With It button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: pixel-art black sunglasses dropping down onto a smirking person's face, motion lines above them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N10 · Royalty icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-crown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Royalty button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a confident person wearing a heavy gold jewelled crown slightly tilted, a few gold sparkles. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N11 · Fancy icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-fancy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fancy button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with raised eyebrows, a curled handlebar mustache and a gold monocle on a chain falling from one eye. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N12 · Clown icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-clown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Clown button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a round red clown nose and a huge rainbow curly afro wig, mouth open in a honk. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N13 · Storm Cloud icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-storm.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Storm Cloud button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a small dark rain cloud hovering over a person's frowning head, rain falling on them and a lightning bolt striking. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N14 · Noodle Face icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-noodle.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Noodle Face button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face stretched long and wavy like in a funhouse mirror, eyes and mouth pulled into a tall S-curve. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N15 · Swirl icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-swirl.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Swirl button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face twisted into a spiral around the nose, as if being pulled down a whirlpool. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N16 · Outer Space icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-space.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Outer Space button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders cut out against a deep starfield with a ringed planet and a nebula behind them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N17 · Under the Sea icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-underwater.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Under the Sea button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders in blue-green water light, rippling caustics on the face, bubbles rising and a small tropical fish passing. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N18 · 8-Bit icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-pixel.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The 8-Bit button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face rendered in big chunky square pixels with a limited retro console palette, half the face still smooth to show the change. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N19 · Comic Book icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-comic.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Comic Book button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face in comic-book style with halftone dots and bold ink lines, mouth open and a jagged POW burst shape beside it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N20 · Heat Vision icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-thermal.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Heat Vision button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face as a thermal camera image, hot yellow and red cheeks fading to purple and blue at the edges. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N21 · Flower Crown icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-flowercrown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Flower Crown button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person wearing a crown of pink peonies, white daisies and green leaves, soft petals drifting. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N22 · Kitty icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-kitty.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Kitty button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with pointed cat ears, a small pink cat nose and thin white whiskers, mouth open mid-meow. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N23 · Bunny icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-bunny.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bunny button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with tall white rabbit ears, one ear flopped over, and a little pink bunny nose. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N24 · Hotdog icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-hotdog.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Hotdog button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person dressed in a full hotdog costume, face showing through the bun, jumping in the air. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N25 · Laser Eyes icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-lasereyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Laser Eyes button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with raised eyebrows firing two straight red laser beams from the eyes towards the viewer, glowing hot. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N26 · Waterworks icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-crying.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Waterworks button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face crying two exaggerated arcing fountains of tears from the corners of the eyes, splashing below. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N27 · Devil icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-devil.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Devil button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a sly smile and two small glossy red devil horns, a faint red glow and a few embers behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N28 · Angel icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-angel.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Angel button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a golden halo floating above the head and soft white feathered wings behind the shoulders. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N29 · Pirate icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-pirate.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Pirate button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in a black tricorn pirate hat with a skull emblem and a black eyepatch, mid-shout. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N30 · Viking icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-viking.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Viking button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in a horned steel Viking helmet with a braided orange beard. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N31 · Wizard icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-wizard.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Wizard button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in a tall starry midnight-blue wizard hat, eyebrows raised, purple magic sparks bursting around the head. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N32 · Butterflies icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-butterflies.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Butterflies button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head with a ring of blue and pink butterflies circling it, two flying off. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N33 · Glam icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-makeup.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Glam button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with bold winged eyeliner, glossy red lips and contoured cheeks, a sparkle on the cheekbone. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N34 · Beach 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-beach360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Beach 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of a tropical beach with palm trees and turquoise sea, a circular 360-degree arrow around the scene. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N35 · Space 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-space360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Space 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of a space-station window looking down at Earth, a circular 360-degree arrow around the scene. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N36 · Reef 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-reef360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Reef 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of a coral reef with a sea turtle, a circular 360-degree arrow around the scene. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N37 · Forest 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-forest360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Forest 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of a misty fantasy forest with a waterfall and glowing mushrooms, a circular 360-degree arrow. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N38 · City 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-city360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The City 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out on a rooftop in front of neon skyscrapers at night, a circular 360-degree arrow around the scene. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N39 · Snow 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-snow360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snow 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N40 · Candy 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-candy360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Candy 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N41 · Volcano 360 icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-volcano360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Volcano 360 button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person cut out in front of an erupting volcano and rivers of glowing lava, a circular 360-degree arrow. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N42 · Blur icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-blurbg.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Blur button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a crisp, sharply drawn person in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N43 · Colour Pop icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-colorpop.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Colour Pop button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in full vivid colour in front of a room that is entirely black and white. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N44 · Neon Aura icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-neonaura.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Neon Aura button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a dark silhouette of a person outlined by a glowing neon pink and cyan aura on a black background. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N45 · Disco icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-disco.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Disco button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person lit by coloured disco beams from a mirror ball above, light spots on the face, dark room behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N46 · Code Rain icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-matrix.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Code Rain button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a green-tinted face in front of falling columns of green code characters on black. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N47 · Sunset icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-sunset.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Sunset button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a black silhouette of a person's head and shoulders against a huge orange and pink sunset over the sea. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N48 · Time Trails icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-echo.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Time Trails button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person mid-move leaving a trail of four fading see-through copies, each tinted a different rainbow colour. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N49 · Delay Ghost icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-delayghost.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Delay Ghost button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a pale translucent ghost copy of themselves a step behind, copying their pose a moment late. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N50 · Time Warp icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-timewarp.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Time Warp button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face stretched and frozen above a glowing blue horizontal scan line moving down the picture. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N51 · Side Warp icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-timewarpside.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Side Warp button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face smeared sideways into a long streak left of a glowing blue vertical scan line. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N52 · Wobble Time icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-slitscan.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Wobble Time button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face sliced into horizontal bands, each band shifted in time so the face ripples like a wave. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N53 · Stop Motion icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-strobe.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Stop Motion button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: three frozen film frames of a person in jerky poses side by side, like stop-motion animation on a film strip. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N54 · Clones icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-clones.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Clones button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: three identical copies of the same person in different poses side by side in one room. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N55 · Motion Glow icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-motionglow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Motion Glow button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person waving one hand, the hand leaving bright neon light-painting trails in the air. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N56 · Tiny Face icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-tinyface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Tiny Face button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a normal-sized person head with comically tiny eyes, nose and mouth squeezed together in the middle. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N57 · Chubby Cheeks icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-chubby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Chubby Cheeks button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with hugely puffed-out round cheeks, lips pressed together holding air. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N58 · Baby Face icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-babyface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby Face button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face turned into a baby's: huge round eyes, a button nose, chubby cheeks and a tiny mouth. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N59 · Mirror Face icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-symmetry.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mirror Face button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face split down the middle with one half mirrored onto the other, a thin glowing line down the centre. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N60 · Cyclops icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-cyclops.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Cyclops button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with a single large eye in the middle of the forehead instead of two. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N61 · Big Mouth icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-bigmouth.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Big Mouth button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with an enormous wide grinning mouth taking up the lower half of the face. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N62 · Fisheye icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-fisheye.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fisheye button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person leaning close to the lens, nose and face bulging out through a round fisheye distortion. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N63 · Film Noir icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-noir.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Film Noir button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in black and white with film grain and a dramatic slatted window shadow across the face. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N64 · VHS icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-vhs.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The VHS button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face on an old VHS tape picture with colour bleeding, tracking lines and a glitch band across the middle. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N65 · Pop Art icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-popart.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Pop Art button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: four copies of the same person's face in a 2x2 grid, each in a different loud pop-art colour scheme. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N66 · Kaleidoscope icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-kaleidoscope.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Kaleidoscope button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face repeated into a symmetrical kaleidoscope star pattern in bright colours. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N67 · Snowfall icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-snow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snowfall button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in a beanie with big snowflakes falling around them and a few settling on the hat. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N68 · Confetti icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-confetti.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Confetti button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a smiling person with bursts of multicoloured confetti and streamers exploding around their head. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N69 · Make It Rain icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-moneyrain.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Make It Rain button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with mouth open while green banknotes rain down and flutter around them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N70 · Fireworks icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-fireworks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fireworks button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with mouth open as a firework launches upward and bursts into a big colourful flower in the night sky behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N71 · Man icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-manface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Man button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a split face: left half a person, right half the same person as a grown man with a squarer jaw, heavier brows and stubble. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N72 · Woman icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-womanface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Woman button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a split face: left half a person, right half the same person with winged eyeliner, fuller lips and a slimmer jaw. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N73 · Thinner icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-thinner.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Thinner button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders squeezed narrow from both sides, two arrows pressing inward. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N74 · Fatter icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-fatter.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fatter button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders stretched wide sideways, two arrows pulling outward. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N75 · Baby icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-baby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a split face: left half a person, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N76 · Hoops icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-hoops.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Hoops card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a hand flicking a basketball up towards a hoop with a glass backboard, a faint ghost ball in another colour following. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N77 · Flappy Face icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-flappy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Flappy Face card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face as a round bird with small white wings, flapping through a gap between two tall pillars. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N78 · Air Hockey icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-airhockey.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Air Hockey card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a top-down air hockey table, a paddle striking the puck with speed lines towards the goal. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N79 · Connect Four icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-connect4.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Connect Four card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a blue Connect Four grid with red and yellow discs, the last disc dropping in to make four in a row. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N80 · Quick Draw icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-quickdraw.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Quick Draw card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two cowboy silhouettes facing off on a dusty street at sunset, one already drawing. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N81 · Staring Contest icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-stare.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Staring Contest card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N82 · Copy Cat icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-copycat.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Copy Cat card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N83 · Rock Paper Scissors icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-rps.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Rock Paper Scissors card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N84 · Doodle Guess icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-doodle.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Doodle Guess card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N85 · Memory Match icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-memory.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Memory Match card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N86 · Mini Golf icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-minigolf.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mini Golf card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N87 · Bowling icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-bowling.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bowling card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N88 · Beach Bump icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-beachbump.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Beach Bump card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N89 · Burger Stack icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-burger.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Burger Stack card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N90 · Asteroid Dodge icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-asteroids.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Asteroid Dodge card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N91 · Don't Smile icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-dontsmile.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Don't Smile card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N92 · Snake icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-snake.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snake card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N93 · Battleship icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-battleship.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Battleship card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N94 · Trivia icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-trivia.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Trivia card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N95 · Word Blitz icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-wordblitz.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Word Blitz card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+## Effect and game icons, Classical theme
+
+The Classical theme's icon for every effect and game: 18th-century French Rococo painting in a gilt frame, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
+
+### CH-R01 · Bubble Blow icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-bubble.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bubble Blow button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in profile with pursed lips blowing a big shimmering soap bubble that drifts away towards the edge, a second small bubble popping with a burst of droplets. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R02 · Puppy icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-puppy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Puppy button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face wearing realistic-looking floppy brown dog ears and a black dog nose, mouth open with a long pink dog tongue hanging out. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R03 · Heart Eyes icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-hearteyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Heart Eyes button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's grinning face with glowing red heart shapes in place of the eyes, three small hearts floating up from the head. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R04 · Dragon icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-dragon.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Dragon button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with small curved dragon horns and scaly cheeks, mouth wide open blasting a jet of orange fire sideways. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R05 · Rainbow Mouth icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-rainbow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Rainbow Mouth button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with mouth wide open and a thick bright rainbow pouring out of it and curving down out of frame. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R06 · Big Eyes icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-bigeyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Big Eyes button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with eyes magnified huge like a bulging lens, the rest of the face normal, a subtle warp ring around each eye. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R07 · Bobblehead icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-bobblehead.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bobblehead button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person drawn with a giant head on a small body, the head tilted mid-wobble with two motion arcs. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R08 · Alien icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-alien.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Alien button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face tinted lime green with large glossy black almond eyes and two antennae with glowing tips. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R09 · Deal With It icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-dealwithit.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Deal With It button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: pixel-art black sunglasses dropping down onto a smirking person's face, motion lines above them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R10 · Royalty icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-crown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Royalty button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a confident person wearing a heavy gold jewelled crown slightly tilted, a few gold sparkles. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R11 · Fancy icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-fancy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fancy button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with raised eyebrows, a curled handlebar mustache and a gold monocle on a chain falling from one eye. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R12 · Clown icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-clown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Clown button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a round red clown nose and a huge rainbow curly afro wig, mouth open in a honk. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R13 · Storm Cloud icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-storm.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Storm Cloud button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a small dark rain cloud hovering over a person's frowning head, rain falling on them and a lightning bolt striking. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R14 · Noodle Face icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-noodle.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Noodle Face button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face stretched long and wavy like in a funhouse mirror, eyes and mouth pulled into a tall S-curve. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R15 · Swirl icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-swirl.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Swirl button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face twisted into a spiral around the nose, as if being pulled down a whirlpool. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R16 · Outer Space icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-space.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Outer Space button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders cut out against a deep starfield with a ringed planet and a nebula behind them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R17 · Under the Sea icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-underwater.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Under the Sea button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders in blue-green water light, rippling caustics on the face, bubbles rising and a small tropical fish passing. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R18 · 8-Bit icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-pixel.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The 8-Bit button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face rendered in big chunky square pixels with a limited retro console palette, half the face still smooth to show the change. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R19 · Comic Book icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-comic.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Comic Book button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face in comic-book style with halftone dots and bold ink lines, mouth open and a jagged POW burst shape beside it. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R20 · Heat Vision icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-thermal.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Heat Vision button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face as a thermal camera image, hot yellow and red cheeks fading to purple and blue at the edges. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R21 · Flower Crown icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-flowercrown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Flower Crown button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person wearing a crown of pink peonies, white daisies and green leaves, soft petals drifting. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R22 · Kitty icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-kitty.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Kitty button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with pointed cat ears, a small pink cat nose and thin white whiskers, mouth open mid-meow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R23 · Bunny icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-bunny.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bunny button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with tall white rabbit ears, one ear flopped over, and a little pink bunny nose. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R24 · Hotdog icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-hotdog.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Hotdog button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person dressed in a full hotdog costume, face showing through the bun, jumping in the air. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R25 · Laser Eyes icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-lasereyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Laser Eyes button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with raised eyebrows firing two straight red laser beams from the eyes towards the viewer, glowing hot. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R26 · Waterworks icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-crying.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Waterworks button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face crying two exaggerated arcing fountains of tears from the corners of the eyes, splashing below. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R27 · Devil icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-devil.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Devil button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a sly smile and two small glossy red devil horns, a faint red glow and a few embers behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R28 · Angel icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-angel.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Angel button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a golden halo floating above the head and soft white feathered wings behind the shoulders. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R29 · Pirate icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-pirate.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Pirate button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a black tricorn pirate hat with a skull emblem and a black eyepatch, mid-shout. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R30 · Viking icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-viking.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Viking button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a horned steel Viking helmet with a braided orange beard. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R31 · Wizard icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-wizard.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Wizard button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a tall starry midnight-blue wizard hat, eyebrows raised, purple magic sparks bursting around the head. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R32 · Butterflies icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-butterflies.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Butterflies button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head with a ring of blue and pink butterflies circling it, two flying off. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R33 · Glam icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-makeup.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Glam button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with bold winged eyeliner, glossy red lips and contoured cheeks, a sparkle on the cheekbone. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R34 · Beach 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-beach360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Beach 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a tropical beach with palm trees and turquoise sea, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R35 · Space 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-space360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Space 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a space-station window looking down at Earth, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R36 · Reef 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-reef360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Reef 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a coral reef with a sea turtle, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R37 · Forest 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-forest360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Forest 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a misty fantasy forest with a waterfall and glowing mushrooms, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R38 · City 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-city360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The City 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out on a rooftop in front of neon skyscrapers at night, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R39 · Snow 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-snow360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snow 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R40 · Candy 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-candy360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Candy 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R41 · Volcano 360 icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-volcano360.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Volcano 360 button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of an erupting volcano and rivers of glowing lava, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R42 · Blur icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-blurbg.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Blur button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a crisp, sharply drawn person in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R43 · Colour Pop icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-colorpop.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Colour Pop button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in full vivid colour in front of a room that is entirely black and white. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R44 · Neon Aura icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-neonaura.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Neon Aura button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a dark silhouette of a person outlined by a glowing neon pink and cyan aura on a black background. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R45 · Disco icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-disco.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Disco button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person lit by coloured disco beams from a mirror ball above, light spots on the face, dark room behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R46 · Code Rain icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-matrix.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Code Rain button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a green-tinted face in front of falling columns of green code characters on black. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R47 · Sunset icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-sunset.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Sunset button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a black silhouette of a person's head and shoulders against a huge orange and pink sunset over the sea. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R48 · Time Trails icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-echo.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Time Trails button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person mid-move leaving a trail of four fading see-through copies, each tinted a different rainbow colour. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R49 · Delay Ghost icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-delayghost.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Delay Ghost button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a pale translucent ghost copy of themselves a step behind, copying their pose a moment late. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R50 · Time Warp icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-timewarp.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Time Warp button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face stretched and frozen above a glowing blue horizontal scan line moving down the picture. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R51 · Side Warp icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-timewarpside.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Side Warp button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face smeared sideways into a long streak left of a glowing blue vertical scan line. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R52 · Wobble Time icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-slitscan.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Wobble Time button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face sliced into horizontal bands, each band shifted in time so the face ripples like a wave. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R53 · Stop Motion icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-strobe.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Stop Motion button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: three frozen film frames of a person in jerky poses side by side, like stop-motion animation on a film strip. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R54 · Clones icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-clones.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Clones button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: three identical copies of the same person in different poses side by side in one room. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R55 · Motion Glow icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-motionglow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Motion Glow button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person waving one hand, the hand leaving bright neon light-painting trails in the air. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R56 · Tiny Face icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-tinyface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Tiny Face button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a normal-sized person head with comically tiny eyes, nose and mouth squeezed together in the middle. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R57 · Chubby Cheeks icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-chubby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Chubby Cheeks button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with hugely puffed-out round cheeks, lips pressed together holding air. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R58 · Baby Face icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-babyface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby Face button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face turned into a baby's: huge round eyes, a button nose, chubby cheeks and a tiny mouth. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R59 · Mirror Face icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-symmetry.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mirror Face button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face split down the middle with one half mirrored onto the other, a thin glowing line down the centre. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R60 · Cyclops icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-cyclops.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Cyclops button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with a single large eye in the middle of the forehead instead of two. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R61 · Big Mouth icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-bigmouth.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Big Mouth button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with an enormous wide grinning mouth taking up the lower half of the face. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R62 · Fisheye icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-fisheye.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fisheye button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person leaning close to the lens, nose and face bulging out through a round fisheye distortion. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R63 · Film Noir icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-noir.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Film Noir button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in black and white with film grain and a dramatic slatted window shadow across the face. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R64 · VHS icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-vhs.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The VHS button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face on an old VHS tape picture with colour bleeding, tracking lines and a glitch band across the middle. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R65 · Pop Art icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-popart.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Pop Art button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: four copies of the same person's face in a 2x2 grid, each in a different loud pop-art colour scheme. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R66 · Kaleidoscope icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-kaleidoscope.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Kaleidoscope button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face repeated into a symmetrical kaleidoscope star pattern in bright colours. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R67 · Snowfall icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-snow.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snowfall button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a beanie with big snowflakes falling around them and a few settling on the hat. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R68 · Confetti icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-confetti.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Confetti button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a smiling person with bursts of multicoloured confetti and streamers exploding around their head. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R69 · Make It Rain icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-moneyrain.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Make It Rain button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with mouth open while green banknotes rain down and flutter around them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R70 · Fireworks icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-fireworks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fireworks button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with mouth open as a firework launches upward and bursts into a big colourful flower in the night sky behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R71 · Man icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-manface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Man button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a split face: left half a person, right half the same person as a grown man with a squarer jaw, heavier brows and stubble. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R72 · Woman icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-womanface.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Woman button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a split face: left half a person, right half the same person with winged eyeliner, fuller lips and a slimmer jaw. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R73 · Thinner icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-thinner.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Thinner button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders squeezed narrow from both sides, two arrows pressing inward. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R74 · Fatter icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-fatter.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Fatter button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders stretched wide sideways, two arrows pulling outward. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R75 · Baby icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-baby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a split face: left half a person, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R76 · Hoops icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-hoops.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Hoops card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a hand flicking a basketball up towards a hoop with a glass backboard, a faint ghost ball in another colour following. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R77 · Flappy Face icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-flappy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Flappy Face card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face as a round bird with small white wings, flapping through a gap between two tall pillars. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R78 · Air Hockey icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-airhockey.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Air Hockey card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a top-down air hockey table, a paddle striking the puck with speed lines towards the goal. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R79 · Connect Four icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-connect4.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Connect Four card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a blue Connect Four grid with red and yellow discs, the last disc dropping in to make four in a row. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R80 · Quick Draw icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-quickdraw.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Quick Draw card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: two cowboy silhouettes facing off on a dusty street at sunset, one already drawing. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R81 · Staring Contest icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-stare.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Staring Contest card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R82 · Copy Cat icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-copycat.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Copy Cat card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R83 · Rock Paper Scissors icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-rps.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Rock Paper Scissors card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R84 · Doodle Guess icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-doodle.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Doodle Guess card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R85 · Memory Match icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-memory.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Memory Match card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R86 · Mini Golf icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-minigolf.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mini Golf card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R87 · Bowling icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-bowling.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Bowling card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R88 · Beach Bump icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-beachbump.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Beach Bump card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R89 · Burger Stack icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-burger.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Burger Stack card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R90 · Asteroid Dodge icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-asteroids.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Asteroid Dodge card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R91 · Don't Smile icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-dontsmile.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Don't Smile card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R92 · Snake icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-snake.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Snake card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R93 · Battleship icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-battleship.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Battleship card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R94 · Trivia icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-trivia.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Trivia card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R95 · Word Blitz icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-wordblitz.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Word Blitz card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -1966,10 +4330,10 @@ A new icon for every effect and game, replacing the first set as each one arrive
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baby button on the effect strips, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a split face: left half a teen, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a split face: left half a teen, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside the tile, no magenta. Output canvas 256 x 256.
 ```
 
 ### CH-K01 · Bubble Blow icon (second set)
@@ -2466,14 +4830,14 @@ Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illu
 
 ### CH-K42 · Blur icon (second set)
 
-- **File:** `chat/assets/icons2/fx2-blurbg.png`
+- **File:** `chat/assets/icons2/fx2-blurbg-v3.png`
 - **Size:** 256 x 256, transparent
 - **Used for:** The Blur button on the effect strips, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a crisp, sharply drawn teen in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a crisp, sharply drawn teen in the foreground, and behind them a bedroom so heavily out of focus that nothing in it has an edge: only big soft round bokeh discs of warm and violet light and smeared colour shapes, like a phone's portrait mode turned all the way up. The contrast between the sharp person and the completely blurred room is the whole point of the icon; draw no sharp object anywhere behind them. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside the tile, no magenta. Output canvas 256 x 256.
 ```
 
 ### CH-K43 · Colour Pop icon (second set)
@@ -2938,10 +5302,10 @@ Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illu
 - **Size:** 256 x 256, transparent
 - **Used for:** The Staring Contest card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K82 · Copy Cat icon (second set)
@@ -2950,10 +5314,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Copy Cat card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K83 · Rock Paper Scissors icon (second set)
@@ -2962,10 +5326,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Rock Paper Scissors card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K84 · Doodle Guess icon (second set)
@@ -2974,10 +5338,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Doodle Guess card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K85 · Memory Match icon (second set)
@@ -2986,10 +5350,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Memory Match card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K86 · Mini Golf icon (second set)
@@ -2998,10 +5362,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mini Golf card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K87 · Bowling icon (second set)
@@ -3010,10 +5374,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Bowling card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K88 · Beach Bump icon (second set)
@@ -3022,10 +5386,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Beach Bump card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K89 · Burger Stack icon (second set)
@@ -3034,10 +5398,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Burger Stack card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K90 · Asteroid Dodge icon (second set)
@@ -3046,10 +5410,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Asteroid Dodge card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K91 · Don't Smile icon (second set)
@@ -3058,10 +5422,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Don't Smile card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K92 · Snake icon (second set)
@@ -3070,10 +5434,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Snake card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K93 · Battleship icon (second set)
@@ -3082,10 +5446,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Battleship card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K94 · Trivia icon (second set)
@@ -3094,10 +5458,10 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Trivia card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```
 
 ### CH-K95 · Word Blitz icon (second set)
@@ -3106,8 +5470,8 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Word Blitz card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
 ```

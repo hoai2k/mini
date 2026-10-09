@@ -110,9 +110,15 @@ own video, or hold RT instead.
   Motion, Clones, Motion Glow.
 - **Warps:** Big Eyes, Bobblehead, Noodle Face, Swirl, Tiny Face, Chubby
   Cheeks, Baby Face, Mirror Face, Cyclops, Big Mouth, Fisheye.
-- **Reshaping:** Kid, Man, Woman (younger, squarer and stubbly, or slimmer
-  with lashes and lips), Thinner and Fatter (you squeezed or stretched
-  sideways from head to toe).
+- **Reshaping:** Baby (a bigger, rounder head with the features gathered
+  lower, larger eyes, a tiny nose and mouth, fat cheeks, faint brows, smooth
+  skin), Man (a broader jaw and longer chin, a stronger nose, a lower heavier
+  brow, contour shadows and only light stubble) and Woman (a softer, narrower
+  jaw, a smaller nose, lifted finer brows, fuller lips, light on the
+  cheekbones and a touch of colour). They lean on proportion and shading
+  (`effects/lib/faceshade.js`); Baby and Woman also take a beard away
+  (inside the face's outline, and below the chin using the person cut-out).
+  Thinner and Fatter squeeze or stretch you sideways from head to toe.
 - **Filters:** 8-Bit, Comic Book, Heat Vision, Film Noir, VHS, Pop Art,
   Kaleidoscope.
 - **Particles:** Storm Cloud, Snowfall, Confetti, Make It Rain, Fireworks.
@@ -165,7 +171,9 @@ itself to HTTPS.
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
-- `node chat/test/fx-shots.mjs [ids]`: every effect on a drawn test face
+- `node chat/test/fx-shots.mjs [ids] [--only=neutral,beard,bearded,...]`:
+  every effect on a drawn test face (`beard` gives the face a beard, to check
+  beard removal; `bearded` is the same face with no effect)
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
@@ -278,14 +286,12 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: a second, teen-styled icon set (CH-K01 to CH-K95 in
-  `design/image-requests.md`, files in `assets/icons2/`) shows what each
-  effect or game does. 79 are in: every effect except Blur (re-requested:
-  its delivered background was sharp) and the first five games; the other
-  fifteen game icons are still requested. The app uses each as it arrives
-  (`iconUrl` in `js/assets.js`), shown as a full-size rounded tile, and the
-  first-set icon until then.
-- Artwork (first set): all 158 earlier image requests are delivered. The approved blue/green/purple
+- Artwork: all 96 second-set effect and game icons are delivered as
+  256 × 256 transparent PNGs in `assets/icons2/`, selected through `iconUrl`
+  in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
+  the revised Blur icon with a sharp person against a heavy bokeh blur.
+  Additional theme artwork is tracked in `design/image-requests.md`.
+- Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
   records current files and built-in imagegen prompts. `generation-history.json`
