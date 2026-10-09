@@ -46,7 +46,7 @@ export function createBattle(stage) {
       const hp = e.hp ?? type.hp;
       return { id: id++, type: e.type, x: e.x, hp, maxHp: hp, goal: type.goal, cooldown: 0, alive: true };
     }),
-    order: null, // { command, power, beat (0..3), flourishes, u }
+    order: null, // { command, power, beat (0..3), u, tier }
     guardAt: -Infinity, // when the guard was last raised (seconds)
     guardUntil: -Infinity,
     guardReadyAt: 0,
@@ -83,11 +83,7 @@ export function orderFor(state, command, spirit) {
 
 /** Give the army an order for its next four beats; u is the player's beat length. */
 export function issueOrder(state, command, power, u = 0.6, tier = 1) {
-  state.order = { command, power, beat: 0, flourishes: 0, u, tier };
-}
-
-export function addFlourish(state) {
-  if (state.order) state.order.flourishes += 1;
+  state.order = { command, power, beat: 0, u, tier };
 }
 
 /** The living enemies the army fights (not the children). */
@@ -142,7 +138,7 @@ function hurtArmy(state, amount, events, source) {
 function runOrder(state, events) {
   const o = state.order;
   if (!o) return;
-  const p = o.power * (1 + 0.1 * o.flourishes);
+  const p = o.power;
   const front = state.army.x;
   switch (o.command) {
     case 'march': {
