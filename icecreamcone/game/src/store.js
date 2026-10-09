@@ -68,10 +68,12 @@ export function loadProgress() {
   return p && typeof p === 'object' ? p : {};
 }
 
-// Records a score; returns true when it is a new best.
-export function recordScore(progress, id, score) {
+// Records a score; returns true when it is a new best. `passedNow` marks the
+// bird passed for good: a pass is kept even if its pass mark rises later.
+export function recordScore(progress, id, score, passedNow = false) {
   const e = progress[id] || { best: 0, plays: 0 };
   e.plays++;
+  if (passedNow) e.passed = true;
   const isBest = score > e.best;
   if (isBest) e.best = score;
   progress[id] = e;
@@ -91,6 +93,7 @@ export function mergeProgress(a = {}, b = {}) {
     const x = a[id] || { best: 0, plays: 0 };
     const y = b[id] || { best: 0, plays: 0 };
     out[id] = { best: Math.max(x.best || 0, y.best || 0), plays: Math.max(x.plays || 0, y.plays || 0) };
+    if (x.passed || y.passed) out[id].passed = true;
   }
   return out;
 }
@@ -143,3 +146,24 @@ export function resetStickers() {
     /* storage unavailable */
   }
 }
+
+// Saves from before passes were kept: a bird counts as passed if its best
+// reaches its mark, or if any bird after it in the guide has been played
+// (its page could only have been opened by passing this one). Returns true if
+// anything changed. Run once, on a save that has no kept passes yet.
+export function keepOldPasses(progress, birds) {
+  if (Object.values(progress).some((e) => e && 'passed' in e)) return false;
+  let changed = false;
+  let later = false;
+  for (let i = birds.length - 1; i >= 0; i--) {
+    const e = progress[birds[i].id];
+    if (e && (later || (e.best || 0) >= birds[i].pass)) {
+      e.passed = true;
+      changed = true;
+    }
+    if (e && e.plays > 0) later = true;
+  }
+  if (changed) write(PROGRESS_KEY, progress, { session: true });
+  return changed;
+}
+

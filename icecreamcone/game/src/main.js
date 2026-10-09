@@ -3,7 +3,7 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, loadStickers, saveStickers, resetStickers } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
@@ -29,6 +29,7 @@ const g = canvas.getContext('2d');
 const input = createInput(canvas);
 let settings = loadSettings();
 let progress = loadProgress();
+keepOldPasses(progress, BIRDS);
 const BIRD_IDS = BIRDS.map((b) => b.id);
 const SPREADS = spreadCount(BIRDS.length);
 // The sticker book: where the player has put each sticker, its picture and
@@ -330,7 +331,8 @@ function moveFocus(dx, dy) {
 // ---------- the guide ----------
 
 const best = (id) => progress[id]?.best || 0;
-const passed = (i) => passes(BIRDS[i], best(BIRDS[i].id));
+// A bird once passed stays passed, even if its pass mark is raised later.
+const passed = (i) => !!progress[BIRDS[i].id]?.passed || passes(BIRDS[i], best(BIRDS[i].id));
 // The card opening after a celebration shows locked until it flips, even in
 // ?debug.
 const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
@@ -720,7 +722,7 @@ function finish() {
   const b = BIRDS[S.bird];
   const score = Math.round(S.game.score);
   const before = passed(S.bird);
-  const record = recordScore(progress, b.id, score) && score > 0;
+  const record = recordScore(progress, b.id, score, passes(b, score)) && score > 0;
   const now = passed(S.bird);
   const outcome = roundOutcome({ wasPassed: before, isPassed: now, reached: passes(b, score), debug: DEBUG });
   S.last = { id: b.id, score, outcome };

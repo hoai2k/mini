@@ -73,3 +73,29 @@ test('forgotten scores are kept aside and restored as the best of then and now',
   assert.deepEqual(store.mergeProgress({ a: { best: 2, plays: 5 } }, { a: { best: 7, plays: 1 }, b: { best: 1, plays: 1 } }),
     { a: { best: 7, plays: 5 }, b: { best: 1, plays: 1 } });
 });
+
+test('a pass is kept: a raised pass mark never closes a page again', async () => {
+  const { BIRDS } = await import('../src/birds.js');
+  const ids = BIRDS.map((b) => b.id);
+  const at = (id) => ids.indexOf(id);
+  // An old save: the Niffy's best is one short of its (raised) mark, but the
+  // Broomwhisk after it and the row below were played.
+  const niffy = BIRDS[at('niffy')];
+  const p = {
+    [ids[0]]: { best: 999, plays: 2 },
+    niffy: { best: niffy.pass - 1, plays: 3 },
+    broomwhisk: { best: 1, plays: 1 },
+    [ids[at('broomwhisk') + 3]]: { best: 1, plays: 1 },
+  };
+  assert.equal(store.keepOldPasses(p, BIRDS), true);
+  assert.equal(p.niffy.passed, true, 'the Niffy is still passed: a later page was played');
+  assert.equal(p[ids[0]].passed, true);
+  assert.equal(p[ids[at('broomwhisk') + 3]].passed, undefined, 'the last one played is only passed on its score');
+  assert.equal(store.keepOldPasses(p, BIRDS), false, 'only once');
+  // From now on a pass is recorded as it happens and outlives a raised mark.
+  const q = {};
+  store.recordScore(q, 'crow', 50, true);
+  store.recordScore(q, 'crow', 0, false);
+  assert.equal(q.crow.passed, true);
+  assert.equal(store.mergeProgress({ a: { best: 1, plays: 1, passed: true } }, { a: { best: 5, plays: 1 } }).a.passed, true);
+});
