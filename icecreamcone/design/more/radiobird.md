@@ -84,3 +84,17 @@ notes now rise from its painted grille, measured at (24, -166) in drawBird
 units, instead of from above its head. IC-M18e's prompt now describes the
 painting (the neck, the grille, the colours) instead of the stand-in. The
 scene request (IC-M18a) now says the speaker slides under the dial.
+
+## Matched to the delivered art
+
+- **Scene (IC-M18a, delivered):** the painted sofa spans about x 750 to
+  1550, with its seat at about y 600. The three listeners now sit on its
+  three cushions (x 925, 1158, 1383; feet at y 608) instead of floating in
+  front of it. The middle listener's bubble moved up to sit above the sofa
+  back. The stand-in sofa, drawn only when the painting is missing, now has
+  the same footprint. The dial's knob moved to the left end of the dial,
+  because the painted standard lamp stands at the right end. The Radio Bird
+  already stands on the painted rug.
+- **Still stand-ins:** the station emblems (IC-M18b), the listeners
+  (IC-M18c), the dial panel (IC-M18d) and the poses (IC-M18e). They are
+  still requested, with no change.

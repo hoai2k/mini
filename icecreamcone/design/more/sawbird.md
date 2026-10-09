@@ -89,3 +89,13 @@ full painting standing beside the plank. IC-M17d and IC-M17e are rewritten
 for the painting's design: the saw is its head, so the sawing pose has the
 whole bird crouched forward and down with its saw-head level and nothing
 below the teeth, and the proud pose tips the saw-head up like a salute.
+
+## Matched to the delivered art
+
+- **Scene (IC-M17a, delivered):** the painted yard leaves the middle open as
+  asked: the workshop wall, the logs and the wheelbarrow stay clear of the
+  plank (x 300 to 1300) and of the sawhorses. The proud pose's standing spot
+  moved in a little (x 1370), off the painted plants and rocks in the
+  bottom-right corner. Nothing else needed moving.
+- **Still stand-ins:** the planks (IC-M17b), the sawhorse (IC-M17c) and the
+  poses (IC-M17d, IC-M17e). They are still requested, with no change.

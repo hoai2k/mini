@@ -24,7 +24,7 @@ Object.assign(SHEETS, {
 
 const DURATION = 45;
 // The floor, as painted in the scene: the Drippet's feet stay inside it.
-const FLOOR_TOP = 500;
+const FLOOR_TOP = 560; // just below the painted skirting board
 const FLOOR_BOT = 860;
 const FLOOR_X0 = 110;
 const FLOOR_X1 = 1490;
@@ -646,7 +646,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Run to the thirsty things · hop over old puddles', W / 2, 455, { size: 34, weight: 600 });
+      label(c, 'Run to the thirsty things · hop over old puddles', W / 2, 600, { size: 34, weight: 600 });
       c.restore();
     }
   };

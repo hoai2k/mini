@@ -9,7 +9,7 @@ export default {
   tips: ['A brand-new drip is safe; a puddle that has sat a moment is slippery.', 'Press the action to hop over a puddle.', 'A hop lands with a splash, skids if it lands in any puddle, and needs a moment before the next: steer round puddles where you can.', 'The cat noses its bowl away from puddles, so don’t drip all round it.'],
   score: 'drinks',
   controls: [['Run', 'move'], ['Hop over a puddle', 'action']],
-  pass: 11,
+  pass: 13,
   tune: 'play',
   color: '#8ab0d0',
 };
