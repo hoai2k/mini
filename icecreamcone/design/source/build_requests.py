@@ -868,7 +868,7 @@ BOOK = [
     ("sawbird", "The Saw Bird", "A carpenter's workshop: a long workbench with planes and chisels, saws hanging on the wall, stacks of planks, curls of wood shavings on the floor, a half-built rocking chair, sunlight through a dusty window."),
     ("radiobird", "The Radio Bird", "A moonlit town rooftop: chimney pots, slate roofs and old radio aerials against a starry sky, a lit attic window, a church spire in the distance, a big round moon."),
 ]
-DELIVERED_BOOK = set(['bobolinks', 'coot', 'cupadee', 'gullfinch', 'peeper', 'plume', 'shuttercluck'])
+DELIVERED_BOOK = set(['bobolinks', 'broomwhisk', 'coot', 'crow', 'cupadee', 'dodo', 'gullfinch', 'milkmidge', 'niffy', 'peeper', 'piffle', 'plume', 'shuttercluck', 'waterglassgoose'])
 for n, (bid, name, scene) in enumerate(BOOK, 1):
     REQUESTS.append({
         "id": f"IC-B{n:02d}", "section": "book", "name": f"Sticker book: {name}", "key": f"book.{bid}",
