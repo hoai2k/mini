@@ -890,7 +890,7 @@ BOOK_REDO = (
     "the faded palette with plenty of cream paper showing through, simple flattened perspective "
     "and fewer, larger shapes: an illustration printed in a 1971 picture book, not a painting. "
 )
-DELIVERED_BOOK_REDOS: set[str] = set(['bobolinks', 'coot', 'cupadee', 'gullfinch', 'peeper', 'plume', 'shuttercluck'])
+DELIVERED_BOOK_REDOS: set[str] = set(['bobolinks', 'broomwhisk', 'coot', 'crow', 'cupadee', 'dodo', 'gullfinch', 'milkmidge', 'niffy', 'peeper', 'piffle', 'plume', 'shuttercluck', 'waterglassgoose'])
 GAME_URL = REF_URL.replace("reference/", "game/")
 for n, (bid, name, scene) in enumerate(BOOK, 1):
     REQUESTS.append({

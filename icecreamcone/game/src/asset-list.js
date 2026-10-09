@@ -780,31 +780,31 @@ export const ASSETS = {
   },
   "bookredo.piffle": {
     "file": "assets/book/piffle.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.dodo": {
     "file": "assets/book/dodo.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.crow": {
     "file": "assets/book/crow.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.milkmidge": {
     "file": "assets/book/milkmidge.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.waterglassgoose": {
     "file": "assets/book/waterglassgoose.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.niffy": {
     "file": "assets/book/niffy.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.broomwhisk": {
     "file": "assets/book/broomwhisk.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.buttonbeaks": {
     "file": "assets/book/buttonbeaks.webp",
