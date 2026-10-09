@@ -22,7 +22,7 @@
   "pauseIcons": {
     "id": "HK-U06",
     "file": "assets/ui/pause-icons.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "resume",
       "controls",

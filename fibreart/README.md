@@ -50,9 +50,9 @@ across the picture when it is larger than the screen.
   `build_web.py` makes `game/web/` (Pillow, NumPy, SciPy).
 - [`intake/`](intake/README.md): the drop box for new images and photos.
 
-All 60 image requests are delivered. The generated icon, Viriditas ground,
+All 61 image requests are delivered. The generated icon, Viriditas ground,
 Moons and hearts and Dancers pieces, and tree and bird morph chains now replace
-the earlier stand-ins. Animation assets and control drawings are included.
+the earlier stand-ins. Animation assets, control drawings and eight pause-menu badges are included.
 All of it was checked in play; see "What playing it with the art showed" in
 [`design/design.md`](design/design.md). [`design/checkpoint.md`](design/checkpoint.md)
 records how the deliveries were saved.

@@ -65,3 +65,20 @@ were verified, and they were moved to /private/tmp/fibre-git-appledouble-backup.
 Git status and history then ran without these errors. No real pack/index files
 were removed. The asset checkpoint commit is 4b4ec9d; it reached origin/main
 through merge commit 1c11c09, preserving incoming Gliders and multiplayer work.
+
+
+## Follow-up: pause-menu badges — 2026-10-08
+
+Synced main to 7094130 and delivered the newly requested HK-U06 sheet:
+game/assets/ui/pause-icons.png (2048 × 1024, alpha transparency). Eight badges
+were generated with built-in image_gen using the existing icon, line drawings,
+and two local artwork photos as references. The exact generation prompt and
+image hash are stored in design/image-deliveries.json. All 61 requests are now
+delivered. tools/build_web.py already integrates these eight badges through
+ui.pause in game/web/scenes.json. Generated-data checks and badge alpha checks
+passed. The web rebuild reused the committed encoded music because ffmpeg is
+unavailable in this shell; existing animation encodings were preserved.
+
+The installed-Chrome browser check passed after integration, including the
+pause/resume flow, controller and keyboard input, music and all ten scenes,
+with no browser errors. The pause screenshot was visually reviewed.
