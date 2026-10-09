@@ -1,8 +1,8 @@
 # Fibre Art assets
 
-60 generated images from the requests in `../../design/image-requests.md`:
+61 generated images from the requests in `../../design/image-requests.md`:
 ten compositions, ten grounds, ten transparent piece sheets, the title and icon,
-interface and control drawings and threads, six morph chains, eight fabric
+interface and control drawings, pause badges and threads, six morph chains, eight fabric
 swatches, six greyscale dissolve maps and five animation requests. The game loads
 optimised copies made from these by `../../tools/build_web.py` into `../web/`;
 these full-size files are not published.
