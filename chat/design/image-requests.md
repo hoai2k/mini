@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-381 delivered, 70 requested, 451 in total.
+396 delivered, 55 requested, 451 in total.
 
 ## Brand
 
@@ -3002,10 +3002,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Staring Contest card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces nose to nose glaring, wide-open eyes, a fly buzzing between them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N82 · Copy Cat icon (Art theme)
@@ -3014,10 +3014,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Copy Cat card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two faces side by side pulling the same silly expression, tongue out and one eye shut. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N83 · Rock Paper Scissors icon (Art theme)
@@ -3026,22 +3026,22 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Rock Paper Scissors card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: three hands thrown at once in a circle: a fist, a flat hand and a V for scissors. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N84 · Doodle Guess icon (Art theme)
 
-- **File:** `chat/assets/icons-art/art-game-doodle.png`
+- **File:** `chat/assets/icons-art/art-game-doodle-v2.png`
 - **Size:** 256 x 256, transparent
 - **Used for:** The Doodle Guess card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a hand-drawn marker sketch of a cat on a whiteboard with a speech bubble guessing with a question mark. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Edit: Make the cat a simple amateur marker LINE DRAWING on a clearly bordered whiteboard, with an oversized marker pen lying along its edge. Keep the red speech bubble with question mark. No actual cat silhouette, show the drawn sketch clearly. Preserve Nouvelle Vague flat paper/black/red/mustard graphic style, grain and off-white rounded tile with transparent exterior.
 ```
 
 ### CH-N85 · Memory Match icon (Art theme)
@@ -3050,10 +3050,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Memory Match card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a grid of face-down cards with two flipped face-up showing the same effect picture. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N86 · Mini Golf icon (Art theme)
@@ -3062,10 +3062,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mini Golf card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a golf ball rolling across bright turf towards a flag in the hole, a dashed aiming line behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N87 · Bowling icon (Art theme)
@@ -3074,10 +3074,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Bowling card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a bowling ball curving down a lane and smashing into white pins mid-strike. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N88 · Beach Bump icon (Art theme)
@@ -3086,10 +3086,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Beach Bump card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a beach ball bouncing off a person's forehead as they nod, motion lines and a sunny beach behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N89 · Burger Stack icon (Art theme)
@@ -3098,10 +3098,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Burger Stack card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a tall wobbly burger tower being caught on a bun, a lettuce leaf falling in and a boot to dodge. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N90 · Asteroid Dodge icon (Art theme)
@@ -3110,10 +3110,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Asteroid Dodge card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a small rocket weaving between tumbling asteroids in space, a gold star to grab. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N91 · Don't Smile icon (Art theme)
@@ -3122,10 +3122,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Don't Smile card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a dead-straight face, lips pressed tight, trying not to laugh, a bead of sweat. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N92 · Snake icon (Art theme)
@@ -3134,10 +3134,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Snake card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: two neon snakes of different colours racing across a dark grid towards a glowing apple. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N93 · Battleship icon (Art theme)
@@ -3146,22 +3146,22 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Battleship card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a top-down grid of sea with a grey battleship and a red explosion hit marker on it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ### CH-N94 · Trivia icon (Art theme)
 
-- **File:** `chat/assets/icons-art/art-game-trivia.png`
+- **File:** `chat/assets/icons-art/art-game-trivia-v2.png`
 - **Size:** 256 x 256, transparent
 - **Used for:** The Trivia card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a quiz-show buzzer being slammed with four coloured answer panels behind it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Edit: Show exactly FOUR distinct coloured rectangular answer panels behind the person in a clearly separated 2x2 layout: top-left red, top-right mustard yellow, bottom-left teal, bottom-right black. No text in them. Keep the woman's hand slamming the red quiz buzzer, current Nouvelle Vague cut-paper inks, grain and off-white rounded tile with transparent exterior.
 ```
 
 ### CH-N95 · Word Blitz icon (Art theme)
@@ -3170,10 +3170,10 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Word Blitz card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
 ## Effect and game icons, Classical theme

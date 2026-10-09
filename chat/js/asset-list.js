@@ -1161,63 +1161,63 @@ export const ASSET_LIST = {
   },
   "art-game-stare": {
     "file": "assets/icons-art/art-game-stare.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-copycat": {
     "file": "assets/icons-art/art-game-copycat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-rps": {
     "file": "assets/icons-art/art-game-rps.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-doodle": {
-    "file": "assets/icons-art/art-game-doodle.png",
-    "status": "requested"
+    "file": "assets/icons-art/art-game-doodle-v2.png",
+    "status": "delivered"
   },
   "art-game-memory": {
     "file": "assets/icons-art/art-game-memory.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-minigolf": {
     "file": "assets/icons-art/art-game-minigolf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-bowling": {
     "file": "assets/icons-art/art-game-bowling.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-beachbump": {
     "file": "assets/icons-art/art-game-beachbump.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-burger": {
     "file": "assets/icons-art/art-game-burger.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-asteroids": {
     "file": "assets/icons-art/art-game-asteroids.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-dontsmile": {
     "file": "assets/icons-art/art-game-dontsmile.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-snake": {
     "file": "assets/icons-art/art-game-snake.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-battleship": {
     "file": "assets/icons-art/art-game-battleship.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-trivia": {
-    "file": "assets/icons-art/art-game-trivia.png",
-    "status": "requested"
+    "file": "assets/icons-art/art-game-trivia-v2.png",
+    "status": "delivered"
   },
   "art-game-wordblitz": {
     "file": "assets/icons-art/art-game-wordblitz.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-bubble": {
     "file": "assets/icons-classic/classic-fx-bubble.png",
