@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-237 delivered, 16 requested, 253 in total.
+237 delivered, 18 requested, 255 in total.
 
 ## Brand
 
@@ -1944,9 +1944,33 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a wide round face stretched between two outward arrows. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
+### CH-I96 · Baby icon
+
+- **File:** `chat/assets/icons/fx-baby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby button on the effect strip.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ## Effect and game icons, second set (teen style)
 
 A new icon for every effect and game, replacing the first set as each one arrives (the app keeps the first-set icon, or the emoji, until then). Aimed at teenagers: sharper and less childish, on one shared dark tile, and each picture shows what the effect or game actually does: the face with the effect on, or the moment of play.
+
+### CH-K96 · Baby icon (second set)
+
+- **File:** `chat/assets/icons2/fx2-baby.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Baby button on the effect strips, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a split face: left half a teen, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
 
 ### CH-K01 · Bubble Blow icon (second set)
 
