@@ -2,16 +2,18 @@
 //
 // The washing-up is done, but every dish is wet and soapy and slippery. They
 // pop up out of the suds in the sink on the left, and the Glove Dove, a long
-// pink rubber glove, runs along the counter beneath them. Press the action
-// as a dish comes down onto its fingers to flick it back up and along,
-// keepy-uppy, towards the plate rack on the right; a dish that drops into the
-// rack is put away. The timing of the flick decides how well it flies: just
-// as the dish lands on the glove is a "Hup!", high and long and aimed at the
-// rack (from near the sink it takes two); too early is a feeble hop; not at
-// all and the dish just bounces off the rubber, low and short, and the
-// second time it slips off. A dish that reaches the counter or the floor smashes (no
-// points lost, but the dish is gone); one that drops back into the sink pops
-// up again later. More dishes come, faster, and heavy pans join in.
+// pink rubber glove, runs along the counter beneath them. Hold the action to
+// crouch: the Dove sinks, its long glove neck held level like a tray, and a
+// dish that comes down on it settles there (it can be carried along). Let go
+// to spring up and bump it up and away to the right, towards the plate rack;
+// a dish that drops into the rack is put away. Crouch long enough to wind
+// right up (the Dove turns its head to aim) and the bump is a "Hup!", high
+// and long and aimed at the rack; let go sooner and it is only a hop along.
+// Let go just as a dish lands and it is bumped straight away. Standing up,
+// a dish just bounces off the rubber, low and short, and the second time it
+// slips off. A dish that reaches the counter or the floor smashes (no points
+// lost, but the dish is gone); one that drops back into the sink pops up
+// again later. More dishes come, faster, and heavy pans join in.
 // Score: points (3 for each dish put away, 1 for each "Hup!").
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
@@ -21,6 +23,7 @@ Object.assign(SHEETS, {
   'sprites.dishes': [3, 2], // plate, bowl, cup, saucepan, frying pan, pie dish: side views, handles to the right
   'sprites.glovedoveToss': [2, 1], // ready to catch (fingers up), flicking a dish up
   'sprites.dishShards': [3, 2], // each dish smashed, in the dishes' order (requested, IC-M11g)
+  'sprites.glovedoveBump': [3, 2], // sinking, crouched, head turning, aiming, bump, looking back (requested, IC-M11h)
   'sprites.glovedovePoses': [2, 1], // cheering (a dish put away), dismayed (a dish smashed)
 });
 
@@ -51,7 +54,21 @@ const POSE = {
   flick: ['sprites.glovedoveToss', 1, 0.979, 0.495],
   cheer: ['sprites.glovedovePoses', 0, 1.0, 0.46],
   dismay: ['sprites.glovedovePoses', 1, 1.0, 0.51],
+  // the crouch-and-bump sheet (IC-M11h): feet on y 1002 of 1024, midway at x 512
+  sink: ['sprites.glovedoveBump', 0, 0.979, 0.5],
+  crouch: ['sprites.glovedoveBump', 1, 0.979, 0.5],
+  turn: ['sprites.glovedoveBump', 2, 0.979, 0.5],
+  aim: ['sprites.glovedoveBump', 3, 0.979, 0.5],
+  bump: ['sprites.glovedoveBump', 4, 0.979, 0.5],
+  look: ['sprites.glovedoveBump', 5, 0.979, 0.5],
 };
+// Until that sheet arrives the crouch is the braced pose squashed down, and
+// the bump is the flick pose.
+const STANDIN = { sink: ['brace', 0.95], crouch: ['brace', 0.88], turn: ['brace', 0.88], aim: ['brace', 0.88], bump: ['flick', 1], look: [null, 1] };
+// The crouched glove's top: 148 painting units up on the requested sheet (a
+// level line at y 640 of 1024), 252 x 0.88 on the squashed stand-in.
+const CROUCH_Y_ART = COUNTER - Math.round(148 * K_SIZE);
+const CROUCH_Y_STANDIN = COUNTER - Math.round(252 * 0.88 * K_SIZE);
 const SINK_X1 = 360; // the sink, left of here
 const SINK_Y = 390; // its suds
 const RACK_X0 = 1250; // the plate rack
@@ -66,10 +83,11 @@ const REACH = 88; // how far from the glove's middle a dish can be flicked
 // The space above the counter is low, so everything flies on a smaller
 // scale: lower gravity and launches, the same times in the air.
 const GRAV = 1140;
-const GRIP = 0.18; // a press keeps the fingers ready this long
-const PERFECT = 0.09; // pressed no earlier than this before the dish lands: Hup!
-const REST = 0.45; // after a press, before the next one
-const FUMBLE = 0.9; // after a press that caught nothing
+const FULL = 0.45; // seconds of crouching to wind right up: the bump is a "Hup!"
+const SPRING = 0.15; // after letting go, a dish landing on the glove is still bumped
+const CROUCH_SPEED = 0.6; // crouched, the Dove shuffles along slower
+const BUMP_T = 0.25; // the bump pose
+const LOOK_T = 0.3; // then the head swings back to the left
 
 // The dishes: half-width, how high a flick sends it (heavier is lower), and
 // their look for the stand-in.
@@ -91,10 +109,14 @@ export default function create(env) {
     elapsed: 0,
     x: 640, // the Dove
     vx: 0,
-    grip: 0, // seconds the fingers stay ready
-    gripAge: 9, // seconds since the press
-    rest: 0,
-    flick: 0, // for the look
+    crouch: false, // the action is held: crouched, glove level
+    charge: 0, // seconds crouched
+    held: null, // the dish resting on the glove
+    turnT: 0, // seconds since the head started to turn (dish settled or fully wound)
+    springT: 9, // seconds since letting go
+    power: 0, // how wound up the last spring was (0..1)
+    bumpT: 0, // the bump pose
+    lookT: 0, // the head swinging back
     cheer: 0,
     dismay: 0,
     dishes: [], // in the air: { kind, x, y, vx, vy, spin, a, flicks }
@@ -109,8 +131,7 @@ export default function create(env) {
     smashed: 0,
     flicks: 0,
     bounces: 0,
-    fumbles: 0,
-    caught: false,
+    caught: 0, // dishes settled on the glove
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
@@ -131,15 +152,11 @@ export default function create(env) {
 
   // When (seconds) and where (x) a falling dish next reaches the fingers, or null.
   g.catchX = () => g.x + ARM_C;
-  // A dish is about to come down on the glove: brace for it.
-  g.bracing = () =>
-    g.dishes.some((d) => {
-      if (d.slipped || d.vy < 0) return false;
-      const l = g.landing(d);
-      return l && l.t < 0.3 && Math.abs(l.x - g.catchX()) < REACH + KINDS[d.kind].half * 0.4;
-    });
+  // The glove's top: lower while crouched.
+  g.gloveY = () => (g.crouch ? (spriteCell('sprites.glovedoveBump', 1) ? CROUCH_Y_ART : CROUCH_Y_STANDIN) : HANDS);
   g.landing = (d) => {
-    const dy = HANDS - d.y;
+    if (d.held) return null;
+    const dy = g.gloveY() - d.y;
     const disc = d.vy * d.vy + 2 * GRAV * dy;
     if (disc < 0) return null;
     const t = (-d.vy + Math.sqrt(disc)) / GRAV;
@@ -162,49 +179,83 @@ export default function create(env) {
   // Seconds for a dish thrown up at vy (negative) to come down `drop` below.
   const flight = (vy, drop) => (-vy + Math.sqrt(vy * vy + 2 * GRAV * drop)) / GRAV;
 
+  // A bump off the glove: wound right up it is a "Hup!" aimed at the rack;
+  // less, a hop along to the right.
+  function bump(d, power) {
+    const K = KINDS[d.kind];
+    const hup = power >= 1;
+    d.held = false;
+    d.bounced = false;
+    d.vy = -(hup ? 750 : 430 + 240 * power) * K.lift;
+    if (hup) {
+      const air = flight(d.vy, Math.max(0, RACK_Y - d.y));
+      d.vx = clamp((RACK_MID - d.x) / air, 120, HUP_REACH);
+    } else d.vx = 150 + 230 * power;
+    d.spin = (rng() - 0.5) * 10;
+    d.flicks++;
+    g.flicks++;
+    if (hup) {
+      g.hups++;
+      g.score++;
+      sfx('catch', { pitch: Math.min(12, d.flicks * 3) });
+      pop('Hup! +1', d.x, d.y - 90, PAL.magenta, 40);
+    } else {
+      sfx('bonk');
+      pop(power < 0.4 ? 'Hop' : 'Bump', d.x, d.y - 80, PAL.slate, 32);
+    }
+  }
+
   // The dish meets the glove.
   function meet(d) {
-    const K = KINDS[d.kind];
     const off = clamp(d.x - g.catchX(), -REACH, REACH);
-    if (g.grip > 0) {
-      const hup = g.gripAge <= PERFECT;
-      d.vy = -(hup ? 750 : 590) * K.lift;
-      if (hup) {
-        // a good flick heads for the rack: as far as it needs, up to a limit
-        const air = flight(d.vy, RACK_Y - HANDS);
-        d.vx = clamp((RACK_MID - d.x) / air, 120, HUP_REACH);
-      } else d.vx = 170 + off * 1.2;
-      d.spin = (rng() - 0.5) * 10;
-      d.flicks++;
-      d.bounced = false;
-      g.flicks++;
-      g.grip = 0;
-      g.caught = true;
-      g.flick = 0.25;
-      if (hup) {
-        g.hups++;
-        g.score++;
-        sfx('catch', { pitch: Math.min(12, d.flicks * 3) });
-        pop('Hup! +1', d.x, HANDS - 90, PAL.magenta, 40);
-      } else {
-        sfx('bonk');
-        pop('Too soon', d.x, HANDS - 80, PAL.slate, 32);
-      }
-    } else if (d.bounced) {
-      // a second time without a flick: too slippery, it slides off the glove
+    if (g.springT < SPRING) {
+      bump(d, g.power); // let go just as it landed
+      return;
+    }
+    if (g.crouch && !g.held) {
+      // it settles on the level glove, and goes where the Dove goes
+      g.held = d;
+      d.held = true;
+      d.off = clamp(off, -40, 40);
+      d.vx = 0;
+      d.vy = 0;
+      d.spin = 0;
+      g.caught++;
+      sfx('plop');
+      return;
+    }
+    if (d.bounced) {
+      // a second time without a bump: too slippery, it slides off the glove
       d.slipped = true;
       d.vy = 120;
       d.vx = off >= 0 ? 260 : -260;
       sfx('miss');
-      pop('Slippery!', d.x, HANDS - 80, PAL.slate, 34);
+      pop('Slippery!', d.x, d.y - 80, PAL.slate, 34);
       return;
-    } else {
-      // no flick: it bounces off the rubber once, low and short
-      d.bounced = true;
-      d.vy = -312;
-      d.vx = d.vx * 0.3 + off * 1.2;
-      g.bounces++;
-      sfx('bonk');
+    }
+    // standing (or already holding one): it bounces off the rubber once
+    d.bounced = true;
+    d.vy = -312;
+    d.vx = d.vx * 0.3 + off * 1.2;
+    g.bounces++;
+    sfx('bonk');
+  }
+
+  // Letting go: spring up, and bump whatever is on the glove.
+  function release() {
+    g.crouch = false;
+    g.power = clamp(g.charge / FULL, 0, 1);
+    g.springT = 0;
+    g.bumpT = BUMP_T;
+    g.lookT = 0;
+    if (g.held) {
+      const d = g.held;
+      g.held = null;
+      bump(d, g.power);
+    }
+    // a dish just coming down past the rising glove is caught in the spring
+    for (const d of g.dishes) {
+      if (!d.held && !d.slipped && d.vy > 0 && d.y > HANDS - 30 && d.y < CROUCH_Y_ART + 10 && Math.abs(d.x - g.catchX()) < REACH) bump(d, g.power);
     }
   }
 
@@ -230,33 +281,44 @@ export default function create(env) {
     if (input.pointer.active) {
       const tx = clamp(input.pointer.x - ARM_C, DOVE_MIN, DOVE_MAX); // the glove goes to the pointer
       const k = 1 - Math.exp(-16 * dt);
-      g.x += clamp((tx - g.x) * k, -1600 * dt, 1600 * dt);
+      const cap = (input.action ? CROUCH_SPEED : 1) * 1600 * dt;
+      g.x += clamp((tx - g.x) * k, -cap, cap);
     } else {
-      g.vx = approach(g.vx, (input.x || 0) * SPEED, 18, dt);
+      g.vx = approach(g.vx, (input.x || 0) * SPEED * (input.action ? CROUCH_SPEED : 1), 18, dt);
       g.x += g.vx * dt;
     }
     g.x = clamp(g.x, DOVE_MIN, DOVE_MAX);
     if (input.pointer.active) g.vx = (g.x - px) / Math.max(dt, 1e-3);
 
-    // The flick: a press readies the fingers for a moment.
-    g.rest = Math.max(0, g.rest - dt);
-    g.gripAge += dt;
-    // A press that catches nothing leaves the fingers fumbling a while longer.
-    if (g.grip > 0 && g.grip - dt <= 0 && !g.caught) {
-      g.rest = FUMBLE;
-      g.fumbles++;
+    // Hold to crouch; let go to spring.
+    g.springT += dt;
+    if (input.action && !g.crouch) {
+      g.crouch = true;
+      g.charge = 0;
+      g.turnT = 0;
+      g.bumpT = 0;
+      g.lookT = 0;
     }
-    if (input.actionPressed && g.rest <= 0) {
-      g.grip = GRIP;
-      g.gripAge = 0;
-      g.rest = REST;
-      g.caught = false;
-    } else g.grip = Math.max(0, g.grip - dt);
-    g.flick = Math.max(0, g.flick - dt);
+    if (g.crouch) {
+      g.charge += dt;
+      if (g.held || g.charge >= FULL) g.turnT += dt;
+      if (!input.action) release();
+    }
+    if (g.bumpT > 0) {
+      g.bumpT -= dt;
+      if (g.bumpT <= 0) g.lookT = LOOK_T;
+    } else g.lookT = Math.max(0, g.lookT - dt);
     g.cheer = Math.max(0, g.cheer - dt);
     g.dismay = Math.max(0, g.dismay - dt);
 
     for (const d of g.dishes) {
+      if (d.held) {
+        // resting on the crouched glove, carried along
+        d.x = g.catchX() + d.off;
+        d.y = g.gloveY() - 12;
+        d.a = 0;
+        continue;
+      }
       const py = d.y;
       d.vy += GRAV * dt;
       d.x += d.vx * dt;
@@ -267,8 +329,9 @@ export default function create(env) {
         d.vx = Math.abs(d.vx) * 0.5;
       }
       // onto the glove's fingers
-      if (!d.slipped && d.vy > 0 && py < HANDS && d.y >= HANDS && Math.abs(d.x - g.catchX()) < REACH + KINDS[d.kind].half * 0.4 && d.x > SINK_X1) {
-        d.y = HANDS;
+      const gy = g.gloveY();
+      if (!d.slipped && d.vy > 0 && py < gy && d.y >= gy && Math.abs(d.x - g.catchX()) < REACH + KINDS[d.kind].half * 0.4 && d.x > SINK_X1) {
+        d.y = gy;
         meet(d);
         continue;
       }
@@ -480,20 +543,51 @@ export default function create(env) {
     c.save();
     c.translate(x, COUNTER - run);
     c.rotate(clamp(g.vx / 9000, -0.1, 0.1));
-    const pose = g.dismay > 0 ? 'dismay' : g.cheer > 0 ? 'cheer' : g.flick > 0 ? 'flick' : g.grip > 0 || g.bracing() ? 'brace' : null;
+    let pose = null;
+    if (g.bumpT > 0) pose = 'bump';
+    else if (g.crouch) pose = g.charge < 0.1 && !g.held ? 'sink' : g.held || g.charge >= FULL ? (g.turnT < 0.12 ? 'turn' : 'aim') : 'crouch';
+    else if (g.dismay > 0) pose = 'dismay';
+    else if (g.cheer > 0) pose = 'cheer';
+    else if (g.lookT > 0) pose = 'look';
     let drawn = false;
+    let squash = 1;
     if (pose) {
       const [key, i, fy, fx] = POSE[pose];
       drawn = drawSprite(c, key, i, (0.5 - fx) * CELL, (1 - fy) * CELL, { w: CELL, whole: true, flip });
+      if (!drawn && STANDIN[pose]) {
+        // the requested crouch-and-bump frame is not here yet: its stand-in
+        const [alt, sq] = STANDIN[pose];
+        squash = sq;
+        if (alt) {
+          const [k2, i2, fy2, fx2] = POSE[alt];
+          c.save();
+          c.scale(1, sq);
+          drawn = drawSprite(c, k2, i2, (0.5 - fx2) * CELL, (1 - fy2) * CELL, { w: CELL, whole: true, flip });
+          c.restore();
+        }
+      }
     }
     if (!drawn) {
-      // the portrait tips its glove up to flick, braces to catch, hops to
-      // cheer, droops in dismay
-      if (g.flick > 0) c.rotate(-0.14 * (g.flick / 0.25));
-      else if (pose === 'brace') c.scale(1.03, 0.97);
-      if (g.cheer > 0 && !env.reduceMotion) c.translate(0, -Math.abs(Math.sin(g.cheer * 12)) * 22);
-      if (g.dismay > 0) c.scale(1.06, 0.9);
+      // the portrait: tipped back for the bump, squashed for the crouch,
+      // hopping to cheer, drooping in dismay
+      if (pose === 'bump') c.rotate(-0.14 * (g.bumpT / BUMP_T));
+      if (squash < 1) c.scale(1.03, squash);
+      if (pose === 'cheer' && !env.reduceMotion) c.translate(0, -Math.abs(Math.sin(g.cheer * 12)) * 22);
+      if (pose === 'dismay') c.scale(1.06, 0.9);
       drawBird(c, 'glovedove', { x: 0, y: 0, size: SIZE, t, flip });
+    }
+    // how wound up the crouch is: a little arc of pink dots filling over the glove
+    if (g.crouch) {
+      const f = clamp(g.charge / FULL, 0, 1);
+      const n = 5;
+      for (let i = 0; i < n; i++) {
+        c.beginPath();
+        c.arc(ARM_C - 60 + i * 30, -(COUNTER - g.gloveY()) - 34, 7, 0, Math.PI * 2);
+        c.fillStyle = i < Math.round(f * n) ? PAL.magenta : 'rgba(250,244,228,0.7)';
+        c.fill();
+        ink(c, 1.4);
+        c.stroke();
+      }
     }
     c.restore();
   }
@@ -562,7 +656,7 @@ export default function create(env) {
     if (g.elapsed < 5) {
       c.save();
       c.globalAlpha = Math.min(1, 5 - g.elapsed);
-      const msg = 'Run under each dish · press as it lands to flick it to the rack';
+      const msg = 'Hold to crouch under a dish · let go to bump it to the rack';
       c.lineWidth = 7;
       c.strokeStyle = 'rgba(250,244,228,0.9)';
       c.font = '600 34px Fraunces, Georgia, serif';

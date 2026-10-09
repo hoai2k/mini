@@ -19,31 +19,37 @@ function next(game) {
   return best;
 }
 
-// A juggler: runs under the next dish (standing `aim` to its left, so the
-// dish lands on its far side and flies further), and presses `lead` seconds
-// before it lands (give or take `slop`). `speed` is how hard it pushes.
-function juggler({ speed = 1, aim = 40, lead = 0.04, slop = 0, seed = 1 } = {}) {
+// A crouch-and-bump player: runs under the next dish and holds the action
+// (crouches) `lead` seconds before it comes down, so it settles on the glove;
+// then keeps crouching until wound up to `wind` times a full crouch (give or
+// take `slop`) and lets go. With `carry`, a dish caught far from the rack is
+// carried right before the bump, so the "Hup!" reaches the rack. `forget` is
+// the chance it doesn't crouch for a dish at all. `speed` is how hard it
+// pushes the stick.
+const FULL = 0.45;
+function player({ speed = 1, lead = 0.35, wind = 1.1, slop = 0, carry = false, forget = 0, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-  let want = lead;
-  let target = null;
-  let pressed = false;
+  let want = wind;
+  let skip = null;
+  let lastHeld = null;
   return (game) => {
+    if (game.held) {
+      if (game.held !== lastHeld) {
+        lastHeld = game.held;
+        want = Math.max(0.2, wind + (rnd() - 0.5) * 2 * slop);
+      }
+      const far = carry && game.catchX() < 760;
+      return { x: far ? speed : 0, action: far || game.charge < want * FULL };
+    }
+    lastHeld = null;
     const n = next(game);
-    if (!n) {
-      pressed = false;
-      return {};
-    }
-    if (n.d !== target || n.d.flicks !== target.flicks0) {
-      target = n.d;
-      target.flicks0 = n.d.flicks;
-      want = Math.max(0, lead + (rnd() - 0.5) * 2 * slop);
-    }
-    const dx = n.l.x - aim - game.catchX();
+    if (!n) return {};
+    if (n.d !== skip && n.d.forgot === undefined) n.d.forgot = rnd() < forget;
+    const dx = n.l.x - 20 - game.catchX();
     const x = Math.max(-1, Math.min(1, dx / 30)) * speed;
-    const action = n.l.t <= want && Math.abs(n.l.x - game.catchX()) < 80 && !pressed;
-    pressed = action;
-    return { x, action };
+    const action = !n.d.forgot && n.l.t <= lead && Math.abs(n.l.x - game.catchX()) < 120;
+    return { x, action: action || (game.crouch && n.l.t < 0.6) };
   };
 }
 
@@ -56,6 +62,13 @@ const masher = (every = 4) => {
     return { x: Math.max(-1, Math.min(1, dx / 30)), action: k++ % every < every / 2 };
   };
 };
+// Runs under the next dish holding the action all the time: it catches one
+// and never lets go.
+const holder = () => (game) => {
+  const n = next(game);
+  const dx = n ? n.l.x - 20 - game.catchX() : 0;
+  return { x: Math.max(-1, Math.min(1, dx / 30)), action: true };
+};
 // Runs under the next dish and never presses: the dishes only bounce.
 const bouncer = () => (game) => {
   const n = next(game);
@@ -66,17 +79,20 @@ const bouncer = () => (game) => {
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 const seeds = [1, 2, 3, 4, 5, 6];
 
-test('glovedove: a beginner opens the next page, a good juggler more; mashing, bouncing and idling do not', () => {
-  const beginner = seeds.map((seed) => run(create, { seed, bot: juggler({ speed: 0.65, aim: 20, lead: 0.07, slop: 0.08, seed }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: juggler({ speed: 1, aim: 45, lead: 0.04, slop: 0.02, seed }) }).game.score);
-  const mash = [2, 4, 8, 16].flatMap((every) => [1, 2].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
+test('glovedove: beginners open the next page, a good player more; mashing, holding, bouncing and idling do not', () => {
+  const beginner = seeds.map((seed) => run(create, { seed, bot: player({ speed: 0.65, lead: 0.4, wind: 1.2, slop: 0.5, seed }) }).game.score);
+  const clumsy = seeds.map((seed) => run(create, { seed, bot: player({ speed: 0.5, lead: 0.5, wind: 1.1, slop: 0.6, forget: 0.2, seed }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: player({ speed: 1, lead: 0.3, wind: 1.05, carry: true, seed }) }).game.score);
+  const mash = [2, 4, 8, 16, 30].flatMap((every) => [1, 2].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
+  const hold = [1, 2].map((seed) => run(create, { seed, bot: holder() }).game.score);
   const bounce = [1, 2].map((seed) => run(create, { seed, bot: bouncer() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('glovedove beginner', beginner, 'good', good, 'mash', mash, 'bounce', bounce, 'idle', idle, 'pass', pass);
+  console.log('glovedove beginner', beginner, 'clumsy', clumsy, 'good', good, 'mash', mash, 'hold', hold, 'bounce', bounce, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
+  assert.ok(Math.min(...beginner) >= pass * 1.25, `beginner ${beginner}`);
+  assert.ok(Math.min(...clumsy) >= pass, `clumsy beginner ${clumsy}`);
   assert.ok(mean(good) > mean(beginner) + 8, `good ${good}`);
-  assert.ok(Math.max(...mash, ...bounce) < pass, `mashing and bouncing must not open the next page: ${mash} ${bounce}`);
+  assert.ok(Math.max(...mash, ...hold, ...bounce) < pass, `mashing, holding and bouncing must not open the next page: ${mash} ${hold} ${bounce}`);
 });
 
 // A dish falling straight onto the Dove's fingers.
@@ -89,29 +105,63 @@ const until = (game, d, input = () => blank()) => {
   for (let i = 0; i < 120 && d.vy >= 0 && game.dishes.includes(d); i++) game.update(1 / 60, input(game.landing(d)));
 };
 
-test('glovedove: pressed just as it lands, a dish flies high and long (Hup!); too soon, feebly; not at all, it bounces', () => {
-  const flick = (lead) => {
-    const game = create(env(1));
-    game.update(1 / 60, blank());
-    const d = dropOn(game);
-    let done = false;
-    until(game, d, (l) => {
-      const press = !done && l && l.t <= lead;
-      if (press) done = true;
-      return blank({ action: press, actionPressed: press });
-    });
-    return { game, d };
-  };
-  const hup = flick(0.03);
-  assert.equal(hup.game.hups, 1);
-  assert.equal(hup.game.score, 1);
-  const soon = flick(0.15);
-  assert.equal(soon.game.hups, 0);
-  assert.ok(-soon.d.vy < -hup.d.vy && soon.d.vx < hup.d.vx, 'a feeble flick');
-  const none = flick(-1);
-  assert.equal(none.game.flicks, 0);
-  assert.equal(none.game.bounces, 1);
-  assert.ok(-none.d.vy < -soon.d.vy);
+// Crouch (hold) until the dish settles on the glove, keep crouching for
+// `wind` seconds more, then let go.
+// (`late`: only crouch at the last moment, so the crouch is not wound up.)
+function crouchAndBump(wind, late = false) {
+  const game = create(env(1));
+  game.update(1 / 60, blank());
+  const d = dropOn(game);
+  let i = 0;
+  while (!d.held && i++ < 200) {
+    const l = game.landing(d);
+    game.update(1 / 60, blank({ action: !late || game.crouch || (l && l.t < 0.04) }));
+  }
+  assert.ok(d.held, 'the dish settles on the crouched glove');
+  for (let k = 0; k < Math.round(wind * 60); k++) game.update(1 / 60, blank({ action: true }));
+  game.update(1 / 60, blank({ action: false, actionReleased: true }));
+  return { game, d };
+}
+
+test('glovedove: crouched, a dish settles on the glove; wound right up, letting go is a Hup! towards the rack; sooner, a hop', () => {
+  const full = crouchAndBump(0.6);
+  assert.equal(full.game.hups, 1);
+  assert.equal(full.game.score, 1);
+  assert.ok(full.d.vy < 0 && full.d.vx > 0 && !full.d.held);
+  assert.ok(full.game.bumpT > 0, 'the bump pose');
+  const quick = crouchAndBump(0.02, true);
+  assert.equal(quick.game.hups, 0);
+  assert.ok(-quick.d.vy < -full.d.vy && quick.d.vx < full.d.vx, 'a short hop');
+  // the head swings back after the bump
+  for (let i = 0; i < 20; i++) full.game.update(1 / 60, blank());
+  assert.ok(full.game.lookT > 0);
+});
+
+test('glovedove: a dish on the glove is carried along while crouched', () => {
+  const game = create(env(1));
+  game.update(1 / 60, blank());
+  const d = dropOn(game);
+  let i = 0;
+  while (!d.held && i++ < 200) game.update(1 / 60, blank({ action: true }));
+  const x0 = d.x;
+  for (let k = 0; k < 30; k++) game.update(1 / 60, blank({ action: true, x: 1 }));
+  assert.ok(d.held && d.x > x0 + 150, `carried from ${x0} to ${d.x}`);
+});
+
+test('glovedove: letting go just as a dish lands bumps it at once', () => {
+  const game = create(env(1));
+  game.update(1 / 60, blank());
+  const d = dropOn(game);
+  // crouch a full wind-up while it falls, let go a moment before it would land
+  let let_go = false;
+  for (let i = 0; i < 200 && game.dishes.includes(d) && d.flicks === 0; i++) {
+    const l = game.landing(d);
+    const hold = !let_go && !(l && l.t < 0.05 && game.charge >= 0.45);
+    if (!hold) let_go = true;
+    game.update(1 / 60, blank({ action: hold }));
+  }
+  assert.equal(d.flicks, 1);
+  assert.equal(game.hups, 1);
 });
 
 test('glovedove: a dish into the rack is put away; one on the counter smashes, with no points lost', () => {
@@ -139,7 +189,7 @@ test('glovedove: a dish that drops back into the sink pops up again', () => {
   assert.equal(game.dishes.length, 1);
 });
 
-test('glovedove: unflicked, a dish bounces once and then slips off; a press that catches nothing fumbles', () => {
+test('glovedove: standing, a dish bounces once and then slips off', () => {
   const game = create(env(1));
   game.update(1 / 60, blank());
   const d = dropOn(game, 0);
@@ -151,10 +201,4 @@ test('glovedove: unflicked, a dish bounces once and then slips off; a press that
   assert.ok(d.slipped);
   for (let i = 0; i < 90; i++) game.update(1 / 60, blank());
   assert.equal(game.smashed, 1);
-  // a press with no dish coming: the fingers fumble a while
-  game.dishes = [];
-  game.update(1 / 60, blank({ action: true, actionPressed: true }));
-  for (let i = 0; i < 15; i++) game.update(1 / 60, blank());
-  assert.equal(game.fumbles, 1);
-  assert.ok(game.rest > 0.6);
 });
