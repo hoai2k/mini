@@ -1,7 +1,7 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
 import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandById, parsePattern, rhythmFor, setDifficulty, fitBeats, beatsOf, setBeatCount, getBeatCount } from './rhythm.js';
-import { createBattle, orderFor, spawnEnemy, spawnChildren, dismissChildren, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
+import { createBattle, orderFor, spawnEnemy, spawnChildren, dismissChildren, issueOrder, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
 import { createPractice } from './practice-play.js';
@@ -373,7 +373,6 @@ function startStage(i, custom = null, { opening = true } = {}) {
     introUntil: 7,
     commandsDone: 0,
     tiersUsed: new Set(),
-    flourishTaught: false,
     guards: 0,
     blocks: 0,
   };
@@ -738,11 +737,6 @@ function handleRhythm(ev) {
     if (ev.command === 'march') lessonDone('march', T.lessons.praise.march);
     if (ev.command === 'march' && ev.tier >= 2) lessonDone('march2', T.lessons.praise.march2);
     if (ev.command === 'strike') lessonDone('strike', T.lessons.praise.strike);
-  } else if (ev.type === 'flourish') {
-    addFlourish(g.battle);
-    feedback(txt('battle.flourish', { count: ev.count }), P.lacquer);
-    g.flourishTaught = true;
-    lessonDone('flourish', T.lessons.praise.flourish);
   } else if (ev.type === 'reset') {
     // Three uneven tries in a row at a rhythm: play it again for them.
     if ((ev.reason === 'uneven' || ev.reason === 'timeout') && ev.strokes >= 2) {
@@ -999,8 +993,6 @@ function hint(view) {
         return txt('lessons.hints.march2', { rhythm: say('march', 2) });
       case 'strike':
         return near ? txt('hints.inReach', { rhythm: say('strike') }) : txt('lessons.hints.marchToTargets', { rhythm: say('march') });
-      case 'flourish':
-        return txt('lessons.hints.flourish', { rim: touch ? T.lessons.hints.theRim : keys.R });
       default:
         return near ? (g.tiersUsed.has(2) ? txt('hints.inReachOr', { rhythm: say('strike'), stronger: say('strike', 2) }) : txt('hints.inReach', { rhythm: say('strike') })) : txt('lessons.hints.marchToNextTarget', { rhythm: say('march') });
     }
@@ -1390,7 +1382,6 @@ const LESSONS = [
   { id: 'march', name: T.lessons.names.march },
   { id: 'march2', name: T.lessons.names.march2 },
   { id: 'strike', name: T.lessons.names.strike },
-  { id: 'flourish', name: T.lessons.names.flourish },
   { id: 'targets', name: T.lessons.names.targets },
   { id: 'block', name: T.lessons.names.block },
 ];

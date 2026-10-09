@@ -14,6 +14,7 @@ import { training } from './render/training.js';
 import { touch } from './render/touch.js';
 import { practice } from './render/practice.js';
 import { pond } from './render/pond.js';
+import { host } from './render/host.js';
 
 export { W, H, U, TOUCH } from './render/common.js';
 
@@ -163,6 +164,8 @@ export class Renderer {
     if (view.mode !== 'battle') this.scene(view);
     if (view.stage && view.stage.id === 'mavien') this.general(view);
     const beatPhase = view.beatFloat % 1;
+    // The rest of the Han host, further back (render/host.js).
+    if (view.mode === 'battle') this.hanHost(view, t);
     for (const e of battle.enemies) {
       const m = this.enemyMotion(e, t, dt);
       if (!m) continue;
@@ -170,12 +173,14 @@ export class Renderer {
       if (x - this.cam < -300 || x - this.cam > W + 300) continue;
       g.save();
       g.globalAlpha = m.alpha;
-      this.footShadow(x + (e.type === 'fort' ? 90 : 0), e.type === 'fort' ? 130 : 22);
+      const squad = e.type === 'spear' || e.type === 'crossbow';
+      if (!squad) this.footShadow(x + (e.type === 'fort' ? 90 : 0), e.type === 'fort' ? 130 : 22);
       this.backlit();
       const shown = { ...e, pose: { bob: m.bob, tilt: m.tilt, lean: m.lean || 0 } };
       if (e.type === 'fort') this.fort(e, x, GROUND);
       else if (e.type === 'target') this.target(e, x, GROUND, t);
       else if (e.type === 'children') this.child(e, x, GROUND, t, m);
+      else if (squad) this.hanSquad(shown, x, t, beatPhase, m);
       else this.hanSoldier(shown, x, GROUND, t, beatPhase);
       g.restore();
     }
@@ -289,4 +294,4 @@ export class Renderer {
 }
 
 // The methods live in ./render/*.js, grouped by what they draw.
-Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice, training, pond);
+Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice, training, pond, host);

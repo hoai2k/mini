@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createBattle, orderFor, spawnEnemy, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
+  createBattle, orderFor, spawnEnemy, issueOrder, stepArmy, stepEnemies, commandPower, blocker,
   guard, shieldsUp, aboutToAttack, GUARD, FLIGHT, tempoFactor, resolveIncoming,
 } from '../src/battle.js';
 import { STAGES } from '../src/stages.js';
@@ -168,19 +168,6 @@ test('with the elephant, a strike on a waking drum becomes the charge', () => {
   assert.equal(orderFor(elephant, 'march', true), 'march');
   assert.equal(orderFor(foot, 'strike', true), 'strike');
   assert.ok(order(elephant, 'charge').some((e) => e.type === 'trample'));
-});
-
-test('flourishes add power to the current order', () => {
-  const plain = createBattle(stage('garden'));
-  const fancy = createBattle(stage('garden'));
-  plain.army.x = fancy.army.x = 7;
-  plain.enemies[0].hp = fancy.enemies[0].hp = 1000;
-  issueOrder(fancy, 'strike', 1, 0.6);
-  addFlourish(fancy);
-  addFlourish(fancy);
-  for (let k = 0; k < 4; k++) stepArmy(fancy, k * 0.6);
-  order(plain, 'strike');
-  assert.ok(fancy.enemies[0].hp < plain.enemies[0].hp);
 });
 
 /**

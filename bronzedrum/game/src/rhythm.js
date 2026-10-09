@@ -9,9 +9,8 @@
 // stronger.
 //
 // When a command is accepted the army answers for four beats at the player's
-// tempo (the action cycle). Strokes during the answer do not start a phrase;
-// rim strokes placed between the answer's beats are Nhị's flourishes. When the
-// answer ends the drum is ready again, and starting the next phrase within two
+// tempo (the action cycle). Strokes during the answer are ignored: they do
+// not start a phrase. When the answer ends the drum is ready again, and starting the next phrase within two
 // beats keeps the chain; four in a row wakes the drum.
 //
 // Everything here is pure (times in seconds), so it runs under node --test.
@@ -29,7 +28,6 @@ export const WINDOWS = {
 /** Seconds per beat the player may drum at: about 200 down to 45 BPM. */
 export const TEMPO = { min: 0.3, max: 1.33 };
 export const SPIRIT_COMBO = 4;
-export const MAX_FLOURISHES = 4;
 // Each tier is 1.4× the one below, and precision (see PRECISION) spans just
 // under that ratio: the sloppiest playing of a tier still edges out a perfect
 // playing of the tier below, and everything between is down to evenness.
@@ -299,7 +297,6 @@ export class DrumReader {
     this.combo = 0;
     this.chainUntil = null; // the next phrase must start before this to chain
     this.chainArmed = false;
-    this.flourishes = 0;
   }
 
   get spirit() {
@@ -341,15 +338,8 @@ export class DrumReader {
   hit(drum, t) {
     const events = [];
     if (this.busy(t)) {
-      // Nhị's flourish: a rim stroke between two of the answer's beats.
-      const a = this.action;
-      const phase = (((t - a.start) / a.u) % 1 + 1) % 1;
-      if (drum === CAC && t >= a.start - 0.25 * a.u && Math.abs(phase - 0.5) <= 0.22 && this.flourishes < MAX_FLOURISHES) {
-        this.flourishes += 1;
-        events.push({ type: 'flourish', count: this.flourishes, t });
-      } else {
-        events.push({ type: 'early', drum, t });
-      }
+      // The army is answering: the stroke is ignored.
+      events.push({ type: 'early', drum, t });
       return events;
     }
 
@@ -421,7 +411,6 @@ export class DrumReader {
     this.shown = { pattern: p, strokes: this.phrase.slice(), accuracy };
     this.phrase = [];
     this.pending = null;
-    this.flourishes = 0;
     return [
       {
         type: 'command',

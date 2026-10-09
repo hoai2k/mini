@@ -263,7 +263,8 @@ export const field = {
       } else if (ev.type === 'defeated') {
         this.scraps(ev.x * U, GROUND - 60, 26, [P.ironDark, P.iron, P.paper, P.straw]);
       } else if (ev.type === 'volley') {
-        for (let i = 0; i < 6; i++) this.projectile(ev.from * U - i * 10, ev.to * U, t + i * 0.03, P.ink, 1);
+        // The archers loose together: a flight of arrows from along the ranks.
+        for (let i = 0; i < 12; i++) this.projectile(ev.from * U - i * 9 - Math.random() * 6, ev.to * U + Math.random() * 60, t + i * 0.025, P.ink, 1, 0.45, 100 + Math.random() * 40);
       } else if (ev.type === 'launch') {
         // The blow is visible all the way: bolts arc over, a spear lunges.
         const dur = ev.arrive - ev.launch;
@@ -277,9 +278,12 @@ export const field = {
           if (m) m.threw = ev.launch;
           this.particles.push({ kind: 'stone', fromX: ev.x * U - 14, toX: to + 10, t0: ev.launch, dur, spin: (Math.random() - 0.5) * 18, r: 3 + Math.random() * 1.5 });
         } else {
-          const n = ev.kind === 'fort' ? 6 : 3;
-          const fromX = ev.x * U + (ev.kind === 'fort' ? 110 : -20);
-          for (let i = 0; i < n; i++) this.projectile(fromX, to - i * 18, ev.launch + i * 0.03, P.ironDark, -1, dur, ev.kind === 'fort' ? 150 : 110);
+          // A volley: every crossbowman of the squad (render/host.js) shoots, or the fort's walls.
+          const n = ev.kind === 'fort' ? 10 : 8;
+          for (let i = 0; i < n; i++) {
+            const fromX = ev.x * U + (ev.kind === 'fort' ? 60 + Math.random() * 120 : -20 + (i % 5) * 22);
+            this.projectile(fromX, to - Math.random() * 90, ev.launch + i * 0.025, P.ironDark, -1, dur, (ev.kind === 'fort' ? 150 : 110) + Math.random() * 30);
+          }
         }
       } else if (ev.type === 'deflect' && ev.kind === 'children') {
         // A stone bounces off a raised forearm: a little grit.
