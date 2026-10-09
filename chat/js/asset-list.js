@@ -841,83 +841,83 @@ export const ASSET_LIST = {
   },
   "art-fx-bubble": {
     "file": "assets/icons-art/art-fx-bubble.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-puppy": {
     "file": "assets/icons-art/art-fx-puppy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-hearteyes": {
     "file": "assets/icons-art/art-fx-hearteyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-dragon": {
     "file": "assets/icons-art/art-fx-dragon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-rainbow": {
     "file": "assets/icons-art/art-fx-rainbow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-bigeyes": {
     "file": "assets/icons-art/art-fx-bigeyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-bobblehead": {
     "file": "assets/icons-art/art-fx-bobblehead.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-alien": {
     "file": "assets/icons-art/art-fx-alien.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-dealwithit": {
     "file": "assets/icons-art/art-fx-dealwithit.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-crown": {
     "file": "assets/icons-art/art-fx-crown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-fancy": {
     "file": "assets/icons-art/art-fx-fancy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-clown": {
     "file": "assets/icons-art/art-fx-clown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-storm": {
     "file": "assets/icons-art/art-fx-storm.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-noodle": {
     "file": "assets/icons-art/art-fx-noodle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-swirl": {
     "file": "assets/icons-art/art-fx-swirl.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-space": {
     "file": "assets/icons-art/art-fx-space.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-underwater": {
     "file": "assets/icons-art/art-fx-underwater.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-pixel": {
     "file": "assets/icons-art/art-fx-pixel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-comic": {
     "file": "assets/icons-art/art-fx-comic.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-thermal": {
     "file": "assets/icons-art/art-fx-thermal.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-flowercrown": {
     "file": "assets/icons-art/art-fx-flowercrown.png",

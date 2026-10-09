@@ -291,6 +291,9 @@ with its state (see `js/gamehost.js`).
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
+  Theme artwork generation is paused after delivering all six title assets
+  and Art icons CH-N01–CH-N20. The remaining 75 Art and 95 Classical
+  icons are still requested; their exact prompts are in the request document.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`

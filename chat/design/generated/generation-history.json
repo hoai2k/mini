@@ -3780,5 +3780,225 @@
       1774,
       887
     ]
+  },
+  {
+    "id": "CH-N01",
+    "file": "assets/icons-art/art-fx-bubble.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person in profile with pursed lips blowing a big shimmering soap bubble that drifts away towards the edge, a second small bubble popping with a burst of droplets. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N02",
+    "file": "assets/icons-art/art-fx-puppy.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face wearing realistic-looking floppy brown dog ears and a black dog nose, mouth open with a long pink dog tongue hanging out. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N03",
+    "file": "assets/icons-art/art-fx-hearteyes.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's grinning face with glowing red heart shapes in place of the eyes, three small hearts floating up from the head. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N04",
+    "file": "assets/icons-art/art-fx-dragon.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with small curved dragon horns and scaly cheeks, mouth wide open blasting a jet of orange fire sideways. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N05",
+    "file": "assets/icons-art/art-fx-rainbow.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with mouth wide open and a thick bright rainbow pouring out of it and curving down out of frame. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N06",
+    "file": "assets/icons-art/art-fx-bigeyes.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face with eyes magnified huge like a bulging lens, the rest of the face normal, a subtle warp ring around each eye. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N07",
+    "file": "assets/icons-art/art-fx-bobblehead.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person drawn with a giant head on a small body, the head tilted mid-wobble with two motion arcs. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N08",
+    "file": "assets/icons-art/art-fx-alien.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face tinted lime green with large glossy black almond eyes and two antennae with glowing tips. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N09",
+    "file": "assets/icons-art/art-fx-dealwithit.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: pixel-art black sunglasses dropping down onto a smirking person's face, motion lines above them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N10",
+    "file": "assets/icons-art/art-fx-crown.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a confident person wearing a heavy gold jewelled crown slightly tilted, a few gold sparkles. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N11",
+    "file": "assets/icons-art/art-fx-fancy.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with raised eyebrows, a curled handlebar mustache and a gold monocle on a chain falling from one eye. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N12",
+    "file": "assets/icons-art/art-fx-clown.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person with a round red clown nose and a huge rainbow curly afro wig, mouth open in a honk. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N13",
+    "file": "assets/icons-art/art-fx-storm.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a small dark rain cloud hovering over a person's frowning head, rain falling on them and a lightning bolt striking. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N14",
+    "file": "assets/icons-art/art-fx-noodle.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face stretched long and wavy like in a funhouse mirror, eyes and mouth pulled into a tall S-curve. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N15",
+    "file": "assets/icons-art/art-fx-swirl.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face twisted into a spiral around the nose, as if being pulled down a whirlpool. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N16",
+    "file": "assets/icons-art/art-fx-space.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders cut out against a deep starfield with a ringed planet and a nebula behind them. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N17",
+    "file": "assets/icons-art/art-fx-underwater.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's head and shoulders in blue-green water light, rippling caustics on the face, bubbles rising and a small tropical fish passing. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N18",
+    "file": "assets/icons-art/art-fx-pixel.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face rendered in big chunky square pixels with a limited retro console palette, half the face still smooth to show the change. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N19",
+    "file": "assets/icons-art/art-fx-comic.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face in comic-book style with halftone dots and bold ink lines, mouth open and a jagged POW burst shape beside it. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-N20",
+    "file": "assets/icons-art/art-fx-thermal.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face as a thermal camera image, hot yellow and red cheeks fading to purple and blue at the edges. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent outside the paper tile, not magenta.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
   }
 ]
