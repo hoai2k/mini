@@ -320,7 +320,6 @@ button { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition: none !important; }
 }
-body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !important; }
 
 .tile.popped { animation: popped 0.5s ease; }
 @keyframes popped {
@@ -478,7 +477,6 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .mini-btn svg { width: 20px; height: 20px; }
 .mini-btn:active { transform: scale(0.94); }
 @media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
-body.reduce-motion .controls .ctrl, body.reduce-motion .ctrl-info { transition: none; animation: none; }
 
 /* With nothing above the strip any more it sits right on the bottom row. */
 .strip-wrap { padding-bottom: 0; }
@@ -540,3 +538,9 @@ body:not(.in-call) .field.in-call { display: none; }
 .game-card .ico:has(img:is([src*="/icons2/"], [src*="/icons-art/"], [src*="/icons-classic/"])) { width: 76px; height: 76px; }
 /* The ring that marks the effect that's on matches the tile icons' shape. */
 .strip-ring { border-radius: 28%; }
+
+.debug-bot-count { display: flex; align-items: center; gap: 12px; }
+.debug-bot-count output { min-width: 2ch; text-align: center; font-weight: 800; }
+.debug-bot-note { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+/* Keep bot game windows laid out and animating, without taking focus. */
+.debug-bot-frame { position: fixed; left: -10000px; top: 0; width: 640px; height: 480px; border: 0; pointer-events: none; }

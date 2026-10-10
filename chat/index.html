@@ -245,10 +245,15 @@
         <option value="classic">Classical (18th-century French)</option>
       </select></label>
       <label class="field check"><input id="set-light" type="checkbox"><span>Auto light: brighten my picture when it's dark</span></label>
-      <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
       <div class="field"><span>Ratings</span><button id="open-ratings" class="btn ghost" type="button">See everyone's thumbs up and down</button></div>
       <div class="field"><span>Help</span><button class="btn ghost" type="button" data-open="instructions">How to play</button></div>
       <div class="field in-call"><span>Messages</span><button id="open-chat" class="btn ghost badge-host" type="button">Open messages<span id="chat-badge" class="badge" hidden></span></button></div>
+      <div class="field"><span>Add Debug Bot</span><div class="debug-bot-count">
+        <button id="debug-bot-minus" class="btn ghost" type="button" aria-label="Remove a debug bot">−</button>
+        <output id="debug-bot-count" aria-live="polite">0</output>
+        <button id="debug-bot-plus" class="btn ghost" type="button" aria-label="Add a debug bot">+</button>
+      </div></div>
+      <p class="debug-bot-note">Up to 4 test players. Join or leave when you close Settings. They accept shared effects and play games as rookies. Bots leave when you leave or reload.</p>
       <div class="field in-call"><span>Call</span><button id="btn-leave" class="btn danger" type="button">Leave the call</button></div>
     </div>
     <div class="dialog-actions"><button class="btn" value="close" autofocus>Done</button></div>

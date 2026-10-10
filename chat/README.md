@@ -13,6 +13,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | --- | --- |
 | `index.html`, `styles.css` | The page: title screen, call screen, trays, dialogs |
 | `themes.css`, `js/palette.js` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) and each theme's shade of every player colour |
+| `js/debug-bots.js`, `js/debug-bot-runtime.js`, `js/rookie.js` | Settings-controlled test participants, isolated game windows and rookie inputs |
 | `js/main.js` | Wires everything together: tiles, controls, trays, invites, chat, settings |
 | `js/net.js` | The shared room on the mini-rooms relay: join or host, reconnect, presence, topics |
 | `js/rtc.js` | Mesh WebRTC calls, negotiated over the relay |
@@ -43,7 +44,12 @@ so the picture stays clear:
 - **Top:** the status pill on the left; microphone, camera, settings and full
   screen on the right. Settings also holds How to play, Messages (unread
   counts show on the settings button) and Leave the call; your name there is
-  tapped to change it.
+  tapped to change it. **Add Debug Bot** near the bottom uses − / + for up to
+  four test players; the count applies when Settings closes, including Escape.
+  Bots use simulated cameras, accept any shared effect, and join human game
+  sessions with simple rookie inputs. Their scores never update your records.
+  They leave when removed, when you leave the call, or when the page reloads.
+  This is a session-only control, not a saved preference.
 - **Videos:** names show only for a moment (when someone arrives, renames or
   the videos swap); connection messages show while connecting and then go.
   Your friend fills the screen and everyone else floats over it. Tap a small
@@ -214,6 +220,10 @@ itself to HTTPS.
   video dragging and primary selection, effect deselection and copying,
   effects disabled during games, live opponent burgers, and bowling's
   1.5-second pause after pins settle (needs the local relay dependencies)
+- `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
+  count and deferred joins/removals, simulated cameras, effect copying and
+  offers, all 21 games with rookie controls, real turns, live Burger Stack
+  state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
 - `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for

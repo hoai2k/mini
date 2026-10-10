@@ -17,6 +17,7 @@ import { assetUrl, iconUrl, setIconTheme } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
+import { createDebugBots, MAX_DEBUG_BOTS } from './debug-bots.js';
 
 const $ = sel => document.querySelector(sel);
 
@@ -24,7 +25,6 @@ const settings = {
   name: '',
   color: COLORS[Math.floor(Math.random() * COLORS.length)],
   volume: 0.6,
-  reduceMotion: false,
   autoLight: true,
   theme: 'kid',
   ...load('settings', {}),
@@ -64,7 +64,7 @@ function applyTheme(t) {
   refreshIcons();
 }
 setVolume(settings.volume);
-document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
+delete settings.reduceMotion;
 
 // A fresh ID per page load: a reload is a new person to the others, which
 // keeps their calls simple.
@@ -72,6 +72,7 @@ const me = { id: randomId(), name: settings.name, color: settings.color };
 
 let studio = null, net = null, rtc = null, games = null, flyer = null, votes = null;
 let fxVotes = null, gameVotes = null;
+let debugBots = null, debugBotCount = 0;
 let effects = [];
 let started = false;
 const tiles = new Map(); // clientId -> tile record
@@ -231,7 +232,7 @@ function backgroundBubbles() {
     last = now;
     c.width = innerWidth;
     c.height = innerHeight;
-    const reduce = settings.reduceMotion || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     for (const b of bubbles) {
       if (!reduce) b.y -= b.s * dt;
       if (b.y < -0.1) { b.y = 1.1; b.x = Math.random(); }
@@ -322,6 +323,9 @@ async function start() {
   // The camera and microphone start alongside joining, so a device that is
   // slow or busy never holds up the chat.
   startDevices();
+  debugBots = createDebugBots({ ownerId: me.id, rooms: MiniRooms,
+    mediaOf: id => tiles.get(id)?.media ?? null, onChange: () => onPeers(net.peers), toast });
+  debugBots.setCount(debugBotCount);
   net.on('peers', onPeers);
   net.on('status', updateStatus);
 
@@ -380,6 +384,7 @@ async function start() {
   initGames();
   initControls();
   addEventListener('beforeunload', () => {
+    debugBots?.stop();
     rtc?.closeAll();
     net?.leave();
   });
@@ -561,7 +566,7 @@ function updateTileLabel(rec, p) {
 }
 
 function onPeers(peers) {
-  rtc.sync([...peers.keys()]);
+  rtc.sync([...peers].filter(([, p]) => p.debugOwner !== me.id).map(([id]) => id));
   studio.setPeerCount(peers.size);
   queueMicrotask(updateGrabButton);
   for (const [id, p] of peers) {
@@ -589,7 +594,12 @@ function onPeers(peers) {
       sfx('join');
     }
     updateTileLabel(rec, p);
-    if (rec.phase === null) onCallInfo(id, rtc.info(id));
+    if (p.debugOwner === me.id) {
+      const stream = debugBots.streamOf(id);
+      if (stream && rec.media.srcObject !== stream) { rec.media.srcObject = stream; rec.media.muted = true; rec.media.play().catch(() => {}); }
+      rec.phase = 'connected';
+      rec.overlay.hidden = true;
+    } else if (rec.phase === null) onCallInfo(id, rtc.info(id));
   }
   for (const [id, rec] of tiles) {
     if (id === me.id || peers.has(id)) continue;
@@ -826,11 +836,16 @@ function renderConnection() {
     body.append(p);
   }
   for (const rec of others) {
-    const i = rtc.info(rec.id);
     const h = document.createElement('h3');
     h.textContent = rec.name || 'Someone';
     const t = document.createElement('table');
     t.className = 'keys conn';
+    if (debugBots?.isLocal(rec.id)) {
+      t.append(row('Video', 'Simulated camera'), row('Game skill', 'Rookie'));
+      body.append(h, t);
+      continue;
+    }
+    const i = rtc.info(rec.id);
     const phaseText = { connecting: 'Connecting…', retrying: 'Still connecting (retrying)', failed: "Can't connect", connected: 'Connected', reconnecting: 'Reconnecting…', frozen: 'Connected, video paused' }[i.phase] || i.phase;
     t.append(row('Video call', phaseText));
     if (i.route) t.append(row('Route', i.route === 'relay' ? 'Through the relay server' : 'Direct'));
@@ -865,7 +880,7 @@ function connectionReport() {
   const lines = [`Games Chat connection report ${new Date().toISOString()}`, `relay: ${net?.status}`, `turn: ${rtc?.turn}`, `video loop: ${perfText()}`, `effect: ${studio?.effect?.id || 'none'}`, `ua: ${navigator.userAgent}`];
   for (const rec of tiles.values()) {
     if (rec.id === me.id) continue;
-    lines.push(`${rec.name}: ${JSON.stringify(rtc.info(rec.id))}`);
+    lines.push(`${rec.name}: ${debugBots?.isLocal(rec.id) ? 'debug bot, simulated camera, rookie' : JSON.stringify(rtc.info(rec.id))}`);
   }
   return lines.join('\n');
 }
@@ -1064,6 +1079,7 @@ function initControls() {
   $('#fx-share').addEventListener('click', shareEffect);
   initSheets();
   $('#btn-leave').addEventListener('click', () => {
+    debugBots?.stop();
     rtc.closeAll();
     net.leave();
     location.reload();
@@ -1718,7 +1734,17 @@ function initSettings() {
   });
   const name = $('#set-name');
   const vol = $('#set-volume');
-  const motion = $('#set-motion');
+  const botCount = $('#debug-bot-count');
+  const minus = $('#debug-bot-minus'), plus = $('#debug-bot-plus');
+  let draftBotCount = debugBotCount;
+  const renderBotCount = () => {
+    botCount.value = String(draftBotCount);
+    minus.disabled = draftBotCount === 0;
+    plus.disabled = draftBotCount === MAX_DEBUG_BOTS;
+  };
+  minus.addEventListener('click', () => { draftBotCount = Math.max(0, draftBotCount - 1); renderBotCount(); });
+  plus.addEventListener('click', () => { draftBotCount = Math.min(MAX_DEBUG_BOTS, draftBotCount + 1); renderBotCount(); });
+  renderBotCount();
   const themeSel = $('#set-theme');
   themeSel.addEventListener('change', () => {
     settings.theme = themeSel.value;
@@ -1733,6 +1759,8 @@ function initSettings() {
     saveSettings();
   });
   $('#settings').addEventListener('close', () => {
+    debugBotCount = draftBotCount;
+    debugBots?.setCount(debugBotCount);
     const v = name.value.trim().slice(0, 20);
     if (v && v !== settings.name) {
       settings.name = v;
@@ -1769,7 +1797,8 @@ function initSettings() {
     nameShow.hidden = false;
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
-    motion.checked = !!settings.reduceMotion;
+    draftBotCount = debugBots?.count ?? debugBotCount;
+    renderBotCount();
     themeSel.value = settings.theme || 'kid';
     light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
@@ -1787,10 +1816,6 @@ function initSettings() {
     setVolume(settings.volume);
     unlockAudio();
     sfx('pop');
-  });
-  motion.addEventListener('change', () => {
-    settings.reduceMotion = motion.checked;
-    document.body.classList.toggle('reduce-motion', motion.checked);
   });
 }
 
@@ -1847,6 +1872,7 @@ window.__chat = {
   get studio() { return studio; },
   get net() { return net; },
   get rtc() { return rtc; },
+  get debugBots() { return debugBots; },
   get games() { return games; },
   get votes() { return votes; },
   get tiles() { return tiles; },

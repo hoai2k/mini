@@ -19,7 +19,7 @@ import { gameStore, randomId } from './store.js';
 import { sfx } from './audio.js';
 import { img } from './assets.js';
 
-export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose, insets = () => ({ top: 0, bottom: 0 }) }) {
+export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose, storeFor = gameStore, insets = () => ({ top: 0, bottom: 0 }) }) {
   let current = null; // { game, sid, instance, api, el, lastShared }
   const games = new Map();
   let lastSig = '';
@@ -114,7 +114,7 @@ export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose, i
         setGamePresence({ sh: value });
         if (current) current.lastShared = value;
       },
-      store: gameStore(gameId),
+      store: storeFor(gameId),
       face: () => studio.face,
       selfCanvas: studio.canvas,
       mediaOf,
