@@ -72,14 +72,30 @@ test('wetweatherwren: a beginner opens the next page, a good walker more; idling
   assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
 });
 
-test('wetweatherwren: walking into a puddle splashes and stops the Wren', () => {
+test('wetweatherwren: walking into a puddle slips, falls, gets up and shakes before resuming', () => {
   const game = create(env(1));
   game.update(1 / 60, blank());
   const p = game.puddles[0];
   for (let i = 0; i < 60 * 6 && !game.splashes; i++) game.update(1 / 60, blank());
   assert.equal(game.splashes, 1);
   assert.ok(p.hit);
-  assert.equal(game.speed, 0);
+  assert.equal(game.poseName(), 'slip');
+  const start = game.d;
+  const poses = new Set();
+  let sprayed = false;
+  for (let i = 0; i < 90; i++) {
+    game.update(1 / 60, blank({ action: true, actionPressed: true }));
+    if (game.recoverT >= 0) {
+      poses.add(game.poseName());
+      assert.equal(game.open, false, 'recovery finishes before hopping');
+      if (game.poseName() === 'shakeDry') sprayed ||= game.bits.some(b => Math.abs(b.vx) >= 180);
+    }
+  }
+  for (const pose of ['slip', 'fallen', 'getUp', 'shakeDry']) assert.ok(poses.has(pose), pose);
+  assert.ok(sprayed, 'wings spray water');
+  assert.ok(game.d > start, 'slips forwards into water');
+  assert.equal(game.recoverT, -1);
+  assert.ok(game.speed > 0, 'continues on');
   assert.equal(game.score, 0);
 });
 

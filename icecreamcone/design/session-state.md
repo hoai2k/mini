@@ -20,6 +20,13 @@ agent. Newest first.
   sleeping lamps easier to spot, or forgive a fourth lamp longer. No answer
   yet.
 
+## Latest Puddle Hop update
+
+- Wren's path is 20 screen units lower, through the puddle middle.
+- IC-M10i delivered: slip, fallen, getting up and wing-shake sheet.
+- Recovery lasts 1.35 s: forward slip, fall, get up, wings spray water,
+  then walking resumes. Pose scales fitted to the same eye size as the walk.
+
 ## Latest controls and hazards update
 
 - Drip Drop Dash: water keeps momentum with weak steering instead of disabling

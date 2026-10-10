@@ -452,7 +452,7 @@ export const ASSETS = {
   },
   "sprites.wrenRecovery": {
     "file": "assets/sprites/wren-recovery.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",

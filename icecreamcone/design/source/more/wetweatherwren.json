@@ -96,6 +96,6 @@
     "used": "Puddle Hop: a four-pose recovery sequence after landing or walking into water: slip, fallen into puddle, getting back up, wings spread shaking water off; then resume walking.",
     "standin": "Existing drenched sprite tilted for the fall and bobbed for the shake.",
     "prompt": "{STYLE} {VARIANT} Match the delivered Wetweather Wren portrait and walk cycle: a brown wren whose body IS a furled charcoal umbrella, brass strap button, long pale ochre beak, large round cream-yellow eye, brown feathered wings, wooden curved crook handle as tail, long ochre scaly legs. Four clearly distinct animation poses in a 2 x 2 grid, left to right top then bottom, all facing left: 0 slipping, front foot shoots forward, rear leg buckles, bird tips back; 1 fallen, umbrella body lies low horizontally with bent legs splayed forward, head lifted surprised; 2 getting up, crouched on both feet with wings bracing; 3 standing upright with both feathered wings extended and shaking vigorously, feathers ruffled. Eye remains round and visible in all four poses. Keep the same head and eye size in every cell. Cells 1024 square, character fully contained with margin, grounded contact line y 940, body centre x 512. No puddle, droplets, rain, ground or shadow: game supplies water effects. Transparent background. {ALPHA}",
-    "status": "requested"
+    "status": "delivered"
   }
 ]

@@ -5,7 +5,7 @@
 // goes on). Press the action to pop the umbrella open: the gust under it
 // lifts the Wren into a hop, and while the action is held it floats down
 // slowly under its canopy. Let go and it furls and drops. Hop every puddle
-// (one point each): land in one and it splashes and stops for a moment.
+// (one point each): land in one and it slips, falls, gets up and shakes its wings dry.
 // Little birds wait in the rain: float over one with the umbrella open to
 // keep it dry (a point). From a quarter of the way in, shop awnings hang over
 // the pavement: an open umbrella catches on them, so walk beneath with it
@@ -20,12 +20,15 @@ Object.assign(SHEETS, {
   'sprites.wrenWalkCycle': [3, 2], // furled walk: contact, down, passing, for each leg
   'sprites.wrenHop': [2, 2], // crouch, spring (bursting open), landing, furled and dropping
   'sprites.wrenFly': [2, 1], // in the air: small open umbrella, wide umbrella (floating down)
+  'sprites.wrenRecovery': [2, 2], // slipping, fallen, getting up, shaking dry
   'sprites.wrenSplash': [1, 1], // furled, standing in a puddle, drenched and dripping
   'sprites.rainStreet': [2, 2], // small puddle, long puddle, pink striped awning, green striped awning
 });
 
 const DURATION = 45;
 const GROUND = 760; // where the Wren's feet walk
+const WREN_GROUND = GROUND + 20; // feet through the puddle's middle, not its far rim
+const RECOVERY = 1.35;
 const WREN_X = 420; // the Wren's place on the screen; the street moves
 const SIZE = 230;
 const HOP = 760; // the gust under a freshly opened umbrella
@@ -44,6 +47,7 @@ const FALL_OPEN = 170; // floating down under the canopy
 // bird at one size. (tests check it: test/wetweatherwren.test.mjs)
 const PXK = (420 / 1024) * (SIZE / 400); // screen px per portrait px
 export const WREN_POSES = {
+  // Recovery cells also match the cream-eye diameter, keeping the head one size.
   // eye diameters on the cells: 43.5 44.2 42.7 44.1 45.2 43.5, so one scale for the cycle
   walk0: ['sprites.wrenWalkCycle', 0, 1.015, 539, 958, 1024, 188, 322],
   walk1: ['sprites.wrenWalkCycle', 1, 1.015, 552, 905, 1024, 213, 329],
@@ -59,6 +63,10 @@ export const WREN_POSES = {
   glide: ['sprites.wrenFly', 1, 1.41, 778, 1529, 1536, 719, 517],
   openWalk: ['sprites.wrenPoses', 1, 1.11, 472, 1008, 1024, 423, 81],
   insideOut: ['sprites.wrenPoses', 2, 1.3, 462, 959, 1024, 358, 85],
+  slip: ['sprites.wrenRecovery', 0, 1.315, 512, 983, 1024, 326, 320],
+  fallen: ['sprites.wrenRecovery', 1, 1.28, 512, 1008, 1024, 221, 606],
+  getUp: ['sprites.wrenRecovery', 2, 1.257, 512, 939, 1024, 264, 325],
+  shakeDry: ['sprites.wrenRecovery', 3, 1.223, 512, 940, 1024, 245, 190],
   splash: ['sprites.wrenSplash', 0, 1.05, 530, 988, 1024, 244, 321],
 };
 export const WREN_EYE = 43.2; // on the portrait
@@ -88,6 +96,8 @@ export default function create(env) {
     noOpen: 0, // a snagged umbrella can't open for a moment
     stun: 0,
     wet: 0,
+    recoverT: -1, // elapsed recovery time; -1 means walking normally
+    shakeDrops: 0,
     tilt: 0,
     snagT: 0,
     airT: 0, // seconds since leaving the ground
@@ -161,9 +171,9 @@ export default function create(env) {
     p.hit = true;
     g.streak = 0;
     g.splashes++;
-    g.stun = 0.75;
-    g.speed = 0;
-    g.wet = 2;
+    g.recoverT = 0;
+    g.shakeDrops = 0;
+    g.wet = 2.3;
     g.open = false;
     sfx('splash');
     env.vibrate?.(80);
@@ -201,7 +211,22 @@ export default function create(env) {
     while (g.nextX < g.d + W + 600) lay();
 
     // The street moves on, unless the Wren has stopped.
-    if (g.stun > 0) {
+    if (g.recoverT >= 0) {
+      g.recoverT += dt;
+      // A short slide carries the bird into the water before it falls.
+      g.speed = baseSpeed() * Math.max(0, 1 - g.recoverT / 0.18);
+      if (g.recoverT >= 0.72 && g.recoverT < RECOVERY) {
+        g.shakeDrops += dt;
+        while (g.shakeDrops >= 0.08) {
+          g.shakeDrops -= 0.08;
+          for (const dir of [-1, 1]) {
+            g.bits.push({ kind: 'drop', x: WREN_X + dir * 45, y: WREN_GROUND - 110,
+              vx: dir * (180 + rng() * 240), vy: -100 - rng() * 180, life: 0.35 + rng() * 0.2 });
+          }
+        }
+      }
+      if (g.recoverT >= RECOVERY) g.recoverT = -1;
+    } else if (g.stun > 0) {
       g.stun -= dt;
       g.speed = 0;
     } else g.speed = approach(g.speed, baseSpeed(), 4, dt);
@@ -214,7 +239,7 @@ export default function create(env) {
 
     // The umbrella: press to pop it open (a hop from the ground), hold to
     // keep it open, let go to furl it.
-    if (input.actionPressed && g.noOpen <= 0 && g.stun <= 0) {
+    if (input.actionPressed && g.noOpen <= 0 && g.stun <= 0 && g.recoverT < 0) {
       g.open = true;
       sfx('switch');
       if (g.grounded) {
@@ -224,7 +249,7 @@ export default function create(env) {
         sfx('pour');
       }
     }
-    if (!input.action || g.noOpen > 0) g.open = false;
+    if (!input.action || g.noOpen > 0 || g.recoverT >= 0) g.open = false;
 
     // Gusts, from a little way in: they lift an open umbrella.
     if (g.elapsed > 17) {
@@ -258,7 +283,7 @@ export default function create(env) {
     // Puddles: feet down in one is a splash; past one dry is a point.
     for (const p of g.puddles) {
       if (p.hit || p.counted) continue;
-      if (g.grounded && g.d > p.x0 + FOOT && g.d < p.x1 - FOOT) splash(p);
+      if (g.recoverT < 0 && g.grounded && g.d > p.x0 + FOOT && g.d < p.x1 - FOOT) splash(p);
       else if (g.d > p.x1 - FOOT) {
         p.counted = true;
         g.score++;
@@ -575,6 +600,12 @@ export default function create(env) {
 
   // Which painted pose the Wren shows now.
   g.poseName = () => {
+    if (g.recoverT >= 0) {
+      if (g.recoverT < 0.18) return 'slip';
+      if (g.recoverT < 0.45) return 'fallen';
+      if (g.recoverT < 0.72) return 'getUp';
+      return 'shakeDry';
+    }
     if (g.snagT > 0) return 'insideOut';
     if (g.grounded) {
       if (g.wet > 1.2 && !g.open) return 'splash';
@@ -591,20 +622,20 @@ export default function create(env) {
   // A pose drawn at its measured scale, its feet (or shaft) on the origin,
   // flipped to face the way the Wren walks.
   function drawPose(c, name) {
-    const [key, i, s, ax, bot, cw] = WREN_POSES[name];
+    const [key, i, s, ax, bot, cw] = WREN_POSES[name] || WREN_POSES.splash;
     const q = PXK / s;
     return drawSprite(c, key, i, (ax - cw / 2) * q, (cw - bot) * q, { w: cw * q, whole: true, flip: true });
   }
 
   function drawWren(c, t) {
-    const feetY = GROUND - g.h;
-    const shake = g.snagT > 0 && !env.reduceMotion ? Math.sin(g.snagT * 50) * 4 : 0;
+    const feetY = WREN_GROUND - g.h;
+    const shake = !env.reduceMotion ? g.recoverT >= 0.72 ? Math.sin(g.recoverT * 55) * 3 : g.snagT > 0 ? Math.sin(g.snagT * 50) * 4 : 0 : 0;
     // its shadow on the pavement
     c.save();
     c.globalAlpha = 0.18 * clamp(1 - g.h / 500, 0.3, 1);
     c.fillStyle = INK;
     c.beginPath();
-    c.ellipse(WREN_X, GROUND + 6, (g.open ? (g.poseName() === 'glide' ? GLIDE_R : CANOPY_R) : 70) * (1 - g.h / 1200), 10, 0, 0, Math.PI * 2);
+    c.ellipse(WREN_X, WREN_GROUND + 6, (g.open ? (g.poseName() === 'glide' ? GLIDE_R : CANOPY_R) : 70) * (1 - g.h / 1200), 10, 0, 0, Math.PI * 2);
     c.fill();
     c.restore();
 
