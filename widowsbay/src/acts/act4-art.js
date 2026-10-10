@@ -6,6 +6,7 @@ import {
   floorY, hookTip, hookAngle, shoreTimes, toScreen, extent, platformOf, HANG,
 } from './act4.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
+import { drawMovement, whalePose } from './sailor-motion.js';
 
 const REV = [
   { id: 'reveller-yellow', col: '#e3c13b' },
@@ -448,7 +449,7 @@ function sailor(k, st, t) {
   if (st.phase === 'throat') c.globalAlpha = 1 - easeInOut(st.phaseT / OUTRO.throat) * 0.6;
   if (st.grace > 0 && Math.floor(t * 14) % 2) c.globalAlpha = 0.35;
   if (s.hang) { hanging(k, st); c.globalAlpha = 1; return; }
-  const frame = !s.on ? 'leap' : Math.abs(s.vx) > 30 ? (Math.floor(s.walk / 38) % 2 ? 'walk-a' : 'walk-b') : 'stand';
+  const frame = whalePose(s, st.phase);
   c.save(); c.translate(s.x, s.y);
   if (st.phase === 'down') c.rotate(Math.min(1.4, st.phaseT * 1.2) * -s.face);
   c.scale(s.face, 1);
@@ -480,6 +481,9 @@ function hanging(k, st) {
 
 // The sailor at the origin (feet), facing right, 110 tall.
 function drawSailor(k, frame, dy = 0) {
+  if (drawMovement(k, frame, 0, dy, 110)) return;
+  if (frame === 'apex' || frame === 'fall') frame = 'leap';
+  if (frame === 'land') frame = 'stand';
   const id = 'sailor-' + frame, w = frame === 'leap' ? 79 : 67;
   if (k.asset(id, 0, dy, w, 110)) return;
   const c = k.c;

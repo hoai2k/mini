@@ -457,6 +457,7 @@ const onSpan = (st, f, x) => st.spans[f].some(([a, b]) => x >= a - 2 && x <= b +
 
 function stepHouse(st, dt, input) {
   const p = st.p, H = HOUSE;
+  p.landT = Math.max(0, (p.landT || 0) - dt);
   const mx = input.moveX || (input.left ? -1 : 0) || (input.right ? 1 : 0);
   const wantUp = input.up || (input.moveY || 0) < -0.5;
   const wantDown = input.down || (input.moveY || 0) > 0.5;
@@ -482,7 +483,10 @@ function stepHouse(st, dt, input) {
     const ux = c.b.x - c.a.x, uy = yb - ya, len = Math.hypot(ux, uy);
     const proj = ((mx * ux) + ((input.moveY || 0) + (wantUp ? -1 : 0) + (wantDown ? 1 : 0)) * uy) / len;
     const speed = H.climb[c.kind] * (p.carry ? H.carryClimb : 1);
-    if (Math.abs(proj) > 0.3) p.conn.u += Math.sign(proj) * speed * dt / len;
+    if (Math.abs(proj) > 0.3) {
+      p.conn.u += Math.sign(proj) * speed * dt / len;
+      if (ux) p.face = Math.sign(ux * proj);
+    }
     p.x = lerp(c.a.x, c.b.x, clamp(p.conn.u, 0, 1)); p.y = lerp(ya, yb, clamp(p.conn.u, 0, 1));
     if (p.conn.u >= 1 || p.conn.u <= 0) {
       const end = p.conn.u >= 1 ? 'b' : 'a';
@@ -528,6 +532,7 @@ function stepHouse(st, dt, input) {
           const fy = H.floors[f];
           if (oy <= fy && p.y >= fy && onSpan(st, f, p.x)) {
             p.f = f; p.y = fy; p.vy = 0;
+            p.landT = 0.16;
             const drop = fy - p.airTop;
             st.events.push({ type: drop > 130 ? 'thud' : 'landing', floor: f });
             if (drop > 130) hit(st, { cause: 'fall' });

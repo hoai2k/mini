@@ -886,6 +886,78 @@
         200
       ],
       "anchor": "bottom centre"
+    },
+    "sailor-fall": {
+      "status": "delivered",
+      "file": "sailor-fall.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-stairs-b": {
+      "status": "delivered",
+      "file": "sailor-stairs-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-land": {
+      "status": "delivered",
+      "file": "sailor-land.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-climb-a": {
+      "status": "delivered",
+      "file": "sailor-climb-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-stairs-a": {
+      "status": "delivered",
+      "file": "sailor-stairs-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-throw": {
+      "status": "delivered",
+      "file": "sailor-throw.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-apex": {
+      "status": "delivered",
+      "file": "sailor-apex.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
+    },
+    "sailor-climb-b": {
+      "status": "delivered",
+      "file": "sailor-climb-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre"
     }
   },
   "audio": {

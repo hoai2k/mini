@@ -4,6 +4,7 @@
 // drawn at half the listed size). Draw only from state and t: no randomness.
 import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY } from './act5.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
+import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
 const LEGS = [450, 564]; // the giant's boots on their shelf under the lip
@@ -132,8 +133,13 @@ function artFlip(k, id, x, by, w, h, face = 1) {
   return true;
 }
 
-// The sailor: pose 'stand' | 'walk' | 'leap' | 'climb' | 'carry' | 'throw'.
+// The sailor's movement poses share an anatomical scale and foot anchor.
 function sailor(k, x, by, s, pose, face = 1, step = 0) {
+  if (drawMovement(k, pose, x, by, 180 * s, face)) return;
+  if (pose === 'apex' || pose === 'fall') pose = 'leap';
+  if (pose.startsWith('climb-')) pose = 'climb';
+  if (pose.startsWith('stairs-')) pose = 'walk';
+  if (pose === 'land') pose = 'stand';
   if (pose === 'carry') {
     if (artFlip(k, 'sailor-carry', x, by, 180 * s, 200 * s, face)) return;
     person(k, x, by, 180 * s, SAILOR, { face, arms: 'out', step });
@@ -446,7 +452,7 @@ function climber(k, st, t) {
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
   if (tilt) { c.translate(p.x, y - 50); c.rotate(tilt); c.translate(-p.x, -(y - 50)); }
-  const pose = p.moving ? (cl.kind === 'leap' ? 'leap' : 'climb') : h.kind === 'ledge' || h.kind === 'top' ? 'stand' : 'climb';
+  const pose = cliffPose(st, p, h);
   sailor(k, p.x, y, S, pose, face);
   c.restore();
 }
@@ -818,11 +824,8 @@ function player(k, st, t) {
   const walking = p.f >= 0 && !p.conn && Math.abs(p.vx) > 1;
   const step = walking ? Math.sin(p.x * 0.09) : 0;
   const s = st.phase === 'quay' ? 0.8 : S;
-  if (p.carry || p.liftT > 0) sailor(k, p.x, p.y, s, 'carry', p.face, step);
-  else if (p.conn) sailor(k, p.x, p.y, s, 'climb', p.face);
-  else if (p.f < 0) sailor(k, p.x, p.y, s, 'leap', p.face);
-  else if (st.throwT != null && st.throwT < 0.4) sailor(k, p.x, p.y, s, 'throw', 1);
-  else sailor(k, p.x, p.y, s, walking ? 'walk' : 'stand', p.face, step);
+  const pose = housePose(st, HOUSE.floors);
+  sailor(k, p.x, p.y, s, pose, pose === 'throw' ? 1 : p.face, step);
   c.restore();
 }
 

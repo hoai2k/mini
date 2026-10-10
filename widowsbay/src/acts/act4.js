@@ -302,6 +302,7 @@ function settle(st, dt) {
 
 function climb(st, dt, input) {
   const s = st.s;
+  s.landT = Math.max(0, (s.landT || 0) - dt);
   st.grace = Math.max(0, st.grace - dt);
   const mx = clamp(input.moveX || 0, -1, 1);
   s.noGrab = Math.max(0, (s.noGrab || 0) - dt);
@@ -343,6 +344,7 @@ function climb(st, dt, input) {
         if (s.x < e.x0 - SAILOR.hw * 0.75 || s.x > e.x1 + SAILOR.hw * 0.75) continue;
         if (prevY <= prevTop + 6 && s.y >= e.y) {
           s.y = e.y; s.vy = 0; s.on = p.id; s.onT = 0; s.air = false;
+          s.landT = 0.16;
           const kind = p.home != null ? p.kind : 'ledge';
           st.events.push({ type: kind === 'piano' ? 'pianoPlink' : kind === 'ledge' ? 'boneTap' : 'barrelKnock', kind });
           break;

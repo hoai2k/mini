@@ -74,7 +74,7 @@ frames or scrub, and copy a link to an exact moment (`#act1-ending@12.5`).
 
 ## Art
 
-All the art is delivered and drawn in the game: 174 images listed in
+The delivered art is listed in
 [`design/image-requests.md`](design/image-requests.md), which also records how
 each was checked and fitted. The game loads WebP copies from `assets/` (ids
 match `assets/manifest.json`). Full-size PNG originals, the 14 mood boards and
@@ -216,9 +216,17 @@ one (`pearlsPerLantern`, 10). Edit it and reload; the tests read it too.
 
 ```sh
 python3 widowsbay/design/source/build_act_requests.py --check   # Part C requests in sync
-for t in board act2 act3 act4 act5; do node widowsbay/qa/$t.test.mjs; done   # rules, per act
+for t in board act2 act3 act4 act5 animation sailor-motion; do node widowsbay/qa/$t.test.mjs; done
 widowsbay/publish.sh local/pages/widowsbay  # what Pages deploys
 ```
 
 Adding `?qa` to the URL exposes the shell state as `window.__widowsBay` for
 browser smoke tests.
+
+Acts IV and V use dedicated jump-apex, descending, landing, climbing and
+stair-stepping poses; Act V also has a stone-throw release. They are always
+enabled. Climbing/stepping frames advance with movement and hold when stopped.
+Their anatomical scale and foot anchors match the standing sailor; crouching
+shortens the silhouette, and raised hands extend above it. The later-act audit,
+generated sources and fitting records are in
+[`design/generated/movement-poses/`](design/generated/movement-poses/README.md).

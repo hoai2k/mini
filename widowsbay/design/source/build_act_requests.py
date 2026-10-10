@@ -637,6 +637,24 @@ ACTS = [
          'from the bottom edge; his chest and head above that line, leaning forward; his left leg still dangling '
          'below it. Nothing of the ledge itself is drawn, only the man.'),
     ]),
+    ('Later-act sailor movement', 'Movement poses for Acts IV and V. Match the delivered `sailor-stand` and `sailor-leap` as image references. Fit anatomical size using the same cap-to-chin head height, not the silhouette height: a crouch is shorter, and raised hands extend above the head. All eight use a 360 × 440 canvas with body-axis / lowest-boot anchor at bottom centre. No bag, props, stairs, wall, ledge, ground or shadow.', [
+        ('sailor-apex', 'Sailor at the jump apex', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, facing right, suspended with knees softly tucked, torso upright and arms balancing at chest height; no kit bag.'),
+        ('sailor-fall', 'Sailor descending', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, facing right, falling upright, legs extended down with soft knees, arms spread below shoulder height; no kit bag.'),
+        ('sailor-land', 'Sailor cushioning a landing', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, facing right, absorbing a landing with deeply bent knees and hands low ahead, both soles on the same invisible ground line; no kit bag.'),
+        ('sailor-throw', 'Sailor releasing a stone', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, facing right, front arm extended with opening hand after a stone throw, rear arm back, boots planted; no stone or kit bag.'),
+        ('sailor-climb-a', 'Sailor reaching for a climbing hold', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, right-facing three-quarter profile, one hand reaching above cap, other hand near shoulder, front knee high, rear leg extended down; no kit bag.'),
+        ('sailor-climb-b', 'Sailor pulling up on climbing holds', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, right-facing three-quarter profile, both elbows bent and hands at forehead height as torso pulls up, alternate knee raised; no kit bag.'),
+        ('sailor-stairs-a', 'Sailor reaching up a step', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, right-facing profile, front knee raised and boot forward half a shin above planted rear boot, arms balancing low; no kit bag.'),
+        ('sailor-stairs-b', 'Sailor pushing up a step', 360, 440, 'bottom centre', SPRITE,
+         f'{SAILOR}, right-facing profile, weight on higher front boot, rear boot lifting to catch up, both knees bent, arms in alternate phase; no kit bag.'),
+    ]),
 ]
 
 MOODS = [

@@ -457,7 +457,7 @@ See the [C16–C17 delivery gallery and prompts](generated/ledge-additions/index
 
 ## Part C — Acts II to V and the shared cast
 
-The rest of the game, designed in [`acts.md`](acts.md): 176 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
+The rest of the game, designed in [`acts.md`](acts.md): 184 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
 
 Times such as "video 0:25" refer to `references/video-frames/frame-025s.jpg`; attach those frames as image references when generating. Characters must match the delivered mood boards: the sailor `mood-sailor-1`, the witch `mood-witch-1`, and the band `band-trio` / `video-cover.jpg`. Generate `mood-beloved` first so the beloved stays consistent across her three appearances.
 
@@ -1824,6 +1824,69 @@ The Whale's Road lets the sailor catch the edge of a piece of wreckage he just m
 260 × 300 px, anchor ledge line 25% up from the bottom, centred.
 
 > Full figure of the returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), seen in profile facing right, mid-way through hauling himself up over a ledge: both forearms and his right knee planted on a level, unseen ledge top that runs across the canvas 25% up from the bottom edge; his chest and head above that line, leaning forward; his left leg still dangling below it. Nothing of the ledge itself is drawn, only the man. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### C18. Later-act sailor movement
+
+Movement poses for Acts IV and V. Match the delivered `sailor-stand` and `sailor-leap` as image references. Fit anatomical size using the same cap-to-chin head height, not the silhouette height: a crouch is shorter, and raised hands extend above the head. All eight use a 360 × 440 canvas with body-axis / lowest-boot anchor at bottom centre. No bag, props, stairs, wall, ledge, ground or shadow.
+
+| Id | Size | Anchor |
+| --- | --- | --- |
+| `sailor-apex` | 360 × 440 | bottom centre |
+| `sailor-fall` | 360 × 440 | bottom centre |
+| `sailor-land` | 360 × 440 | bottom centre |
+| `sailor-throw` | 360 × 440 | bottom centre |
+| `sailor-climb-a` | 360 × 440 | bottom centre |
+| `sailor-climb-b` | 360 × 440 | bottom centre |
+| `sailor-stairs-a` | 360 × 440 | bottom centre |
+| `sailor-stairs-b` | 360 × 440 | bottom centre |
+
+#### `sailor-apex` — Sailor at the jump apex
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), facing right, suspended with knees softly tucked, torso upright and arms balancing at chest height; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-fall` — Sailor descending
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), facing right, falling upright, legs extended down with soft knees, arms spread below shoulder height; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-land` — Sailor cushioning a landing
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), facing right, absorbing a landing with deeply bent knees and hands low ahead, both soles on the same invisible ground line; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-throw` — Sailor releasing a stone
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), facing right, front arm extended with opening hand after a stone throw, rear arm back, boots planted; no stone or kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-climb-a` — Sailor reaching for a climbing hold
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), right-facing three-quarter profile, one hand reaching above cap, other hand near shoulder, front knee high, rear leg extended down; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-climb-b` — Sailor pulling up on climbing holds
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), right-facing three-quarter profile, both elbows bent and hands at forehead height as torso pulls up, alternate knee raised; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-stairs-a` — Sailor reaching up a step
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), right-facing profile, front knee raised and boot forward half a shin above planted rear boot, arms balancing low; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-stairs-b` — Sailor pushing up a step
+
+360 × 440 px, anchor bottom centre.
+
+> The returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1), right-facing profile, weight on higher front boot, rear boot lifting to catch up, both knees bent, arms in alternate phase; no kit bag. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- PART C END -->
 
