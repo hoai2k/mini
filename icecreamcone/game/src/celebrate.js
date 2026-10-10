@@ -351,7 +351,6 @@ export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, ski
   // headings, and the pages' numbers at their foot (with more than one
   // spread, which pages of the guide these are)
   const n = c.birds.length;
-  const stuck = c.earned.size + (stuckNew ? 1 : 0);
   const hs = Math.min(pages[0].w, pages[0].h) * 0.068;
   const head = (p, text, k) => {
     if (bg) {
@@ -364,8 +363,13 @@ export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, ski
     }
     label(g, text, p.x + p.w / 2, p.y + p.h * 0.065, { size: hs, color: k ? '#7a6656' : INK, weight: k ? 500 : 700 });
   };
-  head(pages[0], 'My Field Guide', 0);
-  head(pages[1], `${stuck} of ${n} spotted`, 1);
+  pages.forEach((p, k) => {
+    const own = slots.filter((sl) => sl.page === k);
+    if (!own.length) return;
+    const first = own[0].i + 1;
+    const last = own.at(-1).i + 1;
+    head(p, first === 1 ? 'My Field Guide' : `Birds ${first}–${last}`, 0);
+  });
   if (spreadCount(n) > 1) {
     const onPage = (k) => slots.filter((sl) => sl.page === k);
     pages.forEach((p, k) => {

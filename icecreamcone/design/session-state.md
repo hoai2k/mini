@@ -20,6 +20,13 @@ agent. Newest first.
   sleeping lamps easier to spot, or forgive a fourth lamp longer. No answer
   yet.
 
+## Latest stickerbook titles update
+
+- Only the first physical page says “My Field Guide”. Other pages are titled
+  by their own sticker range (Birds 8–14, Birds 15–21, Birds 22–28).
+- The header shows the current spread's bird range and total spotted, so LT/RT
+  page turns change the visible titles while preserving collection progress.
+
 ## Latest Puddle Hop update
 
 - Wren's path is 20 screen units lower, through the puddle middle.

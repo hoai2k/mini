@@ -921,7 +921,7 @@ function fillStickerBook() {
   const L = sbLayout();
   const earned = earnedSet();
   const placed = book.snap.filter((id) => earned.has(BIRD_IDS.indexOf(id))).length;
-  $('#sb-pages').textContent = gather ? `${placed} of ${BIRDS.length} in the picture` : SPREADS > 1 ? `Pages ${L.from + 1} to ${L.to} · ${book.spread + 1} of ${SPREADS}` : '';
+  $('#sb-pages').textContent = gather ? `${placed} of ${BIRDS.length} in the picture` : SPREADS > 1 ? `Birds ${L.from + 1}–${L.to} · ${earned.size} of ${BIRDS.length} spotted` : '';
   $('#stickers').classList.toggle('gather', gather);
   const bg = shownBackground(pictures(), book.bg);
   const b = BIRDS.find((x) => x.id === bg);
