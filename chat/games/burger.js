@@ -6,8 +6,8 @@
 // and bank its height as points, then start the next one, faster. Three
 // ingredients that hit the ground end the game.
 //
-// Everyone plays their own copy. Scores and stack heights go in setState for
-// the little leaderboard; the best score is kept on this device.
+// Everyone plays their own copy. Small live kitchens show friends' burgers,
+// catches and drops alongside mine; the best score is kept on this device.
 
 const MAX_DROPS = 3;
 const FONT = 'ui-rounded, system-ui, sans-serif';
@@ -154,6 +154,11 @@ export default {
     canvas.className = 'g-canvas';
     api.el.append(canvas);
     const ctx = canvas.getContext('2d');
+    const opponents = document.createElement('div');
+    opponents.className = 'burger-opponents';
+    opponents.setAttribute('aria-label', 'Live opponent burgers');
+    api.el.append(opponents);
+    const previews = new Map();
 
     let best = api.store.get('best', 0);
     let w = 0, h = 0, dpr = 1, inset = { top: 0, bottom: 0 };
@@ -191,6 +196,8 @@ export default {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
+      opponents.style.top = `${inset.top + 135}px`;
+      opponents.style.maxHeight = `${Math.max(80, h - inset.top - inset.bottom - 150)}px`;
       if (g) g.x = g.target = clamp(g.x, 0, w);
     }
     const ro = new ResizeObserver(resize);
@@ -279,12 +286,23 @@ export default {
       publish();
     }
 
-    let lastPub = '';
-    function publish() {
-      const sig = `${g.score}|${g.stack.length}|${best}|${g.over}`;
+    let lastPub = '', publishedAt = -1;
+    function publish(force = true) {
+      if (!force && clock - publishedAt < 0.1) return;
+      const round = v => Math.round(v * 100) / 100;
+      const state = {
+        score: g.score, stack: g.stack.length, best, over: g.over, drops: g.drops, burgers: g.burgers,
+        burger: {
+          x: round(g.x / w), sway: round(g.sway),
+          layers: g.stack.slice(-32).map(s => ({ kind: s.kind, ox: round(s.ox / itemW()) })),
+          falling: g.falling.slice(0, 12).map(f => ({ kind: f.kind, junk: f.junk, x: round(f.x / w), y: round(screenY(f.wy) / h) })),
+        },
+      };
+      const sig = JSON.stringify(state);
       if (sig === lastPub) return;
       lastPub = sig;
-      api.setState({ score: g.score, stack: g.stack.length, best, over: g.over });
+      publishedAt = clock;
+      api.setState(state);
     }
 
     function topple() {
@@ -528,6 +546,58 @@ export default {
       ctx.stroke();
     }
 
+    // Separate miniature kitchens preserve the actual ingredient order and
+    // offsets. Movement and falling ingredients are sent at most ten times/s.
+    function renderOpponents() {
+      const friends = api.players().filter(m => !m.me);
+      opponents.hidden = friends.length === 0;
+      const present = new Set(friends.map(m => m.id));
+      for (const [id, rec] of previews) {
+        if (!present.has(id)) { rec.el.remove(); previews.delete(id); }
+      }
+      for (const m of friends) {
+        let rec = previews.get(m.id);
+        if (!rec) {
+          const el = document.createElement('div');
+          el.className = 'burger-opponent';
+          el.dataset.player = m.id;
+          const name = document.createElement('div');
+          const scene = document.createElement('canvas');
+          scene.width = 96; scene.height = 108;
+          const status = document.createElement('div');
+          el.append(name, scene, status);
+          opponents.append(el);
+          rec = { el, name, scene, status, ctx: scene.getContext('2d') };
+          previews.set(m.id, rec);
+        }
+        const state = m.state || {}, snapshot = state.burger || {};
+        rec.el.style.setProperty('--c', m.color || '#9775fa');
+        rec.name.textContent = m.name || 'Friend';
+        rec.scene.setAttribute('aria-label', `${m.name || 'Friend'}'s live burger`);
+        rec.status.textContent = `${Number.isFinite(state.score) ? Math.floor(state.score) : 0} · ${state.over ? 'Out' : `${MAX_DROPS - clamp(Number(state.drops) || 0, 0, MAX_DROPS)} lives`}`;
+        const c = rec.ctx;
+        c.clearRect(0, 0, 96, 108);
+        const layers = Array.isArray(snapshot.layers) ? snapshot.layers.slice(0, 32).filter(s => ART[s?.kind]) : [];
+        const iw = Math.min(28, 80 / Math.max(1, ASPECT * layers.reduce((n, s) => n + THICK[s.kind], THICK.bottom)));
+        const x = 18 + clamp(Number.isFinite(snapshot.x) ? snapshot.x : 0.5, 0, 1) * 60;
+        const sway = clamp(Number(snapshot.sway) || 0, -1, 1);
+        let height = 0;
+        for (const s of [{ kind: 'bottom', ox: 0 }, ...layers]) {
+          const thick = iw * ASPECT * THICK[s.kind];
+          const y = 102 - height - thick / 2;
+          const sx = x + clamp(Number(s.ox) || 0, -0.5, 0.5) * iw + sway * height;
+          drawIngredient(c, s.kind, sx, y, iw);
+          height += thick;
+        }
+        for (const f of Array.isArray(snapshot.falling) ? snapshot.falling.slice(0, 12) : []) {
+          const fx = clamp(Number(f.x) || 0, 0, 1) * 96;
+          const fy = clamp(Number(f.y) || 0, -0.2, 1.2) * 108;
+          if (ART[f.kind]) drawIngredient(c, f.kind, fx, fy, iw);
+          else if (f.kind === 'junk') { c.font = '18px sans-serif'; c.fillText(f.junk === '🥾' ? '🥾' : '🐟', fx, fy); }
+        }
+      }
+    }
+
     function render() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.save();
@@ -632,8 +702,9 @@ export default {
       last = t;
       clock += dt;
       update(dt);
-      publish();
+      publish(false);
       render();
+      renderOpponents();
       if (g.over && overlay.style.display === 'none') {
         sub.textContent = `Score ${g.score} · Best ${best} · ${g.burgers} burger${g.burgers === 1 ? '' : 's'}`;
         overlay.style.display = 'flex';

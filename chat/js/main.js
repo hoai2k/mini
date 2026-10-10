@@ -398,29 +398,70 @@ function makeTile(id, media) {
   const flags = document.createElement('div');
   flags.className = 'flags';
   el.append(media, label, flags);
-  const rec = { id, el, media, label, flags, sig: '', name: '', phase: null };
+  const actions = document.createElement('div');
+  actions.className = 'tile-actions';
+  const primary = document.createElement('button');
+  primary.type = 'button';
+  primary.className = 'primary-view';
+  primary.textContent = 'Main view';
+  primary.addEventListener('click', () => {
+    promoteTile(id);
+  });
+  actions.append(primary);
+  el.append(actions);
+  const rec = { id, el, media, label, flags, actions, primary, sig: '', name: '', phase: null };
   tiles.set(id, rec);
   tileGestures(rec);
   return rec;
 }
 
-// With two people one video fills the screen and the other floats in a
-// corner (normally mine). Tapping the floating one swaps them; dragging it
-// moves it to another corner.
-let swapped = false;
-let pipCorner = 'tr';
+// One primary video fills the screen; every other video floats independently.
+// Positions are fractions of the available area, so they survive resizing.
+let primaryId = null;
+const pipPositions = new Map();
+function promoteTile(id) {
+  const position = pipPositions.get(id);
+  if (position) pipPositions.set(primaryId ?? me.id, { ...position, moved: true });
+  primaryId = id;
+  layout();
+  for (const t of tiles.values()) flashName(t, 2000);
+}
+function pipBounds(rec) {
+  const top = Math.max(12, $('#topbar').getBoundingClientRect().bottom + 8);
+  const controlsTop = $('#call').dataset.ui === '2' ? $('.controls').getBoundingClientRect().top - 12 : innerHeight;
+  const bottom = Math.max(top, Math.min(controlsTop, innerHeight - safeBottom() - 12) - rec.el.offsetHeight);
+  return { left: 12, top, width: Math.max(0, innerWidth - rec.el.offsetWidth - 24), height: Math.max(0, bottom - top) };
+}
+function placePip(rec) {
+  const p = pipPositions.get(rec.id);
+  if (!p) return;
+  const b = pipBounds(rec);
+  rec.el.style.left = `${b.left + p.x * b.width}px`;
+  rec.el.style.top = `${b.top + p.y * b.height}px`;
+}
 function updatePip() {
-  const two = tiles.size === 2;
-  if (!two) swapped = false;
-  const other = [...tiles.keys()].find(id => id !== me.id);
-  const pipId = two ? (swapped ? other : me.id) : null;
+  if (!tiles.has(primaryId)) primaryId = [...tiles.keys()].find(id => id !== me.id) ?? null;
+  for (const id of pipPositions.keys()) if (!tiles.has(id)) pipPositions.delete(id);
+  const floating = [...tiles.values()].filter(rec => rec.id !== (primaryId ?? me.id));
+  const stage = $('#stage');
+  const rows = Math.ceil(floating.length / 2);
+  stage.style.setProperty('--pip-width', `${floating.length > 6 ? 18 : floating.length > 2 ? 23 : 30}vw`);
+  const landscape = matchMedia('(orientation: landscape)').matches;
+  const height = Math.max(80, innerHeight - $('#topbar').getBoundingClientRect().bottom - safeBottom() - 100);
+  stage.style.setProperty('--pip-max-width', `${Math.min(landscape ? 240 : 190, Math.max(44, (height / Math.max(1, rows) - 8) * (landscape ? 4 / 3 : 3 / 4)))}px`);
+  floating.forEach((rec, i) => {
+    if (!pipPositions.get(rec.id)?.moved) {
+      pipPositions.set(rec.id, { x: i % 2 === 0 ? 1 : 0, y: rows === 1 ? 0 : Math.floor(i / 2) / (rows - 1) });
+    }
+  });
   for (const rec of tiles.values()) {
-    const pip = rec.id === pipId;
+    const pip = rec.id !== (primaryId ?? me.id);
     rec.el.classList.toggle('pip', pip);
-    if (pip) rec.el.dataset.corner = pipCorner;
-    else delete rec.el.dataset.corner;
+    rec.primary.hidden = !pip || !!games?.current;
+    rec.primary.setAttribute('aria-label', `Make ${nameOf(rec.id)} the main view`);
+    if (pip && !games?.current) placePip(rec);
+    else { rec.el.style.left = ''; rec.el.style.top = ''; }
   }
-  $('#stage').classList.toggle('swapped', two && swapped);
   updateGrabButton();
 }
 
@@ -450,17 +491,19 @@ function tileGestures(rec) {
     if (!drag) return;
     if (self()) studio.input.held = false;
     if (drag.moved) {
-      // Snap to the corner nearest to where it was dropped.
-      const cx = drag.rect.left + drag.rect.width / 2 + (e.clientX - drag.x);
-      const cy = drag.rect.top + drag.rect.height / 2 + (e.clientY - drag.y);
-      pipCorner = (cy < innerHeight / 2 ? 't' : 'b') + (cx < innerWidth / 2 ? 'l' : 'r');
-      el.dataset.corner = pipCorner;
+      const b = pipBounds(rec);
+      const x = drag.rect.left + (e.clientX - drag.x);
+      const y = drag.rect.top + (e.clientY - drag.y);
+      pipPositions.set(rec.id, {
+        moved: true,
+        x: b.width ? Math.max(0, Math.min(1, (x - b.left) / b.width)) : 0,
+        y: b.height ? Math.max(0, Math.min(1, (y - b.top) / b.height)) : 0,
+      });
+      placePip(rec);
       el.style.transform = '';
       el.classList.remove('dragging');
     } else if (e.type === 'pointerup' && el.classList.contains('pip') && !games?.current && performance.now() - drag.t < 350) {
-      swapped = !swapped;
-      layout();
-      for (const t of tiles.values()) flashName(t, 2000);
+      promoteTile(rec.id);
     }
     drag = null;
   };
@@ -885,6 +928,8 @@ function toggleTray(which, force) {
   const next = open ? which : null;
   const prev = openTab;
   openTab = next;
+  // Leaving an effects category takes its effect off, including closing it.
+  if (studio?.effect && prev !== next && (KINDS.includes(prev) || prev === 'favs')) selectEffect(null);
   for (const sel of new Set(Object.values(trays))) $(sel).hidden = !next || trays[next] !== sel;
   for (const k of TABS) $(`#btn-${k}`).setAttribute('aria-expanded', String(k === next));
   for (const [k, g] of Object.entries(grids)) if (g.on && (next !== k && !(k === 'effects' && KINDS.includes(next)))) setGrid(k, false);
@@ -1112,7 +1157,7 @@ function showKind(kind) {
     b.hidden = !!fx && fx.kind !== kind;
   }
   const fx = studio?.effect;
-  // Showing the other tab doesn't take off what's on: centre "none" quietly.
+  // Centre the active effect, or "none", without selecting during scrolling.
   centerEffect(fx?.kind === kind ? fx.id : '', false, false);
 }
 
@@ -1242,6 +1287,8 @@ function askForMotion() {
 }
 
 function selectEffect(fx) {
+  // Delayed strip callbacks and shared offers must never enable effects in a game.
+  if (fx && games?.current) return;
   studio.setEffect(fx);
   // 360 worlds look around with the phone's motion sensor; iPhones only
   // allow it after a tap, so ask on the next one.
@@ -1314,7 +1361,7 @@ function showEffectOffer(from, fx) {
   setTimeout(() => el.remove(), 15000);
 }
 
-// With a friend's video big, a button to put their effect on me too.
+// A labelled copy action on the primary view and on every friend's small view.
 function updateGrabButton() {
   let btn = $('#grab-fx');
   if (!btn) {
@@ -1322,27 +1369,34 @@ function updateGrabButton() {
     btn.id = 'grab-fx';
     btn.type = 'button';
     btn.className = 'grab-fx';
-    btn.hidden = true;
-    btn.innerHTML = `${ICONS.download}<span class="emoji"></span>`;
-    btn.addEventListener('click', () => {
-      const fx = effects.find(e => e.id === btn.dataset.fx);
-      if (fx) {
-        selectEffect(fx);
-        toast(`You've got ${fx.emoji} ${fx.name} on too`);
-      }
-    });
     $('#call').append(btn);
   }
-  const friend = tiles.size === 2 && !swapped && !games?.current ? [...tiles.keys()].find(id => id !== me.id) : null;
-  const fxId = friend ? net?.peers.get(friend)?.fx : null;
-  const fx = fxId && effects.find(e => e.id === fxId);
-  const show = !!fx && studio?.effect?.id !== fx.id;
-  btn.hidden = !show;
-  if (show) {
-    btn.dataset.fx = fx.id;
-    btn.querySelector('.emoji').textContent = fx.emoji;
-    btn.setAttribute('aria-label', `Put ${nameOf(friend)}'s ${fx.name} on me`);
-    btn.title = `Put ${nameOf(friend)}'s ${fx.name} on me too`;
+  function configure(button, friend) {
+    const fxId = net?.peers.get(friend)?.fx;
+    const fx = effects.find(e => e.id === fxId);
+    const show = !!fx && !games?.current && studio?.effect?.id !== fx.id;
+    button.hidden = !show;
+    if (!show) return;
+    button.dataset.fx = fx.id;
+    button.textContent = `${fx.emoji} Use ${nameOf(friend)}'s effect`;
+    button.setAttribute('aria-label', `Use ${nameOf(friend)}'s ${fx.name} effect`);
+    button.title = `Use ${fx.name} on me too`;
+    button.onclick = () => {
+      if (!games?.current) toggleTray(fx.kind, true);
+      selectEffect(fx);
+      if (!games?.current) toast(`You've got ${fx.emoji} ${fx.name} on too`);
+    };
+  }
+  configure(btn, primaryId === me.id ? null : primaryId);
+  for (const rec of tiles.values()) {
+    if (rec.id === me.id) continue;
+    if (!rec.copyEffect) {
+      rec.copyEffect = document.createElement('button');
+      rec.copyEffect.type = 'button';
+      rec.copyEffect.className = 'copy-effect';
+      rec.actions.append(rec.copyEffect);
+    }
+    configure(rec.copyEffect, rec.el.classList.contains('pip') ? rec.id : null);
   }
 }
 
@@ -1430,6 +1484,7 @@ async function initGames() {
     }),
     toast,
     onOpen: c => {
+      selectEffect(null);
       $('#game-mount').append(c.el);
       $('#game-panel').hidden = false;
       $('#game-panel').classList.toggle('full-bleed', !!c.game.fullBleed);
@@ -1443,7 +1498,7 @@ async function initGames() {
       gameVotes.setItem(`game-${c.game.id}`);
       toggleTray(null);
       updateSessions();
-      updateGrabButton();
+      layout();
     },
     onClose: c => {
       c.el.remove();
@@ -1451,7 +1506,7 @@ async function initGames() {
       $('#call').classList.remove('has-game');
       $('#game-head').hidden = true;
       updateSessions();
-      updateGrabButton();
+      layout();
     },
   });
   games.register(await loadGames());

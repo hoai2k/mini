@@ -5,7 +5,7 @@
 // everyone watches the same pins fall. The bowler then reports the pins that
 // are still up and the owner applies the roll to the shared scoreboard:
 //   shared = { round, order, turn, frame, scores: { id: [rolls] }, pinsUp,
-//              seq, phase: 'aim' | 'roll' | 'over', readyAt, throw, last }
+//              seq, phase: 'aim' | 'roll' | 'settle' | 'over', readyAt, throw, last }
 
 const LANE_HALF = 20.75;        // lane half width (inches)
 const GUTTER_X = 25.5;          // where a ball in the gutter rolls
@@ -17,6 +17,7 @@ const STEP = 1 / 240;
 const MAX_PLAYERS = 6;
 const FULL = 1023;
 const SIM_LIMIT = 10;           // seconds before a sim is cut off
+const SETTLE_MS = 1500;         // hold the fallen pins before advancing the lane
 const SPIN_ACCEL = 85;         // sideways accel (in/s^2) at full hook, late in the lane
 
 // Pin n (1..10) in lane inches. Bit n-1 of a mask is set while it stands.
@@ -132,11 +133,19 @@ function applyRoll(sh, pinsAfter, present, now) {
   const last = { id, n: knocked, strike, spare, seq: sh.seq };
   const turnDone = pAfter.over || pAfter.frame > pBefore.frame;
   const pinsUp = turnDone || pAfter.fresh ? FULL : pinsAfter;
-  const next = { ...sh, scores, last, pinsUp, throw: null, phase: 'aim', readyAt: now + 1600 };
-  if (!turnDone) return next;
-  const nt = nextTurn(sh.order, scores, sh.frame, id, present);
-  if (!nt) return { ...next, phase: 'over', turn: null };
-  return { ...next, turn: nt.turn, frame: nt.frame };
+  let next = { turn: id, frame: sh.frame, pinsUp, phase: 'aim' };
+  if (turnDone) {
+    const nt = nextTurn(sh.order, scores, sh.frame, id, present);
+    next = nt ? { ...next, ...nt } : { ...next, phase: 'over', turn: null };
+  }
+  // Keep the current bowler and fallen rack on screen during the pause.
+  return { ...sh, scores, last, pinsUp: pinsAfter, phase: 'settle', readyAt: now + SETTLE_MS, next };
+}
+
+function advanceRoll(sh, now) {
+  if (sh.phase !== 'settle' || !sh.next || now < sh.readyAt) return sh;
+  const { next, ...rest } = sh;
+  return { ...rest, ...next, throw: null, readyAt: now };
 }
 
 // --- lane physics (pure, deterministic) ---------------------------------------
@@ -246,7 +255,7 @@ function stepSim(s) {
   // Move the pins, slow them down, drop the ones that leave the deck.
   let moving = false;
   for (const p of pins) {
-    if (p.out) continue;
+    if (p.out) { if (p.down) p.ft += STEP; continue; }
     const sp2 = p.vx * p.vx + p.vy * p.vy;
     if (sp2 > 360000) { const f = 600 / Math.sqrt(sp2); p.vx *= f; p.vy *= f; }
     p.x += p.vx * STEP;
@@ -255,15 +264,22 @@ function stepSim(s) {
     p.vx *= damp;
     p.vy *= damp;
     if (p.down) p.ft += STEP;
-    if (p.y > DECK_END) { p.out = true; p.down = true; p.ft = 0.5; continue; }
+    if (p.y > DECK_END) {
+      if (!p.down) { topple(p, 0, 1); s.falls++; }
+      p.y = DECK_END;
+      p.out = true;
+      continue;
+    }
     if (p.x > LANE_HALF + 1 || p.x < -LANE_HALF - 1) {
       if (!p.down) { topple(p, p.x > 0 ? 1 : -1, 0); s.falls++; }
+      p.x = clamp(p.x, -LANE_HALF - 1, LANE_HALF + 1);
       p.out = true;
       continue;
     }
     if (p.vx * p.vx + p.vy * p.vy > 4) moving = true;
   }
-  if (s.t > SIM_LIMIT || (b.gone && !moving && s.t > 0.5)) s.done = true;
+  const fallen = pins.every(p => !p.down || p.ft >= 0.35);
+  if (fallen && (s.t > SIM_LIMIT || (b.gone && !moving && s.t > 0.5))) s.done = true;
 }
 
 function standing(s) {
@@ -354,6 +370,7 @@ export default {
     let round = 0;
     let sim = null;               // the throw being played
     let reported = 0;             // seq whose result I've sent
+    let seenThrow = 0;
     let bx = 0;                   // my ball's start position
     let aimTan = 0, spinSel = 0;  // keyboard / pad aim and hook
     let charge = null;
@@ -427,6 +444,7 @@ export default {
         round = s.round;
         sim = null;
         reported = 0;
+        seenThrow = 0;
         banner = null;
         shownLast = -1;
         finalHandled = false;
@@ -434,17 +452,21 @@ export default {
         stripSig = '';
       }
       if (viewTurn !== s.turn) { viewTurn = s.turn; viewId = null; }
+      // Presence also carries the throw: a delayed or missed message still
+      // lets every spectator watch the same fall.
+      if ((s.phase === 'roll' || s.phase === 'settle') && validThrow(s.throw) && s.seq > seenThrow) {
+        startSim(s.throw, s.seq, s.throwPins ?? s.pinsUp, s.turn);
+      }
       // A finished roll is on the board: show it and move on.
       if (s.last && s.last.seq > shownLast) {
-        if (!sim || sim.done || sim.seq <= s.last.seq) {
+        if (!sim || sim.done) {
           shownLast = s.last.seq;
           if (s.last.strike) { banner = { text: 'STRIKE!', color: '#ffd43b', t: 0 }; api.sfx('score'); }
           else if (s.last.spare) { banner = { text: 'SPARE!', color: '#3fe0d0', t: 0 }; api.sfx('score'); }
           else if (s.last.n === 0) { banner = { text: s.last.id === meId ? 'Gutter…' : 'Miss', color: '#cfd4e6', t: 0, small: true }; api.sfx('miss'); }
-          if (sim && sim.done) sim = null;
         }
       }
-      if (sim && sim.done && s.phase === 'aim' && s.last && s.last.seq >= sim.seq) sim = null;
+      if (sim?.done && clock - sim.finishedAt >= SETTLE_MS / 1000 && s.phase !== 'roll' && s.last?.seq >= sim.seq) sim = null;
       if (s.phase === 'over' && !finalHandled) {
         finalHandled = true;
         const mine = scoreFrames(s.scores[meId] || []).total;
@@ -474,6 +496,11 @@ export default {
       if (!api.isOwner() || !validShared(s) || s.phase === 'over') return;
       const now = Date.now();
       const present = new Set(members().map(m => m.id));
+      if (s.phase === 'settle') {
+        const next = advanceRoll(s, now);
+        if (next !== s) api.setShared(next);
+        return;
+      }
       // New friends can join while the first frame is being bowled.
       if (s.frame === 1) {
         const fresh = members().filter(m => !s.order.includes(m.id) && s.order.length < MAX_PLAYERS);
@@ -494,9 +521,7 @@ export default {
           // Asleep at the lane: a gentle straight roll.
           const th = { x: 0, angle: 0, speed: 300, spin: 0 };
           const seq = s.seq + 1;
-          const res = standing(runSim(s.pinsUp, th));
-          api.setShared({ ...s, phase: 'roll', seq, throw: { n: seq, ...th }, throwAt: now });
-          api.setShared(applyRoll(sh(), res, present, now));
+          api.setShared({ ...s, phase: 'roll', seq, throw: { n: seq, ...th }, throwPins: s.pinsUp, throwAt: now });
         }
       } else if (s.phase === 'roll' && now > (s.throwAt || 0) + 12000 && validThrow(s.throw)) {
         // The bowler never reported: play the throw out here.
@@ -510,11 +535,11 @@ export default {
       return validShared(s) && s.phase === 'aim' && s.turn === meId && Date.now() >= s.readyAt && !sim;
     }
 
-    function startSim(th, n) {
-      const s = sh();
-      sim = makeSim(s.pinsUp, th);
+    function startSim(th, n, mask = sh().pinsUp, bowler = sh().turn) {
+      sim = makeSim(mask, th);
       sim.seq = n;
-      sim.bowler = s.turn;
+      sim.bowler = bowler;
+      seenThrow = Math.max(seenThrow, n);
       hitsHeard = 0;
       fallsHeard = 0;
       acc = 0;
@@ -522,9 +547,9 @@ export default {
 
     function ownerAcceptThrow(from, d) {
       const s = sh();
-      if (!api.isOwner() || !validShared(s) || s.phase !== 'aim' || s.turn !== from || !validThrow(d)) return;
+      if (!api.isOwner() || !validShared(s) || s.phase !== 'aim' || Date.now() < s.readyAt || s.turn !== from || !validThrow(d)) return;
       if (!Number.isInteger(d.n) || d.n !== s.seq + 1) return;
-      api.setShared({ ...s, phase: 'roll', seq: d.n, throw: { n: d.n, x: d.x, angle: d.angle, speed: d.speed, spin: d.spin }, throwAt: Date.now() });
+      api.setShared({ ...s, phase: 'roll', seq: d.n, throw: { n: d.n, x: d.x, angle: d.angle, speed: d.speed, spin: d.spin }, throwPins: s.pinsUp, throwAt: Date.now() });
     }
 
     function doThrow(th) {
@@ -543,8 +568,10 @@ export default {
 
     api.on('throw', (d, from) => {
       const s = sh();
-      if (!validShared(s) || s.phase === 'over' || from !== s.turn || from === meId || sim || !validThrow(d) || !Number.isInteger(d.n)) return;
-      startSim(d, d.n);
+      if (!validShared(s) || from !== s.turn || from === meId || !validThrow(d) || !Number.isInteger(d.n)) return;
+      if (s.phase === 'aim' && (Date.now() < s.readyAt || d.n !== s.seq + 1)) return;
+      if (s.phase !== 'aim' && !(s.phase === 'roll' && d.n === s.seq)) return;
+      if (d.n > seenThrow) startSim(d, d.n);
       ownerAcceptThrow(from, d);
     });
 
@@ -668,8 +695,10 @@ export default {
     }
 
     function onSimDone() {
+      sim.finishedAt = clock;
       const s = sh();
-      if (!validShared(s) || sim.bowler !== meId || reported >= sim.seq) return;
+      if (!validShared(s) || reported >= sim.seq) return;
+      if (sim.bowler !== meId && !api.isOwner()) return;
       reported = sim.seq;
       const pins = standing(sim);
       if (api.isOwner()) {
@@ -883,11 +912,7 @@ export default {
       // Pins (far to near) and the ball between them by depth.
       const items = [];
       for (const p of currentPins()) {
-        if (p.out && p.down && p.ft > 0.9) continue;
-        let a = 1;
-        if (p.down && p.ft > 1.0) a = Math.max(0, 1 - (p.ft - 1.0) / 0.5);
-        if (p.out) a *= 0.7;
-        items.push({ y: p.y, draw: () => drawPin(p, a) });
+        items.push({ y: p.y, draw: () => drawPin(p, 1) });
       }
       if (sim && !sim.ball.gone) {
         const bl = sim.ball;
@@ -948,6 +973,7 @@ export default {
       if (ok) {
         let msg = '';
         if (s.phase === 'over') msg = 'Game over';
+        else if (s.phase === 'settle' || sim?.done) msg = `${nameOf(sim?.bowler ?? s.turn)} · Pins settling…`;
         else if (!s.order.includes(meId)) msg = `Watching · ${nameOf(s.turn)} bowls (you join the next game)`;
         else {
           const pr = progress(s.scores[s.turn] || []);
@@ -1021,7 +1047,7 @@ export default {
         resize();
       }
       // Game-over panel.
-      if (s.phase === 'over') {
+      if (s.phase === 'over' && !sim) {
         if (!overlay.firstChild || overlay.dataset.sig !== sig) {
           overlay.dataset.sig = sig;
           const panel = el('div', 'pointer-events:auto;background:rgba(36,16,66,0.94);border:1px solid rgba(255,255,255,0.18);border-radius:18px;padding:14px 18px;color:#fff;text-align:center;font-weight:800;box-shadow:0 8px 30px rgba(0,0,0,0.5);min-width:220px;');
@@ -1094,4 +1120,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _bowling = { progress, scoreFrames, applyRoll, nextTurn, makeSim, stepSim, runSim, standing, popcount, PIN_POS, FULL, HEAD };
+export const _bowling = { progress, scoreFrames, applyRoll, advanceRoll, nextTurn, makeSim, stepSim, runSim, standing, popcount, PIN_POS, FULL, HEAD, SETTLE_MS };
