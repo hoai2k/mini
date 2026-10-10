@@ -30,6 +30,20 @@ const popcount = m => { let n = 0; for (let i = 0; i < 10; i++) if (m & (1 << i)
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 
+function swipeSpin(pts, height) {
+  const a = pts[0], z = pts[pts.length - 1];
+  const dx = z.x - a.x, dy = a.y - z.y;
+  const len = Math.hypot(dx, dy) || 1;
+  let bulge = 0;
+  for (const p of pts) {
+    const off = ((p.x - a.x) * dy + (p.y - a.y) * dx) / len;
+    if (Math.abs(off) > Math.abs(bulge)) bulge = off;
+  }
+  // A swipe that bows right of its start-to-end line turns back to the
+  // left as it travels upward. The hook must follow that turn, not the bow.
+  return Math.abs(bulge) < 12 ? 0 : clamp(-bulge / (0.1 * height), -1, 1);
+}
+
 // --- scoring (pure) ----------------------------------------------------------
 
 // Where a player stands, given the pins knocked by each of their rolls so far:
@@ -629,15 +643,9 @@ export default {
       const dt = Math.max(16, z.t - q.t);
       const sp = Math.hypot(z.x - q.x, z.y - q.y) / dt * 1000 / h;   // screens per second
       const speed = clamp(200 + sp * 85, 220, 470);
-      // Direction of the whole swipe; bulge sideways gives hook.
+      // Direction of the whole swipe; its bend gives hook.
       const tan = dx / dy;
-      const len = Math.hypot(dx, dy) || 1;
-      let bulge = 0;
-      for (const p of pts) {
-        const off = ((p.x - a.x) * dy + (p.y - a.y) * dx) / len;   // + = right of the chord
-        if (Math.abs(off) > Math.abs(bulge)) bulge = off;
-      }
-      const spin = Math.abs(bulge) < 12 ? 0 : clamp(bulge / (0.1 * h), -1, 1);
+      const spin = swipeSpin(pts, h);
       doThrow({ x: bx, angle: clamp(tan * 0.3, -0.07, 0.07), speed, spin });
     }
     canvas.addEventListener('pointerdown', onDown);
@@ -1120,4 +1128,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _bowling = { progress, scoreFrames, applyRoll, advanceRoll, nextTurn, makeSim, stepSim, runSim, standing, popcount, PIN_POS, FULL, HEAD, SETTLE_MS };
+export const _bowling = { progress, scoreFrames, applyRoll, advanceRoll, nextTurn, makeSim, stepSim, runSim, standing, popcount, swipeSpin, PIN_POS, FULL, HEAD, SETTLE_MS };
