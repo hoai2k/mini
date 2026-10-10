@@ -230,7 +230,7 @@ bird squawk. Later cups are smaller, walk faster or bob up and down.
 
 ### 3. Shuttercluck: Say Cheese (10 photos)
 
-You are the Shuttercluck's eye. The as-yet-undiscovered birds peek out of
+You are the Shuttercluck's eye. Any of the 28 guide birds or ten pocket birds peek out of
 bushes, the wall, the tree and the gate for a moment: ten of our own (the
 Hourglass Heron, the Spectacle Snipe and the rest, see
 `game/src/subjects.js`) and those of the book's 18 later birds (the Milkbottle
@@ -320,3 +320,16 @@ near-miss that costs points.
 - All the birds together is on trial as the sticker book's first picture
   (snapping stickers into the painting); the plain page and the birds'
   own pictures remain one press away if it does not win out.
+
+### Shuttercluck photographs in the Sticker Book
+Say Cheese draws from all guide and pocket birds, regardless of discovery.
+A weighted bag preserves rarity while exhausting the pool before repeating a
+species. The original ten guide birds now have photo geometry and portraits in
+the same subject pool.
+
+RT / Page Down after the final sticker spread opens Shuttercluck’s photographs;
+on the all-birds picture, RT opens them directly. LT / Page Up returns. Select
+a photograph and press A, or click it, to pin or unpin. The latest round's
+photos are saved on this device, together with pinned photos from older rounds.
+Starting another Shuttercluck round discards only unpinned photos. Captures are
+408×300 WebP images; debug keeps photos in session storage, as with stickers.

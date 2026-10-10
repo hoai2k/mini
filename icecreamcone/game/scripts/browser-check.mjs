@@ -778,6 +778,83 @@ for (const [vw, vh] of only ? [] : [[390, 844], [844, 390]]) {
   await page.close();
 }
 
+// Photographs at the back of the book.
+if (!only || only === 'shuttercluck') {
+  const { page, errors } = await newPage();
+  const take = async (count) => {
+    await page.evaluate(() => window.__pad(0, {}));
+    await wait(page, 200);
+    await page.evaluate(async () => {
+      await window.__coot.startBird(window.__coot.BIRDS.findIndex(b => b.id === 'shuttercluck'));
+      window.__coot.S.phase = 'play';
+    });
+    await wait(page, 300);
+    await page.waitForFunction(() => window.__coot.S.game.birds.some(b => b.state === 'up' && b.e > 0.8), null, { timeout: 15000 });
+    await page.evaluate(() => {
+      const g = window.__coot.S.game;
+      const b = g.birds.find(b => b.state === 'up' && b.e > 0.8);
+      const r = g.subject(b);
+      if (r) { g.fx = r.cx; g.fy = r.cy; }
+    });
+    for (let i = 0; i < count; i++) {
+      await page.evaluate(() => { window.__coot.S.game.cool = 0; });
+      await press(page, 0);
+      await wait(page, 100);
+    }
+  };
+  await take(3);
+  let photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || photos[0].name === 'Just grass' || !photos.every(p => p.src.startsWith('data:image/'))) throw Error('Photos not captured/saved: ' + photos.length);
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await press(page, 7);
+  await page.waitForSelector('#sb-photos:not([hidden])');
+  if (await page.locator('.photo-card').count() !== 3) throw Error('Missing gallery photos');
+  await press(page, 0);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (!photos[0].pinned) throw Error('Controller A did not pin first photo');
+  const key = photos[0].key;
+  await shot(page, 'pinned-photo-page');
+  await page.reload();
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || !photos[0].pinned) throw Error('Photos not persisted after reload');
+  await take(2);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || photos[0].key !== key || !photos[0].pinned) throw Error('Pinned photo lost or older unpinned retained');
+  await take(1);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 2 || photos[0].key !== key) throw Error('Pin did not survive another round');
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await press(page, 7);
+  await page.locator('.photo-card').first().click();
+  if ((await page.evaluate(() => window.__coot.photos))[0].pinned) throw Error('Mouse did not unpin');
+  await take(1);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 1 || photos.some(p => p.key === key)) throw Error('Unpinned old photo retained');
+  await page.evaluate(() => { window.__coot.act('stickers'); window.__coot.act('bg-next'); });
+  await press(page, 7); // second normal spread
+  await press(page, 7); // photo page
+  if (await page.locator('#sb-photos').isHidden()) throw Error('RT from last spread did not open photos');
+  await press(page, 6);
+  if (!(await page.locator('#sb-photos').isHidden())) throw Error('LT did not return to stickers');
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    await page.evaluate(() => window.__coot.act('spread-next'));
+    await wait(page, 100);
+    const geometry = await page.evaluate(() => ({
+      titleBottom: document.querySelector('.sb-head').getBoundingClientRect().bottom,
+      albumTop: document.querySelector('#sb-photos').getBoundingClientRect().top,
+      albumBottom: document.querySelector('#sb-photos').getBoundingClientRect().bottom,
+    }));
+    if (geometry.albumTop <= geometry.titleBottom || geometry.albumBottom > viewport.height) throw Error('Photo page overlaps its header or screen edge');
+    await shot(page, 'photos-' + viewport.width + 'x' + viewport.height);
+    await press(page, 6);
+  }
+  if (errors.length) throw Error(errors.join(' | '));
+  ok('photo capture, controller/mouse pins, reload, repeated rounds and RT/LT');
+  await page.close();
+}
+
 // ---------- 7: every minigame ----------
 const { BIRDS } = await import(pathToFileURL(join(root, 'src/birds.js')).href);
 for (const id of noGames ? [] : BIRDS.map((b) => b.id)) {

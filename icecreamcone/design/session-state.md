@@ -20,6 +20,17 @@ agent. Newest first.
   sleeping lamps easier to spot, or forgive a fourth lamp longer. No answer
   yet.
 
+## Latest Shuttercluck photographs update
+
+- All 28 guide birds and ten pocket birds may appear, discovered or otherwise.
+  Weighted selection exhausts the species pool before repeating.
+- The back of the stickerbook has a photo album: RT after the final spread
+  (or directly from the all-birds picture), LT back. Click or A pins/unpins.
+- Photos persist on the device; new rounds clear unpinned photos and keep pins.
+  Debug uses session storage. Original guide portraits now have photo geometry.
+- Checks cover pool diversity, pin retention, reloads and repeated rounds,
+  real photo capture, and controller/mouse album navigation.
+
 ## Latest stickerbook titles update
 
 - Only the first physical page says “My Field Guide”. Other pages are titled

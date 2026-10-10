@@ -1,6 +1,5 @@
-// The undiscovered birds: the book's 18 (of its 28) that have no field-guide
-// page yet, and ten new ones of our own. Shuttercluck photographs these rather
-// than the birds you play as (image requests IC-R01..R18 and IC-N01..N10). Each is drawn from its painting once delivered and
+// All 28 field-guide birds and ten pocket birds for Shuttercluck.
+// Each is drawn from its delivered painting (IC-R01..R18 and IC-N01..N10), or
 // from a small ink-and-wash stand-in until then, in drawBird's space: 400
 // units tall at size 400, feet at the origin, facing left.
 //
@@ -8,7 +7,9 @@
 // is, for peeking out of the knothole; `tier` 0..2 is how rare it is (rarer
 // ones are worth more and peek for less time).
 
-import { art, blob, poly, wash, ink, hatch, eye, beak, leg, drawOtherBirds, PAL, INK } from './draw.js';
+import { BIRDS } from './birds.js';
+
+import { drawBird, art, blob, poly, wash, ink, hatch, eye, beak, leg, drawOtherBirds, PAL, INK } from './draw.js';
 
 // The paintings share the field-guide portraits' framing: the bird fills
 // about 80% of a square, centred, drawn 420 units wide.
@@ -19,6 +20,17 @@ const FRAME = { cx: 0.5, u: 420 };
 // head is, in drawBird units (feet at the origin). The games and Shuttercluck
 // use these once the painting has loaded, the stand-in's own otherwise.
 const PAINTED = {
+  // Original guide portraits, normalized to the same 420-unit framing.
+  coot: { feet: 0.93, box: { x0: -142, x1: 155, top: -370 }, head: [0, -340] },
+  shuttercluck: { feet: 0.87, box: { x0: -199, x1: 203, top: -304 }, head: [-21, -155] },
+  gullfinch: { feet: 0.96, box: { x0: -153, x1: 146, top: -397 }, head: [-34, -239] },
+  bobolinks: { feet: 0.97, box: { x0: -188, x1: 171, top: -400 }, head: [-46, -269] },
+  peeper: { feet: 0.97, box: { x0: -141, x1: 181, top: -405 }, head: [-46, -273] },
+  piffle: { feet: 0.94, box: { x0: -159, x1: 180, top: -386 }, head: [-25, -176] },
+  crow: { feet: 0.93, box: { x0: -97, x1: 112, top: -386 }, head: [0, -298] },
+  plume: { feet: 0.93, box: { x0: -123, x1: 124, top: -375 }, head: [-13, -252] },
+  cupadee: { feet: 0.93, box: { x0: -144, x1: 182, top: -371 }, head: [-42, -227] },
+  dodo: { feet: 0.87, box: { x0: -208, x1: 203, top: -296 }, head: [-113, -210] },
   broomwhisk: { feet: 0.980, box: { x0: -123, x1: 144, top: -402 }, head: [-42, -368] },
   buttonbeaks: { feet: 0.942, box: { x0: -189, x1: 199, top: -362 }, head: [-72, -307] },
   drippet: { feet: 0.976, box: { x0: -185, x1: 194, top: -395 }, head: [20, -348] },
@@ -53,7 +65,7 @@ const PAINTED = {
 export function subjectShape(id) {
   const sub = SUBJECTS[id];
   const p = PAINTED[id];
-  return p && art((sub.pocket ? 'pocket.' : 'subject.') + id) ? p : sub;
+  return p && art((sub.pocket ? 'pocket.' : sub.guideBase ? 'bird.' : 'subject.') + id) ? p : sub;
 }
 
 // Two thin legs from the body down to the feet.
@@ -643,6 +655,14 @@ export const SUBJECTS = {
   },
 };
 
+// The original ten playable birds use bird.* portraits, not subject.*.
+for (const b of BIRDS) {
+  if (!SUBJECTS[b.id]) SUBJECTS[b.id] = {
+    name: b.name, tier: 0, guideBase: true,
+    box: { x0: -205, x1: 205, top: -390 },
+    head: b.id === 'coot' ? [0, -370] : [-65, -300],
+  };
+}
 export const SUBJECT_IDS = Object.keys(SUBJECTS);
 
 // Draw one of them, from its painting once delivered.
@@ -653,8 +673,9 @@ export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = fal
   g.translate(x, y);
   const s = size / 400;
   g.scale(flip ? -s : s, s * (1 + Math.sin(t * 2) * 0.012));
-  const img = art((sub.pocket ? 'pocket.' : 'subject.') + id);
+  const img = art((sub.pocket ? 'pocket.' : sub.guideBase ? 'bird.' : 'subject.') + id);
   if (img) g.drawImage(img, -FRAME.cx * FRAME.u, -(PAINTED[id]?.feet ?? 0.93) * FRAME.u, FRAME.u, FRAME.u);
+  else if (sub.guideBase) drawBird(g, id, { size: 400, t, pose: { ...pose, standin: true } });
   else sub.draw(g, t, pose);
   g.restore();
 }

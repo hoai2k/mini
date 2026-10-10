@@ -99,3 +99,14 @@ test('a pass is kept: a raised pass mark never closes a page again', async () =>
   assert.equal(q.crow.passed, true);
   assert.equal(store.mergeProgress({ a: { best: 1, plays: 1, passed: true } }, { a: { best: 5, plays: 1 } }).a.passed, true);
 });
+
+test('photographs persist normally and debug keeps them separate', async () => {
+  const fresh = await import('../src/store.js?photos');
+  const photo = { key: 'pin', pinned: true, src: 'data:image/webp;base64,aGVsbG8=' };
+  fresh.savePhotos([photo]);
+  assert.deepEqual(fresh.loadPhotos(), [photo]);
+  fresh.keepForSessionOnly();
+  fresh.savePhotos([]);
+  assert.deepEqual(fresh.loadPhotos(), []);
+  assert.deepEqual(JSON.parse(localStorage.getItem('icecreamcone.photos.v1')), [photo]);
+});

@@ -3,7 +3,7 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers, loadPhotos, savePhotos } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
@@ -12,7 +12,8 @@ import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKI
 import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSize, stickerSpot, regionRect, regionSize, SNAP_TIME, snapGrey } from './celebrate.js';
 import { prepareWhenIdle } from './celebrate.js';
 import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, pagePoint, PLAIN, GATHERING, regionsFromAtlas, toPicture, dropOnPicture, regionAt, snapSticker, placeFree, toSheet, gatherState, clampCam, bookToStage, stageToBook, edgePush } from './stickerbook.js';
-import { SUBJECTS, SUBJECT_IDS } from './subjects.js';
+import { normalizePhotos, nextPhotoRound } from './photo-album.js';
+import { SUBJECT_IDS } from './subjects.js';
 
 const W = 1600;
 const H = 900;
@@ -36,6 +37,9 @@ const SPREADS = spreadCount(BIRDS.length);
 // The sticker book: where the player has put each sticker, its picture and
 // the spread it is open at, kept from visit to visit.
 let book = normalizeBook(loadStickers(), BIRD_IDS, SPREADS);
+
+let photos = normalizePhotos(loadPhotos());
+let photoSerial = 0;
 
 const S = {
   screen: 'loading',
@@ -642,21 +646,17 @@ async function startBird(i) {
   audio.playMusic(GAME_MUSIC[b.id] || 'bouncy');
 }
 
-// The birds Shuttercluck photographs, decided as each round starts: our own
-// pocket birds, and the guide's birds whose pages are still closed. With
-// every page open (?debug, ?all) it is all of them, as before they joined
-// the guide, so there are plenty to find.
-function undiscovered() {
-  if (ALL_OPEN) return SUBJECT_IDS;
-  return SUBJECT_IDS.filter((id) => {
-    if (SUBJECTS[id].pocket) return true;
-    const i = BIRDS.findIndex((b) => b.id === id);
-    return i < 0 || !unlocked(i);
-  });
+function keepPhoto(photo) {
+  photos.push({ ...photo, key: `${Date.now()}-${++photoSerial}`, pinned: false });
+  if (!savePhotos(photos)) toast('Photos are available for this visit, but could not be saved on this device.');
 }
 
 function newGame() {
   const b = BIRDS[S.bird];
+  if (b.id === 'shuttercluck') {
+    photos = nextPhotoRound(photos);
+    savePhotos(photos);
+  }
   S.seed = (Date.now() & 0xffff) + 1;
   S.game = S.factory({
     W,
@@ -665,7 +665,8 @@ function newGame() {
     sfx: audio.sfx,
     vibrate,
     reduceMotion: settings.reduceMotion,
-    subjects: b.id === 'shuttercluck' ? undiscovered() : undefined,
+    subjects: b.id === 'shuttercluck' ? SUBJECT_IDS : undefined,
+    onPhoto: b.id === 'shuttercluck' ? keepPhoto : undefined,
   });
   S.gameId = b.id;
 }
@@ -915,8 +916,65 @@ function closeStickerBook() {
   $('#stickers-btn')?.focus({ preventScroll: true });
 }
 
+function fillPhotoPage() {
+  const page = $('#sb-photos');
+  page.replaceChildren();
+  const intro = document.createElement('p');
+  intro.className = 'photo-intro';
+  intro.textContent = 'Your latest photographs and pinned favourites. Pin a photo to keep it after another round.';
+  page.append(intro);
+  if (!photos.length) {
+    const empty = document.createElement('p');
+    empty.textContent = 'Play Say Cheese with the Shuttercluck to take your first photographs.';
+    page.append(empty);
+  }
+  const grid = document.createElement('div');
+  grid.className = 'photo-grid';
+  for (const photo of photos) {
+    const button = document.createElement('button');
+    button.className = 'photo-card';
+    button.dataset.nav = '';
+    button.dataset.photo = photo.key;
+    button.setAttribute('aria-pressed', String(photo.pinned));
+    const image = document.createElement('img');
+    image.src = photo.src;
+    image.alt = photo.name;
+    const caption = document.createElement('span');
+    caption.textContent = `${photo.name} · ${photo.pts} points`;
+    const pin = document.createElement('strong');
+    pin.textContent = photo.pinned ? 'Pinned · unpin' : 'Pin photo';
+    button.append(image, caption, pin);
+    button.addEventListener('click', () => {
+      photo.pinned = !photo.pinned;
+      if (!savePhotos(photos)) toast('This photo could not be saved on this device.');
+      fillPhotoPage();
+      $('#sb-pages').textContent = `${photos.length} ${photos.length === 1 ? 'photograph' : 'photographs'} · ${photos.filter(p => p.pinned).length} pinned`;
+      [...page.querySelectorAll('[data-photo]')].find(el => el.dataset.photo === photo.key)?.focus({ preventScroll: true });
+      $('#sb-live').textContent = photo.pinned ? 'Photo pinned' : 'Photo unpinned';
+    });
+    grid.append(button);
+  }
+  page.append(grid);
+}
+
 // The words around the book: which pages, which picture, how to use it.
 function fillStickerBook() {
+  const album = !!S.sb?.photos;
+  $('#sb-photos').hidden = !album;
+  $('#stickers').classList.toggle('photos', album);
+  $('#sb-title').textContent = album ? 'Shuttercluck’s photographs' : 'Sticker Book';
+  $('.sb-bg').hidden = album;
+  if (album) {
+    $('#sb-pages').textContent = `${photos.length} ${photos.length === 1 ? 'photograph' : 'photographs'} · ${photos.filter(p => p.pinned).length} pinned`;
+    $('#sb-prev').hidden = false;
+    $('#sb-prev').disabled = false;
+    $('#sb-next').hidden = false;
+    $('#sb-next').disabled = true;
+    fillPhotoPage();
+    stickerHint();
+    $('#sb-photos [data-nav]')?.focus({ preventScroll: true });
+    return;
+  }
   const gather = isGather();
   const L = sbLayout();
   const earned = earnedSet();
@@ -928,17 +986,22 @@ function fillStickerBook() {
   $('#sb-bg-name').textContent = b ? b.name : gather ? 'All the birds together' : 'Plain page';
   const n = pictures().length;
   for (const el of document.querySelectorAll('.sb-bg .sb-arrow')) el.disabled = n < 2;
-  $('#sb-prev').hidden = $('#sb-next').hidden = gather;
+  $('#sb-prev').hidden = gather;
+  $('#sb-next').hidden = false;
   $('#sb-prev').disabled = book.spread <= 0;
-  $('#sb-next').disabled = book.spread >= SPREADS - 1;
+  $('#sb-next').disabled = false;
   stickerHint();
 }
 
 function stickerHint() {
+  if (S.sb?.photos) {
+    $('#sb-hint').textContent = pad() ? 'Stick: choose · A: pin / unpin · LT: back · B: close' : 'Choose a photo to pin / unpin · Page Up: back';
+    return;
+  }
   const holding = !!S.sb?.held;
   const gather = isGather();
   const text = pad()
-    ? holding ? (gather ? 'A: put it down (on its own bird, it fits in) · B: put it back' : 'A: put it down · B: put it back') : gather ? 'Stick: move the hand · A: pick up · LB RB: picture · B: close' : 'Stick: move the hand · A: pick up · LB RB: picture · LT RT: turn the page · B: close'
+    ? holding ? (gather ? 'A: put it down (on its own bird, it fits in) · B: put it back' : 'A: put it down · B: put it back') : gather ? 'Stick: move the hand · A: pick up · LB RB: picture · RT: photographs · B: close' : 'Stick: move the hand · A: pick up · LB RB: picture · LT RT: turn the page · B: close'
     : input.kind === 'keyboard'
       ? holding ? (gather ? 'Space: put it down (on its own bird, it fits in) · Esc: put it back' : 'Space: put it down · Esc: put it back') : gather ? 'Arrows: move the hand · Space: pick up · Q E: picture · Esc: close' : 'Arrows: move the hand · Space: pick up · Q E: picture · Page Up / Down: turn the page · Esc: close'
       : gather ? (S.sb?.cam?.z > 1 ? 'Drag a sticker onto its own bird · drag the picture to look around' : 'Drag a sticker onto its own bird in the picture, or anywhere') : 'Drag a sticker to put it anywhere on the pages';
@@ -947,6 +1010,7 @@ function stickerHint() {
 }
 
 function turnPicture(d) {
+  if (S.sb?.photos) return;
   const list = pictures();
   if (list.length < 2) {
     toast('Pass a bird’s game to have its picture for the book.');
@@ -965,6 +1029,17 @@ function turnPicture(d) {
 }
 
 function turnSpread(d) {
+  if (S.sb?.photos) {
+    if (d < 0) { S.sb.photos = false; fillStickerBook(); audio.sfx('page'); }
+    return;
+  }
+  if (d > 0 && (isGather() || book.spread === SPREADS - 1)) {
+    if (S.sb?.held) putBack();
+    S.sb.photos = true;
+    fillStickerBook();
+    audio.sfx('page');
+    return;
+  }
   if (isGather()) {
     toast(`All ${BIRDS.length} birds share this one picture.`);
     return;
@@ -1184,6 +1259,11 @@ function stickerInput(dt) {
   if (input.padPressed(BTN.RB) || input.keyPressed('KeyE', 'BracketRight')) turnPicture(1);
   if (input.padPressed(BTN.LT) || input.keyPressed('PageUp')) turnSpread(-1);
   if (input.padPressed(BTN.RT) || input.keyPressed('PageDown')) turnSpread(1);
+  if (sb.photos) {
+    menuInput(dt);
+    $('#sb-photos').scrollTop += input.rightStick()[1] * 420 * dt;
+    return;
+  }
   const hitAt = (x, y) => (gather ? gatherHit(L, x, y) : stickerAt(L, x, y));
   if (gather) {
     gatherCam(L, dt);
@@ -1719,6 +1799,7 @@ function bookStage() {
 
 // The sticker book, on the same stage.
 function renderStickerBook(t) {
+  if (S.sb?.photos) { fitView(); logical(); paper(g, W, H); return; }
   const { lw, lh, px, wide } = bookStage();
   const sb = S.sb;
   const earned = earnedSet();
@@ -1954,7 +2035,7 @@ requestAnimationFrame((n) => {
   frame(n);
 });
 // For automated checks.
-globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; }, get book() { return book; }, stickerLayout: () => sbLayout(), stage: () => ({ ...view }),
+globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; }, get book() { return book; }, get photos() { return photos; }, stickerLayout: () => sbLayout(), stage: () => ({ ...view }),
   // the gathering, for the checks: a bird's spot and its cell on the sheet on the stage, the view
   gather: () => S.sb && isGather() ? { cam: { ...S.sb.cam }, box: sbLayout().box, win: sbLayout().win, size: normalSize(), spots: Object.fromEntries(BIRD_IDS.map((id) => [id, spotOnStage(sbLayout(), id)])), sheet: Object.fromEntries(gatherCells(sbLayout()).map((sl) => [BIRD_IDS[sl.i], { x: sl.x, y: sl.y }])) } : null };
 
