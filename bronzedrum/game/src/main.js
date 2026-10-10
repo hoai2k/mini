@@ -6,6 +6,7 @@ import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
 import { createPractice } from './practice-play.js';
 import { catalogue, levelRhythms, LEVELS } from './training.js';
+import { guidedPhrase } from './phrase-view.js';
 import { Sound } from './audio.js';
 import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
@@ -886,7 +887,7 @@ function startDemo(item, { again = false, u = 0.55 } = {}) {
   const g = game;
   const strokes = parsePattern(item.text);
   const prefix = txt(again ? 'demonstration.listenAgain' : 'demonstration.listen', { rhythm: item.label });
-  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [], beats: beatsOf(item.text) };
+  g.demo = { text: prefix + rhythmTokens(item.text), patternText: item.text, tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [], beats: beatsOf(item.text) };
   // Every stroke is scheduled on the audio clock now, so a slow frame cannot
   // delay one: the pointer follows the same clock (heardTime) and stays on it.
   for (let rep = 0; rep < DEMO_REPS; rep++) {
@@ -946,6 +947,7 @@ function tickGuide() {
 function hint(view) {
   const g = game;
   const t = view.songTime;
+  g.mentioned = [];
   if (t < g.introUntil && g.stage.id !== 'garden') return g.stage.goal.split('. ')[0].replace(/\.?$/, '.');
   // A demonstration under way replaces the hint (see startDemo).
   if (g.demo) return g.demo.text;
@@ -954,7 +956,6 @@ function hint(view) {
   const touch = input.device === 'touch';
   // Every rhythm a hint shows is noted, so the first time one appears the
   // game can demonstrate it (view()).
-  g.mentioned = [];
   const say = (id, tier = 1) => {
     const c = commandById(id);
     const label = `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}`;
@@ -1249,6 +1250,12 @@ function view() {
     }
   }
   v.demo = g.demo;
+  if (g.mode === 'battle' && (g.lessons || g.demo || g.mentioned.length)) {
+    const expected = g.demo
+      ? [{ text: g.demo.patternText, strokes: g.demo.strokes }]
+      : g.mentioned.map((m) => callPattern(m.text));
+    v.phraseView = guidedPhrase(r, phraseView, expected);
+  }
   v.heard = heardTime();
   v.success = !!g.success;
   v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
