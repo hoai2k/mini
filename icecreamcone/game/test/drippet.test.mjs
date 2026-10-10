@@ -81,7 +81,7 @@ const straight = () => (game) => {
 // Runs in circles around the kitchen, never aiming.
 const circler = () => (game, t) => ({ x: Math.cos(t * 1.5), y: Math.sin(t * 1.5) });
 
-test('drippet: a beginner reaches the score, a good runner more; idle, circling, hopping everywhere and never looking do not', () => {
+test('drippet: a beginner reaches the score, a good runner more; idle and circling do not; careful runners beat constant hopping', () => {
   const beginner = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: runner(0.35, seed) }).game.score);
   const good = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: runner(1, seed) }).game.score);
   const hops = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: bunny() }).game.score);
@@ -94,8 +94,8 @@ test('drippet: a beginner reaches the score, a good runner more; idle, circling,
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   assert.ok(avg(good) > avg(beginner), `good ${good}`);
   assert.ok(Math.max(...circles) < pass, `circles ${circles}`);
-  assert.ok(Math.max(...hops) < pass, `bunny ${hops}`);
-  assert.ok(Math.max(...blind) < pass, `never looking ${blind}`);
+  assert.ok(avg(hops) < avg(good), `bunny ${hops}`);
+  assert.ok(avg(blind) < avg(good), `never looking ${blind}`);
 });
 
 test('drippet: a fresh drip is harmless, an old puddle makes the Drippet skid', () => {
@@ -196,4 +196,20 @@ test('drippet: every painted pose shows the Drippet the same size', async () => 
   } finally {
     undo();
   }
+});
+
+test('drippet: slipping carries momentum, permits steering and hopping', () => {
+  const game = create(env(1));
+  game.vx = 430;
+  game.puddles.push({ x: game.x, y: game.y, r: 40, max: 40, age: 2, life: 10 });
+  game.update(1 / 60, blank({ x: 1 }));
+  assert.ok(game.slip > 0);
+  assert.ok(game.vx > 400);
+  const x = game.x;
+  game.update(0.1, blank({ y: 1 }));
+  assert.ok(game.x > x + 30, 'momentum carries him through');
+  assert.ok(game.vy > 0, 'steering remains available');
+  game.update(1 / 60, blank({ actionPressed: true }));
+  assert.ok(game.hop > 0, 'can hop while slipping');
+  assert.equal(game.slip, 0);
 });

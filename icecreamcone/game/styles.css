@@ -234,15 +234,16 @@ body.reduce-motion .cards { scroll-behavior: auto; }
   flex-direction: column;
   gap: 6px;
   max-height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
 }
+.page-text > :not(.page-game) { flex-shrink: 0; }
 .page-number { margin: 0; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 #page-name { font-size: clamp(1.8rem, 3.4vw, 2.7rem); line-height: 1.05; }
 .page-object { margin: 0; font-style: italic; }
 .rhyme { font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.45; margin: 6px 0; }
 .rhyme p { margin: 0; }
 .rhyme p:first-letter { font-size: 1.5em; line-height: 1; }
-.page-game { border-top: 1.5px dashed var(--muted); padding-top: 8px; }
+.page-game { min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-top: 1.5px dashed var(--muted); padding-top: 8px; }
 .page-game h3 { font-size: 1.3rem; }
 .page-game p { margin: 2px 0; }
 .page-game .controls-list, .page-game .tips { margin: 4px 0; }
@@ -464,7 +465,7 @@ body.pad .pad-only { display: inline-grid; }
   .card .card-sub { display: none; }
   .screen-foot { padding-top: 6px; gap: 8px; }
   .text-btn { padding: 5px 14px; }
-  .page-text { max-height: 100%; overflow-y: auto; gap: 2px; padding: 4px 6px 4px 0; }
+  .page-text { max-height: 100%; overflow: hidden; gap: 2px; padding: 4px 6px 4px 0; }
   .page-number { font-size: 0.7rem; }
   #page-name { font-size: 1.5rem; }
   .rhyme { font-size: 0.9rem; line-height: 1.35; margin: 4px 0; }

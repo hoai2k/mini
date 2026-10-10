@@ -543,11 +543,13 @@ function fillPage() {
     p.textContent = line;
     r.append(p);
   }
+  $('.page-game').scrollTop = 0;
   $('#page-game').textContent = b.game;
   $('#page-goal').textContent = b.goal;
   fillList($('#page-controls'), controlLines(b));
   fillList($('#page-tips'), b.tips);
   S.pageKind = input.kind;
+  $('#page-hint').textContent = input.kind === 'controller' ? '◀ ▶ turn the page · LS / RS ↑ ↓ scroll instructions' : '◀ ▶ turn the page';
   $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
 }
@@ -1547,6 +1549,13 @@ function menuInput(dt) {
 
   // Shoulder buttons and arrows turn the bird's pages.
   if (S.screen === 'page' && !S.modals.length) {
+    const leftY = n.stick[1];
+    const rightY = input.rightStick()[1];
+    const scrollY = Math.abs(rightY) > Math.abs(leftY) ? rightY : leftY;
+    if (Math.abs(scrollY) > 0.2) {
+      $('.page-game').scrollTop += scrollY * 420 * dt;
+      dy = 0;
+    }
     if (input.padPressed(BTN.LB)) turnPage(-1);
     if (input.padPressed(BTN.RB)) turnPage(1);
     if (dx) {
@@ -1639,6 +1648,7 @@ function frame(now) {
   else menuInput(dt);
   if (S.screen === 'page' && S.pageKind !== input.kind) {
     S.pageKind = input.kind;
+  $('#page-hint').textContent = input.kind === 'controller' ? '◀ ▶ turn the page · LS / RS ↑ ↓ scroll instructions' : '◀ ▶ turn the page';
     fillList($('#page-controls'), controlLines(BIRDS[S.bird]));
   }
 

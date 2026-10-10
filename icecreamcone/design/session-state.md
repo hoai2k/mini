@@ -20,6 +20,19 @@ agent. Newest first.
   sleeping lamps easier to spot, or forgive a fourth lamp longer. No answer
   yet.
 
+## Latest controls and hazards update
+
+- Drip Drop Dash: water keeps momentum with weak steering instead of disabling
+  controls; hopping and filling still work. Puddles last 6.5–12 s. Existing
+  IC-M16d slipping artwork is suitable and reused.
+- Entry pages: LS or RS up/down scrolls only the instructions; poem and Play
+  stay fixed. Mouse/touch can scroll the same panel.
+- Bin Day: wider lane and vertical reach, backwards catches under the hinge,
+  mirrored head poses. Only a fresh lid opening knocks items away; they fling
+  back against the wind. A closed lid and automatic jam recovery do not knock.
+- Validation: all 32 unit-test files pass; browser regression verifies both
+  sticks scroll a long entry on an 844×390 screen with the poem fixed.
+
 ## Done on `main` (2026-10-09)
 
 | Commit | What |

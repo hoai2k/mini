@@ -206,3 +206,11 @@ Balance after the fixes (seeds 1–16, pass 15): clumsy beginner 12–24
 (average 18.5; all of seeds 1–8 pass), beginner 19–32 (26.0), sharp minder
 (lid up 0.6 s early) 18–43, wandering with the lid up 0, flapping it twice a
 second 0–7, slowly 0–9, standing with it up 0, idle 0.
+
+### More forgiving catches and deliberate knockback
+The lane tolerance is 85 px, and the bird reaches above and below the whole rim,
+including backwards under the hinge. Reach and grip poses mirror when reaching
+behind the bin. Closed-lid collisions no longer knock passing items down.
+Only a fresh player opening knocks items away; automatic reopening after a jam
+does not. Knocked items travel right, back against the incoming wind, at
+650–830 px/s with an upward arc.

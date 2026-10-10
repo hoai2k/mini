@@ -182,6 +182,31 @@ const MENU = 9;
   pageInfo.buttons.join() === 'Play' && pageInfo.controls > 0
     ? ok('the page has only Play, with the controls on it')
     : fail(`page: ${JSON.stringify(pageInfo)}`);
+  // On short screens each stick scrolls instructions, keeping the poem fixed.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await wait(page, 150);
+  await page.evaluate(() => {
+    const tips = document.querySelector('#page-tips');
+    for (let i = 0; i < 12; i++) {
+      const li = document.createElement('li');
+      li.textContent = 'Extra instruction to exercise a long entry page.';
+      tips.append(li);
+    }
+  });
+  const poemTop = await page.locator('#page-rhyme').evaluate(el => el.getBoundingClientRect().top);
+  for (const axes of [[0, 1, 0, 0], [0, 0, 0, 1]]) {
+    await page.evaluate(() => { document.querySelector('.page-game').scrollTop = 0; });
+    await page.evaluate(axes => window.__pad(0, { axes }), axes);
+    await wait(page, 400);
+    const scrolled = await page.locator('.page-game').evaluate(el => el.scrollTop);
+    const poemNow = await page.locator('#page-rhyme').evaluate(el => el.getBoundingClientRect().top);
+    scrolled > 0 && Math.abs(poemNow - poemTop) < 1
+      ? ok('stick scrolls instructions while the poem stays fixed')
+      : fail('instruction scrolling moved the poem or did not scroll');
+    await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
+    await wait(page, 80);
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
   await press(page, A); // Play
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   s = await state(page);
