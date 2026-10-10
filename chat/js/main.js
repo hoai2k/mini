@@ -937,20 +937,25 @@ function updateDeviceButtons() {
 const KINDS = ['effects', 'accessories', 'backgrounds'];
 const trays = { favs: '#tray-favs', effects: '#tray-effects', accessories: '#tray-effects', backgrounds: '#tray-effects', games: '#tray-games', chat: '#chat-box' };
 const TABS = ['favs', ...KINDS, 'games'];
+// Turning a category off suspends its selection; choosing None clears it.
+const rememberedEffects = new Map();
 let openTab = null;
 function toggleTray(which, force) {
   const open = which && (force ?? openTab !== which);
   const next = open ? which : null;
   const prev = openTab;
   openTab = next;
+  if (prev !== next) clearTimeout(centerEffect.t);
   // Leaving an effects category takes its effect off, including closing it.
-  if (studio?.effect && prev !== next && (KINDS.includes(prev) || prev === 'favs')) selectEffect(null);
+  if (studio?.effect && prev !== next && (KINDS.includes(prev) || prev === 'favs')) selectEffect(null, { remember: false });
   for (const sel of new Set(Object.values(trays))) $(sel).hidden = !next || trays[next] !== sel;
   for (const k of TABS) $(`#btn-${k}`).setAttribute('aria-expanded', String(k === next));
   for (const [k, g] of Object.entries(grids)) if (g.on && (next !== k && !(k === 'effects' && KINDS.includes(next)))) setGrid(k, false);
   if (KINDS.includes(next)) {
     if (prev !== next && grids.effects.on) setGrid('effects', false);
     showKind(next);
+    const remembered = rememberedEffects.get(next);
+    if (prev !== next && remembered) selectEffect(remembered);
   } else if (next === 'favs') {
     renderFavorites();
   } else if (next === 'chat') {
@@ -1045,6 +1050,11 @@ function back() {
 }
 
 function initControls() {
+  // A wrapping title can make the row taller. Keep strips above the whole row.
+  new ResizeObserver(() => {
+    const h = $('#controls').offsetHeight;
+    if (h) $('#call').style.setProperty('--controls-height', `${h}px`);
+  }).observe($('#controls'));
   $('#status').addEventListener('click', () => {
     renderConnection();
     openDialog('connection');
@@ -1225,6 +1235,9 @@ async function initEffects() {
     list.append(b);
   }
   let settle = 0;
+  const resumeStripInput = () => { quietUntil = 0; clearTimeout(centerEffect.t); };
+  list.addEventListener('pointerdown', resumeStripInput);
+  list.addEventListener('wheel', resumeStripInput, { passive: true });
   list.addEventListener('scroll', () => {
     if (effectGrid() || performance.now() < quietUntil) return;
     clearTimeout(settle);
@@ -1258,14 +1271,14 @@ function centerEffect(id, smooth, select = true) {
   const b = $(`#effect-list [data-fx="${id}"]`);
   if (!b) return;
   const list = $('#effect-list');
-  if (!select) quietUntil = performance.now() + (smooth ? 600 : 250);
+  quietUntil = select ? 0 : performance.now() + (smooth ? 600 : 250);
   list.scrollTo({ left: b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
   clearTimeout(centerEffect.t);
   if (select) centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
 }
 
 function pickCenteredEffect() {
-  if (effectGrid() || $('#tray-effects').hidden) return;
+  if (performance.now() < quietUntil || effectGrid() || $('#tray-effects').hidden) return;
   const list = $('#effect-list');
   const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
   let best = null, bestD = Infinity;
@@ -1302,9 +1315,16 @@ function askForMotion() {
   addEventListener('click', motionAsk, true);
 }
 
-function selectEffect(fx) {
+function selectEffect(fx, { remember = true } = {}) {
   // Delayed strip callbacks and shared offers must never enable effects in a game.
   if (fx && games?.current) return;
+  if (remember) {
+    if (fx) rememberedEffects.set(fx.kind, fx);
+    else {
+      if (studio.effect) rememberedEffects.delete(studio.effect.kind);
+      if (KINDS.includes(openTab)) rememberedEffects.delete(openTab);
+    }
+  }
   studio.setEffect(fx);
   // 360 worlds look around with the phone's motion sensor; iPhones only
   // allow it after a tap, so ask on the next one.
@@ -1500,7 +1520,7 @@ async function initGames() {
     }),
     toast,
     onOpen: c => {
-      selectEffect(null);
+      selectEffect(null, { remember: false });
       $('#game-mount').append(c.el);
       $('#game-panel').hidden = false;
       $('#game-panel').classList.toggle('full-bleed', !!c.game.fullBleed);

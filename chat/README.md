@@ -64,9 +64,13 @@ so the picture stays clear:
   Picking one lights it up and opens its strip; once something from it is
   on, the button slides to the left (the others fold away; tap it again,
   or pick "no effect", for the whole row) and the space to its right shows
-  what's on: its name,
-  thumbs, ⓘ (how it works) and share (offers it to everyone, who get a Try
-  it button). Deselecting or leaving an effects category removes its effect.
+  what's on: its full name above the thumbs, ⓘ (how it works) and share
+  (offers it to everyone, who get a Try it button). Deselecting or leaving
+  an effects category removes its effect; reopening Effects, Accessories or
+  Backgrounds restores that category's last choice. Choosing "no effect"
+  clears that choice. Games keep effects off until you reopen a category.
+  Bottom gradients and sheet backgrounds reach the screen's bottom edge,
+  including behind the row and the phone's home-bar area.
   Effects, Accessories and Backgrounds are strips of lenses:
   swipe one and whichever stops in the ring is put on. Favorites is a strip
   of everything you gave a thumbs up (effects and games); tap one to use it.
@@ -243,6 +247,10 @@ itself to HTTPS.
   phone-sized page, mouse and touch pulls on each sheet (a short pull peeks
   and snaps back, a long one closes) and a sideways scroll of the effects
   strip putting on the effect in the ring
+- `chat/publish.sh local/pages/chat && node chat/test/effect-controls.mjs`:
+  remembered category toggles, explicit None and game protection; bottom
+  backings, uncut grid labels and full titles above actions in every theme
+  at phone and desktop widths, plus expanded thumb touch targets
 - `chat/publish.sh local/pages/chat && node chat/test/call-check.mjs`: two
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, joining a game from an invite, and a background tab pausing

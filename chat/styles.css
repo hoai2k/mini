@@ -101,6 +101,7 @@ button { cursor: pointer; }
   --bottom-ui: calc(var(--safe-b) + 92px);
   --glass: rgba(14, 9, 30, 0.55);
 }
+#call { --bottom-ui: calc(var(--safe-b) + var(--controls-height, 70px) + 22px); }
 #call.active { display: block; }
 .stage { position: fixed; inset: 0; display: grid; gap: 2px; background: #000; }
 .tile { position: relative; overflow: hidden; background: #0d0a18; min-height: 0; min-width: 0; }
@@ -163,6 +164,12 @@ button { cursor: pointer; }
 .round-btn svg, .icon-btn svg { width: 20px; height: 20px; }
 .round-btn:active { transform: scale(0.94); }
 
+.bottom-shade {
+  position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--bottom-ui) + 32px); z-index: 18;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); pointer-events: none;
+}
+#call:has(.strip-wrap:not([hidden])) .bottom-shade,
+#call[data-ui="0"] .bottom-shade, #call.has-game .bottom-shade { display: none; }
 .controls {
   position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 16px); bottom: calc(var(--safe-b) + 12px); z-index: 20;
   display: flex; gap: 6px; padding: 7px; border-radius: 26px; background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.12);
@@ -188,14 +195,14 @@ button { cursor: pointer; }
 .ctrl.danger { background: #d93a4e; }
 .badge { position: absolute; top: 2px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pink); color: #fff; font-size: 0.72rem; font-weight: 900; display: grid; place-items: center; }
 
-/* Sheets that slide up from the bottom, above the controls */
+/* Bottom sheets keep their content above the row, with backing to the edge. */
 .sheet { transition: transform 0.25s ease; will-change: transform; }
 .sheet.dragging { transition: none; }
 .sheet-grip { width: 46px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.45); margin: 9px auto 6px; flex: none; position: relative; }
 .sheet-grip::after { content: ""; position: absolute; inset: -14px -60px; }
 .panel-sheet {
-  position: fixed; left: 0; right: 0; margin: 0 auto; width: min(760px, calc(100% - 16px)); bottom: var(--bottom-ui); max-height: min(62vh, 640px); z-index: 19;
-  display: flex; flex-direction: column; border-radius: 24px; background: rgba(28, 19, 52, 0.9); border: 1px solid var(--line);
+  position: fixed; left: 0; right: 0; margin: 0 auto; width: min(760px, calc(100% - 16px)); bottom: 0; max-height: calc(min(62vh, 640px) + var(--bottom-ui)); z-index: 19; padding-bottom: var(--bottom-ui);
+  display: flex; flex-direction: column; border-radius: 24px 24px 0 0; background: rgba(28, 19, 52, 0.9); border: 1px solid var(--line);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45); overflow: hidden;
 }
 .sheet-head { display: flex; align-items: baseline; gap: 12px; padding: 0 16px 8px; flex: none; }
@@ -204,7 +211,7 @@ button { cursor: pointer; }
 
 /* Effects strip */
 .strip-wrap {
-  position: fixed; left: 0; right: 0; bottom: var(--bottom-ui); z-index: 19; text-align: center; padding-bottom: 2px;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 19; text-align: center; padding-bottom: var(--bottom-ui);
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.35) 40%, rgba(0, 0, 0, 0.35));
 }
 .strip-wrap .sheet-grip { margin-top: 4px; }
@@ -214,7 +221,7 @@ button { cursor: pointer; }
   touch-action: pan-x; overscroll-behavior-x: contain;
 }
 .strip::-webkit-scrollbar { display: none; }
-.strip-ring { position: absolute; left: 50%; bottom: 6px; width: 88px; height: 88px; margin-left: -44px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none; z-index: 1; }
+.strip-ring { position: absolute; left: 50%; bottom: calc(var(--bottom-ui) + 6px); width: 88px; height: 88px; margin-left: -44px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none; z-index: 1; }
 .fx-item {
   flex: none; width: 72px; height: 72px; border-radius: 50%; scroll-snap-align: center; border: 0; padding: 0; color: #fff;
   background: rgba(20, 12, 40, 0.55); display: grid; place-items: center; font-size: 2.1rem; transition: transform 0.15s ease;
@@ -261,7 +268,7 @@ button { cursor: pointer; }
 .invites { position: fixed; top: var(--top-ui); right: 12px; z-index: 25; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; max-width: calc(100% - 24px); }
 .invite { display: flex; gap: 10px; align-items: center; padding: 8px 8px 8px 14px; border-radius: 999px; background: rgba(28, 19, 52, 0.92); border: 1px solid var(--aqua); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); font-weight: 700; }
 
-.chat-box { height: min(460px, 58vh); width: min(480px, calc(100% - 16px)); }
+.chat-box { height: calc(min(460px, 58vh) + var(--bottom-ui)); width: min(480px, calc(100% - 16px)); }
 .chat-log { display: flex; flex-direction: column; gap: 6px; }
 .msg { max-width: 85%; padding: 6px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); align-self: flex-start; overflow-wrap: anywhere; }
 .msg.mine { align-self: flex-end; background: rgba(255, 95, 162, 0.3); }
@@ -388,6 +395,9 @@ button { cursor: pointer; }
 .vote[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .vote:active { transform: scale(0.94); }
 .votes.compact .vote { padding: 2px 8px; font-size: 0.78rem; }
+/* Keep the thumbs small, with a forgiving touch area above and below them. */
+#fx-votes .vote { position: relative; }
+#fx-votes .vote::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
 .vote-pill { padding: 4px 6px; }
 .vote-pill:empty { display: none; }
 .game-cell { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
@@ -465,11 +475,11 @@ button { cursor: pointer; }
 }
 .controls[data-tab] .ctrl[aria-expanded="true"] { animation: slide-left 0.25s ease; }
 @keyframes slide-left { from { transform: translateX(40px); } to { transform: none; } }
-.ctrl-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 6px; animation: info-in 0.25s ease; }
+.ctrl-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 0 4px 0 6px; animation: info-in 0.25s ease; }
 @keyframes info-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 .ctrl-info[hidden] { display: none; }
-.info-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.info-name { font-weight: 900; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-text { flex: none; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.info-name { font-weight: 900; font-size: 1rem; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
 .info-sub { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .info-actions { display: flex; align-items: center; gap: 4px; flex: none; }
 .info-actions[hidden] { display: none; }
@@ -477,9 +487,6 @@ button { cursor: pointer; }
 .mini-btn svg { width: 20px; height: 20px; }
 .mini-btn:active { transform: scale(0.94); }
 @media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
-
-/* With nothing above the strip any more it sits right on the bottom row. */
-.strip-wrap { padding-bottom: 0; }
 
 /* Favorites: a plain strip (tap to use), a grid when dragged up. */
 .strip-wrap.favs .strip { scroll-snap-type: none; padding: 12px 16px; justify-content: safe center; }
