@@ -231,14 +231,12 @@ export const T = {
       strike: 'Spears and archers attack the front enemy. At Luy Lâu, with the drum awake, the war elephant charges instead.',
     },
     title: 'How to drum',
-    objective: '<strong>Goal.</strong> Drum commands to lead the army to its target: the straw targets in training, the Han fort in battle. If the army’s strength runs out, you lose.',
+    objective: '<strong>Goal.</strong> Drum commands to lead the army to its target.',
     twoDrummers: '<strong>Two sounds.</strong> <span class="g-l"></span> <em>tùng</em> is the drum’s centre (Trưng Trắc). <span class="g-r"></span> <em>cắc</em> is the rim (Trưng Nhị).',
     commands: '<strong>Commands.</strong> Each command is a short rhythm. Play it at any speed, but keep the beats even. Two joined dots are two quick strokes in one beat; a 3 marks three. A wrong stroke starts the rhythm over. Each new rhythm is played for you first.',
-    difficulty: '<strong>Settings.</strong> Difficulty changes the rhythms (Hard adds rests, shown as dashes: leave that stroke silent). Number of beats changes their length. The table shows the rhythms for your settings.',
     strongerRhythms: '<strong>Tiers.</strong> Each command has three tiers. Tiers II and III are harder and hit harder. Playing evenly adds strength too.',
     armyAnswers: '<strong>The army acts</strong> for four beats while the crew drums your rhythm back. Start the next command when the drum glows.',
     shield: '<strong>Shield.</strong> When bolts are in the air or a spearman lunges, press shield (<span class="xb xb-a">A</span>, Space) to block. It also clears the rhythm you were drumming.',
-    drumWakes: '<strong>Wake the drum.</strong> Start each command within two beats of the drum glowing. Chain four and every command is half again as strong.',
     controllerHeading: 'Xbox controller',
     controllerDiagram: {
       deep: 'X · Trắc · tùng',
@@ -256,16 +254,6 @@ export const T = {
             <tr><td>Pause</td><td>Menu</td><td>Esc or P</td><td>—</td><td>Pause button</td></tr>
           `,
     phones: '<strong>Phones and tablets.</strong> Hold the device sideways. Use several fingers for quick pairs and triplets.',
-    practiceHeading: 'Drum Practice',
-    practice: '<strong>Free drumming:</strong> drum any rhythm and the crew loops it back while dancers gather. <strong>Call and answer:</strong> answer your partner’s call, then take turns calling. Clear with <span class="xb xb-a">A</span> (Space) to start again.',
-    training: '<strong>Training:</strong> every rhythm in the game, in nine levels. Your partner plays it; you play it back.',
-    practiceControlsTable: `
-            <tr><th>Practice</th><th>Controller</th><th>Keyboard</th><th>Touch</th></tr>
-            <tr><td>Fewer / more beats</td><td>D-pad ▲ ▼</td><td>− and +</td><td>− and + buttons</td></tr>
-            <tr><td>Second drum: strike · change</td><td><span class="xb xb-y">Y</span> · LB RB</td><td>G or H · [ ]</td><td>Small drum · ‹ ›</td></tr>
-            <tr><td>Clear and stop the loop</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Swipe the drum</td></tr>
-            <tr><td>Training: level · rhythm · hear again</td><td>◀ ▶ · ▲ ▼ · <span class="xb xb-a">A</span></td><td>← → · ↑ ↓ · Space</td><td>Tap · swipe the drum</td></tr>
-          `,
     audioOffset: 'If your strokes sound late, adjust <em>Audio offset</em> in Settings.',
     close: 'Close',
   },

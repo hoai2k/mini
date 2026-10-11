@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 95 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 82 of 95 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 95 of 95 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -704,19 +704,19 @@ Requested 11 October 2026 after the sprite audit. Two crew roles shared one spri
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `crew-bosun` | 220 × 420 | bottom centre | `reveller-shaggy` | requested |
-| `crew-asleep-b` | 260 × 120 | bottom centre | new | requested |
-| `crew-squire-idle-b` | 220 × 420 | bottom centre | new | requested |
-| `crew-squire-idle-c` | 220 × 420 | bottom centre | new | requested |
-| `crew-helmsman-idle-b` | 220 × 420 | bottom centre | new | requested |
-| `crew-helmsman-idle-c` | 220 × 420 | bottom centre | new | requested |
-| `crew-manatarms-idle-b` | 220 × 420 | bottom centre | new | requested |
-| `crew-manatarms-idle-c` | 220 × 420 | bottom centre | new | requested |
-| `crew-bosun-idle-b` | 220 × 420 | bottom centre | new | requested |
-| `crew-bosun-idle-c` | 220 × 420 | bottom centre | new | requested |
-| `water-fairy-stand-idle-b` | 260 × 420 | bottom centre | new | requested |
-| `water-fairy-stand-idle-c` | 260 × 420 | bottom centre | new | requested |
-| `sailor-seated-plain` | 220 × 220 | bottom centre | `sailor-seated` | requested |
+| `crew-bosun` | 220 × 420 | bottom centre | `reveller-shaggy` | [delivered](../assets/crew-bosun.webp) |
+| `crew-asleep-b` | 260 × 120 | bottom centre | new | [delivered](../assets/crew-asleep-b.webp) |
+| `crew-squire-idle-b` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-squire-idle-b.webp) |
+| `crew-squire-idle-c` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-squire-idle-c.webp) |
+| `crew-helmsman-idle-b` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-helmsman-idle-b.webp) |
+| `crew-helmsman-idle-c` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-helmsman-idle-c.webp) |
+| `crew-manatarms-idle-b` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-manatarms-idle-b.webp) |
+| `crew-manatarms-idle-c` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-manatarms-idle-c.webp) |
+| `crew-bosun-idle-b` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-bosun-idle-b.webp) |
+| `crew-bosun-idle-c` | 220 × 420 | bottom centre | new | [delivered](../assets/crew-bosun-idle-c.webp) |
+| `water-fairy-stand-idle-b` | 260 × 420 | bottom centre | new | [delivered](../assets/water-fairy-stand-idle-b.webp) |
+| `water-fairy-stand-idle-c` | 260 × 420 | bottom centre | new | [delivered](../assets/water-fairy-stand-idle-c.webp) |
+| `sailor-seated-plain` | 220 × 220 | bottom centre | `sailor-seated` | [delivered](../assets/sailor-seated-plain.webp) |
 
 #### `crew-bosun` — The bosun
 

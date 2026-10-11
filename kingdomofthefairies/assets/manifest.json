@@ -1933,7 +1933,7 @@
       "from": "design/references/film-planning/originals/concept-tower-climb.png"
     },
     "crew-bosun": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun.webp",
       "size": [
         220,
@@ -1944,7 +1944,7 @@
       "interim": "interim/crew-bosun.webp"
     },
     "crew-asleep-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-asleep-b.webp",
       "size": [
         260,
@@ -1955,7 +1955,7 @@
       "interim": "interim/crew-asleep-b.webp"
     },
     "crew-squire-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-b.webp",
       "size": [
         220,
@@ -1965,7 +1965,7 @@
       "edition": "film"
     },
     "crew-squire-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-c.webp",
       "size": [
         220,
@@ -1975,7 +1975,7 @@
       "edition": "film"
     },
     "crew-helmsman-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-idle-b.webp",
       "size": [
         220,
@@ -1985,7 +1985,7 @@
       "edition": "film"
     },
     "crew-helmsman-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-idle-c.webp",
       "size": [
         220,
@@ -1995,7 +1995,7 @@
       "edition": "film"
     },
     "crew-manatarms-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-idle-b.webp",
       "size": [
         220,
@@ -2005,7 +2005,7 @@
       "edition": "film"
     },
     "crew-manatarms-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-idle-c.webp",
       "size": [
         220,
@@ -2015,7 +2015,7 @@
       "edition": "film"
     },
     "crew-bosun-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun-idle-b.webp",
       "size": [
         220,
@@ -2025,7 +2025,7 @@
       "edition": "film"
     },
     "crew-bosun-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun-idle-c.webp",
       "size": [
         220,
@@ -2035,7 +2035,7 @@
       "edition": "film"
     },
     "water-fairy-stand-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "water-fairy-stand-idle-b.webp",
       "size": [
         260,
@@ -2045,7 +2045,7 @@
       "edition": "film"
     },
     "water-fairy-stand-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "water-fairy-stand-idle-c.webp",
       "size": [
         260,
@@ -2055,7 +2055,7 @@
       "edition": "film"
     },
     "sailor-seated-plain": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-seated-plain.webp",
       "size": [
         220,

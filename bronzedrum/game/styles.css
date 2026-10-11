@@ -50,6 +50,9 @@ body.reduce-motion .rotate-phone .phone { animation: none; transform: rotate(-90
     radial-gradient(circle at 50% 36%, rgba(246, 217, 160, 0.35) 0, rgba(246, 217, 160, 0) 32%),
     repeating-radial-gradient(circle at 50% 36%, rgba(217, 165, 91, 0.0) 0 38px, rgba(217, 165, 91, 0.16) 38px 40px);
 }
+/* The title fades in once, when its words, fonts and logo are ready (revealTitle in src/main.js). */
+html.booting .title-block, html.booting #title .corner-buttons { opacity: 0; }
+.title-block, #title .corner-buttons { transition: opacity 0.4s ease-out; }
 .title-block { position: relative; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 #logo-img { max-width: min(760px, 86vw); max-height: 42vh; }
 .logo-text { margin: 0; font-family: var(--serif); font-weight: 700; line-height: 0.95; display: flex; flex-direction: column; text-shadow: 6px 8px 14px rgba(0, 0, 0, 0.55); }
