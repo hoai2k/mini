@@ -71,7 +71,12 @@ redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
 pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
-for fullscreen, and iPhone Safari gets the swipe-up hint instead. The page
+for fullscreen, and iPhone Safari gets the swipe-up hint instead (tap it to
+dismiss it). If a swipe leaves Safari's bar showing (newer Safari keeps a small
+one in some layouts), the hint gives up for the session and suggests Add to
+Home Screen, which is the only true full screen on iPhone. While playing, the
+page refuses to pan but stays scrollable, since making it unscrollable can bring
+the bars back; dialogs close on a tap of the backdrop, not on a swipe across it. The page
 can't be zoomed: iPhone Safari ignores `user-scalable=no`, so `preventZoom` in
 `chrome.js` blocks pinches (two fingers drifting apart on a chord look like
 one) and double-tap zoom (the keys, navigator and staff cancel their

@@ -71,7 +71,10 @@ const fx = createFx($('#fx'));
 const staff = createStaff($('#staff'), { onTap: (midi) => { cancelAuto(); audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
 const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDirection: padDirection, onStick: padStick, onDisconnect: () => { if (S.mode === 'play' && !dialogs.length) openPause(); } });
 preventZoom();
-const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint') });
+const chrome = createChrome({
+  touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint'),
+  onStuck: (why) => { if (why === 'swiped') toast('Safari keeps its bar here. For full screen: Share → Add to Home Screen'); },
+});
 
 function haptic(ms) {
   if (!settings.vibrate) return;
@@ -506,7 +509,8 @@ function closeDialog() {
 function closeAllDialogs() { while (dialogs.length) closeDialog(); }
 function openPause() { if (S.mode === 'play' && !dialogs.length) openDialog($('#pause')); }
 $$('[data-close]').forEach((b) => b.addEventListener('click', closeDialog));
-$$('.dialog').forEach((d) => d.addEventListener('pointerdown', (e) => { if (e.target === d) closeDialog(); }));
+// A tap on the dimmed backdrop closes a dialog (a click, so a swipe across it doesn't).
+$$('.dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) closeDialog(); }));
 $$('#pause [data-act]').forEach((b) => b.addEventListener('click', () => {
   const a = b.dataset.act;
   if (a === 'resume') closeDialog();
@@ -730,7 +734,7 @@ syncAway();
 let toastT = 0;
 function toast(text) {
   const t = $('#toast'); t.textContent = text; t.hidden = false;
-  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2200);
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, Math.max(2200, text.length * 60));
 }
 function announce(text) {
   const p = $('#prompt'); p.setAttribute('aria-label', text);

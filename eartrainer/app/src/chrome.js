@@ -34,7 +34,7 @@ export function exitFullscreen() {
   try { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {}); } catch { /* ignore */ }
 }
 
-export function createChrome({ touch, isPlaying, hintEl }) {
+export function createChrome({ touch, isPlaying, hintEl, onStuck }) {
   const landscape = () => innerWidth > innerHeight;
 
   // 1. The first tap in landscape asks for fullscreen (where supported).
@@ -54,11 +54,22 @@ export function createChrome({ touch, isPlaying, hintEl }) {
     const vh = window.visualViewport ? visualViewport.height : innerHeight;
     return vh < full - 24;
   };
+  // Once the player has swiped and Safari still keeps a bar (newer Safari keeps
+  // a small one in some layouts), stop asking: Add to Home Screen is the way.
+  let gaveUp = false;
+  try { gaveUp = sessionStorage.getItem('eartrainer.bars') === 'stuck'; } catch { /* private mode */ }
+  const giveUp = (why) => {
+    if (gaveUp) return;
+    gaveUp = true;
+    try { sessionStorage.setItem('eartrainer.bars', 'stuck'); } catch { /* fine */ }
+    hintEl.hidden = true;
+    onStuck?.(why);
+  };
   function update() {
     if (!scrollTrick) return;
     const play = isPlaying();
     document.documentElement.classList.toggle('ios-scroll-play', play);
-    const show = landscape() && barsShowing() && !play;
+    const show = landscape() && barsShowing() && !play && !gaveUp;
     hintEl.hidden = !show;
   }
   if (scrollTrick) {
@@ -66,6 +77,21 @@ export function createChrome({ touch, isPlaying, hintEl }) {
     window.visualViewport?.addEventListener('resize', update);
     setInterval(update, 400);
     setTimeout(update, 0); // after the shell has finished starting up
+    // After a real swipe, give Safari a moment; if the bars are still there, give up.
+    let checkT = 0;
+    addEventListener('scroll', () => {
+      if (gaveUp || scrollY < 40 || !landscape()) return;
+      clearTimeout(checkT);
+      checkT = setTimeout(() => { if (barsShowing()) giveUp('swiped'); else update(); }, 900);
+    }, { passive: true });
+    // Tapping the hint dismisses it.
+    hintEl.addEventListener('click', () => giveUp('dismissed'));
+    // While playing, the page must not scroll (that would bring the bars back),
+    // but it stays scrollable: making it unscrollable can make Safari show its
+    // bars again. So touches are simply not allowed to pan it.
+    document.addEventListener('touchmove', (e) => {
+      if (document.documentElement.classList.contains('ios-scroll-play') && e.cancelable && !e.target.closest?.('.scroll')) e.preventDefault();
+    }, { passive: false });
   }
   return { update, scrollTrick, isIOS, standalone };
 }
@@ -83,14 +109,15 @@ export function preventZoom() {
     if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) e.preventDefault();
   }, opts);
   // A second tap within 350 ms would zoom: cancel the zoom, but keep the tap
-  // working on buttons (fast repeated taps on − or + still count).
+  // working (fast repeated taps on − or + still count).
   let lastEnd = 0;
   document.addEventListener('touchend', (e) => {
     const now = e.timeStamp;
     if (now - lastEnd < 350 && e.cancelable && e.touches.length === 0 && !e.target.closest?.('input, select, textarea, .scroll')) {
       e.preventDefault();
-      const b = e.target.closest?.('button, [role="radio"], label');
-      if (b && !b.disabled) b.click();
+      // Cancelling the zoom also cancels the tap's click: deliver it ourselves.
+      const b = e.target.closest?.('button, [role="radio"], label') || e.target;
+      if (!b.disabled) b.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
     }
     lastEnd = now;
   }, opts);
