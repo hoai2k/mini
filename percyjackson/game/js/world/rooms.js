@@ -28,7 +28,7 @@ function edgeWalls(c, h = 4, gaps = true) {
   for (let x = x0 + 4; x < x1 - 2; x += 7) { k.torch(x, y + 2, z0, [0, 1]); k.torch(x, y + 2, z1, [0, -1]); }
   for (let z = z0 + 4; z < z1 - 2; z += 7) { k.torch(x0, y + 2, z, [1, 0]); k.torch(x1, y + 2, z, [-1, 0]); }
 }
-const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves, B.cracked_brick]);
+const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves, B.cracked_brick, B.slide_glass]);
 function spawnGrid(c, n = 10, margin = 3) {
   const { x0, z0, x1, z1, y } = c;
   for (let i = 0; i < n * 3 && c.spawns.length < n; i++) {
@@ -1922,6 +1922,8 @@ Object.assign(TEMPLATES, {
     for (const [dx, dz] of [[-2, -2], [2, 2]]) goldLamp(c, cx + dx, cz + dz);
     for (let i = 0; i < 3; i++) { const [x, z] = cellIn(c, 2); if (k.w.get(x, y - 1, z) === B.cloud) goldLamp(c, x, z); }
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
+    // monsters wait on the walkways, not out on a cloud islet you cannot reach
+    c.spawns = c.spawns.filter(([x, sy, z]) => k.w.get(Math.floor(x), sy - 1, Math.floor(z)) !== B.cloud);
     c.features.push('pit');
   },
   // The throne room: twelve thrones in a U round the hearth.

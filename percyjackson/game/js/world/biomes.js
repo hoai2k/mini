@@ -81,7 +81,7 @@ export const BIOMES = {
     hemiSky: 0x8aaae0, hemiGround: 0x1a1e14, hemiI: 0.95, sun: 0xbcd0ff, sunI: 1.2,
     grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.008, 0.022], sat: 0.95, contrast: 1.08, vignette: 0.38 },
     floor: B.forest_floor, floor2: B.grass, path: B.dirt, wall: B.rock, wall2: B.mossy_brick, trim: B.rock, pillar: B.pine_log, roof: B.pine_leaves, ground: B.forest_floor, accent: B.lantern, pit: B.dirt,
-    ambience: 'forest', music: 'forest', particles: 'fireflies', wind: 1.2,
+    ambience: 'forest', music: 'woods', particles: 'fireflies', wind: 1.2,
   },
   // Chapter 4: a Greyhound bus on a rainy New Jersey highway, crashed and burning.
   highway: {
@@ -99,7 +99,7 @@ export const BIOMES = {
     hemiSky: 0xb8b8d8, hemiGround: 0x2a2a1e, hemiI: 0.95, sun: 0xffc090, sunI: 1.3,
     grade: { tint: [1.02, 0.99, 0.98], lift: [0.006, 0.004, 0.014], sat: 0.95, contrast: 1.08, vignette: 0.36 },
     floor: B.grass, floor2: B.cobble, path: B.cobble, wall: B.corrugated, wall2: B.stone_brick, trim: B.vine_wall, pillar: B.stone, roof: B.corrugated, ground: B.grass, accent: B.lantern, pit: B.dirt,
-    ambience: 'garden', music: 'gorgon', particles: 'pollen', wind: 0.6,
+    ambience: 'garden', music: 'garden', particles: 'pollen', wind: 0.6,
   },
   // Chapter 6: the Gateway Arch in St. Louis: the steel tram and deck, then the Mississippi.
   arch: {
@@ -117,7 +117,7 @@ export const BIOMES = {
     hemiSky: 0x9aaad8, hemiGround: 0x2a2018, hemiI: 1.0, sun: 0xb8c8ff, sunI: 1.15,
     grade: { tint: [0.96, 1.0, 1.06], lift: [0.0, 0.008, 0.02], sat: 0.98, contrast: 1.1, vignette: 0.38 },
     floor: B.concrete, floor2: B.pool_tile, path: B.concrete, wall: B.rust_metal, wall2: B.concrete, trim: B.slide_glass, pillar: B.rust_metal, roof: B.rust_metal, ground: B.concrete, accent: B.lantern, pit: B.concrete,
-    ambience: 'park', music: 'waterpark', particles: 'moths', wind: 0.9,
+    ambience: 'park', music: 'waterland', particles: 'moths', wind: 0.9,
   },
   // Chapter 8: the Lotus Hotel and Casino: neon, carpet and a party that never ends.
   casino: {
@@ -126,7 +126,7 @@ export const BIOMES = {
     hemiSky: 0xffc0e8, hemiGround: 0x2a0a20, hemiI: 1.1, sun: 0xffe0b0, sunI: 1.1,
     grade: { tint: [1.05, 0.97, 1.03], lift: [0.016, 0.006, 0.02], sat: 1.22, contrast: 1.04, vignette: 0.3 },
     floor: B.casino_carpet, floor2: B.casino_carpet, path: B.carpet_red, wall: B.lotus_panel, wall2: B.gold_plate, trim: B.gold_plate, pillar: B.gold_plate, roof: B.lotus_panel, ground: B.casino_carpet, accent: B.neon_pink, pit: B.lotus_panel,
-    ambience: 'casino', music: 'lotus', particles: 'neon', wind: 1.6, indoor: true, dreamy: true,
+    ambience: 'casino', music: 'casino', particles: 'neon', wind: 1.6, indoor: true, dreamy: true,
   },
   // Chapter 9: the Nevada desert and Crusty's Water Bed Palace.
   desert: {
