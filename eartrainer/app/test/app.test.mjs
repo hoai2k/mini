@@ -191,3 +191,21 @@ test('extracted jazz heads read correctly (the LilyPond and MusicXML readers)', 
   assert.ok(inBook(lib, 'bebop').length >= 40);
   assert.ok(byId(lib, 'bop-confirmation') && byId(lib, 'donna-lee').cat === 'bebop');
 });
+
+test('long holds are shortened, so no melody crawls', () => {
+  const spb = secondsPerBeat(120);
+  const held = perform(parseNotes('C4:8 D4:6 E4 F4:4'), spb);
+  for (let i = 1; i < held.length; i++) assert.ok(held[i].on - held[i - 1].on <= 1.1 + 0.01, 'a held note waits at most 1.1 s');
+  // Slowing down stretches the cap too.
+  const slow = perform(parseNotes('C4:8 D4'), secondsPerBeat(120, 0.5), { maxHold: 1.1 / 0.5 });
+  assert.ok(slow[1].on > 2);
+  // Across the library, the average wait between notes stays brisk.
+  const lib = buildLibrary();
+  const slowest = lib.map((m) => {
+    const plan = perform(m.parsed, secondsPerBeat(m.bpm));
+    return { id: m.id, gap: (plan[plan.length - 1].on - plan[0].on) / (plan.length - 1) };
+  }).sort((a, b) => b.gap - a.gap);
+  assert.ok(slowest[0].gap <= 1.1 + 0.02, `${slowest[0].id} averages ${slowest[0].gap.toFixed(2)} s a note`);
+  // The 12/8 Nocturne (written in eighth notes) plays at an eighth-note pulse.
+  assert.ok(byId(lib, 'chopin-nocturne-op9-2').bpm >= 120);
+});

@@ -4,7 +4,7 @@ import { createKeyboard } from './keyboard.js';
 import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
 import { noteName } from './music.js';
-import { perform, secondsPerBeat } from './perform.js';
+import { perform, secondsPerBeat, MAX_HOLD } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
@@ -285,7 +285,7 @@ function playMelody({ light = false } = {}) {
   const t0 = audio.now() + 0.12;
   const token = {};
   const voices = [], timers = [];
-  const plan = perform(S.melody.notes, spb);
+  const plan = perform(S.melody.notes, spb, { maxHold: MAX_HOLD / settings.speed });
   plan.forEach((p, i) => {
     const on = t0 + p.on;
     const v = audio.noteOn(p.midi, { when: on, velocity: p.velocity, melody: true });
@@ -297,8 +297,8 @@ function playMelody({ light = false } = {}) {
       if (light) { kbd.light(p.midi, true); timers.push(setTimeout(() => kbd.light(p.midi, false), Math.max(140, shown))); }
     }, ms));
   });
-  const end = S.melody.notes[S.melody.notes.length - 1];
-  const total = (end.at + end.beats) * spb * 1000 + 150;
+  const last = plan[plan.length - 1];
+  const total = (last.on + Math.min(S.melody.notes[S.melody.notes.length - 1].beats * spb, 1.2)) * 1000 + 150;
   timers.push(setTimeout(() => { if (S.play === token) { S.play = null; $('#btn-repeat').classList.remove('busy'); idlePrompt(); } }, total));
   token.voices = voices; token.timers = timers;
   S.play = token;
@@ -376,7 +376,7 @@ function solved() {
     save();
   }
   S.solvedShown = true;
-  setTimeout(() => audio.chime(st), 380);
+  setTimeout(() => audio.chime(st), 220);
   const box = $('#play').getBoundingClientRect();
   const kb = $('#kbd').getBoundingClientRect();
   setTimeout(() => fx.burst(kb.left - box.left + kb.width / 2, kb.top - box.top + 10, 30 + st * 25, 0.7 + st * 0.15), 120);
@@ -408,7 +408,7 @@ function solved() {
 // A melody solved with wrong notes is played again: the staff hides its notes,
 // the melody plays, and the player goes again until a clean run. Only a clean
 // run moves on by itself; Next always moves on.
-const RETRY_MS = 2600;
+const RETRY_MS = 1800;
 let retryT = 0;
 const retryPending = () => retryT !== 0;
 function startRetry() {
@@ -430,10 +430,10 @@ function startRetry() {
 }
 
 // ---------------------------------------------------------------- moving on
-// After a solved melody (and its celebration) the next one starts by itself,
-// while the Next button fills up. Playing a few more notes restarts the wait;
-// Repeat, Redo, Practice, tapping the staff or opening the menu stays put.
-const AUTO_MS = 3200;
+// After a solved melody the chime rings and the next one follows straight on
+// (the Next button fills up meanwhile). Playing a few more notes restarts the
+// wait; Repeat, Redo, Practice, tapping the staff or the menu stays put.
+const AUTO_MS = 1500;
 let autoT = 0;
 function scheduleAuto(ms = AUTO_MS) {
   clearTimeout(autoT);

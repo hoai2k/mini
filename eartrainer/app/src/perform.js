@@ -19,27 +19,41 @@ const jitter = (i, salt) => {
   return (x - Math.floor(x)) * 2 - 1;
 };
 
+/** How long the melody may wait on one note (or rest) before moving on, in
+ *  seconds at normal speed. Lead sheets often hold a note for a bar or two;
+ *  for ear training that is only waiting, so long holds are shortened. */
+export const MAX_HOLD = 1.1;
+
 /**
  * Plan a performance: [{ midi, on, off, velocity }] with times in seconds from
- * the start. `spb` is seconds per beat.
+ * the start. `spb` is seconds per beat; `maxHold` caps the time from one note
+ * to the next (pass MAX_HOLD / speed so slowing down still slows the holds).
  */
-export function perform(notes, spb) {
+export function perform(notes, spb, { maxHold = MAX_HOLD } = {}) {
   const n = notes.length;
   const lo = Math.min(...notes.map((x) => x.midi));
   const hi = Math.max(...notes.map((x) => x.midi));
   const peak = notes.findIndex((x) => x.midi === hi);
   // Overlap between joined notes: enough to sound connected, not muddy.
   const overlap = Math.min(0.12, spb * 0.22);
+  // Onset times, with long holds shortened to maxHold.
+  const starts = [];
+  let t = 0;
+  notes.forEach((x, i) => {
+    starts.push(t);
+    const next = notes[i + 1];
+    if (next) t += Math.min((next.at - x.at) * spb, maxHold);
+  });
   return notes.map((x, i) => {
     const next = notes[i + 1];
-    const on = x.at * spb + (i ? jitter(i, 1) * 0.006 : 0);
-    const dur = x.beats * spb;
+    const on = starts[i] + (i ? jitter(i, 1) * 0.006 : 0);
+    const dur = Math.min(x.beats * spb, maxHold);
     let off;
-    if (!next) off = on + Math.max(dur, 0.9) + 0.9; // the last note rings on
+    if (!next) off = on + Math.max(Math.min(x.beats * spb, maxHold * 1.5), 0.9) + 0.9; // the last note rings on
     else {
-      const gap = (next.at - (x.at + x.beats)) * spb; // a rest after this note
-      const nextOn = next.at * spb;
-      if (gap > 0.02) off = on + dur * 0.96; // lift for the rest
+      const rest = (next.at - (x.at + x.beats)) * spb; // a rest after this note
+      const nextOn = starts[i + 1];
+      if (rest > 0.02) off = on + Math.min(dur * 0.96, (nextOn - on) * 0.8); // lift for the rest
       else if (x.beats >= 1.5) off = nextOn + overlap * 1.6; // long note: held, pedalled into the next
       else off = nextOn + overlap; // legato
     }

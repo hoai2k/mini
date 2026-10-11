@@ -30,7 +30,7 @@ export default [
   { id: 'pop-star-wars', title: 'Star Wars (main title)', by: 'John Williams', cat: 'popular', bpm: 108, notes: 'Bb4:2 F5:2 Eb5:0.333 D5:0.333 C5:0.333 Bb5:2 F5' },
   { id: 'pop-imperial-march', title: 'The Imperial March', by: 'John Williams', cat: 'popular', bpm: 104, notes: 'G4 G4 G4 Eb4:0.75 Bb4:0.25 G4:2' },
   { id: 'pop-raiders-march', title: 'Raiders March (Indiana Jones)', by: 'John Williams', cat: 'popular', bpm: 120, notes: 'E4:0.75 F4:0.25 G4 C5:3 D4:0.75 E4:0.25 F4:3' },
-  { id: 'pop-hedwigs-theme', title: 'Hedwig\'s Theme (Harry Potter)', by: 'John Williams', cat: 'popular', bpm: 120, notes: 'B3 E4:1.5 G4:0.5 F#4 E4:2 B4 A4:3 F#4:3' },
+  { id: 'pop-hedwigs-theme', title: 'Hedwig\'s Theme (Harry Potter)', by: 'John Williams', cat: 'popular', bpm: 170, notes: 'B3 E4:1.5 G4:0.5 F#4 E4:2 B4 A4:3 F#4:3' },
   { id: 'pop-jurassic-park', title: 'Jurassic Park (theme)', by: 'John Williams', cat: 'popular', bpm: 84, notes: 'Bb4:0.75 A4:0.25 Bb4:2 F4 Eb4:2' },
   { id: 'pop-james-bond', title: 'James Bond Theme (guitar riff)', by: 'Monty Norman', cat: 'popular', bpm: 138, notes: 'E4:0.5 F#4:0.25 F#4:0.25 F#4:0.5 F#4 E4:0.5 E4:0.5 E4' },
   { id: 'pop-mission-impossible', title: 'Mission: Impossible (theme)', by: 'Lalo Schifrin', cat: 'popular', bpm: 160, notes: 'G3:1.5 G3:1.5 Bb3 C4 G3:1.5 G3:1.5 F3 F#3' },
