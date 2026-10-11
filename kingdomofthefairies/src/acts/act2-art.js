@@ -8,7 +8,7 @@ import {
   clamOpen, clamIsOpen, clamSpent, clamRipe, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
-import { FILM } from '../theme.js';
+import { FILM, words } from '../theme.js';
 
 const TAU = Math.PI * 2;
 const sy = (st, wy) => wy - st.cam + 60;           // world y -> stage y
@@ -44,7 +44,7 @@ export function onEvent(k, e, st) {
   const s = st.sailor, x = s.x, y = sy(st, s.y);
   switch (e.type) {
     case 'sailorWake': k.burst(x, y - 20, '#eef3ea', 14, 'bubble'); break;
-    case 'swimStart': k.text('Follow the guitar down', 640, 200, true); break;
+    case 'swimStart': k.text(words('Follow the guitar down'), 640, 200, true); break;
     case 'swimKick': k.burst(x - s.face * 70, y + 10, '#eef3ea', 6, 'bubble'); break;
     case 'conchBlow': k.burst(e.x, sy(st, e.y) - 30, '#d9b34a', 22, 'sparkle'); k.text('The conch sings! Wake the sleepers', 640, 200, true); break;
     case 'sleeperWake': k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 14, 'bubble'); k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 8, 'sparkle'); k.text(`Awake ${e.n}`, e.x, sy(st, e.y) - 60); break;
@@ -53,7 +53,7 @@ export function onEvent(k, e, st) {
     case 'airOut': k.text('Out of air!', x, y - 80, true); break;
     case 'airLow': k.text('Air low: find a vent', x, y - 80); break;
     case 'airVent': k.burst(x, y - 30, '#eef3ea', 8, 'bubble'); break;
-    case 'guitarCatch': k.burst(x, y, '#d9b34a', 26, 'sparkle'); k.text('The guitar!', x, y - 90, true); break;
+    case 'guitarCatch': k.burst(x, y, '#d9b34a', 26, 'sparkle'); k.text(words('The guitar!'), x, y - 90, true); break;
     case 'witchOffer': k.burst(WITCH_X + WITCH_ROSE.x, sy(st, FLOOR) + 44 + WITCH_ROSE.y, '#f3c6dc', 16, 'sparkle'); break;
     // Taking the rose: the wand sparkles first, then the rose in her hand,
     // then him when it reaches his head (act2.js ROSE_CUES).
@@ -861,7 +861,7 @@ function captions(k, st, t) {
   }
   if (ph === 'swim' && st.guitar.settled && !st.guitar.held) {
     const g = st.guitar;
-    label(k, FILM ? 'Catch the sword' : 'Catch the guitar', g.x, sy(st, g.y) - 90, 20, '#ffe27a');
+    label(k, FILM ? 'Catch the sword' : words('Catch the guitar'), g.x, sy(st, g.y) - 90, 20, '#ffe27a');
   }
   if (ph === 'offer' && pt >= 1.6) {
     panel(k, 640, 128, 620, 104);

@@ -2,10 +2,20 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const manifest = JSON.parse(await readFile(new URL('../assets/manifest.json', import.meta.url)));
 const original = JSON.stringify(manifest);
-for (const [search, legacy] of [['', false], ['?qa', false], ['?widowsbay', true], ['?qa&widowsbay=', true]]) {
+delete process.env.KOTF_EDITION;
+for (const [search, edition] of [['', 'film'], ['?qa', 'film'], ['?widowsbay', 'widowsbay'], ['?qa&widowsbay=', 'widowsbay'],
+  ['?widowsbay=1', 'widowsbay'], ['?widowsbay=partial', 'partial'], ['?qa&widowsbay=Partial', 'partial']]) {
+  const legacy = edition === 'widowsbay';
   globalThis.location = { search };
   const theme = await import('../src/theme.js?mode=' + encodeURIComponent(search));
+  assert.equal(theme.EDITION, edition, search);
   assert.equal(theme.LEGACY, legacy);
+  assert.equal(theme.FILM, edition === 'film');
+  assert.equal(theme.CLASSIC, edition !== 'film');
+  assert.equal(theme.TITLE, legacy ? "Widow's Bay" : 'Kingdom of the Fairies');
+  // the partial edition swaps the guitar for the sword in art and words
+  assert.equal(theme.words('Catch the guitar'), edition === 'partial' ? 'Catch the sword' : 'Catch the guitar');
+  assert.equal(new Set([theme.STORAGE_PREFIX]).size, 1);
   const result = theme.themeManifest(manifest);
   assert.equal(!!result.audio.song, legacy);
   assert.equal(!!result.slots['band-trio'], legacy);
@@ -27,4 +37,4 @@ for (const [search, legacy] of [['', false], ['?qa', false], ['?widowsbay', true
   assert.equal(JSON.stringify(manifest), original, 'shared source manifest is untouched');
 }
 delete globalThis.location;
-console.log('Both theme manifests and query semantics pass');
+console.log('All three editions: theme manifests and query semantics pass');

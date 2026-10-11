@@ -1,4 +1,4 @@
-import { LEGACY, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
+import { LEGACY, FILM as FILM_ED, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
 applyDocumentTheme();
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
 import { ACTS } from './acts/index.js';
@@ -639,7 +639,7 @@ function updateTouch() {
 // six panels, at art y 232-298, 325-398, 420-496, 518-594, 615-692, 718-794 and
 // 815-886, x 135-565, under a blank title banner at 108-200; its rows use
 // smaller type to fit.
-const PB = LEGACY
+const PB = !FILM_ED
   ? { w: 404, h: 578, cx: 640, cy: 360, panels: [287, 416.5, 552, 695, 829.5], panelH: 100, panelX: [128, 571],
       titleY: 163, subY: 192, titlePx: 38, kick: [11, -10], name: [27, 17] }
   : { w: 404, h: 578, cx: 640, cy: 360, panels: [265, 361.5, 458, 556, 653.5, 756, 850.5], panelH: 70, panelX: [135, 565],
@@ -647,7 +647,7 @@ const PB = LEGACY
 // Where each act's row sits, for drawing and for taps (stage px).
 function playbillRows() {
   // Each edition's painted bill has one panel per act; without it, a card.
-  if (assets.images[LEGACY ? 'playbill' : 'playbill-film'] && ACTS.length === PB.panels.length) {
+  if (assets.images[FILM_ED ? 'playbill-film' : 'playbill'] && ACTS.length === PB.panels.length) {
     const s = PB.w / 700, x0 = PB.cx - PB.w / 2, y0 = PB.cy - PB.h / 2;
     return { art: true, s, x0: x0 + PB.panelX[0] * s, x1: x0 + PB.panelX[1] * s, half: PB.panelH * s / 2 + 6,
       ys: PB.panels.map((p) => y0 + p * s), left: x0, top: y0 };
@@ -668,7 +668,7 @@ function drawPlaybill(k, t) {
     const s = rows.s, ink = k.col('#2a1424');
     c.fillStyle = ink; c.textAlign = 'center';
     c.font = `${PB.titlePx}px Yesteryear, cursive`; c.fillText(TITLE, 640, rows.top + PB.titleY * s + 8);
-    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, rows.top + PB.subY * s);
+    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText((FILM_ED ? 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS' : 'A TOY THEATRE IN FIVE ACTS'), 640, rows.top + PB.subY * s);
     const pw = (rows.x1 - rows.x0) - 28;
     ACTS.forEach((a, n) => {
       const y = rows.ys[n], open = n < save.unlocked, sel = n === S.pb;
@@ -695,7 +695,7 @@ function drawPlaybill(k, t) {
   c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.strokeRect(344, 84, 592, 552); c.lineWidth = 1; c.strokeRect(352, 92, 576, 536);
   c.textAlign = 'center'; c.fillStyle = k.col('#2a1424');
   c.font = '54px Yesteryear, cursive'; c.fillText(TITLE, 640, 160);
-  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, 188);
+  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText((FILM_ED ? 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS' : 'A TOY THEATRE IN FIVE ACTS'), 640, 188);
   ACTS.forEach((a, n) => {
     const y = rows.ys[n] + 6, open = n < save.unlocked, sel = n === S.pb, tight = ACTS.length > 5;
     if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.18; c.fillRect(372, y - (tight ? 30 : 34), 536, tight ? 52 : 60); c.globalAlpha = 1; }

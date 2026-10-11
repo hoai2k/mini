@@ -4,15 +4,22 @@ A hand-tinted toy-theatre voyage inspired by Georges Méliès’s silent film
 *Le Royaume des fées* (1903). Play at
 https://hoai2k.github.io/mini/kingdomofthefairies/.
 
-The default edition uses the new title and artwork, removes the modern band
-characters, and plays only the delivered period accompaniment. Adding
-[`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)
-restores the preserved Widow’s Bay title, Langan, Frost & Wane cast and song.
-Presence of the parameter enables that edition, even with an empty value.
-Saves and settings use separate storage keys for the two editions; the legacy
-keys remain compatible with existing saves.
+There are three editions, chosen by the address:
 
-## The two editions' acts
+- **The film edition** (no parameter, the default) follows the film, with the
+  new title and art, the prince's story and only the period accompaniment.
+- **[`?widowsbay=partial`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=partial)**
+  is the original five-act game under the new title: no band, no song, and the
+  sailor's guitar becomes a sword (its art and its words), with new art filling
+  the gaps (`PARTIAL_CAST` in `src/theme.js`). It shares the improved climbing.
+- **[`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)**
+  with any other value, or none, restores the preserved Widow’s Bay title,
+  Langan, Frost & Wane cast and song.
+
+Each edition keeps its own saves and settings; the legacy keys remain
+compatible with existing saves.
+
+## The editions' acts
 
 The default edition follows the film's story
 ([the film adaptation plan](design/film-adaptation.md)): a prologue and six
@@ -37,7 +44,7 @@ requested is drawn by an interim cut-out from the planning sheets (`assets/inter
 `design/source/cut_planning.py`) until the production requests arrive.
 
 [`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)
-keeps the original five acts unchanged: The Crossing, The Sleepers' Grotto,
+keeps the original five acts unchanged (and `?widowsbay=partial` plays them without the band or guitar): The Crossing, The Sleepers' Grotto,
 The Sea King's Court, The Whale's Road and The Enchanted Tower (cliff, burning
 house, beloved, endings and pageant). Climbing in both editions shows the
 reachable holds, an arrow for each direction and the leap arc.
@@ -107,7 +114,7 @@ selects its preserved manifest/icons with `start_url: ./?widowsbay`.
 From the repository root:
 
 ```sh
-for t in board act2 act3 act4 act5; do KOTF_EDITION=widowsbay node kingdomofthefairies/qa/$t.test.mjs; done
+for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs; done; done
 for t in animation sailor-motion theme film; do node kingdomofthefairies/qa/$t.test.mjs; done
 for g in build_act_requests build_film_requests build_film_assets; do python3 kingdomofthefairies/design/source/$g.py --check; done
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs

@@ -4,7 +4,7 @@
 // Then the moon-boat interlude carries him on to the Sea King's court.
 // Headless: drawing is in act2-art.js. Design: design/acts.md, Act II.
 import { clamp, lerp } from './shared.js';
-import { FILM } from '../theme.js';
+import { FILM, words } from '../theme.js';
 import * as art from './act2-art.js';
 
 // ---------------------------------------------------------------- tuning
@@ -151,7 +151,7 @@ export const ridePearlX = (p, rideT) => 1250 - (rideT - p.at) * RIDE.speed;
 export default {
   id: 2, key: 'grotto', kicker: 'Act II', title: FILM ? 'The Water Fairy' : "The Sleepers' Grotto", size: 110,
   sub: FILM ? 'Follow the sinking sword down.\nSound the conch horns to wake your drowned crew.'
-    : 'Follow the sinking guitar down.\nSound the conch horns to wake the drowned.',
+    : words('Follow the sinking guitar down.\nSound the conch horns to wake the drowned.'),
   // The film edition: the Water Fairy in the witch's place, and the marine
   // procession's dolphin carriage for the moon boat.
   cast: FILM ? { 'witch-stand': 'water-fairy-stand', 'witch-moonboat': 'dolphin-carriage' } : undefined,
@@ -257,13 +257,13 @@ export default {
     }
     switch (e.type) {
       case 'sailorWake': return 'The witch breathes life into the sailor. He wakes among the drowned.';
-      case 'swimStart': return 'Swim down after the guitar. Press A to kick. Sound the conch to wake the sleepers.';
+      case 'swimStart': return words('Swim down after the guitar. Press A to kick. Sound the conch to wake the sleepers.');
       case 'conchBlow': return 'The conch sings. Swim close to the sleepers to wake them.';
       case 'sleeperWake': return `A sleeper wakes. ${e.n} woken.`;
       case 'hit': return `Hit. ${e.lanterns} lantern${e.lanterns === 1 ? '' : 's'} left.`;
       case 'airLow': return 'Air running low. Find a vent.';
       case 'eelGlow': return 'Eyes glow in a hole.';
-      case 'guitarCatch': return 'You catch the guitar.';
+      case 'guitarCatch': return words('You catch the guitar.');
       case 'witchOffer': return 'The witch offers the sea rose. A to take it, B to refuse.';
       case 'roseTake': return 'You take the sea rose. Every sleeper wakes.';
       case 'witchLaugh': return 'You refuse the rose. The witch laughs.';

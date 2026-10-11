@@ -131,7 +131,7 @@ export default {
     if (e.type === 'pearl' && e.mended) return `A lantern mended: ${Math.floor(e.hull)} whole.`;
     if (e.type === 'keepsake') return FILM ? `Aurora's star ${e.n} of 3.` : `Tea leaf ${e.n} of 3.`;
     if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
-    if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : "The sky blackens: the witch's tempest.";
+    if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : FILM ? "The sky blackens: the witch's tempest." : 'The enchanted tower in sight.';
     if (e.type === 'cheer') return FILM ? "The tempest! Press A on the beat to light the galley's lanterns." : 'A celebration on deck! Press A on the beat to light the lanterns.';
     if (e.type === 'revelry') return FILM ? 'Every lantern lit: they hold against the storm.' : 'Every lantern lit.';
     if (e.type === 'strike') return 'The witch strikes the mast.';
