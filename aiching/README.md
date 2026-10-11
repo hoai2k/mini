@@ -87,6 +87,16 @@ answers, using only the meaning in `hexagrams.json`. Openings are kept in
 localStorage per reading, so a reading always shows the same one. Visitors can
 turn the opening off on the home page or under any opening.
 
+## Lines and hexagram pages
+
+Every line of the hexagram at the top of a reading can be tapped (or reached
+with Tab and Enter): a panel shows its name, whether it is changing in this
+cast and what it says. Each hexagram has its own page at `#h=<number>`, opened
+from the hexagram a reading becomes, the hidden (nuclear) hexagram and any
+line that belongs to another hexagram. A hexagram page shows its picture,
+Judgment and Image, all six lines, the trigrams, related hexagrams (nuclear,
+opposite, reversed), a grid of all 64 and a link back to the last reading.
+
 ## Speaking a question
 
 A microphone button sits beside the send button in both question boxes
