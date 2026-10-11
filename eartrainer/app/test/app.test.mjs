@@ -105,7 +105,7 @@ test('adaptive picking prefers unsolved melodies near the rating', () => {
 });
 
 test('samples: each note borrows the nearest sample within a semitone and a half', () => {
-  for (let m = 36; m <= 96; m++) {
+  for (let m = 21; m <= 108; m++) {
     const { sample, rate } = sampleFor(m);
     assert.ok(Math.abs(m - sample) <= 1, `${m} -> ${sample}`);
     assert.ok(Math.abs(rate - 2 ** ((m - sample) / 12)) < 1e-9);

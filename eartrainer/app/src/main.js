@@ -1,10 +1,12 @@
 // Shell: title, songbooks, the round (listen, answer, solve), dialogs, input.
 import { createAudio, INSTRUMENTS } from './audio.js';
 import { createKeyboard } from './keyboard.js';
+import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
+import { noteName } from './music.js';
 import { perform, secondsPerBeat } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
-import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES, WHITES, LOWEST, HIGHEST } from './library.js';
+import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
@@ -56,9 +58,13 @@ addEventListener('touchend', unlock, { capture: true });
 addEventListener('keydown', unlock, { capture: true });
 
 // ---------------------------------------------------------------- keyboard and effects
-const kbd = createKeyboard($('#kbd'), { lo: LOWEST, hi: HIGHEST, whites: WHITES, onDown: keyDown, onUp: keyUp });
+// The whole piano, A0 to C8; the player chooses how many keys show (eleven white keys by default).
+let nav = null;
+const kbd = createKeyboard($('#kbd'), { lo: 21, hi: 108, whites: settings.whites, onDown: keyDown, onUp: keyUp, onView: (p, w) => nav?.sync(p, w) });
+nav = createNavigator($('#kbd-nav'), kbd, { onWhites: (w) => { settings.whites = w; save(); } });
+nav.sync(kbd.pos, kbd.whites);
 kbd.setLabels(settings.labels);
-kbd.setWindow(60, false);
+kbd.showRange(60, 72, false); // middle C
 const fx = createFx($('#fx'));
 // Tapping a found note on the staff plays it on its own.
 const staff = createStaff($('#staff'), { onTap: (midi) => { audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
@@ -147,12 +153,45 @@ function renderBooks() {
 
 function startBook(id) {
   progress.book = id; save();
+  setFree(false);
   S.practice = false; syncPractice();
   show('play');
   $('#hud-book').textContent = SONGBOOKS.find((b) => b.id === id)?.name || '';
   syncHud();
   nextMelody();
 }
+
+// ---------------------------------------------------------------- free play
+// The whole piano with no melody to find: the staff shows the last notes played.
+function setFree(on) {
+  S.free = on;
+  $('#play').classList.toggle('free', on);
+  if (on) { S.freeNotes = []; staff.clear('Play anything. Slide along the piano with the bar above the keys.'); }
+}
+function startFree() {
+  stopPlayback();
+  setFree(true);
+  S.round = null; S.melody = null; S.solvedShown = false;
+  S.practice = false; syncPractice();
+  show('play');
+  showSolved(false);
+  kbd.setMarker(null);
+  nav.setRange(null);
+  $('#hud-book').textContent = 'Free play';
+  $('#hud-level').textContent = `${kbd.total} white keys, A0 to C8`;
+  setPrompt('Free play: the whole piano is yours');
+}
+function freeNote(midi) {
+  const notes = S.freeNotes;
+  notes.push({ midi, beats: 1, at: notes.length });
+  if (notes.length > 16) notes.shift();
+  notes.forEach((n, i) => { n.at = i; });
+  staff.set(notes, true);
+  staff.update({ pos: notes.length, done: true, practice: false });
+  setPrompt(noteName(midi, { flats: false }));
+}
+$('#btn-free').addEventListener('click', startFree);
+$('#btn-clear').addEventListener('click', () => { S.freeNotes = []; staff.clear('Cleared. Play on.'); });
 
 function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('title'); focusEl($('#start'), false); }
 
@@ -169,7 +208,8 @@ function nextMelody() {
   S.solvedShown = false;
   showSolved(false);
   kbd.clearLights();
-  kbd.setWindow(S.melody.window, true);
+  kbd.showRange(S.melody.lo, S.melody.hi, true);
+  nav.setRange(S.melody.lo, S.melody.hi);
   if (kbd.cursor != null && !kbd.visible(kbd.cursor)) kbd.setCursor(null);
   staff.set(S.melody.notes, S.melody.shift !== 0);
   syncStaff();
@@ -266,6 +306,7 @@ function keyDown(midi, source) {
   const v = audio.noteOn(midi, { velocity: 0.92 });
   if (S.held.get(midi)) audio.noteOff(S.held.get(midi));
   S.held.set(midi, v);
+  if (S.free) { freeNote(midi); return; }
   const r = S.round;
   if (!r || S.practice || r.done) return;
   const result = press(r, midi);
@@ -345,7 +386,7 @@ function doRedo() {
   setPrompt('From the top.');
   setTimeout(idlePrompt, 1200);
 }
-function doRepeat() { if (S.round) playMelody({ light: !!(S.round.done && settings.light) }); }
+function doRepeat() { if (S.round && !S.free) playMelody({ light: !!(S.round.done && settings.light) }); }
 function doPractice() {
   S.practice = !S.practice;
   syncPractice();
@@ -531,7 +572,7 @@ function padDirection(dir) {
     if (dir === 'left' || dir === 'right') {
       if (kbd.cursor == null && S.round && settings.first) kbd.setCursor(S.round.notes[S.round.pos]?.midi ?? null);
       kbd.moveCursor(dir === 'right' ? 1 : -1);
-    } else if (S.solvedShown) moveFocus(dir);
+    } else nav.octave(dir === 'up' ? 1 : -1);
     return;
   }
   if (S.mode === 'title' && !dialogs.length && !S.utilityNav) { S.utilityNav = true; focusEl($('#start'), true); return; }
@@ -602,6 +643,10 @@ addEventListener('keydown', (e) => {
   else if (k === '-' || k === '_') setSpeed(settings.speed - 0.1);
   else if (k === '=' || k === '+') setSpeed(settings.speed + 0.1);
   else if (k === 'Enter') { e.preventDefault(); if (!e.repeat) { if (S.round?.done) nextMelody(); else doNext(); } }
+  else if (k === ',' || k === '<') nav.octave(-1);
+  else if (k === '.' || k === '>') nav.octave(1);
+  else if (k === '9') nav.zoom(-1);
+  else if (k === '0') nav.zoom(1);
   else if (k === 'Escape') openPause();
 });
 addEventListener('keyup', (e) => { if (S.mode === 'play') kbd.keyup(e); });

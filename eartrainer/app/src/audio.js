@@ -10,9 +10,11 @@ export const INSTRUMENTS = {
   bright: { label: 'Bright Piano', dir: 'bright', release: 0.14, gain: 0.95 },
   epiano: { label: 'Electric Piano', dir: 'epiano', release: 0.22, gain: 1.05 },
 };
-export const SAMPLE_LO = 36;
-export const SAMPLE_HI = 96;
+export const SAMPLE_LO = 21; // A0
+export const SAMPLE_HI = 108; // C8
 const STEP = 3;
+// Samples deliberately not recorded (see design/source/fetch_samples.py): a neighbour stands in.
+const MISSING = new Set(['grand/108']);
 const MAX_VOICES = 28;
 
 /** The sample to play for a midi note and the playback rate that tunes it. */
@@ -63,7 +65,7 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     if (kits[dir]) return kits[dir].ready;
     const buffers = new Map();
     const list = [];
-    for (let m = SAMPLE_LO; m <= SAMPLE_HI; m += STEP) list.push(m);
+    for (let m = SAMPLE_LO; m <= SAMPLE_HI; m += STEP) if (!MISSING.has(`${dir}/${m}`)) list.push(m);
     let done = 0;
     const ready = Promise.all(list.map(async (m) => {
       try {
@@ -83,7 +85,7 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     const kit = kits[inst.dir];
     if (!kit) return null;
     let { sample, rate } = sampleFor(midi);
-    for (let d = 0; d <= 60; d += STEP) {
+    for (let d = 0; d <= 90; d += STEP) {
       for (const s of [sample - d, sample + d]) {
         const b = kit.buffers.get(s);
         if (b) return { buf: b, rate: rate * 2 ** ((sample - s) / 12) };

@@ -128,7 +128,14 @@ export function createStaff(host, { onTap } = {}) {
 
   return {
     /** Show a melody: notes (parsed), whether it was transposed, and the answer state. */
+    /** Empty the staff, with a note in its place. */
+    clear(message = '') {
+      model = null;
+      draw();
+      host.dataset.empty = message;
+    },
     set(notes, shifted) {
+      delete host.dataset.empty;
       model = { spelled: spellMelody(notes, shifted), clef: clefFor(notes), pos: 0, done: false, practice: false, lastFound: -1 };
       draw();
     },

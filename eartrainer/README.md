@@ -8,8 +8,17 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
 
 ## How it plays
 
-- A melody plays and the keyboard (eleven white keys, an octave and a half)
-  slides to wherever it sits. A glowing dot marks the first note until you
+- The keyboard is the whole piano, A0 to C8 (88 keys); eleven white keys (an
+  octave and a half) show by default. A navigator bar above the keys shows
+  the piano in miniature: drag its bright window, or tap anywhere on it, to
+  slide along; ‹ › move an octave; − + show fewer or more keys (8 to all 52
+  white keys, remembered). Keys being played, the first-note marker and the
+  melody's range show on the miniature. A sideways trackpad scroll slides the
+  keys too. `app/src/keyboard.js`, `app/src/navigator.js`.
+- **Free play** (on the songbook screen) is the whole piano with no melody to
+  find; the staff shows the last 16 notes played, with a Clear button.
+- A melody plays and the keyboard slides to wherever it sits (centred if it
+  fits the keys on screen, else from its lowest note). A glowing dot marks the first note until you
   play it.
 - As in Chet, a staff above the keys has a slot for every note: notes you've
   found appear at their pitch (tap one to hear it), the next one to find is a
@@ -55,7 +64,8 @@ Controls: touch; computer keys (home row `A S D F G H J K L ; '` for the white
 keys on screen, the row above for the black keys, `Space` repeat, `Backspace`
 redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 (D-pad or left stick moves a key cursor, A plays it, X repeat, B redo, Y
-practice, LB/RB speed, View or RT next, Menu pauses). Fullscreen works as in
+practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
+pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
 for fullscreen, and iPhone Safari gets the swipe-up hint instead.
 
@@ -87,7 +97,7 @@ for fullscreen, and iPhone Safari gets the swipe-up hint instead.
   `{ id, title, by, cat, bpm, notes: 'E4:0.5 D4:0.5 C4 r:1 ...' }`
   (middle C is C4; durations in beats, default 1). 3–16 notes within 16
   semitones, so it always fits the keyboard.
-- `app/assets/samples/`: one sample every minor third from C2 to C7 for each
+- `app/assets/samples/`: one sample every minor third from A0 to C8 for each
   kit, transposed by up to a semitone and a half to fill in the rest. Made by
   `design/source/fetch_samples.py` from the Salamander Grand Piano V3
   (Alexander Holm, CC BY 3.0) and FluidR3 GM (Frank Wen, MIT) via

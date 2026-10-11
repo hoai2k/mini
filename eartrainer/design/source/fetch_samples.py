@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Download and prepare the piano samples the app plays.
 
-One sample every minor third (C, D#, F#, A) from C2 to C7; the app transposes
+One sample every minor third (C, D#, F#, A) from A0 to C8; the app transposes
 each by at most a semitone and a half to fill in the notes between.
 
     python3 eartrainer/design/source/fetch_samples.py
@@ -38,7 +38,7 @@ PCS = {"C": 0, "D#": 3, "F#": 6, "A": 9}
 
 
 def notes():
-    for midi in range(36, 97, 3):  # C2 .. C7
+    for midi in range(21, 109, 3):  # A0 .. C8, the whole piano
         pc = midi % 12
         name = next(k for k, v in PCS.items() if v == pc)
         yield midi, name, midi // 12 - 1
@@ -70,11 +70,19 @@ def prepare(x, midi: int):
     return x
 
 
+# Recordings left out: Salamander's C8 is mostly hammer noise once its level is
+# matched, so the A7 sample is transposed up to cover the top notes instead.
+SKIP = {("grand", 108)}
+
+
 def main() -> int:
     for kit, (url, names) in SETS.items():
         d = OUT / kit
         d.mkdir(parents=True, exist_ok=True)
         for midi, name, octave in notes():
+            if (kit, midi) in SKIP:
+                (d / f"{midi}.mp3").unlink(missing_ok=True)
+                continue
             src = url.format(f"{names[name]}{octave}")
             x = prepare(decode(urllib.request.urlopen(src).read()), midi)
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "f32le", "-ac", "2", "-ar", "44100", "-i", "pipe:0",
