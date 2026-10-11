@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games Chat privacy</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #1d1533; color: #f3effa; font: 17px/1.55 system-ui, -apple-system, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 28px 0 6px; color: #ff9fca; }
+  p, li { color: #ddd5ee; }
+  a { color: #7fe7dc; }
+  .muted { color: #a99cc4; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Games Chat privacy</h1>
+  <p class="muted">For the Games Chat website and the Games Chat iPhone and iPad app.</p>
+
+  <h2>Video and sound</h2>
+  <p>Your camera and microphone go straight to the people in your call, encrypted, over WebRTC. They are never recorded or stored. When two devices can't reach each other directly, the call passes through a relay server (Cloudflare) that cannot see or hear it. Face effects run on your own device; your face is never sent anywhere for them.</p>
+
+  <h2>Your account (app only)</h2>
+  <p>The app keeps an account so friends can call you: your name and username, and, only if you add it, your phone number. The phone number is stored only as a one-way code (a keyed hash) that can match a number someone already has but can't be turned back into your number; we keep the last four digits to show you which number is linked. We also keep this device's push token so calls can ring it, and, for a few hours, which accounts called which.</p>
+  <p>To check a phone number belongs to you, it is sent to Twilio, which texts you a code. Contacts never leave your device: when you pick someone to call, only the number you picked is used.</p>
+
+  <h2>What we don't do</h2>
+  <ul>
+    <li>No ads, no tracking, no analytics, no selling or sharing data.</li>
+    <li>No message history is kept: chat messages in a call go only to the people in it.</li>
+  </ul>
+
+  <h2>Deleting</h2>
+  <p>In the app, Account → Delete my account removes your account, username, phone number and push token from the server straight away. On the website nothing is kept beyond your browser's own settings, which you can clear at any time.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="https://github.com/hoai2k/mini/issues">github.com/hoai2k/mini/issues</a>.</p>
+</main>
+</body>
+</html>

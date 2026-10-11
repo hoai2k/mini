@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Accounts and ringing for the Games Chat iOS app (see src/index.js and
+  // ../TESTFLIGHT.md). Deploy with `npx wrangler deploy` from this folder.
+  "name": "games-chat-calls",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "DIRECTORY", "class_name": "Directory" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Directory"] }]
+}

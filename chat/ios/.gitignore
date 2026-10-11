@@ -1,0 +1,8 @@
+# Toolchains and build output installed for working on the iOS app here.
+*.xcuserstate
+.build/
+.tools/
+DerivedData/
+build/
+shots/
+xcuserdata/

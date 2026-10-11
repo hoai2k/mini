@@ -1,0 +1,78 @@
+# Builds the Games Chat iOS app (chat/ios) on a Mac whenever it changes:
+# GamesChatCore's tests, the app for the iOS Simulator (no signing), then
+# launches it on an iPhone and an iPad simulator and keeps screenshots of the
+# first screen and of a call (as artifacts). Shipping to TestFlight is done
+# by hand from Xcode (chat/ios/TESTFLIGHT.md).
+name: Games Chat iOS build
+
+on:
+  push:
+    paths: ["chat/ios/**", ".github/workflows/chat-ios.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: chat/ios   # the rest of the repo (every game's art) isn't needed
+      - name: Core tests
+        working-directory: chat/ios/GamesChatCore
+        run: swift test
+      - name: Build the app for the simulator
+        working-directory: chat/ios
+        run: |
+          set -o pipefail
+          xcodebuild -project GamesChat.xcodeproj -scheme GamesChat -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || { tail -n 120 build.log; exit 1; }
+          tail -n 3 build.log
+      - name: Launch on simulators and take screenshots
+        working-directory: chat/ios
+        run: |
+          set -x
+          APP=build/Build/Products/Debug-iphonesimulator/GamesChat.app
+          mkdir -p shots
+          # Use simulators that come installed with Xcode on the runner.
+          pick() {  # "iPhone" or "iPad": the newest available device of that kind
+            xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          kind = sys.argv[1]
+          devs = [(rt, d) for rt, ds in json.load(sys.stdin)['devices'].items() if 'iOS' in rt for d in ds if d['name'].startswith(kind)]
+          devs.sort(key=lambda x: (x[0], x[1]['name']))
+          print(devs[-1][1]['udid'] if devs else '')
+          " "$1"
+          }
+          shoot() {  # udid, file prefix
+            UDID="$1"
+            xcrun simctl boot "$UDID" || true
+            xcrun simctl bootstatus "$UDID" -b
+            xcrun simctl install "$UDID" "$APP"
+            xcrun simctl privacy "$UDID" grant camera net.hoai.gameschat || true
+            xcrun simctl privacy "$UDID" grant microphone net.hoai.gameschat || true
+            xcrun simctl launch "$UDID" net.hoai.gameschat
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "shots/$2-start.png"
+            xcrun simctl terminate "$UDID" net.hoai.gameschat
+            xcrun simctl launch "$UDID" net.hoai.gameschat -demoRoom call-cisimulator
+            sleep 25
+            xcrun simctl io "$UDID" screenshot "shots/$2-call.png"
+            # Still running (no crash)?
+            if xcrun simctl spawn "$UDID" launchctl list > procs.txt && grep -q gameschat procs.txt; then echo "$2: app running"; else echo "$2: app NOT running"; exit 1; fi
+            xcrun simctl shutdown "$UDID"
+          }
+          shoot "$(pick iPhone)" iphone
+          shoot "$(pick iPad)" ipad
+      - name: Compiler warnings in the app's own code
+        if: always()
+        working-directory: chat/ios
+        run: grep -E "chat/ios/(GamesChat|GamesChatCore)/.*warning:" build.log | sort -u || echo "(none)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-screenshots
+          path: chat/ios/shots/

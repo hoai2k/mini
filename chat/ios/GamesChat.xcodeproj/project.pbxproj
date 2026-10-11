@@ -1,0 +1,434 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A6546D455B2C12F06F191E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CAA90FB09B733617CFC0945B /* Assets.xcassets */; };
+		11333EDB20719871375CE01C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F22F9D8F8D316988A3713B /* HomeView.swift */; };
+		1B17C254F8CAB3C29CACE667 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E94936683CB2530A300926 /* RootView.swift */; };
+		229DED075254651399B2401C /* GamesChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6616D9A60244157A4F2A9E0 /* GamesChatApp.swift */; };
+		318E4226270298FF9E05C09E /* GamesChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = BD44DA6B945210729F25EB56 /* GamesChatCore */; };
+		3770FBABB7F60E14734030F8 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999E0D76B4EBD7532B53D2BC /* AppModel.swift */; };
+		4575FF0F0E8A17025D3DB68E /* Presenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6932D9E849193FBDD0C42B9 /* Presenter.swift */; };
+		58C063429D495CFE7879321B /* Inbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = E871DF2374CA7358FFA38C38 /* Inbox.swift */; };
+		6BF9053182D281CA387BBD54 /* CallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC08FFC4C2C76A0B5BA432A /* CallManager.swift */; };
+		761A34B276B5D8E8D31C257F /* WebCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1146749332BDCA2A6C9D07CA /* WebCallView.swift */; };
+		77F6BE28F78F5E743C6277B3 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C526D2ABD16DEC0EBD068FFB /* Keychain.swift */; };
+		81AC2E9B836F9012B3242A65 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B454A1CA4E8E9A481E7AA215 /* AccountViews.swift */; };
+		96DC7C30FBB70AE0C5F22DEE /* web in Resources */ = {isa = PBXBuildFile; fileRef = A1123A1AD98883106DE28233 /* web */; };
+		EB3E3CFDF746B49EE9F6AE49 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456578BB86DCE385BBAA135C /* Config.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		07F22F9D8F8D316988A3713B /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		1146749332BDCA2A6C9D07CA /* WebCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebCallView.swift; sourceTree = "<group>"; };
+		1DB089C8C46D730F0E820E4E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		20E94936683CB2530A300926 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		456578BB86DCE385BBAA135C /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		711378F5089AF11272E50E6A /* GamesChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GamesChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		78F0A931A95A8013D010DA7D /* GamesChat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GamesChat.entitlements; sourceTree = "<group>"; };
+		999E0D76B4EBD7532B53D2BC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A1123A1AD98883106DE28233 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = web; sourceTree = SOURCE_ROOT; };
+		A6616D9A60244157A4F2A9E0 /* GamesChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamesChatApp.swift; sourceTree = "<group>"; };
+		B454A1CA4E8E9A481E7AA215 /* AccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViews.swift; sourceTree = "<group>"; };
+		B6932D9E849193FBDD0C42B9 /* Presenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presenter.swift; sourceTree = "<group>"; };
+		C526D2ABD16DEC0EBD068FFB /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		CAA90FB09B733617CFC0945B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E5C672A5681143F926089DFA /* GamesChatCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GamesChatCore; path = GamesChatCore; sourceTree = SOURCE_ROOT; };
+		E871DF2374CA7358FFA38C38 /* Inbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inbox.swift; sourceTree = "<group>"; };
+		FAC08FFC4C2C76A0B5BA432A /* CallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7EC399642D11164B18580378 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				318E4226270298FF9E05C09E /* GamesChatCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0F567F9F3B63E5A940EA1A77 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				E5C672A5681143F926089DFA /* GamesChatCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		34A4E335FCC0666BC7991377 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B454A1CA4E8E9A481E7AA215 /* AccountViews.swift */,
+				07F22F9D8F8D316988A3713B /* HomeView.swift */,
+				20E94936683CB2530A300926 /* RootView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		4B4A0FDB957D6CBB8383CFCE /* GamesChat */ = {
+			isa = PBXGroup;
+			children = (
+				CAA90FB09B733617CFC0945B /* Assets.xcassets */,
+				78F0A931A95A8013D010DA7D /* GamesChat.entitlements */,
+				1DB089C8C46D730F0E820E4E /* Info.plist */,
+				C2D6317EFE2064E1CC98E14D /* App */,
+				A7DE0046EE4D9CC4C4C67609 /* Calling */,
+				D34D713B7C3317DDC7873CAF /* Support */,
+				34A4E335FCC0666BC7991377 /* Views */,
+			);
+			path = GamesChat;
+			sourceTree = "<group>";
+		};
+		93CF8BB2DE166A0105A0CECB = {
+			isa = PBXGroup;
+			children = (
+				A1123A1AD98883106DE28233 /* web */,
+				4B4A0FDB957D6CBB8383CFCE /* GamesChat */,
+				0F567F9F3B63E5A940EA1A77 /* Packages */,
+				C95E3D40443409A0ED845C25 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A7DE0046EE4D9CC4C4C67609 /* Calling */ = {
+			isa = PBXGroup;
+			children = (
+				FAC08FFC4C2C76A0B5BA432A /* CallManager.swift */,
+				E871DF2374CA7358FFA38C38 /* Inbox.swift */,
+				1146749332BDCA2A6C9D07CA /* WebCallView.swift */,
+			);
+			path = Calling;
+			sourceTree = "<group>";
+		};
+		C2D6317EFE2064E1CC98E14D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				999E0D76B4EBD7532B53D2BC /* AppModel.swift */,
+				456578BB86DCE385BBAA135C /* Config.swift */,
+				A6616D9A60244157A4F2A9E0 /* GamesChatApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C95E3D40443409A0ED845C25 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				711378F5089AF11272E50E6A /* GamesChat.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D34D713B7C3317DDC7873CAF /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				C526D2ABD16DEC0EBD068FFB /* Keychain.swift */,
+				B6932D9E849193FBDD0C42B9 /* Presenter.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DC579F3B61825720531B7C4C /* GamesChat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B02A736B188F612ED10A407 /* Build configuration list for PBXNativeTarget "GamesChat" */;
+			buildPhases = (
+				5C94FCD91710F844F375C30D /* Sources */,
+				C561AF27B2C75F1063D616CE /* Resources */,
+				7EC399642D11164B18580378 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GamesChat;
+			packageProductDependencies = (
+				BD44DA6B945210729F25EB56 /* GamesChatCore */,
+			);
+			productName = GamesChat;
+			productReference = 711378F5089AF11272E50E6A /* GamesChat.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C27B1F824E52247CB200BB52 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					DC579F3B61825720531B7C4C = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C7C53641E7E3A9CDB6E0D9E8 /* Build configuration list for PBXProject "GamesChat" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 93CF8BB2DE166A0105A0CECB;
+			packageReferences = (
+				BD684223BFA9E80E26B92E02 /* XCLocalSwiftPackageReference "GamesChatCore" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DC579F3B61825720531B7C4C /* GamesChat */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C561AF27B2C75F1063D616CE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A6546D455B2C12F06F191E6 /* Assets.xcassets in Resources */,
+				96DC7C30FBB70AE0C5F22DEE /* web in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5C94FCD91710F844F375C30D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				81AC2E9B836F9012B3242A65 /* AccountViews.swift in Sources */,
+				3770FBABB7F60E14734030F8 /* AppModel.swift in Sources */,
+				6BF9053182D281CA387BBD54 /* CallManager.swift in Sources */,
+				EB3E3CFDF746B49EE9F6AE49 /* Config.swift in Sources */,
+				229DED075254651399B2401C /* GamesChatApp.swift in Sources */,
+				11333EDB20719871375CE01C /* HomeView.swift in Sources */,
+				58C063429D495CFE7879321B /* Inbox.swift in Sources */,
+				77F6BE28F78F5E743C6277B3 /* Keychain.swift in Sources */,
+				4575FF0F0E8A17025D3DB68E /* Presenter.swift in Sources */,
+				1B17C254F8CAB3C29CACE667 /* RootView.swift in Sources */,
+				761A34B276B5D8E8D31C257F /* WebCallView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1A1CD4498B3872B533A1778D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GamesChat/GamesChat.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = GamesChat/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.hoai.gameschat;
+				PRODUCT_NAME = GamesChat;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4929FF8442C9B76BA15E2ACB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		8913F2ECD93B622820D972EC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F6A2E595953312C90C8E8685 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GamesChat/GamesChat.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = GamesChat/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.hoai.gameschat;
+				PRODUCT_NAME = GamesChat;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2B02A736B188F612ED10A407 /* Build configuration list for PBXNativeTarget "GamesChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A1CD4498B3872B533A1778D /* Debug */,
+				F6A2E595953312C90C8E8685 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C7C53641E7E3A9CDB6E0D9E8 /* Build configuration list for PBXProject "GamesChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8913F2ECD93B622820D972EC /* Debug */,
+				4929FF8442C9B76BA15E2ACB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		BD684223BFA9E80E26B92E02 /* XCLocalSwiftPackageReference "GamesChatCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = GamesChatCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BD44DA6B945210729F25EB56 /* GamesChatCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GamesChatCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C27B1F824E52247CB200BB52 /* Project object */;
+}
