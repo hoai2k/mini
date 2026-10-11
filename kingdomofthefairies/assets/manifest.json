@@ -1242,7 +1242,7 @@
       "interim": "interim/water-fairy-stand.webp"
     },
     "witch-hooded": {
-      "status": "delivered",
+      "status": "requested",
       "file": "witch-hooded.webp",
       "size": [
         240,
@@ -1250,10 +1250,10 @@
       ],
       "anchor": "bottom centre",
       "edition": "film",
-      "interim": "interim/witch-hooded.webp"
+      "interim": "interim/witch-hooded-spectre.webp"
     },
     "witch-cloud": {
-      "status": "delivered",
+      "status": "requested",
       "file": "witch-cloud.webp",
       "size": [
         400,
@@ -1261,20 +1261,21 @@
       ],
       "anchor": "bottom centre",
       "edition": "film",
-      "interim": "interim/witch-cloud.webp"
+      "interim": "interim/witch-cloud-spectre.webp"
     },
     "witch-swoop": {
-      "status": "delivered",
+      "status": "requested",
       "file": "witch-swoop.webp",
       "size": [
         400,
         240
       ],
       "anchor": "centre",
-      "edition": "film"
+      "edition": "film",
+      "interim": "interim/witch-swoop-spectre.webp"
     },
     "witch-barrel": {
-      "status": "delivered",
+      "status": "requested",
       "file": "witch-barrel.webp",
       "size": [
         200,
@@ -1282,7 +1283,7 @@
       ],
       "anchor": "bottom centre",
       "edition": "film",
-      "interim": "interim/witch-barrel.webp"
+      "interim": "interim/witch-barrel-spectre.webp"
     },
     "king-stand": {
       "status": "delivered",
@@ -1906,7 +1907,7 @@
       "from": "design/references/film-planning/originals/concept-galley-departure.png"
     },
     "witch-storm": {
-      "status": "delivered",
+      "status": "requested",
       "file": "witch-storm.webp",
       "size": [
         520,
@@ -1914,7 +1915,7 @@
       ],
       "anchor": "bottom centre",
       "edition": "film",
-      "interim": "interim/witch-storm.webp"
+      "interim": "interim/witch-storm-spectre.webp"
     },
     "playbill-film": {
       "status": "delivered",

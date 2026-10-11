@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 100 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 100 of 100 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 95 of 100 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -255,11 +255,6 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 | `aurora-stand` | 260 × 420 | bottom centre | new | [delivered](../assets/aurora-stand.webp) |
 | `aurora-point` | 300 × 420 | bottom centre | new | [delivered](../assets/aurora-point.webp) |
 | `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | [delivered](../assets/water-fairy-stand.webp) |
-| `witch-hooded` | 240 × 400 | bottom centre | new | [delivered](../assets/witch-hooded.webp) |
-| `witch-cloud` | 400 × 400 | bottom centre | new | [delivered](../assets/witch-cloud.webp) |
-| `witch-storm` | 520 × 340 | bottom centre | `witch-moonboat` | [delivered](../assets/witch-storm.webp) |
-| `witch-swoop` | 400 × 240 | centre | new | [delivered](../assets/witch-swoop.webp) |
-| `witch-barrel` | 200 × 240 | bottom centre | new | [delivered](../assets/witch-barrel.webp) |
 | `king-stand` | 220 × 420 | bottom centre | new | [delivered](../assets/king-stand.webp) |
 | `queen-stand` | 220 × 420 | bottom centre | new | [delivered](../assets/queen-stand.webp) |
 | `fairy-ring` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-ring.webp) |
@@ -308,36 +303,6 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 260 × 420 px, anchor bottom centre.
 
 > the Water Fairy as in references/film-planning/originals/char-water-fairy.png (attach it): sea-green and pearl gown hung with shells and starfish, a crown of shells and coral, long golden hair like weed, standing facing left, one hand held out low in blessing (where witch-stand holds the rose, so the game's sparkles still line up), the other at her side. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
-
-#### `witch-hooded` — The witch standing
-
-240 × 400 px, anchor bottom centre.
-
-> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, standing facing left, staff raised in a curse. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
-
-#### `witch-cloud` — The witch on her storm cloud
-
-400 × 400 px, anchor bottom centre.
-
-> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, rising out of a churning black-and-magenta storm cloud, arms and staff raised, lightning at her hands. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
-
-#### `witch-storm` — The witch in the storm sky (Act I)
-
-520 × 340 px, anchor bottom centre.
-
-> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, riding a small churning black-and-magenta storm cloud across the sky toward the left, staff raised, lightning crackling from it. Replaces the witch in her moon boat in the voyage's sky; keep the same overall footprint as witch-moonboat. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
-
-#### `witch-swoop` — The witch swooping
-
-400 × 240 px, anchor centre.
-
-> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, flying horizontally to the left, cloak streaming behind, clawed hand reaching. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
-
-#### `witch-barrel` — The witch in the barrel
-
-200 × 240 px, anchor bottom centre.
-
-> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, hunched inside an old wooden barrel, only her hood and clawed hands showing over the rim. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 #### `king-stand` — The king
 
@@ -837,6 +802,48 @@ Requested 11 October 2026 for the prologue as a short playable scene (the owner 
 128 × 128 px, anchor bottom centre.
 
 > The prince's round shield with its gold star on azure, from char-bel-azor.png (attach it), standing upright on its rim, seen front-on. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F7. The witch, redrawn after the film
+
+Requested 11 October 2026. The first witch art drew a faceless, ragged spectre with claws and a twisted staff; the film's witch is a stooped old crone in one heavy shaggy sea-green hooded robe, her old face showing, with a plain staff (compare references/film-witch/). These replace the five witch sprites at the same sizes and anchors; until they arrive the game keeps the first art (assets/interim/witch-*-spectre.webp).
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `witch-hooded` | 240 × 400 | bottom centre | new | requested |
+| `witch-cloud` | 400 × 400 | bottom centre | new | requested |
+| `witch-storm` | 520 × 340 | bottom centre | new | requested |
+| `witch-swoop` | 400 × 240 | centre | new | requested |
+| `witch-barrel` | 200 × 240 | bottom centre | new | requested |
+
+#### `witch-hooded` — The witch standing
+
+240 × 400 px, anchor bottom centre.
+
+> the witch exactly as she appears in Méliès's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Standing bent over, leaning on her staff with one hand and raising the other in a curse, facing left. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-cloud` — The witch on her storm cloud
+
+400 × 400 px, anchor bottom centre.
+
+> the witch exactly as she appears in Méliès's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Rising out of a churning black-and-magenta storm cloud that hides her feet, both arms raised and the staff held high, lightning at her fingers, facing right. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-storm` — The witch in the storm sky (Act I)
+
+520 × 340 px, anchor bottom centre.
+
+> the witch exactly as she appears in Méliès's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Crouched on a small churning black-and-magenta storm cloud crossing the sky toward the left, staff raised, lightning cracking from its tip. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-swoop` — The witch swooping
+
+400 × 240 px, anchor centre.
+
+> the witch exactly as she appears in Méliès's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Flying horizontally to the left as if hung on a wire across the stage, the heavy robe streaming back behind her, one bony hand reaching forward, the staff along her body. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-barrel` — The witch in the barrel
+
+200 × 240 px, anchor bottom centre.
+
+> the witch exactly as she appears in Méliès's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Shut inside an old iron-hooped wooden barrel, only her hooded head, her furious wrinkled face and her two bony hands showing over the rim, gripping it. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

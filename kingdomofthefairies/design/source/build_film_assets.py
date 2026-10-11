@@ -48,10 +48,17 @@ AURORA = ('the fairy Aurora as in references/film-planning/originals/char-aurora
 WATER_FAIRY = ('the Water Fairy as in references/film-planning/originals/char-water-fairy.png (attach it): '
                'sea-green and pearl gown hung with shells and starfish, a crown of shells and coral, long golden '
                'hair like weed')
-WITCH = ('the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a '
-         'ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff')
 CREW = ('one of the prince\'s crew as in references/film-planning/originals/char-crew.png (attach it): azure and '
         'gold striped livery with fleurs-de-lis, magenta-plumed caps')
+# The witch as the 1903 film shows her (references/film-witch/, frames at
+# 5:18 and 13:20 of the Commons copy): a living old crone, not a spectre.
+WITCH_FILM = ('the witch exactly as she appears in Méliès\'s 1903 film (attach references/film-witch/witch-05m18s.jpg and '
+              'witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in '
+              'one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds '
+              'to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle '
+              'with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps '
+              'of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. '
+              'A living old woman, never a faceless spectre or a grim reaper')
 DEMON = 'a demon as in references/film-planning/originals/char-demons.png (attach it): a stage performer in tights with a horned cap'
 CREATURES = 'references/film-planning/originals/char-sea-creatures.png (attach it)'
 
@@ -86,11 +93,6 @@ GROUPS = [
         ('aurora-stand', 'Aurora, wand raised', 260, 420, 'bottom centre', SPRITE, f'{AURORA}, standing facing left, wand raised high with its star glowing, other hand open.', None),
         ('aurora-point', 'Aurora pointing the way', 300, 420, 'bottom centre', SPRITE, f'{AURORA}, standing facing left, one arm extended pointing the way, wand in the other hand.', None),
         ('water-fairy-stand', 'The Water Fairy', 260, 420, 'bottom centre', SPRITE, f'{WATER_FAIRY}, standing facing left, one hand held out low in blessing (where witch-stand holds the rose, so the game\'s sparkles still line up), the other at her side.', 'witch-stand'),
-        ('witch-hooded', 'The witch standing', 240, 400, 'bottom centre', SPRITE, f'{WITCH}, standing facing left, staff raised in a curse.', None),
-        ('witch-cloud', 'The witch on her storm cloud', 400, 400, 'bottom centre', SPRITE, f'{WITCH}, rising out of a churning black-and-magenta storm cloud, arms and staff raised, lightning at her hands.', None),
-        ('witch-storm', 'The witch in the storm sky (Act I)', 520, 340, 'bottom centre', SPRITE, f'{WITCH}, riding a small churning black-and-magenta storm cloud across the sky toward the left, staff raised, lightning crackling from it. Replaces the witch in her moon boat in the voyage\'s sky; keep the same overall footprint as witch-moonboat.', 'witch-moonboat'),
-        ('witch-swoop', 'The witch swooping', 400, 240, 'centre', SPRITE, f'{WITCH}, flying horizontally to the left, cloak streaming behind, clawed hand reaching.', None),
-        ('witch-barrel', 'The witch in the barrel', 200, 240, 'bottom centre', SPRITE, f'{WITCH}, hunched inside an old wooden barrel, only her hood and clawed hands showing over the rim.', None),
         ('king-stand', 'The king', 220, 420, 'bottom centre', SPRITE, 'Azurine\'s father as in char-royal-court.png (attach it): elderly white-bearded king in crimson and ermine with a gold crown, standing facing right, hand raised in welcome.', None),
         ('queen-stand', 'The queen', 220, 420, 'bottom centre', SPRITE, 'Azurine\'s mother as in char-royal-court.png (attach it): grey-haired queen in crimson and ermine with a gold crown and veil, standing facing right.', None),
         ('fairy-ring', 'The fairy with the ring', 220, 420, 'bottom centre', SPRITE, 'The gift fairy in cream and gold from char-royal-court.png (attach it), standing facing left, holding up a ruby ring.', None),
@@ -168,6 +170,13 @@ GROUPS = [
         ('prince-bound', 'Prince bound by the witch', 220, 360, 'bottom centre', SPRITE, f'Prince Bel-Azor in his court dress as in prince-court.webp (attach it), standing, his arms bound to his sides by glowing teal cords of the witch\'s magic, straining against them. {POSE}', None),
         ('armour-helmet', 'The plumed helmet (pickup)', 128, 128, 'bottom centre', SPRITE, f'The prince\'s silver plumed helmet with its magenta plume, from char-bel-azor.png (attach it), resting on its own, seen from the side.', None),
         ('armour-shield', 'The star shield (pickup)', 128, 128, 'bottom centre', SPRITE, f'The prince\'s round shield with its gold star on azure, from char-bel-azor.png (attach it), standing upright on its rim, seen front-on.', None),
+    ]),
+    ('The witch, redrawn after the film', 'Requested 11 October 2026. The first witch art drew a faceless, ragged spectre with claws and a twisted staff; the film\'s witch is a stooped old crone in one heavy shaggy sea-green hooded robe, her old face showing, with a plain staff (compare references/film-witch/). These replace the five witch sprites at the same sizes and anchors; until they arrive the game keeps the first art (assets/interim/witch-*-spectre.webp).', [
+        ('witch-hooded', 'The witch standing', 240, 400, 'bottom centre', SPRITE, f'{WITCH_FILM}. Standing bent over, leaning on her staff with one hand and raising the other in a curse, facing left.', None),
+        ('witch-cloud', 'The witch on her storm cloud', 400, 400, 'bottom centre', SPRITE, f'{WITCH_FILM}. Rising out of a churning black-and-magenta storm cloud that hides her feet, both arms raised and the staff held high, lightning at her fingers, facing right.', None),
+        ('witch-storm', 'The witch in the storm sky (Act I)', 520, 340, 'bottom centre', SPRITE, f'{WITCH_FILM}. Crouched on a small churning black-and-magenta storm cloud crossing the sky toward the left, staff raised, lightning cracking from its tip.', None),
+        ('witch-swoop', 'The witch swooping', 400, 240, 'centre', SPRITE, f'{WITCH_FILM}. Flying horizontally to the left as if hung on a wire across the stage, the heavy robe streaming back behind her, one bony hand reaching forward, the staff along her body.', None),
+        ('witch-barrel', 'The witch in the barrel', 200, 240, 'bottom centre', SPRITE, f'{WITCH_FILM}. Shut inside an old iron-hooped wooden barrel, only her hooded head, her furious wrinkled face and her two bony hands showing over the rim, gripping it.', None),
     ]),
 ]
 
