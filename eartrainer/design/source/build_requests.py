@@ -43,15 +43,15 @@ BOOK_STYLE = (
 
 ASSETS = [
     # Title
-    dict(id="logo", file="assets/ui/logo.png", size="1600×640, transparent PNG", status="requested", group="Title",
+    dict(id="logo", file="assets/ui/logo.png", size="1600×640, transparent PNG", status="delivered", group="Title",
          prompt="The words “Ear Trainer” as a hand-lettered logo: “Ear” in an elegant high-contrast "
                 "serif with a soft italic swash, “Trainer” in flowing italic script, both in polished "
                 "brass-gold with an ivory highlight and a subtle warm glow. A small stylised ear whose "
                 "curve becomes a treble clef sits beside the word “Ear”, and three piano keys "
-                "(ivory, ebony, ivory) underline the lettering. Clean silhouette on a fully "
+                "(three equal ivory white keys, no black key) underline the lettering. Clean silhouette on a fully "
                 "transparent background, centred, no other text.",
          note="Must read clearly at 300 px wide. The text title (Fraunces) shows until this arrives."),
-    dict(id="title-bg", file="assets/ui/title-bg.webp", size="2400×1350 (16:9), WebP", status="requested", group="Title",
+    dict(id="title-bg", file="assets/ui/title-bg.webp", size="2400×1350 (16:9), WebP", status="delivered", group="Title",
          prompt="An intimate jazz club after hours seen from the side of a grand piano: the open lid "
                 "catching a warm spotlight, a long row of ivory and ebony keys sweeping across the "
                 "lower third in soft focus, music staves and a few notes drifting up like smoke "
@@ -59,13 +59,13 @@ ASSETS = [
                 "background, string lights blurred into bokeh. Leave the centre third calm and "
                 "darker so a logo and a button read over it. " + STYLE,
          note="Landscape phones crop it to roughly 19.5:9, so keep the subject inside the middle 80%."),
-    dict(id="rotate-card", file="assets/ui/rotate-card.png", size="800×800, transparent PNG", status="requested", group="Title",
+    dict(id="rotate-card", file="assets/ui/rotate-card.png", size="800×800, transparent PNG", status="delivered", group="Title",
          prompt="A friendly illustration of a smartphone turning from portrait to landscape, drawn "
                 "as a small ivory-and-ebony piano keyboard on its screen, with a curved brass arrow "
                 "showing the turn. Simple, bold shapes on a transparent background. " + STYLE),
     # Songbooks
     *[
-        dict(id=f"book-{bid}", file=f"assets/books/{bid}.png", size="512×512, PNG", status="requested", group="Songbook emblems",
+        dict(id=f"book-{bid}", file=f"assets/books/{bid}.png", size="512×512, PNG", status="delivered", group="Songbook emblems",
              prompt=f"An emblem for the songbook “{name}”: {subject}. " + BOOK_STYLE)
         for bid, name, subject in [
             ("all", "Everything", "a vinyl record whose grooves glow brass, with a small star of light at the label"),
@@ -74,17 +74,17 @@ ASSETS = [
             ("holiday", "Carols & Hymns", "a brass hand bell with holly and a single falling snowflake"),
             ("classical", "Classical Themes", "a marble bust's laurel wreath around a treble clef"),
             ("jazz", "Jazz Standards", "a brass saxophone bell with a curl of smoke and a spotlight"),
-            ("licks", "Jazz & Blues Licks", "a trumpet valve cluster and a winding glowing line of notes"),
+            ("licks", "Jazz & Blues Licks", "a straight side-view brass trumpet with three aligned upright piston valves, a straight level leadpipe and bell tube, compact conventional U-shaped valve slides, a naturally flared bell, and a winding glowing line of notes"),
             ("popular", "Film & Pop Hooks", "a cinema film reel and a vintage microphone"),
         ]
     ],
     # App icons and the library cover
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, no transparency", status="requested", group="App icon",
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, no transparency", status="delivered", group="App icon",
          prompt="An app icon: a stylised ear whose curve becomes a treble clef, in brass-gold, above "
                 "three ivory-and-ebony piano keys, on a deep midnight-blue rounded-square ground with "
                 "a soft warm glow behind the ear. Bold, simple, centred, legible at 60 pixels. " + STYLE,
          note="Resized to icons/icon-180.png, icon-192.png and icon-512.png (also used maskable, so keep the motif inside the middle 80%). Stand-ins are drawn by design/source/make_icons.py."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="requested", group="Game library card",
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Game library card",
          prompt="A close view of grand piano keys under warm lamplight, a single key glowing brass as "
                 "if just pressed, with a few golden notes rising from it into a midnight-blue "
                 "background. Leave the upper middle calm for the logo to sit on. " + STYLE,

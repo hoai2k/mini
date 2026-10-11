@@ -2,66 +2,66 @@
   {
     "id": "logo",
     "file": "assets/ui/logo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "title-bg",
     "file": "assets/ui/title-bg.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "rotate-card",
     "file": "assets/ui/rotate-card.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-all",
     "file": "assets/books/all.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-children",
     "file": "assets/books/children.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-traditional",
     "file": "assets/books/traditional.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-holiday",
     "file": "assets/books/holiday.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-classical",
     "file": "assets/books/classical.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-jazz",
     "file": "assets/books/jazz.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-licks",
     "file": "assets/books/licks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "book-popular",
     "file": "assets/books/popular.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "icon",
     "file": "icons/icon-1024.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "cover",
     "file": "assets/ui/cover.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 ]
