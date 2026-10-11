@@ -156,6 +156,8 @@ def ids():
 
 def render():
     n = len(ids())
+    slots = json.load(open(MANIFEST))['slots']
+    delivered = sum(slots.get(a[0], {}).get('status') == 'delivered' for a in ids())
     out = [START, '', '## Production art for the film edition', '',
            f'Requested 11 October 2026: {n} game assets for following the film (see '
            '[the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and '
@@ -163,10 +165,13 @@ def render():
            '[references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for '
            'the existing art, and match the sprite each one replaces so it drops into place. Name each file by its '
            'id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in '
-           '`assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.', '']
+           '`assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.', '',
+           f'Delivery: {delivered} of {n} assets generated and prepared. '
+           '[Delivery notes](generated/film-production/README.md) retain native originals and generation records.', '']
     for i, (title, blurb, items) in enumerate(GROUPS, 1):
-        out += [f'### F{i}. {title}', '', blurb, '', '| Id | Size | Anchor | Replaces |', '| --- | --- | --- | --- |']
-        out += [f'| `{a[0]}` | {a[2]} × {a[3]} | {a[4]} | {("`" + a[7] + "`") if a[7] else "new"} |' for a in items]
+        out += [f'### F{i}. {title}', '', blurb, '', '| Id | Size | Anchor | Replaces | Delivery |', '| --- | --- | --- | --- | --- |']
+        out += [f'| `{a[0]}` | {a[2]} × {a[3]} | {a[4]} | {("`" + a[7] + "`") if a[7] else "new"} | ' +
+                (f'[delivered](../assets/{a[0]}.webp)' if slots.get(a[0], {}).get('status') == 'delivered' else 'requested') + ' |' for a in items]
         out.append('')
         for aid, name, w, h, anchor, style, desc, _ in items:
             out += [f'#### `{aid}` — {name}', '', f'{w} × {h} px, anchor {anchor}.', '', f'> {desc} {style}', '']

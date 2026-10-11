@@ -32,8 +32,8 @@ acts. The first four keep their stage machinery and rules, recast:
 6. The Burning Tower: the burning floors, carrying Azurine out, rolling the
    witch's barrel over the cliff on the beat, the wedding and the apotheosis.
 
-Characters and props without delivered film art are drawn by interim cut-outs
-from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
+The film cast, props and sets use the delivered production art; anything still
+requested is drawn by an interim cut-out from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
 `design/source/cut_planning.py`) until the production requests arrive.
 
 [`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)
@@ -82,7 +82,13 @@ New documentation uses the full film, not the music-video edit, as its authority
 
 [The film planning gallery](design/references/film-planning/index.html) contains
 the ten character sheets and twenty scene concepts for the proposed adaptation.
-Source request briefs, named references and native originals are retained. These are design references; interim cut-outs from them stand in for the film cast until production art (the F1–F4 requests in the image requests) arrives.
+Source request briefs, named references and native originals are retained. These are design references; interim cut-outs from them remain only for assets whose production art has not arrived.
+
+[The production artwork gallery](design/generated/film-production/index.html)
+contains the film-edition sprites, props and sets, with native originals and
+submitted prompts. [Image requests](design/image-requests.md) track delivery
+status. The film edition draws these through its cast maps (`src/theme.js`
+and each act's `cast`).
 
 [Music](design/music.md) describes the five delivered period tracks and their
 scene moods. New effects use `design/source/build_sfx.py`; its key comes from
