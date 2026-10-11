@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 82 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 80 of 82 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 81 of 82 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -257,7 +257,7 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 | `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | [delivered](../assets/water-fairy-stand.webp) |
 | `witch-hooded` | 240 × 400 | bottom centre | new | [delivered](../assets/witch-hooded.webp) |
 | `witch-cloud` | 400 × 400 | bottom centre | new | [delivered](../assets/witch-cloud.webp) |
-| `witch-storm` | 520 × 340 | bottom centre | `witch-moonboat` | requested |
+| `witch-storm` | 520 × 340 | bottom centre | `witch-moonboat` | [delivered](../assets/witch-storm.webp) |
 | `witch-swoop` | 400 × 240 | centre | new | [delivered](../assets/witch-swoop.webp) |
 | `witch-barrel` | 200 × 240 | bottom centre | new | [delivered](../assets/witch-barrel.webp) |
 | `king-stand` | 220 × 420 | bottom centre | new | [delivered](../assets/king-stand.webp) |
