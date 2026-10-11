@@ -12,7 +12,7 @@ import { createFlyer } from './flyer.js';
 import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
-import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
+import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted, setSoundOn } from './audio.js';
 import { assetUrl, iconUrl, setIconTheme } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
@@ -26,6 +26,7 @@ const settings = {
   color: COLORS[Math.floor(Math.random() * COLORS.length)],
   volume: 0.6,
   autoLight: true,
+  muted: false,
   theme: 'kid',
   ...load('settings', {}),
 };
@@ -71,6 +72,7 @@ function applyTheme(t) {
   refreshIcons();
 }
 setVolume(settings.volume);
+setSoundOn(!settings.muted);
 delete settings.reduceMotion;
 
 // A fresh ID per page load: a reload is a new person to the others, which
@@ -160,6 +162,28 @@ document.addEventListener('click', e => {
   if (e.target.closest('[data-action="fullscreen"]')) toggleFullscreen();
 });
 applyIcons();
+// The Sound button mutes the app's own sound effects (not the call's
+// microphone or anyone's voice); it is saved with the other settings.
+function markSound() {
+  const on = !settings.muted;
+  const label = on ? 'Sound on' : 'Sound off';
+  document.querySelectorAll('[data-action="sound"]').forEach(b => {
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', label);
+    b.setAttribute('title', label);
+    b.classList.toggle('is-off', !on);
+    b.innerHTML = ICONS[on ? 'soundOn' : 'soundOff'];
+  });
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-action="sound"]')) return;
+  settings.muted = !settings.muted;
+  setSoundOn(!settings.muted);
+  saveSettings();
+  markSound();
+  if (!settings.muted) { unlockAudio(); sfx('pop'); }
+});
+markSound();
 // Already running full screen from the home screen: no button needed.
 if (standalone()) document.querySelectorAll('[data-action="fullscreen"]').forEach(b => { b.hidden = true; });
 const markFullscreen = () => document.querySelectorAll('[data-action="fullscreen"]').forEach(b => b.setAttribute('aria-pressed', String(!!fullscreenElement())));

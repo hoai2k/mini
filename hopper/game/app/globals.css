@@ -306,16 +306,37 @@ button {
 .loading-panel p span {
   opacity: 0.65;
 }
-/* Sound off is a state to fix, not a neutral toggle: it stays lit so a player
-   whose browser refused music can see which button to press. */
+/* Sound off reads as dimmed and crossed out until hovered or focused. */
 .corner-controls button.sound-off,
 .hud-right button.sound-off {
-  border-color: #f0c07d;
-  color: #ffdda4;
-  background: #4a2f1a8c;
+  opacity: 0.5;
 }
-.corner-controls button.sound-off {
-  animation: breathe 2.4s ease-in-out infinite;
+.corner-controls button.sound-off:hover,
+.corner-controls button.sound-off:focus-visible,
+.corner-controls button.sound-off[data-selected='true'],
+.hud-right button.sound-off:hover,
+.hud-right button.sound-off:focus-visible {
+  opacity: 1;
+}
+/* Icon buttons name themselves on hover or focus. */
+.corner-controls button {
+  position: relative;
+}
+.corner-controls button[title]:hover::after,
+.corner-controls button[title]:focus-visible::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #06131aee;
+  border: 1px solid #f5edcb4a;
+  color: #f2eacb;
+  font-size: 11px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 /* Play-select: the same poster, split into episodes on the left and the
    controller reference on the right. */

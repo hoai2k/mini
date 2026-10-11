@@ -43,6 +43,7 @@ export class Sound {
     this.ctx = null;
     this.master = null;
     this.volume = 0.8;
+    this.muted = false;
     this.ambienceLevel = 0.6;
     this.samples = new Map(); // id -> { buffers, gain, loop }
     this.ambience = null;
@@ -465,7 +466,13 @@ export class Sound {
 
   setVolume(v) {
     this.volume = v;
-    if (this.master) this.master.gain.value = v;
+    if (this.master) this.master.gain.value = this.muted ? 0 : v;
+  }
+
+  /** The Sound button: silences the whole mix (music, ambience, strokes) at the master. */
+  setMuted(muted) {
+    this.muted = !!muted;
+    this.setVolume(this.volume);
   }
 
   makeNoise() {

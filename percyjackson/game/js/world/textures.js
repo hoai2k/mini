@@ -108,7 +108,7 @@ export function paintExtraTile(name, px, r, H) {
       for (let x = 0; x < 16; x++) { const y = (Math.round(Math.sin(x * 0.6) * 1.5) + 8) & 15; px.set(x, y, C(0xb88040), 0.3); }
       return true;
     case 'red_rock': each(px, (x, y) => { // layered sandstone
-      const band = Math.floor((y + Math.sin(x * 0.5) * 1.2) / 3) % 3;
+      const band = ((Math.floor((y + Math.sin(x * 0.5) * 1.2 + 3) / 3) % 3) + 3) % 3;
       const c = [C(0xb05a32), C(0xc8743e), C(0x9a4a2a)][band];
       return [jitter(c, r, 0.12), 0.4 + band * 0.15];
     }); return true;

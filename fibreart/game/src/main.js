@@ -16,7 +16,7 @@ const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 
 const SETTINGS_KEY = 'fibreart.settings';
 const DEFAULTS = {
-  volume: 80, music: 60, sfx: 80, playHints: false, vibration: true,
+  volume: 80, music: 60, sfx: 80, muted: false, playHints: false, vibration: true,
   reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 function loadSettings() {
@@ -358,11 +358,34 @@ function fillSettings() {
 }
 
 function applySettings() {
-  audio.set({ volume: settings.volume / 100, music: settings.music / 100, sfx: settings.sfx / 100 });
+  audio.set({ volume: settings.volume / 100, music: settings.music / 100, sfx: settings.sfx / 100, muted: !!settings.muted });
+  syncSoundButton();
   // No interface over the picture unless the player asks for hints.
   if (overlay) overlay.hints = settings.playHints;
   $('#hud').classList.toggle('hints', !!settings.playHints);
   if (game) game.reduceMotion = settings.reduceMotion;
+}
+
+const SOUND_ICON = {
+  on: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>',
+  off: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>',
+};
+function syncSoundButton() {
+  const on = !settings.muted;
+  const label = on ? 'Sound on' : 'Sound off';
+  for (const b of $$('[data-action="sound"]')) {
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', label);
+    b.title = label;
+    b.classList.toggle('is-off', !on);
+    b.querySelector('svg').innerHTML = on ? SOUND_ICON.on : SOUND_ICON.off;
+    b.querySelector('.btn-label').textContent = label;
+  }
+}
+function toggleSound() {
+  settings.muted = !settings.muted;
+  saveSettings();
+  applySettings();
 }
 
 function vibrate(id, strength = 0.5, ms = 180) {
@@ -874,6 +897,7 @@ function wire() {
     switch (el.dataset.action) {
       case 'start': return start();
       case 'fullscreen': return toggleFullscreen();
+      case 'sound': return toggleSound();
       case 'pause': return pause();
       case 'resume': return closeAllAndResume();
       case 'close': return closeModal();

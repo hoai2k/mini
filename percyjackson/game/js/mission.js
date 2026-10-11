@@ -80,7 +80,7 @@ export class Mission {
     const it = ITEM_TEXT[this.itemStyle];
     if (this.obj.items.length && it) d = `${this.obj.done} / ${this.obj.need} ${it.verb}`;
     if (this.def.objText) t = this.def.objText;
-    const own = !this.objDone && this.handler?.text?.();
+    const own = this.handler?.text?.();
     if (own) { this.game.hud.setObjective(own[0], own[1]); return; }
     if (this.handler?.approach && this.objDone && !this.bossSpawned) { this.game.hud.setObjective(t, 'The way ahead is open: face the boss'); return; }
     const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (LT / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';

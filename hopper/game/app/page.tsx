@@ -690,6 +690,49 @@ export default function Home() {
       if (aim !== undefined) setAimed(aim);
     },
   });
+  /** Instructions, Settings, Sound, Fullscreen: the icon row of the title. */
+  const utilityButtons = (base: number) => (
+    <>
+      <Button
+        {...nav(base)}
+        size="icon"
+        onClick={() => open('instructions')}
+        aria-label="Instructions"
+        title="Instructions"
+      >
+        <BookOpen />
+      </Button>
+      <Button
+        {...nav(base + 1)}
+        size="icon"
+        onClick={() => open('settings')}
+        aria-label="Settings"
+        title="Settings"
+      >
+        <Settings />
+      </Button>
+      <Button
+        {...nav(base + 2)}
+        size="icon"
+        className={soundOff ? 'sound-off' : ''}
+        onClick={toggleSound}
+        aria-label={soundOff ? 'Sound off' : 'Sound on'}
+        title={soundOff ? 'Sound off' : 'Sound on'}
+        aria-pressed={!soundOff}
+      >
+        {soundOff ? <VolumeX /> : <Volume2 />}
+      </Button>
+      <Button
+        {...nav(base + 3)}
+        size="icon"
+        onClick={fullscreen}
+        aria-label="Fullscreen"
+        title="Fullscreen"
+      >
+        <Maximize />
+      </Button>
+    </>
+  );
   return (
     <main
       ref={root}
@@ -767,6 +810,9 @@ export default function Home() {
                 </>
               )}
             </p>
+          </div>
+          <div className="corner-controls">
+            {utilityButtons(showEditionOptions ? 2 : 1)}
           </div>
           <div className="title-footer">
             <p>THREE WORLDS. ONE EXTRAORDINARY FRIEND.</p>
@@ -945,35 +991,11 @@ export default function Home() {
               size="icon"
               onClick={() => change('title')}
               aria-label="Back to title"
+              title="Back to title"
             >
               <ArrowLeft />
             </Button>
-            <Button
-              {...nav(episodeBase + 5)}
-              size="icon"
-              className={soundOff ? 'sound-off' : ''}
-              onClick={toggleSound}
-              aria-label={soundOff ? 'Turn sound on' : 'Turn sound off'}
-              aria-pressed={soundOff}
-            >
-              {soundOff ? <VolumeX /> : <Volume2 />}
-            </Button>
-            <Button
-              {...nav(episodeBase + 6)}
-              size="icon"
-              onClick={() => open('settings')}
-              aria-label="Settings"
-            >
-              <Settings />
-            </Button>
-            <Button
-              {...nav(episodeBase + 7)}
-              size="icon"
-              onClick={fullscreen}
-              aria-label="Fullscreen"
-            >
-              <Maximize />
-            </Button>
+            {utilityButtons(episodeBase + 5)}
           </div>
         </div>
       )}
@@ -1017,8 +1039,8 @@ export default function Home() {
                 size="icon"
                 className={soundOff ? 'sound-off' : ''}
                 onClick={toggleSound}
-                aria-label={soundOff ? 'Turn sound on' : 'Turn sound off'}
-                aria-pressed={soundOff}
+                aria-label={soundOff ? 'Sound off' : 'Sound on'}
+                aria-pressed={!soundOff}
               >
                 {soundOff ? <VolumeX /> : <Volume2 />}
               </Button>

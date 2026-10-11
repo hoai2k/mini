@@ -72,6 +72,7 @@ html.booting .title-block, html.booting #title .corner-buttons { opacity: 0; }
 .icon-btn { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--paper-shade); background: rgba(22, 21, 26, 0.55); color: var(--paper); cursor: pointer; display: grid; place-items: center; }
 .icon-btn svg { width: 26px; height: 26px; }
 .icon-btn:hover { background: var(--bronze); }
+.icon-btn.is-off:not(:hover):not(:focus-visible):not(.nav-focus) { opacity: 0.5; }
 .icon-btn:active { transform: scale(0.94); }
 .btn-label { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 13px; background: var(--ink); padding: 4px 8px; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
 .icon-btn:hover .btn-label, .icon-btn:focus-visible .btn-label, .icon-btn.nav-focus .btn-label { opacity: 1; }

@@ -4,10 +4,15 @@
 //   melee    pup, spider, hellhound      ranged  harpy (feathers)
 //   tank     dracaena (shield + spear)   teleport fury (blink + whip)
 //   summon   empousa (calls pups)        blob    automaton (Greek-fire burst)
+//   statue   living statue: stands frozen until a hero comes near or hits it
+// Stat-block extras (monsters.js): poison (a hit poisons the hero), regrow
+// (a skeleton falls to bones and stands up again unless hit while down),
+// projectile 'bullet' (fast, straight) and 'wisp' (slow, homing), slamR.
 //
 // Fields other systems may set on an Enemy:
 //   disguised / untargetable  true while the Mist shows a mortal (spawn with
-//              { disguise: 'teacher' | 'student' | 'tourist' | 'farmer' | 'old_lady' });
+//              { disguise: 'teacher' | 'student' | 'tourist' | 'farmer' | 'old_lady' |
+//              'bellhop' | 'salesman' });
 //              such an enemy wanders, never attacks and takes no damage.
 //              reveal() drops the disguise (True Sight calls it).
 //   status.fear  seconds: runs away from fearFrom (Vector3, or its target) and never attacks
@@ -16,15 +21,20 @@
 //   mark         seconds: takes +50% damage while > 0
 //   slowT        seconds: legacy 40% speed slow (hazards, frost procs)
 //   sealT        seconds: held in place (artifacts)
+//   awake        a 'statue' monster is moving (set true to spawn it awake)
+//   bossSummon   the boss that called this monster (it may clear them on death)
 // Players with `invisible === true` are never chosen or kept as targets.
 import * as THREE from 'three/webgpu';
 import { moveEntity, groundAhead } from '../physics.js';
 import { buildMonsterModel, MONSTERS, addEliteShell, resolveKind, goldDust, mistPuff } from './monsters.js';
 import { buildMortal, MORTALS, mortalId } from './mortals.js';
 import { FLASH_MATERIAL } from './character.js';
+import { poisonHero } from './holds.js';
+import { toast } from '../ui/ui.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3();
+let bonesHint = false;
 const ELITE_AFFIX = {
   swift: { color: 0x4affd8, label: 'Swift' },
   armored: { color: 0xffc24a, label: 'Armored' },
@@ -114,12 +124,18 @@ export class Enemy {
       case 'screech': a.tone({ freq: 900 * p, to: 1500 * p, dur: 0.22, gain: 0.06, type: 'sawtooth', filter: 4000 }); break;
       case 'hiss': a.noise({ dur: 0.35, gain: 0.14, type: 'highpass', freq: 3500 }); break;
       case 'click': a.tone({ freq: 2400, dur: 0.03, gain: 0.05, type: 'square', filter: 6000 }); a.tone({ freq: 2000, dur: 0.03, gain: 0.05, type: 'square', filter: 6000, at: 0.06 }); break;
+      case 'rattle': for (let i = 0; i < 4; i++) a.tone({ freq: 900 + i * 120, dur: 0.025, gain: 0.05, type: 'square', filter: 3000, at: i * 0.05 }); break;
+      case 'moan': a.tone({ freq: 260 * p, to: 180 * p, dur: 0.6, gain: 0.05, type: 'sine', filter: 1200, rev: 0.6 }); break;
+      case 'grind': a.noise({ dur: 0.4, gain: 0.16, type: 'lowpass', freq: 500 }); break;
+      case 'roar': a.tone({ freq: 140 * p, to: 70 * p, dur: 0.5, gain: 0.2, type: 'sawtooth', filter: 700 }); break;
     }
   }
 
   // ---------------------------------------------------------------- damage
   takeDamage(amount, src, o = {}) {
     if (this.dead || this.disguised || this.spawnT > 0.2) return 0;
+    if (this.bones) { this.hp = 0; this.die({ ...o, scattered: true }); return amount; }   // scatter the bones
+    if (this.def.ai === 'statue' && !this.awake) this.wake();
     let dmg = amount * (this.mark > 0 ? 1.5 : 1);
     // Bulwark shields block frontal hits
     if (this.def.shield && src && !o.unblockable && this.state !== 'stagger') {
@@ -149,6 +165,16 @@ export class Enemy {
   cancelAttack() { if (this.marker) { this.game.markers.cancel(this.marker); this.marker = null; } this.action = null; }
   die(o = {}) {
     if (this.dead) return;
+    // skeleton warriors fall to bones and get back up unless hit while down
+    if (this.def.regrow && !this.regrew && !o.pit) {
+      this.regrew = true; this.bones = true; this.boneT = 0; this.hp = this.maxHp * 0.5;
+      this.cancelAttack(); this.state = 'bones'; this.stateT = 0;
+      this.game.particles.burst(this.pos.clone().setY(this.pos.y + 1), { count: 18, color: 0xe8e0c8, additive: false, speed: 3, life: 0.6, size: 0.18, gravity: 12 });
+      this.game.audio?.tone({ freq: 700, to: 300, dur: 0.25, gain: 0.08, type: 'square', filter: 2500 });
+      if (!bonesHint) { bonesHint = true; toast('The bones are pulling back together. Hit them before it gets up!'); }
+      return;
+    }
+    this.bones = false;
     this.dead = true; this.deathT = 0; this.state = 'dead';
     this.cancelAttack();
     const g = this.game;
@@ -236,6 +262,8 @@ export class Enemy {
     this.stateT += dt; this.cd -= dt; this.flashT -= dt; this.slowT = (this.slowT ?? 0) - dt;
     this.blinkCd -= dt;
     if (this.disguised) return this.updateDisguised(dt);
+    if (this.bones) return this.updateBones(dt);
+    if (this.def.ai === 'statue' && !this.awake) return this.updateDormant(dt);
     const S = this.status;
     S.fear = Math.max(0, S.fear - dt); S.root = Math.max(0, S.root - dt); S.slow = Math.max(0, S.slow - dt); this.mark = Math.max(0, this.mark - dt);
     const t = this.pickTarget();
@@ -260,10 +288,10 @@ export class Enemy {
       const d = t.pos.distanceTo(this.pos);
       const toT = tmp.subVectors(t.pos, this.pos);
       switch (ai) {
-        case 'melee': case 'tank':
+        case 'melee': case 'tank': case 'statue':
           if (d > this.def.range * 0.9) move.copy(this.steer(toT)); else move.copy(this.steer(toT, 0.1));
           this.faceTo(t.pos, dt);
-          if (d < this.def.range + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : 'bite');
+          if (d < this.def.range + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : ai === 'statue' ? 'slash' : 'bite');
           break;
         case 'blob':
           move.copy(this.steer(toT, 1));
@@ -331,6 +359,40 @@ export class Enemy {
     }
     return true;
   }
+  // A living statue: frozen in its pose until a hero comes close or hits it.
+  updateDormant(dt) {
+    const g = this.game;
+    if (this.spawnT <= 0) for (const p of g.hostileTargets()) if (!p.dead && !p.invisible && p.pos.distanceTo(this.pos) < (this.def.wake ?? 5)) { this.wake(); break; }
+    this.moveBody(dt, tmp2.set(0, 0, 0));
+    this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
+    const rise = this.spawnT > 0 ? -this.spawnT * 3 : 0;
+    this.object.position.set(this.pos.x, this.pos.y + rise, this.pos.z);
+    this.object.rotation.y = this.facing;
+    return true;
+  }
+  wake() {
+    if (this.awake) return;
+    const g = this.game;
+    this.awake = true; this.aggro = true;
+    this.state = 'stagger'; this.stateT = 0; this.stagger = 0.6;
+    const c = this.pos.clone().setY(this.pos.y + 1);
+    g.particles.burst(c, { count: 28, color: 0xa8a49a, additive: false, speed: 3, life: 0.8, size: 0.25, sizeEnd: 0.7, gravity: 6 });
+    g.audio?.noise({ dur: 0.5, gain: 0.2, type: 'lowpass', freq: 600 });
+    this.voice();
+  }
+  // Fallen to bones: lie there, then pull back together and stand up.
+  updateBones(dt) {
+    const g = this.game;
+    this.boneT += dt;
+    this.moveBody(dt, tmp2.set(0, 0, 0));
+    this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
+    this.object.position.set(this.pos.x, this.pos.y, this.pos.z);
+    const up = this.boneT > 3 ? Math.min(1, (this.boneT - 3) * 2) : 0;
+    this.rig.animate({ dt, speed: 0, vel: this.vel, action: up > 0 ? { type: 'hit', t: up } : { type: 'death', t: Math.min(1, this.boneT * 3) } });
+    if (Math.random() < dt * 4) g.particles.glow.emit(this.pos.x + (Math.random() - 0.5), this.pos.y + 0.3, this.pos.z + (Math.random() - 0.5), 0, 0.4, 0, 0.5, 1.8, 2.2, 1.2, 0.1, 0, 1, 0.05, 1);
+    if (this.boneT > 3.5) { this.bones = false; this.state = 'stagger'; this.stateT = 0; this.stagger = 0.4; this.voice(); }
+    return true;
+  }
   // Ambient particles: hellhound smoke, empousa flames, Greek fire, spider sparks, elite glow.
   aura(dt) {
     const g = this.game;
@@ -344,6 +406,7 @@ export class Enemy {
     if (a === 'smoke') g.particles.smoke.emit(x, p.y + Math.random() * this.height, z, (Math.random() - 0.5) * 0.3, 0.6 + Math.random() * 0.4, (Math.random() - 0.5) * 0.3, 1.3, 0.05, 0.03, 0.04, 0.5, -0.3, 1.2, 2.6, 0);
     else if (a === 'fire') { const h = this.rig.head.getWorldPosition(tmp); g.particles.glow.emit(h.x + (Math.random() - 0.5) * 0.4, h.y + 0.45, h.z + (Math.random() - 0.5) * 0.4, 0, 1.6 + Math.random(), 0, 0.45, 2.6, 1.1, 0.25, 0.22, -1, 1, 0.05, 0); }
     else if (a === 'greekfire') { const f = (this.rig.extras.pot ?? this.rig.root).getWorldPosition(tmp); g.particles.glow.emit(f.x + (Math.random() - 0.5) * 0.3, f.y + 0.5, f.z + (Math.random() - 0.5) * 0.3, 0, 1.4 + Math.random(), 0, 0.5, 0.8, 2.6, 0.5, 0.2, -1, 1, 0.05, 0); if (this.rig.extras.fire) this.rig.extras.fire.scale.y = 0.5 + Math.random() * 0.25; }
+    else if (a === 'wisp') g.particles.glow.emit(x, p.y + Math.random() * this.height + 0.4, z, 0, 0.5 + Math.random() * 0.5, 0, 0.6, 1.2, 2.2, 2.6, 0.14, -0.3, 1, 0.05, 1);
     else if (a === 'spark' && Math.random() < 0.3) g.particles.glow.emit(x, p.y + 0.3, z, (Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2, 0.25, 2.4, 1.8, 0.8, 0.06, 12, 0, 0.02, 1);
   }
   moveBody(dt, move) {
@@ -391,7 +454,7 @@ export class Enemy {
     const d = this.def;
     const A = {
       bite: { windup: d.windup, recover: 0.35, style: 'swingR', range: d.range + 0.3 },
-      slam: { windup: d.windup, recover: 0.7, style: 'slam', range: 3, marker: 'circleFront' },
+      slam: { windup: d.windup, recover: 0.7, style: 'slam', range: 3, marker: 'circleFront', radius: d.slamR ?? 2.6 },
       inflate: { windup: d.windup, recover: 0.1, anim: 'none', marker: 'circle', radius: 3 },
       spit: { windup: d.windup, recover: 0.4, anim: 'cast' },
       summon: { windup: d.windup + 0.4, recover: 0.6, anim: 'raise', marker: 'summon' },
@@ -400,8 +463,8 @@ export class Enemy {
     this.action = { kind, ...A };
     this.state = 'windup'; this.stateT = 0;
     if (A.marker === 'circleFront') {
-      const f = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(1.6).add(this.pos);
-      this.marker = g.markers.spawn({ pos: f, radius: 2.6, dur: A.windup });
+      const f = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(1.6 * A.radius / 2.6).add(this.pos);
+      this.marker = g.markers.spawn({ pos: f, radius: A.radius, dur: A.windup });
       this.action.center = f.clone();
     } else if (A.marker === 'circle') {
       this.marker = g.markers.spawn({ pos: this.pos, radius: A.radius, dur: A.windup, follow: this });
@@ -433,10 +496,10 @@ export class Enemy {
       }
       case 'slam': {
         const c = a.center;
-        g.fx.shockwave(c, 0xff8a4a, 3.2);
+        g.fx.shockwave(c, 0xff8a4a, a.radius + 0.6);
         g.shake(0.3);
         g.audio?.impact(1.8);
-        for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(c) < 2.8 + p.radius) this.hitPlayer(p, this.dmg, new THREE.Vector3().subVectors(p.pos, c).setY(0).normalize().multiplyScalar(10));
+        for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(c) < a.radius + 0.2 + p.radius) this.hitPlayer(p, this.dmg, new THREE.Vector3().subVectors(p.pos, c).setY(0).normalize().multiplyScalar(10));
         break;
       }
       case 'inflate': this.hp = 0; this.die({}); break;
@@ -455,6 +518,30 @@ export class Enemy {
               onExpire: (p, why) => { if (why === 'wall') g.particles.burst(p.pos, { count: 4, color: 0x8a6a4a, additive: false, speed: 1.5, life: 0.4, size: 0.12, gravity: 4 }); } });
           }
           g.audio?.whoosh(1.2);
+          break;
+        }
+        if (this.def.projectile === 'bullet') {
+          // a short burst from the rifle: fast and straight
+          const muzzle = this.rig.extras.muzzle ? this.rig.extras.muzzle.getWorldPosition(new THREE.Vector3()) : from;
+          for (let i = 0; i < 2; i++) {
+            const dir = new THREE.Vector3().subVectors(lead, muzzle).setY(lead.y + 0.9 - muzzle.y).normalize().applyAxisAngle(UP, (Math.random() - 0.5) * 0.08);
+            g.projectiles.fire({ pos: muzzle.clone().addScaledVector(dir, i * -0.8), vel: dir.multiplyScalar(26), team: 'enemy', dmg: this.dmg, life: 1, shape: 'nail', color: 0xffd84a, emissive: 3, scale: 1.6, radius: 0.3,
+              onHit: (target, p) => self.hitPlayer(target, self.dmg * 0.6, p.vel.clone().setY(0).normalize().multiplyScalar(2)),
+              onExpire: (p, why) => { if (why === 'wall') g.particles.burst(p.pos, { count: 4, color: 0xd8c8a0, additive: false, speed: 2, life: 0.3, size: 0.08, gravity: 6 }); } });
+          }
+          g.particles.burst(muzzle, { count: 6, color: 0xffd84a, speed: 3, life: 0.15, size: 0.2 });
+          g.lights.flash(muzzle, 0xffd84a, 3, 4, 0.08);
+          g.audio?.noise({ dur: 0.08, gain: 0.18, type: 'bandpass', freq: 1800, q: 0.8 });
+          g.audio?.noise({ dur: 0.08, gain: 0.14, type: 'bandpass', freq: 1600, q: 0.8, at: 0.1 });
+          break;
+        }
+        if (this.def.projectile === 'wisp') {
+          // a slow, homing ball of cold spirit-light
+          const dir = new THREE.Vector3().subVectors(lead, from).setY(lead.y + 0.9 - from.y).normalize();
+          g.projectiles.fire({ pos: from, vel: dir.multiplyScalar(7), team: 'enemy', dmg: this.dmg, life: 3, shape: 'orb', color: 0x8ae8ff, emissive: 3, scale: 1.4, radius: 0.45, homing: 1.6, target: t, ghost: true, light: 2,
+            trail: (p) => { if (Math.random() < 0.6) g.particles.burst(p.pos, { count: 1, color: 0x8ae8ff, speed: 0.2, life: 0.5, size: 0.25, sizeEnd: 0.05, drag: 3 }); },
+            onHit: (target, p) => { self.hitPlayer(target, self.dmg, p.vel.clone().setY(0).normalize().multiplyScalar(3)); if (target.slowT !== undefined) target.slowT = Math.max(target.slowT, 1); } });
+          g.audio?.tone({ freq: 500, to: 800, dur: 0.3, gain: 0.05, type: 'sine', rev: 0.6 });
           break;
         }
         const flight = clamp(dist / 11, 0.45, 1.1);
@@ -486,6 +573,7 @@ export class Enemy {
   hitPlayer(p, dmg, knock) {
     if (p.iframes > 0 || p.dead) return;
     const dealt = p.takeDamage(dmg, this, { knock });
+    if (dealt > 0 && this.def.poison) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / this.def.dmg), this.def.poison.dur, this);
     if (dealt > 0 && this.elite === 'vampiric') { this.hp = Math.min(this.maxHp, this.hp + dealt * 1.5); }
   }
   blink(evade) {

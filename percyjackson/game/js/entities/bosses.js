@@ -77,7 +77,6 @@ const BOSSES = {
     name: 'The Chimera', title: 'THE CHIMERA · ECHIDNA’S “CHIHUAHUA”', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
     build: BOSS_MODELS.chimera,
     phases: [['fire_breath', 'fireballs', 'tail_strike'], ['fire_breath', 'pounce', 'fireballs', 'tail_strike'], ['fire_breath', 'fireballs', 'pounce', 'tail_strike', 'fire_breath']],
-    init: (b) => H.chimeraInit(b),
     ambient: (b) => { const g = b.game; if (Math.random() < 0.4) { const c = b.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); } },
   },
   spiders: {
@@ -283,7 +282,7 @@ export class Boss {
     yield 1.0;
     this.anim = null; this.moving = true;
   }
-// ---------------------------------------------------------------- Alecto
+  // ---------------------------------------------------------------- Alecto
   *whip_lash() {
     const g = this.game;
     for (let k = 0; k < 1 + this.phase; k++) {

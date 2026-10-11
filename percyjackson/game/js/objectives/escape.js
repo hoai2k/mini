@@ -66,7 +66,7 @@ export class EscapeObjective {
     this.trail.visible = false;
     m.addProp(this.trail);
     // the days counter
-    this.el = h('div', { class: 'lotus-days', style: 'position:absolute;top:118px;left:50%;transform:translateX(-50%);padding:4px 14px;border-radius:14px;background:rgba(20,10,30,.72);border:1px solid #c9963a;color:#ffd8f0;font:600 15px/1.3 system-ui,sans-serif;pointer-events:none;z-index:5;text-shadow:0 1px 2px #000' });
+    this.el = h('div', { class: 'lotus-days', style: 'position:absolute;top:196px;right:12px;padding:4px 14px;border-radius:14px;background:rgba(20,10,30,.72);border:1px solid #c9963a;color:#ffd8f0;font:600 15px/1.3 system-ui,sans-serif;pointer-events:none;z-index:5;text-shadow:0 1px 2px #000' });
     (g.hud.root ?? document.body).appendChild(this.el);
   }
   update(dt) {
@@ -89,7 +89,7 @@ export class EscapeObjective {
     }
     for (const l of this.lotus) if (!l.taken) l.obj.rotation.y += dt;
     if (host && !this.failed && this.days >= this.limit) this.fail();
-    this.el.textContent = `☾ ${this.daysText()} in the Lotus Casino · the Lotus has you at ${this.limit}`;
+    this.el.textContent = `☾ ${this.daysText()} have passed (the Lotus has you at ${this.limit})`;
     this.el.style.color = this.days > this.limit * 0.75 ? '#ff8a9a' : '#ffd8f0';
     if ((this.textT -= dt) <= 0) { this.textT = 0.5; m.updateText(); }
   }

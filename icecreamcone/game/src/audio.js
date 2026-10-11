@@ -9,7 +9,7 @@ let master = null;
 let sfxBus = null;
 let musicBus = null;
 let noiseBuf = null;
-const vol = { volume: 0.8, music: 0.5, sfx: 0.8 };
+const vol = { volume: 0.8, music: 0.5, sfx: 0.8, sound: true };
 
 function ensure() {
   if (ctx) return ctx;
@@ -31,7 +31,8 @@ function ensure() {
 
 function apply() {
   if (!ctx) return;
-  master.gain.value = vol.volume;
+  // Silent while muted or while the page is away (a short ramp avoids clicks).
+  master.gain.setTargetAtTime(vol.sound && !away ? vol.volume : 0, ctx.currentTime, 0.04);
   sfxBus.gain.value = vol.sfx;
   musicBus.gain.value = vol.music * 0.5;
 }
@@ -40,6 +41,7 @@ export function setVolumes(s) {
   vol.volume = s.volume / 100;
   vol.music = s.music / 100;
   vol.sfx = s.sfx / 100;
+  vol.sound = s.sound !== false;
   apply();
 }
 
@@ -52,8 +54,11 @@ export function unlock() {
 }
 
 let away = false;
+// For checks: what the master is aimed at.
+export const state = () => ({ sound: vol.sound, away, master: vol.sound && !away ? vol.volume : 0 });
 export function suspend(on) {
   away = on;
+  apply();
   if (!ctx) return;
   if (on) ctx.suspend();
   else ctx.resume();

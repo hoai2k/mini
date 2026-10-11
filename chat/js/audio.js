@@ -83,8 +83,17 @@ export function setSfxMuted(m) {
 }
 export const sfxMuted = () => muted;
 
+// The Sound button: the player's own mute of the app's sound effects. It is
+// separate from the away mute above and, like it, leaves friends' voices and
+// the call's microphone alone.
+let userMuted = false;
+export function setSoundOn(on) {
+  userMuted = !on;
+}
+export const soundOn = () => !userMuted;
+
 export function sfx(name) {
-  if (muted) return;
+  if (muted || userMuted) return;
   if (!ctx || ctx.state !== 'running' || volume <= 0) return;
   try { SOUNDS[name]?.(); } catch {}
 }

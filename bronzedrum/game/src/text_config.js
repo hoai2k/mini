@@ -33,6 +33,8 @@ export const T = {
       instructions: 'Instructions',
       settings: 'Settings',
       fullscreen: 'Fullscreen',
+      soundOn: 'Sound on',
+      soundOff: 'Sound off',
     },
   },
 
