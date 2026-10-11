@@ -2057,6 +2057,6 @@ export const ASSET_LIST = {
   },
   "ios-app-icon": {
     "file": "assets/ui/ios-app-icon.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
