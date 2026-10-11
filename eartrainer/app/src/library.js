@@ -12,7 +12,8 @@ export const SONGBOOKS = [
   { id: 'traditional', name: 'Folk & Traditional', blurb: 'Songs from around the world', glyph: '♣' },
   { id: 'holiday', name: 'Carols & Hymns', blurb: 'Seasonal and celebration songs', glyph: '❄' },
   { id: 'classical', name: 'Classical Themes', blurb: 'From Bach to Gershwin', glyph: '𝄞' },
-  { id: 'jazz', name: 'Jazz Standards', blurb: 'Heads, bossa and swing', glyph: '♫' },
+  { id: 'jazz', name: 'Jazz Standards', blurb: 'The Real Book: swing, ballads and bossa', glyph: '♫' },
+  { id: 'bebop', name: 'Bebop Heads', blurb: 'Parker, Monk, Gillespie, Rollins and more', glyph: '♪' },
   { id: 'licks', name: 'Jazz & Blues Licks', blurb: 'Vocabulary: arpeggios, enclosures, runs', glyph: '♯' },
   { id: 'popular', name: 'Film & Pop Hooks', blurb: 'Riffs and themes everyone knows', glyph: '★' },
 ];

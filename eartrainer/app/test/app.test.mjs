@@ -179,3 +179,14 @@ test('playback is phrased: legato, lifts for rests, the last note rings', () => 
   // Faster playback scales the timing.
   assert.ok(perform(notes, secondsPerBeat(120, 1.5))[5].on < plan[5].on);
 });
+
+test('extracted jazz heads read correctly (the LilyPond and MusicXML readers)', () => {
+  const lib = buildLibrary();
+  const notes = (id) => byId(lib, id).parsed.map((n) => noteName(n.midi, { flats: true })).join(' ');
+  // Blue Monk: D Eb E F, G G# A Bb (spelled here with flats).
+  assert.equal(notes('blue-monk'), 'D4 Eb4 E4 F4 G4 Ab4 A4 Bb4');
+  // St. Thomas: G C B A G A E F, with its rests.
+  assert.equal(notes('st-thomas'), 'G4 C5 B4 A4 G4 A4 E4 F4');
+  assert.ok(inBook(lib, 'bebop').length >= 40);
+  assert.ok(byId(lib, 'bop-confirmation') && byId(lib, 'donna-lee').cat === 'bebop');
+});

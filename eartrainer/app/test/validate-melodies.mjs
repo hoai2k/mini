@@ -9,7 +9,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, '..', 'data', 'melodies');
 const files = process.argv.slice(2).length ? process.argv.slice(2).map((f) => resolve(f))
   : readdirSync(dir).filter((f) => f.endsWith('.js') && f !== 'index.js').map((f) => join(dir, f));
-export const CATS = ['jazz', 'licks', 'traditional', 'classical', 'children', 'holiday', 'popular'];
+export const CATS = ['jazz', 'bebop', 'licks', 'traditional', 'classical', 'children', 'holiday', 'popular'];
 let problems = 0, total = 0;
 const ids = new Map();
 for (const f of files) {
