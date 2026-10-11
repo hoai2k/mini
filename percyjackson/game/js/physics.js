@@ -30,11 +30,16 @@ function feetHit(world, x, y, z, r) {
 }
 export { feetHit };
 
-// e: { pos, vel, radius, height, grounded, stepUp?, noGravity? }
+// e: { pos, vel, radius, height, grounded, stepUp?, noGravity?, cornerSlide? }
+// cornerSlide (heroes): walking into the edge of a pillar or door frame
+// slides around it instead of stopping dead.
 export function moveEntity(e, world, dt) {
   const r = e.radius, h = e.height;
   const p = e.pos;
   e.hitWall = false;
+  // a position with no ground under it (e.g. spawned over a pit at -Infinity)
+  // would make the box sweep loop forever: leave it to the caller's reset
+  if (!Number.isFinite(p.x + p.y + p.z)) return e;
   // horizontal: X then Z, with step-up
   for (const axis of ['x', 'z']) {
     const d = e.vel[axis] * dt;
@@ -49,6 +54,7 @@ export function moveEntity(e, world, dt) {
     }
     // slide: resolve to the block edge
     e.hitWall = true;
+    if (e.cornerSlide && cornerNudge(world, e, axis, d)) continue;
     e.vel[axis] = 0;
   }
   // vertical
@@ -74,6 +80,27 @@ export function moveEntity(e, world, dt) {
   const liq = world.liquidAt(p.x, p.y + 0.3, p.z);
   e.inLiquid = liq;
   return e;
+}
+
+// Blocked on one axis by a corner: if a small sideways shift (up to 0.45)
+// clears the way, step sideways instead, so heroes round pillars and door
+// frames rather than snagging on them. Only when moving mostly into the wall.
+function cornerNudge(world, e, axis, d) {
+  const p = e.pos, r = e.radius, h = e.height;
+  const other = axis === 'x' ? 'z' : 'x';
+  if (Math.abs(e.vel[other]) > Math.abs(e.vel[axis]) * 0.6) return false;
+  for (const off of [0.15, 0.3, 0.45]) for (const s of [1, -1]) {
+    const o = off * s;
+    const tx = axis === 'x' ? p.x + d : p.x + o, tz = axis === 'x' ? p.z + o : p.z + d;
+    if (boxHits(world, tx, p.y, tz, r, h)) continue;
+    // move sideways only (no progress into the wall this frame), as fast as we were walking
+    const step = Math.sign(o) * Math.min(Math.abs(o), Math.abs(d));
+    const sx = axis === 'x' ? p.x : p.x + step, sz = axis === 'x' ? p.z + step : p.z;
+    if (boxHits(world, sx, p.y, sz, r, h)) return false;
+    p[other] += step;
+    return true;
+  }
+  return false;
 }
 
 // Is there solid ground within `drop` blocks below a point?

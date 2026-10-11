@@ -66,7 +66,10 @@ class TysonKit extends Kit {
     const g = this.game, p = this.p;
     if (inp.pressed.attack) {
       const dtHit = g.time - this.windowAt;
-      if (dtHit >= 0 && dtHit <= this.window && !this.armed) {
+      // a timed press, not a mash: another press just before it spoils the timing
+      const mashed = g.time - (this.lastPressAt ?? -9) < 0.18;
+      this.lastPressAt = g.time;
+      if (dtHit >= 0 && dtHit <= this.window && !this.armed && !mashed) {
         this.armed = true;
         g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: EMBER, r0: 1.6, r1: 0.4, dur: 0.18, thick: 0.25 });
         g.audio?.tone({ freq: 220, to: 440, dur: 0.1, gain: 0.08, type: 'square', filter: 1500 });

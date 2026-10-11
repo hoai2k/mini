@@ -128,7 +128,10 @@ export class Effects {
     el.textContent = text ?? Math.round(amount);
     if (color) el.style.color = color;
     this.numLayer.appendChild(el);
-    this.numbers.push({ el, pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 1.9, (Math.random() - 0.5) * 0.6)), t: 0, vy: 2.2, crit });
+    // numbers from quick hits on one target stack upward instead of piling on one spot
+    let stack = 0;
+    for (const n of this.numbers) if (n.t < 0.3 && Math.abs(n.src.x - pos.x) < 0.8 && Math.abs(n.src.z - pos.z) < 0.8) stack++;
+    this.numbers.push({ el, src: pos.clone(), pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.9, 1.9 + Math.min(4, stack) * 0.38, (Math.random() - 0.5) * 0.9)), t: 0, vy: 2.2, crit });
   }
   // ---------------- movement fx
   landDust(pos, v) { this.p.burst(tmp.set(pos.x, pos.y + 0.1, pos.z), { count: 10, color: 0x8a7a6a, additive: false, speed: 3, up: 0.1, life: 0.5, size: 0.35, drag: 5, sizeEnd: 1.8, intensity: 0.7 }); }
@@ -213,7 +216,16 @@ export class Effects {
   // ---------------- ambient
   ambient(dt, kind, focus) {
     this.ambientT += dt;
-    const rate = { fireflies: 6, embers: 10, spores: 10, drips: 6, rain: 70, dust: 5, pollen: 4 }[kind] ?? 0;
+    // the Lotus Casino: the colours drift and pulse like a daydream
+    if (kind === 'neon') {
+      this.dreamT = (this.dreamT ?? 0) + dt;
+      const g = this.game.biome?.grade, t = this.dreamT;
+      if (g && (this.game.env?.k ?? 1) >= 1) {
+        Grade.saturation.value = g.sat + Math.sin(t * 0.6) * 0.18;
+        Grade.tint.value.setRGB(g.tint[0] + Math.sin(t * 0.45) * 0.05, g.tint[1] + Math.sin(t * 0.45 + 2.1) * 0.05, g.tint[2] + Math.sin(t * 0.45 + 4.2) * 0.05);
+      }
+    }
+    const rate = { fireflies: 6, embers: 10, spores: 10, drips: 6, rain: 70, dust: 5, pollen: 4, ash: 14, neon: 9, sand: 26, spray: 8, sparkle: 8, moths: 5, stormfire: 70 }[kind] ?? 0;
     const n = Math.floor(this.ambientT * rate); if (!n) return;
     this.ambientT -= n / rate;
     for (let i = 0; i < n; i++) {
@@ -226,6 +238,17 @@ export class Effects {
       else if (kind === 'rain') this.p.glow.emit(x, focus.y + 9, z, 2.5, -16, 0.6, 0.6, 0.55, 0.65, 0.85, 0.04, 6, 0, 1, 1);
       else if (kind === 'dust') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.15, 0.04, (Math.random() - 0.5) * 0.15, 6, 1.0, 0.85, 0.6, 0.05, 0, 0.3, 1, 0);
       else if (kind === 'pollen') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.4, 0.1, (Math.random() - 0.5) * 0.4, 5, 1.0, 0.95, 0.6, 0.05, 0, 0.2, 1, 0);
+      // the road west
+      else if (kind === 'ash') this.p.smoke.emit(x, focus.y + 7, z, 0.3 + (Math.random() - 0.5) * 0.4, -0.7, (Math.random() - 0.5) * 0.4, 7, 0.42, 0.4, 0.44, 0.07, 0, 0.2, 1, 1);
+      else if (kind === 'neon') { const c = [[3, 0.8, 2], [0.6, 3, 1.8], [3, 2.4, 0.5]][i % 3]; this.p.glow.emit(x, focus.y + Math.random() * 1.5, z, (Math.random() - 0.5) * 0.3, 0.6 + Math.random() * 0.5, (Math.random() - 0.5) * 0.3, 3 + Math.random() * 2, c[0], c[1], c[2], 0.06, -0.05, 0.3, 0.3, 0); }
+      else if (kind === 'sand') this.p.smoke.emit(x - 8, focus.y + Math.random() * 1.6, z, 6 + Math.random() * 3, 0.2, 1.2, 2.2, 0.85, 0.66, 0.42, 0.06, 0.6, 0.1, 1, 0);
+      else if (kind === 'spray') this.p.glow.emit(x, focus.y + 0.2 + Math.random() * 2.5, z, 0.8 + Math.random() * 0.4, 0.1, 0.3, 4, 0.9, 0.95, 1.0, 0.05, 0, 0.2, 0.6, 0);
+      else if (kind === 'sparkle') this.p.glow.emit(x, y + 1, z, 0, 0.25, 0, 2.2 + Math.random() * 2, 3, 2.4, 1.0, 0.07, 0, 0.1, 0.1, 3);
+      else if (kind === 'moths') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 1.2, 3, 1.6, 1.5, 1.2, 0.05, 0, 0.6, 1, 0);
+      else if (kind === 'stormfire') { // rain, and now and then an ember from the burning bus
+        this.p.glow.emit(x, focus.y + 9, z, 2.5, -16, 0.6, 0.6, 0.55, 0.65, 0.85, 0.04, 6, 0, 1, 1);
+        if (i % 12 === 0) this.p.glow.emit(x, focus.y + Math.random(), z, (Math.random() - 0.5) * 0.8, 1 + Math.random(), (Math.random() - 0.5) * 0.8, 3, 3, 1.1, 0.3, 0.07, -0.2, 0.3, 0.2, 1);
+      }
     }
   }
 

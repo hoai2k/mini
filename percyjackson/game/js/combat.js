@@ -88,10 +88,12 @@ export class Combat {
     }
     let hit = 0;
     const bf = p.kit?.blackFlashReady?.(step) ?? false;
+    // a combo finisher (wide ring or heavy stagger) breaks a shield guard
+    const guardBreak = !!step.ring || (step.stagger ?? 0) >= 0.5;
     for (const e of targets) {
       const kdir = v1.subVectors(e.pos, p.pos).setY(0).normalize();
       const dealt = this.damageEnemy(e, step.dmg * (p.weaponMult ?? 1), p, {
-        knock: kdir.clone().multiplyScalar(step.knock * (bf ? 2.2 : 1) * (p.stats.knock ?? 1)), stagger: step.stagger ?? 0.25, blackFlash: bf, melee: true, color: step.color,
+        knock: kdir.clone().multiplyScalar(step.knock * (bf ? 2.2 : 1) * (p.stats.knock ?? 1)), stagger: step.stagger ?? 0.25, blackFlash: bf, melee: true, color: step.color, unblockable: guardBreak || undefined,
       });
       if (dealt > 0) {
         hit++;
@@ -109,8 +111,14 @@ export class Combat {
       g.fx.slashArc(p.pos, p.facing, 0xbfe8ff, 3.2, 1, 0.25);
     }
     if (hit) {
-      g.hitStop(step.stop * (bf ? 3 : 1) + Math.min(0.03, hit * 0.006));
-      g.shake(step.shake * (bf ? 2.2 : 1));
+      // Hit-stop freezes the whole world, so only the heroes people play
+      // cause it: short on the quick cuts (a mashed combo otherwise spends a
+      // quarter of the fight frozen), full on finishers. Companions' hits
+      // nudge the camera a little and never freeze it.
+      const human = !p.ai && !p.remote;
+      const stop = step.ring || (step.stagger ?? 0) >= 0.5 ? step.stop : Math.min(step.stop, 0.03);
+      if (human) g.hitStop(stop * (bf ? 3 : 1) + Math.min(0.03, (hit - 1) * 0.006));
+      g.shake(step.shake * (bf ? 2.2 : 1) * (human ? 1 : 0.3));
       g.audio?.impact(step.ring ? 1.6 : 1, bf ? 'crit' : 'flesh');
       if (bf) this.blackFlashFx(p, targets[0]);
     }

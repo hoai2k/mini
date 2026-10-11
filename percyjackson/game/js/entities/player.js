@@ -37,6 +37,8 @@ export class Player {
     this.stepT = 0;
     this.onLand = (v) => { if (v > 12) game.fx?.landDust(this.pos, v); };
     this.isPlayer = true;
+    this.cornerSlide = true;   // slide round pillar and door-frame corners (physics.js)
+    this.autoRepeat = true;    // holding attack keeps the combo going, as in Minecraft Dungeons
     this.combo = BASE_COMBO; this.comboStep = 0; this.comboT = 0; this.attackBuffer = 0; this.struck = false;
     this.healCharges = 3; this.healMax = 3; this.healCd = 0;
     this.downT = 0; this.reviveProgress = 0;
@@ -80,9 +82,8 @@ export class Player {
     if (o.knock && !o.noKnock) { this.knock = (this.knock || new THREE.Vector3()).add(o.knock); }
     if (!o.dot) {
       this.action = this.action && this.action.type !== 'attack' ? this.action : { type: 'hit', dur: 0.25, elapsed: 0, t: 0, moveScale: 0.5 };
-      g.shake(Math.min(0.5, 0.15 + dmg / 60));
-      g.fx.hurtVignette();
-      g.audio?.hurt();
+      // the screen reacts to the hero you play, not to a companion being hit
+      if (!this.ai && !this.remote) { g.shake(Math.min(0.5, 0.15 + dmg / 60)); g.fx.hurtVignette(); g.audio?.hurt(); }
       this.iframes = Math.max(this.iframes, 0.25);
     }
     g.fx.damageNumber(this.pos, dmg, { color: '#ff5a6a' });
@@ -129,7 +130,7 @@ export class Player {
     const g = this.game;
     this.comboT -= dt; this.healCd = Math.max(0, this.healCd - dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
-    if (inp.pressed.attack || (inp.held.attack && !inp.mouse && this.autoRepeat)) this.attackBuffer = 0.28;
+    if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
     else this.attackBuffer -= dt;
     if (inp.held.attack) this.attackHeldT = (this.attackHeldT ?? 0) + dt; else this.attackHeldT = 0;
     if (inp.pressed.heal) this.useHeal();
@@ -139,6 +140,16 @@ export class Player {
       if (inp.pressed['art' + (i + 1)] && art.cdLeft <= 0 && this.dodgeT <= 0 && !(this.action && this.action.lock)) { art.cdLeft = art.cd * (1 - this.stats.cdr); useArtifact(g, this, art); }
     });
     if (this.barrierT > 0 && Math.random() < 0.4) g.particles.glow.emit(this.pos.x + (Math.random() - 0.5) * 1.2, this.pos.y + Math.random() * 2, this.pos.z + (Math.random() - 0.5) * 1.2, 0, 0.5, 0, 0.6, 2, 1.8, 0.8, 0.1, 0, 1, 1, 1);
+    // strike moment. Checked before chaining: a fast step (or a long frame)
+    // can pass its strike and its chain point in one frame, and chaining
+    // first would throw that hit away.
+    if (this.action && this.action.type === 'attack' && !this.action.struck && this.action.t >= this.action.step.strike) {
+      const step = this.action.step;   // a strike can replace this.action (an exploding kill hurts us)
+      this.action.struck = true;
+      this.kit.onStrike?.(step);
+      if (!step.custom) g.combat.meleeStrike(this, step);
+      g.fx.slashArc(this.pos, this.facing, step.trail ?? this.rig.look?.accent ?? 0xffffff, step.range * 0.9, step.arc > 2 ? 1 : 0.28, 0.16, step.style === 'swingL');
+    }
     const a = this.action;
     // chain / start melee
     const canChain = !a || a.type === 'hit' || (a.type === 'attack' && a.t >= (a.step.chainAt ?? 0.62)) || a.type === 'sign';
@@ -151,14 +162,6 @@ export class Player {
       this.attackBuffer = 0;
     }
     if (this.comboT < -0.45 && (!this.action || this.action.type !== 'attack')) this.comboStep = 0;
-    // strike moment
-    if (this.action && this.action.type === 'attack' && !this.action.struck && this.action.t >= this.action.step.strike) {
-      const step = this.action.step;   // a strike can replace this.action (an exploding kill hurts us)
-      this.action.struck = true;
-      this.kit.onStrike?.(step);
-      if (!step.custom) g.combat.meleeStrike(this, step);
-      g.fx.slashArc(this.pos, this.facing, step.trail ?? this.rig.look?.accent ?? 0xffffff, step.range * 0.9, step.arc > 2 ? 1 : 0.28, 0.16, step.style === 'swingL');
-    }
     if (this.action && this.action.type === 'attack') {
       const st = this.action.step, k = this.action.t;
       // lunge during strike window
@@ -235,8 +238,10 @@ export class Player {
     this.moveIntent = mv;
     this.iframes = Math.max(0, this.iframes - dt);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
-    // dodge roll
-    if (inp.pressed.dodge && this.dodgeCd <= 0 && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) this.startDodge(mv);
+    // dodge roll: on the ground (or just off a ledge); a press in the air or
+    // a moment early is remembered briefly, so the roll always comes out
+    if (inp.pressed.dodge) this.dodgeBuffer = this.grounded ? 0.2 : 0.75; else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
+    if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(mv); }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
     if (inp.pressed.jump && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
       this.vel.y = 10.5; this.grounded = false; this.coyote = 0;
@@ -267,7 +272,8 @@ export class Player {
       want.copy(mv).multiplyScalar(speed * busy);
     }
     if (this.knock && this.knock.lengthSq() > 0.01) { want.add(this.knock); this.knock.multiplyScalar(Math.exp(-dt * 8)); }
-    const accel = this.dodgeT > 0 ? 30 : this.grounded ? 16 : 4;
+    // snappy on the ground (no ice), still steerable in a jump
+    const accel = this.dodgeT > 0 ? 30 : this.grounded ? 24 : 9;
     this.vel.x = damp(this.vel.x, want.x, accel, dt);
     this.vel.z = damp(this.vel.z, want.z, accel, dt);
     moveEntity(this, g.world, dt);
@@ -323,6 +329,7 @@ export class Player {
     this.object.position.set(this.pos.x, this.visY, this.pos.z);
     this.object.rotation.y = this.facing;
     this.rig.animate({ dt, air: !this.grounded && !this.inLiquid && Math.abs(this.vel.y) > 1.5, speed: this.dodgeT > 0 ? 0 : clamp(speed, 0, 1), vel: this.vel, action: this.dead ? { type: 'death', t: Math.min(1, (this.deadT = (this.deadT ?? 0) + dt)) } : this.downed ? { type: 'down', t: 1 } : a });
-    if (a && a.t >= 1 && a.type !== 'dodge' && !a.hold) this.action = null;
+    // an attack always lands its strike before it ends (see updateCombat)
+    if (a && a.t >= 1 && a.type !== 'dodge' && !a.hold && !(a.type === 'attack' && !a.struck)) this.action = null;
   }
 }
