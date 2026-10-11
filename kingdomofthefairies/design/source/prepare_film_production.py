@@ -5,6 +5,7 @@ Retain native originals and generation records; reuse the existing sprite
 delivery fitting routine. No generated artwork is repainted.
 """
 from pathlib import Path
+import argparse
 import json
 from datetime import datetime, timedelta, timezone
 from PIL import Image
@@ -17,6 +18,9 @@ manifest = json.loads(manifest_path.read_text())
 records = []
 previous_path = BATCH / 'deliveries.json'
 previous = {r['id']: r for r in json.loads(previous_path.read_text())['images']} if previous_path.exists() else {}
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--ids', nargs='+', help='prepare only these changed assets; validate cached deliveries for the rest')
+selected = parser.parse_args().ids
 for path in sorted(BATCH.glob('*.json')):
     if path.name == 'deliveries.json' or path.name.startswith('._'):
         continue
@@ -25,7 +29,8 @@ for path in sorted(BATCH.glob('*.json')):
     original = BATCH / (ident + '-original.png')
     delivery = GAME / 'assets' / (ident + '.webp')
     cached = previous.get(ident)
-    if (cached and delivery.exists() and delivery.stat().st_mtime >= original.stat().st_mtime
+    if (cached and delivery.exists() and (delivery.stat().st_mtime >= original.stat().st_mtime
+            or selected is not None and ident not in selected)
             and all(cached.get(k) == record.get(k) for k in ['prompt', 'size', 'anchor', 'transparent'])):
         with Image.open(delivery) as check:
             check.verify()
@@ -33,6 +38,7 @@ for path in sorted(BATCH.glob('*.json')):
             assert list(check.size) == record['size'], ident
             if record['transparent']:
                 assert check.mode == 'RGBA' and check.getchannel('A').getextrema()[0] == 0, ident
+        cached.update(record)
         records.append(cached)
         manifest['slots'][ident].update(status='delivered', file=ident + '.webp',
                                        size=record['size'], anchor=record['anchor'], edition='film')

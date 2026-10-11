@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 164 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 100 of 164 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 164 of 164 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -851,70 +851,70 @@ Requested 11 October 2026 after the character audit (design/character-audit.md).
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-stand-tinted` | 220 × 360 | bottom centre | `prince-stand` | requested |
-| `prince-walk-a-tinted` | 220 × 360 | bottom centre | `prince-walk-a` | requested |
-| `prince-walk-b-tinted` | 220 × 360 | bottom centre | `prince-walk-b` | requested |
-| `prince-leap-tinted` | 260 × 360 | bottom centre | `prince-leap` | requested |
-| `prince-crouch-tinted` | 240 × 300 | bottom centre | `prince-crouch` | requested |
-| `prince-carry-tinted` | 360 × 400 | bottom centre | `prince-carry` | requested |
-| `prince-swim-a-tinted` | 360 × 240 | centre (between his shoulder blades) | `prince-swim-a` | requested |
-| `prince-swim-b-tinted` | 360 × 240 | centre (between his shoulder blades) | `prince-swim-b` | requested |
-| `prince-seated-tinted` | 220 × 220 | bottom centre | `prince-seated` | requested |
-| `prince-hang-tinted` | 220 × 440 | top centre (his hands) | `prince-hang` | requested |
-| `prince-pullup-tinted` | 260 × 300 | ledge line 25% up from the bottom, centred | `prince-pullup` | requested |
-| `prince-climb-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | requested |
-| `prince-climb-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-b` | requested |
-| `prince-apex-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-apex` | requested |
-| `prince-fall-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-fall` | requested |
-| `prince-land-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-land` | requested |
-| `prince-stairs-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-stairs-a` | requested |
-| `prince-stairs-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-stairs-b` | requested |
-| `prince-push-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-push` | requested |
-| `prince-court-tinted` | 220 × 360 | bottom centre | `prince-court` | requested |
-| `prince-court-walk-a-tinted` | 220 × 360 | bottom centre | `prince-court-walk-a` | requested |
-| `prince-court-walk-b-tinted` | 220 × 360 | bottom centre | `prince-court-walk-b` | requested |
-| `prince-bound-tinted` | 220 × 360 | bottom centre | `prince-bound` | requested |
-| `azurine-stand-tinted` | 200 × 380 | bottom centre | `azurine-stand` | requested |
-| `azurine-asleep-tinted` | 360 × 160 | bottom centre | `azurine-asleep` | requested |
-| `azurine-window-tinted` | 160 × 200 | bottom centre | `azurine-window` | requested |
-| `aurora-stand-tinted` | 260 × 420 | bottom centre | `aurora-stand` | requested |
-| `aurora-point-tinted` | 300 × 420 | bottom centre | `aurora-point` | requested |
-| `water-fairy-stand-tinted` | 260 × 420 | bottom centre | `water-fairy-stand` | requested |
-| `water-fairy-stand-idle-b-tinted` | 260 × 420 | bottom centre | `water-fairy-stand-idle-b` | requested |
-| `water-fairy-stand-idle-c-tinted` | 260 × 420 | bottom centre | `water-fairy-stand-idle-c` | requested |
-| `king-stand-tinted` | 220 × 420 | bottom centre | `king-stand` | requested |
-| `queen-stand-tinted` | 220 × 420 | bottom centre | `queen-stand` | requested |
-| `fairy-ring-tinted` | 220 × 420 | bottom centre | `fairy-ring` | requested |
-| `fairy-crown-tinted` | 220 × 420 | bottom centre | `fairy-crown` | requested |
-| `fairy-gold-tinted` | 220 × 420 | bottom centre | `fairy-gold` | requested |
-| `demon-red-tinted` | 220 × 360 | bottom centre | `demon-red` | requested |
-| `demon-teal-tinted` | 220 × 360 | bottom centre | `demon-teal` | requested |
-| `crew-squire-tinted` | 220 × 420 | bottom centre | `crew-squire` | requested |
-| `crew-helmsman-tinted` | 220 × 420 | bottom centre | `crew-helmsman` | requested |
-| `crew-manatarms-tinted` | 220 × 420 | bottom centre | `crew-manatarms` | requested |
-| `crew-bosun-tinted` | 220 × 420 | bottom centre | `crew-bosun` | requested |
-| `crew-squire-idle-b-tinted` | 220 × 420 | bottom centre | `crew-squire-idle-b` | requested |
-| `crew-squire-idle-c-tinted` | 220 × 420 | bottom centre | `crew-squire-idle-c` | requested |
-| `crew-helmsman-idle-b-tinted` | 220 × 420 | bottom centre | `crew-helmsman-idle-b` | requested |
-| `crew-helmsman-idle-c-tinted` | 220 × 420 | bottom centre | `crew-helmsman-idle-c` | requested |
-| `crew-manatarms-idle-b-tinted` | 220 × 420 | bottom centre | `crew-manatarms-idle-b` | requested |
-| `crew-manatarms-idle-c-tinted` | 220 × 420 | bottom centre | `crew-manatarms-idle-c` | requested |
-| `crew-bosun-idle-b-tinted` | 220 × 420 | bottom centre | `crew-bosun-idle-b` | requested |
-| `crew-bosun-idle-c-tinted` | 220 × 420 | bottom centre | `crew-bosun-idle-c` | requested |
-| `crew-asleep-tinted` | 260 × 120 | bottom centre | `crew-asleep` | requested |
-| `crew-asleep-b-tinted` | 260 × 120 | bottom centre | `crew-asleep-b` | requested |
-| `crew-rider-tinted` | 320 × 240 | bottom centre | `crew-rider` | requested |
-| `witch-hooded-tinted` | 240 × 400 | bottom centre | `witch-hooded` | requested |
-| `witch-cloud-tinted` | 400 × 400 | bottom centre | `witch-cloud` | requested |
-| `witch-storm-tinted` | 520 × 340 | bottom centre | `witch-storm` | requested |
-| `witch-swoop-tinted` | 400 × 240 | centre | `witch-swoop` | requested |
-| `witch-barrel-tinted` | 200 × 240 | bottom centre | `witch-barrel` | requested |
-| `octopus-tinted` | 600 × 420 | bottom centre | `octopus` | requested |
-| `dolphin-carriage-tinted` | 520 × 340 | bottom centre | `dolphin-carriage` | requested |
-| `lobster-guard-closed-tinted` | 500 × 340 | bottom centre | `lobster-guard-closed` | requested |
-| `lobster-guard-open-tinted` | 500 × 340 | bottom centre | `lobster-guard-open` | requested |
-| `chariot-tinted` | 600 × 320 | centre | `chariot` | requested |
-| `scrying-eye-tinted` | 200 × 300 | top centre (it hangs) | `scrying-eye` | requested |
+| `prince-stand-tinted` | 220 × 360 | bottom centre | `prince-stand` | [delivered](../assets/prince-stand-tinted.webp) |
+| `prince-walk-a-tinted` | 220 × 360 | bottom centre | `prince-walk-a` | [delivered](../assets/prince-walk-a-tinted.webp) |
+| `prince-walk-b-tinted` | 220 × 360 | bottom centre | `prince-walk-b` | [delivered](../assets/prince-walk-b-tinted.webp) |
+| `prince-leap-tinted` | 260 × 360 | bottom centre | `prince-leap` | [delivered](../assets/prince-leap-tinted.webp) |
+| `prince-crouch-tinted` | 240 × 300 | bottom centre | `prince-crouch` | [delivered](../assets/prince-crouch-tinted.webp) |
+| `prince-carry-tinted` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-tinted.webp) |
+| `prince-swim-a-tinted` | 360 × 240 | centre (between his shoulder blades) | `prince-swim-a` | [delivered](../assets/prince-swim-a-tinted.webp) |
+| `prince-swim-b-tinted` | 360 × 240 | centre (between his shoulder blades) | `prince-swim-b` | [delivered](../assets/prince-swim-b-tinted.webp) |
+| `prince-seated-tinted` | 220 × 220 | bottom centre | `prince-seated` | [delivered](../assets/prince-seated-tinted.webp) |
+| `prince-hang-tinted` | 220 × 440 | top centre (his hands) | `prince-hang` | [delivered](../assets/prince-hang-tinted.webp) |
+| `prince-pullup-tinted` | 260 × 300 | ledge line 25% up from the bottom, centred | `prince-pullup` | [delivered](../assets/prince-pullup-tinted.webp) |
+| `prince-climb-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | [delivered](../assets/prince-climb-a-tinted.webp) |
+| `prince-climb-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-b` | [delivered](../assets/prince-climb-b-tinted.webp) |
+| `prince-apex-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-apex` | [delivered](../assets/prince-apex-tinted.webp) |
+| `prince-fall-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-fall` | [delivered](../assets/prince-fall-tinted.webp) |
+| `prince-land-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-land` | [delivered](../assets/prince-land-tinted.webp) |
+| `prince-stairs-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-stairs-a` | [delivered](../assets/prince-stairs-a-tinted.webp) |
+| `prince-stairs-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-stairs-b` | [delivered](../assets/prince-stairs-b-tinted.webp) |
+| `prince-push-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-push` | [delivered](../assets/prince-push-tinted.webp) |
+| `prince-court-tinted` | 220 × 360 | bottom centre | `prince-court` | [delivered](../assets/prince-court-tinted.webp) |
+| `prince-court-walk-a-tinted` | 220 × 360 | bottom centre | `prince-court-walk-a` | [delivered](../assets/prince-court-walk-a-tinted.webp) |
+| `prince-court-walk-b-tinted` | 220 × 360 | bottom centre | `prince-court-walk-b` | [delivered](../assets/prince-court-walk-b-tinted.webp) |
+| `prince-bound-tinted` | 220 × 360 | bottom centre | `prince-bound` | [delivered](../assets/prince-bound-tinted.webp) |
+| `azurine-stand-tinted` | 200 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-stand-tinted.webp) |
+| `azurine-asleep-tinted` | 360 × 160 | bottom centre | `azurine-asleep` | [delivered](../assets/azurine-asleep-tinted.webp) |
+| `azurine-window-tinted` | 160 × 200 | bottom centre | `azurine-window` | [delivered](../assets/azurine-window-tinted.webp) |
+| `aurora-stand-tinted` | 260 × 420 | bottom centre | `aurora-stand` | [delivered](../assets/aurora-stand-tinted.webp) |
+| `aurora-point-tinted` | 300 × 420 | bottom centre | `aurora-point` | [delivered](../assets/aurora-point-tinted.webp) |
+| `water-fairy-stand-tinted` | 260 × 420 | bottom centre | `water-fairy-stand` | [delivered](../assets/water-fairy-stand-tinted.webp) |
+| `water-fairy-stand-idle-b-tinted` | 260 × 420 | bottom centre | `water-fairy-stand-idle-b` | [delivered](../assets/water-fairy-stand-idle-b-tinted.webp) |
+| `water-fairy-stand-idle-c-tinted` | 260 × 420 | bottom centre | `water-fairy-stand-idle-c` | [delivered](../assets/water-fairy-stand-idle-c-tinted.webp) |
+| `king-stand-tinted` | 220 × 420 | bottom centre | `king-stand` | [delivered](../assets/king-stand-tinted.webp) |
+| `queen-stand-tinted` | 220 × 420 | bottom centre | `queen-stand` | [delivered](../assets/queen-stand-tinted.webp) |
+| `fairy-ring-tinted` | 220 × 420 | bottom centre | `fairy-ring` | [delivered](../assets/fairy-ring-tinted.webp) |
+| `fairy-crown-tinted` | 220 × 420 | bottom centre | `fairy-crown` | [delivered](../assets/fairy-crown-tinted.webp) |
+| `fairy-gold-tinted` | 220 × 420 | bottom centre | `fairy-gold` | [delivered](../assets/fairy-gold-tinted.webp) |
+| `demon-red-tinted` | 220 × 360 | bottom centre | `demon-red` | [delivered](../assets/demon-red-tinted.webp) |
+| `demon-teal-tinted` | 220 × 360 | bottom centre | `demon-teal` | [delivered](../assets/demon-teal-tinted.webp) |
+| `crew-squire-tinted` | 220 × 420 | bottom centre | `crew-squire` | [delivered](../assets/crew-squire-tinted.webp) |
+| `crew-helmsman-tinted` | 220 × 420 | bottom centre | `crew-helmsman` | [delivered](../assets/crew-helmsman-tinted.webp) |
+| `crew-manatarms-tinted` | 220 × 420 | bottom centre | `crew-manatarms` | [delivered](../assets/crew-manatarms-tinted.webp) |
+| `crew-bosun-tinted` | 220 × 420 | bottom centre | `crew-bosun` | [delivered](../assets/crew-bosun-tinted.webp) |
+| `crew-squire-idle-b-tinted` | 220 × 420 | bottom centre | `crew-squire-idle-b` | [delivered](../assets/crew-squire-idle-b-tinted.webp) |
+| `crew-squire-idle-c-tinted` | 220 × 420 | bottom centre | `crew-squire-idle-c` | [delivered](../assets/crew-squire-idle-c-tinted.webp) |
+| `crew-helmsman-idle-b-tinted` | 220 × 420 | bottom centre | `crew-helmsman-idle-b` | [delivered](../assets/crew-helmsman-idle-b-tinted.webp) |
+| `crew-helmsman-idle-c-tinted` | 220 × 420 | bottom centre | `crew-helmsman-idle-c` | [delivered](../assets/crew-helmsman-idle-c-tinted.webp) |
+| `crew-manatarms-idle-b-tinted` | 220 × 420 | bottom centre | `crew-manatarms-idle-b` | [delivered](../assets/crew-manatarms-idle-b-tinted.webp) |
+| `crew-manatarms-idle-c-tinted` | 220 × 420 | bottom centre | `crew-manatarms-idle-c` | [delivered](../assets/crew-manatarms-idle-c-tinted.webp) |
+| `crew-bosun-idle-b-tinted` | 220 × 420 | bottom centre | `crew-bosun-idle-b` | [delivered](../assets/crew-bosun-idle-b-tinted.webp) |
+| `crew-bosun-idle-c-tinted` | 220 × 420 | bottom centre | `crew-bosun-idle-c` | [delivered](../assets/crew-bosun-idle-c-tinted.webp) |
+| `crew-asleep-tinted` | 260 × 120 | bottom centre | `crew-asleep` | [delivered](../assets/crew-asleep-tinted.webp) |
+| `crew-asleep-b-tinted` | 260 × 120 | bottom centre | `crew-asleep-b` | [delivered](../assets/crew-asleep-b-tinted.webp) |
+| `crew-rider-tinted` | 320 × 240 | bottom centre | `crew-rider` | [delivered](../assets/crew-rider-tinted.webp) |
+| `witch-hooded-tinted` | 240 × 400 | bottom centre | `witch-hooded` | [delivered](../assets/witch-hooded-tinted.webp) |
+| `witch-cloud-tinted` | 400 × 400 | bottom centre | `witch-cloud` | [delivered](../assets/witch-cloud-tinted.webp) |
+| `witch-storm-tinted` | 520 × 340 | bottom centre | `witch-storm` | [delivered](../assets/witch-storm-tinted.webp) |
+| `witch-swoop-tinted` | 400 × 240 | centre | `witch-swoop` | [delivered](../assets/witch-swoop-tinted.webp) |
+| `witch-barrel-tinted` | 200 × 240 | bottom centre | `witch-barrel` | [delivered](../assets/witch-barrel-tinted.webp) |
+| `octopus-tinted` | 600 × 420 | bottom centre | `octopus` | [delivered](../assets/octopus-tinted.webp) |
+| `dolphin-carriage-tinted` | 520 × 340 | bottom centre | `dolphin-carriage` | [delivered](../assets/dolphin-carriage-tinted.webp) |
+| `lobster-guard-closed-tinted` | 500 × 340 | bottom centre | `lobster-guard-closed` | [delivered](../assets/lobster-guard-closed-tinted.webp) |
+| `lobster-guard-open-tinted` | 500 × 340 | bottom centre | `lobster-guard-open` | [delivered](../assets/lobster-guard-open-tinted.webp) |
+| `chariot-tinted` | 600 × 320 | centre | `chariot` | [delivered](../assets/chariot-tinted.webp) |
+| `scrying-eye-tinted` | 200 × 300 | top centre (it hangs) | `scrying-eye` | [delivered](../assets/scrying-eye-tinted.webp) |
 
 #### `prince-stand-tinted` — prince-stand, tinted after the film
 

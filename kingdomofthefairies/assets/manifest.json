@@ -2116,7 +2116,7 @@
       "edition": "film"
     },
     "prince-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stand-tinted.webp",
       "size": [
         220,
@@ -2126,7 +2126,7 @@
       "edition": "film"
     },
     "prince-walk-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-walk-a-tinted.webp",
       "size": [
         220,
@@ -2136,7 +2136,7 @@
       "edition": "film"
     },
     "prince-walk-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-walk-b-tinted.webp",
       "size": [
         220,
@@ -2146,7 +2146,7 @@
       "edition": "film"
     },
     "prince-leap-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-leap-tinted.webp",
       "size": [
         260,
@@ -2156,7 +2156,7 @@
       "edition": "film"
     },
     "prince-crouch-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-crouch-tinted.webp",
       "size": [
         240,
@@ -2166,7 +2166,7 @@
       "edition": "film"
     },
     "prince-carry-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-carry-tinted.webp",
       "size": [
         360,
@@ -2176,7 +2176,7 @@
       "edition": "film"
     },
     "prince-swim-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-swim-a-tinted.webp",
       "size": [
         360,
@@ -2186,7 +2186,7 @@
       "edition": "film"
     },
     "prince-swim-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-swim-b-tinted.webp",
       "size": [
         360,
@@ -2196,7 +2196,7 @@
       "edition": "film"
     },
     "prince-seated-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-seated-tinted.webp",
       "size": [
         220,
@@ -2206,7 +2206,7 @@
       "edition": "film"
     },
     "prince-hang-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-hang-tinted.webp",
       "size": [
         220,
@@ -2216,7 +2216,7 @@
       "edition": "film"
     },
     "prince-pullup-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-pullup-tinted.webp",
       "size": [
         260,
@@ -2226,7 +2226,7 @@
       "edition": "film"
     },
     "prince-climb-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-climb-a-tinted.webp",
       "size": [
         360,
@@ -2236,7 +2236,7 @@
       "edition": "film"
     },
     "prince-climb-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-climb-b-tinted.webp",
       "size": [
         360,
@@ -2246,7 +2246,7 @@
       "edition": "film"
     },
     "prince-apex-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-apex-tinted.webp",
       "size": [
         360,
@@ -2256,7 +2256,7 @@
       "edition": "film"
     },
     "prince-fall-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-fall-tinted.webp",
       "size": [
         360,
@@ -2266,7 +2266,7 @@
       "edition": "film"
     },
     "prince-land-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-land-tinted.webp",
       "size": [
         360,
@@ -2276,7 +2276,7 @@
       "edition": "film"
     },
     "prince-stairs-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stairs-a-tinted.webp",
       "size": [
         360,
@@ -2286,7 +2286,7 @@
       "edition": "film"
     },
     "prince-stairs-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stairs-b-tinted.webp",
       "size": [
         360,
@@ -2296,7 +2296,7 @@
       "edition": "film"
     },
     "prince-push-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-push-tinted.webp",
       "size": [
         360,
@@ -2306,7 +2306,7 @@
       "edition": "film"
     },
     "prince-court-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-tinted.webp",
       "size": [
         220,
@@ -2316,7 +2316,7 @@
       "edition": "film"
     },
     "prince-court-walk-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-walk-a-tinted.webp",
       "size": [
         220,
@@ -2326,7 +2326,7 @@
       "edition": "film"
     },
     "prince-court-walk-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-walk-b-tinted.webp",
       "size": [
         220,
@@ -2336,7 +2336,7 @@
       "edition": "film"
     },
     "prince-bound-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-bound-tinted.webp",
       "size": [
         220,
@@ -2346,7 +2346,7 @@
       "edition": "film"
     },
     "azurine-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-stand-tinted.webp",
       "size": [
         200,
@@ -2356,7 +2356,7 @@
       "edition": "film"
     },
     "azurine-asleep-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-asleep-tinted.webp",
       "size": [
         360,
@@ -2366,7 +2366,7 @@
       "edition": "film"
     },
     "azurine-window-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-window-tinted.webp",
       "size": [
         160,
@@ -2376,7 +2376,7 @@
       "edition": "film"
     },
     "aurora-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "aurora-stand-tinted.webp",
       "size": [
         260,
@@ -2386,7 +2386,7 @@
       "edition": "film"
     },
     "aurora-point-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "aurora-point-tinted.webp",
       "size": [
         300,
@@ -2396,7 +2396,7 @@
       "edition": "film"
     },
     "water-fairy-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "water-fairy-stand-tinted.webp",
       "size": [
         260,
@@ -2406,7 +2406,7 @@
       "edition": "film"
     },
     "water-fairy-stand-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "water-fairy-stand-idle-b-tinted.webp",
       "size": [
         260,
@@ -2416,7 +2416,7 @@
       "edition": "film"
     },
     "water-fairy-stand-idle-c-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "water-fairy-stand-idle-c-tinted.webp",
       "size": [
         260,
@@ -2426,7 +2426,7 @@
       "edition": "film"
     },
     "king-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "king-stand-tinted.webp",
       "size": [
         220,
@@ -2436,7 +2436,7 @@
       "edition": "film"
     },
     "queen-stand-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "queen-stand-tinted.webp",
       "size": [
         220,
@@ -2446,7 +2446,7 @@
       "edition": "film"
     },
     "fairy-ring-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "fairy-ring-tinted.webp",
       "size": [
         220,
@@ -2456,7 +2456,7 @@
       "edition": "film"
     },
     "fairy-crown-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "fairy-crown-tinted.webp",
       "size": [
         220,
@@ -2466,7 +2466,7 @@
       "edition": "film"
     },
     "fairy-gold-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "fairy-gold-tinted.webp",
       "size": [
         220,
@@ -2476,7 +2476,7 @@
       "edition": "film"
     },
     "demon-red-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "demon-red-tinted.webp",
       "size": [
         220,
@@ -2486,7 +2486,7 @@
       "edition": "film"
     },
     "demon-teal-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "demon-teal-tinted.webp",
       "size": [
         220,
@@ -2496,7 +2496,7 @@
       "edition": "film"
     },
     "crew-squire-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-tinted.webp",
       "size": [
         220,
@@ -2506,7 +2506,7 @@
       "edition": "film"
     },
     "crew-helmsman-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-tinted.webp",
       "size": [
         220,
@@ -2516,7 +2516,7 @@
       "edition": "film"
     },
     "crew-manatarms-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-tinted.webp",
       "size": [
         220,
@@ -2526,7 +2526,7 @@
       "edition": "film"
     },
     "crew-bosun-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun-tinted.webp",
       "size": [
         220,
@@ -2536,7 +2536,7 @@
       "edition": "film"
     },
     "crew-squire-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-b-tinted.webp",
       "size": [
         220,
@@ -2546,7 +2546,7 @@
       "edition": "film"
     },
     "crew-squire-idle-c-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-c-tinted.webp",
       "size": [
         220,
@@ -2556,7 +2556,7 @@
       "edition": "film"
     },
     "crew-helmsman-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-idle-b-tinted.webp",
       "size": [
         220,
@@ -2566,7 +2566,7 @@
       "edition": "film"
     },
     "crew-helmsman-idle-c-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-idle-c-tinted.webp",
       "size": [
         220,
@@ -2576,7 +2576,7 @@
       "edition": "film"
     },
     "crew-manatarms-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-idle-b-tinted.webp",
       "size": [
         220,
@@ -2586,7 +2586,7 @@
       "edition": "film"
     },
     "crew-manatarms-idle-c-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-idle-c-tinted.webp",
       "size": [
         220,
@@ -2596,7 +2596,7 @@
       "edition": "film"
     },
     "crew-bosun-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun-idle-b-tinted.webp",
       "size": [
         220,
@@ -2606,7 +2606,7 @@
       "edition": "film"
     },
     "crew-bosun-idle-c-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun-idle-c-tinted.webp",
       "size": [
         220,
@@ -2616,7 +2616,7 @@
       "edition": "film"
     },
     "crew-asleep-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-asleep-tinted.webp",
       "size": [
         260,
@@ -2626,7 +2626,7 @@
       "edition": "film"
     },
     "crew-asleep-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-asleep-b-tinted.webp",
       "size": [
         260,
@@ -2636,7 +2636,7 @@
       "edition": "film"
     },
     "crew-rider-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-rider-tinted.webp",
       "size": [
         320,
@@ -2646,7 +2646,7 @@
       "edition": "film"
     },
     "witch-hooded-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-hooded-tinted.webp",
       "size": [
         240,
@@ -2656,7 +2656,7 @@
       "edition": "film"
     },
     "witch-cloud-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-cloud-tinted.webp",
       "size": [
         400,
@@ -2666,7 +2666,7 @@
       "edition": "film"
     },
     "witch-storm-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-storm-tinted.webp",
       "size": [
         520,
@@ -2676,7 +2676,7 @@
       "edition": "film"
     },
     "witch-swoop-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-swoop-tinted.webp",
       "size": [
         400,
@@ -2686,7 +2686,7 @@
       "edition": "film"
     },
     "witch-barrel-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-barrel-tinted.webp",
       "size": [
         200,
@@ -2696,7 +2696,7 @@
       "edition": "film"
     },
     "octopus-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "octopus-tinted.webp",
       "size": [
         600,
@@ -2706,7 +2706,7 @@
       "edition": "film"
     },
     "dolphin-carriage-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "dolphin-carriage-tinted.webp",
       "size": [
         520,
@@ -2716,7 +2716,7 @@
       "edition": "film"
     },
     "lobster-guard-closed-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "lobster-guard-closed-tinted.webp",
       "size": [
         500,
@@ -2726,7 +2726,7 @@
       "edition": "film"
     },
     "lobster-guard-open-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "lobster-guard-open-tinted.webp",
       "size": [
         500,
@@ -2736,7 +2736,7 @@
       "edition": "film"
     },
     "chariot-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "chariot-tinted.webp",
       "size": [
         600,
@@ -2746,7 +2746,7 @@
       "edition": "film"
     },
     "scrying-eye-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "scrying-eye-tinted.webp",
       "size": [
         200,
