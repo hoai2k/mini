@@ -9,5 +9,12 @@ folder is published.
   style families to choose an art direction. The images belong to their owners
   and are kept here as private reference only, never as game assets.
 
-When the game itself starts, this folder gets the usual `intake/`, `publish.sh`,
-Pages workflow step and library card.
+- [`design/image-requests.md`](design/image-requests.md): concept-art requests
+  in the chosen direction, cartoon heroes in an ornamental world. It is generated
+  from `design/source/build_requests.py`; edit the data there and rerun it
+  (`--check` verifies it is up to date). Delivered images go in
+  `design/concept/`.
+- [`intake/`](intake/README.md): drop generated images here for integration.
+
+When the game itself starts, this folder gets the usual `publish.sh`, Pages
+workflow step and library card.
