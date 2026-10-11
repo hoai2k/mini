@@ -2065,7 +2065,7 @@
       "edition": "film"
     },
     "prince-court-walk-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-walk-a.webp",
       "size": [
         220,
@@ -2075,7 +2075,7 @@
       "edition": "film"
     },
     "prince-court-walk-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-walk-b.webp",
       "size": [
         220,
@@ -2085,7 +2085,7 @@
       "edition": "film"
     },
     "prince-bound": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-bound.webp",
       "size": [
         220,
@@ -2095,7 +2095,7 @@
       "edition": "film"
     },
     "armour-helmet": {
-      "status": "requested",
+      "status": "delivered",
       "file": "armour-helmet.webp",
       "size": [
         128,
@@ -2105,7 +2105,7 @@
       "edition": "film"
     },
     "armour-shield": {
-      "status": "requested",
+      "status": "delivered",
       "file": "armour-shield.webp",
       "size": [
         128,
