@@ -91,6 +91,8 @@ its planning images (character sheets and scene concepts) are requested below.
 
 ## Planning images for the film adaptation
 
+Delivery: 30 images generated for design review. [Browse the gallery](references/film-planning/index.html) or [read the delivery notes](references/film-planning/README.md). The original briefs below are retained. Character sheets guided scene generation; the images are not integrated into gameplay. Actual native dimensions are recorded in the manifest; the larger requested dimensions remain production targets.
+
 Requested 11 October 2026 for [the film adaptation plan](film-adaptation.md): 10 canonical character sheets and 20 scene concepts. They are for agreeing the cast, the look and the staging before the art and code rounds, and are documentation art, not game files, so they are not in `assets/manifest.json`. Every prompt is complete; paste it as it stands. Generate the character sheets first and agree on them, then attach the relevant sheets as image references for each scene so the cast stays consistent. Where a prompt names a file under `references/expanded-world/`, attach that image too. Name each file by its id (for example `char-bel-azor.png`) and drop it in [`../intake/`](../intake/README.md); on integration they land in `references/film-planning/`.
 
 ### Character sheets
@@ -99,16 +101,16 @@ Each 2400 × 1600 px (landscape).
 
 | Id | Character |
 | --- | --- |
-| `char-bel-azor` | Prince Bel-Azor |
-| `char-azurine` | Princess Azurine |
-| `char-aurora` | The fairy Aurora |
-| `char-witch` | The witch |
-| `char-water-fairy` | The Water Fairy |
-| `char-neptune` | Neptune |
-| `char-royal-court` | The king, the queen and the three gift fairies |
-| `char-demons` | The demons |
-| `char-crew` | The prince's crew |
-| `char-sea-creatures` | Sea creatures |
+| `char-bel-azor` | [Prince Bel-Azor](references/film-planning/index.html#char-bel-azor) |
+| `char-azurine` | [Princess Azurine](references/film-planning/index.html#char-azurine) |
+| `char-aurora` | [The fairy Aurora](references/film-planning/index.html#char-aurora) |
+| `char-witch` | [The witch](references/film-planning/index.html#char-witch) |
+| `char-water-fairy` | [The Water Fairy](references/film-planning/index.html#char-water-fairy) |
+| `char-neptune` | [Neptune](references/film-planning/index.html#char-neptune) |
+| `char-royal-court` | [The king, the queen and the three gift fairies](references/film-planning/index.html#char-royal-court) |
+| `char-demons` | [The demons](references/film-planning/index.html#char-demons) |
+| `char-crew` | [The prince's crew](references/film-planning/index.html#char-crew) |
+| `char-sea-creatures` | [Sea creatures](references/film-planning/index.html#char-sea-creatures) |
 
 #### `char-bel-azor` — Prince Bel-Azor
 
@@ -156,26 +158,26 @@ Each 2560 × 1440 px (16:9).
 
 | Id | Scene |
 | --- | --- |
-| `concept-betrothal` | Prologue: the betrothal and the gifts |
-| `concept-curse` | Prologue: the witch's curse |
-| `concept-abduction` | Prologue: the abduction from the rampart |
-| `concept-arming` | Prologue: the prison vision and the arming |
-| `concept-galley-departure` | Act I: the royal galley sets out |
-| `concept-tempest` | Act I: the tempest and the wreck |
-| `concept-water-fairy` | Act II: the Water Fairy's revival |
-| `concept-octopus` | Act II: the octopus and the sword |
-| `concept-procession` | Act II: the marine procession |
-| `concept-azure-grotto` | Act III: from the lobster palace to the azure grotto |
-| `concept-neptune-hall` | Act III: Neptune's hall |
-| `concept-whale-shore` | Act IV: ashore from the whale |
-| `concept-cavern` | Act V: the cavern route |
-| `concept-cliff-gap` | Act V: the cliff and the sea gap |
-| `concept-tower-climb` | Act V: the tower wall |
-| `concept-tower-fire` | Act VI: demons fire the tower |
-| `concept-stair-carry` | Act VI: down the collapsing stair |
-| `concept-barrel` | Act VI: the barrel and the whirlpool |
-| `concept-wedding` | Epilogue: the wedding procession |
-| `concept-apotheosis` | Epilogue: the apotheosis |
+| `concept-betrothal` | [Prologue: the betrothal and the gifts](references/film-planning/index.html#concept-betrothal) |
+| `concept-curse` | [Prologue: the witch's curse](references/film-planning/index.html#concept-curse) |
+| `concept-abduction` | [Prologue: the abduction from the rampart](references/film-planning/index.html#concept-abduction) |
+| `concept-arming` | [Prologue: the prison vision and the arming](references/film-planning/index.html#concept-arming) |
+| `concept-galley-departure` | [Act I: the royal galley sets out](references/film-planning/index.html#concept-galley-departure) |
+| `concept-tempest` | [Act I: the tempest and the wreck](references/film-planning/index.html#concept-tempest) |
+| `concept-water-fairy` | [Act II: the Water Fairy's revival](references/film-planning/index.html#concept-water-fairy) |
+| `concept-octopus` | [Act II: the octopus and the sword](references/film-planning/index.html#concept-octopus) |
+| `concept-procession` | [Act II: the marine procession](references/film-planning/index.html#concept-procession) |
+| `concept-azure-grotto` | [Act III: from the lobster palace to the azure grotto](references/film-planning/index.html#concept-azure-grotto) |
+| `concept-neptune-hall` | [Act III: Neptune's hall](references/film-planning/index.html#concept-neptune-hall) |
+| `concept-whale-shore` | [Act IV: ashore from the whale](references/film-planning/index.html#concept-whale-shore) |
+| `concept-cavern` | [Act V: the cavern route](references/film-planning/index.html#concept-cavern) |
+| `concept-cliff-gap` | [Act V: the cliff and the sea gap](references/film-planning/index.html#concept-cliff-gap) |
+| `concept-tower-climb` | [Act V: the tower wall](references/film-planning/index.html#concept-tower-climb) |
+| `concept-tower-fire` | [Act VI: demons fire the tower](references/film-planning/index.html#concept-tower-fire) |
+| `concept-stair-carry` | [Act VI: down the collapsing stair](references/film-planning/index.html#concept-stair-carry) |
+| `concept-barrel` | [Act VI: the barrel and the whirlpool](references/film-planning/index.html#concept-barrel) |
+| `concept-wedding` | [Epilogue: the wedding procession](references/film-planning/index.html#concept-wedding) |
+| `concept-apotheosis` | [Epilogue: the apotheosis](references/film-planning/index.html#concept-apotheosis) |
 
 #### `concept-betrothal` — Prologue: the betrothal and the gifts
 

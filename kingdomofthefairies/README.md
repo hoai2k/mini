@@ -68,6 +68,10 @@ the query edition. Historical requests, prompts and video reference are retained
 under [design/legacy/](design/legacy/README.md) and existing generated galleries.
 New documentation uses the full film, not the music-video edit, as its authority.
 
+[The film planning gallery](design/references/film-planning/index.html) contains
+the ten character sheets and twenty scene concepts for the proposed adaptation.
+Source request briefs, named references and native originals are retained. These are design references; the playable chapters remain as built.
+
 [Music](design/music.md) describes the five delivered period tracks and their
 scene moods. New effects use `design/source/build_sfx.py`; its key comes from
 `ELEVENLABS_API_KEY` and must never be committed.

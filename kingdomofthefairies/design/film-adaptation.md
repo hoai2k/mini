@@ -252,6 +252,12 @@ Each step is playable on its own, so it can ship to `main` as it lands.
 
 ## Planning images
 
+The ten character sheets and twenty tableaux are now generated for review in
+[the planning gallery](references/film-planning/index.html). See the
+[delivery notes](references/film-planning/README.md) for original files,
+generation references and dimensions. They are documentation art; production
+sprites and gameplay changes in this proposal remain future work.
+
 Requested in [image-requests.md](image-requests.md), section *Planning images
 for the film adaptation*: canonical character sheets for the cast above and a
 concept tableau for each new or changed scene. They are for agreeing the look

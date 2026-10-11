@@ -12,6 +12,7 @@ design/image-requests.md.
 """
 import os
 import sys
+import json
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DOC = os.path.join(ROOT, 'design', 'image-requests.md')
@@ -142,6 +143,10 @@ SCENES = [
 
 
 def render():
+    delivery_path = os.path.join(ROOT, 'design', 'references', 'film-planning', 'manifest.json')
+    delivered = set()
+    if os.path.exists(delivery_path):
+        delivered = {image['id'] for image in json.load(open(delivery_path))['images']}
     out = [START, '', '## Planning images for the film adaptation', '',
            f'Requested 11 October 2026 for [the film adaptation plan](film-adaptation.md): '
            f'{len(CHARACTERS)} canonical character sheets and {len(SCENES)} scene concepts. They are for agreeing '
@@ -154,12 +159,21 @@ def render():
            '`references/film-planning/`.', '',
            '### Character sheets', '', 'Each 2400 × 1600 px (landscape).', '',
            '| Id | Character |', '| --- | --- |']
-    out += [f'| `{cid}` | {title} |' for cid, title, _ in CHARACTERS]
+    if delivered:
+        out[4:4] = ['Delivery: ' + str(len(delivered)) + ' images generated for design review. '
+                    '[Browse the gallery](references/film-planning/index.html) or '
+                    '[read the delivery notes](references/film-planning/README.md). '
+                    'The original briefs below are retained. Character sheets guided scene generation; '
+                    'the images are not integrated into gameplay. Actual native dimensions are recorded in the manifest; '
+                    'the larger requested dimensions remain production targets.', '']
+    out += [f'| `{cid}` | [{title}](references/film-planning/index.html#{cid}) |' if cid in delivered
+            else f'| `{cid}` | {title} |' for cid, title, _ in CHARACTERS]
     out.append('')
     for cid, title, subject in CHARACTERS:
         out += [f'#### `{cid}` — {title}', '', f'> {subject} {SHEET}', '']
     out += ['### Scene concepts', '', 'Each 2560 × 1440 px (16:9).', '', '| Id | Scene |', '| --- | --- |']
-    out += [f'| `{sid}` | {title} |' for sid, title, _ in SCENES]
+    out += [f'| `{sid}` | [{title}](references/film-planning/index.html#{sid}) |' if sid in delivered
+            else f'| `{sid}` | {title} |' for sid, title, _ in SCENES]
     out.append('')
     for sid, title, subject in SCENES:
         out += [f'#### `{sid}` — {title}', '', f'> {subject} {SCENE}', '']
