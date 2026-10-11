@@ -7,7 +7,7 @@ import { noteName } from './music.js';
 import { perform, secondsPerBeat } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
-import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, preventZoom } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
@@ -69,6 +69,7 @@ const fx = createFx($('#fx'));
 // Tapping a found note on the staff plays it on its own.
 const staff = createStaff($('#staff'), { onTap: (midi) => { audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
 const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDirection: padDirection, onStick: padStick, onDisconnect: () => { if (S.mode === 'play' && !dialogs.length) openPause(); } });
+preventZoom();
 const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint') });
 
 function haptic(ms) {
