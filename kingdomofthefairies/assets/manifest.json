@@ -1242,7 +1242,7 @@
       "interim": "interim/water-fairy-stand.webp"
     },
     "witch-hooded": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-hooded.webp",
       "size": [
         240,
@@ -1253,7 +1253,7 @@
       "interim": "interim/witch-hooded-spectre.webp"
     },
     "witch-cloud": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-cloud.webp",
       "size": [
         400,
@@ -1264,7 +1264,7 @@
       "interim": "interim/witch-cloud-spectre.webp"
     },
     "witch-swoop": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-swoop.webp",
       "size": [
         400,
@@ -1275,7 +1275,7 @@
       "interim": "interim/witch-swoop-spectre.webp"
     },
     "witch-barrel": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-barrel.webp",
       "size": [
         200,
@@ -1907,7 +1907,7 @@
       "from": "design/references/film-planning/originals/concept-galley-departure.png"
     },
     "witch-storm": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-storm.webp",
       "size": [
         520,

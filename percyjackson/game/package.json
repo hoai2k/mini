@@ -1,0 +1,7 @@
+{
+  "name": "half-blood-quests",
+  "private": true,
+  "type": "module",
+  "description": "Half-Blood Quests: plain ES modules served as they are (no build step). This file only tells Node the modules are ESM, for the checks in test/.",
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}

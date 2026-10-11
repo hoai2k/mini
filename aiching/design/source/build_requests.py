@@ -106,32 +106,7 @@ MEDIUM = {
 
 # Delivered hexagrams that missed their style: requested again. The delivered
 # picture stays in use until the replacement arrives.
-REPLACE = {
-    1: "came back as a painted landscape, not cloisonné enamel",
-    7: "painted, not shadow puppets",
-    11: "painted, not famille-rose porcelain",
-    13: "realistic painting, not a 1930s Shanghai poster",
-    14: "painted, not lacquer",
-    17: "painterly, not flat guochao illustration",
-    19: "painted, not silk embroidery",
-    22: "painted, not famille-rose porcelain",
-    23: "detailed painting, not splashed colour",
-    24: "painted snow scene, not paper-cut",
-    25: "coloured painting, not ink-wash animation",
-    30: "painted, not cloisonné enamel",
-    31: "painted, not silk embroidery",
-    32: "painted, not lacquer",
-    33: "detailed ink landscape, not Wu Guanzhong's lines and dots",
-    35: "realistic painting, not a 1930s Shanghai poster",
-    36: "painted night scene, not shadow puppets",
-    38: "painterly, not flat guochao illustration",
-    49: "painted, not flat guochao illustration",
-    53: "painted, not silk embroidery",
-    55: "painted, not lacquer",
-    59: "painted, not splashed colour",
-    60: "painted, not famille-rose porcelain",
-    63: "painterly, not flat guochao illustration",
-}
+REPLACE: dict[int, str] = {}
 
 
 def style_lead(key):

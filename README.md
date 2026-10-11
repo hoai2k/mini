@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Half-Blood Quests](https://hoai2k.github.io/mini/percyjackson/)** · [`percyjackson/`](percyjackson/README.md): a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons
 - **[Ear Trainer](https://hoai2k.github.io/mini/eartrainer/)** · [`eartrainer/`](eartrainer/README.md): hear a melody, play it back on the piano
 - **[Ai-Ching](https://hoai2k.github.io/mini/aiching/)** · [`aiching/`](aiching/README.md): ask anything, and an I Ching reading answers
 - **[Fibre Art](https://hoai2k.github.io/mini/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve

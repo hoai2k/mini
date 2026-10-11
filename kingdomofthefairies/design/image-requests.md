@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 100 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 95 of 100 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 100 of 100 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -809,11 +809,11 @@ Requested 11 October 2026. The first witch art drew a faceless, ragged spectre w
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `witch-hooded` | 240 × 400 | bottom centre | new | requested |
-| `witch-cloud` | 400 × 400 | bottom centre | new | requested |
-| `witch-storm` | 520 × 340 | bottom centre | new | requested |
-| `witch-swoop` | 400 × 240 | centre | new | requested |
-| `witch-barrel` | 200 × 240 | bottom centre | new | requested |
+| `witch-hooded` | 240 × 400 | bottom centre | new | [delivered](../assets/witch-hooded.webp) |
+| `witch-cloud` | 400 × 400 | bottom centre | new | [delivered](../assets/witch-cloud.webp) |
+| `witch-storm` | 520 × 340 | bottom centre | new | [delivered](../assets/witch-storm.webp) |
+| `witch-swoop` | 400 × 240 | centre | new | [delivered](../assets/witch-swoop.webp) |
+| `witch-barrel` | 200 × 240 | bottom centre | new | [delivered](../assets/witch-barrel.webp) |
 
 #### `witch-hooded` — The witch standing
 
