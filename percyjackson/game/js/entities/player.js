@@ -309,7 +309,7 @@ export class Player {
     this.dodgeDir.copy(dir); this.dodgeDur = 0.42; this.dodgeT = this.dodgeDur;
     this.iframes = 0.36; this.dodgeCd = 0.75 * (1 - this.stats.cdr * 0.5);
     this.action = { type: 'dodge', t: 0, dur: this.dodgeDur, elapsed: 0 };
-    this.game.audio?.whoosh(0.6);
+    if (!this.game.audio?.sample?.('roll', { gain: 0.7 })) this.game.audio?.whoosh(0.6);
     this.game.fx?.dodgeTrail(this);
     this.onDodge?.();
   }

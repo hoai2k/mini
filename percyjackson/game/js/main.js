@@ -495,6 +495,7 @@ class Game {
   }
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
+    this.audio?.sample?.('chest');
     const diff = this.mission?.def.difficulty ?? 1, lvl = this.save.data.level;
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
@@ -539,7 +540,7 @@ class Game {
     this.fx.flash(0xd8e8ff, 0.35, 0.18);
     this.lights.flash(at, new THREE.Color(0xc8d8ff), 30, 60, 0.3);
     this.bolts.spawn(at, { count: 3, length: 9, life: 0.25 });
-    setTimeout(() => this.audio?.impact?.(0.6 + Math.random() * 0.4), 300 + Math.random() * 900);
+    setTimeout(() => { if (!this.audio?.sample?.('thunder', { gain: 0.5 + Math.random() * 0.4, rate: 0.9 + Math.random() * 0.2 })) this.audio?.impact?.(0.6 + Math.random() * 0.4); }, 300 + Math.random() * 900);
   }
   setReadout(on) { this.readoutOn = on; document.getElementById('readout').classList.toggle('hidden', !on); }
   pause(player = this.players[0]) {

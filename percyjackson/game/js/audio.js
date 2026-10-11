@@ -38,6 +38,7 @@ export class Audio {
     this.revSend = ctx.createGain(); this.revSend.gain.value = 0.25; this.revSend.connect(this.reverb); this.reverb.connect(this.comp);
     this.noiseBuf = this.makeNoise(2);
     this.started = true;
+    this.loadSfx();
     this.applyVolumes();
   }
   applyVolumes() {
@@ -96,6 +97,35 @@ export class Audio {
     this.musicBus.gain.setTargetAtTime(settings.music * 0.12, t, 0.15);
     src.onended = () => this.musicBus.gain.setTargetAtTime(settings.music * 0.55, this.ctx.currentTime, 0.8);
   }
+  // ---- recorded effects (assets/sfx/, made by design/source/build_sfx.py).
+  // sample() plays a random variant with a small pitch nudge and returns
+  // false when that effect isn't loaded, so callers fall back to synthesis.
+  loadSfx() {
+    if (this._sfxLoading) return; this._sfxLoading = true;
+    this.sfx = {};
+    fetch('assets/sfx/index.json').then((r) => (r.ok ? r.json() : {})).then((idx) => {
+      for (const [id, ns] of Object.entries(idx)) for (const n of ns) {
+        fetch(`assets/sfx/${id}-${n}.mp3`).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? this.ctx.decodeAudioData(b) : null))
+          .then((buf) => { if (buf) (this.sfx[id] ??= []).push(buf); }).catch(() => { /* missing: synthesised instead */ });
+      }
+    }).catch(() => { /* no index: synthesised sounds only */ });
+  }
+  sample(id, { gain = 1, rate = 1, jitter = 0.05, at = 0 } = {}) {
+    const list = this.started && this.sfx?.[id];
+    if (!list?.length) return false;
+    const c = this.ctx, s = c.createBufferSource(), g = c.createGain();
+    s.buffer = list[Math.floor(Math.random() * list.length)];
+    s.playbackRate.value = rate * (1 + (Math.random() * 2 - 1) * jitter);
+    g.gain.value = gain;
+    s.connect(g); g.connect(this.sfxBus); s.start(c.currentTime + at);
+    return true;
+  }
+  // monster voices by the bestiary's voice names
+  voiceSample(kind, pitch = 1) {
+    const id = { bark: 'bark', screech: 'screech', hiss: 'hiss', click: 'click', roar: 'roar', bull: 'roar' }[kind];
+    if (!id || this.throttle('voice-' + id, 260)) return !!id;
+    return this.sample(id, { gain: 0.7, rate: Math.max(0.6, Math.min(1.5, pitch)) });
+  }
   ui(kind) {
     if (!this.started) return;
     if (kind === 'move') this.tone({ freq: 660, dur: 0.05, gain: 0.05, type: 'square', filter: 2000 });
@@ -104,10 +134,11 @@ export class Audio {
     else this.tone({ freq: 880, dur: 0.08, gain: 0.08, type: 'square', filter: 2500 });
   }
   whoosh(s = 1) { if (this.throttle('whoosh', 40)) return; this.noise({ dur: 0.18 * s + 0.05, gain: 0.25 * s, type: 'bandpass', freq: 600, sweep: 2600, q: 1.2, attack: 0.03 }); }
-  swing(step = 0) { this.noise({ dur: 0.16, gain: 0.22, type: 'bandpass', freq: 900 + step * 250, sweep: 3200, q: 2, attack: 0.02 }); }
+  swing(step = 0) { if (this.sample('swing', { gain: 0.8, rate: 1 + step * 0.05 })) return; this.noise({ dur: 0.16, gain: 0.22, type: 'bandpass', freq: 900 + step * 250, sweep: 3200, q: 2, attack: 0.02 }); }
   impact(power = 1, kind = 'flesh') {
     if (this.throttle('impact', 25)) return;
     const p = Math.min(2.5, power);
+    if (this.sample(kind === 'metal' ? 'clang' : 'hit', { gain: 0.55 + 0.25 * Math.min(1.6, p), rate: 1.08 - Math.min(0.25, p * 0.08) })) { if (kind === 'crit') this.tone({ freq: 1800, to: 900, dur: 0.12, gain: 0.06, type: 'square', filter: 4000 }); return; }
     this.noise({ dur: 0.12 + p * 0.08, gain: 0.35 * p, type: 'lowpass', freq: 2400, sweep: 200, rev: 0.1 });
     this.tone({ freq: 140 + Math.random() * 30, to: 45, dur: 0.14 + p * 0.1, gain: 0.45 * Math.min(1.4, p), type: 'sine' });
     if (kind === 'crit') this.tone({ freq: 1800, to: 900, dur: 0.12, gain: 0.08, type: 'square', filter: 4000 });
@@ -119,7 +150,7 @@ export class Audio {
   }
   hurt() { if (this.throttle('hurt', 120)) return; this.tone({ freq: 220, to: 110, dur: 0.18, gain: 0.25, type: 'square', filter: 1200 }); this.noise({ dur: 0.1, gain: 0.2, freq: 1500 }); }
   enemyHurt(pitch = 1) { if (this.throttle('ehurt', 50)) return; this.tone({ freq: 180 * pitch, to: 90 * pitch, dur: 0.15, gain: 0.12, type: 'sawtooth', filter: 900 }); }
-  enemyDie(big = false) { this.noise({ dur: big ? 0.9 : 0.4, gain: big ? 0.5 : 0.28, type: 'bandpass', freq: 500, sweep: 120, q: 0.8, rev: 0.3 }); this.tone({ freq: big ? 120 : 260, to: 40, dur: big ? 0.9 : 0.35, gain: 0.2, type: 'sawtooth', filter: 700 }); }
+  enemyDie(big = false) { if (this.sample('dust', { gain: big ? 1 : 0.65, rate: big ? 0.8 : 1.05 })) { if (big) this.tone({ freq: 120, to: 40, dur: 0.9, gain: 0.15, type: 'sawtooth', filter: 500 }); return; } this.noise({ dur: big ? 0.9 : 0.4, gain: big ? 0.5 : 0.28, type: 'bandpass', freq: 500, sweep: 120, q: 0.8, rev: 0.3 }); this.tone({ freq: big ? 120 : 260, to: 40, dur: big ? 0.9 : 0.35, gain: 0.2, type: 'sawtooth', filter: 700 }); }
   footstep(surface, pos) {
     if (!this.started || this.throttle('step', 90)) return;
     const s = { stone: [1800, 0.07, 'bandpass', 2.5], grass: [700, 0.06, 'lowpass', 0.7], wood: [420, 0.1, 'bandpass', 3], metal: [2600, 0.08, 'bandpass', 8], water: [900, 0.12, 'bandpass', 0.6], sand: [1100, 0.07, 'lowpass', 0.5] }[surface] || [1500, 0.07, 'bandpass', 2];
@@ -130,6 +161,7 @@ export class Audio {
   }
   charge(dur = 0.8, pitch = 1) { this.tone({ freq: 180 * pitch, to: 900 * pitch, dur, gain: 0.12, type: 'sawtooth', filter: 2500, attack: dur * 0.8 }); this.noise({ dur, gain: 0.1, type: 'bandpass', freq: 400, sweep: 4000, q: 4, attack: dur * 0.8 }); }
   energy(kind = 'blue') {
+    if (kind === 'heal' && this.sample('heal', { gain: 0.8 })) return;
     if (kind === 'blue') { this.tone({ freq: 60, to: 180, dur: 0.9, gain: 0.35, type: 'sine', rev: 0.3 }); this.noise({ dur: 0.9, gain: 0.25, type: 'bandpass', freq: 3000, sweep: 300, q: 3, attack: 0.05 }); }
     else if (kind === 'red') { this.noise({ dur: 0.5, gain: 0.6, type: 'lowpass', freq: 4000, sweep: 100, rev: 0.3 }); this.tone({ freq: 400, to: 60, dur: 0.5, gain: 0.35, type: 'sawtooth', filter: 1500 }); }
     else if (kind === 'purple') { this.tone({ freq: 40, to: 30, dur: 2.2, gain: 0.8, type: 'sawtooth', filter: 300, rev: 0.5 }); this.noise({ dur: 2, gain: 0.7, type: 'lowpass', freq: 6000, sweep: 80, rev: 0.6, attack: 0.02 }); this.tone({ freq: 800, to: 200, dur: 1.4, gain: 0.15, type: 'square', filter: 3000 }); }
@@ -152,10 +184,10 @@ export class Audio {
     this.noise({ dur: 0.6, gain: 0.9, type: 'lowpass', freq: 6000, sweep: 60, rev: 0.8, at: 1.3 });
   }
   gong() { this.tone({ freq: 110, to: 105, dur: 3, gain: 0.35, type: 'sine', rev: 0.8 }); this.tone({ freq: 277, to: 270, dur: 2.5, gain: 0.12, type: 'sine', rev: 0.8 }); this.tone({ freq: 413, dur: 2, gain: 0.06, type: 'sine', rev: 0.8 }); }
-  coin() { if (this.throttle('coin', 40)) return; this.tone({ freq: 1568, dur: 0.08, gain: 0.07, type: 'square', filter: 5000 }); this.tone({ freq: 2093, dur: 0.12, gain: 0.06, type: 'square', filter: 5000, at: 0.06 }); }
-  loot(rarity) { const f = rarity === 'unique' ? [523, 784, 1046, 1568] : rarity === 'rare' ? [659, 988, 1318] : [784, 1046]; f.forEach((x, i) => this.tone({ freq: x, dur: 0.35, gain: 0.09, type: 'triangle', rev: 0.4, at: i * 0.08 })); }
-  breakBlock(kind = 'wood') { if (this.throttle('break', 30)) return; this.noise({ dur: 0.25, gain: 0.35, type: 'bandpass', freq: kind === 'wood' ? 700 : 1400, sweep: 200, q: 1.2 }); this.tone({ freq: kind === 'wood' ? 180 : 120, to: 60, dur: 0.15, gain: 0.2 }); }
-  boss() { this.gong(); this.tone({ freq: 55, dur: 2.5, gain: 0.5, type: 'sawtooth', filter: 300, attack: 0.5, rev: 0.5 }); }
+  coin() { if (this.throttle('coin', 40)) return; if (this.sample('coin', { gain: 0.6, jitter: 0.08 })) return; this.tone({ freq: 1568, dur: 0.08, gain: 0.07, type: 'square', filter: 5000 }); this.tone({ freq: 2093, dur: 0.12, gain: 0.06, type: 'square', filter: 5000, at: 0.06 }); }
+  loot(rarity) { if (this.sample('loot', { gain: rarity === 'unique' ? 1 : 0.8, rate: rarity === 'unique' ? 0.92 : 1 }) && rarity !== 'unique') return; const f = rarity === 'unique' ? [523, 784, 1046, 1568] : rarity === 'rare' ? [659, 988, 1318] : [784, 1046]; f.forEach((x, i) => this.tone({ freq: x, dur: 0.35, gain: 0.09, type: 'triangle', rev: 0.4, at: i * 0.08 })); }
+  breakBlock(kind = 'wood') { if (this.throttle('break', 30)) return; if (this.sample(kind === 'wood' ? 'break_wood' : 'break_pot', { gain: 0.8 })) return; this.noise({ dur: 0.25, gain: 0.35, type: 'bandpass', freq: kind === 'wood' ? 700 : 1400, sweep: 200, q: 1.2 }); this.tone({ freq: kind === 'wood' ? 180 : 120, to: 60, dur: 0.15, gain: 0.2 }); }
+  boss() { if (this.sample('boss')) return; this.gong(); this.tone({ freq: 55, dur: 2.5, gain: 0.5, type: 'sawtooth', filter: 300, attack: 0.5, rev: 0.5 }); }
   warn() { if (this.throttle('warn', 150)) return; this.tone({ freq: 880, dur: 0.12, gain: 0.06, type: 'square', filter: 3000 }); }
   levelUp() { [392, 523, 659, 784, 1046].forEach((f, i) => this.tone({ freq: f, dur: 0.4, gain: 0.1, type: 'square', filter: 3000, at: i * 0.09, rev: 0.3 })); }
 

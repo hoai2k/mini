@@ -131,7 +131,7 @@ class PercyKit extends Kit {
     const hit = new Set();
     let t = 0;
     const dur = 0.45;
-    g.audio?.noise({ dur: 0.8, gain: 0.45, type: 'lowpass', freq: 900, sweep: 2600, attack: 0.05, rev: 0.3 });
+    if (!g.audio?.sample?.('splash')) g.audio?.noise({ dur: 0.8, gain: 0.45, type: 'lowpass', freq: 900, sweep: 2600, attack: 0.05, rev: 0.3 });
     g.shake(0.25);
     g.addUpdater((dt) => {
       t += dt;
