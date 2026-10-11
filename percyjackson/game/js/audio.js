@@ -136,7 +136,7 @@ export class Audio {
     const src = c.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true;
     const f = c.createBiquadFilter();
     const g = c.createGain();
-    const cfg = { night: ['lowpass', 500, 0.08], city: ['lowpass', 260, 0.14], forest: ['bandpass', 900, 0.06], drips: ['lowpass', 180, 0.12], void: ['lowpass', 120, 0.1] }[kind] || ['lowpass', 400, 0.08];
+    const cfg = { storm: ['lowpass', 900, 0.16], museum: ['lowpass', 300, 0.05], camp: ['bandpass', 1200, 0.04], night: ['lowpass', 500, 0.08], city: ['lowpass', 260, 0.14], forest: ['bandpass', 900, 0.06], drips: ['lowpass', 180, 0.12], void: ['lowpass', 120, 0.1] }[kind] || ['lowpass', 400, 0.08];
     f.type = cfg[0]; f.frequency.value = cfg[1]; g.gain.value = cfg[2];
     src.connect(f); f.connect(g); g.connect(this.ambBus); src.start();
     const timer = setInterval(() => {
@@ -156,9 +156,9 @@ export class Audio {
     if (this.musicTimer) clearInterval(this.musicTimer);
     if (!kind) return;
     const scales = {
-      shrine: [0, 1, 5, 7, 8], city: [0, 3, 5, 7, 10], forest: [0, 2, 3, 7, 8], subway: [0, 1, 3, 6, 8], shibuya: [0, 1, 4, 5, 7, 8], hub: [0, 2, 4, 7, 9], boss: [0, 1, 3, 6, 7], title: [0, 2, 3, 7, 10],
+      museum: [0, 2, 3, 5, 7, 9], storm: [0, 1, 3, 5, 7, 8], camp: [0, 2, 4, 7, 9], shrine: [0, 1, 5, 7, 8], city: [0, 3, 5, 7, 10], forest: [0, 2, 3, 7, 8], subway: [0, 1, 3, 6, 8], shibuya: [0, 1, 4, 5, 7, 8], hub: [0, 2, 4, 7, 9], boss: [0, 1, 3, 6, 7], title: [0, 2, 3, 7, 10],
     };
-    const roots = { shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45 };
+    const roots = { museum: 50, storm: 43, camp: 52, shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45 };
     const scale = scales[kind] || scales.shrine, root = roots[kind] ?? 48;
     const bpm = kind === 'boss' ? 132 : kind === 'hub' || kind === 'title' ? 84 : 100;
     const stepDur = 60 / bpm / 2;

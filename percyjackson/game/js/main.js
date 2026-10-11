@@ -22,7 +22,7 @@ import { settings, saveSettings } from './settings.js';
 import { Environment, BIOMES } from './world/biomes.js';
 import { makePropMaterials } from './world/deco.js';
 import { BLOCKS } from './world/blocks.js';
-import { buildTestRoom } from './world/testroom.js';
+import { buildCamp } from './world/camp.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
 import { Pickups } from './pickups.js';
@@ -52,7 +52,7 @@ import { mulberry32 } from './util.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
 import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
-import { buildHeroModel } from './entities/models.js';
+import { buildHeroModel, buildNpc } from './entities/models.js';
 import { openPhotoMode } from './photo.js';
 import { DomainSystem } from './domain.js';
 import { Trench } from './gfx/materials.js';
@@ -159,7 +159,7 @@ class Game {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     if (this.mode !== 'hub') this.loadHub();
-    this.rig.cinematic({ center: new THREE.Vector3(19, 8, 22), dur: 1e9, dist: 34, pitch: 34 * Math.PI / 180, orbit: 0.05 });
+    this.rig.cinematic({ center: new THREE.Vector3(56, 8, 40), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
     this.audio.setMusic('title');
     openTitle(this);
   }
@@ -295,15 +295,15 @@ class Game {
   }
   loadHub() {
     this.clearLevel();
-    const L = buildTestRoom();
-    this.loadWorld(L, BIOMES.jujutsu_high);
+    const L = buildCamp();
+    this.loadWorld(L, BIOMES.camp);
     if (this.state === 'playing') this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
     const dummy = new TrainingDummy(this, L.dummy);
     this.scene.add(dummy.object); this.enemies.push(dummy);
     const who = (p) => p ?? this.players[0];
     this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: 'Training: call up monsters', action: () => this.spawnWave(), enabled: () => !this.online.isGuest });
-    this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: 'Mission map', action: () => openMapTable(this) });
+    this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: 'Chapter map', action: () => openMapTable(this) });
     this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: 'Camp store', action: (p) => openShop(this, who(p)) });
     this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.4, label: L.forge ? 'The Forge: temper and enchant gear' : 'Forge and inventory', action: (p) => openForge(this, who(p)) });
     this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Train with Chiron', action: (p) => openSkills(this, who(p)) });
@@ -314,9 +314,12 @@ class Game {
       if (!HEROES[hid] || HEROES[hid].soon) continue;
       this.interactables.push({ id: 'cabin-' + hid, pos, radius: 2.2, label: `${HEROES[hid].parent}'s cabin: play as ${HEROES[hid].name}`, action: (p) => this.changeHero(who(p), hid), enabled: () => this.heroUnlocked(hid) && !this.players.some((q) => q.hero === hid && !q.ai) });
     }
-    // merchant NPC + stash chest props
-    const npc = buildHeroModel('grover'); npc.root.position.set(L.shop.x, L.shop.y, L.shop.z + 1.2); npc.root.rotation.y = Math.PI; this.scene.add(npc.root); this.hubProps = [npc.root];
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.8), new THREE.MeshStandardNodeMaterial({ color: 0x5a3a8a, roughness: 0.6 })); chest.position.set(L.stash.x, L.stash.y + 0.4, L.stash.z); chest.castShadow = true; this.scene.add(chest); this.hubProps.push(chest);
+    // Chiron on the porch and Mr. D at his pinochle table
+    this.hubProps = [];
+    for (const [id, pos, yaw] of [['chiron', L.chiron, Math.PI], ['mr_d', L.chiron && L.chiron.clone().add(new THREE.Vector3(-2.2, 0, 0.4)), Math.PI * 0.9]]) {
+      if (!pos) continue;
+      const npc = buildNpc(id); npc.root.position.copy(pos); npc.root.rotation.y = yaw; this.scene.add(npc.root); this.hubProps.push(npc.root);
+    }
     this.wave = 0;
     this.minimap.level = null;
     this.hud.mini.classList.add('hidden');
@@ -403,7 +406,7 @@ class Game {
     this.paused = true;
     this.ui.open('map', (el) => {
       const cv = h('canvas', { class: 'mapview', width: 640, height: 640 });
-      el.appendChild(h('div', { class: 'panel', style: 'text-align:center' }, h('h2', {}, 'Map'), cv, h('div', { class: 'hint' }, '■ objective  ■ chest  ● curse  ■ boss arena  ● exit'), h('button', { class: 'btn', 'data-autofocus': true, onclick: () => { this.ui.close('map'); this.paused = false; } }, 'Close')));
+      el.appendChild(h('div', { class: 'panel', style: 'text-align:center' }, h('h2', {}, 'Map'), cv, h('div', { class: 'hint' }, '■ objective  ■ chest  ● monster  ■ boss arena  ● exit'), h('button', { class: 'btn', 'data-autofocus': true, onclick: () => { this.ui.close('map'); this.paused = false; } }, 'Close')));
       this.minimap.draw(cv, { full: true });
     }, { dim: true, onBack: () => { this.ui.close('map'); this.paused = false; } });
   }

@@ -75,8 +75,8 @@ export function buildCamp() {
     for (let i = 0; i < h; i++) W.set(x, FY + i, z, i === h - 1 ? B.grass : d > 9 && i < h - 1 ? B.rock : B.dirt);
   }
   for (const [x, z, r] of [[22, 12, 1.6], [37, 24, 1.3], [24, 26, 1.2], [34, 9, 1.4]]) boulder(k, x, z, top(x, z) - 1, r);
-  pine(k, HX - 1, HZ - 1, top(HX, HZ), { h: 17, wide: true, R: 5.6 });
   const thaliaPine = V(HX, top(HX, HZ), HZ);
+  pine(k, HX - 1, HZ - 1, thaliaPine.y, { h: 17, wide: true, R: 5.6 });
 
   // ------------------------------------------------------------ paths
   const pathLine = (pts, w = 3, id = B.gravel_path) => {
@@ -209,7 +209,7 @@ export function buildCamp() {
     if (d <= 4.2) W.set(x, FY - 1, z, d > 3.3 ? B.stone_brick : B.cobble);
   }
   deco.prop('campfire', HC[0] + 0.5, FY, HC[1] + 0.5, { scale: 0.9 }); W.addLight(HC[0] + 0.5, FY + 1.3, HC[1] + 0.5, 0xffa040, 4, 9); W.set(HC[0], FY, HC[1], B.barrier);
-  for (const [x, z] of [[47, 45], [61, 45], [47, 71], [61, 71]]) oak(k, x, z, FY, { h: 4, R: 2.8 });
+  for (const [x, z] of [[47, 45], [61, 45], [47, 71]]) oak(k, x, z, FY, { h: 4, R: 2.8 });
   for (const [x, z] of [[49, 52], [59, 64], [49, 64], [59, 52]]) deco.prop('bench_marble', x + 0.5, FY, z + 0.5, { rot: Math.atan2(HC[0] - x, HC[1] - z) + Math.PI / 2 });
 
   // ------------------------------------------------------------ camp store (west of the cabins)

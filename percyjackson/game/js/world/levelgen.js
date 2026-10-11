@@ -115,7 +115,7 @@ export function generateLevel(mission) {
       TEMPLATES[t](c);
       room.template = t;
     }
-    room.spawns = c.spawns; room.features = c.features;
+    room.spawns = c.spawns; room.features = c.features; room.slots = c.slots;
     // make sure every door opening is clear and has floor under it
     for (const d of room.doors) clearDoor(k, room, d);
   }
@@ -206,7 +206,7 @@ function buildCorridor(k, cor, biome, r) {
   // lanterns at the corridor mouths
   if (len > 2) {
     const a = cor.from + 1, b = cor.to - 1;
-    const place = (p, y) => { const x = cor.axis === 'x' ? p : cor.at - 3, z = cor.axis === 'x' ? cor.at - 3 : p; if (!w.get(x, y - 1, z)) return; k.d.prop('paper_lantern', x + 0.5, y + 3.2, z + 0.5); w.addLight(x + 0.5, y + 2.6, z + 0.5, 0xff6a2a, 3, 7); };
+    const place = (p, y) => { const x = cor.axis === 'x' ? p : cor.at - 3, z = cor.axis === 'x' ? cor.at - 3 : p; if (!w.get(x, y - 1, z)) return; if (biome.id) { k.d.prop('brazier', x + 0.5, y, z + 0.5); w.set(x, y, z, B.barrier); w.addLight(x + 0.5, y + 1.4, z + 0.5, 0xffa040, 3.5, 8); } else { k.d.prop('paper_lantern', x + 0.5, y + 3.2, z + 0.5); w.addLight(x + 0.5, y + 2.6, z + 0.5, 0xff6a2a, 3, 7); } };
     if (r() < 0.5) place(a, cor.ya); if (r() < 0.5) place(b, cor.yb);
   }
 }

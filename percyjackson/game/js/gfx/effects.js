@@ -213,7 +213,7 @@ export class Effects {
   // ---------------- ambient
   ambient(dt, kind, focus) {
     this.ambientT += dt;
-    const rate = { fireflies: 6, embers: 10, spores: 10, drips: 6 }[kind] ?? 0;
+    const rate = { fireflies: 6, embers: 10, spores: 10, drips: 6, rain: 70, dust: 5, pollen: 4 }[kind] ?? 0;
     const n = Math.floor(this.ambientT * rate); if (!n) return;
     this.ambientT -= n / rate;
     for (let i = 0; i < n; i++) {
@@ -223,6 +223,9 @@ export class Effects {
       else if (kind === 'embers') this.p.glow.emit(x, focus.y + Math.random(), z, (Math.random() - 0.5) * 0.8, 1 + Math.random(), (Math.random() - 0.5) * 0.8, 3 + Math.random() * 2, 3, 1.1, 0.3, 0.07, -0.2, 0.3, 0.2, 1);
       else if (kind === 'spores') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.3, 0.15, (Math.random() - 0.5) * 0.3, 4 + Math.random() * 3, 0.9, 0.5, 1.6, 0.08, 0, 0.2, 1, 0);
       else if (kind === 'drips') this.p.glow.emit(x, focus.y + 7, z, 0, -2, 0, 0.9, 0.5, 0.8, 1.0, 0.05, 12, 0, 1, 1);
+      else if (kind === 'rain') this.p.glow.emit(x, focus.y + 9, z, 2.5, -16, 0.6, 0.6, 0.55, 0.65, 0.85, 0.04, 6, 0, 1, 1);
+      else if (kind === 'dust') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.15, 0.04, (Math.random() - 0.5) * 0.15, 6, 1.0, 0.85, 0.6, 0.05, 0, 0.3, 1, 0);
+      else if (kind === 'pollen') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.4, 0.1, (Math.random() - 0.5) * 0.4, 5, 1.0, 0.95, 0.6, 0.05, 0, 0.2, 1, 0);
     }
   }
 
