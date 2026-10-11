@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 80 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 53 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 80 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -264,13 +264,13 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 | `fairy-ring` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-ring.webp) |
 | `fairy-crown` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-crown.webp) |
 | `fairy-gold` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-gold.webp) |
-| `demon-red` | 220 × 360 | bottom centre | new | requested |
-| `demon-teal` | 220 × 360 | bottom centre | new | requested |
-| `crew-squire` | 220 × 420 | bottom centre | `reveller-yellow` | requested |
-| `crew-helmsman` | 220 × 420 | bottom centre | `reveller-jester` | requested |
-| `crew-manatarms` | 220 × 420 | bottom centre | `reveller-lady` | requested |
-| `crew-asleep` | 260 × 120 | bottom centre | new | requested |
-| `crew-rider` | 320 × 240 | bottom centre | new | requested |
+| `demon-red` | 220 × 360 | bottom centre | new | [delivered](../assets/demon-red.webp) |
+| `demon-teal` | 220 × 360 | bottom centre | new | [delivered](../assets/demon-teal.webp) |
+| `crew-squire` | 220 × 420 | bottom centre | `reveller-yellow` | [delivered](../assets/crew-squire.webp) |
+| `crew-helmsman` | 220 × 420 | bottom centre | `reveller-jester` | [delivered](../assets/crew-helmsman.webp) |
+| `crew-manatarms` | 220 × 420 | bottom centre | `reveller-lady` | [delivered](../assets/crew-manatarms.webp) |
+| `crew-asleep` | 260 × 120 | bottom centre | new | [delivered](../assets/crew-asleep.webp) |
+| `crew-rider` | 320 × 240 | bottom centre | new | [delivered](../assets/crew-rider.webp) |
 
 #### `azurine-stand` — Azurine standing
 
@@ -420,19 +420,19 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 | `galley-wreck-stern` | 300 × 400 | bottom centre | `ship-wreck-stern` | [delivered](../assets/galley-wreck-stern.webp) |
 | `sword-sinking` | 220 × 520 | centre | `guitar-sinking` | [delivered](../assets/sword-sinking.webp) |
 | `aurora-star` | 64 × 64 | bottom centre | `tea-leaf` | [delivered](../assets/aurora-star.webp) |
-| `keepsake-star` | 128 × 128 | bottom centre | `keepsake-tea` | requested |
+| `keepsake-star` | 128 × 128 | bottom centre | `keepsake-tea` | [delivered](../assets/keepsake-star.webp) |
 | `keepsake-sword` | 128 × 128 | bottom centre | `keepsake-guitar` | [delivered](../assets/keepsake-sword.webp) |
-| `keepsake-shell` | 128 × 128 | bottom centre | `keepsake-rose` | requested |
-| `keepsake-seal` | 128 × 128 | bottom centre | `keepsake-pearl` | requested |
-| `keepsake-lamp` | 128 × 128 | bottom centre | `keepsake-stone` | requested |
-| `chariot` | 600 × 320 | centre | new | requested |
-| `gift-ring` | 96 × 96 | bottom centre | new | requested |
-| `gift-flower` | 96 × 96 | bottom centre | new | requested |
-| `gift-crown` | 96 × 96 | bottom centre | new | requested |
-| `gift-gold` | 96 × 96 | bottom centre | new | requested |
-| `whirlpool` | 800 × 260 | centre | new | requested |
-| `tower-window` | 200 × 260 | bottom centre | new | requested |
-| `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new | requested |
+| `keepsake-shell` | 128 × 128 | bottom centre | `keepsake-rose` | [delivered](../assets/keepsake-shell.webp) |
+| `keepsake-seal` | 128 × 128 | bottom centre | `keepsake-pearl` | [delivered](../assets/keepsake-seal.webp) |
+| `keepsake-lamp` | 128 × 128 | bottom centre | `keepsake-stone` | [delivered](../assets/keepsake-lamp.webp) |
+| `chariot` | 600 × 320 | centre | new | [delivered](../assets/chariot.webp) |
+| `gift-ring` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-ring.webp) |
+| `gift-flower` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-flower.webp) |
+| `gift-crown` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-crown.webp) |
+| `gift-gold` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-gold.webp) |
+| `whirlpool` | 800 × 260 | centre | new | [delivered](../assets/whirlpool.webp) |
+| `tower-window` | 200 × 260 | bottom centre | new | [delivered](../assets/tower-window.webp) |
+| `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new | [delivered](../assets/cavern-ledge.webp) |
 
 #### `octopus` — The great octopus
 
@@ -585,14 +585,14 @@ Backcloths for the prologue and Acts V and VI, and the transformations. Full-fra
 | `lobster-palace` | 2560 × 1440 | full frame | new | [delivered](../assets/lobster-palace.webp) |
 | `sea-flora` | 2560 × 1440 | full frame | new | [delivered](../assets/sea-flora.webp) |
 | `azure-grotto` | 2560 × 1440 | full frame | new | [delivered](../assets/azure-grotto.webp) |
-| `shore-cave` | 2560 × 1440 | full frame | new | requested |
-| `cavern` | 2560 × 1440 | full frame | new | requested |
-| `coast-gap` | 2560 × 1440 | full frame | new | requested |
-| `tower-wall-tall` | 1400 × 3600 | bottom centre | new | requested |
-| `tower-interior` | 1400 × 1800 | bottom centre | `house-front` | requested |
-| `cliff-whirlpool` | 2560 × 1440 | full frame | new | requested |
-| `wedding-street` | 2560 × 1440 | full frame | `pageant-backcloth` | requested |
-| `apotheosis` | 2560 × 1440 | full frame | new | requested |
+| `shore-cave` | 2560 × 1440 | full frame | new | [delivered](../assets/shore-cave.webp) |
+| `cavern` | 2560 × 1440 | full frame | new | [delivered](../assets/cavern.webp) |
+| `coast-gap` | 2560 × 1440 | full frame | new | [delivered](../assets/coast-gap.webp) |
+| `tower-wall-tall` | 1400 × 3600 | bottom centre | new | [delivered](../assets/tower-wall-tall.webp) |
+| `tower-interior` | 1400 × 1800 | bottom centre | `house-front` | [delivered](../assets/tower-interior.webp) |
+| `cliff-whirlpool` | 2560 × 1440 | full frame | new | [delivered](../assets/cliff-whirlpool.webp) |
+| `wedding-street` | 2560 × 1440 | full frame | `pageant-backcloth` | [delivered](../assets/wedding-street.webp) |
+| `apotheosis` | 2560 × 1440 | full frame | new | [delivered](../assets/apotheosis.webp) |
 
 #### `betrothal-court` — The betrothal court
 

@@ -1310,7 +1310,7 @@
       "edition": "film"
     },
     "demon-red": {
-      "status": "requested",
+      "status": "delivered",
       "file": "demon-red.webp",
       "size": [
         220,
@@ -1320,7 +1320,7 @@
       "edition": "film"
     },
     "demon-teal": {
-      "status": "requested",
+      "status": "delivered",
       "file": "demon-teal.webp",
       "size": [
         220,
@@ -1330,7 +1330,7 @@
       "edition": "film"
     },
     "crew-squire": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire.webp",
       "size": [
         220,
@@ -1340,7 +1340,7 @@
       "edition": "film"
     },
     "crew-helmsman": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman.webp",
       "size": [
         220,
@@ -1350,7 +1350,7 @@
       "edition": "film"
     },
     "crew-manatarms": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms.webp",
       "size": [
         220,
@@ -1360,7 +1360,7 @@
       "edition": "film"
     },
     "crew-asleep": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-asleep.webp",
       "size": [
         260,
@@ -1370,7 +1370,7 @@
       "edition": "film"
     },
     "crew-rider": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-rider.webp",
       "size": [
         320,
@@ -1480,7 +1480,7 @@
       "edition": "film"
     },
     "keepsake-star": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-star.webp",
       "size": [
         128,
@@ -1500,7 +1500,7 @@
       "edition": "film"
     },
     "keepsake-shell": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-shell.webp",
       "size": [
         128,
@@ -1510,7 +1510,7 @@
       "edition": "film"
     },
     "keepsake-seal": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-seal.webp",
       "size": [
         128,
@@ -1520,7 +1520,7 @@
       "edition": "film"
     },
     "keepsake-lamp": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-lamp.webp",
       "size": [
         128,
@@ -1530,7 +1530,7 @@
       "edition": "film"
     },
     "chariot": {
-      "status": "requested",
+      "status": "delivered",
       "file": "chariot.webp",
       "size": [
         600,
@@ -1540,7 +1540,7 @@
       "edition": "film"
     },
     "gift-ring": {
-      "status": "requested",
+      "status": "delivered",
       "file": "gift-ring.webp",
       "size": [
         96,
@@ -1550,7 +1550,7 @@
       "edition": "film"
     },
     "gift-flower": {
-      "status": "requested",
+      "status": "delivered",
       "file": "gift-flower.webp",
       "size": [
         96,
@@ -1560,7 +1560,7 @@
       "edition": "film"
     },
     "gift-crown": {
-      "status": "requested",
+      "status": "delivered",
       "file": "gift-crown.webp",
       "size": [
         96,
@@ -1570,7 +1570,7 @@
       "edition": "film"
     },
     "gift-gold": {
-      "status": "requested",
+      "status": "delivered",
       "file": "gift-gold.webp",
       "size": [
         96,
@@ -1580,7 +1580,7 @@
       "edition": "film"
     },
     "whirlpool": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whirlpool.webp",
       "size": [
         800,
@@ -1590,7 +1590,7 @@
       "edition": "film"
     },
     "tower-window": {
-      "status": "requested",
+      "status": "delivered",
       "file": "tower-window.webp",
       "size": [
         200,
@@ -1600,7 +1600,7 @@
       "edition": "film"
     },
     "cavern-ledge": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-ledge.webp",
       "size": [
         320,
@@ -1680,7 +1680,7 @@
       "edition": "film"
     },
     "shore-cave": {
-      "status": "requested",
+      "status": "delivered",
       "file": "shore-cave.webp",
       "size": [
         2560,
@@ -1690,7 +1690,7 @@
       "edition": "film"
     },
     "cavern": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern.webp",
       "size": [
         2560,
@@ -1700,7 +1700,7 @@
       "edition": "film"
     },
     "coast-gap": {
-      "status": "requested",
+      "status": "delivered",
       "file": "coast-gap.webp",
       "size": [
         2560,
@@ -1710,7 +1710,7 @@
       "edition": "film"
     },
     "tower-wall-tall": {
-      "status": "requested",
+      "status": "delivered",
       "file": "tower-wall-tall.webp",
       "size": [
         1400,
@@ -1720,7 +1720,7 @@
       "edition": "film"
     },
     "tower-interior": {
-      "status": "requested",
+      "status": "delivered",
       "file": "tower-interior.webp",
       "size": [
         1400,
@@ -1730,7 +1730,7 @@
       "edition": "film"
     },
     "cliff-whirlpool": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cliff-whirlpool.webp",
       "size": [
         2560,
@@ -1740,7 +1740,7 @@
       "edition": "film"
     },
     "wedding-street": {
-      "status": "requested",
+      "status": "delivered",
       "file": "wedding-street.webp",
       "size": [
         2560,
@@ -1750,7 +1750,7 @@
       "edition": "film"
     },
     "apotheosis": {
-      "status": "requested",
+      "status": "delivered",
       "file": "apotheosis.webp",
       "size": [
         2560,
