@@ -28,6 +28,7 @@ function edgeWalls(c, h = 4, gaps = true) {
   for (let x = x0 + 4; x < x1 - 2; x += 7) { k.torch(x, y + 2, z0, [0, 1]); k.torch(x, y + 2, z1, [0, -1]); }
   for (let z = z0 + 4; z < z1 - 2; z += 7) { k.torch(x0, y + 2, z, [1, 0]); k.torch(x1, y + 2, z, [-1, 0]); }
 }
+const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves]);
 function spawnGrid(c, n = 10, margin = 3) {
   const { x0, z0, x1, z1, y } = c;
   for (let i = 0; i < n * 3 && c.spawns.length < n; i++) {
@@ -36,6 +37,8 @@ function spawnGrid(c, n = 10, margin = 3) {
     // never take spawns (raised ground up to 2 blocks is fine)
     const gy = c.k.w.groundBelow(x + 0.5, z + 0.5, y + 2.5);
     if (!isFinite(gy) || gy < y - 3 || c.k.w.solidAt(x + 0.5, gy + 0.5, z + 0.5) || c.k.w.solidAt(x + 0.5, gy + 1.5, z + 0.5)) continue;
+    // never on a canopy, a roof, an awning or the invisible collider over a prop
+    if (NO_SPAWN.has(c.k.w.get(x, gy - 1, z))) continue;
     c.spawns.push([x + 0.5, gy, z + 0.5]);
   }
 }
@@ -992,14 +995,19 @@ DRESS.highway = {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.12);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
-    roadBand(c, true, cz - 3, 3);
-    k.d.prop('greyhound', cx + 0.5, y, cz - 5.5, { rot: 0 }); k.w.fill(cx - 5, y, cz - 7, cx + 5, y + 2, cz - 5, B.barrier);
-    for (let x = x0 + 1; x < x1; x++) if (x % 7 !== 3) k.w.set(x, y, cz + 2, B.guardrail);
-    sign(c, x0 + 3.5, cz + 4.5, 'NEW JERSEY\nTURNPIKE', { w: 2.4, h: 1.2, post: 2.2, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff' });
-    k.d.prop('streetlight', x1 - 2.5, y, cz + 3.5, { rot: Math.PI }); lightAt(c, x1 - 3.5, y + 4.8, cz + 3.5, 0xffd8a0, 5, 11);
-    pine(k, x0 + 2, z1 - 2, y); pine(k, x1 - 3, z1 - 3, y); oak(k, x0 + 3, cz + 5, y);
+    // the bus is parked along a wall with no door, the road beside it
+    const side = ['n', 'w', 'e', 's'].find((s) => !c.doors.some((d) => d.side === s)) ?? 'n';
+    const F = wallFrame(c, side), um = (F.len[0] + F.len[1]) >> 1, along = side === 'n' || side === 's';
+    const at = (u, v) => F.P(u, v), rot = along ? 0 : Math.PI / 2;
+    { const [mx, mz] = at(um, 6); roadBand(c, along, along ? mz : mx, 3); }
+    { const [bx, bz] = at(um, 3); k.d.prop('greyhound', bx + 0.5, y, bz + 0.5, { rot }); }
+    for (let u = um - 5; u <= um + 5; u++) for (let v = 2; v <= 4; v++) { const [x, z] = at(u, v); k.w.fill(x, y, z, x, y + 2, z, B.barrier); }
+    for (let u = F.len[0] + 1; u < F.len[1]; u++) { const [x, z] = at(u, 10); if (u % 7 !== 3 && !doorAisle(c, x, z, 3) && free(c, x, z)) k.w.set(x, y, z, B.guardrail); }
+    { const [x, z] = at(F.len[0] + 3, 12); sign(c, x + 0.5, z + 0.5, 'NEW JERSEY\nTURNPIKE', { w: 2.4, h: 1.2, post: 2.2, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff', rot }); }
+    { const [x, z] = at(F.len[1] - 3, 11); if (place(c, x, z, 'streetlight', { rot: rot + Math.PI }, 1)) lightAt(c, x + 0.5, y + 4.8, z + 0.5, 0xffd8a0, 5, 11); }
+    for (const [u, v] of [[F.len[0] + 2, 13], [F.len[1] - 2, 13]]) { const [x, z] = at(u, v); if (free(c, x, z) && !doorAisle(c, x, z, 3)) pine(k, x, z, y); }
     highwayDecorate(c);
-    k.w.set(cx, y - 1, cz + 4, B.gold_plate);
+    k.w.set(cx, y - 1, cz + (side === 's' ? -3 : 3), B.gold_plate);
   },
   // The roadside crash: the bus on fire across the shoulder, the road, rails and trees.
   boss(c) {
@@ -1292,8 +1300,9 @@ DRESS.arch = {
     for (let t = tm - 3; t <= tm + 3; t++) { const [x, z] = H.P(t, H.half); k.w.set(x, y - 1, z, B.iron_plate); }
     for (let i = 0; i < 12; i++) { const [x, z] = H.P(tm + (c.r() - 0.5) * 7, H.half - 1 - c.r() * 4); k.d.add('shard', x, y, z, { mode: 'flat', scale: 0.9 }); }
     // the river, a long way down
-    for (let t = H.t0 - 4; t <= H.t1 + 4; t++) for (let sv = H.half + 1; sv <= H.half + 9; sv++) { const [x, z] = H.P(t, sv); k.w.set(x, 2, z, B.water); k.w.set(x, 1, z, B.water); k.w.set(x, 0, z, B.mud); }
-    for (let t = H.t0 - 4; t <= H.t1 + 4; t++) { const [x, z] = H.P(t, H.half + 10); k.w.set(x, 2, z, B.grass); k.w.set(x, 1, z, B.dirt); }
+    // (water only, nothing solid under it: a hero who falls in drops out of the
+    // world and is put back on the deck, never stranded down there)
+    for (let t = H.t0; t <= H.t1; t++) for (let sv = H.half + 1; sv <= H.half + 9; sv++) { const [x, z] = H.P(t, sv); if (x < x0 || x > x1 || z < z0 || z > z1) continue; k.w.set(x, 2, z, B.water); k.w.set(x, 1, z, B.water); }
     // benches and the tram doors at the ends
     for (const dt of [-6, 6]) { const [x, z] = H.P(tm + dt, -3); place(c, x, z, 'bench', { rot: H.alongX ? 0 : Math.PI / 2 }, 0); }
     for (const t of [H.t0 + 1, H.t1 - 1]) { const [x, z] = H.P(t, -3); if (free(c, x, z) && !doorAisle(c, x, z, 3)) { k.d.prop('tram_pod', x + 0.5, y, z + 0.5, { scale: 0.9, rot: H.alongX ? Math.PI / 2 : 0 }); collider(c, x, z, 2); } }
@@ -1537,7 +1546,7 @@ DRESS.casino = {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.casino_carpet, 8);
     const { cx, cz, R } = roundArena(c);
-    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x + 0.5 - cx, z + 0.5 - cz); if (d < 4) k.w.set(x, y - 1, z, d < 2.5 ? B.gold_plate : B.marble_floor); else if (d > R - 0.6 && d <= R + 0.6) { for (let yy = y; yy < y + 6; yy++) k.w.set(x, yy, z, yy === y + 3 && (x + z) % 4 === 0 ? ((x + z) % 8 ? B.neon_green : B.neon_pink) : yy === y + 5 ? B.gold_plate : B.lotus_panel); } }
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x + 0.5 - cx, z + 0.5 - cz); if (d < 4) k.w.set(x, y - 1, z, d < 2.5 ? B.gold_plate : B.marble_floor); else if (d > R - 0.6 && d <= R + 0.6 && !doorAisle(c, x, z, 3)) { for (let yy = y; yy < y + 6; yy++) k.w.set(x, yy, z, yy === y + 3 && (x + z) % 4 === 0 ? ((x + z) % 8 ? B.neon_green : B.neon_pink) : yy === y + 5 ? B.gold_plate : B.lotus_panel); } }
     // the clock on the far wall and the exit doors beneath it
     k.d.prop('clock', cx, y + 5, z0 + 1.6, { scale: 1.2 });
     for (let x = Math.round(cx) - 2; x <= Math.round(cx) + 1; x++) for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0 + 1, B.elevator_door);
@@ -1665,7 +1674,7 @@ function underDecorate(c, amount = 1) {
 function stalagmite(k, x, z, y, h) { for (let i = 0; i < h; i++) { k.w.set(x, y + i, z, i > h - 2 ? B.basalt : B.underworld_rock); if (i < h / 3) for (const [dx, dz] of [[1, 0], [0, 1]]) k.w.set(x + dx, y + i, z + dz, B.underworld_rock); } }
 function greenBrazier(c, x, z) { if (!free(c, x, z)) return false; c.k.d.prop('brazier', x + 0.5, c.y, z + 0.5, { green: true }); collider(c, x, z, 1); lightAt(c, x + 0.5, c.y + 1.8, z + 0.5, 0x5aff8a, 4, 10); return true; }
 // black poplars: dark spires
-function poplar(k, x, z, y) { pine(k, x, z, y, { h: 7 + Math.floor(k.r() * 4), trunk: B.obsidian, leaves: B.basalt, R: 1.6 }); }
+function poplar(k, x, z, y) { pine(k, x, z, y, { h: 7 + Math.floor(k.r() * 4), trunk: B.obsidian, leaves: B.poplar_leaves, R: 1.6 }); }
 Object.assign(TEMPLATES, {
   // The black shore of the Styx: the river across the room, Charon's ferry, a stone jetty.
   styx_shore(c) {

@@ -5,7 +5,7 @@
 // stairs across height changes, floating over the abyss.
 import * as THREE from 'three/webgpu';
 import { World } from './voxel.js';
-import { B } from './blocks.js';
+import { B, BLOCKS } from './blocks.js';
 import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
@@ -151,8 +151,13 @@ export function generateLevel(mission) {
   const chests = [];
   for (const room of rooms) {
     if (room.type === 'start' || room.type === 'boss') continue;
-    if (room.type === 'secret' || r() < 0.45) chests.push({ pos: pickSpot(room), room, rarity: room.type === 'secret' ? 'rare' : 'common', opened: false });
+    // a side room is a detour, so it always pays: a chest (W3); the secret room a rare one
+    if (room.type === 'secret' || room.type === 'side' || r() < 0.45) chests.push({ pos: pickSpot(room), room, rarity: room.type === 'secret' ? 'rare' : 'common', opened: false });
   }
+  // pacing: along the main path, fights alternate with breathers (a light room,
+  // one small wave), counting back from the boss so the room before it is a breather
+  const mainPath = []; for (let q = rooms.find((x) => x.type === 'boss'); q; q = q.parent) mainPath.unshift(q);
+  mainPath.forEach((q, i) => { if (q.type === 'combat') q.breather = (mainPath.length - 1 - i) % 2 === 1; });
   // encounters
   const table = ENEMY_TABLES[mission.biome];
   const tw = table.reduce((a, b) => a + b[1], 0);
@@ -163,11 +168,11 @@ export function generateLevel(mission) {
     room.waves = [];
     if (room.type === 'start' || room.type === 'boss') continue;
     const area = (room.x1 - room.x0) * (room.z1 - room.z0);
-    const budget = Math.round((4 + diff * 1.5 + area / 70) * (room.type === 'secret' ? 0.7 : 1));
-    const nWaves = room.type === 'combat' && diff > 1 ? 2 : 1;
+    const budget = Math.round((4 + diff * 1.5 + area / 70) * (room.type === 'secret' ? 0.7 : room.breather ? 0.5 : 1));
+    const nWaves = room.type === 'combat' && diff > 1 && !room.breather ? 2 : 1;
     for (let w = 0; w < nWaves; w++) {
       const list = [];
-      for (let i = 0; i < Math.round(budget / nWaves); i++) list.push({ kind: pickEnemy(), elite: r() < 0.08 + diff * 0.03 ? ['swift', 'armored', 'vampiric', 'explosive', 'shadow'][Math.floor(r() * 5)] : null });
+      for (let i = 0; i < Math.round(budget / nWaves); i++) list.push({ kind: pickEnemy(), elite: !room.breather && r() < 0.08 + diff * 0.03 ? ['swift', 'armored', 'vampiric', 'explosive', 'shadow'][Math.floor(r() * 5)] : null });
       room.waves.push(list); totalEnemies += list.length;
     }
   }
@@ -179,13 +184,14 @@ export function generateLevel(mission) {
   return { world, deco, shafts, rooms, spawn, bossRoom: boss, gates, objective, chests, exit, biome, seed, kit: k, grid: { GW, GH, CELL } };
 }
 
+// The doorway and the first cells inside it: always open (a prop or a wall a
+// template put there would otherwise cut the level in two).
 function clearDoor(k, room, d) {
   const w = k.w;
-  for (let t = -2; t <= 2; t++) {
-    for (let yy = room.y; yy < room.y + 4; yy++) {
-      if (d.side === 'n') w.set(d.at + t, yy, room.z0, 0); if (d.side === 's') w.set(d.at + t, yy, room.z1, 0);
-      if (d.side === 'w') w.set(room.x0, yy, d.at + t, 0); if (d.side === 'e') w.set(room.x1, yy, d.at + t, 0);
-    }
+  for (let t = -2; t <= 2; t++) for (let v = 0; v < 3; v++) {
+    const x = d.side === 'n' || d.side === 's' ? d.at + t : d.side === 'w' ? room.x0 + v : room.x1 - v;
+    const z = d.side === 'w' || d.side === 'e' ? d.at + t : d.side === 'n' ? room.z0 + v : room.z1 - v;
+    for (let yy = room.y; yy < room.y + 4; yy++) if (v === 0 || (w.get(x, yy, z) && BLOCKS[w.get(x, yy, z)].solid)) w.set(x, yy, z, 0);
   }
 }
 function buildCorridor(k, cor, biome, r) {

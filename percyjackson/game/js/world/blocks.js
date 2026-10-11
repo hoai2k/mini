@@ -164,6 +164,7 @@ def('gold_marble', 'gold_marble', { rough: 0.15 });
 def('elevator_door', { top: 'gold_plate', side: 'elevator_door' }, { metal: 0.7, rough: 0.25, step: 'metal' });
 def('neon_bulbs', 'neon_bulbs', { emit: 1.8, light: [0xffd070, 3, 8] });
 def('waystone', { top: 'gold_plate', side: 'marble_white' }, { rough: 0.25 });
+def('poplar_leaves', 'basalt', { step: 'grass', rough: 0.9 });
 
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;
