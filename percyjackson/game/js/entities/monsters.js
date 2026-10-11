@@ -124,21 +124,7 @@ const MODELS = {
     for (const leg of rig.legs) for (const dx of [-0.8, 0.8]) prop(rig, leg, 0.6, 0.8, 1, solid(0xd8c8a0), dx, -7.2, 1.6);
     return rig;
   },
-  spider: () => {
-    const rig = new QuadRig({ material: skinMat('spider', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x4a2e12, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 11], [13, 11], [10, 9], [12, 9]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.22, speckles: 10,
-      custom: (s) => { for (let x = 0; x < 32; x += 4) s.rect(x, 44, 1, 10, 0x5a3a18, 0); s.rect(40, 18, 12, 1, 0xe0b060, 0); s.rect(40, 22, 12, 1, 0x5a3a18, 0); } }), { rough: 0.35, emit: 3.6 }),
-      scale: 0.72, bodyL: 7, bodyW: 7, bodyH: 4, legH: 5, legW: 1.6, headS: 5, legs: 8, splay: 1.9, footL: 9, snout: false, neckUp: -1, gait: 1.6 });
-    bronzeLegs(rig, 6, solid(0x8a5a24, 0, 0.35, 0.6), solid(0xe0b060, 0, 0.3, 0.7));
-    // round clockwork abdomen banded in bronze, with a wind-up key
-    const ab = rig.mesh(quadPart('extra', 9, 7, 10), rig.material); ab.position.set(0, 1.5 * PX, -8 * PX); rig.torso.add(ab);
-    for (const z of [-3, 0, 3]) prop(rig, ab, 9.4, 7.4, 0.8, solid(0xe0b060, 0, 0.3, 0.7), 0, 0, z);
-    const key = group(ab, 0, 4, 0);
-    prop(rig, key, 1, 3, 1, solid(0xe0b060, 0, 0.3, 0.7), 0, 1.5, 0);
-    prop(rig, key, 5, 2, 0.8, solid(0xe0b060, 0, 0.3, 0.7), 0, 3.4, 0);
-    rig.extras.key = key;
-    for (const sx of [-1, 1]) prop(rig, rig.mouth, 0.9, 2.4, 0.9, solid(0xf0e0b0, 0, 0.3, 0.6), sx * 1.2, -1, 0.4, 0.3, 0, 0);
-    return rig;
-  },
+  spider: () => bronzeSpider('spider', { scale: 0.85 }),
   automaton: () => {
     const rig = new QuadRig({ material: skinMat('automaton', (S) => paintQuad(S, { base: 0xa8742e, dark: 0x5a3a14, belly: 0x4a2e10, eye: 0x8aff5a, eyes: [[9, 11], [13, 11]], plates: 0xe0b060, teeth: false, nose: 0x3a2a10, noise: 0.22 }), { rough: 0.35 }), scale: 1.05, bodyL: 10, bodyW: 9, bodyH: 5, legH: 4, legW: 1.6, headS: 5, legs: 6, splay: 0.7, snout: false, neckUp: -1.5, gait: 1.4 });
     for (const sx of [-1, 1]) prop(rig, rig.mouth, 1, 1, 4, solid(0xd8a85a, 0, 0.35, 0.35), sx * 1.6, 0, 1.6, 0, -sx * 0.4, 0);
@@ -346,6 +332,56 @@ function bronzeLegs(rig, footL, mat, tip) {
     prop(rig, knee, w * 1.25, 1.6, w * 1.25, tip, 0, 0, 0);
     prop(rig, knee, w * 0.55, 1.2, w * 0.55, mat, 0, -footL - 0.3, 0);
   }
+}
+// Hephaestus's bronze spider (vox-enemies, top row): a boxy riveted body, a
+// big banded abdomen, a row of furnace-orange eyes and eight jointed legs
+// that arch above the back and plant wide. queen: the boss version.
+export function bronzeSpider(id, { scale = 1, queen = false } = {}) {
+  const base = 0xb07a34, dark = 0x5e3c1a, plate = 0xd8a24e;
+  const mat = skinMat(id, (S) => paintQuad(S, { base, dark, belly: 0x3e2810, eye: 0xffa020, eyeLow: 0xff6a10, eyes: [[9, 11], [13, 11]], plates: plate, extra: 0x9a6428, teeth: false, nose: dark, noise: 0.16, speckles: 14,
+    custom: (s) => {
+      s.px(8, 9, 0xffb030); s.px(15, 9, 0xffb030); s.px(11, 9, 0xff8a20); s.px(12, 9, 0xff8a20);
+      for (let x = 0; x < 40; x += 4) s.rect(x, 24, 1, 8, dark, 0);          // riveted seams on the body
+      for (let i = 0; i < 18; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), plate);
+      for (let y = 40; y < 54; y += 3) s.rect(0, y, 32, 1, dark, 0);          // abdomen bands
+      s.rect(40, 18, 12, 1, plate, 0); s.rect(40, 22, 12, 1, dark, 0);
+    } }), { rough: 0.35, emit: 3.6 });
+  const rig = new QuadRig({ material: mat, scale, bodyL: 8, bodyW: 7, bodyH: 5, legH: 9, legW: 1.5, headS: 5.4, legs: 8, splay: 2.15, footL: 13, kneeOut: 0.5, legY: 2.4, snout: false, neckUp: -1.6, headZ: -0.6, gait: 1.6 });
+  const P = solid(plate, 0, 0.3, 0.7), D = solid(dark, 0, 0.4, 0.6), B = solid(base, 0, 0.35, 0.6);
+  // legs fan fore and aft; plated knees and pointed feet
+  const pairs = 4;
+  for (const leg of rig.legs) {
+    const u = leg.userData; leg.rotation.y = -u.side * (0.75 - u.row * 0.5);
+    prop(rig, leg, 2.2, 2.2, 2.2, D, 0, 0, 0);
+    const k = u.knee; prop(rig, k, 2.4, 2.2, 2.4, P, 0, 0, 0);
+    prop(rig, k, 1, 2.4, 1, D, 0, -13.4, 0);
+  }
+  void pairs;
+  // the abdomen: a big banded dome behind
+  const ab = group(rig.torso, 0, 1.4, -8.5);
+  ab.add(rig.mesh(quadPart('extra', 10, 8, 11), mat));
+  for (const z of [-3.5, 0, 3.5]) prop(rig, ab, 10.6, 8.6, 0.8, P, 0, 0, z);
+  prop(rig, ab, 6, 1, 7, D, 0, 4.4, 0);
+  // a plated back with rivets, mandibles and fangs
+  prop(rig, rig.torso, 7.6, 1, 7, P, 0, 2.9, 0);
+  for (const [x, z] of [[-2.6, 2.6], [2.6, 2.6], [-2.6, -2.6], [2.6, -2.6]]) prop(rig, rig.torso, 0.8, 0.6, 0.8, D, x, 3.6, z);
+  for (const sx of [-1, 1]) { const f = group(rig.mouth, sx * 1.3, 0, 0.2); prop(rig, f, 1.3, 1.3, 2.4, B, 0, 0, 1, 0, -sx * 0.25, 0); prop(rig, f, 0.8, 2, 0.8, solid(0xf0e0b0, 0, 0.3, 0.6), sx * 0.2, -1.2, 2); }
+  rig.extras.abdomen = ab;
+  if (queen) {
+    // the queen: a crown of spikes, gears turning in her sides, a furnace glow
+    for (let i = -2; i <= 2; i++) prop(rig, rig.head, 0.9, 3 + (2 - Math.abs(i)) * 1.2, 0.9, P, i * 1.1, 3.6, 1, -0.3, 0, -i * 0.18);
+    const gears = [];
+    for (const sx of [-1, 1]) { const gg = group(ab, sx * 5.4, 0.5, 0); for (let i = 0; i < 6; i++) prop(rig, gg, 0.8, 1.4, 6.4, P, 0, 0, 0, i / 6 * Math.PI, 0, 0); prop(rig, gg, 1, 2.6, 2.6, D, 0, 0, 0); gears.push(gg); }
+    rig.extras.gears = gears;
+    prop(rig, ab, 3, 3, 1, solid(0xff8a20, 3), 0, -1, -5.8);
+    prop(rig, rig.torso, 3, 2, 1, solid(0xff8a20, 3), 0, 0, 4.2);
+  } else {
+    // a wind-up key on the abdomen
+    const key = group(ab, 0, 4.6, 0);
+    prop(rig, key, 0.8, 2.6, 0.8, P, 0, 1.3, 0); prop(rig, key, 4, 1.6, 0.7, P, 0, 3, 0);
+    rig.extras.key = key;
+  }
+  return rig;
 }
 // A Fury: pale grey hag in a ragged black dress with a gold belt, wild white
 // hair, glowing yellow eyes, leathery brown wings and a whip of fire.

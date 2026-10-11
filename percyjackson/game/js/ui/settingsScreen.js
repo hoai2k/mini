@@ -63,8 +63,9 @@ export function openSettings(game, onClose) {
       body.append(
         h('div', { class: 'hint', style: 'margin:0 0 8px' }, 'Settings are saved in this browser. Your progress (heroes, drachmas, completed chapters) is saved separately.'),
         row('Reset settings', h('button', { class: 'btn small', onclick: () => { resetSettings(); game.rig && (game.rig.shakeScale = settings.shake); game.audio?.applyVolumes(); toast('Settings reset'); ui.refresh('settings'); } }, 'Reset to defaults')),
+        row('Saves', h('button', { class: 'btn small', onclick: () => import('./saves.js').then((m) => m.openSaves(game)) }, 'Saves…')),   // net: save slots (make active, rename, delete, new game)
         row('Erase progress', h('button', { class: 'btn small danger', onclick: () => confirmDialog(game, {
-          title: 'Erase all progress?', text: 'Heroes, drachmas, loot and completed chapters will be lost. This cannot be undone.', yes: 'Erase everything', no: 'Keep my progress', danger: true,
+          title: 'Erase all progress?', text: 'The main profile of the active save loses its heroes, drachmas, loot and completed chapters. This cannot be undone.', yes: 'Erase everything', no: 'Keep my progress', danger: true,
           onYes: () => { game.save.reset(); toast('Progress erased'); if (ui.isOpen('title')) ui.refresh('title'); },
         }) }, 'Reset save…')),
       );

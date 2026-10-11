@@ -39,6 +39,8 @@ import './heroes/grover.js';
 import './heroes/tyson.js';
 import './heroes/clarisse.js';
 import { Profiles } from './profiles.js';
+import { Slots, slotPrefix } from './slots.js';
+import { Resume } from './resume.js';
 import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
@@ -74,8 +76,12 @@ class Game {
     this.interactables = [];
     this.flashMaterial = FLASH_MATERIAL;
     this.toast = toast;
-    this.profiles = new Profiles();   // net: per-player profiles (profiles.js); game.save is this tab's main profile
+    // net: save slots (slots.js), each with per-player profiles (profiles.js) and a resume point (resume.js);
+    // game.save is this tab's main profile in the active slot
+    this.slots = new Slots();
+    this.profiles = new Profiles(undefined, { prefix: slotPrefix(this.slots.active), slot: this.slots.active });
     this.save = this.profiles.main;
+    this.resume = new Resume(this);
   }
   async boot() {
     progress(0.05, 'Detecting GPU…');
@@ -237,6 +243,15 @@ class Game {
     this.hud.rebuildCards?.();
   }
   heroName(p) { return HEROES[p.hero]?.name ?? 'A hero'; }
+  // net: play another save slot (from the title / hero select / settings)
+  async useSlot(id) {
+    if (!this.slots.setActive(id)) return;
+    this.resume.flush?.();
+    this.profiles.dispose();
+    this.profiles = new Profiles(undefined, { prefix: slotPrefix(id), slot: id });
+    this.save = this.profiles.main;
+    try { this.save = await this.profiles.claimMain(); } catch (e) { /* no locks */ }
+  }
   // net: the profile of whoever plays a hero (companions: whoever played them last, else the main profile)
   saveFor(p) {
     if (!p || p.remote || !this.profiles) return this.save;
@@ -408,6 +423,7 @@ class Game {
       sv.write();
     }
     this.online.completed();
+    this.resume.clear();   // net: nothing left to continue in this chapter
     this.audio.levelUp();
     this.showResults(true);
     for (const sv of levelled) this.levelUp(sv);
@@ -637,7 +653,8 @@ class Game {
     const realDt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     this.input.poll();
-    this.online.frameStart?.(realDt);   // net: online menus don't stop the game; this screen's heroes stand still
+    this.online.frameStart?.(realDt);
+    this.resume?.update(realDt);   // net: checkpoints for Continue (written from a timer, never here)   // net: online menus don't stop the game; this screen's heroes stand still
     const gr = this.gr;
     gr.trackFps(realDt, now / 1000);
     const playing = this.state === 'playing';

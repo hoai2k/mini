@@ -1165,7 +1165,7 @@ function archShell(c, h = 5) {
   shell(c, { wall: B.steel_panel, trim: B.iron_plate, h, roof: B.steel_panel });
   for (let x = x0 + 2; x < x1 - 1; x += 2) for (const z of [z0, z1]) if (k.w.get(x, y + 2, z)) k.w.set(x, y + 2, z, B.steel_window);
   for (let z = z0 + 2; z < z1 - 1; z += 2) for (const x of [x0, x1]) if (k.w.get(x, y + 2, z)) k.w.set(x, y + 2, z, B.steel_window);
-  for (let x = x0 + 4; x < x1 - 1; x += 6) for (let z = z0 + 4; z < z1 - 1; z += 6) lightAt(c, x + 0.5, y + h - 1, z + 0.5, 0xe8f0ff, 3.5, 9);
+  for (let x = x0 + 4; x < x1 - 1; x += 6) for (let z = z0 + 4; z < z1 - 1; z += 6) lightAt(c, x + 0.5, y + h - 1, z + 0.5, 0xffe2b8, 3.5, 9);
 }
 function riverBand(c, alongX, at, width = 4) {
   const { k, x0, z0, x1, z1, y } = c;
@@ -1213,7 +1213,7 @@ function archHall(c, { half = 5, hole = false } = {}) {
   const [ax, az] = P(t0, -half), [bx, bz] = P(t1, half);
   const mn = [Math.min(ax, bx), y + 2, Math.min(az, bz)], mx = [Math.max(ax, bx), y + 5, Math.max(az, bz)];
   W.addRoof(mn, mx, [[mn[0], y, mn[2]], [mx[0], y + 4, mx[2]]]);
-  for (let t = t0 + 3; t < t1 - 1; t += 5) { const [x, z] = P(t, 0); lightAt(c, x + 0.5, y + 4, z + 0.5, 0xe8f0ff, 3.5, 9); }
+  for (let t = t0 + 3; t < t1 - 1; t += 5) { const [x, z] = P(t, 0); lightAt(c, x + 0.5, y + 4, z + 0.5, 0xffe2b8, 3.5, 9); }
   // a mark under where people stand at the windows
   c.reserved = c.reserved ?? new Set();
   return { alongX, mid, t0, t1, P, half };

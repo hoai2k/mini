@@ -11,15 +11,27 @@ import { h, padSnap, toast } from './ui.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { PLAYER_COLORS } from '../entities/player.js';
 import { isMobile } from '../util.js';
+import { openStart } from './saves.js';
 
 const ALL = Object.keys(HEROES);
 const devName = (d) => (d === 'kbm' ? 'Keyboard' : d === 'touch' ? 'Touch' : 'Controller ' + (+d.slice(3) + 1));
 const lockText = (id) => 'Coming in ' + (HEROES[id].unlock === 'book3' ? 'book 3' : HEROES[id].unlock === 'book2' ? 'book 2' : 'a later book');
 
-export function openSelect(game) {
-  const ui = game.ui, P = game.profiles;
+export function openSelect(game, { skipStart = false } = {}) {
+  const ui = game.ui;
   const ids = HERO_IDS;
   const dev0 = game.input.lastDevice === 'touch' || isMobile ? 'touch' : game.input.lastDevice?.startsWith('pad') ? game.input.lastDevice : 'kbm';
+  // somewhere to continue from: Continue (the default), Return to camp, New game
+  if (!skipStart && game.resume?.load()) {
+    openStart(game, { onPlay: ({ resume }) => {
+      if (!resume) { openSelect(game, { skipStart: true }); return; }
+      const { hero, companions } = game.resume.partyOf(resume);
+      game.beginSession([{ device: dev0, hero, profile: game.save.id }], { companions });
+      game.resume.apply(resume);
+    } });
+    return;
+  }
+  const P = game.profiles;
   const last = ids.indexOf(game.save.data.lastHero);
   const slots = game.selectSlots = [{ device: dev0, char: last < 0 ? 0 : last, ready: false, row: 0, prof: P.main.id }];
   let comps = [null, null], compsAuto = true;

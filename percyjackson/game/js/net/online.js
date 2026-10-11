@@ -55,7 +55,8 @@ export class Online {
     this.lags = new Map();        // sender uid -> Lag
     this.setupNonce = 1; this.applied = null; this.netSeq = 0;
     this.sendT = 0; this.partyT = 0;
-    this.resync = new Set();      // guest: my hero keys waiting for the host to hand them back
+    this.resync = new Set();
+    this.knownKeys = new Set();   // host: hero keys already seen in this room      // guest: my hero keys waiting for the host to hand them back
     this.hits = [];               // guest: hits to send with the next batch
     this.fx = new NetFx(this);
     this.tags = new NameTags(game);
@@ -309,7 +310,12 @@ export class Online {
       }
       let R = this.remote.get(e.k);
       if (R && R.p.hero !== e.h) { this.dropRemote(R, true); R = null; }
-      if (!R) { if (!g.level) continue; R = this.addRemote(e, peer.uid); }
+      if (!R) {
+        if (!g.level) continue;
+        R = this.addRemote(e, peer.uid);
+        R.settled = e.ai || this.knownKeys.has(e.k);   // (someone new to the room may take over a companion)
+        this.knownKeys.add(e.k);
+      }
       R.uid = peer.uid; R.ai = e.ai; R.held = raw.held === 1; R.name = e.ai ? '' : e.n; R.entry = e; R.last = performance.now();
       R.p.remote.ai = e.ai; R.p.remote.held = R.held; R.p.remote.name = R.name; R.p.remote.uid = peer.uid; R.p.remote.idx = e.i;
       R.p.ai = e.ai; R.p.remote.missing = false;
@@ -320,8 +326,32 @@ export class Online {
       p.downed = e.d === 1; p.dead = e.d === 2;
       p.iframes = e.r ? 0.12 : 0;
     }
-    for (const R of [...this.remote.values()]) if (R.uid === peer.uid && !seen.has(R.key)) this.dropRemote(R);
+    for (const R of [...this.remote.values()]) {
+      if (R.uid !== peer.uid || seen.has(R.key)) continue;
+      // a player who stopped playing on a screen that's still here: the AI plays their hero on
+      if (this.isHost && !R.ai && g.state === 'playing') { this.realizeAI(R).netKey = R.key; toast(`${R.name || 'A player'} left: the AI plays ${HEROES[R.p.hero]?.name ?? R.p.hero} on`); }
+      else this.dropRemote(R);
+    }
   }
+  // Host: someone who arrives mid-chapter takes over a companion's hero (its
+  // health and place in the party), their own old hero first.
+  offerTakeovers() {
+    const g = this.game;
+    for (const R of this.remote.values()) {
+      if (R.ai || R.settled) continue;
+      R.settled = true;
+      if (g.mode !== 'mission') continue;
+      const free = g.players.filter((p) => p.ai && !p.remote && !p.heldFor && !p.dead);
+      const C = free.find((p) => p.netKey === R.key) ?? free[0];
+      if (!C) continue;
+      const st = { x: r2(C.pos.x), y: r2(C.pos.y), z: r2(C.pos.z), f: r2(C.facing), hp: Math.round(C.hp), mh: Math.round(C.maxHp), ce: Math.round(C.ce) };
+      this.session.send('swapok', { to: R.uid, k: R.key, i: R.entry?.i ?? 0, h: C.hero, take: 1, ...st });
+      this.removeHero(C);
+      g.fx?.summonCircle?.(V3(st.x, st.y, st.z), 0x6ad8ff);
+    }
+  }
+  // Guest: one of this screen's players stopped (their controller went): the host's AI plays the hero on.
+  dropLocalHuman(p) { this.removeHero(p); this.setParty(); this.game.hud?.rebuildCards?.(); }
   addRemote(e, uid) {
     const g = this.game;
     const p = new Player(g, 4 + ((this.pupIdx = (this.pupIdx ?? 0) + 1) % 60), 'net:' + e.k, HEROES[e.h] ? e.h : 'percy');
@@ -753,7 +783,8 @@ export class Online {
   enforceParty() {
     const g = this.game;
     const humans = this.humanCount();
-    const want = companionsWanted(humans, g.partyMgr.chosen);
+    const want = companionsWanted(humans);
+    this.offerTakeovers();
     const ais = g.players.filter((p) => p.ai && !p.remote && !p.heldFor);
     const humanHeroes = new Set(g.players.filter((p) => !p.ai || p.heldFor).map((p) => p.hero));
     if (ais.length > want) {
@@ -827,6 +858,7 @@ export class Online {
     const p = this.localHumans().find((q) => q.index === d.i && this.keyOf(q) === d.k);
     this.swapWait = 0;
     if (!p || !HEROES[d.h]) return;
+    if (d.take) toast(`You take over ${HEROES[d.h].name}`, 'big');
     const np = new Player(g, p.index, p.device, d.h);
     np.spawn(V3(num(d.x, -1e5, 1e5), num(d.y, -1e4, 1e4), num(d.z, -1e5, 1e5))); np.facing = num(d.f, -10, 10);
     np.hp = Math.min(np.maxHp, Math.max(1, num(d.hp, 1, 1e5, np.maxHp))); np.ce = num(d.ce, 0, 1e4, 30);

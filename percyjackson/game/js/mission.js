@@ -70,7 +70,8 @@ export class Mission {
     const g = this.game, L = this.L;
     const H = OBJECTIVES[this.obj.type];
     this.handler = H ? new H(this) : null;
-    // objective props
+    // objective props (on dry ground: a spot at the bottom of a pool can't be reached)
+    for (const it of this.obj.items) this.dryItemSpot(it);
     for (const it of this.obj.items) {
       const st = this.itemStyle;
       if (st === 'cage') this.makeCage(it);
@@ -82,6 +83,27 @@ export class Mission {
     this.handler?.setup?.();
     this.updateText();
     g.minimap.reveal(L.rooms[0]);
+  }
+  // Moves an objective item that landed in water, in a wall or off the
+  // room's floor to the nearest dry floor in its room (the same on every
+  // browser: it only depends on the level).
+  dryItemSpot(it) {
+    const w = this.game.world, room = it.room, y0 = room?.y ?? it.pos.y;
+    const ok = (x, z) => {
+      const gy = w.groundBelow(x, z, y0 + 2.5);
+      if (!isFinite(gy) || Math.abs(gy - y0) > 1.5 || w.liquidAt(x, gy + 0.5, z) || w.liquidAt(x, gy - 0.5, z)) return null;
+      for (let k = 0; k < 3; k++) if (w.solidAt(x, gy + 0.5 + k, z)) return null;
+      return gy;
+    };
+    if (ok(it.pos.x, it.pos.z) != null && Math.abs(it.pos.y - y0) <= 1.5) return;
+    const cx = Math.floor(it.pos.x), cz = Math.floor(it.pos.z);
+    for (let r = 1; r <= 14; r++) for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+      const x = cx + dx + 0.5, z = cz + dz + 0.5;
+      if (room && (x < room.x0 + 1 || x > room.x1 || z < room.z0 + 1 || z > room.z1)) continue;
+      const gy = ok(x, z); if (gy == null) continue;
+      it.pos.set(x, gy, z); return;
+    }
   }
   get exitOpen() { return !!this.handler?.exitOpen; }
   updateText() {

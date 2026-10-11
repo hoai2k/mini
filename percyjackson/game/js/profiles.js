@@ -30,6 +30,7 @@
 import { Save, freshData, normalizeData, newId, cleanName, LEGACY_KEY, ID_RE } from './save.js';
 import { spentPoints } from './loot.js';
 
+// (a save slot other than the first keeps its keys under its own prefix: see slots.js)
 export const INDEX_KEY = 'hbq-profiles-v2';
 export const PROFILE_KEY = (id) => `hbq-profile-${id}`;
 const WRITE_DELAY = 400;
@@ -108,8 +109,9 @@ function defaultStorage() {
 }
 
 export class Profiles {
-  constructor(storage = defaultStorage()) {
+  constructor(storage = defaultStorage(), { prefix = '', slot = 's1' } = {}) {
     this.store = storage;
+    this.prefix = prefix; this.slot = slot;
     this.saves = new Map();        // id -> Save (loaded)
     this.devices = new Map();      // input device -> profile id (this session)
     this.dirty = new Set(); this.timer = null;
@@ -122,18 +124,19 @@ export class Profiles {
       document.addEventListener?.('visibilitychange', () => { if (document.hidden) flush(); });
     }
   }
+  pkey(id) { return this.prefix + PROFILE_KEY(id); }
   // ---- storage helpers
   get(key) { try { return this.store?.getItem(key) ?? null; } catch (e) { return null; } }
   set(key, val) {
     if (!this.store) return false;
     try { this.store.setItem(key, val); return true; } catch (e) {
       // storage full: drop the backups and try once more
-      try { for (const id of this.index.ids) this.store.removeItem(PROFILE_KEY(id) + '.bak'); this.store.setItem(key, val); return true; } catch (e2) { return false; }
+      try { for (const id of this.index.ids) this.store.removeItem(this.pkey(id) + '.bak'); this.store.setItem(key, val); return true; } catch (e2) { return false; }
     }
   }
   readJSON(key) { const raw = this.get(key); if (!raw) return null; try { return JSON.parse(raw); } catch (e) { return null; } }
   readIndex() {
-    const d = this.readJSON(INDEX_KEY);
+    const d = this.readJSON(this.prefix + INDEX_KEY);
     const ix = { version: 2, main: null, ids: [], slots: {}, migratedV1: false };
     if (isObj(d)) {
       if (ID_RE.test(d.main)) ix.main = d.main;
@@ -143,9 +146,9 @@ export class Profiles {
     }
     return ix;
   }
-  writeIndex() { this.set(INDEX_KEY, JSON.stringify(this.index)); }
+  writeIndex() { this.set(this.prefix + INDEX_KEY, JSON.stringify(this.index)); }
   readProfile(id) {
-    const d = this.readJSON(PROFILE_KEY(id)) ?? this.readJSON(PROFILE_KEY(id) + '.bak');
+    const d = this.readJSON(this.pkey(id)) ?? this.readJSON(this.pkey(id) + '.bak');
     return isObj(d) ? normalizeData({ ...d, id }) : null;
   }
   // The main profile, creating it (and migrating the version 1 save into it) on first load.
@@ -156,7 +159,8 @@ export class Profiles {
     if (!ix.ids.includes(main.id)) ix.ids.unshift(main.id);
     const s = this.adopt(main);
     if (!ix.migratedV1) {
-      const legacy = this.readJSON(LEGACY_KEY);
+      // (only the first save slot takes in the version 1 save)
+      const legacy = this.prefix ? null : this.readJSON(LEGACY_KEY);
       if (isObj(legacy) && legacy.version === 1) {
         // (the old save counts as the newer one: its choices, such as the last hero, win)
         const merged = mergeProfiles(s.data, { ...legacy, id: s.data.id, name: s.data.name, updated: Math.max(1, (s.data.updated ?? 0) + 1) });
@@ -206,7 +210,7 @@ export class Profiles {
     this.index.ids = this.index.ids.filter((x) => x !== id);
     for (const [k, v] of Object.entries(this.index.slots)) if (v === id) delete this.index.slots[k];
     this.saves.delete(id); this.writeIndex();
-    try { this.store?.removeItem(PROFILE_KEY(id)); } catch (e) { /* ignore */ }
+    try { this.store?.removeItem(this.pkey(id)); } catch (e) { /* ignore */ }
     return true;
   }
   // The profile this tab plays as main: another tab already holding the main
@@ -214,8 +218,9 @@ export class Profiles {
   async claimMain() {
     const locks = typeof navigator !== 'undefined' ? navigator.locks : null;
     if (!locks?.request) return this.main;
+    this.releaseLocks ??= [];
     const tryLock = (id) => new Promise((resolve) => {
-      locks.request('hbq-profile-' + id, { ifAvailable: true }, (lock) => { if (!lock) { resolve(false); return undefined; } resolve(true); return new Promise(() => {}); }).catch(() => resolve(false));
+      locks.request(`hbq-profile-${this.slot}-${id}`, { ifAvailable: true }, (lock) => { if (!lock) { resolve(false); return undefined; } resolve(true); return new Promise((done) => { this.releaseLocks.push(done); }); }).catch(() => resolve(false));
     });
     for (const id of [this.mainId, ...this.index.ids.filter((x) => x !== this.mainId)]) {
       if (await tryLock(id)) { this.mainId = id; this.profile(id); return this.main; }
@@ -224,6 +229,8 @@ export class Profiles {
     return s;
   }
 
+  // let go of this tab's locks (switching to another save slot)
+  dispose() { this.flush(); for (const f of this.releaseLocks ?? []) f(); this.releaseLocks = []; this.disposed = true; }
   // ---- who plays with which profile (input device -> profile)
   assign(device, id) { if (this.profile(id)) this.devices.set(device, id); }
   forDevice(device) { const id = this.devices.get(device); return (id && this.saves.get(id)) || this.main; }
@@ -263,7 +270,7 @@ export class Profiles {
   writeNow(save, { replace = false } = {}) {
     this.dirty.delete(save);
     if (!this.store) return false;
-    const key = PROFILE_KEY(save.data.id);
+    const key = this.pkey(save.data.id);
     const raw = this.get(key);
     let stored = null;
     if (raw) { try { stored = JSON.parse(raw); } catch (e) { stored = null; } }

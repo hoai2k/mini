@@ -1,8 +1,12 @@
-// The party. Heroes are played by humans or by AI companions, and there are
-// always three heroes when there are fewer than three humans:
-//   1 human    leads up to two companions (chosen on the hero select)
+// The party. Heroes are played by humans or by AI companions, and the party
+// is always three heroes (four with four humans): the AI plays whoever is
+// missing.
+//   1 human    leads two companions (chosen on the hero select)
 //   2 humans   one companion, the third hero: either human can swap into it
 //   3–4        no companions, and switching does nothing
+// Joining and leaving never costs anything: a player who joins takes over a
+// companion's hero (with its health and place), and a player who leaves (or
+// whose controller disconnects) hands their hero to the AI.
 // The same rule counts every human in an online room (the host runs the
 // companions). Companions drive their hero through a virtual input device, so
 // they use exactly the same kits, combos, jumps and dodges as a player.
@@ -16,14 +20,9 @@ import { HEROES, HERO_IDS } from './heroes/index.js';
 const tmp = new THREE.Vector3();
 export const SWAP_LOCK = 0.5;   // seconds
 
-// How many AI companions a party of `humans` people has (chosen: the solo
-// player's picks; an empty list means they go it alone).
-export function companionsWanted(humans, chosen = null) {
-  if (humans >= 3) return 0;
-  const picked = chosen ? chosen.length : 2;
-  if (humans === 2) return picked > 0 ? 1 : 0;
-  return Math.min(2, picked);
-}
+// How many AI companions a party of `humans` people has.
+export function companionsWanted(humans) { return Math.max(0, 3 - humans); }
+const PAD_GONE = 2;   // seconds a controller can be unplugged before the AI plays on for its player
 
 export class Companion {
   constructor(game, player) {
@@ -155,7 +154,29 @@ export class Party {
     this.companions.set(player, c);
     return c;
   }
-  update(dt) { for (const c of this.companions.values()) c.update(dt); }
+  update(dt) {
+    for (const c of this.companions.values()) c.update(dt);
+    this.watchPads(dt);
+  }
+  // A controller that disconnects: its hero plays on as a companion (or, on an
+  // online guest's screen, goes back to the host, whose AI plays it).
+  watchPads(dt) {
+    const g = this.game;
+    for (const p of [...g.players]) {
+      if (p.ai || p.remote || !p.device?.startsWith('pad')) { if (p) p.padGoneT = 0; continue; }
+      const pad = g.input.padById?.(+p.device.slice(3));
+      if (pad && pad.connected) { p.padGoneT = 0; continue; }
+      p.padGoneT = (p.padGoneT ?? 0) + dt;
+      if (p.padGoneT < PAD_GONE || g.players.filter((q) => !q.ai && !q.remote).length < 2) continue;
+      p.padGoneT = 0;
+      g.toast?.(`${g.profileName?.(p) ?? 'A player'} left: the AI plays ${HEROES[p.hero]?.name ?? p.hero} for now`);
+      if (g.online?.isGuest) { g.online.dropLocalHuman(p); continue; }
+      p.gearOwner = p.device;
+      this.add(p);
+      if (g.online?.live) p.netKey = 'ai:' + p.hero;
+      this.setParty();
+    }
+  }
   get locked() { return performance.now() < this.lockUntil; }
   lock() { this.lockUntil = performance.now() + SWAP_LOCK * 1000; }
   // AI heroes a human could swap into (online, the room's companions)
@@ -197,7 +218,8 @@ export class Party {
   // A controller joins: it takes over the first AI companion, if any.
   takeOver(device) {
     const g = this.game;
-    const next = (g.party ?? []).find((q) => q.ai && !q.remote && !q.heldFor);
+    const free = g.players.filter((q) => q.ai && !q.remote && !q.heldFor);
+    const next = free.find((q) => q.gearOwner === device) ?? free[0];   // (their own hero, if they had one)
     if (!next) return null;
     this.companions.delete(next);
     next.ai = false; next.device = device; next.netKey = null;
@@ -212,7 +234,7 @@ export class Party {
     if (g.online?.live) return;
     const humans = g.players.filter((q) => !q.ai && !q.remote);
     const ais = g.players.filter((q) => q.ai && !q.remote);
-    const want = companionsWanted(humans.length, this.chosen);
+    const want = companionsWanted(humans.length);
     for (const q of ais.slice(want)) { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); }
     for (let n = ais.length; n < want && humans.length; n++) {
       const used = new Set(g.players.map((q) => q.hero));

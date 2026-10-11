@@ -58,7 +58,7 @@ export function paintQuad(S, o) {
 const tmpV = new THREE.Vector3();
 
 export class QuadRig {
-  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait }
+  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait }
   constructor(spec) {
     this.spec = spec; this.isQuad = true;
     this.material = spec.material;
@@ -71,7 +71,8 @@ export class QuadRig {
     const L = spec.bodyL ?? 12, W = spec.bodyW ?? 7, H = spec.bodyH ?? 6, legH = spec.legH ?? 7, legW = spec.legW ?? 3, hs = spec.headS ?? 7;
     const nLegs = spec.legs ?? 4, splay = spec.splay ?? 0;
     const footL = spec.footL ?? 0;
-    const standH = legH * Math.cos(splay) + footL + H / 2;
+    const kneeOut = spec.kneeOut ?? -0.12;
+    const standH = legH * Math.cos(splay) + footL * Math.cos(kneeOut) + H / 2 - (spec.legY ?? 0);
     this.dims = { L, W, H, legH, legW, hs, standH, legH0: standH };
     // body
     this.hips = new THREE.Group(); this.hips.position.y = standH * PX; this.root.add(this.hips);
@@ -100,13 +101,13 @@ export class QuadRig {
       const side = i % 2 === 0 ? -1 : 1, row = Math.floor(i / 2);
       const z = pairs === 1 ? 0 : (L / 2 - legW / 2 - 0.5) - row * (L - legW - 1) / (pairs - 1);
       const g = new THREE.Group();
-      g.position.set(side * (W / 2 - legW / 2 + (splay ? 0.8 : 0)) * PX, -H / 2 * PX + legW * 0.2 * PX, z * PX);
+      g.position.set(side * (W / 2 - legW / 2 + (splay ? 0.8 : 0) + (spec.legSpread ?? 0)) * PX, (-H / 2 + legW * 0.2 + (spec.legY ?? 0)) * PX, z * PX);
       const lm = mesh(quadPart('leg', legW, legH, legW, [0, -legH / 2, 0])); g.add(lm);
       g.userData = { side, row, phase: ((row % 2) ^ (side > 0 ? 1 : 0)) * Math.PI, splay: side * splay };
       g.rotation.z = side * splay;   // splayed legs reach outward
       // a knee: the lower leg turns back down so the foot meets the ground
       if (footL) {
-        const knee = new THREE.Group(); knee.position.y = -legH * PX; knee.rotation.z = -side * (splay + 0.12); g.add(knee);
+        const knee = new THREE.Group(); knee.position.y = -legH * PX; knee.rotation.z = -side * (splay - kneeOut); g.add(knee);
         knee.add(mesh(quadPart('leg', legW * 0.8, footL, legW * 0.8, [0, -footL / 2, 0])));
         g.userData.knee = knee;
       }

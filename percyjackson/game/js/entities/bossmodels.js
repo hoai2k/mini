@@ -7,7 +7,7 @@ import * as THREE from 'three/webgpu';
 import { Rig, PX } from './character.js';
 import { QuadRig, paintQuad, quadPart } from './quad.js';
 import { paintPerson } from './mortals.js';
-import { buildFury } from './monsters.js';
+import { buildFury, bronzeSpider } from './monsters.js';
 import { HS, solid, skinMat, prop, group, voxHair, voxCubes, snake, lavaCracks, fur, spikedCollar, sway, rng } from './parts.js';
 
 const GOLD = () => solid(0xc9963a, 0.15, 0.35, 0.75);
@@ -185,30 +185,9 @@ export const BOSS_MODELS = {
     return rig;
   },
 
-  // Hephaestus's mechanical queen: a big bronze spider with a gear-wound
-  // abdomen, a crown of spikes and a cluster of furnace eyes.
-  spiders: () => {
-    const m = skinMat('boss_spider_queen', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x3a2410, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 12], [13, 12], [10, 10], [12, 10]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.2, speckles: 16,
-      custom: (s) => { for (let x = 0; x < 32; x += 4) s.rect(x, 44, 1, 10, 0x5a3a18, 0); s.rect(40, 18, 12, 1, 0xe0b060, 0); s.rect(40, 22, 12, 1, 0x5a3a18, 0); for (let i = 0; i < 20; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), 0x3a8a6a); } }), { emit: 3.6, rough: 0.35 });
-    const rig = new QuadRig({ material: m, scale: 2.7, bodyL: 9, bodyW: 9, bodyH: 5, legH: 7, legW: 2, headS: 6, legs: 8, splay: 1.95, footL: 12, snout: false, neckUp: -1, gait: 1.1 });
-    const plate = solid(0xe0b060, 0.1, 0.3, 0.75), dark = solid(0x5a3a18, 0, 0.4, 0.6);
-    for (const leg of rig.legs) { const k = leg.userData.knee; prop(rig, k, 2.8, 2, 2.8, plate, 0, 0, 0); prop(rig, k, 1.2, 1.6, 1.2, dark, 0, -12.4, 0); prop(rig, leg, 2.4, 1.4, 2.4, plate, 0, -3.5, 0); }
-    // abdomen: banded dome with turning gears and a spinneret glow
-    const ab = group(rig.torso, 0, 2, -9);
-    ab.add(rig.mesh(quadPart('extra', 13, 10, 13), rig.material));
-    for (const z of [-4, 0, 4]) prop(rig, ab, 13.6, 10.6, 1, plate, 0, 0, z);
-    prop(rig, ab, 9, 2, 9, plate, 0, 5.6, 0);
-    const gears = [];
-    for (const sx of [-1, 1]) { const gg = group(ab, sx * 6.9, 0.5, 0); for (let i = 0; i < 6; i++) prop(rig, gg, 0.8, 1.6, 7.6, plate, 0, 0, 0, i / 6 * Math.PI, 0, 0); prop(rig, gg, 1, 3, 3, dark, 0, 0, 0); gears.push(gg); }
-    prop(rig, ab, 3, 3, 1, solid(0xf4f0e8, 2), 0, -2, -6.8);
-    rig.extras.gears = gears; rig.extras.abdomen = ab;
-    // crown of spikes and big mandibles
-    for (let i = -2; i <= 2; i++) prop(rig, rig.head, 1, 3 + (2 - Math.abs(i)), 1, plate, i * 1.3, 3.5, 1, -0.3, 0, -i * 0.15);
-    const fangs = [];
-    for (const sx of [-1, 1]) { const f = group(rig.mouth, sx * 1.6, 0, 0.6); prop(rig, f, 1.4, 1.4, 4, plate, 0, 0, 1.6, 0, -sx * 0.3, 0); prop(rig, f, 1, 2.4, 1, solid(0xf4ecd8, 0, 0.3), sx * 0.4, -1, 3.4); fangs.push(f); }
-    rig.extras.fangs = fangs;
-    return rig;
-  },
+  // Hephaestus's mechanical queen: the bronze spider at boss size, with a
+  // crown of spikes, gears turning in her abdomen and a furnace glow.
+  spiders: () => bronzeSpider('boss_spider_queen', { scale: 2.6, queen: true }),
 
   // Crusty: a big smooth salesman in a white suit and red tie with a red
   // robe over his shoulders, a huge grin and a woodsman's axe.

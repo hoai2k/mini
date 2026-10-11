@@ -105,7 +105,7 @@ export const BIOMES = {
   arch: {
     id: 'arch', name: 'The Gateway Arch', sub: 'St. Louis · 630 Feet Up',
     skyTop: 0x3a7ad0, skyHorizon: 0xf2d0a8, fog: 0xd8c8b8, fogDensity: 0.011,
-    hemiSky: 0xd8e6ff, hemiGround: 0x4a4440, hemiI: 1.0, sun: 0xfff0d8, sunI: 2.0,
+    hemiSky: 0xd8e6ff, hemiGround: 0x4a4440, hemiI: 0.8, sun: 0xfff0d8, sunI: 1.8,
     grade: { tint: [1.0, 1.0, 1.02], lift: [0.004, 0.004, 0.01], sat: 1.06, contrast: 1.1, vignette: 0.26 },
     floor: B.steel_panel, floor2: B.iron_plate, path: B.concrete, wall: B.steel_panel, wall2: B.steel_window, trim: B.iron_plate, pillar: B.steel_panel, roof: B.steel_panel, ground: B.grass, accent: B.lantern, pit: B.concrete,
     ambience: 'wind', music: 'arch', particles: 'dust', wind: 1.2,

@@ -8,12 +8,15 @@ import assert from 'node:assert/strict';
 import { Profiles, mergeProfiles, encodeProfile, decodeProfile, INDEX_KEY, PROFILE_KEY } from '../js/profiles.js';
 import { Save, freshData, LEGACY_KEY } from '../js/save.js';
 import { rollItem, spentPoints, enchCost } from '../js/loot.js';
+import { Slots, slotPrefix, SLOTS_KEY, RESUME_KEY } from '../js/slots.js';
 
 class Mem {
   constructor(init = {}) { this.m = new Map(Object.entries(init)); this.writes = 0; }
   getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }
   setItem(k, v) { this.writes++; this.m.set(k, String(v)); }
   removeItem(k) { this.m.delete(k); }
+  key(i) { return [...this.m.keys()][i] ?? null; }
+  get length() { return this.m.size; }
 }
 
 // A version 1 save as the old save.js wrote it, with some play in it.
@@ -175,4 +178,70 @@ test('writes are debounced, and a newer stored revision is merged, not overwritt
   assert.deepEqual(now.completed, { lt1: 2, lt3: 1 });
   assert.ok(now.rev > theirs.rev);
   assert.ok(store.getItem(PROFILE_KEY(s.id) + '.bak'), 'the previous copy is kept');
+});
+
+// ---------------------------------------------------------------- save slots
+const open = (store, slots) => new Profiles(store, { prefix: slotPrefix(slots.active), slot: slots.active });
+
+test('the existing save becomes Save 1, the active slot, without losing anything', () => {
+  const legacy = legacySave();
+  const store = new Mem({ [LEGACY_KEY]: JSON.stringify(legacy) });
+  const slots = new Slots(store);
+  assert.deepEqual(slots.list().map((x) => [x.id, x.name, x.active]), [['s1', 'Save 1', true]]);
+  assert.equal(slotPrefix('s1'), '', 'slot 1 keeps the keys the game always used');
+  const d = open(store, slots).main.data;
+  assert.equal(d.coins, 321); assert.deepEqual(d.completed, legacy.completed);
+  for (const it of legacy.inventory) assert.ok(d.inventory.some((x) => x.uid === it.uid));
+  // a second load sees the same slot
+  assert.deepEqual(new Slots(store).list().map((x) => x.id), ['s1']);
+});
+
+test('a new game makes a new slot and never overwrites the old one', () => {
+  const store = new Mem();
+  const slots = new Slots(store);
+  const P1 = open(store, slots);
+  P1.main.addXp(500); P1.main.data.completed = { lt1: 2 }; P1.main.data.coins = 77; P1.main.write(); P1.flush();
+  store.setItem(slotPrefix('s1') + RESUME_KEY, JSON.stringify({ v: 1, def: { seed: 3 } }));
+  const before = new Map(store.m);
+  const id = slots.create({ people: P1.list().map((p) => ({ id: p.id, name: p.name })) });
+  assert.equal(id, 's2'); assert.equal(slots.active, 's2');
+  // nothing of Save 1 changed
+  for (const [k, v] of before) if (k !== SLOTS_KEY) assert.equal(store.getItem(k), v, k);
+  const P2 = open(store, slots);
+  assert.equal(P2.main.id, P1.main.id, 'the same player (identity) in the new game');
+  assert.equal(P2.main.name, P1.main.name);
+  assert.equal(P2.main.data.level, 1); assert.equal(P2.main.data.coins, 0); assert.deepEqual(P2.main.data.completed, {});
+  assert.equal(store.getItem(slotPrefix('s2') + RESUME_KEY), null, 'nothing to continue in a new game');
+  // playing the new game leaves Save 1 alone
+  P2.main.data.coins = 5; P2.main.write(); P2.flush();
+  slots.setActive('s1');
+  const back = open(store, slots).main.data;
+  assert.equal(back.coins, 77); assert.deepEqual(back.completed, { lt1: 2 });
+  // the old save isn't migrated into the new one
+  const legacyStore = new Mem({ [LEGACY_KEY]: JSON.stringify(legacySave()) });
+  const s2 = new Slots(legacyStore); open(legacyStore, s2); s2.create({});
+  assert.equal(open(legacyStore, s2).main.data.coins, 0);
+});
+
+test('switching, renaming and deleting slots', () => {
+  const store = new Mem();
+  const slots = new Slots(store, () => 1000);
+  open(store, slots);
+  const a = slots.create({ name: 'Second try' }), b = slots.create({});
+  assert.deepEqual(slots.list().map((x) => x.name), ['Save 1', 'Second try', 'Save 2']);
+  assert.equal(slots.active, b);
+  assert.ok(slots.setActive('s1')); assert.equal(new Slots(store).active, 's1', 'remembered');
+  assert.ok(!slots.setActive('s99'));
+  slots.rename(a, 'Mist run'); assert.equal(slots.meta(a).name, 'Mist run');
+  slots.touch(a, { playTime: 90, chapters: 2, heroes: ['percy', 'grover'] });
+  assert.equal(slots.meta(a).playTime, 90); assert.deepEqual(slots.meta(a).heroes, ['percy', 'grover']);
+  // deleting removes only that slot's keys
+  const P = open(store, (slots.setActive(a), slots)); P.main.write(); P.flush();
+  const s1keys = [...store.m.keys()].filter((k) => k.startsWith('hbq-profile') || k === 'hbq-profiles-v2');
+  assert.ok(slots.remove(a));
+  assert.ok(![...store.m.keys()].some((k) => k.startsWith(slotPrefix(a))));
+  for (const k of s1keys) assert.ok(store.getItem(k) !== null, k);
+  assert.equal(slots.active, 's1', 'the active slot moves to one that exists');
+  assert.ok(slots.remove(b));
+  assert.ok(!slots.remove('s1'), 'the last slot stays');
 });
