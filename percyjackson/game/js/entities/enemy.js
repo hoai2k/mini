@@ -58,6 +58,7 @@ export class Enemy {
       this.rig = buildMortal(this.disguise);
       this.trueRadius = this.radius; this.trueHeight = this.height;
       this.radius = 0.38; this.height = 1.9;
+      this.spawnT = 0; // mortals don't climb out of the floor
     } else this.buildTrueModel();
     this.object = this.rig.root;
     this.object.position.copy(this.pos);

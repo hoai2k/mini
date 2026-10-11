@@ -173,11 +173,11 @@ const MODELS = {
     return rig;
   },
   empousa: () => {
-    const mat = skinMat('empousa', (S) => paintPerson(S, { skin: 0xe2ccbc, hair: 0xff7a1a, fringe: 2, hairSide: 3, eye: 0xff1a1a, eyeWhite: 0xffe0e0, fangs: 0xffffff, grin: true, lipstick: 0xc8203a, top: 0xc8203a, collar: 0xdcd0b8, trim: 0xdcd0b8, sleeve: 0xe2ccbc, skirt: 0xdcd0b8, skirtLen: 5, legR: 0xc9963a, legL: 0x6a5a4a, shoes: 0x2a2018 }), { emit: 2.8 });
+    const mat = skinMat('empousa', (S) => paintPerson(S, { skin: 0xd8b49c, hair: 0xff7a1a, fringe: 2, hairSide: 3, eye: 0xff1a1a, eyeWhite: 0xffe0e0, fangs: 0xffffff, grin: true, lipstick: 0xc8203a, top: 0xc8203a, collar: 0xdcd0b8, trim: 0xdcd0b8, sleeve: 0xc8203a, shortSleeve: true, skirt: 0xdcd0b8, skirtLen: 5, legR: 0xc9963a, legL: 0x6a5a4a, shoes: 0x2a2018 }), { emit: 2.8 });
     const rig = new Rig({ material: mat, scale: 1.1, bodyW: 7, armW: 3 });
     // flaming hair: glowing strands that sway (rig strand physics)
-    const flame = solid(0xff7a1a, 3), flame2 = solid(0xffd84a, 3.5);
-    const strands = [[-2.5, 8, 0, 3, 5, 3, 0.4], [0, 8.5, 0, 3, 6, 3, 0], [2.5, 8, 0, 3, 5, 3, -0.4], [0, 7.5, -3, 5, 6, 2, -0.6]];
+    const flame = solid(0xff6a1a, 1.8), flame2 = solid(0xffb03a, 2);
+    const strands = [[-2.5, 8, 0, 2.5, 3.5, 2.5, 0.4], [0, 8.5, 0, 2.5, 4.5, 2.5, 0], [2.5, 8, 0, 2.5, 3.5, 2.5, -0.4], [0, 7, -3, 4, 4.5, 2, -0.6]];
     let i = 0;
     for (const [x, y, z, w, h, d, rz] of strands) {
       const piv = new THREE.Group(); piv.position.set(x * PX * HS, y * PX * HS, z * PX * HS);
