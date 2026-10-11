@@ -3,7 +3,7 @@
   "assets": [
     {
       "id": "logo",
-      "file": "eartrainer/app/assets/ui/logo.png",
+      "file": "eartrainer/app/assets/ui/logo.webp",
       "size": [
         1600,
         640
@@ -29,7 +29,7 @@
     },
     {
       "id": "rotate-card",
-      "file": "eartrainer/app/assets/ui/rotate-card.png",
+      "file": "eartrainer/app/assets/ui/rotate-card.webp",
       "size": [
         800,
         800
@@ -42,7 +42,7 @@
     },
     {
       "id": "book-all",
-      "file": "eartrainer/app/assets/books/all.png",
+      "file": "eartrainer/app/assets/books/all.webp",
       "size": [
         512,
         512
@@ -55,7 +55,7 @@
     },
     {
       "id": "book-children",
-      "file": "eartrainer/app/assets/books/children.png",
+      "file": "eartrainer/app/assets/books/children.webp",
       "size": [
         512,
         512
@@ -68,7 +68,7 @@
     },
     {
       "id": "book-traditional",
-      "file": "eartrainer/app/assets/books/traditional.png",
+      "file": "eartrainer/app/assets/books/traditional.webp",
       "size": [
         512,
         512
@@ -81,7 +81,7 @@
     },
     {
       "id": "book-holiday",
-      "file": "eartrainer/app/assets/books/holiday.png",
+      "file": "eartrainer/app/assets/books/holiday.webp",
       "size": [
         512,
         512
@@ -94,7 +94,7 @@
     },
     {
       "id": "book-classical",
-      "file": "eartrainer/app/assets/books/classical.png",
+      "file": "eartrainer/app/assets/books/classical.webp",
       "size": [
         512,
         512
@@ -107,7 +107,7 @@
     },
     {
       "id": "book-jazz",
-      "file": "eartrainer/app/assets/books/jazz.png",
+      "file": "eartrainer/app/assets/books/jazz.webp",
       "size": [
         512,
         512
@@ -120,7 +120,7 @@
     },
     {
       "id": "book-licks",
-      "file": "eartrainer/app/assets/books/licks.png",
+      "file": "eartrainer/app/assets/books/licks.webp",
       "size": [
         512,
         512
@@ -133,7 +133,7 @@
     },
     {
       "id": "book-popular",
-      "file": "eartrainer/app/assets/books/popular.png",
+      "file": "eartrainer/app/assets/books/popular.webp",
       "size": [
         512,
         512

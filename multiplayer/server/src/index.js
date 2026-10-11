@@ -12,6 +12,9 @@
 //   GET  /votes/<game>                     thumbs up/down totals per item (JSON)
 //   POST /votes/<game>  {item, voter, value: 1 | -1 | 0}
 //                                          set (or clear) one voter's vote
+//   POST /oracle  {question, day, seed, hexagram, ...}
+//                                          a short Workers AI opening for an
+//                                          Ai-Ching reading (src/oracle.js)
 //
 // Each room is one Durable Object (`Room`). It relays two kinds of message
 // between the players in it, mirroring the presence/topics model the games
@@ -35,6 +38,7 @@
 // RATE_LIMIT messages in RATE_WINDOW_MS is closed with reason "rate_limited".
 
 import { DurableObject } from "cloudflare:workers";
+import { handleOracle } from "./oracle.js";
 
 const MAX_MESSAGE_BYTES = 64 * 1024;
 const MAX_CAPACITY = 16;
@@ -98,17 +102,21 @@ async function iceServers(env) {
 const clean = (s, max) => String(s ?? "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, max);
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const parts = url.pathname.split("/").filter(Boolean);
-    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes" || parts[0] === "turn") && !originAllowed(request, env)) {
+    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes" || parts[0] === "turn" || parts[0] === "oracle") && !originAllowed(request, env)) {
       return new Response("Origin not allowed", { status: 403, headers: CORS });
     }
 
     if (parts[0] === "lobby" && parts.length === 2 && NAME_RE.test(parts[1])) {
       const rooms = await env.LOBBY.getByName(parts[1]).list();
       return Response.json({ rooms }, { headers: { ...CORS, "Cache-Control": "no-store" } });
+    }
+
+    if (parts[0] === "oracle" && parts.length === 1) {
+      return handleOracle(request, env, ctx, { ...CORS, "Cache-Control": "no-store" });
     }
 
     if (parts[0] === "turn" && parts.length === 1) {

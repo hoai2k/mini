@@ -64,6 +64,7 @@ html.touch [data-tip]:hover::after { display: none; }
   radial-gradient(ellipse 90% 70% at 50% 120%, rgba(79, 214, 199, .08), transparent 70%),
   linear-gradient(180deg, #0b1020, #121a2d 60%, #0b0f19); background-size: cover; background-position: center; }
 .title-bg.art { background-size: cover; background-position: center; }
+.title-bg.art + .title-keys { display: none; }
 .title-bg.art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(14, 19, 32, .25), rgba(14, 19, 32, .8)); }
 .title-keys { position: absolute; left: 0; right: 0; bottom: 0; height: 22%; opacity: .16;
   background: repeating-linear-gradient(90deg, var(--ivory-2) 0 calc(100% / 28 - 2px), transparent calc(100% / 28 - 2px) calc(100% / 28));
