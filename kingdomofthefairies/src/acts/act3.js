@@ -4,6 +4,7 @@
 // by the throne. Design: design/acts.md, "Act III". Headless: drawing is in
 // act3-art.js.
 import { beatPhase, clamp, lerp, easeInOut } from './shared.js';
+import { FILM } from '../theme.js';
 import * as art from './act3-art.js';
 
 // ---------------------------------------------------------------- the set
@@ -152,10 +153,12 @@ export function litAt(aim, row, x) {
 
 // ---------------------------------------------------------------- module
 export default {
-  id: 3, key: 'court', kicker: 'Act III', title: "The Sea King's Court", size: 110,
-  sub: "Cross the Sea King's hall to the treasury\nand take her pearl from its pedestal.",
+  id: 3, key: 'court', kicker: 'Act III', title: FILM ? "Neptune's Court" : "The Sea King's Court", size: 110,
+  sub: FILM ? "Cross Neptune's hall to his seal of passage.\nThe witch is watching through her scrying eye."
+    : "Cross the Sea King's hall to the treasury\nand take her pearl from its pedestal.",
   // Shown as a silent-film intertitle after the act card ([A] is the A button).
-  intertitle: "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
+  intertitle: FILM ? "Press [A] beside a courtier\nto hide from the witch's scrying eye.\n\nNeptune grants you passage:\nwalk up to his seal at the far end of the hall."
+    : "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
   action: 'A: hide',
   scenes: SCENES,
 
@@ -240,12 +243,12 @@ export default {
 
   announce(e) {
     if (e.type === 'hit') return `Hit. ${e.lanterns} lantern${e.lanterns === 1 ? '' : 's'} left.`;
-    if (e.type === 'spotted') return 'Spotted by the gaze lantern!';
-    if (e.type === 'gazeTurn') return `The Sea King's lantern turns ${e.dir > 0 ? 'from the left' : 'from the right'}. Hide beside a courtier!`;
-    if (e.type === 'whaleNear') return 'The whale is coming.';
-    if (e.type === 'whalePass') return 'The whale masks the hall: the lantern cannot see you.';
-    if (e.type === 'pearlTaken') return 'You take her pearl.';
-    if (e.type === 'swallow') return 'The whale swallows the court.';
+    if (e.type === 'spotted') return FILM ? "Spotted by the witch's eye!" : 'Spotted by the gaze lantern!';
+    if (e.type === 'gazeTurn') return `${FILM ? "The witch's eye sweeps" : "The Sea King's lantern turns"} ${e.dir > 0 ? 'from the left' : 'from the right'}. Hide beside a courtier!`;
+    if (e.type === 'whaleNear') return FILM ? "Neptune's whale is coming." : 'The whale is coming.';
+    if (e.type === 'whalePass') return FILM ? "The whale masks the hall: the witch's eye cannot see you." : 'The whale masks the hall: the lantern cannot see you.';
+    if (e.type === 'pearlTaken') return FILM ? "Neptune's seal: he grants you passage on his whale." : 'You take her pearl.';
+    if (e.type === 'swallow') return FILM ? 'The whale takes you aboard.' : 'The whale swallows the court.';
     return null;
   },
 

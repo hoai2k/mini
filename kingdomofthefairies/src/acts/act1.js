@@ -1,4 +1,4 @@
-import { LEGACY, BAY_TITLE } from '../theme.js';
+import { LEGACY, FILM, BAY_TITLE } from '../theme.js';
 // Act I — The Crossing. The voyage (board.js), then the ending from
 // design/acts.md: land ho, a celebration on the deck set, the witch's turn,
 // the wreck and the sinking guitar. Headless: drawing is in act1-art.js.
@@ -28,16 +28,19 @@ const ORDER = ['landho', 'party', 'turn', 'wreck', 'sink', 'iris'];
 // each tea leaf (where it floats by, at TUNING.keepsakeAt).
 export const SCENES = [
   { name: 'Setting Sail' },
-  { name: 'Toward the Second Leaf', progress: 0.25 },
-  { name: 'Toward the Third Leaf', progress: 0.53 },
+  { name: FILM ? 'Toward the Second Star' : 'Toward the Second Leaf', progress: 0.25 },
+  { name: FILM ? 'Toward the Third Star' : 'Toward the Third Leaf', progress: 0.53 },
   { name: 'The Last Stretch', progress: 0.81 },
-  { name: 'The Celebration' },
-  { name: "The Witch's Turn" },
+  { name: FILM ? 'The Tempest' : 'The Celebration' },
+  { name: FILM ? 'The Witch Strikes' : "The Witch's Turn" },
 ];
 
 export default {
-  id: 1, key: 'crossing', kicker: 'Act I', title: 'The Crossing', size: 130,
-  sub: 'The witch will turn the wind.\nGather the three tea leaves for the reading.',
+  id: 1, key: 'crossing', kicker: 'Act I', title: FILM ? 'The Royal Crossing' : 'The Crossing', size: FILM ? 116 : 130,
+  sub: FILM ? "Sail for the witch's tower; she will turn the wind.\nGather Aurora's three stars on the way."
+    : 'The witch will turn the wind.\nGather the three tea leaves for the reading.',
+  // In the film edition the witch rides her storm cloud, not a moon boat.
+  cast: FILM ? { 'witch-moonboat': 'witch-storm' } : undefined,
   action: 'A: leap',
   scenes: SCENES,
 
@@ -126,13 +129,14 @@ export default {
   announce(e) {
     if (e.type === 'hit') { const n = Math.round(e.hull * 10) / 10; return `Hit. ${n} lantern${n === 1 ? '' : 's'} left.`; }
     if (e.type === 'pearl' && e.mended) return `A lantern mended: ${Math.floor(e.hull)} whole.`;
-    if (e.type === 'keepsake') return `Tea leaf ${e.n} of 3.`;
+    if (e.type === 'keepsake') return FILM ? `Aurora's star ${e.n} of 3.` : `Tea leaf ${e.n} of 3.`;
     if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
-    if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : "The enchanted tower in sight.";
-    if (e.type === 'cheer') return 'A celebration on deck! Press A on the beat to light the lanterns.';
-    if (e.type === 'revelry') return 'Every lantern lit.';
+    if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : "The sky blackens: the witch's tempest.";
+    if (e.type === 'cheer') return FILM ? "The tempest! Press A on the beat to light the galley's lanterns." : 'A celebration on deck! Press A on the beat to light the lanterns.';
+    if (e.type === 'revelry') return FILM ? 'Every lantern lit: they hold against the storm.' : 'Every lantern lit.';
     if (e.type === 'strike') return 'The witch strikes the mast.';
-    if (e.type === 'shipBreak') return 'The ship breaks apart.';
+    if (e.type === 'shipBreak') return FILM ? 'The galley breaks on the rocks.' : 'The ship breaks apart.';
+    if (e.type === 'guitarSink' && FILM) return "Aurora's sword sinks into the deep.";
     return null;
   },
 

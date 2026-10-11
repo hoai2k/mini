@@ -6,6 +6,7 @@ import {
   beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
+import { FILM } from '../theme.js';
 
 const FLOOR_TOP = 404;
 const BC_H = 900;               // drawn height of the delivered backcloth
@@ -227,7 +228,9 @@ function pedestal(k, st, t) {
   // a pool of treasury light marks it among the painted shells
   c.save(); c.globalAlpha = 0.28 + 0.08 * Math.sin(t * 2);
   c.fillStyle = k.col('#fff2c0'); c.beginPath(); c.ellipse(x, by - 80, 92, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  const emptyArt = st.taken && k.img('pearl-pedestal-empty');
+  // (The film edition's pedestal holds Neptune's seal: the empty shell, the
+  // seal drawn in it.)
+  const emptyArt = (st.taken || FILM) && k.img('pearl-pedestal-empty');
   if (!(emptyArt ? k.asset('pearl-pedestal-empty', x, by, PED_W, PED_H) : k.asset('pearl-pedestal', x, by, PED_W, PED_H))) {
     c.fillStyle = k.col('#f1e3c8');
     c.beginPath(); c.moveTo(x - 30, by); c.lineTo(x - 16, by - 110); c.lineTo(x + 16, by - 110); c.lineTo(x + 30, by); c.fill();
@@ -244,7 +247,8 @@ function pedestal(k, st, t) {
   if (!st.taken) {
     c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 3);
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
-    if (!art) pearlAt(k, x, py + Math.sin(t * 2) * 2, 15);
+    if (FILM) goalAt(k, x, py + Math.sin(t * 2) * 2, 15);
+    else if (!art) pearlAt(k, x, py + Math.sin(t * 2) * 2, 15);
   } else if (art && !emptyArt) {
     // no empty-pedestal art: paint the shell empty over the pearl
     c.fillStyle = k.col('#e7b3c4'); c.beginPath(); c.ellipse(x, py + 2, 17, 15, 0, 0, Math.PI * 2); c.fill();
@@ -260,19 +264,26 @@ function pearlCue(k, st, t) {
   if (st.phase === 'play' && Math.abs(p.x - PEDESTAL.x) < 700) {
     c.save(); c.globalAlpha = 0.45 + 0.3 * Math.sin(t * 5);
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 26); c.restore();
-    pearlAt(k, x, py, 15);
+    goalAt(k, x, py, 15);
   }
   if (st.phase === 'take') {
     const f = easeOut(st.phaseT / 0.8), px = p.x - st.cam;
     const sx = lerp(x, px, f), sy = lerp(py, rowY(p) - 112 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
     c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#fff6e0'); k.circle(sx, sy, 26); c.restore();
-    pearlAt(k, sx, sy, 15);
+    goalAt(k, sx, sy, 15);
   }
 }
 
 // Where her pearl sits: in the delivered art it is 40% of the way down.
 const PED_W = 150, PED_H = 196;
 const pearlY = (k, by) => (k.img('pearl-pedestal') ? by - PED_H * 0.6 : by - 128);
+
+// The goal on the pedestal: her pearl, or in the film edition Neptune's seal,
+// his grant of passage.
+function goalAt(k, x, y, r) {
+  if (FILM && k.asset('keepsake-seal', x, y + r * 1.8, r * 3.6, r * 3.6)) return;
+  pearlAt(k, x, y, r);
+}
 
 function pearlAt(k, x, y, r) {
   if (k.asset('pearl', x, y + r, r * 2, r * 2)) return;

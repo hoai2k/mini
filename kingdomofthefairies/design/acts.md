@@ -1,6 +1,6 @@
 # Kingdom of the Fairies — five-act design
 
-The current story and first chapters remain as built. The full rescue voyage in Méliès’s 1903 film is a reference for decisions about later updates, not a commitment to replace the existing adaptation.
+The default edition now follows Méliès’s 1903 film as set out in [the film adaptation plan](film-adaptation.md): a prologue, Acts I–IV recast and new Acts V and VI. The table below describes the original five acts, which `?widowsbay` keeps unchanged and whose machinery the film acts reuse.
 [Film story and sources](film-story.md) record the original narrative;
 [the film adaptation plan](film-adaptation.md) proposes which acts to keep, recast, replace and add; the source-led
 [expanded-world images](references/expanded-world/README.md) and

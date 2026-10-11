@@ -12,23 +12,35 @@ Presence of the parameter enables that edition, even with an empty value.
 Saves and settings use separate storage keys for the two editions; the legacy
 keys remain compatible with existing saves.
 
-## Current game and future story
+## The two editions' acts
 
-The five playable acts retain their controls, scoring, keepsakes, checkpoints,
-and branching endings. This pass changes the presentation, not those rules:
+The default edition follows the film's story
+([the film adaptation plan](design/film-adaptation.md)): a prologue and six
+acts. The first four keep their stage machinery and rules, recast:
 
-1. The Crossing: steer along three wave rows, leap rocks, collect pearls and
-   tea leaves; light the deck-party lanterns on the beat before the wreck.
-2. The Sleepers’ Grotto: swim, gather air, wake the sleepers and recover the
-   sinking guitar; choose whether to take the rose, then ride the moon boat.
-3. The Sea King’s Court: cross the court’s moving floors.
-4. The Whale’s Road: climb through the whale and reach shore.
-5. The Enchanted Tower: climb the cliff, cross the burning house, rescue the
-   beloved, and see the ending and pageant.
+0. Prologue, The Betrothal: the fairies present their gifts on the beat, the
+   witch curses the betrothal and carries Azurine off, and Aurora arms the
+   prince (painted tableaux).
+1. The Royal Crossing: the galley voyage and the witch's tempest (the deck
+   party lights lanterns on the beat as before).
+2. The Water Fairy: the sleepers' grotto; the Water Fairy blesses the prince
+   (no refusal) and her dolphin carriage carries him on.
+3. Neptune's Court: the court's moving floors, watched by the scrying eye.
+4. The Whale's Passage: through the whale to shore, where Aurora waits.
+5. The Enchanted Tower: the cliff, a swim across the sea gap diving under the
+   witch's swoops, and the tower wall up to Azurine's window.
+6. The Burning Tower: the burning floors, carrying Azurine out, rolling the
+   witch's barrel over the cliff on the beat, the wedding and the apotheosis.
 
-Moving scenic stones replace the cliff’s band boots visually, retaining their
-foothold anchors and timing. Band cut-outs and procedural band figures are
-excluded from the default title, deck, cliff, pageant and curtain call.
+Characters and props without delivered film art are drawn by interim cut-outs
+from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
+`design/source/cut_planning.py`) until the production requests arrive.
+
+[`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)
+keeps the original five acts unchanged: The Crossing, The Sleepers' Grotto,
+The Sea King's Court, The Whale's Road and The Enchanted Tower (cliff, burning
+house, beloved, endings and pageant). Climbing in both editions shows the
+reachable holds, an arrow for each direction and the leap arc.
 
 The retained sailor, guitar, rose bargain and alternate endings are adaptation
 mechanics, not events in the film. For the complete original storyline and
@@ -70,7 +82,7 @@ New documentation uses the full film, not the music-video edit, as its authority
 
 [The film planning gallery](design/references/film-planning/index.html) contains
 the ten character sheets and twenty scene concepts for the proposed adaptation.
-Source request briefs, named references and native originals are retained. These are design references; the playable chapters remain as built.
+Source request briefs, named references and native originals are retained. These are design references; interim cut-outs from them stand in for the film cast until production art (the F1–F4 requests in the image requests) arrives.
 
 [Music](design/music.md) describes the five delivered period tracks and their
 scene moods. New effects use `design/source/build_sfx.py`; its key comes from
@@ -89,8 +101,9 @@ selects its preserved manifest/icons with `start_url: ./?widowsbay`.
 From the repository root:
 
 ```sh
-for t in board act2 act3 act4 act5 animation sailor-motion theme; do node kingdomofthefairies/qa/$t.test.mjs; done
-python3 kingdomofthefairies/design/source/build_act_requests.py --check
+for t in board act2 act3 act4 act5; do KOTF_EDITION=widowsbay node kingdomofthefairies/qa/$t.test.mjs; done
+for t in animation sailor-motion theme film; do node kingdomofthefairies/qa/$t.test.mjs; done
+for g in build_act_requests build_film_requests build_film_assets; do python3 kingdomofthefairies/design/source/$g.py --check; done
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs
 kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
 ```

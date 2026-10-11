@@ -8,6 +8,7 @@ import {
   clamOpen, clamIsOpen, clamSpent, clamRipe, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
+import { FILM } from '../theme.js';
 
 const TAU = Math.PI * 2;
 const sy = (st, wy) => wy - st.cam + 60;           // world y -> stage y
@@ -847,15 +848,15 @@ function captions(k, st, t) {
   }
   if (ph === 'swim' && st.guitar.settled && !st.guitar.held) {
     const g = st.guitar;
-    label(k, 'Catch the guitar', g.x, sy(st, g.y) - 90, 20, '#ffe27a');
+    label(k, FILM ? 'Catch the sword' : 'Catch the guitar', g.x, sy(st, g.y) - 90, 20, '#ffe27a');
   }
   if (ph === 'offer' && pt >= 1.6) {
     panel(k, 640, 128, 620, 104);
     c.font = '40px Yesteryear, cursive'; c.textAlign = 'center';
-    c.fillStyle = k.col('#f3c6dc'); c.fillText('She offers you the sea rose', 640, 122);
+    c.fillStyle = k.col('#f3c6dc'); c.fillText(FILM ? 'The Water Fairy offers her blessing' : 'She offers you the sea rose', 640, 122);
     const on = pt >= 2.0;
     c.globalAlpha = on ? 1 : 0.5;
-    label(k, 'A  take it     ·     B  refuse, or swim away', 640, 160, 20, '#f1e3c8');
+    label(k, FILM ? 'A  accept it' : 'A  take it     ·     B  refuse, or swim away', 640, 160, 20, '#f1e3c8');
     c.globalAlpha = 1;
   }
 }

@@ -6,6 +6,7 @@ import {
   floorY, hookTip, hookAngle, shoreTimes, toScreen, extent, platformOf, HANG,
 } from './act4.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
+import { FILM } from '../theme.js';
 import { drawMovement, whalePose } from './sailor-motion.js';
 
 const REV = [
@@ -32,7 +33,7 @@ export function onEvent(k, e, st) {
   const at = (x, y) => toScreen(st, x, y);
   const s = st.s;
   if (e.type === 'pearl') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#efe9f2', 8, 'sparkle'); }
-  if (e.type === 'stoneFound') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#d9b34a', 18, 'sparkle'); k.text('The stone!', p.x, p.y - 40, true); }
+  if (e.type === 'stoneFound') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#d9b34a', 18, 'sparkle'); k.text(FILM ? "Aurora's lamp!" : 'The stone!', p.x, p.y - 40, true); }
   if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); const p = at(s.x, s.y - 60); k.burst(p.x, p.y, '#c8321e', 12, 'streak'); }
   if (e.type === 'splash') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#9fb8b0', 20, 'drop'); }
   if (e.type === 'acidSting') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#e07a5a', 14, 'bubble'); }
@@ -603,6 +604,17 @@ function shoreScene(k, st, t) {
     if (p <= 0) continue;
     const r = REV[i % REV.length], tx = 900 - i * 44, to = { x: tx, y: rockTop(tx) + 6 + (i % 2) * 8 };
     crawler(k, mouth, to, p, () => { if (!k.asset(r.id, 0, 0, 60, 115)) figure(k, r.col, Math.sin(t * 6 + i) * 0.5 + 0.5); }, t);
+  }
+  // The film edition: Aurora appears on the rocks at the right and points the
+  // way on toward the cave (tableau 23), once the party is out.
+  if (FILM) {
+    const ap = easeOut((pt - T.out - n * T.gap - 0.6) / 1.4);
+    if (ap > 0) {
+      c.save(); c.globalAlpha = ap;
+      c.fillStyle = k.col('#fff2c0'); c.globalAlpha = 0.25 * ap; k.circle(1090, 470, 120); c.globalAlpha = ap;
+      if (!k.asset('aurora-point', 1090, rockTop(1100) + 10, 120, 170)) { c.fillStyle = k.col('#f4ead2'); k.circle(1090, 420, 30); }
+      c.restore();
+    }
   }
   k.wash('#e7a6bd', 0.3); // the video's rose-pink stage wash
 }

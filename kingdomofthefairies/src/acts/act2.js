@@ -4,6 +4,7 @@
 // Then the moon-boat interlude carries him on to the Sea King's court.
 // Headless: drawing is in act2-art.js. Design: design/acts.md, Act II.
 import { clamp, lerp } from './shared.js';
+import { FILM } from '../theme.js';
 import * as art from './act2-art.js';
 
 // ---------------------------------------------------------------- tuning
@@ -148,8 +149,12 @@ export const ridePearlX = (p, rideT) => 1250 - (rideT - p.at) * RIDE.speed;
 
 // ---------------------------------------------------------------- module
 export default {
-  id: 2, key: 'grotto', kicker: 'Act II', title: "The Sleepers' Grotto", size: 110,
-  sub: 'Follow the sinking guitar down.\nSound the conch horns to wake the drowned.',
+  id: 2, key: 'grotto', kicker: 'Act II', title: FILM ? 'The Water Fairy' : "The Sleepers' Grotto", size: 110,
+  sub: FILM ? 'Follow the sinking sword down.\nSound the conch horns to wake your drowned crew.'
+    : 'Follow the sinking guitar down.\nSound the conch horns to wake the drowned.',
+  // The film edition: the Water Fairy in the witch's place, and the marine
+  // procession's dolphin carriage for the moon boat.
+  cast: FILM ? { 'witch-stand': 'water-fairy-stand', 'witch-moonboat': 'dolphin-carriage' } : undefined,
   action: 'A: kick',
   scenes: SCENES,
 
@@ -236,6 +241,20 @@ export default {
   },
 
   announce(e) {
+    if (FILM) {
+      const film = {
+        sailorWake: 'The Water Fairy breathes life into the prince. He wakes among his drowned crew.',
+        swimStart: 'Swim down after the sword. Press A to kick. Sound the conch to wake your crew.',
+        conchBlow: 'The conch sings. Swim close to your crew to wake them.',
+        guitarCatch: 'You catch the enchanted sword.',
+        witchOffer: 'The Water Fairy offers her blessing. Press A to accept it.',
+        roseTake: 'Her blessing revives the rest of your crew.',
+        rideStart: 'The marine procession. Sail, change row and leap to gather the pearls.',
+        drown: 'The prince sinks.',
+      }[e.type];
+      if (film) return film;
+      if (e.type === 'sleeperWake') return `A crewman wakes. ${e.n} woken.`;
+    }
     switch (e.type) {
       case 'sailorWake': return 'The witch breathes life into the sailor. He wakes among the drowned.';
       case 'swimStart': return 'Swim down after the guitar. Press A to kick. Sound the conch to wake the sleepers.';
@@ -411,7 +430,10 @@ function stepSwim(st, dt, input) {
     const o = st.offer, pt = st.phaseT;
     if (pt >= 1.6 && !o.said) { o.said = true; st.events.push({ type: 'witchOffer' }); }
     if (pt >= 2.0) {
-      if (input.a) choose(st, 'take');
+      // The film has no bargain: the Water Fairy blesses him (A, or after a
+      // moment), and the blessing revives the rest of his crew.
+      if (FILM) { if (input.a || pt >= 6) choose(st, 'take'); }
+      else if (input.a) choose(st, 'take');
       else if (input.b || s.y < FLOOR - 470) choose(st, 'refuse');
     }
   }
@@ -545,7 +567,8 @@ function stepRide(st, dt, input) {
 
 function win(st) {
   st.status = 'won'; st.statusT = 0;
-  st.result = { keepsakes: { guitar: true, rose: st.rose }, sleepers: st.woken, score: st.score, pearls: st.pearls };
+  // (In the film edition the blessing is not a keepsake that changes later acts.)
+  st.result = { keepsakes: FILM ? { guitar: true } : { guitar: true, rose: st.rose }, sleepers: st.woken, score: st.score, pearls: st.pearls };
 }
 
 function setPhase(st, p) { st.phase = p; st.phaseT = 0; }

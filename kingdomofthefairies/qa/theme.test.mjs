@@ -13,6 +13,13 @@ for (const [search, legacy] of [['', false], ['?qa', false], ['?widowsbay', true
   assert.equal(result.slots.logo.file, legacy ? 'logo.webp' : 'fairies-title.webp');
   assert.equal(Object.keys(result.audio.period).length, 5);
   assert.ok(result.slots['sailor-stand']);
+  // film-only slots stay out of the query edition; interim cut-outs load in the film edition
+  assert.equal(Object.values(result.slots).some((sl) => sl.edition === 'film'), !legacy);
+  if (!legacy) {
+    assert.equal(result.slots['prince-stand'].status, 'delivered');
+    assert.match(result.slots['prince-stand'].file, /^interim\//);
+    assert.ok(result.slots['tableau-curse']);
+  } else assert.equal(result.slots['prince-stand'], undefined);
   assert.equal(JSON.stringify(manifest), original, 'shared source manifest is untouched');
 }
 delete globalThis.location;

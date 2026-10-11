@@ -68,7 +68,7 @@ export function pickHold(st, from, dir, leap = false) {
   let best = -1, bs = Infinity, far = -1, fs = Infinity;
   st.holds.forEach((h, i) => {
     if (i === from || h.gone) return;
-    if (h.kind === 'top' && a.kind !== 'boot' && a.kind !== 'top') return; // the lip overhangs
+    if (h.kind === 'top' && a.kind !== 'boot' && a.kind !== 'top' && !st.climb?.openTop) return; // the lip overhangs
     const dx = h.x - a.x, dy = holdY(h, st.beat) - ay, d = Math.hypot(dx, dy);
     if (d > max || d < 1) return;
     const along = dx * dir.x + dy * dir.y;
@@ -273,10 +273,10 @@ export default {
 };
 
 // ---------------------------------------------------------------- shared
-function setPhase(st, ph) { st.phase = ph; st.phaseT = 0; }
+export function setPhase(st, ph) { st.phase = ph; st.phaseT = 0; }
 
 // The house state a checkpoint keeps, as plain JSON.
-function houseSnap(st) {
+export function houseSnap(st) {
   return {
     spans: st.spans.map((f) => f.map((r) => [...r])),
     conns: st.conns.map((c) => ({ id: c.id, on: c.on })),
@@ -284,13 +284,13 @@ function houseSnap(st) {
     broke: st.broke, ladderDropT: st.ladderDropT == null ? null : Math.min(1, st.ladderDropT),
   };
 }
-function checkpoint(st, scene, extra = {}) {
+export function checkpoint(st, scene, extra = {}) {
   st.checkpoint = { scene, score: st.score, pearls: st.pearls, ...extra };
 }
 
 // Puts the house back as a scene (2: the start of the climb; 3 and later: she
 // is lifted and the way up has broken away) or as a checkpoint stored it.
-function restoreHouse(st, from, k) {
+export function restoreHouse(st, from, k) {
   const H = HOUSE;
   if (k >= 3) breakAway(st);
   st.ladderDropT = k >= 3 ? 1 : null;
@@ -307,7 +307,7 @@ function restoreHouse(st, from, k) {
   st.events.length = 0;
 }
 
-function hit(st, extra = {}) {
+export function hit(st, extra = {}) {
   if (st.inv > 0 || st.defeatT != null) return false;
   st.lanterns--;
   st.inv = GRACE;
@@ -322,7 +322,7 @@ function hit(st, extra = {}) {
 
 function progress(st) {
   const span = (k, f) => lerp(PROG[k][0], PROG[k][1], clamp(f, 0, 1));
-  if (st.phase === 'cliff') return span('cliff', climberPos(st).y / CLIFF.top);
+  if (st.phase === 'cliff') return span('cliff', climberPos(st).y / climbCfg(st).top);
   if (st.phase === 'storm') return PROG.up[0];
   if (st.phase === 'house') {
     const p = st.p, f = p.conn ? lerp(p.conn.c.a.f, p.conn.c.b.f, p.conn.u) : p.f >= 0 ? p.f : (HOUSE.floors[0] - p.y) / HOUSE.storey;
@@ -360,16 +360,21 @@ function moveTo(st, i, kind) {
   st.events.push({ type: kind === 'leap' ? 'leap' : kind === 'fall' ? 'fall' : 'rockScrape' });
 }
 
-function stepCliff(st, dt, input) {
-  const cl = st.cl;
+// The climb's top, camera limit and halfway checkpoint: the cliff's, unless
+// the state carries another climb's (the film edition's tower wall).
+const climbCfg = (st) => st.climb || { top: CLIFF.top, camMax: CLIFF.camMax, half: HALF, halfScene: 1 };
+
+export function stepCliff(st, dt, input) {
+  const cl = st.cl, cfg = climbCfg(st);
   cl.moveT += dt;
   const arrived = cl.moveDur > 0 && cl.moveT >= cl.moveDur && cl.moveT - dt < cl.moveDur;
   const h = st.holds[cl.at];
   if (arrived) {
     if (h.pearl && !h.taken) { h.taken = true; st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: h.x, y: h.y }); }
-    if ((st.checkpoint?.scene | 0) < 1 && h.y >= st.holds[HALF].y && h.kind !== 'top') {
-      checkpoint(st, 1, { hold: HALF, taken: st.holds.map((o, j) => (o.taken ? j : -1)).filter((j) => j >= 0) });
+    if ((st.checkpoint?.scene | 0) < cfg.halfScene && h.y >= st.holds[cfg.half].y && h.kind !== 'top') {
+      checkpoint(st, cfg.halfScene, { hold: cfg.half, taken: st.holds.map((o, j) => (o.taken ? j : -1)).filter((j) => j >= 0) });
     }
+    if (h.kind === 'top' && st.part) { reachTop(st, h); return; }
     if (h.kind === 'top') {
       st.score += 200; st.walkFromX = h.x;
       st.events.push({ type: 'clifftop' });
@@ -423,10 +428,10 @@ function stepCliff(st, dt, input) {
 
   // The giant shifts his weight on every beat.
   const pos = climberPos(st);
-  if (Math.floor(st.beat) !== Math.floor(st.lastBeat) && pos.y > CLIFF.top - 450) st.events.push({ type: 'giantStep', foot: ((Math.floor(st.beat) % 2) + 2) % 2 });
+  if (!st.part && Math.floor(st.beat) !== Math.floor(st.lastBeat) && pos.y > CLIFF.top - 450) st.events.push({ type: 'giantStep', foot: ((Math.floor(st.beat) % 2) + 2) % 2 });
 
   // The camera follows, like a cliff flat winched down through the floor.
-  const want = clamp(pos.y - 250, 0, CLIFF.camMax);
+  const want = clamp(pos.y - 250, 0, cfg.camMax);
   st.camY += (want - st.camY) * Math.min(1, dt * 3);
 
   stepRocks(st, dt, pos);
@@ -434,7 +439,7 @@ function stepCliff(st, dt, input) {
 
 function stepRocks(st, dt, pos) {
   st.nextRock -= dt;
-  if (st.nextRock <= 0 && pos.y < CLIFF.top - 120) {
+  if (st.nextRock <= 0 && pos.y < climbCfg(st).top - 120) {
     const [lo, hi] = CLIFF.stoneEvery;
     st.nextRock = lo + st.rand() * (hi - lo);
     const lead = CLIFF.stoneWarn + (st.omen ? BEAT_S : 0);
@@ -485,7 +490,7 @@ const connY = (c, end) => HOUSE.floors[c[end].f];
 export function playerFloorY(st) { return st.p.f >= 0 ? HOUSE.floors[st.p.f] : null; }
 const onSpan = (st, f, x) => st.spans[f].some(([a, b]) => x >= a - 2 && x <= b + 2);
 
-function stepHouse(st, dt, input) {
+export function stepHouse(st, dt, input) {
   const p = st.p, H = HOUSE;
   p.landT = Math.max(0, (p.landT || 0) - dt);
   const mx = input.moveX || (input.left ? -1 : 0) || (input.right ? 1 : 0);
@@ -606,7 +611,7 @@ function breakAway(st) {
 }
 
 // Beams and stones drop on cue: a shudder and dust first.
-function stepHazards(st, dt) {
+export function stepHazards(st, dt) {
   const p = st.p, quay = st.phase === 'quay';
   st.nextHaz -= dt;
   if (st.nextHaz <= 0) {
@@ -640,7 +645,7 @@ function stepHazards(st, dt) {
 const nearestFloor = (y) => HOUSE.floors.reduce((bi, fy, i) => (Math.abs(fy - y) < Math.abs(HOUSE.floors[bi] - y) ? i : bi), 0);
 
 // ---------------------------------------------------------------- the quay
-function stepQuay(st, dt, input) {
+export function stepQuay(st, dt, input) {
   const p = st.p;
   st.quayT += dt;
   const mx = input.moveX || (input.left ? -1 : 0) || (input.right ? 1 : 0);
@@ -653,6 +658,8 @@ function stepQuay(st, dt, input) {
   }
   if (p.x >= QUAY.x1) {
     st.score += 200 + st.lanterns * 100;
+    // The film edition (act5film.js) goes on to the barrel, not an ending.
+    if (st.part) { st.haz = []; setPhase(st, 'barrel'); st.events.push({ type: 'witchReturns' }); checkpoint(st, 5); return; }
     setPhase(st, 'ending');
     st.haz = [];
     st.events.push({ type: 'ending', ending: st.ending });
@@ -690,6 +697,14 @@ function stepPageant(st) {
   while (st.joined < n && st.phaseT >= joinAt(st.joined, n)) { st.joined++; st.events.push({ type: 'pageantJoin', n: st.joined }); }
   if (st.phaseT >= PAGEANT.applause && !st.applauded) { st.applauded = true; st.events.push({ type: 'pageantApplause' }); }
   if (st.phaseT >= T.pageant) setPhase(st, 'iris');
+}
+
+// The film edition's climbs (act5film.js): the cliff's top leads to the dive,
+// the tower wall's to the window.
+function reachTop(st, h) {
+  st.score += 200; st.walkFromX = h.x;
+  st.events.push({ type: 'clifftop' });
+  setPhase(st, st.phase === 'cliff' ? 'dive' : 'window');
 }
 
 function win(st) {

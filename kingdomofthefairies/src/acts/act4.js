@@ -3,6 +3,7 @@
 // four bars. Then the beaching on the pink shore. Design: design/acts.md.
 // Headless: drawing is in act4-art.js.
 import { clamp, lerp, easeInOut } from './shared.js';
+import { FILM } from '../theme.js';
 import * as art from './act4-art.js';
 
 export const BEAT_S = 60 / 76.5;     // fallback beat length if no beat comes in
@@ -175,8 +176,9 @@ export function toScreen(st, x, y) {
 
 // ---------------------------------------------------------------- module
 export default {
-  id: 4, key: 'whale', kicker: 'Act IV', title: "The Whale's Road", size: 120,
-  sub: 'Swallowed whole. Ride the wreckage up on the whale\'s breath\nand climb to the daylight in its throat.',
+  id: 4, key: 'whale', kicker: 'Act IV', title: FILM ? "The Whale's Passage" : "The Whale's Road", size: 120,
+  sub: FILM ? "Neptune's whale carries you toward the tower.\nRide the wreckage up on its breath to the daylight in its throat."
+    : 'Swallowed whole. Ride the wreckage up on the whale\'s breath\nand climb to the daylight in its throat.',
   action: 'A: leap',
 
   scenes: SCENES,
@@ -243,9 +245,9 @@ export default {
     if (e.type === 'breathCue' && e.n === 1) return 'The whale is about to breathe in.';
     if (e.type === 'whaleInhale') return 'The whale breathes in. The water rises.';
     if (e.type === 'lowTide') return 'Low tide. The stomach floor is bare.';
-    if (e.type === 'stoneFound') return 'The stone.';
+    if (e.type === 'stoneFound') return FILM ? "Aurora's lamp." : 'The stone.';
     if (e.type === 'daylight') return 'Daylight in the throat.';
-    if (e.type === 'beachSurf') return 'The whale lies beached on a rocky shore.';
+    if (e.type === 'beachSurf') return FILM ? 'The whale sets you down on a rocky shore. Aurora points the way.' : 'The whale lies beached on a rocky shore.';
     return null;
   },
 

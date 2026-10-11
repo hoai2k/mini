@@ -136,7 +136,7 @@ function artFlip(k, id, x, by, w, h, face = 1) {
 }
 
 // The sailor's movement poses share an anatomical scale and foot anchor.
-function sailor(k, x, by, s, pose, face = 1, step = 0) {
+export function sailor(k, x, by, s, pose, face = 1, step = 0) {
   if (drawMovement(k, pose, x, by, 180 * s, face)) return;
   if (pose === 'apex' || pose === 'fall') pose = 'leap';
   if (pose.startsWith('climb-')) pose = 'climb';
@@ -167,7 +167,7 @@ function sailor(k, x, by, s, pose, face = 1, step = 0) {
   person(k, x, by, 180 * s, SAILOR, { face, arms, step: pose === 'walk' ? step : pose === 'leap' ? 0.8 : 0 });
 }
 
-function beloved(k, x, by, s, face = -1, arms = 'down') {
+export function beloved(k, x, by, s, face = -1, arms = 'down') {
   if (artFlip(k, 'beloved-stand', x, by, 100 * s, 190 * s, -face)) return;
   person(k, x, by, 175 * s, BELOVED, { face, arms });
 }
@@ -307,7 +307,7 @@ const PILLARS = (() => {
 })();
 const IVY = Array.from({ length: 40 }, (_, i) => ({ x: (i * 263) % 680 + 300, y: (i * 211) % 1900, r: 16 + (i * 7) % 16 }));
 
-function cliffScene(k, st, t) {
+export function cliffScene(k, st, t) {
   const c = k.c, cam = st.camY, storm = st.phase === 'storm';
   bay(k, st, t, st.fire, 470 + cam * 0.08);
   c.save(); c.translate(0, 640 + cam); // world: draw at y = -wy
@@ -380,10 +380,13 @@ function cliffScene(k, st, t) {
 
   // The house on the clifftop, in stage coordinates lifted with the camera:
   // front closed, or swinging open in the storm.
-  c.save(); c.translate(0, cam - CLIFF.top);
-  if (st.open > 0) houseInterior(k, st, t);
-  frontPanel(k, st.open, t);
-  c.restore();
+  // (The film edition's clifftop has no house: the tower is across the sea.)
+  if (!st.part) {
+    c.save(); c.translate(0, cam - CLIFF.top);
+    if (st.open > 0) houseInterior(k, st, t);
+    frontPanel(k, st.open, t);
+    c.restore();
+  }
 
   c.save(); c.translate(0, 640 + cam);
   // the giant's legs, shifting weight on the beat; they stride off in the storm
@@ -402,7 +405,7 @@ function cliffScene(k, st, t) {
   hugeGuitarist(k, st, t);
 }
 
-function holds(k, st, t) {
+export function holds(k, st, t) {
   const c = k.c, cam = st.camY;
   st.holds.forEach((h, i) => {
     const y = -holdY(h, st.beat || 0);
@@ -451,7 +454,7 @@ function holds(k, st, t) {
 // A would leap to is joined by a dotted arc with the A button on it, and a
 // press that finds nothing flashes a cross on that side.
 const ARROW = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-function climbGuide(k, st, t) {
+export function climbGuide(k, st, t) {
   if (st.phase !== 'cliff' || st.defeatT != null) return;
   const c = k.c, cl = st.cl, pos = climberPos(st);
   const bump = cl.bump;
@@ -507,7 +510,7 @@ function climbGuide(k, st, t) {
   }
 }
 
-function climber(k, st, t) {
+export function climber(k, st, t) {
   const c = k.c;
   if (st.phase === 'storm') {
     // He walks to the door.
@@ -530,7 +533,7 @@ function climber(k, st, t) {
   c.restore();
 }
 
-function rocksWorld(k, st, t) {
+export function rocksWorld(k, st, t) {
   const c = k.c;
   for (const r of st.rocks) {
     if (r.y == null) continue;
@@ -546,7 +549,7 @@ function rocksWorld(k, st, t) {
 
 // Dust gathering at the top of the frame over a stone about to fall, and the
 // tea-leaf omen a beat earlier when the reading is complete.
-function rockWarnings(k, st, t) {
+export function rockWarnings(k, st, t) {
   const c = k.c, top = 124;
   for (const r of st.rocks) {
     if (r.y != null) continue;
@@ -728,7 +731,7 @@ function shutter(k, st, t) {
 // 500), so the art is drawn taller than the climb to make the rails span it.
 const LADDER_RAILS = 312 / 500, LADDER_W = 52;
 
-function connector(k, st, cn, t) {
+export function connector(k, st, cn, t) {
   const c = k.c, H = HOUSE;
   const ya = H.floors[cn.a.f], yb = H.floors[cn.b.f];
   if (cn.id === 'ladderDown') {
@@ -791,7 +794,7 @@ function ladderShape(k, x, by, ty) {
   c.fillStyle = k.col('#2a1a12'); c.globalAlpha = 0.4; c.fillRect(x - 20, ty, 40, (by - ty) * 0.25); c.globalAlpha = 1;
 }
 
-function rubble(k, st, t) {
+export function rubble(k, st, t) {
   const c = k.c;
   if (!k.asset('rubble-planks', 650, HOUSE.floors[0], 150, 40)) {
     c.fillStyle = k.col('#3a2112');
@@ -812,7 +815,7 @@ function flameFlat(k, x, by, s, phase) {
 const kT = (k) => k.t || 0;
 
 // Flame flats rolling across the front, and smoke flats over the top.
-function flames(k, st, t, amt = 1) {
+export function flames(k, st, t, amt = 1) {
   const c = k.c;
   c.save(); c.globalAlpha = Math.min(1, amt);
   for (let i = 0; i < 2; i++) {
@@ -844,7 +847,7 @@ function houseScene(k, st, t) {
   frontPanel(k, 1, t);
 }
 
-function hazards(k, st, t) {
+export function hazards(k, st, t) {
   const c = k.c, quay = st.phase === 'quay';
   for (const h of st.haz) {
     const fy = quay ? QUAY.y : HOUSE.floors[h.f];
@@ -887,7 +890,7 @@ function fallingPiece(k, h, x, y, rot) {
   c.restore();
 }
 
-function player(k, st, t) {
+export function player(k, st, t) {
   const c = k.c, p = st.p;
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
@@ -1052,7 +1055,7 @@ function darkEnding(k, st, t, pt) {
 // centre of the sky; the dark ending's painting puts the house there, so its
 // caption sits in the sky at the right, between the moon and the sailor).
 const CAPTION_AT = { dark: { cx: 870, y: 178, w: 528, sub: 12.5 } };
-function caption(k, [title, sub], a, at = {}) {
+export function caption(k, [title, sub], a, at = {}) {
   if (a <= 0) return;
   const c = k.c, { cx = 770, y = 84, w = 660, sub: px = 15 } = at, x = cx - w / 2;
   c.save(); c.globalAlpha = a * 0.94;

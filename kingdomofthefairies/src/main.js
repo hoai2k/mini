@@ -170,7 +170,7 @@ function trackCheckpoint() {
   if (!cp || cp === S.cpRef) return;
   S.cpRef = cp;
   S.checkpoint = JSON.parse(JSON.stringify(cp));
-  const id = S.act.id, k = cp.scene | 0;
+  const id = S.actIndex + 1, k = cp.scene | 0;  // saves are keyed by place in the list
   save.scenes = save.scenes || {};
   if (k > (save.scenes[id] ?? 0)) { save.scenes[id] = k; writeSave(save); }
 }
@@ -214,16 +214,17 @@ function openDialog(el, focusOn = null) {
 // ---------------------------------------------------------------- instructions
 // One page per act; the dialog opens on the act being played (or chosen on
 // the playbill, or the furthest reached from the title).
-const insTabs = [...document.querySelectorAll('#instructions [role=tab]')];
+const insTabs = [...document.querySelectorAll('#instructions [role=tab]')].filter((t) => !t.classList.contains('ed-off'));
 function showInsPage(n) {
   for (const t of insTabs) t.setAttribute('aria-selected', String(+t.dataset.page === n));
-  for (const p of document.querySelectorAll('#instructions .ins-page')) p.hidden = +p.dataset.page !== n;
+  for (const p of document.querySelectorAll('#instructions .ins-page')) p.hidden = +p.dataset.page !== n || p.classList.contains('ed-off');
   $('#ins-scroll').scrollTop = 0;
 }
 function openInstructions() {
-  const n = S.act ? S.act.id : S.mode === 'playbill' ? S.pb + 1 : save.unlocked > 1 ? Math.min(save.unlocked, ACTS.length) : 1;
+  const pageOf = (a) => a.page ?? a.id;  // an act may name its instructions page
+  const n = S.act ? pageOf(S.act) : S.mode === 'playbill' ? pageOf(ACTS[S.pb]) : pageOf(ACTS[Math.max(0, Math.min(save.unlocked, ACTS.length) - 1)]);
   showInsPage(n);
-  openDialog($('#instructions'), insTabs[n]);
+  openDialog($('#instructions'), insTabs.find((t) => +t.dataset.page === n));
 }
 for (const t of insTabs) {
   t.addEventListener('click', () => showInsPage(+t.dataset.page));
@@ -233,8 +234,8 @@ for (const t of insTabs) {
 // ---------------------------------------------------------------- scene select
 // Every scene of a finished act, and the scenes reached so far in the next.
 function scenesReached(a) {
-  const last = (a.scenes?.length || 1) - 1;
-  return save.results[a.id] ? last : Math.min(last, save.scenes?.[a.id] ?? 0);
+  const last = (a.scenes?.length || 1) - 1, slot = ACTS.indexOf(a) + 1;
+  return save.results[slot] ? last : Math.min(last, save.scenes?.[slot] ?? 0);
 }
 function openScenes() {
   const list = $('#scene-list');
@@ -350,7 +351,7 @@ function menuInput(i) {
   if (el?.id === 'ins-scroll' && i.up && el.scrollTop <= 0) { focusEl(insTabs.find((t) => t.getAttribute('aria-selected') === 'true')); return; }
   if (el?.id === 'ins-scroll' && (i.left || i.right)) {
     const n = insTabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
-    showInsPage((n + (i.left ? -1 : 1) + insTabs.length) % insTabs.length); audio.play('ui'); return;
+    showInsPage(+insTabs[(n + (i.left ? -1 : 1) + insTabs.length) % insTabs.length].dataset.page); audio.play('ui'); return;
   }
   if (el?.id === 'ins-scroll' && (i.up || i.down)) { el.scrollBy({ top: i.up ? -80 : 80 }); if (!(i.up && el.scrollTop <= 0) && !(i.down && el.scrollTop + el.clientHeight >= el.scrollHeight - 2)) return; }
   if (i.up) navMove(-1);
@@ -433,6 +434,7 @@ function musicMood() {
   const id = S.act?.id, ph = S.state?.phase;
   if (S.mode === 'curtaincall') return LEGACY ? 'song' : 'revel';
   if (!S.act || S.mode === 'title' || S.mode === 'playbill') return 'tender';
+  if (S.act.mood) return S.act.mood(S.state || {});  // a film-edition act chooses its own
   if (id === 1) return ph === 'party' ? 'revel' : ['turn', 'wreck', 'sink', 'iris'].includes(ph) ? 'storm' : 'voyage';
   if (id === 2) return ph === 'ride' ? 'voyage' : 'deep';
   if (id === 3) return 'revel';
@@ -563,8 +565,9 @@ function retry() {
 }
 
 function actWon() {
-  save.scenes = { ...(save.scenes || {}), [S.act.id]: (S.act.scenes?.length || 1) - 1 };
-  recordResult(save, S.act.id, S.state.result || {}, ACTS.length);
+  const slot = S.actIndex + 1;  // place in the list (the act id in the query edition)
+  save.scenes = { ...(save.scenes || {}), [slot]: (S.act.scenes?.length || 1) - 1 };
+  recordResult(save, slot, S.state.result || {}, ACTS.length);
   if (S.actIndex + 1 < ACTS.length) return beginAct(S.actIndex + 1);
   // The whole play is done: curtain call, then the playbill.
   S.mode = 'curtaincall'; S.modeT = 0; S.act = null; S.state = null; S.curtainTarget = 1;
@@ -588,6 +591,7 @@ function handleEvent(e) {
 function touchVerb() {
   const st = S.state, id = S.act?.id;
   if (!st) return '';
+  if (S.act.touchVerb) return S.act.touchVerb(st);
   if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
   if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? 'Leap' : 'Kick';
   if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
@@ -596,6 +600,7 @@ function touchVerb() {
   return '';
 }
 function touchVerbHint(act) {
+  if (act.touchHint) return act.touchHint;
   return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick; on the moon boat, drag to sail, swipe to change row, tap to leap', 3: 'drag to walk, swipe to change groove, tap to hide',
     4: 'drag to walk, swipe up or tap to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
 }
@@ -603,6 +608,7 @@ function touchVerbHint(act) {
 // free movement (swimming, climbing).
 function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
+  if (S.act?.touchScheme) return S.act.touchScheme(S.state || {});
   if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
   if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' } : { mode: 'stick', hint: 'Drag to swim' };
   if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
@@ -620,25 +626,27 @@ function updateTouch() {
   const playing = S.mode === 'play' && !S.paused && !portrait;
   const sch = playing ? touchScheme() : { mode: 'stick', hint: '' };
   touch.show({ playing, mode: sch.mode, hintText: sch.hint, flickUpIsA: !!sch.flickUpIsA,
-    verb: playing ? touchVerb() : '', needB: playing && S.act?.id === 2 && S.state?.phase === 'offer' });
+    verb: playing ? touchVerb() : '', needB: playing && (S.act?.needB ? S.act.needB(S.state) : S.act?.id === 2 && S.state?.phase === 'offer') });
   // The hint shows for the first few seconds of each act (and the party).
   if (playing) $('#touch').classList.toggle('stick-used', S.modeT > 7 && !(S.act?.id === 1 && S.state?.phase === 'party' && S.state.phaseT < 4));
 }
 
 // ---------------------------------------------------------------- shell scenes
-const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 // The delivered playbill (700x1000 art, drawn at 404x578 about the middle of
 // the stage). Its title banner and five act panels were measured in the art:
 // panels at art y 236-338, 363-470, 497-607, 634-756 and 783-876, x 128-571.
 const PB = { w: 404, h: 578, cx: 640, cy: 360, panels: [287, 416.5, 552, 695, 829.5], panelH: 100, panelX: [128, 571] };
 // Where each act's row sits, for drawing and for taps (stage px).
 function playbillRows() {
-  if (assets.images.playbill) {
+  // The painted bill has one panel per act of the query edition; with more
+  // acts (the film edition's prologue and six) the card layout is used.
+  if (assets.images.playbill && ACTS.length === PB.panels.length) {
     const s = PB.w / 700, x0 = PB.cx - PB.w / 2, y0 = PB.cy - PB.h / 2;
     return { art: true, s, x0: x0 + PB.panelX[0] * s, x1: x0 + PB.panelX[1] * s, half: PB.panelH * s / 2 + 6,
       ys: PB.panels.map((p) => y0 + p * s), left: x0, top: y0 };
   }
-  return { art: false, x0: 360, x1: 920, half: 36, ys: ACTS.map((a, n) => 244 + n * 72) };
+  const gap = ACTS.length > 5 ? 62 : 72, y0 = ACTS.length > 5 ? 226 : 244;
+  return { art: false, x0: 360, x1: 920, half: gap / 2, ys: ACTS.map((a, n) => y0 + n * gap) };
 }
 function drawPlaybill(k, t) {
   const c = k.c;
@@ -653,14 +661,14 @@ function drawPlaybill(k, t) {
     const s = rows.s, ink = k.col('#2a1424');
     c.fillStyle = ink; c.textAlign = 'center';
     c.font = `${LEGACY ? 38 : 25}px Yesteryear, cursive`; c.fillText(TITLE, 640, rows.top + 163 * s + 8);
-    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText('A TOY THEATRE IN FIVE ACTS', 640, rows.top + 192 * s);
+    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, rows.top + 192 * s);
     const pw = (rows.x1 - rows.x0) - 28;
     ACTS.forEach((a, n) => {
       const y = rows.ys[n], open = n < save.unlocked, sel = n === S.pb;
       if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.2; c.fillRect(rows.x0 + 4, y - PB.panelH * s / 2 + 3, rows.x1 - rows.x0 - 8, PB.panelH * s - 6); c.globalAlpha = 1; }
       c.fillStyle = k.col(open ? '#2a1424' : '#a99a86');
-      c.textAlign = 'left'; c.font = '700 11px "Josefin Sans", sans-serif'; c.fillText('ACT ' + ROMAN[n], rows.x0 + 14, y - 10);
-      const best = save.best[a.id];
+      c.textAlign = 'left'; c.font = '700 11px "Josefin Sans", sans-serif'; c.fillText(a.kicker.toUpperCase(), rows.x0 + 14, y - 10);
+      const best = save.best[n + 1];
       if (open && best != null) { c.textAlign = 'right'; c.font = '11px "Josefin Sans", sans-serif'; c.fillText('best ' + best, rows.x1 - 14, y - 10); }
       let px = 27; c.font = `${px}px Yesteryear, cursive`;
       const label = open ? a.title : '· · ·';
@@ -680,15 +688,15 @@ function drawPlaybill(k, t) {
   c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.strokeRect(344, 84, 592, 552); c.lineWidth = 1; c.strokeRect(352, 92, 576, 536);
   c.textAlign = 'center'; c.fillStyle = k.col('#2a1424');
   c.font = '54px Yesteryear, cursive'; c.fillText(TITLE, 640, 160);
-  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText('A TOY THEATRE IN FIVE ACTS', 640, 188);
+  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, 188);
   ACTS.forEach((a, n) => {
-    const y = 250 + n * 72, open = n < save.unlocked, sel = n === S.pb;
-    if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.18; c.fillRect(372, y - 34, 536, 60); c.globalAlpha = 1; }
+    const y = rows.ys[n] + 6, open = n < save.unlocked, sel = n === S.pb, tight = ACTS.length > 5;
+    if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.18; c.fillRect(372, y - (tight ? 30 : 34), 536, tight ? 52 : 60); c.globalAlpha = 1; }
     c.fillStyle = k.col(open ? '#2a1424' : '#a99a86');
-    c.font = '700 16px "Josefin Sans", sans-serif'; c.textAlign = 'left'; c.fillText('ACT ' + ROMAN[n], 392, y - 6);
-    c.font = '34px Yesteryear, cursive'; c.fillText(open ? a.title : '· · ·', 470, y + 2);
+    c.font = '700 16px "Josefin Sans", sans-serif'; c.textAlign = 'left'; c.fillText(a.kicker.toUpperCase(), 392, y - 6);
+    c.font = `${tight ? 30 : 34}px Yesteryear, cursive`; c.fillText(open ? a.title : '· · ·', tight ? 500 : 470, y + 2);
     c.textAlign = 'right'; c.font = '15px "Josefin Sans", sans-serif';
-    const best = save.best[a.id];
+    const best = save.best[n + 1];
     if (open && best != null) c.fillText('best ' + best, 888, y - 6);
   });
   c.textAlign = 'center'; c.font = '18px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#2a1424');

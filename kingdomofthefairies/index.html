@@ -79,14 +79,16 @@
         <h2 id="ins-h">How the Play Goes</h2>
         <div class="tabs" role="tablist" aria-label="Instructions pages">
           <button role="tab" data-focus data-page="0">The Play</button>
+          <button role="tab" data-focus data-page="6" data-film-only>Prologue</button>
           <button role="tab" data-focus data-page="1">Act I</button>
           <button role="tab" data-focus data-page="2">Act II</button>
           <button role="tab" data-focus data-page="3">Act III</button>
           <button role="tab" data-focus data-page="4">Act IV</button>
           <button role="tab" data-focus data-page="5">Act V</button>
+          <button role="tab" data-focus data-page="7" data-film-only>Act VI</button>
         </div>
         <div class="scroll" id="ins-scroll" tabindex="0" data-focus>
-          <div class="ins-page" data-page="0" role="tabpanel">
+          <div class="ins-page" data-page="0" role="tabpanel" data-legacy-only hidden>
             <p><strong>A toy theatre in five acts.</strong> Each act is staged with a different piece of stage machinery; its card tells you what the A button does. Keepsakes you carry from act to act decide how the story ends.</p>
             <ul>
               <li><strong>Three lanterns</strong> are your hull or heart in every act. A hit costs one, then you have a moment’s grace.</li>
@@ -123,7 +125,7 @@
               </tbody>
             </table>
           </div>
-          <div class="ins-page" data-page="1" role="tabpanel" hidden>
+          <div class="ins-page" data-page="1" role="tabpanel" data-legacy-only hidden>
             <h3>Act I — The Crossing</h3>
             <p>Sail the painted sea to the enchanted tower before the sea witch wrecks you. The stagehands crank three rows of waves; hop between them.</p>
             <ul>
@@ -135,7 +137,7 @@
               <li>Three lanterns are your hull. Lose them all and the sea keeps you.</li>
             </ul>
           </div>
-          <div class="ins-page" data-page="2" role="tabpanel" hidden>
+          <div class="ins-page" data-page="2" role="tabpanel" data-legacy-only hidden>
             <h3>Act II — The Sleepers’ Grotto</h3>
             <p>The ship is gone. Swim down through the witch’s grotto after the sinking guitar, waking the drowned revellers from the party as you go, and catch the guitar on the cave floor.</p>
             <ul>
@@ -160,7 +162,7 @@
               </tbody>
             </table>
           </div>
-          <div class="ins-page" data-page="3" role="tabpanel" hidden>
+          <div class="ins-page" data-page="3" role="tabpanel" data-legacy-only hidden>
             <h3>Act III — The Sea King’s Court</h3>
             <p>Cross the Sea King’s hall to the treasury pedestal beside the throne and take <strong>her pearl</strong>. The floor has three grooves, like Act I’s rows; the courtiers glide along them on the beat.</p>
             <ul>
@@ -183,7 +185,7 @@
               </tbody>
             </table>
           </div>
-          <div class="ins-page" data-page="4" role="tabpanel" hidden>
+          <div class="ins-page" data-page="4" role="tabpanel" data-legacy-only hidden>
             <h3>Act IV — The Whale’s Road</h3>
             <p>Swallowed whole. Climb across the floating wreckage and the rib ledges of the whale’s belly to the daylight in its throat, then walk out.</p>
             <ul>
@@ -203,7 +205,7 @@
               </tbody>
             </table>
           </div>
-          <div class="ins-page" data-page="5" role="tabpanel" hidden>
+          <div class="ins-page" data-page="5" role="tabpanel" data-legacy-only hidden>
             <h3 data-widowsbay="Act V — Widow’s Bay">Act V — The Enchanted Tower</h3>
             <p>Climb the cliff to the stone house at the top. Then, as the witch’s storm sets it alight, climb up through the burning house to her and carry her out across the quay.</p>
             <ul>
@@ -220,6 +222,145 @@
               <tbody>
                 <tr><td>Climb / walk / take stairs</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows or W A S D</td><td>The stick that appears under your thumb on the left</td></tr>
                 <tr><td>Leap / throw the stone</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="0" role="tabpanel" data-film-only>
+            <p><strong>A toy theatre in a prologue and six acts,</strong> after Georges Méliès’s film <em>Le Royaume des fées</em> (1903): Prince Bel-Azor’s voyage to rescue Princess Azurine from the witch. Each act is staged with a different piece of stage machinery; its card tells you what the A button does.</p>
+            <ul>
+              <li><strong>Three lanterns</strong> are your armour in every act: Aurora’s enchanted arms take the blows. A hit costs one, then you have a moment’s grace.</li>
+              <li><strong>Lose them all and you carry on from the last checkpoint</strong>, with whatever you had gathered by then. <em>Restart Act</em> in the pause menu goes back to the top.</li>
+              <li><strong>Scene Select</strong> (pause menu, or the film-strip button on the title) starts any scene you have reached. Acts you have reached can also be replayed from the playbill.</li>
+              <li>The pages above explain each part. This dialog opens on the one you are playing. Add <em>?widowsbay</em> to the address for the original Widow’s Bay edition.</li>
+            </ul>
+          </div>
+          <div class="ins-page" data-page="6" role="tabpanel" data-film-only hidden>
+            <h3>Prologue — The Betrothal</h3>
+            <p>The court celebrates the betrothal of Prince Bel-Azor and Princess Azurine. Then the uninvited witch curses it, her demons carry Azurine away, and the fairy Aurora arms the prince for the rescue.</p>
+            <ul>
+              <li><strong>The gifts:</strong> four fairies step forward in turn with the ring, the protective flower, the crown and the gold. Press <span class="xb xb-a">A</span> <em>on the beat</em> as each steps forward; a ring closes on the beat to help you.</li>
+              <li><strong>The arming:</strong> as Aurora raises her wand, press <span class="xb xb-a">A</span> on the beat to raise the enchanted sword.</li>
+              <li>Nothing can be lost here. Without you the fairies step forward in their own time.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>On the beat</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>Tap anywhere</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="1" role="tabpanel" data-film-only hidden>
+            <h3>Act I — The Royal Crossing</h3>
+            <p>Sail the royal galley across the painted sea toward the witch’s tower before her storms wreck it. The stagehands crank three rows of waves; hop between them.</p>
+            <ul>
+              <li><strong>Rocks</strong> rise through trapdoors where the water churns. <em>Leap</em> over them or change rows.</li>
+              <li><strong>Lightning</strong> falls on whichever row the witch’s cloud hangs above. Leaping won’t help: change rows.</li>
+              <li><strong>The wind shifts.</strong> Watch the vane: a headwind pushes you back, a tailwind carries you on.</li>
+              <li><strong>Pearls</strong> score and mend the hull: every ten restore a lantern. <strong>Aurora’s three stars</strong> float by once each; together they give you her foresight, an omen that glints a beat before danger in the acts to come.</li>
+              <li><strong>The tempest.</strong> At the end the witch raises her storm: press <span class="xb xb-a">A</span> <em>on the beat</em> to light the galley’s lanterns before she strikes the mast and the galley breaks on the rocks.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Sail</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> left, right</td><td>← → or A D</td><td>Drag left / right</td></tr>
+                <tr><td>Change row</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> up, down</td><td>↑ ↓ or W S</td><td>Swipe up / down</td></tr>
+                <tr><td>Leap, or light a lantern on the beat</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>Tap</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="2" role="tabpanel" data-film-only hidden>
+            <h3>Act II — The Water Fairy</h3>
+            <p>On the sea floor the Water Fairy breathes life back into the prince. Swim down through her grotto after Aurora’s sinking sword, waking your drowned crew as you go, and catch it on the cave floor.</p>
+            <ul>
+              <li><strong>Swim</strong> in any direction; you drift slowly down on your own. <span class="xb xb-a">A</span> kicks: a burst of speed, then a moment to recover.</li>
+              <li><strong>The sword</strong> sinks just ahead of you and sets the pace; it can only be caught once it settles on the cave floor.</li>
+              <li><strong>Air</strong> runs down as you swim. Hover in the bubbles over a vent to fill up. Run out and you lose a lantern.</li>
+              <li><strong>Wake your crew.</strong> Swim into a conch horn to sound it (each sounds once, then turns grey); while it sings, any crewman you pass wakes and floats up. Once you hold the sword it wakes them too. Everyone you wake joins the wedding procession.</li>
+              <li><strong>Clams</strong> open for one beat on their own rhythm: swim in while one is open for its pearl. Taken, a clam rests shut, then regrows one more pearl that you can watch grow; after that it stays shut and grey.</li>
+              <li><strong>Hazards:</strong> eels lunge from holes whose eyes glow first; jellyfish drift and sting; the red dragon patrols the deep cave. Each costs a lantern.</li>
+              <li><strong>The Water Fairy’s blessing.</strong> On the cave floor she offers it: press <span class="xb xb-a">A</span> to accept, and it revives the rest of your crew.</li>
+              <li><strong>The marine procession</strong> follows, in her dolphin-drawn conch carriage: nothing can hurt you. Sail forward and back, change row, and leap for the pearls that float high.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Swim</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows or W A S D</td><td>The stick under your thumb on the left</td></tr>
+                <tr><td>Kick, accept, leap</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button</td></tr>
+                <tr><td>Sail / change row (the procession)</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows</td><td>Drag / swipe</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="3" role="tabpanel" data-film-only hidden>
+            <h3>Act III — Neptune’s Court</h3>
+            <p>Neptune will grant passage to the tower. Cross his hall to his seal at the far end while the witch hunts for you through her scrying eye. The floor has three grooves; the courtiers glide along them on the beat.</p>
+            <ul>
+              <li><strong>Walk</strong> left and right; <strong>up and down</strong> change groove.</li>
+              <li><strong>The witch’s scrying eye</strong> sweeps the hall every so often. First it glows and an arrow runs along the floor to show which side it will come from; then its beam crosses the stage. Caught in it, you lose a lantern.</li>
+              <li><strong>Hide:</strong> press <span class="xb xb-a">A</span> beside a pink, blue or green courtier on your groove to strike a courtly pose; you stay posed until you move. The seahorse guards give no cover, and walking into one costs a lantern.</li>
+              <li><strong>The lobster guards</strong> crouch along the front groove and snap their claws on every beat. Step past between snaps, or use the other grooves.</li>
+              <li><strong>Neptune’s whale</strong> glides across the hall every 20–25 s and blinds the eye while it passes.</li>
+              <li><strong>Neptune’s seal</strong> rests on the pedestal at the far right. Walk up to it on any groove: he grants you passage, and the whale takes you aboard.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Walk</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> left, right</td><td>← → or A D</td><td>Drag left / right</td></tr>
+                <tr><td>Change groove</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> up, down</td><td>↑ ↓ or W S</td><td>Swipe up / down</td></tr>
+                <tr><td>Hide (strike a pose)</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button or tap</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="4" role="tabpanel" data-film-only hidden>
+            <h3>Act IV — The Whale’s Passage</h3>
+            <p>Neptune’s whale carries you toward the tower. Climb across the floating wreckage and the rib ledges of its belly to the daylight in its throat; it sets you down on a rocky shore, where Aurora shows the way on.</p>
+            <ul>
+              <li><strong>Walk</strong> left and right; <span class="xb xb-a">A</span> leaps. Hold it for a full leap, or let go early for a short hop.</li>
+              <li><strong>The whale breathes</strong> every four bars: the water rises (four cue beats warn you), carrying the wreckage up, then drains away.</li>
+              <li><strong>The set rocks</strong> on the beat. Loose wreckage slides in its slot and carries you with it; you never slip off a piece you’ve landed on.</li>
+              <li><strong>Catch the edge.</strong> Fall just short of a platform you leapt for and he grabs its edge and hangs. Press toward it, up or <span class="xb xb-a">A</span> to climb on; away or down lets go.</li>
+              <li><strong>A lantern is lost</strong> to deep water, the bare stomach floor at low water, or a swinging fish-hook.</li>
+              <li><strong>Aurora’s lamp</strong> lies on a high side ledge above the throat: a detour, but in Act VI its light opens a barred shutter for a shortcut.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Walk</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> left, right</td><td>← → or A D</td><td>Drag left / right</td></tr>
+                <tr><td>Leap (hold for higher)</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>Swipe up, tap, or the A button</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="5" role="tabpanel" data-film-only hidden>
+            <h3>Act V — The Enchanted Tower</h3>
+            <p>Climb the coastal cliff, dive for the witch’s tower across the sea gap, swim it while she swoops at you, and climb the tower wall to Azurine’s window.</p>
+            <ul>
+              <li><strong>Climbing:</strong> the holds you can reach glow gold, each with an arrow showing which way to press. Press that way to climb to it. A dotted arc marked <span class="xb xb-a">A</span> shows where a leap would take you. A press made just before a move ends happens on arrival; a red cross means there is no hold that way.</li>
+              <li><strong>Dust</strong> gathers over a hold just before a stone falls on it: step aside. Cracked holds crumble a moment after you take them.</li>
+              <li><strong>The sea gap:</strong> swim right for the tower against the current. When the witch’s shadow darkens the water, press <span class="xb xb-a">A</span> to dive under her swoop. Aurora’s light drives her off before you reach the tower.</li>
+              <li><strong>The tower wall</strong> climbs the same way, up to her window at the top.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Climb / swim</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows or W A S D</td><td>The stick under your thumb</td></tr>
+                <tr><td>Leap / dive</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ins-page" data-page="7" role="tabpanel" data-film-only hidden>
+            <h3>Act VI — The Burning Tower</h3>
+            <p>Inside, the witch’s demons set the tower alight. Climb to Azurine and carry her down and out before it falls; then end the witch for good.</p>
+            <ul>
+              <li>Walk the floors and press up at the foot of the stairs or a ladder (down at the head) to change floor. The ceiling shudders and drops dust before a beam or stones fall. A long fall costs a lantern.</li>
+              <li><strong>Aurora’s lamp.</strong> If you carried it from Act IV, press <span class="xb xb-a">A</span> by the barred shutter on the first floor: its light opens it, and the ivy outside becomes a shortcut to the top.</li>
+              <li><strong>Carry her down.</strong> Reach her on the top floor and you lift her; the way you came breaks away, so find the new way down. Carrying her you are slower and can’t leap. Out of the door, cross the clifftop while the tower falls.</li>
+              <li><strong>The witch’s last attack.</strong> Press <span class="xb xb-a">A</span> <em>on the beat</em> three times to roll her barrel over the cliff into the whirlpool.</li>
+              <li><strong>The wedding</strong> procession and the fairies’ apotheosis follow. Everyone you woke in Act II marches with you.</li>
+            </ul>
+            <table class="map">
+              <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
+              <tbody>
+                <tr><td>Walk / stairs / ladders</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows or W A S D</td><td>The stick under your thumb</td></tr>
+                <tr><td>Leap, the lamp, the barrel on the beat</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button</td></tr>
               </tbody>
             </table>
           </div>

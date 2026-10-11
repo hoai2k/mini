@@ -92,7 +92,7 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 80 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 82 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
 ### F1. Prince Bel-Azor
 
@@ -255,6 +255,7 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 | `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` |
 | `witch-hooded` | 240 × 400 | bottom centre | new |
 | `witch-cloud` | 400 × 400 | bottom centre | new |
+| `witch-storm` | 520 × 340 | bottom centre | `witch-moonboat` |
 | `witch-swoop` | 400 × 240 | centre | new |
 | `witch-barrel` | 200 × 240 | bottom centre | new |
 | `king-stand` | 220 × 420 | bottom centre | new |
@@ -317,6 +318,12 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 400 × 400 px, anchor bottom centre.
 
 > the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, rising out of a churning black-and-magenta storm cloud, arms and staff raised, lightning at her hands. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-storm` — The witch in the storm sky (Act I)
+
+520 × 340 px, anchor bottom centre.
+
+> the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, riding a small churning black-and-magenta storm cloud across the sky toward the left, staff raised, lightning crackling from it. Replaces the witch in her moon boat in the voyage's sky; keep the same overall footprint as witch-moonboat. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 #### `witch-swoop` — The witch swooping
 
@@ -428,6 +435,7 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 | `gift-flower` | 96 × 96 | bottom centre | new |
 | `gift-crown` | 96 × 96 | bottom centre | new |
 | `gift-gold` | 96 × 96 | bottom centre | new |
+| `playbill-film` | 1400 × 2000 | centre | `playbill` |
 | `whirlpool` | 800 × 260 | centre | new |
 | `tower-window` | 200 × 260 | bottom centre | new |
 | `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new |
@@ -551,6 +559,12 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 96 × 96 px, anchor bottom centre.
 
 > An open gold casket heaped with coins. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `playbill-film` — Playbill with seven panels
+
+1400 × 2000 px, anchor centre.
+
+> The same playbill as the delivered playbill.webp (attach it), but with SEVEN large empty horizontal panels down the middle (a prologue and six acts) instead of five, and the empty banner at the top for the title. No words at all. A flat Victorian theatre playbill, portrait, full bleed, printed on cream paper with ornate plum and gold letterpress borders, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 #### `whirlpool` — The whirlpool
 

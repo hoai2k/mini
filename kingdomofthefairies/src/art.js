@@ -1,4 +1,4 @@
-import { LEGACY, themeManifest } from './theme.js';
+import { LEGACY, FILM, FILM_CAST, themeManifest } from './theme.js';
 // Toy-theatre renderer. Every frame is painted twice: a monochrome "print"
 // pass and a flat colour "stencil" pass. The stencil pass is laid over the
 // print with the `color` blend, slightly out of register, which is how
@@ -78,7 +78,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { out.images[id] = img; onImage?.(id, img); done(); };
+    img.onload = () => { if (s.edition === 'film') img.fitBox = true; out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
@@ -146,6 +146,14 @@ export function passImage(P, img, extra = '', w = 0, h = 0) {
 
 // Draw a delivered image into a box anchored at its bottom centre.
 function drawAsset(ctx, P, img, cx, by, w, h, extra = '') {
+  // Film-edition art keeps its own proportions inside the box it is given
+  // (bottom centre), as it may stand in for a sprite of another shape.
+  // Figures match the box's height and may run a little wider than it.
+  if (img.fitBox) {
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    const s = Math.min(h / ih, (w * 1.6) / iw);
+    w = iw * s; h = ih * s;
+  }
   // Sprites can be drawn up to ~1.15x their nominal box, so bake a little larger.
   const k = w * h > 400000 ? 1 : 1.25;
   ctx.drawImage(passImage(P, img, extra, Math.round(w * k), Math.round(h * k)), cx - w / 2, by - h, w, h);
@@ -165,7 +173,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const dye = makeDye();
   let dyeOff = { x: 0, y: 0 };
   const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 397) % 1040 + 120, y: (i * 151) % 260 + 60, p: i * 1.7 }));
-  const img = (id) => assets.images[id];
+  // In the film edition a legacy id draws its film counterpart when that is
+  // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
+  let cast = {};
+  const img = (id) => { const a = cast[id]; return (a && assets.images[a]) || assets.images[id]; };
   let extraAnimations = false;
   let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
 
@@ -317,6 +328,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // curtains, HUD and anything the act puts over them (irises, washes).
   function scene(c, view) {
     const t = view.t, st = view.state, act = view.act;
+    cast = FILM ? { ...FILM_CAST, ...(act?.cast || {}) } : {};
     kit.c = c; kit.t = t;
     if (view.scene) view.scene(kit, t); // shell scenes: playbill, curtain call
     else if (act && st) act.draw(kit, st, t);
@@ -1031,7 +1043,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   // The people's old-film idle frame for this moment (the still when Extra
   // Animations is off or no idle frames are delivered).
-  const idleId = (id, time, step) => (extraAnimations ? idleFrameId(id, time, (f) => !!img(f), step) : id);
+  // (A recast sprite has no idle frames of its own yet: draw it still.)
+  const idleId = (id, time, step) => (extraAnimations && !(cast[id] && assets.images[cast[id]]) ? idleFrameId(id, time, (f) => !!img(f), step) : id);
   // A person drawn with the film idle (frames plus the film tricks in
   // idlePose) when Extra Animations is on; the plain still otherwise.
   function drawIdle(c, id, time, cx, by, w, h, step) {
@@ -1110,7 +1123,9 @@ const WAVE_ART = [
   { id: 'waves-front', x0: 152, len: 1899 },
 ];
 
-const LABEL = { leaf: 'Tea leaf', tea: 'Tea leaves', pearl: 'Her pearl', rose: 'Sea rose', guitar: 'The guitar', stone: 'The stone' };
+const LABEL = FILM
+  ? { leaf: "Aurora's star", tea: "Aurora's stars", pearl: "Neptune's seal", rose: "The Water Fairy's blessing", guitar: 'The enchanted sword', stone: "Aurora's lamp" }
+  : { leaf: 'Tea leaf', tea: 'Tea leaves', pearl: 'Her pearl', rose: 'Sea rose', guitar: 'The guitar', stone: 'The stone' };
 
 function circle(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
 function star(c, x, y, r) {

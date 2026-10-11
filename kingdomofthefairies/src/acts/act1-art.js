@@ -1,4 +1,4 @@
-import { LEGACY } from '../theme.js';
+import { LEGACY, FILM } from '../theme.js';
 // Act I drawing: the voyage (kit.voyage) and the ending scenes. Every piece
 // of new art has a procedural stand-in until its file is delivered (ids are
 // in design/image-requests.md, Part C2).
@@ -34,7 +34,9 @@ export function draw(k, st, t) {
     const deck = ph === 'party' ? easeInOut(pt / 0.8) : 1 - easeInOut((pt - 2.9) / 1.3);
     k.voyage(b, { rowsDrop: deck * 360, hideShip: true });
     if (ph === 'turn') whiteout(k, pt);
+    if (FILM) tempestSky(k, st, deck, t);
     deckScene(k, st, deck, t);
+    if (FILM) tempestRain(k, st, deck, t);
     if (ph === 'turn') spirits(k, pt, t);
     return;
   }
@@ -57,12 +59,41 @@ export function onEvent(k, e, st) {
     }
     k.text('♪', lanternX(e.n - 1), 140);
   }
-  if (e.type === 'revelry') { k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
+  if (e.type === 'revelry') { k.text(FILM ? 'The lanterns hold!' : 'Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
   // the keel breaks where the spout holds it up; each half splashes down where it fell
   const sx = st.board.ship.x;
   if (e.type === 'shipBreak') { k.shake(0.8); k.burst(sx, 512 - 110, '#6b4024', 30, 'chip'); }
   if (e.type === 'splash') { k.burst(sx - 125, 520, '#eef3ea', 26, 'drop'); k.burst(sx + 125, 520, '#eef3ea', 26, 'drop'); }
+}
+
+// ---------------------------------------------------------------- tempest
+// The film edition's deck scene is the witch's tempest, not a party: the sky
+// blackens behind the deck, she rises on her storm cloud, lightning flickers
+// and rain drives across the stage. Drawn from state and t only.
+const flash = (t) => { const f = (t * 0.9) % 1, n = Math.floor(t * 0.9); return f < 0.06 && (n * 7) % 3 !== 0 ? 1 - f / 0.06 : 0; };
+function tempestSky(k, st, deck, t) {
+  const c = k.c, rise = st.phase === 'party' ? easeOut(st.phaseT / ENDING.party) : 1;
+  c.save(); c.globalAlpha = 0.55 * deck; c.fillStyle = k.col('#1a1024'); c.fillRect(0, 0, 1280, 470); c.restore();
+  const lf = flash(t);
+  if (lf > 0) { c.save(); c.globalAlpha = 0.35 * lf * deck; c.fillStyle = k.col('#e9d6f2'); c.fillRect(0, 0, 1280, 470); c.restore(); }
+  // she rises on her cloud over the stern, larger as the storm grows
+  if (st.phase === 'party' && deck > 0.3) {
+    const s = 0.55 + 0.45 * rise, x = 1060, y = 330 - 120 * rise;
+    c.save(); c.globalAlpha = Math.min(1, deck * 1.4);
+    if (!k.asset('witch-storm', x, y, 260 * s, 170 * s)) { c.fillStyle = k.col('#2a2430'); k.cloud?.(x, y - 40, 1.2 * s); }
+    c.restore();
+  }
+}
+function tempestRain(k, st, deck, t) {
+  const c = k.c;
+  c.save(); c.globalAlpha = 0.35 * deck; c.strokeStyle = k.col('#cfd8e6'); c.lineWidth = 1.5;
+  c.beginPath();
+  for (let i = 0; i < 70; i++) {
+    const x = ((i * 137 + t * 900) % 1500) - 110, y = ((i * 263 + t * 1300) % 820) - 60;
+    c.moveTo(x, y); c.lineTo(x - 18, y + 40);
+  }
+  c.stroke(); c.restore();
 }
 
 // ---------------------------------------------------------------- party
