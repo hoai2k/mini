@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toMidi, parseNotes, fitWindow, windowKeys, isWhite, noteName, difficulty } from '../src/music.js';
+import { toMidi, parseNotes, fitWindow, windowKeys, isWhite, noteName, difficulty, keyOf, spell, spellToken, staffStep, chromaticCount } from '../src/music.js';
 import { createRound, press, redo, expected, stars, points } from '../src/round.js';
-import { buildLibrary, inBook, transpose, pickNext, rate, SONGBOOKS, WHITES, LOWEST, HIGHEST } from '../src/library.js';
+import { buildLibrary, inBook, transpose, pickNext, rate, countAt, SONGBOOKS, LEVELS, WHITES, LOWEST, HIGHEST } from '../src/library.js';
 import { sampleFor } from '../src/audio.js';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -93,6 +93,7 @@ test('adaptive picking prefers unsolved melodies near the rating', () => {
   const lib = buildLibrary();
   let rng = 0.3;
   const m = pickNext(lib, { rating: 1, rng: () => rng });
+  for (const l of LEVELS.filter((x) => x.range)) assert.equal(pickNext(lib, { level: l.id, rng: () => rng }).level, l.range[0], l.id);
   assert.ok(m.level <= 2);
   const best = Object.fromEntries(lib.filter((x) => x.level <= 2).slice(0, 5).map((x) => [x.id, 3]));
   const n = pickNext(lib, { rating: 1, best, rng: () => rng });
@@ -109,4 +110,56 @@ test('samples: each note borrows the nearest sample within a semitone and a half
     assert.ok(Math.abs(m - sample) <= 1, `${m} -> ${sample}`);
     assert.ok(Math.abs(rate - 2 ** ((m - sample) / 12)) < 1e-9);
   }
+});
+
+const byId = (lib, id) => lib.find((m) => m.id === id);
+
+test('difficulty levels match how hard familiar tunes are', () => {
+  const lib = buildLibrary();
+  const lv = (id) => byId(lib, id).level;
+  assert.equal(lv('kid-hot-cross-buns'), 1);
+  assert.equal(lv('pop-jaws'), 1);
+  assert.ok(lv('kid-mary-had-a-little-lamb') <= 2);
+  assert.ok(lv('summertime') <= 2);
+  assert.equal(lv('ode-to-joy'), 3);
+  assert.ok(lv('greensleeves') >= 3 && lv('greensleeves') <= 4);
+  assert.ok(lv('giant-steps') >= 3);
+  assert.equal(lv('fur-elise'), 5);
+  assert.equal(lv('lick-chromatic-octave-down-g'), 5);
+  // Longer, chromatic licks are harder than short diatonic ones.
+  const licks = lib.filter((m) => m.cat === 'licks');
+  const avg = (xs) => xs.reduce((a, m) => a + m.level, 0) / xs.length;
+  assert.ok(avg(licks.filter((m) => m.parsed.length >= 11)) > avg(licks.filter((m) => m.parsed.length <= 5)) + 1.5);
+});
+
+test('every level has a fair share of the library', () => {
+  const lib = buildLibrary();
+  for (const l of LEVELS.filter((x) => x.range)) {
+    const n = countAt(lib, l.id);
+    assert.ok(n >= lib.length * 0.04, `${l.id} has only ${n}`);
+  }
+  assert.equal(countAt(lib, 'adaptive'), lib.length);
+});
+
+test('keys and spelling for the staff', () => {
+  const fe = parseNotes('E5 D#5 E5 D#5 E5 B4 D5 C5 A4');
+  const k = keyOf(fe);
+  assert.equal(chromaticCount(fe, k), 0, 'a minor key\'s raised 7th is not chromatic');
+  assert.deepEqual(spell(75, k), { letter: 'D', acc: 1, octave: 5 });
+  const eb = parseNotes('Eb4 Eb5 D5 Bb4 C5 D5 Eb5');
+  assert.deepEqual(spell(70, keyOf(eb)), { letter: 'B', acc: -1, octave: 4 });
+  assert.equal(staffStep(spellToken('C4')), 28);
+  assert.equal(staffStep(spellToken('B#3')), 27);
+  assert.equal(staffStep(spell(60, { tonic: 7, minor: false })), 28);
+});
+
+test('transposed melodies spell without double accidentals', () => {
+  const lib = buildLibrary();
+  let doubles = 0, total = 0;
+  for (const m of lib) for (const shift of [-5, -2, 1, 3, 6]) {
+    const t = transpose(m, shift);
+    const k = keyOf(t.notes);
+    for (const n of t.notes) { total++; if (Math.abs(spell(n.midi, k).acc) > 1) doubles++; }
+  }
+  assert.ok(doubles / total < 0.002, `${doubles} of ${total}`);
 });

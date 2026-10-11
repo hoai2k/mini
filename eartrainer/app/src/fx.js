@@ -4,10 +4,13 @@ export function createFx(canvas) {
   let parts = [];
   let raf = 0, last = 0;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  // Resize the backing store only when the canvas changes size (a resize clears
+  // and reallocates it, which is slow on phones).
   function size() {
     const r = canvas.getBoundingClientRect();
     const d = Math.min(2, devicePixelRatio || 1);
-    canvas.width = Math.round(r.width * d); canvas.height = Math.round(r.height * d);
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     g.setTransform(d, 0, 0, d, 0, 0);
   }
   const COLORS = ['#f6d891', '#e2b45e', '#fffdf6', '#4fd6c7', '#ffb38a'];
