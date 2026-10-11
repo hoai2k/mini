@@ -8,7 +8,7 @@ import { Rig, PX } from './character.js';
 import { QuadRig, paintQuad, quadPart } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { buildFury, bronzeSpider } from './monsters.js';
-import { HS, solid, skinMat, prop, group, voxHair, voxCubes, snake, lavaCracks, fur, spikedCollar, sway, rng } from './parts.js';
+import { HS, solid, skinMat, prop, group, voxHair, voxCubes, snake, lavaCracks, fur, spikedCollar, sway, rng, bruteLimbs } from './parts.js';
 
 const GOLD = () => solid(0xc9963a, 0.15, 0.35, 0.75);
 const BRONZE = () => solid(0xb8782e, 0.1, 0.35, 0.7);
@@ -59,33 +59,37 @@ export const BOSS_MODELS = {
     const m = skinMat('boss_minotaur', (S) => paintPerson(S, { skin: fur0, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur0, sleeve: fur0, hand: furD, pants: fur0, skirt: 0xf0ece0, skirtLen: 4, shoes: 0x2a1a10,
       body: (s) => { s.rect(16, 29, 24, 3, 0xf0ece0, 0.04); s.rect(16, 28, 24, 1, 0xc9963a, 0); fur(s, 16, 16, 24, 13, 120, furD, 0x9a5a32); fur(s, 40, 16, 16, 16, 60, furD, 0x9a5a32); fur(s, 32, 48, 16, 16, 60, furD, 0x9a5a32); fur(s, 0, 16, 16, 16, 50, furD, 0x9a5a32); fur(s, 16, 48, 16, 16, 50, furD, 0x9a5a32); s.rect(20, 22, 3, 3, 0x8a5030, 0.1); s.rect(25, 22, 3, 3, 0x8a5030, 0.1); },
       face: (s, ey) => { fur(s, 8, 8, 8, 8, 14, furD, 0x9a5a32); s.px(9, ey, 0xff8a3a); s.px(10, ey, 0xff2a1a); s.px(13, ey, 0xff2a1a); s.px(14, ey, 0xff8a3a); } }), { emit: 3 });
-    const rig = new Rig({ material: m, scale: 2.35, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 11 });
-    const hs = 9 / 8 * HS;
+    const rig = new Rig({ material: m, scale: 2.2, bodyW: 13, bodyH: 13, bodyD: 7, armW: 6, headS: 7.5, legH: 13 });
+    bruteLimbs(rig, { armLen: 1.3, armThick: 1.15, legThick: 1.5, legX: 3.4 });
+    rig.neck.position.z = 1.4 * PX;   // the head thrust forward, low between the shoulders
+    const hs = 7.5 / 8 * HS;
     // bull muzzle, nostrils, gold ring
-    const muzzle = prop(rig, rig.head, 7, 4.6, 3.4, solid(0x3e2414), 0, 2.2 * hs, 5.4 * hs);
-    prop(rig, muzzle, 1.2, 1.2, 0.4, solid(0x120a06), -1.8, 0.6, 1.8); prop(rig, muzzle, 1.2, 1.2, 0.4, solid(0x120a06), 1.8, 0.6, 1.8);
-    const ring = group(muzzle, 0, -1.8, 2);
+    const muzzle = prop(rig, rig.head, 6, 4.4, 3.6, solid(0x3e2414), 0, 2.2 * hs, 5.6 * hs);
+    prop(rig, muzzle, 1.2, 1.2, 0.4, solid(0x120a06), -1.6, 0.6, 1.9); prop(rig, muzzle, 1.2, 1.2, 0.4, solid(0x120a06), 1.6, 0.6, 1.9);
+    const ring = group(muzzle, 0, -1.8, 2.1);
     prop(rig, ring, 3.2, 0.7, 0.7, GOLD(), 0, -1, 0); prop(rig, ring, 0.7, 2, 0.7, GOLD(), -1.3, 0, 0); prop(rig, ring, 0.7, 2, 0.7, GOLD(), 1.3, 0, 0);
-    // great cream horns curving up and out
+    // great cream horns curving out and up
     const horn = solid(0xeadfc4, 0, 0.6), hornTip = solid(0xb8a888, 0, 0.6);
     for (const s of [-1, 1]) {
-      const h1 = group(rig.head, s * 5 * hs, 6.6 * hs, 0.5 * hs, 0, 0, s * 0.15);
-      prop(rig, h1, 6, 2.6, 2.6, horn, s * 3, 0, 0);
-      const h2 = group(h1, s * 6, 0, 0, 0, 0, -s * 0.9); prop(rig, h2, 4, 2.2, 2.2, horn, s * 2, 0, 0);
-      const h3 = group(h2, s * 4, 0, 0, 0, 0, -s * 0.5); prop(rig, h3, 3, 1.6, 1.6, hornTip, s * 1.5, 0, 0);
-      prop(rig, rig.head, 3, 1.6, 1.2, solid(0x4a2c18), s * 5.6 * hs, 4.8 * hs, -1 * hs, 0, 0, s * 0.5);   // ears
+      const h1 = group(rig.head, s * 4.2 * hs, 6.4 * hs, 0.5 * hs, 0, 0, s * 0.1);
+      prop(rig, h1, 6, 2.8, 2.8, horn, s * 3, 0, 0);
+      const h2 = group(h1, s * 6, 0, 0, 0, 0, -s * 0.85); prop(rig, h2, 4.4, 2.4, 2.4, horn, s * 2.2, 0, 0);
+      const h3 = group(h2, s * 4.4, 0, 0, 0, 0, -s * 0.55); prop(rig, h3, 3, 1.8, 1.8, hornTip, s * 1.5, 0, 0);
+      prop(rig, rig.head, 3, 1.6, 1.2, solid(0x4a2c18), s * 4.8 * hs, 4.8 * hs, -1 * hs, 0, 0, s * 0.5);   // ears
     }
-    // shaggy head, shoulders and forearms
+    // a shaggy crest, a hump of fur over the shoulders, hairy forearms
     const furs = [0x5a3018, 0x7a4426, 0x6a3a20, 0x3e2414];
-    furClump(rig, rig.head, 3, furs, { y: 8.6 * hs, z: -0.5 * hs, sx: 9 * hs, sy: 2, sz: 8 * hs, n: 34 });
-    furClump(rig, rig.torso, 4, furs, { y: 11.5, z: -1, sx: 12, sy: 3, sz: 7, n: 50, size: [2, 3.4] });
-    for (const arm of [rig.armR, rig.armL]) { furClump(rig, arm, 5, furs, { y: 0, sx: 6, sy: 4, sz: 5, n: 18, size: [1.8, 3] }); prop(rig, arm, 6.4, 4, 5.4, solid(0x3e2414), 0, -9.5, 0); }
-    for (const leg of [rig.legR, rig.legL]) { prop(rig, leg, 5.4, 3, 6, solid(0x241410), 0, -10, 0.6); }
-    // gold belt medallion
-    prop(rig, rig.torso, 4, 3.6, 1, GOLD(), 0, 0.4, 3.4);
-    prop(rig, rig.torso, 2.2, 2.2, 0.6, solid(0xffd84a, 0.6, 0.3, 0.8), 0, 0.4, 4);
+    furClump(rig, rig.head, 3, furs, { y: 8.4 * hs, z: -1 * hs, sx: 6 * hs, sy: 1.4, sz: 6 * hs, n: 14, size: [1.4, 2.2] });
+    furClump(rig, rig.torso, 4, furs, { y: 12.6, z: -1.6, sx: 12, sy: 2, sz: 5, n: 34, size: [1.8, 2.8] });
+    for (const arm of [rig.armR, rig.armL]) { prop(rig, arm, 7.6, 5, 6.6, solid(0x3e2414), 0, -10 * 1.3 - 0.5, 0); for (const dx of [-2, 0, 2]) prop(rig, arm, 1.4, 1.6, 1.4, solid(0x241410), dx, -10 * 1.3 - 3.4, 2.4); prop(rig, arm, 8.4, 6, 8.4, solid(0x7a4426, 0, 0.9), 0, 1.4, 0); }
+    for (const leg of [rig.legR, rig.legL]) { prop(rig, leg, 6.4, 3.4, 7, solid(0x241410), 0, -11.8, 0.6); }
+    // white loincloth with a gold belt and medallion
+    prop(rig, rig.torso, 13.4, 1.6, 7.4, GOLD(), 0, 0.8, 0);
+    prop(rig, rig.torso, 4.4, 4, 1, GOLD(), 0, 0.4, 3.9);
+    prop(rig, rig.torso, 2.4, 2.4, 0.6, solid(0xffd84a, 0.6, 0.3, 0.8), 0, 0.4, 4.4);
+    prop(rig, rig.hips, 7, 5, 1, solid(0xf0ece0, 0, 0.9), 0, -2.4, 3.4);
     rig.extras.muzzle = muzzle;
-    rig.hunch = 0.4;
+    rig.hunch = 0.22; rig.armSpread = 0.22;
     return rig;
   },
 
@@ -174,7 +178,7 @@ export const BOSS_MODELS = {
     // the snakes
     const green = solid(0x2e7a3a, 0, 0.6), belly = solid(0x9ac86a, 0, 0.6);
     const spots = [[-4, 2, -0.2, 1.0], [4, 2, -0.2, -1.0], [-3, -2, -0.7, 0.7], [3, -2, -0.7, -0.7], [0, -4, -0.9, 0], [-2, 3, 0.2, 0.4], [2, 3, 0.2, -0.4], [-5, -1, -0.4, 1.4], [5, -1, -0.4, -1.4]];
-    for (const [x, z, rx, rz] of spots) snake(rig, rig.head, { len: 6, seg: 2.2, w: 1.5, body: green, belly, at: [x * HS, 8.5 * HS, z * HS], rot: [rx, 0, rz], amp: 0.3, speed: 2.6 });
+    for (const [x, z, rx, rz] of spots) snake(rig, rig.head, { len: 5, seg: 2.6, w: 2.1, headW: 3.2, body: green, belly, at: [x * HS, 9 * HS, z * HS], rot: [rx, 0, rz], amp: 0.3, speed: 2.6 });
     // the robe falls to the ground in folds
     for (let i = 0; i < 9; i++) { const g = group(rig.hips, -4.4 + i * 1.1, 1, ((i % 3) - 1) * 1.4); prop(rig, g, 1.8, 13 + (i % 2), 3.6 + (i % 3), i % 2 ? cloth : cloth2, 0, -6.5, 0); sway(rig, g, 'x', 0.05, 1.5, i); }
     for (let i = 0; i < 9; i++) prop(rig, rig.hips, 1.2, 0.8, 1.2, gold, -4.4 + i * 1.1, -11.8, 2.6);
@@ -248,13 +252,17 @@ export const BOSS_MODELS = {
       body: (s) => { s.rect(21, 22, 6, 2, 0xd8401a, 0); s.rect(22, 24, 4, 4, 0xd8401a, 0); s.px(23, 25, 0x1a1618); s.px(24, 25, 0x1a1618); s.rect(23, 26, 2, 2, 0x1a1618, 0); s.rect(22, 28, 1, 1, 0xd8401a, 0);
         for (let y = 36; y < 48; y += 2) { s.px(21, y, 0xc8c8d0); s.px(26, y, 0xc8c8d0); } s.rect(16, 46, 24, 2, 0x2a2428, 0);
         for (const [u, v] of [[0, 16], [16, 48]]) { s.rect(u + 4, v + 7, 3, 2, skin, 0); s.rect(u + 9, v + 9, 2, 1, skin, 0); s.rect(u, v + 12, 16, 4, 0x141012, 0); } } }), { emit: 1.6 });
-    const rig = new Rig({ material: m, scale: 2.05, bodyW: 10, bodyD: 5, armW: 5, headS: 8.5, legH: 12 });
-    voxHair(rig, { style: 'messy', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, cap: true }, 0.86);
-    const hs = 8.5 / 8 * HS;
-    // red-hot sunglasses
-    prop(rig, rig.head, 8.8 * hs, 1.6 * hs, 1, solid(0x1a0a08), 0, 4.8 * hs, 4.5 * hs);
-    prop(rig, rig.head, 3.2 * hs, 1.2 * hs, 0.6, solid(0xff3a14, 4), -2.1 * hs, 4.8 * hs, 4.9 * hs);
-    prop(rig, rig.head, 3.2 * hs, 1.2 * hs, 0.6, solid(0xff3a14, 4), 2.1 * hs, 4.8 * hs, 4.9 * hs);
+    const rig = new Rig({ material: m, scale: 1.95, bodyW: 12, bodyH: 13, bodyD: 6, armW: 5, headS: 8, legH: 13 });
+    bruteLimbs(rig, { armLen: 1.1, armThick: 1.2, legThick: 1.35, legX: 3 });
+    rig.armSpread = 0.12;
+    voxHair(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, cap: true }, 0.72);
+    const hs = 8 / 8 * HS;
+    // red-hot wraparound sunglasses across the eyes, and a heavy beard
+    prop(rig, rig.head, 8.8 * hs, 1.8 * hs, 1, solid(0x1a0a08), 0, 4.5 * hs, 4.5 * hs);
+    prop(rig, rig.head, 3.2 * hs, 1.3 * hs, 0.6, solid(0xff3a14, 4), -2.1 * hs, 4.5 * hs, 4.9 * hs);
+    prop(rig, rig.head, 3.2 * hs, 1.3 * hs, 0.6, solid(0xff3a14, 4), 2.1 * hs, 4.5 * hs, 4.9 * hs);
+    prop(rig, rig.head, 8.4 * hs, 3 * hs, 1.4, solid(0x1e1612, 0, 0.9), 0, 0.9 * hs, 4.3 * hs);
+    prop(rig, rig.head, 4 * hs, 1.2 * hs, 1.2, solid(0x1e1612, 0, 0.9), 0, 2.6 * hs, 4.5 * hs);
     // studded spiky shoulders, wristbands, boot buckles
     const silver = solid(0xc8c8d0, 0.1, 0.3, 0.9), leather = solid(0x141214, 0, 0.5);
     for (const arm of [rig.armR, rig.armL]) {

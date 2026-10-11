@@ -41,6 +41,7 @@ import { buildMonsterModel, MONSTERS, addEliteShell, resolveKind, goldDust, mist
 import { buildMortal, MORTALS, mortalId } from './mortals.js';
 import { FLASH_MATERIAL } from './character.js';
 import { poisonHero } from './holds.js';
+import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 
@@ -558,9 +559,9 @@ export class Enemy {
       const sq = 1 + Math.sin(this.stateT * 12) * 0.08 * speed;
       this.rig.root.scale.set(inflate * sq * 0.9, inflate / sq * 0.9, inflate * sq * 0.9);
     }
-    if (this.rig.hunch) this.rig.torso.rotation.x -= this.rig.hunch;   // hunch rides on top of the pose
+    rigOffsets(this.rig, -1);   // hunch and arm spread ride on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, speed), vel: this.vel, action: act });
-    if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
+    rigOffsets(this.rig, 1);
     this.rig.tick?.(dt, this);
   }
 

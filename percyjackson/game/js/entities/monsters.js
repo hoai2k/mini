@@ -110,7 +110,7 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
     fur(s, 0, 16, 40, 20, 60, 0x0a0808, 0x3a3034);
     lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 6), [0xd83a0a, 0xff6a1a]);
     s.box(48, 0, 4, 2, 4, 0x3a0c08, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0);
-    s.box(52, 16, 2, 3, 1, 0x0e0c0e, 0.1); s.rect(53, 17, 2, 3, 0x5a1410, 0.1);
+    s.box(52, 16, 2, 3, 1, 0x0e0c0e, 0.1); s.rect(53, 18, 1, 2, 0x3a0c0a, 0.1);
   } });
 
 // ---- model builders ----------------------------------------------------------
@@ -174,17 +174,17 @@ const MODELS = {
     const segs = [];
     let parent = group(base, 0, -6, -1);
     const shape = [[6, 4.4, 6], [5.4, 4, 6], [4.6, 3.6, 6], [3.8, 3, 5.6], [3, 2.6, 5], [2.2, 2, 4.4], [1.6, 1.6, 3.6]];
-    const bend = [0, 0.05, 0.15, 0.35, 0.55, 0.6, 0.5];
+    const bend = [0, 0, 0.04, 0.08, 0.2, 0.45, 0.6], yaw = [0.3, 0.55, 0.5, -0.45, -0.6, -0.5, 0.3];
     for (let i = 0; i < shape.length; i++) {
       const [w, h, d] = shape[i];
-      const g = group(parent, 0, 0, i ? -shape[i - 1][2] : 0, bend[i], 0, 0);
+      const g = group(parent, 0, 0, i ? -shape[i - 1][2] : 0, bend[i], yaw[i], 0);
+      if (i) sway(rig, g, 'y', 0.12, 2.2, i * 0.8);
       prop(rig, g, w, h, d, i % 2 ? scale2 : scale, 0, 0, -d / 2);
       prop(rig, g, w * 0.7, 0.5, d * 0.9, belly, 0, -h / 2 - 0.2, -d / 2);
       prop(rig, g, 0.5, h * 0.4, d * 0.8, belly, w / 2 + 0.1, 0, -d / 2); prop(rig, g, 0.5, h * 0.4, d * 0.8, belly, -w / 2 - 0.1, 0, -d / 2);
       segs.push(g); parent = g;
     }
     prop(rig, parent, 1, 1, 2, belly, 0, 0, -4.4);
-    rig.extras.tails = [{ segs: segs.slice(1), ph: 0 }];
     // snake hair
     const hairS = solid(0x2e8b4a, 0, 0.6);
     for (const [x, z, rx, rz] of [[-3, 1, 0.3, 0.6], [3, 1, 0.3, -0.6], [-2, -2, -0.5, 0.4], [2, -2, -0.5, -0.4], [0, -3, -0.7, 0], [0, 1, 0.1, 0], [-3.5, -1, -0.2, 0.9], [3.5, -1, -0.2, -0.9], [-1.5, 2.5, 0.5, 0.3], [1.5, 2.5, 0.5, -0.3]])

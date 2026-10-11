@@ -2,7 +2,7 @@
 // place, Mist rating, completion / lock state), a difficulty picker and Start.
 import { h } from './ui.js';
 import { demigodText } from './greekText.js';
-import { BOOKS, CHAPTERS, chaptersOf } from '../story/chapters.js';
+import { BOOKS, CHAPTERS, chaptersOf, chapterPlayable } from '../story/chapters.js';
 
 export const DIFFICULTIES = [['Mortal', 'Gentle: for learning the ropes.'], ['Demigod', 'The way the books play.'], ['Hero', 'Tougher monsters.'], ['Olympian', 'For legends only.']];
 const OBJECTIVES = { exorcise: 'Defeat the monsters', escort: 'Escort your friends to safety', flag: 'Capture the flag', rescue: 'Rescue the captives', seal: 'Seal the breaches', boss: 'Defeat the boss', escape: 'Escape in time' };
@@ -17,7 +17,7 @@ export function mistRating(mist) {
   return el;
 }
 export function isUnlocked(d, ch) {
-  if (!ch.ready) return false;
+  if (!chapterPlayable(ch)) return false;
   if (d.unlockAll) return true;
   const list = chaptersOf(ch.book), i = list.indexOf(ch);
   return i <= 0 || !!d.completed?.[list[i - 1].id];
@@ -52,7 +52,7 @@ export function openChapterMap(game) {
     const book = BOOKS.find((b) => b.id === bookId);
     const list = chaptersOf(bookId);
     const tabs = h('div', { class: 'tabs book-tabs', role: 'tablist' }, ...BOOKS.map((b) => {
-      const has = chaptersOf(b.id).some((c) => c.ready);
+      const has = chaptersOf(b.id).some((c) => chapterPlayable(c));
       return h('button', { class: 'tab' + (b.id === bookId ? ' on' : '') + (has ? '' : ' dim'), role: 'tab', 'aria-selected': String(b.id === bookId), onclick: () => { bookId = b.id; sel = chaptersOf(b.id)[0]?.id ?? null; ui.refresh('chaptermap'); } },
         h('span', { class: 'bn' }, 'Book ' + b.num), h('span', { class: 'bt' }, b.title));
     }));

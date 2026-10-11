@@ -35,6 +35,7 @@ import { goldDust, animateExtras } from './monsters.js';
 import { BOSS_MODELS } from './bossmodels.js';
 import { BOOK1_PATTERNS, BOOK1_HOOKS } from './bosses-book1.js';
 import { releaseAllBy } from './holds.js';
+import { rigOffsets } from './parts.js';
 import { moveEntity } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
@@ -584,9 +585,9 @@ export class Boss {
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
     const sp = Math.hypot(this.vel.x, this.vel.z) / this.B.speed;
     const act = this.stunT > 0 ? { type: 'stagger', t: 0 } : this.anim ?? (this.intro > 0 ? { type: 'raise', t: 0 } : null);
-    if (this.rig.hunch) this.rig.torso.rotation.x -= this.rig.hunch;   // hunch rides on top of the pose
+    rigOffsets(this.rig, -1);   // hunch and arm spread ride on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, sp), vel: this.vel, action: act });
-    if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
+    rigOffsets(this.rig, 1);
     this.rig.tick?.(dt, this);
     this.B.tick?.(this, dt);
     this.ambient(dt);

@@ -39,12 +39,14 @@
 // design/concept/vox-*.png. ?set=heroes|monsters|mortals|bosses picks a row
 // (default heroes); ?only=<id> shows one; ?turn=0 stops turning; ?yaw=<rad>
 // sets the start angle; ?pose=attack|raise|cast|walk shows a pose; ?ui=0 hides
-// the buttons; ?zoom=<k> moves the camera in or out; ?cam=high looks down.
+// the buttons; ?zoom=<k> moves the camera in or out; ?cam=high looks down;
+// ?with=percy stands a hero beside them for scale.
 import * as THREE from 'three/webgpu';
 import { buildHeroModel, buildNpc, HERO_LOOKS } from '../js/entities/models.js';
 import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monsters.js';
 import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
+import { rigOffsets } from '../js/entities/parts.js';
 const q = new URLSearchParams(location.search);
 const renderer = new THREE.WebGPURenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
@@ -70,8 +72,9 @@ const pose = q.get('pose');
 function show(list) {
   for (const r of rigs) scene.remove(r.root);
   let x = 0; const widths = [];
-  rigs = list.map((id) => {
-    const r = SETS[set].build(id); r.id = id;
+  const withHero = q.get('with');
+  rigs = [...(withHero ? [withHero] : []), ...list].map((id, i) => {
+    const r = withHero && i === 0 ? SETS.heroes.build(id) : SETS[set].build(id); r.id = id;
     r.root.rotation.y = 0; r.root.updateMatrixWorld(true);
     const b = new THREE.Box3().setFromObject(r.root), s = b.getSize(new THREE.Vector3());
     r.w = Math.max(1.4, Math.max(s.x, s.z) * 0.9 + 0.5); r.h = s.y; widths.push(r.w);
@@ -105,7 +108,7 @@ renderer.setAnimationLoop(() => {
   const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
   const k = (T % 1.6) / 1.6;
   const action = pose === 'attack' ? { type: 'attack', t: k, style: 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
-  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; if (r.hunch) r.torso.rotation.x -= r.hunch; r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); if (r.hunch) r.torso.rotation.x += r.hunch; r.tick?.(dt, fake); }
+  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; rigOffsets(r, -1); r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); rigOffsets(r, 1); r.tick?.(dt, fake); }
   renderer.render(scene, camera);
 });
 </script>

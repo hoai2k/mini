@@ -179,7 +179,11 @@ export class Online {
   frameStart(dt) {
     const g = this.game;
     const t = performance.now();
-    if (this.isGuest && this.lastFrame && t - this.lastFrame > 1500) this.startResync();
+    if (this.live && this.lastFrame && t - this.lastFrame > 1000) {
+      // this screen stalled (building a level, a slow device): don't blame the others for the silence
+      if (this.isGuest) { this.session.hostSeenAt = t; if (t - this.lastFrame > 1500) this.startResync(); }
+      else for (const peer of this.session.byUid.values()) peer.fresh = t;
+    }
     this.lastFrame = t;
     if (!this.live || g.state !== 'playing') { this.overlayT = 0; return; }
     const overlay = g.ui.stack.some((s) => !s.opts?.passive && s.id !== 'online') || (g.paused && !g.minigame);

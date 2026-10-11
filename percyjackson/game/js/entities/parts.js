@@ -139,3 +139,17 @@ export function voxCubes(rig, parent, cubes, unit = PX) {
 }
 // A small seeded random for building shapes.
 export const rng = (seed = 1) => mulberry32(seed);
+// Brute proportions for the big humanoid bosses: longer, thicker arms (the
+// hands move down with them) and legs set wider apart and thickened.
+export function bruteLimbs(rig, { armLen = 1.4, armThick = 1, legThick = 1.4, legX = 3 } = {}) {
+  for (const arm of [rig.armR, rig.armL]) for (const m of arm.children) if (m.isMesh) m.scale.set(armThick, armLen, armThick);
+  rig.handR.position.y *= armLen; rig.handL.position.y *= armLen;
+  for (const [leg, s] of [[rig.legR, -1], [rig.legL, 1]]) { leg.position.x = s * legX * PX; for (const m of leg.children) if (m.isMesh) m.scale.set(legThick, 1, legThick); }
+}
+// Static pose offsets a model keeps on top of its animation: a hunched back
+// (rig.hunch, rad) and arms held out from the body (rig.armSpread, rad).
+// Call with k = -1 before rig.animate and k = +1 after it.
+export function rigOffsets(rig, k) {
+  if (rig.hunch) rig.torso.rotation.x += k * rig.hunch;
+  if (rig.armSpread && rig.armR) { rig.armR.rotation.z -= k * rig.armSpread; rig.armL.rotation.z += k * rig.armSpread; }
+}
