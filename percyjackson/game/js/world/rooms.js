@@ -1068,18 +1068,23 @@ Object.assign(TEMPLATES, {
     k.floor(x0, z0, x1, z1, y, B.grass, 6, B.gravel_path, 0.1);
     patches(k, x0, z0, x1, z1, y, B.gravel_path, 0.3);
     hedgeRing(c);
-    const cx = (x0 + x1) >> 1, hz0 = z0 + 2, hz1 = z0 + 5, hx0 = cx - 4, hx1 = cx + 4;
-    let ok = true; for (let x = hx0; x <= hx1; x++) for (let z = hz0; z <= hz1 + 1; z++) if (doorAisle(c, x, z, 3)) ok = false;
-    if (ok) {
-      k.room(hx0, hz0, hx1, hz1, y, 4, B.planks, { trim: B.white_trim });
-      for (let x = hx0 + 1; x < hx1; x++) { k.w.set(x, y + 1, hz1, 0); k.w.set(x, y + 2, hz1, 0); k.w.set(x, y + 4, hz1 + 1, B.awning); k.w.set(x, y + 3, hz1 + 2, B.awning); }
-      gable(k, hx0, hz0, hx1, hz1, y + 4, B.roof_terracotta, { axis: 'x', end: B.planks });
-      k.w.addRoof([hx0 - 1, y + 4, hz0 - 1], [hx1 + 1, y + 9, hz1 + 2], [[hx0, y, hz0], [hx1, y + 3, hz1 + 2]]);
-      k.w.fill(hx0 + 1, y, hz0 + 1, hx0 + 2, y, hz0 + 1, B.iron_plate); k.d.prop('fire', hx0 + 1.5, y + 1, hz0 + 1.5, { scale: 0.35 }); lightAt(c, hx0 + 1.5, y + 1.6, hz0 + 1.6, 0xff9a40, 3, 6);
-      lightAt(c, cx + 0.5, y + 2.6, hz1 + 1.5, 0xffd8a0, 4, 9);
-      sign(c, cx + 0.5, hz1 + 2.7, 'SNACK BAR', { y: y + 4.6, w: 3.4, h: 0.8, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', oneSided: true });
+    // the hut against a wall with no door: counter open toward the yard
+    const side = ['n', 'w', 'e', 's'].find((sd) => !c.doors.some((d) => d.side === sd)) ?? 'n';
+    const F = wallFrame(c, side), um = (F.len[0] + F.len[1]) >> 1;
+    const hut = (u, v) => F.P(u, v);
+    for (let u = um - 4; u <= um + 4; u++) for (let v = 1; v <= 4; v++) {
+      const [x, z] = hut(u, v); const edgeU = u === um - 4 || u === um + 4;
+      k.w.set(x, y - 1, z, B.floor_boards);
+      for (let yy = y; yy < y + 4; yy++) k.w.set(x, yy, z, (edgeU || v === 1) ? (yy === y + 3 ? B.white_trim : B.planks) : v === 4 ? (yy === y ? B.planks : yy === y + 3 ? B.white_trim : 0) : 0);
+      k.w.set(x, y + 4, z, B.roof_terracotta);
+      c.reserved = c.reserved ?? new Set(); c.reserved.add(x + ',' + z);
     }
-    for (let i = 0; i < 4; i++) { const [x, z] = cellIn(c, 3); if (z > hz1 + 3 && free(c, x - 1, z) && free(c, x + 1, z)) { place(c, x, z, 'table', { len: 3, rot: 0 }, 1) && (collider(c, x - 1, z, 1), collider(c, x + 1, z, 1)); if (c.r() < 0.6) k.d.prop('umbrella', x + 0.5, y, z + 0.5, { color: 0x3f8a34 }); } }
+    for (let u = um - 4; u <= um + 4; u++) { const [x, z] = hut(u, 5); k.w.set(x, y + 3, z, B.awning); const [x2, z2] = hut(u, 6); k.w.set(x2, y + 2, z2, B.awning); }
+    { const [ax, az] = hut(um - 5, 0), [bx, bz] = hut(um + 5, 6); k.w.addRoof([Math.min(ax, bx), y + 2, Math.min(az, bz)], [Math.max(ax, bx), y + 4, Math.max(az, bz)], [[Math.min(ax, bx), y, Math.min(az, bz)], [Math.max(ax, bx), y + 1, Math.max(az, bz)]]); }
+    { const [gx, gz] = hut(um - 2, 2); k.w.set(gx, y, gz, B.iron_plate); k.d.prop('fire', gx + 0.5, y + 1, gz + 0.5, { scale: 0.35 }); lightAt(c, gx + 0.5, y + 1.6, gz + 0.5, 0xff9a40, 3, 6); }
+    { const [lx, lz] = hut(um, 6); lightAt(c, lx + 0.5, y + 2.4, lz + 0.5, 0xffd8a0, 4, 9); const [sx, sz] = hut(um, 1); sign(c, sx + 0.5 + F.facing[0] * 0.55, sz + 0.5 + F.facing[1] * 0.55, 'SNACK BAR', { y: y + 4.2, w: 3.4, h: 0.8, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', rot: Math.atan2(F.facing[0], F.facing[1]) }); }
+    const hz1 = -1;
+    for (let i = 0; i < 5; i++) { const [x, z] = cellIn(c, 3); if (z > hz1 && free(c, x - 1, z) && free(c, x + 1, z)) { place(c, x, z, 'table', { len: 3, rot: 0 }, 1) && (collider(c, x - 1, z, 1), collider(c, x + 1, z, 1)); if (c.r() < 0.6) k.d.prop('umbrella', x + 0.5, y, z + 0.5, { color: 0x3f8a34 }); } }
     for (let i = 0; i < 2; i++) { const [x, z] = cellIn(c, 2); petrified(c, x, z); }
     for (let i = 0; i < 4; i++) { const [x, z] = cellIn(c, 2); place(c, x, z, 'gnome', { rot: c.r() * 6 }, 0); }
     gardenDecorate(c);
