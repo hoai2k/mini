@@ -15,12 +15,28 @@ BATCH = GAME / 'design/generated/film-production'
 manifest_path = GAME / 'assets/manifest.json'
 manifest = json.loads(manifest_path.read_text())
 records = []
+previous_path = BATCH / 'deliveries.json'
+previous = {r['id']: r for r in json.loads(previous_path.read_text())['images']} if previous_path.exists() else {}
 for path in sorted(BATCH.glob('*.json')):
     if path.name == 'deliveries.json':
         continue
     record = json.loads(path.read_text())
     ident = record['id']
     original = BATCH / (ident + '-original.png')
+    delivery = GAME / 'assets' / (ident + '.webp')
+    cached = previous.get(ident)
+    if (cached and delivery.exists() and delivery.stat().st_mtime >= original.stat().st_mtime
+            and all(cached.get(k) == record.get(k) for k in ['prompt', 'size', 'anchor', 'transparent'])):
+        with Image.open(delivery) as check:
+            check.verify()
+        with Image.open(delivery) as check:
+            assert list(check.size) == record['size'], ident
+            if record['transparent']:
+                assert check.mode == 'RGBA' and check.getchannel('A').getextrema()[0] == 0, ident
+        records.append(cached)
+        manifest['slots'][ident].update(status='delivered', file=ident + '.webp',
+                                       size=record['size'], anchor=record['anchor'], edition='film')
+        continue
     with Image.open(original) as source:
         source.verify()
     with Image.open(original) as source:
@@ -29,13 +45,13 @@ for path in sorted(BATCH.glob('*.json')):
         w, h = record['size']
         if record['transparent']:
             assert source.getchannel('A').getextrema()[0] == 0, ident + ': missing transparency'
-            final, crop, placement = fit_sprite(source, w, h, record['anchor'], ident == 'rampart-strip')
+            final, crop, placement = fit_sprite(source, w, h, record['anchor'], ident in {'rampart-strip', 'tower-wall-tall', 'tower-interior'})
             assert final.getchannel('A').getbbox(), ident + ': empty artwork'
         else:
             final = source.convert('RGB').resize((w, h), Image.Resampling.LANCZOS)
             crop = placement = None
         delivery = GAME / 'assets' / (ident + '.webp')
-        final.save(delivery, 'WEBP', quality=95, method=6)
+        final.save(delivery, 'WEBP', quality=95, method=4)
         with Image.open(delivery) as check:
             assert check.size == (w, h), ident
             if record['transparent']:

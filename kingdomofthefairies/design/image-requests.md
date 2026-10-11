@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 80 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 15 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 53 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -113,15 +113,15 @@ The player, in every act. One set, all to the same scale, so the whole game swit
 | `prince-seated` | 220 × 220 | bottom centre | `sailor-seated` | [delivered](../assets/prince-seated.webp) |
 | `prince-hang` | 220 × 440 | top centre (his hands) | `sailor-hang` | [delivered](../assets/prince-hang.webp) |
 | `prince-pullup` | 260 × 300 | ledge line 25% up from the bottom, centred | `sailor-pullup` | [delivered](../assets/prince-pullup.webp) |
-| `prince-climb-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-a` | requested |
-| `prince-climb-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-b` | requested |
-| `prince-apex` | 360 × 440 | bottom centre (lowest boot) | `sailor-apex` | requested |
-| `prince-fall` | 360 × 440 | bottom centre (lowest boot) | `sailor-fall` | requested |
-| `prince-land` | 360 × 440 | bottom centre (lowest boot) | `sailor-land` | requested |
-| `prince-stairs-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-a` | requested |
-| `prince-stairs-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-b` | requested |
-| `prince-push` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-court` | 220 × 360 | bottom centre | new | requested |
+| `prince-climb-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-a` | [delivered](../assets/prince-climb-a.webp) |
+| `prince-climb-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-b` | [delivered](../assets/prince-climb-b.webp) |
+| `prince-apex` | 360 × 440 | bottom centre (lowest boot) | `sailor-apex` | [delivered](../assets/prince-apex.webp) |
+| `prince-fall` | 360 × 440 | bottom centre (lowest boot) | `sailor-fall` | [delivered](../assets/prince-fall.webp) |
+| `prince-land` | 360 × 440 | bottom centre (lowest boot) | `sailor-land` | [delivered](../assets/prince-land.webp) |
+| `prince-stairs-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-a` | [delivered](../assets/prince-stairs-a.webp) |
+| `prince-stairs-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-b` | [delivered](../assets/prince-stairs-b.webp) |
+| `prince-push` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-push.webp) |
+| `prince-court` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-court.webp) |
 
 #### `prince-stand` — Standing
 
@@ -251,19 +251,19 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 | --- | --- | --- | --- | --- |
 | `azurine-stand` | 200 × 380 | bottom centre | `beloved-stand` | [delivered](../assets/azurine-stand.webp) |
 | `azurine-asleep` | 360 × 160 | bottom centre | new | [delivered](../assets/azurine-asleep.webp) |
-| `azurine-window` | 160 × 200 | bottom centre | new | requested |
+| `azurine-window` | 160 × 200 | bottom centre | new | [delivered](../assets/azurine-window.webp) |
 | `aurora-stand` | 260 × 420 | bottom centre | new | [delivered](../assets/aurora-stand.webp) |
 | `aurora-point` | 300 × 420 | bottom centre | new | [delivered](../assets/aurora-point.webp) |
-| `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | requested |
-| `witch-hooded` | 240 × 400 | bottom centre | new | requested |
-| `witch-cloud` | 400 × 400 | bottom centre | new | requested |
-| `witch-swoop` | 400 × 240 | centre | new | requested |
-| `witch-barrel` | 200 × 240 | bottom centre | new | requested |
-| `king-stand` | 220 × 420 | bottom centre | new | requested |
-| `queen-stand` | 220 × 420 | bottom centre | new | requested |
-| `fairy-ring` | 220 × 420 | bottom centre | new | requested |
-| `fairy-crown` | 220 × 420 | bottom centre | new | requested |
-| `fairy-gold` | 220 × 420 | bottom centre | new | requested |
+| `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | [delivered](../assets/water-fairy-stand.webp) |
+| `witch-hooded` | 240 × 400 | bottom centre | new | [delivered](../assets/witch-hooded.webp) |
+| `witch-cloud` | 400 × 400 | bottom centre | new | [delivered](../assets/witch-cloud.webp) |
+| `witch-swoop` | 400 × 240 | centre | new | [delivered](../assets/witch-swoop.webp) |
+| `witch-barrel` | 200 × 240 | bottom centre | new | [delivered](../assets/witch-barrel.webp) |
+| `king-stand` | 220 × 420 | bottom centre | new | [delivered](../assets/king-stand.webp) |
+| `queen-stand` | 220 × 420 | bottom centre | new | [delivered](../assets/queen-stand.webp) |
+| `fairy-ring` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-ring.webp) |
+| `fairy-crown` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-crown.webp) |
+| `fairy-gold` | 220 × 420 | bottom centre | new | [delivered](../assets/fairy-gold.webp) |
 | `demon-red` | 220 × 360 | bottom centre | new | requested |
 | `demon-teal` | 220 × 360 | bottom centre | new | requested |
 | `crew-squire` | 220 × 420 | bottom centre | `reveller-yellow` | requested |
@@ -410,18 +410,18 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `octopus` | 600 × 420 | bottom centre | new | requested |
-| `dolphin-carriage` | 520 × 340 | bottom centre | `witch-moonboat` | requested |
-| `lobster-guard-closed` | 500 × 340 | bottom centre | `sentry-creature-closed` | requested |
-| `lobster-guard-open` | 500 × 340 | bottom centre | `sentry-creature-open` | requested |
-| `scrying-eye` | 200 × 300 | top centre (it hangs) | `gaze-lantern` | requested |
-| `galley` | 380 × 400 | bottom centre (the waterline) | `ship` | requested |
-| `galley-wreck-bow` | 300 × 400 | bottom centre | `ship-wreck-bow` | requested |
-| `galley-wreck-stern` | 300 × 400 | bottom centre | `ship-wreck-stern` | requested |
-| `sword-sinking` | 220 × 520 | centre | `guitar-sinking` | requested |
-| `aurora-star` | 64 × 64 | bottom centre | `tea-leaf` | requested |
+| `octopus` | 600 × 420 | bottom centre | new | [delivered](../assets/octopus.webp) |
+| `dolphin-carriage` | 520 × 340 | bottom centre | `witch-moonboat` | [delivered](../assets/dolphin-carriage.webp) |
+| `lobster-guard-closed` | 500 × 340 | bottom centre | `sentry-creature-closed` | [delivered](../assets/lobster-guard-closed.webp) |
+| `lobster-guard-open` | 500 × 340 | bottom centre | `sentry-creature-open` | [delivered](../assets/lobster-guard-open.webp) |
+| `scrying-eye` | 200 × 300 | top centre (it hangs) | `gaze-lantern` | [delivered](../assets/scrying-eye.webp) |
+| `galley` | 380 × 400 | bottom centre (the waterline) | `ship` | [delivered](../assets/galley.webp) |
+| `galley-wreck-bow` | 300 × 400 | bottom centre | `ship-wreck-bow` | [delivered](../assets/galley-wreck-bow.webp) |
+| `galley-wreck-stern` | 300 × 400 | bottom centre | `ship-wreck-stern` | [delivered](../assets/galley-wreck-stern.webp) |
+| `sword-sinking` | 220 × 520 | centre | `guitar-sinking` | [delivered](../assets/sword-sinking.webp) |
+| `aurora-star` | 64 × 64 | bottom centre | `tea-leaf` | [delivered](../assets/aurora-star.webp) |
 | `keepsake-star` | 128 × 128 | bottom centre | `keepsake-tea` | requested |
-| `keepsake-sword` | 128 × 128 | bottom centre | `keepsake-guitar` | requested |
+| `keepsake-sword` | 128 × 128 | bottom centre | `keepsake-guitar` | [delivered](../assets/keepsake-sword.webp) |
 | `keepsake-shell` | 128 × 128 | bottom centre | `keepsake-rose` | requested |
 | `keepsake-seal` | 128 × 128 | bottom centre | `keepsake-pearl` | requested |
 | `keepsake-lamp` | 128 × 128 | bottom centre | `keepsake-stone` | requested |
@@ -578,13 +578,13 @@ Backcloths for the prologue and Acts V and VI, and the transformations. Full-fra
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `betrothal-court` | 2560 × 1440 | full frame | new | requested |
-| `rampart-strip` | 2560 × 720 | bottom edge | new | requested |
-| `armoury` | 2560 × 1440 | full frame | new | requested |
-| `tempest-sky` | 2560 × 820 | top edge | `sky-backdrop` | requested |
-| `lobster-palace` | 2560 × 1440 | full frame | new | requested |
-| `sea-flora` | 2560 × 1440 | full frame | new | requested |
-| `azure-grotto` | 2560 × 1440 | full frame | new | requested |
+| `betrothal-court` | 2560 × 1440 | full frame | new | [delivered](../assets/betrothal-court.webp) |
+| `rampart-strip` | 2560 × 720 | bottom edge | new | [delivered](../assets/rampart-strip.webp) |
+| `armoury` | 2560 × 1440 | full frame | new | [delivered](../assets/armoury.webp) |
+| `tempest-sky` | 2560 × 820 | top edge | `sky-backdrop` | [delivered](../assets/tempest-sky.webp) |
+| `lobster-palace` | 2560 × 1440 | full frame | new | [delivered](../assets/lobster-palace.webp) |
+| `sea-flora` | 2560 × 1440 | full frame | new | [delivered](../assets/sea-flora.webp) |
+| `azure-grotto` | 2560 × 1440 | full frame | new | [delivered](../assets/azure-grotto.webp) |
 | `shore-cave` | 2560 × 1440 | full frame | new | requested |
 | `cavern` | 2560 × 1440 | full frame | new | requested |
 | `coast-gap` | 2560 × 1440 | full frame | new | requested |

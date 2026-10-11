@@ -72,6 +72,11 @@ New documentation uses the full film, not the music-video edit, as its authority
 the ten character sheets and twenty scene concepts for the proposed adaptation.
 Source request briefs, named references and native originals are retained. These are design references; the playable chapters remain as built.
 
+[The production artwork gallery](design/generated/film-production/index.html)
+contains the film-edition sprites, props and sets, with native originals and
+submitted prompts. [Image requests](design/image-requests.md) track delivery
+status. New story chapters and runtime asset remapping remain separate work.
+
 [Music](design/music.md) describes the five delivered period tracks and their
 scene moods. New effects use `design/source/build_sfx.py`; its key comes from
 `ELEVENLABS_API_KEY` and must never be committed.
