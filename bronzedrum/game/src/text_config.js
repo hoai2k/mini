@@ -25,13 +25,10 @@ export const T = {
   title: {
     hintSideways: 'Best played with the device sideways',
     hintSidewaysAddToHome: 'Best played sideways · tip: Add to Home Screen to play full screen',
-    hintController: '<span class="xb xb-a">A</span> select · Menu start',
     logoVietnamese: 'Trống Đồng',
     logoEnglish: 'Bronze Drum',
-    tagline: 'Inspired by the novel written by Phong Nguyen',
     pressStart: 'Press Start',
     drumPractice: 'Drum Practice',
-    hint: 'Move left stick for options',
     cornerButtons: {
       instructions: 'Instructions',
       settings: 'Settings',
@@ -230,18 +227,18 @@ export const T = {
       tier3: 'III · ×1.96',
     },
     commandEffects: {
-      march: 'Advance (toward the enemy line). Tiers II and III march further, and on reaching the line they crash into it: the ground they had left hits the front enemy.',
-      strike: 'Spears hit the front enemy; archers shoot. At Luy Lâu, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
+      march: 'Advance. Tiers II and III go further and crash into the enemy line.',
+      strike: 'Spears and archers attack the front enemy. At Luy Lâu, with the drum awake, the war elephant charges instead.',
     },
     title: 'How to drum',
-    objective: '<strong>Objective.</strong> Lead the sisters’ army across the field and destroy the goal: the straw targets in training, the Han fort in battle. You lose if the army’s strength runs out.',
-    twoDrummers: '<strong>Two drummers.</strong> Trưng Trắc plays the deep centre of the bronze drum — <span class="g-l"></span> <em>tùng</em>. Trưng Nhị plays the rim — <span class="g-r"></span> <em>cắc</em>.',
-    commands: '<strong>Commands.</strong> Each command is a four-beat rhythm. Movement starts on Trắc’s deep stroke (<em>tùng</em>), attacks on Nhị’s rim stroke (<em>cắc</em>). Play it at any speed you like — what counts is that it is <em>even</em>: every beat the same length. A pair (two dots joined underneath) is two quick strokes sharing one beat; a triplet (marked 3) is three. Play them as quickly as feels natural: what has to be even is the beat itself, so land the stroke after them on its beat. If a stroke breaks the rhythm, the dots show where it fell, crossed out, and you start again; stop for too long and the phrase fades. The first time a new rhythm comes up, the drum plays it for you while a pointer follows the buttons; miss a rhythm three times and it is played again. The dots above the drum show the rhythm you are playing: solid for strokes played, faint for those to come.',
-    difficulty: '<strong>Difficulty</strong> (in Settings) changes the rhythms. On Easy there are no triplets: plain beats, with pairs for the stronger tiers. Hard adds rests, shown as a short dash: a silent beat, or a silent stroke inside a pair or a triplet. Leave the gap and play the next stroke in its place. <strong>Number of beats</strong> (also in Settings) sets how long every command and call is, four by default: the rhythms keep their first and last beats and what makes each tier different, and grow or shrink in the middle. The table below shows the rhythms for the settings chosen.',
-    strongerRhythms: '<strong>Stronger rhythms.</strong> Every command has three tiers. Tier I is four plain strokes; tiers II and III add pairs and triplets and hit harder (×1.4 and ×1.96). Evenness adds up to a further ×1.4 on top: a sloppy tier II still beats a perfect tier I, and the more even you play, the more it hits.',
-    armyAnswers: '<strong>The army answers.</strong> When a rhythm is accepted, the army acts for four beats at your speed while the drum crew plays your rhythm once more, its dots lighting with each stroke; your dots stay lit until the drum glows, ready for the next command. The army moves on your strokes, at your speed. A march or a strike carries on in your rhythm for up to two more rounds (weaker) until you start the next command. Strokes during the answer are simply ignored.',
-    shield: '<strong>Shield.</strong> Defence is separate from the drum. Han crossbow bolts fly in a visible arc, and a spearman draws back before he lunges. Press shield while an attack is on its way and the army throws a shield wall over the whole group: everything already in the air is deflected (“Defended”). It is ready again almost at once. The same button clears the rhythm dots: raising the shields starts your rhythm afresh, so shield, then drum the next command. In chapters without shields, A (Space) just clears the dots.',
-    drumWakes: '<strong>The drum wakes.</strong> Start the next command within two beats of the drum glowing ready to chain. Four in a row and the drum wakes: every command is half again as strong.',
+    objective: '<strong>Goal.</strong> Drum commands to lead the army to its target: the straw targets in training, the Han fort in battle. If the army’s strength runs out, you lose.',
+    twoDrummers: '<strong>Two sounds.</strong> <span class="g-l"></span> <em>tùng</em> is the drum’s centre (Trưng Trắc). <span class="g-r"></span> <em>cắc</em> is the rim (Trưng Nhị).',
+    commands: '<strong>Commands.</strong> Each command is a short rhythm. Play it at any speed, but keep the beats even. Two joined dots are two quick strokes in one beat; a 3 marks three. A wrong stroke starts the rhythm over. Each new rhythm is played for you first.',
+    difficulty: '<strong>Settings.</strong> Difficulty changes the rhythms (Hard adds rests, shown as dashes: leave that stroke silent). Number of beats changes their length. The table shows the rhythms for your settings.',
+    strongerRhythms: '<strong>Tiers.</strong> Each command has three tiers. Tiers II and III are harder and hit harder. Playing evenly adds strength too.',
+    armyAnswers: '<strong>The army acts</strong> for four beats while the crew drums your rhythm back. Start the next command when the drum glows.',
+    shield: '<strong>Shield.</strong> When bolts are in the air or a spearman lunges, press shield (<span class="xb xb-a">A</span>, Space) to block. It also clears the rhythm you were drumming.',
+    drumWakes: '<strong>Wake the drum.</strong> Start each command within two beats of the drum glowing. Chain four and every command is half again as strong.',
     controllerHeading: 'Xbox controller',
     controllerDiagram: {
       deep: 'X · Trắc · tùng',
@@ -253,24 +250,21 @@ export const T = {
     },
     controlsTable: `
             <tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Mouse</th><th>Touch</th></tr>
-            <tr><td>Trắc · tùng (centre)</td><td><span class="xb xb-x">X</span></td><td>F, D, A or ←</td><td>Left half of the screen</td><td>The drum’s centre, or the left side of the screen</td></tr>
-            <tr><td>Nhị · cắc (rim)</td><td><span class="xb xb-b">B</span></td><td>J, K, L or →</td><td>Right half of the screen</td><td>The red rim ring, or the right side of the screen</td></tr>
-            <tr><td>Shield wall and clear the rhythm (in battle the shields go up too)</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Click the bronze drum</td><td>The barrel drum (trống chầu), bottom right, or tap the battle; swipe across the drum or the dots to clear</td></tr>
-            <tr><td>Pause</td><td>Menu or View</td><td>Esc or P</td><td>—</td><td>Pause button, top centre</td></tr>
-            <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> confirm, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td><td>Click</td><td>Tap</td></tr>
+            <tr><td><em>Tùng</em> (centre)</td><td><span class="xb xb-x">X</span></td><td>F, D, A or ←</td><td>Left half</td><td>Drum centre, or left side</td></tr>
+            <tr><td><em>Cắc</em> (rim)</td><td><span class="xb xb-b">B</span></td><td>J, K, L or →</td><td>Right half</td><td>Drum rim, or right side</td></tr>
+            <tr><td>Shield / clear</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Click the drum</td><td>Tap the battle; swipe the drum to clear</td></tr>
+            <tr><td>Pause</td><td>Menu</td><td>Esc or P</td><td>—</td><td>Pause button</td></tr>
           `,
-    phones: '<strong>Phones and tablets.</strong> Hold the device sideways. The big drum at the bottom is played like the real one: tap its centre for Trắc’s <em>tùng</em> and the red ring round its rim for Nhị’s <em>cắc</em>. On a phone you can also drum with your thumbs: anywhere on the left side of the screen is <em>tùng</em>, the right side <em>cắc</em>. Use several fingers at once for quick pairs and triplets. Tap the battle itself to raise the shields, and swipe across the drum or the dots to reset.',
+    phones: '<strong>Phones and tablets.</strong> Hold the device sideways. Use several fingers for quick pairs and triplets.',
     practiceHeading: 'Drum Practice',
-    practice: 'From the title screen, <strong>Drum Practice</strong> has no right or wrong, only the drum. Rhythms are counted in beats (four, like a command, unless you change it), and each beat may hold one, two or three strokes, or none. In <strong>free drumming</strong>, drum any rhythm of that many beats at your own speed. Its beats appear as faint dots once they are clear, and the whole rhythm settles in when its last beat ends; it is played back at the speed you drummed it. The drum crew then plays it back again and again while dancers gather at the fire. Drum along with it as long as you like: it keeps playing until you clear it with <span class="xb xb-a">A</span> (Space, or a swipe), and the next rhythm you drum takes its place. In <strong>call and answer</strong>, a partner drums a call and you answer with any rhythm of the same length. The call and your answer then play together, again and again, and you can drum along. Clear it with <span class="xb xb-a">A</span> and it is your turn to call: your partner answers with a riff on your rhythm, and that plays on until you clear it. Each clear hands the call to the other side.',
-    practiceReading: 'Rests are allowed: leave a beat, or a stroke inside a beat, silent. Strokes are read as plain beats and pairs unless they plainly fall in threes. An answer is read at about the call’s speed. A stray stroke or two before a rhythm, or extra strokes after its last beat, are left out. Beside the bronze drum sits a <strong>secondary drum</strong>, struck with Y: its strokes are part of the rhythm and the crew plays them back on it.',
-    training: '<strong>Training</strong> lists every rhythm the chapters ask for, numbered and sorted into nine levels, from steady beats to pairs and triplets switching drums; each row says where the chapters use it. Choose a level and a rhythm: your partner plays it and you play it back, judged as in the game, and each rhythm played well leads on to the next. The rhythms are shown as designed (Medium, four beats), whatever the Difficulty and Number of beats settings.',
+    practice: '<strong>Free drumming:</strong> drum any rhythm and the crew loops it back while dancers gather. <strong>Call and answer:</strong> answer your partner’s call, then take turns calling. Clear with <span class="xb xb-a">A</span> (Space) to start again.',
+    training: '<strong>Training:</strong> every rhythm in the game, in nine levels. Your partner plays it; you play it back.',
     practiceControlsTable: `
             <tr><th>Practice</th><th>Controller</th><th>Keyboard</th><th>Touch</th></tr>
-            <tr><td>Fewer or more beats (2 to 12)</td><td>D-pad ▲ ▼</td><td>− and + (or ↑ and ↓)</td><td>The − and + buttons beside the dots</td></tr>
-            <tr><td>Strike the secondary drum (part of the rhythm, shown as a green diamond)</td><td><span class="xb xb-y">Y</span></td><td>G or H</td><td>The small drum at the bottom right</td></tr>
-            <tr><td>Choose the secondary drum: barrel drum (trống chầu, the first), mõ, rice drum, low and high gongs, bamboo, lion-dance drum, cymbals</td><td>LB · RB</td><td>[ and ]</td><td>‹ and › beside the small drum</td></tr>
-            <tr><td>Clear the dots and stop the loop</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Swipe across the drum or the dots</td></tr>
-            <tr><td>Training: choose a level · a rhythm · hear it again</td><td>D-pad ◀ ▶ · ▲ ▼ · <span class="xb xb-a">A</span></td><td>← → · ↑ ↓ · Space</td><td>Tap a level or a rhythm · swipe the drum</td></tr>
+            <tr><td>Fewer / more beats</td><td>D-pad ▲ ▼</td><td>− and +</td><td>− and + buttons</td></tr>
+            <tr><td>Second drum: strike · change</td><td><span class="xb xb-y">Y</span> · LB RB</td><td>G or H · [ ]</td><td>Small drum · ‹ ›</td></tr>
+            <tr><td>Clear and stop the loop</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Swipe the drum</td></tr>
+            <tr><td>Training: level · rhythm · hear again</td><td>◀ ▶ · ▲ ▼ · <span class="xb xb-a">A</span></td><td>← → · ↑ ↓ · Space</td><td>Tap · swipe the drum</td></tr>
           `,
     audioOffset: 'If your strokes sound late, adjust <em>Audio offset</em> in Settings.',
     close: 'Close',

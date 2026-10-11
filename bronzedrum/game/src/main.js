@@ -1713,16 +1713,12 @@ input.on('padButton', (i) => {
   // The d-pad moves between Press Start and Drum Practice; any other button starts.
   if (i >= PAD.UP && i <= PAD.RIGHT) {
     titleNav = true;
-    $('#title-hint').innerHTML = T.title.hintController;
     return;
   }
   pressStart();
 });
 input.on('stick', () => {
-  if (screen === 'title' && !titleNav && !dialogs.length) {
-    titleNav = true;
-    $('#title-hint').innerHTML = T.title.hintController;
-  }
+  if (screen === 'title' && !titleNav && !dialogs.length) titleNav = true;
 });
 input.on('device', (d) => {
   if (d.type === 'disconnected' && screen === 'play') pause(T.messages.controllerDisconnected);
