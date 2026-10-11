@@ -20,8 +20,8 @@ const SX = 116, SY = 40, SZ = 120;
 
 // Cabin looks (simplified blocky versions of the books' cabins).
 const CABINS = {
-  zeus: { wall: B.marble_white, alt: B.lightning_stone, roof: B.marble_white, trim: B.bronze, h: 5, portico: B.bronze, emblem: 'em_zeus' },
-  hera: { wall: B.marble_white, roof: B.marble_white, trim: B.gold_plate, h: 5, portico: B.column, emblem: 'em_hera' },
+  zeus: { wall: B.marble_white, alt: B.lightning_stone, roof: B.marble_white, ridge: B.bronze, trim: B.bronze, h: 5, portico: B.bronze, emblem: 'em_zeus', run: 2 },
+  hera: { wall: B.marble_white, roof: B.roof_terracotta, trim: B.gold_plate, h: 5, portico: B.column, emblem: 'em_hera', run: 2 },
   poseidon: { wall: B.sea_stone, roof: B.sea_stone, trim: B.teal_panel, h: 3, flat: true, emblem: 'em_poseidon', shells: true },
   demeter: { wall: B.planks, roof: B.grass_roof, trim: B.log, h: 4, emblem: 'em_demeter', flowers: true },
   ares: { wall: B.red_plank, roof: B.roof, trim: B.dark_planks, h: 4, emblem: 'em_ares', barbed: true },
@@ -179,7 +179,7 @@ export function buildCamp() {
       for (let z = z0 - 1; z <= z1 + 1; z++) for (let x = x0 - 1; x <= x1 + 1; x++) W.set(x, y + h, z, (x === x0 - 1 || x === x1 + 1 || z === z0 - 1 || z === z1 + 1) ? S.trim : S.roof);
       for (let z = z0 + 1; z < z1; z++) for (let x = x0 + 1; x < x1; x++) W.set(x, y + h + 1, z, S.roof);
       ridge = y + h + 1;
-    } else ridge = gable(k, rx0, z0, rx1, rz1, y + h, S.roof, { axis: door === 's' ? 'z' : 'x', end: S.wall });
+    } else ridge = gable(k, rx0, z0, rx1, rz1, y + h, S.roof, { axis: door === 's' ? 'z' : 'x', end: S.wall, run: S.run ?? 1, ridgeId: S.ridge ?? null });
     const ey = door === 's' ? ridge - 1.4 : y + h - 1.3;
     const ex = door === 'e' ? x1 + 1.02 : door === 'w' ? x0 - 0.02 : xc + 0.5, ez = door === 's' ? (S.portico ? z1 + 1.02 : z1 + 1.02) : zc + 0.5;
     deco.add(S.emblem, ex, door === 's' ? (S.portico ? ey : y + h - 1.3) : ey, ez, { mode: 'wall', facing: [fx, fz], scale: S.portico ? 1.8 : 1.3, sway: 0 });
@@ -192,18 +192,17 @@ export function buildCamp() {
     const out = S.portico ? 3.5 : 1.5;
     cabinSpots[god] = V(dx + 0.5 + fx * out, FY, dz + 0.5 + fz * out);
   };
-  cabin('zeus', 44, 31, 51, 37, 's');
-  cabin('hera', 57, 31, 64, 37, 's');
+  cabin('zeus', 41, 31, 48, 37, 's');
+  cabin('hera', 60, 31, 67, 37, 's');
   const armZ = [42, 49, 56, 63, 70];
   ['poseidon', 'ares', 'apollo', 'hephaestus', 'hermes'].forEach((g, i) => cabin(g, 36, armZ[i], 42, armZ[i] + 4, 'e'));
   ['demeter', 'athena', 'artemis', 'aphrodite', 'dionysus'].forEach((g, i) => cabin(g, 66, armZ[i], 72, armZ[i] + 4, 'w'));
 
   // ------------------------------------------------------------ the green
-  rect(43, 40, 65, 41, B.gravel_path); rect(43, 40, 44, 77, B.gravel_path); rect(64, 40, 65, 77, B.gravel_path); rect(43, 76, 65, 77, B.gravel_path);
+  rect(41, 40, 67, 41, B.gravel_path); rect(43, 40, 44, 77, B.gravel_path); rect(64, 40, 65, 77, B.gravel_path); rect(43, 76, 65, 77, B.gravel_path);
   pathLine([[54, 26], [54, 82]], 3);
   pathLine([[43, 58], [65, 58]], 3);
-  pathLine([[54, 38], [54, 40]], 5);   // between Zeus and Hera
-  // Hestia's hearth in the middle of the green
+    // Hestia's hearth in the middle of the green
   const HC = [54, 58];
   for (let z = HC[1] - 4; z <= HC[1] + 4; z++) for (let x = HC[0] - 4; x <= HC[0] + 4; x++) {
     const d = Math.hypot(x - HC[0], z - HC[1]);
@@ -435,7 +434,7 @@ export function buildCamp() {
   plane(0, SZ, SX, SZ + 400, FY - 0.02, 0x2c4a26);
 
   world.collectBlockLights();
-  const spawn = V(54.5, FY, 29.5);
+  const spawn = V(54.5, FY, 29);
   const stage = V(58.5, FY, 66.5);
   const cabins = {
     percy: cabinSpots.poseidon, tyson: cabinSpots.poseidon, annabeth: cabinSpots.athena, clarisse: cabinSpots.ares,

@@ -54,7 +54,7 @@ const BOSSES = {
     name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xff2a1a, radius: 1.2, height: 4.6,
     build() {
       const fur = 0x6a4228;
-      const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xf4f0e8, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xf4f0e8, 0.04); s.rect(32, 30, 8, 2, 0xf4f0e8, 0.04); s.rect(16, 30, 4, 2, 0xf4f0e8, 0.04); s.rect(28, 30, 4, 2, 0xf4f0e8, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
+      const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xe2dccc, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xe2dccc, 0.04); s.rect(32, 30, 8, 2, 0xe2dccc, 0.04); s.rect(16, 30, 4, 2, 0xe2dccc, 0.04); s.rect(28, 30, 4, 2, 0xe2dccc, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
       const rig = new Rig({ material: m, scale: 2.35, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 11 });
       // bull muzzle, nose ring and horns
       const muzzle = prop(rig, rig.head, 6, 4, 3, solid(0x4a2c18), 0, 2.2 * HS, 5.2 * HS);

@@ -72,7 +72,7 @@ export class HUD {
     const pw = h('div', { class: 'hbar pw', title: 'Power' }, pwI);
     const abs = h('div', { class: 'hc-abs' });
     const card = h('div', { class: 'hcard', style: `--pc:${p.color};--hc:${color}` }, port,
-      h('div', { class: 'hc-main' }, h('div', { class: 'hc-name' }, h('span', {}, this.game.players.length > 1 ? `P${p.index + 1} · ${info.name}` : info.name), extra), hp, pw, abs));
+      h('div', { class: 'hc-main' }, h('div', { class: 'hc-name' }, h('span', {}, this.humans().length > 1 ? `P${p.index + 1} · ${info.name}` : info.name), extra), hp, pw, abs));
     const els = this.buildAbilities(p, abs);
     const c = { p, hpI, hpB, hpTxt, pwI, pw, extra, bs, port, card, els, last: {} };
     this.cardEls.push(c);

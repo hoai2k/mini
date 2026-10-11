@@ -85,7 +85,7 @@ function skinMaterial(id, paint, seed) {
   if (!mats.has(id)) {
     const S = new Skin(seed);
     paintPerson(S, paint);
-    const m = makeCharMaterial(S.texture(), { emitStrength: 0.4, fill: 0.1 }); m.alphaTest = 0.5;
+    const m = makeCharMaterial(S.texture(), { emitStrength: 0, fill: 0.1 }); m.alphaTest = 0.5;
     mats.set(id, m);
   }
   return mats.get(id);

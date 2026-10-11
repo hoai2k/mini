@@ -304,17 +304,20 @@ export function column(k, x, z, y, h, { shaft = B.column, cap = B.marble_white, 
 }
 // Gabled roof over a rectangle. axis 'x' = ridge along x (slopes toward z0/z1).
 // Returns the ridge height. `end` fills the triangular gable ends.
-export function gable(k, x0, z0, x1, z1, y, id, { axis = 'x', end = null, eave = 1 } = {}) {
+export function gable(k, x0, z0, x1, z1, y, id, { axis = 'x', end = null, eave = 1, run = 1, ridgeId = null } = {}) {
   const W = k.w; let i = 0;
   const a0 = axis === 'x' ? z0 - eave : x0 - eave, a1 = axis === 'x' ? z1 + eave : x1 + eave;
   const b0 = axis === 'x' ? x0 - eave : z0 - eave, b1 = axis === 'x' ? x1 + eave : z1 + eave;
-  for (; a0 + i <= a1 - i; i++) {
-    for (let b = b0; b <= b1; b++) for (const a of [a0 + i, a1 - i]) {
-      if (axis === 'x') W.set(b, y + i, a, id); else W.set(a, y + i, b, id);
+  const put = (a, b, yy, v) => { if (axis === 'x') W.set(b, yy, a, v); else W.set(a, yy, b, v); };
+  for (; a0 + i * run <= a1 - i * run; i++) {
+    const lo = a0 + i * run, hi = a1 - i * run, last = hi - lo + 1 <= 2 * run;
+    for (let r = 0; r < run; r++) for (const a of [lo + r, hi - r]) {
+      if (a > hi || a < lo) continue;
+      for (let b = b0; b <= b1; b++) put(a, b, y + i, ridgeId && last ? ridgeId : id);
     }
-    if (end) for (let a = a0 + i + 1; a < a1 - i; a++) for (const b of [b0 + eave, b1 - eave]) {
+    if (end) for (let a = lo + run; a <= hi - run; a++) for (const b of [b0 + eave, b1 - eave]) {
       if (a < (axis === 'x' ? z0 : x0) || a > (axis === 'x' ? z1 : x1)) continue;
-      if (axis === 'x') W.set(b, y + i, a, end); else W.set(a, y + i, b, end);
+      put(a, b, y + i, end);
     }
   }
   return y + i - 1;
