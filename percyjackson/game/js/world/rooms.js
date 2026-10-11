@@ -28,7 +28,7 @@ function edgeWalls(c, h = 4, gaps = true) {
   for (let x = x0 + 4; x < x1 - 2; x += 7) { k.torch(x, y + 2, z0, [0, 1]); k.torch(x, y + 2, z1, [0, -1]); }
   for (let z = z0 + 4; z < z1 - 2; z += 7) { k.torch(x0, y + 2, z, [1, 0]); k.torch(x1, y + 2, z, [-1, 0]); }
 }
-const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves]);
+const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves, B.cracked_brick]);
 function spawnGrid(c, n = 10, margin = 3) {
   const { x0, z0, x1, z1, y } = c;
   for (let i = 0; i < n * 3 && c.spawns.length < n; i++) {
@@ -1063,6 +1063,7 @@ Object.assign(TEMPLATES, {
       const x = alongX ? u : t, z = alongX ? t : u;
       if (!free(c, x, z) || doorAisle(c, x, z, 3) || (u - (alongX ? x0 : z0)) % 7 === 5) continue;
       k.w.set(x, y, z, B.planks); k.w.set(x, y + 2, z, B.planks); k.w.set(x, y + 1, z, B.barrier);
+      (c.reserved ??= new Set()).add(x + ',' + z);   // no spawns on the shelves
       if (c.r() < 0.6) k.d.prop('gnome', x + 0.5, y + 1, z + 0.5, { rot: c.r() * 6, scale: 0.8, color: [0xd8322a, 0x2a6ad8, 0xffd84a][Math.floor(c.r() * 3)] });
       if (c.r() < 0.4) k.d.prop('gnome', x + 0.5, y + 3, z + 0.5, { rot: c.r() * 6, scale: 0.8 });
     }

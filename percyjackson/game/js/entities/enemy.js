@@ -118,6 +118,7 @@ export class Enemy {
   // A short cry for the kind of monster (wind-ups and reveals).
   voice() {
     const a = this.game.audio; if (!a || a.throttle?.('voice', 90)) return;
+    if (a.voiceSample?.(this.def.voice, this.def.pitch)) return;
     const p = this.def.pitch ?? 1;
     switch (this.def.voice) {
       case 'bark': a.tone({ freq: 260 * p, to: 140 * p, dur: 0.09, gain: 0.12, type: 'square', filter: 1400 }); a.tone({ freq: 240 * p, to: 120 * p, dur: 0.1, gain: 0.1, type: 'square', filter: 1400, at: 0.12 }); break;
