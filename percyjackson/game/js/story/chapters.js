@@ -13,6 +13,7 @@
 //   start     where the chapter starts in camp: an anchor in world/camp.js,
 //             an offset and a description of the place.
 //   prophecyLine  the line of the book's prophecy the chapter fulfils.
+//   bossDown  when the boss falls: { stinger (assets/music/<id>.mp3), text }.
 export const BOOKS = [
   { id: 'book1', num: 1, title: 'The Lightning Thief', card: 'assets/cards/book-1.jpg',
     prophecy: [
@@ -61,6 +62,7 @@ export const CHAPTERS = [
     biome: 'camp_woods', objective: 'flag', objText: 'Capture the red team’s banner', boss: 'hellhound_alpha', mist: 0.3, disguise: [],
     card: 'assets/cards/scene-capture-the-flag.jpg', prophecyLine: null, ready: false, pending: true,
     start: { at: 'woodsEdge', place: 'the edge of the woods, past the cabins' },
+    bossDown: { stinger: 'claimed', text: 'Everyone is staring above your head: a glowing green trident. You have been claimed.' },
     intro: [
       'Friday night is capture the flag. Blue team: Athena, Hermes and you. Red team: Ares, and Clarisse wants to pound you.',
       'Annabeth puts on her Yankees cap and vanishes. You get border patrol by the creek. Some plan.',
@@ -179,4 +181,8 @@ export const CHAPTERS = [
 ];
 
 export const chapter = (id) => CHAPTERS.find((c) => c.id === id);
+// Pending chapters can be tried before they are marked ready by opening the
+// game with `?pending` in the address (for play-testing them).
+export const previewPending = () => { try { return new URLSearchParams(globalThis.location?.search ?? '').has('pending'); } catch (e) { return false; } };
+export const chapterPlayable = (ch) => !!ch && (ch.ready || (!!ch.pending && previewPending()));
 export const chaptersOf = (bookId) => CHAPTERS.filter((c) => c.book === bookId);

@@ -416,9 +416,12 @@ export class Online {
   joinNear() {
     const g = this.game;
     const host = [...this.remote.values()].find((R) => !R.ai && R.uid === this.session?.hostUid) ?? [...this.remote.values()][0];
-    if (!host) return;
-    this.localHumans().forEach((p, i) => p.spawn(host.p.pos.clone().add(V3((i % 2 ? 1 : -1) * 1.4, 0.2, 1.2 + i * 0.4))));
-    g.rig.snap?.(host.p.pos);
+    const s = host?.track.newest();   // (where they really are: loading the level put every hero at the start)
+    if (!s) return;
+    const at = V3(s.x, s.y, s.z);
+    host.p.pos.copy(at);
+    this.localHumans().forEach((p, i) => p.spawn(at.clone().add(V3((i % 2 ? 1 : -1) * 1.4, 0.2, 1.2 + i * 0.4))));
+    g.rig.snap?.(at);
   }
   puppetizeMission() {
     const g = this.game, m = g.mission, self = this;

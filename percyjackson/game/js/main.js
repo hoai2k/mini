@@ -356,7 +356,7 @@ class Game {
   startChapter(id, difficulty = 1) {
     if (this.online.isGuest) { toast('The host chooses the chapter'); return; }
     const ch = chapterDef(id);
-    if (!ch || !ch.ready) { toast('That chapter is still being written'); return; }
+    if (!ch || !Mission.playable(ch)) { toast('That chapter is still being written'); return; }
     this.ui.closeAll();
     const go = () => { this.online.story?.(null); this.startMission(Mission.defForChapter(ch, difficulty)); };
     this.online.story?.(ch);   // net: guests see the story cards too
@@ -364,6 +364,7 @@ class Game {
     else go();
   }
   startMission(def) {
+    Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
     this.chapter = def.chapter ? chapterDef(def.chapter) : null;

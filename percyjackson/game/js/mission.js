@@ -24,8 +24,8 @@ import { ENEMY_TABLES } from './world/levelgen.js';
 import { OBJECTIVES } from './objectives/index.js';
 import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
 import { isGuest, sendAct } from './objectives/common.js';
-import { chapter as chapterDef } from './story/chapters.js';
-import { chapterMissionDef, resolveBoss } from './story/missionDef.js';
+import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
+import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
 
 const OBJ_TEXT = {
   exorcise: (o) => ['Defeat the Monsters', `${o.done} / ${o.need} monsters defeated`],
@@ -57,6 +57,15 @@ export class Mission {
   // The mission definition for a chapter (biome and boss fall back to
   // built ones while a chapter's own are still being made).
   static defForChapter(ch, difficulty = 1) { return chapterMissionDef(ch, difficulty); }
+  // Can this chapter be started (ready, or pending with `?pending`)?
+  static playable(ch) { return chapterPlayable(ch); }
+  // Any mission definition (a retry, the host's setup online): a biome or
+  // boss that isn't built falls back to one that is.
+  static resolveDef(def) {
+    if (def.biome) def.biome = resolveBiome(def.biome);
+    if (def.boss) def.boss = resolveBoss(def.boss);
+    return def;
+  }
   setup() {
     const g = this.game, L = this.L;
     const H = OBJECTIVES[this.obj.type];
@@ -150,7 +159,11 @@ export class Mission {
     const g = this.game;
     toast(this.itemStyle === 'statue' ? 'Aunty Em’s servants come running!' : this.itemStyle === 'rift' ? 'The dead pour out of the rift!' : this.itemStyle === 'trap' ? 'The spiders swarm out to defend it!' : 'Monsters come to guard it!');
     const kinds = this.L.enemyKinds?.length ? this.L.enemyKinds : ['pup'];
-    for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2; const p = it.pos.clone().add(new THREE.Vector3(Math.cos(a) * 5, 0, Math.sin(a) * 5)); const gy = g.world.groundBelow(p.x, p.z, p.y + 3); if (!isFinite(gy)) continue; p.y = gy; g.spawnEnemy(kinds[i % kinds.length], p, { level: this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a); }
+    for (let i = 0; i < 4; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const p = this.standAt(it.pos.x + Math.cos(a) * 5, it.pos.y, it.pos.z + Math.sin(a) * 5) ?? this.standAt(it.pos.x + Math.cos(a) * 2.5, it.pos.y, it.pos.z + Math.sin(a) * 2.5) ?? it.pos.clone();
+      g.spawnEnemy(kinds[i % kinds.length], p, { level: this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a);
+    }
   }
   makeChest(c) {
     const g = this.game;
@@ -222,14 +235,38 @@ export class Mission {
     for (const gate of this.L.gates) this.openGate(gate);
     this.updateText();
   }
+  // Opens a gate a block at a time; `gate.opened` once the last is gone.
   openGate(gate) {
     const g = this.game;
     if (gate.open) return;
-    gate.open = true;
+    gate.open = true; gate.opened = false;
+    this.clearGateTimers(gate);
     let i = 0;
     for (const [x, y, z] of gate.blocks) {
-      setTimeout(() => { g.world.set(x, y, z, 0); g.particles.burst(new THREE.Vector3(x + 0.5, y + 0.5, z + 0.5), { count: 6, color: 0x5ad8ff, speed: 3, life: 0.6, size: 0.2 }); }, (i++) * 25);
+      gate.timers.push(setTimeout(() => { if (!gate.open) return; g.world.set(x, y, z, 0); g.particles.burst(new THREE.Vector3(x + 0.5, y + 0.5, z + 0.5), { count: 6, color: 0x5ad8ff, speed: 3, life: 0.6, size: 0.2 }); }, (i++) * 25));
     }
+    gate.timers.push(setTimeout(() => { if (gate.open) gate.opened = true; gate.timers = []; }, i * 25 + 10));
+  }
+  clearGateTimers(gate) { for (const t of gate.timers ?? []) clearTimeout(t); gate.timers = []; }
+  sealGates() {
+    const g = this.game;
+    for (const gate of this.L.gates) { this.clearGateTimers(gate); gate.open = false; gate.opened = false; for (const [x, y, z] of gate.blocks) g.world.set(x, y, z, B.blue_energy); }
+  }
+  // Heroes on this screen left outside the boss arena when it seals are
+  // brought in (they'd be shut out of the fight otherwise).
+  pullIntoArena(room) {
+    const g = this.game, inside = (p) => p.pos.x >= room.x0 && p.pos.x <= room.x1 + 1 && p.pos.z >= room.z0 && p.pos.z <= room.z1 + 1;
+    const list = room.spawns?.length ? room.spawns : [[room.center.x, room.y, room.center.z]];
+    const boss = this.boss?.pos ?? room.center;
+    const far = list.slice().sort((a, b) => Math.hypot(b[0] - boss.x, b[2] - boss.z) - Math.hypot(a[0] - boss.x, a[2] - boss.z));
+    let n = 0;
+    for (const p of g.players) {
+      if (p.remote || p.dead || p.removed || inside(p)) continue;
+      const sp = far[n % far.length], k = Math.floor(n / far.length);
+      const at = this.standAt(sp[0] + k * 0.8, sp[1], sp[2]) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
+      p.spawn(at); g.fx?.summonCircle?.(at, 0x5ad8ff); n++;
+    }
+    if (n) toast('The arena seals: your friends are pulled inside');
   }
   // ---------------------------------------------------------------- per frame
   update(dt) {
@@ -243,7 +280,7 @@ export class Mission {
         if (alive <= 1 && room.waveT <= 0) { this.spawnWave(room); }
         room.waveT -= dt;
       }
-      if (room.type === 'boss' && inside && this.objDone && !this.bossSpawned && this.def.boss && this.handler?.autoBoss !== false) {
+      if (room.type === 'boss' && inside && this.objDone && !this.bossSpawned && this.def.boss && this.handler?.autoBoss !== false && L.gates.every((gt) => gt.opened)) {
         const all = g.players.filter((p) => !p.dead).every((p) => p.pos.x >= room.x0 && p.pos.x <= room.x1 && p.pos.z >= room.z0 && p.pos.z <= room.z1);
         if (all || this.bossWaitT > 4) this.startBoss(room);
         this.bossWaitT = (this.bossWaitT ?? 0) + dt;
@@ -257,6 +294,7 @@ export class Mission {
       // a long hold brings a second wave halfway through
       if (it.inter && it.inter.hold >= 3 && (it.inter.progress ?? 0) > 0.5) this.guardWave(it, 2);
     }
+    if (isGuest(this) && this.bossSpawned && !this.pulled && this.handler?.autoBoss !== false && L.gates.length && L.gates.every((gt) => !gt.open)) { this.pulled = true; this.pullIntoArena(L.bossRoom); }
     if (this.failed || this.complete) return;
     this.handler?.update?.(dt);
     if (this.disguisedBoss && !this.disguisedBoss.disguised && !this.revealedBoss) this.revealDisguisedBoss();
@@ -274,25 +312,42 @@ export class Mission {
     room.waveT = 2.5;
     const spots = room.spawns.length ? room.spawns : [[room.center.x, room.center.y, room.center.z]];
     const cap = g.gr.preset.enemyCap;
+    // Over the enemy cap, the rest of the wave waits for the next one (so a
+    // room's kill total can always be met).
+    const later = [];
     wave.forEach((s, i) => {
-      if (g.enemies.filter((e) => !e.dead).length >= cap) return;
+      if (g.enemies.filter((e) => !e.dead && !e.isDummy).length >= cap) { later.push(s); return; }
       const sp = spots[(i * 7 + room.waveIdx * 3) % spots.length];
-      const pos = new THREE.Vector3(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5);
-      const gy = g.world.groundBelow(pos.x, pos.z, pos.y + 3); if (!isFinite(gy)) return; pos.y = gy;
+      // search from just above the spawn's floor, so nothing lands on a roof
+      const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
       // in the Mist some monsters are walking about disguised as mortals
       const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
       const disguise = !s.elite && kinds.length && Math.random() < mist * 0.55 ? kinds[Math.floor(Math.random() * kinds.length)] : null;
       const e = g.spawnEnemy(s.kind, pos, { elite: s.elite, level: this.def.difficulty, disguise });
-      if (e) { room.enemies.push(e); if (!e.disguised) g.fx.summonCircle(pos, e.elite ? 0xff9aff : 0xffc84a); }
+      if (e) { room.enemies.push(e); if (!e.disguised) g.fx.summonCircle(pos, e.elite ? 0xff9aff : 0xffc84a); } else later.push(s);
     });
+    if (later.length) {
+      if (room.waveIdx < room.waves.length) room.waves[room.waveIdx] = [...later, ...room.waves[room.waveIdx]];
+      else room.waves.push(later);
+      room.waveT = Math.max(room.waveT, 4);
+    }
     g.audio?.energy('summon');
+  }
+  // Open floor at (x, z) found from just above `floorY` (a spawn's floor),
+  // or null if that's a pit, inside a wall or more than two blocks off.
+  standAt(x, floorY, z) {
+    const w = this.game.world;
+    const gy = w.groundBelow(x, z, floorY + 1.5);
+    if (!isFinite(gy) || Math.abs(gy - floorY) > 2 || w.solidAt(x, gy + 0.5, z) || w.solidAt(x, gy + 1.5, z)) return null;
+    return new THREE.Vector3(x, gy, z);
   }
   startBoss(room, at = null) {
     const g = this.game;
     if (this.bossSpawned) return;
     this.bossSpawned = true;
-    // seal the arena behind the players
-    for (const gate of this.L.gates) { gate.open = false; for (const [x, y, z] of gate.blocks) g.world.set(x, y, z, B.blue_energy); }
+    // seal the arena behind the players (an arena boss: bring stragglers in)
+    this.sealGates();
+    if (!at && room === this.L.bossRoom) this.pullIntoArena(room);
     const sp = room.spawns?.[0] ?? [room.center.x, room.y, room.center.z];
     const pos = at ? at.clone() : new THREE.Vector3(sp[0], sp[1], sp[2]);
     // In the thickest Mist the boss waits in disguise until someone sees it.
@@ -341,6 +396,9 @@ export class Mission {
     const g = this.game;
     g.pickups.drop('coin', boss.pos, 40, 1);
     g.pickups.drop('heal', boss.pos, 3);
+    // a moment of the story as the boss falls (chapter 3: Percy is claimed)
+    const down = this.ch?.bossDown;
+    if (down) setTimeout(() => { if (g.mission !== this) return; if (down.stinger) g.audio?.stinger?.(down.stinger); if (down.text) toast(down.text, 'big'); }, 1200);
     setTimeout(() => {
       // exit torii + reward chest
       const exit = boss.home.clone();
@@ -389,5 +447,5 @@ export class Mission {
     if (d.a === 'wave') { const it = this.obj.items[d.i | 0]; if (it) this.guardWave(it, d.s === 2 ? 2 : 1); return; }
     this.handler?.onNetAct?.(d);
   }
-  dispose() { this.handler?.dispose?.(); for (const p of this.props) this.game.scene.remove(p); }
+  dispose() { for (const gate of this.L.gates) this.clearGateTimers(gate); this.handler?.dispose?.(); for (const p of this.props) this.game.scene.remove(p); }
 }

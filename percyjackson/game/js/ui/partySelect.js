@@ -48,13 +48,13 @@ export function openSelect(game) {
     comps[j] = opts[(i + dir + opts.length) % opts.length]; compsAuto = false; game.audio?.ui('move'); redraw();
   };
   // profiles: the ones nobody else on this screen is using, then "a new one"
-  const profName = (s) => P.profile(s.prof)?.name ?? 'Player';
+  const profName = (s) => (s.prof === 'new' ? 'New profile' : P.profile(s.prof)?.name ?? 'Player');
   const cycleProfile = (s) => {
     const used = new Set(slots.filter((x) => x !== s).map((x) => x.prof));
     const opts = [...P.list().map((p) => p.id).filter((id) => !used.has(id)), 'new'];
     const i = opts.indexOf(s.prof);
     const next = opts[(i + 1) % opts.length];
-    s.prof = next === 'new' ? P.create().id : next;
+    s.prof = next;   // ('new' is made when the quest begins)
     s.ready = false; game.audio?.ui('move'); redraw();
   };
   const back = () => { ui.close('select'); game.exitSelectView?.(); if (game.toTitle) game.toTitle(); else import('./title.js').then((m) => m.openTitle(game)); };
@@ -63,7 +63,7 @@ export function openSelect(game) {
     game.save.data.lastHero = heroOf(slots[0]); game.save.write();
     game.exitSelectView?.();
     const companions = comps.slice(0, compRows()).filter(Boolean);
-    game.beginSession(slots.map((s) => ({ device: s.device, hero: heroOf(s), profile: s.prof })), { companions });
+    game.beginSession(slots.map((s) => ({ device: s.device, hero: heroOf(s), profile: s.prof === 'new' ? P.create().id : s.prof })), { companions });
     if (online) import('../net/lobby.js').then((m) => m.openOnline(game));
   };
   const join = (device) => {
@@ -72,8 +72,7 @@ export function openSelect(game) {
     const c = ids.findIndex((x) => !used.has(x));
     const usedProf = new Set(slots.map((s) => s.prof));
     let prof = P.slotDefault(slots.length);
-    if (usedProf.has(prof.id)) prof = P.create();
-    slots.push({ device, char: c < 0 ? slots.length % ids.length : c, ready: false, row: 0, prof: prof.id });
+    slots.push({ device, char: c < 0 ? slots.length % ids.length : c, ready: false, row: 0, prof: usedProf.has(prof.id) ? 'new' : prof.id });
     fixComps(); slots[0].row = Math.min(slots[0].row, compRows());
     game.audio?.ui('buy'); view(); redraw();
   };
@@ -112,7 +111,7 @@ export function openSelect(game) {
         continue;
       }
       const id = heroOf(s), info = HEROES[id];
-      const prof = P.profile(s.prof);
+      const prof = s.prof === 'new' ? null : P.profile(s.prof);
       cards.appendChild(h('div', { class: 'slot joined' + (s.ready ? ' ready' : ''), style: `--pc:${pc};--hc:${info.color}` },
         h('div', { class: 'pn' }, `Player ${i + 1} · ${devName(s.device)}`),
         h('button', { class: 'linkbtn prof', title: 'Profile: saved progress (X on a controller to change)', 'aria-label': `Profile ${profName(s)}, change`, onclick: () => cycleProfile(s) }, `👤 ${profName(s)} · Lv ${prof?.data.level ?? 1} ⟳`),
