@@ -19,7 +19,9 @@ for (const f of sourceFiles) {
   }
 }
 const manifest = JSON.parse(readFileSync(join(root, 'assets', 'manifest.json'), 'utf8'));
-const source = sourceFiles.map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
+// The game's own code: src/gate/ is the shared invite door, kept byte-identical
+// to the other games' copies, so its strings are not game asset or sound ids.
+const source = sourceFiles.filter((f) => !f.startsWith('gate')).map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
 for (const a of manifest.assets.filter((x) => x.runtime !== false && (x.status === 'stand-in' || x.status === 'delivered' || x.status === 'regenerate'))) {
   // Ids are used literally or as `prefix-${...}` templates (sky-*, card-*).
   const prefix = a.id.split('-')[0];
