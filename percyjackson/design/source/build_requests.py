@@ -419,8 +419,403 @@ REQUESTS: list[dict] = [
 ]
 
 
+# ---- Round 2: the game itself, in the blocky style of Minecraft Dungeons.
+# The heroes and monsters are built in code as blocky models, so these sheets
+# are what the models are made from. Heroes first.
+GAME = ROOT.parent / "game" / "assets"
+
+VOXEL_STYLE = (
+    "3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, "
+    "with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a "
+    "pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and "
+    "legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky "
+    "readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic "
+    "effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. "
+    + PALETTE
+)
+
+TURNAROUND = (
+    "A 3D character turnaround sheet on a flat light-grey background: the same blocky character "
+    "seen from the front, from the side (facing right), from behind, and from above at the "
+    "high three-quarter angle of an isometric game camera, all at the same scale in a neutral "
+    "standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 "
+    "pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast "
+    "shadow."
+)
+
+TYSON = (
+    "Tyson, a young Cyclops and Percy's half-brother: a gentle giant who looks about fifteen but "
+    "is twice Percy's bulk and a head taller, one huge warm brown eye in the middle of his "
+    "forehead, shaggy brown hair, a big crooked grin, a ragged flannel shirt and torn jeans, "
+    "enormous hands; a wristwatch that springs open into a round bronze shield; childlike and "
+    "kind"
+)
+CLARISSE = (
+    "Clarisse La Rue, thirteen, daughter of Ares: tall and tough, a stringy brown ponytail, a "
+    "fierce scowl, a camouflage jacket over the orange camp shirt, combat boots, a bronze "
+    "helmet with a red plume, an electric spear crackling at the tip and a round shield with a "
+    "boar's head"
+)
+THALIA = (
+    "Thalia Grace, fifteen, daughter of Zeus: spiky black punk hair, electric-blue eyes, "
+    "freckles, a black leather jacket with silver buttons, a black T-shirt, black jeans and "
+    "boots, a silver bracelet that springs open into a round bronze shield with a frightening "
+    "face on it, and a bronze spear trailing sparks"
+)
+NICO = (
+    "Nico di Angelo, about eleven, son of Hades: small, pale, messy black hair, dark solemn "
+    "eyes, an oversized aviator jacket over a black T-shirt, a silver skull ring, and a short "
+    "sword of black Stygian iron that seems to drink the light; a cloud of shadow around his "
+    "feet"
+)
+
+
+def vox_hero(id_: str, title: str, who: str, extra: str, refs: list[str], use: str) -> dict:
+    return {
+        "id": id_, "group": "Round 2 · Heroes in 3D (generate these first)", "title": title,
+        "size": "2400 × 1600", "references": ["vox-key", *refs], "use": use,
+        "prompt": f"{who}. {extra} {TURNAROUND} {VOXEL_STYLE} {NO_TEXT}",
+    }
+
+
+REQUESTS += [
+    {
+        "id": "char-heroes-2",
+        "group": "Round 2 · Heroes in 3D (generate these first)",
+        "title": "New heroes in the cartoon style: Tyson, Thalia and Nico",
+        "size": "2400 × 1600",
+        "references": ["key-art", "char-percy", "char-camp"],
+        "use": "Fixes the three new playable heroes before their 3D sheets and hero cards.",
+        "prompt": (
+            f"A line-up model sheet of three heroes at the same scale, each front-on and "
+            f"three-quarter, with small head studies underneath: {TYSON}; {THALIA}; {NICO}. "
+            f"Flat parchment-cream background, no cast shadow. {CHARACTER_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-key",
+        "group": "Round 2 · Heroes in 3D (generate these first)",
+        "title": "Style key in 3D: the heroes at Camp Half-Blood",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-annabeth", "char-grover", "map-camp"],
+        "use": "Fixes the 3D look. Attach it to every later round-2 request.",
+        "prompt": (
+            f"A gameplay-style screenshot seen from a high isometric three-quarter camera: Percy, "
+            f"Annabeth and Grover as blocky voxel heroes crossing the green of Camp Half-Blood "
+            f"between blocky cabins (Poseidon's sea-stone cabin with shells, Athena's grey cabin "
+            f"with an owl, Ares's red cabin), the blue Big House farmhouse behind, pine trees, a "
+            f"strawberry field and the lake glittering. {PERCY}; {ANNABETH}; {GROVER}. Percy swings "
+            f"Riptide at a training dummy with a small splash of water, Annabeth studies a map, "
+            f"Grover plays his pipes and blocky flowers sprout. A few campers in orange shirts. "
+            f"{VOXEL_STYLE} No interface. {NO_TEXT}"
+        ),
+    },
+    vox_hero("vox-percy", "Percy in 3D", PERCY,
+             "Props: Riptide as a sword (bronze, leaf-shaped blade) and as a capped pen; a blocky "
+             "swirl of water around one hand.", ["char-percy"], "Model for the main hero."),
+    vox_hero("vox-annabeth", "Annabeth in 3D", ANNABETH,
+             "Also show her battle gear: a bronze breastplate and a bronze helmet with a grey "
+             "horsehair crest, and one figure half-transparent to show the cap's invisibility. "
+             "Props: the bronze dagger, the cap.", ["char-annabeth"], "Model for a playable hero."),
+    vox_hero("vox-grover", "Grover in 3D", GROVER,
+             "Show him with his goat legs and small horns showing (as in camp and in battle), plus "
+             "one figure in disguise with jeans and fake sneakers. Props: reed pipes, winged "
+             "sneakers with small white wings, a tin can.", ["char-grover"],
+             "Model for a playable hero."),
+    vox_hero("vox-tyson", "Tyson in 3D", TYSON,
+             "Noticeably bigger and bulkier than the other heroes (show Percy's outline beside him "
+             "for scale). Props: the watch and the open shield, a forge hammer, a jar of peanut "
+             "butter.", ["char-heroes-2"], "Model for a playable hero (the big brawler)."),
+    vox_hero("vox-clarisse", "Clarisse in 3D", CLARISSE,
+             "Props: the electric spear, the boar shield, the plumed helmet.", ["char-camp"],
+             "Model for a playable hero."),
+    vox_hero("vox-thalia", "Thalia in 3D", THALIA,
+             "Props: the spear, the bracelet and the open shield; a few blocky blue sparks around "
+             "her.", ["char-heroes-2"], "Model for a playable hero."),
+    vox_hero("vox-nico", "Nico in 3D", NICO,
+             "Props: the black sword, the skull ring; blocky shadow wisps.", ["char-heroes-2"],
+             "Model for a playable hero."),
+    {
+        "id": "vox-npcs",
+        "group": "Round 2 · Characters and monsters in 3D",
+        "title": "Camp, family and the gods' messengers in 3D",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "char-camp", "char-gods"],
+        "use": "Models for the people in the hub and the story.",
+        "prompt": (
+            f"A line-up of blocky voxel characters at the same scale, each seen front-on and from "
+            f"the high three-quarter game angle: {CHIRON}, also shown as Mr. Brunner, a teacher in "
+            f"a tweed jacket in a motorised wheelchair; Mr. D (Dionysus) in a leopard-print "
+            f"Hawaiian shirt with a can of diet cola; Luke, the sandy-haired counsellor with a scar "
+            f"down his cheek; Sally Jackson, Percy's warm, tired mother in a sweet-shop uniform; "
+            f"Argus, the camp security chief, a big blond man covered in blue eyes; Mrs. Dodds, a "
+            f"sour maths teacher in a leather jacket; and Poseidon in his Hawaiian shirt with the "
+            f"trident. {VOXEL_STYLE} Flat light-grey background, no cast shadow. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-enemies",
+        "group": "Round 2 · Characters and monsters in 3D",
+        "title": "Monsters in 3D: the common and elite enemies",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "char-monsters"],
+        "use": "Models for the enemies fought in every chapter, weakest first.",
+        "prompt": (
+            "A bestiary sheet of blocky voxel monsters, each at its in-game scale beside a small "
+            "Percy outline, in rows from weakest to strongest, each seen front-on and from the high "
+            "three-quarter game angle. Minor: a hellhound pup (a black dog with glowing red eyes); "
+            "a bronze mechanical spider (Hephaestus's automaton) the size of a dog; a Stymphalian "
+            "bird with bronze feathers; a telekhine (a sleek seal-bodied, dog-faced sea demon). "
+            "Elite: a full-size hellhound as big as a truck; a dracaena (a snake-woman with two "
+            "snake tails for legs, armour and a spear); a Laistrygonian giant (a huge, tattooed, "
+            "cannibal giant carrying a flaming bronze ball); a skeleton warrior in modern combat "
+            "gear; an empousa (a pretty cheerleader with flaming hair, one bronze leg and one "
+            "donkey leg); and a Fury (a leathery-winged hag with a flaming whip). Dramatic and fun "
+            f"for ages 8 to 14, never gory. {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-bosses-1",
+        "group": "Round 2 · Characters and monsters in 3D",
+        "title": "Bosses of The Lightning Thief in 3D",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "char-monsters", "char-gods"],
+        "use": "Models for the first book's bosses.",
+        "prompt": (
+            "A boss sheet of blocky voxel monsters, each much bigger than a small Percy outline "
+            "beside it, seen from the high three-quarter game angle with one attack pose each: the "
+            "Minotaur (a towering bull-headed giant in white briefs, glowing red eyes); Medusa "
+            "(veiled in black, writhing snake hair glimpsed under the veil, her face never shown); "
+            "the Chimera (a lion-headed beast with a goat body and a rattlesnake tail, breathing "
+            "fire) with Echidna, a sweet old lady with a reptile glint; Procrustes (a big, smooth "
+            "salesman with two stretching beds); Cerberus (a gigantic three-headed black dog); and "
+            "Ares (a huge biker in a black leather jacket with fiery sunglasses and a burning "
+            f"sword). {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-bosses-2",
+        "group": "Round 2 · Characters and monsters in 3D",
+        "title": "Bosses of the later books in 3D",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-bosses-1"],
+        "use": "Models for the bosses of books two to five.",
+        "prompt": (
+            "A boss sheet of blocky voxel monsters from the later Percy Jackson books, each much "
+            "bigger than a small Percy outline beside it, from the high three-quarter game angle: "
+            "Polyphemus (a huge, ugly one-eyed Cyclops shepherd in a wedding-dress-like kilt); "
+            "Scylla (a six-headed sea monster rising from a cliff); the Manticore (a lion's body, "
+            "a man's head and a spiked scorpion tail that fires spines); the Nemean Lion "
+            "(golden, armoured with an impenetrable pelt); Talos (a giant bronze automaton warrior "
+            "in a junkyard); Kampê (a woman's upper body over a dragon's lower body with "
+            "snake legs, animal heads at her waist and two scimitars of poison); Antaeus (a giant "
+            "wrestler who heals while touching the ground); and Kronos (a young man with golden "
+            "eyes and a scythe with a blade of half bronze, half steel). Dramatic and fun for ages "
+            f"8 to 14, never gory. {VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-camp",
+        "group": "Round 2 · Places in 3D",
+        "title": "Camp Half-Blood in 3D: the home base",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "map-camp"],
+        "use": "Layout and look of the hub where the minigames are.",
+        "prompt": (
+            "An isometric bird's-eye view of Camp Half-Blood built from blocks, like a level of "
+            "Minecraft Dungeons, showing everything the home base needs: Half-Blood Hill with its "
+            "pine tree and the camp border; the blue Big House with its porch (the chapter map "
+            "lives here) and the Oracle's attic window; the twelve cabins in a U around the green; "
+            "the open-air dining pavilion of white columns; the amphitheatre with a campfire; the "
+            "archery range with targets; the climbing wall pouring blocky lava; the canoe lake; the "
+            "chariot track; the arena; the forge with a chimney; the camp store; the stables of "
+            "pegasi; the strawberry fields; the woods and the creek for capture the flag. Small "
+            f"blocky campers everywhere. {VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-mist-true",
+        "group": "Round 2 · Places in 3D",
+        "title": "The Mist and True Sight: the same museum room twice",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "scene-museum", "vox-percy"],
+        "use": "How the world changes when a hero sees through the Mist.",
+        "prompt": (
+            "A split-screen gameplay concept of the same museum gallery from the high isometric "
+            "game camera, divided by a jagged glowing seam of golden mist. Left half, the Mist "
+            "(what mortals see): an ordinary, slightly dull blocky museum room in beige and grey, "
+            "glass cases, a field-trip class, and Mrs. Dodds as a sour maths teacher. Right half, "
+            "True Sight: the same room transformed into the ornamental world, its blocks overlaid "
+            "with gold Greek-key patterns and vase friezes on deep teal and navy, the vases in the "
+            "cases come alive, a hidden doorway glows in the wall, and Mrs. Dodds is revealed as a "
+            "leathery-winged Fury with a flaming whip diving at blocky Percy, who holds up Riptide. "
+            f"{VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-hud",
+        "group": "Round 2 · Places in 3D",
+        "title": "In-game mock-up with the interface",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "ui-hero-cards", "vox-percy", "vox-annabeth", "vox-grover"],
+        "use": "Layout of the heads-up display.",
+        "prompt": (
+            "A gameplay screenshot mock-up from the high isometric camera: Percy, Annabeth and "
+            "Grover as blocky heroes fighting hellhounds on a highway at dusk. Interface in the "
+            "ornamental black-and-gold style: bottom left, the active hero's portrait in a round "
+            "gold frame with a wave-scroll health bar, a lightning-bolt power meter and four ability "
+            "roundels; small portraits of the other two heroes beside it for switching; top right, "
+            "a minimap in a Greek-key frame and a counter of golden drachmas; top centre, a "
+            "parchment banner for the objective; on the left edge a prophecy scroll with one line "
+            "glowing; a round eye-shaped True Sight meter. Readable, uncluttered. "
+            f"{VOXEL_STYLE} Use blank bars and roundels in place of any writing. {NO_TEXT}"
+        ),
+    },
+    # ---- Game art: these files are loaded by the game itself.
+    {
+        "id": "logo",
+        "group": "Round 2 · Game art (loaded by the game)",
+        "title": "Title logo: Half-Blood Quests",
+        "size": "2048 × 1024",
+        "dest": "game",
+        "references": ["key-art", "ui-hero-cards"],
+        "use": "Title screen and loading screen. The magenta is keyed out.",
+        "prompt": (
+            "A video-game title logo reading exactly \"HALF-BLOOD QUESTS\" on two lines (HALF-BLOOD "
+            "above, QUESTS below and larger), in bold chiselled Greek-inspired capitals of "
+            "celestial bronze and gold with a black outline and a subtle bevel, a small trident "
+            "crossing behind the letters, a thin Greek-key band and a lightning bolt as accents. "
+            "Centred, with generous space around it, on a perfectly flat solid magenta #FF00FF "
+            "background with no gradient, shadow or texture, so the background can be removed. The "
+            "letters must be spelled exactly and be clearly readable. No other text."
+        ),
+    },
+    {
+        "id": "title-bg",
+        "group": "Round 2 · Game art (loaded by the game)",
+        "title": "Title screen background",
+        "size": "2560 × 1440",
+        "dest": "game",
+        "references": ["vox-key", "key-art", "vox-percy", "vox-annabeth", "vox-grover"],
+        "use": "Behind the logo on the title screen; the top third stays calm for the logo.",
+        "prompt": (
+            "A cinematic 3D scene in the blocky voxel style: Half-Blood Hill at dusk seen from a low "
+            "angle, the lone pine tree at the crest, blocky Percy, Annabeth, Grover and Tyson "
+            "silhouetted along the ridge with Riptide glowing, Camp Half-Blood's lights below and "
+            "a stormy sky with stylised lightning above. The upper third is a calm, darker sky "
+            "with room for a title logo; the heroes sit in the lower half. Framed with a subtle "
+            f"ornamental gold Greek-key border. {VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "ui-hero-cards-2",
+        "group": "Round 2 · Game art (loaded by the game)",
+        "title": "Hero cards for Tyson, Clarisse, Thalia and Nico",
+        "size": "2560 × 1440",
+        "dest": "game",
+        "references": ["ui-hero-cards", "char-heroes-2", "char-camp"],
+        "use": "Hero-select cards matching the first three.",
+        "prompt": (
+            "Four tall character-select cards side by side on deep navy, in exactly the style of "
+            "the first three hero cards: each an ornate black-and-gold frame built from its hero's "
+            f"parent emblems, with the hero inside in a dynamic cartoon pose. {TYSON}, framed with "
+            f"tridents, anvils and hammers. {CLARISSE}, framed with spears, boars and vultures. "
+            f"{THALIA}, framed with lightning bolts, eagles and oak leaves. {NICO}, framed with "
+            f"skulls, cypress branches and a helm. Equal size and spacing so they can be cut apart. "
+            f"{CHARACTER_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-bus",
+        "group": "Round 2 · Chapter cards (the ornamental 2D style)",
+        "title": "The three Kindly Ones on the bus",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-annabeth", "char-grover", "char-monsters"],
+        "use": "Card for the chapter on the Greyhound bus.",
+        "prompt": (
+            f"A rainy New Jersey highway at night. Inside a Greyhound bus, three old ladies in "
+            f"velvet coats and lace hats rise from their seats as they turn into leathery-winged "
+            f"Furies with flaming whips; {PERCY} uncaps Riptide in the aisle, {ANNABETH} pulls on "
+            f"her cap and fades out, and {GROVER} fumbles with a tin can as the bus swerves toward "
+            f"the trees. Headlights and lightning as gold ornament. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-waterland",
+        "group": "Round 2 · Chapter cards (the ornamental 2D style)",
+        "title": "Waterland: the Tunnel of Love trap",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-annabeth", "char-grover"],
+        "use": "Card for the chapter in the abandoned water park.",
+        "prompt": (
+            f"An abandoned water park in Denver at night, built by Hephaestus: rusted slides, a "
+            f"tunnel-of-love boat ride shaped like a giant heart, and a swan boat in which "
+            f"{PERCY} and {ANNABETH} sit while hundreds of bronze mechanical spiders pour from the "
+            f"walls and a golden net hangs above them, cameras flashing; {GROVER} watches from the "
+            f"control booth. Bronze, teal and coral with gold linework. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-procrustes",
+        "group": "Round 2 · Chapter cards (the ornamental 2D style)",
+        "title": "Crusty's Water Bed Palace",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-annabeth", "char-grover", "char-monsters"],
+        "use": "Card for the chapter with Procrustes.",
+        "prompt": (
+            f"A tacky desert waterbed showroom in Nevada: rows of heart-shaped and swan-shaped "
+            f"waterbeds, gold-flecked wallpaper. Procrustes, a huge smooth salesman in a silk "
+            f"shirt with a big axe hidden behind his back, beams at the heroes, while {ANNABETH} "
+            f"and {GROVER} are already strapped to beds that stretch them; {PERCY} feigns interest, "
+            f"planning to trick him onto his own bed. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    *[
+        {
+            "id": f"book-{n}",
+            "group": "Round 2 · Chapter cards (the ornamental 2D style)",
+            "title": title,
+            "size": "1600 × 2400",
+            "references": ["key-art", "char-percy", "char-annabeth"],
+            "use": "Portrait cover card for this book on the chapter map.",
+            "prompt": (
+                f"A portrait book-cover-style card for the game, for the Percy Jackson book "
+                f"{title}: {scene} Ornate black-and-gold Greek-key frame with an empty cartouche "
+                f"at the top. {WORLD_STYLE} {NO_TEXT}"
+            ),
+        }
+        for n, title, scene in [
+            ("1", "The Lightning Thief",
+             "Percy rising from a curling teal wave holding Riptide, lightning cracking above the "
+             "New York skyline, a golden master bolt glowing in the clouds."),
+            ("2", "The Sea of Monsters",
+             "Percy, Annabeth and Tyson on the deck of a small ship among enormous ornamental waves, "
+             "the whirlpool Charybdis and the many-headed Scylla on either side, a golden fleece "
+             "glinting on a distant island."),
+            ("3", "The Titan's Curse",
+             "Percy, Thalia and Annabeth on a snowy mountain with silver-clad Hunters of Artemis and "
+             "their silver bows, the moon huge behind them, a Titan holding up the sky in the "
+             "distance."),
+            ("4", "The Battle of the Labyrinth",
+             "Percy and Annabeth in a shifting stone maze drawn as a Greek-key labyrinth, a "
+             "glowing Δ sign on the wall, Daedalus's bronze wings and workshop gears around them."),
+            ("5", "The Last Olympian",
+             "Percy, Annabeth, Thalia, Nico, Grover, Tyson and Clarisse defending Manhattan on a "
+             "bridge against a Titan army, the Empire State Building with Olympus glowing above, "
+             "the storm giant Typhon on the horizon."),
+        ]
+    ],
+]
+
+
+def path_for(item: dict) -> Path:
+    if item.get("dest") == "game":
+        return GAME / f"{item['id']}.png"
+    return CONCEPT / f"{item['id']}.png"
+
+
 def status(item: dict) -> str:
-    return "delivered" if (CONCEPT / f"{item['id']}.png").is_file() else "requested"
+    return "delivered" if path_for(item).is_file() else "requested"
 
 
 def build() -> str:
@@ -429,7 +824,7 @@ def build() -> str:
         "",
         "<!-- Generated by design/source/build_requests.py; edit the data there. -->",
         "",
-        "Concept art for a game of *The Lightning Thief*, in the chosen direction:",
+        "Concept art for a game of *The Lightning Thief* and the later books, in the chosen direction:",
         "**cartoon heroes in an ornamental world**. The heroes are clean, bright cartoon",
         "characters; the world, maps and interface are flat decorative illustration in",
         "the manner of Greek vases, with black-and-gold frames. See",
@@ -448,6 +843,23 @@ def build() -> str:
         "3. Save each image as `<id>.png` (for example `char-percy.png`) and drop it in",
         "   [`../intake/`](../intake/README.md). On integration it moves to",
         "   `design/concept/` and this document is rebuilt.",
+        "",
+        "### Round 2: the game in 3D",
+        "",
+        "The game is built in the blocky 3D style of Minecraft Dungeons (see",
+        "[the game design](game-design.md)). The round-2 sheets are what the blocky",
+        "hero and monster models are built from, so generate them in this order:",
+        "",
+        "1. `char-heroes-2` (the new heroes in the cartoon style) and `vox-key` (the 3D",
+        "   look; attach it to every later round-2 request).",
+        "2. The seven hero sheets, `vox-percy` to `vox-nico`. These come first because",
+        "   the hero models are built from them.",
+        "3. The monster and character sheets, then the places.",
+        "4. The game art (`logo`, `title-bg`, `ui-hero-cards-2`) and the chapter cards",
+        "   whenever convenient; the game draws stand-ins until they arrive.",
+        "",
+        "Concept sheets land in `design/concept/`; files marked as game art land in",
+        "`game/assets/`. Drop either kind in the intake folder.",
         "",
         "Every prompt includes the shared style and palette, so each can be pasted as it",
         "is. Prompts describe the look rather than naming any artist, and the characters",
@@ -478,7 +890,7 @@ def build() -> str:
             "",
             f"#### `{item['id']}` — {item['title']}",
             "",
-            f"- **File:** `{item['id']}.png`, {item['size']} px",
+            f"- **File:** `{item['id']}.png`, {item['size']} px, delivered to `{path_for(item).relative_to(ROOT.parent)}`",
             f"- **References:** {refs}",
             f"- **Use:** {item['use']}",
             f"- **Status:** {status(item)}",
