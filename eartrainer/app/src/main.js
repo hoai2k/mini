@@ -203,6 +203,8 @@ function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('
 // ---------------------------------------------------------------- a round
 function nextMelody() {
   cancelAuto();
+  clearTimeout(retryT); retryT = 0;
+  S.retry = false;
   stopPlayback();
   const pool = inBook(LIB, progress.book);
   const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
@@ -259,7 +261,9 @@ function idlePrompt() {
   if (!r || S.solvedShown) return;
   if (S.practice) setPrompt('Practice: play freely. Turn Practice off to carry on.');
   else if (r.done) setPrompt('Play it again, or move on.');
+  else if (r.pos === 0 && S.retry) setPrompt('Once more, with no wrong notes');
   else if (r.pos === 0) setPrompt(settings.first ? 'Your turn: start on the glowing key' : 'Your turn: play it back');
+  else if (S.retry) setPrompt(`Once more, cleanly: note ${r.pos + 1} of ${r.notes.length}`);
   else setPrompt(`Keep going: note ${r.pos + 1} of ${r.notes.length}`);
 }
 
@@ -379,7 +383,41 @@ function solved() {
   announce(`Solved: ${m.title}, ${st} star${st > 1 ? 's' : ''}${gain ? `, plus ${gain} points` : ''}.`);
   const sc = $('#hud-score'); sc.classList.remove('bump'); void sc.offsetWidth; sc.classList.add('bump');
   syncHud();
-  scheduleAuto();
+  if (r.mistakes > 0 && settings.retry) {
+    // Not clean yet: after the celebration it comes round again (unscored)
+    // until it's played with no wrong notes. Next still moves on.
+    retryT = setTimeout(startRetry, RETRY_MS);
+    announce(`Solved: ${m.title}. Now once more, with no wrong notes.`);
+  } else {
+    if (S.retry) toast('Clean! On to the next one');
+    S.retry = false;
+    scheduleAuto();
+  }
+}
+
+// ---------------------------------------------------------------- once more, cleanly
+// A melody solved with wrong notes is played again: the staff hides its notes,
+// the melody plays, and the player goes again until a clean run. Only a clean
+// run moves on by itself; Next always moves on.
+const RETRY_MS = 2600;
+let retryT = 0;
+const retryPending = () => retryT !== 0;
+function startRetry() {
+  clearTimeout(retryT);
+  retryT = 0;
+  if (S.mode !== 'play' || dialogs.length || !S.melody || S.free) return;
+  stopPlayback();
+  S.round = createRound(S.melody.notes);
+  S.replay = true;
+  S.retry = true;
+  S.solvedShown = false;
+  showSolved(false);
+  const skip = $('#btn-skip');
+  skip.classList.add('next');
+  $('#skip-label').textContent = 'Next';
+  skip.dataset.tip = 'Next melody';
+  syncStaff(); syncMarker(); syncHud();
+  playMelody();
 }
 
 // ---------------------------------------------------------------- moving on
@@ -405,6 +443,7 @@ function cancelAuto() { clearTimeout(autoT); $('#btn-skip').classList.remove('co
 
 function doRedo() {
   cancelAuto();
+  if (retryPending()) { startRetry(); return; } // waiting to go again: go now
   if (!S.round) return;
   stopPlayback();
   if (S.round.done) {
@@ -432,7 +471,7 @@ function syncPractice() {
 }
 function doNext() {
   if (!S.round) return;
-  if (!S.round.done && !S.practice) {
+  if (!S.round.done && !S.practice && !S.retry) {
     toast(`Skipped: ${S.melody.title}`);
     progress.streak = 0; save();
   }
@@ -491,6 +530,7 @@ $('#books-back').addEventListener('click', toTitle);
 const dialogs = []; // { el, returnFocus }
 function openDialog(el) {
   cancelAuto();
+  clearTimeout(retryT); retryT = 0;
   stopPlayback();
   kbd.releaseAll();
   dialogs.push({ el, returnFocus: document.activeElement });
@@ -502,6 +542,10 @@ function openDialog(el) {
 function closeDialog() {
   const d = dialogs.pop();
   if (!d) return;
+  // Back from the menu to a melody that still needs a clean run: go again.
+  if (!dialogs.length && S.mode === 'play' && S.solvedShown && settings.retry && S.round?.mistakes > 0 && !S.free) {
+    clearTimeout(retryT); retryT = setTimeout(startRetry, 900);
+  }
   d.el.hidden = true;
   if (d.returnFocus?.isConnected && !d.returnFocus.closest('[hidden]')) focusEl(d.returnFocus, padMode);
   chrome.update();
@@ -549,6 +593,7 @@ function syncSettings() {
   $('#set-light').checked = settings.light;
   $('#set-staff').checked = settings.staff;
   $('#set-auto').checked = settings.auto;
+  $('#set-retry').checked = settings.retry;
   $('#set-vibrate').checked = settings.vibrate;
 }
 $('#set-volume').addEventListener('input', (e) => { settings.volume = Number(e.target.value); audio.setVolume(settings.volume); $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`; save(); });
@@ -557,6 +602,7 @@ $('#set-reverb').addEventListener('input', (e) => { settings.reverb = Number(e.t
 $('#set-first').addEventListener('change', (e) => { settings.first = e.target.checked; save(); syncMarker(); });
 $('#set-light').addEventListener('change', (e) => { settings.light = e.target.checked; save(); });
 $('#set-auto').addEventListener('change', (e) => { settings.auto = e.target.checked; save(); });
+$('#set-retry').addEventListener('change', (e) => { settings.retry = e.target.checked; save(); });
 $('#set-staff').addEventListener('change', (e) => { settings.staff = e.target.checked; save(); syncStaffSetting(); });
 function syncStaffSetting() { $('#play').classList.toggle('no-staff', !settings.staff); }
 syncStaffSetting();

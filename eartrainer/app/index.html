@@ -150,7 +150,8 @@
           <p class="lead">A melody plays. Play it back on the keyboard, note by note.</p>
           <ul class="howto">
             <li><b>The staff</b> above the keys has a slot for every note. Notes you've found appear on it; the brass <b>?</b> is the note to find next, and the grey ones are still to come. Tap any slot, found or not, to hear its note on its own.</li>
-            <li>Once a melody is solved, the next one starts by itself after a moment (the <b>Next</b> button fills up). Play on, or press Repeat or Redo, to stay with it; Settings can turn this off.</li>
+            <li>Solved it with wrong notes? It comes round again (no new points) until you play it with none; Next always moves on.</li>
+            <li>Once a melody is solved cleanly, the next one starts by itself after a moment (the <b>Next</b> button fills up). Play on, or press Repeat or Redo, to stay with it; Settings can turn this off.</li>
             <li><b>The glowing dot</b> on the keyboard marks the first note. It disappears once you've played it.</li>
             <li><b>Wrong note?</b> Keep trying: the melody waits for the right one. Wrong notes cost stars and points; timing never matters.</li>
             <li><b>Repeat</b> plays the melody again; you can play along while it plays (it sits a little quieter than your keys). <b>Redo</b> starts your answer over from the first note.</li>
@@ -237,6 +238,7 @@
             <div class="chips" role="radiogroup" aria-label="Melody key" id="set-key"></div>
           </div>
           <label class="field toggle"><span class="field-name">Mark the first note</span><input type="checkbox" id="set-first" data-focus><i></i></label>
+          <label class="field toggle"><span class="field-name">Play a melody again until it's clean</span><input type="checkbox" id="set-retry" data-focus><i></i></label>
           <label class="field toggle"><span class="field-name">Move on to the next melody by itself</span><input type="checkbox" id="set-auto" data-focus><i></i></label>
           <label class="field toggle"><span class="field-name">Show the notes on a staff</span><input type="checkbox" id="set-staff" data-focus><i></i></label>
           <label class="field toggle"><span class="field-name">Light up keys when you hear a solved melody</span><input type="checkbox" id="set-light" data-focus><i></i></label>
