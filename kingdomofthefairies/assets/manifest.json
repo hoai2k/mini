@@ -2063,6 +2063,56 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-court-walk-a": {
+      "status": "requested",
+      "file": "prince-court-walk-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-walk-b": {
+      "status": "requested",
+      "file": "prince-court-walk-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-bound": {
+      "status": "requested",
+      "file": "prince-bound.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "armour-helmet": {
+      "status": "requested",
+      "file": "armour-helmet.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "armour-shield": {
+      "status": "requested",
+      "file": "armour-shield.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

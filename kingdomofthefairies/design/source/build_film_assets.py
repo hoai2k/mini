@@ -162,6 +162,13 @@ GROUPS = [
         ('water-fairy-stand-idle-c', 'The Water Fairy, idle frame C', 260, 420, 'bottom centre', SPRITE, 'An idle frame for water-fairy-stand.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way.', None),
         ('sailor-seated-plain', 'The sailor seated, without the guitar', 220, 220, 'bottom centre', SPRITE, 'The sailor exactly as in sailor-seated.webp (attach it): the same scale, pose, seat height and foot position, but with no guitar. His hands rest on his knees and a sword in its scabbard lies across his lap. Nothing else changes. For the ?widowsbay=partial edition.', 'sailor-seated'),
     ]),
+    ('The playable prologue', 'Requested 11 October 2026 for the prologue as a short playable scene (the owner chose this over the painted tableaux): the prince walks the betrothal court in his court dress, chases the chariot along the rampart, and takes up his arms in the armoury. Until these arrive the court-dress still is moved as a puppet, the binding is drawn as ropes over it, and the helmet and shield are drawn plainly.', [
+        ('prince-court-walk-a', 'Prince in court dress, walking A', 220, 360, 'bottom centre', SPRITE, f'Prince Bel-Azor in his court dress exactly as in prince-court.webp (attach it): plum doublet with gold stars, ermine-edged cape, no armour; walking to the right, the left foot forward. {POSE}', None),
+        ('prince-court-walk-b', 'Prince in court dress, walking B', 220, 360, 'bottom centre', SPRITE, f'Prince Bel-Azor in his court dress exactly as in prince-court.webp (attach it), walking to the right, the right foot forward (the other half of prince-court-walk-a). {POSE}', None),
+        ('prince-bound', 'Prince bound by the witch', 220, 360, 'bottom centre', SPRITE, f'Prince Bel-Azor in his court dress as in prince-court.webp (attach it), standing, his arms bound to his sides by glowing teal cords of the witch\'s magic, straining against them. {POSE}', None),
+        ('armour-helmet', 'The plumed helmet (pickup)', 128, 128, 'bottom centre', SPRITE, f'The prince\'s silver plumed helmet with its magenta plume, from char-bel-azor.png (attach it), resting on its own, seen from the side.', None),
+        ('armour-shield', 'The star shield (pickup)', 128, 128, 'bottom centre', SPRITE, f'The prince\'s round shield with its gold star on azure, from char-bel-azor.png (attach it), standing upright on its rim, seen front-on.', None),
+    ]),
 ]
 
 
