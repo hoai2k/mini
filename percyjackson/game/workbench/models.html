@@ -36,9 +36,14 @@
 <div id="bar" role="toolbar" aria-label="Characters"></div>
 <script type="module">
 // A turntable of every character model, to compare with the 3D sheets in
-// design/concept/vox-*.png. ?only=percy shows one; ?turn=0 stops turning.
+// design/concept/vox-*.png. ?set=heroes|monsters|mortals|bosses picks a row
+// (default heroes); ?only=<id> shows one; ?turn=0 stops turning; ?yaw=<rad>
+// sets the start angle; ?pose=attack|raise|cast|walk shows a pose.
 import * as THREE from 'three/webgpu';
 import { buildHeroModel, buildNpc, HERO_LOOKS } from '../js/entities/models.js';
+import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monsters.js';
+import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
+import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 const q = new URLSearchParams(location.search);
 const renderer = new THREE.WebGPURenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
@@ -48,33 +53,56 @@ await renderer.init();
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0xb8bcc4);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8070, 1.6));
 const sun = new THREE.DirectionalLight(0xfff2dc, 2.4); sun.position.set(4, 8, 6); sun.castShadow = true; scene.add(sun);
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.MeshStandardNodeMaterial({ color: 0xa8acb4 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 200);
-const ids = [...Object.keys(HERO_LOOKS), 'chiron', 'mr_d'];
-let shown = q.get('only') ? [q.get('only')] : ids, rigs = [];
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 60), new THREE.MeshStandardNodeMaterial({ color: 0xa8acb4 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 400);
+const SETS = {
+  heroes: { ids: [...Object.keys(HERO_LOOKS), 'chiron', 'mr_d'], build: (id) => (HERO_LOOKS[id] ? buildHeroModel(id) : buildNpc(id)) },
+  monsters: { ids: MONSTER_IDS, build: (id) => buildMonsterModel(MONSTERS[id].model) },
+  mortals: { ids: MORTAL_IDS, build: (id) => buildMortal(id) },
+  bosses: { ids: BOSS_IDS, build: (id) => BOSS_DEFS[id].build() },
+};
+let set = SETS[q.get('set')] ? q.get('set') : 'heroes';
+let shown = q.get('only') ? [q.get('only')] : SETS[set].ids, rigs = [];
 const turn = q.get('turn') !== '0';
+const yaw = q.has('yaw') ? +q.get('yaw') : 0.45;
+const pose = q.get('pose');
 function show(list) {
   for (const r of rigs) scene.remove(r.root);
-  rigs = list.map((id, i) => {
-    const r = HERO_LOOKS[id] ? buildHeroModel(id) : buildNpc(id);
-    r.root.position.set((i - (list.length - 1) / 2) * 2.2, 0, 0); r.root.rotation.y = 0.45; scene.add(r.root); return r;
+  let x = 0; const widths = [];
+  rigs = list.map((id) => {
+    const r = SETS[set].build(id); r.id = id;
+    r.root.rotation.y = 0; r.root.updateMatrixWorld(true);
+    const b = new THREE.Box3().setFromObject(r.root), s = b.getSize(new THREE.Vector3());
+    r.w = Math.max(1.4, Math.max(s.x, s.z) * 0.9 + 0.5); r.h = s.y; widths.push(r.w);
+    r.root.rotation.y = yaw; scene.add(r.root); return r;
   });
-  const w = list.length * 2.2;
-  camera.position.set(0, 2.4, Math.max(5.5, w * 1.5)); camera.lookAt(0, 1.3, 0);
+  const total = widths.reduce((a, b) => a + b, 0);
+  for (const r of rigs) { r.root.position.set(x + r.w / 2 - total / 2, 0, 0); x += r.w; }
+  const h = Math.max(2, ...rigs.map((r) => r.h));
+  const dist = Math.max(5.5, total * 1.25, h * 2.6);
+  camera.position.set(0, h * 0.75 + dist * 0.12, dist); camera.lookAt(0, h * 0.42, 0);
 }
 const bar = document.getElementById('bar');
-for (const id of ['all', ...ids]) {
-  const b = document.createElement('button'); b.textContent = id; b.setAttribute('aria-pressed', String(id === 'all' ? shown.length > 1 : shown[0] === id));
-  b.onclick = () => { shown = id === 'all' ? ids : [id]; for (const x of bar.children) x.setAttribute('aria-pressed', String(x === b)); show(shown); };
-  bar.appendChild(b);
+function buttons() {
+  bar.textContent = '';
+  for (const s of Object.keys(SETS)) { const b = document.createElement('button'); b.textContent = s.toUpperCase(); b.setAttribute('aria-pressed', String(s === set)); b.onclick = () => { set = s; shown = SETS[s].ids; buttons(); show(shown); }; bar.appendChild(b); }
+  for (const id of ['all', ...SETS[set].ids]) {
+    const b = document.createElement('button'); b.textContent = id; b.setAttribute('aria-pressed', String(id === 'all' ? shown.length > 1 : shown[0] === id));
+    b.onclick = () => { shown = id === 'all' ? SETS[set].ids : [id]; buttons(); show(shown); };
+    bar.appendChild(b);
+  }
 }
+buttons();
 show(shown);
 window.__rigs = () => rigs;
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
-let last = performance.now();
+let last = performance.now(), T = 0;
+const fake = { state: 'idle', swooping: false };
 renderer.setAnimationLoop(() => {
-  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
-  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; r.animate({ dt, speed: 0, vel: new THREE.Vector3() }); }
+  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
+  const k = (T % 1.6) / 1.6;
+  const action = pose === 'attack' ? { type: 'attack', t: k, style: 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
+  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); if (r.hunch) r.torso.rotation.x += r.hunch; r.tick?.(dt, fake); }
   renderer.render(scene, camera);
 });
 </script>

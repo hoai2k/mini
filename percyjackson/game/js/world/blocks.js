@@ -136,6 +136,35 @@ def('barn_red', 'barn_red', { step: 'wood', hp: 30, debris: 8 });
 def('dirt_road', { top: 'dirt_road', side: 'dirt' }, { step: 'grass' });
 def('mud', { top: 'mud', side: 'dirt' }, { step: 'water', rough: 0.25 });
 
+// The road west (Book 1, chapters 4-12)
+def('bus_seat', { top: 'bus_seat', side: 'bus_seat', bottom: 'dark_planks' }, { step: 'wood', hp: 14, debris: 6 });
+def('bus_panel', { top: 'silver_plate', side: 'bus_panel' }, { metal: 0.6, rough: 0.3, step: 'metal' });
+def('guardrail', { top: 'iron_plate', side: 'guardrail' }, { metal: 0.6, rough: 0.35, step: 'metal' });
+def('corrugated', 'corrugated', { metal: 0.4, rough: 0.5, step: 'metal' });
+def('steel_panel', 'steel_panel', { metal: 0.75, rough: 0.22, step: 'metal' });
+def('steel_window', { top: 'steel_panel', side: 'steel_window' }, { metal: 0.4, rough: 0.1, emit: 0.35 });
+def('pool_tile', 'pool_tile', { rough: 0.2 });
+def('slide_glass', 'slide_glass', { rough: 0.3 });
+def('rust_metal', 'rust_metal', { metal: 0.35, rough: 0.7, step: 'metal' });
+def('casino_carpet', { top: 'casino_carpet', side: 'lotus_panel' }, { step: 'wood', rough: 0.95 });
+def('slot_machine', { top: 'gold_plate', side: 'slot_machine' }, { emit: 1.0, hp: 30, step: 'metal', light: [0xff7ab0, 2.5, 6] });
+def('neon_green', 'neon_green', { emit: 2.4, light: [0x4affa0, 3, 8] });
+def('lotus_panel', 'lotus_panel', { rough: 0.35 });
+def('desert_sand', { top: 'desert_sand', side: 'desert_sand' }, { step: 'sand' });
+def('red_rock', 'red_rock');
+def('satin_pink', 'satin_pink', { rough: 0.2, step: 'water' });
+def('satin_blue', 'satin_blue', { rough: 0.2, step: 'water' });
+def('asphodel', { top: 'asphodel_top', side: 'dirt' }, { step: 'grass' });
+def('underworld_rock', 'underworld_rock', { rough: 0.3 });
+def('styx', 'styx', { solid: false, opaque: false, liquid: 'cursed', emit: 0.5, step: 'water', light: [0x3aff9a, 2.2, 7] });
+def('black_marble', 'black_marble', { rough: 0.1 });
+def('wet_sand', 'wet_sand', { step: 'sand', rough: 0.35 });
+def('cloud', 'cloud', { rough: 0.95, step: 'grass' });
+def('gold_marble', 'gold_marble', { rough: 0.15 });
+def('elevator_door', { top: 'gold_plate', side: 'elevator_door' }, { metal: 0.7, rough: 0.25, step: 'metal' });
+def('neon_bulbs', 'neon_bulbs', { emit: 1.8, light: [0xffd070, 3, 8] });
+def('waystone', { top: 'gold_plate', side: 'marble_white' }, { rough: 0.25 });
+
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;
 export const isOpaque = (id) => defs[id].opaque;
