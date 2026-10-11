@@ -176,6 +176,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // In the film edition a legacy id draws its film counterpart when that is
   // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
   let cast = {};
+  const overQueue = [];
   const img = (id) => { const a = cast[id]; return (a && assets.images[a]) || (a && PARTIAL ? undefined : assets.images[id]); };
   let extraAnimations = false;
   let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
@@ -341,6 +342,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     if (view.curtainCall > 0) bandTrio(c, view.curtainCall, 0, t);
     if (spec) hud(c, spec, t);
     if (act?.drawOver && st) { kit.c = c; act.drawOver(kit, st, t); }
+    // Anything an act asked to draw over the frame (tableau captions).
+    for (const f of overQueue.splice(0)) { kit.c = c; f(); }
   }
 
   // Act I's voyage: sky, witch, three wave rows with hazards, pickups, ship.
@@ -1080,6 +1083,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const kit = {
     c: ctx, P, PAL, t: 0, ROWS, STAGE,
     img,
+    // Draw `f` after the frame and footlights (this pass), over everything.
+    over(f) { overQueue.push(f); },
     anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
     // A person's still, flicked with its idle frames when Extra Animations is
     // on (see idleFrameId); false if the still isn't delivered.

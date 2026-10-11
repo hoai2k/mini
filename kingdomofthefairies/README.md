@@ -25,11 +25,12 @@ The default edition follows the film's story
 ([the film adaptation plan](design/film-adaptation.md)): a prologue and six
 acts. The first four keep their stage machinery and rules, recast:
 
-0. Prologue, The Betrothal: the fairies present their gifts on the beat, the
-   witch curses the betrothal and carries Azurine off, and Aurora arms the
-   prince (painted tableaux).
-1. The Royal Crossing: the galley voyage and the witch's tempest (the deck
-   party lights lanterns on the beat as before).
+0. Prologue, The Betrothal: the intro to Act I in painted tableaux (the
+   fairies' gifts, the witch's curse, the abduction, Aurora arming the
+   prince). It plays on its own, A skips each tableau, and it leads straight
+   into the Royal Crossing.
+1. The Royal Crossing: the galley voyage, then the witch's tempest, a scene
+   in which the crew light the lanterns themselves.
 2. The Water Fairy: the sleepers' grotto; the Water Fairy blesses the prince
    (no refusal) and her dolphin carriage carries him on.
 3. Neptune's Court: the court's moving floors, watched by the scrying eye.

@@ -96,7 +96,16 @@ export default {
     // The stage keeps scrolling gently behind the ending.
     stepBoard(b, dt, {}); b.events.length = 0;
 
-    if (st.phase === 'party') {
+    // The film edition's tempest is a scene, not a rhythm game: the crew light
+    // the galley's lanterns themselves, one on each beat.
+    if (st.phase === 'party' && FILM) {
+      const k = Math.floor(input.beat ?? st.phaseT / 0.784);
+      if (st.phaseT > 0.6 && st.party.lit < LANTERNS && !st.party.beats.has(k)) {
+        st.party.beats.add(k); st.party.lit++;
+        st.events.push({ type: 'partyHit', n: st.party.lit });
+        if (st.party.lit === LANTERNS) { st.party.revelry = true; st.events.push({ type: 'revelry' }); }
+      }
+    } else if (st.phase === 'party') {
       if (input.a && st.party.lit < LANTERNS) {
         const k = beatHit(input.beat, BEAT_WINDOW);
         if (k != null && !st.party.beats.has(k)) {
@@ -132,7 +141,7 @@ export default {
     if (e.type === 'keepsake') return FILM ? `Aurora's star ${e.n} of 3.` : `Tea leaf ${e.n} of 3.`;
     if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
     if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : FILM ? "The sky blackens: the witch's tempest." : 'The enchanted tower in sight.';
-    if (e.type === 'cheer') return FILM ? "The tempest! Press A on the beat to light the galley's lanterns." : 'A celebration on deck! Press A on the beat to light the lanterns.';
+    if (e.type === 'cheer') return FILM ? "The tempest! The crew light the galley's lanterns against the dark." : 'A celebration on deck! Press A on the beat to light the lanterns.';
     if (e.type === 'revelry') return FILM ? 'Every lantern lit: they hold against the storm.' : 'Every lantern lit.';
     if (e.type === 'strike') return 'The witch strikes the mast.';
     if (e.type === 'shipBreak') return FILM ? 'The galley breaks on the rocks.' : 'The ship breaks apart.';

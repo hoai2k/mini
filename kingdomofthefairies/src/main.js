@@ -592,7 +592,7 @@ function touchVerb() {
   const st = S.state, id = S.act?.id;
   if (!st) return '';
   if (S.act.touchVerb) return S.act.touchVerb(st);
-  if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
+  if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' && !FILM_ED ? 'On the beat' : '';
   if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? 'Leap' : 'Kick';
   if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
   if (id === 4) return 'Leap';
@@ -609,7 +609,7 @@ function touchVerbHint(act) {
 function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
   if (S.act?.touchScheme) return S.act.touchScheme(S.state || {});
-  if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
+  if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? (FILM_ED ? '' : 'Tap on the beat') : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
   if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' } : { mode: 'stick', hint: 'Drag to swim' };
   if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };

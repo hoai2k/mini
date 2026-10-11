@@ -313,9 +313,12 @@ function barrelScene(k, st, t) {
   c.save(); c.globalAlpha = 0.25 + 0.6 * (1 - p); c.strokeStyle = k.col('#f1d27a'); c.lineWidth = 4;
   c.beginPath(); c.arc(600 + Math.min(b.pushes, BARREL.pushes - 1) * 80, 470, r, 0, Math.PI * 2); c.stroke(); c.restore();
   card(k, "The Witch's Last Attack", ' ', 1);
-  c.save(); c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc'); c.font = '700 14px "Josefin Sans", sans-serif';
-  richText(c, 'PRESS [A] ON THE BEAT TO ROLL HER BARREL OVER THE CLIFF', 640, 636, { px: 14, mode: k.inputMode || 'key', col: k.col });
-  c.restore();
+  k.over(() => {
+    const c = k.c;
+    c.save(); c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc'); c.font = '700 13px "Josefin Sans", sans-serif';
+    richText(c, 'PRESS [A] ON THE BEAT TO ROLL HER BARREL OVER THE CLIFF', 640, 671, { px: 13, mode: k.inputMode || 'key', col: k.col });
+    c.restore();
+  });
 }
 
 export { T, easeOut };

@@ -22,17 +22,21 @@ export function tableau(k, id, pt, dur, { zoom = 0.07, focus = [640, 360], fadeI
 }
 
 // A silent-film caption: plum card, double pink rule, a line of script and a
-// smaller line of capitals, fading with `a`.
-export function card(k, title, sub = '', a = 1, { cx = 640, y = 548, w = 760 } = {}) {
+// smaller line of capitals, fading with `a`. It sits low, over the
+// footlights and the foot of the picture (drawn over the frame through
+// k.over), so it hides little of the tableau.
+export function card(k, title, sub = '', a = 1, opts = {}) {
   if (a <= 0) return;
-  const c = k.c, h = sub ? 112 : 84, x = cx - w / 2;
+  if (k.over && !opts.now) return k.over(() => card(k, title, sub, a, { ...opts, now: true }));
+  const { cx = 640, y = 604, w = 720 } = opts;
+  const c = k.c, h = sub ? 84 : 64, x = cx - w / 2;
   c.save(); c.globalAlpha = a * 0.94;
   c.fillStyle = k.col('#2a1424'); c.fillRect(x, y, w, h);
   c.strokeStyle = k.col('#c79ab7'); c.lineWidth = 1.5;
-  c.strokeRect(x + 6, y + 6, w - 12, h - 12); c.strokeRect(x + 12, y + 12, w - 24, h - 24);
+  c.strokeRect(x + 5, y + 5, w - 10, h - 10); c.strokeRect(x + 10, y + 10, w - 20, h - 20);
   c.globalAlpha = a; c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
-  c.font = '46px Yesteryear, cursive'; c.fillText(title, cx, y + (sub ? 56 : 56));
-  if (sub) { c.font = '700 14px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), cx, y + 88); }
+  c.font = '34px Yesteryear, cursive'; c.fillText(title, cx, y + (sub ? 42 : 43));
+  if (sub) { c.font = '700 13px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), cx, y + 67); }
   c.restore();
 }
 

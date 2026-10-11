@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
-import prologue, { SHOT, GIFTS } from '../src/acts/prologue.js';
+import prologue, { GIFTS } from '../src/acts/prologue.js';
 import act2 from '../src/acts/act2.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
@@ -42,22 +42,32 @@ test('every scene of every film act creates and steps without throwing', () => {
   });
 });
 
-test('prologue: the gifts are presented on the beat, the sword raised, and it is won', () => {
+test('prologue: the intro plays through on its own, gifts and sword included', () => {
   const st = prologue.create({});
-  run(prologue, st, 40, onBeat);
+  const seen = [];
+  run(prologue, st, 60, () => ({}), (s) => { seen.push(s.phase); return false; });
   assert.equal(st.status, 'won');
   assert.equal(st.gifts, GIFTS.length);
-  assert.equal(st.onBeat, GIFTS.length, 'all four gifts on the player\'s beats');
-  assert.ok(st.score >= 600);
+  assert.ok(st.armed, 'the sword was raised');
+  assert.ok(prologue.intro, 'flows straight into Act I');
   assert.deepEqual(st.result.keepsakes, {});
 });
 
-test('prologue: without the player it still plays through', () => {
+test('prologue: A skips each tableau, so pressing it reaches the game at once', () => {
   const st = prologue.create({});
-  run(prologue, st, 60);
+  let presses = 0;
+  run(prologue, st, 10, (s) => { const a = Math.floor(s.t * 5) !== Math.floor((s.t - DT) * 5); if (a) presses++; return { a }; });
   assert.equal(st.status, 'won');
-  assert.equal(st.onBeat, 0);
-  assert.ok(SHOT.giftsMax < 20);
+  assert.ok(presses <= 6, `${presses} presses`);
+  assert.ok(st.t < 2, `reached the game in ${st.t.toFixed(2)} s`);
+});
+
+test('Act I: the film tempest lights its own lanterns (no rhythm input)', () => {
+  const st = ACTS[1].create({ seed: 2, from: { scene: 4 } });
+  assert.equal(st.phase, 'party');
+  let clock = 0;
+  run(ACTS[1], st, 5, () => ({ beat: (clock += DT) / BEAT }), (s) => s.phase !== 'party');
+  assert.equal(st.party.lit, 4);
 });
 
 test('Act II: the Water Fairy blesses him with no refusal, and the blessing is no keepsake', () => {
