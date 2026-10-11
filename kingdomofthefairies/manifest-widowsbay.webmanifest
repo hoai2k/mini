@@ -2,7 +2,7 @@
   "name": "Widow's Bay",
   "short_name": "Widow's Bay",
   "description": "A toy-theatre voyage in five acts, after the Langan, Frost & Wane song.",
-  "start_url": "./?widowsbay",
+  "start_url": "./?widowsbay=on",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",

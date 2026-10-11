@@ -283,3 +283,24 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .cred-show { font-size: 30px; } .credits-list dd { font-size: 24px; } .credits-list dt { margin-top: 10px; }
 }
+
+/* ?edit=local: the unlock editor (src/editor.js) */
+.unlock-btn { width: auto; padding: 0 12px; font: 700 13px "Josefin Sans", sans-serif; }
+.unlock-editor { max-width: min(920px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; background: #2a1424; color: #f1e3c8;
+  border: 2px solid #c79ab7; border-radius: 10px; padding: 20px 24px; font: 15px "Josefin Sans", sans-serif; }
+.unlock-editor::backdrop { background: #0a0409c0; }
+.unlock-editor h2 { margin: 0 0 4px; font: 34px Yesteryear, cursive; color: #f3c6dc; }
+.unlock-note { margin: 0 0 14px; opacity: 0.85; }
+.unlock-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.unlock-edition { border: 1px solid #c79ab766; border-radius: 8px; padding: 12px 14px; }
+.unlock-edition.current { border-color: #f3c6dc; }
+.unlock-edition h3 { margin: 0; font-size: 17px; color: #f3c6dc; }
+.unlock-edition h3 small { font-weight: 400; opacity: 0.8; }
+.unlock-q { margin: 2px 0 8px; font-size: 13px; } .unlock-q a { color: #e9c46a; }
+.unlock-edition label { display: block; margin: 6px 0; }
+.unlock-what { margin: 4px 0 6px; font-size: 13px; line-height: 1.4; color: #e9d9c4; min-height: 3.6em; }
+.unlock-edition select { display: block; width: 100%; font: inherit; font-size: 14px; margin-top: 4px; }
+.unlock-edition ol { margin: 8px 0 0; padding-left: 22px; font-size: 14px; }
+.unlock-edition li { opacity: 0.45; } .unlock-edition li::after { content: ' · locked'; font-size: 12px; } .unlock-edition li.open { opacity: 1; } .unlock-edition li.open::after { content: ''; } .unlock-edition li.open::marker { color: #e9c46a; }
+.unlock-editor .unlock-row { margin-top: 14px; text-align: right; }
+.unlock-editor .unlock-row button { font: 700 15px "Josefin Sans", sans-serif; padding: 8px 22px; border-radius: 18px; border: 0; background: #e0127a; color: #fff; cursor: pointer; }

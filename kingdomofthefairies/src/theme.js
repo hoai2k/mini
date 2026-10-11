@@ -1,13 +1,15 @@
-// Three editions, chosen by the query (headless tests: KOTF_EDITION):
-// - no ?widowsbay: the film edition, following Méliès's 1903 film
+// Three editions, chosen by the query (headless tests: KOTF_EDITION, the same
+// names; unset means the default):
+// - the default (no ?widowsbay, or any value but on/off): the original five
+//   acts under the new title, with no band, song or guitar (new art fills
+//   their places, PARTIAL_CAST);
+// - ?widowsbay=off: the film edition, following Méliès's 1903 film
 //   (design/film-adaptation.md), with a prologue and six acts;
-// - ?widowsbay=partial: the original five acts under the new title, with no
-//   band, song or guitar (new art fills their places, PARTIAL_CAST);
-// - ?widowsbay (any other value, or none): the preserved music-video edition.
+// - ?widowsbay=on: the preserved music-video edition.
 const query = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('widowsbay') : null;
 const env = typeof process !== 'undefined' ? process.env?.KOTF_EDITION : undefined;
-export const EDITION = env ? (['widowsbay', 'partial'].includes(env) ? env : 'film')
-  : query === null ? 'film' : query.toLowerCase() === 'partial' ? 'partial' : 'widowsbay';
+export const editionOf = (q) => ({ off: 'film', film: 'film', on: 'widowsbay' }[String(q ?? '').toLowerCase()] || 'partial');
+export const EDITION = env ? (['widowsbay', 'partial', 'film'].includes(env) ? env : 'partial') : editionOf(query);
 // LEGACY: the band, the song and the Widow's Bay title.
 export const LEGACY = EDITION === 'widowsbay';
 export const PARTIAL = EDITION === 'partial';
@@ -16,6 +18,8 @@ export const FILM = EDITION === 'film';
 export const CLASSIC = !FILM;
 export const TITLE = LEGACY ? "Widow's Bay" : 'Kingdom of the Fairies';
 export const BAY_TITLE = LEGACY ? "Widow's Bay" : 'The Enchanted Tower';
+// Each edition's saves and settings (src/editor.js lists them for ?edit=local).
+export const STORAGE_PREFIXES = { widowsbay: 'widowsbay', partial: 'kingdomofthefairies.partial', film: 'kingdomofthefairies' };
 export const STORAGE_PREFIX = LEGACY ? 'widowsbay' : PARTIAL ? 'kingdomofthefairies.partial' : 'kingdomofthefairies';
 
 export function themeManifest(manifest, edition = EDITION) {

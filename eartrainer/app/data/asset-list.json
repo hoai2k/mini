@@ -1,0 +1,67 @@
+[
+  {
+    "id": "logo",
+    "file": "assets/ui/logo.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "title-bg",
+    "file": "assets/ui/title-bg.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "rotate-card",
+    "file": "assets/ui/rotate-card.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-all",
+    "file": "assets/books/all.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-children",
+    "file": "assets/books/children.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-traditional",
+    "file": "assets/books/traditional.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-holiday",
+    "file": "assets/books/holiday.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-classical",
+    "file": "assets/books/classical.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-jazz",
+    "file": "assets/books/jazz.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-licks",
+    "file": "assets/books/licks.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "book-popular",
+    "file": "assets/books/popular.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "icon",
+    "file": "icons/icon-1024.png",
+    "status": "delivered"
+  },
+  {
+    "id": "cover",
+    "file": "assets/ui/cover.webp",
+    "status": "delivered"
+  }
+]

@@ -15,7 +15,7 @@ before(async () => {
   const wrangler = fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler.js", import.meta.url));
   // Run wrangler directly in its own process group so after() can stop it and
   // everything it started (workerd); otherwise the test run never exits on CI.
-  dev = spawn(process.execPath, [wrangler, "dev", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], {
+  dev = spawn(process.execPath, [wrangler, "dev", "--local", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], {
     cwd,
     stdio: "ignore",
     detached: true,
@@ -175,4 +175,17 @@ test("turn: STUN servers always, TURN only when its secrets are set", async () =
   assert.equal(body.turn, false);
   assert.ok(body.iceServers.some(s => s.urls.some(u => u.startsWith("stun:"))));
   assert.equal((await fetch(`${BASE}/turn`, { headers: { Origin: "https://evil.example" } })).status, 403);
+});
+
+// The Ai-Ching oracle route: without Workers AI (local dev has no AI binding)
+// it validates the request and answers 502 or 503, so the page falls back quietly.
+test("oracle rejects bad requests and reports when AI is unavailable", async () => {
+  const post = (body) => fetch(`${BASE}/oracle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  assert.equal((await post({ question: "" })).status, 400);
+  assert.equal((await post({ question: "Should I?", day: "2026-10-11", seed: "abc", hexagram: { n: 99 } })).status, 400);
+  const ok = await post({ question: "Should I move?", day: "2026-10-11", seed: "abc123", hexagram: { n: 35, name: "Progress", zh: "晉", essence: "Rising." } });
+  assert.ok([502, 503].includes(ok.status), `status ${ok.status}`);
+  assert.equal((await fetch(`${BASE}/oracle`)).status, 405);
+  const blocked = await fetch(`${BASE}/oracle`, { method: "POST", headers: { Origin: "https://evil.example" }, body: "{}" });
+  assert.equal(blocked.status, 403);
 });

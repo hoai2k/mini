@@ -37,7 +37,8 @@ Published at https://hoai2k.github.io/mini/aiching/.
    the moon and the double-hour, all offline.
 
 The question and date live only in the URL fragment (`#q=…&d=…`), so a reading
-can be shared as a link and the question is never sent to a server.
+can be shared as a link. The question is sent to a server only for the AI
+opening, when the browser has no built-in model (see below).
 
 ## Files
 
@@ -47,20 +48,50 @@ can be shared as a link and the question is never sent to a server.
 | `app/src/` | ES modules, no build step |
 | `app/data/hexagrams.json` | The 64 hexagrams: names, judgment, image, changing lines, counsel by topic and kind, and a painted scene and palette for each picture. Original renderings of the traditional meanings |
 | `app/data/asset-list.json` | Generated: every picture, its path and whether it is delivered |
-| `app/assets/` | Delivered artwork |
+| `app/assets/` | Delivered artwork, full size (not published) |
+| `app/web/` | Web copies of the artwork, which the page loads |
+| `tools/build_web.py` | Makes `app/web/` from `app/assets/` |
 | `design/image-requests.md` | Generated: the 96 image prompts |
 | `design/source/build_requests.py` | Generates both from its own data and `hexagrams.json` |
 | `intake/` | Drop box for delivered art |
 
-Until a picture is delivered the app draws a stand-in (`src/art.js`): a misty
-landscape in each hexagram's colours, the trigram's lines, a seal character
-for each topic.
+All 96 pictures were delivered in October 2026; the prompts they were made
+from are recorded in `design/generated/generation-prompts.json`. The page
+loads the smaller copies in `app/web/` (`tools/build_web.py`, which needs
+Pillow, makes them from `app/assets/`; a reading loads about 1 MB of art).
+The interface, trigram and topic pictures matched their requests. Of the 64
+hexagrams, 24 illustrated their theme but missed their art style, so they are
+requested again (the **Replacements wanted** list in
+`design/image-requests.md`, data in `REPLACE`) and the delivered ones are
+used until the new ones arrive. Stand-ins (`src/art.js`) remain for any
+picture not yet delivered.
+
+## The AI opening
+
+Above each reading, two or three sentences show that the question was
+understood and introduce the answer (`src/ai.js`). They come from:
+
+1. Chrome's built-in model (the Prompt API, `LanguageModel`) when the browser
+   reports it as already available. It runs on the device; the page never
+   starts a model download.
+2. Otherwise `POST /oracle` on the mini-rooms Worker
+   (`multiplayer/server/src/oracle.js`), which runs
+   `@cf/meta/llama-3.2-3b-instruct` on Workers AI's free allowance. The Worker
+   builds the prompt itself from the reading, caches each answer for a day,
+   and limits each visitor to 20 calls per 10 minutes.
+3. Otherwise nothing: the reading is complete without it.
+
+Both are told to reflect the question back, name the hexagram and say how it
+answers, using only the meaning in `hexagrams.json`. Openings are kept in
+localStorage per reading, so a reading always shows the same one. Visitors can
+turn the opening off on the home page or under any opening.
 
 ## Checks
 
 ```sh
 node --test aiching/app/test/*.test.mjs
 python3 aiching/design/source/build_requests.py --check
+python3 aiching/tools/build_web.py --check
 aiching/publish.sh local/pages/aiching
 ```
 

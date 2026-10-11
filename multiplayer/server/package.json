@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:local": "wrangler dev --local",
     "deploy": "wrangler deploy",
     "test": "node --test --test-timeout=60000 --test-force-exit test/*.test.mjs"
   },

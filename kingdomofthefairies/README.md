@@ -6,22 +6,28 @@ https://hoai2k.github.io/mini/kingdomofthefairies/.
 
 There are three editions, chosen by the address:
 
-- **The film edition** (no parameter, the default) follows the film, with the
-  new title and art, the prince's story and only the period accompaniment.
-- **[`?widowsbay=partial`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=partial)**
-  is the original five-act game under the new title: no band, no song, and the
-  sailor's guitar becomes a sword (its art and its words), with new art filling
-  the gaps (`PARTIAL_CAST` in `src/theme.js`). It shares the improved climbing.
-- **[`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)**
-  with any other value, or none, restores the preserved Widow’s Bay title,
-  Langan, Frost & Wane cast and song.
+- **The default** (no parameter, or `?widowsbay` with any value but `on` or
+  `off`) is the original five-act game under the new title: no band, no song,
+  and the sailor's guitar becomes a sword (its art and its words), with new art
+  filling the gaps (`PARTIAL_CAST` in `src/theme.js`). It shares the improved
+  climbing.
+- **[`?widowsbay=off`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=off)**
+  is the film edition: the prince's story after Méliès, with a prologue and six
+  acts and only the period accompaniment.
+- **[`?widowsbay=on`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=on)**
+  restores the preserved Widow’s Bay title, Langan, Frost & Wane cast and song.
+
+Acts open in order as they are finished. **`?edit=local`** (with any of the
+above) opens a panel for this browser that sets how far each edition is
+unlocked, independently, and can open every scene of the open acts
+(`src/editor.js`).
 
 Each edition keeps its own saves and settings; the legacy keys remain
 compatible with existing saves.
 
 ## The editions' acts
 
-The default edition follows the film's story
+The film edition (`?widowsbay=off`) follows the film's story
 ([the film adaptation plan](design/film-adaptation.md)): a prologue and six
 acts. The first four keep their stage machinery and rules, recast:
 
@@ -51,8 +57,8 @@ The film cast, props and sets use the delivered production art; anything still
 requested is drawn by an interim cut-out from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
 `design/source/cut_planning.py`) until the production requests arrive.
 
-[`?widowsbay`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay)
-keeps the original five acts unchanged (and `?widowsbay=partial` plays them without the band or guitar): The Crossing, The Sleepers' Grotto,
+[`?widowsbay=on`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=on)
+keeps the original five acts unchanged (and the default plays them without the band or guitar): The Crossing, The Sleepers' Grotto,
 The Sea King's Court, The Whale's Road and The Enchanted Tower (cliff, burning
 house, beloved, endings and pageant). Climbing in both editions shows the
 reachable holds, an arrow for each direction and the leap arc.
@@ -112,10 +118,10 @@ scene moods. New effects use `design/source/build_sfx.py`; its key comes from
 [The workbench](workbench/README.md), at
 https://hoai2k.github.io/mini/kingdomofthefairies/workbench/, reviews every
 cinematic with pause, scrub, stepping and copied moment links. Append
-`?widowsbay` there to review the legacy cast.
+`?widowsbay=on` there to review the legacy cast.
 
 Home-screen installation uses the new manifest and icons; the query edition
-selects its preserved manifest/icons with `start_url: ./?widowsbay`.
+selects its preserved manifest/icons with `start_url: ./?widowsbay=on`.
 
 ## Checks and publication
 
@@ -123,7 +129,8 @@ From the repository root:
 
 ```sh
 for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs; done; done
-for t in animation sailor-motion theme film; do node kingdomofthefairies/qa/$t.test.mjs; done
+for t in animation sailor-motion theme; do node kingdomofthefairies/qa/$t.test.mjs; done
+KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs
 for g in build_act_requests build_film_requests build_film_assets; do python3 kingdomofthefairies/design/source/$g.py --check; done
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs
 kingdomofthefairies/publish.sh local/pages/kingdomofthefairies

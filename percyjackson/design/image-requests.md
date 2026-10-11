@@ -74,33 +74,33 @@ Character sheets use:
 | `scene-ares-beach` | The duel with Ares on the beach | 2560 × 1440 | delivered |
 | `scene-olympus` | Mount Olympus above the Empire State Building | 2560 × 1440 | delivered |
 | `ui-hero-cards` | Hero cards and interface kit | 2560 × 1440 | delivered |
-| `char-heroes-2` | New heroes in the cartoon style: Tyson, Thalia and Nico | 2400 × 1600 | requested |
-| `vox-key` | Style key in 3D: the heroes at Camp Half-Blood | 2560 × 1440 | requested |
-| `vox-percy` | Percy in 3D | 2400 × 1600 | requested |
-| `vox-annabeth` | Annabeth in 3D | 2400 × 1600 | requested |
-| `vox-grover` | Grover in 3D | 2400 × 1600 | requested |
-| `vox-tyson` | Tyson in 3D | 2400 × 1600 | requested |
-| `vox-clarisse` | Clarisse in 3D | 2400 × 1600 | requested |
-| `vox-thalia` | Thalia in 3D | 2400 × 1600 | requested |
-| `vox-nico` | Nico in 3D | 2400 × 1600 | requested |
-| `vox-npcs` | Camp, family and the gods' messengers in 3D | 2400 × 1600 | requested |
-| `vox-enemies` | Monsters in 3D: the common and elite enemies | 2400 × 1600 | requested |
-| `vox-bosses-1` | Bosses of The Lightning Thief in 3D | 2400 × 1600 | requested |
-| `vox-bosses-2` | Bosses of the later books in 3D | 2400 × 1600 | requested |
-| `vox-camp` | Camp Half-Blood in 3D: the home base | 2560 × 1440 | requested |
-| `vox-mist-true` | The Mist and True Sight: the same museum room twice | 2560 × 1440 | requested |
-| `vox-hud` | In-game mock-up with the interface | 2560 × 1440 | requested |
-| `logo` | Title logo: Half-Blood Quests | 2048 × 1024 | requested |
-| `title-bg` | Title screen background | 2560 × 1440 | requested |
-| `ui-hero-cards-2` | Hero cards for Tyson, Clarisse, Thalia and Nico | 2560 × 1440 | requested |
-| `scene-bus` | The three Kindly Ones on the bus | 2560 × 1440 | requested |
-| `scene-waterland` | Waterland: the Tunnel of Love trap | 2560 × 1440 | requested |
-| `scene-procrustes` | Crusty's Water Bed Palace | 2560 × 1440 | requested |
-| `book-1` | The Lightning Thief | 1600 × 2400 | requested |
-| `book-2` | The Sea of Monsters | 1600 × 2400 | requested |
-| `book-3` | The Titan's Curse | 1600 × 2400 | requested |
-| `book-4` | The Battle of the Labyrinth | 1600 × 2400 | requested |
-| `book-5` | The Last Olympian | 1600 × 2400 | requested |
+| `char-heroes-2` | New heroes in the cartoon style: Tyson, Thalia and Nico | 2400 × 1600 | delivered |
+| `vox-key` | Style key in 3D: the heroes at Camp Half-Blood | 2560 × 1440 | delivered |
+| `vox-percy` | Percy in 3D | 2400 × 1600 | delivered |
+| `vox-annabeth` | Annabeth in 3D | 2400 × 1600 | delivered |
+| `vox-grover` | Grover in 3D | 2400 × 1600 | delivered |
+| `vox-tyson` | Tyson in 3D | 2400 × 1600 | delivered |
+| `vox-clarisse` | Clarisse in 3D | 2400 × 1600 | delivered |
+| `vox-thalia` | Thalia in 3D | 2400 × 1600 | delivered |
+| `vox-nico` | Nico in 3D | 2400 × 1600 | delivered |
+| `vox-npcs` | Camp, family and the gods' messengers in 3D | 2400 × 1600 | delivered |
+| `vox-enemies` | Monsters in 3D: the common and elite enemies | 2400 × 1600 | delivered |
+| `vox-bosses-1` | Bosses of The Lightning Thief in 3D | 2400 × 1600 | delivered |
+| `vox-bosses-2` | Bosses of the later books in 3D | 2400 × 1600 | delivered |
+| `vox-camp` | Camp Half-Blood in 3D: the home base | 2560 × 1440 | delivered |
+| `vox-mist-true` | The Mist and True Sight: the same museum room twice | 2560 × 1440 | delivered |
+| `vox-hud` | In-game mock-up with the interface | 2560 × 1440 | delivered |
+| `logo` | Title logo: Half-Blood Quests | 2048 × 1024 | delivered |
+| `title-bg` | Title screen background | 2560 × 1440 | delivered |
+| `ui-hero-cards-2` | Hero cards for Tyson, Clarisse, Thalia and Nico | 2560 × 1440 | delivered |
+| `scene-bus` | The three Kindly Ones on the bus | 2560 × 1440 | delivered |
+| `scene-waterland` | Waterland: the Tunnel of Love trap | 2560 × 1440 | delivered |
+| `scene-procrustes` | Crusty's Water Bed Palace | 2560 × 1440 | delivered |
+| `book-1` | The Lightning Thief | 1600 × 2400 | delivered |
+| `book-2` | The Sea of Monsters | 1600 × 2400 | delivered |
+| `book-3` | The Titan's Curse | 1600 × 2400 | delivered |
+| `book-4` | The Battle of the Labyrinth | 1600 × 2400 | delivered |
+| `book-5` | The Last Olympian | 1600 × 2400 | delivered |
 
 ### Style key
 
@@ -288,7 +288,7 @@ Character sheets use:
 - **File:** `char-heroes-2.png`, 2400 × 1600 px, delivered to `design/concept/char-heroes-2.png`
 - **References:** `key-art`, `char-percy`, `char-camp`
 - **Use:** Fixes the three new playable heroes before their 3D sheets and hero cards.
-- **Status:** requested
+- **Status:** delivered
 
 > A line-up model sheet of three heroes at the same scale, each front-on and three-quarter, with small head studies underneath: Tyson, a young Cyclops and Percy's half-brother: a gentle giant who looks about fifteen but is twice Percy's bulk and a head taller, one huge warm brown eye in the middle of his forehead, shaggy brown hair, a big crooked grin, a ragged flannel shirt and torn jeans, enormous hands; a wristwatch that springs open into a round bronze shield; childlike and kind; Thalia Grace, fifteen, daughter of Zeus: spiky black punk hair, electric-blue eyes, freckles, a black leather jacket with silver buttons, a black T-shirt, black jeans and boots, a silver bracelet that springs open into a round bronze shield with a frightening face on it, and a bronze spear trailing sparks; Nico di Angelo, about eleven, son of Hades: small, pale, messy black hair, dark solemn eyes, an oversized aviator jacket over a black T-shirt, a silver skull ring, and a short sword of black Stygian iron that seems to drink the light; a cloud of shadow around his feet. Flat parchment-cream background, no cast shadow. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -297,7 +297,7 @@ Character sheets use:
 - **File:** `vox-key.png`, 2560 × 1440 px, delivered to `design/concept/vox-key.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`, `map-camp`
 - **Use:** Fixes the 3D look. Attach it to every later round-2 request.
-- **Status:** requested
+- **Status:** delivered
 
 > A gameplay-style screenshot seen from a high isometric three-quarter camera: Percy, Annabeth and Grover as blocky voxel heroes crossing the green of Camp Half-Blood between blocky cabins (Poseidon's sea-stone cabin with shells, Athena's grey cabin with an owl, Ares's red cabin), the blue Big House farmhouse behind, pine trees, a strawberry field and the lake glittering. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped; Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible; Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can. Percy swings Riptide at a training dummy with a small splash of water, Annabeth studies a map, Grover plays his pipes and blocky flowers sprout. A few campers in orange shirts. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No interface. No lettering, logos, captions or watermark.
 
@@ -306,7 +306,7 @@ Character sheets use:
 - **File:** `vox-percy.png`, 2400 × 1600 px, delivered to `design/concept/vox-percy.png`
 - **References:** `vox-key`, `char-percy`
 - **Use:** Model for the main hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped. Props: Riptide as a sword (bronze, leaf-shaped blade) and as a capped pen; a blocky swirl of water around one hand. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -315,7 +315,7 @@ Character sheets use:
 - **File:** `vox-annabeth.png`, 2400 × 1600 px, delivered to `design/concept/vox-annabeth.png`
 - **References:** `vox-key`, `char-annabeth`
 - **Use:** Model for a playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible. Also show her battle gear: a bronze breastplate and a bronze helmet with a grey horsehair crest, and one figure half-transparent to show the cap's invisibility. Props: the bronze dagger, the cap. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -324,7 +324,7 @@ Character sheets use:
 - **File:** `vox-grover.png`, 2400 × 1600 px, delivered to `design/concept/vox-grover.png`
 - **References:** `vox-key`, `char-grover`
 - **Use:** Model for a playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can. Show him with his goat legs and small horns showing (as in camp and in battle), plus one figure in disguise with jeans and fake sneakers. Props: reed pipes, winged sneakers with small white wings, a tin can. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -333,7 +333,7 @@ Character sheets use:
 - **File:** `vox-tyson.png`, 2400 × 1600 px, delivered to `design/concept/vox-tyson.png`
 - **References:** `vox-key`, `char-heroes-2`
 - **Use:** Model for a playable hero (the big brawler).
-- **Status:** requested
+- **Status:** delivered
 
 > Tyson, a young Cyclops and Percy's half-brother: a gentle giant who looks about fifteen but is twice Percy's bulk and a head taller, one huge warm brown eye in the middle of his forehead, shaggy brown hair, a big crooked grin, a ragged flannel shirt and torn jeans, enormous hands; a wristwatch that springs open into a round bronze shield; childlike and kind. Noticeably bigger and bulkier than the other heroes (show Percy's outline beside him for scale). Props: the watch and the open shield, a forge hammer, a jar of peanut butter. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -342,7 +342,7 @@ Character sheets use:
 - **File:** `vox-clarisse.png`, 2400 × 1600 px, delivered to `design/concept/vox-clarisse.png`
 - **References:** `vox-key`, `char-camp`
 - **Use:** Model for a playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Clarisse La Rue, thirteen, daughter of Ares: tall and tough, a stringy brown ponytail, a fierce scowl, a camouflage jacket over the orange camp shirt, combat boots, a bronze helmet with a red plume, an electric spear crackling at the tip and a round shield with a boar's head. Props: the electric spear, the boar shield, the plumed helmet. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -351,7 +351,7 @@ Character sheets use:
 - **File:** `vox-thalia.png`, 2400 × 1600 px, delivered to `design/concept/vox-thalia.png`
 - **References:** `vox-key`, `char-heroes-2`
 - **Use:** Model for a playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Thalia Grace, fifteen, daughter of Zeus: spiky black punk hair, electric-blue eyes, freckles, a black leather jacket with silver buttons, a black T-shirt, black jeans and boots, a silver bracelet that springs open into a round bronze shield with a frightening face on it, and a bronze spear trailing sparks. Props: the spear, the bracelet and the open shield; a few blocky blue sparks around her. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -360,7 +360,7 @@ Character sheets use:
 - **File:** `vox-nico.png`, 2400 × 1600 px, delivered to `design/concept/vox-nico.png`
 - **References:** `vox-key`, `char-heroes-2`
 - **Use:** Model for a playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Nico di Angelo, about eleven, son of Hades: small, pale, messy black hair, dark solemn eyes, an oversized aviator jacket over a black T-shirt, a silver skull ring, and a short sword of black Stygian iron that seems to drink the light; a cloud of shadow around his feet. Props: the black sword, the skull ring; blocky shadow wisps. A 3D character turnaround sheet on a flat light-grey background: the same blocky character seen from the front, from the side (facing right), from behind, and from above at the high three-quarter angle of an isometric game camera, all at the same scale in a neutral standing pose; one dynamic action pose; the face shown large as flat pixel art (8 × 8 pixels) in a corner; and each weapon or prop as a separate small blocky model. No cast shadow. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -371,7 +371,7 @@ Character sheets use:
 - **File:** `vox-npcs.png`, 2400 × 1600 px, delivered to `design/concept/vox-npcs.png`
 - **References:** `vox-key`, `char-camp`, `char-gods`
 - **Use:** Models for the people in the hub and the story.
-- **Status:** requested
+- **Status:** delivered
 
 > A line-up of blocky voxel characters at the same scale, each seen front-on and from the high three-quarter game angle: Chiron, the wise centaur and camp director: a kindly bearded man with brown curly hair and a tweed jacket, from the waist down a white stallion; a quiver and bow on his back, also shown as Mr. Brunner, a teacher in a tweed jacket in a motorised wheelchair; Mr. D (Dionysus) in a leopard-print Hawaiian shirt with a can of diet cola; Luke, the sandy-haired counsellor with a scar down his cheek; Sally Jackson, Percy's warm, tired mother in a sweet-shop uniform; Argus, the camp security chief, a big blond man covered in blue eyes; Mrs. Dodds, a sour maths teacher in a leather jacket; and Poseidon in his Hawaiian shirt with the trident. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.
 
@@ -380,7 +380,7 @@ Character sheets use:
 - **File:** `vox-enemies.png`, 2400 × 1600 px, delivered to `design/concept/vox-enemies.png`
 - **References:** `vox-key`, `char-monsters`
 - **Use:** Models for the enemies fought in every chapter, weakest first.
-- **Status:** requested
+- **Status:** delivered
 
 > A bestiary sheet of blocky voxel monsters, each at its in-game scale beside a small Percy outline, in rows from weakest to strongest, each seen front-on and from the high three-quarter game angle. Minor: a hellhound pup (a black dog with glowing red eyes); a bronze mechanical spider (Hephaestus's automaton) the size of a dog; a Stymphalian bird with bronze feathers; a telekhine (a sleek seal-bodied, dog-faced sea demon). Elite: a full-size hellhound as big as a truck; a dracaena (a snake-woman with two snake tails for legs, armour and a spear); a Laistrygonian giant (a huge, tattooed, cannibal giant carrying a flaming bronze ball); a skeleton warrior in modern combat gear; an empousa (a pretty cheerleader with flaming hair, one bronze leg and one donkey leg); and a Fury (a leathery-winged hag with a flaming whip). Dramatic and fun for ages 8 to 14, never gory. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
 
@@ -389,7 +389,7 @@ Character sheets use:
 - **File:** `vox-bosses-1.png`, 2400 × 1600 px, delivered to `design/concept/vox-bosses-1.png`
 - **References:** `vox-key`, `char-monsters`, `char-gods`
 - **Use:** Models for the first book's bosses.
-- **Status:** requested
+- **Status:** delivered
 
 > A boss sheet of blocky voxel monsters, each much bigger than a small Percy outline beside it, seen from the high three-quarter game angle with one attack pose each: the Minotaur (a towering bull-headed giant in white briefs, glowing red eyes); Medusa (veiled in black, writhing snake hair glimpsed under the veil, her face never shown); the Chimera (a lion-headed beast with a goat body and a rattlesnake tail, breathing fire) with Echidna, a sweet old lady with a reptile glint; Procrustes (a big, smooth salesman with two stretching beds); Cerberus (a gigantic three-headed black dog); and Ares (a huge biker in a black leather jacket with fiery sunglasses and a burning sword). 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
 
@@ -398,7 +398,7 @@ Character sheets use:
 - **File:** `vox-bosses-2.png`, 2400 × 1600 px, delivered to `design/concept/vox-bosses-2.png`
 - **References:** `vox-key`, `vox-bosses-1`
 - **Use:** Models for the bosses of books two to five.
-- **Status:** requested
+- **Status:** delivered
 
 > A boss sheet of blocky voxel monsters from the later Percy Jackson books, each much bigger than a small Percy outline beside it, from the high three-quarter game angle: Polyphemus (a huge, ugly one-eyed Cyclops shepherd in a wedding-dress-like kilt); Scylla (a six-headed sea monster rising from a cliff); the Manticore (a lion's body, a man's head and a spiked scorpion tail that fires spines); the Nemean Lion (golden, armoured with an impenetrable pelt); Talos (a giant bronze automaton warrior in a junkyard); Kampê (a woman's upper body over a dragon's lower body with snake legs, animal heads at her waist and two scimitars of poison); Antaeus (a giant wrestler who heals while touching the ground); and Kronos (a young man with golden eyes and a scythe with a blade of half bronze, half steel). Dramatic and fun for ages 8 to 14, never gory. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
 
@@ -409,7 +409,7 @@ Character sheets use:
 - **File:** `vox-camp.png`, 2560 × 1440 px, delivered to `design/concept/vox-camp.png`
 - **References:** `vox-key`, `map-camp`
 - **Use:** Layout and look of the hub where the minigames are.
-- **Status:** requested
+- **Status:** delivered
 
 > An isometric bird's-eye view of Camp Half-Blood built from blocks, like a level of Minecraft Dungeons, showing everything the home base needs: Half-Blood Hill with its pine tree and the camp border; the blue Big House with its porch (the chapter map lives here) and the Oracle's attic window; the twelve cabins in a U around the green; the open-air dining pavilion of white columns; the amphitheatre with a campfire; the archery range with targets; the climbing wall pouring blocky lava; the canoe lake; the chariot track; the arena; the forge with a chimney; the camp store; the stables of pegasi; the strawberry fields; the woods and the creek for capture the flag. Small blocky campers everywhere. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -418,7 +418,7 @@ Character sheets use:
 - **File:** `vox-mist-true.png`, 2560 × 1440 px, delivered to `design/concept/vox-mist-true.png`
 - **References:** `vox-key`, `scene-museum`, `vox-percy`
 - **Use:** How the world changes when a hero sees through the Mist.
-- **Status:** requested
+- **Status:** delivered
 
 > A split-screen gameplay concept of the same museum gallery from the high isometric game camera, divided by a jagged glowing seam of golden mist. Left half, the Mist (what mortals see): an ordinary, slightly dull blocky museum room in beige and grey, glass cases, a field-trip class, and Mrs. Dodds as a sour maths teacher. Right half, True Sight: the same room transformed into the ornamental world, its blocks overlaid with gold Greek-key patterns and vase friezes on deep teal and navy, the vases in the cases come alive, a hidden doorway glows in the wall, and Mrs. Dodds is revealed as a leathery-winged Fury with a flaming whip diving at blocky Percy, who holds up Riptide. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -427,7 +427,7 @@ Character sheets use:
 - **File:** `vox-hud.png`, 2560 × 1440 px, delivered to `design/concept/vox-hud.png`
 - **References:** `vox-key`, `ui-hero-cards`, `vox-percy`, `vox-annabeth`, `vox-grover`
 - **Use:** Layout of the heads-up display.
-- **Status:** requested
+- **Status:** delivered
 
 > A gameplay screenshot mock-up from the high isometric camera: Percy, Annabeth and Grover as blocky heroes fighting hellhounds on a highway at dusk. Interface in the ornamental black-and-gold style: bottom left, the active hero's portrait in a round gold frame with a wave-scroll health bar, a lightning-bolt power meter and four ability roundels; small portraits of the other two heroes beside it for switching; top right, a minimap in a Greek-key frame and a counter of golden drachmas; top centre, a parchment banner for the objective; on the left edge a prophecy scroll with one line glowing; a round eye-shaped True Sight meter. Readable, uncluttered. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Use blank bars and roundels in place of any writing. No lettering, logos, captions or watermark.
 
@@ -438,7 +438,7 @@ Character sheets use:
 - **File:** `logo.png`, 2048 × 1024 px, delivered to `game/assets/logo.png`
 - **References:** `key-art`, `ui-hero-cards`
 - **Use:** Title screen and loading screen. The magenta is keyed out.
-- **Status:** requested
+- **Status:** delivered
 
 > A video-game title logo reading exactly "HALF-BLOOD QUESTS" on two lines (HALF-BLOOD above, QUESTS below and larger), in bold chiselled Greek-inspired capitals of celestial bronze and gold with a black outline and a subtle bevel, a small trident crossing behind the letters, a thin Greek-key band and a lightning bolt as accents. Centred, with generous space around it, on a perfectly flat solid magenta #FF00FF background with no gradient, shadow or texture, so the background can be removed. The letters must be spelled exactly and be clearly readable. No other text.
 
@@ -447,7 +447,7 @@ Character sheets use:
 - **File:** `title-bg.png`, 2560 × 1440 px, delivered to `game/assets/title-bg.png`
 - **References:** `vox-key`, `key-art`, `vox-percy`, `vox-annabeth`, `vox-grover`
 - **Use:** Behind the logo on the title screen; the top third stays calm for the logo.
-- **Status:** requested
+- **Status:** delivered
 
 > A cinematic 3D scene in the blocky voxel style: Half-Blood Hill at dusk seen from a low angle, the lone pine tree at the crest, blocky Percy, Annabeth, Grover and Tyson silhouetted along the ridge with Riptide glowing, Camp Half-Blood's lights below and a stormy sky with stylised lightning above. The upper third is a calm, darker sky with room for a title logo; the heroes sit in the lower half. Framed with a subtle ornamental gold Greek-key border. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -456,7 +456,7 @@ Character sheets use:
 - **File:** `ui-hero-cards-2.png`, 2560 × 1440 px, delivered to `game/assets/ui-hero-cards-2.png`
 - **References:** `ui-hero-cards`, `char-heroes-2`, `char-camp`
 - **Use:** Hero-select cards matching the first three.
-- **Status:** requested
+- **Status:** delivered
 
 > Four tall character-select cards side by side on deep navy, in exactly the style of the first three hero cards: each an ornate black-and-gold frame built from its hero's parent emblems, with the hero inside in a dynamic cartoon pose. Tyson, a young Cyclops and Percy's half-brother: a gentle giant who looks about fifteen but is twice Percy's bulk and a head taller, one huge warm brown eye in the middle of his forehead, shaggy brown hair, a big crooked grin, a ragged flannel shirt and torn jeans, enormous hands; a wristwatch that springs open into a round bronze shield; childlike and kind, framed with tridents, anvils and hammers. Clarisse La Rue, thirteen, daughter of Ares: tall and tough, a stringy brown ponytail, a fierce scowl, a camouflage jacket over the orange camp shirt, combat boots, a bronze helmet with a red plume, an electric spear crackling at the tip and a round shield with a boar's head, framed with spears, boars and vultures. Thalia Grace, fifteen, daughter of Zeus: spiky black punk hair, electric-blue eyes, freckles, a black leather jacket with silver buttons, a black T-shirt, black jeans and boots, a silver bracelet that springs open into a round bronze shield with a frightening face on it, and a bronze spear trailing sparks, framed with lightning bolts, eagles and oak leaves. Nico di Angelo, about eleven, son of Hades: small, pale, messy black hair, dark solemn eyes, an oversized aviator jacket over a black T-shirt, a silver skull ring, and a short sword of black Stygian iron that seems to drink the light; a cloud of shadow around his feet, framed with skulls, cypress branches and a helm. Equal size and spacing so they can be cut apart. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -467,7 +467,7 @@ Character sheets use:
 - **File:** `scene-bus.png`, 2560 × 1440 px, delivered to `design/concept/scene-bus.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`, `char-monsters`
 - **Use:** Card for the chapter on the Greyhound bus.
-- **Status:** requested
+- **Status:** delivered
 
 > A rainy New Jersey highway at night. Inside a Greyhound bus, three old ladies in velvet coats and lace hats rise from their seats as they turn into leathery-winged Furies with flaming whips; Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped uncaps Riptide in the aisle, Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible pulls on her cap and fades out, and Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can fumbles with a tin can as the bus swerves toward the trees. Headlights and lightning as gold ornament. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -476,7 +476,7 @@ Character sheets use:
 - **File:** `scene-waterland.png`, 2560 × 1440 px, delivered to `design/concept/scene-waterland.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`
 - **Use:** Card for the chapter in the abandoned water park.
-- **Status:** requested
+- **Status:** delivered
 
 > An abandoned water park in Denver at night, built by Hephaestus: rusted slides, a tunnel-of-love boat ride shaped like a giant heart, and a swan boat in which Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped and Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible sit while hundreds of bronze mechanical spiders pour from the walls and a golden net hangs above them, cameras flashing; Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can watches from the control booth. Bronze, teal and coral with gold linework. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -485,7 +485,7 @@ Character sheets use:
 - **File:** `scene-procrustes.png`, 2560 × 1440 px, delivered to `design/concept/scene-procrustes.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`, `char-monsters`
 - **Use:** Card for the chapter with Procrustes.
-- **Status:** requested
+- **Status:** delivered
 
 > A tacky desert waterbed showroom in Nevada: rows of heart-shaped and swan-shaped waterbeds, gold-flecked wallpaper. Procrustes, a huge smooth salesman in a silk shirt with a big axe hidden behind his back, beams at the heroes, while Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible and Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can are already strapped to beds that stretch them; Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped feigns interest, planning to trick him onto his own bed. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -494,7 +494,7 @@ Character sheets use:
 - **File:** `book-1.png`, 1600 × 2400 px, delivered to `design/concept/book-1.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`
 - **Use:** Portrait cover card for this book on the chapter map.
-- **Status:** requested
+- **Status:** delivered
 
 > A portrait book-cover-style card for the game, for the Percy Jackson book The Lightning Thief: Percy rising from a curling teal wave holding Riptide, lightning cracking above the New York skyline, a golden master bolt glowing in the clouds. Ornate black-and-gold Greek-key frame with an empty cartouche at the top. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -503,7 +503,7 @@ Character sheets use:
 - **File:** `book-2.png`, 1600 × 2400 px, delivered to `design/concept/book-2.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`
 - **Use:** Portrait cover card for this book on the chapter map.
-- **Status:** requested
+- **Status:** delivered
 
 > A portrait book-cover-style card for the game, for the Percy Jackson book The Sea of Monsters: Percy, Annabeth and Tyson on the deck of a small ship among enormous ornamental waves, the whirlpool Charybdis and the many-headed Scylla on either side, a golden fleece glinting on a distant island. Ornate black-and-gold Greek-key frame with an empty cartouche at the top. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -512,7 +512,7 @@ Character sheets use:
 - **File:** `book-3.png`, 1600 × 2400 px, delivered to `design/concept/book-3.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`
 - **Use:** Portrait cover card for this book on the chapter map.
-- **Status:** requested
+- **Status:** delivered
 
 > A portrait book-cover-style card for the game, for the Percy Jackson book The Titan's Curse: Percy, Thalia and Annabeth on a snowy mountain with silver-clad Hunters of Artemis and their silver bows, the moon huge behind them, a Titan holding up the sky in the distance. Ornate black-and-gold Greek-key frame with an empty cartouche at the top. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -521,7 +521,7 @@ Character sheets use:
 - **File:** `book-4.png`, 1600 × 2400 px, delivered to `design/concept/book-4.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`
 - **Use:** Portrait cover card for this book on the chapter map.
-- **Status:** requested
+- **Status:** delivered
 
 > A portrait book-cover-style card for the game, for the Percy Jackson book The Battle of the Labyrinth: Percy and Annabeth in a shifting stone maze drawn as a Greek-key labyrinth, a glowing Δ sign on the wall, Daedalus's bronze wings and workshop gears around them. Ornate black-and-gold Greek-key frame with an empty cartouche at the top. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -530,6 +530,6 @@ Character sheets use:
 - **File:** `book-5.png`, 1600 × 2400 px, delivered to `design/concept/book-5.png`
 - **References:** `key-art`, `char-percy`, `char-annabeth`
 - **Use:** Portrait cover card for this book on the chapter map.
-- **Status:** requested
+- **Status:** delivered
 
 > A portrait book-cover-style card for the game, for the Percy Jackson book The Last Olympian: Percy, Annabeth, Thalia, Nico, Grover, Tyson and Clarisse defending Manhattan on a bridge against a Titan army, the Empire State Building with Olympus glowing above, the storm giant Typhon on the horizon. Ornate black-and-gold Greek-key frame with an empty cartouche at the top. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.

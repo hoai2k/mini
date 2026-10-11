@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Ear Trainer](https://hoai2k.github.io/mini/eartrainer/)** · [`eartrainer/`](eartrainer/README.md): hear a melody, play it back on the piano
 - **[Ai-Ching](https://hoai2k.github.io/mini/aiching/)** · [`aiching/`](aiching/README.md): ask anything, and an I Ching reading answers
 - **[Fibre Art](https://hoai2k.github.io/mini/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve
 - **[The Ice-Cream Cone Coot](https://hoai2k.github.io/mini/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each

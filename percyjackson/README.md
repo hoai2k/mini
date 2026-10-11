@@ -20,8 +20,8 @@ yet.
   from `design/source/build_requests.py`; edit the data there and rerun it
   (`--check` verifies it is up to date). Delivered images go in
   `design/concept/`.
-- [`design/concept/README.md`](design/concept/README.md): all 19 generated
-  concept images, with previews and generation records.
+- [`design/concept/README.md`](design/concept/README.md): 19 generated
+  round-1 concept images and 27 round-2 images, with previews and generation records.
 - [`intake/`](intake/README.md): drop generated images here for integration.
 
 When the game itself starts, this folder gets the usual `publish.sh`, Pages
