@@ -3,6 +3,12 @@
 // footsteps, ambience per biome and a small generative soundtrack.
 import { settings } from './settings.js';
 
+// Music keys (biome music, 'hub', 'title', 'boss', 'minigame', 'oracle') that
+// have a delivered track, and its file under assets/music/.
+const MUSIC_FILES = { title: 'title', hub: 'camp', camp: 'camp', museum: 'museum', storm: 'storm', boss: 'boss', minigame: 'minigame', oracle: 'oracle', forest: 'woods', woods: 'woods', highway: 'highway', gorgon: 'garden', garden: 'garden' };
+// Ambiences with a recorded bed under assets/ambience/ (replacing the synthesised chirps).
+const AMB_FILES = { forest: 'crickets', night: 'crickets' };
+
 export class Audio {
   constructor() {
     this.ctx = null; this.started = false;
@@ -156,7 +162,10 @@ export class Audio {
   // ---- ambience (looping filtered noise + random events)
   setAmbience(kind) {
     if (!this.started) { this.pendingAmb = kind; return; }
-    if (this.amb) { try { this.amb.src.stop(); } catch (e) { /* ignore */ } clearInterval(this.amb.timer); }
+    if (this.amb) {
+      try { this.amb.src.stop(); } catch (e) { /* ignore */ } clearInterval(this.amb.timer);
+      const bed = this.amb.bed; if (bed) { bed.g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.5); setTimeout(() => { try { bed.s.stop(); } catch (e) { /* ended */ } }, 2500); }
+    }
     const c = this.ctx;
     const src = c.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true;
     const f = c.createBiquadFilter();
@@ -165,9 +174,19 @@ export class Audio {
       highway: ['lowpass', 700, 0.15], garden: ['bandpass', 1500, 0.035], wind: ['bandpass', 500, 0.09], park: ['lowpass', 420, 0.07], casino: ['bandpass', 650, 0.07], desert: ['bandpass', 380, 0.1], underworld: ['lowpass', 140, 0.13], surf: ['lowpass', 520, 0.17], olympus: ['highpass', 2400, 0.025] }[kind] || ['lowpass', 400, 0.08];
     f.type = cfg[0]; f.frequency.value = cfg[1]; g.gain.value = cfg[2];
     src.connect(f); f.connect(g); g.connect(this.ambBus); src.start();
+    const amb = { src, timer: 0, bed: null };
+    if (AMB_FILES[kind]) {
+      this.loadBuffer(`assets/ambience/${AMB_FILES[kind]}.mp3`).then((buf) => {
+        if (!buf || this.amb !== amb) return;
+        const s = c.createBufferSource(), bg = c.createGain();
+        s.buffer = buf; s.loop = true; bg.gain.setValueAtTime(0, c.currentTime); bg.gain.linearRampToValueAtTime(0.6, c.currentTime + 2);
+        s.connect(bg); bg.connect(this.ambBus); s.start();
+        amb.bed = { s, g: bg };
+      });
+    }
     const timer = setInterval(() => {
       if (!this.started || this.ctx.state !== 'running') return;
-      if (kind === 'night' || kind === 'forest') { if (Math.random() < 0.5) this.tone({ freq: 3800 + Math.random() * 800, dur: 0.05, gain: 0.015, type: 'sine', bus: this.ambBus, at: 0 }), this.tone({ freq: 3900 + Math.random() * 800, dur: 0.05, gain: 0.015, type: 'sine', bus: this.ambBus, at: 0.08 }); }
+      if ((kind === 'night' || kind === 'forest') && !amb.bed) { if (Math.random() < 0.5) this.tone({ freq: 3800 + Math.random() * 800, dur: 0.05, gain: 0.015, type: 'sine', bus: this.ambBus, at: 0 }), this.tone({ freq: 3900 + Math.random() * 800, dur: 0.05, gain: 0.015, type: 'sine', bus: this.ambBus, at: 0.08 }); }
       if (kind === 'forest' && Math.random() < 0.15) this.tone({ freq: 400 + Math.random() * 200, to: 300, dur: 0.6, gain: 0.03, type: 'sine', bus: this.ambBus, rev: 0.6 });
       if (kind === 'drips' && Math.random() < 0.7) this.tone({ freq: 1200 + Math.random() * 1500, to: 600, dur: 0.08, gain: 0.04, type: 'sine', bus: this.ambBus, rev: 0.8 });
       if (kind === 'city' && Math.random() < 0.1) this.tone({ freq: 700, to: 690, dur: 1.4, gain: 0.02, type: 'triangle', bus: this.ambBus, rev: 0.7 });
@@ -180,15 +199,71 @@ export class Audio {
       if (kind === 'olympus' && Math.random() < 0.15) this.tone({ freq: 1046 + Math.floor(Math.random() * 4) * 262, dur: 1.2, gain: 0.012, type: 'sine', bus: this.ambBus, rev: 0.9 });
       if (kind === 'desert' && Math.random() < 0.1) this.noise({ dur: 2.5, gain: 0.05, type: 'bandpass', freq: 700, sweep: 300, q: 2, attack: 1, bus: this.ambBus });
     }, 700);
-    this.amb = { src, timer };
+    amb.timer = timer;
+    this.amb = amb;
   }
 
-  // ---- music: small generative sequencer (taiko + koto-like plucks + pad)
+  // ---- music. Delivered tracks (assets/music/<file>.mp3, see MUSIC_FILES)
+  // play where they exist, looping with a crossfade; every other place keeps
+  // the small generative sequencer below. A temporary override (a minigame,
+  // the Oracle) plays over the place's music and hands back when cleared.
   setMusic(kind) {
     if (!this.started) { this.pendingMusic = kind; return; }
+    this.baseMusic = kind;
+    this.applyMusic();
+  }
+  setOverride(kind) { this.overrideMusic = kind; if (this.started) this.applyMusic(); }
+  applyMusic() {
+    const kind = this.overrideMusic ?? this.baseMusic;
+    if (kind === this.musicKind) return;
     this.musicKind = kind;
-    if (this.musicTimer) clearInterval(this.musicTimer);
+    if (this.musicTimer) { clearInterval(this.musicTimer); this.musicTimer = null; }
+    this.stopTrack();
     if (!kind) return;
+    if (MUSIC_FILES[kind]) this.playTrack(MUSIC_FILES[kind], kind);
+    else this.generative(kind);
+  }
+  loadBuffer(path) {
+    const cache = (this._buffers ??= new Map());
+    if (cache.has(path)) { const v = cache.get(path); cache.delete(path); cache.set(path, v); return v; }
+    const v = fetch(path).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? this.ctx.decodeAudioData(b) : null)).catch(() => null);
+    cache.set(path, v);
+    while (cache.size > 4) cache.delete(cache.keys().next().value);   // decoded music is large: keep a few
+    return v;
+  }
+  async playTrack(file, kind) {
+    const token = (this.trackToken = (this.trackToken ?? 0) + 1);
+    const buf = await this.loadBuffer(`assets/music/${file}.mp3`);
+    if (token !== this.trackToken || this.musicKind !== kind) return;
+    if (!buf) { this.generative(kind); return; }
+    const c = this.ctx, t = c.currentTime, XF = Math.min(3, buf.duration / 4);
+    const out = c.createGain();
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(1.2, t + 1.5);
+    out.connect(this.musicBus);
+    const tr = this.track = { out, sources: [], timer: 0 };
+    const play = (at, fadeIn) => {
+      const s = c.createBufferSource(), g = c.createGain();
+      s.buffer = buf; s.connect(g); g.connect(out);
+      const end = at + buf.duration;
+      g.gain.setValueAtTime(fadeIn ? 0 : 1, at);
+      if (fadeIn) g.gain.linearRampToValueAtTime(1, at + XF);
+      g.gain.setValueAtTime(1, end - XF); g.gain.linearRampToValueAtTime(0, end);
+      s.start(at); s.stop(end + 0.05);
+      tr.sources.push(s); s.onended = () => { tr.sources = tr.sources.filter((x) => x !== s); };
+      const next = end - XF;
+      tr.timer = setTimeout(() => { if (this.track === tr) play(next, true); }, Math.max(0, (next - c.currentTime - 2) * 1000));
+    };
+    play(t, false);
+  }
+  stopTrack() {
+    const tr = this.track; if (!tr) return;
+    this.track = null; clearTimeout(tr.timer);
+    tr.out.gain.setTargetAtTime(0, this.ctx.currentTime, 0.35);
+    setTimeout(() => { for (const s of tr.sources) { try { s.stop(); } catch (e) { /* ended */ } } tr.out.disconnect(); }, 2500);
+  }
+  // the generative sequencer (taiko + koto-like plucks + pad)
+  generative(kind) {
+    if (this.musicTimer) clearInterval(this.musicTimer);
     const scales = {
       museum: [0, 2, 3, 5, 7, 9], storm: [0, 1, 3, 5, 7, 8], camp: [0, 2, 4, 7, 9], shrine: [0, 1, 5, 7, 8], city: [0, 3, 5, 7, 10], forest: [0, 2, 3, 7, 8], subway: [0, 1, 3, 6, 8], shibuya: [0, 1, 4, 5, 7, 8], hub: [0, 2, 4, 7, 9], boss: [0, 1, 3, 6, 7], title: [0, 2, 3, 7, 10],
       highway: [0, 3, 5, 6, 7, 10], gorgon: [0, 1, 4, 5, 7, 8], arch: [0, 2, 4, 5, 7, 9], waterpark: [0, 1, 3, 5, 6, 10], lotus: [0, 4, 7, 9, 11, 14], desert: [0, 1, 4, 5, 7, 10], underworld: [0, 1, 3, 6, 7, 10], beach: [0, 2, 5, 7, 9], olympus: [0, 2, 4, 7, 9, 11],

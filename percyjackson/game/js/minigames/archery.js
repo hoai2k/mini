@@ -126,7 +126,7 @@ export class Archery {
     g.save.write();
     g.scene.remove(this.group);
     this.p.minigameLock = false;
-    g.minigame = null;
+    g.minigame = null; g.audio?.setOverride?.(null);
     g.rig.cine = null;
     g.toast?.(`${medal ? medal[0].toUpperCase() + medal.slice(1) + ' medal! ' : ''}Score ${this.score}${this.score > best ? ' — new best!' : ''} · +${drachmas} drachmas`, 'big');
     g.audio?.levelUp?.();

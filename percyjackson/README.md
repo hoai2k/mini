@@ -47,8 +47,13 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   turn from Greek letters into English as chapters are fulfilled, and
   writing that rearranges itself from Greek letters.
 
-Music prompts for generating the soundtrack are in
-[design/music-requests.md](design/music-requests.md).
+**Music:** delivered tracks play from `game/assets/music/` (title, camp,
+museum, storm, boss, minigame, oracle, woods, highway, garden), looping with
+a crossfade; places without a track yet keep the generated music. The
+victory, defeat and prophecy stingers come from
+`design/source/build_stingers.py` (ElevenLabs). Camp and the woods have a
+recorded crickets bed (`game/assets/ambience/crickets.mp3`). Prompts for the
+remaining tracks are in [design/music-requests.md](design/music-requests.md).
 
 The full design, including the later chapters and books, is in
 [design/game-design.md](design/game-design.md).

@@ -10,7 +10,8 @@ export function openProphecy(game, bookId = 'book1', onClose) {
   const ui = game.ui, d = game.save.data;
   const books = BOOKS.filter((b) => b.prophecy?.length);
   if (!books.some((b) => b.id === bookId)) bookId = books[0]?.id ?? bookId;
-  const close = () => { ui.close('prophecy'); onClose?.(); };
+  game.audio?.setOverride?.('oracle');
+  const close = () => { ui.close('prophecy'); game.audio?.setOverride?.(null); onClose?.(); };
   ui.open('prophecy', (el) => {
     const book = BOOKS.find((b) => b.id === bookId);
     const lines = book?.prophecy ?? [];

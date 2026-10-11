@@ -209,6 +209,7 @@ class Game {
   startMinigame(m) {
     if (this.minigame) return;
     this.ui.closeAll();
+    this.audio?.setOverride?.('minigame');
     m.start();
   }
   heroUnlocked(id) {
@@ -298,7 +299,7 @@ class Game {
     this.clearLevel();
     const L = buildCamp();
     this.loadWorld(L, BIOMES.camp);
-    if (this.state === 'playing') this.audio.setMusic('hub');
+    if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
     this.placePlayers(L.spawn);
     const dummy = new TrainingDummy(this, L.dummy);
     this.scene.add(dummy.object); this.enemies.push(dummy);
@@ -355,7 +356,7 @@ class Game {
     this.mode = 'loading-chapter';
     this.pendingMist = def.mist ?? this.chapter?.mist ?? 0;
     this.loadWorld(L, L.biome);
-    this.audio.setMusic(L.biome.music);
+    this.audio.overrideMusic = null; this.audio.setMusic(L.biome.music);
     this.placePlayers(L.spawn);
     this.minimap.build(L);
     this.hud.mini.classList.remove('hidden');
