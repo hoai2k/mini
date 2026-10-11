@@ -424,23 +424,36 @@ function sleeper(k, st, sl, t) {
   const c = k.c, x = sl.x, y = sy(st, wy);
   if (sl.y > SHELF_Y + 50 && !sl.floor) ledge(k, st, x, sl.y + 4, 170);
   const up = easeInOut(rise / 0.8);       // 0 lying .. 1 upright
-  c.save();
+  // The film edition's crew lie asleep in their own lying-down cut-outs
+  // (two of them, alternately mirrored), and stand as they wake.
+  if (FILM && up < 0.5 && k.img('crew-asleep')) {
+    const n = st.sleepers.indexOf(sl), id = n % 4 >= 2 && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
+    c.save(); c.translate(x - 5, y + 2); if (n % 2) c.scale(-1, 1);
+    c.globalAlpha = 1 - up * 2;
+    k.asset(id, 0, 0, 140, 65);
+    c.restore();
+    if (up > 0) { c.save(); c.globalAlpha = up * 2; } else return asleepBubbles(k, sl, x, y, t);
+  } else c.save();
   c.translate(x + 62 * (1 - up), y - 14 * (1 - up) + Math.sin(t * 1.5 + x) * 3 * up);
   c.rotate(-Math.PI / 2 * (1 - up) + Math.sin(t * 2 + x) * 0.08 * up);
   if (rise > 3.5) c.globalAlpha = clamp(1 - (rise - 3.5) / 1.5, 0, 1);
   if (!k.asset(sl.id, 0, 0, 70, 135)) figure(k, 0, 0, REV_COLS[sl.kind], 0.62);
   c.restore();
   c.globalAlpha = 1;
-  if (sl.state === 'asleep') {
-    // bubbles rise from the sleepers, and a lazy "z"
-    c.fillStyle = k.col('#eef3ea');
-    for (let i = 0; i < 3; i++) {
-      const f = (t * 0.4 + i / 3 + x * 0.001) % 1;
-      c.globalAlpha = 0.6 * (1 - f); k.circle(x - 10 + Math.sin(t * 2 + i) * 6, y - 30 - f * 80, 2 + i);
-    }
-    c.globalAlpha = 0.7; c.fillStyle = k.col('#f1e3c8'); c.font = 'italic 700 18px "Josefin Sans", sans-serif'; c.textAlign = 'center';
-    c.fillText('z', x + 20, y - 36 - ((t * 12 + x) % 18)); c.globalAlpha = 1;
+  asleepBubbles(k, sl, x, y, t);
+}
+
+function asleepBubbles(k, sl, x, y, t) {
+  if (sl.state !== 'asleep') return;
+  const c = k.c;
+  // bubbles rise from the sleepers, and a lazy "z"
+  c.fillStyle = k.col('#eef3ea');
+  for (let i = 0; i < 3; i++) {
+    const f = (t * 0.4 + i / 3 + x * 0.001) % 1;
+    c.globalAlpha = 0.6 * (1 - f); k.circle(x - 10 + Math.sin(t * 2 + i) * 6, y - 30 - f * 80, 2 + i);
   }
+  c.globalAlpha = 0.7; c.fillStyle = k.col('#f1e3c8'); c.font = 'italic 700 18px "Josefin Sans", sans-serif'; c.textAlign = 'center';
+  c.fillText('z', x + 20, y - 36 - ((t * 12 + x) % 18)); c.globalAlpha = 1;
 }
 
 // A stand-in cut-out person: hat, head, coat, bottom-centre at (x, y).

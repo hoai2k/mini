@@ -1,4 +1,4 @@
-import { LEGACY, FILM, FILM_CAST, themeManifest } from './theme.js';
+import { LEGACY, FILM, FILM_CAST, FILM_BODY_SCALE, themeManifest } from './theme.js';
 // Toy-theatre renderer. Every frame is painted twice: a monochrome "print"
 // pass and a flat colour "stencil" pass. The stencil pass is laid over the
 // print with the `color` blend, slightly out of register, which is how
@@ -78,7 +78,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { if (s.edition === 'film') img.fitBox = true; out.images[id] = img; onImage?.(id, img); done(); };
+    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = FILM_BODY_SCALE[id] || 1; } out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
@@ -151,7 +151,7 @@ function drawAsset(ctx, P, img, cx, by, w, h, extra = '') {
   // Figures match the box's height and may run a little wider than it.
   if (img.fitBox) {
     const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-    const s = Math.min(h / ih, (w * 1.6) / iw);
+    const s = Math.min(h / ih, (w * 1.6) / iw) * (img.bodyScale || 1);
     w = iw * s; h = ih * s;
   }
   // Sprites can be drawn up to ~1.15x their nominal box, so bake a little larger.
@@ -1043,8 +1043,13 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   // The people's old-film idle frame for this moment (the still when Extra
   // Animations is off or no idle frames are delivered).
-  // (A recast sprite has no idle frames of its own yet: draw it still.)
-  const idleId = (id, time, step) => (extraAnimations && !(cast[id] && assets.images[cast[id]]) ? idleFrameId(id, time, (f) => !!img(f), step) : id);
+  // A recast sprite flicks between its own film idle frames (crew-squire-idle-b
+  // and so on), never the legacy figure's.
+  const idleId = (id, time, step) => {
+    if (!extraAnimations) return id;
+    const film = cast[id] && assets.images[cast[id]] ? cast[id] : null;
+    return film ? idleFrameId(film, time, (f) => !!assets.images[f], step) : idleFrameId(id, time, (f) => !!img(f), step);
+  };
   // A person drawn with the film idle (frames plus the film tricks in
   // idlePose) when Extra Animations is on; the plain still otherwise.
   function drawIdle(c, id, time, cx, by, w, h, step) {

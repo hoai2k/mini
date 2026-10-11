@@ -44,12 +44,23 @@ export const FILM_CAST = {
   ...Object.fromEntries(['stand', 'walk-a', 'walk-b', 'leap', 'crouch', 'carry', 'swim-a', 'swim-b', 'seated', 'hang', 'pullup',
     'climb-a', 'climb-b', 'apex', 'fall', 'land', 'stairs-a', 'stairs-b'].map((p) => ['sailor-' + p, 'prince-' + p])),
   'sailor-throw': 'prince-push',
-  'reveller-yellow': 'crew-squire', 'reveller-jester': 'crew-helmsman', 'reveller-lady': 'crew-manatarms', 'reveller-shaggy': 'crew-squire',
+  'reveller-yellow': 'crew-squire', 'reveller-jester': 'crew-helmsman', 'reveller-lady': 'crew-manatarms', 'reveller-shaggy': 'crew-bosun',
   'guitar-sinking': 'sword-sinking', 'tea-leaf': 'aurora-star',
   'keepsake-guitar': 'keepsake-sword', 'keepsake-tea': 'keepsake-star', 'keepsake-rose': 'keepsake-shell',
   'keepsake-pearl': 'keepsake-seal', 'keepsake-stone': 'keepsake-lamp',
   ship: 'galley', 'ship-wreck-bow': 'galley-wreck-bow', 'ship-wreck-stern': 'galley-wreck-stern',
   'sentry-creature-closed': 'lobster-guard-closed', 'sentry-creature-open': 'lobster-guard-open',
   'gaze-lantern': 'scrying-eye', 'beloved-stand': 'azurine-stand', playbill: 'playbill-film',
+};
+
+// The delivered prince poses were fitted to fill their canvases, not to one
+// body scale as the sailor's were (sailor-motion.js), so he grew as he
+// climbed. Each factor scales a pose about its feet (bottom centre) to the
+// standing pose's head size: measured by matching prince-stand's helmet and
+// face in each pose, against the sailor's own pose-to-pose ratios.
+export const FILM_BODY_SCALE = {
+  'prince-leap': 1.14, 'prince-seated': 1.22, 'prince-carry': 0.95,
+  'prince-climb-a': 0.81, 'prince-climb-b': 0.81, 'prince-apex': 0.93, 'prince-fall': 0.84,
+  'prince-land': 0.76, 'prince-stairs-a': 0.76, 'prince-stairs-b': 0.78, 'prince-push': 0.82,
 };
 
