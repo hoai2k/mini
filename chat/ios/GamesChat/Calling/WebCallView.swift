@@ -96,13 +96,22 @@ struct WebCallView: UIViewRepresentable {
         // web view doesn't ask a second time.
         func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                      initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision {
-            origin.host == Config.webApp.host ? .grant : .prompt
+            Config.webHosts.contains(origin.host) ? .grant : .prompt
         }
 
         // Only the web app and the relay stay inside; other links open in Safari.
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
             guard let url = action.request.url else { return .cancel }
-            if url.scheme == "about" || url.host == Config.webApp.host { return .allow }
+            if url.scheme == "about" { return .allow }
+            if let host = url.host, Config.webHosts.contains(host) {
+                // The camera needs a secure page: never follow a redirect to http.
+                if url.scheme == "http", var c = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                    c.scheme = "https"
+                    if let secure = c.url { webView.load(URLRequest(url: secure)) }
+                    return .cancel
+                }
+                return .allow
+            }
             if action.targetFrame?.isMainFrame != false { await UIApplication.shared.open(url) }
             return .cancel
         }

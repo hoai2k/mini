@@ -1,11 +1,18 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 20
+A video chat in the browser with 75 face effects and backgrounds and 21
 minigames. Everyone
-who opens the page joins the same chat. One person fills the screen and the
+who opens the page joins the same chat, unless a link names its own room
+(`?room=call-abc123`: calls from the iOS app and their invite links meet
+there). One person fills the screen and the
 others float in movable small windows, for two people or up to 16,
 although every extra person costs upload bandwidth (see "How calls work").
 Play it at https://hoai2k.github.io/mini/chat/.
+
+There is also an iPhone and iPad app in [`ios/`](ios/README.md): the same
+call screen, effects and games (it loads this web app), with calls that ring
+like phone calls, by username or phone number. Getting it onto devices:
+[`ios/TESTFLIGHT.md`](ios/TESTFLIGHT.md). `privacy.html` is its privacy policy.
 
 ## Files
 
@@ -35,6 +42,8 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | `test/` | Unit tests, previews and browser checks (below) |
 | `publish.sh` | Copies the app plus `multiplayer/client/mini-rooms.js` into the Pages output |
 | `intake/` | Drop box for delivered art |
+| `ios/` | The iPhone and iPad app, its calls server and its guides (see `ios/README.md`) |
+| `privacy.html` | Privacy policy for the website and the app |
 
 ## Layout
 
@@ -260,6 +269,9 @@ itself to HTTPS.
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, joining a game from an invite, and a background tab pausing
   the camera and mic (needs `npm ci` in `multiplayer/server`)
+- iOS app: `chat/ios/README.md` lists its checks (Swift tests, the calls
+  server's tests, `chat/ios/test/web-shell.mjs` for the app's layer over this
+  page, and the Mac build in `.github/workflows/chat-ios.yml`)
 - `chat/publish.sh local/pages/chat && node chat/test/theme-shots.mjs`:
   title, call, effects, settings and games in every theme (`--color=#4dabf7`
   picks the player colour), screenshots in `local/chat-shots/themes/`

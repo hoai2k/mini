@@ -172,11 +172,26 @@ final class AppModel: ObservableObject {
             remember(target: target.serverValue, name: call.to.name)
             if logic.room == nil { enter(room) }
             calls.startOutgoing(call)
+            watch(call.id)
         } catch let e as APIError where e.code == "not_found" {
             outgoing = nil
             invite = Invite(target: shown, room: room)
         } catch {
             outgoing = Outgoing(call: nil, target: shown, status: error.localizedDescription, failed: true)
+        }
+    }
+
+    /// A backstop for the live inbox: while my call rings, check its status
+    /// every few seconds, so an answer is never missed if the connection blipped.
+    private func watch(_ id: String) {
+        Task { [weak self] in
+            for _ in 0..<30 {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard let self, self.outgoing?.call?.id == id, self.outgoing?.failed == false else { return }
+                if let call = try? await self.api.status(of: id), call.status != .ringing {
+                    self.apply(self.logic.update(call), call)
+                }
+            }
         }
     }
 

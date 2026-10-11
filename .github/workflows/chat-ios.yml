@@ -37,9 +37,19 @@ jobs:
           set -x
           APP=build/Build/Products/Debug-iphonesimulator/GamesChat.app
           mkdir -p shots
-          shoot() {  # device-type name, file prefix
-            UDID=$(xcrun simctl create "$2" "$1")
-            xcrun simctl boot "$UDID"
+          # Use simulators that come installed with Xcode on the runner.
+          pick() {  # "iPhone" or "iPad": the newest available device of that kind
+            xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          kind = sys.argv[1]
+          devs = [(rt, d) for rt, ds in json.load(sys.stdin)['devices'].items() if 'iOS' in rt for d in ds if d['name'].startswith(kind)]
+          devs.sort(key=lambda x: (x[0], x[1]['name']))
+          print(devs[-1][1]['udid'] if devs else '')
+          " "$1"
+          }
+          shoot() {  # udid, file prefix
+            UDID="$1"
+            xcrun simctl boot "$UDID" || true
             xcrun simctl bootstatus "$UDID" -b
             xcrun simctl install "$UDID" "$APP"
             xcrun simctl privacy "$UDID" grant camera net.hoai.gameschat || true
@@ -52,14 +62,11 @@ jobs:
             sleep 25
             xcrun simctl io "$UDID" screenshot "shots/$2-call.png"
             # Still running (no crash)?
-            xcrun simctl spawn "$UDID" launchctl list | grep -q gameschat && echo "$2: app running"
+            if xcrun simctl spawn "$UDID" launchctl list > procs.txt && grep -q gameschat procs.txt; then echo "$2: app running"; else echo "$2: app NOT running"; exit 1; fi
             xcrun simctl shutdown "$UDID"
           }
-          xcrun simctl list devicetypes
-          IPHONE=$(xcrun simctl list devicetypes | grep -o "com.apple.CoreSimulator.SimDeviceType.iPhone-1[5-9][A-Za-z0-9-]*" | grep -v -e Plus -e Pro -e e$ | tail -n 1)
-          IPAD=$(xcrun simctl list devicetypes | grep -o "com.apple.CoreSimulator.SimDeviceType.iPad-Air[A-Za-z0-9-]*" | tail -n 1)
-          shoot "$IPHONE" iphone
-          shoot "$IPAD" ipad
+          shoot "$(pick iPhone)" iphone
+          shoot "$(pick iPad)" ipad
       - uses: actions/upload-artifact@v4
         if: always()
         with:

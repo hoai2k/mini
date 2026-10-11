@@ -69,7 +69,7 @@ targets:
         NSMicrophoneUsageDescription: Games Chat uses the microphone so people in your call can hear you.
         UIUserInterfaceStyle: Dark
         # Where the app finds the web app and the calls server (TESTFLIGHT.md).
-        GCWebApp: https://hoai2k.github.io/mini/chat/
+        GCWebApp: https://games.hoai.net/mini/chat/
         GCCallsServer: https://games-chat-calls.hoai2k.workers.dev/
 schemes:
   GamesChat:
