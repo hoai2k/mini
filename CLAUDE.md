@@ -40,9 +40,10 @@ from `sites/`, `multiplayer/` and `local/`:
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
-  https://hoai2k.github.io/mini/, one card per game. Games that haven't turned out
-  as hoped yet are listed as plain links
-  in its Prototype archive, below the shelf. `GAME_GUIDELINES.md` applies to every game.
+  https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer
+  and Ai-Ching) go on its mini apps shelf below the games; Games Chat stays
+  with the games. Games that haven't turned out as hoped yet are listed as
+  plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
   `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
   builds and publishes everything.
 
