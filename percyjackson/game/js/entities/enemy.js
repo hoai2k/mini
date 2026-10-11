@@ -443,6 +443,7 @@ export class Enemy {
       const sq = 1 + Math.sin(this.stateT * 12) * 0.08 * speed;
       this.rig.root.scale.set(inflate * sq * 0.9, inflate / sq * 0.9, inflate * sq * 0.9);
     }
+    if (this.rig.hunch) this.rig.torso.rotation.x -= this.rig.hunch;   // hunch rides on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, speed), vel: this.vel, action: act });
     if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
     this.rig.tick?.(dt, this);

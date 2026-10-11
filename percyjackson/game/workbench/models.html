@@ -103,7 +103,7 @@ renderer.setAnimationLoop(() => {
   const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
   const k = (T % 1.6) / 1.6;
   const action = pose === 'attack' ? { type: 'attack', t: k, style: 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
-  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); if (r.hunch) r.torso.rotation.x += r.hunch; r.tick?.(dt, fake); }
+  for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; if (r.hunch) r.torso.rotation.x -= r.hunch; r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); if (r.hunch) r.torso.rotation.x += r.hunch; r.tick?.(dt, fake); }
   renderer.render(scene, camera);
 });
 </script>

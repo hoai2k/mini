@@ -584,6 +584,7 @@ export class Boss {
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
     const sp = Math.hypot(this.vel.x, this.vel.z) / this.B.speed;
     const act = this.stunT > 0 ? { type: 'stagger', t: 0 } : this.anim ?? (this.intro > 0 ? { type: 'raise', t: 0 } : null);
+    if (this.rig.hunch) this.rig.torso.rotation.x -= this.rig.hunch;   // hunch rides on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, sp), vel: this.vel, action: act });
     if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
     this.rig.tick?.(dt, this);

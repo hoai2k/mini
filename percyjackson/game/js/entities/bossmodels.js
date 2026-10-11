@@ -85,7 +85,7 @@ export const BOSS_MODELS = {
     prop(rig, rig.torso, 4, 3.6, 1, GOLD(), 0, 0.4, 3.4);
     prop(rig, rig.torso, 2.2, 2.2, 0.6, solid(0xffd84a, 0.6, 0.3, 0.8), 0, 0.4, 4);
     rig.extras.muzzle = muzzle;
-    rig.hunch = 0.2;
+    rig.hunch = 0.4;
     return rig;
   },
 
@@ -96,18 +96,19 @@ export const BOSS_MODELS = {
       custom: (s) => { s.box(0, 0, 8, 8, 8, 0xd89a40, 0.12); s.rect(9, 10, 2, 2, 0xffd84a, 0); s.rect(13, 10, 2, 2, 0xffd84a, 0); s.px(10, 11, 0x1a0a00); s.px(13, 11, 0x1a0a00); s.rect(9, 9, 6, 1, 0x8a5a20, 0); s.box(32, 0, 4, 4, 4, 0xe8b868, 0.1); s.rect(36, 4, 4, 1, 0x3a2214, 0); s.box(48, 0, 4, 2, 4, 0xa8282a, 0.1);
         s.box(40, 32, 2, 2, 6, 0x5a4a2a, 0.1); for (let y = 32; y < 40; y += 2) s.rect(40, y, 16, 1, 0xe0c060, 0); for (let x = 41; x < 56; x += 3) s.rect(x, 33, 1, 6, 0x2a2010, 0);
         fur(s, 0, 16, 40, 20, 60, 0x9a8466, 0xe0c8a0); for (const x of [0, 20]) s.rect(x, 28, 6, 8, 0x8a8478, 0.15); s.rect(12, 16, 8, 6, 0x8a8478, 0.15); } }), { emit: 2.6 });
-    const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 14, bodyW: 7.5, bodyH: 7, legH: 7, legW: 3.2, headS: 7.5, ears: true, tail: 8, tailLen: 22, tailW: 2.2, tailCurl: 0.3, gait: 0.7 });
+    const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 14, bodyW: 7.5, bodyH: 7, legH: 7, legW: 3.2, headS: 7.5, ears: true, tail: 8, tailLen: 24, tailW: 2.2, tailCurl: 0.42, gait: 0.7 });
     mane(rig, rig.head, 7.5, 31, [0xd8701a, 0xb85010, 0xf0a030, 0x9a4010, 0xe88a20]);
     // grey goat haunches over the back half
     furClump(rig, rig.torso, 32, [0x8a8478, 0x6a6458, 0x9a948a], { y: 1, z: -3.5, sx: 8, sy: 7, sz: 7, n: 40, size: [2, 3.2] });
     for (const leg of rig.legs.slice(2)) prop(rig, leg, 3.4, 2, 3.6, solid(0x3a3028), 0, -7.2, 0.3);
     for (const leg of rig.legs.slice(0, 2)) for (const dx of [-1, 0, 1]) prop(rig, leg, 0.7, 0.8, 1.4, solid(0xf0e8d0), dx, -7.2, 1.8);
     // goat head on a neck from the back, long curling horns
-    const goat = group(rig.torso, 0, 3.5, -1.5, -0.25);
+    const goat = group(rig.torso, 0, 3.5, -2, -0.15);
     const grey = solid(0x7a7468, 0, 0.9), greyD = solid(0x5a564e, 0, 0.9);
-    prop(rig, goat, 3.4, 7, 3.4, grey, 0, 3.5, 0, 0.2);
-    const gh = group(goat, 0, 7.5, 1.4, 0.3);
-    prop(rig, gh, 4.4, 4.4, 5.6, grey, 0, 0, 1);
+    prop(rig, goat, 4, 10, 4, grey, 0, 5, 0, 0.2);
+    furClump(rig, goat, 33, [0x8a8478, 0x6a6458, 0x9a948a], { y: 4, z: -0.5, sx: 4, sy: 8, sz: 4, n: 18 });
+    const gh = group(goat, 0, 10.5, 2, 0.3);
+    prop(rig, gh, 5, 5, 6.4, grey, 0, 0, 1);
     prop(rig, gh, 3.2, 2.6, 3, greyD, 0, -0.8, 4.2);
     prop(rig, gh, 2, 2.6, 1.2, solid(0xd8d0c0), 0, -3, 3.4);   // beard
     prop(rig, gh, 0.9, 0.9, 0.4, solid(0xffd84a, 2.4), -1.5, 0.8, 3.8); prop(rig, gh, 0.9, 0.9, 0.4, solid(0xffd84a, 2.4), 1.5, 0.8, 3.8);
@@ -236,7 +237,7 @@ export const BOSS_MODELS = {
   cerberus: () => {
     const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 9, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 4, headZ: 1 });
+    const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 11, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 4, headZ: 1 });
     const blacks = [0x16141c, 0x22202a, 0x0e0d14, 0x2e2c38];
     furClump(rig, rig.torso, 51, blacks, { y: 3.4, z: 2, sx: 10, sy: 4, sz: 10, n: 60, size: [2, 3.2] });
     const heads = [];
@@ -246,7 +247,7 @@ export const BOSS_MODELS = {
       let neck, head, mouth;
       if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; }
       else {
-        neck = new THREE.Group(); neck.position.set(side * 6.2 * PX, (8 * 0.3 + 0.6) * PX, (14 / 2 - 2.5) * PX); neck.rotation.y = side * 0.6; rig.torso.add(neck);
+        neck = new THREE.Group(); neck.position.set(side * 7.4 * PX, (8 * 0.3 + 1.2) * PX, (14 / 2 - 2) * PX); neck.rotation.y = side * 0.45; rig.torso.add(neck);
         prop(rig, neck, 5, 5, 5, rig.material, 0, -0.5, -1.5);
         ({ head, mouth } = dogHead(rig, neck, 7));
       }
@@ -320,8 +321,8 @@ export const BOSS_MODELS = {
     // Backbiter
     const sword = group(rig.handR, 0, -1, 1, -1.4, 0, 0);
     prop(rig, sword, 1.2, 4.4, 1.2, solid(0x3a2418), 0, 0, 0); prop(rig, sword, 5, 1, 1.4, solid(0x8a8a90, 0, 0.3, 0.9), 0, 2.6, 0);
-    prop(rig, sword, 1.1, 16, 0.6, solid(0xc8ccd8, 0.4, 0.2, 0.95), -0.55, 11, 0);
-    prop(rig, sword, 1.1, 16, 0.6, solid(0xe0a040, 1.2, 0.25, 0.85), 0.55, 11, 0);
+    prop(rig, sword, 1.5, 17, 0.7, solid(0xc8ccd8, 0.4, 0.2, 0.95), -0.75, 11.5, 0);
+    prop(rig, sword, 1.5, 17, 0.7, solid(0xe0a040, 1.2, 0.25, 0.85), 0.75, 11.5, 0);
     prop(rig, sword, 1.2, 1.6, 0.6, solid(0xe0a040, 1.2, 0.25, 0.85), 0, 19.6, 0);
     rig.extras.sword = sword;
     return rig;

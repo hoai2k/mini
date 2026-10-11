@@ -684,8 +684,9 @@ export const BOOK1_HOOKS = {
       r.root.position.copy(lp);
       r.root.rotation.y = a + Math.PI;   // fly along the circle
       r.swap(null);
+      r.torso.rotation.x -= r._lean ?? 0;
       r.animate({ dt, speed: 0.3, vel: ZERO, action: F.crack[i] > 0 ? { type: 'attack', t: 0.6, style: 'swingR', windup: 0.3, strike: 0.5 } : null });
-      if (r.hunch) r.torso.rotation.x += r.hunch + 0.25;
+      r._lean = (r.hunch ?? 0) + 0.25; r.torso.rotation.x += r._lean;
       animateExtras(r, dt, { swooping: true, whipCrack: F.crack[i] });
     }
   },

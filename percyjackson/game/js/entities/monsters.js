@@ -181,7 +181,7 @@ const MODELS = {
     addWings(rig, { span: 24, chord: 10, mat: solid(0x7a4a1e), tip: solid(0xc9963a, 0, 0.45, 0.5), kind: 'feather', y: 10, flap: 1.2 });
     const tail = group(rig.hips, 0, 2, -3, 0.9);
     for (let i = -2; i <= 2; i++) prop(rig, tail, 1.8, 1, 8, solid(i % 2 ? 0xc9963a : 0x6a4018), i * 1.6, 0, -4, 0, i * 0.15, 0);
-    rig.hunch = 0.35;
+    rig.hunch = 0.55;
     rig.float = 1.1;
     return rig;
   },
@@ -223,7 +223,7 @@ const MODELS = {
     prop(rig, shield, 3, 3, 0.8, solid(0xc9963a, 0, 0.35, 0.6), 0, 0, 1.4);
     rig.extras.shield = shield;
     for (const arm of [rig.armR, rig.armL]) prop(rig, arm, 3.6, 1.4, 4.6, solid(0xc9963a, 0, 0.35, 0.6), 0, -6, 0);
-    rig.hunch = 0.1;
+    rig.hunch = 0.2;
     return rig;
   },
   empousa: () => {
@@ -306,7 +306,7 @@ const MODELS = {
     prop(rig, club, 2.6, 18, 2.6, solid(0x6a4022), 0, 6, 0); prop(rig, club, 4.6, 8, 4.6, solid(0x7a4a28), 0, 16, 0);
     for (const [x, y, z] of [[2.4, 15, 0], [-2.4, 18, 0], [0, 17, 2.4], [0, 14, -2.4]]) prop(rig, club, 1.4, 1.4, 1.4, solid(0x8a8a90, 0, 0.4, 0.6), x, y, z);
     for (const arm of [rig.armR, rig.armL]) prop(rig, arm, 5.6, 2, 4.6, solid(0x6a4a2a), 0, -8, 0);
-    rig.hunch = 0.15;
+    rig.hunch = 0.3;
     return rig;
   },
   gorgon_statue: () => {
@@ -334,7 +334,7 @@ const MODELS = {
     // trailing wisps instead of legs
     const wisp = solid(0x9ad8e8, 1.4);
     for (let i = 0; i < 5; i++) { const g = group(rig.hips, -3 + i * 1.5, 0, 0); prop(rig, g, 1.8, 8 - (i % 2) * 3, 2, wisp, 0, -4 + (i % 2), 0); sway(rig, g, 'x', 0.35, 3, i); }
-    rig.float = 1.3; rig.hunch = 0.1;
+    rig.float = 1.3; rig.hunch = 0.2;
     return rig;
   },
 };
@@ -363,7 +363,7 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   for (const arm of [rig.armR, rig.armL]) prop(rig, arm, 3.4, 1.2, 4.4, solid(0xc9963a, 0.2, 0.35, 0.7), 0, -7.5, 0);
   addWings(rig, { span: 20 * Math.min(1.2, scale + 0.1), chord: 11, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10) });
   addWhip(rig, { segs: 7, len: 3 });
-  rig.hunch = 0.15;
+  rig.hunch = 0.35;
   rig.float = 0.8;
   return rig;
 }
