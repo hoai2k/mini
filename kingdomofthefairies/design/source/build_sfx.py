@@ -47,6 +47,12 @@ TUNE = {'pearl': -12, 'keepsake': 1, 'arrive': 1.48,
 
 # id: (seconds, prompt influence, loop, prompt)
 SFX = {
+    # The menus' ambience (the score itself starts only in play): an old
+    # gramophone record turning with no music on it.
+    'record': (20, 0.5, True,
+               'An old shellac 78 rpm gramophone record spinning in its run-out groove with no music: '
+               'soft surface hiss, gentle irregular crackle and pops, a faint slow rhythmic click each '
+               'turn, warm and quiet, seamless.'),
     'sea': (12, 0.45, True,
             'Gentle night sea made by a Victorian theatre wave machine: dried peas rolling slowly '
             'inside a large wooden ocean drum, soft continuous swells, calm and seamless.'),

@@ -145,6 +145,7 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
 const save = loadSave();
 const params = new URLSearchParams(location.search);
 const QA = params.has('qa');
+const CRACKLE = params.get('crackle') === 'on';
 // ?edit=local: choose each edition's unlocked acts on this machine (editor.js),
 // from a button beside the options; this edition's save reloads on a change.
 if (editorWanted()) {
@@ -499,6 +500,10 @@ function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
   const mood = musicMood();
   if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
+  // The score and the sea play throughout, as before. Optionally (?crackle=on)
+  // the score waits for play and an old record's crackle fills the menus (the
+  // title, playbill, act cards, pause and dialogs); not in Widow's Bay.
+  audio.setStage(S.mode === 'play' && !S.paused, CRACKLE && !LEGACY);
   S.curtain += (S.curtainTarget - S.curtain) * Math.min(1, dt * 2.2);
   if (TOUCH) updateTouch();
 
