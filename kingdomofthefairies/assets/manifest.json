@@ -960,7 +960,7 @@
       "anchor": "bottom centre"
     },
     "prince-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stand.webp",
       "size": [
         220,
@@ -970,7 +970,7 @@
       "edition": "film"
     },
     "prince-walk-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-walk-a.webp",
       "size": [
         220,
@@ -980,7 +980,7 @@
       "edition": "film"
     },
     "prince-walk-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-walk-b.webp",
       "size": [
         220,
@@ -990,7 +990,7 @@
       "edition": "film"
     },
     "prince-leap": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-leap.webp",
       "size": [
         260,
@@ -1000,7 +1000,7 @@
       "edition": "film"
     },
     "prince-crouch": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-crouch.webp",
       "size": [
         240,
@@ -1010,7 +1010,7 @@
       "edition": "film"
     },
     "prince-carry": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-carry.webp",
       "size": [
         360,
@@ -1020,7 +1020,7 @@
       "edition": "film"
     },
     "prince-swim-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-swim-a.webp",
       "size": [
         360,

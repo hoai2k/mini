@@ -94,32 +94,34 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 80 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
+Delivery: 7 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+
 ### F1. Prince Bel-Azor
 
 The player, in every act. One set, all to the same scale, so the whole game switches from the sailor at once. Until they arrive the game uses a cut-out of the prince from his character sheet, moved as a toy-theatre puppet.
 
-| Id | Size | Anchor | Replaces |
-| --- | --- | --- | --- |
-| `prince-stand` | 220 × 360 | bottom centre | `sailor-stand` |
-| `prince-walk-a` | 220 × 360 | bottom centre | `sailor-walk-a` |
-| `prince-walk-b` | 220 × 360 | bottom centre | `sailor-walk-b` |
-| `prince-leap` | 260 × 360 | bottom centre | `sailor-leap` |
-| `prince-crouch` | 240 × 300 | bottom centre | `sailor-crouch` |
-| `prince-carry` | 360 × 400 | bottom centre | `sailor-carry` |
-| `prince-swim-a` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-a` |
-| `prince-swim-b` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-b` |
-| `prince-seated` | 220 × 220 | bottom centre | `sailor-seated` |
-| `prince-hang` | 220 × 440 | top centre (his hands) | `sailor-hang` |
-| `prince-pullup` | 260 × 300 | ledge line 25% up from the bottom, centred | `sailor-pullup` |
-| `prince-climb-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-a` |
-| `prince-climb-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-b` |
-| `prince-apex` | 360 × 440 | bottom centre (lowest boot) | `sailor-apex` |
-| `prince-fall` | 360 × 440 | bottom centre (lowest boot) | `sailor-fall` |
-| `prince-land` | 360 × 440 | bottom centre (lowest boot) | `sailor-land` |
-| `prince-stairs-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-a` |
-| `prince-stairs-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-b` |
-| `prince-push` | 360 × 440 | bottom centre (lowest boot) | new |
-| `prince-court` | 220 × 360 | bottom centre | new |
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-stand` | 220 × 360 | bottom centre | `sailor-stand` | [delivered](../assets/prince-stand.webp) |
+| `prince-walk-a` | 220 × 360 | bottom centre | `sailor-walk-a` | [delivered](../assets/prince-walk-a.webp) |
+| `prince-walk-b` | 220 × 360 | bottom centre | `sailor-walk-b` | [delivered](../assets/prince-walk-b.webp) |
+| `prince-leap` | 260 × 360 | bottom centre | `sailor-leap` | [delivered](../assets/prince-leap.webp) |
+| `prince-crouch` | 240 × 300 | bottom centre | `sailor-crouch` | [delivered](../assets/prince-crouch.webp) |
+| `prince-carry` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/prince-carry.webp) |
+| `prince-swim-a` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-a` | [delivered](../assets/prince-swim-a.webp) |
+| `prince-swim-b` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-b` | requested |
+| `prince-seated` | 220 × 220 | bottom centre | `sailor-seated` | requested |
+| `prince-hang` | 220 × 440 | top centre (his hands) | `sailor-hang` | requested |
+| `prince-pullup` | 260 × 300 | ledge line 25% up from the bottom, centred | `sailor-pullup` | requested |
+| `prince-climb-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-a` | requested |
+| `prince-climb-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-b` | requested |
+| `prince-apex` | 360 × 440 | bottom centre (lowest boot) | `sailor-apex` | requested |
+| `prince-fall` | 360 × 440 | bottom centre (lowest boot) | `sailor-fall` | requested |
+| `prince-land` | 360 × 440 | bottom centre (lowest boot) | `sailor-land` | requested |
+| `prince-stairs-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-a` | requested |
+| `prince-stairs-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-stairs-b` | requested |
+| `prince-push` | 360 × 440 | bottom centre (lowest boot) | new | requested |
+| `prince-court` | 220 × 360 | bottom centre | new | requested |
 
 #### `prince-stand` — Standing
 
@@ -245,30 +247,30 @@ The player, in every act. One set, all to the same scale, so the whole game swit
 
 The film's characters as cut-outs for the scenes they appear in. Match each character sheet in references/film-planning/originals/.
 
-| Id | Size | Anchor | Replaces |
-| --- | --- | --- | --- |
-| `azurine-stand` | 200 × 380 | bottom centre | `beloved-stand` |
-| `azurine-asleep` | 360 × 160 | bottom centre | new |
-| `azurine-window` | 160 × 200 | bottom centre | new |
-| `aurora-stand` | 260 × 420 | bottom centre | new |
-| `aurora-point` | 300 × 420 | bottom centre | new |
-| `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` |
-| `witch-hooded` | 240 × 400 | bottom centre | new |
-| `witch-cloud` | 400 × 400 | bottom centre | new |
-| `witch-swoop` | 400 × 240 | centre | new |
-| `witch-barrel` | 200 × 240 | bottom centre | new |
-| `king-stand` | 220 × 420 | bottom centre | new |
-| `queen-stand` | 220 × 420 | bottom centre | new |
-| `fairy-ring` | 220 × 420 | bottom centre | new |
-| `fairy-crown` | 220 × 420 | bottom centre | new |
-| `fairy-gold` | 220 × 420 | bottom centre | new |
-| `demon-red` | 220 × 360 | bottom centre | new |
-| `demon-teal` | 220 × 360 | bottom centre | new |
-| `crew-squire` | 220 × 420 | bottom centre | `reveller-yellow` |
-| `crew-helmsman` | 220 × 420 | bottom centre | `reveller-jester` |
-| `crew-manatarms` | 220 × 420 | bottom centre | `reveller-lady` |
-| `crew-asleep` | 260 × 120 | bottom centre | new |
-| `crew-rider` | 320 × 240 | bottom centre | new |
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `azurine-stand` | 200 × 380 | bottom centre | `beloved-stand` | requested |
+| `azurine-asleep` | 360 × 160 | bottom centre | new | requested |
+| `azurine-window` | 160 × 200 | bottom centre | new | requested |
+| `aurora-stand` | 260 × 420 | bottom centre | new | requested |
+| `aurora-point` | 300 × 420 | bottom centre | new | requested |
+| `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | requested |
+| `witch-hooded` | 240 × 400 | bottom centre | new | requested |
+| `witch-cloud` | 400 × 400 | bottom centre | new | requested |
+| `witch-swoop` | 400 × 240 | centre | new | requested |
+| `witch-barrel` | 200 × 240 | bottom centre | new | requested |
+| `king-stand` | 220 × 420 | bottom centre | new | requested |
+| `queen-stand` | 220 × 420 | bottom centre | new | requested |
+| `fairy-ring` | 220 × 420 | bottom centre | new | requested |
+| `fairy-crown` | 220 × 420 | bottom centre | new | requested |
+| `fairy-gold` | 220 × 420 | bottom centre | new | requested |
+| `demon-red` | 220 × 360 | bottom centre | new | requested |
+| `demon-teal` | 220 × 360 | bottom centre | new | requested |
+| `crew-squire` | 220 × 420 | bottom centre | `reveller-yellow` | requested |
+| `crew-helmsman` | 220 × 420 | bottom centre | `reveller-jester` | requested |
+| `crew-manatarms` | 220 × 420 | bottom centre | `reveller-lady` | requested |
+| `crew-asleep` | 260 × 120 | bottom centre | new | requested |
+| `crew-rider` | 320 × 240 | bottom centre | new | requested |
 
 #### `azurine-stand` — Azurine standing
 
@@ -406,31 +408,31 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 
 Creatures, keepsakes and props for the recast acts and the new scenes.
 
-| Id | Size | Anchor | Replaces |
-| --- | --- | --- | --- |
-| `octopus` | 600 × 420 | bottom centre | new |
-| `dolphin-carriage` | 520 × 340 | bottom centre | `witch-moonboat` |
-| `lobster-guard-closed` | 500 × 340 | bottom centre | `sentry-creature-closed` |
-| `lobster-guard-open` | 500 × 340 | bottom centre | `sentry-creature-open` |
-| `scrying-eye` | 200 × 300 | top centre (it hangs) | `gaze-lantern` |
-| `galley` | 380 × 400 | bottom centre (the waterline) | `ship` |
-| `galley-wreck-bow` | 300 × 400 | bottom centre | `ship-wreck-bow` |
-| `galley-wreck-stern` | 300 × 400 | bottom centre | `ship-wreck-stern` |
-| `sword-sinking` | 220 × 520 | centre | `guitar-sinking` |
-| `aurora-star` | 64 × 64 | bottom centre | `tea-leaf` |
-| `keepsake-star` | 128 × 128 | bottom centre | `keepsake-tea` |
-| `keepsake-sword` | 128 × 128 | bottom centre | `keepsake-guitar` |
-| `keepsake-shell` | 128 × 128 | bottom centre | `keepsake-rose` |
-| `keepsake-seal` | 128 × 128 | bottom centre | `keepsake-pearl` |
-| `keepsake-lamp` | 128 × 128 | bottom centre | `keepsake-stone` |
-| `chariot` | 600 × 320 | centre | new |
-| `gift-ring` | 96 × 96 | bottom centre | new |
-| `gift-flower` | 96 × 96 | bottom centre | new |
-| `gift-crown` | 96 × 96 | bottom centre | new |
-| `gift-gold` | 96 × 96 | bottom centre | new |
-| `whirlpool` | 800 × 260 | centre | new |
-| `tower-window` | 200 × 260 | bottom centre | new |
-| `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new |
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `octopus` | 600 × 420 | bottom centre | new | requested |
+| `dolphin-carriage` | 520 × 340 | bottom centre | `witch-moonboat` | requested |
+| `lobster-guard-closed` | 500 × 340 | bottom centre | `sentry-creature-closed` | requested |
+| `lobster-guard-open` | 500 × 340 | bottom centre | `sentry-creature-open` | requested |
+| `scrying-eye` | 200 × 300 | top centre (it hangs) | `gaze-lantern` | requested |
+| `galley` | 380 × 400 | bottom centre (the waterline) | `ship` | requested |
+| `galley-wreck-bow` | 300 × 400 | bottom centre | `ship-wreck-bow` | requested |
+| `galley-wreck-stern` | 300 × 400 | bottom centre | `ship-wreck-stern` | requested |
+| `sword-sinking` | 220 × 520 | centre | `guitar-sinking` | requested |
+| `aurora-star` | 64 × 64 | bottom centre | `tea-leaf` | requested |
+| `keepsake-star` | 128 × 128 | bottom centre | `keepsake-tea` | requested |
+| `keepsake-sword` | 128 × 128 | bottom centre | `keepsake-guitar` | requested |
+| `keepsake-shell` | 128 × 128 | bottom centre | `keepsake-rose` | requested |
+| `keepsake-seal` | 128 × 128 | bottom centre | `keepsake-pearl` | requested |
+| `keepsake-lamp` | 128 × 128 | bottom centre | `keepsake-stone` | requested |
+| `chariot` | 600 × 320 | centre | new | requested |
+| `gift-ring` | 96 × 96 | bottom centre | new | requested |
+| `gift-flower` | 96 × 96 | bottom centre | new | requested |
+| `gift-crown` | 96 × 96 | bottom centre | new | requested |
+| `gift-gold` | 96 × 96 | bottom centre | new | requested |
+| `whirlpool` | 800 × 260 | centre | new | requested |
+| `tower-window` | 200 × 260 | bottom centre | new | requested |
+| `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new | requested |
 
 #### `octopus` — The great octopus
 
@@ -574,23 +576,23 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 
 Backcloths for the prologue and Acts V and VI, and the transformations. Full-frame cloths fill the 1280 × 720 stage at half size.
 
-| Id | Size | Anchor | Replaces |
-| --- | --- | --- | --- |
-| `betrothal-court` | 2560 × 1440 | full frame | new |
-| `rampart-strip` | 2560 × 720 | bottom edge | new |
-| `armoury` | 2560 × 1440 | full frame | new |
-| `tempest-sky` | 2560 × 820 | top edge | `sky-backdrop` |
-| `lobster-palace` | 2560 × 1440 | full frame | new |
-| `sea-flora` | 2560 × 1440 | full frame | new |
-| `azure-grotto` | 2560 × 1440 | full frame | new |
-| `shore-cave` | 2560 × 1440 | full frame | new |
-| `cavern` | 2560 × 1440 | full frame | new |
-| `coast-gap` | 2560 × 1440 | full frame | new |
-| `tower-wall-tall` | 1400 × 3600 | bottom centre | new |
-| `tower-interior` | 1400 × 1800 | bottom centre | `house-front` |
-| `cliff-whirlpool` | 2560 × 1440 | full frame | new |
-| `wedding-street` | 2560 × 1440 | full frame | `pageant-backcloth` |
-| `apotheosis` | 2560 × 1440 | full frame | new |
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `betrothal-court` | 2560 × 1440 | full frame | new | requested |
+| `rampart-strip` | 2560 × 720 | bottom edge | new | requested |
+| `armoury` | 2560 × 1440 | full frame | new | requested |
+| `tempest-sky` | 2560 × 820 | top edge | `sky-backdrop` | requested |
+| `lobster-palace` | 2560 × 1440 | full frame | new | requested |
+| `sea-flora` | 2560 × 1440 | full frame | new | requested |
+| `azure-grotto` | 2560 × 1440 | full frame | new | requested |
+| `shore-cave` | 2560 × 1440 | full frame | new | requested |
+| `cavern` | 2560 × 1440 | full frame | new | requested |
+| `coast-gap` | 2560 × 1440 | full frame | new | requested |
+| `tower-wall-tall` | 1400 × 3600 | bottom centre | new | requested |
+| `tower-interior` | 1400 × 1800 | bottom centre | `house-front` | requested |
+| `cliff-whirlpool` | 2560 × 1440 | full frame | new | requested |
+| `wedding-street` | 2560 × 1440 | full frame | `pageant-backcloth` | requested |
+| `apotheosis` | 2560 × 1440 | full frame | new | requested |
 
 #### `betrothal-court` — The betrothal court
 
