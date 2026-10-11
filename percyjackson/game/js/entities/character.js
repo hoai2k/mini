@@ -184,6 +184,7 @@ export class Rig {
     this.torso.scale.set(breath, 1 + (breath - 1) * 0.5, breath);
     const a = p.action;
     let snap = 18;
+    if (p.air && !a) { T.armRX = -0.6; T.armLX = -0.4; T.armRZ = 0.55; T.armLZ = -0.55; T.legRX = -0.7; T.legLX = 0.35; T.torsoX = 0.1; }
     if (a) {
       const k = a.t;
       switch (a.type) {

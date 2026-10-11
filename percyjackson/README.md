@@ -47,6 +47,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   turn from Greek letters into English as chapters are fulfilled, and
   writing that rearranges itself from Greek letters.
 
+Music prompts for generating the soundtrack are in
+[design/music-requests.md](design/music-requests.md).
+
 The full design, including the later chapters and books, is in
 [design/game-design.md](design/game-design.md).
 
@@ -55,17 +58,19 @@ The full design, including the later chapters and books, is in
 | Action | Xbox controller | Keyboard and mouse |
 | --- | --- | --- |
 | Move · aim | Left stick · right stick | WASD · mouse |
-| Melee · ranged | A · RT | Left click · right click |
-| Dodge (Battle Sense) | B | Space |
+| Melee · ranged | X · RT | Left click · right click |
+| Jump | A | Space |
+| Dodge (Battle Sense) | B | Shift |
 | Abilities 1 · 2 · 3 | LB · RB · Y | 1 · 2 · 3 |
 | Godly power | LB + RB together | F |
 | True Sight | LT | V |
-| Interact | X | E |
+| Interact | X (when a prompt shows) | E |
 | Ambrosia (heal) | D-pad ↑ | Q |
 | Switch hero | D-pad ↓ | Tab |
 | Magic items | D-pad ← · → | R · T |
-| Map · pause | View · Menu | M · Esc |
-| Inventory | Pause menu | I |
+| Inventory | View | I |
+| Map | Click the right stick | M |
+| Pause | Menu | Esc |
 
 The in-game Instructions screen has the controller diagram.
 

@@ -16,6 +16,8 @@ const BUTTONS = [
   ['domain', '⚡', 196, 150, 60],
   ['sight', '👁', 266, 30, 48],
   ['swap', '⇄', 264, 92, 44],
+  ['jump', '⤒', 210, 210, 48],
+  ['inv', '🎒', 20, 300, 40],
 ];
 
 export class TouchControls {

@@ -322,6 +322,10 @@ class Game {
       const npc = buildNpc(id); npc.root.position.copy(pos); npc.root.rotation.y = yaw; this.scene.add(npc.root); this.hubProps.push(npc.root);
     }
     this.questMarkers = placeQuestMarkers(this, L);
+    if (!this.save.data.seenGearHint) {   // the inventory and jump are easy to miss
+      this.save.data.seenGearHint = true; this.save.write();
+      setTimeout(() => toast(this.input.lastDevice?.startsWith('pad') ? 'View: inventory · A: jump' : 'I: inventory · Space: jump'), 4000);
+    }
     this.wave = 0;
     this.minimap.level = null;
     this.hud.mini.classList.add('hidden');
@@ -569,11 +573,13 @@ class Game {
     }
   }
   updateInteract(dt) {
+    const nearDevices = new Set();     // controllers with a prompt up: X interacts instead of attacking
     for (const it of this.interactables) {
       if (it.enabled && !it.enabled()) continue;
       let near = null;
       for (const p of this.players) if (!p.ai && !p.dead && !p.downed && p.pos.distanceTo(it.pos) < it.radius) near = p;
       if (!near) { it.progress = 0; it.touchHold = false; continue; }
+      nearDevices.add(near.device);
       const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'X';
       const inp = this.input.get(near.device);
       if (it.hold) {
@@ -588,6 +594,7 @@ class Game {
         if (inp.pressed.interact) it.action(near);
       }
     }
+    this.input.nearInteract = nearDevices;
   }
 
   frame() {

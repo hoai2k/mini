@@ -16,7 +16,7 @@ const CALLOUTS = [
   R('RB', 'Ability 2', 490, 45, 62),
   R('Y', 'Ability 3', 466, 100, 102),
   R('B', 'Dodge', 496, 128, 140, ['Perfect dodge: Battle Sense']),
-  R('A', 'Melee attack', 466, 158, 188),
+  R('A', 'Jump', 466, 158, 188),
 ];
 function callout(c) {
   const left = c.side === 'l';
@@ -27,7 +27,7 @@ function callout(c) {
     `<text x="${tx}" y="${c.ty}" text-anchor="${anchor}"><tspan class="k">${c.key}</tspan><tspan class="v"> · ${c.val}</tspan>${subs}</text>`;
 }
 function padSvg() {
-  return `<svg viewBox="0 0 1010 450" role="img" aria-label="Xbox controller diagram. Left stick moves, right stick aims, A melee, RT ranged, B dodge, LB RB and Y abilities, LB plus RB together godly power, LT True Sight, X interact, D-pad up Ambrosia, down switch hero, left and right magic items, View map, Menu pause.">
+  return `<svg viewBox="0 0 1010 450" role="img" aria-label="Xbox controller diagram. Left stick moves, right stick aims, A jump, X melee attack (interact when a prompt shows), RT ranged, B dodge, LB RB and Y abilities, LB plus RB together godly power, LT True Sight, D-pad up Ambrosia, down switch hero, left and right magic items, View inventory, click right stick map, Menu pause.">
   <style>
     .ld{stroke:${GOLD};stroke-width:1.3;opacity:.7} .dot{fill:${GOLD}} text{font:600 15px 'Alegreya Sans',system-ui,sans-serif;fill:#f4ead5}
     .k{font-weight:800;fill:#f0c867} .s{fill:#d9cdb2;font-weight:500;font-size:14px} .body{fill:#17130f;stroke:${GOLD};stroke-width:3} .part{fill:#241d14;stroke:${GOLD};stroke-width:1.8}
@@ -50,15 +50,15 @@ function padSvg() {
     ${CALLOUTS.map(callout).join('')}
     <!-- X and right stick, below the pad -->
     <line class="ld" x1="420" y1="143" x2="446" y2="270"/><circle class="dot" cx="420" cy="143" r="3"/>
-    <text x="450" y="290" text-anchor="start"><tspan class="k">X</tspan><tspan class="v"> · Interact</tspan></text>
+    <text x="450" y="290" text-anchor="start"><tspan class="k">X</tspan><tspan class="v"> · Melee attack</tspan><tspan x="450" dy="17" class="s">Interact when a prompt shows</tspan></text>
     <line class="ld" x1="372" y1="209" x2="338" y2="270"/><circle class="dot" cx="372" cy="209" r="3"/>
-    <text x="334" y="290" text-anchor="end"><tspan class="k">Right stick</tspan><tspan class="v"> · Aim</tspan><tspan x="334" dy="17" class="s">auto-aims when idle</tspan></text>
+    <text x="334" y="290" text-anchor="end"><tspan class="k">Right stick</tspan><tspan class="v"> · Aim</tspan><tspan x="334" dy="17" class="s">auto-aims when idle</tspan><tspan x="334" dy="17" class="s">click: Map</tspan></text>
     <!-- LB + RB together -->
     <path d="M154 40V-14H486V40" fill="none" class="ld"/><circle class="dot" cx="154" cy="40" r="3"/><circle class="dot" cx="486" cy="40" r="3"/>
     <text x="320" y="-22" text-anchor="middle"><tspan class="k">LB + RB together</tspan><tspan class="v"> · Godly power</tspan></text>
     <!-- View and Menu -->
     <line class="ld" x1="307" y1="109" x2="304" y2="8"/><line class="ld" x1="339" y1="109" x2="342" y2="8"/><circle class="dot" cx="307" cy="112" r="3"/><circle class="dot" cx="339" cy="112" r="3"/>
-    <text x="298" y="6" text-anchor="end"><tspan class="k">View</tspan><tspan class="v"> · Map</tspan></text>
+    <text x="298" y="6" text-anchor="end"><tspan class="k">View</tspan><tspan class="v"> · Inventory</tspan></text>
     <text x="348" y="6" text-anchor="start"><tspan class="k">Menu</tspan><tspan class="v"> · Pause</tspan></text>
   </g></svg>`;
 }
@@ -66,17 +66,19 @@ function padSvg() {
 const TABLE = [
   ['Move', 'Left stick', 'W A S D'],
   ['Aim', 'Right stick (auto-aim when idle)', 'Mouse'],
-  ['Melee attack', 'A', 'Left click'],
+  ['Melee attack', 'X', 'Left click'],
+  ['Jump', 'A', 'Space'],
   ['Ranged attack', 'RT', 'Right click'],
-  ['Dodge (perfect dodge triggers Battle Sense)', 'B', 'Space'],
+  ['Dodge (perfect dodge triggers Battle Sense)', 'B', 'Shift'],
   ['Abilities 1 · 2 · 3', 'LB · RB · Y', '1 · 2 · 3'],
   ['Godly power (when the Power bar is full)', 'LB + RB together', 'F'],
   ['True Sight (see through the Mist)', 'LT', 'V'],
-  ['Interact (talk, open, use)', 'X', 'E'],
+  ['Interact (talk, open, use)', 'X when a prompt shows', 'E'],
   ['Ambrosia (heal)', 'D-pad ↑', 'Q'],
   ['Switch hero (hold for a radial)', 'D-pad ↓', 'Tab'],
   ['Magic items', 'D-pad ← · →', 'R · T'],
-  ['Map', 'View', 'M'],
+  ['Inventory (equip, enchant, salvage)', 'View', 'I'],
+  ['Map', 'Click the right stick', 'M'],
   ['Pause', 'Menu', 'Esc'],
   ['Menus', 'D-pad or left stick, A confirm, B back', 'Arrow keys or WASD, Enter, Esc, or the mouse'],
 ];
@@ -96,9 +98,10 @@ export function openInstructions(game, onClose) {
         h('li', {}, h('b', {}, 'True Sight'), ' (hold LT, or V) rewrites the world in the gods\' gold-and-teal style. Disguised monsters show their true form, and hidden doors and paths appear. It drains the Sight meter and refills in the Mist.'),
         h('li', {}, h('b', {}, 'Battle Sense. '), 'Dodge the instant before a hit lands and time slows for the whole team. A meter stops it being spammed; you can switch it off in Settings.'),
         h('li', {}, h('b', {}, 'Switching heroes. '), 'Playing alone, press D-pad ↓ (or Tab) to take over a companion. Held, it opens a radial menu.'),
-        h('li', {}, h('b', {}, 'Reviving. '), 'A downed teammate can be revived: stand next to them and hold Interact (X, or E).'),
+        h('li', {}, h('b', {}, 'Reviving. '), 'A downed teammate can be revived: stand next to them until the ring fills.'),
         h('li', {}, h('b', {}, 'Godly power. '), 'Fighting fills the Power bar. When it is full, press LB + RB together (or F) to unleash your hero\'s godly power.'),
-        h('li', {}, h('b', {}, 'Ambrosia'), ' heals you (D-pad ↑, or Q). Collect drachmas to spend at the camp store.'))),
+        h('li', {}, h('b', {}, 'Ambrosia'), ' heals you (D-pad ↑, or Q). Collect drachmas to spend at the camp store.'),
+        h('li', {}, h('b', {}, 'Gear. '), 'Press View (or I) to open the inventory: equip what you find, spend enchantment points and salvage the rest. The forge in camp tempers and re-rolls items.'))),
       sec('Xbox controller', h('div', { class: 'pad-diagram', html: padSvg() })),
       sec('Controls',
         h('div', { class: 'tbl-wrap' }, h('table', { class: 'map-table' },
