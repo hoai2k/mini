@@ -21,9 +21,9 @@ export function sampleFor(midi) {
   return { sample: s, rate: 2 ** ((midi - s) / 12) };
 }
 
-export function createAudio({ base = 'assets/samples/' } = {}) {
-  const AC = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AC({ latencyHint: 'interactive' });
+export function createAudio({ base = 'assets/samples/', context } = {}) {
+  const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
+  const ctx = context || new AC({ latencyHint: 'interactive' });
   // iOS: play through the ringer switch like a music app would.
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* older Safari */ }
 
@@ -36,6 +36,9 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
   const verb = ctx.createConvolver(); verb.buffer = impulse(2.2); verb.connect(wet); wet.connect(master);
   const bus = ctx.createBiquadFilter(); bus.type = 'lowpass'; bus.frequency.value = 20000; bus.Q.value = 0.4;
   bus.connect(dry); bus.connect(verb);
+  // The melody plays on its own, quieter channel, so the player's keys sit on
+  // top of it when they play along.
+  const melodyBus = ctx.createGain(); melodyBus.gain.value = 0.55; melodyBus.connect(bus);
 
   const kits = {}; // dir -> { buffers: Map, ready: Promise }
   let inst = INSTRUMENTS.grand;
@@ -89,22 +92,26 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
     return null;
   }
 
+  // Release a voice at `when`. A release can be brought forward (stopping a
+  // melody cuts notes whose release was scheduled for later) but never pushed back.
   function stopVoice(v, when = ctx.currentTime, tau = inst.release) {
-    if (v.stopped) return;
+    if (v.stopAt !== undefined && v.stopAt <= when) return;
+    v.stopAt = when;
     v.stopped = true;
     v.g.gain.cancelScheduledValues(when);
-    v.g.gain.setValueAtTime(v.g.gain.value || v.level, when);
+    // A note stopped before it sounds stays silent.
+    v.g.gain.setValueAtTime(when < v.t + 0.004 ? 0 : v.level, when);
     v.g.gain.setTargetAtTime(0, when, tau);
     try { v.src.stop(when + tau * 8); } catch { /* already stopped */ }
   }
 
   /** Strike a note. Returns a handle for release(), or null if not loaded. */
-  function noteOn(midi, { when = 0, velocity = 0.85 } = {}) {
+  function noteOn(midi, { when = 0, velocity = 0.85, melody = false } = {}) {
     const found = bufferFor(midi);
     if (!found) return null;
     const t = Math.max(ctx.currentTime, when || ctx.currentTime);
-    // Re-striking a ringing string damps it first.
-    for (const v of voices) if (v.midi === midi && !v.stopped && v.t <= t) stopVoice(v, t, 0.03);
+    // Re-striking a ringing string damps it first (the melody and the player each have their own strings).
+    for (const v of voices) if (v.midi === midi && v.melody === melody && v.t <= t && !(v.stopAt <= t)) stopVoice(v, t, 0.03);
     const src = ctx.createBufferSource();
     src.buffer = found.buf;
     src.playbackRate.value = found.rate;
@@ -114,12 +121,13 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
     const a = inst.attack || 0.004;
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(level, t + a);
-    src.connect(g); g.connect(bus);
+    src.connect(g); g.connect(melody ? melodyBus : bus);
     src.start(t);
-    const v = { midi, src, g, t, level, stopped: false };
+    const v = { midi, src, g, t, level, melody, stopped: false };
     src.onended = () => { const i = voices.indexOf(v); if (i >= 0) voices.splice(i, 1); g.disconnect(); };
     voices.push(v);
-    while (voices.filter((x) => !x.stopped).length > MAX_VOICES) stopVoice(voices.find((x) => !x.stopped), ctx.currentTime, 0.05);
+    const ringing = () => voices.filter((x) => !(x.stopAt <= ctx.currentTime));
+    while (ringing().length > MAX_VOICES) stopVoice(ringing()[0], ctx.currentTime, 0.05);
     return v;
   }
 
@@ -168,6 +176,7 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
     noteOn, noteOff, stopAll, chime, thud, setInstrument, unlock,
     get instrument() { return inst; },
     get running() { return ctx.state === 'running'; },
+    setMelodyLevel(v) { melodyBus.gain.setTargetAtTime(v, ctx.currentTime, 0.03); },
     setVolume(v) { master.gain.setTargetAtTime(v * 0.95, ctx.currentTime, 0.02); },
     setReverb(v) { wet.gain.setTargetAtTime(v * 0.45, ctx.currentTime, 0.05); dry.gain.setTargetAtTime(1 - v * 0.25, ctx.currentTime, 0.05); },
     now: () => ctx.currentTime,

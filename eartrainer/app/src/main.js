@@ -2,6 +2,7 @@
 import { createAudio, INSTRUMENTS } from './audio.js';
 import { createKeyboard } from './keyboard.js';
 import { createStaff } from './staff.js';
+import { perform, secondsPerBeat } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES, WHITES, LOWEST, HIGHEST } from './library.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
@@ -47,6 +48,7 @@ function loadSound(name, announceLoad = true) {
 }
 audio.setVolume(settings.volume);
 audio.setReverb(settings.reverb);
+audio.setMelodyLevel(settings.melody);
 loadSound(settings.sound);
 const unlock = () => audio.unlock();
 addEventListener('pointerdown', unlock, { capture: true });
@@ -220,30 +222,29 @@ function playMelody({ light = false } = {}) {
   if (!S.melody) return;
   stopPlayback();
   audio.unlock();
-  const spb = 60 / S.melody.bpm / settings.speed;
+  const spb = secondsPerBeat(S.melody.bpm, settings.speed);
   const t0 = audio.now() + 0.12;
   const token = {};
   const voices = [], timers = [];
-  const notes = S.melody.notes;
-  notes.forEach((n, i) => {
-    const on = t0 + n.at * spb;
-    const dur = n.beats * spb;
-    const last = i === notes.length - 1;
-    const v = audio.noteOn(n.midi, { when: on, velocity: 0.78 + (n.at % 2 === 0 ? 0.06 : 0) });
-    if (v) { audio.noteOff(v, on + (last ? Math.max(dur, 0.8) + 0.4 : dur * 0.94)); voices.push(v); }
+  const plan = perform(S.melody.notes, spb);
+  plan.forEach((p, i) => {
+    const on = t0 + p.on;
+    const v = audio.noteOn(p.midi, { when: on, velocity: p.velocity, melody: true });
+    if (v) { audio.noteOff(v, t0 + p.off); voices.push(v); }
     const ms = (on - audio.now()) * 1000;
+    const shown = Math.max(140, (p.off - p.on) * 850);
     timers.push(setTimeout(() => {
-      staff.hear(i, Math.max(140, dur * 850));
-      if (light) { kbd.light(n.midi, true); timers.push(setTimeout(() => kbd.light(n.midi, false), Math.max(140, dur * 900))); }
+      staff.hear(i, shown);
+      if (light) { kbd.light(p.midi, true); timers.push(setTimeout(() => kbd.light(p.midi, false), Math.max(140, shown))); }
     }, ms));
   });
-  const end = notes[notes.length - 1];
+  const end = S.melody.notes[S.melody.notes.length - 1];
   const total = (end.at + end.beats) * spb * 1000 + 150;
   timers.push(setTimeout(() => { if (S.play === token) { S.play = null; $('#btn-repeat').classList.remove('busy'); idlePrompt(); } }, total));
   token.voices = voices; token.timers = timers;
   S.play = token;
   $('#btn-repeat').classList.add('busy');
-  if (!S.solvedShown) setPrompt(samplesReady ? 'Listen…' : 'Tuning the piano…', true);
+  if (!S.solvedShown) setPrompt(samplesReady ? 'Listen… (play along if you like)' : 'Tuning the piano…', true);
 }
 
 function stopPlayback() {
@@ -261,8 +262,8 @@ function stopPlayback() {
 function keyDown(midi, source) {
   if (S.mode !== 'play' || dialogs.length) return;
   audio.unlock();
-  if (S.play) { stopPlayback(); idlePrompt(); }
-  const v = audio.noteOn(midi, { velocity: 0.9 });
+  // The melody keeps playing: the player can play along with it.
+  const v = audio.noteOn(midi, { velocity: 0.92 });
   if (S.held.get(midi)) audio.noteOff(S.held.get(midi));
   S.held.set(midi, v);
   const r = S.round;
@@ -348,7 +349,6 @@ function doRepeat() { if (S.round) playMelody({ light: !!(S.round.done && settin
 function doPractice() {
   S.practice = !S.practice;
   syncPractice();
-  if (S.practice) stopPlayback();
   syncStaff();
   idlePrompt();
 }
@@ -446,6 +446,7 @@ function syncSettings() {
   chips($('#set-labels'), [['none', 'None'], ['c', 'C only'], ['white', 'White keys'], ['all', 'All keys']], () => settings.labels, (v) => { settings.labels = v; kbd.setLabels(v); save(); });
   chips($('#set-key'), [['written', 'As written'], ['random', 'Any key']], () => settings.key, (v) => { settings.key = v; save(); });
   $('#set-volume').value = settings.volume; $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`;
+  $('#set-melody').value = settings.melody; $('#set-melody-out').textContent = `${Math.round(settings.melody * 100)}%`;
   $('#set-reverb').value = settings.reverb; $('#set-reverb-out').textContent = `${Math.round(settings.reverb * 100)}%`;
   $('#set-first').checked = settings.first;
   $('#set-light').checked = settings.light;
@@ -453,6 +454,7 @@ function syncSettings() {
   $('#set-vibrate').checked = settings.vibrate;
 }
 $('#set-volume').addEventListener('input', (e) => { settings.volume = Number(e.target.value); audio.setVolume(settings.volume); $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`; save(); });
+$('#set-melody').addEventListener('input', (e) => { settings.melody = Number(e.target.value); audio.setMelodyLevel(settings.melody); $('#set-melody-out').textContent = `${Math.round(settings.melody * 100)}%`; save(); });
 $('#set-reverb').addEventListener('input', (e) => { settings.reverb = Number(e.target.value); audio.setReverb(settings.reverb); $('#set-reverb-out').textContent = `${Math.round(settings.reverb * 100)}%`; save(); });
 $('#set-first').addEventListener('change', (e) => { settings.first = e.target.checked; save(); syncMarker(); });
 $('#set-light').addEventListener('change', (e) => { settings.light = e.target.checked; save(); });

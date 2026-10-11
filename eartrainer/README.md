@@ -20,6 +20,13 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
 - Play the notes in order. Timing is never judged. A wrong note sounds, shakes
   the progress dot and counts as a mistake, but the melody waits until you
   find the right one.
+- The melody is played, not just sounded: `app/src/perform.js` joins notes
+  legato (each held just into the next, like a half-changed pedal), holds
+  long notes and lets the last one ring, lifts for rests, leans on strong
+  beats, swells toward the high point, and adds a few milliseconds of
+  unevenness. It plays on its own channel about 7 dB under the player's keys
+  (Settings → Melody volume), and keeps playing when you press keys, so you
+  can play along.
 - **Repeat** plays the melody again; **Redo** starts your answer over;
   **Practice** lets you try notes without answering; **Tempo** − / + runs
   from 0.5× to 1.5×; **Skip** moves on (and tells you what it was) and

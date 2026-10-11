@@ -163,3 +163,19 @@ test('transposed melodies spell without double accidentals', () => {
   }
   assert.ok(doubles / total < 0.002, `${doubles} of ${total}`);
 });
+
+import { perform, secondsPerBeat } from '../src/perform.js';
+
+test('playback is phrased: legato, lifts for rests, the last note rings', () => {
+  const notes = parseNotes('C4 D4 E4:2 r:1 G4:0.5 A4:0.5 C5:2');
+  const spb = secondsPerBeat(120);
+  const plan = perform(notes, spb);
+  assert.ok(plan[0].off > plan[1].on, 'joined to the next note');
+  assert.ok(plan[2].off < plan[3].on, 'lifted before the rest');
+  assert.ok(plan[5].off - plan[5].on >= 2 * spb, 'last note held and left to ring');
+  for (const p of plan) assert.ok(p.velocity >= 0.35 && p.velocity <= 0.95);
+  assert.ok(plan[0].velocity > plan[3].velocity - 0.2);
+  assert.deepEqual(perform(notes, spb), plan, 'the same every time');
+  // Faster playback scales the timing.
+  assert.ok(perform(notes, secondsPerBeat(120, 1.5))[5].on < plan[5].on);
+});
