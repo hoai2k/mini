@@ -3186,14 +3186,17 @@
         240
       ],
       "anchor": "bottom centre",
-      "prompt": "the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, hunched inside an old wooden barrel, only her hood and clawed hands showing over the rim. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 200:240, target delivery 200 x 240 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset witch-barrel.",
+      "prompt": "the witch exactly as she appears in M\u00e9li\u00e8s's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Shut inside an old iron-hooped wooden barrel, only her hooded head, her furious wrinkled face and her two bony hands showing over the rim, gripping it. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite. Canvas aspect ratio 200:240, target delivery 200 x 240 pixels. Show the complete silhouette, with a clearly visible old face and heavy intact robe; preserve the film reference costume. Asset witch-barrel.",
       "transparent": true,
       "replaces": null,
-      "path": "/workspace/generated_images/exec-90bcfa86-a170-4885-abf2-55c298eac0e7.png",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-da2d5331-ba63-47df-a12a-7a772f70506b.png",
       "references": [
-        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-witch.png"
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-05m18s.jpg",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-13m20s.jpg"
       ],
-      "source_commit": "1dc0344",
+      "generator": "built-in image_gen",
+      "generation_id": "exec-da2d5331-ba63-47df-a12a-7a772f70506b",
+      "review_status": "accepted: furious old face under teal hood, bare hands gripping iron-hooped barrel rim, complete barrel silhouette",
       "original": "design/generated/film-production/witch-barrel-original.png",
       "file": "assets/witch-barrel.webp",
       "native_size": [
@@ -3201,16 +3204,16 @@
         1374
       ],
       "source_crop": [
-        30,
-        229,
-        1128,
-        1283
+        220,
+        60,
+        950,
+        1337
       ],
       "placement": [
+        31,
         0,
-        48,
-        200,
-        192
+        137,
+        240
       ]
     },
     {
@@ -3221,14 +3224,17 @@
         400
       ],
       "anchor": "bottom centre",
-      "prompt": "the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, rising out of a churning black-and-magenta storm cloud, arms and staff raised, lightning at her hands. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 400:400, target delivery 400 x 400 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset witch-cloud.",
+      "prompt": "the witch exactly as she appears in M\u00e9li\u00e8s's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Rising out of a churning black-and-magenta storm cloud that hides her feet, both arms raised and the staff held high, lightning at her fingers, facing right. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite. Canvas aspect ratio 400:400, target delivery 400 x 400 pixels. Show the complete silhouette, with a clearly visible old face and heavy intact robe; preserve the film reference costume. Asset witch-cloud.",
       "transparent": true,
       "replaces": null,
-      "path": "/workspace/generated_images/exec-2179e64c-e22f-4728-aff3-e2ed9af8dd2e.png",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-0446d9af-093d-4f9f-bab9-63a2f8a30380.png",
       "references": [
-        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-witch.png"
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-05m18s.jpg",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-13m20s.jpg"
       ],
-      "source_commit": "1dc0344",
+      "generator": "built-in image_gen",
+      "generation_id": "exec-0446d9af-093d-4f9f-bab9-63a2f8a30380",
+      "review_status": "accepted: old face visible, intact teal robe, right-facing raised arms and plain staff over black-magenta cloud",
       "original": "design/generated/film-production/witch-cloud-original.png",
       "file": "assets/witch-cloud.webp",
       "native_size": [
@@ -3236,15 +3242,15 @@
         1254
       ],
       "source_crop": [
-        56,
-        24,
-        1222,
-        1240
+        58,
+        0,
+        1237,
+        1254
       ],
       "placement": [
-        8,
+        12,
         0,
-        384,
+        376,
         400
       ]
     },
@@ -3256,14 +3262,17 @@
         400
       ],
       "anchor": "bottom centre",
-      "prompt": "the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, standing facing left, staff raised in a curse. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 240:400, target delivery 240 x 400 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset witch-hooded.",
+      "prompt": "the witch exactly as she appears in M\u00e9li\u00e8s's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Standing bent over, leaning on her staff with one hand and raising the other in a curse, facing left. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite. Canvas aspect ratio 240:400, target delivery 240 x 400 pixels. Show the complete silhouette, with a clearly visible old face and heavy intact robe; preserve the film reference costume. Asset witch-hooded.",
       "transparent": true,
       "replaces": null,
-      "path": "/workspace/generated_images/exec-7f4dcbf4-72e0-4fb0-bd48-95fe3f72499f.png",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-0aa5ef44-7621-4e35-924f-154d9b8041f7.png",
       "references": [
-        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-witch.png"
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-05m18s.jpg",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-13m20s.jpg"
       ],
-      "source_commit": "1dc0344",
+      "generator": "built-in image_gen",
+      "generation_id": "exec-0aa5ef44-7621-4e35-924f-154d9b8041f7",
+      "review_status": "accepted: visible old face, intact heavy teal robe, plain staff, correct left-facing curse pose",
       "original": "design/generated/film-production/witch-hooded-original.png",
       "file": "assets/witch-hooded.webp",
       "native_size": [
@@ -3271,16 +3280,16 @@
         1619
       ],
       "source_crop": [
-        0,
-        15,
-        959,
-        1593
+        29,
+        113,
+        952,
+        1510
       ],
       "placement": [
         0,
-        5,
+        37,
         240,
-        395
+        363
       ]
     },
     {
@@ -3291,31 +3300,34 @@
         340
       ],
       "anchor": "bottom centre",
-      "prompt": "the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, riding a small churning black-and-magenta storm cloud across the sky toward the left, staff raised, lightning crackling from it. Replaces the witch in her moon boat in the voyage's sky; keep the same overall footprint as witch-moonboat. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly one asset, no collage, no labels. Canvas aspect ratio 520:340, intended delivery 520 x 340 pixels. One witch and small storm cloud, facing left, true transparent exterior.",
+      "prompt": "the witch exactly as she appears in M\u00e9li\u00e8s's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Crouched on a small churning black-and-magenta storm cloud crossing the sky toward the left, staff raised, lightning cracking from its tip. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite. Canvas aspect ratio 520:340, target delivery 520 x 340 pixels. Show the complete silhouette, with a clearly visible old face and heavy intact robe; preserve the film reference costume. Asset witch-storm.",
       "transparent": true,
-      "replaces": "witch-moonboat",
+      "replaces": null,
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-31819abd-2e63-43c0-96c9-48ec954ca993.png",
       "references": [
-        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-witch.png"
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-05m18s.jpg",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-13m20s.jpg"
       ],
-      "source_commit": "1fb8e47",
-      "path": "/workspace/generated_images/exec-acd5f626-67d9-4ec2-9920-61fe9e4aa104.png",
+      "generator": "built-in image_gen",
+      "generation_id": "exec-31819abd-2e63-43c0-96c9-48ec954ca993",
+      "review_status": "accepted: crouched left-facing old crone, intact teal robe on black-magenta cloud, lightning at plain staff tip",
       "original": "design/generated/film-production/witch-storm-original.png",
       "file": "assets/witch-storm.webp",
       "native_size": [
-        1551,
+        1550,
         1014
       ],
       "source_crop": [
-        7,
-        9,
-        1545,
-        994
+        17,
+        19,
+        1537,
+        983
       ],
       "placement": [
         0,
-        7,
+        10,
         520,
-        333
+        330
       ]
     },
     {
@@ -3326,14 +3338,17 @@
         240
       ],
       "anchor": "centre",
-      "prompt": "the witch as in references/film-planning/originals/char-witch.png (attach it): a hunched figure in a ragged dark-teal hooded cloak that hides her face, grey clawed hands, a twisted staff, flying horizontally to the left, cloak streaming behind, clawed hand reaching. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 400:240, target delivery 400 x 240 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset witch-swoop.",
+      "prompt": "the witch exactly as she appears in M\u00e9li\u00e8s's 1903 film (attach references/film-witch/witch-05m18s.jpg and witch-13m20s.jpg, frames from the film): an old crone played on stage, bent almost double at the waist, in one heavy, long, shaggy woollen hooded robe hand-tinted a deep sea-green teal, hanging in thick soft folds to the ground and pooling at her feet (whole cloth, not torn into rags or wisps), tied with a cord girdle with tassels; the hood is up but her face shows beneath it: pale, deeply wrinkled, hook-nosed, with wisps of straggling white hair; bare bony old hands (not claws); a plain, straight, long wooden walking staff. A living old woman, never a faceless spectre or a grim reaper. Flying horizontally to the left as if hung on a wire across the stage, the heavy robe streaming back behind her, one bony hand reaching forward, the staff along her body. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite. Canvas aspect ratio 400:240, target delivery 400 x 240 pixels. Show the complete silhouette, with a clearly visible old face and heavy intact robe; preserve the film reference costume. Asset witch-swoop.",
       "transparent": true,
       "replaces": null,
-      "path": "/workspace/generated_images/exec-e887e3a7-0186-489c-a984-19d78e5e196d.png",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-5060d57f-3375-4e6c-9afe-62333ea70eb2.png",
       "references": [
-        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-witch.png"
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-05m18s.jpg",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/film-witch/witch-13m20s.jpg"
       ],
-      "source_commit": "1dc0344",
+      "generator": "built-in image_gen",
+      "generation_id": "exec-5060d57f-3375-4e6c-9afe-62333ea70eb2",
+      "review_status": "accepted: left-facing horizontal flight, visible old face, intact streaming teal robe, reaching bare hand and plain staff along body",
       "original": "design/generated/film-production/witch-swoop-original.png",
       "file": "assets/witch-swoop.webp",
       "native_size": [
@@ -3341,16 +3356,16 @@
         971
       ],
       "source_crop": [
-        7,
-        3,
-        1619,
-        966
+        51,
+        93,
+        1594,
+        894
       ],
       "placement": [
         0,
-        0,
+        16,
         400,
-        239
+        208
       ]
     }
   ]
