@@ -88,7 +88,15 @@ const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob'
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
-const showLogo = (logo) => { const el = $('#logo-img'); el.src = logo.src; el.alt = TITLE; el.hidden = false; $('#logo').classList.add('has-img'); };
+// The painted title: index.html starts it loading; this only confirms it (or
+// shows it, if that loader gave up early).
+const showLogo = (logo) => {
+  const el = $('#logo-img'), card = $('#logo');
+  el.alt = TITLE;
+  if (card.classList.contains('has-img')) return;
+  if (el.src !== logo.src) el.src = logo.src;
+  card.classList.remove('no-img'); el.hidden = false; card.classList.add('has-img');
+};
 const TOUCH_ART = new Set(['touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'rotate-card']);
 loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
   if (id === 'logo') showLogo(im);

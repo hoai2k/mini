@@ -25,6 +25,20 @@
     <section id="title" class="layer" aria-labelledby="logo-text">
       <div class="logo-card" id="logo">
         <img id="logo-img" alt="" hidden>
+        <script>
+          // Start the painted title at once (the edition's own), and show it only
+          // when decoded; the plain-text title waits behind it, shown only if the
+          // image fails or is slow, so the title never flicks between looks.
+          (function () {
+            var q = new URLSearchParams(location.search).get('widowsbay'), card = document.getElementById('logo');
+            var im = document.getElementById('logo-img');
+            im.src = 'assets/' + (q !== null && q.toLowerCase() !== 'partial' ? 'logo.webp' : 'fairies-title.webp');
+            var show = function () { if (!card.classList.contains('no-img')) { im.hidden = false; card.classList.add('has-img'); } };
+            var fail = function () { if (!card.classList.contains('has-img')) card.classList.add('no-img'); };
+            im.decode ? im.decode().then(show, fail) : (im.onload = show, im.onerror = fail);
+            setTimeout(fail, 4000);
+          })();
+        </script>
         <div class="logo-fallback">
           <h1 id="logo-text" data-widowsbay="Widow’s Bay">Kingdom of the Fairies</h1>
           <p class="by" data-legacy-only hidden>by</p>

@@ -52,6 +52,9 @@ body {
 }
 .logo-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .logo-card.has-img .logo-fallback { visibility: hidden; }
+/* Until the painted title is ready the card stays plain: no text that would
+   swap fonts and then give way to the image (index.html's inline loader). */
+.logo-card:not(.has-img):not(.no-img) .logo-fallback { visibility: hidden; }
 .logo-card.has-img { background: none; border: none; outline: none; } /* the art has its own double rule */
 .logo-fallback { text-align: center; }
 .logo-card h1 {
