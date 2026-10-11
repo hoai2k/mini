@@ -6,5 +6,8 @@ import classical from './classical.js';
 import jazz from './jazz.js';
 import licks from './licks.js';
 import popular from './popular.js';
+// Extracted from datasets by design/source/extract_melodies.py:
+import leadsheets from './leadsheets.js';
+import nottingham from './nottingham.js';
 
-export default [children, traditional, holiday, classical, jazz, licks, popular];
+export default [children, traditional, holiday, classical, jazz, licks, popular, leadsheets, nottingham];
