@@ -59,12 +59,11 @@ All 96 pictures were delivered in October 2026; the prompts they were made
 from are recorded in `design/generated/generation-prompts.json`. The page
 loads the smaller copies in `app/web/` (`tools/build_web.py`, which needs
 Pillow, makes them from `app/assets/`; a reading loads about 1 MB of art).
-The interface, trigram and topic pictures matched their requests. Of the 64
-hexagrams, 24 illustrated their theme but missed their art style, so they are
-requested again (the **Replacements wanted** list in
-`design/image-requests.md`, data in `REPLACE`) and the delivered ones are
-used until the new ones arrive. Stand-ins (`src/art.js`) remain for any
-picture not yet delivered.
+The 24 hexagram pictures that missed their requested art style have been
+replaced and their web copies rebuilt. Their final prompts are recorded in
+`design/generated/replacement-prompts.json`; there are no outstanding
+replacement requests. Stand-ins (`src/art.js`) remain for any picture not
+yet delivered.
 
 ## The AI opening
 

@@ -1,0 +1,270 @@
+{
+  "mode": "built-in image_gen",
+  "notes": "24 requested style corrections. Reviewed for the specified medium before replacing the delivered pictures. Opaque outputs are converted to 1600 x 1000 WebP; web and small copies use tools/build_web.py. Three abstraction prompts were strengthened after visual review.",
+  "assets": [
+    {
+      "code": "HX01",
+      "path": "aiching/app/assets/hexagrams/01.webp",
+      "style": "Cloisonné enamel",
+      "prompt": "This picture must be made as a cloisonné enamel plaque photographed straight on: every shape is a cell of glossy enamel bounded by raised gold wire, flat jewel colours, polished surface, no brushwork. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 1, 乾 Qián, \"The Creative\": the upper trigram is Heaven and the lower trigram is Heaven. Its theme is strength, initiative, persistence, leadership, and the picture should make that theme felt. Six golden dragons coil and climb through towering summer clouds above a vast open plain. The lowest lies half-hidden in a misty lake, one walks the green fields, others rise higher, and the topmost soars alone near a blazing sun. Strong midday light, deep blue sky, wind streaming through the clouds. The season or hour is early summer noon. Colours that suit it (adapt them to the style): #1f3a6e, #d9a72c, #f4e3b0. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese cloisonné enamel: gleaming gold wire outlines enclosing turquoise, cobalt, coral red, jade green and white enamel, jewel-like and polished. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX07",
+      "path": "aiching/app/assets/hexagrams/07.webp",
+      "style": "Shadow puppets",
+      "prompt": "This picture must be made as a Chinese shadow-puppet play: translucent dyed-leather puppets with punched patterns and jointed limbs pressed against a glowing lamp-lit paper screen, flat side-on figures. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 7, 師 Shī, \"The Army\": the upper trigram is Earth and the lower trigram is Water. Its theme is discipline, organisation, leadership, purpose, and the picture should make that theme felt. Orderly ranks of soldiers with banners march across a vast brown plain at dawn, a seasoned general on horseback riding among them. Beneath the earth a hidden stream glints in a cut riverbank. Breath steams in cold air; a pale sun rises over distant hills. The season or hour is cold winter dawn. Colours that suit it (adapt them to the style): #4a3b2a, #8b2f2a, #d6c39a. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese shadow puppetry (piyingxi): translucent dyed leather figures in red, green, yellow and black with intricate punched patterns and jointed limbs, glowing in front of a warm lamplit screen. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX11",
+      "path": "aiching/app/assets/hexagrams/11.webp",
+      "style": "Famille-rose porcelain",
+      "prompt": "This picture must be made as famille-rose porcelain painting: the whole scene painted in soft enamels on the white glazed surface of a large porcelain plaque, with a gold rim, delicate and decorative. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 11, 泰 Tài, \"Peace\": the upper trigram is Earth and the lower trigram is Heaven. Its theme is harmony, prosperity, flow, balance, and the picture should make that theme felt. A green spring valley where blue sky seems to descend to touch the blossoming earth. Farmers and nobles share a meal under flowering trees, and grass and roots are lifted together from the soil. Across a gentle river, a wedding procession crosses a bridge. Warm, clear morning light. The season or hour is early spring morning. Colours that suit it (adapt them to the style): #3f7d5a, #87b6d9, #f6d6a8. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Qing famille-rose porcelain painting: soft enamels of rose pink, pale green, lemon yellow and sky blue with gold, delicate flowers, figures and garden scenes as if painted on a porcelain vase or plate. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX13",
+      "path": "aiching/app/assets/hexagrams/13.webp",
+      "style": "1930s Shanghai poster",
+      "prompt": "This picture must be made as a 1930s Shanghai calendar poster (yuefenpai): soft airbrushed watercolour, pastel glow, an art deco border of flowers running round the edge. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 13, 同人 Tóng Rén, \"Fellowship with Others\": the upper trigram is Heaven and the lower trigram is Fire. Its theme is community, openness, shared purpose, trust, and the picture should make that theme felt. On an open meadow at dusk, many people from different villages gather around a great bonfire whose flames rise toward a clear deep-blue sky. Two old friends embrace, laughing through tears. On a distant hill, hidden spears lie abandoned in a thicket, and a city wall stands quiet. Warm firelight against cool twilight. The season or hour is summer evening. Colours that suit it (adapt them to the style): #1d3557, #e07a2e, #f6d9a6. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: 1930s Shanghai calendar-poster painting (yuefenpai): soft airbrushed watercolour, glowing pastel skin tones and silk qipao, art deco borders of flowers, luminous skies. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX14",
+      "path": "aiching/app/assets/hexagrams/14.webp",
+      "style": "Lacquer painting",
+      "prompt": "This picture must be made as a Chinese carved and painted lacquer panel: deep cinnabar red and black lacquer with gold and silver inlay and mother-of-pearl, glossy, flat decorative scenes. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 14, 大有 Dà Yǒu, \"Possession in Great Measure\": the upper trigram is Fire and the lower trigram is Heaven. Its theme is abundance, generosity, clarity, responsibility, and the picture should make that theme felt. A radiant midday sun blazes over golden fields heavy with grain. A large oxcart, piled high with sheaves, rolls toward a palace gate where a prince humbly offers baskets to a seated sovereign. Villagers share bread beneath shade trees. Brilliant midsummer light, deep blue sky. The season or hour is midsummer noon. Colours that suit it (adapt them to the style): #c78a1e, #2e5aa7, #f7e7a1. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese lacquerware painting: deep cinnabar red and lustrous black lacquer with gold and silver inlay, mother-of-pearl highlights, elegant layered scenes. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX17",
+      "path": "aiching/app/assets/hexagrams/17.webp",
+      "style": "Guochao illustration",
+      "prompt": "This picture must be made as a contemporary Chinese guochao poster illustration: flat vector shapes, bold saturated gradients, simplified graphic waves, clouds and lanterns, crisp modern design, no painterly texture. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 17, 隨 Suí, \"Following\": the upper trigram is Lake and the lower trigram is Thunder. Its theme is adaptation, rest, allegiance, responsiveness, and the picture should make that theme felt. Late dusk over a broad still lake. Low thunderclouds rest on the water, faint lightning glowing within them. Along the shore a line of travelers walks behind a lantern-bearer toward a lit farmhouse, an old man leading and a small boy trailing. Reeds bend one way in the breeze. On a far western mountain a thin column of offering smoke rises. The season or hour is autumn evening. Colours that suit it (adapt them to the style): #3b4a5c, #c98f3d, #e8d9a8. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Contemporary Chinese guochao (national trend) digital illustration: vivid saturated gradients, flat graphic shapes, traditional motifs (waves, clouds, lanterns) reimagined boldly and playfully, crisp and modern. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX19",
+      "path": "aiching/app/assets/hexagrams/19.webp",
+      "style": "Silk embroidery",
+      "prompt": "This picture must be made as a Suzhou silk embroidery: the whole picture stitched in shiny silk thread on ivory satin, every area made of visible directional stitches, no paint. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 19, 臨 Lín, \"Approach\": the upper trigram is Earth and the lower trigram is Lake. Its theme is approach, growth, care, opportunity, and the picture should make that theme felt. A low green hill descends to the edge of a wide shining lake under a pale late-winter sun. A teacher in a padded robe walks down the slope toward a cluster of children and herders waiting by the water, arms open. Willow buds show the first green. Geese return in a long line above the far shore. The season or hour is end of winter. Colours that suit it (adapt them to the style): #6b8c5a, #d9b65c, #a7c7d9. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Suzhou silk embroidery: thousands of fine silk-thread stitches with a soft sheen, gradated threads in jewel colours, every petal, feather and ripple stitched, on ivory satin. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX22",
+      "path": "aiching/app/assets/hexagrams/22.webp",
+      "style": "Famille-rose porcelain",
+      "prompt": "This picture must be made as famille-rose porcelain painting: the whole scene painted in soft enamels on the white glazed surface of a large porcelain plaque, with a gold rim, delicate and decorative. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 22, 賁 Bì, \"Grace\": the upper trigram is Mountain and the lower trigram is Fire. Its theme is beauty, form, simplicity, presentation, and the picture should make that theme felt. Evening at the foot of a green mountain. A bonfire glows at its base, lighting terraced gardens and a pavilion hung with modest silk. A young man has stepped down from an ornate carriage to walk barefoot on the path. A white horse with flowing mane gallops toward the garden gate. Petals drift through warm firelight. The season or hour is late summer evening. Colours that suit it (adapt them to the style): #2f4f3a, #e07a3b, #f4efe6. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Qing famille-rose porcelain painting: soft enamels of rose pink, pale green, lemon yellow and sky blue with gold, delicate flowers, figures and garden scenes as if painted on a porcelain vase or plate. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX23",
+      "path": "aiching/app/assets/hexagrams/23.webp",
+      "style": "Splashed colour",
+      "prompt": "An abstract splashed ink-and-colour painting (pomo), Zhang Daqian manner, wide 16:10. Dominant enormous flowing pools of brilliant azurite blue, malachite green, black ink and raw ivory paper; wet pigments flood, bloom, bleed and merge, irregular spontaneous edges. At least 85 percent of the entire picture is abstract colour floods and blank paper, only tiny restrained ink hints identify the subject. The subject is Splitting Apart: one heavy mountain dissolving into crumbling fragments, a broken wooden bed, a bare tree with one last fruit and a tiny line of women retreating along a path below. Express erosion, decay, letting go, autumn wind. Small sharp ink details emerge sparingly from the colour. Quiet pale upper-right quarter. No dense scenery, no rendered realistic rock surfaces, no naturalistic shading, no detailed figures, no legible words, signature, seals, borders or symbols. Make the bold amorphous blue-green splashes the unmistakable main visual event.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX24",
+      "path": "aiching/app/assets/hexagrams/24.webp",
+      "style": "Paper-cut",
+      "prompt": "This picture must be made as a layered Chinese paper-cut: every shape is cut from flat coloured paper with crisp knife edges and lace-like cut patterns, layers stacked with small drop shadows, no painted texture at all. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 24, 復 Fù, \"Return\": the upper trigram is Earth and the lower trigram is Thunder. Its theme is renewal, return, beginnings, rhythm, and the picture should make that theme felt. A snowy valley at dawn on the winter solstice. A single shaft of pale sunlight breaks over the ridge and touches a closed mountain pass where a gate stands shut. A lone traveler walks back down a winding path toward a cottage with smoke rising. Beneath the snow, a faint crack of green shows where a shoot is stirring. Distant thunder rumbles underground. The season or hour is winter solstice. Colours that suit it (adapt them to the style): #cfd8e3, #5a6b7c, #f2c45a. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese paper-cut art (jianzhi) in many layered colours: crisp cut silhouettes, lace-like patterns of clouds, waves and flowers, layers of red, gold, turquoise and pink paper casting soft shadows. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX25",
+      "path": "aiching/app/assets/hexagrams/25.webp",
+      "style": "Ink-wash animation",
+      "prompt": "This picture must be made as a frame from a 1960s Shanghai ink-wash animated film: wet black ink on white rice paper bleeding softly at the edges, mostly empty paper, only one or two touches of pale colour. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 25, 無妄 Wú Wàng, \"Innocence\": the upper trigram is Heaven and the lower trigram is Thunder. Its theme is sincerity, spontaneity, naturalness, integrity, and the picture should make that theme felt. Spring under a vast open sky. Thunderheads roll above a freshly plowed field where a farmer guides an ox without looking back at the furrows. At the field edge a tethered cow is being led away by a passing wanderer, while a villager stands startled. Wildflowers spring up everywhere in the rain-washed light. The season or hour is spring. Colours that suit it (adapt them to the style): #7a9bb8, #6a8c3f, #f0e3b0. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: 1960s Shanghai Animation Film Studio ink-wash animation: living Qi Baishi-style ink creatures and plants that bleed softly into wet paper, with a few clear touches of colour. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX30",
+      "path": "aiching/app/assets/hexagrams/30.webp",
+      "style": "Cloisonné enamel",
+      "prompt": "This picture must be made as a cloisonné enamel plaque photographed straight on: every shape is a cell of glossy enamel bounded by raised gold wire, flat jewel colours, polished surface, no brushwork. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 30, 離 Lí, \"The Clinging\": the upper trigram is Fire and the lower trigram is Fire. Its theme is clarity, illumination, dependence, devotion, and the picture should make that theme felt. High summer noon. Two great bonfires blaze one above the other on a terraced hillside, their light doubling across a valley. A pheasant with brilliant plumage perches on a burning branch. Below, a gentle cow is led by a herder to drink. Along the western ridge an old man beats a clay pot and sings toward the sun. The season or hour is midsummer noon. Colours that suit it (adapt them to the style): #d94a2a, #f2b632, #3a2a1f. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese cloisonné enamel: gleaming gold wire outlines enclosing turquoise, cobalt, coral red, jade green and white enamel, jewel-like and polished. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX31",
+      "path": "aiching/app/assets/hexagrams/31.webp",
+      "style": "Silk embroidery",
+      "prompt": "This picture must be made as a Suzhou silk embroidery: the whole picture stitched in shiny silk thread on ivory satin, every area made of visible directional stitches, no paint. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 31, 咸 Xián, \"Influence\": the upper trigram is Lake and the lower trigram is Mountain. Its theme is attraction, mutuality, receptivity, courtship, and the picture should make that theme felt. Late spring on a mountaintop where a clear lake lies in a hollow of grey stone. A young man and a young woman sit on opposite rocks at the water's edge, leaning toward each other. Blossoms float on the surface. Mist rises from the lake into soft morning light, and a pair of mandarin ducks glide side by side. The season or hour is late spring morning. Colours that suit it (adapt them to the style): #7fa3a8, #e8b4b8, #f7efe2. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Suzhou silk embroidery: thousands of fine silk-thread stitches with a soft sheen, gradated threads in jewel colours, every petal, feather and ripple stitched, on ivory satin. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX32",
+      "path": "aiching/app/assets/hexagrams/32.webp",
+      "style": "Lacquer painting",
+      "prompt": "This picture must be made as a Chinese carved and painted lacquer panel: deep cinnabar red and black lacquer with gold and silver inlay and mother-of-pearl, glossy, flat decorative scenes. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 32, 恆 Héng, \"Duration\": the upper trigram is Thunder and the lower trigram is Wind. Its theme is endurance, commitment, consistency, patience, and the picture should make that theme felt. A long-married elderly couple walk hand in hand along a path through an old orchard as autumn wind and distant thunder stir the trees. Leaves swirl but the deep-rooted trunks stand firm. Behind them a stone house with a smoking chimney sits on a hillside. A hunter in an empty field waits with bow lowered, the meadow bare. The season or hour is autumn. Colours that suit it (adapt them to the style): #6b4f3a, #a8a074, #d6cfa8. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese lacquerware painting: deep cinnabar red and lustrous black lacquer with gold and silver inlay, mother-of-pearl highlights, elegant layered scenes. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX33",
+      "path": "aiching/app/assets/hexagrams/33.webp",
+      "style": "Modern ink and colour",
+      "prompt": "Sparse modern Chinese ink-and-colour abstraction in the manner of Wu Guanzhong. A graphic composition of rhythmic thin black lines, white paper, white walls, grey roof triangles and scattered tiny dots of pure red, yellow, blue, green. Wide 16:10 landscape. Dominantly bare ivory-white paper (70 percent), joyful lyrical near-abstract linework with almost no solid filled areas. Retreat: a tiny cloaked traveller and small loaded ox ascend a simple winding path away from a walled town; a few white architectural rectangles with grey triangular roofs suggest the crowded town below, a sparse pine drawn as dancing black threads and coloured leaf dots hints at wind. Mountains are just a few loose contour lines against the white paper, no rendered mountains, no mist, no texture, no dense details, no realistic light or modelling, no traditional shanshui landscape. Black lines should dance across generous white space; bright tiny coloured dots are the only accents. Upper-right quarter almost blank. No text, lettering, calligraphy, seals, signatures, borders, watermarks or trigram symbols.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX35",
+      "path": "aiching/app/assets/hexagrams/35.webp",
+      "style": "1930s Shanghai poster",
+      "prompt": "This picture must be made as a 1930s Shanghai calendar poster (yuefenpai): soft airbrushed watercolour, pastel glow, an art deco border of flowers running round the edge. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 35, 晉 Jìn, \"Progress\": the upper trigram is Fire and the lower trigram is Earth. Its theme is advancement, recognition, clarity, generosity, and the picture should make that theme felt. Dawn breaks over wide flat farmland: a golden sun lifts above the horizon and floods the fields with light. Along a straight road a young official rides toward a distant palace, followed by a train of fine horses with bright harness. Peasants pause in the furrows to watch. Mist burns off the earth, and a small field rat scurries into the ditch. The season or hour is early morning in spring. Colours that suit it (adapt them to the style): #c4692f, #f4c75a, #7a8f4a. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: 1930s Shanghai calendar-poster painting (yuefenpai): soft airbrushed watercolour, glowing pastel skin tones and silk qipao, art deco borders of flowers, luminous skies. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX36",
+      "path": "aiching/app/assets/hexagrams/36.webp",
+      "style": "Shadow puppets",
+      "prompt": "This picture must be made as a Chinese shadow-puppet play: translucent dyed-leather puppets with punched patterns and jointed limbs pressed against a glowing lamp-lit paper screen, flat side-on figures. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 36, 明夷 Míng Yí, \"Darkening of the Light\": the upper trigram is Earth and the lower trigram is Fire. Its theme is endurance, discretion, integrity, patience, and the picture should make that theme felt. A winter night over a dark plain: the last red glow of sunset sinks beneath the earth, leaving only a thin line of fire on the horizon. A pheasant with lowered wings flies low over frozen reeds. In a humble village hut, a scholar sits by a shuttered lamp whose light leaks through the cracks. Snow falls softly. The season or hour is deep winter night. Colours that suit it (adapt them to the style): #1c2233, #8f2e22, #e0a24a. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese shadow puppetry (piyingxi): translucent dyed leather figures in red, green, yellow and black with intricate punched patterns and jointed limbs, glowing in front of a warm lamplit screen. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX38",
+      "path": "aiching/app/assets/hexagrams/38.webp",
+      "style": "Guochao illustration",
+      "prompt": "This picture must be made as a contemporary Chinese guochao poster illustration: flat vector shapes, bold saturated gradients, simplified graphic waves, clouds and lanterns, crisp modern design, no painterly texture. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 38, 睽 Kuí, \"Opposition\": the upper trigram is Fire and the lower trigram is Lake. Its theme is difference, misunderstanding, small steps, reconciliation, and the picture should make that theme felt. On a lakeshore at dusk, flames from a beacon fire leap upward while their reflection trembles on still dark water below. Two travellers stand on opposite banks, one raising a bow, then lowering it. A muddy cart with a halted ox waits on the road, and a stray horse wanders back toward its owner. Summer rain clouds gather overhead. The season or hour is summer twilight before rain. Colours that suit it (adapt them to the style): #2f4858, #d9562b, #f2c14e. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Contemporary Chinese guochao (national trend) digital illustration: vivid saturated gradients, flat graphic shapes, traditional motifs (waves, clouds, lanterns) reimagined boldly and playfully, crisp and modern. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX49",
+      "path": "aiching/app/assets/hexagrams/49.webp",
+      "style": "Guochao illustration",
+      "prompt": "This picture must be made as a contemporary Chinese guochao poster illustration: flat vector shapes, bold saturated gradients, simplified graphic waves, clouds and lanterns, crisp modern design, no painterly texture. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 49, 革 Gé, \"Revolution\": the upper trigram is Lake and the lower trigram is Fire. Its theme is change, renewal, timing, trust, and the picture should make that theme felt. A wide mountain lake at dawn in late summer, its surface steaming where a ring of bonfires burns on rafts across the water. On the shore a tiger and a leopard stand on wet rocks, their coats bright and freshly molted, old fur drifting on the shallows. A yellow ox hide lies folded on a stone. Mist, orange firelight and pale blue sky meet. The season or hour is late summer turning to autumn. Colours that suit it (adapt them to the style): #2e5c6e, #d9732b, #f2c14e. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Contemporary Chinese guochao (national trend) digital illustration: vivid saturated gradients, flat graphic shapes, traditional motifs (waves, clouds, lanterns) reimagined boldly and playfully, crisp and modern. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX53",
+      "path": "aiching/app/assets/hexagrams/53.webp",
+      "style": "Silk embroidery",
+      "prompt": "This picture must be made as a Suzhou silk embroidery: the whole picture stitched in shiny silk thread on ivory satin, every area made of visible directional stitches, no paint. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 53, 漸 Jiàn, \"Development\": the upper trigram is Wind and the lower trigram is Mountain. Its theme is patience, steps, growth, commitment, and the picture should make that theme felt. An autumn mountainside where a single old pine grows from rocky ground above a shore. Wild geese appear in stages along the slope: one on the beach, two on a cliff ledge, others on the high plain, in the pine branches and on the summit, with a final skein flying into bright clouds. Golden afternoon light, reeds and gentle mist. The season or hour is mid autumn. Colours that suit it (adapt them to the style): #47603f, #d9b56a, #c6d4dc. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Suzhou silk embroidery: thousands of fine silk-thread stitches with a soft sheen, gradated threads in jewel colours, every petal, feather and ripple stitched, on ivory satin. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX55",
+      "path": "aiching/app/assets/hexagrams/55.webp",
+      "style": "Lacquer painting",
+      "prompt": "This picture must be made as a Chinese carved and painted lacquer panel: deep cinnabar red and black lacquer with gold and silver inlay and mother-of-pearl, glossy, flat decorative scenes. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 55, 豐 Fēng, \"Abundance\": the upper trigram is Thunder and the lower trigram is Fire. Its theme is abundance, peak, clarity, generosity, and the picture should make that theme felt. Midsummer noon above a ripening river valley: the sun blazes overhead while a thunderstorm crackles at the edges of the sky, lightning flashing gold. A great timber hall stands open, its tables piled with fruit and grain, banners flying. People crowd its courtyard in bright clothing, and the heavy fields shimmer in heat. The season or hour is midsummer noon. Colours that suit it (adapt them to the style): #c7621f, #f5c542, #2f4a7a. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Chinese lacquerware painting: deep cinnabar red and lustrous black lacquer with gold and silver inlay, mother-of-pearl highlights, elegant layered scenes. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX59",
+      "path": "aiching/app/assets/hexagrams/59.webp",
+      "style": "Splashed colour",
+      "prompt": "A bold abstract splashed ink-and-colour painting (pomo), Zhang Daqian manner, wide 16:10 landscape. Vast wet pools of brilliant azurite blue, malachite green and black ink flood the paper, merging into irregular pigment blooms, spontaneous splatters, running drips and dissolving edges. At least 85 percent of the picture is amorphous colour splashes and blank ivory paper. The I Ching theme is Dispersion: wind scattering ice on a wide spring river, people coming together to cross. Only a few minute precise ink accents suggest a tiny ferry with people, a distant temple with sideways incense smoke, and a galloping horse on the near shore. Everything else, including water and banks, is suggested by huge abstract pools. Pale sunny upper-right quarter mostly bare paper. Colour floods are the main subject at thumbnail size. No rendered waves, no detailed landscape, no naturalistic mountain scenery, no realistic shadows, no text, signature, seal, border, watermark or trigram symbols. Let large luminous blue-green ink blooms dissolve the scene.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX60",
+      "path": "aiching/app/assets/hexagrams/60.webp",
+      "style": "Famille-rose porcelain",
+      "prompt": "This picture must be made as famille-rose porcelain painting: the whole scene painted in soft enamels on the white glazed surface of a large porcelain plaque, with a gold rim, delicate and decorative. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 60, 節 Jié, \"Limitation\": the upper trigram is Water and the lower trigram is Lake. Its theme is limits, measure, discipline, balance, and the picture should make that theme felt. A terraced garden beside a still lake at the start of winter, with a bamboo grove whose segmented stalks are drawn in crisp detail. Stone channels and a small sluice gate regulate water from the hills into the lake, which brims exactly to its edge. A courtyard door stands half open, a lantern beside it, morning frost on the steps. The season or hour is start of winter. Colours that suit it (adapt them to the style): #2f5d62, #a7c4a0, #d6a25e. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Qing famille-rose porcelain painting: soft enamels of rose pink, pale green, lemon yellow and sky blue with gold, delicate flowers, figures and garden scenes as if painted on a porcelain vase or plate. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    },
+    {
+      "code": "HX63",
+      "path": "aiching/app/assets/hexagrams/63.webp",
+      "style": "Guochao illustration",
+      "prompt": "This picture must be made as a contemporary Chinese guochao poster illustration: flat vector shapes, bold saturated gradients, simplified graphic waves, clouds and lanterns, crisp modern design, no painterly texture. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. The subject is the I Ching hexagram 63, 既濟 Jì Jì, \"After Completion\": the upper trigram is Water and the lower trigram is Fire. Its theme is completion, vigilance, order, maintenance, and the picture should make that theme felt. A quiet harvest evening in a farmhouse kitchen: an iron kettle steams on a carefully banked fire, everything neatly in its place, jars sealed and shelves stocked. Through the open door a river shines, a carriage stands on the far bank having just crossed, and a fox shakes its wet tail on the bank. A single lamp glows. The season or hour is after harvest, evening. Colours that suit it (adapt them to the style): #2c4058, #d0613a, #e6d6a8. A wide 16:10 landscape composition, full bleed, opaque; keep the upper-right quarter quieter (sky, mist or water) because a title sits over it. Style: Contemporary Chinese guochao (national trend) digital illustration: vivid saturated gradients, flat graphic shapes, traditional motifs (waves, clouds, lanterns) reimagined boldly and playfully, crisp and modern. Colourful, rich and full of life, clearly illustrating the theme described above so that the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols.\nProduction constraints: single landscape artwork, 1600 x 1000, aspect ratio 16:10. The stated medium is the most important requirement; make its physical material or graphic technique unmistakable at thumbnail size. No generic detailed landscape painting. Specific porcelain gold rims and Shanghai decorative floral borders are part of the medium and are allowed.",
+      "transparent_background": false,
+      "size": [
+        1600,
+        1000
+      ]
+    }
+  ]
+}
