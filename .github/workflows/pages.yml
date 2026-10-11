@@ -58,7 +58,7 @@ jobs:
       - run: node --test test/*.test.mjs
         working-directory: percyjackson/game
       - run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && percyjackson/publish.sh local/pages/percyjackson
-      - run: cp index.html local/pages/index.html
+      - run: cp index.html favicon.ico local/pages/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages
