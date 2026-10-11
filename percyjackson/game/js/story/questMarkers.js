@@ -57,8 +57,11 @@ export function placeQuestMarkers(game, L) {
   const out = [];
   for (const ch of CHAPTERS) {
     if (!ch.ready || !ch.start) continue;
-    const anchor = L[ch.start.at];
-    if (!anchor) continue;
+    // camp anchors (woodsEdge, road1..road9 along the Road West): a chapter
+    // whose anchor isn't in camp yet gets no marker (the Big House map still
+    // starts it)
+    const anchor = L[ch.start.at] ?? L.anchors?.[ch.start.at];
+    if (!anchor?.isVector3) continue;
     const want = anchor.clone().add(new THREE.Vector3(ch.start.dx ?? 0, 0, ch.start.dz ?? 0));
     const pos = findSpot(game.world, want, anchor.y, ch.start.prop === 'bus' ? [-8, 2, -2, 2] : [-1, 1, -1, 1]);
     const open = chapterUnlocked(game, ch), done = !!game.save.data.completed[ch.id];

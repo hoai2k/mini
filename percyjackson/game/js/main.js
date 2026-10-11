@@ -340,7 +340,7 @@ class Game {
     const ch = chapterDef(id);
     if (!ch || !ch.ready) { toast('That chapter is still being written'); return; }
     this.ui.closeAll();
-    const go = () => this.startMission({ biome: ch.biome, objective: ['exorcise', 'rescue', 'seal'].includes(ch.objective) ? ch.objective : 'exorcise', boss: ch.boss, difficulty, seed: (Math.random() * 1e9) | 0, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, objText: ch.objText });
+    const go = () => this.startMission(Mission.defForChapter(ch, difficulty));
     if (Screens.openStoryCards && ch.intro?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, go);
     else go();
   }
@@ -375,7 +375,7 @@ class Game {
     const ch = this.chapter;
     if (ch) {
       if (ch.prophecyLine != null) { const pr = (d.prophecy ??= {}); const lines = (pr[ch.book] ??= []); if (!lines.includes(ch.prophecyLine)) { lines.push(ch.prophecyLine); this.newProphecy = ch.book; } }
-      for (const [hid, info] of Object.entries(HEROES)) if (info.unlock === ch.id && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
+      for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
     }
     d.stats.missions++; d.stats.kills += m.stats.kills;
     this.online.completed();

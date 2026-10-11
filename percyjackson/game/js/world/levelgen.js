@@ -27,6 +27,16 @@ export const ENEMY_TABLES = {
   museum: [['pup', 5], ['harpy', 2.5], ['fury', 1.5], ['dracaena', 0.8], ['empousa', 0.3]],
   storm_hill: [['pup', 5], ['automaton', 2], ['harpy', 2], ['hellhound', 0.6]],
   camp_woods: [['pup', 4], ['spider', 3], ['dracaena', 1.5], ['hellhound', 1]],
+  // the road west (chapters 4-12)
+  highway: [['harpy', 4], ['pup', 3], ['fury', 1.6], ['automaton', 1]],
+  statue_garden: [['dracaena', 2.2], ['pup', 3], ['harpy', 2], ['empousa', 0.4]],
+  arch: [['pup', 4], ['hellhound', 1.2], ['harpy', 2], ['automaton', 1.5]],
+  waterland: [['spider', 6], ['automaton', 2.5], ['pup', 1.5]],
+  casino: [['empousa', 1.2], ['pup', 3], ['harpy', 1.5], ['automaton', 1.5], ['dracaena', 0.8]],
+  desert: [['pup', 4], ['harpy', 2.5], ['dracaena', 1.4], ['automaton', 1.2]],
+  underworld: [['pup', 4], ['hellhound', 1.6], ['fury', 1.4], ['empousa', 0.8], ['harpy', 1]],
+  beach: [['harpy', 3], ['pup', 3], ['hellhound', 1], ['fury', 1.2]],
+  olympus: [['automaton', 3], ['harpy', 2.5], ['dracaena', 1.2], ['empousa', 0.6], ['hellhound', 0.6]],
 };
 
 export function generateLevel(mission) {

@@ -1,8 +1,8 @@
 // Mortal disguises: what the Mist shows in place of a monster. Blocky people
 // built on the shared Skin/Rig (one cached material per look, so spawning a
 // crowd never compiles shaders): a sour maths teacher (Mrs. Dodds), a
-// student, a tourist, a farmer and an old lady. paintPerson is also used by
-// the humanoid monsters in monsters.js.
+// student, a tourist, a farmer, an old lady, a Lotus Casino bellhop and a
+// salesman. paintPerson is also used by the humanoid monsters and bosses.
 import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX } from './character.js';
 
@@ -151,6 +151,31 @@ export const MORTALS = {
       prop(rig, rig.head, 6.2, 0.6, 6.2, solidMat(0xb05a7a), 0, 9.2 * HS, 0);
       const bag = prop(rig, rig.handL, 4, 4, 2, solidMat(0x7a2a4a), 0, -3, 0);
       prop(rig, bag, 2.5, 1.6, 0.4, solidMat(0xc9963a, 0, 0.4, 0.5), 0, 2.4, 0);
+    },
+  },
+  bellhop: {
+    name: 'Bellhop', blurb: 'Welcome to the Lotus! Your stay is on the house. For ever.',
+    paint: { skin: 0xe8c0a0, hair: 0x2a1a12, fringe: 2, hairSide: 2, eye: 0x2a3a2a, grin: true, top: 0xb8232f, trim: 0x8a1a22, buttons: 0xe8c060, collar: 0xe8c060, sleeve: 0xb8232f, pants: 0x1a1a22, shoes: 0x0e0e0e,
+      body: (s) => { s.rect(16, 30, 24, 1, 0xe8c060, 0); s.rect(40, 26, 16, 1, 0xe8c060, 0); s.rect(32, 58, 16, 1, 0xe8c060, 0); } },
+    build(rig) {
+      const red = solidMat(0xb8232f), gold = solidMat(0xe8c060, 0.2, 0.4, 0.6);
+      prop(rig, rig.head, 6, 3, 6, red, 0, 9.6 * HS, 0.4 * HS);
+      prop(rig, rig.head, 6.2, 0.6, 6.2, gold, 0, 8.4 * HS, 0.4 * HS);
+      // a lotus-flower pin and a silver tray on the left hand
+      prop(rig, rig.torso, 1.6, 1.6, 0.6, solidMat(0xf4a0c8, 0.6), 2.4, 9.5, 2.3);
+      const tray = prop(rig, rig.handL, 9, 0.6, 7, solidMat(0xc8c8d0, 0, 0.3, 0.8), 0, -1.5, 2.5);
+      prop(rig, tray, 1.6, 2.4, 1.6, solidMat(0xf4a0c8, 0.4), 1.5, 1.4, 0); prop(rig, tray, 1.4, 1.4, 1.4, solidMat(0xf4d0e0, 0.3), -2, 1, 1);
+      rig.armL.rotation.x = -0.9;
+    },
+  },
+  salesman: {
+    name: 'Salesman', blurb: 'A big smile, a bigger handshake, and a deal you can’t refuse.',
+    paint: { skin: 0xe0b08a, hair: 0x1a1414, fringe: 1, hairSide: 2, hairBack: 5, eye: 0x2a1a0a, grin: true, top: 0xf4f0e4, jacket: 0xc8a050, lapel: 0xa8803a, collar: 0xffffff, trim: 0xb8232f, sleeve: 0xc8a050, pants: 0xb8903a, shoes: 0x3a2214 },
+    build(rig) {
+      prop(rig, rig.torso, 1.6, 7, 0.6, solidMat(0xb8232f), 0, 5.5, 2.6);
+      prop(rig, rig.torso, 2.4, 1.4, 0.4, solidMat(0xf4f0e4), -2.6, 9.4, 2.6);   // name tag
+      const case_ = prop(rig, rig.handL, 6, 5, 2, solidMat(0x5a3a22), 0, -3.5, 0);
+      prop(rig, case_, 2.4, 1, 1, solidMat(0xc9963a, 0, 0.4, 0.6), 0, 3, 0);
     },
   },
 };

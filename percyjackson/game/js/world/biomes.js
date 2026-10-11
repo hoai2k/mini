@@ -83,6 +83,93 @@ export const BIOMES = {
     floor: B.forest_floor, floor2: B.grass, path: B.dirt, wall: B.rock, wall2: B.mossy_brick, trim: B.rock, pillar: B.pine_log, roof: B.pine_leaves, ground: B.forest_floor, accent: B.lantern, pit: B.dirt,
     ambience: 'forest', music: 'forest', particles: 'fireflies', wind: 1.2,
   },
+  // Chapter 4: a Greyhound bus on a rainy New Jersey highway, crashed and burning.
+  highway: {
+    id: 'highway', name: 'The New Jersey Turnpike', sub: 'The Kindly Ones · Rain',
+    skyTop: 0x0a0e16, skyHorizon: 0x3a3a44, fog: 0x262a32, fogDensity: 0.026,
+    hemiSky: 0x7a88a8, hemiGround: 0x1e1a16, hemiI: 0.85, sun: 0xa8b8d8, sunI: 0.8,
+    grade: { tint: [0.97, 0.99, 1.05], lift: [0.008, 0.006, 0.016], sat: 0.88, contrast: 1.12, vignette: 0.4 },
+    floor: B.asphalt, floor2: B.asphalt_line, path: B.asphalt, wall: B.guardrail, wall2: B.concrete, trim: B.guardrail, pillar: B.concrete_pillar, roof: B.bus_panel, ground: B.grass, accent: B.lantern, pit: B.dirt,
+    ambience: 'highway', music: 'highway', particles: 'stormfire', wind: 2.0, storm: true,
+  },
+  // Chapter 5: Aunty Em's Garden Gnome Emporium at dusk.
+  statue_garden: {
+    id: 'statue_garden', name: 'Aunty Em’s Garden Gnome Emporium', sub: 'New Jersey · Dusk',
+    skyTop: 0x1a2048, skyHorizon: 0xd8784a, fog: 0x5a4a50, fogDensity: 0.02,
+    hemiSky: 0xf0b890, hemiGround: 0x2a2a1e, hemiI: 0.95, sun: 0xffa060, sunI: 1.5,
+    grade: { tint: [1.05, 0.98, 0.94], lift: [0.012, 0.004, 0.01], sat: 0.92, contrast: 1.08, vignette: 0.36 },
+    floor: B.gravel_path, floor2: B.cobble, path: B.gravel_path, wall: B.corrugated, wall2: B.stone_brick, trim: B.vine_wall, pillar: B.stone, roof: B.corrugated, ground: B.grass, accent: B.lantern, pit: B.dirt,
+    ambience: 'garden', music: 'gorgon', particles: 'pollen', wind: 0.6,
+  },
+  // Chapter 6: the Gateway Arch in St. Louis: the steel tram and deck, then the Mississippi.
+  arch: {
+    id: 'arch', name: 'The Gateway Arch', sub: 'St. Louis · 630 Feet Up',
+    skyTop: 0x3a7ad0, skyHorizon: 0xf2d0a8, fog: 0xd8c8b8, fogDensity: 0.011,
+    hemiSky: 0xe0eeff, hemiGround: 0x5a5048, hemiI: 1.1, sun: 0xfff0d8, sunI: 2.0,
+    grade: { tint: [1.0, 1.0, 1.02], lift: [0.008, 0.008, 0.012], sat: 1.04, contrast: 1.06, vignette: 0.24 },
+    floor: B.steel_panel, floor2: B.iron_plate, path: B.concrete, wall: B.steel_panel, wall2: B.steel_window, trim: B.iron_plate, pillar: B.steel_panel, roof: B.steel_panel, ground: B.grass, accent: B.lantern, pit: B.concrete,
+    ambience: 'wind', music: 'arch', particles: 'dust', wind: 1.2,
+  },
+  // Chapter 7: Waterland, an abandoned water park in Denver, at night.
+  waterland: {
+    id: 'waterland', name: 'Waterland', sub: 'Denver · Closed for the Season',
+    skyTop: 0x060a1a, skyHorizon: 0x2a3a5a, fog: 0x1a2436, fogDensity: 0.022,
+    hemiSky: 0x8aa0d0, hemiGround: 0x1a1612, hemiI: 0.85, sun: 0xb0c4ff, sunI: 1.0,
+    grade: { tint: [0.96, 1.0, 1.06], lift: [0.0, 0.008, 0.02], sat: 0.98, contrast: 1.1, vignette: 0.38 },
+    floor: B.concrete, floor2: B.pool_tile, path: B.concrete, wall: B.rust_metal, wall2: B.concrete, trim: B.slide_glass, pillar: B.rust_metal, roof: B.rust_metal, ground: B.concrete, accent: B.lantern, pit: B.concrete,
+    ambience: 'park', music: 'waterpark', particles: 'moths', wind: 0.9,
+  },
+  // Chapter 8: the Lotus Hotel and Casino: neon, carpet and a party that never ends.
+  casino: {
+    id: 'casino', name: 'The Lotus Hotel and Casino', sub: 'Las Vegas · Every Game Is Free',
+    skyTop: 0x12051e, skyHorizon: 0x6a1a5a, fog: 0x3a1440, fogDensity: 0.016,
+    hemiSky: 0xffb0e0, hemiGround: 0x2a0a20, hemiI: 1.05, sun: 0xffd8a0, sunI: 1.0,
+    grade: { tint: [1.04, 0.98, 1.04], lift: [0.02, 0.008, 0.02], sat: 1.28, contrast: 1.02, vignette: 0.3 },
+    floor: B.casino_carpet, floor2: B.casino_carpet, path: B.carpet_red, wall: B.lotus_panel, wall2: B.gold_plate, trim: B.neon_green, pillar: B.gold_plate, roof: B.lotus_panel, ground: B.casino_carpet, accent: B.neon_pink, pit: B.lotus_panel,
+    ambience: 'casino', music: 'lotus', particles: 'neon', wind: 1.6, indoor: true, dreamy: true,
+  },
+  // Chapter 9: the Nevada desert and Crusty's Water Bed Palace.
+  desert: {
+    id: 'desert', name: 'The Nevada Desert', sub: 'Crusty’s Water Bed Palace',
+    skyTop: 0x2a5ab0, skyHorizon: 0xf2b07a, fog: 0xe0a878, fogDensity: 0.012,
+    hemiSky: 0xffe8c8, hemiGround: 0x7a4a2a, hemiI: 1.15, sun: 0xffd8a0, sunI: 2.6,
+    grade: { tint: [1.07, 1.0, 0.9], lift: [0.02, 0.008, 0.0], sat: 1.08, contrast: 1.06, vignette: 0.24 },
+    floor: B.desert_sand, floor2: B.sand, path: B.asphalt, wall: B.red_rock, wall2: B.sand, trim: B.red_rock, pillar: B.red_rock, roof: B.roof_terracotta, ground: B.desert_sand, accent: B.neon_bulbs, pit: B.red_rock,
+    ambience: 'desert', music: 'desert', particles: 'sand', wind: 1.5,
+  },
+  // Chapter 10: DOA Recording Studios, the River Styx, the Fields of Asphodel and the gates of Erebus.
+  underworld: {
+    id: 'underworld', name: 'The Underworld', sub: 'DOA Recording Studios · The River Styx',
+    skyTop: 0x030206, skyHorizon: 0x1a1428, fog: 0x14101e, fogDensity: 0.03,
+    hemiSky: 0x7a7aa8, hemiGround: 0x0a0806, hemiI: 0.75, sun: 0x9a9ad0, sunI: 0.55,
+    grade: { tint: [0.95, 0.98, 1.06], lift: [0.006, 0.004, 0.02], sat: 0.7, contrast: 1.16, vignette: 0.5 },
+    floor: B.underworld_rock, floor2: B.basalt, path: B.asphodel, wall: B.underworld_rock, wall2: B.obsidian, trim: B.basalt, pillar: B.basalt, roof: B.underworld_rock, ground: B.asphodel, accent: B.styx, pit: B.underworld_rock,
+    ambience: 'underworld', music: 'underworld', particles: 'ash', wind: 0.4,
+  },
+  // Chapter 11: Santa Monica beach at dusk; the surf is real water.
+  beach: {
+    id: 'beach', name: 'Santa Monica Beach', sub: 'Los Angeles · Dusk',
+    skyTop: 0x2a3a7a, skyHorizon: 0xff9a5a, fog: 0xd88a6a, fogDensity: 0.012,
+    hemiSky: 0xffc8a8, hemiGround: 0x4a3a2a, hemiI: 1.05, sun: 0xff9a60, sunI: 2.0,
+    grade: { tint: [1.08, 0.98, 0.94], lift: [0.02, 0.006, 0.008], sat: 1.12, contrast: 1.05, vignette: 0.28 },
+    floor: B.sand, floor2: B.wet_sand, path: B.planks, wall: B.white_trim, wall2: B.teal_panel, trim: B.white_trim, pillar: B.log, roof: B.teal_panel, ground: B.sand, accent: B.lantern, pit: B.sand,
+    ambience: 'surf', music: 'beach', particles: 'spray', wind: 1.4,
+  },
+  // Chapter 12: Mount Olympus above the Empire State Building, then the duel on a camp hill.
+  olympus: {
+    id: 'olympus', name: 'Mount Olympus', sub: 'The Six-Hundredth Floor',
+    skyTop: 0x3a8ae8, skyHorizon: 0xfff0d8, fog: 0xf0f0f8, fogDensity: 0.009,
+    hemiSky: 0xffffff, hemiGround: 0xb8a888, hemiI: 1.25, sun: 0xfff2d0, sunI: 2.6,
+    grade: { tint: [1.04, 1.02, 0.98], lift: [0.02, 0.018, 0.014], sat: 1.06, contrast: 1.02, vignette: 0.18 },
+    floor: B.gold_marble, floor2: B.marble_floor, path: B.marble_white, wall: B.marble_white, wall2: B.gold_marble, trim: B.key_frieze, pillar: B.column, roof: B.marble_white, ground: B.grass, accent: B.lantern, pit: B.cloud,
+    ambience: 'olympus', music: 'olympus', particles: 'sparkle', wind: 1.0,
+    // the last fight (Luke on a camp hill at night) is lit like this; see bossEnv in the report
+    bossEnv: {
+      skyTop: 0x040818, skyHorizon: 0x1a2848, fog: 0x101a2e, fogDensity: 0.022,
+      hemiSky: 0x8aa0d8, hemiGround: 0x141a10, hemiI: 0.8, sun: 0xbcd0ff, sunI: 1.0,
+      grade: { tint: [0.95, 1.0, 1.07], lift: [0.0, 0.008, 0.024], sat: 0.95, contrast: 1.1, vignette: 0.4 },
+    },
+  },
 };
 
 // Domain Expansion overrides use the same structure.

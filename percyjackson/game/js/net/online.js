@@ -144,7 +144,7 @@ export class Online {
       enemies.push([e.netId, e.isBoss ? 'B:' + e.id : e.kind, r2(e.pos.x), r2(e.pos.y), r2(e.pos.z), r2(e.facing ?? 0), Math.round((e.hp / e.maxHp) * 1000) / 1000, (e.dead ? 1 : 0) | (e.disguised ? 2 : 0) | (e.elite ? 4 : 0), e.state ?? e.anim ?? '', e.elite ?? null, e.disguise ?? e.disguiseKind ?? null]);
     }
     const out = { enemies, sight: g.mist.active ? 1 : 0 };
-    if (m) out.m = { od: m.objDone ? 1 : 0, items: m.obj.items.map((it) => (it.done ? 1 : 0)), chests: m.L.chests.map((c) => (c.opened ? 1 : 0)), boss: m.boss ? (m.boss.dead ? 2 : 1) : 0 };
+    if (m) out.m = { od: m.objDone ? 1 : 0, items: m.obj.items.map((it) => (it.done ? 1 : 0)), chests: m.L.chests.map((c) => (c.opened ? 1 : 0)), boss: m.boss ? (m.boss.dead ? 2 : 1) : 0, x: m.netState?.() };
     return out;
   }
   // Remember a change of scene so guests follow.
@@ -286,6 +286,7 @@ export class Online {
     if (m && w.m) {
       w.m.items?.forEach((d, i) => { const it = m.obj.items[i]; if (d && it && !it.done) m.completeItem(it); });
       w.m.chests?.forEach((d, i) => { const c = m.L.chests[i]; if (d && c && !c.opened) m.openChest(c, g.players[0]); });
+      if (w.m.x) m.applyNet?.(w.m.x);
       if (w.m.od && !m.objDone) { m.obj.done = m.obj.need; m.checkObjective(); }
     }
     if (w.sight && !g.mist.active && g.mist.available) g.mist.toggle(g.players[0]);
@@ -371,7 +372,8 @@ export class Online {
     const m = this.game.mission; if (!m) return;
     if (d.k === 'item') { const it = m.obj.items[d.i]; if (it && !it.done) m.completeItem(it); }
     if (d.k === 'chest') { const c = m.L.chests[d.i]; if (c && !c.opened) m.openChest(c, this.game.players[0]); }
-    if (d.k === 'exit' && m.boss?.dead) this.game.completeMission();
+    if (d.k === 'obj' && typeof d.u === 'string') m.onNetAct?.(d);
+    if (d.k === 'exit' && (m.boss?.dead || m.exitOpen)) this.game.completeMission();
   }
   onDone(d) {
     if (!this.isGuest || d?.v !== V) return;

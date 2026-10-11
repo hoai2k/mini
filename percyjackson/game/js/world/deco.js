@@ -210,6 +210,189 @@ export class Decorations {
         case 'boulder': lb(1.1, 0.8, 0.9, 0, 0.4, 0, M.stone, 0.3); lb(0.7, 0.5, 0.6, 0.2, 0.9, 0.05, M.stone, 0.9); break;
         case 'lyre': lb(0.08, 0.6, 0.08, -0.18, 0.3, 0, M.gold, 0, 0, 0.2); lb(0.08, 0.6, 0.08, 0.18, 0.3, 0, M.gold, 0, 0, -0.2); lb(0.5, 0.06, 0.06, 0, 0.6, 0, M.gold); lb(0.3, 0.12, 0.12, 0, 0.04, 0, M.wood); break;
         case 'chandelier': lb(0.04, 1.2, 0.04, 0, -0.6, 0, M.bronze); lb(1.2, 0.08, 1.2, 0, -1.2, 0, M.bronze); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; lb(0.14, 0.14, 0.14, Math.cos(a) * 0.5, -1.08, Math.sin(a) * 0.5, M.lanternGlow); } break;
+
+        // ------------------------------------------------ the road west (Book 1, chapters 4-12)
+        case 'greyhound': { // a Greyhound bus along local x (10 long); p.burning adds flames, p.tilt rolls it
+          const body = M.car(0xc8ccd2), stripe = M.car(0x2a5ab8), tz = p.tilt ?? 0;
+          lb(10, 2.2, 2.6, 0, 1.55, 0, body, 0, 0, 0); lb(10.02, 0.4, 2.62, 0, 1.3, 0, stripe, 0, tz);
+          lb(9.4, 0.75, 2.64, -0.2, 2.15, 0, M.glass, 0, tz); lb(0.12, 1.4, 2.4, 5.0, 1.9, 0, M.glass, 0, tz);
+          lb(9.8, 0.3, 2.5, 0, 2.75, 0, body, 0, tz); lb(10.1, 0.25, 2.66, 0, 0.5, 0, M.dark, 0, tz);
+          for (const [a, b] of [[-3.4, 1.2], [3.2, 1.2], [-3.4, -1.2], [3.2, -1.2], [-2.3, 1.2], [-2.3, -1.2]]) lb(1.0, 1.0, 0.36, a, 0.5, b, M.dark, 0, tz);
+          lb(0.1, 0.25, 0.5, 5.02, 0.9, 0.8, M.lampGlow); lb(0.1, 0.25, 0.5, 5.02, 0.9, -0.8, M.lampGlow);
+          lb(1.6, 0.3, 0.06, 1.0, 1.75, 1.32, M.car(0xd8322a)); // the running dog
+          if (p.burning) for (let i = 0; i < 6; i++) { const fx = -3.5 + i * 1.3 + (i % 2) * 0.3; lb(0.7, 0.9 + (i % 3) * 0.4, 0.7, fx, 3.2 + (i % 3) * 0.2, (i % 2 - 0.5) * 0.9, M.flame, i); lb(0.4, 0.6, 0.4, fx + 0.2, 3.9 + (i % 2) * 0.3, 0, M.flame, i * 2); }
+          if (p.burning) for (let i = 0; i < 4; i++) lb(1.2, 0.9, 1.2, -2.5 + i * 1.6, 4.6 + i * 0.5, (i % 2) * 0.4, M.smoke, i);
+          break;
+        }
+        case 'van': { // Argus's white van: Delphi Strawberry Service
+          const w = M.car(0xeeeeea);
+          lb(4.2, 1.8, 2.0, 0, 1.2, 0, w); lb(1.2, 1.1, 1.96, 2.4, 0.85, 0, w); lb(0.08, 0.7, 1.7, 3.0, 1.35, 0, M.glass);
+          lb(0.08, 0.6, 1.8, 2.42, 1.75, 0, M.glass);
+          for (const [a, b] of [[-1.3, 0.95], [1.9, 0.95], [-1.3, -0.95], [1.9, -0.95]]) lb(0.7, 0.7, 0.3, a, 0.35, b, M.dark);
+          lb(0.7, 0.7, 0.04, -0.4, 1.4, 1.02, M.car(0xd8322a)); lb(0.3, 0.2, 0.04, -0.4, 1.85, 1.02, M.car(0x3f8a34));
+          lb(0.7, 0.7, 0.04, -0.4, 1.4, -1.02, M.car(0xd8322a)); lb(0.3, 0.2, 0.04, -0.4, 1.85, -1.02, M.car(0x3f8a34));
+          break;
+        }
+        case 'gnome': { // a garden gnome; p.color hat
+          const hat = M.car(p.color ?? 0xd8322a);
+          lb(0.34, 0.3, 0.3, 0, 0.15, 0, M.car(0x2a6ad8)); lb(0.38, 0.32, 0.32, 0, 0.45, 0, M.car(0x3f8a34));
+          lb(0.26, 0.24, 0.26, 0, 0.72, 0, M.skin); lb(0.24, 0.2, 0.08, 0, 0.66, 0.13, M.white);
+          lb(0.28, 0.16, 0.28, 0, 0.9, 0, hat); lb(0.18, 0.16, 0.18, 0, 1.04, 0, hat); lb(0.08, 0.14, 0.08, 0, 1.16, 0, hat);
+          break;
+        }
+        case 'stone_person': { // someone Medusa caught: grey stone, frozen mid-scream. p.pose 0-4 (4 = a satyr)
+          const m = M.stoneFig, pose = p.pose ?? 0;
+          lb(0.9, 0.18, 0.7, 0, 0.09, 0, M.stone);
+          const kneel = pose === 3, by = kneel ? 0.18 : 0.18;
+          if (pose === 4) { lb(0.24, 0.5, 0.26, -0.15, by + 0.25, -0.05, M.stoneFig, 0, 0.3); lb(0.24, 0.5, 0.26, 0.15, by + 0.25, -0.05, M.stoneFig, 0, 0.3); lb(0.2, 0.4, 0.22, -0.15, by + 0.62, 0.05, m, 0, -0.4); lb(0.2, 0.4, 0.22, 0.15, by + 0.62, 0.05, m, 0, -0.4); }
+          else if (kneel) { lb(0.22, 0.3, 0.7, -0.15, by + 0.15, 0.1, m); lb(0.22, 0.3, 0.7, 0.15, by + 0.15, 0.1, m); }
+          else if (pose === 1) { lb(0.22, 0.8, 0.24, -0.15, by + 0.4, 0.15, m, 0, 0.45); lb(0.22, 0.8, 0.24, 0.15, by + 0.4, -0.15, m, 0, -0.45); }
+          else { lb(0.22, 0.8, 0.24, -0.14, by + 0.4, 0, m); lb(0.22, 0.8, 0.24, 0.14, by + 0.4, 0, m); }
+          const ty = kneel ? by + 0.3 : by + 0.8;
+          const lean = pose === 0 ? 0.35 : pose === 1 ? -0.25 : pose === 3 ? 0.2 : 0;
+          lb(0.56, 0.72, 0.32, 0, ty + 0.36, 0, m, 0, lean); lb(0.34, 0.34, 0.34, 0, ty + 0.9, lean * 0.6, m, 0, lean);
+          if (pose === 4) { lb(0.08, 0.2, 0.08, -0.1, ty + 1.12, lean * 0.6, m, 0, 0, 0.4); lb(0.08, 0.2, 0.08, 0.1, ty + 1.12, lean * 0.6, m, 0, 0, -0.4); }
+          if (pose === 0 || pose === 3) { lb(0.16, 0.6, 0.16, -0.3, ty + 0.95, 0.15, m, 0, -0.9, 0.5); lb(0.16, 0.6, 0.16, 0.3, ty + 0.95, 0.15, m, 0, -0.9, -0.5); }
+          else if (pose === 2) { lb(0.16, 0.65, 0.16, -0.32, ty + 1.0, 0.2, m, 0, -1.3, 0.2); lb(0.16, 0.65, 0.16, 0.32, ty + 1.0, 0.2, m, 0, -1.3, -0.2); }
+          else { lb(0.16, 0.6, 0.16, -0.36, ty + 0.55, 0.1, m, 0, 0.8); lb(0.16, 0.6, 0.16, 0.36, ty + 0.55, -0.1, m, 0, -0.8); }
+          break;
+        }
+        case 'gazing_ball': lb(0.3, 0.8, 0.3, 0, 0.4, 0, M.stone); lb(0.5, 0.12, 0.5, 0, 0.86, 0, M.stone); put(new THREE.SphereGeometry(0.34 * sc, 14, 10), M.chrome, x, y + 1.2 * sc, z, 0, 0, 0); break;
+        case 'birdbath': lb(0.26, 0.9, 0.26, 0, 0.45, 0, M.stone); lb(0.9, 0.14, 0.9, 0, 0.95, 0, M.stone); lb(0.7, 0.04, 0.7, 0, 1.03, 0, M.water); break;
+        case 'arch_model': { // the Gateway Arch: a weighted catenary of steel boxes; p.span, p.h
+          const span = p.span ?? 8, hh = p.h ?? 9, n = 22;
+          for (let i = 0; i <= n; i++) {
+            const t = i / n * 2 - 1, X = t * span / 2, Y = hh * (1 - (Math.cosh(t * 1.9) - 1) / (Math.cosh(1.9) - 1));
+            const t2 = (i + 1) / n * 2 - 1, Y2 = hh * (1 - (Math.cosh(t2 * 1.9) - 1) / (Math.cosh(1.9) - 1));
+            const ang = Math.atan2(Y2 - Y, span / n); const thick = 0.55 - Math.abs(Y / hh - 0.5) * 0.0 - (Y / hh) * 0.25;
+            lb(span / n + 0.08, thick, thick, X, Y, 0, M.chrome, 0, 0, ang);
+          }
+          break;
+        }
+        case 'tram_pod': { // one of the Arch's egg-shaped tram cars
+          lb(1.3, 1.6, 1.3, 0, 0.9, 0, M.white); lb(1.1, 0.25, 1.1, 0, 1.8, 0, M.white); lb(1.1, 0.25, 1.1, 0, 0.0 + 0.12, 0, M.white);
+          lb(0.7, 1.0, 0.06, 0, 0.95, 0.66, M.glass); lb(0.12, 1.9, 0.12, -0.7, 0.95, 0, M.chrome); lb(0.12, 1.9, 0.12, 0.7, 0.95, 0, M.chrome);
+          break;
+        }
+        case 'water_tower': for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) lb(0.16, 5, 0.16, a * 0.9, 2.5, b * 0.9, M.metal);
+          lb(2.6, 2.0, 2.6, 0, 6, 0, M.car(p.color ?? 0x6ac0e0)); lb(2.0, 0.6, 2.0, 0, 7.3, 0, M.car(p.color ?? 0x6ac0e0)); lb(0.8, 0.4, 0.8, 0, 7.8, 0, M.metal);
+          lb(2.62, 0.3, 2.62, 0, 6.2, 0, M.white);
+          break;
+        case 'swan_boat': { // Tunnel of Love swan boat (along local x)
+          const wht = M.white;
+          lb(2.4, 0.6, 1.3, 0, 0.3, 0, wht); lb(1.8, 0.2, 1.0, -0.2, 0.62, 0, M.car(0xb02a3a));
+          lb(0.4, 0.5, 1.2, -1.1, 0.75, 0, wht); lb(0.3, 1.1, 0.3, 1.2, 0.95, 0, wht, 0, 0, -0.2); lb(0.5, 0.25, 0.28, 1.35, 1.5, 0, wht); lb(0.25, 0.1, 0.12, 1.65, 1.45, 0, M.car(0xf28c28));
+          lb(1.0, 0.5, 0.1, -0.2, 0.75, 0.66, wht, 0, 0, 0.1); lb(1.0, 0.5, 0.1, -0.2, 0.75, -0.66, wht, 0, 0, 0.1);
+          if (p.rust) { lb(0.5, 0.2, 0.04, 0.3, 0.3, 0.66, M.rust); lb(0.4, 0.3, 0.04, -0.6, 0.35, -0.66, M.rust); }
+          break;
+        }
+        case 'palm': { // a palm tree; p.h
+          const hh = p.h ?? 5;
+          for (let i = 0; i < hh; i++) lb(0.36 - i * 0.02, 1.02, 0.36 - i * 0.02, Math.sin(i * 0.4) * 0.25, i + 0.5, 0, M.palmTrunk);
+          const tx = Math.sin(hh * 0.4) * 0.25;
+          for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; lb(2.0, 0.08, 0.5, tx + Math.cos(a) * 0.9, hh + 0.1, Math.sin(a) * 0.9, M.palmLeaf, -a, 0, -0.35); }
+          lb(0.5, 0.4, 0.5, tx, hh, 0, M.palmTrunk);
+          break;
+        }
+        case 'slot': // a slot machine with its stool; faces +z
+          lb(0.9, 1.5, 0.7, 0, 0.75, 0, M.car(0xb8862a)); lb(0.7, 0.5, 0.06, 0, 1.15, 0.36, M.neon(p.color ?? 0xff4a8a)); lb(0.8, 0.25, 0.06, 0, 1.6, 0.3, M.neon(0xffd84a));
+          lb(0.06, 0.5, 0.06, 0.5, 1.2, 0.1, M.chrome); lb(0.12, 0.12, 0.12, 0.5, 1.5, 0.1, M.car(0xd8322a));
+          lb(0.5, 0.08, 0.5, 0, 0.6, 0.9, M.car(0x5a1a3a)); lb(0.08, 0.6, 0.08, 0, 0.3, 0.9, M.chrome);
+          break;
+        case 'arcade': // an arcade cabinet; faces +z
+          lb(0.9, 1.8, 0.8, 0, 0.9, 0, M.car(p.color ?? 0x2a2a6a)); lb(0.7, 0.55, 0.06, 0, 1.35, 0.38, M.neon(p.screen ?? 0x4ad8ff)); lb(0.9, 0.12, 0.45, 0, 0.95, 0.5, M.dark);
+          lb(0.9, 0.25, 0.06, 0, 1.78, 0.38, M.neon(0xff5fb0));
+          break;
+        case 'card_table': // green felt card table with chips
+          lb(1.8, 0.14, 1.1, 0, 0.8, 0, M.felt); lb(1.9, 0.06, 1.2, 0, 0.72, 0, M.car(0x5a2a1a)); lb(0.3, 0.72, 0.3, 0, 0.36, 0, M.dark);
+          for (let i = 0; i < 4; i++) lb(0.12, 0.08 + i * 0.03, 0.12, -0.6 + i * 0.4, 0.92, 0.2 - (i % 2) * 0.3, M.car([0xd8322a, 0x2a6ad8, 0x17130f, 0x2aa85a][i]));
+          break;
+        case 'waterbed': { // a water bed, 2 wide x 3 long along local z; p.color, p.swan headboard, p.straps
+          const sat = p.blue ? M.satinBlue : M.satinPink;
+          lb(2.1, 0.45, 3.1, 0, 0.22, 0, M.car(0x5a2a1a)); lb(2.15, 0.08, 3.15, 0, 0.47, 0, M.gold);
+          lb(1.9, 0.38, 2.9, 0, 0.66, 0, sat); lb(1.6, 0.14, 2.5, 0, 0.88, 0, sat);
+          if (p.swan) { lb(2.1, 1.5, 0.3, 0, 1.0, -1.5, M.white); lb(0.4, 1.8, 0.4, 0.7, 1.8, -1.4, M.white, 0, 0.3); lb(0.7, 0.35, 0.4, 0.95, 2.6, -1.2, M.white); lb(0.3, 0.12, 0.2, 1.3, 2.55, -1.05, M.car(0xf28c28)); }
+          else { lb(2.1, 1.1, 0.25, 0, 0.8, -1.5, M.car(0x5a2a1a)); lb(1.7, 0.7, 0.08, 0, 0.95, -1.36, sat); lb(2.2, 0.1, 0.3, 0, 1.38, -1.5, M.gold); }
+          if (p.straps) for (const t of [-0.8, 0.6]) lb(2.16, 0.1, 0.18, 0, 0.85, t, M.dark);
+          break;
+        }
+        case 'cactus': { const hh = p.h ?? 2.2; lb(0.36, hh, 0.36, 0, hh / 2, 0, M.cactus); lb(0.5, 0.26, 0.26, 0.3, hh * 0.5, 0, M.cactus); lb(0.26, 0.7, 0.26, 0.5, hh * 0.5 + 0.35, 0, M.cactus); lb(0.4, 0.22, 0.22, -0.26, hh * 0.65, 0, M.cactus); lb(0.22, 0.5, 0.22, -0.42, hh * 0.65 + 0.25, 0, M.cactus); break; }
+        case 'ferry': { // Charon's ferry along local x, with a green lantern on the stern
+          const hull = M.car(0x2a2420);
+          lb(5, 0.5, 1.6, 0, 0.25, 0, hull); lb(5, 0.5, 0.15, 0, 0.75, 0.75, hull); lb(5, 0.5, 0.15, 0, 0.75, -0.75, hull);
+          lb(0.9, 0.9, 0.5, 2.8, 0.9, 0, hull, 0, 0, 0.5); lb(0.12, 0.12, 0.12, 3.2, 1.45, 0, M.gold);
+          lb(0.08, 2.4, 0.08, -2.2, 1.7, 0.5, M.wood); lb(0.3, 0.3, 0.3, -2.2, 2.9, 0.5, M.greenFlame);
+          for (let i = 0; i < 3; i++) lb(0.12, 0.08, 1.4, -1 + i * 1.2, 0.55, 0, M.wood);
+          break;
+        }
+        case 'iron_gate': { // tall black bars with gold spear tips; p.w along local x, p.h
+          const w = p.w ?? 6, hh = p.h ?? 6;
+          for (let i = 0; i <= w * 2; i++) { lb(0.1, hh, 0.1, -w / 2 + i / 2, hh / 2, 0, M.dark); lb(0.14, 0.3, 0.14, -w / 2 + i / 2, hh + 0.15, 0, M.gold); }
+          for (const yy of [0.6, hh * 0.55, hh - 0.4]) lb(w + 0.2, 0.14, 0.16, 0, yy, 0, M.dark);
+          lb(0.5, hh + 1.2, 0.5, -w / 2 - 0.3, (hh + 1.2) / 2, 0, M.dark); lb(0.5, hh + 1.2, 0.5, w / 2 + 0.3, (hh + 1.2) / 2, 0, M.dark);
+          if (p.skulls) for (const sx of [-w / 2 - 0.3, w / 2 + 0.3]) lb(0.4, 0.36, 0.4, sx, hh + 1.4, 0, M.white);
+          break;
+        }
+        case 'lifeguard_tower': {
+          for (const [a, b] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) lb(0.14, 2.2, 0.14, a, 1.1, b, M.white);
+          lb(2.0, 0.14, 2.0, 0, 2.25, 0, M.wood); lb(1.8, 1.3, 1.6, 0, 2.95, -0.1, M.car(0x2aa8a0)); lb(1.2, 0.6, 0.06, 0, 3.05, 0.71, M.glass);
+          lb(2.2, 0.14, 2.0, 0, 3.66, -0.1, M.white); lb(0.5, 0.1, 2.6, 0, 1.1, 1.9, M.wood, 0, 0.75);
+          lb(0.06, 1.0, 0.06, 0.9, 4.2, 0.6, M.wood); lb(0.5, 0.3, 0.02, 1.15, 4.55, 0.6, M.car(0xd8322a));
+          break;
+        }
+        case 'ferris_wheel': { // the Santa Monica pier wheel; p.r
+          const R = p.r ?? 5;
+          lb(0.25, R + 0.5, 0.25, -0.6 * R / 5 * 0, (R + 0.5) / 2, 0.5, M.white, 0, 0, 0.18); lb(0.25, R + 0.5, 0.25, 0, (R + 0.5) / 2, -0.5, M.white, 0, 0, -0.18);
+          for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; lb(0.16, R * Math.PI * 2 / 24 + 0.05, 0.16, Math.cos(a) * R, R + 0.6 + Math.sin(a) * R, 0, M.neon(i % 2 ? 0xffd84a : 0xff5fb0), 0, 0, a); }
+          for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; lb(0.08, R, 0.08, Math.cos(a) * R / 2, R + 0.6 + Math.sin(a) * R / 2, 0, M.white, 0, 0, a + Math.PI / 2); lb(0.6, 0.5, 0.6, Math.cos(a) * R, R + 0.1 + Math.sin(a) * R, 0, M.car([0xd8322a, 0x2a6ad8, 0xffd84a, 0x2aa85a][i % 4])); }
+          break;
+        }
+        case 'umbrella': lb(0.06, 2.2, 0.06, 0, 1.1, 0, M.white); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; lb(1.0, 0.06, 0.5, Math.cos(a) * 0.5, 2.1, Math.sin(a) * 0.5, M.car(i % 2 ? 0xffffff : (p.color ?? 0xd8322a)), -a, 0, -0.25); } break;
+        case 'deck_chair': lb(0.6, 0.1, 1.6, 0, 0.35, 0, M.car(p.color ?? 0x2aa8a0)); lb(0.6, 0.1, 0.7, 0, 0.6, -0.8, M.car(p.color ?? 0x2aa8a0), 0, 0.6); for (const a of [-0.25, 0.25]) for (const b of [-0.6, 0.6]) lb(0.06, 0.35, 0.06, a, 0.17, b, M.chrome); break;
+        case 'throne': { // an Olympian throne; p.color trims it
+          const m = p.bronze ? M.bronze : M.marble, t = M.car(p.color ?? 0xffd84a);
+          lb(2.2, 0.6, 2.0, 0, 0.3, 0, M.marble); lb(1.6, 0.4, 1.4, 0, 0.8, 0.1, m); lb(1.6, 3.4, 0.4, 0, 2.3, -0.6, m);
+          lb(0.3, 0.8, 1.2, -0.75, 1.3, 0.1, m); lb(0.3, 0.8, 1.2, 0.75, 1.3, 0.1, m); lb(1.8, 0.3, 0.5, 0, 4.1, -0.6, t); lb(0.6, 0.6, 0.1, 0, 3.4, -0.38, t);
+          break;
+        }
+        case 'empire_state': { // a model of the Empire State Building; p.h
+          const hh = p.h ?? 12, m = M.car(0x9aa0a8), wnd = M.lampGlow;
+          lb(3.2, hh * 0.35, 2.6, 0, hh * 0.175, 0, m); lb(2.4, hh * 0.35, 2.0, 0, hh * 0.525, 0, m); lb(1.6, hh * 0.18, 1.3, 0, hh * 0.79, 0, m);
+          lb(0.9, hh * 0.1, 0.8, 0, hh * 0.93, 0, m); lb(0.2, hh * 0.25, 0.2, 0, hh * 1.1, 0, M.chrome);
+          for (let i = 1; i < 8; i++) lb(2.42, 0.08, 2.02, 0, hh * 0.35 + i * hh * 0.045, 0, wnd);
+          for (let i = 1; i < 6; i++) lb(3.22, 0.08, 2.62, 0, i * hh * 0.06, 0, wnd);
+          if (p.glow) lb(0.5, 0.5, 0.5, 0, hh * 1.25, 0, M.lampGlow);
+          break;
+        }
+        case 'couch': lb(2.2, 0.45, 0.9, 0, 0.22, 0, M.car(p.color ?? 0x2a2a2e)); lb(2.2, 0.7, 0.25, 0, 0.6, -0.36, M.car(p.color ?? 0x2a2a2e)); lb(0.25, 0.6, 0.9, -1.0, 0.45, 0, M.car(p.color ?? 0x2a2a2e)); lb(0.25, 0.6, 0.9, 1.0, 0.45, 0, M.car(p.color ?? 0x2a2a2e)); break;
+        case 'ghost': // a waiting spirit: pale, see-through, slightly bowed
+          lb(0.5, 1.1, 0.34, 0, 0.75, 0, M.ghost, 0, 0.1); lb(0.32, 0.32, 0.32, 0, 1.5, 0.05, M.ghost); lb(0.6, 0.4, 0.4, 0, 0.2, 0, M.ghost);
+          break;
+        case 'round_shield': lb(1.2, 1.2, 0.12, 0, 0, 0, M.bronze, 0, 0, 0.785); lb(0.85, 0.85, 0.14, 0, 0, 0, M.gold, 0, 0, 0.785); lb(0.3, 0.3, 0.16, 0, 0, 0, M.bronze); break;
+        case 'cone': lb(0.5, 0.06, 0.5, 0, 0.03, 0, M.car(0xf28c28)); lb(0.3, 0.6, 0.3, 0, 0.35, 0, M.car(0xf28c28)); lb(0.32, 0.1, 0.32, 0, 0.4, 0, M.white); break;
+        case 'clock': { // the Lotus's giant clock (faces +z), hands spinning too fast
+          lb(3.2, 3.2, 0.2, 0, 0, 0, M.gold, 0, 0, 0.785 / 2); lb(2.6, 2.6, 0.24, 0, 0, 0, M.white, 0, 0, 0.785 / 2);
+          for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; lb(0.12, 0.3, 0.26, Math.cos(a) * 1.05, Math.sin(a) * 1.05, 0, M.dark, 0, 0, a + Math.PI / 2); }
+          lb(0.1, 1.0, 0.3, 0.2, 0.35, 0.05, M.dark, 0, 0, -0.6); lb(0.1, 0.7, 0.3, -0.25, 0.1, 0.05, M.dark, 0, 0, 2.2);
+          break;
+        }
+        case 'gas_pump': lb(0.6, 1.5, 0.4, 0, 0.75, 0, M.car(0xd8322a)); lb(0.4, 0.3, 0.06, 0, 1.15, 0.22, M.lampGlow); lb(0.1, 0.5, 0.1, 0.35, 0.8, 0.1, M.dark); break;
+        case 'text_sign': { // a board with words on it: p.text, p.w, p.h, p.bg, p.fg, p.post (signpost height), p.glow
+          const w = p.w ?? 2.4, hh = p.h ?? 0.7, ph = p.post ?? 0;
+          if (ph > 0) { lb(0.14, ph, 0.14, -w / 2 + 0.2, ph / 2, -0.02, M.wood); lb(0.14, ph, 0.14, w / 2 - 0.2, ph / 2, -0.02, M.wood); }
+          const cy = ph > 0 ? ph + hh / 2 - 0.15 : hh / 2;
+          lb(w + 0.12, hh + 0.12, 0.08, 0, cy, -0.05, p.glow ? M.dark : M.wood);
+          const mat = signMaterial(p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh });
+          for (const side of p.oneSided ? [1] : [1, -1]) {
+            const pl = new THREE.Mesh(new THREE.PlaneGeometry(w * sc, hh * sc), mat);
+            const lz = side * 0.0 + (side > 0 ? 0.0 : -0.1);
+            pl.position.set(x + (0 * cr + lz * sr) * sc, y + cy * sc, z + (-0 * sr + lz * cr) * sc);
+            pl.rotation.y = rot + (side > 0 ? 0 : Math.PI);
+            pl.castShadow = false; pl.receiveShadow = true;
+            group.add(pl);
+          }
+          break;
+        }
       }
     }
     for (const [mat, geos] of batches) {
@@ -219,6 +402,31 @@ export class Decorations {
     }
     this.propMesh = group; world.group.add(group);
   }
+}
+
+// Painted words for signs (place names on the road west, shop signs, neon).
+const signCache = new Map();
+function signMaterial(text, { bg = '#6a4a2a', fg = '#f6e7c0', glow = false, border = '#c9963a', aspect = 3 } = {}) {
+  const key = [text, bg, fg, glow, border, aspect.toFixed(2)].join('|');
+  if (signCache.has(key)) return signCache.get(key);
+  const H = 128, W = Math.min(1024, Math.round(H * aspect / 4) * 4);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  if (border) { g.strokeStyle = border; g.lineWidth = 8; g.strokeRect(6, 6, W - 12, H - 12); }
+  const lines = String(text).split('\n');
+  let size = Math.floor((H - 28) / lines.length);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const font = (sz) => `bold ${sz}px Georgia, 'Times New Roman', serif`;
+  g.font = font(size);
+  while (size > 12 && Math.max(...lines.map((l) => g.measureText(l).width)) > W - 28) { size -= 2; g.font = font(size); }
+  if (glow) { g.shadowColor = fg; g.shadowBlur = 14; }
+  g.fillStyle = fg;
+  lines.forEach((l, i) => g.fillText(l, W / 2, H / 2 + (i - (lines.length - 1) / 2) * size * 1.05));
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.MeshStandardNodeMaterial({ map: tex, roughness: 0.8, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: glow ? 1.8 : 0.22 });
+  signCache.set(key, m);
+  return m;
 }
 
 export function makePropMaterials() {
@@ -236,5 +444,12 @@ export function makePropMaterials() {
     white: S(0xf2efe6), hay: S(0xd8b85a), targetBlue: S(0x2a6ad8), targetRed: S(0xd8322a),
     glassClear: (() => { const m = new THREE.MeshStandardNodeMaterial({ color: 0xcfe8f2, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.22, depthWrite: false }); return m; })(),
     car: (() => { const cache = new Map(); return (c) => { if (!cache.has(c)) cache.set(c, S(c, { roughness: 0.25, metalness: 0.5 })); return cache.get(c); }; })(),
+    neon: (() => { const cache = new Map(); return (c) => { if (!cache.has(c)) cache.set(c, S(c, { emissive: c, emissiveIntensity: 2.6, roughness: 0.4 })); return cache.get(c); }; })(),
+    stoneFig: S(0x9c9a92, { roughness: 0.95 }), skin: S(0xf0c8a0), chrome: S(0xd8dee6, { metalness: 0.95, roughness: 0.12 }),
+    smoke: (() => { const m = new THREE.MeshStandardNodeMaterial({ color: 0x2a2624, roughness: 1, transparent: true, opacity: 0.55, depthWrite: false }); return m; })(),
+    ghost: (() => { const m = new THREE.MeshStandardNodeMaterial({ color: 0xc8d8e8, emissive: 0x8aa8c8, emissiveIntensity: 0.6, roughness: 0.8, transparent: true, opacity: 0.35, depthWrite: false }); return m; })(),
+    water: S(0x3a7aa8, { roughness: 0.05, metalness: 0.3 }), felt: S(0x1e6a3a, { roughness: 0.95 }), rust: S(0x7a4a2a),
+    satinPink: S(0xe0506a, { roughness: 0.25, metalness: 0.15 }), satinBlue: S(0x2ab0c8, { roughness: 0.25, metalness: 0.15 }),
+    palmTrunk: S(0x8a6a3a), palmLeaf: S(0x3a8a3a), cactus: S(0x4a8a3a),
   };
 }

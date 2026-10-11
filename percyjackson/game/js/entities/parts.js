@@ -81,7 +81,7 @@ export function snake(rig, parent, { len = 6, seg = 2.4, w = 1.4, body, belly = 
     segs.push(g); p = g;
   }
   const hw = headW ?? w * 1.6;
-  const head = group(p, 0, seg, 0, -1.1, 0, 0);
+  const head = group(p, 0, seg, 0, 0.15, 0, 0);
   prop(rig, head, hw, hw * 0.7, hw * 1.4, body, 0, 0, hw * 0.4);
   prop(rig, head, 0.5, 0.5, 0.3, eye, -hw * 0.35, hw * 0.3, hw * 0.9); prop(rig, head, 0.5, 0.5, 0.3, eye, hw * 0.35, hw * 0.3, hw * 0.9);
   prop(rig, head, 0.3, 0.2, 1.6, tongue, 0, -hw * 0.2, hw * 1.4);

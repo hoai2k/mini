@@ -62,7 +62,7 @@ const SETS = {
   bosses: { ids: BOSS_IDS, build: (id) => BOSS_DEFS[id].build() },
 };
 let set = SETS[q.get('set')] ? q.get('set') : 'heroes';
-let shown = q.get('only') ? [q.get('only')] : SETS[set].ids, rigs = [];
+let shown = q.get('only') ? q.get('only').split(',') : SETS[set].ids, rigs = [];
 const turn = q.get('turn') !== '0';
 const yaw = q.has('yaw') ? +q.get('yaw') : 0.45;
 const pose = q.get('pose');
@@ -79,8 +79,9 @@ function show(list) {
   const total = widths.reduce((a, b) => a + b, 0);
   for (const r of rigs) { r.root.position.set(x + r.w / 2 - total / 2, 0, 0); x += r.w; }
   const h = Math.max(2, ...rigs.map((r) => r.h));
-  const dist = Math.max(5.5, total * 1.25, h * 2.6);
-  camera.position.set(0, h * 0.75 + dist * 0.12, dist); camera.lookAt(0, h * 0.42, 0);
+  const dist = Math.max(4, total * 1.05, h * 2.4) * (+q.get('zoom') || 1);
+  const high = q.get('cam') === 'high';
+  camera.position.set(0, h * 0.6 + dist * (high ? 0.7 : 0.12), dist); camera.lookAt(0, h * 0.42, 0);
 }
 const bar = document.getElementById('bar');
 function buttons() {
