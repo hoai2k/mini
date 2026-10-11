@@ -546,18 +546,7 @@ class Game {
   pause(player = this.players[0]) {
     if (this.paused) return;
     this.paused = true;
-    this.ui.open('pause', (el) => {
-      el.appendChild(h('div', { class: 'panel menu-col', style: 'min-width:280px;text-align:center' },
-        h('h2', {}, 'Paused'),
-        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => this.resume() }, 'Resume'),
-        h('button', { class: 'btn', onclick: () => { this.ui.close('pause'); openInventory(this, player); } }, 'Inventory'),
-        h('button', { class: 'btn', onclick: () => { this.ui.close('pause'); openSkills(this, player); } }, 'Skill Tree'),
-        h('button', { class: 'btn', onclick: () => openSettings(this) }, 'Settings'),
-        h('button', { class: 'btn', onclick: () => { this.ui.close('pause'); this.openPhotoMode(); } }, '📷 Photo Mode'),
-        h('button', { class: 'btn', onclick: () => { this.ui.close('pause'); this.paused = false; this.save.write(); this.toTitle(); } }, 'Quit to Title'),
-        this.mode === 'mission' ? h('button', { class: 'btn danger', onclick: () => { this.ui.close('pause'); this.paused = false; this.returnToHub(); } }, 'Abandon mission') : null,
-      ));
-    }, { dim: true, onBack: () => this.resume() });
+    Screens.openPauseMenu(this, player);
   }
   resume() { this.ui.close('pause'); this.paused = false; this.last = performance.now(); }
 

@@ -311,7 +311,7 @@ function paintTile(name, px, r) {
     }); break;
     case 'plinth': each(px, (x, y) => {
       const v = r(); const edge = y < 2 || y > 13;
-      return [edge ? C(0x3b4a48) : v < 0.1 ? C(0x7c8c88) : jitter(C(0x26302f), r, 0.2), edge ? 0.8 : 0.5];
+      return [edge ? C(0x6a7472) : v < 0.12 ? C(0x9aa6a2) : jitter(C(0x4a5654), r, 0.15), edge ? 0.8 : 0.5];
     }); break;
     case 'bronze': each(px, (x, y) => {
       const rivet = (x === 2 || x === 13) && (y === 2 || y === 13); const seam = x === 0 || y === 0;

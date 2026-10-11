@@ -365,9 +365,11 @@ export function mistAlcove(c, { force = false, wall = B.gallery_wall, cap = B.ke
   const { k, y } = c;
   k.mistCount = k.mistCount ?? 0;
   if (!force && (k.mistCount >= 3 || c.r() > (k.mistCount === 0 ? 0.8 : 0.4))) return null;
-  const sides = ['n', 's', 'w', 'e'].filter((s) => !c.doors.some((d) => d.side === s));
+  // prefer the far walls (north, west): the default camera sees them face-on
+  const sides = ['n', 'w', 's', 'e'].filter((s) => !c.doors.some((d) => d.side === s));
   if (!sides.length) return null;
-  const side = sides[Math.floor(c.r() * sides.length)];
+  const far = sides.filter((s) => s === 'n' || s === 'w');
+  const side = far.length && c.r() < 0.85 ? far[Math.floor(c.r() * far.length)] : sides[Math.floor(c.r() * sides.length)];
   const F = wallFrame(c, side);
   const span = F.len[1] - F.len[0];
   if (span < 10) return null;

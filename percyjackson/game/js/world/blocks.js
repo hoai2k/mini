@@ -95,12 +95,12 @@ def('roof_terracotta', 'roof_terracotta', { rough: 0.6 });
 def('marble_white', 'marble_white', { rough: 0.2 });
 def('column', { top: 'column_top', side: 'column_side' }, { rough: 0.25, hp: 60, debris: 8 });
 def('column_solid', { top: 'column_top', side: 'column_side' }, { rough: 0.25 });   // never breaks (hub)
-def('bronze', 'bronze', { metal: 0.85, rough: 0.3, step: 'metal' });
+def('bronze', 'bronze', { metal: 0.5, rough: 0.35, step: 'metal' });
 def('sea_stone', 'sea_stone');
 def('red_plank', 'red_plank', { step: 'wood', rough: 0.5 });
 def('owl_stone', 'owl_stone');
-def('gold_plate', 'gold_plate', { metal: 0.9, rough: 0.25, step: 'metal' });
-def('silver_plate', 'silver_plate', { metal: 0.85, rough: 0.2, step: 'metal', emit: 0.15 });
+def('gold_plate', 'gold_plate', { metal: 0.55, rough: 0.3, step: 'metal' });
+def('silver_plate', 'silver_plate', { metal: 0.5, rough: 0.25, step: 'metal', emit: 0.12 });
 def('pink_plaster', 'pink_plaster');
 def('old_plank', 'old_plank', { step: 'wood' });
 def('vine_wall', 'vine_wall', { step: 'wood' });
