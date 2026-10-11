@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-470 delivered, 470 in total.
+470 delivered, 1 requested, 471 in total.
 
 ## Brand
 
@@ -66,6 +66,18 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A chunky game controller inside a rounded speech bubble, pink and yellow on a rounded-square aqua badge, glossy, with a thick dark-purple outline. Bold and simple so it reads at 16 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-U04 · iOS app icon
+
+- **File:** `chat/assets/ui/ios-app-icon.png`
+- **Size:** 1024 x 1024, opaque
+- **Used for:** The Games Chat app icon on iPhone and iPad home screens and in TestFlight / the App Store.
+- **Stand-in until delivered:** The 512 px web icon scaled up onto an aqua square.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. The Games Chat app icon: a chunky game controller inside a rounded speech bubble, pink and yellow, glossy with a thick dark-purple outline, centred on a full-bleed bright aqua to violet gradient background that fills the whole square edge to edge. Square with NO rounded corners and NO transparency (iOS rounds the corners itself); keep the bubble inside the middle 80% so nothing important is cut off. Bold and simple so it reads at 40 px.
 ```
 
 ## Face effect stickers
