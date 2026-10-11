@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-470 delivered, 1 requested, 471 in total.
+471 delivered, 471 in total.
 
 ## Brand
 
@@ -74,7 +74,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 1024 x 1024, opaque
 - **Used for:** The Games Chat app icon on iPhone and iPad home screens and in TestFlight / the App Store.
 - **Stand-in until delivered:** The 512 px web icon scaled up onto an aqua square.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. The Games Chat app icon: a chunky game controller inside a rounded speech bubble, pink and yellow, glossy with a thick dark-purple outline, centred on a full-bleed bright aqua to violet gradient background that fills the whole square edge to edge. Square with NO rounded corners and NO transparency (iOS rounds the corners itself); keep the bubble inside the middle 80% so nothing important is cut off. Bold and simple so it reads at 40 px.

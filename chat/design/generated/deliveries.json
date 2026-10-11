@@ -6121,5 +6121,20 @@
     "sha256": "c2ecc2cb592c6d084107633869d205b99d1f6d1148be19338875c89ef883e08e",
     "original_prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person on a jetty casting a fishing line into a pond, a playing card with a red Anomalocaris flying up out of the water on the hook. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.",
     "revision_source": "/workspace/generated_images/exec-63bb693c-b7b0-436d-a249-43a7a6ac15ed.png"
+  },
+  {
+    "id": "CH-U04",
+    "file": "assets/ui/ios-app-icon.png",
+    "size": "1024 x 1024",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. The Games Chat app icon: a chunky game controller inside a rounded speech bubble, pink and yellow, glossy with a thick dark-purple outline, centred on a full-bleed bright aqua to violet gradient background that fills the whole square edge to edge. Square with NO rounded corners and NO transparency (iOS rounds the corners itself); keep the bubble inside the middle 80% so nothing important is cut off. Bold and simple so it reads at 40 px.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source_generation": "exec-68db1183-90ec-44c6-a029-1b60c8e624f1",
+    "reference": "assets/ui/icon.png",
+    "preparation": "Converted to opaque RGB and fitted to 1024 x 1024 with Lanczos; copied to the iOS AppIcon asset catalogue.",
+    "accepted": true
   }
 ]
