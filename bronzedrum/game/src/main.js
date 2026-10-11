@@ -41,7 +41,7 @@ function save(key, value) {
 // The page's own words (index.html) come from text_config.js.
 applyPageText();
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, style: 0 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, style: 0, muted: false });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = T.settings.difficultyChoices;
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
@@ -78,8 +78,24 @@ function applyStyle() {
   applyStyleArt();
 }
 
+function applySound() {
+  const btn = $('#sound-btn');
+  if (!btn) return;
+  const label = txt(settings.muted ? 'title.cornerButtons.soundOff' : 'title.cornerButtons.soundOn');
+  btn.setAttribute('aria-pressed', String(!settings.muted));
+  btn.setAttribute('aria-label', label);
+  btn.setAttribute('title', label);
+  btn.classList.toggle('is-off', !!settings.muted);
+  btn.querySelector('.btn-label').textContent = label;
+  btn.querySelector('svg').innerHTML = settings.muted ? SOUND_OFF : SOUND_ON;
+}
+const SOUND_ON = '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>';
+const SOUND_OFF = '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>';
+
 function applySettings() {
   sound.setVolume(settings.volume / 100);
+  sound.setMuted(settings.muted);
+  applySound();
   sound.setAmbience(settings.ambience / 100);
   sound.setMusic(settings.music / 100);
   input.vibration = settings.vibration;
@@ -1616,6 +1632,9 @@ function action(name) {
       return startPractice('call');
     case 'fullscreen':
       return toggleFullscreen();
+    case 'sound':
+      settings.muted = !settings.muted;
+      return applySettings();
     case 'close':
       return closeDialog();
   }

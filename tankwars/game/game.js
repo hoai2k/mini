@@ -73,7 +73,7 @@ window.addEventListener('keyup', e => keysDown[e.code] = false);
 window.addEventListener('blur', () => { for (let k in keysDown) keysDown[k] = false; });
 
 // Leaving the tab or window pauses a local match (online matches keep running for the others).
-// The game makes no sound, so there is no audio to silence here.
+// The game makes no sound yet; any audio added must be gated by TankWarsSound.audible() (menu.js), which is false while muted, hidden or unfocused.
 function pauseWhenAway() {
     if (state === 'PLAYING' && !currentOnlineRoom && pauseMenu.classList.contains('hidden') && typeof window.togglePause === 'function') window.togglePause();
 }

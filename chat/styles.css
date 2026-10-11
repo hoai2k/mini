@@ -90,6 +90,7 @@ button { cursor: pointer; }
   display: grid; place-items: center; transition: transform 0.1s, background 0.1s;
 }
 .icon-btn:hover { background: #3c2c6b; transform: translateY(-1px); }
+.icon-btn.is-off:not(:hover):not(:focus-visible) { opacity: 0.55; }
 .icon-btn:active { transform: scale(0.94); }
 .icon-btn.small { width: 38px; height: 38px; font-size: 1.05rem; }
 

@@ -474,6 +474,43 @@
         }
     }
 
+    /*
+     * Sound. The game makes no sound yet; this is the master switch any audio
+     * must go through: TankWarsSound.audible() is false while muted, while the
+     * tab is hidden and while the window has lost focus.
+     */
+    const SOUND_KEY = 'tankwars.muted';
+    const SOUND_ICONS = {
+        on: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>',
+        off: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>'
+    };
+    const soundState = { muted: false };
+    try { soundState.muted = localStorage.getItem(SOUND_KEY) === '1'; } catch (err) { /* storage unavailable */ }
+
+    function applySoundButton() {
+        const btn = document.getElementById('sound-btn');
+        if (!btn) return;
+        const label = soundState.muted ? 'Sound off' : 'Sound on';
+        btn.setAttribute('aria-pressed', String(!soundState.muted));
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+        btn.classList.toggle('is-off', soundState.muted);
+        btn.querySelector('.btn-label').textContent = label;
+        btn.querySelector('svg').innerHTML = soundState.muted ? SOUND_ICONS.off : SOUND_ICONS.on;
+    }
+
+    function toggleSound() {
+        soundState.muted = !soundState.muted;
+        try { localStorage.setItem(SOUND_KEY, soundState.muted ? '1' : '0'); } catch (err) { /* storage unavailable */ }
+        applySoundButton();
+    }
+
+    window.TankWarsSound = {
+        isMuted: () => soundState.muted,
+        audible: () => !soundState.muted && !document.hidden && document.hasFocus()
+    };
+    applySoundButton();
+
     function toggleGodMode() {
         const c = cfg();
         c.godMode = !c.godMode;
@@ -1053,6 +1090,7 @@
         toggleCoop,
         toggleFullscreen,
         toggleGodMode,
+        toggleSound,
         togglePause,
         updateMenuVisuals
     };

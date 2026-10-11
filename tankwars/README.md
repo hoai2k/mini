@@ -60,5 +60,5 @@ When the host leaves, the room closes and guests are sent back to the lobby.
 
 Tank Wars predates [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md). It does not
 yet have the generated title logo, the Press Start title screen with the
-Instructions/Settings/Fullscreen icons, an Instructions screen with a
+Instructions icon (the menu has Settings, Sound and Fullscreen icons; Sound is saved as `tankwars.muted`, and the game has no audio yet: any sound added must check `TankWarsSound.audible()`, which is false when muted, hidden or unfocused), an Instructions screen with a
 controller diagram, or saved settings.
