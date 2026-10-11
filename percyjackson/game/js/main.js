@@ -52,6 +52,7 @@ import { mulberry32 } from './util.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
 import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
+import { placeQuestMarkers } from './story/questMarkers.js';
 import { buildHeroModel, buildNpc } from './entities/models.js';
 import { openPhotoMode } from './photo.js';
 import { DomainSystem } from './domain.js';
@@ -320,6 +321,7 @@ class Game {
       if (!pos) continue;
       const npc = buildNpc(id); npc.root.position.copy(pos); npc.root.rotation.y = yaw; this.scene.add(npc.root); this.hubProps.push(npc.root);
     }
+    this.questMarkers = placeQuestMarkers(this, L);
     this.wave = 0;
     this.minimap.level = null;
     this.hud.mini.classList.add('hidden');

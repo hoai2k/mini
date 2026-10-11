@@ -22,6 +22,8 @@ export class Mission {
     this.game = game; this.def = def; this.L = level;
     this.obj = level.objective;
     level.enemyKinds ??= (ENEMY_TABLES[def.biome] ?? []).map(([k]) => k);
+    // story chapters ask for fewer kills on the easy settings
+    if (def.chapter && this.obj.type === 'exorcise') this.obj.need = Math.min(this.obj.need, 10 + 6 * (def.difficulty ?? 1));
     this.bossSpawned = false; this.boss = null; this.complete = false;
     this.props = [];
     this.stats = { kills: 0, damage: 0, time: 0, coins: 0, secrets: 0, deaths: 0, loot: [] };

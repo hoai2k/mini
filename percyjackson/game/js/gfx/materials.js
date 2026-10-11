@@ -33,7 +33,7 @@ function sightLook(albedo, { pattern = true } = {}) {
   const n = normalWorld;
   const lum = dot(albedo, vec3(0.3, 0.59, 0.11));
   const navy = vec3(0.025, 0.06, 0.13), teal = vec3(0.03, 0.3, 0.32);
-  const col = mix(navy, teal, clamp(lum.mul(1.6), 0, 1)).add(albedo.mul(0.12));
+  const col = mix(navy, teal, clamp(lum.mul(0.9), 0, 1)).add(albedo.mul(0.05));
   const gold = vec3(1.0, 0.68, 0.22);
   // face coordinates: floors/ceilings use xz, walls use the horizontal axis + y
   const up = step(0.5, abs(n.y));
@@ -48,10 +48,13 @@ function sightLook(albedo, { pattern = true } = {}) {
   //           #.##
   //           #..#
   const key = max(max(is(j, 3), is(i, 0)), max(is(j, 1).mul(step(1.5, i)), is(j, 0).mul(is(i, 3))));
+  // thin the key to lines: keep only the cell edges that border an empty cell
+  const fq = fract(vec2(fu, fv).mul(4));
+  const line = max(max(smoothstep(0.78, 0.9, fq.x), smoothstep(0.22, 0.1, fq.x)), max(smoothstep(0.78, 0.9, fq.y), smoothstep(0.22, 0.1, fq.y)));
   const e = fract(vec2(fu, fv));
   const seam = max(max(smoothstep(0.94, 0.99, e.x), smoothstep(0.06, 0.01, e.x)), max(smoothstep(0.94, 0.99, e.y), smoothstep(0.06, 0.01, e.y)));
   const shimmer = sin(U.time.mul(2.0).add(p.x.mul(0.35)).add(p.z.mul(0.25))).mul(0.25).add(0.85);
-  const motif = pattern ? mix(key.mul(0.55), seam.mul(0.8), up) : float(0);
+  const motif = pattern ? mix(key.mul(line).mul(0.45), seam.mul(0.6), up) : float(0);
   const emi = gold.mul(motif).mul(shimmer).add(teal.mul(0.05));
   const d = length(p.xz.sub(U.sightCenter.xz));
   const on = step(0.05, U.sightRadius);
@@ -141,7 +144,7 @@ export function createBlockMaterial(atlas, { occlude = true } = {}) {
   m.colorNode = vec4(mix(mix(albedo, D.col, D.mask), S.col, S.mask).mul(ao), 1);
   m.roughnessNode = mix(mat.x, float(0.06), D.mask.mul(step(U.domainType, 3.5)).mul(float(1).sub(step(1.5, U.domainType).mul(step(U.domainType, 2.5)))));
   const baseEmit = albedo.mul(mat.z.mul(1.6)).add(albedo.mul(bake).mul(ao).mul(U.bakeStrength));
-  m.emissiveNode = mix(mix(baseEmit, D.emi, D.mask), baseEmit.mul(0.35).add(S.emi), S.mask).add(vec3(0.6, 0.8, 1.4).mul(D.rim).mul(2)).add(vec3(1.2, 0.85, 0.3).mul(S.rim).mul(2.2)).add(trenchGlow());
+  m.emissiveNode = mix(mix(baseEmit, D.emi, D.mask), baseEmit.mul(0.15).add(S.emi), S.mask).add(vec3(0.6, 0.8, 1.4).mul(D.rim).mul(2)).add(vec3(1.2, 0.85, 0.3).mul(S.rim).mul(2.2)).add(trenchGlow());
   if (occlude) m.maskNode = ditherMask(occlusionAmount());
   return m;
 }
