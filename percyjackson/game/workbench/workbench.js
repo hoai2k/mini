@@ -14,7 +14,7 @@ const el = (tag, props = {}, ...kids) => {
   for (const [k, v] of Object.entries(props)) {
     if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v);
   }
-  for (const k of kids.flat()) if (k != null) e.append(k);
+  for (const k of kids.flat(Infinity)) if (k != null) e.append(k);
   return e;
 };
 const status = (msg) => { $('status').textContent = msg; };
@@ -173,11 +173,11 @@ async function photograph(item) {
     const dir = new THREE.Vector3(0.5, 0.28, 1).normalize();
     thumbCam.position.copy(m.center).addScaledVector(dir, m.r / Math.sin(THREE.MathUtils.degToRad(15)) * 1.04);
     thumbCam.lookAt(m.center); thumbCam.updateMatrixWorld();
-    holder.visible = false; refGroup.visible = false;
+    const refVis = refGroup.visible; holder.visible = false; refGroup.visible = false;
     const bg = scene.background; scene.background = null;
     renderer.setClearColor(0x000000, 0);
     renderer.setRenderTarget(thumbRT); renderer.render(scene, thumbCam); renderer.setRenderTarget(null);
-    scene.background = bg; holder.visible = true; refGroup.visible = true;
+    scene.background = bg; holder.visible = true; refGroup.visible = refVis;
     if (current) fitLights(current.m.center, current.m.r);
     const buf = await renderer.readRenderTargetPixelsAsync(thumbRT, 0, 0, TS, TS);
     const px = buf instanceof Uint8Array || buf instanceof Uint8ClampedArray ? buf : Uint8Array.from(buf, (v) => Math.max(0, Math.min(255, v * 255)));
@@ -187,7 +187,7 @@ async function photograph(item) {
     return { url: canvas2d.toDataURL('image/png') };
   } catch (e) {
     console.warn('workbench: thumbnail failed for', item.key, e);
-    holder.visible = true; refGroup.visible = true; renderer.setRenderTarget(null);
+    holder.visible = true; refGroup.visible = showRef; scene.background = BGS[bgName].bg; renderer.setRenderTarget(null);
     return { error: e.message };
   } finally { disposeRig(rig, item); }
 }
@@ -329,7 +329,7 @@ function buildRef() {
 function resetView() {
   if (!current) return;
   const { m } = current, fov = THREE.MathUtils.degToRad(camera.fov / 2);
-  const d = Math.max(m.r / Math.sin(fov), m.r / Math.sin(Math.atan(Math.tan(fov) * camera.aspect))) * 1.08;
+  const d = Math.max(m.r / Math.sin(fov), m.r / Math.sin(Math.atan(Math.tan(fov) * camera.aspect))) * 1.3;
   controls.target.copy(m.center);
   camera.position.copy(m.center).addScaledVector(new THREE.Vector3(0.45, 0.28, 1).normalize(), d);
   controls.minDistance = m.r * 0.35; controls.maxDistance = m.r * 12; controls.update();
