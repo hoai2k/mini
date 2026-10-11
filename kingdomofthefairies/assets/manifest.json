@@ -958,6 +958,806 @@
         440
       ],
       "anchor": "bottom centre"
+    },
+    "prince-stand": {
+      "status": "requested",
+      "file": "prince-stand.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-walk-a": {
+      "status": "requested",
+      "file": "prince-walk-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-walk-b": {
+      "status": "requested",
+      "file": "prince-walk-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-leap": {
+      "status": "requested",
+      "file": "prince-leap.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-crouch": {
+      "status": "requested",
+      "file": "prince-crouch.webp",
+      "size": [
+        240,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry": {
+      "status": "requested",
+      "file": "prince-carry.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-a": {
+      "status": "requested",
+      "file": "prince-swim-a.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "centre (between his shoulder blades)",
+      "edition": "film"
+    },
+    "prince-swim-b": {
+      "status": "requested",
+      "file": "prince-swim-b.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "centre (between his shoulder blades)",
+      "edition": "film"
+    },
+    "prince-seated": {
+      "status": "requested",
+      "file": "prince-seated.webp",
+      "size": [
+        220,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-hang": {
+      "status": "requested",
+      "file": "prince-hang.webp",
+      "size": [
+        220,
+        440
+      ],
+      "anchor": "top centre (his hands)",
+      "edition": "film"
+    },
+    "prince-pullup": {
+      "status": "requested",
+      "file": "prince-pullup.webp",
+      "size": [
+        260,
+        300
+      ],
+      "anchor": "ledge line 25% up from the bottom, centred",
+      "edition": "film"
+    },
+    "prince-climb-a": {
+      "status": "requested",
+      "file": "prince-climb-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-climb-b": {
+      "status": "requested",
+      "file": "prince-climb-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-apex": {
+      "status": "requested",
+      "file": "prince-apex.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-fall": {
+      "status": "requested",
+      "file": "prince-fall.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-land": {
+      "status": "requested",
+      "file": "prince-land.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-stairs-a": {
+      "status": "requested",
+      "file": "prince-stairs-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-stairs-b": {
+      "status": "requested",
+      "file": "prince-stairs-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-push": {
+      "status": "requested",
+      "file": "prince-push.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-court": {
+      "status": "requested",
+      "file": "prince-court.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stand": {
+      "status": "requested",
+      "file": "azurine-stand.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-asleep": {
+      "status": "requested",
+      "file": "azurine-asleep.webp",
+      "size": [
+        360,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-window": {
+      "status": "requested",
+      "file": "azurine-window.webp",
+      "size": [
+        160,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-stand": {
+      "status": "requested",
+      "file": "aurora-stand.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-point": {
+      "status": "requested",
+      "file": "aurora-point.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand": {
+      "status": "requested",
+      "file": "water-fairy-stand.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-hooded": {
+      "status": "requested",
+      "file": "witch-hooded.webp",
+      "size": [
+        240,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-cloud": {
+      "status": "requested",
+      "file": "witch-cloud.webp",
+      "size": [
+        400,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-swoop": {
+      "status": "requested",
+      "file": "witch-swoop.webp",
+      "size": [
+        400,
+        240
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "witch-barrel": {
+      "status": "requested",
+      "file": "witch-barrel.webp",
+      "size": [
+        200,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "king-stand": {
+      "status": "requested",
+      "file": "king-stand.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "queen-stand": {
+      "status": "requested",
+      "file": "queen-stand.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-ring": {
+      "status": "requested",
+      "file": "fairy-ring.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-crown": {
+      "status": "requested",
+      "file": "fairy-crown.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-gold": {
+      "status": "requested",
+      "file": "fairy-gold.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-red": {
+      "status": "requested",
+      "file": "demon-red.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-teal": {
+      "status": "requested",
+      "file": "demon-teal.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire": {
+      "status": "requested",
+      "file": "crew-squire.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman": {
+      "status": "requested",
+      "file": "crew-helmsman.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms": {
+      "status": "requested",
+      "file": "crew-manatarms.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-asleep": {
+      "status": "requested",
+      "file": "crew-asleep.webp",
+      "size": [
+        260,
+        120
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-rider": {
+      "status": "requested",
+      "file": "crew-rider.webp",
+      "size": [
+        320,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "octopus": {
+      "status": "requested",
+      "file": "octopus.webp",
+      "size": [
+        600,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "dolphin-carriage": {
+      "status": "requested",
+      "file": "dolphin-carriage.webp",
+      "size": [
+        520,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "lobster-guard-closed": {
+      "status": "requested",
+      "file": "lobster-guard-closed.webp",
+      "size": [
+        500,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "lobster-guard-open": {
+      "status": "requested",
+      "file": "lobster-guard-open.webp",
+      "size": [
+        500,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "scrying-eye": {
+      "status": "requested",
+      "file": "scrying-eye.webp",
+      "size": [
+        200,
+        300
+      ],
+      "anchor": "top centre (it hangs)",
+      "edition": "film"
+    },
+    "galley": {
+      "status": "requested",
+      "file": "galley.webp",
+      "size": [
+        380,
+        400
+      ],
+      "anchor": "bottom centre (the waterline)",
+      "edition": "film"
+    },
+    "galley-wreck-bow": {
+      "status": "requested",
+      "file": "galley-wreck-bow.webp",
+      "size": [
+        300,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "galley-wreck-stern": {
+      "status": "requested",
+      "file": "galley-wreck-stern.webp",
+      "size": [
+        300,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sword-sinking": {
+      "status": "requested",
+      "file": "sword-sinking.webp",
+      "size": [
+        220,
+        520
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "aurora-star": {
+      "status": "requested",
+      "file": "aurora-star.webp",
+      "size": [
+        64,
+        64
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-star": {
+      "status": "requested",
+      "file": "keepsake-star.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-sword": {
+      "status": "requested",
+      "file": "keepsake-sword.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-shell": {
+      "status": "requested",
+      "file": "keepsake-shell.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-seal": {
+      "status": "requested",
+      "file": "keepsake-seal.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-lamp": {
+      "status": "requested",
+      "file": "keepsake-lamp.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "chariot": {
+      "status": "requested",
+      "file": "chariot.webp",
+      "size": [
+        600,
+        320
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "gift-ring": {
+      "status": "requested",
+      "file": "gift-ring.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-flower": {
+      "status": "requested",
+      "file": "gift-flower.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-crown": {
+      "status": "requested",
+      "file": "gift-crown.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-gold": {
+      "status": "requested",
+      "file": "gift-gold.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "whirlpool": {
+      "status": "requested",
+      "file": "whirlpool.webp",
+      "size": [
+        800,
+        260
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "tower-window": {
+      "status": "requested",
+      "file": "tower-window.webp",
+      "size": [
+        200,
+        260
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "cavern-ledge": {
+      "status": "requested",
+      "file": "cavern-ledge.webp",
+      "size": [
+        320,
+        100
+      ],
+      "anchor": "top edge (the walkable top)",
+      "edition": "film"
+    },
+    "betrothal-court": {
+      "status": "requested",
+      "file": "betrothal-court.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "rampart-strip": {
+      "status": "requested",
+      "file": "rampart-strip.webp",
+      "size": [
+        2560,
+        720
+      ],
+      "anchor": "bottom edge",
+      "edition": "film"
+    },
+    "armoury": {
+      "status": "requested",
+      "file": "armoury.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "tempest-sky": {
+      "status": "requested",
+      "file": "tempest-sky.webp",
+      "size": [
+        2560,
+        820
+      ],
+      "anchor": "top edge",
+      "edition": "film"
+    },
+    "lobster-palace": {
+      "status": "requested",
+      "file": "lobster-palace.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "sea-flora": {
+      "status": "requested",
+      "file": "sea-flora.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "azure-grotto": {
+      "status": "requested",
+      "file": "azure-grotto.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "shore-cave": {
+      "status": "requested",
+      "file": "shore-cave.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "cavern": {
+      "status": "requested",
+      "file": "cavern.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "coast-gap": {
+      "status": "requested",
+      "file": "coast-gap.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "tower-wall-tall": {
+      "status": "requested",
+      "file": "tower-wall-tall.webp",
+      "size": [
+        1400,
+        3600
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "tower-interior": {
+      "status": "requested",
+      "file": "tower-interior.webp",
+      "size": [
+        1400,
+        1800
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "cliff-whirlpool": {
+      "status": "requested",
+      "file": "cliff-whirlpool.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "wedding-street": {
+      "status": "requested",
+      "file": "wedding-street.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
+    },
+    "apotheosis": {
+      "status": "requested",
+      "file": "apotheosis.webp",
+      "size": [
+        2560,
+        1440
+      ],
+      "anchor": "full frame",
+      "edition": "film"
     }
   },
   "audio": {

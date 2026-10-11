@@ -737,7 +737,8 @@ def main():
                 slots[aid].update(want)
                 changed = True
     # Requests dropped from the design go too (never a delivered slot).
-    for aid in [k for k, v in slots.items() if v.get('status') == 'requested' and k not in wanted]:
+    # (Film-edition slots belong to build_film_assets.py.)
+    for aid in [k for k, v in slots.items() if v.get('status') == 'requested' and k not in wanted and v.get('edition') != 'film']:
         del slots[aid]
         changed = True
     if check:
