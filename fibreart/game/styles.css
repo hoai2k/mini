@@ -420,5 +420,6 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 .credits dt { font: 700 1.25rem 'Caveat', cursive; color: var(--thread); margin-top: 0.5rem; }
 .credits dt:first-child { margin-top: 0; }
 .credits dd { margin: 0; }
-.credits a { color: var(--ink); text-decoration-color: var(--thread); text-underline-offset: 3px; }
-.credits a:focus-visible, .credits a.focused { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+.credits-note { margin: 0.9rem 0 0; }
+.credits a, .credits-note a { color: var(--ink); text-decoration-color: var(--thread); text-underline-offset: 3px; }
+.credits-note a:focus-visible, .credits-note a.focused { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }

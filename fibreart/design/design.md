@@ -184,10 +184,9 @@ or either stick, so a controller player can read all of it.
 
 **Credits.** Settings ends with a Credits button (in place of a Reduce motion
 switch, which now follows the system setting): principal game designer Hoai
-Nguyen; inspired by the work of Hanneke de Neve, linked to her page at
-elevenland.com; the music; and the technology it was made with (Claude Code,
-ChatGPT Codex, ChatGPT image generation for the art, Suno for the song, WebGL 2,
-Python with Pillow, NumPy and SciPy for the art pipeline, FFmpeg, Playwright).
+Nguyen and the technology (the AI tools it was made with, Claude Code, ChatGPT
+Codex, ChatGPT image generation and Suno, plus WebGL 2), then one sentence:
+inspired by the work of Hanneke de Neve, linked to her page at elevenland.com.
 
 **Hint.** The eye in the pause menu opens a card for each player's big control:
 a drawing of the control, the piece it is centred on (cut from the picture),
