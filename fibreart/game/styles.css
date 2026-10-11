@@ -61,7 +61,6 @@ html, body {
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
   background: radial-gradient(ellipse at center, rgba(246, 238, 220, 0.9) 35%, rgba(246, 238, 220, 0) 70%);
 }
-.byline { margin: 0; text-align: center; color: var(--cloth); font-size: clamp(0.95rem, 1.6vw, 1.2rem); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
 .press-start {
   margin-top: 1rem;
   font: 700 clamp(1.8rem, 3.4vw, 2.6rem) 'Caveat', cursive;
@@ -414,3 +413,12 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 #bars-hint .arrow { display: inline-block; color: var(--thread); animation: swipe-nudge 1.4s ease-in-out infinite; }
 @keyframes swipe-nudge { 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { #bars-hint .arrow { animation: none; } }
+
+/* Credits: who made it, what inspired it, what it was made with. */
+.credits-panel { width: min(92vw, 440px); }
+.credits { margin: 0; display: grid; gap: 0.15rem; }
+.credits dt { font: 700 1.25rem 'Caveat', cursive; color: var(--thread); margin-top: 0.5rem; }
+.credits dt:first-child { margin-top: 0; }
+.credits dd { margin: 0; }
+.credits a { color: var(--ink); text-decoration-color: var(--thread); text-underline-offset: 3px; }
+.credits a:focus-visible, .credits a.focused { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }

@@ -33,6 +33,8 @@ function saveSettings() {
 }
 
 const settings = loadSettings();
+// Motion follows the system's reduced-motion setting (there is no switch in the game).
+settings.reduceMotion = DEFAULTS.reduceMotion;
 const input = createInput();
 const audio = createAudio();
 let renderer;

@@ -158,7 +158,7 @@ mark a big find or a rearrangement.
 
 **Text is kept to a minimum** (the owner's ask). Loading shows no words, only a
 row of pale tacking stitches sewn over in red as the first picture's images
-arrive. The title screen has the title, its one-line byline and Press Start,
+arrive. The title screen has the title and Press Start (no subtitle),
 with no hint line under it (so the guidelines' "Move left stick for options"
 is left out; the stick still opens the corner buttons). The pause menu is
 pictures, not words: controls found, hint, how to play, settings, next
@@ -181,6 +181,13 @@ while held sideways, so focus raced round the pause menu.) Closing a panel
 returns to the choice that opened it. A panel that is only text to read (how
 to play, the hint, the controls found) scrolls with up and down on the d-pad
 or either stick, so a controller player can read all of it.
+
+**Credits.** Settings ends with a Credits button (in place of a Reduce motion
+switch, which now follows the system setting): principal game designer Hoai
+Nguyen; inspired by the work of Hanneke de Neve, linked to her page at
+elevenland.com; the music; and the technology it was made with (Claude Code,
+ChatGPT Codex, ChatGPT image generation for the art, Suno for the song, WebGL 2,
+Python with Pillow, NumPy and SciPy for the art pipeline, FFmpeg, Playwright).
 
 **Hint.** The eye in the pause menu opens a card for each player's big control:
 a drawing of the control, the piece it is centred on (cut from the picture),
@@ -282,7 +289,8 @@ untouched, and it runs under everything the players do.
   framed a little differently from the pieces they replace, so `build_web.py`
   fits each one onto its original's silhouette (best scale and offset) before
   saving it; without that, eyes and outlines visibly jumped.
-- **Reduce motion** scales all of it to a third and stops the blowing leaves.
+- **Reduced motion** (the system setting; there is no switch in the game) scales
+  all of it to a third and stops the blowing leaves.
 
 The finished composition used to fade in under the pieces when everything was
 home and still; with the pieces alive it showed as ghosts, so it is gone. The
@@ -311,7 +319,7 @@ Played through every scene in Chromium with a simulated controller (see
   pieces are not pixel matches, which is fine for a collage.
 - **The large swirl is a whirlpool of cloth.** At full reach it twists the
   whole picture and shows the backing fabric at the edges. It is dramatic; it
-  is clamped by its own unwinding spring, and Reduce motion halves it.
+  is clamped by its own unwinding spring, and reduced motion halves it.
 - **Scene changes are the most striking moment.** Halfway through a dissolve
   the two pictures interleave through the torn-paper or unravelling mask (the
   night quilt's moons in the Viriditas wood, the Golden Lady breaking through

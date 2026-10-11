@@ -32,7 +32,6 @@
       <div class="title-block">
         <img id="logo-img" src="web/ui/logo.webp" alt="">
         <h1 id="logo-text" class="visually-hidden">Fibre Art</h1>
-        <p class="byline">a shifting collage after the work of Hanneke de Neve</p>
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
       </div>
       <div class="corner-buttons">
@@ -156,7 +155,6 @@
             <tr><td>Pause</td><td>Menu</td><td>Esc</td></tr>
           </table>
           <p>Touch or mouse: drag, hold, tap and fling the pieces and the cloth; each plays the controls on it. Pinch or scroll to stretch.</p>
-          <p class="muted">After the work of Hanneke de Neve. Music: <em>Aksak Folk Dance</em> by hoai2k.</p>
         </div>
         <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
@@ -171,8 +169,25 @@
           <label class="row">Sound effects <input type="range" min="0" max="100" step="5" data-nav data-setting="sfx"><output></output></label>
           <label class="row check">Show hints while playing <input type="checkbox" data-nav data-setting="playHints"></label>
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
-          <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
         </div>
+        <button class="menu-btn" data-nav data-open="credits">Credits</button>
+        <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+      </div>
+    </section>
+
+    <section id="credits" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="credits-title">
+      <div class="panel credits-panel">
+        <h2 id="credits-title">Credits</h2>
+        <dl class="credits">
+          <dt>Principal Game Designer</dt>
+          <dd>Hoai Nguyen</dd>
+          <dt>Inspired by the work of</dt>
+          <dd><a href="https://www.elevenland.com/hanneke/" target="_blank" rel="noopener" data-nav>Hanneke de Neve</a></dd>
+          <dt>Music</dt>
+          <dd><em>Aksak Folk Dance</em> by Hoai Nguyen, made with Suno</dd>
+          <dt>Technology</dt>
+          <dd>Claude Code, ChatGPT Codex, ChatGPT image generation, Suno, WebGL&nbsp;2, Python (Pillow, NumPy, SciPy), FFmpeg, Playwright</dd>
+        </dl>
         <button class="close-x" data-nav data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
     </section>
