@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Ai-Ching](https://hoai2k.github.io/mini/aiching/)** · [`aiching/`](aiching/README.md): ask anything, and an I Ching reading answers
 - **[Fibre Art](https://hoai2k.github.io/mini/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve
 - **[The Ice-Cream Cone Coot](https://hoai2k.github.io/mini/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each
 - **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md)

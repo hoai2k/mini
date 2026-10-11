@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ai-Ching</title>
+<meta name="description" content="Ask anything. Ai-Ching casts an I Ching hexagram from your words and the day, and reads it for your question.">
+<meta name="theme-color" content="#f4ecdc">
+<meta property="og:title" content="Ai-Ching">
+<meta property="og:description" content="Ask anything. The coins fall from your words.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='6' fill='%23b8322a'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='%23fff8ec' font-family='serif'%3E易%3C/text%3E%3C/svg%3E" id="favicon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-home">
+<header class="topbar">
+  <a class="brand" href="./" aria-label="Ai-Ching, home">
+    <span class="seal" aria-hidden="true"><img alt="" data-asset="ui-icon"><b>易</b></span>
+    <span class="wordmark"><img alt="Ai-Ching" data-asset="ui-logo"><span>Ai-Ching</span></span>
+  </a>
+  <nav class="topnav">
+    <button type="button" class="link" data-open="about">About</button>
+  </nav>
+</header>
+
+<main id="home" class="view home">
+  <div class="home-art" aria-hidden="true"></div>
+  <aside class="vertical vertical-left" aria-hidden="true">天行健君子以自強不息</aside>
+  <aside class="vertical vertical-right" aria-hidden="true">地勢坤君子以厚德載物</aside>
+  <section class="ask">
+    <p class="kicker"><span lang="zh">問易</span> · ask the Book of Changes</p>
+    <h1>What is on your mind?</h1>
+    <div class="clouds" aria-hidden="true"></div>
+    <form class="prompt" id="ask-form" autocomplete="off">
+      <label class="visually-hidden" for="question">Your question</label>
+      <textarea id="question" name="q" rows="1" maxlength="600" placeholder="Ask anything: love, work, a choice, a worry…" required></textarea>
+      <div class="prompt-bar">
+        <span class="hint"><span class="dot" aria-hidden="true">☯</span> The coins fall from your words and today's date</span>
+        <button class="send" type="submit" aria-label="Cast the coins"><span lang="zh" aria-hidden="true">卜</span></button>
+      </div>
+    </form>
+    <ul class="suggestions" aria-label="Example questions">
+      <li><button type="button">Should I take the new job?</button></li>
+      <li><button type="button">When will I find the right partner?</button></li>
+      <li><button type="button">Why do I feel stuck in my creative work?</button></li>
+      <li><button type="button">How can I make peace with my brother?</button></li>
+    </ul>
+    <p class="fineprint">For reflection, not prediction. Your question stays in your browser.</p>
+  </section>
+</main>
+
+<div id="casting" class="casting" hidden aria-live="polite">
+  <div class="casting-inner">
+    <p class="casting-q"></p>
+    <div class="coins" aria-hidden="true"><span class="coin"></span><span class="coin"></span><span class="coin"></span></div>
+    <ol class="casting-lines" aria-label="Lines cast so far"></ol>
+    <p class="casting-note">Casting the six lines, from the bottom up…</p>
+    <button type="button" class="link skip">Skip</button>
+  </div>
+</div>
+
+<main id="reading" class="view reading" hidden></main>
+
+<dialog id="about" class="about">
+  <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+  <h2>About Ai-Ching</h2>
+  <p>The I Ching, the Book of Changes, is one of the oldest Chinese classics: sixty-four figures of six lines, each solid (yang) or broken (yin), with texts that have been read for three thousand years as a mirror for decisions.</p>
+  <p>Ai-Ching casts a hexagram the traditional way, as six throws of three coins, but the coins are thrown by a generator seeded from your words and today's date. The same question on the same day gives the same answer, as the old rule says: do not ask twice. A new day, or a new question, casts again.</p>
+  <p>Your words also steer the reading: what the question is about (love, work, health…) and what kind of answer it wants (a choice, a time, a reason) decide which counsel comes first, how the page is ordered, which words of the sages appear and what it looks for in the day's events on Wikipedia.</p>
+  <p>The hexagram texts are original renderings of the traditional meanings. For the classic translation, each reading links to James Legge's 1882 version.</p>
+</dialog>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

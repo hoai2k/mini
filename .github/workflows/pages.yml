@@ -53,6 +53,7 @@ jobs:
       - run: node --test test/*.test.mjs
         working-directory: fibreart/game
       - run: python3 fibreart/design/source/build_requests.py --check && fibreart/publish.sh local/pages/fibreart
+      - run: node --test aiching/app/test/*.test.mjs && python3 aiching/design/source/build_requests.py --check && aiching/publish.sh local/pages/aiching
       - run: cp index.html local/pages/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
