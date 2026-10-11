@@ -38,13 +38,13 @@
   "reference": "subject.broomwhisk#0",
   "cells": {
    "subject.broomwhisk#0": 1,
-   "sprites.broomwhiskSweep#0": 0.934,
-   "sprites.broomwhiskSweep#1": 0.979,
-   "sprites.broomwhiskPoses#0": 0.923,
-   "sprites.broomwhiskPoses#1": 0.899,
-   "sprites.broomwhiskPoses#2": 0.885
+   "sprites.broomwhiskSweep#0": 1,
+   "sprites.broomwhiskSweep#1": 1,
+   "sprites.broomwhiskPoses#0": 1,
+   "sprites.broomwhiskPoses#1": 1,
+   "sprites.broomwhiskPoses#2": 1
   },
-  "method": "Painted with different proportions from the portrait: template matches of the head (beak and eye) give 0.97, 1.03, 0.99, 1.01, 0.92 and of the broom's binding 0.90, 0.93, 0.86, 0.80, 0.85; the values here are the geometric mean of the two, so neither the head nor the body jumps by more than about 6% (12% in the braced pose, broomwhiskPoses#1). Re-request asked for."
+  "method": "IC-M06f/g redelivery: head and binding measured separately with SIFT/ORB against the portrait. Each whole pose uniformly fitted by their geometric mean; head and binding stay within 3% of portrait scale. Foot anchors and fitting measurements are in design/references/broomwhisk-redo/placement.json."
  },
  "buttonbeaks": {
   "reference": "subject.buttonbeaks#0",
