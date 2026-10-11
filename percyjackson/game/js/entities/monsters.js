@@ -93,15 +93,15 @@ export function animateExtras(rig, dt, e) {
 const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0e0c0e, belly: 0x2c2428, back: 0x161214, eye: 0xff2a0a, eyeLow: 0xffa040, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
   custom: (s) => {
     fur(s, 0, 16, 40, 20, 60, 0x0a0808, 0x3a3034);
-    lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 14); lavaCracks(s, 40, 16, 12, 11, o.cracks ? 6 : 3); lavaCracks(s, 0, 0, 32, 8, o.cracks ? 5 : 2);
-    s.box(48, 0, 4, 2, 4, 0xff5a14, 0.2); s.rect(36, 6, 4, 2, 0xff7a1a, 0.1);
+    lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 4));
+    s.box(48, 0, 4, 2, 4, 0x3a0c08, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0);
     s.rect(52, 16, 2, 4, 0x3a1010, 0.1);
   } });
 
 // ---- model builders ----------------------------------------------------------
 const MODELS = {
   pup: () => {
-    const rig = new QuadRig({ material: skinMat('pup', lavaDog({ cracks: 10 })), scale: 0.95, bodyL: 11, bodyW: 6, bodyH: 6, legH: 6, legW: 2.6, headS: 6.5, ears: true, tail: 3, tailLen: 6, tailW: 1.6, tailCurl: 0.3 });
+    const rig = new QuadRig({ material: skinMat('pup', lavaDog({ cracks: 5 })), scale: 0.95, bodyL: 11, bodyW: 6, bodyH: 6, legH: 6, legW: 2.6, headS: 6.5, ears: true, tail: 3, tailLen: 6, tailW: 1.6, tailCurl: 0.3 });
     // bristling back fur
     const bristle = solid(0x141012);
     for (let i = 0; i < 4; i++) prop(rig, rig.torso, 2 - i * 0.2, 1.6, 2, bristle, 0, 3.4, 4 - i * 2.4, -0.4);
@@ -109,12 +109,12 @@ const MODELS = {
     return rig;
   },
   hellhound: () => {
-    const rig = new QuadRig({ material: skinMat('hellhound', lavaDog({ cracks: 22 })), scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7, ears: true, tail: 4, tailLen: 8, tailW: 1.8, tailCurl: 0.35, gait: 0.75 });
+    const rig = new QuadRig({ material: skinMat('hellhound', lavaDog({ cracks: 12 })), scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7, ears: true, tail: 4, tailLen: 8, tailW: 1.8, tailCurl: 0.35, gait: 0.75 });
     // shaggy hackles, a smouldering ridge and a gold spiked collar
     const bristle = solid(0x141012), ember = solid(0xff4a1a, 2);
     for (let i = 0; i < 5; i++) { prop(rig, rig.torso, 3 - i * 0.3, 2.2, 2.2, bristle, 0, 4, 5 - i * 2.4, -0.5); if (i % 2) prop(rig, rig.torso, 1, 1, 1, ember, 0, 4.6, 5 - i * 2.4); }
     for (const sx of [-1, 1]) prop(rig, rig.torso, 1.6, 4, 6, bristle, sx * 3.6, 1.5, 4.5, 0, 0, sx * 0.2);
-    spikedCollar(rig, rig.neck, { r: 3.8, h: 1.8, y: 0.2, z: 1.4, rx: Math.PI / 2 - 0.5, n: 10 });
+    spikedCollar(rig, rig.neck, { r: 4.2, h: 2.2, y: -0.6, z: 0.6, rx: -0.25, n: 10 });
     prop(rig, rig.tailTip, 1.4, 1.4, 2, ember, 0, 0, -1.6);
     for (const leg of rig.legs) for (const dx of [-0.8, 0.8]) prop(rig, leg, 0.6, 0.8, 1, solid(0xd8c8a0), dx, -7.2, 1.6);
     return rig;
@@ -122,7 +122,7 @@ const MODELS = {
   spider: () => {
     const rig = new QuadRig({ material: skinMat('spider', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x4a2e12, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 11], [13, 11], [10, 9], [12, 9]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.22, speckles: 10,
       custom: (s) => { for (let x = 0; x < 32; x += 4) s.rect(x, 44, 1, 10, 0x5a3a18, 0); s.rect(40, 18, 12, 1, 0xe0b060, 0); s.rect(40, 22, 12, 1, 0x5a3a18, 0); } }), { rough: 0.35, emit: 3.6 }),
-      scale: 0.72, bodyL: 7, bodyW: 7, bodyH: 4, legH: 7, legW: 1.6, headS: 5, legs: 8, splay: 1.15, snout: false, neckUp: -1, gait: 1.6 });
+      scale: 0.72, bodyL: 7, bodyW: 7, bodyH: 4, legH: 6, legW: 1.6, headS: 5, legs: 8, splay: 1.1, footL: 6, snout: false, neckUp: -1, gait: 1.6 });
     bronzeLegs(rig, 6, solid(0x8a5a24, 0, 0.35, 0.6), solid(0xe0b060, 0, 0.3, 0.7));
     // round clockwork abdomen banded in bronze, with a wind-up key
     const ab = rig.mesh(quadPart('extra', 9, 7, 10), rig.material); ab.position.set(0, 1.5 * PX, -8 * PX); rig.torso.add(ab);
@@ -243,7 +243,7 @@ const MODELS = {
   scorpion: () => {
     const rig = new QuadRig({ material: skinMat('scorpion', (S) => paintQuad(S, { base: 0x3a2214, dark: 0x1a0e08, belly: 0x5a3018, back: 0x2a160c, eye: 0xff3a1a, eyes: [[9, 12], [13, 12], [11, 10], [12, 10]], plates: 0x6a3a1c, teeth: false, nose: 0x1a0e08, noise: 0.15, speckles: 20,
       custom: (s) => { s.box(40, 32, 2, 2, 6, 0x4a2a16, 0.15); for (let x = 40; x < 56; x += 3) s.rect(x, 32, 1, 8, 0x1a0e08, 0); } }), { rough: 0.35, emit: 3 }),
-      scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 5, legW: 1.4, headS: 4.5, legs: 8, splay: 1.0, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
+      scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4.5, legW: 1.4, headS: 4.5, legs: 8, splay: 1.05, footL: 4, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
     bronzeLegs(rig, 4, solid(0x2a160c, 0, 0.35), solid(0x6a3a1c, 0, 0.35));
     // pincers on jointed arms
     const chit = solid(0x4a2a16, 0, 0.35), dark = solid(0x1a0e08, 0, 0.35);
@@ -333,15 +333,13 @@ const MODELS = {
     return rig;
   },
 };
-// Jointed legs: a lower segment on every leg of a QuadRig spider or scorpion
-// so the knees arch up and the feet point down.
+// Knee caps and foot tips on the jointed legs of a QuadRig (spec.footL).
 function bronzeLegs(rig, footL, mat, tip) {
   for (const leg of rig.legs) {
-    const side = leg.userData.side, splay = Math.abs(leg.userData.splay);
-    const knee = group(leg, 0, -rig.dims.legH, 0, 0, 0, side * (splay + 0.55));
-    prop(rig, knee, rig.dims.legW * 1.2, 1.4, rig.dims.legW * 1.2, tip, 0, 0, 0);
-    prop(rig, knee, rig.dims.legW * 0.8, footL, rig.dims.legW * 0.8, mat, 0, -footL / 2, 0);
-    prop(rig, knee, rig.dims.legW * 0.6, 1, rig.dims.legW * 0.6, tip, 0, -footL, 0);
+    const knee = leg.userData.knee; if (!knee) continue;
+    const w = rig.dims.legW;
+    prop(rig, knee, w * 1.25, 1.6, w * 1.25, tip, 0, 0, 0);
+    prop(rig, knee, w * 0.55, 1.2, w * 0.55, mat, 0, -footL - 0.3, 0);
   }
 }
 // A Fury: pale grey hag in a ragged black dress with a gold belt, wild white

@@ -377,6 +377,10 @@ export class Decorations {
           break;
         }
         case 'gas_pump': lb(0.6, 1.5, 0.4, 0, 0.75, 0, M.car(0xd8322a)); lb(0.4, 0.3, 0.06, 0, 1.15, 0.22, M.lampGlow); lb(0.1, 0.5, 0.1, 0.35, 0.8, 0.1, M.dark); break;
+        case 'fire': // a blaze (on a wreck, a barrel); p.smoke adds a dark plume
+          lb(0.8, 0.9, 0.8, 0, 0.45, 0, M.flame, 0.3); lb(0.5, 0.8, 0.5, 0.15, 1.1, 0.05, M.flame, 1.0); lb(0.3, 0.6, 0.3, -0.1, 1.6, 0, M.flame, 0.5);
+          if (p.smoke) for (let i = 0; i < 3; i++) lb(1.0 + i * 0.3, 0.8, 1.0 + i * 0.3, i * 0.3, 2.4 + i * 0.9, i * 0.15, M.smoke, i);
+          break;
         case 'text_sign': { // a board with words on it: p.text, p.w, p.h, p.bg, p.fg, p.post (signpost height), p.glow
           const w = p.w ?? 2.4, hh = p.h ?? 0.7, ph = p.post ?? 0;
           if (ph > 0) { lb(0.14, ph, 0.14, -w / 2 + 0.2, ph / 2, -0.02, M.wood); lb(0.14, ph, 0.14, w / 2 - 0.2, ph / 2, -0.02, M.wood); }

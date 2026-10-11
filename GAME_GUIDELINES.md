@@ -16,7 +16,7 @@ Every game opens on a carefully composed title screen containing:
 
 1. A title presented as a generated logo image, with readable lettering, a clean silhouette, and a composition suited to the game's theme. Include an accessible text equivalent.
 2. The text **“Press Start”** below the title. It must be an actionable control with visible hover, focus, and pressed states.
-3. Three icon buttons anchored to the bottom right, in this order: **Instructions**, **Settings**, and **Fullscreen**. Provide accessible names and readable labels on hover or focus.
+3. Four icon buttons anchored to the bottom right, in this order: **Instructions** (a page), **Settings** (a gear, never a sun), **Sound** (a speaker that visibly switches between on and a crossed-out off state, with `aria-pressed` and a label that says which), and **Fullscreen**. Provide accessible names and readable labels on hover or focus. The Sound setting persists between visits.
 
 The title screen must look finished at different viewport sizes, with sufficient contrast, comfortable spacing, safe edge margins, and restrained animation. Avoid placeholder assets in the finished game.
 
@@ -88,6 +88,7 @@ Every title includes an Instructions screen accessible from the title screen and
 - Use generated assets consistently. Inspect logo lettering, transparency, scaling, and composition before accepting an asset.
 - Optimize assets for web delivery and record their prompts or generation notes when useful for future revisions.
 - Give important actions immediate visual feedback and suitable audio feedback. Respect audio preferences and browser playback restrictions.
+- Mute all sound while the tab is hidden or the window loses focus, and restore it on return (unless the player muted it).
 - Keep essential text legible, controls comfortably sized, and state changes understandable without relying only on color, sound, or vibration.
 - Respect reduced-motion preferences and avoid unnecessary flashing or intense screen shake.
 - Provide semantic, accessible UI controls with keyboard focus and accessible names.
@@ -109,7 +110,8 @@ Every title includes an Instructions screen accessible from the title screen and
 - [ ] Press Start appears below the title and works with pointer, keyboard, and controller.
 - [ ] Any fresh controller button press starts from the idle title state.
 - [ ] Start requests fullscreen and enters the main game; fullscreen rejection does not block play.
-- [ ] Instructions, Settings, and Fullscreen icons appear at the bottom right.
+- [ ] Instructions, Settings (gear), Sound (on/off) and Fullscreen icons appear at the bottom right.
+- [ ] Sound goes silent when the tab is hidden or the window loses focus.
 - [ ] Title utilities and all subsequent menus are fully controller accessible.
 - [ ] Instructions include an accurate Xbox controller diagram and text mappings.
 - [ ] Gameplay controls, pause, restart, and return-to-title flows work end to end.

@@ -7,7 +7,16 @@ export class Audio {
   constructor() {
     this.ctx = null; this.started = false;
     this.last = {};
+    // silent while the tab is hidden or the window has lost focus
+    this.away = typeof document !== 'undefined' && (document.hidden || !document.hasFocus?.());
+    if (typeof window !== 'undefined') {
+      const upd = () => { this.away = document.hidden || !document.hasFocus(); this.applyVolumes(); };
+      document.addEventListener('visibilitychange', upd);
+      window.addEventListener('blur', upd); window.addEventListener('focus', upd);
+    }
   }
+  get muted() { return !!settings.muted; }
+  setMuted(on) { settings.muted = !!on; this.applyVolumes(); }
   // Must be called from a user gesture.
   start() {
     if (this.started) { this.ctx.resume?.(); return; }
@@ -27,7 +36,8 @@ export class Audio {
   }
   applyVolumes() {
     if (!this.started) return;
-    this.master.gain.value = settings.master;
+    const g = settings.muted || this.away ? 0 : settings.master;
+    this.master.gain.setTargetAtTime(g, this.ctx.currentTime, 0.03);
     this.sfxBus.gain.value = settings.sfx;
     this.musicBus.gain.value = settings.music * 0.55;
     this.ambBus.gain.value = settings.sfx * 0.5;

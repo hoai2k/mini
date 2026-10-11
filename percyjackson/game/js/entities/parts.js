@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { Skin, makeCharMaterial, PX } from './character.js';
 import { solidMat } from './mortals.js';
 import { buildVoxelHair, voxelMesh } from './voxhair.js';
+import { mulberry32 } from '../util.js';
 
 export const HS = 1.12;           // the Rig's head scale: one head pixel is PX * HS
 export const solid = solidMat;
@@ -47,7 +48,7 @@ export function voxHair(rig, vox, scale = 1) {
 let flameM = null;
 export function flameHair(rig, { seed = 3, n = 70, height = 9 } = {}) {
   flameM ??= new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.6, emissive: 0xff5a0a, emissiveIntensity: 1.3 });
-  let s = seed; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const r = mulberry32(seed);
   const cols = [0xff4a0a, 0xff7a1a, 0xffa02a, 0xffd04a].map((c) => new THREE.Color(c));
   const cubes = [];
   for (let i = 0; i < n; i++) {
@@ -104,14 +105,22 @@ export function lavaCracks(S, x0, y0, w, h, n, cols = [0xff5a14, 0xffa02a]) {
 export function fur(S, x0, y0, w, h, n, dark, light) {
   for (let i = 0; i < n; i++) S.px(x0 + Math.floor(S.r() * w), y0 + Math.floor(S.r() * h), S.r() < 0.5 ? dark : light);
 }
-// A spiked gold collar: a ring of slabs around a centre, spikes outward.
-export function spikedCollar(rig, parent, { r = 4, h = 2, y = 0, z = 0, gold = solid(0xc9963a, 0.2, 0.35, 0.7), spike = solid(0xe8d8a8, 0, 0.4, 0.5), n = 8, rx = 0 } = {}) {
-  const g = group(parent, 0, y, z, rx, 0, 0);
+// A spiked gold collar: a ring of slabs with spikes pointing outward.
+// axis 'z' rings a neck that points forward (dogs); 'y' an upright neck.
+export function spikedCollar(rig, parent, { r = 4, h = 2, x = 0, y = 0, z = 0, gold = solid(0xc9963a, 0.2, 0.35, 0.7), spike = solid(0xe8d8a8, 0, 0.4, 0.5), n = 8, axis = 'z', rx = 0 } = {}) {
+  const g = group(parent, x, y, z, rx, 0, 0);
+  const seg = 2 * Math.PI * r / n + 0.4;
   for (let i = 0; i < n; i++) {
     const a = i / n * Math.PI * 2;
-    const s = group(g, Math.sin(a) * r, 0, Math.cos(a) * r, 0, a, 0);
-    prop(rig, s, 2 * Math.PI * r / n + 0.3, h, 1, gold, 0, 0, 0);
-    prop(rig, s, 0.8, 0.8, 1.6, spike, 0, 0, 1.2);
+    if (axis === 'z') {
+      const s = group(g, Math.sin(a) * r, Math.cos(a) * r, 0, 0, 0, -a);
+      prop(rig, s, seg, 1, h, gold, 0, 0, 0);
+      prop(rig, s, 0.9, 1.8, 0.9, spike, 0, 1.2, 0);
+    } else {
+      const s = group(g, Math.sin(a) * r, 0, Math.cos(a) * r, 0, a, 0);
+      prop(rig, s, seg, h, 1, gold, 0, 0, 0);
+      prop(rig, s, 0.9, 0.9, 1.8, spike, 0, 0, 1.2);
+    }
   }
   return g;
 }
@@ -119,3 +128,14 @@ export function spikedCollar(rig, parent, { r = 4, h = 2, y = 0, z = 0, gold = s
 export function sway(rig, g, ax, amp, f = 2, ph = Math.random() * 6) {
   (rig.extras.sway ??= []).push({ g, ax, amp, f, ph, base: g.rotation[ax] });
 }
+// Loose voxel cubes (manes, fur clumps, flames) merged into one mesh with
+// the shared vertex-colour material. cubes: [{ x, y, z, w, h?, d?, col }] in
+// skin pixels relative to parent.
+export function voxCubes(rig, parent, cubes, unit = PX) {
+  hairM ??= new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
+  const mesh = voxelMesh(cubes.map((c) => ({ ...c, col: c.col instanceof THREE.Color ? c.col : new THREE.Color(c.col) })), unit, hairM);
+  mesh.userData.baseMat = hairM; rig.meshes.push(mesh); parent.add(mesh);
+  return mesh;
+}
+// A small seeded random for building shapes.
+export const rng = (seed = 1) => mulberry32(seed);
