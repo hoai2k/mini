@@ -5,6 +5,7 @@
 import { clamp, lerp, easeInOut } from './shared.js';
 import { FILM } from '../theme.js';
 import * as art from './act4-art.js';
+import { createCavern, stepCavern, cavernProgress, CAVE_SCENES } from './act4cavern.js';
 
 export const BEAT_S = 60 / 76.5;     // fallback beat length if no beat comes in
 export const W = 6300;               // the set is this wide (world units = stage px)
@@ -181,7 +182,9 @@ export default {
     : 'Swallowed whole. Ride the wreckage up on the whale\'s breath\nand climb to the daylight in its throat.',
   action: 'A: leap',
 
-  scenes: SCENES,
+  // The film edition goes on from the beach through the cavern route
+  // (act4cavern.js), with its own two scenes.
+  scenes: FILM ? [...SCENES, ...CAVE_SCENES] : SCENES,
 
   // `from` (optional): { scene } to start at a scene, or a checkpoint this act
   // made: { scene, on, x, stone, got, pearls, score, hits }.
@@ -200,6 +203,14 @@ export default {
       cam: { x: 0, y: 0 },
       best: 0, scene: 0, checkpoint: null,
     };
+    if (FILM && (from?.scene | 0) >= SCENES.length) {
+      const c = Math.min(CAVE_SCENES.length - 1, (from.scene | 0) - SCENES.length);
+      Object.assign(st, { phase: 'cavern', stone: from.stone ?? false, pearls: from.pearls ?? 0, score: from.score ?? 0, hits: from.hits ?? 0, grace: GRACE });
+      st.cv = createCavern({ x: from.x ?? CAVE_SCENES[c].x, got: from.caveGot });
+      st.checkpoint = { ...from, scene: SCENES.length + c };
+      settle(st, 0);
+      return st;
+    }
     const k = Math.max(0, Math.min(SCENES.length - 1, from?.scene | 0));
     if (k > 0 || from?.on) {
       const sc = SCENES[k], on = from.on ?? sc.on, led = LEDGES.find((l) => l.id === on) || LEDGES.find((l) => l.id === sc.on);
@@ -225,17 +236,19 @@ export default {
     st.beat = input.beat ?? st.t / BEAT_S;
     if (st.status !== 'play') { settle(st, dt); return; }
     st.phaseT += dt;
-    beatEvents(st);
+    if (st.phase !== 'cavern') beatEvents(st);
     settle(st, dt);
     if (st.phase === 'climb') climb(st, dt, input);
     else if (st.phase === 'down') { st.s.vy = Math.min(st.s.vy + 600 * dt, 200); st.s.y += st.s.vy * dt; if (st.phaseT > 1.8) setStatus(st, 'lost'); }
     else if (st.phase === 'throat') { st.s.x += 90 * dt; if (st.phaseT >= OUTRO.throat) toPhase(st, 'shore'); }
     else if (st.phase === 'shore') shore(st);
+    else if (st.phase === 'cavern') cavern(st, dt, input);
     else if (st.phase === 'iris' && st.phaseT >= OUTRO.iris) win(st);
-    camera(st, dt);
+    if (st.phase !== 'cavern' && !st.cv) camera(st, dt);
   },
 
   hud(st) {
+    if (st.phase === 'cavern') return { lanterns: st.lanterns, maxLanterns: 3, pearls: st.pearls, progress: cavernProgress(st.cv), keepsakes: [{ id: 'stone', have: st.stone }] };
     if (st.phase !== 'climb' && st.phase !== 'down') return null;
     return { lanterns: st.lanterns, maxLanterns: 3, pearls: st.pearls, progress: clamp((st.best - 260) / (THROAT.enterX - 260), 0, 1), keepsakes: [{ id: 'stone', have: st.stone }] };
   },
@@ -247,6 +260,9 @@ export default {
     if (e.type === 'lowTide') return 'Low tide. The stomach floor is bare.';
     if (e.type === 'stoneFound') return FILM ? "Aurora's lamp." : 'The stone.';
     if (e.type === 'daylight') return 'Daylight in the throat.';
+    if (e.type === 'caveEnter') return "Aurora points the prince to a cave in the cliff: the way to the witch's tower." + (e.lamp ? ' Her lamp lights the dark.' : '');
+    if (e.type === 'dropShake') return 'A stalactite shakes loose above.';
+    if (e.type === 'caveExit') return 'Out of the cavern, onto the night sea.';
     if (e.type === 'beachSurf') return FILM ? 'The whale sets you down on a rocky shore. Aurora points the way.' : 'The whale lies beached on a rocky shore.';
     return null;
   },
@@ -488,6 +504,27 @@ function camera(st, dt) {
 }
 
 // The beached whale: cues for the crawl-out, the revellers, the slide and the tail.
+// The cavern route (film edition): Act IV's lanterns and pearls carry on.
+function cavern(st, dt, input) {
+  st.grace = Math.max(0, st.grace - dt);
+  const out = stepCavern(st.cv, dt, input, {
+    hit: (why) => {
+      if (st.grace > 0) return;
+      st.lanterns--; st.hits++; st.grace = GRACE;
+      st.events.push({ type: 'hit', why, lanterns: st.lanterns });
+      if (st.lanterns <= 0) { setStatus(st, 'lost'); st.lostTitle = 'Lost in\nthe Dark'; st.lostSub = 'The cavern keeps the way to the tower.'; }
+    },
+    pearl: () => { st.pearls++; st.score += 10; },
+    events: st.events, graceLeft: () => st.grace,
+  });
+  // the second checkpoint, past the widest pool
+  if (st.checkpoint?.scene !== SCENES.length + 1 && st.cv.s.on && st.cv.s.x >= CAVE_SCENES[1].x && st.cv.s.x < CAVE_SCENES[1].x + 300) {
+    st.checkpoint = { scene: SCENES.length + 1, x: CAVE_SCENES[1].x, stone: st.stone, pearls: st.pearls, score: st.score, hits: st.hits, caveGot: st.cv.pearls.filter((p) => p.got).map((p) => p.i) };
+  }
+  if (out === 'exit') st.exitT = 0;
+  if (st.cv.done && st.cv.doneT >= 1.2) toPhase(st, 'iris');
+}
+
 function shore(st) {
   const T = shoreTimes(st.revellers), pt = st.phaseT;
   const cue = (name, at, extra) => { st.cues ??= {}; if (pt >= at && !st.cues[name]) { st.cues[name] = true; st.events.push({ type: extra?.type || name, ...extra }); } };
@@ -495,5 +532,12 @@ function shore(st) {
   for (let i = 0; i < st.revellers; i++) cue('rev' + i, T.out + i * T.gap, { type: 'revellerOut', n: i + 1 });
   cue('whaleSlide', T.slide);
   cue('tailSplash', T.tail + 1.4);
-  if (pt >= T.end) toPhase(st, 'iris');
+  if (pt >= T.end) {
+    if (!FILM) return toPhase(st, 'iris');
+    // On through the cave Aurora points to.
+    st.cv = createCavern();
+    st.checkpoint = { scene: SCENES.length, stone: st.stone, pearls: st.pearls, score: st.score, hits: st.hits };
+    toPhase(st, 'cavern');
+    st.events.push({ type: 'caveEnter', lamp: st.stone });
+  }
 }

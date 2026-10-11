@@ -8,6 +8,7 @@ import {
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { FILM } from '../theme.js';
 import { drawMovement, whalePose } from './sailor-motion.js';
+import { cavernScene, cavernOver, cavernEvent } from './act4cavern-art.js';
 
 const REV = [
   { id: 'reveller-yellow', col: '#e3c13b' },
@@ -19,17 +20,20 @@ const BONE = '#d8c7a8', BONE_DARK = '#8f7a62', IVORY = '#f1e3c8', FLESH = '#7a23
 const TOP_EDGE = '#f6ead0'; // every walkable surface carries this pale edge
 
 export function draw(k, st, t) {
+  if (st.cv) return cavernScene(k, st, t);
   if (st.phase === 'shore' || st.phase === 'iris' || st.status === 'won') return shoreScene(k, st, t);
   belly(k, st, t);
   if (st.phase === 'throat') k.wash('#fff4dc', 0.92 * easeInOut(st.phaseT / OUTRO.throat));
 }
 
 export function drawOver(k, st) {
+  if (st.cv) return cavernOver(k, st);
   if (st.phase === 'iris') k.iris(1050, 540, 820 * (1 - easeInOut(st.phaseT / OUTRO.iris)));
   if (st.status === 'won') k.iris(1050, 540, 0);
 }
 
 export function onEvent(k, e, st) {
+  if (st?.cv) return cavernEvent(k, e, st);
   const at = (x, y) => toScreen(st, x, y);
   const s = st.s;
   if (e.type === 'pearl') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#efe9f2', 8, 'sparkle'); }
@@ -481,7 +485,7 @@ function hanging(k, st) {
 }
 
 // The sailor at the origin (feet), facing right, 110 tall.
-function drawSailor(k, frame, dy = 0) {
+export function drawSailor(k, frame, dy = 0) {
   if (drawMovement(k, frame, 0, dy, 110)) return;
   if (frame === 'apex' || frame === 'fall') frame = 'leap';
   if (frame === 'land') frame = 'stand';

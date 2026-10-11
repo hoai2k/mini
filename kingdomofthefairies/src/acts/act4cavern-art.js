@@ -1,0 +1,163 @@
+// Drawing for Act IV's cavern route (film edition; rules in act4cavern.js).
+// The painted cavern cloth behind, rock floors and black pools, the delivered
+// cavern-ledge cut-outs, stalactites, and the dark: only a pool of light
+// around the prince, wider with Aurora's lamp. Draw only from state and t.
+import {
+  CW, EXIT_X, WATER_Y, CEIL_Y, LIGHT, DROP, FLOORS, LEDGES, camX,
+} from './act4cavern.js';
+import { OUTRO } from './act4.js';
+import { airbornePose } from './sailor-motion.js';
+import { drawSailor } from './act4-art.js';
+import { clamp, easeInOut } from './shared.js';
+
+const ROCK = '#4a3440', ROCK_LIT = '#8a6474', EDGE = '#e8d2c6', POOL = '#0e1a22', POOL_LIT = '#3c6a78';
+
+export function cavernScene(k, st, t) {
+  const c = k.c, cv = st.cv, cx = camX(cv);
+  // The cloth, panned slowly across its width as he goes deeper.
+  const pan = cx / (CW - 1280);
+  if (!k.asset('cavern', 720 - pan * 160, 740, 1440, 810)) {
+    const g = c.createLinearGradient(0, 0, 0, 720);
+    g.addColorStop(0, k.col('#2a1826')); g.addColorStop(1, k.col('#0c0810'));
+    c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  }
+  // dimmed, so its painted rocks read as scenery behind the real floors
+  k.wash('#0b070c', 0.5);
+  c.save(); c.translate(-cx, 0);
+  exit(k, t);
+  pools(k, cx, t);
+  for (const f of FLOORS) floor(k, f);
+  for (const l of LEDGES) ledge(k, l);
+  for (const d of cv.drops) drop(k, d, t);
+  for (const p of cv.pearls) if (!p.got && !k.asset('pearl', p.x, p.y + 12, 26, 26)) { c.fillStyle = k.col('#f7f2fa'); k.circle(p.x, p.y, 9); }
+  prince(k, st, t);
+  c.restore();
+  dark(k, st, t);
+  if (cv.t < 4 && !cv.done) caption(k, st, cv.t);
+}
+
+export function cavernOver(k, st) {
+  const ex = EXIT_X + 60 - camX(st.cv);
+  if (st.phase === 'iris') k.iris(ex, 400, 820 * (1 - easeInOut(st.phaseT / OUTRO.iris)));
+  if (st.status === 'won') k.iris(ex, 400, 0);
+}
+
+export function cavernEvent(k, e, st) {
+  const x = (wx) => wx - camX(st.cv), s = st.cv.s;
+  if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); k.burst(x(s.x), s.y - 60, '#c8321e', 12, 'streak'); }
+  if (e.type === 'pearl') k.burst(x(e.x), e.y, '#efe9f2', 8, 'sparkle');
+  if (e.type === 'poolSplash') k.burst(x(e.x), e.y, '#9fb8c0', 22, 'drop');
+  if (e.type === 'dropShake') k.burst(x(e.x), CEIL_Y + 6, '#b9a4a8', 6, 'chip');
+  if (e.type === 'dropShatter') { k.shake(0.25); k.burst(x(e.x), e.y, '#d7c4c8', 16, 'chip'); }
+  if (e.type === 'caveEnter') k.text(e.lamp ? "Aurora's lamp lights the way" : 'Into the dark', 640, 220, true);
+  if (e.type === 'caveExit') k.flash(0.3);
+}
+
+// The far mouth of the cave: the night sea through a ragged arch.
+function exit(k, t) {
+  const c = k.c, x = EXIT_X + 60;
+  const g = c.createRadialGradient(x, 380, 20, x, 380, 240);
+  g.addColorStop(0, k.col('#7fa6c8')); g.addColorStop(0.5, k.col('#2c4a66')); g.addColorStop(1, 'rgba(20,30,50,0)');
+  c.fillStyle = g; c.fillRect(x - 260, 140, 520, 420);
+  c.fillStyle = k.col('#e9eef6'); k.circle(x + 40, 260, 16);  // the moon over the sea
+  c.fillStyle = k.col('#3c6a78'); c.globalAlpha = 0.6 + 0.2 * Math.sin(t * 2);
+  c.fillRect(x - 140, 480, 280, 6); c.globalAlpha = 1;
+}
+
+// The black pools between the floors, glinting.
+function pools(k, cx, t) {
+  const c = k.c;
+  c.fillStyle = k.col(POOL); c.fillRect(cx - 20, WATER_Y, 1320, 720 - WATER_Y);
+  c.strokeStyle = k.col(POOL_LIT); c.lineWidth = 2;
+  for (let x = Math.floor(cx / 90) * 90; x < cx + 1320; x += 90) {
+    const o = Math.sin(t * 1.6 + x * 0.05) * 10;
+    c.globalAlpha = 0.5; c.beginPath(); c.moveTo(x + o, WATER_Y + 8); c.lineTo(x + 34 + o, WATER_Y + 8); c.stroke();
+  }
+  c.globalAlpha = 1;
+}
+
+function floor(k, f) {
+  const c = k.c;
+  c.fillStyle = k.col(ROCK);
+  c.beginPath(); c.moveTo(f.x0, f.y);
+  for (let x = f.x0; x <= f.x1; x += 40) c.lineTo(x, f.y + 2 * Math.sin(x * 0.2));
+  c.lineTo(f.x1, f.y); c.lineTo(f.x1 - 14, 730); c.lineTo(f.x0 + 14, 730); c.closePath(); c.fill();
+  // the delivered ledge rock, tiled along the top as its walkable edge
+  if (k.img('cavern-ledge')) {
+    const n = Math.max(1, Math.round((f.x1 - f.x0) / 150)), w = (f.x1 - f.x0) / n;
+    for (let i = 0; i < n; i++) k.asset('cavern-ledge', f.x0 + w * (i + 0.5), f.y + w / 3.2, w + 6, w / 3.2);
+    return;
+  }
+  c.fillStyle = k.col(ROCK_LIT); c.fillRect(f.x0, f.y, f.x1 - f.x0, 10);
+  c.fillStyle = k.col(EDGE); c.fillRect(f.x0, f.y, f.x1 - f.x0, 3);
+}
+
+// The delivered cavern ledge: its walkable top is the art's top edge.
+function ledge(k, l) {
+  const c = k.c, w = l.x1 - l.x0;
+  if (k.asset('cavern-ledge', (l.x0 + l.x1) / 2, l.y + w / 3.2, w, w / 3.2)) return;
+  c.fillStyle = k.col(ROCK); c.fillRect(l.x0, l.y, w, 24);
+  c.fillStyle = k.col(EDGE); c.fillRect(l.x0, l.y, w, 3);
+}
+
+// A stalactite: hanging, shivering, falling, or broken on the floor.
+function drop(k, d, t) {
+  const c = k.c;
+  if (d.state === 'broken') {
+    if (d.landY == null) return;
+    c.fillStyle = k.col('#9b8790');
+    for (let i = 0; i < 4; i++) c.fillRect(d.x - 22 + i * 12, d.landY - 6 - (i % 2) * 4, 9, 6);
+    return;
+  }
+  const sx = d.state === 'shake' ? Math.sin(t * 60) * 3 : 0;
+  c.save(); c.translate(d.x + sx, d.y);
+  if (d.state === 'shake') { c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.25 + 0.2 * Math.sin(t * 20); k.circle(0, DROP.len * 0.5, 34); c.globalAlpha = 1; }
+  c.fillStyle = k.col('#b9a0aa');
+  c.beginPath(); c.moveTo(-DROP.hw, 0); c.lineTo(DROP.hw, 0); c.lineTo(3, DROP.len); c.lineTo(-3, DROP.len); c.closePath(); c.fill();
+  c.fillStyle = k.col('#e2d0d6'); c.beginPath(); c.moveTo(-DROP.hw + 6, 0); c.lineTo(-4, 0); c.lineTo(0, DROP.len - 10); c.closePath(); c.fill();
+  c.restore();
+  // the ceiling it hangs from
+  c.fillStyle = k.col(ROCK); c.beginPath(); c.ellipse(d.x, CEIL_Y - 10, 60, 20, 0, 0, Math.PI * 2); c.fill();
+}
+
+function prince(k, st, t) {
+  const c = k.c, s = st.cv.s;
+  if (st.grace > 0 && Math.floor(t * 14) % 2) c.globalAlpha = 0.35;
+  const frame = !s.on ? airbornePose(s.vy) : s.landT > 0 ? 'land' : Math.abs(s.vx) > 30 ? (Math.floor(s.walk / 38) % 2 ? 'walk-a' : 'walk-b') : 'stand';
+  c.save(); c.translate(s.x, s.y); c.scale(s.face, 1);
+  drawSailor(k, frame);
+  if (st.stone) {
+    // Aurora's lamp, held out ahead of him
+    c.fillStyle = k.col('#ffe9a8'); c.globalAlpha = 0.35 + 0.1 * Math.sin(t * 7); k.circle(30, -70, 16); c.globalAlpha = 1;
+    k.asset('keepsake-stone', 30, -56, 28, 28);
+  }
+  c.restore();
+  c.globalAlpha = 1;
+}
+
+// The dark: everything beyond his light, the exit's glow showing through.
+function dark(k, st, t) {
+  const c = k.c, cv = st.cv, s = cv.s, cx = camX(cv);
+  const r = (st.stone ? LIGHT.lamp : LIGHT.own) * (1 + 0.03 * Math.sin(t * 5));
+  const px = s.x - cx, py = s.y - 60;
+  const out = cv.done ? clamp(cv.doneT / 1.2, 0, 1) : 0;
+  const g = c.createRadialGradient(px, py, r * 0.35, px, py, r);
+  g.addColorStop(0, 'rgba(8,4,10,0)'); g.addColorStop(1, `rgba(8,4,10,${0.9 * (1 - out)})`);
+  c.save(); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  // the mouth of the cave glows through the dark as he nears it
+  const ex = EXIT_X + 60 - cx;
+  if (ex < 1500) {
+    const e = c.createRadialGradient(ex, 380, 10, ex, 380, 200);
+    e.addColorStop(0, 'rgba(160,200,230,0.35)'); e.addColorStop(1, 'rgba(160,200,230,0)');
+    c.globalCompositeOperation = 'lighter'; c.fillStyle = e; c.fillRect(ex - 200, 180, 400, 400);
+  }
+  c.restore();
+}
+
+function caption(k, st, ct) {
+  const c = k.c, a = Math.min(1, ct / 0.5, (4 - ct) / 0.6);
+  c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
+  c.font = '700 18px "Josefin Sans", sans-serif';
+  c.fillText('Through the cavern to the tower · leap the black pools · beware the stalactites', 640, 150);
+  c.restore();
+}

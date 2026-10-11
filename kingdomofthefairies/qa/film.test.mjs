@@ -10,6 +10,8 @@ import prologue, { GIFTS } from '../src/acts/prologue.js';
 import act2 from '../src/acts/act2.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
+import act4 from '../src/acts/act4.js';
+import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log('ok -', name); };
@@ -142,6 +144,61 @@ test('Act VI: out on the cliff, the barrel on the beat, the wedding and the apot
 test('Act VI: a checkpoint in the tower resumes in the tower', () => {
   const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 1 } });
   assert.equal(st.phase, 'house'); assert.ok(st.p.carry, 'carrying her');
+});
+
+// From each surface, the take-off point of a full-speed leap that lands on
+// the next surface ahead (through the real movement code), or null.
+function takeoffs() {
+  const S = surfaces().filter((p) => p.id !== 'L7').sort((a, b) => a.x0 - b.x0), out = {};
+  for (const p of S) {
+    if (p.x1 >= EXIT_X) break;
+    out[p.id] = null;
+    for (let x = p.x0 + 20; x <= p.x1 && !out[p.id]; x += 4) {
+      const cv = createCavern({ x }); cv.drops = []; Object.assign(cv.s, { y: p.y, on: p.id, vx: 280 });
+      let land = null;
+      for (let t = 0, first = true; t < 2 && !land; t += DT, first = false) {
+        stepCavern(cv, DT, { moveX: 1, a: first, aHeld: true }, { hit: () => { land = 'pool'; }, pearl: () => {}, events: [], graceLeft: () => 1 });
+        if (!land && cv.s.on && cv.s.on !== p.id) land = cv.s.on;
+      }
+      const q = S.find((r) => r.id === land);
+      if (q && q.x0 > p.x0) out[p.id] = x;
+    }
+  }
+  return out;
+}
+
+test('Act IV cavern: every surface has a leap to the next one ahead', () => {
+  for (const [id, x] of Object.entries(takeoffs())) assert.ok(x != null, `no way on from ${id}`);
+});
+
+test('Act IV cavern: a prince who keeps moving reaches the night sea untouched by stalactites', () => {
+  const T = takeoffs(), st = act4.create({ carry: {}, from: { scene: 5 } });
+  assert.equal(st.phase, 'cavern');
+  let clock = 0, lost = [];
+  run(act4, st, 60, (s) => {
+    const c = s.cv?.s;
+    if (s.lanterns + lost.length < 3) lost.push(`${c.x.toFixed(0)},${c.y.toFixed(0)}`);
+    return { moveX: 1, aHeld: true, a: !!(c?.on && T[c.on] != null && c.x >= T[c.on]), beat: (clock += DT) / BEAT };
+  }, (s) => s.phase !== 'cavern');
+  assert.equal(st.lanterns, 3, `touched at ${lost} (take-offs ${JSON.stringify(T)})`);
+  assert.ok(['iris'].includes(st.phase) || st.status === 'won', `${st.phase} at x ${st.cv.s.x.toFixed(0)} on ${st.cv.s.on} t ${st.t.toFixed(1)}`);
+});
+
+test('Act IV cavern: a pool costs a lantern and puts him back on firm rock', () => {
+  const st = act4.create({ carry: {}, from: { scene: 5 } });
+  Object.assign(st.cv.s, { x: 600, y: 700, on: null, vy: 300 });
+  st.grace = 0;
+  act4.step(st, DT, { beat: 0 });
+  assert.equal(st.lanterns, 2);
+  assert.ok(st.cv.s.y <= 600 && st.cv.s.x < 560, `respawned at ${st.cv.s.x}`);
+});
+
+test('Act IV (film): the beach leads on into the cavern', () => {
+  const st = act4.create({ carry: {}, from: { scene: 4 } });
+  st.phase = 'shore'; st.phaseT = 99;
+  act4.step(st, DT, { beat: 0 });
+  assert.equal(st.phase, 'cavern');
+  assert.equal(act4.scenes.length, 7);
 });
 
 const manifest = JSON.parse(await readFile(new URL('../assets/manifest.json', import.meta.url)));
