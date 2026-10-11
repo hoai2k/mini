@@ -18,7 +18,7 @@ records = []
 previous_path = BATCH / 'deliveries.json'
 previous = {r['id']: r for r in json.loads(previous_path.read_text())['images']} if previous_path.exists() else {}
 for path in sorted(BATCH.glob('*.json')):
-    if path.name == 'deliveries.json':
+    if path.name == 'deliveries.json' or path.name.startswith('._'):
         continue
     record = json.loads(path.read_text())
     ident = record['id']

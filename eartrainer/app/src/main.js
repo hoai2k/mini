@@ -1,10 +1,13 @@
 // Shell: title, songbooks, the round (listen, answer, solve), dialogs, input.
 import { createAudio, INSTRUMENTS } from './audio.js';
 import { createKeyboard } from './keyboard.js';
-import { createRound, press, redo, stars, points } from './round.js';
-import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, SONGBOOKS, LEVELS, WHITES, LOWEST, HIGHEST } from './library.js';
+import { createNavigator } from './navigator.js';
+import { createStaff } from './staff.js';
 import { noteName } from './music.js';
-import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
+import { perform, secondsPerBeat } from './perform.js';
+import { createRound, press, redo, stars, points } from './round.js';
+import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, preventZoom } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
@@ -17,6 +20,7 @@ if (TOUCH) document.documentElement.classList.add('touch');
 const state = loadState();
 const { settings, progress } = state;
 const save = () => saveState(state);
+progress.level = LEVEL_ALIASES[progress.level] || progress.level;
 const LIB = buildLibrary();
 
 const S = {
@@ -47,6 +51,7 @@ function loadSound(name, announceLoad = true) {
 audio.setVolume(settings.volume);
 audio.setMuted(settings.muted);
 audio.setReverb(settings.reverb);
+audio.setMelodyLevel(settings.melody);
 loadSound(settings.sound);
 const unlock = () => audio.unlock();
 addEventListener('pointerdown', unlock, { capture: true });
@@ -54,11 +59,18 @@ addEventListener('touchend', unlock, { capture: true });
 addEventListener('keydown', unlock, { capture: true });
 
 // ---------------------------------------------------------------- keyboard and effects
-const kbd = createKeyboard($('#kbd'), { lo: LOWEST, hi: HIGHEST, whites: WHITES, onDown: keyDown, onUp: keyUp });
+// The whole piano, A0 to C8; the player chooses how many keys show (eleven white keys by default).
+let nav = null;
+const kbd = createKeyboard($('#kbd'), { lo: 21, hi: 108, whites: settings.whites, onDown: keyDown, onUp: keyUp, onView: (p, w) => nav?.sync(p, w) });
+nav = createNavigator($('#kbd-nav'), kbd, { onWhites: (w) => { settings.whites = w; save(); } });
+nav.sync(kbd.pos, kbd.whites);
 kbd.setLabels(settings.labels);
-kbd.setWindow(60, false);
+kbd.showRange(60, 72, false); // middle C
 const fx = createFx($('#fx'));
+// Tapping a found note on the staff plays it on its own.
+const staff = createStaff($('#staff'), { onTap: (midi) => { cancelAuto(); audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
 const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDirection: padDirection, onStick: padStick, onDisconnect: () => { if (S.mode === 'play' && !dialogs.length) openPause(); } });
+preventZoom();
 const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint') });
 
 function haptic(ms) {
@@ -110,6 +122,7 @@ function renderBooks() {
     b.className = 'chip'; b.setAttribute('role', 'radio'); b.dataset.focus = '';
     b.setAttribute('aria-checked', String(progress.level === l.id));
     b.textContent = l.id === 'adaptive' ? `Adaptive · ${progress.rating.toFixed(1)}` : l.name;
+    if (l.blurb) b.title = l.blurb;
     b.addEventListener('click', () => { progress.level = l.id; save(); renderBooks(); focusEl($(`#levels [data-level="${l.id}"]`)); });
     b.dataset.level = l.id;
     lv.append(b);
@@ -126,7 +139,10 @@ function renderBooks() {
     b.className = 'book'; b.dataset.focus = ''; b.dataset.book = book.id;
     const cover = S.covers?.[`book-${book.id}`];
     b.innerHTML = `<span class="glyph${cover ? ' art' : ''}" aria-hidden="true">${book.glyph}</span><span class="name"></span><span class="blurb"></span>
-      <span class="meter"><i style="width:${(solved / pool.length) * 100}%"></i></span><span class="count">${solved}/${pool.length}</span>`;
+      <span class="meter"><i style="width:${(solved / pool.length) * 100}%"></i></span><span class="count">${solved}/${pool.length}</span><span class="at"></span>`;
+    const at = countAt(pool, progress.level);
+    const lvName = LEVELS.find((l) => l.id === progress.level);
+    if (lvName?.range) b.querySelector('.at').textContent = at ? `${at} at ${lvName.short}` : `None at ${lvName.short}: nearest level instead`;
     if (cover) b.querySelector('.glyph').style.backgroundImage = `url("${cover}")`;
     b.querySelector('.name').textContent = book.name;
     b.querySelector('.blurb').textContent = book.blurb;
@@ -139,6 +155,7 @@ function renderBooks() {
 
 function startBook(id) {
   progress.book = id; save();
+  setFree(false);
   S.practice = false; syncPractice();
   show('play');
   $('#hud-book').textContent = SONGBOOKS.find((b) => b.id === id)?.name || '';
@@ -146,10 +163,43 @@ function startBook(id) {
   nextMelody();
 }
 
+// ---------------------------------------------------------------- free play
+// The whole piano with no melody to find: the staff shows the last notes played.
+function setFree(on) {
+  S.free = on;
+  $('#play').classList.toggle('free', on);
+  if (on) { S.freeNotes = []; staff.clear('Play anything. Slide along the piano with the bar above the keys.'); }
+}
+function startFree() {
+  stopPlayback();
+  setFree(true);
+  S.round = null; S.melody = null; S.solvedShown = false;
+  S.practice = false; syncPractice();
+  show('play');
+  showSolved(false);
+  kbd.setMarker(null);
+  nav.setRange(null);
+  $('#hud-book').textContent = 'Free play';
+  $('#hud-level').textContent = `${kbd.total} white keys, A0 to C8`;
+  setPrompt('Free play: the whole piano is yours');
+}
+function freeNote(midi) {
+  const notes = S.freeNotes;
+  notes.push({ midi, beats: 1, at: notes.length });
+  if (notes.length > 16) notes.shift();
+  notes.forEach((n, i) => { n.at = i; });
+  staff.set(notes, true);
+  staff.update({ pos: notes.length, done: true, practice: false });
+  setPrompt(noteName(midi, { flats: false }));
+}
+$('#btn-free').addEventListener('click', startFree);
+$('#btn-clear').addEventListener('click', () => { S.freeNotes = []; staff.clear('Cleared. Play on.'); });
+
 function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('title'); focusEl($('#start'), false); }
 
 // ---------------------------------------------------------------- a round
 function nextMelody() {
+  cancelAuto();
   stopPlayback();
   const pool = inBook(LIB, progress.book);
   const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
@@ -159,31 +209,30 @@ function nextMelody() {
   S.round = createRound(S.melody.notes);
   S.replay = false;
   S.solvedShown = false;
-  $('#solved').hidden = true;
-  $('#prompt').hidden = false;
+  showSolved(false);
   kbd.clearLights();
-  kbd.setWindow(S.melody.window, true);
+  kbd.showRange(S.melody.lo, S.melody.hi, true);
+  nav.setRange(S.melody.lo, S.melody.hi);
   if (kbd.cursor != null && !kbd.visible(kbd.cursor)) kbd.setCursor(null);
-  renderDots();
+  staff.set(S.melody.notes, S.melody.shift !== 0);
+  syncStaff();
   syncMarker();
   syncHud();
   setPrompt('Listen…', true);
   setTimeout(() => { if (S.round && S.round.notes === S.melody.notes && !dialogs.length) playMelody(); }, 650);
 }
 
-function renderDots() {
-  const dots = $('#dots');
-  dots.innerHTML = '';
-  S.melody.notes.forEach(() => { const d = document.createElement('span'); d.className = 'dot'; dots.append(d); });
-  syncDots();
-}
-function syncDots() {
+function syncStaff() {
   const r = S.round;
-  $$('#dots .dot').forEach((d, i) => {
-    d.classList.toggle('done', r.done || i < r.pos);
-    if (r.done || i < r.pos) d.classList.remove('miss');
-    d.classList.toggle('now', !r.done && i === r.pos && !S.practice);
-  });
+  staff.update({ pos: r.pos, done: r.done, practice: S.practice });
+}
+function showSolved(on) {
+  $('#solved').hidden = !on;
+  $('#prompt').hidden = on;
+  const skip = $('#btn-skip');
+  skip.classList.toggle('next', on);
+  $('#skip-label').textContent = on ? 'Next' : 'Skip';
+  skip.dataset.tip = on ? 'Next melody' : 'Skip to another melody';
 }
 function syncMarker() {
   const r = S.round;
@@ -193,14 +242,14 @@ function syncHud() {
   $('#hud-score').textContent = progress.score.toLocaleString();
   $('#hud-miss span').textContent = S.round ? S.round.mistakes : 0;
   const st = $('#hud-streak'); st.hidden = progress.streak < 2; st.querySelector('span').textContent = progress.streak;
-  const lvl = S.melody ? `Level ${S.melody.level}` : '';
-  const mode = LEVELS.find((l) => l.id === progress.level)?.name;
-  $('#hud-level').textContent = `${lvl} · ${mode}`;
+  const lv = S.melody ? LEVELS.find((l) => l.range && l.range[0] === S.melody.level) : null;
+  $('#hud-level').textContent = lv ? `Level ${lv.name}${progress.level === 'adaptive' ? ' · Adaptive' : ''}` : '';
 }
-function setPrompt(text, listening = false) {
+function setPrompt(text, listening = false, wrong = false) {
   const p = $('#prompt');
   p.textContent = text;
   p.classList.toggle('listen', listening);
+  p.classList.toggle('wrong', wrong);
 }
 function idlePrompt() {
   const r = S.round;
@@ -216,32 +265,29 @@ function playMelody({ light = false } = {}) {
   if (!S.melody) return;
   stopPlayback();
   audio.unlock();
-  const spb = 60 / S.melody.bpm / settings.speed;
+  const spb = secondsPerBeat(S.melody.bpm, settings.speed);
   const t0 = audio.now() + 0.12;
   const token = {};
   const voices = [], timers = [];
-  const notes = S.melody.notes;
-  notes.forEach((n, i) => {
-    const on = t0 + n.at * spb;
-    const dur = n.beats * spb;
-    const last = i === notes.length - 1;
-    const v = audio.noteOn(n.midi, { when: on, velocity: 0.78 + (n.at % 2 === 0 ? 0.06 : 0) });
-    if (v) { audio.noteOff(v, on + (last ? Math.max(dur, 0.8) + 0.4 : dur * 0.94)); voices.push(v); }
+  const plan = perform(S.melody.notes, spb);
+  plan.forEach((p, i) => {
+    const on = t0 + p.on;
+    const v = audio.noteOn(p.midi, { when: on, velocity: p.velocity, melody: true });
+    if (v) { audio.noteOff(v, t0 + p.off); voices.push(v); }
     const ms = (on - audio.now()) * 1000;
+    const shown = Math.max(140, (p.off - p.on) * 850);
     timers.push(setTimeout(() => {
-      const dot = $$('#dots .dot')[i];
-      dot?.classList.add('hear');
-      timers.push(setTimeout(() => dot?.classList.remove('hear'), Math.max(120, dur * 800)));
-      if (light) { kbd.light(n.midi, true); timers.push(setTimeout(() => kbd.light(n.midi, false), Math.max(140, dur * 900))); }
+      staff.hear(i, shown);
+      if (light) { kbd.light(p.midi, true); timers.push(setTimeout(() => kbd.light(p.midi, false), Math.max(140, shown))); }
     }, ms));
   });
-  const end = notes[notes.length - 1];
+  const end = S.melody.notes[S.melody.notes.length - 1];
   const total = (end.at + end.beats) * spb * 1000 + 150;
   timers.push(setTimeout(() => { if (S.play === token) { S.play = null; $('#btn-repeat').classList.remove('busy'); idlePrompt(); } }, total));
   token.voices = voices; token.timers = timers;
   S.play = token;
   $('#btn-repeat').classList.add('busy');
-  if (!S.solvedShown) setPrompt(samplesReady ? 'Listen…' : 'Tuning the piano…', true);
+  if (!S.solvedShown) setPrompt(samplesReady ? 'Listen… (play along if you like)' : 'Tuning the piano…', true);
 }
 
 function stopPlayback() {
@@ -250,7 +296,7 @@ function stopPlayback() {
   S.play = null;
   for (const t of p.timers) clearTimeout(t);
   for (const v of p.voices) audio.noteOff(v);
-  $$('#dots .dot.hear').forEach((d) => d.classList.remove('hear'));
+  $$('#staff .slot.hear').forEach((d) => d.classList.remove('hear'));
   kbd.clearLights();
   $('#btn-repeat').classList.remove('busy');
 }
@@ -259,26 +305,30 @@ function stopPlayback() {
 function keyDown(midi, source) {
   if (S.mode !== 'play' || dialogs.length) return;
   audio.unlock();
-  if (S.play) { stopPlayback(); idlePrompt(); }
-  const v = audio.noteOn(midi, { velocity: 0.9 });
+  // The melody keeps playing: the player can play along with it.
+  const v = audio.noteOn(midi, { velocity: 0.92 });
   if (S.held.get(midi)) audio.noteOff(S.held.get(midi));
   S.held.set(midi, v);
+  if (S.free) { freeNote(midi); return; }
   const r = S.round;
-  if (!r || S.practice || r.done) return;
+  if (!r || S.practice || r.done) {
+    if (r?.done && S.solvedShown && $('#btn-skip').classList.contains('counting')) scheduleAuto(); // still playing: wait a little longer
+    return;
+  }
   const result = press(r, midi);
   if (result === 'wrong') {
     kbd.flash(midi, 'bad');
-    const dot = $$('#dots .dot')[r.pos];
-    if (dot) { dot.classList.remove('miss'); void dot.offsetWidth; dot.classList.add('miss'); }
+    staff.flash(r.pos, 'wrong', 420);
+    const miss = $('#hud-miss'); miss.classList.remove('hit'); void miss.offsetWidth; miss.classList.add('hit');
     haptic([18, 40, 18]);
     if (!S.replay) syncHud();
-    setPrompt(r.pos === 0 ? 'Not that one. Listen again with Repeat, or keep looking.' : `Not that one: note ${r.pos + 1} of ${r.notes.length}`);
+    setPrompt(r.pos === 0 ? 'Not that one. Try Repeat, or keep looking.' : `Not that one: note ${r.pos + 1} of ${r.notes.length}`, false, true);
     return;
   }
   kbd.flash(midi, 'ok');
   sparkOn(midi);
   haptic(12);
-  syncDots();
+  syncStaff();
   syncMarker();
   if (result === 'done') solved();
   else idlePrompt();
@@ -315,21 +365,43 @@ function solved() {
   const kb = $('#kbd').getBoundingClientRect();
   setTimeout(() => fx.burst(kb.left - box.left + kb.width / 2, kb.top - box.top + 10, 30 + st * 25, 0.7 + st * 0.15), 120);
   haptic([20, 50, 30]);
-  // Reveal
-  $('#prompt').hidden = true;
+  // Reveal: every note on the staff, the title and stars in the bar; Skip becomes Next.
+  showSolved(true);
   $$('#stars i').forEach((s, i) => { s.classList.remove('on'); void s.offsetWidth; s.classList.toggle('on', i < st); });
   $('#song-title').textContent = m.title;
   const key = m.shift ? ` · transposed ${m.shift > 0 ? 'up' : 'down'} ${Math.abs(m.shift)} semitone${Math.abs(m.shift) === 1 ? '' : 's'}` : '';
-  $('#song-by').textContent = `${m.by}${key} · starts on ${noteName(r.notes[0].midi, { flats: true })}`;
+  $('#song-by').textContent = `${m.by}${key}`;
   $('#gain').textContent = S.replay ? '' : `+${gain}`;
-  $('#solved').hidden = false;
   $('#solved').setAttribute('aria-label', `Solved: ${m.title}. ${st} star${st > 1 ? 's' : ''}.`);
   announce(`Solved: ${m.title}, ${st} star${st > 1 ? 's' : ''}${gain ? `, plus ${gain} points` : ''}.`);
   const sc = $('#hud-score'); sc.classList.remove('bump'); void sc.offsetWidth; sc.classList.add('bump');
   syncHud();
+  scheduleAuto();
 }
 
+// ---------------------------------------------------------------- moving on
+// After a solved melody (and its celebration) the next one starts by itself,
+// while the Next button fills up. Playing a few more notes restarts the wait;
+// Repeat, Redo, Practice, tapping the staff or opening the menu stays put.
+const AUTO_MS = 3200;
+let autoT = 0;
+function scheduleAuto(ms = AUTO_MS) {
+  clearTimeout(autoT);
+  const btn = $('#btn-skip');
+  btn.classList.remove('counting');
+  if (!settings.auto || !S.solvedShown || S.free) return;
+  btn.style.setProperty('--auto', `${ms}ms`);
+  void btn.offsetWidth;
+  btn.classList.add('counting');
+  autoT = setTimeout(() => {
+    btn.classList.remove('counting');
+    if (S.solvedShown && S.mode === 'play' && !dialogs.length && !S.free) nextMelody();
+  }, ms);
+}
+function cancelAuto() { clearTimeout(autoT); $('#btn-skip').classList.remove('counting'); }
+
 function doRedo() {
+  cancelAuto();
   if (!S.round) return;
   stopPlayback();
   if (S.round.done) {
@@ -337,19 +409,18 @@ function doRedo() {
     S.round = createRound(S.melody.notes);
     S.replay = true;
     S.solvedShown = false;
-    $('#solved').hidden = true;
-    $('#prompt').hidden = false;
+    showSolved(false);
   } else redo(S.round);
-  syncDots(); syncMarker(); syncHud();
+  syncStaff(); syncMarker(); syncHud();
   setPrompt('From the top.');
   setTimeout(idlePrompt, 1200);
 }
-function doRepeat() { if (S.round) playMelody({ light: !!(S.round.done && settings.light) }); }
+function doRepeat() { cancelAuto(); if (S.round && !S.free) playMelody({ light: !!(S.round.done && settings.light) }); }
 function doPractice() {
+  cancelAuto();
   S.practice = !S.practice;
   syncPractice();
-  if (S.practice) stopPlayback();
-  syncDots();
+  syncStaff();
   idlePrompt();
 }
 function syncPractice() {
@@ -358,16 +429,17 @@ function syncPractice() {
 }
 function doNext() {
   if (!S.round) return;
-  if (!S.round.done) {
+  if (!S.round.done && !S.practice) {
     toast(`Skipped: ${S.melody.title}`);
     progress.streak = 0; save();
   }
   nextMelody();
 }
 function setSpeed(v) {
-  settings.speed = Math.round(Math.min(1.5, Math.max(0.5, v)) * 20) / 20;
-  $('#speed').value = settings.speed;
-  $('#speed-out').textContent = `${settings.speed.toFixed(2)}×`;
+  settings.speed = Math.round(Math.min(1.5, Math.max(0.5, v)) * 10) / 10;
+  $('#speed-out').textContent = `${settings.speed}×`;
+  $('#speed-down').disabled = settings.speed <= 0.5;
+  $('#speed-up').disabled = settings.speed >= 1.5;
   save();
 }
 setSpeed(settings.speed);
@@ -376,9 +448,8 @@ $('#btn-repeat').addEventListener('click', doRepeat);
 $('#btn-redo').addEventListener('click', doRedo);
 $('#btn-practice').addEventListener('click', doPractice);
 $('#btn-skip').addEventListener('click', doNext);
-$('#btn-next-solved').addEventListener('click', nextMelody);
-$('#btn-hear').addEventListener('click', () => playMelody({ light: settings.light }));
-$('#speed').addEventListener('input', (e) => setSpeed(Number(e.target.value)));
+$('#speed-down').addEventListener('click', () => setSpeed(settings.speed - 0.1));
+$('#speed-up').addEventListener('click', () => setSpeed(settings.speed + 0.1));
 $('#btn-pause').addEventListener('click', openPause);
 
 // ---------------------------------------------------------------- title buttons
@@ -416,6 +487,7 @@ $('#books-back').addEventListener('click', toTitle);
 // ---------------------------------------------------------------- dialogs
 const dialogs = []; // { el, returnFocus }
 function openDialog(el) {
+  cancelAuto();
   stopPlayback();
   kbd.releaseAll();
   dialogs.push({ el, returnFocus: document.activeElement });
@@ -467,15 +539,23 @@ function syncSettings() {
   chips($('#set-labels'), [['none', 'None'], ['c', 'C only'], ['white', 'White keys'], ['all', 'All keys']], () => settings.labels, (v) => { settings.labels = v; kbd.setLabels(v); save(); });
   chips($('#set-key'), [['written', 'As written'], ['random', 'Any key']], () => settings.key, (v) => { settings.key = v; save(); });
   $('#set-volume').value = settings.volume; $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`;
+  $('#set-melody').value = settings.melody; $('#set-melody-out').textContent = `${Math.round(settings.melody * 100)}%`;
   $('#set-reverb').value = settings.reverb; $('#set-reverb-out').textContent = `${Math.round(settings.reverb * 100)}%`;
   $('#set-first').checked = settings.first;
   $('#set-light').checked = settings.light;
+  $('#set-staff').checked = settings.staff;
+  $('#set-auto').checked = settings.auto;
   $('#set-vibrate').checked = settings.vibrate;
 }
 $('#set-volume').addEventListener('input', (e) => { settings.volume = Number(e.target.value); audio.setVolume(settings.volume); $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`; save(); });
+$('#set-melody').addEventListener('input', (e) => { settings.melody = Number(e.target.value); audio.setMelodyLevel(settings.melody); $('#set-melody-out').textContent = `${Math.round(settings.melody * 100)}%`; save(); });
 $('#set-reverb').addEventListener('input', (e) => { settings.reverb = Number(e.target.value); audio.setReverb(settings.reverb); $('#set-reverb-out').textContent = `${Math.round(settings.reverb * 100)}%`; save(); });
 $('#set-first').addEventListener('change', (e) => { settings.first = e.target.checked; save(); syncMarker(); });
 $('#set-light').addEventListener('change', (e) => { settings.light = e.target.checked; save(); });
+$('#set-auto').addEventListener('change', (e) => { settings.auto = e.target.checked; save(); });
+$('#set-staff').addEventListener('change', (e) => { settings.staff = e.target.checked; save(); syncStaffSetting(); });
+function syncStaffSetting() { $('#play').classList.toggle('no-staff', !settings.staff); }
+syncStaffSetting();
 $('#set-vibrate').addEventListener('change', (e) => { settings.vibrate = e.target.checked; save(); });
 $('#set-reset').addEventListener('click', () => confirmBox('Reset your score, stars and level? Settings stay.', () => {
   Object.assign(progress, structuredClone(DEFAULTS.progress), { book: progress.book, level: progress.level });
@@ -546,7 +626,7 @@ function padDirection(dir) {
     if (dir === 'left' || dir === 'right') {
       if (kbd.cursor == null && S.round && settings.first) kbd.setCursor(S.round.notes[S.round.pos]?.midi ?? null);
       kbd.moveCursor(dir === 'right' ? 1 : -1);
-    } else if (S.solvedShown) moveFocus(dir);
+    } else nav.octave(dir === 'up' ? 1 : -1);
     return;
   }
   if (S.mode === 'title' && !dialogs.length && !S.utilityNav) { S.utilityNav = true; focusEl($('#start'), true); return; }
@@ -584,8 +664,8 @@ function padButton(i) {
     } else if (i === BTN.X) doRepeat();
     else if (i === BTN.B) doRedo();
     else if (i === BTN.Y) doPractice();
-    else if (i === BTN.LB) setSpeed(settings.speed - 0.05);
-    else if (i === BTN.RB) setSpeed(settings.speed + 0.05);
+    else if (i === BTN.LB) setSpeed(settings.speed - 0.1);
+    else if (i === BTN.RB) setSpeed(settings.speed + 0.1);
     else if (i === BTN.VIEW || i === BTN.RT) { if (S.round?.done) nextMelody(); else doNext(); }
     else if (i === BTN.MENU) openPause();
   }
@@ -614,9 +694,13 @@ addEventListener('keydown', (e) => {
   if (k === ' ' || k === '1') { e.preventDefault(); if (!e.repeat) doRepeat(); }
   else if (k === 'Backspace' || k === '2') { e.preventDefault(); if (!e.repeat) doRedo(); }
   else if (k === '3') { if (!e.repeat) doPractice(); }
-  else if (k === '-' || k === '_') setSpeed(settings.speed - 0.05);
-  else if (k === '=' || k === '+') setSpeed(settings.speed + 0.05);
+  else if (k === '-' || k === '_') setSpeed(settings.speed - 0.1);
+  else if (k === '=' || k === '+') setSpeed(settings.speed + 0.1);
   else if (k === 'Enter') { e.preventDefault(); if (!e.repeat) { if (S.round?.done) nextMelody(); else doNext(); } }
+  else if (k === ',' || k === '<') nav.octave(-1);
+  else if (k === '.' || k === '>') nav.octave(1);
+  else if (k === '9') nav.zoom(-1);
+  else if (k === '0') nav.zoom(1);
   else if (k === 'Escape') openPause();
 });
 addEventListener('keyup', (e) => { if (S.mode === 'play') kbd.keyup(e); });

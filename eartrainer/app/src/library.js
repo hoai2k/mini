@@ -12,18 +12,28 @@ export const SONGBOOKS = [
   { id: 'traditional', name: 'Folk & Traditional', blurb: 'Songs from around the world', glyph: '♣' },
   { id: 'holiday', name: 'Carols & Hymns', blurb: 'Seasonal and celebration songs', glyph: '❄' },
   { id: 'classical', name: 'Classical Themes', blurb: 'From Bach to Gershwin', glyph: '𝄞' },
-  { id: 'jazz', name: 'Jazz Standards', blurb: 'Heads, bossa and swing', glyph: '♫' },
+  { id: 'jazz', name: 'Jazz Standards', blurb: 'The Real Book: swing, ballads and bossa', glyph: '♫' },
+  { id: 'bebop', name: 'Bebop Heads', blurb: 'Parker, Monk, Gillespie, Rollins and more', glyph: '♪' },
   { id: 'licks', name: 'Jazz & Blues Licks', blurb: 'Vocabulary: arpeggios, enclosures, runs', glyph: '♯' },
   { id: 'popular', name: 'Film & Pop Hooks', blurb: 'Riffs and themes everyone knows', glyph: '★' },
 ];
 
 export const LEVELS = [
   { id: 'adaptive', name: 'Adaptive', range: null },
-  { id: 'easy', name: 'Easy', range: [1, 2] },
-  { id: 'medium', name: 'Medium', range: [3, 3] },
-  { id: 'hard', name: 'Hard', range: [4, 4] },
-  { id: 'expert', name: 'Expert', range: [5, 5] },
+  { id: 'l1', name: '1 · Beginner', short: 'Beginner', range: [1, 1], blurb: 'A few notes, mostly steps' },
+  { id: 'l2', name: '2 · Easy', short: 'Easy', range: [2, 2], blurb: 'Short tunes with small leaps' },
+  { id: 'l3', name: '3 · Medium', short: 'Medium', range: [3, 3], blurb: 'Longer phrases, wider leaps' },
+  { id: 'l4', name: '4 · Hard', short: 'Hard', range: [4, 4], blurb: 'Big leaps, some chromatic notes' },
+  { id: 'l5', name: '5 · Expert', short: 'Expert', range: [5, 5], blurb: 'Long, leaping, chromatic lines' },
 ];
+// Older saves named the levels differently.
+export const LEVEL_ALIASES = { easy: 'l2', medium: 'l3', hard: 'l4', expert: 'l5' };
+
+/** How many melodies of a pool sit at a level (all of them for Adaptive). */
+export function countAt(pool, level) {
+  const lv = LEVELS.find((l) => l.id === level);
+  return lv?.range ? pool.filter((m) => m.level >= lv.range[0] && m.level <= lv.range[1]).length : pool.length;
+}
 
 export function buildLibrary(lists = LISTS) {
   const all = [];
@@ -62,8 +72,11 @@ export function pickNext(pool, { level = 'adaptive', rating = 1, best = {}, rece
   let candidates = pool;
   const lv = LEVELS.find((l) => l.id === level);
   if (lv?.range) {
-    const f = pool.filter((m) => m.level >= lv.range[0] && m.level <= lv.range[1]);
-    if (f.length) candidates = f;
+    // The chosen level, or the nearest level that has melodies in this songbook.
+    for (let d = 0; d <= 4; d++) {
+      const f = pool.filter((m) => m.level >= lv.range[0] - d && m.level <= lv.range[1] + d);
+      if (f.length) { candidates = f; break; }
+    }
   } else {
     // Adaptive: the nearest levels to the rating that have melodies.
     const target = Math.round(rating);

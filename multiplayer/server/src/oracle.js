@@ -37,7 +37,7 @@ export function readOracleRequest(body) {
 export function oracleMessages(r) {
   const system = "You open a reading of the I Ching for someone who asked a question. Write 2 or 3 short sentences, warm and plain, in the second person. "
     + "First sentence: show you understood what they are really asking or feeling, in your own words, without repeating the question. "
-    + "Then name the hexagram they received and say in one sentence how it answers them, using only the meaning given to you. "
+    + "Then write one sentence that begins exactly with \"The coins answered with\" followed by the hexagram name you are given, and says how it answers them, using only the meaning given to you. "
     + "Do not invent other I Ching meanings, do not predict specific events, do not give medical, legal or financial instructions, no lists, no headings, no quotation marks, under 75 words.";
   const facts = [
     `Question: ${r.question}`,
@@ -62,7 +62,7 @@ function limited(ip) {
 }
 
 async function cacheKey(r) {
-  const data = new TextEncoder().encode(`${r.question.toLowerCase()}|${r.day}|${r.seed}|${r.hexagram.n}`);
+  const data = new TextEncoder().encode(`v2|${r.question.toLowerCase()}|${r.day}|${r.seed}|${r.hexagram.n}`);
   const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", data))].map((b) => b.toString(16).padStart(2, "0")).join("");
   return new Request(`https://oracle.cache/${hash}`);
 }

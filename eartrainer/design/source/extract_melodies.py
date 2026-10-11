@@ -6,6 +6,8 @@ music datasets, and write them as melody files the app reads.
 
 Writes (deterministically; rerunning gives the same files):
     eartrainer/app/data/melodies/leadsheets.js  OpenEWLD (MusicXML lead sheets)
+    eartrainer/app/data/melodies/jazzheads.js   OpenBook jazz standards (LilyPond) and
+                                                Charlie Parker's Omnibook heads (MusicXML)
     eartrainer/app/data/melodies/nottingham.js  Nottingham Music Database (ABC)
     eartrainer/app/data/melodies/essen.js       Essen Folksong Collection (**kern),
                                                 only with --essen: its CCARH licence allows
@@ -36,6 +38,7 @@ import subprocess
 import sys
 import unicodedata
 import xml.etree.ElementTree as ET
+import urllib.request
 import zipfile
 from fractions import Fraction
 from pathlib import Path
@@ -43,13 +46,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 CACHE = ROOT / "local" / "eartrainer-datasets"
 OUT = ROOT / "eartrainer" / "app" / "data" / "melodies"
-GENERATED = {"essen.js", "leadsheets.js", "nottingham.js"}
+GENERATED = {"essen.js", "leadsheets.js", "nottingham.js", "jazzheads.js"}
 
 SOURCES = {
     "essen": "https://github.com/ccarh/essen-folksong-collection",
     "openewld": "https://github.com/00sapo/OpenEWLD",
     "nottingham": "https://github.com/jukedeck/nottingham-dataset",
+    "openbook": "https://github.com/veltzer/openbook",
 }
+OMNIBOOK_URL = "https://homepages.loria.fr/evincent/omnibook/omnibook_xml.zip"
 
 LETTER = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 ACC = {-2: "bb", -1: "b", 0: "", 1: "#", 2: "##"}
@@ -1038,13 +1043,289 @@ def nottingham(lib: Library):
     return header, sections, count
 
 
+
+# --------------------------------------------------------------------------
+# Jazz heads: OpenBook (LilyPond lead sheets transcribed from the Real Book)
+# and Charlie Parker's Omnibook (MusicXML).
+
+LY_TOKEN = re.compile(r'%\{.*?%\}|%[^\n]*|"(?:\\.|[^"\\])*"|\\[A-Za-z]+|#\S+|[{}<>~]|\d+/\d+'
+                      r"|[a-gq](?:isis|eses|is|es|s)?[',]*[!?]?(?:\d+|\\breve)?\.*(?:\*\d+(?:/\d+)?)?(?![A-Za-z])"
+                      r"|[rRs](?:\d+|\\breve)?\.*(?:\*\d+(?:/\d+)?)?(?![A-Za-z])|=\s*\d+|[A-Za-z]+|\S", re.S)
+LY_NOTE = re.compile(r"^([a-g])(isis|eses|is|es|s)?([',]*)[!?]?((?:\d+|\\breve)?)(\.*)(?:\*(\d+)(?:/(\d+))?)?$")
+LY_REST = re.compile(r"^([rRs])((?:\d+|\\breve)?)(\.*)(?:\*(\d+)(?:/(\d+))?)?$")
+LY_ALTER = {None: 0, "is": 1, "isis": 2, "es": -1, "s": -1, "eses": -2}
+LETTERS7 = "CDEFGAB"
+
+
+def ly_duration(num, dots, mul, div, last):
+    """A LilyPond duration (in quarter-note beats); empty means the previous one."""
+    if not num:
+        base = last
+    else:
+        base = Fraction(8) if num == "\\breve" else Fraction(4, int(num))
+        d = base
+        for _ in dots:
+            d /= 2
+            base += d
+    if mul:
+        base = base * int(mul) / int(div or 1)
+    return base
+
+
+def parse_lilypond_voice(body: str):
+    """Melody events from a LilyPond voice in \\relative c' mode (as OpenBook's
+    template wraps it). Grace notes move the relative pitch but are not played;
+    repeats are read once, and of an \\alternative only the first ending.
+    Returns (events, tempo or None)."""
+    toks = [t for t in LY_TOKEN.findall(body) if not t.startswith("%")]
+    ev, tempo = [], None
+    state = {"step": 28, "last": Fraction(1), "tie": False}
+    i = 0
+
+    def note_event(step, alter, beats, grace):
+        if grace:
+            return
+        letter = LETTERS7[step % 7]
+        octave = step // 7
+        if state["tie"] and ev and ev[-1][0] == "n" and (ev[-1][1], ev[-1][2], ev[-1][3]) == (letter, alter, octave):
+            n0 = ev[-1]
+            ev[-1] = (n0[0], n0[1], n0[2], n0[3], n0[4] + beats)
+        else:
+            ev.append(("n", letter, alter, octave, beats))
+        state["tie"] = False
+
+    def rel_step(letter, marks):
+        li = "cdefgab".index(letter)
+        prev = state["step"]
+        best = None
+        for octv in range(prev // 7 - 1, prev // 7 + 2):
+            st = octv * 7 + li
+            if best is None or abs(st - prev) < abs(best - prev):
+                best = st
+        return best + 7 * marks.count("'") - 7 * marks.count(",")
+
+    def parse_seq(scale, grace, until="}"):
+        nonlocal i, tempo
+        while i < len(toks):
+            t = toks[i]
+            i += 1
+            if t == until:
+                return
+            if t == "{":
+                parse_seq(scale, grace)
+            elif t == "<":  # a chord: play its top note, carry on from its first
+                notes = []
+                while i < len(toks) and toks[i] != ">":
+                    m = LY_NOTE.match(toks[i])
+                    if m:
+                        st = rel_step(m.group(1), m.group(3))
+                        state["step"] = st
+                        notes.append((st, LY_ALTER[m.group(2)]))
+                    i += 1
+                i += 1  # '>'
+                dur = toks[i] if i < len(toks) and re.match(r"^\d+\.*$", toks[i]) else ""
+                if dur:
+                    i += 1
+                m = re.match(r"^(\d*)(\.*)$", dur)
+                beats = ly_duration(m.group(1), m.group(2), None, None, state["last"])
+                state["last"] = beats
+                if notes:
+                    state["step"] = notes[0][0]
+                    top = max(notes)
+                    note_event(top[0], top[1], beats * scale, grace)
+            elif t == "~":
+                state["tie"] = True
+            elif t in ("\\tuplet", "\\times"):
+                frac = toks[i]
+                i += 1
+                a, b = (int(x) for x in frac.split("/"))
+                f = Fraction(b, a) if t == "\\tuplet" else Fraction(a, b)
+                if i < len(toks) and toks[i] == "{":
+                    i += 1
+                    parse_seq(scale * f, grace)
+            elif t in ("\\grace", "\\acciaccatura", "\\appoggiatura", "\\slashedGrace"):
+                if i < len(toks) and toks[i] == "{":
+                    i += 1
+                    parse_seq(scale, True)
+                else:
+                    parse_note(toks[i], scale, True)
+                    i += 1
+            elif t == "\\repeat":
+                i += 2  # volta N
+            elif t == "\\alternative":
+                # { {first} {second} ... }: read the first ending, skip the rest
+                if i < len(toks) and toks[i] == "{":
+                    i += 1
+                    first = True
+                    while i < len(toks) and toks[i] != "}":
+                        if toks[i] == "{":
+                            i += 1
+                            if first:
+                                parse_seq(scale, grace)
+                                first = False
+                            else:
+                                depth = 1
+                                while i < len(toks) and depth:
+                                    depth += {"{": 1, "}": -1}.get(toks[i], 0)
+                                    i += 1
+                        else:
+                            i += 1
+                    i += 1
+            elif t == "\\relative":
+                m = LY_NOTE.match(toks[i]) if i < len(toks) else None
+                if m:
+                    state["step"] = 21 + "cdefgab".index(m.group(1)) + 7 * m.group(3).count("'") - 7 * m.group(3).count(",")
+                    i += 1
+            elif t == "\\transpose":
+                raise ValueError("transposed voice")
+            elif t == "\\tempo":
+                while i < len(toks) and toks[i].startswith('"'):
+                    i += 1
+                if i + 1 < len(toks) and re.match(r"^\d+\.?$", toks[i]) and toks[i + 1].startswith("="):
+                    unit = Fraction(4, int(toks[i].rstrip(".")))
+                    if toks[i].endswith("."):
+                        unit *= Fraction(3, 2)
+                    tempo = float(toks[i + 1].lstrip("= ")) * float(unit)
+                    i += 2
+            elif t in ("\\key",):
+                i += 2
+            elif t in ("\\time", "\\partial", "\\bar", "\\mark", "\\clef", "\\set", "\\override", "\\once", "\\tweak"):
+                i += 1
+            elif t in ("\\markup", "\\lyricmode"):
+                if i < len(toks) and toks[i] == "{":
+                    depth = 0
+                    while i < len(toks):
+                        depth += {"{": 1, "}": -1}.get(toks[i], 0)
+                        i += 1
+                        if depth == 0:
+                            break
+                else:
+                    i += 1
+            elif t.startswith("\\") or t.startswith("#") or t.startswith('"'):
+                continue
+            else:
+                parse_note(t, scale, grace)
+
+    def parse_note(t, scale, grace):
+        m = LY_NOTE.match(t)
+        if m:
+            st = rel_step(m.group(1), m.group(3))
+            state["step"] = st
+            beats = ly_duration(m.group(4), m.group(5), m.group(6), m.group(7), state["last"])
+            if m.group(4):
+                state["last"] = ly_duration(m.group(4), m.group(5), None, None, state["last"])
+            note_event(st, LY_ALTER[m.group(2)], beats * scale, grace)
+            return
+        m = LY_REST.match(t)
+        if m and not grace:
+            beats = ly_duration(m.group(2), m.group(3), m.group(4), m.group(5), state["last"])
+            if m.group(2):
+                state["last"] = ly_duration(m.group(2), m.group(3), None, None, state["last"])
+            ev.append(("r", beats * scale))
+            state["tie"] = False
+
+    parse_seq(Fraction(1), False, until=None)
+    return ev, tempo
+
+
+def openbook_songs(base: Path):
+    """(title, composer, style, voice body) for each OpenBook standard with a melody."""
+    order = ["VoiceReal", "VoiceFake", "VoiceNewreal", "VoiceAebersold", "VoiceWikifonia", "VoiceMy"]
+    for f in sorted((base / "src" / "openbook").glob("*.ly.tera")):
+        src = f.read_text(encoding="utf-8")
+        attrs = dict(re.findall(r'^(\w+) = "(.*)"$', src, re.M))
+        parts = dict(re.findall(r'\{% if part == "(Voice\w+)" %\}(.*?)\{% endif %\}', src, re.S))
+        name = next((n for n in order if n in parts), next(iter(parts), None))
+        if not name or "title" not in attrs:
+            continue
+        yield attrs["title"], attrs.get("composer", ""), attrs.get("style", "Jazz"), parts[name]
+
+
+# Composers whose tunes go in the Bebop Heads songbook.
+BEBOP = re.compile(r"Parker|Dizzy'? Gillespie|Monk|Bud Powell|Dameron|Navarro|Benny Harris|Sonny Stitt|J\.?\s?J\.? Johnson|Kenny Clarke|Denzil Best|Jimmy Heath|Benny Golson|Horace Silver|Sonny Rollins|Clifford Brown|Kenny Dorham|Hank Mobley", re.I)
+
+
+def clamp_bpm(t, default=132):
+    return int(round(min(200, max(60, t)))) if t else default
+
+
+def jazzheads(lib: Library):
+    sections = []
+    # OpenBook
+    base = fetch("openbook")
+    items = []
+    for title, composer, style, body in openbook_songs(base):
+        title = title_case(title.strip()) if title.isupper() or title.islower() else title.strip()
+        if lib.is_dup(title):
+            continue
+        try:
+            ev, tempo = parse_lilypond_voice(body)
+        except (ValueError, IndexError, ZeroDivisionError):
+            continue
+        phrase = incipit(ev, 8)
+        notes = place(phrase) if phrase else None
+        if not notes:
+            continue
+        by = clean_person(composer) or "Unknown"
+        for wrong, right in (("Thelonius", "Thelonious"), ("Errol Garner", "Erroll Garner")):
+            by = by.replace(wrong, right)
+        items.append({"id": lib.add(title), "title": title, "by": by, "cat": "bebop" if BEBOP.search(by) else "jazz",
+                      "bpm": clamp_bpm(tempo, 132), "notes": notes})
+    sections.append(("Jazz standards from OpenBook (opening phrase of the Real Book melody);"
+                     " bebop and hard-bop composers' tunes are in the Bebop Heads songbook", items))
+    # Charlie Parker's Omnibook
+    dest = CACHE / "omnibook"
+    xml_dir = dest / "Omnibook xml"
+    if not xml_dir.exists():
+        dest.mkdir(parents=True, exist_ok=True)
+        zpath = dest / "omnibook_xml.zip"
+        zpath.write_bytes(urllib.request.urlopen(OMNIBOOK_URL).read())
+        with zipfile.ZipFile(zpath) as z:
+            z.extractall(dest)
+    bop = []
+    seen = set()
+    for f in sorted(xml_dir.glob("*.xml")):
+        root = ET.parse(f).getroot()
+        raw = (root.findtext("work/work-title") or f.stem.replace("_", " ")).strip()
+        title = re.sub(r"\s*\(?\b(?:take\s*)?\d\)?$", "", raw).strip()  # "Kim 2", "Mohawk 1": one of each
+        title = {"Billies's Bounce": "Billie's Bounce", "Au Private": "Au Privave"}.get(title, title)
+        if title.lower() in seen or lib.is_dup(title):
+            continue
+        ev, tempo, _ = parse_musicxml(root)
+        phrase = incipit(ev or [], 10)
+        notes = place(phrase) if phrase else None
+        if not notes:
+            continue
+        seen.add(title.lower())
+        bop.append({"id": lib.add(title, "bop"), "title": title, "by": "Charlie Parker", "cat": "bebop",
+                    "bpm": clamp_bpm(tempo, 160), "notes": notes})
+    sections.append(("Bebop heads from Charlie Parker's Omnibook (the head's opening line)", bop))
+    count = sum(len(x) for _, x in sections)
+    header = [
+        "Jazz standards and bebop heads: the opening phrase of each melody, from the first",
+        "note to the first rest or long note after five notes (at most 8 notes for the",
+        "standards and 10 for the bebop heads: only an incipit). Shifted by whole octaves only.",
+        "",
+        "GENERATED by eartrainer/design/source/extract_melodies.py; do not edit by hand.",
+        f"Sources: {SOURCES['openbook']} (Mark Veltzer's OpenBook, melodies",
+        "  transcribed from the Real Book; MIT licence), and Charlie Parker's Omnibook",
+        f"  MusicXML by Ken Deguernel, Emmanuel Vincent and Gerard Assayag ({OMNIBOOK_URL};",
+        "  CC BY-NC-SA 2.0; cite their SMC 2016 paper). The Omnibook-derived entries in",
+        "  this file are shared under the same CC BY-NC-SA 2.0 terms. The compositions",
+        "  themselves remain under their owners' copyright (Atlantic Music Corp. for the",
+        "  Parker tunes); only short opening phrases are used, for ear training.",
+    ]
+    return header, sections, count
+
 # --------------------------------------------------------------------------
 
 
 def main():
     lib = Library()
     counts = {}
-    sources = [("leadsheets.js", leadsheets), ("nottingham.js", nottingham)]
+    # Jazz heads first: their Real Book and Omnibook versions win over the same
+    # titles in the Wikifonia lead sheets, which often open with a verse.
+    sources = [("jazzheads.js", jazzheads), ("leadsheets.js", leadsheets), ("nottingham.js", nottingham)]
     if "--essen" in sys.argv:
         sources.append(("essen.js", essen))
     for name, fn in sources:

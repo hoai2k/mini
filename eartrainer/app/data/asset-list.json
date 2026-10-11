@@ -55,6 +55,11 @@
     "status": "delivered"
   },
   {
+    "id": "book-bebop",
+    "file": "assets/books/bebop.webp",
+    "status": "delivered"
+  },
+  {
     "id": "icon",
     "file": "icons/icon-1024.png",
     "status": "delivered"

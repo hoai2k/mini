@@ -69,3 +69,48 @@ export function createChrome({ touch, isPlaying, hintEl }) {
   }
   return { update, scrollTrick, isIOS, standalone };
 }
+
+// Keeping the page at its own size. iPhone Safari ignores user-scalable=no,
+// so a pinch (two fingers holding a chord and drifting apart look like one)
+// or a quick double tap could zoom the page, with no way back. Block those
+// gestures, and if the page does end up zoomed, snap it back.
+export function preventZoom() {
+  const opts = { passive: false };
+  // Safari's pinch gestures.
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, (e) => e.preventDefault(), opts);
+  // Any two-finger move (a pinch in browsers without gesture events).
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) e.preventDefault();
+  }, opts);
+  // A second tap within 350 ms would zoom: cancel the zoom, but keep the tap
+  // working on buttons (fast repeated taps on − or + still count).
+  let lastEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = e.timeStamp;
+    if (now - lastEnd < 350 && e.cancelable && e.touches.length === 0 && !e.target.closest?.('input, select, textarea, .scroll')) {
+      e.preventDefault();
+      const b = e.target.closest?.('button, [role="radio"], label');
+      if (b && !b.disabled) b.click();
+    }
+    lastEnd = now;
+  }, opts);
+  document.addEventListener('dblclick', (e) => e.preventDefault(), opts);
+  // Surfaces that are played on (the keys, the navigator, the staff) own their
+  // touches outright: cancelling touchstart stops Safari from reading fast
+  // taps as a double-tap zoom. Pointer events, which they listen to, still fire.
+  for (const sel of ['#kbd', '#kbd-nav .nav-track', '#staff']) {
+    document.querySelector(sel)?.addEventListener('touchstart', (e) => e.preventDefault(), opts);
+  }
+  // Snap back: rewriting the viewport tag resets Safari's zoom.
+  const meta = document.querySelector('meta[name="viewport"]');
+  const base = meta?.content || '';
+  const vv = window.visualViewport;
+  let t = 0;
+  const snap = () => {
+    if (!meta || !vv || vv.scale <= 1.01) return;
+    meta.content = `${base}, maximum-scale=1`;
+    setTimeout(() => { meta.content = base; }, 300);
+  };
+  vv?.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(snap, 200); });
+  return { snap };
+}

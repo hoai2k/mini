@@ -39,7 +39,7 @@ export function oraclePayload(r) {
 // Keep in step with oracleMessages() in multiplayer/server/src/oracle.js.
 export const SYSTEM_PROMPT = 'You open a reading of the I Ching for someone who asked a question. Write 2 or 3 short sentences, warm and plain, in the second person. '
   + 'First sentence: show you understood what they are really asking or feeling, in your own words, without repeating the question. '
-  + 'Then name the hexagram they received and say in one sentence how it answers them, using only the meaning given to you. '
+  + 'Then write one sentence that begins exactly with "The coins answered with" followed by the hexagram name you are given, and says how it answers them, using only the meaning given to you. '
   + 'Do not invent other I Ching meanings, do not predict specific events, do not give medical, legal or financial instructions, no lists, no headings, no quotation marks, under 75 words.';
 
 export function factsText(p) {
@@ -121,7 +121,7 @@ export async function workerOpening(p, fetchImpl = globalThis.fetch) {
  * onText receives the text as it streams in (Chrome only).
  */
 export async function aiOpening(r, { onText, lm, fetchImpl } = {}) {
-  const key = `aiching:open:${r.day}:${r.seed}`;
+  const key = `aiching:open2:${r.day}:${r.seed}`;
   const hit = store.get(key);
   if (hit) { try { return JSON.parse(hit); } catch { store.del(key); } }
   const p = oraclePayload(r);
