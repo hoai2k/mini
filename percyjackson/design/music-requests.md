@@ -178,6 +178,15 @@ A style line to start any prompt with, if the tool takes one:
 
 ## Which tracks matter most
 
-Start with `title`, `camp`, `boss`, `museum` and `storm`. Those cover
-everything that is playable today. The chapter tracks can follow as the
-chapters open.
+1. **First five:** `title`, `camp`, `boss`, `museum` and `storm`. They
+   cover everything that is playable today.
+2. **Next five:** `minigame` (the archery range and climbing wall, playable
+   now), `oracle` (the prophecy scroll, seen after every chapter), then
+   `woods`, `highway` and `garden` for chapters 3–5, the next to open.
+3. **The rest** as their chapters open: `arch`, `waterland`, `casino`,
+   `desert`, `underworld`, `beach`, `olympus`, then `campfire` and the boss
+   variations.
+
+The four stingers (`victory`, `defeat`, `prophecy-line`, `claimed`) don't
+need generating by hand: `design/source/build_stingers.py` makes them with
+the ElevenLabs API when `ELEVENLABS_API_KEY` is set in the environment.

@@ -663,7 +663,10 @@ class Game {
     this.debris.update(dt);
     this.bolts.update(realDt);
     // camera + world
-    const local = this.players.filter((p) => !p.remote);
+    // the camera follows the heroes people play; AI companions are kept up by
+    // the party, they don't pull or zoom the view (falls back to everyone)
+    const humans = this.players.filter((p) => !p.remote && !p.ai && !p.dead);
+    const local = humans.length ? humans : this.players.filter((p) => !p.remote);
     this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {

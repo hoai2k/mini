@@ -46,7 +46,7 @@ export class CameraRig {
     const c = this._v.set(0, 0, 0);
     let spread = 0;
     const la = new THREE.Vector3();
-    for (const p of list) { c.add(p.pos); la.addScaledVector(p.vel, 0.28); la.addScaledVector(p.aimDir, p.aiming ? 1.4 : 0.6); }
+    for (const p of list) { c.add(p.pos); la.addScaledVector(p.vel, 0.28); if (p.aiming) la.addScaledVector(p.aimDir, 1.4); }   // auto-aim swapping targets must not drag the view
     if (list.length) { c.divideScalar(list.length); la.divideScalar(list.length); }
     for (const p of list) spread = Math.max(spread, Math.hypot(p.pos.x - c.x, p.pos.z - c.z));
     la.y = 0; if (la.length() > 3) la.setLength(3);
