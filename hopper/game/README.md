@@ -22,7 +22,7 @@ Each 3D district is a **trail**: a smooth route from the start totem through eve
 
 Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm build:pages` produces the static GitHub Pages edition; pushes to `main` deploy it automatically.
 
-Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title screen carries a single action: Press Start, Enter, or any controller button opens the play-select screen, requests fullscreen and starts the music where autoplay was refused. Play-select lists Continue (once there is a save) and the unlocked episodes, with the controller diagram alongside. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen and sound buttons.
+Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title screen carries a single action (plus an icon row at the bottom right: Instructions, Settings, Sound, Fullscreen): Press Start, Enter, or any controller button opens the play-select screen, requests fullscreen and starts the music where autoplay was refused. Play-select lists Continue (once there is a save) and the unlocked episodes, with the controller diagram alongside. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen and sound buttons.
 
 The original 2D edition's controls:
 
@@ -76,7 +76,7 @@ Each mission has twelve named chapters, roughly 52–61k world units (three fift
 
 The Smelter Leviathan and Eclipse Regent also patrol from side to side, aim their heavy shots at Hopper, cycle a visible laser-reflecting guard, and take their heaviest damage from reflected fire. The Leviathan crosses on the floor while the Regent passes overhead.
 
-Music is provided by the user: **Hopper the Grasshopper** accompanies the title and menus and carries on, uninterrupted, into episode one; **Grass March 1** loops through episode two, and **Dark Moon** through the alien world of episode three. Track positions are preserved when changing between menus, episodes and play, and when the tab is hidden or unfocused: leaving the tab pauses the music and suspends the effect audio, and returning resumes the same track at the same position. Music and effects have separate volume controls, and a sound button sits with the other icon buttons on the play-select screen and in the HUD. The theme starts on its own where the browser permits autoplay; where it is refused the sound button shows as off until it is pressed.
+Music is provided by the user: **Hopper the Grasshopper** accompanies the title and menus and carries on, uninterrupted, into episode one; **Grass March 1** loops through episode two, and **Dark Moon** through the alien world of episode three. Track positions are preserved when changing between menus, episodes and play, and when the tab is hidden or unfocused: leaving the tab pauses the music and suspends the effect audio, and returning resumes the same track at the same position. Music and effects have separate volume controls, and the Sound button (`aria-pressed` while sound is on, dimmed when off, saved as `hopper.muted`) sits in the bottom-right icon row of the title and play-select screens and in the HUD. The theme starts on its own where the browser permits autoplay; where it is refused the sound button shows as off until it is pressed.
 
 ## Implementation and verification
 

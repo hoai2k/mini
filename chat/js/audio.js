@@ -87,13 +87,16 @@ export const sfxMuted = () => muted;
 // separate from the away mute above and, like it, leaves friends' voices and
 // the call's microphone alone.
 let userMuted = false;
+// Checked at the moment of playing, so the title screen (before main.js has
+// started watching) is silent in the background too.
+const away = () => typeof document !== 'undefined' && (document.hidden || !document.hasFocus());
 export function setSoundOn(on) {
   userMuted = !on;
 }
 export const soundOn = () => !userMuted;
 
 export function sfx(name) {
-  if (muted || userMuted) return;
+  if (muted || userMuted || away()) return;
   if (!ctx || ctx.state !== 'running' || volume <= 0) return;
   try { SOUNDS[name]?.(); } catch {}
 }

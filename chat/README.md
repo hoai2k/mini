@@ -397,7 +397,10 @@ with its state (see `js/gamehost.js`).
   Chromium's synthetic touch gestures don't scroll it); the scroll-to-select
   logic is tested with a sideways wheel scroll.
 - Against [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md): the title screen,
-  Instructions (with a controller diagram), Settings and Fullscreen are in
-  place and menus work with a controller. Pause doesn't apply to a live call.
+  Instructions (with a controller diagram), Settings, Sound and Fullscreen are in
+  place and menus work with a controller. The title's Sound button mutes the
+  app's own sound effects only (saved in Settings storage as `muted`); the
+  microphone and friends' voices are untouched, and the effects also go quiet
+  whenever the tab is hidden or the window loses focus. Pause doesn't apply to a live call.
   Real Xbox controller testing and iOS Safari testing are still outstanding;
   only simulated input and headless Chromium have been checked.
