@@ -1933,7 +1933,7 @@
       "from": "design/references/film-planning/originals/concept-tower-climb.png"
     },
     "crew-bosun": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-bosun.webp",
       "size": [
         220,
@@ -1944,7 +1944,7 @@
       "interim": "interim/crew-bosun.webp"
     },
     "crew-asleep-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-asleep-b.webp",
       "size": [
         260,
@@ -1955,7 +1955,7 @@
       "interim": "interim/crew-asleep-b.webp"
     },
     "crew-squire-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-b.webp",
       "size": [
         220,
@@ -1965,7 +1965,7 @@
       "edition": "film"
     },
     "crew-squire-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-squire-idle-c.webp",
       "size": [
         220,
@@ -1985,7 +1985,7 @@
       "edition": "film"
     },
     "crew-helmsman-idle-c": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-helmsman-idle-c.webp",
       "size": [
         220,
@@ -1995,7 +1995,7 @@
       "edition": "film"
     },
     "crew-manatarms-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crew-manatarms-idle-b.webp",
       "size": [
         220,
