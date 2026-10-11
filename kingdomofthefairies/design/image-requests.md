@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 82 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 95 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 82 of 82 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 82 of 95 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -697,6 +697,104 @@ Backcloths for the prologue and Acts V and VI, and the transformations. Full-fra
 2560 × 1440 px, anchor full frame.
 
 > From references/film-planning/originals/concept-apotheosis.png (attach it) without figures: clouds parting onto a marble colonnade in tiers of light, gilded and starry. A painted theatre backcloth seen square-on, full bleed to every edge, scene painting in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; faint film grain; no figures unless the prompt asks for them.
+
+### F5. Crew variety and idle frames
+
+Requested 11 October 2026 after the sprite audit. Two crew roles shared one sprite, so the deck and the grotto showed twins; the bosun makes four. The idle frames give the crew and the Water Fairy the old-film idle the original revellers have (two extra frames each, flicked between with the film tricks in src/animation.js). sailor-seated-plain is for the ?widowsbay=partial edition, where the sailor rides the moon boat without his guitar. Until each arrives the game draws the still (or a mirrored stand-in for the bosun and the second sleeper).
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `crew-bosun` | 220 × 420 | bottom centre | `reveller-shaggy` | requested |
+| `crew-asleep-b` | 260 × 120 | bottom centre | new | requested |
+| `crew-squire-idle-b` | 220 × 420 | bottom centre | new | requested |
+| `crew-squire-idle-c` | 220 × 420 | bottom centre | new | requested |
+| `crew-helmsman-idle-b` | 220 × 420 | bottom centre | new | requested |
+| `crew-helmsman-idle-c` | 220 × 420 | bottom centre | new | requested |
+| `crew-manatarms-idle-b` | 220 × 420 | bottom centre | new | requested |
+| `crew-manatarms-idle-c` | 220 × 420 | bottom centre | new | requested |
+| `crew-bosun-idle-b` | 220 × 420 | bottom centre | new | requested |
+| `crew-bosun-idle-c` | 220 × 420 | bottom centre | new | requested |
+| `water-fairy-stand-idle-b` | 260 × 420 | bottom centre | new | requested |
+| `water-fairy-stand-idle-c` | 260 × 420 | bottom centre | new | requested |
+| `sailor-seated-plain` | 220 × 220 | bottom centre | `sailor-seated` | requested |
+
+#### `crew-bosun` — The bosun
+
+220 × 420 px, anchor bottom centre.
+
+> The lanky bosun, one of the prince's crew as in references/film-planning/originals/char-crew.png (attach it): azure and gold striped livery with fleurs-de-lis, magenta-plumed caps, standing, a coil of rope over one shoulder and a lantern held up in one hand; plainly a different man from the squire, helmsman and man-at-arms (attach crew-squire.webp, crew-helmsman.webp and crew-manatarms.webp for scale and to keep him distinct). Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-asleep-b` — A second drowned crewman, asleep
+
+260 × 120 px, anchor bottom centre.
+
+> one of the prince's crew as in references/film-planning/originals/char-crew.png (attach it): azure and gold striped livery with fleurs-de-lis, magenta-plumed caps, the man-at-arms this time, lying asleep on his back on the sea floor with his helmet tipped over his eyes and his halberd beside him, a few bubbles; the same scale as crew-asleep.webp (attach it). Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-squire-idle-b` — The squire, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-squire.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the head turned a little toward the viewer and the free hand lifted slightly. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-squire-idle-c` — The squire, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-squire.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-helmsman-idle-b` — The helmsman, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-helmsman.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the head turned a little toward the viewer and the free hand lifted slightly. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-helmsman-idle-c` — The helmsman, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-helmsman.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-manatarms-idle-b` — The man-at-arms, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-manatarms.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the head turned a little toward the viewer and the free hand lifted slightly. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-manatarms-idle-c` — The man-at-arms, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-manatarms.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-bosun-idle-b` — The bosun, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-bosun.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the head turned a little toward the viewer and the free hand lifted slightly. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `crew-bosun-idle-c` — The bosun, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> An idle frame for crew-bosun.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `water-fairy-stand-idle-b` — The Water Fairy, idle frame B
+
+260 × 420 px, anchor bottom centre.
+
+> An idle frame for water-fairy-stand.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the head turned a little toward the viewer and her wand hand lifted slightly. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `water-fairy-stand-idle-c` — The Water Fairy, idle frame C
+
+260 × 420 px, anchor bottom centre.
+
+> An idle frame for water-fairy-stand.webp (attach it): exactly the same figure, costume, colours, scale and foot position, so that laid over it only one detail moves: the weight shifted onto the other foot and the head tilted the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-seated-plain` — The sailor seated, without the guitar
+
+220 × 220 px, anchor bottom centre.
+
+> The sailor exactly as in sailor-seated.webp (attach it): the same scale, pose, seat height and foot position, but with no guitar. His hands rest on his knees and a sword in its scabbard lies across his lap. Nothing else changes. For the ?widowsbay=partial edition. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

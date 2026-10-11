@@ -150,6 +150,11 @@ def star(n=1):
     return im.crop(im.getbbox())
 
 
+# A new role's stand-in: a delivered figure, mirrored (the bosun until his own
+# sprite arrives, a second sleeper beside the first).
+MIRRORS = {'crew-bosun': 'crew-squire', 'crew-asleep-b': 'crew-asleep'}
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(TAB, exist_ok=True)
@@ -188,6 +193,11 @@ def main():
     for aid in STARS:
         slot = slots[aid]
         fit(star(3 if aid == 'keepsake-star' else 1), *slot['size'], slot['anchor']).save(os.path.join(OUT, aid + '.webp'), quality=90, method=6)
+        slot['interim'] = f'interim/{aid}.webp'
+    # New roles drawn as a delivered figure mirrored until their own art arrives.
+    for aid, src in MIRRORS.items():
+        slot = slots[aid]
+        Image.open(os.path.join(ROOT, 'assets', src + '.webp')).transpose(Image.FLIP_LEFT_RIGHT).save(os.path.join(OUT, aid + '.webp'), quality=90, method=6)
         slot['interim'] = f'interim/{aid}.webp'
     for scene in TABLEAUX:
         im = Image.open(os.path.join(SRC, f'concept-{scene}.png')).convert('RGB')

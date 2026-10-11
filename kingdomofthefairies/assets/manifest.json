@@ -1931,6 +1931,138 @@
       "file": "tableaux/tower-climb.webp",
       "edition": "film",
       "from": "design/references/film-planning/originals/concept-tower-climb.png"
+    },
+    "crew-bosun": {
+      "status": "requested",
+      "file": "crew-bosun.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film",
+      "interim": "interim/crew-bosun.webp"
+    },
+    "crew-asleep-b": {
+      "status": "requested",
+      "file": "crew-asleep-b.webp",
+      "size": [
+        260,
+        120
+      ],
+      "anchor": "bottom centre",
+      "edition": "film",
+      "interim": "interim/crew-asleep-b.webp"
+    },
+    "crew-squire-idle-b": {
+      "status": "requested",
+      "file": "crew-squire-idle-b.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-idle-c": {
+      "status": "requested",
+      "file": "crew-squire-idle-c.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-idle-b": {
+      "status": "requested",
+      "file": "crew-helmsman-idle-b.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-idle-c": {
+      "status": "requested",
+      "file": "crew-helmsman-idle-c.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-b": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-b.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-c": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-c.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-idle-b": {
+      "status": "requested",
+      "file": "crew-bosun-idle-b.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-idle-c": {
+      "status": "requested",
+      "file": "crew-bosun-idle-c.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand-idle-b": {
+      "status": "requested",
+      "file": "water-fairy-stand-idle-b.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand-idle-c": {
+      "status": "requested",
+      "file": "water-fairy-stand-idle-c.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sailor-seated-plain": {
+      "status": "requested",
+      "file": "sailor-seated-plain.webp",
+      "size": [
+        220,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
