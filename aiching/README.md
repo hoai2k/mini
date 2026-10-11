@@ -52,9 +52,13 @@ can be shared as a link and the question is never sent to a server.
 | `design/source/build_requests.py` | Generates both from its own data and `hexagrams.json` |
 | `intake/` | Drop box for delivered art |
 
-Until a picture is delivered the app draws a stand-in (`src/art.js`): a misty
-landscape in each hexagram's colours, the trigram's lines, a seal character
-for each topic.
+All 96 requested pictures are delivered under `app/assets/`: 12 interface
+assets, 8 trigrams, 12 topics, and 64 hexagram scenes. They were generated
+with the built-in image generator; the final prompt set is recorded in
+`design/generated/generation-prompts.json`. Transparent assets retain alpha,
+and opaque artwork is stored as WebP at the requested dimensions.
+
+The app still supports stand-ins (`src/art.js`) for future undelivered assets.
 
 ## Checks
 
