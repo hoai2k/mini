@@ -7,7 +7,7 @@ Until a file is delivered the app draws a stand-in, so nothing here blocks play.
 
 **Round 2:** the revised app icon and library cover are delivered and in use.
 
-**Round 3:** one new image, marked `requested`: `book-bebop`. The app shows a stand-in until it arrives.
+**Round 3:** delivered and in use.
 
 **House style** (already included in every prompt): Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
@@ -24,7 +24,7 @@ Until a file is delivered the app draws a stand-in, so nothing here blocks play.
 | delivered | `book-jazz` | `app/assets/books/jazz.webp` | 512×512, PNG (shipped as 256×256 WebP) |
 | delivered | `book-licks` | `app/assets/books/licks.webp` | 512×512, PNG (shipped as 256×256 WebP) |
 | delivered | `book-popular` | `app/assets/books/popular.webp` | 512×512, PNG (shipped as 256×256 WebP) |
-| requested | `book-bebop` | `app/assets/books/bebop.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-bebop` | `app/assets/books/bebop.webp` | 512×512, PNG (shipped as 256×256 WebP) |
 | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 
@@ -133,11 +133,11 @@ An emblem for the songbook “Jazz & Blues Licks”: a straight side-view brass 
 An emblem for the songbook “Film & Pop Hooks”: a cinema film reel and a vintage microphone. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
 ```
 
-### `book-bebop` · requested
+### `book-bebop` · delivered
 
 - File: `eartrainer/app/assets/books/bebop.webp`
 - Size: 512×512, PNG (shipped as 256×256 WebP)
-- Note: Round 3: for the new Bebop Heads songbook (Charlie Parker's Omnibook and other bebop tunes). Keep it distinct from the Jazz Standards saxophone: side view, alto, a flurry of notes.
+- Note: Round 3 delivered: for the new Bebop Heads songbook (Charlie Parker's Omnibook and other bebop tunes). Keep it distinct from the Jazz Standards saxophone: side view, alto, a flurry of notes.
 
 ```text
 An emblem for the songbook “Bebop Heads”: a brass alto saxophone seen from the side, angled upward, with a fast flurry of small glowing eighth notes streaming from its bell in a tight zigzag line, and a 1940s club neon sign glow behind. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.

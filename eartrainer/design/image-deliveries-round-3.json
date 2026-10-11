@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-11",
+  "assets": [
+    {
+      "id": "book-bebop",
+      "file": "eartrainer/app/assets/books/bebop.webp",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGB",
+      "tool": "built-in image_gen",
+      "prompt": "An emblem for the songbook \u201cBebop Heads\u201d: a brass alto saxophone seen from the side, angled upward, with a fast flurry of small glowing eighth notes streaming from its bell in a tight zigzag line, and a 1940s club neon sign glow behind. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.\nSquare composition. Reference image is only a palette and painterly material reference. Show the entire conventional alto saxophone in a clean side silhouette, including its curved neck, dark mouthpiece, keyed body, U-shaped bow and flared bell pointing upward. Keep the saxophone anatomy coherent. Simplify for a small songbook emblem. Neon glow has no lettering. No piano or other scene objects.",
+      "reference": "eartrainer/app/assets/books/jazz.webp",
+      "generated_source": "exec-5fd8cd49-3d13-466f-857c-a287a6211909.png",
+      "master": "eartrainer/intake/bebop.png"
+    }
+  ],
+  "notes": "512px PNG intake master; resized to 256px WebP for the app using Pillow."
+}
