@@ -17,7 +17,11 @@ for (const [search, legacy] of [['', false], ['?qa', false], ['?widowsbay', true
   assert.equal(Object.values(result.slots).some((sl) => sl.edition === 'film'), !legacy);
   if (!legacy) {
     assert.equal(result.slots['prince-stand'].status, 'delivered');
-    assert.match(result.slots['prince-stand'].file, /^interim\//);
+    for (const [id, sl] of Object.entries(manifest.slots)) if (sl.edition === 'film') {
+      // delivered art loads as delivered; a slot still requested loads its interim cut-out
+      if (sl.status === 'delivered') assert.equal(result.slots[id].file, sl.file, id);
+      else if (sl.interim) assert.equal(result.slots[id].file, sl.interim, id);
+    }
     assert.ok(result.slots['tableau-curse']);
   } else assert.equal(result.slots['prince-stand'], undefined);
   assert.equal(JSON.stringify(manifest), original, 'shared source manifest is untouched');

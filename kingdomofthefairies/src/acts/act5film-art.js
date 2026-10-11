@@ -208,7 +208,10 @@ export function onEventBurning(k, e, st) {
 
 // The tower cut open like a dollhouse, on the house's floors: the delivered
 // tower-interior cloth, or the fire tableau darkened behind stone floors.
-const TOWER_ART = [640, 654, 518, 666];  // as Act V's house art
+// The cloth's floors are 500 px apart at y 636, 1136 and 1636 of its 1800, so
+// at 0.348 scale (one storey) they land on HOUSE.floors and its walls on
+// wallL/wallR.
+const TOWER_ART = [640, 683, 487, 627];
 function towerInterior(k, st, t) {
   const c = k.c, H = HOUSE;
   const painted = k.asset('tower-interior', ...TOWER_ART);
@@ -233,19 +236,19 @@ function towerInterior(k, st, t) {
   if (!st.p.carry && st.carry.stone) { /* the barred shutter (opened by Aurora's lamp) */ }
   for (const cn of st.conns) connector(k, st, cn, t);
   if (st.broke) rubble(k, st, t);
-  if (!painted) {
-    H.floors.forEach((fy, f) => {
-      for (const [a, b] of st.spans[f]) {
-        c.fillStyle = k.col('#6d6872'); c.fillRect(a, fy, b - a, 14);
-        c.fillStyle = k.col('#8c8792'); c.fillRect(a, fy, b - a, 3);
-      }
-      if (f > 0) for (let gi = 0; gi < st.spans[f].length - 1; gi++) {
-        const gx0 = st.spans[f][gi][1], gx1 = st.spans[f][gi + 1][0];
-        c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.5 + 0.25 * Math.sin(t * 7 + f);
-        c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-      }
-    });
-  }
+  H.floors.forEach((fy, f) => {
+    if (!painted) for (const [a, b] of st.spans[f]) {
+      c.fillStyle = k.col('#6d6872'); c.fillRect(a, fy, b - a, 14);
+      c.fillStyle = k.col('#8c8792'); c.fillRect(a, fy, b - a, 3);
+    }
+    // the burnt gaps, cut through the painted floors too
+    if (f > 0) for (let gi = 0; gi < st.spans[f].length - 1; gi++) {
+      const gx0 = st.spans[f][gi][1], gx1 = st.spans[f][gi + 1][0];
+      if (painted) { c.fillStyle = k.col('#140a0c'); c.fillRect(gx0, fy - 2, gx1 - gx0, 18); }
+      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.5 + 0.25 * Math.sin(t * 7 + f);
+      c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+    }
+  });
   // the demons who set it alight, dancing with their torches at the foot
   for (const [x, id, ph0] of [[318, 'demon-red', 0], [962, 'demon-teal', 1.7]]) {
     const hop = Math.abs(Math.sin(t * 4 + ph0)) * 8;
@@ -261,6 +264,16 @@ function towerInterior(k, st, t) {
 // Out across the clifftop with her, the tower falling behind.
 function clifftop(k, st, t) {
   const c = k.c;
+  // The delivered cliff-top cloth at 1.45x, its stone ledge (y 420, x 120-730
+  // of its 1280 x 720) on the path: QUAY.y, from x 174 to 1058.
+  if (k.asset('cliff-whirlpool', 928, QUAY.y + 435, 1856, 1044)) {
+    const glow = c.createRadialGradient(0, QUAY.y - 160, 20, 0, QUAY.y - 160, 420);
+    glow.addColorStop(0, 'rgba(255,150,70,0.55)'); glow.addColorStop(1, 'rgba(255,120,60,0)');
+    c.save(); c.globalAlpha = 0.7 + 0.3 * Math.sin(t * 6); c.fillStyle = glow; c.fillRect(0, 0, 640, 720); c.restore();
+    hazards(k, st, t);
+    player(k, st, t);
+    return;
+  }
   const g = c.createLinearGradient(0, 0, 0, QUAY.y);
   g.addColorStop(0, k.col('#1c1222')); g.addColorStop(1, k.col('#5a2a2a'));
   c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
