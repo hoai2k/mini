@@ -36,6 +36,8 @@ export const TUNE = {
 
 // Cues in the take: the rose leaves her hand, reaches him, the sleepers rise.
 export const ROSE_CUES = { fly: 0.7, arrive: 1.5, wake: 1.6 };
+// Where the Water Fairy stands (film edition): he swims to her for her blessing.
+export const FAIRY_AT = { x: 1000, y: 4150 - 320 };
 export const PHASE_LEN = { open: 6.4, choice: 4.4, ride: 20, iris: 1.4, drown: 2.0 };
 
 // ---------------------------------------------------------------- the set
@@ -247,7 +249,7 @@ export default {
         swimStart: 'Swim down after the sword. Press A to kick. Sound the conch to wake your crew.',
         conchBlow: 'The conch sings. Swim close to your crew to wake them.',
         guitarCatch: 'You catch the enchanted sword.',
-        witchOffer: 'The Water Fairy offers her blessing. Press A to accept it.',
+        witchOffer: 'The Water Fairy waits by the wreck. Swim to her for her blessing.',
         roseTake: 'Her blessing revives the rest of your crew.',
         rideStart: 'The marine procession. Sail, change row and leap to gather the pearls.',
         drown: 'The prince sinks.',
@@ -430,9 +432,9 @@ function stepSwim(st, dt, input) {
     const o = st.offer, pt = st.phaseT;
     if (pt >= 1.6 && !o.said) { o.said = true; st.events.push({ type: 'witchOffer' }); }
     if (pt >= 2.0) {
-      // The film has no bargain: the Water Fairy blesses him (A, or after a
-      // moment), and the blessing revives the rest of his crew.
-      if (FILM) { if (input.a || pt >= 6) choose(st, 'take'); }
+      // The film has no bargain: he swims to the Water Fairy and she blesses
+      // him, and the blessing revives the rest of his crew.
+      if (FILM) { if (Math.abs(s.x - FAIRY_AT.x) < 140 && s.y > FAIRY_AT.y) choose(st, 'take'); }
       else if (input.a) choose(st, 'take');
       else if (input.b || s.y < FLOOR - 470) choose(st, 'refuse');
     }

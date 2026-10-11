@@ -22,8 +22,14 @@ export const START = { row: 2, x: 200 };
 export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR). The
 // throne stands on the backcloth's painted dais, which is centred on it.
-// The film edition's opening transformation, seconds (four sets, three dissolves).
-export const TRANSFORM = 5.2;
+// The film edition's opening passage: three sets walked left to right (stage
+// px, feet at y). Each lobster guard's claws open and shut across the way.
+export const PASSAGE = {
+  y: 640, x0: 70, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
+  guards: [{ x: 520, phase: 0 }, { x: 900, phase: 1.3 }], open: 1.7, shut: 1.3, guardW: 70,
+  pearls: [[420, 470], [640, 400], [860, 470]],
+};
+export const TRANSFORM = PASSAGE.fade;
 export const THRONE_BX = 800, WITCH_BX = 965, LANTERN_BX = 600;
 export const DAIS_Y = 372;                      // where the throne stands
 export const LANTERN_Y = 249;                   // the gaze lantern's painted pupil
@@ -186,10 +192,10 @@ export default {
       checkpoint: null,
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
-    // The film edition opens on the transformation of tableaux 19-21: the
-    // lobster palace and the sea flora dissolve into the azure grotto and
-    // Neptune's court (act3-art.js). Not on a resume; A skips it.
-    if (FILM && k <= 0 && !(from && from.x != null)) st.transform = 0;
+    // The film edition opens with the passage of tableaux 19-21: he walks
+    // through the lobster palace (past its guards' claws), the sea flora and
+    // the azure grotto into Neptune's court (stepPassage). Not on a resume.
+    if (FILM && k <= 0 && !(from && from.x != null)) startPassage(st);
     if (k <= 0 && !(from && from.x != null)) return st;
     // Resume: stand in the scene's groove, lanterns full, hazards afresh but fair.
     const x = clamp(from.x ?? SCENES[k].x, XMIN, XMAX), row = clamp(from.row ?? SCENES[k].row, 0, 2) | 0;
@@ -204,16 +210,13 @@ export default {
     return st;
   },
 
+  // (see stepPassage for the film edition's opening walk)
   step(st, dt, input = {}) {
     st.statusT += dt;
     st.t += dt;
     st.beat = input.beat ?? st.beat + dt / BEAT;
     if (st.status !== 'play') return;
-    if (st.transform != null) {
-      st.transform += dt;
-      if ((input.a && st.transform > 0.25) || st.transform >= TRANSFORM) { st.transform = null; st.events.push({ type: 'courtOpens' }); }
-      return;
-    }
+    if (st.transform != null) { stepPassage(st, dt, input); return; }
     st.phaseT += dt;
     const emit = (e) => st.events.push(e);
 
@@ -435,3 +438,43 @@ function hit(st, cause, emit) {
   }
 }
 
+
+// ---------------------------------------------------------------- the passage (film)
+function startPassage(st) {
+  st.transform = 0;
+  st.tf = { set: 0, x: 140, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0 };
+}
+// A guard's claws: open (passable) or shut across the way.
+export const guardOpen = (g, t) => ((t + g.phase) % (PASSAGE.open + PASSAGE.shut)) < PASSAGE.open;
+function stepPassage(st, dt, input) {
+  const P = PASSAGE, f = st.tf;
+  st.transform += dt; f.t += dt;
+  if (f.fade > 0) {
+    f.fade += dt;
+    if (f.fade >= P.fade) {
+      f.fade = 0;
+      if (f.set >= 2) { st.transform = null; st.tf = null; st.events.push({ type: 'courtOpens' }); return; }
+      f.set++; f.x = P.x0 + 40; f.vx = 0;
+      st.events.push({ type: 'passageSet', set: f.set });
+    }
+    return;
+  }
+  f.knockT = Math.max(0, f.knockT - dt);
+  const mx = f.knockT > 0 ? 0 : clamp(input.moveX || 0, -1, 1);
+  if (Math.abs(mx) > 0.15) f.face = Math.sign(mx);
+  f.vx += clamp(mx * P.walk - f.vx, -P.acc * dt, P.acc * dt);
+  let nx = clamp(f.x + f.vx * dt, P.x0, P.exit + 20);
+  if (f.set === 0) for (const g of P.guards) {
+    const shut = !guardOpen(g, f.t), inside = Math.abs(nx - g.x) < P.guardW / 2 + P.hw;
+    if (shut && inside) {
+      // caught in the claws as they shut: knocked back; shut ahead: blocked
+      if (Math.abs(f.x - g.x) < P.guardW / 2 + P.hw) { f.knockT = 0.5; f.vx = -P.knock; nx = g.x - P.guardW / 2 - P.hw - 30; st.events.push({ type: 'clawSnap', x: g.x }); }
+      else nx = f.x;
+    }
+  }
+  f.x = nx; f.walk += Math.abs(f.vx) * dt;
+  if (f.set === 1) P.pearls.forEach(([px, py], i) => {
+    if (!f.got.includes(i) && Math.abs(px - f.x) < 50) { f.got.push(i); st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: px, y: py }); }
+  });
+  if (f.x >= P.exit) f.fade = 0.0001;
+}

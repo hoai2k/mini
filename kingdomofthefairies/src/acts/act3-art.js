@@ -2,7 +2,7 @@
 // stand-in until its file is delivered (ids and sizes are in
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
 import {
-  ROWY, ROWSCALE, PEDESTAL, TRANSFORM, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
+  ROWY, ROWSCALE, PEDESTAL, PASSAGE, guardOpen, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
   beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
@@ -49,24 +49,37 @@ export function draw(k, st, t) {
   c.globalAlpha = 1;
 }
 
-// The film's transformation (tableaux 19-21): the lobster palace, the sea
-// flora and the azure grotto dissolve one into the next, and the last into
-// Neptune's court itself, where play begins. Each set holds, then dissolves.
+// The film's passage (tableaux 19-21): he walks through the lobster palace,
+// past its guards' claws, the sea flora and the azure grotto, each set
+// dissolving into the next and the last into Neptune's court.
 const TSETS = ['lobster-palace', 'sea-flora', 'azure-grotto'];
+const TNAMES = ['The Lobster Palace', 'The Sea Flora', 'The Azure Grotto'];
 function transformation(k, st, t) {
-  const c = k.c, seg = TRANSFORM / 4, f = st.transform / seg, i = Math.floor(f), d = clamp((f - i - 0.55) / 0.45, 0, 1);
-  const set = (n, a) => {
-    if (a <= 0) return;
-    c.save(); c.globalAlpha = a;
-    if (n < TSETS.length) {
-      const z = 1 + 0.03 * ((st.transform - n * seg) / seg);
-      if (!k.asset(TSETS[n], 640, 720 + 30 * (z - 1) * 10, 1280 * z, 720 * z)) { c.fillStyle = k.col(['#5a3a4a', '#4a6a5a', '#2a5a7a'][n]); c.fillRect(0, 0, 1280, 720); }
-    } else { hall(k, st, t); dais(k, st, t, 0); c.save(); c.translate(-st.cam, 0); floor(k, st.cam); c.restore(); }
+  const c = k.c, f = st.tf, P = PASSAGE;
+  if (!f) return;
+  if (!k.asset(TSETS[f.set], 640, 720, 1280, 720)) { c.fillStyle = k.col(['#5a3a4a', '#4a6a5a', '#2a5a7a'][f.set]); c.fillRect(0, 0, 1280, 720); }
+  if (f.set === 0) for (const g of P.guards) {
+    const open = guardOpen(g, f.t);
+    c.save(); c.translate(g.x, P.y + 4);
+    if (!k.asset(open ? 'lobster-guard-open' : 'lobster-guard-closed', 0, 0, 230, 156)) { c.fillStyle = k.col('#c8321e'); c.fillRect(-30, -140, 60, 140); }
     c.restore();
-  };
-  set(i, 1); set(i + 1, d);
-  const names = ['The Lobster Palace', 'The Sea Flora', 'The Azure Grotto', "Neptune's Court"];
-  card(k, names[Math.min(3, i + (d > 0.5 ? 1 : 0))], 'Press A to begin', Math.min(1, st.transform / 0.5));
+    // a red bar across the way while the claws are shut
+    if (!open) { c.save(); c.globalAlpha = 0.35; c.fillStyle = k.col('#c8321e'); c.fillRect(g.x - P.guardW / 2, P.y - 170, P.guardW, 170); c.restore(); }
+  }
+  if (f.set === 1) P.pearls.forEach(([px, py], i) => {
+    if (f.got.includes(i)) return;
+    if (!k.asset('pearl', px, py + 14, 30, 30)) { c.fillStyle = k.col('#f7f2fa'); k.circle(px, py, 10); }
+  });
+  // the prince (the recast sailor sprites)
+  const moving = Math.abs(f.vx) > 20, step = Math.floor(f.walk / 34) % 2;
+  c.save(); c.translate(f.x, P.y); c.scale(f.face, 1);
+  if (!k.asset(f.knockT > 0 ? 'sailor-fall' : moving ? (step ? 'sailor-walk-a' : 'sailor-walk-b') : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
+  c.restore();
+  // the way on glows at the right
+  c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(P.exit + 40, P.y - 90, 40, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
+  const sub = f.set === 0 ? 'Walk on past the guards while their claws are open' : f.set === 1 ? 'Gather the pearls among the sea flowers' : 'On into Neptune\u2019s court';
+  if (f.fade === 0) card(k, TNAMES[f.set], sub, Math.min(1, clamp((f.t - 0.2) / 0.5, 0, 1)) * (f.set === 0 && f.t > 6 ? 0 : 1) * (f.set > 0 && f.x > 600 ? 0 : 1), { y: 92 });
+  if (f.fade > 0) k.wash('#000000', Math.sin(Math.PI * f.fade / P.fade));
 }
 
 export function drawOver(k, st) {
@@ -75,6 +88,11 @@ export function drawOver(k, st) {
 }
 
 export function onEvent(k, e, st) {
+  if (st.tf) {
+    if (e.type === 'pearl') k.burst(e.x, e.y, '#eef3ea', 8, 'sparkle');
+    if (e.type === 'clawSnap') { k.shake(0.35); k.burst(e.x, PASSAGE.y - 90, '#c8321e', 12, 'streak'); }
+    return;
+  }
   if (e.x != null) e = { ...e, x: e.x - st.cam };
   if (e.type === 'pearl') { k.burst(e.x, e.y - 20, '#eef3ea', 8, 'sparkle'); k.text('+10', e.x, e.y - 60); }
   if (e.type === 'spotted') { k.flash(0.55); k.shake(0.3); k.text('Spotted!', e.x, e.y - 200, true); k.burst(e.x, e.y - 80, '#e0127a', 14, 'streak'); }

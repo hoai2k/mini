@@ -15,7 +15,7 @@ import act5, {
   BEAT_S, GRACE, LANTERNS, CLIFF, HOLDS, QUAY,
   stepCliff, stepHouse, stepQuay, hit, checkpoint, setPhase, climberPos,
 } from './act5.js';
-import { beatHit, BEAT_WINDOW, clamp, lerp } from './shared.js';
+import { clamp, lerp } from './shared.js';
 import * as art from './act5film-art.js';
 
 // ---------------------------------------------------------------- the swim
@@ -40,8 +40,20 @@ export const TOWER_HOLDS = [
 export const TOWER_HALF = TOWER_HOLDS.findIndex((h) => h.x === 560 && h.y === 860);
 
 // Cut-scene lengths, seconds.
-export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedding: 7.5, apotheosis: 8.5, defeat: 1.8 };
-export const BARREL = { pushes: 3, every: 2 };  // on-beat pushes to roll it over
+export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
+
+// The walking scenes between the climbs (all stage px, feet at `y`): the
+// clifftop he dives from, the cliff he rolls the witch's barrel over, the
+// wedding street and the apotheosis. Each was measured on its delivered set.
+export const WALK = { speed: 240, acc: 2000, g: 2000, jump: 720, cut: 2400, buffer: 0.13 };
+export const DIVE = { y: 372, x0: 170, edge: 360, start: 210 };          // coast-gap's cliff path
+export const BARREL = {                                                  // cliff-whirlpool's ledge
+  y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 120,
+  shake: 0.7, lurch: 0.35, lurchDist: 150, every: [1.6, 2.4], knock: 320,
+};
+export const WEDDING = { y: 652, x0: 60, gate: 880, start: 90, follow: 96, petals: 14 };
+export const APOTH = { y: 646, x0: 120, x1: 1160, mark: 640, near: 40, start: 220 };
+const PRINCE_HW = 18;
 
 const CARRY_DEFAULT = { tea: 0, guitar: false, rose: false, pearl: false, stone: false, sleepers: 0 };
 
@@ -104,7 +116,7 @@ export const actTower = {
   action: 'A: leap',
   scenes: TOWER_SCENES,
   mood: (st) => (st.phase === 'swim' ? 'storm' : st.phase === 'dive' || st.phase === 'window' ? 'tender' : 'storm'),
-  touchVerb: (st) => (st.phase === 'swim' ? 'Dive' : 'Leap'),
+  touchVerb: (st) => (st.phase === 'swim' || st.phase === 'dive' ? 'Dive' : 'Leap'),
   touchHint: 'drag to climb, A to leap; in the sea, drag to swim, A to dive',
   touchScheme: (st) => (st.phase === 'swim' ? { mode: 'stick', hint: 'Drag to swim · tap to dive' } : { mode: 'stick', hint: 'Drag to climb' }),
 
@@ -130,7 +142,7 @@ export const actTower = {
   step(st, dt, input = {}) {
     if (!base(st, dt, input)) return;
     if (st.phase === 'cliff' || st.phase === 'tower') stepCliff(st, dt, input);
-    else if (st.phase === 'dive') { if (st.phaseT >= FILM_T.dive) startSwim(st); }
+    else if (st.phase === 'dive') { if (!st.w) startDive(st); stepDive(st, dt, input); }
     else if (st.phase === 'swim') stepSwim(st, dt, input);
     else if (st.phase === 'window') { if (st.phaseT >= FILM_T.window) setPhase(st, 'iris'); }
     else if (st.phase === 'iris' && st.phaseT >= FILM_T.iris) winFilm(st);
@@ -215,9 +227,9 @@ export const actBurning = {
   action: 'A: leap',
   scenes: BURNING_SCENES,
   mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'revel' : 'storm'),
-  touchVerb: (st) => (st.phase === 'barrel' ? 'On the beat' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / lamp' : 'Leap'),
+  touchVerb: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / lamp' : 'Leap'),
   touchHint: 'drag to walk and climb, A to leap',
-  touchScheme: (st) => (st.phase === 'barrel' ? { mode: 'swipe', hint: 'Tap on the beat' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
+  touchScheme: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
   create({ seed = 1, carry = {}, from = null } = {}) {
     const k = clamp(from?.scene | 0, 0, BURNING_SCENES.length - 1);
@@ -227,9 +239,8 @@ export const actBurning = {
     st.carry = { ...CARRY_DEFAULT, ...carry };
     st.score = from?.score ?? 0; st.pearls = from?.pearls ?? 0;
     st.sleepersShown = Math.min(12, Math.max(0, carry.sleepers || 0));
-    st.barrel = { pushes: 0, beats: [], fallT: null };
-    if (k === 3) { setPhase(st, 'barrel'); st.haz = []; }
-    if (k === 4) { setPhase(st, 'wedding'); st.haz = []; }
+    if (k === 3) { startBarrel(st); st.haz = []; }
+    if (k === 4) { startWedding(st); st.haz = []; }
     st.events.length = 0;
     st.checkpoint = k > 0 ? { ...(from || {}), scene: k } : null;
     return st;
@@ -240,9 +251,9 @@ export const actBurning = {
     const cpBefore = st.checkpoint;
     if (st.phase === 'house') stepHouse(st, dt, input);
     else if (st.phase === 'quay') stepQuay(st, dt, input);
-    else if (st.phase === 'barrel') stepBarrel(st, dt, input);
-    else if (st.phase === 'wedding') { if (st.phaseT >= FILM_T.wedding) { setPhase(st, 'apotheosis'); st.events.push({ type: 'apotheosis' }); } }
-    else if (st.phase === 'apotheosis') { if (st.phaseT >= FILM_T.apotheosis) setPhase(st, 'iris'); }
+    else if (st.phase === 'barrel') { if (!st.barrel) startBarrel(st); stepBarrel(st, dt, input); }
+    else if (st.phase === 'wedding') stepWedding(st, dt, input);
+    else if (st.phase === 'apotheosis') stepApotheosis(st, dt, input);
     else if (st.phase === 'iris' && st.phaseT >= FILM_T.iris) winFilm(st, { ending: 'wedding' });
     // Act V's house checkpoints are numbered as its own scenes; renumber.
     if (st.checkpoint && st.checkpoint !== cpBefore && !st.checkpoint.film) {
@@ -255,7 +266,8 @@ export const actBurning = {
 
   hud(st) {
     if (!['house', 'quay', 'barrel'].includes(st.phase)) return null;
-    const prog = st.phase === 'house' ? (st.p.carry ? 0.45 : 0.15) : st.phase === 'quay' ? 0.7 + 0.2 * clamp((st.p.x - QUAY.x0) / (QUAY.x1 - QUAY.x0), 0, 1) : 0.9 + 0.1 * st.barrel.pushes / BARREL.pushes;
+    const prog = st.phase === 'house' ? (st.p.carry ? 0.45 : 0.15) : st.phase === 'quay' ? 0.7 + 0.2 * clamp((st.p.x - QUAY.x0) / (QUAY.x1 - QUAY.x0), 0, 1)
+      : 0.9 + 0.1 * clamp(((st.barrel?.x ?? BARREL.at) - BARREL.at) / (BARREL.edge - BARREL.at), 0, 1);
     return { lanterns: st.lanterns, maxLanterns: LANTERNS, pearls: st.pearls, progress: prog, keepsakes: filmKeepsakes(st.carry) };
   },
 
@@ -267,31 +279,156 @@ export const actBurning = {
     if (e.type === 'liftHer') return 'You lift Azurine. Carry her down: no leaping now.';
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
-    if (e.type === 'witchReturns') return "The witch attacks again! Press A on the beat to roll her barrel over the cliff.";
-    if (e.type === 'barrelPush') return `The barrel rolls. ${e.n} of ${BARREL.pushes}.`;
+    if (e.type === 'witchReturns') return 'The witch attacks again, from a barrel! Walk into it to push it over the cliff. Stand clear when it shakes.';
+    if (e.type === 'barrelShake') return 'The barrel shakes.';
+    if (e.type === 'barrelKnock') return 'The barrel lurches back and knocks you down.';
     if (e.type === 'barrelFall') return 'Into the whirlpool!';
-    if (e.type === 'wedding') return 'The wedding procession.';
-    if (e.type === 'apotheosis') return 'The Kingdom of the Fairies.';
+    if (e.type === 'wedding') return 'The wedding. Walk Azurine along the street to the castle gate; catch the falling petals.';
+    if (e.type === 'apotheosis') return 'Walk with Azurine to the light beneath Aurora.';
+    if (e.type === 'ascend') return 'The Kingdom of the Fairies.';
     return null;
   },
 
   draw: art.drawBurning, drawOver: art.drawOverBurning, onEvent: art.onEventBurning,
 };
 
-function stepBarrel(st, dt, input) {
-  const b = st.barrel;
-  if (b.fallT != null) {
-    b.fallT += dt;
-    if (b.fallT >= FILM_T.barrelFall) { setPhase(st, 'wedding'); st.events.push({ type: 'wedding' }); st.checkpoint = { scene: 4, film: true, score: st.score, pearls: st.pearls }; }
+// ---------------------------------------------------------------- walking scenes
+// The prince on foot on a flat floor: walk, and (where allowed) leap.
+function walker(x, y) { return { x, y, vx: 0, vy: 0, on: true, face: 1, walk: 0, buffer: 0, knockT: 0, landT: 0 }; }
+function walk(w, dt, input, { y, x0, x1, leap = false, events = null }) {
+  let mx = clamp(input.moveX || 0, -1, 1);
+  if (w.knockT > 0) { w.knockT -= dt; mx = 0; }
+  w.landT = Math.max(0, w.landT - dt);
+  if (Math.abs(mx) > 0.15) w.face = Math.sign(mx);
+  w.vx += clamp(mx * WALK.speed - w.vx, -WALK.acc * dt, WALK.acc * dt);
+  w.buffer = input.a ? WALK.buffer : Math.max(0, w.buffer - dt);
+  if (leap && w.on && w.buffer > 0) { w.vy = -WALK.jump; w.on = false; w.buffer = 0; events?.push({ type: 'leap' }); }
+  if (!w.on) {
+    w.vy += (WALK.g + (w.vy < 0 && !input.aHeld ? WALK.cut : 0)) * dt;
+    w.y += w.vy * dt;
+    if (w.y >= y) { w.y = y; w.vy = 0; w.on = true; w.landT = 0.12; }
+  }
+  w.x = clamp(w.x + w.vx * dt, x0, x1);
+  if (w.on) w.walk += Math.abs(w.vx) * dt;
+}
+
+// Act V: from the cliff top he walks to the edge and dives for the tower
+// (A, or walking off the edge), arcing down into the sea.
+function startDive(st) {
+  setPhase(st, 'dive');
+  st.w = walker(DIVE.start, DIVE.y);
+  st.dv = null;
+}
+function stepDive(st, dt, input) {
+  const w = st.w;
+  if (st.dv) {
+    const d = st.dv;
+    d.t += dt;
+    if (!d.splash) { d.vy += WALK.g * 0.8 * dt; w.x += d.vx * dt; w.y += d.vy * dt; d.rot += dt * 3.2;
+      if (w.y >= 600) { d.splash = true; d.t = 0; st.events.push({ type: 'diveSplash', x: w.x }); } }
+    else if (d.t >= FILM_T.splash) startSwim(st);
     return;
   }
-  if (input.a) {
-    const k = beatHit(st.beat, BEAT_WINDOW);
-    if (k != null && !b.beats.includes(k)) {
-      b.beats.push(k); b.pushes++; st.score += 100;
-      st.events.push({ type: 'barrelPush', n: b.pushes });
-      if (b.pushes >= BARREL.pushes) { b.fallT = 0; st.score += 300; st.events.push({ type: 'barrelFall' }); }
-    } else st.events.push({ type: 'offBeat' });
+  walk(w, dt, input, { y: DIVE.y, x0: DIVE.x0, x1: DIVE.edge + 40 });
+  if ((input.a && w.x > DIVE.edge - 110) || w.x > DIVE.edge + 10) {
+    st.dv = { t: 0, vx: 260 + Math.max(0, w.vx) * 0.6, vy: -620, rot: 0, splash: false };
+    st.events.push({ type: 'diveLeap' });
+  }
+}
+
+// Act VI: the witch's last attack. She rides at the clifftop in a barrel;
+// he walks into it to push it toward the edge. Now and then it shakes and
+// lurches back at him: standing against it then knocks him down.
+function startBarrel(st) {
+  setPhase(st, 'barrel');
+  st.w = walker(BARREL.start, BARREL.y);
+  st.barrel = { x: BARREL.at, v: 0, state: 'still', t: 0, next: 2.0, fallT: null, knocks: 0, rot: 0 };
+}
+function stepBarrel(st, dt, input) {
+  const b = st.barrel, w = st.w;
+  if (b.fallT != null) {
+    b.fallT += dt;
+    walk(w, dt, {}, { y: BARREL.y, x0: BARREL.x0, x1: BARREL.edge - 60 });
+    if (b.fallT >= FILM_T.barrelFall) startWedding(st);
+    return;
+  }
+  walk(w, dt, input, { y: BARREL.y, x0: BARREL.x0, x1: BARREL.edge - 60 });
+  const contact = w.x + PRINCE_HW >= b.x - BARREL.hw - 2;
+  b.t += dt;
+  if (b.state === 'still') {
+    // he pushes it along when he walks into it
+    if (contact && w.vx > 20) { const nx = b.x + BARREL.push * dt; b.x = nx; b.rot += BARREL.push * dt / 40; w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW); st.pushing = true; }
+    else { st.pushing = false; if (contact) w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW); }
+    if (b.t >= b.next) { b.state = 'shake'; b.t = 0; st.events.push({ type: 'barrelShake', x: b.x }); }
+  } else if (b.state === 'shake') {
+    if (contact) w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW);
+    if (b.t >= BARREL.shake) { b.state = 'lurch'; b.t = 0; b.from = b.x; }
+  } else if (b.state === 'lurch') {
+    const f = Math.min(1, b.t / BARREL.lurch);
+    b.x = Math.max(BARREL.at - 60, b.from - BARREL.lurchDist * Math.sin(f * Math.PI / 2));
+    b.rot -= dt * 6;
+    if (w.x + PRINCE_HW > b.x - BARREL.hw && w.knockT <= 0) {
+      w.knockT = 0.6; w.vx = -BARREL.knock; w.vy = -320; w.on = false; b.knocks++;
+      w.x = b.x - BARREL.hw - PRINCE_HW;
+      st.events.push({ type: 'barrelKnock', x: w.x });
+    }
+    if (f >= 1) { b.state = 'still'; b.t = 0; b.next = lerp(BARREL.every[0], BARREL.every[1], (b.knocks * 0.37 + b.x * 0.013) % 1); }
+  }
+  if (b.x >= BARREL.edge) { b.fallT = 0; st.pushing = false; st.score += 300 + Math.max(0, 3 - b.knocks) * 50; st.events.push({ type: 'barrelFall' }); }
+}
+
+// The wedding: he walks Azurine (she follows a step behind) along the
+// wedding street past the crew, the fairies and the king and queen, to the
+// castle gate, catching the petals that fall on the way.
+function startWedding(st) {
+  setPhase(st, 'wedding');
+  st.events.push({ type: 'wedding' });
+  st.checkpoint = { scene: 4, film: true, score: st.score, pearls: st.pearls };
+  st.w = walker(WEDDING.start, WEDDING.y);
+  st.az = { x: WEDDING.start - WEDDING.follow, walk: 0, face: 1 };
+  st.petals = Array.from({ length: WEDDING.petals }, (_, i) => ({ x: 180 + ((i * 263) % 680), y: -40 - i * 70, got: false }));
+  st.petalsGot = 0;
+}
+function follow(st, dt, gap) {
+  const a = st.az, want = st.w.x - gap * st.w.face, dx = want - a.x;
+  const v = clamp(dx * 4, -WALK.speed, WALK.speed);
+  a.x += v * dt; a.walk += Math.abs(v) * dt;
+  if (Math.abs(v) > 20) a.face = Math.sign(v);
+}
+function stepWedding(st, dt, input) {
+  const w = st.w;
+  walk(w, dt, input, { y: WEDDING.y, x0: WEDDING.x0, x1: WEDDING.gate + 40 });
+  follow(st, dt, WEDDING.follow);
+  for (const p of st.petals) {
+    if (p.got) continue;
+    p.y += 70 * dt; p.x += Math.sin(st.phaseT * 2 + p.y * 0.02) * 30 * dt;
+    if (p.y > WEDDING.y + 10) { p.y = -30; continue; }
+    if (Math.abs(p.x - w.x) < 40 && p.y > w.y - 200 && p.y < w.y) { p.got = true; st.petalsGot++; st.score += 20; st.events.push({ type: 'petal', x: p.x, y: p.y }); }
+  }
+  if (w.x >= WEDDING.gate) startApotheosis(st);
+}
+
+// The apotheosis: the couple walk together into the light beneath Aurora,
+// and rise with her.
+function startApotheosis(st) {
+  setPhase(st, 'apotheosis');
+  st.events.push({ type: 'apotheosis' });
+  st.w = walker(APOTH.start, APOTH.y);
+  st.az = { x: APOTH.start - 80, walk: 0, face: 1 };
+  st.riseT = null;
+}
+function stepApotheosis(st, dt, input) {
+  const w = st.w;
+  if (st.riseT != null) {
+    st.riseT += dt;
+    if (st.riseT >= FILM_T.rise) setPhase(st, 'iris');
+    return;
+  }
+  walk(w, dt, input, { y: APOTH.y, x0: APOTH.x0, x1: APOTH.x1 });
+  follow(st, dt, 70);
+  // both in the light at the centre of the stage
+  if (Math.abs(w.x - APOTH.mark - 35) < APOTH.near && Math.abs(st.az.x - APOTH.mark + 35) < APOTH.near + 30) {
+    st.riseT = 0; w.vx = 0; st.events.push({ type: 'ascend' });
   }
 }
 

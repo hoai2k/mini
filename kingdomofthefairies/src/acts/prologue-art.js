@@ -17,7 +17,7 @@ const CAPTIONS = {
   bind: ['The Armoury', 'The witch binds the prince'],
   free: ['The Arming', 'Aurora breaks the spell'],
   armoury: ['The Arming', 'Take up your helmet, shield and the enchanted sword'],
-  knighted: ['The Arming', 'To the sea, and the witch’s tower'],
+  knighted: ['The Arming', 'Out of the door at the right: to the sea'],
 };
 
 export function draw(k, st, t) {

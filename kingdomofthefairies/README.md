@@ -30,17 +30,22 @@ acts. The first four keep their stage machinery and rules, recast:
    it, he chases the demons' chariot along the rampart, and Aurora arms him in
    the armoury. Nothing can be lost; B skips a scene; it leads straight into
    the Royal Crossing.
-1. The Royal Crossing: the royal ship's voyage (the original ship), then the witch's tempest, a scene
-   in which the crew light the lanterns themselves.
-2. The Water Fairy: the sleepers' grotto; the Water Fairy blesses the prince
-   (no refusal) and her dolphin carriage carries him on.
-3. Neptune's Court: the court's moving floors, watched by the scrying eye.
+1. The Royal Crossing: the royal ship's voyage (the original ship), then the
+   witch's tempest: walk the deck lighting the four lanterns while dodging her
+   lightning.
+2. The Water Fairy: the sleepers' grotto; he swims to the Water Fairy for her
+   blessing, and her dolphin carriage carries him on.
+3. Neptune's Court: a walk through the lobster palace (past the guards'
+   claws), the sea flora and the azure grotto, then the court's moving floors,
+   watched by the scrying eye.
 4. The Whale's Passage: through the whale to shore, where Aurora points the
    way through the cavern (a run through the dark, by Aurora's lamp).
-5. The Enchanted Tower: the cliff, a swim across the sea gap diving under the
+5. The Enchanted Tower: the cliff, a dive from its edge, a swim across the sea gap diving under the
    witch's swoops, and the tower wall up to Azurine's window.
-6. The Burning Tower: the burning floors, carrying Azurine out, rolling the
-   witch's barrel over the cliff on the beat, the wedding and the apotheosis.
+6. The Burning Tower: the burning floors, carrying Azurine out, pushing the
+   witch's barrel over the cliff (step back when it lurches), walking Azurine
+   along the wedding street to the gate, and into the light of the apotheosis.
+   Every scene is played: nothing is timed to the beat or shown as a still.
 
 The film cast, props and sets use the delivered production art; anything still
 requested is drawn by an interim cut-out from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by

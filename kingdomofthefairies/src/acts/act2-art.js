@@ -879,7 +879,7 @@ function captions(k, st, t) {
     c.fillStyle = k.col('#f3c6dc'); c.fillText(FILM ? 'The Water Fairy offers her blessing' : 'She offers you the sea rose', 640, 122);
     const on = pt >= 2.0;
     c.globalAlpha = on ? 1 : 0.5;
-    label(k, FILM ? 'A  accept it' : 'A  take it     ·     B  refuse, or swim away', 640, 160, 20, '#f1e3c8');
+    label(k, FILM ? 'Swim to her to receive it' : 'A  take it     ·     B  refuse, or swim away', 640, 160, 20, '#f1e3c8');
     c.globalAlpha = 1;
   }
 }

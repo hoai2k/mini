@@ -31,6 +31,7 @@ export const COURT_START = 110;
 export const RAMPART = { w: 2560, y: 604, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, burn: 1.7, fireW: 30, knock: 330 };
 // The armoury: the racks he takes his arms from.
 export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 980 }, { id: 'sword', x: 1140 }];
+export const DOOR_X = 1230;   // the way out of the armoury, once armed
 export const T = { curse: 4.8, escape: 2.6, bind: 1.8, free: 2.2, knighted: 2.0, iris: 1.3, fade: 0.6 };
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
 export const SCENES = [{ name: 'The Betrothal' }, { name: 'The Abduction' }, { name: 'The Arming' }];
@@ -71,14 +72,15 @@ export default {
     // B skips to the next scene (or out of the prologue from the last).
     if (input.b && st.phaseT > 0.3) return skip(st);
     if (ph === 'court') court(st, dt, input);
-    else if (ph === 'curse' && st.phaseT >= T.curse) next(st);
+    else if (ph === 'curse') { walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 }); if (st.phaseT >= T.curse) next(st); }
     else if (ph === 'rampart') rampart(st, dt, input);
-    else if (ph === 'escape') { walk(st, dt, 0); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
+    else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: RAMPART.y, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
     else if (ph === 'bind' && st.phaseT >= T.bind) next(st);
-    else if (ph === 'free' && st.phaseT >= T.free) next(st);
+    else if (ph === 'free') { walk(st, dt, st.phaseT > 0.9 ? input.moveX || 0 : 0, input); if (st.phaseT >= T.free) next(st); }
     else if (ph === 'armoury') armoury(st, dt, input);
-    else if (ph === 'knighted') { walk(st, dt, st.phaseT > 0.9 ? 1 : 0); if (st.phaseT >= T.knighted) next(st); }
-    else if (ph === 'iris') { walk(st, dt, 1); if (st.phaseT >= T.iris) finish(st); }
+    // armed, he walks out of the armoury's door at the right himself
+    else if (ph === 'knighted') { walk(st, dt, input.moveX || 0, input, { x1: 1300 }); if (st.p.x >= DOOR_X) next(st); }
+    else if (ph === 'iris') { walk(st, dt, 1, {}, { x1: 1400 }); if (st.phaseT >= T.iris) finish(st); }
   },
 
   hud: () => null,
@@ -95,7 +97,7 @@ export default {
     if (e.type === 'gift') return `${e.from} gives ${e.gift === 'gold' ? 'gold' : 'the ' + e.gift}.`;
     if (e.type === 'betrothed') return 'The prince takes Azurine’s hand.';
     if (e.type === 'arm') return `The ${e.arm}.`;
-    if (e.type === 'knighted') return 'Aurora arms him for the rescue.';
+    if (e.type === 'knighted') return 'Aurora arms him for the rescue. Go out of the door at the right, to the sea.';
     return null;
   },
 
@@ -159,7 +161,7 @@ function rampart(st, dt, input) {
 }
 
 function armoury(st, dt, input) {
-  walk(st, dt, input.moveX || 0, input, { x1: st.arms.length === ARMS.length ? 1300 : 1200 });
+  walk(st, dt, input.moveX || 0, input, { x1: 1200 });
   const p = st.p, a = ARMS.find((q) => !st.arms.includes(q.id) && Math.abs(q.x - p.x) < REACH);
   st.near = a ? { verb: 'Take', at: a.x, label: `Take the ${a.id}` } : null;
   if (input.a && a) {

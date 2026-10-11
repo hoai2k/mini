@@ -5,10 +5,12 @@
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
+import { TEMPEST } from '../src/acts/act1.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS } from '../src/acts/prologue.js';
-import act2 from '../src/acts/act2.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL } from '../src/acts/act5film.js';
+import act2, { FAIRY_AT } from '../src/acts/act2.js';
+import act3, { PASSAGE, guardOpen } from '../src/acts/act3.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
@@ -63,6 +65,7 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
       const a = ARMS.find((q) => !s.arms.includes(q.id));
       return { moveX: a && Math.abs(a.x - p.x) > 20 ? Math.sign(a.x - p.x) : 0, a: press(!!s.near), beat };
     }
+    if (s.phase === 'knighted') return { moveX: 1, beat };
     return { beat };
   });
   assert.equal(st.status, 'won', st.phase);
@@ -86,21 +89,45 @@ test('prologue: fire on the rampart only knocks him back, and B skips each scene
   assert.ok(presses <= 6, `${presses} presses`);
 });
 
-test('Act I: the film tempest lights its own lanterns (no rhythm input)', () => {
+test('Act I: in the tempest he walks the deck and lights each lantern (nothing on the beat)', () => {
   const st = ACTS[1].create({ seed: 2, from: { scene: 4 } });
   assert.equal(st.phase, 'party');
-  let clock = 0;
-  run(ACTS[1], st, 5, () => ({ beat: (clock += DT) / BEAT }), (s) => s.phase !== 'party');
+  let clock = 0, last = false;
+  run(ACTS[1], st, 30, (s) => {
+    const i = s.party.on.findIndex((o) => !o), x = TEMPEST.lanternX[Math.max(0, i)];
+    const want = s.tp.near >= 0, a = want && !last; last = want;
+    return { moveX: Math.abs(x - s.tp.x) > 10 ? Math.sign(x - s.tp.x) : 0, a, beat: (clock += DT) / BEAT };
+  }, (s) => s.phase !== 'party');
   assert.equal(st.party.lit, 4);
+  assert.equal(st.phase, 'turn');
+  const s2 = ACTS[1].create({ seed: 2, from: { scene: 4 } });
+  run(ACTS[1], s2, 4, () => ({ a: true }));
+  assert.ok(s2.party.lit <= 1, 'A away from the lanterns lights nothing');
 });
 
-test('Act II: the Water Fairy blesses him with no refusal, and the blessing is no keepsake', () => {
+test('Act II: he swims to the Water Fairy for her blessing (no button, no refusal)', () => {
   const st = act2.create({ seed: 3, carry: {}, from: { scene: 4 } });
-  run(act2, st, 3, () => ({ b: true }));  // refusing does nothing
-  run(act2, st, 6);
-  assert.notEqual(st.choice, 'refuse');
-  assert.equal(st.choice, 'take', 'accepted after a moment');
+  run(act2, st, 4, () => ({ a: true, b: true }));   // pressing does nothing
+  assert.equal(st.choice, null);
+  run(act2, st, 12, (s) => ({ moveX: Math.sign(FAIRY_AT.x - s.sailor.x), moveY: s.sailor.y < FAIRY_AT.y + 40 ? 1 : 0 }), (s) => s.choice != null);
+  assert.equal(st.choice, 'take');
   assert.ok(act2.cast['witch-stand'] === 'water-fairy-stand');
+});
+
+test('Act III: he walks through the lobster palace, past the claws, the sea flora and the grotto into the court', () => {
+  const st = act3.create({ seed: 1, carry: {} });
+  assert.ok(st.tf, 'the passage opens the act');
+  let clock = 0;
+  run(act3, st, 40, (s) => {
+    if (!s.tf) return {};
+    const f = s.tf, g = f.set === 0 && PASSAGE.guards.find((q) => q.x > f.x && q.x - f.x < 130);
+    const wait = g && !guardOpen(g, f.t + 0.35);
+    return { moveX: wait ? 0 : 1, beat: (clock += DT) / BEAT };
+  }, (s) => !s.tf);
+  assert.equal(st.tf, null);
+  assert.equal(st.pearls, 3);
+  const s2 = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
+  assert.ok(!s2.tf, 'not on a resume');
 });
 
 test('Act V: the swim is won by diving under her swoops, then the tower wall begins', () => {
@@ -149,18 +176,38 @@ test('Act V: reaching the window plays the window shot and wins', () => {
   assert.equal(st.status, 'won');
 });
 
-test('Act VI: out on the cliff, the barrel on the beat, the wedding and the apotheosis', () => {
+test('Act VI: out on the cliff, push the barrel over, walk the wedding street and into the light', () => {
   const st = actBurning.create({ seed: 4, carry: { sleepers: 5 }, from: { scene: 2 } });
   assert.equal(st.phase, 'quay');
-  run(actBurning, st, 20, () => ({ moveX: 1 }));
+  run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'quay');
   assert.equal(st.phase, 'barrel', st.phase);
   assert.equal(st.checkpoint.scene, 3, 'renumbered to the film scene');
-  run(actBurning, st, 20, onBeat);
-  assert.ok(['wedding', 'apotheosis', 'iris'].includes(st.phase) || st.status === 'won', st.phase);
-  assert.equal(st.barrel.pushes, BARREL.pushes);
-  run(actBurning, st, FILM_T.wedding + FILM_T.apotheosis + FILM_T.iris + 2);
-  assert.equal(st.status, 'won');
+  // a careful pusher: walks into it, steps back while it shakes
+  run(actBurning, st, 40, (s) => ({ moveX: s.barrel?.state === 'still' ? 1 : -1 }), (s) => s.phase !== 'barrel');
+  assert.equal(st.phase, 'wedding', st.phase);
+  assert.equal(st.checkpoint.scene, 4);
+  run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'wedding');
+  assert.equal(st.phase, 'apotheosis');
+  run(actBurning, st, 20, (s) => ({ moveX: s.w.x < APOTH.mark + 35 ? 1 : 0 }));
+  assert.equal(st.status, 'won', st.phase);
   assert.equal(st.result.ending, 'wedding');
+});
+
+test('Act VI: the barrel lurching back knocks a prince who leans on it; nothing on the beat', () => {
+  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  run(actBurning, st, 6, () => ({ moveX: 1, a: true }), (s) => s.barrel.knocks > 0);
+  assert.ok(st.barrel.knocks >= 1, 'knocked down');
+  assert.equal(st.phase, 'barrel');
+  const s2 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  run(actBurning, s2, 3, () => ({ a: true }));
+  assert.ok(s2.barrel.x <= BARREL.at, 'A alone does not push it');
+});
+
+test('Act V: from the clifftop he walks to the edge and dives into the sea gap', () => {
+  const st = actTower.create({ seed: 1, carry: {}, from: { scene: 0 } });
+  st.phase = 'dive'; st.phaseT = 0;
+  run(actTower, st, 12, (s) => ({ moveX: 1, a: s.w && s.w.x > DIVE.edge - 60 }), (s) => s.phase === 'swim');
+  assert.equal(st.phase, 'swim');
 });
 
 test('Act VI: a checkpoint in the tower resumes in the tower', () => {
