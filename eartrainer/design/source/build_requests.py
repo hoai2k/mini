@@ -80,7 +80,7 @@ ASSETS = [
         ]
     ],
     # App icons and the library cover
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="revise", group="App icon",
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="delivered", group="App icon",
          prompt="An app icon, full bleed: the deep midnight-blue ground fills the whole square right to "
                 "the edges and corners (no rounded-square frame, no border, no white or light margin; "
                 "the phone rounds the corners itself). Centred on it, the same brass-gold ear as the "
@@ -90,22 +90,22 @@ ASSETS = [
                 "the ear; no other objects (no piano, bass, lamps or tables), so the motif reads at "
                 "60 pixels. Keep everything important inside the middle 80% (it is also used as a "
                 "maskable Android icon). " + STYLE,
-         note="Round 2. Round 1 (delivered) is in use with its white corners filled in, but its art is a "
-              "rounded square inset in the frame, its ear-and-clef reads as a question mark at small "
-              "sizes, and the background scene is too busy for an icon. Resized to icons/icon-180.png, "
+         note="Round 2 delivered: full-bleed midnight-blue ground, clear ear-and-clef motif, three "
+              "ivory keys, and a simplified background. Resized to icons/icon-180.png, "
               "icon-192.png and icon-512.png."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="revise", group="Game library card",
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Game library card",
          prompt="A dim jazz club seen past the end of a grand piano: the keys run along the bottom fifth "
                 "of the picture only, one key glowing brass as if just pressed, a few golden notes "
                 "rising from it toward the top corners. The middle half of the picture, from left to "
                 "right, is calm, dark midnight-blue air with soft bokeh and nothing else in it, so a "
                 "gold logo laid over the centre reads cleanly. " + STYLE,
-         note="Round 2. The delivered cover (in use, darkened behind the logo by index.html) runs the "
-              "piano keys diagonally through the centre, so the logo sits on busy keys."),
+         note="Round 2 delivered: piano keys along the bottom fifth and calm dark space behind "
+              "the central logo."),
 ]
 
 
 def render() -> tuple[str, str]:
+    revisions = [a for a in ASSETS if a["status"] == "revise"]
     lines = [
         "# Ear Trainer image requests",
         "",
@@ -114,9 +114,10 @@ def render() -> tuple[str, str]:
         "Generate each image from its prompt and drop the files in `eartrainer/intake/`.",
         "Until a file is delivered the app draws a stand-in, so nothing here blocks play.",
         "",
-        "**Round 2:** everything from round 1 is delivered and in the app. Two images are",
-        "wanted again, marked `revise`: " + ", ".join(f"`{a['id']}`" for a in ASSETS if a["status"] == "revise")
-        + ". Their notes say what to change; the round 1 versions stay in use until then.",
+        ("**Round 2:** revisions wanted, marked `revise`: "
+         + ", ".join(f"`{a['id']}`" for a in revisions)
+         + ". Their notes say what to change; existing versions stay in use until then."
+         if revisions else "**Round 2:** the revised app icon and library cover are delivered and in use."),
         "",
         "**House style** (already included in every prompt): " + STYLE,
         "",

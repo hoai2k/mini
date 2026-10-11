@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-11",
+  "assets": [
+    {
+      "id": "icon",
+      "file": "eartrainer/app/icons/icon-1024.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "tool": "built-in image_gen",
+      "prompt": "An app icon, full bleed: the deep midnight-blue ground fills the whole square right to the edges and corners (no rounded-square frame, no border, no white or light margin; the phone rounds the corners itself). Centred on it, the same brass-gold ear as the Ear Trainer logo: the outer curve of a human ear drawn as one smooth brass line, with a treble clef nestled inside it, so it reads clearly as an ear and not as a question mark. Below it three equal ivory piano keys edged in brass. A soft warm glow behind the ear; no other objects (no piano, bass, lamps or tables), so the motif reads at 60 pixels. Keep everything important inside the middle 80% (it is also used as a maskable Android icon). Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.\nReference image: use ONLY its ear-and-treble-clef motif and brass/ivory materials. Do not copy its lettering or wide wordmark. Generate a new square 1024x1024 app icon. Three white ivory keys, no black keys. Keep the human ear recognizable with outer helix and inner contours distinct from the treble clef. The background is dark midnight blue edge to edge.",
+      "reference": "eartrainer/app/assets/ui/logo.webp",
+      "generated_source": "exec-d839ba2f-8690-4865-acab-43b847046e45.png"
+    },
+    {
+      "id": "cover",
+      "file": "eartrainer/app/assets/ui/cover.webp",
+      "size": [
+        1200,
+        900
+      ],
+      "mode": "RGB",
+      "tool": "built-in image_gen",
+      "prompt": "A dim jazz club seen past the end of a grand piano: the keys run along the bottom fifth of the picture only, one key glowing brass as if just pressed, a few golden notes rising from it toward the top corners. The middle half of the picture, from left to right, is calm, dark midnight-blue air with soft bokeh and nothing else in it, so a gold logo laid over the centre reads cleanly. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.\nGenerate one landscape 4:3 image. Reserve the entire central horizontal band (y=25% to y=75%) as uninterrupted dark midnight-blue negative space, with faint subdued bokeh only. Piano keys must stay strictly in the lowest 20% of the frame, running horizontally along its bottom. Keep musical notes in the side margins heading toward the top corners. No objects crossing the center logo area.",
+      "reference": null,
+      "generated_source": "exec-d4e14c27-7c8a-45e6-b6eb-a139fed5f764.png"
+    }
+  ],
+  "notes": [
+    "Round 2 replaces the icon and cover; prior versions remain in Git history.",
+    "Pillow used for export resizing; cover encoded as WebP at quality 90."
+  ]
+}

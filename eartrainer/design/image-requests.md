@@ -5,8 +5,7 @@
 Generate each image from its prompt and drop the files in `eartrainer/intake/`.
 Until a file is delivered the app draws a stand-in, so nothing here blocks play.
 
-**Round 2:** everything from round 1 is delivered and in the app. Two images are
-wanted again, marked `revise`: `icon`, `cover`. Their notes say what to change; the round 1 versions stay in use until then.
+**Round 2:** the revised app icon and library cover are delivered and in use.
 
 **House style** (already included in every prompt): Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
@@ -23,8 +22,8 @@ wanted again, marked `revise`: `icon`, `cover`. Their notes say what to change; 
 | delivered | `book-jazz` | `app/assets/books/jazz.webp` | 512×512, PNG (shipped as 256×256 WebP) |
 | delivered | `book-licks` | `app/assets/books/licks.webp` | 512×512, PNG (shipped as 256×256 WebP) |
 | delivered | `book-popular` | `app/assets/books/popular.webp` | 512×512, PNG (shipped as 256×256 WebP) |
-| revise | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| revise | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 
 ## Title
 
@@ -133,11 +132,11 @@ An emblem for the songbook “Film & Pop Hooks”: a cinema film reel and a vint
 
 ## App icon
 
-### `icon` · revise
+### `icon` · delivered
 
 - File: `eartrainer/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
-- Note: Round 2. Round 1 (delivered) is in use with its white corners filled in, but its art is a rounded square inset in the frame, its ear-and-clef reads as a question mark at small sizes, and the background scene is too busy for an icon. Resized to icons/icon-180.png, icon-192.png and icon-512.png.
+- Note: Round 2 delivered: full-bleed midnight-blue ground, clear ear-and-clef motif, three ivory keys, and a simplified background. Resized to icons/icon-180.png, icon-192.png and icon-512.png.
 
 ```text
 An app icon, full bleed: the deep midnight-blue ground fills the whole square right to the edges and corners (no rounded-square frame, no border, no white or light margin; the phone rounds the corners itself). Centred on it, the same brass-gold ear as the Ear Trainer logo: the outer curve of a human ear drawn as one smooth brass line, with a treble clef nestled inside it, so it reads clearly as an ear and not as a question mark. Below it three equal ivory piano keys edged in brass. A soft warm glow behind the ear; no other objects (no piano, bass, lamps or tables), so the motif reads at 60 pixels. Keep everything important inside the middle 80% (it is also used as a maskable Android icon). Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -145,11 +144,11 @@ An app icon, full bleed: the deep midnight-blue ground fills the whole square ri
 
 ## Game library card
 
-### `cover` · revise
+### `cover` · delivered
 
 - File: `eartrainer/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP
-- Note: Round 2. The delivered cover (in use, darkened behind the logo by index.html) runs the piano keys diagonally through the centre, so the logo sits on busy keys.
+- Note: Round 2 delivered: piano keys along the bottom fifth and calm dark space behind the central logo.
 
 ```text
 A dim jazz club seen past the end of a grand piano: the keys run along the bottom fifth of the picture only, one key glowing brass as if just pressed, a few golden notes rising from it toward the top corners. The middle half of the picture, from left to right, is calm, dark midnight-blue air with soft bokeh and nothing else in it, so a gold logo laid over the centre reads cleanly. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.

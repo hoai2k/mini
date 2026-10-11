@@ -57,11 +57,11 @@
   {
     "id": "icon",
     "file": "icons/icon-1024.png",
-    "status": "revise"
+    "status": "delivered"
   },
   {
     "id": "cover",
     "file": "assets/ui/cover.webp",
-    "status": "revise"
+    "status": "delivered"
   }
 ]
