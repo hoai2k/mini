@@ -22,7 +22,7 @@ export const BOOKS = [
 export const CHAPTERS = [
   {
     id: 'lt1', book: 'book1', num: 1, title: 'The Pre-Algebra Teacher', place: 'The museum, on a field trip',
-    biome: 'museum', objective: 'exorcise', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist'],
+    biome: 'museum', objective: 'exorcise', objText: 'Follow Mrs. Dodds through the galleries', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist'],
     card: 'assets/cards/scene-museum.jpg', ready: true,
     start: { at: 'spawn', dx: 7, dz: 6, prop: 'bus', place: 'the field-trip bus by the camp road' },
     intro: [
@@ -34,7 +34,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt2', book: 'book1', num: 2, title: 'Half-Blood Hill', place: 'Long Island, in a storm',
-    biome: 'storm_hill', objective: 'escort', boss: 'minotaur', mist: 0.75, disguise: ['farmer'],
+    biome: 'storm_hill', objective: 'exorcise', objText: 'Climb Half-Blood Hill', boss: 'minotaur', mist: 0.75, disguise: ['farmer'],
     card: 'assets/cards/scene-minotaur.jpg', ready: true,
     start: { at: 'thaliaPine', dx: 4, dz: 6, place: 'Thalia’s pine on Half-Blood Hill' },
     intro: [

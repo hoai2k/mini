@@ -422,3 +422,13 @@ body.is-touch .sight { bottom: calc(120px + var(--safe-b)); left: 50%; }
 .inv { width: 100%; } .inv > * { min-width: 0; }
 .detail { min-width: 0; overflow-wrap: anywhere; max-height: 62vh; overflow-y: auto; }
 .inv-panel { max-height: 94vh; overflow-y: auto; }
+
+/* ---- delivered art: title backdrop, hero portraits and cards ---------------- */
+.title-backdrop { position: absolute; inset: 0; background: url(assets/title-bg.jpg) center / cover no-repeat; animation: titlePan 40s ease-in-out infinite alternate; }
+@keyframes titlePan { from { transform: scale(1.04) translateX(-1%); } to { transform: scale(1.1) translateX(1%); } }
+@media (prefers-reduced-motion: reduce) { .title-backdrop { animation: none; } }
+#loading { background: linear-gradient(rgba(13, 10, 7, .55), rgba(13, 10, 7, .85)), url(assets/title-bg.jpg) center / cover no-repeat; }
+.port.has-face { background-size: cover; background-position: center; }
+.port.has-face > span { opacity: 0; }
+.slot .hero-art { display: block; width: 100%; max-height: 34vh; object-fit: cover; object-position: center 20%; border-radius: 8px; border: 2px solid var(--hc, #c9963a); margin: 4px 0 6px; }
+.pm.has-face { background-size: cover; background-position: center; } .pm.has-face > span { opacity: 0; }

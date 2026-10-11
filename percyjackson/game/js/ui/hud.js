@@ -67,7 +67,7 @@ export class HUD {
     const hpTxt = h('span', { class: 'bt' });
     const extra = h('span', { class: 'ex' });
     const bs = h('span', { class: 'bs', title: 'Battle Sense', 'aria-label': 'Battle Sense' });
-    const port = h('div', { class: 'port', style: `--hc:${color}` }, h('span', {}, info.name[0]), bs);
+    const port = h('div', { class: 'port has-face', style: `--hc:${color};background-image:url(assets/heroes/${p.hero}-face.jpg)` }, h('span', {}, info.name[0]), bs);
     const hp = h('div', { class: 'hbar hp' }, hpB, hpI, hpTxt);
     const pw = h('div', { class: 'hbar pw', title: 'Power' }, pwI);
     const abs = h('div', { class: 'hc-abs' });
@@ -99,7 +99,7 @@ export class HUD {
     for (const q of party) {
       if (q === human) continue;
       const info = HEROES[q.hero] ?? { name: q.hero, color: '#999' };
-      const el = h('div', { class: 'pm', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color}` }, h('span', {}, info.name[0]));
+      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};background-image:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
       row.appendChild(el); this.partyEls.push({ q, el, last: -1 });
     }
     const k = switchKey(human);

@@ -39,7 +39,7 @@ export class Mission {
     g.minimap.reveal(L.rooms[0]);
   }
   updateText() {
-    let [t, d] = OBJ_TEXT[this.obj.type](this.obj);
+    let [t, d] = (OBJ_TEXT[this.obj.type] ?? OBJ_TEXT.exorcise)(this.obj);
     if (this.def.objText) t = this.def.objText;
     const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (LT / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';
     this.game.hud.setObjective(this.objDone ? (this.boss?.dead ? 'Victory' : 'Face the Monster') : t, this.objDone ? bossText : d);

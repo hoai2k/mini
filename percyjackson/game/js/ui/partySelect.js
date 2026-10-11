@@ -94,6 +94,7 @@ export function openSelect(game) {
       const id = heroOf(s), info = HEROES[id];
       cards.appendChild(h('div', { class: 'slot joined' + (s.ready ? ' ready' : ''), style: `--pc:${pc};--hc:${info.color}` },
         h('div', { class: 'pn' }, `Player ${i + 1} · ${devName(s.device)}`),
+        h('img', { class: 'hero-art', src: `assets/heroes/${id}-card.jpg`, alt: '', onerror: (e) => e.target.remove() }),
         h('div', { class: 'cn', style: `color:${info.color}` }, info.full ?? info.name),
         h('div', { class: 'ct' }, info.title),
         h('div', { class: 'cp' }, `Parent: ${info.parent}`),

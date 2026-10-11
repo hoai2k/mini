@@ -54,7 +54,7 @@ function makeLogo() {
   const img = new Image();
   img.onload = () => { try { const c = keyMagenta(img); c.className = 'logo-img'; c.setAttribute('aria-hidden', 'true'); wrap.replaceChildren(c); } catch (e) { fallback(); } };
   img.onerror = fallback;
-  img.src = 'assets/logo.png';
+  img.src = 'assets/logo-web.png';
   return wrap;
 }
 
@@ -104,6 +104,7 @@ export function openTitle(game) {
     const save = game.save.data;
     root = el; el.classList.add('title-screen');
     el.append(
+      h('div', { class: 'title-backdrop', 'aria-hidden': 'true' }),
       h('div', { class: 'title-vignette', 'aria-hidden': 'true' }),
       h('div', { class: 'title-center' },
         makeLogo(),

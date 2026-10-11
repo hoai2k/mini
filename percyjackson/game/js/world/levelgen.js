@@ -17,11 +17,12 @@ const CELL = 26;
 const DIRS = [[1, 0, 'e', 'w'], [-1, 0, 'w', 'e'], [0, 1, 's', 'n'], [0, -1, 'n', 's']];
 
 export const ENEMY_TABLES = {
-  jujutsu_high: [['swarmer', 5], ['spitter', 2], ['blob', 1.5], ['tank', 1], ['teleporter', 0.8], ['summoner', 0.4]],
-  tokyo_night: [['swarmer', 4], ['spitter', 2.5], ['blob', 2], ['tank', 1.2], ['teleporter', 1], ['summoner', 0.6]],
-  cursed_forest: [['swarmer', 4], ['spitter', 3], ['blob', 1], ['tank', 0.8], ['teleporter', 0.6], ['summoner', 1]],
-  flooded_subway: [['swarmer', 4], ['spitter', 1.5], ['blob', 2.5], ['tank', 1.5], ['teleporter', 1.2], ['summoner', 0.5]],
-  shibuya: [['swarmer', 4], ['spitter', 2], ['blob', 2], ['tank', 1.5], ['teleporter', 1.5], ['summoner', 1]],
+  // the inherited biomes, restocked with Greek monsters
+  jujutsu_high: [['pup', 5], ['harpy', 2], ['automaton', 1.5], ['dracaena', 1], ['fury', 0.8], ['empousa', 0.4]],
+  tokyo_night: [['pup', 4], ['harpy', 2.5], ['automaton', 2], ['dracaena', 1.2], ['fury', 1], ['empousa', 0.6]],
+  cursed_forest: [['pup', 4], ['harpy', 3], ['automaton', 1], ['dracaena', 0.8], ['fury', 0.6], ['empousa', 1]],
+  flooded_subway: [['pup', 4], ['harpy', 1.5], ['automaton', 2.5], ['dracaena', 1.5], ['fury', 1.2], ['empousa', 0.5]],
+  shibuya: [['pup', 4], ['harpy', 2], ['automaton', 2], ['dracaena', 1.5], ['fury', 1.5], ['empousa', 1]],
   // Half-Blood Quests
   museum: [['pup', 5], ['harpy', 2.5], ['fury', 1.5], ['dracaena', 0.8], ['empousa', 0.3]],
   storm_hill: [['pup', 5], ['automaton', 2], ['harpy', 2], ['hellhound', 0.6]],
