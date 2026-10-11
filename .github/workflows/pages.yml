@@ -31,7 +31,6 @@ jobs:
         working-directory: hopper/game
       - run: pnpm install --frozen-lockfile && pnpm test
         working-directory: hopper/3d/standins
-      - run: hopper/3d/publish.sh local/pages/hopper
       - run: sites/publish.sh local/pages/sites
       - run: for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs || exit 1; done; done && for t in animation sailor-motion theme; do node kingdomofthefairies/qa/$t.test.mjs || exit 1; done && KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs && python3 kingdomofthefairies/design/source/build_act_requests.py --check && python3 kingdomofthefairies/design/source/build_film_requests.py --check && python3 kingdomofthefairies/design/source/build_film_assets.py --check && kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
       - run: node --test test/*.test.mjs && node scripts/check.mjs
@@ -69,6 +68,8 @@ jobs:
     permissions:
       pages: write
       id-token: write
+      # To delete the site artifact once it is live (see the last step).
+      actions: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -77,3 +78,12 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+      # The uploaded site (over half a gigabyte) would otherwise sit in
+      # Actions storage for a day after every push. Pages keeps its own copy,
+      # so delete ours as soon as the deploy is done.
+      - name: Delete the deployed site artifact
+        if: always()
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: github-pages
+          failOnError: false

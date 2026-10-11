@@ -2,7 +2,6 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/postcss';
-import { hopperModels } from './vite.models';
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
@@ -22,7 +21,9 @@ export default defineConfig({
     },
     dedupe: ['three'],
   },
-  plugins: [react(), hopperModels()],
+  // The 3D edition is off on the published site, so its models stay out of
+  // the deploy; `pnpm dev` still serves them through vite.models.ts.
+  plugins: [react()],
   css: { postcss: { plugins: [tailwindcss()] } },
   build: {
     outDir: here('../../local/pages/hopper'),
