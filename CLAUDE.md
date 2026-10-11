@@ -38,7 +38,8 @@ from `sites/`, `multiplayer/` and `local/`:
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Games that haven't turned out
-  as hoped yet go on its second shelf, Prototypes, below the main one. `GAME_GUIDELINES.md` applies to every game.
+  as hoped yet are listed as plain links
+  in its Prototype archive, below the shelf. `GAME_GUIDELINES.md` applies to every game.
   `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
   builds and publishes everything.
 
