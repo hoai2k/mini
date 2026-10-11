@@ -1,0 +1,28 @@
+# Builds the Games Chat iOS app (chat/ios) on a Mac whenever it changes:
+# GamesChatCore's tests, then the app for the iOS Simulator (no signing).
+# Shipping to TestFlight is done by hand from Xcode (chat/ios/TESTFLIGHT.md).
+name: Games Chat iOS build
+
+on:
+  push:
+    paths: ["chat/ios/**", ".github/workflows/chat-ios.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core tests
+        working-directory: chat/ios/GamesChatCore
+        run: swift test
+      - name: Build the app for the simulator
+        working-directory: chat/ios
+        run: |
+          xcodebuild -project GamesChat.xcodeproj -scheme GamesChat -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 80
+          exit ${PIPESTATUS[0]}

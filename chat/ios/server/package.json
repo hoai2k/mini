@@ -1,0 +1,13 @@
+{
+  "name": "games-chat-calls",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test --test-timeout=90000 --test-force-exit test/*.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.147.0"
+  }
+}

@@ -1,0 +1,28 @@
+/* Injected by the Games Chat iOS app (with native.js). The web version never
+   loads this. */
+.ios-app [data-action="fullscreen"],
+.ios-app #settings .field.in-call:has(#btn-leave) { display: none !important; }
+.ios-app body { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+.ios-app input, .ios-app textarea { -webkit-user-select: text; user-select: text; }
+
+/* Hang up: always at the end of the bottom strip, red like the phone app's. */
+.ios-app .controls .ctrl.hangup { background: #ff3b30 !important; color: #fff !important; flex: none; }
+.ios-app .controls .ctrl.hangup:active { background: #c7271f !important; }
+.ios-app .controls .ctrl.hangup .ico svg { display: block; }
+.ios-app .controls[data-tab] .ctrl.hangup { width: 54px; }
+.ios-app .controls[data-tab] .ctrl.hangup .lbl { display: none; }
+
+#ios-toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); transform: translate(-50%, -12px);
+  max-width: min(90vw, 420px); padding: 10px 16px; border-radius: 14px; background: rgba(20, 16, 34, 0.92); color: #fff;
+  font: 600 15px/1.3 -apple-system, system-ui, sans-serif; text-align: center; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s; z-index: 1000; }
+#ios-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Six buttons on the strip (the five tabs plus hang up): a little narrower. */
+.ios-app .controls { gap: 3px; }
+.ios-app .controls .ctrl { width: 58px; }
+.ios-app .controls .ctrl .lbl { font-size: 0.56rem; letter-spacing: -0.02em; }
+@media (max-width: 370px) {
+  .ios-app .controls .ctrl { width: 50px; }
+  .ios-app .controls .ctrl .lbl { font-size: 0.5rem; }
+}

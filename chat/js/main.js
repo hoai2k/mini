@@ -34,6 +34,13 @@ const settings = {
 if (!settings.themePicked) settings.theme = 'kid';
 const saveSettings = () => save('settings', settings);
 
+// Everyone shares one chat room, unless a link names another (?room=...):
+// calls from the iOS app and their invite links meet in their own room.
+const chatRoom = (() => {
+  const r = new URLSearchParams(location.search).get('room');
+  return r && /^[A-Za-z0-9_-]{6,64}$/.test(r) ? r : 'everyone';
+})();
+
 // The player's colour accents the whole interface. Text on it is dark or
 // light depending on how bright the colour is.
 function applyAccent(saved) {
@@ -288,7 +295,7 @@ async function start() {
   });
   updateFaceStatus();
 
-  net = createNet({ game: 'chat', room: 'everyone', me });
+  net = createNet({ game: 'chat', room: chatRoom, me });
   votes = createVotes({ server: MiniRooms.defaultServer() });
   net.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away, fx: null });
   // While the tab is in the background or the window loses focus the camera
@@ -760,7 +767,7 @@ function layout() {
       wait = document.createElement('div');
       wait.id = 'waiting';
       wait.className = 'stage-note';
-      wait.textContent = `Waiting for friends. Send them this page: ${location.host}${location.pathname}`;
+      wait.textContent = `Waiting for friends. Send them this page: ${location.host}${location.pathname}${chatRoom === 'everyone' ? '' : `?room=${chatRoom}`}`;
       stage.append(wait);
     }
   } else {

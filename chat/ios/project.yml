@@ -1,0 +1,82 @@
+# The Games Chat iOS app. GamesChat.xcodeproj is generated from this file:
+#   xcodegen generate        (brew install xcodegen; also runs on Linux, see README)
+# Change the bundle ID and team here, not in Xcode, and regenerate.
+name: GamesChat
+options:
+  bundleIdPrefix: net.hoai
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""          # your Apple Developer Team ID (see TESTFLIGHT.md)
+packages:
+  GamesChatCore:
+    path: GamesChatCore
+targets:
+  GamesChat:
+    type: application
+    platform: iOS
+    sources:
+      - path: GamesChat
+      - path: web
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: GamesChatCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.hoai.gameschat
+        PRODUCT_NAME: GamesChat
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+    entitlements:
+      path: GamesChat/GamesChat.entitlements
+      properties:
+        aps-environment: development
+    info:
+      path: GamesChat/Info.plist
+      properties:
+        CFBundleDisplayName: Games Chat
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIBackgroundModes:
+          - voip
+          - audio
+        NSCameraUsageDescription: Games Chat uses the camera for video calls and face effects.
+        NSMicrophoneUsageDescription: Games Chat uses the microphone so people in your call can hear you.
+        UIUserInterfaceStyle: Dark
+        # Where the app finds the web app and the calls server (TESTFLIGHT.md).
+        GCWebApp: https://hoai2k.github.io/mini/chat/
+        GCCallsServer: https://games-chat-calls.hoai2k.workers.dev/
+schemes:
+  GamesChat:
+    build:
+      targets:
+        GamesChat: all
+    run:
+      config: Debug
+    archive:
+      config: Release
