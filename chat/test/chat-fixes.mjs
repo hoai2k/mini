@@ -52,7 +52,7 @@ try {
   assert.ok(Math.abs(tiles.find(t => t.id === first.id).x - first.x) > 50);
   assert.equal(tiles.find(t => t.id === floats[1].id).x, floats[1].x);
   const newPrimary = floats[1].id;
-  await a.locator(`.tile[data-id="${newPrimary}"] .primary-view`).click();
+  await a.locator(`.tile[data-id="${newPrimary}"]`).click();
   assert.equal((await geometry()).find(t => !t.pip).id, newPrimary);
   await a.screenshot({ path: `${root}local/chat-shots/group-floating.png` });
   await a.setViewportSize({ width: 390, height: 844 });
@@ -69,6 +69,8 @@ try {
   }
   console.log('ok deselecting all three categories removes the effect and presence');
   await b.evaluate(() => window.__chat.selectEffect('crown'));
+  const copyPrimary = await b.evaluate(() => window.__chat.me.id);
+  await a.locator(`.tile[data-id="${copyPrimary}"]`).click();
   await a.waitForFunction(() => [...document.querySelectorAll('.copy-effect,#grab-fx')].some(e => !e.hidden && e.dataset.fx === 'crown'));
   await a.locator('.copy-effect[data-fx="crown"]:visible,#grab-fx[data-fx="crown"]:visible').click();
   assert.equal(await a.evaluate(() => window.__chat.studio.effect.id), 'crown');

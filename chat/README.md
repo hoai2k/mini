@@ -53,10 +53,12 @@ so the picture stays clear:
 - **Videos:** names show only for a moment (when someone arrives, renames or
   the videos swap); connection messages show while connecting and then go.
   Your friend fills the screen and everyone else floats over it. Tap a small
-  video or its **Main view** button to make it primary; drag each small video
+  video to make it primary (or focus it and press Enter/Space); drag each small video
   independently to position it. This also works with three or more people.
-  **Use Bo's effect** (with your friend's name) copies their current effect: on the main view
-  it sits above the bottom controls; small videos have their own copy button.
+  A quiet **Copy** prompt names the effect used by the person in the main video.
+  Small videos have no buttons. A shared effect replaces the quiet prompt with
+  a **Try it** notification in the same spot; dismissing or expiry returns to
+  the main person's current effect. Copying and accepting use the same action.
 - **During a game** the bottom row and strips go away so the game gets the
   screen and your effect is removed. Effects cannot be put on during a game.
   Close the game with the ✕ beside its name to get the controls back.
@@ -224,6 +226,9 @@ itself to HTTPS.
   video dragging and primary selection, effect deselection and copying,
   effects disabled during games, live opponent burgers, and bowling's
   1.5-second pause after pins settle (needs the local relay dependencies)
+- `chat/publish.sh local/pages/chat && node chat/test/effect-prompt.mjs`: main-video
+  copying, keyboard promotion, shared offer replacement/dismissal/expiry,
+  mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
   offers, all 21 games with rookie controls, real turns, live Burger Stack

@@ -403,18 +403,7 @@ function makeTile(id, media) {
   const flags = document.createElement('div');
   flags.className = 'flags';
   el.append(media, label, flags);
-  const actions = document.createElement('div');
-  actions.className = 'tile-actions';
-  const primary = document.createElement('button');
-  primary.type = 'button';
-  primary.className = 'primary-view';
-  primary.textContent = 'Main view';
-  primary.addEventListener('click', () => {
-    promoteTile(id);
-  });
-  actions.append(primary);
-  el.append(actions);
-  const rec = { id, el, media, label, flags, actions, primary, sig: '', name: '', phase: null };
+  const rec = { id, el, media, label, flags, sig: '', name: '', phase: null };
   tiles.set(id, rec);
   tileGestures(rec);
   return rec;
@@ -462,8 +451,14 @@ function updatePip() {
   for (const rec of tiles.values()) {
     const pip = rec.id !== (primaryId ?? me.id);
     rec.el.classList.toggle('pip', pip);
-    rec.primary.hidden = !pip || !!games?.current;
-    rec.primary.setAttribute('aria-label', `Make ${nameOf(rec.id)} the main view`);
+    rec.el.tabIndex = pip && !games?.current ? 0 : -1;
+    if (pip && !games?.current) {
+      rec.el.setAttribute('role', 'button');
+      rec.el.setAttribute('aria-label', `Make ${nameOf(rec.id)} the main view`);
+    } else {
+      rec.el.removeAttribute('role');
+      rec.el.removeAttribute('aria-label');
+    }
     if (pip && !games?.current) placePip(rec);
     else { rec.el.style.left = ''; rec.el.style.top = ''; }
   }
@@ -473,6 +468,11 @@ function updatePip() {
 // Pressing and holding my own tile is the Bubble Blow gesture, wherever it is.
 function tileGestures(rec) {
   const el = rec.el;
+  el.addEventListener('keydown', e => {
+    if (!el.classList.contains('pip') || games?.current || !['Enter', ' '].includes(e.key)) return;
+    e.preventDefault();
+    promoteTile(rec.id);
+  });
   const self = () => rec.id === me.id;
   let drag = null;
   el.addEventListener('pointerdown', e => {
@@ -1055,6 +1055,13 @@ function initControls() {
     const h = $('#controls').offsetHeight;
     if (h) $('#call').style.setProperty('--controls-height', `${h}px`);
   }).observe($('#controls'));
+  // Keep the main-video prompt above whichever bottom sheet is visible.
+  const sheets = [...new Set(Object.values(trays))].map(selector => $(selector));
+  const promptSpace = new ResizeObserver(() => {
+    const height = Math.max(0, ...sheets.map(sheet => sheet.hidden ? 0 : sheet.offsetHeight));
+    $('#call').style.setProperty('--effect-prompt-clearance', `${height + 10}px`);
+  });
+  for (const sheet of sheets) promptSpace.observe(sheet);
   $('#status').addEventListener('click', () => {
     renderConnection();
     openDialog('connection');
@@ -1372,68 +1379,60 @@ function shareEffect() {
   toast(`Shared ${fx.emoji} ${fx.name} with everyone`);
 }
 
+let effectOffer = null;
+let effectOfferTimer;
+function clearEffectOffer() {
+  clearTimeout(effectOfferTimer);
+  effectOffer = null;
+  updateGrabButton();
+}
 function showEffectOffer(from, fx) {
-  const el = document.createElement('div');
-  el.className = 'invite';
-  const text = document.createElement('span');
-  text.textContent = `${nameOf(from)} shared ${fx.emoji} ${fx.name}`;
-  const yes = document.createElement('button');
-  yes.type = 'button';
-  yes.className = 'btn aqua';
-  yes.textContent = 'Try it';
-  yes.addEventListener('click', () => {
-    el.remove();
-    selectEffect(fx);
-  });
-  const no = document.createElement('button');
-  no.type = 'button';
-  no.className = 'btn ghost';
-  no.textContent = '✕';
-  no.setAttribute('aria-label', 'No thanks');
-  no.addEventListener('click', () => el.remove());
-  el.append(text, yes, no);
-  $('#invites').append(el);
+  clearTimeout(effectOfferTimer);
+  effectOffer = { from, fx };
+  effectOfferTimer = setTimeout(clearEffectOffer, 15000);
+  updateGrabButton();
   sfx('join');
-  setTimeout(() => el.remove(), 15000);
 }
 
-// A labelled copy action on the primary view and on every friend's small view.
+// One quiet copy prompt for the main video; an explicit share replaces it.
 function updateGrabButton() {
-  let btn = $('#grab-fx');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'grab-fx';
-    btn.type = 'button';
-    btn.className = 'grab-fx';
-    $('#call').append(btn);
+  let el = $('#effect-prompt');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'effect-prompt';
+    el.className = 'invite effect-prompt';
+    el.innerHTML = '<span class="effect-prompt-text"></span><button id="grab-fx" class="btn ghost" type="button">Copy</button><button class="btn ghost effect-prompt-dismiss" type="button" aria-label="No thanks">✕</button>';
+    el.querySelector('.effect-prompt-dismiss').onclick = clearEffectOffer;
+    $('#call').append(el);
   }
-  function configure(button, friend) {
-    const fxId = net?.peers.get(friend)?.fx;
-    const fx = effects.find(e => e.id === fxId);
-    const show = !!fx && !games?.current && studio?.effect?.id !== fx.id;
-    button.hidden = !show;
-    if (!show) return;
-    button.dataset.fx = fx.id;
-    button.textContent = `${fx.emoji} Use ${nameOf(friend)}'s effect`;
-    button.setAttribute('aria-label', `Use ${nameOf(friend)}'s ${fx.name} effect`);
-    button.title = `Use ${fx.name} on me too`;
-    button.onclick = () => {
-      if (!games?.current) toggleTray(fx.kind, true);
-      selectEffect(fx);
-      if (!games?.current) toast(`You've got ${fx.emoji} ${fx.name} on too`);
-    };
+  if (effectOffer && !net?.peers.has(effectOffer.from)) {
+    clearTimeout(effectOfferTimer);
+    effectOffer = null;
   }
-  configure(btn, primaryId === me.id ? null : primaryId);
-  for (const rec of tiles.values()) {
-    if (rec.id === me.id) continue;
-    if (!rec.copyEffect) {
-      rec.copyEffect = document.createElement('button');
-      rec.copyEffect.type = 'button';
-      rec.copyEffect.className = 'copy-effect';
-      rec.actions.append(rec.copyEffect);
-    }
-    configure(rec.copyEffect, rec.el.classList.contains('pip') ? rec.id : null);
-  }
+  const friend = effectOffer?.from ?? (primaryId === me.id ? null : primaryId);
+  const fx = effectOffer?.fx ?? effects.find(e => e.id === net?.peers.get(friend)?.fx);
+  const btn = $('#grab-fx');
+  const show = !!fx && !games?.current && (!!effectOffer || studio?.effect?.id !== fx.id);
+  el.hidden = btn.hidden = !show;
+  if (!show) { delete btn.dataset.fx; return; }
+  const offered = !!effectOffer;
+  el.classList.toggle('shared', offered);
+  el.setAttribute('aria-live', offered ? 'polite' : 'off');
+  el.querySelector('.effect-prompt-text').textContent = offered
+    ? `${nameOf(friend)} shared ${fx.emoji} ${fx.name}`
+    : `${nameOf(friend)} is using ${fx.emoji} ${fx.name}`;
+  el.querySelector('.effect-prompt-dismiss').hidden = !offered;
+  btn.className = offered ? 'btn aqua' : 'btn ghost';
+  btn.textContent = offered ? 'Try it' : 'Copy';
+  btn.dataset.fx = fx.id;
+  btn.setAttribute('aria-label', `Use ${nameOf(friend)}'s ${fx.name} effect`);
+  btn.onclick = () => {
+    if (games?.current) return;
+    clearTimeout(effectOfferTimer);
+    effectOffer = null;
+    toggleTray(fx.kind, true);
+    selectEffect(fx);
+  };
 }
 
 // --- favourites --------------------------------------------------------------
