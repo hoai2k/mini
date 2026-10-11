@@ -128,7 +128,10 @@ export class Effects {
     el.textContent = text ?? Math.round(amount);
     if (color) el.style.color = color;
     this.numLayer.appendChild(el);
-    this.numbers.push({ el, pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 1.9, (Math.random() - 0.5) * 0.6)), t: 0, vy: 2.2, crit });
+    // numbers from quick hits on one target stack upward instead of piling on one spot
+    let stack = 0;
+    for (const n of this.numbers) if (n.t < 0.3 && Math.abs(n.src.x - pos.x) < 0.8 && Math.abs(n.src.z - pos.z) < 0.8) stack++;
+    this.numbers.push({ el, src: pos.clone(), pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.9, 1.9 + Math.min(4, stack) * 0.38, (Math.random() - 0.5) * 0.9)), t: 0, vy: 2.2, crit });
   }
   // ---------------- movement fx
   landDust(pos, v) { this.p.burst(tmp.set(pos.x, pos.y + 0.1, pos.z), { count: 10, color: 0x8a7a6a, additive: false, speed: 3, up: 0.1, life: 0.5, size: 0.35, drag: 5, sizeEnd: 1.8, intensity: 0.7 }); }
