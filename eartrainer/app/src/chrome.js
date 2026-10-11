@@ -27,6 +27,10 @@ export function canFullscreen() {
 // some Android browsers that refusal is all the player sees. Once fullscreen
 // has started, lock landscape (Android only allows the lock in fullscreen).
 let pending = null;
+// Set when the player left fullscreen themselves: taps stop asking for it.
+let userLeft = false;
+/** An explicit request (the Fullscreen button, the menu): taps may ask again. */
+export function wantFullscreen(opts) { userLeft = false; return requestFullscreen(opts); }
 let failures = 0;
 let onFail = null;
 export function onFullscreenFail(f) { onFail = f; }
@@ -54,21 +58,36 @@ export function exitFullscreen() {
   try { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {}); } catch { /* ignore */ }
 }
 
-export function createChrome({ touch, isPlaying, hintEl, onStuck }) {
+export function createChrome({ touch, isPlaying, hintEl, onStuck, onUserLeft }) {
   const landscape = () => innerWidth > innerHeight;
 
-  // 1. A tap in landscape asks for fullscreen whenever it isn't on (where
-  // supported): the first tap, and again after it was left (Android's back
-  // gesture, switching apps). If the browser refuses on pointerup (some count
-  // only the click as the tap), the click that follows tries once more.
+  // 1. A tap in landscape asks for fullscreen while it isn't on (where
+  // supported): the first tap, and again after the system took it away
+  // (switching apps, a rotation). But when the player leaves it themselves
+  // (Chrome's "swipe down to exit", the back gesture, our button), taps stop
+  // asking until they turn it back on: otherwise every tap would throw them
+  // straight back in, with Chrome's notice each time. If the browser refuses on
+  // pointerup (some count only the click as the tap), the click tries again.
   if (touch && canFullscreen() && !standalone) {
     let retryClick = false;
+    let lastHidden = 0, lastTurn = 0;
+    document.addEventListener('visibilitychange', () => { lastHidden = performance.now(); });
+    addEventListener('orientationchange', () => { lastTurn = performance.now(); });
+    screen.orientation?.addEventListener?.('change', () => { lastTurn = performance.now(); });
+    const onChange = () => {
+      if (fullscreenElement()) { userLeft = false; return; }
+      const now = performance.now();
+      const bySystem = document.hidden || now - lastHidden < 1500 || now - lastTurn < 1500;
+      if (!bySystem) { userLeft = true; onUserLeft?.(); }
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
     document.addEventListener('pointerup', () => {
-      if (!landscape() || fullscreenElement()) return;
+      if (userLeft || !landscape() || fullscreenElement()) return;
       requestFullscreen({ lock: true }).then((ok) => { retryClick = !ok; });
     }, { capture: true });
     document.addEventListener('click', () => {
-      if (!retryClick || fullscreenElement()) return;
+      if (userLeft || !retryClick || fullscreenElement()) return;
       retryClick = false;
       requestFullscreen({ lock: true });
     }, { capture: true });

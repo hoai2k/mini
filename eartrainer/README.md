@@ -75,7 +75,11 @@ redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
 pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): a tap in landscape asks for
-fullscreen whenever it is off (one request per tap, since a second in the same
+fullscreen while it is off, unless the player left it themselves (Chrome's
+"swipe down to exit" notice, the back gesture, the button): then taps stop
+asking, a message says how to turn it back on, and only the button or the
+pause menu does; exits caused by switching apps or a rotation still come back
+on the next tap (one request per tap, since a second in the same
 tap is always refused; the click retries if the pointerup was refused; landscape
 is locked once fullscreen starts; the pause menu offers Full screen again, and
 a browser that keeps refusing gets one message suggesting Chrome or the home
