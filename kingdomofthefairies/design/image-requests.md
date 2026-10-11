@@ -5,6 +5,51 @@ primary briefs. Use the original 1903 film’s theatrical framing, hand-painted
 sets, costume gestures, shells, coral, enchanted armour, tower and cloud
 transformations. The default game does not use modern band imagery.
 
+## Agent workflow for image batches
+
+Keep full-resolution artwork on disk; use small previews in conversation.
+Generating many images is supported, but accumulating generated images,
+full-size inspections and repeated references in one conversation can exceed
+the model request's image-content limit, even on a later text-only turn.
+
+- **Save immediately.** Copy each completed original to its named delivery
+  location before starting more work. Preserve its full resolution and
+  transparency. Record the request id, file path, prompt, generation id,
+  reference paths, review status and outstanding corrections in a manifest
+  or progress note on disk. Do not print base64 image data into tool output.
+- **Review previews first.** For composition and consistency checks, use a
+  separate thumbnail (roughly 640–1024 pixels on its longest edge), or a
+  compact contact sheet for a small group. Keep the originals untouched.
+  Inspect one image at a time; load a larger preview or a detail crop only
+  when a specific check needs it. These sizes are practical starting points,
+  not guaranteed service limits.
+- **Choose references per scene.** Attach only the character sheets and
+  scenery needed for the current prompt. Prefer suitably sized reference
+  copies that still show the necessary faces, costumes and props; use an
+  original when fine detail requires it. Do not attach the entire cast or
+  repeatedly bring every previous image into context.
+- **Work in small batches.** Generate, save and review a few images before
+  continuing. Avoid returning a large batch of full-size images together.
+  If the generation tool already displays a result, do not display it again
+  just to confirm its path. Follow the tool's required output format.
+- **Checkpoint conversation context.** Update the progress note between
+  batches, then compact the conversation when supported before its image
+  history grows large. Keep ids, paths, decisions and remaining work in the
+  summary rather than reattaching artwork. Smaller previews reduce new
+  inputs; they do not remove full-size images already in the history.
+- **Recover without regenerating.** If “The combined resolved image content
+  is too large” blocks even text-only messages, stop retrying the same
+  request. Compact if available, or resume with a short text handoff in a
+  clean conversation that has access to the same workspace. Check saved
+  files and metadata first, finish preparation and validation, and generate
+  only missing or specifically rejected images. Preserve unfinished work.
+  Splitting Git commits does not fix a model image-input limit.
+- **Finish the delivery.** Verify file counts, dimensions, transparency,
+  naming, gallery links and generated-document checks. Keep planning art
+  separate from playable assets unless integration is requested. Commit
+  according to the repository agreement; do not leave the only record of
+  delivered images in conversation history.
+
 ## New delivered artwork
 
 | Asset | Delivery | Use |
