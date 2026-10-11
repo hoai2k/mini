@@ -67,7 +67,10 @@ redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
 pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
-for fullscreen, and iPhone Safari gets the swipe-up hint instead.
+for fullscreen, and iPhone Safari gets the swipe-up hint instead. The page
+can't be zoomed: iPhone Safari ignores `user-scalable=no`, so `preventZoom` in
+`chrome.js` blocks pinches (two fingers drifting apart on a chord look like
+one) and double-tap zoom, and snaps the page back if it ever ends up zoomed.
 
 ## Files
 
