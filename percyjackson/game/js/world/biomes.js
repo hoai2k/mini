@@ -114,7 +114,7 @@ export const BIOMES = {
   waterland: {
     id: 'waterland', name: 'Waterland', sub: 'Denver · Closed for the Season',
     skyTop: 0x060a1a, skyHorizon: 0x2a3a5a, fog: 0x1a2436, fogDensity: 0.022,
-    hemiSky: 0x8aa0d0, hemiGround: 0x1a1612, hemiI: 0.85, sun: 0xb0c4ff, sunI: 1.0,
+    hemiSky: 0x9aaad8, hemiGround: 0x2a2018, hemiI: 1.0, sun: 0xb8c8ff, sunI: 1.15,
     grade: { tint: [0.96, 1.0, 1.06], lift: [0.0, 0.008, 0.02], sat: 0.98, contrast: 1.1, vignette: 0.38 },
     floor: B.concrete, floor2: B.pool_tile, path: B.concrete, wall: B.rust_metal, wall2: B.concrete, trim: B.slide_glass, pillar: B.rust_metal, roof: B.rust_metal, ground: B.concrete, accent: B.lantern, pit: B.concrete,
     ambience: 'park', music: 'waterpark', particles: 'moths', wind: 0.9,
@@ -125,7 +125,7 @@ export const BIOMES = {
     skyTop: 0x12051e, skyHorizon: 0x6a1a5a, fog: 0x3a1440, fogDensity: 0.016,
     hemiSky: 0xffc0e8, hemiGround: 0x2a0a20, hemiI: 1.1, sun: 0xffe0b0, sunI: 1.1,
     grade: { tint: [1.05, 0.97, 1.03], lift: [0.016, 0.006, 0.02], sat: 1.22, contrast: 1.04, vignette: 0.3 },
-    floor: B.casino_carpet, floor2: B.casino_carpet, path: B.carpet_red, wall: B.lotus_panel, wall2: B.gold_plate, trim: B.neon_green, pillar: B.gold_plate, roof: B.lotus_panel, ground: B.casino_carpet, accent: B.neon_pink, pit: B.lotus_panel,
+    floor: B.casino_carpet, floor2: B.casino_carpet, path: B.carpet_red, wall: B.lotus_panel, wall2: B.gold_plate, trim: B.gold_plate, pillar: B.gold_plate, roof: B.lotus_panel, ground: B.casino_carpet, accent: B.neon_pink, pit: B.lotus_panel,
     ambience: 'casino', music: 'lotus', particles: 'neon', wind: 1.6, indoor: true, dreamy: true,
   },
   // Chapter 9: the Nevada desert and Crusty's Water Bed Palace.

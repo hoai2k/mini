@@ -1312,7 +1312,9 @@ function chainLink(c, h = 2) {
   for (let z = z0; z <= z1; z += 6) for (const x of [x0, x1]) if (!doorAisle(c, x, z, 3)) k.w.fill(x, y, z, x, y + h - 1, z, B.iron_plate);
 }
 function parkDecorate(c, amount = 1) {
-  const { k, x0, z0, x1, z1 } = c;
+  const { k, x0, z0, x1, z1, y } = c;
+  // sodium lamps still burning in the closed park
+  for (let i = 0, n = 0; i < 6 && n < 2; i++) { const [x, z] = cellIn(c, 2); if (place(c, x, z, 'streetlight', { rot: c.r() * 6 }, 1)) { lightAt(c, x + 0.5, y + 4.6, z + 0.5, 0xffb060, 5, 12); n++; } }
   scatterOn(k, x0, z0, x1, z1, [B.concrete, B.pool_tile], ['leaf_litter', 'paper', 'road_crack', 'puddle'], 0.05 * amount, 1);
   scatterOn(k, x0, z0, x1, z1, [B.grass, B.dirt], ['dry_grass', 'tall_grass', 'grass'], 0.3 * amount);
 }
@@ -1533,13 +1535,13 @@ DRESS.casino = {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.casino_carpet, 8);
     const { cx, cz, R } = roundArena(c);
-    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x + 0.5 - cx, z + 0.5 - cz); if (d < 4) k.w.set(x, y - 1, z, d < 2.5 ? B.gold_plate : B.marble_floor); else if (d > R - 0.6 && d <= R + 0.6) { for (let yy = y; yy < y + 7; yy++) k.w.set(x, yy, z, yy === y + 3 ? B.neon_green : B.lotus_panel); } }
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x + 0.5 - cx, z + 0.5 - cz); if (d < 4) k.w.set(x, y - 1, z, d < 2.5 ? B.gold_plate : B.marble_floor); else if (d > R - 0.6 && d <= R + 0.6) { for (let yy = y; yy < y + 6; yy++) k.w.set(x, yy, z, yy === y + 3 && (x + z) % 4 === 0 ? ((x + z) % 8 ? B.neon_green : B.neon_pink) : yy === y + 5 ? B.gold_plate : B.lotus_panel); } }
     // the clock on the far wall and the exit doors beneath it
     k.d.prop('clock', cx, y + 5, z0 + 1.6, { scale: 1.2 });
     for (let x = Math.round(cx) - 2; x <= Math.round(cx) + 1; x++) for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0 + 1, B.elevator_door);
     sign(c, cx, z0 + 2.06, 'EXIT', { y: y + 3.1, w: 1.6, h: 0.5, bg: '#2a0a0a', fg: '#ff4a4a', glow: true, oneSided: true });
     for (let a = 0; a < 8; a++) { const ang = a / 8 * Math.PI * 2; const px = Math.round(cx + Math.cos(ang) * R * 0.6), pz = Math.round(cz + Math.sin(ang) * R * 0.6); if (a % 2) place(c, px, pz, 'slot', { rot: -ang - Math.PI / 2, color: 0xff4a8a }, 2); else if (free(c, px, pz)) k.pillar(px, pz, y, 6, B.gold_plate, B.neon_pink); }
-    for (let a = 0; a < 4; a++) { const ang = a / 4 * Math.PI * 2 + 0.4; k.d.prop('chandelier', cx + Math.cos(ang) * 5, y + 7, cz + Math.sin(ang) * 5, { scale: 1.4 }); lightAt(c, cx + Math.cos(ang) * 5, y + 5, cz + Math.sin(ang) * 5, 0xffe0b0, 4, 11); }
+    for (let a = 0; a < 4; a++) { const ang = a / 4 * Math.PI * 2 + 0.4; k.d.prop('chandelier', cx + Math.cos(ang) * 5, y + 6, cz + Math.sin(ang) * 5, { scale: 1.4 }); lightAt(c, cx + Math.cos(ang) * 5, y + 5, cz + Math.sin(ang) * 5, 0xffe0b0, 4, 11); }
     k.d.add('lotus', cx, y, cz, { scale: 2.4, emit: 1 });
     casinoDecorate(c, 1.5);
     c.slots.push({ type: 'clock', pos: [cx, y + 5, z0 + 1.6] }, { type: 'exit', pos: [cx, y, z0 + 2.5] });
@@ -1729,7 +1731,8 @@ DRESS.underworld = {
     for (let x = x0; x <= x1; x++) for (let z = z0; z <= z0 + 2; z++) if (k.w.get(x, y - 1, z)) for (let yy = y; yy < y + 9; yy++) k.w.set(x, yy, z, Math.abs(x + 0.5 - cx) < 4 && z === z0 + 2 ? 0 : B.underworld_rock);
     for (let x = Math.round(cx) - 4; x <= Math.round(cx) + 3; x++) for (let yy = y; yy < y + 7; yy++) for (let z = z0; z <= z0 + 1; z++) k.w.set(x, yy, z, B.barrier);
     k.d.prop('iron_gate', cx, y, z0 + 1.5, { w: 7, h: 6, skulls: true });
-    lightAt(c, cx, y + 5, z0 + 3, 0x5aff8a, 6, 14);
+    lightAt(c, cx, y + 5, z0 + 3, 0x5aff8a, 9, 18);
+    for (const dx of [-4.3, 4.3]) { k.d.prop('fire', cx + dx, y + 7.4, z0 + 1.5, { scale: 0.7, smoke: true }); lightAt(c, cx + dx, y + 8, z0 + 2.5, 0xff7a3a, 6, 14); }
     for (const dx of [-5, 5]) greenBrazier(c, Math.round(cx + dx), z0 + 4);
     // the line of the dead, shuffling toward the gate
     for (let i = 0; i < 9; i++) place(c, Math.round(cx + 6 + Math.sin(i) * 0.6), Math.round(z0 + 5 + i * 1.1), 'ghost', { rot: Math.PI, scale: 0.9 }, 0);

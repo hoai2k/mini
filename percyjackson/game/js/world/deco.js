@@ -353,7 +353,7 @@ export class Decorations {
         case 'deck_chair': lb(0.6, 0.1, 1.6, 0, 0.35, 0, M.car(p.color ?? 0x2aa8a0)); lb(0.6, 0.1, 0.7, 0, 0.6, -0.8, M.car(p.color ?? 0x2aa8a0), 0, 0.6); for (const a of [-0.25, 0.25]) for (const b of [-0.6, 0.6]) lb(0.06, 0.35, 0.06, a, 0.17, b, M.chrome); break;
         case 'throne': { // an Olympian throne; p.color trims it
           const m = p.bronze ? M.bronze : M.marble, t = M.car(p.color ?? 0xffd84a);
-          lb(2.2, 0.6, 2.0, 0, 0.3, 0, M.marble); lb(1.6, 0.4, 1.4, 0, 0.8, 0.1, m); lb(1.6, 3.4, 0.4, 0, 2.3, -0.6, m);
+          lb(2.2, 0.6, 2.0, 0, 0.3, 0, M.marble); lb(1.6, 0.4, 1.4, 0, 0.8, 0.1, m); lb(1.6, 3.4, 0.4, 0, 2.3, -0.6, m); lb(1.2, 2.6, 0.1, 0, 2.3, -0.38, t); lb(1.3, 0.12, 1.2, 0, 1.05, 0.12, t);
           lb(0.3, 0.8, 1.2, -0.75, 1.3, 0.1, m); lb(0.3, 0.8, 1.2, 0.75, 1.3, 0.1, m); lb(1.8, 0.3, 0.5, 0, 4.1, -0.6, t); lb(0.6, 0.6, 0.1, 0, 3.4, -0.38, t);
           break;
         }

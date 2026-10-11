@@ -129,7 +129,7 @@ export function paintExtraTile(name, px, r, H) {
     }); return true;
     case 'underworld_rock': each(px, (x, y) => { // glossy black volcanic rock with a cold sheen
       const v = Math.sin(x * 0.9 + y * 0.4) * Math.cos(y * 0.7 - x * 0.2);
-      let c = mix(C(0x14121a), C(0x2e2a38), v * 0.5 + 0.5);
+      let c = mix(C(0x24202e), C(0x423c52), v * 0.5 + 0.5);
       if (r() < 0.03) c = C(0x5a5070);
       return [jitter(c, r, 0.1), 0.4 + v * 0.3];
     }); return true;

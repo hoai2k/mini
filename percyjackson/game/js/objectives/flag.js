@@ -152,7 +152,8 @@ export class FlagObjective {
   onNetAct(d) {
     if (d.a !== 'take') return;
     const p = heroByKey(this.g, `${d.u}:${d.h | 0}`);
-    if (p && p.pos.distanceTo(this.bannerPos) < 5) this.setCarrier(p);
+    // a guest's hero position is theirs to say (the host's copy may lag)
+    if (p) this.setCarrier(p);
   }
   dispose() { this.g.lights.remove?.(this.light); }
 }

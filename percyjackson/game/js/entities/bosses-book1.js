@@ -710,7 +710,7 @@ export const BOOK1_HOOKS = {
   },
   spidersDie(b) {
     let n = 0;
-    for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b && !e.isBoss) { e.hp = 0; e.die?.({}); n++; }
+    for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b && e.kind === 'spider') { e.hp = 0; e.die?.({}); n++; }   // (automatons keep their Greek fire)
     toast(n ? 'The queen falls — her swarm winds down!' : 'The bronze queen falls!', 'big');
   },
   // ---- Procrustes

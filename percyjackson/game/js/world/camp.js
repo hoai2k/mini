@@ -506,7 +506,7 @@ function buildRoadWest(k, shoreOf) {
   }
   // open the old north edge of camp; new edges round the strip
   const s0 = shore(NZ);
-  for (let x = s0 - 3; x < SX - 1; x++) for (let y = FY - 3; y <= FY + 6; y++) if (W.get(x, y, NZ) === B.barrier) W.set(x, y, NZ, 0);
+  for (let x = s0 - 3; x < SX - 1; x++) for (let y = FY - 3; y <= FY + 6; y++) if (W.get(x, y, NZ) === B.barrier) W.set(x, y, NZ, y >= FY ? 0 : y === FY - 1 ? (W.get(x, y, NZ + 1) || B.grass) : B.dirt);
   for (let x = 0; x < SX; x++) W.fill(x, FY - 3, 0, x, FY + 6, 0, B.barrier);
   for (let z = 0; z < NZ; z++) W.fill(SX - 1, FY - 3, z, SX - 1, FY + 6, z, B.barrier);
   // the Santa Monica end: a sandy shore in the north-west
@@ -525,9 +525,12 @@ function buildRoadWest(k, shoreOf) {
         for (let dz = -w; dz <= w; dz++) for (let dx = -w; dx <= w; dx++) {
           if (Math.hypot(dx, dz) > w / 2) continue;
           const x = Math.floor(px + dx), z = Math.floor(pz + dz);
-          const y = top(x, z); if (!isFinite(y)) continue;
+          let y = top(x, z); if (!isFinite(y)) continue;
+          while (y > 1 && [B.leaves, B.pine_leaves, 0].includes(W.get(x, y - 1, z))) y--;   // under the branches
           const cur = W.get(x, y - 1, z);
           if (!onlyGround || [B.grass, B.dirt, B.forest_floor, B.sand, B.desert_sand, B.gravel_path, B.rock].includes(cur)) W.set(x, y - 1, z, id);
+          // trim low branches over the road
+          for (let yy = y; yy < y + 4; yy++) { const b = W.get(x, yy, z); if (b === B.leaves || b === B.pine_leaves) W.set(x, yy, z, 0); }
         }
       }
     }
