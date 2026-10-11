@@ -25,16 +25,18 @@ The default edition follows the film's story
 ([the film adaptation plan](design/film-adaptation.md)): a prologue and six
 acts. The first four keep their stage machinery and rules, recast:
 
-0. Prologue, The Betrothal: the intro to Act I in painted tableaux (the
-   fairies' gifts, the witch's curse, the abduction, Aurora arming the
-   prince). It plays on its own, A skips each tableau, and it leads straight
-   into the Royal Crossing.
+0. Prologue, The Betrothal: a short playable scene on the delivered sets. The
+   prince receives the fairies' gifts in the betrothal court, the witch curses
+   it, he chases the demons' chariot along the rampart, and Aurora arms him in
+   the armoury. Nothing can be lost; B skips a scene; it leads straight into
+   the Royal Crossing.
 1. The Royal Crossing: the royal ship's voyage (the original ship), then the witch's tempest, a scene
    in which the crew light the lanterns themselves.
 2. The Water Fairy: the sleepers' grotto; the Water Fairy blesses the prince
    (no refusal) and her dolphin carriage carries him on.
 3. Neptune's Court: the court's moving floors, watched by the scrying eye.
-4. The Whale's Passage: through the whale to shore, where Aurora waits.
+4. The Whale's Passage: through the whale to shore, where Aurora points the
+   way through the cavern (a run through the dark, by Aurora's lamp).
 5. The Enchanted Tower: the cliff, a swim across the sea gap diving under the
    witch's swoops, and the tower wall up to Azurine's window.
 6. The Burning Tower: the burning floors, carrying Azurine out, rolling the

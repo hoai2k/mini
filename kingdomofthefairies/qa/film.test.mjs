@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
-import prologue, { GIFTS } from '../src/acts/prologue.js';
+import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS } from '../src/acts/prologue.js';
 import act2 from '../src/acts/act2.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
@@ -44,24 +44,46 @@ test('every scene of every film act creates and steps without throwing', () => {
   });
 });
 
-test('prologue: the intro plays through on its own, gifts and sword included', () => {
+test('prologue: gifts, her hand, the chase along the rampart and the arming', () => {
   const st = prologue.create({});
-  const seen = [];
-  run(prologue, st, 60, () => ({}), (s) => { seen.push(s.phase); return false; });
-  assert.equal(st.status, 'won');
-  assert.equal(st.gifts, GIFTS.length);
-  assert.ok(st.armed, 'the sword was raised');
+  let clock = 0, last = false;
+  const press = (want) => { const a = want && !last; last = want; return a; };   // a fresh press each time
+  run(prologue, st, 120, (s) => {
+    const p = s.p, beat = (clock += DT) / BEAT;
+    if (s.phase === 'court') {
+      const f = FAIRIES.find((q) => !s.gifts.includes(q.gift));
+      const to = f ? f.x : AZURINE_X - 60;
+      return { moveX: Math.abs(to - p.x) > 20 ? Math.sign(to - p.x) : 0, a: press(!!s.near), beat };
+    }
+    if (s.phase === 'rampart') {
+      const fire = s.fires.find((f) => f.x > p.x && f.x - p.x < 70 && (f.lit || f.y > RAMPART.y - 120));
+      return { moveX: 1, a: press(!!fire && p.on), aHeld: true, beat };
+    }
+    if (s.phase === 'armoury') {
+      const a = ARMS.find((q) => !s.arms.includes(q.id));
+      return { moveX: a && Math.abs(a.x - p.x) > 20 ? Math.sign(a.x - p.x) : 0, a: press(!!s.near), beat };
+    }
+    return { beat };
+  });
+  assert.equal(st.status, 'won', st.phase);
+  assert.deepEqual([...st.gifts].sort(), [...GIFTS].sort());
+  assert.ok(st.betrothed);
+  assert.equal(st.arms.length, 3);
   assert.ok(prologue.intro, 'flows straight into Act I');
-  assert.deepEqual(st.result.keepsakes, {});
 });
 
-test('prologue: A skips each tableau, so pressing it reaches the game at once', () => {
-  const st = prologue.create({});
+test('prologue: fire on the rampart only knocks him back, and B skips each scene', () => {
+  const st = prologue.create({ from: { scene: 1 } });
+  assert.equal(st.phase, 'rampart');
+  st.fires.push({ x: st.p.x + 5, y: RAMPART.y, lit: true, burn: 0 });
+  prologue.step(st, DT, { moveX: 1, beat: 0 });
+  assert.equal(st.knocks, 1);
+  assert.equal(st.status, 'play');
+  const s2 = prologue.create({});
   let presses = 0;
-  run(prologue, st, 10, (s) => { const a = Math.floor(s.t * 5) !== Math.floor((s.t - DT) * 5); if (a) presses++; return { a }; });
-  assert.equal(st.status, 'won');
+  run(prologue, s2, 10, (s) => { const b = Math.floor(s.t * 3) !== Math.floor((s.t - DT) * 3); if (b) presses++; return { b }; });
+  assert.equal(s2.status, 'won');
   assert.ok(presses <= 6, `${presses} presses`);
-  assert.ok(st.t < 2, `reached the game in ${st.t.toFixed(2)} s`);
 });
 
 test('Act I: the film tempest lights its own lanterns (no rhythm input)', () => {
