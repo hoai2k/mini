@@ -23,7 +23,7 @@ export function createAudio() {
   let song = null; // { el, root } once it plays; null until then or if it failed
   let songWanted = null; // { url, root } from setSong
   let songFailed = false;
-  const vol = { volume: 0.8, music: 0.6, sfx: 0.8 };
+  const vol = { volume: 0.8, music: 0.6, sfx: 0.8, muted: false };
   // False while the page is hidden or the window is in the background: the
   // context stays suspended and nothing new is scheduled until it is back.
   let active = true;
@@ -112,7 +112,7 @@ export function createAudio() {
   function apply() {
     if (!ctx) return;
     const t = ctx.currentTime;
-    master.gain.setTargetAtTime(vol.volume, t, 0.05);
+    master.gain.setTargetAtTime(vol.muted || !active ? 0 : vol.volume, t, 0.05);
     music.gain.setTargetAtTime(vol.music * 0.5, t, 0.05);
     sfx.gain.setTargetAtTime(vol.sfx * 0.6, t, 0.05);
   }
@@ -184,6 +184,7 @@ export function createAudio() {
     // Silence everything while the page is hidden or unfocused; resume after.
     setActive(on) {
       active = on;
+      apply();
       if (!ctx) return;
       if (on) ctx.resume().catch(() => {});
       else ctx.suspend().catch(() => {});
@@ -199,6 +200,8 @@ export function createAudio() {
       startSong();
     },
     get songPlaying() { return !!song && !song.el.paused; },
+    // For checks: the master level that is aimed at right now.
+    get state() { return { muted: vol.muted, active, master: vol.muted || !active ? 0 : vol.volume }; },
     set(v) {
       Object.assign(vol, v);
       apply();

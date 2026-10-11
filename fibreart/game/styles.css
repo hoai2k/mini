@@ -336,6 +336,7 @@ html, body {
 .pic-btn svg { width: 2.6rem; height: 2.6rem; }
 .pic-btn img { width: 3.6rem; height: 3.6rem; object-fit: contain; }
 .pic-btn:hover { background: #fff; transform: scale(1.05); }
+.pic-btn.sound-btn.is-off:not(:hover):not(:focus-visible):not(.focused) { opacity: 0.55; }
 .pic-btn:active { transform: scale(0.96); }
 .pic-btn:focus-visible, .pic-btn.focused { outline: 5px solid var(--focus); background: #fff; }
 .pic-btn .btn-label {

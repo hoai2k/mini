@@ -60,7 +60,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   fair share of the library (about 20%, 31%, 30%, 12% and 6%).
 - Settings: four sounds (Concert Grand, Felt Piano, Bright Piano, Electric
   Piano), volume, room reverb, note names on keys, melodies as written or in
-  any key, the first-note dot, lit keys on replay, vibration, and a progress
+  any key, a Sound on/off switch (also the speaker button on the title; sound is
+  also silent while the tab is hidden or the window unfocused), the first-note dot, lit keys on replay, vibration, and a progress
   reset. Settings and progress are kept in `localStorage`.
 
 Controls: touch; computer keys (home row `A S D F G H J K L ; '` for the white

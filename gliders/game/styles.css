@@ -137,6 +137,7 @@ kbd {
   transition: transform 0.12s, background 0.12s;
 }
 .icon-btn svg { width: 28px; height: 28px; }
+.icon-btn.sound-btn.is-off:not(:hover):not(:focus-visible):not(.nav-focus) { opacity: 0.55; }
 .icon-btn:hover { background: var(--glass-strong); transform: translateY(-2px); }
 .icon-btn:active { transform: translateY(1px); }
 .btn-label {

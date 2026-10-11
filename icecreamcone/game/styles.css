@@ -156,6 +156,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   pointer-events: none;
   transition: opacity 0.15s;
 }
+.icon-btn.sound-btn.is-off:not(:hover):not(:focus-visible):not(.focused) { opacity: 0.55; }
 .icon-btn:hover .btn-label, .icon-btn:focus-visible .btn-label, .icon-btn.focused .btn-label { opacity: 1; }
 
 /* ---------- guide ---------- */

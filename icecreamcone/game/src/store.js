@@ -8,6 +8,7 @@ const STICKERS_KEY = 'icecreamcone.stickers.v1';
 
 export const DEFAULTS = {
   volume: 80,
+  sound: true,
   vibration: true,
   unlockAll: false,
 };

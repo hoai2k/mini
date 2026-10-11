@@ -1440,6 +1440,12 @@ function act(action, el) {
     case 'fullscreen':
       toggleFullscreen();
       break;
+    case 'sound':
+      settings.sound = !settings.sound;
+      saveSettings(settings);
+      applySettings();
+      syncSettingsUi();
+      break;
     case 'title':
       show('title');
       break;
@@ -1607,7 +1613,25 @@ document.addEventListener('change', (e) => {
 
 // ---------- settings ----------
 
+const SOUND_ICON = {
+  on: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>',
+  off: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>',
+};
+function syncSoundButton() {
+  const on = settings.sound !== false;
+  const label = on ? 'Sound on' : 'Sound off';
+  for (const b of document.querySelectorAll('[data-action="sound"]')) {
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', label);
+    b.title = label;
+    b.classList.toggle('is-off', !on);
+    b.querySelector('svg').innerHTML = on ? SOUND_ICON.on : SOUND_ICON.off;
+    b.querySelector('.btn-label').textContent = label;
+  }
+}
+
 function syncSettingsUi() {
+  syncSoundButton();
   $('#restore-btn').hidden = !canRestore(progress);
   syncFullscreenUi();
   for (const el of document.querySelectorAll('[data-setting]')) {
@@ -1622,6 +1646,7 @@ function syncSettingsUi() {
 }
 function applySettings() {
   audio.setVolumes(settings);
+  syncSoundButton();
   setBoil(!settings.reduceMotion);
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
 }
