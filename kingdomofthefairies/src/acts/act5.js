@@ -83,6 +83,20 @@ export function pickHold(st, from, dir, leap = false) {
   return leap && far >= 0 ? far : best;
 }
 
+// Where each press would take him from the hold he is on, for showing the
+// player: the hold each direction reaches (-1 for none) and where A would
+// leap (in the direction held, else up). `leap` is -1 when it would land on
+// the same hold as an ordinary climb that way.
+export function climbOptions(st, aim = null) {
+  const at = st.cl.at, out = {};
+  for (const [name, d] of Object.entries(DIRS)) out[name] = pickHold(st, at, d, false);
+  const ld = aim || DIRS.up;
+  const leap = pickHold(st, at, ld, true), plain = pickHold(st, at, ld, false);
+  out.leap = leap !== plain ? leap : -1;
+  return out;
+}
+export const CLIMB_BUFFER = 0.3; // a press this close to the end of a move happens on arrival
+
 // ---------------------------------------------------------------- the house
 // Stage coordinates, fixed camera. Floors 0 (ground) to 2 (the bedroom).
 export const HOUSE = {
@@ -137,6 +151,8 @@ export function endingFor(carry = {}) {
 export default {
   id: 5, kicker: 'Act V', title: BAY_TITLE, size: 120,
   sub: 'Climb the cliff to the stone house.\nCarry her out of the fire.',
+  // Shown as a silent-film intertitle after the act card.
+  intertitle: 'Press toward a glowing hold to climb to it:\nits arrow shows which way.\n\n[A] leaps to a far hold along the dotted arc.\nDust above means a stone is about to fall.',
   action: 'A: leap',
   scenes: SCENES,
 
@@ -381,14 +397,27 @@ function stepCliff(st, dt, input) {
     }
   }
 
+  // What the player is pressing: kept as the aim (the art shows where A
+  // would leap that way), and a fresh press made mid-move is buffered so it
+  // happens on arrival rather than being lost.
+  const dir = directionOf(input);
+  cl.aim = dir;
+  if (cl.bump) { cl.bump.t -= dt; if (cl.bump.t <= 0) cl.bump = null; }
+  const fresh = input.a || input.up || input.down || input.left || input.right;
+  // (Only presses in the last CLIMB_BUFFER s of a move, so an early press
+  // on a long leap doesn't fire a surprise second move.)
+  if (!idle && fresh && cl.moveDur - cl.moveT <= CLIMB_BUFFER) cl.queued = { a: !!input.a, dir };
   if (idle) {
-    const dir = directionOf(input);
-    if (input.a) {
-      const i = pickHold(st, cl.at, dir || DIRS.up, true);
+    const q = cl.queued; cl.queued = null;
+    const wantA = input.a || (q && q.a), d = dir || (q && q.dir);
+    if (wantA) {
+      const i = pickHold(st, cl.at, d || DIRS.up, true);
       if (i >= 0) moveTo(st, i, 'leap');
-    } else if (dir) {
-      const i = pickHold(st, cl.at, dir, false);
+      else { st.events.push({ type: 'noHold', dir: d || DIRS.up, leap: true }); cl.bump = { dir: d || DIRS.up, t: 0.4 }; }
+    } else if (d) {
+      const i = pickHold(st, cl.at, d, false);
       if (i >= 0) moveTo(st, i, 'climb');
+      else if (fresh || q) { st.events.push({ type: 'noHold', dir: d }); cl.bump = { dir: d, t: 0.4 }; }
     }
   }
 

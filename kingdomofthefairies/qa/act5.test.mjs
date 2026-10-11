@@ -1,6 +1,6 @@
 // Headless checks for Act V — Widow's Bay. Run: node kingdomofthefairies/qa/act5.test.mjs
 import assert from 'node:assert/strict';
-import act, { SCENES, BEAT_S, CLIFF, HOUSE, QUAY, T, pickHold, climberPos, holdY, endingFor } from '../src/acts/act5.js';
+import act, { SCENES, BEAT_S, CLIFF, HOUSE, QUAY, T, pickHold, climberPos, holdY, endingFor, climbOptions, CLIMB_BUFFER } from '../src/acts/act5.js';
 
 const DT = 1 / 60;
 let n = 0;
@@ -511,6 +511,37 @@ test('ending and pageant scenes reach won, with the right tableau', () => {
       assert.equal(st.result.ending, ending);
     }
   }
+});
+
+test('climbing shows its way: options match the moves, a mid-move press is kept, a blank press bumps', () => {
+  const st = act.create({ seed: 3, carry: {} });
+  const DT = 1 / 60;
+  const step = (inp = {}) => act.step(st, DT, { beat: st.clock / BEAT_S, ...inp });
+  step();
+  const o = climbOptions(st);
+  for (const d of ['up', 'down', 'left', 'right']) assert.ok(Number.isInteger(o[d]), d);
+  assert.ok(o.up >= 0, 'something to climb to from the start');
+  // a move goes where the option said
+  const target = o.up;
+  step({ up: true });
+  assert.equal(st.cl.at, target, 'up goes to the shown hold');
+  // a press made mid-move happens on arrival
+  const next = climbOptions(st);
+  for (let i = 0; i < 10; i++) step(); // into the last part of the move
+  step({ up: true });
+  assert.ok(st.cl.queued, 'kept while moving');
+  for (let i = 0; i < 40; i++) step();
+  assert.notEqual(st.cl.at, target, 'the buffered press moved him on');
+  assert.ok(CLIMB_BUFFER > 0.2);
+  // a press with no hold that way bumps instead of doing nothing
+  for (let i = 0; i < 40; i++) step();
+  const blank = ['down', 'left', 'right', 'up'].find((d) => climbOptions(st)[d] < 0);
+  if (blank) {
+    step({ [blank]: true });
+    assert.ok(st.cl.bump, 'bump shown');
+    assert.ok(st.events.some((e) => e.type === 'noHold'));
+  }
+  void next;
 });
 
 console.log(`\n${n} tests passed`);

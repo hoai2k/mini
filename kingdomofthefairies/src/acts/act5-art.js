@@ -3,7 +3,8 @@ import { LEGACY, BAY_TITLE } from '../theme.js';
 // and the pageant. Every piece of new art has a procedural stand-in until its
 // file is delivered (ids are in design/image-requests.md, Parts C1 and C6,
 // drawn at half the listed size). Draw only from state and t: no randomness.
-import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY } from './act5.js';
+import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY, climbOptions } from './act5.js';
+import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
 
@@ -393,6 +394,7 @@ function cliffScene(k, st, t) {
     giantLeg(k, LEGS[half], -(CLIFF.top - 100) - lift - off - 4, half);
   }
   rocksWorld(k, st, t);
+  climbGuide(k, st, t);
   climber(k, st, t);
   c.restore();
   rockWarnings(k, st, t);
@@ -442,6 +444,67 @@ function holds(k, st, t) {
       if (!k.asset('pearl', x, by, 22, 22)) { c.fillStyle = k.col('#efe9f2'); k.circle(x, by - 10, 9); c.fillStyle = k.col('#ffffff'); k.circle(x - 3, by - 13, 3); }
     }
   });
+}
+
+// What a press would do, shown on the cliff while he waits on a hold: every
+// hold within reach glows gold with an arrow for the way to press, the hold
+// A would leap to is joined by a dotted arc with the A button on it, and a
+// press that finds nothing flashes a cross on that side.
+const ARROW = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+function climbGuide(k, st, t) {
+  if (st.phase !== 'cliff' || st.defeatT != null) return;
+  const c = k.c, cl = st.cl, pos = climberPos(st);
+  const bump = cl.bump;
+  if (bump) {
+    const a = bump.t / 0.4, bx = pos.x + bump.dir.x * 70, by = -pos.y - 60 - bump.dir.y * 70;
+    c.save(); c.globalAlpha = a; c.strokeStyle = k.col('#c8321e'); c.lineWidth = 5; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(bx - 11, by - 11); c.lineTo(bx + 11, by + 11); c.moveTo(bx + 11, by - 11); c.lineTo(bx - 11, by + 11); c.stroke();
+    c.restore();
+  }
+  if (pos.moving) return;
+  const opts = climbOptions(st, cl.aim);
+  const byHold = new Map();
+  for (const name of ['up', 'left', 'right', 'down']) {
+    const i = opts[name];
+    if (i < 0) continue;
+    if (!byHold.has(i)) byHold.set(i, []);
+    byHold.get(i).push(name);
+  }
+  const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+  // the leap: a dotted arc to its hold, the A button at the top
+  if (opts.leap >= 0) {
+    const h = st.holds[opts.leap], hx = h.x, hy = -holdY(h, st.beat || 0) - 4;
+    const ax = pos.x, ay = -pos.y - 40, mx = (ax + hx) / 2, my = Math.min(ay, hy) - 70;
+    c.save(); c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 3; c.setLineDash([7, 9]); c.lineDashOffset = -t * 30;
+    c.globalAlpha = 0.75; c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(mx, my, hx, hy); c.stroke(); c.setLineDash([]);
+    c.globalAlpha = 0.5 + 0.3 * pulse; c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 3;
+    c.beginPath(); c.ellipse(hx, hy + 6, 34, 15, 0, 0, Math.PI * 2); c.stroke();
+    c.globalAlpha = 1; c.font = '700 20px "Josefin Sans", sans-serif'; c.textAlign = 'center'; c.fillStyle = k.col('#f1e3c8');
+    richText(c, '[A]', (ax + 2 * mx + hx) / 4, (ay + 2 * my + hy) / 4 + 6, { px: 20, mode: k.inputMode || 'key', col: k.col });
+    c.restore();
+  }
+  for (const [i, names] of byHold) {
+    const h = st.holds[i];
+    const x = h.x, y = -holdY(h, st.beat || 0);
+    const w = h.kind === 'ledge' || h.kind === 'boot' ? 60 : 34;
+    c.save();
+    if (h.kind !== 'top') {  // the grass needs no ring, only its arrow
+      c.globalAlpha = 0.28 + 0.22 * pulse; c.fillStyle = k.col('#d9b34a');
+      c.beginPath(); c.ellipse(x, y + 6, w + 10, 18, 0, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 0.9; c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 3;
+      c.beginPath(); c.ellipse(x, y + 6, w + 4, 14, 0, 0, Math.PI * 2); c.stroke();
+    }
+    names.forEach((n, j) => {
+      const [dx, dy] = ARROW[n], ox = x + (j - (names.length - 1) / 2) * 30, oy = y - 34;
+      c.save(); c.translate(ox, oy + Math.sin(t * 5) * 3); c.rotate(Math.atan2(dy, dx));
+      c.globalAlpha = 1; c.fillStyle = k.col('#2a1424');
+      c.beginPath(); c.arc(0, 0, 14, 0, Math.PI * 2); c.fill();
+      c.fillStyle = k.col('#f1d27a');
+      c.beginPath(); c.moveTo(9, 0); c.lineTo(-5, -8); c.lineTo(-2, 0); c.lineTo(-5, 8); c.closePath(); c.fill();
+      c.restore();
+    });
+    c.restore();
+  }
 }
 
 function climber(k, st, t) {
