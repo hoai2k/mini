@@ -78,7 +78,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = FILM_BODY_SCALE[id] || 1; } out.images[id] = img; onImage?.(id, img); done(); };
+    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = FILM_BODY_SCALE[id.replace(/-tinted$/, '')] || 1; } out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
@@ -177,8 +177,14 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
   let cast = {};
   const overQueue = [];
-  const img = (id) => { const a = cast[id]; return (a && assets.images[a]) || (a && PARTIAL ? undefined : assets.images[id]); };
-  let extraAnimations = false;
+  const img = (id) => {
+    const a = cast[id], r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
+    if (!r) return undefined;
+    // the tinted cast look (Settings, or ?look=tinted): a sprite's hand-tinted
+    // alternate, when delivered
+    return (tinted && assets.images[r + '-tinted']) || assets.images[r];
+  };
+  let extraAnimations = false, tinted = false;
   let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
 
   // Act events: the act's own onEvent, which may call kit.voyageEvent (Act I).
@@ -280,6 +286,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // view = { board, curtain(0 closed..1 open), card, film: 'full'|'gentle'|'off', t }
   function render(view) {
     extraAnimations = view.extraAnimations === true;
+    tinted = view.tinted === true;
     const { t, film } = view;
     filmAmp = film === 'off' ? 0.35 : film === 'gentle' ? 0.6 : 1;
     if (film !== 'off' && ++reg.n % 5 === 0) {

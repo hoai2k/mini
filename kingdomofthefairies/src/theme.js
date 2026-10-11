@@ -10,6 +10,9 @@ const query = typeof location !== 'undefined' ? new URLSearchParams(location.sea
 const env = typeof process !== 'undefined' ? process.env?.KOTF_EDITION : undefined;
 export const editionOf = (q) => ({ off: 'film', film: 'film', on: 'widowsbay' }[String(q ?? '').toLowerCase()] || 'partial');
 export const EDITION = env ? (['widowsbay', 'partial', 'film'].includes(env) ? env : 'partial') : editionOf(query);
+// ?look=tinted: draw the hand-tinted alternates of the cast (design/
+// character-audit.md, image requests F8) wherever one has been delivered.
+export const LOOK_TINTED = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'tinted';
 // LEGACY: the band, the song and the Widow's Bay title.
 export const LEGACY = EDITION === 'widowsbay';
 export const PARTIAL = EDITION === 'partial';

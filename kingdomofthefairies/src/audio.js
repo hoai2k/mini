@@ -17,6 +17,8 @@ const TONAL = new Set(['pearl', 'keepsake', 'done', 'arrive', 'ui', 'landho', 'p
 
 export function createAudio() {
   let ac = null, master, music, sfx, sea, playing = false;
+  // In play (the score) or in the menus (the record's crackle); see setStage.
+  let stage, record, recordSrc = null, inPlay = false, crackleOn = false;
   // The song: { url, loopStart, loopEnd, bytes, buffer, state, progress, node }.
   // state: 'loading' -> 'downloaded' -> 'decoding' -> 'ready', or 'failed'.
   let track = null;
@@ -35,11 +37,16 @@ export function createAudio() {
     if (!AC) return false;
     ac = new AC();
     master = ac.createGain(); master.connect(ac.destination);
-    music = ac.createGain(); music.connect(master);
+    // The score plays through `stage`, which is open only in play; in the
+    // menus `record` carries an old gramophone's crackle instead.
+    stage = ac.createGain(); stage.gain.value = inPlay ? 1 : 0; stage.connect(master);
+    music = ac.createGain(); music.connect(stage);
+    record = ac.createGain(); record.gain.value = 0; record.connect(master);
     sfx = ac.createGain(); sfx.connect(master);
     apply();
     loadSfx();
     decodeTrack();
+    applyStage(0.05);
     return true;
   }
 
@@ -94,6 +101,55 @@ export function createAudio() {
     src.connect(f); f.connect(g); g.connect(music);
     src.start(); lfo.start();
     sea = { src, lfo, g };
+  }
+
+  // An old record turning with no music on it: surface hiss, a low rumble,
+  // irregular crackle and pops, and a soft click once a turn (78 rpm). A
+  // delivered recording (sfx 'record', build_sfx.py) replaces the synthesis.
+  function crackleBuffer(sec = 9.23) {   // a whole number of turns at 78 rpm
+    const sr = ac.sampleRate, n = Math.floor(sr * sec), b = ac.createBuffer(1, n, sr), d = b.getChannelData(0);
+    let lp = 0, hp = 0, prev = 0;
+    for (let i = 0; i < n; i++) {
+      const w = Math.random() * 2 - 1;
+      lp += (w - lp) * 0.02;                   // rumble
+      hp = 0.6 * (hp + w - prev); prev = w;    // hiss
+      d[i] = hp * 0.035 + lp * 0.12;
+    }
+    const pop = (at, amp, len) => {
+      const i0 = Math.floor(at * sr), m = Math.floor(len * sr), sign = Math.random() < 0.5 ? -1 : 1;
+      for (let j = 0; j < m && i0 + j < n; j++) d[i0 + j] += sign * amp * Math.exp(-j / (m / 5)) * (j % 2 ? -0.6 : 1);
+    };
+    for (let k = 0; k < sec * 30; k++) pop(Math.random() * sec, 0.04 + Math.random() * 0.12 * Math.random(), 0.0015 + Math.random() * 0.002);
+    for (let k = 0; k < sec * 2.2; k++) pop(Math.random() * sec, 0.25 + Math.random() * 0.35, 0.003 + Math.random() * 0.004);
+    const turn = 60 / 78;
+    for (let t = 0.2; t < sec; t += turn) pop(t, 0.18, 0.012);
+    // the seam: fade the last 20 ms into the first
+    const f = Math.floor(sr * 0.02);
+    for (let j = 0; j < f; j++) { const a = j / f; d[n - f + j] = d[n - f + j] * (1 - a) + d[j] * a; }
+    return b;
+  }
+  function startRecord() {
+    if (recordSrc || !ac) return;
+    const src = ac.createBufferSource();
+    src.buffer = sfxBuf.record || crackleBuffer(); src.loop = true;
+    const g = ac.createGain(); g.gain.value = sfxBuf.record ? 0.5 : 0.9;
+    src.connect(g); g.connect(record); src.start();
+    recordSrc = src;
+    // the synthesis stands in until the recording has decoded, then gives way
+    if (!sfxBuf.record) loadSfx()?.then(() => {
+      if (!sfxBuf.record || recordSrc !== src) return;
+      try { src.stop(); } catch { /* already stopped */ }
+      recordSrc = null; startRecord();
+    });
+  }
+  // In play the score fades up and the record fades out; in the menus the
+  // other way about. (The Widow's Bay edition keeps its song throughout.)
+  function applyStage(dur = 1.2) {
+    if (!ac) return;
+    const t = ac.currentTime, menus = !inPlay && crackleOn;
+    stage.gain.cancelScheduledValues(t); stage.gain.setTargetAtTime(inPlay || !crackleOn ? 1 : 0, t, dur / 3);
+    record.gain.cancelScheduledValues(t); record.gain.setTargetAtTime(menus ? 1 : 0, t, dur / 3);
+    if (menus) startRecord();
   }
 
   function pluck(t, midi, gain = 0.18, dest = music) {
@@ -283,6 +339,14 @@ export function createAudio() {
   return {
     unlock: ensure,
     startMusic, stopMusic,
+    // Whether the playable game is on stage (the score) or the menus (the
+    // record's crackle). `crackle` false (the default) keeps the score everywhere.
+    setStage(play, crackle = false) {
+      if (play === inPlay && crackle === crackleOn) return;
+      inPlay = play; crackleOn = crackle;
+      applyStage();
+    },
+    recordPlaying: () => !!recordSrc && !inPlay && crackleOn,
     // Register the band's recording and start downloading it now. Decoding
     // waits for the first user gesture (browsers won't start audio before one).
     setTrack(url, loopStart = 0, loopEnd = 0) {

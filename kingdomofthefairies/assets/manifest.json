@@ -2114,6 +2114,646 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-stand-tinted": {
+      "status": "delivered",
+      "file": "prince-stand-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-walk-a-tinted": {
+      "status": "delivered",
+      "file": "prince-walk-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-walk-b-tinted": {
+      "status": "delivered",
+      "file": "prince-walk-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-leap-tinted": {
+      "status": "delivered",
+      "file": "prince-leap-tinted.webp",
+      "size": [
+        260,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-crouch-tinted": {
+      "status": "delivered",
+      "file": "prince-crouch-tinted.webp",
+      "size": [
+        240,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-tinted": {
+      "status": "delivered",
+      "file": "prince-carry-tinted.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-a-tinted": {
+      "status": "delivered",
+      "file": "prince-swim-a-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "centre (between his shoulder blades)",
+      "edition": "film"
+    },
+    "prince-swim-b-tinted": {
+      "status": "delivered",
+      "file": "prince-swim-b-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "centre (between his shoulder blades)",
+      "edition": "film"
+    },
+    "prince-seated-tinted": {
+      "status": "delivered",
+      "file": "prince-seated-tinted.webp",
+      "size": [
+        220,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-hang-tinted": {
+      "status": "delivered",
+      "file": "prince-hang-tinted.webp",
+      "size": [
+        220,
+        440
+      ],
+      "anchor": "top centre (his hands)",
+      "edition": "film"
+    },
+    "prince-pullup-tinted": {
+      "status": "delivered",
+      "file": "prince-pullup-tinted.webp",
+      "size": [
+        260,
+        300
+      ],
+      "anchor": "ledge line 25% up from the bottom, centred",
+      "edition": "film"
+    },
+    "prince-climb-a-tinted": {
+      "status": "delivered",
+      "file": "prince-climb-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-climb-b-tinted": {
+      "status": "delivered",
+      "file": "prince-climb-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-apex-tinted": {
+      "status": "delivered",
+      "file": "prince-apex-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-fall-tinted": {
+      "status": "delivered",
+      "file": "prince-fall-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-land-tinted": {
+      "status": "delivered",
+      "file": "prince-land-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-stairs-a-tinted": {
+      "status": "delivered",
+      "file": "prince-stairs-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-stairs-b-tinted": {
+      "status": "delivered",
+      "file": "prince-stairs-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-push-tinted": {
+      "status": "delivered",
+      "file": "prince-push-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-court-tinted": {
+      "status": "delivered",
+      "file": "prince-court-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-walk-a-tinted": {
+      "status": "delivered",
+      "file": "prince-court-walk-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-walk-b-tinted": {
+      "status": "delivered",
+      "file": "prince-court-walk-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-bound-tinted": {
+      "status": "delivered",
+      "file": "prince-bound-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stand-tinted": {
+      "status": "delivered",
+      "file": "azurine-stand-tinted.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-asleep-tinted": {
+      "status": "delivered",
+      "file": "azurine-asleep-tinted.webp",
+      "size": [
+        360,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-window-tinted": {
+      "status": "delivered",
+      "file": "azurine-window-tinted.webp",
+      "size": [
+        160,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-stand-tinted": {
+      "status": "delivered",
+      "file": "aurora-stand-tinted.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "aurora-point-tinted": {
+      "status": "delivered",
+      "file": "aurora-point-tinted.webp",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand-tinted": {
+      "status": "delivered",
+      "file": "water-fairy-stand-tinted.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand-idle-b-tinted": {
+      "status": "delivered",
+      "file": "water-fairy-stand-idle-b-tinted.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "water-fairy-stand-idle-c-tinted": {
+      "status": "delivered",
+      "file": "water-fairy-stand-idle-c-tinted.webp",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "king-stand-tinted": {
+      "status": "delivered",
+      "file": "king-stand-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "queen-stand-tinted": {
+      "status": "delivered",
+      "file": "queen-stand-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-ring-tinted": {
+      "status": "delivered",
+      "file": "fairy-ring-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-crown-tinted": {
+      "status": "delivered",
+      "file": "fairy-crown-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-gold-tinted": {
+      "status": "delivered",
+      "file": "fairy-gold-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-red-tinted": {
+      "status": "delivered",
+      "file": "demon-red-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "demon-teal-tinted": {
+      "status": "delivered",
+      "file": "demon-teal-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-tinted": {
+      "status": "delivered",
+      "file": "crew-squire-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-tinted": {
+      "status": "delivered",
+      "file": "crew-helmsman-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-tinted": {
+      "status": "delivered",
+      "file": "crew-manatarms-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-tinted": {
+      "status": "delivered",
+      "file": "crew-bosun-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-idle-b-tinted": {
+      "status": "delivered",
+      "file": "crew-squire-idle-b-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-idle-c-tinted": {
+      "status": "delivered",
+      "file": "crew-squire-idle-c-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-idle-b-tinted": {
+      "status": "delivered",
+      "file": "crew-helmsman-idle-b-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-idle-c-tinted": {
+      "status": "delivered",
+      "file": "crew-helmsman-idle-c-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-b-tinted": {
+      "status": "delivered",
+      "file": "crew-manatarms-idle-b-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-c-tinted": {
+      "status": "delivered",
+      "file": "crew-manatarms-idle-c-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-idle-b-tinted": {
+      "status": "delivered",
+      "file": "crew-bosun-idle-b-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-idle-c-tinted": {
+      "status": "delivered",
+      "file": "crew-bosun-idle-c-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-asleep-tinted": {
+      "status": "delivered",
+      "file": "crew-asleep-tinted.webp",
+      "size": [
+        260,
+        120
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-asleep-b-tinted": {
+      "status": "delivered",
+      "file": "crew-asleep-b-tinted.webp",
+      "size": [
+        260,
+        120
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-rider-tinted": {
+      "status": "delivered",
+      "file": "crew-rider-tinted.webp",
+      "size": [
+        320,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-hooded-tinted": {
+      "status": "delivered",
+      "file": "witch-hooded-tinted.webp",
+      "size": [
+        240,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-cloud-tinted": {
+      "status": "delivered",
+      "file": "witch-cloud-tinted.webp",
+      "size": [
+        400,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-storm-tinted": {
+      "status": "delivered",
+      "file": "witch-storm-tinted.webp",
+      "size": [
+        520,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-swoop-tinted": {
+      "status": "delivered",
+      "file": "witch-swoop-tinted.webp",
+      "size": [
+        400,
+        240
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "witch-barrel-tinted": {
+      "status": "delivered",
+      "file": "witch-barrel-tinted.webp",
+      "size": [
+        200,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "octopus-tinted": {
+      "status": "delivered",
+      "file": "octopus-tinted.webp",
+      "size": [
+        600,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "dolphin-carriage-tinted": {
+      "status": "delivered",
+      "file": "dolphin-carriage-tinted.webp",
+      "size": [
+        520,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "lobster-guard-closed-tinted": {
+      "status": "delivered",
+      "file": "lobster-guard-closed-tinted.webp",
+      "size": [
+        500,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "lobster-guard-open-tinted": {
+      "status": "delivered",
+      "file": "lobster-guard-open-tinted.webp",
+      "size": [
+        500,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "chariot-tinted": {
+      "status": "delivered",
+      "file": "chariot-tinted.webp",
+      "size": [
+        600,
+        320
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "scrying-eye-tinted": {
+      "status": "delivered",
+      "file": "scrying-eye-tinted.webp",
+      "size": [
+        200,
+        300
+      ],
+      "anchor": "top centre (it hangs)",
+      "edition": "film"
     }
   },
   "audio": {
@@ -2173,6 +2813,11 @@
     }
   },
   "sfx": {
+    "record": {
+      "status": "delivered",
+      "file": "sfx/record.mp3",
+      "loop": true
+    },
     "sea": {
       "status": "delivered",
       "file": "sfx/sea.mp3",

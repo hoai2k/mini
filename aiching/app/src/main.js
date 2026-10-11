@@ -3,7 +3,7 @@
 // (#q=…&d=YYYY-MM-DD), which never leaves the browser.
 
 import { buildReading } from './reading.js';
-import { linesOf, symbolOf } from './iching.js';
+import { linesOf, symbolOf, trigramsOf, hexagramNumber, nuclearOf } from './iching.js';
 import { almanac } from './almanac.js';
 import { gather } from './online.js';
 import { TOPICS, KINDS } from './topics.js';
@@ -24,13 +24,86 @@ const lineName = (index, yang) => `${yang ? 'Nine' : 'Six'} ${POSITION[index]}`;
 
 // ---------------------------------------------------------------- drawing
 
-function hexLines(lines, { changing = [], values = null, small = false } = {}) {
+function hexLines(lines, { changing = [], values = null, small = false, interactive = false } = {}) {
   const rows = lines.map((yang, i) => {
     const moving = changing.includes(i);
     const mark = moving ? `<span class="mark" title="${values?.[i] === 9 ? 'old yang, changing' : 'old yin, changing'}">${values?.[i] === 9 ? '○' : '×'}</span>` : '';
-    return `<li class="ln ${yang ? 'yang' : 'yin'}${moving ? ' moving' : ''}"><span class="bar"></span><span class="bar"></span>${mark}</li>`;
+    const attrs = interactive
+      ? ` data-line="${i}" tabindex="0" role="button" aria-label="${esc(`${lineName(i, yang)}${moving ? ', changing' : ''}`)}"`
+      : '';
+    return `<li class="ln ${yang ? 'yang' : 'yin'}${moving ? ' moving' : ''}"${attrs}><span class="bar"></span><span class="bar"></span>${mark}</li>`;
   });
-  return `<ol class="hexlines${small ? ' small' : ''}" aria-hidden="true">${rows.reverse().join('')}</ol>`;
+  return `<ol class="hexlines${small ? ' small' : ''}${interactive ? ' interactive' : ''}"${interactive ? ' aria-label="The six lines, top line first"' : ' aria-hidden="true"'}>${rows.reverse().join('')}</ol>`;
+}
+
+const hexHref = (n) => `#h=${n}`;
+
+/** The picture, names and lines at the top of a reading or a hexagram page. */
+function heroHTML(h, { lines = linesOf(h.n), changing = [], values = null, relating = null } = {}) {
+  return `
+      <section class="hero">
+        <figure class="hero-art"><img alt="${esc(`${h.name}: ${h.scene}`)}" src="${esc(hexagramImage(h))}"></figure>
+        <div class="hero-text">
+          <p class="hero-num">Hexagram ${h.n} <span class="sym">${symbolOf(h.n)}</span></p>
+          <h1><span class="hero-zh" lang="zh">${esc(h.zh)}</span><span class="hero-names"><span class="pinyin">${esc(h.pinyin)}</span><span class="en">${esc(h.name)}</span><span class="alt">${esc(h.alt)}</span></span></h1>
+        </div>
+        <div class="hero-lines">
+          <div class="hero-own">${hexLines(lines, { changing, values, interactive: true })}<p class="line-hint">Tap a line to read it</p></div>
+          ${relating ? `<span class="arrow" aria-hidden="true">→</span><a href="${hexHref(relating.n)}" class="to-relating" title="Open hexagram ${relating.n}, ${esc(relating.name)}">${hexLines(linesOf(relating.n), { small: true })}<span>${relating.n}. ${esc(relating.name)}</span></a>` : ''}
+        </div>
+      </section>
+      <div class="line-detail" data-line-detail hidden aria-live="polite"></div>`;
+}
+
+/** Clicking a line of the hero shows what it says, and whether it is moving. */
+function wireLines(root, h, { changing = [], values = null, relating = null } = {}) {
+  const panel = $('[data-line-detail]', root);
+  const list = $('.hero-lines .hexlines.interactive', root);
+  if (!panel || !list) return;
+  const lines = linesOf(h.n);
+  let current = -1;
+  const open = (i) => {
+    const close = i === current;
+    current = close ? -1 : i;
+    for (const li of list.querySelectorAll('.ln')) li.classList.toggle('selected', Number(li.dataset.line) === current);
+    if (close) { panel.hidden = true; return; }
+    const moving = changing.includes(i);
+    const yang = values ? values[i] === 7 || values[i] === 9 : lines[i] === 1;
+    const status = values
+      ? (moving
+        ? `Changing in your cast: an old ${values[i] === 9 ? 'yang line (nine) turning to yin' : 'yin line (six) turning to yang'}.${relating ? ` It helps turn this hexagram into <a href="${hexHref(relating.n)}">${relating.n}. ${esc(relating.name)}</a>.` : ''}`
+        : 'Steady in your cast. Only changing lines speak in a reading; its text is here to study.')
+      : 'Read when this line is changing in a cast.';
+    panel.innerHTML = `<div class="line-detail-inner${moving ? ' moving' : ''}">
+        <p class="mini-label">Line ${i + 1} of 6, counted from the bottom</p>
+        <h3>${esc(lineName(i, yang))}</h3>
+        <p class="line-status">${status}</p>
+        <p class="line-text">${esc(h.lines[i])}</p>
+        <button type="button" class="link line-close">Close</button>
+      </div>`;
+    panel.hidden = false;
+    panel.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    $('.line-close', panel).addEventListener('click', () => open(current));
+  };
+  list.addEventListener('click', (e) => { const li = e.target.closest('[data-line]'); if (li) open(Number(li.dataset.line)); });
+  list.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.line) { e.preventDefault(); open(Number(e.target.dataset.line)); }
+  });
+}
+
+// A small card for another hexagram, linking to its page.
+function miniHex(h, label, note) {
+  return `
+      <article class="mini-hex">
+        <a class="mini-link" href="${hexHref(h.n)}" aria-label="Open hexagram ${h.n}, ${esc(h.name)}"><img alt="" src="${esc(hexagramImage(h, true))}"></a>
+        <div class="mini-body">
+          <p class="mini-label">${esc(label)}</p>
+          <h3><a href="${hexHref(h.n)}"><span class="mini-zh" lang="zh">${esc(h.zh)}</span> ${h.n}. ${esc(h.name)}</a></h3>
+          ${hexLines(linesOf(h.n), { small: true })}
+          <p>${esc(h.essence)}</p>
+          ${note ? `<p class="note">${esc(note)}</p>` : ''}
+        </div>
+      </article>`;
 }
 
 function chip(text, zh) {
@@ -75,7 +148,7 @@ const SECTIONS = {
       const yang = linesOf(l.from)[l.index] === 1;
       return `<article class="line-card${lead ? ' lead' : ''}">
         <div class="line-badge">${hexLines(linesOf(l.from), { changing: [l.index], values: linesOf(l.from).map((v) => (v ? 9 : 6)), small: true })}</div>
-        <div><h3>${esc(lineName(l.index, yang))}${l.from !== r.primary.n ? ` <small>of ${esc(src.name)}</small>` : ''}</h3><p>${esc(l.text)}</p></div>
+        <div><h3>${esc(lineName(l.index, yang))}${l.from !== r.primary.n ? ` <small>of <a href="${hexHref(src.n)}">${esc(src.name)}</a></small>` : ''}</h3><p>${esc(l.text)}</p></div>
       </article>`;
     };
     const stressed = f.stressed.map((l, i) => card(l, i === 0)).join('');
@@ -87,20 +160,9 @@ const SECTIONS = {
   },
 
   becoming(r) {
-    const mini = (h, label, note) => `
-      <article class="mini-hex">
-        <img alt="" src="${esc(hexagramImage(h, true))}">
-        <div class="mini-body">
-          <p class="mini-label">${esc(label)}</p>
-          <h3><span class="mini-zh" lang="zh">${esc(h.zh)}</span> ${h.n}. ${esc(h.name)}</h3>
-          ${hexLines(linesOf(h.n), { small: true })}
-          <p>${esc(h.essence)}</p>
-          ${note ? `<p class="note">${esc(note)}</p>` : ''}
-        </div>
-      </article>`;
     const parts = [];
-    if (r.relating) parts.push(mini(r.relating, 'It becomes', r.relating.judgment));
-    parts.push(mini(r.nuclear, 'Hidden within', 'The nuclear hexagram, made of the inner lines, shows what is working quietly beneath the surface.'));
+    if (r.relating) parts.push(miniHex(r.relating, 'It becomes', r.relating.judgment));
+    parts.push(miniHex(r.nuclear, 'Hidden within', 'The nuclear hexagram, made of the inner lines, shows what is working quietly beneath the surface.'));
     return `${sectionHead('變', r.relating ? 'Where it is going' : 'What lies beneath', r.relating ? 'The changing lines turn this hexagram into another: the direction of the matter.' : 'No line is changing, so look inward: the hexagram hidden inside this one.')}<div class="mini-grid">${parts.join('')}</div>`;
   },
 
@@ -189,10 +251,7 @@ function renderReading(question, day) {
   const r = buildReading(question, HEXAGRAMS, date);
   const h = r.primary;
   const root = $('#reading');
-  const [c0, c1, c2] = h.palette;
-  root.style.setProperty('--hx-base', c0);
-  root.style.setProperty('--hx-accent', c1);
-  root.style.setProperty('--hx-high', c2);
+  paint(root, h);
 
   const topicChips = [chip(KINDS[r.about.kind].label, r.about.kind === 'decision' ? '決' : r.about.kind === 'timing' ? '時' : '問'),
     ...r.about.topics.slice(0, 3).map((t) => chip(TOPICS[t.key].label, TOPICS[t.key].zh))].join('');
@@ -206,17 +265,7 @@ function renderReading(question, day) {
         <div class="oracle-body"><p class="oracle-text"><span class="typing" aria-label="Writing"><i></i><i></i><i></i></span></p>
         <p class="oracle-note" hidden></p></div>
       </div>
-      <section class="hero">
-        <figure class="hero-art"><img alt="${esc(`${h.name}: ${h.scene}`)}" src="${esc(hexagramImage(h))}"></figure>
-        <div class="hero-text">
-          <p class="hero-num">Hexagram ${h.n} <span class="sym">${symbolOf(h.n)}</span></p>
-          <h1><span class="hero-zh" lang="zh">${esc(h.zh)}</span><span class="hero-names"><span class="pinyin">${esc(h.pinyin)}</span><span class="en">${esc(h.name)}</span><span class="alt">${esc(h.alt)}</span></span></h1>
-        </div>
-        <div class="hero-lines">
-          ${hexLines(r.values.map((v) => (v === 7 || v === 9 ? 1 : 0)), { changing: r.changing, values: r.values })}
-          ${r.relating ? `<span class="arrow" aria-hidden="true">→</span><a href="#becoming" class="to-relating">${hexLines(linesOf(r.relating.n), { small: true })}<span>${r.relating.n}. ${esc(r.relating.name)}</span></a>` : ''}
-        </div>
-      </section>
+      ${heroHTML(h, { lines: r.values.map((v) => (v === 7 || v === 9 ? 1 : 0)), changing: r.changing, values: r.values, relating: r.relating })}
       <p class="essence">${esc(h.essence)}</p>
       ${r.order.map((key) => `<section class="sec sec-${key}" id="${key}">${SECTIONS[key](r, date)}</section>`).join('<div class="divider" aria-hidden="true"></div>')}
       <form class="prompt follow" id="again-form" autocomplete="off">
@@ -228,6 +277,8 @@ function renderReading(question, day) {
     </div>`;
 
   wirePrompt($('#again-form', root), $('#again', root));
+  wireLines(root, h, { changing: r.changing, values: r.values, relating: r.relating });
+  try { sessionStorage.setItem('aiching:last', location.hash); } catch { /* storage blocked */ }
   $('[data-share]', root).addEventListener('click', async (e) => {
     try { await navigator.clipboard.writeText(location.href); e.target.textContent = 'Link copied'; } catch { e.target.textContent = 'Copy the address bar'; }
   });
@@ -238,6 +289,71 @@ function renderReading(question, day) {
   gather(r).then((online) => { if (token === castToken) renderWorld(root, r, online); })
     .catch(() => { if (token === castToken) renderWorld(root, r, { daily: null, lore: [] }); });
   return r;
+}
+
+function paint(root, h) {
+  const [c0, c1, c2] = h.palette;
+  root.style.setProperty('--hx-base', c0);
+  root.style.setProperty('--hx-accent', c1);
+  root.style.setProperty('--hx-high', c2);
+}
+
+// A page for one hexagram, reached from any hexagram shown in a reading.
+function renderHexagram(n) {
+  castToken++;
+  const h = HEXAGRAMS[n - 1];
+  const root = $('#reading');
+  paint(root, h);
+  const lines = linesOf(n);
+  const tri = trigramsOf(n);
+  const opposite = HEXAGRAMS[hexagramNumber(lines.map((v) => 1 - v)) - 1];
+  const reversed = HEXAGRAMS[hexagramNumber([...lines].reverse()) - 1];
+  const nuclear = HEXAGRAMS[nuclearOf(n) - 1];
+  let last = null;
+  try { last = sessionStorage.getItem('aiching:last'); } catch { /* storage blocked */ }
+  const r = { primary: h, trigrams: tri };
+  const allLines = h.lines.map((text, i) => `
+      <article class="line-card" id="line-${i + 1}">
+        <div class="line-badge">${hexLines(lines, { changing: [i], values: lines.map((v) => (v ? 9 : 6)), small: true })}</div>
+        <div><h3>${esc(lineName(i, lines[i] === 1))}</h3><p>${esc(text)}</p></div>
+      </article>`).reverse().join('');
+  const related = [
+    miniHex(nuclear, 'Hidden within', 'The nuclear hexagram, made of the inner lines: what works quietly beneath the surface.'),
+    opposite.n !== n && miniHex(opposite, 'Its opposite', 'Every line changed: the other side of this situation.'),
+    reversed.n !== n && reversed.n !== opposite.n && miniHex(reversed, 'Seen from the other side', 'The hexagram turned upside down: the same matter as the other party sees it.'),
+  ].filter(Boolean).join('');
+  const grid = HEXAGRAMS.map((x) => `<a class="hex-cell${x.n === n ? ' current' : ''}" href="${hexHref(x.n)}" title="${x.n}. ${esc(x.name)}"><span class="cell-sym">${symbolOf(x.n)}</span><span class="cell-n">${x.n}</span><span class="cell-zh" lang="zh">${esc(x.zh)}</span></a>`).join('');
+  const prev = HEXAGRAMS[(n + 62) % 64];
+  const next = HEXAGRAMS[n % 64];
+
+  root.innerHTML = `
+    <div class="reading-bg" aria-hidden="true"></div>
+    <div class="reading-inner">
+      <nav class="hex-nav">
+        ${last ? `<a href="${esc(last)}" class="back">← Back to your reading</a>` : '<a href="./" class="back">← Ask a question</a>'}
+        <span><a href="${hexHref(prev.n)}">‹ ${prev.n}. ${esc(prev.name)}</a> · <a href="${hexHref(next.n)}">${next.n}. ${esc(next.name)} ›</a></span>
+      </nav>
+      ${heroHTML(h)}
+      <p class="essence">${esc(h.essence)}</p>
+      <section class="sec">${SECTIONS.judgment(r)}</section>
+      <div class="divider" aria-hidden="true"></div>
+      <section class="sec">${sectionHead('爻', 'The six lines', 'Top line first. In a reading, only the changing lines are read.')}<div class="lines-list">${allLines}</div></section>
+      <div class="divider" aria-hidden="true"></div>
+      <section class="sec">${SECTIONS.trigrams(r)}</section>
+      <div class="divider" aria-hidden="true"></div>
+      <section class="sec">${sectionHead('變', 'Related hexagrams')}<div class="mini-grid">${related}</div></section>
+      <div class="divider" aria-hidden="true"></div>
+      <section class="sec">${sectionHead('易', 'All sixty-four')}<div class="hex-grid">${grid}</div></section>
+      <form class="prompt follow" id="again-form" autocomplete="off">
+        <label class="visually-hidden" for="again">Ask a question</label>
+        <textarea id="again" rows="1" maxlength="600" placeholder="Ask your own question…" required></textarea>
+        <div class="prompt-bar"><span class="hint">Hexagram ${n}: ${esc(h.name)}</span>
+          <span class="actions"><button class="send" type="submit" aria-label="Cast the coins"><span lang="zh" aria-hidden="true">卜</span></button></span></div>
+      </form>
+    </div>`;
+  wirePrompt($('#again-form', root), $('#again', root));
+  wireLines(root, h);
+  document.title = `${n}. ${h.zh} ${h.name} · Ai-Ching`;
 }
 
 const SOURCE_NOTE = {
@@ -279,13 +395,16 @@ function parseHash() {
   const p = new URLSearchParams(location.hash.slice(1));
   const q = p.get('q');
   const d = p.get('d');
-  return q ? { q, d: /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : dayKey() } : null;
+  if (q) return { q, d: /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : dayKey() };
+  const n = Number(p.get('h'));
+  return Number.isInteger(n) && n >= 1 && n <= 64 ? { h: n } : null;
 }
 
 function route() {
   const st = parseHash();
   if (!st) { document.title = 'Ai-Ching'; show('home'); return; }
-  renderReading(st.q, st.d);
+  if (st.h) renderHexagram(st.h);
+  else renderReading(st.q, st.d);
   show('reading');
 }
 

@@ -318,9 +318,10 @@ kbd { display: inline-block; min-width: 22px; padding: 1px 6px; border: 1px soli
 html.ios-scroll, html.ios-scroll body { height: auto; overflow-x: hidden; overflow-y: auto; }
 html.ios-scroll body { position: relative; inset: auto; touch-action: pan-y; }
 html.ios-scroll body::after { content: ''; display: block; height: calc(100lvh + 160px); }
-html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow: hidden; touch-action: none; }
+/* While playing: no panning, but the page stays scrollable (taking that away can bring Safari's bars back). */
+html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { touch-action: none; }
 #bars-hint { position: fixed; left: 50%; top: max(8px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 35; background: rgba(24, 32, 51, .95); border: 1px solid var(--brass);
-  color: var(--ink); padding: 7px 14px; border-radius: 8px; font-size: 13px; white-space: nowrap; pointer-events: none; }
+  color: var(--ink); padding: 7px 14px; border-radius: 8px; font-size: 13px; white-space: nowrap; cursor: pointer; }
 #bars-hint .arrow { display: inline-block; animation: nudge 1.4s ease-in-out infinite; color: var(--brass-2); font-weight: 800; }
 @keyframes nudge { 50% { transform: translateY(-4px); } }
 #bars-hint.flash { animation: hintflash .9s ease-in-out 2; }

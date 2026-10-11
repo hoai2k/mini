@@ -1,0 +1,57 @@
+# Character audit: the cast against the 1903 film
+
+11 October 2026. Every delivered character sprite of the film edition, compared
+with frames from the film (`references/expanded-world/source-frames/`, the
+Wikimedia Commons copy) and with `film-story.md`. Requests for alternates are
+round F8 in [image-requests.md](image-requests.md). Nothing has been replaced:
+Settings › Cast look › Tinted in the film edition (or `?look=tinted`) draws an alternate wherever one has been delivered, so the two
+looks can be compared in the game before choosing.
+
+## What the film looks like
+
+*Le Royaume des fées* is photographed theatre, coloured by hand after printing:
+
+- **A photographic base.** Real performers in costume on painted flats, shot in
+  black and white: silvery greys, deep blacks, soft focus, film grain, flat
+  frontal stage light. There are no drawn outlines.
+- **A few stencil washes.** Colour was laid on with stencils in a handful of
+  translucent aniline dyes: sea-green teal, orange-yellow, rose and coral red,
+  pale blue, magenta. The washes bleed past their shapes, sit a little out of
+  register, and leave large areas grey (faces, hands and walls are often
+  untinted).
+- **Stage costume.** Tunics, tights, robes, wigs, card crowns and props. Gold
+  appears as a yellow wash, not as detail.
+
+## What the delivered cast looks like
+
+All 65 film sprites share one finish: crisp inked outlines, dense ornament
+(gold filigree, embroidery, jewels, pearls), saturated colour everywhere, and
+smooth painted shading on a clean ground. It reads as a modern storybook
+chromolithograph: handsome, but cleaner, busier and more colourful than the
+film. The difference shows most beside the painted sets, whose film-like
+texture the figures lack.
+
+## Character by character
+
+| Character | Sprites | Accuracy to the film | Verdict |
+| --- | --- | --- | --- |
+| Prince Bel-Azor | 23 poses | Ornate silver plate, fleur-de-lis tunic, magenta plume and crimson cape. In the film he is an actor in a plain tunic and tights, armed later with a simple helmet, shield and sword. | Too clean and too ornate; redraw in the tinted look with plain armour |
+| Azurine | 3 | Blue and rose gown covered in gold stars, jewelled circlet. The film shows a young woman in a plain pale gown. | Too ornate; tint and simplify |
+| Aurora | 2 | Rose, cream and gold gauze with a heavy jewelled mantle. The film's Aurora is a dancer in a light rose gown with a yellow-tinted skirt. | Colours right, finish too rich |
+| Water Fairy | 3 (with idle frames) | Shells, pearls and starfish over sea-green gauze. | Close in idea; needs the photographic look |
+| King and queen | 2 | Crimson and ermine with gold fleurs-de-lis. | Close; too much gold |
+| The three gift fairies | 3 | Gold-embroidered gowns. The film's court ladies wear pastel gowns and tall pointed hennins with veils. | Missing the hennins; tint |
+| Demons | 2 | Solid red and teal performers with horns and torches. | Closest to the film; tint only |
+| Crew | 12 (with idle frames, sleepers, rider) | Bold blue-and-gold striped livery. The film's courtiers wear padded doublets and hose in pale washes. | Too bold; tint |
+| The witch | 5 | Redrawn after the film this week: a stooped crone in a sea-green robe. | Right figure; tint for the photographic base |
+| Octopus, dolphin carriage, lobster guards | 4 | Heavily jewelled creatures. The film's sea court are stage props and performers in costume. | Too ornate; tint and simplify |
+| Chariot, scrying eye | 2 | Painted props. | Tint |
+
+## Recommendation
+
+Commission round F8: 64 `-tinted` alternates at the same sizes and anchors, so
+each drops over its original. Compare them in play with Settings › Cast look (or `?look=tinted`). If you
+prefer them, switching is one line (the default look); if not, nothing changes.
+The game's own film look (grain, flicker and stencil colour in Settings)
+already moves the clean art part of the way, which is why the difference is
+smaller in play than in the gallery.

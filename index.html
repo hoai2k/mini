@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mini games</title>
 <meta name="description" content="A small shelf of browser games.">
-<link rel="icon" href="hopper/favicon.ico">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
 <style>
   :root {
     --bg: #1b1712;
@@ -125,6 +125,13 @@
   }
 
   .shelf-title { margin: 56px 0 14px; font-size: 1.5rem; }
+  .section-title {
+    margin: 64px 0 28px;
+    font-size: clamp(1.9rem, 5.5vw, 2.8rem);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .section-title span { color: var(--accent); }
   .archive { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 28px; }
   .archive a { color: var(--ink); font-size: 1.05rem; text-decoration-color: var(--accent); text-underline-offset: 3px; }
   .archive a:hover, .archive a:focus-visible { color: var(--accent); }
@@ -143,8 +150,10 @@
        game was made rather than when it joined this repo (Tank Wars is the
        oldest), except that Fibre Art sits after Kingdom of the Fairies at the
        owner's request. A new game's card goes right after Games Chat.
-       Games that haven't turned out as hoped yet go in the prototype archive
-       below as plain links, in the same order. -->
+       Apps (tools rather than games) go on the mini apps shelf below, newest
+       first; Games Chat stays with the games because it holds games. Games
+       that haven't turned out as hoped yet go in the prototype archive at the
+       bottom as plain links, in the same order. -->
   <section class="shelf" aria-label="Games">
     <a class="game chat" href="chat/">
       <div class="cover">
@@ -167,30 +176,6 @@
         <h2>Half-Blood Quests</h2>
         <p>Percy Jackson in the style of Minecraft Dungeons. Lead Percy, Annabeth and Grover through the Lightning Thief, see through the Mist, and play with up to four friends.</p>
         <span class="play">Play →</span>
-      </div>
-    </a>
-
-    <a class="game eartrainer" href="eartrainer/">
-      <div class="cover">
-        <span class="tag">Music</span>
-        <img src="eartrainer/assets/ui/logo.webp" alt="Ear Trainer" loading="lazy">
-      </div>
-      <div class="info">
-        <h2>Ear Trainer</h2>
-        <p>Hear a melody, play it back on the piano. Hundreds of tunes from jazz, folk, classical, carols and film, with stars, streaks and a practice mode.</p>
-        <span class="play">Play →</span>
-      </div>
-    </a>
-
-    <a class="game aiching" href="aiching/">
-      <div class="cover">
-        <span class="tag">Oracle</span>
-        <img src="aiching/web/ui/logo.webp" alt="Ai-Ching">
-      </div>
-      <div class="info">
-        <h2>Ai-Ching</h2>
-        <p>Ask anything. The coins fall from your words and the day, and an I Ching reading answers with pictures, counsel, the almanac and the day's signs.</p>
-        <span class="play">Ask →</span>
       </div>
     </a>
 
@@ -256,6 +241,33 @@
         <h2>Tank Wars</h2>
         <p>Top-down tank battles against the CPU or friends: couch play with controllers, or online rooms for up to eight.</p>
         <span class="play">Play →</span>
+      </div>
+    </a>
+  </section>
+
+  <h2 class="section-title">mini <span>apps</span></h2>
+  <section class="shelf" aria-label="Apps">
+    <a class="game eartrainer" href="eartrainer/">
+      <div class="cover">
+        <span class="tag">Music</span>
+        <img src="eartrainer/assets/ui/logo.webp" alt="Ear Trainer" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Ear Trainer</h2>
+        <p>Hear a melody, play it back on the piano. Hundreds of tunes from jazz, folk, classical, carols and film, with stars, streaks and a practice mode.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+
+    <a class="game aiching" href="aiching/">
+      <div class="cover">
+        <span class="tag">Oracle</span>
+        <img src="aiching/web/ui/logo.webp" alt="Ai-Ching">
+      </div>
+      <div class="info">
+        <h2>Ai-Ching</h2>
+        <p>Ask anything. The coins fall from your words and the day, and an I Ching reading answers with pictures, counsel, the almanac and the day's signs.</p>
+        <span class="play">Ask →</span>
       </div>
     </a>
   </section>

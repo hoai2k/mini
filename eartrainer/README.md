@@ -43,7 +43,10 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   becomes **Next** once the melody is solved.
 - Solving reveals every note on the staff and the title in the top bar, with
   one to three stars (three for no mistakes), points, a streak bonus for clean
-  answers in a row, a chime and confetti. After about three seconds (the
+  answers in a row, a chime and confetti. A melody solved with any wrong notes
+  comes round again (its staff hides, it plays again, no new points) until it
+  is played cleanly; only a clean run moves on by itself, and Next always
+  moves on (Settings can turn the replay off). After about three seconds (the
   Next button fills up) the next melody starts by itself; playing on restarts
   the wait, and Repeat (which replays it with its keys lit), Redo, Practice,
   a tap on the staff or the menu stays with it. Settings can turn this off.
@@ -71,7 +74,12 @@ redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
 pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
 Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
-for fullscreen, and iPhone Safari gets the swipe-up hint instead. The page
+for fullscreen, and iPhone Safari gets the swipe-up hint instead (tap it to
+dismiss it). If a swipe leaves Safari's bar showing (newer Safari keeps a small
+one in some layouts), the hint gives up for the session and suggests Add to
+Home Screen, which is the only true full screen on iPhone. While playing, the
+page refuses to pan but stays scrollable, since making it unscrollable can bring
+the bars back; dialogs close on a tap of the backdrop, not on a swipe across it. The page
 can't be zoomed: iPhone Safari ignores `user-scalable=no`, so `preventZoom` in
 `chrome.js` blocks pinches (two fingers drifting apart on a chord look like
 one) and double-tap zoom (the keys, navigator and staff cancel their

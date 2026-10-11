@@ -138,7 +138,7 @@ export class ClimbingWall {
     cancelAnimationFrame(this.raf);
     this.el.remove();
     const g = this.game, d = g.save.data;
-    g.paused = false; g.minigame = null; g.last = performance.now();
+    g.paused = false; g.minigame = null; g.audio?.setOverride?.(null); g.last = performance.now();
     if (quit) { g.toast?.('You let go of the wall.'); return; }
     const time = TIME - this.t;
     if (won) {
