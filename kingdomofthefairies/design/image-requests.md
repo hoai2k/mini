@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 82 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 81 of 82 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 82 of 82 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -437,7 +437,7 @@ Creatures, keepsakes and props for the recast acts and the new scenes.
 | `gift-flower` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-flower.webp) |
 | `gift-crown` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-crown.webp) |
 | `gift-gold` | 96 × 96 | bottom centre | new | [delivered](../assets/gift-gold.webp) |
-| `playbill-film` | 1400 × 2000 | centre | `playbill` | requested |
+| `playbill-film` | 1400 × 2000 | centre | `playbill` | [delivered](../assets/playbill-film.webp) |
 | `whirlpool` | 800 × 260 | centre | new | [delivered](../assets/whirlpool.webp) |
 | `tower-window` | 200 × 260 | bottom centre | new | [delivered](../assets/tower-window.webp) |
 | `cavern-ledge` | 320 × 100 | top edge (the walkable top) | new | [delivered](../assets/cavern-ledge.webp) |
