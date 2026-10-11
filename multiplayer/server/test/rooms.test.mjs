@@ -189,3 +189,13 @@ test("oracle rejects bad requests and reports when AI is unavailable", async () 
   const blocked = await fetch(`${BASE}/oracle`, { method: "POST", headers: { Origin: "https://evil.example" }, body: "{}" });
   assert.equal(blocked.status, 403);
 });
+
+test("transcribe checks the audio before calling Whisper", async () => {
+  const post = (type, body) => fetch(`${BASE}/transcribe`, { method: "POST", headers: type ? { "Content-Type": type } : {}, body });
+  assert.equal((await post("text/plain", "hello")).status, 415);
+  assert.equal((await post("audio/webm", new Uint8Array(0))).status, 413);
+  assert.equal((await post("audio/webm", new Uint8Array(2_000_000))).status, 413);
+  const ok = await post("audio/webm", new Uint8Array(1000));
+  assert.ok([502, 503].includes(ok.status), `status ${ok.status}`);
+  assert.equal((await fetch(`${BASE}/transcribe`)).status, 405);
+});

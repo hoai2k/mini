@@ -113,7 +113,8 @@ html:not(.has-ui-clouds) .clouds {
   font: 1.15rem/1.5 var(--serif); min-height: 2.2em; max-height: 240px;
 }
 .prompt textarea::placeholder { color: #9b8f80; font-style: italic; }
-.prompt-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
+.prompt-bar { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.prompt-bar .hint { flex: 1; }
 .hint { color: var(--ink-soft); font-size: 0.8rem; }
 .hint .dot { color: var(--cinnabar); }
 .actions { display: flex; align-items: center; gap: 8px; }
@@ -124,6 +125,20 @@ html:not(.has-ui-clouds) .clouds {
   box-shadow: 0 4px 12px rgba(142, 35, 29, 0.35); transition: transform 0.15s ease;
 }
 .send:hover { transform: scale(1.06) rotate(-4deg); }
+.mic {
+  flex: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  border: 1px solid rgba(31, 26, 23, 0.25); background: rgba(255, 252, 245, 0.9); color: var(--ink-soft);
+  position: relative; transition: color 0.15s ease, border-color 0.15s ease;
+}
+.mic svg { width: 20px; height: 20px; fill: currentColor; }
+.mic:hover, .mic:focus-visible { color: var(--cinnabar); border-color: var(--cinnabar); }
+.mic:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.mic.listening { color: #fff8ec; background: var(--cinnabar); border-color: var(--cinnabar); }
+.mic.listening::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--cinnabar); animation: ring 1.2s ease-out infinite; }
+.mic.working { color: var(--gold); border-color: var(--gold); animation: blink 1s infinite; }
+@keyframes ring { from { transform: scale(0.85); opacity: 0.9; } to { transform: scale(1.35); opacity: 0; } }
+.mic-status { margin: 6px 0 0; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
+.mic-status.error { color: var(--cinnabar-dark); }
 .send:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
 .suggestions { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
