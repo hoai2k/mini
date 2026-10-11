@@ -8,6 +8,9 @@ Play the prototype at https://hoai2k.github.io/mini/bronzedrum/. It has nine
 chapters in story order: four battles, four call-and-answer chapters (echo
 the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
+It sits behind the shared invite gate (`game/src/gate/gate.js`, a
+byte-identical copy of the one in the `hoai2k.github.io` repository, loaded by
+`game/src/boot.js`), which is off on localhost. The sound workbench is not gated.
 
 **Drum Practice**, on the title screen, has no right or wrong. In free drumming
 the crew loops whatever rhythm you drum, until you clear it, while you play
