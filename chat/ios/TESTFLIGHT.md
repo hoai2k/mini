@@ -139,8 +139,16 @@ mobile data may ring and answer but show no video.
 
 TestFlight's external testing (and later the App Store) needs a privacy
 policy link. One is published with the web app:
-<https://hoai2k.github.io/mini/chat/privacy.html> (from `chat/privacy.html`;
+<https://games.hoai.net/mini/chat/privacy.html> (from `chat/privacy.html`;
 edit it there if anything changes).
+
+### Turn on HTTPS for the website
+
+<https://github.com/hoai2k/mini/settings/pages> → tick **Enforce HTTPS**.
+Right now GitHub sends `hoai2k.github.io/mini/…` to `http://games.hoai.net/…`,
+and browsers don't allow the camera on plain http pages. The app avoids this
+by using `https://games.hoai.net/mini/chat/` directly, but invite links
+opened in a browser need it too.
 
 ## 6. Run it on your own iPhone first
 

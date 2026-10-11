@@ -53,6 +53,10 @@ const fsVisible = await app.evaluate(() => [...document.querySelectorAll('[data-
 check(!fsVisible, 'no fullscreen buttons');
 check(await app.evaluate(() => document.querySelector('#controls').lastElementChild?.id === 'btn-hangup'), 'hang-up is the last button on the strip');
 check(await app.evaluate(() => getComputedStyle(document.getElementById('btn-hangup')).backgroundColor === 'rgb(255, 59, 48)'), 'hang-up is red');
+// Unfocused (as a web view is until tapped), the page still counts as here.
+await app.evaluate(() => window.dispatchEvent(new Event('blur')));
+await app.waitForTimeout(300);
+check(await app.evaluate(() => document.hasFocus() === !document.hidden), 'not counted as away just for lacking focus (the web app checks hasFocus)');
 
 const webCtx = await browser.newContext({ viewport: { width: 700, height: 600 }, permissions: ['camera', 'microphone'] });
 const web = await webCtx.newPage();

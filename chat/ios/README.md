@@ -117,5 +117,9 @@ on `#controls`, `#btn-leave`, `#name-input`, `#start-btn`, `#stage .tile` and
 - CallKit and WKWebView's WebRTC share the audio session. This is set to
   voice chat with the speaker; confirm on devices that the microphone works
   after answering from the lock screen.
+- Switching to another app during a call: the web app pauses your camera
+  (as it does in a background browser tab), and iOS may also pause the web
+  view's microphone until you come back, unlike a fully native call. Picture
+  in picture is a possible later improvement.
 - Whether Cloudflare Workers can deliver Apple pushes (APNs needs HTTP/2) is
   confirmed by *Test ringing* in Account; see TESTFLIGHT.md if it fails.

@@ -14,6 +14,11 @@
   const post = msg => { try { window.webkit.messageHandlers.native.postMessage(msg); } catch {} };
   const q = new URLSearchParams(location.search);
 
+  // In a web view the page only "has focus" after it's tapped, and the web
+  // app pauses the camera while it thinks you've looked away. In the app,
+  // only really leaving it (the page hidden) counts as away.
+  try { Document.prototype.hasFocus = function () { return !this.hidden; }; } catch {}
+
   // The web app hides its fullscreen buttons and never asks for fullscreen
   // when it believes it was opened from the home screen.
   try { Object.defineProperty(navigator, 'standalone', { get: () => true, configurable: true }); } catch {}

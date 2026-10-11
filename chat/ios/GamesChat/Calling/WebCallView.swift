@@ -94,8 +94,8 @@ struct WebCallView: UIViewRepresentable {
         // The page asks for the camera and microphone; the app has already
         // been allowed them by the person (Info.plist explains why), so the
         // web view doesn't ask a second time.
-        func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-                     initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision {
+        func webView(_ webView: WKWebView, decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
+                     initiatedBy frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision {
             Config.webHosts.contains(origin.host) ? .grant : .prompt
         }
 

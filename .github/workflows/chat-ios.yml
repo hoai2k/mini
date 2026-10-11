@@ -18,6 +18,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: chat/ios   # the rest of the repo (every game's art) isn't needed
       - name: Core tests
         working-directory: chat/ios/GamesChatCore
         run: swift test
@@ -28,8 +30,6 @@ jobs:
           xcodebuild -project GamesChat.xcodeproj -scheme GamesChat -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || { tail -n 120 build.log; exit 1; }
-          echo "Warnings in the app's own code:"
-          grep -E "chat/ios/(GamesChat|GamesChatCore)/.*warning:" build.log | sort -u || echo "(none)"
           tail -n 3 build.log
       - name: Launch on simulators and take screenshots
         working-directory: chat/ios
@@ -67,6 +67,10 @@ jobs:
           }
           shoot "$(pick iPhone)" iphone
           shoot "$(pick iPad)" ipad
+      - name: Compiler warnings in the app's own code
+        if: always()
+        working-directory: chat/ios
+        run: grep -E "chat/ios/(GamesChat|GamesChatCore)/.*warning:" build.log | sort -u || echo "(none)"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
