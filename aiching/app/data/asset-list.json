@@ -1,0 +1,482 @@
+{
+ "ui-logo": {
+  "path": "assets/ui/logo.png",
+  "status": "requested",
+  "code": "UI01"
+ },
+ "ui-icon": {
+  "path": "assets/ui/icon.png",
+  "status": "requested",
+  "code": "UI02"
+ },
+ "ui-home-bg": {
+  "path": "assets/ui/home-bg.webp",
+  "status": "requested",
+  "code": "UI03"
+ },
+ "ui-paper": {
+  "path": "assets/ui/paper.webp",
+  "status": "requested",
+  "code": "UI04"
+ },
+ "ui-result-bg": {
+  "path": "assets/ui/result-bg.webp",
+  "status": "requested",
+  "code": "UI05"
+ },
+ "ui-clouds": {
+  "path": "assets/ui/clouds.png",
+  "status": "requested",
+  "code": "UI06"
+ },
+ "ui-coin-yang": {
+  "path": "assets/ui/coin-yang.png",
+  "status": "requested",
+  "code": "UI07"
+ },
+ "ui-coin-yin": {
+  "path": "assets/ui/coin-yin.png",
+  "status": "requested",
+  "code": "UI08"
+ },
+ "ui-yang": {
+  "path": "assets/ui/yang.png",
+  "status": "requested",
+  "code": "UI09"
+ },
+ "ui-yin": {
+  "path": "assets/ui/yin.png",
+  "status": "requested",
+  "code": "UI10"
+ },
+ "ui-divider": {
+  "path": "assets/ui/divider.png",
+  "status": "requested",
+  "code": "UI11"
+ },
+ "ui-share": {
+  "path": "assets/ui/share.webp",
+  "status": "requested",
+  "code": "UI12"
+ },
+ "trigram-qian": {
+  "path": "assets/trigrams/qian.png",
+  "status": "requested",
+  "code": "TR01"
+ },
+ "trigram-kun": {
+  "path": "assets/trigrams/kun.png",
+  "status": "requested",
+  "code": "TR02"
+ },
+ "trigram-zhen": {
+  "path": "assets/trigrams/zhen.png",
+  "status": "requested",
+  "code": "TR03"
+ },
+ "trigram-kan": {
+  "path": "assets/trigrams/kan.png",
+  "status": "requested",
+  "code": "TR04"
+ },
+ "trigram-gen": {
+  "path": "assets/trigrams/gen.png",
+  "status": "requested",
+  "code": "TR05"
+ },
+ "trigram-xun": {
+  "path": "assets/trigrams/xun.png",
+  "status": "requested",
+  "code": "TR06"
+ },
+ "trigram-li": {
+  "path": "assets/trigrams/li.png",
+  "status": "requested",
+  "code": "TR07"
+ },
+ "trigram-dui": {
+  "path": "assets/trigrams/dui.png",
+  "status": "requested",
+  "code": "TR08"
+ },
+ "topic-love": {
+  "path": "assets/topics/love.png",
+  "status": "requested",
+  "code": "TP01"
+ },
+ "topic-work": {
+  "path": "assets/topics/work.png",
+  "status": "requested",
+  "code": "TP02"
+ },
+ "topic-money": {
+  "path": "assets/topics/money.png",
+  "status": "requested",
+  "code": "TP03"
+ },
+ "topic-health": {
+  "path": "assets/topics/health.png",
+  "status": "requested",
+  "code": "TP04"
+ },
+ "topic-family": {
+  "path": "assets/topics/family.png",
+  "status": "requested",
+  "code": "TP05"
+ },
+ "topic-creativity": {
+  "path": "assets/topics/creativity.png",
+  "status": "requested",
+  "code": "TP06"
+ },
+ "topic-study": {
+  "path": "assets/topics/study.png",
+  "status": "requested",
+  "code": "TP07"
+ },
+ "topic-travel": {
+  "path": "assets/topics/travel.png",
+  "status": "requested",
+  "code": "TP08"
+ },
+ "topic-spirit": {
+  "path": "assets/topics/spirit.png",
+  "status": "requested",
+  "code": "TP09"
+ },
+ "topic-conflict": {
+  "path": "assets/topics/conflict.png",
+  "status": "requested",
+  "code": "TP10"
+ },
+ "topic-decision": {
+  "path": "assets/topics/decision.png",
+  "status": "requested",
+  "code": "TP11"
+ },
+ "topic-timing": {
+  "path": "assets/topics/timing.png",
+  "status": "requested",
+  "code": "TP12"
+ },
+ "hexagram-01": {
+  "path": "assets/hexagrams/01.webp",
+  "status": "requested",
+  "code": "HX01"
+ },
+ "hexagram-02": {
+  "path": "assets/hexagrams/02.webp",
+  "status": "requested",
+  "code": "HX02"
+ },
+ "hexagram-03": {
+  "path": "assets/hexagrams/03.webp",
+  "status": "requested",
+  "code": "HX03"
+ },
+ "hexagram-04": {
+  "path": "assets/hexagrams/04.webp",
+  "status": "requested",
+  "code": "HX04"
+ },
+ "hexagram-05": {
+  "path": "assets/hexagrams/05.webp",
+  "status": "requested",
+  "code": "HX05"
+ },
+ "hexagram-06": {
+  "path": "assets/hexagrams/06.webp",
+  "status": "requested",
+  "code": "HX06"
+ },
+ "hexagram-07": {
+  "path": "assets/hexagrams/07.webp",
+  "status": "requested",
+  "code": "HX07"
+ },
+ "hexagram-08": {
+  "path": "assets/hexagrams/08.webp",
+  "status": "requested",
+  "code": "HX08"
+ },
+ "hexagram-09": {
+  "path": "assets/hexagrams/09.webp",
+  "status": "requested",
+  "code": "HX09"
+ },
+ "hexagram-10": {
+  "path": "assets/hexagrams/10.webp",
+  "status": "requested",
+  "code": "HX10"
+ },
+ "hexagram-11": {
+  "path": "assets/hexagrams/11.webp",
+  "status": "requested",
+  "code": "HX11"
+ },
+ "hexagram-12": {
+  "path": "assets/hexagrams/12.webp",
+  "status": "requested",
+  "code": "HX12"
+ },
+ "hexagram-13": {
+  "path": "assets/hexagrams/13.webp",
+  "status": "requested",
+  "code": "HX13"
+ },
+ "hexagram-14": {
+  "path": "assets/hexagrams/14.webp",
+  "status": "requested",
+  "code": "HX14"
+ },
+ "hexagram-15": {
+  "path": "assets/hexagrams/15.webp",
+  "status": "requested",
+  "code": "HX15"
+ },
+ "hexagram-16": {
+  "path": "assets/hexagrams/16.webp",
+  "status": "requested",
+  "code": "HX16"
+ },
+ "hexagram-17": {
+  "path": "assets/hexagrams/17.webp",
+  "status": "requested",
+  "code": "HX17"
+ },
+ "hexagram-18": {
+  "path": "assets/hexagrams/18.webp",
+  "status": "requested",
+  "code": "HX18"
+ },
+ "hexagram-19": {
+  "path": "assets/hexagrams/19.webp",
+  "status": "requested",
+  "code": "HX19"
+ },
+ "hexagram-20": {
+  "path": "assets/hexagrams/20.webp",
+  "status": "requested",
+  "code": "HX20"
+ },
+ "hexagram-21": {
+  "path": "assets/hexagrams/21.webp",
+  "status": "requested",
+  "code": "HX21"
+ },
+ "hexagram-22": {
+  "path": "assets/hexagrams/22.webp",
+  "status": "requested",
+  "code": "HX22"
+ },
+ "hexagram-23": {
+  "path": "assets/hexagrams/23.webp",
+  "status": "requested",
+  "code": "HX23"
+ },
+ "hexagram-24": {
+  "path": "assets/hexagrams/24.webp",
+  "status": "requested",
+  "code": "HX24"
+ },
+ "hexagram-25": {
+  "path": "assets/hexagrams/25.webp",
+  "status": "requested",
+  "code": "HX25"
+ },
+ "hexagram-26": {
+  "path": "assets/hexagrams/26.webp",
+  "status": "requested",
+  "code": "HX26"
+ },
+ "hexagram-27": {
+  "path": "assets/hexagrams/27.webp",
+  "status": "requested",
+  "code": "HX27"
+ },
+ "hexagram-28": {
+  "path": "assets/hexagrams/28.webp",
+  "status": "requested",
+  "code": "HX28"
+ },
+ "hexagram-29": {
+  "path": "assets/hexagrams/29.webp",
+  "status": "requested",
+  "code": "HX29"
+ },
+ "hexagram-30": {
+  "path": "assets/hexagrams/30.webp",
+  "status": "requested",
+  "code": "HX30"
+ },
+ "hexagram-31": {
+  "path": "assets/hexagrams/31.webp",
+  "status": "requested",
+  "code": "HX31"
+ },
+ "hexagram-32": {
+  "path": "assets/hexagrams/32.webp",
+  "status": "requested",
+  "code": "HX32"
+ },
+ "hexagram-33": {
+  "path": "assets/hexagrams/33.webp",
+  "status": "requested",
+  "code": "HX33"
+ },
+ "hexagram-34": {
+  "path": "assets/hexagrams/34.webp",
+  "status": "requested",
+  "code": "HX34"
+ },
+ "hexagram-35": {
+  "path": "assets/hexagrams/35.webp",
+  "status": "requested",
+  "code": "HX35"
+ },
+ "hexagram-36": {
+  "path": "assets/hexagrams/36.webp",
+  "status": "requested",
+  "code": "HX36"
+ },
+ "hexagram-37": {
+  "path": "assets/hexagrams/37.webp",
+  "status": "requested",
+  "code": "HX37"
+ },
+ "hexagram-38": {
+  "path": "assets/hexagrams/38.webp",
+  "status": "requested",
+  "code": "HX38"
+ },
+ "hexagram-39": {
+  "path": "assets/hexagrams/39.webp",
+  "status": "requested",
+  "code": "HX39"
+ },
+ "hexagram-40": {
+  "path": "assets/hexagrams/40.webp",
+  "status": "requested",
+  "code": "HX40"
+ },
+ "hexagram-41": {
+  "path": "assets/hexagrams/41.webp",
+  "status": "requested",
+  "code": "HX41"
+ },
+ "hexagram-42": {
+  "path": "assets/hexagrams/42.webp",
+  "status": "requested",
+  "code": "HX42"
+ },
+ "hexagram-43": {
+  "path": "assets/hexagrams/43.webp",
+  "status": "requested",
+  "code": "HX43"
+ },
+ "hexagram-44": {
+  "path": "assets/hexagrams/44.webp",
+  "status": "requested",
+  "code": "HX44"
+ },
+ "hexagram-45": {
+  "path": "assets/hexagrams/45.webp",
+  "status": "requested",
+  "code": "HX45"
+ },
+ "hexagram-46": {
+  "path": "assets/hexagrams/46.webp",
+  "status": "requested",
+  "code": "HX46"
+ },
+ "hexagram-47": {
+  "path": "assets/hexagrams/47.webp",
+  "status": "requested",
+  "code": "HX47"
+ },
+ "hexagram-48": {
+  "path": "assets/hexagrams/48.webp",
+  "status": "requested",
+  "code": "HX48"
+ },
+ "hexagram-49": {
+  "path": "assets/hexagrams/49.webp",
+  "status": "requested",
+  "code": "HX49"
+ },
+ "hexagram-50": {
+  "path": "assets/hexagrams/50.webp",
+  "status": "requested",
+  "code": "HX50"
+ },
+ "hexagram-51": {
+  "path": "assets/hexagrams/51.webp",
+  "status": "requested",
+  "code": "HX51"
+ },
+ "hexagram-52": {
+  "path": "assets/hexagrams/52.webp",
+  "status": "requested",
+  "code": "HX52"
+ },
+ "hexagram-53": {
+  "path": "assets/hexagrams/53.webp",
+  "status": "requested",
+  "code": "HX53"
+ },
+ "hexagram-54": {
+  "path": "assets/hexagrams/54.webp",
+  "status": "requested",
+  "code": "HX54"
+ },
+ "hexagram-55": {
+  "path": "assets/hexagrams/55.webp",
+  "status": "requested",
+  "code": "HX55"
+ },
+ "hexagram-56": {
+  "path": "assets/hexagrams/56.webp",
+  "status": "requested",
+  "code": "HX56"
+ },
+ "hexagram-57": {
+  "path": "assets/hexagrams/57.webp",
+  "status": "requested",
+  "code": "HX57"
+ },
+ "hexagram-58": {
+  "path": "assets/hexagrams/58.webp",
+  "status": "requested",
+  "code": "HX58"
+ },
+ "hexagram-59": {
+  "path": "assets/hexagrams/59.webp",
+  "status": "requested",
+  "code": "HX59"
+ },
+ "hexagram-60": {
+  "path": "assets/hexagrams/60.webp",
+  "status": "requested",
+  "code": "HX60"
+ },
+ "hexagram-61": {
+  "path": "assets/hexagrams/61.webp",
+  "status": "requested",
+  "code": "HX61"
+ },
+ "hexagram-62": {
+  "path": "assets/hexagrams/62.webp",
+  "status": "requested",
+  "code": "HX62"
+ },
+ "hexagram-63": {
+  "path": "assets/hexagrams/63.webp",
+  "status": "requested",
+  "code": "HX63"
+ },
+ "hexagram-64": {
+  "path": "assets/hexagrams/64.webp",
+  "status": "requested",
+  "code": "HX64"
+ }
+}
