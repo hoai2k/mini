@@ -38,25 +38,25 @@ Character sheets use:
 
 | Id | Image | Size | Status |
 | --- | --- | --- | --- |
-| `key-art` | Key art: the three heroes set out | 2560 × 1440 | requested |
-| `char-percy` | Percy Jackson | 2400 × 1600 | requested |
-| `char-annabeth` | Annabeth Chase | 2400 × 1600 | requested |
-| `char-grover` | Grover Underwood | 2400 × 1600 | requested |
-| `char-camp` | Camp Half-Blood: Chiron, Luke, Clarisse and Mr. D | 2400 × 1600 | requested |
-| `char-gods` | The gods: Poseidon, Zeus, Hades and Ares | 2400 × 1600 | requested |
-| `char-monsters` | The monsters of The Lightning Thief | 2400 × 1600 | requested |
-| `scene-museum` | The museum: Mrs. Dodds attacks | 2560 × 1440 | requested |
-| `scene-minotaur` | Half-Blood Hill: the Minotaur in the storm | 2560 × 1440 | requested |
-| `map-camp` | Map of Camp Half-Blood | 2400 × 1600 | requested |
-| `scene-capture-the-flag` | Capture the flag in the woods | 2560 × 1440 | requested |
-| `map-quest` | Map of the quest west | 2400 × 1600 | requested |
-| `scene-medusa` | Aunty Em's garden-gnome emporium | 2560 × 1440 | requested |
-| `scene-arch` | The Gateway Arch and the Chimera | 2560 × 1440 | requested |
-| `scene-lotus` | The Lotus Hotel and Casino | 2560 × 1440 | requested |
-| `scene-underworld` | The Underworld: Cerberus and the Fields of Asphodel | 2560 × 1440 | requested |
-| `scene-ares-beach` | The duel with Ares on the beach | 2560 × 1440 | requested |
-| `scene-olympus` | Mount Olympus above the Empire State Building | 2560 × 1440 | requested |
-| `ui-hero-cards` | Hero cards and interface kit | 2560 × 1440 | requested |
+| `key-art` | Key art: the three heroes set out | 2560 × 1440 | delivered |
+| `char-percy` | Percy Jackson | 2400 × 1600 | delivered |
+| `char-annabeth` | Annabeth Chase | 2400 × 1600 | delivered |
+| `char-grover` | Grover Underwood | 2400 × 1600 | delivered |
+| `char-camp` | Camp Half-Blood: Chiron, Luke, Clarisse and Mr. D | 2400 × 1600 | delivered |
+| `char-gods` | The gods: Poseidon, Zeus, Hades and Ares | 2400 × 1600 | delivered |
+| `char-monsters` | The monsters of The Lightning Thief | 2400 × 1600 | delivered |
+| `scene-museum` | The museum: Mrs. Dodds attacks | 2560 × 1440 | delivered |
+| `scene-minotaur` | Half-Blood Hill: the Minotaur in the storm | 2560 × 1440 | delivered |
+| `map-camp` | Map of Camp Half-Blood | 2400 × 1600 | delivered |
+| `scene-capture-the-flag` | Capture the flag in the woods | 2560 × 1440 | delivered |
+| `map-quest` | Map of the quest west | 2400 × 1600 | delivered |
+| `scene-medusa` | Aunty Em's garden-gnome emporium | 2560 × 1440 | delivered |
+| `scene-arch` | The Gateway Arch and the Chimera | 2560 × 1440 | delivered |
+| `scene-lotus` | The Lotus Hotel and Casino | 2560 × 1440 | delivered |
+| `scene-underworld` | The Underworld: Cerberus and the Fields of Asphodel | 2560 × 1440 | delivered |
+| `scene-ares-beach` | The duel with Ares on the beach | 2560 × 1440 | delivered |
+| `scene-olympus` | Mount Olympus above the Empire State Building | 2560 × 1440 | delivered |
+| `ui-hero-cards` | Hero cards and interface kit | 2560 × 1440 | delivered |
 
 ### Style key
 
@@ -65,7 +65,7 @@ Character sheets use:
 - **File:** `key-art.png`, 2560 × 1440 px
 - **References:** none (generate first)
 - **Use:** Fixes the look. Generate it first and attach it to every later request.
-- **Status:** requested
+- **Status:** delivered
 
 > Key art for a game of Rick Riordan's The Lightning Thief. The three heroes stand on Half-Blood Hill at golden hour beside a tall, lone pine tree, looking out toward a distant ornamental New York skyline and a stormy sky crackling with stylised lightning bolts. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped; Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible; Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can. Percy holds Riptide drawn, Annabeth points the way, Grover clutches his pipes. The scene sits inside a black-and-gold ornamental frame of Greek-key borders with small emblems in the corners (a trident, an owl, a lightning bolt, a pan pipe) and an empty cartouche at the top for the title. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -76,7 +76,7 @@ Character sheets use:
 - **File:** `char-percy.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** Player character.
-- **Status:** requested
+- **Status:** delivered
 
 > Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped. Props: Riptide as a sword and as a capped pen, a small swirl of water curling around his free hand. Body language: restless, brave, a little sarcastic. A character model sheet on a flat parchment-cream background: one full figure seen front-on, one three-quarter view and one from behind, standing side by side at the same scale, with three small head studies showing different expressions and two or three small prop details along the bottom. No cast shadow. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -85,7 +85,7 @@ Character sheets use:
 - **File:** `char-annabeth.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** Second playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible. Add one small extra figure of her in battle gear: a bronze Greek breastplate over the camp shirt and a bronze helmet with a grey horsehair crest, and one small figure half-faded to show the cap's invisibility. Props: the bronze dagger, the cap, a rolled architectural sketch. Body language: poised, quick, always planning. A character model sheet on a flat parchment-cream background: one full figure seen front-on, one three-quarter view and one from behind, standing side by side at the same scale, with three small head studies showing different expressions and two or three small prop details along the bottom. No cast shadow. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -94,7 +94,7 @@ Character sheets use:
 - **File:** `char-grover.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** Third playable hero.
-- **Status:** requested
+- **Status:** delivered
 
 > Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can. Show the full figure twice: once in disguise (cap, jeans, fake sneakers) and once at camp with the furry goat legs and hooves showing and the horns visible. Props: reed pipes, winged sneakers fluttering with small white wings, a tin can. Body language: jittery, loyal, gentle, braver than he looks. A character model sheet on a flat parchment-cream background: one full figure seen front-on, one three-quarter view and one from behind, standing side by side at the same scale, with three small head studies showing different expressions and two or three small prop details along the bottom. No cast shadow. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -103,7 +103,7 @@ Character sheets use:
 - **File:** `char-camp.png`, 2400 × 1600 px
 - **References:** `key-art`, `char-percy`
 - **Use:** Camp cast for the hub.
-- **Status:** requested
+- **Status:** delivered
 
 > A line-up model sheet of four Camp Half-Blood characters at the same scale, each shown front-on and three-quarter: Chiron, the wise centaur and camp director: a kindly bearded man with brown curly hair and a tweed jacket, from the waist down a white stallion; a quiver and bow on his back; Luke Castellan, nineteen, son of Hermes, friendly sandy-haired counsellor with a thin pale scar from his eye to his jaw, orange camp shirt, a sword; Clarisse La Rue, thirteen, daughter of Ares, tall and tough with a brown ponytail, a camouflage jacket over the camp shirt and an electric spear; and Mr. D (Dionysus), a short, plump, bored man with curly black hair, a leopard-print Hawaiian shirt and a can of diet cola, grapevines sprouting at his feet. Small head studies underneath. Flat parchment-cream background, no cast shadow. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -112,7 +112,7 @@ Character sheets use:
 - **File:** `char-gods.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** Bosses and story figures.
-- **Status:** requested
+- **Status:** delivered
 
 > A line-up model sheet of four Greek gods as they appear in modern America, each standing full-figure on a decorative vase-like plinth with their emblem behind them in gold linework: Poseidon, tanned and weathered with a black beard and sea-green eyes, in a Hawaiian shirt, shorts and sandals, a fishing cap, a bronze trident; Zeus, tall and grey-bearded in a sharp pinstriped suit, storm-grey eyes, holding a crackling lightning bolt; Hades, pale and gaunt with shoulder-length black hair, a black silk robe embroidered with tormented faces in gold, a helm of darkness under his arm; Ares, a huge biker in a black leather jacket, red wraparound sunglasses with fire behind them, a scarred face and a huge bronze sword. Each a little larger than a human. Flat deep navy background with a Greek-key border. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -121,7 +121,7 @@ Character sheets use:
 - **File:** `char-monsters.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** Enemies and bosses, each a different silhouette.
-- **Status:** requested
+- **Status:** delivered
 
 > A bestiary sheet of six monsters, each in its own black-figure-vase roundel with a Greek-key rim: the Minotaur, a towering bull-headed giant in only white briefs, glowing red eyes; Mrs. Dodds the Fury, a withered maths teacher turning into a leathery-winged hag with a flaming whip; Medusa, a veiled woman in a black dress whose veil hides hissing snakes for hair (her face never shown, only the snakes and her hands); the Chimera, a lion-headed beast with a goat body and a diamondback-rattlesnake tail, breathing fire; Procrustes, a big smooth salesman with a stretched bed; and Cerberus, a gigantic three-headed black dog with drooling jaws and a friendly side. Dramatic and fun for ages 8 to 14, never gory. Clean, bright cartoon illustration for a 2D adventure game for players aged 8 to 14: confident ink outlines of varying weight, flat cel-shaded colour with one shadow tone and a small highlight, expressive faces with large readable eyes but natural proportions (the twelve-year-olds about six heads tall), lively poses and strong silhouettes that read at small size. Original character designs, not likenesses of any actor. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -132,7 +132,7 @@ Character sheets use:
 - **File:** `scene-museum.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-monsters`
 - **Use:** Opening tutorial.
-- **Status:** requested
+- **Status:** delivered
 
 > Inside the Greek and Roman gallery of a grand New York museum, empty and echoing: marble statues, painted vases in glass cases, a stone stele. Mrs. Dodds has just transformed into a Fury with leathery wings and a flaming whip and dives at Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped, who catches a ballpoint pen as it springs into a bronze sword. Through a doorway a teacher in a wheelchair (Mr. Brunner, secretly Chiron) has just thrown the pen. The vases and friezes in the cases come alive as gold linework echoing the action. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -141,7 +141,7 @@ Character sheets use:
 - **File:** `scene-minotaur.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-grover`, `char-monsters`
 - **Use:** First boss.
-- **Status:** requested
+- **Status:** delivered
 
 > Night, a violent rainstorm on a Long Island hill. A wrecked blue car smokes in the ditch. The Minotaur charges uphill; Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped (soaked, no sword yet) stands his ground under a great pine tree at the top of the hill, about to grab one of the Minotaur's horns, while an injured Grover (goat legs showing) lies half-conscious behind him. Where Percy's mother vanished, a shimmer of golden light dissolves in the rain. Lightning is drawn as stylised gold zigzag ornament; rain as fine diagonal lines. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -150,7 +150,7 @@ Character sheets use:
 - **File:** `map-camp.png`, 2400 × 1600 px
 - **References:** `key-art`
 - **Use:** The camp hub and its level-select screen.
-- **Status:** requested
+- **Status:** delivered
 
 > A bird's-eye illustrated map of Camp Half-Blood as an ornamental painted map: Half-Blood Hill with its pine tree at the edge, the blue four-storey Big House farmhouse with a wraparound porch, twelve cabins in a U-shape around a green each with its own character (Zeus's marble cabin with bronze columns, Poseidon's low grey sea-stone cabin with shells, Ares's red cabin with barbed wire and a boar's head, Athena's silver-grey cabin with an owl, Hermes's crowded old brown cabin), the open-air dining pavilion of white Greek columns, the amphitheatre with its campfire, the canoe lake, strawberry fields, the climbing wall pouring lava, the archery range, the stables of winged pegasi, the arena and the dark woods by the creek, all inside a Greek-key border with a compass rose shaped like a sun. Small figures of campers in orange shirts doing activities. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -159,7 +159,7 @@ Character sheets use:
 - **File:** `scene-capture-the-flag.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-camp`
 - **Use:** A team game at camp.
-- **Status:** requested
+- **Status:** delivered
 
 > Night in the camp woods during capture the flag. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped, in an oversized bronze helmet with a blue plume and a too-big shield, stands in a shallow creek and glows as the water heals him while Clarisse and two hulking Ares campers in red-plumed helmets charge with electric spears. Behind them Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible is half-invisible, only her outline shimmering, as she runs off with the enemy team's red flag. A glowing green trident sign is beginning to appear in the air above Percy's head. Trees drawn as tall ornamental shapes, the creek as rippling teal ribbon patterns. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -168,7 +168,7 @@ Character sheets use:
 - **File:** `map-quest.png`, 2400 × 1600 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`
 - **Use:** The journey map between chapters.
-- **Status:** requested
+- **Status:** delivered
 
 > An ornamental map of the United States drawn like a painted Greek map, with the route of the quest as a dotted gold line from New York (a tiny Empire State Building) through New Jersey (a garden of stone statues), Washington DC, St. Louis (the Gateway Arch), Denver (a water park), the desert (a hitched ride in an animal truck), Las Vegas (a lotus-flower casino), to Los Angeles and the Santa Monica pier, with a small dark entrance to the Underworld beneath. Sea monsters and ships in the oceans, wind gods blowing at the corners, a small cartoon trio travelling along the route. Greek-key border, deep navy sea, cream land. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -177,7 +177,7 @@ Character sheets use:
 - **File:** `scene-medusa.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`, `char-monsters`
 - **Use:** A stealth chapter: don't look at her.
-- **Status:** requested
+- **Status:** delivered
 
 > Twilight in the overgrown yard of a roadside garden-statue shop in New Jersey, full of lifelike stone statues of frightened people and satyrs. Medusa, veiled in black, glides between them; we see only the snakes stirring under her veil and her long hands. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped walks backwards, eyes shut, watching her only in the reflection of a mirrored garden gazing ball; Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible is invisible except for a shimmer; Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can hovers above on winged sneakers swinging a road sign. A smoky hamburger grill glows in the background. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -186,7 +186,7 @@ Character sheets use:
 - **File:** `scene-arch.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-monsters`
 - **Use:** A chase that ends in a leap.
-- **Status:** requested
+- **Status:** delivered
 
 > High inside the observation deck at the top of the Gateway Arch in St. Louis: a narrow curved room with tiny windows. The Chimera bursts through, breathing fire, its rattlesnake tail lashing, while a sweet old lady (Echidna) cackles behind it. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped backs toward a broken window. A second, wider inset shows him falling from the Arch toward the Mississippi far below, the river rising to meet him as a curling teal wave. The Arch drawn as a sweeping silver ornamental curve over a patterned city. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -195,7 +195,7 @@ Character sheets use:
 - **File:** `scene-lotus.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`
 - **Use:** A trap level where time runs away.
-- **Status:** requested
+- **Status:** delivered
 
 > Inside a dazzling Las Vegas hotel built to keep you forever: a gigantic games hall with water slides, arcade machines, a bungee jump and a wave pool, lit in shimmering neon turquoise, coral and gold, with lotus-flower patterns everywhere and a huge ornamental clock whose hands spin too fast. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped (holding a green key card), Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible and Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can are being offered plates of glowing lotus-flower pastries by smiling bellhops and look happily dazed; Percy is starting to notice something is wrong. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -204,7 +204,7 @@ Character sheets use:
 - **File:** `scene-underworld.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`, `char-monsters`
 - **Use:** The final descent.
-- **Status:** requested
+- **Status:** delivered
 
 > The gates of the Underworld: a vast cavern under Los Angeles, the River Styx a black ribbon full of drifting lost things, a skeletal ferryman's boat, and the Fields of Asphodel stretching off as endless grey wheat under a ceiling of stalactites. The gigantic three-headed Cerberus looms over the gate; Annabeth Chase, twelve, daughter of Athena: athletic, tanned, curly honey-blonde hair in a high ponytail, sharp storm-grey eyes, a confident, calculating look; orange Camp Half-Blood T-shirt, shorts, a clay-bead camp necklace, a bronze dagger at her belt and a navy New York Yankees-style baseball cap (no logo) that makes her invisible distracts him by throwing a big red rubber ball while Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped and Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can sneak past. Far off, the black palace of Hades with bronze gates and gardens of glowing jewel-fruit. Grey, violet and black ground with gold linework and a single warm glow from the ball. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -213,7 +213,7 @@ Character sheets use:
 - **File:** `scene-ares-beach.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-gods`
 - **Use:** Final boss.
-- **Status:** requested
+- **Status:** delivered
 
 > A Santa Monica beach at dawn. Ares, huge in his black leather jacket with fiery sunglasses, swings a burning sword; Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped stands in the surf, the sea rising behind him in a towering curling wave of ornamental teal ribbons, about to strike Ares's heel with Riptide. Three Furies circle overhead; police cars (drawn as decorative shapes) on the pier. Annabeth and Grover shelter by the lifeguard tower. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -222,7 +222,7 @@ Character sheets use:
 - **File:** `scene-olympus.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-gods`
 - **Use:** Ending and the gods' court.
-- **Status:** requested
+- **Status:** delivered
 
 > Mount Olympus floating in the clouds above the Empire State Building: a white and gold Greek city of palaces, temples and terraces climbing a mountain, reached by a floating stone stairway. Inside the great throne hall, Zeus and Poseidon sit on two of twelve enormous thrones arranged in a U around a hearth; Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped stands small before them holding up the master lightning bolt, glowing gold. Clouds as curling ornamental scrolls, gold linework on white marble and sky blue. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -233,6 +233,6 @@ Character sheets use:
 - **File:** `ui-hero-cards.png`, 2560 × 1440 px
 - **References:** `key-art`, `char-percy`, `char-annabeth`, `char-grover`
 - **Use:** Character select, health and power icons.
-- **Status:** requested
+- **Status:** delivered
 
 > A game interface concept sheet. Across the top, three tall character-select cards, each an ornate black-and-gold frame built from its hero's parent emblems: Percy's with tridents, waves and hippocampi; Annabeth's with owls, olive branches and a compass; Grover's with pan pipes, vines and tin cans. Inside each card the hero in a dynamic cartoon pose. Below, an interface kit on deep navy: a health bar as a wave-scroll band, a power meter shaped like a lightning bolt, round ability icons in gold vase-style roundels (water surge, invisibility cap, pipes song, shield, golden drachma, ambrosia square, nectar cup), dialogue-box frames with Greek-key borders, and buttons. Clean, crisp, readable on a phone. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
