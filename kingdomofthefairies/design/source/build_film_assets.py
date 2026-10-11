@@ -62,6 +62,49 @@ WITCH_FILM = ('the witch exactly as she appears in Méliès\'s 1903 film (attach
 DEMON = 'a demon as in references/film-planning/originals/char-demons.png (attach it): a stage performer in tights with a horned cap'
 CREATURES = 'references/film-planning/originals/char-sea-creatures.png (attach it)'
 
+# ---- The tinted alternates (F8): the film's hand-stencilled photographic look.
+TINTED = ('Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white '
+          'photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little '
+          'halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, '
+          'rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and '
+          'large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little '
+          'fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. '
+          'Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).')
+TINT_IDS = [
+    'prince-stand', 'prince-walk-a', 'prince-walk-b', 'prince-leap', 'prince-crouch', 'prince-carry', 'prince-swim-a',
+    'prince-swim-b', 'prince-seated', 'prince-hang', 'prince-pullup', 'prince-climb-a', 'prince-climb-b', 'prince-apex',
+    'prince-fall', 'prince-land', 'prince-stairs-a', 'prince-stairs-b', 'prince-push', 'prince-court',
+    'prince-court-walk-a', 'prince-court-walk-b', 'prince-bound',
+    'azurine-stand', 'azurine-asleep', 'azurine-window', 'aurora-stand', 'aurora-point',
+    'water-fairy-stand', 'water-fairy-stand-idle-b', 'water-fairy-stand-idle-c',
+    'king-stand', 'queen-stand', 'fairy-ring', 'fairy-crown', 'fairy-gold', 'demon-red', 'demon-teal',
+    'crew-squire', 'crew-helmsman', 'crew-manatarms', 'crew-bosun', 'crew-squire-idle-b', 'crew-squire-idle-c',
+    'crew-helmsman-idle-b', 'crew-helmsman-idle-c', 'crew-manatarms-idle-b', 'crew-manatarms-idle-c',
+    'crew-bosun-idle-b', 'crew-bosun-idle-c', 'crew-asleep', 'crew-asleep-b', 'crew-rider',
+    'witch-hooded', 'witch-cloud', 'witch-storm', 'witch-swoop', 'witch-barrel',
+    'octopus', 'dolphin-carriage', 'lobster-guard-closed', 'lobster-guard-open', 'chariot', 'scrying-eye',
+]
+# What the film shows of each, beyond the general look (design/character-audit.md).
+TINT_NOTES = {
+    'prince': 'The film\'s Bel-Azor is an actor in a plain belted tunic and tights with a simple helmet and plume, not ornate plate armour: keep the star shield and sword but make the armour plain grey metal and the cloak a single red wash.',
+    'azurine': 'In the film Azurine is a young woman in a plain pale gown, almost white, with long dark hair; keep only a faint blue wash and a simple circlet.',
+    'aurora': 'The film\'s Aurora is a dancer in a light rose gown with a yellow-tinted skirt and a simple star wand; far less gold and drapery.',
+    'water': 'A dancer in a pale sea-green gown with a few shells, the hair loose; the green as one translucent wash.',
+    'king': 'A stage king in a long robe with an ermine-edged cape and a card crown; reds and whites only, little gold.',
+    'queen': 'A stage queen in a long gown and veil with a card crown; reds and whites only, little gold.',
+    'fairy': 'One of the film\'s court ladies: a pastel gown and a tall pointed white hennin with a veil, the gift held simply.',
+    'demon': 'As in the film: a performer in close-fitting tights tinted solid red (or teal) with a horned cap, a real torch; already close, needs only the photographic look.',
+    'crew': 'A courtier of the film\'s court in a padded doublet, hose and soft cap, colours as pale washes rather than bold stripes.',
+    'witch': 'Keep the redrawn crone (references/film-witch/) and give her the photographic base and a single teal wash.',
+    'octopus': 'A painted stage prop: a large octopus cut-out on wires, flatter and less jewelled.',
+    'dolphin': 'A stage float: a painted card dolphin drawing a shell car, little jewellery.',
+    'lobster': 'A performer in a lobster costume, as in the film\'s court of sea creatures; coral red wash, few ornaments.',
+    'chariot': 'The film\'s fiery chariot: a dark painted car with bat wings and orange-yellow stencilled flames.',
+    'scrying': 'A painted stage effect: a glowing eye in drifting teal smoke.',
+}
+_MAN = json.load(open(MANIFEST))['slots']
+TINT_SLOTS = {aid: (_MAN[aid]['size'][0], _MAN[aid]['size'][1], _MAN[aid]['anchor']) for aid in TINT_IDS if aid in _MAN}
+
 # (id, title, w, h, anchor, style, description, replaces)
 GROUPS = [
     ('Prince Bel-Azor', 'The player, in every act. One set, all to the same scale, so the whole game switches from the sailor at once. Until they arrive the game uses a cut-out of the prince from his character sheet, moved as a toy-theatre puppet.', [
@@ -177,6 +220,11 @@ GROUPS = [
         ('witch-storm', 'The witch in the storm sky (Act I)', 520, 340, 'bottom centre', SPRITE, f'{WITCH_FILM}. Crouched on a small churning black-and-magenta storm cloud crossing the sky toward the left, staff raised, lightning cracking from its tip.', None),
         ('witch-swoop', 'The witch swooping', 400, 240, 'centre', SPRITE, f'{WITCH_FILM}. Flying horizontally to the left as if hung on a wire across the stage, the heavy robe streaming back behind her, one bony hand reaching forward, the staff along her body.', None),
         ('witch-barrel', 'The witch in the barrel', 200, 240, 'bottom centre', SPRITE, f'{WITCH_FILM}. Shut inside an old iron-hooped wooden barrel, only her hooded head, her furious wrinkled face and her two bony hands showing over the rim, gripping it.', None),
+    ]),
+    ('Tinted alternates, after the film\'s look', 'Requested 11 October 2026 after the character audit (design/character-audit.md). The delivered cast are crisp storybook chromolithographs; the 1903 film is photographed stage performers, hand stencil-coloured. Each entry redraws an existing sprite in the film\'s look as a separate <id>-tinted file at the same size, pose, scale and anchor. They do not replace anything: ?look=tinted draws them in place of the originals where delivered, so the two looks can be compared before choosing.', [
+        (f'{aid}-tinted', f'{aid}, tinted after the film', *TINT_SLOTS[aid], TINTED,
+         f'Redraw {aid}.webp (attach it) in the look of the 1903 film (attach references/expanded-world/source-frames/frame-00m26s.jpg, frame-04m54s.jpg and frame-05m51s.jpg). Keep exactly the same character, pose, framing, scale, foot position and canvas, so it lays over the original. {TINT_NOTES.get(aid.split("-idle")[0], TINT_NOTES.get(aid.split("-")[0], ""))}', aid)
+        for aid in TINT_IDS
     ]),
 ]
 

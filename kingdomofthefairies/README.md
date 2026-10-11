@@ -111,6 +111,10 @@ submitted prompts. [Image requests](design/image-requests.md) track delivery
 status. The film edition draws these through its cast maps (`src/theme.js`
 and each act's `cast`).
 
+[The character audit](design/character-audit.md) compares the cast with the
+film; its hand-tinted alternates (requests F8) are drawn in place of the
+originals with `?look=tinted` wherever delivered, without replacing them.
+
 An optional menu ambience, `?crackle=on`, holds the score back until play and
 fills the title, playbill, act cards and pause with an old record's crackle
 (`sfx/record.mp3` from `build_sfx.py`, with a synthesized fallback in

@@ -1,4 +1,4 @@
-import { LEGACY, FILM, PARTIAL, FILM_CAST, PARTIAL_CAST, FILM_BODY_SCALE, themeManifest } from './theme.js';
+import { LEGACY, FILM, PARTIAL, LOOK_TINTED, FILM_CAST, PARTIAL_CAST, FILM_BODY_SCALE, themeManifest } from './theme.js';
 // Toy-theatre renderer. Every frame is painted twice: a monochrome "print"
 // pass and a flat colour "stencil" pass. The stencil pass is laid over the
 // print with the `color` blend, slightly out of register, which is how
@@ -78,7 +78,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = FILM_BODY_SCALE[id] || 1; } out.images[id] = img; onImage?.(id, img); done(); };
+    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = FILM_BODY_SCALE[id.replace(/-tinted$/, '')] || 1; } out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
@@ -177,7 +177,12 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
   let cast = {};
   const overQueue = [];
-  const img = (id) => { const a = cast[id]; return (a && assets.images[a]) || (a && PARTIAL ? undefined : assets.images[id]); };
+  const img = (id) => {
+    const a = cast[id], r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
+    if (!r) return undefined;
+    // ?look=tinted: the hand-tinted alternate of a cast sprite, when delivered
+    return (LOOK_TINTED && assets.images[r + '-tinted']) || assets.images[r];
+  };
   let extraAnimations = false;
   let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
 
