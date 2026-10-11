@@ -38,7 +38,7 @@ import './heroes/annabeth.js';
 import './heroes/grover.js';
 import './heroes/tyson.js';
 import './heroes/clarisse.js';
-import { Save } from './save.js';
+import { Profiles } from './profiles.js';
 import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
@@ -74,7 +74,8 @@ class Game {
     this.interactables = [];
     this.flashMaterial = FLASH_MATERIAL;
     this.toast = toast;
-    this.save = new Save();
+    this.profiles = new Profiles();   // net: per-player profiles (profiles.js); game.save is this tab's main profile
+    this.save = this.profiles.main;
   }
   async boot() {
     progress(0.05, 'Detecting GPU…');
@@ -140,7 +141,7 @@ class Game {
     try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
     progress(1, 'Ready');
     window.addEventListener('resize', () => this.gr.resize());
-    const persist = () => this.save.write();
+    const persist = () => this.profiles.flush();
     window.addEventListener('beforeunload', persist);
     document.addEventListener('visibilitychange', () => { if (document.hidden) { persist(); if (this.state === 'playing' && !this.paused && !this.ui.stack.length) this.pause(); } });
     window.addEventListener('keydown', (e) => { if (e.code === 'F3') { settings.showFps = !settings.showFps; saveSettings(); this.setReadout(settings.showFps); } });
@@ -386,6 +387,7 @@ class Game {
     if (ups) this.levelUp();
   }
   showResults(victory) {
+    this.audio?.stinger?.(victory ? 'victory' : 'defeat');
     const m = this.mission; const st = m?.stats ?? {};
     this.paused = true;
     this.ui.open('results', (el) => {
@@ -400,7 +402,7 @@ class Game {
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, 'Retry') : null,
-          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => Screens.openProphecy(this, b), 600); } } }, 'Return to Camp Half-Blood'))));
+          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, 'Return to Camp Half-Blood'))));
       const lootEl = el.querySelector('#results-loot');
       for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));

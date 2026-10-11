@@ -142,7 +142,7 @@ export class HUD {
     for (const c of this.cardEls) {
       const p = c.p;
       const hp = Math.max(0, p.hp / p.maxHp), pw = Math.min(1, (p.ce ?? p.power ?? 0) / (p.maxCe ?? p.maxPower ?? 100));
-      if (c.last.hp !== hp) { c.hpI.style.width = (hp * 100).toFixed(1) + '%'; c.hpB.style.width = (hp * 100).toFixed(1) + '%'; c.last.hp = hp; c.hpTxt.textContent = `${Math.ceil(p.hp)} / ${Math.round(p.maxHp)}`; c.card.classList.toggle('low', hp < 0.3 && hp > 0); }
+      if (c.last.hp !== hp) { c.hpI.style.width = (hp * 100).toFixed(1) + '%'; c.hpB.style.width = (hp * 100).toFixed(1) + '%'; c.last.hp = hp; c.hpTxt.textContent = `${Math.ceil(Math.min(p.hp, p.maxHp))} / ${Math.ceil(p.maxHp)}`; c.card.classList.toggle('low', hp < 0.3 && hp > 0); }
       if (c.last.pw !== pw) { c.pwI.style.width = (pw * 100).toFixed(1) + '%'; c.pw.classList.toggle('full', pw >= 1); c.last.pw = pw; }
       const ex = p.dead ? 'DOWN' : p.downed ? `Revive ${Math.ceil(p.downT)}s` : `🟨 ${p.healCharges}`;
       if (c.last.ex !== ex) { c.extra.textContent = ex; c.last.ex = ex; }

@@ -75,6 +75,21 @@ export class Audio {
   }
 
   // ---- game sounds
+  // A delivered music stinger (assets/music/<id>.mp3): the generated music
+  // ducks while it plays. Missing files are ignored.
+  async stinger(id) {
+    if (!this.started) return;
+    const clips = (this._clips ??= {});
+    clips[id] ??= fetch(`assets/music/${id}.mp3`).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? this.ctx.decodeAudioData(b) : null)).catch(() => null);
+    const buf = await clips[id];
+    if (!buf) return;
+    const c = this.ctx, t = c.currentTime;
+    const src = c.createBufferSource(), g = c.createGain();
+    src.buffer = buf; g.gain.value = Math.min(1, settings.music * 1.6);
+    src.connect(g); g.connect(this.comp); src.start(t);
+    this.musicBus.gain.setTargetAtTime(settings.music * 0.12, t, 0.15);
+    src.onended = () => this.musicBus.gain.setTargetAtTime(settings.music * 0.55, this.ctx.currentTime, 0.8);
+  }
   ui(kind) {
     if (!this.started) return;
     if (kind === 'move') this.tone({ freq: 660, dur: 0.05, gain: 0.05, type: 'square', filter: 2000 });
