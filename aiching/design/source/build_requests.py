@@ -28,7 +28,8 @@ DOC = ROOT / "design" / "image-requests.md"
 ASSET_LIST = APP / "data" / "asset-list.json"
 HEXAGRAMS = json.loads((APP / "data" / "hexagrams.json").read_text(encoding="utf-8"))
 
-STYLE = (
+# The interface keeps one ancient look: ink, silk, seals and gold.
+UI_STYLE = (
     "Traditional Chinese painting in the blue-and-green landscape manner (qinglü shanshui) "
     "joined with meticulous gongbi brushwork: fine ink outlines, mineral azurite blue and "
     "malachite green, cinnabar red, ochre, and touches of gold leaf, on warm aged silk. Lush, "
@@ -38,6 +39,60 @@ STYLE = (
     "line symbols unless the prompt asks for them."
 )
 
+# The content pictures (hexagrams, trigrams, topics) range across colourful
+# Chinese art from any era; each one takes the style that suits its theme.
+ART_STYLES = {
+    "tang": ("Tang blue-green landscape", "Tang dynasty blue-and-green landscape painting (qinglü shanshui): mineral azurite and malachite mountains outlined in fine ink, gold-leaf edges on peaks and clouds, on warm silk."),
+    "gongbi": ("Song gongbi", "Song dynasty gongbi meticulous painting: hair-fine ink outlines, layered transparent colour washes, luminous birds, flowers and figures, on pale silk."),
+    "dunhuang": ("Dunhuang mural", "Dunhuang Mogao cave mural painting: earthy red ochre, lapis blue, malachite green and gold, flying apsaras with streaming ribbons, flat decorative halos, softly weathered plaster texture."),
+    "nianhua": ("New Year woodblock print", "Chinese New Year woodblock print (nianhua, Yangliuqing and Taohuawu style): bold black keyblock lines, flat hand-applied pinks, emerald, yellow and vermilion, cheerful plump figures and auspicious symbols."),
+    "papercut": ("Paper-cut", "Chinese paper-cut art (jianzhi) in many layered colours: crisp cut silhouettes, lace-like patterns of clouds, waves and flowers, layers of red, gold, turquoise and pink paper casting soft shadows."),
+    "poster": ("1930s Shanghai poster", "1930s Shanghai calendar-poster painting (yuefenpai): soft airbrushed watercolour, glowing pastel skin tones and silk qipao, art deco borders of flowers, luminous skies."),
+    "inkanim": ("Ink-wash animation", "1960s Shanghai Animation Film Studio ink-wash animation: living Qi Baishi-style ink creatures and plants that bleed softly into wet paper, with a few clear touches of colour."),
+    "havoc": ("Havoc in Heaven animation", "Classic 1960s Chinese animated film style, as in Havoc in Heaven: bold flat colours, strong graphic outlines drawn from temple murals and Peking opera, dynamic heroic poses, swirling stylised clouds."),
+    "lianhuan": ("Picture-story book", "Lianhuanhua picture-story book illustration: confident ink line drawing with rich watercolour, cinematic framing, expressive figures in period costume, lively storytelling detail."),
+    "guochao": ("Guochao illustration", "Contemporary Chinese guochao (national trend) digital illustration: vivid saturated gradients, flat graphic shapes, traditional motifs (waves, clouds, lanterns) reimagined boldly and playfully, crisp and modern."),
+    "opera": ("Peking opera", "Peking opera inspired painting: painted-face masks with symbolic colours, embroidered costumes with pheasant plumes and water sleeves, dramatic stage poses against a deep red and gold ground."),
+    "cloisonne": ("Cloisonné enamel", "Chinese cloisonné enamel: gleaming gold wire outlines enclosing turquoise, cobalt, coral red, jade green and white enamel, jewel-like and polished."),
+    "famille": ("Famille-rose porcelain", "Qing famille-rose porcelain painting: soft enamels of rose pink, pale green, lemon yellow and sky blue with gold, delicate flowers, figures and garden scenes as if painted on a porcelain vase or plate."),
+    "pomo": ("Splashed colour", "Splashed ink and colour (pomo) in the manner of Zhang Daqian: pools of brilliant azurite blue and malachite green flooding across the paper, ink accents and small precise details emerging from the colour."),
+    "lingnan": ("Lingnan school", "Lingnan school painting: lively ink and bright colour combined, Western light and atmosphere with Chinese brushwork, vivid skies, birds and blossoms full of movement."),
+    "modern": ("Modern ink and colour", "Modern Chinese ink and colour in the manner of Wu Guanzhong: rhythmic black lines like dancing threads, scattered dots of pure red, blue, green and yellow, white walls and grey roofs, joyful abstraction."),
+    "embroidery": ("Silk embroidery", "Suzhou silk embroidery: thousands of fine silk-thread stitches with a soft sheen, gradated threads in jewel colours, every petal, feather and ripple stitched, on ivory satin."),
+    "puppet": ("Shadow puppets", "Chinese shadow puppetry (piyingxi): translucent dyed leather figures in red, green, yellow and black with intricate punched patterns and jointed limbs, glowing in front of a warm lamplit screen."),
+    "lacquer": ("Lacquer painting", "Chinese lacquerware painting: deep cinnabar red and lustrous black lacquer with gold and silver inlay, mother-of-pearl highlights, elegant layered scenes."),
+}
+
+# Style for each hexagram, in King Wen order, chosen for its theme.
+HEX_STYLES = [
+    "cloisonne", "tang", "lingnan", "lianhuan", "nianhua", "opera", "puppet", "papercut",  # 1-8
+    "gongbi", "havoc", "famille", "modern", "poster", "lacquer", "tang", "nianhua",  # 9-16
+    "guochao", "lianhuan", "embroidery", "dunhuang", "opera", "famille", "pomo", "papercut",  # 17-24
+    "inkanim", "tang", "gongbi", "lingnan", "pomo", "cloisonne", "embroidery", "lacquer",  # 25-32
+    "modern", "havoc", "poster", "puppet", "nianhua", "guochao", "tang", "havoc",  # 33-40
+    "inkanim", "papercut", "opera", "poster", "dunhuang", "lingnan", "lianhuan", "gongbi",  # 41-48
+    "guochao", "cloisonne", "havoc", "modern", "embroidery", "papercut", "lacquer", "lianhuan",  # 49-56
+    "inkanim", "nianhua", "pomo", "famille", "dunhuang", "puppet", "guochao", "lingnan",  # 57-64
+]
+
+TRIGRAM_STYLES = {"qian": "cloisonne", "kun": "tang", "zhen": "havoc", "kan": "pomo", "gen": "modern", "xun": "embroidery", "li": "dunhuang", "dui": "nianhua"}
+TOPIC_STYLES = {"love": "embroidery", "work": "lianhuan", "money": "nianhua", "health": "lingnan", "family": "papercut", "creativity": "famille",
+                "study": "gongbi", "travel": "poster", "spirit": "dunhuang", "conflict": "opera", "decision": "guochao", "timing": "lacquer"}
+
+ART_RULES = (
+    "Colourful, rich and full of life, clearly illustrating the theme described above so that "
+    "the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, "
+    "no signature, no watermark, no frame, no UI, no hexagram or trigram line symbols."
+)
+
+
+assert len(HEX_STYLES) == 64 and all(k in ART_STYLES for k in [*HEX_STYLES, *TRIGRAM_STYLES.values(), *TOPIC_STYLES.values()])
+
+
+def art_style(key):
+    return f"Style: {ART_STYLES[key][1]} {ART_RULES}"
+
+
 ALPHA = (
     "Transparent background (PNG with alpha). If transparency is not possible, use a flat pure "
     "magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on "
@@ -45,7 +100,7 @@ ALPHA = (
 )
 
 ROUNDEL = (
-    "Painted as a circular medallion, the round picture filling about 92% of the square and "
+    "Made as a circular medallion, the round picture filling about 92% of the square and "
     "cleanly edged in a thin gold line, like a painted fan leaf or a round album leaf. "
 )
 
@@ -159,8 +214,9 @@ TOPICS = [
 
 HEX_PROMPT = (
     "An illustration of the I Ching hexagram {n}, {zh} {pinyin}, \"{name}\": the upper trigram is "
-    "{upper} and the lower trigram is {lower}. {scene} The season or hour is {season}. Let these "
-    "colours lead the picture: {palette}. A wide 16:10 landscape composition, full bleed, opaque; "
+    "{upper} and the lower trigram is {lower}. Its theme is {theme}, and the picture should make "
+    "that theme felt. {scene} The season or hour is {season}. Colours that "
+    "suit it (adapt them to the style): {palette}. A wide 16:10 landscape composition, full bleed, opaque; "
     "keep the upper-right quarter quieter (sky, mist or water) because a title sits over it."
 )
 
@@ -189,30 +245,33 @@ def entries():
     out = []
     for code, aid, title, path, size, alpha, used, standin, prompt in UI:
         out.append(dict(section="Interface", code=code, id=aid, title=title, path=path, size=size, alpha=alpha,
-                        used=used, standin=standin, prompt=f"{prompt} {STYLE} {ALPHA if alpha else ''}".strip()))
+                        used=used, standin=standin, style="Ancient Chinese (interface)", prompt=f"{prompt} {UI_STYLE} {ALPHA if alpha else ''}".strip()))
     for i, (key, title, scene) in enumerate(TRIGRAMS, 1):
         out.append(dict(section="The eight trigrams", code=f"TR{i:02d}", id=f"trigram-{key}", title=title,
                         path=f"assets/trigrams/{key}.png", size="800 x 800", alpha=True,
                         used="The trigram cards of a reading (upper and lower trigram).",
                         standin="The three lines on a coloured ground, drawn in code.",
-                        prompt=f"{ROUNDEL}{scene} {STYLE} {ALPHA}"))
+                        style=ART_STYLES[TRIGRAM_STYLES[key]][0],
+                        prompt=f"{ROUNDEL}{scene} {art_style(TRIGRAM_STYLES[key])} {ALPHA}"))
     for i, (key, title, scene) in enumerate(TOPICS, 1):
         out.append(dict(section="Question topics", code=f"TP{i:02d}", id=f"topic-{key}", title=title,
                         path=f"assets/topics/{key}.png", size="800 x 800", alpha=True,
                         used=f"The counsel card for questions about {title.lower()}.",
                         standin="A seal-red character in a circle, drawn in code.",
-                        prompt=f"{ROUNDEL}{scene} {STYLE} {ALPHA}"))
+                        style=ART_STYLES[TOPIC_STYLES[key]][0],
+                        prompt=f"{ROUNDEL}{scene} {art_style(TOPIC_STYLES[key])} {ALPHA}"))
     for h in HEXAGRAMS:
         up, lo = trigrams(h["n"])
         prompt = HEX_PROMPT.format(n=h["n"], zh=h["zh"], pinyin=h["pinyin"], name=h["name"],
                                    upper=f"{TRI[up]}", lower=f"{TRI[lo]}", scene=h["scene"].strip(),
-                                   season=h["season"], palette=", ".join(h["palette"]))
+                                   season=h["season"], theme=", ".join(k.lower() for k in h["keywords"]), palette=", ".join(h["palette"]))
         out.append(dict(section="The sixty-four hexagrams", code=f"HX{h['n']:02d}", id=f"hexagram-{h['n']:02d}",
                         title=f"{h['n']}. {h['zh']} {h['pinyin']} · {h['name']}",
                         path=f"assets/hexagrams/{h['n']:02d}.webp", size="1600 x 1000", alpha=False,
                         used="The picture at the top of a reading, and the small picture of the hexagram it becomes.",
                         standin="A misty landscape in the hexagram's colours, drawn in code.",
-                        prompt=f"{prompt} {STYLE}"))
+                        style=ART_STYLES[HEX_STYLES[h["n"] - 1]][0],
+                        prompt=f"{prompt} {art_style(HEX_STYLES[h['n'] - 1])}"))
     for e in out:
         e["status"] = "delivered" if e["id"] in DELIVERED else "requested"
     return out
@@ -229,12 +288,13 @@ def render(items):
         "",
         "## How to use this list",
         "",
-        "1. Each prompt is complete on its own: paste it as it stands. The shared style text is already in every prompt.",
-        "2. Save each image under the file name in its **File** line (the path is under `aiching/app/`) and drop it in `aiching/intake/`. On integration it moves into place, its id is added to `DELIVERED` in the script, and the script is rerun.",
-        "3. Transparent images are `.png`. If the generator cannot produce alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration. Opaque images are listed as `.webp`; PNG or JPEG is fine too and is converted on integration.",
-        "4. Nothing here blocks the app: until an image arrives it draws a stand-in in code.",
-        "5. Suggested order: the icon and title (UI01, UI02), the home background (UI03), then a handful of hexagrams to settle the look (1 Heaven, 2 Earth, 29 Water, 30 Fire, 63 and 64), then the trigrams and topics, then the rest of the hexagrams.",
-        "6. Keep the 64 hexagram pictures consistent with each other: once the first few are settled, attach one or two of them as a style reference for the rest.",
+        "1. Each prompt is complete on its own: paste it as it stands. The style text is already in every prompt.",
+        "2. **Two looks.** The interface pictures (logo, icon, backgrounds, coins, brush strokes, ornaments) share one ancient Chinese look of ink, silk, seals and gold, to match the page. The content pictures (the 64 hexagrams, 8 trigrams and 12 topics) are colourful and illustrative, each in a Chinese art style from any era chosen for its theme: Dunhuang murals, gongbi, New Year woodblock prints, paper-cut, 1930s Shanghai posters, 1960s Shanghai animation, picture-story books, Peking opera, cloisonné, famille-rose porcelain, splashed colour, Lingnan, modern ink and colour, silk embroidery, shadow puppets, lacquer and contemporary guochao. Each entry's **Style** line names it.",
+        "3. Save each image under the file name in its **File** line (the path is under `aiching/app/`) and drop it in `aiching/intake/`. On integration it moves into place, its id is added to `DELIVERED` in the script, and the script is rerun.",
+        "4. Transparent images are `.png`. If the generator cannot produce alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration. Opaque images are listed as `.webp`; PNG or JPEG is fine too and is converted on integration.",
+        "5. Nothing here blocks the app: until an image arrives it draws a stand-in in code.",
+        "6. Suggested order: the icon and title (UI01, UI02), the home background (UI03), then a handful of hexagrams to settle the look (1 Heaven, 2 Earth, 29 Water, 30 Fire, 63 and 64), then the trigrams and topics, then the rest of the hexagrams.",
+        "7. The content pictures differ in style on purpose, so do not attach one as a style reference for another; what keeps them together is the colour, the clarity of the theme and the gold-edged roundel for trigrams and topics.",
         "",
         "## Status",
         "",
@@ -251,6 +311,7 @@ def render(items):
             "",
             f"- **File:** `aiching/app/{e['path']}`",
             f"- **Size:** {e['size']}, {'transparent' if e['alpha'] else 'opaque'}",
+            f"- **Style:** {e['style']}",
             f"- **Used for:** {e['used']}",
             f"- **Stand-in until delivered:** {e['standin']}",
             f"- **Status:** {e['status']}",
