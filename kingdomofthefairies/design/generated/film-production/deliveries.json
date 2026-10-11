@@ -1,6 +1,146 @@
 {
-  "generated": 7,
+  "generated": 15,
   "images": [
+    {
+      "id": "aurora-point",
+      "title": "Aurora pointing the way",
+      "size": [
+        300,
+        420
+      ],
+      "anchor": "bottom centre",
+      "prompt": "the fairy Aurora as in references/film-planning/originals/char-aurora.png (attach it): white and moon-gold gauze with rose and plum veils, a starred diadem and a star-tipped wand, standing facing left, one arm extended pointing the way, wand in the other hand. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 300:420, target delivery 300 x 420 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset aurora-point.",
+      "transparent": true,
+      "replaces": null,
+      "path": "/workspace/generated_images/exec-c2a7b826-4e2c-4b93-bcdd-f87ca3f0bc78.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-aurora.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/aurora-point-original.png",
+      "file": "assets/aurora-point.webp",
+      "native_size": [
+        1060,
+        1484
+      ],
+      "source_crop": [
+        22,
+        25,
+        1044,
+        1423
+      ],
+      "placement": [
+        0,
+        10,
+        300,
+        410
+      ]
+    },
+    {
+      "id": "aurora-stand",
+      "title": "Aurora, wand raised",
+      "size": [
+        260,
+        420
+      ],
+      "anchor": "bottom centre",
+      "prompt": "the fairy Aurora as in references/film-planning/originals/char-aurora.png (attach it): white and moon-gold gauze with rose and plum veils, a starred diadem and a star-tipped wand, standing facing left, wand raised high with its star glowing, other hand open. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 260:420, target delivery 260 x 420 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset aurora-stand.",
+      "transparent": true,
+      "replaces": null,
+      "path": "/workspace/generated_images/exec-15332323-2f8b-473a-950c-3c345e76ecc1.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-aurora.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/aurora-stand-original.png",
+      "file": "assets/aurora-stand.webp",
+      "native_size": [
+        986,
+        1595
+      ],
+      "source_crop": [
+        27,
+        7,
+        974,
+        1559
+      ],
+      "placement": [
+        2,
+        0,
+        256,
+        420
+      ]
+    },
+    {
+      "id": "azurine-asleep",
+      "title": "Azurine asleep (carried off)",
+      "size": [
+        360,
+        160
+      ],
+      "anchor": "bottom centre",
+      "prompt": "Princess Azurine as in references/film-planning/originals/char-azurine.png (attach it): dark hair in a jewelled circlet, a pale azure gown with gold stars and rose-pink sleeves, lying asleep on her back as if borne along, one arm trailing, gown and hair falling. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 360:160, target delivery 360 x 160 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset azurine-asleep.",
+      "transparent": true,
+      "replaces": null,
+      "path": "/workspace/generated_images/exec-76371be7-f7f6-4974-91b1-52ded0b32527.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-azurine.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/azurine-asleep-original.png",
+      "file": "assets/azurine-asleep.webp",
+      "native_size": [
+        1881,
+        836
+      ],
+      "source_crop": [
+        18,
+        35,
+        1864,
+        799
+      ],
+      "placement": [
+        0,
+        11,
+        360,
+        149
+      ]
+    },
+    {
+      "id": "azurine-stand",
+      "title": "Azurine standing",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "prompt": "Princess Azurine as in references/film-planning/originals/char-azurine.png (attach it): dark hair in a jewelled circlet, a pale azure gown with gold stars and rose-pink sleeves, standing three-quarter facing left, hands clasped at her heart. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated game sprite with transparent background, no labels or character sheet. Canvas aspect ratio 200:380, target delivery 200 x 380 pixels. Show complete silhouette, preserving the named figure's appearance from the attached reference. Asset azurine-stand.",
+      "transparent": true,
+      "replaces": "beloved-stand",
+      "path": "/workspace/generated_images/exec-598214d5-3754-47e6-b9f7-dc66f9338759.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-azurine.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/azurine-stand-original.png",
+      "file": "assets/azurine-stand.webp",
+      "native_size": [
+        910,
+        1728
+      ],
+      "source_crop": [
+        20,
+        15,
+        890,
+        1673
+      ],
+      "placement": [
+        0,
+        0,
+        199,
+        380
+      ]
+    },
     {
       "id": "prince-carry",
       "title": "Carrying Azurine",
@@ -71,6 +211,41 @@
       ]
     },
     {
+      "id": "prince-hang",
+      "title": "Hanging from an edge",
+      "size": [
+        220,
+        440
+      ],
+      "anchor": "top centre (his hands)",
+      "prompt": "Prince Bel-Azor exactly as in references/film-planning/originals/char-bel-azor.png (attach it): silver plumed helmet with a magenta plume, silver cuirass with a gold star over an azure tunic with gold fleurs-de-lis, a crimson cloak, sword and round star shield, dark moustache and pointed beard, hanging at full stretch by both gauntleted hands gripping at the very top centre, arms straight above his head, body hanging, boot toes against an unseen wall. Seen in profile facing right, the same scale and proportions as every other prince- sprite (match prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Nothing but the figure: no ground, wall, ledge or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated sprite, no model sheet or labels. Use transparent background. Canvas aspect ratio 220:440, target delivery 220 x 440 pixels. Show the full silhouette. Keep the prince's face, proportions, costume and scale consistent with the reference. Asset prince-hang.",
+      "transparent": true,
+      "replaces": "sailor-hang",
+      "path": "/workspace/generated_images/exec-5738e318-f2ee-4c56-b070-a3fced308f1b.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-bel-azor.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/prince-hang-original.png",
+      "file": "assets/prince-hang.webp",
+      "native_size": [
+        887,
+        1774
+      ],
+      "source_crop": [
+        170,
+        7,
+        689,
+        1647
+      ],
+      "placement": [
+        40,
+        0,
+        139,
+        440
+      ]
+    },
+    {
       "id": "prince-leap",
       "title": "Leaping",
       "size": [
@@ -102,6 +277,76 @@
         58,
         260,
         302
+      ]
+    },
+    {
+      "id": "prince-pullup",
+      "title": "Pulling himself up",
+      "size": [
+        260,
+        300
+      ],
+      "anchor": "ledge line 25% up from the bottom, centred",
+      "prompt": "Prince Bel-Azor exactly as in references/film-planning/originals/char-bel-azor.png (attach it): silver plumed helmet with a magenta plume, silver cuirass with a gold star over an azure tunic with gold fleurs-de-lis, a crimson cloak, sword and round star shield, dark moustache and pointed beard, hauling himself over an unseen ledge whose top runs across the canvas 25% up from the bottom: forearms and right knee planted on that line, chest above it, left leg dangling. Seen in profile facing right, the same scale and proportions as every other prince- sprite (match prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Nothing but the figure: no ground, wall, ledge or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated sprite, no model sheet or labels. Use transparent background. Canvas aspect ratio 260:300, target delivery 260 x 300 pixels. Show the full silhouette. Keep the prince's face, proportions, costume and scale consistent with the reference. Asset prince-pullup.",
+      "transparent": true,
+      "replaces": "sailor-pullup",
+      "path": "/workspace/generated_images/exec-29631d56-9bad-4189-a3c8-ffe0c098abbb.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-bel-azor.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/prince-pullup-original.png",
+      "file": "assets/prince-pullup.webp",
+      "native_size": [
+        1167,
+        1347
+      ],
+      "source_crop": [
+        33,
+        32,
+        1151,
+        1323
+      ],
+      "placement": [
+        0,
+        0,
+        260,
+        300
+      ]
+    },
+    {
+      "id": "prince-seated",
+      "title": "Seated in the conch carriage",
+      "size": [
+        220,
+        220
+      ],
+      "anchor": "bottom centre",
+      "prompt": "Prince Bel-Azor exactly as in references/film-planning/originals/char-bel-azor.png (attach it): silver plumed helmet with a magenta plume, silver cuirass with a gold star over an azure tunic with gold fleurs-de-lis, a crimson cloak, sword and round star shield, dark moustache and pointed beard, seated upright as in a carriage, one hand raised forward, shield beside him. Seen in profile facing right, the same scale and proportions as every other prince- sprite (match prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Nothing but the figure: no ground, wall, ledge or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated sprite, no model sheet or labels. Use transparent background. Canvas aspect ratio 220:220, target delivery 220 x 220 pixels. Show the full silhouette. Keep the prince's face, proportions, costume and scale consistent with the reference. Asset prince-seated.",
+      "transparent": true,
+      "replaces": "sailor-seated",
+      "path": "/workspace/generated_images/exec-b83720af-341d-4d8d-99f5-127f9fe208a2.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-bel-azor.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/prince-seated-original.png",
+      "file": "assets/prince-seated.webp",
+      "native_size": [
+        1254,
+        1254
+      ],
+      "source_crop": [
+        252,
+        21,
+        1145,
+        1165
+      ],
+      "placement": [
+        24,
+        0,
+        172,
+        220
       ]
     },
     {
@@ -171,6 +416,41 @@
         39,
         360,
         162
+      ]
+    },
+    {
+      "id": "prince-swim-b",
+      "title": "Swimming, stroke B",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "centre (between his shoulder blades)",
+      "prompt": "Prince Bel-Azor exactly as in references/film-planning/originals/char-bel-azor.png (attach it): silver plumed helmet with a magenta plume, silver cuirass with a gold star over an azure tunic with gold fleurs-de-lis, a crimson cloak, sword and round star shield, dark moustache and pointed beard, swimming horizontally facing right, arms swept back to his sides, legs kicking. The same scale as prince-swim-a. Seen in profile facing right, the same scale and proportions as every other prince- sprite (match prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Nothing but the figure: no ground, wall, ledge or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nGenerate exactly ONE isolated sprite, no model sheet or labels. Use transparent background. Canvas aspect ratio 360:240, target delivery 360 x 240 pixels. Show the full silhouette. Keep the prince's face, proportions, costume and scale consistent with the reference. Asset prince-swim-b.",
+      "transparent": true,
+      "replaces": "sailor-swim-b",
+      "path": "/workspace/generated_images/exec-3ef40113-0a4d-4118-a0f3-65a230a5112e.png",
+      "references": [
+        "/workspace/mini/kingdomofthefairies/design/references/film-planning/originals/char-bel-azor.png"
+      ],
+      "source_commit": "1dc0344",
+      "original": "design/generated/film-production/prince-swim-b-original.png",
+      "file": "assets/prince-swim-b.webp",
+      "native_size": [
+        1536,
+        1024
+      ],
+      "source_crop": [
+        77,
+        95,
+        1425,
+        857
+      ],
+      "placement": [
+        0,
+        18,
+        360,
+        204
       ]
     },
     {

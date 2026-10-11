@@ -1030,7 +1030,7 @@
       "edition": "film"
     },
     "prince-swim-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-swim-b.webp",
       "size": [
         360,
@@ -1040,7 +1040,7 @@
       "edition": "film"
     },
     "prince-seated": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-seated.webp",
       "size": [
         220,
@@ -1050,7 +1050,7 @@
       "edition": "film"
     },
     "prince-hang": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-hang.webp",
       "size": [
         220,
@@ -1060,7 +1060,7 @@
       "edition": "film"
     },
     "prince-pullup": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-pullup.webp",
       "size": [
         260,
@@ -1160,7 +1160,7 @@
       "edition": "film"
     },
     "azurine-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-stand.webp",
       "size": [
         200,
@@ -1170,7 +1170,7 @@
       "edition": "film"
     },
     "azurine-asleep": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-asleep.webp",
       "size": [
         360,
@@ -1190,7 +1190,7 @@
       "edition": "film"
     },
     "aurora-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "aurora-stand.webp",
       "size": [
         260,
@@ -1200,7 +1200,7 @@
       "edition": "film"
     },
     "aurora-point": {
-      "status": "requested",
+      "status": "delivered",
       "file": "aurora-point.webp",
       "size": [
         300,

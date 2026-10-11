@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 80 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 7 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 15 of 80 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -109,10 +109,10 @@ The player, in every act. One set, all to the same scale, so the whole game swit
 | `prince-crouch` | 240 × 300 | bottom centre | `sailor-crouch` | [delivered](../assets/prince-crouch.webp) |
 | `prince-carry` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/prince-carry.webp) |
 | `prince-swim-a` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-a` | [delivered](../assets/prince-swim-a.webp) |
-| `prince-swim-b` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-b` | requested |
-| `prince-seated` | 220 × 220 | bottom centre | `sailor-seated` | requested |
-| `prince-hang` | 220 × 440 | top centre (his hands) | `sailor-hang` | requested |
-| `prince-pullup` | 260 × 300 | ledge line 25% up from the bottom, centred | `sailor-pullup` | requested |
+| `prince-swim-b` | 360 × 240 | centre (between his shoulder blades) | `sailor-swim-b` | [delivered](../assets/prince-swim-b.webp) |
+| `prince-seated` | 220 × 220 | bottom centre | `sailor-seated` | [delivered](../assets/prince-seated.webp) |
+| `prince-hang` | 220 × 440 | top centre (his hands) | `sailor-hang` | [delivered](../assets/prince-hang.webp) |
+| `prince-pullup` | 260 × 300 | ledge line 25% up from the bottom, centred | `sailor-pullup` | [delivered](../assets/prince-pullup.webp) |
 | `prince-climb-a` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-a` | requested |
 | `prince-climb-b` | 360 × 440 | bottom centre (lowest boot) | `sailor-climb-b` | requested |
 | `prince-apex` | 360 × 440 | bottom centre (lowest boot) | `sailor-apex` | requested |
@@ -249,11 +249,11 @@ The film's characters as cut-outs for the scenes they appear in. Match each char
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `azurine-stand` | 200 × 380 | bottom centre | `beloved-stand` | requested |
-| `azurine-asleep` | 360 × 160 | bottom centre | new | requested |
+| `azurine-stand` | 200 × 380 | bottom centre | `beloved-stand` | [delivered](../assets/azurine-stand.webp) |
+| `azurine-asleep` | 360 × 160 | bottom centre | new | [delivered](../assets/azurine-asleep.webp) |
 | `azurine-window` | 160 × 200 | bottom centre | new | requested |
-| `aurora-stand` | 260 × 420 | bottom centre | new | requested |
-| `aurora-point` | 300 × 420 | bottom centre | new | requested |
+| `aurora-stand` | 260 × 420 | bottom centre | new | [delivered](../assets/aurora-stand.webp) |
+| `aurora-point` | 300 × 420 | bottom centre | new | [delivered](../assets/aurora-point.webp) |
 | `water-fairy-stand` | 260 × 420 | bottom centre | `witch-stand` | requested |
 | `witch-hooded` | 240 × 400 | bottom centre | new | requested |
 | `witch-cloud` | 400 × 400 | bottom centre | new | requested |
