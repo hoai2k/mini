@@ -1,0 +1,257 @@
+// High-level visual effects built from particles, pooled meshes and lights:
+// hit sparks, shockwave rings, slash arcs, damage numbers, dust, splashes,
+// ambient biome particles and screen-space grading pulses.
+import * as THREE from 'three/webgpu';
+import { uniform, uv, vec3, vec4, float, smoothstep, length, sin, atan, mix, abs, fract, positionLocal } from 'three/tsl';
+import { Grade } from './renderer.js';
+import { U } from './materials.js';
+
+const tmp = new THREE.Vector3();
+
+// Pool of expanding ground rings / arcs driven by per-mesh uniforms.
+class RingPool {
+  constructor(scene, n, additive = true) {
+    this.items = [];
+    for (let i = 0; i < n; i++) {
+      const prog = uniform(0), col = uniform(new THREE.Color()), thick = uniform(0.15), arc = uniform(1);
+      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide, fog: false });
+      const p = uv().sub(0.5).mul(2); const r = length(p);
+      const edge = float(1).sub(thick);
+      const ring = smoothstep(edge.sub(0.08), edge, r).mul(smoothstep(1.0, 0.94, r));
+      const ang = atan(p.y, p.x).div(Math.PI * 2).add(0.5);
+      const arcMask = smoothstep(arc, arc.sub(0.05), abs(ang.sub(0.5)).mul(2));
+      const a = ring.mul(float(1).sub(prog)).mul(arcMask);
+      m.colorNode = vec4(vec3(col).mul(a).mul(2.5), a);
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m);
+      mesh.rotation.x = -Math.PI / 2; mesh.visible = false; mesh.renderOrder = 15; mesh.frustumCulled = false;
+      scene.add(mesh);
+      this.items.push({ mesh, prog, col, thick, arc, t: 0, dur: 0.4, r0: 0.2, r1: 3, active: false });
+    }
+    this.i = 0;
+  }
+  spawn(pos, { color = 0xffffff, r0 = 0.2, r1 = 3, dur = 0.35, thick = 0.12, arc = 1, rotY = 0, tilt = null } = {}) {
+    const it = this.items[this.i]; this.i = (this.i + 1) % this.items.length;
+    it.active = true; it.t = 0; it.dur = dur; it.r0 = r0; it.r1 = r1;
+    it.col.value.set(color); it.thick.value = thick; it.arc.value = arc;
+    it.mesh.position.copy(pos); it.mesh.visible = true;
+    it.mesh.rotation.set(-Math.PI / 2, 0, rotY);
+    if (tilt) it.mesh.quaternion.copy(tilt);
+    return it;
+  }
+  update(dt) {
+    for (const it of this.items) {
+      if (!it.active) continue;
+      it.t += dt; const k = Math.min(1, it.t / it.dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      it.mesh.scale.setScalar(it.r0 + (it.r1 - it.r0) * e);
+      it.prog.value = k;
+      if (k >= 1) { it.active = false; it.mesh.visible = false; }
+    }
+  }
+}
+
+// Thin additive quads for Dismantle/Cleave slashes and sure-hit cuts.
+class SlashPool {
+  constructor(scene, n = 32) {
+    this.items = [];
+    for (let i = 0; i < n; i++) {
+      const col = uniform(new THREE.Color()), a = uniform(0);
+      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+      const v = uv();
+      const edge = smoothstep(0.5, 0.0, abs(v.y.sub(0.5))).mul(smoothstep(0.0, 0.15, v.x)).mul(smoothstep(1.0, 0.7, v.x));
+      m.colorNode = vec4(vec3(col).mul(edge.mul(a).mul(4)), 1);
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).translate(0.5, 0, 0), m);
+      mesh.visible = false; mesh.frustumCulled = false; mesh.renderOrder = 25;
+      scene.add(mesh);
+      this.items.push({ mesh, col, a, t: 0, dur: 0.2, active: false });
+    }
+    this.i = 0;
+  }
+  spawn(from, dir, len, width, color, dur = 0.2, roll = 0) {
+    const it = this.items[this.i]; this.i = (this.i + 1) % this.items.length;
+    it.active = true; it.t = 0; it.dur = dur; it.col.value.set(color);
+    const m = it.mesh; m.visible = true;
+    m.position.copy(from);
+    m.scale.set(len, width, 1);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir.clone().normalize());
+    m.rotateX(Math.PI / 2 + roll);
+    return it;
+  }
+  update(dt) {
+    for (const it of this.items) {
+      if (!it.active) continue;
+      it.t += dt; const k = it.t / it.dur;
+      it.a.value = Math.max(0, 1 - k) * Math.min(1, k * 8);
+      it.mesh.scale.y *= 0.9;
+      if (k >= 1) { it.active = false; it.mesh.visible = false; }
+    }
+  }
+}
+
+export class Effects {
+  constructor(game) {
+    this.game = game;
+    const scene = game.scene;
+    this.slashes = new SlashPool(scene, 40);
+    this.rings = new RingPool(scene, 24, true);
+    this.arcs = new RingPool(scene, 16, true);
+    this.darkRings = new RingPool(scene, 8, false);
+    this.numbers = [];
+    this.numLayer = document.getElementById('dmg-layer');
+    this.ambientT = 0;
+    this.flashT = 0; this.flashDur = 0; this.bfT = 0; this.waveT = -1; this.dimTarget = 0;
+  }
+  get p() { return this.game.particles; }
+
+  // ---------------- hits
+  hitSpark(pos, dir, { color = 0xffe0a0, big = false, crit = false } = {}) {
+    const c = new THREE.Color(color);
+    this.p.burst(pos, { count: big ? 26 : 14, color: c, speed: big ? 11 : 8, spread: 0.9, dir: dir ? dir.clone().multiplyScalar(0.8) : null, up: 0.4, life: 0.35, size: 0.12, gravity: 14, drag: 3, shape: 1, sizeEnd: 0.1 });
+    this.p.burst(pos, { count: 1, color: c, speed: 0, life: 0.14, size: big ? 2.6 : 1.6, drag: 0, sizeEnd: 1.6, intensity: 2.2 });
+    if (crit) this.p.burst(pos, { count: 10, color: 0xffffff, speed: 6, life: 0.3, size: 0.09, gravity: 0, drag: 5, shape: 1 });
+    const ground = pos.clone(); ground.y = Math.floor(pos.y - 0.9) + 0.05 + (this.game.world ? 0 : 0);
+    this.rings.spawn(tmp.set(pos.x, this.groundY(pos) + 0.06, pos.z), { color: c, r0: 0.3, r1: big ? 2.2 : 1.1, dur: 0.22, thick: 0.12 });
+  }
+  groundY(pos) { const g = this.game.world.groundBelow(pos.x, pos.z, pos.y + 0.5); return isFinite(g) ? g : pos.y; }
+  shockwave(pos, color = 0xffffff, radius = 4, dur = 0.45) {
+    this.rings.spawn(tmp.set(pos.x, this.groundY(pos) + 0.07, pos.z), { color, r1: radius, dur, thick: 0.1 });
+    this.p.burst(tmp.set(pos.x, this.groundY(pos) + 0.2, pos.z), { count: 24, color: 0x9a8a7a, additive: false, speed: radius * 2.2, spread: 0.2, up: 0.1, life: 0.6, size: 0.45, drag: 4, sizeEnd: 2, intensity: 0.8 });
+  }
+  slashArc(pos, facing, color = 0xffffff, radius = 2.2, arc = 0.35, dur = 0.18, flip = false) {
+    this.arcs.spawn(tmp.set(pos.x, pos.y + 1.0, pos.z), { color, r0: radius * 0.8, r1: radius, dur, thick: 0.35, arc, rotY: facing + (flip ? Math.PI : 0) - Math.PI / 2 });
+  }
+  // Floating damage number (DOM, projected each frame).
+  damageNumber(pos, amount, { crit = false, color = null, text = null } = {}) {
+    if (!this.game.settings.damageNumbers) return;
+    const el = document.createElement('div');
+    el.className = 'dmg' + (crit ? ' crit' : '');
+    el.textContent = text ?? Math.round(amount);
+    if (color) el.style.color = color;
+    this.numLayer.appendChild(el);
+    this.numbers.push({ el, pos: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 1.9, (Math.random() - 0.5) * 0.6)), t: 0, vy: 2.2, crit });
+  }
+  // ---------------- movement fx
+  landDust(pos, v) { this.p.burst(tmp.set(pos.x, pos.y + 0.1, pos.z), { count: 10, color: 0x8a7a6a, additive: false, speed: 3, up: 0.1, life: 0.5, size: 0.35, drag: 5, sizeEnd: 1.8, intensity: 0.7 }); }
+  splash(pos, s = 1) { this.p.burst(tmp.set(pos.x, pos.y + 0.2, pos.z), { count: Math.round(10 * s), color: 0x9ad0ff, speed: 3.5, up: 1.4, life: 0.5, size: 0.1, gravity: 16, drag: 1, shape: 1, intensity: 1.2 }); }
+  poof(pos) { this.p.burst(tmp.set(pos.x, pos.y + 0.8, pos.z), { count: 20, color: 0xdddddd, additive: false, speed: 2.5, life: 0.7, size: 0.5, drag: 3, sizeEnd: 2 }); }
+  dodgeTrail(pl) {
+    const c = new THREE.Color(pl.rig.look?.accent ?? 0x88ccff);
+    for (let i = 0; i < 3; i++) setTimeout(() => this.p.burst(tmp.set(pl.pos.x, pl.pos.y + 0.6, pl.pos.z), { count: 6, color: c, speed: 1, life: 0.4, size: 0.3, drag: 4, sizeEnd: 0.1, intensity: 1.5 }), i * 60);
+    this.p.burst(tmp.set(pl.pos.x, pl.pos.y + 0.15, pl.pos.z), { count: 8, color: 0x8a7a6a, additive: false, speed: 2.5, up: 0.05, life: 0.45, size: 0.35, drag: 5, sizeEnd: 1.6, intensity: 0.6 });
+  }
+  debris(pos, color, n = 8) {
+    this.p.burst(pos, { count: n * 2, color, additive: false, speed: 4, up: 0.8, life: 0.5, size: 0.3, drag: 3, sizeEnd: 1.4, intensity: 0.6 });
+  }
+  // ---------------- curse fx
+  curseSmoke(e, color) {
+    const c = color ? new THREE.Color(color) : null;
+    const x = e.pos.x + (Math.random() - 0.5) * e.radius * 1.6, z = e.pos.z + (Math.random() - 0.5) * e.radius * 1.6, y = e.pos.y + Math.random() * e.height;
+    if (c) this.p.glow.emit(x, y, z, 0, 0.6 + Math.random() * 0.5, 0, 0.9, c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.35, -0.5, 1.5, 0.2, 0);
+    else if (Math.random() < 0.5) this.p.smoke.emit(x, y, z, (Math.random() - 0.5) * 0.3, 0.5 + Math.random() * 0.4, (Math.random() - 0.5) * 0.3, 1.2, 0.08, 0.02, 0.12, 0.35, -0.3, 1.2, 2.2, 0);
+    else this.p.glow.emit(x, y, z, 0, 0.5, 0, 1.0, 0.45, 0.12, 0.7, 0.3, -0.3, 1.5, 0.1, 0);
+  }
+  curseDeath(pos, h = 1.5, color = 0x7a3aa8) {
+    this.p.burst(pos, { count: 26, color: 0x151018, additive: false, speed: 3.5, life: 0.9, size: 0.55, drag: 3, sizeEnd: 2.4, up: 0.6 });
+    this.p.burst(pos, { count: 22, color, speed: 6, life: 0.6, size: 0.18, drag: 4, up: 0.8, shape: 1 });
+    this.p.burst(pos, { count: 1, color, speed: 0, life: 0.18, size: 3 * h, drag: 0, sizeEnd: 1.5, intensity: 1.6 });
+    this.rings.spawn(tmp.set(pos.x, this.groundY(pos) + 0.06, pos.z), { color, r1: 2.2, dur: 0.4, thick: 0.25 });
+    this.game.lights.flash(pos, color, 5, 6, 0.3);
+  }
+  explosion(pos, color = 0xff6a2a, r = 3) {
+    const c = pos.clone(); c.y += 0.6;
+    this.p.burst(c, { count: 40, color, speed: r * 4, life: 0.5, size: 0.3, drag: 4, gravity: 6, up: 0.5, shape: 1 });
+    this.p.burst(c, { count: 1, color: 0xffe0a0, speed: 0, life: 0.2, size: r * 2.4, sizeEnd: 1.3, drag: 0, intensity: 3 });
+    this.p.burst(c, { count: 24, color: 0x2a1a14, additive: false, speed: r * 2, life: 1.1, size: 0.8, drag: 3, sizeEnd: 2.6, up: 0.8 });
+    this.shockwave(pos, color, r + 1, 0.4);
+    this.game.lights.flash(c, color, 16, r * 4, 0.4);
+    this.flash(color, 0.18, 0.1);
+  }
+  splat(pos, color) { this.p.burst(pos, { count: 14, color, speed: 4, life: 0.5, size: 0.14, gravity: 18, drag: 1, shape: 1, up: 1 }); }
+  summonCircle(pos, color) { this.rings.spawn(tmp.set(pos.x, pos.y + 0.06, pos.z), { color, r0: 1.4, r1: 0.2, dur: 0.6, thick: 0.2 }); this.p.burst(tmp.set(pos.x, pos.y + 0.2, pos.z), { count: 18, color, speed: 2, up: 2, life: 0.7, size: 0.2, drag: 2 }); }
+  blinkPuff(pos, color) {
+    const c = tmp.set(pos.x, pos.y + 1, pos.z);
+    this.p.burst(c, { count: 20, color: 0x0a0610, additive: false, speed: 3, life: 0.6, size: 0.6, sizeEnd: 2, drag: 4 });
+    this.p.burst(c, { count: 16, color, speed: 5, life: 0.4, size: 0.15, drag: 5, shape: 1 });
+  }
+  blackLightning(at) {
+    this.game.bolts?.spawn(at, { count: 8, length: 3.6, life: 0.4 });
+    this.p.burst(at, { count: 30, color: 0xff1a1a, speed: 12, life: 0.35, size: 0.12, drag: 5, shape: 1, intensity: 4 });
+    this.p.burst(at, { count: 12, color: 0x000000, additive: false, speed: 6, life: 0.5, size: 0.5, drag: 5, sizeEnd: 1.5 });
+    this.darkRings.spawn(tmp.set(at.x, this.groundY(at) + 0.08, at.z), { color: 0x000000, r1: 4.5, dur: 0.45, thick: 0.3 });
+    this.rings.spawn(tmp.set(at.x, this.groundY(at) + 0.1, at.z), { color: 0xff1020, r1: 5, dur: 0.5, thick: 0.08 });
+  }
+  slashLine(from, dir, len, color = 0xffffff, width = 0.35, dur = 0.2, roll = 0) { return this.slashes.spawn(from, dir, len, width, color, dur, roll); }
+  // An X of two slashes across a target (Cleave / Malevolent Shrine)
+  slashX(center, size, color = 0xff3a3a) {
+    for (const r of [0.8, -0.8]) {
+      const d = new THREE.Vector3(Math.cos(r), 0.9 * Math.sign(r), Math.sin(r)).normalize();
+      this.slashes.spawn(center.clone().addScaledVector(d, -size / 2), d, size, 0.25, color, 0.22);
+    }
+  }
+  sureHitStrike(e, p) {
+    const c = tmp.set(e.pos.x, e.pos.y + e.height * 0.6, e.pos.z);
+    const col = new THREE.Color(p.rig.look?.accent ?? 0xffffff);
+    this.p.burst(c, { count: 10, color: col, speed: 7, life: 0.3, size: 0.1, drag: 4, shape: 1, intensity: 3 });
+    this.arcs.spawn(c, { color: col, r0: 0.9, r1: 1.3, dur: 0.14, thick: 0.3, arc: 0.3, rotY: Math.random() * Math.PI * 2 });
+  }
+  heal(pos, color = 0x6aff9a) {
+    this.p.burst(tmp.set(pos.x, pos.y + 0.2, pos.z), { count: 30, color, speed: 1.5, up: 3, life: 1, size: 0.18, drag: 2, gravity: -3, shape: 1 });
+    this.rings.spawn(tmp.set(pos.x, pos.y + 0.06, pos.z), { color, r0: 0.3, r1: 1.8, dur: 0.6, thick: 0.15 });
+  }
+  hurtVignette() { this.flash(0x8a0010, 0.22, 0.18); }
+
+  // ---------------- screen fx
+  flash(color = 0xffffff, amount = 0.6, dur = 0.12) { Grade.flash.value.set(...new THREE.Color(color).toArray(), amount); this.flashT = dur; this.flashDur = dur; this.flashAmt = amount; }
+  blackFlash(dur = 0.28) { this.bfT = dur; Grade.blackFlash.value = 1; }
+  screenWave(worldPos, strength = 1, dur = 0.5) {
+    const v = worldPos.clone().project(this.game.rig.camera);
+    Grade.wave.value.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5, 0, strength);
+    this.waveT = 0; this.waveDur = dur; this.waveStrength = strength;
+  }
+  chroma(a = 1) { Grade.chroma.value = Math.max(Grade.chroma.value, a); }
+
+  // ---------------- ambient
+  ambient(dt, kind, focus) {
+    this.ambientT += dt;
+    const rate = { fireflies: 6, embers: 10, spores: 10, drips: 6, rain: 70, dust: 5, pollen: 4 }[kind] ?? 0;
+    const n = Math.floor(this.ambientT * rate); if (!n) return;
+    this.ambientT -= n / rate;
+    for (let i = 0; i < n; i++) {
+      const x = focus.x + (Math.random() - 0.5) * 34, z = focus.z + (Math.random() - 0.5) * 34;
+      const y = focus.y + Math.random() * 5 + 0.5;
+      if (kind === 'fireflies') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.6, 0.2, (Math.random() - 0.5) * 0.6, 3 + Math.random() * 3, 2.2, 2.6, 0.8, 0.09, 0, 0.1, 1, 0);
+      else if (kind === 'embers') this.p.glow.emit(x, focus.y + Math.random(), z, (Math.random() - 0.5) * 0.8, 1 + Math.random(), (Math.random() - 0.5) * 0.8, 3 + Math.random() * 2, 3, 1.1, 0.3, 0.07, -0.2, 0.3, 0.2, 1);
+      else if (kind === 'spores') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.3, 0.15, (Math.random() - 0.5) * 0.3, 4 + Math.random() * 3, 0.9, 0.5, 1.6, 0.08, 0, 0.2, 1, 0);
+      else if (kind === 'drips') this.p.glow.emit(x, focus.y + 7, z, 0, -2, 0, 0.9, 0.5, 0.8, 1.0, 0.05, 12, 0, 1, 1);
+      else if (kind === 'rain') this.p.glow.emit(x, focus.y + 9, z, 2.5, -16, 0.6, 0.6, 0.55, 0.65, 0.85, 0.04, 6, 0, 1, 1);
+      else if (kind === 'dust') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.15, 0.04, (Math.random() - 0.5) * 0.15, 6, 1.0, 0.85, 0.6, 0.05, 0, 0.3, 1, 0);
+      else if (kind === 'pollen') this.p.glow.emit(x, y, z, (Math.random() - 0.5) * 0.4, 0.1, (Math.random() - 0.5) * 0.4, 5, 1.0, 0.95, 0.6, 0.05, 0, 0.2, 1, 0);
+    }
+  }
+
+  update(dt, realDt) {
+    this.rings.update(dt); this.arcs.update(dt); this.darkRings.update(dt); this.slashes.update(dt);
+    // screen grading pulses use real time so they still play during hit-stop
+    if (this.flashT > 0) { this.flashT -= realDt; Grade.flash.value.w = Math.max(0, this.flashT / this.flashDur) * this.flashAmt; } else Grade.flash.value.w = 0;
+    if (this.bfT > 0) { this.bfT -= realDt; Grade.blackFlash.value = this.bfT > 0 ? 1 : 0; }
+    if (this.waveT >= 0) {
+      this.waveT += realDt; const k = this.waveT / this.waveDur;
+      Grade.wave.value.z = k * 0.9; Grade.wave.value.w = this.waveStrength * (1 - k);
+      if (k >= 1) { this.waveT = -1; Grade.wave.value.w = 0; }
+    }
+    Grade.chroma.value = Math.max(0, Grade.chroma.value - realDt * 3);
+    Grade.dim.value += (this.dimTarget - Grade.dim.value) * Math.min(1, realDt * 6);
+    // damage numbers
+    const cam = this.game.rig.camera; const W = window.innerWidth, H = window.innerHeight;
+    for (let i = this.numbers.length - 1; i >= 0; i--) {
+      const n = this.numbers[i];
+      n.t += realDt; n.pos.y += n.vy * realDt; n.vy *= Math.exp(-realDt * 3);
+      const v = tmp.copy(n.pos).project(cam);
+      const life = n.crit ? 1.1 : 0.8;
+      const s = n.t < 0.1 ? 0.6 + n.t * 6 : 1;
+      n.el.style.transform = `translate(${(v.x * 0.5 + 0.5) * W}px, ${(-v.y * 0.5 + 0.5) * H}px) translate(-50%,-50%) scale(${s})`;
+      n.el.style.opacity = String(Math.max(0, 1 - Math.max(0, n.t - life * 0.6) / (life * 0.4)));
+      if (n.t > life || v.z > 1) { n.el.remove(); this.numbers.splice(i, 1); }
+    }
+  }
+}
