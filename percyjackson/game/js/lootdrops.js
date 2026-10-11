@@ -59,12 +59,12 @@ export class LootDrops {
     }
   }
   collect(d, p) {
-    const g = this.game, save = g.save.data;
+    const g = this.game, sv = g.saveFor?.(p) ?? g.save, save = sv.data;   // net: into that player's profile
     g.scene.remove(d.grp); g.lights.remove(d.light);
     const it = normalizeItem(d.item);
     it.isNew = true; it.finder = p.hero;
     save.inventory.push(it);
-    g.save.write();
+    sv.write();
     g.mission?.stats.loot.push(it);
     g.audio?.ui?.('buy');
     this.card(it, p);
@@ -72,8 +72,9 @@ export class LootDrops {
   // A card that compares the item with what this hero has equipped.
   card(it, p) {
     const g = this.game, b = itemInfo(it), R = itemRarity(it);
-    const gearUids = g.save.hero(p.hero).gear;
-    const gear = gearUids.map((u) => (u ? g.save.item(u) : null));
+    const sv = g.saveFor?.(p) ?? g.save;   // net: that player's profile
+    const gearUids = sv.hero(p.hero).gear;
+    const gear = gearUids.map((u) => (u ? sv.item(u) : null));
     const slots = SLOT[b.kind];
     const current = slots.map((i) => gear[i]).find(Boolean) ?? null;
     let cmp = 'New slot!';

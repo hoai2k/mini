@@ -46,8 +46,9 @@ export class Player {
     this.battleSense = 1;      // Battle Sense charge (0..1); a perfect dodge spends it
     this.ai = false;           // true while an AI companion drives this hero
     this.procs = {}; this.artifacts = [];
-    this.skills = game.save ? game.save.hero(hero).skills : {};
-    applyGear(this, game.save ? game.save.gearFor(hero) : []);
+    const sv = game.saveFor?.(this) ?? game.save;   // net: the profile of whoever plays this hero
+    this.skills = sv ? sv.hero(hero).skills : {};
+    applyGear(this, sv ? sv.gearFor(hero) : []);
     this.hp = this.maxHp;
     this.kit = createKit(this);
     this.heroLight = game.lights.attach(this.object, 0xffe8d0, 1.6, 7, { offsetY: 2.2, priority: 6 });
@@ -55,8 +56,9 @@ export class Player {
   // Re-apply gear/skills (after inventory or skill-tree changes).
   refreshLoadout() {
     const g = this.game;
-    this.skills = g.save ? g.save.hero(this.hero).skills : {};
-    applyGear(this, g.save ? g.save.gearFor(this.hero) : []);
+    const sv = g.saveFor?.(this) ?? g.save;   // net: the profile of whoever plays this hero
+    this.skills = sv ? sv.hero(this.hero).skills : {};
+    applyGear(this, sv ? sv.gearFor(this.hero) : []);
     this.kit.dispose?.();
     this.kit = createKit(this);
   }
