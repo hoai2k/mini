@@ -1,7 +1,8 @@
-// Domain Expansion: a cinematic cast (hand sign, slow-mo, camera orbit,
-// dimming), then the arena is rewritten — a radial shader takeover turns
-// floors and walls into the domain's surface, a sky dome and environment
-// grade replace the biome, and for ~8 seconds every attack is a sure hit.
+// Godly powers (each hero's ultimate): a cinematic cast (slow-mo, camera
+// orbit, dimming), then for the power's duration its onTick runs. A power may
+// also rewrite the arena (def.world !== false): a radial shader takeover turns
+// floors and walls into the power's surface and a sky dome and grade replace
+// the biome. Powers with world: false keep the world as it is.
 import * as THREE from 'three/webgpu';
 import { uniform, positionLocal, normalize, vec3, vec4, float, sin, cos, atan, mix, smoothstep, pow, abs, fract, floor, dot, max, step, length, positionWorld, positionWorldDirection } from 'three/tsl';
 import { U } from './gfx/materials.js';
@@ -61,7 +62,7 @@ export class DomainSystem {
     g.rig.cinematic({ center: caster.pos.clone().setY(caster.pos.y + 0.5), dur: def.duration + 1.8, dist: 15, pitch: 30 * Math.PI / 180, orbit: 0.22 });
     Grade.dofFocus.value = 15; g.targetDof = 0.3;
     g.audio?.domain(def.sound);
-    toast('DOMAIN EXPANSION', 'domain');
+    toast('GODLY POWER', 'domain');
     setTimeout(() => toast(def.name.toUpperCase(), 'domain'), 700);
     // hand-sign energy gathering
     const col = new THREE.Color(def.color ?? 0x6ad8ff);
@@ -86,10 +87,12 @@ export class DomainSystem {
         g.fx.flash(def.flash ?? 0xffffff, 0.6, 0.3);
         g.fx.screenWave(c.clone().setY(c.y + 1), 1.4, 0.8);
         g.shake(0.6);
-        g.env.set(DOMAINS[def.key], false);
-        U.domainType.value = def.type; U.domainCenter.value.copy(d.center);
-        this.dome.material.userData.type.value = def.type;
-        this.dome.visible = true; this.dome.position.copy(d.center); this.dome.scale.setScalar(55); this.dome.material.userData.fade.value = 0;
+        if (def.world !== false) {
+          g.env.set(DOMAINS[def.key], false);
+          U.domainType.value = def.type; U.domainCenter.value.copy(d.center);
+          this.dome.material.userData.type.value = def.type;
+          this.dome.visible = true; this.dome.position.copy(d.center); this.dome.scale.setScalar(55); this.dome.material.userData.fade.value = 0;
+        }
         d.caster.action = null; d.caster.invulnerable = false;
         g.fx.dimTarget = 0;
         def.onStart?.(g, d);
@@ -99,26 +102,23 @@ export class DomainSystem {
     if (d.phase === 'expand' || d.phase === 'hold') {
       const R = def.radius ?? 24;
       d.radius = Math.min(R, d.radius + realDt * R * 2.2);
-      U.domainRadius.value = d.radius;
-      this.dome.scale.setScalar(55);
-      this.dome.material.userData.fade.value = Math.min(1, d.radius / R);
+      if (def.world !== false) { U.domainRadius.value = d.radius; this.dome.material.userData.fade.value = Math.min(1, d.radius / R); }
       if (d.phase === 'expand' && d.radius >= R) { d.phase = 'hold'; d.t = 0; }
       if (d.phase === 'hold') {
         def.onTick?.(g, d, dt);
-        if (d.t >= def.duration) { d.phase = 'collapse'; d.t = 0; g.fx.flash(0x000000, 0.5, 0.25); g.env.set(g.biome, false); def.onEnd?.(g, d); g.targetDof = 0; }
+        if (d.t >= def.duration) { d.phase = 'collapse'; d.t = 0; g.fx.flash(0x000000, 0.5, 0.25); if (def.world !== false) g.env.set(g.biome, false); def.onEnd?.(g, d); g.targetDof = 0; }
       }
     } else if (d.phase === 'collapse') {
       const R = def.radius ?? 24;
       d.radius = Math.max(0, d.radius - realDt * R * 2.5);
-      U.domainRadius.value = d.radius;
-      this.dome.material.userData.fade.value = d.radius / R;
+      if (def.world !== false) { U.domainRadius.value = d.radius; this.dome.material.userData.fade.value = d.radius / R; }
       if (d.radius <= 0) this.end();
     }
   }
   end() {
     const g = this.game, d = this.active;
     if (!d) return;
-    if (d.phase !== 'collapse') { g.env.set(g.biome, false); d.def.onEnd?.(g, d); }
+    if (d.phase !== 'collapse') { if (d.def.world !== false) g.env.set(g.biome, false); d.def.onEnd?.(g, d); }
     U.domainType.value = 0; U.domainRadius.value = 0;
     this.dome.visible = false;
     d.caster.domainActive = false; d.caster.invulnerable = false;

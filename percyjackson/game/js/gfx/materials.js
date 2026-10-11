@@ -5,7 +5,7 @@ import * as THREE from 'three/webgpu';
 import {
   uniform, uniformArray, attribute, texture, uv, vec2, vec3, vec4, float, positionWorld, positionLocal,
   screenCoordinate, interleavedGradientNoise, smoothstep, dot, clamp, max, sin, cos, time, mix,
-  transformNormalToView, normalize, fract, abs, step, length, floor,
+  transformNormalToView, normalize, fract, abs, step, length, floor, normalWorld,
 } from 'three/tsl';
 
 export const U = {
@@ -20,7 +20,46 @@ export const U = {
   domainRadius: uniform(0),
   domainType: uniform(0),        // 1 void, 2 shrine, 3 garden, 4 fire, 5 resonance
   trench: uniform(new THREE.Vector4(0, 0, 0, 0)),
+  // True Sight (seeing through the Mist): a ring that spreads from a hero and
+  // repaints the world as the gods see it — teal and navy with gold Greek keys
+  sightCenter: uniform(new THREE.Vector3()),
+  sightRadius: uniform(0),
 };
+
+// The world under True Sight. Walls carry a pixel-art Greek key (meander)
+// in a 4x4 grid per block face; floors get gold seams along block edges.
+function sightLook(albedo, { pattern = true } = {}) {
+  const p = positionWorld;
+  const n = normalWorld;
+  const lum = dot(albedo, vec3(0.3, 0.59, 0.11));
+  const navy = vec3(0.025, 0.06, 0.13), teal = vec3(0.03, 0.3, 0.32);
+  const col = mix(navy, teal, clamp(lum.mul(1.6), 0, 1)).add(albedo.mul(0.12));
+  const gold = vec3(1.0, 0.68, 0.22);
+  // face coordinates: floors/ceilings use xz, walls use the horizontal axis + y
+  const up = step(0.5, abs(n.y));
+  const alongX = step(abs(n.z), abs(n.x));
+  const wu = mix(p.x, p.z, alongX);
+  const fu = mix(wu, p.x, up), fv = mix(p.y, p.z, up);
+  const q = fract(vec2(fu, fv)).mul(4);
+  const i = floor(q.x), j = floor(q.y);
+  const is = (v, k) => step(k - 0.5, v).mul(step(v, k + 0.5));
+  // meander:  ####
+  //           #...
+  //           #.##
+  //           #..#
+  const key = max(max(is(j, 3), is(i, 0)), max(is(j, 1).mul(step(1.5, i)), is(j, 0).mul(is(i, 3))));
+  const e = fract(vec2(fu, fv));
+  const seam = max(max(smoothstep(0.94, 0.99, e.x), smoothstep(0.06, 0.01, e.x)), max(smoothstep(0.94, 0.99, e.y), smoothstep(0.06, 0.01, e.y)));
+  const shimmer = sin(U.time.mul(2.0).add(p.x.mul(0.35)).add(p.z.mul(0.25))).mul(0.25).add(0.85);
+  const motif = pattern ? mix(key.mul(0.55), seam.mul(0.8), up) : float(0);
+  const emi = gold.mul(motif).mul(shimmer).add(teal.mul(0.05));
+  const d = length(p.xz.sub(U.sightCenter.xz));
+  const on = step(0.05, U.sightRadius);
+  const mask = smoothstep(U.sightRadius, U.sightRadius.sub(1.6), d).mul(on);
+  const rim = smoothstep(1.2, 0.0, abs(d.sub(U.sightRadius))).mul(on);
+  return { col, emi, mask, rim };
+}
+export { sightLook };
 
 // Colour + emissive of the domain surface for the current domain type.
 function domainLook(albedo) {
@@ -98,10 +137,11 @@ export function createBlockMaterial(atlas, { occlude = true } = {}) {
   m.metalnessNode = mat.y;
   const albedo = texture(atlas.map, uv()).rgb;
   const D = domainLook(albedo);
-  m.colorNode = vec4(mix(albedo, D.col, D.mask).mul(ao), 1);
+  const S = sightLook(albedo);
+  m.colorNode = vec4(mix(mix(albedo, D.col, D.mask), S.col, S.mask).mul(ao), 1);
   m.roughnessNode = mix(mat.x, float(0.06), D.mask.mul(step(U.domainType, 3.5)).mul(float(1).sub(step(1.5, U.domainType).mul(step(U.domainType, 2.5)))));
   const baseEmit = albedo.mul(mat.z.mul(1.6)).add(albedo.mul(bake).mul(ao).mul(U.bakeStrength));
-  m.emissiveNode = mix(baseEmit, D.emi, D.mask).add(vec3(0.6, 0.8, 1.4).mul(D.rim).mul(2)).add(trenchGlow());
+  m.emissiveNode = mix(mix(baseEmit, D.emi, D.mask), baseEmit.mul(0.35).add(S.emi), S.mask).add(vec3(0.6, 0.8, 1.4).mul(D.rim).mul(2)).add(vec3(1.2, 0.85, 0.3).mul(S.rim).mul(2.2)).add(trenchGlow());
   if (occlude) m.maskNode = ditherMask(occlusionAmount());
   return m;
 }
@@ -157,8 +197,9 @@ export function createDecoMaterial(spriteMap, { sway = true } = {}) {
   const emit = attribute('emit', 'float');
   const tex = texture(spriteMap, uv());
   const D = domainLook(tex.rgb);
-  m.colorNode = vec4(mix(tex.rgb, D.col, D.mask), tex.a);
-  m.emissiveNode = mix(tex.rgb.mul(emit), D.emi, D.mask);
+  const S = sightLook(tex.rgb, { pattern: false });
+  m.colorNode = vec4(mix(mix(tex.rgb, D.col, D.mask), S.col, S.mask), tex.a);
+  m.emissiveNode = mix(mix(tex.rgb.mul(emit), D.emi, D.mask), S.emi.add(vec3(0.5, 0.35, 0.1).mul(0.25)), S.mask);
   return m;
 }
 

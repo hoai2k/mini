@@ -1,23 +1,27 @@
-// Mission runtime: activates rooms as players arrive (curses rise out of the
-// ground in waves), tracks the objective (exorcise N curses, rescue trapped
-// students, seal cursed objects), opens the boss gate, stages the boss intro
-// and spawns the exit + reward chest when the boss falls.
+// Chapter runtime: activates rooms as players arrive (monsters rise out of
+// the ground in waves; where the Mist is thick some walk about disguised as
+// mortals), tracks the objective (defeat N monsters, free trapped satyrs,
+// destroy cursed objects), opens the boss gate, stages the boss intro (in the
+// thickest Mist the boss waits disguised until a hero sees through it) and
+// spawns the exit and reward chest when the boss falls.
 import * as THREE from 'three/webgpu';
 import { Boss } from './entities/bosses.js';
 import { buildHeroModel } from './entities/models.js';
 import { B } from './world/blocks.js';
 import { toast } from './ui/ui.js';
+import { ENEMY_TABLES } from './world/levelgen.js';
 
 const OBJ_TEXT = {
-  exorcise: (o) => ['Exorcise the Curses', `${o.done} / ${o.need} curses exorcised`],
-  rescue: (o) => ['Rescue the Students', `${o.done} / ${o.need} students freed`],
-  seal: (o) => ['Seal the Cursed Objects', `${o.done} / ${o.need} objects sealed`],
+  exorcise: (o) => ['Defeat the Monsters', `${o.done} / ${o.need} monsters defeated`],
+  rescue: (o) => ['Free the Captives', `${o.done} / ${o.need} freed`],
+  seal: (o) => ['Destroy the Cursed Objects', `${o.done} / ${o.need} destroyed`],
 };
 
 export class Mission {
   constructor(game, def, level) {
     this.game = game; this.def = def; this.L = level;
     this.obj = level.objective;
+    level.enemyKinds ??= (ENEMY_TABLES[def.biome] ?? []).map(([k]) => k);
     this.bossSpawned = false; this.boss = null; this.complete = false;
     this.props = [];
     this.stats = { kills: 0, damage: 0, time: 0, coins: 0, secrets: 0, deaths: 0, loot: [] };
@@ -33,8 +37,10 @@ export class Mission {
     g.minimap.reveal(L.rooms[0]);
   }
   updateText() {
-    const [t, d] = OBJ_TEXT[this.obj.type](this.obj);
-    this.game.hud.setObjective(this.objDone ? 'Defeat the Boss' : t, this.objDone ? (this.boss && this.boss.dead ? 'Reach the exit torii' : 'The arena gate is open') : d);
+    let [t, d] = OBJ_TEXT[this.obj.type](this.obj);
+    if (this.def.objText) t = this.def.objText;
+    const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (LT / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';
+    this.game.hud.setObjective(this.objDone ? (this.boss?.dead ? 'Victory' : 'Face the Monster') : t, this.objDone ? bossText : d);
   }
   // ---------------------------------------------------------------- props
   addProp(obj) { this.game.scene.add(obj); this.props.push(obj); return obj; }
@@ -50,7 +56,7 @@ export class Mission {
     this.addProp(grp);
     it.object = grp; it.rig = student;
     g.lights.attach(grp, 0xffc860, 3, 6, { offsetY: 2 });
-    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Free student', hold: 1.2, action: () => this.completeItem(it), enabled: () => !it.done });
+    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Free them', hold: 1.2, action: () => this.completeItem(it), enabled: () => !it.done });
   }
   makeAltar(it) {
     const g = this.game;
@@ -63,13 +69,14 @@ export class Mission {
     this.addProp(grp);
     it.object = grp; it.finger = finger;
     it.light = g.lights.attach(finger, 0xff2a4a, 4, 7, { offsetY: 0 });
-    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Seal cursed object', hold: 2.5, onHoldStart: () => this.altarWave(it), action: () => this.completeItem(it), enabled: () => !it.done });
+    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Destroy cursed object', hold: 2.5, onHoldStart: () => this.altarWave(it), action: () => this.completeItem(it), enabled: () => !it.done });
   }
   altarWave(it) {
     if (it.waved) return; it.waved = true;
     const g = this.game;
-    toast('The cursed object resists!');
-    for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2; const p = it.pos.clone().add(new THREE.Vector3(Math.cos(a) * 5, 0, Math.sin(a) * 5)); const gy = g.world.groundBelow(p.x, p.z, p.y + 3); if (!isFinite(gy)) continue; p.y = gy; g.spawnEnemy(i === 0 ? 'spitter' : 'swarmer', p, { level: this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a); }
+    toast('Monsters come to guard it!');
+    const kinds = this.L.enemyKinds?.length ? this.L.enemyKinds : ['pup'];
+    for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2; const p = it.pos.clone().add(new THREE.Vector3(Math.cos(a) * 5, 0, Math.sin(a) * 5)); const gy = g.world.groundBelow(p.x, p.z, p.y + 3); if (!isFinite(gy)) continue; p.y = gy; g.spawnEnemy(kinds[i % kinds.length], p, { level: this.def.difficulty }); g.fx.summonCircle(p, 0xff2a4a); }
   }
   makeChest(c) {
     const g = this.game;
@@ -104,12 +111,12 @@ export class Mission {
     if (this.obj.type === 'rescue') {
       g.fx.heal(it.pos, 0xffd23a);
       let t = 0; g.addUpdater((dt) => { t += dt; it.object.position.y += dt * 3; it.object.scale.setScalar(Math.max(0.01, 1 - t)); return t < 1; });
-      toast('Student rescued!');
+      toast('Freed!');
     } else {
       g.fx.heal(it.pos, 0xff5a7a);
       it.finger.material = new THREE.MeshStandardNodeMaterial({ color: 0xe8dcb0 });
       g.lights.remove(it.light);
-      toast('Cursed object sealed!');
+      toast('Destroyed!');
     }
     this.checkObjective();
   }
@@ -122,7 +129,7 @@ export class Mission {
     if (this.objDone || this.obj.done < this.obj.need) return;
     this.objDone = true; this.game.objectiveDone = true;
     const g = this.game;
-    toast('Objective complete — the arena gate opens', 'big');
+    toast('The way ahead opens', 'big');
     g.audio?.gong();
     for (const gate of this.L.gates) this.openGate(gate);
     this.updateText();
@@ -155,6 +162,7 @@ export class Mission {
     }
     // spin altars, bob cages
     for (const it of this.obj.items) if (!it.done && it.finger) it.finger.rotation.y += dt * 2;
+    if (this.disguisedBoss && !this.disguisedBoss.disguised && !this.revealedBoss) this.revealDisguisedBoss();
   }
   activate(room) {
     const g = this.game;
@@ -174,8 +182,11 @@ export class Mission {
       const sp = spots[(i * 7 + room.waveIdx * 3) % spots.length];
       const pos = new THREE.Vector3(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5);
       const gy = g.world.groundBelow(pos.x, pos.z, pos.y + 3); if (!isFinite(gy)) return; pos.y = gy;
-      const e = g.spawnEnemy(s.kind, pos, { elite: s.elite, level: this.def.difficulty });
-      if (e) { room.enemies.push(e); g.fx.summonCircle(pos, e.elite ? 0xff9aff : 0x9a5aff); }
+      // in the Mist some monsters are walking about disguised as mortals
+      const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
+      const disguise = !s.elite && kinds.length && Math.random() < mist * 0.55 ? kinds[Math.floor(Math.random() * kinds.length)] : null;
+      const e = g.spawnEnemy(s.kind, pos, { elite: s.elite, level: this.def.difficulty, disguise });
+      if (e) { room.enemies.push(e); if (!e.disguised) g.fx.summonCircle(pos, e.elite ? 0xff9aff : 0xffc84a); }
     });
     g.audio?.energy('summon');
   }
@@ -186,6 +197,36 @@ export class Mission {
     for (const gate of this.L.gates) for (const [x, y, z] of gate.blocks) g.world.set(x, y, z, B.blue_energy);
     const sp = room.spawns[0] ?? [room.center.x, room.y, room.center.z];
     const pos = new THREE.Vector3(sp[0], sp[1], sp[2]);
+    // In the thickest Mist the boss waits in disguise until someone sees it.
+    const disguise = (this.def.mist ?? 0) >= 0.9 && this.def.disguise?.[0];
+    if (disguise && !this.revealedBoss) {
+      const stand = g.spawnEnemy(this.L.enemyKinds?.[0] ?? 'pup', pos, { disguise, level: this.def.difficulty });
+      if (stand?.disguised) {
+        stand.bossStandIn = true; this.disguisedBoss = stand; this.bossRoom = room;
+        g.rig.cinematic({ center: pos.clone().setY(pos.y + 1.5), dur: 2.4, dist: 10, pitch: 28 * Math.PI / 180, orbit: 0.08 });
+        toast('“Ah, there you are, honey.”', 'big');
+        this.updateText();
+        return;
+      }
+      if (stand) { stand.dead = true; g.scene.remove(stand.object); }
+    }
+    this.spawnBoss(room, pos);
+  }
+  // Called by the Mist when True Sight reaches the disguised boss.
+  revealDisguisedBoss() {
+    const g = this.game, st = this.disguisedBoss;
+    if (!st || this.revealedBoss) return;
+    this.revealedBoss = true;
+    const pos = st.pos.clone();
+    st.dead = true; st.hp = 0; g.scene.remove(st.object);
+    g.enemies = g.enemies.filter((e) => e !== st);
+    g.particles?.burst?.(pos.clone().setY(pos.y + 1), { count: 50, color: 0xffd84a, speed: 4, up: 3, life: 1.2, size: 0.2, sizeEnd: 0.02 });
+    g.fx.flash(0xffd84a, 0.4, 0.3);
+    this.disguisedBoss = null;
+    this.spawnBoss(this.bossRoom, pos);
+  }
+  spawnBoss(room, pos) {
+    const g = this.game;
     const boss = new Boss(g, this.def.boss, pos, this.def.difficulty);
     g.scene.add(boss.object); g.enemies.push(boss);
     this.boss = boss;
@@ -213,7 +254,7 @@ export class Mission {
       const portal = new THREE.Mesh(new THREE.PlaneGeometry(3, 3.7), glow); portal.position.y = 1.9; grp.add(portal);
       this.addProp(grp);
       g.lights.attach(grp, 0x7affd8, 6, 10, { offsetY: 2 });
-      g.interactables.push({ id: 'exit', pos: exit, radius: 2.8, label: 'Leave the mission', action: () => g.completeMission() });
+      g.interactables.push({ id: 'exit', pos: exit, radius: 2.8, label: 'Return to camp', action: () => g.completeMission() });
       const chest = { pos: exit.clone().add(new THREE.Vector3(3, 0, 0)), room: this.L.bossRoom, rarity: 'rare', opened: false, boss: true };
       chest.pos.y = g.world.groundBelow(chest.pos.x, chest.pos.z, chest.pos.y + 3); if (!isFinite(chest.pos.y)) chest.pos.y = exit.y;
       this.L.chests.push(chest); this.makeChest(chest);

@@ -10,6 +10,7 @@ import { BASE_COMBO } from '../combat.js';
 import { createKit } from '../heroes/index.js';
 import { applyGear } from '../loot.js';
 import { useArtifact } from '../artifacts.js';
+import { settings } from '../settings.js';
 
 export const PLAYER_COLORS = ['#4fc8ff', '#ff5a6a', '#7aff7a', '#ffc94a'];
 
@@ -40,6 +41,8 @@ export class Player {
     this.healCharges = 3; this.healMax = 3; this.healCd = 0;
     this.downT = 0; this.reviveProgress = 0;
     this.slowT = 0;
+    this.battleSense = 1;      // Battle Sense charge (0..1); a perfect dodge spends it
+    this.ai = false;           // true while an AI companion drives this hero
     this.procs = {}; this.artifacts = [];
     this.skills = game.save ? game.save.hero(hero).skills : {};
     applyGear(this, game.save ? game.save.gearFor(hero) : []);
@@ -65,6 +68,7 @@ export class Player {
   takeDamage(amount, src, o = {}) {
     const g = this.game;
     if (this.dead || this.downed) return 0;
+    if (!o.pure && this.dodgeT > 0 && this.dodgeDur - this.dodgeT < 0.24) this.perfectDodge(src);
     if (!o.pure && (this.iframes > 0 || this.invulnerable)) return 0;
     if (this.kit.onIncoming) { const r = this.kit.onIncoming(amount, src, o); if (r === 0) return 0; if (typeof r === 'number') amount = r; }
     const dmg = amount * (o.pure ? 1 : (1 - this.stats.armor)) * (g.difficultyDamageDealt ?? 1) * (this.barrierT > 0 ? 0.5 : 1);
@@ -83,11 +87,25 @@ export class Player {
     if (this.hp <= 0) this.goDown();
     return dmg;
   }
+  // Battle Sense: dodging the instant before a hit lands slows the monsters
+  // (not the heroes) for a moment. Demigod reflexes are wired for battle.
+  perfectDodge(src) {
+    const g = this.game;
+    if (this.battleSense < 1 || settings.battleSense === false || this.ai) return;
+    this.battleSense = 0;
+    g.battleSense(2.2);
+    g.fx.flash?.(0xffd84a, 0.22, 0.25);
+    g.fx.screenWave?.(this.pos.clone().setY(this.pos.y + 1), 0.6, 0.4);
+    g.audio?.tone?.({ freq: 110, to: 70, dur: 0.35, gain: 0.25, type: 'sine', filter: 900 });
+    g.toast?.('Battle Sense!', 'big');
+    this.gainCE(12);
+    void src;
+  }
   goDown() {
     const g = this.game;
     this.hp = 0;
     const others = g.players.filter((p) => p !== this && !p.dead && !p.downed);
-    if (others.length) { this.downed = true; this.downT = 25; this.reviveProgress = 0; this.action = null; g.toast?.(`Player ${this.index + 1} is down! Stand close to revive`); }
+    if (others.length) { this.downed = true; this.downT = 25; this.reviveProgress = 0; this.action = null; g.toast?.(`${g.heroName?.(this) ?? 'Player ' + (this.index + 1)} is down! Stand close to revive`); g.onHeroDown?.(this); }
     else { this.dead = true; this.deadT = 0; g.onPlayerDied?.(this); }
     this.domainActive = false;
     g.audio?.enemyDie(true);
@@ -100,7 +118,7 @@ export class Player {
     this.game.fx.heal(this.pos, 0x9affd8);
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
-    this.game.toast?.('Reverse Cursed Technique');
+    this.game.toast?.('Ambrosia');
   }
   // ---------------------------------------------------------------- combat
   updateCombat(dt, inp) {
@@ -197,10 +215,18 @@ export class Player {
       this.vel.set(0, this.vel.y, 0); moveEntity(this, g.world, dt); this.animate(dt); return;
     }
     this.updateAim(inp);
-    // movement intent
-    const mv = g.rig.screenToWorldDir(inp.move.x, inp.move.y, new THREE.Vector3());
-    const mvLen = Math.min(1, Math.hypot(inp.move.x, inp.move.y));
-    if (mvLen > 0.01) mv.normalize().multiplyScalar(mvLen);
+    this.battleSense = Math.min(1, this.battleSense + dt / 7);
+    // a camp minigame has the controls: stand still, aim, let it handle the buttons
+    if (this.minigameLock) { this.vel.x = 0; this.vel.z = 0; moveEntity(this, g.world, dt); this.animate(dt); return; }
+    // movement intent (AI companions steer in world space)
+    let mv;
+    if (inp.worldMove) mv = inp.worldMove.clone().setY(0);
+    else {
+      mv = g.rig.screenToWorldDir(inp.move.x, inp.move.y, new THREE.Vector3());
+      const mvLen = Math.min(1, Math.hypot(inp.move.x, inp.move.y));
+      if (mvLen > 0.01) mv.normalize().multiplyScalar(mvLen);
+    }
+    if (mv.lengthSq() > 1) mv.normalize();
     this.moveIntent = mv;
     this.iframes = Math.max(0, this.iframes - dt);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);

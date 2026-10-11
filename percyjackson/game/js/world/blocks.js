@@ -85,6 +85,57 @@ def('bark_dark', { top: 'log_top', side: 'bark_dark' }, { step: 'wood' });
 def('dirt_path', { top: 'cobble', side: 'dirt' });
 def('barrier', 'stone', { opaque: false });   // invisible wall
 
+// ---------------------------------------------------------------- Half-Blood Quests
+// Camp Half-Blood
+def('clapboard', 'clapboard_blue', { step: 'wood' });                 // the Big House siding
+def('white_trim', 'white_trim', { step: 'wood', rough: 0.6 });
+def('window_day', { top: 'white_trim', side: 'window_day' }, { rough: 0.15 });
+def('roof_slate', 'roof_slate', { rough: 0.55 });
+def('roof_terracotta', 'roof_terracotta', { rough: 0.6 });
+def('marble_white', 'marble_white', { rough: 0.2 });
+def('column', { top: 'column_top', side: 'column_side' }, { rough: 0.25, hp: 60, debris: 8 });
+def('column_solid', { top: 'column_top', side: 'column_side' }, { rough: 0.25 });   // never breaks (hub)
+def('bronze', 'bronze', { metal: 0.85, rough: 0.3, step: 'metal' });
+def('sea_stone', 'sea_stone');
+def('red_plank', 'red_plank', { step: 'wood', rough: 0.5 });
+def('owl_stone', 'owl_stone');
+def('gold_plate', 'gold_plate', { metal: 0.9, rough: 0.25, step: 'metal' });
+def('silver_plate', 'silver_plate', { metal: 0.85, rough: 0.2, step: 'metal', emit: 0.15 });
+def('pink_plaster', 'pink_plaster');
+def('old_plank', 'old_plank', { step: 'wood' });
+def('vine_wall', 'vine_wall', { step: 'wood' });
+def('grass_roof', { top: 'grass_roof', side: 'grass_roof', bottom: 'dirt' }, { step: 'grass' });
+def('iron_plate', 'iron_plate', { metal: 0.7, rough: 0.4, step: 'metal' });
+def('lightning_stone', 'lightning_stone', { rough: 0.2 });
+def('gravel_path', { top: 'gravel_path', side: 'dirt' }, { step: 'sand' });
+def('strawberry_bed', { top: 'strawberry_top', side: 'farm_soil', bottom: 'dirt' }, { step: 'grass' });
+def('farm_soil', { top: 'farm_soil', side: 'dirt' }, { step: 'grass' });
+def('pine_leaves', 'pine_leaves', { step: 'grass' });
+def('pine_log', { top: 'log_top', side: 'pine_bark' }, { step: 'wood' });
+def('forest_floor', { top: 'forest_floor', side: 'dirt' }, { step: 'grass' });
+def('rock', 'rock');
+def('basalt', 'basalt');
+def('target', { top: 'hay', side: 'target_face' }, { step: 'grass', hp: 8, debris: 6 });
+def('hay', 'hay', { step: 'grass', hp: 10, debris: 6 });
+def('awning', 'awning', { step: 'wood' });
+def('teal_panel', 'teal_panel', { rough: 0.4 });
+def('navy_panel', 'navy_panel', { rough: 0.4 });
+def('shingle_green', 'shingle_green', { rough: 0.55 });
+// Museum (chapter 1)
+def('marble_floor', { top: 'marble_floor', side: 'marble_white' }, { rough: 0.12 });
+def('gallery_wall', { top: 'marble_white', side: 'gallery_wall' }, { rough: 0.5 });
+// Looks exactly like gallery_wall; the Mist system dissolves these when a hero sees through the Mist.
+def('mist_wall', { top: 'marble_white', side: 'gallery_wall' }, { rough: 0.5 });
+def('key_frieze', { top: 'marble_white', side: 'key_frieze', bottom: 'marble_white' }, { rough: 0.3, metal: 0.25 });
+def('vase_frieze', { top: 'marble_white', side: 'vase_frieze', bottom: 'marble_white' }, { rough: 0.4 });
+def('glass', 'glass', { opaque: false, rough: 0.05, hp: 6, debris: 5 });
+def('plinth', 'plinth', { rough: 0.2 });
+def('carpet_red', { top: 'carpet_red', side: 'marble_white' }, { step: 'wood', rough: 0.9 });
+// Storm hill / farmland (chapter 2) and the camp woods (chapter 3)
+def('barn_red', 'barn_red', { step: 'wood', hp: 30, debris: 8 });
+def('dirt_road', { top: 'dirt_road', side: 'dirt' }, { step: 'grass' });
+def('mud', { top: 'mud', side: 'dirt' }, { step: 'water', rough: 0.25 });
+
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;
 export const isOpaque = (id) => defs[id].opaque;

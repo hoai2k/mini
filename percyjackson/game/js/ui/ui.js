@@ -1,15 +1,20 @@
 // Screen manager with spatial focus navigation so every menu works with a
 // mouse, touch, keyboard (arrows/Enter/Esc) or gamepad (d-pad/stick/A/B).
+import { demigodText } from './greekText.js';
+
+const DIRS = ['up', 'down', 'left', 'right'];
 export class UI {
   constructor(game) {
     this.game = game;
     this.root = document.getElementById('screens');
     this.stack = [];        // open screens (top = active)
     this.focusEl = null;
+    this.rep = {};          // held-direction auto-repeat timers
   }
   // Create and show a screen. build(el) fills it; opts.onBack when B/Esc.
   open(id, build, opts = {}) {
     this.close(id);
+    const below = this.top(); if (below) below.savedFocus = this.focusEl;
     const el = document.createElement('section');
     el.className = 'screen' + (opts.dim ? ' dim' : '');
     el.id = 'scr-' + id;
@@ -34,7 +39,8 @@ export class UI {
     if (i < 0) return;
     const [s] = this.stack.splice(i, 1);
     s.el.remove(); s.opts.onClose?.();
-    const top = this.top(); if (top) this.autoFocus(top);
+    const top = this.top();
+    if (top) { const f = top.savedFocus; top.savedFocus = null; if (f && f.isConnected && this.focusables(top).includes(f)) this.setFocus(f); else this.autoFocus(top); }
   }
   closeAll() { while (this.stack.length) this.close(this.stack[this.stack.length - 1].id); }
   top() { return this.stack[this.stack.length - 1]; }
@@ -76,10 +82,33 @@ export class UI {
     }
     if (best) { this.setFocus(best); this.game.audio?.ui('move'); }
   }
+  // Directions currently held on any pad or the keyboard (for auto-repeat).
+  heldDirs() {
+    const d = { up: false, down: false, left: false, right: false };
+    const k = this.game.input.keys;
+    if (k.has('ArrowUp') || k.has('KeyW')) d.up = true; if (k.has('ArrowDown') || k.has('KeyS')) d.down = true;
+    if (k.has('ArrowLeft') || k.has('KeyA')) d.left = true; if (k.has('ArrowRight') || k.has('KeyD')) d.right = true;
+    for (const p of this.game.input.pads()) {
+      const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0;
+      if (p.buttons[12]?.pressed || ay < -0.6) d.up = true; if (p.buttons[13]?.pressed || ay > 0.6) d.down = true;
+      if (p.buttons[14]?.pressed || ax < -0.6) d.left = true; if (p.buttons[15]?.pressed || ax > 0.6) d.right = true;
+    }
+    return d;
+  }
+  // A held direction repeats after a pause, so one push never skips items.
+  repeat(m) {
+    const now = performance.now(), held = this.heldDirs();
+    for (const dir of DIRS) {
+      if (m[dir]) this.rep[dir] = now + 380;
+      else if (held[dir]) { if (this.rep[dir] && now >= this.rep[dir]) { m[dir] = true; this.rep[dir] = now + 110; } }
+      else delete this.rep[dir];
+    }
+  }
   // Called every frame while a screen is open.
   update() {
     const s = this.top(); if (!s || s.opts.passive) return;
     const m = this.game.input.menu();
+    this.repeat(m);
     // A screen may claim device-specific input before it reaches shared focus.
     // Character select uses this so one controller cannot click another
     // player's focused button while joining or choosing a hero.
@@ -122,7 +151,36 @@ export function h(tag, attrs = {}, ...children) {
 
 export function toast(text, cls = '') {
   const el = document.createElement('div');
-  el.className = 'toast ' + cls; el.textContent = text;
+  el.className = 'toast ' + cls;
   document.getElementById('toast-layer').appendChild(el);
+  if (/big|domain/.test(cls)) demigodText(el, text); else el.textContent = text;
   setTimeout(() => el.remove(), cls.includes('domain') ? 3300 : 2700);
+}
+
+// A yes/no confirmation. Focus starts on "No" so a stray press never destroys progress.
+export function confirmDialog(game, { title = 'Are you sure?', text = '', yes = 'Yes', no = 'No', danger = false, onYes, onNo } = {}) {
+  const ui = game.ui;
+  const close = () => ui.close('confirm');
+  ui.open('confirm', (el) => {
+    el.appendChild(h('div', { class: 'panel menu-col confirm', role: 'alertdialog', 'aria-label': title, style: 'max-width:min(440px,94vw);text-align:center' },
+      h('h2', {}, title), text ? h('p', { class: 'hint', style: 'font-size:16px;margin:0 0 10px' }, text) : null,
+      h('button', { class: 'btn', 'data-autofocus': true, onclick: () => { close(); onNo?.(); } }, no),
+      h('button', { class: 'btn' + (danger ? ' danger' : ' primary'), onclick: () => { close(); onYes?.(); } }, yes)));
+  }, { dim: true, onBack: () => { close(); onNo?.(); } });
+}
+
+// Snapshot of every connected pad: id -> { b: [pressed...], l, r, u, d, stick } so a screen can
+// detect fresh presses itself (edges against its own previous snapshot).
+export function padSnap(game) {
+  const out = new Map();
+  for (const p of game.input.pads()) {
+    const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0;
+    out.set('pad' + p.index, {
+      b: p.buttons.map((x) => !!(x.pressed || x.value > 0.5)),
+      l: !!p.buttons[14]?.pressed || ax < -0.6, r: !!p.buttons[15]?.pressed || ax > 0.6,
+      u: !!p.buttons[12]?.pressed || ay < -0.6, d: !!p.buttons[13]?.pressed || ay > 0.6,
+      stick: Math.hypot(ax, ay),
+    });
+  }
+  return out;
 }

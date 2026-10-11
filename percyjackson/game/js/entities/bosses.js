@@ -1,124 +1,158 @@
-// Special Grade bosses. Each boss runs attack patterns as coroutines
-// (generator functions that yield wait times), picks patterns by phase, and
-// telegraphs every big hit with red ground markers.
-//   • Volcano Curse (Jogo-style): meteors, flame cone, lava rings, Maximum Meteor.
-//   • Grove Curse (Hanami-style): root lines, seed bombs, flower fields, charges, buds.
-//   • Patchwork Curse (Mahito-style): blade arms, dashes, transfigured minions, distorted form.
+// Chapter bosses. Each boss runs attack patterns as coroutines (generator
+// functions that yield wait times), picks patterns by phase, and telegraphs
+// every big hit with red ground markers.
+//   • Alecto (Mrs. Dodds as a Fury, ch1): whip lash, swoop, ring of fire,
+//     summons pups and harpies, a screech that slows.
+//   • The Minotaur (ch2): telegraphed charges; a charge that hits a tree or a
+//     wall leaves him stuck and stunned for 3 s, taking double damage (the
+//     myth riddle: make it charge into the pine tree). Horn sweep, stomp,
+//     rock throw; chained charges later.
+//   • The Chimera: fire breath, lobbed fireballs, rattlesnake tail strike, pounce.
+// Bosses honour `mark` (+50% damage taken) and `status.slow`; they shrug off
+// fear and root. They never target players with `invisible === true`.
 import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX, FLASH_MATERIAL } from './character.js';
+import { QuadRig, paintQuad } from './quad.js';
+import { paintPerson, solidMat } from './mortals.js';
+import { addWings, addWhip, goldDust, animateExtras } from './monsters.js';
 import { moveEntity } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
-const solid = (hex, e = 0) => new THREE.MeshStandardNodeMaterial({ color: hex, roughness: 0.6, emissive: e ? hex : 0, emissiveIntensity: e });
-
-function paintBoss(S, o) {
-  S.box(0, 0, 8, 8, 8, o.skin, 0.15); S.box(32, 0, 8, 8, 8, o.skin, 0.1);
-  S.box(16, 16, 8, 12, 4, o.body, 0.15); S.box(16, 32, 8, 12, 4, o.body2 ?? o.body, 0.2);
-  S.box(40, 16, 4, 12, 4, o.arm ?? o.skin, 0.15); S.box(32, 48, 4, 12, 4, o.arm ?? o.skin, 0.15);
-  S.box(40, 32, 4, 12, 4, o.body2 ?? o.body, 0.2); S.box(48, 48, 4, 12, 4, o.body2 ?? o.body, 0.2);
-  S.box(0, 16, 4, 12, 4, o.legs, 0.15); S.box(16, 48, 4, 12, 4, o.legs, 0.15);
-  o.face?.(S);
+const solid = solidMat;
+const HS = 1.12;
+function prop(rig, parent, w, h, d, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
+  const m = rig.mesh(new THREE.BoxGeometry(w * PX, h * PX, d * PX), mat);
+  m.position.set(x * PX, y * PX, z * PX); m.rotation.set(rx, ry, rz); parent.add(m); return m;
+}
+function skinMat(seed, painter, emit = 3) {
+  const S = new Skin(seed); painter(S);
+  const m = makeCharMaterial(S.texture(), { emitStrength: emit, fill: 0.2 }); m.alphaTest = 0.5;
+  return m;
 }
 
 const BOSSES = {
-  jogo: {
-    name: 'Volcano Curse', title: 'SPECIAL GRADE · VOLCANO CURSE', hp: 2400, speed: 2.4, dmg: 22, color: 0xff6a1a, domainKey: 'coffin_iron_mountain',
+  alecto: {
+    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 16, color: 0xff7a1a, radius: 0.9, height: 3.4, hover: 1.4,
     build() {
-      const S = new Skin(501);
-      paintBoss(S, { skin: 0xd8d0c0, body: 0x2a2020, body2: 0x3a2a2a, legs: 0x2a2020, arm: 0xd8d0c0, face: (s) => { s.rect(9, 11, 6, 3, 0x111111); s.rect(11, 11, 2, 2, 0xffe04a); s.px(12, 12, 0xffffff); s.rect(10, 15, 4, 1, 0x3a1a0a); } });
-      const m = makeCharMaterial(S.texture(), { emitStrength: 3, fill: 0.2 }); m.alphaTest = 0.5;
-      const rig = new Rig({ material: m, scale: 2.1, bodyW: 10, bodyD: 6, headS: 9 });
-      // volcano head: stacked narrowing blocks with a glowing crater
-      const rock = solid(0xc8bca8), lava = solid(0xff6a1a, 4);
-      for (let i = 0; i < 3; i++) { const b = rig.mesh(new THREE.BoxGeometry((8 - i * 2) * PX * 1.12, 2 * PX, (8 - i * 2) * PX * 1.12), rock); b.position.y = (9 + i * 2) * PX * 1.12; rig.head.add(b); }
-      const crater = rig.mesh(new THREE.BoxGeometry(2.4 * PX, 1 * PX, 2.4 * PX), lava); crater.position.y = 15.2 * PX * 1.12; rig.head.add(crater);
-      rig.extras.crater = crater;
+      const m = skinMat(501, (S) => paintPerson(S, { skin: 0x7a6a5a, hair: 0x9a9a9e, hairVolume: true, fringe: 2, hairSide: 5, hairBack: 7, eye: 0xff2a0a, eyeWhite: 0xffd84a, scowl: true, wrinkles: 0x4a3a2a, fangs: 0xf4f0e0, grin: true, top: 0x5a1a22, jacket: 0x161618, lapel: 0x2a2a2e, sleeve: 0x6a5a4a, hand: 0x6a5a4a, pants: 0x161618, skirt: 0x161618, skirtLen: 12, shoes: 0x4a3a2a }));
+      const rig = new Rig({ material: m, scale: 1.75, bodyW: 7, armW: 3 });
+      rig.legR.visible = rig.legL.visible = false;
+      const rag = solid(0x161618);
+      for (let i = 0; i < 6; i++) prop(rig, rig.hips, 1.8, 7 + (i % 3) * 2, 2, rag, -3.6 + i * 1.45, -3.5 - (i % 3), (i % 2) - 0.5);
+      // her grey bun, now wild
+      for (const [x, z, rz] of [[0, -3.4, 0], [-2.6, -2, 0.7], [2.6, -2, -0.7]]) prop(rig, rig.head, 3, 4, 3, solid(0x9a9a9e), x * HS, 8.6 * HS, z * HS, 0.4, 0, rz);
+      addWings(rig, { span: 20, chord: 11, mat: solid(0x3a2a24), tip: solid(0x2a1c18), kind: 'bat', y: 10.5, flap: 0.8 });
+      addWhip(rig, { segs: 9, len: 3.4 });
+      rig.hunch = 0.2;
       return rig;
     },
-    phases: [['meteors', 'flame_cone', 'flame_cone'], ['meteors', 'flame_cone', 'lava_ring', 'insects'], ['maximum_meteor', 'lava_ring', 'meteors', 'flame_cone', 'insects']],
+    phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
   },
-  hanami: {
-    name: 'Grove Curse', title: 'SPECIAL GRADE · GROVE CURSE', hp: 2600, speed: 2.8, dmg: 20, color: 0x7aff5a, domainKey: 'resonance',
+  minotaur: {
+    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xff2a1a, radius: 1.2, height: 4.6,
     build() {
-      const S = new Skin(777);
-      paintBoss(S, { skin: 0xe8e4d8, body: 0x6a4a2a, body2: 0x3a2a1a, legs: 0x5a3a20, arm: 0x8a6a4a, face: (s) => { s.rect(9, 11, 2, 2, 0x2a1a0a); s.rect(13, 11, 2, 2, 0x2a1a0a); s.px(9, 11, 0x9aff6a); s.px(14, 11, 0x9aff6a); s.rect(8, 8, 8, 2, 0x2a1a0a); } });
-      const m = makeCharMaterial(S.texture(), { emitStrength: 2.5, fill: 0.2 }); m.alphaTest = 0.5;
-      const rig = new Rig({ material: m, scale: 2.2, bodyW: 8, bodyD: 5, headS: 8, bodyH: 14 });
-      const wood = solid(0x5a3a1a), leaf = solid(0x4a9a3a), flower = solid(0xff7ab0, 1.5);
-      // branches from the eyes and a shoulder flower
-      for (const sx of [-1, 1]) { const br = rig.mesh(new THREE.BoxGeometry(1.2 * PX, 7 * PX, 1.2 * PX).translate(0, 3.5 * PX, 0), wood); br.position.set(sx * 2.5 * PX * 1.12, 5.5 * PX * 1.12, 4 * PX * 1.12); br.rotation.set(-0.6, 0, -sx * 0.5); rig.head.add(br); const lf = rig.mesh(new THREE.BoxGeometry(3 * PX, 2 * PX, 3 * PX), leaf); lf.position.y = 7 * PX; br.add(lf); }
-      const fl = rig.mesh(new THREE.BoxGeometry(4 * PX, 4 * PX, 4 * PX), flower); fl.position.set(5 * PX, 12 * PX, 0); rig.torso.add(fl);
+      const fur = 0x6a4228;
+      const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xf4f0e8, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xf4f0e8, 0.04); s.rect(32, 30, 8, 2, 0xf4f0e8, 0.04); s.rect(16, 30, 4, 2, 0xf4f0e8, 0.04); s.rect(28, 30, 4, 2, 0xf4f0e8, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
+      const rig = new Rig({ material: m, scale: 2.35, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 11 });
+      // bull muzzle, nose ring and horns
+      const muzzle = prop(rig, rig.head, 6, 4, 3, solid(0x4a2c18), 0, 2.2 * HS, 5.2 * HS);
+      prop(rig, muzzle, 1, 1, 0.4, solid(0x120a06), -1.5, 0.6, 1.6); prop(rig, muzzle, 1, 1, 0.4, solid(0x120a06), 1.5, 0.6, 1.6);
+      prop(rig, muzzle, 3, 2.4, 0.6, solid(0xc9963a, 0.3, 0.3, 0.8), 0, -1.6, 1.8);
+      const horn = solid(0xeadfc4);
+      for (const s of [-1, 1]) {
+        const h1 = prop(rig, rig.head, 5, 2, 2, horn, s * 6.2 * HS, 6.5 * HS, 0.5 * HS, 0, 0, s * 0.25);
+        prop(rig, h1, 2, 4, 1.8, horn, s * 2.2, 2.6, 0, 0, 0, -s * 0.3);
+        prop(rig, h1, 1.4, 2.5, 1.4, solid(0x3a3020), s * 2.8, 5.6, 0, 0, 0, -s * 0.5);
+      }
+      for (const s of [-1, 1]) prop(rig, rig.head, 2.5, 1.5, 1, solid(0x4a2c18), s * 5 * HS, 5 * HS, -1 * HS, 0, 0, s * 0.4);
+      rig.extras.muzzle = muzzle;
+      rig.hunch = 0.18;
       return rig;
     },
-    phases: [['roots', 'seeds', 'roots'], ['roots', 'seeds', 'flowers', 'charge'], ['roots', 'charge', 'flowers', 'buds', 'seeds']],
+    phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'bull_charge', 'rock_throw', 'horn_sweep']],
   },
-  mahito: {
-    name: 'Patchwork Curse', title: 'SPECIAL GRADE · PATCHWORK CURSE', hp: 2300, speed: 4, dmg: 20, color: 0x7ad8ff, domainKey: 'malevolent_shrine',
+  chimera: {
+    name: 'The Chimera', title: 'THE CHIMERA · MOTHER OF MONSTERS’ CHILD', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3.6,
     build() {
-      const S = new Skin(313);
-      paintBoss(S, { skin: 0xc8d4dc, body: 0x2a2a3a, body2: 0x9aa8b8, legs: 0x2a2a3a, arm: 0xb8c4cc, face: (s) => { s.rect(8, 8, 8, 3, 0x6a7a9a); s.px(9, 12, 0x88ccff); s.px(10, 12, 0x223344); s.px(13, 12, 0x223344); s.px(14, 12, 0x88ccff); for (let y = 8; y < 16; y++) s.px(11 + (y % 2), y, 0x3a3a4a); s.rect(10, 14, 4, 1, 0x3a2a3a); } });
-      const m = makeCharMaterial(S.texture(), { emitStrength: 2, fill: 0.2 }); m.alphaTest = 0.5;
-      const hair = solid(0x6a8aa8);
-      const rig = new Rig({ material: m, scale: 1.9, hair: [{ x: 0, y: 6, z: -3.5, w: 7, h: 8, d: 2, hang: true, material: hair, stiff: 30 }, { x: -3.5, y: 6, z: 0, w: 2, h: 7, d: 6, hang: true, material: hair, stiff: 30 }, { x: 3.5, y: 6, z: 0, w: 2, h: 7, d: 6, hang: true, material: hair, stiff: 30 }] });
-      const blade = solid(0xd8e8f8, 0.6);
-      for (const [hand, s] of [[rig.handR, 1], [rig.handL, -1]]) { const b = rig.mesh(new THREE.BoxGeometry(1.5 * PX, 14 * PX, 5 * PX).translate(0, -7 * PX, 0), blade); b.visible = false; hand.add(b); rig.extras[s > 0 ? 'bladeR' : 'bladeL'] = b; }
+      const m = skinMat(313, (S) => paintQuad(S, { base: 0x8a7a66, dark: 0x5a4c3e, belly: 0xa89a84, back: 0x7a6a58, eye: 0xffc81a, eyeLow: 0xff7a1a, nose: 0x3a2214, teeth: 0xfff4e0, speckles: 50, custom: (s) => { s.box(0, 0, 8, 8, 8, 0xd8a040, 0.12); s.rect(9, 10, 2, 2, 0xffd84a, 0); s.rect(13, 10, 2, 2, 0xffd84a, 0); s.px(10, 11, 0x1a0a00); s.px(13, 11, 0x1a0a00); s.box(32, 0, 4, 4, 4, 0xe0b060, 0.1); s.rect(36, 4, 4, 1, 0x3a2214, 0); s.box(40, 32, 2, 2, 6, 0x5a7a3a, 0.2); for (let x = 40; x < 56; x += 2) s.px(x, 34 + (x % 4 ? 1 : 0), 0xd8c88a); } }), 2.6);
+      const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7.5, ears: true, tail: 5, tailLen: 12, tailW: 2, tailCurl: 0.25, gait: 0.7 });
+      // lion mane
+      const mane = solid(0x9a5a1a);
+      for (const [x, y, z, w, h] of [[0, 4.5, -0.5, 10, 4], [-4.6, 0, -0.5, 2.4, 9], [4.6, 0, -0.5, 2.4, 9], [0, -4, -0.5, 8, 2.4], [0, 2, -3, 9, 7]]) prop(rig, rig.head, w, h, 3, mane, x, y, z + 2.6);
+      // goat head rising from the back, with curling horns
+      const goat = new THREE.Group(); goat.position.set(0, 4 * PX, 1 * PX); rig.torso.add(goat);
+      prop(rig, goat, 2.6, 5, 2.6, solid(0x6a6058), 0, 2.5, 0, 0.2);
+      const gh = prop(rig, goat, 4, 4, 5, solid(0x7a7068), 0, 6, 1.4);
+      prop(rig, gh, 0.8, 0.8, 0.4, solid(0xffd84a, 2), -1.3, 0.6, 2.6); prop(rig, gh, 0.8, 0.8, 0.4, solid(0xffd84a, 2), 1.3, 0.6, 2.6);
+      for (const s of [-1, 1]) { const h = prop(rig, gh, 1.2, 4, 1.2, solid(0x4a4038), s * 1.5, 3, -1.5, -0.6, 0, s * 0.3); prop(rig, h, 1.2, 1.2, 3, solid(0x4a4038), 0, 2, -1.2); }
+      rig.extras.goat = goat;
+      // rattlesnake head at the tail tip, and rattle
+      const sn = prop(rig, rig.tailTip, 3, 2.4, 4, solid(0x4a6a3a), 0, 0.6, -3.4);
+      prop(rig, sn, 0.6, 0.6, 0.4, solid(0xffe04a, 2), -0.9, 0.6, -2); prop(rig, sn, 0.6, 0.6, 0.4, solid(0xffe04a, 2), 0.9, 0.6, -2);
+      prop(rig, sn, 0.4, 1.4, 0.4, solid(0xffffff), -0.6, -1.4, -1.6); prop(rig, sn, 0.4, 1.4, 0.4, solid(0xffffff), 0.6, -1.4, -1.6);
+      rig.extras.snake = sn;
       return rig;
     },
-    phases: [['blades', 'dash', 'blades'], ['blades', 'dash', 'transfigured', 'repel'], ['distort', 'dash', 'repel', 'blades', 'transfigured']],
+    phases: [['fire_breath', 'fireballs', 'tail_strike'], ['fire_breath', 'pounce', 'fireballs', 'tail_strike'], ['fire_breath', 'fireballs', 'pounce', 'tail_strike', 'fire_breath']],
   },
 };
 
-export const BOSS_IDS = Object.keys(BOSSES);
+export const BOSS_IDS = ['alecto', 'minotaur', 'chimera'];
+export const BOSS_DEFS = BOSSES;
 
 export class Boss {
   constructor(game, id, pos, level = 1) {
+    if (!BOSSES[id]) { console.warn('unknown boss', id, '- using the Minotaur'); id = 'minotaur'; }
     this.game = game; this.id = id; this.B = BOSSES[id];
-    this.def = { name: this.B.name, grade: 'S', knockResist: 0.95, pitch: 0.5 };
+    this.def = { name: this.B.name, tier: 'boss', knockResist: 0.95, pitch: 0.5 };
     this.displayName = this.B.name;
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
-    this.radius = 1.1; this.height = 4.2;
+    this.radius = this.B.radius ?? 1.1; this.height = this.B.height ?? 4.2;
     this.maxHp = this.B.hp * (1 + (level - 1) * 0.45) * (1 + (game.players.length - 1) * 0.6); this.hp = this.maxHp;
     this.dmg = this.B.dmg * (1 + (level - 1) * 0.2);
     this.rig = this.B.build(); this.object = this.rig.root; this.object.position.copy(pos);
+    this.rig.tick ??= (dt2, e) => animateExtras(this.rig, dt2, e);
     this.facing = 0; this.phase = 0; this.isBoss = true; this.isEnemy = true;
     this.co = null; this.coWait = 0; this.flashT = 0; this.dead = false; this.deathT = 0;
     this.grounded = false; this.coyote = 0; this.visY = pos.y; this.stepUp = true;
-    this.anim = null; this.moving = true; this.untargetable = false; this.buds = [];
+    this.anim = null; this.moving = true; this.untargetable = false;
+    this.status = { fear: 0, root: 0, slow: 0 }; this.mark = 0; this.stunT = 0; this.hoverY = this.B.hover ?? 0;
     this.home = pos.clone();
     this.intro = 2.6;
     this.lastPattern = null;
     this.lightH = game.lights.attach(this.object, this.B.color, 4, 10, { offsetY: 5, priority: 3 });
   }
   get name() { return this.B.name; }
+  get title() { return this.B.title; }
   // ---------------------------------------------------------------- damage
   takeDamage(amount, src, o = {}) {
     if (this.dead || this.untargetable || this.intro > 0) return 0;
-    let dmg = amount * (this.buds.some((b) => !b.dead) ? 0.4 : 1);
+    const dmg = amount * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
     this.hp -= dmg; this.flashT = 0.08;
-    if (o.knock) this.knock.addScaledVector(o.knock, 0.08);
+    if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, 0.08);
     const f = this.hp / this.maxHp;
     const want = f < 0.33 ? 2 : f < 0.66 ? 1 : 0;
-    if (want > this.phase && this.hp > 0) this.enterPhase(want);
+    if (want > this.phase && this.hp > 0 && this.stunT <= 0) this.enterPhase(want);
     if (this.hp <= 0) this.die();
     return dmg;
   }
   enterPhase(n) {
     const g = this.game;
     this.phase = n;
+    this.swooping = false; this.knock.set(0, 0, 0);
     this.co = this.roar(); this.coWait = 0;
     toast(`PHASE ${n + 1}`, 'big');
     g.audio?.boss();
     g.fx.flash(this.B.color, 0.4, 0.3);
     g.shake(0.7);
-    if (this.id === 'mahito' && n === 2) this.rig.root.scale.setScalar(1.9 * 1.35);
   }
   die() {
     const g = this.game;
-    this.dead = true; this.deathT = 0; this.co = null;
+    this.dead = true; this.deathT = 0; this.co = null; this.stunT = 0;
     g.slowMo(1.6, 0.25);
-    g.shake(1); g.fx.flash(0xffffff, 0.7, 0.4);
+    g.shake(1); g.fx.flash(0xffd84a, 0.6, 0.4);
     g.audio?.enemyDie(true); g.audio?.gong();
     g.lights.remove(this.lightH);
     for (const m of g.markers.items) if (m.active && !m.keep) g.markers.cancel(m);
@@ -127,7 +161,7 @@ export class Boss {
   // ---------------------------------------------------------------- helpers
   target() {
     let best = null, bd = Infinity;
-    for (const p of this.game.hostileTargets()) { if (p.dead || p.downed) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = p; } }
+    for (const p of this.game.hostileTargets()) { if (p.dead || p.downed || p.invisible) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = p; } }
     return best;
   }
   hurtPlayers(center, radius, dmg, knockPow = 8, filter = null) {
@@ -137,8 +171,37 @@ export class Boss {
       if (tmp.length() < radius + (p.radius ?? 0.3) && Math.abs(dy) < 3 && (!filter || filter(p))) p.takeDamage(dmg, this, { knock: tmp.normalize().multiplyScalar(knockPow) });
     }
   }
+  // players inside a line from `from` along `dir`
+  hurtLine(from, dir, len, half, dmg, knockPow = 8, hit = null) {
+    for (const p of this.game.hostileTargets()) {
+      if (p.dead || hit?.has(p)) continue;
+      tmp.subVectors(p.pos, from); const dy = tmp.y; tmp.y = 0;
+      const along = tmp.dot(dir), lat = Math.abs(tmp.x * dir.z - tmp.z * dir.x);
+      if (along > -0.5 && along < len && lat < half + (p.radius ?? 0.3) && Math.abs(dy) < 3) { hit?.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(knockPow) }); }
+    }
+  }
   ground(p) { const gy = this.game.world.groundBelow(p.x, p.z, p.y + 4); return isFinite(gy) ? gy : p.y; }
-  // ---------------------------------------------------------------- coroutines
+  faceTarget(t) { if (t) this.facing = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z); return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
+  mouth() { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3()) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
+  // A straight dash along dir (swoop, charge, pounce). Returns 'wall' if a
+  // tall obstacle stopped it and stopOnWall is set.
+  *dashLine(dir, speed, ticks, dmg, { stopOnWall = false, hitR = 2.2, dust = 0x8a7a6a, trail = null } = {}) {
+    const g = this.game, w = g.world, hit = new Set();
+    for (let k = 0; k < ticks; k++) {
+      this.knock.copy(dir).multiplyScalar(speed);
+      for (const p of g.hostileTargets()) { if (!p.dead && !hit.has(p) && p.pos.distanceTo(this.pos) < hitR + (p.radius ?? 0.3)) { hit.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(13).setY(4) }); } }
+      if (dust) g.particles.burst(this.pos, { count: 3, color: dust, additive: false, speed: 2, life: 0.5, size: 0.6, sizeEnd: 1.6 });
+      trail?.(k);
+      if (stopOnWall) {
+        const ax = this.pos.x + dir.x * (this.radius + 0.5), az = this.pos.z + dir.z * (this.radius + 0.5);
+        if (w.solidAt(ax, this.pos.y + 1.5, az) && w.solidAt(ax, this.pos.y + 2.5, az)) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
+      }
+      yield 0.04;
+    }
+    this.knock.set(0, 0, 0);
+    return 'done';
+  }
+  // ---------------------------------------------------------------- shared patterns
   *roar() {
     const g = this.game;
     this.untargetable = true; this.anim = { type: 'raise', t: 0 }; this.moving = false;
@@ -147,40 +210,198 @@ export class Boss {
     yield 1.2;
     this.untargetable = false; this.anim = null; this.moving = true;
   }
-  *meteors(n = 6) {
+  *summon_pups() {
     const g = this.game;
     this.anim = { type: 'raise', t: 0 }; this.moving = false;
-    const spots = [];
-    for (const p of g.hostileTargets()) if (!p.dead) spots.push(p.pos.clone());
-    while (spots.length < n + this.phase * 2) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 8; spots.push(this.home.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r))); }
-    for (const s of spots) { s.y = this.ground(s); g.markers.spawn({ pos: s, radius: 2, dur: 1.2, color: 0xff4a1a }); }
-    yield 1.2;
-    this.anim = null; this.moving = true;
-    for (const s of spots) {
-      g.fx.explosion(s, 0xff6a1a, 2);
-      this.hurtPlayers(s, 2, this.dmg, 7);
-      g.hazards.fire(s, this.dmg * 0.4, 1.3);
-      g.combat.hitBlocks(s, tmp.set(0, 0, 1), 1.5, Math.PI, 40, null);
-      g.audio?.energy('explode');
-      yield 0.08;
+    const kinds = ['pup', 'pup'];
+    if (this.phase >= 1) kinds.push('harpy');
+    if (this.phase >= 2) kinds.push('pup', 'harpy');
+    for (const kind of kinds) {
+      const a = Math.random() * Math.PI * 2; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3.5, 0, Math.sin(a) * 3.5)); s.y = this.ground(s);
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color);
     }
-    yield 0.6;
+    g.audio?.energy('summon');
+    yield 1.0;
+    this.anim = null; this.moving = true;
   }
-  *flame_cone() {
+  // ---------------------------------------------------------------- Alecto
+  *whip_lash() {
+    const g = this.game;
+    for (let k = 0; k < 1 + this.phase; k++) {
+      const t = this.target(); if (!t) break;
+      this.moving = false;
+      const dir = this.faceTarget(t);
+      const from = this.pos.clone().setY(this.ground(this.pos));
+      g.markers.spawn({ pos: from, shape: 'rect', width: 1.8, length: 10, facing: this.facing, dur: 0.75 - this.phase * 0.1, color: 0xff3a1a });
+      this.anim = { type: 'attack', t: 0.2, style: 'swingR', windup: 0.3, strike: 0.5 };
+      yield 0.75 - this.phase * 0.1;
+      this.anim = { type: 'attack', t: 0.6, style: 'swingR', windup: 0.3, strike: 0.5 }; this.whipCrack = 0.3;
+      const o = from.clone().setY(from.y + 1);
+      g.fx.slashLine(o, dir, 10, 0xff8a2a, 0.5, 0.25);
+      for (let s = 1; s < 10; s += 1) g.particles.burst(o.clone().addScaledVector(dir, s), { count: 3, color: 0xff7a1a, speed: 2, up: 1, life: 0.4, size: 0.25, sizeEnd: 0.05 });
+      g.audio?.energy('slash'); g.audio?.impact(1.2);
+      this.hurtLine(from, dir, 10, 0.9, this.dmg, 7);
+      yield 0.35;
+    }
+    this.anim = null; this.moving = true;
+    yield 0.5;
+  }
+  *swoop() {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
-    this.facing = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z);
-    g.markers.spawn({ pos: this.pos, radius: 10, dur: 0.9, shape: 'cone', arc: 0.22, facing: this.facing, color: 0xff5a1a });
-    this.anim = { type: 'cast', t: 1, both: true };
+    const dir = this.faceTarget(t);
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3, length: 16, facing: this.facing, dur: 0.95, color: 0xff2a1a });
+    this.anim = { type: 'raise', t: 0 }; this.hoverY = (this.B.hover ?? 0) + 1.2;
+    g.audio?.tone({ freq: 700, to: 1400, dur: 0.5, gain: 0.07, type: 'sawtooth', filter: 3000 });
+    yield 0.95;
+    this.swooping = true; this.hoverY = 0.3; this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
+    g.audio?.whoosh(1.6);
+    yield* this.dashLine(dir, 24, 16, this.dmg * 1.1, { dust: 0x3a2a24, hitR: 2 });
+    this.swooping = false; this.hoverY = this.B.hover ?? 0;
+    this.anim = null; this.moving = true;
+    yield 0.7;
+  }
+  *whip_ring() {
+    const g = this.game;
+    this.moving = false;
+    const R = 5.5;
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 1.0, color: 0xff3a1a, follow: this });
+    this.anim = { type: 'attack', t: 0.2, style: 'spin', windup: 0.3, strike: 0.5 };
+    yield 1.0;
+    this.anim = { type: 'attack', t: 0.7, style: 'spin', windup: 0.3, strike: 0.5 }; this.whipCrack = 0.5;
+    g.fx.shockwave(this.pos, 0xff7a1a, R + 0.5); g.fx.slashArc(this.pos, this.facing, 0xff8a2a, R, 1, 0.3);
+    g.audio?.energy('fire'); g.shake(0.35);
+    this.hurtPlayers(this.pos, R, this.dmg * 1.1, 11);
+    const n = 6 + this.phase * 2;
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.hazards.fire(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 4.2, 0, Math.sin(a) * 4.2)), this.dmg * 0.35, 1.1); }
+    yield 0.5;
+    this.anim = null; this.moving = true;
+    yield 0.4;
+  }
+  *screech() {
+    const g = this.game;
+    this.moving = false; this.anim = { type: 'raise', t: 0 };
+    const R = 9;
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xb05aff, follow: this });
     yield 0.9;
+    g.fx.shockwave(this.pos, 0xd8a0ff, R); g.fx.screenWave(this.pos, 0.8, 0.5); g.fx.chroma(0.6);
+    g.audio?.tone({ freq: 1400, to: 2200, dur: 0.6, gain: 0.1, type: 'sawtooth', filter: 5000 }); g.audio?.tone({ freq: 1500, to: 900, dur: 0.6, gain: 0.07, type: 'square', filter: 4000, at: 0.05 });
+    for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(this.pos) < R) { p.slowT = Math.max(p.slowT ?? 0, 2.5); p.takeDamage(this.dmg * 0.3, this, { knock: tmp.subVectors(p.pos, this.pos).setY(0).normalize().multiplyScalar(5) }); }
+    yield 0.6;
+    this.anim = null; this.moving = true;
+    yield 0.3;
+  }
+  // ---------------------------------------------------------------- Minotaur
+  *bull_charge() {
+    const g = this.game;
+    const n = this.phase === 0 ? 1 : this.phase + 1;
+    for (let k = 0; k < n; k++) {
+      const t = this.target(); if (!t) break;
+      this.moving = false;
+      const dir = this.faceTarget(t);
+      const tele = Math.max(0.6, 1.15 - this.phase * 0.2 - k * 0.1);
+      g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3, length: 20, facing: this.facing, dur: tele, color: 0xff2a1a });
+      this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
+      g.audio?.tone({ freq: 90, to: 60, dur: tele, gain: 0.25, type: 'sawtooth', filter: 500 });
+      for (let i = 0; i < 3; i++) { g.particles.burst(this.pos, { count: 6, color: 0x8a7a6a, additive: false, speed: 2, up: 1, life: 0.5, size: 0.5, sizeEnd: 1.4 }); yield tele / 3; }
+      this.anim = { type: 'attack', t: 0.3, style: 'punch', windup: 0.3, strike: 0.5 };
+      g.audio?.impact(1.4);
+      const r = yield* this.dashLine(dir, 20 + this.phase * 4, 22, this.dmg * 1.3, { stopOnWall: true, hitR: 2.4 });
+      if (r === 'wall') { yield* this.stuck(dir); return; }
+      this.anim = null;
+      yield 0.5;
+    }
+    this.anim = null; this.moving = true;
+    yield 0.6;
+  }
+  *stuck(dir) {
+    const g = this.game;
+    const c = this.pos.clone().addScaledVector(dir, this.radius + 0.4).setY(this.pos.y + 2.2);
+    g.shake(0.9); g.fx.explosion(c, 0xc9a070, 1.6); g.audio?.impact(2.2); g.audio?.breakBlock('wood');
+    for (let i = 0; i < 10; i++) g.debris.spawn(c.clone(), new THREE.Vector3((Math.random() - 0.5) * 6, 4 + Math.random() * 4, (Math.random() - 0.5) * 6), 0.35, new THREE.Color(0.4, 0.3, 0.2), 1.2);
+    toast('His horns are stuck! Strike now!', 'big');
+    this.stunT = 3; this.anim = { type: 'stagger', t: 0 }; this.moving = false;
+    yield 3;
+    this.stunT = 0;
+    g.particles.burst(c, { count: 16, color: 0x8a6a4a, additive: false, speed: 4, life: 0.6, size: 0.4, gravity: 8 });
+    this.anim = { type: 'raise', t: 0 };
+    g.audio?.tone({ freq: 120, to: 70, dur: 0.8, gain: 0.3, type: 'sawtooth', filter: 600 });
+    yield 0.6;
+    this.anim = null; this.moving = true;
+  }
+  *horn_sweep() {
+    const g = this.game, t = this.target(); if (!t) return;
+    this.moving = false;
+    this.faceTarget(t);
+    g.markers.spawn({ pos: this.pos, radius: 5.2, dur: 0.7, shape: 'cone', arc: 0.95, facing: this.facing, color: 0xff2a1a, follow: this });
+    this.anim = { type: 'attack', t: 0.2, style: 'swingR', windup: 0.3, strike: 0.5 };
+    yield 0.7;
+    this.anim = { type: 'attack', t: 0.6, style: 'swingR', windup: 0.3, strike: 0.5 };
+    g.fx.slashArc(this.pos, this.facing, 0xfff0d0, 5.2, 0.95, 0.2);
+    g.audio?.swing(2); g.audio?.impact(1.4);
+    for (const p of g.hostileTargets()) { if (p.dead) continue; tmp.subVectors(p.pos, this.pos).setY(0); if (tmp.length() < 5.5 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 1.1) p.takeDamage(this.dmg, this, { knock: tmp.normalize().multiplyScalar(11).setY(5) }); }
+    yield 0.4;
+    this.anim = null; this.moving = true;
+    yield 0.4;
+  }
+  *stomp() {
+    const g = this.game;
+    this.moving = false;
+    const R = 6.5;
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.9, color: 0xff2a1a, follow: this });
+    this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
+    yield 0.9;
+    this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
+    g.fx.shockwave(this.pos, 0xc9a070, R); g.shake(0.6); g.audio?.impact(2);
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; g.debris.spawn(this.pos.clone().setY(this.pos.y + 0.5), new THREE.Vector3(Math.cos(a) * 8, 5, Math.sin(a) * 8), 0.4, new THREE.Color(0.35, 0.3, 0.22), 1.2); }
+    this.hurtPlayers(this.pos, R, this.dmg * 0.9, 12);
+    yield 0.5;
+    this.anim = null; this.moving = true;
+    yield 0.4;
+  }
+  *rock_throw() {
+    const g = this.game;
+    this.moving = false;
+    for (let k = 0; k < 1 + Math.min(1, this.phase); k++) {
+      const t = this.target(); if (!t) break;
+      this.faceTarget(t);
+      this.anim = { type: 'attack', t: 0.2, style: 'throw', windup: 0.3, strike: 0.5 };
+      const c = (t.vel ? t.pos.clone().addScaledVector(t.vel, 0.5) : t.pos.clone()); c.y = this.ground(c);
+      const flight = 1.1;
+      g.markers.spawn({ pos: c, radius: 2.4, dur: 0.6 + flight, color: 0xff2a1a });
+      yield 0.6;
+      this.anim = { type: 'attack', t: 0.6, style: 'throw', windup: 0.3, strike: 0.5 };
+      const from = this.pos.clone().setY(this.pos.y + this.height);
+      const grav = 16;
+      const vel = new THREE.Vector3((c.x - from.x) / flight, (c.y - from.y) / flight + 0.5 * grav * flight, (c.z - from.z) / flight);
+      const self = this;
+      g.projectiles.fire({ pos: from, vel, team: 'enemy', dmg: this.dmg, gravity: grav, life: flight, shape: 'cube', color: 0x7a6a58, emissive: 0.2, scale: 4, radius: 0.9, ghost: true,
+        trail: (p) => { if (Math.random() < 0.4) g.particles.burst(p.pos, { count: 1, color: 0x8a7a6a, additive: false, speed: 0.4, life: 0.5, size: 0.4, sizeEnd: 0.8 }); },
+        onHit: (target) => { target.takeDamage(self.dmg, self, { knock: tmp.set(vel.x, 0, vel.z).normalize().multiplyScalar(8) }); },
+        onExpire: (p) => { g.fx.explosion(p.pos, 0xc9a070, 2.2); self.hurtPlayers(p.pos, 2.4, self.dmg * 0.8, 9); g.shake(0.3); for (let i = 0; i < 6; i++) g.debris.spawn(p.pos.clone().setY(p.pos.y + 0.5), new THREE.Vector3((Math.random() - 0.5) * 8, 5, (Math.random() - 0.5) * 8), 0.45, new THREE.Color(0.45, 0.4, 0.34), 1.4); } });
+      g.audio?.whoosh(1.5);
+      yield 0.5;
+    }
+    this.anim = null; this.moving = true;
+    yield 0.4;
+  }
+  // ---------------------------------------------------------------- Chimera
+  *fire_breath() {
+    const g = this.game, t = this.target(); if (!t) return;
+    this.moving = false;
+    this.faceTarget(t);
+    g.markers.spawn({ pos: this.pos, radius: 11, dur: 0.9, shape: 'cone', arc: 0.28, facing: this.facing, color: 0xff5a1a });
+    this.anim = { type: 'raise', t: 0 };
+    yield 0.9;
+    this.anim = { type: 'cast', t: 1 };
     g.audio?.energy('fire');
-    for (let k = 0; k < 14; k++) {
+    for (let k = 0; k < 16; k++) {
       const dir = tmp2.set(Math.sin(this.facing), 0, Math.cos(this.facing));
-      const from = this.pos.clone().setY(this.pos.y + 2.5).addScaledVector(dir, 1.5);
-      g.particles.burst(from, { count: 10, color: 0xff7a2a, speed: 16, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
+      const from = this.mouth();
+      g.particles.burst(from, { count: 10, color: k % 2 ? 0xff7a2a : 0xffc84a, speed: 16, spread: 0.25, dir, life: 0.6, size: 0.5, sizeEnd: 2.5, drag: 1.5, intensity: 3 });
       if (k % 3 === 0) for (const p of g.hostileTargets()) {
         if (p.dead) continue; tmp.subVectors(p.pos, this.pos).setY(0); const d = tmp.length();
-        if (d < 10.5 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 0.72) p.takeDamage(this.dmg * 0.35, this, { knock: tmp.normalize().multiplyScalar(4) });
+        if (d < 11.5 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 0.75) p.takeDamage(this.dmg * 0.35, this, { knock: tmp.normalize().multiplyScalar(4) });
       }
       g.lights.flash(from.addScaledVector(dir, 4), 0xff6a1a, 8, 10, 0.1);
       yield 0.06;
@@ -188,180 +409,65 @@ export class Boss {
     this.anim = null; this.moving = true;
     yield 0.5;
   }
-  *lava_ring() {
+  *fireballs() {
     const g = this.game;
-    this.moving = false; this.anim = { type: 'raise', t: 0 };
-    for (let ring = 1; ring <= 3; ring++) {
-      const R = ring * 3.2, n = 6 + ring * 4;
-      const spots = [];
-      for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + ring; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * R, 0, Math.sin(a) * R)); s.y = this.ground(s); spots.push(s); g.markers.spawn({ pos: s, radius: 1.5, dur: 0.8, color: 0xff3a1a }); }
-      yield 0.8;
-      for (const s of spots) { g.particles.burst(s, { count: 8, color: 0xff6a1a, speed: 7, up: 3, life: 0.6, size: 0.3, gravity: 12, shape: 1 }); this.hurtPlayers(s, 1.5, this.dmg * 0.7, 6); }
-      g.audio?.impact(1.2); g.shake(0.2);
-      yield 0.25;
+    this.moving = false; this.anim = { type: 'cast', t: 1 };
+    const spots = [];
+    for (const p of g.hostileTargets()) if (!p.dead && !p.invisible) spots.push(p.pos.clone());
+    while (spots.length < 4 + this.phase * 2) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 8; spots.push(this.pos.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r))); }
+    const self = this, flight = 1.0, grav = 14;
+    for (const s of spots) {
+      s.y = this.ground(s);
+      g.markers.spawn({ pos: s, radius: 2, dur: flight + 0.05, color: 0xff4a1a });
+      const from = this.mouth();
+      const vel = new THREE.Vector3((s.x - from.x) / flight, (s.y - from.y) / flight + 0.5 * grav * flight, (s.z - from.z) / flight);
+      g.projectiles.fire({ pos: from, vel, team: 'enemy', dmg: this.dmg, gravity: grav, life: flight, shape: 'orb', color: 0xff6a1a, scale: 2.6, radius: 0.6, ghost: true, light: 4,
+        trail: (p) => { g.particles.burst(p.pos, { count: 1, color: 0xff8a2a, speed: 0.4, life: 0.4, size: 0.5, sizeEnd: 0.1, drag: 3 }); },
+        onHit: (target) => target.takeDamage(self.dmg * 0.6, self, {}),
+        onExpire: (p) => { g.fx.explosion(p.pos, 0xff6a1a, 2); self.hurtPlayers(p.pos, 2, self.dmg, 7); g.hazards.fire(p.pos, self.dmg * 0.4, 1.3); } });
+      g.audio?.energy('fire');
+      yield 0.12;
     }
+    yield flight;
     this.anim = null; this.moving = true;
     yield 0.4;
   }
-  *insects() {
+  *tail_strike() {
     const g = this.game;
-    this.anim = { type: 'raise', t: 0 }; this.moving = false;
-    for (let i = 0; i < 2 + this.phase; i++) { const a = Math.random() * Math.PI * 2; const s = this.pos.clone().add(new THREE.Vector3(Math.cos(a) * 3, 0, Math.sin(a) * 3)); s.y = this.ground(s); const e = g.spawnEnemy(this.id === 'mahito' ? 'swarmer' : this.id === 'hanami' ? 'spitter' : 'imp', s, { summoned: true, level: g.mission?.difficulty ?? 1 }); if (e) g.fx.summonCircle(s, this.B.color); }
-    g.audio?.energy('summon');
-    yield 1.0;
-    this.anim = null; this.moving = true;
-  }
-  *maximum_meteor() {
-    const g = this.game, t = this.target(); if (!t) return;
-    this.moving = false; this.anim = { type: 'raise', t: 0 };
-    const c = t.pos.clone(); c.y = this.ground(c);
-    g.markers.spawn({ pos: c, radius: 6.5, dur: 2.6, color: 0xff2a0a });
-    toast('MAXIMUM: METEOR', 'big');
-    const rock = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), solid(0xff5a1a, 2.5));
-    rock.position.copy(c).add(new THREE.Vector3(0, 40, 0)); g.scene.add(rock);
-    for (let k = 0; k < 26; k++) { rock.position.y = c.y + 40 * (1 - k / 26); rock.rotation.x += 0.1; rock.rotation.z += 0.07; g.particles.burst(rock.position, { count: 6, color: 0xff7a2a, speed: 3, life: 0.6, size: 0.8, sizeEnd: 2 }); yield 0.1; }
-    g.scene.remove(rock);
-    g.fx.explosion(c, 0xff5a1a, 6.5); g.fx.screenWave(c, 1.4, 0.7); g.shake(1); g.fx.flash(0xff8a3a, 0.5, 0.3);
-    this.hurtPlayers(c, 6.5, this.dmg * 2.5, 16);
-    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.hazards.fire(c.clone().add(new THREE.Vector3(Math.cos(a) * 3, 0, Math.sin(a) * 3)), this.dmg * 0.4, 1.4); }
-    g.combat.hitBlocks(c, tmp.set(0, 0, 1), 5, Math.PI, 200, null);
-    this.anim = null; this.moving = true;
-    yield 1.2;
-  }
-  *roots() {
-    const g = this.game;
-    this.moving = false; this.anim = { type: 'attack', t: 0.25, style: 'slam', windup: 0.3, strike: 0.5 };
-    const targets = g.hostileTargets().filter((p) => !p.dead);
-    const lines = [];
-    for (let i = 0; i < 3 + this.phase; i++) {
-      const p = targets[i % Math.max(1, targets.length)];
-      const ang = p ? Math.atan2(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + (i >= targets.length ? (Math.random() - 0.5) * 1.6 : 0) : Math.random() * 6;
-      g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 2.2, length: 16, facing: ang, dur: 1.0, color: 0xff3a1a });
-      lines.push(ang);
-    }
-    this.anim = { type: 'raise', t: 0 };
-    yield 1.0;
-    g.audio?.impact(1.8); g.shake(0.4);
-    for (const ang of lines) {
-      const dir = new THREE.Vector3(Math.sin(ang), 0, Math.cos(ang));
-      for (let s = 1.5; s < 16; s += 1.2) {
-        const q = this.pos.clone().addScaledVector(dir, s); q.y = this.ground(q);
-        g.particles.burst(q, { count: 5, color: 0x6a4a2a, additive: false, speed: 4, up: 3, life: 0.6, size: 0.5, gravity: 10, sizeEnd: 1.2 });
-        g.debris.spawn(q.clone().setY(q.y + 0.5), new THREE.Vector3((Math.random() - 0.5) * 2, 7 + Math.random() * 3, (Math.random() - 0.5) * 2), 0.5, new THREE.Color(0.3, 0.2, 0.1), 1.2);
-      }
-      for (const p of g.hostileTargets()) {
-        if (p.dead) continue; tmp.subVectors(p.pos, this.pos).setY(0);
-        const along = tmp.dot(dir), lat = Math.abs(tmp.x * dir.z - tmp.z * dir.x);
-        if (along > 0 && along < 16 && lat < 1.3) p.takeDamage(this.dmg, this, { knock: new THREE.Vector3(0, 0, 0) }), p.vel.y = 9;
-      }
-    }
-    this.anim = null; this.moving = true;
+    this.moving = false;
+    const R = 5;
+    g.markers.spawn({ pos: this.pos, radius: R, dur: 0.8, color: 0x8aff3a, follow: this });
+    this.anim = { type: 'attack', t: 0.1, style: 'spin', windup: 0.3, strike: 0.5 };
+    g.audio?.noise({ dur: 0.8, gain: 0.2, type: 'highpass', freq: 5000 }); // rattle
     yield 0.8;
-  }
-  *seeds() {
-    const g = this.game;
-    this.anim = { type: 'cast', t: 1, both: false }; this.moving = false;
-    const t = this.target();
-    for (let i = 0; i < 3 + this.phase; i++) {
-      if (!t) break;
-      const from = this.pos.clone().setY(this.pos.y + 3.5);
-      const self = this;
-      g.projectiles.fire({ pos: from, vel: new THREE.Vector3((Math.random() - 0.5) * 6, 8, (Math.random() - 0.5) * 6), team: 'enemy', dmg: this.dmg * 0.6, shape: 'cube', color: 0x9a6a3a, emissive: 0.6, gravity: 6, life: 5, homing: 2.2, target: t, scale: 1.8, radius: 0.6,
-        onHit: (p) => { p.takeDamage(self.dmg * 0.6, self, { knock: tmp.subVectors(p.pos, from).setY(0).normalize().multiplyScalar(6) }); },
-        onExpire: (pr) => { g.fx.explosion(pr.pos, 0x9aff5a, 1.8); self.hurtPlayers(pr.pos, 1.8, self.dmg * 0.5, 6); } });
-      yield 0.3;
-    }
+    this.anim = { type: 'attack', t: 0.6, style: 'spin', windup: 0.3, strike: 0.5 };
+    g.fx.slashArc(this.pos, this.facing + Math.PI, 0x8aff3a, R, 1, 0.25);
+    g.audio?.swing(1);
+    this.hurtPlayers(this.pos, R, this.dmg * 0.9, 10);
+    const back = this.pos.clone().add(new THREE.Vector3(-Math.sin(this.facing) * 3, 0, -Math.cos(this.facing) * 3));
+    g.hazards.acid(back, this.dmg * 0.4);
+    yield 0.5;
     this.anim = null; this.moving = true;
-    yield 0.8;
+    yield 0.3;
   }
-  *flowers() {
-    const g = this.game;
-    for (const p of g.hostileTargets()) if (!p.dead) { const s = p.pos.clone(); g.markers.spawn({ pos: s, radius: 3.5, dur: 1, color: 0xff7ab0 }); setTimeout(() => g.hazards.add({ pos: s, radius: 3.5, dps: this.dmg * 0.5, dur: 5, color: 0xff7ab0, slow: 0.5 }), 1000); }
-    this.anim = { type: 'raise', t: 0 }; this.moving = false;
-    yield 1.1;
-    this.anim = null; this.moving = true;
-  }
-  *charge() {
+  *pounce() {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
-    const ang = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z); this.facing = ang;
-    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), shape: 'rect', width: 3, length: 14, facing: ang, dur: 0.9, color: 0xff2a1a });
-    this.anim = { type: 'attack', t: 0.2, style: 'slam', windup: 0.3, strike: 0.5 };
-    yield 0.9;
-    const dir = new THREE.Vector3(Math.sin(ang), 0, Math.cos(ang));
-    const hit = new Set();
-    for (let k = 0; k < 14; k++) {
-      this.knock.copy(dir).multiplyScalar(26);
-      for (const p of g.hostileTargets()) { if (!p.dead && !hit.has(p) && p.pos.distanceTo(this.pos) < 2.4) { hit.add(p); p.takeDamage(this.dmg * 1.1, this, { knock: dir.clone().multiplyScalar(12) }); } }
-      g.particles.burst(this.pos, { count: 3, color: 0x8a7a6a, additive: false, speed: 2, life: 0.5, size: 0.6, sizeEnd: 1.6 });
-      g.combat.hitBlocks(this.pos, dir, 2, 1.2, 80, null);
-      yield 0.04;
-    }
-    this.knock.set(0, 0, 0);
-    this.anim = null; this.moving = true;
-    yield 0.8;
-  }
-  *buds() {
-    const g = this.game;
-    this.anim = { type: 'raise', t: 0 }; this.moving = false;
-    for (let i = 0; i < 3; i++) {
-      const a = i / 3 * Math.PI * 2 + Math.random(); const s = this.home.clone().add(new THREE.Vector3(Math.cos(a) * 7, 0, Math.sin(a) * 7)); s.y = this.ground(s);
-      const e = g.spawnEnemy('summoner', s, { level: g.mission?.difficulty ?? 1 }); if (e) { e.displayName = 'Cursed Bud'; this.buds.push(e); g.fx.summonCircle(s, 0x7aff5a); }
-    }
-    toast('Destroy the Cursed Buds!');
-    yield 1.2;
-    this.anim = null; this.moving = true;
-  }
-  *blades() {
-    const g = this.game;
-    this.rig.extras.bladeR.visible = this.rig.extras.bladeL.visible = true;
-    for (let k = 0; k < 3; k++) {
-      const t = this.target(); if (!t) break;
-      this.facing = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z);
-      this.moving = false;
-      g.markers.spawn({ pos: this.pos, radius: 4.2, dur: 0.55, shape: 'cone', arc: 0.4, facing: this.facing, color: 0xff2a3a, follow: this });
-      this.anim = { type: 'attack', t: 0.2, style: k % 2 ? 'swingL' : 'swingR', windup: 0.3, strike: 0.5 };
-      yield 0.55;
-      this.anim = { type: 'attack', t: 0.6, style: k % 2 ? 'swingL' : 'swingR', windup: 0.3, strike: 0.5 };
-      g.fx.slashArc(this.pos, this.facing, 0x9ad8ff, 4.2, 0.4, 0.18, k % 2 === 1);
-      g.audio?.energy('slash');
-      for (const p of g.hostileTargets()) { if (p.dead) continue; tmp.subVectors(p.pos, this.pos).setY(0); if (tmp.length() < 4.6 && Math.abs(angleDiff(this.facing, Math.atan2(tmp.x, tmp.z))) < 1.3) p.takeDamage(this.dmg, this, { knock: tmp.normalize().multiplyScalar(7) }); }
-      this.knock.set(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(8);
-      yield 0.25;
-    }
-    this.rig.extras.bladeR.visible = this.rig.extras.bladeL.visible = false;
-    this.anim = null; this.moving = true;
+    const dir = this.faceTarget(t);
+    const dist = Math.min(12, t.pos.distanceTo(this.pos));
+    const land = this.pos.clone().addScaledVector(dir, dist); land.y = this.ground(land);
+    g.markers.spawn({ pos: land, radius: 3, dur: 0.85, color: 0xff2a1a });
+    this.anim = { type: 'attack', t: 0.15, style: 'bite', windup: 0.3, strike: 0.5 };
+    yield 0.85;
+    this.anim = { type: 'dodge', t: 0.5 };
+    this.vel.y = 9;
+    yield* this.dashLine(dir, dist / 0.4, 10, this.dmg * 0.6, { dust: 0 });
+    this.anim = { type: 'attack', t: 0.5, style: 'bite', windup: 0.3, strike: 0.5 };
+    g.fx.shockwave(this.pos, 0xff8a3a, 3.4); g.shake(0.5); g.audio?.impact(1.8);
+    this.hurtPlayers(this.pos, 3, this.dmg * 1.1, 11);
     yield 0.5;
-  }
-  *dash() {
-    const g = this.game;
-    for (let k = 0; k < 1 + this.phase; k++) { yield* this.charge(); }
-  }
-  *transfigured() { yield* this.insects(); }
-  *repel() {
-    const g = this.game;
-    this.moving = false; this.anim = { type: 'raise', t: 0 };
-    g.markers.spawn({ pos: this.pos, radius: 5.5, dur: 1.0, color: 0xff2a3a, follow: this });
-    yield 1.0;
-    g.fx.explosion(this.pos, 0x9ad8ff, 5.5); g.shake(0.5);
-    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; g.debris.spawn(this.pos.clone().setY(this.pos.y + 1), new THREE.Vector3(Math.cos(a) * 12, 4, Math.sin(a) * 12), 0.4, new THREE.Color(0.7, 0.8, 0.9), 1.5); }
-    this.hurtPlayers(this.pos, 5.5, this.dmg * 1.2, 14);
     this.anim = null; this.moving = true;
-    yield 0.6;
-  }
-  *distort() {
-    const g = this.game;
-    this.moving = false; this.anim = { type: 'attack', t: 0.25, style: 'slam', windup: 0.3, strike: 0.5 };
-    for (let k = 0; k < 3; k++) {
-      const spots = g.hostileTargets().filter((p) => !p.dead).map((p) => p.pos.clone());
-      for (const s of spots) g.markers.spawn({ pos: s, radius: 3, dur: 0.7, color: 0xff2a3a });
-      yield 0.7;
-      for (const s of spots) { g.fx.shockwave(s, 0x9ad8ff, 3.4); this.hurtPlayers(s, 3, this.dmg * 1.1, 10); }
-      g.audio?.impact(1.6); g.shake(0.4);
-      yield 0.3;
-    }
-    this.anim = null; this.moving = true;
-    yield 0.5;
+    yield 0.4;
   }
   pickPattern() {
     const list = this.B.phases[Math.max(0, Math.min(2, this.phase | 0))];
@@ -376,16 +482,17 @@ export class Boss {
     const g = this.game;
     if (this.dead) {
       this.deathT += dt;
-      if (Math.random() < 0.5) g.fx.explosion(this.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * 4, (Math.random() - 0.5) * 3)), this.B.color, 1.5);
-      this.object.scale.setScalar(Math.max(0.01, (1 - this.deathT / 1.8)) * this.rig.spec.scale);
+      if (Math.random() < 0.5) goldDust(g, this.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * this.height, (Math.random() - 0.5) * 3)), 1);
+      this.object.scale.setScalar(Math.max(0.01, (1 - this.deathT / 1.8)) * (this.rig.spec.scale ?? 1));
       this.object.rotation.y += dt * 4;
-      if (this.deathT > 1.8) { g.fx.curseDeath(this.pos.clone().setY(this.pos.y + 2), 3, this.B.color); return false; }
+      if (this.deathT > 1.8) { goldDust(g, this.pos.clone().setY(this.pos.y + 2), 3, { big: true }); return false; }
       return true;
     }
-    if (g.frozen && g.domainSys.inside(this.pos)) { this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null); this.flashT -= dt; return true; }
-    this.flashT -= dt;
+    if (g.frozen && g.domainSys?.inside(this.pos)) { this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null); this.flashT -= dt; return true; }
+    this.flashT -= dt; this.whipCrack = (this.whipCrack ?? 0) - dt;
     this.intro = Math.max(0, this.intro - dt);
-    this.buds = this.buds.filter((b) => !b.dead);
+    this.mark = Math.max(0, this.mark - dt);
+    for (const k in this.status) this.status[k] = Math.max(0, this.status[k] - dt);
     const t = this.target();
     // coroutine
     if (this.intro <= 0) {
@@ -399,24 +506,40 @@ export class Boss {
     }
     // movement toward the nearest player
     let move = tmp2.set(0, 0, 0);
-    if (t && this.moving && this.intro <= 0) {
+    if (t && this.moving && this.intro <= 0 && this.stunT <= 0) {
       tmp.subVectors(t.pos, this.pos).setY(0); const d = tmp.length();
-      if (d > 3.5) move.copy(tmp.normalize().multiplyScalar(this.B.speed * (1 + this.phase * 0.2)));
+      const slow = (this.status.slow > 0 ? 0.6 : 1) * (this.slowT > 0 ? 0.7 : 1);
+      if (d > 3.5) move.copy(tmp.normalize().multiplyScalar(this.B.speed * (1 + this.phase * 0.2) * slow));
       this.facing = dampAngle(this.facing, Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z), 4, dt);
     }
+    this.slowT = (this.slowT ?? 0) - dt;
     this.vel.x = damp(this.vel.x, move.x + this.knock.x, 8, dt); this.vel.z = damp(this.vel.z, move.z + this.knock.z, 8, dt);
-    this.knock.multiplyScalar(Math.exp(-dt * 5));
+    if (!this.swooping) this.knock.multiplyScalar(Math.exp(-dt * 5));
     moveEntity(this, g.world, dt);
     if (this.pos.y < -4) { this.pos.copy(this.home); this.vel.set(0, 0, 0); }
     // visuals
     this.visY = this.stepped ? damp(this.visY, this.pos.y, 12, dt) : this.pos.y; if (Math.abs(this.visY - this.pos.y) < 0.01) this.stepped = 0;
-    this.object.position.set(this.pos.x, this.visY + (this.intro > 0 ? -this.intro * 1.2 : 0), this.pos.z);
+    this.hover = damp(this.hover ?? this.hoverY, this.hoverY, this.swooping ? 10 : 3, dt);
+    const bob = this.B.hover ? Math.sin(performance.now() * 0.003) * 0.2 : 0;
+    this.object.position.set(this.pos.x, this.visY + this.hover + bob + (this.intro > 0 ? -this.intro * 1.2 : 0), this.pos.z);
     this.object.rotation.y = this.facing;
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
     const sp = Math.hypot(this.vel.x, this.vel.z) / this.B.speed;
-    this.rig.animate({ dt, speed: Math.min(1, sp), vel: this.vel, action: this.anim ?? (this.intro > 0 ? { type: 'raise', t: 0 } : null) });
-    if (this.id === 'jogo' && Math.random() < 0.6) { const c = this.rig.extras.crater.getWorldPosition(tmp); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5), 3 + Math.random() * 2, (Math.random() - 0.5), 0.8, 3, 1.1, 0.3, 0.35, 2, 1, 0.3, 0); }
-    if (Math.random() < 0.3) g.fx.curseSmoke(this, null);
+    const act = this.stunT > 0 ? { type: 'stagger', t: 0 } : this.anim ?? (this.intro > 0 ? { type: 'raise', t: 0 } : null);
+    this.rig.animate({ dt, speed: Math.min(1, sp), vel: this.vel, action: act });
+    if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
+    this.rig.tick?.(dt, this);
+    this.ambient(dt);
     return true;
+  }
+  ambient(dt) {
+    const g = this.game;
+    if (this.stunT > 0 && Math.random() < 0.5) { // dizzy stars
+      const a = performance.now() * 0.006 + Math.random() * 6;
+      g.particles.glow.emit(this.pos.x + Math.cos(a) * 1.1, this.pos.y + this.height + 0.6, this.pos.z + Math.sin(a) * 1.1, 0, 0.3, 0, 0.5, 2.6, 2.2, 0.6, 0.18, 0, 0, 0.05, 1);
+    }
+    if (this.id === 'alecto' && this.rig.extras.whipTip && Math.random() < 0.7) { const c = this.rig.extras.whipTip.getWorldPosition(tmp); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5), 1 + Math.random(), (Math.random() - 0.5), 0.4, 2.6, 1.1, 0.3, 0.22, -1, 1, 0.05, 0); }
+    if (this.id === 'minotaur' && Math.random() < dt * 1.5) { const c = this.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(this.facing) * 1.5, -0.2, Math.cos(this.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); }
+    if (this.id === 'chimera' && Math.random() < 0.4) { const c = this.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); }
   }
 }

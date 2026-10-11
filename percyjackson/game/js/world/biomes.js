@@ -46,6 +46,43 @@ export const BIOMES = {
     floor: B.polished, floor2: B.subway_floor, path: B.concrete, wall: B.concrete, wall2: B.window, trim: B.sign, pillar: B.concrete_pillar, roof: B.concrete, ground: B.asphalt, accent: B.lava, pit: B.concrete,
     ambience: 'city', music: 'shibuya', particles: 'embers', wind: 0.8,
   },
+  // ---------------------------------------------------------------- Half-Blood Quests
+  // The hub: a sunny Long Island valley.
+  camp: {
+    id: 'camp', name: 'Camp Half-Blood', sub: 'Long Island Sound · Summer',
+    skyTop: 0x3f86d8, skyHorizon: 0xc4e4f4, fog: 0xc8e2ee, fogDensity: 0.0055,
+    hemiSky: 0xd8ecff, hemiGround: 0x7a6a44, hemiI: 1.15, sun: 0xfff0d2, sunI: 2.6,
+    grade: { tint: [1.04, 1.01, 0.96], lift: [0.012, 0.01, 0.0], sat: 1.12, contrast: 1.04, vignette: 0.18 },
+    floor: B.grass, floor2: B.grass, path: B.gravel_path, wall: B.marble_white, wall2: B.marble_white, trim: B.bronze, pillar: B.column, roof: B.roof_terracotta, ground: B.grass, accent: B.lantern, pit: B.dirt,
+    ambience: 'forest', music: 'hub', particles: 'pollen', wind: 1,
+  },
+  // Chapter 1: the Greek and Roman galleries of a big city museum.
+  museum: {
+    id: 'museum', name: 'The Museum', sub: 'Greek and Roman Galleries',
+    skyTop: 0x2a1e14, skyHorizon: 0x7a5a3c, fog: 0x3e2e22, fogDensity: 0.016,
+    hemiSky: 0xffe4bc, hemiGround: 0x4a3622, hemiI: 1.0, sun: 0xffdcaa, sunI: 1.1,
+    grade: { tint: [1.05, 1.0, 0.92], lift: [0.015, 0.008, 0.0], sat: 1.04, contrast: 1.06, vignette: 0.3 },
+    floor: B.marble_floor, floor2: B.marble_floor, path: B.carpet_red, wall: B.gallery_wall, wall2: B.gallery_wall, trim: B.key_frieze, pillar: B.column, roof: B.marble_white, ground: B.marble_floor, accent: B.lantern, pit: B.plinth,
+    ambience: 'museum', music: 'museum', particles: 'dust', wind: 0.1, indoor: true,
+  },
+  // Chapter 2: Long Island farmland at night in a violent storm.
+  storm_hill: {
+    id: 'storm_hill', name: 'Half-Blood Hill', sub: 'Long Island · Storm',
+    skyTop: 0x05070c, skyHorizon: 0x222c3a, fog: 0x18202a, fogDensity: 0.028,
+    hemiSky: 0x6a7c9c, hemiGround: 0x1c1a14, hemiI: 0.7, sun: 0x9ab0d8, sunI: 0.75,
+    grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.006, 0.02], sat: 0.85, contrast: 1.12, vignette: 0.42 },
+    floor: B.grass, floor2: B.mud, path: B.dirt_road, wall: B.rock, wall2: B.cobble, trim: B.rock, pillar: B.pine_log, roof: B.barn_red, ground: B.grass, accent: B.lantern, pit: B.dirt,
+    ambience: 'storm', music: 'storm', particles: 'rain', wind: 2.4, storm: true,
+  },
+  // Chapter 3: the camp woods at night, capture the flag.
+  camp_woods: {
+    id: 'camp_woods', name: 'The Camp Woods', sub: 'Capture the Flag · Night',
+    skyTop: 0x060c1c, skyHorizon: 0x1e3048, fog: 0x12222e, fogDensity: 0.024,
+    hemiSky: 0x86a6d8, hemiGround: 0x161a10, hemiI: 0.8, sun: 0xbcd0ff, sunI: 1.0,
+    grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.008, 0.022], sat: 0.95, contrast: 1.08, vignette: 0.38 },
+    floor: B.forest_floor, floor2: B.grass, path: B.dirt, wall: B.rock, wall2: B.mossy_brick, trim: B.rock, pillar: B.pine_log, roof: B.pine_leaves, ground: B.forest_floor, accent: B.lantern, pit: B.dirt,
+    ambience: 'forest', music: 'forest', particles: 'fireflies', wind: 1.2,
+  },
 };
 
 // Domain Expansion overrides use the same structure.

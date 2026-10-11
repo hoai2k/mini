@@ -3,13 +3,15 @@
 // (mouse point, right stick or auto-aim) and edge-triggered buttons.
 import { isMobile } from './util.js';
 
-const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv'];
+const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap'];
 const KEYMAP = {
   Space: 'dodge', Digit1: 't1', Digit2: 't2', Digit3: 't3', KeyF: 'domain', KeyE: 'interact', KeyQ: 'heal',
-  Tab: 'map', Escape: 'pause', KeyP: 'pause', KeyZ: 'rotL', KeyC: 'rotR', ShiftLeft: 'dodge', KeyR: 'art1', KeyT: 'art2', KeyI: 'inv',
+  KeyM: 'map', Tab: 'swap', KeyV: 'sight', Escape: 'pause', KeyP: 'pause', KeyZ: 'rotL', KeyC: 'rotR', ShiftLeft: 'dodge', KeyR: 'art1', KeyT: 'art2', KeyI: 'inv',
 };
-// Standard gamepad mapping
-const PADMAP = { 0: 'attack', 1: 'dodge', 2: 'interact', 3: 't3', 4: 't1', 5: 't2', 6: 'domain', 7: 'ranged', 8: 'map', 9: 'pause', 12: 'heal', 13: 'inv', 14: 'art1', 15: 'art2' };
+// Standard (Xbox) gamepad mapping. LB and RB are abilities 1 and 2; pressed
+// together they are the godly power (resolved in poll()). LT is True Sight.
+const PADMAP = { 0: 'attack', 1: 'dodge', 2: 'interact', 3: 't3', 6: 'sight', 7: 'ranged', 8: 'map', 9: 'pause', 12: 'heal', 13: 'swap', 14: 'art1', 15: 'art2' };
+const CHORD = 0.12;   // seconds LB/RB wait for the other shoulder before firing alone
 
 function blank() { const o = {}; for (const a of ACTIONS) o[a] = false; return o; }
 
@@ -89,6 +91,7 @@ export class Input {
       const id = 'pad' + p.index;
       const held = blank();
       p.buttons.forEach((b, i) => { const a = PADMAP[i]; if (a && (b.pressed || b.value > 0.5)) held[a] = true; });
+      this.shoulders(id, held, !!p.buttons[4]?.pressed, !!p.buttons[5]?.pressed);
       const dz = (x, y) => { const l = Math.hypot(x, y); if (l < 0.2) return { x: 0, y: 0 }; const s = Math.min(1, (l - 0.2) / 0.75) / l; return { x: x * s, y: y * s }; };
       const move = dz(p.axes[0] || 0, -(p.axes[1] || 0));
       const aim = dz(p.axes[2] || 0, -(p.axes[3] || 0));
@@ -98,6 +101,27 @@ export class Input {
     }
     // touch
     this.setState('touch', { move: { ...this.touch.stickVec }, aimStick: null, mouse: false, held: { ...this.touch.buttons }, auto: true });
+  }
+  // LB/RB: a shoulder pressed alone becomes its ability after a short wait;
+  // both together within the wait become the godly power.
+  shoulders(id, held, lb, rb) {
+    const c = (this.chord ??= {})[id] ??= { t: 0, mode: null };
+    const now = performance.now() / 1000;
+    if (!lb && !rb) { c.mode = null; c.t = 0; return; }
+    if (!c.mode) { c.mode = 'wait'; c.t = now; }
+    if (c.mode === 'wait') {
+      if (lb && rb) c.mode = 'power';
+      else if (now - c.t >= CHORD) c.mode = lb ? 't1' : 't2';
+    }
+    if (c.mode === 'power') held.domain = true;
+    else if (c.mode === 't1') held.t1 = lb;
+    else if (c.mode === 't2') held.t2 = rb;
+  }
+  // AI companions drive their hero through a virtual device with the same
+  // shape as a controller: { move (world-space via worldMove), held }.
+  setVirtual(dev, { worldMove = null, held = {} } = {}) {
+    const full = blank(); for (const k in held) if (held[k]) full[k] = true;
+    this.setState(dev, { move: { x: 0, y: 0 }, worldMove, aimStick: null, mouse: false, held: full, virtual: true });
   }
   setState(dev, s) {
     const prev = this.state.get(dev);

@@ -1,5 +1,7 @@
 // On-screen touch controls: floating joystick on the left, action buttons
-// on the right (landscape layout). Writes into input.touch.
+// on the right (landscape layout). Writes into input.touch. Buttons: melee,
+// dodge, ranged, abilities 1-3, Ambrosia, godly power, True Sight (sight) and
+// switch hero (switch).
 import { h } from './ui.js';
 
 const BUTTONS = [
@@ -11,7 +13,9 @@ const BUTTONS = [
   ['t2', '2', 104, 160, 52],
   ['t3', '3', 60, 214, 52],
   ['heal', '✚', 206, 30, 48],
-  ['domain', '領域', 196, 150, 60],
+  ['domain', '⚡', 196, 150, 60],
+  ['sight', '👁', 266, 30, 48],
+  ['switch', '⇄', 264, 92, 44],
 ];
 
 export class TouchControls {
@@ -46,15 +50,15 @@ export class TouchControls {
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
     this.btns = {};
     for (const [a, label, right, bottom, size] of BUTTONS) {
-      const b = h('div', { class: 'tbtn', style: `right:calc(${right}px + env(safe-area-inset-right,0px));bottom:calc(${bottom}px + env(safe-area-inset-bottom,0px));width:${size}px;height:${size}px;font-size:${size > 70 ? 30 : a === 'domain' ? 14 : 18}px` }, h('div', { class: 'cd' }), h('span', {}, label));
+      const b = h('div', { class: 'tbtn t-' + a, role: 'button', 'aria-label': a, style: `right:calc(${right}px + env(safe-area-inset-right,0px));bottom:calc(${bottom}px + env(safe-area-inset-bottom,0px));width:${size}px;height:${size}px;font-size:${size > 70 ? 30 : a === 'domain' ? 24 : 18}px` }, h('div', { class: 'cd' }), h('span', {}, label));
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); input.touch.buttons[a] = true; b.classList.add('on'); input.lastDevice = 'touch'; });
       const up = () => { input.touch.buttons[a] = false; b.classList.remove('on'); };
       b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
       root.appendChild(b); this.btns[a] = b;
     }
-    const pause = h('button', { class: 'tpause', onclick: () => game.pause() }, '❚❚');
+    const pause = h('button', { class: 'tpause', 'aria-label': 'Pause', onclick: () => game.pause() }, '❚❚');
     root.appendChild(pause);
-    if (!document.getElementById('rotate-hint')) document.body.appendChild(h('div', { id: 'rotate-hint' }, 'Rotate your device to landscape to play ⟲'));
+    if (!document.getElementById('rotate-hint')) document.body.appendChild(h('div', { id: 'rotate-hint' }, 'Rotate your device to landscape to play Half-Blood Quests ⟲'));
   }
   show(on) { this.root.classList.toggle('hidden', !on); document.body.classList.toggle('playing', on); }
   // p: cooldown fraction 0..1 per action

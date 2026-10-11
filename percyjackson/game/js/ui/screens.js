@@ -1,102 +1,21 @@
-// Menu screens: title, character select (co-op join), inventory with
-// enchanting, skill tree, shop, mission map table, and loot summary.
-import * as THREE from 'three/webgpu';
-import { h, toast } from './ui.js';
+// Menu screens: re-exports of the title, hero select, chapter map, prophecy,
+// story cards, instructions and settings, plus inventory with enchanting, skill
+// tree, camp store and the pause menu.
+import { h, toast, confirmDialog } from './ui.js';
 import { openSettings } from './settingsScreen.js';
-import { HEROES, HERO_IDS, SKILL_TREES } from '../heroes/index.js';
-import { ITEM_BY_ID, RARITY, ENCHANTS, itemInfo, salvageValue, itemPrice, rollItem } from '../loot.js';
-import { BIOMES } from '../world/biomes.js';
-import { PLAYER_COLORS } from '../entities/player.js';
-import { isMobile } from '../util.js';
+import { openInstructions } from './instructions.js';
+import { openChapterMap } from './chapterMap.js';
+import { openProphecy } from './prophecy.js';
+import { openStoryCards } from './storyCards.js';
+import { openTitle } from './title.js';
+import { openSelect } from './partySelect.js';
+import { HEROES, SKILL_TREES } from '../heroes/index.js';
+import { RARITY, ENCHANTS, itemInfo, salvageValue, itemPrice, rollItem } from '../loot.js';
 
-// ------------------------------------------------------------------ title
-export function openTitle(game) {
-  const ui = game.ui;
-  ui.open('title', (el) => {
-    const save = game.save.data;
-    el.appendChild(h('div', { class: 'title-wrap' },
-      h('div', { class: 'logo' }, 'CURSED', h('span', {}, 'DUNGEONS')),
-      h('div', { class: 'tag' }, 'A Jujutsu Kaisen dungeon crawler · Level ' + save.level + ' · ◆ ' + save.coins),
-      h('div', { class: 'title-menu' },
-        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { ui.close('title'); openSelect(game); } }, save.stats.missions ? 'Continue' : 'Play'),
-        h('button', { class: 'btn', onclick: () => openSettings(game) }, 'Settings'),
-        h('button', { class: 'btn', onclick: () => { if (confirm('Erase all progress?')) { game.save.reset(); ui.refresh('title'); toast('Progress reset'); } } }, 'Reset Save'))),
-      h('div', { class: 'footer-note' }, isMobile ? 'Tap to begin · landscape recommended' : 'Keyboard + mouse or up to 4 controllers · Press A / Start on a controller to join'));
-  }, { onNav: (m) => { if (m.start) { ui.close('title'); openSelect(game); } } });
-}
-
-// ------------------------------------------------------------------ character select
-export function openSelect(game) {
-  const ui = game.ui;
-  const slots = game.selectSlots = [{ device: game.input.lastDevice === 'touch' || isMobile ? 'touch' : game.input.lastDevice?.startsWith('pad') ? game.input.lastDevice : 'kbm', char: HERO_IDS.indexOf(game.save.data.lastHero) < 0 ? 0 : HERO_IDS.indexOf(game.save.data.lastHero), ready: false }];
-  game.enterSelectView?.(slots);
-  const render = (el) => {
-    const top = h('div', { class: 'select-top' }, 'CHOOSE YOUR SORCERER');
-    const cards = h('div', { class: 'slots' });
-    for (let i = 0; i < 4; i++) {
-      const s = slots[i];
-      const pc = PLAYER_COLORS[i];
-      if (!s) { cards.appendChild(h('div', { class: 'slot', style: `--pc:${pc}` }, h('div', { class: 'pn' }, `P${i + 1}`), h('div', { class: 'empty' }, isMobile ? '—' : 'Press A / Start on a controller to join'))); continue; }
-      const id = HERO_IDS[s.char], info = HEROES[id];
-      const lvl = game.save.data.level;
-      cards.appendChild(h('div', { class: 'slot joined' + (s.ready ? ' ready' : ''), style: `--pc:${pc}` },
-        h('div', { class: 'pn' }, `P${i + 1} · ${s.device === 'kbm' ? 'KEYBOARD' : s.device === 'touch' ? 'TOUCH' : 'GAMEPAD'}`),
-        h('div', { class: 'cn', style: `color:${info.color}` }, info.name.toUpperCase()),
-        h('div', { style: 'font-size:12px;color:#ddd' }, info.title + ' · Domain: ' + info.domain),
-        h('div', { class: 'cd' }, info.desc),
-        h('div', { class: 'arrows' },
-          h('button', { class: 'btn small', onclick: () => { s.char = (s.char + HERO_IDS.length - 1) % HERO_IDS.length; s.ready = false; game.enterSelectView?.(slots); ui.refresh('select'); } }, '◀'),
-          h('span', { style: 'font-size:12px;color:#aaa' }, `Lv ${lvl}`),
-          h('button', { class: 'btn small', onclick: () => { s.char = (s.char + 1) % HERO_IDS.length; s.ready = false; game.enterSelectView?.(slots); ui.refresh('select'); } }, '▶')),
-        i > 0 ? h('div', { class: 'hint' }, s.ready ? 'READY' : '◀ ▶ choose · A ready · B leave') : null));
-    }
-    const bottom = h('div', { class: 'row', style: 'justify-content:center' },
-      h('button', { class: 'btn', onclick: () => { ui.close('select'); game.exitSelectView?.(); openTitle(game); } }, 'Back'),
-      h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => start() }, 'Enter Jujutsu High ▶'));
-    el.appendChild(h('div', { class: 'select-wrap' }, top, cards, bottom));
-  };
-  const start = () => {
-    ui.close('select');
-    game.save.data.lastHero = HERO_IDS[slots[0].char]; game.save.write();
-    game.exitSelectView?.();
-    game.beginSession(slots.map((s) => ({ device: s.device, hero: HERO_IDS[s.char] })));
-  };
-  // gamepads: A/Start to join, stick to change, B to leave
-  const readPad = (pad) => ({ a: !!pad.buttons[0]?.pressed, b: !!pad.buttons[1]?.pressed, s: !!pad.buttons[9]?.pressed, l: !!pad.buttons[14]?.pressed || pad.axes[0] < -0.6, r: !!pad.buttons[15]?.pressed || pad.axes[0] > 0.6 });
-  // Carry over buttons held on the title screen so Start cannot immediately
-  // skip character select on the next frame.
-  const prev = Object.fromEntries(game.input.pads().map((pad) => ['pad' + pad.index, readPad(pad)]));
-  ui.open('select', render, {
-    onNav: (m) => {
-      // The shared menu focus is for keyboard navigation. Each gamepad owns
-      // its slot, including P1; A/B/stick must never click a focused button.
-      Object.assign(m, m.keyboard, { start: false, device: m.keyboard.confirm ? 'kbm' : null });
-      for (const pad of game.input.pads()) {
-        const id = 'pad' + pad.index;
-        const b = readPad(pad);
-        const p = prev[id] || {}; prev[id] = b;
-        let slot = slots.find((s) => s.device === id);
-        if (!slot && (b.a && !p.a || b.s && !p.s) && slots.length < 4 && !(slots.length === 1 && slots[0].device === id)) {
-          slots.push({ device: id, char: slots.length % HERO_IDS.length, ready: false });
-          game.audio?.ui('buy'); game.enterSelectView?.(slots); ui.refresh('select'); continue;
-        }
-        if (!slot) continue;
-        if (b.l && !p.l) { slot.char = (slot.char + HERO_IDS.length - 1) % HERO_IDS.length; slot.ready = false; game.enterSelectView?.(slots); ui.refresh('select'); }
-        if (b.r && !p.r) { slot.char = (slot.char + 1) % HERO_IDS.length; slot.ready = false; game.enterSelectView?.(slots); ui.refresh('select'); }
-        if (b.a && !p.a) { slot.ready = !slot.ready; ui.refresh('select'); }
-        if (b.b && !p.b) {
-          if (slot === slots[0]) { ui.close('select'); game.exitSelectView?.(); openTitle(game); return; }
-          slots.splice(slots.indexOf(slot), 1); game.enterSelectView?.(slots); ui.refresh('select');
-        }
-        if (b.s && !p.s && slot === slots[0]) { start(); return; }
-      }
-    },
-    onBack: () => { ui.close('select'); game.exitSelectView?.(); openTitle(game); },
-  });
-}
+export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
 
 // ------------------------------------------------------------------ inventory
-const SLOT_NAMES = ['Weapon', 'Armour', 'Tool 1', 'Tool 2'];
+const SLOT_NAMES = ['Weapon', 'Armour', 'Magic item 1', 'Magic item 2'];
 const SLOT_KIND = ['weapon', 'armor', 'artifact', 'artifact'];
 export function openInventory(game, player) {
   const ui = game.ui, save = game.save;
@@ -154,12 +73,12 @@ export function openInventory(game, player) {
     const stats = h('div', { style: 'margin-top:8px' },
       h('div', { class: 'stat-line' }, 'Health', h('b', {}, String(Math.round(player.maxHp)))),
       h('div', { class: 'stat-line' }, 'Melee damage', h('b', {}, `×${st.meleeMult.toFixed(2)}`)),
-      h('div', { class: 'stat-line' }, 'Technique damage', h('b', {}, `×${st.techMult.toFixed(2)}`)),
+      h('div', { class: 'stat-line' }, 'Ability damage', h('b', {}, `×${st.techMult.toFixed(2)}`)),
       h('div', { class: 'stat-line' }, 'Damage reduction', h('b', {}, `${Math.round(st.armor * 100)}%`)),
       h('div', { class: 'stat-line' }, 'Crit / Cooldown', h('b', {}, `${Math.round(st.crit * 100)}% / -${Math.round(st.cdr * 100)}%`)));
     el.appendChild(h('div', { class: 'panel', style: 'width:min(940px,97vw)' },
       h('h2', {}, `Inventory · ${HEROES[sid].name}`),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Level ${d.level} · ◆ ${d.coins} · Enchantment points: ${d.enchantPoints}`),
+      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Level ${d.level} · ◆ ${d.coins} drachmas · Enchantment points: ${d.enchantPoints}`),
       h('div', { class: 'inv' }, h('div', {}, h('h3', {}, 'Equipped'), eqRow, h('h3', {}, 'Stash'), grid, stats), detail),
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
   }, { dim: true, onBack: close });
@@ -199,45 +118,46 @@ export function openShop(game, player) {
     const rows = d.shop.items.map((it, i) => {
       const b = itemInfo(it), R = RARITY[b.rarity], price = itemPrice(it);
       return h('button', { class: 'mission', style: 'width:100%;text-align:left;color:inherit', onclick: () => {
-        if (d.coins < price) { toast('Not enough coins'); game.audio?.ui('back'); return; }
+        if (d.coins < price) { toast('Not enough drachmas'); game.audio?.ui('back'); return; }
         d.coins -= price; d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(`Bought ${b.name}`); ui.refresh('shop');
       } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, `${R.label} ${b.kind} · Power ${it.power} · ${it.ench.map((e) => ENCHANTS[e.id].name).join(', ')}`)), h('div', { class: 'diff' }, `◆ ${price}`));
     });
-    el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, 'Cursed Tool Merchant'),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Your coins: ◆ ${d.coins}`), ...rows,
+    el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, 'Camp Store'),
+      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Your drachmas: ◆ ${d.coins}`), ...rows,
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' },
         h('button', { class: 'btn small', onclick: () => { if (d.coins < 25) { toast('Need ◆25'); return; } d.coins -= 25; d.shop = null; save.write(); close(); openShop(game, player); } }, 'Restock (◆25)'),
         h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
   }, { dim: true, onBack: close });
 }
 
-// ------------------------------------------------------------------ mission map table
-export const MISSIONS = [
-  { id: 'm1', name: 'Night Patrol', biome: 'jujutsu_high', objective: 'exorcise', boss: 'hanami', difficulty: 1, icon: '⛩️', desc: 'Curses have breached the school grounds.' },
-  { id: 'm2', name: 'Stranded Students', biome: 'tokyo_night', objective: 'rescue', boss: 'mahito', difficulty: 1, icon: '🌃', desc: 'First-years are trapped in talisman cages downtown.', req: 'm1' },
-  { id: 'm3', name: 'Rotten Grove', biome: 'cursed_forest', objective: 'seal', boss: 'hanami', difficulty: 2, icon: '🌲', desc: 'Seal the cursed objects feeding the forest.', req: 'm2' },
-  { id: 'm4', name: 'Drowned Line', biome: 'flooded_subway', objective: 'exorcise', boss: 'jogo', difficulty: 2, icon: '🚇', desc: 'Something boils beneath the flooded tunnels.', req: 'm3' },
-  { id: 'm5', name: 'Shibuya Incident', biome: 'shibuya', objective: 'rescue', boss: 'mahito', difficulty: 3, icon: '🎃', desc: 'Halloween. A curtain falls over Shibuya.', req: 'm4' },
-  { id: 'm6', name: 'Volcanic Descent', biome: 'shibuya', objective: 'seal', boss: 'jogo', difficulty: 4, icon: '🌋', desc: 'Special Grade threat. Bring friends.', req: 'm5' },
-];
-export function openMapTable(game) {
-  const ui = game.ui, d = game.save.data;
-  let threat = 0;
-  game.paused = true;
-  const close = () => { ui.close('maptable'); game.paused = false; };
-  ui.open('maptable', (el) => {
-    const rows = MISSIONS.map((m) => {
-      const locked = m.req && !d.completed[m.req];
-      const best = d.completed[m.id];
-      const diff = m.difficulty + threat;
-      return h('button', { class: 'mission' + (locked ? ' locked' : ''), style: 'width:100%;text-align:left;color:inherit', onclick: () => {
-        if (locked) { toast('Complete the previous mission first'); return; }
-        close(); game.startMission({ ...m, difficulty: diff, seed: (Math.random() * 1e9) | 0 });
-      } }, h('div', { class: 'mi' }, m.icon), h('div', {}, h('div', { class: 'mt' }, m.name + (best ? ' ✔' : '')), h('div', { class: 'md' }, `${BIOMES[m.biome].name} · ${m.desc}`)), h('div', { class: 'diff' }, locked ? '🔒' : ['', 'Grade 3', 'Grade 2', 'Grade 1', 'Special', 'Special+', 'Special++'][Math.min(6, diff)]));
-    });
-    el.appendChild(h('div', { class: 'panel', style: 'width:min(640px,96vw)' }, h('h2', {}, 'Mission Map'),
-      h('div', { class: 'setting' }, h('label', {}, 'Threat level'), (() => { const s = h('select', {}, ...[['0', 'Normal'], ['1', 'Hard (+1 grade)'], ['2', 'Nightmare (+2 grades)']].map(([v, t]) => { const o = h('option', { value: v }, t); if (+v === threat) o.selected = true; return o; })); s.addEventListener('change', () => { threat = +s.value; ui.refresh('maptable'); }); return s; })()),
-      ...rows,
-      h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
-  }, { dim: true, onBack: close });
+// ------------------------------------------------------------------ chapter map
+// The old mission map table is now the chapter map.
+export function openMapTable(game) { return openChapterMap(game); }
+
+// ------------------------------------------------------------------ pause menu
+// Opens the pause menu; the caller has already set game.paused = true.
+export function openPauseMenu(game, player = game.players?.[0]) {
+  const ui = game.ui;
+  const inChapter = game.mode === 'mission' || game.mode === 'chapter' || !!game.chapter;
+  const resume = () => game.resume();
+  const bookId = game.chapter?.book ?? game.mission?.chapter?.book ?? 'book1';
+  ui.open('pause', (el) => {
+    el.appendChild(h('div', { class: 'panel menu-col pause-menu', role: 'dialog', 'aria-label': 'Paused', style: 'min-width:min(320px,92vw);text-align:center' },
+      h('h2', {}, 'Paused'),
+      h('button', { class: 'btn primary', 'data-autofocus': true, onclick: resume }, 'Resume'),
+      h('button', { class: 'btn', onclick: () => openInstructions(game) }, 'Instructions'),
+      h('button', { class: 'btn', onclick: () => openSettings(game) }, 'Settings'),
+      h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, 'Prophecy'),
+      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, 'Inventory'),
+      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openSkills(game, player); } }, 'Skill tree'),
+      game.openPhotoMode ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.openPhotoMode(); } }, 'Photo mode') : null,
+      inChapter ? h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
+        title: 'Return to camp?', text: 'You will leave this chapter and lose its progress.', yes: 'Return to camp', no: 'Keep playing', danger: true,
+        onYes: () => { ui.closeAll(); game.paused = false; game.last = performance.now(); game.returnToHub(); },
+      }) }, 'Return to camp') : null,
+      h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
+        title: 'Quit to title?', text: 'Your progress is saved, but the current chapter will be lost.', yes: 'Quit to title', no: 'Keep playing', danger: true,
+        onYes: () => { ui.closeAll(); game.paused = false; game.save.write(); game.toTitle(); },
+      }) }, 'Quit to title')));
+  }, { dim: true, onBack: resume });
 }

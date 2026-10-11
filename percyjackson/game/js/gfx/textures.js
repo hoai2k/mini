@@ -73,6 +73,7 @@ function planks(px, r, base, { dir = 'h', ph = 4, dark = 0.72 } = {}) {
   // nail heads
   for (let i = 0; i < 2; i++) px.set(2 + i * 11, 1, shade(base, 0.45), 0.9);
 }
+function each(px, f) { for (let y = 0; y < TILE; y++) for (let x = 0; x < TILE; x++) { const [c, h] = f(x, y); px.set(x, y, c, h); } }
 function paintTile(name, px, r) {
   switch (name) {
     case 'stone': noiseFill(px, r, [C(0x7a7a80), C(0x6e6e74), C(0x85858a)], 0.14);
@@ -238,6 +239,205 @@ function paintTile(name, px, r) {
     case 'bark_dark': for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
       const s = Math.sin(x * 2.1 + Math.sin(y * 0.4)) * 0.12; px.set(x, y, jitter(shade(C(0x2e2230), 1 + s), r, 0.12), 0.6 + s);
     } break;
+
+    // ------------------------------------------------ Half-Blood Quests tiles
+    case 'clapboard_blue': each(px, (x, y) => {
+      const b = y % 4; const rb = mulberry32((y >> 2) * 13 + 5);
+      const c = shade(C(0x4f78b0), 1.06 - b * 0.07 + (rb() - 0.5) * 0.06);
+      return b === 3 ? [shade(C(0x2c4670), 1), 0.1] : [jitter(c, r, 0.05), 0.75 - b * 0.12];
+    }); break;
+    case 'white_trim': planks(px, r, C(0xeeeae0), { dir: 'v', ph: 8, dark: 0.82 }); break;
+    case 'window_day': each(px, (x, y) => {
+      const frame = x < 2 || x > 13 || y < 2 || y > 13 || x === 7 || x === 8 || y === 7 || y === 8;
+      if (frame) return [jitter(C(0xf2efe6), r, 0.04), 0.9];
+      const refl = (x + (15 - y)) % 9 < 2;
+      return [refl ? C(0xcfe6f5) : mix(C(0x6f9cc4), C(0x2d4c6e), y / 16), 0.25];
+    }); break;
+    case 'roof_slate': each(px, (x, y) => {
+      const row = y >> 2, ox = (row & 1) * 4; const u = (x + ox) % 8;
+      const rb = mulberry32(row * 17 + ((x + ox) >> 3) * 3);
+      const c = shade(C(0x3e4a5e), 0.85 + rb() * 0.3 - (y % 4 === 3 ? 0.3 : 0) - (u === 0 ? 0.2 : 0));
+      return [jitter(c, r, 0.05), y % 4 === 3 || u === 0 ? 0.2 : 0.7];
+    }); break;
+    case 'roof_terracotta': each(px, (x, y) => {
+      const row = y >> 2, ox = (row & 1) * 2; const u = (x + ox) % 4;
+      const curve = Math.sin((u / 4) * Math.PI);
+      const c = shade(C(0xc4552e), 0.72 + curve * 0.42 - (y % 4 === 3 ? 0.25 : 0));
+      return [jitter(c, r, 0.06), curve * 0.8 + (y % 4 === 3 ? -0.3 : 0.2)];
+    }); break;
+    case 'marble_white': each(px, (x, y) => {
+      const v = Math.sin(x * 0.45 + y * 0.7 + Math.sin(y * 0.6 + x * 0.2) * 2.4) * 0.5 + 0.5;
+      return [jitter(mix(C(0xf4f1ea), C(0xc9c6c2), Math.pow(v, 6)), r, 0.025), 0.55];
+    }); break;
+    case 'column_side': each(px, (x, y) => {
+      const f = x % 4; const c = f === 0 ? C(0xb9b4ab) : f === 1 ? C(0xe2ddd3) : f === 2 ? C(0xf6f3ec) : C(0xd8d3c9);
+      return [jitter(c, r, 0.03), f === 0 ? 0.15 : f === 2 ? 0.9 : 0.6];
+    }); break;
+    case 'column_top': each(px, (x, y) => {
+      const d = Math.hypot(x - 7.5, y - 7.5);
+      const ring = d > 6.2 ? C(0xcfcac0) : d > 5 ? C(0xf2eee6) : C(0xe6e1d8);
+      return [jitter(ring, r, 0.03), d > 6.2 ? 0.3 : 0.7];
+    }); break;
+    case 'marble_floor': each(px, (x, y) => {
+      const chk = ((x >> 3) + (y >> 3)) & 1;
+      const v = Math.sin(x * 0.6 + y * 0.9 + Math.sin(x * 0.8) * 1.8) * 0.5 + 0.5;
+      const base = chk ? C(0xeee6d6) : C(0xb9ab98);
+      const grout = x % 8 === 0 || y % 8 === 0;
+      return [grout ? shade(base, 0.82) : mix(base, shade(base, 0.8), Math.pow(v, 5)), grout ? 0.3 : 0.55];
+    }); break;
+    case 'gallery_wall': each(px, (x, y) => {
+      const seam = y === 15 || (x === 15 && y > 8) || (x === 7 && y <= 8) || y === 8;
+      return [seam ? C(0xcfc3ad) : jitter(C(0xebe2d0), r, 0.025), seam ? 0.3 : 0.6];
+    }); break;
+    case 'key_frieze': { // gold meander on dark teal
+      const KEY = ['.#########......', '.#.......#......', '.#.#####.#......', '.#.#...#.#......', '.#.#.#.#.#......', '.#...#.#.#......', '.#####.#.#......', '.......#.#......', '########.#######', '................'];
+      each(px, (x, y) => {
+        if (y < 2 || y > 13) return [y === 0 || y === 15 ? C(0x9a7428) : C(0xd6aa4a), 0.85];
+        if (y === 2 || y === 13) return [C(0x0b3a3f), 0.3];
+        const on = KEY[y - 3][x] === '#';
+        return on ? [jitter(C(0xe2b24c), r, 0.08), 0.85] : [jitter(C(0x0f4f55), r, 0.08), 0.35];
+      });
+      break;
+    }
+    case 'vase_frieze': each(px, (x, y) => { // black-figure band on terracotta
+      if (y < 2 || y > 13) return [C(0x17130f), 0.5];
+      if (y === 2 || y === 13) return [C(0xd9813a), 0.6];
+      const fig = (() => { const fx = (x + 16) % 8; if (fx === 3 || fx === 4) return y > 4 && y < 12; if (fx === 2 || fx === 5) return y === 4 || (y > 6 && y < 9) || y === 11 || y === 12; return (fx === 1 || fx === 6) && y === 7; })();
+      return fig ? [C(0x17130f), 0.8] : [jitter(C(0xd9813a), r, 0.06), 0.5];
+    }); break;
+    case 'glass': each(px, (x, y) => {
+      const edge = x === 0 || y === 0 || x === 15 || y === 15; const glint = (x - y === 3 || x - y === 5) && x > 2 && x < 13;
+      return [edge ? C(0xc9a24a) : glint ? C(0xf4fbff) : jitter(C(0xb8d8e4), r, 0.03), edge ? 0.9 : 0.4];
+    }); break;
+    case 'plinth': each(px, (x, y) => {
+      const v = r(); const edge = y < 2 || y > 13;
+      return [edge ? C(0x3b4a48) : v < 0.1 ? C(0x7c8c88) : jitter(C(0x26302f), r, 0.2), edge ? 0.8 : 0.5];
+    }); break;
+    case 'bronze': each(px, (x, y) => {
+      const rivet = (x === 2 || x === 13) && (y === 2 || y === 13); const seam = x === 0 || y === 0;
+      const g = Math.sin(x * 0.7 + y * 0.3) * 0.08;
+      return [rivet ? C(0xffe0a0) : seam ? C(0x6a4a1c) : jitter(shade(C(0xc9963a), 1 + g), r, 0.08), rivet ? 1 : seam ? 0.1 : 0.6];
+    }); break;
+    case 'sea_stone': {
+      noiseFill(px, r, [C(0x8a9296), C(0x7c8488), C(0x969fa2), C(0x6f777b)], 0.1, 0.6);
+      for (let i = 0; i < 3; i++) { const cx = 2 + r() * 12 | 0, cy = 2 + r() * 12 | 0; // scallop shells
+        for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 0; dy++) if (dx * dx + dy * dy <= 4) px.set(cx + dx, cy + dy, (dx & 1) ? C(0xf2d9c4) : C(0xe8b8a0), 0.95);
+        px.set(cx, cy + 1, C(0xd49a84), 0.9); }
+      for (let i = 0; i < 6; i++) px.set(r() * 16 | 0, r() * 16 | 0, C(0x3f7f78), 0.7);
+      break;
+    }
+    case 'red_plank': planks(px, r, C(0xa8261e), { ph: 4, dark: 0.55 }); break;
+    case 'owl_stone': bricks(px, r, C(0x9aa3ae), C(0x5d6570), { bw: 8, bh: 4, offset: 4 }); break;
+    case 'gold_plate': each(px, (x, y) => {
+      const sun = Math.hypot(x - 7.5, y - 7.5); const ray = sun > 3 && sun < 6.5 && (Math.round(Math.atan2(y - 7.5, x - 7.5) / (Math.PI / 4) * 2) % 2 === 0);
+      const edge = x === 0 || y === 0 || x === 15 || y === 15;
+      return [edge ? C(0xa8781e) : sun < 3 || ray ? C(0xfff0a0) : jitter(C(0xe8b838), r, 0.06), edge ? 0.3 : sun < 3 ? 0.9 : 0.6];
+    }); break;
+    case 'silver_plate': each(px, (x, y) => {
+      const edge = x === 0 || y === 0 || x === 15 || y === 15; const v = Math.sin((x + y) * 0.5) * 0.06;
+      return [edge ? C(0x8a96a8) : jitter(shade(C(0xd9e2ee), 1 + v), r, 0.04), edge ? 0.3 : 0.6];
+    }); break;
+    case 'pink_plaster': noiseFill(px, r, [C(0xf2a7b8), C(0xeea0b2), C(0xf6b4c3)], 0.04, 0.15);
+      for (let x = 0; x < 16; x++) { px.set(x, 0, C(0xffffff), 0.8); px.set(x, 15, C(0xd9879a), 0.2); }
+      break;
+    case 'old_plank': planks(px, r, C(0x7a5a3a), { ph: 4, dark: 0.6 });
+      for (let i = 0; i < 10; i++) px.set(r() * 16 | 0, r() * 16 | 0, C(0x5a4630), 0.3);
+      break;
+    case 'vine_wall': planks(px, r, C(0x8a6440), { ph: 4 });
+      for (let v = 0; v < 3; v++) { let x = 2 + v * 5 + (r() * 2 | 0);
+        for (let y = 0; y < 16; y++) { px.set(x, y, jitter(C(0x3f7a2a), r, 0.2), 0.9); if (r() < 0.3) px.set(x + 1, y, C(0x5a9a3a), 0.9); if (r() < 0.25) x = clamp(x + (r() < 0.5 ? -1 : 1), 0, 15); }
+        const gy = 4 + (r() * 8 | 0); for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]]) px.set(x + dx + 1, gy + dy, C(0x6a2a7a), 1); }
+      break;
+    case 'grass_roof': noiseFill(px, r, [C(0x6a9a3a), C(0x7aaa44), C(0x5a8a30)], 0.12, 0.8);
+      for (let i = 0; i < 5; i++) { const x = r() * 16 | 0, y = r() * 16 | 0; px.set(x, y, [C(0xffe066), C(0xffffff), C(0xe8664a)][i % 3], 1); }
+      for (let i = 0; i < 4; i++) { const x = r() * 16 | 0; for (let y = 0; y < 3; y++) px.set(x, (r() * 13 | 0) + y, C(0xd8b84a), 0.9); }
+      break;
+    case 'iron_plate': each(px, (x, y) => {
+      const rivet = (x % 8 === 2) && (y % 8 === 2); const seam = x % 8 === 0 || y % 8 === 0;
+      return [rivet ? C(0x9aa0a8) : seam ? C(0x24272b) : jitter(C(0x4a4f56), r, 0.12), rivet ? 1 : seam ? 0.1 : 0.55];
+    }); break;
+    case 'gravel_path': {
+      noiseFill(px, r, [C(0xc8b48a), C(0xbba57a), C(0xd4c29a), C(0xb09a70)], 0.08, 0.4);
+      for (let i = 0; i < 14; i++) { const x = r() * 16 | 0, y = r() * 16 | 0; px.set(x, y, C(0xe8dcc0), 0.9); px.set(x + 1, y, C(0x9a8460), 0.2); }
+      break;
+    }
+    case 'strawberry_top': each(px, (x, y) => {
+      if (y % 8 >= 6) return [jitter(C(0x5a3a26), r, 0.15), 0.2];
+      const leaf = ((x * 3 + y * 5) % 7) < 5;
+      return [leaf ? jitter(C(0x3f8a34), r, 0.25) : C(0x2e5a24), leaf ? 0.8 : 0.5];
+    });
+      for (let i = 0; i < 9; i++) { const x = r() * 15 | 0, y = (r() < 0.5 ? 1 : 9) + (r() * 4 | 0); px.set(x, y, C(0xe02a2a), 1); px.set(x + 1, y, C(0xc41c24), 1); px.set(x, y + 1, C(0xa8141c), 0.9); }
+      break;
+    case 'farm_soil': each(px, (x, y) => { const f = y % 4; return [jitter(f === 0 ? C(0x7a5236) : f === 3 ? C(0x4a3020) : C(0x634330), r, 0.12), f === 0 ? 0.8 : f === 3 ? 0.1 : 0.5]; }); break;
+    case 'pine_leaves': each(px, (x, y) => {
+      const v = r(); const needle = (x + y * 2) % 5 === 0;
+      return [v < 0.14 ? C(0x0e2418) : needle ? C(0x3f7a52) : jitter(C(0x24553a), r, 0.3), v < 0.14 ? 0.1 : 0.5 + v * 0.4];
+    }); break;
+    case 'pine_bark': each(px, (x, y) => {
+      const s = Math.sin(x * 1.9 + Math.sin(y * 0.5) * 1.5) * 0.14; const plate = (y + (x >> 2) * 5) % 7 === 0;
+      return [plate ? C(0x3a2216) : jitter(shade(C(0x7a4a2e), 1 + s), r, 0.1), plate ? 0.1 : 0.6 + s];
+    }); break;
+    case 'forest_floor': {
+      noiseFill(px, r, [C(0x4e5a2e), C(0x5a4a2e), C(0x46522a), C(0x6a5634)], 0.18, 0.7);
+      for (let i = 0; i < 10; i++) { const x = r() * 15 | 0, y = r() * 15 | 0; px.set(x, y, C(0x8a5a2a), 0.7); px.set(x + 1, y + 1, C(0x8a5a2a), 0.7); }
+      break;
+    }
+    case 'rock': {
+      noiseFill(px, r, [C(0x8d8f8c), C(0x7f817e), C(0x999b97), C(0x737571)], 0.1, 0.7);
+      for (let i = 0; i < 4; i++) { let x = r() * 16 | 0, y = r() * 16 | 0; for (let k = 0; k < 5; k++) { px.set(x, y, C(0x5c5e5b), 0.1); x = clamp(x + (r() < 0.5 ? 1 : 0), 0, 15); y = clamp(y + 1, 0, 15); } }
+      for (let i = 0; i < 4; i++) { const x = r() * 15 | 0, y = r() * 15 | 0; px.set(x, y, C(0x9aa86a), 0.8); px.set(x + 1, y, C(0xb4b878), 0.8); }
+      break;
+    }
+    case 'basalt': {
+      noiseFill(px, r, [C(0x3a3634), C(0x332f2d), C(0x423d3a)], 0.15, 0.6);
+      const holds = [C(0xf28c28), C(0xffd84a), C(0x2e8b6e), C(0xe8664a)];
+      for (let i = 0; i < 3; i++) { const x = 2 + r() * 11 | 0, y = 2 + r() * 11 | 0, c = holds[i % 4]; px.set(x, y, c, 1); px.set(x + 1, y, c, 1); px.set(x, y + 1, shade(c, 0.7), 0.9); px.set(x + 1, y + 1, shade(c, 0.7), 0.9); }
+      break;
+    }
+    case 'target_face': each(px, (x, y) => {
+      const d = Math.hypot(x - 7.5, y - 7.5);
+      const c = d < 2 ? C(0xffd84a) : d < 4 ? C(0xd8322a) : d < 6 ? C(0x2a6ad8) : d < 7.6 ? C(0xf4f0e6) : C(0xd9c48a);
+      return [c, d < 7.6 ? 0.7 : 0.4];
+    }); break;
+    case 'hay': each(px, (x, y) => {
+      const band = y === 4 || y === 11; const s = Math.sin(x * 2.3 + y * 0.7) * 0.1;
+      return [band ? C(0x6a4a2a) : jitter(shade(C(0xd8b85a), 1 + s), r, 0.12), band ? 0.3 : 0.6 + s];
+    }); break;
+    case 'awning': each(px, (x, y) => {
+      const stripe = (x >> 2) & 1; const scal = y > 12 && ((x % 4) - 1.5) ** 2 + (y - 12) ** 2 > 6;
+      if (scal) return [C(0x6a3a1a), 0.1];
+      return [jitter(stripe ? C(0xf28c28) : C(0xf6efe0), r, 0.04), 0.6];
+    }); break;
+    case 'barn_red': planks(px, r, C(0x8a2a22), { dir: 'v', ph: 4, dark: 0.55 }); break;
+    case 'dirt_road': each(px, (x, y) => {
+      const rut = x === 3 || x === 4 || x === 11 || x === 12;
+      return [jitter(rut ? C(0x4a3424) : C(0x6f5238), r, 0.14), rut ? 0.2 : 0.6];
+    }); break;
+    case 'teal_panel': each(px, (x, y) => {
+      const edge = x === 0 || y === 0 || x === 15 || y === 15; const inner = x === 2 || y === 2 || x === 13 || y === 13;
+      return [edge ? C(0x0a3a3e) : inner ? C(0xc9963a) : jitter(C(0x0f6f73), r, 0.06), edge ? 0.2 : inner ? 0.85 : 0.5];
+    }); break;
+    case 'carpet_red': each(px, (x, y) => {
+      const edge = x < 2 || x > 13; const gold = x === 2 || x === 13;
+      return [gold ? C(0xd6aa4a) : edge ? C(0x5a1418) : jitter(C(0x9a1e24), r, 0.08), 0.4];
+    }); break;
+    case 'navy_panel': each(px, (x, y) => {
+      const edge = x === 0 || y === 0 || x === 15 || y === 15;
+      return [edge ? C(0xc9963a) : jitter(C(0x10233d), r, 0.12), edge ? 0.8 : 0.5];
+    }); break;
+    case 'shingle_green': each(px, (x, y) => {
+      const row = y >> 2, ox = (row & 1) * 4; const u = (x + ox) % 8;
+      const c = shade(C(0x3f6a4a), 0.85 + mulberry32(row * 7 + ((x + ox) >> 3))() * 0.3 - (y % 4 === 3 ? 0.3 : 0) - (u === 0 ? 0.2 : 0));
+      return [jitter(c, r, 0.05), y % 4 === 3 || u === 0 ? 0.2 : 0.7];
+    }); break;
+    case 'mud': noiseFill(px, r, [C(0x4a3626), C(0x3f2d20), C(0x55402c)], 0.12, 0.3);
+      for (let i = 0; i < 3; i++) { const x = r() * 12 | 0, y = r() * 14 | 0; for (let k = 0; k < 4; k++) px.set(x + k, y, C(0x6a7a8a), 0.05); }
+      break;
+    case 'lightning_stone': each(px, (x, y) => { // Zeus: white marble with a gold bolt
+      const bolt = (y < 8 && Math.abs(x - (10 - y * 0.6)) < 1.2) || (y >= 7 && Math.abs(x - (12 - (y - 7) * 0.9)) < 1.2) || (y === 7 && x > 4 && x < 12);
+      const v = Math.sin(x * 0.5 + y * 0.8) * 0.5 + 0.5;
+      return bolt ? [C(0xffd84a), 0.95] : [jitter(mix(C(0xf2efe8), C(0xcdc9c2), Math.pow(v, 6)), r, 0.03), 0.55];
+    }); break;
     default: noiseFill(px, r, [C(0xff00ff), C(0x000000)], 0, 0);
   }
 }
@@ -250,6 +450,13 @@ export const TILE_NAMES = [
   'gold_trim', 'plaster', 'shoji', 'obsidian', 'leaves', 'dead_leaves', 'polished', 'marble',
   'window', 'window_dark', 'crate', 'barrel_side', 'barrel_top', 'bone_block', 'talisman_wall', 'blood_brick',
   'void_floor', 'shrine_floor', 'shadow_floor', 'vending', 'sign', 'neon_pink', 'blue_energy', 'rail', 'bark_dark',
+  // Half-Blood Quests
+  'clapboard_blue', 'white_trim', 'window_day', 'roof_slate', 'roof_terracotta', 'marble_white', 'column_side', 'column_top',
+  'marble_floor', 'gallery_wall', 'key_frieze', 'vase_frieze', 'glass', 'plinth', 'bronze', 'sea_stone',
+  'red_plank', 'owl_stone', 'gold_plate', 'silver_plate', 'pink_plaster', 'old_plank', 'vine_wall', 'grass_roof',
+  'iron_plate', 'gravel_path', 'strawberry_top', 'farm_soil', 'pine_leaves', 'pine_bark', 'forest_floor', 'rock',
+  'basalt', 'target_face', 'hay', 'awning', 'barn_red', 'dirt_road', 'teal_panel', 'carpet_red',
+  'navy_panel', 'shingle_green', 'mud', 'lightning_stone',
 ];
 export const TILE_INDEX = Object.fromEntries(TILE_NAMES.map((n, i) => [n, i]));
 
@@ -326,12 +533,16 @@ export function buildBlockAtlas() {
 
 // ---------------------------------------------------------------- sprites
 // Alpha-tested decoration sprites: grass tufts, cobwebs, talismans, etc.
-export const SPRITE_NAMES = ['grass', 'tall_grass', 'cobweb', 'talisman', 'chain', 'flower_red', 'flower_blue', 'cursed_weed', 'banner', 'fern', 'bone', 'candle', 'paper'];
+export const SPRITE_NAMES = ['grass', 'tall_grass', 'cobweb', 'talisman', 'chain', 'flower_red', 'flower_blue', 'cursed_weed', 'banner', 'fern', 'bone', 'candle', 'paper',
+  // Half-Blood Quests: plants, details and the twelve cabin emblems
+  'strawberry', 'barbed_wire', 'vine', 'reeds', 'shell', 'mushroom', 'leaf_litter', 'flower_yellow', 'puddle',
+  'em_zeus', 'em_hera', 'em_poseidon', 'em_demeter', 'em_ares', 'em_athena', 'em_apollo', 'em_artemis', 'em_hephaestus', 'em_aphrodite', 'em_hermes', 'em_dionysus',
+  'camp_banner', 'shard'];
 export const SPRITE_INDEX = Object.fromEntries(SPRITE_NAMES.map((n, i) => [n, i]));
-const SCOLS = 8;
+const SCOLS = 8, SROWS = 6;
 export function spriteUV(index) {
   const col = index % SCOLS, row = Math.floor(index / SCOLS);
-  const W = SCOLS * CELL, Hh = 2 * CELL;
+  const W = SCOLS * CELL, Hh = SROWS * CELL;
   return [(col * CELL + PAD) / W, 1 - (row * CELL + PAD + TILE) / Hh, (col * CELL + PAD + TILE) / W, 1 - (row * CELL + PAD) / Hh];
 }
 function paintSprite(name, set, r) {
@@ -375,10 +586,72 @@ function paintSprite(name, set, r) {
     case 'candle': for (let y = 8; y < 16; y++) for (let x = 6; x < 10; x++) set(x, y, jitter(G(0xefe6cc), r, 0.05));
       set(8, 7, G(0x222222)); set(8, 5, G(0xffd070)); set(8, 6, G(0xffa030)); set(7, 6, G(0xffe090)); break;
     case 'paper': for (let y = 10; y < 15; y++) for (let x = 3; x < 13; x++) set(x, y, jitter(G(0xe8e0c8), r, 0.1)); break;
+    // ---------------- Half-Blood Quests
+    case 'strawberry': {
+      for (let b = 0; b < 5; b++) { const x = 3 + b * 2.5; for (let y = 9; y < 16; y++) set(x + (y - 12) * (b - 2) * 0.15, y, jitter(G(0x3f8a34), r, 0.2)); }
+      for (const [x, y] of [[4, 9], [5, 9], [10, 8], [11, 8], [7, 11], [12, 10]]) set(x, y, G(0x5aaa44));
+      for (const [x, y] of [[5, 12], [9, 13], [12, 12]]) { set(x, y, G(0xe02a2a)); set(x + 1, y, G(0xc41c24)); set(x, y + 1, G(0xa8141c)); set(x, y - 1, G(0x3f8a34)); }
+      set(7, 8, G(0xffffff)); set(8, 8, G(0xffe066));
+      break;
+    }
+    case 'barbed_wire': for (let x = 0; x < 16; x++) {
+      for (const yy of [5, 10]) { set(x, yy + Math.round(Math.sin(x * 0.8) * 0.6), G(0x8a8e94)); }
+      if (x % 5 === 2) for (const yy of [5, 10]) { set(x - 1, yy - 1, G(0xb8bcc2)); set(x + 1, yy + 1, G(0xb8bcc2)); set(x + 1, yy - 1, G(0x6a6e74)); set(x - 1, yy + 1, G(0x6a6e74)); }
+    } break;
+    case 'vine': { let x = 8; for (let y = 0; y < 16; y++) { set(x, y, G(0x3f7a2a)); if (y % 3 === 0) { set(x - 1, y, G(0x5a9a3a)); set(x + 1, y + 1, G(0x5a9a3a)); set(x + 2, y + 1, G(0x4a8a32)); } if (r() < 0.3) x += r() < 0.5 ? -1 : 1; }
+      for (const [gx, gy] of [[5, 10], [10, 5]]) for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [-1, 1]]) set(gx + dx, gy + dy, G(0x6a2a7a));
+    } break;
+    case 'reeds': for (let b = 0; b < 6; b++) { const x = 2 + b * 2.3; const h = 9 + r() * 6; for (let y = 15; y > 15 - h; y--) set(x, y, jitter(G(0x7a9a4a), r, 0.15)); if (b % 2) { set(x, 15 - h, G(0x6a4a2a)); set(x, 16 - h, G(0x6a4a2a)); set(x, 17 - h, G(0x5a3a1a)); } } break;
+    case 'shell': for (let y = 7; y < 15; y++) for (let x = 4; x < 12; x++) { const dx = x - 7.5, dy = y - 14; if (dx * dx + dy * dy < 40 && y < 14) set(x, y, (x & 1) ? G(0xf6dcc8) : G(0xe8b8a0)); } set(7, 14, G(0xd49a84)); set(8, 14, G(0xd49a84)); break;
+    case 'mushroom': for (let y = 10; y < 16; y++) { set(7, y, G(0xefe6cc)); set(8, y, G(0xe0d6bc)); }
+      for (let x = 4; x < 12; x++) for (let y = 7; y < 10; y++) if (!(y === 7 && (x < 5 || x > 10))) set(x, y, (x * 3 + y) % 5 === 0 ? G(0xffffff) : G(0xc8322a));
+      break;
+    case 'leaf_litter': for (let i = 0; i < 9; i++) { const x = 2 + r() * 12, y = 2 + r() * 12; const c = [G(0x8a5a2a), G(0xa8742e), G(0x6a5a2a)][i % 3]; set(x, y, c); set(x + 1, y, c); set(x, y + 1, shade(c, 0.8)); } break;
+    case 'flower_yellow': for (let y = 8; y < 16; y++) set(8, y, G(0x3f8a2e)); set(7, 12, G(0x3f8a2e));
+      for (const [dx, dy] of [[0, -1], [1, 0], [-1, 0], [0, 1]]) set(8 + dx, 6 + dy, G(0xffd84a)); set(8, 6, G(0xc9761a)); break;
+    case 'puddle': for (let y = 6; y < 12; y++) for (let x = 2; x < 14; x++) { const dx = (x - 7.5) / 6, dy = (y - 8.5) / 3; if (dx * dx + dy * dy < 1) set(x, y, (x + y) % 5 === 0 ? G(0xa8c0d8) : G(0x4a6078)); } break;
+    case 'em_zeus': for (let y = 1; y < 15; y++) { const x = y < 8 ? 10 - y * 0.6 : 12 - (y - 7) * 0.9; set(x, y, G(0xffd84a)); set(x + 1, y, G(0xfff0a0)); } for (let x = 5; x < 12; x++) set(x, 7, G(0xffd84a)); break;
+    case 'em_hera': { // peacock feather
+      for (let y = 2; y < 16; y++) set(8, y, G(0x2e6a4a));
+      for (let y = 2; y < 9; y++) for (let x = 4; x < 13; x++) { const d = Math.hypot((x - 8) / 4, (y - 5) / 3.4); if (d < 1) set(x, y, d < 0.3 ? G(0x1a2a6a) : d < 0.55 ? G(0x2a8aa8) : d < 0.8 ? G(0xc9963a) : G(0x2e8b6e)); }
+    } break;
+    case 'em_poseidon': for (let y = 3; y < 16; y++) set(8, y, G(0xc9963a));
+      for (const x of [4, 8, 12]) { for (let y = 2; y < 6; y++) set(x, y, G(0xe2b24c)); set(x, 1, G(0xfff0a0)); }
+      for (let x = 4; x <= 12; x++) set(x, 6, G(0xc9963a)); break;
+    case 'em_demeter': for (let y = 6; y < 16; y++) { set(7, y, G(0xc9a23c)); set(9, y - 1, G(0xc9a23c)); }
+      for (let y = 1; y < 8; y++) { set(6 + (y & 1), y, G(0xe8c050)); set(9 + (y & 1), y - 1, G(0xe8c050)); set(8, y + 1, G(0xd8b040)); } break;
+    case 'em_ares': // boar-head spear
+      for (let y = 4; y < 16; y++) set(8, y, G(0x5a3a1a));
+      for (let y = 0; y < 5; y++) for (let x = 8 - (y >> 1); x <= 8 + (y >> 1); x++) set(x, y + 1, G(0xb8bcc2));
+      set(8, 6, G(0xa8261e)); set(7, 7, G(0xa8261e)); set(9, 7, G(0xa8261e)); break;
+    case 'em_athena': { // owl
+      for (let y = 3; y < 15; y++) for (let x = 4; x < 12; x++) { const d = Math.hypot((x - 7.5) / 4, (y - 9) / 6); if (d < 1) set(x, y, G(0x8c96a3)); }
+      for (const ex of [6, 9]) { set(ex, 7, G(0xffd84a)); set(ex + 1, 7, G(0xffd84a)); set(ex, 8, G(0xffd84a)); set(ex + 1, 8, G(0x17130f)); }
+      set(4, 3, G(0x8c96a3)); set(11, 3, G(0x8c96a3)); set(7, 9, G(0xc9963a)); set(8, 9, G(0xc9963a));
+      for (let x = 5; x < 11; x += 2) set(x, 12, G(0x5c6670));
+    } break;
+    case 'em_apollo': for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const d = Math.hypot(x - 7.5, y - 7.5); const a = Math.atan2(y - 7.5, x - 7.5); if (d < 3.5) set(x, y, G(0xffd84a)); else if (d < 7.5 && Math.cos(a * 8) > 0.6) set(x, y, G(0xf28c28)); } break;
+    case 'em_artemis': for (let y = 1; y < 15; y++) for (let x = 2; x < 14; x++) { const a = Math.hypot(x - 7.5, y - 7.5), b = Math.hypot(x - 10, y - 6.5); if (a < 6.5 && b > 5.2) set(x, y, G(0xe6eef8)); } break;
+    case 'em_hephaestus': for (let y = 7; y < 16; y++) { set(7, y, G(0x6a4a2a)); set(8, y, G(0x5a3a1a)); }
+      for (let y = 2; y < 7; y++) for (let x = 3; x < 13; x++) set(x, y, y === 2 ? G(0x9aa0a8) : G(0x4a4f56)); break;
+    case 'em_aphrodite': for (let y = 2; y < 15; y++) for (let x = 1; x < 15; x++) { const X = (x - 7.5) / 6, Y = (7.5 - y) / 6; const v = (X * X + Y * Y - 0.35) ** 3 - X * X * Y * Y * Y; if (v < 0) set(x, y, Y > 0.3 && X < -0.1 ? G(0xffb4c8) : G(0xe8506a)); } break;
+    case 'em_hermes': for (let y = 2; y < 16; y++) set(8, y, G(0xc9963a));
+      for (const [x, y] of [[6, 2], [5, 1], [4, 1], [10, 2], [11, 1], [12, 1], [7, 2], [9, 2]]) set(x, y, G(0xe6eef8));
+      for (let y = 4; y < 14; y++) { const o = Math.round(Math.sin(y * 0.9) * 2.5); set(8 + o, y, G(0x2e8b6e)); set(8 - o, y, G(0x2e6a4a)); } break;
+    case 'em_dionysus': for (const [gx, gy] of [[5, 4], [8, 4], [11, 4], [6.5, 7], [9.5, 7], [8, 10], [5, 7], [11, 7]]) for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) set(gx + dx, gy + dy, (dx + dy) ? G(0x6a2a7a) : G(0x9a5aaa));
+      for (const [x, y] of [[8, 1], [8, 2], [9, 3], [6, 1], [5, 2], [10, 1]]) set(x, y, G(0x3f7a2a)); break;
+    case 'camp_banner': for (let y = 0; y < 16; y++) for (let x = 2; x < 14; x++) {
+      const tail = y > 12 && Math.abs(x - 7.5) < (y - 12) * 1.5; if (tail) continue;
+      let c = y < 2 ? G(0x17130f) : G(0xf28c28);
+      if (y === 3 || y === 11) c = G(0xc9963a);
+      if (y > 4 && y < 10 && Math.abs(x - 7.5) < 3 && (x === 5 || x === 10 || y === 5 || y === 9 || (x === 7 && y === 7))) c = G(0x17130f);
+      set(x, y, jitter(c, r, 0.06));
+    } break;
+    case 'shard': for (const [x0, y0, w] of [[3, 10, 4], [9, 11, 3], [6, 13, 3]]) for (let y = y0; y < y0 + 2; y++) for (let x = x0; x < x0 + w - (y - y0); x++) set(x, y, y === y0 ? G(0xd9813a) : G(0x17130f)); break;
   }
 }
 export function buildSpriteAtlas() {
-  const W = SCOLS * CELL, Hh = 2 * CELL;
+  const W = SCOLS * CELL, Hh = SROWS * CELL;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = Hh;
   const ctx = cv.getContext('2d'); const img = ctx.createImageData(W, Hh);
   SPRITE_NAMES.forEach((name, index) => {

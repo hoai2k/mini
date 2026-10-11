@@ -9,7 +9,7 @@ import { B } from './blocks.js';
 import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
-import { TEMPLATES, BIOME_ROOMS } from './rooms.js';
+import { TEMPLATES, BIOME_ROOMS, DRESS } from './rooms.js';
 import { BIOMES } from './biomes.js';
 import { mulberry32 } from '../util.js';
 
@@ -22,6 +22,10 @@ export const ENEMY_TABLES = {
   cursed_forest: [['swarmer', 4], ['spitter', 3], ['blob', 1], ['tank', 0.8], ['teleporter', 0.6], ['summoner', 1]],
   flooded_subway: [['swarmer', 4], ['spitter', 1.5], ['blob', 2.5], ['tank', 1.5], ['teleporter', 1.2], ['summoner', 0.5]],
   shibuya: [['swarmer', 4], ['spitter', 2], ['blob', 2], ['tank', 1.5], ['teleporter', 1.5], ['summoner', 1]],
+  // Half-Blood Quests
+  museum: [['pup', 5], ['harpy', 2.5], ['fury', 1.5], ['dracaena', 0.8], ['empousa', 0.3]],
+  storm_hill: [['pup', 5], ['automaton', 2], ['harpy', 2], ['hellhound', 0.6]],
+  camp_woods: [['pup', 4], ['spider', 3], ['dracaena', 1.5], ['hellhound', 1]],
 };
 
 export function generateLevel(mission) {
@@ -141,7 +145,7 @@ export function generateLevel(mission) {
   // encounters
   const table = ENEMY_TABLES[mission.biome];
   const tw = table.reduce((a, b) => a + b[1], 0);
-  const pickEnemy = () => { let x = r() * tw; for (const [kind, w] of table) { x -= w; if (x <= 0) return kind; } return 'swarmer'; };
+  const pickEnemy = () => { let x = r() * tw; for (const [kind, w] of table) { x -= w; if (x <= 0) return kind; } return table[0][0]; };
   const diff = mission.difficulty ?? 1;
   let totalEnemies = 0;
   for (const room of rooms) {
@@ -220,6 +224,7 @@ function sealDoor(k, cor, id, secretSide, side) {
   return { blocks, pos, room, open: false };
 }
 function startRoom(c) {
+  if (DRESS[c.b.id]) return DRESS[c.b.id].start(c);
   const { k, x0, z0, x1, z1, y, b } = c;
   k.floor(x0, z0, x1, z1, y, b.floor, 6, b.floor2, 0.2);
   const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
@@ -231,6 +236,7 @@ function startRoom(c) {
   for (let x = x0 + 3; x < x1 - 1; x += 6) k.d.add('talisman', x + 0.5, y + 0.02, z1 - 1.5, { mode: 'flat', scale: 1 });
 }
 function bossArena(c) {
+  if (DRESS[c.b.id]) return DRESS[c.b.id].boss(c);
   const { k, x0, z0, x1, z1, y, b } = c;
   k.floor(x0, z0, x1, z1, y, b.floor, 8, b.floor2, 0.3);
   const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, R = (x1 - x0) / 2;

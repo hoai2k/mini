@@ -1,6 +1,7 @@
 // Minimap + full map: a top-down render of the voxel world (top block
 // colours shaded by height), revealed room by room, with markers for
-// players, curses, objectives, chests, the boss and the exit.
+// players, monsters, objectives, chests, the boss and the exit. The Greek-key
+// frame around it is drawn by the HUD (see .mini-frame in style.css).
 import { BLOCKS } from '../world/blocks.js';
 import { tileAvgColor } from '../gfx/textures.js';
 
@@ -69,11 +70,11 @@ export class Minimap {
       if (shape === 's') ctx.fillRect(px - r, py - r, r * 2, r * 2);
       else { ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); }
     };
-    for (const it of L.objective.items) if (!it.done && this.revealed.has(it.room)) dot(it.pos.x, it.pos.z, '#ffd23a', full ? 5 : 3.5, 's');
+    for (const it of L.objective.items) if (!it.done && this.revealed.has(it.room)) dot(it.pos.x, it.pos.z, '#ffd84a', full ? 5 : 3.5, 's');
     for (const c of L.chests) if (!c.opened && this.revealed.has(c.room)) dot(c.pos.x, c.pos.z, c.rarity === 'rare' ? '#4ad0ff' : '#c8a060', full ? 4 : 3, 's');
-    for (const e of g.enemies) if (!e.dead && !e.isDummy) dot(e.pos.x, e.pos.z, e.isBoss ? '#ff3a3a' : e.elite ? '#ff9aff' : '#d8406a', e.isBoss ? 5 : 2);
+    for (const e of g.enemies) if (!e.dead && !e.isDummy) dot(e.pos.x, e.pos.z, e.isBoss ? '#ff4a3a' : e.elite ? '#f0c867' : '#e8664a', e.isBoss ? 5 : 2);
     if (g.objectiveDone || full) { const b = L.bossRoom.center; if (g.objectiveDone) dot(b.x, b.z, '#ff3a3a', full ? 7 : 4, 's'); }
-    if (g.exitPortal) dot(g.exitPortal.pos.x, g.exitPortal.pos.z, '#7affd8', full ? 7 : 4);
+    if (g.exitPortal) dot(g.exitPortal.pos.x, g.exitPortal.pos.z, '#5fe0d0', full ? 7 : 4);
     for (const p of g.players) {
       const px = ox + p.pos.x * scale, py = oy + p.pos.z * scale;
       ctx.save(); ctx.translate(px, py); ctx.rotate(-p.facing + Math.PI);

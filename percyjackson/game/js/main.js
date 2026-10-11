@@ -1,4 +1,4 @@
-// Cursed Dungeons — entry point, game states and the main loop.
+// Half-Blood Quests — entry point, game states and the main loop.
 import * as THREE from 'three/webgpu';
 import { GameRenderer, QUALITY_LABEL, Grade } from './gfx/renderer.js';
 import { buildBlockAtlas, buildSpriteAtlas } from './gfx/textures.js';
@@ -40,7 +40,17 @@ import './heroes/tyson.js';
 import './heroes/clarisse.js';
 import { Save } from './save.js';
 import { rollChest, itemInfo, RARITY } from './loot.js';
-import { openTitle, openSelect, openInventory, openSkills, openShop, openMapTable } from './ui/screens.js';
+import * as Screens from './ui/screens.js';
+import { openTitle, openInventory, openSkills, openShop, openMapTable } from './ui/screens.js';
+import { Mist } from './mist.js';
+import { Party } from './party.js';
+import { Archery } from './minigames/archery.js';
+import { Online } from './net/online.js';
+import { openOnline } from './net/lobby.js';
+import { mulberry32 } from './util.js';
+import { ClimbingWall } from './minigames/climbingWall.js';
+import { HEROES } from './heroes/index.js';
+import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
 import { buildHeroModel } from './entities/models.js';
 import { openPhotoMode } from './photo.js';
 import { DomainSystem } from './domain.js';
@@ -111,9 +121,14 @@ class Game {
     this.minimap = new Minimap(this);
     this.coins = 0;
     this.domainSys = new DomainSystem(this);
+    this.mist = new Mist(this);
+    this.partyMgr = new Party(this);
+    this.online = new Online(this);
+    this.party = null;          // single player: the heroes of the party (one human, the rest AI)
+    this.battleSenseT = 0;      // Battle Sense: monsters move in slow motion while > 0
     this.updaters = [];
     this.targetDof = 0;
-    progress(0.45, 'Building Jujutsu High…');
+    progress(0.45, 'Building Camp Half-Blood…');
     await nextFrame();
     this.loadHub();
     progress(0.75, 'Compiling shaders…');
@@ -165,18 +180,62 @@ class Game {
     this.selectRigs = [];
     if (!keepCam) this.rig.cine = null;
   }
-  beginSession(list) {
+  beginSession(list, { companions = [] } = {}) {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
+    this.partyMgr.clear(); this.party = null;
     for (const l of list) this.addPlayer(l.device, l.hero);
+    // one human: the other heroes come along as AI companions
+    if (list.length === 1) {
+      const used = new Set([list[0].hero]);
+      for (const id of companions) {
+        if (used.has(id) || !HEROES[id] || HEROES[id].soon || this.players.length >= 3) continue;
+        used.add(id);
+        this.partyMgr.add(this.addPlayer('ai' + this.players.length, id));
+      }
+      if (this.players.length > 1) this.party = [...this.players];
+    }
+    this.save.data.lastHero = list[0]?.hero ?? this.save.data.lastHero;
     this.rig.cine = null;
     this.state = 'playing';
     this.hud.show(true); this.touch?.show(true);
+    this.hud.rebuildCards?.();
     this.loadHub();
-    toast('Jujutsu High', 'big');
+    toast('Camp Half-Blood', 'big');
   }
+  startMinigame(m) {
+    if (this.minigame) return;
+    this.ui.closeAll();
+    m.start();
+  }
+  heroUnlocked(id) {
+    const u = HEROES[id]?.unlock;
+    return u === 'start' || this.save.data.unlockAll || (this.save.data.unlockedHeroes ?? []).includes(id);
+  }
+  // Swap a human's hero for another (at a cabin). A companion playing that
+  // hero trades places.
+  changeHero(p, id) {
+    if (!p || p.hero === id) return;
+    const mate = this.players.find((q) => q.hero === id);
+    if (mate && mate.ai) { this.partyMgr.swap(p, mate); return; }
+    const i = this.players.indexOf(p), np = new Player(this, p.index, p.device, id);
+    np.spawn(p.pos); np.facing = p.facing;
+    this.removePlayer(p); this.scene.add(np.object);
+    this.players[i] = np;
+    if (this.party) this.party[this.party.indexOf(p)] = np;
+    this.fx.summonCircle(np.pos, 0xffd84a);
+    toast(`You are ${HEROES[id].full}`, 'big');
+    this.hud.rebuildCards?.();
+  }
+  heroName(p) { return HEROES[p.hero]?.name ?? 'A hero'; }
+  // The hero a human controlled went down: hand control to a living companion.
+  onHeroDown(p) {
+    if (p.ai || !this.party) return;
+    if (this.partyMgr.switchFrom(p)) toast(`${this.heroName(p)} is down — revive them!`);
+  }
+  battleSense(dur) { if (!settings.slowmo) return; this.battleSenseT = Math.max(this.battleSenseT, dur); }
   openPhotoMode() { return openPhotoMode(this); }
-  removePlayer(p) { this.scene.remove(p.object); p.kit.dispose?.(); this.lights.remove(p.heroLight); }
+  removePlayer(p) { this.scene.remove(p.object); p.kit.dispose?.(); this.lights.remove(p.heroLight); this.partyMgr?.companions.delete(p); }
   applyQuality(q) {
     this.gr.setQualityPreset(q === 'auto' ? this.gr.info.tier : q, false);
     this.lights.configure(this.gr.preset);
@@ -219,6 +278,7 @@ class Game {
     U.bakeStrength.value = this.gr.preset.bake;
     U.wind.value = biome.wind;
     this.audio.setAmbience(biome.ambience);
+    this.mist?.setup(this.mode === 'loading-chapter' ? (this.pendingMist ?? 0) : 0, this.world);
   }
   placePlayers(at) {
     this.wipeLeft = 0;
@@ -240,24 +300,49 @@ class Game {
     const dummy = new TrainingDummy(this, L.dummy);
     this.scene.add(dummy.object); this.enemies.push(dummy);
     const who = (p) => p ?? this.players[0];
-    this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: 'Summon training curses', action: () => this.spawnWave() });
+    this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: 'Training: call up monsters', action: () => this.spawnWave(), enabled: () => !this.online.isGuest });
     this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: 'Mission map', action: () => openMapTable(this) });
     this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: 'Merchant', action: (p) => openShop(this, who(p)) });
     this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.2, label: 'Inventory', action: (p) => openInventory(this, who(p)) });
-    this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Skill tree', action: (p) => openSkills(this, who(p)) });
+    this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Train with Chiron', action: (p) => openSkills(this, who(p)) });
+    if (L.archery) this.interactables.push({ id: 'archery', pos: L.archery, radius: 2.4, label: 'Archery range', action: (p) => this.startMinigame(new Archery(this, who(p), L.archery, L.archeryFacing ?? 0)), enabled: () => !this.minigame });
+    if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: 'Climbing wall', action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame });
+    if (L.oracle && Screens.openProphecy) this.interactables.push({ id: 'oracle', pos: L.oracle, radius: 2.4, label: 'The Oracle', action: () => Screens.openProphecy(this, 'book1') });
+    if (L.cabins) for (const [hid, pos] of Object.entries(L.cabins)) {
+      if (!HEROES[hid] || HEROES[hid].soon) continue;
+      this.interactables.push({ id: 'cabin-' + hid, pos, radius: 2.2, label: `${HEROES[hid].parent}'s cabin: play as ${HEROES[hid].name}`, action: (p) => this.changeHero(who(p), hid), enabled: () => this.heroUnlocked(hid) && !this.players.some((q) => q.hero === hid && !q.ai) });
+    }
     // merchant NPC + stash chest props
     const npc = buildHeroModel('grover'); npc.root.position.set(L.shop.x, L.shop.y, L.shop.z + 1.2); npc.root.rotation.y = Math.PI; this.scene.add(npc.root); this.hubProps = [npc.root];
     const chest = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.8), new THREE.MeshStandardNodeMaterial({ color: 0x5a3a8a, roughness: 0.6 })); chest.position.set(L.stash.x, L.stash.y + 0.4, L.stash.z); chest.castShadow = true; this.scene.add(chest); this.hubProps.push(chest);
     this.wave = 0;
     this.minimap.level = null;
     this.hud.mini.classList.add('hidden');
-    this.hud.setObjective('Jujutsu High', 'Map table: missions · Merchant · Inventory chest · Shrine: skill tree · Talisman: training curses');
-    this.mode = 'hub';
+    this.hud.setObjective('Camp Half-Blood', 'Big House porch: the chapter map · Camp store · Forge: gear · Chiron: training');
+    this.mode = 'hub'; this.chapter = null;
+    this.online?.sceneChanged();
+    this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? 'Iris message: online play' : 'Iris message: play online', action: () => openOnline(this) });
+  }
+  // Play a chapter of a book: story cards, then its level.
+  startChapter(id, difficulty = 1) {
+    if (this.online.isGuest) { toast('The host chooses the chapter'); return; }
+    const ch = chapterDef(id);
+    if (!ch || !ch.ready) { toast('That chapter is still being written'); return; }
+    this.ui.closeAll();
+    const go = () => this.startMission({ biome: ch.biome, objective: ch.objective, boss: ch.boss, difficulty, seed: (Math.random() * 1e9) | 0, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, objText: ch.objText });
+    if (Screens.openStoryCards && ch.intro?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, go);
+    else go();
   }
   startMission(def) {
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
-    const L = generateLevel(def);
+    this.chapter = def.chapter ? chapterDef(def.chapter) : null;
+    // build the level from its seed alone, so online guests get the same one
+    const rnd = Math.random; Math.random = mulberry32((def.seed ?? 1) ^ 0x5bd1e995);
+    let L;
+    try { L = generateLevel(def); } finally { Math.random = rnd; }
+    this.mode = 'loading-chapter';
+    this.pendingMist = def.mist ?? this.chapter?.mist ?? 0;
     this.loadWorld(L, L.biome);
     this.audio.setMusic(L.biome.music);
     this.placePlayers(L.spawn);
@@ -266,14 +351,23 @@ class Game {
     this.mission = new Mission(this, def, L);
     this.mission.setup();
     this.mode = 'mission';
-    toast(`${L.biome.name} · ${L.biome.sub}`, 'big');
+    this.online.sceneChanged();
+    toast(this.chapter ? this.chapter.title : `${L.biome.name} · ${L.biome.sub}`, 'big');
+    if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Press LT (V) to see through it.' : 'Press LT (V) to see through the Mist.'), 2600);
   }
   completeMission() {
     const m = this.mission; if (!m || m.complete) return;
     m.complete = true;
     const d = this.save.data;
-    d.completed[m.def.id ?? 'custom'] = Math.max(d.completed[m.def.id ?? 'custom'] ?? 0, m.def.difficulty);
+    const cid = m.def.chapter ?? m.def.id ?? 'custom';
+    d.completed[cid] = Math.max(d.completed[cid] ?? 0, m.def.difficulty);
+    const ch = this.chapter;
+    if (ch) {
+      if (ch.prophecyLine != null) { const pr = (d.prophecy ??= {}); const lines = (pr[ch.book] ??= []); if (!lines.includes(ch.prophecyLine)) { lines.push(ch.prophecyLine); this.newProphecy = ch.book; } }
+      for (const [hid, info] of Object.entries(HEROES)) if (info.unlock === ch.id && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
+    }
     d.stats.missions++; d.stats.kills += m.stats.kills;
+    this.online.completed();
     const ups = this.save.addXp(80 * m.def.difficulty);
     this.save.write();
     this.audio.levelUp();
@@ -286,21 +380,22 @@ class Game {
     this.ui.open('results', (el) => {
       const mins = Math.floor((st.time ?? 0) / 60), secs = Math.floor((st.time ?? 0) % 60);
       el.appendChild(h('div', { class: 'panel', style: 'min-width:min(460px,94vw);text-align:center' },
-        h('h2', { style: `font-size:34px;color:${victory ? '#ffd23a' : '#ff5a6a'}` }, victory ? 'MISSION COMPLETE' : 'DEFEATED'),
-        h('div', { class: 'stat-line' }, 'Curses exorcised', h('b', {}, String(st.kills ?? 0))),
+        h('h2', { style: `font-size:34px;color:${victory ? '#ffd23a' : '#ff5a6a'}` }, victory ? (this.chapter ? 'CHAPTER COMPLETE' : 'QUEST COMPLETE') : 'DEFEATED'),
+        this.chapter && victory && this.chapter.outro ? h('p', { class: 'outro' }, this.chapter.outro) : null,
+        h('div', { class: 'stat-line' }, 'Monsters defeated', h('b', {}, String(st.kills ?? 0))),
         h('div', { class: 'stat-line' }, 'Time', h('b', {}, `${mins}:${String(secs).padStart(2, '0')}`)),
-        h('div', { class: 'stat-line' }, 'Coins collected', h('b', {}, String(st.coins ?? 0))),
+        h('div', { class: 'stat-line' }, 'Drachmas collected', h('b', {}, String(st.coins ?? 0))),
         h('div', { class: 'stat-line' }, 'Secrets found', h('b', {}, String(st.secrets ?? 0))),
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, 'Retry') : null,
-          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); } }, 'Return to Jujutsu High'))));
+          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => Screens.openProphecy(this, b), 600); } } }, 'Return to Camp Half-Blood'))));
       const lootEl = el.querySelector('#results-loot');
       for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));
     }, { dim: true });
   }
-  returnToHub() { this.loadHub(); toast('Jujutsu High', 'big'); }
+  returnToHub() { this.loadHub(); toast('Camp Half-Blood', 'big'); }
   openMissionSelect() {
     const biomes = Object.keys(BIOMES);
     const state = this.msState ?? (this.msState = { biome: 'jujutsu_high', objective: 'exorcise', boss: 'jogo', difficulty: 1 });
@@ -433,6 +528,20 @@ class Game {
     if (this.wipeLeft <= 0) { this.placePlayers(this.level.spawn); toast('Revived', 'big'); }
   }
 
+  // Storm biomes: lightning flashes and thunder now and then.
+  updateStorm(dt) {
+    if (!this.biome?.storm || this.state !== 'playing') return;
+    this.stormT = (this.stormT ?? 3) - dt;
+    if (this.stormT > 0) return;
+    this.stormT = 4 + Math.random() * 7;
+    const f = this.rig.focus ?? this.players[0]?.pos;
+    if (!f) return;
+    const at = new THREE.Vector3(f.x + (Math.random() - 0.5) * 30, f.y + 14, f.z + (Math.random() - 0.5) * 30);
+    this.fx.flash(0xd8e8ff, 0.35, 0.18);
+    this.lights.flash(at, new THREE.Color(0xc8d8ff), 30, 60, 0.3);
+    this.bolts.spawn(at, { count: 3, length: 9, life: 0.25 });
+    setTimeout(() => this.audio?.impact?.(0.6 + Math.random() * 0.4), 300 + Math.random() * 900);
+  }
   setReadout(on) { this.readoutOn = on; document.getElementById('readout').classList.toggle('hidden', !on); }
   pause(player = this.players[0]) {
     if (this.paused) return;
@@ -454,16 +563,19 @@ class Game {
 
   // Drop-in co-op: an unassigned controller pressing Start/A joins.
   checkJoin() {
-    if (isMobile || this.players.length >= 4) return;
+    if (isMobile || this.players.filter((p) => !p.ai).length >= 4) return;
     for (const pad of this.input.pads()) {
       const id = 'pad' + pad.index;
       if (this.players.some((p) => p.device === id)) continue;
       if (pad.buttons[9]?.pressed || pad.buttons[0]?.pressed) {
         // a lone keyboard P1 who has been idle hands control to the controller instead
         const p0 = this.players[0];
-        if (this.players.length === 1 && p0.device === 'kbm' && performance.now() - (this.input.kbmActivity ?? 0) > 8000) {
+        if (this.players.filter((q) => !q.ai).length === 1 && p0.device === 'kbm' && performance.now() - (this.input.kbmActivity ?? 0) > 8000) {
           p0.device = id; toast('Controller connected to Player 1'); continue;
         }
+        // a companion is waiting: the new player takes it over
+        const taken = this.party && this.partyMgr.takeOver(id);
+        if (taken) { this.fx.summonCircle(taken.pos, 0x6ad8ff); toast(`Player ${this.players.filter((q) => !q.ai).length} joined as ${this.heroName(taken)}`); this.audio.ui('buy'); if (!this.players.some((q) => q.ai)) this.party = null; continue; }
         // the keyboard player keeps P1; if P1 is idle on keyboard and this is the only pad, still add
         const used = new Set(this.players.map((p) => p.hero));
         const pick = HERO_IDS.find((s) => !used.has(s)) ?? 'percy';
@@ -478,7 +590,7 @@ class Game {
     for (const it of this.interactables) {
       if (it.enabled && !it.enabled()) continue;
       let near = null;
-      for (const p of this.players) if (!p.dead && !p.downed && p.pos.distanceTo(it.pos) < it.radius) near = p;
+      for (const p of this.players) if (!p.ai && !p.dead && !p.downed && p.pos.distanceTo(it.pos) < it.radius) near = p;
       if (!near) { it.progress = 0; it.touchHold = false; continue; }
       const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'X';
       const inp = this.input.get(near.device);
@@ -509,8 +621,18 @@ class Game {
     if (invP) openInventory(this, invP);
     const anyMap = playing && this.players.some((p) => this.input.get(p.device).pressed.map);
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
-    else if (pausePlayer) this.pause(pausePlayer);
+    else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
     else if (anyMap) this.openMap();
+    if (playing && !this.ui.stack.length && !this.paused) {
+      const handled = new Set();     // a switch hands the device to another hero: act once per device
+      for (const p of [...this.players]) {
+        if (p.ai || handled.has(p.device)) continue;
+        handled.add(p.device);
+        const ip = this.input.get(p.device);
+        if (ip.pressed.sight) this.mist.toggle(p);
+        if (ip.pressed.swap) this.partyMgr.switchFrom(p);
+      }
+    }
     let dt = realDt;
     if (this.paused) dt = 0;
     else if (this.hitstop > 0) { this.hitstop -= realDt; dt = 0; }
@@ -518,8 +640,14 @@ class Game {
     this.updateWipe(realDt);
     this.time += dt;
     U.time.value = this.time;
+    // Battle Sense: monsters (and their attacks) run slow, heroes don't
+    if (this.battleSenseT > 0 && !this.paused) this.battleSenseT -= realDt;
+    const edt = this.battleSenseT > 0 ? dt * 0.3 : dt;
     if (!this.paused) {
       if (playing) this.checkJoin();
+      if (playing) this.partyMgr.update(dt);
+      this.mist.update(dt);
+      this.updateStorm(dt);
       const z = this.input.takeZoom(); if (z) this.rig.zoom(z * 1.6);
       const p0 = this.players[0];
       if (settings.cameraRotate && p0) { const ip = this.input.get(p0.device); if (ip.pressed.rotL) this.rig.rotate(-1); if (ip.pressed.rotR) this.rig.rotate(1); }
@@ -528,23 +656,25 @@ class Game {
       for (const r of this.selectRigs ?? []) { r.root.rotation.y += realDt * 0.8; r.animate({ dt: realDt, speed: 0, vel: new THREE.Vector3() }); }
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const e = this.enemies[i];
-        if (!e.update(dt)) { this.scene.remove(e.object); this.enemies.splice(i, 1); }
+        if (!e.update(edt)) { this.scene.remove(e.object); this.enemies.splice(i, 1); }
       }
       for (let i = this.updaters.length - 1; i >= 0; i--) if (this.updaters[i](dt, realDt) === false) this.updaters.splice(i, 1);
-      this.projectiles.update(dt);
-      this.hazards.update(dt);
+      this.projectiles.update(edt);
+      this.hazards.update(edt);
       this.updateInteract(dt);
       this.pickups.update(dt);
       this.mission?.update(dt);
+      this.online.update(realDt);
     }
     this.domainSys.update(dt, this.paused ? 0 : realDt);
     if (this.trenchFade > 0) { this.trenchFade -= dt; Trench.glow.value = Math.min(1.4, this.trenchFade / 6); }
     Grade.dofAmount.value += (this.targetDof - Grade.dofAmount.value) * Math.min(1, realDt * 4);
-    this.markers.update(dt);
+    this.markers.update(edt);
     this.debris.update(dt);
     this.bolts.update(realDt);
     // camera + world
-    this.rig.update(dt, this.players.length ? this.players : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
+    const local = this.players.filter((p) => !p.remote);
+    this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {
       const pl = this.players[i];
