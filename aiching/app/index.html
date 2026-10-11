@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#f4ecdc">
 <meta property="og:title" content="Ai-Ching">
 <meta property="og:description" content="Ask anything. The coins fall from your words.">
+<meta property="og:image" content="https://hoai2k.github.io/mini/aiching/web/ui/share.webp">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='6' fill='%23b8322a'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='%23fff8ec' font-family='serif'%3E易%3C/text%3E%3C/svg%3E" id="favicon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +48,7 @@
       <li><button type="button">Why do I feel stuck in my creative work?</button></li>
       <li><button type="button">How can I make peace with my brother?</button></li>
     </ul>
-    <p class="fineprint">For reflection, not prediction. Your question stays in your browser.</p>
+    <p class="fineprint">For reflection, not prediction. A short AI opening is written by your browser's own AI where it has one, otherwise by Workers AI, which sees the question but does not store it. <label class="ai-switch"><input type="checkbox" id="ai-toggle" checked> AI opening</label></p>
   </section>
 </main>
 
@@ -69,6 +70,7 @@
   <p>The I Ching, the Book of Changes, is one of the oldest Chinese classics: sixty-four figures of six lines, each solid (yang) or broken (yin), with texts that have been read for three thousand years as a mirror for decisions.</p>
   <p>Ai-Ching casts a hexagram the traditional way, as six throws of three coins, but the coins are thrown by a generator seeded from your words and today's date. The same question on the same day gives the same answer, as the old rule says: do not ask twice. A new day, or a new question, casts again.</p>
   <p>Your words also steer the reading: what the question is about (love, work, health…) and what kind of answer it wants (a choice, a time, a reason) decide which counsel comes first, how the page is ordered, which words of the sages appear and what it looks for in the day's events on Wikipedia.</p>
+  <p>Above each reading, a short AI opening shows that the question was understood and introduces the answer. Chrome's built-in model writes it on your device when it is ready; otherwise the question and the hexagram go to a small Cloudflare Worker that asks Workers AI, and nothing is stored there beyond a day's cache of the answer. You can turn it off on the home page or under any opening. The reading itself never depends on it.</p>
   <p>The hexagram texts are original renderings of the traditional meanings. For the classic translation, each reading links to James Legge's 1882 version.</p>
 </dialog>
 

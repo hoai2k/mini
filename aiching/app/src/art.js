@@ -87,8 +87,11 @@ export function topicStandin(zh, colour = '#a8322d') {
 <text x="200" y="262" font-size="170" text-anchor="middle" fill="${colour}" font-family="serif">${zh}</text></svg>`);
 }
 
-export function hexagramImage(hex) {
-  return delivered(hexId(hex.n)) || hexagramStandin(hex);
+/** A hexagram's picture; `small` for the 720-wide copy used in cards. */
+export function hexagramImage(hex, small = false) {
+  const url = delivered(hexId(hex.n));
+  if (!url) return hexagramStandin(hex);
+  return small ? url.replace(/\.webp$/, '-sm.webp') : url;
 }
 
 export function trigramImage(key) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { hexagramNumber, linesOf, cast, focusOf, symbolOf, nuclearOf, trigramsOf } from '../src/iching.js';
 import { seeded, normalise, sfc32, hash128 } from '../src/rng.js';
 import { classify } from '../src/topics.js';
@@ -134,6 +134,16 @@ test('every picture the app shows has a request', () => {
   for (const k of ['ui-logo', 'ui-icon', 'ui-home-bg', 'ui-paper', 'ui-result-bg', 'ui-clouds', 'ui-coin-yang', 'ui-coin-yin', 'ui-yang', 'ui-yin', 'ui-divider']) assert.ok(ASSETS[k], k);
 });
 
+test('every delivered picture has its web copy', () => {
+  for (const [id, a] of Object.entries(ASSETS)) {
+    assert.ok(a.path.startsWith('web/') && a.source.startsWith('assets/'), id);
+    if (a.status !== 'delivered') continue;
+    assert.ok(existsSync(new URL(`../${a.path}`, import.meta.url)), `${id}: ${a.path}`);
+    assert.ok(existsSync(new URL(`../${a.source}`, import.meta.url)), `${id}: ${a.source}`);
+    if (id.startsWith('hexagram-')) assert.ok(existsSync(new URL(`../${a.path.replace('.webp', '-sm.webp')}`, import.meta.url)), `${id} small`);
+  }
+});
+
 test('the almanac is right on known days', () => {
   assert.equal(dayPillar(new Date(2000, 0, 1)).zh, '戊午');
   assert.equal(dayPillar(new Date(2000, 0, 2)).zh, '己未');
@@ -168,4 +178,45 @@ test('online sources fail quietly', async () => {
   const out = await gather(r, async () => { throw new Error('offline'); });
   assert.equal(out.daily, null);
   assert.deepEqual(out.lore, []);
+});
+
+test('the AI opening tries Chrome, then the Worker, then gives up quietly', async () => {
+  const { aiOpening, oraclePayload, tidy, chromeOpening } = await import('../src/ai.js');
+  const mem = new Map();
+  globalThis.localStorage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v), removeItem: (k) => mem.delete(k) };
+  const r = buildReading('Should I move to Lisbon?', HEX, new Date(2026, 9, 11));
+  const p = oraclePayload(r);
+  assert.equal(p.hexagram.n, r.primary.n);
+  assert.equal(p.kind, 'A choice to make');
+  assert.equal(tidy('  "Hello  there." '), 'Hello there.');
+
+  // Chrome model ready: streamed deltas are joined.
+  const lm = {
+    availability: async () => 'available',
+    create: async () => ({ async *promptStreaming() { yield 'You are '; yield 'torn.'; }, destroy() {} }),
+  };
+  let seen = '';
+  const a = await aiOpening(r, { lm, onText: (t) => { seen = t; }, fetchImpl: async () => { throw new Error('should not fetch'); } });
+  assert.deepEqual(a, { text: 'You are torn.', source: 'chrome' });
+  assert.equal(seen, 'You are torn.');
+  // Cached per reading.
+  assert.deepEqual(await aiOpening(r, { lm: null, fetchImpl: async () => { throw new Error('no'); } }), a);
+
+  // Model only downloadable: never start a download; use the Worker.
+  const r2 = buildReading('When will work get easier?', HEX, new Date(2026, 9, 11));
+  let created = false;
+  const lm2 = { availability: async () => 'downloadable', create: async () => { created = true; } };
+  assert.equal(await chromeOpening(oraclePayload(r2), null, lm2), null);
+  const b = await aiOpening(r2, { lm: lm2, fetchImpl: async (url, init) => {
+    assert.match(url, /\/oracle$/);
+    assert.equal(JSON.parse(init.body).question, 'When will work get easier?');
+    return { ok: true, json: async () => ({ opening: 'Work feels heavy.' }) };
+  } });
+  assert.equal(created, false);
+  assert.deepEqual(b, { text: 'Work feels heavy.', source: 'workers-ai' });
+
+  // Nothing works: null, and nothing cached.
+  const r3 = buildReading('Anything at all?', HEX, new Date(2026, 9, 11));
+  assert.equal(await aiOpening(r3, { lm: null, fetchImpl: async () => ({ ok: false }) }), null);
+  assert.equal([...mem.keys()].filter((k) => k.includes(r3.seed)).length, 0);
 });

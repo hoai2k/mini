@@ -79,6 +79,65 @@ TRIGRAM_STYLES = {"qian": "cloisonne", "kun": "tang", "zhen": "havoc", "kan": "p
 TOPIC_STYLES = {"love": "embroidery", "work": "lianhuan", "money": "nianhua", "health": "lingnan", "family": "papercut", "creativity": "famille",
                 "study": "gongbi", "travel": "poster", "spirit": "dunhuang", "conflict": "opera", "decision": "guochao", "timing": "lacquer"}
 
+# What each style must look like as a made object, stated first in the prompt:
+# the first round of hexagrams came back in one painterly style when the
+# style only closed the prompt.
+MEDIUM = {
+    "tang": "a Tang dynasty blue-and-green landscape painting on silk, with flat mineral-blue and malachite-green mountains outlined in ink and edged in gold",
+    "gongbi": "a Song dynasty gongbi painting on silk, with hair-fine ink outlines and flat layered washes, no oil-paint texture",
+    "dunhuang": "a Dunhuang cave mural: flat ochre, lapis and malachite pigment on weathered plaster, figures with halos and streaming ribbons, visible cracks and fading",
+    "nianhua": "a Chinese New Year woodblock print: thick black printed outlines, flat bright colours laid in by hand, no shading, folk-art figures",
+    "papercut": "a layered Chinese paper-cut: every shape is cut from flat coloured paper with crisp knife edges and lace-like cut patterns, layers stacked with small drop shadows, no painted texture at all",
+    "poster": "a 1930s Shanghai calendar poster (yuefenpai): soft airbrushed watercolour, pastel glow, an art deco border of flowers running round the edge",
+    "inkanim": "a frame from a 1960s Shanghai ink-wash animated film: wet black ink on white rice paper bleeding softly at the edges, mostly empty paper, only one or two touches of pale colour",
+    "havoc": "a frame from a 1960s Chinese animated film like Havoc in Heaven: flat cel colours, bold graphic outlines, stylised curling clouds, no realistic lighting",
+    "lianhuan": "a page of a Chinese picture-story book (lianhuanhua): confident ink line drawing with watercolour, framed as one cinematic panel",
+    "guochao": "a contemporary Chinese guochao poster illustration: flat vector shapes, bold saturated gradients, simplified graphic waves, clouds and lanterns, crisp modern design, no painterly texture",
+    "opera": "a Peking opera scene: painted-face masks, embroidered stage costumes and pheasant plumes, stage poses before a red and gold backdrop",
+    "cloisonne": "a cloisonné enamel plaque photographed straight on: every shape is a cell of glossy enamel bounded by raised gold wire, flat jewel colours, polished surface, no brushwork",
+    "famille": "famille-rose porcelain painting: the whole scene painted in soft enamels on the white glazed surface of a large porcelain plaque, with a gold rim, delicate and decorative",
+    "pomo": "a splashed-colour painting in the manner of Zhang Daqian: big pools of brilliant azurite blue and malachite green flooding across the paper, with a few small precise ink details emerging from them",
+    "lingnan": "a Lingnan school painting: lively wet ink with bright colour and Western-style light and atmosphere",
+    "modern": "a modern ink-and-colour painting in the manner of Wu Guanzhong: rhythmic black lines like dancing threads, white walls and grey roofs, scattered dots of pure red, yellow, blue and green, mostly white paper, joyful abstraction",
+    "embroidery": "a Suzhou silk embroidery: the whole picture stitched in shiny silk thread on ivory satin, every area made of visible directional stitches, no paint",
+    "puppet": "a Chinese shadow-puppet play: translucent dyed-leather puppets with punched patterns and jointed limbs pressed against a glowing lamp-lit paper screen, flat side-on figures",
+    "lacquer": "a Chinese carved and painted lacquer panel: deep cinnabar red and black lacquer with gold and silver inlay and mother-of-pearl, glossy, flat decorative scenes",
+}
+
+# Delivered hexagrams that missed their style: requested again. The delivered
+# picture stays in use until the replacement arrives.
+REPLACE = {
+    1: "came back as a painted landscape, not cloisonné enamel",
+    7: "painted, not shadow puppets",
+    11: "painted, not famille-rose porcelain",
+    13: "realistic painting, not a 1930s Shanghai poster",
+    14: "painted, not lacquer",
+    17: "painterly, not flat guochao illustration",
+    19: "painted, not silk embroidery",
+    22: "painted, not famille-rose porcelain",
+    23: "detailed painting, not splashed colour",
+    24: "painted snow scene, not paper-cut",
+    25: "coloured painting, not ink-wash animation",
+    30: "painted, not cloisonné enamel",
+    31: "painted, not silk embroidery",
+    32: "painted, not lacquer",
+    33: "detailed ink landscape, not Wu Guanzhong's lines and dots",
+    35: "realistic painting, not a 1930s Shanghai poster",
+    36: "painted night scene, not shadow puppets",
+    38: "painterly, not flat guochao illustration",
+    49: "painted, not flat guochao illustration",
+    53: "painted, not silk embroidery",
+    55: "painted, not lacquer",
+    59: "painted, not splashed colour",
+    60: "painted, not famille-rose porcelain",
+    63: "painterly, not flat guochao illustration",
+}
+
+
+def style_lead(key):
+    return f"This picture must be made as {MEDIUM[key]}. Every part of it, edge to edge, is in that medium: not a realistic, painterly or digital-art illustration. "
+
+
 ART_RULES = (
     "Colourful, rich and full of life, clearly illustrating the theme described above so that "
     "the picture tells its meaning at a glance. No text, no lettering, no calligraphy, no seals, "
@@ -213,7 +272,7 @@ TOPICS = [
 ]
 
 HEX_PROMPT = (
-    "An illustration of the I Ching hexagram {n}, {zh} {pinyin}, \"{name}\": the upper trigram is "
+    "The subject is the I Ching hexagram {n}, {zh} {pinyin}, \"{name}\": the upper trigram is "
     "{upper} and the lower trigram is {lower}. Its theme is {theme}, and the picture should make "
     "that theme felt. {scene} The season or hour is {season}. Colours that "
     "suit it (adapt them to the style): {palette}. A wide 16:10 landscape composition, full bleed, opaque; "
@@ -349,14 +408,14 @@ def entries():
                         used="The trigram cards of a reading (upper and lower trigram).",
                         standin="The three lines on a coloured ground, drawn in code.",
                         style=ART_STYLES[TRIGRAM_STYLES[key]][0],
-                        prompt=f"{ROUNDEL}{scene} {art_style(TRIGRAM_STYLES[key])} {ALPHA}"))
+                        prompt=f"{style_lead(TRIGRAM_STYLES[key])}{ROUNDEL}{scene} {art_style(TRIGRAM_STYLES[key])} {ALPHA}"))
     for i, (key, title, scene) in enumerate(TOPICS, 1):
         out.append(dict(section="Question topics", code=f"TP{i:02d}", id=f"topic-{key}", title=title,
                         path=f"assets/topics/{key}.png", size="800 x 800", alpha=True,
                         used=f"The counsel card for questions about {title.lower()}.",
                         standin="A seal-red character in a circle, drawn in code.",
                         style=ART_STYLES[TOPIC_STYLES[key]][0],
-                        prompt=f"{ROUNDEL}{scene} {art_style(TOPIC_STYLES[key])} {ALPHA}"))
+                        prompt=f"{style_lead(TOPIC_STYLES[key])}{ROUNDEL}{scene} {art_style(TOPIC_STYLES[key])} {ALPHA}"))
     for h in HEXAGRAMS:
         up, lo = trigrams(h["n"])
         prompt = HEX_PROMPT.format(n=h["n"], zh=h["zh"], pinyin=h["pinyin"], name=h["name"],
@@ -368,10 +427,16 @@ def entries():
                         used="The picture at the top of a reading, and the small picture of the hexagram it becomes.",
                         standin="A misty landscape in the hexagram's colours, drawn in code.",
                         style=ART_STYLES[HEX_STYLES[h["n"] - 1]][0],
-                        prompt=f"{prompt} {art_style(HEX_STYLES[h['n'] - 1])}"))
+                        replace=REPLACE.get(h["n"]),
+                        prompt=f"{style_lead(HEX_STYLES[h['n'] - 1])}{prompt} {art_style(HEX_STYLES[h['n'] - 1])}"))
     for e in out:
         e["status"] = "delivered" if e["id"] in DELIVERED else "requested"
     return out
+
+
+def web_path(path):
+    """Where the page loads a picture from: its web copy (tools/build_web.py)."""
+    return "web/" + path.split("/", 1)[1].rsplit(".", 1)[0] + ".webp"
 
 
 def render(items):
@@ -397,6 +462,16 @@ def render(items):
         "",
         f"{len(items) - done} requested, {done} delivered, {len(items)} in total.",
     ]
+    again = [e for e in items if e.get("replace")]
+    if again:
+        lines += [
+            "",
+            "## Replacements wanted",
+            "",
+            f"{len(again)} delivered hexagram pictures illustrate their theme but missed their art style, so they are requested again with the style first in the prompt. "
+            "Generate them from their entries below and save them under the same file names; until then the app keeps showing the delivered ones.",
+            "",
+        ] + [f"- {e['code']} · {e['title']} ({e['style']}): {e['replace']}" for e in again]
     section = None
     for e in items:
         if e["section"] != section:
@@ -411,7 +486,7 @@ def render(items):
             f"- **Style:** {e['style']}",
             f"- **Used for:** {e['used']}",
             f"- **Stand-in until delivered:** {e['standin']}",
-            f"- **Status:** {e['status']}",
+            f"- **Status:** {e['status']}" + (f"; **replacement wanted:** {e['replace']}. Save it under the same file name; the delivered picture is used until it arrives." if e.get("replace") else ""),
             "",
             "```text",
             e["prompt"],
@@ -423,7 +498,7 @@ def render(items):
 def main():
     items = entries()
     doc = render(items)
-    assets = {e["id"]: {"path": e["path"], "status": e["status"], "code": e["code"]} for e in items}
+    assets = {e["id"]: {"path": web_path(e["path"]), "source": e["path"], "status": e["status"], "code": e["code"]} for e in items}
     data = json.dumps(assets, ensure_ascii=False, indent=1) + "\n"
     if "--check" in sys.argv:
         stale = [p for p, text in ((DOC, doc), (ASSET_LIST, data)) if not p.exists() or p.read_text(encoding="utf-8") != text]
