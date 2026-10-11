@@ -578,7 +578,8 @@ function shoreScene(k, st, t) {
   const pt = st.phase === 'shore' ? st.phaseT : T.end + (st.phase === 'iris' ? st.phaseT : OUTRO.iris);
   // pale sky and hung clouds
   // the requested backcloth (2560 x 1440 art) is the whole frame: sky, clouds, sea
-  const cloth = k.asset('shore-backcloth', 640, 720, 1280, 720);
+  // (the film edition's shore shows the cave Aurora points to, at the right)
+  const cloth = (FILM && k.asset('shore-cave', 640, 720, 1280, 720)) || k.asset('shore-backcloth', 640, 720, 1280, 720);
   if (!cloth) {
     const g = c.createLinearGradient(0, 60, 0, 440);
     g.addColorStop(0, k.col('#e9b9c4')); g.addColorStop(1, k.col('#f8ded6'));

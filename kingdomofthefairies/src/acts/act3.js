@@ -22,6 +22,8 @@ export const START = { row: 2, x: 200 };
 export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR). The
 // throne stands on the backcloth's painted dais, which is centred on it.
+// The film edition's opening transformation, seconds (four sets, three dissolves).
+export const TRANSFORM = 5.2;
 export const THRONE_BX = 800, WITCH_BX = 965, LANTERN_BX = 600;
 export const DAIS_Y = 372;                      // where the throne stands
 export const LANTERN_Y = 249;                   // the gaze lantern's painted pupil
@@ -184,6 +186,10 @@ export default {
       checkpoint: null,
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
+    // The film edition opens on the transformation of tableaux 19-21: the
+    // lobster palace and the sea flora dissolve into the azure grotto and
+    // Neptune's court (act3-art.js). Not on a resume; A skips it.
+    if (FILM && k <= 0 && !(from && from.x != null)) st.transform = 0;
     if (k <= 0 && !(from && from.x != null)) return st;
     // Resume: stand in the scene's groove, lanterns full, hazards afresh but fair.
     const x = clamp(from.x ?? SCENES[k].x, XMIN, XMAX), row = clamp(from.row ?? SCENES[k].row, 0, 2) | 0;
@@ -203,6 +209,11 @@ export default {
     st.t += dt;
     st.beat = input.beat ?? st.beat + dt / BEAT;
     if (st.status !== 'play') return;
+    if (st.transform != null) {
+      st.transform += dt;
+      if ((input.a && st.transform > 0.25) || st.transform >= TRANSFORM) { st.transform = null; st.events.push({ type: 'courtOpens' }); }
+      return;
+    }
     st.phaseT += dt;
     const emit = (e) => st.events.push(e);
 

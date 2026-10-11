@@ -2,11 +2,12 @@
 // stand-in until its file is delivered (ids and sizes are in
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
 import {
-  ROWY, ROWSCALE, PEDESTAL, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
+  ROWY, ROWSCALE, PEDESTAL, TRANSFORM, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
   beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { FILM } from '../theme.js';
+import { card } from './tableau.js';
 
 const FLOOR_TOP = 404;
 const BC_H = 900;               // drawn height of the delivered backcloth
@@ -14,6 +15,7 @@ const GOWN = { green: '#9cc7a4', pink: '#f3c6dc', blue: '#a9c4e0' };
 const NAVY = '#26304a';
 
 export function draw(k, st, t) {
+  if (st.transform != null) return transformation(k, st, t);
   const c = k.c, ph = st.phase;
   const bob = Math.abs(Math.sin(Math.PI * beatPhase(st.beat)));
   const cam = st.cam;
@@ -45,6 +47,26 @@ export function draw(k, st, t) {
   if (ph === 'turn' || ph === 'lunge' || ph === 'iris') outro(k, st, t);
   if (ph === 'caught') k.wash('#4a0a18', 0.25 * clamp(st.phaseT / 0.8, 0, 1));
   c.globalAlpha = 1;
+}
+
+// The film's transformation (tableaux 19-21): the lobster palace, the sea
+// flora and the azure grotto dissolve one into the next, and the last into
+// Neptune's court itself, where play begins. Each set holds, then dissolves.
+const TSETS = ['lobster-palace', 'sea-flora', 'azure-grotto'];
+function transformation(k, st, t) {
+  const c = k.c, seg = TRANSFORM / 4, f = st.transform / seg, i = Math.floor(f), d = clamp((f - i - 0.55) / 0.45, 0, 1);
+  const set = (n, a) => {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha = a;
+    if (n < TSETS.length) {
+      const z = 1 + 0.03 * ((st.transform - n * seg) / seg);
+      if (!k.asset(TSETS[n], 640, 720 + 30 * (z - 1) * 10, 1280 * z, 720 * z)) { c.fillStyle = k.col(['#5a3a4a', '#4a6a5a', '#2a5a7a'][n]); c.fillRect(0, 0, 1280, 720); }
+    } else { hall(k, st, t); dais(k, st, t, 0); c.save(); c.translate(-st.cam, 0); floor(k, st.cam); c.restore(); }
+    c.restore();
+  };
+  set(i, 1); set(i + 1, d);
+  const names = ['The Lobster Palace', 'The Sea Flora', 'The Azure Grotto', "Neptune's Court"];
+  card(k, names[Math.min(3, i + (d > 0.5 ? 1 : 0))], 'Press A to begin', Math.min(1, st.transform / 0.5));
 }
 
 export function drawOver(k, st) {

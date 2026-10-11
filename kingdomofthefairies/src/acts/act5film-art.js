@@ -24,7 +24,13 @@ export function drawTower(k, st, t) {
   if (ph === 'swim') return swimScene(k, st, t);
   if (ph === 'tower') return towerScene(k, st, t);
   const pt = ph === 'window' ? st.phaseT : FILM_T.window + st.phaseT;
-  tableau(k, 'tower-climb', pt, FILM_T.window + FILM_T.iris, { focus: [1000, 220], fadeOut: 0.01 });
+  // Her window at the top of the wall, Azurine at it, the prince beside her.
+  towerScene(k, st, t);
+  const c = k.c;
+  c.save(); c.translate(0, 640 + st.camY);
+  c.globalAlpha = clamp(pt / 0.6, 0, 1);
+  if (!k.asset('azurine-window', 640, -TOWER_TOP - 2, 84, 105)) { c.fillStyle = k.col('#c9d8ee'); k.circle(640, -TOWER_TOP - 60, 16); }
+  c.restore();
   card(k, 'Her Window', 'Azurine is held inside', cardAlpha(pt, FILM_T.window + 9));
 }
 
@@ -54,18 +60,25 @@ const swoopScreenX = (st) => (st.sw?.swoop ? 420 + (st.sw.swoop.x - st.sw.x) : -
 
 function swimScene(k, st, t) {
   const c = k.c, sw = st.sw, f = sw.x / SWIM.len;
-  // night sky, moon, the cliff behind at the left and the tower ahead at the right
+  // the delivered cloth (the cliff at the left, the sea gap, the tower on its
+  // rock at the right), panned from the cliff toward the tower as he swims
+  const painted = k.img('coast-gap');
+  let cliffX = 260 - f * 520;
+  if (painted) {
+    k.asset('coast-gap', 832 - f * 384, 800, 1664, 936);
+    cliffX = 300 - f * 384;
+  } else {
   const g = c.createLinearGradient(0, 0, 0, SURFACE);
   g.addColorStop(0, k.col('#1c1630')); g.addColorStop(1, k.col('#3d3a5c'));
   c.fillStyle = g; c.fillRect(0, 0, 1280, SURFACE + 10);
   k.moon(980, 120, 38);
-  const cliffX = 260 - f * 520;
   const rock = [[-400, 470], [-400, 96], [-60, 104], [10, 132], [40, 120], [70, 168], [96, 210], [88, 260], [120, 300], [130, 360], [158, 420], [170, 470]];
   c.fillStyle = k.col('#241c2a'); c.beginPath(); for (const [dx, y] of rock) c.lineTo(cliffX + dx, y); c.closePath(); c.fill();
   c.strokeStyle = k.col('#8c7f9a'); c.lineWidth = 2; c.globalAlpha = 0.6;  // moonlight on its edge
   c.beginPath(); for (const [dx, y] of rock.slice(2, -1)) c.lineTo(cliffX + dx, y); c.stroke(); c.globalAlpha = 1;
   c.fillStyle = k.col('#3f5a34'); c.fillRect(cliffX - 400, 92, 440, 8);  // the grass at its top
   towerSilhouette(k, 1180 - f * 380, SURFACE, 0.55 + 0.75 * f, t);
+  }
   // the sea: rolling wave rows
   c.fillStyle = k.col('#1d3b44'); c.fillRect(0, SURFACE, 1280, 720 - SURFACE);
   for (let r = 0; r < 3; r++) k.waves(r, sw.x * (0.6 + r * 0.25) + t * 30);
@@ -181,12 +194,12 @@ export function drawBurning(k, st, t) {
   if (ph === 'quay') return clifftop(k, st, t);
   if (ph === 'barrel') return barrelScene(k, st, t);
   if (ph === 'wedding') {
-    tableau(k, 'wedding', st.phaseT, FILM_T.wedding, { focus: [640, 380] });
+    wedding(k, st, t);
     const n = st.sleepersShown;
     return card(k, 'The Wedding', n ? `${n} of the crew you woke march in the procession` : 'Home to the court', cardAlpha(st.phaseT, FILM_T.wedding));
   }
   const pt = ph === 'apotheosis' ? st.phaseT : FILM_T.apotheosis + st.phaseT;
-  tableau(k, 'apotheosis', pt, FILM_T.apotheosis + FILM_T.iris, { focus: [640, 300], zoom: 0.1, fadeOut: 0.01 });
+  apotheosis(k, pt, t);
   card(k, 'The Kingdom of the Fairies', 'The end', cardAlpha(pt, FILM_T.apotheosis + 9, 1.2));
 }
 
@@ -197,7 +210,7 @@ export function drawOverBurning(k, st) {
 }
 
 export function onEventBurning(k, e, st) {
-  if (e.type === 'barrelPush') { k.burst(760, 420, '#b98a5e', 12, 'chip'); k.text(`${e.n} / ${BARREL.pushes}`, 760, 330); return; }
+  if (e.type === 'barrelPush') { k.burst(560 + e.n * 40, 380, '#b98a5e', 12, 'chip'); k.text(`${e.n} / ${BARREL.pushes}`, 600, 300); return; }
   if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1000, 600, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
   if (e.type === 'offBeat') { k.text('on the beat…', 640, 470); return; }
   if (e.type === 'witchReturns') { k.flash(0.4); return; }
@@ -295,23 +308,93 @@ function clifftop(k, st, t) {
   player(k, st, t);
 }
 
-// The witch's last attack: the tableau, and the barrel rolled on the beat.
+// The witch's last attack, staged on the cliff over the whirlpool: Aurora on
+// the clifftop, the prince rolling the witch's barrel to the edge one push at
+// a time, and over it into the whirlpool.
+const CLIFF = { y: 420, edge: 728 };          // cliff-whirlpool at 1:1: its ledge
+function barrelStage(k, st, t, fallK) {
+  const c = k.c, b = st.barrel, n = Math.min(b.pushes, BARREL.pushes);
+  if (!k.asset('cliff-whirlpool', 640, 720, 1280, 720)) { c.fillStyle = k.col('#1c1630'); c.fillRect(0, 0, 1280, 720); }
+  // the whirlpool turning in the sea below
+  c.save(); c.translate(1010, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1);
+  if (!k.asset('whirlpool', 0, 60, 420, 136)) { c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 3; for (let r = 20; r < 200; r += 30) { c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 1.6); c.stroke(); } }
+  c.restore();
+  if (!k.asset('aurora-point', 250, CLIFF.y + 6, 160, 226)) { c.fillStyle = k.col('#f4ead2'); k.circle(250, CLIFF.y - 120, 16); }
+  // the barrel creeps to the edge with each push, then tips and falls
+  const bx = 540 + n * 50;
+  let x = bx, y = CLIFF.y, rot = 0;
+  if (fallK > 0) { const f = easeInOut(fallK); x = lerp(bx, 1010, f); y = CLIFF.y + f * f * 260; rot = f * 6; }
+  c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = 1 - clamp((fallK - 0.8) / 0.2, 0, 1);
+  if (!k.asset('witch-barrel', 0, 0, 116, 139)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-34, -90, 68, 90); }
+  c.restore();
+  // the prince, shoulder to it
+  c.save(); c.translate(bx - 84, CLIFF.y);
+  if (!k.asset('prince-push', 0, 0, 168, 206)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -110, 28, 110); }
+  c.restore();
+}
+
+// The wedding: the procession crosses the delivered street, the crew you
+// woke at its head, then the fairies, the prince and Azurine, the king and
+// queen. Cut-outs on slides, bobbing as they march.
+function wedding(k, st, t) {
+  const c = k.c, pt = st.phaseT;
+  if (!k.asset('wedding-street', 640, 720, 1280, 720)) { c.fillStyle = k.col('#cfd8e6'); c.fillRect(0, 0, 1280, 720); }
+  const crew = ['crew-squire', 'crew-helmsman', 'crew-manatarms', 'crew-bosun'];
+  const line = [
+    ...Array.from({ length: Math.min(4, st.sleepersShown || 0) }, (_, i) => crew[i % 4]),
+    'fairy-ring', 'fairy-crown', 'fairy-gold', 'prince-stand', 'azurine-stand', 'king-stand', 'queen-stand',
+  ];
+  const y = 640, speed = 110, gap = 118, front = -120 + pt * speed + line.length * gap * 0.55;
+  line.forEach((id, i) => {
+    const x = front - i * gap, bob = Math.abs(Math.sin(pt * 4 + i)) * 5;
+    if (x < -80 || x > 1360) return;
+    const h = id.startsWith('prince') ? 190 : id.startsWith('azurine') ? 186 : 200;
+    c.save(); c.translate(x, y - bob);
+    k.asset(id, 0, 0, h * 0.55, h);
+    c.restore();
+  });
+  // petals falling over the procession
+  c.fillStyle = k.col('#f3c6dc');
+  for (let i = 0; i < 26; i++) { const px = (i * 97 + t * 30) % 1280, py = (i * 53 + t * 60) % 620; c.globalAlpha = 0.7; k.circle(px + Math.sin(t + i) * 10, py, 3); }
+  c.globalAlpha = 1;
+}
+
+// The apotheosis: the delivered set, Aurora above the couple, the fairies
+// either side, light rising.
+function apotheosis(k, pt, t) {
+  const c = k.c, rise = easeOut(clamp(pt / 3, 0, 1));
+  if (!k.asset('apotheosis', 640, 720, 1280, 720)) { c.fillStyle = k.col('#f4e6c8'); c.fillRect(0, 0, 1280, 720); }
+  const g = c.createRadialGradient(640, 260, 30, 640, 260, 420);
+  g.addColorStop(0, 'rgba(255,246,208,0.55)'); g.addColorStop(1, 'rgba(255,246,208,0)');
+  c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  for (const [id, x, y, h] of [['fairy-ring', 330, 560, 190], ['fairy-crown', 460, 520, 180], ['fairy-gold', 820, 520, 180], ['water-fairy-stand', 950, 560, 190]]) {
+    c.save(); c.globalAlpha = rise; c.translate(x, y + 20 * (1 - rise)); k.asset(id, 0, 0, h * 0.55, h); c.restore();
+  }
+  c.save(); c.translate(640, 360 - 40 * rise); k.asset('aurora-stand', 0, 0, 120, 200); c.restore();
+  c.save(); c.translate(600, 640); k.asset('prince-stand', 0, 0, 110, 180); c.restore();
+  c.save(); c.translate(690, 640); c.scale(-1, 1); k.asset('azurine-stand', 0, 0, 96, 180); c.restore();
+  c.fillStyle = k.col('#fff2b0');
+  for (let i = 0; i < 30; i++) { const a = i * 2.4 + t * 0.4, r = 120 + (i * 37) % 260; c.globalAlpha = 0.5 + 0.5 * Math.sin(t * 3 + i); k.circle(640 + Math.cos(a) * r, 300 + Math.sin(a) * r * 0.5, 2.5); }
+  c.globalAlpha = 1;
+}
+
+// The witch's last attack: the staged scene, and the barrel rolled on the beat.
 function barrelScene(k, st, t) {
   const c = k.c, b = st.barrel;
   const fallK = b.fallT == null ? 0 : clamp(b.fallT / FILM_T.barrelFall, 0, 1);
-  tableau(k, 'barrel', st.phaseT, 30, { focus: [760, 420], zoom: 0.05 + 0.08 * fallK, fadeOut: 0.01 });
+  barrelStage(k, st, t, fallK);
   if (b.fallT != null) {
     c.save(); c.globalAlpha = 0.5 * Math.sin(Math.PI * fallK); c.fillStyle = k.col('#eef3ea'); c.fillRect(0, 0, 1280, 720); c.restore();
     return card(k, 'Into the Whirlpool', 'The witch is gone', clamp(fallK * 3, 0, 1));
   }
   // pushes so far, and a ring that closes on each beat
   for (let i = 0; i < BARREL.pushes; i++) {
-    c.save(); c.globalAlpha = 0.9; c.fillStyle = k.col('#2a1424'); k.circle(600 + i * 80, 470, 22);
-    c.fillStyle = k.col(i < b.pushes ? '#d9b34a' : '#5e5446'); k.circle(600 + i * 80, 470, 15); c.restore();
+    c.save(); c.globalAlpha = 0.9; c.fillStyle = k.col('#2a1424'); k.circle(560 + i * 80, 180, 22);
+    c.fillStyle = k.col(i < b.pushes ? '#d9b34a' : '#5e5446'); k.circle(560 + i * 80, 180, 15); c.restore();
   }
   const p = beatPhase(st.beat), r = 22 + 24 * (1 - p);
   c.save(); c.globalAlpha = 0.25 + 0.6 * (1 - p); c.strokeStyle = k.col('#f1d27a'); c.lineWidth = 4;
-  c.beginPath(); c.arc(600 + Math.min(b.pushes, BARREL.pushes - 1) * 80, 470, r, 0, Math.PI * 2); c.stroke(); c.restore();
+  c.beginPath(); c.arc(560 + Math.min(b.pushes, BARREL.pushes - 1) * 80, 180, r, 0, Math.PI * 2); c.stroke(); c.restore();
   card(k, "The Witch's Last Attack", ' ', 1);
   k.over(() => {
     const c = k.c;

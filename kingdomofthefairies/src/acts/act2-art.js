@@ -87,6 +87,7 @@ function grotto(k, st, t) {
   for (const v of st.vents) if (onScreen(st, v.y, TUNE.ventH + 60)) vent(k, st, v, t);
   for (const cl of st.clams) if (onScreen(st, cl.y)) clam(k, st, cl);
   for (const cn of st.conches) if (onScreen(st, cn.y)) conch(k, st, cn, t);
+  if (FILM && onScreen(st, 470, 320)) octopus(k, st, t);
   for (const sl of st.sleepers) sleeper(k, st, sl, t);
   if (!st.guitar.held) guitarFree(k, st, t);
   for (const e of st.eels) if (onScreen(st, e.y)) eel(k, st, e, t);
@@ -793,6 +794,15 @@ function risingBubbles(k, spans, y0, age, t) {
   c.restore();
 }
 
+// The film's great octopus (tableau 16), beside the wreck where the Water
+// Fairy revives the voyagers, its arms swaying slowly.
+function octopus(k, st, t) {
+  const c = k.c;
+  c.save(); c.translate(150, sy(st, 470)); c.rotate(Math.sin(t * 0.7) * 0.03); c.scale(1, 1 + 0.02 * Math.sin(t * 1.3));
+  k.asset('octopus', 0, 0, 250, 175);
+  c.restore();
+}
+
 function openingDragon(k, st, t) {
   const pt = st.phaseT;
   const f = (pt - 0.5) / 3.6;
@@ -963,6 +973,11 @@ function ride(k, st, t) {
       const lh = rideLeapH(r);
       if (lh > 4) { c.save(); c.globalAlpha = 0.25 * (1 - lh / RIDE.leapHeight / 2); c.fillStyle = k.col('#0d1c22'); c.beginPath(); c.ellipse(boatX(st) - 10, rowY(st) + 24, 120, 12, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
       boat(k, st, by, t);
+      // the crew you woke ride after the carriage on their fish
+      if (FILM) for (let i = 0; i < Math.min(3, st.woken || 0); i++) {
+        const rx = boatX(st) - 190 - i * 130, ry = rowY(st) + 10 + Math.sin(t * 2.4 + i) * 8;
+        if (rx > -100) k.asset('crew-rider', rx, ry, 150, 112);
+      }
     }
     k.waves(row, scrolled);
   }

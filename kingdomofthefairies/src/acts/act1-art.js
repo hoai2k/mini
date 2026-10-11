@@ -74,7 +74,14 @@ export function onEvent(k, e, st) {
 const flash = (t) => { const f = (t * 0.9) % 1, n = Math.floor(t * 0.9); return f < 0.06 && (n * 7) % 3 !== 0 ? 1 - f / 0.06 : 0; };
 function tempestSky(k, st, deck, t) {
   const c = k.c, rise = st.phase === 'party' ? easeOut(st.phaseT / ENDING.party) : 1;
-  c.save(); c.globalAlpha = 0.55 * deck; c.fillStyle = k.col('#1a1024'); c.fillRect(0, 0, 1280, 470); c.restore();
+  // the delivered storm sky, tiling and drifting, fades up with the deck
+  if (k.img('tempest-sky')) {
+    const w = 470 * 2560 / 820, o = (t * 24) % w;   // its own proportions, 470 tall
+    c.save(); c.globalAlpha = deck;
+    for (const x of [w / 2 - o, w * 1.5 - o]) k.asset('tempest-sky', x, 470, w, 470);
+    c.restore();
+  }
+  c.save(); c.globalAlpha = (k.img('tempest-sky') ? 0.2 : 0.55) * deck; c.fillStyle = k.col('#1a1024'); c.fillRect(0, 0, 1280, 470); c.restore();
   const lf = flash(t);
   if (lf > 0) { c.save(); c.globalAlpha = 0.35 * lf * deck; c.fillStyle = k.col('#e9d6f2'); c.fillRect(0, 0, 1280, 470); c.restore(); }
   // she rises on her cloud over the stern, larger as the storm grows
