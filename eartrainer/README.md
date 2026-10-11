@@ -34,7 +34,9 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   legato (each held just into the next, like a half-changed pedal), holds
   long notes and lets the last one ring, lifts for rests, leans on strong
   beats, swells toward the high point, and adds a few milliseconds of
-  unevenness. It plays on its own channel about 7 dB under the player's keys
+  unevenness. Long holds are shortened: no note waits more than 1.1 s before
+  the next (stretched when the tempo is slowed), since a lead sheet's
+  bar-long notes are only waiting in ear training. It plays on its own channel about 7 dB under the player's keys
   (Settings → Melody volume), and keeps playing when you press keys, so you
   can play along.
 - **Repeat** plays the melody again; **Redo** starts your answer over from a
@@ -47,8 +49,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   answers in a row, a chime and confetti. A melody solved with any wrong notes
   comes round again (its staff hides, it plays again, no new points) until it
   is played cleanly; only a clean run moves on by itself, and Next always
-  moves on (Settings can turn the replay off). After about three seconds (the
-  Next button fills up) the next melody starts by itself; playing on restarts
+  moves on (Settings can turn the replay off). Right after the chime (about
+  1.5 s; the Next button fills up meanwhile) the next melody starts by itself; playing on restarts
   the wait, and Repeat (which replays it with its keys lit), Redo, Practice,
   a tap on the staff or the menu stays with it. Settings can turn this off.
 - Songbooks: Children's Songs, Folk & Traditional, Carols & Hymns, Classical

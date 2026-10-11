@@ -56,7 +56,7 @@ jobs:
       - run: node --test eartrainer/app/test/*.test.mjs && python3 eartrainer/design/source/build_requests.py --check && eartrainer/publish.sh local/pages/eartrainer
       - run: node --test test/*.test.mjs
         working-directory: percyjackson/game
-      - run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && percyjackson/publish.sh local/pages/percyjackson
+      - run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && python3 percyjackson/design/source/build_concept_web.py --check && percyjackson/publish.sh local/pages/percyjackson
       - run: cp index.html favicon.ico local/pages/
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -11,7 +11,7 @@ export default [
     notes: 'D5 G4:0.5 A4:0.5 B4:0.5 C5:0.5 D5 G4 G4 E5 C5:0.5 D5:0.5 E5:0.5 F#5:0.5 G5 G4 G4' },
   { id: 'toccata-d-minor', title: 'Toccata and Fugue in D minor (opening)', by: B, cat: 'classical', bpm: 60,
     notes: 'A4:0.25 G4:0.25 A4:2 r:0.5 G4:0.25 F4:0.25 E4:0.25 D4:0.25 C#4:1 D4:2' },
-  { id: 'jesu-joy', title: "Jesu, Joy of Man's Desiring", by: B, cat: 'classical', bpm: 66,
+  { id: 'jesu-joy', title: "Jesu, Joy of Man's Desiring", by: B, cat: 'classical', bpm: 80,
     notes: 'G4:0.333 A4:0.333 B4:0.333 D5:0.333 C5:0.333 C5:0.333 E5:0.333 D5:0.333 D5:0.333 G5:0.333 F#5:0.333 G5:0.333 D5:0.333 B4:0.333 G4:1' },
   { id: 'prelude-in-c', title: 'Prelude in C (Well-Tempered Clavier I)', by: B, cat: 'classical', bpm: 120,
     notes: 'C4:0.5 E4:0.5 G4:0.5 C5:0.5 E5:0.5 G4:0.5 C5:0.5 E5:0.5 C4:0.5 E4:0.5 G4:0.5 C5:0.5 E5:0.5 G4:0.5 C5:0.5 E5:0.5' },
@@ -55,7 +55,7 @@ export default [
   // Romantic
   { id: 'brahms-lullaby', title: 'Lullaby (Wiegenlied)', by: 'Johannes Brahms', cat: 'classical', bpm: 100,
     notes: 'G4:0.5 G4:0.5 Bb4:2 G4:0.5 G4:0.5 Bb4:2 G4:0.5 Bb4:0.5 Eb5 D5:1.5 C5:0.5 C5 Bb4' },
-  { id: 'chopin-nocturne-op9-2', title: 'Nocturne in E-flat, Op. 9 No. 2', by: 'Frédéric Chopin', cat: 'classical', bpm: 100,
+  { id: 'chopin-nocturne-op9-2', title: 'Nocturne in E-flat, Op. 9 No. 2', by: 'Frédéric Chopin', cat: 'classical', bpm: 132,
     notes: 'Bb4 G5:2 F5 G5:3 F5:2 Eb5:3' },
   { id: 'chopin-funeral-march', title: 'Funeral March (Sonata No. 2)', by: 'Frédéric Chopin', cat: 'classical', bpm: 60,
     notes: 'Bb3 Bb3:0.75 Bb3:0.25 Bb3:2 Db4:0.75 C4:0.25 C4:0.75 Bb3:0.25 Bb3:0.75 A3:0.25 Bb3:2' },
