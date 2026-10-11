@@ -17,6 +17,7 @@ import { assetUrl, iconUrl, setIconTheme } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
+import { createDebugBots, MAX_DEBUG_BOTS } from './debug-bots.js';
 
 const $ = sel => document.querySelector(sel);
 
@@ -24,7 +25,6 @@ const settings = {
   name: '',
   color: COLORS[Math.floor(Math.random() * COLORS.length)],
   volume: 0.6,
-  reduceMotion: false,
   autoLight: true,
   theme: 'kid',
   ...load('settings', {}),
@@ -64,7 +64,7 @@ function applyTheme(t) {
   refreshIcons();
 }
 setVolume(settings.volume);
-document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
+delete settings.reduceMotion;
 
 // A fresh ID per page load: a reload is a new person to the others, which
 // keeps their calls simple.
@@ -72,6 +72,7 @@ const me = { id: randomId(), name: settings.name, color: settings.color };
 
 let studio = null, net = null, rtc = null, games = null, flyer = null, votes = null;
 let fxVotes = null, gameVotes = null;
+let debugBots = null, debugBotCount = 0;
 let effects = [];
 let started = false;
 const tiles = new Map(); // clientId -> tile record
@@ -231,7 +232,7 @@ function backgroundBubbles() {
     last = now;
     c.width = innerWidth;
     c.height = innerHeight;
-    const reduce = settings.reduceMotion || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     for (const b of bubbles) {
       if (!reduce) b.y -= b.s * dt;
       if (b.y < -0.1) { b.y = 1.1; b.x = Math.random(); }
@@ -322,6 +323,9 @@ async function start() {
   // The camera and microphone start alongside joining, so a device that is
   // slow or busy never holds up the chat.
   startDevices();
+  debugBots = createDebugBots({ ownerId: me.id, rooms: MiniRooms,
+    mediaOf: id => tiles.get(id)?.media ?? null, onChange: () => onPeers(net.peers), toast });
+  debugBots.setCount(debugBotCount);
   net.on('peers', onPeers);
   net.on('status', updateStatus);
 
@@ -380,6 +384,7 @@ async function start() {
   initGames();
   initControls();
   addEventListener('beforeunload', () => {
+    debugBots?.stop();
     rtc?.closeAll();
     net?.leave();
   });
@@ -404,29 +409,70 @@ function makeTile(id, media) {
   return rec;
 }
 
-// With two people one video fills the screen and the other floats in a
-// corner (normally mine). Tapping the floating one swaps them; dragging it
-// moves it to another corner.
-let swapped = false;
-let pipCorner = 'tr';
+// One primary video fills the screen; every other video floats independently.
+// Positions are fractions of the available area, so they survive resizing.
+let primaryId = null;
+const pipPositions = new Map();
+function promoteTile(id) {
+  const position = pipPositions.get(id);
+  if (position) pipPositions.set(primaryId ?? me.id, { ...position, moved: true });
+  primaryId = id;
+  layout();
+  for (const t of tiles.values()) flashName(t, 2000);
+}
+function pipBounds(rec) {
+  const top = Math.max(12, $('#topbar').getBoundingClientRect().bottom + 8);
+  const controlsTop = $('#call').dataset.ui === '2' ? $('.controls').getBoundingClientRect().top - 12 : innerHeight;
+  const bottom = Math.max(top, Math.min(controlsTop, innerHeight - safeBottom() - 12) - rec.el.offsetHeight);
+  return { left: 12, top, width: Math.max(0, innerWidth - rec.el.offsetWidth - 24), height: Math.max(0, bottom - top) };
+}
+function placePip(rec) {
+  const p = pipPositions.get(rec.id);
+  if (!p) return;
+  const b = pipBounds(rec);
+  rec.el.style.left = `${b.left + p.x * b.width}px`;
+  rec.el.style.top = `${b.top + p.y * b.height}px`;
+}
 function updatePip() {
-  const two = tiles.size === 2;
-  if (!two) swapped = false;
-  const other = [...tiles.keys()].find(id => id !== me.id);
-  const pipId = two ? (swapped ? other : me.id) : null;
+  if (!tiles.has(primaryId)) primaryId = [...tiles.keys()].find(id => id !== me.id) ?? null;
+  for (const id of pipPositions.keys()) if (!tiles.has(id)) pipPositions.delete(id);
+  const floating = [...tiles.values()].filter(rec => rec.id !== (primaryId ?? me.id));
+  const stage = $('#stage');
+  const rows = Math.ceil(floating.length / 2);
+  stage.style.setProperty('--pip-width', `${floating.length > 6 ? 18 : floating.length > 2 ? 23 : 30}vw`);
+  const landscape = matchMedia('(orientation: landscape)').matches;
+  const height = Math.max(80, innerHeight - $('#topbar').getBoundingClientRect().bottom - safeBottom() - 100);
+  stage.style.setProperty('--pip-max-width', `${Math.min(landscape ? 240 : 190, Math.max(44, (height / Math.max(1, rows) - 8) * (landscape ? 4 / 3 : 3 / 4)))}px`);
+  floating.forEach((rec, i) => {
+    if (!pipPositions.get(rec.id)?.moved) {
+      pipPositions.set(rec.id, { x: i % 2 === 0 ? 1 : 0, y: rows === 1 ? 0 : Math.floor(i / 2) / (rows - 1) });
+    }
+  });
   for (const rec of tiles.values()) {
-    const pip = rec.id === pipId;
+    const pip = rec.id !== (primaryId ?? me.id);
     rec.el.classList.toggle('pip', pip);
-    if (pip) rec.el.dataset.corner = pipCorner;
-    else delete rec.el.dataset.corner;
+    rec.el.tabIndex = pip && !games?.current ? 0 : -1;
+    if (pip && !games?.current) {
+      rec.el.setAttribute('role', 'button');
+      rec.el.setAttribute('aria-label', `Make ${nameOf(rec.id)} the main view`);
+    } else {
+      rec.el.removeAttribute('role');
+      rec.el.removeAttribute('aria-label');
+    }
+    if (pip && !games?.current) placePip(rec);
+    else { rec.el.style.left = ''; rec.el.style.top = ''; }
   }
-  $('#stage').classList.toggle('swapped', two && swapped);
   updateGrabButton();
 }
 
 // Pressing and holding my own tile is the Bubble Blow gesture, wherever it is.
 function tileGestures(rec) {
   const el = rec.el;
+  el.addEventListener('keydown', e => {
+    if (!el.classList.contains('pip') || games?.current || !['Enter', ' '].includes(e.key)) return;
+    e.preventDefault();
+    promoteTile(rec.id);
+  });
   const self = () => rec.id === me.id;
   let drag = null;
   el.addEventListener('pointerdown', e => {
@@ -450,17 +496,19 @@ function tileGestures(rec) {
     if (!drag) return;
     if (self()) studio.input.held = false;
     if (drag.moved) {
-      // Snap to the corner nearest to where it was dropped.
-      const cx = drag.rect.left + drag.rect.width / 2 + (e.clientX - drag.x);
-      const cy = drag.rect.top + drag.rect.height / 2 + (e.clientY - drag.y);
-      pipCorner = (cy < innerHeight / 2 ? 't' : 'b') + (cx < innerWidth / 2 ? 'l' : 'r');
-      el.dataset.corner = pipCorner;
+      const b = pipBounds(rec);
+      const x = drag.rect.left + (e.clientX - drag.x);
+      const y = drag.rect.top + (e.clientY - drag.y);
+      pipPositions.set(rec.id, {
+        moved: true,
+        x: b.width ? Math.max(0, Math.min(1, (x - b.left) / b.width)) : 0,
+        y: b.height ? Math.max(0, Math.min(1, (y - b.top) / b.height)) : 0,
+      });
+      placePip(rec);
       el.style.transform = '';
       el.classList.remove('dragging');
     } else if (e.type === 'pointerup' && el.classList.contains('pip') && !games?.current && performance.now() - drag.t < 350) {
-      swapped = !swapped;
-      layout();
-      for (const t of tiles.values()) flashName(t, 2000);
+      promoteTile(rec.id);
     }
     drag = null;
   };
@@ -518,7 +566,7 @@ function updateTileLabel(rec, p) {
 }
 
 function onPeers(peers) {
-  rtc.sync([...peers.keys()]);
+  rtc.sync([...peers].filter(([, p]) => p.debugOwner !== me.id).map(([id]) => id));
   studio.setPeerCount(peers.size);
   queueMicrotask(updateGrabButton);
   for (const [id, p] of peers) {
@@ -546,7 +594,12 @@ function onPeers(peers) {
       sfx('join');
     }
     updateTileLabel(rec, p);
-    if (rec.phase === null) onCallInfo(id, rtc.info(id));
+    if (p.debugOwner === me.id) {
+      const stream = debugBots.streamOf(id);
+      if (stream && rec.media.srcObject !== stream) { rec.media.srcObject = stream; rec.media.muted = true; rec.media.play().catch(() => {}); }
+      rec.phase = 'connected';
+      rec.overlay.hidden = true;
+    } else if (rec.phase === null) onCallInfo(id, rtc.info(id));
   }
   for (const [id, rec] of tiles) {
     if (id === me.id || peers.has(id)) continue;
@@ -783,11 +836,16 @@ function renderConnection() {
     body.append(p);
   }
   for (const rec of others) {
-    const i = rtc.info(rec.id);
     const h = document.createElement('h3');
     h.textContent = rec.name || 'Someone';
     const t = document.createElement('table');
     t.className = 'keys conn';
+    if (debugBots?.isLocal(rec.id)) {
+      t.append(row('Video', 'Simulated camera'), row('Game skill', 'Rookie'));
+      body.append(h, t);
+      continue;
+    }
+    const i = rtc.info(rec.id);
     const phaseText = { connecting: 'Connecting…', retrying: 'Still connecting (retrying)', failed: "Can't connect", connected: 'Connected', reconnecting: 'Reconnecting…', frozen: 'Connected, video paused' }[i.phase] || i.phase;
     t.append(row('Video call', phaseText));
     if (i.route) t.append(row('Route', i.route === 'relay' ? 'Through the relay server' : 'Direct'));
@@ -822,7 +880,7 @@ function connectionReport() {
   const lines = [`Games Chat connection report ${new Date().toISOString()}`, `relay: ${net?.status}`, `turn: ${rtc?.turn}`, `video loop: ${perfText()}`, `effect: ${studio?.effect?.id || 'none'}`, `ua: ${navigator.userAgent}`];
   for (const rec of tiles.values()) {
     if (rec.id === me.id) continue;
-    lines.push(`${rec.name}: ${JSON.stringify(rtc.info(rec.id))}`);
+    lines.push(`${rec.name}: ${debugBots?.isLocal(rec.id) ? 'debug bot, simulated camera, rookie' : JSON.stringify(rtc.info(rec.id))}`);
   }
   return lines.join('\n');
 }
@@ -879,18 +937,25 @@ function updateDeviceButtons() {
 const KINDS = ['effects', 'accessories', 'backgrounds'];
 const trays = { favs: '#tray-favs', effects: '#tray-effects', accessories: '#tray-effects', backgrounds: '#tray-effects', games: '#tray-games', chat: '#chat-box' };
 const TABS = ['favs', ...KINDS, 'games'];
+// Turning a category off suspends its selection; choosing None clears it.
+const rememberedEffects = new Map();
 let openTab = null;
 function toggleTray(which, force) {
   const open = which && (force ?? openTab !== which);
   const next = open ? which : null;
   const prev = openTab;
   openTab = next;
+  if (prev !== next) clearTimeout(centerEffect.t);
+  // Leaving an effects category takes its effect off, including closing it.
+  if (studio?.effect && prev !== next && (KINDS.includes(prev) || prev === 'favs')) selectEffect(null, { remember: false });
   for (const sel of new Set(Object.values(trays))) $(sel).hidden = !next || trays[next] !== sel;
   for (const k of TABS) $(`#btn-${k}`).setAttribute('aria-expanded', String(k === next));
   for (const [k, g] of Object.entries(grids)) if (g.on && (next !== k && !(k === 'effects' && KINDS.includes(next)))) setGrid(k, false);
   if (KINDS.includes(next)) {
     if (prev !== next && grids.effects.on) setGrid('effects', false);
     showKind(next);
+    const remembered = rememberedEffects.get(next);
+    if (prev !== next && remembered) selectEffect(remembered);
   } else if (next === 'favs') {
     renderFavorites();
   } else if (next === 'chat') {
@@ -985,6 +1050,18 @@ function back() {
 }
 
 function initControls() {
+  // A wrapping title can make the row taller. Keep strips above the whole row.
+  new ResizeObserver(() => {
+    const h = $('#controls').offsetHeight;
+    if (h) $('#call').style.setProperty('--controls-height', `${h}px`);
+  }).observe($('#controls'));
+  // Keep the main-video prompt above whichever bottom sheet is visible.
+  const sheets = [...new Set(Object.values(trays))].map(selector => $(selector));
+  const promptSpace = new ResizeObserver(() => {
+    const height = Math.max(0, ...sheets.map(sheet => sheet.hidden ? 0 : sheet.offsetHeight));
+    $('#call').style.setProperty('--effect-prompt-clearance', `${height + 10}px`);
+  });
+  for (const sheet of sheets) promptSpace.observe(sheet);
   $('#status').addEventListener('click', () => {
     renderConnection();
     openDialog('connection');
@@ -1019,6 +1096,7 @@ function initControls() {
   $('#fx-share').addEventListener('click', shareEffect);
   initSheets();
   $('#btn-leave').addEventListener('click', () => {
+    debugBots?.stop();
     rtc.closeAll();
     net.leave();
     location.reload();
@@ -1112,7 +1190,7 @@ function showKind(kind) {
     b.hidden = !!fx && fx.kind !== kind;
   }
   const fx = studio?.effect;
-  // Showing the other tab doesn't take off what's on: centre "none" quietly.
+  // Centre the active effect, or "none", without selecting during scrolling.
   centerEffect(fx?.kind === kind ? fx.id : '', false, false);
 }
 
@@ -1164,6 +1242,9 @@ async function initEffects() {
     list.append(b);
   }
   let settle = 0;
+  const resumeStripInput = () => { quietUntil = 0; clearTimeout(centerEffect.t); };
+  list.addEventListener('pointerdown', resumeStripInput);
+  list.addEventListener('wheel', resumeStripInput, { passive: true });
   list.addEventListener('scroll', () => {
     if (effectGrid() || performance.now() < quietUntil) return;
     clearTimeout(settle);
@@ -1197,14 +1278,14 @@ function centerEffect(id, smooth, select = true) {
   const b = $(`#effect-list [data-fx="${id}"]`);
   if (!b) return;
   const list = $('#effect-list');
-  if (!select) quietUntil = performance.now() + (smooth ? 600 : 250);
+  quietUntil = select ? 0 : performance.now() + (smooth ? 600 : 250);
   list.scrollTo({ left: b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
   clearTimeout(centerEffect.t);
   if (select) centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
 }
 
 function pickCenteredEffect() {
-  if (effectGrid() || $('#tray-effects').hidden) return;
+  if (performance.now() < quietUntil || effectGrid() || $('#tray-effects').hidden) return;
   const list = $('#effect-list');
   const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
   let best = null, bestD = Infinity;
@@ -1241,7 +1322,16 @@ function askForMotion() {
   addEventListener('click', motionAsk, true);
 }
 
-function selectEffect(fx) {
+function selectEffect(fx, { remember = true } = {}) {
+  // Delayed strip callbacks and shared offers must never enable effects in a game.
+  if (fx && games?.current) return;
+  if (remember) {
+    if (fx) rememberedEffects.set(fx.kind, fx);
+    else {
+      if (studio.effect) rememberedEffects.delete(studio.effect.kind);
+      if (KINDS.includes(openTab)) rememberedEffects.delete(openTab);
+    }
+  }
   studio.setEffect(fx);
   // 360 worlds look around with the phone's motion sensor; iPhones only
   // allow it after a tap, so ask on the next one.
@@ -1289,61 +1379,60 @@ function shareEffect() {
   toast(`Shared ${fx.emoji} ${fx.name} with everyone`);
 }
 
+let effectOffer = null;
+let effectOfferTimer;
+function clearEffectOffer() {
+  clearTimeout(effectOfferTimer);
+  effectOffer = null;
+  updateGrabButton();
+}
 function showEffectOffer(from, fx) {
-  const el = document.createElement('div');
-  el.className = 'invite';
-  const text = document.createElement('span');
-  text.textContent = `${nameOf(from)} shared ${fx.emoji} ${fx.name}`;
-  const yes = document.createElement('button');
-  yes.type = 'button';
-  yes.className = 'btn aqua';
-  yes.textContent = 'Try it';
-  yes.addEventListener('click', () => {
-    el.remove();
-    selectEffect(fx);
-  });
-  const no = document.createElement('button');
-  no.type = 'button';
-  no.className = 'btn ghost';
-  no.textContent = '✕';
-  no.setAttribute('aria-label', 'No thanks');
-  no.addEventListener('click', () => el.remove());
-  el.append(text, yes, no);
-  $('#invites').append(el);
+  clearTimeout(effectOfferTimer);
+  effectOffer = { from, fx };
+  effectOfferTimer = setTimeout(clearEffectOffer, 15000);
+  updateGrabButton();
   sfx('join');
-  setTimeout(() => el.remove(), 15000);
 }
 
-// With a friend's video big, a button to put their effect on me too.
+// One quiet copy prompt for the main video; an explicit share replaces it.
 function updateGrabButton() {
-  let btn = $('#grab-fx');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'grab-fx';
-    btn.type = 'button';
-    btn.className = 'grab-fx';
-    btn.hidden = true;
-    btn.innerHTML = `${ICONS.download}<span class="emoji"></span>`;
-    btn.addEventListener('click', () => {
-      const fx = effects.find(e => e.id === btn.dataset.fx);
-      if (fx) {
-        selectEffect(fx);
-        toast(`You've got ${fx.emoji} ${fx.name} on too`);
-      }
-    });
-    $('#call').append(btn);
+  let el = $('#effect-prompt');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'effect-prompt';
+    el.className = 'invite effect-prompt';
+    el.innerHTML = '<span class="effect-prompt-text"></span><button id="grab-fx" class="btn ghost" type="button">Copy</button><button class="btn ghost effect-prompt-dismiss" type="button" aria-label="No thanks">✕</button>';
+    el.querySelector('.effect-prompt-dismiss').onclick = clearEffectOffer;
+    $('#call').append(el);
   }
-  const friend = tiles.size === 2 && !swapped && !games?.current ? [...tiles.keys()].find(id => id !== me.id) : null;
-  const fxId = friend ? net?.peers.get(friend)?.fx : null;
-  const fx = fxId && effects.find(e => e.id === fxId);
-  const show = !!fx && studio?.effect?.id !== fx.id;
-  btn.hidden = !show;
-  if (show) {
-    btn.dataset.fx = fx.id;
-    btn.querySelector('.emoji').textContent = fx.emoji;
-    btn.setAttribute('aria-label', `Put ${nameOf(friend)}'s ${fx.name} on me`);
-    btn.title = `Put ${nameOf(friend)}'s ${fx.name} on me too`;
+  if (effectOffer && !net?.peers.has(effectOffer.from)) {
+    clearTimeout(effectOfferTimer);
+    effectOffer = null;
   }
+  const friend = effectOffer?.from ?? (primaryId === me.id ? null : primaryId);
+  const fx = effectOffer?.fx ?? effects.find(e => e.id === net?.peers.get(friend)?.fx);
+  const btn = $('#grab-fx');
+  const show = !!fx && !games?.current && (!!effectOffer || studio?.effect?.id !== fx.id);
+  el.hidden = btn.hidden = !show;
+  if (!show) { delete btn.dataset.fx; return; }
+  const offered = !!effectOffer;
+  el.classList.toggle('shared', offered);
+  el.setAttribute('aria-live', offered ? 'polite' : 'off');
+  el.querySelector('.effect-prompt-text').textContent = offered
+    ? `${nameOf(friend)} shared ${fx.emoji} ${fx.name}`
+    : `${nameOf(friend)} is using ${fx.emoji} ${fx.name}`;
+  el.querySelector('.effect-prompt-dismiss').hidden = !offered;
+  btn.className = offered ? 'btn aqua' : 'btn ghost';
+  btn.textContent = offered ? 'Try it' : 'Copy';
+  btn.dataset.fx = fx.id;
+  btn.setAttribute('aria-label', `Use ${nameOf(friend)}'s ${fx.name} effect`);
+  btn.onclick = () => {
+    if (games?.current) return;
+    clearTimeout(effectOfferTimer);
+    effectOffer = null;
+    toggleTray(fx.kind, true);
+    selectEffect(fx);
+  };
 }
 
 // --- favourites --------------------------------------------------------------
@@ -1430,6 +1519,7 @@ async function initGames() {
     }),
     toast,
     onOpen: c => {
+      selectEffect(null, { remember: false });
       $('#game-mount').append(c.el);
       $('#game-panel').hidden = false;
       $('#game-panel').classList.toggle('full-bleed', !!c.game.fullBleed);
@@ -1443,7 +1533,7 @@ async function initGames() {
       gameVotes.setItem(`game-${c.game.id}`);
       toggleTray(null);
       updateSessions();
-      updateGrabButton();
+      layout();
     },
     onClose: c => {
       c.el.remove();
@@ -1451,7 +1541,7 @@ async function initGames() {
       $('#call').classList.remove('has-game');
       $('#game-head').hidden = true;
       updateSessions();
-      updateGrabButton();
+      layout();
     },
   });
   games.register(await loadGames());
@@ -1663,7 +1753,17 @@ function initSettings() {
   });
   const name = $('#set-name');
   const vol = $('#set-volume');
-  const motion = $('#set-motion');
+  const botCount = $('#debug-bot-count');
+  const minus = $('#debug-bot-minus'), plus = $('#debug-bot-plus');
+  let draftBotCount = debugBotCount;
+  const renderBotCount = () => {
+    botCount.value = String(draftBotCount);
+    minus.disabled = draftBotCount === 0;
+    plus.disabled = draftBotCount === MAX_DEBUG_BOTS;
+  };
+  minus.addEventListener('click', () => { draftBotCount = Math.max(0, draftBotCount - 1); renderBotCount(); });
+  plus.addEventListener('click', () => { draftBotCount = Math.min(MAX_DEBUG_BOTS, draftBotCount + 1); renderBotCount(); });
+  renderBotCount();
   const themeSel = $('#set-theme');
   themeSel.addEventListener('change', () => {
     settings.theme = themeSel.value;
@@ -1678,6 +1778,8 @@ function initSettings() {
     saveSettings();
   });
   $('#settings').addEventListener('close', () => {
+    debugBotCount = draftBotCount;
+    debugBots?.setCount(debugBotCount);
     const v = name.value.trim().slice(0, 20);
     if (v && v !== settings.name) {
       settings.name = v;
@@ -1714,7 +1816,8 @@ function initSettings() {
     nameShow.hidden = false;
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
-    motion.checked = !!settings.reduceMotion;
+    draftBotCount = debugBots?.count ?? debugBotCount;
+    renderBotCount();
     themeSel.value = settings.theme || 'kid';
     light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
@@ -1732,10 +1835,6 @@ function initSettings() {
     setVolume(settings.volume);
     unlockAudio();
     sfx('pop');
-  });
-  motion.addEventListener('change', () => {
-    settings.reduceMotion = motion.checked;
-    document.body.classList.toggle('reduce-motion', motion.checked);
   });
 }
 
@@ -1792,6 +1891,7 @@ window.__chat = {
   get studio() { return studio; },
   get net() { return net; },
   get rtc() { return rtc; },
+  get debugBots() { return debugBots; },
   get games() { return games; },
   get votes() { return votes; },
   get tiles() { return tiles; },

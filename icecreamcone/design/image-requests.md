@@ -13,7 +13,7 @@ Artwork still wanted for the Ice-Cream Cone Coot game in `icecreamcone/`. Only o
 
 ## Status
 
-2 requested, 225 delivered, 1 retired, 228 in total.
+2 requested, 226 delivered, 1 retired, 229 in total.
 
 ## New minigames: the book's other birds
 

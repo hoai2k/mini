@@ -101,6 +101,7 @@ button { cursor: pointer; }
   --bottom-ui: calc(var(--safe-b) + 92px);
   --glass: rgba(14, 9, 30, 0.55);
 }
+#call { --bottom-ui: calc(var(--safe-b) + var(--controls-height, 70px) + 22px); }
 #call.active { display: block; }
 .stage { position: fixed; inset: 0; display: grid; gap: 2px; background: #000; }
 .tile { position: relative; overflow: hidden; background: #0d0a18; min-height: 0; min-width: 0; }
@@ -118,30 +119,19 @@ button { cursor: pointer; }
 .tile .flag.muted { background: rgba(255, 92, 108, 0.9); }
 .tile .flag svg { width: 18px; height: 18px; }
 .tile.self, .tile.pip { cursor: pointer; touch-action: none; }
-.stage[data-count="1"] .tile.self .name, .stage[data-count="2"] .tile:not(.pip) .name { top: calc(var(--top-ui) - 2px); }
-
-.stage[data-count="1"], .stage[data-count="2"] { grid-template: 1fr / 1fr; }
-/* Two people: one fills the screen, the other (normally me) floats in a
-   corner: tap it to swap, drag it to another corner. */
-.stage[data-count="2"] .tile.pip {
-  position: absolute; z-index: 3; width: min(30vw, 190px); aspect-ratio: 3 / 4; border-radius: 18px;
+.stage .tile:not(.pip) .name { top: calc(var(--top-ui) - 2px); }
+.stage { grid-template: 1fr / 1fr; }
+.stage .tile:not(.pip) { grid-area: 1 / 1; }
+.stage .tile.pip {
+  position: absolute; z-index: 3; width: min(var(--pip-width, 30vw), var(--pip-max-width, 190px)); aspect-ratio: 3 / 4; border-radius: 18px;
   border: 2px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-  top: var(--top-ui); right: 12px; transition: top 0.25s ease, left 0.25s ease, right 0.25s ease, bottom 0.25s ease;
+  top: var(--top-ui); right: auto; transition: top 0.25s ease, left 0.25s ease;
 }
-.stage[data-count="2"] .tile.pip.dragging { transition: none; }
-.stage[data-count="2"] .tile.pip[data-corner="tl"] { right: auto; left: 12px; }
-.stage[data-count="2"] .tile.pip[data-corner="bl"] { right: auto; left: 12px; top: auto; bottom: var(--bottom-ui); }
-.stage[data-count="2"] .tile.pip[data-corner="br"] { top: auto; bottom: var(--bottom-ui); }
-.stage[data-count="2"] .tile.pip .name { top: auto; bottom: 8px; left: 8px; font-size: 0.75rem; }
-.stage[data-count="2"] .tile.pip .flags { bottom: auto; top: 8px; right: 8px; }
-@media (orientation: landscape) { .stage[data-count="2"] .tile.pip { aspect-ratio: 4 / 3; width: min(24vw, 240px); } }
-.stage[data-count="3"], .stage[data-count="4"] { grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; }
-.stage[data-count="5"], .stage[data-count="6"] { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; }
-.stage[data-count="many"] { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); grid-auto-rows: minmax(120px, 1fr); overflow: auto; }
-@media (orientation: portrait) {
-  .stage[data-count="3"] { grid-template-columns: 1fr; }
-  .stage[data-count="5"], .stage[data-count="6"] { grid-template-columns: 1fr 1fr; }
-}
+.stage .tile.pip.dragging { transition: none; z-index: 5; }
+.stage .tile.pip .name { top: auto; bottom: 8px; left: 8px; font-size: 0.75rem; }
+.stage .tile.pip .flags { bottom: auto; top: 8px; right: 8px; }
+@media (orientation: landscape) { .stage .tile.pip { aspect-ratio: 4 / 3; width: min(var(--pip-width, 24vw), var(--pip-max-width, 240px)); } }
+.tile.pip:focus-visible { outline: 3px solid var(--aqua); outline-offset: 3px; }
 .stage-note {
   position: absolute; left: 50%; top: calc(var(--top-ui) + 44px); transform: translateX(-50%); z-index: 2; width: max-content; max-width: calc(100% - 32px);
   padding: 6px 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); font-weight: 800; font-size: 0.9rem; text-align: center; pointer-events: none;
@@ -170,6 +160,12 @@ button { cursor: pointer; }
 .round-btn svg, .icon-btn svg { width: 20px; height: 20px; }
 .round-btn:active { transform: scale(0.94); }
 
+.bottom-shade {
+  position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--bottom-ui) + 32px); z-index: 18;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); pointer-events: none;
+}
+#call:has(.strip-wrap:not([hidden])) .bottom-shade,
+#call[data-ui="0"] .bottom-shade, #call.has-game .bottom-shade { display: none; }
 .controls {
   position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 16px); bottom: calc(var(--safe-b) + 12px); z-index: 20;
   display: flex; gap: 6px; padding: 7px; border-radius: 26px; background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.12);
@@ -195,14 +191,14 @@ button { cursor: pointer; }
 .ctrl.danger { background: #d93a4e; }
 .badge { position: absolute; top: 2px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pink); color: #fff; font-size: 0.72rem; font-weight: 900; display: grid; place-items: center; }
 
-/* Sheets that slide up from the bottom, above the controls */
+/* Bottom sheets keep their content above the row, with backing to the edge. */
 .sheet { transition: transform 0.25s ease; will-change: transform; }
 .sheet.dragging { transition: none; }
 .sheet-grip { width: 46px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.45); margin: 9px auto 6px; flex: none; position: relative; }
 .sheet-grip::after { content: ""; position: absolute; inset: -14px -60px; }
 .panel-sheet {
-  position: fixed; left: 0; right: 0; margin: 0 auto; width: min(760px, calc(100% - 16px)); bottom: var(--bottom-ui); max-height: min(62vh, 640px); z-index: 19;
-  display: flex; flex-direction: column; border-radius: 24px; background: rgba(28, 19, 52, 0.9); border: 1px solid var(--line);
+  position: fixed; left: 0; right: 0; margin: 0 auto; width: min(760px, calc(100% - 16px)); bottom: 0; max-height: calc(min(62vh, 640px) + var(--bottom-ui)); z-index: 19; padding-bottom: var(--bottom-ui);
+  display: flex; flex-direction: column; border-radius: 24px 24px 0 0; background: rgba(28, 19, 52, 0.9); border: 1px solid var(--line);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45); overflow: hidden;
 }
 .sheet-head { display: flex; align-items: baseline; gap: 12px; padding: 0 16px 8px; flex: none; }
@@ -211,7 +207,7 @@ button { cursor: pointer; }
 
 /* Effects strip */
 .strip-wrap {
-  position: fixed; left: 0; right: 0; bottom: var(--bottom-ui); z-index: 19; text-align: center; padding-bottom: 2px;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 19; text-align: center; padding-bottom: var(--bottom-ui);
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.35) 40%, rgba(0, 0, 0, 0.35));
 }
 .strip-wrap .sheet-grip { margin-top: 4px; }
@@ -221,7 +217,7 @@ button { cursor: pointer; }
   touch-action: pan-x; overscroll-behavior-x: contain;
 }
 .strip::-webkit-scrollbar { display: none; }
-.strip-ring { position: absolute; left: 50%; bottom: 6px; width: 88px; height: 88px; margin-left: -44px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none; z-index: 1; }
+.strip-ring { position: absolute; left: 50%; bottom: calc(var(--bottom-ui) + 6px); width: 88px; height: 88px; margin-left: -44px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none; z-index: 1; }
 .fx-item {
   flex: none; width: 72px; height: 72px; border-radius: 50%; scroll-snap-align: center; border: 0; padding: 0; color: #fff;
   background: rgba(20, 12, 40, 0.55); display: grid; place-items: center; font-size: 2.1rem; transition: transform 0.15s ease;
@@ -268,7 +264,7 @@ button { cursor: pointer; }
 .invites { position: fixed; top: var(--top-ui); right: 12px; z-index: 25; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; max-width: calc(100% - 24px); }
 .invite { display: flex; gap: 10px; align-items: center; padding: 8px 8px 8px 14px; border-radius: 999px; background: rgba(28, 19, 52, 0.92); border: 1px solid var(--aqua); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); font-weight: 700; }
 
-.chat-box { height: min(460px, 58vh); width: min(480px, calc(100% - 16px)); }
+.chat-box { height: calc(min(460px, 58vh) + var(--bottom-ui)); width: min(480px, calc(100% - 16px)); }
 .chat-log { display: flex; flex-direction: column; gap: 6px; }
 .msg { max-width: 85%; padding: 6px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); align-self: flex-start; overflow-wrap: anywhere; }
 .msg.mine { align-self: flex-end; background: rgba(255, 95, 162, 0.3); }
@@ -290,7 +286,7 @@ button { cursor: pointer; }
   position: fixed; inset: auto; top: calc(var(--safe-t) + 10px); right: 112px; z-index: 21; display: flex; gap: 6px; background: none;
   max-width: 46vw; overflow: hidden; flex-direction: row-reverse;
 }
-#call.has-game .stage .tile, #call.has-game .stage[data-count="2"] .tile.pip {
+#call.has-game .stage .tile, #call.has-game .stage .tile.pip {
   position: relative; inset: auto; width: 42px; height: 42px; aspect-ratio: auto; flex: none; border-radius: 50%;
   border: 2px solid var(--c, rgba(255, 255, 255, 0.8)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
@@ -298,7 +294,7 @@ button { cursor: pointer; }
 /* While a game is on the bottom UI goes away (the game gets the whole
    screen below the top bar); the ✕ beside the game's name closes it. */
 #call.has-game { --bottom-ui: calc(var(--safe-b) + 8px); }
-#call.has-game .controls, #call.has-game .strip-wrap, #call.has-game #tray-games, #call.has-game .ui-grip, #call.has-game .grab-fx { display: none; }
+#call.has-game .controls, #call.has-game .strip-wrap, #call.has-game #tray-games, #call.has-game .ui-grip, #call.has-game .effect-prompt { display: none; }
 
 .fly { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 .toasts { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 32px); bottom: calc(var(--bottom-ui) + 40px); z-index: 40; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
@@ -327,7 +323,6 @@ button { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition: none !important; }
 }
-body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !important; }
 
 .tile.popped { animation: popped 0.5s ease; }
 @keyframes popped {
@@ -384,7 +379,7 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .chat-form input:focus, #name-input:focus, #set-name:focus { border-color: var(--accent); outline: none; }
 .fx-name { color: #fff; }
 .tile.self { --c: var(--accent); }
-.stage[data-count="2"] .tile.self.pip { border-color: var(--accent-hi); }
+.stage .tile.self.pip { border-color: var(--accent-hi); }
 
 /* ---------- votes ---------- */
 .votes { display: inline-flex; gap: 6px; pointer-events: auto; }
@@ -396,6 +391,9 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .vote[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .vote:active { transform: scale(0.94); }
 .votes.compact .vote { padding: 2px 8px; font-size: 0.78rem; }
+/* Keep the thumbs small, with a forgiving touch area above and below them. */
+#fx-votes .vote { position: relative; }
+#fx-votes .vote::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
 .vote-pill { padding: 4px 6px; }
 .vote-pill:empty { display: none; }
 .game-cell { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
@@ -432,7 +430,7 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .call-status .btn { margin-top: 6px; }
 .spinner { width: 34px; height: 34px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.stage[data-count="2"] .tile.pip .call-status, #call.has-game .call-status { display: none; }
+.stage .tile.pip .call-status, #call.has-game .call-status { display: none; }
 .flag.bars { display: inline-flex; align-items: flex-end; gap: 2px; padding: 0 9px; }
 .flag.bars i { display: block; width: 4px; border-radius: 1px; background: rgba(255, 255, 255, 0.3); }
 .flag.bars i:nth-child(1) { height: 6px; }
@@ -473,11 +471,11 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 }
 .controls[data-tab] .ctrl[aria-expanded="true"] { animation: slide-left 0.25s ease; }
 @keyframes slide-left { from { transform: translateX(40px); } to { transform: none; } }
-.ctrl-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 6px; animation: info-in 0.25s ease; }
+.ctrl-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 0 4px 0 6px; animation: info-in 0.25s ease; }
 @keyframes info-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 .ctrl-info[hidden] { display: none; }
-.info-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.info-name { font-weight: 900; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-text { flex: none; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.info-name { font-weight: 900; font-size: 1rem; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
 .info-sub { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .info-actions { display: flex; align-items: center; gap: 4px; flex: none; }
 .info-actions[hidden] { display: none; }
@@ -485,10 +483,6 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .mini-btn svg { width: 20px; height: 20px; }
 .mini-btn:active { transform: scale(0.94); }
 @media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
-body.reduce-motion .controls .ctrl, body.reduce-motion .ctrl-info { transition: none; animation: none; }
-
-/* With nothing above the strip any more it sits right on the bottom row. */
-.strip-wrap { padding-bottom: 0; }
 
 /* Favorites: a plain strip (tap to use), a grid when dragged up. */
 .strip-wrap.favs .strip { scroll-snap-type: none; padding: 12px 16px; justify-content: safe center; }
@@ -497,16 +491,21 @@ body.reduce-motion .controls .ctrl, body.reduce-motion .ctrl-info { transition: 
 .fav-empty { margin: 4px 16px 14px; text-align: center; font-weight: 800; color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); }
 
 /* Put a friend's effect on me too. */
-.grab-fx {
-  position: fixed; right: 12px; bottom: calc(var(--bottom-ui) + 10px); z-index: 18; display: flex; align-items: center; gap: 4px;
-  padding: 8px 12px 8px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.2); background: var(--glass); color: #fff;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+.effect-prompt {
+  position: fixed; bottom: max(var(--bottom-ui), var(--effect-prompt-clearance, 0px)); left: 50%; transform: translateX(-50%); z-index: 18;
+  max-width: min(460px, calc(100% - 24px)); width: max-content;
+  background: rgba(0,0,0,0.48); border-color: transparent; box-shadow: none; font-weight: 500;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.grab-fx[hidden] { display: none; }
-.grab-fx svg { width: 20px; height: 20px; }
-.grab-fx .emoji { font-size: 1.3rem; line-height: 1; }
-#call:has(#tray-effects:not([hidden])) .grab-fx, #call:has(#tray-favs:not([hidden])) .grab-fx,
-#call:has(#tray-games:not([hidden])) .grab-fx, #call:has(#chat-box:not([hidden])) .grab-fx { display: none; }
+.effect-prompt.shared { background: rgba(28,19,52,0.92); border-color: var(--aqua); box-shadow: 0 10px 20px rgba(0,0,0,0.35); font-weight: 700; }
+.effect-prompt-text { min-width: 0; overflow-wrap: anywhere; }
+.effect-prompt .btn { flex: none; min-height: 44px; }
+#call[data-ui="0"] .effect-prompt { bottom: var(--bottom-ui); }
+.burger-opponents { position: absolute; right: 8px; width: 98px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overscroll-behavior: contain; }
+.burger-opponents[hidden] { display: none; }
+.burger-opponent { flex: none; padding: 4px 0; border: 2px solid var(--c); border-radius: 10px; background: rgba(40,10,50,0.7); color: #fff; text-align: center; font: 700 11px ui-rounded, system-ui, sans-serif; }
+.burger-opponent > div { padding: 0 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.burger-opponent canvas { display: block; width: 100%; height: 108px; }
 
 /* Settings: Messages and Leave only during a call; the name is tapped to edit. */
 body:not(.in-call) .field.in-call { display: none; }
@@ -542,3 +541,9 @@ body:not(.in-call) .field.in-call { display: none; }
 .game-card .ico:has(img:is([src*="/icons2/"], [src*="/icons-art/"], [src*="/icons-classic/"])) { width: 76px; height: 76px; }
 /* The ring that marks the effect that's on matches the tile icons' shape. */
 .strip-ring { border-radius: 28%; }
+
+.debug-bot-count { display: flex; align-items: center; gap: 12px; }
+.debug-bot-count output { min-width: 2ch; text-align: center; font-weight: 800; }
+.debug-bot-note { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+/* Keep bot game windows laid out and animating, without taking focus. */
+.debug-bot-frame { position: fixed; left: -10000px; top: 0; width: 640px; height: 480px; border: 0; pointer-events: none; }

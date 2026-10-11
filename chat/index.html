@@ -118,6 +118,7 @@
 
   <!-- The bottom row. Picking one slides it to the left (tap it again for the
        full row back) and the space to its right shows what is on. -->
+  <div id="bottom-shade" class="bottom-shade" aria-hidden="true"></div>
   <nav id="controls" class="controls" aria-label="Call controls">
     <button id="btn-favs" class="ctrl" type="button" aria-expanded="false"><span class="ico" data-icon="heart"></span><span class="lbl">Favorites</span></button>
     <button id="btn-effects" class="ctrl" type="button" aria-expanded="false"><span class="ico" data-icon="sparkles"></span><span class="lbl">Effects</span></button>
@@ -195,12 +196,12 @@
     <div class="dialog-scroll" tabindex="0">
       <p>Games Chat puts everyone who opens this page in the same video chat. Pick a name, press Start and allow the camera and microphone.</p>
       <h3>Face effects</h3>
-      <p>The bottom row has <b>Favorites</b>, <b>Effects</b> (warps, colour, time tricks), <b>Accessories</b> (hats, ears, horns, masks, hearts, rainbows, tears, snow and bubbles), <b>Backgrounds</b> (new backgrounds and 360 worlds) and <b>Games</b>. Pick one and it slides to the left, with what's on shown beside it; tap it again for the whole row. Swipe the strip: whichever stops in the ring is on. Tap <b>ⓘ</b> to see how the one that's on works, the thumbs to rate it (thumbs up adds it to Favorites), and <b>share</b> to offer it to everyone. When your friend's video is the big one and they have an effect on, the download button puts it on you too.</p>
+      <p>The bottom row has <b>Favorites</b>, <b>Effects</b> (warps, colour, time tricks), <b>Accessories</b> (hats, ears, horns, masks, hearts, rainbows, tears, snow and bubbles), <b>Backgrounds</b> (new backgrounds and 360 worlds) and <b>Games</b>. Pick one and it slides to the left, with what's on shown beside it; tap it again to turn the effect off and show the whole row. Swipe the strip: whichever stops in the ring is on. Tap <b>ⓘ</b> to see how the one that's on works, the thumbs to rate it (thumbs up adds it to Favorites), and <b>share</b> to offer it to everyone. Tap <b>Use your friend's effect</b> to put their effect on you too: the main video has a labeled button above the bottom row, and small videos have their own button. Effects turn off when you start a game and stay off while you play.</p>
       <p>Everyone sees your effect, because it is drawn on the video you send. Everyone sees your effect, because it is drawn on the video you send. Many react to your face: <b>pucker your lips</b> to blow a bubble that floats over and pops on your friend's face, <b>open your mouth</b> for the dragon's fire or the rainbow, <b>smile</b> for hearts or sunglasses, <b>raise your eyebrows</b> to drop the monocle. With no camera face, hold <b>Space</b> (or press and hold your own video) instead.</p>
       <h3>Games</h3>
       <p>Open <b>Games</b> and start one. Friends get a <b>Join</b> button. Scores and records are kept on this device.</p>
       <h3>Sheets and your video</h3>
-      <p>Drag a strip up to see all of it in a grid; pull the grid down to go back to the strip. Drag the bottom controls down to make room: first the button row tucks away, then the strip; drag up (or tap the little grip) to bring them back. Pull the strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, tap the small video to swap it with the big one, and drag it to any corner. The microphone, camera and settings are at the top right; Messages, this help and Leave are in Settings.</p>
+      <p>Drag a strip up to see all of it in a grid; pull the grid down to go back to the strip. Drag the bottom controls down to make room: first the button row tucks away, then the strip; drag up (or tap the little grip) to bring them back. Pull the strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With any number of people, tap a small video or its <b>Main view</b> button to make it the big one; drag each small video wherever you want it. The microphone, camera and settings are at the top right; Messages, this help and Leave are in Settings.</p>
       <h3>Controls</h3>
       <table class="keys">
         <tr><th>Action</th><th>Keyboard / pointer</th><th>Xbox controller</th></tr>
@@ -245,10 +246,15 @@
         <option value="classic">Classical (18th-century French)</option>
       </select></label>
       <label class="field check"><input id="set-light" type="checkbox"><span>Auto light: brighten my picture when it's dark</span></label>
-      <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
       <div class="field"><span>Ratings</span><button id="open-ratings" class="btn ghost" type="button">See everyone's thumbs up and down</button></div>
       <div class="field"><span>Help</span><button class="btn ghost" type="button" data-open="instructions">How to play</button></div>
       <div class="field in-call"><span>Messages</span><button id="open-chat" class="btn ghost badge-host" type="button">Open messages<span id="chat-badge" class="badge" hidden></span></button></div>
+      <div class="field"><span>Add Debug Bot</span><div class="debug-bot-count">
+        <button id="debug-bot-minus" class="btn ghost" type="button" aria-label="Remove a debug bot">−</button>
+        <output id="debug-bot-count" aria-live="polite">0</output>
+        <button id="debug-bot-plus" class="btn ghost" type="button" aria-label="Add a debug bot">+</button>
+      </div></div>
+      <p class="debug-bot-note">Up to 4 test players. Join or leave when you close Settings. They accept shared effects and play games as rookies. Bots leave when you leave or reload.</p>
       <div class="field in-call"><span>Call</span><button id="btn-leave" class="btn danger" type="button">Leave the call</button></div>
     </div>
     <div class="dialog-actions"><button class="btn" value="close" autofocus>Done</button></div>

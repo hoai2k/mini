@@ -39,7 +39,7 @@ const FIRST = [
     rhyme: ['It cannot sing, it will not fly,', 'It only stares with one glass eye.', 'Find the birds that hide and peep,', 'Then click! A picture you can keep.'],
     game: 'Say Cheese',
     goal: 'Birds peek out of their hiding places. Frame them and take their picture.',
-    tips: ['Watch for a rustle: a bird is about to peek out.', 'A bird in the middle of the frame scores most; rare birds score more.', 'You have ten shots.'],
+    tips: ['Watch for a rustle: a bird is about to peek out.', 'A bird in the middle of the frame scores most; rare birds score more.', 'You have ten shots. Any of the guide’s birds or ten pocket birds might appear.', 'Your photographs go to the back of the Sticker Book. Pin favourites to keep them after your next round.'],
     score: 'points',
     pass: 500,
     tune: 'menu',

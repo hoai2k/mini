@@ -155,3 +155,12 @@ sizes come from the same measurements: furled height 185 px, small canopy 84
 px each side, the wide canopy 115 px (it shelters more of the rain and
 reaches further for awnings and little birds). The old two-frame walk (IC-M10e)
 and the floating cell of IC-M10b are no longer drawn.
+
+### Slip, fall and shake dry
+The Wren's feet are 20 screen units lower, through the middle of the puddle
+instead of its far rim. Puddle artwork stays in place. A hit plays IC-M10i:
+slipping for 0.18 s with diminishing forward movement, fallen until 0.45 s,
+getting up until 0.72 s, then shaking wings until 1.35 s. The shake sprays
+droplets to both sides. Hopping waits for recovery to finish; the street then
+accelerates back to its ordinary pace. The cells are fitted by eye diameter,
+like the other Wren sheets, keeping the head one size.

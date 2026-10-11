@@ -13,7 +13,7 @@
 // with the run. But not everything is rubbish: a cat, a gentleman's hat, a
 // letter, a sparrow (each glows gold). Swallow one and the canary splutters
 // it out (−1) and the lid stays shut a moment. Keep the lid shut, or step
-// into another lane, to let those go by; with the lid shut they bump over it.
+// into another lane, to let those go by without knocking them away.
 //
 // The lid is physical. Shut it while the canary is pulling something in and
 // the lid slams it home; shut it while the canary is still reaching and the
@@ -71,7 +71,7 @@ const RIM = {
 };
 const OPEN_ANGLE = 1.15;
 const JAM = 0.6; // seconds the lid stays shut after swallowing something that isn't rubbish
-const LANE = 60; // how close in depth something must pass to be in the bin's lane
+const LANE = 85; // how close in depth something must pass to be in the bin's lane
 const CURIOUS = 200; // px/s: how fast cats and sparrows turn towards an open bin
 // The canary's reach, in bird units: its head sits NECK_UP above the mouth
 // when ready and can stretch NECK_REACH towards something.
@@ -333,7 +333,7 @@ export default function create(env) {
       // canary will have it)
       if (dx > -150 * ks && dx < 110 * ks && it.y < my - 70 * ks && it.y > my - 230 * ks) {
         it.state = 'knocked';
-        it.vx = -200 - rng() * 120;
+        it.vx = 650 + rng() * 180; // back against the wind, visibly away from the bin
         it.vy = -620 - rng() * 200;
         it.spin = (rng() < 0.5 ? -1 : 1) * 9;
         g.knocked++;
@@ -389,7 +389,7 @@ export default function create(env) {
     g.jam = Math.max(0, g.jam - dt);
     const wasOpen = g.open;
     g.open = clamp(g.open + (g.holding && g.jam <= 0 ? 9 : -12) * dt, 0, 1);
-    if (wasOpen < 0.05 && g.open >= 0.05) knock();
+    if (g.holding && !was && g.jam <= 0 && wasOpen < 0.5) knock();
     if (wasOpen >= 0.5 && g.open < 0.5 && g.can !== 'in' && g.can !== 'pop') slam();
     g.gulp = Math.max(0, g.gulp - dt);
     g.spit = Math.max(0, g.spit - dt);
@@ -449,8 +449,11 @@ export default function create(env) {
       let bd = Infinity;
       for (const it of g.items) {
         if (it.state !== 'come' || !g.inLane(it)) continue;
-        const d = Math.hypot(it.x - mx, it.y - (my - NECK_UP * ks));
-        if (d < (NECK_REACH + 20) * ks + itemR(it) && d < bd) {
+        // The whole rim is reachable, including behind the hinge.
+        const dx = Math.max(0, Math.abs(it.x - mx) - 100 * ks);
+        const dy = Math.max(0, Math.abs(it.y - (my - NECK_UP * ks)) - 55 * ks);
+        const d = Math.hypot(dx, dy);
+        if (d < NECK_REACH * ks + itemR(it) && d < bd) {
           best = it;
           bd = d;
         }
@@ -470,13 +473,13 @@ export default function create(env) {
         let rx = it.x - mx;
         let ry = it.y - my;
         const d = Math.hypot(rx, ry);
-        const max = NECK_REACH * ks;
+        const max = (NECK_REACH + 100) * ks;
         if (d > max) {
           rx *= max / d;
           ry *= max / d;
         }
         toward([rx, ry], HEAD_SPEED);
-        if (Math.hypot(it.x - mx - g.head[0] - 40 * ks, it.y - my - g.head[1]) < itemR(it) + 50 * ks) {
+        if (Math.hypot(it.x - mx - g.head[0] - Math.sign(rx || 1) * 40 * ks, it.y - my - g.head[1]) < itemR(it) + 50 * ks) {
           g.held = it;
           g.aim = null;
           it.state = 'held';
@@ -542,23 +545,6 @@ export default function create(env) {
         if (g.open > 0.55 && g.jam <= 0 && (g.gape || 0) <= FRESH && Math.abs(it.x - mx) < MOUTH_R * ks + r * 0.5 && it.y > my - 60 * ks && it.y < my + 30 * ks) {
           stow(it);
           continue;
-        }
-        // into a shut bin: over the top it goes
-        // (the painted rim is 187 bird units across)
-        const front = mx + 94 * ks;
-        if (g.open < 0.3 && it.x + r > mx - 94 * ks && it.x - r * 0.5 < front && it.y > my - 150 * ks && it.y < g.by) {
-          it.state = 'over';
-          it.vy = it.kind === 'cat' ? -260 : -420;
-          it.vx = Math.min(it.vx, -300);
-          sfx(it.rub ? 'bonk' : 'tick');
-          if (it.rub) {
-            g.missed++;
-            g.streak = 0;
-            pop('Missed', mx + 30, my - 110, PAL.slate, 36);
-          } else {
-            g.letPast++;
-            if (it.kind === 'cat') sfx('ding', { pitch: -5 });
-          }
         }
         if (it.x < -120) {
           it.dead = true;
@@ -986,16 +972,17 @@ export default function create(env) {
     // its neck runs back to the mouth
     const R = REG.neck[pose];
     const u = (1.05 * P.S) / 1024;
+    const backwards = head[0] < -10 * ks;
     let rot = 0;
     if (pose === 1 || pose === 2) {
       const want = Math.atan2(-head[1], -head[0]); // from the head back down to the mouth
-      const has = Math.atan2(R.base[1] - R.eye[1], -(R.base[0] - R.eye[0])); // eye to base, flipped
+      const has = Math.atan2(R.base[1] - R.eye[1], (backwards ? 1 : -1) * (R.base[0] - R.eye[0])); // eye to base, flipped
       rot = clamp(want - has, -1.1, 1.1);
     }
     c.save();
     c.translate(hx, hy);
     c.rotate(rot);
-    const painted = drawSprite(c, 'sprites.garbagecanaryNeck', pose, (R.eye[0] - 512) * u * R.s, (1024 - R.eye[1]) * u * R.s, { h: 1024 * u * R.s, whole: true, flip: true });
+    const painted = drawSprite(c, 'sprites.garbagecanaryNeck', pose, (backwards ? -1 : 1) * (R.eye[0] - 512) * u * R.s, (1024 - R.eye[1]) * u * R.s, { h: 1024 * u * R.s, whole: true, flip: !backwards });
     c.restore();
     if (!painted) {
       // stand-in: a feathery yellow neck and the canary's head

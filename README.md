@@ -12,7 +12,7 @@ is at https://hoai2k.github.io/mini/.
 - **[Games Chat](https://hoai2k.github.io/mini/chat/)** · [`chat/`](chat/README.md): video chat with face effects and minigames
 - **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
-- **[Widow's Bay](https://hoai2k.github.io/mini/widowsbay/)** · [`widowsbay/`](widowsbay/README.md)
+- **[Kingdom of the Fairies](https://hoai2k.github.io/mini/kingdomofthefairies/)** · [`kingdomofthefairies/`](kingdomofthefairies/README.md)
 - **[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
 
 ## Sites

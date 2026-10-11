@@ -193,8 +193,8 @@ REQUESTS: list[dict] = []
 
 
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
-        status="requested"):
-    ext = "png" if alpha else "webp"
+        status="requested", ext=None):
+    ext = ext or ("png" if alpha else "webp")
     folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds",
               "themes": "themes", "icons-art": "icons-art", "icons-classic": "icons-classic"}[section]
     file = f"assets/{folder}/{asset}.{ext}"
@@ -230,7 +230,7 @@ def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, 
         status = "delivered"
     REQUESTS.append(dict(section=section, id=rid, asset=asset, title=title, size=size,
                          purpose=purpose, prompt=" ".join(parts), standin=standin, file=file,
-                         face=face, status=status))
+                         face=face, status=status, alpha=alpha))
 
 
 # --- Brand -----------------------------------------------------------------
@@ -915,6 +915,17 @@ req("icons-classic", "CH-R96", "classic-game-gofish", "Go Fish icon (Classical t
     "Anomalocaris flying up out of the water on the hook.", "The Teen icon, then the Kid icon, then the emoji.")
 
 
+# --- iOS app ------------------------------------------------------------------
+req("ui", "CH-U04", "ios-app-icon", "iOS app icon", "1024 x 1024",
+    "The Games Chat app icon on iPhone and iPad home screens and in TestFlight / the App Store.",
+    "The Games Chat app icon: a chunky game controller inside a rounded speech bubble, pink and "
+    "yellow, glossy with a thick dark-purple outline, centred on a full-bleed bright aqua to "
+    "violet gradient background that fills the whole square edge to edge. Square with NO rounded "
+    "corners and NO transparency (iOS rounds the corners itself); keep the bubble inside the "
+    "middle 80% so nothing important is cut off. Bold and simple so it reads at 40 px.",
+    "The 512 px web icon scaled up onto an aqua square.", alpha=False, ext="png")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",
@@ -963,7 +974,7 @@ def render_doc() -> str:
         rows = [r for r in REQUESTS if r["section"] == key]
         lines += [f"## {title}", "", blurb, ""]
         for r in rows:
-            tags = [r["size"], "transparent" if r["file"].endswith(".png") else "opaque"]
+            tags = [r["size"], "transparent" if r["alpha"] and r["file"].endswith(".png") else "opaque"]
             if r["face"]:
                 tags.append("**face template**")
             lines += [

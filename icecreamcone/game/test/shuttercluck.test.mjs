@@ -116,3 +116,25 @@ test('shuttercluck: a pool with a tier missing still finds birds', () => {
   }
   assert.ok(game.done && peeked);
 });
+
+test('shuttercluck: sees every bird in its pool before repeating one', async () => {
+  const { SUBJECT_IDS, SUBJECTS } = await import('../src/subjects.js');
+  const pool = SUBJECT_IDS.filter(id => SUBJECTS[id].pocket);
+  const game = create(env(7, { subjects: pool }));
+  const seenObjects = new Set();
+  const appearances = [];
+  for (let i = 0; i < 3600 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    for (const bird of game.birds) {
+      if (!seenObjects.has(bird)) {
+        seenObjects.add(bird);
+        appearances.push(bird.id);
+      }
+    }
+  }
+  assert.ok(appearances.length >= pool.length);
+  for (let i = 0; i + pool.length <= appearances.length; i += pool.length) {
+    assert.equal(new Set(appearances.slice(i, i + pool.length)).size, pool.length);
+  }
+  for (let i = 1; i < appearances.length; i++) assert.notEqual(appearances[i], appearances[i - 1]);
+});

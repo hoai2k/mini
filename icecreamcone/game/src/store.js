@@ -3,6 +3,7 @@
 
 const SETTINGS_KEY = 'icecreamcone.settings.v1';
 const PROGRESS_KEY = 'icecreamcone.progress.v1';
+const PHOTOS_KEY = 'icecreamcone.photos.v1';
 const STICKERS_KEY = 'icecreamcone.stickers.v1';
 
 export const DEFAULTS = {
@@ -48,8 +49,9 @@ function write(key, value, { session = false } = {}) {
   try {
     if (session && scratch) scratch.setItem(SCRATCH + key, JSON.stringify(value));
     else localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
-    /* storage unavailable: keep going without it */
+    return false; // storage unavailable
   }
 }
 
@@ -167,3 +169,6 @@ export function keepOldPasses(progress, birds) {
   return changed;
 }
 
+
+export const loadPhotos = () => read(PHOTOS_KEY, { session: true });
+export const savePhotos = photos => write(PHOTOS_KEY, photos, { session: true });

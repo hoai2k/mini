@@ -24,6 +24,44 @@ agent. Newest first.
   sleeping lamps easier to spot, or forgive a fourth lamp longer. No answer
   yet.
 
+## Latest Shuttercluck photographs update
+
+- All 28 guide birds and ten pocket birds may appear, discovered or otherwise.
+  Weighted selection exhausts the species pool before repeating.
+- The back of the stickerbook has a photo album: RT after the final spread
+  (or directly from the all-birds picture), LT back. Click or A pins/unpins.
+- Photos persist on the device; new rounds clear unpinned photos and keep pins.
+  Debug uses session storage. Original guide portraits now have photo geometry.
+- Checks cover pool diversity, pin retention, reloads and repeated rounds,
+  real photo capture, and controller/mouse album navigation.
+
+## Latest stickerbook titles update
+
+- Only the first physical page says “My Field Guide”. Other pages are titled
+  by their own sticker range (Birds 8–14, Birds 15–21, Birds 22–28).
+- The header shows the current spread's bird range and total spotted, so LT/RT
+  page turns change the visible titles while preserving collection progress.
+
+## Latest Puddle Hop update
+
+- Wren's path is 20 screen units lower, through the puddle middle.
+- IC-M10i delivered: slip, fallen, getting up and wing-shake sheet.
+- Recovery lasts 1.35 s: forward slip, fall, get up, wings spray water,
+  then walking resumes. Pose scales fitted to the same eye size as the walk.
+
+## Latest controls and hazards update
+
+- Drip Drop Dash: water keeps momentum with weak steering instead of disabling
+  controls; hopping and filling still work. Puddles last 6.5–12 s. Existing
+  IC-M16d slipping artwork is suitable and reused.
+- Entry pages: LS or RS up/down scrolls only the instructions; poem and Play
+  stay fixed. Mouse/touch can scroll the same panel.
+- Bin Day: wider lane and vertical reach, backwards catches under the hinge,
+  mirrored head poses. Only a fresh lid opening knocks items away; they fling
+  back against the wind. A closed lid and automatic jam recovery do not knock.
+- Validation: all 32 unit-test files pass; browser regression verifies both
+  sticks scroll a long entry on an 844×390 screen with the poem fixed.
+
 ## Done on `main` (2026-10-09)
 
 | Commit | What |

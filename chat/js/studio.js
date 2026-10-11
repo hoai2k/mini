@@ -96,7 +96,7 @@ const PASS = { id: '__pass', shader: 'vec4 effect(vec2 uv) { return cam(uv); }' 
 
 const FACE_UNIFORMS = ['u_eyeL', 'u_eyeR', 'u_nose', 'u_mouth', 'u_center'];
 
-export function createStudio() {
+export function createStudio({ cameraStream = null } = {}) {
   const canvas = document.createElement('canvas');
   canvas.width = MAX_W;
   canvas.height = 480;
@@ -115,10 +115,14 @@ export function createStudio() {
   const listeners = new Map();
   const programs = new Map();
 
-  let camStream = null;
+  let camStream = cameraStream;
   let micTrack = null;
-  let camOn = false;
+  let camOn = !!cameraStream;
   let micOn = false;
+  if (cameraStream) {
+    video.srcObject = cameraStream;
+    video.play().catch(() => {});
+  }
   // While the tab is in the background the camera and microphone are paused
   // without changing the user's own on/off choices, which come back with it.
   // On phones the microphone stays on while away (you may just be glancing
@@ -723,6 +727,16 @@ export function createStudio() {
 
   return {
     canvas,
+    destroy() {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timerId);
+      document.removeEventListener('visibilitychange', loop);
+      this.setEffect(null);
+      camStream?.getTracks().forEach(t => t.stop());
+      micTrack?.stop();
+      out.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    },
     stream: out,
     video,
     on,
@@ -777,7 +791,7 @@ export function createStudio() {
       motion.reset();
       bgSource = null;
       if (fx?.needs?.face || fx?.needs?.segmentation) faceWanted++;
-      if (fx?.needs?.segmentation) ensureSegmenter();
+      if (fx?.needs?.segmentation && !fakeMask) ensureSegmenter();
       if (fx?.start) {
         try { fx.start(effectState, { w: canvas.width, h: canvas.height, img, sfx }); } catch (e) { console.error(e); }
       }

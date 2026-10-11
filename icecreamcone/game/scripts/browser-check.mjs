@@ -182,6 +182,31 @@ const MENU = 9;
   pageInfo.buttons.join() === 'Play' && pageInfo.controls > 0
     ? ok('the page has only Play, with the controls on it')
     : fail(`page: ${JSON.stringify(pageInfo)}`);
+  // On short screens each stick scrolls instructions, keeping the poem fixed.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await wait(page, 150);
+  await page.evaluate(() => {
+    const tips = document.querySelector('#page-tips');
+    for (let i = 0; i < 12; i++) {
+      const li = document.createElement('li');
+      li.textContent = 'Extra instruction to exercise a long entry page.';
+      tips.append(li);
+    }
+  });
+  const poemTop = await page.locator('#page-rhyme').evaluate(el => el.getBoundingClientRect().top);
+  for (const axes of [[0, 1, 0, 0], [0, 0, 0, 1]]) {
+    await page.evaluate(() => { document.querySelector('.page-game').scrollTop = 0; });
+    await page.evaluate(axes => window.__pad(0, { axes }), axes);
+    await wait(page, 400);
+    const scrolled = await page.locator('.page-game').evaluate(el => el.scrollTop);
+    const poemNow = await page.locator('#page-rhyme').evaluate(el => el.getBoundingClientRect().top);
+    scrolled > 0 && Math.abs(poemNow - poemTop) < 1
+      ? ok('stick scrolls instructions while the poem stays fixed')
+      : fail('instruction scrolling moved the poem or did not scroll');
+    await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
+    await wait(page, 80);
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
   await press(page, A); // Play
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   s = await state(page);
@@ -750,6 +775,83 @@ for (const [vw, vh] of only ? [] : [[390, 844], [844, 390]]) {
   await wait(page, 900);
   await shot(page, `23-gathering-snapped-${vw}x${vh}`);
   errors.length ? fail(`${vw}x${vh}: page errors: ` + errors.join(' | ')) : ok(`${vw}x${vh}: no page errors on the gathering`);
+  await page.close();
+}
+
+// Photographs at the back of the book.
+if (!only || only === 'shuttercluck') {
+  const { page, errors } = await newPage();
+  const take = async (count) => {
+    await page.evaluate(() => window.__pad(0, {}));
+    await wait(page, 200);
+    await page.evaluate(async () => {
+      await window.__coot.startBird(window.__coot.BIRDS.findIndex(b => b.id === 'shuttercluck'));
+      window.__coot.S.phase = 'play';
+    });
+    await wait(page, 300);
+    await page.waitForFunction(() => window.__coot.S.game.birds.some(b => b.state === 'up' && b.e > 0.8), null, { timeout: 15000 });
+    await page.evaluate(() => {
+      const g = window.__coot.S.game;
+      const b = g.birds.find(b => b.state === 'up' && b.e > 0.8);
+      const r = g.subject(b);
+      if (r) { g.fx = r.cx; g.fy = r.cy; }
+    });
+    for (let i = 0; i < count; i++) {
+      await page.evaluate(() => { window.__coot.S.game.cool = 0; });
+      await press(page, 0);
+      await wait(page, 100);
+    }
+  };
+  await take(3);
+  let photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || photos[0].name === 'Just grass' || !photos.every(p => p.src.startsWith('data:image/'))) throw Error('Photos not captured/saved: ' + photos.length);
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await press(page, 7);
+  await page.waitForSelector('#sb-photos:not([hidden])');
+  if (await page.locator('.photo-card').count() !== 3) throw Error('Missing gallery photos');
+  await press(page, 0);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (!photos[0].pinned) throw Error('Controller A did not pin first photo');
+  const key = photos[0].key;
+  await shot(page, 'pinned-photo-page');
+  await page.reload();
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || !photos[0].pinned) throw Error('Photos not persisted after reload');
+  await take(2);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 3 || photos[0].key !== key || !photos[0].pinned) throw Error('Pinned photo lost or older unpinned retained');
+  await take(1);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 2 || photos[0].key !== key) throw Error('Pin did not survive another round');
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await press(page, 7);
+  await page.locator('.photo-card').first().click();
+  if ((await page.evaluate(() => window.__coot.photos))[0].pinned) throw Error('Mouse did not unpin');
+  await take(1);
+  photos = await page.evaluate(() => window.__coot.photos);
+  if (photos.length !== 1 || photos.some(p => p.key === key)) throw Error('Unpinned old photo retained');
+  await page.evaluate(() => { window.__coot.act('stickers'); window.__coot.act('bg-next'); });
+  await press(page, 7); // second normal spread
+  await press(page, 7); // photo page
+  if (await page.locator('#sb-photos').isHidden()) throw Error('RT from last spread did not open photos');
+  await press(page, 6);
+  if (!(await page.locator('#sb-photos').isHidden())) throw Error('LT did not return to stickers');
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    await page.evaluate(() => window.__coot.act('spread-next'));
+    await wait(page, 100);
+    const geometry = await page.evaluate(() => ({
+      titleBottom: document.querySelector('.sb-head').getBoundingClientRect().bottom,
+      albumTop: document.querySelector('#sb-photos').getBoundingClientRect().top,
+      albumBottom: document.querySelector('#sb-photos').getBoundingClientRect().bottom,
+    }));
+    if (geometry.albumTop <= geometry.titleBottom || geometry.albumBottom > viewport.height) throw Error('Photo page overlaps its header or screen edge');
+    await shot(page, 'photos-' + viewport.width + 'x' + viewport.height);
+    await press(page, 6);
+  }
+  if (errors.length) throw Error(errors.join(' | '));
+  ok('photo capture, controller/mouse pins, reload, repeated rounds and RT/LT');
   await page.close();
 }
 

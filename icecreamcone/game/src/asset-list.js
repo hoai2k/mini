@@ -450,6 +450,10 @@ export const ASSETS = {
     "file": "assets/sprites/wren-fly.png",
     "delivered": true
   },
+  "sprites.wrenRecovery": {
+    "file": "assets/sprites/wren-recovery.png",
+    "delivered": true
+  },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
     "delivered": true

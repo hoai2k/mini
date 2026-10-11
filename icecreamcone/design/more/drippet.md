@@ -124,3 +124,10 @@ Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md
 ## Third audit: pose sizes (2026-10-09)
 
 Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
+
+### Sliding instead of stun
+Water preserves incoming velocity, with slow steering and braking while sliding.
+The action still hops, and the tap still fills things it passes over. Puddles
+last 6.5–12 seconds instead of 5–9.5. The existing IC-M16d skid pose already
+shows a foot slipping forward; reuse it with a small wobble, without the
+previous exaggerated spinning. No additional sprite is needed.

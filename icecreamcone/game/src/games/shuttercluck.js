@@ -1,8 +1,7 @@
 // Shuttercluck: Say Cheese.
 //
-// You are the Shuttercluck's one glass eye. Rare birds not yet discovered
-// (ten of our own, and the book's birds whose field-guide pages are still
-// closed: `env.subjects`, chosen by the shell) peek out of six hiding
+// You are the Shuttercluck's one glass eye. Any bird in the guide,
+// plus ten pocket birds (`env.subjects`, chosen by the shell) peek out of six hiding
 // places in a meadow (a bush, a stone wall, a knothole in the old tree, the
 // gate pillar, the hedge and the tall grass) for a moment, then duck back.
 // A hiding place rustles just before a bird appears. Move the viewfinder and
@@ -67,10 +66,11 @@ const S = () => (painted() ? ART_SPOTS : SPOTS);
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
-  // The undiscovered birds this round (every one when the shell names none).
+  // All guide birds plus pocket birds, supplied by the shell.
   const pool = (env.subjects || SUBJECT_IDS).filter((id) => SUBJECTS[id]);
   const ids = pool.length ? pool : SUBJECT_IDS;
-  const byTier = TIERS.map((_, i) => ids.filter((id) => SUBJECTS[id].tier === i));
+  let bag = [];
+  let lastId = null;
   const g = {
     score: 0,
     done: false,
@@ -169,12 +169,19 @@ export default function create(env) {
     const spot = free[Math.floor(rng() * free.length)];
     const sp = S()[spot];
     const d = diff();
-    const roll = rng();
-    let tier = roll < 0.1 + d * 0.12 ? 2 : roll < 0.45 + d * 0.1 ? 1 : 0;
-    // (a tier with nobody left in it: the nearest one that has someone)
-    if (!byTier[tier].length) tier = [tier, 1, 0, 2].find((k) => byTier[k].length);
+    if (!bag.length) bag = [...new Set(ids)];
+    const live = new Set(g.birds.map(b => b.id));
+    let choices = bag.filter(id => id !== lastId && !live.has(id));
+    if (!choices.length) choices = bag.filter(id => id !== lastId);
+    if (!choices.length) choices = bag;
+    // Weighted rarity, without replacement: see the whole pool before repeats.
+    const weight = id => [5, 3, 1 + d][SUBJECTS[id].tier];
+    let roll = rng() * choices.reduce((sum, id) => sum + weight(id), 0);
+    const id = choices.find(id => (roll -= weight(id)) <= 0) || choices.at(-1);
+    bag.splice(bag.indexOf(id), 1);
+    lastId = id;
+    const tier = SUBJECTS[id].tier;
     const T = TIERS[tier];
-    const id = byTier[tier][Math.floor(rng() * byTier[tier].length)];
     const s = sp.size / 400;
     const b = {
       id, tier, spot, x: 0,
@@ -672,11 +679,14 @@ export default function create(env) {
     try {
       const m = c.getTransform();
       const img = document.createElement('canvas');
-      img.width = 204;
-      img.height = 150;
+      img.width = 408;
+      img.height = 300;
       const h = img.getContext('2d');
-      h.drawImage(c.canvas, (g.fx - FW / 2) * m.a + m.e, (g.fy - FH / 2) * m.d + m.f, FW * m.a, FH * m.d, 0, 0, 204, 150);
+      h.drawImage(c.canvas, (g.fx - FW / 2) * m.a + m.e, (g.fy - FH / 2) * m.d + m.f, FW * m.a, FH * m.d, 0, 0, img.width, img.height);
       shot.img = img;
+      env.onPhoto?.({ src: img.toDataURL('image/webp', 0.85),
+        name: NAMES[shot.id] || 'Just grass', pts: shot.pts });
+
     } catch {
       /* the strip shows a plain card instead */
     }

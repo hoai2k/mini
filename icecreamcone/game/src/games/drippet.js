@@ -5,7 +5,7 @@
 // on the tiles. Thirsty things wait around the floor (a drooping fern, the
 // cat's empty bowl, a glass, a vase of tired daisies): run to one and stand
 // over it while the tap fills it. A fresh drip is harmless, but a puddle a
-// moment old is slippery: run into one and the Drippet skids helplessly
+// moment old is slippery: run into one and the Drippet slides with momentum
 // across the floor, losing time. Press the action to hop over a puddle; a
 // hop lands with a splash that leaves a puddle of its own, so hopping all
 // the time only floods the floor. The drips come faster and the puddles grow
@@ -76,7 +76,7 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   const dripEvery = () => lerp(0.34, 0.2, progress());
-  const puddleLife = () => lerp(5, 9.5, progress());
+  const puddleLife = () => lerp(6.5, 12, progress());
   const puddleMax = () => lerp(36, 56, progress());
   const patience = () => lerp(11, 7, progress());
   const wanted = () => (g.elapsed > 15 ? 2 : 1);
@@ -152,10 +152,9 @@ export default function create(env) {
   function startSlip(dirx, diry) {
     g.slip = SLIP;
     g.slips++;
-    const sp = Math.max(260, Math.hypot(dirx, diry));
-    const a = Math.atan2(diry, dirx || g.face) + (rng() < 0.5 ? -1 : 1) * (0.5 + rng() * 0.9); // skids off sideways
-    g.vx = Math.cos(a) * sp;
-    g.vy = Math.sin(a) * sp;
+    // Keep the incoming momentum rather than throwing the bird sideways.
+    g.vx = dirx;
+    g.vy = diry;
     g.hop = 0;
     pop('Whoops!', g.x, g.y - 210, PAL.slate, 46);
     splash(g.x, g.y, 12);
@@ -178,14 +177,10 @@ export default function create(env) {
     // Moving.
     const px = g.x;
     const py = g.y;
-    if (g.slip > 0) {
-      g.slip -= dt;
-      g.spinA += dt * 14 * Math.sign(g.vx || 1);
-      const k = Math.exp(-2.2 * dt);
-      g.vx *= k;
-      g.vy *= k;
-      if (g.slip <= 0) g.spinA = 0;
-    } else {
+    const sliding = g.slip > 0;
+    g.slip = Math.max(0, g.slip - dt);
+    g.spinA = sliding ? g.spinA + dt * 6 : 0;
+    {
       let mx = 0;
       let my = 0;
       if (input.pointer && input.pointer.active) {
@@ -209,13 +204,14 @@ export default function create(env) {
         }
       }
       const boost = g.hop > 0 ? 0.8 : g.hopRest > HOP_REST - 0.25 ? 0.5 : 1;
-      g.vx = approach(g.vx, mx * SPEED * boost, 14, dt);
-      g.vy = approach(g.vy, my * SPEED * 0.8 * boost, 14, dt);
+      g.vx = approach(g.vx, mx * SPEED * boost, sliding ? 1.1 : 14, dt);
+      g.vy = approach(g.vy, my * SPEED * 0.8 * boost, sliding ? 1.1 : 14, dt);
       if (Math.abs(g.vx) > 40) g.face = g.vx < 0 ? -1 : 1;
       // Hop.
       g.hopRest = Math.max(0, g.hopRest - dt);
       if (input.actionPressed && g.hop <= 0 && g.hopRest <= 0) {
         g.hop = HOP;
+        g.slip = 0;
         g.hops++;
         sfx('catch', { pitch: 5 });
       }
@@ -308,7 +304,7 @@ export default function create(env) {
         t.nudged = Math.max(0, (t.nudged || 0) - dt);
       }
       const near = Math.hypot(spot.x - t.x, (spot.y - t.y) * 1.6) < REACH || Math.hypot(g.x - t.x, (g.y - t.y) * 1.6) < REACH * 0.9;
-      if (near && g.hop <= 0 && g.slip <= 0) {
+      if (near && g.hop <= 0) {
         g.pouring = 0.15;
         g.pourOn = t;
         t.fill += dt / FILL;
@@ -637,7 +633,7 @@ export default function create(env) {
     g.drawOx = (g.drawOx || 0) + (want - (g.drawOx || 0)) * (1 - Math.exp(-14 * step));
     c.save();
     c.translate(g.x + g.drawOx, g.y - lift - bob);
-    if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.45);
+    if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.08);
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
     else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
     // The painted poses are at a little less than the portrait's scale in

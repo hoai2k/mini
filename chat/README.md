@@ -2,8 +2,8 @@
 
 A video chat in the browser with 75 face effects and backgrounds and 20
 minigames. Everyone
-who opens the page joins the same chat. It is tuned for two people (your
-friend fills the screen and you sit in the corner) and works for up to 16,
+who opens the page joins the same chat. One person fills the screen and the
+others float in movable small windows, for two people or up to 16,
 although every extra person costs upload bandwidth (see "How calls work").
 Play it at https://hoai2k.github.io/mini/chat/.
 
@@ -13,6 +13,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | --- | --- |
 | `index.html`, `styles.css` | The page: title screen, call screen, trays, dialogs |
 | `themes.css`, `js/palette.js` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) and each theme's shade of every player colour |
+| `js/debug-bots.js`, `js/debug-bot-runtime.js`, `js/rookie.js` | Settings-controlled test participants, isolated game windows and rookie inputs |
 | `js/main.js` | Wires everything together: tiles, controls, trays, invites, chat, settings |
 | `js/net.js` | The shared room on the mini-rooms relay: join or host, reconnect, presence, topics |
 | `js/rtc.js` | Mesh WebRTC calls, negotiated over the relay |
@@ -43,21 +44,36 @@ so the picture stays clear:
 - **Top:** the status pill on the left; microphone, camera, settings and full
   screen on the right. Settings also holds How to play, Messages (unread
   counts show on the settings button) and Leave the call; your name there is
-  tapped to change it.
+  tapped to change it. **Add Debug Bot** near the bottom uses − / + for up to
+  four test players; the count applies when Settings closes, including Escape.
+  Bots use simulated cameras, accept any shared effect, and join human game
+  sessions with simple rookie inputs. Their scores never update your records.
+  They leave when removed, when you leave the call, or when the page reloads.
+  This is a session-only control, not a saved preference.
 - **Videos:** names show only for a moment (when someone arrives, renames or
   the videos swap); connection messages show while connecting and then go.
-  With two people your friend fills the screen and you float in a corner:
-  tap the small video to swap the two, drag it to another corner. When your
-  friend is big and has an effect on, a download button puts it on you too.
+  Your friend fills the screen and everyone else floats over it. Tap a small
+  video to make it primary (or focus it and press Enter/Space); drag each small video
+  independently to position it. This also works with three or more people.
+  A quiet **Copy** prompt names the effect used by the person in the main video.
+  Small videos have no buttons. A shared effect replaces the quiet prompt with
+  a **Try it** notification in the same spot; dismissing or expiry returns to
+  the main person's current effect. Copying and accepting use the same action.
 - **During a game** the bottom row and strips go away so the game gets the
-  screen; close the game with the ✕ beside its name to get them back.
+  screen and your effect is removed. Effects cannot be put on during a game.
+  Close the game with the ✕ beside its name to get the controls back.
 - **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games.
   Picking one lights it up and opens its strip; once something from it is
   on, the button slides to the left (the others fold away; tap it again,
   or pick "no effect", for the whole row) and the space to its right shows
-  what's on: its name,
-  thumbs, ⓘ (how it works) and share (offers it to everyone, who get a Try
-  it button). Effects, Accessories and Backgrounds are strips of lenses:
+  what's on: its full name above the thumbs, ⓘ (how it works) and share
+  (offers it to everyone, who get a Try it button). Deselecting or leaving
+  an effects category removes its effect; reopening Effects, Accessories or
+  Backgrounds restores that category's last choice. Choosing "no effect"
+  clears that choice. Games keep effects off until you reopen a category.
+  Bottom gradients and sheet backgrounds reach the screen's bottom edge,
+  including behind the row and the phone's home-bar area.
+  Effects, Accessories and Backgrounds are strips of lenses:
   swipe one and whichever stops in the ring is put on. Favorites is a strip
   of everything you gave a thumbs up (effects and games); tap one to use it.
   Drag a strip up (or tap its grip) for a grid that scrolls up and down;
@@ -157,9 +173,12 @@ flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls; pull back to aim and the
-arrow sits behind the ball, following your finger, pointing the way it will go), Bowling, Beach Bump (bump
+arrow sits behind the ball, following your finger, pointing the way it will go),
+Bowling (pins finish falling and stay on the lane for 1.5 seconds before the
+rack resets or the turn changes), Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
-your head), Asteroid Dodge (steer with your head or by tilting the phone),
+your head; live miniature kitchens show friends' stacks, falling ingredients,
+scores and remaining lives), Asteroid Dodge (steer with your head or by tilting the phone),
 Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
 Word Blitz (a Boggle-style word race on a 20,000-word dictionary) and Go Fish
 (thirteen creatures from the ancient oceans, from Anomalocaris and Opabinia to
@@ -203,6 +222,17 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
+- `chat/publish.sh local/pages/chat && node chat/test/chat-fixes.mjs`: group
+  video dragging and primary selection, effect deselection and copying,
+  effects disabled during games, live opponent burgers, and bowling's
+  1.5-second pause after pins settle (needs the local relay dependencies)
+- `chat/publish.sh local/pages/chat && node chat/test/effect-prompt.mjs`: main-video
+  copying, keyboard promotion, shared offer replacement/dismissal/expiry,
+  mobile fit, game suppression and peer departures.
+- `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
+  count and deferred joins/removals, simulated cameras, effect copying and
+  offers, all 21 games with rookie controls, real turns, live Burger Stack
+  state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
 - `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for
@@ -222,6 +252,10 @@ itself to HTTPS.
   phone-sized page, mouse and touch pulls on each sheet (a short pull peeks
   and snaps back, a long one closes) and a sideways scroll of the effects
   strip putting on the effect in the ring
+- `chat/publish.sh local/pages/chat && node chat/test/effect-controls.mjs`:
+  remembered category toggles, explicit None and game protection; bottom
+  backings, uncut grid labels and full titles above actions in every theme
+  at phone and desktop widths, plus expanded thumb touch targets
 - `chat/publish.sh local/pages/chat && node chat/test/call-check.mjs`: two
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, joining a game from an invite, and a background tab pausing

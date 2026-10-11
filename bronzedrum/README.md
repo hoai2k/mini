@@ -24,6 +24,10 @@ sideways, where the bronze drum becomes the instrument: tap its centre and its r
 On a phone the first tap in landscape goes full screen (on iPhone Safari, swipe
 up to hide the bars, or add the game to the home screen).
 
+In the tutorial, faint drum dots follow the rhythm in the current instruction
+or demonstration, including its tier. Entering a different command shows only
+the strokes played, without suggesting an unrelated continuation.
+
 - [`design/design.md`](design/design.md): the concept, the core loop, the art
   direction and the open questions.
 - [`design/image-requests.md`](design/image-requests.md): the image requests,

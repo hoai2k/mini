@@ -22,7 +22,9 @@ export function createFakeRooms({ latency = 30 } = {}) {
           const msg = client.presence;
           const room = rooms.get(key);
           if (!room) return;
-          for (const other of room.members.values()) if (other !== client) later(() => other._presence(client.peerId, msg));
+          for (const other of room.members.values()) if (other !== client) later(() => {
+            if (room.members.has(client.peerId)) other._presence(client.peerId, msg);
+          });
         },
         subscribePresence(a, b) {
           const cb = typeof a === 'function' ? a : b;
@@ -35,7 +37,9 @@ export function createFakeRooms({ latency = 30 } = {}) {
           const copy = JSON.parse(JSON.stringify(data ?? null));
           const room = rooms.get(key);
           if (!room) return;
-          for (const other of room.members.values()) if (other !== client) later(() => other._topic(topic, copy, client.peerId));
+          for (const other of room.members.values()) if (other !== client) later(() => {
+            if (room.members.has(client.peerId)) other._topic(topic, copy, client.peerId);
+          });
         },
         subscribeTopic(topic, cb) {
           if (!listeners.topics.has(topic)) listeners.topics.set(topic, new Set());

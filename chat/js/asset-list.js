@@ -2054,5 +2054,9 @@ export const ASSET_LIST = {
   "classic-game-gofish": {
     "file": "assets/icons-classic/classic-game-gofish.png",
     "status": "delivered"
+  },
+  "ios-app-icon": {
+    "file": "assets/ui/ios-app-icon.png",
+    "status": "requested"
   }
 };
