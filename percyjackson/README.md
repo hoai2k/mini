@@ -116,6 +116,7 @@ people and one hero each.
 | `game/js/story/` | Books and chapters, chapter start places in camp |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
+| `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
 | `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |

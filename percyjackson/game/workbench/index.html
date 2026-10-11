@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Half-Blood Quests · Model Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="workbench.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.webgpu.js",
+    "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.webgpu.js",
+    "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.tsl.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/",
+    "three-classic": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three-gpu-pathtracer": "https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.24/build/index.module.js",
+    "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.9.15/build/index.module.js"
+  },
+  "scopes": {
+    "https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.24/": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js", "three/examples/jsm/": "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r186/examples/jsm/" },
+    "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r186/": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js" },
+    "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.9.15/": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js" },
+    "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.webgpu.js" }
+  }
+}
+</script>
+</head>
+<body>
+<div id="wb">
+  <aside id="left" aria-label="Models">
+    <header class="phead">
+      <h1>Model Workbench</h1>
+      <input id="search" type="search" placeholder="Filter models  ( / )" autocomplete="off" aria-label="Filter models">
+      <div id="tabs" role="tablist" aria-label="Groups"></div>
+    </header>
+    <div id="grid" role="listbox" aria-label="Character models"></div>
+    <footer class="hint" id="hint-left">Arrows move · Enter selects · PgUp/PgDn group · Pad: D-pad, A, LB/RB</footer>
+  </aside>
+  <main id="mid">
+    <div id="stage"></div>
+    <div id="title"><span id="t-name"></span><small id="t-sub"></small></div>
+    <div id="vbar" role="toolbar" aria-label="Viewer">
+      <button id="b-turn" aria-pressed="true" title="Auto turntable (Space)">Turntable</button>
+      <button id="b-reset" title="Reset view (R)">Reset view</button>
+      <button id="b-bg" title="Background (B)">Background: dark</button>
+      <button id="b-link" title="Copy a link to this model">Copy link</button>
+    </div>
+    <div id="status" role="status"></div>
+  </main>
+  <aside id="right" aria-label="Inspector">
+    <header class="phead"><h2>Inspector</h2></header>
+    <div id="insp"></div>
+  </aside>
+</div>
+<script type="module" src="workbench.js"></script>
+</body>
+</html>
