@@ -13,6 +13,7 @@ Outputs:
 Statuses:
     requested  the app draws a stand-in in CSS (styles.css) until the file arrives
     delivered  the file is at its path under eartrainer/app/ and the app loads it
+    revise     delivered and in use, but a new version is wanted (see its note)
 
 Delivered art goes in eartrainer/intake/; once it is checked and copied to its
 path, flip its status here to "delivered" and rerun.
@@ -43,7 +44,7 @@ BOOK_STYLE = (
 
 ASSETS = [
     # Title
-    dict(id="logo", file="assets/ui/logo.png", size="1600×640, transparent PNG", status="delivered", group="Title",
+    dict(id="logo", file="assets/ui/logo.webp", size="1600×640, transparent PNG (shipped as WebP)", status="delivered", group="Title",
          prompt="The words “Ear Trainer” as a hand-lettered logo: “Ear” in an elegant high-contrast "
                 "serif with a soft italic swash, “Trainer” in flowing italic script, both in polished "
                 "brass-gold with an ivory highlight and a subtle warm glow. A small stylised ear whose "
@@ -59,13 +60,13 @@ ASSETS = [
                 "background, string lights blurred into bokeh. Leave the centre third calm and "
                 "darker so a logo and a button read over it. " + STYLE,
          note="Landscape phones crop it to roughly 19.5:9, so keep the subject inside the middle 80%."),
-    dict(id="rotate-card", file="assets/ui/rotate-card.png", size="800×800, transparent PNG", status="delivered", group="Title",
+    dict(id="rotate-card", file="assets/ui/rotate-card.webp", size="800×800, transparent PNG (shipped as 600×600 WebP)", status="delivered", group="Title",
          prompt="A friendly illustration of a smartphone turning from portrait to landscape, drawn "
                 "as a small ivory-and-ebony piano keyboard on its screen, with a curved brass arrow "
                 "showing the turn. Simple, bold shapes on a transparent background. " + STYLE),
     # Songbooks
     *[
-        dict(id=f"book-{bid}", file=f"assets/books/{bid}.png", size="512×512, PNG", status="delivered", group="Songbook emblems",
+        dict(id=f"book-{bid}", file=f"assets/books/{bid}.webp", size="512×512, PNG (shipped as 256×256 WebP)", status="delivered", group="Songbook emblems",
              prompt=f"An emblem for the songbook “{name}”: {subject}. " + BOOK_STYLE)
         for bid, name, subject in [
             ("all", "Everything", "a vinyl record whose grooves glow brass, with a small star of light at the label"),
@@ -79,16 +80,28 @@ ASSETS = [
         ]
     ],
     # App icons and the library cover
-    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, no transparency", status="delivered", group="App icon",
-         prompt="An app icon: a stylised ear whose curve becomes a treble clef, in brass-gold, above "
-                "three ivory-and-ebony piano keys, on a deep midnight-blue rounded-square ground with "
-                "a soft warm glow behind the ear. Bold, simple, centred, legible at 60 pixels. " + STYLE,
-         note="Resized to icons/icon-180.png, icon-192.png and icon-512.png (also used maskable, so keep the motif inside the middle 80%). Stand-ins are drawn by design/source/make_icons.py."),
-    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="delivered", group="Game library card",
-         prompt="A close view of grand piano keys under warm lamplight, a single key glowing brass as "
-                "if just pressed, with a few golden notes rising from it into a midnight-blue "
-                "background. Leave the upper middle calm for the logo to sit on. " + STYLE,
-         note="Background of the Ear Trainer card on the game library page (index.html), with the logo over it."),
+    dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="revise", group="App icon",
+         prompt="An app icon, full bleed: the deep midnight-blue ground fills the whole square right to "
+                "the edges and corners (no rounded-square frame, no border, no white or light margin; "
+                "the phone rounds the corners itself). Centred on it, the same brass-gold ear as the "
+                "Ear Trainer logo: the outer curve of a human ear drawn as one smooth brass line, with "
+                "a treble clef nestled inside it, so it reads clearly as an ear and not as a question "
+                "mark. Below it three equal ivory piano keys edged in brass. A soft warm glow behind "
+                "the ear; no other objects (no piano, bass, lamps or tables), so the motif reads at "
+                "60 pixels. Keep everything important inside the middle 80% (it is also used as a "
+                "maskable Android icon). " + STYLE,
+         note="Round 2. Round 1 (delivered) is in use with its white corners filled in, but its art is a "
+              "rounded square inset in the frame, its ear-and-clef reads as a question mark at small "
+              "sizes, and the background scene is too busy for an icon. Resized to icons/icon-180.png, "
+              "icon-192.png and icon-512.png."),
+    dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP", status="revise", group="Game library card",
+         prompt="A dim jazz club seen past the end of a grand piano: the keys run along the bottom fifth "
+                "of the picture only, one key glowing brass as if just pressed, a few golden notes "
+                "rising from it toward the top corners. The middle half of the picture, from left to "
+                "right, is calm, dark midnight-blue air with soft bokeh and nothing else in it, so a "
+                "gold logo laid over the centre reads cleanly. " + STYLE,
+         note="Round 2. The delivered cover (in use, darkened behind the logo by index.html) runs the "
+              "piano keys diagonally through the centre, so the logo sits on busy keys."),
 ]
 
 
@@ -100,6 +113,10 @@ def render() -> tuple[str, str]:
         "",
         "Generate each image from its prompt and drop the files in `eartrainer/intake/`.",
         "Until a file is delivered the app draws a stand-in, so nothing here blocks play.",
+        "",
+        "**Round 2:** everything from round 1 is delivered and in the app. Two images are",
+        "wanted again, marked `revise`: " + ", ".join(f"`{a['id']}`" for a in ASSETS if a["status"] == "revise")
+        + ". Their notes say what to change; the round 1 versions stay in use until then.",
         "",
         "**House style** (already included in every prompt): " + STYLE,
         "",

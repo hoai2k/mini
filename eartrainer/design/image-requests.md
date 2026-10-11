@@ -5,30 +5,33 @@
 Generate each image from its prompt and drop the files in `eartrainer/intake/`.
 Until a file is delivered the app draws a stand-in, so nothing here blocks play.
 
+**Round 2:** everything from round 1 is delivered and in the app. Two images are
+wanted again, marked `revise`: `icon`, `cover`. Their notes say what to change; the round 1 versions stay in use until then.
+
 **House style** (already included in every prompt): Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
-| delivered | `logo` | `app/assets/ui/logo.png` | 1600×640, transparent PNG |
+| delivered | `logo` | `app/assets/ui/logo.webp` | 1600×640, transparent PNG (shipped as WebP) |
 | delivered | `title-bg` | `app/assets/ui/title-bg.webp` | 2400×1350 (16:9), WebP |
-| delivered | `rotate-card` | `app/assets/ui/rotate-card.png` | 800×800, transparent PNG |
-| delivered | `book-all` | `app/assets/books/all.png` | 512×512, PNG |
-| delivered | `book-children` | `app/assets/books/children.png` | 512×512, PNG |
-| delivered | `book-traditional` | `app/assets/books/traditional.png` | 512×512, PNG |
-| delivered | `book-holiday` | `app/assets/books/holiday.png` | 512×512, PNG |
-| delivered | `book-classical` | `app/assets/books/classical.png` | 512×512, PNG |
-| delivered | `book-jazz` | `app/assets/books/jazz.png` | 512×512, PNG |
-| delivered | `book-licks` | `app/assets/books/licks.png` | 512×512, PNG |
-| delivered | `book-popular` | `app/assets/books/popular.png` | 512×512, PNG |
-| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, no transparency |
-| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `rotate-card` | `app/assets/ui/rotate-card.webp` | 800×800, transparent PNG (shipped as 600×600 WebP) |
+| delivered | `book-all` | `app/assets/books/all.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-children` | `app/assets/books/children.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-traditional` | `app/assets/books/traditional.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-holiday` | `app/assets/books/holiday.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-classical` | `app/assets/books/classical.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-jazz` | `app/assets/books/jazz.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-licks` | `app/assets/books/licks.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| delivered | `book-popular` | `app/assets/books/popular.webp` | 512×512, PNG (shipped as 256×256 WebP) |
+| revise | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| revise | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 
 ## Title
 
 ### `logo` · delivered
 
-- File: `eartrainer/app/assets/ui/logo.png`
-- Size: 1600×640, transparent PNG
+- File: `eartrainer/app/assets/ui/logo.webp`
+- Size: 1600×640, transparent PNG (shipped as WebP)
 - Note: Must read clearly at 300 px wide. The text title (Fraunces) shows until this arrives.
 
 ```text
@@ -47,8 +50,8 @@ An intimate jazz club after hours seen from the side of a grand piano: the open 
 
 ### `rotate-card` · delivered
 
-- File: `eartrainer/app/assets/ui/rotate-card.png`
-- Size: 800×800, transparent PNG
+- File: `eartrainer/app/assets/ui/rotate-card.webp`
+- Size: 800×800, transparent PNG (shipped as 600×600 WebP)
 
 ```text
 A friendly illustration of a smartphone turning from portrait to landscape, drawn as a small ivory-and-ebony piano keyboard on its screen, with a curved brass arrow showing the turn. Simple, bold shapes on a transparent background. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -58,8 +61,8 @@ A friendly illustration of a smartphone turning from portrait to landscape, draw
 
 ### `book-all` · delivered
 
-- File: `eartrainer/app/assets/books/all.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/all.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Everything”: a vinyl record whose grooves glow brass, with a small star of light at the label. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -67,8 +70,8 @@ An emblem for the songbook “Everything”: a vinyl record whose grooves glow b
 
 ### `book-children` · delivered
 
-- File: `eartrainer/app/assets/books/children.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/children.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Children's Songs”: a wooden toy xylophone and a paper boat with a twinkling star above. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -76,8 +79,8 @@ An emblem for the songbook “Children's Songs”: a wooden toy xylophone and a 
 
 ### `book-traditional` · delivered
 
-- File: `eartrainer/app/assets/books/traditional.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/traditional.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Folk & Traditional”: a fiddle and a sprig of heather crossed over an old map. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -85,8 +88,8 @@ An emblem for the songbook “Folk & Traditional”: a fiddle and a sprig of hea
 
 ### `book-holiday` · delivered
 
-- File: `eartrainer/app/assets/books/holiday.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/holiday.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Carols & Hymns”: a brass hand bell with holly and a single falling snowflake. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -94,8 +97,8 @@ An emblem for the songbook “Carols & Hymns”: a brass hand bell with holly an
 
 ### `book-classical` · delivered
 
-- File: `eartrainer/app/assets/books/classical.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/classical.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Classical Themes”: a marble bust's laurel wreath around a treble clef. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -103,8 +106,8 @@ An emblem for the songbook “Classical Themes”: a marble bust's laurel wreath
 
 ### `book-jazz` · delivered
 
-- File: `eartrainer/app/assets/books/jazz.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/jazz.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Jazz Standards”: a brass saxophone bell with a curl of smoke and a spotlight. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -112,8 +115,8 @@ An emblem for the songbook “Jazz Standards”: a brass saxophone bell with a c
 
 ### `book-licks` · delivered
 
-- File: `eartrainer/app/assets/books/licks.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/licks.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Jazz & Blues Licks”: a straight side-view brass trumpet with three aligned upright piston valves, a straight level leadpipe and bell tube, compact conventional U-shaped valve slides, a naturally flared bell, and a winding glowing line of notes. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -121,8 +124,8 @@ An emblem for the songbook “Jazz & Blues Licks”: a straight side-view brass 
 
 ### `book-popular` · delivered
 
-- File: `eartrainer/app/assets/books/popular.png`
-- Size: 512×512, PNG
+- File: `eartrainer/app/assets/books/popular.webp`
+- Size: 512×512, PNG (shipped as 256×256 WebP)
 
 ```text
 An emblem for the songbook “Film & Pop Hooks”: a cinema film reel and a vintage microphone. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred emblem on a plain deep midnight-blue (#182033) ground, readable at 44 pixels, with generous margin.
@@ -130,24 +133,24 @@ An emblem for the songbook “Film & Pop Hooks”: a cinema film reel and a vint
 
 ## App icon
 
-### `icon` · delivered
+### `icon` · revise
 
 - File: `eartrainer/app/icons/icon-1024.png`
-- Size: 1024×1024, PNG, no transparency
-- Note: Resized to icons/icon-180.png, icon-192.png and icon-512.png (also used maskable, so keep the motif inside the middle 80%). Stand-ins are drawn by design/source/make_icons.py.
+- Size: 1024×1024, PNG, full bleed, no transparency
+- Note: Round 2. Round 1 (delivered) is in use with its white corners filled in, but its art is a rounded square inset in the frame, its ear-and-clef reads as a question mark at small sizes, and the background scene is too busy for an icon. Resized to icons/icon-180.png, icon-192.png and icon-512.png.
 
 ```text
-An app icon: a stylised ear whose curve becomes a treble clef, in brass-gold, above three ivory-and-ebony piano keys, on a deep midnight-blue rounded-square ground with a soft warm glow behind the ear. Bold, simple, centred, legible at 60 pixels. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+An app icon, full bleed: the deep midnight-blue ground fills the whole square right to the edges and corners (no rounded-square frame, no border, no white or light margin; the phone rounds the corners itself). Centred on it, the same brass-gold ear as the Ear Trainer logo: the outer curve of a human ear drawn as one smooth brass line, with a treble clef nestled inside it, so it reads clearly as an ear and not as a question mark. Below it three equal ivory piano keys edged in brass. A soft warm glow behind the ear; no other objects (no piano, bass, lamps or tables), so the motif reads at 60 pixels. Keep everything important inside the middle 80% (it is also used as a maskable Android icon). Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
 
 ## Game library card
 
-### `cover` · delivered
+### `cover` · revise
 
 - File: `eartrainer/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP
-- Note: Background of the Ear Trainer card on the game library page (index.html), with the logo over it.
+- Note: Round 2. The delivered cover (in use, darkened behind the logo by index.html) runs the piano keys diagonally through the centre, so the logo sits on busy keys.
 
 ```text
-A close view of grand piano keys under warm lamplight, a single key glowing brass as if just pressed, with a few golden notes rising from it into a midnight-blue background. Leave the upper middle calm for the logo to sit on. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
+A dim jazz club seen past the end of a grand piano: the keys run along the bottom fifth of the picture only, one key glowing brass as if just pressed, a few golden notes rising from it toward the top corners. The middle half of the picture, from left to right, is calm, dark midnight-blue air with soft bokeh and nothing else in it, so a gold logo laid over the centre reads cleanly. Warm late-night jazz-club illustration: deep midnight blue and ink-black shadows, pools of warm brass and amber lamplight, ivory piano keys, soft film grain, painterly but crisp shapes in the manner of a 1950s Blue Note record sleeve crossed with modern editorial illustration. Elegant, calm, inviting. No text, no letters, no logos, no watermark, no frame or border unless the prompt asks for one.
 ```
