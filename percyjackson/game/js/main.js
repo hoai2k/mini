@@ -386,6 +386,7 @@ class Game {
     if (ups) this.levelUp();
   }
   showResults(victory) {
+    this.audio?.stinger?.(victory ? 'victory' : 'defeat');
     const m = this.mission; const st = m?.stats ?? {};
     this.paused = true;
     this.ui.open('results', (el) => {
@@ -400,7 +401,7 @@ class Game {
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, 'Retry') : null,
-          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => Screens.openProphecy(this, b), 600); } } }, 'Return to Camp Half-Blood'))));
+          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, 'Return to Camp Half-Blood'))));
       const lootEl = el.querySelector('#results-loot');
       for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));
