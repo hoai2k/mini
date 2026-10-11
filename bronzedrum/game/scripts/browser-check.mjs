@@ -77,7 +77,8 @@ async function open(throttle = 1, scale = 2) {
     if (m.type() === 'error' && !/fonts|ERR_CERT|ERR_NAME|net::/.test(m.text())) errors.push(m.text());
   });
   await page.goto(base);
-  await page.waitForFunction(() => !document.querySelector('#title').hidden);
+  // The title is static HTML; the game behind the invite door loads after it.
+  await page.waitForFunction(() => window.__bronzeDrum && !document.querySelector('#title').hidden);
   if (throttle > 1) await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: throttle });
   return { ctx, page, errors };
 }
@@ -138,7 +139,8 @@ async function open(throttle = 1, scale = 2) {
   const { ctx, page } = await open();
   await page.evaluate(() => localStorage.removeItem('bronzedrum.prototype.demos') /* the game's save key (main.js STORE) */);
   await page.reload();
-  await page.waitForFunction(() => !document.querySelector('#title').hidden);
+  // The title is static HTML; the game behind the invite door loads after it.
+  await page.waitForFunction(() => window.__bronzeDrum && !document.querySelector('#title').hidden);
   await page.click('#press-start');
   await page.waitForTimeout(800);
   await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 });
