@@ -144,11 +144,17 @@ edit it there if anything changes).
 
 ### Turn on HTTPS for the website
 
-<https://github.com/hoai2k/mini/settings/pages> → tick **Enforce HTTPS**.
-Right now GitHub sends `hoai2k.github.io/mini/…` to `http://games.hoai.net/…`,
-and browsers don't allow the camera on plain http pages. The app avoids this
-by using `https://games.hoai.net/mini/chat/` directly, but invite links
-opened in a browser need it too.
+The custom domain `games.hoai.net` belongs to your user site, the
+**hoai2k.github.io** repository; the mini repo's pages are served under it at
+`/mini/`. So the setting is there: <https://github.com/hoai2k/hoai2k.github.io/settings/pages>
+→ tick **Enforce HTTPS** (if it's greyed out, GitHub is still issuing the
+certificate; try again later). It covers the project sites under it too.
+
+Without it, GitHub sends `hoai2k.github.io/mini/…` to `http://games.hoai.net/…`,
+and browsers don't allow the camera on plain http pages. Check afterwards:
+<http://hoai2k.github.io/mini/chat/> should end up on
+`https://games.hoai.net/mini/chat/`. The app avoids the problem by using the
+https address directly, but invite links opened in a browser need it.
 
 ## 6. Run it on your own iPhone first
 
