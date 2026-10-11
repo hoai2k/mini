@@ -29,7 +29,7 @@ acts. The first four keep their stage machinery and rules, recast:
    fairies' gifts, the witch's curse, the abduction, Aurora arming the
    prince). It plays on its own, A skips each tableau, and it leads straight
    into the Royal Crossing.
-1. The Royal Crossing: the galley voyage, then the witch's tempest, a scene
+1. The Royal Crossing: the royal ship's voyage (the original ship), then the witch's tempest, a scene
    in which the crew light the lanterns themselves.
 2. The Water Fairy: the sleepers' grotto; the Water Fairy blesses the prince
    (no refusal) and her dolphin carriage carries him on.

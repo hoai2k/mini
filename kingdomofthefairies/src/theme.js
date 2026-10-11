@@ -75,7 +75,8 @@ export const FILM_CAST = {
   'guitar-sinking': 'sword-sinking', 'tea-leaf': 'aurora-star',
   'keepsake-guitar': 'keepsake-sword', 'keepsake-tea': 'keepsake-star', 'keepsake-rose': 'keepsake-shell',
   'keepsake-pearl': 'keepsake-seal', 'keepsake-stone': 'keepsake-lamp',
-  ship: 'galley', 'ship-wreck-bow': 'galley-wreck-bow', 'ship-wreck-stern': 'galley-wreck-stern',
+  // (The Crossing keeps the original ship and its wreck: the galley art
+  // stays in the manifest but is not drawn, at the owner's request.)
   'sentry-creature-closed': 'lobster-guard-closed', 'sentry-creature-open': 'lobster-guard-open',
   'gaze-lantern': 'scrying-eye', 'beloved-stand': 'azurine-stand', playbill: 'playbill-film',
 };
