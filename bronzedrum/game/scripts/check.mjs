@@ -21,11 +21,13 @@ for (const f of sourceFiles) {
 const manifest = JSON.parse(readFileSync(join(root, 'assets', 'manifest.json'), 'utf8'));
 // The game's own code: src/gate/ is the shared invite door, kept byte-identical
 // to the other games' copies, so its strings are not game asset or sound ids.
+const page = readFileSync(join(root, 'index.html'), 'utf8');
 const source = sourceFiles.filter((f) => !f.startsWith('gate')).map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
 for (const a of manifest.assets.filter((x) => x.runtime !== false && (x.status === 'stand-in' || x.status === 'delivered' || x.status === 'regenerate'))) {
   // Ids are used literally or as `prefix-${...}` templates (sky-*, card-*).
   const prefix = a.id.split('-')[0];
-  if (!source.includes(`'${a.id}'`) && !source.includes(`\`${prefix}-\${`)) {
+  // The page itself may load one directly (the title logo, so it shows at once).
+  if (!source.includes(`'${a.id}'`) && !source.includes(`\`${prefix}-\${`) && !(a.web && page.includes(`"assets/${a.web}"`))) {
     failed++;
     console.error(`manifest id ${a.id} is not used by the game`);
   }
