@@ -112,9 +112,9 @@ status. The film edition draws these through its cast maps (`src/theme.js`
 and each act's `cast`).
 
 [The character audit](design/character-audit.md) compares the cast with the
-film; its hand-tinted alternates (requests F8) are drawn in place of the
-originals wherever delivered when the film edition's Settings set Cast look
-to Tinted (or with `?look=tinted`), without replacing them.
+film; its hand-tinted alternates (requests F8, all delivered) are the film
+edition's default cast look; Settings › Cast look › Original (or
+`?look=original`) returns to the first, cleaner art.
 
 An optional menu ambience, `?crackle=on`, holds the score back until play and
 fills the title, playbill, act cards and pause with an old record's crackle

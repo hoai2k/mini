@@ -1249,8 +1249,7 @@
         400
       ],
       "anchor": "bottom centre",
-      "edition": "film",
-      "interim": "interim/witch-hooded-spectre.webp"
+      "edition": "film"
     },
     "witch-cloud": {
       "status": "delivered",
@@ -1260,8 +1259,7 @@
         400
       ],
       "anchor": "bottom centre",
-      "edition": "film",
-      "interim": "interim/witch-cloud-spectre.webp"
+      "edition": "film"
     },
     "witch-swoop": {
       "status": "delivered",
@@ -1271,8 +1269,7 @@
         240
       ],
       "anchor": "centre",
-      "edition": "film",
-      "interim": "interim/witch-swoop-spectre.webp"
+      "edition": "film"
     },
     "witch-barrel": {
       "status": "delivered",
@@ -1282,8 +1279,7 @@
         240
       ],
       "anchor": "bottom centre",
-      "edition": "film",
-      "interim": "interim/witch-barrel-spectre.webp"
+      "edition": "film"
     },
     "king-stand": {
       "status": "delivered",
@@ -1914,8 +1910,7 @@
         340
       ],
       "anchor": "bottom centre",
-      "edition": "film",
-      "interim": "interim/witch-storm-spectre.webp"
+      "edition": "film"
     },
     "playbill-film": {
       "status": "delivered",

@@ -1,4 +1,4 @@
-import { LEGACY, EDITION, LOOK_TINTED, FILM as FILM_ED, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
+import { LEGACY, EDITION, LOOK_PARAM, FILM as FILM_ED, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
 applyDocumentTheme();
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
 import { ACTS } from './acts/index.js';
@@ -33,10 +33,12 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const settings = { sound: true, period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
 settings.extraAnimations = settings.extraAnimations === true;
-// The film edition's cast look: the original art or its hand-tinted
-// alternates (design/character-audit.md); ?look=tinted chooses tinted too.
-if (LOOK_TINTED) settings.castLook = 'tinted';
-if (settings.castLook !== 'tinted') settings.castLook = 'original';
+// The film edition's cast look: the hand-tinted alternates by default, or the
+// first art (design/character-audit.md). `cast` replaces the earlier
+// `castLook`, so the new default reaches everyone; ?look= overrides it.
+delete settings.castLook;
+if (LOOK_PARAM === 'tinted' || LOOK_PARAM === 'original') settings.cast = LOOK_PARAM;
+if (settings.cast !== 'original') settings.cast = 'tinted';
 if (!LEGACY) { settings.period = true; document.querySelector('[data-key="period"]').hidden = true; }
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ } };
 const FILM = { full: 'Full', gentle: 'Gentle', off: 'Off' };
@@ -49,7 +51,7 @@ function syncSettingsUI() {
     else if (k === 'sound') el.querySelector('span').textContent = settings.sound ? 'On' : 'Off';
     else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
     else if (k === 'extraAnimations') el.querySelector('span').textContent = settings.extraAnimations ? 'On' : 'Off';
-    else if (k === 'castLook') el.querySelector('span').textContent = settings.castLook === 'tinted' ? 'Tinted' : 'Original';
+    else if (k === 'castLook') el.querySelector('span').textContent = settings.cast === 'tinted' ? 'Tinted' : 'Original';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
   audio.setSound(settings.sound !== false);
@@ -78,7 +80,7 @@ for (const el of document.querySelectorAll('#settings [data-key]')) {
     if (k === 'sound') settings.sound = !settings.sound;
     if (k === 'vibration') settings.vibration = !settings.vibration;
     if (k === 'extraAnimations') settings.extraAnimations = !settings.extraAnimations;
-    if (k === 'castLook') settings.castLook = settings.castLook === 'tinted' ? 'original' : 'tinted';
+    if (k === 'castLook') settings.cast = settings.cast === 'tinted' ? 'original' : 'tinted';
     if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
     syncSettingsUI(); saveSettings(); audio.play('ui');
   });
@@ -460,7 +462,7 @@ function frame(now) {
 
 function currentView() {
   return {
-    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, extraAnimations: settings.extraAnimations === true, tinted: FILM_ED && settings.castLook === 'tinted', t: S.t,
+    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, extraAnimations: settings.extraAnimations === true, tinted: FILM_ED && settings.cast === 'tinted', t: S.t,
     hud: S.mode === 'play' || S.mode === 'over',
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,

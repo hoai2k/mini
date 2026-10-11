@@ -805,7 +805,7 @@ Requested 11 October 2026 for the prologue as a short playable scene (the owner 
 
 ### F7. The witch, redrawn after the film
 
-Requested 11 October 2026. The first witch art drew a faceless, ragged spectre with claws and a twisted staff; the film's witch is a stooped old crone in one heavy shaggy sea-green hooded robe, her old face showing, with a plain staff (compare references/film-witch/). These replace the five witch sprites at the same sizes and anchors; until they arrive the game keeps the first art (assets/interim/witch-*-spectre.webp).
+Requested 11 October 2026. The first witch art drew a faceless, ragged spectre with claws and a twisted staff; the film's witch is a stooped old crone in one heavy shaggy sea-green hooded robe, her old face showing, with a plain staff (compare references/film-witch/). These replace the five witch sprites at the same sizes and anchors (delivered; the superseded spectre originals are kept in generated/film-production/progress/superseded-witch-spectre/).
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
@@ -847,7 +847,7 @@ Requested 11 October 2026. The first witch art drew a faceless, ragged spectre w
 
 ### F8. Tinted alternates, after the film's look
 
-Requested 11 October 2026 after the character audit (design/character-audit.md). The delivered cast are crisp storybook chromolithographs; the 1903 film is photographed stage performers, hand stencil-coloured. Each entry redraws an existing sprite in the film's look as a separate <id>-tinted file at the same size, pose, scale and anchor. They do not replace anything: ?look=tinted draws them in place of the originals where delivered, so the two looks can be compared before choosing.
+Requested 11 October 2026 after the character audit (design/character-audit.md). The delivered cast are crisp storybook chromolithographs; the 1903 film is photographed stage performers, hand stencil-coloured. Each entry redraws an existing sprite in the film's look as a separate <id>-tinted file at the same size, pose, scale and anchor. They are the film edition's default cast look; Settings › Cast look › Original (or ?look=original) returns to the first art.
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
