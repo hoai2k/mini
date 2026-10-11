@@ -1,8 +1,9 @@
-import { LEGACY, FILM as FILM_ED, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
+import { LEGACY, EDITION, FILM as FILM_ED, TITLE, STORAGE_PREFIX, applyDocumentTheme } from './theme.js';
 applyDocumentTheme();
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
 import { ACTS } from './acts/index.js';
 import { loadSave, writeSave, carryInto, recordResult } from './save.js';
+import { editorWanted, openEditor } from './editor.js';
 import { createRenderer, loadAssets, richText } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
@@ -125,9 +126,19 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
 const save = loadSave();
 const params = new URLSearchParams(location.search);
 const QA = params.has('qa');
+// ?edit=local: choose each edition's unlocked acts on this machine (editor.js),
+// from a button beside the options; this edition's save reloads on a change.
+if (editorWanted()) {
+  const reload = (id) => { if (id === EDITION) { const s = loadSave(); for (const k of Object.keys(save)) delete save[k]; Object.assign(save, s); } };
+  const b = document.createElement('button');
+  b.className = 'icon unlock-btn'; b.textContent = 'Unlocks'; b.setAttribute('aria-label', 'Unlocked acts'); b.dataset.focus = '';
+  b.addEventListener('click', () => openEditor(reload));
+  document.querySelector('#title nav.corner')?.prepend(b);
+  addEventListener('load', () => openEditor(reload), { once: true });
+}
 
 function startGame() {
-  if (S.mode !== 'title' || dialogs.length) return;
+  if (S.mode !== 'title' || dialogs.length || document.querySelector('#unlock-editor[open]')) return;
   leaveTitle();
   const jump = QA && +params.get('act');
   if (jump >= 1 && jump <= ACTS.length) return beginAct(jump - 1, params.has('scene') ? { scene: +params.get('scene') } : null);

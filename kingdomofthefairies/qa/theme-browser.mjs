@@ -15,9 +15,9 @@ try {
     page.on('pageerror', e => errors.push(e.message));
     page.on('request', r => requests.push(r.url()));
     await page.addInitScript(() => {
-      for (const prefix of ['widowsbay', 'kingdomofthefairies']) localStorage.setItem(prefix + '.settings.v1', JSON.stringify({ film: 'off', music: 0, sfx: 0, period: false, extraAnimations: true }));
+      for (const prefix of ['widowsbay', 'kingdomofthefairies', 'kingdomofthefairies.partial']) localStorage.setItem(prefix + '.settings.v1', JSON.stringify({ film: 'off', music: 0, sfx: 0, period: false, extraAnimations: true }));
     });
-    await page.goto(server.url + '/?qa' + (legacy ? '&widowsbay' : ''));
+    await page.goto(server.url + '/?qa' + (legacy ? '&widowsbay=on' : ''));
     await page.waitForFunction(() => document.querySelector('#logo-img').naturalWidth > 0);
     assert.equal(await page.title(), legacy ? "Widow's Bay" : 'Kingdom of the Fairies');
     assert.equal(await page.locator('[data-key="period"]').evaluate(el => el.hidden), !legacy);
@@ -75,7 +75,7 @@ try {
     await writeFile(new URL(legacy ? 'legacy-pageant.png' : 'fairies-pageant.png', out), Buffer.from(pageant, 'base64'));
     assert.deepEqual(errors, []);
     results.push({ legacy, music, scenes: rendered.scenes.length, bandDraws: rendered.bandCalls.length, errors });
-    await page.goto(server.url + '/workbench/?' + (legacy ? 'widowsbay' : ''));
+    await page.goto(server.url + '/workbench/?' + (legacy ? 'widowsbay=on' : ''));
     await page.waitForFunction(() => document.querySelector('#scene').options.length > 0);
     assert.equal(await page.title(), (legacy ? "Widow's Bay" : 'Kingdom of the Fairies') + ' · Workbench');
     assert.deepEqual(errors, []);

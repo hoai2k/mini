@@ -33,7 +33,7 @@ jobs:
         working-directory: hopper/3d/standins
       - run: hopper/3d/publish.sh local/pages/hopper
       - run: sites/publish.sh local/pages/sites
-      - run: for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs || exit 1; done; done && for t in animation sailor-motion theme film; do node kingdomofthefairies/qa/$t.test.mjs || exit 1; done && python3 kingdomofthefairies/design/source/build_act_requests.py --check && python3 kingdomofthefairies/design/source/build_film_requests.py --check && python3 kingdomofthefairies/design/source/build_film_assets.py --check && kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
+      - run: for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs || exit 1; done; done && for t in animation sailor-motion theme; do node kingdomofthefairies/qa/$t.test.mjs || exit 1; done && KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs && python3 kingdomofthefairies/design/source/build_act_requests.py --check && python3 kingdomofthefairies/design/source/build_film_requests.py --check && python3 kingdomofthefairies/design/source/build_film_assets.py --check && kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
       - run: node --test test/*.test.mjs && node scripts/check.mjs
         working-directory: bronzedrum/game
       - run: python3 bronzedrum/design/source/build_requests.py --check && python3 bronzedrum/design/source/build_audio.py --check && python3 bronzedrum/design/source/build_web_art.py --check && python3 bronzedrum/design/source/build_rigs.py --check

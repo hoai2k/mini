@@ -665,7 +665,7 @@ Backcloths for the prologue and Acts V and VI, and the transformations. Full-fra
 
 ### F5. Crew variety and idle frames
 
-Requested 11 October 2026 after the sprite audit. Two crew roles shared one sprite, so the deck and the grotto showed twins; the bosun makes four. The idle frames give the crew and the Water Fairy the old-film idle the original revellers have (two extra frames each, flicked between with the film tricks in src/animation.js). sailor-seated-plain is for the ?widowsbay=partial edition, where the sailor rides the moon boat without his guitar. Until each arrives the game draws the still (or a mirrored stand-in for the bosun and the second sleeper).
+Requested 11 October 2026 after the sprite audit. Two crew roles shared one sprite, so the deck and the grotto showed twins; the bosun makes four. The idle frames give the crew and the Water Fairy the old-film idle the original revellers have (two extra frames each, flicked between with the film tricks in src/animation.js). sailor-seated-plain is for the default (partial) edition, where the sailor rides the moon boat without his guitar. Until each arrives the game draws the still (or a mirrored stand-in for the bosun and the second sleeper).
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
@@ -759,7 +759,7 @@ Requested 11 October 2026 after the sprite audit. Two crew roles shared one spri
 
 220 × 220 px, anchor bottom centre.
 
-> The sailor exactly as in sailor-seated.webp (attach it): the same scale, pose, seat height and foot position, but with no guitar. His hands rest on his knees and a sword in its scabbard lies across his lap. Nothing else changes. For the ?widowsbay=partial edition. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+> The sailor exactly as in sailor-seated.webp (attach it): the same scale, pose, seat height and foot position, but with no guitar. His hands rest on his knees and a sword in its scabbard lies across his lap. Nothing else changes. For the default (partial) edition. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 ### F6. The playable prologue
 

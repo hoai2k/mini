@@ -32,7 +32,7 @@
           (function () {
             var q = new URLSearchParams(location.search).get('widowsbay'), card = document.getElementById('logo');
             var im = document.getElementById('logo-img');
-            im.src = 'assets/' + (q !== null && q.toLowerCase() !== 'partial' ? 'logo.webp' : 'fairies-title.webp');
+            im.src = 'assets/' + ((q || '').toLowerCase() === 'on' ? 'logo.webp' : 'fairies-title.webp');
             var show = function () { if (!card.classList.contains('no-img')) { im.hidden = false; card.classList.add('has-img'); } };
             var fail = function () { if (!card.classList.contains('has-img')) card.classList.add('no-img'); };
             im.decode ? im.decode().then(show, fail) : (im.onload = show, im.onerror = fail);
