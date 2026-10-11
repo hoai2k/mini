@@ -84,3 +84,13 @@ textarea { width: 100%; min-height: 90px; resize: vertical; background: #0f0c09;
   .hint { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .001s !important; } }
+
+/* source image (concept sheet) in the inspector */
+.src-crop { display: block; width: 100%; max-height: 320px; border: 1px solid var(--line, #6a5434); border-radius: 8px; background-color: #8f8f8f; background-repeat: no-repeat; cursor: zoom-in; padding: 0; }
+.src-crop:hover, .src-crop:focus-visible { outline: 2px solid var(--gold, #f0c867); outline-offset: 2px; }
+.src-lightbox { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(8, 6, 4, .88); cursor: zoom-out; padding: 16px; }
+.src-lightbox figure { margin: 0; text-align: center; }
+.src-lightbox .src-wrap { position: relative; display: inline-block; line-height: 0; }
+.src-lightbox img { display: block; width: auto; height: auto; max-width: min(96vw, 1600px); max-height: 86vh; border-radius: 8px; }
+.src-lightbox .src-mark { position: absolute; border: 3px solid #f0c867; border-radius: 6px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .35); pointer-events: none; }
+.src-lightbox figcaption { color: #f4ead5; text-align: center; margin-top: 8px; font-size: 14px; }
