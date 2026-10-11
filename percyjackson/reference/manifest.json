@@ -1,0 +1,1170 @@
+{
+  "title": "Percy Jackson — visual style references",
+  "note": "Private design reference. Every image belongs to its credited owner; image_url and page_url record where each was found.",
+  "families": [
+    {
+      "id": "painted",
+      "label": "Painted adventure"
+    },
+    {
+      "id": "caparo",
+      "label": "Painted portraits"
+    },
+    {
+      "id": "comics",
+      "label": "Graphic novels"
+    },
+    {
+      "id": "puffin",
+      "label": "UK action composites"
+    },
+    {
+      "id": "ornamental",
+      "label": "Ornamental flat"
+    },
+    {
+      "id": "cartoon",
+      "label": "Bright YA cartoon"
+    },
+    {
+      "id": "silhouette",
+      "label": "Shadow-play silhouette"
+    },
+    {
+      "id": "film",
+      "label": "Films 2010 & 2013"
+    },
+    {
+      "id": "series",
+      "label": "Disney+ series"
+    },
+    {
+      "id": "series-graphic",
+      "label": "Disney+ gilded key art"
+    },
+    {
+      "id": "stage",
+      "label": "Stage musical"
+    },
+    {
+      "id": "game",
+      "label": "DS game (2010)"
+    },
+    {
+      "id": "toy",
+      "label": "Toys"
+    }
+  ],
+  "images": [
+    {
+      "file": "lightning-thief-taiwan-chinese-cover.jpg",
+      "family": "painted",
+      "title": "Taiwan Chinese edition, The Lightning Thief (神火之賊)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "Percy Jackson: The Lightning Thief (Taiwan Chinese edition)",
+      "year": "2000s-2010s",
+      "what_it_shows": "A boy in green tumbles back with a sword before a skyscraper and crashing waves under a lightning-streaked sky.",
+      "style_notes": "Painterly storm scene in violet-grey and cream; moody and melodramatic, small figure under huge waves.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/2/2c/The_Lightning_Thief_-_Cover_%28Taiwan%29.jpeg",
+      "page_url": "https://riordan.fandom.com/wiki/File:The_Lightning_Thief_-_Cover_(Taiwan).jpeg"
+    },
+    {
+      "file": "rocco-us-cover-lightning-thief.jpg",
+      "family": "painted",
+      "title": "Lightning Thief (Rocco)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief, US Disney-Hyperion paperback",
+      "year": 2005,
+      "what_it_shows": "Percy seen from behind in orange shirt standing on a sea-green wave-wrapped trident-like shape with storm skyline and lightning.",
+      "style_notes": "Dark painterly digital/oil look, backlit figure, murky teal and amber palette; small figure against huge symbolic shapes; moody and mythic.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9780786838653-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "rocco-us-cover-sea-of-monsters.jpg",
+      "family": "painted",
+      "title": "Sea of Monsters (Rocco)",
+      "characters": [
+        "Percy",
+        "Grover"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Sea of Monsters, US Hyperion",
+      "year": 2006,
+      "what_it_shows": "Two tiny silhouettes run across a rope bridge beneath a giant glowing Cyclops eye over a ship.",
+      "style_notes": "Orange-red firelit painterly palette, tiny figures dwarfed by scale; silhouette storytelling.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423103349-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "rocco-us-cover-titans-curse.jpg",
+      "family": "painted",
+      "title": "Titan's Curse (Rocco)",
+      "characters": [],
+      "artist": "John Rocco",
+      "source_work": "The Titan's Curse, US Hyperion",
+      "year": 2007,
+      "what_it_shows": "A winged horse-like gargoyle statue on a skyscraper ledge over a blue misty city with a dark rider silhouette.",
+      "style_notes": "Cool blue-grey painterly atmosphere, cityscape haze, figure reduced to silhouette.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423101482-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "intrinseca-brazil-cover-lightning-thief.jpg",
+      "family": "painted",
+      "title": "Brazil Intrínseca Lightning Thief",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "O Ladrão de Raios, Intrínseca",
+      "year": 2008,
+      "what_it_shows": "Percy in yellow shirt wading into a green sea holding a sword before a lightning-lit skyline.",
+      "style_notes": "Painterly green-gold palette; near the US look, little stylistic difference.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9788598078397-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "rocco-us-cover-battle-of-labyrinth.jpg",
+      "family": "painted",
+      "title": "Battle of the Labyrinth (Rocco)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Battle of the Labyrinth, US Hyperion",
+      "year": 2008,
+      "what_it_shows": "Silhouetted boy with sword before a fiery doorway and labyrinth floor pattern.",
+      "style_notes": "Hot red/orange firelight, strong geometric maze floor, backlit silhouette.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423101499-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "rocco-us-cover-last-olympian.jpg",
+      "family": "painted",
+      "title": "Last Olympian (Rocco)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Last Olympian, US Hyperion",
+      "year": 2009,
+      "what_it_shows": "Percy with raised sword riding a black winged pegasus past a giant sword-like Empire State Building amid burning New York.",
+      "style_notes": "Moody sepia/green painterly, dynamic diagonal, epic scale.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423101475-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "rocco-greek-gods.jpg",
+      "family": "painted",
+      "title": "Percy Jackson's Greek Gods cover",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "Percy Jackson's Greek Gods",
+      "year": 2014,
+      "what_it_shows": "Percy silhouetted in a glowing archway surrounded by painted gods (Poseidon, Artemis, Athena, Zeus) and a trident.",
+      "style_notes": "Rich painterly collage of gods, warm/cool contrast, Percy small and backlit.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423183648-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "greek-heroes-textless-cover.jpg",
+      "family": "painted",
+      "title": "Percy Jackson's Greek Heroes, textless cover art (John Rocco)",
+      "characters": [],
+      "artist": "John Rocco",
+      "source_work": "Percy Jackson's Greek Heroes (Disney-Hyperion)",
+      "year": "2015",
+      "what_it_shows": "Heroes in mythic poses on either side of a winged horse flying toward a sailing ship through a fiery sunset sky; Percy and Annabeth are not depicted.",
+      "style_notes": "Rich painterly digital illustration with orange-gold sunset glow and lavender shadows; heroic classical proportions, cinematic composition.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/a/a8/Greek_Heroes_textless.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Greek_Heroes_textless.jpg"
+    },
+    {
+      "file": "illustrated-edition-annabeth-dionysus-cards.jpg",
+      "family": "painted",
+      "title": "Annabeth standing beside Mr. D playing cards",
+      "characters": [
+        "Annabeth",
+        "Dionysus"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief: Illustrated Edition (Disney-Hyperion)",
+      "year": "2018",
+      "what_it_shows": "Blonde ponytailed Annabeth in an orange camp tee glares with arms folded beside a rumpled Dionysus holding cards at a table.",
+      "style_notes": "Loose watercolour vignette with blue-grey wash edge; realistic, slightly gritty child proportions and a wary mood.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/7/7f/Annabeth_and_Dionysus_IE.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Annabeth_and_Dionysus_IE.jpg"
+    },
+    {
+      "file": "illustrated-edition-annabeth-percy-infirmary.jpg",
+      "family": "painted",
+      "title": "Annabeth tending Percy in the infirmary",
+      "characters": [
+        "Annabeth",
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief: Illustrated Edition (Disney-Hyperion)",
+      "year": "2018",
+      "what_it_shows": "Annabeth, seen from behind in an orange tee with a ponytail, holds a cup with a straw to Percy as he sits propped in an infirmary bed.",
+      "style_notes": "Watercolour-style with fine linework and teal/slate shadows over bright white; naturalistic proportions and a quiet, tender mood.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/c/cc/Annabeth_and_Percy_IE.png",
+      "page_url": "https://riordan.fandom.com/wiki/File:Annabeth_and_Percy_IE.png"
+    },
+    {
+      "file": "illustrated-edition-original-trio.jpg",
+      "family": "painted",
+      "title": "Grover, Percy and Annabeth standing together in camp shirts",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief: Illustrated Edition (Disney-Hyperion)",
+      "year": "2018",
+      "what_it_shows": "The three questers outdoors in orange camp tees: Grover in a green cap, Percy in the middle and ponytailed Annabeth on the right.",
+      "style_notes": "Soft watercolour vignette, earthy ochre and sky-blue; realistic proportions, tween-age casual poses.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/7/72/Original_Trio_IE.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Original_Trio_IE.jpg"
+    },
+    {
+      "file": "illustrated-edition-trio-laurels.jpg",
+      "family": "painted",
+      "title": "Trio wearing laurel wreaths",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief: Illustrated Edition (Disney-Hyperion)",
+      "year": "2018",
+      "what_it_shows": "Three smiling kids with arms around each other wear laurel wreaths and yellow-orange shirts, Annabeth at left.",
+      "style_notes": "Watercolour with soft blue-grey vignette; warm yellow-orange tones, affectionate and celebratory.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/9/97/Trio_wearing_laurels.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Trio_wearing_laurels.jpg"
+    },
+    {
+      "file": "illustrated-edition-lightning-thief-cover.jpg",
+      "family": "painted",
+      "title": "Illustrated Edition cover",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "John Rocco",
+      "source_work": "The Lightning Thief: The Illustrated Edition",
+      "year": 2018,
+      "what_it_shows": "Percy with sword stands in surf as a minotaur, Medusa, lion and skeleton warriors surge from a stormy sunset sky over NYC.",
+      "style_notes": "Colourful watercolour-like painted illustration, saturated blue/orange, comic-adventure monsters, child-friendly but dramatic.",
+      "image_url": "http://books.disney.com/content/uploads/2018/07/1484787781-816x1024.jpg",
+      "page_url": null
+    },
+    {
+      "file": "demigod-files-caparo-annabeth.jpg",
+      "family": "caparo",
+      "title": "Annabeth Chase character portrait (Antonio Caparo)",
+      "characters": [
+        "Annabeth"
+      ],
+      "artist": "Antonio Caparo",
+      "source_work": "The Demigod Files (character portraits, Disney-Hyperion)",
+      "year": "2009",
+      "what_it_shows": "Annabeth tipping a navy Yankees cap, ponytail over her shoulder, smiling in an orange Camp Half-Blood shirt on a swirling pink-peach ground.",
+      "style_notes": "Digital painting, soft rendering, warm peach and rose palette; slightly exaggerated cartoony proportions, friendly smirk, reads younger than the cover Annabeths.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/0/06/Annabeth_Chase.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Annabeth_Chase.jpg"
+    },
+    {
+      "file": "demigod-files-caparo-percy.jpg",
+      "family": "caparo",
+      "title": "Percy Jackson character portrait (Antonio Caparo)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Antonio Caparo",
+      "source_work": "The Demigod Files (character portraits, Disney-Hyperion)",
+      "year": "2009",
+      "what_it_shows": "Percy in an orange Camp Half-Blood shirt holding a bronze sword point-up, smiling slightly against a mottled green-gold backdrop.",
+      "style_notes": "Digital painting with painterly texture and mild caricature; warm orange against teal-green, boyish round face, dark messy hair.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/0/02/Percy_Jackson.png",
+      "page_url": "https://riordan.fandom.com/wiki/File:Percy_Jackson.png"
+    },
+    {
+      "file": "graphic-novel-lightning-thief-cover.jpg",
+      "family": "comics",
+      "title": "Graphic novel Lightning Thief cover",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Attila Futaki / colour José Villarrubia",
+      "source_work": "The Lightning Thief: The Graphic Novel",
+      "year": 2010,
+      "what_it_shows": "Percy in orange shirt and jeans wields glowing bronze sword Riptide in rushing water.",
+      "style_notes": "Comic realism, inked figures with digital painted colour, dynamic pose, teal-grey water and orange accent.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423116967-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "graphic-novel-interior-annabeth-panel.jpg",
+      "family": "comics",
+      "title": "Annabeth close-up panel, Percy Jackson graphic novel",
+      "characters": [
+        "Annabeth"
+      ],
+      "artist": "Attila Futaki (art), Robert Venditti (adaptation); colourist not confirmed",
+      "source_work": "Percy Jackson graphic novel series (Disney-Hyperion; volume not confirmed)",
+      "year": "2010-2014",
+      "what_it_shows": "Close crop of a blonde Annabeth in a blue jacket, holding papers and mid-speech, with speech balloons cut off at the right edge.",
+      "style_notes": "Realistic, ink-and-wash comic colouring in muted olive and violet; naturalistic proportions, long loose blonde hair, serious adult-leaning face.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/9/92/Annabeth_GN.png",
+      "page_url": "https://riordan.fandom.com/wiki/File:Annabeth_GN.png"
+    },
+    {
+      "file": "graphic-novel-interior-som-annabeth-percy-clarisse.jpg",
+      "family": "comics",
+      "title": "Sea of Monsters GN page: Annabeth sleeping in sunlight, then Percy and Clarisse beside her",
+      "characters": [
+        "Annabeth",
+        "Percy",
+        "Clarisse"
+      ],
+      "artist": "Attila Futaki (art), José Villarrubia (colour), Robert Venditti (adaptation)",
+      "source_work": "The Sea of Monsters: The Graphic Novel",
+      "year": "2013",
+      "what_it_shows": "Large close-ups of Annabeth unconscious with golden light on her hair, with lower panels of Percy, Clarisse and campers around her.",
+      "style_notes": "Saturated warm yellows and oranges, soft glowing highlights on loose wavy blond hair; semi-realistic, cinematic cropping.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/6/6e/PJO_SOM_GN_0005.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:PJO_SOM_GN_0005.jpg"
+    },
+    {
+      "file": "graphic-novel-interior-som-annabeth-percy-sirens.jpg",
+      "family": "comics",
+      "title": "Sea of Monsters GN page: Annabeth at the helm, Percy tied to the mast before the Sirens",
+      "characters": [
+        "Annabeth",
+        "Percy"
+      ],
+      "artist": "Attila Futaki (art), José Villarrubia (colour), Robert Venditti (adaptation)",
+      "source_work": "The Sea of Monsters: The Graphic Novel",
+      "year": "2013",
+      "what_it_shows": "A full interior page: Annabeth steers the ship at night in an orange Camp Half-Blood tee while Percy argues to be tied up so he can hear the Sirens.",
+      "style_notes": "Painterly comic colouring with warm lamplight against deep indigo night; semi-realistic proportions, long straight pale-blond Annabeth with a stern face; scanned print page.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/a/a9/PJO_SOM_GN_0001.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:PJO_SOM_GN_0001.jpg"
+    },
+    {
+      "file": "graphic-novel-last-olympian-cover.jpg",
+      "family": "comics",
+      "title": "Graphic novel Last Olympian cover",
+      "characters": [
+        "Percy",
+        "Annabeth"
+      ],
+      "artist": "Orpheus Collar / Antoine Dodé",
+      "source_work": "The Last Olympian: The Graphic Novel",
+      "year": 2019,
+      "what_it_shows": "Close-up of Percy's green eyes behind a sword blade in which Annabeth's reflection can be seen.",
+      "style_notes": "Anime-influenced clean line comic style, stylised face, rain-blue palette, intimate.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423101505-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "uk-puffin-2009-cover-last-olympian.jpg",
+      "family": "puffin",
+      "title": "Original UK Last Olympian",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "The Last Olympian, UK Puffin original",
+      "year": 2009,
+      "what_it_shows": "Armoured Kronos-like warrior looms over a small red-clad figure in a glowing blue city; winged helmet above.",
+      "style_notes": "Glowing blue/magenta digital, heavy vignette, bold gold title; small hero vs huge menace.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9780141382937-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "uk-puffin-2013-cover-battle-of-labyrinth.jpg",
+      "family": "puffin",
+      "title": "Puffin 2013 Battle of the Labyrinth",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "The Battle of the Labyrinth, UK Puffin",
+      "year": 2013,
+      "what_it_shows": "Percy with a bronze sword and shield amid flames before the Golden Gate Bridge.",
+      "style_notes": "Hot orange fire palette, realistic digital composite.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9780141346830-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "uk-puffin-2013-cover-lightning-thief.jpg",
+      "family": "puffin",
+      "title": "Puffin 2013 Lightning Thief",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "The Lightning Thief, UK Puffin redesign",
+      "year": 2013,
+      "what_it_shows": "Percy in orange shirt hurls a spear/sword under a blue lightning-filled sky with New York skyline.",
+      "style_notes": "Photographic-digital realistic figure, electric blue storm palette, genre-thriller feel; real-looking teenager.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9780141346809-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "uk-puffin-2013-cover-titans-curse.jpg",
+      "family": "puffin",
+      "title": "Puffin 2013 Titan's Curse",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "The Titan's Curse, UK Puffin",
+      "year": 2013,
+      "what_it_shows": "Percy on a black pegasus in stormy purple sky with Golden Gate Bridge.",
+      "style_notes": "Dusky purple-blue dramatic digital composite.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9780141346816-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "lightning-thief-french-albin-michel-collector-cover.jpg",
+      "family": "ornamental",
+      "title": "Le Voleur de foudre, French (Albin Michel) collector edition",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "Percy Jackson et les Olympiens: Le Voleur de foudre (Albin Michel, collector)",
+      "year": "2020s",
+      "what_it_shows": "Percy seen from behind with a sword before an ornate columned frame, thrones and creatures of Olympus in pastel colours.",
+      "style_notes": "Decorative, Art-Nouveau-like gold-framed illustration in soft pastels; storybook feel, tiny figure.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/7/75/TLT_French_collector_edition.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:TLT_French_collector_edition.jpg"
+    },
+    {
+      "file": "lightning-thief-italian-mondadori-2020s-cover.jpg",
+      "family": "ornamental",
+      "title": "Il ladro di fulmini, new Italian (Mondadori Oscar) cover",
+      "characters": [],
+      "artist": "Victo Ngai (attributed: same art as the US redesign)",
+      "source_work": "Percy Jackson e gli dei dell'Olimpo: Il ladro di fulmini (Mondadori)",
+      "year": "2020s",
+      "what_it_shows": "A gold trident-sword, winged helmet and lightning bolt before a pale sun disc and cloud swirls on a teal ground; no characters.",
+      "style_notes": "Decorative emblem illustration in teal, gold and cream with ornamental clouds; modern, heraldic.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/b/b9/Percy_Jackson_-_Il_Ladro_di_Fulmini_%28New_Italian_Cover%29.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Percy_Jackson_-_Il_Ladro_di_Fulmini_(New_Italian_Cover).jpg"
+    },
+    {
+      "file": "us-2022-redesign-cover-titans-curse.jpg",
+      "family": "ornamental",
+      "title": "2022 redesign Titan's Curse",
+      "characters": [],
+      "artist": "Victo Ngai (attributed: matches her redesigned series packaging)",
+      "source_work": "The Titan's Curse, new US cover",
+      "year": 2022,
+      "what_it_shows": "Black winged Pegasus-like horse before a huge pale moon above a crouching small figure on a peak.",
+      "style_notes": "Flat-ish decorative illustration, magenta-to-orange gradient, patterned wings and clouds; graphic, art-print feel. Artist unverified.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781368051484-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "lightning-thief-us-2022-redesign-cover.jpg",
+      "family": "ornamental",
+      "title": "The Lightning Thief, US 2022-23 paperback redesign cover",
+      "characters": [],
+      "artist": "Victo Ngai (attributed: matches her redesigned series packaging)",
+      "source_work": "Percy Jackson and the Olympians 1: The Lightning Thief (Disney-Hyperion, series redesign)",
+      "year": "2022-2023",
+      "what_it_shows": "A trident-topped sword, a lightning bolt and a winged helmet on a pale gold-teal ground; no characters shown.",
+      "style_notes": "Flat-ish emblematic vector illustration in teal and gold, symmetrical and iconographic; cover illustrator not confirmed in sources found.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/4/47/FINALPJ_LightningThief_rpkg_CVR.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:FINALPJ_LightningThief_rpkg_CVR.jpg"
+    },
+    {
+      "file": "chalice-of-the-gods-us-cover.jpg",
+      "family": "ornamental",
+      "title": "The Chalice of the Gods, US cover",
+      "characters": [],
+      "artist": "Victo Ngai",
+      "source_work": "Percy Jackson and the Olympians: The Chalice of the Gods (Disney-Hyperion)",
+      "year": "2023",
+      "what_it_shows": "A coiled sea-green serpent rises from a golden cup flanked by chickens on a deep navy ground; no human characters are visible.",
+      "style_notes": "Ornamental, near-symmetrical illustration in jade, gold and midnight blue with fine line detail echoing Greek vase painting; elegant and decorative.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/2/2f/Chalice_of_the_Gods_Cover.jpeg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Chalice_of_the_Gods_Cover.jpeg"
+    },
+    {
+      "file": "intrinseca-2023-chalice-of-the-gods-crop-victo-ngai.jpg",
+      "family": "ornamental",
+      "title": "Chalice of the Gods crop",
+      "characters": [],
+      "artist": "Victo Ngai",
+      "source_work": "The Chalice of the Gods cover detail (Omelete article)",
+      "year": 2023,
+      "what_it_shows": "Cropped banner of a golden Greek kylix with black-figure athletes, fish and swirling water.",
+      "style_notes": "Greek vase-painting motifs rendered in flat decorative digital art on teal; no Percy or Annabeth.",
+      "image_url": "https://cdn.ome.lt/uploads/conteudo/fotos/percy-jackson-e-os-olimpianos-novas-capas-capa.jpg",
+      "page_url": null
+    },
+    {
+      "file": "wrath-of-triple-goddess-cover-victo-ngai.jpg",
+      "family": "ornamental",
+      "title": "Wrath of the Triple Goddess",
+      "characters": [],
+      "artist": "Victo Ngai",
+      "source_work": "Wrath of the Triple Goddess",
+      "year": 2024,
+      "what_it_shows": "Hecate shown as three heads (horse, lion, dog) holding torches above a mansion.",
+      "style_notes": "Flat ornamental graphic style, golds and greens on black-to-orange flames, no Percy or Annabeth.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/Wrath_of_the_triple_goddess.jpg/500px-Wrath_of_the_triple_goddess.jpg",
+      "page_url": null
+    },
+    {
+      "file": "chalice-of-the-gods-spanish-salamandra-cover.jpg",
+      "family": "cartoon",
+      "title": "El cáliz de los dioses, Spanish (Salamandra) cover",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": null,
+      "source_work": "Percy Jackson y los dioses del Olimpo: El cáliz de los dioses (Salamandra)",
+      "year": "2023",
+      "what_it_shows": "Percy in a teal tee with a dagger in a serpent-wrapped golden chalice pose, with blond Annabeth glancing back at left and goat-legged Grover at right.",
+      "style_notes": "Polished semi-manga-influenced digital illustration; golden amber palette, large expressive eyes, slim youthful proportions.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/5/58/The_Chalice_of_the_Gods_-_Spanish_Cover.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:The_Chalice_of_the_Gods_-_Spanish_Cover.jpg"
+    },
+    {
+      "file": "chalice-of-the-gods-uk-puffin-cover.jpg",
+      "family": "cartoon",
+      "title": "The Chalice of the Gods, UK Puffin cover",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Khadijah Khatib",
+      "source_work": "The Chalice of the Gods (Puffin UK)",
+      "year": "2023",
+      "what_it_shows": "Percy leaps up holding the chalice overhead amid tangled green snakes and crackling lightning, seen from below against a rainbow burst.",
+      "style_notes": "Vivid digital illustration with neon yellow, purple and rainbow gradients; dynamic low-angle action, Percy small and faceless within the energy.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/e/e0/Chalice_of_the_gods_UK_cover.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Chalice_of_the_gods_UK_cover.jpg"
+    },
+    {
+      "file": "lightning-thief-spanish-salamandra-2023-cover.jpg",
+      "family": "cartoon",
+      "title": "El ladrón del rayo, Spanish (Salamandra) 2023 cover",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover",
+        "Poseidon"
+      ],
+      "artist": null,
+      "source_work": "Percy Jackson y los dioses del Olimpo 1: El ladrón del rayo (Salamandra)",
+      "year": "2023",
+      "what_it_shows": "Percy with sword and swirling water in front, ponytailed Annabeth throwing her Yankees cap beside him, Grover behind, and Poseidon with trident in a stone doorway.",
+      "style_notes": "Anime-leaning digital art with cool blue storm palette, big luminous eyes and clean cel-like shading; the most Annabeth-forward cover in the set.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/d/db/The_Lightning_Thief_-_2023_Spanish_Cover.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:The_Lightning_Thief_-_2023_Spanish_Cover.jpg"
+    },
+    {
+      "file": "japan-holp-lightning-thief-cover.jpg",
+      "family": "silhouette",
+      "title": "Japanese Holp Shuppan edition vol. 1, 盗まれた雷撃 (The Lightning Thief)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "パーシー・ジャクソンとオリンポスの神々 1 盗まれた雷撃 (Holp Shuppan)",
+      "year": "2006",
+      "what_it_shows": "A small spiky-haired boy with a sword faces a giant monster silhouette in front of city towers inside a gold-ruled frame.",
+      "style_notes": "Flat black-and-grey silhouette graphics with metallic gold title foil; stylised, poster-like, almost woodcut rather than realistic.",
+      "image_url": "https://m.media-amazon.com/images/P/4593533864.09.LZZZZZZZ.jpg",
+      "page_url": null
+    },
+    {
+      "file": "japan-holp-titans-curse-cover.jpg",
+      "family": "silhouette",
+      "title": "Japanese Holp Shuppan edition vol. 3, タイタンの呪い (The Titan's Curse)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "パーシー・ジャクソンとオリンポスの神々 3 タイタンの呪い (Holp Shuppan)",
+      "year": "2006-2007",
+      "what_it_shows": "A shield-and-sword boy faces a gold-maned Nemean lion under a full moon on a snowy cliff.",
+      "style_notes": "Graphic flat-colour illustration in midnight navy and gold with a retro-poster feel and a bold decorative frame.",
+      "image_url": "https://m.media-amazon.com/images/P/4593533880.09.LZZZZZZZ.jpg",
+      "page_url": null
+    },
+    {
+      "file": "japan-demigod-files-sword-of-hades-cover.jpg",
+      "family": "silhouette",
+      "title": "Japanese Holp edition side-story, パーシー・ジャクソンとオリンポスの神々 外伝 ハデスの剣 (The Demigod Files)",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "パーシー・ジャクソンとオリンポスの神々 外伝 ハデスの剣 (Holp Shuppan; The Demigod Files)",
+      "year": "2010s",
+      "what_it_shows": "A black-silhouetted figure with spiky hair raises a huge sword toward a grey crowd below the Japanese title on a slate-blue cover. The wiki labels the file Chinese but the text is Japanese (Holp).",
+      "style_notes": "Stark monochrome silhouette with a single orange accent; flat, graphic, manga-adjacent.",
+      "image_url": "https://static.wikia.nocookie.net/olympians/images/e/eb/Chinesedemigodfiles.jpg",
+      "page_url": "https://riordan.fandom.com/wiki/File:Chinesedemigodfiles.jpg"
+    },
+    {
+      "file": "film2010-alt-poster-trio-with-shield.jpg",
+      "family": "film",
+      "title": "Alternate poster, trio with shield",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy with Riptide and a bronze shield, Annabeth with dagger at right, Grover at left, in churning sea with a hydra and storm behind.",
+      "style_notes": "Saturated teal and green sea against warm orange city fire, golden metallic title lettering; Annabeth in casual layered top, not armour.",
+      "image_url": "https://image.tmdb.org/t/p/original/vayx5t1cYCpBGV9ylTGn0Sr9rA2.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657/images/posters"
+    },
+    {
+      "file": "film2010-key-art-trio-wave.jpg",
+      "family": "film",
+      "title": "Key art, trio in the wave",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy in the centre with arms spread inside a spiral wall of water and lightning; Annabeth and Grover flank him with a city skyline behind.",
+      "style_notes": "Teal and white water vortex, dramatic low-angle hero pose, contemporary streetwear costumes.",
+      "image_url": "https://image.tmdb.org/t/p/original/5NUS9uQIMhU1a7MEK10tl3XL72S.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657-percy-jackson-the-olympians-the-lightning-thief/images/backdrops"
+    },
+    {
+      "file": "film2010-poster-blue-stylised-percy.jpg",
+      "family": "film",
+      "title": "Blue stylised Percy poster",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy against a flat blue radial background holding a glowing sword with a shield on his arm.",
+      "style_notes": "Flat bright cyan backdrop with cut-out character, simplified and almost game-box-like; green jacket, golden shield.",
+      "image_url": "https://image.tmdb.org/t/p/original/kFZ9qd8MSKmUPDV9eEtZiezQQz7.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657/images/posters"
+    },
+    {
+      "file": "film2010-poster-percy-annabeth-grover-shield.jpg",
+      "family": "film",
+      "title": "Poster, trio with shield and sword",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy front and centre with glowing sword and round bronze shield, Annabeth and Grover behind in rubble and surf.",
+      "style_notes": "Desaturated grey-blue grading with gold title; gritty action-adventure feel, modern clothes plus a classical shield.",
+      "image_url": "https://image.tmdb.org/t/p/original/hal0tSr1vWcANNeLMeJhotGrrhx.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657/images/posters"
+    },
+    {
+      "file": "film2010-poster.jpg",
+      "family": "film",
+      "title": "Theatrical poster",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy seen from behind rising out of stormy water, raising a glowing sword into lightning. Low resolution (260x385).",
+      "style_notes": "Cold teal and black, glossy blockbuster-fantasy lighting, water spray and lightning as the dominant motif; modern hoodie/tee costume.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/e/eb/Percy_Jackson_%26_the_Olympians_The_Lightning_Thief_poster.jpg",
+      "page_url": "https://en.wikipedia.org/wiki/Percy_Jackson_%26_the_Olympians:_The_Lightning_Thief"
+    },
+    {
+      "file": "film2010-promo-percy-trident-skyline.jpg",
+      "family": "film",
+      "title": "Promo, Percy with water trident",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy in a dark hoodie on a night rooftop with a glass-like water trident rising beside him and a city skyline behind.",
+      "style_notes": "Night-city blues and glittering CG water; urban fantasy look with the gods' symbols rendered as water sculpture.",
+      "image_url": "https://image.tmdb.org/t/p/original/63bKaP2jRMziUtukqaLeiqXPKDs.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657-percy-jackson-the-olympians-the-lightning-thief/images/backdrops"
+    },
+    {
+      "file": "film2010-still-trio-van.jpg",
+      "family": "film",
+      "title": "Still, trio by the pickup",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Grover, Percy and Annabeth standing beside a rusty vehicle in warm light.",
+      "style_notes": "Warm earthy palette and casual layered clothing, a realistic road-movie look.",
+      "image_url": "https://image.tmdb.org/t/p/original/ayn2VjN96ZKHgsDs5lqM0IFEvox.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657-percy-jackson-the-olympians-the-lightning-thief/images/backdrops"
+    },
+    {
+      "file": "film2010-still-trio.jpg",
+      "family": "film",
+      "title": "Still, Percy Annabeth Grover",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "Percy (hooded), Annabeth and Grover standing close, looking worried outdoors in daylight.",
+      "style_notes": "Naturalistic daylight photography, muted blue/brown denim and cotton clothes; grounded road-trip tone. No armour in this still.",
+      "image_url": "https://image.tmdb.org/t/p/original/pHrIpotRls5NP8qERly5M3rqo53.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657-percy-jackson-the-olympians-the-lightning-thief/images/backdrops"
+    },
+    {
+      "file": "film2010-teaser-poster-trident.jpg",
+      "family": "film",
+      "title": "Teaser poster, trident of lightning",
+      "characters": [],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, film, 2010",
+      "year": 2010,
+      "what_it_shows": "A glowing blue trident-shaped sword crackling with lightning on black, with the tagline 'Some heroes are made and some are born of the gods'.",
+      "style_notes": "Minimal black field with electric blue emblem; symbolic poster with no characters, useful as logo/icon direction.",
+      "image_url": "https://image.tmdb.org/t/p/original/4hNSmVpe55CPaW28wtLcHiEOE6f.jpg",
+      "page_url": "https://www.themoviedb.org/movie/32657/images/posters"
+    },
+    {
+      "file": "movie-tiein-us-cover-lightning-thief.jpg",
+      "family": "film",
+      "title": "Movie tie-in cover",
+      "characters": [
+        "Percy"
+      ],
+      "artist": null,
+      "source_work": "The Lightning Thief movie tie-in",
+      "year": 2010,
+      "what_it_shows": "Photo-style boy raising a lightning bolt, wet shirt, city flooded behind.",
+      "style_notes": "Live-action film photography with composite, desaturated blue; realistic.",
+      "image_url": "https://covers.openlibrary.org/b/isbn/9781423134947-L.jpg",
+      "page_url": null
+    },
+    {
+      "file": "film2013-key-art-blue-dragon.jpg",
+      "family": "film",
+      "title": "Key art, heroes and icy dragon",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Tyson",
+        "Grover"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson: Sea of Monsters, film, 2013",
+      "year": 2013,
+      "what_it_shows": "Annabeth, Percy holding a sword and Tyson in front of a translucent blue sea monster.",
+      "style_notes": "Icy cyan monochrome with leather jackets and plaits; strong single-hue treatment.",
+      "image_url": "https://image.tmdb.org/t/p/original/cecSSqplJ1FDzpxrwdtvfbgN3Uj.jpg",
+      "page_url": "https://www.themoviedb.org/movie/76285/images/backdrops"
+    },
+    {
+      "file": "film2013-poster.jpg",
+      "family": "film",
+      "title": "Theatrical poster, Sea of Monsters",
+      "characters": [
+        "Percy",
+        "Annabeth"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson: Sea of Monsters, film, 2013",
+      "year": 2013,
+      "what_it_shows": "Dark teaser poster of the heroes lined up with the tagline 'In demigods we trust'. Low resolution (256x390).",
+      "style_notes": "Near-black monochrome with gold serif title; moody and darker than the first film.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/a/a9/Percy-Jackson-Sea-poster.jpg",
+      "page_url": "https://en.wikipedia.org/wiki/Percy_Jackson:_Sea_of_Monsters"
+    },
+    {
+      "file": "film2013-still-percy-annabeth-ship.jpg",
+      "family": "film",
+      "title": "Still, Percy and Annabeth on deck",
+      "characters": [
+        "Percy",
+        "Annabeth"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson: Sea of Monsters, film, 2013",
+      "year": 2013,
+      "what_it_shows": "Percy in a dark jacket and Annabeth in a red plaid jacket with a side braid on a ship's deck under bright sky.",
+      "style_notes": "Bright seaside daylight, contemporary clothes; a bright adventure tone.",
+      "image_url": "https://image.tmdb.org/t/p/original/gvxi91odN755MU9kKXKDRbZwVbL.jpg",
+      "page_url": "https://www.themoviedb.org/movie/76285/images/backdrops"
+    },
+    {
+      "file": "film2013-still-ship-cast.jpg",
+      "family": "film",
+      "title": "Promo, crew aboard the boat",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover",
+        "Tyson"
+      ],
+      "artist": "20th Century Fox",
+      "source_work": "Percy Jackson: Sea of Monsters, film, 2013",
+      "year": 2013,
+      "what_it_shows": "The cast lined up at the rail of a rickety boat in a golden, glowing sea.",
+      "style_notes": "Warm orange sunset grading and wooden-boat set dressing; adventure-ensemble composition.",
+      "image_url": "https://image.tmdb.org/t/p/original/ti30jQmEynnE8n9QXf6npCWkXXc.jpg",
+      "page_url": "https://www.themoviedb.org/movie/76285/images/backdrops"
+    },
+    {
+      "file": "disney-series-s1-key-art-poster.jpg",
+      "family": "series",
+      "title": "S1 key art, glowing sword",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Three young leads lit from below by a blue-white glowing sword hilt on a deep navy background.",
+      "style_notes": "Deep navy with electric-blue under-lighting, simple portrait style; clean and modern.",
+      "image_url": "https://image.tmdb.org/t/p/original/50mrYVbw7RFtKTIzinDx3kfjSxo.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-s1-teaser-poster-kneeling.jpg",
+      "family": "series",
+      "title": "S1 teaser, Percy kneeling before the wave",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Percy kneeling on a beach with a sword planted in the sand while a huge parted wave rises behind him.",
+      "style_notes": "Cinematic painterly composition in teal sea and warm gold sand, epic scale; muted, filmic palette.",
+      "image_url": "https://image.tmdb.org/t/p/original/4sdvmSd62EgCMVTEFU8Ah9vHqnP.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-still-annabeth-gold-armour.jpg",
+      "family": "series",
+      "title": "Still, Annabeth in armour at camp",
+      "characters": [
+        "Annabeth"
+      ],
+      "artist": "Disney+ / Disney Branded Television (costume: Tish Monaghan)",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Annabeth in a gold-crested helm and gold-toned leather and bronze armour at Camp Half-Blood.",
+      "style_notes": "Bright daylight at camp with campers in bronze armour behind; golden leather cuirass and plume read clearly at a distance.",
+      "image_url": "https://image.tmdb.org/t/p/original/ggytrceYIgazPoFDJnOUgs0LIrB.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/backdrops"
+    },
+    {
+      "file": "disney-series-still-annabeth-half-helmet.jpg",
+      "family": "series",
+      "title": "Promo, Annabeth half-helmet portrait",
+      "characters": [
+        "Annabeth"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Annabeth's face split down the middle, one half bare and one half in a glowing bronze Corinthian-style helm.",
+      "style_notes": "Dark background with orange rim light and a hard split composition; an iconic armour-versus-person graphic.",
+      "image_url": "https://image.tmdb.org/t/p/original/57wHjXscqEJgAwUaFPafK4eHCWZ.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/backdrops"
+    },
+    {
+      "file": "disney-series-still-camp-half-blood-shirts.jpg",
+      "family": "series",
+      "title": "Still, trio in camp shirts",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Three young demigods in orange Camp Half-Blood T-shirts standing in a birch forest.",
+      "style_notes": "Muted woodland greens and browns with the saturated orange tee as the single accent; ideal camp-look reference.",
+      "image_url": "https://image.tmdb.org/t/p/original/pK9fj9cOhqyNiHnooca9APfaksX.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/backdrops"
+    },
+    {
+      "file": "disney-series-still-percy-annabeth-helmets.jpg",
+      "family": "series",
+      "title": "Still, Percy and Annabeth in bronze helmets",
+      "characters": [
+        "Percy",
+        "Annabeth"
+      ],
+      "artist": "Disney+ / Disney Branded Television (costume: Tish Monaghan)",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Percy in a blue-plumed bronze helm and Annabeth in a yellow-crested helm with tarnished bronze breastplates, close together.",
+      "style_notes": "Hand-built, scratched and dented Greek-hoplite armour with warm daylight; believable practical costume rather than gleaming prop metal.",
+      "image_url": "https://image.tmdb.org/t/p/original/4N7hP6zBfhF0w5LbLMhacikUly3.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/backdrops"
+    },
+    {
+      "file": "disney-series-s2-key-art-poster.jpg",
+      "family": "series",
+      "title": "S2 key art, Sea of Monsters",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 2, 2025",
+      "year": 2025,
+      "what_it_shows": "Percy swinging a golden sword with Annabeth and Grover behind while a sea serpent coils through crashing waves.",
+      "style_notes": "Dark teal storm seas with gold sword highlight; more monstrous and adventurous than S1.",
+      "image_url": "https://image.tmdb.org/t/p/original/5JW3qpkCagawNFIyG532NbAOuGj.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-s2-still-trio-closeup.jpg",
+      "family": "series",
+      "title": "S2 still, trio close-up",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 2, 2025",
+      "year": 2025,
+      "what_it_shows": "Close three-shot of Grover, Percy and Annabeth under a stormy grey sky.",
+      "style_notes": "Soft overcast light, earthy browns and olives, naturalistic skin and costume texture.",
+      "image_url": "https://image.tmdb.org/t/p/original/vKW5Yxit9TsB0VneScz0moMGpEr.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/backdrops"
+    },
+    {
+      "file": "disney-series-s2-trio-poster.jpg",
+      "family": "series",
+      "title": "S2 poster, trio",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 2, 2025",
+      "year": 2025,
+      "what_it_shows": "Percy, Grover and Annabeth in wet jackets, Percy holding a bronze sword, on a pale foggy poster.",
+      "style_notes": "Light cream/grey misted palette (a lighter note than the dark S1 art); weathered denim, cargo and leather layers.",
+      "image_url": "https://image.tmdb.org/t/p/original/5CZBkGUgMKuK8yPU1nqdarge1yT.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-illustrated-poster.jpg",
+      "family": "series-graphic",
+      "title": "Illustrated stylised poster",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Disney+ (illustrated variant; artist not credited on source page)",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Illustrated poster of a hero silhouette on a rocky peak beneath a swirling orange and blue storm vortex with the title.",
+      "style_notes": "Painterly, flat-shaded illustration in royal blue and fire orange with ink-like line work; a graphic non-photographic option.",
+      "image_url": "https://image.tmdb.org/t/p/original/uexS8Z9x1dHc7n4dnbN8hXwii3m.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-s1-annabeth-character-poster.jpg",
+      "family": "series-graphic",
+      "title": "S1 Annabeth character poster",
+      "characters": [
+        "Annabeth"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Annabeth with a dagger in a haloed ornamental frame with owl wings and the series title.",
+      "style_notes": "Black and burnished-orange engraving or gilt-icon style, Byzantine/Greek vase-frame ornament; very strong graphic art direction.",
+      "image_url": "https://image.tmdb.org/t/p/original/2KFJk4kfPypCwTp0mSTKcetHega.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "disney-series-s1-percy-character-poster.jpg",
+      "family": "series-graphic",
+      "title": "S1 Percy character poster",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Disney+ / Disney Branded Television",
+      "source_work": "Percy Jackson and the Olympians, Disney+ season 1, 2023",
+      "year": 2023,
+      "what_it_shows": "Percy with Riptide in a sun-disc halo flanked by sea-horse (hippocampi) and a trident motif.",
+      "style_notes": "Same orange-on-black gilded-icon system as the other character posters; plaid shirt and sword set into ornamental relief.",
+      "image_url": "https://image.tmdb.org/t/p/original/4jlRKAEDV8sSbgvFelZEQyiET3d.jpg",
+      "page_url": "https://www.themoviedb.org/tv/103540/images/posters"
+    },
+    {
+      "file": "musical-broadway-2019-percy-annabeth-grover.jpg",
+      "family": "stage",
+      "title": "Broadway production, Percy Annabeth Grover",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Jeremy Daniel / production (photographer credit by publication; verify)",
+      "source_work": "The Lightning Thief: The Percy Jackson Musical, Longacre Theatre, Broadway 2019",
+      "year": 2019,
+      "what_it_shows": "Percy centre with arms thrown up, Annabeth at left and Grover at right in rainbow tie-dye with a backpack, on a scaffold set.",
+      "style_notes": "Everyday teen clothes (green jacket, tie-dye, adidas bag), black scaffolding and blue stage lighting; a theatrical, rock-musical energy.",
+      "image_url": "https://i0.wp.com/www.thewrap.com/wp-content/uploads/2019/10/lightning.gif?fit=618%2C412&ssl=1",
+      "page_url": "https://www.thewrap.com/lightning-thief-broadway-review-percy-jackson-musical-rick-riordan/"
+    },
+    {
+      "file": "musical-poster.jpg",
+      "family": "stage",
+      "title": "Show key art",
+      "characters": [],
+      "artist": "Show logo and key art, Lightning Thief musical team",
+      "source_work": "The Lightning Thief: The Percy Jackson Musical, stage, 2014/2017/2019",
+      "year": 2019,
+      "what_it_shows": "Yellow lightning bolt painted through the show title on a deep blue, spray-painted background. Low resolution (251x396).",
+      "style_notes": "Graffiti or spray-stencil lettering, neon yellow on navy; urban, youthful and DIY.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/b/bf/The_Lightning_Thief_The_Percy_Jackson_Musical_poster.jpg",
+      "page_url": "https://en.wikipedia.org/wiki/The_Lightning_Thief:_The_Percy_Jackson_Musical"
+    },
+    {
+      "file": "musical-london-2024-production.jpg",
+      "family": "stage",
+      "title": "London 2024, Percy with sword in clouds",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Manuel Harlan",
+      "source_work": "The Lightning Thief: The Percy Jackson Musical, The Other Palace London, 2024",
+      "year": 2024,
+      "what_it_shows": "Percy with arms outstretched holding a sword, standing in swirling blue-lit cloud or mist on a dark stage.",
+      "style_notes": "Deep navy with cyan light and stage fog; sword-in-storm silhouette works as a theatrical hero shot.",
+      "image_url": "https://www.londonboxoffice.co.uk/news/public/show/lightning_thief_the_percy_jackson_musical_production_images.jpg",
+      "page_url": "https://www.londonboxoffice.co.uk/news/post/percy-jackson-musical-london-production-images"
+    },
+    {
+      "file": "game-ds2010-box-art-front.jpg",
+      "family": "game",
+      "title": "DS box art",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Activision / Griptonite Games",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, Nintendo DS (Activision), 2010",
+      "year": 2010,
+      "what_it_shows": "Nintendo DS box front using the film's Percy with a raised lightning sword over stormy water. Tiny (200x179).",
+      "style_notes": "Reuses film key art; teal and black storm tones. Small file.",
+      "image_url": "https://vgcollect.com/images/front-box-art/47639.jpg",
+      "page_url": "https://vgcollect.com/item/47639"
+    },
+    {
+      "file": "game-ds2010-screenshot-field-target-select.jpg",
+      "family": "game",
+      "title": "DS screenshot, field battle target select",
+      "characters": [
+        "Percy",
+        "Annabeth"
+      ],
+      "artist": "Griptonite Games",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, Nintendo DS, 2010",
+      "year": 2010,
+      "what_it_shows": "Characters fighting a monster in a grassy field above a target-selection screen.",
+      "style_notes": "Bright green outdoor, small cartoon proportions, stone-textured UI frames.",
+      "image_url": "https://www.nintendoworldreport.com/media/20891/1/6.jpg",
+      "page_url": "https://www.nintendoworldreport.com/media/20891/1"
+    },
+    {
+      "file": "game-ds2010-screenshot-party-battle-ui.jpg",
+      "family": "game",
+      "title": "DS screenshot, party battle",
+      "characters": [
+        "Percy",
+        "Annabeth",
+        "Grover"
+      ],
+      "artist": "Griptonite Games",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, Nintendo DS, 2010",
+      "year": 2010,
+      "what_it_shows": "Both DS screens: tiny sprite party fighting in a forest above a three-character party menu with ability icons and portraits.",
+      "style_notes": "Small low-res 3D-ish chibi sprites, dark forest palette; turn-based RPG UI with blue metal frame and trident emblems. Low resolution (256x384).",
+      "image_url": "https://www.nintendoworldreport.com/media/20891/1/4.jpg",
+      "page_url": "https://www.nintendoworldreport.com/media/20891/1"
+    },
+    {
+      "file": "game-ds2010-screenshot-trident-power.jpg",
+      "family": "game",
+      "title": "DS screenshot, trident special attack",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Griptonite Games",
+      "source_work": "Percy Jackson & the Olympians: The Lightning Thief, Nintendo DS, 2010",
+      "year": 2010,
+      "what_it_shows": "A glowing blue trident effect over the party in battle, with the party status menu below.",
+      "style_notes": "Neon cyan trident effect against dark scene; simple VFX language that signals Poseidon's power.",
+      "image_url": "https://www.nintendoworldreport.com/media/20891/1/10.jpg",
+      "page_url": "https://www.nintendoworldreport.com/media/20891/1"
+    },
+    {
+      "file": "merch-funko-pop-percy-disney-series.jpg",
+      "family": "toy",
+      "title": "Funko Pop Percy Jackson #1465",
+      "characters": [
+        "Percy"
+      ],
+      "artist": "Funko",
+      "source_work": "Percy Jackson and the Olympians, Disney+ series merchandise (Funko Pop)",
+      "year": 2024,
+      "what_it_shows": "Funko Pop vinyl Percy with curly ginger hair, green plaid shirt, jeans and a golden sword.",
+      "style_notes": "Chibi vinyl style with oversized head, black bead eyes; collapsible, simplified shape language and flat colours. Annabeth and Grover Pops exist but images were not retrieved.",
+      "image_url": "https://www.laughingplace.com/uploads/2024/03/percy-jackson-funko-entertainment-earth.jpeg",
+      "page_url": "https://www.laughingplace.com/w/disney-merchandise/percy-jackson-funko-pop-entertainment-earth/"
+    }
+  ]
+}
