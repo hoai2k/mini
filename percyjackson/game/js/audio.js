@@ -299,8 +299,9 @@ export class Audio {
     const scales = {
       museum: [0, 2, 3, 5, 7, 9], storm: [0, 1, 3, 5, 7, 8], camp: [0, 2, 4, 7, 9], shrine: [0, 1, 5, 7, 8], city: [0, 3, 5, 7, 10], forest: [0, 2, 3, 7, 8], subway: [0, 1, 3, 6, 8], shibuya: [0, 1, 4, 5, 7, 8], hub: [0, 2, 4, 7, 9], boss: [0, 1, 3, 6, 7], title: [0, 2, 3, 7, 10],
       highway: [0, 3, 5, 6, 7, 10], gorgon: [0, 1, 4, 5, 7, 8], arch: [0, 2, 4, 5, 7, 9], waterpark: [0, 1, 3, 5, 6, 10], lotus: [0, 4, 7, 9, 11, 14], desert: [0, 1, 4, 5, 7, 10], underworld: [0, 1, 3, 6, 7, 10], beach: [0, 2, 5, 7, 9], olympus: [0, 2, 4, 7, 9, 11],
+      woods: [0, 2, 3, 7, 8], garden: [0, 1, 4, 5, 7, 8], waterland: [0, 1, 3, 5, 6, 10], casino: [0, 4, 7, 9, 11, 14],
     };
-    const roots = { museum: 50, storm: 43, camp: 52, shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45, highway: 45, gorgon: 46, arch: 50, waterpark: 47, lotus: 53, desert: 45, underworld: 38, beach: 50, olympus: 55 };
+    const roots = { museum: 50, storm: 43, camp: 52, shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45, highway: 45, gorgon: 46, arch: 50, waterpark: 47, lotus: 53, desert: 45, underworld: 38, beach: 50, olympus: 55, woods: 47, garden: 46, waterland: 47, casino: 53 };
     const scale = scales[kind] || scales.shrine, root = roots[kind] ?? 48;
     const bpm = kind === 'boss' ? 132 : kind === 'hub' || kind === 'title' ? 84 : 100;
     const stepDur = 60 / bpm / 2;

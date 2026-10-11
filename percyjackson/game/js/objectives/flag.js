@@ -66,7 +66,10 @@ export class FlagObjective {
   defenders(n) { const d = this.m.def.difficulty ?? 1; return Array.from({ length: n + d }, (_, i) => (i % 3 === 0 ? 'dracaena' : 'pup')); }
   drop() {
     const c = this.carrier; if (!c) return;
-    this.bannerPos.copy(ground(this.g, c.pos));
+    // where they fell, or their last safe footing, or back on its stand
+    const w = this.g.world, open = (v) => v && isFinite(v.y) && !w.solidAt(v.x, v.y + 0.5, v.z) && !w.solidAt(v.x, v.y + 1.5, v.z);
+    const at = [ground(this.g, c.pos, 1.5), c.safePos && ground(this.g, c.safePos, 1.5)].find(open) ?? this.stand;
+    this.bannerPos.copy(at);
     this.carrier = null; this.carrierKey = null;
     toast('The banner is down! Pick it up');
     this.m.updateText();

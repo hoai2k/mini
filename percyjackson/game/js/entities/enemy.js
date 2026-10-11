@@ -24,8 +24,19 @@
 //   awake        a 'statue' monster is moving (set true to spawn it awake)
 //   bossSummon   the boss that called this monster (it may clear them on death)
 // Players with `invisible === true` are never chosen or kept as targets.
+//
+// Crowd rules (Minecraft Dungeons feel):
+//   • attack tokens: at most TOKENS monsters wind up or recover against one
+//     hero at a time (one more if an elite is among them); the rest circle at
+//     range + 1 and wait 0.3–0.8 s before trying again.
+//   • separation keeps bodies apart and spreads attackers round the hero.
+//   • a monster only notices a hero it can see (line of sight); once in a
+//     fight (aggro) it keeps chasing.
+//   • minor monsters slide round corners (physics cornerSlide); bosses don't.
+//   • ranged monsters back off at most twice, then stand and fight.
 import * as THREE from 'three/webgpu';
 import { moveEntity, groundAhead } from '../physics.js';
+import { BLOCKS } from '../world/blocks.js';
 import { buildMonsterModel, MONSTERS, addEliteShell, resolveKind, goldDust, mistPuff } from './monsters.js';
 import { buildMortal, MORTALS, mortalId } from './mortals.js';
 import { FLASH_MATERIAL } from './character.js';
@@ -33,8 +44,21 @@ import { poisonHero } from './holds.js';
 import { toast } from '../ui/ui.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 
-const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3();
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
 let bonesHint = false;
+const TOKENS = 2;            // attackers per hero at once (+1 with an elite)
+const SEP_GAP = 0.4, SEP_PUSH = 6;   // separation: gap kept between bodies, push strength
+// Can a monster at a see b? (opaque solid blocks block the view; glass and
+// invisible barriers don't)
+export function lineOfSight(world, a, ah, b, bh) {
+  const ax = a.x, ay = a.y + ah, az = a.z, dx = b.x - ax, dy = b.y + bh - ay, dz = b.z - az;
+  const L = Math.hypot(dx, dy, dz), n = Math.ceil(L / 0.4);
+  for (let i = 1; i < n; i++) {
+    const k = i / n, id = world.get(Math.floor(ax + dx * k), Math.floor(ay + dy * k), Math.floor(az + dz * k));
+    if (id && BLOCKS[id].solid && BLOCKS[id].opaque) return false;
+  }
+  return true;
+}
 const ELITE_AFFIX = {
   swift: { color: 0x4affd8, label: 'Swift' },
   armored: { color: 0xffc24a, label: 'Armored' },
@@ -82,6 +106,12 @@ export class Enemy {
     this.blinkCd = 2 + Math.random() * 2;
     this.summonCount = 0;
     this.isEnemy = true;
+    // crowd behaviour
+    if (this.def.tier === 'minor') this.cornerSlide = true;
+    this.patience = 0.3 + Math.random() * 0.5; this.waitT = 0;
+    this.orbitSide = Math.random() < 0.5 ? -1 : 1;
+    this.retreats = 0; this.retreating = false; this.capShots = 0;
+    this.losT = Math.random() * 0.2;
   }
   get name() { return this.disguised ? MORTALS[this.disguise].name : (this.elite ? ELITE_AFFIX[this.elite].label + ' ' : '') + this.def.name; }
   get tier() { return this.def.tier; }
@@ -209,31 +239,85 @@ export class Enemy {
       const d = t.pos.distanceTo(this.pos);
       if (d < bd) { bd = d; best = t; }
     }
+    // not in a fight yet: notice a hero only if it can see them (checked a
+    // few times a second), so monsters don't wake up through walls
+    if (best && !this.aggro) {
+      this.losT -= this.lastDt ?? 1 / 60;
+      if (this.losT > 0) best = null;
+      else { this.losT = 0.2; if (!lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2)) best = null; }
+    }
     if (best) this.aggro = true;
     this.target = best;
     return best;
+  }
+  // Attack tokens: how many monsters are already winding up or recovering
+  // against this hero, and may this one join them?
+  hasToken(t) {
+    let n = 0, elite = this.big;
+    for (const e of this.game.enemies) {
+      if (e === this || e.dead || e.target !== t || (e.state !== 'windup' && e.state !== 'recover')) continue;
+      n++; if (e.big) elite = true;
+    }
+    return n < TOKENS + (elite ? 1 : 0);
+  }
+  // Wait for a token: circle the hero at range + 1, sliding sideways.
+  circle(toT, d, ring) {
+    const len = Math.max(0.01, d);
+    const side = this.orbitSide;
+    const radial = clamp((d - ring) * 1.5, -1, 1);
+    const dir = TO.set(-toT.z / len * side * 0.7 + toT.x / len * radial, 0, toT.x / len * side * 0.7 + toT.z / len * radial);
+    if (this.hitWall) this.orbitSide = -this.orbitSide;
+    return this.steer(dir, 0.6);
   }
   // Steering: desired direction with separation and ledge avoidance.
   steer(dir, speedMul = 1) {
     const g = this.game;
     const want = tmp.copy(dir).setY(0);
     if (want.lengthSq() > 0) want.normalize();
-    // separation
+    const slow = (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1);
+    want.multiplyScalar(this.speed * speedMul * slow);
+    // separation: a push at full walking speed (not scaled by speedMul), so
+    // monsters crowding a hero still spread out round them
+    const sep = SEP.set(0, 0, 0);
     for (const o of g.enemies) {
-      if (o === this || o.dead) continue;
-      const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z; const d2 = dx * dx + dz * dz; const r = this.radius + o.radius + 0.25;
-      if (d2 < r * r && d2 > 1e-4) { const d = Math.sqrt(d2); want.x += dx / d * (r - d) * 2.2; want.z += dz / d * (r - d) * 2.2; }
+      if (o === this || o.dead || o.disguised) continue;
+      const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z; const d2 = dx * dx + dz * dz; const r = this.radius + o.radius + SEP_GAP;
+      if (d2 < r * r) {
+        const d = Math.sqrt(d2);
+        if (d < 1e-3) { sep.x += Math.random() - 0.5; sep.z += Math.random() - 0.5; continue; }
+        sep.x += dx / d * (r - d) * SEP_PUSH; sep.z += dz / d * (r - d) * SEP_PUSH;
+      }
     }
     for (const o of g.hostileTargets()) {
       if (o.dead) continue;
       const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z; const d2 = dx * dx + dz * dz; const r = this.radius + (o.radius ?? 0.35) + 0.1;
-      if (d2 < r * r && d2 > 1e-4) { const d = Math.sqrt(d2); want.x += dx / d * (r - d) * 4; want.z += dz / d * (r - d) * 4; }
+      if (d2 < r * r && d2 > 1e-4) { const d = Math.sqrt(d2); sep.x += dx / d * (r - d) * 4; sep.z += dz / d * (r - d) * 4; }
     }
+    // blocked by a wall for a moment: follow it round (no pathfinding, but a
+    // monster no longer stands pressed against a wall it can't see past)
+    const dt = this.lastDt ?? 1 / 60;
+    if (this.detourT > 0) { this.detourT -= dt; const l = want.length(); if (l > 0.01) want.copy(this.detour).multiplyScalar(l); }
+    else if (this.hitWall && want.lengthSq() > 0.04) { this.blockT = (this.blockT ?? 0) + dt; if (this.blockT > 0.25) { this.blockT = 0; this.findDetour(want); } }
+    else this.blockT = 0;
+    const sl = sep.length(); if (sl > 1.5) sep.multiplyScalar(1.5 / sl);
+    want.addScaledVector(sep, this.speed * slow);
     // don't walk off ledges on purpose
-    const ax = this.pos.x + want.x * 0.9, az = this.pos.z + want.z * 0.9;
-    if (want.lengthSq() > 0.01 && !groundAhead(g.world, ax, this.pos.y, az, 2.2)) { want.set(-want.z, 0, want.x).multiplyScalar(0.3); }
-    const sp = this.speed * speedMul * (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1);
-    return want.multiplyScalar(sp);
+    const wl = want.length();
+    if (wl > 0.05) {
+      const ax = this.pos.x + want.x / wl * 0.9, az = this.pos.z + want.z / wl * 0.9;
+      if (!groundAhead(g.world, ax, this.pos.y, az, 2.2)) want.set(-want.z, 0, want.x).multiplyScalar(0.3);
+    }
+    return want;
+  }
+  findDetour(want) {
+    const w = this.game.world, p = this.pos, base = Math.atan2(want.x, want.z);
+    const open = (x, z) => !w.solidAt(x, p.y + 0.5, z) || (!w.solidAt(x, p.y + 1.5, z) && !w.solidAt(x, p.y + 2.5, z));
+    for (const off of [0.8, 1.6, 2.4]) for (const s of [this.orbitSide, -this.orbitSide]) {
+      const a = base + off * s, dx = Math.sin(a), dz = Math.cos(a);
+      if (open(p.x + dx * (this.radius + 0.5), p.z + dz * (this.radius + 0.5)) && open(p.x + dx * (this.radius + 1.3), p.z + dz * (this.radius + 1.3))) {
+        (this.detour ??= new THREE.Vector3()).set(dx, 0, dz); this.detourT = 0.5 + off * 0.25; this.orbitSide = s; return;
+      }
+    }
   }
   faceTo(p, dt, rate = 10) { this.facing = dampAngle(this.facing, Math.atan2(p.x - this.pos.x, p.z - this.pos.z), rate, dt); }
 
@@ -259,7 +343,7 @@ export class Enemy {
       this.moveBody(dt, tmp2.set(0, 0, 0));
       return true;
     }
-    this.spawnT = Math.max(0, this.spawnT - dt);
+    this.spawnT = Math.max(0, this.spawnT - dt); this.lastDt = dt;
     this.stateT += dt; this.cd -= dt; this.flashT -= dt; this.slowT = (this.slowT ?? 0) - dt;
     this.blinkCd -= dt;
     if (this.disguised) return this.updateDisguised(dt);
@@ -288,31 +372,46 @@ export class Enemy {
     } else if (t) {
       const d = t.pos.distanceTo(this.pos);
       const toT = tmp.subVectors(t.pos, this.pos);
+      // attack token: while the hero already has enough attackers, wait (and
+      // circle) for a moment after a slot frees up
+      const free = this.hasToken(t);
+      if (!free) this.waitT = this.patience;
+      else this.waitT = Math.max(0, this.waitT - dt);
+      const ready = free && this.waitT <= 0;
+      const ring = this.def.range + 1;
+      const turn = ai === 'tank' ? 4 : 10;   // a dracaena turns slowly: flank her
       switch (ai) {
         case 'melee': case 'tank': case 'statue':
-          if (d > this.def.range * 0.9) move.copy(this.steer(toT)); else move.copy(this.steer(toT, 0.1));
-          this.faceTo(t.pos, dt);
-          if (d < this.def.range + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : ai === 'statue' ? 'slash' : 'bite');
+          if (!ready && d < ring + 2.5) move.copy(this.circle(toT, d, ring));
+          else if (d > this.def.range * 0.9) move.copy(this.steer(toT)); else move.copy(this.steer(toT, 0.1));
+          this.faceTo(t.pos, dt, turn);
+          if (ready && d < this.def.range + 0.2 && this.cd <= 0) this.startAttack(ai === 'tank' ? 'slam' : ai === 'statue' ? 'slash' : 'bite');
           break;
         case 'blob':
-          move.copy(this.steer(toT, 1));
+          if (!ready && d < ring + 2.5) move.copy(this.circle(toT, d, ring + 0.6));
+          else move.copy(this.steer(toT, 1));
           this.faceTo(t.pos, dt);
-          if (d < this.def.range + 0.4) this.startAttack('inflate');
+          if (ready && d < this.def.range + 0.4) this.startAttack('inflate');
           break;
         case 'ranged': case 'summon': {
           const keep = this.def.keep;
+          // back off when a hero closes in, but only twice; then stand and fight
+          const back = d < keep - 1.5 && (this.retreats < 2 || ai === 'summon');
+          if (back && !this.retreating) { this.retreating = true; this.retreats++; }
+          if (this.retreating && (d >= keep || !back)) this.retreating = false;
           if (d > this.def.range) move.copy(this.steer(toT));
-          else if (d < keep - 1.5) move.copy(this.steer(toT.negate(), 0.8));
-          else { const side = tmp.set(-toT.z, 0, toT.x).normalize().multiplyScalar(Math.sin(this.stateT * 0.8 + this.home.x) > 0 ? 1 : -1); move.copy(this.steer(side, 0.5)); }
+          else if (this.retreating) move.copy(this.steer(toT.negate(), 0.8));
+          else { const side = TO.set(-toT.z, 0, toT.x).normalize().multiplyScalar(Math.sin(this.stateT * 0.8 + this.home.x) > 0 ? 1 : -1); move.copy(this.steer(side, 0.5)); }
           this.faceTo(t.pos, dt);
-          if (this.cd <= 0 && d < this.def.range + 1) this.startAttack(ai === 'summon' && this.summonCount < 6 ? 'summon' : 'spit');
+          if (ready && this.cd <= 0 && d < this.def.range + 1) this.startAttack(ai === 'summon' && this.summonCount < 6 ? 'summon' : 'spit');
           break;
         }
         case 'teleport':
-          if (this.blinkCd <= 0 && d > 3) { this.blink(false); break; }
-          move.copy(this.steer(toT, d > 2 ? 1 : 0.1));
+          if (ready && this.blinkCd <= 0 && d > 3) { this.blink(false); break; }
+          if (!ready && d < ring + 2.5) move.copy(this.circle(toT, d, ring));
+          else move.copy(this.steer(toT, d > 2 ? 1 : 0.1));
           this.faceTo(t.pos, dt);
-          if (d < this.def.range + 0.3 && this.cd <= 0) this.startAttack('slash');
+          if (ready && d < this.def.range + 0.3 && this.cd <= 0) this.startAttack('slash');
           break;
       }
     } else {
@@ -419,12 +518,27 @@ export class Enemy {
     this.stepUp = this.knock.lengthSq() < 4;
     if (this.rig.float) { this.noGravity = true; this.pos.y = damp(this.pos.y, (this.floorY ?? this.pos.y), 8, dt); }
     moveEntity(this, g.world, dt);
+    this.unoverlap(dt);
     if (this.rig.float) {
       const gy = g.world.groundBelow(this.pos.x, this.pos.z, this.pos.y + 1.5);
       if (isFinite(gy)) this.floorY = gy; else { this.noGravity = false; }
     }
     if (!Number.isFinite(this.pos.x + this.pos.y + this.pos.z)) { this.pos.copy(this.home); this.vel.set(0, 0, 0); this.knock.set(0, 0, 0); }
     if (this.pos.y < -6) { this.hp = 0; this.die({ pit: true }); g.onPitKill?.(this); }
+  }
+  // Bodies never sink into each other: ease out of any overlap with another
+  // monster (never into a wall).
+  unoverlap(dt) {
+    const g = this.game, w = g.world, p = this.pos;
+    for (const o of g.enemies) {
+      if (o === this || o.dead || o.disguised || o.isBoss) continue;
+      const dx = p.x - o.pos.x, dz = p.z - o.pos.z, r = this.radius + o.radius;
+      const d2 = dx * dx + dz * dz; if (d2 >= r * r || Math.abs(p.y - o.pos.y) > 1.5) continue;
+      const d = Math.sqrt(d2), ux = d > 1e-3 ? dx / d : Math.random() - 0.5, uz = d > 1e-3 ? dz / d : Math.random() - 0.5;
+      const k = Math.min((r - d) * 0.5, dt * 6);
+      const nx = p.x + ux * k, nz = p.z + uz * k;
+      if (!w.solidAt(nx + ux * this.radius, p.y + 0.5, nz + uz * this.radius)) { p.x = nx; p.z = nz; }
+    }
   }
   animate(dt) {
     const a = this.action;
@@ -470,8 +584,8 @@ export class Enemy {
       this.action.center = f.clone();
     } else if (A.marker === 'circle') {
       this.marker = g.markers.spawn({ pos: this.pos, radius: A.radius, dur: A.windup, follow: this });
-    } else if (A.marker === 'cone') {
-      this.marker = g.markers.spawn({ pos: this.pos, radius: A.range, dur: A.windup, shape: 'cone', arc: 0.35, facing: this.facing, follow: this });
+    } else if (A.marker === 'cone' || (kind === 'bite' && this.big)) {
+      this.marker = g.markers.spawn({ pos: this.pos, radius: A.range, dur: A.windup, shape: 'cone', arc: kind === 'bite' ? 0.3 : 0.35, facing: this.facing, follow: this });
     }
     if (kind === 'inflate') g.audio?.charge(A.windup, 0.8);
     if (kind === 'summon') g.audio?.energy('summon');
@@ -483,6 +597,8 @@ export class Enemy {
     this.marker = null;
     this.state = 'recover'; this.stateT = 0;
     this.cd = this.def.cd * (0.8 + Math.random() * 0.4) * (this.elite === 'swift' ? 0.7 : 1);
+    this.patience = 0.3 + Math.random() * 0.5;
+    if (this.retreats >= 2 && ++this.capShots >= 2) { this.retreats = 0; this.capShots = 0; }
     const fwd = tmp.set(Math.sin(this.facing), 0, Math.cos(this.facing));
     switch (a.kind) {
       case 'bite': case 'slash': {

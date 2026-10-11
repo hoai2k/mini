@@ -59,7 +59,7 @@ const stageEl = $('stage');
 const renderer = new THREE.WebGPURenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio));
 renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.15;
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 stageEl.appendChild(renderer.domElement);
 await renderer.init();
 const isGPU = !!renderer.backend?.isWebGPUBackend;
@@ -83,7 +83,7 @@ let bgName = BGS[q.get('bg')] ? q.get('bg') : 'dark';
 
 // three-point lighting, shaped like the game's look: warm key with shadow, cool fill, golden rim
 const hemi = new THREE.HemisphereLight(0xdfe8ff, 0x7a6a50, 0.9); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff0d6, 2.6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02; sun.shadow.radius = 4;
+const sun = new THREE.DirectionalLight(0xfff0d6, 2.6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02; sun.shadow.radius = 4;
 const fill = new THREE.DirectionalLight(0x9ab8ff, 0.8), rim = new THREE.DirectionalLight(0xffd9a0, 1.6);
 scene.add(sun, sun.target, fill, fill.target, rim, rim.target);
 
@@ -532,6 +532,7 @@ renderer.setAnimationLoop(() => {
 
 // ------------------------------------------------------------------ go
 buildTabs(); buildGrid();
+if (q.get('lazy') !== '1') setTimeout(() => { for (const it of items) want(it, false); }, 1500);   // then the rest, in the background
 if (loadErrors.length) status(`Some modules failed to load:\n${loadErrors.join('\n')}`);
 if (!fromHash()) { const first = items.find((i) => i.group === 'heroes') ?? items[0]; if (first) select(first, { fromHash: true }); else renderInspector(); }
 status(isGPU ? '' : '');

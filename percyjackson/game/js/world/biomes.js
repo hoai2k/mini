@@ -54,7 +54,7 @@ export const BIOMES = {
     hemiSky: 0xd8ecff, hemiGround: 0x7a6a44, hemiI: 1.15, sun: 0xfff0d2, sunI: 2.6,
     grade: { tint: [1.04, 1.01, 0.96], lift: [0.012, 0.01, 0.0], sat: 1.12, contrast: 1.04, vignette: 0.18 },
     floor: B.grass, floor2: B.grass, path: B.gravel_path, wall: B.marble_white, wall2: B.marble_white, trim: B.bronze, pillar: B.column, roof: B.roof_terracotta, ground: B.grass, accent: B.lantern, pit: B.dirt,
-    ambience: 'forest', music: 'hub', particles: 'pollen', wind: 1,
+    ambience: 'forest', music: 'camp', particles: 'pollen', wind: 1,
   },
   // Chapter 1: the Greek and Roman galleries of a big city museum.
   museum: {

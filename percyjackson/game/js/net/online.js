@@ -40,7 +40,7 @@ import { NetFx } from './netfx.js';
 import { NameTags } from './nametags.js';
 
 export { loadClient };
-const TOPICS = ['ev', 'hit', 'hurt', 'act', 'done', 'swap', 'swapok', 'swapno', 'full'];
+const TOPICS = ['ev', 'hit', 'hurt', 'act', 'done', 'swap', 'swapok', 'swapno', 'full', 'load'];
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 const nowS = () => performance.now() / 1000;
 const STALE = 3;          // s without updates before the host plays someone's hero for them
@@ -199,7 +199,7 @@ export class Online {
     if (!s.ready) return;
     if (this.isGuest) {
       if (this.hits.length) { s.send('hit', { h: this.hits.splice(0, 24) }); this.stats.hitsSent++; }
-      if (s.hostUid && performance.now() - s.hostSeenAt > HOST_SILENT * 1000 && s.status === 'open') { toast('The host stopped answering: moving on…'); s.abandonHost(); }
+      if (s.hostUid && performance.now() - Math.max(s.hostSeenAt, this.hostLoading ?? 0) > HOST_SILENT * 1000 && s.status === 'open') { toast('The host stopped answering: moving on…'); s.abandonHost(); }
     }
     this.partyT -= dt;
     if (this.partyT <= 0) { this.partyT = 0.4; if (this.isHost) { this.hostChecks(); this.enforceParty(); } else this.guestParty(); }
@@ -242,6 +242,9 @@ export class Online {
     if (this.storyCh && g.ui.isOpen('story')) sc.st = this.storyCh;
     return sc;
   }
+  // The host is about to build a level (seconds without frames): tell the
+  // guests at once, by topic, so they wait for it rather than move on.
+  loading() { if (this.isHost && this.ready) this.session.send('load', {}); }
   sceneChanged() { if (this.isHost || !this.live) { this.setupNonce++; this.sendT = 0; } }
   story(ch) { this.storyCh = ch?.id ?? null; this.sendT = 0; }
   worldSnapshot() {
@@ -295,7 +298,15 @@ export class Online {
     for (const raw of list) {
       const e = readHero(raw); if (!e) continue;
       seen.add(e.k);
-      if (mine.has(e.k)) { if (e.ai && raw.held === 1) this.claim(e); continue; }   // the host is holding one of my heroes
+      if (mine.has(e.k)) {
+        if (e.ai && raw.held === 1) this.claim(e);   // the host is holding one of my heroes
+        else if (!e.ai) {
+          // a person's hero with the key of one of my AI heroes: unless I'm holding it for them, the person wins
+          const ai = g.players.find((p) => p.ai && !p.remote && this.keyOf(p) === e.k);
+          if (ai && !ai.heldFor) ai.netKey = 'ai:' + ai.hero;
+        }
+        continue;
+      }
       let R = this.remote.get(e.k);
       if (R && R.p.hero !== e.h) { this.dropRemote(R, true); R = null; }
       if (!R) { if (!g.level) continue; R = this.addRemote(e, peer.uid); }
@@ -693,7 +704,7 @@ export class Online {
     if (this.isHost) {
       for (const R of [...this.remote.values()]) if (R.uid === peer.uid && !R.ai) this.takeOverHero(R);
       // their heroes stay as companions if the party wants them; enforceParty decides
-      for (const p of g.players) if (p.heldFor === peer.uid) p.heldFor = null;
+      for (const p of g.players) if (p.heldFor === peer.uid) { p.heldFor = null; p.netKey = 'ai:' + p.hero; }
       this.enforceParty();
     } else for (const R of [...this.remote.values()]) if (R.uid === peer.uid) this.dropRemote(R);
   }
@@ -835,6 +846,7 @@ export class Online {
     if (t === 'hit' && this.isHost) { this.onHits(d, peer); return; }
     if (t === 'hurt') { this.onHurt(d); return; }
     if (t === 'act' && this.isHost) { this.onAct(d); return; }
+    if (t === 'load' && this.isGuest) { this.hostLoading = performance.now() + 45000; return; }
     if (t === 'done' && this.isGuest) { if (g.mission && !g.mission.complete) g.completeMission(); return; }
     if (t === 'swap' && this.isHost && peer) { this.onSwap(d, peer); return; }
     if (t === 'swapok' && d.to === this.uid) { this.onSwapOk(d); return; }

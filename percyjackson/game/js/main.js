@@ -314,6 +314,7 @@ class Game {
     this.rig.snap(at);
   }
   loadHub() {
+    this.online?.loading?.();   // net: guests wait while the host builds camp
     this.clearLevel();
     const L = buildCamp();
     this.loadWorld(L, BIOMES.camp);
@@ -365,6 +366,7 @@ class Game {
     else go();
   }
   startMission(def) {
+    this.online.loading?.();   // net: guests wait while the host builds the level
     Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
