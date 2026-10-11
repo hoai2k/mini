@@ -44,7 +44,7 @@ const TOPICS = ['ev', 'hit', 'hurt', 'act', 'done', 'swap', 'swapok', 'swapno', 
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 const nowS = () => performance.now() / 1000;
 const STALE = 3;          // s without updates before the host plays someone's hero for them
-const HOST_SILENT = 4.5;  // s without host updates before guests move on to a new host
+const HOST_SILENT = 12;   // s without host updates before guests move on to a new host (building a level can take seconds)
 
 export class Online {
   constructor(game) {
@@ -743,7 +743,8 @@ export class Online {
     const ais = g.players.filter((p) => p.ai && !p.remote && !p.heldFor);
     const humanHeroes = new Set(g.players.filter((p) => !p.ai || p.heldFor).map((p) => p.hero));
     if (ais.length > want) {
-      const order = [...ais].sort((a, b) => (humanHeroes.has(b.hero) ? 1 : 0) - (humanHeroes.has(a.hero) ? 1 : 0));
+      const dup = (p) => (humanHeroes.has(p.hero) ? 2 : 0) + (ais.some((q) => q !== p && q.hero === p.hero) ? 1 : 0);
+      const order = [...ais].sort((a, b) => dup(b) - dup(a));
       for (const p of order.slice(0, ais.length - want)) { g.fx?.poof?.(p.pos); this.removeHero(p); }
     } else if (ais.length < want) {
       const lead = this.localHumans()[0];

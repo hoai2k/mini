@@ -32,6 +32,7 @@ export function loadClient(timeoutMs = 10000) {
   loading = new Promise((resolve, reject) => {
     // published next to the game; in the repository it lives in multiplayer/client/
     const srcs = [new URL('../../mini-rooms.js', import.meta.url).href, new URL('../../../../multiplayer/client/mini-rooms.js', import.meta.url).href];
+    if (/\/percyjackson\/game\//.test(location.pathname)) srcs.reverse();   // (in the repository, not the published copy)
     const timer = setTimeout(() => reject(new Error('mini-rooms load timed out')), timeoutMs);
     const tryLoad = (list) => {
       if (!list.length) { clearTimeout(timer); reject(new Error('Could not load the multiplayer client')); return; }
