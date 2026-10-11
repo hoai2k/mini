@@ -6,12 +6,7 @@ agent. Newest first.
 
 ## Open
 
-- **Agent running (started 2026-10-11):** a Fullscreen on/off checkbox in
-  Settings; a bigger celebration on the result card for a World Record on an
-  already-passed bird; a smaller one for passing again without a best. Files:
-  `index.html`, `src/main.js`, `styles.css`, maybe `src/celebrate.js` and
-  `scripts/browser-check.mjs`. When it reports: check its screenshots, run
-  the checks, commit, push.
+- **Agents running (this session):** none.
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws
@@ -66,6 +61,7 @@ agent. Newest first.
 
 | Commit | What |
 | --- | --- |
+| 2026-10-11 | Fullscreen on/off in Settings (`src/fullscreen.js`); World Record card with confetti, rosette and fanfare, and a smaller "Passed" tick and sparkles, on already-passed birds (`resultKind` in `src/reward.js`) |
 | 742e072 | Puddle Hop chicks one size as they fly off |
 | 3ec4c10 | Broomwhisk re-request (IC-M06f/g) |
 | 369d8fd | Third audit: every pose of a character at one size, in 12 games (AUDIT.md, `pose-scales.json`, `sprite-rig.mjs`) |

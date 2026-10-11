@@ -43,6 +43,30 @@ export const UNLOCK_TIME = UNLOCK.wait + UNLOCK.flip + UNLOCK.shine;
 export const RESULT_TIME = 3; // how long the result card stays after other rounds
 export const RESULT_GUARD = 0.5; // presses this soon after the card are ignored
 
+// How the result card looks after a brief round (never the first pass, which
+// celebrates): 'record' for a new best that reaches the bird's score (a
+// World Record: confetti, a rosette, the fanfare), 'passed' for reaching it
+// again without a new best (a tick stamp and a few sparkles), 'best' for a
+// new best that still falls short (a Personal Best, as before) and 'plain'
+// for the rest ('Time!').
+export function resultKind({ record, reached }) {
+  if (reached) return record ? 'record' : 'passed';
+  return record ? 'best' : 'plain';
+}
+
+export const RESULT_TITLES = { record: 'New World Record!', passed: 'Time!', best: 'Personal Best!', plain: 'Time!' };
+
+// How long each card stays, and how soon a press can take it away. A World
+// Record stays long enough for its fanfare and confetti, and holds a little
+// longer before a press counts, so the stamp lands first.
+export const RESULT_TIMES = {
+  record: { time: 5, guard: 0.7 },
+  passed: { time: 3.5, guard: RESULT_GUARD },
+  best: { time: RESULT_TIME, guard: RESULT_GUARD },
+  plain: { time: RESULT_TIME, guard: RESULT_GUARD },
+};
+export const resultTiming = (kind) => RESULT_TIMES[kind] || RESULT_TIMES.plain;
+
 export function stepAt(t) {
   let i = 0;
   while (i + 1 < STEPS.length && t >= STEPS[i + 1].at) i++;

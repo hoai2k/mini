@@ -1,12 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { roundOutcome, nextPage, selectAfter, stepAt, skipFrom, STEPS, END, bookLayout, spreadCount, spreadOf, PER_SPREAD, pop, UNLOCK_TIME } from '../src/reward.js';
+import { roundOutcome, nextPage, selectAfter, stepAt, skipFrom, STEPS, END, bookLayout, spreadCount, spreadOf, PER_SPREAD, pop, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, RESULT_TIME, RESULT_GUARD } from '../src/reward.js';
 
 test('the first pass celebrates; every other round shows the result briefly', () => {
   assert.equal(roundOutcome({ wasPassed: false, isPassed: true, reached: true }), 'celebrate');
   assert.equal(roundOutcome({ wasPassed: true, isPassed: true, reached: true }), 'brief', 'passing again');
   assert.equal(roundOutcome({ wasPassed: true, isPassed: true, reached: false }), 'brief', 'falling short after passing');
   assert.equal(roundOutcome({ wasPassed: false, isPassed: false, reached: false }), 'brief', 'not yet');
+});
+
+test('the result card: a World Record, a pass, a personal best, or plain', () => {
+  assert.equal(resultKind({ record: true, reached: true }), 'record');
+  assert.equal(resultKind({ record: false, reached: true }), 'passed');
+  assert.equal(resultKind({ record: true, reached: false }), 'best');
+  assert.equal(resultKind({ record: false, reached: false }), 'plain');
+  assert.equal(RESULT_TITLES.record, 'New World Record!');
+  assert.equal(RESULT_TITLES.best, 'Personal Best!');
+  assert.equal(RESULT_TITLES.plain, 'Time!', 'below the mark stays plain');
+});
+
+test('a World Record card stays longer than a pass, and a pass at least as long as the rest', () => {
+  const r = resultTiming('record');
+  const p = resultTiming('passed');
+  const n = resultTiming('plain');
+  assert.equal(n.time, RESULT_TIME);
+  assert.equal(n.guard, RESULT_GUARD);
+  assert.deepEqual(resultTiming('nonsense'), n);
+  assert.ok(r.time > p.time && p.time >= n.time);
+  for (const t of [r, p, n]) assert.ok(t.guard > 0 && t.guard < 1 && t.guard < t.time, 'a press still leaves soon');
 });
 
 test('in debug every round that reaches the score celebrates', () => {

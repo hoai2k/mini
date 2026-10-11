@@ -8,7 +8,8 @@ import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
-import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD, spreadCount, sheetCells } from './reward.js';
+import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, spreadCount, sheetCells } from './reward.js';
+import * as fs from './fullscreen.js';
 import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSize, stickerSpot, regionRect, regionSize, SNAP_TIME, snapGrey } from './celebrate.js';
 import { prepareWhenIdle } from './celebrate.js';
 import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, pagePoint, PLAIN, GATHERING, regionsFromAtlas, toPicture, dropOnPicture, regionAt, snapSticker, placeFree, toSheet, gatherState, clampCam, bookToStage, stageToBook, edgePush } from './stickerbook.js';
@@ -145,7 +146,14 @@ function playView(dt) {
   view = { s, ox: W * s <= cw ? (cw - W * s) / 2 : ox, oy: (ch - H * s) / 2, cw, ch, dpr };
 }
 addEventListener('resize', resize);
-document.addEventListener('fullscreenchange', resize);
+document.addEventListener('fullscreenchange', () => {
+  resize();
+  syncFullscreenUi();
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  resize();
+  syncFullscreenUi();
+});
 input.setPointerMap((cx, cy) => {
   const r = canvas.getBoundingClientRect();
   return [(cx - r.left - view.ox) / view.s, (cy - r.top - view.oy) / view.s];
@@ -735,8 +743,12 @@ function finish() {
   }
   S.phase = 'result';
   S.resultT = 0;
-  // A best that still falls short of the next page is only a personal one.
-  $('#result-title').textContent = !record ? 'Time!' : passes(b, score) ? 'New World Record!' : 'Personal Best!';
+  // A new best that reaches the score is a World Record, with confetti and a
+  // rosette; reaching it again without one gets a tick stamp; a best that
+  // still falls short of the next page is only a personal one.
+  const kind = resultKind({ record, reached: passes(b, score) });
+  S.result = { kind, ...resultTiming(kind), fired: new Set() };
+  $('#result-title').textContent = RESULT_TITLES[kind];
   $('#result-score').textContent = `${score} ${score === 1 ? one(b.score) : b.score}`;
   $('#result-best').textContent = [record ? '' : `Best: ${best(b.id)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
@@ -749,8 +761,9 @@ function finish() {
   $('#result-hint').textContent = pad() ? 'A: back to the field guide' : input.kind === 'keyboard' ? 'Enter: back to the field guide' : 'Tap: back to the field guide';
   const bar = $('#result-time');
   bar.style.width = '100%';
+  resultFx(kind);
   $('#result').hidden = false;
-  audio.sfx('medal', { level: record ? 2 : now ? 1 : 0 });
+  if (kind === 'best' || kind === 'plain') audio.sfx('medal', { level: record ? 2 : now ? 1 : 0 });
   input.lockHeld();
   document.activeElement?.blur?.();
 }
@@ -776,7 +789,76 @@ function quitToGuide() {
 // From the result card back to the guide, the bird just played chosen.
 function leaveResult() {
   if (S.phase !== 'result') return;
+  audio.stopSting();
   toGuide(S.bird);
+}
+
+// ---------- the result card's flourishes ----------
+
+// The card dresses up for a World Record (confetti and streamers, a rosette
+// stamped on with a shine, the title and score bouncing in) and, less so, for
+// a pass that isn't a best (a tick stamp, a few sparkles). It is all CSS
+// animation on a few dozen small elements made once here, so nothing is
+// added to the frame loop. With reduced motion everything stands still: the
+// stamp sits in place and the confetti lies around the edges.
+const CONFETTI = [PAL.magenta, PAL.wafer, PAL.lemon, PAL.strawberry, PAL.sage, PAL.sky, PAL.orange, PAL.mint];
+function resultFx(kind) {
+  const sec = $('#result');
+  sec.classList.toggle('fx-record', kind === 'record');
+  sec.classList.toggle('fx-passed', kind === 'passed');
+  $('#stamp-record').hidden = kind !== 'record';
+  $('#stamp-passed').hidden = kind !== 'passed';
+  const fx = $('#result-fx');
+  fx.textContent = '';
+  const still = settings.reduceMotion;
+  const rnd = Math.random;
+  const pieces = document.createDocumentFragment();
+  if (kind === 'record') {
+    for (let i = 0; i < 44; i++) {
+      const p = document.createElement('i');
+      const shape = i % 11 === 0 ? 'streamer' : ['square', 'strip', 'dot'][i % 3];
+      p.className = 'confetti ' + shape;
+      // still: around the edges, clear of the card; moving: across the top
+      const x = still ? (i % 2 ? 2 + rnd() * 12 : 86 + rnd() * 12) : rnd() * 100;
+      p.style.cssText = `--x:${x.toFixed(1)}vw;--y:${(still ? 8 + rnd() * 84 : 0).toFixed(1)}vh;--dx:${((rnd() - 0.5) * 24).toFixed(1)}vw;--r:${Math.round((rnd() - 0.5) * 1440)}deg;--d:${(2.4 + rnd() * 1.6).toFixed(2)}s;--delay:${(i < 22 ? rnd() * 0.25 : 0.5 + rnd() * 0.9).toFixed(2)}s;background:${CONFETTI[i % CONFETTI.length]}`;
+      pieces.append(p);
+    }
+  } else if (kind === 'passed') {
+    // a few sparkles about the score
+    const spots = [[-38, -30], [36, -38], [44, 20], [-46, 26], [4, -52]];
+    spots.forEach(([x, y], i) => {
+      const p = document.createElement('i');
+      p.className = 'sparkle';
+      p.style.cssText = `--sx:${x}%;--sy:${y}px;--delay:${(0.35 + i * 0.12).toFixed(2)}s`;
+      pieces.append(p);
+    });
+    $('#result-score').append(pieces);
+    return;
+  }
+  fx.append(pieces);
+}
+
+// Sounds at their moments on the card: the fanfare (or the medal chime if it
+// hasn't loaded) as the World Record comes up, a thump as its rosette lands;
+// a gentle ding as the pass's tick is stamped.
+const RESULT_SOUNDS = {
+  record: [
+    [0, () => { if (!audio.playSting()) { audio.sfx('medal', { level: 2 }); } vibrate(60); }],
+    [0.45, () => { audio.sfx('plop'); if (!audio.stingPlaying()) audio.sfx('bloom'); }],
+  ],
+  passed: [
+    [0, () => audio.sfx('medal', { level: 1 })],
+    [0.4, () => audio.sfx('ding', { pitch: -5 })],
+  ],
+};
+function tickResultSounds() {
+  const r = S.result;
+  for (const [when, play] of RESULT_SOUNDS[r?.kind] || []) {
+    if (S.resultT >= when && !r.fired.has(when)) {
+      r.fired.add(when);
+      play();
+    }
+  }
 }
 
 // ---------- the sticker celebration ----------
@@ -1447,7 +1529,7 @@ document.addEventListener(
 document.addEventListener('click', (e) => {
   // The result card: a click or tap anywhere goes on to the guide.
   if (S.screen === 'play' && S.phase === 'result') {
-    if (S.resultT >= RESULT_GUARD) leaveResult();
+    if (S.resultT >= (S.result?.guard ?? 0.5)) leaveResult();
     return;
   }
   // A click on the dim backdrop outside a dialog: back to the game (or, for
@@ -1499,20 +1581,35 @@ function back() {
 
 // ---------- fullscreen ----------
 
+// Browsers only allow it from a press, so it isn't a saved setting: the
+// Settings switch shows whether the page is full screen now, and turns it on
+// or off. Where the browser can't (iPhone Safari) the switch is greyed out,
+// with a note.
 function requestFullscreen() {
-  const el = document.documentElement;
-  if (document.fullscreenElement || !el.requestFullscreen) return;
-  el.requestFullscreen().catch(() => { /* refused: carry on windowed */ });
+  fs.enterFullscreen(document).then(syncFullscreenUi);
 }
 function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen?.();
-  else requestFullscreen();
+  fs.toggleFullscreen(document).then(syncFullscreenUi);
 }
+function syncFullscreenUi() {
+  const box = $('#fullscreen-toggle');
+  if (!box) return;
+  const can = fs.canFullscreen(document);
+  box.disabled = !can;
+  box.checked = can && fs.isFullscreen(document);
+  $('#fullscreen-note').hidden = can;
+  box.closest('.row').classList.toggle('disabled', !can);
+}
+document.addEventListener('change', (e) => {
+  if (e.target.id !== 'fullscreen-toggle') return;
+  fs.setFullscreen(document, e.target.checked).then(syncFullscreenUi);
+});
 
 // ---------- settings ----------
 
 function syncSettingsUi() {
   $('#restore-btn').hidden = !canRestore(progress);
+  syncFullscreenUi();
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = !!settings[k];
@@ -1713,10 +1810,12 @@ function frame(now) {
   } else if (S.screen === 'play' && S.phase === 'result' && !S.modals.length) {
     // The result card: gone after a moment, or at any press.
     S.resultT += dt;
-    $('#result-time').style.width = `${Math.max(0, 100 * (1 - S.resultT / RESULT_TIME))}%`;
+    tickResultSounds();
+    const { time, guard } = S.result;
+    $('#result-time').style.width = `${Math.max(0, 100 * (1 - S.resultT / time))}%`;
     const n = input.nav();
     const st = input.state();
-    if (S.resultT >= RESULT_TIME || (S.resultT >= RESULT_GUARD && (n.confirm || n.back || st.actionPressed || input.padAnyPressed()))) leaveResult();
+    if (S.resultT >= time || (S.resultT >= guard && (n.confirm || n.back || st.actionPressed || input.padAnyPressed()))) leaveResult();
   } else if (S.screen === 'celebrate' && S.cele && !S.modals.length) {
     celebrationInput(dt);
     if (S.cele) tickCelebration(dt);

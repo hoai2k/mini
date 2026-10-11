@@ -126,6 +126,36 @@
     </section>
 
     <section id="result" class="screen modal" hidden aria-labelledby="result-title">
+      <!-- confetti and streamers for a World Record (made in main.js), behind the card -->
+      <div id="result-fx" class="result-fx" aria-hidden="true"></div>
+      <div class="result-wrap">
+      <!-- A World Record's rosette, and the tick stamped on a pass -->
+      <div id="stamp-record" class="stamp stamp-record" hidden aria-hidden="true">
+        <svg viewBox="0 0 120 140">
+          <defs><clipPath id="rosette-face"><circle cx="60" cy="58" r="33"/></clipPath></defs>
+          <path d="M44 84 L30 134 L44 124 L52 138 L60 88 Z" fill="#c0407a" stroke="#3b2b20" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M76 84 L90 134 L76 124 L68 138 L60 88 Z" fill="#d9a25a" stroke="#3b2b20" stroke-width="2.5" stroke-linejoin="round"/>
+          <g fill="#ea8fb0" stroke="#3b2b20" stroke-width="2.2">
+            <circle cx="60" cy="13" r="11"/><circle cx="82.5" cy="19" r="11"/><circle cx="99" cy="35.5" r="11"/><circle cx="105" cy="58" r="11"/>
+            <circle cx="99" cy="80.5" r="11"/><circle cx="82.5" cy="97" r="11"/><circle cx="60" cy="103" r="11"/><circle cx="37.5" cy="97" r="11"/>
+            <circle cx="21" cy="80.5" r="11"/><circle cx="15" cy="58" r="11"/><circle cx="21" cy="35.5" r="11"/><circle cx="37.5" cy="19" r="11"/>
+          </g>
+          <circle cx="60" cy="58" r="42" fill="#c0407a" stroke="#3b2b20" stroke-width="2.5"/>
+          <circle cx="60" cy="58" r="33" fill="#f4ecd8" stroke="#3b2b20" stroke-width="2"/>
+          <circle cx="60" cy="58" r="29" fill="none" stroke="#3b2b20" stroke-width="1" stroke-dasharray="2 3"/>
+          <text x="60" y="53" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="800" font-size="15" fill="#3b2b20">World</text>
+          <text x="60" y="70" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="800" font-size="15" fill="#3b2b20">Record</text>
+          <g clip-path="url(#rosette-face)"><rect class="shine" x="-30" y="0" width="16" height="120" fill="#fffbe9" opacity="0.85" transform="rotate(25 60 58)"/></g>
+        </svg>
+      </div>
+      <div id="stamp-passed" class="stamp stamp-passed" hidden aria-hidden="true">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="35" fill="#f4ecd8" stroke="#7f9a5a" stroke-width="3.5"/>
+          <circle cx="40" cy="40" r="29" fill="none" stroke="#7f9a5a" stroke-width="1.5"/>
+          <path d="M26 37 L36 47 L55 25" fill="none" stroke="#7f9a5a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="40" y="64" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="800" font-size="11" letter-spacing="0.5" fill="#7f9a5a">PASSED</text>
+        </svg>
+      </div>
       <div class="panel">
         <h2 id="result-title">Time!</h2>
         <p class="result-score" id="result-score"></p>
@@ -133,6 +163,7 @@
         <div id="result-extra" class="muted"></div>
         <div class="result-timer" aria-hidden="true"><div id="result-time"></div></div>
         <p class="muted result-hint" id="result-hint"></p>
+      </div>
       </div>
     </section>
 
@@ -197,6 +228,8 @@
         <div class="scroll settings-list">
           <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
+          <label class="row check">Fullscreen <input type="checkbox" id="fullscreen-toggle" data-nav></label>
+          <p class="muted setting-note" id="fullscreen-note" hidden>This browser can’t go full screen. On an iPhone, Share → Add to Home Screen plays it full screen.</p>
           <label class="row check">Unlock all <input type="checkbox" data-nav data-setting="unlockAll"></label>
           <p class="muted setting-note">Every game can be played without first scoring well on the ones before it.</p>
           <button class="menu-btn" data-nav data-action="reset-progress">Forget my scores…</button>

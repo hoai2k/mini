@@ -19,6 +19,12 @@
 //     the next card opening and chooses it. Playing that bird again ends on
 //     the brief result card, and a press goes back to the guide with it
 //     chosen.
+//  3b. On a bird passed before: a new best above the mark ends on the World
+//     Record card (confetti, rosette; a press too soon is ignored), the mark
+//     again without a best on the small one (tick stamp, sparkles), and short
+//     of it on the plain one. Settings' Fullscreen switch follows the real
+//     state and the D-pad reaches it. With reduced motion the card stands
+//     still; without the Fullscreen API the switch is greyed out with a note.
 //  4. ?debug: every page is open; a round that reaches the score celebrates
 //     even when passed before, the next card shows locked, opens, and then
 //     every card is open again; B and a long press skip it all.
@@ -333,6 +339,151 @@ const MENU = 9;
   s = await guideState(page);
   s.screen === 'guide' && s.focus === 0 && s.unlock === null ? ok('A goes back to the guide early, the Coot chosen') : fail(`after the repeat: ${JSON.stringify(s)}`);
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the celebration round');
+  await page.close();
+}
+
+// ---------- 3b: the result card's flourishes on a bird passed before ----------
+{
+  const { page, errors } = await newPage();
+  // the Coot passed before, with its score as the best
+  await page.evaluate(() => {
+    const pass = window.__coot.BIRDS[0].pass;
+    Object.assign(window.__coot.progress, { coot: { best: pass, plays: 1, passed: true } });
+  });
+  const round = async (extra) => {
+    await page.evaluate(() => window.__coot.startBird(0));
+    await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+    await page.evaluate((extra) => {
+      const S = window.__coot.S;
+      S.game.score = window.__coot.BIRDS[S.bird].pass + extra;
+      S.game.done = true;
+    }, extra);
+    await page.waitForFunction(() => window.__coot.S.phase === 'result', null, { timeout: 8000 }).catch(() => {});
+    return page.evaluate(() => {
+      const r = document.querySelector('#result');
+      return {
+        screen: window.__coot.S.screen,
+        phase: window.__coot.S.phase,
+        kind: window.__coot.S.result?.kind,
+        time: window.__coot.S.result?.time,
+        title: document.querySelector('#result-title').textContent,
+        record: r.classList.contains('fx-record'),
+        passed: r.classList.contains('fx-passed'),
+        rosette: !document.querySelector('#stamp-record').hidden,
+        tick: !document.querySelector('#stamp-passed').hidden,
+        confetti: document.querySelectorAll('#result-fx .confetti').length,
+        sparkles: document.querySelectorAll('#result-score .sparkle').length,
+      };
+    });
+  };
+  // Holds the card up (the checks run time fast) and lets its animations play out.
+  const hold = async (name) => {
+    if (!shots) return;
+    await page.evaluate(() => { window.__coot.S.result.time = 999; });
+    for (const [w, h, tag] of [[1280, 720, ''], [390, 844, '-390x844'], [844, 390, '-844x390']]) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.evaluate(() => {
+        // replay the card's animations at this size
+        const r = document.querySelector('#result');
+        r.hidden = true;
+        void r.offsetWidth;
+        r.hidden = false;
+      });
+      await wait(page, 1300);
+      await shot(page, name + tag);
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+  };
+  let c = await round(5);
+  c.phase === 'result' && c.kind === 'record' && c.title === 'New World Record!' && c.record && c.rosette && !c.tick && c.confetti > 20
+    ? ok(`a new best above the mark on a bird passed before: the World Record card (${c.confetti} confetti, rosette, ${c.time} s)`)
+    : fail(`record card: ${JSON.stringify(c)}`);
+  await hold('14b-record-card');
+  await page.evaluate(() => { window.__coot.S.result.time = 5; window.__coot.S.resultT = 0; });
+  await press(page, A); // too soon: the guard holds it
+  let s = await state(page);
+  s.phase === 'result' ? ok('a press straight away leaves the World Record card up') : fail(`record guard: ${JSON.stringify(s)}`);
+  await page.evaluate(() => { window.__coot.S.resultT = 1; });
+  await press(page, A);
+  s = await guideState(page);
+  s.screen === 'guide' && s.focus === 0 ? ok('a press after the guard goes back to the guide') : fail(`after the record: ${JSON.stringify(s)}`);
+  // the mark again, but not a best: the small flourish
+  c = await round(0);
+  c.kind === 'passed' && c.title === 'Time!' && c.passed && c.tick && !c.rosette && c.confetti === 0 && c.sparkles > 0
+    ? ok(`reaching the mark again without a best: a tick stamp and ${c.sparkles} sparkles, no confetti`)
+    : fail(`passed card: ${JSON.stringify(c)}`);
+  await hold('14c-passed-card');
+  await page.evaluate(() => { window.__coot.S.result.time = 0.5; });
+  await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
+  // short of the mark: plain
+  c = await round(-1);
+  c.kind === 'plain' && c.title === 'Time!' && !c.record && !c.passed && !c.rosette && !c.tick && c.confetti === 0 && c.sparkles === 0
+    ? ok('short of the mark: the plain card')
+    : fail(`plain card: ${JSON.stringify(c)}`);
+  await page.evaluate(() => { window.__coot.S.result.time = 0.5; });
+  await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
+  // Settings: the Fullscreen switch shows the real state and turns it on and off.
+  await page.click('#guide [data-open="settings"]');
+  await wait(page, 200);
+  const fsRow = async () => page.evaluate(() => ({ checked: document.querySelector('#fullscreen-toggle').checked, disabled: document.querySelector('#fullscreen-toggle').disabled, full: !!document.fullscreenElement }));
+  let f = await fsRow();
+  !f.checked && !f.full && !f.disabled ? ok('Settings has a Fullscreen switch, off while windowed') : fail(`fullscreen row: ${JSON.stringify(f)}`);
+  await shot(page, '14d-settings');
+  await page.click('#fullscreen-toggle');
+  await page.waitForFunction(() => !!document.fullscreenElement, null, { timeout: 3000 }).catch(() => {});
+  await wait(page, 100);
+  f = await fsRow();
+  f.full && f.checked ? ok('ticking it goes full screen') : fail(`fullscreen on: ${JSON.stringify(f)}`);
+  await page.evaluate(() => document.exitFullscreen());
+  await page.waitForFunction(() => !document.fullscreenElement, null, { timeout: 3000 }).catch(() => {});
+  await wait(page, 100);
+  f = await fsRow();
+  !f.full && !f.checked ? ok('leaving full screen another way unticks it') : fail(`fullscreen left: ${JSON.stringify(f)}`);
+  // the controller reaches it: down from Volume, past Vibration
+  await page.evaluate(() => document.querySelector('[data-setting="volume"]').focus());
+  await press(page, 13);
+  await press(page, 13);
+  const focused = await page.evaluate(() => document.activeElement?.id);
+  focused === 'fullscreen-toggle' ? ok('the D-pad reaches the Fullscreen switch') : fail(`D-pad focus: ${focused}`);
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors on the result cards');
+  await page.close();
+}
+
+// Reduced motion: the World Record card stands still, and an iPhone without
+// full screen gets the switch greyed out with a note.
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.addInitScript(FAKE_PADS);
+  await page.addInitScript(() => {
+    Object.defineProperty(Document.prototype, 'fullscreenEnabled', { get: () => false });
+  });
+  await page.goto(url + '?dt=0.05');
+  await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+  await page.evaluate(() => { Object.assign(window.__coot.progress, { coot: { best: window.__coot.BIRDS[0].pass, plays: 1, passed: true } }); window.__coot.startBird(0); });
+  await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+  await page.evaluate(() => { const S = window.__coot.S; S.game.score = window.__coot.BIRDS[0].pass + 3; S.game.done = true; });
+  await page.waitForFunction(() => window.__coot.S.phase === 'result', null, { timeout: 8000 }).catch(() => {});
+  await page.evaluate(() => { window.__coot.S.result.time = 999; });
+  const still = await page.evaluate(() => ({
+    kind: window.__coot.S.result?.kind,
+    reduce: document.body.classList.contains('reduce-motion'),
+    anim: getComputedStyle(document.querySelector('#stamp-record')).animationName,
+    confetti: [...document.querySelectorAll('#result-fx .confetti')].map((p) => getComputedStyle(p).animationName).filter((n) => n !== 'none').length,
+  }));
+  still.kind === 'record' && still.reduce && still.anim === 'none' && still.confetti === 0 ? ok('reduced motion: the World Record card stands still') : fail(`reduced motion: ${JSON.stringify(still)}`);
+  await wait(page, 300);
+  await shot(page, '14b-record-card-still-390x844');
+  await page.evaluate(() => { window.__coot.S.result.time = 0.5; });
+  await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
+  await page.click('#guide [data-open="settings"]');
+  await wait(page, 200);
+  const f = await page.evaluate(() => ({ disabled: document.querySelector('#fullscreen-toggle').disabled, note: !document.querySelector('#fullscreen-note').hidden }));
+  f.disabled && f.note ? ok('without full screen (iPhone Safari) the switch is greyed out, with a note') : fail(`no fullscreen: ${JSON.stringify(f)}`);
+  await shot(page, '14d-settings-no-fullscreen-390x844');
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors with reduced motion');
   await page.close();
 }
 

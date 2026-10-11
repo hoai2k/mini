@@ -291,6 +291,7 @@ export function stopMusic() {
 
 let sting = null; // the decoded recording, once fetched
 let stingUntil = 0;
+let stingNow = null; // the one sounding: { s: its source, g: its gain }
 // True while the fanfare is sounding (the chimes it replaces stay quiet).
 export const stingPlaying = () => !!ctx && ctx.currentTime < stingUntil;
 export function loadSting() {
@@ -307,6 +308,7 @@ export function loadSting() {
 // (the caller plays the synthesised chime instead).
 export function playSting() {
   if (!ctx || ctx.state !== 'running' || !(sting instanceof AudioBuffer)) return false;
+  stopSting(0.05);
   const s = ctx.createBufferSource();
   s.buffer = sting;
   const g = ctx.createGain();
@@ -314,6 +316,7 @@ export function playSting() {
   s.connect(g);
   g.connect(sfxBus);
   s.start();
+  stingNow = { s, g };
   stingUntil = ctx.currentTime + sting.duration;
   if (rec) {
     const t = ctx.currentTime;
@@ -326,4 +329,25 @@ export function playSting() {
     p.linearRampToValueAtTime(full, t + sting.duration + 0.6);
   }
   return true;
+}
+
+// Fades the fanfare out (a result card left early), the music coming back up.
+export function stopSting(fade = 0.4) {
+  if (!stingNow || !stingPlaying()) return;
+  const t = ctx.currentTime;
+  const { s, g } = stingNow;
+  stingNow = null;
+  g.gain.cancelScheduledValues(t);
+  g.gain.setValueAtTime(g.gain.value, t);
+  g.gain.linearRampToValueAtTime(0, t + fade);
+  try {
+    s.stop(t + fade + 0.02);
+  } catch { /* already stopped */ }
+  stingUntil = t + fade;
+  if (rec) {
+    const p = rec.gain.gain;
+    p.cancelScheduledValues(t);
+    p.setValueAtTime(p.value, t);
+    p.linearRampToValueAtTime(REC_LEVEL / 0.25, t + fade + 0.6);
+  }
 }
