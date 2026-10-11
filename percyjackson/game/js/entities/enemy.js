@@ -293,6 +293,7 @@ export class Enemy {
       if (this.wander) { move.copy(this.steer(this.wander, 0.35)); if (this.wander.lengthSq() > 0) this.facing = dampAngle(this.facing, Math.atan2(this.wander.x, this.wander.z), 4, dt); }
     }
     if (this.spawnT > 0 || S.root > 0) move.set(0, 0, 0);
+    if (S.root > 0) { this.vel.x = this.knock.x; this.vel.z = this.knock.z; }
     this.moveBody(dt, move);
     // visuals
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);

@@ -83,7 +83,7 @@ export class Combat {
     const sure = g.domainSys?.sureHit(p);
     if (sure) {
       // Domain: every attack lands on every curse inside
-      targets = g.enemies.filter((e) => !e.dead && !e.isDummy && g.domainSys.inside(e.pos));
+      targets = g.enemies.filter((e) => !e.dead && !e.isDummy && !e.untargetable && g.domainSys.inside(e.pos));
       for (const e of targets) g.fx.sureHitStrike(e, p);
     }
     let hit = 0;

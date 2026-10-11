@@ -51,7 +51,7 @@ const BOSSES = {
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
   },
   minotaur: {
-    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xff2a1a, radius: 1.2, height: 3.4,
+    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
     build() {
       const fur = 0x6a4228;
       const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xe2dccc, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xe2dccc, 0.04); s.rect(32, 30, 8, 2, 0xe2dccc, 0.04); s.rect(16, 30, 4, 2, 0xe2dccc, 0.04); s.rect(28, 30, 4, 2, 0xe2dccc, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
@@ -161,7 +161,7 @@ export class Boss {
   // ---------------------------------------------------------------- helpers
   target() {
     let best = null, bd = Infinity;
-    for (const p of this.game.hostileTargets()) { if (p.dead || p.downed || p.invisible) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = p; } }
+    for (const p of this.game.hostileTargets()) { if (p.dead || p.downed || p.invisible || p.untargetable) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = p; } }
     return best;
   }
   hurtPlayers(center, radius, dmg, knockPow = 8, filter = null) {

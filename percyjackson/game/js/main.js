@@ -398,26 +398,6 @@ class Game {
     }, { dim: true });
   }
   returnToHub() { this.loadHub(); toast('Camp Half-Blood', 'big'); }
-  openMissionSelect() {
-    const biomes = Object.keys(BIOMES);
-    const state = this.msState ?? (this.msState = { biome: 'jujutsu_high', objective: 'exorcise', boss: 'jogo', difficulty: 1 });
-    this.paused = true;
-    this.ui.open('missions', (el) => {
-      const opt = (key, list, label) => h('div', { class: 'setting' }, h('label', {}, label), (() => {
-        const sel = h('select', {}, ...list.map(([v, t]) => { const o = h('option', { value: v }, t); if (state[key] == v) o.selected = true; return o; }));
-        sel.addEventListener('change', () => { state[key] = isNaN(+sel.value) ? sel.value : +sel.value; });
-        return sel;
-      })());
-      el.appendChild(h('div', { class: 'panel', style: 'width:min(520px,94vw)' }, h('h2', {}, 'Mission Board'),
-        opt('biome', biomes.map((b) => [b, BIOMES[b].name]), 'Location'),
-        opt('objective', [['exorcise', 'Exorcise the curses'], ['rescue', 'Rescue students'], ['seal', 'Seal cursed objects']], 'Objective'),
-        opt('boss', [['jogo', 'Volcano Curse'], ['hanami', 'Grove Curse'], ['mahito', 'Patchwork Curse']], 'Special Grade'),
-        opt('difficulty', [[1, 'Grade 3'], [2, 'Grade 2'], [3, 'Grade 1'], [4, 'Special Grade']], 'Threat'),
-        h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:12px' },
-          h('button', { class: 'btn', onclick: () => { this.ui.close('missions'); this.paused = false; } }, 'Back'),
-          h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => this.startMission({ ...state, seed: (Math.random() * 1e9) | 0 }) }, 'Deploy'))));
-    }, { dim: true, onBack: () => { this.ui.close('missions'); this.paused = false; } });
-  }
   openMap() {
     if (!this.minimap.level) return;
     this.paused = true;
@@ -448,7 +428,7 @@ class Game {
   }
   spawnWave() {
     this.wave++;
-    const kinds = [['swarmer', 'swarmer', 'swarmer', 'swarmer'], ['swarmer', 'swarmer', 'spitter', 'blob', 'swarmer'], ['tank', 'swarmer', 'swarmer', 'spitter', 'teleporter'], ['summoner', 'tank', 'teleporter', 'blob', 'spitter', 'swarmer', 'swarmer']][(this.wave - 1) % 4];
+    const kinds = [['pup', 'pup', 'spider', 'spider'], ['pup', 'pup', 'harpy', 'automaton', 'spider'], ['dracaena', 'pup', 'pup', 'harpy', 'fury'], ['empousa', 'dracaena', 'fury', 'automaton', 'harpy', 'hellhound', 'pup']][(this.wave - 1) % 4];
     const c = this.level.dummy;
     kinds.forEach((k, i) => {
       const a = (i / kinds.length) * Math.PI * 2 + Math.random();
