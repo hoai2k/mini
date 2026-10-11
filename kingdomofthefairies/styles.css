@@ -298,8 +298,9 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 .unlock-edition h3 small { font-weight: 400; opacity: 0.8; }
 .unlock-q { margin: 2px 0 8px; font-size: 13px; } .unlock-q a { color: #e9c46a; }
 .unlock-edition label { display: block; margin: 6px 0; }
-.unlock-edition select { font: inherit; margin-left: 6px; max-width: 100%; }
+.unlock-what { margin: 4px 0 6px; font-size: 13px; line-height: 1.4; color: #e9d9c4; min-height: 3.6em; }
+.unlock-edition select { display: block; width: 100%; font: inherit; font-size: 14px; margin-top: 4px; }
 .unlock-edition ol { margin: 8px 0 0; padding-left: 22px; font-size: 14px; }
-.unlock-edition li { opacity: 0.45; } .unlock-edition li.open { opacity: 1; } .unlock-edition li.open::marker { color: #e9c46a; }
+.unlock-edition li { opacity: 0.45; } .unlock-edition li::after { content: ' · locked'; font-size: 12px; } .unlock-edition li.open { opacity: 1; } .unlock-edition li.open::after { content: ''; } .unlock-edition li.open::marker { color: #e9c46a; }
 .unlock-editor .unlock-row { margin-top: 14px; text-align: right; }
 .unlock-editor .unlock-row button { font: 700 15px "Josefin Sans", sans-serif; padding: 8px 22px; border-radius: 18px; border: 0; background: #e0127a; color: #fff; cursor: pointer; }

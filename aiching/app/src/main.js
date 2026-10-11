@@ -9,6 +9,7 @@ import { gather } from './online.js';
 import { TOPICS, KINDS } from './topics.js';
 import { setAssets, delivered, hexagramImage, trigramImage, topicImage } from './art.js';
 import { dayKey } from './rng.js';
+import { aiOpening, aiEnabled, setAiEnabled } from './ai.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -49,7 +50,7 @@ const SECTIONS = {
   counsel(r) {
     const cards = r.counsel.map((c, i) => `
       <article class="counsel-card${i === 0 ? ' lead' : ''}">
-        <img class="counsel-art" alt="" src="${esc(topicImage(c.key, c.zh))}">
+        <img class="counsel-art" alt="" src="${esc(c.from !== r.primary.n ? hexagramImage(r.relating, true) : topicImage(c.key, c.zh))}">
         <div><h3><b lang="zh">${esc(c.zh)}</b> ${esc(c.label)}</h3><p>${esc(c.text)}</p>
         ${c.from !== r.primary.n ? `<p class="from">from ${esc(r.relating.name)}, the hexagram this one becomes</p>` : ''}</div>
       </article>`).join('');
@@ -87,7 +88,7 @@ const SECTIONS = {
   becoming(r) {
     const mini = (h, label, note) => `
       <article class="mini-hex">
-        <img alt="" src="${esc(hexagramImage(h))}">
+        <img alt="" src="${esc(hexagramImage(h, true))}">
         <div class="mini-body">
           <p class="mini-label">${esc(label)}</p>
           <h3><span class="mini-zh" lang="zh">${esc(h.zh)}</span> ${h.n}. ${esc(h.name)}</h3>
@@ -199,6 +200,11 @@ function renderReading(question, day) {
     <div class="reading-bg" aria-hidden="true"></div>
     <div class="reading-inner">
       <div class="you"><p class="bubble">${esc(r.question)}</p><p class="meta">${topicChips}</p></div>
+      <div class="oracle" data-ai hidden aria-live="polite">
+        <span class="oracle-seal" lang="zh" aria-hidden="true">易</span>
+        <div class="oracle-body"><p class="oracle-text"><span class="typing" aria-label="Writing"><i></i><i></i><i></i></span></p>
+        <p class="oracle-note" hidden></p></div>
+      </div>
       <section class="hero">
         <figure class="hero-art"><img alt="${esc(`${h.name}: ${h.scene}`)}" src="${esc(hexagramImage(h))}"></figure>
         <div class="hero-text">
@@ -227,9 +233,37 @@ function renderReading(question, day) {
   document.title = `${h.zh} ${h.name} · Ai-Ching`;
 
   const token = ++castToken;
+  showOpening(root, r, token);
   gather(r).then((online) => { if (token === castToken) renderWorld(root, r, online); })
     .catch(() => { if (token === castToken) renderWorld(root, r, { daily: null, lore: [] }); });
   return r;
+}
+
+const SOURCE_NOTE = {
+  chrome: "Written by Chrome's built-in AI, on your device.",
+  'workers-ai': 'Written by AI (Workers AI). The reading below comes from the I Ching texts.',
+};
+
+async function showOpening(root, r, token) {
+  const box = $('[data-ai]', root);
+  if (!box || !aiEnabled()) return;
+  const textEl = $('.oracle-text', box);
+  const note = $('.oracle-note', box);
+  box.hidden = false;
+  const out = await aiOpening(r, {
+    onText: (t) => { if (token === castToken && t) textEl.textContent = t; },
+  });
+  if (token !== castToken) return;
+  if (!out) { box.hidden = true; return; }
+  textEl.textContent = out.text;
+  note.innerHTML = `${esc(SOURCE_NOTE[out.source] || '')} <button type="button" class="link" data-ai-off>Turn off</button>`;
+  note.hidden = false;
+  $('[data-ai-off]', note).addEventListener('click', () => { setAiEnabled(false); box.hidden = true; syncAiToggle(); });
+}
+
+function syncAiToggle() {
+  const t = $('#ai-toggle');
+  if (t) t.checked = aiEnabled();
 }
 
 function show(view) {
@@ -307,7 +341,7 @@ function wirePrompt(form, area) {
 }
 
 function applyArt() {
-  const vars = { 'ui-home-bg': '--home-bg', 'ui-paper': '--paper', 'ui-result-bg': '--result-bg', 'ui-clouds': '--clouds-img', 'ui-divider': '--divider-img', 'ui-coin-yang': '--coin-heads', 'ui-coin-yin': '--coin-tails', 'ui-yang': '--yang-mask', 'ui-yin': '--yin-mask' };
+  const vars = { 'ui-icon': '--icon-img', 'ui-home-bg': '--home-bg', 'ui-paper': '--paper', 'ui-result-bg': '--result-bg', 'ui-clouds': '--clouds-img', 'ui-divider': '--divider-img', 'ui-coin-yang': '--coin-heads', 'ui-coin-yin': '--coin-tails', 'ui-yang': '--yang-mask', 'ui-yin': '--yin-mask' };
   for (const [id, v] of Object.entries(vars)) {
     const url = delivered(id);
     if (url) {
@@ -336,6 +370,9 @@ async function start() {
   for (const b of document.querySelectorAll('.suggestions button')) {
     b.addEventListener('click', () => { $('#question').value = b.textContent; autosize($('#question')); $('#question').focus(); });
   }
+  const toggle = $('#ai-toggle');
+  syncAiToggle();
+  toggle?.addEventListener('change', () => setAiEnabled(toggle.checked));
   for (const b of document.querySelectorAll('[data-open]')) b.addEventListener('click', () => $(`#${b.dataset.open}`).showModal());
   window.addEventListener('hashchange', route);
   route();

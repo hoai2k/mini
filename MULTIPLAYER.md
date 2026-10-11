@@ -426,6 +426,13 @@ Server-side limits: 64 KB per message, 300 messages per 2 seconds per
 client, 16 players per room, room titles up to 40 characters, names up to 24,
 and the lobby shows up to 50 rooms per game.
 
+`POST /oracle` uses Workers AI (the `AI` binding in `wrangler.jsonc`), whose
+free allowance is separate from the requests allowance. Answers are cached for
+a day and each visitor gets 20 model calls per 10 minutes. Local `wrangler dev`
+has no Workers AI without a Cloudflare login, so the tests run it with
+`--local` and the route answers 502 or 503 there; `npm run dev:local` does the
+same by hand.
+
 On the free plan, running out of the daily allowance makes the relay refuse
 requests until the next day; it never produces a bill. Staying on the free
 Workers plan keeps that hard cap.
@@ -437,6 +444,7 @@ Workers plan keeps that hard cap.
 | `GET /lobby/<game>` | `{ rooms: [{ id, title, count, capacity, updated }] }` |
 | `WS /room/<game>/<roomId>?host=1&title=&name=&capacity=` | Open a room as host |
 | `WS /room/<game>/<roomId>?name=` | Join a room |
+| `POST /oracle` | A short Workers AI opening for an Ai-Ching reading (`src/oracle.js`; see `aiching/README.md`) |
 
 | Direction | Message |
 | --- | --- |
