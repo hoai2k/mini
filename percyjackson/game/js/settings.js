@@ -3,7 +3,7 @@ const KEY = 'half-blood-quests-settings-v1';
 const DEFAULTS = {
   quality: 'auto', forceWebGL: false, showFps: false, dynRes: true, motionBlur: false,
   shake: 1, hitstop: true, slowmo: true, cameraRotate: false, cameraZoom: 22,
-  master: 0.8, music: 0.5, sfx: 0.9, damageNumbers: true, autoAim: 'touch',
+  master: 0.8, music: 0.5, sfx: 0.9, muted: false, damageNumbers: true, autoAim: 'touch',
   battleSense: true,   // a perfect dodge slows time for the team
   greekText: true,     // text first appears as Greek letters, then settles into English
   vibration: true,     // controller rumble

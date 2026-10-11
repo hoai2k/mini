@@ -127,6 +127,7 @@ input.focus, select.focus { outline: 3px solid var(--gold-hi); outline-offset: 2
 .util-btn:hover, .util-btn:focus-visible, .util-btn.focus { background: linear-gradient(var(--gold-hi), var(--gold)); color: var(--ink); box-shadow: 0 0 0 2px var(--gold-hi), 0 0 0 4px #0d0a07, 0 0 16px rgba(240, 200, 103, .55); }
 .util-btn:hover .lbl, .util-btn:focus-visible .lbl, .util-btn.focus .lbl { max-width: 160px; margin-left: 8px; margin-right: 4px; }
 .util-btn:active { transform: translateY(2px); }
+.util-btn.off:not(:hover):not(:focus-visible):not(.focus) { color: #a8a090; border-color: #7a6a52; }
 .title-screen:not(.nav) .util-btn.focus:not(:hover) { background: linear-gradient(rgba(36, 29, 20, .9), rgba(16, 12, 8, .92)); color: var(--gold-hi); box-shadow: 0 0 0 2px #0d0a07, 0 4px 14px rgba(0, 0, 0, .55); }
 .title-screen:not(.nav) .util-btn.focus:not(:hover) .lbl { max-width: 0; margin: 0; }
 

@@ -7,7 +7,16 @@ export class Audio {
   constructor() {
     this.ctx = null; this.started = false;
     this.last = {};
+    // silent while the tab is hidden or the window has lost focus
+    this.away = typeof document !== 'undefined' && (document.hidden || !document.hasFocus?.());
+    if (typeof window !== 'undefined') {
+      const upd = () => { this.away = document.hidden || !document.hasFocus(); this.applyVolumes(); };
+      document.addEventListener('visibilitychange', upd);
+      window.addEventListener('blur', upd); window.addEventListener('focus', upd);
+    }
   }
+  get muted() { return !!settings.muted; }
+  setMuted(on) { settings.muted = !!on; this.applyVolumes(); }
   // Must be called from a user gesture.
   start() {
     if (this.started) { this.ctx.resume?.(); return; }
@@ -27,7 +36,8 @@ export class Audio {
   }
   applyVolumes() {
     if (!this.started) return;
-    this.master.gain.value = settings.master;
+    const g = settings.muted || this.away ? 0 : settings.master;
+    this.master.gain.setTargetAtTime(g, this.ctx.currentTime, 0.03);
     this.sfxBus.gain.value = settings.sfx;
     this.musicBus.gain.value = settings.music * 0.55;
     this.ambBus.gain.value = settings.sfx * 0.5;
@@ -136,7 +146,8 @@ export class Audio {
     const src = c.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true;
     const f = c.createBiquadFilter();
     const g = c.createGain();
-    const cfg = { storm: ['lowpass', 900, 0.16], museum: ['lowpass', 300, 0.05], camp: ['bandpass', 1200, 0.04], night: ['lowpass', 500, 0.08], city: ['lowpass', 260, 0.14], forest: ['bandpass', 900, 0.06], drips: ['lowpass', 180, 0.12], void: ['lowpass', 120, 0.1] }[kind] || ['lowpass', 400, 0.08];
+    const cfg = { storm: ['lowpass', 900, 0.16], museum: ['lowpass', 300, 0.05], camp: ['bandpass', 1200, 0.04], night: ['lowpass', 500, 0.08], city: ['lowpass', 260, 0.14], forest: ['bandpass', 900, 0.06], drips: ['lowpass', 180, 0.12], void: ['lowpass', 120, 0.1],
+      highway: ['lowpass', 700, 0.15], garden: ['bandpass', 1500, 0.035], wind: ['bandpass', 500, 0.09], park: ['lowpass', 420, 0.07], casino: ['bandpass', 650, 0.07], desert: ['bandpass', 380, 0.1], underworld: ['lowpass', 140, 0.13], surf: ['lowpass', 520, 0.17], olympus: ['highpass', 2400, 0.025] }[kind] || ['lowpass', 400, 0.08];
     f.type = cfg[0]; f.frequency.value = cfg[1]; g.gain.value = cfg[2];
     src.connect(f); f.connect(g); g.connect(this.ambBus); src.start();
     const timer = setInterval(() => {
@@ -145,6 +156,14 @@ export class Audio {
       if (kind === 'forest' && Math.random() < 0.15) this.tone({ freq: 400 + Math.random() * 200, to: 300, dur: 0.6, gain: 0.03, type: 'sine', bus: this.ambBus, rev: 0.6 });
       if (kind === 'drips' && Math.random() < 0.7) this.tone({ freq: 1200 + Math.random() * 1500, to: 600, dur: 0.08, gain: 0.04, type: 'sine', bus: this.ambBus, rev: 0.8 });
       if (kind === 'city' && Math.random() < 0.1) this.tone({ freq: 700, to: 690, dur: 1.4, gain: 0.02, type: 'triangle', bus: this.ambBus, rev: 0.7 });
+      if (kind === 'highway' && Math.random() < 0.12) this.noise({ dur: 2.2, gain: 0.05, type: 'bandpass', freq: 320, sweep: 900, q: 0.8, attack: 0.8, bus: this.ambBus });
+      if (kind === 'garden' && Math.random() < 0.35) this.tone({ freq: 2600 + Math.random() * 1200, to: 3400, dur: 0.12, gain: 0.012, type: 'sine', bus: this.ambBus, at: 0 });
+      if (kind === 'park' && Math.random() < 0.08) this.tone({ freq: 180, to: 160, dur: 1.6, gain: 0.02, type: 'triangle', bus: this.ambBus, rev: 0.8 });
+      if (kind === 'casino' && Math.random() < 0.5) [1318, 1568, 2093].forEach((f, i) => this.tone({ freq: f * (Math.random() < 0.5 ? 1 : 0.75), dur: 0.12, gain: 0.012, type: 'square', filter: 3000, bus: this.ambBus, at: i * 0.07 }));
+      if (kind === 'underworld' && Math.random() < 0.12) this.tone({ freq: 110 + Math.random() * 40, to: 80, dur: 2.5, gain: 0.03, type: 'sine', bus: this.ambBus, rev: 0.9 });
+      if (kind === 'surf' && Math.random() < 0.3) this.noise({ dur: 2.4, gain: 0.08, type: 'lowpass', freq: 1100, sweep: 300, attack: 0.7, bus: this.ambBus });
+      if (kind === 'olympus' && Math.random() < 0.15) this.tone({ freq: 1046 + Math.floor(Math.random() * 4) * 262, dur: 1.2, gain: 0.012, type: 'sine', bus: this.ambBus, rev: 0.9 });
+      if (kind === 'desert' && Math.random() < 0.1) this.noise({ dur: 2.5, gain: 0.05, type: 'bandpass', freq: 700, sweep: 300, q: 2, attack: 1, bus: this.ambBus });
     }, 700);
     this.amb = { src, timer };
   }
@@ -157,8 +176,9 @@ export class Audio {
     if (!kind) return;
     const scales = {
       museum: [0, 2, 3, 5, 7, 9], storm: [0, 1, 3, 5, 7, 8], camp: [0, 2, 4, 7, 9], shrine: [0, 1, 5, 7, 8], city: [0, 3, 5, 7, 10], forest: [0, 2, 3, 7, 8], subway: [0, 1, 3, 6, 8], shibuya: [0, 1, 4, 5, 7, 8], hub: [0, 2, 4, 7, 9], boss: [0, 1, 3, 6, 7], title: [0, 2, 3, 7, 10],
+      highway: [0, 3, 5, 6, 7, 10], gorgon: [0, 1, 4, 5, 7, 8], arch: [0, 2, 4, 5, 7, 9], waterpark: [0, 1, 3, 5, 6, 10], lotus: [0, 4, 7, 9, 11, 14], desert: [0, 1, 4, 5, 7, 10], underworld: [0, 1, 3, 6, 7, 10], beach: [0, 2, 5, 7, 9], olympus: [0, 2, 4, 7, 9, 11],
     };
-    const roots = { museum: 50, storm: 43, camp: 52, shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45 };
+    const roots = { museum: 50, storm: 43, camp: 52, shrine: 50, city: 45, forest: 47, subway: 43, shibuya: 44, hub: 52, boss: 40, title: 45, highway: 45, gorgon: 46, arch: 50, waterpark: 47, lotus: 53, desert: 45, underworld: 38, beach: 50, olympus: 55 };
     const scale = scales[kind] || scales.shrine, root = roots[kind] ?? 48;
     const bpm = kind === 'boss' ? 132 : kind === 'hub' || kind === 'title' ? 84 : 100;
     const stepDur = 60 / bpm / 2;
