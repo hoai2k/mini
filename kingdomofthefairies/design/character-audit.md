@@ -4,7 +4,7 @@
 with frames from the film (`references/expanded-world/source-frames/`, the
 Wikimedia Commons copy) and with `film-story.md`. Requests for alternates are
 round F8 in [image-requests.md](image-requests.md). Nothing has been replaced:
-`?look=tinted` draws an alternate wherever one has been delivered, so the two
+Settings › Cast look › Tinted in the film edition (or `?look=tinted`) draws an alternate wherever one has been delivered, so the two
 looks can be compared in the game before choosing.
 
 ## What the film looks like
@@ -50,7 +50,7 @@ texture the figures lack.
 ## Recommendation
 
 Commission round F8: 64 `-tinted` alternates at the same sizes and anchors, so
-each drops over its original. Compare them in play with `?look=tinted`. If you
+each drops over its original. Compare them in play with Settings › Cast look (or `?look=tinted`). If you
 prefer them, switching is one line (the default look); if not, nothing changes.
 The game's own film look (grain, flicker and stencil colour in Settings)
 already moves the clean art part of the way, which is why the difference is

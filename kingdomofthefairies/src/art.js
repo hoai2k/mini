@@ -1,4 +1,4 @@
-import { LEGACY, FILM, PARTIAL, LOOK_TINTED, FILM_CAST, PARTIAL_CAST, FILM_BODY_SCALE, themeManifest } from './theme.js';
+import { LEGACY, FILM, PARTIAL, FILM_CAST, PARTIAL_CAST, FILM_BODY_SCALE, themeManifest } from './theme.js';
 // Toy-theatre renderer. Every frame is painted twice: a monochrome "print"
 // pass and a flat colour "stencil" pass. The stencil pass is laid over the
 // print with the `color` blend, slightly out of register, which is how
@@ -180,10 +180,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const img = (id) => {
     const a = cast[id], r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
     if (!r) return undefined;
-    // ?look=tinted: the hand-tinted alternate of a cast sprite, when delivered
-    return (LOOK_TINTED && assets.images[r + '-tinted']) || assets.images[r];
+    // the tinted cast look (Settings, or ?look=tinted): a sprite's hand-tinted
+    // alternate, when delivered
+    return (tinted && assets.images[r + '-tinted']) || assets.images[r];
   };
-  let extraAnimations = false;
+  let extraAnimations = false, tinted = false;
   let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
 
   // Act events: the act's own onEvent, which may call kit.voyageEvent (Act I).
@@ -285,6 +286,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // view = { board, curtain(0 closed..1 open), card, film: 'full'|'gentle'|'off', t }
   function render(view) {
     extraAnimations = view.extraAnimations === true;
+    tinted = view.tinted === true;
     const { t, film } = view;
     filmAmp = film === 'off' ? 0.35 : film === 'gentle' ? 0.6 : 1;
     if (film !== 'off' && ++reg.n % 5 === 0) {

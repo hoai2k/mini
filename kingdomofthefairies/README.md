@@ -113,7 +113,8 @@ and each act's `cast`).
 
 [The character audit](design/character-audit.md) compares the cast with the
 film; its hand-tinted alternates (requests F8) are drawn in place of the
-originals with `?look=tinted` wherever delivered, without replacing them.
+originals wherever delivered when the film edition's Settings set Cast look
+to Tinted (or with `?look=tinted`), without replacing them.
 
 An optional menu ambience, `?crackle=on`, holds the score back until play and
 fills the title, playbill, act cards and pause with an old record's crackle
