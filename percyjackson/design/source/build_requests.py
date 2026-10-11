@@ -95,8 +95,7 @@ REQUESTS: list[dict] = [
         "use": "Fixes the look. Generate it first and attach it to every later request.",
         "prompt": (
             f"Key art for a game of Rick Riordan's The Lightning Thief. The three heroes stand on "
-            f"Half-Blood Hill at golden hour beside a tall pine tree with a golden fleece-like glint "
-            f"in its branches, looking out toward a distant ornamental New York skyline and a stormy "
+            f"Half-Blood Hill at golden hour beside a tall, lone pine tree, looking out toward a distant ornamental New York skyline and a stormy "
             f"sky crackling with stylised lightning bolts. {TRIO}. Percy holds Riptide drawn, Annabeth "
             f"points the way, Grover clutches his pipes. The scene sits inside a black-and-gold "
             f"ornamental frame of Greek-key borders with small emblems in the corners (a trident, an "
