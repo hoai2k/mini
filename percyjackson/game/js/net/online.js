@@ -705,7 +705,7 @@ export class Online {
     const g = this.game;
     g.partyMgr.companions.delete(p);
     const key = this.keyOf(p);
-    const R = { key, uid, p, track: new Track(), ai: true, name: '', last: performance.now(), flashT: 0, entry: this.heroEntry(p) };
+    const R = { key, uid, p, track: new Track(), ai: true, name: '', last: performance.now(), flashT: 0, entry: this.heroEntry(p), settled: true };
     R.track.seed({ t: this.sharedS() - 0.12, x: p.pos.x, y: p.pos.y, z: p.pos.z, f: p.facing, vx: 0, vy: 0, vz: 0 });
     this.puppetHero(p, R);
     this.remote.set(key, R);
@@ -765,7 +765,7 @@ export class Online {
       if (!theirs) continue;
       this.stats.releases++;
       g.partyMgr.companions.delete(p);
-      const R = { key, uid: peer.uid, p, track: new Track(), ai: false, name: peer.name, last: t, flashT: 0, entry: this.heroEntry(p) };
+      const R = { key, uid: peer.uid, p, track: new Track(), ai: false, name: peer.name, last: t, flashT: 0, entry: this.heroEntry(p), settled: true };
       R.track.seed({ t: this.sharedS() - this.lag(peer.uid).delay, x: p.pos.x, y: p.pos.y, z: p.pos.z, f: p.facing, vx: 0, vy: 0, vz: 0 });
       p.ai = false; p.heldFor = null; p.netKey = null;
       this.puppetHero(p, R);

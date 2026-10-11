@@ -54,7 +54,7 @@ export function openSelect(game, { skipStart = false } = {}) {
   const redraw = () => ui.refresh('select');
   const changeHero = (s, dir) => { s.char = (s.char + dir + ids.length) % ids.length; s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw(); };
   const setHero = (s, i) => { s.char = i; s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw(); };
-  const compOptions = (j) => [...ids.filter((x) => !taken().has(x) && x !== comps[1 - j]), null];
+  const compOptions = (j) => ids.filter((x) => !taken().has(x) && x !== comps[1 - j]);   // (the AI always plays whoever is missing)
   const changeComp = (j, dir) => {
     const opts = compOptions(j); const i = opts.indexOf(comps[j]);
     comps[j] = opts[(i + dir + opts.length) % opts.length]; compsAuto = false; game.audio?.ui('move'); redraw();

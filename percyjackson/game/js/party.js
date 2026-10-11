@@ -173,8 +173,7 @@ export class Party {
       if (g.online?.isGuest) { g.online.dropLocalHuman(p); continue; }
       p.gearOwner = p.device;
       this.add(p);
-      if (g.online?.live) p.netKey = 'ai:' + p.hero;
-      this.setParty();
+      if (g.online?.live) { p.netKey = 'ai:' + p.hero; this.setParty(); } else this.fill();   // (four heroes go back to three)
     }
   }
   get locked() { return performance.now() < this.lockUntil; }
