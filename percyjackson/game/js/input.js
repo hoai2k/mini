@@ -3,14 +3,17 @@
 // (mouse point, right stick or auto-aim) and edge-triggered buttons.
 import { isMobile } from './util.js';
 
-const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap'];
+const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap', 'jump'];
 const KEYMAP = {
-  Space: 'dodge', Digit1: 't1', Digit2: 't2', Digit3: 't3', KeyF: 'domain', KeyE: 'interact', KeyQ: 'heal',
-  KeyM: 'map', Tab: 'swap', KeyV: 'sight', Escape: 'pause', KeyP: 'pause', KeyZ: 'rotL', KeyC: 'rotR', ShiftLeft: 'dodge', KeyR: 'art1', KeyT: 'art2', KeyI: 'inv',
+  Space: 'jump', Digit1: 't1', Digit2: 't2', Digit3: 't3', KeyF: 'domain', KeyE: 'interact', KeyQ: 'heal',
+  KeyM: 'map', Tab: 'swap', KeyV: 'sight', Escape: 'pause', KeyP: 'pause', KeyZ: 'rotL', KeyC: 'rotR', ShiftLeft: 'dodge', ShiftRight: 'dodge', KeyR: 'art1', KeyT: 'art2', KeyI: 'inv',
 };
-// Standard (Xbox) gamepad mapping. LB and RB are abilities 1 and 2; pressed
-// together they are the godly power (resolved in poll()). LT is True Sight.
-const PADMAP = { 0: 'attack', 1: 'dodge', 2: 'interact', 3: 't3', 6: 'sight', 7: 'ranged', 8: 'map', 9: 'pause', 12: 'heal', 13: 'swap', 14: 'art1', 15: 'art2' };
+// Standard (Xbox) gamepad mapping. A jumps, X is melee, and X interacts
+// instead while an interact prompt is showing for that controller (poll()).
+// LB and RB are abilities 1 and 2; pressed together they are the godly power
+// (resolved in poll()). LT is True Sight. View opens the inventory, clicking
+// the right stick (R3) the map.
+const PADMAP = { 0: 'jump', 1: 'dodge', 2: 'attack', 3: 't3', 6: 'sight', 7: 'ranged', 8: 'inv', 9: 'pause', 11: 'map', 12: 'heal', 13: 'swap', 14: 'art1', 15: 'art2' };
 const CHORD = 0.12;   // seconds LB/RB wait for the other shoulder before firing alone
 
 function blank() { const o = {}; for (const a of ACTIONS) o[a] = false; return o; }
@@ -92,6 +95,8 @@ export class Input {
       const held = blank();
       p.buttons.forEach((b, i) => { const a = PADMAP[i]; if (a && (b.pressed || b.value > 0.5)) held[a] = true; });
       this.shoulders(id, held, !!p.buttons[4]?.pressed, !!p.buttons[5]?.pressed);
+      // X interacts while a prompt is up for this controller (set by the game)
+      if (this.nearInteract?.has(id)) { held.interact = held.attack; held.attack = false; }
       const dz = (x, y) => { const l = Math.hypot(x, y); if (l < 0.2) return { x: 0, y: 0 }; const s = Math.min(1, (l - 0.2) / 0.75) / l; return { x: x * s, y: y * s }; };
       const move = dz(p.axes[0] || 0, -(p.axes[1] || 0));
       const aim = dz(p.axes[2] || 0, -(p.axes[3] || 0));

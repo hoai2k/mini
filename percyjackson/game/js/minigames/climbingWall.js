@@ -43,7 +43,7 @@ export class ClimbingWall {
   }
   input() {
     const inp = this.game.input.get(this.p.device);
-    return { x: inp.move.x, y: inp.move.y, grip: !!(inp.held.attack || inp.held.dodge), quit: inp.pressed.pause };
+    return { x: inp.move.x, y: inp.move.y, grip: !!(inp.held.attack || inp.held.dodge || inp.held.jump), quit: inp.pressed.pause };
   }
   frame() {
     const now = performance.now(); const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now;

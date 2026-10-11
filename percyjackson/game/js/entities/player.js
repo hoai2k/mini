@@ -237,6 +237,11 @@ export class Player {
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll
     if (inp.pressed.dodge && this.dodgeCd <= 0 && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) this.startDodge(mv);
+    // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
+    if (inp.pressed.jump && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
+      this.vel.y = 10.5; this.grounded = false; this.coyote = 0;
+      this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
+    }
     if (!this.downed) this.updateCombat(dt, inp);
     if (this.hurtT > 0) { this.hurtT -= dt; if (this.hurtT <= 0) this.rig.swap(null); }
     this.slowT = Math.max(0, this.slowT - dt);
@@ -317,7 +322,7 @@ export class Player {
     if (Math.abs(this.visY - this.pos.y) < 0.01) this.stepped = 0;
     this.object.position.set(this.pos.x, this.visY, this.pos.z);
     this.object.rotation.y = this.facing;
-    this.rig.animate({ dt, speed: this.dodgeT > 0 ? 0 : clamp(speed, 0, 1), vel: this.vel, action: this.dead ? { type: 'death', t: Math.min(1, (this.deadT = (this.deadT ?? 0) + dt)) } : this.downed ? { type: 'down', t: 1 } : a });
+    this.rig.animate({ dt, air: !this.grounded && !this.inLiquid && Math.abs(this.vel.y) > 1.5, speed: this.dodgeT > 0 ? 0 : clamp(speed, 0, 1), vel: this.vel, action: this.dead ? { type: 'death', t: Math.min(1, (this.deadT = (this.deadT ?? 0) + dt)) } : this.downed ? { type: 'down', t: 1 } : a });
     if (a && a.t >= 1 && a.type !== 'dodge' && !a.hold) this.action = null;
   }
 }

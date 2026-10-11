@@ -83,6 +83,7 @@ export function openPauseMenu(game, player = game.players?.[0]) {
       h('button', { class: 'btn', onclick: () => openSettings(game) }, 'Settings'),
       h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, 'Prophecy'),
       h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, 'Inventory'),
+      game.minimap?.level ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.paused = false; game.openMap(); } }, 'Map') : null,
       h('button', { class: 'btn', onclick: () => { ui.close('pause'); openSkills(game, player); } }, 'Skill tree'),
       game.openPhotoMode ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.openPhotoMode(); } }, 'Photo mode') : null,
       inChapter ? h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {

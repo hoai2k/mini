@@ -284,17 +284,19 @@ Xbox controller first, and the whole game can be played with one.
 | --- | --- | --- |
 | Move | Left stick | WASD |
 | Aim | Right stick (auto-aim when idle) | Mouse |
-| Melee | A | Left click |
+| Melee | X | Left click |
+| Jump | A | Space |
 | Ranged | RT | Right click |
-| Dodge (Battle Sense on a perfect dodge) | B | Space |
+| Dodge (Battle Sense on a perfect dodge) | B | Shift |
 | Abilities 1 · 2 · 3 | LB · RB · Y | 1 · 2 · 3 |
 | Godly power | LB + RB together | F |
 | True Sight | LT | V |
-| Interact | X | E |
+| Interact | X while a prompt shows | E |
 | Ambrosia (heal) | D-pad ↑ | Q |
 | Switch hero (hold for radial) | D-pad ↓ | Tab |
 | Magic items | D-pad ← · → | R · T |
-| Map | View | M |
+| Inventory | View | I |
+| Map | Click the right stick | M |
 | Pause | Menu | Esc |
 
 The title screen, instructions (with an Xbox controller diagram), settings and
