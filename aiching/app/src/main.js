@@ -10,6 +10,7 @@ import { TOPICS, KINDS } from './topics.js';
 import { setAssets, delivered, hexagramImage, trigramImage, topicImage } from './art.js';
 import { dayKey } from './rng.js';
 import { aiOpening, aiEnabled, setAiEnabled } from './ai.js';
+import { voiceMode, listen, joinText } from './voice.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -332,7 +333,51 @@ function autosize(t) {
   t.style.height = `${Math.min(t.scrollHeight, 240)}px`;
 }
 
+const MIC_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+// A microphone button beside the send button, when the browser can listen.
+function wireMic(form, area) {
+  const send = $('.send', form);
+  if (!voiceMode() || !send || $('.mic', form)) return;
+  const mic = document.createElement('button');
+  mic.type = 'button';
+  mic.className = 'mic';
+  mic.setAttribute('aria-label', 'Speak your question');
+  mic.setAttribute('aria-pressed', 'false');
+  mic.innerHTML = MIC_ICON;
+  send.before(mic);
+  const status = document.createElement('p');
+  status.className = 'mic-status';
+  status.setAttribute('aria-live', 'polite');
+  status.hidden = true;
+  form.append(status);
+  let stop = null;
+  let before = '';
+  const setState = (state, msg) => {
+    mic.classList.toggle('listening', state === 'listening');
+    mic.classList.toggle('working', state === 'working');
+    mic.setAttribute('aria-pressed', String(state === 'listening'));
+    status.hidden = !msg && state !== 'listening' && state !== 'working';
+    status.textContent = msg || (state === 'listening' ? 'Listening… speak your question, then pause.' : state === 'working' ? 'Writing down your words…' : '');
+    status.classList.toggle('error', state === 'error');
+    if (state === 'idle' || state === 'error') {
+      stop = null;
+      if (state === 'idle') { area.focus(); area.setSelectionRange(area.value.length, area.value.length); }
+    }
+  };
+  mic.addEventListener('click', () => {
+    if (stop) { stop(); return; }
+    before = area.value;
+    stop = listen({
+      onText: (t) => { area.value = joinText(before, t); autosize(area); },
+      onState: setState,
+    });
+  });
+  form.addEventListener('submit', () => { if (stop) stop(); });
+}
+
 function wirePrompt(form, area) {
+  wireMic(form, area);
   area.addEventListener('input', () => autosize(area));
   area.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); }

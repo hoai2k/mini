@@ -428,7 +428,8 @@ and the lobby shows up to 50 rooms per game.
 
 `POST /oracle` uses Workers AI (the `AI` binding in `wrangler.jsonc`), whose
 free allowance is separate from the requests allowance. Answers are cached for
-a day and each visitor gets 20 model calls per 10 minutes. Local `wrangler dev`
+a day and each visitor gets 20 model calls per 10 minutes. `POST /transcribe`
+runs Whisper on the same allowance, 12 recordings per visitor per 10 minutes. Local `wrangler dev`
 has no Workers AI without a Cloudflare login, so the tests run it with
 `--local` and the route answers 502 or 503 there; `npm run dev:local` does the
 same by hand.
@@ -445,6 +446,7 @@ Workers plan keeps that hard cap.
 | `WS /room/<game>/<roomId>?host=1&title=&name=&capacity=` | Open a room as host |
 | `WS /room/<game>/<roomId>?name=` | Join a room |
 | `POST /oracle` | A short Workers AI opening for an Ai-Ching reading (`src/oracle.js`; see `aiching/README.md`) |
+| `POST /transcribe` | Speech to text (Whisper) for a spoken Ai-Ching question; the body is the audio (`src/transcribe.js`) |
 
 | Direction | Message |
 | --- | --- |

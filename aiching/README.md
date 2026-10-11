@@ -87,6 +87,16 @@ answers, using only the meaning in `hexagrams.json`. Openings are kept in
 localStorage per reading, so a reading always shows the same one. Visitors can
 turn the opening off on the home page or under any opening.
 
+## Speaking a question
+
+A microphone button sits beside the send button in both question boxes
+(`src/voice.js`). Where the browser has speech recognition (Chrome, Edge,
+Safari) the words appear as they are spoken. Elsewhere (Firefox) it records
+until a pause (at most 30 seconds) and posts the audio to `POST /transcribe` on
+the mini-rooms Worker (`multiplayer/server/src/transcribe.js`), which runs
+Whisper (`@cf/openai/whisper-large-v3-turbo`) on Workers AI, 12 per visitor
+per 10 minutes. Either way the text is left in the box to check and send.
+
 ## Checks
 
 ```sh

@@ -220,3 +220,14 @@ test('the AI opening tries Chrome, then the Worker, then gives up quietly', asyn
   assert.equal(await aiOpening(r3, { lm: null, fetchImpl: async () => ({ ok: false }) }), null);
   assert.equal([...mem.keys()].filter((k) => k.includes(r3.seed)).length, 0);
 });
+
+test('voice input picks a mode and joins spoken words onto typed ones', async () => {
+  const { voiceMode, joinText } = await import('../src/voice.js');
+  assert.equal(voiceMode({ webkitSpeechRecognition: function () {} }), 'speech');
+  assert.equal(voiceMode({ MediaRecorder: function () {}, navigator: { mediaDevices: { getUserMedia() {} } } }), 'record');
+  assert.equal(voiceMode({ navigator: {} }), null);
+  assert.equal(joinText('', 'should I move abroad'), 'Should I move abroad');
+  assert.equal(joinText('Love: ', ' when will it come'), 'Love: when will it come');
+  assert.equal(joinText('Typed', ''), 'Typed');
+  assert.equal(joinText('', 'x'.repeat(700)).length, 600);
+});
