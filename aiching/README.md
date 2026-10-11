@@ -61,8 +61,10 @@ loads the smaller copies in `app/web/` (`tools/build_web.py`, which needs
 Pillow, makes them from `app/assets/`; a reading loads about 1 MB of art).
 The 24 hexagram pictures that missed their requested art style have been
 replaced and their web copies rebuilt. Their final prompts are recorded in
-`design/generated/replacement-prompts.json`; there are no outstanding
-replacement requests. Stand-ins (`src/art.js`) remain for any picture not
+`design/generated/replacement-prompts.json`. Checked against their styles
+on 11 October 2026: all 24 now read as their medium (the three embroideries
+show stitch texture close up), so there are no outstanding replacement
+requests. Stand-ins (`src/art.js`) remain for any picture not
 yet delivered.
 
 ## The AI opening
