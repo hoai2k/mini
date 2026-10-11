@@ -52,7 +52,13 @@ museum, storm, boss, minigame, oracle, woods, highway, garden), looping with
 a crossfade; places without a track yet keep the generated music. The
 victory, defeat and prophecy stingers come from
 `design/source/build_stingers.py` (ElevenLabs). Camp and the woods have a
-recorded crickets bed (`game/assets/ambience/crickets.mp3`). Prompts for the
+recorded crickets bed (`game/assets/ambience/crickets.mp3`).
+**Sound effects:** sword swings, hits, clangs, golden-dust bursts, coins,
+loot, chests, breakables, rolls, monster voices (bark, screech, hiss, click,
+roar), the boss gong, healing, Percy's wave, thunder, gates, True Sight and
+arrows are ElevenLabs recordings in `game/assets/sfx/` (two or three variants
+each, pitch-nudged), made by `design/source/build_sfx.py`; every other sound,
+and any recording that fails to load, is synthesised. Prompts for the
 remaining tracks are in [design/music-requests.md](design/music-requests.md).
 
 The full design, including the later chapters and books, is in

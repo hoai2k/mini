@@ -112,7 +112,7 @@ export class Archery {
     this.arrows.push({ mesh, vel: dir.multiplyScalar(26), life: 2 });
     p.facing = Math.atan2(dir.x, dir.z);
     p.action = { type: 'cast', dur: 0.3, elapsed: 0, t: 0, moveScale: 0 };
-    g.audio?.whoosh?.(0.8);
+    if (!g.audio?.sample?.('arrow')) g.audio?.whoosh?.(0.8);
   }
   finish() {
     if (this.done) return;

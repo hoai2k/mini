@@ -241,6 +241,7 @@ export class Mission {
     if (gate.open) return;
     gate.open = true; gate.opened = false;
     this.clearGateTimers(gate);
+    g.audio?.sample?.('gate');
     let i = 0;
     for (const [x, y, z] of gate.blocks) {
       gate.timers.push(setTimeout(() => { if (!gate.open) return; g.world.set(x, y, z, 0); g.particles.burst(new THREE.Vector3(x + 0.5, y + 0.5, z + 0.5), { count: 6, color: 0x5ad8ff, speed: 3, life: 0.6, size: 0.2 }); }, (i++) * 25));

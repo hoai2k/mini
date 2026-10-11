@@ -44,7 +44,7 @@ export class Mist {
     if (this.meter < 0.15) { this.game.toast?.('The Mist is too thick — wait a moment'); this.game.audio?.ui?.('deny'); return; }
     this.active = true; this.source = player;
     this.center.copy(player.pos);
-    this.game.audio?.energy?.('summon');
+    if (!this.game.audio?.sample?.('sight', { gain: 0.8 })) this.game.audio?.energy?.('summon');
     this.game.fx?.screenWave?.(player.pos.clone().setY(player.pos.y + 1), 0.8, 0.5);
     this.scan();
   }
