@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="booting">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -17,6 +17,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23B07A3A'/%3E%3Cpath d='M16 5l2.6 7.4L26 10l-5 6 5 6-7.4-2.4L16 27l-2.6-7.4L6 22l5-6-5-6 7.4 2.4z' fill='%23F2E8D5'/%3E%3C/svg%3E">
+  <!-- Dark from the first frame, and the logo fetched at once (see revealTitle in src/main.js). -->
+  <style>html { background: #16151A; }</style>
+  <link rel="preload" as="image" href="assets/web/logo.webp">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,7 +29,7 @@
     <section id="title" class="screen" aria-labelledby="logo-text">
       <div class="title-art" aria-hidden="true"></div>
       <div class="title-block">
-        <img id="logo-img" alt="" hidden>
+        <img id="logo-img" src="assets/web/logo.webp" alt="" hidden>
         <h1 id="logo-text" class="logo-text"><span class="vn" data-text="title.logoVietnamese"></span><span class="en" data-text="title.logoEnglish"></span></h1>
         <button id="press-start" class="press-start" data-nav data-text="title.pressStart"></button>
         <button id="practice-start" class="practice-start" data-nav data-action="practice" data-text="title.drumPractice"></button>
@@ -107,11 +110,9 @@
           <p data-text="instructions.twoDrummers"></p>
           <p data-text="instructions.commands"></p>
           <p data-text="instructions.strongerRhythms"></p>
-          <p data-text="instructions.difficulty"></p>
           <table class="cmd-table" id="cmd-table"></table>
           <p data-text="instructions.armyAnswers"></p>
           <p data-text="instructions.shield"></p>
-          <p data-text="instructions.drumWakes"></p>
           <h3 data-text="instructions.controllerHeading"></h3>
           <div class="pad-diagram" aria-hidden="true">
             <svg viewBox="0 0 640 300">
@@ -144,10 +145,6 @@
           </div>
           <table class="map-table" data-text="instructions.controlsTable"></table>
           <p data-text="instructions.phones"></p>
-          <h3 data-text="instructions.practiceHeading"></h3>
-          <p data-text="instructions.practice"></p>
-          <p data-text="instructions.training"></p>
-          <table class="map-table" data-text="instructions.practiceControlsTable"></table>
           <p class="muted" data-text="instructions.audioOffset"></p>
         </div>
         <button class="menu-btn" data-nav data-action="close" data-text="instructions.close"></button>

@@ -1794,15 +1794,30 @@ async function boot() {
   // start before the art has arrived, so loading must not send them back.
   show('title');
   requestAnimationFrame(frame);
+  revealTitle();
   await art.load();
-  const logo = art.get('logo');
-  if (logo) {
-    $('#logo-img').src = logo.src;
-    $('#logo-img').alt = T.game.name;
-    $('#logo-img').hidden = false;
+  applyStyleArt();
+}
+
+/**
+ * The title appears once, whole: it stays hidden (html.booting) until the
+ * fonts and the logo picture are ready, then fades in, so the page does not
+ * show empty buttons, then a text logo in a stand-in font, then the picture.
+ * On a slow connection it shows after 2.5 s with whatever has arrived; the
+ * text logo then stays (no late swap).
+ */
+async function revealTitle() {
+  const img = $('#logo-img');
+  const logo = img.decode().then(() => true, () => false);
+  const fonts = document.fonts ? document.fonts.ready.catch(() => {}) : null;
+  const late = new Promise((resolve) => setTimeout(() => resolve('late'), 2500));
+  const ready = await Promise.race([Promise.all([logo, fonts]), late]);
+  if (ready !== 'late' && ready[0]) {
+    img.alt = T.game.name;
+    img.hidden = false;
     $('#logo-text').classList.add('visually-hidden');
   }
-  applyStyleArt();
+  document.documentElement.classList.remove('booting');
 }
 
 /** The art in the page itself (the panels and the cards), in the current style. */
