@@ -38,10 +38,20 @@ export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y 
       for (let i = 0; i < 6; i++) prop(rig, root, inL * 0.12, 1.5 + (i % 3), 0.5, tip ?? mat, side * (1 + i * inL * 0.13), -chord * 1.0 - (i % 3) * 0.6, 0);
       for (let i = 0; i < 4; i++) prop(rig, hand, outL * 0.12, 1.5 + (i % 2) * 1.5, 0.4, tip ?? mat, side * (1 + i * outL * 0.13), -chord * 1.0 - (i % 2), 0);
     } else {
-      prop(rig, root, span * 0.55, chord, 0.8, mat, side * span * 0.275, -chord * 0.3, 0);
-      prop(rig, elbow, span * 0.5, chord * 0.85, 0.6, tip ?? mat, side * span * 0.25, -chord * 0.4, 0);
-      for (let i = 0; i < 5; i++) prop(rig, elbow, 1.8, 4 + (i % 2), 0.6, tip ?? mat, side * (span * 0.5 - i * 1.7), -chord * 0.85 - 1.8, 0);
-      for (let i = 0; i < 4; i++) prop(rig, root, 2, 3, 0.7, tip ?? mat, side * (2 + i * span * 0.12), -chord * 0.8 - 1.5, 0);
+      // feathered: a covert band and a row of secondaries on the arm, then a
+      // hand of long primaries fanned out at the tip (vox-enemies harpies)
+      const inL = span * 0.5, outL = span * 0.6, T = tip ?? mat;
+      prop(rig, root, inL, chord * 0.42, 1, mat, side * inL / 2, -chord * 0.16, 0.2);
+      for (let i = 0; i < 5; i++) prop(rig, root, inL / 5 + 0.4, chord * 0.7 + (i % 2) * 1.2, 0.6, i % 2 ? mat : T, side * inL * (i + 0.5) / 5, -chord * 0.62 - (i % 2) * 0.6, -0.2);
+      prop(rig, root, inL, 1.5, 1.5, bone, side * inL / 2, chord * 0.06, 0.3);
+      const hand = group(elbow, 0, 0, 0, 0, 0, side * 0.25);
+      prop(rig, hand, outL * 0.45, chord * 0.42, 1, mat, side * outL * 0.22, -chord * 0.16, 0.2);
+      prop(rig, hand, outL * 0.45, 1.3, 1.3, bone, side * outL * 0.22, chord * 0.06, 0.3);
+      for (let i = 0; i < 6; i++) {
+        const f = group(hand, side * outL * 0.36, -chord * 0.05, 0, 0, 0, -side * (-0.1 + i * 0.26));
+        const L = outL * (0.95 - i * 0.07);
+        prop(rig, f, L, chord * 0.2, 0.5, i % 2 ? mat : T, side * L / 2, 0, -0.1 * i);
+      }
     }
     root.rotation.y = side * 0.35;
     wings.push({ root, elbow, side });
@@ -100,7 +110,7 @@ const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0
     fur(s, 0, 16, 40, 20, 60, 0x0a0808, 0x3a3034);
     lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 6), [0xd83a0a, 0xff6a1a]);
     s.box(48, 0, 4, 2, 4, 0x3a0c08, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0);
-    s.rect(52, 16, 2, 4, 0x3a1010, 0.1);
+    s.box(52, 16, 2, 3, 1, 0x0e0c0e, 0.1); s.rect(53, 17, 2, 3, 0x5a1410, 0.1);
   } });
 
 // ---- model builders ----------------------------------------------------------
@@ -119,7 +129,8 @@ const MODELS = {
     const bristle = solid(0x141012), ember = solid(0xff4a1a, 2);
     for (let i = 0; i < 5; i++) { prop(rig, rig.torso, 3 - i * 0.3, 2.2, 2.2, bristle, 0, 4, 5 - i * 2.4, -0.5); if (i % 2) prop(rig, rig.torso, 1, 1, 1, ember, 0, 4.6, 5 - i * 2.4); }
     for (const sx of [-1, 1]) prop(rig, rig.torso, 1.6, 4, 6, bristle, sx * 3.6, 1.5, 4.5, 0, 0, sx * 0.2);
-    spikedCollar(rig, rig.neck, { r: 4.2, h: 2.2, y: -0.6, z: 0.6, rx: -0.25, n: 10 });
+    spikedCollar(rig, rig.neck, { r: 3.8, h: 3, y: -0.8, z: -0.6, rx: -0.15, n: 10 });
+    prop(rig, rig.mouth, 2.2, 0.8, 2.2, solid(0xff6a1a, 3), 0, 0.4, 1.6);   // the furnace in its jaws
     prop(rig, rig.tailTip, 1.4, 1.4, 2, ember, 0, 0, -1.6);
     for (const leg of rig.legs) for (const dx of [-0.8, 0.8]) prop(rig, leg, 0.6, 0.8, 1, solid(0xd8c8a0), dx, -7.2, 1.6);
     return rig;
@@ -137,79 +148,59 @@ const MODELS = {
     rig.extras.pot = pot; rig.extras.fire = fire;
     return rig;
   },
-  harpy: () => {
-    const mat = skinMat('harpy', (S) => paintPerson(S, { skin: 0xd8b48a, hair: 0x5a3a1e, fringe: 2, hairSide: 5, hairBack: 7, eye: 0xffc81a, eyeWhite: 0xfff2a0, scowl: true, grin: true, top: 0x8a5a2a, dots: 0xc9963a, sleeve: 0x8a5a2a, hand: 0x8a5a2a, legR: 0xe0a830, legL: 0xe0a830, shoes: 0x3a2a1a, skirt: 0x6a4a24, skirtLen: 6 }), { emit: 2.4 });
-    const rig = new Rig({ material: mat, scale: 0.95, armW: 3, legH: 9 });
-    rig.legR.scale.set(0.45, 1, 0.45); rig.legL.scale.set(0.45, 1, 0.45);
-    const claw = solid(0x3a2a1a);
-    for (const leg of [rig.legR, rig.legL]) for (const dx of [-1.6, 0, 1.6]) prop(rig, leg, 1.2 / 0.45, 1, 3 / 0.45, claw, dx / 0.45, -9, 1.5 / 0.45);
-    rig.armR.visible = rig.armL.visible = false;
-    addWings(rig, { span: 18, chord: 9, mat: solid(0x8a5a2a), tip: solid(0xc9963a, 0, 0.5, 0.3), kind: 'feather', y: 11 });
-    voxHair(rig, { style: 'long', base: 0x5a3a1e, shade: 0x3a2412, light: 0x8a6a3a, seed: 41 }, 1.05);
-    // feather ruff over the shoulders
-    for (let i = 0; i < 5; i++) prop(rig, rig.torso, 2.2, 3, 5, solid(i % 2 ? 0xc9963a : 0x8a5a2a), -4 + i * 2, 11, 0, 0, 0, (i - 2) * 0.2);
-    rig.float = 0.9;
-    return rig;
-  },
-  // Stymphalian bird: an eagle in bronze-tipped feathers with a gold beak
-  stymphalian: () => {
-    const mat = skinMat('stymphalian', (S) => paintPerson(S, { skin: 0x7a4a22, hair: 0x5a3416, fringe: 1, hairSide: 2, hairBack: 8, eye: 0x1a0a00, eyeWhite: 0xffc81a, scowl: true, brow: 0x3a2010, mouth: false, top: 0x8a5a2a, sleeve: 0x8a5a2a, hand: 0x8a5a2a, legR: 0xe0a830, legL: 0xe0a830, shoes: 0xe0a830,
-      body: (s) => { for (let i = 0; i < 70; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 12), s.r() < 0.5 ? 0xc9963a : 0x5a3416); s.rect(20, 26, 8, 6, 0xb08a5a, 0.15); } }), { emit: 2.6 });
-    const rig = new Rig({ material: mat, scale: 0.9, armW: 3, legH: 6, bodyD: 6, headS: 7 });
-    rig.legR.scale.set(0.4, 1, 0.4); rig.legL.scale.set(0.4, 1, 0.4);
-    const gold = solid(0xe0a830, 0.2, 0.4, 0.5);
-    for (const leg of [rig.legR, rig.legL]) for (const dx of [-1.4, 0, 1.4]) prop(rig, leg, 1.1 / 0.4, 1, 3 / 0.4, solid(0x2a1a0a), dx / 0.4, -6, 1.4 / 0.4);
-    rig.armR.visible = rig.armL.visible = false;
-    // hooked gold beak and feather crest
-    const beak = group(rig.head, 0, 3.6 * HS, 4.2 * HS, 0.2);
-    prop(rig, beak, 3, 2.6, 3, gold, 0, 0, 1.4); prop(rig, beak, 2.2, 2, 1.6, gold, 0, -1.4, 3);
-    for (let i = 0; i < 3; i++) prop(rig, rig.head, 1.6, 3, 4, solid(0x5a3416), 0, (8 + i * 0.4) * HS, (-1 - i * 2) * HS, -0.5 - i * 0.2);
-    addWings(rig, { span: 24, chord: 10, mat: solid(0x7a4a1e), tip: solid(0xc9963a, 0, 0.45, 0.5), kind: 'feather', y: 10, flap: 1.2 });
-    const tail = group(rig.hips, 0, 2, -3, 0.9);
-    for (let i = -2; i <= 2; i++) prop(rig, tail, 1.8, 1, 8, solid(i % 2 ? 0xc9963a : 0x6a4018), i * 1.6, 0, -4, 0, i * 0.15, 0);
-    rig.hunch = 0.55;
-    rig.float = 1.1;
-    return rig;
-  },
+  harpy: () => eagle('harpy', { scale: 1.0 }),
+  // Stymphalian bird: the same eagle in bronze feathers, sharp as knives
+  stymphalian: () => eagle('stymphalian', { scale: 0.9, metal: true }),
   fury: () => buildFury('fury', { scale: 1.0 }),
+  // Dracaena (vox-enemies, middle row): a snake-haired woman in a black and
+  // gold top with gold cuffs over one long green serpent tail striped in
+  // gold, carrying a long gold-tipped spear and a small bronze buckler.
   dracaena: () => {
-    const mat = skinMat('dracaena', (S) => paintPerson(S, { skin: 0xd8ac84, hair: 0x1e5a32, fringe: 1, hairSide: 3, hairBack: 6, eye: 0x1a1a0a, eyeWhite: 0xffd84a, fangs: 0xf4f0e0, mouth: false, top: 0xd8ac84, sleeve: 0xd8ac84, hand: 0xd8ac84, pants: 0x1e5a32, skirt: 0x1e4a2a, skirtLen: 7,
-      body: (s) => { s.rect(20, 21, 8, 3, 0xc9963a, 0.05); s.rect(16, 21, 4, 3, 0xc9963a, 0.05); s.rect(28, 21, 4, 3, 0xc9963a, 0.05); s.rect(32, 21, 8, 3, 0xc9963a, 0.05); s.rect(20, 29, 8, 2, 0xc9963a, 0.05); s.rect(16, 29, 24, 2, 0xc9963a, 0.05); s.rect(44, 23, 4, 2, 0xc9963a, 0.05); s.rect(36, 55, 4, 2, 0xc9963a, 0.05); } }), { emit: 2.4, rough: 0.5 });
+    const mat = skinMat('dracaena', (S) => paintPerson(S, { skin: 0xd8ac84, hair: 0x1e5a32, fringe: 1, hairSide: 3, hairBack: 6, eye: 0x1a1a0a, eyeWhite: 0xffd84a, scowl: true, fangs: 0xf4f0e0, mouth: false, top: 0xd8ac84, sleeve: 0xd8ac84, hand: 0xd8ac84, pants: 0x1e5a32, skirt: 0x24402a, skirtLen: 7,
+      body: (s) => {
+        const blk = 0x161214, gold = 0xc9963a;
+        for (const [u, w] of [[16, 4], [20, 8], [28, 4], [32, 8]]) { s.rect(u, 21, w, 4, blk, 0.05); s.rect(u, 21, w, 1, gold, 0); s.rect(u, 24, w, 1, gold, 0); }
+        s.rect(23, 25, 2, 2, gold, 0);
+        s.rect(16, 29, 24, 3, 0x24402a, 0.1); s.rect(16, 29, 24, 1, gold, 0); for (let x = 16; x < 40; x += 2) s.px(x, 31, 0x2e7a3a);
+      } }), { emit: 2.4, rough: 0.5 });
     const rig = new Rig({ material: mat, scale: 1.3, bodyW: 8, bodyD: 4, armW: 3, legH: 8 });
     rig.legR.visible = rig.legL.visible = false;
-    // twin snake tails, dark green with gold belly scutes, coiling behind
-    const scale = solid(0x1e5a32, 0, 0.5), belly = solid(0xc9a03a, 0, 0.5, 0.3);
-    rig.extras.tails = [];
-    for (const side of [-1, 1]) {
-      let parent = new THREE.Group(); parent.position.set(side * 2 * PX, 0, 0); rig.hips.add(parent);
-      const segs = [];
-      const shape = [[4, 8, 4], [3.6, 3.6, 7], [3, 3, 7], [2.4, 2.4, 6], [1.6, 1.6, 5]];
-      for (let i = 0; i < shape.length; i++) {
-        const [w, h, d] = shape[i];
-        const g = new THREE.Group(); if (i) g.position.set(0, (i === 1 ? -6.4 : 0) * PX, (i === 1 ? 0 : -shape[i - 1][2]) * PX); parent.add(g);
-        prop(rig, g, w, h, d, scale, 0, i === 0 ? -4 : 0, i === 0 ? 0 : -d / 2);
-        if (i > 0) { prop(rig, g, w * 0.75, 0.5, d * 0.9, belly, 0, -h / 2 - 0.2, -d / 2); prop(rig, g, w * 0.4, 0.4, d * 0.6, belly, 0, h / 2 + 0.1, -d / 2); }
-        segs.push(g); parent = g;
-      }
-      segs[0].rotation.z = side * 0.12;
-      rig.extras.tails.push({ segs: segs.slice(1), ph: side });
+    // one long serpent tail: down from the hips, along the ground behind and
+    // curling up at the tip, green with gold belly scutes and a gold side stripe
+    const scale = solid(0x1e5a32, 0, 0.5), scale2 = solid(0x2a7040, 0, 0.5), belly = solid(0xc9a03a, 0, 0.5, 0.3);
+    const base = group(rig.hips, 0, 0, 0);
+    prop(rig, base, 7, 8, 5, scale, 0, -4, 0);
+    prop(rig, base, 7.4, 1, 5.4, solid(0xc9963a, 0, 0.4, 0.6), 0, -0.4, 0);
+    const segs = [];
+    let parent = group(base, 0, -6, -1);
+    const shape = [[6, 4.4, 6], [5.4, 4, 6], [4.6, 3.6, 6], [3.8, 3, 5.6], [3, 2.6, 5], [2.2, 2, 4.4], [1.6, 1.6, 3.6]];
+    const bend = [0, 0.05, 0.15, 0.35, 0.55, 0.6, 0.5];
+    for (let i = 0; i < shape.length; i++) {
+      const [w, h, d] = shape[i];
+      const g = group(parent, 0, 0, i ? -shape[i - 1][2] : 0, bend[i], 0, 0);
+      prop(rig, g, w, h, d, i % 2 ? scale2 : scale, 0, 0, -d / 2);
+      prop(rig, g, w * 0.7, 0.5, d * 0.9, belly, 0, -h / 2 - 0.2, -d / 2);
+      prop(rig, g, 0.5, h * 0.4, d * 0.8, belly, w / 2 + 0.1, 0, -d / 2); prop(rig, g, 0.5, h * 0.4, d * 0.8, belly, -w / 2 - 0.1, 0, -d / 2);
+      segs.push(g); parent = g;
     }
+    prop(rig, parent, 1, 1, 2, belly, 0, 0, -4.4);
+    rig.extras.tails = [{ segs: segs.slice(1), ph: 0 }];
     // snake hair
     const hairS = solid(0x2e8b4a, 0, 0.6);
-    for (const [x, z, rx, rz] of [[-3, 1, 0.3, 0.6], [3, 1, 0.3, -0.6], [-2, -2, -0.5, 0.4], [2, -2, -0.5, -0.4], [0, -3, -0.7, 0], [0, 1, 0.1, 0], [-3.5, -1, -0.2, 0.9], [3.5, -1, -0.2, -0.9]])
-      snake(rig, rig.head, { len: 3, seg: 1.7, w: 1.1, body: hairS, at: [x * HS, 7.6 * HS, z * HS], rot: [rx, 0, rz], amp: 0.25, speed: 4 });
-    // bronze spear and round shield
-    const spear = new THREE.Group(); rig.handR.add(spear); spear.rotation.x = -1.2;
-    prop(rig, spear, 1, 34, 1, solid(0x4a2e1a), 0, 6, 0);
-    prop(rig, spear, 2.4, 5, 0.8, solid(0xd8a85a, 0.2, 0.3, 0.7), 0, 25, 0);
-    prop(rig, spear, 1.6, 1, 1.6, solid(0xd8a85a, 0, 0.3, 0.7), 0, 22, 0);
-    const shield = new THREE.Group(); shield.position.set(1 * PX, -5 * PX, 3 * PX); rig.handL.add(shield);
-    prop(rig, shield, 12, 12, 1.6, solid(0xc9963a, 0, 0.4, 0.6), 0, 0, 0);
-    prop(rig, shield, 8, 8, 0.6, solid(0x1e5a32, 0, 0.5), 0, 0, 1);
-    prop(rig, shield, 3, 3, 0.8, solid(0xc9963a, 0, 0.35, 0.6), 0, 0, 1.4);
+    for (const [x, z, rx, rz] of [[-3, 1, 0.3, 0.6], [3, 1, 0.3, -0.6], [-2, -2, -0.5, 0.4], [2, -2, -0.5, -0.4], [0, -3, -0.7, 0], [0, 1, 0.1, 0], [-3.5, -1, -0.2, 0.9], [3.5, -1, -0.2, -0.9], [-1.5, 2.5, 0.5, 0.3], [1.5, 2.5, 0.5, -0.3]])
+      snake(rig, rig.head, { len: 3, seg: 1.7, w: 1.2, body: hairS, at: [x * HS, 7.6 * HS, z * HS], rot: [rx, 0, rz], amp: 0.25, speed: 4 });
+    // the long spear and a small buckler
+    const spear = new THREE.Group(); rig.handR.add(spear); spear.rotation.x = -0.15;
+    prop(rig, spear, 1, 44, 1, solid(0x4a2e1a), 0, 6, 1.5);
+    prop(rig, spear, 2.4, 6, 0.8, solid(0xe0b050, 0.2, 0.3, 0.75), 0, 30, 1.5);
+    prop(rig, spear, 1.6, 1, 1.6, solid(0xd8a85a, 0, 0.3, 0.7), 0, 26.6, 1.5);
+    const shield = new THREE.Group(); shield.position.set(1.6 * PX, -5 * PX, 1 * PX); rig.handL.add(shield); shield.rotation.y = Math.PI / 2;
+    prop(rig, shield, 8, 8, 1.2, solid(0xc9963a, 0, 0.4, 0.6), 0, 0, 0);
+    prop(rig, shield, 5, 5, 0.6, solid(0x1e5a32, 0, 0.5), 0, 0, 0.8);
+    prop(rig, shield, 2, 2, 0.8, solid(0xc9963a, 0, 0.35, 0.6), 0, 0, 1.1);
     rig.extras.shield = shield;
-    for (const arm of [rig.armR, rig.armL]) prop(rig, arm, 3.6, 1.4, 4.6, solid(0xc9963a, 0, 0.35, 0.6), 0, -6, 0);
-    rig.hunch = 0.2;
+    for (const arm of [rig.armR, rig.armL]) { prop(rig, arm, 3.6, 1.4, 4.6, solid(0xc9963a, 0, 0.35, 0.6), 0, -6, 0); prop(rig, arm, 3.4, 1, 4.4, solid(0xc9963a, 0, 0.35, 0.6), 0, 1.5, 0); }
+    rig.hunch = 0.15;
     return rig;
   },
   empousa: () => {
@@ -332,6 +323,35 @@ function bronzeLegs(rig, footL, mat, tip) {
     prop(rig, knee, w * 1.25, 1.6, w * 1.25, tip, 0, 0, 0);
     prop(rig, knee, w * 0.55, 1.2, w * 0.55, mat, 0, -footL - 0.3, 0);
   }
+}
+// A harpy as the 3D sheet draws it (vox-enemies, top row): an upright eagle
+// in golden-brown feathers with a pale speckled breast, a hooked gold beak,
+// glowing yellow eyes, gold legs and black talons, and wide fingered wings.
+// metal: bronze feathers (the Stymphalian birds).
+function eagle(id, { scale = 1, metal = false } = {}) {
+  const brown = metal ? 0x9a6a2a : 0x7a4e24, light = metal ? 0xd8a24e : 0xb8823c, dark = metal ? 0x5a3a14 : 0x4a2c12;
+  const mat = skinMat(id, (S) => paintPerson(S, { skin: brown, hair: brown, fringe: 1, hairSide: 2, hairBack: 8, eye: 0x1a0a00, eyeWhite: 0xffd81a, scowl: true, brow: dark, mouth: false, top: brown, sleeve: brown, hand: brown, legR: 0xe0a830, legL: 0xe0a830, shoes: 0xe0a830,
+    face: (s, ey) => { s.rect(8, ey - 2, 8, 1, dark, 0.1); for (const x of [8, 14]) { s.rect(x, ey - 1, 2, 2, 0xffd81a, 0); s.px(x === 8 ? 9 : 14, ey, 0x1a0a00); } },
+    body: (s) => { for (let i = 0; i < 90; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 12), s.r() < 0.5 ? light : dark); s.rect(20, 23, 8, 9, metal ? 0xe8c47a : 0xd8c09a, 0.12); for (let i = 0; i < 16; i++) s.px(20 + Math.floor(s.r() * 8), 23 + Math.floor(s.r() * 9), brown); } }), { emit: 2.6, rough: metal ? 0.4 : 0.8 });
+  const rig = new Rig({ material: mat, scale, armW: 3, legH: 6, bodyD: 7, bodyW: 8, bodyH: 11, headS: 7 });
+  rig.legR.scale.set(0.42, 1, 0.42); rig.legL.scale.set(0.42, 1, 0.42);
+  const gold = solid(0xe0a830, 0.2, 0.4, 0.5), talon = solid(0x1a120a);
+  for (const leg of [rig.legR, rig.legL]) { for (const dx of [-1.4, 0, 1.4]) prop(rig, leg, 1.1 / 0.42, 1, 3.2 / 0.42, talon, dx / 0.42, -6, 1.5 / 0.42); prop(rig, leg, 1.1 / 0.42, 1, 2 / 0.42, talon, 0, -6, -1.4 / 0.42); }
+  // feathered "trousers" over the tops of the legs
+  for (const sx of [-2, 2]) prop(rig, rig.hips, 3.6, 3, 4, solid(brown, 0, 0.8), sx, -1, 0);
+  rig.armR.visible = rig.armL.visible = false;
+  // hooked gold beak, brow ridge and a ruff of neck feathers
+  const beak = group(rig.head, 0, 3.4 * HS, 4.2 * HS, 0.15);
+  prop(rig, beak, 3.2, 2.8, 3.2, gold, 0, 0, 1.4); prop(rig, beak, 2.4, 2.2, 1.8, gold, 0, -1.4, 3.1); prop(rig, beak, 1.6, 1.4, 1, solid(0xc88a20, 0.2, 0.4, 0.5), 0, -2.8, 3.4);
+  for (let i = 0; i < 7; i++) prop(rig, rig.torso, 2.4, 3.4, 2.6, solid(i % 2 ? light : brown), -4.2 + i * 1.4, 10.4, ((i % 3) - 1) * 1.6 + 0.5, 0.2, 0, (i - 3) * 0.12);
+  const wingM = metal ? solid(0x8a5a22, 0, 0.35, 0.7) : solid(brown, 0, 0.85), tipM = metal ? solid(0xd8a24e, 0.2, 0.3, 0.8) : solid(light, 0, 0.85);
+  addWings(rig, { span: 26, chord: 11, mat: wingM, tip: tipM, kind: 'feather', y: 10, flap: 1.1, bone: solid(dark) });
+  // a fan of tail feathers
+  const tail = group(rig.hips, 0, 2, -3.4, 0.9);
+  for (let i = -2; i <= 2; i++) prop(rig, tail, 1.8, 1, 8, solid(i % 2 ? light : dark), i * 1.6, 0, -4, 0, i * 0.15, 0);
+  rig.hunch = 0.35;
+  rig.float = metal ? 1.1 : 0.9;
+  return rig;
 }
 // Hephaestus's bronze spider (vox-enemies, top row): a boxy riveted body, a
 // big banded abdomen, a row of furnace-orange eyes and eight jointed legs

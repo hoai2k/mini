@@ -2,7 +2,7 @@
 // as a mission, has its story, and the book's prophecy is fulfilled.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BOOKS, CHAPTERS } from '../js/story/chapters.js';
@@ -67,4 +67,32 @@ test('every line of the Lightning Thief prophecy is fulfilled by exactly one cha
 
 test('chapter numbers run in order within each book', () => {
   for (const b of BOOKS) CHAPTERS.filter((c) => c.book === b.id).forEach((c, i) => assert.equal(c.num, i + 1, c.id));
+});
+
+test('chapter bosses, biomes, start anchors and art exist (or fall back)', () => {
+  const GAME = resolve(JS, '..');
+  const bosses = read('entities/bosses.js'), biomes = read('world/biomes.js'), camp = read('world/camp.js'), def = read('story/missionDef.js');
+  for (const ch of CHAPTERS.filter((c) => c.book === 'book1')) {
+    if (ch.boss) assert.ok(new RegExp(`^  ${ch.boss}: \\{`, 'm').test(bosses) || new RegExp(`\\b${ch.boss}: '`).test(def), `${ch.id}: boss ${ch.boss} is built or has a fallback`);
+    assert.ok(new RegExp(`^  ${ch.biome}: \\{`, 'm').test(biomes) || new RegExp(`\\b${ch.biome}: '`).test(def), `${ch.id}: biome ${ch.biome} is built or has a fallback`);
+    if (ch.start.at !== 'spawn') assert.match(camp, new RegExp(`\\b${ch.start.at}\\b`), `${ch.id}: camp has the anchor ${ch.start.at}`);
+    assert.ok(existsSync(join(GAME, ch.card)), `${ch.id}: card ${ch.card}`);
+    if (ch.bossDown?.stinger) assert.ok(existsSync(join(GAME, `assets/music/${ch.bossDown.stinger}.mp3`)), `${ch.id}: stinger ${ch.bossDown.stinger}`);
+  }
+  assert.equal(CHAPTERS.find((c) => c.id === 'lt3').bossDown?.stinger, 'claimed', 'chapter 3: Percy is claimed with the stinger');
+  // quest markers skip a start anchor camp doesn't have yet
+  assert.match(read('story/questMarkers.js'), /if \(!anchor\?\.isVector3\) continue;/);
+});
+
+test('pending chapters are playable only with ?pending', async () => {
+  const { chapterPlayable } = await import('../js/story/chapters.js');
+  const lt1 = CHAPTERS.find((c) => c.id === 'lt1'), lt5 = CHAPTERS.find((c) => c.id === 'lt5');
+  const had = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  try {
+    Object.defineProperty(globalThis, 'location', { value: { search: '' }, configurable: true });
+    assert.equal(chapterPlayable(lt1), true);
+    assert.equal(chapterPlayable(lt5), lt5.ready === true);
+    Object.defineProperty(globalThis, 'location', { value: { search: '?pending' }, configurable: true });
+    assert.equal(chapterPlayable(lt5), true);
+  } finally { if (had) Object.defineProperty(globalThis, 'location', had); else delete globalThis.location; }
 });
