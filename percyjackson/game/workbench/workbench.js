@@ -177,6 +177,7 @@ async function photograph(item) {
     const bg = scene.background; scene.background = null;
     renderer.setClearColor(0x000000, 0);
     renderer.setRenderTarget(thumbRT); renderer.render(scene, thumbCam); renderer.setRenderTarget(null);
+    rig.root.removeFromParent();   // out of the scene before the async read-back, or the viewer draws it too
     scene.background = bg; holder.visible = true; refGroup.visible = refVis;
     if (current) fitLights(current.m.center, current.m.r);
     const buf = await renderer.readRenderTargetPixelsAsync(thumbRT, 0, 0, TS, TS);
@@ -357,6 +358,32 @@ function select(item, { fromHash = false } = {}) {
 }
 
 // ------------------------------------------------------------------ inspector
+// Which concept sheet (and which part of it) each model was built from:
+// sources.json, written by design/source/build_concept_web.py.
+let SOURCES = {};
+fetch('sources.json').then((r) => (r.ok ? r.json() : {})).then((j) => { SOURCES = j; if (current) renderInspector(); }).catch(() => { /* no sources */ });
+function sourceSection(item) {
+  const src = SOURCES[`${item.group}:${item.id}`];
+  if (!src) return null;
+  const [x, y, w, h] = src.box, SHEET_ASPECT = 1.5;
+  const crop = el('button', { class: 'src-crop', title: 'Show the whole sheet', 'aria-label': `Source image: ${src.caption}. Show the whole sheet`, onclick: () => openSheet(src) });
+  crop.style.backgroundImage = `url("${src.sheet}")`;
+  crop.style.backgroundSize = `${100 / w}% ${100 / h}%`;
+  crop.style.backgroundPosition = `${w < 1 ? (x / (1 - w)) * 100 : 0}% ${h < 1 ? (y / (1 - h)) * 100 : 0}%`;
+  crop.style.aspectRatio = String((w * SHEET_ASPECT) / h);
+  return sect('Source image', crop, el('div', { class: 'dim', text: `${src.caption} · ${src.design}` }));
+}
+function openSheet(src) {
+  const [x, y, w, h] = src.box;
+  const close = () => { lb.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  const mark = el('div', { class: 'src-mark' });
+  Object.assign(mark.style, { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` });
+  const lb = el('div', { class: 'src-lightbox', role: 'dialog', 'aria-label': src.caption, onclick: close },
+    el('figure', {}, el('div', { class: 'src-wrap' }, el('img', { src: src.sheet, alt: src.caption }), w < 1 || h < 1 ? mark : null), el('figcaption', { text: `${src.caption} — click or Esc to close` })));
+  document.body.append(lb);
+  document.addEventListener('keydown', onKey, true);
+}
 const COLOR_KEY = /color|blast|puff|slash|glow|accent|tint/i;
 function fmt(v, key, loose) {
   if (v == null) return '–';
@@ -383,12 +410,14 @@ async function skillsFor(id) {
 }
 
 function renderInspector() {
+  document.querySelector('.src-lightbox')?.remove();   // a new selection closes the sheet viewer
   const box = $('insp'); box.textContent = '';
   if (!current) { box.append(el('p', { class: 'dim', text: 'Pick a model from the grid.' })); return; }
   const { item, rig, m, error } = current, d = item.data ?? {};
   const grp = GROUPS.find((g) => g.id === item.group)?.label ?? item.group;
   box.append(el('section', {}, el('div', { class: 'name', text: item.name }), el('div', { class: 'sub', text: `${grp} · id ${item.id}` }),
     el('div', { class: 'tags' }, [d.tier && el('span', { class: `tag ${d.tier}`, text: d.tier }), d.soon && el('span', { class: 'tag', text: 'not playable yet' }), d.title && item.group === 'heroes' && el('span', { class: 'tag', text: d.title })].filter(Boolean))));
+  const srcSec = sourceSection(item); if (srcSec) box.append(srcSec);
   if (error) box.append(sect('Build error', el('div', { class: 'err', text: String(error.stack ?? error.message).split('\n').slice(0, 5).join('\n') })));
 
   if (item.group === 'heroes') {
