@@ -76,6 +76,7 @@ struct AccountView: View {
     @State private var error: String?
     @State private var busy = false
     @State private var confirmDelete = false
+    @State private var ringTest: String?
 
     var body: some View {
         NavigationStack {
@@ -114,8 +115,12 @@ struct AccountView: View {
 
                 Section {
                     LabeledContent("Ringing", value: model.calls.voipToken == nil ? "Not set up on this device" : "On")
+                    Button("Test ringing") {
+                        run { ringTest = try await model.api.testRing().summary }
+                    }
+                    if let ringTest { Text(ringTest).font(.footnote) }
                 } footer: {
-                    Text("Calls ring on this device even when the app is closed.")
+                    Text("Calls ring on this device even when the app is closed. Test ringing asks the server to ring this device through Apple.")
                 }
 
                 Section {

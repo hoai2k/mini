@@ -60,6 +60,17 @@ final class AppModel: ObservableObject {
            let saved = try? JSONDecoder().decode(Account.self, from: data), api.token != nil { account = saved }
         inbox.onEvent = { [weak self] event in self?.handle(event) }
         calls.delegate = self
+        #if DEBUG
+        // For simulator screenshots (the iOS workflow): `-demoRoom <room>`
+        // starts in that room as "Demo", without a server account.
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-demoRoom"), i + 1 < args.count,
+           let demo = try? JSONDecoder().decode(Account.self, from: Data(#"{"id":"demo","handle":"demo","name":"Demo"}"#.utf8)) {
+            account = demo
+            logic.entered(args[i + 1])
+            screen = .call(room: args[i + 1])
+        }
+        #endif
     }
 
     var countryCode: String { PhoneNumber.countryCode(forRegion: Locale.current.region?.identifier) }

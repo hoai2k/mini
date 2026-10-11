@@ -12,7 +12,9 @@
 //   POST   /v1/me/phone/start         {phone}                (texts a code: Twilio Verify)
 //   POST   /v1/me/phone/check         {phone, code}          (links the number)
 //   DELETE /v1/me/phone
-//   POST   /v1/lookup                 {handles?, phones?}    -> {found: [{handle, name, phone?}]}
+//   POST   /v1/lookup                 {handles?, phones?}    -> {found: [{handle, name, query}]}
+//   POST   /v1/me/test-ring                                  rings my own device by VoIP push
+//                                     and says what Apple answered (setup check)
 // Calls
 //   POST   /v1/calls                  {to, room}             -> {call} | 404 not_found
 //   GET    /v1/calls/<id>                                    -> {call}
@@ -185,6 +187,7 @@ export class Directory extends DurableObject {
       if (parts.length === 1 && m === "DELETE") return this.deleteMe(me);
       if (parts[1] === "phone" && parts.length === 3 && m === "POST" && parts[2] === "start") return this.phoneStart(me, body);
       if (parts[1] === "phone" && parts.length === 3 && m === "POST" && parts[2] === "check") return this.phoneCheck(me, body);
+      if (parts[1] === "test-ring" && parts.length === 2 && m === "POST") return this.testRing(me);
       if (parts[1] === "phone" && parts.length === 2 && m === "DELETE") {
         this.ctx.storage.sql.exec("UPDATE accounts SET phone_hash = NULL, phone_last4 = NULL WHERE id = ?", me.id);
         return json({ ok: true });
@@ -243,6 +246,18 @@ export class Directory extends DurableObject {
     this.ctx.storage.sql.exec("DELETE FROM accounts WHERE id = ?", me.id);
     for (const ws of this.ctx.getWebSockets(me.id)) { try { ws.close(4001, "deleted"); } catch {} }
     return json({ ok: true });
+  }
+
+  // Rings my own device through Apple, to check the push setup end to end.
+  async testRing(me) {
+    if (this.limited("calls", me.id)) return fail("rate_limited", 429);
+    if (!me.voip_token) return json({ ok: false, error: "no_device_token" });
+    const call = {
+      id: crypto.randomUUID(), from: { handle: "games.chat", name: "Games Chat test call" },
+      to: { handle: me.handle, name: me.name }, room: "call-ringtest", status: "ringing", created: Date.now(),
+    };
+    const push = await this.voip(me, { kind: "ring", call });
+    return json({ ...push, sandbox: !!me.sandbox });
   }
 
   // --- phone numbers ---------------------------------------------------------------

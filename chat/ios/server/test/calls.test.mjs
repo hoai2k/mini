@@ -142,6 +142,9 @@ test("calls: decline, cancel, unknown, offline and strangers", async () => {
   // Ana has a push token but no APNs keys are configured on this server.
   const c4 = await api("POST", "/v1/calls", { to: "ana_b", room: "call-psh001" }, bo.token);
   assert.equal(c4.push.error, "apns_not_configured");
+  const test = await api("POST", "/v1/me/test-ring", {}, ana.token);
+  assert.equal(test.error, "apns_not_configured", "test ring reports the push setup");
+  assert.equal((await api("POST", "/v1/me/test-ring", {}, bo.token)).error, "no_device_token");
 });
 
 test("accounts: deleting removes the account and its handle", async () => {

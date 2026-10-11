@@ -84,6 +84,31 @@ public final class CallsAPI: @unchecked Sendable {
         let _: AccountReply = try await request("PATCH", "v1/me", ["voipToken": hex as Any? ?? NSNull(), "sandbox": sandbox])
     }
 
+    /// What Apple said when the server rang this device (a setup check).
+    public struct RingTest: Decodable, Sendable {
+        public var ok: Bool
+        public var status: Int?
+        public var reason: String?
+        public var error: String?
+        public var sandbox: Bool?
+
+        public var summary: String {
+            if ok { return "Apple accepted the push: your phone should be ringing." }
+            if let error {
+                switch error {
+                case "apns_not_configured": return "The calls server has no Apple push key yet (APNS_* secrets)."
+                case "no_device_token": return "This device hasn't registered for calls yet. Reopen the app and try again."
+                default: return "The push didn't go out: \(error)."
+                }
+            }
+            return "Apple refused the push (\(status ?? 0)\(reason.map { ", \($0)" } ?? ""))."
+        }
+    }
+
+    public func testRing() async throws -> RingTest {
+        try await request("POST", "v1/me/test-ring", [:])
+    }
+
     public func deleteAccount() async throws {
         struct Ok: Decodable { var ok: Bool }
         let _: Ok = try await request("DELETE", "v1/me")

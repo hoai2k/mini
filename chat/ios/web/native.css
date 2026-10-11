@@ -21,7 +21,7 @@
 /* Six buttons on the strip (the five tabs plus hang up): a little narrower. */
 .ios-app .controls { gap: 3px; }
 .ios-app .controls .ctrl { width: 58px; }
-.ios-app .controls .ctrl .lbl { font-size: 0.56rem; letter-spacing: -0.02em; }
+.ios-app .controls .ctrl .lbl { font-size: 0.52rem; letter-spacing: -0.02em; }
 @media (max-width: 370px) {
   .ios-app .controls .ctrl { width: 50px; }
   .ios-app .controls .ctrl .lbl { font-size: 0.5rem; }

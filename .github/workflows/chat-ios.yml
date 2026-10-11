@@ -1,6 +1,8 @@
 # Builds the Games Chat iOS app (chat/ios) on a Mac whenever it changes:
-# GamesChatCore's tests, then the app for the iOS Simulator (no signing).
-# Shipping to TestFlight is done by hand from Xcode (chat/ios/TESTFLIGHT.md).
+# GamesChatCore's tests, the app for the iOS Simulator (no signing), then
+# launches it on an iPhone and an iPad simulator and keeps screenshots of the
+# first screen and of a call (as artifacts). Shipping to TestFlight is done
+# by hand from Xcode (chat/ios/TESTFLIGHT.md).
 name: Games Chat iOS build
 
 on:
@@ -22,7 +24,44 @@ jobs:
       - name: Build the app for the simulator
         working-directory: chat/ios
         run: |
+          set -o pipefail
           xcodebuild -project GamesChat.xcodeproj -scheme GamesChat -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO build | tail -n 80
-          exit ${PIPESTATUS[0]}
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || { tail -n 120 build.log; exit 1; }
+          echo "Warnings in the app's own code:"
+          grep -E "chat/ios/(GamesChat|GamesChatCore)/.*warning:" build.log | sort -u || echo "(none)"
+          tail -n 3 build.log
+      - name: Launch on simulators and take screenshots
+        working-directory: chat/ios
+        run: |
+          set -x
+          APP=build/Build/Products/Debug-iphonesimulator/GamesChat.app
+          mkdir -p shots
+          shoot() {  # device-type name, file prefix
+            UDID=$(xcrun simctl create "$2" "$1")
+            xcrun simctl boot "$UDID"
+            xcrun simctl bootstatus "$UDID" -b
+            xcrun simctl install "$UDID" "$APP"
+            xcrun simctl privacy "$UDID" grant camera net.hoai.gameschat || true
+            xcrun simctl privacy "$UDID" grant microphone net.hoai.gameschat || true
+            xcrun simctl launch "$UDID" net.hoai.gameschat
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "shots/$2-start.png"
+            xcrun simctl terminate "$UDID" net.hoai.gameschat
+            xcrun simctl launch "$UDID" net.hoai.gameschat -demoRoom call-cisimulator
+            sleep 25
+            xcrun simctl io "$UDID" screenshot "shots/$2-call.png"
+            # Still running (no crash)?
+            xcrun simctl spawn "$UDID" launchctl list | grep -q gameschat && echo "$2: app running"
+            xcrun simctl shutdown "$UDID"
+          }
+          xcrun simctl list devicetypes
+          IPHONE=$(xcrun simctl list devicetypes | grep -o "com.apple.CoreSimulator.SimDeviceType.iPhone-1[5-9][A-Za-z0-9-]*" | grep -v -e Plus -e Pro -e e$ | tail -n 1)
+          IPAD=$(xcrun simctl list devicetypes | grep -o "com.apple.CoreSimulator.SimDeviceType.iPad-Air[A-Za-z0-9-]*" | tail -n 1)
+          shoot "$IPHONE" iphone
+          shoot "$IPAD" ipad
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-screenshots
+          path: chat/ios/shots/
