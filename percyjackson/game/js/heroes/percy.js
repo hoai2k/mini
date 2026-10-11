@@ -38,7 +38,7 @@ function funnelMesh() {
   const bands = sin(u.x.mul(6.283 * 7).add(u.y.mul(9)).sub(U.time.mul(9))).mul(0.5).add(0.5);
   const fine = sin(u.x.mul(6.283 * 19).sub(u.y.mul(14)).sub(U.time.mul(13))).mul(0.5).add(0.5);
   const a = bands.pow(3).mul(0.55).add(fine.pow(6).mul(0.35)).mul(smoothstep(0.0, 0.25, u.y)).mul(smoothstep(1.0, 0.7, u.y)).mul(alpha);
-  m.colorNode = vec4(mix(vec3(0.05, 0.45, 0.5), vec3(0.75, 1.0, 1.0), fine).mul(a).mul(1.8), a);
+  m.colorNode = vec4(mix(vec3(0.03, 0.4, 0.48), vec3(0.6, 0.95, 1.0), fine).mul(a).mul(1.2), a);
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.35, 1, 32, 1, true).translate(0, 0.5, 0), m);
   mesh.renderOrder = 22; mesh.frustumCulled = false; mesh.userData.alpha = alpha;
   return mesh;
@@ -275,8 +275,8 @@ class PercyKit extends Kit {
     const c = p.pos;
     const grow = Math.min(1, s.t / 0.6);
     const left = d.def.duration - s.t, fade = Math.max(0, Math.min(1, left / 0.6));
-    s.funnel.position.set(c.x, c.y - 0.2, c.z); s.funnel.scale.set(R * grow, 9 * grow, R * grow); s.funnel.rotation.y -= dt * 3; s.funnel.userData.alpha.value = 0.7 * fade;
-    s.funnel2.position.set(c.x, c.y - 0.2, c.z); s.funnel2.scale.set(R * 0.6 * grow, 12 * grow, R * 0.6 * grow); s.funnel2.rotation.y -= dt * 5; s.funnel2.userData.alpha.value = 0.5 * fade;
+    s.funnel.position.set(c.x, c.y - 0.2, c.z); s.funnel.scale.set(R * grow, 9 * grow, R * grow); s.funnel.rotation.y -= dt * 3; s.funnel.userData.alpha.value = 0.55 * fade;
+    s.funnel2.position.set(c.x, c.y - 0.2, c.z); s.funnel2.scale.set(R * 0.6 * grow, 12 * grow, R * 0.6 * grow); s.funnel2.rotation.y -= dt * 5; s.funnel2.userData.alpha.value = 0.4 * fade;
     s.disc.position.set(c.x, c.y + 0.08, c.z); s.disc.scale.setScalar(R * grow); s.disc.userData.alpha.value = fade;
     // spiralling spray
     const P = g.particles.glow;
@@ -285,7 +285,7 @@ class PercyKit extends Kit {
       const tang = 9 + (R - r) * 1.5;
       P.emit(c.x + Math.cos(a) * r, y, c.z + Math.sin(a) * r, -Math.sin(a) * tang - Math.cos(a) * 3, 1.5, Math.cos(a) * tang - Math.sin(a) * 3, 0.5, 0.5, 1.7, 2, 0.14 + Math.random() * 0.12, 0, 0.5, 0.1, Math.random() < 0.4 ? 1 : 0);
     }
-    if (Math.random() < 0.5) g.particles.smoke.emit(c.x + (Math.random() - 0.5) * R * 1.6, c.y + 0.3, c.z + (Math.random() - 0.5) * R * 1.6, 0, 2, 0, 0.9, 0.6, 0.8, 0.85, 0.8, 0, 1, 2.5, 0);
+    if (Math.random() < 0.15) g.particles.smoke.emit(c.x + (Math.random() - 0.5) * R * 1.6, c.y + 0.3, c.z + (Math.random() - 0.5) * R * 1.6, 0, 2, 0, 0.8, 0.12, 0.3, 0.36, 0.6, 0, 1, 2, 0);
     // pull everything in
     for (const e of g.enemies) {
       if (e.dead || e.isDummy) continue;
@@ -298,10 +298,10 @@ class PercyKit extends Kit {
       if (dist < 2) e.knock.multiplyScalar(0.5);
     }
     if (s.tick <= 0) {
-      s.tick = 0.4;
+      s.tick = 0.6;
       for (const e of g.enemies) {
         if (e.dead || Math.hypot(e.pos.x - c.x, e.pos.z - c.z) > R) continue;
-        g.combat.damageEnemy(e, 9, p, { stagger: 0.3, ceGain: 0 });
+        g.combat.damageEnemy(e, 13, p, { stagger: 0.3, ceGain: 0 });
         g.particles.burst(tmp.copy(e.pos).setY(e.pos.y + 1), { count: 6, color: FOAM, speed: 4, life: 0.4, size: 0.12, shape: 1, gravity: 8 });
       }
       g.shake(0.12);
