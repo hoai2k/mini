@@ -22,25 +22,74 @@ export function canFullscreen() {
   const el = document.documentElement;
   return !!(el.requestFullscreen || el.webkitRequestFullscreen);
 }
-export function requestFullscreen() {
+// One request at a time: a tap's permission (user activation) is used up by the
+// first request, so a second one in the same tap is always refused, and on
+// some Android browsers that refusal is all the player sees. Once fullscreen
+// has started, lock landscape (Android only allows the lock in fullscreen).
+let pending = null;
+// Set when the player left fullscreen themselves: taps stop asking for it.
+let userLeft = false;
+/** An explicit request (the Fullscreen button, the menu): taps may ask again. */
+export function wantFullscreen(opts) { userLeft = false; return requestFullscreen(opts); }
+let failures = 0;
+let onFail = null;
+export function onFullscreenFail(f) { onFail = f; }
+export function requestFullscreen({ lock = false } = {}) {
   const el = document.documentElement;
-  if (fullscreenElement()) return;
+  if (fullscreenElement() || pending) return pending || Promise.resolve(true);
+  let r;
   try {
-    const r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
-    r?.catch?.(() => { /* refused: carry on */ });
-  } catch { /* not allowed here */ }
+    r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
+  } catch { r = Promise.reject(new Error('not allowed')); }
+  // Old WebKit returns nothing: judge by the fullscreenchange that follows.
+  if (!r || typeof r.then !== 'function') r = new Promise((ok) => setTimeout(() => ok(), 300)).then(() => { if (!fullscreenElement()) throw new Error('refused'); });
+  pending = r.then(() => {
+    failures = 0;
+    if (lock) screen.orientation?.lock?.('landscape').catch(() => { /* the rotate card covers it */ });
+    return true;
+  }, () => {
+    failures++;
+    onFail?.(failures);
+    return false;
+  }).finally(() => { pending = null; });
+  return pending;
 }
 export function exitFullscreen() {
   try { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {}); } catch { /* ignore */ }
 }
 
-export function createChrome({ touch, isPlaying, hintEl, onStuck }) {
+export function createChrome({ touch, isPlaying, hintEl, onStuck, onUserLeft }) {
   const landscape = () => innerWidth > innerHeight;
 
-  // 1. The first tap in landscape asks for fullscreen (where supported).
+  // 1. A tap in landscape asks for fullscreen while it isn't on (where
+  // supported): the first tap, and again after the system took it away
+  // (switching apps, a rotation). But when the player leaves it themselves
+  // (Chrome's "swipe down to exit", the back gesture, our button), taps stop
+  // asking until they turn it back on: otherwise every tap would throw them
+  // straight back in, with Chrome's notice each time. If the browser refuses on
+  // pointerup (some count only the click as the tap), the click tries again.
   if (touch && canFullscreen() && !standalone) {
+    let retryClick = false;
+    let lastHidden = 0, lastTurn = 0;
+    document.addEventListener('visibilitychange', () => { lastHidden = performance.now(); });
+    addEventListener('orientationchange', () => { lastTurn = performance.now(); });
+    screen.orientation?.addEventListener?.('change', () => { lastTurn = performance.now(); });
+    const onChange = () => {
+      if (fullscreenElement()) { userLeft = false; return; }
+      const now = performance.now();
+      const bySystem = document.hidden || now - lastHidden < 1500 || now - lastTurn < 1500;
+      if (!bySystem) { userLeft = true; onUserLeft?.(); }
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
     document.addEventListener('pointerup', () => {
-      if (landscape() && !fullscreenElement()) requestFullscreen();
+      if (userLeft || !landscape() || fullscreenElement()) return;
+      requestFullscreen({ lock: true }).then((ok) => { retryClick = !ok; });
+    }, { capture: true });
+    document.addEventListener('click', () => {
+      if (userLeft || !retryClick || fullscreenElement()) return;
+      retryClick = false;
+      requestFullscreen({ lock: true });
     }, { capture: true });
   }
 

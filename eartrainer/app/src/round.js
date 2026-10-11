@@ -2,8 +2,9 @@
 //
 // The player must press the melody's notes in order. A wrong note counts as a
 // mistake but changes nothing else: the player keeps trying until they find
-// the right one. Timing is never judged. Redo starts the answer over (the
-// mistakes already made still count).
+// the right one. Timing is never judged. Redo starts the answer over from a
+// clean slate: wrong notes made before it no longer count, so a correct run
+// after a Redo is a clean one.
 
 export function createRound(notes) {
   return { notes, pos: 0, mistakes: 0, done: false, misses: new Array(notes.length).fill(0) };
@@ -23,7 +24,10 @@ export function press(round, midi) {
 }
 
 export function redo(round) {
-  if (!round.done) round.pos = 0;
+  if (round.done) return;
+  round.pos = 0;
+  round.mistakes = 0;
+  round.misses.fill(0);
 }
 
 /** The note the player is looking for next (null once solved). */

@@ -37,7 +37,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   unevenness. It plays on its own channel about 7 dB under the player's keys
   (Settings → Melody volume), and keeps playing when you press keys, so you
   can play along.
-- **Repeat** plays the melody again; **Redo** starts your answer over;
+- **Repeat** plays the melody again; **Redo** starts your answer over from a
+  clean slate (wrong notes before it no longer count);
   **Practice** lets you try notes without answering; **Tempo** − / + runs
   from 0.5× to 1.5×; **Skip** moves on (and tells you what it was) and
   becomes **Next** once the melody is solved.
@@ -73,8 +74,16 @@ redo, `3` practice, `-`/`=` speed, `Enter` next, `Esc` menu); Xbox controller
 (D-pad or left stick moves a key cursor, A plays it, X repeat, B redo, Y
 practice, LB/RB speed, D-pad up/down an octave, View or RT next, Menu
 pauses). `,` `.` slide an octave and `9` `0` show fewer or more keys. Fullscreen works as in
-Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
-for fullscreen, and iPhone Safari gets the swipe-up hint instead (tap it to
+Kingdom of the Fairies (`app/src/chrome.js`): a tap in landscape asks for
+fullscreen while it is off, unless the player left it themselves (Chrome's
+"swipe down to exit" notice, the back gesture, the button): then taps stop
+asking, a message says how to turn it back on, and only the button or the
+pause menu does; exits caused by switching apps or a rotation still come back
+on the next tap (one request per tap, since a second in the same
+tap is always refused; the click retries if the pointerup was refused; landscape
+is locked once fullscreen starts; the pause menu offers Full screen again, and
+a browser that keeps refusing gets one message suggesting Chrome or the home
+screen), and iPhone Safari gets the swipe-up hint instead (tap it to
 dismiss it). If a swipe leaves Safari's bar showing (newer Safari keeps a small
 one in some layouts), the hint gives up for the session and suggests Add to
 Home Screen, which is the only true full screen on iPhone. While playing, the

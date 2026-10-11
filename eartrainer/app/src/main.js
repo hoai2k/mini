@@ -7,7 +7,7 @@ import { noteName } from './music.js';
 import { perform, secondsPerBeat } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
-import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, preventZoom } from './chrome.js';
+import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
@@ -73,6 +73,7 @@ const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDi
 preventZoom();
 const chrome = createChrome({
   touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint'),
+  onUserLeft: () => toast('Full screen is off. Turn it back on from the menu, or the Fullscreen button on the title.'),
   onStuck: (why) => { if (why === 'swiped') toast('Safari keeps its bar here. For full screen: Share → Add to Home Screen'); },
 });
 
@@ -103,10 +104,18 @@ function show(mode) {
   if (mode === 'play') requestAnimationFrame(() => kbd.layout());
 }
 
+// If the browser keeps refusing fullscreen (some in-app browsers never allow
+// it), say so once instead of failing silently.
+let toldNoFullscreen = false;
+onFullscreenFail((n) => {
+  if (n < 2 || toldNoFullscreen || !TOUCH) return;
+  toldNoFullscreen = true;
+  toast('This browser won’t go full screen. Open the page in Chrome, or add it to your home screen.');
+});
+
 function start() {
   unlock();
-  requestFullscreen();
-  if (TOUCH) screen.orientation?.lock?.('landscape').catch(() => { /* the rotate card covers it */ });
+  wantFullscreen({ lock: TOUCH });
   openBooks();
 }
 
@@ -522,7 +531,7 @@ syncSoundButton();
 $('#btn-fullscreen').addEventListener('click', () => {
   // iPhone Safari can't go fullscreen: point at the ways it can lose its bars.
   if (chrome.scrollTrick) { const h = $('#bars-hint'); h.hidden = false; h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); announce(h.textContent); return; }
-  if (fullscreenElement()) exitFullscreen(); else requestFullscreen();
+  if (fullscreenElement()) exitFullscreen(); else wantFullscreen({ lock: TOUCH });
 });
 $('#books-back').addEventListener('click', toTitle);
 
@@ -551,7 +560,12 @@ function closeDialog() {
   chrome.update();
 }
 function closeAllDialogs() { while (dialogs.length) closeDialog(); }
-function openPause() { if (S.mode === 'play' && !dialogs.length) openDialog($('#pause')); }
+function openPause() {
+  if (S.mode !== 'play' || dialogs.length) return;
+  // Offer a way back into fullscreen if it was left (Android's back gesture, switching apps).
+  $('#pause [data-act=fullscreen]').hidden = !!fullscreenElement() || chrome.scrollTrick || !document.documentElement.requestFullscreen && !document.documentElement.webkitRequestFullscreen;
+  openDialog($('#pause'));
+}
 $$('[data-close]').forEach((b) => b.addEventListener('click', closeDialog));
 // A tap on the dimmed backdrop closes a dialog (a click, so a swipe across it doesn't).
 $$('.dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) closeDialog(); }));
@@ -562,6 +576,7 @@ $$('#pause [data-act]').forEach((b) => b.addEventListener('click', () => {
   if (a === 'settings') openDialog($('#settings'));
   if (a === 'books') { closeAllDialogs(); openBooks(); }
   if (a === 'title') toTitle();
+  if (a === 'fullscreen') { closeDialog(); wantFullscreen({ lock: TOUCH }); }
 }));
 let confirmYes = null;
 function confirmBox(text, yes) { $('#confirm-text').textContent = text; confirmYes = yes; openDialog($('#confirm')); focusEl($('#confirm [data-act=no]'), padMode); }
