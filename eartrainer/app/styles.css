@@ -168,7 +168,8 @@ html.touch [data-tip]:hover::after { display: none; }
 .slot.hear .tile, .slot.hear .staff-ink { fill: #149c8f; }
 .slot.tap .staff-ink { fill: #b7862f; }
 .slot .hit { fill: transparent; }
-.slot.note { cursor: pointer; }
+.slot { cursor: pointer; }
+.slot.tap .tile { fill: #b7862f; }
 .slot.pop { animation: notepop .35s cubic-bezier(.2, 1.7, .4, 1); transform-box: fill-box; transform-origin: center; }
 @keyframes notepop { from { transform: scale(.4); opacity: 0; } }
 #play.practicing .staff-card { box-shadow: inset 0 0 0 2px var(--teal), 0 4px 14px rgba(0, 0, 0, .35); }
@@ -180,6 +181,8 @@ html.touch [data-tip]:hover::after { display: none; }
 .ctl:active { transform: scale(.94); }
 .ctl.practice[aria-pressed="true"] { background: var(--teal); color: #05302b; border-color: var(--teal); box-shadow: 0 0 18px rgba(79, 214, 199, .45); }
 .ctl.busy { border-color: var(--teal); color: var(--teal); }
+.ctl.next.counting::before { content: ''; position: absolute; inset: 0; background: rgba(255, 255, 255, .35); transform-origin: left; animation: fillup var(--auto, 3s) linear forwards; pointer-events: none; }
+@keyframes fillup { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .ctl.next { background: linear-gradient(180deg, var(--brass-2), var(--brass)); color: var(--brass-ink); border-color: transparent; box-shadow: 0 4px 14px rgba(226, 180, 94, .35); }
 .tempo { grid-column: span 2; display: flex; min-height: 0; align-items: stretch; border: 1px solid var(--line-2); background: var(--panel); border-radius: 10px; overflow: hidden; }
 .tempo .step { border: 0; background: transparent; font-size: 22px; font-weight: 700; width: 44px; flex: none; }

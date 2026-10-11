@@ -95,6 +95,12 @@ export function preventZoom() {
     lastEnd = now;
   }, opts);
   document.addEventListener('dblclick', (e) => e.preventDefault(), opts);
+  // Surfaces that are played on (the keys, the navigator, the staff) own their
+  // touches outright: cancelling touchstart stops Safari from reading fast
+  // taps as a double-tap zoom. Pointer events, which they listen to, still fire.
+  for (const sel of ['#kbd', '#kbd-nav .nav-track', '#staff']) {
+    document.querySelector(sel)?.addEventListener('touchstart', (e) => e.preventDefault(), opts);
+  }
   // Snap back: rewriting the viewport tag resets Safari's zoom.
   const meta = document.querySelector('meta[name="viewport"]');
   const base = meta?.content || '';

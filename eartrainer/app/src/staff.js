@@ -1,7 +1,8 @@
 // The notation strip above the keyboard, as in Chet: a staff with one slot per
 // note of the melody. Notes already found show as notes at their pitch (tap one
 // to hear it); the note being looked for is a brass "?" tile; the rest are grey
-// "?" tiles. During playback each slot glows as its note sounds.
+// "?" tiles, and a tile can be tapped to hear its note too (without revealing
+// where it is). During playback each slot glows as its note sounds.
 import G from './glyphs.js';
 import { spell, spellToken, staffStep, keyOf } from './music.js';
 
@@ -73,6 +74,8 @@ export function createStaff(host, { onTap } = {}) {
       const g = el('g', { class: 'slot', 'data-i': i });
       slots.push(g);
       const shown = model.done || i < model.pos;
+      // A wide invisible target so a slot is easy to tap.
+      el('rect', { x: cx - slotW / 2, y: 0, width: slotW, height: H, class: 'hit' }, g);
       if (!shown) {
         const tw = Math.min(slotW * 0.74, S * 1.9), th = S * 2.7;
         g.classList.add(i === model.pos && !model.practice ? 'current' : 'pending');
@@ -84,8 +87,6 @@ export function createStaff(host, { onTap } = {}) {
       g.classList.add('note');
       const y = yOf(sp.step);
       const hx = cx - headW / 2 + (sp.acc ? S * 0.35 : 0);
-      // A wide invisible target so a note is easy to tap.
-      el('rect', { x: cx - slotW / 2, y: 0, width: slotW, height: H, class: 'hit' }, g);
       // Ledger lines
       for (let s = c.bottom - 2; s >= sp.step; s -= 2) el('line', { x1: hx - S * 0.4, x2: hx + headW + S * 0.4, y1: yOf(s), y2: yOf(s), class: 'staff-line ledger', 'stroke-width': Math.max(1, S * 0.12) }, g);
       for (let s = c.bottom + 10; s <= sp.step; s += 2) el('line', { x1: hx - S * 0.4, x2: hx + headW + S * 0.4, y1: yOf(s), y2: yOf(s), class: 'staff-line ledger', 'stroke-width': Math.max(1, S * 0.12) }, g);
@@ -106,7 +107,7 @@ export function createStaff(host, { onTap } = {}) {
   }
 
   svg.addEventListener('pointerdown', (e) => {
-    const g = e.target.closest?.('.slot.note');
+    const g = e.target.closest?.('.slot');
     if (!g) return;
     e.preventDefault();
     const i = Number(g.dataset.i);

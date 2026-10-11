@@ -21,7 +21,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   fits the keys on screen, else from its lowest note). A glowing dot marks the first note until you
   play it.
 - As in Chet, a staff above the keys has a slot for every note: notes you've
-  found appear at their pitch (tap one to hear it), the next one to find is a
+  found appear at their pitch; tap any slot, found or not, to hear its note
+  on its own; the next one to find is a
   brass "?" tile and the rest are grey tiles. Each slot glows as its note
   plays. Notes keep their written spelling; transposed melodies are spelled
   in the key the app detects (`keyOf`/`spell` in `music.js`). The staff can
@@ -42,8 +43,10 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   becomes **Next** once the melody is solved.
 - Solving reveals every note on the staff and the title in the top bar, with
   one to three stars (three for no mistakes), points, a streak bonus for clean
-  answers in a row, a chime and confetti. Repeat then replays the melody with
-  its keys lit.
+  answers in a row, a chime and confetti. After about three seconds (the
+  Next button fills up) the next melody starts by itself; playing on restarts
+  the wait, and Repeat (which replays it with its keys lit), Redo, Practice,
+  a tap on the staff or the menu stays with it. Settings can turn this off.
 - Songbooks: Children's Songs, Folk & Traditional, Carols & Hymns, Classical
   Themes, Jazz Standards, Bebop Heads, Jazz & Blues Licks, Film & Pop Hooks,
   or everything.
@@ -70,7 +73,9 @@ Kingdom of the Fairies (`app/src/chrome.js`): the first tap in landscape asks
 for fullscreen, and iPhone Safari gets the swipe-up hint instead. The page
 can't be zoomed: iPhone Safari ignores `user-scalable=no`, so `preventZoom` in
 `chrome.js` blocks pinches (two fingers drifting apart on a chord look like
-one) and double-tap zoom, and snaps the page back if it ever ends up zoomed.
+one) and double-tap zoom (the keys, navigator and staff cancel their
+touchstarts outright, so fast taps on them can never zoom), and snaps the
+page back if it ever ends up zoomed.
 
 ## Files
 

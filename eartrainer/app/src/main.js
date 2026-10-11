@@ -67,7 +67,7 @@ kbd.setLabels(settings.labels);
 kbd.showRange(60, 72, false); // middle C
 const fx = createFx($('#fx'));
 // Tapping a found note on the staff plays it on its own.
-const staff = createStaff($('#staff'), { onTap: (midi) => { audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
+const staff = createStaff($('#staff'), { onTap: (midi) => { cancelAuto(); audio.unlock(); const v = audio.noteOn(midi, { velocity: 0.8 }); audio.noteOff(v, audio.now() + 0.7); } });
 const pads = createGamepads({ onButton: padButton, onButtonUp: padButtonUp, onDirection: padDirection, onStick: padStick, onDisconnect: () => { if (S.mode === 'play' && !dialogs.length) openPause(); } });
 preventZoom();
 const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' && !dialogs.length, hintEl: $('#bars-hint') });
@@ -198,6 +198,7 @@ function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('
 
 // ---------------------------------------------------------------- a round
 function nextMelody() {
+  cancelAuto();
   stopPlayback();
   const pool = inBook(LIB, progress.book);
   const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
@@ -309,7 +310,10 @@ function keyDown(midi, source) {
   S.held.set(midi, v);
   if (S.free) { freeNote(midi); return; }
   const r = S.round;
-  if (!r || S.practice || r.done) return;
+  if (!r || S.practice || r.done) {
+    if (r?.done && S.solvedShown && $('#btn-skip').classList.contains('counting')) scheduleAuto(); // still playing: wait a little longer
+    return;
+  }
   const result = press(r, midi);
   if (result === 'wrong') {
     kbd.flash(midi, 'bad');
@@ -371,9 +375,32 @@ function solved() {
   announce(`Solved: ${m.title}, ${st} star${st > 1 ? 's' : ''}${gain ? `, plus ${gain} points` : ''}.`);
   const sc = $('#hud-score'); sc.classList.remove('bump'); void sc.offsetWidth; sc.classList.add('bump');
   syncHud();
+  scheduleAuto();
 }
 
+// ---------------------------------------------------------------- moving on
+// After a solved melody (and its celebration) the next one starts by itself,
+// while the Next button fills up. Playing a few more notes restarts the wait;
+// Repeat, Redo, Practice, tapping the staff or opening the menu stays put.
+const AUTO_MS = 3200;
+let autoT = 0;
+function scheduleAuto(ms = AUTO_MS) {
+  clearTimeout(autoT);
+  const btn = $('#btn-skip');
+  btn.classList.remove('counting');
+  if (!settings.auto || !S.solvedShown || S.free) return;
+  btn.style.setProperty('--auto', `${ms}ms`);
+  void btn.offsetWidth;
+  btn.classList.add('counting');
+  autoT = setTimeout(() => {
+    btn.classList.remove('counting');
+    if (S.solvedShown && S.mode === 'play' && !dialogs.length && !S.free) nextMelody();
+  }, ms);
+}
+function cancelAuto() { clearTimeout(autoT); $('#btn-skip').classList.remove('counting'); }
+
 function doRedo() {
+  cancelAuto();
   if (!S.round) return;
   stopPlayback();
   if (S.round.done) {
@@ -387,8 +414,9 @@ function doRedo() {
   setPrompt('From the top.');
   setTimeout(idlePrompt, 1200);
 }
-function doRepeat() { if (S.round && !S.free) playMelody({ light: !!(S.round.done && settings.light) }); }
+function doRepeat() { cancelAuto(); if (S.round && !S.free) playMelody({ light: !!(S.round.done && settings.light) }); }
 function doPractice() {
+  cancelAuto();
   S.practice = !S.practice;
   syncPractice();
   syncStaff();
@@ -437,6 +465,7 @@ $('#books-back').addEventListener('click', toTitle);
 // ---------------------------------------------------------------- dialogs
 const dialogs = []; // { el, returnFocus }
 function openDialog(el) {
+  cancelAuto();
   stopPlayback();
   kbd.releaseAll();
   dialogs.push({ el, returnFocus: document.activeElement });
@@ -493,6 +522,7 @@ function syncSettings() {
   $('#set-first').checked = settings.first;
   $('#set-light').checked = settings.light;
   $('#set-staff').checked = settings.staff;
+  $('#set-auto').checked = settings.auto;
   $('#set-vibrate').checked = settings.vibrate;
 }
 $('#set-volume').addEventListener('input', (e) => { settings.volume = Number(e.target.value); audio.setVolume(settings.volume); $('#set-volume-out').textContent = `${Math.round(settings.volume * 100)}%`; save(); });
@@ -500,6 +530,7 @@ $('#set-melody').addEventListener('input', (e) => { settings.melody = Number(e.t
 $('#set-reverb').addEventListener('input', (e) => { settings.reverb = Number(e.target.value); audio.setReverb(settings.reverb); $('#set-reverb-out').textContent = `${Math.round(settings.reverb * 100)}%`; save(); });
 $('#set-first').addEventListener('change', (e) => { settings.first = e.target.checked; save(); syncMarker(); });
 $('#set-light').addEventListener('change', (e) => { settings.light = e.target.checked; save(); });
+$('#set-auto').addEventListener('change', (e) => { settings.auto = e.target.checked; save(); });
 $('#set-staff').addEventListener('change', (e) => { settings.staff = e.target.checked; save(); syncStaffSetting(); });
 function syncStaffSetting() { $('#play').classList.toggle('no-staff', !settings.staff); }
 syncStaffSetting();
