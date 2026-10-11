@@ -23,18 +23,23 @@ export function addWings(rig, { span = 14, chord = 9, mat, tip, kind = 'bat', y 
   const wings = [];
   for (const side of [-1, 1]) {
     const root = new THREE.Group(); root.position.set(side * 2 * PX, y * PX, -2.6 * PX); rig.torso.add(root);
-    prop(rig, root, span * 0.55, chord, 0.8, mat, side * span * 0.275, -chord * 0.3, 0);
     const elbow = new THREE.Group(); elbow.position.set(side * span * 0.55 * PX, 0, 0); root.add(elbow);
-    prop(rig, elbow, span * 0.5, chord * 0.85, 0.6, tip ?? mat, side * span * 0.25, -chord * 0.4, 0);
     if (kind === 'bat') {
-      // leading bone, finger struts and a tattered trailing edge
-      prop(rig, root, span * 0.55, 1.2, 1.2, bone, side * span * 0.275, 0.6, 0.2);
-      prop(rig, elbow, span * 0.5, 1, 1, bone, side * span * 0.25, 0.2, 0.2);
-      prop(rig, elbow, 1.2, 2.4, 1.2, bone, side * span * 0.5, 1, 0.2);
-      for (let i = 0; i < 4; i++) prop(rig, elbow, 0.8, chord * 0.9, 1, bone, side * (1.5 + i * span * 0.12), -chord * 0.45, 0.1);
-      for (let i = 0; i < 5; i++) prop(rig, elbow, span * 0.08, 2 + (i % 2) * 2, 0.5, tip ?? mat, side * (1 + i * span * 0.1), -chord * 0.85 - 1 - (i % 2), 0);
-      for (let i = 0; i < 4; i++) prop(rig, root, span * 0.1, 2 + (i % 2) * 1.5, 0.6, mat, side * (1 + i * span * 0.13), -chord * 0.8 - 1, 0);
+      // leathery membrane in stepped rows (longest along the top bone), a
+      // raised outer hand with fanned finger bones, tattered trailing edge
+      const inL = span * 0.55, outL = span * 0.55;
+      for (let r = 0; r < 3; r++) prop(rig, root, inL * (1 - r * 0.2), chord * 0.36, 0.6, r % 2 ? (tip ?? mat) : mat, side * inL * (1 - r * 0.2) / 2, -chord * (0.18 + r * 0.33), 0);
+      prop(rig, root, inL, 1.3, 1.3, bone, side * inL / 2, 0.4, 0.2);
+      const hand = group(elbow, 0, 0, 0, 0, 0, side * 0.55);
+      for (let r = 0; r < 4; r++) { const L = outL * (1 - r * 0.24); prop(rig, hand, L, chord * 0.3, 0.5, r % 2 ? mat : (tip ?? mat), side * L / 2, -chord * (0.15 + r * 0.28), 0); }
+      prop(rig, hand, outL, 1.1, 1.1, bone, side * outL / 2, 0.3, 0.2);
+      prop(rig, hand, 1.4, 2.4, 1.4, bone, side * outL, 1, 0.2);
+      for (let i = 0; i < 3; i++) { const f = group(hand, 0, 0, 0.3, 0, 0, -side * (0.45 + i * 0.4)); prop(rig, f, outL * (0.95 - i * 0.12), 0.8, 0.8, bone, side * outL * (0.95 - i * 0.12) / 2, 0, 0); }
+      for (let i = 0; i < 6; i++) prop(rig, root, inL * 0.12, 1.5 + (i % 3), 0.5, tip ?? mat, side * (1 + i * inL * 0.13), -chord * 1.0 - (i % 3) * 0.6, 0);
+      for (let i = 0; i < 4; i++) prop(rig, hand, outL * 0.12, 1.5 + (i % 2) * 1.5, 0.4, tip ?? mat, side * (1 + i * outL * 0.13), -chord * 1.0 - (i % 2), 0);
     } else {
+      prop(rig, root, span * 0.55, chord, 0.8, mat, side * span * 0.275, -chord * 0.3, 0);
+      prop(rig, elbow, span * 0.5, chord * 0.85, 0.6, tip ?? mat, side * span * 0.25, -chord * 0.4, 0);
       for (let i = 0; i < 5; i++) prop(rig, elbow, 1.8, 4 + (i % 2), 0.6, tip ?? mat, side * (span * 0.5 - i * 1.7), -chord * 0.85 - 1.8, 0);
       for (let i = 0; i < 4; i++) prop(rig, root, 2, 3, 0.7, tip ?? mat, side * (2 + i * span * 0.12), -chord * 0.8 - 1.5, 0);
     }
@@ -93,7 +98,7 @@ export function animateExtras(rig, dt, e) {
 const lavaDog = (o) => (S) => paintQuad(S, { base: o.base ?? 0x221d20, dark: 0x0e0c0e, belly: 0x2c2428, back: 0x161214, eye: 0xff2a0a, eyeLow: 0xffa040, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
   custom: (s) => {
     fur(s, 0, 16, 40, 20, 60, 0x0a0808, 0x3a3034);
-    lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 4));
+    lavaCracks(s, 0, 16, 40, 20, o.cracks ?? 8, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, Math.round((o.cracks ?? 8) / 6), [0xd83a0a, 0xff6a1a]);
     s.box(48, 0, 4, 2, 4, 0x3a0c08, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0);
     s.rect(52, 16, 2, 4, 0x3a1010, 0.1);
   } });
@@ -122,7 +127,7 @@ const MODELS = {
   spider: () => {
     const rig = new QuadRig({ material: skinMat('spider', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x4a2e12, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 11], [13, 11], [10, 9], [12, 9]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.22, speckles: 10,
       custom: (s) => { for (let x = 0; x < 32; x += 4) s.rect(x, 44, 1, 10, 0x5a3a18, 0); s.rect(40, 18, 12, 1, 0xe0b060, 0); s.rect(40, 22, 12, 1, 0x5a3a18, 0); } }), { rough: 0.35, emit: 3.6 }),
-      scale: 0.72, bodyL: 7, bodyW: 7, bodyH: 4, legH: 6, legW: 1.6, headS: 5, legs: 8, splay: 1.1, footL: 6, snout: false, neckUp: -1, gait: 1.6 });
+      scale: 0.72, bodyL: 7, bodyW: 7, bodyH: 4, legH: 5, legW: 1.6, headS: 5, legs: 8, splay: 1.9, footL: 9, snout: false, neckUp: -1, gait: 1.6 });
     bronzeLegs(rig, 6, solid(0x8a5a24, 0, 0.35, 0.6), solid(0xe0b060, 0, 0.3, 0.7));
     // round clockwork abdomen banded in bronze, with a wind-up key
     const ab = rig.mesh(quadPart('extra', 9, 7, 10), rig.material); ab.position.set(0, 1.5 * PX, -8 * PX); rig.torso.add(ab);
@@ -243,7 +248,7 @@ const MODELS = {
   scorpion: () => {
     const rig = new QuadRig({ material: skinMat('scorpion', (S) => paintQuad(S, { base: 0x3a2214, dark: 0x1a0e08, belly: 0x5a3018, back: 0x2a160c, eye: 0xff3a1a, eyes: [[9, 12], [13, 12], [11, 10], [12, 10]], plates: 0x6a3a1c, teeth: false, nose: 0x1a0e08, noise: 0.15, speckles: 20,
       custom: (s) => { s.box(40, 32, 2, 2, 6, 0x4a2a16, 0.15); for (let x = 40; x < 56; x += 3) s.rect(x, 32, 1, 8, 0x1a0e08, 0); } }), { rough: 0.35, emit: 3 }),
-      scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4.5, legW: 1.4, headS: 4.5, legs: 8, splay: 1.05, footL: 4, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
+      scale: 1.1, bodyL: 10, bodyW: 7, bodyH: 3.4, legH: 4, legW: 1.4, headS: 4.5, legs: 8, splay: 1.6, footL: 5, snout: false, neckUp: -1.2, gait: 1.5, tail: 6, tailLen: 15, tailW: 2.4, tailCurl: 0.62 });
     bronzeLegs(rig, 4, solid(0x2a160c, 0, 0.35), solid(0x6a3a1c, 0, 0.35));
     // pincers on jointed arms
     const chit = solid(0x4a2a16, 0, 0.35), dark = solid(0x1a0e08, 0, 0.35);
@@ -354,7 +359,7 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
   for (let i = 0; i < 7; i++) { const g = group(rig.hips, -3.6 + i * 1.2, 0.5, ((i % 3) - 1) * 1.2); prop(rig, g, 1.8, 8 + (i % 3) * 2.4, 1.8 + (i % 2), i % 2 ? rag : rag2, 0, -4 - (i % 3) * 1.2, 0); sway(rig, g, 'x', 0.12, 2.5, i); }
   for (const z of [-2.2, 2.2]) for (let i = 0; i < 4; i++) prop(rig, rig.hips, 2, 7 + (i % 2) * 3, 0.8, rag, -3 + i * 2, -3.5 - (i % 2), z);
   for (const sx of [-1.4, 1.4]) { prop(rig, rig.hips, 2, 1.2, 3.4, solid(skin), sx, -10.6, 0.8); for (const dx of [-0.6, 0.6]) prop(rig, rig.hips, 0.5, 0.6, 1.2, solid(0x2a2420), sx + dx, -10.8, 2.8); }
-  voxHair(rig, { style: 'curls', base: hair, shade: 0x8a8a88, light: 0xffffff, seed }, 1.15);
+  voxHair(rig, { style: 'curls', base: hair, shade: 0x8a8a88, light: 0xffffff, seed }, 1.0);
   for (const arm of [rig.armR, rig.armL]) prop(rig, arm, 3.4, 1.2, 4.4, solid(0xc9963a, 0.2, 0.35, 0.7), 0, -7.5, 0);
   addWings(rig, { span: 20 * Math.min(1.2, scale + 0.1), chord: 11, mat: solid(wing, 0, 0.9), tip: solid(0x3a2418, 0, 0.9), kind: 'bat', y: 10.5, bone: solid(0x2a1a10) });
   addWhip(rig, { segs: 7, len: 3 });

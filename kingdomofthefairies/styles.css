@@ -90,8 +90,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: var(--plum); border: 2px solid #c79ab7; display: grid; place-items: center; position: relative;
 }
 .icon svg { width: 24px; height: 24px; fill: none; stroke: var(--pink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon svg g { stroke: var(--pink); }
 .icon:hover, .icon:focus-visible, .icon.nav-focus { background: var(--magenta); border-color: var(--pink); outline: none; }
 .icon:active { transform: scale(.94); }
+.icon.sound-btn.is-off:not(:hover):not(:focus-visible):not(.nav-focus) { opacity: .55; }
 .icon::after {
   content: attr(data-tip); position: absolute; bottom: 62px; right: 0; white-space: nowrap;
   background: var(--plum); border: 1px solid #c79ab7; padding: 4px 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s;

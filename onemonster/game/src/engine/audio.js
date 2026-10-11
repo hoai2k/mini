@@ -5,14 +5,22 @@
 let ctx = null;
 let master, musicBus, sfxBus;
 let levels = { volume: 0.8, music: 0.5, sfx: 0.8 };
+let soundOn = true; // the player's Sound button
 let musicTimer = null;
 let currentTune = null;
 let away = false; // the tab is hidden or the window has lost focus: stay silent
 
+// What the master is aimed at (for checks).
+export const state = () => ({ sound: soundOn, away, master: soundOn && !away ? levels.volume : 0 });
+function applyMaster() {
+  if (ctx) master.gain.setTargetAtTime(soundOn && !away ? levels.volume : 0, ctx.currentTime, 0.04);
+}
+
 export function setLevels(s) {
   levels = { volume: s.volume / 100, music: s.music / 100, sfx: s.sfx / 100 };
+  soundOn = s.sound !== false;
   if (!ctx) return;
-  master.gain.value = levels.volume;
+  applyMaster();
   musicBus.gain.value = levels.music * 0.5;
   sfxBus.gain.value = levels.sfx;
 }
@@ -29,7 +37,7 @@ export function unlock() {
   musicBus.connect(master);
   sfxBus.connect(master);
   master.connect(ctx.destination);
-  setLevels({ volume: levels.volume * 100, music: levels.music * 100, sfx: levels.sfx * 100 });
+  setLevels({ volume: levels.volume * 100, music: levels.music * 100, sfx: levels.sfx * 100, sound: soundOn });
   if (currentTune) playMusic(currentTune, true);
 }
 
@@ -38,6 +46,7 @@ export function unlock() {
 // clock, which stops while suspended, so nothing piles up meanwhile.
 export function suspend(on) {
   away = on;
+  applyMaster();
   if (!ctx) return;
   if (on) ctx.suspend(); else ctx.resume();
 }

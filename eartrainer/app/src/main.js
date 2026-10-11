@@ -45,6 +45,7 @@ function loadSound(name, announceLoad = true) {
   });
 }
 audio.setVolume(settings.volume);
+audio.setMuted(settings.muted);
 audio.setReverb(settings.reverb);
 loadSound(settings.sound);
 const unlock = () => audio.unlock();
@@ -384,6 +385,27 @@ $('#btn-pause').addEventListener('click', openPause);
 $('#start').addEventListener('click', start);
 $('#btn-instructions').addEventListener('click', () => openDialog($('#instructions')));
 $('#btn-settings').addEventListener('click', () => openDialog($('#settings')));
+const SOUND_ICON = {
+  on: '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>',
+  off: '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>',
+};
+function syncSoundButton() {
+  const on = !settings.muted;
+  const label = on ? 'Sound on' : 'Sound off';
+  const b = $('#btn-sound');
+  b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', label);
+  b.dataset.tip = label;
+  b.classList.toggle('is-off', !on);
+  b.querySelector('svg').innerHTML = on ? SOUND_ICON.on : SOUND_ICON.off;
+  $('#set-sound-on').checked = on;
+}
+function setMuted(m) {
+  settings.muted = m; audio.setMuted(m); if (m) audio.stopAll(); save(); syncSoundButton();
+}
+$('#btn-sound').addEventListener('click', () => { setMuted(!settings.muted); audio.unlock(); });
+$('#set-sound-on').addEventListener('change', (e) => setMuted(!e.target.checked));
+syncSoundButton();
 $('#btn-fullscreen').addEventListener('click', () => {
   // iPhone Safari can't go fullscreen: point at the ways it can lose its bars.
   if (chrome.scrollTrick) { const h = $('#bars-hint'); h.hidden = false; h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); announce(h.textContent); return; }
@@ -609,10 +631,16 @@ function checkRotate() {
 addEventListener('resize', checkRotate);
 addEventListener('orientationchange', () => setTimeout(checkRotate, 120));
 checkRotate();
+// Silent while the page is hidden or the window is not focused.
+const syncAway = () => audio.setAway(document.hidden || !document.hasFocus());
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { stopPlayback(); kbd.releaseAll(); audio.stopAll(); }
+  syncAway();
 });
-addEventListener('blur', () => kbd.releaseAll());
+addEventListener('blur', () => { kbd.releaseAll(); audio.setAway(true); });
+addEventListener('focus', syncAway);
+addEventListener('pageshow', syncAway);
+syncAway();
 
 // ---------------------------------------------------------------- toasts and announcements
 let toastT = 0;

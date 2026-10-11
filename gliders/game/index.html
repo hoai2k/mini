@@ -38,8 +38,12 @@
           <span class="btn-label">Instructions</span>
         </button>
         <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></g></svg>
           <span class="btn-label">Settings</span>
+        </button>
+        <button class="icon-btn sound-btn" data-nav data-action="sound" aria-pressed="true" aria-label="Sound on" title="Sound on">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g></svg>
+          <span class="btn-label">Sound on</span>
         </button>
         <button class="icon-btn" data-nav data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
@@ -200,6 +204,7 @@
           <label class="row">Camera distance <input type="range" min="0" max="2" step="1" data-nav data-setting="camera"><output></output></label>
           <label class="row">Field of view <input type="range" min="60" max="95" step="1" data-nav data-setting="fov"><output></output></label>
           <label class="row">Graphics <input type="range" min="0" max="2" step="1" data-nav data-setting="quality"><output></output></label>
+          <label class="row check">Sound <input type="checkbox" data-nav data-setting="sound"></label>
           <label class="row check">Contrails <input type="checkbox" data-nav data-setting="trails"></label>
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
           <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>

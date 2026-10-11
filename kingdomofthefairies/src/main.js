@@ -30,7 +30,7 @@ const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' &
 const SETTINGS_KEY = STORAGE_PREFIX + '.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
-const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
+const settings = { sound: true, period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
 settings.extraAnimations = settings.extraAnimations === true;
 if (!LEGACY) { settings.period = true; document.querySelector('[data-key="period"]').hidden = true; }
@@ -42,16 +42,35 @@ function syncSettingsUI() {
     if (el.type === 'range') el.value = settings[k];
     else if (k === 'film') el.querySelector('span').textContent = FILM[settings.film];
     else if (k === 'vibration') el.querySelector('span').textContent = settings.vibration ? 'On' : 'Off';
+    else if (k === 'sound') el.querySelector('span').textContent = settings.sound ? 'On' : 'Off';
     else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
     else if (k === 'extraAnimations') el.querySelector('span').textContent = settings.extraAnimations ? 'On' : 'Off';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
+  audio.setSound(settings.sound !== false);
+  syncSoundButton();
+}
+const SOUND_ICON = {
+  on: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g>',
+  off: '<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g>',
+};
+function syncSoundButton() {
+  const b = document.getElementById('btn-sound');
+  if (!b) return;
+  const on = settings.sound !== false;
+  const label = on ? 'Sound on' : 'Sound off';
+  b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', label);
+  b.dataset.tip = label;
+  b.classList.toggle('is-off', !on);
+  b.querySelector('svg').innerHTML = on ? SOUND_ICON.on : SOUND_ICON.off;
 }
 for (const el of document.querySelectorAll('#settings [data-key]')) {
   const k = el.dataset.key;
   if (el.type === 'range') el.addEventListener('input', () => { settings[k] = +el.value; syncSettingsUI(); saveSettings(); });
   else el.addEventListener('click', () => {
     if (k === 'film') settings.film = { full: 'gentle', gentle: 'off', off: 'full' }[settings.film];
+    if (k === 'sound') settings.sound = !settings.sound;
     if (k === 'vibration') settings.vibration = !settings.vibration;
     if (k === 'extraAnimations') settings.extraAnimations = !settings.extraAnimations;
     if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
@@ -317,6 +336,10 @@ $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openI
 $('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
 $('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits [data-act=close]')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
+$('#btn-sound').addEventListener('click', () => {
+  settings.sound = !settings.sound;
+  syncSettingsUI(); saveSettings(); audio.play('ui');
+});
 $('#btn-fullscreen').addEventListener('click', () => {
   audio.play('ui');
   // iPhone Safari can't go fullscreen: point at the ways it can lose its bars.

@@ -5,6 +5,7 @@ const SCORES_KEY = 'gliders.scores.v1';
 
 export const DEFAULTS = {
   volume: 80,
+  sound: true,
   music: 50,
   sfx: 80,
   assist: 1, // 0 off, 1 gentle, 2 strong

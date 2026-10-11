@@ -29,11 +29,11 @@ function dogHead(rig, parent, hs) {
 // A lion's mane: layered cubes around the back of a QuadRig head.
 function mane(rig, head, hs, seed, cols, { thick = 1, chest = true } = {}) {
   const r = rng(seed), cubes = [];
-  for (let i = 0; i < 90 * thick; i++) {
+  for (let i = 0; i < 150 * thick; i++) {
     const a = r() * Math.PI * 2, R = hs * (0.62 + r() * 0.42);
     const x = Math.cos(a) * R, y = Math.sin(a) * R * 0.95 - 0.3, z = hs * (-0.25 + r() * 0.45) - (R - hs * 0.6) * 0.5;
-    const sz = 1.8 + r() * 1.8;
-    cubes.push({ x, y, z, w: sz, h: sz * 1.1, d: sz, col: cols[Math.floor(r() * cols.length)] });
+    const sz = 1.2 + r() * 1.4;
+    cubes.push({ x, y, z, w: sz, h: sz * 1.2, d: sz, col: cols[Math.floor(r() * cols.length)] });
   }
   if (chest) for (let i = 0; i < 26; i++) cubes.push({ x: (r() - 0.5) * hs * 1.1, y: -hs * 0.55 - r() * hs * 0.7, z: hs * (-0.1 + r() * 0.35), w: 2.2, h: 2.6, d: 2.2, col: cols[Math.floor(r() * cols.length)] });
   return voxCubes(rig, head, cubes);
@@ -132,13 +132,13 @@ export const BOSS_MODELS = {
   // cracks, a burning ridge, a gold spiked collar and a furnace for a mouth.
   hellhound_alpha: () => {
     const m = skinMat('boss_hellhound_alpha', (S) => paintQuad(S, { base: 0x1c181c, dark: 0x0c0a0c, belly: 0x2a2226, back: 0x141014, eye: 0xff2a0a, eyeLow: 0xffb04a, nose: 0x050505, speckles: 40, brow: 0x0a0808, teeth: 0xfff0d0,
-      custom: (s) => { fur(s, 0, 16, 40, 20, 80, 0x0a0808, 0x3a3034); lavaCracks(s, 0, 16, 40, 20, 18); lavaCracks(s, 40, 16, 12, 11, 5); lavaCracks(s, 0, 0, 32, 8, 3); s.box(48, 0, 4, 2, 4, 0x5a1008, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0); } }), { emit: 3.2 });
+      custom: (s) => { fur(s, 0, 16, 40, 20, 80, 0x0a0808, 0x3a3034); lavaCracks(s, 0, 16, 40, 20, 16, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 40, 16, 12, 11, 2, [0xd83a0a, 0xff6a1a]); lavaCracks(s, 0, 0, 32, 8, 2, [0xd83a0a, 0xff6a1a]); s.box(48, 0, 4, 2, 4, 0x5a1008, 0.2); s.rect(52, 4, 4, 1, 0xff6a1a, 0); s.rect(36, 7, 4, 1, 0xff6a1a, 0); } }), { emit: 3.2 });
     const rig = new QuadRig({ material: m, scale: 3.4, bodyL: 14, bodyW: 8, bodyH: 7.5, legH: 7.5, legW: 3.4, headS: 7.5, ears: true, tail: 5, tailLen: 10, tailW: 2, tailCurl: 0.4, gait: 0.7 });
     const blacks = [0x141012, 0x1e181c, 0x0a0808, 0x2a2226];
     furClump(rig, rig.torso, 41, blacks, { y: 3.6, z: 3, sx: 8, sy: 3, sz: 9, n: 50, size: [1.8, 3] });
     const ember = solid(0xff4a14, 2.4);
     for (let i = 0; i < 6; i++) prop(rig, rig.torso, 1.4, 2.4 + (i % 2), 1.4, ember, (i % 2 ? 0.8 : -0.8), 4.8, 5 - i * 2.2, -0.3);
-    spikedCollar(rig, rig.neck, { r: 4.6, h: 2.4, y: -0.6, z: 0.6, rx: -0.25, n: 12 });
+    spikedCollar(rig, rig.neck, { r: 3.4, h: 2.6, y: -2.2, z: -0.6, rx: -0.5, n: 12 });
     prop(rig, rig.tailTip, 1.8, 1.8, 2.4, ember, 0, 0, -1.8);
     for (const leg of rig.legs) for (const dx of [-1, 0, 1]) prop(rig, leg, 0.7, 0.9, 1.4, solid(0xe8d8b0), dx, -7.6, 1.9);
     prop(rig, rig.mouth, 2.6, 0.8, 2.6, solid(0xff6a1a, 3), 0, 0.4, 1.8);   // the glow inside the jaws
@@ -158,6 +158,9 @@ export const BOSS_MODELS = {
     const hood = group(rig.head, 0, 0, 0);
     prop(rig, hood, 11 * HS, 10 * HS, 11 * HS, cloth, 0, 4.6 * HS, -0.6 * HS);
     prop(rig, hood, 6 * HS, 3 * HS, 6 * HS, cloth, 0, 10.2 * HS, -2 * HS, 0.3);
+    for (const sx of [-1, 1]) prop(rig, hood, 0.8, 10 * HS, 0.8, gold, sx * 5.2 * HS, 4.6 * HS, 4.9 * HS);
+    prop(rig, rig.torso, 1, 12, 0.6, gold, 0, 6, 2.8);
+    for (let i = 0; i < 6; i++) prop(rig, rig.torso, 1.8, 1.8, 1.4, cloth2, -4.4 + i * 1.8, 12, -0.5 + (i % 2));
     const veil = group(hood, 0, 9 * HS, 4.9 * HS);
     prop(rig, veil, 9.6 * HS, 13 * HS, 0.8, cloth2, 0, -6.5 * HS, 0);
     prop(rig, veil, 9.8 * HS, 0.8, 1, gold, 0, 0, 0);
@@ -184,11 +187,11 @@ export const BOSS_MODELS = {
   // Hephaestus's mechanical queen: a big bronze spider with a gear-wound
   // abdomen, a crown of spikes and a cluster of furnace eyes.
   spiders: () => {
-    const m = skinMat('boss_spider_queen', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x3a2410, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 12], [13, 12], [9, 10], [13, 10], [11, 9], [11, 11]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.2, speckles: 16,
+    const m = skinMat('boss_spider_queen', (S) => paintQuad(S, { base: 0xb47a30, dark: 0x5a3a18, belly: 0x3a2410, eye: 0xffb02a, eyeLow: 0xff6a1a, eyes: [[9, 12], [13, 12], [10, 10], [12, 10]], plates: 0xe0b060, extra: 0x8a5a24, teeth: false, nose: 0x5a3a18, noise: 0.2, speckles: 16,
       custom: (s) => { for (let x = 0; x < 32; x += 4) s.rect(x, 44, 1, 10, 0x5a3a18, 0); s.rect(40, 18, 12, 1, 0xe0b060, 0); s.rect(40, 22, 12, 1, 0x5a3a18, 0); for (let i = 0; i < 20; i++) s.px(Math.floor(s.r() * 40), 16 + Math.floor(s.r() * 20), 0x3a8a6a); } }), { emit: 3.6, rough: 0.35 });
-    const rig = new QuadRig({ material: m, scale: 2.7, bodyL: 9, bodyW: 9, bodyH: 5, legH: 7, legW: 2, headS: 6, legs: 8, splay: 1.05, footL: 7, snout: false, neckUp: -1, gait: 1.1 });
+    const rig = new QuadRig({ material: m, scale: 2.7, bodyL: 9, bodyW: 9, bodyH: 5, legH: 7, legW: 2, headS: 6, legs: 8, splay: 1.95, footL: 12, snout: false, neckUp: -1, gait: 1.1 });
     const plate = solid(0xe0b060, 0.1, 0.3, 0.75), dark = solid(0x5a3a18, 0, 0.4, 0.6);
-    for (const leg of rig.legs) { const k = leg.userData.knee; prop(rig, k, 2.8, 2, 2.8, plate, 0, 0, 0); prop(rig, k, 1.2, 1.6, 1.2, dark, 0, -7.4, 0); prop(rig, leg, 2.4, 1.4, 2.4, plate, 0, -3.5, 0); }
+    for (const leg of rig.legs) { const k = leg.userData.knee; prop(rig, k, 2.8, 2, 2.8, plate, 0, 0, 0); prop(rig, k, 1.2, 1.6, 1.2, dark, 0, -12.4, 0); prop(rig, leg, 2.4, 1.4, 2.4, plate, 0, -3.5, 0); }
     // abdomen: banded dome with turning gears and a spinneret glow
     const ab = group(rig.torso, 0, 2, -9);
     ab.add(rig.mesh(quadPart('extra', 13, 10, 13), rig.material));
@@ -210,10 +213,10 @@ export const BOSS_MODELS = {
   // robe over his shoulders, a huge grin and a woodsman's axe.
   procrustes: () => {
     const m = skinMat('boss_procrustes', (S) => paintPerson(S, { skin: 0xd8a07a, hair: 0x141012, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a1a0a, brow: 0x141012, grin: true, top: 0xf8f4ec, jacket: 0xece4d4, lapel: 0xd8ccb8, collar: 0xffffff, trim: 0xb8232f, sleeve: 0xece4d4, hand: 0xd8a07a, pants: 0xece4d4, shoes: 0x2a1a12,
-      body: (s) => { s.rect(23, 21, 2, 10, 0xb8232f, 0); s.rect(23, 37, 2, 10, 0xb8232f, 0); } }), { emit: 0.6 });
+      body: (s) => { s.rect(23, 21, 2, 10, 0xb8232f, 0); s.rect(23, 37, 2, 10, 0xb8232f, 0); } }), { emit: 0, fill: 0.1 });
     const red = solid(0xb8232f, 0, 0.8), redD = solid(0x8a1a22, 0, 0.8);
     const rig = new Rig({ material: m, scale: 2.2, bodyW: 10, bodyD: 6, armW: 4.6, headS: 9, legH: 12, cape: { material: red, segments: 4, length: 26, width: 12 } });
-    voxHair(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, cap: true }, 1);
+    voxHair(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, cap: true }, 0.88);
     // the red robe panels down the front, with gold edging
     for (const sx of [-1, 1]) { prop(rig, rig.torso, 2.6, 13, 1, red, sx * 4, 6, 3.2); prop(rig, rig.torso, 0.6, 13, 1.1, solid(0xc9963a, 0, 0.4, 0.6), sx * 2.8, 6, 3.3); prop(rig, rig.torso, 3, 2, 7, redD, sx * 5, 12, 0); }
     prop(rig, rig.torso, 2.6, 2, 1, solid(0xffffff), -3, 10.4, 3.1);   // pocket square
@@ -231,9 +234,9 @@ export const BOSS_MODELS = {
   // Cerberus: three huge black heads with burning eyes, red mouths, drool and
   // gold spiked collars on one enormous body.
   cerberus: () => {
-    const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff8a1a, eyeLow: 0xffd84a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
+    const m = skinMat('boss_cerberus', (S) => paintQuad(S, { base: 0x1e1c26, dark: 0x0e0d14, belly: 0x2a2834, back: 0x16141c, eye: 0xff4a0a, eyeLow: 0xffa02a, nose: 0x050505, speckles: 50, brow: 0x0a0a10, teeth: 0xfff4e0,
       custom: (s) => { fur(s, 0, 16, 40, 20, 90, 0x0a0a10, 0x3a3848); fur(s, 0, 0, 32, 16, 30, 0x0a0a10, 0x3a3848); s.box(48, 0, 4, 2, 4, 0xa82030, 0.1); s.rect(52, 4, 4, 1, 0xf4f0e0, 0); s.rect(36, 6, 4, 2, 0xc8283a, 0.1); s.box(52, 16, 2, 3, 1, 0x8a2a3a, 0.1); } }), { emit: 3 });
-    const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 9, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 2.5, headZ: 0.5 });
+    const rig = new QuadRig({ material: m, scale: 3.3, bodyL: 14, bodyW: 9, bodyH: 8, legH: 8, legW: 3.8, headS: 7.5, ears: true, tail: 4, tailLen: 9, tailW: 2.2, tailCurl: 0.2, gait: 0.65, neckUp: 4, headZ: 1 });
     const blacks = [0x16141c, 0x22202a, 0x0e0d14, 0x2e2c38];
     furClump(rig, rig.torso, 51, blacks, { y: 3.4, z: 2, sx: 10, sy: 4, sz: 10, n: 60, size: [2, 3.2] });
     const heads = [];
@@ -243,7 +246,8 @@ export const BOSS_MODELS = {
       let neck, head, mouth;
       if (side === 0) { neck = rig.neck; head = rig.head; mouth = rig.mouth; }
       else {
-        neck = new THREE.Group(); neck.position.set(side * 5.4 * PX, (8 * 0.3 + 1) * PX, (14 / 2 - 1.5) * PX); neck.rotation.y = side * 0.55; rig.torso.add(neck);
+        neck = new THREE.Group(); neck.position.set(side * 6.2 * PX, (8 * 0.3 + 0.6) * PX, (14 / 2 - 2.5) * PX); neck.rotation.y = side * 0.6; rig.torso.add(neck);
+        prop(rig, neck, 5, 5, 5, rig.material, 0, -0.5, -1.5);
         ({ head, mouth } = dogHead(rig, neck, 7));
       }
       dress(head, mouth);
@@ -265,7 +269,7 @@ export const BOSS_MODELS = {
         for (let y = 36; y < 48; y += 2) { s.px(21, y, 0xc8c8d0); s.px(26, y, 0xc8c8d0); } s.rect(16, 46, 24, 2, 0x2a2428, 0);
         for (const [u, v] of [[0, 16], [16, 48]]) { s.rect(u + 4, v + 7, 3, 2, skin, 0); s.rect(u + 9, v + 9, 2, 1, skin, 0); s.rect(u, v + 12, 16, 4, 0x141012, 0); } } }), { emit: 1.6 });
     const rig = new Rig({ material: m, scale: 2.05, bodyW: 10, bodyD: 5, armW: 5, headS: 8.5, legH: 12 });
-    voxHair(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91 }, 0.95);
+    voxHair(rig, { style: 'messy', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, cap: true }, 0.86);
     const hs = 8.5 / 8 * HS;
     // red-hot sunglasses
     prop(rig, rig.head, 8.8 * hs, 1.6 * hs, 1, solid(0x1a0a08), 0, 4.8 * hs, 4.5 * hs);
@@ -308,7 +312,7 @@ export const BOSS_MODELS = {
     const skin = 0xe8b890;
     const m = skinMat('boss_luke', (S) => paintPerson(S, { skin, hair: 0xd8a850, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a6ab8, brow: 0xa87a30, frown: true, top: 0xf28c28, sleeve: 0xf28c28, shortSleeve: true, pants: 0x3a5a8a, shoes: 0xf0f0f0,
       face: (s, ey) => { s.px(14, ey + 1, 0xb8402a); s.px(14, ey + 2, 0xb8402a); s.px(13, ey + 3, 0xb8402a); s.px(15, ey, 0xb8402a); },
-      body: (s) => { const k = 0x17130f; s.rect(22, 23, 4, 2, k, 0); s.px(21, 22, k); s.px(26, 22, k); s.px(20, 21, k); s.px(27, 21, k); s.px(23, 25, k); s.px(24, 26, k); s.rect(16, 31, 24, 1, 0x5a3a22, 0); for (const [u, v] of [[0, 16], [16, 48]]) s.rect(u, v + 13, 16, 1, 0x2a3a5a, 0); } }), { emit: 0.8 });
+      body: (s) => { const k = 0x17130f; s.rect(22, 23, 4, 2, k, 0); s.px(21, 22, k); s.px(26, 22, k); s.px(20, 21, k); s.px(27, 21, k); s.px(23, 25, k); s.px(24, 26, k); s.rect(16, 31, 24, 1, 0x5a3a22, 0); for (const [u, v] of [[0, 16], [16, 48]]) s.rect(u, v + 13, 16, 1, 0x2a3a5a, 0); } }), { emit: 0, fill: 0.1 });
     const rig = new Rig({ material: m, scale: 1.3 });
     voxHair(rig, { style: 'shaggy', base: 0xd8a850, shade: 0xa87a30, light: 0xf0d080, seed: 101 }, 1);
     // camp bead necklace

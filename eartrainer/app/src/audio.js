@@ -29,7 +29,11 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
 
   const out = ctx.createDynamicsCompressor();
   out.threshold.value = -10; out.knee.value = 8; out.ratio.value = 4; out.attack.value = 0.003; out.release.value = 0.2;
-  out.connect(ctx.destination);
+  // The gate: shut while the player has muted the game or the page is away.
+  const gate = ctx.createGain(); gate.connect(ctx.destination);
+  out.connect(gate);
+  let muted = false, away = false;
+  const applyGate = () => gate.gain.setTargetAtTime(muted || away ? 0 : 1, ctx.currentTime, 0.03);
   const master = ctx.createGain(); master.gain.value = 0.8; master.connect(out);
   const dry = ctx.createGain(); dry.connect(master);
   const wet = ctx.createGain(); wet.gain.value = 0.18;
@@ -168,6 +172,10 @@ export function createAudio({ base = 'assets/samples/' } = {}) {
     noteOn, noteOff, stopAll, chime, thud, setInstrument, unlock,
     get instrument() { return inst; },
     get running() { return ctx.state === 'running'; },
+    setMuted(m) { muted = !!m; applyGate(); },
+    setAway(a) { away = !!a; applyGate(); },
+    // For checks: what the output gate is aimed at.
+    state() { return { muted, away, gate: muted || away ? 0 : 1 }; },
     setVolume(v) { master.gain.setTargetAtTime(v * 0.95, ctx.currentTime, 0.02); },
     setReverb(v) { wet.gain.setTargetAtTime(v * 0.45, ctx.currentTime, 0.05); dry.gain.setTargetAtTime(1 - v * 0.25, ctx.currentTime, 0.05); },
     now: () => ctx.currentTime,

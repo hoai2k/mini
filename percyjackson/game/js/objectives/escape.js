@@ -128,6 +128,7 @@ export class EscapeObjective {
     this.failed = true;
     this.trail.visible = false;
     this.m.fail('The Lotus has you. Years go by…');
+    this.m.updateText();
   }
   text() {
     const t = this.m.def.objText ?? 'Escape';

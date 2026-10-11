@@ -43,6 +43,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .icon svg { width: 22px; height: 22px; }
 .icon:hover { border-color: var(--brass); color: var(--brass-2); }
 .icon:active { transform: scale(.92); }
+.icon.sound-btn.is-off:not(:hover):not(:focus-visible):not(.pad-focus) { opacity: .55; }
 .icon.ghost { background: transparent; border-color: transparent; }
 .icon.ghost:hover { border-color: var(--line-2); }
 [data-tip]:hover::after, [data-tip]:focus-visible::after, [data-tip].pad-focus::after {

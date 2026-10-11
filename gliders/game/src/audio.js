@@ -20,7 +20,7 @@ export function createAudio() {
   let windBus = null, windTone = null;
   const layers = {}; // id -> { src, gain }
   let recordedWind = false;
-  const vol = { master: 0.8, music: 0.5, sfx: 0.8 };
+  const vol = { master: 0.8, music: 0.5, sfx: 0.8, sound: true };
 
   function noiseBuffer(seconds = 2) {
     const b = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
@@ -139,7 +139,8 @@ export function createAudio() {
 
   function applyVolumes() {
     if (!ctx) return;
-    master.gain.value = vol.master;
+    // Silent while the Sound button is off or the page is away.
+    master.gain.setTargetAtTime(vol.sound && !away ? vol.master : 0, ctx.currentTime, 0.04);
     music.gain.value = vol.music * 0.55;
     sfx.gain.value = vol.sfx;
   }
@@ -211,6 +212,7 @@ export function createAudio() {
 
   function setAway(v) {
     away = v;
+    applyVolumes();
     if (!ctx) return;
     if (away) ctx.suspend().catch(() => {});
     else ctx.resume().catch(() => {});
@@ -223,6 +225,10 @@ export function createAudio() {
 
   return {
     unlock: ensure,
+    // For checks: what the master is aimed at.
+    state() {
+      return { sound: vol.sound, away, master: vol.sound && !away ? vol.master : 0 };
+    },
     get muted() {
       return away || !ctx || ctx.state !== 'running';
     },

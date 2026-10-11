@@ -6,6 +6,7 @@ const PROGRESS_KEY = 'onemonster.progress.v1';
 
 export const DEFAULTS = {
   volume: 80,
+  sound: true,
   music: 50,
   sfx: 80,
   vibration: true,
