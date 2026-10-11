@@ -1033,7 +1033,8 @@ Object.assign(TEMPLATES, {
   // Rows of statues of people who looked at her, in a gravel yard.
   statue_yard(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.gravel_path, 6, B.cobble, 0.1);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.dirt, 0.05);
+    for (let z = z0 + 1; z < z1; z++) for (let x = x0 + 1; x < x1; x++) if ((x - x0) % 3 === 1 || (z - z0) % 6 === 0) k.w.set(x, y - 1, z, (x + z) % 5 ? B.gravel_path : B.cobble);
     hedgeRing(c, B.stone_brick);
     for (let x = x0; x <= x1; x += 2) for (const z of [z0, z1]) if (k.w.get(x, y, z)) k.d.add('ivy', x + 0.5, y + 1, z + (z === z0 ? 1.03 : -0.03), { mode: 'wall', facing: [0, z === z0 ? 1 : -1], scale: 1.8, sway: 0.1 });
     for (let x = x0 + 3; x <= x1 - 3; x += 3) for (let z = z0 + 3; z <= z1 - 3; z += 3) { const t = c.r(); if (t < 0.45) petrified(c, x + (z % 2), z); else if (t < 0.6) place(c, x, z, 'gnome', { rot: c.r() * 6, color: [0xd8322a, 0x2a6ad8, 0xffd84a][Math.floor(c.r() * 3)] }, 0); }
@@ -1064,7 +1065,8 @@ Object.assign(TEMPLATES, {
   // Aunty Em's snack bar: a hut with a counter and grill, picnic tables, a striped awning.
   snack_bar(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.gravel_path, 6, B.grass, 0.15);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.gravel_path, 0.1);
+    patches(k, x0, z0, x1, z1, y, B.gravel_path, 0.3);
     hedgeRing(c);
     const cx = (x0 + x1) >> 1, hz0 = z0 + 2, hz1 = z0 + 5, hx0 = cx - 4, hx1 = cx + 4;
     let ok = true; for (let x = hx0; x <= hx1; x++) for (let z = hz0; z <= hz1 + 1; z++) if (doorAisle(c, x, z, 3)) ok = false;
@@ -1103,8 +1105,10 @@ DRESS.statue_garden = {
   // The drive in, under the emporium's big sign; the warehouse ahead.
   start(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.gravel_path, 6, B.grass, 0.25);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.dirt, 0.05);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
+    for (let z = z0; z <= z1; z++) for (let x = cx - 2; x <= cx + 2; x++) k.w.set(x, y - 1, z, B.gravel_path);
+    for (let x = x0; x <= x1; x++) for (let zz = cz - 1; zz <= cz + 1; zz++) k.w.set(x, y - 1, zz, B.gravel_path);
     sign(c, cx + 0.5, z0 + 3.5, 'AUNTY EM’S\nGARDEN GNOME EMPORIUM', { w: 7, h: 2, post: 2.4, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
     k.w.fill(cx - 3, y, z0 + 3, cx + 3, y, z0 + 3, B.barrier);
     for (let x = x0 + 2; x <= x1 - 2; x += 2) if (Math.abs(x - cx) > 2) { k.d.prop('gnome', x + 0.5, y, cz + 0.5, { rot: Math.PI, color: [0xd8322a, 0x2a6ad8, 0xffd84a][(x >> 1) % 3] }); }
@@ -1118,7 +1122,8 @@ DRESS.statue_garden = {
   // gazing balls on pedestals round the yard (slots 'mirror').
   boss(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.gravel_path, 8, B.cobble, 0.12);
+    k.floor(x0, z0, x1, z1, y, B.gravel_path, 8, B.cobble, 0.15);
+    patches(k, x0, z0, x1, z1, y, B.grass, 0.3);
     const { cx, cz, R } = roundArena(c);
     // the warehouse front on the far side, its doors open
     for (let x = Math.round(cx) - 6; x <= Math.round(cx) + 6; x++) for (let yy = y; yy < y + 6; yy++) for (const z of [z0 + 1, z0 + 2]) if (k.w.get(x, y - 1, z)) k.w.set(x, yy, z, (Math.abs(x - cx + 0.5) < 2 && yy < y + 3 && z === z0 + 2) ? 0 : z === z0 + 1 ? B.corrugated : (yy === y + 5 ? B.iron_plate : B.corrugated));
@@ -1154,6 +1159,49 @@ function riverBand(c, alongX, at, width = 4) {
     k.w.set(x, y - 1, z, B.water); k.w.set(x, y - 2, z, B.water); k.w.set(x, y - 3, z, B.mud);
   }
 }
+// The top of the Arch: a long hall with a triangular cross-section (sloped steel
+// walls with slit windows), running along the room's door axis, with sky either side.
+// Doors that meet a long side get a catwalk and a gap. Returns the hall frame.
+function archHall(c, { half = 5, hole = false } = {}) {
+  const { k, x0, z0, x1, z1, y } = c; const W = k.w;
+  const ew = c.doors.filter((d) => d.side === 'e' || d.side === 'w').length, ns = c.doors.length - ew;
+  const alongX = ew > ns || (ew === ns && (x1 - x0) >= (z1 - z0));
+  const mid = alongX ? (z0 + z1) >> 1 : (x0 + x1) >> 1;
+  const t0 = alongX ? x0 : z0, t1 = alongX ? x1 : z1;
+  // wide enough for every doorway in the ends
+  for (const d of c.doors) if (alongX ? (d.side === 'e' || d.side === 'w') : (d.side === 'n' || d.side === 's')) half = Math.max(half, Math.abs(d.at - mid) + 3);
+  half = Math.min(half, Math.floor(((alongX ? z1 - z0 : x1 - x0)) / 2));
+  const P = (t, sv) => alongX ? [t, mid + sv] : [mid + sv, t];
+  const rows = [[half, 0, 1], [half - 1, 2, 3], [half - 2, 4, 4]];
+  for (let t = t0; t <= t1; t++) for (let sv = -half; sv <= half; sv++) {
+    const [x, z] = P(t, sv);
+    for (let d = 1; d <= 3; d++) W.set(x, y - d, z, d === 1 ? (Math.abs(sv) <= 1 ? B.carpet_red : B.steel_panel) : B.iron_plate);
+    const a = Math.abs(sv);
+    for (const [rs, ya, yb] of rows) if (a === rs) for (let yy = y + ya; yy <= y + yb; yy++) W.set(x, yy, z, (yy === y + 1 || yy === y + 2) && t % 2 === 0 ? B.steel_window : B.steel_panel);
+    if (a <= half - 3) W.set(x, y + 5, z, B.steel_panel);
+    if (t === t0 || t === t1) for (let yy = y; yy <= y + 5; yy++) if (a <= half - (yy <= y + 1 ? 0 : yy <= y + 3 ? 1 : 2) && yy <= y + (a <= half - 3 ? 5 : 4)) W.set(x, yy, z, yy === y + 2 && a < half - 1 ? B.steel_window : B.steel_panel);
+  }
+  // doorways: the ends open where a door is; doors on the long sides get a catwalk
+  for (const d of c.doors) {
+    const endDoor = alongX ? (d.side === 'e' || d.side === 'w') : (d.side === 'n' || d.side === 's');
+    if (endDoor) { const t = (d.side === 'e' || d.side === 's') ? t1 : t0; for (let o = -2; o <= 2; o++) for (let yy = y; yy < y + 4; yy++) { const [x, z] = P(t, d.at - mid + o); W.set(x, yy, z, 0); } continue; }
+    const sgn = (d.side === 's' || d.side === 'e') ? 1 : -1;
+    for (let sv = half; sv <= (alongX ? (sgn > 0 ? z1 - mid : mid - z0) : (sgn > 0 ? x1 - mid : mid - x0)); sv++) for (let o = -2; o <= 2; o++) {
+      const [x, z] = P(d.at + o, sgn * sv);
+      W.set(x, y - 1, z, B.iron_plate); W.set(x, y - 2, z, B.iron_plate);
+      for (let yy = y; yy < y + 5; yy++) if (sv <= half) W.set(x, yy, z, 0);
+      if (Math.abs(o) === 2 && sv > half) W.set(x, y, z, B.iron_plate);
+    }
+    for (let o = -2; o <= 2; o++) for (const [rs, ya, yb] of rows) for (let yy = y + ya; yy <= Math.min(y + 3, y + yb); yy++) { const [x, z] = P(d.at + o, sgn * rs); W.set(x, yy, z, 0); }
+  }
+  const [ax, az] = P(t0, -half), [bx, bz] = P(t1, half);
+  const mn = [Math.min(ax, bx), y + 2, Math.min(az, bz)], mx = [Math.max(ax, bx), y + 5, Math.max(az, bz)];
+  W.addRoof(mn, mx, [[mn[0], y, mn[2]], [mx[0], y + 4, mx[2]]]);
+  for (let t = t0 + 3; t < t1 - 1; t += 5) { const [x, z] = P(t, 0); lightAt(c, x + 0.5, y + 4, z + 0.5, 0xe8f0ff, 3.5, 9); }
+  // a mark under where people stand at the windows
+  c.reserved = c.reserved ?? new Set();
+  return { alongX, mid, t0, t1, P, half };
+}
 Object.assign(TEMPLATES, {
   // The visitor centre under the legs: ticket desk, rope lines, a tram car at its door.
   arch_lobby(c) {
@@ -1185,15 +1233,14 @@ Object.assign(TEMPLATES, {
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
     c.features.push('ledges');
   },
-  // The observation deck: windows on every side and a step to lean on and look down.
+  // The observation deck: the narrow triangular hall at the top of the Arch, slit
+  // windows in its sloping steel walls, open sky either side.
   observation(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.carpet_red, 6, B.steel_panel, 0.05);
-    archShell(c, 5);
-    for (let x = x0 + 1; x < x1; x++) for (const z of [z0, z1]) for (let yy = y + 1; yy <= y + 3; yy++) if (k.w.get(x, yy, z)) k.w.set(x, yy, z, yy === y + 2 || (x % 2) ? B.steel_window : B.steel_panel);
-    for (let x = x0 + 1; x < x1; x++) for (const z of [z0 + 1, z1 - 1]) if (!doorAisle(c, x, z, 3)) k.w.set(x, y - 1, z, B.steel_panel);
-    for (let i = 0; i < 6; i++) { const [x, z] = cellIn(c, 2); place(c, x, z, 'bench', { rot: c.r() < 0.5 ? 0 : Math.PI / 2 }, 0); }
-    for (let i = 0; i < 6; i++) k.d.add('shard', x0 + 2 + c.r() * (x1 - x0 - 4), y, z0 + 2 + c.r() * (z1 - z0 - 4), { mode: 'flat', scale: 0.8 });
+    const H = archHall(c);
+    for (let i = 0; i < 4; i++) { const t = H.t0 + 3 + Math.floor(c.r() * (H.t1 - H.t0 - 6)); const [x, z] = H.P(t, c.r() < 0.5 ? -2 : 2); place(c, x, z, 'bench', { rot: H.alongX ? 0 : Math.PI / 2 }, 0); }
+    for (let i = 0; i < 6; i++) { const [x, z] = H.P(H.t0 + 2 + c.r() * (H.t1 - H.t0 - 4), (c.r() - 0.5) * 6); k.d.add('shard', x, y, z, { mode: 'flat', scale: 0.8 }); }
+    scatterBreakables({ ...c, x0: H.alongX ? x0 : H.mid - 3, x1: H.alongX ? x1 : H.mid + 3, z0: H.alongX ? H.mid - 3 : z0, z1: H.alongX ? H.mid + 3 : z1 }, 2);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
   },
   // The riverfront park below: the Mississippi, trees, benches, the Arch overhead.
@@ -1227,40 +1274,37 @@ DRESS.arch = {
     scatterOn(k, x0, z0, x1, z1, [B.grass], ['grass', 'flower_yellow'], 0.2);
     k.w.set(cx, y - 1, cz + 3, B.gold_plate);
   },
-  // The observation deck at the top: steel, slit windows, and one window blown out over
-  // the Mississippi far below (slot 'river_leap': survive until you can jump).
+  // The observation deck at the top of the Arch, one window blown out over the
+  // Mississippi far below (slot 'river_leap': survive until you can jump).
   boss(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.carpet_red, 8, B.steel_panel, 0.08);
-    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
-    k.room(x0, z0, x1, z1, y, 5, B.steel_panel, { trim: B.iron_plate, doors: c.doors.map((d) => ({ ...d, width: 5, height: 4 })) });
-    for (let x = x0 + 1; x < x1; x++) for (const z of [z0, z1]) for (let yy = y + 1; yy <= y + 3; yy++) if (k.w.get(x, yy, z)) k.w.set(x, yy, z, B.steel_window);
-    for (let z = z0 + 1; z < z1; z++) for (const x of [x0, x1]) for (let yy = y + 1; yy <= y + 3; yy++) if (k.w.get(x, yy, z)) k.w.set(x, yy, z, B.steel_window);
-    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) k.w.set(x, y + 5, z, B.steel_panel);
-    k.w.addRoof([x0, y + 5, z0], [x1, y + 5, z1], [[x0, y, z0], [x1, y + 4, z1]]);
-    // the blown-out window on the south-east (toward the camera) and the river below it
-    const hz = Math.round(cz) + 1;
-    let side = c.doors.some((d) => d.side === 'e') ? 'w' : 'e';
-    const wx = side === 'e' ? x1 : x0;
-    for (let z = hz - 2; z <= hz + 2; z++) for (let yy = y; yy <= y + 3; yy++) k.w.set(wx, yy, z, 0);
-    for (let i = 0; i < 10; i++) k.d.add('shard', wx + (side === 'e' ? -1.5 : 1.5) + (c.r() - 0.5) * 2, y, hz + (c.r() - 0.5) * 4, { mode: 'flat', scale: 0.9 });
-    for (let z = z0 - 2; z <= z1 + 2; z++) for (let dx = 1; dx <= 3; dx++) { const x = side === 'e' ? x1 + dx : x0 - dx; k.w.set(x, 2, z, B.water); k.w.set(x, 1, z, B.water); k.w.set(x, 0, z, B.mud); }
-    // benches, tram doors, ceiling lights
-    for (const [dx, dz] of [[-5, -5], [5, -5], [-5, 5], [5, 5]]) place(c, Math.round(cx + dx), Math.round(cz + dz), 'bench', { rot: 0 }, 0);
-    for (const dx of [-3, 3]) { const x = Math.round(cx + dx); for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0 + 1, B.iron_plate); k.d.prop('tram_pod', x + 0.5, y, z0 + 2.2, { scale: 0.9 }); }
-    for (let x = x0 + 3; x < x1; x += 5) for (let z = z0 + 3; z < z1; z += 5) lightAt(c, x + 0.5, y + 4, z + 0.5, 0xe8f0ff, 3.5, 9);
-    c.slots.push({ type: 'river_leap', pos: [wx + 0.5, y, hz + 0.5], dir: [side === 'e' ? 1 : -1, 0], waterY: 3 });
-    c.spawns.push([cx, y, z0 + 5]);
+    const H = archHall(c, { half: 6 });
+    const tm = (H.t0 + H.t1) >> 1;
+    // the hole on the near (south / east) side, glass on the floor
+    for (let t = tm - 3; t <= tm + 3; t++) for (let sv = H.half - 2; sv <= H.half; sv++) for (let yy = y; yy <= y + 4; yy++) { const [x, z] = H.P(t, sv); k.w.set(x, yy, z, 0); }
+    for (let t = tm - 3; t <= tm + 3; t++) { const [x, z] = H.P(t, H.half); k.w.set(x, y - 1, z, B.iron_plate); }
+    for (let i = 0; i < 12; i++) { const [x, z] = H.P(tm + (c.r() - 0.5) * 7, H.half - 1 - c.r() * 4); k.d.add('shard', x, y, z, { mode: 'flat', scale: 0.9 }); }
+    // the river, a long way down
+    for (let t = H.t0 - 4; t <= H.t1 + 4; t++) for (let sv = H.half + 1; sv <= H.half + 9; sv++) { const [x, z] = H.P(t, sv); k.w.set(x, 2, z, B.water); k.w.set(x, 1, z, B.water); k.w.set(x, 0, z, B.mud); }
+    for (let t = H.t0 - 4; t <= H.t1 + 4; t++) { const [x, z] = H.P(t, H.half + 10); k.w.set(x, 2, z, B.grass); k.w.set(x, 1, z, B.dirt); }
+    // benches and the tram doors at the ends
+    for (const dt of [-6, 6]) { const [x, z] = H.P(tm + dt, -3); place(c, x, z, 'bench', { rot: H.alongX ? 0 : Math.PI / 2 }, 0); }
+    for (const t of [H.t0 + 1, H.t1 - 1]) { const [x, z] = H.P(t, -3); if (free(c, x, z) && !doorAisle(c, x, z, 3)) { k.d.prop('tram_pod', x + 0.5, y, z + 0.5, { scale: 0.9, rot: H.alongX ? Math.PI / 2 : 0 }); collider(c, x, z, 2); } }
+    const [hx, hz] = H.P(tm, H.half);
+    const d0 = c.doors[0], farT = d0 && (d0.side === 'w' || d0.side === 'n') ? H.t1 - 4 : H.t0 + 4;
+    const [fx, fz] = H.P(farT, -2);
+    c.slots.push({ type: 'river_leap', pos: [hx + 0.5, y, hz + 0.5], dir: H.alongX ? [0, 1] : [1, 0], waterY: 3 });
+    c.spawns.push([fx + 0.5, y, fz + 0.5]);
   },
 };
 
 // ------------------------------------------------ chapter 7: Waterland, Denver
-function chainLink(c, h = 3) {
+function chainLink(c, h = 2) {
   const { k, x0, z0, x1, z1, y } = c;
-  for (let x = x0; x <= x1; x++) for (const z of [z0, z1]) if (!doorAisle(c, x, z, 3) && x % 3 !== 1) { for (let yy = 0; yy < h; yy++) k.d.add('chain_link', x + 0.5, y + yy + 0.5, z + 0.5, { mode: 'wall', facing: [0, z === z0 ? 1 : -1], scale: 1, sway: 0.05 }); k.w.fill(x, y, z, x, y + 1, z, B.barrier); }
-  for (let z = z0; z <= z1; z++) for (const x of [x0, x1]) if (!doorAisle(c, x, z, 3) && z % 3 !== 1) { for (let yy = 0; yy < h; yy++) k.d.add('chain_link', x + 0.5, y + yy + 0.5, z + 0.5, { mode: 'wall', facing: [x === x0 ? 1 : -1, 0], scale: 1, sway: 0.05 }); k.w.fill(x, y, z, x, y + 1, z, B.barrier); }
-  for (let x = x0; x <= x1; x += 3) for (const z of [z0, z1]) if (!doorAisle(c, x, z, 3)) k.w.fill(x, y, z, x, y + h - 1, z, B.iron_plate);
-  for (let z = z0; z <= z1; z += 3) for (const x of [x0, x1]) if (!doorAisle(c, x, z, 3)) k.w.fill(x, y, z, x, y + h - 1, z, B.iron_plate);
+  for (let x = x0; x <= x1; x++) for (const z of [z0, z1]) if (!doorAisle(c, x, z, 3)) { for (let yy = 0; yy < h; yy++) k.d.add('chain_link', x + 0.5, y + yy + 0.5, z + 0.5, { mode: 'wall', facing: [0, z === z0 ? 1 : -1], scale: 1, sway: 0.05 }); k.w.fill(x, y, z, x, y + 1, z, B.barrier); }
+  for (let z = z0; z <= z1; z++) for (const x of [x0, x1]) if (!doorAisle(c, x, z, 3)) { for (let yy = 0; yy < h; yy++) k.d.add('chain_link', x + 0.5, y + yy + 0.5, z + 0.5, { mode: 'wall', facing: [x === x0 ? 1 : -1, 0], scale: 1, sway: 0.05 }); k.w.fill(x, y, z, x, y + 1, z, B.barrier); }
+  for (let x = x0; x <= x1; x += 6) for (const z of [z0, z1]) if (!doorAisle(c, x, z, 3)) k.w.fill(x, y, z, x, y + h - 1, z, B.iron_plate);
+  for (let z = z0; z <= z1; z += 6) for (const x of [x0, x1]) if (!doorAisle(c, x, z, 3)) k.w.fill(x, y, z, x, y + h - 1, z, B.iron_plate);
 }
 function parkDecorate(c, amount = 1) {
   const { k, x0, z0, x1, z1 } = c;
@@ -1279,6 +1323,8 @@ function sunkPool(c, px0, pz0, px1, pz1, depth = 3, water = 0) {
   for (let z = pz0 - 1; z <= pz1 + 1; z++) for (let x = px0 - 1; x <= px1 + 1; x++) if (x < px0 || x > px1 || z < pz0 || z > pz1) { for (let d = 1; d <= depth + 1; d++) k.w.set(x, y - d, z, d === 1 ? B.white_trim : B.pool_tile); }
   // steps down at one end
   for (let d = 1; d < depth; d++) k.w.fill(px0, y - depth, pz0 + d - 1, px0 + 2, y - depth - 1 + (depth - d), pz0 + d - 1, B.pool_tile);
+  // doorways keep a concrete walk across
+  for (let z = pz0 - 1; z <= pz1 + 1; z++) for (let x = px0 - 1; x <= px1 + 1; x++) if (doorAisle(c, x, z, 2)) for (let d = 1; d <= depth + 1; d++) k.w.set(x, y - d, z, d === 1 ? B.concrete : B.pool_tile);
 }
 Object.assign(TEMPLATES, {
   // A drained wave pool: tiles, a deep end with a stagnant puddle, a diving board.
@@ -1287,8 +1333,7 @@ Object.assign(TEMPLATES, {
     k.floor(x0, z0, x1, z1, y, B.concrete, 7, B.pool_tile, 0.05);
     chainLink(c);
     const px0 = x0 + 4, px1 = x1 - 4, pz0 = z0 + 4, pz1 = z1 - 4;
-    let ok = true; for (let z = pz0 - 1; z <= pz1 + 1; z++) for (let x = px0 - 1; x <= px1 + 1; x++) if (doorAisle(c, x, z, 3)) ok = false;
-    if (ok) {
+    {
       sunkPool(c, px0, pz0, px1, pz1, 3, 0);
       for (let x = px1 - 3; x <= px1; x++) for (let z = pz1 - 3; z <= pz1; z++) { k.w.set(x, y - 3, z, B.water); k.w.set(x, y - 4, z, B.pool_tile); }
       for (let i = 0; i < 4; i++) k.w.set(px1 + 1, y - 1, pz0 + 1 + i, B.planks);
@@ -1396,11 +1441,11 @@ DRESS.waterland = {
 };
 
 // ------------------------------------------------ chapter 8: the Lotus Hotel and Casino
-function lotusShell(c, h = 6) {
+function lotusShell(c, h = 5) {
   const { k, x0, z0, x1, z1, y } = c;
   shell(c, { wall: B.lotus_panel, alt: B.gold_plate, altP: 0.08, trim: B.gold_plate, h, roof: B.lotus_panel });
-  for (let x = x0; x <= x1; x++) for (const z of [z0, z1]) if (k.w.get(x, y + 3, z)) k.w.set(x, y + 3, z, B.neon_green);
-  for (let z = z0; z <= z1; z++) for (const x of [x0, x1]) if (k.w.get(x, y + 3, z)) k.w.set(x, y + 3, z, B.neon_green);
+  for (let x = x0; x <= x1; x++) for (const z of [z0, z1]) if (k.w.get(x, y + 3, z) && x % 4 === 0) k.w.set(x, y + 3, z, (x >> 2) % 2 ? B.neon_green : B.neon_pink);
+  for (let z = z0; z <= z1; z++) for (const x of [x0, x1]) if (k.w.get(x, y + 3, z) && z % 4 === 0) k.w.set(x, y + 3, z, (z >> 2) % 2 ? B.neon_green : B.neon_pink);
   for (let x = x0 + 4; x < x1 - 1; x += 6) for (let z = z0 + 4; z < z1 - 1; z += 6) { k.d.prop('chandelier', x + 0.5, y + h, z + 0.5); lightAt(c, x + 0.5, y + h - 1.6, z + 0.5, 0xffe0b0, 4, 10); }
 }
 function casinoDecorate(c, amount = 1) {
@@ -1413,7 +1458,7 @@ Object.assign(TEMPLATES, {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.casino_carpet, 6);
     lotusShell(c);
-    for (let z = z0 + 3; z <= z1 - 3; z += 4) for (let x = x0 + 3; x <= x1 - 3; x++) { if ((x - x0) % 6 === 0) continue; place(c, x, z, 'slot', { rot: 0, color: [0xff4a8a, 0x4ad8ff, 0xffd84a, 0x4affa0][(x + z) % 4] }, 2); }
+    for (let z = z0 + 3; z <= z1 - 3; z += 4) for (let x = x0 + 3; x <= x1 - 3; x++) { if ((x - x0) % 6 === 0) continue; place(c, x, z, 'slot', { rot: 0, scale: 1.25, color: [0xff4a8a, 0x4ad8ff, 0xffd84a, 0x4affa0][(x + z) % 4] }, 2); }
     for (let i = 0; i < 2; i++) { const [x, z] = cellIn(c, 3); if (free(c, x, z)) k.pillar(x, z, y, 5, B.gold_plate, B.neon_pink); }
     casinoDecorate(c);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
@@ -1446,7 +1491,7 @@ Object.assign(TEMPLATES, {
   pool_party(c) {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.pool_tile, 6, B.marble_floor, 0.3);
-    lotusShell(c, 7);
+    lotusShell(c, 6);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     let ok = true; for (let z = cz - 3; z <= cz + 3; z++) for (let x = cx - 4; x <= cx + 4; x++) if (doorAisle(c, x, z, 3)) ok = false;
     if (ok) {
@@ -1535,7 +1580,7 @@ Object.assign(TEMPLATES, {
   canyon(c) {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.desert_sand, 6, B.red_rock, 0.08);
-    for (let i = 0; i < 4; i++) { const [x, z] = cellIn(c, 4); let ok = true; for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) if (doorAisle(c, x + dx, z + dz, 3)) ok = false; if (ok) mesa(k, x, z, y, 2.2 + c.r() * 1.5, 2 + Math.floor(c.r() * 4)); }
+    for (let i = 0, n = 0; i < 12 && n < 4; i++) { const [x, z] = cellIn(c, 4); let ok = true; for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if (doorAisle(c, x + dx, z + dz, 2)) ok = false; if (ok) { mesa(k, x, z, y, 1.8 + c.r() * 1.4, 2 + Math.floor(c.r() * 4)); n++; } }
     { const x = x0 + 3, z = z0 + 3; let ok = true; for (let dz = 0; dz < 4; dz++) for (let dx = 0; dx < 4; dx++) if (doorAisle(c, x + dx, z + dz, 3)) ok = false; if (ok) { k.w.fill(x, y, z, x + 3, y + 2, z + 3, B.red_rock); k.stairs(x + 4, z + 1, y, 3, [-1, 0], 2, B.red_rock); } }
     for (let i = 0; i < 4; i++) { const [x, z] = cellIn(c, 2); place(c, x, z, 'cactus', { h: 1.8 + c.r(), rot: c.r() * 6 }, 1); }
     desertDecorate(c);
@@ -1863,14 +1908,14 @@ Object.assign(TEMPLATES, {
   throne_hall(c) {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.gold_marble, 6, B.marble_floor, 0.2);
-    shell(c, { wall: B.marble_white, alt: B.gold_marble, altP: 0.15, trim: B.key_frieze, h: 8, roof: B.marble_white });
+    shell(c, { wall: B.marble_white, alt: B.gold_marble, altP: 0.15, trim: B.key_frieze, h: 6, roof: B.marble_white });
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     const colors = [0xffd84a, 0x2aa8a0, 0x7a2a8a, 0xd8322a, 0xe8e8f0, 0xffa040, 0x3f8a34, 0xc8ccd2, 0xb8452a, 0xff7ab0, 0x2a6ad8, 0x6a2a7a];
     let i = 0;
-    for (let x = x0 + 3; x <= x1 - 3; x += 3) { if (i < 12 && place(c, x, z0 + 2, 'throne', { color: colors[i], rot: 0, scale: 0.75 }, 3)) i++; }
-    for (let z = z0 + 5; z <= z1 - 4; z += 3) for (const x of [x0 + 2, x1 - 2]) if (i < 12 && place(c, x, z, 'throne', { color: colors[i], rot: x < cx ? Math.PI / 2 : -Math.PI / 2, scale: 0.75 }, 3)) i++;
+    for (let x = x0 + 3; x <= x1 - 3; x += 3) { if (i < 12 && place(c, x, z0 + 2, 'throne', { color: colors[i], rot: 0, scale: 1 }, 3)) i++; }
+    for (let z = z0 + 5; z <= z1 - 4; z += 3) for (const x of [x0 + 2, x1 - 2]) if (i < 12 && place(c, x, z, 'throne', { color: colors[i], rot: x < cx ? Math.PI / 2 : -Math.PI / 2, scale: 1 }, 3)) i++;
     k.d.prop('campfire', cx + 0.5, y, cz + 0.5, { scale: 1.2 }); collider(c, cx, cz, 1); lightAt(c, cx + 0.5, y + 1.6, cz + 0.5, 0xffa040, 5, 12);
-    for (const [dx, dz] of [[-4, -3], [4, -3], [-4, 3], [4, 3]]) if (free(c, cx + dx, cz + dz) && !doorAisle(c, cx + dx, cz + dz, 3)) column(k, cx + dx, cz + dz, y, 8);
+    for (const [dx, dz] of [[-4, -3], [4, -3], [-4, 3], [4, 3]]) if (free(c, cx + dx, cz + dz) && !doorAisle(c, cx + dx, cz + dz, 3)) column(k, cx + dx, cz + dz, y, 6);
     k.s.add({ x: cx + 0.5, y: y + 14, z: cz - 3 }, { x: 0.25, y: -1, z: 0.35 }, 15, 5, 0xfff0c8);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
   },

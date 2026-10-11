@@ -260,15 +260,17 @@ export class Decorations {
         case 'gazing_ball': lb(0.3, 0.8, 0.3, 0, 0.4, 0, M.stone); lb(0.5, 0.12, 0.5, 0, 0.86, 0, M.stone); put(new THREE.SphereGeometry(0.34 * sc, 14, 10), M.chrome, x, y + 1.2 * sc, z, 0, 0, 0); break;
         case 'birdbath': lb(0.26, 0.9, 0.26, 0, 0.45, 0, M.stone); lb(0.9, 0.14, 0.9, 0, 0.95, 0, M.stone); lb(0.7, 0.04, 0.7, 0, 1.03, 0, M.water); break;
         case 'arch_model': { // the Gateway Arch: a weighted catenary of steel boxes; p.span, p.h
-          const span = p.span ?? 8, hh = p.h ?? 9, n = 22;
-          for (let i = 0; i <= n; i++) {
-            const t = i / n * 2 - 1, X = t * span / 2, Y = hh * (1 - (Math.cosh(t * 1.9) - 1) / (Math.cosh(1.9) - 1));
-            const t2 = (i + 1) / n * 2 - 1, Y2 = hh * (1 - (Math.cosh(t2 * 1.9) - 1) / (Math.cosh(1.9) - 1));
-            const ang = Math.atan2(Y2 - Y, span / n); const thick = 0.55 - Math.abs(Y / hh - 0.5) * 0.0 - (Y / hh) * 0.25;
-            lb(span / n + 0.08, thick, thick, X, Y, 0, M.chrome, 0, 0, ang);
+          const span = p.span ?? 8, hh = p.h ?? 9, n = 28, A = 1.9;
+          const pt = (i) => { const t = i / n * 2 - 1; return [t * span / 2, hh * (1 - (Math.cosh(t * A) - 1) / (Math.cosh(A) - 1))]; };
+          for (let i = 0; i < n; i++) {
+            const [ax, ay] = pt(i), [bx, by] = pt(i + 1);
+            const L = Math.hypot(bx - ax, by - ay) + 0.12, ang = Math.atan2(by - ay, bx - ax);
+            const th = (0.62 - ((ay + by) / 2 / hh) * 0.3) * Math.max(1, span / 10);
+            lb(L, th, th, (ax + bx) / 2, (ay + by) / 2, 0, M.chrome, 0, 0, ang);
           }
           break;
         }
+        case 'pole': lb(0.16, 6, 0.16, 0, 3, 0, M.wood); lb(1.4, 0.12, 0.12, 0, 5.6, 0, M.wood); for (const a of [-0.55, 0.55]) lb(0.08, 0.16, 0.08, a, 5.74, 0, M.white); break;
         case 'tram_pod': { // one of the Arch's egg-shaped tram cars
           lb(1.3, 1.6, 1.3, 0, 0.9, 0, M.white); lb(1.1, 0.25, 1.1, 0, 1.8, 0, M.white); lb(1.1, 0.25, 1.1, 0, 0.0 + 0.12, 0, M.white);
           lb(0.7, 1.0, 0.06, 0, 0.95, 0.66, M.glass); lb(0.12, 1.9, 0.12, -0.7, 0.95, 0, M.chrome); lb(0.12, 1.9, 0.12, 0.7, 0.95, 0, M.chrome);

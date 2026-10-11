@@ -148,7 +148,7 @@ def('slide_glass', 'slide_glass', { rough: 0.3 });
 def('rust_metal', 'rust_metal', { metal: 0.35, rough: 0.7, step: 'metal' });
 def('casino_carpet', { top: 'casino_carpet', side: 'lotus_panel' }, { step: 'wood', rough: 0.95 });
 def('slot_machine', { top: 'gold_plate', side: 'slot_machine' }, { emit: 1.0, hp: 30, step: 'metal', light: [0xff7ab0, 2.5, 6] });
-def('neon_green', 'neon_green', { emit: 2.4, light: [0x4affa0, 3, 8] });
+def('neon_green', 'neon_green', { emit: 1.6, light: [0x4affa0, 1.6, 6] });
 def('lotus_panel', 'lotus_panel', { rough: 0.35 });
 def('desert_sand', { top: 'desert_sand', side: 'desert_sand' }, { step: 'sand' });
 def('red_rock', 'red_rock');

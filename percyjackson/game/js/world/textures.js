@@ -50,13 +50,13 @@ export function paintExtraTile(name, px, r, H) {
       const seam = x === 0 || y === 0;
       const rivet = (x === 2 || x === 13) && (y === 2 || y === 13);
       const brush = Math.sin(x * 0.4 + y * 3.1 + r()) * 0.04;
-      let c = shade(C(0xb8bec6), 1 + brush - y * 0.008);
+      let c = shade(C(0x9aa2ac), 1 + brush - y * 0.008);
       if (seam) c = C(0x6a7078); if (rivet) c = C(0xe6eaee);
       return [c, seam ? 0.1 : rivet ? 0.9 : 0.6];
     }); return true;
     case 'steel_window': each(px, (x, y) => { // a slit window looking out over St. Louis
       const win = x >= 3 && x <= 12 && y >= 4 && y <= 10;
-      if (!win) return [shade(C(0xb8bec6), 1 - y * 0.01 + (x === 0 || y === 0 ? -0.35 : 0)), 0.6];
+      if (!win) return [shade(C(0x9aa2ac), 1 - y * 0.01 + (x === 0 || y === 0 ? -0.35 : 0)), 0.6];
       const sky = mix(C(0x9ad0f0), C(0xf0c890), (y - 4) / 7);
       return [(x + y) % 7 === 0 ? C(0xffffff) : sky, 0.2];
     }); return true;

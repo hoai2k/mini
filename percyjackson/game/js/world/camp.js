@@ -546,7 +546,7 @@ function buildRoadWest(k, shoreOf) {
   for (const leg of legs) lay(leg.pts, 4, leg.id);
   // telephone poles along the farm road and the highway
   const along = (pts, every, fn) => { let acc = 0; for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1]; const L = Math.hypot(bx - ax, bz - az); for (let t = 0; t < L; t += 1) { acc++; if (acc % every) continue; const px = ax + (bx - ax) * t / L, pz = az + (bz - az) * t / L; fn(px, pz, (bx - ax) / L, (bz - az) / L); } } };
-  along(legs[1].pts.concat(legs[2].pts.slice(1, 6)), 9, (px, pz, ux, uz) => { const x = Math.floor(px - uz * 4), z = Math.floor(pz + ux * 4); const y = top(x, z); if (!isFinite(y) || W.get(x, y, z)) return; k.pillar(x, z, y, 6, B.pine_log); });
+  along(legs[1].pts.concat(legs[2].pts.slice(1, 6)), 9, (px, pz, ux, uz) => { const x = Math.floor(px - uz * 4), z = Math.floor(pz + ux * 4); const y = top(x, z); if (!isFinite(y) || W.get(x, y, z)) return; deco.prop('pole', x + 0.5, y, z + 0.5, { rot: Math.atan2(uz, ux) }); W.set(x, y, z, B.barrier); });
 
   // ---- farmland inside the loop: a barn, fields, fences, hay
   for (let z = 26; z <= 42; z++) for (let x = 48; x <= 74; x++) if ((z - 26) % 3 !== 2) W.set(x, FY - 1, z, B.farm_soil); else W.set(x, FY - 1, z, B.mud);
@@ -571,8 +571,8 @@ function buildRoadWest(k, shoreOf) {
     const y = top(x, z); if (!isFinite(y)) return;
     W.set(x, y, z, B.waystone); W.set(x, y + 1, z, B.waystone);
     W.addLight(x + 0.5, y + 2.4, z + 0.5, 0xffd890, 2.5, 6);
-    sign(x + 0.5 + Math.cos(rot) * 1.6, z + 0.5 - Math.sin(rot) * 1.6, name, { w: 2.4, h: 0.7, post: 2.0, rot, ...extra });
-    const bx = Math.floor(x + 0.5 + Math.cos(rot) * 1.6), bz = Math.floor(z + 0.5 - Math.sin(rot) * 1.6); W.set(bx, top(bx, bz), bz, B.barrier);
+    sign(x + 0.5 + Math.cos(rot) * 2.1, z + 0.5 - Math.sin(rot) * 2.1, name, { w: 3.4, h: 0.95, post: 2.2, rot, ...extra });
+    const bx = Math.floor(x + 0.5 + Math.cos(rot) * 2.1), bz = Math.floor(z + 0.5 - Math.sin(rot) * 2.1); W.set(bx, top(bx, bz), bz, B.barrier);
   };
   const solid = (x, z, h = 2) => { const y = top(x, z); for (let i = 0; i < h; i++) W.set(x, y + i, z, B.barrier); };
   const anchors = {};
