@@ -13,7 +13,10 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from PIL import Image
+try:
+    from PIL import Image  # only needed to build; --check runs without it
+except ImportError:
+    Image = None
 
 ROOT = Path(__file__).resolve().parents[2]
 CONCEPT = ROOT / "design" / "concept"
@@ -31,6 +34,8 @@ def targets():
 
 def main() -> None:
     check = "--check" in sys.argv
+    if not check and Image is None:
+        sys.exit("building needs Pillow: pip install pillow")
     stale = []
     OUT.mkdir(parents=True, exist_ok=True)
     for src, dst in targets():
