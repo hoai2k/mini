@@ -8,10 +8,13 @@ import { openSettings } from './settingsScreen.js';
 import { openInstructions } from './instructions.js';
 import { openSelect } from './partySelect.js';
 import { isMobile } from '../util.js';
+import { saveSettings } from '../settings.js';
 
 const ICONS = {
   instructions: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 11h8M8 15h8M8 7h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-  settings: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></g></svg>',
+  soundOn: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></g></svg>',
+  soundOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></g></svg>',
   fullscreen: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   exitfs: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
@@ -81,7 +84,7 @@ export function openTitle(game) {
       else document.documentElement.requestFullscreen?.().catch?.(() => { });
     } catch (e) { /* ignore */ }
   };
-  const resync = () => { prev = padSnap(game); lastTick = performance.now(); };
+  const resync = () => { prev = padSnap(game); lastTick = performance.now(); syncSound(); };
   const open = (fn) => fn(game, resync);
 
   const onKey = (e) => {
@@ -95,6 +98,14 @@ export function openTitle(game) {
     b.setAttribute('aria-pressed', String(on)); b.querySelector('.ic').innerHTML = on ? ICONS.exitfs : ICONS.fullscreen;
     b.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen'); b.querySelector('.lbl').textContent = on ? 'Exit fullscreen' : 'Fullscreen';
   };
+  const syncSound = () => {
+    const b = root?.querySelector('[data-act=sound]'); if (!b) return;
+    const on = !game.audio?.muted, label = on ? 'Sound on' : 'Sound off';
+    b.setAttribute('aria-pressed', String(on)); b.classList.toggle('off', !on);
+    b.querySelector('.ic').innerHTML = on ? ICONS.soundOn : ICONS.soundOff;
+    b.setAttribute('aria-label', label); b.title = label; b.querySelector('.lbl').textContent = label;
+  };
+  const toggleSound = () => { game.audio?.setMuted(!game.audio.muted); saveSettings(); syncSound(); };
   const cleanup = () => { window.removeEventListener('keydown', onKey); document.removeEventListener('fullscreenchange', onFs); };
 
   const util = (act, label, icon, fn) => h('button', { class: 'util-btn', 'data-act': act, 'aria-label': label, title: label, onclick: fn },
@@ -114,10 +125,11 @@ export function openTitle(game) {
       h('div', { class: 'title-utils', role: 'group', 'aria-label': 'Options' },
         util('instructions', 'Instructions', ICONS.instructions, () => open(openInstructions)),
         util('settings', 'Settings', ICONS.settings, () => open(openSettings)),
+        util('sound', 'Sound on', ICONS.soundOn, toggleSound),
         util('fullscreen', 'Fullscreen', ICONS.fullscreen, toggleFs)));
     window.addEventListener('keydown', onKey);
     document.addEventListener('fullscreenchange', onFs);
-    onFs();
+    onFs(); syncSound();
   }, {
     onClose: cleanup,
     onNav: (m) => {
