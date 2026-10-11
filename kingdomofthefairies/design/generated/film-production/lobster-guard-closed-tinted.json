@@ -6,18 +6,19 @@
     340
   ],
   "anchor": "bottom centre",
-  "prompt": "Redraw lobster-guard-closed.webp (attach it) in the look of the 1903 film (attach references/expanded-world/source-frames/frame-00m26s.jpg, frame-04m54s.jpg and frame-05m51s.jpg). Keep exactly the same character, pose, framing, scale, foot position and canvas, so it lays over the original. A performer in a lobster costume, as in the film's court of sea creatures; coral red wash, few ornaments. Render it like a frame of a hand stencil-coloured 1903 M\u00e9li\u00e8s print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nImage 1 is the edit target and controls the pose and canvas. Images 2\u20134 are film-style references only. Output exactly one complete isolated sprite, no scenery, no lettering. Canvas aspect ratio 500:340; delivery 500 x 340. Preserve limb positions, facing direction, prop sides, and full silhouette from image 1. The requested simplified costume and photographic finish are the changes.",
+  "prompt": "Correct ONLY the limb anatomy and weapon grip in this attached lobster guard sprite. This is a human stage performer inside a lobster costume: exactly TWO arms, one coming from each shoulder, exactly TWO lobster pincers as hands, and TWO existing legs. Crouched closed pose: make BOTH of his two pincers visibly close around the existing diagonal halberd shaft, one on each existing grip position. The shaft must run THROUGH the space between each pincer\u2019s two fingers with convincing overlap, rather than float in front of either claw. Keep the exact existing character head, antennae, torso, costume, colours, rendering style, weapon design and position, lower-body stance, foot positions, overall scale, canvas framing and transparent background. Preserve the current soft photographic hand-tinted finish. Make each arm-to-claw connection anatomically unambiguous. No detached hands, duplicated forearms, ghost claws or extra limbs. Do not change the weapon into a separate floating prop.",
   "transparent": true,
   "replaces": "lobster-guard-closed",
   "references": [
-    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/lobster-guard-closed.webp",
-    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/expanded-world/source-frames/frame-00m26s.jpg",
-    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/expanded-world/source-frames/frame-04m54s.jpg",
-    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/references/expanded-world/source-frames/frame-05m51s.jpg"
+    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/progress/rejected/lobster-anatomy/lobster-guard-closed-tinted-original.png"
   ],
   "generator": "built-in image_gen",
   "source_commit": "ba92d0c",
-  "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-08411da2-d01b-42b0-97a7-80a854be8047.png",
-  "generation_id": "exec-08411da2-d01b-42b0-97a7-80a854be8047",
-  "review_status": "accepted: photographic stage finish, sparse stencil washes, complete silhouette, original facing direction and pose reviewed"
+  "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-adad4034-e959-4ad4-ad04-8a65de522943.png",
+  "generation_id": "exec-adad4034-e959-4ad4-ad04-8a65de522943",
+  "review_status": "accepted after enlarged anatomy/grip review: exactly two shoulder-to-pincer arms and two legs; shaft visibly enclosed by pincers in closed pose; open pose has one weapon-gripping closed claw and one snapping open claw",
+  "submitted_references": [
+    "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/design/generated/film-production/lobster-guard-closed-tinted-original.png"
+  ],
+  "previous_take": "progress/rejected/lobster-anatomy/lobster-guard-closed-tinted-original.png"
 }

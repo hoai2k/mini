@@ -98,7 +98,7 @@ TINT_NOTES = {
     'witch': 'Keep the redrawn crone (references/film-witch/) and give her the photographic base and a single teal wash.',
     'octopus': 'A painted stage prop: a large octopus cut-out on wires, flatter and less jewelled.',
     'dolphin': 'A stage float: a painted card dolphin drawing a shell car, little jewellery.',
-    'lobster': 'A performer in a lobster costume, as in the film\'s court of sea creatures; coral red wash, few ornaments.',
+    'lobster': 'A performer in a lobster costume, as in the film\'s court of sea creatures; coral red wash, few ornaments. Exactly two arms, each connected from a shoulder to one pincer, and two legs. The halberd must be visibly gripped inside a pincer, never floating in front of it. In the open pose the weapon claw stays closed around the shaft while the other pincer opens; no third arm or extra weapon hand.',
     'chariot': 'The film\'s fiery chariot: a dark painted car with bat wings and orange-yellow stencilled flames.',
     'scrying': 'A painted stage effect: a glowing eye in drifting teal smoke.',
 }
@@ -152,8 +152,8 @@ GROUPS = [
     ('Sea creatures and props', 'Creatures, keepsakes and props for the recast acts and the new scenes.', [
         ('octopus', 'The great octopus', 600, 420, 'bottom centre', SPRITE, f'The great pink octopus from {CREATURES}, seen front-on, arms spread wide across the canvas, jewelled shell crown.', None),
         ('dolphin-carriage', 'Conch carriage and dolphin', 520, 340, 'bottom centre', SPRITE, f'The dolphin harnessed to a conch-shell carriage on shell wheels from {CREATURES}, travelling right, the carriage empty.', 'witch-moonboat'),
-        ('lobster-guard-closed', 'Lobster guard, claws shut', 500, 340, 'bottom centre', SPRITE, f'An upright lobster guard from {CREATURES}, crouched low facing left, claws closed, halberd held across.', 'sentry-creature-closed'),
-        ('lobster-guard-open', 'Lobster guard, claws snapping', 500, 340, 'bottom centre', SPRITE, 'The same lobster guard as lobster-guard-closed, same scale and framing, claws thrown wide open mid-snap.', 'sentry-creature-open'),
+        ('lobster-guard-closed', 'Lobster guard, claws shut', 500, 340, 'bottom centre', SPRITE, f'An upright lobster guard from {CREATURES}, crouched low facing left: a performer with exactly two arms and two legs, one pincer at the end of each arm. Both pincers close visibly around the diagonal halberd shaft held across his body; the shaft passes inside their grips, not in front of them. No extra arm, hand or detached claw.', 'sentry-creature-closed'),
+        ('lobster-guard-open', 'Lobster guard, claws snapping', 500, 340, 'bottom centre', SPRITE, 'The same lobster guard as lobster-guard-closed, same scale and framing, exactly two arms and two legs. One pincer stays closed, visibly gripping the upright halberd shaft; the other is thrown wide open mid-snap. Each arm connects from its shoulder to its single pincer. No third arm or small extra weapon hand.', 'sentry-creature-open'),
         ('scrying-eye', 'The witch\'s scrying eye', 200, 300, 'top centre (it hangs)', SPRITE, 'A ghostly hooded eye: a pale staring eye inside a swirl of dark-teal smoke shaped like the witch\'s hood, a thin thread of smoke above, glowing faintly.', 'gaze-lantern'),
         ('galley', 'The royal galley', 380, 400, 'bottom centre (the waterline)', SPRITE, 'The prince\'s royal galley from references/film-planning/originals/concept-galley-departure.png (attach it): gold-trimmed hull with a lion figurehead, azure sails with a gold star and fleurs-de-lis, sailing right, crew at the rail.', 'ship'),
         ('galley-wreck-bow', 'Galley wreck, bow half', 300, 400, 'bottom centre', SPRITE, 'The bow half of the royal galley broken in two, mast snapped, sail torn.', 'ship-wreck-bow'),

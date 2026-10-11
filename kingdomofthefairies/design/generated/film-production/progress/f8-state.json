@@ -71,6 +71,8 @@
     "scrying-eye-tinted"
   ],
   "corrected": [
-    "crew-manatarms-idle-c-tinted"
+    "crew-manatarms-idle-c-tinted",
+    "lobster-guard-closed-tinted",
+    "lobster-guard-open-tinted"
   ]
 }
