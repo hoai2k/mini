@@ -119,6 +119,8 @@ page back if it ever ends up zoomed.
   round 2's full-bleed icon and library cover are delivered. Prompts and asset
   paths are recorded in `design/image-deliveries-round-2.json`.
   `design/image-deliveries.json` records how each delivered image was made.
+  Round 3’s Bebop Heads emblem is delivered; its prompt and paths are in
+  `design/image-deliveries-round-3.json`.
 - `publish.sh`: copies the app to `local/pages/eartrainer/`.
 
 ## Checks

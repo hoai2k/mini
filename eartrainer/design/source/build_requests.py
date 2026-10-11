@@ -79,11 +79,11 @@ ASSETS = [
             ("popular", "Film & Pop Hooks", "a cinema film reel and a vintage microphone"),
         ]
     ],
-    dict(id="book-bebop", file="assets/books/bebop.webp", size="512×512, PNG (shipped as 256×256 WebP)", status="requested", group="Songbook emblems",
+    dict(id="book-bebop", file="assets/books/bebop.webp", size="512×512, PNG (shipped as 256×256 WebP)", status="delivered", group="Songbook emblems",
          prompt="An emblem for the songbook “Bebop Heads”: a brass alto saxophone seen from the side, "
                 "angled upward, with a fast flurry of small glowing eighth notes streaming from its bell "
                 "in a tight zigzag line, and a 1940s club neon sign glow behind. " + BOOK_STYLE,
-         note="Round 3: for the new Bebop Heads songbook (Charlie Parker's Omnibook and other bebop "
+         note="Round 3 delivered: for the new Bebop Heads songbook (Charlie Parker's Omnibook and other bebop "
               "tunes). Keep it distinct from the Jazz Standards saxophone: side view, alto, a flurry of notes."),
     # App icons and the library cover
     dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency", status="delivered", group="App icon",
