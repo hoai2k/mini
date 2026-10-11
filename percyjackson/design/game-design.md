@@ -184,17 +184,62 @@ Each boss has a riddle that beats it faster than damage alone:
 
 ## Loot and items
 
-- **Golden drachmas** are the currency. Spend them at the camp store, or send
-  an **Iris message** (throw a coin into a rainbow) to ask Chiron for a hint or
-  call a friend's hero as a one-time ally.
-- **Ambrosia** (a square) and **nectar** (a cup) heal. They replace
-  Reverse Cursed Technique and the healing potion.
-- **Weapons** (celestial bronze, then Imperial gold and Stygian iron) and
-  **armour** (camp armour, a Hunter's silver cloak), in three rarities.
-- **Magic items** go in the artefact slots: Hermes's winged shoes, the Bag of
-  Winds, the Pearls of Poseidon (escape), the Helm of Darkness (brief
-  invisibility for the team), Ariadne's thread (shows the way), Hephaestus's
-  net, the Golden Fleece (heals in an area), Daedalus's laptop.
+The gear system follows Minecraft Dungeons. The items come from Percy Jackson
+and Greek myth. The full list is in `game/js/loot.js`; its rules are tested in
+`game/test/loot.test.mjs`.
+
+- **Slots:** each hero has a weapon, an armour and two magic items (D-pad ← / →,
+  or R / T). Gear is kept per hero, and companions can be equipped too.
+- **Items:** 61 in all.
+  - 22 weapons. They differ in damage, speed, reach, swing width and
+    knock-back, and some hit twice or pierce shields. Examples: the Labrys of
+    Knossos, Backbiter, the Harpe of Perseus, the Club of Heracles and the
+    Pelian Spear.
+  - 16 armours. They differ in health, protection, speed, cooldowns,
+    healing over time and the chance to dodge a hit. Examples: the Nemean Lion
+    Pelt, the Armour of Achilles and the Golden Fleece Mantle.
+  - 23 magic items, each with its own effect. Examples: Medusa's Head
+    petrifies, the Lyre of Orpheus puts monsters to sleep, the Golden Apple of
+    Discord turns monsters on each other, the Hourglass of Kronos slows time,
+    the Bag of Winds hurls monsters away, the Shadow of the Helm hides the
+    team, and Ariadne's Thread shows the way.
+- **Rarity:** Common, Rare and Legendary. Legendary items carry a built-in
+  enchantment. A Blessed item, a god's gift, adds an enchantment already at
+  III and extra power.
+- **Power:** an item's power grows with the difficulty and your level. An item
+  marked as a hero's favourite (★) gives that hero 10% more power.
+- **Enchanting:** an item has one row of enchantments per rarity level. Each
+  row offers two or three choices, and you put enchantment points into ONE of
+  them, raising it to II and III. Powerful choices (✦) cost a point more per
+  level. There are 25 enchantments, for example:
+  - Celestial Edge
+  - Zeus's Spark, which calls down lightning on a hit
+  - Echo, a chance to strike twice
+  - Monster Bane
+  - Greek Fire, which makes defeated monsters explode
+  - Demeter's Briars, which hurt monsters that hit you
+  - Hephaestus's Embers
+  - Tyche's Luck, more drachmas
+  - Nimble as a Satyr, a chance to dodge a hit
+
+  Points come from levelling up. Salvaging an item refunds every point spent,
+  plus drachmas.
+- **The forge** (camp): temper an item for +1 power, up to a cap that rises
+  with your level, and re-roll the choices of a row you haven't invested in.
+  Both cost drachmas.
+- **The camp store** sells a rotating set of items, tilted toward your hero's
+  favourites.
+- **Drops are per player.** A chest drops one item for every human hero, and a
+  boss drops two each. Elites and champions sometimes drop one for whoever
+  beat them. A drop shows as a beam in its rarity colour, with a ring in its
+  owner's player colour, and only that player can pick it up, so co-op
+  players never compete for loot. After switching heroes, your drops follow
+  you. Online, each browser rolls and keeps its own loot.
+- **Picking an item up** shows a card that compares it with what that hero has
+  equipped (▲ / ▼). New items are marked NEW in the inventory.
+- **Golden drachmas** are the currency. Spend them in the store and at the
+  forge.
+- **Ambrosia** (a square) and **nectar** (a cup) heal.
 
 ## Camp Half-Blood (the home base)
 

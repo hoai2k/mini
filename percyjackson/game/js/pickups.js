@@ -54,7 +54,7 @@ export class Pickups {
   collect(p, pl) {
     const g = this.game;
     g.scene.remove(p.mesh);
-    if (p.kind === 'coin') { g.addCoins(p.value); g.audio?.coin(); }
+    if (p.kind === 'coin') { g.addCoins(Math.round(p.value * (1 + (pl.stats?.luck ?? 0)))); g.audio?.coin(); }
     else if (p.kind === 'heal') { pl.heal(pl.maxHp * 0.12); g.audio?.energy('heal'); }
     else if (p.kind === 'ce') { pl.gainCE(8); g.audio?.tone({ freq: 1200, to: 1800, dur: 0.1, gain: 0.05, type: 'sine' }); }
     g.particles.burst(p.pos, { count: 6, color: KINDS[p.kind].color, speed: 2, life: 0.3, size: 0.12, shape: 1 });

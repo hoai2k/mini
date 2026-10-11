@@ -10,79 +10,13 @@ import { openStoryCards } from './storyCards.js';
 import { openTitle } from './title.js';
 import { openSelect } from './partySelect.js';
 import { HEROES, SKILL_TREES } from '../heroes/index.js';
-import { RARITY, ENCHANTS, itemInfo, salvageValue, itemPrice, rollItem } from '../loot.js';
+import { ENCHANTS, itemInfo, itemRarity, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
 
 export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
 
 // ------------------------------------------------------------------ inventory
-const SLOT_NAMES = ['Weapon', 'Armour', 'Magic item 1', 'Magic item 2'];
-const SLOT_KIND = ['weapon', 'armor', 'artifact', 'artifact'];
-export function openInventory(game, player) {
-  const ui = game.ui, save = game.save;
-  const sid = player.hero;
-  let sel = null;
-  game.paused = true;
-  const close = () => { ui.close('inventory'); game.paused = false; };
-  ui.open('inventory', (el) => {
-    const d = save.data, S = save.hero(sid);
-    const gear = S.gear;
-    const itemEl = (it, extra = '') => {
-      const b = itemInfo(it);
-      const eq = gear.includes(it.uid);
-      const el2 = h('button', { class: `item ${b.rarity}${eq ? ' equipped' : ''} ${extra}`, onclick: () => { sel = it.uid; ui.refresh('inventory'); } }, b.icon, h('span', { class: 'pw' }, String(it.power)));
-      el2.addEventListener('navfocus', () => { if (sel !== it.uid) { sel = it.uid; renderDetail(); } });
-      return el2;
-    };
-    const eqRow = h('div', { class: 'slots-eq' }, ...gear.map((uid, i) => {
-      const it = uid ? save.item(uid) : null;
-      return it ? itemEl(it) : h('div', { class: 'item', title: SLOT_NAMES[i], style: 'opacity:.45;font-size:12px' }, SLOT_NAMES[i]);
-    }));
-    const grid = h('div', { class: 'inv-grid' }, ...d.inventory.map((it) => itemEl(it)));
-    const detail = h('div', { class: 'detail' });
-    const renderDetail = () => {
-      detail.innerHTML = '';
-      const it = sel ? save.item(sel) : null;
-      if (!it) { detail.append(h('div', { class: 'hint' }, 'Select an item. Enchantment points: ' + d.enchantPoints)); return; }
-      const b = itemInfo(it), R = RARITY[b.rarity];
-      const eqIdx = gear.indexOf(it.uid);
-      detail.append(
-        h('div', { class: 'iname', style: `color:${R.color}` }, `${b.icon} ${b.name}`),
-        h('div', { class: 'rar', style: `color:${R.color}` }, `${R.label} ${b.kind} · Power ${it.power}`),
-        h('div', { class: 'desc' }, b.desc + (b.cd ? ` (cooldown ${b.cd}s)` : '')),
-        ...it.ench.map((e) => {
-          const E = ENCHANTS[e.id];
-          const cost = e.level + 1;
-          return h('div', { class: 'ench' }, h('span', {}, `${E.name} `, h('span', { class: 'lv' }, '★'.repeat(e.level) + '☆'.repeat(3 - e.level))),
-            h('span', { style: 'font-size:12px;color:#aaa;flex:1;padding:0 6px' }, E.desc(Math.max(1, e.level))),
-            e.level < 3 ? h('button', { class: 'btn small', disabled: d.enchantPoints < cost, onclick: () => { d.enchantPoints -= cost; e.level++; save.write(); player.refreshLoadout(); game.audio?.ui('buy'); ui.refresh('inventory'); } }, `+${cost}pt`) : null);
-        }),
-        h('div', { class: 'row', style: 'margin-top:10px' },
-          eqIdx >= 0 ? h('button', { class: 'btn small', onclick: () => { gear[eqIdx] = null; save.write(); player.refreshLoadout(); ui.refresh('inventory'); } }, 'Unequip')
-            : h('button', { class: 'btn small primary', onclick: () => {
-              let slot = SLOT_KIND.indexOf(b.kind);
-              if (b.kind === 'artifact' && gear[2] && !gear[3]) slot = 3;
-              gear[slot] = it.uid; save.write(); player.refreshLoadout(); game.audio?.ui('buy'); ui.refresh('inventory');
-            } }, 'Equip'),
-          eqIdx < 0 ? h('button', { class: 'btn small danger', onclick: () => {
-            const refund = it.ench.reduce((a, e) => a + (e.level * (e.level + 1)) / 2, 0);
-            d.coins += salvageValue(it); d.enchantPoints += refund; d.inventory = d.inventory.filter((x) => x !== it); sel = null; save.write(); game.audio?.coin(); ui.refresh('inventory');
-          } }, `Salvage (+◆${salvageValue(it)})`) : null));
-    };
-    renderDetail();
-    const st = player.stats;
-    const stats = h('div', { style: 'margin-top:8px' },
-      h('div', { class: 'stat-line' }, 'Health', h('b', {}, String(Math.round(player.maxHp)))),
-      h('div', { class: 'stat-line' }, 'Melee damage', h('b', {}, `×${st.meleeMult.toFixed(2)}`)),
-      h('div', { class: 'stat-line' }, 'Ability damage', h('b', {}, `×${st.techMult.toFixed(2)}`)),
-      h('div', { class: 'stat-line' }, 'Damage reduction', h('b', {}, `${Math.round(st.armor * 100)}%`)),
-      h('div', { class: 'stat-line' }, 'Crit / Cooldown', h('b', {}, `${Math.round(st.crit * 100)}% / -${Math.round(st.cdr * 100)}%`)));
-    el.appendChild(h('div', { class: 'panel', style: 'width:min(940px,97vw)' },
-      h('h2', {}, `Inventory · ${HEROES[sid].name}`),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Level ${d.level} · ◆ ${d.coins} drachmas · Enchantment points: ${d.enchantPoints}`),
-      h('div', { class: 'inv' }, h('div', {}, h('h3', {}, 'Equipped'), eqRow, h('h3', {}, 'Stash'), grid, stats), detail),
-      h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
-  }, { dim: true, onBack: close });
-}
+// The inventory and the forge live in inventory.js.
+export { openInventory, openForge } from './inventory.js';
 
 // ------------------------------------------------------------------ skill tree
 export function openSkills(game, player) {
@@ -111,16 +45,16 @@ export function openSkills(game, player) {
 // ------------------------------------------------------------------ shop
 export function openShop(game, player) {
   const ui = game.ui, save = game.save, d = save.data;
-  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4].map((i) => rollItem(Math.max(1, d.level / 2), { kind: ['weapon', 'armor', 'artifact', 'artifact', null][i] })) };
+  if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(1 + Math.min(2, Math.floor(d.level / 6)), d.level), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero })) };
   game.paused = true;
   const close = () => { ui.close('shop'); game.paused = false; };
   ui.open('shop', (el) => {
     const rows = d.shop.items.map((it, i) => {
-      const b = itemInfo(it), R = RARITY[b.rarity], price = itemPrice(it);
+      const b = itemInfo(it), R = itemRarity(it), price = itemPrice(it);
       return h('button', { class: 'mission', style: 'width:100%;text-align:left;color:inherit', onclick: () => {
         if (d.coins < price) { toast('Not enough drachmas'); game.audio?.ui('back'); return; }
         d.coins -= price; d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(`Bought ${b.name}`); ui.refresh('shop');
-      } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, `${R.label} ${b.kind} · Power ${it.power} · ${it.ench.map((e) => ENCHANTS[e.id].name).join(', ')}`)), h('div', { class: 'diff' }, `◆ ${price}`));
+      } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, `${R.label} ${KIND_LABEL[b.kind]} · Power ${it.power} · ${b.desc} Enchantments: ${it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ')}`)), h('div', { class: 'diff' }, `◆ ${price}`));
     });
     el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, 'Camp Store'),
       h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Your drachmas: ◆ ${d.coins}`), ...rows,

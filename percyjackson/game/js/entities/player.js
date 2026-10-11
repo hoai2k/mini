@@ -70,6 +70,8 @@ export class Player {
     if (this.dead || this.downed) return 0;
     if (!o.pure && this.dodgeT > 0 && this.dodgeDur - this.dodgeT < 0.24) this.perfectDodge(src);
     if (!o.pure && (this.iframes > 0 || this.invulnerable)) return 0;
+    // armour that lets you slip a blow
+    if (!o.pure && !o.dot && this.stats.evade && Math.random() < this.stats.evade) { g.fx.damageNumber(this.pos, 0, { color: '#c8e8ff', text: 'Dodged' }); this.iframes = 0.2; return 0; }
     if (this.kit.onIncoming) { const r = this.kit.onIncoming(amount, src, o); if (r === 0) return 0; if (typeof r === 'number') amount = r; }
     const dmg = amount * (o.pure ? 1 : (1 - this.stats.armor)) * (g.difficultyDamageDealt ?? 1) * (this.barrierT > 0 ? 0.5 : 1);
     this.hp -= dmg;
@@ -84,6 +86,8 @@ export class Player {
       this.iframes = Math.max(this.iframes, 0.25);
     }
     g.fx.damageNumber(this.pos, dmg, { color: '#ff5a6a' });
+    // Demeter's Briars: thorns hurt back
+    if (this.stats.thorns && src && src.takeDamage && !src.isPlayer && !src.dead && !o.dot) g.combat.damageEnemy(src, dmg * this.stats.thorns, this, { stagger: 0.1, proc: true, color: '#7aff7a' });
     if (this.hp <= 0) this.goDown();
     return dmg;
   }
@@ -149,10 +153,11 @@ export class Player {
     if (this.comboT < -0.45 && (!this.action || this.action.type !== 'attack')) this.comboStep = 0;
     // strike moment
     if (this.action && this.action.type === 'attack' && !this.action.struck && this.action.t >= this.action.step.strike) {
+      const step = this.action.step;   // a strike can replace this.action (an exploding kill hurts us)
       this.action.struck = true;
-      this.kit.onStrike?.(this.action.step);
-      if (!this.action.step.custom) g.combat.meleeStrike(this, this.action.step);
-      g.fx.slashArc(this.pos, this.facing, this.action.step.trail ?? this.rig.look?.accent ?? 0xffffff, this.action.step.range * 0.9, this.action.step.arc > 2 ? 1 : 0.28, 0.16, this.action.step.style === 'swingL');
+      this.kit.onStrike?.(step);
+      if (!step.custom) g.combat.meleeStrike(this, step);
+      g.fx.slashArc(this.pos, this.facing, step.trail ?? this.rig.look?.accent ?? 0xffffff, step.range * 0.9, step.arc > 2 ? 1 : 0.28, 0.16, step.style === 'swingL');
     }
     if (this.action && this.action.type === 'attack') {
       const st = this.action.step, k = this.action.t;
@@ -235,7 +240,15 @@ export class Player {
     if (!this.downed) this.updateCombat(dt, inp);
     if (this.hurtT > 0) { this.hurtT -= dt; if (this.hurtT <= 0) this.rig.swap(null); }
     this.slowT = Math.max(0, this.slowT - dt);
-    let speed = this.speed * this.stats.speed * (this.inLiquid === 'water' ? 0.7 : 1) * (this.slowT > 0 ? 0.6 : 1) * (this.kit.speedMul ?? 1);
+    this.speedBuffT = Math.max(0, (this.speedBuffT ?? 0) - dt);
+    let speed = this.speed * this.stats.speed * (this.inLiquid === 'water' ? 0.7 : 1) * (this.slowT > 0 ? 0.6 : 1) * (this.kit.speedMul ?? 1) * (this.speedBuffT > 0 ? 1 + (this.speedBuff ?? 0.3) : 1);
+    if (this.stats.regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + this.stats.regen * dt);
+    // Hephaestus's Embers: burn monsters right next to you
+    if (this.procs.embers) {
+      this.emberT = (this.emberT ?? 0) - dt;
+      if (this.emberT <= 0) { this.emberT = 0.5; for (const e of g.enemies) if (!e.dead && !e.isDummy && !e.untargetable && e.pos.distanceTo(this.pos) < 2.2) g.combat.damageEnemy(e, 3 * this.procs.embers, this, { stagger: 0, proc: true, color: '#ff9a3a' }); }
+      if (Math.random() < dt * 8) g.particles.burst(this.pos.clone().setY(this.pos.y + 0.4), { count: 1, color: 0xff7a2a, speed: 1, up: 1.5, life: 0.5, size: 0.12 });
+    }
     const want = new THREE.Vector3();
     if (this.dodgeT > 0) {
       this.dodgeT -= dt;

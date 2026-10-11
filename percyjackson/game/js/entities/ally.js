@@ -72,7 +72,7 @@ export class Ally {
     this.game = game; this.owner = owner; this.kind = kind;
     const spec = {
       dog: { model: () => BUILD.dog(opts.color ?? 0xf0f0f4), hp: 80, speed: 8.2, dmg: 14, range: 1.6, cd: 0.8, radius: 0.45, height: 1.2 },
-      nue: { model: () => BUILD.bird(0x2a2a3a), hp: 60, speed: 9, dmg: 22, range: 2.4, cd: 2.2, radius: 0.5, height: 3.2, fly: true },
+      nue: { model: () => BUILD.bird(opts.color ?? 0x2a2a3a), hp: 60, speed: 9, dmg: 22, range: 2.4, cd: 2.2, radius: 0.5, height: 3.2, fly: true },
       toad: { model: () => BUILD.toad(0x4a6a3a), hp: 120, speed: 3.5, dmg: 10, range: 8, cd: 2.6, radius: 0.7, height: 1.2 },
       corpse: { model: () => BUILD.panda(), hp: 200, speed: 5.5, dmg: 24, range: 1.9, cd: 1.0, radius: 0.6, height: 2.2 },
     }[kind];

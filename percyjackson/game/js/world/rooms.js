@@ -332,6 +332,14 @@ export function scatterOn(k, x0, z0, x1, z1, grounds, types, density = 0.3, scal
     k.d.add(t, x + 0.5 + k.rnd(-0.3, 0.3), y, z + 0.5 + k.rnd(-0.3, 0.3), { scale: t === 'tall_grass' ? 1.1 : scale, sway: 1 });
   }
 }
+// Soft patches of another top block (grass in the forest, mud in a field).
+export function patches(k, x0, z0, x1, z1, y, id, cover = 0.3, on = null) {
+  const o = k.r() * 100, t = 1 - cover * 2;
+  for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
+    const n = Math.sin(x * 0.31 + o + Math.sin(z * 0.23 + o) * 2) * Math.cos(z * 0.27 - x * 0.11 + o * 0.5);
+    if (n > t && (!on || on.includes(k.w.get(x, y - 1, z)))) k.w.set(x, y - 1, z, id);
+  }
+}
 // Boulder: a lumpy blob of rock blocks.
 export function boulder(k, x, z, y, R = 1.6, id = B.rock) {
   for (let yy = -1; yy <= Math.ceil(R); yy++) for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) {
@@ -482,7 +490,7 @@ export const DRESS = {
     // Where the car went off the road: the start of the run up the hill.
     start(c) {
       const { k, x0, z0, x1, z1, y } = c;
-      k.floor(x0, z0, x1, z1, y, B.grass, 6, B.mud, 0.18);
+      k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.12);
       const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
       for (let z = z0; z <= z1; z++) for (let x = cx - 2; x <= cx + 2; x++) k.w.set(x, y - 1, z, Math.abs(x - cx) === 2 ? B.mud : B.dirt_road);
       k.d.prop('car_flipped', cx - 5.5, y, cz - 2, { rot: 0.5, color: 0x2a3a5a });
@@ -497,7 +505,7 @@ export const DRESS = {
     // The hilltop: Thalia's pine tree at the camp border.
     boss(c) {
       const { k, x0, z0, x1, z1, y } = c;
-      k.floor(x0, z0, x1, z1, y, B.grass, 8, B.mud, 0.12);
+      k.floor(x0, z0, x1, z1, y, B.grass, 8); patches(k, x0, z0, x1, z1, y, B.mud, 0.1);
       const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, R = (x1 - x0) / 2;
       for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (Math.hypot(x + 0.5 - cx, z + 0.5 - cz) > R + 0.6 + Math.sin(x * 0.7 + z) * 0.8) for (let yy = y - 8; yy < y + 6; yy++) k.w.set(x, yy, z, 0);
       const tx = Math.round(cx) - 1, tz = Math.round(z0 + 3);
@@ -512,7 +520,7 @@ export const DRESS = {
   camp_woods: {
     start(c) {
       const { k, x0, z0, x1, z1, y } = c;
-      k.floor(x0, z0, x1, z1, y, B.forest_floor, 6, B.grass, 0.25);
+      k.floor(x0, z0, x1, z1, y, B.forest_floor, 6); patches(k, x0, z0, x1, z1, y, B.grass, 0.3);
       const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
       k.d.prop('flagpole', cx + 0.5, y, cz - 3.5, { h: 5, color: 0x2a6ad8 });
       k.d.prop('campfire', cx + 0.5, y, cz + 0.5); k.w.addLight(cx + 0.5, y + 1.2, cz + 0.5, 0xff9a40, 6, 12);
@@ -524,7 +532,7 @@ export const DRESS = {
     // A clearing where the hellhound comes out of the dark.
     boss(c) {
       const { k, x0, z0, x1, z1, y } = c;
-      k.floor(x0, z0, x1, z1, y, B.forest_floor, 8, B.grass, 0.3);
+      k.floor(x0, z0, x1, z1, y, B.forest_floor, 8); patches(k, x0, z0, x1, z1, y, B.grass, 0.3);
       const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, R = (x1 - x0) / 2;
       for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (Math.hypot(x + 0.5 - cx, z + 0.5 - cz) > R + 0.6) for (let yy = y - 8; yy < y + 6; yy++) k.w.set(x, yy, z, 0);
       // the creek across the far side
@@ -640,7 +648,7 @@ Object.assign(TEMPLATES, {
   // A storm-soaked field: crop rows, hay bales, fences, a lone oak.
   farm_field(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.mud, 0.1);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.1);
     stoneWall(c);
     const fx0 = x0 + 3, fx1 = x1 - 3, fz0 = z0 + 3, fz1 = Math.floor((z0 + z1) / 2);
     for (let z = fz0; z <= fz1; z++) for (let x = fx0; x <= fx1; x++) if (!doorAisle(c, x, z)) k.w.set(x, y - 1, z, z % 2 ? B.farm_soil : B.mud);
@@ -654,7 +662,7 @@ Object.assign(TEMPLATES, {
   // The farm road: muddy ruts, ditches, telephone poles and wrecked cars.
   farm_road(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.mud, 0.15);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.12);
     const alongX = c.doors.some((d) => d.side === 'e' || d.side === 'w');
     const mid = alongX ? (z0 + z1) >> 1 : (x0 + x1) >> 1;
     for (let t = alongX ? x0 : z0; t <= (alongX ? x1 : z1); t++) for (let s = -2; s <= 2; s++) {
@@ -674,7 +682,7 @@ Object.assign(TEMPLATES, {
   // Wrecked farmhouse: red board walls with holes, a broken roof, hay inside.
   farmhouse(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.mud, 0.15);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.12);
     const hx0 = x0 + 3, hz0 = z0 + 3, hx1 = x1 - 3, hz1 = z1 - 4;
     k.floor(hx0, hz0, hx1, hz1, y, B.floor_boards, 1);
     k.room(hx0, hz0, hx1, hz1, y, 4, B.barn_red, { alt: B.planks, altP: 0.1, trim: B.white_trim, doors: [{ side: 's', at: (hx0 + hx1) >> 1, width: 3, height: 3 }, { side: 'n', at: (hx0 + hx1) >> 1, width: 3, height: 3 }, { side: 'w', at: (hz0 + hz1) >> 1, width: 3, height: 3 }, { side: 'e', at: (hz0 + hz1) >> 1, width: 3, height: 3 }] });
@@ -694,7 +702,7 @@ Object.assign(TEMPLATES, {
   // Hillside: terraces climbing toward the pine, big rocks and trees.
   hillside(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.mud, 0.08);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.mud, 0.08);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     // two terraces around the centre (rounded), with ramps of single steps
     for (let z = z0 + 3; z <= z1 - 3; z++) for (let x = x0 + 3; x <= x1 - 3; x++) {
@@ -729,9 +737,9 @@ Object.assign(TEMPLATES, {
   // Dense pine forest with ferns, boulders and fallen logs.
   woods(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6, B.grass, 0.15);
-    woodsEdge(c, 12);
-    for (let i = 0; i < 6; i++) { const x = x0 + 4 + Math.floor(c.r() * (x1 - x0 - 8)), z = z0 + 4 + Math.floor(c.r() * (z1 - z0 - 8)); if (free(c, x, z) && !doorAisle(c, x, z, 3)) (c.r() < 0.75 ? pine : oak)(k, x, z, y); }
+    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6); patches(k, x0, z0, x1, z1, y, B.grass, 0.25);
+    woodsEdge(c, 8);
+    for (let i = 0; i < 4; i++) { const x = x0 + 4 + Math.floor(c.r() * (x1 - x0 - 8)), z = z0 + 4 + Math.floor(c.r() * (z1 - z0 - 8)); if (free(c, x, z) && !doorAisle(c, x, z, 3)) (c.r() < 0.75 ? pine : oak)(k, x, z, y); }
     for (let i = 0; i < 2; i++) { const x = x0 + 4 + Math.floor(c.r() * (x1 - x0 - 8)), z = z0 + 4 + Math.floor(c.r() * (z1 - z0 - 8)); if (free(c, x, z) && !doorAisle(c, x, z, 3)) boulder(k, x, z, y, 1.2 + c.r() * 0.6); }
     // a fallen log
     { const x = x0 + 3 + Math.floor(c.r() * (x1 - x0 - 10)), z = z0 + 3 + Math.floor(c.r() * (z1 - z0 - 6)); let ok = true; for (let i = 0; i < 5; i++) ok = ok && free(c, x + i, z) && !doorAisle(c, x + i, z, 3); if (ok) for (let i = 0; i < 5; i++) k.w.set(x + i, y, z, B.pine_log); }
@@ -741,7 +749,7 @@ Object.assign(TEMPLATES, {
   // The creek: running water with sandy banks, stepping stones and a log bridge.
   creek(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6, B.grass, 0.25);
+    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6); patches(k, x0, z0, x1, z1, y, B.grass, 0.3);
     const alongX = (x1 - x0) >= (z1 - z0);
     const mid = alongX ? (z0 + z1) >> 1 : (x0 + x1) >> 1;
     for (let t = alongX ? x0 : z0; t <= (alongX ? x1 : z1); t++) {
@@ -756,7 +764,7 @@ Object.assign(TEMPLATES, {
     for (let t = (alongX ? x0 : z0) + 3; t < (alongX ? x1 : z1) - 2; t += 6) { const off = Math.round(Math.sin(t * 0.35) * 2); const x = alongX ? t : mid + off, z = alongX ? mid + off : t; k.w.set(x, y - 1, z, B.rock); k.w.set(x, y - 2, z, B.rock); }
     { const t = alongX ? ((x0 + x1) >> 1) + 3 : ((z0 + z1) >> 1) + 3; const off = Math.round(Math.sin(t * 0.35) * 2); for (let s = -3; s <= 3; s++) { const x = alongX ? t : mid + off + s, z = alongX ? mid + off + s : t; k.w.set(x, y - 1, z, B.pine_log); } }
     for (let t = alongX ? x0 : z0; t <= (alongX ? x1 : z1); t += 2) { const off = Math.round(Math.sin(t * 0.35) * 2); for (const s of [-2, 2]) if (c.r() < 0.5) k.d.add('reeds', (alongX ? t : mid + off + s) + 0.5, y, (alongX ? mid + off + s : t) + 0.5, { scale: 1, sway: 1 }); }
-    woodsEdge(c, 8);
+    woodsEdge(c, 6);
     boulder(k, alongX ? x0 + 4 : mid - 6, alongX ? mid - 6 : z0 + 4, y, 1.3);
     woodsDecorate(c, 0.8);
     spawnGrid(c, 12, 2);
@@ -765,13 +773,13 @@ Object.assign(TEMPLATES, {
   // Zeus's Fist: a great pile of boulders you can climb.
   zeus_fist(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6, B.grass, 0.2);
+    k.floor(x0, z0, x1, z1, y, B.forest_floor, 6); patches(k, x0, z0, x1, z1, y, B.grass, 0.25);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     boulder(k, cx, cz, y, 3.2); boulder(k, cx - 2, cz + 1, y + 2, 2.4); boulder(k, cx + 1, cz - 1, y + 4, 1.8);
     boulder(k, cx + 3, cz + 2, y, 2);
     // a climbing ramp of single steps up one side
     for (let i = 0; i < 4; i++) for (let w = 0; w < 2; w++) { k.w.fill(cx - 7 + i, y, cz + w, cx - 7 + i, y + i, cz + w, B.rock); k.w.fill(cx - 7 + i, y + i + 1, cz + w, cx - 7 + i, y + i + 4, cz + w, 0); }
-    woodsEdge(c, 10);
+    woodsEdge(c, 7);
     k.d.prop('flagpole', cx + 0.5, k.w.groundBelow(cx + 0.5, cz + 0.5, y + 12), cz + 0.5, { h: 4, color: 0xd8322a });
     woodsDecorate(c);
     spawnGrid(c, 12, 2);
@@ -780,11 +788,11 @@ Object.assign(TEMPLATES, {
   // A moonlit clearing with an old campfire ring and armour left behind.
   clearing(c) {
     const { k, x0, z0, x1, z1, y } = c;
-    k.floor(x0, z0, x1, z1, y, B.grass, 6, B.forest_floor, 0.3);
+    k.floor(x0, z0, x1, z1, y, B.grass, 6); patches(k, x0, z0, x1, z1, y, B.forest_floor, 0.3);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     k.d.prop('campfire', cx + 0.5, y, cz + 0.5); k.w.addLight(cx + 0.5, y + 1.2, cz + 0.5, 0xff9a40, 5, 11); collider(c, cx, cz, 1);
     for (let a = 0; a < 3; a++) { const x = Math.round(cx + Math.cos(a * 2.1) * 3.5), z = Math.round(cz + Math.sin(a * 2.1) * 3.5); if (free(c, x, z)) k.w.set(x, y, z, B.pine_log); }
-    woodsEdge(c, 14);
+    woodsEdge(c, 10);
     k.s.add({ x: cx + 0.5, y: y + 14, z: cz - 3 }, { x: 0.25, y: -1, z: 0.35 }, 15, 5, 0xc0d4ff);
     scatterOn(k, x0, z0, x1, z1, [B.grass], ['flower_blue', 'flower_yellow', 'grass', 'tall_grass'], 0.3);
     woodsDecorate(c, 0.6);

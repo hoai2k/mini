@@ -34,7 +34,7 @@ function skinMat(seed, painter, emit = 3) {
 
 const BOSSES = {
   alecto: {
-    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 16, color: 0xff7a1a, radius: 0.9, height: 3.4, hover: 1.4,
+    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 16, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
     build() {
       const m = skinMat(501, (S) => paintPerson(S, { skin: 0x7a6a5a, hair: 0x9a9a9e, hairVolume: true, fringe: 2, hairSide: 5, hairBack: 7, eye: 0xff2a0a, eyeWhite: 0xffd84a, scowl: true, wrinkles: 0x4a3a2a, fangs: 0xf4f0e0, grin: true, top: 0x5a1a22, jacket: 0x161618, lapel: 0x2a2a2e, sleeve: 0x6a5a4a, hand: 0x6a5a4a, pants: 0x161618, skirt: 0x161618, skirtLen: 12, shoes: 0x4a3a2a }));
       const rig = new Rig({ material: m, scale: 1.75, bodyW: 7, armW: 3 });
@@ -51,7 +51,7 @@ const BOSSES = {
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
   },
   minotaur: {
-    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xff2a1a, radius: 1.2, height: 4.6,
+    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xff2a1a, radius: 1.2, height: 3.4,
     build() {
       const fur = 0x6a4228;
       const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xe2dccc, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xe2dccc, 0.04); s.rect(32, 30, 8, 2, 0xe2dccc, 0.04); s.rect(16, 30, 4, 2, 0xe2dccc, 0.04); s.rect(28, 30, 4, 2, 0xe2dccc, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
@@ -74,7 +74,7 @@ const BOSSES = {
     phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'bull_charge', 'rock_throw', 'horn_sweep']],
   },
   chimera: {
-    name: 'The Chimera', title: 'THE CHIMERA · MOTHER OF MONSTERS’ CHILD', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3.6,
+    name: 'The Chimera', title: 'THE CHIMERA · ECHIDNA’S “CHIHUAHUA”', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
     build() {
       const m = skinMat(313, (S) => paintQuad(S, { base: 0x8a7a66, dark: 0x5a4c3e, belly: 0xa89a84, back: 0x7a6a58, eye: 0xffc81a, eyeLow: 0xff7a1a, nose: 0x3a2214, teeth: 0xfff4e0, speckles: 50, custom: (s) => { s.box(0, 0, 8, 8, 8, 0xd8a040, 0.12); s.rect(9, 10, 2, 2, 0xffd84a, 0); s.rect(13, 10, 2, 2, 0xffd84a, 0); s.px(10, 11, 0x1a0a00); s.px(13, 11, 0x1a0a00); s.box(32, 0, 4, 4, 4, 0xe0b060, 0.1); s.rect(36, 4, 4, 1, 0x3a2214, 0); s.box(40, 32, 2, 2, 6, 0x5a7a3a, 0.2); for (let x = 40; x < 56; x += 2) s.px(x, 34 + (x % 4 ? 1 : 0), 0xd8c88a); } }), 2.6);
       const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7.5, ears: true, tail: 5, tailLen: 12, tailW: 2, tailCurl: 0.25, gait: 0.7 });
@@ -186,16 +186,22 @@ export class Boss {
   // A straight dash along dir (swoop, charge, pounce). Returns 'wall' if a
   // tall obstacle stopped it and stopOnWall is set.
   *dashLine(dir, speed, ticks, dmg, { stopOnWall = false, hitR = 2.2, dust = 0x8a7a6a, trail = null } = {}) {
-    const g = this.game, w = g.world, hit = new Set();
+    const g = this.game, w = g.world, hit = new Set(), last = this.pos.clone();
+    let stuck = 0;
     for (let k = 0; k < ticks; k++) {
       this.knock.copy(dir).multiplyScalar(speed);
       for (const p of g.hostileTargets()) { if (!p.dead && !hit.has(p) && p.pos.distanceTo(this.pos) < hitR + (p.radius ?? 0.3)) { hit.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(13).setY(4) }); } }
       if (dust) g.particles.burst(this.pos, { count: 3, color: dust, additive: false, speed: 2, life: 0.5, size: 0.6, sizeEnd: 1.6 });
       trail?.(k);
-      if (stopOnWall) {
+      if (stopOnWall && k > 0) {
+        // a tree, wall or pillar dead ahead (too tall to step over) or no headway against one
         const ax = this.pos.x + dir.x * (this.radius + 0.5), az = this.pos.z + dir.z * (this.radius + 0.5);
-        if (w.solidAt(ax, this.pos.y + 1.5, az) && w.solidAt(ax, this.pos.y + 2.5, az)) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
+        const tall = w.solidAt(ax, this.pos.y + 1.5, az) && w.solidAt(ax, this.pos.y + 2.5, az);
+        const moved = Math.hypot(this.pos.x - last.x, this.pos.z - last.z);
+        stuck = this.hitWall && moved < speed * 0.01 ? stuck + 1 : 0;
+        if (tall || stuck >= 2) { this.knock.set(0, 0, 0); this.vel.set(0, 0, 0); return 'wall'; }
       }
+      last.copy(this.pos);
       yield 0.04;
     }
     this.knock.set(0, 0, 0);

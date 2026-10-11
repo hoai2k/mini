@@ -430,8 +430,8 @@ function paintTile(name, px, r) {
       const c = shade(C(0x3f6a4a), 0.85 + mulberry32(row * 7 + ((x + ox) >> 3))() * 0.3 - (y % 4 === 3 ? 0.3 : 0) - (u === 0 ? 0.2 : 0));
       return [jitter(c, r, 0.05), y % 4 === 3 || u === 0 ? 0.2 : 0.7];
     }); break;
-    case 'mud': noiseFill(px, r, [C(0x4a3626), C(0x3f2d20), C(0x55402c)], 0.12, 0.3);
-      for (let i = 0; i < 3; i++) { const x = r() * 12 | 0, y = r() * 14 | 0; for (let k = 0; k < 4; k++) px.set(x + k, y, C(0x6a7a8a), 0.05); }
+    case 'mud': noiseFill(px, r, [C(0x6a5038), C(0x5c4430), C(0x765a40)], 0.1, 0.3);
+      for (let i = 0; i < 3; i++) { const x = r() * 12 | 0, y = r() * 14 | 0; for (let k = 0; k < 4; k++) px.set(x + k, y, C(0x7a8a96), 0.05); }
       break;
     case 'lightning_stone': each(px, (x, y) => { // Zeus: white marble with a gold bolt
       const bolt = (y < 8 && Math.abs(x - (10 - y * 0.6)) < 1.2) || (y >= 7 && Math.abs(x - (12 - (y - 7) * 0.9)) < 1.2) || (y === 7 && x > 4 && x < 12);

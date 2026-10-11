@@ -39,13 +39,14 @@ import './heroes/grover.js';
 import './heroes/tyson.js';
 import './heroes/clarisse.js';
 import { Save } from './save.js';
-import { rollChest, itemInfo, RARITY } from './loot.js';
+import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
 import * as Screens from './ui/screens.js';
-import { openTitle, openInventory, openSkills, openShop, openMapTable } from './ui/screens.js';
+import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
 import { Mist } from './mist.js';
 import { Party } from './party.js';
 import { Archery } from './minigames/archery.js';
 import { Online } from './net/online.js';
+import { LootDrops } from './lootdrops.js';
 import { openOnline } from './net/lobby.js';
 import { mulberry32 } from './util.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
@@ -124,6 +125,7 @@ class Game {
     this.mist = new Mist(this);
     this.partyMgr = new Party(this);
     this.online = new Online(this);
+    this.loot = new LootDrops(this);
     this.party = null;          // single player: the heroes of the party (one human, the rest AI)
     this.battleSenseT = 0;      // Battle Sense: monsters move in slow motion while > 0
     this.updaters = [];
@@ -254,7 +256,7 @@ class Game {
     for (const e of this.enemies) this.scene.remove(e.object);
     for (const a of this.allies) { a.dispose?.(); this.scene.remove(a.object); }
     this.enemies = []; this.allies = [];
-    this.projectiles.clear(); this.hazards.clear(); this.pickups.clear();
+    this.projectiles.clear(); this.hazards.clear(); this.pickups.clear(); this.loot?.clear();
     for (const m of this.markers.items) this.markers.cancel(m);
     this.updaters = []; this.interactables = [];
     this.mission?.dispose(); this.mission = null;
@@ -302,8 +304,8 @@ class Game {
     const who = (p) => p ?? this.players[0];
     this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: 'Training: call up monsters', action: () => this.spawnWave(), enabled: () => !this.online.isGuest });
     this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: 'Mission map', action: () => openMapTable(this) });
-    this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: 'Merchant', action: (p) => openShop(this, who(p)) });
-    this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.2, label: 'Inventory', action: (p) => openInventory(this, who(p)) });
+    this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: 'Camp store', action: (p) => openShop(this, who(p)) });
+    this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.4, label: L.forge ? 'The Forge: temper and enchant gear' : 'Forge and inventory', action: (p) => openForge(this, who(p)) });
     this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Train with Chiron', action: (p) => openSkills(this, who(p)) });
     if (L.archery) this.interactables.push({ id: 'archery', pos: L.archery, radius: 2.4, label: 'Archery range', action: (p) => this.startMinigame(new Archery(this, who(p), L.archery, L.archeryFacing ?? 0)), enabled: () => !this.minigame });
     if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: 'Climbing wall', action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame });
@@ -489,6 +491,7 @@ class Game {
       this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
       if (Math.random() < 0.12) this.pickups.drop('ce', e.pos, 1);
+      this.maybeDropFromMonster(e);
     }
   }
   onBossKilled(b) { this.mission?.onBossKilled(b); if (this.save.addXp(150)) this.levelUp(); }
@@ -499,22 +502,27 @@ class Game {
     for (const p of this.players) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
     this.save.write();
   }
-  onChestOpened(c, p) {
-    const power = this.mission?.def.difficulty ?? 1;
-    const items = rollChest(power, c.boss ? 'boss' : c.rarity);
-    items.forEach((it, i) => {
-      this.save.data.inventory.push(it);
-      this.mission?.stats.loot.push(it);
-      const b = itemInfo(it), R = RARITY[b.rarity];
-      setTimeout(() => {
-        toast(`${b.icon} ${R.label}: ${b.name}`);
-        this.audio.loot(b.rarity);
-        const col = new THREE.Color(R.color);
-        this.particles.burst(c.pos.clone().setY(c.pos.y + 1), { count: 30, color: col, speed: 3, up: 4, life: 1.2, size: 0.18, gravity: -2, shape: 1 });
-        this.lights.flash(c.pos.clone().setY(c.pos.y + 2), col, 8, 8, 1.2);
-      }, 350 + i * 450);
+  // Chests and bosses drop a separate item (or two) for every human player.
+  onChestOpened(c) {
+    const diff = this.mission?.def.difficulty ?? 1, lvl = this.save.data.level;
+    const humans = this.players.filter((q) => !q.ai && !q.remote);
+    humans.forEach((q, n) => {
+      const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: lvl, hero: q.hero });
+      items.forEach((it, i) => setTimeout(() => this.loot.drop(it, c.pos, q), 300 + (n * items.length + i) * 260));
     });
-    this.save.write();
+    const col = new THREE.Color(c.boss ? 0xff9a2a : c.rarity === 'rare' ? 0x4ad0ff : 0xd8cfbd);
+    this.particles.burst(c.pos.clone().setY(c.pos.y + 1), { count: 30, color: col, speed: 3, up: 4, life: 1.2, size: 0.18, gravity: -2, shape: 1 });
+    this.lights.flash(c.pos.clone().setY(c.pos.y + 2), col, 8, 8, 1.2);
+  }
+  // Elites and champions sometimes drop an item for the hero who beat them.
+  maybeDropFromMonster(e) {
+    const tier = e.def?.tier;
+    const chance = e.elite ? 0.18 : tier === 'champion' ? 0.5 : tier === 'elite' ? 0.06 : 0;
+    if (!chance || Math.random() > chance || !this.mission) return;
+    const k = e.lastAttacker;
+    const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
+    if (!q) return;
+    this.loot.drop(rollItem(powerFor(this.mission.def.difficulty, this.save.data.level), { hero: q.hero }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
@@ -652,6 +660,7 @@ class Game {
       this.hazards.update(edt);
       this.updateInteract(dt);
       this.pickups.update(dt);
+      this.loot.update(dt);
       this.mission?.update(dt);
       this.online.update(realDt);
     }

@@ -1,6 +1,6 @@
 // Profile persistence in localStorage: coins, hero levels/XP, skill
 // ranks, enchantment points, inventory, loadouts and mission progress.
-import { rollItem } from './loot.js';
+import { rollItem, normalizeItem } from './loot.js';
 
 const KEY = 'half-blood-quests-save-v1';
 
@@ -10,7 +10,7 @@ function fresh() {
     coins: 0,
     level: 1, xp: 0, enchantPoints: 1,
     heroes: {},             // id -> { skills: {id: rank}, skillPoints, gear: [weaponUid, armorUid, art1Uid, art2Uid] }
-    inventory: [rollItem(1, { id: 'wraps' }), rollItem(1, { id: 'uniform' }), rollItem(1, { id: 'talisman' })],
+    inventory: ['training_sword', 'camp_shirt', 'nectar_flask'].map((id) => { const it = rollItem(8, { id, blessed: false }); delete it.isNew; return it; }),
     completed: {},             // missionId -> best threat cleared
     unlocked: {},
     lastHero: 'percy',
@@ -24,7 +24,7 @@ export class Save {
   load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) { const d = JSON.parse(raw); if (d && d.version === 1) return { ...fresh(), ...d }; }
+      if (raw) { const d = JSON.parse(raw); if (d && d.version === 1) { d.inventory = (d.inventory ?? []).map(normalizeItem).filter(Boolean); return { ...fresh(), ...d }; } }
     } catch (e) { /* ignore */ }
     return fresh();
   }
@@ -34,7 +34,7 @@ export class Save {
     const s = this.data.heroes;
     if (!s[id]) {
       const inv = this.data.inventory;
-      const w = inv.find((i) => i.id === 'wraps') ?? inv[0], a = inv.find((i) => i.id === 'uniform'), t = inv.find((i) => i.id === 'talisman');
+      const w = inv.find((i) => i.id === 'training_sword') ?? inv[0], a = inv.find((i) => i.id === 'camp_shirt'), t = inv.find((i) => i.id === 'nectar_flask');
       s[id] = { skills: {}, skillPoints: this.data.level, gear: [w?.uid ?? null, a?.uid ?? null, t?.uid ?? null, null] };
     }
     return s[id];

@@ -179,7 +179,7 @@ export function buildCamp() {
       for (let z = z0 - 1; z <= z1 + 1; z++) for (let x = x0 - 1; x <= x1 + 1; x++) W.set(x, y + h, z, (x === x0 - 1 || x === x1 + 1 || z === z0 - 1 || z === z1 + 1) ? S.trim : S.roof);
       for (let z = z0 + 1; z < z1; z++) for (let x = x0 + 1; x < x1; x++) W.set(x, y + h + 1, z, S.roof);
       ridge = y + h + 1;
-    } else ridge = gable(k, rx0, z0, rx1, rz1, y + h, S.roof, { axis: door === 's' ? 'z' : 'x', end: S.wall, run: S.run ?? 1, ridgeId: S.ridge ?? null });
+    } else ridge = gable(k, rx0, z0, rx1, rz1, y + h, S.roof, { axis: door === 's' ? 'z' : 'x', end: S.wall, run: S.run ?? 1, ridgeId: S.ridge ?? null, eave: S.portico ? 1 : 0 });
     const ey = door === 's' ? ridge - 1.4 : y + h - 1.3;
     const ex = door === 'e' ? x1 + 1.02 : door === 'w' ? x0 - 0.02 : xc + 0.5, ez = door === 's' ? (S.portico ? z1 + 1.02 : z1 + 1.02) : zc + 0.5;
     deco.add(S.emblem, ex, door === 's' ? (S.portico ? ey : y + h - 1.3) : ey, ez, { mode: 'wall', facing: [fx, fz], scale: S.portico ? 1.8 : 1.3, sway: 0 });
@@ -214,7 +214,7 @@ export function buildCamp() {
 
   // ------------------------------------------------------------ camp store (west of the cabins)
   {
-    const x0 = 32, z0 = 32, x1 = 38, z1 = 38, y = FY + 1;
+    const x0 = 26, z0 = 32, x1 = 32, z1 = 38, y = FY + 1;
     W.fill(x0, FY, z0, x1, FY, z1, B.stone_brick);
     k.room(x0, z0, x1, z1, y, 4, B.planks, { trim: B.white_trim, doors: [{ side: 'e', at: 35, width: 3, height: 3 }] });
     for (let yy = y; yy < y + 4; yy++) for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) W.set(x, yy, z, B.white_trim);
@@ -227,12 +227,12 @@ export function buildCamp() {
     W.set(x0 + 1, y + 1, z0 + 1, B.barrel); W.set(x0 + 1, y, z1 - 2, B.barrel);
     deco.add('camp_banner', x1 + 1.02, y + 1.6, 33.5, { mode: 'wall', facing: [1, 0], scale: 1.6, sway: 0.3 });
     deco.add('camp_banner', x1 + 1.02, y + 1.6, 37.5, { mode: 'wall', facing: [1, 0], scale: 1.6, sway: 0.3 });
-    for (const z of [32, 38]) { W.set(40, FY, z, B.barrel); }
-    deco.prop('signpost', 41.5, FY, 31.5, { rot: 0.6 });
+    for (const z of [32, 38]) { W.set(x1 + 2, FY, z, B.barrel); }
+    deco.prop('signpost', x1 + 3.5, FY, 31.5, { rot: 0.6 });
   }
-  const store = V(40.5, FY, 35.5);
-  pathLine([[39, 35.5], [43, 36], [44, 40]], 3);
-  pathLine([[43, 24], [38, 28], [33, 26], [30, 22]], 2);   // up Half-Blood Hill
+  const store = V(34.5, FY, 35.5);
+  pathLine([[33, 35.5], [38, 37], [42, 40], [44, 40]], 3);
+  pathLine([[43, 24], [38, 27], [33, 26], [30, 22]], 2);   // up Half-Blood Hill
 
   // ------------------------------------------------------------ the canoe lake and the beach
   const LX0 = 20, LX1 = 33, LZ0 = 46, LZ1 = 68;
@@ -414,7 +414,7 @@ export function buildCamp() {
     if (k.chance(0.8)) pine(k, px, pz, y, { h: 8 + Math.floor(k.rnd(0, 6)) }); else oak(k, px, pz, y);
   }
   // pines dotted on the hill and around the camp
-  for (const [x, z] of [[20, 30], [38, 14], [24, 8], [42, 28], [16, 40], [17, 76], [43, 6], [68, 26], [83, 22], [66, 80], [90, 50], [36, 104], [27, 104], [70, 40], [76, 70], [86, 60]]) { const y = top(x, z); if (clear(x, z)) pine(k, x, z, y, { h: 7 + Math.floor(k.rnd(0, 5)) }); }
+  for (const [x, z] of [[20, 30], [38, 14], [24, 8], [16, 40], [17, 76], [43, 6], [68, 26], [83, 22], [66, 80], [90, 50], [36, 104], [27, 104], [70, 40], [76, 70], [86, 60]]) { const y = top(x, z); if (clear(x, z)) pine(k, x, z, y, { h: 7 + Math.floor(k.rnd(0, 5)) }); }
   for (const [x, z] of [[34, 78], [68, 76], [86, 28], [74, 46], [40, 112]]) if (clear(x, z)) oak(k, x, z, top(x, z));
   boulder(k, 94, 100, FY - 1, 1.8); boulder(k, 100, 58, FY + 1, 1.4);
 

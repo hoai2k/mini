@@ -103,7 +103,7 @@ export function statusTick(g, dt) {
         e.knock.copy(tmp).multiplyScalar((e.speed ?? 3) * 1.25);
         e.facing = Math.atan2(tmp.x, tmp.z);
         if (Math.random() < dt * 6) P.emit(e.pos.x, e.pos.y + h + 0.3, e.pos.z, 0, 1.2, 0, 0.5, 0.6, 2.2, 0.8, 0.22, 0, 1, 0.5, 2);
-        if (f.dps) { f.tick -= dt; if (f.tick <= 0) { f.tick = 0.5; g.combat.damageEnemy(e, f.dps * 0.5, f.src, { stagger: 0, ceGain: 0, color: '#9aff7a', crit: false }); } }
+        if (f.dps) { f.tick -= dt; if (f.tick <= 0) { f.tick = 1; g.combat.damageEnemy(e, f.dps, f.src, { stagger: 0, ceGain: 0, color: '#9aff7a', crit: false }); } }
       }
     }
     if (e.pjMarkT > g.time && Math.random() < dt * 5) {

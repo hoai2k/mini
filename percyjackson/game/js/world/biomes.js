@@ -69,7 +69,7 @@ export const BIOMES = {
   storm_hill: {
     id: 'storm_hill', name: 'Half-Blood Hill', sub: 'Long Island · Storm',
     skyTop: 0x05070c, skyHorizon: 0x222c3a, fog: 0x18202a, fogDensity: 0.028,
-    hemiSky: 0x6a7c9c, hemiGround: 0x1c1a14, hemiI: 0.7, sun: 0x9ab0d8, sunI: 0.75,
+    hemiSky: 0x6a7c9c, hemiGround: 0x1c1a14, hemiI: 0.85, sun: 0x9ab0d8, sunI: 0.85,
     grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.006, 0.02], sat: 0.85, contrast: 1.12, vignette: 0.42 },
     floor: B.grass, floor2: B.mud, path: B.dirt_road, wall: B.rock, wall2: B.cobble, trim: B.rock, pillar: B.pine_log, roof: B.barn_red, ground: B.grass, accent: B.lantern, pit: B.dirt,
     ambience: 'storm', music: 'storm', particles: 'rain', wind: 2.4, storm: true,

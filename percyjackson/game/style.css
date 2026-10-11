@@ -390,3 +390,35 @@ body.is-touch .coins { bottom: auto; top: calc(8px + var(--safe-t)); right: calc
 body.is-touch .mini-frame { top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); }
 body.is-touch .sight { bottom: calc(120px + var(--safe-b)); left: 50%; }
 .noscript { padding: 40px; text-align: center; }
+
+/* ---- loot: item cards, inventory badges, enchantment choices -------------------- */
+.loot-cards { position: fixed; right: 16px; bottom: 120px; display: flex; flex-direction: column; gap: 8px; z-index: 40; pointer-events: none; max-width: min(360px, 90vw); }
+.loot-card { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: linear-gradient(180deg, #1b150e, #0d0a07); border: 2px solid var(--rc, #c9963a); border-radius: 10px; box-shadow: 0 0 18px color-mix(in srgb, var(--rc, #c9963a) 45%, transparent); color: #f4ead5; animation: lootIn .35s ease-out; transition: opacity .5s, transform .5s; }
+.loot-card.out { opacity: 0; transform: translateX(30px); }
+@keyframes lootIn { from { opacity: 0; transform: translateX(40px); } }
+.loot-card .lc-icon { font-size: 34px; }
+.loot-card .lc-name { font: 700 16px var(--head, serif); color: var(--rc); }
+.loot-card .lc-sub, .loot-card .lc-hint { font-size: 12px; color: #c8bca4; }
+.loot-card .lc-cmp { font-size: 13px; color: #fff3c8; }
+.item.blessed { border-color: #ffd84a; box-shadow: inset 0 0 16px rgba(255, 216, 74, .6), 0 0 8px rgba(255, 216, 74, .5); }
+.item.selected { outline: 3px solid var(--gold-hi, #ffd84a); outline-offset: 1px; }
+.item.empty { cursor: default; opacity: .55; flex-direction: column; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.item.empty .slot-ico { font-size: 22px; } .item.empty .slot-name { font-size: 10px; text-align: center; line-height: 1.1; }
+.item .badge-new { position: absolute; top: 2px; left: 3px; font: 800 9px var(--font, sans-serif); color: #10233d; background: #ffd84a; border-radius: 4px; padding: 0 3px; }
+.item .badge-fav { position: absolute; top: 0; right: 4px; font-size: 13px; color: #ffd84a; }
+.inv-filters, .inv-heroes { gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+.detail .fav { color: #ffd84a; font-size: 13px; margin-top: 2px; }
+.detail h3 { margin: 10px 0 2px; font-size: 15px; }
+.cmp-box { margin: 6px 0; padding: 6px 8px; background: #141009; border-radius: 6px; }
+.cmp { font-size: 14px; } .cmp.up { color: #7aff9a; } .cmp.down { color: #ff8a7a; }
+.ench .ed { flex: 1; font-size: 12px; color: #c8bca4; padding: 0 6px; }
+.ench.fixed { opacity: .9; } .ench.blessed { border-color: #ffd84a; box-shadow: 0 0 8px rgba(255, 216, 74, .35); }
+.ench-row { margin-top: 6px; padding: 6px; border: 1px dashed var(--gold-lo, #6a5530); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+.ench-opt { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; text-align: left; padding: 6px 8px; background: #241d14; color: #f4ead5; border: 1px solid var(--gold-lo, #6a5530); border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px; }
+.ench-opt span { font-size: 12px; color: #c8bca4; } .ench-opt i { font-style: normal; color: #ffd84a; font-size: 12px; }
+.ench-opt.powerful b { color: #ffb84a; }
+.ench-opt:focus-visible, .ench-opt:hover { outline: 2px solid var(--gold-hi, #ffd84a); }
+.ench-opt[disabled] { opacity: .45; cursor: not-allowed; }
+.inv { width: 100%; } .inv > * { min-width: 0; }
+.detail { min-width: 0; overflow-wrap: anywhere; max-height: 62vh; overflow-y: auto; }
+.inv-panel { max-height: 94vh; overflow-y: auto; }

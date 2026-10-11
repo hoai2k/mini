@@ -42,6 +42,7 @@ export class Combat {
       if (src.stats.committed && e.maxHp) dmg *= 1 + src.stats.committed * (1 - Math.max(0, e.hp) / e.maxHp);
       if (src.weaponPierce && o.melee) o.unblockable = true;
       if (src.rampageT > 0 && o.melee) dmg *= 1.05;
+      if (src.stats.bane && (e.isBoss || e.elite || e.def?.tier === 'elite' || e.def?.tier === 'champion')) dmg *= 1 + src.stats.bane;
     }
     const crit = o.crit ?? (Math.random() < (src?.stats?.crit ?? 0.05));
     if (crit) dmg *= o.critMult ?? 2;
@@ -57,6 +58,16 @@ export class Combat {
         src.gainCE?.(o.ceGain ?? dealt * 0.08);
         if (src.stats.lifesteal) src.heal?.(dealt * src.stats.lifesteal, true);
         src.onHitEnemy?.(e, dealt, o);
+        // Zeus's Spark: lightning on hit; Echo: a second strike
+        if (o.melee && !o.proc && src.procs?.thunder && Math.random() < 0.08 * src.procs.thunder) {
+          const at = e.pos.clone();
+          g.bolts.spawn(at.clone().setY(at.y + 7), { count: 3, length: 7, life: 0.22 });
+          this.aoe(at, 2.4, 18 + base * 0.6, src, { stagger: 0.5, proc: true, blocks: false });
+          g.audio?.impact?.(0.7);
+        }
+        if (o.melee && !o.proc && src.procs?.echo && Math.random() < 0.1 * src.procs.echo) {
+          setTimeout(() => { if (!e.dead) this.damageEnemy(e, base * 0.8, src, { melee: true, proc: true, stagger: 0.1, color: '#c8e8ff' }); }, 160);
+        }
       }
       const col = o.blackFlash ? '#ff2a2a' : crit ? null : o.color ?? null;
       g.fx.damageNumber(e.pos, dealt, { crit: crit || o.blackFlash, color: col, text: o.blackFlash ? `${Math.round(dealt)}!` : null });
@@ -68,7 +79,7 @@ export class Combat {
   meleeStrike(p, step) {
     const g = this.game;
     const dir = v2.set(Math.sin(p.facing), 0, Math.cos(p.facing));
-    let targets = this.query(p.pos, dir, step.range * (p.stats.reach ?? 1), step.arc);
+    let targets = this.query(p.pos, dir, step.range * (p.stats.reach ?? 1), Math.min(Math.PI, step.arc * (p.stats.arc ?? 1)));
     const sure = g.domainSys?.sureHit(p);
     if (sure) {
       // Domain: every attack lands on every curse inside
@@ -80,7 +91,7 @@ export class Combat {
     for (const e of targets) {
       const kdir = v1.subVectors(e.pos, p.pos).setY(0).normalize();
       const dealt = this.damageEnemy(e, step.dmg * (p.weaponMult ?? 1), p, {
-        knock: kdir.clone().multiplyScalar(step.knock * (bf ? 2.2 : 1)), stagger: step.stagger ?? 0.25, blackFlash: bf, melee: true, color: step.color,
+        knock: kdir.clone().multiplyScalar(step.knock * (bf ? 2.2 : 1) * (p.stats.knock ?? 1)), stagger: step.stagger ?? 0.25, blackFlash: bf, melee: true, color: step.color,
       });
       if (dealt > 0) {
         hit++;
