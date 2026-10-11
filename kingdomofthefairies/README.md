@@ -34,6 +34,7 @@ The retained sailor, guitar, rose bargain and alternate endings are adaptation
 mechanics, not events in the film. For the complete original storyline and
 character identities, start with [the film reference](design/film-story.md).
 [The design](design/acts.md) maps that story to future updates;
+[the film adaptation plan](design/film-adaptation.md) proposes the chapters to keep, recast, replace and add;
 [the story appendix](design/story-appendix.md) records proposed extensions.
 
 ## Implementation

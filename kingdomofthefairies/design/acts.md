@@ -1,7 +1,8 @@
 # Kingdom of the Fairies — five-act design
 
 The current story and first chapters remain as built. The full rescue voyage in Méliès’s 1903 film is a reference for decisions about later updates, not a commitment to replace the existing adaptation.
-[Film story and sources](film-story.md) record the original narrative; the source-led
+[Film story and sources](film-story.md) record the original narrative;
+[the film adaptation plan](film-adaptation.md) proposes which acts to keep, recast, replace and add; the source-led
 [expanded-world images](references/expanded-world/README.md) and
 [new concept sheet](generated/fairies/story-sheet.webp) define visual references.
 Keep the toy theatre, painted scenery, front-facing compositions, cut-outs,
