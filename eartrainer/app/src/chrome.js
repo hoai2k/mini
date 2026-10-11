@@ -22,13 +22,33 @@ export function canFullscreen() {
   const el = document.documentElement;
   return !!(el.requestFullscreen || el.webkitRequestFullscreen);
 }
-export function requestFullscreen() {
+// One request at a time: a tap's permission (user activation) is used up by the
+// first request, so a second one in the same tap is always refused, and on
+// some Android browsers that refusal is all the player sees. Once fullscreen
+// has started, lock landscape (Android only allows the lock in fullscreen).
+let pending = null;
+let failures = 0;
+let onFail = null;
+export function onFullscreenFail(f) { onFail = f; }
+export function requestFullscreen({ lock = false } = {}) {
   const el = document.documentElement;
-  if (fullscreenElement()) return;
+  if (fullscreenElement() || pending) return pending || Promise.resolve(true);
+  let r;
   try {
-    const r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
-    r?.catch?.(() => { /* refused: carry on */ });
-  } catch { /* not allowed here */ }
+    r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
+  } catch { r = Promise.reject(new Error('not allowed')); }
+  // Old WebKit returns nothing: judge by the fullscreenchange that follows.
+  if (!r || typeof r.then !== 'function') r = new Promise((ok) => setTimeout(() => ok(), 300)).then(() => { if (!fullscreenElement()) throw new Error('refused'); });
+  pending = r.then(() => {
+    failures = 0;
+    if (lock) screen.orientation?.lock?.('landscape').catch(() => { /* the rotate card covers it */ });
+    return true;
+  }, () => {
+    failures++;
+    onFail?.(failures);
+    return false;
+  }).finally(() => { pending = null; });
+  return pending;
 }
 export function exitFullscreen() {
   try { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {}); } catch { /* ignore */ }
@@ -37,10 +57,20 @@ export function exitFullscreen() {
 export function createChrome({ touch, isPlaying, hintEl, onStuck }) {
   const landscape = () => innerWidth > innerHeight;
 
-  // 1. The first tap in landscape asks for fullscreen (where supported).
+  // 1. A tap in landscape asks for fullscreen whenever it isn't on (where
+  // supported): the first tap, and again after it was left (Android's back
+  // gesture, switching apps). If the browser refuses on pointerup (some count
+  // only the click as the tap), the click that follows tries once more.
   if (touch && canFullscreen() && !standalone) {
+    let retryClick = false;
     document.addEventListener('pointerup', () => {
-      if (landscape() && !fullscreenElement()) requestFullscreen();
+      if (!landscape() || fullscreenElement()) return;
+      requestFullscreen({ lock: true }).then((ok) => { retryClick = !ok; });
+    }, { capture: true });
+    document.addEventListener('click', () => {
+      if (!retryClick || fullscreenElement()) return;
+      retryClick = false;
+      requestFullscreen({ lock: true });
     }, { capture: true });
   }
 

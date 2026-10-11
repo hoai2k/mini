@@ -62,21 +62,22 @@ test('fitWindow centres a small melody', () => {
   assert.ok(60 - ks[0] >= 3, 'room below');
 });
 
-test('a round: wrong notes count but never advance; redo restarts', () => {
+test('a round: wrong notes count but never advance; redo starts clean', () => {
   const r = createRound(parseNotes('C4 D4 E4'));
   assert.equal(press(r, 61), 'wrong');
   assert.equal(expected(r), 60);
   assert.equal(press(r, 60), 'correct');
   assert.equal(press(r, 64), 'wrong');
   assert.equal(press(r, 62), 'correct');
+  assert.equal(r.mistakes, 2);
   redo(r);
   assert.equal(r.pos, 0);
-  assert.equal(r.mistakes, 2);
+  assert.equal(r.mistakes, 0, 'wrong notes before a Redo no longer count');
   assert.equal(press(r, 60), 'correct');
   assert.equal(press(r, 62), 'correct');
   assert.equal(press(r, 64), 'done');
   assert.equal(press(r, 50), 'free');
-  assert.equal(r.mistakes, 2);
+  assert.equal(r.mistakes, 0, 'a correct run after Redo is clean');
 });
 
 test('stars and points', () => {

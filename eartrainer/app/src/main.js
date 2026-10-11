@@ -7,7 +7,7 @@ import { noteName } from './music.js';
 import { perform, secondsPerBeat } from './perform.js';
 import { createRound, press, redo, stars, points } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
-import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, preventZoom } from './chrome.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
@@ -103,10 +103,18 @@ function show(mode) {
   if (mode === 'play') requestAnimationFrame(() => kbd.layout());
 }
 
+// If the browser keeps refusing fullscreen (some in-app browsers never allow
+// it), say so once instead of failing silently.
+let toldNoFullscreen = false;
+onFullscreenFail((n) => {
+  if (n < 2 || toldNoFullscreen || !TOUCH) return;
+  toldNoFullscreen = true;
+  toast('This browser won’t go full screen. Open the page in Chrome, or add it to your home screen.');
+});
+
 function start() {
   unlock();
-  requestFullscreen();
-  if (TOUCH) screen.orientation?.lock?.('landscape').catch(() => { /* the rotate card covers it */ });
+  requestFullscreen({ lock: TOUCH });
   openBooks();
 }
 
@@ -551,7 +559,12 @@ function closeDialog() {
   chrome.update();
 }
 function closeAllDialogs() { while (dialogs.length) closeDialog(); }
-function openPause() { if (S.mode === 'play' && !dialogs.length) openDialog($('#pause')); }
+function openPause() {
+  if (S.mode !== 'play' || dialogs.length) return;
+  // Offer a way back into fullscreen if it was left (Android's back gesture, switching apps).
+  $('#pause [data-act=fullscreen]').hidden = !!fullscreenElement() || chrome.scrollTrick || !document.documentElement.requestFullscreen && !document.documentElement.webkitRequestFullscreen;
+  openDialog($('#pause'));
+}
 $$('[data-close]').forEach((b) => b.addEventListener('click', closeDialog));
 // A tap on the dimmed backdrop closes a dialog (a click, so a swipe across it doesn't).
 $$('.dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) closeDialog(); }));
@@ -562,6 +575,7 @@ $$('#pause [data-act]').forEach((b) => b.addEventListener('click', () => {
   if (a === 'settings') openDialog($('#settings'));
   if (a === 'books') { closeAllDialogs(); openBooks(); }
   if (a === 'title') toTitle();
+  if (a === 'fullscreen') { closeDialog(); requestFullscreen({ lock: TOUCH }); }
 }));
 let confirmYes = null;
 function confirmBox(text, yes) { $('#confirm-text').textContent = text; confirmYes = yes; openDialog($('#confirm')); focusEl($('#confirm [data-act=no]'), padMode); }
