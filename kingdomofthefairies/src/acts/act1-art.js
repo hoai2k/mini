@@ -79,7 +79,7 @@ function tempestSky(k, st, deck, t) {
   if (lf > 0) { c.save(); c.globalAlpha = 0.35 * lf * deck; c.fillStyle = k.col('#e9d6f2'); c.fillRect(0, 0, 1280, 470); c.restore(); }
   // she rises on her cloud over the stern, larger as the storm grows
   if (st.phase === 'party' && deck > 0.3) {
-    const s = 0.55 + 0.45 * rise, x = 1060, y = 330 - 120 * rise;
+    const s = 0.6 + 0.5 * rise, x = 990, y = 330 - 110 * rise;
     c.save(); c.globalAlpha = Math.min(1, deck * 1.4);
     if (!k.asset('witch-storm', x, y, 260 * s, 170 * s)) { c.fillStyle = k.col('#2a2430'); k.cloud?.(x, y - 40, 1.2 * s); }
     c.restore();

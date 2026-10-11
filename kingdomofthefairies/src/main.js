@@ -635,12 +635,19 @@ function updateTouch() {
 // The delivered playbill (700x1000 art, drawn at 404x578 about the middle of
 // the stage). Its title banner and five act panels were measured in the art:
 // panels at art y 236-338, 363-470, 497-607, 634-756 and 783-876, x 128-571.
-const PB = { w: 404, h: 578, cx: 640, cy: 360, panels: [287, 416.5, 552, 695, 829.5], panelH: 100, panelX: [128, 571] };
+// The film edition's bill (playbill-film, same proportions) has a prologue and
+// six panels, at art y 232-298, 325-398, 420-496, 518-594, 615-692, 718-794 and
+// 815-886, x 135-565, under a blank title banner at 108-200; its rows use
+// smaller type to fit.
+const PB = LEGACY
+  ? { w: 404, h: 578, cx: 640, cy: 360, panels: [287, 416.5, 552, 695, 829.5], panelH: 100, panelX: [128, 571],
+      titleY: 163, subY: 192, titlePx: 38, kick: [11, -10], name: [27, 17] }
+  : { w: 404, h: 578, cx: 640, cy: 360, panels: [265, 361.5, 458, 556, 653.5, 756, 850.5], panelH: 70, panelX: [135, 565],
+      titleY: 150, subY: 184, titlePx: 24, kick: [9, -8], name: [20, 12] };
 // Where each act's row sits, for drawing and for taps (stage px).
 function playbillRows() {
-  // The painted bill has one panel per act of the query edition; with more
-  // acts (the film edition's prologue and six) the card layout is used.
-  if (assets.images.playbill && ACTS.length === PB.panels.length) {
+  // Each edition's painted bill has one panel per act; without it, a card.
+  if (assets.images[LEGACY ? 'playbill' : 'playbill-film'] && ACTS.length === PB.panels.length) {
     const s = PB.w / 700, x0 = PB.cx - PB.w / 2, y0 = PB.cy - PB.h / 2;
     return { art: true, s, x0: x0 + PB.panelX[0] * s, x1: x0 + PB.panelX[1] * s, half: PB.panelH * s / 2 + 6,
       ys: PB.panels.map((p) => y0 + p * s), left: x0, top: y0 };
@@ -660,21 +667,21 @@ function drawPlaybill(k, t) {
   if (rows.art && k.asset('playbill', PB.cx, PB.cy + PB.h / 2, PB.w, PB.h)) {
     const s = rows.s, ink = k.col('#2a1424');
     c.fillStyle = ink; c.textAlign = 'center';
-    c.font = `${LEGACY ? 38 : 25}px Yesteryear, cursive`; c.fillText(TITLE, 640, rows.top + 163 * s + 8);
-    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, rows.top + 192 * s);
+    c.font = `${PB.titlePx}px Yesteryear, cursive`; c.fillText(TITLE, 640, rows.top + PB.titleY * s + 8);
+    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText((LEGACY ? 'A TOY THEATRE IN FIVE ACTS' : 'A TOY THEATRE IN A PROLOGUE AND SIX ACTS'), 640, rows.top + PB.subY * s);
     const pw = (rows.x1 - rows.x0) - 28;
     ACTS.forEach((a, n) => {
       const y = rows.ys[n], open = n < save.unlocked, sel = n === S.pb;
       if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.2; c.fillRect(rows.x0 + 4, y - PB.panelH * s / 2 + 3, rows.x1 - rows.x0 - 8, PB.panelH * s - 6); c.globalAlpha = 1; }
       c.fillStyle = k.col(open ? '#2a1424' : '#a99a86');
-      c.textAlign = 'left'; c.font = '700 11px "Josefin Sans", sans-serif'; c.fillText(a.kicker.toUpperCase(), rows.x0 + 14, y - 10);
+      c.textAlign = 'left'; c.font = `700 ${PB.kick[0]}px "Josefin Sans", sans-serif`; c.fillText(a.kicker.toUpperCase(), rows.x0 + 14, y + PB.kick[1]);
       const best = save.best[n + 1];
-      if (open && best != null) { c.textAlign = 'right'; c.font = '11px "Josefin Sans", sans-serif'; c.fillText('best ' + best, rows.x1 - 14, y - 10); }
-      let px = 27; c.font = `${px}px Yesteryear, cursive`;
+      if (open && best != null) { c.textAlign = 'right'; c.font = `${PB.kick[0]}px "Josefin Sans", sans-serif`; c.fillText('best ' + best, rows.x1 - 14, y + PB.kick[1]); }
+      let px = PB.name[0]; c.font = `${px}px Yesteryear, cursive`;
       const label = open ? a.title : '· · ·';
       const w = c.measureText(label).width;
       if (w > pw) { px = Math.floor(px * pw / w); c.font = `${px}px Yesteryear, cursive`; }
-      c.textAlign = 'center'; c.fillText(label, (rows.x0 + rows.x1) / 2, y + 17);
+      c.textAlign = 'center'; c.fillText(label, (rows.x0 + rows.x1) / 2, y + PB.name[1]);
     });
     // The prompt rides on a small plum label over the foot of the bill.
     c.font = '700 12px "Josefin Sans", sans-serif';
