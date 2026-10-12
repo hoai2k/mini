@@ -163,6 +163,7 @@ function detailHumanoid(S, o) {
   D(8, 8, shadeOf(skin, 0.93), 1, 16); D(15.5, 8, shadeOf(skin, 0.93), 1, 16);        // cheek sides
   D(8, 15.5, shadeOf(skin, 0.9), 16, 1);                                                // jaw
   D(8, 8 + (o.fringe ?? 2), shadeOf(skin, 0.78), 16, 1);                                // hairline shadow
+  S.rect(8, ey - (o.cyclops ? 3 : 2), 8, o.cyclops ? 7 : 6, skin, 0.05);                 // clear the coarse features
   if (o.cyclops) {
     const iris = o.eye ?? 0x8a4a1a;
     D(9.5, ey - 3, brow, 10, 2); D(9, ey - 2.5, brow, 2, 1); D(14, ey - 2.5, brow, 2, 1);   // heavy brow
@@ -186,6 +187,7 @@ function detailHumanoid(S, o) {
     // brows: thick, inner ends drawn down for a scowl, up for a cheerful face
     const by = ey - 1.5;
     if (o.scowl) { D(8.5, by - d, brow, 3, 1); D(10, by, brow, 2, 2); D(13, by, brow, 2, 2); D(14, by - d, brow, 3, 1); }
+    else if (o.lashes) { D(8.5, by + d, brow, 5, 1); D(13, by + d, brow, 5, 1); D(9, by, brow, 3, 1); D(13.5, by, brow, 3, 1); }
     else { D(8.5, by, brow, 5, 2); D(13, by, brow, 5, 2); if (o.mouth === 'smile' || o.smile) { D(8.5, by - d, brow, 1, 1); D(15, by - d, brow, 1, 1); } }
     D(11.5, ey + 2.5, shadeOf(skin, 0.82), 2, 1); D(11, ey + 2, shadeOf(skin, 0.9), 1, 1);   // nose shadow
     const lip = o.lip ?? 0x9a4a3a, dark = 0x4a1812, teeth = 0xfaf4ea;
@@ -201,6 +203,7 @@ function detailHumanoid(S, o) {
   if (o.freckles) for (const [x, y] of [[9, 2.5], [10, 3], [9.5, 3], [14, 2.5], [13.5, 3], [14.5, 3], [11, 2.5], [12.5, 2.5]]) D(x, ey + y, o.freckles, 1, 1);
   if (o.goatee) { D(11, ey + 4, o.goatee, 4, 2); D(11.5, 15, o.goatee, 2, 2); D(10, ey + 3, o.goatee, 1, 1); D(13.5, ey + 3, o.goatee, 1, 1); }
   if (o.blush) { D(9, ey + 2.5, 0xe08878, 2, 1); D(14, ey + 2.5, 0xe08878, 2, 1); }
+  if (o.cheeks) { D(8.5, ey + 2.5, o.cheeks, 2, 1); D(14.5, ey + 2.5, o.cheeks, 2, 1); }
   // ---- torso
   const top = o.top;
   D(16, 20, shadeOf(top, 0.85), 1, 24); D(27.5, 20, shadeOf(top, 0.85), 1, 24); D(19.5, 20, shadeOf(top, 0.85), 1, 24); D(28, 20, shadeOf(top, 0.85), 1, 24);   // side seams
