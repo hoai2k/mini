@@ -92,6 +92,16 @@ test('cover mapping centres a cropped video', () => {
   assert.ok(q.x < 0 && q.y === 0);
 });
 
+test('contain mapping letterboxes a landscape video in an upright tile', () => {
+  const rect = { left: 0, top: 0, width: 390, height: 844 };
+  const c = mapCover(rect, 640, 480, 0, 0, 'contain');
+  close(c.x, 0);
+  close(c.y, (844 - 390 * 0.75) / 2);
+  const d = mapCover(rect, 640, 480, 1, 1, 'contain');
+  close(d.x, 390);
+  close(d.y, (844 + 390 * 0.75) / 2);
+});
+
 test('every listed effect and game has a file', () => {
   const fx = readdirSync(new URL('../effects/', import.meta.url));
   const games = readdirSync(new URL('../games/', import.meta.url));
