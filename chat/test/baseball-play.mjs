@@ -1,15 +1,21 @@
 // Plays a round of Baseball in test/game.html on two phone-sized seats.
 // Seat 1 taps through the page's pointer events, timed against the pitch:
-//   - a tap right on the ball as it reaches the plate is a home run;
+//   - the ball is drawn big at the plate (6-10% of the screen's width), and
+//     a tap right on it as it reaches the plate is a home run;
+//   - the batter's swing keeps both hands on the bat and the arms the same
+//     length all the way round, sweeping the bat level across the plate at
+//     contact and over his front shoulder after; a mid-swing picture is taken;
 //   - a swing far too early misses, a late one goes foul, a tap well above
 //     the ball tops it, and no swing is a taken pitch;
 //   - after ten pitches the round ends with the card, the home runs are in
-//     the player's state for friends to see, and Bat again starts round two.
+//     the player's state for friends to see, and Bat again starts round two,
+//     where taps on the top and bottom edges of the big ball both make
+//     contact, the top one hit lower than the bottom one.
 // Seat 2 is a debug bot (js/rookie.js driven every 400 ms) that must swing
 // and get through pitches, and it sees seat 1's hits as ghost balls.
 //   node chat/test/baseball-play.mjs
 // Pictures land in local/chat-shots/baseball-*.png.
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { serve, launch } from './lib.mjs';
 
@@ -60,9 +66,11 @@ await page.evaluate(async () => {
 // Waits for seat 1's next pitch and taps `early` seconds before it reaches
 // the plate (negative: late), `offY` px below the ball (negative: above), or
 // doesn't swing at all. Returns the pitch's result once it is known.
-async function bat({ early = 0, offY = 0, swing = true } = {}) {
+// `edge` taps that many drawn ball radii below the ball's centre instead;
+// `shot` grabs the canvas `shot` seconds after the tap.
+async function bat({ early = 0, offY = 0, swing = true, edge = null, shot = null } = {}) {
   await page.waitForFunction(() => window.seats[0].gh.current.instance._view().phase === 'pitch', null, { timeout: 15000 });
-  const tapped = await page.evaluate(async ({ early, offY, swing }) => {
+  const tapped = await page.evaluate(async ({ early, offY, swing, edge, shot }) => {
     const inst = window.seats[0].gh.current.instance;
     const canvas = window.seats[0].el.querySelector('.panel canvas');
     const frame = () => new Promise(r => requestAnimationFrame(r));
@@ -73,13 +81,21 @@ async function bat({ early = 0, offY = 0, swing = true } = {}) {
       if (swing && v.sinceRelease >= v.T - early - 0.008) {
         const p = inst._ahead(0);
         const r = canvas.getBoundingClientRect();
-        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: r.left + p.x, clientY: r.top + p.y + offY, bubbles: true }));
-        return { n0, at: v.sinceRelease, T: v.T };
+        const radius = inst._ballRadius();
+        const dy = edge == null ? offY : edge * radius;
+        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: r.left + p.x, clientY: r.top + p.y + dy, bubbles: true }));
+        let picture = null;
+        if (shot) {
+          const t0 = performance.now();
+          while (performance.now() - t0 < shot * 1000) await frame();
+          picture = canvas.toDataURL('image/png');
+        }
+        return { n0, at: v.sinceRelease, T: v.T, radius, width: r.width, picture };
       }
       await frame();
     }
     return { n0 };
-  }, { early, offY, swing });
+  }, { early, offY, swing, edge, shot });
   // The result is known once the pitch counts.
   await page.waitForFunction(n0 => window.seats[0].gh.current.instance._view().n > n0, tapped.n0, { timeout: 15000 });
   const v = await view(0);
@@ -88,6 +104,37 @@ async function bat({ early = 0, offY = 0, swing = true } = {}) {
 
 const fmt = r => `${r.kind}${r.dist ? ` ${Math.round(r.dist * 3.281)} ft` : ''}${r.hit ? ` (dt ${r.hit.dt.toFixed(3)} s, dy ${r.hit.dy.toFixed(3)} m)` : ''}`;
 await page.screenshot({ path: `${outDir}baseball-ready.png` });
+
+// The swing, worked through in the world: the arms keep their length and
+// both hands stay on the bat; the bat is up behind his head in the stance,
+// near level (within 20°) across the plate, through the ball, at contact and round over his front shoulder after.
+const rig = await page.evaluate(() => {
+  const inst = window.seats[0].gh.current.instance;
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+  const out = { arms: [], grip: [], angles: [] };
+  for (const aim of [{ x: 0, y: 0.8 }, { x: -0.2, y: 0.55 }, { x: 0.2, y: 1.05 }]) {
+    for (let u = 0; u <= 1.0; u += 0.01) {
+      const r = inst._rig(u, aim);
+      out.arms.push(dist(r.front, r.elbowF), dist(r.elbowF, r.grip), dist(r.back, r.elbowB), dist(r.elbowB, r.topHand));
+      out.grip.push(dist(r.grip, r.topHand));
+      if (aim.x === 0 && u <= 0.33) out.angles.push(Math.atan2(r.d.z, r.d.x) * 180 / Math.PI);
+    }
+  }
+  const stance = inst._rig(null), hit = inst._rig(0.05, { x: 0, y: 0.8 }), finish = inst._rig(0.32, { x: 0, y: 0.8 });
+  out.stance = stance.d;
+  out.hit = { d: hit.d, grip: hit.grip, tip: hit.tip };
+  out.finish = finish.d;
+  return out;
+});
+const armMin = Math.min(...rig.arms), armMax = Math.max(...rig.arms);
+check(armMax - armMin < 1e-6 && Math.max(...rig.grip) - Math.min(...rig.grip) < 1e-6, `arms keep their length (${armMin.toFixed(3)}-${armMax.toFixed(3)} m) and both hands stay on the bat`);
+let unwrapped = rig.angles.map((a, i, all) => a);
+for (let i = 1; i < unwrapped.length; i++) while (unwrapped[i] < unwrapped[i - 1] - 180) unwrapped[i] += 360;
+const sweep = unwrapped.slice(5);
+check(sweep.every((a, i) => i === 0 || a >= sweep[i - 1] - 1e-6) && sweep[sweep.length - 1] - sweep[0] > 180, `the bat sweeps one way round, ${Math.round(sweep[0])}° to ${Math.round(sweep[sweep.length - 1])}°`);
+check(rig.stance.y > 0.7, `in the stance the bat is up behind him (${rig.stance.y.toFixed(2)} up)`);
+check(rig.hit.d.x > 0.9 && Math.abs(rig.hit.d.y) < 0.35 && rig.hit.grip.x < -0.3 && rig.hit.tip.x > 0.15, `at contact the bat is near level (within 20°) across the plate (from x ${rig.hit.grip.x.toFixed(2)} to ${rig.hit.tip.x.toFixed(2)} m, direction ${JSON.stringify(rig.hit.d, (k, v) => typeof v === "number" ? +v.toFixed(2) : v)})`);
+check(rig.finish.x < -0.5 && rig.finish.y > 0.3, 'it finishes over his front shoulder');
 
 // 1-2: right on the ball, right on time.
 const perfect = [];
@@ -100,14 +147,17 @@ for (let i = 0; i < 2; i++) {
     }, null, { timeout: 15000 });
     await page.screenshot({ path: `${outDir}baseball-pitch.png` });
   }
-  const r = await bat();
+  const r = await bat({ shot: i === 0 ? 0.09 : null });
   perfect.push(r);
+  if (r.tapped.picture) await writeFile(`${outDir}baseball-swing.png`, Buffer.from(r.tapped.picture.split(',')[1], 'base64'));
   if (i === 0) {
     await page.waitForTimeout(1400);
     await page.screenshot({ path: `${outDir}baseball-flight.png` });
   }
 }
 check(perfect.every(r => r.kind === 'hr'), `taps right on the ball as it reaches the plate are home runs: ${perfect.map(fmt).join(', ')}`);
+const size = perfect[0].tapped.radius * 2 / perfect[0].tapped.width;
+check(size > 0.06 && size < 0.1, `the ball is big at the plate: ${(size * 100).toFixed(1)}% of the screen's width`);
 check((await page.evaluate(() => window.botGhosts)) > 0, 'the bot sees those hits as ghost balls');
 
 // 3: far too early.
@@ -153,6 +203,12 @@ await page.evaluate(() => [...window.seats[0].el.querySelectorAll('button')].fin
 await page.waitForTimeout(300);
 const again = await view(0);
 check(again.r === 2 && again.n === 0 && again.phase !== 'over', `Bat again starts round ${again.r}`);
+
+// Round two: the top and bottom edges of the big ball.
+const topEdge = await bat({ edge: -0.8 });
+const bottomEdge = await bat({ edge: 0.8 });
+check(topEdge.hit?.contact && bottomEdge.hit?.contact && topEdge.hit.contact.launch < bottomEdge.hit.contact.launch,
+  `taps on the ball's edges both connect, the top lower than the bottom: launch ${topEdge.hit?.contact?.launch.toFixed(0)}° and ${bottomEdge.hit?.contact?.launch.toFixed(0)}°`);
 
 // The bot.
 const bot = await view(1);

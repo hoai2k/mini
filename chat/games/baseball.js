@@ -33,6 +33,7 @@ const REACH_X = 0.45;          // along the bat
 const ZONE = { x0: -0.24, x1: 0.24, y0: 0.5, y1: 1.1 };
 const EYE = { x: 0, y: 2.6, z: -5.5 };
 const FT = 3.281;
+const BALL_SHOW = 3.3;         // how much larger than life the ball is drawn
 
 // The wall: 98 m (322 ft) down the lines, 115 m (377 ft) to centre.
 const fenceDist = phi => 98 + 17 * Math.cos(2 * phi);
@@ -694,7 +695,10 @@ export default {
     function doSwing(aim, slop = 1) {
       if (swing && now - swing.at < 0.45) return false;
       if (phase === 'over' || phase === 'result') return false;
-      swing = { at: now, aim: { x: clamp(aim.x, -1, 1), y: clamp(aim.y, 0.1, 2) } };
+      // The swing starts from wherever the bat is now.
+      const from = { ...poseNow() };
+      if (from.a > 180) from.a -= 360;
+      swing = { at: now, aim: { x: clamp(aim.x, -1, 1), y: clamp(aim.y, 0.1, 2) }, from };
       api.sfx('whoosh');
       if (phase !== 'pitch' || swung) {
         if (phase === 'windup' || phase === 'ready') floaters.push({ text: 'Wait for the pitch!', t: 0, color: '#fff' });
@@ -711,6 +715,8 @@ export default {
       const o = outcome(p, v);
       lastHit.outcome = o;
       fly = newFly(p, v);
+      // A moment's hit-stop while the bat comes round to meet it.
+      fly.hold = SWING_IN;
       trail = [];
       result = { kind: o.kind, dist: o.dist, at: now, shown: false };
       api.sfx(c.q > 0.8 ? 'bang' : 'pop');
@@ -838,7 +844,8 @@ export default {
       acc += dt;
       while (acc >= STEP) {
         acc -= STEP;
-        if (fly && !fly.done) {
+        if (fly && fly.hold > 0) fly.hold -= STEP;
+        else if (fly && !fly.done) {
           const ev = stepFly(fly);
           if (ev === 'hr') {
             homeRunShow(null);
@@ -987,11 +994,14 @@ export default {
       }
     }
 
+    // Like every batting game, the ball is drawn far larger than life so it
+    // reads on a phone: it grows from a dot in the pitcher's hand to about 7%
+    // of a phone's width as it reaches the plate.
+    const ballRadius = p => Math.max(2.5, BALL_R * p.s * BALL_SHOW);
     function drawBall(b, alpha, tint, spin = 0) {
       const p = project(cam, b.x, b.y, b.z);
       if (p.behind) return null;
-      // Drawn a little larger than life so it reads on a phone.
-      const r = Math.max(2.2, BALL_R * p.s * 1.9);
+      const r = ballRadius(p);
       // Shadow on the ground.
       const sh = project(cam, b.x, 0, b.z);
       ctx.globalAlpha = alpha * 0.35;
@@ -1019,6 +1029,23 @@ export default {
       return { p, r };
     }
 
+    // The pitch, with a short streak behind it so the eye can track it in.
+    function drawPitch(b) {
+      const t = now - releaseAt;
+      for (let i = 4; i >= 1; i--) {
+        const q = pitchPos(pitch, Math.max(0, t - i * 0.022));
+        const p = project(cam, q.x, q.y, q.z);
+        if (p.behind) continue;
+        ctx.globalAlpha = 0.16 * (1 - i / 5);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, ballRadius(p) * (1 - i * 0.08), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      drawBall(b, 1, null, t * 25);
+    }
+
     function drawTrail(points, color, alpha) {
       if (points.length < 2) return;
       ctx.lineCap = 'round';
@@ -1036,120 +1063,269 @@ export default {
       ctx.globalAlpha = 1;
     }
 
-    // The bat's pose at time u since the swing began: the angle round the
-    // batter (degrees: -90 points back at the catcher, 0 across the plate,
-    // 90 out at the pitcher) and the tilt up from level.
-    function batPose(u) {
-      if (u < 0.05) return { a: lerp(-60, 0, ease(u / 0.05)), b: lerp(40, -4, ease(u / 0.05)) };
-      if (u < 0.32) return { a: lerp(0, 165, ease((u - 0.05) / 0.27)), b: lerp(-4, 40, ease((u - 0.05) / 0.27)) };
-      if (u < 0.75) return { a: lerp(165, 260, ease((u - 0.32) / 0.43)), b: lerp(40, 60, ease((u - 0.32) / 0.43)) };
+    // --- the batter ----------------------------------------------------------
+    // A right-handed slugger in the left-hand box, facing the plate (+x), seen
+    // from behind and to his right like the batting view of Wii Sports
+    // Baseball. His body turns about a vertical axis through his shoulders;
+    // both hands stay on the bat, and the hands never stray further from either
+    // shoulder than the arms reach, so the arms bend but never stretch.
+    //
+    // Angles of the bat round the batter, in degrees: -90 points back at the
+    // catcher, 0 across the plate, 90 out at the pitcher, 180 behind him. Tilt
+    // is up from level. The swing is a fast arc that sweeps this angle up
+    // through the hitting zone and on round over his front shoulder.
+    const BODY = { x: -0.86, z: 0 };
+    const SHOULDER_Y = 1.42, SHOULDER_HALF = 0.19, ARM = 0.33, BAT_L = 0.86;
+    // Hand positions (the bottom hand on the handle) relative to the middle of
+    // the shoulders, and the bat's angle and tilt, at each key pose.
+    const STANCE = { hand: { x: 0.08, y: 0.06, z: -0.26 }, a: -75, tilt: 62, turn: -8 };
+    const LOADED = { hand: { x: 0.02, y: 0.1, z: -0.33 }, a: -100, tilt: 52, turn: -22 };
+    const FINISH = { hand: { x: 0.0, y: 0.08, z: 0.34 }, a: 205, tilt: 30, turn: 85 };
+    const SWING_IN = 0.05;     // seconds from the loaded stance to the ball (the tap is contact)
+    const SWING_OUT = 0.32;    // ...and on round to the follow-through
+    const SWING_HOLD = 0.52;   // hold the finish
+    const SWING_BACK = 0.95;   // back in the stance
+
+    // The pose at contact: the hands out in front at belt height, the bat
+    // pointing across the plate through the point that was tapped.
+    function contactPose(aim) {
+      const hand = { x: 0.26, y: clamp(aim.y - SHOULDER_Y + 0.12, -0.42, -0.12), z: 0.12 };
+      const gx = BODY.x + hand.x, gy = SHOULDER_Y + hand.y, gz = BODY.z + hand.z;
+      const dx = Math.max(0.3, aim.x - gx), dy = aim.y - gy, dz = -gz;
+      const a = Math.atan2(dz, dx) / RAD;
+      const tilt = clamp(Math.atan2(dy, Math.hypot(dx, dz)) / RAD, -40, 25);
+      return { hand, a, tilt, turn: 35 };
+    }
+    const mixPose = (p, q, k) => ({
+      hand: { x: lerp(p.hand.x, q.hand.x, k), y: lerp(p.hand.y, q.hand.y, k), z: lerp(p.hand.z, q.hand.z, k) },
+      a: lerp(p.a, q.a, k), tilt: lerp(p.tilt, q.tilt, k), turn: lerp(p.turn, q.turn, k),
+    });
+
+    // How far into his load the batter is: he coils as the pitch comes in.
+    function loadNow() {
+      if (phase === 'pitch' && pitch) return ease(clamp(((now - releaseAt) / pitch.T - 0.15) / 0.6, 0, 1));
+      if (phase === 'windup') return 0.25 * ease(clamp((now - phaseAt - 0.5) / 0.5, 0, 1));
+      return 0;
+    }
+
+    // The pose `u` seconds into swing `sw` (null once it is over).
+    function swingPose(sw, u) {
+      const hit = contactPose(sw.aim);
+      if (u < SWING_IN) {
+        // Accelerating into the ball.
+        const k = Math.max(0, u) / SWING_IN;
+        return mixPose(sw.from, hit, k * k);
+      }
+      if (u < SWING_OUT) {
+        const k = (u - SWING_IN) / (SWING_OUT - SWING_IN);
+        return mixPose(hit, FINISH, 1 - (1 - k) * (1 - k));
+      }
+      if (u < SWING_HOLD) return FINISH;
+      if (u < SWING_BACK) {
+        // Back to the stance: the bat comes up over his head (the angle carries
+        // on round past behind him) rather than unwinding through the zone.
+        const k = ease((u - SWING_HOLD) / (SWING_BACK - SWING_HOLD));
+        return mixPose(FINISH, { ...STANCE, a: STANCE.a + 360 }, k);
+      }
       return null;
     }
-    const REST_HANDS = { x: -0.66, y: 1.3, z: -0.12 };
-    const REST_BAT = { a: -100, b: 62 };
+    // The pose now.
+    function poseNow() {
+      const ready = mixPose(STANCE, LOADED, loadNow());
+      if (!swing) return ready;
+      const pose = swingPose(swing, now - swing.at);
+      if (!pose) swing = null;
+      return pose || ready;
+    }
 
-    function batNow() {
-      let hands = REST_HANDS, pose = REST_BAT;
-      if (swing) {
-        const u = now - swing.at;
-        const bp = batPose(u);
-        const H = { x: swing.aim.x - 0.62, y: swing.aim.y + 0.04, z: 0.02 };
-        if (bp) {
-          pose = bp;
-          const e = ease(u / 0.05);
-          const back = u > 0.05 ? ease((u - 0.05) / 0.5) : 0;
-          const follow = { x: -0.55, y: 1.45, z: 0.25 };
-          hands = {
-            x: lerp(lerp(REST_HANDS.x, H.x, e), follow.x, back),
-            y: lerp(lerp(REST_HANDS.y, H.y, e), follow.y, back),
-            z: lerp(lerp(REST_HANDS.z, H.z, e), follow.z, back),
-          };
-        } else {
-          // Back to the stance.
-          const k = ease((u - 0.75) / 0.35);
-          const end = { x: -0.55, y: 1.45, z: 0.25 };
-          hands = { x: lerp(end.x, REST_HANDS.x, k), y: lerp(end.y, REST_HANDS.y, k), z: lerp(end.z, REST_HANDS.z, k) };
-          pose = { a: lerp(260 - 360, REST_BAT.a, k), b: lerp(60, REST_BAT.b, k) };
-          if (u > 1.1) swing = null;
+    // Where everything is, in the world: shoulders, hips, hands, elbows and
+    // the bat, for a pose.
+    function batterRig(pose) {
+      const turn = pose.turn * RAD;
+      // The front (left) shoulder is towards the pitcher when he faces the plate.
+      const side = { x: -Math.sin(turn), z: Math.cos(turn) };
+      const mid = { x: BODY.x + 0.03 * Math.sin(turn), y: SHOULDER_Y, z: BODY.z };
+      const front = { x: mid.x + side.x * SHOULDER_HALF, y: mid.y, z: mid.z + side.z * SHOULDER_HALF };
+      const back = { x: mid.x - side.x * SHOULDER_HALF, y: mid.y, z: mid.z - side.z * SHOULDER_HALF };
+      const hipTurn = turn * 0.5;
+      const hside = { x: -Math.sin(hipTurn), z: Math.cos(hipTurn) };
+      const hipMid = { x: BODY.x - 0.02, y: 0.92, z: BODY.z };
+      const hipF = { x: hipMid.x + hside.x * 0.13, y: hipMid.y, z: hipMid.z + hside.z * 0.13 };
+      const hipB = { x: hipMid.x - hside.x * 0.13, y: hipMid.y, z: hipMid.z - hside.z * 0.13 };
+      // The bat.
+      const a = pose.a * RAD, b = pose.tilt * RAD;
+      const d = { x: Math.cos(b) * Math.cos(a), y: Math.sin(b), z: Math.cos(b) * Math.sin(a) };
+      let grip = { x: mid.x + pose.hand.x, y: mid.y + pose.hand.y, z: mid.z + pose.hand.z };
+      const top = () => ({ x: grip.x + d.x * 0.1, y: grip.y + d.y * 0.1, z: grip.z + d.z * 0.1 });
+      // Keep each hand within its arm's reach (the left arm holds the bottom
+      // of the handle, the right arm the hand above it).
+      const reach = 2 * ARM * 0.97;
+      for (let i = 0; i < 4; i++) {
+        for (const [sh, hand] of [[front, () => grip], [back, top]]) {
+          const h = hand();
+          const vx = h.x - sh.x, vy = h.y - sh.y, vz = h.z - sh.z, len = Math.hypot(vx, vy, vz);
+          if (len > reach) {
+            const k = reach / len;
+            grip = { x: grip.x - vx * (1 - k), y: grip.y - vy * (1 - k), z: grip.z - vz * (1 - k) };
+          }
         }
       }
-      const a = pose.a * RAD, b = pose.b * RAD;
-      const d = { x: Math.cos(b) * Math.cos(a), y: Math.sin(b), z: Math.cos(b) * Math.sin(a) };
-      const L = 0.86;
-      return { hands, tip: { x: hands.x + d.x * L, y: hands.y + d.y * L, z: hands.z + d.z * L } };
+      const topHand = top();
+      const elbow = (sh, h, out) => {
+        const vx = h.x - sh.x, vy = h.y - sh.y, vz = h.z - sh.z;
+        const len = Math.max(1e-6, Math.hypot(vx, vy, vz));
+        const half = Math.min(len / 2, ARM);
+        const bend = Math.sqrt(Math.max(0, ARM * ARM - half * half));
+        // Elbows bend down and out from the body.
+        let px = out.x, py = -1, pz = out.z;
+        const dot = (px * vx + py * vy + pz * vz) / (len * len);
+        px -= vx * dot; py -= vy * dot; pz -= vz * dot;
+        const pl = Math.hypot(px, py, pz) || 1;
+        return { x: sh.x + vx / 2 + (px / pl) * bend, y: sh.y + vy / 2 + (py / pl) * bend, z: sh.z + vz / 2 + (pz / pl) * bend };
+      };
+      return {
+        mid, front, back, hipF, hipB, grip, topHand, d,
+        elbowF: elbow(front, grip, { x: side.x * 0.6, z: side.z * 0.6 }),
+        elbowB: elbow(back, topHand, { x: -side.x * 0.8, z: -side.z * 0.8 }),
+        tip: { x: grip.x + d.x * BAT_L, y: grip.y + d.y * BAT_L, z: grip.z + d.z * BAT_L },
+        head: { x: mid.x + 0.04 + 0.04 * Math.sin(turn), y: SHOULDER_Y + 0.33, z: mid.z + 0.03 },
+      };
+    }
+    // For tests: the batter's rig at `u` seconds into a swing at `aim`.
+    function rigAt(u, aim) {
+      return batterRig((u != null && swingPose({ aim, from: LOADED }, u)) || STANCE);
+    }
+
+    // A swoosh behind the barrel through the swing, so the arc reads even
+    // where the bat points straight out at the pitcher.
+    function drawSwoosh() {
+      if (!swing) return;
+      const u = now - swing.at;
+      if (u < SWING_IN * 0.5 || u > SWING_OUT + 0.1) return;
+      const pts = [];
+      for (let k = 0; k <= 10; k++) {
+        const uk = Math.min(u, SWING_OUT) - k * 0.016;
+        if (uk < 0) break;
+        const rig = batterRig(swingPose(swing, uk));
+        const at = f => project(cam, rig.grip.x + rig.d.x * BAT_L * f, rig.grip.y + rig.d.y * BAT_L * f, rig.grip.z + rig.d.z * BAT_L * f);
+        pts.push([at(1.05), at(0.45)]);
+      }
+      if (pts.length < 2) return;
+      const fade = clamp(1 - (u - SWING_OUT) / 0.1, 0, 1);
+      for (let i = 0; i < pts.length - 1; i++) {
+        ctx.globalAlpha = 0.42 * fade * (1 - i / pts.length);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(pts[i][0].x, pts[i][0].y);
+        ctx.lineTo(pts[i + 1][0].x, pts[i + 1][0].y);
+        ctx.lineTo(pts[i + 1][1].x, pts[i + 1][1].y);
+        ctx.lineTo(pts[i][1].x, pts[i][1].y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
     }
 
     // The slugger: a cartoon body in the player's colour, with their live face
-    // as the head, in the left-hand batter's box (a right-handed batter).
+    // as the head.
     function drawBatter() {
       const me = api.me;
       const col = me.color || '#ff5fa2';
-      const P = (x, y, z) => project(cam, x, y, z);
-      const twist = swing ? clamp((now - swing.at) / 0.25, 0, 1) * (swing && now - swing.at < 0.9 ? 1 : 0) : 0;
-      const hip = P(-0.92, 0.95, 0.02), sho = P(-0.9 + twist * 0.06, 1.42, 0.02);
-      const footF = P(-0.86, 0, 0.42), footB = P(-0.98, 0, -0.32);
-      const kneeF = P(-0.84, 0.5, 0.28), kneeB = P(-1.0, 0.5, -0.2);
-      const s = hip.s;
-      const bat = batNow();
-      const hn = P(bat.hands.x, bat.hands.y, bat.hands.z), tp = P(bat.tip.x, bat.tip.y, bat.tip.z);
+      const P = v => project(cam, v.x, v.y, v.z);
+      const load = loadNow();
+      const rig = batterRig(poseNow());
+      const sMid = P(rig.mid), s = sMid.s;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
+      // Feet: a stride towards the pitcher as he loads and swings.
+      const stride = swing ? 1 : load;
+      const lift = swing ? 0 : Math.sin(Math.PI * clamp(load * 1.4 - 0.2, 0, 1)) * 0.12;
+      const footB = P({ x: BODY.x - 0.08, y: 0, z: -0.36 });
+      const footF = P({ x: BODY.x - 0.02, y: lift, z: 0.3 + 0.12 * stride });
+      const kneeB = P({ x: BODY.x - 0.02, y: 0.48, z: -0.25 });
+      const kneeF = P({ x: BODY.x + 0.06, y: 0.5 + lift * 0.5, z: 0.2 + 0.08 * stride });
+      const hipF = P(rig.hipF), hipB = P(rig.hipB);
       // Shadow.
       ctx.fillStyle = 'rgba(0,0,0,0.22)';
       ctx.beginPath();
-      ctx.ellipse((footF.x + footB.x) / 2, (footF.y + footB.y) / 2, s * 0.45, s * 0.12, 0, 0, Math.PI * 2);
+      ctx.ellipse((footF.x + footB.x) / 2, (footF.y + footB.y) / 2, s * 0.5, s * 0.12, 0, 0, Math.PI * 2);
       ctx.fill();
-      // Legs.
-      ctx.strokeStyle = '#eef0f6';
-      ctx.lineWidth = s * 0.2;
-      ctx.beginPath();
-      ctx.moveTo(hip.x - s * 0.08, hip.y);
-      ctx.lineTo(kneeB.x, kneeB.y);
-      ctx.lineTo(footB.x, footB.y - s * 0.05);
-      ctx.moveTo(hip.x + s * 0.08, hip.y);
-      ctx.lineTo(kneeF.x, kneeF.y);
-      ctx.lineTo(footF.x, footF.y - s * 0.05);
-      ctx.stroke();
+      // Legs, outlined so they read against the dirt.
+      const limb = (pts, width, color) => {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.strokeStyle = 'rgba(20,16,40,0.85)';
+        ctx.lineWidth = width + Math.max(2, s * 0.025);
+        ctx.stroke();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      };
+      limb([hipB, kneeB, footB], s * 0.17, '#eef0f6');
+      limb([hipF, kneeF, footF], s * 0.17, '#eef0f6');
       ctx.fillStyle = '#222';
       for (const f of [footB, footF]) {
         ctx.beginPath();
-        ctx.ellipse(f.x + s * 0.06, f.y - s * 0.04, s * 0.14, s * 0.07, 0, 0, Math.PI * 2);
+        ctx.ellipse(f.x + s * 0.05, f.y, s * 0.13, s * 0.065, 0, 0, Math.PI * 2);
         ctx.fill();
       }
-      // Body: the jersey.
-      const tw = s * 0.46;
+      // The jersey: a trapezoid from the hips to the shoulders, never thinner
+      // than a cartoon body even when he turns side-on.
+      const shF = P(rig.front), shB = P(rig.back);
+      const hipC = { x: (hipF.x + hipB.x) / 2, y: (hipF.y + hipB.y) / 2 };
+      const half = Math.max(s * 0.22, Math.abs(shF.x - shB.x) / 2 + s * 0.08);
+      const hipHalf = half * 0.8;
       ctx.fillStyle = col;
+      ctx.strokeStyle = 'rgba(20,16,40,0.85)';
+      ctx.lineWidth = Math.max(2, s * 0.025);
       ctx.beginPath();
-      ctx.moveTo(hip.x - tw * 0.42, hip.y + s * 0.04);
-      ctx.lineTo(sho.x - tw / 2, sho.y);
-      ctx.quadraticCurveTo(sho.x, sho.y - s * 0.08, sho.x + tw / 2, sho.y);
-      ctx.lineTo(hip.x + tw * 0.42, hip.y + s * 0.04);
+      ctx.moveTo(hipC.x - hipHalf, hipC.y + s * 0.05);
+      ctx.lineTo(sMid.x - half, sMid.y + s * 0.04);
+      ctx.quadraticCurveTo(sMid.x, sMid.y - s * 0.1, sMid.x + half, sMid.y + s * 0.04);
+      ctx.lineTo(hipC.x + hipHalf, hipC.y + s * 0.05);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillRect(hip.x - tw * 0.43, hip.y - s * 0.02, tw * 0.86, s * 0.06);
+      ctx.fillRect(hipC.x - hipHalf, hipC.y - s * 0.01, hipHalf * 2, s * 0.06);
       ctx.font = `900 ${s * 0.22}px ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('7', (hip.x + sho.x) / 2, (hip.y + sho.y) / 2);
-      // Arms to the hands on the bat.
-      ctx.strokeStyle = col;
-      ctx.lineWidth = s * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(sho.x - tw * 0.4, sho.y + s * 0.04);
-      ctx.lineTo(hn.x, hn.y);
-      ctx.moveTo(sho.x + tw * 0.4, sho.y + s * 0.04);
-      ctx.lineTo(hn.x, hn.y);
-      ctx.stroke();
-      // The bat.
-      drawBat(hn, tp, s);
-      ctx.fillStyle = '#f5f5f5';
-      ctx.beginPath();
-      ctx.arc(hn.x, hn.y, s * 0.075, 0, Math.PI * 2);
-      ctx.fill();
-      // Head: the live face in a batting helmet.
-      const head = P(-0.9 + twist * 0.05, 1.78, 0.02);
-      const r = head.s * 0.25;
+      ctx.fillText('7', (hipC.x + sMid.x) / 2, (hipC.y + sMid.y) / 2 + s * 0.02);
+      // Arms: sleeves in his colour, then forearms, to gloved hands on the bat.
+      const sleeve = s * 0.11, fore = s * 0.085;
+      const grip = P(rig.grip), topH = P(rig.topHand), tip = P(rig.tip);
+      const eF = P(rig.elbowF), eB = P(rig.elbowB);
+      const shoulderPt = sh => ({ x: sMid.x + clamp(sh.x - sMid.x, -half * 0.8, half * 0.8), y: sh.y + s * 0.05 });
+      const sF = shoulderPt(shF), sB = shoulderPt(shB);
+      const arm = (sh, el, hand) => {
+        limb([sh, el], sleeve, col);
+        limb([el, hand], fore, '#f2c9a0');
+      };
+      const head = P(rig.head);
+      // The bat goes behind his head when it points back past him.
+      const batBehind = (rig.grip.z + rig.tip.z) / 2 > rig.head.z + 0.05;
+      drawSwoosh();
+      arm(sF, eF, grip);
+      if (batBehind) drawBat(grip, tip, s);
+      drawHead(head, col, me);
+      if (!batBehind) drawBat(grip, tip, s);
+      arm(sB, eB, topH);
+      ctx.fillStyle = '#fbfbfb';
+      ctx.strokeStyle = 'rgba(20,16,40,0.85)';
+      ctx.lineWidth = Math.max(1.5, s * 0.015);
+      for (const hnd of [grip, topH]) {
+        ctx.beginPath();
+        ctx.arc(hnd.x, hnd.y, s * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    // The live face in a batting helmet.
+    function drawHead(head, col, me) {
+      const r = head.s * 0.22;
       ctx.save();
       ctx.beginPath();
       ctx.arc(head.x, head.y, r, 0, Math.PI * 2);
@@ -1169,6 +1345,8 @@ export default {
       if (!drew) {
         ctx.fillStyle = '#fff';
         ctx.font = `900 ${r}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText((me.name?.[0] || '?').toUpperCase(), head.x, head.y + r * 0.1);
       }
       ctx.restore();
@@ -1343,7 +1521,7 @@ export default {
       // The pitch: behind the batter until it passes the plate.
       const b = ballNow();
       const showPitch = b && !fly;
-      if (showPitch && b.z > 0.2) drawBall(b, 1, null, (now - releaseAt) * 25);
+      if (showPitch && b.z > 0.2) drawPitch(b);
       // The strike zone, faintly, while a pitch is coming.
       if (phase === 'windup' || phase === 'pitch') {
         const tl = project(cam, ZONE.x0, ZONE.y1, 0), br = project(cam, ZONE.x1, ZONE.y0, 0);
@@ -1354,7 +1532,7 @@ export default {
         ctx.setLineDash([]);
       }
       drawBatter();
-      if (showPitch && b.z <= 0.2) drawBall(b, 1, null, (now - releaseAt) * 25);
+      if (showPitch && b.z <= 0.2) drawPitch(b);
 
       // Keyboard / controller aim and mouse cursor.
       if (pciShown && phase !== 'over') {
@@ -1476,6 +1654,13 @@ export default {
           result: result ? { kind: result.kind, dist: result.dist } : null,
           lastHit, ghosts: ghosts.length, record: { ...record },
         };
+      },
+      // For tests: the batter's rig (world points) `u` seconds into a swing
+      // at `aim` (u null: the stance), and the pitch's drawn radius on screen.
+      _rig: rigAt,
+      _ballRadius() {
+        const b = ballNow();
+        return b ? ballRadius(project(cam, b.x, b.y, b.z)) : null;
       },
       // For tests: where the pitch will be in `ahead` seconds, on screen.
       _ahead(ahead) {
