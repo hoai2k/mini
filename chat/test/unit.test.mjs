@@ -121,7 +121,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 24);
+  assert.equal(GAME_IDS.length, 25);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -721,4 +721,292 @@ test('Copy Cat: puffed cheeks against the resting face, and one eye shut', async
   assert.ok(eye.get(lids(8, 9)) < eye.thr, 'two open eyes are not a wink');
   assert.ok(eye.get(lids(1, 1.2)) < eye.thr, 'two shut eyes are not a wink');
   assert.ok(!C.EXPRS.some(e => /both eyes|Wink/.test(e.text)));
+});
+
+test('Block Drop: shapes, SRS rotation and wall kicks', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  // Every piece has four cells in every rotation.
+  for (let t = 0; t < 7; t++) for (let r = 0; r < 4; r++) assert.equal(B.cellsOf(t, r).length, 4);
+  const key = cells => cells.map(c => c.join(',')).sort().join(' ');
+  // T: spawn points up; clockwise it points right.
+  assert.equal(key(B.cellsOf(2, 0)), key([[1, 0], [0, 1], [1, 1], [2, 1]]));
+  assert.equal(key(B.cellsOf(2, 1)), key([[1, 0], [1, 1], [2, 1], [1, 2]]));
+  // I lies in row 1 of its box, then stands in column 2 (SRS).
+  assert.equal(key(B.cellsOf(0, 1)), key([[2, 0], [2, 1], [2, 2], [2, 3]]));
+  assert.equal(key(B.cellsOf(0, 2)), key([[0, 2], [1, 2], [2, 2], [3, 2]]));
+  // O never changes.
+  assert.equal(key(B.cellsOf(1, 3)), key(B.cellsOf(1, 0)));
+  // Kick tables are the SRS ones (y up): spot-check a few entries.
+  assert.deepEqual(B.kicksFor(2, 0, 1), [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]]);
+  assert.deepEqual(B.kicksFor(0, 0, 1), [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]]);
+  assert.deepEqual(B.kicksFor(0, 3, 0), [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]);
+  // In open space a turn needs no kick.
+  const s = B.newWell(1);
+  s.cur = { t: 2, r: 0, x: 3, y: 10 };
+  assert.deepEqual(B.rotate(s, 1), [0, 0]);
+  assert.equal(s.cur.r, 1);
+  assert.deepEqual(B.rotate(s, -1), [0, 0]);
+  assert.equal(s.cur.r, 0);
+  // Against the left wall: a standing I in column 0 turning flat kicks right.
+  s.board = B.emptyBoard();
+  s.cur = { t: 0, r: 3, x: -1, y: 10 };
+  assert.ok(B.fits(s.board, 0, 3, -1, 10));
+  assert.deepEqual(B.rotate(s, 1), [1, 0]);    // 3 -> 0: (0,0) fails, (+1,0) fits
+  assert.equal(s.cur.r, 0);
+  assert.ok(B.cellsOf(0, 0).every(([cx]) => s.cur.x + cx >= 0));
+  // A T against the right wall pointing left kicks off the wall to turn.
+  s.cur = { t: 2, r: 3, x: 8, y: 10 };
+  assert.ok(B.fits(s.board, 2, 3, 8, 10));
+  assert.deepEqual(B.rotate(s, -1), [-1, 0]);  // 3 -> 2
+  // On cluttered boards a turn always takes the first kick in the table that fits.
+  const rnd = B.mulberry32(5);
+  let kicked = 0;
+  for (let i = 0; i < 3000; i++) {
+    const w = B.newWell(1);
+    w.board = B.emptyBoard().map((row, y) => row.map(() => (y > 6 && rnd() < 0.35 ? 8 : 0)));
+    const t = Math.floor(rnd() * 7), r = Math.floor(rnd() * 4), x = Math.floor(rnd() * 10) - 2, y = Math.floor(rnd() * 18) + 2;
+    if (!B.fits(w.board, t, r, x, y)) continue;
+    const dir = rnd() < 0.5 ? 1 : -1, to = (r + (dir > 0 ? 1 : 3)) % 4;
+    w.cur = { t, r, x, y };
+    const want = t === 1 ? null : B.kicksFor(t, r, to).find(([kx, ky]) => B.fits(w.board, t, to, x + kx, y - ky)) || null;
+    const got = B.rotate(w, dir);
+    assert.deepEqual(got, want);
+    if (got) { assert.deepEqual([w.cur.r, w.cur.x, w.cur.y], [to, x + got[0], y - got[1]]); if (got[0] || got[1]) kicked++; }
+    else assert.deepEqual([w.cur.r, w.cur.x, w.cur.y], [r, x, y]);
+  }
+  assert.ok(kicked > 50, `kicks were exercised (${kicked})`);
+  // Can't turn at all when boxed in.
+  const box = B.newWell(1);
+  box.board = B.emptyBoard().map(row => row.map(() => 8));
+  for (const [cx, cy] of B.cellsOf(4, 0)) box.board[10 + cy][3 + cx] = 0;
+  box.cur = { t: 4, r: 0, x: 3, y: 10 };
+  assert.equal(B.rotate(box, 1), null);
+  assert.equal(box.cur.r, 0);
+});
+
+test('Block Drop: line clears, scoring, levels, lock delay and hold', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  const { TOTAL, COLS } = B;
+  const s = B.newWell(7);
+  // Two rows full but for the two cells an O fills.
+  for (const y of [TOTAL - 1, TOTAL - 2]) s.board[y] = [8, 8, 8, 8, 0, 0, 8, 8, 8, 8];
+  s.board[TOTAL - 3] = [8, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  s.cur = { t: 1, r: 0, x: 3, y: 1 };   // O cells in columns 4-5
+  const dist = B.hardDrop(s);
+  assert.equal(dist, TOTAL - 3);
+  const clear = s.events.find(e => e.type === 'clear');
+  assert.ok(clear, 'a clear');
+  assert.equal(clear.lines, 2);
+  assert.equal(clear.pts, 300);
+  assert.equal(clear.attack, 1);
+  assert.equal(s.score, 300 + 2 * dist);
+  assert.ok(s.clear, 'the rows flash first');
+  assert.equal(s.cur, null);
+  B.tick(s, B.CLEAR_T + 0.01);
+  assert.equal(s.clear, null);
+  assert.ok(s.cur, 'the next piece comes after the flash');
+  assert.deepEqual(s.board[TOTAL - 1], [8, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'the rows above fall into place');
+  assert.equal(s.board[TOTAL - 2].some(v => v), false);
+  // fullRows / removeRows.
+  const b = B.emptyBoard();
+  b[TOTAL - 1] = new Array(COLS).fill(3);
+  b[TOTAL - 3] = new Array(COLS).fill(4);
+  b[TOTAL - 2][0] = 5;
+  assert.deepEqual(B.fullRows(b), [TOTAL - 3, TOTAL - 1]);
+  const after = B.removeRows(b, [TOTAL - 3, TOTAL - 1]);
+  assert.equal(after.length, TOTAL);
+  assert.equal(after[TOTAL - 1][0], 5);
+  // Points: 100/300/500/800 x level, a back-to-back 4-row clear x1.5, combos add 50 x combo x level.
+  assert.deepEqual([1, 2, 3, 4].map(n => B.pointsFor(n, 1, 0, false)), [100, 300, 500, 800]);
+  assert.equal(B.pointsFor(4, 2, 0, true), 2400);
+  assert.equal(B.pointsFor(1, 3, 2, false), 300 + 300);
+  // A chain of clears builds the combo.
+  const ch = B.newWell(2);
+  for (let k = 0; k < 3; k++) {
+    ch.board = B.emptyBoard();
+    ch.board[TOTAL - 1] = [8, 8, 8, 8, 0, 0, 8, 8, 8, 8];
+    ch.board[TOTAL - 2] = [8, 8, 8, 8, 0, 0, 8, 8, 8, 8];
+    ch.cur = { t: 1, r: 0, x: 3, y: 1 };
+    B.hardDrop(ch);
+    B.tick(ch, 1);
+  }
+  const combos = ch.events.filter(e => e.type === 'clear').map(e => [e.combo, e.attack]);
+  assert.deepEqual(combos, [[0, 1], [1, 2], [2, 2]]);
+  // Levels go up every ten lines, and the pieces fall faster.
+  assert.ok(B.gravity(1) === 1 && B.gravity(2) < 1 && B.gravity(10) < 0.2);
+  const lv = B.newWell(3);
+  lv.lines = 9;
+  lv.board[TOTAL - 1] = [8, 8, 8, 8, 0, 0, 8, 8, 8, 8];
+  lv.cur = { t: 1, r: 0, x: 3, y: 1 };
+  B.hardDrop(lv);
+  assert.equal(lv.level, 2);
+  assert.ok(lv.events.some(e => e.type === 'clear' && e.level === 2));
+  // Lock delay: a piece on the floor locks after LOCK_DELAY; a move renews it.
+  const ld = B.newWell(5);
+  ld.cur = { t: 2, r: 0, x: 3, y: TOTAL - 2 };
+  B.tick(ld, B.LOCK_DELAY * 0.8);
+  assert.ok(ld.cur && ld.placed === 0, 'still sliding');
+  assert.ok(B.move(ld, 1));
+  B.tick(ld, B.LOCK_DELAY * 0.8);
+  assert.equal(ld.placed, 0, 'the move renewed the lock delay');
+  B.tick(ld, B.LOCK_DELAY * 0.3);
+  assert.equal(ld.placed, 1, 'then it locks');
+  // Soft drop falls fast and scores a point a row.
+  const sd = B.newWell(5);
+  const y0 = sd.cur.y;
+  B.tick(sd, 0.2, true);
+  assert.ok(sd.cur.y - y0 >= 3 && sd.score === sd.cur.y - y0);
+  // Hold swaps once per piece.
+  const hs = B.newWell(9);
+  const first = hs.cur.t, second = B.nextPieces(hs, 1)[0];
+  assert.ok(B.hold(hs));
+  assert.equal(hs.hold, first);
+  assert.equal(hs.cur.t, second);
+  assert.equal(B.hold(hs), false, 'only once until the piece locks');
+  B.hardDrop(hs);
+  B.tick(hs, 1);
+  assert.ok(B.hold(hs));
+  assert.equal(hs.cur.t, first, 'the held piece comes back');
+});
+
+test('Block Drop: the 7-bag is the same for the same seed', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  const a = B.makeBag(123456), b = B.makeBag(123456), c = B.makeBag(654321);
+  const seq = bag => Array.from({ length: 70 }, (_, i) => bag.at(i));
+  assert.deepEqual(seq(a), seq(b));
+  assert.notDeepEqual(seq(a), seq(c));
+  // Each run of seven holds every piece once.
+  const s = seq(a);
+  for (let i = 0; i < 70; i += 7) assert.deepEqual(s.slice(i, i + 7).sort(), [0, 1, 2, 3, 4, 5, 6]);
+  // Wells from the same seed deal the same pieces, holding or not.
+  const w1 = B.newWell(99), w2 = B.newWell(99);
+  B.hold(w2);
+  for (let i = 0; i < 12; i++) { B.hardDrop(w1); B.tick(w1, 1); B.hardDrop(w2); B.tick(w2, 1); }
+  const n = Math.min(w1.dealt.length, w2.dealt.length);
+  assert.ok(n >= 10);
+  assert.deepEqual(w1.dealt.slice(0, n), w2.dealt.slice(0, n));
+});
+
+test('Block Drop: garbage maths, targets and topping out', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  const { TOTAL, GARBAGE } = B;
+  assert.deepEqual([1, 2, 3, 4].map(n => B.attackFor(n, 0)), [0, 1, 2, 4]);
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 9, 20].map(B.comboBonus), [0, 1, 1, 2, 2, 3, 3, 4, 4]);
+  assert.equal(B.attackFor(2, 3), 1 + 2);
+  assert.equal(B.attackFor(0, 5), 0);
+  // Targets: the only other player; with more, whoever leads; never anyone out.
+  assert.equal(B.pickTarget('a', [{ id: 'a', sc: 9 }, { id: 'b', sc: 0 }]), 'b');
+  assert.equal(B.pickTarget('a', [{ id: 'b', sc: 10 }, { id: 'c', sc: 50 }, { id: 'd', sc: 50 }]), 'c');
+  assert.equal(B.pickTarget('a', [{ id: 'b', sc: 10 }, { id: 'c', sc: 50, ko: true }]), 'b');
+  assert.equal(B.pickTarget('a', [{ id: 'c', ko: true }]), null);
+  // Garbage waits, then rises with one gap when a piece locks without a clear.
+  const s = B.newWell(4);
+  assert.equal(B.receive(s, 3, 6), 3);
+  assert.equal(B.pending(s), 3);
+  assert.equal(B.receive(s, 13, 1), 0, 'too many at once');
+  assert.equal(B.receive(s, 2, 10), 0, 'gap outside the well');
+  B.hardDrop(s);
+  assert.equal(B.pending(s), 0);
+  const rows = s.board.filter(r => r.includes(GARBAGE));
+  assert.equal(rows.length, 3);
+  for (const r of rows) { assert.equal(r[6], 0); assert.equal(r.filter(v => v === GARBAGE).length, 9); }
+  assert.ok(s.events.some(e => e.type === 'garbage' && e.n === 3));
+  // A clear cancels waiting garbage before sending any.
+  const c = B.newWell(4);
+  B.receive(c, 2, 0);
+  for (const y of [TOTAL - 1, TOTAL - 2, TOTAL - 3, TOTAL - 4]) c.board[y] = [8, 8, 8, 8, 8, 8, 8, 8, 8, 0];
+  c.cur = { t: 0, r: 1, x: 7, y: 2 };   // a standing I in column 9
+  B.hardDrop(c);
+  const e = c.events.find(x => x.type === 'clear');
+  assert.equal(e.lines, 4);
+  assert.equal(e.cancelled, 2);
+  assert.equal(e.attack, 2, '4 rows send 4, less the 2 cancelled');
+  assert.equal(B.pending(c), 0);
+  // At most MAX_PENDING rows can wait.
+  const m = B.newWell(4);
+  for (let i = 0; i < 5; i++) B.receive(m, 6, 0);
+  assert.equal(B.pending(m), B.MAX_PENDING);
+  // Garbage pushing blocks out of the top tops you out.
+  const top = B.emptyBoard();
+  top[0][0] = 3;
+  assert.equal(B.addGarbage(top, 2, 5).top, true);
+  assert.equal(B.addGarbage(B.emptyBoard(), 2, 5).top, false);
+  // A piece that can't appear tops you out.
+  const o = B.newWell(4);
+  o.board = B.emptyBoard().map((row, y) => row.map((_, x) => (x === (y % 2 ? 0 : 9) ? 0 : 8)));
+  o.cur = null;
+  B.spawn(o, null);
+  assert.equal(o.over, true);
+  assert.ok(o.events.some(x => x.type === 'over'));
+  // Rate limit: at most ATTACK_RATE rows in ATTACK_WINDOW.
+  const log = [];
+  let sent = 0;
+  for (let i = 0; i < 10; i++) if (B.rateOk(log, 4, 1000 + i * 10)) sent += 4;
+  assert.ok(sent <= B.ATTACK_RATE && sent > 0);
+  assert.ok(B.rateOk(log, 4, 1100 + B.ATTACK_WINDOW + 200), 'and again once the window has passed');
+});
+
+test('Block Drop: packing and checking network state', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  const { TOTAL, ROWS, COLS } = B;
+  const s = B.newWell(11);
+  assert.equal(B.packBoard(s.board), '');
+  s.board[TOTAL - 1] = [1, 2, 3, 4, 5, 6, 7, 8, 0, 1];
+  s.board[TOTAL - 3][4] = 3;
+  const packed = B.packBoard(s.board);
+  assert.equal(packed.length, 30);
+  const rows = B.unpackBoard(packed);
+  assert.equal(rows.length, ROWS);
+  assert.deepEqual(rows[ROWS - 1], s.board[TOTAL - 1]);
+  assert.deepEqual(rows[ROWS - 3], s.board[TOTAL - 3]);
+  for (const bad of [null, 5, '12', '9'.repeat(10), 'a'.repeat(10), '0'.repeat(COLS * ROWS + 10)]) assert.equal(B.unpackBoard(bad), null, String(bad));
+  // A player's state.
+  const ok = B.readPlayer({ r: 3, b: packed, p: [2, 1, 4, 5], sc: 1200, ln: 7, lv: 1, ko: 0, g: 2, hd: 4 });
+  assert.equal(ok.r, 3);
+  assert.deepEqual(ok.p, { t: 2, r: 1, x: 4, y: 5 });
+  assert.equal(ok.hd, 4);
+  assert.equal(ok.ko, false);
+  assert.equal(B.readPlayer({ r: 0, b: '' }), null);
+  assert.equal(B.readPlayer({ r: 1, b: 'xx' }), null);
+  assert.equal(B.readPlayer(null), null);
+  const odd = B.readPlayer({ r: 1, b: '', p: [9, 0, 0, 0], sc: -5, ln: 'a', lv: 1e9, g: 999, hd: 7, ko: 'yes' });
+  assert.equal(odd.p, null);
+  assert.equal(odd.sc, 0);
+  assert.equal(odd.ln, 0);
+  assert.equal(odd.lv, 999);
+  assert.equal(odd.g, B.MAX_PENDING);
+  assert.equal(odd.hd, -1);
+  assert.equal(odd.ko, false);
+  // The owner's round.
+  const sh = B.readShared({ v: 1, r: 2, seed: 77, at: 1000, ph: 'play', pl: ['a', 'b', 'a', 5], win: '', wn: '', next: 0 });
+  assert.deepEqual(sh.pl, ['a', 'b']);
+  assert.equal(B.readShared({ v: 1, r: 2, seed: -1, at: 1, ph: 'play' }), null);
+  assert.equal(B.readShared({ v: 1, r: 2, seed: 1, at: 1, ph: 'later' }), null);
+  assert.equal(B.readShared({ v: 2, r: 2, seed: 1, at: 1, ph: 'play' }), null);
+  assert.equal(B.readShared({ v: 1, r: 1, seed: 1, at: 1, ph: 'done', wn: 'x'.repeat(80) }).wn.length, 24);
+  // Garbage messages.
+  assert.deepEqual(B.readAttack({ r: 1, to: 'b', n: 4, h: 3 }), { r: 1, to: 'b', n: 4, h: 3 });
+  for (const bad of [{ r: 1, to: 'b', n: 0, h: 3 }, { r: 1, to: 'b', n: 13, h: 3 }, { r: 1, to: 'b', n: 2, h: 10 }, { r: 1, to: '', n: 2, h: 1 }, { r: 1.5, to: 'b', n: 2, h: 1 }, null])
+    assert.equal(B.readAttack(bad), null, JSON.stringify(bad));
+});
+
+test('Block Drop: the bot finds a sensible place, and layouts fit', async () => {
+  const B = (await import('../games/blocks.js'))._logic;
+  const { TOTAL } = B;
+  const s = B.newWell(1);
+  // A well with a slot only a standing I fills, clearing four rows.
+  for (const y of [TOTAL - 1, TOTAL - 2, TOTAL - 3, TOTAL - 4]) s.board[y] = [8, 8, 8, 8, 8, 8, 8, 8, 8, 0];
+  s.cur = { t: 0, r: 0, x: 3, y: 1 };
+  const best = B.placements(s)[0];
+  const cols = B.cellsOf(0, best.r).map(([cx]) => best.x + cx);
+  assert.ok(cols.every(x => x === 9), `the I goes in the slot (${JSON.stringify(best)})`);
+  // Layouts fit the well and its side columns on a phone, upright and sideways.
+  for (const [w, h, n] of [[390, 690, 0], [390, 690, 1], [390, 690, 2], [390, 690, 5], [844, 390, 3], [1000, 700, 1]]) {
+    const L = B.computeLayout(w, h, { top: 0, bottom: 0 }, n);
+    const inside = r => r.x >= 0 && r.y >= 0 && r.x + r.w <= w + 1 && r.y + (r.h ?? 0) <= h + 1;
+    for (const r of [L.hold, L.next, L.stats, { x: L.wx, y: L.wy, w: L.wellW, h: L.wellH }, L.head]) assert.ok(inside(r), `layout ${w}x${h} n=${n}: ${JSON.stringify(r)}`);
+    assert.ok(L.cell >= 16, `cells big enough (${L.cell}) at ${w}x${h} n=${n}`);
+    assert.equal(L.slots.length, n);
+    for (const sl of L.slots) assert.ok(sl.x >= 0 && sl.x + sl.w <= w + 1 && sl.y + sl.h <= h + 1, `slot inside ${w}x${h} n=${n}`);
+  }
 });
