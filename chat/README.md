@@ -210,8 +210,11 @@ have none. If they say Go Fish, press Go Fish and your angler, with your face, c
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
 deals; alone you play Robo-Fisher), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on their own field, with live scores and a winner) and Baseball (a home run derby seen from
-behind the plate, with your face on the slugger: tap the ball as it reaches
-the plate; when you swing sets the direction, early pulls and late is foul,
+behind the plate in the style of Wii Sports Baseball's batting, with your face
+on the slugger: the pitch grows from a dot in the pitcher's hand to a big
+streaking ball at the plate, and you tap it as it gets there; the slugger
+loads as it comes and swings in about a third of a second, the bat level
+through the ball and round over his front shoulder; when you swing sets the direction, early pulls and late is foul,
 and where you tap on the ball sets the launch, on top a grounder and under it
 a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
 ghost balls and everyone's home runs are on the scoreboard). Kart Dash is a
@@ -278,12 +281,17 @@ itself to HTTPS.
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
 - `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats get the same spawns, and mouse whacks show zombies scoring, an unwhacked creeper exploding, a villager costing, an enderman teleporting, one winner on both seats and rookie bots scoring (screenshots in `local/chat-shots/whack-*.png`)
-- `node chat/test/baseball-play.mjs`: on two phone-sized seats, taps timed
-  to the pitch: right on the ball as it reaches the plate is a home run, far
+- `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
+  swing (arms keep their length, both hands stay on the bat, the bat sweeps
+  one way from behind his head, level through the zone, over his front
+  shoulder) and that the ball is 6-10% of the screen's width at the plate, then
+  taps timed to the pitch: right on the ball as it reaches the plate is a home run, far
   too early misses, late is foul, above the ball is a grounder, no swing is a
   take; the round ends after ten pitches with the card, the home runs reach
-  the friend's scoreboard and Bat again starts the next; a rookie bot in the
-  other seat swings and sees the hits as ghosts
+  the friend's scoreboard and Bat again starts the next, where taps on the
+  ball's top and bottom edges both connect, the top one lower; a rookie bot in
+  the other seat swings and sees the hits as ghosts (mid-swing picture in
+  `local/chat-shots/baseball-swing.png`)
 - `node chat/test/kart-play.mjs`: two racers on phone-sized Kart Dash seats:
   the countdown, steering, an item box, a banana spin-out with flying parts,
   a bomb, and rookie bots racing three laps to a finishing order, with frame
