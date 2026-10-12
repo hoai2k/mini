@@ -136,24 +136,10 @@ function paintHumanoid(S, o) {
     S.rect(u, v + 4 + 10, 16, 2, o.shoes ?? 0x1a1a1a, 0.05); S.rect(u + 8, v, 4, 4, o.shoes ?? 0x1a1a1a, 0.05);
     if (o.sole) { S.rect(u, v + 4 + 11, 16, 1, o.sole, 0.03); S.px(u + 5, v + 4 + 10, o.sole); S.px(u + 6, v + 4 + 10, o.sole); }
   }
-  if (o.shade !== false) shadeBody(S);
+  if (o.shade !== false) { S.shadeLimbs(); S.saturate(1.2); }
 }
 
 const shadeOf = (c, k) => { const x = new THREE.Color(c).multiplyScalar(k); return x.getHex(); };
-// Light from above: the side faces of the torso, arms and legs (and their
-// overlays) shade from a little brighter at the top to darker at the bottom.
-function shadeBody(S) {
-  const strips = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4], [40, 32, 4, 12, 4], [32, 48, 4, 12, 4], [48, 48, 4, 12, 4], [0, 16, 4, 12, 4], [16, 48, 4, 12, 4]];
-  const img = S.ctx.getImageData(0, 0, 64, 64), D = img.data;
-  // a little extra saturation everywhere: the tone mapping washes colours out
-  for (let i = 0; i < D.length; i += 4) { const l = (D[i] + D[i + 1] + D[i + 2]) / 3; for (let c = 0; c < 3; c++) D[i + c] = Math.max(0, Math.min(255, l + (D[i + c] - l) * 1.2)); }
-  for (const [u, v, w, h, d] of strips) for (let y = 0; y < h; y++) {
-    const k = 1.08 - 0.2 * (y / (h - 1));
-    for (let x = u; x < u + 2 * (w + d); x++) { const i = ((v + d + y) * 64 + x) * 4; for (let c = 0; c < 3; c++) D[i + c] = Math.min(255, D[i + c] * k); }
-  }
-  S.ctx.putImageData(img, 0, 0);
-}
-
 const mat = (c, o = {}) => new THREE.MeshStandardNodeMaterial({ color: c, roughness: o.rough ?? 0.7, metalness: o.metal ?? 0, emissive: o.emissive ?? 0x000000, emissiveIntensity: o.ei ?? 1 });
 const BRONZE = () => mat(0xc9963a, { rough: 0.3, metal: 0.85, emissive: 0x5a3a08, ei: 0.6 });
 const H = PX * 1.12;   // one head-skin pixel in head space
