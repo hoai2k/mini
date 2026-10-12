@@ -364,6 +364,16 @@ export default {
       }
     }
 
+    // A test bot's move (js/rookie.js): a toss aimed near the hoop, about
+    // as hard as a good shot (sometimes in, mostly not).
+    function rookieShot() {
+      if (!ready()) return;
+      const from = { ...held };
+      const p = project(cam, from.x, from.y, from.z), q = project(cam, hoop.x, hoop.y, hoop.z);
+      const ratio = (q.x - p.x) / Math.max(1, p.y - q.y) + (Math.random() - 0.5) * 0.12;
+      shoot(from, U0 * (0.8 + Math.random() * 0.45), ratio);
+    }
+
     // --- input -------------------------------------------------------------
     // Where a screen point is on the plane the ball is carried in.
     function toWorld(sx, sy) {
@@ -727,6 +737,7 @@ export default {
     raf = requestAnimationFrame(frame);
 
     return {
+      rookie: rookieShot,
       // For tests: where the ball and hoop are, in page pixels of the canvas.
       _view() {
         const b = ball || held, p = project(cam, b.x, b.y, b.z), q = project(cam, hoop.x, hoop.y, hoop.z);

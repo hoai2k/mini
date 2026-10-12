@@ -20,7 +20,6 @@ const FRICTION = 0.1;       // per second
 const MAX_SPEED = 2.6;      // puck
 const PADDLE_MAX = 3.4;     // paddle speed cap (units per second)
 const KEY_SPEED = 1.5;
-const SERVE_SPEED = 1.2;
 const WIN_SCORE = 7;
 const SEND_MS = 50;         // ~20 Hz
 
@@ -450,13 +449,12 @@ export default {
       if (!S) return;
       if (S.winner != null) return;
       if (S.serveAt) {
+        // The puck waits, still, in the half of the player who conceded, and
+        // only moves when somebody hits it.
         puck.x = TW / 2;
-        puck.y = TH / 2;
+        puck.y = S.serveTo === 0 ? TH * 0.68 : TH * 0.32;
         puck.vx = puck.vy = 0;
-        if (Date.now() < S.serveAt) return;
-        // Serve toward the player who conceded.
-        puck.vx = (Math.random() - 0.5) * 0.5;
-        puck.vy = S.serveTo === 0 ? SERVE_SPEED : -SERVE_SPEED;
+        if (Date.now() < S.serveAt) { publishShared(S, false); return; }
         S = { ...S, serveAt: 0 };
         publishShared(S, true);
       }
@@ -729,6 +727,23 @@ export default {
       },
       onChange() {
         reconcile();
+      },
+      // A test bot's move (js/rookie.js): chase the puck when it's on my
+      // side, coming at it from my goal's side so it goes the other way;
+      // otherwise drift back in front of my goal. Not good, just playing.
+      rookie() {
+        const r = roleOf();
+        if (r < 0) return;
+        const [y0, y1] = halfRange(r);
+        const mine = r === 0 ? puck.y > TH / 2 - 0.05 : puck.y < TH / 2 + 0.05;
+        const jitter = () => (Math.random() - 0.5) * 0.06;
+        if (mine) {
+          target.x = clamp(puck.x + jitter(), PR, TW - PR);
+          target.y = clamp(puck.y + (r === 0 ? 0.05 : -0.05), y0, y1);
+        } else {
+          target.x = clamp(TW / 2 + (puck.x - TW / 2) * 0.5 + jitter(), PR, TW - PR);
+          target.y = r === 0 ? TH - 0.2 : 0.2;
+        }
       },
       onPad(pad) {
         const dead = v => (Math.abs(v) < 0.15 ? 0 : v);

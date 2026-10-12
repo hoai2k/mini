@@ -9,7 +9,7 @@ import { serve, launch } from './lib.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 await mkdir(`${root}local/chat-shots`, { recursive: true });
 const relayDir = `${root}multiplayer/server`;
-const relay = spawn(process.execPath, [`${relayDir}/node_modules/wrangler/bin/wrangler.js`, 'dev', '--port', '8789', '--ip', '127.0.0.1', '--persist-to', '.wrangler/chat-fixes-state'], {
+const relay = spawn(process.execPath, [`${relayDir}/node_modules/wrangler/bin/wrangler.js`, 'dev', '--local', '--port', '8789', '--ip', '127.0.0.1', '--persist-to', '.wrangler/chat-fixes-state'], {
   cwd: relayDir, stdio: 'ignore', detached: true, env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
 });
 const stop = () => { try { process.kill(-relay.pid, 'SIGTERM'); } catch {} };

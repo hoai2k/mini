@@ -354,7 +354,7 @@ async function start() {
   // The camera and microphone start alongside joining, so a device that is
   // slow or busy never holds up the chat.
   startDevices();
-  debugBots = createDebugBots({ ownerId: me.id, rooms: MiniRooms,
+  debugBots = createDebugBots({ ownerId: me.id, rooms: MiniRooms, room: chatRoom,
     mediaOf: id => tiles.get(id)?.media ?? null, onChange: () => onPeers(net.peers), toast });
   debugBots.setCount(debugBotCount);
   net.on('peers', onPeers);
@@ -1576,6 +1576,8 @@ async function initGames() {
     },
   });
   games.register(await loadGames());
+  // For browser checks (test/bot-app-check.mjs) to play the human's seat.
+  window.gamesChatDebug = { get current() { return games.current; } };
   $('#game-close').addEventListener('click', () => games.close());
 
   const list = $('#game-list');

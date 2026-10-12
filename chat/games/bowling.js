@@ -1110,6 +1110,12 @@ export default {
         window.removeEventListener('keyup', onKey);
       },
       onChange() { sync(); },
+      // A test bot's move (js/rookie.js): a roll down the lane on its turn.
+      rookie() {
+        if (!canThrow()) return;
+        const r = () => Math.random() - 0.5;
+        doThrow({ x: clamp(bx + r() * 6, -15, 15), angle: r() * 0.05, speed: 300 + r() * 120, spin: r() });
+      },
       onPad(pad) {
         if (!canThrow()) { charge = null; return; }
         aimTan = clamp(pad.x * 0.07, -0.07, 0.07);
