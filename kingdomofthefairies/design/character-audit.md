@@ -75,3 +75,9 @@ Aurora's star, the armour pickups, the tower window and the pearl. Round F9
 requests a tinted alternate of each (31) on the same terms as F8. These are
 older sprites drawn stretched to their boxes; their alternates are drawn the
 same way, not with the film art's proportional fitting.
+
+Delivered 11 October 2026: all 31 match their originals' canvas and placement
+and load in play (checked in Neptune's court, the grotto, the tempest, the
+beach, the armoury and the procession). The delivery also fixed a loader bug
+from the F9 change (a local name hid the asset path, so no art loaded); CI now
+runs `qa/assets-loader.test.mjs` to catch that.
