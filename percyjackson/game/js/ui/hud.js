@@ -40,6 +40,7 @@ export class HUD {
     r.appendChild(this.coins);
     this.join = h('div', { class: 'join-hint' }, isMobile ? '' : 'Controller: press Start to join'); r.appendChild(this.join);
     this.prompts = new Map();
+    this.says = [];   // speech bubbles over people (say())
     this.cardEls = []; this.partyEls = [];
     this.sig = '';
     this.objKey = '';
@@ -124,6 +125,24 @@ export class HUD {
     if (boss && (this.bossShown?.b !== boss || this.bossShown.name !== name)) { this.bossShown = { b: boss, name }; this.bossH?.cancel?.(); this.bossH = demigodText(this.boss.children[0], name, { timing: GREEK.boss }); }
     if (!boss) this.bossShown = null;
   }
+  // A speech bubble over someone (a person in the Mist telling a hero off), for `secs`.
+  say(ent, text, secs = 2.4) {
+    const old = this.says.find((s) => s.ent === ent); if (old) { old.el.remove(); this.says.splice(this.says.indexOf(old), 1); }
+    const el = h('div', { class: 'say', role: 'status' }, text);
+    this.root.appendChild(el);
+    this.says.push({ ent, el, t: secs });
+    this.placeSays(0);
+  }
+  placeSays(dt) {
+    for (let i = this.says.length - 1; i >= 0; i--) {
+      const s = this.says[i]; s.t -= dt;
+      if (s.t <= 0 || s.ent.dead || !s.ent.disguised) { s.el.remove(); this.says.splice(i, 1); continue; }
+      const v = tmp.set(s.ent.pos.x, s.ent.pos.y + (s.ent.height ?? 1.9) + 0.5, s.ent.pos.z).project(this.game.rig.camera);
+      s.el.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth).toFixed(0) + 'px';
+      s.el.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight).toFixed(0) + 'px';
+      s.el.classList.toggle('out', s.t < 0.3 || v.z > 1);
+    }
+  }
   // world-anchored prompt ("E  Talk")
   prompt(id, pos, text, onTap) {
     let el = this.prompts.get(id);
@@ -138,6 +157,7 @@ export class HUD {
     const g = this.game;
     this.t += dt;
     for (const [id, el] of this.prompts) { if (!el.dataset.seen) { el.remove(); this.prompts.delete(id); } else delete el.dataset.seen; }
+    if (this.says.length) this.placeSays(dt);
     if (this.sig !== this.signature()) this.rebuildCards();
     const bsOn = settings.battleSense !== false;
     for (const c of this.cardEls) {

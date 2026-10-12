@@ -23,6 +23,9 @@
 //   sealT        seconds: held in place (artifacts)
 //   awake        a 'statue' monster is moving (set true to spawn it awake)
 //   bossSummon   the boss that called this monster (it may clear them on death)
+//   scold(hero)  a mortal-looking person (disguised, or a real mortal: def.mortal)
+//              was swung at: recoil, a line in a speech bubble, then back to
+//              their business (entities/mistPeople.js). Real mortals never reveal.
 //   loiter       (monsters whose def has idle: 'loiter', the prologue's rats;
 //              rules in entities/ratRules.js) { home, r, notice, alert, perch,
 //              leash, face }: hangs around home (sniffs, eats, wanders) until a
@@ -49,6 +52,7 @@ import { poisonHero } from './holds.js';
 import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
 import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
+import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
@@ -130,7 +134,7 @@ export class Enemy {
   }
   // Drop the Mist disguise: swap to the monster with a golden puff and attack.
   reveal() {
-    if (!this.disguised || this.dead) return false;
+    if (!this.disguised || this.dead || this.def.mortal) return false;   // (a real mortal stays a person)
     const g = this.game;
     this.disguised = false; this.untargetable = false;
     this.radius = this.trueRadius; this.height = this.trueHeight;
@@ -482,7 +486,7 @@ export class Enemy {
       this.losT -= dt;
       if (this.losT <= 0) {
         this.losT = 0.2;
-        if (notices({ dist: bd, los: lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2), notice: L.notice, calm: L.calmT })) { L.alertT = L.alert; L.returning = false; this.voice(); }
+        if (notices({ dist: bd, los: (L.perch && bd < 6) || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2), notice: L.notice, calm: L.calmT })) { L.alertT = L.alert; L.returning = false; this.voice(); }   // (a perched rat hears a hero walk underneath)
       }
     }
     return null;
@@ -494,6 +498,23 @@ export class Enemy {
     if (hero) this.facing = Math.atan2(hero.pos.x - this.pos.x, hero.pos.z - this.pos.z);
     this.voice();
     return true;
+  }
+  // ---- people in the Mist (entities/mistPeople.js)
+  // A hero swung at (or shot at) someone who looks like a mortal: no harm
+  // done, but they flinch, step back and tell the hero off (one line every
+  // few seconds), then go back to what they were doing. On every screen.
+  scold(hero) {
+    if (!this.disguised || this.dead) return;
+    const g = this.game, now = g.time;
+    let line = null;
+    if (mayScold(this.scoldAt, now)) { this.scoldAt = now; line = scoldLine(this.disguise, Math.random(), this.lastLine); this.lastLine = line; }
+    const from = hero?.pos?.clone?.() ?? this.pos.clone().add(TO.set(Math.sin(this.facing), 0, Math.cos(this.facing)));
+    const run = () => g.fx?.scold?.(this, line, from);
+    if (g.online?.fx?.capture) g.online.fx.capture(run); else run();
+  }
+  // (fx.scold, here and on the other screens)
+  recoil(from) {
+    this.recoilT = RECOIL; this.glareT = SETTLE; this.recoilFrom = from ? from.clone() : null;
   }
   // Hanging around home: sniff, eat, wander a few steps; walk back after a chase.
   loiterMove(dt) {
@@ -523,13 +544,26 @@ export class Enemy {
   updateDisguised(dt) {
     const g = this.game;
     let move = tmp2.set(0, 0, 0);
+    // nothing a hero does moves a person in the Mist (knock-ups, staggers, slows: entities/mistPeople.js)
+    if (this.vel.y > 0) this.vel.y = 0;
+    this.knock.set(0, 0, 0); if (this.state !== 'idle') { this.state = 'idle'; this.action = null; }
     this.wanderT -= dt;
-    if (this.wanderT <= 0) {
+    if (this.recoilT > 0 || this.glareT > 0) {
+      // told a hero off: a step back with the hands up, a glare, then back to their business
+      this.recoilT = Math.max(0, (this.recoilT ?? 0) - dt);
+      this.glareT = Math.max(0, (this.glareT ?? 0) - dt);
+      if (this.recoilFrom) {
+        this.faceTo(this.recoilFrom, dt, 12);
+        if (this.recoilT > 0) move.copy(this.steer(tmp.subVectors(this.pos, this.recoilFrom).setY(0), 1.6 / Math.max(0.5, this.speed)));
+      }
+      this.wanderT = Math.max(this.wanderT, 0.8);
+    } else if (this.wanderT <= 0) {
       this.wanderT = 2.5 + Math.random() * 3.5;
       this.wander = Math.random() < 0.45 ? new THREE.Vector3() : new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
       if (this.pos.distanceTo(this.home) > 4) this.wander = tmp.subVectors(this.home, this.pos).setY(0).normalize().clone();
     }
-    if (this.wander && this.wander.lengthSq() > 0) { move.copy(this.steer(this.wander, 1.2 / Math.max(0.5, this.speed))); this.facing = dampAngle(this.facing, Math.atan2(this.wander.x, this.wander.z), 4, dt); }
+    if (this.recoilT > 0 || this.glareT > 0) { /* (above) */ }
+    else if (this.wander && this.wander.lengthSq() > 0) { move.copy(this.steer(this.wander, 1.2 / Math.max(0.5, this.speed))); this.facing = dampAngle(this.facing, Math.atan2(this.wander.x, this.wander.z), 4, dt); }
     else {
       // idle: glance at the nearest hero now and then (something is slightly off)
       let near = null, nd = 7;
@@ -540,7 +574,14 @@ export class Enemy {
     this.moveBody(dt, move);
     this.rig.swap(null);
     this.animate(dt);
-    // a rare glint of monster eyes behind the mortal face
+    // a real mortal under True Sight: a soft, calm outline (nothing to fight here)
+    if (this.def.mortal) {
+      const seen = !!g.mist?.active && g.mist.inside(this.pos);
+      if (seen && !this.calmShell) { addEliteShell(this.rig, 0x3a6a7a); this.calmShell = true; this.rig.root.traverse((o) => { if (o.userData.shell) o.userData.calm = true; }); }
+      if (this.calmShell) this.rig.root.traverse((o) => { if (o.userData.calm) o.visible = seen; });
+      return true;
+    }
+    // a rare glint of monster eyes behind the mortal face (the only tell)
     this.glintT = (this.glintT ?? 2 + Math.random() * 4) - dt;
     if (this.glintT <= 0) {
       this.glintT = 3 + Math.random() * 5;
@@ -637,6 +678,7 @@ export class Enemy {
     if (this.state === 'windup' && a) act = a.anim === 'raise' ? { type: 'raise', t: 0 } : a.anim === 'cast' ? { type: 'cast', t: 1, both: true } : { type: 'attack', t: Math.min(0.28, this.stateT / a.windup * 0.25), style: a.style, windup: 0.3, strike: 0.5 };
     else if (this.state === 'recover' && a) act = { type: 'attack', t: 0.3 + Math.min(0.7, this.stateT / (a.recover ?? 0.35) * 0.7), style: a.style, windup: 0.3, strike: 0.5 };
     else if (this.state === 'stagger') act = { type: 'hit', t: Math.min(1, this.stateT / Math.max(0.2, this.stagger)) };
+    else if (this.disguised && this.recoilT > 0) act = { type: 'raise', t: 0 };   // hands up, startled
     else if (this.loiter && this.loiter.alertT != null) act = { type: 'raise', t: 0 };
     else if (this.loiter && !this.aggro && (this.loiter.act === 'sniff' || this.loiter.act === 'eat') && !this.loiter.returning) act = { type: this.loiter.act, t: 0 };
     const bob = this.rig.float ? Math.sin(this.stateT * 2 + this.home.x) * 0.15 + this.rig.float : 0;

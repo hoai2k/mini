@@ -113,9 +113,13 @@ export class OpeningFlow {
     const g = this.game;
     const said = new Set();
     const live = () => g.world === world && g.mode === 'prologue' && g.state === 'playing' && !g.paused;
+    // one hint at a time (each stays 4.4 s): a hint that comes up while another shows waits its turn
+    let next = 0;
     const say = (id, delay = 0) => {
       if (said.has(id)) return; said.add(id);
-      setTimeout(() => { if (live()) toast(prologueHint(id, g.input?.lastDevice), 'hint'); }, delay * 1000);
+      const now = performance.now(), at = Math.max(now + delay * 1000, next);
+      next = at + 4600;
+      setTimeout(() => { if (live()) toast(prologueHint(id, g.input?.lastDevice), 'hint'); }, at - now);
     };
     let t = 0, hp0 = 1;
     const hpOf = () => Math.min(1, ...g.players.filter((p) => !p.ai && !p.remote).map((p) => p.hp / p.maxHp));

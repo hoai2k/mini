@@ -16,6 +16,7 @@
 // Online the host runs all of it; guests send `act` topics for what they do
 // (see objectives/common.js) and get the state in the host's snapshot.
 import * as THREE from 'three/webgpu';
+import { mistForm } from './entities/mistPeople.js';
 import { Boss } from './entities/bosses.js';
 import { buildHeroModel } from './entities/models.js';
 import { B } from './world/blocks.js';
@@ -326,8 +327,26 @@ export class Mission {
     const g = this.game;
     room.activated = true; room.enemies = []; room.waveIdx = 0; room.waveT = 0;
     g.minimap.reveal(room);
+    this.spawnMortals(room);
     if (room.type === 'secret') toast('A hidden chamber…');
     if (room.waves.length) this.spawnWave(room);
+  }
+  // Real mortals milling around a room in the Mist (they never fight and can't
+  // be hurt; a hero who swings at one gets told off). They aren't the room's
+  // enemies: they don't count for clearing it.
+  spawnMortals(room) {
+    const g = this.game, mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
+    if (room.mortals || !kinds.length || mist <= 0 || room.type === 'boss' || isGuest(this)) return;
+    room.mortals = [];
+    const n = Math.floor(mist * 2 + Math.random() * 1.5);
+    const spots = room.spawns.length ? room.spawns : [[room.center.x, room.center.y, room.center.z]];
+    for (let i = 0; i < n; i++) {
+      const sp = spots[Math.floor(Math.random() * spots.length)];
+      const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 3, sp[1], sp[2] + (Math.random() - 0.5) * 3) ?? this.standAt(sp[0], sp[1], sp[2]);
+      if (!pos) continue;
+      const e = g.spawnEnemy('mortal', pos, { disguise: kinds[Math.floor(Math.random() * kinds.length)] });
+      if (e) room.mortals.push(e);
+    }
   }
   spawnWave(room) {
     const g = this.game;
@@ -339,14 +358,16 @@ export class Mission {
     // room's kill total can always be met).
     const later = [];
     wave.forEach((s, i) => {
-      if (g.enemies.filter((e) => !e.dead && !e.isDummy).length >= cap) { later.push(s); return; }
+      if (g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal).length >= cap) { later.push(s); return; }
       const sp = spots[(i * 7 + room.waveIdx * 3) % spots.length];
       // search from just above the spawn's floor, so nothing lands on a roof
       const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5) ?? this.standAt(sp[0], sp[1], sp[2]) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
-      // in the Mist some monsters are walking about disguised as mortals
+      // in the Mist some monsters are walking about disguised as mortals; under
+      // True Sight they are creatures nothing like people (entities/mistPeople.js)
       const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
       const disguise = !s.elite && kinds.length && Math.random() < mist * 0.55 ? kinds[Math.floor(Math.random() * kinds.length)] : null;
-      const e = g.spawnEnemy(s.kind, pos, { elite: s.elite, level: this.def.difficulty, disguise });
+      const kind = disguise ? mistForm(this.def.mistForms, Math.random()) : s.kind;
+      const e = g.spawnEnemy(kind, pos, { elite: s.elite, level: this.def.difficulty, disguise });
       if (e) { room.enemies.push(e); if (!e.disguised) g.fx.summonCircle(pos, e.elite ? 0xff9aff : 0xffc84a); } else later.push(s);
     });
     if (later.length) {

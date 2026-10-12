@@ -115,6 +115,18 @@ export const MORTALS = {
       prop(rig, pack, 5, 2, 0.6, solidMat(0x9a2a2a), 0, -1, -1.6);
     },
   },
+  guard: {
+    name: 'Museum Guard', blurb: 'Navy uniform, a peaked cap and a radio. Has seen everything. Not this.',
+    paint: { skin: 0xc89a78, hair: 0x2a2018, fringe: 1, hairSide: 2, eye: 0x2a1a0a, brow: 0x2a2018, top: 0xd8dce8, jacket: 0x1e2a4a, lapel: 0x16203a, pants: 0x1a2238, shoes: 0x0e0e0e },
+    build(rig) {
+      const navy = solidMat(0x1a2440);
+      prop(rig, rig.head, 9.2, 2.4, 9.2, navy, 0, 9.0 * HS, 0);
+      prop(rig, rig.head, 8, 0.6, 3, solidMat(0x0e0e10), 0, 8.0 * HS, 4.6 * HS);
+      prop(rig, rig.head, 2, 1.4, 0.4, solidMat(0xd8b040, 0.4), 0, 9.2 * HS, 4.7 * HS);
+      prop(rig, rig.torso, 1.6, 1.8, 0.6, solidMat(0xd8b040, 0.4), -2, 9, 2.2);   // badge
+      prop(rig, rig.torso, 1.4, 3, 1.2, solidMat(0x1a1a1e), 2.4, 8, 2.4);          // radio
+    },
+  },
   tourist: {
     name: 'Tourist', blurb: 'Sun hat, camera, and a smile that is slightly too wide.',
     paint: { skin: 0xf4c8a8, hair: 0xc8a060, fringe: 1, eye: 0x2a5a8a, grin: true, top: 0xf28c28, dots: 0xfff2c0, shortSleeve: true, pants: 0xc8b88a, shorts: true, shoes: 0x8a5a3a, blush: 0xf0a090 },

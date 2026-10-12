@@ -111,8 +111,8 @@ export const CUTSCENES = {
         { dur: 4.8,
           cam: follow(bus, [15, 5, -10], [-2, 1.6, 2], { offset2: [13, 4.2, 7], fov: 42 }),
           lines: [{ at: 0.2, text: 'Grover sits next to you, chewing on an apple core. He keeps glancing at the teacher at the front.' }],
-          card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 4 },
-          act: (k, dt, t) => { drive(L.MC - 40, dt); if (t >= 2.2) readBus(); } },
+          card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 4, side: 'left' },   // (left: clear of the lettering on the bus)
+          act: (k, dt, t) => { drive(L.MC - 40, dt); if (t >= 1.2) readBus(); } },
         { dur: 5.2,
           cam: move({ pos: [52, 8, L.MC + 42], look: [16, 9, L.MC + 2] }, { pos: [50, 14, L.MC + 30], look: [14, 12, L.MC] }, { fov: 46 }),
           lines: [{ at: 0.4, text: 'The American Museum of Natural History. Mr. Brunner promised Greek and Roman treasures.' }],

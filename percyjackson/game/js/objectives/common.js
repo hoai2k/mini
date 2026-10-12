@@ -87,7 +87,7 @@ export function ambush(m, at, kinds, { radius = 7, color = 0xff3a2a } = {}) {
   if (isGuest(m)) return [];
   const cap = g.gr.preset.enemyCap, out = [];
   kinds.forEach((kind, i) => {
-    if (g.enemies.filter((e) => !e.dead && !e.isDummy).length >= cap) return;
+    if (g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal).length >= cap) return;
     const a = (i / kinds.length) * Math.PI * 2 + Math.random();
     const p = at.clone().add(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
     const gy = g.world.groundBelow(p.x, p.z, at.y + 4); if (!isFinite(gy) || Math.abs(gy - at.y) > 5) return;

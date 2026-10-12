@@ -85,7 +85,7 @@ export class EscapeObjective {
     for (const p of g.players) {
       if (p.remote || p.dead || p.downed) continue;
       this.lotus.forEach((l, i) => { if (!l.taken && Math.hypot(p.pos.x - l.pos.x, p.pos.z - l.pos.z) < 1.1 && Math.abs(p.pos.y - l.pos.y) < 2) this.eat(p, i); });
-      for (const e of g.enemies) if (e.disguised && !e.offeredLotus && !e.dead && e.pos.distanceTo(p.pos) < 1.8) { e.offeredLotus = true; this.eat(p, -1); }
+      for (const e of g.enemies) if (e.disguised && !e.def?.mortal && !e.offeredLotus && !e.dead && e.pos.distanceTo(p.pos) < 1.8) { e.offeredLotus = true; this.eat(p, -1); }
     }
     for (const l of this.lotus) if (!l.taken) l.obj.rotation.y += dt;
     if (host && !this.failed && this.days >= this.limit) this.fail();

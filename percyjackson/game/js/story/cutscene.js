@@ -8,7 +8,7 @@
 // A cutscene definition (story/cutscenes.js) is { id, title, build(game,
 // ctx) } where build loads the set and returns { shots, update?(t, dt),
 // dispose?() }. A shot is { dur, cam(k, t) -> { pos, look, fov? } (k: 0..1
-// through the shot), lines: [{ at, text }], card?: { src, at, dur }, fadeIn?,
+// through the shot), lines: [{ at, text }], card?: { src, at, dur, side? ('left') }, fadeIn?,
 // fadeOut? ('black' | 'white'), act?(k, dt, t) }.
 //
 // Online the host drives (net/online.js shares the cutscene in its scene
@@ -103,6 +103,7 @@ export class Cutscene {
     if (s.card && artReady(s.card.src)) {
       const on = this.shotT >= s.card.at && this.shotT < s.card.at + s.card.dur;
       if (on && this.cardImg.getAttribute('src') !== s.card.src) this.cardImg.src = s.card.src;
+      this.cardEl.classList.toggle('left', s.card.side === 'left');
       this.cardEl.classList.toggle('hidden', !on);
     } else this.cardEl.classList.add('hidden');
     if (s.fadeOut && !this.fadingOut && s.dur - this.shotT < 0.6) { this.fadingOut = true; this.fade(s.fadeOut, 0, 1, 0.55); }

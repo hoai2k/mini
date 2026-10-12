@@ -39,6 +39,6 @@ export function chapterMissionDef(ch, difficulty = 1, seed = (Math.random() * 1e
     biome: resolveBiome(ch.biome),
     objective: OBJECTIVE_TYPES.includes(ch.objective) ? ch.objective : 'exorcise',
     boss: resolveBoss(ch.boss),
-    difficulty, seed, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, objText: ch.objText,
+    difficulty, seed, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, mistForms: ch.mistForms, objText: ch.objText,
   };
 }

@@ -54,7 +54,7 @@ export function buildAvenueSet() {
   W.fill(10, top + 16, MC - 18, 16, top + 19, MC + 18, B.marble_white);
   for (let zz = MC - 18; zz <= MC + 18; zz++) W.set(16, top + 17, zz, B.key_frieze);
   W.fill(10, top + 20, MC - 12, 15, top + 21, MC + 12, B.marble_white);
-  deco.prop('text_sign', 16.6, top + 18.1, MC + 0.5, { text: 'AMERICAN MUSEUM OF NATURAL HISTORY', w: 26, h: 1.2, rot: Math.PI / 2, bg: '#e8e0d0', fg: '#3a2a1a', border: null, oneSided: true, greek: true, near: 80, look: 1.6 });
+  deco.prop('text_sign', 16.6, top + 18.1, MC + 0.5, { text: 'AMERICAN MUSEUM OF NATURAL HISTORY', w: 26, h: 1.2, rot: Math.PI / 2, bg: '#e8e0d0', fg: '#3a2a1a', border: null, oneSided: true, greek: true, near: 80, look: 0.8 });
   // banners between the columns
   for (const [zz, text, col] of [[MC - 10, 'GREEK\n&\nROMAN', '#b8321e'], [MC + 10, 'MYTHS\n&\nHEROES', '#1e3a7a']]) deco.prop('text_sign', 12.6, top + 6, zz + 0.5, { text, w: 2.2, h: 6, rot: Math.PI / 2, bg: col, fg: '#ffd84a', border: '#ffd84a', oneSided: true, greek: true, near: 40, look: 1.2 });
   for (const zz of [MC - 21, MC + 21]) { deco.prop('brazier', 15.5, top, zz + 0.5); W.addLight(15.5, top + 1.6, zz + 0.5, 0xffc070, 3, 9); }

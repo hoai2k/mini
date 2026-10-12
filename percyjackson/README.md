@@ -11,15 +11,29 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 ## What's in it now
 
 - **The opening of a new game** tells the start of the book before camp
-  opens up: a morning in Manhattan (walk to the yellow school bus at Yancy
-  Academy, fighting off sewer rats from the alleys, the subway stairs and the
-  storm drains), a cutscene of the bus driving to the American Museum of
+  opens up: a morning in Manhattan (the walk to the yellow school bus at Yancy
+  Academy, about two to four minutes), a cutscene of the bus driving to the American Museum of
   Natural History, chapter 1 in the museum, a cutscene of summer at Montauk
   and the drive through the storm, chapter 2 on Half-Blood Hill, and a
   cutscene of waking at the Big House. Then Camp Half-Blood is the open hub.
-  - Cutscenes are in the engine (letterbox, subtitles in the story voice,
-    story-card pictures when their art is delivered); hold A, Esc or the
-    screen to skip.
+  - The walk to the bus is a training board in three beats, with a one-time
+    hint for each control in the words of the device you play with:
+    - a quiet stretch of street to learn moving, and a dug-up sidewalk to
+      jump;
+    - sewer rats lounging round trash cans, an alley dumpster, a hot-dog cart
+      and bin bags (melee). They sniff, eat and wander, and notice you only
+      up close (about 4–5 m) or when hit: they rear up and squeak, then come
+      at you. Now and then one a fair way off dashes at you, never more than
+      three rats at once. Your companions leave idle rats to you;
+    - rats where shooting first is the obvious move (ranged): behind the
+      chain-link fence of a construction lot (shots go through it, rats have
+      to run round to the gate), on a dumpster lid and on sidewalk
+      scaffolding ahead, which see you from further off and rear up for
+      longer, and single rats out of the storm drains.
+    - Students, passers-by, hot-dog vendors and two taxis that drive along
+      the street (and stop, and honk, for anyone in front).
+  - Cutscenes are in the engine (letterbox, subtitles in the story voice in
+    plain English, story-card pictures); hold A, Esc or the screen to skip.
   - A save keeps where it is in the opening, and Continue picks it up in the
     prologue or at the start of a cutscene. Saves that had already finished
     chapters 1 and 2 start in camp. Settings → Data → Skip the opening goes
@@ -27,8 +41,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     game without it.
 - **Where to go:** the objective ribbon names the current goal, a gold arrow
   at the edge of the screen points to it (with the distance), a beam marks
-  it, and glowing footprints lead the way. In camp the goal is the next
-  chapter's quest marker.
+  it, and in camp glowing footprints lead the way (not in the prologue: the
+  arrow is enough there). In camp the goal is the next chapter's quest
+  marker.
 - **Monsters while you walk around:** small packs of low-level monsters turn
   up out of sight in the camp woods and along the Road West (pups, bronze
   spiders, Stymphalian birds, scorpions on the far road), never inside the
@@ -90,6 +105,17 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **The Mist and True Sight:** LT or V repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
+  - Where the Mist is thick, mortals mill around (students, tourists, guards,
+    teachers in the museum), some real and some monsters in disguise. Nobody
+    who looks like a person can be hurt: a swing or a shot passes through,
+    and they flinch, tell you off in a speech bubble ("Young man!", "No
+    horseplay in the museum!", one line every few seconds, on every screen
+    online) and go back to their business.
+  - True Sight turns the disguised ones, with a puff of Mist, into creatures
+    nothing like people: Mist serpents, spiders and ghosts (by chapter). Then
+    they can be fought, and they stay revealed. Real mortals stay people,
+    with a soft calm outline. A monster you killed is gone: that "person"
+    isn't there when you come back, and Continue keeps it so.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes.
 - **Gear:** in the Minecraft Dungeons style, from Greek myth.
@@ -117,9 +143,21 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   picks them up; finishing a chapter credits everyone. A profile's code
   (Profiles on the hero select) carries it to another device, where it merges
   with what's there.
-- **Story:** story cards with the concept art, a prophecy scroll whose lines
-  turn from Greek letters into English as chapters are fulfilled, and
-  writing that rearranges itself from Greek letters.
+- **Story:** story cards with the concept art, and a prophecy scroll whose
+  lines turn from Greek letters into English as chapters are fulfilled.
+- **Greek letters:** titles and in-game writing appear as Greek letters that
+  hold for a while and then settle, letter by letter, into English with time
+  to read them: chapter and place titles (about 1.8 s of Greek, then English
+  for 2.5 s or more), boss names, godly powers, the chapter map, the words on
+  the school bus (English a few seconds before the camera moves on or you
+  board), and signs in the world (they settle once you have had a look).
+  Narration, objectives, hints and messages are always plain English.
+  Settings → Greek letters turns it off; reduced motion shows English.
+- **Loading:** a loading screen with the title and a bar that follows the
+  scripts, the textures, building camp, compiling shaders and the pictures;
+  the logo, the title backdrop, the heroes' faces and cards, the chapter
+  cards and the cutscene pictures are all loaded before the title shows, so
+  nothing is drawn as a placeholder first.
 
 **Music:** delivered tracks play from `game/assets/music/` (title, camp,
 museum, storm, boss, minigame, oracle, woods, highway, garden, manhattan,
@@ -221,13 +259,17 @@ across every screen.
 | `game/js/story/` | Books and chapters, chapter start places in camp, the opening (`opening.js` steps, `openingFlow.js`), cutscenes (`cutscene.js` player, `cutscenes.js` the three of the opening) |
 | `game/js/world/manhattan.js`, `cutsceneSets.js`, `vehicles.js`, `roaming.js`, `roamZones.js` | The Manhattan prologue, the cutscene sets (Central Park West and the museum, Montauk), the bus and cars, roaming monsters and where they may go |
 | `game/js/ui/tracker.js` | Where to go: the goal line, the edge arrow, the beam and the footprints |
+| `game/js/entities/ratRules.js`, `story/prologueHints.js` | The prologue's rats (loiter, notice, dash, leash) and its how-to-play hints |
+| `game/js/entities/mistPeople.js` | People in the Mist: what the disguised really are, and the lines they scold you with |
+| `game/js/ui/greekTiming.js`, `ui/greekText.js`, `world/liveSign.js` | Greek letters settling into English: the timings, on the page, on painted signs and the bus |
+| `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

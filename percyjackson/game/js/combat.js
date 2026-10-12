@@ -17,12 +17,13 @@ export const BASE_COMBO = [
 export class Combat {
   constructor(game) { this.game = game; }
 
-  // All living enemies in a cone/circle. arc = half angle (PI = full circle)
-  query(origin, dir, range, arc = Math.PI, list = this.game.enemies) {
+  // All living enemies in a cone/circle. arc = half angle (PI = full circle).
+  // mist: instead, the people in the Mist (mortal-looking, can't be hurt) in it.
+  query(origin, dir, range, arc = Math.PI, list = this.game.enemies, mist = false) {
     const out = [];
     const face = Math.atan2(dir.x, dir.z);
     for (const e of list) {
-      if (e.dead || e.untargetable) continue;
+      if (e.dead || (mist ? !e.disguised : e.untargetable)) continue;
       v1.subVectors(e.pos, origin); const dy = v1.y; v1.y = 0;
       const d = v1.length();
       if (d > range + e.radius || Math.abs(dy) > 3.2) continue;
@@ -103,6 +104,8 @@ export class Combat {
         p.kit?.onMeleeHit?.(e, step, dealt, bf);
       }
     }
+    // a swing through someone in the Mist: it passes through them, and they tell you off (entities/mistPeople.js)
+    if (!p.remote && !p.ai) for (const e of this.query(p.pos, dir, step.range * (p.stats.reach ?? 1), Math.min(Math.PI, step.arc * (p.stats.arc ?? 1)), g.enemies, true)) e.scold?.(p);
     // destructible scenery in the arc
     this.hitBlocks(p.pos, dir, step.range, step.arc, step.dmg * 1.5, p);
     p.meleeCount = (p.meleeCount ?? 0) + (hit ? 1 : 0);
