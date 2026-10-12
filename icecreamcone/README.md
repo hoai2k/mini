@@ -57,7 +57,8 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
 | `game/src/audio.js` | Synthesised sound effects; the recorded music and celebration fanfare (`game/assets/music/`, `game/assets/sfx/`), with music-box tunes standing in |
 | `game/src/games/difficulty.js` | The one difficulty curve every minigame follows, and `knob(d, easy, medium, hard)`; Settings → Difficulty (Easier · Normal · Harder) picks the curve. See `design/difficulty.md` |
-| `game/src/store.js` | Saved settings, best scores (one per Difficulty level) and the sticker book (`icecreamcone.stickers.v1`) |
+| `game/src/points.js` | Points: each change in a game's score times (1 + d), the difficulty at that moment (1x to 2x), worked out by the shell; see `design/difficulty.md` |
+| `game/src/store.js` | Saved settings, bests in points and best plain scores (one of each per Difficulty level; older saves converted) and the sticker book (`icecreamcone.stickers.v1`) |
 | `game/assets/*/gathering.atlas.json` | Where each bird is in the two gathering paintings (the book's 2:1 one and the finale's 16:9 one) |
 
 ## Controls

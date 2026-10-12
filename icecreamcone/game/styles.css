@@ -352,6 +352,15 @@ body.reduce-motion .cards { scroll-behavior: auto; }
 .controls-list li { margin: 3px 0; }
 .tips { color: var(--muted); font-size: 0.95rem; }
 .result-score { font: 800 1.6rem var(--serif); margin: 4px 0; }
+.hud-points { display: inline-block; white-space: nowrap; }
+.hud-points::before { content: '· '; }
+/* on a narrow screen the points take their own line, without the dot */
+@media (max-width: 560px) {
+  .hud-points { display: block; }
+  .hud-points::before { content: none; }
+}
+.result-points { display: block; font-size: 0.8em; color: var(--accent); white-space: nowrap; }
+.result-points .sep { display: none; }
 /* The result card stays a moment, its little bar running down, then goes. */
 #result { cursor: pointer; }
 .result-timer { height: 6px; margin: 12px auto 0; width: 60%; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }

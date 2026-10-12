@@ -70,8 +70,8 @@ test('forgotten scores are kept aside and restored as the best of then and now',
   assert.equal(merged.crow.best, 9, 'a better new score stays');
   assert.deepEqual(store.loadStickers(), { spread: 1, placed: true }, 'the emptied sticker book comes back');
   assert.equal(store.canRestore(merged), false, 'nothing left to restore');
-  assert.deepEqual(store.mergeProgress({ a: { best: 2, plays: 5 } }, { a: { best: 7, plays: 1 }, b: { best: 1, plays: 1 } }),
-    { a: { best: 7, plays: 5 }, b: { best: 1, plays: 1 } });
+  assert.deepEqual(store.mergeProgress({ a: { v: 2, best: 2, plays: 5 } }, { a: { v: 2, best: 7, plays: 1 }, b: { v: 2, best: 1, plays: 1 } }),
+    { a: { v: 2, best: 7, plays: 5 }, b: { v: 2, best: 1, plays: 1 } });
 });
 
 test('a pass is kept: a raised pass mark never closes a page again', async () => {
@@ -125,31 +125,76 @@ test('difficulty: a setting, Normal unless saved as one of the three', async () 
   assert.equal(JSON.parse(localStorage.getItem('icecreamcone.settings.v1')).difficulty, 'easier', 'in ?debug it is still saved, like every setting');
 });
 
-test('difficulty: bests are kept per level; a pass at any level counts; old bests are Normal bests', async () => {
+test('difficulty: bests are kept per level, in points; a pass at any level counts', async () => {
   const s = await import('../src/store.js?levels');
-  // An old save: one best, no levels. It reads as the Normal best.
-  const p = { coot: { best: 9, plays: 4, passed: true } };
+  const p = { coot: { v: 2, best: 9, plays: 4, passed: true } };
   assert.equal(s.bestAt(p.coot, 'normal'), 9);
   assert.equal(s.bestAt(p.coot, 'harder'), 0);
   assert.equal(s.bestAt(p.coot), 9, 'Normal by default');
-  // Each level keeps its own best.
-  assert.equal(s.recordScore(p, 'coot', 5, false, 'easier'), true, 'a first Easier score is an Easier best');
-  assert.equal(s.recordScore(p, 'coot', 7, false, 'normal'), false, 'not a Normal best');
-  assert.equal(s.recordScore(p, 'coot', 12, false, 'harder'), true);
-  assert.deepEqual(p.coot, { best: 9, plays: 7, passed: true, by: { easier: 5, harder: 12 } });
+  // Each level keeps its own best points, and its own best plain score.
+  assert.equal(s.recordScore(p, 'coot', 5, false, 'easier', 4), true, 'a first Easier score is an Easier best');
+  assert.equal(s.recordScore(p, 'coot', 7, false, 'normal', 5), false, 'not a Normal best');
+  assert.equal(s.recordScore(p, 'coot', 12, false, 'harder', 7), true);
+  assert.deepEqual(p.coot, { v: 2, best: 9, plays: 7, passed: true, by: { easier: 5, harder: 12 }, tally: { easier: 4, normal: 5, harder: 7 } });
+  assert.equal(s.tallyAt(p.coot, 'harder'), 7);
   assert.equal(s.recordScore(p, 'coot', 3, false, 'bogus'), false, 'an unknown level is Normal');
+  // More points with a lower plain score is still a best; the plain best stays.
+  assert.equal(s.recordScore(p, 'coot', 14, false, 'harder', 6), true);
+  assert.equal(s.bestAt(p.coot, 'harder'), 14);
+  assert.equal(s.tallyAt(p.coot, 'harder'), 7);
   // A pass at Easier opens the next page for good.
   const q = {};
-  s.recordScore(q, 'crow', 50, true, 'easier');
+  s.recordScore(q, 'crow', 50, true, 'easier', 40);
   assert.equal(q.crow.passed, true);
   assert.equal(q.crow.best, 0, 'no Normal best yet');
   assert.equal(s.bestAt(q.crow, 'easier'), 50);
-  // Merging takes the higher best at every level.
+  // Merging takes the higher best at every level, points and plain alike.
   const m = s.mergeProgress(
-    { coot: { best: 9, plays: 3, by: { easier: 5 } } },
-    { coot: { best: 4, plays: 6, passed: true, by: { easier: 8, harder: 2 } } },
+    { coot: { v: 2, best: 9, plays: 3, by: { easier: 5 }, tally: { normal: 6, easier: 4 } } },
+    { coot: { v: 2, best: 4, plays: 6, passed: true, by: { easier: 8, harder: 2 }, tally: { normal: 3, easier: 6, harder: 1 } } },
   );
-  assert.deepEqual(m, { coot: { best: 9, plays: 6, passed: true, by: { easier: 8, harder: 2 } } });
+  assert.deepEqual(m, { coot: { v: 2, best: 9, plays: 6, passed: true, by: { easier: 8, harder: 2 }, tally: { easier: 6, normal: 6, harder: 1 } } });
+});
+
+test('points: old saves (plain scores) become points at their level\'s average multiplier', async () => {
+  const s = await import('../src/store.js?upgrade');
+  const A = s.AVERAGE_MULTIPLIER;
+  assert.ok(A.easier > 1.1 && A.easier < A.normal && A.normal < A.harder && A.harder < 1.8, JSON.stringify(A));
+  // From before the Difficulty setting: one plain best, a Normal one.
+  const old = { best: 10, plays: 4, passed: true };
+  const u = s.upgrade(old);
+  assert.deepEqual(u, { v: 2, best: Math.round(10 * A.normal), plays: 4, passed: true, tally: { normal: 10 } });
+  assert.equal(old.best, 10, 'the old entry itself is left alone');
+  assert.equal(s.upgrade(u), u, 'only once');
+  // With levels: each at its own level's multiplier.
+  const lv = s.upgrade({ best: 0, plays: 2, by: { easier: 20, harder: 10 } });
+  assert.deepEqual(lv, { v: 2, best: 0, plays: 2, by: { easier: Math.round(20 * A.easier), harder: Math.round(10 * A.harder) }, tally: { easier: 20, harder: 10 } });
+  // bestAt and tallyAt read old entries as upgraded.
+  assert.equal(s.bestAt(old), Math.round(10 * A.normal));
+  assert.equal(s.tallyAt(old), 10);
+  // Played the same as before, a round earns about the converted best: no
+  // free World Record for the first round after the update.
+  const p = { coot: { best: 10, plays: 1 } };
+  assert.equal(s.recordScore(p, 'coot', Math.round(10 * A.normal), false, 'normal', 10), false);
+  assert.equal(p.coot.v, 2);
+  // A saved old progress is upgraded as it loads, and so is a kept backup.
+  localStorage.setItem('icecreamcone.progress.v1', JSON.stringify({ plume: { best: 7, plays: 1 } }));
+  sessionStorage.m.clear();
+  const loaded = s.loadProgress();
+  assert.equal(loaded.plume.v, 2);
+  assert.equal(loaded.plume.best, Math.round(7 * A.normal));
+  assert.equal(s.tallyAt(loaded.plume), 7);
+  // Merging an old backup into new progress compares points with points.
+  const merged = s.mergeProgress({ plume: { v: 2, best: 9, plays: 2, tally: { normal: 6 } } }, { plume: { best: 7, plays: 1 } });
+  assert.equal(merged.plume.best, Math.max(9, Math.round(7 * A.normal)));
+  assert.equal(merged.plume.tally.normal, 7);
+  // keepOldPasses reads the plain best, before or after upgrading.
+  const { BIRDS } = await import('../src/birds.js');
+  const b = BIRDS.find((x) => x.id === 'plume');
+  const near = { plume: s.upgrade({ best: b.pass - 1, plays: 1 }) };
+  assert.ok(near.plume.best >= b.pass, 'its points reach the mark...');
+  s.keepOldPasses(near, BIRDS);
+  assert.equal(near.plume.passed, undefined, '...but its plain score does not, so it is not passed');
 });
 
 test('difficulty: forgetting and restoring keeps every level; restore is offered for a better Harder best alone', async () => {

@@ -1,6 +1,9 @@
 // Saved settings and progress (best score per bird), in localStorage when it
 // is available. The game works the same without it, it just forgets.
 
+import { difficulty } from './games/difficulty.js';
+import { multiplier } from './points.js';
+
 const SETTINGS_KEY = 'icecreamcone.settings.v1';
 const PROGRESS_KEY = 'icecreamcone.progress.v1';
 const PHOTOS_KEY = 'icecreamcone.photos.v1';
@@ -68,35 +71,87 @@ export function saveSettings(s) {
   write(SETTINGS_KEY, Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, s[k]])));
 }
 
-// { [birdId]: { best, plays, passed?, by? } }. `best` is the best at Normal
-// (so saves from before the Difficulty setting carry over as Normal bests);
-// `by` holds the bests at the other levels: { easier?: n, harder?: n }.
-// A pass at any level counts for good (`passed`).
+// { [birdId]: { v, best, by?, tally?, plays, passed? } }.
+//
+// Bests are kept in points (src/points.js: the score scaled by the difficulty
+// it was earned at), one per level: `best` is the Normal best, `by` holds the
+// others ({ easier?, harder? }). `tally` holds the best plain score per level
+// ({ normal?, easier?, harder? }): the bird's own count, which the pass mark
+// is checked against. A pass at any level counts for good (`passed`).
+//
+// `v: 2` marks an entry in points. Older entries (no `v`) kept plain scores in
+// `best` and `by`; `upgrade` turns each into points at the average multiplier
+// of its level's curve (what an even round at that level earns per unit) and
+// keeps the plain number as the tally. Saves from before the Difficulty
+// setting had only `best`, a Normal best, so they carry over the same way.
 export const level = (l) => (LEVELS.includes(l) ? l : 'normal');
 
+// The average of (1 + d) over a round at each level: Easier about 1.18,
+// Normal about 1.38, Harder about 1.68.
+export const AVERAGE_MULTIPLIER = Object.fromEntries(
+  LEVELS.map((l) => {
+    const n = 1000;
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += multiplier(difficulty((i + 0.5) / n, l));
+    return [l, sum / n];
+  }),
+);
+
+// An entry in points, whatever its age. Returns the same entry if it is
+// already in points (or missing), otherwise a new one.
+export function upgrade(e) {
+  if (!e || typeof e !== 'object' || e.v === 2) return e;
+  const plain = { normal: e.best || 0, easier: e.by?.easier || 0, harder: e.by?.harder || 0 };
+  const out = { ...e, v: 2, best: Math.round(plain.normal * AVERAGE_MULTIPLIER.normal) };
+  delete out.by;
+  delete out.tally;
+  for (const l of LEVELS) {
+    if (!plain[l]) continue;
+    out.tally = { ...out.tally, [l]: plain[l] };
+    if (l !== 'normal') out.by = { ...out.by, [l]: Math.round(plain[l] * AVERAGE_MULTIPLIER[l]) };
+  }
+  return out;
+}
+
+// Every entry of a progress object in points (in place); returns it.
+export function upgradeAll(progress) {
+  for (const id of Object.keys(progress)) progress[id] = upgrade(progress[id]);
+  return progress;
+}
+
+// The best points at a level.
 export function bestAt(e, l = 'normal') {
-  if (!e) return 0;
-  return (level(l) === 'normal' ? e.best : e.by?.[l]) || 0;
+  const u = upgrade(e);
+  if (!u) return 0;
+  return (level(l) === 'normal' ? u.best : u.by?.[l]) || 0;
+}
+
+// The best plain score at a level (an old entry's plain best, before upgrade).
+export function tallyAt(e, l = 'normal') {
+  const u = upgrade(e);
+  return u?.tally?.[level(l)] || 0;
 }
 
 export function loadProgress() {
   const p = read(PROGRESS_KEY, { session: true });
-  return p && typeof p === 'object' ? p : {};
+  return p && typeof p === 'object' ? upgradeAll(p) : {};
 }
 
-// Records a score at a level; returns true when it is a new best for that
-// level. `passedNow` marks the bird passed for good: a pass is kept even if
-// its pass mark rises later, and whichever level it was made at.
-export function recordScore(progress, id, score, passedNow = false, at = 'normal') {
-  const e = progress[id] || { best: 0, plays: 0 };
+// Records a round at a level: its points and, when given, its plain score.
+// Returns true when the points are a new best for that level. `passedNow`
+// marks the bird passed for good: a pass is kept even if its pass mark rises
+// later, and whichever level it was made at.
+export function recordScore(progress, id, points, passedNow = false, at = 'normal', tally) {
+  const e = upgrade(progress[id]) || { v: 2, best: 0, plays: 0 };
   const l = level(at);
-  e.plays++;
+  e.plays = (e.plays || 0) + 1;
   if (passedNow) e.passed = true;
-  const isBest = score > bestAt(e, l);
+  const isBest = points > bestAt(e, l);
   if (isBest) {
-    if (l === 'normal') e.best = score;
-    else e.by = { ...e.by, [l]: score };
+    if (l === 'normal') e.best = points;
+    else e.by = { ...e.by, [l]: points };
   }
+  if (tally > tallyAt(e, l)) e.tally = { ...e.tally, [l]: tally };
   e.best ||= 0;
   progress[id] = e;
   write(PROGRESS_KEY, progress, { session: true });
@@ -108,18 +163,22 @@ export function recordScore(progress, id, score, passedNow = false, at = 'normal
 const BACKUP_KEY = 'icecreamcone.progress.backup.v1';
 const STICKERS_BACKUP_KEY = 'icecreamcone.stickers.backup.v1';
 
-// The higher best at each level (and the larger number of plays) for every
-// bird in either.
+// The higher best at each level, points and plain (and the larger number of
+// plays) for every bird in either, old entries upgraded to points first.
 export function mergeProgress(a = {}, b = {}) {
   const out = {};
   for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
-    const x = a[id] || { best: 0, plays: 0 };
-    const y = b[id] || { best: 0, plays: 0 };
-    out[id] = { best: Math.max(x.best || 0, y.best || 0), plays: Math.max(x.plays || 0, y.plays || 0) };
+    const x = upgrade(a[id]) || { v: 2, best: 0, plays: 0 };
+    const y = upgrade(b[id]) || { v: 2, best: 0, plays: 0 };
+    out[id] = { v: 2, best: Math.max(x.best || 0, y.best || 0), plays: Math.max(x.plays || 0, y.plays || 0) };
     if (x.passed || y.passed) out[id].passed = true;
     for (const l of LEVELS.filter((l) => l !== 'normal')) {
       const v = Math.max(bestAt(x, l), bestAt(y, l));
       if (v) out[id].by = { ...out[id].by, [l]: v };
+    }
+    for (const l of LEVELS) {
+      const v = Math.max(tallyAt(x, l), tallyAt(y, l));
+      if (v) out[id].tally = { ...out[id].tally, [l]: v };
     }
   }
   return out;
@@ -135,7 +194,7 @@ export function resetProgress() {
 
 export function loadBackup() {
   const b = read(BACKUP_KEY, { session: true });
-  return b && typeof b === 'object' ? b : {};
+  return b && typeof b === 'object' ? upgradeAll(b) : {};
 }
 
 // True when the kept scores hold a best higher than today's for some bird.
@@ -175,7 +234,7 @@ export function resetStickers() {
 }
 
 // Saves from before passes were kept: a bird counts as passed if its best
-// reaches its mark, or if any bird after it in the guide has been played
+// plain score at Normal reaches its mark, or if any bird after it in the guide has been played
 // (its page could only have been opened by passing this one). Returns true if
 // anything changed. Run once, on a save that has no kept passes yet.
 export function keepOldPasses(progress, birds) {
@@ -184,7 +243,7 @@ export function keepOldPasses(progress, birds) {
   let later = false;
   for (let i = birds.length - 1; i >= 0; i--) {
     const e = progress[birds[i].id];
-    if (e && (later || (e.best || 0) >= birds[i].pass)) {
+    if (e && (later || tallyAt(e, 'normal') >= birds[i].pass)) {
       e.passed = true;
       changed = true;
     }
