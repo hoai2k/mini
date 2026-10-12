@@ -13,6 +13,9 @@ import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
 import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
 
+// the jump slam: damage before gear, radius in metres, knock-back
+export const SLAM = { dmg: 20, radius: 2.6, knock: 8 };
+
 export const PLAYER_COLORS = ['#4fc8ff', '#ff5a6a', '#7aff7a', '#ffc94a'];
 
 export class Player {
@@ -142,7 +145,10 @@ export class Player {
     const g = this.game;
     this.comboT -= dt; tickFlask(this.flask, dt); tickQuiver(this.quiver, dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
-    if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
+    // X in the air after a jump: a jump slam (Minecraft Dungeons II's heavy jump attack)
+    if (inp.pressed.attack && this.canSlam()) this.startSlam();
+    if (this.slam) { this.attackBuffer = 0; if (this.grounded || this.inLiquid || (this.slam.t += dt) > 1.5) this.landSlam(); }
+    else if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
     else this.attackBuffer -= dt;
     if (inp.held.attack) this.attackHeldT = (this.attackHeldT ?? 0) + dt; else this.attackHeldT = 0;
     if (inp.pressed.heal) this.useHeal();
@@ -181,6 +187,29 @@ export class Player {
       this.action.root = new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(lunge).addScaledVector(this.moveIntent || new THREE.Vector3(), 1.4);
     }
     this.kit.update?.(dt, inp);
+  }
+  // ---------------------------------------------------------------- jump slam
+  // In the air from a jump, a melee press dives the hero down and the landing
+  // knocks back and hurts everything round about.
+  canSlam() { return !this.slam && !this.grounded && !this.inLiquid && this.coyote <= 0 && this.jumpedT > 0.12 && this.dodgeT <= 0 && !this.downed && !this.minigameLock && !(this.action && this.action.lock); }
+  startSlam() {
+    this.slam = { t: 0 };
+    this.vel.y = Math.min(this.vel.y, -16);
+    this.action = { type: 'attack', step: { style: 'spin', strike: 0.99, custom: true, dur: 1, chainAt: 1 }, style: 'spin', dur: 0.6, elapsed: 0, t: 0, struck: true, moveScale: 0.3 };
+    this.game.audio?.whoosh(0.9);
+  }
+  landSlam() {
+    const g = this.game; this.slam = null; this.action = null;
+    if (this.inLiquid) return;
+    const at = this.pos.clone(); at.y += 0.3;
+    const dmg = SLAM.dmg * (this.stats.meleeMult ?? 1) * (this.stats.damage ?? 1);
+    g.combat.aoe(at, SLAM.radius, dmg, this, { knock: SLAM.knock, stagger: 0.45, melee: true, blocks: true });
+    g.fx.rings?.spawn(at.clone().setY(this.pos.y + 0.08), { color: 0xffe0a0, r1: SLAM.radius, dur: 0.35, thick: 0.3 });
+    g.fx.landDust?.(this.pos, 18);
+    g.particles?.burst?.(at, { count: 16, color: 0xd8c8a8, speed: 5, up: 1.2, life: 0.5, size: 0.16 });
+    g.shake(0.35); g.hitStop?.(0.05);
+    if (!g.audio?.sample?.('hit', { gain: 0.8, rate: 0.7 })) g.audio?.thud?.();
+    this.iframes = Math.max(this.iframes, 0.2);
   }
   startAttack(step, idx) {
     // snap facing to aim; melee "magnetises" toward a curse in front of you
@@ -252,8 +281,10 @@ export class Player {
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll: on the ground (or just off a ledge); a press in the air or
     // a moment early is remembered briefly, so the roll always comes out
-    if (inp.pressed.dodge) this.dodgeBuffer = this.grounded ? 0.2 : 0.75; else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
-    if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(mv); }
+    // (a right-stick flick rolls the way it was flicked, a screen direction; LB and Shift roll the way you move or face)
+    if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : null; }
+    else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
+    if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(this.dodgeAim?.lengthSq() > 0.01 ? this.dodgeAim : mv); this.dodgeAim = null; }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
     // In a pool (the camp creek pond, the lava pool by the climbing wall) the
     // bank can be two blocks high, more than a jump clears: kick off the
@@ -262,9 +293,10 @@ export class Player {
     const wading = this.inLiquid && this.grounded && this.hitWall && mv.lengthSq() > 0.25 && !this.downed && this.dodgeT <= 0;
     this.wadeT = wading ? (this.wadeT ?? 0) + dt : 0;
     if ((inp.pressed.jump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
-      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0;
+      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0; this.jumpedT = 0.001;
       this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
     }
+    if (this.jumpedT > 0) this.jumpedT = this.grounded && this.jumpedT > 0.1 ? 0 : this.jumpedT + dt;   // time since a jump, while airborne
     if (!this.downed) this.updateCombat(dt, inp);
     if (this.hurtT > 0) { this.hurtT -= dt; if (this.hurtT <= 0) this.rig.swap(null); }
     this.slowT = Math.max(0, this.slowT - dt);

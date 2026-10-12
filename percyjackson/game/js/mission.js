@@ -116,7 +116,7 @@ export class Mission {
     const own = this.handler?.text?.();
     if (own) { this.game.hud.setObjective(own[0], own[1]); return; }
     if (this.handler?.approach && this.objDone && !this.bossSpawned) { this.game.hud.setObjective(t, 'The way ahead is open: face the boss'); return; }
-    const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (LT / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';
+    const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (right stick click / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';
     this.game.hud.setObjective(this.objDone ? (this.boss?.dead ? 'Victory' : 'Face the Monster') : t, this.objDone ? bossText : d);
   }
   // ---------------------------------------------------------------- props

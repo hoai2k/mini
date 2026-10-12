@@ -484,7 +484,7 @@ class Game {
     this.mode = 'mission';
     this.online.sceneChanged();
     toast(this.chapter ? this.chapter.title : `${L.biome.name} · ${L.biome.sub}`, 'title');
-    if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Press LT (V) to see through it.' : 'Press LT (V) to see through the Mist.'), 2600);
+    if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Click the right stick (V) to see through it.' : 'Click the right stick (V) to see through the Mist.'), 2600);
   }
   completeMission() {
     const m = this.mission; if (!m || m.complete) return;
@@ -715,7 +715,7 @@ class Game {
     }
   }
   updateInteract(dt) {
-    const nearDevices = new Set();     // controllers with a prompt up: X interacts instead of attacking
+    const nearDevices = new Set();     // controllers with a prompt up: A interacts instead of jumping
     for (const it of this.interactables) {
       if (it.enabled && !it.enabled()) continue;
       // every human in range can use it (two players at one prompt: either one's press counts)
@@ -726,7 +726,7 @@ class Game {
       const nearest = inRange.reduce((a, b) => (b.pos.distanceTo(it.pos) < a.pos.distanceTo(it.pos) ? b : a));
       const using = it.hold ? inRange.find((p) => this.input.get(p.device).held.interact) : inRange.find((p) => this.input.get(p.device).pressed.interact);
       const near = using ?? nearest;
-      const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'X';
+      const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'A';
       if (it.hold) {
         const holding = !!using || it.touchHold;
         if (holding && !it.progress) it.onHoldStart?.();
@@ -746,6 +746,7 @@ class Game {
     const now = performance.now();
     const realDt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
+    this.input.aimOnly = !!this.minigame;   // a camp minigame (archery) aims with the right stick
     this.input.poll();
     this.online.frameStart?.(realDt);
     this.resume?.update(realDt);   // net: checkpoints for Continue (written from a timer, never here)   // net: online menus don't stop the game; this screen's heroes stand still
@@ -755,11 +756,11 @@ class Game {
     const cs = this.cutscene;
     const pausePlayer = playing && !cs && this.players.find((p) => this.input.get(p.device).pressed.pause);
     const invP = playing && !cs && !this.ui.stack.length && this.players.find((p) => this.input.get(p.device).pressed.inv);
-    if (invP) openInventory(this, invP);
+    if (invP) { openInventory(this, invP); this.input.menu(); }   // (swallow the D-pad ↑ that opened it, so the menu doesn't move)
     const anyMap = playing && !cs && this.players.some((p) => this.input.get(p.device).pressed.map);
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
-    else if (anyMap) this.openMap();
+    else if (anyMap) { if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // View / M: the level map; in camp the chapter map (the quest log)
     if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {
@@ -768,6 +769,7 @@ class Game {
         const ip = this.input.get(p.device);
         if (ip.pressed.sight) this.mist.toggle(p);
         if (ip.pressed.swap) this.partyMgr.switchFrom(p);
+        if (ip.pressed.trail && !this.tracker?.flash(4) && this.hud?.objKey?.length > 1) toast(this.hud.objKey.replace('\u0001', ': '));   // left stick click: show the way to the goal (in a chapter, the goal)
       }
     }
     let dt = realDt;

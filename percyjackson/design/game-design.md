@@ -89,7 +89,7 @@ its own rewards.
   (serpents, spiders, ghosts) and can be fought, and stay revealed; real
   mortals stay people, with a calm outline. A monster killed is gone for good:
   the "person" isn't there when you come back.
-- **True Sight (LT on a controller, V on a keyboard)** rewrites the world
+- **True Sight (right stick click on a controller, V on a keyboard)** rewrites the world
   outward from the hero in a ring, using the same radial material takeover as
   Cursed Dungeons' Domain Expansion. Surfaces turn gold-ornamental, and
   disguised monsters show their true form and attack. Hidden things appear:
@@ -328,26 +328,29 @@ The first build includes archery and the climbing wall. The others follow.
 
 ## Controls
 
-Xbox controller first, and the whole game can be played with one.
+Xbox controller first, and the whole game can be played with one. The layout
+follows Minecraft Dungeons II's defaults.
 
 | Action | Controller | Keyboard and mouse |
 | --- | --- | --- |
 | Move | Left stick | WASD |
-| Aim | Right stick (auto-aim when idle) | Mouse |
-| Melee | X | Left click |
+| Show the way to the goal | Click the left stick | — |
+| Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
+| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | Shift |
+| Melee · ranged | X · RT | Left click · right click |
+| Jump slam | X in the air after a jump | Left click in the air |
 | Jump | A | Space |
-| Ranged | RT | Right click |
-| Dodge (Battle Sense on a perfect dodge) | B | Shift |
-| Abilities 1 · 2 · 3 | LB · RB · Y | 1 · 2 · 3 |
-| Godly power | LB + RB together | F |
-| True Sight | LT | V |
-| Interact | X while a prompt shows | E |
-| Ambrosia (heal) | D-pad ↑ | Q |
-| Switch hero (hold for radial) | D-pad ↓ | Tab |
+| Interact | A (when a prompt shows) | E |
+| Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
+| Godly power | Y + B together | F |
+| Ambrosia (heal) | LT | Q |
+| True Sight | Click the right stick | V |
+| Inventory | D-pad ↑ | I |
+| Switch hero | D-pad ↓ | Tab |
 | Magic items | D-pad ← · → | R · T |
-| Inventory | View | I |
-| Map | Click the right stick | M |
+| Map (in camp: the chapter map) | View | M |
 | Pause | Menu | Esc |
+| Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
 The title screen, instructions (with an Xbox controller diagram), settings and
 pause menu follow `GAME_GUIDELINES.md`.

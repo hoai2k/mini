@@ -134,7 +134,7 @@ export class EscapeObjective {
     const t = this.m.def.objText ?? 'Escape';
     if (this.failed) return ['The Lotus has you', 'Too many days have passed'];
     if (this.found) return [t, 'The way out is open: get everyone through the door'];
-    return [t, 'Find the hidden way out. True Sight (LT / V) shows the trail'];
+    return [t, 'Find the hidden way out. True Sight (right stick click / V) shows the trail'];
   }
   netState() { return { d: Math.round(this.days * 100) / 100, f: this.found ? 1 : 0, l: this.lotus.map((l) => (l.taken ? 1 : 0)), x: this.failed ? 1 : 0 }; }
   applyNet(s) {
