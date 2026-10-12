@@ -65,9 +65,113 @@ DECO_ICON_STYLE = (
     "cast shadow."
 )
 
+
+# Round 3: six more themes. Each has a house style and its own take on the
+# four themed images; the prompts are assembled from these in ROUND3 below.
+NO_TEXT = ("No text, no letters, no numbers, no logos, no watermark, no frame or border "
+           "unless the prompt asks for one.")
+
+MORE_THEMES = [
+    dict(id="sixties", name="Vintage 60s",
+         style="Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen "
+               "advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple "
+               "rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft "
+               "screen-print grain and slightly offset printing. Cheerful, optimistic, simple. " + NO_TEXT,
+         metronome="a rounded mid-century metronome in teak with a mustard-yellow face and a teal "
+                   "base, its chrome pendulum tilted a little to the right, with a small orange "
+                   "atomic starburst beside the tip",
+         mic="a chrome 1960s 'bullet' microphone on a short teak stand with a round orange record "
+             "light and a small mustard starburst beside it",
+         body="a rounded mid-century metronome in warm teak with softly rounded corners and a "
+              "slight tapering pyramid shape, a mustard-yellow front face with evenly spaced cream "
+              "tick marks (no numbers) and a thin teal band near the base, standing on a short "
+              "flared teal plinth with tapered peg feet",
+         boss="a round chrome pivot cap",
+         pendulum="a thin straight chrome rod with a rounded teal-and-orange sliding weight shaped "
+                  "like a small boomerang, and a round chrome hub"),
+    dict(id="baroque", name="18th Century",
+         style="18th-century illustration in the manner of a Rococo engraving and a gilded "
+               "harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished "
+               "gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell "
+               "(rocaille) ornaments and fine engraved hatching. Elegant and refined. " + NO_TEXT,
+         metronome="an elegant 18th-century metronome case in carved walnut with gilt acanthus "
+                   "scrolls and an ivory dial panel, its gilt pendulum tilted a little to the right",
+         mic="a period-inspired recording horn: a gilded flared brass horn on a carved walnut "
+             "stand with a small burgundy wax-seal record mark beside it",
+         body="an 18th-century style metronome case in carved walnut with a tall arched top crowned "
+              "by a small gilt finial, gilt rococo scrolls and shell ornaments around its edges, "
+              "and a tall ivory dial panel with fine engraved tick marks (no numbers), on a "
+              "moulded plinth with small gilt scroll feet",
+         boss="a round gilt rosette",
+         pendulum="a thin straight gilt rod with a small gilt sliding weight shaped like a "
+                  "scalloped shell, and a round gilt rosette hub"),
+    dict(id="scifi", name="Sci Fi Future",
+         style="Sleek science-fiction illustration of a far-future starship console: deep space "
+               "navy and graphite, glowing cyan and magenta light lines, brushed titanium, "
+               "glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a "
+               "soft neon glow. Clean, futuristic, simple. " + NO_TEXT,
+         metronome="a futuristic metronome as a chamfered graphite-and-titanium obelisk with a "
+                   "glowing cyan scale and a light-blade pendulum tilted a little to the right",
+         mic="a futuristic floating microphone: a glowing cyan ring around a small titanium "
+             "capsule above a hexagonal base, with a magenta record light",
+         body="a futuristic metronome: a tall tapering graphite-and-titanium obelisk with chamfered "
+              "(cut) corners, a dark glass front panel with a vertical row of glowing cyan HUD "
+              "tick marks (no numbers), thin cyan light lines along its edges, on a hexagonal "
+              "titanium base",
+         boss="a round glowing cyan pivot ring",
+         pendulum="a thin straight glowing cyan light-blade rod with a small chamfered titanium "
+                  "weight with a magenta light, and a round glowing cyan hub ring"),
+    dict(id="nouveau", name="French Nouveau",
+         style="French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro "
+               "entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, "
+               "flowing whiplash curves, lilies, irises and vines, elegant outlined forms with "
+               "flat, gently graded colour. Graceful and organic. " + NO_TEXT,
+         metronome="an Art Nouveau metronome whose case curves like a lily stem in sage green "
+                   "and gold, with a cream face and a gold pendulum tilted a little to the right",
+         mic="an Art Nouveau microphone wrapped in gold vines and an iris flower on a curving "
+             "stand, with a small dusty-rose record bud",
+         body="an Art Nouveau metronome: a tall case with gently curving whiplash sides and a "
+              "rounded arched top, in sage green enamel with gold vine and lily ornaments climbing "
+              "its edges, a cream front face with fine gold tick marks (no numbers), on a "
+              "softly flared base with curling gold feet",
+         boss="a round gold flower-shaped pivot",
+         pendulum="a thin straight gold rod with a small gold sliding weight shaped like a lily "
+                  "bud, and a round gold flower-shaped hub"),
+    dict(id="anime", name="Anime",
+         style="Bright anime and manga illustration: clean bold outlines, flat cel shading with "
+               "one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, "
+               "sparkles and little star glints, cute and energetic. " + NO_TEXT,
+         metronome="a cute rounded metronome in candy pink with a white face and a sky-blue "
+                   "pendulum tilted a little to the right, with sparkles and motion lines",
+         mic="a cute rounded anime-style microphone in sky blue and white with a heart-shaped "
+             "pink record light and sparkles",
+         body="a cute anime-style metronome: a rounded pyramid in candy pink with a bold dark "
+              "outline, a white front face with simple sky-blue tick marks (no numbers), a "
+              "little sparkle glint on the top corner, on a rounded lilac base",
+         boss="a round sky-blue pivot button",
+         pendulum="a thin straight sky-blue rod with a bold outline, a small star-shaped yellow "
+                  "sliding weight, and a round sky-blue hub"),
+    dict(id="steampunk", name="Steam Punk",
+         style="Steampunk illustration of Victorian brass machinery: polished brass, copper and "
+               "dark leather, riveted plates, exposed cogs and gears, small pressure gauges and "
+               "pipes, warm gaslight glow on dark mahogany. Intricate but readable. " + NO_TEXT,
+         metronome="a steampunk metronome of riveted copper plates with visible brass gears and "
+                   "a brass pendulum tilted a little to the right",
+         mic="a steampunk microphone: a brass and copper capsule with a riveted grille, small "
+             "gears and a pressure gauge on its stand, and a glowing red valve light",
+         body="a steampunk metronome: a tapering pyramid of riveted copper and brass plates on a "
+              "dark mahogany frame, a cream enamel front face with fine black tick marks (no "
+              "numbers), a few exposed brass cogs at its sides and a small pressure gauge on the "
+              "base, on a heavy riveted brass plinth",
+         boss="a round brass gear-shaped pivot",
+         pendulum="a thin straight brass rod with a small riveted copper sliding weight with a "
+                  "tiny cog, and a round brass gear-shaped hub"),
+]
+
 THEMES = [
     dict(id="classic", name="Classic"),
     dict(id="deco", name="Art Deco"),
+    *[dict(id=t["id"], name=t["name"]) for t in MORE_THEMES],
 ]
 
 ICON_STYLE = (
@@ -181,6 +285,55 @@ ASSETS = [
          canvas=[200, 1000], anchors={"hub": [99.5, 917]}, swing=26),
 ]
 
+def round3_assets(t: dict) -> list[dict]:
+    style = t["style"]
+    icon_style = (style + " A single centred object on a fully transparent background, bold "
+                  "readable silhouette that still reads at 64 pixels, generous even margin on "
+                  "every side, no cast shadow.")
+    folder = f"assets/ui/{t['id']}"
+    group = t["name"]
+    return [
+        dict(id="home-metronome", theme=t["id"], round=3, file=f"{folder}/home-metronome.webp",
+             size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested",
+             group=f"{group} · Home screen buttons",
+             prompt=f"{t['metronome'].capitalize()}. Seen from the front. " + icon_style,
+             note=f"The big Metronome button on the home screen in the {group} theme; the label is "
+                  "written by the app. Tick marks only, no numbers."),
+        dict(id="home-record", theme=t["id"], round=3, file=f"{folder}/home-record.webp",
+             size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested",
+             group=f"{group} · Home screen buttons",
+             prompt=f"{t['mic'].capitalize()}. Seen from the front. " + icon_style,
+             note=f"The big Playback Recorder button on the home screen in the {group} theme."),
+        dict(id="metronome-body", theme=t["id"], round=3, file=f"{folder}/metronome-body.webp",
+             size="800×1200, transparent PNG (shipped as WebP)", status="requested",
+             group=f"{group} · Metronome animation",
+             prompt=(f"{t['body'].capitalize()}. Seen exactly straight on from the front, perfectly "
+                     "symmetrical, standing upright and filling the canvas top to bottom with a small "
+                     "margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the "
+                     f"face, centred left-to-right, {t['boss']} sits exactly at 50% of the width and "
+                     "83% of the height. " + style + " Fully transparent background."),
+             note=f"The app rotates the {group} pendulum over this one about the pivot. Ask for "
+                  "(400, 1000) in an 800×1200 canvas, then measure where it really is in the "
+                  "delivered file and record it as this image's pivot anchor.",
+             canvas=[800, 1200], anchors={"pivot": [400, 1000]}),
+        dict(id="metronome-pendulum", theme=t["id"], round=3, file=f"{folder}/metronome-pendulum.webp",
+             size="200×1000, transparent PNG (shipped as WebP)", status="requested",
+             group=f"{group} · Metronome animation",
+             prompt=(f"Just the pendulum of a metronome, isolated: {t['pendulum']}. The rod is "
+                     "perfectly straight and perfectly vertical down the exact centre of a tall "
+                     "narrow canvas, from about 3% from the top to the hub, whose centre is at 96% "
+                     "of the height; the weight sits on the rod at about 30% of the height. Seen "
+                     "straight on, symmetrical, nothing else in the picture. " + style
+                     + " Fully transparent background."),
+             note="The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, "
+                  "then record the measured hub as this image's anchor. The rod must be exactly vertical.",
+             canvas=[200, 1000], anchors={"hub": [100, 960]}, swing=24),
+    ]
+
+
+ROUND3 = [a for t in MORE_THEMES for a in round3_assets(t)]
+ASSETS += ROUND3
+
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
@@ -194,7 +347,8 @@ def render() -> tuple[str, str]:
         "Images belong to a theme (Settings → Theme); each theme has its own set.",
         "",
     ]
-    for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme")):
+    for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme"),
+                       (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} images wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -205,6 +359,7 @@ def render() -> tuple[str, str]:
         "",
         "- Classic: " + STYLE,
         "- Art Deco: " + DECO_STYLE,
+        *[f"- {t['name']}: {t['style']}" for t in MORE_THEMES],
         "",
         "**Anchors:** the metronome body and pendulum are separate layers. Each image records its",
         "canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so",
