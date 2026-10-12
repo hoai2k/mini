@@ -6,21 +6,18 @@ agent. Newest first.
 
 ## Open
 
-- **Difficulty rework (started 2026-10-12, user's direction):** as gradual as
-  possible, easiest first, medium by about two-thirds, some hard only at the
-  end. Pass = handling medium; hard is for records, never needed to pass. Most
-  games are tuned between medium and hard now, so ease them. A Difficulty
-  setting: Easier / Normal / Harder. Step 1 (done, committed): shared
-  `src/games/difficulty.js` (`difficulty(p, setting)`, `knob(d, easy, medium,
-  hard)`), the setting, per-level bests (a pass at any level counts), three
-  worked games (saltshakershrike, coot, crow) and a guide in
-  `design/difficulty.md`. Step 2 (three agents running): convert the other 25 games
-  by that guide; brief in scratchpad `convert-brief.txt` (A: cupadee
-  shuttercluck gullfinch plume bobolinks peeper piffle dodo; B: milkmidge
-  waterglassgoose niffy broomwhisk buttonbeaks keycrane snippit garbagecanary;
-  C: the other nine). The ramps committed in 44fea729 and cc2cd898 are the starting
-  point (one curve per game already). User: most games feel good already;
-  keep changes very subtle (mostly where in the round values are reached).
+- **Difficulty rework: done 2026-10-12.** All 28 games use
+  `src/games/difficulty.js` (`curve(env)`, `knob(d, easy, medium, hard)`);
+  Easier / Normal / Harder in Settings; per-level bests. Pass marks changed:
+  Shrike 35, Peeper 22, Dodo 550, Lights On 13, Bin Day 20, Puddle Hop 14,
+  Milk Round 15, Scoop Stack 6. Open questions to the user: Bloom (holding
+  the water on one plume scores about 8, above the pass of 6), Bobolinks
+  (blind drumming passes about 1 round in 8). In throughput games Easier
+  helps clumsy players little (see each design note).
+- **Next: points scaled by difficulty (user asked 2026-10-12).** Plan told to
+  the user: each scoring action earns base x (1 + d) at that moment (1x to
+  2x), worked out once in main.js from score deltas; passing still uses the
+  plain tally; the result card shows both; bests and records in points.
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws

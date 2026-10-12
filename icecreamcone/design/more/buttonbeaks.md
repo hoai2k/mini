@@ -16,25 +16,46 @@ toss with no coat above flies away harmlessly (the way to get rid of a
 wrong pick). A coat that leaves with open holes simply goes; the results
 count the coats buttoned all the way.
 
-**Difficulty over the round.** One eased curve (`levelAt`, progress to the
-power 1.6) drives every knob, so the first third stays gentle, the middle
-is about the old average and the end is harder than before (2026-10-12).
-The line speeds up from 75 to 150 px/s and the coats come closer together
-(330 px apart down to 220). Coats have one hole through the first third,
-about one and a half on average by the middle, and two or three (mostly
-three) at the end. At about 20 s two more bowls join the tin with
-look-alike buttons: a pink square with two holes beside the pink round with
-four, a blue flower beside the blue round.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+medium / hard (hard about the old end of the round, medium a little gentler
+than the old middle):
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Line speed (px/s) | 75 | 98 | 150 |
+| Line between coats (px, plus up to 80) | 330 | 297 | 220 |
+| Holes on a coat, on average | 1 | 1.45 | 2.7 |
+| Bowls | 4 | 6 from d 0.36 | 6 |
+
+Holes: the whole part of the average, plus one more with the chance of
+its fraction, so one hole at first, one or two at medium, two or three
+(mostly three) at hard. The two bowls of look-alikes (a pink square with
+two holes beside the pink round with four, a blue flower beside the blue
+round) join at d 0.36: about 19 s in at Normal, from the start at Harder,
+never at Easier.
 
 **Controls.** Controller: left stick or D-pad walks, A picks up or tosses.
 Keyboard: arrows or A/D walk, Space picks up or tosses. Mouse or touch:
 they follow the pointer; tap a bowl to pick from it, tap up by the coats
 to toss from there. On a narrow screen the view follows them, 1000 wide.
 
-**Pass.** 10 buttons. Bots (seeds 1–4): a beginner (slower, a moment to
-look, now and then a look-alike by mistake) 12–13 (was 12–14 before the
-ramp); a good tailor 20–21 (was 25–26: fewer holes early); walking up and
-down pressing all the time 3–5; idle 0.
+**Pass.** 10 buttons (unchanged). Bots over seeds 1–12, mean [range]
+share passing: medium is the old beginner (slower, a moment to look, now
+and then a look-alike by mistake); clumsy is slower still, looks longer and
+picks look-alikes more; good is quick and sure. Mash walks up and down
+pressing all the time.
+
+| Level | Idle | Mash | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 3 [0–7] | 10 [8–12] 83% | 12 [10–13] 100% | 12 [11–14] |
+| Normal | 0 | 4 [1–7] | 9 [8–10] 33% | 13 [11–15] 100% | 16 [15–18] |
+| Harder | 0 | 6 [2–10] 8% | 7 [4–11] 8% | 13 [11–17] 100% | 28 [26–31] |
+
+At Harder (six bowls from the start and three-hole coats at the end) a
+lucky masher reaches the mark now and then (2 of 40 seeds); it never does
+at Normal or Easier, so the mark stays.
 
 **Images.** IC-M05a is the garden with the two clothes posts and the
 front of the tin; the line itself is drawn by the game so the coats hang

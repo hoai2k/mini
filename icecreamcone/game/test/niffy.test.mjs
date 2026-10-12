@@ -15,7 +15,9 @@ const pass = entry.pass;
 // while he turns or looks, darts when his back is turned (but doesn't start
 // a swoop just as he is about to turn, or next to a balloon), and after a
 // miss climbs up out of the way so people relax sooner.
-function snipper({ aim = 0, careless = 0, wary = false, seed = 1 } = {}) {
+// `pace`: its aim gets worse as the strollers speed up, faster than they do
+// (a clumsy player).
+function snipper({ aim = 0, careless = 0, wary = false, pace = false, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let off = 0;
@@ -53,7 +55,7 @@ function snipper({ aim = 0, careless = 0, wary = false, seed = 1 } = {}) {
     // a wary one won't swoop where a balloon string is close by
     const balloonNear = wary && game.targets().some((b) => b.it.kind === 'balloon' && Math.abs(lead(b) - game.x) < 120);
     if (Math.abs(d) < 10 && safe && !balloonNear) {
-      off = (rnd() * 2 - 1) * aim;
+      off = (rnd() * 2 - 1) * aim * (pace ? (game.walkSpeed() / 80) ** 2 : 1);
       reckless = rnd() < careless;
       wait = t + 0.15;
       return { action: true, y };
@@ -73,37 +75,75 @@ const masher = (low = false) => {
   };
 };
 
-test('niffy: a beginner opens the next page, a careful snipper more; idling and mashing do not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: snipper({ aim: 55, careless: 0.15, seed }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: snipper({ aim: 6, wary: true, seed }) }).game.score);
-  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: masher() }).game.score);
-  const mashLow = [1, 2, 3].map((seed) => run(create, { seed, bot: masher(true) }).game.score);
-  // swooping over and over from one spot, as people walk under it
-  const camp = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: (g, t) => ({ y: seed % 2 ? 1 : 0, action: Math.floor(t * 60) % 6 < 3 }) }).game.score);
+// Swooping over and over from one spot, as people walk under it.
+const camper = (seed) => (g, t) => ({ y: seed % 2 ? 1 : 0, action: Math.floor(t * 60) % 6 < 3 });
+
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: () => masher(),
+  mashLow: () => masher(true),
+  camp: (seed) => camper(seed),
+  clumsy: (seed) => snipper({ aim: 90, careless: 0.3, pace: true, seed }),
+  medium: (seed) => snipper({ aim: 55, careless: 0.15, seed }), // the old beginner
+  good: (seed) => snipper({ aim: 6, wary: true, seed }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+const MASH = ['idle', 'mash', 'mashLow', 'camp'];
+console.log(`niffy pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('niffy: at Normal a medium snipper passes, a careful one more; idling and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium), `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) < 0.5, `clumsy ${t.clumsy}`);
+  for (const n of MASH) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
   const idle = run(create, { seed: 1 }).game;
-  console.log('niffy beginner', beginner, 'good', good, 'mash', mash, 'mashLow', mashLow, 'camp', camp, 'idle', idle.score, 'pass', pass);
   assert.equal(idle.score, 0);
   assert.ok(idle.done);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((x, y) => x + y) / a.length;
-  assert.ok(avg(good) > avg(beginner) + 2, `good ${good}`);
-  assert.ok(Math.max(...mash, ...mashLow, ...camp) < pass, `mashing must not open the next page: ${mash}`);
+});
+
+// Every snip scores, so fewer, slower strollers also mean fewer things to
+// snip: Easier helps a clumsy snipper less than it would in a game scored on
+// accuracy. It still lets it pass far more often than Normal.
+test('niffy: Easier lets a clumsy snipper pass more often than Normal; idling and mashing still do not', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of MASH) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('niffy: Harder ends hard: the careful snipper scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 4, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
 });
 
 // The round starts gentle and ends harder, read from what the game actually
 // does: the strollers that come by early are slower and fewer, with fewer
 // balloons, and the Keeper keeps his back turned longer than at the end.
+// Third by third from its own knobs, the first third stays gentle.
 test('niffy: the promenade starts gentle and ends harder', () => {
   const game = create(env(3));
   const seen = new Set();
   const early = [];
   const late = [];
   const away = { early: [], late: [] };
+  const knobs = () => ({ speed: game.walkSpeed(), gap: game.walkerGap(), away: game.keeperAway(), watch: game.keeperWatch() });
+  const looks = [knobs()];
   let prev = game.keeper.state;
   let since = 0;
   for (let i = 0; i < 45 * 60 && !game.done; i++) {
     game.update(1 / 60, blank());
+    if (i === 15 * 60 || i === 30 * 60 || i === 45 * 60 - 2) looks.push(knobs());
     for (const w of game.walkers) {
       if (seen.has(w)) continue;
       seen.add(w);
@@ -118,10 +158,15 @@ test('niffy: the promenade starts gentle and ends harder', () => {
   }
   const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   const speed = (a) => avg(a.map((w) => Math.abs(w.vx)));
-  console.log('niffy ramp', { early: early.length, late: late.length, speed: [speed(early), speed(late)], away: [avg(away.early), avg(away.late)], level: [game.walkerGap(), game.keeperAway()] });
-  assert.ok(late.length > early.length * 1.3, `more strollers late: ${early.length} vs ${late.length}`);
-  assert.ok(speed(late) > speed(early) * 1.5, 'late strollers walk faster');
-  assert.ok(avg(away.early) > avg(away.late) * 1.3, 'the Keeper looks round more often late');
+  console.log('niffy ramp', { early: early.length, late: late.length, speed: [speed(early), speed(late)], away: [avg(away.early), avg(away.late)], looks });
+  assert.ok(late.length > early.length, `more strollers late: ${early.length} vs ${late.length}`);
+  assert.ok(speed(late) > speed(early) * 1.4, 'late strollers walk faster');
+  assert.ok(avg(away.early) > avg(away.late) * 1.2, 'the Keeper looks round more often late');
+  for (let i = 1; i < looks.length; i++) {
+    const [x, y] = [looks[i - 1], looks[i]];
+    assert.ok(x.speed < y.speed && x.gap > y.gap && x.away > y.away && x.watch < y.watch, `third ${i} is harder than the one before`);
+  }
+  assert.ok(looks[1].speed - looks[0].speed < (looks[3].speed - looks[0].speed) / 3, 'the first third stays on the gentle side');
 });
 
 // A walker carrying one thing, set right under the Niffy.

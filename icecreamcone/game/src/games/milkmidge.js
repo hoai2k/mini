@@ -17,6 +17,7 @@
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.milkHouses': [3, 2], // six house fronts, each with its door and doorstep at the bottom centre
@@ -81,14 +82,20 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (near, wide steps, a slow float, hardly a dog), about the old average by
-  // the middle, and harder than before at the end. Every knob follows it.
-  const level = () => Math.pow(progress(), 1.6);
-  g.level = level;
-  g.floatSpeed = () => lerp(140, 245, level());
-  // How long a full wind-up takes, out to the farthest step.
-  g.windTime = () => lerp(1.4, 1.12, level());
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): near, wide steps, a slow float and hardly
+  // a dog at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.floatSpeed = () => knob(g.d(), 140, 172, 245); // px/s
+  // How long a full wind-up takes, out to the farthest step, in seconds.
+  g.windTime = () => knob(g.d(), 1.4, 1.32, 1.12);
+  g.stepLo = () => knob(g.d(), 450, 411, STEP_MIN - 10); // the deepest a new step may be, screen y
+  g.stepHi = () => knob(g.d(), 548, 553, STEP_MAX); // the nearest
+  g.cardChance = () => knob(g.d(), 0.05, 0.12, 0.28); // a "No milk today" card
+  g.dogChance = () => knob(g.d(), 0.12, 0.25, 0.55); // a sleeping dog
+  g.stepHalf = () => knob(g.d(), 78, 70, 50); // half a step's width, before depth
+  g.houseGap = () => knob(g.d(), 380, 350, 235); // street px between houses, give or take 15%
   // Where a bottle let go at this charge lands, on screen.
   g.landY = (c = g.charge) => lerp(NEAR, FAR, c);
   // And the charge that lands on a step.
@@ -115,21 +122,20 @@ export default function create(env) {
 
   // The next house along the street.
   function addHouse() {
-    const p = level();
     const n = g.houseN++;
     const early = n < 3; // the very first few: no dogs, no cards
     // steps start near and spread back; cards and dogs come more often
-    const lo = lerp(450, STEP_MIN - 10, p);
-    const hi = lerp(548, STEP_MAX, p);
+    const lo = g.stepLo();
+    const hi = g.stepHi();
     const stepY = lo + rng() * (hi - lo);
     const s = depth(stepY);
-    const note = !early && rng() < lerp(0.05, 0.28, p);
-    const dog = !early && rng() < lerp(0.12, 0.55, p);
+    const note = !early && rng() < g.cardChance();
+    const dog = !early && rng() < g.dogChance();
     const h = {
       x: g.nextX,
       stepY,
       s,
-      half: lerp(78, 50, p) * s,
+      half: g.stepHalf() * s,
       note,
       wants: note ? 0 : 1,
       got: 0,
@@ -142,7 +148,7 @@ export default function create(env) {
     if (h.dog) h.dog.x = h.x + h.dog.side * (h.half + 70 * s);
     if (h.dog) h.dog.y = lerp(stepY, FENCE, 0.55);
     g.houses.push(h);
-    g.nextX += lerp(420, 235, p) * (0.85 + rng() * 0.3);
+    g.nextX += g.houseGap() * (0.85 + rng() * 0.3);
   }
   while (g.nextX < g.fx + W + 400) addHouse();
 

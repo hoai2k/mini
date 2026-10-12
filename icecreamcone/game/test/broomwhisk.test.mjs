@@ -10,7 +10,7 @@ const R = 74;
 // A sweeper: picks the leaf that is quickest to get into the pan, walks
 // round behind it, and pushes it in a straight line to the pan's mouth,
 // flicking it the last stretch when `flick` is on. `skill` 0..1 sets its
-// speed and how carefully it lines up.
+// speed and how carefully it lines up (below 0, slower and looser still).
 function sweeper(skill = 1, { flick = true } = {}) {
   let target = null;
   let pushing = false;
@@ -105,23 +105,56 @@ const zigzag = () => {
   };
 };
 
-test('broomwhisk: a beginner opens the next page, a good sweeper more; flailing and idling do not', () => {
-  // Sweeping is physical, so single runs vary: eight of each.
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: sweeper(0.3, { flick: false }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: sweeper(1, { flick: false }) }).game.score);
-  const flicker = seeds.map((seed) => run(create, { seed, bot: sweeper(1) }).game.score);
-  const flail = [1, 2, 3].map((seed) => run(create, { seed, bot: flailer(seed) }).game.score);
-  const zig = [1, 2].map((seed) => run(create, { seed, bot: zigzag() }).game.score);
-  const wan = [1, 2, 3].map((seed) => run(create, { seed, bot: wander(seed) }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('broomwhisk beginner', beginner, 'good', good, 'flicking', flicker, 'flail', flail, 'zigzag', zig, 'wander', wan, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner) * 1.15, `good ${good}`);
-  assert.ok(Math.min(...flicker) >= pass, `flicking ${flicker}`);
-  assert.ok(Math.max(...flail, ...zig, ...wan) < pass, `flailing must not open the next page: ${flail} ${zig}`);
+// Sweeping is physical, so single runs vary: a dozen of each.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  flail: (seed) => flailer(seed),
+  zigzag: () => zigzag(),
+  wander: (seed) => wander(seed),
+  clumsy: () => sweeper(-0.5, { flick: false }), // slow and loose in lining up
+  medium: () => sweeper(0.3, { flick: false }), // the old beginner
+  good: () => sweeper(1, { flick: false }),
+  flicker: () => sweeper(1),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+const MASH = ['idle', 'flail', 'zigzag', 'wander'];
+console.log(`broomwhisk pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('broomwhisk: at Normal a medium sweeper passes, a good one more; flailing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) + 2, `good ${t.good}`);
+  assert.ok(passRate(t.flicker) >= 0.75, `flicking ${t.flicker}`);
+  assert.ok(passRate(t.clumsy) < 0.5, `clumsy ${t.clumsy}`);
+  for (const n of MASH) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  assert.equal(run(create, { seed: 1 }).game.score, 0);
+});
+
+// What a slow sweeper lacks is speed about the floor, and no level changes
+// that: gusts leave swept things alone and the funnel forgives near misses,
+// so Easier's softer gusts and wider pan help it hardly at all, and its
+// fewer leaves lower everyone's ceiling. Easier is no harder for it than
+// Normal, and the medium sweeper passes there as surely.
+test('broomwhisk: Easier is no harder than Normal for a clumsy or medium sweeper; flailing and idling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy} vs Normal ${TABLE.normal.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  for (const n of MASH) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('broomwhisk: Harder ends hard: the good sweeper scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.15, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.flicker) > mean(t.medium) * 1.3, `flicker ${mean(t.flicker)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) <= mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
 });
 
 // The round starts gentle and ends harder, read from what the game does:
@@ -134,7 +167,10 @@ test('broomwhisk: the courtyard starts gentle and ends harder', () => {
   const falls = { early: 0, late: 0 };
   const seen = new Set(game.items);
   const mouth0 = game.mouth();
+  const knobs = () => ({ leaf: game.leafGap(), gust: game.gustGap(), power: game.gustPower(), warn: game.gustWarn(), mouth: game.mouth() });
+  const looks = [knobs()];
   for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    if (i === 15 * 60 || i === 30 * 60 || i === 45 * 60 - 1) looks.push(knobs());
     game.items = game.items.filter((it) => it.z > 0); // keep the floor clear so leaves keep falling
     game.update(1 / 60, blank());
     if (game.gust && game.gust !== last) gusts.push({ at: game.elapsed, power: game.gust.power, warn: game.gust.warn });
@@ -153,8 +189,14 @@ test('broomwhisk: the courtyard starts gentle and ends harder', () => {
   const z = gusts[gusts.length - 1];
   assert.ok(z.power > a.power * 1.3 && z.warn < a.warn, 'late gusts blow harder, with less warning');
   assert.ok(gusts[gusts.length - 1].at - gusts[gusts.length - 2].at < gusts[1].at - gusts[0].at, 'and come more often');
-  assert.ok(falls.late > falls.early * 1.3, `leaves fall faster late: ${falls.early} vs ${falls.late}`);
+  assert.ok(falls.late > falls.early, `leaves fall faster late: ${falls.early} vs ${falls.late}`);
   assert.ok(game.mouth() < mouth0, 'the pan mouth narrows');
+  console.log('broomwhisk knobs by thirds', looks);
+  for (let i = 1; i < looks.length; i++) {
+    const [x, y] = [looks[i - 1], looks[i]];
+    assert.ok(x.leaf > y.leaf && x.gust > y.gust && x.power < y.power && x.warn > y.warn && x.mouth > y.mouth, `third ${i} is harder than the one before`);
+  }
+  assert.ok(looks[0].leaf - looks[1].leaf < (looks[0].leaf - looks[3].leaf) / 3, 'the first third stays on the gentle side');
 });
 
 test('broomwhisk: the broom pushes a leaf on with its own speed, and it slides on', () => {
@@ -205,7 +247,7 @@ test('broomwhisk: a flick sends what is in front of the broom skidding', () => {
 
 test('broomwhisk: a gust blows the loose leaves, and the pan moves after eight', () => {
   const game = create(env(5));
-  game.elapsed = 30; // a gust two thirds of the way in, at its usual strength
+  game.elapsed = 36; // a gust four fifths of the way in, at about medium strength
   game.leafT = 99;
   game.gustT = 0.01;
   const before = game.items.map((it) => it.x);

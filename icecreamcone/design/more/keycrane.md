@@ -19,14 +19,20 @@ forth) makes the prize slip off and fall back onto the pile, or, if it was
 nearly there, into the chute. A new prize tumbles in from above for each
 one taken, so the pile always has six or so.
 
-**Difficulty over the round.** One eased curve (`level()`, progress to the
-power 1.6) drives every knob, so the first third stays gentle, the middle
-is about the old average and the end is harder than before (2026-10-12).
-Rings start generous (about 68 px across) and shrink to about 36 px by the
-end; golden watches, with smaller rings still, turn up after 8 s. The swing
-dies down a little more slowly as the round goes on (damping 3.2 down to
-2.7), and a carried prize slips off at a smaller swing (0.47 rad down to
-0.37). The trolley is slower with a prize in the claws.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+medium / hard (hard about the old end of the round, medium a little gentler
+than the old middle):
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Ring radius for new prizes (px, ±10%) | 34 | 29 | 18 |
+| Swing damping (per s) | 3.2 | 3.05 | 2.7 |
+| A carried prize slips past (rad) | 0.47 | 0.44 | 0.37 |
+
+Golden watches, with rings a fifth smaller still, turn up after 8 s. The
+trolley is slower with a prize in the claws.
 
 **Controls.** Controller: left stick or D-pad moves the trolley, A drops
 (and lets go). Keyboard: arrows or A/D, Space. Mouse or touch: the trolley
@@ -35,10 +41,24 @@ so a finger can drag to aim first. On a narrow screen the view follows the
 trolley, and while a prize is carried it widens smoothly to keep the chute
 in sight too.
 
-**Pass.** 5 prizes. Bots: a beginner (half-speed stick, waits until the
-swing is small; seeds 1–8) 7–9; a good operator (full speed, drops while it
-is still swinging a little, goes for golden watches) 8–10 on seeds 1–4
-(was 8–10 before the ramp); wandering and dropping all the time 0; idle 0.
+**Pass.** 5 prizes (unchanged). Bots over seeds 1–12, mean [range] share
+passing: medium is the old beginner (60% stick, waits until the swing is
+small); clumsy pushes the stick 30% and stops up to 50 px to one side of
+the ring, picked afresh for each try; good goes full speed, drops while it
+is still swinging a little and goes for golden watches. Mash wanders
+dropping all the time.
+
+| Level | Idle | Mash | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 | 5 [3–7] 83% | 8 [7–9] 100% | 10 [8–11] |
+| Normal | 0 | 0 | 5 [4–7] 83% | 8 [7–9] 100% | 9 [8–10] |
+| Harder | 0 | 0 | 5 [3–7] 58% | 7 [7–9] 100% | 9 [7–10] |
+
+The winch sets the pace (each try takes a few seconds whatever the level)
+and five prizes is a low bar, so even the clumsy operator mostly passes at
+Normal: the guide wants it to pass seldom there. Only a misser or the
+masher, which never hooks a ring, fails. The levels change the score less
+here than in most games.
 
 **Images.** IC-M07a is the inside of the cabinet: the brass rail, the
 wallpaper, the velvet floor and the chute, with the space between kept

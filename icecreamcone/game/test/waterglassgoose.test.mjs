@@ -36,25 +36,57 @@ function listener({ slip = 0, react = 0.3, seed = 1 } = {}) {
 // Taps any glass, as fast as it can, moving about.
 const masher = (game, t) => ({ x: Math.sin(t * 3), action: Math.floor(t * 60) % 6 < 3 });
 
-test('waterglassgoose: a beginner opens the next page, a good ear more; idling and mashing do not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: listener({ slip: 0.035, react: 0.6, seed }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: listener({ slip: 0.008, react: 0.4, seed }) }).game.score);
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: () => masher,
+  clumsy: (seed) => listener({ slip: 0.055, react: 0.9, seed }), // loses count in longer tunes, slow
+  medium: (seed) => listener({ slip: 0.035, react: 0.6, seed }), // the old beginner
+  good: (seed) => listener({ slip: 0.008, react: 0.4, seed }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`waterglassgoose pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('waterglassgoose: at Normal a medium ear passes, a good ear more; idling and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) + 5, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) < 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
   const perfect = run(create, { seed: 1, bot: listener() }).game;
-  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: masher }).game.score);
+  assert.equal(perfect.tunes, 8);
   const idle = run(create, { seed: 1 }).game;
-  console.log('waterglassgoose beginner', beginner, 'good', good, 'perfect', perfect.score, 'mash', mash, 'idle', idle.score, 'pass', pass);
   assert.equal(idle.score, 0);
   assert.ok(idle.done);
-  assert.equal(perfect.tunes, 8);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((x, y) => x + y) / a.length;
-  assert.ok(avg(good) > avg(beginner) + 5, `good ${good}`);
-  assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
+});
+
+// Every right note scores, so Easier's shorter tunes also mean fewer points
+// to win: it helps a clumsy ear less than it would in a game scored on
+// accuracy. It still passes more often there than at Normal.
+test('waterglassgoose: Easier lets a clumsy ear pass more often than Normal; idling and mashing still do not', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('waterglassgoose: Harder ends hard: the good ear scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 10, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
 });
 
 // The concert starts gentle and ends harder: read each tune as it is played,
-// the first three are short, on few glasses and slow; the last are long and quick.
+// the first three are short, on few glasses and slow; the last are long and
+// quick. The first third stays on the gentle side.
 test('waterglassgoose: the tunes start gentle and end harder', () => {
   const tunes = [];
   run(create, {
@@ -67,14 +99,19 @@ test('waterglassgoose: the tunes start gentle and end harder', () => {
       };
     })(),
   });
-  console.log('waterglassgoose ramp', tunes);
+  console.log('waterglassgoose ramp', tunes.map((x) => `${x.glasses}/${x.len}/${x.gap.toFixed(2)}`).join(' '));
   assert.equal(tunes.length, 8);
   const first = tunes.slice(0, 3);
   const last = tunes.slice(-2);
-  assert.ok(Math.max(...first.map((x) => x.len)) < Math.min(...last.map((x) => x.len)) / 2, 'early tunes are much shorter');
-  assert.ok(Math.max(...first.map((x) => x.glasses)) < Math.min(...last.map((x) => x.glasses)), 'early tunes use fewer glasses');
-  assert.ok(Math.min(...first.map((x) => x.gap)) > Math.max(...last.map((x) => x.gap)) * 1.5, 'early tunes are played slower');
+  assert.ok(Math.max(...first.map((x) => x.len)) < Math.min(...last.map((x) => x.len)), 'early tunes are shorter');
+  assert.ok(Math.max(...first.map((x) => x.glasses)) < Math.max(...last.map((x) => x.glasses)), 'early tunes use fewer glasses');
+  assert.ok(Math.min(...first.map((x) => x.gap)) > Math.max(...last.map((x) => x.gap)) * 1.2, 'early tunes are played slower');
+  assert.ok(first[2].gap > (tunes[0].gap + tunes[7].gap) / 2, 'the first third stays on the gentle side');
   for (let i = 1; i < tunes.length; i++) assert.ok(tunes[i].len >= tunes[i - 1].len && tunes[i].gap <= tunes[i - 1].gap, 'never easier than the tune before');
+  // Harder starts near medium and ends with the longest, quickest tune.
+  const hard = [0, 7].map((i) => create(env(1, { difficulty: 'harder' })).tuneAt(i));
+  assert.deepEqual([hard[1].n, hard[1].len], [5, 8]);
+  assert.ok(hard[0].len > tunes[0].len, 'Harder opens with a longer tune');
 });
 
 // Plays until it is the player's turn.

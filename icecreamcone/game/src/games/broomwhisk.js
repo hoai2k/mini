@@ -15,6 +15,7 @@
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.sweepings': [4, 2], // four leaves (olive, mustard, brick, sage), a dust ball, a feather, a golden leaf, a sweet wrapper
@@ -106,17 +107,16 @@ export default function create(env) {
   };
   g.pan = { ...PANS[0] };
 
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (few leaves, a wide pan mouth, no gust for 13 s and soft ones after),
-  // about the old average by the middle, and harder than before at the end.
-  // Every knob below follows this one curve.
-  const level = () => Math.pow(Math.min(1, g.elapsed / DURATION), 1.6);
-  g.level = level;
-  g.leafGap = () => lerp(2.0, 1.0, level()); // seconds between falling leaves
-  g.gustGap = () => lerp(14, 7, level()); // seconds between gusts
-  g.gustPower = () => lerp(0.7, 1.25, level()); // how hard a gust blows
-  g.gustWarn = () => lerp(1.6, 1.0, level()); // the rustle before it blows
-  g.mouth = () => lerp(120, 100, level()); // half the pan's mouth, in floor units
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): few leaves, a wide pan mouth, no gust for
+  // 13 s and soft ones after at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(Math.min(1, g.elapsed / DURATION));
+  g.leafGap = () => knob(g.d(), 2.0, 1.7, 1.0); // seconds between falling leaves
+  g.gustGap = () => knob(g.d(), 14, 12, 7); // seconds between gusts
+  g.gustPower = () => knob(g.d(), 0.7, 0.86, 1.25); // how hard a gust blows
+  g.gustWarn = () => knob(g.d(), 1.6, 1.42, 1.0); // seconds of rustle before it blows
+  g.mouth = () => knob(g.d(), 120, 114, 100); // half the pan's mouth, in floor units
 
   function pop(text, x, y, color = INK, size = 44) {
     // Stack above a pop still showing nearby rather than on top of it.

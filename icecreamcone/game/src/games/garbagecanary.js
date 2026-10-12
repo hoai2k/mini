@@ -30,6 +30,7 @@
 
 import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   // paper ball, banana peel, tin can, apple core, fish bone; hat, letter, cat, sparrow, old boot
@@ -193,17 +194,17 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (slow things, mostly rubbish, mostly in the bin's own lane, no gusts),
-  // about the old average by the middle, and harder than before at the end.
-  // Every knob in spawn() follows this one curve.
-  const level = () => Math.pow(progress(), 1.6);
-  g.level = level;
-  g.windSpeed = () => lerp(225, 550, level()); // how fast things blow along
-  g.keepChance = () => lerp(0.22, 0.55, level()); // share that isn't rubbish
-  g.nearShare = () => lerp(1, 0.25, Math.min(1, level() * 4)); // rubbish that comes near the bin's lane
-  g.gustChance = () => (g.elapsed > 14 ? lerp(0.05, 0.4, level()) : 0);
-  g.spawnGap = () => lerp(1.35, 0.5, level()); // seconds between things, on average
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): slow things, mostly rubbish, mostly in
+  // the bin's own lane and no gusts at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.windSpeed = () => knob(g.d(), 225, 320, 550); // how fast things blow along, px/s
+  g.keepChance = () => knob(g.d(), 0.22, 0.32, 0.55); // share that isn't rubbish
+  g.nearShare = () => knob(g.d(), 1, 0.3, 0.25); // rubbish that comes near the bin's lane
+  g.nearSpread = () => knob(g.d(), 150, 230, 420); // how far from the bin's lane "near" is, px across
+  g.gustChance = () => (g.elapsed > 14 ? knob(g.d(), 0.05, 0.15, 0.4) : 0); // no gusts in the first 14 s
+  g.spawnGap = () => knob(g.d(), 1.35, 1.1, 0.5); // seconds between things, on average
   function pop(text, x, y, color = INK, size = 44) {
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
@@ -220,7 +221,6 @@ export default function create(env) {
   const itemR = (it) => ITEM_R * depthScale(it.lane);
 
   function spawn() {
-    const p = level();
     // the first one is always rubbish; never three keepers in a row
     const keepChance = g.binned + g.missed + g.items.length === 0 ? 0 : g.keepChance();
     let keep = rng() < keepChance;
@@ -231,7 +231,7 @@ export default function create(env) {
     const base = g.windSpeed();
     const speed = base * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
     // early on, rubbish comes near the bin's lane; later, anywhere
-    const near = clamp(g.by + (rng() - 0.5) * lerp(150, 420, p), DEPTH0 + 8, DEPTH1 - 8);
+    const near = clamp(g.by + (rng() - 0.5) * g.nearSpread(), DEPTH0 + 8, DEPTH1 - 8);
     // things that aren't rubbish tend to come your way (step aside, or keep
     // the lid shut); rubbish comes anywhere, but near you at first
     const anywhere = DEPTH0 + 8 + rng() * (DEPTH1 - DEPTH0 - 16);

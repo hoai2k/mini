@@ -40,19 +40,27 @@ lid stays shut for 2.2 s. Rubbish that bumps over a shut lid ends the run.
 The four things that aren't rubbish glow gold. Their shadows on the ground,
 like everyone's, darken when they are in the bin's lane.
 
-**Difficulty over the round.** One eased curve (`level()`, progress to the
-power 1.6) drives every knob, so the first third stays gentle, the middle
-is about the old average and the end is harder than before (2026-10-12).
-Things come every 1.35 s at first and every 0.5 s by the end, and blow
-along at 225 px a second rising to 550 (was 230 to 520). Each starts 300 px
-off the right edge, shown there by an arrow at its height (bold when it is
-in the bin's lane, gold when it isn't rubbish), so a slower child has time
-to line up. The first thing is always rubbish; at first all rubbish comes
-near the bin's lane, a share that falls to a quarter by about 19 s, the
-rest anywhere. About a fifth of things aren't rubbish at first, over half
-by the end, and those come towards wherever the bin is; cats and sparrows
-that see the lid up turn towards it (140 px a second of depth, within
-400 px). From 14 s gusts hurry some along (5% of things, up to 40%).
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+medium / hard (hard about the old end of the round, medium a little gentler
+than the old middle):
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Wind speed (px/s, ±10%) | 225 | 320 | 550 |
+| Seconds between things (×0.75–1.25, at least 0.42) | 1.35 | 1.1 | 0.5 |
+| Share that isn't rubbish | 0.22 | 0.32 | 0.55 |
+| Rubbish that comes near the bin's lane | 1 | 0.3 | 0.25 |
+| How far across "near" spreads (px) | 150 | 230 | 420 |
+| Gust chance (none in the first 14 s) | 0.05 | 0.15 | 0.4 |
+
+Each thing starts 300 px off the right edge, shown there by an arrow at its
+height (bold when it is in the bin's lane, gold when it isn't rubbish), so
+a slower child has time to line up. The first thing is always rubbish, and
+never three keepers in a row. Things that aren't rubbish come towards
+wherever the bin is; cats and sparrows that see the lid up turn towards it
+(140 px a second of depth, within 400 px).
 
 **Controls.** Controller: left stick or D-pad walks (up and down crosses the
 street), hold A for the lid. Keyboard: arrows or WASD, hold Space or Enter.
@@ -61,23 +69,27 @@ Mouse or touch: press anywhere and the bin walks there with its lid shut
 dragging walks it with the lid up. On a narrow screen the view follows the
 bin, keeping the street coming in from the right in sight.
 
-**Pass.** 15 points. Bots (all lift the lid as things come, 0.7–0.9 s
-early; seeds 1–16), after the ramp (2026-10-12), with the scores before it:
+**Pass.** 20 points (was 15, raised 2026-10-12). Bots over seeds 1–16,
+mean [range] share passing. All the minders lift the lid as things come
+(0.6–1 s early). Medium is the old beginner (stick at 80%, 0.2 s late,
+timing off by 0.15 s); clumsy pushes the stick 60%, is 0.45 s late and off
+by 0.25 s; sharp is full speed, 0.05 s late. Hold wanders with the lid up,
+flap wanders flapping it twice a second (flap slow: 0.75 a second), open
+stands still with it up.
 
-| Bot | Scores | Average | Before the ramp |
-| --- | --- | --- | --- |
-| Clumsy beginner (stick at 60%, 0.3 s late, timing off by 0.2 s) | 15–34, passes on all | 24.6 | 14–32, 15 of 16, 23.8 |
-| Beginner (stick at 80%, 0.2 s late) | 17–37, passes on all | 28.4 | 16–36, 28.7 |
-| Sharp minder | 23–52 | 34.6 | 29–43, 33.4 |
-| Wandering, holding the lid up | 0 | 0 | 0 |
-| Wandering, flapping the lid (twice a second) | 5–25, 2 of 16 reach 15 | 10.1 | 1–19, 4 of 16, 9.3 |
-| Wandering, flapping it slowly | 0–17, 2 of 16 reach 15 | 8.0 | 1–18, 1 of 16, 6.6 |
-| Standing still, lid up | 0 | 0 | 0 |
-| Idle | 0 | 0 | 0 |
+| Level | Idle | Hold | Flap | Flap slow | Open | Clumsy | Medium | Sharp |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 | 11 [4–20] 6% | 12 [5–20] 6% | 0 | 19 [9–31] 56% | 26 [16–43] 94% | 27 [20–42] |
+| Normal | 0 | 0 | 8 [0–16] 0% | 10 [0–25] 6% | 0 | 19 [9–31] 38% | 27 [13–39] 94% | 32 [21–52] |
+| Harder | 0 | 0 | 9 [2–17] 0% | 10 [1–20] 6% | 0 | 18 [10–24] 31% | 33 [20–55] 100% | 38 [27–55] |
 
-A lucky flapping run can still reach the pass mark now and then, as it
-could before the ramp; on average flapping scores well under half of a
-clumsy beginner.
+Why the mark rose: at 15, wandering while flapping the lid passed one round
+in six to eight at Easier and Normal (over 24 seeds: 13–25% at Easier,
+8–21% at Normal), as it already did before the curve. At 20 it is one lucky
+run in sixteen or fewer, and the medium minder still passes 94%. Every
+piece of rubbish scores, so Easier's slower, sparser street also lowers
+the ceiling: it lets the clumsy minder pass a little over half the time,
+not the guide's three in four, though more often than Normal.
 
 **Images.** IC-M08a is the street. IC-M08b is the ten things on the wind.
 IC-M08c is the bin and the lid-with-head in two pieces (the head shows under

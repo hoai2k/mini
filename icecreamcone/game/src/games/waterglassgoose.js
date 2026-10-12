@@ -9,11 +9,12 @@
 // the last within 0.8 s, so a quick, sure player always has more to win),
 // and a whole tune played back three more. A wrong glass, or waiting too long, cracks a
 // glass and ends that tune: three cracks and the concert is over. Eight
-// tunes: they start with two notes on three glasses and grow to eight notes
-// on five, played faster. Score: points.
+// tunes: they start with two notes on three glasses and grow, along the
+// shared difficulty curve, to as many as eight notes on five, played faster. Score: points.
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.harpGlass': [2, 1], // an empty tumbler, and the same tumbler cracked
@@ -21,20 +22,11 @@ Object.assign(SHEETS, {
   'sprites.gooseMoves': [2, 1], // the Goose mid-stride, and recoiling from a cracked glass
 });
 
-// Each tune: how many glasses, how many notes, and the seconds between notes.
-// Difficulty over the round: the first third (tunes 1-3) is gentle, short
-// tunes on few glasses played slowly; the middle is the game's normal; the
-// last two tunes are longer and quicker than they used to be.
-const ROUNDS = [
-  { n: 3, len: 2, gap: 0.9 },
-  { n: 3, len: 3, gap: 0.82 },
-  { n: 4, len: 3, gap: 0.74 },
-  { n: 4, len: 4, gap: 0.66 },
-  { n: 5, len: 4, gap: 0.6 },
-  { n: 5, len: 5, gap: 0.55 },
-  { n: 5, len: 7, gap: 0.47 },
-  { n: 5, len: 8, gap: 0.4 },
-];
+// Eight tunes. How many glasses, how many notes and the seconds between notes
+// follow the shared difficulty curve (see difficulty.js) from the first tune
+// to the last: short tunes on few glasses played slowly at first, longer and
+// quicker towards the end.
+const TUNES = 8;
 const MAX_CRACKS = 3;
 const BONUS = 3; // for a whole tune
 const PATIENCE = 5; // seconds to tap the next note before it counts as wrong
@@ -84,8 +76,20 @@ export default function create(env) {
     pops: [],
     shown: -1, // the glass lit in the show
   };
-  g.ROUNDS = ROUNDS;
-  const R = () => ROUNDS[clamp(g.round, 0, ROUNDS.length - 1)];
+  g.TUNES = TUNES;
+  // How hard tune i is, along the curve for the chosen Difficulty. Each knob:
+  // easy, medium, hard.
+  const dAt = curve(env);
+  g.d = (i = g.round) => dAt(clamp(i, 0, TUNES - 1) / (TUNES - 1));
+  g.tuneAt = (i = g.round) => {
+    const d = g.d(i);
+    return {
+      n: Math.round(knob(d, 3, 4.4, 5)), // glasses on the table
+      len: Math.round(knob(d, 2, 4, 8)), // notes in the tune
+      gap: knob(d, 0.9, 0.66, 0.4), // seconds between the Goose's notes
+    };
+  };
+  const R = () => g.tuneAt();
   g.noteGap = () => R().gap; // seconds between the Goose's notes this tune
   g.glassX = (i, n = g.glasses.length) => 800 + (i - (n - 1) / 2) * (n > 4 ? 250 : n > 3 ? 290 : 330);
 
@@ -116,7 +120,7 @@ export default function create(env) {
 
   function nextRound() {
     g.round++;
-    if (g.round >= ROUNDS.length || g.cracks >= MAX_CRACKS) {
+    if (g.round >= TUNES || g.cracks >= MAX_CRACKS) {
       g.phase = 'end';
       g.pt = 0;
       return;
@@ -155,7 +159,7 @@ export default function create(env) {
     g.pt = 0;
   }
 
-  setGlasses(ROUNDS[0].n);
+  setGlasses(g.tuneAt(0).n);
   g.sel = 1;
   g.gx = g.glassX(1) + STAND;
 
@@ -251,9 +255,9 @@ export default function create(env) {
     g.pops = g.pops.filter((p) => p.life > 0);
   };
 
-  g.hud = () => `Tune ${clamp(g.round + 1, 1, ROUNDS.length)}/${ROUNDS.length} · ${g.score}`;
+  g.hud = () => `Tune ${clamp(g.round + 1, 1, TUNES)}/${TUNES} · ${g.score}`;
   g.summary = () => [
-    `${g.tunes} of ${ROUNDS.length} tunes played back just right, ${g.notes} right note${g.notes === 1 ? '' : 's'} (${g.quick} quick).`,
+    `${g.tunes} of ${TUNES} tunes played back just right, ${g.notes} right note${g.notes === 1 ? '' : 's'} (${g.quick} quick).`,
     g.cracks ? `${g.cracks} cracked glass${g.cracks === 1 ? '' : 'es'}.` : 'Not a single crack!',
   ];
 

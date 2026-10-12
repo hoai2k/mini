@@ -14,7 +14,8 @@
 // Score: prizes in the chute; a golden pocket watch counts as three.
 
 import { drawBird, drawSprite, spriteCell, scene, art, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   // lantern, birdcage, golden pocket watch, handbag, basket, school bell, kettle, alarm clock
@@ -111,15 +112,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (big rings, a swing that settles fast and holds on to a prize), about the
-  // old average by the middle, and harder than before at the end. Every knob
-  // below follows this one curve.
-  const level = () => Math.pow(progress(), 1.6);
-  g.level = level;
-  const ringNow = () => lerp(34, 18, level()); // ring radius for new prizes
-  g.damp = () => lerp(3.2, 2.7, level()); // how quickly the swing dies down
-  g.slipAngle = () => lerp(0.47, 0.37, level()); // a carried prize slips off past this swing
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): big rings, a swing that settles fast and
+  // holds on to a prize at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.ringNow = () => knob(g.d(), 34, 29, 18); // ring radius for new prizes, px
+  g.damp = () => knob(g.d(), 3.2, 3.05, 2.7); // how quickly the swing dies down, per second
+  g.slipAngle = () => knob(g.d(), 0.47, 0.44, 0.37); // a carried prize slips off past this swing, radians
   g.foot = () => [g.x + g.L * Math.sin(g.th), PIVOT_Y + g.L * Math.cos(g.th)];
   g.ring = (p) => [p.x, p.y - KINDS[p.kind].h - p.ringR * 0.75];
   g.tolerance = (p) => p.ringR * 0.85 + 4;
@@ -133,7 +133,7 @@ export default function create(env) {
   function newPrize(slotX, fromAbove) {
     const golden = g.elapsed > 8 && rng() < 0.14;
     const kind = golden ? 'watch' : PLAIN[Math.floor(rng() * PLAIN.length)];
-    const ringR = Math.round((golden ? 0.8 : 1) * ringNow() * (0.9 + rng() * 0.2));
+    const ringR = Math.round((golden ? 0.8 : 1) * g.ringNow() * (0.9 + rng() * 0.2));
     const x = slotX + (rng() - 0.5) * 30;
     return { kind, x, y: fromAbove ? -60 : FLOOR - rng() * 16, vy: 0, ringR, golden, falling: !!fromAbove, tilt: (rng() - 0.5) * 0.12 };
   }

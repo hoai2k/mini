@@ -35,33 +35,52 @@ bobs.
     more).
   Full, and he whistles: "Peep! Caught!" and a 1.6 s daze, no points lost.
   It drains 0.5/s while he looks away. Pass: 12 snips.
-- **Difficulty over the round.** One eased curve (`level()`, progress to
-  the power 1.6) drives every knob, so the first third stays gentle, the
-  middle is about the old average and the end is harder than before
-  (2026-10-12). For the first 8.5 s the Keeper never looks round and there
-  are no balloons until 10 s. Walkers speed up from 80 to 175 px/s and come
-  every 1.75 s down to 0.82 s; people walking the same way keep at least
-  420 px apart. Balloons go from 12% to 34% of walkers, and from about a
-  third of the way in a growing share (up to 32%) carry two things. The
-  Keeper looks round more often (back turned 4.8 s down to 2.0 s), for
-  longer (1.2 s to 2.6 s) and with less warning (1.0 s to 0.45 s).
+- **Difficulty over the round.** The shared curve (`g.d()`, see
+  `../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+  medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+  medium / hard (hard about the old end of the round, medium a little gentler
+  than the old middle):
+
+  | Knob | Easy | Medium | Hard |
+  | --- | --- | --- | --- |
+  | Walking speed (px/s) | 80 | 108 | 175 |
+  | Seconds between strollers | 1.75 | 1.47 | 0.82 |
+  | Balloon chance | 0.12 | 0.19 | 0.34 |
+  | Two things on one stroller | 0 | 0 | 0.32 |
+  | Keeper's back turned (s) | 4.8 | 4.0 | 2.0 |
+  | Keeper looking round (s) | 1.2 | 1.6 | 2.6 |
+  | Warning before he looks (s) | 1.0 | 0.85 | 0.45 |
+
+  For the first 8.5 s the Keeper never looks round and there are no
+  balloons until 10 s; people walking the same way keep at least 420 px
+  apart. Pairs come only past medium, so never at Easier.
 - **Controls.** Stick, D-pad, arrows or WASD fly left and right, and up and
   down (▲ higher, ▼ lower); A, Space or Enter swoops. With a mouse or touch
   the Niffy follows the pointer across and in height (between the two
   lines), and a click or tap swoops for whatever the ring shows near where
   you tapped (up to 300 px aside). On a phone the view follows the Niffy,
   and the Keeper's "!", eye and meter show beside it.
-- **Bots (tests).** A beginner (lines up within ±55 px, stays at its
-  starting height and flies about freely, careless one swoop in seven)
-  scores 17–22 over six seeds since the ramp (was 14–22); a careful snipper that
-  cruises low, keeps still under the Keeper's eye (risking one quick low
-  swoop when something walks into its ring and he has hardly noticed it),
-  darts while his back is turned and climbs after a miss scores 19–25
-  (was 18–24); sweeping the sky while mashing scores 0–2 at either
-  height; mashing from one spot as people walk under scores 1–11 (11 at
-  most over sixteen seeds); idling 0. Over 1 s of the Keeper watching:
-  still, high or low, 0; flying to and fro high, under 0.01; low, caught;
-  swooping, caught.
+- **Bots (tests), seeds 1–12, pass 12 (unchanged).** Mean [range] share
+  passing. Medium is the old beginner (lines up within ±55 px, stays at its
+  starting height, careless one swoop in seven); clumsy lines up within ±90
+  px times the square of the walkers' speed over 80, careless three swoops in
+  ten; good is the careful snipper (cruises low, keeps still under the
+  Keeper's eye, darts while his back is turned, climbs after a miss). Mash
+  sweeps the sky swooping (at its starting height, or low); camp swoops
+  from one spot as people walk under.
+
+  | Level | Idle | Mash | Mash low | Camp | Clumsy | Medium | Good |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Easier | 0 | 1 [0–5] | 0 [0–2] | 4 [0–7] | 13 [8–21] 67% | 16 [9–20] 92% | 17 [14–21] |
+  | Normal | 0 | 2 [0–5] | 0 [0–1] | 4 [1–9] | 10 [3–15] 25% | 17 [11–23] 92% | 18 [14–23] |
+  | Harder | 0 | 2 [0–5] | 1 [0–4] | 3 [0–7] | 7 [4–10] 0% | 18 [14–20] 100% | 23 [17–28] |
+
+  Every snip scores, so Easier's fewer, slower strollers also lower the
+  ceiling: the clumsy snipper passes two rounds in three there, not the
+  guide's three in four. At Normal the careful snipper is only a little
+  ahead of the medium one (the stream of strollers limits both); at Harder
+  it is well ahead. Over 1 s of the Keeper watching: still, high or low, 0;
+  flying to and fro high, under 0.01; low, caught; swooping, caught.
 
 ## Images (IC-M03)
 

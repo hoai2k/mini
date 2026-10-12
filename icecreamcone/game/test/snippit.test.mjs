@@ -8,8 +8,10 @@ const pass = entry.pass;
 
 // A snipper: looks at the tag for a moment (longer with a bigger tangle),
 // traces the string (getting it wrong now and then), walks to its knot and
-// snips. `skill` 0..1 sets how quick and how sure it is.
-function snipper(skill = 1, seed = 1) {
+// snips. `skill` 0..1 sets how quick and how sure it is. With `pace` it
+// loses the string more often the bigger and curlier the tangle (a clumsy
+// player).
+function snipper(skill = 1, seed = 1, pace = false) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let want = null;
@@ -25,7 +27,8 @@ function snipper(skill = 1, seed = 1) {
     }
     if (!want || t < wait) return {};
     if (!target || !game.balloons.includes(target)) {
-      const right = rnd() < 0.82 + 0.18 * skill;
+      const sure = pace ? 1 - 0.06 * (game.balloons.length - 2) - game.curl() / 800 : 0.82 + 0.18 * skill;
+      const right = rnd() < sure;
       const others = game.balloons.filter((b) => b !== want);
       target = right || !others.length ? want : others[Math.floor(rnd() * others.length)];
     }
@@ -61,17 +64,49 @@ const masher = () => {
 // Standing in one place snipping whatever is there.
 const camper = () => (game, t) => ({ action: Math.floor(t * 3) % 2 === 0 });
 
-test('snippit: a beginner opens the next page, a good snipper more; mashing and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: snipper(0.3, seed) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: snipper(1, seed) }).game.score);
-  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: masher() }).game.score);
-  const camp = [1, 2].map((seed) => run(create, { seed, bot: camper() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('snippit beginner', beginner, 'good', good, 'mash', mash, 'camp', camp, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  assert.ok(Math.min(...good) > Math.max(...beginner), `good ${good}`);
-  assert.ok(Math.max(...mash, ...camp) < pass, `mashing must not open the next page: ${mash} ${camp}`);
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: () => masher(),
+  camp: () => camper(),
+  clumsy: (seed) => snipper(0.15, seed, true),
+  medium: (seed) => snipper(0.3, seed), // the old beginner
+  good: (seed) => snipper(1, seed),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`snippit pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('snippit: at Normal a medium snipper passes, a good one more; mashing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) * 1.2, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) < 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'camp']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  assert.equal(run(create, { seed: 1 }).game.score, 0);
+});
+
+// Snips come one at a time whatever the level, so a clumsy snipper's score
+// swings with every wrong string: Easier lets it pass most of the time, and
+// far more often than Normal.
+test('snippit: Easier lets a clumsy snipper pass more often than Normal; mashing and idling still do not', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'camp']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('snippit: Harder ends hard: the good snipper scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.3, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
 });
 
 // The round starts gentle and ends harder, read from the bunch itself: a
@@ -86,15 +121,21 @@ test('snippit: the bunch starts gentle and ends harder', () => {
     game.update(1 / 60, blank());
     if (game.swaps > swaps) swapTimes.push(game.elapsed);
     swaps = game.swaps;
-    for (const s of [5, 25, 44]) if (!at[s] && game.elapsed >= s) at[s] = { n: game.balloons.length + game.pending, curl: game.curl() };
+    for (const s of [5, 15, 25, 30, 44]) if (!at[s] && game.elapsed >= s) at[s] = { n: game.balloons.length + game.pending, curl: game.curl() };
   }
   console.log('snippit ramp', at, swapTimes.map((t) => +t.toFixed(1)));
   assert.equal(at[5].n, 3, 'three balloons at first');
-  assert.ok(at[44].n > at[25].n && at[25].n > at[5].n, 'the bunch grows');
-  assert.ok(at[44].curl > at[25].curl && at[25].curl > at[5].curl * 2, 'the strings curl more');
-  assert.ok(swapTimes[0] > 15, 'no wind in the first third');
+  assert.ok(at[44].n >= at[25].n && at[25].n > at[15].n && at[15].n > at[5].n, 'the bunch grows');
+  assert.ok(at[44].curl > at[30].curl && at[30].curl > at[15].curl && at[15].curl > at[5].curl, 'the strings curl more, third by third');
+  assert.ok(at[15].curl - at[5].curl < (at[44].curl - at[5].curl) / 3, 'the first third stays on the gentle side');
+  assert.ok(swapTimes[0] > 20, 'no wind in the first half');
   const gaps = swapTimes.slice(1).map((t, i) => t - swapTimes[i]);
-  assert.ok(gaps.length >= 3 && gaps[gaps.length - 1] < gaps[0], `the wind jostles more often: ${gaps}`);
+  assert.ok(gaps.length >= 2 && gaps[gaps.length - 1] < gaps[0], `the wind jostles more often: ${gaps}`);
+  // Easier never brings the wind; Harder brings it from the start.
+  const easy = create(env(3, { difficulty: 'easier' }));
+  for (let i = 0; i < 45 * 60 && !easy.done; i++) easy.update(1 / 60, blank());
+  assert.equal(easy.swaps, 0);
+  assert.equal(create(env(3, { difficulty: 'harder' })).swapGap(), 5);
 });
 
 test('snippit: snipping the asked-for string scores and lets it go', () => {
@@ -135,8 +176,8 @@ test('snippit: the tangle is never straight at the start, and grows over time', 
     const bySky = [...game.balloons].sort((a, b) => a.bx - b.bx);
     assert.ok(byKnot.some((b, i) => bySky[i] !== b), `seed ${seed}: some strings cross`);
   }
-  const game = create(env(1));
-  for (let i = 0; i < 60 * 35; i++) game.update(1 / 60, blank());
+  const game = create(env(1, { difficulty: 'harder' }));
+  for (let i = 0; i < 60 * 42; i++) game.update(1 / 60, blank());
   assert.equal(game.balloons.length, 6);
   assert.equal(new Set(game.balloons.map((b) => b.color)).size, 6, 'every colour once');
 });

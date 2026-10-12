@@ -15,29 +15,50 @@ leaf (about one in eleven). Only what the broom has touched in the last
 three seconds goes in; anything else, blown or drifting, bumps off the
 pan's lip, so a gust never scores for you.
 
-**Difficulty over the round.** One eased curve (`level()`, progress to the
-power 1.6) drives every knob, so the first third stays gentle, the middle
-is about the old average and the end is harder than before (2026-10-12).
-No wind for the first 13 s. Then gusts, warned ahead by the tree's leaves
-shivering and a "Gust!" arrow (1.6 s at first, 1.0 s by the end), blow
-everything loose across the floor for 1.5 s, every 14 s at first and every
-7 s by the end, and harder as they go (0.7 to 1.25 times the old push);
-they leave swept things alone. Leaves fall faster (every 2.0 s, down to
-1.0 s; at most 18 on the floor). The pan's mouth narrows from 120 to 100
-floor units each side. The dustpan moves to another wall (left, right or
-back) after every eight sweepings.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+medium / hard (hard about the old end of the round, medium a little gentler
+than the old middle):
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Seconds between falling leaves | 2.0 | 1.7 | 1.0 |
+| Seconds between gusts (plus up to 2) | 14 | 12 | 7 |
+| Gust strength (times the old push) | 0.7 | 0.86 | 1.25 |
+| Gust warning (s) | 1.6 | 1.42 | 1.0 |
+| Half the pan's mouth (floor units) | 120 | 114 | 100 |
+
+No wind for the first 13 s. Gusts, warned ahead by the tree's leaves
+shivering and a "Gust!" arrow, blow everything loose across the floor for
+1.5 s; they leave swept things alone. At most 18 things lie on the floor.
+The dustpan moves to another wall (left, right or back) after every eight
+sweepings.
 
 **Controls.** Controller: left stick or D-pad sweeps, A flicks. Keyboard:
 arrows or WASD sweep, Space flicks. Mouse or touch: the broom follows the
 pointer, so a quick swipe pushes hard; click or tap to flick. On a narrow
 screen the view follows the broom, 1000 wide.
 
-**Pass.** 15 points. Sweeping is physical, so runs vary; bots over seeds
-1–10, since the ramp: a beginner (two-thirds speed, slower to line up, no
-flicks) 15–30, average 22 (was 16–23); a good sweeper 21–30, average 26
-(was 22–32); one that also flicks 17–30; running about at random and
-flicking 0–5; wandering in smooth loops 7–12 (at most 14 over forty seeds);
-zigzagging along the floor 2–3; idle 0.
+**Pass.** 15 points (unchanged). Sweeping is physical, so runs vary. Bots
+over seeds 1–12, mean [range] share passing: medium is the old beginner
+(two-thirds speed, slower to line up, no flicks); clumsy goes at a quarter
+speed and lines up loosely; good is full speed without flicks, flicker
+with them. Flail runs about at random flicking, wander loops smoothly,
+zigzag sweeps back and forth.
+
+| Level | Idle | Flail | Zigzag | Wander | Clumsy | Medium | Good | Flicker |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 3 [0–9] | 4 [1–6] | 8 [2–14] | 13 [7–18] 25% | 22 [18–26] 100% | 24 [18–32] | 24 [19–34] |
+| Normal | 0 | 3 [0–10] | 3 [1–6] | 6 [1–12] | 13 [8–19] 25% | 21 [15–26] 100% | 24 [20–31] | 24 [19–31] |
+| Harder | 0 | 5 [0–13] | 3 [1–6] | 8 [3–12] | 12 [7–18] 17% | 20 [16–26] 100% | 25 [20–31] | 28 [20–37] |
+
+The levels hardly move the scores here. What holds a sweeper back is its
+own speed about the floor; gusts leave swept things alone and the funnel
+forgives near misses, so Easier's softer gusts and wider pan barely help,
+and its fewer leaves lower the ceiling. Easier does not let the clumsy
+sweeper pass more than Normal does (the guide asks for it to); a stronger
+Easier would need a change to how the game scores, not a light retune.
 
 **Images.** IC-M06a is the courtyard, its floor of flagstones kept
 completely clear. IC-M06b is four leaves, a dust ball, a feather, a golden

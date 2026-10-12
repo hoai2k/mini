@@ -22,6 +22,7 @@
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.niffyWalkers': [3, 2], // six passers-by walking left, nothing on them to snip
@@ -121,19 +122,18 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (slow strollers, few balloons, a Keeper who seldom looks round), about
-  // the old average by the middle, and harder than before at the end. Every
-  // knob below follows this one curve.
-  const level = () => Math.pow(progress(), 1.6);
-  g.level = level;
-  g.walkSpeed = () => lerp(80, 175, level());
-  g.walkerGap = () => lerp(1.75, 0.82, level()); // seconds between strollers
-  g.balloonChance = () => lerp(0.12, 0.34, level());
-  g.pairChance = () => 0.32 * clamp((level() - 0.3) / 0.7, 0, 1); // two things on one stroller
-  g.keeperAway = () => lerp(4.8, 2.0, level()); // seconds with his back turned
-  g.keeperWatch = () => lerp(1.2, 2.6, level()); // seconds he looks round
-  g.keeperTurn = () => lerp(1.0, 0.45, level()); // the warning before he looks
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): slow strollers, few balloons and a Keeper
+  // who seldom looks round at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.walkSpeed = () => knob(g.d(), 80, 108, 175); // px/s
+  g.walkerGap = () => knob(g.d(), 1.75, 1.47, 0.82); // seconds between strollers
+  g.balloonChance = () => knob(g.d(), 0.12, 0.19, 0.34);
+  g.pairChance = () => knob(g.d(), 0, 0, 0.32); // two things on one stroller
+  g.keeperAway = () => knob(g.d(), 4.8, 4.0, 2.0); // seconds with his back turned
+  g.keeperWatch = () => knob(g.d(), 1.2, 1.6, 2.6); // seconds he looks round
+  g.keeperTurn = () => knob(g.d(), 1.0, 0.85, 0.45); // seconds of warning before he looks
   const add = (n) => {
     g.score = Math.max(0, g.score + n);
   };

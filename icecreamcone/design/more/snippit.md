@@ -17,25 +17,45 @@ for 0.8 s; the same balloon is still wanted. A snip away from every knot
 does nothing. Each snipped balloon is replaced by a new one dropping into
 the bunch in a colour not already there.
 
-**Difficulty over the round.** One eased curve (`levelAt`, progress to the
-power 1.6) drives every knob, so the first third stays gentle, the middle
-is about the old average and the end is harder than before (2026-10-12).
-Three balloons at first, four from about 12 s, five from 22 s, six from
-33 s. Strings curl more as the game goes on (25 up to 195, was 30 to 180),
-so they cross more than once. From about 21 s the wind jostles the bunch,
-first every 5 s and down to every 2.4 s by the end (was 4.5 s, then 3 s):
-two neighbours drift past each other, re-crossing their strings while you
-look.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`../difficulty.md`; 2026-10-12): 0 easy, 0.5 medium, 1 hard; Normal is
+medium by two-thirds of the round and ends at 0.85. Each knob is easy /
+medium / hard (hard about the old end of the round, medium a little gentler
+than the old middle):
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Balloons in the bunch (rounded) | 3 | 4.6 | 6 |
+| How far a string may curl (px) | 25 | 76 | 195 |
+| Seconds between wind swaps | none | 5 | 2.4 |
+
+At Normal: three balloons at first, four from about 11 s, five from about
+21 s; six only at Harder (from about 37 s). The wind jostles the bunch from
+d 0.45 (about 25 s in at Normal, from the start at Harder, never at
+Easier): two neighbours drift past each other, re-crossing their strings
+while you look.
 
 **Controls.** Controller: left stick or D-pad walks and turns, A snips. Keyboard:
 arrows or A/D walk, Space snips. Mouse or touch: the Snippit follows the
 pointer; a click or tap snips at the knot under it straight away. On a
 narrow screen the view keeps the whole tangle (1000 wide) in sight.
 
-**Pass.** 120 points. Bots (seeds 1–10, since the ramp): a beginner (slow
-to look, one string in eight wrong) 120–240, average 177 (was 140–210,
-average 182); a good snipper 445–675; walking up and down snipping all the
-time 0–30; standing still and snipping 0; idle 0.
+**Pass.** 120 points (unchanged). Bots over seeds 1–12, mean [range] share
+passing: medium is the old beginner (slow to look, one string in eight
+wrong); clumsy is a little slower and loses the string more often the
+bigger and curlier the tangle (1 − 0.06 per balloon over two − curl/800 of
+the time right); good is quick and sure. Mash walks up and down snipping
+all the time; camp stands still and snips.
+
+| Level | Idle | Mash | Camp | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 27 [0–65] | 0 | 150 [60–235] 67% | 191 [110–275] 92% | 559 [400–735] |
+| Normal | 0 | 17 [0–55] | 1 [0–10] | 125 [70–190] 42% | 190 [150–250] 100% | 593 [475–720] |
+| Harder | 0 | 13 [0–65] | 2 [0–20] | 90 [15–140] 17% | 185 [140–225] 100% | 636 [585–675] |
+
+A wrong string costs a balloon and a moment, so a clumsy round swings a
+lot: Easier lets it pass two rounds in three, not the guide's three in
+four, and Normal a little under half.
 
 **Images.** IC-M04a is the fairground fence behind it all, with the top
 rail kept plain for the knots and the sky kept empty for the bunch. IC-M04b

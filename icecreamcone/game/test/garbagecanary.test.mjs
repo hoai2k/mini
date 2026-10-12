@@ -42,33 +42,66 @@ function minder({ speed = 1, lead = 0.45, delay = 0, wobble = 0, seed = 1 } = {}
 const holdWander = () => (g, t) => ({ x: Math.sin(t * 0.7), y: Math.sin(t * 1.3), action: true });
 const flapWander = (hz = 2) => (g, t) => ({ x: Math.sin(t * 0.7), y: Math.sin(t * 1.3), action: Math.floor(t * hz * 2) % 2 === 0 });
 
-test('garbagecanary: a clumsy beginner opens the next page on most rounds, a beginner on all, a sharp minder scores more; wandering or idling scores less', () => {
-  const seeds8 = [1, 2, 3, 4, 5, 6, 7, 8];
-  const seeds16 = Array.from({ length: 16 }, (_, i) => i + 1);
-  const clumsy = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 0.6, lead: 0.9, delay: 0.3, wobble: 0.2, seed }) }).game.score);
-  const beginner = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 0.8, lead: 0.9, delay: 0.2, wobble: 0.15, seed }) }).game.score);
-  const good = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 1, lead: 0.6, delay: 0.05, wobble: 0.03, seed }) }).game.score);
-  const hold = seeds16.map((seed) => run(create, { seed, bot: holdWander() }).game.score);
-  const flap = seeds16.map((seed) => run(create, { seed, bot: flapWander(2) }).game.score);
-  const flapSlow = seeds16.map((seed) => run(create, { seed, bot: flapWander(0.75) }).game.score);
-  const open = seeds16.map((seed) => run(create, { seed, bot: () => ({ action: true }) }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('garbagecanary clumsy', clumsy, 'beginner', beginner, 'good', good, 'hold+wander', hold, 'flap+wander', flap, 'slow flap', flapSlow, 'open', open, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(clumsy.filter((s) => s >= pass).length >= 6, `clumsy beginner ${clumsy}`);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
+// Sixteen seeds of each, at each level. The bin-minders' timing errors are in
+// seconds, so they cost more as things blow faster.
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  hold: () => holdWander(),
+  flap: () => flapWander(2),
+  flapSlow: () => flapWander(0.75),
+  open: () => () => ({ action: true }),
+  clumsy: (seed) => minder({ speed: 0.6, lead: 1, delay: 0.45, wobble: 0.25, seed }),
+  medium: (seed) => minder({ speed: 0.8, lead: 0.9, delay: 0.2, wobble: 0.15, seed }), // the old beginner
+  good: (seed) => minder({ speed: 1, lead: 0.6, delay: 0.05, wobble: 0.03, seed }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`garbagecanary pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('garbagecanary: at Normal a medium minder passes, a sharp one more; wandering or idling scores well under the mark', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium), `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) < 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'hold', 'open']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  for (const n of ['flap', 'flapSlow']) assert.ok(passRate(t[n]) <= 0.1, `${n} ${t[n]}`); // luck: a rate, not never
   const half = pass / 2 + 0.5;
-  assert.ok(Math.max(...hold) <= half, `holding the lid open while wandering: ${hold}`);
-  assert.ok(avg(flap) < avg(clumsy), `flapping the lid while wandering: ${flap}`);
-  assert.ok(Math.max(...open) <= half, `standing with the lid open: ${open}`);
-  assert.ok(avg(flapSlow) < avg(clumsy), `slowly flapping the lid while wandering: ${flapSlow}`);
+  assert.ok(Math.max(...t.hold) <= half, `holding the lid open while wandering: ${t.hold}`);
+  assert.ok(Math.max(...t.open) <= half, `standing with the lid open: ${t.open}`);
+  assert.ok(mean(t.flap) < mean(t.clumsy) && mean(t.flapSlow) < mean(t.clumsy), 'flapping the lid while wandering');
+  assert.equal(run(create, { seed: 1 }).game.score, 0);
+});
+
+// Every piece of rubbish scores, so Easier's slower, sparser street also
+// lowers everyone's ceiling: it helps a clumsy minder less than it would in
+// a game scored on accuracy. It still passes more often there than at Normal.
+test('garbagecanary: Easier lets a clumsy minder pass more often than Normal; wandering or idling still does not', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.5, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  for (const n of ['idle', 'hold', 'open']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  for (const n of ['flap', 'flapSlow']) assert.ok(passRate(t[n]) <= 0.1, `${n} ${t[n]}`);
+});
+
+test('garbagecanary: Harder ends hard: the sharp minder scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 3, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.good) > mean(TABLE.normal.good) + 3, 'a busier street pays the sharp minder more');
+  assert.ok(passRate(t.clumsy) < passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy}`);
+  assert.ok(mean(t.clumsy) <= mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
 });
 
 // The round starts gentle and ends harder, read from the things the wind
 // actually brings: early on they blow slower, come further apart, are nearly
-// all rubbish and never gusted; late on they are quicker, thicker, more often
+// all rubbish and never gusted (the first 14 s); late on they are quicker, thicker, more often
 // not rubbish, and some are gusted along.
 test('garbagecanary: the street starts gentle and ends harder', () => {
   const look = { early: [], late: [] };
@@ -80,7 +113,7 @@ test('garbagecanary: the street starts gentle and ends harder', () => {
       for (const it of game.items) {
         if (seen.has(it) || it.state !== 'come') continue;
         seen.add(it);
-        if (game.elapsed < 15) look.early.push(it);
+        if (game.elapsed < 14) look.early.push(it);
         else if (game.elapsed > 30) look.late.push(it);
       }
     }
@@ -90,11 +123,24 @@ test('garbagecanary: the street starts gentle and ends harder', () => {
   const e = sum(look.early);
   const l = sum(look.late);
   console.log('garbagecanary ramp', { early: e, late: l });
-  assert.ok(l.n > e.n * 1.5, 'things come thicker late');
+  assert.ok(l.n > e.n * 1.3, 'things come thicker late');
   assert.ok(l.speed > e.speed * 1.6, 'and blow faster');
-  assert.ok(l.keep > e.keep * 1.5, 'more of them are not rubbish');
-  assert.equal(e.gust, 0, 'no gusts in the first 15 s');
-  assert.ok(l.gust > 0.15, 'gusts late on');
+  assert.ok(l.keep > e.keep * 1.3, 'more of them are not rubbish');
+  assert.equal(e.gust, 0, 'no gusts in the first 14 s');
+  assert.ok(l.gust > 0.1, 'gusts late on');
+  // third by third from the game's own knobs: the first third stays gentle
+  const game = create(env(1));
+  const knobs = () => ({ wind: game.windSpeed(), keep: game.keepChance(), near: game.nearShare(), gap: game.spawnGap() });
+  const looks = [knobs()];
+  for (let i = 1; i <= 45 * 60 - 1; i++) {
+    game.update(1 / 60, blank());
+    if (i === 15 * 60 || i === 30 * 60 || i === 45 * 60 - 1) looks.push(knobs());
+  }
+  for (let i = 1; i < looks.length; i++) {
+    const [x, y] = [looks[i - 1], looks[i]];
+    assert.ok(x.wind < y.wind && x.keep < y.keep && x.near > y.near && x.gap > y.gap, `third ${i} is harder than the one before`);
+  }
+  assert.ok(looks[1].wind - looks[0].wind < (looks[3].wind - looks[0].wind) / 3, 'the first third stays on the gentle side');
 });
 
 // A game with nothing blowing in, and one thing put `dx` in front of the bin

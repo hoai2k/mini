@@ -12,24 +12,53 @@ are five of a pentatonic scale (C D E G A), so any order sounds pleasant.
   note within 0.8 s ("Quick! +1"), and a whole tune played back 3 more. A
   wrong glass cracks it and ends that tune; so does waiting more than 5 s
   for the next note. Three cracks end the concert early (three little
-  glasses under the tune's dots count them). Most: 88. Pass: 30.
-- **Difficulty over the round.** Tunes of 2, 3, 3, 4, 4, 5, 7 and 8 notes,
-  on 3 glasses (C, E and A, far apart in pitch, colour and water level), then
-  4, then 5; the Goose plays faster (0.9 s down to 0.4 s between notes). The
-  first third (tunes 1–3) is gentle: short tunes on few glasses, played
-  slowly. The middle is the old normal; the last two tunes (7 and 8 notes,
-  0.47 and 0.4 s) are harder than the old 6 and 7 at 0.5 and 0.45 s
-  (2026-10-12). From the fifth tune a note can repeat (never three alike).
-  The tints are blue, green, yellow, pink and orange.
+  glasses under the tune's dots count them). Most: 76 at Normal (58 at Easier,
+  106 at Harder). Pass: 30.
+- **Difficulty over the tunes.** The shared curve (`g.d(i)`, see
+  `../difficulty.md`; 2026-10-12) runs from the first tune to the eighth: 0
+  easy, 0.5 medium, 1 hard; Normal is medium by two-thirds of the way and
+  ends at 0.85. Each knob is easy / medium / hard (`g.tuneAt(i)`):
+
+  | Knob | Easy | Medium | Hard |
+  | --- | --- | --- | --- |
+  | Glasses (rounded) | 3 | 4.4 | 5 |
+  | Notes in the tune (rounded) | 2 | 4 | 8 |
+  | Seconds between the Goose's notes | 0.9 | 0.66 | 0.4 |
+
+  Tunes as played (glasses / notes / gap):
+
+  | Level | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Easier | 3/2/0.90 | 3/2/0.89 | 3/2/0.85 | 3/3/0.81 | 3/3/0.78 | 4/3/0.78 | 4/3/0.76 | 4/3/0.73 |
+  | Normal | 3/2/0.90 | 3/2/0.87 | 4/3/0.80 | 4/3/0.72 | 4/4/0.67 | 4/4/0.65 | 5/5/0.60 | 5/7/0.48 |
+  | Harder | 4/4/0.68 | 4/4/0.67 | 4/5/0.62 | 4/5/0.57 | 5/6/0.54 | 5/6/0.53 | 5/7/0.48 | 5/8/0.40 |
+
+  (The old fixed list was 3/2, 3/3, 4/3, 4/4, 5/4, 5/5, 5/7, 5/8 from 0.9 s
+  down to 0.4 s; Harder ends on it.) Three glasses are C, E and A, far
+  apart in pitch, colour and water level. From the fifth tune a note can
+  repeat (never three alike). The tints are blue, green, yellow, pink and
+  orange.
 - **Controls.** Stick, D-pad, arrows or WASD step the Goose one glass at a
   time (holding repeats after a moment); A, Space or Enter taps. With a mouse
   or touch, the Goose goes to the glass under the pointer and a click or tap
   taps it. In your turn the glass the Goose is at lifts and is ringed in
   yellow. On a phone the whole row, the dots and the crack count stay in
   view.
-- **Bots (tests).** A beginner whose memory slips more on longer tunes, and
-  who is slow to tap, scores 32–62 over six seeds; a good ear 81–88; tapping at
-  random 0–2; idling 0.
+- **Bots (tests), seeds 1–16, pass 30 (unchanged).** Mean [range] share
+  passing. Each bot's memory slips more on longer tunes (a chance per note
+  of `slip` times the tune's length). Medium is the old beginner (slip
+  0.035, 0.6 s to tap); clumsy slips 0.055 and takes 0.9 s (so it seldom
+  earns the quick bonus); good slips 0.008, 0.4 s.
+
+  | Level | Idle | Mash | Clumsy | Medium | Good |
+  | --- | --- | --- | --- | --- | --- |
+  | Easier | 0 | 1 [0–2] | 31 [11–45] 63% | 47 [24–58] 88% | 56 [46–58] |
+  | Normal | 0 | 1 [0–2] | 26 [6–41] 31% | 47 [21–71] 81% | 71 [53–76] |
+  | Harder | 0 | 0 [0–1] | 14 [2–36] 6% | 39 [2–74] 63% | 88 [53–106] |
+
+  Easier's short tunes also mean fewer points to win (at most 58), so it
+  lets the clumsy ear pass about two rounds in three, not the guide's three
+  in four. Three cracks end the concert, so a single run swings a lot.
 
 ## Images (IC-M02)
 

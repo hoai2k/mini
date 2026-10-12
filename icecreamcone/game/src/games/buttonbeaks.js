@@ -12,7 +12,8 @@
 // come with more holes, and two more bowls of look-alike buttons join the tin. Score: buttons sewn on.
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 import { subjectShape } from '../subjects.js';
 
 Object.assign(SHEETS, {
@@ -95,19 +96,6 @@ export const KINDS = [
 ];
 const COAT_COLS = [PAL.mustard, PAL.olive, PAL.dusty, PAL.ochre, '#9aa8b8', PAL.mauve, '#c9b48a'];
 
-// Difficulty over the round, 0 to 1: slow to rise through the first third
-// (a slow line, one hole a coat, four bowls), about the old average by the
-// middle, and harder than before at the end. Every knob follows this curve.
-export const levelAt = (t) => Math.pow(Math.min(1, t / DURATION), 1.6);
-const bowlsAt = (t) => (levelAt(t) < 0.28 ? 4 : 6); // the look-alikes join at about 20 s
-const speedAt = (t) => lerp(75, 150, levelAt(t));
-const gapAt = (t) => lerp(330, 220, levelAt(t));
-// holes on a coat: one at first, about one and a half by the middle, two or
-// three (mostly three) at the end
-const holesAt = (t, r) => {
-  const h = lerp(1, 2.7, levelAt(t));
-  return Math.floor(h) + (r < h - Math.floor(h) ? 1 : 0);
-};
 export const bowlX = (i, n) => 800 + (i - (n - 1) / 2) * BOWL_GAP;
 const lineY = (x) => LINE_Y + SAG * Math.max(0, 1 - Math.pow((x - 800) / ((HOOK_R - HOOK_L) / 2), 2));
 
@@ -143,9 +131,28 @@ export default function create(env) {
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
+  // How hard it is now, 0 to 1, along the shared curve for the chosen
+  // Difficulty (see difficulty.js): a slow line, one hole a coat and four
+  // bowls at first. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(Math.min(1, g.elapsed / DURATION));
+  g.lineSpeed = () => knob(g.d(), 75, 98, 150); // px/s
+  g.coatGap = () => knob(g.d(), 330, 297, 220); // px of line between coats, plus up to 80
+  g.holesMean = () => knob(g.d(), 1, 1.45, 2.7); // holes on a coat, on average
+  // the two bowls of look-alikes join a little before medium (about 19 s in
+  // at Normal; never at Easier)
+  g.bowlsNow = () => (g.d() < 0.36 ? 4 : 6);
+  // holes on a coat: one at first, about one and a half at medium, two or
+  // three (mostly three) at hard
+  const holesNow = (r) => {
+    const h = g.holesMean();
+    return Math.floor(h) + (r < h - Math.floor(h) ? 1 : 0);
+  };
+  g.bowls = g.bowlsNow();
+
   function addCoat(x) {
-    const kinds = bowlsAt(g.elapsed);
-    const n = holesAt(g.elapsed, rng());
+    const kinds = g.bowlsNow();
+    const n = holesNow(rng());
     const rows = n === 1 ? [1] : n === 2 ? [0, 2] : [0, 1, 2];
     g.coats.push({
       x,
@@ -159,10 +166,9 @@ export default function create(env) {
   // Two coats already on their way in.
   addCoat(W - 420);
   addCoat(W - 70);
-  g.nextCoat = gapAt(0) - 70;
+  g.nextCoat = g.coatGap() - 70;
 
   g.coatTop = (coat) => lineY(coat.x) + 8;
-  g.lineSpeed = () => speedAt(g.elapsed);
   g.bowlX = (i) => bowlX(i, g.bowls);
   // The bowl in front of the Buttonbeaks, if any.
   g.overBowl = (x = g.x) => {
@@ -234,7 +240,7 @@ export default function create(env) {
     g.pickT = Math.max(0, g.pickT - dt);
     g.cheerT = Math.max(0, g.cheerT - dt);
     const was = g.x;
-    const nb = bowlsAt(g.elapsed);
+    const nb = g.bowlsNow();
     if (nb !== g.bowls) {
       g.bowls = nb;
       pop('New buttons!', 800, BOWL_Y - 120, PAL.magenta, 46);
@@ -267,7 +273,7 @@ export default function create(env) {
     }
 
     // The line moves along.
-    const v = speedAt(g.elapsed);
+    const v = g.lineSpeed();
     for (const coat of g.coats) {
       coat.x -= v * dt;
       coat.swing = Math.max(0, coat.swing - dt);
@@ -282,7 +288,7 @@ export default function create(env) {
     g.nextCoat -= v * dt;
     if (g.nextCoat <= 0) {
       addCoat(W + COAT_W / 2 + 20);
-      g.nextCoat = gapAt(g.elapsed) + rng() * 80;
+      g.nextCoat = g.coatGap() + rng() * 80;
     }
 
     for (const b of g.flying) {
