@@ -2,8 +2,11 @@
 // karts) on phone-sized seats:
 //   - the countdown holds everyone on the grid, then GO starts the race and
 //     the karts drive off on their own (auto-accelerate);
-//   - holding steer turns the kart;
-//   - driving through an item box gives an item;
+//   - touch: dragging a finger right of where it went down turns right, left
+//     turns left, dragging it well down brakes (and reverses), sliding back up
+//     lets go, and a second finger starts a drift; the controller stick steers;
+//   - driving through an item box gives an item, a second box a second item
+//     (the item button shows both), and using one leaves the other;
 //   - a banana peel dropped by one racer spins the other out with kart parts
 //     flying, and both see it;
 //   - a thrown bomb goes off for both;
@@ -38,6 +41,23 @@ const check = (ok, what) => {
 const pause = ms => page.waitForTimeout(ms);
 const info = i => page.evaluate(i => window.seats[i].gh.current.instance._test.info(), i);
 const call = (i, fn, ...args) => page.evaluate(([i, fn, args]) => window.seats[i].gh.current.instance._test[fn](...args), [i, fn, args]);
+// Real touches through the DevTools protocol (they arrive as touch pointer events).
+const cdp = await page.context().newCDPSession(page);
+const fingers = new Map();       // id -> [x, y]
+// Each event names only the finger it's about (as Puppeteer's touch handles do).
+const touchOne = (type, id) => { const [x, y] = fingers.get(id); return cdp.send('Input.dispatchTouchEvent', { type, touchPoints: [{ x, y, id }] }); };
+const down = async (id, x, y) => { fingers.set(id, [x, y]); await touchOne('touchStart', id); };
+const move = async (id, x, y, steps = 6) => {
+  const [x0, y0] = fingers.get(id);
+  for (let i = 1; i <= steps; i++) {
+    fingers.set(id, [x0 + ((x - x0) * i) / steps, y0 + ((y - y0) * i) / steps]);
+    await touchOne('touchMove', id);
+    await pause(16);
+  }
+};
+const up = async id => { await touchOne('touchEnd', id); fingers.delete(id); };
+const rectOf = (i, sel) => page.evaluate(([i, sel]) => { const r = window.seats[i].el.querySelector(sel).getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }, [i, sel]);
+const turned = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const until = async (fn, ms, what) => {
   const end = Date.now() + ms;
   while (Date.now() < end) {
@@ -65,7 +85,81 @@ const until = async (fn, ms, what) => {
   check(c.ground === 'webgl', `the ground is drawn with WebGL (${c.ground})`);
 }
 
-// 2. Steering: hold left on the controller, then right.
+// 2. Touch steering on seat 1: drag from where the finger goes down.
+{
+  const c = await rectOf(0, '.kd-wrap canvas.g-canvas');
+  const vh = page.viewportSize().height;
+  // Touch down a little left of centre (the anchor is the touch point, not the centre).
+  const x0 = c.x + c.w * 0.4, y0 = Math.min(c.y + c.h * 0.5, vh - 140);
+  const t = await call(0, 'touch');
+  console.log(`  seat ${t.w}x${t.h}: full lock ${Math.max(48, Math.min(100, Math.min(t.w, t.h) * 0.14)).toFixed(0)} px sideways, brake ${Math.max(48, Math.min(110, t.h * 0.1)).toFixed(0)} px down`);
+  await call(0, 'place', 40, 0, 20);
+  await down(1, x0, y0);
+  await pause(250);
+  const a = await info(0), ta = await call(0, 'touch');
+  check(ta.drag && Math.abs(ta.steer) < 0.05 && a.me.v > 15, `a finger resting where it went down (left of centre) steers straight (${ta.steer.toFixed(2)})`);
+  await move(1, x0 + 70, y0);
+  await pause(450);
+  const b = await info(0), tb = await call(0, 'touch');
+  const turnR = turned(a.me.h, b.me.h);
+  check(tb.drag.steer === 1 && turnR > 0.3, `dragging right turns right (steer ${tb.drag.steer.toFixed(2)}, ${turnR.toFixed(2)} rad)`);
+  await page.screenshot({ path: `${outDir}kart-steer.png` });
+  // Back the other way: the anchor followed past full lock, so this is full left at once.
+  await call(0, 'place', 40, 0, 20);
+  const b2 = await info(0);
+  await move(1, x0 - 70, y0);
+  await pause(450);
+  const d = await info(0), td = await call(0, 'touch');
+  const turnL = turned(b2.me.h, d.me.h);
+  check(td.drag.steer === -1 && turnL < -0.3, `dragging left turns left (steer ${td.drag.steer.toFixed(2)}, ${turnL.toFixed(2)} rad)`);
+  // A small drift of the finger back near the anchor steers gently.
+  await move(1, td.drag.x0 + c.x + 18, y0);
+  await pause(150);
+  const tg = await call(0, 'touch');
+  check(tg.drag.steer > 0 && tg.drag.steer < 0.35, `a small drag steers gently (${tg.drag.steer.toFixed(2)})`);
+  await up(1);
+  await pause(200);
+  check(!(await call(0, 'touch')).drag, 'lifting the finger lets go of the steering');
+
+  // Dragging down brakes, keeps going into reverse, and sliding back up lets go.
+  await call(0, 'place', 40, 0, 22);
+  await down(1, x0, y0 - 40);
+  await pause(150);
+  await move(1, x0, y0 - 40 + 30);
+  await pause(300);
+  const e0 = await info(0);
+  check(!(await call(0, 'touch')).drag.brake && e0.me.v > 18, `a short drag down doesn't brake (${e0.me.v.toFixed(1)} m/s)`);
+  await move(1, x0, y0 - 40 + 100);
+  await pause(700);
+  const e1 = await info(0);
+  check((await call(0, 'touch')).drag.brake && e1.me.v < 8, `dragging well down brakes the kart (${e0.me.v.toFixed(1)} -> ${e1.me.v.toFixed(1)} m/s)`);
+  await pause(700);
+  const e2 = await info(0);
+  check(e2.me.v < 0, `still holding it down reverses (${e2.me.v.toFixed(1)} m/s)`);
+  await move(1, x0, y0 - 40 + 20);
+  await pause(800);
+  const e3 = await info(0);
+  check(!(await call(0, 'touch')).drag.brake && e3.me.v > 5, `sliding back up lets go and the kart drives on (${e3.me.v.toFixed(1)} m/s)`);
+  await up(1);
+
+  // A second finger while steering starts a drift (with a hop); letting it go ends it.
+  await call(0, 'place', 40, 0, 22);
+  await pause(100);
+  await down(1, x0, y0);
+  await move(1, x0 + 50, y0);
+  await down(2, c.x + c.w * 0.75, y0 - 120);
+  const drifted = await until(async () => (await info(0)).me.drift !== 0, 1500, 'the drift');
+  const f = await info(0), tf = await call(0, 'touch');
+  check(drifted && f.me.drift === 1 && tf.extra === 1, `a second finger while steering right starts a drift to the right (${f.me.drift})`);
+  await pause(250);
+  await page.screenshot({ path: `${outDir}kart-drift.png` });
+  await up(2);
+  await pause(200);
+  check((await info(0)).me.drift === 0, 'lifting the second finger ends the drift');
+  await up(1);
+}
+
+// 2b. The controller stick steers too.
 {
   await call(0, 'place', 40, 0, 20);
   await pause(200);
@@ -77,11 +171,11 @@ const until = async (fn, ms, what) => {
   await pause(500);
   const h2 = (await info(0)).me.h;
   await page.evaluate(() => window.seats[0].pad({ x: 0 }));
-  const turnL = Math.atan2(Math.sin(h1 - h0), Math.cos(h1 - h0)), turnR = Math.atan2(Math.sin(h2 - h1), Math.cos(h2 - h1));
-  check(turnL < -0.3 && turnR > 0.3, `holding left turns left (${turnL.toFixed(2)} rad) and right turns right (${turnR.toFixed(2)} rad)`);
+  const turnL = turned(h0, h1), turnR = turned(h1, h2);
+  check(turnL < -0.3 && turnR > 0.3, `the stick turns left (${turnL.toFixed(2)} rad) and right (${turnR.toFixed(2)} rad)`);
 }
 
-// 3. An item box gives an item.
+// 3. An item box gives an item; a second box a second one; using one leaves the other.
 {
   const boxes = await call(0, 'boxes');
   const length = (await info(0)).length;
@@ -89,11 +183,37 @@ const until = async (fn, ms, what) => {
   await call(0, 'place', length * 0.2 - 8, -1.8, 18);
   const got = await until(async () => { const i = await info(0); return i.me.item && !i.me.roll; }, 3000, 'an item');
   const i = await info(0);
-  check(got && ['boost', 'banana', 'bomb', 'star'].includes(i.me.item), `driving through an item box gives an item (${i.me.item}, ${boxes.length} boxes, ${i.boxesUp} up)`);
+  check(got && ['boost', 'banana', 'bomb', 'star'].includes(i.me.item) && i.me.items.length === 1, `driving through an item box gives an item (${i.me.item}, ${boxes.length} boxes, ${i.boxesUp} up)`);
   const other = await until(async () => (await info(1)).boxesUp < 12, 2000, 'the box to vanish for the other racer');
   check(other, 'the taken box disappears for the other racer too');
   await pause(300);
   await page.screenshot({ path: `${outDir}kart-item.png` });
+  // The next row of boxes, just under halfway round.
+  await call(0, 'place', length * 0.47 - 8, 1.8, 18);
+  const got2 = await until(async () => { const j = await info(0); return j.me.items.length === 2 && !j.me.roll; }, 3000, 'a second item');
+  const j = await info(0);
+  check(got2 && j.me.items[0] === i.me.item && j.me.items.length === 2, `a second box fills the second slot (${j.me.items.join(' + ')})`);
+  const nextShown = await page.evaluate(() => !window.seats[0].el.querySelector('.kd-next').classList.contains('empty'));
+  check(nextShown, 'the item button shows the queued item beside the current one');
+  await call(0, 'place', length * 0.55, 0, 0);
+  await pause(200);
+  await page.screenshot({ path: `${outDir}kart-two-items.png` });
+  // Use one with a tap on the item button: the second moves up. (Swapped for a
+  // boost and a star first, so no peel or bomb is left lying for the next test.)
+  await call(0, 'give', 'boost');
+  await call(0, 'give', 'star', true);
+  const btn = await rectOf(0, '.kd-item');
+  await down(5, btn.x + btn.w / 2, btn.y + btn.h / 2);
+  await pause(60);
+  const tapTouch = await call(0, 'touch');
+  await up(5);
+  const used = await until(async () => (await info(0)).me.items.length === 1, 1500, 'the item to be used');
+  await pause(500);
+  const k = await info(0);
+  check(used && k.me.items.length === 1 && k.me.items[0] === 'star' && k.me.boost > 0, `tapping the item button uses the first item and the second moves up (${k.me.items.join(', ')})`);
+  check(!tapTouch.drag, 'a finger on the item button does not steer');
+  await pause(200);
+  check(await page.evaluate(() => window.seats[0].el.querySelector('.kd-next').classList.contains('empty')), 'the queued slot is greyed out again');
 }
 
 // 4. A banana peel spins the other racer out, parts flying.
@@ -103,9 +223,11 @@ const until = async (fn, ms, what) => {
   await call(0, 'give', 'banana');
   await pause(100);
   await call(0, 'use');
-  await until(async () => (await info(1)).bananas === 1, 3000, 'the peel to reach the other racer');
-  const peel = (await call(0, 'bananaList'))[0];
-  check(!!peel && (await info(1)).bananas === 1, 'a dropped banana peel shows for both racers');
+  // (Computer karts may have peels down too: look for mine by its id.)
+  const mineOf = async i => (await call(i, 'bananaList')).find(b => b.id.startsWith('client1.'));
+  await until(async () => !!(await mineOf(1)), 3000, 'the peel to reach the other racer');
+  const peel = await mineOf(0);
+  check(!!peel && (await mineOf(1))?.id === peel.id, 'a dropped banana peel shows for both racers');
   // Seat 1 drives straight into it from behind.
   await call(0, 'place', length * 0.5, 0, 0);
   await call(1, 'place', length * 0.32 - 8, 2, 16);
@@ -116,8 +238,8 @@ const until = async (fn, ms, what) => {
   await page.screenshot({ path: `${outDir}kart-banana.png` });
   const seen = await until(async () => { const i = await info(0); return i.karts.find(k => k.id === 'client2')?.spin || i.counts.bursts > 0; }, 2000, 'the other racer to see the spin');
   const s0 = await info(0);
-  check(seen && s0.counts.bursts > 0 && s0.bananas === 0, `the other racer sees the spin-out and its parts (${s0.counts.bursts} bursts) and the peel is gone`);
-  void peel;
+  const gone = !(await call(0, 'bananaList')).some(b => b.id === peel?.id);
+  check(seen && s0.counts.bursts > 0 && gone, `the other racer sees the spin-out and its parts (${s0.counts.bursts} bursts) and the peel is gone`);
 }
 
 // 5. A bomb goes off.
