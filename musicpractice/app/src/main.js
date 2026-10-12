@@ -2,10 +2,10 @@
 
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
-import { openAudioCheck } from './audiocheck.js';
-import { diag, isWebKit } from './devices.js';
+import { openAudioCheck, renderMicTip } from './audiocheck.js';
+import { diag, isWebKit, isIOS, micPermission } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
-import { Recorder } from './recorder.js';
+import { Recorder, freesMicForPlayback } from './recorder.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -404,7 +404,27 @@ async function startRecorder() {
     recError = micError(err);
   }
   if (recorder.micOpen) markStale();
+  showMicTip();
   showState();
+}
+
+/**
+ * iPhone only: once the recorder has the mic, if it isn't set to Allow (so the
+ * app has to keep it open and takes stay off Bluetooth), say so and how to
+ * fix it. Not now hides it for this visit; Don't show again for good.
+ */
+let micTipDismissed = false;
+function showMicTip() {
+  const tip = $('mic-tip');
+  const show = isIOS() && !!recorder?.holdsMic && !freesMicForPlayback()
+    && micPermission() !== 'denied' && !settings.hideMicTip && !micTipDismissed;
+  if (show && !tip.firstChild) {
+    renderMicTip(tip, {
+      onNotNow: () => { micTipDismissed = true; tip.hidden = true; },
+      onNever: () => { settings.hideMicTip = true; persist(); tip.hidden = true; },
+    });
+  }
+  tip.hidden = !show;
 }
 
 function micError(err) {

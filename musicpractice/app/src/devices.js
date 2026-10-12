@@ -52,6 +52,10 @@ export const onPermissionChange = (f) => listeners.add(f);
 /** Can this browser send a page's sound to a chosen speaker? */
 export const canChooseSpeaker = () => typeof HTMLMediaElement !== 'undefined' && 'setSinkId' in HTMLMediaElement.prototype;
 
+/** An iPhone or iPad (iPadOS reports itself as a Mac with a touch screen). */
+export const isIOS = () => /iP(hone|ad|od)/.test(globalThis.navigator?.userAgent || '')
+  || (globalThis.navigator?.platform === 'MacIntel' && globalThis.navigator?.maxTouchPoints > 1);
+
 /** iPhone/iPad (every browser there is Safari underneath) or Safari on a Mac. */
 export const isWebKit = () => typeof globalThis.GestureEvent !== 'undefined' || /iP(hone|ad|od)/.test(globalThis.navigator?.userAgent || '');
 

@@ -975,3 +975,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .ac-details dt { color: var(--ink-3); }
 .ac-details dd { margin: 0; overflow-wrap: anywhere; }
 #audio-check .select { max-width: 60%; min-width: 0; text-overflow: ellipsis; }
+
+/* iPhone microphone tip on the Playback Recorder */
+.mic-tip { margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--brass); border-radius: min(var(--radius), 12px); background: var(--panel); line-height: 1.45; display: grid; gap: 8px; }
+.mic-tip p { margin: 0; }
+.mic-tip .mic-tip-title { font-weight: 700; color: var(--brass-2); }
+.mic-tip-actions { display: flex; flex-wrap: wrap; gap: 8px; }

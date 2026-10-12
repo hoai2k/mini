@@ -222,6 +222,12 @@ asks again unless the site's microphone is set to Allow. So
   stops for a prompt; sound stays on the phone's speaker. Audio check says
   so and shows how to set the site's microphone to Allow (a web page can't
   open those settings itself).
+- **iPhone tip**: on iPhone and iPad, when the Playback Recorder opens and
+  the mic turns out not to be set to Allow, a card at the top of the screen
+  says why takes stay on the phone's speaker and gives the steps (Safari's
+  aA → Website Settings → Microphone → Allow, or the Settings app for a Home
+  Screen web app) with a Reload button. It doesn't block recording. Not now
+  hides it for the visit, Don't show again for good.
 - **Safeguard**: if taking the mic back ever takes over 0.9 s (a prompt
   appeared after all), the mic is held for the rest of the visit.
 - The mic is asked for again only when the browser reports the held one

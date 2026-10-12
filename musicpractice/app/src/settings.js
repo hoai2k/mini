@@ -60,6 +60,7 @@ export const DEFAULTS = Object.freeze({
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
+  hideMicTip: false, // "Don't show again" on the iPhone microphone tip
 });
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -92,6 +93,7 @@ export function sanitize(raw) {
     mic: typeof s.mic === 'string' && s.mic.length < 200 ? s.mic : DEFAULTS.mic,
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
+    hideMicTip: s.hideMicTip === true,
   };
 }
 

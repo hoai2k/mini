@@ -61,16 +61,7 @@ async function render() {
         : '',
       'Once the Playback Recorder has been opened, sound plays on the phone\'s own speaker rather than a Bluetooth speaker: the mic is kept open so your browser doesn\'t ask for permission after every take. ',
       'To play on Bluetooth, allow the microphone for this site permanently, then reload:');
-    steps = isWebKit()
-      ? el('ol', { class: 'ac-steps' },
-          el('li', {}, 'In Safari, tap ', el('b', {}, 'aA'), ' (or the page menu) at the left of the address bar.'),
-          el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), '.'),
-          el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.'),
-          el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), ' below.'))
-      : el('ol', { class: 'ac-steps' },
-          el('li', {}, 'Tap the icon at the left of the address bar (site information).'),
-          el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), ' (always, not just this time).'),
-          el('li', {}, 'Tap ', el('b', {}, 'Reload'), ' below.'));
+    steps = allowSteps();
   }
 
   // Microphone choice
@@ -159,6 +150,42 @@ function lastPlaybackText() {
     `Safari mode ${p.session ?? 'n/a'}${p.sessionState ? ` (${p.sessionState})` : ''}`,
     `via ${p.via}`,
   ].join('; ');
+}
+
+/** How to set this site's microphone to Allow, for this browser. */
+export function allowSteps() {
+  if (isWebKit()) {
+    const standalone = globalThis.navigator?.standalone || matchMedia('(display-mode: standalone)').matches;
+    return el('ol', { class: 'ac-steps' },
+      standalone
+        ? el('li', {}, 'Open the ', el('b', {}, 'Settings'), ' app, then ', el('b', {}, 'Apps → Safari → Microphone'), ', and choose ', el('b', {}, 'Allow'), '.')
+        : [
+            el('li', {}, 'In Safari, tap ', el('b', {}, 'aA'), ' (or the page menu) at the left of the address bar.'),
+            el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), '.'),
+            el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.'),
+          ],
+      el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'));
+  }
+  return el('ol', { class: 'ac-steps' },
+    el('li', {}, 'Tap the icon at the left of the address bar (site information).'),
+    el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), ' (always, not just this time).'),
+    el('li', {}, 'Tap ', el('b', {}, 'Reload'), '.'));
+}
+
+/**
+ * On iPhone, opening the Playback Recorder with the mic not set to Allow:
+ * a card at the top of the screen says why takes stay on the phone's speaker
+ * and how to fix it. It doesn't block recording.
+ */
+export function renderMicTip(container, { onNotNow, onNever }) {
+  container.replaceChildren(
+    el('p', { class: 'mic-tip-title' }, 'Allow the microphone for Bluetooth playback'),
+    el('p', {}, 'The microphone isn\'t set to Allow for this site, so the app keeps it open between takes (otherwise your iPhone would ask after every take). While it is open, takes play on the phone\'s own speaker, not a Bluetooth speaker. To fix it:'),
+    allowSteps(),
+    el('div', { class: 'mic-tip-actions' },
+      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload'),
+      el('button', { type: 'button', class: 'pill', onclick: onNotNow }, 'Not now'),
+      el('button', { type: 'button', class: 'pill', onclick: onNever }, 'Don\'t show again')));
 }
 
 export function openAudioCheck(controls) {
