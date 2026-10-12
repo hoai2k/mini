@@ -113,13 +113,18 @@ export class OpeningFlow {
     const g = this.game;
     const said = new Set();
     const live = () => g.world === world && g.mode === 'prologue' && g.state === 'playing' && !g.paused;
-    // one hint at a time (each stays 4.4 s): a hint that comes up while another shows waits its turn
+    // one hint at a time (each stays 4.4 s): a hint that comes up while another shows waits its turn,
+    // unless it is needed right now (moving, the dug-up sidewalk a few seconds in, the first rats)
     let next = 0;
-    const say = (id, delay = 0) => {
+    const say = (id, delay = 0, now_ = false) => {
       if (said.has(id)) return; said.add(id);
-      const now = performance.now(), at = Math.max(now + delay * 1000, next);
-      next = at + 4600;
-      setTimeout(() => { if (live()) toast(prologueHint(id, g.input?.lastDevice), 'hint'); }, at - now);
+      const now = performance.now(), at = now_ ? now + delay * 1000 : Math.max(now + delay * 1000, next);
+      next = Math.max(next, at + 4600);
+      setTimeout(() => {
+        if (!live()) return;
+        if (now_) for (const el of document.querySelectorAll('#toast-layer .toast.hint')) el.remove();   // the new one replaces it: never a stack of hints
+        toast(prologueHint(id, g.input?.lastDevice), 'hint');
+      }, at - now);
     };
     let t = 0, hp0 = 1;
     const hpOf = () => Math.min(1, ...g.players.filter((p) => !p.ai && !p.remote).map((p) => p.hp / p.maxHp));
@@ -128,12 +133,12 @@ export class OpeningFlow {
       if (!live()) return true;
       t += dt;
       const lead = g.tracker?.leader?.(); if (!lead) return true;
-      if (t > 6.2) say('late');
-      if (t > 10.5) say('move');
-      if (Math.hypot(lead.pos.x - L.trench.x, lead.pos.z - L.trench.z) < 9) say('jump');
+      // the quiet start is only a dozen metres: moving at once, the jump as you reach the trench
+      if (t > 0.8) say('move', 0, true);   // (with the way to go: the goal ribbon already says where)
+      if (Math.hypot(lead.pos.x - L.trench.x, lead.pos.z - L.trench.z) < 7) say('jump', 0, true);
       const rats = g.enemies.filter((e) => e.kind === 'rat' && !e.dead);
       const near = (b, d) => rats.some((e) => e.beat === b && e.pos.distanceTo(lead.pos) < d);
-      if (near('melee', 10) || rats.some((e) => e.aggro && e.pos.distanceTo(lead.pos) < 8)) say('melee');
+      if (near('melee', 10) || rats.some((e) => e.aggro && e.pos.distanceTo(lead.pos) < 8)) say('melee', 0, true);
       if (said.has('melee') && rats.some((e) => e.dashT > 0 && e.pos.distanceTo(lead.pos) < 9)) say('dodge', 0.3);
       const hp = hpOf(); if (said.has('melee') && hp < hp0 - 0.08) say('dodge'); hp0 = Math.max(hp, hp0 - dt * 0.5);
       if (near('ranged', 17) && said.has('melee')) say('ranged');
@@ -219,7 +224,7 @@ export class OpeningFlow {
     g.roaming?.configureCamp();
     g.online?.sceneChanged?.();
     g.resume?.flush?.();
-    toast('Camp Half-Blood', 'title');
+    // (no 'Camp Half-Blood' title here: the cutscene has just said it)
     setTimeout(() => g.mode === 'hub' && g.state === 'playing' && toast('The gold arrow points to your next quest. The Big House porch has the chapter map.'), 2400);
   }
   // a chapter of the opening is finished: the story goes on from the results screen

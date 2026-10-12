@@ -39,8 +39,8 @@ export const CHAPTERS = [
     start: { at: 'spawn', dx: 7, dz: 6, prop: 'bus', place: 'the field-trip bus by the camp road' },
     intro: [
       'Look, I didn’t want to be a half-blood.',
-      'On the field trip to the museum, Mrs. Dodds keeps staring at you as if you have done something terrible.',
-      'Something is wrong with her. Click the right stick (or press V) to see through the Mist.',
+      'In the Greek and Roman galleries, Mrs. Dodds wants a word with you. Alone.',
+      'Something about her is wrong, and the Mist hides what she really is.',
     ],
     outro: 'Mrs. Dodds bursts into yellow dust. Nobody else remembers her. “Mrs. Dodds? There is no Mrs. Dodds.”',
   },
@@ -50,9 +50,9 @@ export const CHAPTERS = [
     card: 'assets/cards/scene-minotaur.jpg', ready: true,
     start: { at: 'thaliaPine', dx: 4, dz: 6, place: 'Thalia’s pine on Half-Blood Hill' },
     intro: [
-      'Grover is on your doorstep with no trousers on — he has goat legs.',
-      'The storm drives you up Half-Blood Hill toward the pine tree and the camp border.',
-      'Something huge is following. Lure its charges into the trees.',
+      'Summer at Montauk: in a storm, Grover is on your doorstep with no trousers on (he has goat legs), and Mom drives you all toward Long Island.',
+      'The Camaro lies on its side in a ditch. The camp border is at the top of the hill, in the rain.',
+      'The thing that was following you comes out of the dark: a man with the head of a bull. Lure its charges into the trees.',
     ],
     outro: 'The Minotaur crumbles to dust and you are left holding a horn. Camp Half-Blood lies below.',
   },
@@ -71,7 +71,7 @@ export const CHAPTERS = [
       'Annabeth puts on her Yankees cap and vanishes. You get border patrol by the creek. Some plan.',
       'Find the red banner in the woods and carry it back across the creek. A banner is heavy: no ranged attacks while you carry it.',
     ],
-    outro: 'The creek heals every scratch, and a glowing green trident hangs over your head. “It is determined,” says Chiron. Poseidon, Earthshaker, Father of Horses. You have been claimed.',
+    outro: 'The creek heals every scratch. “It is determined,” says Chiron, and the whole camp kneels: Poseidon, Earthshaker, Stormbringer, Father of Horses.',
   },
   {
     id: 'lt4', book: 'book1', num: 4, title: 'The Kindly Ones', place: 'A Greyhound bus, New Jersey',
@@ -129,7 +129,7 @@ export const CHAPTERS = [
     intro: [
       'The Lotus Hotel and Casino, Las Vegas. A free room, free games, and a green card with unlimited credit. Nobody ever wants to leave.',
       'The bellhops keep offering you lotus flowers. Every one makes you forget a little more, and the days slip by.',
-      'Find the way out before too many days pass. True Sight (right stick click / V) shows the door the Mist is hiding. Don’t eat the flowers.',
+      'Find the way out before too many days pass. True Sight shows the door the Mist is hiding. Don’t eat the flowers.',
     ],
     outro: 'Outside, it is five days later than when you went in. The summer solstice is close. You wave down a taxi with the green card: “Los Angeles. And step on it.”',
   },

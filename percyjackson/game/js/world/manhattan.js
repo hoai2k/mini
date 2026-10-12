@@ -1,13 +1,16 @@
 // Manhattan on the morning of the field trip (the prologue, a training
-// board): a hand-shaped city corner. You start at the east end of a long
-// cross street, walk west along its north sidewalk to the avenue and north up
-// the avenue to Yancy Academy, where the yellow school bus waits at the curb.
+// board): a hand-shaped city corner. On screen the walk goes up-right, then
+// up-left, then up-right again: you start at the south end of a short side
+// avenue (x 147-165) and walk north up it to a long cross street, west along
+// the cross street's north sidewalk to the main avenue, and north up the
+// avenue to Yancy Academy, where the yellow school bus waits at the curb.
 // The walk teaches the game in three beats (`beats`):
-//   walk    (x > 150) a quiet stretch to learn moving, and a dug-up sidewalk
-//           to jump over;
-//   melee   (x 84–150) sewer rats lounging round trash cans, an alley
-//           dumpster, the hot-dog cart and bin bags: they eat and sniff and
-//           notice you only up close (or when hit); now and then one dashes;
+//   walk    (the first dozen metres up the side avenue) a very short quiet
+//           stretch to learn moving, ending at a dug-up sidewalk to jump;
+//   melee   (from there to x 84) a fight the rest of the way: sewer rats
+//           round trash cans at the corner, an alley dumpster, the hot-dog
+//           cart and bin bags; they eat and sniff and notice you up close (or
+//           when hit), and every few seconds one a fair way off dashes;
 //   ranged  (x < 84 and the avenue) rats where shooting first is the obvious
 //           move: behind the chain-link fence of a construction lot (they
 //           must run round to its gate), up on a dumpster lid and on the
@@ -35,6 +38,8 @@ import { oak } from './rooms.js';
 export const CITY = { SX: 192, SY: 34, SZ: 104, FY: 4 };
 // the avenue (north-south) and the cross street (east-west)
 const AV = { x0: 38, x1: 49 }, ST = { z0: 62, z1: 71 };
+// the side avenue where you start (north-south, south of the cross street): its west sidewalk, the road, its east sidewalk
+const EA = { w0: 147, w1: 151, x0: 152, x1: 160, e0: 161, e1: 165 };
 const SWW = { x0: 33, x1: 37 }, SWE = { x0: 50, x1: 54 };   // avenue sidewalks, west and east
 const SWN = { z0: 57, z1: 61 }, SWS = { z0: 72, z1: 76 };   // cross street sidewalks, north and south
 
@@ -47,13 +52,17 @@ export function buildManhattan(seed = 1717) {
   const W = world;
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   const rats = [], npcs = [], nests = [];
-  const beatOf = (x, z) => (x > 150 && z > 40 ? 'walk' : x > 84 && z > 40 ? 'melee' : 'ranged');
+  const QUIET = 84;   // the quiet start: south of this line on the side avenue (about 12 m of walking, then the dug-up sidewalk)
+  const beatOf = (x, z) => (x > 140 && z > QUIET ? 'walk' : x > 84 && z > 40 ? 'melee' : 'ranged');
 
   // ------------------------------------------------------------ ground: asphalt, sidewalks
   k.floor(0, 0, SX - 1, SZ - 1, FY, B.sidewalk, 4);
   for (let z = 0; z < SZ; z++) for (let x = AV.x0; x <= AV.x1; x++) W.set(x, FY - 1, z, (x === 43 || x === 44) && z % 6 < 3 && (z < ST.z0 - 2 || z > ST.z1 + 2) ? B.asphalt_line : B.asphalt);
   for (let x = 0; x < SX; x++) for (let z = ST.z0; z <= ST.z1; z++) if (x < AV.x0 || x > AV.x1) W.set(x, FY - 1, z, z === 66 && x % 6 < 3 && (x < AV.x0 - 3 || x > AV.x1 + 3) ? B.asphalt_line : B.asphalt);
   for (let x = AV.x0; x <= AV.x1; x++) for (let z = ST.z0; z <= ST.z1; z++) W.set(x, FY - 1, z, B.asphalt);
+  // the side avenue, south from the cross street to the edge of the map, with a crossing over the cross street
+  for (let z = ST.z1 + 1; z < SZ - 1; z++) for (let x = EA.x0; x <= EA.x1; x++) W.set(x, FY - 1, z, x === 156 && z % 6 < 3 && z > ST.z1 + 3 ? B.asphalt_line : B.asphalt);
+  for (let i = 0; i < 5; i++) for (let x = EA.w0; x <= EA.w1; x++) W.set(x, FY - 1, ST.z0 + i * 2, B.white_trim);
   // zebra crossings at the four sides of the crossroads
   for (let i = 0; i < 6; i++) {
     for (let z = ST.z0 - 3; z <= ST.z0 - 1; z++) W.set(AV.x0 + 1 + i * 2, FY - 1, z, B.white_trim);
@@ -64,6 +73,7 @@ export function buildManhattan(seed = 1717) {
   const grate = (x, z, ox, oz) => { W.set(x, FY - 1, z, B.metal_grate); rats.push({ at: V(x + 0.5, FY, z + 0.5), out: V(x + 0.5 + ox, FY, z + 0.5 + oz), kind: 'drain', beat: beatOf(x, z) }); };
   grate(AV.x0, 44, 2, 0); grate(AV.x1, 30, -2, 0); grate(AV.x0, 8, 2, 0); grate(26, ST.z0, 0, 2); grate(AV.x1, 86, -2, 0);
   grate(104, ST.z0, 0, 2); grate(118, ST.z1, 0, -2); grate(90, ST.z0, 0, 2); grate(AV.x1, 52, -2, 0);
+  grate(EA.x0, 78, 2, 0); grate(140, ST.z1, 0, -2); grate(132, ST.z0, 0, 2);
   // world edges
   for (let x = 0; x < SX; x++) { W.fill(x, FY, 0, x, FY + 8, 0, B.barrier); W.fill(x, FY, SZ - 1, x, FY + 8, SZ - 1, B.barrier); }
   for (let z = 0; z < SZ; z++) { W.fill(0, FY, z, 0, FY + 8, z, B.barrier); W.fill(SX - 1, FY, z, SX - 1, FY + 8, z, B.barrier); }
@@ -181,8 +191,14 @@ export function buildManhattan(seed = 1717) {
   deco.prop('text_sign', SWE.x1 + 0.4, FY + 4.4, 49.5, { text: 'DELI · BAGELS', w: 5, h: 0.9, rot: -Math.PI / 2, bg: '#1a5a2a', fg: '#ffe8a0', oneSided: true });
 
   // south of the cross street: low brownstones and shops facing it
-  row(SWE.x1 + 1, SX - 6, SWS.z1 + 1, 'n', 14, { hmin: 4, hmax: 5, shopAt: [58, 74, 92, 108, 140, 162] });
-  W.fill(SWE.x1 + 1, FY, SWS.z1 + 15, SX - 1, FY + 5, SZ - 1, B.brownstone);
+  row(SWE.x1 + 1, SX - 6, SWS.z1 + 1, 'n', 14, { hmin: 4, hmax: 5, shopAt: [58, 74, 92, 108, 140, 174], gaps: [[EA.w0, EA.e1]] });
+  W.fill(SWE.x1 + 1, FY, SWS.z1 + 15, EA.w0 - 1, FY + 5, SZ - 1, B.brownstone); W.fill(EA.e1 + 1, FY, SWS.z1 + 15, SX - 1, FY + 5, SZ - 1, B.brownstone);
+  // the side avenue's buildings, low (they stand between the camera and the walk), fronts to the street
+  row(SWS.z1 + 1, SZ - 2, EA.w0 - 1, 'e', 12, { hmin: 4, hmax: 5, shopAt: Array.from({ length: SZ }, (_, z) => z) });   // (shopfronts: no stoops on the sidewalk you walk)
+  row(SWS.z1 + 1, SZ - 2, EA.e1 + 1, 'w', 12, { hmin: 4, hmax: 5 });
+  // the side avenue's south end: closed for roadworks (where you start)
+  for (let x = EA.w0; x <= EA.e1; x++) { W.set(x, FY, SZ - 2, B.barrier); if (x % 3 === 0) deco.prop('cone', x + 0.5, FY, SZ - 2.5); }
+  for (let x = EA.x0 + 1; x <= EA.x1; x += 3) deco.prop('sawhorse', x + 0.5, FY, SZ - 3.3);
   // the east end of the street: closed for roadworks (low, so it never hides the heroes from the camera)
   for (let z = SWN.z0 - 1; z <= SWS.z1 + 1; z++) { W.set(SX - 4, FY, z, B.barrier); if (z % 3 === 0) deco.prop('cone', SX - 4.5, FY, z + 0.5); }
   for (let z = SWN.z0 + 1; z <= SWS.z1; z += 3) deco.prop('sawhorse', SX - 3.5, FY, z + 0.5, { rot: Math.PI / 2 });
@@ -234,8 +250,9 @@ export function buildManhattan(seed = 1717) {
   // ------------------------------------------------------------ street furniture
   const streetlight = (x, z, rot) => { deco.prop('streetlight', x + 0.5, FY, z + 0.5, { rot }); W.set(x, FY, z, B.barrier); };
   for (let z = 6; z < 56; z += 12) { if (z < 26 || z > 40) streetlight(SWW.x1, z, 0); streetlight(SWE.x0, z + 6, Math.PI); }
-  for (let x = 58; x < SX - 8; x += 12) { if (x > 84) streetlight(x, SWS.z0, Math.PI / 2); streetlight(x + 6, SWN.z1, -Math.PI / 2); }
-  for (const [x, z] of [[SWW.x0 + 1, 10], [SWE.x1 - 1, 14], [SWE.x1 - 1, 40], [100, SWS.z1 - 1], [124, SWS.z1 - 1], [152, SWS.z1 - 1], [174, SWS.z1 - 1], [158, SWN.z0 + 1], [178, SWN.z0 + 1]]) {
+  for (let x = 58; x < SX - 8; x += 12) { if (x > 84 && (x < EA.w0 || x > EA.e1)) streetlight(x, SWS.z0, Math.PI / 2); streetlight(x + 6, SWN.z1, -Math.PI / 2); }
+  for (let z = 80; z < SZ - 4; z += 10) { streetlight(EA.w1, z, 0); streetlight(EA.e0, z + 5, Math.PI); }
+  for (const [x, z] of [[SWW.x0 + 1, 10], [SWE.x1 - 1, 14], [SWE.x1 - 1, 40], [100, SWS.z1 - 1], [124, SWS.z1 - 1], [174, SWS.z1 - 1], [158, SWN.z0 + 1], [178, SWN.z0 + 1], [EA.e1 - 1, 92], [EA.e1 - 1, 81]]) {
     oak(k, x, z, FY, { h: 4, R: 1.7 });
     for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) if (W.get(x + dx, FY - 1, z + dz) === B.sidewalk) W.set(x + dx, FY - 1, z + dz, B.dirt);
   }
@@ -252,15 +269,20 @@ export function buildManhattan(seed = 1717) {
   for (let i = 0; i < 26; i++) { const x = 2 + k.r() * (SX - 4), z = 2 + k.r() * (SZ - 4); const id = W.get(Math.floor(x), FY - 1, Math.floor(z)); if ((id === B.sidewalk || id === B.asphalt) && !W.get(Math.floor(x), FY, Math.floor(z))) deco.add('paper', x, FY, z, { mode: 'flat', scale: 0.5 }); }
 
   // ------------------------------------------------------------ the walk to the bus, beat by beat
-  // walk: the dug-up sidewalk (x 165-167): a step down, a deeper trench, a step up. Jump it.
-  const trench = V(166.5, FY, SWN.z0 + 2.5);
-  for (let z = SWN.z0; z <= SWN.z1; z++) { W.set(165, FY - 1, z, 0); W.set(166, FY - 1, z, 0); W.set(166, FY - 2, z, 0); W.set(167, FY - 1, z, 0); W.set(166, FY - 3, z, B.dirt); W.set(165, FY - 2, z, B.dirt); W.set(167, FY - 2, z, B.dirt); }
-  deco.prop('sawhorse', 166.5, FY, SWN.z1 + 0.7); deco.prop('cone', 164.3, FY, SWN.z1 + 0.6); deco.prop('cone', 168.7, FY, SWN.z1 + 0.6); deco.prop('cone', 166.5, FY, SWN.z0 + 0.2);
-  for (let i = 0; i < 4; i++) deco.add('paper', 163.5 + i * 1.6, FY, SWN.z0 + 1 + (i % 2) * 2, { mode: 'flat', scale: 0.4 });
-  // melee: rats lounging round the trash along the north sidewalk (and one heap across the street)
+  // walk: the dug-up sidewalk across the side avenue's west sidewalk (z 81-83): a step down, a deeper trench, a step up. Jump it.
+  const TZ = 82, trench = V(EA.w0 + 2.5, FY, TZ + 0.5);
+  for (let x = EA.w0; x <= EA.w1; x++) { W.set(x, FY - 1, TZ - 1, 0); W.set(x, FY - 1, TZ, 0); W.set(x, FY - 2, TZ, 0); W.set(x, FY - 1, TZ + 1, 0); W.set(x, FY - 3, TZ, B.dirt); W.set(x, FY - 2, TZ - 1, B.dirt); W.set(x, FY - 2, TZ + 1, B.dirt); }
+  deco.prop('sawhorse', EA.w1 + 0.7, FY, TZ + 0.5, { rot: Math.PI / 2 }); deco.prop('cone', EA.w1 + 0.6, FY, TZ + 2.7); deco.prop('cone', EA.w1 + 0.6, FY, TZ - 1.7); deco.prop('cone', EA.w0 + 0.2, FY, TZ + 0.5);
+  for (let i = 0; i < 4; i++) deco.add('paper', EA.w0 + 1 + (i % 2) * 2, FY, TZ - 2.5 + i * 1.6, { mode: 'flat', scale: 0.4 });
+  // melee, from just past the trench: rats round the trash up the side avenue, at the corner and along the north sidewalk
   const can = (x, z) => { deco.prop('trash_can', x + 0.5, FY, z + 0.5); W.set(x, FY, z, B.barrier); };
-  can(145, SWN.z1); can(147, SWN.z1); deco.prop('trash_bags', 146, FY, SWN.z1 + 0.2, { n: 3 });
-  nests.push({ at: V(146, FY, SWN.z1 - 1.2), n: 2, beat: 'melee', face: V(146, FY, SWN.z1 + 0.5) });
+  can(EA.w0, 78); deco.prop('trash_bags', EA.w0 + 0.3, FY, 76.6, { n: 4 }); W.set(EA.w0, FY, 76, B.barrier);
+  nests.push({ at: V(EA.w0 + 1.6, FY, 77.2), n: 2, beat: 'melee', face: V(EA.w0 + 0.5, FY, 77) });
+  nests.push({ at: V(EA.e0 + 1.5, FY, 73.6), n: 1, beat: 'melee', r: 1.4 });
+  can(EA.w0 - 3, SWN.z1); can(EA.w0 - 1, SWN.z1);
+  nests.push({ at: V(EA.w0 - 2, FY, SWN.z1 - 1.2), n: 2, beat: 'melee', face: V(EA.w0 - 2, FY, SWN.z1 + 0.5) });
+  deco.prop('trash_bags', 135.5, FY, SWN.z1 + 0.3, { n: 4 }); W.set(135, FY, SWN.z1, B.barrier);
+  nests.push({ at: V(135.5, FY, SWN.z1 - 1.3), n: 1, beat: 'melee', face: V(135.5, FY, SWN.z1 + 0.3) });
   nests.push({ at: V(127.5, FY, 52.5), n: 2, beat: 'melee', r: 2, face: V(129.2, FY, 53.4) });
   nests.push({ at: V(127.5, FY, SWN.z0 + 0.8), n: 1, beat: 'melee', r: 1.8 });
   // a second hot-dog cart, its vendor, and rats after the dropped buns
@@ -284,21 +306,21 @@ export function buildManhattan(seed = 1717) {
   nests.push({ at: V(SWW.x0 + 2, FY + 3, 34.5), n: 1, beat: 'ranged', perch: true, notice: 15, alert: 1.3, r: 0.6 });
   nests.push({ at: V(SWW.x1 - 0.6, FY, 55.2), n: 1, beat: 'ranged', face: V(SWW.x1 + 0.5, FY, 56.5) });
   const beats = [
-    { id: 'walk', x0: 150, z0: 40, x1: SX, z1: 90 },
-    { id: 'melee', x0: 84, z0: 40, x1: 150, z1: 90 },
+    { id: 'walk', x0: 140, z0: QUIET, x1: SX, z1: SZ },
+    { id: 'melee', x0: 84, z0: 40, x1: SX, z1: SZ },
     { id: 'ranged', x0: 0, z0: 0, x1: 84, z1: SZ },
   ];
 
   // ------------------------------------------------------------ vehicles (groups, see world/vehicles.js) and their footprints
   // The bus: on the west curb in front of Yancy, heading south (its door on the curb side).
   const bus = { pos: V(39.9, FY, 19.5), yaw: -Math.PI / 2 };
-  const parked = [
+  const parked = [   // (parked with the traffic: westbound on the north curb, eastbound on the south)
     { kind: 'taxi', pos: V(48.2, FY, 10), yaw: Math.PI / 2 }, { kind: 'taxi', pos: V(48.2, FY, 38), yaw: Math.PI / 2 },
     { kind: 'car', color: 0x6a2a2a, pos: V(39.9, FY, 50), yaw: -Math.PI / 2 }, { kind: 'taxi', pos: V(39.9, FY, 34), yaw: -Math.PI / 2 },
-    { kind: 'car', color: 0x2a5a6a, pos: V(134, FY, ST.z1 - 1.2), yaw: Math.PI }, { kind: 'taxi', pos: V(78, FY, ST.z0 + 1.2), yaw: 0 },
-    { kind: 'taxi', pos: V(20, FY, ST.z1 - 1.2), yaw: Math.PI },
-    { kind: 'car', color: 0x7a6a2a, pos: V(166.5, FY, ST.z0 + 1.2), yaw: 0 }, { kind: 'taxi', pos: V(178, FY, ST.z1 - 1.2), yaw: Math.PI },
-    { kind: 'car', color: 0x3a3a6a, pos: V(120, FY, ST.z0 + 1.2), yaw: 0 },
+    { kind: 'car', color: 0x2a5a6a, pos: V(134, FY, ST.z1 - 1.2), yaw: 0 }, { kind: 'taxi', pos: V(78, FY, ST.z0 + 1.2), yaw: Math.PI },
+    { kind: 'taxi', pos: V(20, FY, ST.z1 - 1.2), yaw: 0 },
+    { kind: 'car', color: 0x7a6a2a, pos: V(172.5, FY, ST.z0 + 1.2), yaw: Math.PI }, { kind: 'taxi', pos: V(EA.x1 - 0.9, FY, 90), yaw: Math.PI / 2 },
+    { kind: 'car', color: 0x3a3a6a, pos: V(120, FY, ST.z0 + 1.2), yaw: Math.PI },
   ];
   // taxis that drive along the cross street (east of the avenue), stopping for anyone in front
   const movers = [
@@ -328,16 +350,16 @@ export function buildManhattan(seed = 1717) {
   npcs.push({ id: 'old_lady', pos: V(100, FY, SWS.z0 + 2), yaw: -Math.PI / 2, walk: V(150, FY, SWS.z0 + 2), idle: 'walk' });
   npcs.push({ id: 'student', pos: V(78, FY, SWN.z0 + 1.5), yaw: -Math.PI / 2, walk: V(56, FY, SWN.z0 + 1.5), idle: 'walk' });
   npcs.push({ id: 'tourist', pos: V(SWE.x0 + 2, FY, 52), yaw: 0, idle: 'photo' });
-  // the quiet stretch where you start: late students hurrying west, people out on the stoops
-  npcs.push({ id: 'student', pos: V(178, FY, SWN.z0 + 1.2), yaw: -Math.PI / 2, walk: V(150, FY, SWN.z0 + 1.2), idle: 'walk' });
-  npcs.push({ id: 'salesman', pos: V(158, FY, SWS.z0 + 1.5), yaw: Math.PI / 2, walk: V(184, FY, SWS.z0 + 1.5), idle: 'walk' });
-  npcs.push({ id: 'old_lady', pos: V(172, FY, SWN.z0 + 0.8), yaw: Math.PI, idle: 'wait' });
+  // the quiet start up the side avenue: a late student hurrying north, people on the far sidewalk
+  npcs.push({ id: 'student', pos: V(EA.w0 + 3.5, FY, 95), yaw: Math.PI, walk: V(EA.w0 + 3.5, FY, 86), idle: 'walk' });
+  npcs.push({ id: 'salesman', pos: V(EA.e0 + 2, FY, 76), yaw: 0, walk: V(EA.e0 + 2, FY, 98), idle: 'walk' });
+  npcs.push({ id: 'old_lady', pos: V(EA.e1 - 0.8, FY, 94), yaw: -Math.PI / 2, idle: 'wait' });
   npcs.push({ id: 'farmer', pos: V(136, FY, SWS.z0 + 2), yaw: Math.PI / 2, walk: V(116, FY, SWS.z0 + 2), idle: 'walk' });
-  npcs.push({ id: 'tourist', pos: V(156, FY, SWS.z1 - 1), yaw: -Math.PI / 2, idle: 'photo' });
+  npcs.push({ id: 'tourist', pos: V(172, FY, SWS.z1 - 1), yaw: -Math.PI / 2, idle: 'photo' });
 
   world.collectBlockLights();
-  // you start at the east end of the cross street, on the north sidewalk, late for the bus
-  const spawn = V(180.5, FY, SWN.z0 + 3.5);
-  const route = [spawn.clone(), V(56, FY, SWN.z0 + 2.5), V(SWW.x0 + 2.5, FY, SWN.z1 - 1), V(SWW.x0 + 2.5, FY, 30), door.clone()];
+  // you start at the south end of the side avenue, on its west sidewalk, late for the bus
+  const spawn = V(EA.w0 + 2.5, FY, SZ - 7.5);
+  const route = [spawn.clone(), V(EA.w0 + 2.5, FY, SWN.z0 + 2.5), V(56, FY, SWN.z0 + 2.5), V(SWW.x0 + 2.5, FY, SWN.z1 - 1), V(SWW.x0 + 2.5, FY, 30), door.clone()];
   return { world, deco, shafts, kit: k, spawn, stage: spawn.clone(), bus, parked, movers, door, goal: door.clone(), rats, nests, beats, trench, npcs, route, city: true };
 }

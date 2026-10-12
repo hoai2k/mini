@@ -20,8 +20,8 @@ export const RAT = {
   perchNotice: 12, perchAlert: 1.2,  // a rat up on a dumpster, the scaffolding, behind the fence
   leash: 16, calm: 2.5,              // gives up this far from home; then ignores heroes for a moment
   wander: 1.6,                       // metres it wanders from home
-  dashEvery: [6, 11], dashRange: [7, 15], maxAggro: 3,
-  holeEvery: [11, 17], holeRange: [11, 22], holeCap: 2,
+  dashEvery: [5, 9], dashRange: [7, 15], maxAggro: 3,
+  holeEvery: [9, 14], holeRange: [11, 22], holeCap: 2,
 };
 
 // Does a loitering rat notice this hero?
