@@ -58,7 +58,7 @@ export function paintQuad(S, o) {
 const tmpV = new THREE.Vector3();
 
 export class QuadRig {
-  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait }
+  // spec: { material, scale, bodyL, bodyW, bodyH, legH, legW, headS, legs(4|6|8), splay, footL (a lower leg below a knee), kneeOut (how far the lower leg leans out, rad), legY (leg root height from the body's underside), legSpread (extra sideways offset of the leg roots), tail(segments), tailLen, tailW, tailCurl, ears, snout, snoutS, neckUp, headZ, gait, jawOpen }
   constructor(spec) {
     this.spec = spec; this.isQuad = true;
     this.material = spec.material;
@@ -93,6 +93,7 @@ export class QuadRig {
       this.mouth = new THREE.Group(); this.mouth.position.set(0, -hs * 0.3 * PX, hs * 0.85 * PX); this.head.add(this.mouth);
     }
     this.handR = this.handL = this.mouth;
+    this.mouth.rotation.x = spec.jawOpen ?? 0;   // a resting snarl (spec.jawOpen, rad)
     if (spec.ears) for (const sx of [-1, 1]) { const e = mesh(quadPart('ear', 2, 3, 1, [0, 1.5, 0])); e.position.set(sx * hs * 0.32 * PX, hs * 0.5 * PX, hs * 0.2 * PX); e.rotation.z = -sx * 0.25; this.head.add(e); }
     // legs: pairs down the body, hanging from the underside
     this.legs = [];
@@ -141,7 +142,7 @@ export class QuadRig {
       hipsY: D.standH * PX + Math.abs(Math.cos(cyc)) * 0.05 * run + Math.sin(t * 2.4) * 0.008, lift: 0,
       torsoX: 0, torsoY: 0, torsoZ: Math.sin(cyc) * 0.03 * run,
       headX: Math.sin(t * 1.7) * 0.05 + Math.sin(cyc * 2) * 0.05 * run, headY: Math.sin(t * 0.7) * 0.15 * (1 - run),
-      jaw: 0.05 + Math.max(0, Math.sin(t * 3)) * 0.08 * (1 - run) + run * 0.15,
+      jaw: (this.spec.jawOpen ?? 0) + 0.05 + Math.max(0, Math.sin(t * 3)) * 0.08 * (1 - run) + run * 0.15,
       legAmp: 0.75 * run, legBias: 0, front: 0, rootZ: 0,
       tailY: Math.sin(t * 3.2) * 0.35, tailX: -0.25 + run * 0.15,
     };
