@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { serve, launch } from './lib.mjs';
+import { GAME_IDS } from '../games/index.js';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const server = await serve(root);
 const browser = await launch();
@@ -17,7 +18,7 @@ try {
   assert.equal(await page.locator('#set-motion').count(), 0);
   await page.fill('#name-input', 'Tester');
   await page.click('#start-btn');
-  await page.waitForFunction(() => window.__chat.games?.games.size === 21);
+  await page.waitForFunction(n => window.__chat.games?.games.size === n, GAME_IDS.length);
   await page.locator('#call [data-open="settings"]').click();
   assert.equal(await page.locator('#debug-bot-minus').isDisabled(), true);
   for (let i = 0; i < 4; i++) await page.click('#debug-bot-plus');
