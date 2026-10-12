@@ -579,6 +579,7 @@ export class Online {
     const g = this.game, self = this;
     this.fx.unwrapUpdate(e);
     e.puppet = true; e.track = e.track ?? new Track(); e.pend = [];
+    e.target = null; e.marker = null;   // (a puppet never holds an attack token: those count monsters by target)
     e.update = function (dt) { return self.drivePuppetEnemy(this, dt); };
     e.takeDamage = function (amount, src, o = {}) {
       if (this.dead || this.untargetable || this.disguised || (this.isBoss && this.net?.flags & 32)) return 0;
@@ -610,9 +611,11 @@ export class Online {
     if (e.isBoss) { this.bossVisual(e, dt, n); return true; }
     e.spawnT = Math.max(0, (e.spawnT ?? 0) - dt);
     const state = e.localStagger > 0 ? 'stagger' : n.state || 'idle';
-    if (state !== e.state) { e.state = state; e.stateT = 0; }
+    // (windup and recover always come with an action; anything else has none)
+    const act = state === 'windup' || state === 'recover' ? { style: n.style || 'swingR', anim: n.style === 'raise' || n.style === 'cast' ? n.style : null, windup: 0.5, recover: 0.4 } : null;
+    if (state !== e.state) e.stateT = 0;
+    e.state = state; e.action = act; e.target = null;
     e.stateT += dt; e.stagger = 0.3;
-    e.action = state === 'windup' || state === 'recover' ? { style: n.style || 'swingR', anim: n.style === 'raise' || n.style === 'cast' ? n.style : null, windup: 0.5, recover: 0.4 } : null;
     e.rig.swap(e.flashT > 0 ? g.flashMaterial : null);
     try { e.animate(dt); } catch (err) { e.object.position.copy(e.pos); }
     return true;

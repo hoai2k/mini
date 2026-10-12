@@ -195,7 +195,8 @@ class Game {
   }
   // net: list: [{ device, hero, profile }] (profile: a profile id; the first
   // player defaults to this device's main profile, the others to "Player N")
-  beginSession(list, { companions = [] } = {}) {
+  // { fill: false } leaves out the AI companions (tests, minigames)
+  beginSession(list, { companions = [], fill = true } = {}) {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     this.partyMgr.clear(); this.party = null;
@@ -209,6 +210,7 @@ class Game {
     });
     // fewer than three humans: the other heroes come along as AI companions (party.js)
     this.partyMgr.chosen = companions.filter((id) => HEROES[id] && !HEROES[id].soon && !list.some((l) => l.hero === id));
+    this.partyMgr.noFill = !fill;
     this.partyMgr.fill();
     this.save.data.lastHero = list[0]?.hero ?? this.save.data.lastHero;
     this.rig.cine = null;

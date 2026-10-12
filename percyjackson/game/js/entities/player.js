@@ -245,8 +245,14 @@ export class Player {
     if (inp.pressed.dodge) this.dodgeBuffer = this.grounded ? 0.2 : 0.75; else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
     if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(mv); }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
-    if (inp.pressed.jump && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
-      this.vel.y = 10.5; this.grounded = false; this.coyote = 0;
+    // In a pool (the camp creek pond, the lava pool by the climbing wall) the
+    // bank can be two blocks high, more than a jump clears: kick off the
+    // bottom higher, and climb out on your own when walking into the bank,
+    // so nobody (player or companion) is ever trapped in the water.
+    const wading = this.inLiquid && this.grounded && this.hitWall && mv.lengthSq() > 0.25 && !this.downed && this.dodgeT <= 0;
+    this.wadeT = wading ? (this.wadeT ?? 0) + dt : 0;
+    if ((inp.pressed.jump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
+      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0;
       this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
     }
     if (!this.downed) this.updateCombat(dt, inp);

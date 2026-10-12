@@ -231,7 +231,10 @@ export class Party {
   fill() {
     const g = this.game;
     if (g.online?.live) return;
+    if (this.noFill) { this.setParty(); return; }
     const humans = g.players.filter((q) => !q.ai && !q.remote);
+    // a companion playing a hero a person now plays goes first
+    for (const q of g.players.filter((x) => x.ai && !x.remote && humans.some((h) => h.hero === x.hero))) { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); }
     const ais = g.players.filter((q) => q.ai && !q.remote);
     const want = companionsWanted(humans.length);
     for (const q of ais.slice(want)) { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); }
