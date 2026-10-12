@@ -117,8 +117,11 @@ export class Effects {
     this.rings.spawn(tmp.set(pos.x, this.groundY(pos) + 0.07, pos.z), { color, r1: radius, dur, thick: 0.1 });
     this.p.burst(tmp.set(pos.x, this.groundY(pos) + 0.2, pos.z), { count: 24, color: 0x9a8a7a, additive: false, speed: radius * 2.2, spread: 0.2, up: 0.1, life: 0.6, size: 0.45, drag: 4, sizeEnd: 2, intensity: 0.8 });
   }
-  slashArc(pos, facing, color = 0xffffff, radius = 2.2, arc = 0.35, dur = 0.18, flip = false) {
-    this.arcs.spawn(tmp.set(pos.x, pos.y + 1.0, pos.z), { color, r0: radius * 0.8, r1: radius, dur, thick: 0.35, arc, rotY: facing + (flip ? Math.PI : 0) - Math.PI / 2 });
+  // The arc is symmetric about the facing direction, so a left-to-right and a
+  // right-to-left swing draw the same band in front of the hero. (`flip` used
+  // to turn it 180°, which drew every second swing of a combo behind him.)
+  slashArc(pos, facing, color = 0xffffff, radius = 2.2, arc = 0.35, dur = 0.18, flip = false) { // eslint-disable-line no-unused-vars
+    this.arcs.spawn(tmp.set(pos.x, pos.y + 1.0, pos.z), { color, r0: radius * 0.8, r1: radius, dur, thick: 0.35, arc, rotY: facing - Math.PI / 2 });
   }
   // Floating damage number (DOM, projected each frame).
   damageNumber(pos, amount, { crit = false, color = null, text = null } = {}) {
