@@ -14,8 +14,11 @@ agent. Newest first.
   `src/games/difficulty.js` (`difficulty(p, setting)`, `knob(d, easy, medium,
   hard)`), the setting, per-level bests (a pass at any level counts), three
   worked games (saltshakershrike, coot, crow) and a guide in
-  `design/difficulty.md`. Step 2 (starting): agents convert the other 25 games by
-  that guide. The ramps committed in 44fea729 and cc2cd898 are the starting
+  `design/difficulty.md`. Step 2 (three agents running): convert the other 25 games
+  by that guide; brief in scratchpad `convert-brief.txt` (A: cupadee
+  shuttercluck gullfinch plume bobolinks peeper piffle dodo; B: milkmidge
+  waterglassgoose niffy broomwhisk buttonbeaks keycrane snippit garbagecanary;
+  C: the other nine). The ramps committed in 44fea729 and cc2cd898 are the starting
   point (one curve per game already). User: most games feel good already;
   keep changes very subtle (mostly where in the round values are reached).
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
