@@ -101,10 +101,10 @@ Character sheets use:
 | `book-3` | The Titan's Curse | 1600 × 2400 | delivered |
 | `book-4` | The Battle of the Labyrinth | 1600 × 2400 | delivered |
 | `book-5` | The Last Olympian | 1600 × 2400 | delivered |
-| `scene-field-trip` | The field trip: the school bus in Manhattan | 2560 × 1440 | requested |
+| `scene-field-trip` | The field trip: the school bus in Manhattan | 2560 × 1440 | delivered |
 | `scene-bus-ride` | On the school bus to the museum | 2560 × 1440 | requested |
 | `scene-museum-steps` | Arriving at the museum steps | 2560 × 1440 | requested |
-| `scene-montauk` | Montauk: Grover at the door in the storm | 2560 × 1440 | requested |
+| `scene-montauk` | Montauk: Grover at the door in the storm | 2560 × 1440 | delivered |
 | `scene-storm-drive` | The drive through the storm | 2560 × 1440 | requested |
 | `vox-manhattan` | 3D sheet: the Manhattan prologue kit and sewer rats | 2560 × 1440 | requested |
 | `scene-big-house` | Waking on the porch of the Big House | 2560 × 1440 | requested |
@@ -548,7 +548,7 @@ Character sheets use:
 - **File:** `scene-field-trip.png`, 2560 × 1440 px, delivered to `design/concept/scene-field-trip.png`
 - **References:** `key-art`, `char-percy`, `char-grover`
 - **Use:** Card shown in the cutscene where the school bus drives to the museum.
-- **Status:** requested
+- **Status:** delivered
 
 > Morning on a Manhattan street of brownstones and yellow taxis. A yellow school bus marked with a small school crest waits at the curb in front of a red-brick boarding school with white trim. Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped, not yet in his camp shirt (a plain school polo instead) and late, runs up the sidewalk past a hot-dog cart, with Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can waving him on from the bus steps. Two big sewer rats with too-bright red eyes peek out of a storm drain; no one else notices. A stern teacher in a black leather jacket watches from the bus door. Light and funny, for ages 8 to 14. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
@@ -575,7 +575,7 @@ Character sheets use:
 - **File:** `scene-montauk.png`, 2560 × 1440 px, delivered to `design/concept/scene-montauk.png`
 - **References:** `key-art`, `char-percy`, `char-grover`
 - **Use:** Card shown in the cutscene between chapters 1 and 2.
-- **Status:** requested
+- **Status:** delivered
 
 > Night, a hurricane on the beach at Montauk. The door of a small, sagging beach cabin bursts open: Grover Underwood, a satyr who looks about twelve: lanky, curly brown hair hiding two small horns, a wispy goatee, kind nervous eyes; in disguise a cap, a T-shirt, baggy jeans over furry goat legs and oversized fake sneakers; carries reed pipes and nibbles a tin can stands soaked in the doorway, no trousers on, furry goat legs and hooves plain to see, out of breath. Inside, Percy Jackson, twelve, son of Poseidon: slim, messy jet-black hair, sea-green eyes, a lopsided troublemaker grin; orange Camp Half-Blood T-shirt (a small black pegasus emblem), faded jeans, worn sneakers; Riptide, a leaf-shaped celestial-bronze sword that turns into a ballpoint pen when capped in pyjamas and his mother (kind, tired, long brown hair) stare. Behind Grover, an old blue car waits in the rain with its headlights on. Lightning as gold zigzag ornament, the sea as curling teal ribbons. Dramatic but warm. Cartoon heroes in an ornamental world: the characters are drawn in a clean, bright cartoon style (ink outlines, flat cel-shaded colour, expressive faces) and stand in front of a world painted as flat decorative illustration: layered patterned shapes, waves, clouds and smoke drawn as curling ornamental ribbons, Greek-key and wave-scroll borders, black-figure and red-figure vase motifs, fine gold-leaf linework on deep teal, navy and black grounds, a subtle paper grain. Modern places (New York, highways, Las Vegas) get the same ornamental treatment, so that skyscrapers and neon look as if painted on an ancient vase. Exciting rather than frightening: monsters are bold and dramatic, never gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
 
