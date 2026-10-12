@@ -54,6 +54,7 @@ jobs:
       - run: python3 fibreart/design/source/build_requests.py --check && fibreart/publish.sh local/pages/fibreart
       - run: node --test aiching/app/test/*.test.mjs && python3 aiching/design/source/build_requests.py --check && python3 aiching/tools/build_web.py --check && aiching/publish.sh local/pages/aiching
       - run: node --test eartrainer/app/test/*.test.mjs && python3 eartrainer/design/source/build_requests.py --check && eartrainer/publish.sh local/pages/eartrainer
+      - run: node --test musicpractice/app/test/*.test.mjs && python3 musicpractice/design/source/build_requests.py --check && musicpractice/publish.sh local/pages/musicpractice
       - run: node --test test/*.test.mjs
         working-directory: percyjackson/game
       - run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && python3 percyjackson/design/source/build_concept_web.py --check && percyjackson/publish.sh local/pages/percyjackson
