@@ -517,3 +517,29 @@ test('Kart Dash network karts are packed small and checked on arrival', () => {
   assert.equal(kartSim.unpackKart([1e6, 2, 3, 4, 5, 6, 0]), null);
   assert.equal(kartSim.unpackKart([10, 20, 0, 999, 0, 0, 0]).v, 60);
 });
+
+test('Copy Cat: puffed cheeks against the resting face, and one eye shut', async () => {
+  const { _logic: C } = await import('../games/copycat.js');
+  // A face whose lower cheeks are `w` wide, with eye corners 100 apart.
+  const face = (w, extra = {}) => {
+    const pts = Array.from({ length: 478 }, () => ({ x: 0, y: 0 }));
+    pts[33] = { x: -50, y: 0 }; pts[263] = { x: 50, y: 0 };
+    pts[132] = { x: -w / 2, y: 60 }; pts[361] = { x: w / 2, y: 60 };
+    pts[58] = { x: -w / 2 * 0.9, y: 90 }; pts[288] = { x: w / 2 * 0.9, y: 90 };
+    return { pts, mouthOpen: 0, smile: 0, cheekPuff: 0, blinkL: 0, blinkR: 0, ...extra };
+  };
+  const puff = C.EXPRS.find(e => e.text.startsWith('Puff'));
+  C.puff.base = 0;
+  for (let i = 0; i < 60; i++) C.trackPuff(face(140));
+  assert.ok(puff.get() < 0.1, 'resting face is not a puff');
+  for (let i = 0; i < 10; i++) C.trackPuff(face(147));   // 5% wider, a third of a second
+  assert.ok(puff.get() > puff.thr, `puffed cheeks count (${puff.get().toFixed(2)})`);
+  C.trackPuff(face(147, { mouthOpen: 0.6 }));
+  assert.ok(puff.get() < puff.thr, 'an open mouth is not a puff');
+  C.trackPuff(face(140, { cheekPuff: 0.3 }));
+  assert.ok(puff.get() > puff.thr, 'the tracker\'s own cheekPuff still counts');
+  const eye = C.EXPRS.find(e => e.text.startsWith('Close one eye'));
+  assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.1 })) > eye.thr);
+  assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.85 })) < eye.thr, 'both eyes shut is not one eye');
+  assert.ok(!C.EXPRS.some(e => /both eyes|Wink/.test(e.text)));
+});
