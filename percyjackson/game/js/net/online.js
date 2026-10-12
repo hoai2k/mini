@@ -243,6 +243,9 @@ export class Online {
       const d = g.mission.def;
       return { n: this.setupNonce, mode: 'mission', def: { biome: d.biome, objective: d.objective, boss: d.boss, difficulty: d.difficulty, seed: d.seed, chapter: d.chapter ?? null, mist: d.mist ?? 0, disguise: d.disguise ?? [], objText: d.objText ?? null, id: d.id ?? null } };
     }
+    // the opening: the Manhattan prologue, or a cutscene (guests play the same one)
+    if (g.mode === 'prologue') return { n: this.setupNonce, mode: 'prologue' };
+    if (g.mode === 'cutscene' && g.cutscene && !g.cutscene.done) return { n: this.setupNonce, mode: 'cut', id: g.cutscene.id };
     const sc = { n: this.setupNonce, mode: 'hub' };
     if (this.storyCh && g.ui.isOpen('story')) sc.st = this.storyCh;
     return sc;
@@ -436,7 +439,7 @@ export class Online {
   applySetup(sc) {
     const g = this.game;
     if (!sc || typeof sc !== 'object' || typeof sc.n !== 'number') return;
-    const id = sc.n + ':' + sc.mode + ':' + (sc.def?.seed ?? '');
+    const id = sc.n + ':' + sc.mode + ':' + (sc.def?.seed ?? sc.id ?? '');
     if (sc.mode === 'hub' && sc.st && sc.st !== this.storySeen && g.mode === 'hub') { this.storySeen = sc.st; this.showStory(sc.st); }
     if (id === this.applied) return;
     if (sc.mode === 'mission' && sc.def && typeof sc.def.seed === 'number') {
@@ -446,13 +449,23 @@ export class Online {
       const def = { biome: str(sc.def.biome, 24), objective: str(sc.def.objective, 24), boss: sc.def.boss ? str(sc.def.boss, 32) : null, difficulty: int(sc.def.difficulty, 1, 9, 1), seed: sc.def.seed, chapter: sc.def.chapter ? str(sc.def.chapter, 24) : null, mist: num(sc.def.mist, 0, 1), disguise: Array.isArray(sc.def.disguise) ? sc.def.disguise.map((x) => str(x, 24)).slice(0, 8) : [], objText: sc.def.objText ? str(sc.def.objText, 80) : null, remote: true };
       if (sc.def.id) def.id = str(sc.def.id, 32);
       g.ui.closeAll(); g.paused = false;
+      g.endCutscene?.();
       g.startMission(def);
       this.puppetizeMission();
       this.joinNear();
+    } else if (sc.mode === 'prologue') {
+      // the opening's Manhattan street: built from the same seed here
+      this.applied = id;
+      this.clearPuppets();
+      if (g.mode !== 'prologue') { g.opening?.startPrologue({ remote: true }); this.joinNear(); }
+    } else if (sc.mode === 'cut' && typeof sc.id === 'string') {
+      this.applied = id;
+      this.clearPuppets();
+      if (g.cutscene?.id !== sc.id || !g.cutscene?.remote) g.opening?.playCutscene(str(sc.id, 16), { remote: true });
     } else if (sc.mode === 'hub') {
       this.applied = id;
       this.clearPuppets();
-      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.loadHub(); toast('Camp Half-Blood', 'big'); this.joinNear(); }
+      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast('Camp Half-Blood', 'big'); this.joinNear(); }
     }
   }
   showStory(chId) {
@@ -890,7 +903,7 @@ export class Online {
     if (t === 'ev') { if (peer) this.fx.receive(d, peer.uid); return; }
     if (t === 'hit' && this.isHost) { this.onHits(d, peer); return; }
     if (t === 'hurt') { this.onHurt(d); return; }
-    if (t === 'act' && this.isHost) { this.onAct(d); return; }
+    if (t === 'act' && this.isHost) { this.onAct(d, peer); return; }
     if (t === 'load' && this.isGuest) { this.hostLoading = performance.now() + 45000; return; }
     if (t === 'done' && this.isGuest) { if (g.mission && !g.mission.complete) g.completeMission(); return; }
     if (t === 'swap' && this.isHost && peer) { this.onSwap(d, peer); return; }
@@ -920,15 +933,20 @@ export class Online {
     if (!p) return;
     p.takeDamage(num(d.a, 0, 500), null, { knock: d.nk ? null : V3(num(d.kx, -40, 40), 0, num(d.kz, -40, 40)), pure: !!d.p, dot: !!d.dot, noKnock: !!d.nk });
   }
-  onAct(d) {
+  onAct(d, peer) {
     const g = this.game, m = g.mission;
     if (d.k === 'reveal') { const e = g.enemies.find((q) => q.netId === d.id); if (e?.disguised) e.reveal?.(); return; }
+    // the opening: a guest reached the school bus; a guest asks to skip the cutscene (all guests must)
+    if (d.k === 'bus' && g.mode === 'prologue') { g.opening?.prologueDone(); return; }
+    if (d.k === 'skip' && g.cutscene && !g.cutscene.remote && d.id === g.cutscene.id) { g.cutscene.vote(peer?.uid ?? '?', Math.max(1, this.session?.byUid.size ?? 1)); toast(`${peer?.name ?? 'Someone'} wants to skip`); return; }
     if (!m) return;
     if (d.k === 'item') { const it = m.obj.items[d.i]; if (it && !it.done) m.completeItem(it); }
     if (d.k === 'chest') { const c = m.L.chests[d.i]; if (c && !c.opened) m.openChest(c, this.localHumans()[0] ?? g.players[0]); }
     if (d.k === 'obj' && typeof d.u === 'string') m.onNetAct?.(d);
     if (d.k === 'exit' && (m.boss?.dead || m.exitOpen)) g.completeMission();
   }
+  // a guest held skip during a cutscene
+  cutsceneSkip(id) { if (this.ready && this.isGuest) this.session.send('act', { k: 'skip', id }); }
   // called by the game when this browser finishes a chapter
   completed() {
     if (!this.ready) return;

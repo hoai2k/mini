@@ -123,6 +123,17 @@ const MODELS = {
     prop(rig, rig.tailTip, 1.4, 1.4, 1.4, solid(0xff6a1a, 2.2), 0, 0, -1.6);
     return rig;
   },
+  // A New York sewer rat (the prologue): grey-brown fur, a pink nose, ears
+  // and tail, and eyes a little too red. The Mist says "just rats".
+  rat: () => {
+    const rig = new QuadRig({ material: skinMat('rat', (S) => paintQuad(S, { base: 0x6a5e54, dark: 0x3e352e, belly: 0xa89a8a, back: 0x564a40, eye: 0xff2a1a, eyeLow: 0xff8a6a, nose: 0xe88a9a, teeth: 0xfff4d8, speckles: 50,
+      custom: (s) => { fur(s, 0, 16, 40, 20, 40, 0x4a4038, 0x847466); s.rect(36, 4, 4, 2, 0xe88a9a, 0); } })), scale: 0.62, bodyL: 10, bodyW: 5.5, bodyH: 5, legH: 3.2, legW: 1.8, headS: 5, snoutS: 3.4, ears: true, tail: 4, tailLen: 8, tailW: 0.9, tailCurl: 0.12, gait: 1.7 });
+    const pink = solid(0xe8a0a8);
+    for (const e of rig.head.children.filter((m) => m.isMesh && m !== rig.headMesh && Math.abs(m.position.x) > 0.01)) prop(rig, rig.head, 2.6, 2.6, 0.6, pink, e.position.x / PX * 1.1, e.position.y / PX + 1.6, e.position.z / PX + 0.4);
+    if (rig.tailTip) prop(rig, rig.tailTip, 0.9, 0.9, 3, pink, 0, 0, -1.4);
+    for (const sx of [-1, 1]) prop(rig, rig.head, 0.2, 0.2, 3, solid(0xd8d0c8), sx * 2.2, -1.2, 5.4, 0, sx * 0.5, 0);   // whiskers
+    return rig;
+  },
   hellhound: () => {
     const rig = new QuadRig({ material: skinMat('hellhound', lavaDog({ cracks: 12 })), scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7, ears: true, tail: 4, tailLen: 8, tailW: 1.8, tailCurl: 0.35, gait: 0.75 });
     // shaggy hackles, a smouldering ridge and a gold spiked collar
@@ -434,6 +445,7 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
 // wake: metres   'statue' monsters stand frozen until a hero comes this close
 export const MONSTERS = {
   pup: { name: 'Hellhound Pup', tier: 'minor', hp: 32, speed: 5, dmg: 7, radius: 0.45, height: 1.1, ai: 'melee', range: 1.5, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.5, voice: 'bark' },
+  rat: { name: 'Sewer Rat', tier: 'minor', hp: 14, speed: 6.4, dmg: 3, radius: 0.32, height: 0.6, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0 },
   spider: { name: 'Bronze Spider', tier: 'minor', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
   harpy: { name: 'Wild Harpy', tier: 'minor', hp: 40, speed: 3.8, dmg: 8, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.55, cd: 2.1, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', voice: 'screech' },
   stymphalian: { name: 'Stymphalian Bird', tier: 'minor', hp: 34, speed: 4.4, dmg: 7, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.5, cd: 2.3, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', voice: 'screech' },

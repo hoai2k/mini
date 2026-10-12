@@ -805,6 +805,59 @@ REQUESTS += [
              "the storm giant Typhon on the horizon."),
         ]
     ],
+    # ---- The opening: story cards shown inside the cutscenes between the
+    # prologue, chapter 1, chapter 2 and camp (game/js/story/cutscenes.js). The
+    # game shows the cutscene without the insert until a card arrives.
+    {
+        "id": "scene-field-trip",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "The field trip: the school bus in Manhattan",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-grover"],
+        "use": "Card shown in the cutscene where the school bus drives to the museum.",
+        "prompt": (
+            f"Morning on a Manhattan street of brownstones and yellow taxis. A yellow school bus "
+            f"marked with a small school crest waits at the curb in front of a red-brick boarding "
+            f"school with white trim. {PERCY}, not yet in his camp shirt (a plain school polo "
+            f"instead) and late, runs up the sidewalk past a hot-dog cart, with {GROVER} waving "
+            f"him on from the bus steps. Two big sewer rats with too-bright red eyes peek out of "
+            f"a storm drain; no one else notices. A stern teacher in a black leather jacket watches "
+            f"from the bus door. Light and funny, for ages 8 to 14. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-montauk",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "Montauk: Grover at the door in the storm",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-grover"],
+        "use": "Card shown in the cutscene between chapters 1 and 2.",
+        "prompt": (
+            f"Night, a hurricane on the beach at Montauk. The door of a small, sagging beach "
+            f"cabin bursts open: {GROVER} stands soaked in the doorway, no trousers on, furry "
+            f"goat legs and hooves plain to see, out of breath. Inside, {PERCY} in pyjamas and his "
+            f"mother (kind, tired, long brown hair) stare. Behind Grover, an old blue car waits in "
+            f"the rain with its headlights on. Lightning as gold zigzag ornament, the sea as "
+            f"curling teal ribbons. Dramatic but warm. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-big-house",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "Waking on the porch of the Big House",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-annabeth"],
+        "use": "Card shown in the cutscene where Percy wakes at Camp Half-Blood.",
+        "prompt": (
+            f"A sunny summer afternoon on the wraparound porch of a big blue four-storey "
+            f"farmhouse with white trim. {PERCY}, bandaged and drowsy, sits up in a deck chair "
+            f"holding a Minotaur horn; {ANNABETH} leans on the railing with her arms folded, "
+            f"judging him; a bearded teacher in a tweed jacket sits in a wheelchair beside a "
+            f"pinochle table, and a plump man in a leopard-print shirt sips a diet cola. Beyond the "
+            f"porch, Camp Half-Blood: cabins in a U, a lake with canoes, strawberry fields and the "
+            f"sea. Welcoming and golden. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
 ]
 
 

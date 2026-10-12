@@ -13,6 +13,9 @@ export const EXTRA_TILES = [
   'rust_metal', 'casino_carpet', 'slot_machine', 'neon_green', 'lotus_panel', 'desert_sand', 'red_rock', 'satin_pink',
   'satin_blue', 'asphodel_top', 'underworld_rock', 'styx', 'black_marble', 'wet_sand', 'cloud', 'gold_marble',
   'elevator_door', 'neon_bulbs',
+  // Manhattan (the prologue). The atlas holds 128 tiles (gfx/textures.js), so
+  // this is the last one: other city blocks reuse existing tiles.
+  'brownstone',
 ];
 
 export function paintExtraTile(name, px, r, H) {
@@ -162,6 +165,12 @@ export function paintExtraTile(name, px, r, H) {
     case 'neon_bulbs': each(px, (x, y) => { // marquee light bulbs on red
       const bulb = (x % 4 === 1 || x % 4 === 2) && (y % 4 === 1 || y % 4 === 2);
       return [bulb ? C(0xfff2a0) : jitter(C(0xc02a2a), r, 0.1), bulb ? 0.8 : 0.4];
+    }); return true;
+    // ---- Manhattan
+    case 'brownstone': each(px, (x, y) => { // warm brown sandstone in big dressed blocks
+      const joint = y % 8 === 0 || ((x + (y >> 3) * 6) % 12 === 0);
+      const c = jitter(mix(C(0x7a4e36), C(0x8e5c40), (Math.sin(x * 0.9 + y * 0.3) + 1) * 0.25), r, 0.06);
+      return [joint ? shade(c, 0.78) : c, joint ? 0.3 : 0.6];
     }); return true;
   }
   return false;

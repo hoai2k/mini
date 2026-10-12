@@ -159,6 +159,7 @@ export class Enemy {
       case 'rattle': for (let i = 0; i < 4; i++) a.tone({ freq: 900 + i * 120, dur: 0.025, gain: 0.05, type: 'square', filter: 3000, at: i * 0.05 }); break;
       case 'moan': a.tone({ freq: 260 * p, to: 180 * p, dur: 0.6, gain: 0.05, type: 'sine', filter: 1200, rev: 0.6 }); break;
       case 'grind': a.noise({ dur: 0.4, gain: 0.16, type: 'lowpass', freq: 500 }); break;
+      case 'squeak': a.tone({ freq: 2600, to: 3400, dur: 0.07, gain: 0.04, type: 'triangle', filter: 6000 }); a.tone({ freq: 3000, to: 2400, dur: 0.06, gain: 0.035, type: 'triangle', filter: 6000, at: 0.09 }); break;
       case 'roar': a.tone({ freq: 140 * p, to: 70 * p, dur: 0.5, gain: 0.2, type: 'sawtooth', filter: 700 }); break;
     }
   }

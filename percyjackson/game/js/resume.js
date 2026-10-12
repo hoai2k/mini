@@ -9,6 +9,11 @@
 // from a timer, never in the middle of a frame. Back in camp there is nothing
 // to resume (camp is where the game starts anyway). Online, only the host (or
 // a player alone) keeps one; guests just rejoin.
+//
+// The opening of a new game (story/opening.js) keeps one too: { kind:
+// 'opening', step, cp } in the Manhattan prologue (where the party is) and
+// in a cutscene (which starts again from its beginning); chapters 1 and 2 of
+// the opening are chapter resume points whose def carries `opening`.
 import * as THREE from 'three/webgpu';
 import { RESUME_KEY } from './slots.js';
 import { HEROES } from './heroes/index.js';
@@ -28,12 +33,24 @@ export class Resume {
   }
   get key() { return (this.game.slots?.prefix() ?? '') + RESUME_KEY; }
   load() {
-    try { const r = JSON.parse(localStorage.getItem(this.key) || 'null'); return r && r.v === 1 && r.def && typeof r.def.seed === 'number' ? r : null; } catch (e) { return null; }
+    try {
+      const r = JSON.parse(localStorage.getItem(this.key) || 'null');
+      if (r && r.v === 1 && r.kind === 'opening' && typeof r.step === 'string') return r;
+      return r && r.v === 1 && r.def && typeof r.def.seed === 'number' ? r : null;
+    } catch (e) { return null; }
   }
   clear() { clearTimeout(this.timer); this.timer = null; this.pending = null; try { localStorage.removeItem(this.key); } catch (e) { /* ignore */ } }
   // what to keep (null: nothing to resume)
   capture() {
     const g = this.game, m = g.mission;
+    // the opening: the prologue (with where the party is) or the cutscene being shown
+    if (g.state === 'playing' && !g.online?.isGuest && (g.mode === 'prologue' || (g.mode === 'cutscene' && g.cutscene && !g.cutscene.remote))) {
+      const lead = g.players.find((p) => !p.ai && !p.remote) ?? g.players[0];
+      const step = g.mode === 'prologue' ? 'prologue' : g.opening?.running ?? g.opening?.step;
+      if (!step || step === 'done') return null;
+      return { v: 1, t: Date.now(), kind: 'opening', step, title: null, cp: g.mode === 'prologue' && lead ? [lead.safePos?.x ?? lead.pos.x, lead.safePos?.y ?? lead.pos.y, lead.safePos?.z ?? lead.pos.z] : null,
+        party: g.players.filter((p) => !p.remote).map((p) => ({ hero: p.hero, human: !p.ai, hp: 1 })) };
+    }
     if (g.state !== 'playing' || g.mode !== 'mission' || !m || m.complete || m.failed || g.online?.isGuest || m.remote) return null;
     const def = { ...m.def }; delete def.remote;
     const lead = g.players.find((p) => !p.ai && !p.remote) ?? g.players[0];
@@ -56,6 +73,14 @@ export class Resume {
     this.t -= dt; if (this.t > 0) return; this.t = 0.5;
     if (g.state !== 'playing') return;
     if (g.mode === 'hub') { if (this.had) { this.had = false; this.cp = null; this.sig = ''; this.clear(); } if (this.play > 20) this.touchSlot(); return; }
+    if (g.mode === 'prologue' || g.mode === 'cutscene') {
+      if (g.online?.isGuest) return;
+      // a checkpoint every few metres in the prologue; once per cutscene
+      const lead = g.players.find((p) => !p.ai && !p.remote && !p.dead);
+      const sig = g.mode + ':' + (g.mode === 'prologue' && lead ? Math.round(lead.pos.x / 6) + ',' + Math.round(lead.pos.z / 6) : g.cutscene?.id ?? '');
+      if (sig !== this.sig) { this.sig = sig; this.schedule(); }
+      return;
+    }
     const m = g.mission;
     if (!m || m.remote || g.online?.isGuest) return;
     if (m.complete) { if (this.had) { this.had = false; this.clear(); } return; }
@@ -89,6 +114,13 @@ export class Resume {
   // the party at the last checkpoint.
   apply(r) {
     const g = this.game;
+    if (r.kind === 'opening') {
+      // the prologue from the last checkpoint, or the cutscene from its start
+      this.sig = ''; this.had = true;
+      g.opening.run(r.step, { cp: r.step === 'prologue' && Array.isArray(r.cp) ? r.cp : null });
+      g.toast?.('Continuing the story', 'big');
+      return true;
+    }
     g.startMission({ ...r.def });
     const m = g.mission; if (!m) return false;
     const on = (str, i) => typeof str === 'string' && str[i] === '1';

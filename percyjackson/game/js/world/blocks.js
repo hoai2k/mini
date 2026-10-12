@@ -168,6 +168,11 @@ def('poplar_leaves', 'basalt', { step: 'grass', rough: 0.9 });
 // cloud drifting round Olympus: drawn like cloud, but you fall through it (so it never
 // bridges two rooms or strands a hero below the floor)
 def('cloud_puff', 'cloud', { solid: false, rough: 0.95 });
+// Manhattan (the prologue)
+def('brownstone', 'brownstone', { rough: 0.8 });
+def('sidewalk', 'concrete', { rough: 0.7 });
+def('shop_window', { top: 'dark_planks', side: 'window_day' }, { emit: 0.9, rough: 0.2 });
+def('cornice', { top: 'roof_slate', side: 'dark_planks' }, { rough: 0.5 });
 
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;

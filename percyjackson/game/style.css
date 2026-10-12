@@ -433,3 +433,35 @@ body.is-touch .sight { bottom: calc(120px + var(--safe-b)); left: 50%; }
 .port.has-face > span { opacity: 0; }
 .slot .hero-art { display: block; width: 100%; max-height: 34vh; object-fit: cover; object-position: center 20%; border-radius: 8px; border: 2px solid var(--hc, #c9963a); margin: 4px 0 6px; }
 .pm.has-face::before { background: var(--face) center / cover, #17130f; } .pm.has-face > span { opacity: 0; }   /* face inside the health ring */
+
+/* ---------------------------------------------------------------- the opening: cutscenes (story/cutscene.js) */
+.cutscene { position: fixed; inset: 0; z-index: 45; pointer-events: auto; cursor: default; touch-action: none; }
+.cs-bar { position: absolute; left: 0; right: 0; height: 11vh; background: #000; transition: transform .7s cubic-bezier(.2, .8, .2, 1); }
+.cs-bar.top { top: 0; transform: translateY(-100%); } .cs-bar.bottom { bottom: 0; transform: translateY(100%); }
+.cutscene.in .cs-bar { transform: none; }
+.cs-sub { position: absolute; left: 50%; bottom: calc(11vh + 14px); transform: translateX(-50%); width: min(900px, 92vw); margin: 0; text-align: center;
+  font: 700 clamp(17px, 2.3vw, 25px) / 1.4 var(--font); color: #f8f0dc; text-shadow: 0 2px 4px #000, 0 0 12px rgba(0, 0, 0, .9); opacity: 0; transition: opacity .4s; }
+.cs-sub.show { opacity: 1; }
+.cs-sub .gl.flux { color: #ffd84a; } .cs-sub .gl.set { animation: settle .8s ease-out; }
+.cs-card { position: absolute; right: 4vw; top: calc(11vh + 18px); width: min(30vw, 360px); aspect-ratio: 16 / 9; border: 3px double var(--gold-lo, #8a5f1c); box-shadow: 0 0 0 3px #17130f, 0 10px 30px rgba(0, 0, 0, .7); background: #17130f; transform: rotate(1.2deg); animation: cs-card-in .6s ease-out; overflow: hidden; }
+.cs-card img { width: 100%; height: 100%; object-fit: cover; display: block; animation: cs-ken 6s linear forwards; }
+@keyframes cs-card-in { from { opacity: 0; transform: rotate(4deg) scale(.9); } }
+@keyframes cs-ken { from { transform: scale(1.02); } to { transform: scale(1.12); } }
+.cs-fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+.cs-skip { position: absolute; right: calc(18px + var(--safe-r, 0px)); bottom: 2.6vh; display: flex; align-items: center; gap: 8px; font: 700 13px var(--font); color: rgba(248, 240, 220, .75); }
+.cs-skip .ring { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(#ffd84a calc(var(--p, 0) * 360deg), rgba(255, 255, 255, .22) 0); -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px); mask: radial-gradient(circle, transparent 5px, #000 6px); }
+.cs-skip.holding { color: #ffd84a; }
+@media (prefers-reduced-motion: reduce) { .cs-card img { animation: none; } .cs-bar { transition: none; } }
+
+/* ---------------------------------------------------------------- where to go (ui/tracker.js) */
+.trk-arrow, .trk-pin { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; }
+.trk-arrow { width: 0; height: 0; }
+.trk-arrow .ic { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .7)) drop-shadow(0 0 6px rgba(255, 216, 74, .6)); }
+.trk-arrow .ic svg { width: 100%; height: 100%; }
+.trk-arrow .dist { position: absolute; left: -30px; top: 24px; width: 60px; text-align: center; font: 800 13px var(--font); color: #ffe9a0; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+.trk-pin { width: 0; height: 0; }
+.trk-pin .chev { position: absolute; left: -12px; top: -38px; width: 24px; text-align: center; font: 900 22px var(--font); color: #ffd84a; text-shadow: 0 2px 3px #000; animation: trk-bob 1.2s ease-in-out infinite; }
+.trk-pin .dist { position: absolute; left: -30px; top: -62px; width: 60px; text-align: center; font: 800 13px var(--font); color: #ffe9a0; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+@keyframes trk-bob { 50% { transform: translateY(5px); } }
+@media (prefers-reduced-motion: reduce) { .trk-pin .chev { animation: none; } }
+body.reduce-motion .trk-pin .chev { animation: none; }
