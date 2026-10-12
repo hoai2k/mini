@@ -116,6 +116,42 @@ re-read at any time from the pause menu. *The Lightning Thief*:
 3. *You shall be betrayed by one who calls you a friend* (The Last Chapter)
 4. *And you shall fail to save what matters most, in the end* (The Underworld)
 
+## The opening
+
+A new game doesn't start in camp. It tells the first chapters of the book in
+order, then opens camp up:
+
+1. **Prologue: Manhattan, the morning of the field trip.** A small city corner
+   (brownstones, Yancy Academy, taxis, a deli, a hot-dog cart, a subway
+   entrance, a park). You're late: walk to the yellow school bus at the curb,
+   fighting off packs of sewer rats (weak, quick, golden dust when they fall:
+   the Mist calls them "just rats") that come out of alleys, the subway stairs
+   and the storm drains. Reaching the bus ends it.
+2. **Cutscene:** the bus drives up Central Park West to the American Museum of
+   Natural History; the class gets out; Mrs. Dodds is watching.
+3. **Chapter 1**, the museum.
+4. **Cutscene:** summer at Montauk, Grover at the door in the storm, the drive
+   to Long Island, the lightning.
+5. **Chapter 2**, Half-Blood Hill and the Minotaur.
+6. **Cutscene:** waking up on the lawn of the Big House; Annabeth; Chiron.
+7. **Camp Half-Blood**, the open hub.
+
+Cutscenes are shot in the engine on small sets and skippable (hold A / Esc /
+the screen). The save keeps the step, so Continue resumes the prologue or the
+cutscene. Settings can skip the opening.
+
+**Guidance everywhere:** one line in the objective ribbon names the goal; a
+gold arrow at the screen edge points to it when it is off screen, a beam marks
+it, and footprints on the ground lead along the walkable way. In camp the goal
+is the next chapter's quest marker.
+
+**Roaming monsters:** as in Minecraft Dungeons, low-level monsters turn up as
+you walk around: rats in the prologue; pups, bronze spiders, Stymphalian birds
+and (on the far road) scorpions in the camp woods and along the Road West. The
+woods are stocked for training, but nothing crosses into the cabins, the Big
+House or the forge. Small packs, out of sight, capped, gone when far away, a
+little tougher as the save goes on.
+
 ## Chapters
 
 Chapters are chosen on the map in the Big House. Each book is a column of
@@ -166,7 +202,7 @@ and a tell before it attacks.
 
 | Tier | Role | Book 1 | Later books |
 | --- | --- | --- | --- |
-| **Minor** | Swarms; die in two or three hits | Hellhound pups, mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
+| **Minor** | Swarms; die in two or three hits | Sewer rats (the prologue), hellhound pups, mechanical spiders, harpies (at camp, harmless), mortal-disguised minions | Stymphalian birds, telekhines, myrmekes (giant ants), skeleton warriors' dogs |
 | **Elite** | A threat on their own; a tell and a counter | Hellhounds, Furies, dracaenae (snake-women with spears), Echidna's brood | Laistrygonian giants (dodgeballs of fire), skeleton warriors (regrow unless their bones are scattered), empousai (charm; True Sight breaks it), Cyclops thugs, earthborn |
 | **Champion** | A mini-boss in a room | Mrs. Dodds, the three Furies, Procrustes | Scylla's heads, Ladon, the Manticore, Geryon's cattle |
 | **Boss** | A chapter boss: phases, an arena, a myth riddle | The Minotaur, Medusa, the Chimera, Cerberus, Ares | Polyphemus, the Nemean Lion (hit only in the mouth), Talos (the plug on his heel), Kampê, Antaeus (lift him off the ground), Typhon, Kronos |

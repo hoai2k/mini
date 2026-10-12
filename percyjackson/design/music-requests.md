@@ -26,10 +26,36 @@ game keeps playing its own generated music for that place.
 
 | Delivered (see [music-request-history.md](music-request-history.md)) | Next, in order of impact | Later |
 | --- | --- | --- |
-| `title`, `camp`, `museum`, `storm`, `boss`, `minigame`, `oracle`, `woods`, `highway`, `garden`; stingers `victory`, `defeat`, `prophecy-line`, `claimed` (made with ElevenLabs); the crickets ambience | `manhattan`, `cutscene-journey`, `cutscene-storm`, `cutscene-camp`, `arch` | `waterland`, `casino`, `desert`, `underworld`, `beach`, `olympus`, `boss-god`, `boss-fury`, `boss-minotaur`, `campfire` |
+| `title`, `camp`, `museum`, `storm`, `boss`, `minigame`, `oracle`, `woods`, `highway`, `garden`, `manhattan`; stingers `victory`, `defeat`, `prophecy-line`, `claimed` (made with ElevenLabs); the crickets ambience | `road-west` and `otherworld` (two tracks that cover every gap, below), or the specific tracks: `cutscene-journey`, `cutscene-storm`, `cutscene-camp`, `arch` | `waterland`, `casino`, `desert`, `underworld`, `beach`, `olympus`, `boss-god`, `boss-fury`, `boss-minotaur`, `campfire` |
 
-Every place without a delivered track still plays the game's own generated
-music, so nothing is silent; a delivered track simply replaces it.
+Every place without its own track plays the closest delivered one for now
+(the Arch uses `woods`, Waterland and the casino `garden`, the desert
+`highway`, the Underworld `oracle`, the beach `boss`, Olympus `title`, the
+cutscenes `manhattan`, `storm` and `camp`); a delivered track replaces its
+stand-in.
+
+## If only two more: fill every gap
+
+Two tracks would give every remaining place music that really fits:
+
+**`road-west` — The Road West: the quest across America** *(loop, 108 BPM)*
+Plays in chapters 6, 7, 9 and 11 (the Arch, Waterland, the desert, the
+beach) and the bus-ride cutscene.
+> Upbeat road-trip quest music for three young heroes crossing America on a
+> mythic mission, instrumental. Strummed acoustic guitar and bouzouki over a
+> driving drum groove, a soaring fiddle and lyre melody, warm strings, a
+> hint of twangy western guitar, open-sky horns on the chorus; adventurous,
+> sunny with an edge of danger, wide horizons. Loopable, steady energy.
+
+**`otherworld` — Between the worlds** *(loop, 80 BPM)*
+Plays in chapters 8, 10 and 12 (the Lotus Casino, the Underworld, Olympus)
+and the storm and Big House cutscenes.
+> Hypnotic, majestic and uncanny music for places outside the mortal world,
+> instrumental. A slow pulsing harp and celesta ostinato, a deep sub-bass
+> drone, a wordless choir that swells from hushed to radiant, distant bells,
+> a lyre melody in a Phrygian mode that turns briefly major and golden;
+> dreamlike, awe-filled, a little dangerous, timeless. Loopable, no big
+> climax.
 
 ## The sound of the game
 
@@ -70,12 +96,6 @@ A new game begins on the morning of the field trip: Percy walks through
 Manhattan to the school bus, fighting off sewer rats, and short cutscenes
 link the city, the museum, the storm and the arrival at camp.
 
-**`manhattan` — The prologue: a New York morning** *(loop, 104 BPM)*
-> Bright, bustling city-morning adventure music for a kid walking to a school
-> field trip, instrumental. Pizzicato strings and a walking upright bass,
-> brushed snare, a cheeky clarinet melody, a distant taxi-horn-like brass
-> stab, a hint of a lyre motif underneath as if something ancient is
-> watching. Playful, a little mischievous, never scary. Loopable.
 
 **`cutscene-journey` — Cutscene: the bus ride to the museum** *(60–90 s, no
 loop needed)*
@@ -151,14 +171,11 @@ loop needed)*
 ## Which tracks matter most
 
 1. **Delivered:** `title`, `camp`, `museum`, `storm`, `boss`, `minigame`,
-   `oracle`, `woods`, `highway`, `garden`. Thank you!
-2. **Next five, in order:**
-   - `manhattan`: the first thing every new player hears now that the game
-     opens in the city.
-   - `cutscene-journey`, `cutscene-storm`, `cutscene-camp`: the three story
-     cutscenes of the opening; good music makes them land.
-   - `arch`: chapter 6, the first chapter in order without its own track.
-3. **Then, as players reach them:** `waterland`, `casino` (the Lotus escape,
+   `oracle`, `woods`, `highway`, `garden`, `manhattan`. Thank you!
+2. **Next two, to fill every gap:** `road-west` and `otherworld` (above).
+   With them every chapter and cutscene has fitting music.
+3. **Then, each place's own track, as players reach them:** `cutscene-journey`,
+   `cutscene-storm`, `cutscene-camp`, `arch`, `waterland`, `casino` (the Lotus escape,
    where the music itself should feel like a trap), `desert`, `underworld`,
    `beach`, `olympus`.
 4. **Polish:** `boss-god` (Ares and the final duel deserve their own),

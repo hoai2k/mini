@@ -33,6 +33,15 @@ in [music-requests.md](music-requests.md). Delivered tracks live in
 > Bouncy bouzouki riff, snappy snare and frame drum, plucked strings, brass
 > stabs, playful and competitive, a hint of a camp cheer. Loopable.
 
+### The opening
+
+**`manhattan` — ✓ delivered · The prologue: a New York morning** *(loop, 104 BPM)*
+> Bright, bustling city-morning adventure music for a kid walking to a school
+> field trip, instrumental. Pizzicato strings and a walking upright bass,
+> brushed snare, a cheeky clarinet melody, a distant taxi-horn-like brass
+> stab, a hint of a lyre motif underneath as if something ancient is
+> watching. Playful, a little mischievous, never scary. Loopable.
+
 ### Book 1 chapters
 
 **`museum` — ✓ delivered · Ch 1, The Pre-Algebra Teacher (thick Mist)** *(loop, 84 BPM)*
