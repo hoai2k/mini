@@ -16,7 +16,8 @@ agent. Newest first.
   worked games (saltshakershrike, coot, crow) and a guide in
   `design/difficulty.md`. Step 2 (next): agents convert the other 25 games by
   that guide. The ramps committed in 44fea729 and cc2cd898 are the starting
-  point (one curve per game already).
+  point (one curve per game already). User: most games feel good already;
+  keep changes very subtle (mostly where in the round values are reached).
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws
