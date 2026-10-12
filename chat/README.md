@@ -193,13 +193,20 @@ arrow sits behind the ball, following your finger, pointing the way it will go),
 Bowling (pins finish falling and stay on the lane for 1.5 seconds before the
 rack resets or the turn changes), Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
-your head; live miniature kitchens show friends' stacks, falling ingredients,
-scores and remaining lives), Asteroid Dodge (steer with your head or by tilting the phone),
+your head: patty, cheese, lettuce, tomato, bacon, ketchup, pickles, onion and
+a fried egg, packed snugly on the bun; dodge the boots and the poop; live
+miniature kitchens show friends' stacks, falling ingredients, scores and
+remaining lives), Asteroid Dodge (steer with your head or by tilting the phone
+or dragging; the ship sits about a quarter of the way up the screen, clear of
+your finger, and flies up from below the edge when a run starts),
 Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
 Word Blitz (a Boggle-style word race on a 20,000-word dictionary) and Go Fish
 (thirteen creatures from the ancient oceans, from Anomalocaris and Opabinia to
 Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
-hold; if they say Go Fish, press Go Fish and your angler, with your face, casts
+hold (with one opponent, tapping the creature asks straight away; with more, tap
+the card, tap a player, press Ask). When you are asked and have the card, it
+bounces in your hand; tap it and it flies to the asker, or press Go Fish if you
+have none. If they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
 deals; alone you play Robo-Fisher). Starting

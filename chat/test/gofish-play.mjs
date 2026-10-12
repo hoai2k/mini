@@ -1,5 +1,5 @@
 // Plays whole games of Go Fish in test/game.html, clicking for every seat:
-// deal, pick a creature, pick whom to ask, give or say Go Fish, cast. Checks
+// deal, tap a creature to ask (with 3+ players also pick whom and press Ask), tap the wanted card to give or say Go Fish, cast. Checks
 // that the 52 cards are always all accounted for (hands + pond + books), that
 // the pond shows one fish shadow per card left once fewer than four remain,
 // and that the game ends with all thirteen books made.
@@ -55,8 +55,10 @@ for (;;) {
       const btn = t => [...r.querySelectorAll('.gf-bar .btn')].find(b => b.textContent.startsWith(t));
       const deal = btn('Deal') || btn('Play Robo');
       if (deal) { deal.click(); out.push('deal'); continue; }
-      const give = btn('Give') || btn('Go Fish!');
-      if (give) { give.click(); out.push('answer'); continue; }
+      const gf = btn('Go Fish!');
+      if (gf) { gf.click(); out.push('answer'); continue; }
+      const want = r.querySelector('.gf-hand .gf-card.want');
+      if (want) { want.click(); out.push('answer'); continue; }
       const fish = btn('🎣 Go Fish') || btn('The pond is empty');
       if (fish) { fish.click(); out.push('fish'); continue; }
       const askBtn = btn('Ask');
@@ -68,7 +70,7 @@ for (;;) {
     }
     return out;
   });
-  asks += did.filter(d => d === 'ask').length;
+  asks += did.filter(d => d === 'ask' || (d === 'pick' && n < 3)).length;
   fishes += did.filter(d => d === 'fish').length;
   await page.waitForTimeout(did.length ? 250 : 200);
 }
