@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="deco">
+<html lang="en" data-theme="classic">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -21,9 +21,10 @@
   <script>
     // Apply the saved theme before the page draws (settings.js owns the list).
     try {
-      var t = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).theme;
-      document.documentElement.dataset.theme = t === 'straight' || t === 'deco' ? t : 'deco';
-    } catch (e) { document.documentElement.dataset.theme = 'deco'; }
+      var s = JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {};
+      var t = s.themeChosen === true && s.theme === 'deco' ? 'deco' : 'classic';
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'classic'; }
   </script>
 </head>
 <body>

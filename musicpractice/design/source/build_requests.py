@@ -11,7 +11,7 @@ Outputs:
     musicpractice/app/data/asset-list.json    what the app loads (delivered) or draws itself (requested)
 
 Themes:
-    Every image belongs to one theme (Straight, Art Deco, ...) or to none
+    Every image belongs to one theme (Classic, Art Deco, ...) or to none
     (the app icon and library cover). The app shows the theme's own image
     when it is delivered and otherwise draws that theme's stand-in.
 
@@ -66,7 +66,7 @@ DECO_ICON_STYLE = (
 )
 
 THEMES = [
-    dict(id="straight", name="Straight"),
+    dict(id="classic", name="Classic"),
     dict(id="deco", name="Art Deco"),
 ]
 
@@ -78,7 +78,7 @@ ICON_STYLE = (
 
 ASSETS = [
     # Home screen
-    dict(id="home-metronome", theme="straight", round=1, file="assets/ui/home-metronome.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
+    dict(id="home-metronome", theme="classic", round=1, file="assets/ui/home-metronome.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
          status="delivered", group="Home screen buttons",
          prompt="A classic pyramid-shaped mechanical metronome in polished walnut with a cream "
                 "tempo scale on its face, its brass pendulum tilted a little to the right "
@@ -86,7 +86,7 @@ ASSETS = [
                 "Seen straight from the front. " + ICON_STYLE,
          note="The big Metronome button on the home screen; the label is written by the app. "
               "Keep the tempo scale as plain tick marks (no numbers)."),
-    dict(id="home-record", theme="straight", round=1, file="assets/ui/home-record.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
+    dict(id="home-record", theme="classic", round=1, file="assets/ui/home-record.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
          status="delivered", group="Home screen buttons",
          prompt="A vintage brass-and-cream studio microphone on a short stand, with a glowing "
                 "round red record light beside it and a small ribbon of sound wave curling "
@@ -94,7 +94,7 @@ ASSETS = [
                 "Seen from the front, slightly from above. " + ICON_STYLE,
          note="The big Playback Recorder button on the home screen; the label is written by the app."),
     # Metronome animation (two layers: the body stays still, the pendulum rotates)
-    dict(id="metronome-body", theme="straight", round=1, file="assets/ui/metronome-body.webp", size="800×1200, transparent PNG (shipped as WebP)",
+    dict(id="metronome-body", theme="classic", round=1, file="assets/ui/metronome-body.webp", size="800×1200, transparent PNG (shipped as WebP)",
          status="delivered", group="Metronome animation",
          prompt="A classic pyramid-shaped mechanical metronome in polished walnut, seen exactly "
                 "straight on from the front, perfectly symmetrical, standing upright and filling "
@@ -108,7 +108,7 @@ ASSETS = [
               "screw at (400, 1000) in an 800×1200 canvas. Exact symmetry and the pivot position "
               "matter more than detail; small offsets can be corrected in asset-list data.",
          canvas=[800, 1200], anchors={"pivot": [400, 985]}),
-    dict(id="metronome-pendulum", theme="straight", round=1, file="assets/ui/metronome-pendulum.webp", size="200×1000, transparent PNG (shipped as WebP)",
+    dict(id="metronome-pendulum", theme="classic", round=1, file="assets/ui/metronome-pendulum.webp", size="200×1000, transparent PNG (shipped as WebP)",
          status="delivered", group="Metronome animation",
          prompt="Just the pendulum of a mechanical metronome, isolated: a single thin, perfectly "
                 "straight, perfectly vertical polished brass rod running down the exact centre of a "
@@ -165,7 +165,7 @@ ASSETS = [
                 "chevron band. " + DECO_STYLE + " Fully transparent background.",
          note="The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for "
               "(400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered "
-              "file and record it as this image's pivot anchor; it need not match the Straight art.",
+              "file and record it as this image's pivot anchor; it need not match the Classic art.",
          canvas=[800, 1200], anchors={"pivot": [400, 908]}),
     dict(id="metronome-pendulum", theme="deco", round=2, file="assets/ui/deco/metronome-pendulum.webp",
          size="200×1000, transparent PNG (shipped as WebP)", status="delivered", group="Art Deco · Metronome animation",
@@ -194,7 +194,7 @@ def render() -> tuple[str, str]:
         "Images belong to a theme (Settings → Theme); each theme has its own set.",
         "",
     ]
-    for rnd, title in ((1, "Straight theme, app icon and library card"), (2, "Art Deco theme")):
+    for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} images wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -203,7 +203,7 @@ def render() -> tuple[str, str]:
     lines += [
         "**House styles** (already included in every prompt):",
         "",
-        "- Straight: " + STYLE,
+        "- Classic: " + STYLE,
         "- Art Deco: " + DECO_STYLE,
         "",
         "**Anchors:** the metronome body and pendulum are separate layers. Each image records its",

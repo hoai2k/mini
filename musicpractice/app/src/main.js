@@ -207,6 +207,7 @@ for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
 const themeSyncs = [...document.querySelectorAll('.theme-chips')].map((el) =>
   chips(el, THEMES, () => settings.theme, (v) => {
     settings.theme = v;
+    settings.themeChosen = true;
     persist();
     applyTheme();
     themeSyncs.forEach((sync) => sync());

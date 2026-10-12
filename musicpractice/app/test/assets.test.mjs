@@ -6,7 +6,7 @@ import { pick, pendulumLayout } from '../src/art.js';
 const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
 
 test('both themes select their delivered art and align measured hubs', () => {
-  for (const theme of ['straight', 'deco']) {
+  for (const theme of ['classic', 'deco']) {
     for (const id of ['home-metronome', 'home-record', 'metronome-body', 'metronome-pendulum']) {
       assert.equal(pick(list, theme, id).kind, 'image');
       assert.equal(pick(list, theme, id).theme, theme);

@@ -1,19 +1,19 @@
 [
   {
     "id": "home-metronome",
-    "theme": "straight",
+    "theme": "classic",
     "file": "assets/ui/home-metronome.webp",
     "status": "delivered"
   },
   {
     "id": "home-record",
-    "theme": "straight",
+    "theme": "classic",
     "file": "assets/ui/home-record.webp",
     "status": "delivered"
   },
   {
     "id": "metronome-body",
-    "theme": "straight",
+    "theme": "classic",
     "file": "assets/ui/metronome-body.webp",
     "status": "delivered",
     "canvas": [
@@ -29,7 +29,7 @@
   },
   {
     "id": "metronome-pendulum",
-    "theme": "straight",
+    "theme": "classic",
     "file": "assets/ui/metronome-pendulum.webp",
     "status": "delivered",
     "canvas": [

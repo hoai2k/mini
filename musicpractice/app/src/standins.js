@@ -16,7 +16,7 @@ function rays(cx, cy, r, from, to, n, attrs) {
   return `<path d="${d}" ${attrs}/>`;
 }
 
-const STRAIGHT = {
+const CLASSIC = {
   'home-metronome': { html: svg(100, 100, `
     <path d="M43 8h14l22 78H21z" fill="url(#walnut)"/>
     <path d="M46 16h8l15 58H31z" fill="url(#cream)"/>
@@ -118,9 +118,9 @@ const DECO = {
   },
 };
 
-export const STANDINS = { straight: STRAIGHT, deco: DECO };
+export const STANDINS = { classic: CLASSIC, deco: DECO };
 
-/** The stand-in for an image in a theme (falling back to Straight's). */
+/** The stand-in for an image in a theme (falling back to Classic's). */
 export function standin(theme, id) {
-  return (STANDINS[theme] || STRAIGHT)[id] || STRAIGHT[id];
+  return (STANDINS[theme] || CLASSIC)[id] || CLASSIC[id];
 }

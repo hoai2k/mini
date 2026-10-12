@@ -52,3 +52,15 @@ test('the pendulum reaches alternate ends on each beat', () => {
   assert.equal(pendulumAngle({ time: 1, count: 0 }, 1.5, p, 24), -24);
   assert.equal(pendulumAngle({ time: 1.5, count: 1 }, 1.5, p, 24), -24);
 });
+
+test('Classic is the default theme; a picked theme is kept', () => {
+  assert.equal(load(memoryStorage()).theme, 'classic');
+  // An earlier save stored the old default without anyone choosing it.
+  assert.equal(sanitize({ theme: 'deco' }).theme, 'classic');
+  assert.equal(sanitize({ theme: 'deco', themeChosen: true }).theme, 'deco');
+  // Classic used to be called Straight.
+  assert.equal(sanitize({ theme: 'straight', themeChosen: true }).theme, 'classic');
+  const store = memoryStorage();
+  save({ ...DEFAULTS, theme: 'deco', themeChosen: true }, store);
+  assert.equal(load(store).theme, 'deco');
+});

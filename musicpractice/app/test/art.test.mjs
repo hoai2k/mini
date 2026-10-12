@@ -29,8 +29,8 @@ test('anchors can differ by theme and by scale', () => {
 });
 
 test('each theme shows its own delivered art, else its own stand-in', () => {
-  assert.equal(pick(list, 'straight', 'metronome-body').kind, 'image');
-  assert.deepEqual(pick(list, 'straight', 'metronome-body').anchors.pivot, [400, 985]);
+  assert.equal(pick(list, 'classic', 'metronome-body').kind, 'image');
+  assert.deepEqual(pick(list, 'classic', 'metronome-body').anchors.pivot, [400, 985]);
   const deco = pick(list, 'deco', 'metronome-body');
   if (deco.kind === 'image') assert.ok(deco.file.includes('/deco/'));
   else assert.equal(deco.html, STANDINS.deco['metronome-body'].html);

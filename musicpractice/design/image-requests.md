@@ -6,13 +6,13 @@ Generate each image from its prompt and drop the files in `musicpractice/intake/
 Until a file is delivered the app draws a stand-in, so nothing here blocks use.
 Images belong to a theme (Settings → Theme); each theme has its own set.
 
-**Round 1 (Straight theme, app icon and library card):** delivered and in use.
+**Round 1 (Classic theme, app icon and library card):** delivered and in use.
 
 **Round 2 (Art Deco theme):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
-- Straight: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
+- Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 - Art Deco: Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 **Anchors:** the metronome body and pendulum are separate layers. Each image records its
@@ -22,10 +22,10 @@ the measured ones for the delivered file in `build_requests.py`.
 
 | Round | Theme | Status | Id | File | Size |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Straight | delivered | `home-metronome` | `app/assets/ui/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 1 | Straight | delivered | `home-record` | `app/assets/ui/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 1 | Straight | delivered | `metronome-body` | `app/assets/ui/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 1 | Straight | delivered | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 1 | Classic | delivered | `home-metronome` | `app/assets/ui/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 1 | Classic | delivered | `home-record` | `app/assets/ui/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 1 | Classic | delivered | `metronome-body` | `app/assets/ui/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 1 | Classic | delivered | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 1 | all | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | 1 | all | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 | 2 | Art Deco | delivered | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
@@ -35,7 +35,7 @@ the measured ones for the delivered file in `build_requests.py`.
 
 ## Home screen buttons
 
-### `home-metronome` · Straight · delivered
+### `home-metronome` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -45,7 +45,7 @@ the measured ones for the delivered file in `build_requests.py`.
 A classic pyramid-shaped mechanical metronome in polished walnut with a cream tempo scale on its face, its brass pendulum tilted a little to the right mid-swing, with two faint curved motion arcs beside the tip of the pendulum. Seen straight from the front. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no shadow beyond a soft contact shadow directly under the object.
 ```
 
-### `home-record` · Straight · delivered
+### `home-record` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -57,7 +57,7 @@ A vintage brass-and-cream studio microphone on a short stand, with a glowing rou
 
 ## Metronome animation
 
-### `metronome-body` · Straight · delivered
+### `metronome-body` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
@@ -68,7 +68,7 @@ A vintage brass-and-cream studio microphone on a short stand, with a glowing rou
 A classic pyramid-shaped mechanical metronome in polished walnut, seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. The front face is a tall recessed cream panel with a vertical scale of evenly spaced fine tick marks (no numbers). There is NO pendulum, rod or weight anywhere: the face panel is empty apart from the tick marks. Near the bottom of the face, centred left-to-right, a small round brass pivot screw sits exactly at 50% of the width and 83% of the height. A slightly wider walnut base at the bottom. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Straight · delivered
+### `metronome-pendulum` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
@@ -132,7 +132,7 @@ A 1930s Art Deco radio-studio microphone: a gold rounded-rectangle ribbon microp
 - File: `musicpractice/app/assets/ui/deco/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
 - Anchors (measured): pivot (400, 908) in a 800×1200 canvas
-- Note: The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor; it need not match the Straight art.
+- Note: The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor; it need not match the Classic art.
 
 ```text
 An Art Deco mechanical metronome seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin: a tall stepped pyramid like a skyscraper crown, in black lacquer with gold edging and fine gold pinstripes following each step. The front face is a tall narrow ivory panel with evenly spaced fine gold tick marks up the centre (no numbers) and a gold sunburst fanning up from the bottom of the panel. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gold pivot boss sits exactly at 50% of the width and 83% of the height. A wider stepped black-and-gold plinth at the bottom with a small chevron band. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
