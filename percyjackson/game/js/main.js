@@ -23,6 +23,7 @@ import { Environment, BIOMES } from './world/biomes.js';
 import { makePropMaterials } from './world/deco.js';
 import { BLOCKS } from './world/blocks.js';
 import { buildCamp } from './world/camp.js';
+import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
 import { Pickups } from './pickups.js';
@@ -390,6 +391,11 @@ class Game {
       const npc = buildNpc(id); npc.root.position.copy(pos); npc.root.rotation.y = yaw; this.scene.add(npc.root); this.hubProps.push(npc.root);
     }
     this.questMarkers = placeQuestMarkers(this, L);
+    if (L.boats?.length) {   // canoes on the lake you can stand on
+      const boats = new Boats(this);
+      for (const spec of L.boats) boats.add(spec);
+      this.addUpdater((dt) => boats.update(dt));
+    }
     if (!this.save.data.seenGearHint) {   // the inventory and jump are easy to miss
       this.save.data.seenGearHint = true; this.save.write();
       setTimeout(() => toast(this.input.lastDevice?.startsWith('pad') ? 'View: inventory · A: jump' : 'I: inventory · Space: jump'), 4000);

@@ -247,9 +247,12 @@ export function buildCamp() {
   }
   for (let x = 27; x <= 34; x++) for (const z of [55, 56]) { W.set(x, FY - 1, z, B.planks); }
   for (const x of [27, 30, 33]) for (const z of [54, 57]) { W.set(x, FY - 1, z, B.log); W.set(x, FY, z, B.log); W.set(x, FY - 2, z, B.log); }
-  deco.prop('canoe', 25.5, FY - 0.35, 52.5, { rot: 0.4, color: 0xb8452a, paddle: true });
-  deco.prop('canoe', 24.5, FY - 0.35, 59.5, { rot: -0.3, color: 0x2e8b6e });
-  deco.prop('canoe', 29.5, FY - 0.35, 63.5, { rot: 1.4, color: 0xf28c28 });
+  // the canoes on the water are boats you can stand on (world/boats.js)
+  const boats = [
+    { kind: 'canoe', x: 25.5, y: FY - 0.18, z: 52.5, rot: 0.4, color: 0xb8452a, paddle: true },
+    { kind: 'canoe', x: 24.5, y: FY - 0.18, z: 59.5, rot: -0.3, color: 0x2e8b6e },
+    { kind: 'canoe', x: 29.5, y: FY - 0.18, z: 63.5, rot: 1.4, color: 0xf28c28 },
+  ];
   deco.prop('canoe', 35.5, FY, 59.5, { rot: Math.PI / 2 + 0.1, color: 0x2a6ad8 });   // pulled up on the shore
   for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; const x = (LX0 + LX1) / 2 + Math.cos(a) * ((LX1 - LX0) / 2 + 0.4), z = (LZ0 + LZ1) / 2 + Math.sin(a) * ((LZ1 - LZ0) / 2 + 0.4); if (k.chance(0.6)) deco.add('reeds', x + 0.5, FY, z + 0.5, { scale: 1.1 }); }
   const canoe = V(35.5, FY, 55.5);
@@ -457,7 +460,9 @@ export function buildCamp() {
   plane(0, SZ2, SX, SZ2 + 400, FY - 0.02, 0x2c4a26);
 
   world2.collectBlockLights();
+  for (const b of boats) b.z += NZ;
   return {
+    boats,
     world: world2, deco, shafts, kit: k2, spawn: L.spawn, stage: L.stage,
     mapTable, chiron, oracle, shop: store, store, stash: forge, forge, skills: chiron.clone(), dummy,
     cabins: L.cabins, godCabins: cabinSpots, archery, climbingWall, campfire, canoe, thaliaPine,
