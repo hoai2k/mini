@@ -10,6 +10,15 @@ import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js'
 
 const PREROLL_SEC = 2;
 const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
+
+/*
+ * The mic is asked for once and then held for the whole visit: asking again
+ * can bring the permission prompt back (Safari and every iPhone browser ask
+ * again unless the site is set to Allow). Turning listening off or playing a
+ * take back only stops processing it and switches its track off. It is asked
+ * for again only when the browser reports the held mic dead (the app was
+ * left, a call took it), never on purpose.
+ */
 const SETTLE_SEC = 0.35; // ignore the mic this long after playback (room echo)
 
 export class Recorder extends EventTarget {
@@ -56,14 +65,16 @@ export class Recorder extends EventTarget {
     this.set('off');
   }
 
-  /**
-   * Close the microphone but stay on (while a take plays back), so the
-   * phone leaves its play-and-record mode and plays at full volume.
-   */
+  /** Stop listening to the mic but stay on (while a take plays back). */
   release() {
     if (this.state === 'off') return;
     if (this.state === 'recording') this.finish(false);
     this.closeMic();
+  }
+
+  /** Is the mic still held (it always is once granted, unless it died)? */
+  get holdsMic() {
+    return !!this.stream;
   }
 
   /** Reopen the microphone after release() and listen again. */
@@ -96,13 +107,14 @@ export class Recorder extends EventTarget {
   }
 
   /**
-   * Close and reopen the mic after it was cut off (the app was left, a call
-   * came in). A take in progress is kept, without playback.
+   * Reconnect the mic after it stopped delivering. The held mic is reused if
+   * the browser still reports it alive; only a dead one is asked for again.
+   * A take in progress is kept, without playback.
    */
   async reopen() {
     if (this.state === 'off') return;
     if (this.state === 'recording') this.finish(false);
-    this.closeMic();
+    this.closeMic(!this.micAlive());
     await this.openMic();
     if (this.state !== 'off' && this.state !== 'playing' && this.state !== 'paused') this.listen();
   }
@@ -110,7 +122,7 @@ export class Recorder extends EventTarget {
   /**
    * Echo cancellation keeps a take being played from being heard as playing,
    * but it also dulls the recording, so it is only used while recording
-   * during playback is allowed. Takes effect the next time the mic opens.
+   * during playback is allowed. Applied to a held mic when it is next used.
    */
   set echoCancel(on) {
     this.echo = !!on;
@@ -118,23 +130,31 @@ export class Recorder extends EventTarget {
 
   async openMic() {
     if (this.graph) return;
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
     const ticket = (this.ticket = (this.ticket || 0) + 1);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: !!this.echo, noiseSuppression: false, autoGainControl: false },
-    });
-    // Turned off (or closed again) while the browser was opening it.
-    if (ticket !== this.ticket) {
-      stream.getTracks().forEach((t) => t.stop());
-      return;
+    let stream = this.stream;
+    if (stream && this.micAlive()) {
+      // Reuse the mic we hold: no new request, so no prompt.
+      for (const t of stream.getAudioTracks()) {
+        t.enabled = true;
+        if (t.getSettings?.().echoCancellation !== undefined && t.getSettings().echoCancellation !== !!this.echo) {
+          try { await t.applyConstraints({ echoCancellation: !!this.echo, noiseSuppression: false, autoGainControl: false }); } catch { /* keep as is */ }
+        }
+      }
+      if (ticket !== this.ticket) return;
+    } else {
+      if (stream) this.dropStream();
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: !!this.echo, noiseSuppression: false, autoGainControl: false },
+      });
+      this.keepStream(stream);
+      // Turned off (or closed again) while the browser was opening it: hold it, switched off.
+      if (ticket !== this.ticket) {
+        for (const t of stream.getTracks()) t.enabled = false;
+        return;
+      }
     }
-    this.stream = stream;
     this.lastChunkAt = performance.now();
-    for (const t of stream.getTracks()) {
-      const lost = () => { if (this.stream === stream) this.dispatchEvent(new Event('miclost')); };
-      t.addEventListener('ended', lost);
-      t.addEventListener('mute', lost);
-    }
     const src = this.ctx.createMediaStreamSource(stream);
     const sink = this.ctx.createGain();
     sink.gain.value = 0;
@@ -155,7 +175,25 @@ export class Recorder extends EventTarget {
     this.graph = { src, node, sink };
   }
 
-  closeMic() {
+  keepStream(stream) {
+    this.stream = stream;
+    for (const t of stream.getTracks()) {
+      const lost = () => { if (this.stream === stream && this.graph) this.dispatchEvent(new Event('miclost')); };
+      t.addEventListener('ended', lost);
+      t.addEventListener('mute', lost);
+    }
+  }
+
+  dropStream() {
+    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream = null;
+  }
+
+  /**
+   * Stop processing the mic. It stays held, its tracks switched off, ready to
+   * be reused without asking again; only a dead one is let go (`dead`).
+   */
+  closeMic(dead = false) {
     this.ticket = (this.ticket || 0) + 1;
     if (this.graph) {
       this.graph.src.disconnect();
@@ -165,8 +203,8 @@ export class Recorder extends EventTarget {
       else this.graph.node.onaudioprocess = null;
       this.graph = null;
     }
-    this.stream?.getTracks().forEach((t) => t.stop());
-    this.stream = null;
+    if (dead) this.dropStream();
+    else this.stream?.getTracks().forEach((t) => { t.enabled = false; });
   }
 
   /** Stop paying attention to the mic for a while (the takes list is in use). */

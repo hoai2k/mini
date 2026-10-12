@@ -196,24 +196,25 @@ the list.
 ## Known limits
 
 - The microphone needs https (GitHub Pages is) and permission.
-- **Bluetooth speakers.** While the mic is open, phones switch to call mode:
-  sound goes to the phone's own speaker (or a speaker's low-quality headset
-  mode), quieter. Nothing plays while the recorder listens, so by default
-  that costs nothing: before a take plays back the app closes the mic, sets
-  Safari's session to `playback`, waits for the phone to report its output
-  change (0.7 s at most, `outputSettled` in `app/src/player.js`), and plays
-  the take through an `<audio>` element, which follows the current output
-  more reliably than Web Audio. The element is primed by the first tap,
-  since Safari only lets one start on its own after it has played from a
-  tap; if it is still refused, the take plays through Web Audio. The app
-  never asks for `play-and-record` itself (it uses `auto` while the mic is
-  open). An AudioContext started while the mic was open, or before an output
-  change, is replaced when the metronome's Start is pressed (`freshAudio`
-  in `app/src/audio.js`). With Record during playback on, the mic stays open,
-  so playback stays in call mode: use wired headphones or the phone's
-  speaker. Checked in Chromium (the take plays through the element about
-  0.7 s after the mic closes); Bluetooth itself still needs checking on a
-  phone.
+- **The mic is asked for once.** Asking again can bring the permission
+  prompt back (Safari and every iPhone browser ask again unless the site is
+  set to Allow), so once granted the mic is held for the whole visit: turning
+  listening off, playing a take back and the metronome only stop processing
+  it and switch its track off. It is asked for again only when the browser
+  reports the held mic dead (the app was left, a call took it); a mic that
+  merely goes quiet is reconnected without asking. The key loop (listen →
+  record → play back → listen) never asks; checked in Chromium for 40 s of
+  untouched use (3 takes, 1 request) and with permission saved or not.
+- **Bluetooth speakers.** While a page holds the mic, phones stay in call
+  mode, so sound goes to the phone's own speaker (or a Bluetooth headset's
+  low-quality call mode) and is quieter. Since the mic is never released on
+  purpose, this holds after the recorder has been used. Takes play through an
+  `<audio>` element (primed by the first tap; Web Audio if it is refused),
+  which follows the current output more reliably, and Safari's session is
+  set to `playback` only while no mic is held. The metronome's Start replaces
+  an AudioContext started while the mic was open or before an output change
+  (`freshAudio` in `app/src/audio.js`). With Record during playback on, echo
+  cancellation is used.
 - If the browser stops remembering microphone permission, reopening the mic
   after each playback could ask again; turn on Record during playback to
   keep it open.
