@@ -105,7 +105,7 @@ MORE_THEMES = [
          boss="a round gilt rosette",
          pendulum="a thin straight gilt rod with a small gilt sliding weight shaped like a "
                   "scalloped shell, and a round gilt rosette hub"),
-    dict(id="scifi", name="Sci Fi Future",
+    dict(id="scifi", name="Robot Future",
          style="Sleek science-fiction illustration of a far-future starship console: deep space "
                "navy and graphite, glowing cyan and magenta light lines, brushed titanium, "
                "glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a "
@@ -137,7 +137,7 @@ MORE_THEMES = [
          boss="a round gold flower-shaped pivot",
          pendulum="a thin straight gold rod with a small gold sliding weight shaped like a lily "
                   "bud, and a round gold flower-shaped hub"),
-    dict(id="anime", name="Anime",
+    dict(id="anime", name="Candy",
          style="Bright anime and manga illustration: clean bold outlines, flat cel shading with "
                "one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, "
                "sparkles and little star glints, cute and energetic. " + NO_TEXT,
@@ -350,6 +350,30 @@ for asset in ROUND3:
         asset["scale"] = geometry["scale"]
 ASSETS += ROUND3
 
+# Round 4: revisions. The delivered file stays in use until its replacement arrives.
+SIXTIES = next(t for t in MORE_THEMES if t["id"] == "sixties")
+for asset in ROUND3:
+    if asset["theme"] == "sixties" and asset["id"] == "home-metronome":
+        asset.update(
+            round=4, status="revise",
+            prompt=("The same metronome as the Vintage 60s metronome screen, drawn as an icon: a "
+                    "smooth tapering pyramid case in glossy burnt-orange wood with softly rounded "
+                    "corners, a mustard-yellow front face with two columns of short cream tick "
+                    "marks and nothing else on it (no starbursts, boomerangs or other decorations), "
+                    "a teal band across the lower case and a flared teal plinth on three short "
+                    "turned orange-wood peg feet. A thin straight chrome rod tilted a little to the "
+                    "right, pivoting on a round brushed-chrome disc hub near the bottom of the "
+                    "face, with a small teal-and-orange boomerang-shaped sliding weight near the "
+                    "top of the rod. Seen from the front. " + SIXTIES["style"] + " A single centred "
+                    "object on a fully transparent background, bold readable silhouette that still "
+                    "reads at 64 pixels, generous even margin on every side, no cast shadow."),
+            note=("Revision: the delivered icon (starbursts and boomerangs on the face, gold feet) "
+                  "doesn't look like the metronome on the metronome screen "
+                  "(assets/ui/sixties/metronome-body.webp and metronome-pendulum.webp). Match that "
+                  "metronome's shape, colours, plain ticked face, chrome rod, boomerang weight and "
+                  "chrome disc hub. Replaces the file at the same path."),
+        )
+
 
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
@@ -364,10 +388,11 @@ def render() -> tuple[str, str]:
         "",
     ]
     for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme"),
-                       (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes")):
+                       (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes"),
+                       (4, "revisions")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
-                     + (f"{len(wanted)} images wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
+                     + (f"{len(wanted)} image{"s" if len(wanted) != 1 else ""} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
                         if wanted else "delivered and in use."))
         lines.append("")
     lines += [

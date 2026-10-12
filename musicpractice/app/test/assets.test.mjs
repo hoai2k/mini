@@ -12,9 +12,10 @@ test('every theme shows its delivered art or its own stand-in, with the hub on t
     for (const id of IDS) {
       const entry = list.find((a) => a.id === id && a.theme === theme);
       assert.ok(entry, `${theme} ${id} is in the image requests`);
-      assert.equal(entry.status, 'delivered', `${theme} ${id} is delivered`);
+      // A 'revise' image is delivered and stays in use until its replacement arrives.
+      assert.ok(['delivered', 'revise'].includes(entry.status), `${theme} ${id} is delivered`);
       const art = pick(list, theme, id);
-      assert.equal(art.kind, entry.status === 'delivered' ? 'image' : 'standin', `${theme} ${id}`);
+      assert.equal(art.kind, 'image', `${theme} ${id}`);
       if (art.kind === 'image') assert.equal(art.theme, theme);
     }
     const body = pick(list, theme, 'metronome-body');
