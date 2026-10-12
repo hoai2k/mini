@@ -287,7 +287,9 @@ type; `playback` also stops the silent switch muting Web Audio. Sources:
 [Huddee: the Web Audio mute-switch fix](https://huddee.com/blog/apple-quietly-fixed-web-audio-bug).
 
 **Known pitfalls checked** (October 2026) for playback reaching a Bluetooth
-speaker on iPhone with the mic allowed:
+speaker on iPhone with the mic allowed. With these in place, takes were
+confirmed playing on a Bluetooth speaker on an iPhone, with the
+record-play loop carrying on:
 
 - *Web Audio stuck quiet or on the earpiece after the mic was used*
   ([WebKit 218012](https://bugs.webkit.org/show_bug.cgi?id=218012),
