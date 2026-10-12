@@ -5,7 +5,7 @@ import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
 import { noteName } from './music.js';
 import { perform, secondsPerBeat, MAX_HOLD } from './perform.js';
-import { createRound, press, redo, stars, points } from './round.js';
+import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
 import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
@@ -214,6 +214,8 @@ function nextMelody() {
   cancelAuto();
   clearTimeout(retryT); retryT = 0;
   S.retry = false;
+  S.awaitingRetry = false;
+  S.attempt = 1;
   stopPlayback();
   const pool = inBook(LIB, progress.book);
   const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
@@ -270,7 +272,7 @@ function idlePrompt() {
   if (!r || S.solvedShown) return;
   if (S.practice) setPrompt('Practice: play freely. Turn Practice off to carry on.');
   else if (r.done) setPrompt('Play it again, or move on.');
-  else if (r.pos === 0 && S.retry) setPrompt('Once more, with no wrong notes');
+  else if (r.pos === 0 && S.retry) setPrompt(`Try ${S.attempt}: once more, with no wrong notes`);
   else if (r.pos === 0) setPrompt(settings.first ? 'Your turn: start on the glowing key' : 'Your turn: play it back');
   else if (S.retry) setPrompt(`Once more, cleanly: note ${r.pos + 1} of ${r.notes.length}`);
   else setPrompt(`Keep going: note ${r.pos + 1} of ${r.notes.length}`);
@@ -360,14 +362,29 @@ function sparkOn(midi) {
   if (k) fx.spark(k.left + k.width / 2 - box.left, k.top + k.height * 0.7 - box.top);
 }
 
+// A melody is finished by a run with no wrong notes. A run with wrong notes
+// isn't the finish: no chime, no score, and the melody comes round again (see
+// startRetry). The finish is scored by which try it was: three stars first
+// time, two on the second, one after that (with Settings' replay off, the
+// stars count the run's mistakes instead).
 function solved() {
   const r = S.round, m = S.melody;
   const n = r.notes.length;
-  const st = stars(n, r.mistakes);
+  if (r.mistakes > 0 && settings.retry && !S.replay) {
+    S.awaitingRetry = true;
+    S.retry = true;
+    const miss = r.mistakes;
+    setPrompt(`Almost! ${miss} wrong note${miss > 1 ? 's' : ''}. Once more, with none`, false, true);
+    announce(`Almost: ${miss} wrong note${miss > 1 ? 's' : ''}. Once more, with none.`);
+    haptic(30);
+    retryT = setTimeout(startRetry, RETRY_MS);
+    return;
+  }
+  const st = S.replay ? stars(n, r.mistakes) : settings.retry ? starsForTry(S.attempt) : stars(n, r.mistakes);
   let gain = 0;
   if (!S.replay) {
-    gain = points(n, r.mistakes, progress.streak);
-    progress.streak = r.mistakes === 0 ? progress.streak + 1 : 0;
+    gain = settings.retry ? pointsForTry(n, S.attempt, progress.streak) : points(n, r.mistakes, progress.streak);
+    progress.streak = st === 3 ? progress.streak + 1 : 0;
     progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
     progress.score += gain;
     progress.best[m.id] = Math.max(progress.best[m.id] || 0, st);
@@ -376,6 +393,7 @@ function solved() {
     save();
   }
   S.solvedShown = true;
+  S.awaitingRetry = false;
   setTimeout(() => audio.chime(st), 220);
   const box = $('#play').getBoundingClientRect();
   const kb = $('#kbd').getBoundingClientRect();
@@ -386,28 +404,21 @@ function solved() {
   $$('#stars i').forEach((s, i) => { s.classList.remove('on'); void s.offsetWidth; s.classList.toggle('on', i < st); });
   $('#song-title').textContent = m.title;
   const key = m.shift ? ` · transposed ${m.shift > 0 ? 'up' : 'down'} ${Math.abs(m.shift)} semitone${Math.abs(m.shift) === 1 ? '' : 's'}` : '';
-  $('#song-by').textContent = `${m.by}${key}`;
+  const tries = !S.replay && settings.retry && S.attempt > 1 ? ` · clean on try ${S.attempt}` : '';
+  $('#song-by').textContent = `${m.by}${key}${tries}`;
   $('#gain').textContent = S.replay ? '' : `+${gain}`;
   $('#solved').setAttribute('aria-label', `Solved: ${m.title}. ${st} star${st > 1 ? 's' : ''}.`);
   announce(`Solved: ${m.title}, ${st} star${st > 1 ? 's' : ''}${gain ? `, plus ${gain} points` : ''}.`);
   const sc = $('#hud-score'); sc.classList.remove('bump'); void sc.offsetWidth; sc.classList.add('bump');
   syncHud();
-  if (r.mistakes > 0 && settings.retry) {
-    // Not clean yet: after the celebration it comes round again (unscored)
-    // until it's played with no wrong notes. Next still moves on.
-    retryT = setTimeout(startRetry, RETRY_MS);
-    announce(`Solved: ${m.title}. Now once more, with no wrong notes.`);
-  } else {
-    if (S.retry) toast('Clean! On to the next one');
-    S.retry = false;
-    scheduleAuto();
-  }
+  S.retry = false;
+  scheduleAuto();
 }
 
 // ---------------------------------------------------------------- once more, cleanly
-// A melody solved with wrong notes is played again: the staff hides its notes,
-// the melody plays, and the player goes again until a clean run. Only a clean
-// run moves on by itself; Next always moves on.
+// After a run with wrong notes the staff hides its notes again, the melody
+// plays, and the player has another try (the next try counts one more), until
+// a clean run finishes it. Next always moves on (as a skip: no stars).
 const RETRY_MS = 1800;
 let retryT = 0;
 const retryPending = () => retryT !== 0;
@@ -417,7 +428,8 @@ function startRetry() {
   if (S.mode !== 'play' || dialogs.length || !S.melody || S.free) return;
   stopPlayback();
   S.round = createRound(S.melody.notes);
-  S.replay = true;
+  S.attempt++;
+  S.awaitingRetry = false;
   S.retry = true;
   S.solvedShown = false;
   showSolved(false);
@@ -480,9 +492,13 @@ function syncPractice() {
 }
 function doNext() {
   if (!S.round) return;
-  if (!S.round.done && !S.practice && !S.retry) {
+  // Moving on before a clean run is a skip: no stars, and the streak ends.
+  if (!S.solvedShown && !S.free) {
     toast(`Skipped: ${S.melody.title}`);
-    progress.streak = 0; save();
+    progress.streak = 0;
+    progress.best[S.melody.id] = Math.max(progress.best[S.melody.id] || 0, 0);
+    if (progress.level === 'adaptive') progress.rating = rate(progress.rating, 1);
+    save();
   }
   nextMelody();
 }
@@ -552,7 +568,7 @@ function closeDialog() {
   const d = dialogs.pop();
   if (!d) return;
   // Back from the menu to a melody that still needs a clean run: go again.
-  if (!dialogs.length && S.mode === 'play' && S.solvedShown && settings.retry && S.round?.mistakes > 0 && !S.free) {
+  if (!dialogs.length && S.mode === 'play' && S.awaitingRetry && !S.free) {
     clearTimeout(retryT); retryT = setTimeout(startRetry, 900);
   }
   d.el.hidden = true;

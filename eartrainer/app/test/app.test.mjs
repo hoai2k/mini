@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { toMidi, parseNotes, fitWindow, windowKeys, isWhite, noteName, difficulty, keyOf, spell, spellToken, staffStep, chromaticCount } from '../src/music.js';
-import { createRound, press, redo, expected, stars, points } from '../src/round.js';
+import { createRound, press, redo, expected, stars, points, starsForTry, pointsForTry } from '../src/round.js';
 import { buildLibrary, inBook, transpose, pickNext, rate, countAt, SONGBOOKS, LEVELS, WHITES, LOWEST, HIGHEST } from '../src/library.js';
 import { sampleFor } from '../src/audio.js';
 import { execFileSync } from 'node:child_process';
@@ -208,4 +208,13 @@ test('long holds are shortened, so no melody crawls', () => {
   assert.ok(slowest[0].gap <= 1.1 + 0.02, `${slowest[0].id} averages ${slowest[0].gap.toFixed(2)} s a note`);
   // The 12/8 Nocturne (written in eighth notes) plays at an eighth-note pulse.
   assert.ok(byId(lib, 'chopin-nocturne-op9-2').bpm >= 120);
+});
+
+test('tries: stars and points for the clean run, none for a skip', () => {
+  assert.deepEqual([1, 2, 3, 7].map(starsForTry), [3, 2, 1, 1]);
+  assert.equal(starsForTry(0), 0);
+  assert.ok(pointsForTry(8, 1, 0) > pointsForTry(8, 2));
+  assert.ok(pointsForTry(8, 2) > pointsForTry(8, 3));
+  assert.equal(pointsForTry(8, 3), pointsForTry(8, 9));
+  assert.ok(pointsForTry(8, 1, 4) > pointsForTry(8, 1, 0), 'a streak adds to a first-try finish');
 });

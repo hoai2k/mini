@@ -46,3 +46,22 @@ export function points(count, mistakes, streak = 0) {
   const clean = mistakes === 0 ? 25 + Math.min(streak, 10) * 5 : 0;
   return base + clean;
 }
+
+// ---------------------------------------------------------------- tries
+// A melody is finished by a run with no wrong notes. A run with wrong notes
+// isn't scored: the melody comes round again. The stars say which try the
+// clean run was; a skipped melody gets none.
+
+/** Stars for finishing cleanly on try `attempt` (1, 2, 3…); 0 for a skip. */
+export function starsForTry(attempt) {
+  if (!attempt) return 0;
+  return attempt === 1 ? 3 : attempt === 2 ? 2 : 1;
+}
+
+/** Points for finishing cleanly on try `attempt`: ten a note and a streak
+ *  bonus the first time, six a note on the second, three after that. */
+export function pointsForTry(count, attempt, streak = 0) {
+  if (attempt === 1) return count * 10 + 25 + Math.min(streak, 10) * 5;
+  if (attempt === 2) return count * 6;
+  return count * 3;
+}

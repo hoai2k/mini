@@ -44,13 +44,16 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   **Practice** lets you try notes without answering; **Tempo** − / + runs
   from 0.5× to 1.5×; **Skip** moves on (and tells you what it was) and
   becomes **Next** once the melody is solved.
-- Solving reveals every note on the staff and the title in the top bar, with
-  one to three stars (three for no mistakes), points, a streak bonus for clean
-  answers in a row, a chime and confetti. A melody solved with any wrong notes
-  comes round again (its staff hides, it plays again, no new points) until it
-  is played cleanly; only a clean run moves on by itself, and Next always
-  moves on (Settings can turn the replay off). Right after the chime (about
-  1.5 s; the Next button fills up meanwhile) the next melody starts by itself; playing on restarts
+- A melody is finished by a run with no wrong notes. A run with wrong notes
+  isn't scored and gets no chime: "Almost!", then the staff hides its notes,
+  the melody plays and the next try begins. The finish scores by try: three
+  stars and ten points a note (plus a streak bonus for clean first tries in a
+  row) on the first try, two stars and six a note on the second, one star and
+  three a note after that; a skip before a clean run gets no stars and ends the
+  streak. Redo mid-run wipes that run's mistakes without using a try. Finishing
+  reveals every note on the staff and the title in the top bar, with a chime
+  and confetti; right after the chime (about 1.5 s; the Next button fills up
+  meanwhile) the next melody starts by itself. Playing on restarts
   the wait, and Repeat (which replays it with its keys lit), Redo, Practice,
   a tap on the staff or the menu stays with it. Settings can turn this off.
 - Songbooks: Children's Songs, Folk & Traditional, Carols & Hymns, Classical
