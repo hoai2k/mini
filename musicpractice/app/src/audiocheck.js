@@ -180,7 +180,7 @@ export function allowSteps() {
 export function renderMicTip(container, { onNotNow, onNever }) {
   container.replaceChildren(
     el('p', { class: 'mic-tip-title' }, 'Allow the microphone for Bluetooth playback'),
-    el('p', {}, 'The microphone isn\'t set to Allow for this site, so the app keeps it open between takes (otherwise your iPhone would ask after every take). While it is open, takes play on the phone\'s own speaker, not a Bluetooth speaker. To fix it:'),
+    el('p', {}, 'The microphone isn\'t set to Allow for this site yet, so Bluetooth playback won\'t work. To fix it:'),
     allowSteps(),
     el('div', { class: 'mic-tip-actions' },
       el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload'),
