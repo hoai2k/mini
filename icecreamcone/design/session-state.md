@@ -6,7 +6,17 @@ agent. Newest first.
 
 ## Open
 
-- **Agents running (started 2026-10-12):** three agents giving every game an easy-to-hard ramp over the round (Salt Shaker Shrike: mostly 1-2 salts in the first half). Brief in scratchpad `ramp-brief.txt`; group A: saltshakershrike coot cupadee shuttercluck gullfinch plume bobolinks peeper piffle dodo; B: crow milkmidge waterglassgoose niffy broomwhisk buttonbeaks keycrane snippit garbagecanary; C: steampressersparrow wetweatherwren glovedove titthrush plugsocketswift ladlelark drippet sawbird radiobird. When they report: run all checks, commit, push.
+- **Difficulty rework (started 2026-10-12, user's direction):** as gradual as
+  possible, easiest first, medium by about two-thirds, some hard only at the
+  end. Pass = handling medium; hard is for records, never needed to pass. Most
+  games are tuned between medium and hard now, so ease them. A Difficulty
+  setting: Easier / Normal / Harder. Step 1 (agent running): shared
+  `src/games/difficulty.js` (`difficulty(p, setting)`, `knob(d, easy, medium,
+  hard)`), the setting, per-level bests (a pass at any level counts), three
+  worked games (saltshakershrike, coot, crow) and a guide in
+  `design/difficulty.md`. Step 2 (next): agents convert the other 25 games by
+  that guide. The ramps committed in 44fea729 and cc2cd898 are the starting
+  point (one curve per game already).
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws
