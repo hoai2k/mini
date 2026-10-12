@@ -2238,5 +2238,81 @@ export const ASSET_LIST = {
   "classic-game-kart": {
     "file": "assets/icons-classic/classic-game-kart.png",
     "status": "delivered"
+  },
+  "blocks-tile": {
+    "file": "assets/games/blocks-tile.webp",
+    "status": "requested"
+  },
+  "blocks-bg": {
+    "file": "assets/games/blocks-bg.webp",
+    "status": "requested"
+  },
+  "temple-runner": {
+    "file": "assets/games/temple-runner.png",
+    "status": "requested"
+  },
+  "temple-path": {
+    "file": "assets/games/temple-path.webp",
+    "status": "requested"
+  },
+  "temple-wall": {
+    "file": "assets/games/temple-wall.webp",
+    "status": "requested"
+  },
+  "temple-sky": {
+    "file": "assets/games/temple-sky.webp",
+    "status": "requested"
+  },
+  "temple-root": {
+    "file": "assets/games/temple-root.png",
+    "status": "requested"
+  },
+  "temple-arch": {
+    "file": "assets/games/temple-arch.png",
+    "status": "requested"
+  },
+  "temple-fire": {
+    "file": "assets/games/temple-fire.png",
+    "status": "requested"
+  },
+  "temple-coin": {
+    "file": "assets/games/temple-coin.png",
+    "status": "requested"
+  },
+  "temple-monkeys": {
+    "file": "assets/games/temple-monkeys.png",
+    "status": "requested"
+  },
+  "game-blocks": {
+    "file": "assets/icons/game-blocks.png",
+    "status": "requested"
+  },
+  "game2-blocks": {
+    "file": "assets/icons2/game2-blocks.png",
+    "status": "requested"
+  },
+  "art-game-blocks": {
+    "file": "assets/icons-art/art-game-blocks.png",
+    "status": "requested"
+  },
+  "classic-game-blocks": {
+    "file": "assets/icons-classic/classic-game-blocks.png",
+    "status": "requested"
+  },
+  "game-temple": {
+    "file": "assets/icons/game-temple.png",
+    "status": "requested"
+  },
+  "game2-temple": {
+    "file": "assets/icons2/game2-temple.png",
+    "status": "requested"
+  },
+  "art-game-temple": {
+    "file": "assets/icons-art/art-game-temple.png",
+    "status": "requested"
+  },
+  "classic-game-temple": {
+    "file": "assets/icons-classic/classic-game-temple.png",
+    "status": "requested"
   }
 };
