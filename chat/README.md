@@ -209,7 +209,7 @@ bounces in your hand; tap it and it flies to the asker, or press Go Fish if you
 have none. If they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on their own field, with live scores and a winner) and Baseball (a home run derby seen from
+deals; alone you play Robo-Fisher), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner) and Baseball (a home run derby seen from
 behind the plate in the style of Wii Sports Baseball's batting, with your face
 on the slugger: the pitch grows from a dot in the pitcher's hand to a big
 streaking ball at the plate, and you tap it as it gets there; the slugger
@@ -291,7 +291,7 @@ itself to HTTPS.
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
-- `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats get the same spawns, and mouse whacks show zombies scoring, an unwhacked creeper exploding, a villager costing, an enderman teleporting, one winner on both seats and rookie bots scoring (screenshots in `local/chat-shots/whack-*.png`)
+- `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, the same scores and winner on both seats, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
 - `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
   swing (arms keep their length, both hands stay on the bat, the bat sweeps
   one way from behind his head, level through the zone, over his front
