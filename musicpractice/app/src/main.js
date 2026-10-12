@@ -215,7 +215,10 @@ const themeSyncs = [...document.querySelectorAll('.theme-chips')].map((el) =>
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
-chips($('meter-chips'), METERS.map((m) => ({ id: m.id, label: m.beats === 1 ? 'No bars' : m.id })), () => settings.meter, (v) => { settings.meter = v; metronomeConfigured(); });
+const meterSelect = $('meter');
+meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? 'No bars' : m.id, m.id)));
+meterSelect.value = settings.meter;
+meterSelect.addEventListener('change', () => { settings.meter = meterSelect.value; metronomeConfigured(); });
 chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
   settings.sound = v;
   metronomeConfigured();

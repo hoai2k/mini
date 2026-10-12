@@ -233,6 +233,21 @@ legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
   font-weight: 700;
 }
 .chip[aria-checked="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+.select {
+  flex: none;
+  min-width: 132px;
+  min-height: 44px;
+  padding: 8px 40px 8px 16px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23e2b55c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 12px center / 18px no-repeat;
+  color: var(--ink);
+  font-weight: 700;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.select option { background: var(--bg-2); color: var(--ink); }
 .help { margin: 6px 0 0; color: var(--ink-3); font-size: 0.88rem; }
 .row { display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
 .row.toggle { flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; gap: 16px; }
@@ -504,6 +519,14 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 }
 [data-theme="deco"] .sheet-head { background: #0f1014; }
 [data-theme="deco"] legend, [data-theme="deco"] .row { font-size: 0.82rem; color: var(--ink-2); }
+[data-theme="deco"] .select {
+  border-radius: 0;
+  border-color: var(--brass);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17l-6-8h12z' fill='%23d4af37'/%3E%3C/svg%3E");
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
 [data-theme="deco"] .chip { border-radius: 0; font-size: 0.8rem; letter-spacing: 0.1em; padding: 8px 12px; border-color: var(--line); background: transparent; }
 [data-theme="deco"] .chip[aria-checked="true"] { background: var(--gold); color: var(--on-accent); border-color: var(--brass); }
 [data-theme="deco"] input[role="switch"] { border-radius: 0; background: transparent; border-color: var(--line); }

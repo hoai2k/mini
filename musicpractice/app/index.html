@@ -108,10 +108,7 @@
       <dialog id="met-settings" class="sheet" aria-labelledby="met-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="met-settings-title">Metronome settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <fieldset>
-            <legend>Time signature</legend>
-            <div class="chips" id="meter-chips"></div>
-          </fieldset>
+          <label class="row toggle"><span>Time signature</span><select class="select" id="meter"></select></label>
           <label class="row toggle"><span>Strong beat on 1</span><input type="checkbox" id="accent" role="switch"></label>
           <fieldset>
             <legend>Sound</legend>
