@@ -24,6 +24,7 @@ export const GAME_IDS = [
   'trivia',
   'wordblitz',
   'gofish',
+  'whack',
 ];
 
 export async function loadGames() {
