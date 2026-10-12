@@ -17,12 +17,28 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     the camp road, chapter 2 from Thalia's pine on Half-Blood Hill. A chapter
     unlocks when the one before it is finished.
   - The chapter map on the Big House porch lists every book.
-- **Two playable chapters of Book 1:**
-  - *The Pre-Algebra Teacher*: the museum in thick Mist. Mrs. Dodds waits in
-    disguise until a hero sees through the Mist, then fights as the Fury
-    Alecto.
-  - *Half-Blood Hill*: a storm, then the Minotaur. Make him charge into a
-    tree or a wall and he is stuck for three seconds and takes double damage.
+- **All twelve chapters of Book 1, *The Lightning Thief*,** each started from
+  its own place in camp (the early ones near the cabins, the later ones along
+  the Road West out past Half-Blood Hill), each unlocked by the one before:
+  1. *The Pre-Algebra Teacher*: the museum in thick Mist; Mrs. Dodds waits in
+     disguise, then fights as the Fury Alecto.
+  2. *Half-Blood Hill*: a storm, then the Minotaur; make him charge into a
+     tree or a wall and he is stuck and takes double damage.
+  3. *Capture the Flag*: carry the Ares cabin's banner back across the creek,
+     then a hellhound summoned into camp; Percy is claimed.
+  4. *The Kindly Ones*: the three Furies at the wrecked Greyhound bus.
+  5. *Aunty Em's Garden Gnome Emporium*: free the stone satyrs, then Medusa,
+     whose gaze turns to stone any hero facing her.
+  6. *The Gateway Arch*: the Chimera on the observation deck.
+  7. *Waterland*: shut Hephaestus's traps, then the bronze spider queen.
+  8. *The Lotus Hotel and Casino*: no boss; get out before too many days pass,
+     with True Sight showing the way and lotus flowers costing time.
+  9. *Crusty's Water Bed Palace*: Procrustes, who grabs heroes for his beds.
+  10. *DOA Recording Studios*: close the rifts, then Cerberus at the gates of
+      Erebus.
+  11. *The God of War*: Ares on Santa Monica beach; heroes in the surf heal
+      and hit harder.
+  12. *The Six-Hundredth Floor*: Olympus, then Luke's duel on the camp hill.
 - **Five playable heroes:** Percy, Annabeth, Grover, Tyson and Clarisse, each
   with a melee combo, a ranged move, three abilities and a godly power. Thalia
   and Nico are shown as coming later.
@@ -189,8 +205,7 @@ To try it locally, serve the repository root (for example
 
 ## Known limits
 
-- Only chapters 1 and 2 are playable. The other chapters show on the map as
-  coming.
+- Books 2 to 5 show on the chapter map as coming.
 - Online play has been tested against a local stand-in for the relay (the same
   protocol, with added latency, jitter, lost updates and dropped sockets), not
   yet against the live relay. Blocks broken by a guest aren't sent to the
