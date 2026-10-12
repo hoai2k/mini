@@ -167,6 +167,7 @@ async function photograph(item) {
   if (error) return { error: error.message };
   try {
     rig.root.rotation.y = 0.6;
+    if (typeof rig.animate === 'function') { try { rig.animate({ dt: 1, speed: 0, vel: new THREE.Vector3(), action: null }); } catch { /* keep the rest pose */ } }
     const m = measure(rig);
     thumbHolder.add(rig.root);
     fitLights(m.center, m.r);
@@ -182,8 +183,10 @@ async function photograph(item) {
     if (current) fitLights(current.m.center, current.m.r);
     const buf = await renderer.readRenderTargetPixelsAsync(thumbRT, 0, 0, TS, TS);
     const px = buf instanceof Uint8Array || buf instanceof Uint8ClampedArray ? buf : Uint8Array.from(buf, (v) => Math.max(0, Math.min(255, v * 255)));
-    const img = new ImageData(TS, TS), row = TS * 4;
-    for (let y = 0; y < TS; y++) img.data.set(px.subarray((flipRows ? TS - 1 - y : y) * row, (flipRows ? TS - y : y + 1) * row), y * row);
+    // WebGPU pads every read-back row to a multiple of 256 bytes (176 px is 704
+    // bytes, padded to 768), so the stride comes from the buffer, not the width.
+    const img = new ImageData(TS, TS), row = TS * 4, stride = (px.length - row) / (TS - 1);
+    for (let y = 0; y < TS; y++) { const s = (flipRows ? TS - 1 - y : y) * stride; img.data.set(px.subarray(s, s + row), y * row); }
     const g = canvas2d.getContext('2d'); g.putImageData(img, 0, 0);
     return { url: canvas2d.toDataURL('image/png') };
   } catch (e) {

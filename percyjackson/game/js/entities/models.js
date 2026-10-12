@@ -6,7 +6,7 @@
 import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX } from './character.js';
 import { hashStr } from '../util.js';
-import { buildVoxelHair, ponytailCubes, voxelMesh, hairMaterial } from './voxhair.js';
+import { heroHair, heroTail, cellMesh, partMaterial, partsMesh, footwear, band, beads, tatters, sleeveTatters } from './herovox.js';
 
 export const CAMP_ORANGE = 0xf28c28;
 const INK = 0x17130f;
@@ -33,22 +33,34 @@ function paintHumanoid(S, o) {
   const brow = o.brow ?? o.hair;
   if (o.cyclops) {
     // one big central eye under a single heavy brow
-    S.rect(10, ey - 2, 4, 1, brow, 0.1);
+    S.rect(9, ey - 3, 6, 1, brow, 0.1);
+    S.rect(10, ey - 2, 4, 1, 0x1a100c, 0.03);
     S.rect(10, ey - 1, 4, 2, o.eyeWhite ?? 0xffffff, 0.02);
-    S.px(11, ey - 1, o.eye ?? 0x6a3a1a); S.px(12, ey - 1, o.eye ?? 0x6a3a1a); S.px(11, ey, o.eye ?? 0x6a3a1a); S.px(12, ey, 0x111111);
-    S.rect(11, ey + 2, 2, 1, 0xd89a88, 0.05);
-    S.rect(10, ey + 3, 4, 1, 0x8a4a3a, 0.05);                 // big grin
+    S.px(11, ey - 1, o.eye ?? 0x8a4a1a); S.px(12, ey - 1, shadeOf(o.eye ?? 0x8a4a1a, 1.25)); S.px(11, ey, 0x140c08); S.px(12, ey, o.eye ?? 0x8a4a1a);
+    S.rect(11, ey + 1, 2, 1, shadeOf(skin, 0.86), 0.05);
+    // a big open grin: dark mouth, a row of teeth, a red tongue
+    S.rect(9, ey + 2, 6, 2, 0x3a1410, 0.03); S.rect(10, ey + 2, 4, 1, 0xf8f2e8, 0.02); S.rect(11, ey + 3, 2, 1, 0x9a2a20, 0.05);
   } else {
-    // eyes two pixels tall: white + iris on top, iris + dark pupil below
-    const iris = o.eye ?? 0x3a2a1a, pupil = o.pupil ?? 0x101014;
-    S.px(9, ey, o.eyeWhite ?? 0xffffff); S.px(10, ey, iris); S.px(9, ey + 1, iris); S.px(10, ey + 1, pupil);
-    S.px(13, ey, iris); S.px(14, ey, o.eyeWhite ?? 0xffffff); S.px(13, ey + 1, pupil); S.px(14, ey + 1, iris);
-    S.rect(8, ey - 1, 3, 1, brow, 0.05); S.rect(13, ey - 1, 3, 1, brow, 0.05);
-    if (o.scowl) { S.px(10, ey - 1, brow); S.px(13, ey - 1, brow); S.px(11, ey - 1, brow); S.px(12, ey - 1, brow); }
-    S.px(11, ey + 2, 0xc89a88);
-    const lip = o.lip ?? 0x9a5a4a;
-    if (o.smile) { S.px(10, ey + 3, lip); S.px(11, ey + 3, 0xf4ece0); S.px(12, ey + 3, 0xf4ece0); S.px(13, ey + 3, lip); }
-    else { S.px(11, ey + 3, lip); S.px(12, ey + 3, lip); }
+    // eyes two pixels tall: white + iris on top, iris + dark pupil below,
+    // under a dark lash line and a heavy brow (as on the sheet close-ups)
+    const iris = o.eye ?? 0x3a2a1a, pupil = o.pupil ?? 0x101014, lash = o.lash ?? 0x16100c;
+    S.px(9, ey, o.eyeWhite ?? 0xffffff); S.px(10, ey, iris); S.px(9, ey + 1, o.eyeWhite ?? 0xf4f0ec); S.px(10, ey + 1, pupil);
+    S.px(13, ey, iris); S.px(14, ey, o.eyeWhite ?? 0xffffff); S.px(13, ey + 1, pupil); S.px(14, ey + 1, o.eyeWhite ?? 0xf4f0ec);
+    S.rect(9, ey - 1, 2, 1, lash, 0.04); S.rect(13, ey - 1, 2, 1, lash, 0.04);
+    if (o.lashes) { S.px(8, ey, lash); S.px(15, ey, lash); }
+    const bh = o.browRow ?? ey - 2;
+    if (o.scowl) { S.px(8, bh, brow); S.px(9, bh, brow); S.px(10, bh + 1, brow); S.px(13, bh + 1, brow); S.px(14, bh, brow); S.px(15, bh, brow); }
+    else { S.rect(8, bh, 3, 1, brow, 0.05); S.rect(13, bh, 3, 1, brow, 0.05); }
+    S.px(11, ey + 2, shadeOf(skin, 0.86)); S.px(12, ey + 2, shadeOf(skin, 0.92));   // nose
+    const lip = o.lip ?? 0x9a4a3a, teeth = 0xf8f2e8, dark = 0x4a1a14;
+    switch (o.mouth ?? (o.smile ? 'smile' : 'small')) {
+      case 'smirk': S.px(10, ey + 3, lip); S.px(11, ey + 3, teeth); S.px(12, ey + 3, teeth); S.px(13, ey + 2, lip); break;
+      case 'grin': S.rect(10, ey + 3, 4, 1, teeth, 0.02); S.px(9, ey + 2, lip); S.px(14, ey + 2, lip); break;
+      case 'smile': S.px(10, ey + 3, lip); S.px(11, ey + 3, shadeOf(lip, 1.2)); S.px(12, ey + 3, shadeOf(lip, 1.2)); S.px(13, ey + 3, lip); S.px(9, ey + 2, shadeOf(skin, 0.85)); S.px(14, ey + 2, shadeOf(skin, 0.85)); break;
+      case 'frown': S.px(10, ey + 3, lip); S.px(11, ey + 3, lip); S.px(12, ey + 3, lip); S.px(13, ey + 3, lip); break;
+      default: S.px(11, ey + 3, lip); S.px(12, ey + 3, lip);
+    }
+    if (o.cheeks) { S.px(8, ey + 2, o.cheeks); S.px(15, ey + 2, o.cheeks); }
   }
   if (o.blush) { S.px(9, ey + 1, 0xe8a0a0); S.px(14, ey + 1, 0xe8a0a0); }
   if (o.goatee) { S.px(11, ey + 3, o.goatee); S.px(12, ey + 3, o.goatee); S.px(11, 15, o.goatee); S.px(12, 15, o.goatee); }
@@ -70,11 +82,13 @@ function paintHumanoid(S, o) {
     S.rect(23, 20, 2, 12, b, 0.05);
     for (let y = 22; y < 32; y += 3) S.px(24, y, 0xd8c8a8);
   }
-  if (o.collar !== false) S.rect(21, 20, 6, 1, o.collar ?? skin, 0.04);   // crew neck
+  if (o.hem) S.rect(16, 31, 24, 1, o.hem, 0.06);
+  if (o.collar !== false) { S.rect(22, 20, 4, 1, o.collar ?? skin, 0.04); S.px(21, 20, shadeOf(o.top, 0.8)); S.px(26, 20, shadeOf(o.top, 0.8)); }   // crew neck
   if (o.pegasus) {
     // small black pegasus mark on the chest (front face 20..27 × 20..31)
+    // a winged horse, 8 × 7: wings up behind, head to the right, tail and legs below
     const c = o.pegasus;
-    [[24, 22], [25, 22], [23, 23], [24, 23], [25, 23], [26, 23], [27, 22], [23, 24], [26, 24], [22, 23]].forEach(([x, y]) => S.px(x, y, c));
+    ['#.......', '##...##.', '.##.####', '..####..', '.#####..', '#.#..#..', '..#...#.'].forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') S.px(20 + x, 22 + y, c); }));
   }
   if (o.beads) { for (let x = 21; x < 27; x++) S.px(x, 21, [0x8a2a1a, 0xe8e0c8, 0x2a5a8a, 0xe8e0c8][x % 4]); }
   if (o.belt) { S.rect(16, 30, 24, 2, o.belt, 0.1); S.px(23, 30, 0xc9963a); S.px(24, 30, 0xc9963a); }
@@ -100,14 +114,16 @@ function paintHumanoid(S, o) {
     S.box(u, v, 4, 12, 4, o.sleeve ?? o.top, 0.08);
     if (o.plaid) for (let y = v + 4; y < v + 16; y++) for (let x = u; x < u + 16; x++) if (x % 3 === 0 || y % 3 === 0) S.px(x, y, o.plaid[0]);
     const sl = o.shortSleeve ?? 12;
-    if (sl < 12) S.rect(u, v + 4 + sl, 16, 12 - sl, skin, 0.05);
+    if (sl < 12) { S.rect(u, v + 4 + sl - 1, 16, 1, shadeOf(o.sleeve ?? o.top, 0.82), 0.05); S.rect(u, v + 4 + sl, 16, 12 - sl, skin, 0.05); }
     S.rect(u, v + 4 + 9, 16, 3, skin, 0.04); S.rect(u + 8, v, 4, 4, skin, 0.04);
     if (o.wrist) S.rect(u, v + 4 + 8, 16, 1, o.wrist, 0.05);
   }
   // ---- legs: jeans / shorts / goat legs, then shoes or hooves
   for (const [u, v] of LEGS) {
     S.box(u, v, 4, 12, 4, o.pants, 0.12);
-    if (o.shorts) S.rect(u, v + 4 + o.shorts, 16, 12 - o.shorts, o.legSkin ?? skin, 0.06);
+    if (o.legCamo) for (let i = 0; i < 26; i++) S.rect(u + Math.floor(S.r() * 16), v + 4 + Math.floor(S.r() * (o.shorts ?? 12)), 2, 1, o.legCamo[i % o.legCamo.length], 0.1);
+    if (o.cargo) { S.rect(u, v + 4 + 2, 3, 2, shadeOf(o.pants, 0.82), 0.05); S.rect(u + 8, v + 4 + 2, 4, 1, shadeOf(o.pants, 0.82), 0.05); }
+    if (o.shorts) { S.rect(u, v + 4 + o.shorts - 1, 16, 1, shadeOf(o.pants, 0.8), 0.05); S.rect(u, v + 4 + o.shorts, 16, 12 - o.shorts, o.legSkin ?? skin, 0.06); S.rect(u, v + 4 + o.shorts, 16, 1, shadeOf(o.legSkin ?? skin, 0.86), 0.04); }
     if (o.goat) {
       for (let y = v + 4 + (o.shorts ?? 4); y < v + 16; y++) for (let x = u; x < u + 16; x++) S.px(x, y, S.r() < 0.35 ? o.goat[1] : o.goat[0]);
       S.rect(u, v + 4 + 10, 16, 2, 0x2a1e18, 0.1); S.rect(u + 8, v, 4, 4, 0x2a1e18, 0.1);
@@ -120,6 +136,22 @@ function paintHumanoid(S, o) {
     S.rect(u, v + 4 + 10, 16, 2, o.shoes ?? 0x1a1a1a, 0.05); S.rect(u + 8, v, 4, 4, o.shoes ?? 0x1a1a1a, 0.05);
     if (o.sole) { S.rect(u, v + 4 + 11, 16, 1, o.sole, 0.03); S.px(u + 5, v + 4 + 10, o.sole); S.px(u + 6, v + 4 + 10, o.sole); }
   }
+  if (o.shade !== false) shadeBody(S);
+}
+
+const shadeOf = (c, k) => { const x = new THREE.Color(c).multiplyScalar(k); return x.getHex(); };
+// Light from above: the side faces of the torso, arms and legs (and their
+// overlays) shade from a little brighter at the top to darker at the bottom.
+function shadeBody(S) {
+  const strips = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4], [40, 32, 4, 12, 4], [32, 48, 4, 12, 4], [48, 48, 4, 12, 4], [0, 16, 4, 12, 4], [16, 48, 4, 12, 4]];
+  const img = S.ctx.getImageData(0, 0, 64, 64), D = img.data;
+  // a little extra saturation everywhere: the tone mapping washes colours out
+  for (let i = 0; i < D.length; i += 4) { const l = (D[i] + D[i + 1] + D[i + 2]) / 3; for (let c = 0; c < 3; c++) D[i + c] = Math.max(0, Math.min(255, l + (D[i + c] - l) * 1.2)); }
+  for (const [u, v, w, h, d] of strips) for (let y = 0; y < h; y++) {
+    const k = 1.08 - 0.2 * (y / (h - 1));
+    for (let x = u; x < u + 2 * (w + d); x++) { const i = ((v + d + y) * 64 + x) * 4; for (let c = 0; c < 3; c++) D[i + c] = Math.min(255, D[i + c] * k); }
+  }
+  S.ctx.putImageData(img, 0, 0);
 }
 
 const mat = (c, o = {}) => new THREE.MeshStandardNodeMaterial({ color: c, roughness: o.rough ?? 0.7, metalness: o.metal ?? 0, emissive: o.emissive ?? 0x000000, emissiveIntensity: o.ei ?? 1 });
@@ -133,11 +165,14 @@ function bx(parent, w, h, d, x, y, z, m, unit = PX) {
 }
 // Baseball cap on the head (crown + brim pointing forward).
 function cap(rig, color) {
-  const m = mat(color, { rough: 0.85 });
+  const m = mat(color, { rough: 0.85 }), dark = mat(new THREE.Color(color).multiplyScalar(0.7).getHex(), { rough: 0.85 });
   const g = new THREE.Group();
-  bx(g, 10.6, 3, 10.6, 0, 9.2, 0, m, H);
-  bx(g, 9, 1.4, 9, 0, 11.2, 0, m, H);
-  bx(g, 8.4, 0.7, 4.6, 0, 8, 6.8, m, H);
+  bx(g, 10.2, 2.4, 10, 0, 9.2, -0.3, m, H);                  // crown, domed in three tiers
+  bx(g, 9, 1.2, 8.8, 0, 11, -0.4, m, H);
+  bx(g, 6.8, 0.8, 6.6, 0, 11.9, -0.5, m, H);
+  bx(g, 0.9, 0.5, 0.9, 0, 12.4, -0.5, dark, H);               // button
+  bx(g, 9, 0.7, 4.8, 0, 8.3, 6.9, dark, H);                   // brim
+  bx(g, 10.3, 0.6, 10.1, 0, 8.1, -0.3, dark, H);              // band
   rig.head.add(g); return g;
 }
 
@@ -213,48 +248,59 @@ function wings(parent, y) {
   g.visible = false; parent.add(g); return g;
 }
 
-const TEE = { top: CAMP_ORANGE, shortSleeve: 5, pegasus: INK, collar: 0xe07a1a };
-const JEANS = { pants: 0x3d5a8a, shoes: 0x1c1c22, sole: 0xf0ece0 };
+const ORANGE = 0xd84a04, ORANGE_HEM = 0x9a3604;
+const TEE = { top: ORANGE, shortSleeve: 4, pegasus: INK, collar: 0xb03e04, hem: ORANGE_HEM };
+const JEANS = { pants: 0x263e6a, shoes: 0x1c1a20, sole: 0xf0ece0 };
+const BEADS = [0x6a3a1e, 0xf0ead8, 0x6a3a1e, 0xf0ead8, 0xb04a2a];
 
 // Looks follow the 3D hero sheets (design/concept/vox-*.png): voxel hair is
-// the main silhouette (see voxhair.js), outfits are painted on the skin and
-// helmets, caps, collars and props are small block models.
+// the main silhouette (herovox.js), outfits are painted on the skin, and
+// shoes, cuffs, beads, buckles, caps, helmets and props are small block models.
+// outfit: footwear ({ kind, upper, sole, lace, trim }), cuffs (jeans rolled
+// over the shoes), socks, beads, buckle, wrist (bands), tatters (torn flannel).
 export const HERO_LOOKS = {
   percy: {
-    paint: { skinTone: 0xf2cdb0, hair: 0x14141a, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2fae9a, pupil: 0x0e3a34, smile: true, ...TEE, ...JEANS, cuff: 0x6a88b8 },
-    vox: { style: 'mop', base: 0x1c1c26, shade: 0x0c0c12, light: 0x34344a, seed: 11 },
+    paint: { skinTone: 0xde9060, hair: 0x1e1612, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x1fa89a, pupil: 0x0a3a34, brow: 0x1a120e, mouth: 'smirk', ...TEE, ...JEANS },
+    vox: { style: 'mop', base: 0x241a16, shade: 0x100c0a, light: 0x3e2e24, warm: 0x6a4222, seed: 11 },
+    outfit: { footwear: { kind: 'hitop', upper: 0x1c1a20, sole: 0xf0ece0 }, cuffs: 0x4a6a9a },
     accent: 0x2fd0d8,
   },
   annabeth: {
-    paint: { skinTone: 0xeec6a4, hair: 0xe8b84a, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x7c8ea8, pupil: 0x2a3444, brow: 0xb8862a, beads: true, belt: 0x4a2e1a, ...TEE, pants: 0x6a6a3e, shorts: 4, socks: 0xf0ece0, shoes: 0x1e2a4a, sole: 0xf0ece0 },
-    vox: { style: 'curls', base: 0xe8b84a, shade: 0xb07a22, light: 0xffe08a, seed: 23, cap: true },
-    tail: { base: 0xe8b84a, shade: 0xb07a22, light: 0xffe08a, length: 9, width: 5 },
-    accent: 0xe0b04a, cap: 0x1e2a4a,
+    paint: { skinTone: 0xde8c5c, hair: 0xc87a08, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x4a5a78, pupil: 0x1a2030, brow: 0xa86a1a, lashes: true, lip: 0xc8705a, belt: 0x4a2a16, ...TEE, pants: 0x6a6440, shorts: 5, cargo: true, socks: 0xf0ece0, shoes: 0x1e2648, sole: 0xf0ece0 },
+    vox: { style: 'curls', base: 0xd88206, shade: 0x8e4c04, light: 0xf4b020, seed: 23, cap: true },
+    tail: { base: 0xd88206, shade: 0x8e4c04, light: 0xf4b020, length: 15, width: 3.8 },
+    outfit: { footwear: { kind: 'hitop', upper: 0x1e2648, sole: 0xf0ece0 }, socks: 0xf4f0e8, beads: BEADS, buckle: 0xc9963a },
+    accent: 0xe0b04a, cap: 0x1e2648,
   },
   grover: {
-    paint: { skinTone: 0xeec6a4, hair: 0x6a3a1e, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x6a4020, goatee: 0x4a2814, smile: true, ...TEE, pants: 0x5a5a32, shorts: 3, goat: [0x7a5030, 0x5a3a20], belt: 0x3a2414 },
-    vox: { style: 'afro', base: 0x6a3a1e, shade: 0x40220e, light: 0x9a6034, seed: 37 },
+    paint: { skinTone: 0xd68454, hair: 0x6a3a1c, fringe: 2, hairSide: 4, hairBack: 7, eye: 0x3a2414, brow: 0x4a2814, goatee: 0x5a3018, mouth: 'smile', ...TEE, pants: 0x6a6440, shorts: 5, goat: [0x6a4020, 0x4a2a14], belt: 0x4a2a16 },
+    vox: { style: 'afro', base: 0x5a2a10, shade: 0x341606, light: 0x84461c, seed: 37 },
+    outfit: { footwear: { kind: 'hoof', upper: 0x2a1c16, seed: 5 }, beads: [0x8a5a2a, 0xe8d8b0, 0x5a3a1a], buckle: 0x8a6a3a },
     accent: 0x5fae4a, horns: true,
   },
   tyson: {
-    paint: { skinTone: 0xe2b48c, hair: 0x5a3a20, fringe: 3, hairSide: 5, hairBack: 8, cyclops: true, eye: 0x7a4a1a, brow: 0x3a2414, ...TEE, jacket: 0xa8322a, jacketPlaid: [0x6a1a14, 0x2a1a14], jacketSleeve: 9, pants: 0x3d5a8a, torn: true, shoes: 0x5a3a20, sole: 0x3a2414 },
-    vox: { style: 'shaggy', base: 0x5a3a20, shade: 0x3a2414, light: 0x8a5a30, seed: 41 },
+    paint: { skinTone: 0xd8824e, hair: 0x6a3418, fringe: 3, hairSide: 5, hairBack: 8, cyclops: true, eye: 0x8a4a1a, brow: 0x4a2414, ...TEE, jacket: 0xb42a1c, jacketPlaid: [0x4a120c, 0x1a0c0a], jacketSleeve: 5, pants: 0x4a6a92, torn: true, shoes: 0x5a3418, sole: 0x3a2414 },
+    vox: { style: 'shaggy', base: 0x5e2a12, shade: 0x361606, light: 0x864020, seed: 41 },
+    outfit: { footwear: { kind: 'boot', upper: 0x5a3418, sole: 0x3a2414, lace: 0xc9963a, trim: 0xb08850 }, cuffs: 0x8a9ab0, tatters: [0xa8322a, 0x5a1610, 0x7a2018] },
     accent: 0xff8a2a, scale: 1.45, wide: 1.3,
   },
   clarisse: {
-    paint: { skinTone: 0xd8a682, hair: 0x5a3018, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x4a2a14, brow: 0x3a2010, scowl: true, ...TEE, jacket: 0x5a6238, camo: [0x3a3f22, 0x7a7448, 0x2a2a1a], jacketSleeve: 9, belt: 0x3a2a1a, pants: 0x55552e, shorts: 5, socks: 0x1a1a1a, shoes: 0x141414, wrist: 0x1a1a1a },
-    vox: { style: 'long', base: 0x6a3a1c, shade: 0x40220e, light: 0x8a5228, seed: 53, helmet: true },
-    tail: { base: 0x6a3a1c, shade: 0x40220e, light: 0x8a5228, length: 10, width: 4 },
+    paint: { skinTone: 0xcc7c4a, hair: 0x5a2c14, fringe: 2, hairSide: 5, hairBack: 8, eye: 0x3a2414, brow: 0x2a1408, scowl: true, lashes: true, mouth: 'frown', lip: 0xa85040, ...TEE, jacket: 0x4e5a30, camo: [0x2e3a1a, 0x6e7040, 0x2a2a18, 0x8a7a4a], jacketSleeve: 6, belt: 0x2a2018, pants: 0x4e5430, legCamo: [0x2e3a1a, 0x6e7040, 0x2a2a18], cargo: true, shorts: 5, socks: 0x1a1a1a, shoes: 0x141414 },
+    vox: { style: 'long', base: 0x6a3418, shade: 0x40200c, light: 0x8e4a22, seed: 53, helmet: true },
+    tail: { base: 0x6a3418, shade: 0x40200c, light: 0x8e4a22, length: 13, width: 3.4 },
+    outfit: { footwear: { kind: 'boot', upper: 0x1a1816, sole: 0x2a2622, lace: 0x5a5048 }, wrist: 0x1a1a1a, sleeveCuff: 0x3e4a26, buckle: 0x6a6a5a },
     accent: 0xffd84a, helmet: 0xc9963a, crest: 0xc8281e,
   },
   thalia: {
-    paint: { skinTone: 0xf2d4c0, hair: 0x101014, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x3a8aff, pupil: 0x10204a, freckles: 0xd8a080, top: 0x22222a, sleeve: 0x22222a, collar: false, jacket: 0x16161c, jacketSleeve: 12, studs: 0xc0c0c8, pants: 0x1e1e26, torn: true, legSkin: 0xf2d4c0, shoes: 0x101010, sole: 0x3a3a3a, wrist: 0xc0c0c8 },
-    vox: { style: 'spiky', base: 0x16161e, shade: 0x08080c, light: 0x2c3448, seed: 61 },
+    paint: { skinTone: 0xe29e74, hair: 0x101014, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a6ae8, pupil: 0x0a1a4a, brow: 0x0e0e12, freckles: 0xc88a60, top: 0x24222a, sleeve: 0x24222a, collar: false, jacket: 0x18161c, jacketSleeve: 6, studs: 0xc0c0c8, pants: 0x1e1c24, torn: true, legSkin: 0xe29e74, belt: 0x3a2a1e, shoes: 0x101010, sole: 0x3a3a3a },
+    vox: { style: 'spiky', base: 0x18161c, shade: 0x08080a, light: 0x34323e, warm: 0x4a3422, seed: 61 },
+    outfit: { footwear: { kind: 'boot', upper: 0x16141a, sole: 0x4a4648, lace: 0x8a8a90 }, sleeveCuff: 0x101014, buckle: 0x9a9aa0, studs: 0xc8c8d0 },
     accent: 0x4a8aff,
   },
   nico: {
-    paint: { skinTone: 0xe8d4c8, hair: 0x0e0e12, fringe: 3, hairSide: 4, hairBack: 7, eye: 0x2a1a14, top: 0x1c1c22, collar: false, jacket: 0x5a3a22, jacketSleeve: 12, pants: 0x18181e, shoes: 0x101010, sole: 0x2a2a2a },
-    vox: { style: 'messy', base: 0x16161c, shade: 0x08080c, light: 0x2a2a3a, seed: 73 },
+    paint: { skinTone: 0xdea27a, hair: 0x0e0e12, fringe: 3, hairSide: 4, hairBack: 7, eye: 0x1a1210, brow: 0x0e0c0c, top: 0x1c1a20, collar: false, jacket: 0x4a2c18, jacketSleeve: 10, pants: 0x2a282c, cargo: true, shoes: 0x16141a, sole: 0xe8dcc0 },
+    vox: { style: 'messy', base: 0x18161c, shade: 0x0a0a0c, light: 0x34303c, warm: 0x3a2a3a, seed: 73 },
+    outfit: { footwear: { kind: 'hitop', upper: 0x16141a, sole: 0xe8dcc0, lace: 0xe8dcc0 }, cuffs: 0x2a282c, sleeveCuff: 0xd8c8a8, sleeveY: -6.4 },
     accent: 0x8a5aff, fleece: 0xd8c8a8,
   },
 };
@@ -264,11 +310,16 @@ function helmet(rig, color, crest) {
   const g = new THREE.Group();
   const m = mat(color, { rough: 0.35, metal: 0.8, emissive: 0x3a2408, ei: 0.4 });
   const c = mat(crest, { rough: 0.9 });
-  bx(g, 9.6, 3.2, 9.6, 0, 8.9, 0, m, H);                   // crown
-  bx(g, 9.8, 4, 1.2, 0, 6.6, -4.4, m, H);                   // back guard
-  for (const sx of [-1, 1]) bx(g, 1.2, 5.6, 6, sx * 4.4, 5.8, 1.2, m, H);   // cheek guards
-  bx(g, 1.6, 2.4, 1, 0, 6.6, 4.6, m, H);                    // nose guard
-  for (let i = 0; i < 9; i++) bx(g, 1.6, 2.2 + Math.sin(i / 8 * Math.PI) * 2.2, 1.4, 0, 11 + Math.sin(i / 8 * Math.PI) * 1.1, -4.8 + i * 1.2, c, H);
+  const dark = mat(new THREE.Color(color).multiplyScalar(0.7).getHex(), { rough: 0.4, metal: 0.8 }), c2 = mat(new THREE.Color(crest).multiplyScalar(0.7).getHex(), { rough: 0.9 });
+  bx(g, 10, 3, 10, 0, 9, -0.2, m, H);                       // domed crown
+  bx(g, 8.8, 1.2, 8.8, 0, 11, -0.3, m, H);
+  bx(g, 6.6, 0.8, 6.6, 0, 11.9, -0.3, m, H);
+  bx(g, 10.2, 0.7, 10.2, 0, 7.8, -0.2, dark, H);            // brow rim
+  bx(g, 10, 4.4, 1.4, 0, 6.2, -4.8, m, H);                  // neck guard
+  for (const sx of [-1, 1]) { bx(g, 1.3, 5.4, 5.6, sx * 4.8, 5.6, 1.4, m, H); bx(g, 1.4, 1, 5.8, sx * 4.85, 3.2, 1.4, dark, H); }   // cheek guards
+  bx(g, 1.4, 3, 1.1, 0, 6.6, 4.8, m, H);                    // nose guard
+  // a tall horsehair crest from brow to nape, darker in stripes
+  for (let i = 0; i < 11; i++) { const a = i / 10 * Math.PI, hgt = 2.4 + Math.sin(a) * 3.2; bx(g, 1.8, hgt, 1.1, 0, 12 + hgt / 2 - 0.6 - (i < 2 || i > 9 ? 0.8 : 0), 4.2 - i * 1.05, i % 3 === 1 ? c2 : c, H); }
   rig.head.add(g); return g;
 }
 // Fleece collar on an aviator jacket (Nico).
@@ -280,20 +331,45 @@ function fleeceCollar(rig, color) {
   rig.torso.add(g); return g;
 }
 
-// Add voxel hair (and a swinging ponytail) to a rig.
+// Add grid-voxel hair (and a swinging ponytail of curls) to a rig.
 function addHair(rig, look) {
-  const hm = hairMaterial();
+  const hm = partMaterial();
   const hs = (rig.dims.headS / 8) * 1.12;
-  const cubes = buildVoxelHair(look.vox);
-  const mesh = voxelMesh(cubes, PX * hs, hm);
+  const { cells, solid } = heroHair(look.vox);
+  const mesh = cellMesh(cells, PX * hs, hm, solid);
   mesh.userData.baseMat = hm; rig.meshes.push(mesh); rig.head.add(mesh);
   rig.extras.hair = mesh;
   if (look.tail) {
-    const piv = new THREE.Group(); piv.position.set(0, 6.2 * PX * hs, -4.6 * PX * hs);
-    const tail = voxelMesh(ponytailCubes({ ...look.tail, seed: look.vox.seed + 1 }), PX * hs, hm);
+    const piv = new THREE.Group(); piv.position.set(0, 7.6 * PX * hs, -4.2 * PX * hs);
+    const tail = cellMesh(heroTail({ ...look.tail, seed: look.vox.seed + 1 }), PX * hs, hm);
     tail.userData.baseMat = hm; rig.meshes.push(tail); piv.add(tail); rig.head.add(piv);
     rig.strands.push({ g: piv, ax: 0, az: 0, vx: 0, vz: 0, stiff: 26, base: [0, 0] });
   }
+}
+// Shoes, cuffs, beads and the rest of the outfit's block detail.
+function addOutfit(rig, o) {
+  const m = partMaterial();
+  const put = (parent, list) => { if (!list.length) return; const mesh = partsMesh(list, m); mesh.userData.baseMat = m; rig.meshes.push(mesh); parent.add(mesh); };
+  for (const [i, leg] of [rig.legR, rig.legL].entries()) {
+    const L = [];
+    if (o.footwear) L.push(...footwear(o.footwear.kind, { ...o.footwear, seed: (o.footwear.seed ?? 1) + i }));
+    if (o.cuffs) L.push(band(-7.1, 1.3, o.cuffs, 4.6));
+    if (o.socks) L.push(band(-7.4, 1.2, o.socks, 4.3));
+    put(leg, L);
+  }
+  for (const arm of [rig.armR, rig.armL]) {
+    const L = [];
+    if (o.wrist) L.push(band(-6.6, 1.5, o.wrist, 4.5));
+    if (o.sleeveCuff) L.push(band(o.sleeveY ?? -3.3, 1.1, o.sleeveCuff, 4.7));
+    if (o.tatters) L.push(...sleeveTatters(-2.6, o.tatters, arm === rig.armR ? 3 : 4, 2.35));
+    put(arm, L);
+  }
+  const T = [];
+  if (o.beads) T.push(...beads(o.beads));
+  if (o.buckle) T.push({ at: [0, 1, 2.45], size: [1.6, 1.3, 0.4], col: new THREE.Color(o.buckle) });
+  if (o.tatters) T.push(...tatters(0.3, 4.3, 2.3, o.tatters, 7, { gapX: 1.5 }));
+  if (o.studs) for (const [x, y] of [[-1.9, 10.6], [1.9, 10.6], [-2.2, 8.4], [2.2, 8.4], [-3.4, 11.2], [3.4, 11.2]]) T.push({ at: [x, y, 2.45], size: [0.5, 0.5, 0.4], col: new THREE.Color(o.studs) });
+  put(rig.torso, T);
 }
 
 export function buildHeroModel(id) {
@@ -304,6 +380,7 @@ export function buildHeroModel(id) {
   const material = makeCharMaterial(map, { emitStrength: 0 });
   material.alphaTest = 0.5;
   const rig = new Rig({ material, scale: look.scale ?? 1.18 });
+  if (look.outfit) addOutfit(rig, look.outfit);
   // a broad build: widen the torso and set the arms and legs further apart
   if (look.wide) {
     const w = look.wide;
@@ -321,8 +398,9 @@ export function buildHeroModel(id) {
   if (id === 'annabeth') { const d = buildDagger(); rig.handR.add(d); rig.extras.weapon = d; }
   if (id === 'grover') {
     const p = buildPipes(); rig.handL.add(p); rig.extras.pipes = p;
-    const horn = mat(0xd8c8a0, { rough: 0.6 });
-    for (const s of [-1, 1]) { const h = bx(rig.head, 1.6, 3.2, 1.6, s * 3.0, 12.4, 2.2, horn, H); h.rotation.z = -s * 0.35; h.rotation.x = -0.2; }
+    // little goat horns poking out of the afro above the ears, curling back
+    const horn = mat(0xd8b884, { rough: 0.6 }), tip = mat(0xb08e5a, { rough: 0.6 });
+    for (const s of [-1, 1]) { bx(rig.head, 2.4, 2.2, 2.4, s * 6.4, 9.2, 0.8, horn, H); bx(rig.head, 1.8, 1.6, 1.8, s * 7.8, 9.9, 0, tip, H); bx(rig.head, 1.2, 1.2, 1.4, s * 8.2, 9.4, -1.2, tip, H); }
     rig.extras.wings = [wings(rig.legR, -10.5), wings(rig.legL, -10.5)];
   }
   if (id === 'tyson') {
