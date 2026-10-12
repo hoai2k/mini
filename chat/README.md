@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 21
+A video chat in the browser with 75 face effects and backgrounds and 22
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -209,7 +209,7 @@ bounces in your hand; tap it and it flies to the asker, or press Go Fish if you
 have none. If they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher). Starting
+deals; alone you play Robo-Fisher) and Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on their own field, with live scores and a winner). Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -254,7 +254,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 21 games with rookie controls, real turns, live Burger Stack
+  offers, all 22 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -267,6 +267,7 @@ itself to HTTPS.
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
+- `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats get the same spawns, and mouse whacks show zombies scoring, an unwhacked creeper exploding, a villager costing, an enderman teleporting, one winner on both seats and rookie bots scoring (screenshots in `local/chat-shots/whack-*.png`)
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a

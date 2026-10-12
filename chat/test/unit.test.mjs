@@ -97,7 +97,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 21);
+  assert.equal(GAME_IDS.length, 22);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -178,4 +178,69 @@ test('Hoops: the ball is in front of the rim going up and behind it coming down'
   assert.ok(fallingAtHoop > 10, 'shots came down past the rim');
   // A ball that bounced well back towards the player stays in front.
   assert.equal(behindRim({ vy: -2, z: hoop.z - 1.2 }, hoop), false);
+});
+
+test('Mob Whack: the same seed gives the same fair spawns', async () => {
+  const { _logic: W } = await import('../games/whack.js');
+  const a = W.makeSchedule(12345), b = W.makeSchedule(12345), c = W.makeSchedule(999);
+  assert.deepEqual(a, b);
+  assert.notDeepEqual(a, c);
+  for (const seed of [1, 7, 12345, 4294967295, 2024, 31337, 555, 8080]) {
+    const ev = W.makeSchedule(seed);
+    const kinds = k => ev.filter(e => e.kind === k).length;
+    assert.ok(ev.length > 50, `seed ${seed}: plenty of mobs (${ev.length})`);
+    assert.ok(kinds('zombie') > kinds('creeper') && kinds('creeper') >= 3 && kinds('villager') >= 3, `seed ${seed}: mix`);
+    assert.ok(kinds('enderman') >= 1 && kinds('enderman') <= 2, `seed ${seed}: an enderman or two`);
+    const byHole = Array.from({ length: 9 }, () => []);
+    let prev = -1;
+    for (const e of ev) {
+      assert.ok(e.stops[0].t >= prev, 'in order');
+      prev = e.stops[0].t;
+      if (e.kind === 'enderman') {
+        assert.ok(e.stops.length >= 3, 'an enderman hops at least twice');
+        for (let j = 1; j < e.stops.length; j++) assert.notEqual(e.stops[j].hole, e.stops[j - 1].hole, 'hops to another hole');
+      } else assert.equal(e.stops.length, 1);
+      for (const s of e.stops) {
+        assert.ok(Number.isInteger(s.hole) && s.hole >= 0 && s.hole < 9);
+        assert.ok(s.t >= 0 && s.t + s.dur <= W.DURATION, 'ends in time');
+        byHole[s.hole].push([s.t, s.t + s.dur + W.RISE]);
+      }
+    }
+    for (const list of byHole) {
+      list.sort((x, y) => x[0] - y[0]);
+      for (let i = 1; i < list.length; i++) assert.ok(list[i][0] >= list[i - 1][1], `seed ${seed}: a hole holds one mob at a time`);
+    }
+    // It gets faster: more spawns in the last 20 s than the first 20 s.
+    const early = ev.filter(e => e.stops[0].t < 20000).length, late = ev.filter(e => e.stops[0].t >= 40000).length;
+    assert.ok(late > early, `seed ${seed}: ramps up (${early} then ${late})`);
+  }
+});
+
+test('Mob Whack: points, combos, layout and untrusted state', async () => {
+  const { _logic: W } = await import('../games/whack.js');
+  assert.equal(W.comboMult(1), 1);
+  assert.equal(W.comboMult(4), 2);
+  assert.equal(W.comboMult(40), 4);
+  assert.equal(W.pointsFor('zombie', 1), 10);
+  assert.equal(W.pointsFor('zombie', 8), 30);
+  assert.ok(W.pointsFor('creeper', 1) > W.pointsFor('zombie', 1));
+  assert.ok(W.pointsFor('creeper', 1, true) > W.pointsFor('creeper', 1));
+  assert.equal(W.pointsFor('enderman', 1), 50);
+  assert.ok(W.pointsFor('villager', 9) < 0);
+  // The holes and risen mobs stay on screen below the scores, portrait or wide.
+  for (const [w, h, top] of [[390, 640, 80], [460, 440, 60], [1900, 440, 60], [1024, 768, 60], [320, 480, 70]]) {
+    const { k, ox, oy } = W.fieldLayout(w, h, top);
+    const x0 = ox + W.REGION.x0 * k, x1 = ox + W.REGION.x1 * k, y0 = oy + W.REGION.y0 * k, y1 = oy + W.REGION.y1 * k;
+    assert.ok(x0 >= -1 && x1 <= w + 1 && y1 <= h + 1 && y0 >= top - 40, `${w}x${h}: region on screen`);
+  }
+  // Wide enough: the field covers the whole canvas.
+  const c = W.fieldLayout(1024, 768, 60);
+  assert.ok(c.ox <= 0 && c.oy <= 0 && c.ox + W.IMG_W * c.k >= 1024 && c.oy + W.IMG_H * c.k >= 768);
+  assert.ok(W.validShared({ round: 1, seed: 5, startAt: Date.now() }));
+  for (const bad of [null, 5, {}, { round: 0, seed: 1, startAt: Date.now() }, { round: 1, seed: -1, startAt: Date.now() }, { round: 1, seed: 1, startAt: 'x' }, { round: 1, seed: 1.5, startAt: Date.now() }]) {
+    assert.equal(W.validShared(bad), false);
+  }
+  assert.equal(W.readState({ round: 2, score: 50 }, 3), null);
+  assert.deepEqual(W.readState({ round: 3, score: 1e9, hearts: 99, play: true, out: 'yes' }, 3), { score: 99999, hearts: 3, play: true, out: false });
+  assert.deepEqual(W.readState({ round: 3, score: 'lots', hearts: -2 }, 3), { score: 0, hearts: 0, play: false, out: false });
 });
