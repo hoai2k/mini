@@ -424,6 +424,81 @@ test('Kart Dash items: leaders get peels and bombs, the back gets boosts and sta
   assert.deepEqual(order.map(k => k.id), ['d', 'b', 'c', 'a']);
 });
 
+test('Kart Dash holds two items: a box fills the next slot, using takes the first', () => {
+  const { track } = kartWorld;
+  const k = kartSim.newKart(kartTrack.gridSpot(track, 0));
+  assert.deepEqual(k.items, []);
+  assert.equal(kartSim.itemReady(k), false);
+  assert.equal(kartSim.takeItem(k), null);
+  // The first box: rolling, not usable until it stops.
+  assert.equal(kartSim.addItem(k, 'banana'), true);
+  assert.ok(k.roll > 0);
+  assert.equal(kartSim.itemReady(k), false);
+  assert.equal(kartSim.takeItem(k), null);
+  k.roll = 0;
+  // The second box fills slot two; the first can be used while it rolls.
+  assert.equal(kartSim.addItem(k, 'bomb'), true);
+  assert.deepEqual(k.items, ['banana', 'bomb']);
+  assert.equal(kartSim.itemReady(k), true);
+  // A third box gives nothing; unknown items are refused.
+  assert.equal(kartSim.addItem(k, 'star'), false);
+  assert.equal(kartSim.addItem({ items: [] }, 'shell'), false);
+  assert.equal(k.items.length, kartSim.ITEM_SLOTS);
+  // Using takes the first and the second moves up (still rolling, so it waits).
+  assert.equal(kartSim.takeItem(k), 'banana');
+  assert.deepEqual(k.items, ['bomb']);
+  assert.equal(kartSim.takeItem(k), null);
+  k.roll = 0;
+  assert.equal(kartSim.takeItem(k), 'bomb');
+  assert.deepEqual(k.items, []);
+  // A slot freed by using fills again.
+  assert.equal(kartSim.addItem(k, 'star', 0), true);
+  assert.equal(kartSim.takeItem(k), 'star');
+});
+
+test('Kart Dash touch steering: drag from the touch-down point, anchor follows, drag down brakes', () => {
+  const W = 400, H = 720;                       // a phone-sized seat
+  const r = kartSim.touchLock(W, H), b = kartSim.touchBrake(W, H);
+  close(r, 56, 1e-9);                           // 14% of the shorter side
+  close(b, 72, 1e-9);                           // 10% of the height
+  assert.equal(kartSim.touchLock(2000, 1200), kartSim.TOUCH.lockMax);
+  assert.equal(kartSim.touchLock(200, 300), kartSim.TOUCH.lockMin);
+  const d0 = { x0: 200, y0: 500, brake: false };
+  const at = (dx, dy = 0, d = d0) => kartSim.dragSteer(d, d.x0 + dx, d.y0 + dy, W, H);
+  // The dead zone, then a gentle curve: half the lock is less than half the steer, full lock is 1.
+  assert.equal(at(2).steer, 0);
+  assert.equal(at(-2).steer, 0);
+  const half = at(r / 2).steer;
+  assert.ok(half > 0.2 && half < 0.5, `half drag steers ${half}`);
+  close(at(-r / 2).steer, -half, 1e-12);
+  close(at(r).steer, 1, 1e-12);
+  close(at(-r).steer, -1, 1e-12);
+  // Monotonic.
+  let last = -Infinity;
+  for (let dx = -r * 1.5; dx <= r * 1.5; dx += 2) { const s = at(dx).steer; assert.ok(s >= last - 1e-12); last = s; }
+  // It steers from where the finger went down, not the screen centre.
+  assert.equal(kartSim.dragSteer({ x0: 20, y0: 500, brake: false }, 20, 500, W, H).steer, 0);
+  assert.ok(kartSim.dragSteer({ x0: 20, y0: 500, brake: false }, 60, 500, W, H).steer > 0.5);
+  // Past full lock the anchor follows, so coming back turns the other way at once.
+  const far = at(r + 40);
+  assert.equal(far.steer, 1);
+  close(far.x0, d0.x0 + 40, 1e-9);
+  const back = kartSim.dragSteer(far, d0.x0 + 40, 500, W, H);
+  assert.equal(back.steer, 0);
+  assert.ok(kartSim.dragSteer(far, d0.x0, 500, W, H).steer < -0.5);
+  // Dragging well down brakes; a little down does not; sliding back up past half releases.
+  assert.equal(at(0, b * 0.8).brake, false);
+  const br = at(10, b + 4);
+  assert.equal(br.brake, true);
+  assert.ok(br.steer > 0, 'it still steers while braking');
+  assert.equal(kartSim.dragSteer(br, 210, d0.y0 + b * 0.7, W, H).brake, true);
+  assert.equal(kartSim.dragSteer(br, 210, d0.y0 + b * 0.3, W, H).brake, false);
+  // The anchor follows the finger up, so dragging down from higher up brakes too.
+  const up = at(0, -100);
+  assert.equal(up.y0, d0.y0 - 100);
+  assert.equal(kartSim.dragSteer(up, 200, d0.y0 - 100 + b + 2, W, H).brake, true);
+});
+
 test('Kart Dash network karts are packed small and checked on arrival', () => {
   const { track } = kartWorld;
   const k = kartSim.newKart(kartTrack.gridSpot(track, 0));

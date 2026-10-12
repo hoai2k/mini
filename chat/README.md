@@ -219,10 +219,21 @@ and where you tap on the ball sets the launch, on top a grounder and under it
 a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
 ghost balls and everyone's home runs are on the scoreboard). Kart Dash is a
 behind-the-kart Mode-7 racer (WebGL ground) for one to four racers with
-computer karts filling the grid: three laps, steering by holding either side
-(or arrows, or the stick), DRIFT for a mini boost, and item boxes giving boost
+computer karts filling the grid: three laps and item boxes giving boost
 rockets, banana peels, bouncing bombs and rainbow stars that spin karts out
-with wheels and panels flying, each kart driven by its player's live face. Starting
+with wheels and panels flying, each kart driven by its player's live face. A
+kart holds two items: a box fills the next empty slot, the item button shows
+the one you'll use large and the next one small beside it (greyed while
+empty), and using one moves the next one up. On touch (after Brick Kart) gas
+is automatic: drag a finger left or right anywhere but the item button to
+steer, from where it touched down (full lock at 14% of the screen's shorter
+side, 48 to 100 px, with a small dead zone and a gentle curve, and the anchor
+follows past full lock so turning back is instant); drag that finger well down
+(10% of the screen height) to brake and then reverse, and slide it back up to
+let go; touch with a second finger while steering to hop into a drift, and let
+go of it for the mini or super boost. Keys: arrows or A/D steer, Shift (or
+X/C/Z) drifts, Down or S brakes, Space, Enter or E uses an item; a controller's
+stick steers, RT, RB or X drifts, LT, LB or down brakes and A uses an item. Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -293,7 +304,10 @@ itself to HTTPS.
   the other seat swings and sees the hits as ghosts (mid-swing picture in
   `local/chat-shots/baseball-swing.png`)
 - `node chat/test/kart-play.mjs`: two racers on phone-sized Kart Dash seats:
-  the countdown, steering, an item box, a banana spin-out with flying parts,
+  the countdown, touch drag-steering both ways, dragging down to brake and
+  reverse, a second finger drifting, stick steering, two item boxes filling
+  both slots and a tap on the item button using the first, a banana spin-out
+  with flying parts,
   a bomb, and rookie bots racing three laps to a finishing order, with frame
   times; screenshots in `local/chat-shots/kart-*.png`
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
