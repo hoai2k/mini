@@ -202,7 +202,12 @@ Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
 hold; if they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher). Starting
+deals; alone you play Robo-Fisher). Kart Dash is a
+behind-the-kart Mode-7 racer (WebGL ground) for one to four racers with
+computer karts filling the grid: three laps, steering by holding either side
+(or arrows, or the stick), DRIFT for a mini boost, and item boxes giving boost
+rockets, banana peels, bouncing bombs and rainbow stars that spin karts out
+with wheels and panels flying, each kart driven by its player's live face. Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -260,6 +265,10 @@ itself to HTTPS.
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
+- `node chat/test/kart-play.mjs`: two racers on phone-sized Kart Dash seats:
+  the countdown, steering, an item box, a banana spin-out with flying parts,
+  a bomb, and rookie bots racing three laps to a finishing order, with frame
+  times; screenshots in `local/chat-shots/kart-*.png`
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
