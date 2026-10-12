@@ -18,6 +18,8 @@ export const BANANA_R = 1.5;
 export const BOMB_FUSE = 1.6;
 export const BOMB_R = 7.5;
 export const ITEMS = ['boost', 'banana', 'bomb', 'star'];
+export const ITEM_SLOTS = 2;
+export const ROLL_TIME = 0.9;
 
 export function newKart(spot, extra = {}) {
   return {
@@ -30,7 +32,8 @@ export function newKart(spot, extra = {}) {
     spin: 0,             // seconds of spin-out left
     boost: 0,            // seconds of boost left
     star: 0,             // seconds of star left
-    item: null,
+    items: [],           // up to ITEM_SLOTS held items; items[0] is used next
+    roll: 0,             // seconds the newest item is still rolling (the slot machine)
     total: spot.s ?? 0,  // metres along the track since the start line (negative on the grid)
     s: (spot.s ?? 0) < 0 ? 0 : spot.s ?? 0,
     hint: -1,
@@ -178,6 +181,49 @@ export function bumpKarts(a, b) {
   a.z += (dz / d) * push;
   a.v *= 0.97;
   return true;
+}
+
+// Items: a kart holds up to ITEM_SLOTS. A box fills the next empty slot (and
+// that slot rolls for ROLL_TIME); using one takes the first and the second
+// moves up. Returns true if the item went in.
+export function addItem(k, item, roll = ROLL_TIME) {
+  if (!ITEMS.includes(item) || k.items.length >= ITEM_SLOTS) return false;
+  k.items.push(item);
+  k.roll = roll;
+  return true;
+}
+// The first item can be used unless it is the one still rolling.
+export function itemReady(k) {
+  return k.items.length > 0 && !(k.roll > 0 && k.items.length === 1);
+}
+// Takes the first item (null if none is ready); the queued one moves up.
+export function takeItem(k) {
+  if (!itemReady(k)) return null;
+  return k.items.shift();
+}
+
+// Touch steering, after Brick Kart: the steering finger steers by how far it
+// has moved sideways from where it touched down. Full lock is TOUCH.lock of
+// the screen's shorter side (clamped), with a small dead zone and a gentle
+// curve; past full lock the anchor follows the finger, so turning back is
+// instant. Dragging it TOUCH.brake of the screen height below the anchor
+// brakes (reversing when slow) until it slides back up past half that; the
+// anchor follows the finger upwards so "back up" is always relative.
+export const TOUCH = { lock: 0.14, lockMin: 48, lockMax: 100, dead: 0.08, curve: 1.4, brake: 0.1, brakeMin: 48, brakeMax: 110, release: 0.5, smooth: 0.05 };
+export const touchLock = (w, h) => Math.max(TOUCH.lockMin, Math.min(TOUCH.lockMax, Math.min(w, h) * TOUCH.lock));
+export const touchBrake = (w, h) => Math.max(TOUCH.brakeMin, Math.min(TOUCH.brakeMax, h * TOUCH.brake));
+// d = { x0, y0, brake } (the anchor and whether it was braking); (x, y) the
+// finger now; w, h the screen. Returns the new { x0, y0, steer, brake }.
+export function dragSteer(d, x, y, w, h) {
+  const r = touchLock(w, h), b = touchBrake(w, h);
+  let x0 = d.x0, y0 = d.y0;
+  if (Math.abs(x - x0) > r) x0 = x - Math.sign(x - x0) * r;
+  if (y < y0) y0 = y;
+  const v = (x - x0) / r, a = Math.abs(v) > 0.999 ? 1 : Math.abs(v);   // (snap rounding at full lock)
+  const steer = a <= TOUCH.dead ? 0 : Math.sign(v) * Math.pow((a - TOUCH.dead) / (1 - TOUCH.dead), TOUCH.curve);
+  const dy = y - y0;
+  const brake = d.brake ? dy > b * TOUCH.release : dy > b;
+  return { x0, y0, steer, brake };
 }
 
 // A random item for a kart in place `rank` (0 = leading) of `count`: the
