@@ -314,11 +314,15 @@ function princeOnFoot(k, w, h = 170) {
   if (!k.asset(id, 0, 0, big ? h : h * 0.61, big ? h * 1.22 : h)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -h * 0.8, 28, h * 0.8); }
   c.restore();
 }
-// Azurine walking at his side (a still on its slide, bobbing as she goes).
+// Azurine walking at his side: her stride frames once delivered (F11),
+// else a still on its slide, bobbing as she goes.
 function azurineOnFoot(k, a, y, h = 168) {
-  const c = k.c, bob = Math.abs(Math.sin(a.walk / 24)) * 4;
-  c.save(); c.translate(a.x, y - bob); c.scale(-a.face, 1); c.rotate(Math.sin(a.walk / 24) * 0.03);
-  if (!k.asset('azurine-stand', 0, 0, h * 0.53, h)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-16, -h * 0.8, 32, h * 0.8); }
+  const c = k.c, moving = Math.abs(a.vx || 0) > 20;
+  const stride = moving && k.img('azurine-walk-a') && k.img('azurine-walk-b');
+  const bob = stride ? 0 : Math.abs(Math.sin(a.walk / 24)) * 4;
+  const id = stride ? (Math.floor(a.walk / 36) % 2 ? 'azurine-walk-a' : 'azurine-walk-b') : 'azurine-stand';
+  c.save(); c.translate(a.x, y - bob); c.scale(-a.face, 1); if (!stride) c.rotate(Math.sin(a.walk / 24) * 0.03);
+  if (!k.asset(id, 0, 0, h * 0.53, h)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-16, -h * 0.8, 32, h * 0.8); }
   c.restore();
 }
 // A short instruction on a plum label near the top of the stage.

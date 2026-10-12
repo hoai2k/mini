@@ -81,3 +81,20 @@ and load in play (checked in Neptune's court, the grotto, the tempest, the
 beach, the armoury and the procession). The delivery also fixed a loader bug
 from the F9 change (a local name hid the asset path, so no art loaded); CI now
 runs `qa/assets-loader.test.mjs` to catch that.
+
+## Motion and placement audit (12 October 2026)
+
+Every film scene was played and photographed mid-walk.
+
+- **Walking.** The delivered prince walk pairs hardly move the legs, and the
+  court-dress pair changes costume between frames. The game now alternates
+  walk A with the standing pose, so he steps without a costume flicker, until
+  the stride frames of round F10 arrive. Azurine glides on a slide where she
+  walks (the wedding street, the apotheosis); round F11 requests her stride
+  frames, which the game uses once both are delivered.
+- **Ground lines.** On the prologue rampart he walked across the front of the
+  balustrade; he now walks on the coping (y 484). The lobster palace started
+  him behind the left curtain; he now starts in view. The other scenes keep
+  their feet on their floors.
+- **Layering.** The demons' chariot flew across the gargoyles on the
+  foreground parapet; it now flies above their heads.

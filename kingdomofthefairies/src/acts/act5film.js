@@ -392,7 +392,7 @@ function startWedding(st) {
 function follow(st, dt, gap) {
   const a = st.az, want = st.w.x - gap * st.w.face, dx = want - a.x;
   const v = clamp(dx * 4, -WALK.speed, WALK.speed);
-  a.x += v * dt; a.walk += Math.abs(v) * dt;
+  a.x += v * dt; a.vx = v; a.walk += Math.abs(v) * dt;
   if (Math.abs(v) > 20) a.face = Math.sign(v);
 }
 function stepWedding(st, dt, input) {

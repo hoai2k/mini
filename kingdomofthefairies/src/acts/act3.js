@@ -25,7 +25,7 @@ export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // The film edition's opening passage: three sets walked left to right (stage
 // px, feet at y). Each lobster guard's claws open and shut across the way.
 export const PASSAGE = {
-  y: 640, x0: 70, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
+  y: 640, x0: 190, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
   guards: [{ x: 520, phase: 0 }, { x: 900, phase: 1.3 }], open: 1.7, shut: 1.3, guardW: 70,
   pearls: [[420, 470], [640, 400], [860, 470]],
 };
@@ -442,7 +442,7 @@ function hit(st, cause, emit) {
 // ---------------------------------------------------------------- the passage (film)
 function startPassage(st) {
   st.transform = 0;
-  st.tf = { set: 0, x: 140, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0 };
+  st.tf = { set: 0, x: 215, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0 };
 }
 // A guard's claws: open (passable) or shut across the way.
 export const guardOpen = (g, t) => ((t + g.phase) % (PASSAGE.open + PASSAGE.shut)) < PASSAGE.open;
