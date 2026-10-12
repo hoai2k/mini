@@ -27,7 +27,7 @@ import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
 import { Pickups } from './pickups.js';
 import { Minimap } from './ui/minimap.js';
-import { BOSS_IDS } from './entities/bosses.js';
+import { BOSS_IDS, warmupGroup } from './entities/bosses.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { TrainingDummy } from './entities/dummy.js';
@@ -38,7 +38,9 @@ import './heroes/annabeth.js';
 import './heroes/grover.js';
 import './heroes/tyson.js';
 import './heroes/clarisse.js';
-import { Save } from './save.js';
+import { Profiles } from './profiles.js';
+import { Slots, slotPrefix } from './slots.js';
+import { Resume } from './resume.js';
 import { rollChest, rollItem, powerFor, itemInfo, RARITY } from './loot.js';
 import * as Screens from './ui/screens.js';
 import { openTitle, openInventory, openForge, openSkills, openShop, openMapTable } from './ui/screens.js';
@@ -74,7 +76,12 @@ class Game {
     this.interactables = [];
     this.flashMaterial = FLASH_MATERIAL;
     this.toast = toast;
-    this.save = new Save();
+    // net: save slots (slots.js), each with per-player profiles (profiles.js) and a resume point (resume.js);
+    // game.save is this tab's main profile in the active slot
+    this.slots = new Slots();
+    this.profiles = new Profiles(undefined, { prefix: slotPrefix(this.slots.active), slot: this.slots.active });
+    this.save = this.profiles.main;
+    this.resume = new Resume(this);
   }
   async boot() {
     progress(0.05, 'Detecting GPU…');
@@ -131,6 +138,7 @@ class Game {
     this.battleSenseT = 0;      // Battle Sense: monsters move in slow motion while > 0
     this.updaters = [];
     this.targetDof = 0;
+    try { this.save = await this.profiles.claimMain(); } catch (e) { /* net: no locks: keep the main profile */ }
     progress(0.45, 'Building Camp Half-Blood…');
     await nextFrame();
     this.loadHub();
@@ -140,7 +148,7 @@ class Game {
     try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
     progress(1, 'Ready');
     window.addEventListener('resize', () => this.gr.resize());
-    const persist = () => this.save.write();
+    const persist = () => this.profiles.flush();
     window.addEventListener('beforeunload', persist);
     document.addEventListener('visibilitychange', () => { if (document.hidden) { persist(); if (this.state === 'playing' && !this.paused && !this.ui.stack.length) this.pause(); } });
     window.addEventListener('keydown', (e) => { if (e.code === 'F3') { settings.showFps = !settings.showFps; saveSettings(); this.setReadout(settings.showFps); } });
@@ -154,6 +162,8 @@ class Game {
   }
   // ---------------------------------------------------------------- front-end flow
   toTitle() {
+    this.resume?.flush();   // net: quitting mid-chapter keeps the place to continue from
+    if (this.online?.live) this.online.leave({ quiet: true });   // net: quitting to the title leaves the room
     this.state = 'title';
     this.wipeLeft = 0;
     this.hud.show(false); this.touch?.show(false);
@@ -183,21 +193,25 @@ class Game {
     this.selectRigs = [];
     if (!keepCam) this.rig.cine = null;
   }
-  beginSession(list, { companions = [] } = {}) {
+  // net: list: [{ device, hero, profile }] (profile: a profile id; the first
+  // player defaults to this device's main profile, the others to "Player N")
+  // { fill: false } leaves out the AI companions (tests, minigames)
+  beginSession(list, { companions = [], fill = true } = {}) {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     this.partyMgr.clear(); this.party = null;
-    for (const l of list) this.addPlayer(l.device, l.hero);
-    // one human: the other heroes come along as AI companions
-    if (list.length === 1) {
-      const used = new Set([list[0].hero]);
-      for (const id of companions) {
-        if (used.has(id) || !HEROES[id] || HEROES[id].soon || this.players.length >= 3) continue;
-        used.add(id);
-        this.partyMgr.add(this.addPlayer('ai' + this.players.length, id));
-      }
-      if (this.players.length > 1) this.party = [...this.players];
-    }
+    this.profiles.devices.clear();
+    list.forEach((l, i) => {
+      const prof = (l.profile && this.profiles.profile(l.profile)) || this.profiles.slotDefault(i);
+      this.profiles.assign(l.device, prof.id);
+      if (i > 0) this.profiles.rememberSlot(i, prof.id);
+      prof.data.lastHero = l.hero;
+      this.addPlayer(l.device, l.hero);
+    });
+    // fewer than three humans: the other heroes come along as AI companions (party.js)
+    this.partyMgr.chosen = companions.filter((id) => HEROES[id] && !HEROES[id].soon && !list.some((l) => l.hero === id));
+    this.partyMgr.noFill = !fill;
+    this.partyMgr.fill();
     this.save.data.lastHero = list[0]?.hero ?? this.save.data.lastHero;
     this.rig.cine = null;
     this.state = 'playing';
@@ -232,6 +246,28 @@ class Game {
     this.hud.rebuildCards?.();
   }
   heroName(p) { return HEROES[p.hero]?.name ?? 'A hero'; }
+  // net: play another save slot (from the title / hero select / settings)
+  async useSlot(id) {
+    if (!this.slots.setActive(id)) return;
+    this.resume.flush?.();
+    this.profiles.dispose();
+    this.profiles = new Profiles(undefined, { prefix: slotPrefix(id), slot: id });
+    this.save = this.profiles.main;
+    try { this.save = await this.profiles.claimMain(); } catch (e) { /* no locks */ }
+  }
+  // net: the profile of whoever plays a hero (companions: whoever played them last, else the main profile)
+  saveFor(p) {
+    if (!p || p.remote || !this.profiles) return this.save;
+    if (p.ai) return p.gearOwner ? this.profiles.forDevice(p.gearOwner) : this.save;
+    return this.profiles.forDevice(p.device);
+  }
+  profileName(p) { return this.saveFor(p)?.name ?? 'Player'; }
+  // net: the profiles of this screen's human players (each is credited for what the party does)
+  localSaves() {
+    const out = new Set(this.players.filter((p) => !p.ai && !p.remote).map((p) => this.saveFor(p)));
+    if (!out.size) out.add(this.save);
+    return [...out];
+  }
   // The hero a human controlled went down: hand control to a living companion.
   onHeroDown(p) {
     if (p.ai || !this.party) return;
@@ -296,6 +332,7 @@ class Game {
     this.rig.snap(at);
   }
   loadHub() {
+    this.online?.loading?.();   // net: guests wait while the host builds camp
     this.clearLevel();
     const L = buildCamp();
     this.loadWorld(L, BIOMES.camp);
@@ -310,7 +347,7 @@ class Game {
     this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.4, label: L.forge ? 'The Forge: temper and enchant gear' : 'Forge and inventory', action: (p) => openForge(this, who(p)) });
     this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Train with Chiron', action: (p) => openSkills(this, who(p)) });
     if (L.archery) this.interactables.push({ id: 'archery', pos: L.archery, radius: 2.4, label: 'Archery range', action: (p) => this.startMinigame(new Archery(this, who(p), L.archery, L.archeryFacing ?? 0)), enabled: () => !this.minigame });
-    if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: 'Climbing wall', action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame });
+    if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: 'Climbing wall', action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame && !this.online.live });   // net: the climbing wall pauses the game, so not online
     if (L.oracle && Screens.openProphecy) this.interactables.push({ id: 'oracle', pos: L.oracle, radius: 2.4, label: 'The Oracle', action: () => Screens.openProphecy(this, 'book1') });
     if (L.cabins) for (const [hid, pos] of Object.entries(L.cabins)) {
       if (!HEROES[hid] || HEROES[hid].soon) continue;
@@ -339,13 +376,26 @@ class Game {
   startChapter(id, difficulty = 1) {
     if (this.online.isGuest) { toast('The host chooses the chapter'); return; }
     const ch = chapterDef(id);
-    if (!ch || !ch.ready) { toast('That chapter is still being written'); return; }
+    if (!ch || !Mission.playable(ch)) { toast('That chapter is still being written'); return; }
     this.ui.closeAll();
-    const go = () => this.startMission({ biome: ch.biome, objective: ['exorcise', 'rescue', 'seal'].includes(ch.objective) ? ch.objective : 'exorcise', boss: ch.boss, difficulty, seed: (Math.random() * 1e9) | 0, chapter: ch.id, mist: ch.mist, disguise: ch.disguise, objText: ch.objText });
+    const go = () => { this.online.story?.(null); this.startMission(Mission.defForChapter(ch, difficulty)); };
+    this.online.story?.(ch);   // net: guests see the story cards too
     if (Screens.openStoryCards && ch.intro?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, go);
     else go();
   }
+  // Compile every monster's (and this chapter's boss's) materials while the
+  // level loads, so the first appearance of a new kind doesn't hitch mid-fight.
+  warmupShaders(boss) {
+    let grp;
+    try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
+    this.scene.add(grp);
+    const done = () => this.scene.remove(grp);   // geometries and materials are shared with live monsters: keep them
+    const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
+    if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
+  }
   startMission(def) {
+    this.online.loading?.();   // net: guests wait while the host builds the level
+    Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
     this.chapter = def.chapter ? chapterDef(def.chapter) : null;
@@ -356,6 +406,7 @@ class Game {
     this.mode = 'loading-chapter';
     this.pendingMist = def.mist ?? this.chapter?.mist ?? 0;
     this.loadWorld(L, L.biome);
+    this.warmupShaders(def.boss);
     this.audio.overrideMusic = null; this.audio.setMusic(L.biome.music);
     this.placePlayers(L.spawn);
     this.minimap.build(L);
@@ -370,21 +421,26 @@ class Game {
   completeMission() {
     const m = this.mission; if (!m || m.complete) return;
     m.complete = true;
-    const d = this.save.data;
     const cid = m.def.chapter ?? m.def.id ?? 'custom';
-    d.completed[cid] = Math.max(d.completed[cid] ?? 0, m.def.difficulty);
     const ch = this.chapter;
-    if (ch) {
-      if (ch.prophecyLine != null) { const pr = (d.prophecy ??= {}); const lines = (pr[ch.book] ??= []); if (!lines.includes(ch.prophecyLine)) { lines.push(ch.prophecyLine); this.newProphecy = ch.book; } }
-      for (const [hid, info] of Object.entries(HEROES)) if (info.unlock === ch.id && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
+    // net: completing a chapter credits every player on this screen (online, each screen its own)
+    const levelled = [];
+    for (const sv of this.localSaves()) {
+      const d = sv.data;
+      d.completed[cid] = Math.max(d.completed[cid] ?? 0, m.def.difficulty);
+      if (ch) {
+        if (ch.prophecyLine != null) { const pr = (d.prophecy ??= {}); const lines = (pr[ch.book] ??= []); if (!lines.includes(ch.prophecyLine)) { lines.push(ch.prophecyLine); this.newProphecy = ch.book; } }
+        for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
+      }
+      d.stats.missions++; d.stats.kills += m.stats.kills;
+      if (sv.addXp(80 * m.def.difficulty)) levelled.push(sv);
+      sv.write();
     }
-    d.stats.missions++; d.stats.kills += m.stats.kills;
     this.online.completed();
-    const ups = this.save.addXp(80 * m.def.difficulty);
-    this.save.write();
+    this.resume.clear();   // net: nothing left to continue in this chapter
     this.audio.levelUp();
     this.showResults(true);
-    if (ups) this.levelUp();
+    for (const sv of levelled) this.levelUp(sv);
   }
   showResults(victory) {
     this.audio?.stinger?.(victory ? 'victory' : 'defeat');
@@ -408,7 +464,11 @@ class Game {
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));
     }, { dim: true });
   }
-  returnToHub() { this.loadHub(); toast('Camp Half-Blood', 'big'); }
+  returnToHub() {
+    // net: online, a guest goes where the host goes
+    if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast('Waiting for the host to return to camp'); return; }
+    this.loadHub(); toast('Camp Half-Blood', 'big');
+  }
   openMap() {
     if (!this.minimap.level) return;
     this.paused = true;
@@ -418,7 +478,7 @@ class Game {
       this.minimap.draw(cv, { full: true });
     }, { dim: true, onBack: () => { this.ui.close('map'); this.paused = false; } });
   }
-  addCoins(n) { this.save.data.coins += n; if (this.mission) this.mission.stats.coins += n; }
+  addCoins(n, p = null) { this.saveFor(p).data.coins += n; if (this.mission) this.mission.stats.coins += n; }   // net: to whoever picked them up
   addPlayer(device, hero) {
     const i = this.players.length;
     const p = new Player(this, i, device, hero);
@@ -476,8 +536,7 @@ class Game {
       if (k.procs.explode) { this.combat.aoe(e.pos, 2.6, e.maxHp * 0.2 * k.procs.explode, k, { knock: 6, blocks: false }); this.fx.explosion(e.pos, 0xff8a3a, 2.4); }
     }
     if (!e.isDummy) {
-      const ups = this.save.addXp(e.def.xp ?? 3);
-      if (ups) this.levelUp();
+      for (const sv of this.localSaves()) if (sv.addXp(e.def.xp ?? 3)) this.levelUp(sv);   // net: every player's profile
       const [a, b] = e.def.coins ?? [1, 2];
       this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
@@ -485,21 +544,22 @@ class Game {
       this.maybeDropFromMonster(e);
     }
   }
-  onBossKilled(b) { this.mission?.onBossKilled(b); if (this.save.addXp(150)) this.levelUp(); }
-  levelUp() {
-    const d = this.save.data;
-    toast(`LEVEL ${d.level}! +1 enchantment point, +1 skill point`, 'big');
+  onBossKilled(b) { this.mission?.onBossKilled(b); for (const sv of this.localSaves()) if (sv.addXp(150)) this.levelUp(sv); }
+  levelUp(sv = this.save) {
+    const d = sv.data;
+    const many = this.localSaves().length > 1;
+    toast(`${many ? sv.name + ': ' : ''}LEVEL ${d.level}! +1 enchantment point, +1 skill point`, 'big');
     this.audio.levelUp();
-    for (const p of this.players) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
-    this.save.write();
+    for (const p of this.players) if (!p.remote && (this.saveFor(p) === sv || p.ai)) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
+    sv.write();
   }
   // Chests and bosses drop a separate item (or two) for every human player.
   onChestOpened(c) {
     this.audio?.sample?.('chest');
-    const diff = this.mission?.def.difficulty ?? 1, lvl = this.save.data.level;
+    const diff = this.mission?.def.difficulty ?? 1;
     const humans = this.players.filter((q) => !q.ai && !q.remote);
     humans.forEach((q, n) => {
-      const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: lvl, hero: q.hero });
+      const items = rollChest(diff, c.boss ? 'boss' : c.rarity, { level: this.saveFor(q).data.level, hero: q.hero });
       items.forEach((it, i) => setTimeout(() => this.loot.drop(it, c.pos, q), 300 + (n * items.length + i) * 260));
     });
     const col = new THREE.Color(c.boss ? 0xff9a2a : c.rarity === 'rare' ? 0x4ad0ff : 0xd8cfbd);
@@ -514,7 +574,7 @@ class Game {
     const k = e.lastAttacker;
     const q = k?.isPlayer && !k.ai && !k.remote ? k : this.players.find((x) => !x.ai && !x.remote);
     if (!q) return;
-    this.loot.drop(rollItem(powerFor(this.mission.def.difficulty, this.save.data.level), { hero: q.hero }), e.pos, q);
+    this.loot.drop(rollItem(powerFor(this.mission.def.difficulty, this.saveFor(q).data.level), { hero: q.hero }), e.pos, q);
   }
   onPlayerDied(p) {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
@@ -523,7 +583,7 @@ class Game {
     toast('Party defeated — respawning', 'big');
   }
   updateWipe(dt) {
-    if (this.wipeLeft <= 0 || this.paused || this.state !== 'playing') return;
+    if (this.wipeLeft <= 0 || (this.paused && !this.online.keepsRunning) || this.state !== 'playing') return;   // net: (online the game runs on)
     this.wipeLeft -= dt;
     if (this.wipeLeft <= 0) { this.placePlayers(this.level.spawn); toast('Revived', 'big'); }
   }
@@ -563,6 +623,7 @@ class Game {
           p0.device = id; toast('Controller connected to Player 1'); continue;
         }
         // a companion is waiting: the new player takes it over
+        if (!this.profiles.devices.has(id)) this.profiles.assign(id, this.profiles.slotDefault(this.players.filter((q) => !q.ai && !q.remote).length).id);   // net: their profile
         const taken = this.party && this.partyMgr.takeOver(id);
         if (taken) { this.fx.summonCircle(taken.pos, 0x6ad8ff); toast(`Player ${this.players.filter((q) => !q.ai).length} joined as ${this.heroName(taken)}`); this.audio.ui('buy'); if (!this.players.some((q) => q.ai)) this.party = null; continue; }
         // the keyboard player keeps P1; if P1 is idle on keyboard and this is the only pad, still add
@@ -571,6 +632,7 @@ class Game {
         const p = this.addPlayer(id, pick);
         this.fx.summonCircle(p.pos, 0x6ad8ff);
         toast(`Player ${p.index + 1} joined`);
+        this.partyMgr.fill();   // net: two humans keep one companion, three or more none
         this.audio.ui('buy');
       }
     }
@@ -605,6 +667,8 @@ class Game {
     const realDt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     this.input.poll();
+    this.online.frameStart?.(realDt);
+    this.resume?.update(realDt);   // net: checkpoints for Continue (written from a timer, never here)   // net: online menus don't stop the game; this screen's heroes stand still
     const gr = this.gr;
     gr.trackFps(realDt, now / 1000);
     const playing = this.state === 'playing';
@@ -626,16 +690,17 @@ class Game {
       }
     }
     let dt = realDt;
-    if (this.paused) dt = 0;
+    const halt = this.paused && !this.online.keepsRunning;   // net: online, pausing never freezes the others
+    if (halt) dt = 0;
     else if (this.hitstop > 0) { this.hitstop -= realDt; dt = 0; }
     else if (this.slowmo > 0) { this.slowmo -= realDt; dt *= this.slowmoScale; }
     this.updateWipe(realDt);
     this.time += dt;
     U.time.value = this.time;
     // Battle Sense: monsters (and their attacks) run slow, heroes don't
-    if (this.battleSenseT > 0 && !this.paused) this.battleSenseT -= realDt;
+    if (this.battleSenseT > 0 && !halt) this.battleSenseT -= realDt;
     const edt = this.battleSenseT > 0 ? dt * 0.3 : dt;
-    if (!this.paused) {
+    if (!halt) {
       if (playing) this.checkJoin();
       if (playing) this.partyMgr.update(dt);
       this.mist.update(dt);
@@ -666,7 +731,10 @@ class Game {
     this.debris.update(dt);
     this.bolts.update(realDt);
     // camera + world
-    const local = this.players.filter((p) => !p.remote);
+    // the camera follows the heroes people play; AI companions are kept up by
+    // the party, they don't pull or zoom the view (falls back to everyone)
+    const humans = this.players.filter((p) => !p.remote && !p.ai && !p.dead);
+    const local = humans.length ? humans : this.players.filter((p) => !p.remote);
     this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {

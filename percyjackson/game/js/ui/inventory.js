@@ -27,7 +27,7 @@ function editable(game, player) {
 }
 
 export function openInventory(game, player, { forge = false } = {}) {
-  const ui = game.ui, save = game.save;
+  const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
   let who = player, sel = null, filter = 'all';
   game.paused = true;
   const close = () => {

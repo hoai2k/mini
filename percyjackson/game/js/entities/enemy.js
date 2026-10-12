@@ -220,7 +220,7 @@ export class Enemy {
     goldDust(g, c, this.height * 0.6, { color: this.elite ? 0xfff2a0 : 0xffd84a, big: this.big });
     g.audio?.enemyDie(this.big);
     g.onEnemyKilled?.(this, o);
-    if (this.elite === 'explosive' || this.def.ai === 'blob') this.explode(o.fromBlob);
+    if (!o.quiet && (this.elite === 'explosive' || this.def.ai === 'blob')) this.explode(o.fromBlob);   // quiet: wound down by its boss
   }
   explode(chained) {
     const g = this.game;

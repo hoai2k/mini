@@ -57,7 +57,7 @@ export class HUD {
     this.cards.classList.toggle('multi', hs.length > 1);
     for (const p of hs) this.cards.appendChild(this.buildCard(p));
     const party = this.game.party;
-    if (hs.length === 1 && party && party.length > 1) this.cards.appendChild(this.buildParty(hs[0], party));
+    if (party && party.some((q) => q.ai)) this.cards.appendChild(this.buildParty(hs.find((q) => !q.remote) ?? hs[0], party));   // net: also with two humans (the shared companion)
     this.sig = this.signature();
   }
   buildCard(p) {
@@ -97,9 +97,9 @@ export class HUD {
     const wrap = h('div', { class: 'party-strip' });
     const row = h('div', { class: 'pm-row' });
     for (const q of party) {
-      if (q === human) continue;
+      if (q === human || (!q.ai && this.humans().length > 1)) continue;   // net: with several humans, only the companions
       const info = HEROES[q.hero] ?? { name: q.hero, color: '#999' };
-      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};background-image:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
+      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
       row.appendChild(el); this.partyEls.push({ q, el, last: -1 });
     }
     const k = switchKey(human);

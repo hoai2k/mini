@@ -75,11 +75,31 @@ export function moveEntity(e, world, dt) {
     if (e.grounded && e.vel.y < 0) e.vel.y = 0;
     if (!e.grounded) e.coyote = Math.max(0, (e.coyote ?? 0) - dt);
   }
-  // unstick: if we're inside a block (e.g. after destruction/teleport), push up
-  if (boxHits(world, p.x, p.y, p.z, r * 0.8, h * 0.5)) p.y = Math.floor(p.y) + 1;
+  // unstick: inside a block (spawned against a pillar, a gate closing on us,
+  // a teleport): step out sideways to the nearest free spot, and pop up a
+  // block only when there is no room beside us. Popping straight up every
+  // frame let a monster spawned against a pillar climb it, through the
+  // ceiling and onto the roof, where nobody could reach it.
+  if (boxHits(world, p.x, p.y, p.z, r * 0.8, h * 0.5) && !pushOut(world, e)) p.y = Math.floor(p.y) + 1;
   const liq = world.liquidAt(p.x, p.y + 0.3, p.z);
   e.inLiquid = liq;
   return e;
+}
+
+// Nearest free spot within 1.5 blocks at the same height, preferring one with
+// ground under it (so an overlap never shoves anyone off a ledge).
+function pushOut(world, e) {
+  const p = e.pos, r = e.radius, h = e.height;
+  let fallback = null;
+  for (const d of [0.2, 0.4, 0.6, 0.8, 1.05, 1.3, 1.5]) for (let k = 0; k < 8; k++) {
+    const a = k * Math.PI / 4, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
+    if (boxHits(world, x, p.y, z, r, h)) continue;
+    if (feetHit(world, x, p.y - 0.5, z, r * 0.9)) { p.x = x; p.z = z; return true; }
+    fallback ??= [x, z];
+  }
+  if (!fallback) return false;
+  p.x = fallback[0]; p.z = fallback[1];
+  return true;
 }
 
 // Blocked on one axis by a corner: if a small sideways shift (up to 0.45)

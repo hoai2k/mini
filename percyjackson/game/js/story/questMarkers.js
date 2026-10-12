@@ -6,7 +6,7 @@
 // story goes on. A chapter you can't play yet shows a grey marker that says
 // what to finish first. The Big House chapter map still lists everything.
 import * as THREE from 'three/webgpu';
-import { CHAPTERS, chapter as chapterDef } from './chapters.js';
+import { CHAPTERS, chapter as chapterDef, chapterPlayable } from './chapters.js';
 import { h } from '../ui/ui.js';
 
 const DIFFS = [[1, 'Mortal'], [2, 'Demigod'], [3, 'Hero'], [4, 'Olympian']];
@@ -14,9 +14,9 @@ const texLoader = new THREE.TextureLoader();
 
 export function chapterUnlocked(game, ch) {
   const d = game.save.data;
-  if (!ch.ready) return false;
+  if (!chapterPlayable(ch)) return false;
   if (d.unlockAll) return true;
-  const list = CHAPTERS.filter((c) => c.ready);
+  const list = CHAPTERS.filter(chapterPlayable);
   const i = list.indexOf(ch);
   return i <= 0 || !!d.completed[list[i - 1].id];
 }
@@ -56,9 +56,12 @@ function findSpot(world, want, y, fp) {
 export function placeQuestMarkers(game, L) {
   const out = [];
   for (const ch of CHAPTERS) {
-    if (!ch.ready || !ch.start) continue;
-    const anchor = L[ch.start.at];
-    if (!anchor) continue;
+    if (!chapterPlayable(ch) || !ch.start) continue;
+    // camp anchors (woodsEdge, road1..road9 along the Road West): a chapter
+    // whose anchor isn't in camp yet gets no marker (the Big House map still
+    // starts it)
+    const anchor = L[ch.start.at] ?? L.anchors?.[ch.start.at];
+    if (!anchor?.isVector3) continue;
     const want = anchor.clone().add(new THREE.Vector3(ch.start.dx ?? 0, 0, ch.start.dz ?? 0));
     const pos = findSpot(game.world, want, anchor.y, ch.start.prop === 'bus' ? [-8, 2, -2, 2] : [-1, 1, -1, 1]);
     const open = chapterUnlocked(game, ch), done = !!game.save.data.completed[ch.id];
@@ -77,7 +80,7 @@ export function placeQuestMarkers(game, L) {
     if (open) game.lights.attach(grp, col.getHex(), 3, 7, { offsetY: 2 });
     let t = Math.random() * 6;
     game.addUpdater((dt) => { t += dt; card.position.y = 3.1 + Math.sin(t * 1.6) * 0.15; card.rotation.y = game.rig.yaw ?? 0; ring.scale.setScalar(1 + Math.sin(t * 3) * 0.05); return grp.parent != null; });
-    const prev = CHAPTERS.filter((c) => c.ready)[CHAPTERS.filter((c) => c.ready).indexOf(ch) - 1];
+    const list = CHAPTERS.filter(chapterPlayable), prev = list[list.indexOf(ch) - 1];
     game.interactables.push({
       id: 'quest-' + ch.id, pos, radius: 2.6,
       label: open ? `Chapter ${ch.num}: ${ch.title}${done ? ' ✓' : ''}` : `Locked: finish “${prev?.title}” first`,

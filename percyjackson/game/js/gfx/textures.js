@@ -3,6 +3,7 @@
 // alpha-tested decorations), so there are no image files to download.
 import * as THREE from 'three/webgpu';
 import { mulberry32, hashStr, clamp } from '../util.js';
+import { EXTRA_TILES, paintExtraTile, EXTRA_SPRITES, paintExtraSprite } from '../world/textures.js';
 
 export const TILE = 16;          // pixels per tile
 const CELL = 32;                 // atlas cell incl. gutter (mip-safe)
@@ -438,7 +439,7 @@ function paintTile(name, px, r) {
       const v = Math.sin(x * 0.5 + y * 0.8) * 0.5 + 0.5;
       return bolt ? [C(0xffd84a), 0.95] : [jitter(mix(C(0xf2efe8), C(0xcdc9c2), Math.pow(v, 6)), r, 0.03), 0.55];
     }); break;
-    default: noiseFill(px, r, [C(0xff00ff), C(0x000000)], 0, 0);
+    default: if (!paintExtraTile(name, px, r, { C, mix, shade, jitter, noiseFill, bricks, planks, each })) noiseFill(px, r, [C(0xff00ff), C(0x000000)], 0, 0);
   }
 }
 
@@ -457,6 +458,8 @@ export const TILE_NAMES = [
   'iron_plate', 'gravel_path', 'strawberry_top', 'farm_soil', 'pine_leaves', 'pine_bark', 'forest_floor', 'rock',
   'basalt', 'target_face', 'hay', 'awning', 'barn_red', 'dirt_road', 'teal_panel', 'carpet_red',
   'navy_panel', 'shingle_green', 'mud', 'lightning_stone',
+  // the Book 1 road-trip worlds (world/textures.js)
+  ...EXTRA_TILES,
 ];
 export const TILE_INDEX = Object.fromEntries(TILE_NAMES.map((n, i) => [n, i]));
 
@@ -537,7 +540,7 @@ export const SPRITE_NAMES = ['grass', 'tall_grass', 'cobweb', 'talisman', 'chain
   // Half-Blood Quests: plants, details and the twelve cabin emblems
   'strawberry', 'barbed_wire', 'vine', 'reeds', 'shell', 'mushroom', 'leaf_litter', 'flower_yellow', 'puddle',
   'em_zeus', 'em_hera', 'em_poseidon', 'em_demeter', 'em_ares', 'em_athena', 'em_apollo', 'em_artemis', 'em_hephaestus', 'em_aphrodite', 'em_hermes', 'em_dionysus',
-  'camp_banner', 'shard'];
+  'camp_banner', 'shard', ...EXTRA_SPRITES];
 export const SPRITE_INDEX = Object.fromEntries(SPRITE_NAMES.map((n, i) => [n, i]));
 const SCOLS = 8, SROWS = 6;
 export function spriteUV(index) {
@@ -647,6 +650,7 @@ function paintSprite(name, set, r) {
       if (y > 4 && y < 10 && Math.abs(x - 7.5) < 3 && (x === 5 || x === 10 || y === 5 || y === 9 || (x === 7 && y === 7))) c = G(0x17130f);
       set(x, y, jitter(c, r, 0.06));
     } break;
+    default: paintExtraSprite(name, set, r, G); break;
     case 'shard': for (const [x0, y0, w] of [[3, 10, 4], [9, 11, 3], [6, 13, 3]]) for (let y = y0; y < y0 + 2; y++) for (let x = x0; x < x0 + w - (y - y0); x++) set(x, y, y === y0 ? G(0xd9813a) : G(0x17130f)); break;
   }
 }

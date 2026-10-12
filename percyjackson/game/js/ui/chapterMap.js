@@ -2,11 +2,11 @@
 // place, Mist rating, completion / lock state), a difficulty picker and Start.
 import { h } from './ui.js';
 import { demigodText } from './greekText.js';
-import { BOOKS, CHAPTERS, chaptersOf } from '../story/chapters.js';
+import { BOOKS, CHAPTERS, chaptersOf, chapterPlayable } from '../story/chapters.js';
 
 export const DIFFICULTIES = [['Mortal', 'Gentle: for learning the ropes.'], ['Demigod', 'The way the books play.'], ['Hero', 'Tougher monsters.'], ['Olympian', 'For legends only.']];
 const OBJECTIVES = { exorcise: 'Defeat the monsters', escort: 'Escort your friends to safety', flag: 'Capture the flag', rescue: 'Rescue the captives', seal: 'Seal the breaches', boss: 'Defeat the boss', escape: 'Escape in time' };
-const BOSSES = { alecto: 'Mrs. Dodds, the Fury', minotaur: 'The Minotaur', hellhound: 'A hellhound', furies: 'The three Furies', medusa: 'Medusa', chimera: 'The Chimera', spiders: 'The spider swarm', procrustes: 'Procrustes', cerberus: 'Cerberus', ares: 'Ares', pit_scorpion: 'The pit scorpion' };
+const BOSSES = { alecto: 'Mrs. Dodds, the Fury', minotaur: 'The Minotaur', hellhound: 'A hellhound', hellhound_alpha: 'A hellhound from the Underworld', luke: 'Luke, and the pit scorpion', furies: 'The three Furies', medusa: 'Medusa', chimera: 'The Chimera', spiders: 'The spider swarm', procrustes: 'Procrustes', cerberus: 'Cerberus', ares: 'Ares', pit_scorpion: 'The pit scorpion' };
 const bossName = (id) => (id ? BOSSES[id] ?? id.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : 'No boss: the place itself is the trap');
 const CLOUD = '<svg viewBox="0 0 24 16" aria-hidden="true"><path d="M6.5 14.5a4 4 0 0 1-.4-8A5.5 5.5 0 0 1 16.8 5.4 4.6 4.6 0 0 1 17.5 14.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
@@ -17,7 +17,7 @@ export function mistRating(mist) {
   return el;
 }
 export function isUnlocked(d, ch) {
-  if (!ch.ready) return false;
+  if (!chapterPlayable(ch)) return false;
   if (d.unlockAll) return true;
   const list = chaptersOf(ch.book), i = list.indexOf(ch);
   return i <= 0 || !!d.completed?.[list[i - 1].id];
@@ -52,7 +52,7 @@ export function openChapterMap(game) {
     const book = BOOKS.find((b) => b.id === bookId);
     const list = chaptersOf(bookId);
     const tabs = h('div', { class: 'tabs book-tabs', role: 'tablist' }, ...BOOKS.map((b) => {
-      const has = chaptersOf(b.id).some((c) => c.ready);
+      const has = chaptersOf(b.id).some((c) => chapterPlayable(c));
       return h('button', { class: 'tab' + (b.id === bookId ? ' on' : '') + (has ? '' : ' dim'), role: 'tab', 'aria-selected': String(b.id === bookId), onclick: () => { bookId = b.id; sel = chaptersOf(b.id)[0]?.id ?? null; ui.refresh('chaptermap'); } },
         h('span', { class: 'bn' }, 'Book ' + b.num), h('span', { class: 'bt' }, b.title));
     }));
@@ -74,7 +74,7 @@ export function openChapterMap(game) {
         title,
         h('div', { class: 'cplace' }, ch.place),
         h('div', { class: 'cmist' }, h('span', {}, 'Mist'), mistRating(ch.mist)),
-        h('dl', { class: 'cfacts' }, h('dt', {}, 'Goal'), h('dd', {}, OBJECTIVES[ch.objective] ?? ch.objective), h('dt', {}, 'Boss'), h('dd', {}, bossName(ch.boss))),
+        h('dl', { class: 'cfacts' }, h('dt', {}, 'Goal'), h('dd', {}, OBJECTIVES[ch.objective] ?? ch.objective), h('dt', {}, 'Boss'), h('dd', {}, bossName(ch.boss)), ch.start?.place ? h('dt', {}, 'Starts') : null, ch.start?.place ? h('dd', {}, 'In camp: ' + ch.start.place) : null),
         !open ? h('p', { class: 'lockmsg' }, ch.ready ? 'Finish the chapter before this one to unlock it.' : 'Coming soon.') : null,
         h('div', { class: 'dlabel' }, 'Difficulty: ', h('b', {}, DIFFICULTIES[difficulty - 1][0])),
         diffRow, startBtn);

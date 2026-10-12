@@ -46,8 +46,9 @@ export class Player {
     this.battleSense = 1;      // Battle Sense charge (0..1); a perfect dodge spends it
     this.ai = false;           // true while an AI companion drives this hero
     this.procs = {}; this.artifacts = [];
-    this.skills = game.save ? game.save.hero(hero).skills : {};
-    applyGear(this, game.save ? game.save.gearFor(hero) : []);
+    const sv = game.saveFor?.(this) ?? game.save;   // net: the profile of whoever plays this hero
+    this.skills = sv ? sv.hero(hero).skills : {};
+    applyGear(this, sv ? sv.gearFor(hero) : []);
     this.hp = this.maxHp;
     this.kit = createKit(this);
     this.heroLight = game.lights.attach(this.object, 0xffe8d0, 1.6, 7, { offsetY: 2.2, priority: 6 });
@@ -55,8 +56,9 @@ export class Player {
   // Re-apply gear/skills (after inventory or skill-tree changes).
   refreshLoadout() {
     const g = this.game;
-    this.skills = g.save ? g.save.hero(this.hero).skills : {};
-    applyGear(this, g.save ? g.save.gearFor(this.hero) : []);
+    const sv = g.saveFor?.(this) ?? g.save;   // net: the profile of whoever plays this hero
+    this.skills = sv ? sv.hero(this.hero).skills : {};
+    applyGear(this, sv ? sv.gearFor(this.hero) : []);
     this.kit.dispose?.();
     this.kit = createKit(this);
   }
@@ -243,8 +245,14 @@ export class Player {
     if (inp.pressed.dodge) this.dodgeBuffer = this.grounded ? 0.2 : 0.75; else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
     if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(mv); }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
-    if (inp.pressed.jump && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
-      this.vel.y = 10.5; this.grounded = false; this.coyote = 0;
+    // In a pool (the camp creek pond, the lava pool by the climbing wall) the
+    // bank can be two blocks high, more than a jump clears: kick off the
+    // bottom higher, and climb out on your own when walking into the bank,
+    // so nobody (player or companion) is ever trapped in the water.
+    const wading = this.inLiquid && this.grounded && this.hitWall && mv.lengthSq() > 0.25 && !this.downed && this.dodgeT <= 0;
+    this.wadeT = wading ? (this.wadeT ?? 0) + dt : 0;
+    if ((inp.pressed.jump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
+      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0;
       this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
     }
     if (!this.downed) this.updateCombat(dt, inp);

@@ -20,7 +20,7 @@ export { openInventory, openForge } from './inventory.js';
 
 // ------------------------------------------------------------------ skill tree
 export function openSkills(game, player) {
-  const ui = game.ui, save = game.save;
+  const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
   const sid = player.hero, tree = SKILL_TREES[sid] ?? [];
   game.paused = true;
   const close = () => { ui.close('skills'); game.paused = false; };
@@ -44,7 +44,7 @@ export function openSkills(game, player) {
 
 // ------------------------------------------------------------------ shop
 export function openShop(game, player) {
-  const ui = game.ui, save = game.save, d = save.data;
+  const ui = game.ui, save = game.saveFor?.(player) ?? game.save, d = save.data;   // net: this player's profile
   if (!d.shop || !d.shop.items?.length) d.shop = { items: [0, 1, 2, 3, 4, 5].map((i) => rollItem(powerFor(1 + Math.min(2, Math.floor(d.level / 6)), d.level), { kind: ['weapon', 'armor', 'artifact', 'artifact', 'weapon', null][i], hero: player.hero })) };
   game.paused = true;
   const close = () => { ui.close('shop'); game.paused = false; };

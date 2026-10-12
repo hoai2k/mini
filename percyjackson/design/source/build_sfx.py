@@ -55,6 +55,9 @@ SFX = {
     'thunder': (2, 1.6, 0.5, -16, 'A sharp lightning strike crack with a short thunder boom, close.'),
     'gate': (1, 1.6, 0.5, -19, 'A glowing magical barrier dissolving: a rising energy hum that shatters softly into sparkles.'),
     'sight': (1, 0.9, 0.5, -22, 'A mystical vision activating: a soft airy whoosh with a high glassy shimmer.'),
+    'rattle': (2, 0.8, 0.5, -21, 'A skeleton warrior moving: dry bones rattling and clacking together, a short menacing clatter.'),
+    'moan': (2, 1.4, 0.5, -22, 'A ghost from the underworld: a low hollow moan that drifts and fades, eerie but not too scary for kids.'),
+    'grind': (2, 1.0, 0.5, -20, 'A stone statue coming to life: heavy stone grinding and cracking, gravel trickling.'),
     'arrow': (2, 0.6, 0.55, -21, 'A bow releasing an arrow: a taut string twang and a fast arrow whoosh.'),
 }
 
