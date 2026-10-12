@@ -19,6 +19,9 @@ function applyTheme() {
   const theme = THEMES.find((t) => t.id === settings.theme) || THEMES[0];
   document.documentElement.dataset.theme = theme.id;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
+  const fonts = `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`;
+  const link = $('theme-fonts');
+  if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
   applyArt(theme.id, () => alignPendulum($('metronome-case'), $('pendulum')));
   // Waveform colours come from the theme.
   if (wave) wave.dirty = true;
@@ -204,14 +207,66 @@ for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-const themeSyncs = [...document.querySelectorAll('.theme-chips')].map((el) =>
-  chips(el, THEMES, () => settings.theme, (v) => {
-    settings.theme = v;
-    settings.themeChosen = true;
-    persist();
-    applyTheme();
-    themeSyncs.forEach((sync) => sync());
-  }));
+// Theme: a dropdown in each settings sheet, and preview tiles in the app
+// settings on the home screen. Each tile is drawn in its own theme.
+const themeSelects = [...document.querySelectorAll('.theme-select')];
+const themeTiles = THEMES.map((t) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'theme-tile';
+  b.dataset.theme = t.id;
+  b.setAttribute('role', 'radio');
+  b.innerHTML = `<span class="tile-name"></span><span class="tile-swatches" aria-hidden="true"><i></i><i></i><i></i></span>`;
+  b.querySelector('.tile-name').textContent = t.label;
+  b.addEventListener('click', () => setTheme(t.id));
+  return b;
+});
+$('theme-tiles').replaceChildren(...themeTiles);
+$('theme-tiles').addEventListener('keydown', (e) => {
+  const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+  const i = themeTiles.indexOf(document.activeElement);
+  if (!d || i < 0) return;
+  e.preventDefault();
+  const next = themeTiles[(i + d + themeTiles.length) % themeTiles.length];
+  setTheme(next.dataset.theme);
+  next.focus();
+});
+
+function syncThemeControls() {
+  for (const sel of themeSelects) sel.value = settings.theme;
+  for (const b of themeTiles) {
+    const on = b.dataset.theme === settings.theme;
+    b.setAttribute('aria-checked', String(on));
+    b.tabIndex = on ? 0 : -1;
+  }
+}
+
+function setTheme(id) {
+  settings.theme = id;
+  settings.themeChosen = true;
+  persist();
+  applyTheme();
+  syncThemeControls();
+}
+
+for (const sel of themeSelects) {
+  sel.replaceChildren(...THEMES.map((t) => new Option(t.label, t.id)));
+  sel.addEventListener('change', () => setTheme(sel.value));
+}
+syncThemeControls();
+
+const appSettings = $('app-settings');
+$('app-settings-btn').addEventListener('click', () => {
+  // Load every theme's fonts so the tiles show them (only when this opens).
+  if (!$('all-theme-fonts')) {
+    const link = document.createElement('link');
+    link.id = 'all-theme-fonts';
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?${THEMES.map((t) => t.fonts).join('&')}&display=swap`;
+    document.head.append(link);
+  }
+  appSettings.showModal();
+});
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());

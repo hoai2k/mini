@@ -4,19 +4,41 @@ A metronome and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has just
-two buttons: **Metronome** and **Playback Recorder**.
+two buttons, **Metronome** and **Playback Recorder**, and a settings gear.
 
 ## Themes
 
-Settings → **Theme** (at the bottom of either settings sheet) switches the whole app's look:
+The gear on the home screen opens the app's own settings, which for now hold
+only **Theme**: a tile per theme, each drawn in its own colours and fonts (all
+themes' fonts load only when this opens). Theme is also a dropdown at the
+bottom of the metronome's and the Playback Recorder's settings. It switches
+the whole app's look:
 
 - **Classic** (the default): warm walnut and brass with Fraunces and Manrope.
 - **Art Deco**: black lacquer, gold and ivory, Poiret One and
   Josefin Sans capitals, double gold frames, a sunburst background and fan,
   diamond beat markers and sliders, stepped hexagon buttons.
+- **Vintage 60s**: cream, mustard, orange and teal in Righteous and Nunito,
+  a striped band, polka dots, rounded cards with offset print shadows.
+- **18th Century**: parchment, sepia and burgundy with gilt, IM Fell English
+  and EB Garamond in small capitals, double gilt frames and a fleuron rule.
+- **Sci Fi Future**: deep navy with cyan and magenta light, Orbitron and
+  Exo 2, a HUD grid, chamfered panels and neon glow.
+- **French Nouveau**: sage, cream, gold and rose, Italiana and Cormorant
+  Garamond, asymmetric organic curves and a whiplash ornament.
+- **Anime**: candy pink and sky blue on white in M PLUS Rounded, bold
+  outlines, hard manga-panel shadows, halftone dots and sparkles.
+- **Steam Punk**: dark leather with brass and copper, Cinzel and Special
+  Elite, riveted plates and a gear.
 
-A theme is three things: a `THEMES` entry in `app/src/settings.js` (the
-early script in `index.html` lists the ids too), its colours, type and
+Each theme loads only its own fonts. All eight themes have delivered images.
+The drawings in `app/src/standins.js` remain as loading and error fallbacks;
+the newer themes share one drawing (`themed`), varied by case shape, palette
+and pendulum weight.
+
+A theme is three things: a `THEMES` entry in `app/src/settings.js` with its
+fonts (the early script in `index.html` lists the ids too; a test checks they
+match), its colours, type and
 shapes in `app/styles.css` (`[data-theme="…"]`), and its images. Every image
 belongs to a theme in `design/source/build_requests.py`. The app shows the
 theme's delivered image or, until it arrives, that theme's drawn stand-in

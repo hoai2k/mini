@@ -25,10 +25,20 @@ export const SOUNDS = [
   { id: 'beep', label: 'Beep' },
 ];
 
-/** Looks for the whole app; more can be added (styles.css, standins.js, image requests). */
+/**
+ * Looks for the whole app. A theme also needs its block in styles.css, its
+ * stand-ins in standins.js, its images in the image requests, and its id in
+ * the early script in index.html. `fonts` is its Google Fonts families.
+ */
 export const THEMES = [
-  { id: 'classic', label: 'Classic', color: '#1d1510' },
-  { id: 'deco', label: 'Art Deco', color: '#0b0c0f' },
+  { id: 'classic', label: 'Classic', color: '#1d1510', fonts: 'family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800' },
+  { id: 'deco', label: 'Art Deco', color: '#0b0c0f', fonts: 'family=Poiret+One&family=Josefin+Sans:wght@400;600;700' },
+  { id: 'sixties', label: 'Vintage 60s', color: '#f3e6c8', fonts: 'family=Righteous&family=Nunito:wght@500;700;800' },
+  { id: 'baroque', label: '18th Century', color: '#f4ecd9', fonts: 'family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@500;600;700' },
+  { id: 'scifi', label: 'Sci Fi Future', color: '#060a14', fonts: 'family=Orbitron:wght@500;700&family=Exo+2:wght@400;600;700' },
+  { id: 'nouveau', label: 'French Nouveau', color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
+  { id: 'anime', label: 'Anime', color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
+  { id: 'steampunk', label: 'Steam Punk', color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
 ];
 
 export const BPM_MIN = 40;
