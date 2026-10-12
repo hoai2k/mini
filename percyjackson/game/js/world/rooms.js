@@ -849,7 +849,7 @@ const cellIn = (c, m = 2) => [c.x0 + m + Math.floor(c.r() * (c.x1 - c.x0 - m * 2
 // The axis a road should run along: between the doors if there are any.
 const roadAlongX = (c) => { const ew = c.doors.filter((d) => d.side === 'e' || d.side === 'w').length, ns = c.doors.length - ew; return ew === ns ? (c.x1 - c.x0) >= (c.z1 - c.z0) : ew > ns; };
 // Flat signs: a board with words, on posts (see deco 'text_sign').
-const sign = (c, x, z, text, o = {}) => c.k.d.prop('text_sign', x, o.y ?? c.y, z, { text, ...o });
+const sign = (c, x, z, text, o = {}) => c.k.d.prop('text_sign', x, o.y ?? c.y, z, { text, greek: true, ...o });   // (Greek letters until a hero reads them)
 
 // ------------------------------------------------ chapter 4: the New Jersey turnpike
 // A Greyhound built of blocks, walkable inside (seats, an aisle, a side door and a

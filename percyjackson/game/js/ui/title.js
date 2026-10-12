@@ -1,6 +1,6 @@
-// Title screen (GAME_GUIDELINES.md): generated logo (magenta keyed out) or a
-// text logo, "Press Start", and Instructions / Settings / Fullscreen at the
-// bottom right. Idle: any fresh controller button starts. Moving the left
+// Title screen (GAME_GUIDELINES.md): the logo (loaded and keyed before the
+// title shows, ui/art.js), "Press Start", and Instructions / Settings /
+// Fullscreen at the bottom right. Idle: any fresh controller button starts. Moving the left
 // stick (or arrows) enters utility navigation: A activates, B backs out,
 // Menu/Start starts.
 import { h, padSnap } from './ui.js';
@@ -9,6 +9,7 @@ import { openInstructions } from './instructions.js';
 import { openSelect } from './partySelect.js';
 import { isMobile } from '../util.js';
 import { saveSettings } from '../settings.js';
+import { logoCanvas } from './art.js';
 
 const ICONS = {
   instructions: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 11h8M8 15h8M8 7h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -19,45 +20,16 @@ const ICONS = {
   exitfs: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-// Logo: assets/logo.png is generated on flat magenta (#FF00FF); key it out at
-// load time and trim the empty margin. Falls back to a drawn text logo.
-function textLogo() {
-  return h('div', { class: 'logo-text', 'aria-hidden': 'true' },
-    h('span', { class: 'l1' }, 'HALF-BLOOD'), h('span', { class: 'key' }), h('span', { class: 'l2' }, 'QUESTS'));
-}
-export function keyMagenta(img, maxW = 1400) {
-  const k = Math.min(1, maxW / img.naturalWidth);
-  const w = Math.round(img.naturalWidth * k), hh = Math.round(img.naturalHeight * k);
-  const c = document.createElement('canvas'); c.width = w; c.height = hh;
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(img, 0, 0, w, hh);
-  const id = ctx.getImageData(0, 0, w, hh), d = id.data;
-  let x0 = w, y0 = hh, x1 = 0, y1 = 0;
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    const m = Math.min(r, b) - g;                       // how magenta the pixel is
-    let a = 1 - Math.min(1, Math.max(0, (m - 60) / 110));
-    if (a < 1) {                                        // remove magenta spill from soft edges
-      if (a <= 0.02) { d[i + 3] = 0; continue; }
-      d[i] = Math.max(0, Math.min(255, (r - (1 - a) * 255) / a));
-      d[i + 2] = Math.max(0, Math.min(255, (b - (1 - a) * 255) / a));
-      d[i + 3] = Math.round(d[i + 3] * a);
-    }
-    if (d[i + 3] > 20) { const p = i / 4, x = p % w, y = (p / w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  }
-  ctx.putImageData(id, 0, 0);
-  if (x1 <= x0 || y1 <= y0) return c;
-  const out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1;
-  out.getContext('2d').drawImage(c, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
-  return out;
-}
+// Logo: assets/logo-web.png, keyed out of its magenta ground while the game
+// loads (ui/art.js), so the title shows it from its first frame. Only if the
+// picture is genuinely missing does the title show the game's name in type.
+let entered = false;   // the logo eases in once, as the loading screen fades (never again on a refresh)
 function makeLogo() {
-  const wrap = h('h1', { class: 'logo-wrap', 'aria-label': 'Half-Blood Quests' });
-  const fallback = () => wrap.replaceChildren(textLogo());
-  const img = new Image();
-  img.onload = () => { try { const c = keyMagenta(img); c.className = 'logo-img'; c.setAttribute('aria-hidden', 'true'); wrap.replaceChildren(c); } catch (e) { fallback(); } };
-  img.onerror = fallback;
-  img.src = 'assets/logo-web.png';
+  const wrap = h('h1', { class: 'logo-wrap' + (entered ? '' : ' enter'), 'aria-label': 'Half-Blood Quests' });
+  entered = true;
+  const c = logoCanvas();
+  if (c) { c.className = 'logo-img'; c.setAttribute('aria-hidden', 'true'); wrap.append(c); }
+  else wrap.append(h('div', { class: 'title-type', 'aria-hidden': 'true' }, h('span', { class: 'l1' }, 'HALF-BLOOD'), h('span', { class: 'key' }), h('span', { class: 'l2' }, 'QUESTS')));
   return wrap;
 }
 

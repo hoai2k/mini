@@ -3,6 +3,7 @@
 // stand at the curb in the prologue). Each faces +x (its front at +x) and
 // stands on y = 0; `wheels` turn as it drives (spin(group, metres)).
 import * as THREE from 'three/webgpu';
+import { LiveSign, letteringPainter } from './liveSign.js';
 
 const mats = new Map();
 const M = (c, o = {}) => {
@@ -29,7 +30,12 @@ function wheelSet(g, box, pts, r = 0.45, w = 0.36) {
 export function spin(g, metres) { const r = g.userData.wheelR ?? 0.45; for (const w of g.userData.wheels ?? []) w.rotation.z -= metres / r; }
 
 // The yellow school bus (9.6 long, 2.6 wide): a door on the right (+z) side near the front.
-export function schoolBus({ sign = 'YANCY ACADEMY' } = {}) {
+// Its lettering (the school's name down both sides, SCHOOL BUS front and back)
+// is painted as live signs (world/liveSign.js): Greek letters that settle into
+// English. userData.signs lists them; the caller adds them to game.signs and
+// says when they are read (trigger 'manual': sign.read(); 'near': a hero comes
+// within `near` metres of `pos`).
+export function schoolBus({ sign = 'YANCY ACADEMY', trigger = 'manual', near = 14, pos = null } = {}) {
   const g = new THREE.Group(); const box = boxer(g);
   const Y = M(0xf2b414, { r: 0.45 }), K = M(0x1a1a1e, { r: 0.7 }), glass = M(0x2a3a4a, { r: 0.1, m: 0.3 }), chrome = M(0xd8dce0, { m: 0.8, r: 0.25 });
   const light = M(0xfff2c0, { e: 0xfff2c0, ei: 2.5 }), red = M(0xff3a2a, { e: 0xff2a1a, ei: 2 }), amber = M(0xffa020, { e: 0xffa020, ei: 1.5 });
@@ -53,23 +59,18 @@ export function schoolBus({ sign = 'YANCY ACADEMY' } = {}) {
   for (const z of [-0.9, 0.9]) { box(0.1, 0.3, 0.4, 4.84, 1.35, z, light); box(0.1, 0.3, 0.3, -4.66, 1.4, z, red); box(0.18, 0.22, 0.3, 2.95, 3.0, z * 0.9, amber); box(0.18, 0.22, 0.3, -4.62, 3.0, z * 0.9, red); }
   box(0.5, 0.5, 0.06, 1.2, 1.9, -1.36, M(0xd8322a, { e: 0xa01a10, ei: 0.4 }));
   for (const z of [-1.5, 1.5]) { box(0.08, 0.6, 0.08, 3.6, 2.3, z, K); box(0.1, 0.4, 0.3, 3.6, 2.5, z * 1.05, chrome); }
-  // the school's name on both sides
-  const tex = nameTexture(sign);
-  for (const s of [-1, 1]) {
-    const pl = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 0.42), new THREE.MeshStandardNodeMaterial({ map: tex, roughness: 0.6, transparent: true }));
-    pl.position.set(-1.2, 2.9, s * 1.32); pl.rotation.y = s > 0 ? 0 : Math.PI; g.add(pl);
-  }
+  // the school's name on both sides, SCHOOL BUS over the windscreen and the back window
+  const name = new LiveSign(sign, { w: 512, h: 48, paint: letteringPainter({ size: 36 }), trigger, near, pos, seed: 31 });
+  const plate = new LiveSign('SCHOOL BUS', { w: 256, h: 56, paint: letteringPainter({ size: 40 }), trigger, near, pos, seed: 57 });
+  const lettering = (s, w, h, x, y, z, ry) => { const pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardNodeMaterial({ map: s.texture, roughness: 0.6, transparent: true })); pl.position.set(x, y, z); pl.rotation.y = ry; g.add(pl); };
+  for (const s of [-1, 1]) lettering(name, 4.6, 0.42, -1.2, 2.9, s * 1.32, s > 0 ? 0 : Math.PI);
+  lettering(plate, 1.25, 0.27, 2.94, 3.02, 0, Math.PI / 2);
+  lettering(plate, 1.25, 0.27, -4.69, 3.02, 0, -Math.PI / 2);
+  g.userData.signs = [name, plate];
   wheelSet(g, box, [[3.3, 1.2], [3.3, -1.2], [-2.8, 1.2], [-2.8, -1.2]], 0.5, 0.4);
   g.userData.door = new THREE.Vector3(2.3, 0, 1.9);   // where to stand to get on (bus-local)
   g.userData.length = 9.8;
   return g;
-}
-function nameTexture(text) {
-  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 48;
-  const c = cv.getContext('2d'); c.clearRect(0, 0, 512, 48);
-  c.fillStyle = '#1a1a1e'; c.font = 'bold 36px Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText(text, 256, 26);
-  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
 // A New York taxi (4.4 long).

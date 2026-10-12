@@ -3,7 +3,7 @@
 // rest are Greek letters. A newly revealed line settles into English as you
 // read it (demigodText).
 import { h } from './ui.js';
-import { demigodText, toGreek } from './greekText.js';
+import { demigodText, toGreek, GREEK } from './greekText.js';
 import { BOOKS, CHAPTERS } from '../story/chapters.js';
 
 export function openProphecy(game, bookId = 'book1', onClose) {
@@ -22,7 +22,7 @@ export function openProphecy(game, bookId = 'book1', onClose) {
       const known = got.has(i);
       const p = h('p', { class: 'pl' + (known ? ' known' : ' hidden-line'), 'aria-label': known ? line : 'A line of the prophecy that is not yet fulfilled' });
       if (known) {
-        if (!seen.has(i)) { demigodText(p, line, { speed: 0.8, delay: 0.5 + i * 0.1 }); (d.prophecySeen ??= {})[bookId] = [...seen.add(i)]; }
+        if (!seen.has(i)) { demigodText(p, line, { timing: GREEK.prophecy, delay: 0.5 + i * 0.1 }); (d.prophecySeen ??= {})[bookId] = [...seen.add(i)]; }
         else p.textContent = line;
       } else {
         p.textContent = toGreek(line, i * 97 + 5);

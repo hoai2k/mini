@@ -1,6 +1,7 @@
 // Screen manager with spatial focus navigation so every menu works with a
 // mouse, touch, keyboard (arrows/Enter/Esc) or gamepad (d-pad/stick/A/B).
-import { demigodText } from './greekText.js';
+import { demigodText, greekOn, GREEK } from './greekText.js';
+import { showFor } from './greekTiming.js';
 
 const DIRS = ['up', 'down', 'left', 'right'];
 export class UI {
@@ -149,12 +150,28 @@ export function h(tag, attrs = {}, ...children) {
   return el;
 }
 
+// A message over the play area. cls:
+//   ''       a small message (plain English)
+//   'hint'   a how-to-play hint: plain English, on screen a little longer
+//   'big'    a big message (plain English: read it at once)
+//   'title'  a chapter or place title: Greek letters, held, that settle into English
+//   'boss'   a boss's name (with 'title'): the same, a little quicker
+//   'domain' a godly power's name: a short Greek moment, then English
 export function toast(text, cls = '') {
   const el = document.createElement('div');
   el.className = 'toast ' + cls;
   document.getElementById('toast-layer').appendChild(el);
-  if (/big|domain/.test(cls)) demigodText(el, text); else el.textContent = text;
-  setTimeout(() => el.remove(), cls.includes('domain') ? 3300 : 2700);
+  const timing = /boss/.test(cls) ? GREEK.boss : /title/.test(cls) ? GREEK.title : /domain/.test(cls) ? GREEK.power : null;
+  let secs = /hint/.test(cls) ? 4.4 : 2.7;
+  if (timing) {
+    demigodText(el, text, { timing });
+    secs = greekOn() ? showFor(timing) + 0.5 : Math.max(2.7, (timing.read ?? 2.4) + 1);
+    el.style.animationDuration = secs + 's';
+  } else {
+    el.textContent = text;
+    if (secs !== 2.7) el.style.animationDuration = secs + 's';
+  }
+  setTimeout(() => el.remove(), secs * 1000 + 100);
 }
 
 // A yes/no confirmation. Focus starts on "No" so a stray press never destroys progress.

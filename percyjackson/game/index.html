@@ -42,11 +42,31 @@
 <div id="screens"></div>
 <div id="loading">
   <div class="load-inner">
-    <div class="logo-text small" aria-label="Half-Blood Quests"><span class="l1">HALF-BLOOD</span><span class="key"></span><span class="l2">QUESTS</span></div>
-    <div class="load-bar"><div id="load-fill"></div></div>
-    <div id="load-text">Detecting GPU…</div>
+    <h1 class="title-type small" aria-label="Half-Blood Quests"><span class="l1" aria-hidden="true">HALF-BLOOD</span><span class="key"></span><span class="l2" aria-hidden="true">QUESTS</span></h1>
+    <div class="load-bar" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="load-fill"></div></div>
+    <div id="load-text">Loading the game…</div>
   </div>
 </div>
+<script>
+// Loading screen, before the game's modules run (js/main.js takes over the
+// bar once they have): the title shows once its font has loaded (never a
+// fallback font first), and the bar follows the scripts as they arrive.
+(function () {
+  var el = document.getElementById('loading'), fill = document.getElementById('load-fill');
+  var show = function () { el.classList.add('fonts'); };
+  try { Promise.all([document.fonts.load('900 46px "Cinzel Decorative"'), document.fonts.load('700 16px "Cinzel"')]).then(show, show); } catch (e) { show(); }
+  setTimeout(show, 2500);
+  var n = 0;
+  window.__bootP = 0;
+  try {
+    new PerformanceObserver(function (list) {
+      for (var e of list.getEntries()) if (/\.m?js(\?|$)/.test(e.name)) n++;
+      var p = 0.3 * (1 - Math.exp(-n / 45));
+      if (p > window.__bootP && !window.__bootTaken) { window.__bootP = p; fill.style.width = (p * 100).toFixed(1) + '%'; }
+    }).observe({ type: 'resource', buffered: true });
+  } catch (e) { /* no observer: the bar starts with the game */ }
+})();
+</script>
 <noscript><p class="noscript">Half-Blood Quests needs JavaScript and a WebGPU or WebGL2 capable browser.</p></noscript>
 <script type="module" src="./js/main.js"></script>
 </body>

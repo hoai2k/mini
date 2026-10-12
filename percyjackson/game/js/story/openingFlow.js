@@ -41,7 +41,7 @@ export class OpeningFlow {
     if (info.kind === 'chapter') { g.openingChapter = info.chapter; return g.startChapter(info.chapter, 1, { opening: true }); }
     this.running = null;
     g.endCutscene?.();
-    g.loadHub(); toast('Camp Half-Blood', 'big');
+    g.loadHub(); toast('Camp Half-Blood', 'title');
     return null;
   }
   // ---------------------------------------------------------------- the prologue
@@ -96,7 +96,7 @@ export class OpeningFlow {
     g.tracker?.setGoal({ title: STEP_INFO.prologue.goal, desc: 'Yancy Academy’s field trip leaves from the curb, up the avenue', pos: L.goal, radius: 1.5 });
     g.roaming?.configureCity(L.rats);
     g.online?.sceneChanged?.();
-    toast('Manhattan · The Morning of the Field Trip', 'big');
+    toast('Manhattan · The Morning of the Field Trip', 'title');
     const pad = g.input?.lastDevice?.startsWith?.('pad');
     setTimeout(() => g.mode === 'prologue' && g.state === 'playing' && toast(`You're late for the field trip. Follow the gold footprints to the school bus.`), 2600);
     setTimeout(() => g.mode === 'prologue' && g.state === 'playing' && toast(pad ? 'Left stick: move · X: attack · A: jump · B: dodge' : 'WASD: move · Left click: attack · Space: jump · Shift: dodge'), 7000);
@@ -157,7 +157,7 @@ export class OpeningFlow {
     g.roaming?.configureCamp();
     g.online?.sceneChanged?.();
     g.resume?.flush?.();
-    toast('Camp Half-Blood', 'big');
+    toast('Camp Half-Blood', 'title');
     setTimeout(() => g.mode === 'hub' && g.state === 'playing' && toast('The gold arrow points to your next quest. The Big House porch has the chapter map.'), 2400);
   }
   // a chapter of the opening is finished: the story goes on from the results screen
@@ -169,6 +169,6 @@ export class OpeningFlow {
     g.save.data.opening = 'done'; g.save.write();
     const inIt = g.state === 'playing' && (g.mode === 'prologue' || g.mode === 'cutscene' || g.openingChapter);
     this.running = null;
-    if (inIt && !g.online?.isGuest) { g.openingChapter = null; g.endCutscene?.(); g.resume?.clear?.(); g.ui.closeAll(); g.paused = false; g.loadHub(); toast('Camp Half-Blood', 'big'); }
+    if (inIt && !g.online?.isGuest) { g.openingChapter = null; g.endCutscene?.(); g.resume?.clear?.(); g.ui.closeAll(); g.paused = false; g.loadHub(); toast('Camp Half-Blood', 'title'); }
   }
 }

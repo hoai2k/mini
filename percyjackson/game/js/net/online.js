@@ -466,7 +466,7 @@ export class Online {
     } else if (sc.mode === 'hub') {
       this.applied = id;
       this.clearPuppets();
-      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast('Camp Half-Blood', 'big'); this.joinNear(); }
+      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast('Camp Half-Blood', 'title'); this.joinNear(); }
     }
   }
   showStory(chId) {

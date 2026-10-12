@@ -436,7 +436,7 @@ export class Mission {
     this.boss = boss;
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
-    toast(boss.B.title, 'domain');
+    toast(boss.B.title, 'title boss');
     g.audio?.boss(); g.audio?.setMusic('boss');
     g.hud.setBoss(boss);
     g.shake(0.4);

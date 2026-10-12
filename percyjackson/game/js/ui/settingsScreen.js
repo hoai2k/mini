@@ -41,7 +41,7 @@ export function openSettings(game, onClose) {
         row('Hit-stop pauses', check('hitstop')),
         row('Slow-motion moments', check('slowmo')),
         row('Battle Sense (slow time on a perfect dodge)', check('battleSense')),
-        row('Greek text effect (letters settle into English)', check('greekText')),
+        row('Greek letters on titles and signs (they settle into English)', check('greekText')),
         row('Reduce motion', check('reduceMotion')),
         row('Damage numbers', check('damageNumbers')),
         row('Camera rotation (Z / C)', check('cameraRotate')),

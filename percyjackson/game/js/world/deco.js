@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { spriteUV, SPRITE_INDEX as SI } from '../gfx/textures.js';
 import { ditherMask, occlusionAmount } from '../gfx/materials.js';
+import { LiveSign, boardPainter } from './liveSign.js';
 
 export class Decorations {
   constructor() { this.items = []; this.props = []; this.mesh = null; this.propMesh = null; }
@@ -74,6 +75,7 @@ export class Decorations {
     this.buildProps(world, materials);
   }
   buildProps(world, materials) {
+    this.liveSigns = [];
     if (this.propMesh) { world.group.remove(this.propMesh); this.propMesh.traverse((o) => o.geometry?.dispose()); }
     const group = new THREE.Group();
     const M = materials.props;
@@ -413,7 +415,9 @@ export class Decorations {
           if (ph > 0) { lb(0.14, ph, 0.14, -w / 2 + 0.2, ph / 2, -0.02, M.wood); lb(0.14, ph, 0.14, w / 2 - 0.2, ph / 2, -0.02, M.wood); }
           const cy = ph > 0 ? ph + hh / 2 - 0.15 : hh / 2;
           lb(w + 0.12, hh + 0.12, 0.08, 0, cy, -0.05, p.glow ? M.dark : M.wood);
-          const mat = signMaterial(p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh });
+          // p.greek: the words are Greek letters until a hero has a good look (world/liveSign.js)
+          const mat = p.greek ? liveSignMaterial(this, p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh, pos: new THREE.Vector3(x, y + cy * sc, z), near: p.near, look: p.look })
+            : signMaterial(p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh });
           for (const side of p.oneSided ? [1] : [1, -1]) {
             const pl = new THREE.Mesh(new THREE.PlaneGeometry(w * sc, hh * sc), mat);
             const lz = side * 0.0 + (side > 0 ? 0.0 : -0.1);
@@ -437,10 +441,18 @@ export class Decorations {
 
 // Painted words for signs (place names on the road west, shop signs, neon).
 const signCache = new Map();
+const signSize = (aspect) => { const H = 128; return { H, W: Math.min(1024, Math.round(H * aspect / 4) * 4) }; };
+// a sign whose words settle from Greek letters into English (kept in deco.liveSigns for game.signs)
+function liveSignMaterial(deco, text, { bg = '#6a4a2a', fg = '#f6e7c0', glow = false, border = '#c9963a', aspect = 3, pos, near = 11, look = 1.4 } = {}) {
+  const { W, H } = signSize(aspect);
+  const s = new LiveSign(text, { w: W, h: H, paint: boardPainter({ bg, fg, glow, border }), pos, near, look });
+  deco.liveSigns.push(s);
+  return new THREE.MeshStandardNodeMaterial({ map: s.texture, roughness: 0.8, emissive: 0xffffff, emissiveMap: s.texture, emissiveIntensity: glow ? 1.8 : 0.22 });
+}
 function signMaterial(text, { bg = '#6a4a2a', fg = '#f6e7c0', glow = false, border = '#c9963a', aspect = 3 } = {}) {
   const key = [text, bg, fg, glow, border, aspect.toFixed(2)].join('|');
   if (signCache.has(key)) return signCache.get(key);
-  const H = 128, W = Math.min(1024, Math.round(H * aspect / 4) * 4);
+  const { W, H } = signSize(aspect);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
   g.fillStyle = bg; g.fillRect(0, 0, W, H);

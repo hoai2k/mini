@@ -71,6 +71,9 @@ export const CUTSCENES = {
       const L = buildAvenueSet();
       setLevel(game, L, BIOMES.manhattan);
       const bus = schoolBus(); bus.rotation.y = -Math.PI / 2; bus.position.copy(L.busFrom); game.scene.add(bus);
+      // the bus's lettering is Greek letters until the close shot is about to cut away (then it settles into English)
+      for (const s of bus.userData.signs) game.signs?.add(s);
+      const readBus = () => { for (const s of bus.userData.signs) s.read(); };
       // traffic: taxis in the other lanes
       const traffic = [taxi(), car(0x2a5a6a), taxi(), car(0x7a2a2a), taxi()].map((t, i) => { t.rotation.y = i % 2 ? Math.PI / 2 : -Math.PI / 2; t.position.set(i % 2 ? 37.5 : 34, L.FY, 20 + i * 40); game.scene.add(t); return { t, v: i % 2 ? -9 : 7.5 }; });
       const parked = [taxi(), car(0x3a3a6a)].map((t, i) => { t.rotation.y = -Math.PI / 2; t.position.set(30.2, L.FY, L.MC - 30 - i * 9); game.scene.add(t); return t; });
@@ -109,7 +112,7 @@ export const CUTSCENES = {
           cam: follow(bus, [15, 5, -10], [-2, 1.6, 2], { offset2: [13, 4.2, 7], fov: 42 }),
           lines: [{ at: 0.2, text: 'Grover sits next to you, chewing on an apple core. He keeps glancing at the teacher at the front.' }],
           card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 4 },
-          act: (k, dt) => drive(L.MC - 40, dt) },
+          act: (k, dt, t) => { drive(L.MC - 40, dt); if (t >= 2.2) readBus(); } },
         { dur: 5.2,
           cam: move({ pos: [52, 8, L.MC + 42], look: [16, 9, L.MC + 2] }, { pos: [50, 14, L.MC + 30], look: [14, 12, L.MC] }, { fov: 46 }),
           lines: [{ at: 0.4, text: 'The American Museum of Natural History. Mr. Brunner promised Greek and Roman treasures.' }],
