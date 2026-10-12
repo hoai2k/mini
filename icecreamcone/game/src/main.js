@@ -64,33 +64,44 @@ const S = {
 
 // ---------- assets ----------
 
+// One picture, tried up to `tries` times: a phone on a poor connection can
+// drop a request, and a picture that never loads would leave its stand-in
+// drawn for the whole visit.
+function loadImage(file, tries = 3) {
+  return new Promise((res) => {
+    const attempt = (n) => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = () => {
+        if (n + 1 < tries) setTimeout(() => attempt(n + 1), 600 * (n + 1));
+        else {
+          console.warn('[art] could not load', file);
+          res(null);
+        }
+      };
+      img.src = n ? `${file}?retry=${n}` : file;
+    };
+    attempt(0);
+  });
+}
+
+const artMap = new Map();
 // Every delivered picture, loaded before the game shows anything, with a
 // loading bar meanwhile: nothing drawn in code ever stands in for a picture
 // that has been delivered.
 async function loadArt() {
-  const map = new Map();
+  const map = artMap;
   const todo = Object.entries(ASSETS).filter(([, a]) => a.delivered);
   let done = 0;
   const bar = $('#loading-fill');
   await Promise.all(
-    todo.map(
-      ([key, a]) =>
-        new Promise((res) => {
-          const img = new Image();
-          img.onload = () => {
-            map.set(key, img);
-            res();
-          };
-          img.onerror = () => {
-            console.warn('[art] could not load', a.file);
-            res();
-          };
-          img.src = a.file;
-        }).then(() => {
-          done++;
-          bar.style.width = `${Math.round((done / todo.length) * 100)}%`;
-          bar.parentElement.setAttribute('aria-valuenow', Math.round((done / todo.length) * 100));
-        }),
+    todo.map(([key, a]) =>
+      loadImage(a.file).then((img) => {
+        if (img) map.set(key, img);
+        done++;
+        bar.style.width = `${Math.round((done / todo.length) * 100)}%`;
+        bar.parentElement.setAttribute('aria-valuenow', Math.round((done / todo.length) * 100));
+      }),
     ),
   );
   setArt(map);
@@ -104,6 +115,15 @@ async function loadArt() {
     }
   };
   [ATLAS, UI_ATLAS] = await Promise.all([atlas('assets/book/gathering.atlas.json'), atlas('assets/ui/gathering.atlas.json')]);
+}
+// Before a game starts, another try at any delivered picture that failed to
+// load (waiting at most a few seconds), so a dropped request doesn't leave a
+// game on its stand-ins for the rest of the visit.
+function reloadMissing() {
+  const missing = Object.entries(ASSETS).filter(([key, a]) => a.delivered && !artMap.has(key));
+  if (!missing.length) return Promise.resolve();
+  const all = Promise.all(missing.map(([key, a]) => loadImage(a.file, 2).then((img) => img && artMap.set(key, img))));
+  return Promise.race([all, new Promise((r) => setTimeout(r, 4000))]);
 }
 // Where each bird is in the gathering's two paintings: the book's (2:1, two
 // pages) and the finale's (16:9); null until loaded, or if missing.
@@ -642,7 +662,7 @@ async function startBird(i) {
   const b = BIRDS[i];
   show('play');
   S.phase = 'loading';
-  const factory = await loadGame(b.id);
+  const [factory] = await Promise.all([loadGame(b.id), reloadMissing()]);
   if (!factory) {
     toast('This bird’s game is still being built.');
     show('page');

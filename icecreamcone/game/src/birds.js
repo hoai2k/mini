@@ -15,7 +15,7 @@ const FIRST = [
     goal: 'Catch the scoops on the Coot’s head and build the tallest stack you can.',
     tips: ['A scoop lands where it touches: catch it in the middle to keep the stack straight.', 'One that hits the side clings, then slips. Lean the stack away from it, or run towards it, to hold it on; catch another on top of it to push it up.', 'Pickles and socks knock scoops off. A golden cherry counts as three.'],
     score: 'scoops in your tallest stack',
-    pass: 10,
+    pass: 6,
     tune: 'play',
     color: '#e98aa8',
   },

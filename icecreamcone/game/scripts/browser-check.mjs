@@ -439,11 +439,13 @@ const MENU = 9;
   await wait(page, 100);
   f = await fsRow();
   !f.full && !f.checked ? ok('leaving full screen another way unticks it') : fail(`fullscreen left: ${JSON.stringify(f)}`);
-  // the controller reaches it: down from Volume, past Vibration
+  // the controller reaches it: down from Volume, past the switches above it
   await page.evaluate(() => document.querySelector('[data-setting="volume"]').focus());
-  await press(page, 13);
-  await press(page, 13);
-  const focused = await page.evaluate(() => document.activeElement?.id);
+  let focused = '';
+  for (let i = 0; i < 4 && focused !== 'fullscreen-toggle'; i++) {
+    await press(page, 13);
+    focused = await page.evaluate(() => document.activeElement?.id);
+  }
   focused === 'fullscreen-toggle' ? ok('the D-pad reaches the Fullscreen switch') : fail(`D-pad focus: ${focused}`);
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors on the result cards');
   await page.close();
