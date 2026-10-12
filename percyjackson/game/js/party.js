@@ -68,14 +68,20 @@ export class Companion {
         this.abilityT = 3 + Math.random() * 3;
       }
       if (p.ce >= p.maxCe && !g.domain && (target.isBoss || g.enemies.filter((e) => !e.dead && e.pos.distanceTo(p.pos) < 7).length >= 4)) held.domain = true;
-      if (this.dodgeT <= 0 && this.inDanger()) { held.dodge = true; this.dodgeT = 1.2; move = tmp.subVectors(p.pos, target.pos).setY(0).normalize().clone(); }
+      if (this.dodgeT <= 0 && this.inDanger()) {
+        // dodge away from the target, or to a side, wherever there's floor to land on
+        const away = tmp.subVectors(p.pos, target.pos).setY(0).normalize().clone();
+        const dir = [away, new THREE.Vector3(-away.z, 0, away.x), new THREE.Vector3(away.z, 0, -away.x)].find((d) => this.floorAhead(d, 0.9) && this.floorAhead(d, 2.6));
+        if (dir) { held.dodge = true; this.dodgeT = 1.2; move = dir; }
+      }
     } else if (lead) {
       // follow in a loose formation behind the leader
       const slot = Math.max(0, (g.party ?? g.players).indexOf(p));
       const back = new THREE.Vector3(Math.sin(lead.facing), 0, Math.cos(lead.facing)).multiplyScalar(-2.2);
       const side = new THREE.Vector3(Math.cos(lead.facing), 0, -Math.sin(lead.facing)).multiplyScalar(slot % 2 ? 1.6 : -1.6);
-      const spot = lead.pos.clone().add(back).add(side);
-      if (p.pos.distanceTo(spot) > 1.2) move = this.steer(spot, 0.6, p.pos.distanceTo(lead.pos) > 7 ? 1 : 0.7);
+      let spot = lead.pos.clone().add(back).add(side);
+      if (!this.groundAt(spot.x, spot.z, lead.pos.y)) spot = lead.pos;   // (the spot is over a drop: just follow)
+      if (p.pos.distanceTo(spot) > (spot === lead.pos ? 2 : 1.2)) move = this.steer(spot, 0.6, p.pos.distanceTo(lead.pos) > 7 ? 1 : 0.7);
     }
     // step aside from a human walking into us (doorways, corridors)
     for (const q of g.players) {
@@ -95,8 +101,23 @@ export class Companion {
     // unstuck: if trying to move but not moving, jump first, then hop sideways with a dodge
     if (move && move.lengthSq() > 0.1) {
       if (p.pos.distanceTo(this.lastPos) < dt * 0.6) this.stuckT += dt; else this.stuckT = 0;
-      if (this.stuckT > 0.35 && this.jumpT <= 0 && p.grounded) { held.jump = true; this.jumpT = 0.8; }
-      if (this.stuckT > 0.9) { held.dodge = true; move = new THREE.Vector3(-move.z, 0, move.x); this.stuckT = 0; }
+      if (this.stuckT > 0.35 && this.jumpT <= 0 && p.grounded && this.floorAhead(move, 1.6, target ?? lead)) { held.jump = true; this.jumpT = 0.8; }
+      if (this.stuckT > 0.9) {
+        const side = [new THREE.Vector3(-move.z, 0, move.x), new THREE.Vector3(move.z, 0, -move.x)].find((d) => this.floorAhead(d, 0.9) && this.floorAhead(d, 2.6));
+        if (side) { held.dodge = true; move = side; }
+        this.stuckT = 0;
+      }
+    }
+    // ledge guard: don't walk off an edge the jump logic doesn't mean to cross;
+    // slide along it instead (like the monsters do)
+    if (move && move.lengthSq() > 0.01 && p.grounded && !held.jump && !held.dodge && this.groundAt(p.pos.x, p.pos.z, p.pos.y) && !this.floorAhead(move, 0.9, target ?? lead)) {
+      const len = move.length(), a = Math.atan2(move.x, move.z);
+      let slide = null;
+      for (const off of [0.6, -0.6, 1.2, -1.2, 1.57, -1.57]) {
+        const d = new THREE.Vector3(Math.sin(a + off), 0, Math.cos(a + off));
+        if (this.floorAhead(d, 0.9, target ?? lead)) { slide = d.multiplyScalar(len * Math.max(0.3, Math.cos(off))); break; }
+      }
+      move = slide ?? new THREE.Vector3();
     }
     this.lastPos.copy(p.pos);
     g.input.setVirtual(this.dev, { worldMove: move, held });
@@ -118,6 +139,25 @@ export class Companion {
       const far = w.groundBelow(p.pos.x + dir.x * k, p.pos.z + dir.z * k, p.pos.y + 1.8);
       if (isFinite(far) && Math.abs(far - p.pos.y) < 1.8) return true;
     }
+    return false;
+  }
+  // Is there floor within 2.5 blocks below (x, z), from about height y?
+  groundAt(x, z, y) {
+    const w = this.game.world;
+    if (!w?.groundBelow) return true;
+    const gy = w.groundBelow(x, z, y + 0.5);
+    if (!isFinite(gy) || gy <= y - 2.5) return false;
+    const liq = w.liquidAt?.(x, gy + 0.5, z);
+    return liq !== 'lava' && liq !== 'cursed';
+  }
+  // Floor `k` blocks ahead in direction `dir`: within 2.5 below, or a deliberate
+  // drop toward `goal` (a leader or target lower down, landing near its level).
+  floorAhead(dir, k, goal = null) {
+    const p = this.p, l = Math.hypot(dir.x, dir.z);
+    if (l < 1e-4) return true;
+    const x = p.pos.x + dir.x / l * k, z = p.pos.z + dir.z / l * k;
+    if (this.groundAt(x, z, p.pos.y)) return true;
+    if (goal && goal.pos.y < p.pos.y - 1) { const gy = this.game.world.groundBelow(x, z, p.pos.y + 0.5); return isFinite(gy) && gy > goal.pos.y - 1.5; }
     return false;
   }
   steer(to, stopAt = 0.6, speed = 1) {

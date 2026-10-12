@@ -20,20 +20,47 @@ export const seeded = (m, salt) => mulberry32(((m.def.seed ?? 1) ^ (salt * 0x9e3
 
 export const inRoom = (pos, room, pad = 0) => pos.x >= room.x0 - pad && pos.x <= room.x1 + 1 + pad && pos.z >= room.z0 - pad && pos.z <= room.z1 + 1 + pad;
 
-// A standing spot on the ground near `want` (falls back to `want`).
-export function ground(g, want, up = 3) {
+// A standing spot on the ground near `want` (falls back to `want`). The
+// search starts just above the feet, so a tree canopy, a roof or a prop over
+// the spot never takes it.
+export function ground(g, want, up = 1) {
   const p = want.clone();
   const gy = g.world.groundBelow(p.x, p.z, p.y + up);
   if (isFinite(gy)) p.y = gy;
   return p;
 }
 
-// A spot in a room from its spawn list (open floor), chosen by `r`.
+// Open floor at (x, z) near height `y`: no more than `rise` above it (a step
+// or raised ground, never a canopy), not in a pit, with room to stand. -> y or null
+export function openGround(world, x, y, z, rise = 1.5) {
+  const gy = world.groundBelow(x, z, y + 1);
+  if (!isFinite(gy) || gy > y + rise || gy < y - 2) return null;
+  if (world.solidAt(x, gy + 0.5, z) || world.solidAt(x, gy + 1.5, z)) return null;
+  return gy;
+}
+
+// A spot in a room from its spawn list (open floor), chosen by `r`; with
+// `avoid`, the one farthest from it. Spots on a canopy or a prop, or more
+// than a step above the room's floor, are passed over.
 export function roomSpot(g, room, r, avoid = null) {
   const list = room.spawns?.length ? room.spawns : [[room.center.x, room.y, room.center.z]];
-  let best = list[Math.floor(r() * list.length)];
-  if (avoid) best = list.slice().sort((a, b) => Math.hypot(b[0] - avoid.x, b[2] - avoid.z) - Math.hypot(a[0] - avoid.x, a[2] - avoid.z))[0];
-  return ground(g, new THREE.Vector3(best[0], best[1], best[2]));
+  const first = Math.floor(r() * list.length);
+  const order = avoid ? list.slice().sort((a, b) => Math.hypot(b[0] - avoid.x, b[2] - avoid.z) - Math.hypot(a[0] - avoid.x, a[2] - avoid.z))
+    : list.slice(first).concat(list.slice(0, first));
+  const w = g.world;
+  for (const top of [room.y + 1.5, Infinity]) {
+    for (const sp of order) {
+      const gy = openGround(w, sp[0], sp[1], sp[2]);
+      if (gy != null && gy <= top) return new THREE.Vector3(sp[0], gy, sp[2]);
+    }
+  }
+  return ground(g, new THREE.Vector3(order[0][0], order[0][1], order[0][2]));
+}
+
+// `pos` settled on open ground, or `fallback` where that's blocked.
+export function settle(g, pos, fallback) {
+  const gy = openGround(g.world, pos.x, pos.y, pos.z);
+  return gy != null ? pos.clone().setY(gy) : fallback.clone();
 }
 
 // Where a door of `room` that leads to `other` is, in world space.

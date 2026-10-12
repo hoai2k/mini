@@ -45,7 +45,7 @@ const H = BOOK1_HOOKS;
 
 const BOSSES = {
   alecto: {
-    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 16, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 20, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
     build: BOSS_MODELS.alecto,
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
     ambient: (b) => H.whipGlow(b),
@@ -53,7 +53,7 @@ const BOSSES = {
   minotaur: {
     name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
     build: BOSS_MODELS.minotaur,
-    phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'bull_charge', 'rock_throw', 'horn_sweep']],
+    phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'rock_throw', 'horn_sweep']],
     ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
   },
   hellhound_alpha: {
@@ -119,6 +119,13 @@ export const BOSS_DEFS = BOSSES;
 
 const BOSS_VOICE = { minotaur: ['roar', 0.85], cerberus: ['roar', 0.7], chimera: ['roar', 1], hellhound_alpha: ['bark', 0.7], medusa: ['hiss', 0.8], furies: ['screech', 0.9], alecto: ['screech', 0.9], spiders: ['click', 0.7] };
 
+// Boss health for the party: each extra player adds 60%, an AI companion 35%
+// (companions deal less than people do). 1 player + 2 companions: x1.7.
+export function partyHpScale(players) {
+  const humans = Math.max(1, players.filter((p) => !p.ai).length), ai = players.filter((p) => p.ai).length;
+  return 1 + (humans - 1) * 0.6 + ai * 0.35;
+}
+
 export class Boss {
   constructor(game, id, pos, level = 1) {
     id = BOSS_ALIASES[id] ?? id;
@@ -128,7 +135,7 @@ export class Boss {
     this.displayName = this.B.name;
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = this.B.radius ?? 1.1; this.height = this.B.height ?? 4.2;
-    this.maxHp = this.B.hp * (1 + (level - 1) * 0.45) * (1 + (game.players.length - 1) * 0.6); this.hp = this.maxHp;
+    this.maxHp = this.B.hp * (1 + (level - 1) * 0.45) * partyHpScale(game.players); this.hp = this.maxHp;
     this.dmg = this.B.dmg * (1 + (level - 1) * 0.2);
     this.level = level;
     // The rig turns inside an unrotated holder, so a boss can carry parts that

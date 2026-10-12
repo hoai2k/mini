@@ -78,6 +78,15 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     stands, with its health; a player who leaves, or whose controller is
     unplugged for two seconds, hands their hero to the AI, and gets it back
     if they return.
+  - Companions don't walk off ledges (they slide along the edge, and dodge
+    only where there's floor to land on).
+  - A boss's health grows with the party: 60% more for each extra player,
+    35% for each AI companion.
+  - Any player standing at a prompt can use it (X or E), even with another
+    player nearer to it.
+- **Falling in a boss fight:** if the whole party is down, it comes back
+  just inside the arena door after a moment, with two seconds of safety, to
+  try again; the boss keeps the wounds it has taken.
 - **The Mist and True Sight:** LT or V repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
@@ -218,7 +227,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games) |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

@@ -1353,8 +1353,17 @@ Object.assign(TEMPLATES, {
     chainLink(c);
     const px0 = x0 + 4, px1 = x1 - 4, pz0 = z0 + 4, pz1 = z1 - 4;
     {
-      sunkPool(c, px0, pz0, px1, pz1, 3, 0);
-      for (let x = px1 - 3; x <= px1; x++) for (let z = pz1 - 3; z <= pz1; z++) { k.w.set(x, y - 3, z, B.water); k.w.set(x, y - 4, z, B.pool_tile); }
+      // two deep, so a hero who drops in can climb out by the steps
+      sunkPool(c, px0, pz0, px1, pz1, 2, 0);
+      // the puddle in the deep end, clear of the steps
+      for (let x = Math.max(px1 - 3, px0 + 4); x <= px1; x++) for (let z = Math.max(pz1 - 3, pz0 + 2); z <= pz1; z++) { k.w.set(x, y - 2, z, B.water); k.w.set(x, y - 3, z, B.pool_tile); }
+      // and a tile step every few blocks along its sides (a doorway's walk
+      // across the pool can cut off the steps at the end)
+      const top = (x, z) => k.w.groundBelow(x + 0.5, z + 0.5, y + 1);
+      for (let z = pz0; z <= pz1; z++) for (let x = px0; x <= px1; x++) {
+        if (top(x, z) !== y - 2 || k.w.get(x, y - 2, z) || (x + z) % 3) continue;
+        if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => top(x + dx, z + dz) >= y)) k.w.set(x, y - 2, z, B.pool_tile);
+      }
       for (let i = 0; i < 4; i++) k.w.set(px1 + 1, y - 1, pz0 + 1 + i, B.planks);
       k.w.fill(px1 - 1, y, (pz0 + pz1) >> 1, px1 + 1, y, (pz0 + pz1) >> 1, B.planks);
       for (let i = 0; i < 3; i++) k.d.prop('deck_chair', (c.r() < 0.5 ? x0 + 2 : x1 - 2) + 0.5, y, z0 + 3 + c.r() * (z1 - z0 - 6), { rot: c.r() * 0.4, color: [0x2aa8a0, 0xf28c28, 0xd8322a][i] });

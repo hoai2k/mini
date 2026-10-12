@@ -73,6 +73,7 @@ export const BIOMES = {
     grade: { tint: [1.05, 1.0, 0.92], lift: [0.015, 0.008, 0.0], sat: 1.04, contrast: 1.06, vignette: 0.3 },
     floor: B.marble_floor, floor2: B.marble_floor, path: B.carpet_red, wall: B.gallery_wall, wall2: B.gallery_wall, trim: B.key_frieze, pillar: B.column, roof: B.marble_white, ground: B.marble_floor, accent: B.lantern, pit: B.plinth,
     ambience: 'museum', music: 'museum', particles: 'dust', wind: 0.1, indoor: true,
+    dmgStep: 0.4,   // monsters hit harder on Demigod and up than elsewhere (the first chapter was too easy there)
   },
   // Chapter 2: Long Island farmland at night in a violent storm.
   storm_hill: {

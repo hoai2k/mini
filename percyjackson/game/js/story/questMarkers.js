@@ -9,6 +9,7 @@ import * as THREE from 'three/webgpu';
 import { CHAPTERS, chapter as chapterDef, chapterPlayable } from './chapters.js';
 import { h } from '../ui/ui.js';
 import { openingDone } from './opening.js';
+import { B } from '../world/blocks.js';
 
 const DIFFS = [[1, 'Mortal'], [2, 'Demigod'], [3, 'Hero'], [4, 'Olympian']];
 const texLoader = new THREE.TextureLoader();
@@ -35,23 +36,41 @@ function bus() {
   return g;
 }
 
-// Nearest open ground to `want` at about height `y`, with the footprint
-// [x0, x1, z0, z1] (relative) flat and clear for three blocks up.
+// The ground under (x, z) near height `y` (no more than two blocks above it):
+// tree canopies don't count, so a marker by Thalia's pine stands on the
+// hillside under the branches, not up in them.
+const LEAVES = new Set([B.leaves, B.pine_leaves, B.dead_leaves, B.poplar_leaves]);
+function terrainNear(world, x, z, y) {
+  const solid = (yy) => { const id = world.get(Math.floor(x), yy, Math.floor(z)); return !!id && !LEAVES.has(id) && world.solidAt(x, yy + 0.5, z); };
+  for (let yy = Math.floor(y) + 2; yy >= Math.max(0, y - 16); yy--) if (solid(yy) && !solid(yy + 1) && !solid(yy + 2)) return yy + 1;
+  return -Infinity;
+}
+
+// Nearest open ground to `want`, at about the height of the ground under it
+// (`y` is the anchor's height: `want` can be down a slope from it), with the
+// footprint [x0, x1, z0, z1] (relative) clear for three blocks up (six for
+// the bus) and flat (a small footprint may be on a gentle slope).
 function findSpot(world, want, y, fp) {
-  const clear = (x, z) => {
+  const ty = terrainNear(world, want.x, want.z, y);
+  const base = isFinite(ty) ? ty : y;
+  const big = fp[1] - fp[0] > 2, tol = big ? 0.6 : 1, clear = big ? 6 : 3;   // (the bus: flat, and nothing low overhead)
+  const spot = (x, z) => {
+    const cy = world.groundBelow(x + 0.5, z + 0.5, base + 2.5);
+    if (!isFinite(cy) || Math.abs(cy - base) > 2) return null;
     for (let dx = fp[0]; dx <= fp[1]; dx++) for (let dz = fp[2]; dz <= fp[3]; dz++) {
-      const g = world.groundBelow(x + dx + 0.5, z + dz + 0.5, y + 6);
-      if (!isFinite(g) || Math.abs(g - y) > 0.6) return false;
-      for (let k = 0; k < 3; k++) if (world.solidAt(x + dx + 0.5, g + 0.5 + k, z + dz + 0.5)) return false;
+      const g = world.groundBelow(x + dx + 0.5, z + dz + 0.5, cy + 1.5);
+      if (!isFinite(g) || Math.abs(g - cy) > tol) return null;
+      for (let k = 0; k < clear; k++) if (world.solidAt(x + dx + 0.5, g + 0.5 + k, z + dz + 0.5)) return null;
     }
-    return true;
+    return cy;
   };
   const bx = Math.floor(want.x), bz = Math.floor(want.z);
   for (let r = 0; r <= 16; r++) for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
     if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
-    if (clear(bx + dx, bz + dz)) { const gy = world.groundBelow(bx + dx + 0.5, bz + dz + 0.5, y + 6); return new THREE.Vector3(bx + dx + 0.5, gy, bz + dz + 0.5); }
+    const cy = spot(bx + dx, bz + dz);
+    if (cy != null) return new THREE.Vector3(bx + dx + 0.5, cy, bz + dz + 0.5);
   }
-  return want.clone();
+  return want.clone().setY(base);
 }
 
 export function placeQuestMarkers(game, L) {

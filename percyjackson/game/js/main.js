@@ -624,7 +624,12 @@ class Game {
   updateWipe(dt) {
     if (this.wipeLeft <= 0 || (this.paused && !this.online.keepsRunning) || this.state !== 'playing') return;   // net: (online the game runs on)
     this.wipeLeft -= dt;
-    if (this.wipeLeft <= 0) { this.placePlayers(this.level.spawn); toast('Revived', 'big'); }
+    if (this.wipeLeft > 0) return;
+    // in a boss fight the party comes back inside the arena door (the gates are sealed behind them)
+    const retry = this.mode === 'mission' ? this.mission?.retrySpot?.() : null;
+    this.placePlayers(retry ?? this.level.spawn);
+    if (retry) for (const p of this.players) p.iframes = 2.5;
+    toast(retry ? 'Revived: try the fight again' : 'Revived', 'big');
   }
 
   // Storm biomes: lightning flashes and thunder now and then.
@@ -681,14 +686,17 @@ class Game {
     const nearDevices = new Set();     // controllers with a prompt up: X interacts instead of attacking
     for (const it of this.interactables) {
       if (it.enabled && !it.enabled()) continue;
-      let near = null;
-      for (const p of this.players) if (!p.ai && !p.dead && !p.downed && p.pos.distanceTo(it.pos) < it.radius) near = p;
-      if (!near) { it.progress = 0; it.touchHold = false; continue; }
-      nearDevices.add(near.device);
+      // every human in range can use it (two players at one prompt: either one's press counts)
+      const inRange = [];
+      for (const p of this.players) if (!p.ai && !p.remote && !p.dead && !p.downed && p.pos.distanceTo(it.pos) < it.radius) inRange.push(p);
+      if (!inRange.length) { it.progress = 0; it.touchHold = false; continue; }
+      for (const p of inRange) nearDevices.add(p.device);
+      const nearest = inRange.reduce((a, b) => (b.pos.distanceTo(it.pos) < a.pos.distanceTo(it.pos) ? b : a));
+      const using = it.hold ? inRange.find((p) => this.input.get(p.device).held.interact) : inRange.find((p) => this.input.get(p.device).pressed.interact);
+      const near = using ?? nearest;
       const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'X';
-      const inp = this.input.get(near.device);
       if (it.hold) {
-        const holding = inp.held.interact || it.touchHold;
+        const holding = !!using || it.touchHold;
         if (holding && !it.progress) it.onHoldStart?.();
         it.progress = holding ? (it.progress ?? 0) + dt / it.hold : Math.max(0, (it.progress ?? 0) - dt);
         const bar = '▮'.repeat(Math.round((it.progress ?? 0) * 8)).padEnd(8, '▯');
@@ -696,7 +704,7 @@ class Game {
         if (it.progress >= 1) { it.progress = 0; it.touchHold = false; it.action(near); }
       } else {
         this.hud.prompt(it.id, it.pos.clone().setY(it.pos.y + 2.2), `${key}  ${it.label}`, () => it.action(near));
-        if (inp.pressed.interact) it.action(near);
+        if (using) it.action(using);
       }
     }
     this.input.nearInteract = nearDevices;

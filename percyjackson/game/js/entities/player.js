@@ -275,6 +275,11 @@ export class Player {
       if (this.dodgeT <= 0) this.action = null;
     } else if (this.action && this.action.root) {
       want.copy(this.action.root);                         // attack lunges etc.
+      // a companion's lunge stops at a ledge (a person's is their own call)
+      if (this.ai && this.grounded && want.lengthSq() > 0.01) {
+        const l = want.length(), gy = g.world.groundBelow(this.pos.x + want.x / l * 0.9, this.pos.z + want.z / l * 0.9, this.pos.y + 0.5);
+        if (!isFinite(gy) || gy < this.pos.y - 2.5) want.set(0, 0, 0);
+      }
     } else if (!this.downed) {
       const busy = this.action && this.action.moveScale !== undefined ? this.action.moveScale : 1;
       want.copy(mv).multiplyScalar(speed * busy);
