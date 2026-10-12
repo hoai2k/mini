@@ -2749,6 +2749,316 @@
       ],
       "anchor": "top centre (it hangs)",
       "edition": "film"
+    },
+    "sea-king-throne-tinted": {
+      "status": "requested",
+      "file": "sea-king-throne-tinted.webp",
+      "size": [
+        600,
+        620
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-pink-tinted": {
+      "status": "requested",
+      "file": "attendant-pink-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-blue-tinted": {
+      "status": "requested",
+      "file": "attendant-blue-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-green-tinted": {
+      "status": "requested",
+      "file": "attendant-green-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "seahorse-guard-tinted": {
+      "status": "requested",
+      "file": "seahorse-guard-tinted.webp",
+      "size": [
+        240,
+        460
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sea-dragon-tinted": {
+      "status": "requested",
+      "file": "sea-dragon-tinted.webp",
+      "size": [
+        400,
+        160
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sea-spirit-tinted": {
+      "status": "requested",
+      "file": "sea-spirit-tinted.webp",
+      "size": [
+        300,
+        600
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sea-spirit-idle-b-tinted": {
+      "status": "requested",
+      "file": "sea-spirit-idle-b-tinted.webp",
+      "size": [
+        300,
+        600
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sea-spirit-idle-c-tinted": {
+      "status": "requested",
+      "file": "sea-spirit-idle-c-tinted.webp",
+      "size": [
+        300,
+        600
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "jellyfish-tinted": {
+      "status": "requested",
+      "file": "jellyfish-tinted.webp",
+      "size": [
+        180,
+        280
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fish-large-tinted": {
+      "status": "requested",
+      "file": "fish-large-tinted.webp",
+      "size": [
+        700,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fish-school-tinted": {
+      "status": "requested",
+      "file": "fish-school-tinted.webp",
+      "size": [
+        420,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "whale-beached-tinted": {
+      "status": "requested",
+      "file": "whale-beached-tinted.webp",
+      "size": [
+        1800,
+        900
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "whale-mouth-tinted": {
+      "status": "requested",
+      "file": "whale-mouth-tinted.webp",
+      "size": [
+        1600,
+        1200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "whale-tail-tinted": {
+      "status": "requested",
+      "file": "whale-tail-tinted.webp",
+      "size": [
+        700,
+        500
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "whale-side-tinted": {
+      "status": "requested",
+      "file": "whale-side-tinted.webp",
+      "size": [
+        3000,
+        1100
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-ring-tinted": {
+      "status": "requested",
+      "file": "gift-ring-tinted.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-flower-tinted": {
+      "status": "requested",
+      "file": "gift-flower-tinted.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-crown-tinted": {
+      "status": "requested",
+      "file": "gift-crown-tinted.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "gift-gold-tinted": {
+      "status": "requested",
+      "file": "gift-gold-tinted.webp",
+      "size": [
+        96,
+        96
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-star-tinted": {
+      "status": "requested",
+      "file": "keepsake-star-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-sword-tinted": {
+      "status": "requested",
+      "file": "keepsake-sword-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-shell-tinted": {
+      "status": "requested",
+      "file": "keepsake-shell-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-seal-tinted": {
+      "status": "requested",
+      "file": "keepsake-seal-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "keepsake-lamp-tinted": {
+      "status": "requested",
+      "file": "keepsake-lamp-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sword-sinking-tinted": {
+      "status": "requested",
+      "file": "sword-sinking-tinted.webp",
+      "size": [
+        220,
+        520
+      ],
+      "anchor": "centre",
+      "edition": "film"
+    },
+    "aurora-star-tinted": {
+      "status": "requested",
+      "file": "aurora-star-tinted.webp",
+      "size": [
+        64,
+        64
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "armour-helmet-tinted": {
+      "status": "requested",
+      "file": "armour-helmet-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "armour-shield-tinted": {
+      "status": "requested",
+      "file": "armour-shield-tinted.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "tower-window-tinted": {
+      "status": "requested",
+      "file": "tower-window-tinted.webp",
+      "size": [
+        200,
+        260
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "pearl-tinted": {
+      "status": "requested",
+      "file": "pearl-tinted.webp",
+      "size": [
+        64,
+        64
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

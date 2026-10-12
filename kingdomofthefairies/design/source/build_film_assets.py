@@ -102,8 +102,25 @@ TINT_NOTES = {
     'chariot': 'The film\'s fiery chariot: a dark painted car with bat wings and orange-yellow stencilled flames.',
     'scrying': 'A painted stage effect: a glowing eye in drifting teal smoke.',
 }
+TINT_IDS_2 = ['sea-king-throne', 'attendant-pink', 'attendant-blue', 'attendant-green', 'seahorse-guard', 'sea-dragon', 'sea-spirit', 'sea-spirit-idle-b', 'sea-spirit-idle-c', 'jellyfish', 'fish-large', 'fish-school', 'whale-beached', 'whale-mouth', 'whale-tail', 'whale-side', 'gift-ring', 'gift-flower', 'gift-crown', 'gift-gold', 'keepsake-star', 'keepsake-sword', 'keepsake-shell', 'keepsake-seal', 'keepsake-lamp', 'sword-sinking', 'aurora-star', 'armour-helmet', 'armour-shield', 'tower-window', 'pearl']
+TINT_NOTES.update({
+    'sea': 'The film\'s sea court: Neptune is an actor with a white beard, a crown and a trident on a painted shell throne; his attendants and the sea spirit are dancers in pale gowns; the seahorse guard a performer in costume; the dragon and fish painted card props on wires.',
+    'attendant': 'One of Neptune\'s attendants: a dancer in a pale gown with a shell head-dress, one translucent wash.',
+    'seahorse': 'A performer in a seahorse guard\'s costume, a coral red wash.',
+    'jellyfish': 'A painted gauze stage prop, rose wash.',
+    'fish': 'A painted card fish prop, orange wash.',
+    'whale': 'The film\'s whale is a huge painted canvas prop with a hinged jaw: grey photographic paint, a single blue-grey wash.',
+    'gift': 'A theatre prop: card and paste jewels, a yellow wash for gold.',
+    'keepsake': 'A small theatre prop, yellow and one other wash.',
+    'sword': 'A stage sword, grey steel, a yellow wash on the hilt.',
+    'aurora': 'A painted card star on a wand, yellow wash.',
+    'armour': 'A stage armour piece, grey metal, the plume a rose wash.',
+    'tower': 'A painted window in the tower flat, a warm yellow wash in the glass.',
+    'pearl': 'A white paste pearl, no colour.',
+})
 _MAN = json.load(open(MANIFEST))['slots']
 TINT_SLOTS = {aid: (_MAN[aid]['size'][0], _MAN[aid]['size'][1], _MAN[aid]['anchor']) for aid in TINT_IDS if aid in _MAN}
+TINT_SLOTS.update({'sea-king-throne': (600, 620, 'bottom centre'), 'attendant-pink': (220, 420, 'bottom centre'), 'attendant-blue': (220, 420, 'bottom centre'), 'attendant-green': (220, 420, 'bottom centre'), 'seahorse-guard': (240, 460, 'bottom centre'), 'sea-dragon': (400, 160, 'bottom centre'), 'sea-spirit': (300, 600, 'bottom centre'), 'sea-spirit-idle-b': (300, 600, 'bottom centre'), 'sea-spirit-idle-c': (300, 600, 'bottom centre'), 'jellyfish': (180, 280, 'bottom centre'), 'fish-large': (700, 400, 'bottom centre'), 'fish-school': (420, 200, 'bottom centre'), 'whale-beached': (1800, 900, 'bottom centre'), 'whale-mouth': (1600, 1200, 'bottom centre'), 'whale-tail': (700, 500, 'bottom centre'), 'whale-side': (3000, 1100, 'bottom centre'), 'gift-ring': (96, 96, 'bottom centre'), 'gift-flower': (96, 96, 'bottom centre'), 'gift-crown': (96, 96, 'bottom centre'), 'gift-gold': (96, 96, 'bottom centre'), 'keepsake-star': (128, 128, 'bottom centre'), 'keepsake-sword': (128, 128, 'bottom centre'), 'keepsake-shell': (128, 128, 'bottom centre'), 'keepsake-seal': (128, 128, 'bottom centre'), 'keepsake-lamp': (128, 128, 'bottom centre'), 'sword-sinking': (220, 520, 'centre'), 'aurora-star': (64, 64, 'bottom centre'), 'armour-helmet': (128, 128, 'bottom centre'), 'armour-shield': (128, 128, 'bottom centre'), 'tower-window': (200, 260, 'bottom centre'), 'pearl': (64, 64, 'bottom centre')})
 
 # (id, title, w, h, anchor, style, description, replaces)
 GROUPS = [
@@ -225,6 +242,11 @@ GROUPS = [
         (f'{aid}-tinted', f'{aid}, tinted after the film', *TINT_SLOTS[aid], TINTED,
          f'Redraw {aid}.webp (attach it) in the look of the 1903 film (attach references/expanded-world/source-frames/frame-00m26s.jpg, frame-04m54s.jpg and frame-05m51s.jpg). Keep exactly the same character, pose, framing, scale, foot position and canvas, so it lays over the original. {TINT_NOTES.get(aid.split("-idle")[0], TINT_NOTES.get(aid.split("-")[0], ""))}', aid)
         for aid in TINT_IDS
+    ]),
+    ('Tinted alternates, the rest of the film edition', 'Requested 12 October 2026 after the tinted cast arrived: the remaining figures, creatures and props the film edition draws (Neptune\'s court, the sea creatures, the whale, the gifts, keepsakes, armour and sword) are still in the clean first style beside the tinted cast. Same look and rules as F8: a separate <id>-tinted file at exactly the original\'s canvas, pose and placement. The tinted cast look draws them where delivered; the originals stay for the Original look and the other editions.', [
+        (f'{aid}-tinted', f'{aid}, tinted after the film', *TINT_SLOTS[aid], TINTED,
+         f'Redraw {aid}.webp (attach it) in the look of the 1903 film (attach references/expanded-world/source-frames/frame-00m26s.jpg, frame-04m54s.jpg and frame-05m51s.jpg). Keep exactly the same subject, pose, framing, scale, foot position and canvas, so it lays over the original. {TINT_NOTES.get(aid.split("-")[0], "")}', aid)
+        for aid in TINT_IDS_2
     ]),
 ]
 
