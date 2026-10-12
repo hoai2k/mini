@@ -19,18 +19,22 @@ the whole app's look:
   Josefin Sans capitals, double gold frames, a sunburst background and fan,
   diamond beat markers and sliders, stepped hexagon buttons.
 - **Vintage 60s**: cream, mustard, orange and teal in Righteous and Nunito,
-  a striped band, polka dots, rounded cards with offset print shadows.
+  three bold stripes across the top with the back button, title and gear
+  sitting on them as outlined cream badges, polka dots, rounded cards with
+  offset print shadows.
 - **18th Century**: parchment, sepia and burgundy with gilt, IM Fell English
   and EB Garamond in small capitals, double gilt frames and a fleuron rule.
-- **Sci Fi Future**: deep navy with cyan and magenta light, Orbitron and
+- **Robot Future**: deep navy with cyan and magenta light, Orbitron and
   Exo 2, a HUD grid, chamfered panels and neon glow.
 - **French Nouveau**: sage, cream, gold and rose, Italiana and Cormorant
   Garamond, asymmetric organic curves and a whiplash ornament.
-- **Anime**: candy pink and sky blue on white in M PLUS Rounded, bold
+- **Candy**: candy pink and sky blue on white in M PLUS Rounded, bold
   outlines, hard manga-panel shadows, halftone dots and sparkles.
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
+Theme ids stay fixed when a theme is renamed (Robot Future is `scifi`,
+Candy is `anime`), so saved choices and image paths keep working.
 Each theme loads only its own fonts. All eight themes have delivered images.
 The drawings in `app/src/standins.js` remain as loading and error fallbacks;
 the newer themes share one drawing (`themed`), varied by case shape, palette
@@ -139,7 +143,7 @@ favour of the two-button home screen.
   details are in `design/image-deliveries.json`. The four Round 2 Art Deco
   theme images are delivered; their prompts, files and measured anchors are
   in `design/image-deliveries-round-2.json`. Round 3 delivers 24 images across
-  Vintage 60s, 18th Century, Sci Fi Future, French Nouveau, Anime and Steam
+  Vintage 60s, 18th Century, Robot Future, French Nouveau, Candy and Steam
   Punk; prompts, paths and layer geometry are in `design/image-deliveries-round-3.json`.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.

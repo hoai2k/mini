@@ -640,11 +640,50 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --radius: 28px;
   color-scheme: light;
 }
+/* Three bold stripes across the top (the first also fills a phone's status-bar
+   area), with the top bar's controls sitting on them as outlined cream badges. */
+[data-theme="sixties"] {
+  --stripe: 18px;
+  --stripes-top: env(safe-area-inset-top, 0px);
+}
 [data-theme="sixties"] body {
   background:
-    linear-gradient(180deg, #e0622a 0 10px, #e8a13a 10px 20px, #2a8a86 20px 30px, transparent 30px) top / 100% 30px no-repeat,
+    linear-gradient(180deg,
+      #e0622a 0 calc(var(--stripes-top) + var(--stripe)),
+      #e8a13a 0 calc(var(--stripes-top) + 2 * var(--stripe)),
+      #2a8a86 0 calc(var(--stripes-top) + 3 * var(--stripe)),
+      transparent 0) top / 100% calc(var(--stripes-top) + 3 * var(--stripe)) no-repeat,
     radial-gradient(rgba(201, 164, 106, 0.35) 2px, transparent 2.5px) 0 0 / 24px 24px,
     var(--bg);
+}
+/* The 48px bar is centred on the 54px band. */
+[data-theme="sixties"] .screen { padding-top: calc(var(--stripes-top) + 3px); }
+[data-theme="sixties"] .home-gear { top: calc(var(--stripes-top) + 3px); }
+[data-theme="sixties"] .bar { margin-bottom: 14px; }
+[data-theme="sixties"] .bar .icon-btn,
+[data-theme="sixties"] .home-gear {
+  background: #fff8ea;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
+}
+[data-theme="sixties"] .bar .icon-btn:hover,
+[data-theme="sixties"] .home-gear:hover { background: #fff8ea; color: var(--brass); }
+[data-theme="sixties"] .bar .icon-btn:active,
+[data-theme="sixties"] .home-gear:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+[data-theme="sixties"] .bar h2 {
+  justify-self: center;
+  max-width: 100%;
+  padding: 7px 18px 6px;
+  background: #fff8ea;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: clamp(0.95rem, 4.6vw, 1.2rem);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 [data-theme="sixties"] .brand { font-weight: 400; color: #2a8a86; }
 [data-theme="sixties"] .brand em { color: var(--brass); }
@@ -716,7 +755,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="baroque"] .beats li.strong.on { background: var(--red); border-color: var(--red); }
 [data-theme="baroque"] .rec-btn { border-style: double; border-width: 6px; border-color: var(--brass-2); background: var(--panel); }
 
-/* ================================================================ Sci Fi Future
+/* ================================================================ Robot Future (id scifi)
    Deep space navy, cyan and magenta light, a HUD grid, chamfered panels and
    a soft neon glow. */
 
@@ -816,7 +855,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="nouveau"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
 [data-theme="nouveau"] .rec-btn { border-color: var(--brass-2); background: var(--panel); }
 
-/* ================================================================ Anime
+/* ================================================================ Candy (id anime)
    Candy pink and sky blue on white, bold outlines, hard manga-panel
    shadows, halftone dots and sparkles. */
 
