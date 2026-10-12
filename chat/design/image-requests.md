@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-516 delivered, 516 in total.
+516 delivered, 19 requested, 535 in total.
 
 ## Brand
 
@@ -1292,6 +1292,138 @@ Production canvas: 256 x 256. Single standalone harmless cartoon videogame picku
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a round cartoon tree with a short brown trunk. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 Production canvas: 256 x 384. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
+```
+
+### CH-G73 · Block tile
+
+- **File:** `chat/assets/games/blocks-tile.webp`
+- **Size:** 128 x 128, opaque
+- **Used for:** Block Drop: one square cell of a falling piece (the game tints it per piece colour).
+- **Stand-in until delivered:** A drawn bevelled square.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy puzzle-game art, clean shapes, soft highlights. A single square block seen straight on, filling the frame: a WHITE glossy jelly-like cube face with a bevelled rim, a bright highlight in the top left and a soft shadow at the bottom right, so the game can tint it any colour. No outline outside the square.
+```
+
+### CH-G74 · Block Drop backdrop
+
+- **File:** `chat/assets/games/blocks-bg.webp`
+- **Size:** 1080 x 1920, opaque
+- **Used for:** Block Drop: behind the well (an upright phone screen).
+- **Stand-in until delivered:** A drawn gradient.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy puzzle-game art, clean shapes, soft highlights. A calm deep-purple and indigo night sky with soft glowing bokeh dots and faint geometric outlines of falling square blocks, darker in the middle where the playing well sits. No text.
+```
+
+### CH-G75 · Runner sprite sheet
+
+- **File:** `chat/assets/games/temple-runner.png`
+- **Size:** 1536 x 512, transparent
+- **Used for:** Temple Dash: every player's runner seen from behind (the game puts their face on the head and tints the shirt).
+- **Stand-in until delivered:** A drawn runner.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A sprite sheet of six frames side by side, each 256 wide by 512 tall, of the same explorer seen from BEHIND, running away from the camera: frames 1-4 a running cycle, frame 5 jumping with knees up, frame 6 sliding low on one hip. WHITE shirt (so the game can tint it), khaki shorts, brown boots, a backpack. The head is a plain round skin-coloured shape with no hair, hat or features (the game draws the player's face there). Feet at the same baseline in every frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G76 · Stone path
+
+- **File:** `chat/assets/games/temple-path.webp`
+- **Size:** 512 x 1024, opaque
+- **Used for:** Temple Dash: the ancient stone walkway you run along, seen from above.
+- **Stand-in until delivered:** A drawn fill.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of a weathered temple walkway: big sandy-grey flagstones in three lanes with moss in the cracks. Tiles top to bottom. Flat, even lighting.
+```
+
+### CH-G77 · Temple wall
+
+- **File:** `chat/assets/games/temple-wall.webp`
+- **Size:** 512 x 512, opaque
+- **Used for:** Temple Dash: the carved stone edge and walls beside the path.
+- **Stand-in until delivered:** A drawn fill.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A seamlessly tiling texture of mossy carved temple stone blocks with vines and small carved glyphs. Tiles in both directions. Flat, even lighting.
+```
+
+### CH-G78 · Jungle horizon
+
+- **File:** `chat/assets/games/temple-sky.webp`
+- **Size:** 2048 x 512, opaque
+- **Used for:** Temple Dash: the horizon ahead; scrolls sideways when the path turns.
+- **Stand-in until delivered:** A drawn gradient.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A wide panorama of a golden sunset sky over misty jungle treetops with distant temple pyramids and waterfalls; the bottom edge is dark green treetops. Tiles seamlessly left to right.
+```
+
+### CH-G79 · Tree root
+
+- **File:** `chat/assets/games/temple-root.png`
+- **Size:** 512 x 256, transparent
+- **Used for:** Temple Dash: tree root.
+- **Stand-in until delivered:** A drawn shape.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a thick gnarled tree root arching across the stone path, low enough to jump over, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G80 · Low arch
+
+- **File:** `chat/assets/games/temple-arch.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Temple Dash: low arch.
+- **Stand-in until delivered:** A drawn shape.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a low broken stone archway with hanging vines spanning the path, high enough to slide under, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G81 · Fire trap
+
+- **File:** `chat/assets/games/temple-fire.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Temple Dash: fire trap.
+- **Stand-in until delivered:** A drawn shape.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a row of carved stone fire vents with tall orange flames, spanning one lane, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G82 · Gold coin
+
+- **File:** `chat/assets/games/temple-coin.png`
+- **Size:** 128 x 128, transparent
+- **Used for:** Temple Dash: gold coin.
+- **Stand-in until delivered:** A drawn shape.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a shiny gold temple coin with a carved sun on it, seen straight on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G83 · Chasing monkeys
+
+- **File:** `chat/assets/games/temple-monkeys.png`
+- **Size:** 1024 x 512, transparent
+- **Used for:** Temple Dash: chasing monkeys.
+- **Stand-in until delivered:** A drawn shape.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ## 360° worlds
@@ -2601,6 +2733,30 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Only an unoccupied cartoon go-kart drifting around a bend with sparks, rainbow star and banana peel. No driver, no animal, no dog, no person. All three elements neatly contained inside the rounded-square gradient tile.
 ```
 
+### CH-I101 · Block Drop icon
+
+- **File:** `chat/assets/icons/game-blocks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Block Drop card in the game picker.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-I102 · Temple Dash icon
+
+- **File:** `chat/assets/icons/game-temple.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Temple Dash card in the game picker.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ## Theme title screens
 
 A title background and logo for each theme you can pick in Settings > Theme: Teen (the default), Art (mid-century French New Wave cinema posters) and Classical (18th-century French Rococo). The Kid theme keeps the original title art.
@@ -3872,6 +4028,30 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
+### CH-N100 · Block Drop icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-blocks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Block Drop card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-N101 · Temple Dash icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-temple.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Temple Dash card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
 ## Effect and game icons, Classical theme
 
 The Classical theme's icon for every effect and game: 18th-century French Rococo painting in a gilt frame, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
@@ -5065,6 +5245,30 @@ Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha str
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
+```
+
+### CH-R100 · Block Drop icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-blocks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Block Drop card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R101 · Temple Dash icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-temple.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Temple Dash card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -6272,4 +6476,28 @@ Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha str
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
+```
+
+### CH-K101 · Block Drop icon (second set)
+
+- **File:** `chat/assets/icons2/game2-blocks.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Block Drop card in the game picker, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
+### CH-K102 · Temple Dash icon (second set)
+
+- **File:** `chat/assets/icons2/game2-temple.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Temple Dash card in the game picker, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 ```

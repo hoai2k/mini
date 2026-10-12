@@ -11,13 +11,26 @@
 // x4 from 12). A round lasts 60 seconds and gets faster as it goes; three
 // hearts, and three explosions put you out of the round.
 //
-// Everyone plays at the same time on their own field. The owner publishes
-// only { round, seed, startAt } in shared state; every field derives the
-// same spawn sequence from the seed (makeSchedule), so the round is fair and
-// any member can take over as owner. Each player publishes their own
-// { round, score, hearts, play, out } so friends' scores show live and the
-// winner can be named. Players who arrive mid-round watch until the next one.
-// The personal best lives in api.store.
+// Everyone plays on ONE shared field. The owner publishes the round
+// { round, seed, startAt } in shared state; every client derives the same
+// spawn sequence from the seed (makeSchedule), so the same mobs rise in the
+// same holes at the same moment everywhere. Whacks are claims: a player's
+// whack shows on their own screen at once and is broadcast as a 'w' message
+// { r, id, h, t } (round, mob id, hole, ms into the round). The owner referees:
+// it checks each claim against the schedule (the mob is up at that hole at
+// that time, the time is plausible), gathers rival claims on a mob for a
+// moment (HOLD) and gives the mob to the earliest; the points go to the
+// whacker. The owner keeps the tally (score, hearts, combo per player) and the
+// recent outcomes in shared state, so every seat shows the same scores, and
+// anyone who hit the same mob a moment later gets a "Too slow!" puff. A
+// creeper nobody whacks explodes for everyone still in the round: each loses
+// a heart and 10 points (whacking it is worth 20, or 30 while flashing). A
+// villager costs only the player who whacked it. Each player publishes their
+// hammer's spot { hm: [x, y] } in their own state, so everyone's hammer is
+// drawn in their colour. Players who arrive after the first moments of a
+// round watch until the next one; if the owner leaves, the next member
+// inherits the shared tally and goes on refereeing. The personal best lives
+// in api.store.
 //
 // Artwork (whack-field, -zombie, -creeper, -creeper-flash, -villager,
 // -enderman, -explosion, -teleport, -hammer) is used once delivered; until
@@ -51,6 +64,16 @@ const GAP = 260;               // ms a hole stays empty between mobs
 const HOP_GAP = 160;           // ms between an enderman's stops
 const FLASH = 0.45;            // share of a creeper's fuse before it flashes
 const POINTS = { zombie: 10, creeper: 20, creeperLate: 30, enderman: 50, villager: -20, boom: -10 };
+// Refereeing the shared field.
+const HOLD = 150;              // ms the owner waits for rival claims on a mob (others in the round)
+const SETTLE = 300;            // ms after a mob's time is up before the owner settles it (likewise)
+const LAG = 400;               // a claim's time counts as no earlier than this before it reached the owner
+const SKEW = 600;              // a claim may be this far ahead of the owner's clock...
+const STALE = 1500;            // ...or this far behind it
+const PENDING = 2000;          // ms my own claim waits for the owner's verdict
+const KEEP = 40;               // outcomes kept in shared state
+const RATE = 15;               // most claims a player may make in a second
+const COLOR = /^#[0-9a-f]{3,8}$/i;
 
 const FONT = 'ui-rounded, system-ui, sans-serif';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -169,15 +192,116 @@ function validShared(s) {
     && Number.isFinite(s.startAt) && Math.abs(s.startAt - Date.now()) < 864e5;
 }
 
-// A friend's published state for `round`, cleaned up, or null.
-function readState(st, round) {
-  if (!st || typeof st !== 'object' || st.round !== round) return null;
+const int = (v, a, b) => Number.isInteger(v) && v >= a && v <= b;
+
+// The shared round, cleaned up, or null:
+//   { round, seed, startAt, pl: [player], o: [outcome] }
+// player: { id, name, color, score, hearts, combo, hits, best }, in seat order
+//   (the order they joined the round).
+// outcome: { id, seat, t, stop, pts }: mob `id` was whacked by pl[seat] at
+//   round time t at its stop `stop`, for pts points; seat -1: its time ran out
+//   (a creeper exploded, anything else got away).
+// On the wire players are [id, name, color, score, hearts, combo, hits, best]
+// and outcomes [id, seat, t, stop, pts], to keep presence small.
+function readShared(s) {
+  if (!validShared(s)) return null;
+  const pl = [];
+  for (const p of Array.isArray(s.pl) ? s.pl.slice(0, 16) : []) {
+    if (!Array.isArray(p) || typeof p[0] !== 'string' || !p[0] || p[0].length > 64 || pl.some(q => q.id === p[0])) continue;
+    pl.push({
+      id: p[0],
+      name: typeof p[1] === 'string' && p[1] ? p[1].slice(0, 24) : 'Player',
+      color: typeof p[2] === 'string' && COLOR.test(p[2]) ? p[2] : '#ffffff',
+      score: int(p[3], 0, 99999) ? p[3] : 0,
+      hearts: int(p[4], 0, HEARTS) ? p[4] : 0,
+      combo: int(p[5], 0, 9999) ? p[5] : 0,
+      hits: int(p[6], 0, 9999) ? p[6] : 0,
+      best: int(p[7], 0, 9999) ? p[7] : 0,
+    });
+  }
+  const o = [];
+  for (const r of Array.isArray(s.o) ? s.o.slice(-100) : []) {
+    if (!Array.isArray(r) || !int(r[0], 0, 9999) || !int(r[1], -1, pl.length - 1) || !int(r[2], -READY, DURATION + 5000)
+      || !int(r[3], 0, 9) || !int(r[4], -1000, 1000)) continue;
+    o.push({ id: r[0], seat: r[1], t: r[2], stop: r[3], pts: r[4] });
+  }
+  return { round: s.round, seed: s.seed, startAt: s.startAt, pl, o };
+}
+function packShared(S) {
   return {
-    score: Number.isFinite(st.score) ? clamp(Math.round(st.score), 0, 99999) : 0,
-    hearts: Number.isFinite(st.hearts) ? clamp(Math.round(st.hearts), 0, HEARTS) : 0,
-    play: st.play === true,
-    out: st.out === true,
+    round: S.round, seed: S.seed, startAt: S.startAt,
+    pl: S.pl.map(p => [p.id, p.name, p.color, p.score, p.hearts, p.combo, p.hits, p.best]),
+    o: S.o.slice(-KEEP).map(r => [r.id, r.seat, Math.round(r.t), r.stop, r.pts]),
   };
+}
+
+// A new player's line in the tally.
+function newPlayer(p) {
+  return {
+    id: String(p.id).slice(0, 64),
+    name: typeof p.name === 'string' && p.name ? p.name.slice(0, 24) : 'Player',
+    color: typeof p.color === 'string' && COLOR.test(p.color) ? p.color : '#ffffff',
+    score: 0, hearts: HEARTS, combo: 0, hits: 0, best: 0,
+  };
+}
+// The tally line after a player whacks a mob of `kind` (late: a flashing
+// creeper), and the points it shows.
+function scoreHit(p, kind, late = false) {
+  if (kind === 'villager') return { p: { ...p, combo: 0, score: Math.max(0, p.score + POINTS.villager) }, pts: POINTS.villager };
+  const combo = p.combo + 1;
+  const pts = pointsFor(kind, combo, late);
+  return { p: { ...p, combo, hits: p.hits + 1, best: Math.max(p.best, combo), score: Math.min(99999, p.score + pts) }, pts };
+}
+// A whack at an empty hole breaks the combo.
+const scoreMiss = p => ({ ...p, combo: 0 });
+// A zombie got away: everyone's combo breaks.
+const scoreEscape = p => (p.hearts > 0 ? { ...p, combo: 0 } : p);
+// A creeper exploded: everyone still in loses a heart, 10 points and the combo.
+const scoreBoom = p => (p.hearts > 0 ? { ...p, hearts: p.hearts - 1, combo: 0, score: Math.max(0, p.score + POINTS.boom) } : p);
+
+// The stop of `ev` that is up at `hole` (and can be hit) at round time t, or -1.
+function stopUpAt(ev, hole, t) {
+  for (let j = 0; j < ev.stops.length; j++) {
+    const s = ev.stops[j];
+    if (s.hole === hole && t >= s.t + 30 && t <= s.t + s.dur) return j;
+  }
+  return -1;
+}
+const mobEnd = ev => { const l = ev.stops[ev.stops.length - 1]; return l.t + l.dur; };
+
+// A whack message cleaned up, or null: { r, id, h, t }; id -1 is an empty hole.
+function readClaim(d) {
+  if (!d || typeof d !== 'object') return null;
+  const { r, id, h, t } = d;
+  if (!int(r, 1, 999999) || !int(id, -1, 9999) || !int(h, 0, HOLES - 1) || !Number.isFinite(t) || t < -READY || t > DURATION + GRACE) return null;
+  return { r, id, h, t: Math.round(t) };
+}
+
+// The owner's verdict on a claim, at the owner's own round time `now`:
+// { ok, miss } for an empty hole, { ok, j, late } for a mob, or { ok: false, why }.
+function judgeClaim(sched, c, now) {
+  if (c.t < 0 || c.t > DURATION || c.t > now + SKEW || c.t < now - STALE) return { ok: false, why: 'time' };
+  if (c.id < 0) return { ok: true, miss: true };
+  const ev = sched[c.id];
+  if (!ev || ev.id !== c.id) return { ok: false, why: 'mob' };
+  const j = stopUpAt(ev, c.h, c.t);
+  if (j < 0) return { ok: false, why: 'not up' };
+  if (ev.kind === 'enderman' && j < ev.stops.length - 1) return { ok: false, why: 'hopping' };
+  const s = ev.stops[j];
+  return { ok: true, j, late: ev.kind === 'creeper' && c.t - s.t > s.dur * FLASH };
+}
+
+// When a claim counts: its own time, but no earlier than LAG before it
+// reached the owner, so a slow (or lying) clock can't jump the queue by much.
+const claimTime = (t, arrived) => Math.max(t, arrived - LAG);
+
+// Of several valid claims on one mob [{ seat, eff }], the winner: the
+// earliest, ties to the lower seat. The same claims give the same winner in
+// any order.
+function pickClaim(list) {
+  let win = null;
+  for (const c of list) if (!win || c.eff < win.eff || (c.eff === win.eff && c.seat < win.seat)) win = c;
+  return win;
 }
 
 // --- stand-in art ------------------------------------------------------------
@@ -473,15 +597,27 @@ export default {
     const spriteOf = name => api.img(`whack-${name}`) || (sprites[name] ||= name === 'hammer' ? standInHammer() : standInMob(name));
     let fieldStandIn = null;
 
-    // My round.
+    // The round as this seat sees it.
     let key = '', round = 0, startAt = 0, sched = [];
-    let rt = new Map();            // event id -> { how, at, stop, hiss }
-    let score = 0, hearts = HEARTS, combo = 0, bestCombo = 0, hits = 0;
+    // Event id -> { how: null | 'hit' | 'boom' | 'gone', at, stop, hiss, by,
+    // final (the owner's verdict is in), pend (my own claim awaits it) }.
+    let rt = new Map();
+    let S = null;                  // the shared round (readShared), this frame
+    let mine = null;               // my line in its tally, or null: watching
     let playing = false;           // I'm in this round (not watching)
     let out = false;               // out of hearts
+    let heartsSeen = HEARTS;
+    const pending = new Map();     // mob id -> { pts, good, at, d }: my claims awaiting a verdict
     let lastCount = 99, announced = '';
-    let published = '';
     let overSig = '';
+    // Refereeing (owner only).
+    let decided = new Set();       // mob ids settled this round
+    const contests = new Map();    // mob id -> { first, list: [{ seat, t, eff, j, late }] }
+    const claimLog = new Map();    // player id -> recent claim times (rate limit)
+    let lastOwner = '';
+    // Other players' hammers: id -> { x, y, tx, ty, swing, hole }.
+    const hams = new Map();
+    let hamSent = '', hamSentAt = 0;
     // Effects, in field pixels.
     let parts = [], texts = [], booms = [];
     let shake = 0, flashT = 0;
@@ -491,18 +627,28 @@ export default {
     let padPrev = { a: false }, padRepeat = 0, padDir = '';
 
     // --- shared round ------------------------------------------------------
-    const sharedNow = () => {
-      const s = api.shared();
-      return validShared(s) ? s : null;
-    };
+    const sharedNow = () => readShared(api.shared());
     const seated = () => api.players().slice(0, MAX_PLAYERS);
     const isSeated = id => seated().some(p => p.id === id);
-
-    function newRound(r) {
-      api.setShared({ round: r, seed: Math.floor(Math.random() * 4294967296), startAt: Date.now() + READY });
+    // The owner publishes a new tally and sees it at once itself.
+    function commit(next) {
+      api.setShared(packShared(next));
+      syncRound();
+      syncOutcomes();
     }
+
+    // A new round: everyone seated now plays it.
+    function newRound(r) {
+      commit({ round: r, seed: Math.floor(Math.random() * 4294967296), startAt: Date.now() + READY, pl: seated().map(newPlayer), o: [] });
+    }
+    // Starts the first round, and seats players who arrive in its first moments.
     function ownerTick() {
-      if (api.isOwner() && !sharedNow()) newRound(1);
+      if (!api.isOwner()) return;
+      const s = sharedNow();
+      if (!s) return newRound(1);
+      if (Date.now() >= s.startAt + LATE) return;
+      const add = seated().filter(p => !s.pl.some(q => q.id === p.id));
+      if (add.length && s.pl.length < MAX_PLAYERS) commit({ ...s, pl: [...s.pl, ...add.map(newPlayer)].slice(0, MAX_PLAYERS) });
     }
     api.on('again', (d, from) => {
       const s = sharedNow();
@@ -520,6 +666,7 @@ export default {
 
     function syncRound() {
       const s = sharedNow();
+      S = s;
       if (!s) return null;
       const k = `${s.round}:${s.seed}:${s.startAt}`;
       if (k !== key) {
@@ -527,28 +674,121 @@ export default {
         round = s.round;
         startAt = s.startAt;
         sched = makeSchedule(s.seed);
-        rt = new Map(sched.map(e => [e.id, { how: null, at: 0, stop: 0, hiss: false }]));
-        score = 0; hearts = HEARTS; combo = 0; bestCombo = 0; hits = 0; out = false;
+        rt = new Map(sched.map(e => [e.id, { how: null, at: 0, stop: 0, hiss: false, by: null, final: false, pend: false }]));
+        pending.clear();
+        contests.clear();
+        decided = new Set();
+        heartsSeen = HEARTS;
         parts = []; texts = []; booms = [];
         lastCount = 99;
-        playing = isSeated(api.me.id) && Date.now() < startAt + LATE;
         overSig = '';
-        publish();
       }
+      mine = s.pl.find(p => p.id === api.me.id) || null;
+      playing = !!mine;
+      out = !!mine && mine.hearts <= 0;
       return s;
-    }
-
-    function publish() {
-      const st = { round, score, hearts, play: playing, out };
-      const sig = JSON.stringify(st);
-      if (sig === published) return;
-      published = sig;
-      api.setState(st);
     }
 
     const roundT = () => Date.now() - startAt;
     const active = () => playing && !out && roundT() >= 0 && roundT() < DURATION;
+    const multi = () => !!S && S.pl.length > 1;
+    const colorOf = c => (typeof c === 'string' && COLOR.test(c) ? c : '#ffffff');
 
+    // My score: the owner's tally (a whack still awaiting its verdict shows
+    // only as a popup, so the score never goes up and back down).
+    const myScore = () => (mine ? mine.score : 0);
+    // My combo, counting my claims still in flight, for the points they show.
+    function myCombo() {
+      let c = mine ? mine.combo : 0;
+      for (const p of pending.values()) c = p.good ? c + 1 : 0;
+      return c;
+    }
+
+    // --- refereeing (owner) -----------------------------------------------
+    // A claim from `from` (me included), as it reaches the owner.
+    function onClaim(d, from) {
+      if (!api.isOwner()) return;
+      const s = syncRound();
+      const c = readClaim(d);
+      if (!s || !c || c.r !== s.round) return;
+      const seat = s.pl.findIndex(p => p.id === from);
+      if (seat < 0 || s.pl[seat].hearts <= 0) return;
+      const now = roundT();
+      const log = (claimLog.get(from) || []).filter(x => now - x < 1000);
+      if (log.length >= RATE) return;
+      log.push(now);
+      claimLog.set(from, log);
+      const v = judgeClaim(sched, c, now);
+      if (!v.ok) return;
+      if (v.miss) {
+        if (s.pl[seat].combo) commit({ ...s, pl: s.pl.map((p, i) => (i === seat ? scoreMiss(p) : p)) });
+        return;
+      }
+      if (decided.has(c.id)) return;
+      const ct = contests.get(c.id) || { first: now, list: [] };
+      if (!ct.list.some(x => x.seat === seat)) ct.list.push({ seat, t: c.t, eff: claimTime(c.t, now), j: v.j, late: v.late });
+      contests.set(c.id, ct);
+      referee();
+    }
+    api.on('w', (d, from) => {
+      onClaim(d, from);
+      // Everyone sees the swing.
+      const c = readClaim(d);
+      if (!c || c.r !== round || !S?.pl.some(p => p.id === from)) return;
+      const hm = hams.get(from) || { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4, swing: -1e9 };
+      if (c.id >= 0 || hm.x < -1e3) {
+        const p = holeXY(c.h);
+        hm.tx = hm.x = p.x;
+        hm.ty = hm.y = p.y - 110 * p.s;
+        hm.snap = performance.now();
+      }
+      hm.swing = performance.now();
+      hams.set(from, hm);
+    });
+
+    // Settles the claims whose moment has passed, and the mobs whose time ran
+    // out, into the shared tally.
+    function referee() {
+      if (!api.isOwner()) return;
+      const s = syncRound();
+      if (!s || roundT() < 0) return;
+      const now = roundT();
+      const hold = multi() ? HOLD : 0, settle = multi() ? SETTLE : 0;
+      let pl = s.pl, o = s.o, changed = false;
+      for (const r of o) decided.add(r.id);
+      for (const [id, ct] of contests) {
+        if (now < ct.first + hold) continue;
+        contests.delete(id);
+        if (decided.has(id)) continue;
+        decided.add(id);
+        const win = pickClaim(ct.list);
+        const res = scoreHit(pl[win.seat], sched[id].kind, win.late);
+        pl = pl.map((p, i) => (i === win.seat ? res.p : p));
+        o = [...o, { id, seat: win.seat, t: win.t, stop: win.j, pts: res.pts }];
+        changed = true;
+      }
+      const here = new Set(api.players().map(p => p.id));
+      for (const ev of sched) {
+        if (ev.stops[0].t > now) break;
+        if (decided.has(ev.id) || contests.has(ev.id)) continue;
+        const end = mobEnd(ev);
+        if (now < end + settle) continue;
+        decided.add(ev.id);
+        // Long gone before I took over: not mine to settle.
+        if (now - end > 3000) continue;
+        if (ev.kind === 'creeper') pl = pl.map(p => (here.has(p.id) ? scoreBoom(p) : p));
+        else if (ev.kind === 'zombie') pl = pl.map(p => (here.has(p.id) ? scoreEscape(p) : p));
+        o = [...o, { id: ev.id, seat: -1, t: end, stop: ev.stops.length - 1, pts: ev.kind === 'creeper' ? POINTS.boom : 0 }];
+        changed = true;
+      }
+      if (changed) commit({ ...s, pl, o });
+    }
+
+    // My whack, sent as a claim (the owner judges its own too).
+    function claim(d) {
+      api.send('w', d);
+      if (api.isOwner()) onClaim(d, api.me.id);
+    }
     // --- layout ------------------------------------------------------------
     function resize() {
       const r = api.el.getBoundingClientRect();
@@ -693,13 +933,51 @@ export default {
         parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - speed * 0.5, s: size * (0.6 + Math.random() * 0.8), c: colors[i % colors.length], life: 0, max: 0.5 + Math.random() * 0.4, g: 2200 });
       }
     }
+    let sayMob = -1;               // the mob my optimistic popups belong to
     function say(x, y, str, color, size = 64) {
-      texts.push({ x, y, str, c: color, life: 0, max: 1.0, size });
+      texts.push({ x, y, str, c: color, life: 0, max: 1.0, size, mob: sayMob });
       if (texts.length > 12) texts.shift();
     }
 
-    function addScore(d) {
-      score = Math.max(0, score + d);
+    // A score popup over a whacked mob, in the whacker's colour once others
+    // share the field (named when it isn't me).
+    function hitFx(ev, j, pts, who, late) {
+      const p = holeXY(ev.stops[j].hole);
+      const top = p.y - MOB * p.s * 0.45;
+      const many = multi();
+      const meHit = !who || who.id === api.me.id;
+      const tint = c => (many ? colorOf(who?.color ?? api.me.color) : c);
+      const tag = many && !meHit ? ` ${who.name.slice(0, 10)}` : '';
+      const combo = meHit ? myCombo() : (who?.combo ?? 0);
+      const mult = pts > 0 ? comboMult(Math.max(1, combo)) : 1;
+      if (ev.kind === 'villager') {
+        api.sfx('honk');
+        say(p.x + 10, top + 90, `${pts}${tag}`, many ? tint() : '#ff8a8a', 60);
+        burst(p.x, top, ['#6b4a2f', '#bd8b72'], 6, 400, 18);
+        return;
+      }
+      if (ev.kind === 'zombie') {
+        api.sfx('bounce'); api.sfx('pop');
+        burst(p.x, top, ['#5f9e48', '#2a9fa3', '#ffffff', '#457a33'], 12);
+        say(p.x, top, `+${pts}${mult > 1 ? ` x${mult}` : ''}${tag}`, tint('#ffffff'));
+      } else if (ev.kind === 'creeper') {
+        api.sfx('pop'); api.sfx('score');
+        burst(p.x, top, ['#6ccf54', '#4fae3e', '#ffffff', '#8fe07a'], 16);
+        say(p.x, top, `+${pts}${late ? ' Phew!' : ''}${mult > 1 ? ` x${mult}` : ''}${tag}`, tint('#9dff7a'));
+      } else {
+        api.sfx('zap'); api.sfx('score');
+        burst(p.x, top, ['#cc5cf5', '#f2c6ff', '#161616', '#8a2be2'], 20, 1100);
+        say(p.x, top, `+${pts} ENDER!${mult > 1 ? ` x${mult}` : ''}${tag}`, tint('#e3a6ff'), 70);
+      }
+      if (meHit && combo >= 4 && combo % 4 === 0) say(p.x, top - 80, `${combo} COMBO!`, '#ffd43b', 54);
+    }
+
+    // Someone else got there first: a grey puff.
+    function tooSlow(hole, str = 'Too slow!') {
+      const p = holeXY(hole);
+      api.sfx('miss');
+      burst(p.x, p.y - 120 * p.s, ['#d9d9d9', '#a8a8a8', '#ffffff'], 10, 420, 26);
+      say(p.x, p.y + 30, str, '#d0d0d8', 50);
     }
 
     // Whack `hole` (0-8). Called by every input and by the test bot.
@@ -713,9 +991,15 @@ export default {
       const at = mobAt(hole, t);
       const top = p.y - MOB * p.s * 0.45;
       if (!at) {
-        combo = 0;
+        // A mob someone else whacked a moment ago: too slow, nothing lost.
+        const gone = sched.find(ev => {
+          const r = rt.get(ev.id);
+          return r.how === 'hit' && r.by && r.by !== api.me.id && ev.stops[r.stop]?.hole === hole && t - r.at < 450;
+        });
+        if (gone) { tooSlow(hole); return; }
         api.sfx('click');
         burst(p.x, p.y - 10, ['#7a5434', '#8b6240', '#5d9b3a'], 6, 500, 16);
+        claim({ r: round, id: -1, h: hole, t });
         return;
       }
       const { ev, j, s } = at;
@@ -725,42 +1009,81 @@ export default {
         say(p.x, top, 'Too quick!', '#e3a6ff', 52);
         return;
       }
+      // Shown at once; the owner's verdict follows.
       r.how = 'hit';
       r.at = t;
       r.stop = j;
-      if (ev.kind === 'villager') {
-        combo = 0;
-        addScore(POINTS.villager);
-        api.sfx('honk');
-        say(p.x + 10, top + 90, `${POINTS.villager}`, '#ff8a8a', 60);
-        burst(p.x, top, ['#6b4a2f', '#bd8b72'], 6, 400, 18);
-      } else {
-        combo++;
-        hits++;
-        bestCombo = Math.max(bestCombo, combo);
-        const late = ev.kind === 'creeper' && t - s.t > s.dur * FLASH;
-        const pts = pointsFor(ev.kind, combo, late);
-        addScore(pts);
-        const mult = comboMult(combo);
-        if (ev.kind === 'zombie') {
-          api.sfx('bounce'); api.sfx('pop');
-          burst(p.x, top, ['#5f9e48', '#2a9fa3', '#ffffff', '#457a33'], 12);
-          say(p.x, top, `+${pts}${mult > 1 ? ` x${mult}` : ''}`, '#ffffff');
-        } else if (ev.kind === 'creeper') {
-          api.sfx('pop'); api.sfx('score');
-          burst(p.x, top, ['#6ccf54', '#4fae3e', '#ffffff', '#8fe07a'], 16);
-          say(p.x, top, `+${pts}${late ? ' Phew!' : ''}${mult > 1 ? ` x${mult}` : ''}`, '#9dff7a');
+      r.by = api.me.id;
+      r.pend = true;
+      const late = ev.kind === 'creeper' && t - s.t > s.dur * FLASH;
+      const good = ev.kind !== 'villager';
+      const pts = good ? pointsFor(ev.kind, myCombo() + 1, late) : POINTS.villager;
+      const d = { r: round, id: ev.id, h: hole, t };
+      pending.set(ev.id, { pts, good, at: performance.now(), d });
+      sayMob = ev.id;
+      hitFx(ev, j, pts, null, late);
+      sayMob = -1;
+      claim(d);
+    }
+
+    // The owner's verdicts: who got each mob, and what the clock settled.
+    function syncOutcomes() {
+      if (!S) return;
+      for (const rec of S.o) {
+        const ev = sched[rec.id], r = rt.get(rec.id);
+        if (!ev || !r || r.final) continue;
+        r.final = true;
+        const mineWas = pending.get(rec.id);
+        pending.delete(rec.id);
+        r.pend = false;
+        const last = ev.stops.length - 1;
+        if (rec.seat >= 0) {
+          const who = S.pl[rec.seat];
+          const j = clamp(rec.stop, 0, last);
+          r.how = 'hit'; r.at = rec.t; r.stop = j; r.by = who.id;
+          if (who.id === api.me.id) {
+            if (!mineWas) hitFx(ev, j, rec.pts, who, false);
+          } else {
+            if (mineWas) {
+              // Someone beat me to it: take back my popup.
+              texts = texts.filter(tx => tx.mob !== rec.id);
+              tooSlow(ev.stops[j].hole);
+            }
+            hitFx(ev, j, rec.pts, who, false);
+          }
         } else {
-          api.sfx('zap'); api.sfx('score');
-          burst(p.x, top, ['#cc5cf5', '#f2c6ff', '#161616', '#8a2be2'], 20, 1100);
-          say(p.x, top, `+${pts} ENDER!${mult > 1 ? ` x${mult}` : ''}`, '#e3a6ff', 70);
+          if (mineWas) {
+            texts = texts.filter(tx => tx.mob !== rec.id);
+            tooSlow(ev.stops[last].hole, 'Too late!');
+          }
+          const was = r.how;
+          r.how = ev.kind === 'creeper' ? 'boom' : 'gone';
+          r.at = rec.t;
+          r.stop = last;
+          if (ev.kind === 'creeper') {
+            if (was !== 'boom') explodeFx(ev.stops[last].hole);
+            if (playing && heartsSeen > 0) {
+              const p = holeXY(ev.stops[last].hole);
+              say(p.x, p.y - 250, `${POINTS.boom}  −♥`, '#ff6b6b', 64);
+            }
+          }
         }
-        if (combo >= 4 && combo % 4 === 0) say(p.x, top - 80, `${combo} COMBO!`, '#ffd43b', 54);
       }
-      publish();
+      // My claims nobody answered (the owner left): let them go.
+      const nowP = performance.now();
+      for (const [id, p] of pending) {
+        if (nowP - p.at < PENDING) continue;
+        pending.delete(id);
+        const r = rt.get(id);
+        if (r) r.pend = false;
+      }
+      const hearts = mine ? mine.hearts : HEARTS;
+      if (playing && hearts === 0 && heartsSeen > 0) api.sfx('lose');
+      heartsSeen = hearts;
     }
 
     // --- the clock: escapes, explosions, hops -----------------------------
+    // Drawn locally on time; the owner's tally follows in syncOutcomes.
     function step(t) {
       for (const ev of sched) {
         if (ev.stops[0].t > t) break;
@@ -781,31 +1104,31 @@ export default {
         r.stop = ev.stops.length - 1;
         if (ev.kind === 'creeper') {
           r.how = 'boom';
-          explode(last.hole);
-        } else {
-          r.how = 'gone';
-          if (ev.kind === 'zombie' && active()) combo = 0;
-        }
+          explodeFx(last.hole);
+        } else r.how = 'gone';
       }
     }
 
-    function explode(hole) {
+    function explodeFx(hole) {
       const p = holeXY(hole);
       booms.push({ x: p.x, y: p.y - 110 * p.s, t: performance.now() });
       api.sfx('bang');
       burst(p.x, p.y - 110 * p.s, ['#ffffff', '#ffe066', '#ff9f43', '#9a9a9a', '#5a5a5a'], 26, 1300, 30);
       shake = reduced ? 4 : 16;
       flashT = reduced ? 0 : 1;
-      if (!active()) return;
-      hearts = Math.max(0, hearts - 1);
-      combo = 0;
-      addScore(POINTS.boom);
-      say(p.x, p.y - 250, `${POINTS.boom}  −♥`, '#ff6b6b', 64);
-      if (hearts === 0) {
-        out = true;
-        api.sfx('lose');
-      }
-      publish();
+    }
+
+    // My hammer's spot, in field pixels, for the others to draw.
+    function publishHammer(now) {
+      if (!playing || now - hamSentAt < 90) return;
+      let x, y;
+      if (ham.free) { const f = toField(ham.x, ham.y); x = f.x; y = f.y; } else { const p = holeXY(ham.hole); x = p.x; y = p.y - 110 * p.s; }
+      const hm = [clamp(Math.round(x / 4) * 4, -400, IMG_W + 400), clamp(Math.round(y / 4) * 4, -400, IMG_H + 400)];
+      const sig = `${round}:${hm}`;
+      if (sig === hamSent) return;
+      hamSent = sig;
+      hamSentAt = now;
+      api.setState({ round, hm });
     }
 
     // --- input -------------------------------------------------------------
@@ -826,8 +1149,8 @@ export default {
         whack(hole);
         ham.x = keep.x; ham.y = keep.y;
       } else if (active()) {
-        combo = 0;
         api.sfx('click');
+        claim({ r: round, id: -1, h: ham.hole, t: roundT() });
       }
       ham.free = true;
     }
@@ -1087,16 +1410,10 @@ export default {
       ctx.setLineDash([]);
     }
 
-    // The hammer, in screen pixels: its head over the point, swinging down
-    // from raised and back.
-    function drawHammer(now) {
-      let px = ham.x, py = ham.y;
-      if (!ham.free) {
-        const h = holeXY(ham.hole), p = toScreen(h.x, h.y - 110 * h.s);
-        px = p.x; py = p.y;
-      }
-      const size = clamp(270 * L.k, 52, 170);
-      const age = now - ham.swing;
+    // A hammer, in screen pixels: its head over the point, swinging down from
+    // raised and back. Other players' hammers are smaller and see-through,
+    // with a ring and a name tag in their colour.
+    function hammerAt(px, py, age, size, alpha = 1, tag = null) {
       const rest = 0.55, strike = -0.15;
       let a = rest;
       if (age < 70) a = lerp(rest, strike, age / 70);
@@ -1104,6 +1421,14 @@ export default {
       const img = spriteOf('hammer');
       const H = 0.28, P = 0.86;
       ctx.save();
+      ctx.globalAlpha = alpha;
+      if (tag) {
+        ctx.strokeStyle = tag.color;
+        ctx.lineWidth = Math.max(3, size * 0.07);
+        ctx.beginPath();
+        ctx.ellipse(px, py + size * 0.05, size * 0.42, size * 0.2, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.translate(px - H * size, py - H * size);
       ctx.translate(P * size, P * size);
       ctx.rotate(a);
@@ -1111,12 +1436,23 @@ export default {
       ctx.imageSmoothingEnabled = !!api.img('whack-hammer');
       ctx.drawImage(img, 0, 0, size, size);
       ctx.restore();
+      if (tag) {
+        const fs = clamp(size * 0.3, 10, 14);
+        ctx.font = `800 ${fs}px ${FONT}`;
+        const tw = ctx.measureText(tag.name).width + fs;
+        const tx = clamp(px - tw / 2, 2, w - tw - 2), ty = py - size * 0.62;
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = tag.color;
+        ctx.fillRect(tx, ty - fs * 0.75, tw, fs * 1.5);
+        ctx.globalAlpha = 1;
+        txt(tag.name, tx + tw / 2, ty, fs, '#fff', 'center', 800);
+      }
       if (age < 160) {
         // A little impact star.
         const u = age / 160;
         ctx.save();
-        ctx.globalAlpha = 1 - u;
-        ctx.fillStyle = '#fff';
+        ctx.globalAlpha = (1 - u) * alpha;
+        ctx.fillStyle = tag ? tag.color : '#fff';
         const r = size * (0.15 + u * 0.25);
         for (let i = 0; i < 4; i++) {
           const ang = (i * Math.PI) / 2 + Math.PI / 4;
@@ -1125,7 +1461,49 @@ export default {
         ctx.restore();
       }
     }
+    const hammerSize = () => clamp(270 * L.k, 52, 170);
 
+    function drawHammer(now) {
+      let px = ham.x, py = ham.y;
+      if (!ham.free) {
+        const h = holeXY(ham.hole), p = toScreen(h.x, h.y - 110 * h.s);
+        px = p.x; py = p.y;
+      }
+      hammerAt(px, py, now - ham.swing, hammerSize());
+    }
+
+    // The other players' hammers, eased toward where they last said they were.
+    function otherHammers() {
+      if (!S) return [];
+      const here = new Map(api.players().map(p => [p.id, p]));
+      const list = [];
+      for (const p of S.pl) {
+        const live = here.get(p.id);
+        if (p.id === api.me.id || !live) continue;
+        const st = live.state;
+        const hm = hams.get(p.id) || { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4, swing: -1e9 };
+        if (st && st.round === round && Array.isArray(st.hm) && Number.isFinite(st.hm[0]) && Number.isFinite(st.hm[1])
+          && !(performance.now() - (hm.snap || 0) < 300)) {
+          hm.tx = clamp(st.hm[0], -400, IMG_W + 400);
+          hm.ty = clamp(st.hm[1], -400, IMG_H + 400);
+          if (hm.x < -1e3) { hm.x = hm.tx; hm.y = hm.ty; }
+        }
+        hams.set(p.id, hm);
+        if (hm.x < -1e3) continue;
+        list.push({ id: p.id, name: p.name.slice(0, 10), color: colorOf(p.color), hm });
+      }
+      return list;
+    }
+    function drawOthers(now, dt) {
+      const size = hammerSize() * 0.62;
+      for (const o of otherHammers()) {
+        const k = 1 - Math.exp(-dt * 14);
+        o.hm.x += (o.hm.tx - o.hm.x) * k;
+        o.hm.y += (o.hm.ty - o.hm.y) * k;
+        const q = toScreen(o.hm.x, o.hm.y);
+        hammerAt(q.x, q.y, now - o.hm.swing, size, 0.72, o);
+      }
+    }
     // --- hud -----------------------------------------------------------------
     function txt(str, x, y, size, color = '#fff', align = 'left', weight = 900) {
       ctx.font = `${weight} ${size}px ${FONT}`;
@@ -1147,11 +1525,13 @@ export default {
       }
     }
 
+    // Everyone else in the round's tally (players who left keep their score).
     function others(s) {
-      return seated().filter(p => !p.me).map(p => ({ p, st: readState(p.state, s.round) })).filter(o => o.st && o.st.play);
+      return s.pl.filter(p => p.id !== api.me.id);
     }
 
     function drawHud(s, t) {
+      const score = myScore(), combo = myCombo(), hearts = mine ? mine.hearts : HEARTS;
       const unit = Math.min(w, h);
       const row1 = clamp(h * 0.09, 40, 58);
       const fs = clamp(unit * 0.075, 20, 34);
@@ -1186,8 +1566,8 @@ export default {
       // Friends' live scores.
       const list = others(s);
       if (seated().length > 1) {
-        const chips = [{ name: 'You', color: api.me.color, score, out, me: true },
-          ...list.map(o => ({ name: o.p.name, color: o.p.color, score: o.st.score, out: o.st.out }))]
+        const chips = [...(playing ? [{ name: 'You', color: api.me.color, score, out, me: true }] : []),
+          ...list.map(o => ({ name: o.name, color: o.color, score: o.score, out: o.hearts <= 0 }))]
           .sort((a, b) => b.score - a.score).slice(0, 6);
         const cf = clamp(unit * 0.034, 11, 14);
         let x = 10;
@@ -1236,15 +1616,15 @@ export default {
       }
       if (t < DURATION) {
         if (!playing) banner('Watching', 'You join the next round', h - 50);
-        else if (out) banner('Out of hearts!', `${score} points · waiting for the round to end`, h - 56);
+        else if (out) banner('Out of hearts!', `${myScore()} points · waiting for the round to end`, h - 56);
       } else if (over.hidden) banner("Time's up!", null, midY);
     }
 
     // --- results -----------------------------------------------------------
     function results(s) {
       const rows = [];
-      if (playing) rows.push({ name: 'You', color: api.me.color, score, me: true });
-      for (const o of others(s)) rows.push({ name: o.p.name, color: o.p.color, score: o.st.score, me: false });
+      if (playing) rows.push({ name: 'You', color: api.me.color, score: myScore(), me: true });
+      for (const o of others(s)) rows.push({ name: o.name, color: o.color, score: o.score, me: false });
       rows.sort((a, b) => b.score - a.score);
       return rows;
     }
@@ -1254,6 +1634,7 @@ export default {
       over.hidden = !show;
       if (!show) return;
       const rows = results(s);
+      const score = myScore();
       const settled = t >= DURATION + GRACE;
       const canAgain = t >= DURATION + GRACE + AGAIN_AFTER && isSeated(api.me.id);
       const top = rows.length ? rows[0].score : 0;
@@ -1299,6 +1680,7 @@ export default {
       announced = key;
       if (!playing) return;
       const rows = results(s);
+      const score = myScore();
       const newBest = score > best;
       if (newBest) { best = score; api.store.set('best', best); }
       if (rows.length > 1) api.sfx(rows[0].me || rows[0].score === score ? 'win' : 'lose');
@@ -1312,7 +1694,9 @@ export default {
       const dt = Math.min(0.05, (now - lastFrame) / 1000);
       lastFrame = now;
       if (now - lastOwnerTick > 1000) { lastOwnerTick = now; ownerTick(); }
+      referee();
       const s = syncRound();
+      syncOutcomes();
       buildBg();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(bg, 0, 0);
@@ -1348,9 +1732,13 @@ export default {
         ctx.fillRect(0, 0, w, h);
         flashT = Math.max(0, flashT - dt * 6);
       }
+      publishHammer(now);
       drawHud(s, t);
       drawCenter(t);
-      if (over.hidden) drawHammer(now);
+      if (over.hidden) {
+        drawOthers(now, dt);
+        drawHammer(now);
+      }
       updateOver(s, t);
       announce(s, t);
       raf = requestAnimationFrame(frame);
@@ -1359,6 +1747,8 @@ export default {
     resize();
     ownerTick();
     raf = requestAnimationFrame(frame);
+    // A hidden tab gets no frames; the owner keeps refereeing all the same.
+    const refTimer = setInterval(() => { if (document.hidden) { referee(); syncRound(); syncOutcomes(); } }, 100);
 
     // A test bot's move (js/rookie.js): now and then whack a mob that's up,
     // usually the right kind, sometimes a villager or an empty hole.
@@ -1393,9 +1783,14 @@ export default {
           if (m) up.push({ hole, kind: m.ev.kind, id: m.ev.id, stop: m.j, stops: m.ev.stops.length, since: t - m.s.t, left: m.s.t + m.s.dur - t, screen: toScreen(holeXY(hole).x, holeXY(hole).y - 110 * holeXY(hole).s) });
         }
         return {
-          round, startAt, t, score, hearts, combo, hits, playing, out,
+          round, startAt, t, playing, out,
+          score: myScore(), scoreAuth: mine ? mine.score : 0, hearts: mine ? mine.hearts : HEARTS, combo: myCombo(), hits: mine ? mine.hits : 0,
+          owner: api.isOwner(),
+          tally: S ? S.pl.map(p => ({ id: p.id, name: p.name, score: p.score, hearts: p.hearts, hits: p.hits })) : [],
+          pending: pending.size,
+          hammers: over.hidden ? otherHammers().map(o => ({ id: o.id, name: o.name, ...toScreen(o.hm.x, o.hm.y) })) : [],
           sched: sched.map(e => `${e.kind[0]}${e.stops.map(s => `${s.hole}@${s.t}`).join('>')}`).join(','),
-          outcomes: [...rt.entries()].filter(([, r]) => r.how).map(([id, r]) => ({ id, how: r.how, kind: sched[id]?.kind })),
+          outcomes: [...rt.entries()].filter(([, r]) => r.how).map(([id, r]) => ({ id, how: r.how, kind: sched[id]?.kind, by: r.by, final: r.final })),
           up,
           over: !over.hidden,
           winner: over.dataset.winner || '',
@@ -1406,6 +1801,7 @@ export default {
       destroy() {
         destroyed = true;
         cancelAnimationFrame(raf);
+        clearInterval(refTimer);
         ro.disconnect();
         window.removeEventListener('keydown', onKey);
         canvas.removeEventListener('pointerdown', onDown);
@@ -1413,6 +1809,10 @@ export default {
       },
       onChange() {
         ownerTick();
+        // A new owner: send them my claims still waiting for a verdict.
+        const o = api.owner();
+        if (lastOwner && o !== lastOwner) for (const p of pending.values()) claim(p.d);
+        lastOwner = o;
         const multi = api.players().length > 1;
         const want = clamp(h * 0.09, 40, 58) + (multi ? clamp(h * 0.045, 20, 26) : 0);
         if (want !== hudH) resize();
@@ -1441,4 +1841,8 @@ export default {
 };
 
 // Exposed for tests.
-export const _logic = { makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readState, HOLE_ROWS, holeXY, REGION, IMG_W, IMG_H, DURATION, RISE, POINTS };
+export const _logic = {
+  makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readShared, packShared, newPlayer,
+  scoreHit, scoreMiss, scoreEscape, scoreBoom, stopUpAt, mobEnd, readClaim, judgeClaim, claimTime, pickClaim,
+  HOLE_ROWS, holeXY, REGION, IMG_W, IMG_H, DURATION, RISE, POINTS, HEARTS, LAG, SKEW, STALE,
+};

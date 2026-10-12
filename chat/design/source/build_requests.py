@@ -1053,6 +1053,68 @@ for n, (gid, name, subj) in enumerate(NEW_GAMES_2):
         "The Teen icon, then the Kid icon, then the emoji.")
 
 
+# --- Block Drop (falling blocks) ----------------------------------------------
+BLOCKS = "Bright glossy puzzle-game art, clean shapes, soft highlights. "
+req("games", "CH-G73", "blocks-tile", "Block tile", "128 x 128",
+    "Block Drop: one square cell of a falling piece (the game tints it per piece colour).",
+    BLOCKS + "A single square block seen straight on, filling the frame: a WHITE glossy jelly-like cube face "
+    "with a bevelled rim, a bright highlight in the top left and a soft shadow at the bottom right, so the "
+    "game can tint it any colour. No outline outside the square.", "A drawn bevelled square.", alpha=False)
+req("games", "CH-G74", "blocks-bg", "Block Drop backdrop", "1080 x 1920",
+    "Block Drop: behind the well (an upright phone screen).",
+    BLOCKS + "A calm deep-purple and indigo night sky with soft glowing bokeh dots and faint geometric "
+    "outlines of falling square blocks, darker in the middle where the playing well sits. No text.",
+    "A drawn gradient.", alpha=False)
+
+# --- Temple Dash (endless temple runner) --------------------------------------
+TEMPLE = ("Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. ")
+req("games", "CH-G75", "temple-runner", "Runner sprite sheet", "1536 x 512",
+    "Temple Dash: every player's runner seen from behind (the game puts their face on the head and tints the shirt).",
+    TEMPLE + "A sprite sheet of six frames side by side, each 256 wide by 512 tall, of the same explorer seen "
+    "from BEHIND, running away from the camera: frames 1-4 a running cycle, frame 5 jumping with knees up, "
+    "frame 6 sliding low on one hip. WHITE shirt (so the game can tint it), khaki shorts, brown boots, "
+    "a backpack. The head is a plain round skin-coloured shape with no hair, hat or features (the game "
+    "draws the player's face there). Feet at the same baseline in every frame.", "A drawn runner.")
+req("games", "CH-G76", "temple-path", "Stone path", "512 x 1024",
+    "Temple Dash: the ancient stone walkway you run along, seen from above.",
+    "A seamlessly tiling top-down texture of a weathered temple walkway: big sandy-grey flagstones in three "
+    "lanes with moss in the cracks. Tiles top to bottom. Flat, even lighting.", "A drawn fill.", alpha=False)
+req("games", "CH-G77", "temple-wall", "Temple wall", "512 x 512",
+    "Temple Dash: the carved stone edge and walls beside the path.",
+    TEMPLE + "A seamlessly tiling texture of mossy carved temple stone blocks with vines and small carved "
+    "glyphs. Tiles in both directions. Flat, even lighting.", "A drawn fill.", alpha=False)
+req("games", "CH-G78", "temple-sky", "Jungle horizon", "2048 x 512",
+    "Temple Dash: the horizon ahead; scrolls sideways when the path turns.",
+    TEMPLE + "A wide panorama of a golden sunset sky over misty jungle treetops with distant temple "
+    "pyramids and waterfalls; the bottom edge is dark green treetops. Tiles seamlessly left to right.",
+    "A drawn gradient.", alpha=False)
+for rid, (asset, title, desc, size) in zip(["CH-G79", "CH-G80", "CH-G81", "CH-G82", "CH-G83"], [
+    ("temple-root", "Tree root", "a thick gnarled tree root arching across the stone path, low enough to jump over, seen from in front", "512 x 256"),
+    ("temple-arch", "Low arch", "a low broken stone archway with hanging vines spanning the path, high enough to slide under, seen from in front", "512 x 512"),
+    ("temple-fire", "Fire trap", "a row of carved stone fire vents with tall orange flames, spanning one lane, seen from in front", "256 x 256"),
+    ("temple-coin", "Gold coin", "a shiny gold temple coin with a carved sun on it, seen straight on", "128 x 128"),
+    ("temple-monkeys", "Chasing monkeys", "three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame", "1024 x 512"),
+]):
+    req("games", rid, asset, title, size, f"Temple Dash: {title.lower()}.", TEMPLE + desc + ".", "A drawn shape.")
+
+NEW_GAMES_3 = [
+    ("blocks", "Block Drop", "colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears"),
+    ("temple", "Temple Dash", "an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind"),
+]
+for n, (gid, name, subj) in enumerate(NEW_GAMES_3):
+    req("icons", f"CH-I{101 + n}", f"game-{gid}", f"{name} icon", "256 x 256",
+        f"The {name} card in the game picker.", f"Icon of {subj}.", "An emoji.")
+    req("icons2", f"CH-K{101 + n}", f"game2-{gid}", f"{name} icon (second set)", "256 x 256",
+        f"The {name} card in the game picker, replacing the first-set icon.",
+        f"Icon: a teen playing it: {subj}.", "The first-set icon, or the emoji.")
+    req("icons-art", f"CH-N{100 + n}", f"art-game-{gid}", f"{name} icon (Art theme)", "256 x 256",
+        f"The {name} card in the game picker in the Art theme.", f"Icon: {subj}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+    req("icons-classic", f"CH-R{100 + n}", f"classic-game-{gid}", f"{name} icon (Classical theme)", "256 x 256",
+        f"The {name} card in the game picker in the Classical theme.", f"Icon: {subj}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",
