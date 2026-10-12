@@ -2058,5 +2058,185 @@ export const ASSET_LIST = {
   "ios-app-icon": {
     "file": "assets/ui/ios-app-icon.png",
     "status": "delivered"
+  },
+  "burger-bacon": {
+    "file": "assets/games/burger-bacon.png",
+    "status": "requested"
+  },
+  "burger-ketchup": {
+    "file": "assets/games/burger-ketchup.png",
+    "status": "requested"
+  },
+  "burger-pickles": {
+    "file": "assets/games/burger-pickles.png",
+    "status": "requested"
+  },
+  "burger-onion": {
+    "file": "assets/games/burger-onion.png",
+    "status": "requested"
+  },
+  "burger-egg": {
+    "file": "assets/games/burger-egg.png",
+    "status": "requested"
+  },
+  "baseball-field": {
+    "file": "assets/games/baseball-field.webp",
+    "status": "requested"
+  },
+  "baseball-ball": {
+    "file": "assets/games/baseball-ball.png",
+    "status": "requested"
+  },
+  "baseball-bat": {
+    "file": "assets/games/baseball-bat.png",
+    "status": "requested"
+  },
+  "baseball-pitcher-windup": {
+    "file": "assets/games/baseball-pitcher-windup.png",
+    "status": "requested"
+  },
+  "baseball-pitcher-throw": {
+    "file": "assets/games/baseball-pitcher-throw.png",
+    "status": "requested"
+  },
+  "whack-field": {
+    "file": "assets/games/whack-field.webp",
+    "status": "requested"
+  },
+  "whack-zombie": {
+    "file": "assets/games/whack-zombie.png",
+    "status": "requested"
+  },
+  "whack-creeper": {
+    "file": "assets/games/whack-creeper.png",
+    "status": "requested"
+  },
+  "whack-creeper-flash": {
+    "file": "assets/games/whack-creeper-flash.png",
+    "status": "requested"
+  },
+  "whack-villager": {
+    "file": "assets/games/whack-villager.png",
+    "status": "requested"
+  },
+  "whack-enderman": {
+    "file": "assets/games/whack-enderman.png",
+    "status": "requested"
+  },
+  "whack-explosion": {
+    "file": "assets/games/whack-explosion.png",
+    "status": "requested"
+  },
+  "whack-teleport": {
+    "file": "assets/games/whack-teleport.png",
+    "status": "requested"
+  },
+  "whack-hammer": {
+    "file": "assets/games/whack-hammer.png",
+    "status": "requested"
+  },
+  "kart-back": {
+    "file": "assets/games/kart-back.png",
+    "status": "requested"
+  },
+  "kart-left": {
+    "file": "assets/games/kart-left.png",
+    "status": "requested"
+  },
+  "kart-right": {
+    "file": "assets/games/kart-right.png",
+    "status": "requested"
+  },
+  "kart-sky": {
+    "file": "assets/games/kart-sky.webp",
+    "status": "requested"
+  },
+  "kart-grass": {
+    "file": "assets/games/kart-grass.webp",
+    "status": "requested"
+  },
+  "kart-road": {
+    "file": "assets/games/kart-road.webp",
+    "status": "requested"
+  },
+  "kart-itembox": {
+    "file": "assets/games/kart-itembox.png",
+    "status": "requested"
+  },
+  "kart-boost": {
+    "file": "assets/games/kart-boost.png",
+    "status": "requested"
+  },
+  "kart-banana": {
+    "file": "assets/games/kart-banana.png",
+    "status": "requested"
+  },
+  "kart-bomb": {
+    "file": "assets/games/kart-bomb.png",
+    "status": "requested"
+  },
+  "kart-star": {
+    "file": "assets/games/kart-star.png",
+    "status": "requested"
+  },
+  "kart-parts": {
+    "file": "assets/games/kart-parts.png",
+    "status": "requested"
+  },
+  "kart-tyres": {
+    "file": "assets/games/kart-tyres.png",
+    "status": "requested"
+  },
+  "kart-tree": {
+    "file": "assets/games/kart-tree.png",
+    "status": "requested"
+  },
+  "game-baseball": {
+    "file": "assets/icons/game-baseball.png",
+    "status": "requested"
+  },
+  "game2-baseball": {
+    "file": "assets/icons2/game2-baseball.png",
+    "status": "requested"
+  },
+  "art-game-baseball": {
+    "file": "assets/icons-art/art-game-baseball.png",
+    "status": "requested"
+  },
+  "classic-game-baseball": {
+    "file": "assets/icons-classic/classic-game-baseball.png",
+    "status": "requested"
+  },
+  "game-whack": {
+    "file": "assets/icons/game-whack.png",
+    "status": "requested"
+  },
+  "game2-whack": {
+    "file": "assets/icons2/game2-whack.png",
+    "status": "requested"
+  },
+  "art-game-whack": {
+    "file": "assets/icons-art/art-game-whack.png",
+    "status": "requested"
+  },
+  "classic-game-whack": {
+    "file": "assets/icons-classic/classic-game-whack.png",
+    "status": "requested"
+  },
+  "game-kart": {
+    "file": "assets/icons/game-kart.png",
+    "status": "requested"
+  },
+  "game2-kart": {
+    "file": "assets/icons2/game2-kart.png",
+    "status": "requested"
+  },
+  "art-game-kart": {
+    "file": "assets/icons-art/art-game-kart.png",
+    "status": "requested"
+  },
+  "classic-game-kart": {
+    "file": "assets/icons-classic/classic-game-kart.png",
+    "status": "requested"
   }
 };

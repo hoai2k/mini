@@ -926,6 +926,133 @@ req("ui", "CH-U04", "ios-app-icon", "iOS app icon", "1024 x 1024",
     "The 512 px web icon scaled up onto an aqua square.", alpha=False, ext="png")
 
 
+# --- Burger Stack: more toppings ---------------------------------------------
+for rid, (asset, title, desc) in zip(["CH-G40", "CH-G41", "CH-G42", "CH-G43", "CH-G44"], [
+    ("burger-bacon", "Bacon", "two crispy wavy strips of bacon side by side"),
+    ("burger-ketchup", "Ketchup", "a glossy red zigzag squiggle of ketchup lying flat, like a sauce layer"),
+    ("burger-pickles", "Pickles", "four round green pickle slices in a row, slightly overlapping"),
+    ("burger-onion", "Onion", "three white-and-purple onion rings in a row, slightly overlapping"),
+    ("burger-egg", "Fried egg", "a fried egg with a round yellow yolk and wavy white edges"),
+]):
+    req("games", rid, asset, title, "512 x 192",
+        "Burger Stack: a falling topping to catch, then a layer of the burger.",
+        f"Side view of {desc}, the same flat burger-layer shape and width as the other toppings, so it stacks.",
+        "A drawn shape.")
+
+# --- Baseball ----------------------------------------------------------------
+req("games", "CH-G45", "baseball-field", "Baseball field", "1600 x 1000",
+    "Baseball: the view from just behind home plate, out over the diamond.",
+    "A sunny cartoon baseball stadium seen from just behind and above home plate: the dirt "
+    "diamond and pitcher's mound in the middle distance, bright green outfield with mowed stripes, "
+    "a curved outfield wall with distance numbers, colourful stands full of tiny fans, and blue sky. "
+    "Leave home plate and the pitcher's mound empty (the game draws the players).",
+    "A canvas-drawn field.", alpha=False)
+req("games", "CH-G46", "baseball-ball", "Baseball", "256 x 256",
+    "Baseball: the ball.", "A white baseball with red stitching, slightly tilted.", "A drawn ball.")
+req("games", "CH-G47", "baseball-bat", "Bat", "512 x 128",
+    "Baseball: the bat the player swings.", "A wooden baseball bat lying horizontally, handle on the left, glossy honey-coloured wood with a dark grip tape handle.",
+    "A drawn bat.")
+req("games", "CH-G48", "baseball-pitcher-windup", "Pitcher winding up", "512 x 768",
+    "Baseball: the pitcher on the mound before the throw.",
+    "A cartoon baseball pitcher in a white and red uniform and cap, seen from the front (facing the "
+    "batter), in the wind-up: one knee raised high, glove and ball held together at the chest. Full body, feet at the bottom.",
+    "A drawn figure.")
+req("games", "CH-G49", "baseball-pitcher-throw", "Pitcher throwing", "512 x 768",
+    "Baseball: the pitcher releasing the ball.",
+    "The same cartoon pitcher (white and red uniform and cap), seen from the front, in the follow-through "
+    "just after throwing: throwing arm swung down across the body, leaning forward, front leg planted. Full body, feet at the bottom. No ball in the hand.",
+    "A drawn figure.")
+
+# --- Mob Whack (blocky whack-a-mole) ---------------------------------------------
+BLOCKY = ("Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky "
+          "16-pixel textures on each face, flat lighting with simple shading per face. ")
+req("games", "CH-G50", "whack-field", "Whack field", "1600 x 1200",
+    "Mob Whack: the field the mobs pop up in.",
+    BLOCKY + "A grassy blocky meadow seen slightly from above at dusk: grass blocks with dirt sides, a "
+    "few blocky trees and flowers at the edges, and a 3 by 3 grid of nine round dark holes dug into the "
+    "grass, evenly spaced across the middle of the picture. No creatures.",
+    "A canvas-drawn field.", alpha=False)
+for rid, (asset, title, desc) in zip(["CH-G51", "CH-G52", "CH-G53", "CH-G54", "CH-G55"], [
+    ("whack-zombie", "Zombie", "a blocky zombie: green square head with dark hollow eyes, cyan shirt, arms stretched forward"),
+    ("whack-creeper", "Creeper", "a blocky creeper: tall green mottled body with four short legs and the famous sad dark face"),
+    ("whack-creeper-flash", "Creeper about to explode", "the same blocky creeper, swollen and flashing white, about to explode"),
+    ("whack-villager", "Villager", "a blocky villager: big nose, single unibrow, brown robe with hands folded in the sleeves, looking worried"),
+    ("whack-enderman", "Enderman", "a blocky enderman: very tall thin black body, long arms, glowing purple eyes"),
+]):
+    req("games", rid, asset, title, "512 x 512",
+        f"Mob Whack: {title.lower()} popping up out of a hole.",
+        BLOCKY + f"{desc}, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred.",
+        "A drawn blocky figure.")
+req("games", "CH-G56", "whack-explosion", "Explosion", "512 x 512",
+    "Mob Whack: a creeper going off.",
+    BLOCKY + "A chunky pixel explosion: a burst of white, yellow and orange cube particles and grey smoke puffs.",
+    "Drawn squares.")
+req("games", "CH-G57", "whack-teleport", "Teleport sparkles", "256 x 256",
+    "Mob Whack: where an enderman vanishes and reappears.",
+    BLOCKY + "A cloud of small purple and magenta square particles, swirling.", "Drawn squares.")
+req("games", "CH-G58", "whack-hammer", "Hammer", "512 x 512",
+    "Mob Whack: the hammer that follows your finger and swings.",
+    BLOCKY + "A blocky iron hammer (pixel-art tool) held diagonally, handle at the bottom right, head at the top left.",
+    "A drawn hammer.")
+
+# --- Kart Dash (kart racing) ---------------------------------------------------
+KART = "Bright glossy cartoon racing-game art, chunky shapes, saturated colours. "
+for rid, (asset, title, view) in zip(["CH-G59", "CH-G60", "CH-G61"], [
+    ("kart-back", "Kart from behind", "seen straight from behind, driving away"),
+    ("kart-left", "Kart turning left", "seen from behind and slightly to the side, leaning into a left turn, front wheels turned left"),
+    ("kart-right", "Kart turning right", "seen from behind and slightly to the side, leaning into a right turn, front wheels turned right"),
+]):
+    req("games", rid, asset, title, "512 x 512",
+        "Kart Dash: every player's kart (the game tints it in their colour and puts their face in the seat).",
+        KART + f"A go-kart {view}: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, "
+        "a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). "
+        "Low and wide, filling the frame.",
+        "A drawn kart.")
+req("games", "CH-G62", "kart-sky", "Sky and hills", "2048 x 512",
+    "Kart Dash: the horizon behind the track; scrolls sideways as you turn.",
+    KART + "A wide panorama of a bright blue sky with puffy clouds over rolling green hills and a few "
+    "distant mountains; the bottom edge is the horizon line in flat green. Tiles seamlessly left to right.",
+    "A drawn gradient.", alpha=False)
+req("games", "CH-G63", "kart-grass", "Grass ground", "512 x 512",
+    "Kart Dash: the ground beside the track, seen from above.",
+    "A seamlessly tiling top-down texture of short bright cartoon grass with a few tiny flowers. Flat, no shadows.",
+    "A green fill.", alpha=False)
+req("games", "CH-G64", "kart-road", "Road surface", "512 x 512",
+    "Kart Dash: the track surface, seen from above.",
+    "A seamlessly tiling top-down texture of smooth grey cartoon asphalt with subtle speckles. Flat, no lines.",
+    "A grey fill.", alpha=False)
+for rid, (asset, title, desc, size) in zip(["CH-G65", "CH-G66", "CH-G67", "CH-G68", "CH-G69", "CH-G70", "CH-G71", "CH-G72"], [
+    ("kart-itembox", "Item box", "a floating translucent rainbow cube with a big white question mark on its faces, glowing", "256 x 256"),
+    ("kart-boost", "Boost rocket", "a small red and yellow rocket booster with flames, power-up icon", "256 x 256"),
+    ("kart-banana", "Banana peel", "a slippery yellow banana peel lying on the ground", "256 x 256"),
+    ("kart-bomb", "Bouncing bomb", "a round shiny black cartoon bomb with a lit fuse and little springy feet", "256 x 256"),
+    ("kart-star", "Rainbow star", "a sparkling five-pointed star glowing in rainbow colours, power-up icon", "256 x 256"),
+    ("kart-parts", "Flying kart parts", "a sprite sheet of six separate kart pieces flying apart, arranged in a 3 by 2 grid with space between: a wheel, a bolt, a bent white body panel, a spoiler, a spring and an exhaust pipe", "768 x 512"),
+    ("kart-tyres", "Tyre stack", "a stack of three black tyres with red and white stripes, a trackside barrier", "256 x 256"),
+    ("kart-tree", "Trackside tree", "a round cartoon tree with a short brown trunk", "256 x 384"),
+]):
+    req("games", rid, asset, title, size, f"Kart Dash: {title.lower()}.", KART + desc + ".", "A drawn shape.")
+
+# Icons for the new games in every set.
+NEW_GAMES_2 = [
+    ("baseball", "Baseball", "a baseball flying off a swinging bat with motion lines, in front of a stadium"),
+    ("whack", "Mob Whack", "a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole"),
+    ("kart", "Kart Dash", "a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying"),
+]
+for n, (gid, name, subj) in enumerate(NEW_GAMES_2):
+    req("icons", f"CH-I{98 + n}", f"game-{gid}", f"{name} icon", "256 x 256",
+        f"The {name} card in the game picker.", f"Icon of {subj}.", "An emoji.")
+    req("icons2", f"CH-K{98 + n}", f"game2-{gid}", f"{name} icon (second set)", "256 x 256",
+        f"The {name} card in the game picker, replacing the first-set icon.",
+        f"Icon: a teen playing it: {subj}.", "The first-set icon, or the emoji.")
+    req("icons-art", f"CH-N{97 + n}", f"art-game-{gid}", f"{name} icon (Art theme)", "256 x 256",
+        f"The {name} card in the game picker in the Art theme.", f"Icon: {subj}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+    req("icons-classic", f"CH-R{97 + n}", f"classic-game-{gid}", f"{name} icon (Classical theme)", "256 x 256",
+        f"The {name} card in the game picker in the Classical theme.", f"Icon: {subj}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",
