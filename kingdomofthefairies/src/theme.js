@@ -10,9 +10,10 @@ const query = typeof location !== 'undefined' ? new URLSearchParams(location.sea
 const env = typeof process !== 'undefined' ? process.env?.KOTF_EDITION : undefined;
 export const editionOf = (q) => ({ off: 'film', film: 'film', on: 'widowsbay' }[String(q ?? '').toLowerCase()] || 'partial');
 export const EDITION = env ? (['widowsbay', 'partial', 'film'].includes(env) ? env : 'partial') : editionOf(query);
-// ?look=tinted: draw the hand-tinted alternates of the cast (design/
-// character-audit.md, image requests F8) wherever one has been delivered.
-export const LOOK_TINTED = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'tinted';
+// The film edition's cast look: the hand-tinted alternates (design/
+// character-audit.md, image requests F8) by default, or ?look=original for
+// the first, cleaner art. Settings › Cast look changes it too.
+export const LOOK_PARAM = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('look') : null;
 // LEGACY: the band, the song and the Widow's Bay title.
 export const LEGACY = EDITION === 'widowsbay';
 export const PARTIAL = EDITION === 'partial';
@@ -98,4 +99,12 @@ export const FILM_BODY_SCALE = {
   'prince-climb-a': 0.81, 'prince-climb-b': 0.81, 'prince-apex': 0.93, 'prince-fall': 0.84,
   'prince-land': 0.76, 'prince-stairs-a': 0.76, 'prince-stairs-b': 0.78, 'prince-push': 0.82,
 };
+// The tinted prince (F8) was measured the same way on its own poses, so each
+// look scales by its own numbers rather than inheriting the other's.
+export const FILM_BODY_SCALE_TINTED = {
+  'prince-leap': 1.17, 'prince-seated': 1.22, 'prince-carry': 0.95,
+  'prince-climb-a': 0.80, 'prince-climb-b': 0.80, 'prince-apex': 0.91, 'prince-fall': 0.84,
+  'prince-land': 0.76, 'prince-stairs-a': 0.79, 'prince-stairs-b': 0.81, 'prince-push': 0.85,
+};
+export const bodyScaleOf = (id) => (id.endsWith('-tinted') ? FILM_BODY_SCALE_TINTED[id.slice(0, -7)] : FILM_BODY_SCALE[id]) || 1;
 

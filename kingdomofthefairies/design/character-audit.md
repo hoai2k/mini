@@ -3,9 +3,9 @@
 11 October 2026. Every delivered character sprite of the film edition, compared
 with frames from the film (`references/expanded-world/source-frames/`, the
 Wikimedia Commons copy) and with `film-story.md`. Requests for alternates are
-round F8 in [image-requests.md](image-requests.md). Nothing has been replaced:
-Settings › Cast look › Tinted in the film edition (or `?look=tinted`) draws an alternate wherever one has been delivered, so the two
-looks can be compared in the game before choosing.
+round F8 in [image-requests.md](image-requests.md). All 64 alternates were delivered on 11 October 2026 and the tinted look is now
+the film edition's default; Settings › Cast look › Original (or
+`?look=original`) keeps the first art available.
 
 ## What the film looks like
 
@@ -55,3 +55,12 @@ prefer them, switching is one line (the default look); if not, nothing changes.
 The game's own film look (grain, flicker and stencil colour in Settings)
 already moves the clean art part of the way, which is why the difference is
 smaller in play than in the gallery.
+
+## Delivery check (tinted alternates)
+
+All 64 match their originals' canvas size, anchor and foot line. The tinted
+prince was measured separately for body scale (`FILM_BODY_SCALE_TINTED` in
+`src/theme.js`) rather than inheriting the original poses' factors; the two
+sets differ by a few per cent per pose. The tinted gift fairies hold their own
+gifts, so the prologue no longer draws a second gift prop in their hands (only
+Aurora's flower, which her art does not hold).

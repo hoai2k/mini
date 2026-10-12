@@ -60,7 +60,9 @@ function courtScene(k, st, t) {
   for (const f of FAIRIES) {
     const given = st.gifts.includes(f.gift);
     figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, f.id === 'aurora-stand' ? -1 : 1);
-    if (!given) gift(k, f.gift, f.x - 34, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x));
+    // The gift fairies' own art holds their gifts (ring, crown, casket); only
+    // Aurora's flower is drawn in her hand, and any gift whose fairy is missing.
+    if (!given && (f.gift === 'flower' || !k.img(f.id))) gift(k, f.gift, f.x - 34, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x));
   }
   figure(k, 'azurine-stand', AZURINE_X, FLOOR + 4, t + 3, 1, 1);
   // the gifts laid at her feet; the witch's curse withers the flower

@@ -26,7 +26,7 @@ export const FAIRIES = [
   { gift: 'gold', id: 'fairy-gold', x: 750, name: 'the fairy of gold' },
 ];
 export const AZURINE_X = 1080;
-export const COURT_START = 110;
+export const COURT_START = 205;   // just inside the left curtain
 // The rampart: a 2560-wide walk along the parapet; the chariot stays ahead.
 export const RAMPART = { w: 2560, y: 604, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, burn: 1.7, fireW: 30, knock: 330 };
 // The armoury: the racks he takes his arms from.
