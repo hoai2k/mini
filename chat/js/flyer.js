@@ -8,14 +8,18 @@ import { drawBubble, makePop, drawPop } from './bubble-art.js';
 const FLIGHT_S = 1.6;
 
 // Where a point in a video (normalised 0..1 of the video frame) appears in a
-// tile that shows it with object-fit: cover.
-export function mapCover(rect, mediaW, mediaH, nx, ny) {
-  const scale = Math.max(rect.width / mediaW, rect.height / mediaH);
+// tile that shows it with object-fit: cover (or, with fit 'contain', whole
+// and letterboxed).
+export function mapCover(rect, mediaW, mediaH, nx, ny, fit = 'cover', pos = { x: 0.5, y: 0.5 }) {
+  const fn = fit === 'contain' ? Math.min : Math.max;
+  const scale = fn(rect.width / mediaW, rect.height / mediaH);
   const dw = mediaW * scale, dh = mediaH * scale;
-  return { x: rect.left + (rect.width - dw) / 2 + nx * dw, y: rect.top + (rect.height - dh) / 2 + ny * dh, scale };
+  return { x: rect.left + (rect.width - dw) * pos.x + nx * dw, y: rect.top + (rect.height - dh) * pos.y + ny * dh, scale };
 }
 
-// geom(id) -> { rect, w, h } for a person's tile (w, h: the video size)
+// geom(id) -> { rect, w, h, fit } for a person's tile (w, h: the video size;
+//             fit: 'cover' or 'contain', as the tile shows it; pos: its
+//             object-position as 0..1 fractions, centred when missing)
 // face(id) -> { x, y, s } their face centre and eye distance, normalised to
 //             the video (s as a fraction of its width), or null
 export function createFlyer(canvas, { geom, face, onPop }) {
@@ -39,7 +43,7 @@ export function createFlyer(canvas, { geom, face, onPop }) {
     if (!g) return null;
     const fc = face(f.to);
     if (fc) {
-      const p = mapCover(g.rect, g.w, g.h, fc.x, fc.y);
+      const p = mapCover(g.rect, g.w, g.h, fc.x, fc.y, g.fit, g.pos);
       return { x: p.x, y: p.y, r: Math.min(140, Math.max(24, fc.s * g.w * p.scale * 1.1)) };
     }
     return { x: g.rect.left + g.rect.width / 2, y: g.rect.top + g.rect.height * 0.42, r: Math.min(100, g.rect.width * 0.18) };
@@ -89,7 +93,7 @@ export function createFlyer(canvas, { geom, face, onPop }) {
       const g = geom(msg.from);
       let start;
       if (g) {
-        const p = mapCover(g.rect, g.w, g.h, msg.x, msg.y);
+        const p = mapCover(g.rect, g.w, g.h, msg.x, msg.y, g.fit, g.pos);
         start = { x: p.x, y: p.y, r: Math.max(8, msg.r * g.w * p.scale) };
       } else {
         start = { x: innerWidth / 2, y: -40, r: 30 };

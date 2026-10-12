@@ -92,6 +92,28 @@ test('cover mapping centres a cropped video', () => {
   assert.ok(q.x < 0 && q.y === 0);
 });
 
+test('contain mapping letterboxes a landscape video in an upright tile', () => {
+  const rect = { left: 0, top: 0, width: 390, height: 844 };
+  const c = mapCover(rect, 640, 480, 0, 0, 'contain');
+  close(c.x, 0);
+  close(c.y, (844 - 390 * 0.75) / 2);
+  const d = mapCover(rect, 640, 480, 1, 1, 'contain');
+  close(d.x, 390);
+  close(d.y, (844 + 390 * 0.75) / 2);
+});
+
+test('a moved picture moves the mapping with it', () => {
+  const rect = { left: 0, top: 0, width: 390, height: 844 };
+  // Letterboxed and slid to the top: the picture's top edge is the screen's.
+  close(mapCover(rect, 640, 480, 0.5, 0, 'contain', { x: 0.5, y: 0 }).y, 0);
+  // Filled and dragged to show the picture's left edge.
+  const k = 844 / 480;
+  close(mapCover(rect, 640, 480, 0, 0.5, 'cover', { x: 0, y: 0.5 }).x, 0);
+  close(mapCover(rect, 640, 480, 1, 0.5, 'cover', { x: 1, y: 0.5 }).x, 390);
+  close(mapCover(rect, 640, 480, 0.5, 0.5, 'cover').x, 195);
+  assert.ok(640 * k > 390);
+});
+
 test('every listed effect and game has a file', () => {
   const fx = readdirSync(new URL('../effects/', import.meta.url));
   const games = readdirSync(new URL('../games/', import.meta.url));
@@ -516,4 +538,45 @@ test('Kart Dash network karts are packed small and checked on arrival', () => {
   assert.equal(kartSim.unpackKart([1, 2, 3, 4, 5, 6, 'x']), null);
   assert.equal(kartSim.unpackKart([1e6, 2, 3, 4, 5, 6, 0]), null);
   assert.equal(kartSim.unpackKart([10, 20, 0, 999, 0, 0, 0]).v, 60);
+});
+
+test('Copy Cat: puffed cheeks against the resting face, and one eye shut', async () => {
+  const { _logic: C } = await import('../games/copycat.js');
+  // A face whose lower cheeks are `w` wide, with eye corners 100 apart.
+  const face = (w, extra = {}) => {
+    const pts = Array.from({ length: 478 }, () => ({ x: 0, y: 0 }));
+    pts[33] = { x: -50, y: 0 }; pts[263] = { x: 50, y: 0 };
+    pts[132] = { x: -w / 2, y: 60 }; pts[361] = { x: w / 2, y: 60 };
+    pts[58] = { x: -w / 2 * 0.9, y: 90 }; pts[288] = { x: w / 2 * 0.9, y: 90 };
+    return { pts, mouthOpen: 0, smile: 0, cheekPuff: 0, blinkL: 0, blinkR: 0, ...extra };
+  };
+  const puff = C.EXPRS.find(e => e.text.startsWith('Puff'));
+  C.puff.base = 0;
+  for (let i = 0; i < 60; i++) C.trackPuff(face(140));
+  assert.ok(puff.get() < 0.1, 'resting face is not a puff');
+  for (let i = 0; i < 10; i++) C.trackPuff(face(147));   // 5% wider, a third of a second
+  assert.ok(puff.get() > puff.thr, `puffed cheeks count (${puff.get().toFixed(2)})`);
+  C.trackPuff(face(147, { mouthOpen: 0.6 }));
+  assert.ok(puff.get() < puff.thr, 'an open mouth is not a puff');
+  C.trackPuff(face(140, { cheekPuff: 0.3 }));
+  assert.ok(puff.get() > puff.thr, 'the tracker\'s own cheekPuff still counts');
+  const eye = C.EXPRS.find(e => e.text.startsWith('Close one eye'));
+  assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.1 })) > eye.thr);
+  assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.85 })) < eye.thr, 'both eyes shut is not one eye');
+  assert.ok(eye.get(face(140, { blinkL: 0.45, blinkR: 0.15 })) > eye.thr, 'a half-hearted wink with the other eye squinting still counts');
+  assert.ok(eye.get(face(140, { blinkL: 0.15, blinkR: 0.08 })) < eye.thr, 'resting eyes are not a wink');
+  // By the eyelids: one gap a third of the other's, with blink scores that missed it.
+  const lids = (l, r) => {
+    const f = face(140);
+    const eye = ([top, bottom, a, b], cx, gap) => {
+      f.pts[a] = { x: cx - 15, y: 0 }; f.pts[b] = { x: cx + 15, y: 0 };
+      f.pts[top] = { x: cx, y: -gap / 2 }; f.pts[bottom] = { x: cx, y: gap / 2 };
+    };
+    eye(C.LIDS.l, -35, l); eye(C.LIDS.r, 35, r);
+    return f;
+  };
+  assert.ok(eye.get(lids(3, 9)) > eye.thr, 'one eyelid gap well under the other counts');
+  assert.ok(eye.get(lids(8, 9)) < eye.thr, 'two open eyes are not a wink');
+  assert.ok(eye.get(lids(1, 1.2)) < eye.thr, 'two shut eyes are not a wink');
+  assert.ok(!C.EXPRS.some(e => /both eyes|Wink/.test(e.text)));
 });

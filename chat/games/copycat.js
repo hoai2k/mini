@@ -24,11 +24,64 @@ const EXPRS = [
   { emoji: '😮', text: 'Open wide!', thr: 0.55, get: f => f.mouthOpen },
   { emoji: '😗', text: 'Pucker your lips!', thr: 0.6, get: f => f.pucker },
   { emoji: '🤨', text: 'Raise your eyebrows!', thr: 0.6, get: f => f.browUp },
-  { emoji: '🐡', text: 'Puff your cheeks!', thr: 0.45, get: f => f.cheekPuff },
+  { emoji: '🐡', text: 'Puff your cheeks!', thr: 0.45, get: () => puff.score },
   { emoji: '☹️', text: 'Frown!', thr: 0.45, get: f => f.frown },
-  { emoji: '😉', text: 'Wink!', thr: 0.5, get: f => f.wink },
-  { emoji: '😌', text: 'Close both eyes!', thr: 0.6, get: f => Math.min(f.blinkL, f.blinkR) },
+  { emoji: '😉', text: 'Close one eye!', thr: 0.5, get: f => oneEye(f) },
 ];
+
+// One eye shut and the other open. Forgiving on purpose: the open eye
+// usually squints along, and the tracker's blink score for the shut one often
+// stops short. Either signal is enough: the blink scores a quarter apart
+// (full marks at 0.4), or one eyelid gap under ~60% of the other's.
+const LIDS = { l: [159, 145, 33, 133], r: [386, 374, 362, 263] };
+function eyeOpen(pts, [top, bottom, a, b]) {
+  const d = (i, j) => Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+  const w = d(a, b);
+  return w > 0 ? d(top, bottom) / w : 0;
+}
+function oneEye(f) {
+  const blink = clamp((Math.abs(f.blinkL - f.blinkR) - 0.05) / 0.35, 0, 1);
+  let lids = 0;
+  if (f.pts?.length >= 400) {
+    const l = eyeOpen(f.pts, LIDS.l), r = eyeOpen(f.pts, LIDS.r);
+    const hi = Math.max(l, r), lo = Math.min(l, r);
+    if (hi > 0.12) lids = clamp((0.8 - lo / hi) / 0.4, 0, 1);
+  }
+  return Math.max(blink, lids);
+}
+
+// Puffed cheeks. The tracker's cheekPuff score barely moves for most faces,
+// so this also measures the face itself: the width of the lower cheeks
+// against the eye corners (which puffing doesn't move), compared with that
+// face's own resting width. The resting width follows narrower faces at once
+// and wider ones only slowly, so holding a puff doesn't become the new rest.
+const puff = { base: 0, score: 0 };
+const CHEEKS = [[132, 361], [58, 288]];
+const EYE_CORNERS = [33, 263];
+function cheekRatio(pts) {
+  if (!pts || pts.length < 400) return 0;
+  const d = (a, b) => Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y);
+  const eyes = d(...EYE_CORNERS);
+  if (eyes <= 0) return 0;
+  return (d(...CHEEKS[0]) + d(...CHEEKS[1])) / 2 / eyes;
+}
+// Called once a frame with the face (or null), so the resting width keeps
+// learning between puff prompts.
+function trackPuff(f) {
+  if (!f) { puff.score = 0; return; }
+  puff.score = puffScore(f);
+}
+function puffScore(f) {
+  const blend = clamp((f.cheekPuff ?? 0) * 2.5, 0, 1);
+  const r = cheekRatio(f.pts);
+  if (!r) return blend;
+  if (!puff.base) puff.base = r;
+  puff.base += (r - puff.base) * (r < puff.base ? 0.2 : 0.008);
+  // Puffing keeps the mouth shut; a smile or an open jaw also widens the cheeks.
+  const shut = f.mouthOpen < 0.25 && f.smile < 0.4;
+  const wide = shut ? clamp((r / puff.base - 1) / 0.035, 0, 1) : 0;
+  return Math.max(blend, wide);
+}
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -64,6 +117,8 @@ export default {
   needsFace: true,
 
   create(api) {
+    puff.base = 0;
+    puff.score = 0;
     const canvas = document.createElement('canvas');
     canvas.className = 'g-canvas';
     const ui = document.createElement('div');
@@ -392,6 +447,7 @@ export default {
     // --- loop ---------------------------------------------------------------------
     function frame(now) {
       const face = api.face();
+      trackPuff(face);
       if (face) noFaceSince = 0;
       else if (!noFaceSince) noFaceSince = now;
       if (api.isOwner()) ownerTick();
@@ -450,3 +506,5 @@ export default {
     };
   },
 };
+
+export const _logic = { EXPRS, puff, puffScore, trackPuff, oneEye, cheekRatio, eyeOpen, LIDS };
