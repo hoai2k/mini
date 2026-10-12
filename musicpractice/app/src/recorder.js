@@ -69,6 +69,7 @@ export class Recorder extends EventTarget {
   /** Reopen the microphone after release() and listen again. */
   async restore() {
     if (this.state === 'off') return;
+    if (this.graph && !this.micAlive()) this.closeMic(); // cut off while we weren't listening
     if (!this.graph) {
       try {
         await this.openMic();
@@ -82,6 +83,28 @@ export class Recorder extends EventTarget {
 
   get micOpen() {
     return !!this.graph;
+  }
+
+  /** Is the open mic still delivering? Phones cut it when the app is left. */
+  micAlive() {
+    return !!this.stream && this.stream.getTracks().every((t) => t.readyState === 'live' && !t.muted);
+  }
+
+  /** Seconds since the mic last delivered sound. */
+  get silentFor() {
+    return (performance.now() - this.lastChunkAt) / 1000;
+  }
+
+  /**
+   * Close and reopen the mic after it was cut off (the app was left, a call
+   * came in). A take in progress is kept, without playback.
+   */
+  async reopen() {
+    if (this.state === 'off') return;
+    if (this.state === 'recording') this.finish(false);
+    this.closeMic();
+    await this.openMic();
+    if (this.state !== 'off' && this.state !== 'playing' && this.state !== 'paused') this.listen();
   }
 
   /**
@@ -106,6 +129,12 @@ export class Recorder extends EventTarget {
       return;
     }
     this.stream = stream;
+    this.lastChunkAt = performance.now();
+    for (const t of stream.getTracks()) {
+      const lost = () => { if (this.stream === stream) this.dispatchEvent(new Event('miclost')); };
+      t.addEventListener('ended', lost);
+      t.addEventListener('mute', lost);
+    }
     const src = this.ctx.createMediaStreamSource(stream);
     const sink = this.ctx.createGain();
     sink.gain.value = 0;
@@ -159,6 +188,7 @@ export class Recorder extends EventTarget {
   }
 
   receive(data) {
+    this.lastChunkAt = performance.now();
     const at = this.pos;
     this.pos += data.length;
     this.dispatchEvent(new CustomEvent('chunk', { detail: { data, state: this.state } }));

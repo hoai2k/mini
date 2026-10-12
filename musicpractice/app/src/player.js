@@ -49,6 +49,9 @@ export async function playSamples(samples, sampleRate) {
     ended,
     progress: () => Math.min(1, a.currentTime / duration),
     stop: () => { a.onended = null; a.pause(); finish(); },
+    // Phones pause media when the app is left; carry on from there on return.
+    isPaused: () => a.paused && !a.ended,
+    resume: () => a.play(),
   };
 }
 

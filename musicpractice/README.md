@@ -168,6 +168,31 @@ mic was closed during playback (the second phrase was ignored) and reopened
 afterwards. With Record during playback on, the mic stayed open and the
 second phrase stopped the playback and started a new take.
 
+## Leaving the app and coming back
+
+Phones suspend sound, pause media and cut the mic while the app is in the
+background. On return (`visibilitychange` in `app/src/main.js`):
+
+- the AudioContext is resumed, so a metronome left running carries on (or
+  on the next tap, if the browser wants one); the next Start gets a fresh
+  context in case the output changed while away;
+- a take that was playing back carries on from where it was paused, then
+  listening resumes as usual;
+- a mic that was cut off is reopened (`Recorder.reopen`). A take that was
+  being recorded is kept as far as it got (without playback) and listening
+  starts again. A watchdog also reopens the mic if it goes quiet for 2.5 s
+  while the sound is running, and the same happens if a call takes the mic
+  while the app is open (if it can't be reopened, the recorder turns off and
+  says why).
+
+Stopping the metronome or turning the recorder off before leaving, then
+starting again after coming back, works as on a first visit. All of this was
+checked in Chromium by simulating a phone leaving and returning (the page
+hidden, the context suspended, the mic track ended, media paused): a running
+metronome, a stopped one restarted, listening, recording mid-take, a take
+playing back, the recorder turned off and on again, and a take playing from
+the list.
+
 ## Known limits
 
 - The microphone needs https (GitHub Pages is) and permission.

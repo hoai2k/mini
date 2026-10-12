@@ -1,6 +1,6 @@
 // Music Practice: the home screen, the metronome and the practice recorder.
 
-import { audio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake } from './audio.js';
+import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake } from './audio.js';
 import { playSamples, primeFromTap, outputSettled } from './player.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
@@ -375,6 +375,7 @@ async function startRecorder() {
     });
     recorder.addEventListener('chunk', (e) => wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state));
     recorder.addEventListener('take', (e) => onTake(e.detail));
+    recorder.addEventListener('miclost', () => { if (document.visibilityState === 'visible') recoverMic(); });
   }
   recorder.configure(settings);
   recorder.echoCancel = settings.recordDuringPlayback;
@@ -408,6 +409,30 @@ async function resumeListening() {
   }
   showState();
 }
+
+/** Reopen the mic if the phone cut it off while listening or recording. */
+let reopening = false;
+function recoverMic(force = false) {
+  if (!recorder || reopening || !recorder.micOpen) return;
+  if (recorder.state !== 'waiting' && recorder.state !== 'recording') return;
+  if (!force && recorder.micAlive()) return;
+  reopening = true;
+  recorder.reopen()
+    .catch((err) => { recError = micError(err); recorder.off(); })
+    .finally(() => { reopening = false; showState(); });
+}
+
+// Coming back to the app: phones suspend sound, pause media and cut the mic
+// while it is away. Pick everything up again where it was.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  markStale(); // the output may have changed while away; the next Start gets a fresh context
+  const c = existingAudio();
+  if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => { /* the next tap resumes it */ });
+  if (playing?.handle?.isPaused?.()) playing.handle.resume().catch(() => stopPlayback());
+  recoverMic();
+  showState();
+});
 
 // Starting a new take while a take plays back (record during playback) stops the playback.
 function interruptPlayback() {
@@ -610,6 +635,9 @@ function animateRecorder() {
     if (row) row.style.width = `${(p * 100).toFixed(1)}%`;
   }
   if (recorder?.state === 'recording') $('rec-state').textContent = `Recording ${fmtDur(recorder.recordingSec)}`;
+  // A mic that has gone quiet while the sound is running was cut off: reopen it.
+  if (recorder?.micOpen && (recorder.state === 'waiting' || recorder.state === 'recording')
+      && audio().state === 'running' && recorder.silentFor > 2.5) recoverMic(true);
   wave.draw();
 }
 

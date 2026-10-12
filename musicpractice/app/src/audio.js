@@ -33,6 +33,11 @@ export function freshAudio() {
   return audio();
 }
 
+/** The AudioContext if one exists (without creating one). */
+export function existingAudio() {
+  return ctx;
+}
+
 export async function unlock() {
   const c = audio();
   if (c.state !== 'running') {
