@@ -8,7 +8,7 @@ two buttons: **Metronome** and **Playback Recorder**.
 
 ## Themes
 
-Settings → **Theme** (in either settings sheet) switches the whole app's look:
+Settings → **Theme** (at the bottom of either settings sheet) switches the whole app's look:
 
 - **Classic** (the default): warm walnut and brass with Fraunces and Manrope.
 - **Art Deco**: black lacquer, gold and ivory, Poiret One and

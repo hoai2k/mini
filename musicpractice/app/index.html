@@ -109,10 +109,6 @@
         <form method="dialog">
           <header class="sheet-head"><h3 id="met-settings-title">Metronome settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
           <fieldset>
-            <legend>Theme</legend>
-            <div class="chips theme-chips"></div>
-          </fieldset>
-          <fieldset>
             <legend>Time signature</legend>
             <div class="chips" id="meter-chips"></div>
           </fieldset>
@@ -122,6 +118,10 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span>Volume</span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
+          <fieldset>
+            <legend>Theme</legend>
+            <div class="chips theme-chips"></div>
+          </fieldset>
         </form>
       </dialog>
     </section>
@@ -153,10 +153,6 @@
       <dialog id="rec-settings" class="sheet" aria-labelledby="rec-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="rec-settings-title">Playback Recorder settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <fieldset>
-            <legend>Theme</legend>
-            <div class="chips theme-chips"></div>
-          </fieldset>
           <label class="row"><span>Finish after silence of <b><span class="silence-sec">3</span> s</b></span><input type="range" class="slider" id="silence" min="1" max="10" step="0.5"></label>
           <fieldset>
             <legend>Start recording on</legend>
@@ -173,6 +169,10 @@
             <label class="row toggle"><span>Record during playback</span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
             <p class="help" id="rec-during-help">Off: the microphone turns off while a take plays and back on afterwards, so playback is full volume. On: it keeps listening, and playing over a take starts the next one (echo cancellation is used; headphones work best, and on iPhone playback is quieter).</p>
           </div>
+          <fieldset>
+            <legend>Theme</legend>
+            <div class="chips theme-chips"></div>
+          </fieldset>
         </form>
       </dialog>
     </section>
