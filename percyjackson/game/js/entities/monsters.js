@@ -575,8 +575,8 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
       const a = (q + i / 10) * Math.PI / 2 - Math.PI / 4, ca = Math.cos(a), sa = Math.sin(a);
       if (Math.abs(a) < 0.25 && i % 2 === 0) continue;                  // the slit up the front
       // an upper strip hanging close to the hips, then a lower one flaring out, then torn ends
-      const L1 = 5, L2 = 5 + K.r() * 3.5, l3 = 1.5 + K.r() * 3;
-      const x = sa * 3.7, z = ca * 2.5, f2 = 0.4, f3 = 0.7, col = K.tone(RAG, 0.15);
+      const L1 = 5.5, L2 = 6.5 + K.r() * 3.5, l3 = 1.5 + K.r() * 3.5;
+      const x = sa * 3.7, z = ca * 2.5, f2 = 0.14, f3 = 0.32, col = K.tone(RAG, 0.15);
       K.box(g, x, -L1 / 2 + 0.6, z, 1.7, L1, 1, col, ca * 0.08, 0, -sa * 0.08);
       const y2 = -L1 + 0.6, ox2 = sa * (0.4 + L2 * Math.sin(f2) / 2), oz2 = ca * (0.4 + L2 * Math.sin(f2) / 2);
       K.box(g, x + ox2, y2 - L2 * Math.cos(f2) / 2, z + oz2, 1.9, L2, 1, col, ca * f2, 0, -sa * f2);
@@ -773,10 +773,10 @@ function buildEmpousa() {
   // pom-poms: a ball of orange and black tassel cubes in each hand
   for (const hand of [rig.handR, rig.handL]) {
     const pp = group(hand, 0, -2.6, 0);
-    K.box(pp, 0, 0, 0, 4, 4, 4, orange);
-    for (let i = 0; i < 46; i++) {
-      const u = K.r() * 2 - 1, th = K.r() * Math.PI * 2, r = Math.sqrt(1 - u * u), R = 2.6 + K.r() * 0.9;
-      const z = 0.9 + K.r() * 0.7;
+    K.box(pp, 0, 0, 0, 5.4, 5.4, 5.4, orange);
+    for (let i = 0; i < 64; i++) {
+      const u = K.r() * 2 - 1, th = K.r() * Math.PI * 2, r = Math.sqrt(1 - u * u), R = 3.4 + K.r() * 1.2;
+      const z = 1.1 + K.r() * 0.8;
       K.box(pp, Math.cos(th) * r * R, u * R, Math.sin(th) * r * R, z, z, z, i % 3 === 0 ? 0x1a1418 : K.r() < 0.5 ? orange : 0xd85008);
     }
   }
@@ -974,9 +974,18 @@ function buildGhost() {
   for (const leg of [rig.legR, rig.legL]) dropMeshes(rig, leg);
   const K = kit(rig, mat, { seed: 67, fill: 0.6, emit: 0.9 });
   const SH = [0x8ac0d4, 0x6aa0b4, 0xa8d8e8, 0x5a90a8], hk = HS;
-  gridHair(rig, { style: 'long', base: 0x7ab0c4, shade: 0x4a8098, light: 0xa8d8e4, seed: 71, shape: { side: -3, back: -4 } }, mat);
+  // a ragged hood of shroud over lank hair
+  const Hd = rig.head, H8 = 8 * hk;
+  K.box(Hd, 0, H8 + 0.5, -0.6, H8 + 1, 1, H8, SH[0]);
+  for (const sx of [-1, 1]) K.box(Hd, sx * (H8 / 2 + 0.5), H8 / 2, -0.6, 1, H8 + 1, H8, SH[1]);
+  K.box(Hd, 0, H8 / 2, -H8 / 2 - 0.9, H8 + 2, H8 + 1, 1, SH[0]);
+  K.clumps(Hd, [0, H8 / 2 + 0.3, -0.6], [H8 + 1.6, H8 + 1, H8 + 0.6], { n: 46, size: [1, 1.8], cols: SH, faces: 'tlrk', out: -0.15 });
+  for (let x = -H8 / 2; x <= H8 / 2; x += 1.3) K.box(Hd, x, H8 + 0.1 - (Math.abs(x) > H8 / 3 ? 0.8 : 0), H8 / 2 + 0.4, 1.4, 1.4 + K.r(), 1, K.tone(SH, 0.1));
+  for (let i = 0; i < 9; i++) { const L = 2 + K.r() * 4, x = -H8 / 2 - 0.8 + i * (H8 + 1.6) / 8; K.box(Hd, x, -L / 2 - 0.2, -H8 / 2 - 1.1, 1.3, L, 1.2, K.tone(SH, 0.12)); }
+  for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) { const L = 2 + K.r() * 3; K.box(Hd, sx * (H8 / 2 + 0.7), -L / 2 - 0.2, -3.5 + i * 2, 1.2, L, 1.3, K.tone(SH, 0.12)); }
+  for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) K.box(Hd, sx * (H8 / 2 - 0.6 - i * 0.9), H8 / 2 - 1 - i * 0.4, H8 / 2 + 0.3, 0.9, H8 * 0.7 - i, 0.6, 0x6a98ac);
   // hollow eyes glow
-  for (const sx of [-1, 1]) K.box(rig.head, sx * 2 * hk, 4.4 * hk, 4 * hk + 0.15, 1.4, 1.2, 0.3, 0xd0ffff);
+  for (const sx of [-1, 1]) K.box(Hd, sx * 2 * hk, 4.4 * hk, 4 * hk + 0.15, 1.4, 1.2, 0.3, 0xd0ffff);
   // shroud: a ragged cowl on the shoulders and torn sleeves
   K.clumps(rig.torso, [0, 11, 0], [9, 2, 5], { n: 22, size: [1, 1.8], cols: SH, faces: 'tlrfk' });
   for (const arm of [rig.armR, rig.armL]) {
