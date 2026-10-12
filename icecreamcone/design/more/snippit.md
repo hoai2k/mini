@@ -124,3 +124,8 @@ snipper now turns to face its knot rather than walking past it: beginner
 ## Third audit: pose sizes (2026-10-09)
 
 Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
+
+**Gentle push or full push.** A gentle push of the stick walks the Snippit
+either way without turning it, so it can back up to a knot behind it. Pushing
+all the way (85% of the stick's travel, or the D-pad or an arrow key) turns it
+to face that way. The pointer still turns it to face a finger behind its eye.

@@ -33,7 +33,7 @@ function snipper(skill = 1, seed = 1) {
     // the tip is near it, and snip.
     const f = target.px >= game.x ? 1 : -1;
     const sp = 0.5 + 0.5 * skill;
-    if (game.face !== f) return { x: f * 0.3 }; // a tap the other way turns it
+    if (game.face !== f) return { x: f }; // a full push the other way turns it
     const d = target.px - game.cutX();
     if (Math.abs(d) < 14 || (d * f < 0 && game.under() === target)) {
       if (game.jam <= 0 && !pressed) {
@@ -230,6 +230,20 @@ test('snippit: turning keeps the hinge in place, and the flip is quick', () => {
   }
   assert.equal(game.flip(), -1, 'drawn mirrored, at full size');
   assert.equal(game.face, 1);
+});
+
+test('snippit: a gentle push walks it without turning; a full one turns it', () => {
+  const game = create(env(5));
+  game.update(1 / 60, blank());
+  game.x = 800;
+  game.vx = 0;
+  for (let i = 0; i < 30; i++) game.update(1 / 60, blank({ x: 0.5 }));
+  assert.equal(game.face, -1, 'still facing left');
+  assert.ok(game.x > 830, `backed up to the right, at ${game.x}`);
+  game.update(1 / 60, blank({ x: 0.95 }));
+  assert.equal(game.face, 1, 'pushed all the way, it turns');
+  for (let i = 0; i < 30; i++) game.update(1 / 60, blank({ x: -0.5 }));
+  assert.equal(game.face, 1, 'and walks back left still facing right');
 });
 
 test('snippit: a pointer behind the eye turns it, and the tip follows the finger', () => {

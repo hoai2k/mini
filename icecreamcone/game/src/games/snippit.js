@@ -70,6 +70,7 @@ const QUICK_T = 3;
 const WRONG = 5;
 const JAM = 0.8;
 const TURN = 0.12; // seconds for the flip from one way to the other
+const FULL_TILT = 0.85; // how far the stick must go to turn the Snippit round
 
 export const COLORS = [
   { name: 'pink', c: PAL.strawberry, d: '#c0607a' },
@@ -309,8 +310,10 @@ export default function create(env) {
       if ((p.x - g.x) * g.face < 0) g.face = -g.face;
       g.x = approach(g.x, p.x - g.face * TIP, 12, dt);
     } else {
-      // pushing either way turns it to face that way, at once
-      if (Math.abs(input.x) > 0.2) g.face = input.x > 0 ? 1 : -1;
+      // A gentle push walks it either way without turning (backing up to a
+      // knot behind it); a push all the way (or the D-pad or a key) turns
+      // it to face that way, at once.
+      if (Math.abs(input.x) >= FULL_TILT) g.face = input.x > 0 ? 1 : -1;
       g.vx = approach(g.vx, input.x * 1000, 14, dt);
       g.x += g.vx * dt;
     }
