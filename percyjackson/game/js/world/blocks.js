@@ -21,6 +21,7 @@ function def(name, tiles, opts = {}) {
     rough: opts.rough ?? 0.85, metal: opts.metal ?? 0, emit: opts.emit ?? 0,
     liquid: opts.liquid ?? null, hp: opts.hp ?? 0, step: opts.step ?? 'stone',
     light: opts.light ?? null, debris: opts.debris ?? 6,
+    invisible: opts.invisible ?? false, shotThrough: opts.shotThrough ?? false,
   });
   B[name] = id;
   return id;
@@ -173,6 +174,8 @@ def('brownstone', 'brownstone', { rough: 0.8 });
 def('sidewalk', 'concrete', { rough: 0.7 });
 def('shop_window', { top: 'dark_planks', side: 'window_day' }, { emit: 0.9, rough: 0.2 });
 def('cornice', { top: 'roof_slate', side: 'dark_planks' }, { rough: 0.5 });
+// an invisible wall that shots fly through (a chain-link construction fence: its look is a deco prop)
+def('fence_barrier', 'stone', { opaque: false, shotThrough: true, invisible: true });
 
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;

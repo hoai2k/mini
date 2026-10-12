@@ -571,7 +571,7 @@ function buildRoadWest(k, shoreOf) {
   scatterOn(k, 0, 0, SX - 1, NZ - 1, [B.sand], ['shell', 'starfish'], 0.03, 0.5);
 
   // ---- signs: the border sign and a waystone at every stop
-  const sign = (x, z, text, o = {}) => deco.prop('text_sign', x, o.y ?? top(Math.floor(x), Math.floor(z)), z, { text, ...o });
+  const sign = (x, z, text, o = {}) => deco.prop('text_sign', x, o.y ?? top(Math.floor(x), Math.floor(z)), z, { text, greek: true, ...o });   // (Greek letters until a hero reads them)
   sign(30.5, NZ - 3.5, 'CAMP HALF-BLOOD\nTHE ROAD WEST', { w: 3.6, h: 1.2, post: 2.2, bg: '#f28c28', fg: '#17130f', border: '#17130f', rot: 0.25 });
   W.set(29, top(29, NZ - 4), NZ - 4, B.barrier); W.set(31, top(31, NZ - 4), NZ - 4, B.barrier);
   // a waystone: a marble pillar with a gold cap, and a signpost with the place's name

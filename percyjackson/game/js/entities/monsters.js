@@ -298,6 +298,7 @@ export function animateExtras(rig, dt, e) {
   if (Y) for (const s of Y) s.g.rotation[s.ax] = s.base + Math.sin(t * s.f + s.ph) * s.amp;
   if (rig.extras.flameHair) { const k = 1 + Math.sin(t * 13) * 0.04 + Math.sin(t * 7.3) * 0.03; rig.extras.flameHair.scale.set(1, k, 1); }
   if (rig.extras.key) rig.extras.key.rotation.y += dt * 4;
+  if (rig.extras.tongue) rig.extras.tongue.scale.z = Math.sin(t * 7) > 0.55 ? 1 : 0.15;   // the serpent tastes the air
 }
 
 // ---- skins --------------------------------------------------------------------
@@ -326,6 +327,19 @@ const MODELS = {
   },
   hellhound: () => hound('hellhound', { scale: 2.3, bodyL: 13, bodyW: 7.5, bodyH: 7.5, legH: 8.5, legW: 3.4, headS: 8.5, ears: true, tail: 4, tailLen: 9, tailW: 2, tailCurl: 0.6, gait: 0.75, neckUp: 2.2, jawOpen: 0.35 }, { fur: 170, cracks: 14, collar: true }),
   spider: () => bronzeSpider('spider', { scale: 0.85 }),
+  // A serpent out of the Mist (what a "person" in the museum may really be,
+  // entities/mistPeople.js): a long green snake banded in gold, rearing its
+  // head and hood, with a flickering forked tongue. Nothing like a person.
+  serpent: () => {
+    const rig = new QuadRig({ material: skinMat('serpent', (S) => paintQuad(S, { base: 0x3e7a2e, dark: 0x1e3e18, belly: 0xe0c870, back: 0x2e5a22, stripes: 0xd8b040, eye: 0xffd81a, eyeLow: 0xff8a10, nose: 0x1e3e18, teeth: 0xfff4d8, speckles: 30 })),
+      scale: 1.15, bodyL: 9, bodyW: 5, bodyH: 4, legH: 0.4, legW: 1, headS: 5.5, snoutS: 3.2, ears: false, tail: 7, tailLen: 30, tailW: 4.8, tailCurl: 0, neckUp: 4.5, gait: 1 });
+    for (const l of rig.legs) l.visible = false;
+    const hood = solid(0x2e6a24), gold = solid(0xd8b040, 0.2);
+    for (const sx of [-1, 1]) { prop(rig, rig.neck, 0.8, 6.5, 4.5, hood, sx * 3.4, -0.5, -1.2, 0, 0, sx * 0.35); prop(rig, rig.neck, 0.9, 1.2, 2.4, gold, sx * 3.5, 1.4, -0.4, 0, 0, sx * 0.35); }
+    for (let i = 0; i < 4; i++) prop(rig, rig.torso, 5.4, 4.4, 0.8, gold, 0, 0, 3.4 - i * 2.4);
+    rig.extras.tongue = prop(rig, rig.mouth, 0.5, 0.3, 3.2, solid(0xd8203a, 0.8), 0, 0.2, 2.4);
+    return rig;
+  },
   automaton: () => buildAutomaton(),
   harpy: () => eagle('harpy', { scale: 1.0 }),
   // Stymphalian bird: the same eagle in bronze feathers, sharp as knives
@@ -1131,7 +1145,10 @@ function buildScorpion() {
 // wake: metres   'statue' monsters stand frozen until a hero comes this close
 export const MONSTERS = {
   pup: { name: 'Hellhound Pup', tier: 'minor', hp: 32, speed: 5, dmg: 7, radius: 0.45, height: 1.1, ai: 'melee', range: 1.5, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.5, voice: 'bark' },
-  rat: { name: 'Sewer Rat', tier: 'minor', hp: 14, speed: 6.4, dmg: 3, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0 },
+  rat: { name: 'Sewer Rat', tier: 'minor', hp: 14, speed: 6.4, dmg: 3, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
+  serpent: { name: 'Mist Serpent', tier: 'minor', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
+  // a real mortal in the Mist (entities/mistPeople.js): always looks like a person, never fights, can't be hurt
+  mortal: { name: 'Mortal', tier: 'minor', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
   spider: { name: 'Bronze Spider', tier: 'minor', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
   harpy: { name: 'Wild Harpy', tier: 'minor', hp: 40, speed: 3.8, dmg: 8, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.55, cd: 2.1, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', voice: 'screech' },
   stymphalian: { name: 'Stymphalian Bird', tier: 'minor', hp: 34, speed: 4.4, dmg: 7, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.5, cd: 2.3, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', voice: 'screech' },

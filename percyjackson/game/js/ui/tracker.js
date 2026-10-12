@@ -4,7 +4,8 @@
 //   - at the screen edge, a gold arrow pointing at the goal when it is off
 //     screen (with the distance); over the goal when it is on screen;
 //   - glowing footprints on the ground along the walkable way there, from a
-//     distance field worked out once per goal over the voxel world.
+//     distance field worked out once per goal over the voxel world (not in
+//     the prologue, goal.feet === false: there the arrow is enough).
 // The prologue sets the school bus as the goal; in camp it is the next
 // chapter's quest marker (main.js). Reduced motion: nothing bobs or pulses.
 import * as THREE from 'three/webgpu';
@@ -97,7 +98,7 @@ export class Tracker {
     this.col = new THREE.Color();
     this.m4 = new THREE.Matrix4(); this.q = new THREE.Quaternion(); this.e = new THREE.Euler(); this.s = new THREE.Vector3(1, 1, 1);
   }
-  // goal: { title, desc, pos (Vector3, standing height), radius }; null clears it
+  // goal: { title, desc, pos (Vector3, standing height), radius, feet? (false: no footprints) }; null clears it
   setGoal(goal) {
     const g = this.game;
     this.goal = goal;
@@ -132,7 +133,7 @@ export class Tracker {
     // footprints along the way
     this.pathT -= dt;
     if (this.pathT <= 0 && this.field) { this.pathT = 0.35; this.path = pathFrom(this.field, lead.pos.x, lead.pos.z, 120); }
-    this.drawFeet(lead, dist, still);
+    if (goal.feet === false) this.feet.visible = false; else this.drawFeet(lead, dist, still);
     // screen: a pin over the goal, or an arrow at the edge
     const cam = g.rig.camera;
     tmp.copy(goal.pos).setY(goal.pos.y + 3.2).project(cam);

@@ -10,9 +10,15 @@ import { CHAPTERS, chapter as chapterDef, chapterPlayable } from './chapters.js'
 import { h } from '../ui/ui.js';
 import { openingDone } from './opening.js';
 import { B } from '../world/blocks.js';
+import { whenArt, artReady } from '../ui/art.js';
 
 const DIFFS = [[1, 'Mortal'], [2, 'Demigod'], [3, 'Hero'], [4, 'Olympian']];
-const texLoader = new THREE.TextureLoader();
+// the chapter cards as textures, made once from the pictures preloaded with the title (ui/art.js)
+const cardTex = new Map();
+function cardTexture(src, fn) {
+  if (cardTex.has(src)) { fn(cardTex.get(src)); return; }
+  whenArt(src, (img) => { const t = new THREE.Texture(img); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.needsUpdate = true; cardTex.set(src, t); fn(t); });
+}
 
 export function chapterUnlocked(game, ch) {
   const d = game.save.data;
@@ -93,8 +99,10 @@ export function placeQuestMarkers(game, L) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.08, 6, 32).rotateX(Math.PI / 2), new THREE.MeshBasicNodeMaterial({ color: col.clone().multiplyScalar(2) }));
     ring.position.y = 0.06;
     // the chapter card, floating
+    // (shown only with its picture: a missing one leaves the beam and ring)
     const card = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.35), new THREE.MeshBasicNodeMaterial({ color: open ? 0xffffff : 0x666670, side: THREE.DoubleSide, transparent: true }));
-    texLoader.load(ch.card, (t) => { t.colorSpace = THREE.SRGBColorSpace; card.material.map = t; card.material.needsUpdate = true; });
+    card.visible = false;
+    cardTexture(ch.card, (t) => { card.material.map = t; card.material.needsUpdate = true; card.visible = true; });
     card.position.y = 3.1;
     grp.add(beam, ring, card);
     if (ch.start.prop === 'bus') { const b = bus(); b.position.set(-4.5, 0, 0.5); grp.add(b); }
@@ -124,7 +132,7 @@ export function openQuestStart(game, id) {
     const best = d.completed[ch.id];
     const mist = '☁'.repeat(Math.round(ch.mist * 5)) + '·'.repeat(5 - Math.round(ch.mist * 5));
     el.appendChild(h('div', { class: 'panel quest-start', style: 'width:min(620px,94vw);text-align:center' },
-      h('img', { src: ch.card, alt: '', style: 'width:100%;border-radius:8px;border:2px solid #c9963a', onerror: (e) => e.target.remove() }),
+      artReady(ch.card) ? h('img', { src: ch.card, alt: '', style: 'width:100%;border-radius:8px;border:2px solid #c9963a' }) : null,
       h('h2', {}, `Chapter ${ch.num}: ${ch.title}`),
       h('p', { class: 'hint' }, `${ch.place} · Mist ${mist}${best ? ` · Finished on ${DIFFS[best - 1][1]}` : ''}`),
       h('div', { class: 'row', style: 'justify-content:center;gap:6px;flex-wrap:wrap' }, ...DIFFS.map(([v, label]) => h('button', { class: 'btn small' + (v === diff ? ' primary' : ''), 'aria-pressed': String(v === diff), onclick: () => { diff = v; game.ui.refresh('quest'); } }, label))),

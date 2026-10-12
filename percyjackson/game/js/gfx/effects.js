@@ -139,6 +139,15 @@ export class Effects {
   // ---------------- movement fx
   landDust(pos, v) { this.p.burst(tmp.set(pos.x, pos.y + 0.1, pos.z), { count: 10, color: 0x8a7a6a, additive: false, speed: 3, up: 0.1, life: 0.5, size: 0.35, drag: 5, sizeEnd: 1.8, intensity: 0.7 }); }
   splash(pos, s = 1) { this.p.burst(tmp.set(pos.x, pos.y + 0.2, pos.z), { count: Math.round(10 * s), color: 0x9ad0ff, speed: 3.5, up: 1.4, life: 0.5, size: 0.1, gravity: 16, drag: 1, shape: 1, intensity: 1.2 }); }
+  // A person in the Mist told a hero off (entities/mistPeople.js): they flinch,
+  // a line in a speech bubble, a huff. Replayed on every screen online (net/netfx.js).
+  scold(e, line, from) {
+    if (!e || e.dead) return;
+    e.recoil?.(from);
+    if (line) this.game.hud?.say?.(e, line);
+    const a = this.game.audio;
+    if (line && a && !a.throttle?.('huff', 120)) { a.noise?.({ dur: 0.16, gain: 0.08, type: 'bandpass', freq: 700, q: 1.4 }); a.tone?.({ freq: 300, to: 220, dur: 0.14, gain: 0.04, type: 'triangle', filter: 1500, at: 0.04 }); }
+  }
   poof(pos) { this.p.burst(tmp.set(pos.x, pos.y + 0.8, pos.z), { count: 20, color: 0xdddddd, additive: false, speed: 2.5, life: 0.7, size: 0.5, drag: 3, sizeEnd: 2 }); }
   dodgeTrail(pl) {
     const c = new THREE.Color(pl.rig.look?.accent ?? 0x88ccff);

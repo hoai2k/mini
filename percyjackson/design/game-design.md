@@ -37,10 +37,13 @@ adds the story, the Mist, hero switching, the camp minigames and online play.
   the plain blocky world, and the gods' world is the ornamental one.
 - **Interface:** black-and-gold ornamental frames, wave-scroll health bars and
   round vase-style ability icons, from `concept/ui-hero-cards.png`.
-- **Text:** writing first appears as Greek letters, then rearranges itself into
-  English. This is how a demigod reads: their brains are wired for ancient
-  Greek. It applies to signs, objectives, the prophecy and story cards. A
-  setting makes it instant.
+- **Text:** in-game and title writing first appears as Greek letters, holds a
+  moment, then rearranges itself into English with time left to read it. This
+  is how a demigod reads: their brains are wired for ancient Greek. It applies
+  to chapter and place titles, boss names, signs in the world, the words on
+  the school bus and the prophecy. Narration (cutscene subtitles, story-card
+  lines), objectives, hints and messages stay plain English, to be read at
+  once. A setting turns it off.
 
 ## Heroes
 
@@ -77,9 +80,15 @@ its own rewards.
 
 - **The Mist (mortal view)** is the default. The world looks ordinary: a museum,
   a bus, a water park. Monsters are disguised as mortals: a maths teacher,
-  three old ladies, a nice lady selling garden gnomes. Disguised monsters can't
-  be hurt and don't attack until revealed, but something is always slightly
-  off about them.
+  three old ladies, a nice lady selling garden gnomes. Real mortals mill
+  around among them. Nobody who looks like a person can be hurt: a swing or a
+  shot passes through, and they flinch and tell the hero off ("Young man!"),
+  then go back to their business; disguised monsters do the same, so they
+  don't give themselves away (only a rare glint in the eyes is off). Under
+  True Sight the disguised ones become creatures nothing like people
+  (serpents, spiders, ghosts) and can be fought, and stay revealed; real
+  mortals stay people, with a calm outline. A monster killed is gone for good:
+  the "person" isn't there when you come back.
 - **True Sight (LT on a controller, V on a keyboard)** rewrites the world
   outward from the hero in a ring, using the same radial material takeover as
   Cursed Dungeons' Domain Expansion. Surfaces turn gold-ornamental, and
@@ -121,12 +130,16 @@ re-read at any time from the pause menu. *The Lightning Thief*:
 A new game doesn't start in camp. It tells the first chapters of the book in
 order, then opens camp up:
 
-1. **Prologue: Manhattan, the morning of the field trip.** A small city corner
-   (brownstones, Yancy Academy, taxis, a deli, a hot-dog cart, a subway
-   entrance, a park). You're late: walk to the yellow school bus at the curb,
-   fighting off packs of sewer rats (weak, quick, golden dust when they fall:
-   the Mist calls them "just rats") that come out of alleys, the subway stairs
-   and the storm drains. Reaching the bus ends it.
+1. **Prologue: Manhattan, the morning of the field trip.** A city corner
+   (brownstones, Yancy Academy, taxis, a deli, hot-dog carts, a subway
+   entrance, a park) laid out as a training board. You're late: a long walk
+   (about 180 m) to the yellow school bus at the curb, in three beats: a quiet
+   stretch to learn moving and jumping; sewer rats (weak, quick, golden dust
+   when they fall: the Mist calls them "just rats") lounging round the trash,
+   which notice you only up close and now and then dash at you (melee); and
+   rats behind a construction fence, up on scaffolding and a dumpster lid, and
+   out of the storm drains, where shooting first is the obvious move (ranged).
+   Each control gets one hint as it is first needed. Reaching the bus ends it.
 2. **Cutscene:** the bus drives up Central Park West to the American Museum of
    Natural History; the class gets out; Mrs. Dodds is watching.
 3. **Chapter 1**, the museum.
@@ -142,8 +155,9 @@ cutscene. Settings can skip the opening.
 
 **Guidance everywhere:** one line in the objective ribbon names the goal; a
 gold arrow at the screen edge points to it when it is off screen, a beam marks
-it, and footprints on the ground lead along the walkable way. In camp the goal
-is the next chapter's quest marker.
+it, and in camp footprints on the ground lead along the walkable way (the
+prologue has only the arrow and the beam). In camp the goal is the next
+chapter's quest marker.
 
 **Roaming monsters:** as in Minecraft Dungeons, low-level monsters turn up as
 you walk around: rats in the prologue; pups, bronze spiders, Stymphalian birds

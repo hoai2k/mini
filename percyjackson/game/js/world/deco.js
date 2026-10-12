@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { spriteUV, SPRITE_INDEX as SI } from '../gfx/textures.js';
 import { ditherMask, occlusionAmount } from '../gfx/materials.js';
+import { LiveSign, boardPainter } from './liveSign.js';
 
 export class Decorations {
   constructor() { this.items = []; this.props = []; this.mesh = null; this.propMesh = null; }
@@ -74,6 +75,7 @@ export class Decorations {
     this.buildProps(world, materials);
   }
   buildProps(world, materials) {
+    this.liveSigns = [];
     if (this.propMesh) { world.group.remove(this.propMesh); this.propMesh.traverse((o) => o.geometry?.dispose()); }
     const group = new THREE.Group();
     const M = materials.props;
@@ -392,6 +394,33 @@ export class Decorations {
           for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; lb(0.9, 0.06, 0.45, 0.6 + Math.cos(a) * 0.45, 2.6, Math.sin(a) * 0.45, M.car(i % 2 ? 0xffffff : 0x2a6ad8), -a, 0, -0.25); }
           break;
         }
+        case 'dumpster': { // a green steel dumpster, 2 long (local x) x 1.4 x 1.4 high; lid propped open a little
+          const G = M.car(0x2e5a3a);
+          lb(2.0, 1.25, 1.35, 0, 0.7, 0, G); lb(2.06, 0.1, 1.4, 0, 1.33, 0, M.dark);
+          lb(2.0, 0.08, 0.8, 0, 1.52, -0.28, M.car(0x24442c), 0, 0.35); lb(2.0, 0.08, 0.7, 0, 1.4, 0.36, M.car(0x24442c));
+          for (const a of [-0.8, 0.8]) for (const b of [-0.55, 0.55]) lb(0.14, 0.14, 0.14, a, 0.07, b, M.dark);
+          lb(0.1, 0.5, 0.5, 1.02, 0.85, 0, M.metal); lb(1.6, 0.2, 0.06, 0, 0.95, 0.69, M.white);
+          lb(0.5, 0.25, 0.4, 0.4, 1.52, 0.15, M.car(0x2a2a30)); lb(0.36, 0.2, 0.3, -0.5, 1.5, 0.1, M.car(0x3a3a42));   // bags poking out
+          break;
+        }
+        case 'trash_bags': { // a heap of black bin bags on the curb (p.n bags)
+          const n = p.n ?? 5;
+          for (let i = 0; i < n; i++) { const a = i * 2.39996, r = i ? 0.25 + (i % 3) * 0.18 : 0; const s = 0.45 + ((i * 37) % 10) / 40; lb(s, s * 0.85, s * 0.9, Math.cos(a) * r, s * 0.42 + (i > 4 ? 0.35 : 0), Math.sin(a) * r, M.car(i % 4 === 3 ? 0x3a3a46 : 0x1e1e24), a); lb(0.12, 0.14, 0.1, Math.cos(a) * r, s * 0.85 + (i > 4 ? 0.35 : 0), Math.sin(a) * r, M.car(0x2a2a30)); }
+          break;
+        }
+        case 'chain_fence': { // a construction fence of p.len along local x: posts, a top rail, see-through mesh panels, green screen at the bottom
+          const L = p.len ?? 4, h = p.h ?? 2;
+          for (let i = 0; i <= L; i += 2) lb(0.08, h, 0.08, i - L / 2, h / 2, 0, M.chrome);
+          lb(L, 0.06, 0.06, 0, h - 0.03, 0, M.chrome); lb(L, 0.04, 0.04, 0, 0.1, 0, M.chrome);
+          for (let i = 0; i < L * 4; i++) lb(0.02, h - 0.2, 0.02, -L / 2 + (i + 0.5) / 4, h / 2, 0, M.chrome, 0, 0, 0.45);
+          if (p.screen !== false) lb(L, 0.5, 0.03, 0, 0.35, 0.03, M.car(0x2e6a3a));
+          break;
+        }
+        case 'sawhorse': // an orange-and-white striped barrier on legs (along local x)
+          for (const a of [-0.7, 0.7]) { lb(0.08, 0.9, 0.08, a, 0.45, 0.18, M.dark, 0, 0.25); lb(0.08, 0.9, 0.08, a, 0.45, -0.18, M.dark, 0, -0.25); }
+          for (let i = 0; i < 6; i++) lb(0.3, 0.22, 0.05, -0.75 + i * 0.3, 0.78, 0, i % 2 ? M.white : M.car(0xf28c28));
+          break;
+        case 'scaffold_post': lb(0.16, p.h ?? 2.2, 0.16, 0, (p.h ?? 2.2) / 2, 0, M.car(0x2a4a6a)); break;
         case 'hydrant': lb(0.4, 0.6, 0.4, 0, 0.3, 0, M.car(0xd8322a)); lb(0.3, 0.2, 0.3, 0, 0.7, 0, M.car(0xd8322a)); lb(0.6, 0.12, 0.14, 0, 0.42, 0, M.car(0xb8221a)); break;
         case 'trash_can': lb(0.6, 0.9, 0.6, 0, 0.45, 0, M.car(0x3a5a3a)); lb(0.66, 0.08, 0.66, 0, 0.92, 0, M.metal); break;
         case 'mailbox': lb(0.6, 0.9, 0.5, 0, 0.75, 0, M.car(0x2a4a9a)); lb(0.6, 0.2, 0.5, 0, 1.25, 0, M.car(0x2a4a9a)); for (const a of [-0.22, 0.22]) lb(0.08, 0.3, 0.08, a, 0.15, 0, M.dark); break;
@@ -413,7 +442,9 @@ export class Decorations {
           if (ph > 0) { lb(0.14, ph, 0.14, -w / 2 + 0.2, ph / 2, -0.02, M.wood); lb(0.14, ph, 0.14, w / 2 - 0.2, ph / 2, -0.02, M.wood); }
           const cy = ph > 0 ? ph + hh / 2 - 0.15 : hh / 2;
           lb(w + 0.12, hh + 0.12, 0.08, 0, cy, -0.05, p.glow ? M.dark : M.wood);
-          const mat = signMaterial(p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh });
+          // p.greek: the words are Greek letters until a hero has a good look (world/liveSign.js)
+          const mat = p.greek ? liveSignMaterial(this, p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh, pos: new THREE.Vector3(x, y + cy * sc, z), near: p.near, look: p.look })
+            : signMaterial(p.text ?? '', { bg: p.bg, fg: p.fg, glow: p.glow, border: p.border, aspect: w / hh });
           for (const side of p.oneSided ? [1] : [1, -1]) {
             const pl = new THREE.Mesh(new THREE.PlaneGeometry(w * sc, hh * sc), mat);
             const lz = side * 0.0 + (side > 0 ? 0.0 : -0.1);
@@ -437,10 +468,18 @@ export class Decorations {
 
 // Painted words for signs (place names on the road west, shop signs, neon).
 const signCache = new Map();
+const signSize = (aspect) => { const H = 128; return { H, W: Math.min(1024, Math.round(H * aspect / 4) * 4) }; };
+// a sign whose words settle from Greek letters into English (kept in deco.liveSigns for game.signs)
+function liveSignMaterial(deco, text, { bg = '#6a4a2a', fg = '#f6e7c0', glow = false, border = '#c9963a', aspect = 3, pos, near = 11, look = 1.4 } = {}) {
+  const { W, H } = signSize(aspect);
+  const s = new LiveSign(text, { w: W, h: H, paint: boardPainter({ bg, fg, glow, border }), pos, near, look });
+  deco.liveSigns.push(s);
+  return new THREE.MeshStandardNodeMaterial({ map: s.texture, roughness: 0.8, emissive: 0xffffff, emissiveMap: s.texture, emissiveIntensity: glow ? 1.8 : 0.22 });
+}
 function signMaterial(text, { bg = '#6a4a2a', fg = '#f6e7c0', glow = false, border = '#c9963a', aspect = 3 } = {}) {
   const key = [text, bg, fg, glow, border, aspect.toFixed(2)].join('|');
   if (signCache.has(key)) return signCache.get(key);
-  const H = 128, W = Math.min(1024, Math.round(H * aspect / 4) * 4);
+  const { W, H } = signSize(aspect);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
   g.fillStyle = bg; g.fillRect(0, 0, W, H);

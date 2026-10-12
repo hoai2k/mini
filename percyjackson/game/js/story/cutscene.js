@@ -1,13 +1,14 @@
 // Cutscenes in the engine: the game's renderer and world, a camera moved
-// along keyframes, letterbox bars, subtitles in the story voice (the Greek
-// letters settling into English), an optional story-card picture, fades.
+// along keyframes, letterbox bars, subtitles in the story voice (plain
+// English: narration never uses the Greek letters), an optional story-card
+// picture (shown once its image has loaded), fades.
 // Skippable: hold A, Esc (or Space / Enter) or hold a finger on the screen;
 // a ring fills while you hold.
 //
 // A cutscene definition (story/cutscenes.js) is { id, title, build(game,
 // ctx) } where build loads the set and returns { shots, update?(t, dt),
 // dispose?() }. A shot is { dur, cam(k, t) -> { pos, look, fov? } (k: 0..1
-// through the shot), lines: [{ at, text }], card?: { src, at, dur }, fadeIn?,
+// through the shot), lines: [{ at, text }], card?: { src, at, dur, side? ('left') }, fadeIn?,
 // fadeOut? ('black' | 'white'), act?(k, dt, t) }.
 //
 // Online the host drives (net/online.js shares the cutscene in its scene
@@ -15,8 +16,8 @@
 // and the host skips when it holds skip itself or every guest has asked.
 import * as THREE from 'three/webgpu';
 import { h } from '../ui/ui.js';
-import { demigodText } from '../ui/greekText.js';
 import { prefersReducedMotion } from '../settings.js';
+import { artReady } from '../ui/art.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
 const ease = (k) => k * k * (3 - 2 * k);
@@ -51,7 +52,6 @@ export class Cutscene {
       this.subEl = h('p', { class: 'cs-sub', 'aria-live': 'polite' }),
       this.fadeEl = h('div', { class: 'cs-fade' }),
       this.skipEl = h('div', { class: 'cs-skip' }, h('span', { class: 'ring' }), h('span', { class: 'txt' }, this.skipText())));
-    this.cardImg.addEventListener('error', () => { this.cardBroken = true; this.cardEl.classList.add('hidden'); });
     const down = (e) => { this.held.ptr = true; e.preventDefault(); }, up = () => { this.held.ptr = false; };
     el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
     document.body.appendChild(el);
@@ -78,9 +78,7 @@ export class Cutscene {
     f.style.transition = `opacity ${dur}s ease`; f.style.opacity = String(to);
   }
   line(text) {
-    this.subH?.cancel?.();
-    this.subEl.replaceChildren(); this.subEl.classList.add('show');
-    this.subH = demigodText(this.subEl, text, { speed: 1.25 });
+    this.subEl.textContent = text; this.subEl.classList.add('show');
     this.game.audio?.ui?.('move');
   }
   pad() {
@@ -101,9 +99,11 @@ export class Cutscene {
     this.t += dt; this.shotT += dt;
     const k = Math.min(1, this.shotT / s.dur);
     for (const [i, L] of (s.lines ?? []).entries()) if (this.shotT >= L.at && !this.linesShown.has(i)) { this.linesShown.add(i); this.line(L.text); }
-    if (s.card && !this.cardBroken) {
+    // the story-card picture: preloaded with the title (ui/art.js); one that isn't there is left out, never drawn late
+    if (s.card && artReady(s.card.src)) {
       const on = this.shotT >= s.card.at && this.shotT < s.card.at + s.card.dur;
       if (on && this.cardImg.getAttribute('src') !== s.card.src) this.cardImg.src = s.card.src;
+      this.cardEl.classList.toggle('left', s.card.side === 'left');
       this.cardEl.classList.toggle('hidden', !on);
     } else this.cardEl.classList.add('hidden');
     if (s.fadeOut && !this.fadingOut && s.dur - this.shotT < 0.6) { this.fadingOut = true; this.fade(s.fadeOut, 0, 1, 0.55); }
@@ -149,7 +149,6 @@ export class Cutscene {
   }
   cleanup() {
     window.removeEventListener('keydown', this.onKey, true); window.removeEventListener('keyup', this.onKey, true);
-    this.subH?.cancel?.();
     const el = this.el; el?.classList.remove('in'); setTimeout(() => el?.remove(), 400);
     this.set?.dispose?.();
     if (this.def.music && this.game.audio?.overrideMusic === this.def.music) this.game.audio.setOverride(null);

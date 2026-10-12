@@ -63,11 +63,25 @@ import { Trench } from './gfx/materials.js';
 import { isMobile } from './util.js';
 import { Tracker } from './ui/tracker.js';
 import { Roaming } from './world/roaming.js';
+import { LiveSigns } from './world/liveSign.js';
+import { preloadArt, prepareLogo, ALL_ART } from './ui/art.js';
 import { OpeningFlow } from './story/openingFlow.js';
 
 const loadFill = document.getElementById('load-fill');
 const loadText = document.getElementById('load-text');
-const progress = (p, t) => { loadFill.style.width = (p * 100).toFixed(0) + '%'; if (t) loadText.textContent = t; };
+// The loading bar: index.html fills the first 30% as the scripts arrive; the
+// boot steps (GPU, textures, camp, shaders) and the pictures (ui/art.js) fill
+// the rest. It never goes back.
+const loadBar = { boot: 0, art: 0, shown: 0 };
+const progress = (p, t) => {
+  if (p != null) loadBar.boot = Math.max(loadBar.boot, p);
+  window.__bootTaken = true;
+  const v = Math.max(loadBar.shown, window.__bootP ?? 0, 0.3 + 0.45 * loadBar.boot + 0.25 * loadBar.art);
+  loadBar.shown = v;
+  loadFill.style.width = (v * 100).toFixed(1) + '%';
+  loadFill.parentElement?.setAttribute('aria-valuenow', String(Math.round(v * 100)));
+  if (t) loadText.textContent = t;
+};
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
 
 class Game {
@@ -91,7 +105,9 @@ class Game {
     this.cutscene = null; this.openingChapter = null;
   }
   async boot() {
-    progress(0.05, 'Detecting GPU…');
+    // the pictures the screens show load alongside everything else (ui/art.js)
+    const art = preloadArt(ALL_ART, (n, total) => { loadBar.art = n / total; progress(null); });
+    progress(0.02, 'Detecting GPU…');
     this.gr = new GameRenderer();
     this.startedWebGL = settings.forceWebGL;
     await this.gr.init(document.getElementById('app'), { forceWebGL: settings.forceWebGL, quality: settings.quality });
@@ -135,6 +151,7 @@ class Game {
     this.hud = new HUD(this);
     this.tracker = new Tracker(this);      // where to go: the goal line, arrow, beam and footprints
     this.roaming = new Roaming(this);      // low-level monsters met while walking around
+    this.signs = new LiveSigns(this);      // painted words that settle from Greek letters into English
     this.pickups = new Pickups(this);
     this.minimap = new Minimap(this);
     this.coins = 0;
@@ -155,6 +172,10 @@ class Game {
     await nextFrame();
     this.gr.setScene(this.scene, this.rig.camera);
     try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
+    progress(0.92, 'Unrolling the scrolls…');
+    await art;
+    prepareLogo();
+    try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* fonts: carry on */ }
     progress(1, 'Ready');
     window.addEventListener('resize', () => this.gr.resize());
     const persist = () => this.profiles.flush();
@@ -163,11 +184,13 @@ class Game {
     window.addEventListener('keydown', (e) => { if (e.code === 'F3') { settings.showFps = !settings.showFps; saveSettings(); this.setReadout(settings.showFps); } });
     if (isMobile) { document.body.classList.add('is-touch'); this.touch = new TouchControls(this); this.touch.show(true); }
     this.setReadout(settings.showFps);
-    document.getElementById('loading').classList.add('fade');
-    setTimeout(() => document.getElementById('loading').remove(), 600);
     this.last = performance.now();
     this.gr.renderer.setAnimationLoop(() => this.frame());
     this.toTitle();
+    // the title is drawn under the loading screen: fade into it once it has painted
+    await nextFrame(); await nextFrame();
+    document.getElementById('loading').classList.add('fade');
+    setTimeout(() => document.getElementById('loading').remove(), 800);
   }
   // ---------------------------------------------------------------- front-end flow
   toTitle() {
@@ -232,7 +255,7 @@ class Game {
     this.hud.rebuildCards?.();
     if (start === 'auto' && !this.opening.done && !this.online?.isGuest) { this.opening.run(); return; }
     this.loadHub();
-    toast('Camp Half-Blood', 'big');
+    toast('Camp Half-Blood', 'title');
   }
   // A cutscene is showing (story/cutscene.js): stop it (the scene changed under it).
   endCutscene() {
@@ -327,7 +350,7 @@ class Game {
     for (const m of this.markers.items) this.markers.cancel(m);
     this.updaters = []; this.interactables = [];
     this.mission?.dispose(); this.mission = null;
-    this.tracker?.setGoal(null); this.roaming?.clear();
+    this.tracker?.setGoal(null); this.roaming?.clear(); this.signs?.clear();
     this.exitPortal = null; this.objectiveDone = false;
     this.lights.dynamic = this.lights.dynamic.filter((d) => this.players.some((p) => p.heroLight === d));
     Trench.glow.value = 0; this.trenchFade = 0;
@@ -340,6 +363,7 @@ class Game {
     this.world.init(this.materials);
     this.scene.add(this.world.group);
     level.deco.build(this.world, this.materials, this.gr.preset.decoDensity);
+    for (const s of level.deco.liveSigns ?? []) this.signs.add(s);
     this.shafts = level.shafts; this.scene.add(level.shafts.group);
     this.shafts.group.visible = !!this.gr.preset.shafts;
     this.lights.setStatic(this.world.staticLights);
@@ -458,7 +482,7 @@ class Game {
     this.mission.setup();
     this.mode = 'mission';
     this.online.sceneChanged();
-    toast(this.chapter ? this.chapter.title : `${L.biome.name} · ${L.biome.sub}`, 'big');
+    toast(this.chapter ? this.chapter.title : `${L.biome.name} · ${L.biome.sub}`, 'title');
     if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Press LT (V) to see through it.' : 'Press LT (V) to see through the Mist.'), 2600);
   }
   completeMission() {
@@ -512,7 +536,7 @@ class Game {
   returnToHub() {
     // net: online, a guest goes where the host goes
     if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast('Waiting for the host to return to camp'); return; }
-    this.loadHub(); toast('Camp Half-Blood', 'big');
+    this.loadHub(); toast('Camp Half-Blood', 'title');
   }
   openMap() {
     if (!this.minimap.level) return;
@@ -812,6 +836,7 @@ class Game {
     this.particles.upload();
     this.hud.update(realDt);
     this.tracker.update(realDt);
+    this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
     gr.render();
     if (this.readoutOn) this.updateReadout();

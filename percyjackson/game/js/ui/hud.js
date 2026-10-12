@@ -4,7 +4,7 @@
 // ribbon, the boss bar, drachmas, the Greek-key minimap frame and prompts.
 import * as THREE from 'three/webgpu';
 import { h } from './ui.js';
-import { demigodText } from './greekText.js';
+import { demigodText, GREEK } from './greekText.js';
 import { HEROES } from '../heroes/index.js';
 import { settings } from '../settings.js';
 import { isMobile } from '../util.js';
@@ -40,9 +40,10 @@ export class HUD {
     r.appendChild(this.coins);
     this.join = h('div', { class: 'join-hint' }, isMobile ? '' : 'Controller: press Start to join'); r.appendChild(this.join);
     this.prompts = new Map();
+    this.says = [];   // speech bubbles over people (say())
     this.cardEls = []; this.partyEls = [];
     this.sig = '';
-    this.objKey = ''; this.objT = null; this.objD = null;
+    this.objKey = '';
   }
   show(on) { this.root.classList.toggle('hidden', !on); }
   humans() { const g = this.game; const hs = g.players.filter((p) => !p.ai); return hs.length ? hs : g.players; }
@@ -67,7 +68,8 @@ export class HUD {
     const hpTxt = h('span', { class: 'bt' });
     const extra = h('span', { class: 'ex' });
     const bs = h('span', { class: 'bs', title: 'Battle Sense', 'aria-label': 'Battle Sense' });
-    const port = h('div', { class: 'port has-face', style: `--hc:${color};background-image:url(assets/heroes/${p.hero}-face.jpg)` }, h('span', {}, info.name[0]), bs);
+    // the hero's face (preloaded with the title, ui/art.js); a missing picture leaves the hero's colour
+    const port = h('div', { class: 'port has-face', style: `--hc:${color};background-image:url(assets/heroes/${p.hero}-face.jpg)` }, bs);
     const hp = h('div', { class: 'hbar hp' }, hpB, hpI, hpTxt);
     const pw = h('div', { class: 'hbar pw', title: 'Power' }, pwI);
     const abs = h('div', { class: 'hc-abs' });
@@ -99,7 +101,7 @@ export class HUD {
     for (const q of party) {
       if (q === human || (!q.ai && this.humans().length > 1)) continue;   // net: with several humans, only the companions
       const info = HEROES[q.hero] ?? { name: q.hero, color: '#999' };
-      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
+      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` });
       row.appendChild(el); this.partyEls.push({ q, el, last: -1 });
     }
     const k = switchKey(human);
@@ -110,18 +112,36 @@ export class HUD {
     this.obj.classList.toggle('hidden', !title);
     const key = (title || '') + '\u0001' + (desc || '');
     if (key === this.objKey) return;
-    const prevT = this.objKey.split('\u0001')[0];
     this.objKey = key;
     const [t, d] = this.obj.children;
-    this.objD?.cancel?.(); this.objT?.cancel?.();
-    if (!title) { t.textContent = ''; d.textContent = ''; return; }
-    if (prevT !== title) this.objT = demigodText(t, title, { speed: 1.2 }); else t.textContent = title;
-    this.objD = demigodText(d, desc || '', { speed: 1.3, delay: 0.1 });
+    // (an instruction: plain English, readable at once)
+    t.textContent = title || ''; d.textContent = title ? desc || '' : '';
   }
   setBoss(boss) {
     this.bossRef = boss;
     this.boss.classList.toggle('hidden', !boss);
-    if (boss) this.boss.children[0].textContent = boss.displayName ?? boss.name;
+    // the boss's name appears in Greek letters and settles into English
+    const name = boss ? boss.displayName ?? boss.name : null;
+    if (boss && (this.bossShown?.b !== boss || this.bossShown.name !== name)) { this.bossShown = { b: boss, name }; this.bossH?.cancel?.(); this.bossH = demigodText(this.boss.children[0], name, { timing: GREEK.boss }); }
+    if (!boss) this.bossShown = null;
+  }
+  // A speech bubble over someone (a person in the Mist telling a hero off), for `secs`.
+  say(ent, text, secs = 2.4) {
+    const old = this.says.find((s) => s.ent === ent); if (old) { old.el.remove(); this.says.splice(this.says.indexOf(old), 1); }
+    const el = h('div', { class: 'say', role: 'status' }, text);
+    this.root.appendChild(el);
+    this.says.push({ ent, el, t: secs });
+    this.placeSays(0);
+  }
+  placeSays(dt) {
+    for (let i = this.says.length - 1; i >= 0; i--) {
+      const s = this.says[i]; s.t -= dt;
+      if (s.t <= 0 || s.ent.dead || !s.ent.disguised) { s.el.remove(); this.says.splice(i, 1); continue; }
+      const v = tmp.set(s.ent.pos.x, s.ent.pos.y + (s.ent.height ?? 1.9) + 0.5, s.ent.pos.z).project(this.game.rig.camera);
+      s.el.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth).toFixed(0) + 'px';
+      s.el.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight).toFixed(0) + 'px';
+      s.el.classList.toggle('out', s.t < 0.3 || v.z > 1);
+    }
   }
   // world-anchored prompt ("E  Talk")
   prompt(id, pos, text, onTap) {
@@ -137,6 +157,7 @@ export class HUD {
     const g = this.game;
     this.t += dt;
     for (const [id, el] of this.prompts) { if (!el.dataset.seen) { el.remove(); this.prompts.delete(id); } else delete el.dataset.seen; }
+    if (this.says.length) this.placeSays(dt);
     if (this.sig !== this.signature()) this.rebuildCards();
     const bsOn = settings.battleSense !== false;
     for (const c of this.cardEls) {

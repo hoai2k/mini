@@ -1,8 +1,10 @@
 // Roaming monsters: small packs of low-level monsters that turn up as you walk
 // around, out of sight and never right on top of the heroes (the Minecraft
 // Dungeons feel). Two places use it:
-//   city  the prologue's Manhattan: sewer rats out of alleys, the subway
-//         stairs and storm drains (rat holes from world/manhattan.js)
+//   city  the prologue's Manhattan (a training board): sewer rats that hang
+//         around the trash from the start (nests from world/manhattan.js,
+//         entities/ratRules.js); now and then one dashes at the lead hero,
+//         and single rats come out of the drains and alleys further on
 //   camp  Camp Half-Blood after the opening: the woods and the Road West
 //         (world/roamZones.js); never inside the protected core, and a
 //         monster that wanders into it turns back.
@@ -13,13 +15,22 @@
 import * as THREE from 'three/webgpu';
 import { standY } from '../ui/tracker.js';
 import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, spawnAllowed } from './roamZones.js';
+import { RAT, pickDasher, beatAt } from '../entities/ratRules.js';
+import { lineOfSight } from '../entities/enemy.js';
+
+const rand = ([a, b]) => a + Math.random() * (b - a);
 
 const tmp = new THREE.Vector3();
 
 export class Roaming {
   constructor(game) { this.game = game; this.kind = null; this.t = 0; this.list = []; }
-  clear() { this.kind = null; this.list = []; this.holes = null; }
-  configureCity(holes) { this.kind = 'city'; this.holes = holes; this.list = []; this.t = 3.5; this.first = true; }
+  clear() { this.kind = null; this.list = []; this.holes = null; this.nests = null; this.nested = []; }
+  // L: the prologue's level (world/manhattan.js): rats (holes), nests, beats
+  configureCity(L) {
+    this.kind = 'city'; this.holes = L.rats ?? []; this.nests = L.nests ?? []; this.beats = L.beats ?? [];
+    this.list = []; this.nested = []; this.placed = false;
+    this.t = rand(RAT.holeEvery); this.dashT = 4 + Math.random() * 3;
+  }
   configureCamp() { this.kind = 'camp'; this.list = []; this.t = 6; }
   get cap() { return this.kind === 'city' ? ROAM_RULES.capCity : ROAM_RULES.capCamp; }
   live() { this.list = this.list.filter((e) => !e.dead && this.game.enemies.includes(e)); return this.list; }
@@ -35,44 +46,70 @@ export class Roaming {
     if (!this.active()) return;
     const g = this.game;
     this.keepOut(dt);
+    if (this.kind === 'city') { if (!this.placed) this.placeNests(); this.director(dt); }
     this.t -= dt;
     if (this.t > 0) return;
-    const [a, b] = this.kind === 'city' ? ROAM_RULES.everyCity : ROAM_RULES.everyCamp;
-    this.t = a + Math.random() * (b - a);
+    this.t = rand(this.kind === 'city' ? RAT.holeEvery : ROAM_RULES.everyCamp);
+    if (this.kind === 'city') { this.spawnCity(); return; }
     if (this.live().length >= this.cap) return;
-    if (this.kind === 'city') this.spawnCity(); else this.spawnCamp();
+    this.spawnCamp();
     void g;
   }
-  // ---- the prologue: rats from the nearest hole ahead that nobody stands next to
+  // ---- the prologue (entities/ratRules.js)
+  lead() { const hs = this.heroes(); return hs.find((p) => !p.ai && !p.remote) ?? hs[0] ?? null; }
+  aggroRats() { return this.game.enemies.filter((e) => e.kind === 'rat' && !e.dead && (e.aggro || e.loiter?.alertT != null)).length; }
+  // the rats that hang around the trash from the start
+  placeNests() {
+    const g = this.game;
+    this.placed = true;
+    for (const n of this.nests ?? []) for (let i = 0; i < n.n; i++) {
+      const a = (i / n.n) * Math.PI * 2 + Math.random(), r = n.n > 1 ? 0.5 + Math.random() * 0.5 : 0;
+      const p = n.at.clone().add(tmp.set(Math.cos(a) * r, 0.05, Math.sin(a) * r));
+      const e = g.spawnEnemy('rat', p, { level: 1 });
+      if (!e?.loiter) continue;
+      e.spawnT = 0; e.facing = Math.random() * Math.PI * 2;
+      Object.assign(e.loiter, { home: n.at.clone(), r: n.r ?? RAT.wander, notice: n.notice ?? RAT.notice, alert: n.alert ?? RAT.alert, perch: !!n.perch, face: n.face?.clone() ?? null, actT: Math.random() * 2 });
+      e.nest = n; e.beat = n.beat;
+      this.nested.push(e);
+    }
+  }
+  // now and then: a loitering rat a fair way off dashes at the lead hero
+  director(dt) {
+    this.dashT -= dt;
+    if (this.dashT > 0) return;
+    this.dashT = rand(RAT.dashEvery);
+    const lead = this.lead(); if (!lead) return;
+    if (beatAt(this.beats, lead.pos.x, lead.pos.z) === 'walk') return;
+    const rats = this.nested.filter((e) => !e.dead && this.game.enemies.includes(e));
+    const cands = rats.map((e) => ({ e, dist: e.pos.distanceTo(lead.pos), los: lineOfSight(this.game.world, e.pos, 0.6, lead.pos, 1.2), aggro: e.aggro, perch: e.loiter.perch, alerting: e.loiter.alertT != null }));
+    const others = this.game.enemies.filter((e) => e.kind === 'rat' && !e.dead && !this.nested.includes(e) && (e.aggro || e.loiter?.alertT != null)).map(() => ({ aggro: true }));
+    const i = pickDasher([...cands, ...others]);
+    if (i >= 0 && cands[i]) cands[i].e.dash(lead);
+  }
+  // further on: a single rat out of a drain or an alley, at a distance, that runs at you
   spawnCity(force = false) {
     const g = this.game, hs = this.heroes(); if (!hs.length || !this.holes?.length) return 0;
-    const goal = g.level?.goal;
-    const lead = hs.find((p) => !p.ai && !p.remote) ?? hs[0];
+    const lead = this.lead();
+    const beat = beatAt(this.beats, lead.pos.x, lead.pos.z);
+    if (!force && beat === 'walk') return 0;
+    if (!force && (this.live().length >= RAT.holeCap || this.aggroRats() >= RAT.maxAggro)) return 0;
     const near = (v) => Math.min(...hs.map((p) => Math.hypot(p.pos.x - v.x, p.pos.z - v.z)));
-    const cands = this.holes.filter((h) => { const d = near(h.at); return d >= (force ? 9 : 12) && d <= 34; });
+    const [lo, hi] = RAT.holeRange;
+    const goal = g.level?.goal;
+    const cands = this.holes.filter((h) => { const d = near(h.at); return d >= lo && d <= hi && (!h.beat || h.beat === beat || force); });
     if (!cands.length) return 0;
-    // prefer holes between the leader and the bus
-    const score = (h) => Math.hypot(h.at.x - lead.pos.x, h.at.z - lead.pos.z) + (goal ? Math.hypot(h.at.x - goal.x, h.at.z - goal.z) * 0.6 : 0) + Math.random() * 6;
+    // prefer holes on the way to the bus
+    const score = (h) => (goal ? Math.hypot(h.at.x - goal.x, h.at.z - goal.z) : 0) + Math.random() * 8;
     cands.sort((x, y) => score(x) - score(y));
     const hole = cands[0];
-    const n = (this.first ? 3 : 2) + Math.floor(Math.random() * 2);
-    this.first = false;
-    let made = 0;
-    for (let i = 0; i < n; i++) {
-      const p = hole.at.clone().add(tmp.set((Math.random() - 0.5) * 1.6, 0, (Math.random() - 0.5) * 1.6));
-      p.y = hole.at.y;
-      const e = g.spawnEnemy('rat', p, { level: 1 });
-      if (!e) continue;
-      e.roamer = true; e.aggro = true; e.spawnT = 0.45;
-      e.home = hole.out.clone();
-      this.list.push(e); made++;
-    }
-    if (made && !this.toldRats) {
-      this.toldRats = true;
-      const pad = g.input?.lastDevice?.startsWith?.('pad');
-      setTimeout(() => g.state === 'playing' && g.mode === 'prologue' && g.toast(`Rats! Big ones, with red eyes. ${pad ? 'X' : 'Left click'} to swing.`), 600);
-    }
-    return made;
+    const p = hole.at.clone(); p.y = hole.at.y;
+    const e = g.spawnEnemy('rat', p, { level: 1 });
+    if (!e) return 0;
+    e.roamer = true; e.spawnT = 0.45;
+    if (e.loiter) { e.loiter.home = hole.out.clone(); e.dash(lead); e.loiter.alertT = 0.9; }   // up out of the drain, a squeak, then it runs
+    else e.aggro = true;
+    this.list.push(e);
+    return 1;
   }
   // ---- camp: a spot in a roam area 15–30 m from a hero who is out exploring
   spawnCamp() {

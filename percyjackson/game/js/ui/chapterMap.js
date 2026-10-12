@@ -1,7 +1,7 @@
 // Chapter map: the books as tabs, their chapters as cards (chapter image,
 // place, Mist rating, completion / lock state), a difficulty picker and Start.
 import { h } from './ui.js';
-import { demigodText } from './greekText.js';
+import { demigodText, GREEK } from './greekText.js';
 import { BOOKS, CHAPTERS, chaptersOf, chapterPlayable } from '../story/chapters.js';
 
 export const DIFFICULTIES = [['Mortal', 'Gentle: for learning the ropes.'], ['Demigod', 'The way the books play.'], ['Hero', 'Tougher monsters.'], ['Olympian', 'For legends only.']];
@@ -22,13 +22,13 @@ export function isUnlocked(d, ch) {
   const list = chaptersOf(ch.book), i = list.indexOf(ch);
   return i <= 0 || !!d.completed?.[list[i - 1].id];
 }
-// card image with a parchment fallback (number and title) if it fails to load
+// The chapter's card picture (preloaded behind the loading screen, ui/art.js).
+// A picture that is genuinely missing leaves the frame empty.
 export function cardArt(ch, cls = '') {
-  const fb = () => h('div', { class: 'art-fallback' }, h('span', { class: 'n' }, String(ch.num ?? '')), h('span', { class: 't' }, ch.title));
   const wrap = h('div', { class: 'art ' + cls });
-  if (!ch.card) { wrap.append(fb()); return wrap; }
-  const img = h('img', { src: ch.card, alt: '', loading: 'lazy', draggable: 'false' });
-  img.addEventListener('error', () => wrap.replaceChildren(fb()));
+  if (!ch.card) return wrap;
+  const img = h('img', { src: ch.card, alt: '', draggable: 'false' });
+  img.addEventListener('error', () => img.remove());
   wrap.append(img);
   return wrap;
 }
@@ -65,7 +65,7 @@ export function openChapterMap(game) {
       const open = isUnlocked(d, ch), done = !!d.completed?.[ch.id];
       const title = h('h3', { class: 'ctitle' });
       titleHandle?.cancel?.();
-      if (animate) titleHandle = demigodText(title, ch.title, { speed: 1.4 }); else title.textContent = ch.title;
+      if (animate) titleHandle = demigodText(title, ch.title, { timing: GREEK.map }); else title.textContent = ch.title;
       const diffRow = h('div', { class: 'diffs', role: 'radiogroup', 'aria-label': 'Difficulty' }, ...DIFFICULTIES.map(([n, tip], i) =>
         h('button', { class: 'diff' + (difficulty === i + 1 ? ' on' : ''), role: 'radio', 'aria-checked': String(difficulty === i + 1), title: tip, onclick: () => { difficulty = i + 1; d.lastDifficulty = difficulty; renderDetail(false); ui.setFocus(detail.querySelectorAll('.diff')[i]); } }, n)));
       const startBtn = h('button', { class: 'btn primary', 'data-start': true, disabled: !open, onclick: () => start(ch) }, open ? (done ? 'Play again' : 'Start chapter') : (ch.ready ? 'Locked' : 'Coming soon'));

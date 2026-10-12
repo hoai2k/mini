@@ -67,7 +67,7 @@ export class Projectiles {
       if (p.trail) p.trail(p, dt);
       // world
       const id = w.get(Math.floor(p.pos.x), Math.floor(p.pos.y), Math.floor(p.pos.z));
-      if (id && BLOCKS[id].solid && !p.ghost) {
+      if (id && BLOCKS[id].solid && !p.ghost && !BLOCKS[id].shotThrough) {
         if (BLOCKS[id].hp && p.team === 'player') g.combat.damageBlock(Math.floor(p.pos.x), Math.floor(p.pos.y), Math.floor(p.pos.z), p.dmg);
         this.kill(p, 'wall'); continue;
       }
@@ -76,11 +76,13 @@ export class Projectiles {
       const targets = p.team === 'player' ? g.enemies : g.hostileTargets();
       let dead = false;
       for (const e of targets) {
-        if (e.dead || p.hit.has(e) || e.untargetable) continue;
+        if (e.dead || p.hit.has(e) || (e.untargetable && !(e.disguised && p.team === 'player' && !p.replay))) continue;
         const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, dy = p.pos.y - e.pos.y;
         if (dy < -0.3 || dy > (e.height ?? 1.8) + 0.3) continue;
         const r = (e.radius ?? 0.4) + p.radius;
         if (dx * dx + dz * dz > r * r) continue;
+        // a shot through someone in the Mist flies on; they tell the shooter off (entities/mistPeople.js)
+        if (e.untargetable) { p.hit.add(e); e.scold?.(p.owner?.isPlayer ? p.owner : g.players.find((q) => !q.remote && !q.ai) ?? null); continue; }
         p.hit.add(e);
         p.onHit?.(e, p);
         if (!p.pierce) { this.kill(p, 'hit'); dead = true; break; }

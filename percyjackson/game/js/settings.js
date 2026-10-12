@@ -5,7 +5,7 @@ const DEFAULTS = {
   shake: 1, hitstop: true, slowmo: true, cameraRotate: false, cameraZoom: 22,
   master: 0.8, music: 0.5, sfx: 0.9, muted: false, damageNumbers: true, autoAim: 'touch',
   battleSense: true,   // a perfect dodge slows time for the team
-  greekText: true,     // text first appears as Greek letters, then settles into English
+  greekText: true,     // titles and signs first appear as Greek letters, then settle into English (narration is always plain English)
   vibration: true,     // controller rumble
   reduceMotion: false, // also honours the system "reduce motion" preference
 };

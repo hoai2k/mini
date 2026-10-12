@@ -61,6 +61,8 @@ export class Resume {
       m: {
         it: bits(m.obj.items, (x) => x.done), ch: bits(m.L.chests, (c) => c.opened), gt: bits(m.L.gates, (gt) => gt.open),
         rc: bits(m.L.rooms, roomCleared), od: m.objDone ? 1 : 0, bs: m.bossSpawned ? 1 : 0,
+        // monsters already killed in rooms not yet cleared (the "people" they were stay gone)
+        rk: m.L.rooms.map((r) => (r.activated && !roomCleared(r) ? (r.killedBefore ?? 0) + (r.enemies ?? []).filter((e) => e.dead).length : 0)),
         bd: m.boss?.dead ? 1 : 0, bp: m.boss ? [m.boss.home?.x ?? m.boss.pos.x, m.boss.home?.y ?? m.boss.pos.y, m.boss.home?.z ?? m.boss.pos.z] : null,
         x: (() => { try { return m.netState?.() ?? null; } catch (e) { return null; } })(), time: Math.round(m.stats.time ?? 0),
       },
@@ -90,7 +92,7 @@ export class Resume {
     if (sig === this.sig) return;
     this.sig = sig;
     // a checkpoint is a calm spot: no monster close by
-    if (lead && lead.grounded && !g.enemies.some((e) => !e.dead && !e.isDummy && e.pos.distanceTo(lead.pos) < 12)) this.cp = [lead.safePos.x, lead.safePos.y, lead.safePos.z];
+    if (lead && lead.grounded && !g.enemies.some((e) => !e.dead && !e.isDummy && !e.disguised && e.pos.distanceTo(lead.pos) < 12)) this.cp = [lead.safePos.x, lead.safePos.y, lead.safePos.z];
     this.schedule();
   }
   schedule() {
@@ -126,6 +128,13 @@ export class Resume {
     const on = (str, i) => typeof str === 'string' && str[i] === '1';
     const s = r.m ?? {};
     m.L.rooms.forEach((room, i) => { if (on(s.rc, i)) { room.activated = true; room.enemies = []; room.waveIdx = room.waves?.length ?? 0; room.waveT = 0; g.minimap.reveal(room); } });
+    // in a room left half done, the monsters already killed don't come back
+    m.L.rooms.forEach((room, i) => {
+      let n = Math.max(0, Math.min(99, Math.floor(Array.isArray(s.rk) ? s.rk[i] ?? 0 : 0)));
+      if (!n || on(s.rc, i) || !room.waves) return;
+      room.killedBefore = n;
+      room.waves = room.waves.map((w) => { const k = Math.min(n, w.length); n -= k; return w.slice(k); }).filter((w) => w.length);
+    });
     m.obj.items.forEach((it, i) => { if (on(s.it, i) && !it.done) m.completeItem(it); });
     const chests = () => m.L.chests.forEach((c, i) => { if (on(s.ch, i) && !c.opened) { c.opened = true; if (c.lid) c.lid.rotation.x = -1.9; } });
     chests();

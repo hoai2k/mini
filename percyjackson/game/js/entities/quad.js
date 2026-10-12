@@ -167,6 +167,8 @@ export class QuadRig {
           }
           snap = 34; break;
         }
+        case 'sniff': T.headX = 0.32 + Math.sin(t * 15) * 0.06; T.headY = Math.sin(t * 1.3) * 0.35; T.torsoX = 0.08; T.jaw = 0.04; snap = 12; break;   // nose down, twitching
+        case 'eat': T.headX = 0.55; T.torsoX = 0.14; T.front = 0.15; T.jaw = 0.08 + Math.max(0, Math.sin(t * 16)) * 0.28; snap = 14; break;   // gnawing at something on the ground
         case 'cast': T.headX = 0.15; T.jaw = 0.85; T.torsoX = 0.08; T.legBias = 0.2; snap = 24; break;
         case 'raise': case 'sign': T.headX = -0.75; T.jaw = 0.6; T.torsoX = -0.18; T.front = -0.2; snap = 14; break;
         case 'hit': { const e = Math.sin(k * Math.PI); T.torsoX = -0.25 * e; T.headX = -0.45 * e; T.jaw = 0.4 * e; T.torsoZ = 0.15 * e; snap = 30; break; }

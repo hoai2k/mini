@@ -12,7 +12,7 @@
 import * as THREE from 'three/webgpu';
 import { r2 } from './proto.js';
 
-const FX = ['shockwave', 'slashArc', 'explosion', 'splat', 'summonCircle', 'blinkPuff', 'slashLine', 'slashX', 'heal', 'hitSpark', 'poof', 'debris', 'curseDeath', 'blackLightning', 'landDust', 'splash', 'flash'];
+const FX = ['shockwave', 'slashArc', 'explosion', 'splat', 'summonCircle', 'blinkPuff', 'slashLine', 'slashX', 'heal', 'hitSpark', 'poof', 'debris', 'curseDeath', 'blackLightning', 'landDust', 'splash', 'flash', 'scold'];
 const SKIP = new Set(['onHit', 'onExpire', 'trail', 'owner', 'src', 'mesh', 'hit', 'lightH']);
 const MAX_OUT = 40;
 

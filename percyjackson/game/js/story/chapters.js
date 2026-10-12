@@ -2,8 +2,11 @@
 // in its biome, an objective, a boss, how thick the Mist is, and story cards.
 //   mist      0 (none) .. 1 (very thick): how fast True Sight drains and how
 //             much of the chapter's enemies start disguised as mortals.
-//   disguise  the mortal disguises used by disguised monsters in this chapter.
-//   card      chapter card image under assets/ (falls back to a drawn card).
+//   disguise  the mortal disguises used by disguised monsters (and the real
+//             mortals milling around) in this chapter.
+//   mistForms what the disguised ones really are under True Sight: creatures
+//             nothing like people (entities/mistPeople.js).
+//   card      chapter card image under assets/ (preloaded with the title, ui/art.js).
 //   ready     false = shown on the map but not playable yet.
 //   pending   true = written and wired up, waiting on its boss or biome.
 //   objective exorcise | rescue | seal | flag | escape | boss (see mission.js).
@@ -31,7 +34,7 @@ export const BOOKS = [
 export const CHAPTERS = [
   {
     id: 'lt1', book: 'book1', num: 1, title: 'The Pre-Algebra Teacher', place: 'The museum, on a field trip',
-    biome: 'museum', objective: 'exorcise', objText: 'Follow Mrs. Dodds through the galleries', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist'],
+    biome: 'museum', objective: 'exorcise', objText: 'Follow Mrs. Dodds through the galleries', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist', 'guard'], mistForms: ['serpent', 'spider', 'ghost'],
     card: 'assets/cards/scene-museum.jpg', ready: true,
     start: { at: 'spawn', dx: 7, dz: 6, prop: 'bus', place: 'the field-trip bus by the camp road' },
     intro: [
@@ -43,7 +46,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt2', book: 'book1', num: 2, title: 'Half-Blood Hill', place: 'Long Island, in a storm',
-    biome: 'storm_hill', objective: 'exorcise', objText: 'Climb Half-Blood Hill', boss: 'minotaur', mist: 0.75, disguise: ['farmer'],
+    biome: 'storm_hill', objective: 'exorcise', objText: 'Climb Half-Blood Hill', boss: 'minotaur', mist: 0.75, disguise: ['farmer'], mistForms: ['serpent', 'ghost'],
     card: 'assets/cards/scene-minotaur.jpg', ready: true,
     start: { at: 'thaliaPine', dx: 4, dz: 6, place: 'Thalia’s pine on Half-Blood Hill' },
     intro: [
@@ -72,7 +75,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt4', book: 'book1', num: 4, title: 'The Kindly Ones', place: 'A Greyhound bus, New Jersey',
-    biome: 'highway', objective: 'exorcise', objText: 'Get off the bus alive', boss: 'furies', mist: 0.8, disguise: ['old_lady', 'tourist'],
+    biome: 'highway', objective: 'exorcise', objText: 'Get off the bus alive', boss: 'furies', mist: 0.8, disguise: ['old_lady', 'tourist'], mistForms: ['serpent', 'ghost'],
     card: 'assets/cards/scene-bus.jpg', prophecyLine: 0, ready: true,
     start: { at: 'road1', place: 'the first milestone on the Road West' },
     intro: [
@@ -84,7 +87,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt5', book: 'book1', num: 5, title: 'Aunty Em’s Garden Gnome Emporium', place: 'A statue garden',
-    biome: 'statue_garden', objective: 'rescue', objText: 'Free the stone satyrs', captive: 'statue', boss: 'medusa', mist: 0.8, disguise: ['old_lady'],
+    biome: 'statue_garden', objective: 'rescue', objText: 'Free the stone satyrs', captive: 'statue', boss: 'medusa', mist: 0.8, disguise: ['old_lady'], mistForms: ['serpent', 'spider'],
     card: 'assets/cards/scene-medusa.jpg', ready: true,
     start: { at: 'road2', place: 'a garden gnome by the Road West' },
     intro: [
@@ -96,7 +99,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt6', book: 'book1', num: 6, title: 'The Gateway Arch', place: 'St. Louis, the top of the Arch',
-    biome: 'arch', objective: 'exorcise', objText: 'Climb to the top of the Arch', boss: 'chimera', mist: 0.6, disguise: ['tourist'],
+    biome: 'arch', objective: 'exorcise', objText: 'Climb to the top of the Arch', boss: 'chimera', mist: 0.6, disguise: ['tourist'], mistForms: ['spider', 'ghost'],
     card: 'assets/cards/scene-arch.jpg', ready: true,
     start: { at: 'road3', place: 'the river crossing on the Road West' },
     intro: [
@@ -120,7 +123,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt8', book: 'book1', num: 8, title: 'The Lotus Hotel and Casino', place: 'Las Vegas',
-    biome: 'casino', objective: 'escape', objText: 'Get out of the Lotus Casino', boss: null, mist: 0.9, disguise: ['bellhop', 'tourist'],
+    biome: 'casino', objective: 'escape', objText: 'Get out of the Lotus Casino', boss: null, mist: 0.9, disguise: ['bellhop', 'tourist'], mistForms: ['ghost', 'serpent'],
     card: 'assets/cards/scene-lotus.jpg', ready: true,
     start: { at: 'road5', place: 'a neon sign by the Road West' },
     intro: [
@@ -132,7 +135,7 @@ export const CHAPTERS = [
   },
   {
     id: 'lt9', book: 'book1', num: 9, title: 'Crusty’s Water Bed Palace', place: 'The Nevada desert',
-    biome: 'desert', objective: 'exorcise', objText: 'Get past Crusty’s showroom', boss: 'procrustes', mist: 0.6, disguise: ['salesman'],
+    biome: 'desert', objective: 'exorcise', objText: 'Get past Crusty’s showroom', boss: 'procrustes', mist: 0.6, disguise: ['salesman'], mistForms: ['serpent', 'spider'],
     card: 'assets/cards/scene-procrustes.jpg', ready: true,
     start: { at: 'road6', place: 'a water bed on the Road West' },
     intro: [
