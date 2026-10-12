@@ -4,11 +4,15 @@ A metronome and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has just
-two buttons: **Metronome** and **Playback Recorder**.
+two buttons, **Metronome** and **Playback Recorder**, and a settings gear.
 
 ## Themes
 
-Settings → **Theme** (a dropdown at the bottom of either settings sheet) switches the whole app's look:
+The gear on the home screen opens the app's own settings, which for now hold
+only **Theme**: a tile per theme, each drawn in its own colours and fonts (all
+themes' fonts load only when this opens). Theme is also a dropdown at the
+bottom of the metronome's and the Playback Recorder's settings. It switches
+the whole app's look:
 
 - **Classic** (the default): warm walnut and brass with Fraunces and Manrope.
 - **Art Deco**: black lacquer, gold and ivory, Poiret One and

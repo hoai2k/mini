@@ -58,6 +58,7 @@
 
     <!-- Home: two big buttons -->
     <section id="home" class="screen" aria-labelledby="home-title">
+      <button class="icon-btn home-gear" id="app-settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand">Music <em>Practice</em></h1>
       <div class="choices">
         <a class="choice" href="#metronome" id="go-metronome">
@@ -69,6 +70,16 @@
           <span class="label">Playback Recorder</span>
         </a>
       </div>
+
+      <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="app-settings-title">Settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <fieldset>
+            <legend>Theme</legend>
+            <div class="theme-tiles" id="theme-tiles" role="radiogroup" aria-label="Theme"></div>
+          </fieldset>
+        </form>
+      </dialog>
     </section>
 
     <!-- Metronome -->
