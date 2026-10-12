@@ -76,7 +76,7 @@ export class Enemy {
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = d.radius; this.height = d.height;
     const scale = 1 + (level - 1) * 0.35;
-    this.maxHp = d.hp * scale; this.dmg = d.dmg * (1 + (level - 1) * 0.25);
+    this.maxHp = d.hp * scale; this.dmg = d.dmg * (1 + (level - 1) * (game.biome?.dmgStep ?? 0.25));   // (per difficulty step; the biome can set its own)
     this.speed = d.speed * (0.92 + Math.random() * 0.16);
     this.armor = d.armor ?? 0;
     this.elite = elite;
@@ -605,6 +605,7 @@ export class Enemy {
   }
   release() {
     const g = this.game, a = this.action, t = this.target;
+    if (!a) { this.cancelAttack(); return; }   // (the attack was dropped: back to the chase)
     this.marker = null;
     this.state = 'recover'; this.stateT = 0;
     this.cd = this.def.cd * (0.8 + Math.random() * 0.4) * (this.elite === 'swift' ? 0.7 : 1);

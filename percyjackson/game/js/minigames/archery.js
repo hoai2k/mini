@@ -1,6 +1,8 @@
 // Camp minigame: the archery range. Stand at the line and shoot (RT / right
 // click, aim with the right stick or mouse; auto-aim is off) at bronze
 // targets that slide, bob and pop up, with a wind that drifts the arrows.
+// Targets stand off the line straight ahead of the archer, so every shot
+// has to be aimed.
 // 45 seconds; bullseyes score more and keep a streak. Apollo's cabin holds
 // the record to beat. Best scores are saved per hero.
 import * as THREE from 'three/webgpu';
@@ -35,6 +37,7 @@ export class Archery {
     const g = this.game;
     g.minigame = this;
     this.p.minigameLock = true;
+    this.p.spawn(this.origin.clone()); this.p.facing = this.facing;   // on the shooting line
     g.hud.setObjective('Archery Range', `Shoot the targets! RT / right click · wind ${this.windText()}`);
     g.toast?.('Archery: 45 seconds — go!', 'big');
     g.rig.cinematic({ center: this.origin.clone().addScaledVector(this.fwd, 9).setY(this.origin.y + 1.5), dur: 1e9, dist: 18, pitch: 0.75, orbit: 0 });
@@ -44,13 +47,15 @@ export class Archery {
   spawnTarget() {
     const kind = Math.random();
     const dist = 8 + Math.random() * 10;
-    const lateral = (Math.random() - 0.5) * 12;
+    // off the line straight ahead (an arrow loosed without aiming flies down it
+    // and finds nothing): a slider never crosses it either
+    const lateral = (Math.random() < 0.5 ? -1 : 1) * (1.8 + Math.random() * 4.4);
     const pos = this.origin.clone().addScaledVector(this.fwd, dist).addScaledVector(this.side, lateral);
     pos.y = this.origin.y + 1.6;
     const mesh = buildTarget(); mesh.position.copy(pos); mesh.rotation.y = this.facing + Math.PI;
     mesh.scale.setScalar(0.01);
     this.group.add(mesh);
-    this.targets.push({ mesh, base: pos.clone(), age: 0, life: 4 + Math.random() * 3, mode: kind < 0.45 ? 'still' : kind < 0.8 ? 'slide' : 'bob', speed: 1 + Math.random() * 2, phase: Math.random() * 6, value: Math.round(dist * 6) });
+    this.targets.push({ mesh, base: pos.clone(), age: 0, life: 4 + Math.random() * 3, mode: kind < 0.45 ? 'still' : kind < 0.8 ? 'slide' : 'bob', slide: Math.min(3, Math.abs(lateral) - 1.4), speed: 1 + Math.random() * 2, phase: Math.random() * 6, value: Math.round(dist * 6) });
   }
   update(dt) {
     if (this.done) return false;
@@ -63,7 +68,7 @@ export class Archery {
       tg.age += dt;
       const s = Math.min(1, tg.age * 5) * (tg.age > tg.life - 0.3 ? Math.max(0, (tg.life - tg.age) / 0.3) : 1);
       tg.mesh.scale.setScalar(Math.max(0.01, s));
-      const off = tg.mode === 'slide' ? Math.sin(tg.age * tg.speed + tg.phase) * 3 : 0;
+      const off = tg.mode === 'slide' ? Math.sin(tg.age * tg.speed + tg.phase) * tg.slide : 0;
       const bob = tg.mode === 'bob' ? Math.abs(Math.sin(tg.age * tg.speed * 1.5 + tg.phase)) * 1.2 : 0;
       tg.mesh.position.copy(tg.base).addScaledVector(this.side, off); tg.mesh.position.y += bob;
     }

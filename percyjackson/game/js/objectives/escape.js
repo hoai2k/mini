@@ -8,7 +8,7 @@
 // little but slows you and costs days.
 import * as THREE from 'three/webgpu';
 import { toast, h } from '../ui/ui.js';
-import { isGuest, sendAct, seeded, ground, mainPath, doorBetween, roomSpot } from './common.js';
+import { isGuest, sendAct, seeded, ground, settle, mainPath, doorBetween, roomSpot } from './common.js';
 import { makeLotus } from './props.js';
 
 const LIMIT = 7;                          // days
@@ -38,8 +38,8 @@ export class EscapeObjective {
     for (const room of L.rooms) {
       if (room.type !== 'combat' && room.type !== 'side') continue;
       for (let i = 0; i < 2; i++) {
-        const pos = roomSpot(g, room, r);
-        pos.x += (r() - 0.5) * 2; pos.z += (r() - 0.5) * 2; pos.copy(ground(g, pos));
+        const spot = roomSpot(g, room, r);
+        const pos = settle(g, spot.clone().add(new THREE.Vector3((r() - 0.5) * 2, 0, (r() - 0.5) * 2)), spot);
         const obj = m.addProp(makeLotus()); obj.position.copy(pos);
         this.lotus.push({ pos, obj, taken: false });
       }

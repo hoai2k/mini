@@ -342,7 +342,7 @@ export class Mission {
       if (g.enemies.filter((e) => !e.dead && !e.isDummy).length >= cap) { later.push(s); return; }
       const sp = spots[(i * 7 + room.waveIdx * 3) % spots.length];
       // search from just above the spawn's floor, so nothing lands on a roof
-      const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
+      const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5) ?? this.standAt(sp[0], sp[1], sp[2]) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
       // in the Mist some monsters are walking about disguised as mortals
       const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
       const disguise = !s.elite && kinds.length && Math.random() < mist * 0.55 ? kinds[Math.floor(Math.random() * kinds.length)] : null;
@@ -357,12 +357,36 @@ export class Mission {
     g.audio?.energy('summon');
   }
   // Open floor at (x, z) found from just above `floorY` (a spawn's floor),
-  // or null if that's a pit, inside a wall or more than two blocks off.
+  // or null if that's a pit, inside a wall, on top of a prop or more than a
+  // step above it, or more than two blocks below.
   standAt(x, floorY, z) {
     const w = this.game.world;
     const gy = w.groundBelow(x, z, floorY + 1.5);
-    if (!isFinite(gy) || Math.abs(gy - floorY) > 2 || w.solidAt(x, gy + 0.5, z) || w.solidAt(x, gy + 1.5, z)) return null;
+    if (!isFinite(gy) || gy > floorY + 1.2 || gy < floorY - 2 || w.solidAt(x, gy + 0.5, z) || w.solidAt(x, gy + 1.5, z)) return null;
     return new THREE.Vector3(x, gy, z);
+  }
+  // Where the party comes back after a wipe in the boss fight: just inside
+  // the arena's door, so they retry the fight (the gates stay sealed and the
+  // boss keeps its health). Null when no arena fight is on. Online every
+  // browser places its own heroes here from the host's boss state.
+  retrySpot() {
+    const L = this.L, room = L.bossRoom;
+    if (!room || !this.bossSpawned || this.complete || this.boss?.dead || this.handler?.autoBoss === false) return null;
+    if (this.bossRoom && this.bossRoom !== room) return null;
+    for (const gate of L.gates) {
+      const gp = gate.pos;
+      const offX = Math.min(Math.abs(gp.x - room.x0), Math.abs(gp.x - room.x1 - 1)), offZ = Math.min(Math.abs(gp.z - room.z0), Math.abs(gp.z - room.z1 - 1));
+      const alongX = offX < offZ, s = Math.sign(alongX ? room.center.x - gp.x : room.center.z - gp.z) || 1;
+      for (let k = 2.5; k <= 8; k += 0.5) {
+        const at = this.standAt(alongX ? gp.x + s * k : gp.x, room.y, alongX ? gp.z : gp.z + s * k);
+        if (at && !this.game.world.liquidAt(at.x, at.y + 0.5, at.z)) return at;
+      }
+    }
+    // no door found: the arena spot farthest from the boss
+    const boss = this.boss?.pos ?? room.center;
+    const list = (room.spawns?.length ? room.spawns : [[room.center.x, room.y, room.center.z]]).slice().sort((a, b) => Math.hypot(b[0] - boss.x, b[2] - boss.z) - Math.hypot(a[0] - boss.x, a[2] - boss.z));
+    for (const sp of list) { const at = this.standAt(sp[0], sp[1], sp[2]); if (at) return at; }
+    return null;
   }
   startBoss(room, at = null) {
     const g = this.game;
