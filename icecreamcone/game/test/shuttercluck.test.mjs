@@ -42,34 +42,76 @@ function photographer({ greed = 0.85, speed = 1 } = {}) {
   };
 }
 
-test('shuttercluck: a good photographer opens the next page; idle earns nothing', () => {
-  const scores = [1, 2, 3, 4, 5].map((seed) => run(create, { seed, bot: photographer() }).game.score);
-  const slow = [1, 2, 3].map((seed) => run(create, { seed, bot: photographer({ greed: 0.6, speed: 0.6 }) }).game.score);
+const masher = (seed) => {
+  let r = seed;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  return () => ({ x: rnd() * 2 - 1, y: rnd() * 2 - 1, action: rnd() < 0.5 });
+};
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+// The clumsy one swings slowly and settles for a so-so frame, so the quicker
+// peeks later in the round slip past it more and more.
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  clumsy: () => photographer({ greed: 0.4, speed: 0.25 }),
+  medium: () => photographer({ greed: 0.5, speed: 0.45 }),
+  good: () => photographer(),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`shuttercluck pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('shuttercluck: at Normal a medium photographer passes and a good one always; idle and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(Math.min(...t.good) >= pass, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) < 0.6, `clumsy ${t.clumsy}`);
+  assert.equal(Math.max(...t.idle), 0);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
   const idle = run(create, { seed: 1 });
-  assert.equal(idle.game.score, 0);
   assert.ok(idle.game.done && idle.t <= 61, 'idle ends on the safety clock');
-  assert.ok(Math.min(...scores) >= pass, `photographer ${scores}`);
-  console.log('shuttercluck photographer scores', scores, 'slow', slow, 'pass', pass);
 });
 
-test('shuttercluck: a beginner passes about half the time or more; mashing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: photographer({ greed: 0.4, speed: 0.25 }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: photographer() }).game.score);
-  const mash = seeds.map((seed) => {
-    let r = seed;
-    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-    return run(create, { seed, bot: () => ({ x: rnd() * 2 - 1, y: rnd() * 2 - 1, action: rnd() < 0.5 }) }).game.score;
-  });
-  console.log('shuttercluck beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
-  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+test('shuttercluck: Easier lets a clumsy photographer pass more often; idle and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6 && passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('shuttercluck: Harder ends hard: the good photographer scores clearly more; a clumsy one does worse', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.4, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// The knobs by thirds of the round at Normal (by time, with no shots taken).
+test('shuttercluck: the knobs harden third by third at Normal', () => {
+  const game = create(env(1));
+  const look = () => ({ d: game.d(), up: game.upFactor(), rustle: game.rustleFactor(), gap: game.spawnGap(), max: game.maxUp() });
+  const step = (s) => { for (let i = 0; i < s * 60; i++) game.update(1 / 60, blank()); };
+  const start = look();
+  step(15);
+  const third = look();
+  step(15);
+  const two = look();
+  step(14.9);
+  const end = look();
+  console.log('shuttercluck ramp', { start, third, two, end });
+  for (const [a, b] of [[start, third], [third, two], [two, end]]) assert.ok(a.up > b.up && a.rustle > b.rustle && a.gap > b.gap && a.max <= b.max);
+  assert.ok(third.max === 1 && end.max === 2, 'one bird at a time for the first third, two by the end');
 });
 
 test('shuttercluck: the first birds peek longer and one at a time; the last ones are quicker and together', () => {
   const game = create(env(1));
-  assert.ok(game.diff() < 0.05);
-  const early = game.upFactor(game.diff());
+  assert.ok(game.d() < 0.05);
+  const early = game.upFactor(game.d());
   const birds = { early: [], late: [] };
   const crowd = { early: 0, late: 0 };
   const seen = new Set();
@@ -77,7 +119,7 @@ test('shuttercluck: the first birds peek longer and one at a time; the last ones
   for (let i = 0; i < 60 * 60 && !game.done; i++) {
     const press = i % 240 === 239;
     game.update(1 / 60, blank({ action: press, actionPressed: press }));
-    const half = game.diff() < 0.3 ? 'early' : game.diff() > 0.7 ? 'late' : null;
+    const half = game.d() < 0.3 ? 'early' : game.d() > 0.6 ? 'late' : null;
     if (!half) continue;
     crowd[half] = Math.max(crowd[half], game.birds.length);
     for (const b of game.birds) if (!seen.has(b)) {
@@ -85,9 +127,8 @@ test('shuttercluck: the first birds peek longer and one at a time; the last ones
       birds[half].push(b.up / [1.75, 1.2, 0.75][b.tier]);
     }
   }
-  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   assert.ok(birds.early.length && birds.late.length);
-  assert.ok(mean(birds.late) < mean(birds.early) * 0.7, `peeks shorten: ${mean(birds.early)} vs ${mean(birds.late)}`);
+  assert.ok(mean(birds.late) < mean(birds.early) * 0.8, `peeks shorten: ${mean(birds.early)} vs ${mean(birds.late)}`);
   assert.ok(crowd.early === 1 && crowd.late >= 2, `crowds grow: ${crowd.early} vs ${crowd.late}`);
   assert.ok(early > game.upFactor(1));
 });

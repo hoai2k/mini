@@ -13,6 +13,7 @@
 
 import { drawBird, scene, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const DURATION = 45;
 const BENCH = 628; // where the Plumes' feet stand: on top of the painted potting bench
@@ -63,17 +64,16 @@ export default function create(env) {
     soundT: 0,
   };
 
-  // Difficulty over the round: one eased curve (smoothstep of the round's
-  // progress, 0 to 1). The pots dry slowly at first (0.06 a second, so a
-  // newcomer can tend one Plume at a time) and fast by the end (0.27; was
-  // 0.09 to 0.22, straight), and late on a Plume soaks up to soggy sooner.
-  g.ramp = () => {
-    const k = Math.min(1, g.elapsed / DURATION);
-    return k * k * (3 - 2 * k);
-  };
-  const dryRate = () => 0.06 + 0.21 * g.ramp();
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js). The pots dry
+  // slowly at first (so a newcomer can tend one Plume at a time) and fast by
+  // the end, and late on a Plume soaks up to soggy sooner. Each knob: easy,
+  // medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(Math.min(1, g.elapsed / DURATION));
+  const dryRate = () => knob(g.d(), 0.06, 0.15, 0.27); // dryness a second, times the pot's thirst
   g.dryRate = dryRate;
-  g.soakRate = () => SOAK * (0.85 + 0.3 * g.ramp());
+  g.soakRate = () => SOAK * knob(g.d(), 0.85, 0.98, 1.15); // how fast watering soaks the pot
   // The Plume under the rose, if any.
   g.under = () => g.plants.find((p) => Math.abs(p.x - g.x) < POT_HALF) || null;
 

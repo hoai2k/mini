@@ -22,24 +22,12 @@ function tracker(react = 0.6, missFrom = 99) {
 // Guesses at once, pressing the action as soon as it can.
 const guesser = (game) => ({ action: game.phase === 'pick' && game.pt > 0.15 });
 
-test('dodo: a sharp-eyed tracker opens the next page; idle earns nothing', () => {
-  const sharp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tracker() }).game.score);
-  const tired = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tracker(1.2, 6) }).game.score);
-  const guess = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: guesser }).game.score);
-  const idle = run(create, { seed: 1 }).game;
-  assert.equal(idle.score, 0);
-  assert.ok(idle.done);
-  assert.ok(Math.min(...sharp) >= pass, `sharp ${sharp}`);
-  assert.ok(Math.min(...tired) >= pass, `tired ${tired}`);
-  const avgGuess = guess.reduce((a, b) => a + b) / guess.length;
-  assert.ok(avgGuess < pass, `guessing averages ${avgGuess}`);
-  console.log('dodo trackers', sharp, 'loses track from round 6', tired, 'guesser', guess, 'pass', pass);
-});
-
 // A beginner: follows the Dodo's hat by eye, and may lose it whenever that
 // hat moves, more likely the quicker the move (and more in a feint, a double
 // swap or a ring). Once lost, it guesses. Measured from each move as it plays.
-function beginner(seed) {
+// A clumsier eye (`k`, `slow`, `extra` larger) loses it more, and on slower
+// moves too.
+function beginner(seed, k = 1.3, slow = 0.6, extra = 0.12) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let seen = null;
@@ -56,7 +44,7 @@ function beginner(seed) {
       seen = m;
       const dodo = game.hats.find((h) => h.dodo);
       if (m.hats.includes(dodo)) {
-        const p = Math.max(0, (0.6 - m.dur) * 1.3) + (m.legs.length > 2 ? 0.12 : 0) + (m.fake ? 0.12 : 0);
+        const p = Math.max(0, (slow - m.dur) * k) + (m.legs.length > 2 ? extra : 0) + (m.fake ? extra : 0);
         if (rnd() < p) lost = true;
       }
       guess = Math.floor(rnd() * game.hats.length);
@@ -69,17 +57,79 @@ function beginner(seed) {
   };
 }
 
-test('dodo: a beginner passes about half the time or more; guessing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const begin = seeds.map((seed) => run(create, { seed, bot: beginner(seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: tracker() }).game.score);
-  const mash = seeds.map((seed) => run(create, { seed, bot: guesser }).game.score);
-  console.log('dodo beginner', `${begin}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(begin.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${begin}`);
-  // a shell game can be guessed by luck now and then (about one game in ten
-  // over 60 seeds); guessing must not pass as a rule
-  assert.ok(mash.filter((s) => s >= pass).length <= 1, `guessing ${mash}`);
-  assert.ok(mash.reduce((a, b) => a + b) / mash.length < pass * 0.7, `guessing ${mash}`);
+const SEEDS = Array.from({ length: 24 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  guess: () => guesser,
+  clumsy: (seed) => beginner(seed, 1.8, 0.7, 0.18),
+  medium: (seed) => beginner(seed),
+  good: () => tracker(),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`dodo pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+// A shell game can be guessed by luck now and then (about one game in ten
+// over 60 seeds); guessing must not pass as a rule.
+const guessFails = (a) => {
+  assert.ok(passRate(a) <= 0.1, `guessing ${a}`);
+  assert.ok(mean(a) < pass * 0.7, `guessing ${a}`);
+};
+
+test('dodo: at Normal a medium player passes, a sharp-eyed one always; idle and guessing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(Math.min(...t.good) >= pass, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  assert.equal(Math.max(...t.idle), 0);
+  guessFails(t.guess);
+  const tired = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tracker(1.2, 6) }).game.score);
+  assert.ok(Math.min(...tired) >= pass, `loses track from round 6 ${tired}`);
+  const idle = run(create, { seed: 1 }).game;
+  assert.ok(idle.done);
+});
+
+test('dodo: Easier lets a clumsy player pass; idle and guessing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75, `clumsy ${t.clumsy}`);
+  assert.equal(Math.max(...t.idle), 0);
+  guessFails(t.guess);
+});
+
+test('dodo: Harder ends hard: the sharp-eyed player scores clearly more; a clumsy one does worse', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 300, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)}`);
+  guessFails(t.guess);
+});
+
+// The rounds' plans at each level: Normal is gentle for the first third,
+// medium by round 5 or 6 and nearer hard at the end; Easier never gets past
+// round 5's Normal pace; Harder starts near medium.
+test('dodo: the rounds harden along the curve at every level', () => {
+  const plans = (difficulty) => {
+    const game = create(env(1, { difficulty }));
+    return [0, 1, 2, 3, 4, 5, 6, 7].map((i) => game.plan(i));
+  };
+  const normal = plans('normal');
+  const easier = plans('easier');
+  const harder = plans('harder');
+  console.log('dodo rounds (moves @ seconds)', Object.fromEntries(Object.entries({ easier, normal, harder }).map(([k, v]) => [k, v.map((r) => `${r.n}:${r.moves}@${r.dur.toFixed(2)}`).join(' ')])));
+  for (const list of [normal, easier, harder]) {
+    for (let i = 1; i < 8; i++) assert.ok(list[i].moves >= list[i - 1].moves && list[i].dur <= list[i - 1].dur && list[i].show <= list[i - 1].show, `round ${i + 1}`);
+  }
+  assert.deepEqual(normal.map((r) => r.n), [3, 3, 4, 4, 4, 5, 5, 5]);
+  assert.deepEqual(easier.map((r) => r.n), normal.map((r) => r.n), 'the same hats at every level');
+  assert.ok(normal[0].moves === 2 && normal[2].moves <= 5, 'the first third stays gentle');
+  assert.ok(easier[7].moves <= 7 && easier[7].dur > 0.5 && !easier[7].ring, 'Easier stays slow');
+  assert.ok(harder[7].moves === 16 && harder[7].dur === 0.26, 'Harder ends at full hard');
+  assert.ok(normal[7].moves < 16 && normal[7].dur > 0.26, 'Normal ends short of it');
 });
 
 test('dodo: the first rounds are few, slow swaps; the last are many quick ones', () => {

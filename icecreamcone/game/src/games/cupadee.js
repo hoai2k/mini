@@ -8,10 +8,12 @@
 // brim and it spills: no points, a squawk, and the combo is gone. Later cups
 // are smaller (they fill faster), bob up and down, or stroll on under the
 // spout while you pour: the first third is big, still cups, and the mix
-// hardens over the round (`g.ramp()`). Score: points.
+// hardens over the round along the shared difficulty curve (`g.d()`, see
+// difficulty.js). Score: points.
 
 import { drawBird, drawSprite, art, scene, band, blob, poly, wash, ink, hatch, eye, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const DURATION = 45;
 // The Cupadees walk along the top of the table in the painted scene (its
@@ -100,30 +102,34 @@ export default function create(env) {
   // The front bird: the first one not yet done.
   const front = () => g.birds.find((b) => b.state === 'walk' || b.state === 'serve') || null;
 
-  // Difficulty over the round: one eased curve (smoothstep of the round's
-  // progress, 0 to 1). Each Cupadee takes its cup from the curve as it joins
-  // the queue: big, still cups and a line near the middle at first; then
-  // smaller cups, bobbing and strolling ones, and lines further off.
-  g.ramp = () => {
-    const k = Math.min(1, g.elapsed / DURATION);
-    return k * k * (3 - 2 * k);
-  };
-  const part = (e, from, to) => clamp((e - from) / (to - from), 0, 1);
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js). Each Cupadee
+  // takes its cup from it as it joins the queue: big, still cups and a line
+  // near the middle at first; then smaller cups, bobbing and strolling ones,
+  // and lines further off. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(Math.min(1, g.elapsed / DURATION));
+  g.lineSpread = () => knob(g.d(), 0.1, 0.27, 0.3); // how far the line strays, in cup-fulls (total width)
+  g.tinyChance = () => knob(g.d(), 0, 0.07, 0.4); // share of tiny cups
+  g.smallChance = () => knob(g.d(), 0, 0.58, 0.65); // share of small (or tiny) cups
+  g.bobChance = () => knob(g.d(), 0, 0.2, 0.3); // share of bobbing Cupadees
+  g.strollChance = () => knob(g.d(), 0, 0.1, 0.45); // share of strolling ones
+  g.strollSpeed = () => knob(g.d(), 34, 49, 68); // px/s a strolling Cupadee walks on
+  g.patienceNow = () => knob(g.d(), 5.5, 4.6, 3.5); // seconds before a Cupadee gives up
 
   function makeBird() {
     const n = g.made++;
-    const e = g.ramp();
     let size = 'big';
     let motion = 'still';
     let line = 0.72;
     if (n >= 2) {
-      line = 0.72 + (rng() - 0.5) * (0.1 + 0.2 * part(e, 0, 0.5));
+      line = 0.72 + (rng() - 0.5) * g.lineSpread();
       const r = rng();
-      if (r < 0.4 * part(e, 0.35, 1)) size = 'tiny';
-      else if (r < 0.65 * part(e, 0.08, 0.5)) size = 'small';
+      if (r < g.tinyChance()) size = 'tiny';
+      else if (r < g.smallChance()) size = 'small';
       const m = rng();
-      if (m < 0.3 * part(e, 0.15, 0.6)) motion = 'bob';
-      else if (m < 0.3 * part(e, 0.15, 0.6) + 0.45 * part(e, 0.3, 1)) motion = 'stroll';
+      if (m < g.bobChance()) motion = 'bob';
+      else if (m < g.bobChance() + g.strollChance()) motion = 'stroll';
     }
     const S = SIZES[size];
     g.birds.push({
@@ -142,7 +148,7 @@ export default function create(env) {
       tilt: 0,
       wait: 0,
       settle: 0,
-      patience: 5.5 - e * 2,
+      patience: g.patienceNow(),
       grade: null,
     });
   }
@@ -278,7 +284,7 @@ export default function create(env) {
         k++;
         b.wait += dt;
         if (b.motion === 'stroll') {
-          b.x -= (34 + g.ramp() * 34) * dt;
+          b.x -= g.strollSpeed() * dt;
           b.walk += dt * 4;
         } else b.walk = 0;
         if (b.motion === 'bob') b.squash = Math.sin(b.phase * 3.4) * 0.075;

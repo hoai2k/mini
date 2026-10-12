@@ -22,32 +22,70 @@ function sewer({ look = 0.12, lag = 6, dare = 0, gain = 30 } = {}) {
   };
 }
 
-test('piffle: a careful sewer opens the next page; idle earns little', () => {
-  const careful = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 12, gain: 45 }) }).game.score);
-  const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 6, dare: 0.5 }) }).game.score);
-  const bold = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 4, dare: 1.2 }) }).game.score);
-  const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('piffle trio careful', careful, 'steady', steady, 'bold', bold, 'idle', idle, 'pass', pass);
-  assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
-  assert.ok(Math.min(...careful) >= pass, `careful ${careful}`);
+const masher = (seed) => {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  let d = 0;
+  return () => {
+    if (rnd() < 0.03) d = rnd() * 2 - 1;
+    return { x: d, action: rnd() < 0.5 };
+  };
+};
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+// The lag is in frames, so a faster quilt and tighter bends cost a slow
+// sewer more and more.
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  clumsy: () => sewer({ lag: 40, gain: 120, look: 0 }),
+  medium: () => sewer({ lag: 16, gain: 60, look: 0 }),
+  good: () => sewer({ lag: 4, dare: 1.2 }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`piffle pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('piffle: at Normal a medium sewer passes; a clumsy one seldom; idle and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
 });
 
-test('piffle: a beginner passes about half the time or more; mashing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: sewer({ lag: 16, gain: 60, look: 0 }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: sewer({ lag: 6, dare: 0.5 }) }).game.score);
-  const mash = seeds.map((seed) => {
-    let r = seed * 31;
-    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-    let d = 0;
-    return run(create, { seed, bot: () => {
-      if (rnd() < 0.03) d = rnd() * 2 - 1;
-      return { x: d, action: rnd() < 0.5 };
-    } }).game.score;
-  });
-  console.log('piffle beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
-  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+test('piffle: Easier lets a clumsy sewer pass; idle and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('piffle: Harder ends hard: the good sewer scores clearly more; a clumsy one does worse', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 40, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// The knobs by thirds of the round at Normal.
+test('piffle: the knobs harden third by third at Normal', () => {
+  const game = create(env(1));
+  const look = () => ({ d: game.d(), speed: game.quiltSpeed(), gap: game.bendGap(), swing: game.bendSwing() });
+  const step = (s) => { for (let i = 0; i < s * 60; i++) game.update(1 / 60, blank()); };
+  const start = look();
+  step(15);
+  const third = look();
+  step(15);
+  const two = look();
+  step(14.9);
+  const end = look();
+  console.log('piffle ramp', { start, third, two, end });
+  for (const [a, b] of [[start, third], [third, two], [two, end]]) assert.ok(a.speed < b.speed && a.gap > b.gap && a.swing < b.swing);
+  assert.ok(third.d < 0.3, 'the first third stays gentle');
 });
 
 test('piffle: the quilt starts slow with a gentle seam and ends fast and twisty', () => {

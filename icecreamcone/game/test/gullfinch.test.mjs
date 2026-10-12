@@ -33,31 +33,71 @@ function player({ sd = 0.05, lapse = 0.04, windBelow = 0.5, seed = 7 } = {}) {
   };
 }
 
-test('gullfinch: a beginner opens the next page; idle earns nothing', () => {
-  const scores = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ sd: 0.09, lapse: 0.08, seed: seed * 11 }) }).game.score);
-  const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ seed: seed * 13 }) }).game.score);
-  const sharp = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ sd: 0.03, lapse: 0.01, seed: seed * 5 }) }).game.score);
-  const lazy = run(create, { seed: 1, bot: player({ windBelow: 0 }) }).game.score;
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('gullfinch beginner3', scores, 'steady', steady, 'sharp', sharp, 'never winds', lazy, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...scores) >= pass, `beginner ${scores}`);
-  const mean = steady.reduce((a, b) => a + b, 0) / steady.length;
-  assert.ok(lazy < mean * 0.85, `winding pays: ${lazy} vs ${mean}`);
+const masher = (seed) => {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  return () => ({ action: rnd() < 0.5, spin: rnd() < 0.3 ? 0.5 : 0 });
+};
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+// Timing errors are in seconds, so a quicker song with tighter windows costs
+// the looser players more.
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  clumsy: (seed) => player({ sd: 0.14, lapse: 0.12, seed: seed * 17 }),
+  medium: (seed) => player({ sd: 0.1, lapse: 0.1, seed: seed * 17 }),
+  good: (seed) => player({ sd: 0.03, lapse: 0.01, seed: seed * 5 }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`gullfinch pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('gullfinch: at Normal a medium player passes; a clumsy one seldom; idle and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) <= 0.4, `clumsy ${t.clumsy}`);
+  assert.equal(Math.max(...t.idle), 0);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
 });
 
-test('gullfinch: a beginner passes about half the time or more; mashing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: player({ sd: 0.1, lapse: 0.1, seed: seed * 17 }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: player({ sd: 0.03, lapse: 0.01, seed: seed * 5 }) }).game.score);
-  const mash = seeds.map((seed) => {
-    let r = seed * 31;
-    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-    return run(create, { seed, bot: () => ({ action: rnd() < 0.5, spin: rnd() < 0.3 ? 0.5 : 0 }) }).game.score;
-  });
-  console.log('gullfinch beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
-  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+test('gullfinch: winding pays', () => {
+  const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ seed: seed * 13 }) }).game.score);
+  const lazy = run(create, { seed: 1, bot: player({ windBelow: 0 }) }).game.score;
+  assert.ok(lazy < mean(steady) * 0.85, `winding pays: ${lazy} vs ${mean(steady)}`);
+});
+
+test('gullfinch: Easier lets a clumsy player pass more often; idle and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6 && passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('gullfinch: Harder ends hard: the good player scores clearly more; a clumsy one does worse', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.6, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)}`);
+  for (const n of ['idle', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// The knobs by thirds of the song at Normal.
+test('gullfinch: the knobs harden third by third at Normal', () => {
+  const game = create(env(1));
+  const look = () => ({ d: game.d(), bpm: game.bpm(), win: game.windows(), drain: game.drain() });
+  const total = Math.max(...game.notes.map((n) => n.b)) + 2;
+  const seen = [look()];
+  for (const p of [1 / 3, 2 / 3, 0.99]) {
+    while (game.beat < p * total && !game.done) game.update(1 / 60, blank({ spin: 0.7 }));
+    seen.push(look());
+  }
+  console.log('gullfinch ramp', seen);
+  for (let i = 1; i < seen.length; i++) assert.ok(seen[i].bpm > seen[i - 1].bpm && seen[i].win < seen[i - 1].win && seen[i].drain > seen[i - 1].drain);
+  assert.ok(seen[1].d < 0.3, 'the first third stays gentle');
 });
 
 test('gullfinch: the song starts slow and forgiving and ends quick and tight', () => {
@@ -65,14 +105,14 @@ test('gullfinch: the song starts slow and forgiving and ends quick and tight', (
   const start = { bpm: game.bpm(), win: game.windows(), spring: game.spring };
   for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
   const drainStart = start.spring - game.spring;
-  while (game.ramp() < 0.95 && !game.done) game.update(1 / 60, blank({ spin: 0.7 }));
+  while (game.d() < 0.75 && !game.done) game.update(1 / 60, blank({ spin: 0.7 }));
   const end = { bpm: game.bpm(), win: game.windows() };
   game.spring = 1;
   for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
   const drainEnd = 1 - game.spring;
-  assert.ok(end.bpm > start.bpm * 1.4, `tempo ${start.bpm} to ${end.bpm}`);
+  assert.ok(end.bpm > start.bpm * 1.3, `tempo ${start.bpm} to ${end.bpm}`);
   assert.ok(end.win < start.win * 0.8, `timing windows ${start.win} to ${end.win}`);
-  assert.ok(drainEnd > drainStart * 2, `spring drain ${drainStart} to ${drainEnd}`);
+  assert.ok(drainEnd > drainStart * 1.8, `spring drain ${drainStart} to ${drainEnd}`);
 });
 
 test('gullfinch: mashing the action plays nothing well', () => {

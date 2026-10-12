@@ -10,6 +10,7 @@
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const DURATION = 45;
 const GROUND = 860;
@@ -61,17 +62,17 @@ export default function create(env) {
     used: new Set(),
   };
 
-  // Difficulty over the round: one eased curve (smoothstep of the round's
-  // progress, 0 to 1), so the first third is gentle and the end hardest. It
-  // sets how fast letters fall (120 to 310 px/s; was 140 to 290, straight),
-  // how wide they sway (25 to 110; was 30 to 100), how often one comes loose
-  // (every 0.62 to 0.34 s; was 0.55 to 0.36) and how many are the one you
-  // need (48% to 22%; was 42% to 24%). The words lengthen as you finish them.
-  const diff = () => {
-    const k = clamp(g.elapsed / DURATION, 0, 1);
-    return k * k * (3 - 2 * k);
-  };
-  g.diff = diff;
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js). It sets how
+  // fast letters fall, how wide they sway, how often one comes loose and how
+  // many are the one you need. The words lengthen as you finish them. Each
+  // knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(clamp(g.elapsed / DURATION, 0, 1));
+  g.fall = () => knob(g.d(), 120, 205, 310); // px/s a letter falls, plus up to 30
+  g.sway = () => knob(g.d(), 25, 64, 110); // px a letter sways, times 0.6 to 1
+  g.gap = () => knob(g.d(), 0.62, 0.5, 0.34); // seconds between letters, plus up to 0.12
+  g.needShare = () => knob(g.d(), 0.48, 0.37, 0.22); // chance a letter is the one you need
   const need = () => g.word[g.idx];
 
   function nextWord() {
@@ -88,12 +89,11 @@ export default function create(env) {
   g.letterX = (l, ahead = 0) => l.bx + l.amp * Math.sin(l.w * (l.age + ahead) + l.ph);
 
   function spawnLetter() {
-    const d = diff();
     const n = need();
     // the needed letter, whenever none is on its way down
     const coming = g.letters.some((l) => l.ch === n && l.y < CATCH_Y - 160);
     const roll = rng();
-    const pNeed = lerp(0.48, 0.22, d);
+    const pNeed = g.needShare();
     let ch;
     if (!coming || roll < pNeed) ch = n;
     else if (roll < pNeed + 0.3) {
@@ -105,7 +105,7 @@ export default function create(env) {
       do ch = ABC[Math.floor(rng() * ABC.length)];
       while (ch === n);
     }
-    const amp = lerp(25, 110, d) * (0.6 + rng() * 0.4);
+    const amp = g.sway() * (0.6 + rng() * 0.4);
     const lo = 140 + amp;
     const span = W - 280 - amp * 2;
     let bx = lo + rng() * span;
@@ -116,7 +116,7 @@ export default function create(env) {
       ch,
       bx,
       y: SPAWN_Y,
-      vy: lerp(120, 310, d) + rng() * 30,
+      vy: g.fall() + rng() * 30,
       amp,
       w: 1.3 + rng() * 1.2,
       ph: rng() * Math.PI * 2,
@@ -190,8 +190,7 @@ export default function create(env) {
     g.spawn -= dt;
     if (g.spawn <= 0) {
       spawnLetter();
-      const d = diff();
-      g.spawn = lerp(0.62, 0.34, d) + rng() * 0.12;
+      g.spawn = g.gap() + rng() * 0.12;
     }
 
     for (const l of g.letters) {

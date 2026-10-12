@@ -27,31 +27,72 @@ function reader({ speed = 1, look = 1, react = 0 } = {}) {
   };
 }
 
-test('peeper: a sharp reader opens the next page; idle earns nothing', () => {
-  const sharp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: reader() }).game.score);
-  const slow = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: reader({ speed: 0.5, look: 0, react: 0.6 }) }).game.score);
-  const idle = run(create, { seed: 1 }).game;
-  assert.ok(idle.score < pass, `idle ${idle.score}`);
-  assert.ok(Math.min(...sharp) >= pass, `sharp ${sharp}`);
-  console.log('peeper readers', sharp, 'slow', slow, 'idle', idle.score, 'pass', pass);
+const masher = (seed) => {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  let d = 0;
+  return () => {
+    if (rnd() < 0.03) d = rnd() * 2 - 1;
+    return { x: d, action: rnd() < 0.5 };
+  };
+};
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+// The slower readers notice a letter only once it has fallen a while
+// (`react` seconds), so quicker letters leave them less time to get there.
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  wander: () => (game, t) => ({ x: Math.sin(t * 0.7) }),
+  clumsy: () => reader({ speed: 0.3, look: 0, react: 0.8 }),
+  medium: () => reader({ speed: 0.5, look: 0, react: 0.6 }),
+  good: () => reader(),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`peeper pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('peeper: at Normal a medium reader passes, a sharp one always; idle, mashing and wandering do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(Math.min(...t.good) >= pass, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'wander']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
 });
 
-test('peeper: a beginner passes about half the time or more; mashing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: reader({ speed: 0.5, look: 0, react: 0.6 }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: reader() }).game.score);
-  const mash = seeds.map((seed) => {
-    let r = seed * 31;
-    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-    let d = 0;
-    return run(create, { seed, bot: () => {
-      if (rnd() < 0.03) d = rnd() * 2 - 1;
-      return { x: d, action: rnd() < 0.5 };
-    } }).game.score;
-  });
-  console.log('peeper beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
-  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+test('peeper: Easier lets a clumsy reader pass; idle, mashing and wandering still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75 && passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'wander']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('peeper: Harder ends hard: the sharp reader scores clearly more; a clumsy one does worse', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 10, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)}`);
+  for (const n of ['idle', 'mash', 'wander']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// The knobs by thirds of the round at Normal.
+test('peeper: the knobs harden third by third at Normal', () => {
+  const game = create(env(1));
+  const look = () => ({ d: game.d(), fall: game.fall(), sway: game.sway(), gap: game.gap(), need: game.needShare() });
+  const step = (s) => { for (let i = 0; i < s * 60; i++) game.update(1 / 60, blank()); };
+  const start = look();
+  step(15);
+  const third = look();
+  step(15);
+  const two = look();
+  step(14.9);
+  const end = look();
+  console.log('peeper ramp', { start, third, two, end });
+  for (const [a, b] of [[start, third], [third, two], [two, end]]) assert.ok(a.fall < b.fall && a.sway < b.sway && a.gap > b.gap && a.need > b.need);
+  assert.ok(third.d < 0.3, 'the first third stays gentle');
 });
 
 test('peeper: letters start slow, steady and helpful, and end fast and swaying', () => {
@@ -70,10 +111,10 @@ test('peeper: letters start slow, steady and helpful, and end fast and swaying',
       }
     }
   }
-  const mean = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
+  const avg = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
   assert.ok(late.length > early.length * 1.2, `more letters late: ${early.length} vs ${late.length}`);
-  assert.ok(mean(late, (l) => l.vy) > mean(early, (l) => l.vy) * 1.6, 'they fall faster');
-  assert.ok(mean(late, (l) => l.amp) > mean(early, (l) => l.amp) * 2, 'they sway wider');
+  assert.ok(avg(late, (l) => l.vy) > avg(early, (l) => l.vy) * 1.6, 'they fall faster');
+  assert.ok(avg(late, (l) => l.amp) > avg(early, (l) => l.amp) * 2, 'they sway wider');
 });
 
 test('peeper: right letters stamp the word, wrong ones smudge, a word pays its length', () => {

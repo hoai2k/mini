@@ -12,6 +12,7 @@
 
 import { drawBird, scene, band, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const DURATION = 45;
 const STITCH = 46; // px of quilt between stitches
@@ -58,15 +59,14 @@ export default function create(env) {
     pointer: false,
   };
 
-  // Difficulty over the round: one eased curve (smoothstep of the round's
-  // progress, 0 to 1), so the first third is gentle and the end hardest. It
-  // sets the quilt's speed (150 to 270 px/s; was 170 to 250, straight) and
-  // how the seam bends: bends 360 to 170 px apart (was 330 to 190), swinging
-  // up to 110 to 320 px sideways (was 150 to 300).
-  g.ramp = () => {
-    const k = clamp(g.elapsed / DURATION, 0, 1);
-    return k * k * (3 - 2 * k);
-  };
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js). It sets the
+  // quilt's speed and how the seam bends. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(clamp(g.elapsed / DURATION, 0, 1));
+  g.quiltSpeed = () => knob(g.d(), 150, 205, 270); // px/s the quilt runs, before hurrying or slowing
+  g.bendGap = () => knob(g.d(), 360, 275, 170); // px between the seam's bends, times 0.85 to 1.15
+  g.bendSwing = () => knob(g.d(), 110, 200, 320); // px a bend may swing sideways, at most
 
   // ---------- the seam ----------
 
@@ -75,9 +75,8 @@ export default function create(env) {
   function growSeam(upTo) {
     while (g.seam[g.seam.length - 1].s < upTo) {
       const last = g.seam[g.seam.length - 1];
-      const k = g.ramp();
-      const gap = lerp(360, 170, k) * (0.85 + rng() * 0.3);
-      const amp = lerp(110, 320, k);
+      const gap = g.bendGap() * (0.85 + rng() * 0.3);
+      const amp = g.bendSwing();
       let x = last.x + (rng() * 2 - 1) * amp;
       if (x < SEAM_MIN) x = SEAM_MIN + (SEAM_MIN - x) * 0.5;
       if (x > SEAM_MAX) x = SEAM_MAX - (x - SEAM_MAX) * 0.5;
@@ -98,7 +97,7 @@ export default function create(env) {
   g.seamX = seamX;
   growSeam(2000);
 
-  const speed = () => lerp(150, 270, g.ramp()) * (g.hurry ? HURRY : 1) * (g.slow ? SLOW : 1);
+  const speed = () => g.quiltSpeed() * (g.hurry ? HURRY : 1) * (g.slow ? SLOW : 1);
   g.speed = speed;
 
   // ---------- events ----------

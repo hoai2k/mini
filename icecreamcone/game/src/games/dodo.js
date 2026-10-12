@@ -11,26 +11,20 @@
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const COUNTER = 650; // where the hats sit
 const HS = 1.3; // the hats' size
 const HAT_W = 190 * HS;
 const LIFT = 170;
 
-// Each round: hats, moves, seconds per move, how long the Dodo is shown,
-// and the chance of a feint, a double swap or a ring of three. Difficulty
-// over the round: the first rounds are few, slow swaps to learn on; the
-// middle is the old pace; the last two are longer and quicker than before.
-const ROUNDS = [
-  { n: 3, moves: 2, dur: 0.95, show: 1.8, answer: 6 },
-  { n: 3, moves: 4, dur: 0.72, show: 1.5, answer: 5 },
-  { n: 4, moves: 5, dur: 0.56, show: 1.3, answer: 5 },
-  { n: 4, moves: 8, dur: 0.44, show: 1.2, answer: 4.5, fake: 0.2 },
-  { n: 4, moves: 10, dur: 0.38, show: 1.1, answer: 4.5, fake: 0.25 },
-  { n: 5, moves: 10, dur: 0.34, show: 1.0, answer: 4, fake: 0.2, double: 0.25 },
-  { n: 5, moves: 13, dur: 0.3, show: 0.95, answer: 4, fake: 0.2, double: 0.3, ring: 0.25 },
-  { n: 5, moves: 16, dur: 0.26, show: 0.85, answer: 4, fake: 0.25, double: 0.35, ring: 0.3 },
-];
+// How many hats each round. The Difficulty doesn't change it, so guessing is
+// never luckier. Everything else about a round (moves, seconds per move, how
+// long the Dodo is shown, how long you have to answer, and the chance of a
+// feint, a double swap or a ring of three) follows the shared difficulty
+// curve over the eight rounds: `g.plan()` below.
+const HATS = [3, 3, 4, 4, 4, 5, 5, 5];
+const ROUNDS = HATS.length;
 // One painted hat design for all the hats of a round (the sprites in hats.png).
 const HAT_CELL = [0, 2, 1, 0, 1, 2, 0, 1];
 const STYLES = ['bowler', 'bowler', 'bowler', 'top', 'top', 'bowler', 'top', 'top'];
@@ -64,11 +58,32 @@ export default function create(env) {
     results: [], // which rounds were won, for the counter
   };
 
-  const R = () => ROUNDS[g.round];
+  // How hard a round is, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js): the first
+  // rounds are few, slow swaps to learn on, the last ones long and quick.
+  // Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = (round = g.round) => dAt(Math.min(1, round / (ROUNDS - 1)));
+  g.plan = (round = g.round) => {
+    const d = g.d(round);
+    return {
+      n: HATS[Math.min(round, ROUNDS - 1)],
+      moves: Math.round(knob(d, 2, 9, 16)), // swaps in the shuffle
+      dur: knob(d, 0.95, 0.44, 0.26), // seconds a swap takes
+      show: knob(d, 1.8, 1.15, 0.85), // seconds the Dodo is shown
+      answer: knob(d, 6, 4.5, 4), // seconds to answer
+      fake: knob(d, 0, 0.2, 0.25), // chance a move is a feint
+      double: knob(d, 0, 0.1, 0.35), // chance of two swaps at once (four hats or more)
+      ring: knob(d, 0, 0, 0.3), // chance of three hats going round in a ring
+    };
+  };
+  let plan = g.plan(0);
+  const R = () => plan;
   g.dodoSlot = () => g.hats.find((h) => h.dodo).slot;
   const hatAt = (slot) => g.hats.find((h) => h.slot === slot);
 
   function startRound() {
+    plan = g.plan();
     const r = R();
     // add hats as the rounds need them; they drop onto the counter
     while (g.hats.length < r.n) g.hats.push({ slot: g.hats.length, x: 800, y: -200, z: 0, s: 1, dodo: false, lift: 0 });
@@ -255,7 +270,7 @@ export default function create(env) {
       if (g.pt >= 1.8) {
         for (const h of g.hats) h.lift = 0;
         g.round++;
-        if (g.round >= ROUNDS.length) g.done = true;
+        if (g.round >= ROUNDS) g.done = true;
         else startRound();
       }
     }
@@ -273,9 +288,9 @@ export default function create(env) {
     g.shake = Math.max(0, g.shake - dt);
   };
 
-  g.hud = () => `Round ${Math.min(g.round + 1, ROUNDS.length)}/${ROUNDS.length} · ${g.score}`;
+  g.hud = () => `Round ${Math.min(g.round + 1, ROUNDS)}/${ROUNDS} · ${g.score}`;
   g.summary = () => {
-    const lines = [`You spotted the Dodo in ${g.found} of ${ROUNDS.length} rounds.`];
+    const lines = [`You spotted the Dodo in ${g.found} of ${ROUNDS} rounds.`];
     if (g.found) lines.push(`Quickest find: ${g.quickest.toFixed(1)} seconds.`);
     return lines;
   };
@@ -511,7 +526,7 @@ export default function create(env) {
     c.restore();
 
     // the round counter: eight little notes along the bottom
-    for (let i = 0; i < ROUNDS.length; i++) {
+    for (let i = 0; i < ROUNDS; i++) {
       const x = W / 2 + (i - 3.5) * 80;
       const y = 840 - (i === g.round && !env.reduceMotion ? Math.abs(Math.sin(t * 4)) * 6 : 0);
       poly(c, [[x - 32, y - 20], [x + 32, y - 20], [x + 32, y + 20], [x - 32, y + 20]], i + 60, 1);

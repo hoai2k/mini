@@ -11,7 +11,8 @@
 // Score: the stones crossed in 40 seconds.
 
 import { drawBird, drawSprite, spriteCell, scene, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 import { birdById } from '../birds.js';
 
 const DURATION = 40;
@@ -69,26 +70,24 @@ export default function create(env) {
 
   // ---------- the stones ----------
 
-  // Difficulty over the night: one eased curve (smoothstep of the round's
-  // progress, 0 to 1) sets how fast the target sinks (2.6 s at first, 0.95 s
-  // at the end; was 2.4 to 1.05, straight), how often the stones simply
-  // alternate (85% at first, 45% at the end; was 85% to 50%) and how often a
-  // double comes (none in the first 7 s, then 3% rising to 25%; was 5% to 22%).
-  g.ramp = () => {
-    const k = clamp(g.elapsed / DURATION, 0, 1);
-    return k * k * (3 - 2 * k);
-  };
-  const sinkTime = () => lerp(2.6, 0.95, g.ramp());
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js). It sets how
+  // fast the target sinks, how often the stones simply alternate and how
+  // often a double comes (none in the first 7 s). Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(clamp(g.elapsed / DURATION, 0, 1));
+  const sinkTime = () => knob(g.d(), 2.6, 1.85, 0.95); // seconds the stone underfoot takes to sink
   g.sinkTime = sinkTime;
+  g.altChance = () => knob(g.d(), 0.85, 0.68, 0.45); // chance the next stone is on the other side
+  g.doubleChance = () => (g.elapsed > 7 ? knob(g.d(), 0.03, 0.12, 0.25) : 0); // chance of a double
 
   function addStone() {
-    const k = g.ramp();
     const prev = g.stones.length ? g.stones[g.stones.length - 1] : g.under;
     let side;
-    if (g.elapsed > 7 && prev.side !== 0 && rng() < 0.03 + k * 0.22) side = 0;
+    if (g.elapsed > 7 && prev.side !== 0 && rng() < g.doubleChance()) side = 0;
     else {
       const last = prev.side === 0 ? g.lastSide : prev.side;
-      side = rng() < lerp(0.85, 0.45, k) ? -last : last;
+      side = rng() < g.altChance() ? -last : last;
       g.lastSide = side;
     }
     g.stones.push({ side, sink: 0, wob: rng() * 6 });

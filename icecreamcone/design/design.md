@@ -245,15 +245,23 @@ to pour and let go when the tea reaches the line. Close to the line scores
 more, a perfect fill scores most, and a spill scores nothing and makes the
 bird squawk. Later cups are smaller, walk faster or bob up and down.
 
-**Difficulty over the round.** It used to step up by how many cups had been
-served (small from the 5th, bobbing from the 7th, strolling from the 9th).
-Now one eased curve over the round's time (`g.ramp()`, smoothstep) picks each
-Cupadee's cup as it joins the queue. The first third is mostly big, still
-cups with the line near the middle (0.72 ± 0.05). Then small cups (up to 65%),
-bobbing cups (up to 30%), the line spread to 0.57 to 0.87, and strollers and
-tiny cups after a third of the round (up to 45% and 40%). Strollers walk
-34 to 68 px/s (was 34 to 60), and patience falls from 5.5 s to 3.5 s. Pass
-mark stays at 600.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) picks each Cupadee's cup as it joins the queue (the first two
+are always big, still and lined at 0.72). Each knob, easy / medium / hard:
+the line strays over a band 0.1 / 0.27 / 0.3 wide around 0.72; small (or
+tiny) cups 0% / 58% / 65%, tiny 0% / 7% / 40%; bobbing 0% / 20% / 30%,
+strolling 0% / 10% / 45%; strollers walk 34 / 49 / 68 px/s; patience 5.5 /
+4.6 / 3.5 s. Pass mark stays at 600. Bots over 16 seeds (mean, range, share
+passing); a pourer's miss is in time, so it grows on smaller and moving cups:
+
+| Level | Idle | Mash | Hold | Clumsy (±0.22) | Medium (±0.14) | Good (±0.04) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 1 (0–10) | 0 | 629 (420–1010) 50% | 918 (610–1370) 100% | 1899 (1720–2060) |
+| Normal | 0 | 15 (0–100) | 0 | 595 (370–1130) 44% | 863 (550–1170) 94% | 1960 (1750–2060) |
+| Harder | 0 | 53 (0–200) | 3 (0–10) | 554 (380–970) 31% | 774 (610–1290) 100% | 1831 (1590–2100) |
+
+Points come per cup and big still cups take longer to fill, so a gentler
+round also serves fewer cups: Easier helps a clumsy pourer only a little.
 
 ### 3. Shuttercluck: Say Cheese (10 photos)
 
@@ -270,13 +278,20 @@ find, so the score to reach stays the same. Each is drawn from its painting
 action to take a picture. A bird in the middle of the frame scores most;
 rarer birds score more. You have ten shots. The results show your photos.
 
-**Difficulty over the round.** How far along the round is (shots taken or
-time spent, whichever is further) is eased with a smoothstep (`g.diff()`), so
-the first shots are gentle and the last ones hardest. A bird stays up 1.3
-times its tier's time at first and 0.6 times at the end (was 1 to 0.65). Its
-warning rustle runs 1.15 to 0.65 times (was 1 to 0.7). Birds come every 1.15
-to 0.45 s plus up to 0.6 s (was 1.0 to 0.5). One at a time at first, up to
-three at once by the end. Pass mark stays at 500.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) follows how far along the round is (shots taken or time
+spent, whichever is further). Each knob, easy / medium / hard: a bird stays
+up 1.3 / 0.98 / 0.6 times its tier's time, its warning rustle runs 1.15 /
+0.92 / 0.65 times, birds come every 1.15 / 0.84 / 0.45 s plus up to 0.6 s,
+and up to 1 / 2 / 3 are out at once (one until medium; three only near
+hard, so at Normal never more than two). Pass mark stays at 500. Bots over
+16 seeds (mean, range, share passing):
+
+| Level | Idle | Mash | Clumsy (slow swing, so-so frames) | Medium | Good |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 6 (0–90) | 589 (410–850) 69% | 735 (530–1050) 100% | 1133 (1020–1310) |
+| Normal | 0 | 7 (0–90) | 523 (420–710) 44% | 680 (500–920) 100% | 1135 (1020–1250) |
+| Harder | 0 | 8 (0–90) | 407 (310–500) 6% | 643 (420–880) 88% | 1142 (1020–1340) |
 
 ### 4. Gramophone Gullfinch: Wind and Sing (one song)
 
@@ -287,11 +302,18 @@ action between notes, or drag in circles) to wind it back up. Score is the
 accuracy, with a bonus for long streaks.
 
 **Difficulty over the round.** The melody already moves from quarters to
-eighths. On top of it, one eased curve over the song (`g.ramp()`, smoothstep
-of how far the song has got) sets the rest. The tempo runs 72 to 110 bpm
-(was 80 to 104, straight). The timing windows are 1.25 times wider at the
-start and 0.9 times at the end. The spring runs down 0.7 to 1.6 times its base
-rate (was 1 to 1.4). Pass mark stays at 1500.
+eighths. On top of it the shared curve (`g.d()`, see `difficulty.md`), by how
+far the song has got, sets the rest. Each knob, easy / medium / hard: tempo
+72 / 89 / 110 bpm; timing windows 1.25 / 1.1 / 0.9 times their base width;
+the spring runs down 0.7 / 1.1 / 1.6 times its base rate. Pass mark stays at
+1500. Bots over 16 seeds (mean, range, share passing); timing errors are in
+seconds, normally spread, with an occasional lapse:
+
+| Level | Idle | Mash | Clumsy (sd 0.14 s) | Medium (sd 0.1 s) | Good (sd 0.03 s) |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 39 (0–108) | 1564 (1210–1938) 63% | 2146 (1677–2805) 100% | 4923 (4339–5175) |
+| Normal | 0 | 25 (0–83) | 1420 (1062–1759) 31% | 1900 (1514–2528) 100% | 4201 (3467–4563) |
+| Harder | 0 | 19 (0–54) | 1177 (935–1433) 0% | 1551 (1223–1965) 56% | 3324 (2548–3651) |
 
 ### 5. Flowerpot Plume: Bloom (45 s)
 
@@ -302,11 +324,25 @@ sprout. A plume left dry wilts and loses its growth; one watered too long
 gets soggy and stops growing for a moment. Plants dry out faster as time goes
 on.
 
-**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
-round's progress) sets it. The pots dry at 0.06 a second at the start, slow
-enough to tend one Plume at a time, and 0.27 at the end (was 0.09 to 0.22,
-straight). A watered Plume soaks up to soggy 0.85 to 1.15 times as fast.
-Pass mark stays at 6.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets it. Each knob, easy / medium / hard: the pots dry at
+0.06 / 0.15 / 0.27 a second (times each pot's thirst), slow enough at first
+to tend one Plume at a time; a watered Plume soaks up to soggy 0.85 / 0.98 /
+1.15 times as fast. Pass mark stays at 6. Bots over 16 seeds (mean, range,
+share passing):
+
+| Level | Idle | Mash | Sweep | Hold still | Clumsy (slow, late to move on) | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0.3 (0–1) | 5 | 9 100% | 6.6 (6–7) 100% | 9.6 (8–10) 100% | 12 |
+| Normal | 0 | 0.3 (0–1) | 5 | 8.3 (8–9) 100% | 6.0 (6–6) 100% | 9.6 (8–10) 100% | 12 |
+| Harder | 0 | 0.1 (0–1) | 5 | 8 100% | 5.2 (5–6) 19% | 9.4 (8–10) 100% | 11.9 (11–12) |
+
+Open question: holding the water on the middle Plume without moving blooms
+it again and again through the soggy pauses, about 8 a round, above the pass
+mark at every level, and even a clumsy gardener passes at Normal. No pass
+mark fixes both (the medium gardener makes about 9.6), so it needs a design
+decision (for instance a longer soggy pause, or soggy costing growth) rather
+than a curve change.
 
 ### 6. Highbutton Bobolinks: Left Foot, Right Foot (40 s)
 
@@ -315,16 +351,30 @@ left or the right; press the matching side to step. A wrong step splashes
 and costs a moment. Score is the stones crossed. The stones come faster, and
 some are doubles (both at once).
 
-**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
-round's progress) sets it. The stone underfoot sinks in 2.6 s at first and
-0.95 s at the end (was 2.4 to 1.05, straight). Stones simply alternate 85% of
-the time at first and 45% at the end (was 85% to 50%). Doubles start after
-7 s at 3% and rise to 25% (was 5% to 22%). Mashing also pays less now: a
-fluster counts from when the boots recover, not from the splash. Before, a
-long stumble outlasted the 1.5 s window and wiped the slate, so random
-mashing passed 4 seeds in 12. Pass mark stays at 40. Known: fast blind
-drumming, left-right ten times a second, still scores well over the pass
-mark, as it did before.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets it. Each knob, easy / medium / hard: the stone
+underfoot sinks in 2.6 / 1.85 / 0.95 s; the next stone is on the other side
+85% / 68% / 45% of the time; doubles, none in the first 7 s, come 3% / 12% /
+25% of the time. Mashing also pays less: a fluster counts from when the boots
+recover, not from the splash (before, a long stumble outlasted the 1.5 s
+window and wiped the slate, so random mashing passed 4 seeds in 12). Pass
+mark stays at 40. Bots over 16 seeds (mean, range, share passing); the clumsy
+walker steps out of habit (the other foot) 30% of the time when a stone
+repeats a side:
+
+| Level | Idle | Mash | Both feet | Blind alternate | Clumsy | Medium (0.75 s) | Good (0.35 s) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 20 (10–29) | 0 | 32 (19–48) 25% | 40 (35–47) 56% | 45 (39–48) 94% | 103 (96–109) |
+| Normal | 0 | 20 (10–28) | 0 | 27 (12–41) 13% | 40 (34–47) 44% | 43 (39–47) 94% | 103 (97–110) |
+| Harder | 0 | 20 (10–34) | 0 | 19 (11–28) 0% | 35 (22–43) 19% | 45 (37–49) 88% | 103 (91–111) |
+
+Stones crossed is limited mostly by how quickly a player steps, so the level
+moves a clumsy walker's score less than its stumbles. Known: blind
+alternating, left-right five times a second, scrapes past the mark now and
+then (2 seeds in 16 at Normal, 3 before the curve; 4 at Easier,
+where the stones alternate more), and fast blind drumming, ten times a
+second, scores well over it, as it did before. No pass mark keeps both out
+without failing the medium walker.
 
 ### 7. Newspaper Peeper: Hot off the Press (45 s)
 
@@ -333,13 +383,23 @@ the Peeper to catch the letters of the word in order. The wrong letter
 smudges the word and costs a point. Finished words score by length. Words get
 longer as you go.
 
-**Difficulty over the round.** One eased curve (`diff()`, smoothstep of the
-round's progress) sets it, so the first third is gentle and the end hardest.
-Letters fall at 120 to 310 px/s (was 140 to 290, straight). They sway 25 to
-110 px (was 30 to 100) and come loose every 0.62 to 0.34 s (was 0.55 to
-0.36). The needed letter is 48% to 22% of them (was 42% to 24%). The words
-still lengthen as they are finished. Pass mark 18 to 22: wandering and
-mashing reached 19 to 21 on some seeds, before and after the ramp.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets it. Each knob, easy / medium / hard: letters fall at
+120 / 205 / 310 px/s (plus up to 30), sway 25 / 64 / 110 px (times 0.6 to 1),
+come loose every 0.62 / 0.5 / 0.34 s (plus up to 0.12), and the needed letter
+is 48% / 37% / 22% of them. The words still lengthen as they are finished.
+Pass mark stays at 22 (it went from 18 to 22 with the earlier ramp: wandering
+and mashing reached 19 to 21 on some seeds). Bots over 16 seeds (mean, range,
+share passing); the readers notice a letter only after it has fallen a while:
+
+| Level | Idle | Mash | Wander | Clumsy (slow, 0.8 s to notice) | Medium (0.6 s) | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 7 (0–16) | 10 (1–19) | 25 (15–32) 75% | 31 (20–39) 88% | 37 (32–41) |
+| Normal | 0 | 9 (3–13) | 9 (2–18) | 22 (11–30) 44% | 35 (25–38) 100% | 40 (29–48) |
+| Harder | 0 | 9 (2–19) | 8 (1–17) | 19 (6–31) 25% | 33 (25–41) 100% | 50 (40–58) |
+
+Letters come a little less often at Easier, so the medium reader's score
+there is a touch lower than at Normal; it still passes.
 
 ### 8. Pincushion Piffle: Stitch in Time (45 s)
 
@@ -350,13 +410,19 @@ needle a little for a tricky bend, or hold LT or RT to steer more finely
 without slowing the quilt (the further the trigger, the finer). Score is the
 stitches sewn on the line, so going slowly is safer but sews fewer.
 
-**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
-round's progress) sets it, so the first third is gentle and the end hardest.
-The quilt runs at 150 to 270 px/s (was 170 to 250, straight; the same
-distance over the round). The seam's bends come 360 to 170 px apart (was 330
-to 190) and swing up to 110 to 320 px (was 150 to 300). The seam is laid
-about 2000 px ahead, so its bends lag the clock by a few seconds. Pass mark
-stays at 120.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets it. Each knob, easy / medium / hard: the quilt runs at
+150 / 205 / 270 px/s; the seam's bends come 360 / 275 / 170 px apart (times
+0.85 to 1.15) and swing up to 110 / 200 / 320 px. The seam is laid about
+2000 px ahead, so its bends lag the clock by a few seconds. Pass mark stays
+at 120. Bots over 16 seeds (mean, range, share passing); the sewers see the
+needle a few frames late:
+
+| Level | Idle | Mash | Clumsy (0.67 s late) | Medium (0.27 s late) | Good (hurries) |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 36 (17–89) | 7 (2–14) | 154 (132–176) 100% | 196 100% | 309 (300–315) |
+| Normal | 30 (13–44) | 8 (2–13) | 118 (97–144) 31% | 218 (210–223) 100% | 300 (285–334) |
+| Harder | 26 (12–48) | 7 (2–14) | 79 (62–102) 0% | 197 (174–229) 100% | 263 (242–303) |
 
 ### 9. Dollarbill Dodo: Spot the Dodo (8 rounds)
 
@@ -365,16 +431,35 @@ later rounds). The hats shuffle, faster each round. When they stop, move to
 the right hat and press the action. Score is the rounds won, with a bonus for
 answering quickly.
 
-**Difficulty over the round.** The rounds already stepped up; now the first
-two are gentler and the last two harder. Round 1 is two slow swaps (0.95 s
-each, was three at 0.8). Round 2 is four (0.72 s, was five at 0.62). Round 3
-is five at 0.56 s (was six at 0.52). Rounds 4 to 6 are as before. Round 7 is 13 swaps at 0.3 s
-(was 12 at 0.31), and round 8 is 16 at 0.26 s (was 14 at 0.28) with more
-feints, doubles and rings, the Dodo shown for 0.85 s. The hat counts are
-unchanged (3, 3, 4, 4, 4, 5, 5, 5), so guessing is no luckier. Pass mark
-450 to 550: the gentler opening lifts a beginner by about 90, and pure
-guessing still passed about one game in ten at 450. At 550 a beginner passes
-a little over half the time and guessing about one game in twelve.
+**Difficulty over the round.** The hat counts stay fixed (3, 3, 4, 4, 4, 5,
+5, 5) at every level, so guessing is never luckier. Everything else about a
+round follows the shared curve (`g.d()`, `g.plan()`, see `difficulty.md`)
+over the eight rounds (round 1 is progress 0, round 8 is 1). Each knob, easy
+/ medium / hard: 2 / 9 / 16 swaps of 0.95 / 0.44 / 0.26 s each; the Dodo shown
+for 1.8 / 1.15 / 0.85 s; 6 / 4.5 / 4 s to answer; feints 0% / 20% / 25% of
+moves, double swaps (four hats or more) 0% / 10% / 35%, rings of three 0% /
+0% / 30%. The rounds, as hats:swaps@seconds:
+
+| Level | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 3:2@0.95 | 3:2@0.92 | 4:3@0.85 | 4:5@0.76 | 4:5@0.71 | 5:6@0.69 | 5:6@0.66 | 5:7@0.59 |
+| Normal | 3:2@0.95 | 3:3@0.89 | 4:5@0.74 | 4:7@0.58 | 4:9@0.46 | 5:9@0.44 | 5:11@0.40 | 5:14@0.31 |
+| Harder | 3:8@0.49 | 3:9@0.45 | 4:10@0.41 | 4:11@0.38 | 4:12@0.35 | 5:13@0.35 | 5:14@0.32 | 5:16@0.26 |
+
+(Before the curve: 2@0.95, 4@0.72, 5@0.56, 8@0.44, 10@0.38, 10@0.34,
+13@0.3, 16@0.26.) Pass mark stays at 550 (it went from 450 to 550 with the
+earlier ramp, when pure guessing passed about one game in ten at 450). Bots
+over 24 seeds (mean, range, share passing); the medium and clumsy players
+lose the Dodo's hat more often the quicker it moves, and then guess:
+
+| Level | Idle | Guess at once | Clumsy | Medium | Sharp-eyed |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 279 (0–640) 4% | 897 (700–1020) 100% | 992 (735–1020) 100% | 1040 |
+| Normal | 0 | 314 (0–570) 4% | 518 (310–870) 38% | 600 (430–870) 75% | 1040 |
+| Harder | 0 | 339 (0–660) 8% | 235 (0–510) 0% | 295 (0–630) 4% | 1040 |
+
+At Harder the quick, long shuffles lose even the medium player, who then
+does no better than guessing; that level is for records.
 
 ### 10. Safecrossing Crow: Safe Crossing (45 s)
 

@@ -16,6 +16,7 @@
 
 import { drawBird, scene, band, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 // ---------- the song ----------
 
@@ -38,8 +39,6 @@ const MELODY = [
 // starting with the four-beat count-in.
 const BASS = [0, 7, 0, 5, 0, 5, 0, 7, 0, 5, 0, 5, 7, 7, 7, 0, 0, 0, 7, 7, 0, 7, 5, 7, 0, 5, 7, 0, 0, 0];
 const LEAD = 4; // beats of count-in before the first note
-const BPM0 = 72; // the song's tempo at the start (was 80)...
-const BPM1 = 110; // ...and at the end (was 104), along the eased curve below
 
 // ---------- feel ----------
 
@@ -106,21 +105,19 @@ export default function create(env) {
 
   // ---------- song time ----------
 
-  // Difficulty over the song: one eased curve (smoothstep of how far the
-  // song has got, 0 to 1). It speeds the tempo, narrows the timing windows
-  // (1.25x at the start, 0.9x at the end) and runs the spring down faster
-  // (0.7x to 1.6x). The melody itself already moves from quarters to eighths.
-  const ramp = (beat) => {
-    const k = clamp(beat / TOTAL, 0, 1);
-    return k * k * (3 - 2 * k);
-  };
-  g.ramp = () => ramp(g.beat);
-  const bpmAt = (beat) => lerp(BPM0, BPM1, ramp(beat));
-  g.bpm = () => bpmAt(g.beat);
-  g.windows = () => lerp(1.25, 0.9, g.ramp());
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js), by how far
+  // the song has got. It speeds the tempo, narrows the timing windows and
+  // runs the spring down faster. The melody itself already moves from
+  // quarters to eighths. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(clamp(g.beat / TOTAL, 0, 1));
+  g.bpm = () => knob(g.d(), 72, 89, 110); // the song's tempo, beats a minute
+  g.windows = () => knob(g.d(), 1.25, 1.1, 0.9); // timing windows, times their base width
+  g.drain = () => knob(g.d(), 0.7, 1.1, 1.6); // the spring runs down, times its base rate
   // 1 at a good spring, down to 0.5 when it has run right down.
   const tempo = () => (g.spring >= SAG ? 1 : lerp(0.5, 1, g.spring / SAG));
-  const spb = () => 60 / (bpmAt(g.beat) * tempo()); // seconds per beat now
+  const spb = () => 60 / (g.bpm() * tempo()); // seconds per beat now
   const sag = () => 1 - (tempo() - 0.5) / 0.5; // 0 fine .. 1 fully sagged
   const winScale = () => (1 - sag() * 0.45) * g.windows();
   g.tempo = tempo;
@@ -231,7 +228,7 @@ export default function create(env) {
     g.kind = input.kind;
 
     // The spring runs down, and the song plays on at its speed.
-    g.spring = Math.max(0, g.spring - dt * DRAIN * lerp(0.7, 1.6, g.ramp()));
+    g.spring = Math.max(0, g.spring - dt * DRAIN * g.drain());
     g.beat += dt / spb();
     g.wobble = sag();
 

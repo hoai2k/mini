@@ -11,6 +11,7 @@
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK, PAPER } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 import { SUBJECTS, SUBJECT_IDS, drawSubject, subjectShape } from '../subjects.js';
 
 const SHOTS = 10;
@@ -94,17 +95,17 @@ export default function create(env) {
   };
   const busy = new Set();
 
-  // How hard it is now, 0..1: by shots taken and time spent, eased
-  // (smoothstep) so the first shots are gentle and the last ones hardest.
-  // Birds peek longer and one at a time at first; later they peek briefly,
-  // rustle less warning and come up two or three at once.
-  const diff = () => {
-    const k = clamp(Math.max((SHOTS - g.shotsLeft) / SHOTS, g.elapsed / 45), 0, 1);
-    return k * k * (3 - 2 * k);
-  };
-  g.diff = diff;
-  g.upFactor = (d) => 1.3 - d * 0.7; // how long a bird stays up, 1.3x to 0.6x its tier's time (was 1x to 0.65x)
-  g.rustleFactor = (d) => 1.15 - d * 0.5; // its warning rustle, 1.15x to 0.65x (was 1x to 0.7x)
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty (see difficulty.js), by shots
+  // taken or time spent, whichever is further. Birds peek longer and one at
+  // a time at first; later they peek briefly, rustle less warning and come
+  // up two or three at once. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(clamp(Math.max((SHOTS - g.shotsLeft) / SHOTS, g.elapsed / 45), 0, 1));
+  g.upFactor = (d = g.d()) => knob(d, 1.3, 0.98, 0.6); // how long a bird stays up, times its tier's time
+  g.rustleFactor = (d = g.d()) => knob(d, 1.15, 0.92, 0.65); // its warning rustle, times its tier's
+  g.spawnGap = (d = g.d()) => knob(d, 1.15, 0.84, 0.45); // seconds between birds, plus up to 0.6
+  g.maxUp = (d = g.d()) => Math.floor(knob(d, 1, 2.1, 3.2)); // birds up at once
 
   // Where a bird's feet are, given how far out it is (e, 0..1).
   function feet(b) {
@@ -177,7 +178,7 @@ export default function create(env) {
     if (!free.length) return;
     const spot = free[Math.floor(rng() * free.length)];
     const sp = S()[spot];
-    const d = diff();
+    const d = g.d();
     if (!bag.length) bag = [...new Set(ids)];
     const live = new Set(g.birds.map(b => b.id));
     let choices = bag.filter(id => id !== lastId && !live.has(id));
@@ -300,12 +301,12 @@ export default function create(env) {
     if (input.actionPressed && g.cool <= 0 && g.shotsLeft > 0 && !g.ending) shoot();
 
     // Birds come and go.
-    const d = diff();
-    const maxUp = 1 + Math.floor(d * 2.2);
+    const d = g.d();
+    const maxUp = g.maxUp(d);
     g.spawn -= dt;
     if (g.spawn <= 0 && g.birds.length < maxUp && !g.ending) {
       spawnBird();
-      g.spawn = 1.15 - d * 0.7 + rng() * 0.6;
+      g.spawn = g.spawnGap(d) + rng() * 0.6;
     }
     for (const b of g.birds) {
       b.t -= dt;
