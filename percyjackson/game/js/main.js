@@ -27,7 +27,7 @@ import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
 import { Pickups } from './pickups.js';
 import { Minimap } from './ui/minimap.js';
-import { BOSS_IDS } from './entities/bosses.js';
+import { BOSS_IDS, warmupGroup } from './entities/bosses.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { TrainingDummy } from './entities/dummy.js';
@@ -162,6 +162,7 @@ class Game {
   }
   // ---------------------------------------------------------------- front-end flow
   toTitle() {
+    this.resume?.flush();   // net: quitting mid-chapter keeps the place to continue from
     if (this.online?.live) this.online.leave({ quiet: true });   // net: quitting to the title leaves the room
     this.state = 'title';
     this.wipeLeft = 0;
@@ -380,6 +381,16 @@ class Game {
     if (Screens.openStoryCards && ch.intro?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, go);
     else go();
   }
+  // Compile every monster's (and this chapter's boss's) materials while the
+  // level loads, so the first appearance of a new kind doesn't hitch mid-fight.
+  warmupShaders(boss) {
+    let grp;
+    try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
+    this.scene.add(grp);
+    const done = () => this.scene.remove(grp);   // geometries and materials are shared with live monsters: keep them
+    const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
+    if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
+  }
   startMission(def) {
     this.online.loading?.();   // net: guests wait while the host builds the level
     Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
@@ -393,6 +404,7 @@ class Game {
     this.mode = 'loading-chapter';
     this.pendingMist = def.mist ?? this.chapter?.mist ?? 0;
     this.loadWorld(L, L.biome);
+    this.warmupShaders(def.boss);
     this.audio.overrideMusic = null; this.audio.setMusic(L.biome.music);
     this.placePlayers(L.spawn);
     this.minimap.build(L);

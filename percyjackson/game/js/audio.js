@@ -122,7 +122,7 @@ export class Audio {
   }
   // monster voices by the bestiary's voice names
   voiceSample(kind, pitch = 1) {
-    const id = { bark: 'bark', screech: 'screech', hiss: 'hiss', click: 'click', roar: 'roar', bull: 'roar' }[kind];
+    const id = { bark: 'bark', screech: 'screech', hiss: 'hiss', click: 'click', roar: 'roar', bull: 'roar', rattle: 'rattle', moan: 'moan', grind: 'grind' }[kind];
     if (!id || this.throttle('voice-' + id, 260)) return !!id;
     return this.sample(id, { gain: 0.7, rate: Math.max(0.6, Math.min(1.5, pitch)) });
   }

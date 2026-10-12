@@ -26,12 +26,17 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **Five playable heroes:** Percy, Annabeth, Grover, Tyson and Clarisse, each
   with a melee combo, a ranged move, three abilities and a godly power. Thalia
   and Nico are shown as coming later.
-  - There are always three heroes while there are fewer than three players.
-    Alone, you lead two AI companions; two players share one, the third hero,
-    and either can swap into it. D-pad ↓ or Tab switches (one swap at a time,
-    so two players pressing together never fight over a hero). With three or
-    four players there are no companions and switching is off. Online, the
-    same rule counts everyone in the room.
+  - The party is always three heroes (four with four players), and the AI
+    plays whoever is missing. Alone, you lead two AI companions; two players
+    share one, the third hero, and either can swap into it. D-pad ↓ or Tab
+    switches (one swap at a time, so two players pressing together never
+    fight over a hero). With three or four players there are no companions
+    and switching is off. Online, the same rule counts everyone in the room.
+  - Join and leave any time, mid-chapter, at no cost: a player who joins
+    (Start on a controller, or online) takes over a companion's hero where it
+    stands, with its health; a player who leaves, or whose controller is
+    unplugged for two seconds, hands their hero to the AI, and gets it back
+    if they return.
 - **The Mist and True Sight:** LT or V repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
@@ -48,6 +53,14 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   controller to join), and online play from the hero select (Play online, Y)
   or the Iris-message fountain in camp, with players on one screen able to
   play online together (see *Online* below).
+- **Saves and Continue:** each save is a whole game. Starting a new game
+  makes a new save and keeps the others; Settings → Saves lists them (make
+  one active, rename, delete after a confirmation). In a chapter the game
+  keeps a resume point at checkpoints (entering a room, a room cleared, an
+  objective step, a chest or gate opened) and when the page hides or closes;
+  after Press Start, Continue rebuilds the same level and puts the party back
+  at the last checkpoint, and Return to camp discards it. Online, the host's
+  resume point is the one that counts; guests just rejoin.
 - **Profiles:** every player has their own saved progress, chosen on the hero
   select (X on a controller cycles it): level, drachmas, gear for each hero,
   unlocked heroes, chapters and the prophecy. Loot and drachmas go to whoever
@@ -151,10 +164,12 @@ across every screen.
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
 | `game/js/story/` | Books and chapters, chapter start places in camp |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
+| `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
+| `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games) |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

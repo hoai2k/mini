@@ -117,6 +117,8 @@ const BOSS_ALIASES = { hellhound: 'hellhound_alpha', pit_scorpion: 'luke', kindl
 export const BOSS_IDS = Object.keys(BOSSES);
 export const BOSS_DEFS = BOSSES;
 
+const BOSS_VOICE = { minotaur: ['roar', 0.85], cerberus: ['roar', 0.7], chimera: ['roar', 1], hellhound_alpha: ['bark', 0.7], medusa: ['hiss', 0.8], furies: ['screech', 0.9], alecto: ['screech', 0.9], spiders: ['click', 0.7] };
+
 export class Boss {
   constructor(game, id, pos, level = 1) {
     id = BOSS_ALIASES[id] ?? id;
@@ -168,6 +170,9 @@ export class Boss {
     this.co = this.roar(); this.coWait = 0;
     toast(`PHASE ${n + 1}`, 'big');
     g.audio?.boss();
+    // a recorded roar for the beasts (the voice recordings in assets/sfx)
+    const v = BOSS_VOICE[this.id];
+    if (v) setTimeout(() => g.audio?.voiceSample?.(v[0], v[1]), 450);
     g.fx.flash(this.B.color, 0.4, 0.3);
     g.shake(0.7);
   }
