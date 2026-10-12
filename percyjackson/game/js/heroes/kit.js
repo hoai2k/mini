@@ -59,7 +59,10 @@ export function hookHero(p) {
 // ---------------------------------------------------------------- statuses
 const canControl = (e) => !e.dead && !e.isBoss && !e.isDummy;
 export function mark(e, dur, g, bonus = 0) { e.pjMarkT = Math.max(e.pjMarkT ?? 0, g.time + dur); e.pjMarkBonus = bonus; }
-export function root(e, dur) { if (!canControl(e)) return false; e.sealT = Math.max(e.sealT ?? 0, dur); e.cancelAttack?.(); return true; }
+// Cancelling a wind-up must also leave the wind-up state: a monster left in
+// 'windup' with no action threw every frame once the root wore off (Annabeth's
+// trap or Grover's vines on a monster mid-attack froze the game).
+export function root(e, dur) { if (!canControl(e)) return false; e.sealT = Math.max(e.sealT ?? 0, dur); e.cancelAttack?.(); if (e.state === 'windup' || e.state === 'recover') { e.state = 'idle'; e.stateT = 0; } return true; }
 export function stun(e, dur) {
   if (e.dead || e.isDummy) return false;
   if (e.isBoss) return false;

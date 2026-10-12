@@ -383,6 +383,31 @@ export class Decorations {
           lb(0.8, 0.9, 0.8, 0, 0.45, 0, M.flame, 0.3); lb(0.5, 0.8, 0.5, 0.15, 1.1, 0.05, M.flame, 1.0); lb(0.3, 0.6, 0.3, -0.1, 1.6, 0, M.flame, 0.5);
           if (p.smoke) for (let i = 0; i < 3; i++) lb(1.0 + i * 0.3, 0.8, 1.0 + i * 0.3, i * 0.3, 2.4 + i * 0.9, i * 0.15, M.smoke, i);
           break;
+        // ------------------------------------------------ Manhattan (the prologue)
+        case 'hotdog_cart': { // a steel cart with a striped umbrella; faces +z
+          lb(1.8, 0.9, 0.9, 0, 0.75, 0, M.chrome); lb(1.84, 0.1, 0.94, 0, 1.22, 0, M.metal);
+          lb(1.7, 0.3, 0.06, 0, 0.75, 0.46, M.car(0xd8322a)); lb(0.5, 0.2, 0.3, -0.4, 1.35, 0, M.car(0xc88a3a));
+          for (const [a, b] of [[-0.7, 0.35], [0.7, 0.35], [-0.7, -0.35], [0.7, -0.35]]) lb(0.08, 0.6, 0.08, a, 0.3, b, M.dark);
+          lb(0.08, 1.4, 0.08, 0.6, 1.9, 0, M.white);
+          for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; lb(0.9, 0.06, 0.45, 0.6 + Math.cos(a) * 0.45, 2.6, Math.sin(a) * 0.45, M.car(i % 2 ? 0xffffff : 0x2a6ad8), -a, 0, -0.25); }
+          break;
+        }
+        case 'hydrant': lb(0.4, 0.6, 0.4, 0, 0.3, 0, M.car(0xd8322a)); lb(0.3, 0.2, 0.3, 0, 0.7, 0, M.car(0xd8322a)); lb(0.6, 0.12, 0.14, 0, 0.42, 0, M.car(0xb8221a)); break;
+        case 'trash_can': lb(0.6, 0.9, 0.6, 0, 0.45, 0, M.car(0x3a5a3a)); lb(0.66, 0.08, 0.66, 0, 0.92, 0, M.metal); break;
+        case 'mailbox': lb(0.6, 0.9, 0.5, 0, 0.75, 0, M.car(0x2a4a9a)); lb(0.6, 0.2, 0.5, 0, 1.25, 0, M.car(0x2a4a9a)); for (const a of [-0.22, 0.22]) lb(0.08, 0.3, 0.08, a, 0.15, 0, M.dark); break;
+        case 'subway_globe': // the green lamp posts at a subway entrance
+          lb(0.12, 2.6, 0.12, 0, 1.3, 0, M.car(0x2e5a3a)); lb(0.4, 0.4, 0.4, 0, 2.8, 0, M.neon(0x6aff8a)); lb(0.3, 0.1, 0.3, 0, 3.05, 0, M.car(0x2e5a3a)); break;
+        case 'traffic_light': // a pole with a three-lamp head over the street (arm along local x)
+          lb(0.16, 4.2, 0.16, 0, 2.1, 0, M.dark); lb(2.6, 0.12, 0.12, 1.3, 4.1, 0, M.dark);
+          lb(0.4, 1.1, 0.36, 2.4, 3.6, 0, M.car(0x2a2a1e));
+          lb(0.26, 0.26, 0.06, 2.4, 3.95, 0.2, M.neon(0xff3a2a)); lb(0.26, 0.26, 0.06, 2.4, 3.62, 0.2, M.car(0x5a4a1a)); lb(0.26, 0.26, 0.06, 2.4, 3.29, 0.2, M.car(0x1a4a2a));
+          break;
+        case 'newsstand': lb(2.2, 2.2, 1.4, 0, 1.1, 0, M.car(0x2e5a3a)); lb(2.4, 0.14, 1.7, 0, 2.27, 0.1, M.dark); lb(1.8, 0.9, 0.06, 0, 1.3, 0.72, M.lampGlow);
+          for (let i = 0; i < 6; i++) lb(0.26, 0.34, 0.04, -0.7 + i * 0.28, 1.25, 0.76, M.car([0xd8322a, 0xffd84a, 0x2a6ad8, 0xf2efe6][i % 4]));
+          break;
+        case 'planter': lb(1, 0.5, 1, 0, 0.25, 0, M.stone); lb(0.8, 0.3, 0.8, 0, 0.6, 0, M.car(0x3a7a2a)); break;
+        case 'stoop_rail': lb(0.08, 0.9, p.len ?? 2, 0, 0.45, 0, M.dark); lb(0.1, 0.06, (p.len ?? 2) + 0.1, 0, 0.92, 0, M.dark); break;
+        case 'bike_rack': for (let i = 0; i < 3; i++) lb(0.06, 0.7, 0.6, -0.5 + i * 0.5, 0.35, 0, M.chrome); break;
         case 'text_sign': { // a board with words on it: p.text, p.w, p.h, p.bg, p.fg, p.post (signpost height), p.glow
           const w = p.w ?? 2.4, hh = p.h ?? 0.7, ph = p.post ?? 0;
           if (ph > 0) { lb(0.14, ph, 0.14, -w / 2 + 0.2, ph / 2, -0.02, M.wood); lb(0.14, ph, 0.14, w / 2 - 0.2, ph / 2, -0.02, M.wood); }

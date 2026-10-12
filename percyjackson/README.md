@@ -10,12 +10,37 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 
 ## What's in it now
 
+- **The opening of a new game** tells the start of the book before camp
+  opens up: a morning in Manhattan (walk to the yellow school bus at Yancy
+  Academy, fighting off sewer rats from the alleys, the subway stairs and the
+  storm drains), a cutscene of the bus driving to the American Museum of
+  Natural History, chapter 1 in the museum, a cutscene of summer at Montauk
+  and the drive through the storm, chapter 2 on Half-Blood Hill, and a
+  cutscene of waking at the Big House. Then Camp Half-Blood is the open hub.
+  - Cutscenes are in the engine (letterbox, subtitles in the story voice,
+    story-card pictures when their art is delivered); hold A, Esc or the
+    screen to skip.
+  - A save keeps where it is in the opening, and Continue picks it up in the
+    prologue or at the start of a cutscene. Saves that had already finished
+    chapters 1 and 2 start in camp. Settings → Data → Skip the opening goes
+    straight to camp; a save that has seen the opening can also start a new
+    game without it.
+- **Where to go:** the objective ribbon names the current goal, a gold arrow
+  at the edge of the screen points to it (with the distance), a beam marks
+  it, and glowing footprints lead the way. In camp the goal is the next
+  chapter's quest marker.
+- **Monsters while you walk around:** small packs of low-level monsters turn
+  up out of sight in the camp woods and along the Road West (pups, bronze
+  spiders, Stymphalian birds, scorpions on the far road), never inside the
+  cabins, the Big House or the forge (a monster that strays there turns
+  back), and not during minigames or cutscenes.
 - **Camp Half-Blood** is the home base, with Half-Blood Hill, the Big House,
   the twelve cabins, the forge, the store, the archery range and the lava
   climbing wall.
-  - Chapters start from places in camp: chapter 1 from the field-trip bus by
-    the camp road, chapter 2 from Thalia's pine on Half-Blood Hill. A chapter
-    unlocks when the one before it is finished.
+  - Chapters 3 to 12 start from places in camp; chapters 1 and 2 are played
+    in the opening, and replayed from the field-trip bus by the camp road and
+    Thalia's pine on Half-Blood Hill. A chapter unlocks when the one before it
+    is finished.
   - The chapter map on the Big House porch lists every book.
 - **All twelve chapters of Book 1, *The Lightning Thief*,** each started from
   its own place in camp (the early ones near the cabins, the later ones along
@@ -88,7 +113,8 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   writing that rearranges itself from Greek letters.
 
 **Music:** delivered tracks play from `game/assets/music/` (title, camp,
-museum, storm, boss, minigame, oracle, woods, highway, garden), looping with
+museum, storm, boss, minigame, oracle, woods, highway, garden, manhattan;
+places still without their own track play the closest delivered one), looping with
 a crossfade; places without a track yet keep the generated music. The
 victory, defeat and prophecy stingers come from
 `design/source/build_stingers.py` (ElevenLabs). Camp and the woods have a
@@ -139,19 +165,23 @@ across every screen.
 | --- | --- | --- |
 | `hs`: each hero this screen runs (humans keyed by profile id, companions by `ai:<hero>`): position, velocity, facing, action, health, downed | presence, 15 a second | that screen |
 | `T` shared time of the update, `rs` heroes being re-synced after a reconnect | presence | every screen |
-| `sc`: camp, story cards, or a chapter with its level seed | host presence | host |
+| `sc`: camp, story cards, a chapter with its level seed, the opening's Manhattan prologue, or a cutscene | host presence | host |
 | `w`: monsters and bosses, objective, chests, gates, rooms, True Sight | host presence, 15 a second | host |
 | `R`: join order and room generation (for host migration) | host presence | host |
 | `ev`: effects, telegraphs, projectiles and hazards of what that screen runs | topic, batched every 50 ms | anyone |
 | `hit`: a guest's hero hit monsters | topic, guest → host | host applies it |
 | `hurt`: a monster hit someone's hero | topic, host → owner | that screen applies it |
-| `act`: freed a captive, opened a chest, revealed a disguise, objective actions, took the way out | topic, guest → host | host |
+| `act`: freed a captive, opened a chest, revealed a disguise, objective actions, took the way out, reached the school bus, asked to skip a cutscene | topic, guest → host | host |
 | `load`: the host is building a level | topic, host → all | guests wait |
 | `done`: the chapter is complete | topic, host → all | everyone |
 | `swap`, `swapok`, `swapno`: swapping into the AI companion | topic, guest ↔ host | host grants one at a time |
 | `ping`, `pong`: the shared clock | topic | host answers |
 | `full`: the room already has four players | topic, host → one | that screen leaves |
 
+- The opening is the host's: guests see the same Manhattan prologue and
+  cutscenes; a guest who reaches the bus gets everyone on it. A cutscene is
+  skipped when the host holds skip, or when every guest has. Roaming monsters
+  are the host's like any other.
 - The host runs the monsters, the chapter and the AI companions. Every screen
   runs its own players' heroes, so controls never wait for the network.
 - Everything else is drawn about 0.1 s behind from buffered updates and
@@ -178,7 +208,9 @@ across every screen.
 | `game/js/heroes/` | The hero kits |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
-| `game/js/story/` | Books and chapters, chapter start places in camp |
+| `game/js/story/` | Books and chapters, chapter start places in camp, the opening (`opening.js` steps, `openingFlow.js`), cutscenes (`cutscene.js` player, `cutscenes.js` the three of the opening) |
+| `game/js/world/manhattan.js`, `cutsceneSets.js`, `vehicles.js`, `roaming.js`, `roamZones.js` | The Manhattan prologue, the cutscene sets (Central Park West and the museum, Montauk), the bus and cars, roaming monsters and where they may go |
+| `game/js/ui/tracker.js` | Where to go: the goal line, the edge arrow, the beam and the footprints |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |

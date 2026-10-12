@@ -322,11 +322,18 @@ export class Player {
     this.onDodge?.();
   }
   fellOff() {
-    this.game.fx?.poof(this.pos);
-    this.spawn(this.safePos);
+    const g = this.game;
+    g.fx?.poof(this.pos);
+    // An AI companion that steps off a ledge comes back beside the hero it
+    // follows, unhurt: its last safe spot is usually the same ledge it walked
+    // off (a boss arena over the abyss cost companions dozens of falls and
+    // most of their health in the comfort playthroughs).
+    const lead = this.ai && g.players?.find((q) => !q.ai && !q.dead && !q.downed && q.grounded && !q.inLiquid);
+    this.spawn(lead ? lead.pos.clone().add(new THREE.Vector3(Math.sin(lead.facing + 2.4) * 1.2, 0.05, Math.cos(lead.facing + 2.4) * 1.2)) : this.safePos);
+    if (lead && !this.edgeSafe()) this.spawn(lead.pos);
     this.iframes = 1;
-    this.takeDamage?.(this.maxHp * 0.1, null, { pure: true, noKnock: true });
-    this.game.audio?.hurt();
+    if (!this.ai) this.takeDamage?.(this.maxHp * 0.1, null, { pure: true, noKnock: true });
+    g.audio?.hurt();
   }
   animate(dt) {
     const a = this.action;

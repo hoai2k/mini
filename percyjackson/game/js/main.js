@@ -60,6 +60,9 @@ import { openPhotoMode } from './photo.js';
 import { DomainSystem } from './domain.js';
 import { Trench } from './gfx/materials.js';
 import { isMobile } from './util.js';
+import { Tracker } from './ui/tracker.js';
+import { Roaming } from './world/roaming.js';
+import { OpeningFlow } from './story/openingFlow.js';
 
 const loadFill = document.getElementById('load-fill');
 const loadText = document.getElementById('load-text');
@@ -82,6 +85,9 @@ class Game {
     this.profiles = new Profiles(undefined, { prefix: slotPrefix(this.slots.active), slot: this.slots.active });
     this.save = this.profiles.main;
     this.resume = new Resume(this);
+    // the opening of a new game (story/openingFlow.js): the prologue, cutscenes, chapters 1 and 2
+    this.opening = new OpeningFlow(this);
+    this.cutscene = null; this.openingChapter = null;
   }
   async boot() {
     progress(0.05, 'Detecting GPU…');
@@ -126,6 +132,8 @@ class Game {
     this.projectiles = new Projectiles(this);
     this.hazards = new Hazards(this);
     this.hud = new HUD(this);
+    this.tracker = new Tracker(this);      // where to go: the goal line, arrow, beam and footprints
+    this.roaming = new Roaming(this);      // low-level monsters met while walking around
     this.pickups = new Pickups(this);
     this.minimap = new Minimap(this);
     this.coins = 0;
@@ -164,6 +172,8 @@ class Game {
   toTitle() {
     this.resume?.flush();   // net: quitting mid-chapter keeps the place to continue from
     if (this.online?.live) this.online.leave({ quiet: true });   // net: quitting to the title leaves the room
+    this.endCutscene();
+    this.opening.running = null; this.openingChapter = null;
     this.state = 'title';
     this.wipeLeft = 0;
     this.hud.show(false); this.touch?.show(false);
@@ -196,7 +206,9 @@ class Game {
   // net: list: [{ device, hero, profile }] (profile: a profile id; the first
   // player defaults to this device's main profile, the others to "Player N")
   // { fill: false } leaves out the AI companions (tests, minigames)
-  beginSession(list, { companions = [], fill = true } = {}) {
+  // { start: 'auto' } runs the opening when this save hasn't finished it
+  // (a new game: the Manhattan prologue); otherwise the session starts in camp.
+  beginSession(list, { companions = [], fill = true, start = 'hub' } = {}) {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     this.partyMgr.clear(); this.party = null;
@@ -217,8 +229,24 @@ class Game {
     this.state = 'playing';
     this.hud.show(true); this.touch?.show(true);
     this.hud.rebuildCards?.();
+    if (start === 'auto' && !this.opening.done && !this.online?.isGuest) { this.opening.run(); return; }
     this.loadHub();
     toast('Camp Half-Blood', 'big');
+  }
+  // A cutscene is showing (story/cutscene.js): stop it (the scene changed under it).
+  endCutscene() {
+    if (!this.cutscene) return;
+    this.cutscene.abort(); this.cutscene = null;
+    for (const p of this.players) p.object.visible = true;
+    if (this.state === 'playing') { this.hud.show(true); this.touch?.show(true); }
+  }
+  // In camp: the tracker points at the next chapter to play.
+  updateCampGoal() {
+    const d = this.save.data;
+    const next = (this.questMarkers ?? []).find((m) => m.open && !d.completed[m.ch.id]);
+    if (!next) { this.tracker?.setGoal(null); return; }
+    const place = next.ch.start?.place ?? next.ch.place;
+    this.tracker?.setGoal({ title: `Next quest: ${next.ch.title}`, desc: place[0].toUpperCase() + place.slice(1), pos: next.pos, radius: 2 });
   }
   startMinigame(m) {
     if (this.minigame) return;
@@ -298,6 +326,7 @@ class Game {
     for (const m of this.markers.items) this.markers.cancel(m);
     this.updaters = []; this.interactables = [];
     this.mission?.dispose(); this.mission = null;
+    this.tracker?.setGoal(null); this.roaming?.clear();
     this.exitPortal = null; this.objectiveDone = false;
     this.lights.dynamic = this.lights.dynamic.filter((d) => this.players.some((p) => p.heroLight === d));
     Trench.glow.value = 0; this.trenchFade = 0;
@@ -333,6 +362,7 @@ class Game {
   }
   loadHub() {
     this.online?.loading?.();   // net: guests wait while the host builds camp
+    if (!this.csBuilding) { this.endCutscene(); this.openingChapter = null; }
     this.clearLevel();
     const L = buildCamp();
     this.loadWorld(L, BIOMES.camp);
@@ -371,16 +401,21 @@ class Game {
     this.mode = 'hub'; this.chapter = null;
     this.online?.sceneChanged();
     this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? 'Iris message: online play' : 'Iris message: play online', action: () => openOnline(this) });
+    // where to go next, and monsters in the woods and along the Road West (not while a cutscene is building camp as its set)
+    if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
   }
   // Play a chapter of a book: story cards, then its level.
-  startChapter(id, difficulty = 1) {
+  // { opening: true }: chapter 1 or 2 played as part of the opening (the story carries on after it)
+  startChapter(id, difficulty = 1, { opening = false } = {}) {
     if (this.online.isGuest) { toast('The host chooses the chapter'); return; }
     const ch = chapterDef(id);
     if (!ch || !Mission.playable(ch)) { toast('That chapter is still being written'); return; }
     this.ui.closeAll();
-    const go = () => { this.online.story?.(null); this.startMission(Mission.defForChapter(ch, difficulty)); };
+    const go = () => { this.online.story?.(null); const def = Mission.defForChapter(ch, difficulty); if (opening) def.opening = id; this.startMission(def); };
     this.online.story?.(ch);   // net: guests see the story cards too
-    if (Screens.openStoryCards && ch.intro?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, go);
+    // (in the opening the cutscene before chapter 2 already told its first line)
+    const lines = opening && id === 'lt2' ? ch.intro.slice(1) : ch.intro;
+    if (Screens.openStoryCards && lines?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines }, go);
     else go();
   }
   // Compile every monster's (and this chapter's boss's) materials while the
@@ -396,6 +431,8 @@ class Game {
   startMission(def) {
     this.online.loading?.();   // net: guests wait while the host builds the level
     Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
+    this.endCutscene();
+    this.openingChapter = def.opening && !def.remote && !this.opening.done ? def.opening : null;   // chapter 1 or 2 of the opening
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
     this.chapter = def.chapter ? chapterDef(def.chapter) : null;
@@ -436,6 +473,8 @@ class Game {
       if (sv.addXp(80 * m.def.difficulty)) levelled.push(sv);
       sv.write();
     }
+    // the opening: the story goes on after the results (to the next cutscene)
+    this.openingNext = this.openingChapter === cid ? this.opening.chapterDone(cid) : null;
     this.online.completed();
     this.resume.clear();   // net: nothing left to continue in this chapter
     this.audio.levelUp();
@@ -458,7 +497,7 @@ class Game {
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, 'Retry') : null,
-          h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, 'Return to Camp Half-Blood'))));
+          victory && this.openingNext ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { this.ui.close('results'); this.paused = false; const n = this.openingNext; this.openingNext = null; this.opening.run(n); } }, 'Continue the story ▶') : h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, 'Return to Camp Half-Blood'))));
       const lootEl = el.querySelector('#results-loot');
       for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
       if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));
@@ -608,7 +647,8 @@ class Game {
     this.paused = true;
     Screens.openPauseMenu(this, player);
   }
-  resume() { this.ui.close('pause'); this.paused = false; this.last = performance.now(); }
+  // (named unpause: `this.resume` is the resume point for Continue)
+  unpause() { this.ui.close('pause'); this.paused = false; this.last = performance.now(); }
 
   // Drop-in co-op: an unassigned controller pressing Start/A joins.
   checkJoin() {
@@ -672,14 +712,15 @@ class Game {
     const gr = this.gr;
     gr.trackFps(realDt, now / 1000);
     const playing = this.state === 'playing';
-    const pausePlayer = playing && this.players.find((p) => this.input.get(p.device).pressed.pause);
-    const invP = playing && !this.ui.stack.length && this.players.find((p) => this.input.get(p.device).pressed.inv);
+    const cs = this.cutscene;
+    const pausePlayer = playing && !cs && this.players.find((p) => this.input.get(p.device).pressed.pause);
+    const invP = playing && !cs && !this.ui.stack.length && this.players.find((p) => this.input.get(p.device).pressed.inv);
     if (invP) openInventory(this, invP);
-    const anyMap = playing && this.players.some((p) => this.input.get(p.device).pressed.map);
+    const anyMap = playing && !cs && this.players.some((p) => this.input.get(p.device).pressed.map);
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
     else if (anyMap) this.openMap();
-    if (playing && !this.ui.stack.length && !this.paused) {
+    if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {
         if (p.ai || handled.has(p.device)) continue;
@@ -700,7 +741,12 @@ class Game {
     // Battle Sense: monsters (and their attacks) run slow, heroes don't
     if (this.battleSenseT > 0 && !halt) this.battleSenseT -= realDt;
     const edt = this.battleSenseT > 0 ? dt * 0.3 : dt;
-    if (!halt) {
+    if (!halt && cs) {
+      // a cutscene: it drives its own figures and the camera; the heroes wait
+      cs.update(realDt);
+      this.updateStorm(dt);
+      this.online.update(realDt);
+    } else if (!halt) {
       if (playing) this.checkJoin();
       if (playing) this.partyMgr.update(dt);
       this.mist.update(dt);
@@ -722,6 +768,7 @@ class Game {
       this.pickups.update(dt);
       this.loot.update(dt);
       this.mission?.update(dt);
+      this.roaming.update(dt);
       this.online.update(realDt);
     }
     this.domainSys.update(dt, this.paused ? 0 : realDt);
@@ -736,10 +783,11 @@ class Game {
     const humans = this.players.filter((p) => !p.remote && !p.ai && !p.dead);
     const local = humans.length ? humans : this.players.filter((p) => !p.remote);
     this.rig.update(dt, local.length ? local : [this.idleFocus ?? (this.idleFocus = { pos: new THREE.Vector3(19, 6, 24), vel: new THREE.Vector3(), aimDir: new THREE.Vector3(), dead: false })], realDt);
+    if (this.cutscene) this.cutscene.applyCamera();
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {
       const pl = this.players[i];
-      if (pl && !pl.dead) U.players.array[i].set(pl.pos.x, pl.pos.y, pl.pos.z, 1); else U.players.array[i].set(0, -999, 0, 0);
+      if (pl && !pl.dead && !this.cutscene) U.players.array[i].set(pl.pos.x, pl.pos.y, pl.pos.z, 1); else U.players.array[i].set(0, -999, 0, 0);   // (no see-through holes in cutscenes)
     }
     this.lights.update(dt, this.rig.focus);
     this.world.updateRoofs(this.players, realDt);
@@ -749,6 +797,7 @@ class Game {
     this.fx.update(dt, realDt);
     this.particles.upload();
     this.hud.update(realDt);
+    this.tracker.update(realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
     gr.render();
     if (this.readoutOn) this.updateReadout();

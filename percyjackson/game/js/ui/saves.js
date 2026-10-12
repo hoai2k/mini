@@ -5,17 +5,20 @@
 import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
 import { chapter as chapterDef } from '../story/chapters.js';
+import { STEP_INFO, openingDone } from '../story/opening.js';
 
 const when = (t) => (t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 const hours = (s) => { const m = Math.round((s ?? 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`; };
 
 // A new game: a new slot (the others are kept), the same players with fresh progress.
-export async function newGame(game) {
+// A new game runs the opening (the Manhattan prologue first) unless skipOpening.
+export async function newGame(game, { skipOpening = false } = {}) {
   const people = game.profiles.list().map((p) => ({ id: p.id, name: p.name }));
   const main = people.find((p) => p.id === game.save.id);
   const ordered = main ? [main, ...people.filter((p) => p !== main)] : people;
   const id = game.slots.create({ people: ordered });
   await game.useSlot(id);
+  if (skipOpening) { game.save.data.opening = 'done'; game.save.writeNow?.(); }
   toast(`New game: ${game.slots.meta(id)?.name}`, 'big');
   return id;
 }
@@ -25,15 +28,19 @@ export function openStart(game, { onPlay }) {
   const ui = game.ui, r = game.resume.load();
   const meta = game.slots.meta(game.slots.active);
   const ch = r?.chapter ? chapterDef(r.chapter) : null;
+  const story = r?.kind === 'opening' ? STEP_INFO[r.step]?.title ?? 'the story' : null;
+  const finished = openingDone(game.save.data);   // this save has seen the opening: a new game may skip it
   const close = () => ui.close('start');
   ui.open('start', (el) => {
     el.appendChild(h('div', { class: 'panel menu-col', style: 'min-width:min(420px,94vw);text-align:center' },
       h('h2', {}, meta?.name ?? 'Your save'),
-      r ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { close(); onPlay({ resume: r }); } }, `Continue: ${ch?.title ?? r.title ?? 'your quest'}`) : null,
-      r ? h('div', { class: 'hint' }, `Difficulty ${r.def.difficulty ?? 1} · saved ${when(r.t)}`) : null,
-      h('button', { class: 'btn' + (r ? '' : ' primary'), 'data-autofocus': !r, onclick: () => { game.resume.clear(); close(); onPlay({}); } }, r ? 'Return to camp' : 'Play'),
-      h('button', { class: 'btn', onclick: () => confirmDialog(game, { title: 'Start a new game?', text: 'A new save is made. Your other saves stay as they are, and you can switch between them in Settings → Saves.', yes: 'New game', no: 'Back',
+      r ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { close(); onPlay({ resume: r }); } }, `Continue: ${story ?? ch?.title ?? r.title ?? 'your quest'}`) : null,
+      r ? h('div', { class: 'hint' }, story ? `The opening · saved ${when(r.t)}` : `Difficulty ${r.def.difficulty ?? 1} · saved ${when(r.t)}`) : null,
+      h('button', { class: 'btn' + (r ? '' : ' primary'), 'data-autofocus': !r, onclick: () => { game.resume.clear(); close(); onPlay({}); } }, !r ? 'Play' : finished ? 'Return to camp' : 'Choose heroes'),
+      h('button', { class: 'btn', onclick: () => confirmDialog(game, { title: 'Start a new game?', text: 'A new save is made, and the story starts from the beginning: a school morning in Manhattan. Your other saves stay as they are, and you can switch between them in Settings → Saves.', yes: 'New game', no: 'Back',
         onYes: async () => { await newGame(game); close(); onPlay({}); } }) }, 'New game'),
+      finished ? h('button', { class: 'btn', onclick: () => confirmDialog(game, { title: 'New game, skipping the opening?', text: 'A new save is made that starts in Camp Half-Blood, with chapters 1 and 2 still to play from their quest markers. Your other saves stay as they are.', yes: 'New game in camp', no: 'Back',
+        onYes: async () => { await newGame(game, { skipOpening: true }); close(); onPlay({}); } }) }, 'New game (skip the opening)') : null,
       h('button', { class: 'btn', onclick: () => openSaves(game, () => { close(); openStart(game, { onPlay }); }) }, 'Saves…')));
   }, { dim: true, onBack: () => { close(); game.toTitle?.(); } });
 }

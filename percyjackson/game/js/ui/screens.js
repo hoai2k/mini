@@ -72,8 +72,9 @@ export function openMapTable(game) { return openChapterMap(game); }
 // Opens the pause menu; the caller has already set game.paused = true.
 export function openPauseMenu(game, player = game.players?.[0]) {
   const ui = game.ui;
-  const inChapter = game.mode === 'mission' || game.mode === 'chapter' || !!game.chapter;
-  const resume = () => game.resume();
+  // (chapters 1 and 2 in the opening have no camp to go back to yet)
+  const inChapter = (game.mode === 'mission' || game.mode === 'chapter' || !!game.chapter) && !game.openingChapter;
+  const resume = () => game.unpause();
   const bookId = game.chapter?.book ?? game.mission?.chapter?.book ?? 'book1';
   ui.open('pause', (el) => {
     el.appendChild(h('div', { class: 'panel menu-col pause-menu', role: 'dialog', 'aria-label': 'Paused', style: 'min-width:min(320px,92vw);text-align:center' },

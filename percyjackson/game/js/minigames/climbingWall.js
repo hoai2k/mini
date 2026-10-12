@@ -7,7 +7,11 @@
 import { HEROES } from '../heroes/index.js';
 
 const HEIGHT = 60;           // metres to the top
-const TIME = 50;
+// Tuned with a replica simulation (comfort audit): a first-timer reacting in
+// about half a second reaches the top two times in three, a practised
+// climber nine in ten. It was about one in four before: near the top the
+// lava came every 0.55 s and nearly every lane was pouring.
+const TIME = 55;
 const LANES = 5;
 
 export class ClimbingWall {
@@ -67,13 +71,13 @@ export class ClimbingWall {
     // lava: warn, then pour down a column for a while
     this.lavaT -= dt;
     if (this.lavaT <= 0) {
-      const lane = Math.random() < 0.45 ? this.lane : Math.floor(Math.random() * LANES);
-      this.lava.push({ lane, warn: 0.9, pour: 1.4 + Math.random() });
-      this.lavaT = Math.max(0.55, 1.6 - this.y / HEIGHT);
+      const lane = Math.random() < 0.42 ? this.lane : Math.floor(Math.random() * LANES);
+      this.lava.push({ lane, warn: 0.9, pour: 1.3 + Math.random() * 0.9 });
+      this.lavaT = Math.max(0.7, 1.6 - this.y / HEIGHT);
     }
     for (const l of this.lava) {
       if (l.warn > 0) l.warn -= dt; else l.pour -= dt;
-      if (l.warn <= 0 && l.pour > 0 && l.lane === this.lane && this.stun <= 0) this.fall(5, 'Lava! Move to another handhold.');
+      if (l.warn <= 0 && l.pour > 0 && l.lane === this.lane && this.stun <= 0) this.fall(4, 'Lava! Move to another handhold.');
     }
     this.lava = this.lava.filter((l) => l.pour > 0);
     this.draw();

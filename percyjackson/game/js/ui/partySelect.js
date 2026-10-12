@@ -75,7 +75,8 @@ export function openSelect(game, { skipStart = false } = {}) {
     game.save.data.lastHero = heroOf(slots[0]); game.save.write();
     game.exitSelectView?.();
     const companions = comps.slice(0, compRows()).filter(Boolean);
-    game.beginSession(slots.map((s) => ({ device: s.device, hero: heroOf(s), profile: s.prof === 'new' ? P.create().id : s.prof })), { companions });
+    // a save that hasn't finished the opening starts it (or carries on with it); online starts in camp
+    game.beginSession(slots.map((s) => ({ device: s.device, hero: heroOf(s), profile: s.prof === 'new' ? P.create().id : s.prof })), { companions, start: online ? 'hub' : 'auto' });
     if (online) import('../net/lobby.js').then((m) => m.openOnline(game));
   };
   const join = (device) => {

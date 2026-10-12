@@ -8,6 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { CHAPTERS, chapter as chapterDef, chapterPlayable } from './chapters.js';
 import { h } from '../ui/ui.js';
+import { openingDone } from './opening.js';
 
 const DIFFS = [[1, 'Mortal'], [2, 'Demigod'], [3, 'Hero'], [4, 'Olympian']];
 const texLoader = new THREE.TextureLoader();
@@ -57,6 +58,8 @@ export function placeQuestMarkers(game, L) {
   const out = [];
   for (const ch of CHAPTERS) {
     if (!chapterPlayable(ch) || !ch.start) continue;
+    // chapters 1 and 2 are played in the opening (story/opening.js): their markers are for replays
+    if ((ch.id === 'lt1' || ch.id === 'lt2') && !game.save.data.completed[ch.id] && !openingDone(game.save.data)) continue;
     // camp anchors (woodsEdge, road1..road9 along the Road West): a chapter
     // whose anchor isn't in camp yet gets no marker (the Big House map still
     // starts it)
