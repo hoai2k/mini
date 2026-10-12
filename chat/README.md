@@ -202,7 +202,12 @@ Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
 hold; if they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher). Starting
+deals; alone you play Robo-Fisher) and Baseball (a home run derby seen from
+behind the plate, with your face on the slugger: tap the ball as it reaches
+the plate; when you swing sets the direction, early pulls and late is foul,
+and where you tap on the ball sets the launch, on top a grounder and under it
+a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
+ghost balls and everyone's home runs are on the scoreboard). Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -228,7 +233,7 @@ itself to HTTPS.
 
 ## Checks
 
-- `node --test chat/test/*.test.mjs`: face geometry, Hoops physics, and the
+- `node --test chat/test/*.test.mjs`: face geometry, Hoops and Baseball physics, and the
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
@@ -260,6 +265,12 @@ itself to HTTPS.
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
+- `node chat/test/baseball-play.mjs`: on two phone-sized seats, taps timed
+  to the pitch: right on the ball as it reaches the plate is a home run, far
+  too early misses, late is foul, above the ball is a grounder, no swing is a
+  take; the round ends after ten pitches with the card, the home runs reach
+  the friend's scoreboard and Bat again starts the next; a rookie bot in the
+  other seat swings and sees the hits as ghosts
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
