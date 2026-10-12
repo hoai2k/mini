@@ -150,4 +150,3 @@ second phrase stopped the playback and started a new take.
 - If the browser stops remembering microphone permission, reopening the mic
   after each playback could ask again; turn on Record during playback to
   keep it open.
-
