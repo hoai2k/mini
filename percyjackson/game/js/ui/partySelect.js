@@ -144,7 +144,7 @@ export function openSelect(game, { skipStart = false } = {}) {
     const soon = ALL.filter((x) => ids.indexOf(x) < 0);
     const n = compRows();
     const party = n ? h('div', { class: 'party' }, h('h3', {}, n === 2 ? 'Your party' : 'The third hero'),
-      h('div', { class: 'hint', style: 'margin:0 0 6px' }, n === 2 ? 'Companions follow you as allies. Switch to one in play with D-pad ↓ or Tab.' : 'An AI companion fights alongside you both. Either of you can swap into it with D-pad ↓ or Tab.'),
+      h('div', { class: 'hint', style: 'margin:0 0 6px' }, n === 2 ? 'Companions follow you as allies. Switch to one in play with D-pad ↓ or F.' : 'An AI companion fights alongside you both. Either of you can swap into it with D-pad ↓ or F.'),
       h('div', { class: 'comps' }, ...[0, 1].slice(0, n).map((j) => compRow(j, slots[0])))) : null;
     el.appendChild(h('div', { class: 'select-wrap' },
       h('div', { class: 'select-top' }, h('span', {}, 'Choose Your Hero')),

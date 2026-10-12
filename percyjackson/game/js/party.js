@@ -10,7 +10,7 @@
 // The same rule counts every human in an online room (the host runs the
 // companions). Companions drive their hero through a virtual input device, so
 // they use exactly the same kits, combos, jumps and dodges as a player.
-// Switching (D-pad ↓ / Tab) hands the human's device to the next companion and
+// Switching (D-pad ↓ / F) hands the human's device to the next companion and
 // the AI takes over the old hero. Swaps are one at a time: after a swap nobody
 // can swap for SWAP_LOCK seconds, so two humans pressing together never fight
 // over one hero (the first press wins, the second is refused).

@@ -68,7 +68,7 @@ Demigods' reflexes are wired for battle. A meter stops it from being spammed,
 and it can be turned off in settings.
 
 **Switching.** Playing alone, you lead a party of up to three. **D-pad ↓** (or
-**Tab**) cycles heroes, and holding it opens a radial to choose. The others
+**F**) cycles heroes, and holding it opens a radial to choose. The others
 follow as AI companions using simple versions of their kits. With friends, each
 player controls one hero and there are no AI companions.
 
@@ -333,23 +333,25 @@ follows Minecraft Dungeons II's defaults.
 
 | Action | Controller | Keyboard and mouse |
 | --- | --- | --- |
-| Move | Left stick | WASD |
-| Show the way to the goal | Click the left stick | — |
+| Move | Left stick | WASD (or the arrow keys) |
+| Show the way to the goal | Click the left stick | Middle click |
 | Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
-| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | Shift |
+| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
-| Jump slam | X in the air after a jump | Left click in the air |
+| Attack in place (stand still, face the cursor) | — | Hold Shift |
+| Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
-| Interact | A (when a prompt shows) | E |
+| Interact | A (when a prompt shows) | Left click (when a prompt shows) |
 | Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
-| Godly power | Y + B together | F |
-| Ambrosia (heal) | LT | Q |
+| Godly power | Y + B together | 4, or 1 + 2 together |
+| Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
-| Inventory | D-pad ↑ | I |
-| Switch hero | D-pad ↓ | Tab |
-| Magic items | D-pad ← · → | R · T |
-| Map (in camp: the chapter map) | View | M |
+| Inventory | D-pad ↑ | I or Tab |
+| Switch hero | D-pad ↓ | F |
+| Magic items | D-pad ← · → | Z · X |
+| Map (in camp: the chapter map) | View | M (chapter map: J) |
 | Pause | Menu | Esc |
+| Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
 The title screen, instructions (with an Xbox controller diagram), settings and

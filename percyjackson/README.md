@@ -84,7 +84,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   and Nico are shown as coming later.
   - The party is always three heroes (four with four players), and the AI
     plays whoever is missing. Alone, you lead two AI companions; two players
-    share one, the third hero, and either can swap into it. D-pad ↓ or Tab
+    share one, the third hero, and either can swap into it. D-pad ↓ or F
     switches (one swap at a time, so two players pressing together never
     fight over a hero). With three or four players there are no companions
     and switching is off. Online, the same rule counts everyone in the room.
@@ -97,7 +97,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     only where there's floor to land on).
   - A boss's health grows with the party: 60% more for each extra player,
     35% for each AI companion.
-  - Any player standing at a prompt can use it (A or E), even with another
+  - Any player standing at a prompt can use it (A or left click), even with another
     player nearer to it.
 - **Falling in a boss fight:** if the whole party is down, it comes back
   just inside the arena door after a moment, with two seconds of safety, to
@@ -119,7 +119,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes.
 - **Healing and ammo, as in Minecraft Dungeons:**
-  - Ambrosia (LT or Q) is one square on a cooldown: a bite restores 65%
+  - Ambrosia (LT or E) is one square on a cooldown: a bite restores 65%
     of your health over 1.2 s, then it refills over 22 s (shown as a radial
     fill on its icon, which glows when it is ready and you are hurt). General
     cooldown reduction counts for half, the Hebe's Cup enchantment (12% a
@@ -204,26 +204,28 @@ The full design, including the later chapters and books, is in
 
 | Action | Xbox controller | Keyboard and mouse |
 | --- | --- | --- |
-| Move | Left stick | WASD |
-| Show the way to the goal | Click the left stick | — |
+| Move | Left stick | WASD (or the arrow keys) |
+| Show the way to the goal | Click the left stick | Middle click |
 | Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
-| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | Shift |
+| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
-| Jump slam | X in the air after a jump | Left click in the air |
+| Attack in place (stand still, face the cursor) | — | Hold Shift |
+| Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
-| Interact | A (when a prompt shows) | E |
+| Interact | A (when a prompt shows) | Left click (when a prompt shows) |
 | Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
-| Godly power | Y + B together | F |
-| Ambrosia (heal) | LT | Q |
+| Godly power | Y + B together | 4, or 1 + 2 together |
+| Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
-| Inventory | D-pad ↑ | I |
-| Switch hero | D-pad ↓ | Tab |
-| Magic items | D-pad ← · → | R · T |
-| Map (in camp: the chapter map) | View | M |
+| Inventory | D-pad ↑ | I or Tab |
+| Switch hero | D-pad ↓ | F |
+| Magic items | D-pad ← · → | Z · X |
+| Map (in camp: the chapter map) | View | M (chapter map: J) |
 | Pause | Menu | Esc |
+| Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
-The controller layout follows Minecraft Dungeons II's defaults (`game/js/padmap.js`);
+The controller and keyboard layouts follow Minecraft Dungeons II's defaults (`game/js/padmap.js`; WASD still moves);
 the in-game Instructions screen has the controller diagram.
 
 ## Online

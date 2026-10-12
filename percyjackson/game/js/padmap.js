@@ -6,6 +6,8 @@
 //   LB dodge forward · LT Ambrosia · RT ranged
 //   D-pad ↑ inventory · ↓ switch hero · ← → magic items 1 · 2
 //   View map (in camp: the chapter map) · Menu pause
+// The keyboard and mouse layout (keyFrame below) follows Minecraft Dungeons
+// II's keyboard defaults too, keeping WASD to move.
 // Pure (no browser APIs), so the checks in test/ can drive it with a fake pad.
 
 // Standard Gamepad API button indices
@@ -66,5 +68,47 @@ export function chord(st, held, y, b, now) {
 // What each action is on the controller (HUD glyphs, hints, prompts).
 export const PAD_LABEL = {
   attack: 'X', jump: 'A', interact: 'A', ranged: 'RT', dodge: 'LB', t1: 'Y', t2: 'B', t3: 'RB', domain: 'Y+B', heal: 'LT',
-  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: 'View', pause: 'Menu',
+  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: 'View', pause: 'Menu', slam: 'X (air)', root: '—', quest: 'View',
+};
+
+// ---------------------------------------------------------------- keyboard and mouse
+// After Minecraft Dungeons II's keyboard defaults (WASD still moves):
+//   left click melee (interact while a prompt shows) · right click ranged ·
+//   middle click show the way · Mouse 4 / R dodge toward the cursor · Mouse 5
+//   dodge forward · Space jump · Q jump slam · hold Shift: stand still and
+//   attack in place · 1 2 3 abilities · 4 (or 1 + 2 together) godly power ·
+//   E Ambrosia · I / Tab inventory · M map · J chapter map (quest log) ·
+//   F switch hero · V True Sight · Z X magic items · Esc / P pause ·
+//   [ ] turn the camera (when camera rotation is on).
+export const KEYMAP = {
+  Space: 'jump', KeyQ: 'slam', KeyR: 'dodge', Digit1: 't1', Digit2: 't2', Digit3: 't3', Digit4: 'domain', KeyE: 'heal',
+  KeyI: 'inv', Tab: 'inv', KeyM: 'map', KeyJ: 'quest', KeyF: 'swap', KeyV: 'sight', KeyZ: 'art1', KeyX: 'art2',
+  ShiftLeft: 'root', ShiftRight: 'root', Escape: 'pause', KeyP: 'pause', BracketLeft: 'rotL', BracketRight: 'rotR',
+};
+// mouse buttons (MouseEvent.button): 0 left, 1 middle, 2 right, 3 back (Mouse 4), 4 forward (Mouse 5)
+export const MOUSEMAP = { 0: 'attack', 1: 'trail', 2: 'ranged', 3: 'dodge', 4: 'dodge' };
+
+// One keyboard-and-mouse frame. keys: a Set of KeyboardEvent.code; mouse: the
+// set of mouse buttons down; st: memory between frames. o.interact: a prompt
+// is up (left click interacts). Returns { held, move, dodgeToAim }:
+// dodgeToAim is true when the dodge held is the one toward the cursor (R or
+// Mouse 4; Mouse 5 rolls the way you move or face).
+export function keyFrame(keys, mouse, st, now, o = {}) {
+  const held = {};
+  for (const code of keys) { const a = KEYMAP[code]; if (a && a !== 't1' && a !== 't2') held[a] = true; }
+  for (const b of mouse) { const a = MOUSEMAP[b]; if (a) held[a] = true; }
+  chord(st, held, keys.has('Digit1'), keys.has('Digit2'), now);   // 1 + 2 together: the godly power, like Y + B
+  if (o.interact && held.attack) { held.interact = true; held.attack = false; }
+  let mx = 0, my = 0;
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1; if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) my += 1; if (keys.has('KeyS') || keys.has('ArrowDown')) my -= 1;
+  const ml = Math.hypot(mx, my) || 1;
+  const dodgeToAim = keys.has('KeyR') || mouse.has(3);
+  return { held, move: { x: mx / ml, y: my / ml }, dodgeToAim };
+}
+
+// What each action is on the keyboard and mouse (HUD, hints, prompts).
+export const KEY_LABEL = {
+  attack: 'LMB', interact: 'Click', ranged: 'RMB', trail: 'MMB', jump: 'Space', slam: 'Q', dodge: 'R', root: 'Shift',
+  t1: '1', t2: '2', t3: '3', domain: '4', heal: 'E', inv: 'I', map: 'M', quest: 'J', swap: 'F', sight: 'V', art1: 'Z', art2: 'X', pause: 'Esc',
 };

@@ -46,7 +46,7 @@ export function openOnline(game) {
       list.appendChild(h('li', { style: 'padding:3px 0' }, (m.host ? '★ ' : '• ') + names + (m.me ? ' · this screen' : '') + (m.missing ? ' · reconnecting…' : '')));
     }
     const ai = game.players.filter((p) => p.ai);
-    if (ai.length) list.appendChild(h('li', { class: 'hint', style: 'padding:3px 0' }, 'Companions: ' + ai.map((p) => HEROES[p.hero]?.name ?? p.hero).join(', ') + (game.partyMgr.takeable().length ? ' (D-pad ↓ / Tab to swap in)' : '')));
+    if (ai.length) list.appendChild(h('li', { class: 'hint', style: 'padding:3px 0' }, 'Companions: ' + ai.map((p) => HEROES[p.hero]?.name ?? p.hero).join(', ') + (game.partyMgr.takeable().length ? ' (D-pad ↓ / F to swap in)' : '')));
     panel.appendChild(list);
     panel.appendChild(h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:12px;gap:8px' },
       h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Back'),

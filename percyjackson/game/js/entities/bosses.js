@@ -100,7 +100,7 @@ const BOSSES = {
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
   },
   ares: {
-    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 24, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
+    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 21, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
     build: BOSS_MODELS.ares,
     phases: [['sword_combo', 'spear_thrust', 'bike_charge', 'sword_combo'], ['sword_combo', 'bike_charge', 'spear_thrust', 'war_cry'], ['bike_charge', 'sword_combo', 'spear_thrust', 'war_cry', 'bike_charge']],
     tick: (b, dt) => H.aresTick(b, dt), damageMul: (b, src, o) => H.aresHit(b, src, o), onDie: (b) => H.aresDie(b),

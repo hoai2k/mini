@@ -45,7 +45,7 @@ export function openSettings(game, onClose) {
         row('Reduce motion', check('reduceMotion')),
         row('Damage numbers', check('damageNumbers')),
         row('Controller right stick', select('rightStick', [['dodge', 'Dodge (flick to roll)'], ['aim', 'Aim']])),
-        row('Camera rotation (Z / C)', check('cameraRotate')),
+        row('Camera rotation ([ / ])', check('cameraRotate')),
         rrow('Default zoom', 'cameraZoom', 12, 42, 1, (v) => { game.rig.zoomTarget = v; }, (v) => String(Math.round(v))),
       );
     } else if (tab === 'graphics') {

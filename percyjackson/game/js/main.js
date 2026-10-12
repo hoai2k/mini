@@ -726,7 +726,7 @@ class Game {
       const nearest = inRange.reduce((a, b) => (b.pos.distanceTo(it.pos) < a.pos.distanceTo(it.pos) ? b : a));
       const using = it.hold ? inRange.find((p) => this.input.get(p.device).held.interact) : inRange.find((p) => this.input.get(p.device).pressed.interact);
       const near = using ?? nearest;
-      const key = near.device === 'kbm' ? 'E' : near.device === 'touch' ? '👆' : 'A';
+      const key = near.device === 'kbm' ? 'Click' : near.device === 'touch' ? '👆' : 'A';
       if (it.hold) {
         const holding = !!using || it.touchHold;
         if (holding && !it.progress) it.onHoldStart?.();
@@ -758,9 +758,10 @@ class Game {
     const invP = playing && !cs && !this.ui.stack.length && this.players.find((p) => this.input.get(p.device).pressed.inv);
     if (invP) { openInventory(this, invP); this.input.menu(); }   // (swallow the D-pad ↑ that opened it, so the menu doesn't move)
     const anyMap = playing && !cs && this.players.some((p) => this.input.get(p.device).pressed.map);
+    const anyQuest = playing && !cs && !this.ui.stack.length && this.players.some((p) => this.input.get(p.device).pressed.quest);   // J: the quest log (the chapter map)
     if (this.ui.stack.length) { this.ui.update(); if (anyMap && this.ui.isOpen('map')) { this.ui.close('map'); this.paused = false; } }
     else if (pausePlayer && !this.minigame?.el) this.pause(pausePlayer);
-    else if (anyMap) { if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // View / M: the level map; in camp the chapter map (the quest log)
+    else if (anyMap || anyQuest) { if (this.mode === 'hub' && !this.online?.isGuest) openMapTable(this); else this.openMap(); }   // View / M: the level map; in camp the chapter map (the quest log)
     if (playing && !cs && !this.ui.stack.length && !this.paused) {
       const handled = new Set();     // a switch hands the device to another hero: act once per device
       for (const p of [...this.players]) {

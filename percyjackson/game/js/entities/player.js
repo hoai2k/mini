@@ -146,7 +146,8 @@ export class Player {
     this.comboT -= dt; tickFlask(this.flask, dt); tickQuiver(this.quiver, dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
     // X in the air after a jump: a jump slam (Minecraft Dungeons II's heavy jump attack)
-    if (inp.pressed.attack && this.canSlam()) this.startSlam();
+    if ((inp.pressed.attack || (inp.pressed.slam && !this.slamQueued)) && this.canSlam()) this.startSlam();
+    if (this.slamQueued && (this.grounded && this.jumpedT === 0 || this.jumpedT > 0.24)) { this.slamQueued = false; if (this.canSlam()) this.startSlam(); }
     if (this.slam) { this.attackBuffer = 0; if (this.grounded || this.inLiquid || (this.slam.t += dt) > 1.5) this.landSlam(); }
     else if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
     else this.attackBuffer -= dt;
@@ -276,13 +277,15 @@ export class Player {
       if (mvLen > 0.01) mv.normalize().multiplyScalar(mvLen);
     }
     if (mv.lengthSq() > 1) mv.normalize();
+    // hold Shift (keyboard): stand still and attack in place, facing the cursor
+    if (inp.held.root) mv.set(0, 0, 0);
     this.moveIntent = mv;
     this.iframes = Math.max(0, this.iframes - dt);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll: on the ground (or just off a ledge); a press in the air or
     // a moment early is remembered briefly, so the roll always comes out
     // (a right-stick flick rolls the way it was flicked, a screen direction; LB and Shift roll the way you move or face)
-    if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : null; }
+    if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : inp.dodgeToAim ? this.aimDir.clone().setY(0) : null; }
     else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
     if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(this.dodgeAim?.lengthSq() > 0.01 ? this.dodgeAim : mv); this.dodgeAim = null; }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
@@ -292,8 +295,10 @@ export class Player {
     // so nobody (player or companion) is ever trapped in the water.
     const wading = this.inLiquid && this.grounded && this.hitWall && mv.lengthSq() > 0.25 && !this.downed && this.dodgeT <= 0;
     this.wadeT = wading ? (this.wadeT ?? 0) + dt : 0;
-    if ((inp.pressed.jump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
-      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0; this.jumpedT = 0.001;
+    // Q (keyboard): a jump slam from the ground jumps first and slams near the top
+    const slamJump = inp.pressed.slam && !this.slam && this.dodgeT <= 0;
+    if ((inp.pressed.jump || slamJump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
+      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0; this.jumpedT = 0.001; if (slamJump) this.slamQueued = true;
       this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
     }
     if (this.jumpedT > 0) this.jumpedT = this.grounded && this.jumpedT > 0.1 ? 0 : this.jumpedT + dt;   // time since a jump, while airborne
@@ -344,7 +349,7 @@ export class Player {
     let targetFacing = this.facing;
     if (this.dodgeT > 0) targetFacing = Math.atan2(this.dodgeDir.x, this.dodgeDir.z);
     else if (this.action && this.action.faceAim !== false) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
-    else if ((inp.mouse && this.aiming && (inp.held.attack || inp.held.ranged)) || inp.aimStick) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
+    else if ((inp.mouse && this.aiming && (inp.held.attack || inp.held.ranged || inp.held.root)) || inp.aimStick) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
     else if (moving) targetFacing = Math.atan2(this.vel.x, this.vel.z);
     this.facing = dampAngle(this.facing, targetFacing, this.action ? 30 : 14, dt);
     // footsteps

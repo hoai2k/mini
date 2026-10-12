@@ -1,4 +1,4 @@
-// Magic items: the two active slots (R / T, D-pad ← / →). Each `act` is one
+// Magic items: the two active slots (Z / X, D-pad ← / →). Each `act` is one
 // effect; items in loot.js choose one. Power scales effects with item power.
 import * as THREE from 'three/webgpu';
 import { Ally } from './entities/ally.js';

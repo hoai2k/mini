@@ -9,7 +9,7 @@ const WORDS = {
   move: { pad: 'Move: left stick', kbm: 'Move: WASD', touch: 'Move: drag on the left of the screen' },
   jump: { pad: 'Jump: A — hop over the dug-up sidewalk', kbm: 'Jump: Space — hop over the dug-up sidewalk', touch: 'Jump: ⤒ — hop over the dug-up sidewalk' },
   melee: { pad: 'Rats! Melee: X', kbm: 'Rats! Melee: left click', touch: 'Rats! Melee: ⚔' },
-  dodge: { pad: 'Dodge: LB, or flick the right stick — roll out of the way', kbm: 'Dodge: Shift — roll out of the way', touch: 'Dodge: ⤳ — roll out of the way' },
+  dodge: { pad: 'Dodge: LB, or flick the right stick — roll out of the way', kbm: 'Dodge: R — roll toward the mouse, out of the way', touch: 'Dodge: ⤳ — roll out of the way' },
   ranged: { pad: 'Ranged: RT — shoot them before they reach you', kbm: 'Ranged: right click — shoot them before they reach you', touch: 'Ranged: ✦ — shoot them before they reach you' },
 };
 
