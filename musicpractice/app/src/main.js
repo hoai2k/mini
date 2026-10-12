@@ -13,21 +13,26 @@ const persist = () => save(settings);
 
 // ---------------------------------------------------------------- art
 
-import { alignPendulum } from './assets.js';
+import { alignPendulum, selectArt } from './assets.js';
+let artSwing = 24;
 
 /** Swap a stand-in for its delivered image (see design/image-requests.md). */
 async function loadArt() {
   let list = [];
   try { list = await (await fetch('data/asset-list.json')).json(); } catch { return; }
-  for (const a of list) {
-    if (a.status === 'requested') continue;
+  const selected = selectArt(list, settings.theme || 'deco');
+  const bodyArt = selected.find((a) => a.id === 'metronome-body');
+  for (const a of selected) {
     for (const el of document.querySelectorAll(`[data-asset="${a.id}"]`)) {
       const img = new Image();
       img.alt = '';
       img.decoding = 'async';
       img.onload = () => {
         el.replaceChildren(img);
-        if (a.id === 'metronome-pendulum') alignPendulum(el);
+        if (a.id === 'metronome-pendulum') {
+          alignPendulum(el, bodyArt, a);
+          artSwing = a.swing || 24;
+        }
       };
       img.src = a.file;
     }
@@ -237,7 +242,7 @@ function animateMetronome() {
   if (!metronome?.running) return;
   const now = heardNow();
   const beat = metronome.beatAt(now);
-  pendulum.style.transform = `rotate(${pendulumAngle(beat, now, metronome.period, 24).toFixed(2)}deg)`;
+  pendulum.style.transform = `rotate(${pendulumAngle(beat, now, metronome.period, artSwing).toFixed(2)}deg)`;
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
 }

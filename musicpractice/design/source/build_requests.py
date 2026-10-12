@@ -141,7 +141,7 @@ ASSETS = [
 
     # Round 2: the Art Deco theme (the default theme)
     dict(id="home-metronome", theme="deco", round=2, file="assets/ui/deco/home-metronome.webp",
-         size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested", group="Art Deco · Home screen buttons",
+         size="768×768, transparent PNG (shipped as 384×384 WebP)", status="delivered", group="Art Deco · Home screen buttons",
          prompt="An Art Deco metronome as a stepped ziggurat tower in black lacquer edged in gold, "
                 "its face an ivory panel with a gold sunburst rising from the bottom, the gold "
                 "pendulum tilted a little to the right mid-swing, with two thin gold arcs beside the "
@@ -150,7 +150,7 @@ ASSETS = [
          note="The big Metronome button on the home screen in the Art Deco theme; the label is written "
               "by the app. Tick marks only, no numbers."),
     dict(id="home-record", theme="deco", round=2, file="assets/ui/deco/home-record.webp",
-         size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested", group="Art Deco · Home screen buttons",
+         size="768×768, transparent PNG (shipped as 384×384 WebP)", status="delivered", group="Art Deco · Home screen buttons",
          prompt="A 1930s Art Deco radio-studio microphone: a gold rounded-rectangle ribbon "
                 "microphone with fine horizontal grille bars, held in a gold ring on a short stepped "
                 "black-and-gold stand, a small glowing ruby-red record jewel set in a gold fan beside "
@@ -158,7 +158,7 @@ ASSETS = [
                 "symmetrical. " + DECO_ICON_STYLE,
          note="The big Record/Playback button on the home screen in the Art Deco theme."),
     dict(id="metronome-body", theme="deco", round=2, file="assets/ui/deco/metronome-body.webp",
-         size="800×1200, transparent PNG (shipped as WebP)", status="requested", group="Art Deco · Metronome animation",
+         size="800×1200, transparent PNG (shipped as WebP)", status="delivered", group="Art Deco · Metronome animation",
          prompt="An Art Deco mechanical metronome seen exactly straight on from the front, perfectly "
                 "symmetrical, standing upright and filling the canvas top to bottom with a small "
                 "margin: a tall stepped pyramid like a skyscraper crown, in black lacquer with gold "
@@ -172,9 +172,9 @@ ASSETS = [
          note="The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for "
               "(400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered "
               "file and record it as this image's pivot anchor; it need not match the Straight art.",
-         canvas=[800, 1200], anchors={"pivot": [400, 1000]}),
+         canvas=[800, 1200], anchors={"pivot": [400, 908]}),
     dict(id="metronome-pendulum", theme="deco", round=2, file="assets/ui/deco/metronome-pendulum.webp",
-         size="200×1000, transparent PNG (shipped as WebP)", status="requested", group="Art Deco · Metronome animation",
+         size="200×1000, transparent PNG (shipped as WebP)", status="delivered", group="Art Deco · Metronome animation",
          prompt="Just the pendulum of an Art Deco metronome, isolated: a single thin, perfectly "
                 "straight, perfectly vertical polished gold rod running down the exact centre of a "
                 "tall narrow canvas, from about 3% from the top to a round gold hub ringed in black "
@@ -184,7 +184,7 @@ ASSETS = [
                 "else in the picture. " + DECO_STYLE + " Fully transparent background.",
          note="The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then "
               "record the measured hub as this image's anchor. The rod must be exactly vertical.",
-         canvas=[200, 1000], anchors={"hub": [100, 960]}, swing=26),
+         canvas=[200, 1000], anchors={"hub": [99.5, 917]}, swing=26),
 ]
 
 

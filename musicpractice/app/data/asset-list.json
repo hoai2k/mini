@@ -58,19 +58,19 @@
     "id": "home-metronome",
     "theme": "deco",
     "file": "assets/ui/deco/home-metronome.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-record",
     "theme": "deco",
     "file": "assets/ui/deco/home-record.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "metronome-body",
     "theme": "deco",
     "file": "assets/ui/deco/metronome-body.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       800,
       1200
@@ -78,7 +78,7 @@
     "anchors": {
       "pivot": [
         400,
-        1000
+        908
       ]
     }
   },
@@ -86,15 +86,15 @@
     "id": "metronome-pendulum",
     "theme": "deco",
     "file": "assets/ui/deco/metronome-pendulum.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       200,
       1000
     ],
     "anchors": {
       "hub": [
-        100,
-        960
+        99.5,
+        917
       ]
     },
     "swing": 26

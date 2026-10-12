@@ -8,7 +8,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 1 (Straight theme, app icon and library card):** delivered and in use.
 
-**Round 2 (Art Deco theme):** 4 images wanted: `assets/ui/deco/home-metronome.webp`, `assets/ui/deco/home-record.webp`, `assets/ui/deco/metronome-body.webp`, `assets/ui/deco/metronome-pendulum.webp`.
+**Round 2 (Art Deco theme):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -28,10 +28,10 @@ the measured ones for the delivered file in `build_requests.py`.
 | 1 | Straight | delivered | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 | 1 | all | delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
 | 1 | all | delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
-| 2 | Art Deco | requested | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 2 | Art Deco | requested | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 2 | Art Deco | requested | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 2 | Art Deco | requested | `metronome-pendulum` | `app/assets/ui/deco/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 2 | Art Deco | delivered | `home-metronome` | `app/assets/ui/deco/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 2 | Art Deco | delivered | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 2 | Art Deco | delivered | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 2 | Art Deco | delivered | `metronome-pendulum` | `app/assets/ui/deco/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 
 ## Home screen buttons
 
@@ -105,7 +105,7 @@ A cosy music practice corner: a walnut metronome mid-swing on the left and a bra
 
 ## Art Deco · Home screen buttons
 
-### `home-metronome` · Art Deco · requested
+### `home-metronome` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -115,7 +115,7 @@ A cosy music practice corner: a walnut metronome mid-swing on the left and a bra
 An Art Deco metronome as a stepped ziggurat tower in black lacquer edged in gold, its face an ivory panel with a gold sunburst rising from the bottom, the gold pendulum tilted a little to the right mid-swing, with two thin gold arcs beside the tip of the pendulum like a fan. Seen straight from the front, perfectly symmetrical apart from the pendulum. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Art Deco · requested
+### `home-record` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -127,22 +127,22 @@ A 1930s Art Deco radio-studio microphone: a gold rounded-rectangle ribbon microp
 
 ## Art Deco · Metronome animation
 
-### `metronome-body` · Art Deco · requested
+### `metronome-body` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 908) in a 800×1200 canvas
 - Note: The app rotates the Art Deco pendulum over this one about the pivot boss. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor; it need not match the Straight art.
 
 ```text
 An Art Deco mechanical metronome seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin: a tall stepped pyramid like a skyscraper crown, in black lacquer with gold edging and fine gold pinstripes following each step. The front face is a tall narrow ivory panel with evenly spaced fine gold tick marks up the centre (no numbers) and a gold sunburst fanning up from the bottom of the panel. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gold pivot boss sits exactly at 50% of the width and 83% of the height. A wider stepped black-and-gold plinth at the bottom with a small chevron band. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Art Deco · requested
+### `metronome-pendulum` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±26°
+- Anchors (measured): hub (99.5, 917) in a 200×1000 canvas; swings ±26°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
