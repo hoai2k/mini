@@ -28,6 +28,7 @@ export const GAME_IDS = [
   'baseball',
   'kart',
   'blocks',
+  'temple',
 ];
 
 export async function loadGames() {
