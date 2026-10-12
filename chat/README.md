@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 24
+A video chat in the browser with 75 face effects and backgrounds and 25
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -240,7 +240,22 @@ follows past full lock so turning back is instant); drag that finger well down
 let go; touch with a second finger while steering to hop into a drift, and let
 go of it for the mini or super boost. Keys: arrows or A/D steer, Shift (or
 X/C/Z) drifts, Down or S brakes, Space, Enter or E uses an item; a controller's
-stick steers, RT, RB or X drifts, LT, LB or down brakes and A uses an item. Starting
+stick steers, RT, RB or X drifts, LT, LB or down brakes and A uses an item. Temple
+Dash is an endless run down a raised temple walkway over the jungle, seen from
+behind the runner (WebGL walkway, walls, jungle and a sunset sky that swings
+round at the corners), with your live face on the runner and the shirt in your
+colour. It speeds up as you go. Swipe left or right to change lanes, up to jump
+roots, fire vents and gaps, down to slide under low arches; at a corner (an
+arrow lights up, and a swipe up to about a second early or a stride late
+counts) swipe the way it turns or run off the edge. Tripping on a root or fire
+brings the monkeys up behind you; a second trip within seven seconds, or any
+crash or fall, ends the run. Distance plus ten points a coin is the score.
+Everyone runs the same seeded temple at once and sees the others as
+see-through runners where they really are, with a puff and "Bo fell!" when
+someone goes down; a fallen runner taps to run again from the start (or
+watches the leader) while the others carry on, and the best distance this
+session is crowned in the chips at the top. Keys: arrows or WASD, Space jumps;
+a controller's stick or D-pad, A jumps and X slides. Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -266,7 +281,9 @@ itself to HTTPS.
 
 ## Checks
 
-- `node --test chat/test/*.test.mjs`: face geometry, Hoops and Baseball physics, and the
+- `node --test chat/test/*.test.mjs`: face geometry, Hoops and Baseball physics,
+  Temple Dash's seeded temples (the same for a seed, laid out fairly and run
+  for 3 km by perfect play), its collisions, turns and state checks, and the
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
@@ -285,7 +302,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 24 games with rookie controls, real turns, live Burger Stack
+  offers, all 25 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -317,6 +334,15 @@ itself to HTTPS.
   with flying parts,
   a bomb, and rookie bots racing three laps to a finishing order, with frame
   times; screenshots in `local/chat-shots/kart-*.png`
+- `node chat/test/temple-play.mjs`: two runners on phone-sized Temple Dash
+  seats: the same temple on both after one countdown, real touch swipes left
+  and right changing lanes (and the stick), up jumping a root, down sliding
+  under an arch (upright is a crash), a swipe at a corner turning, a stumble
+  bringing the monkeys and a second one getting caught, a missed corner going
+  off the edge with the other seat seeing the puff and "Ana fell!", that seat
+  drawing the other runner where they are, a tap running again from the start,
+  rookie bots running both seats for 40 seconds, and a landscape seat, with
+  frame times; screenshots in `local/chat-shots/temple-*.png`
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
