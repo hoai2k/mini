@@ -38,9 +38,12 @@ function applyTheme() {
 }
 
 // Browsers only allow sound to start from a tap or key press.
+// WebKit only counts touchend, click and keydown as gestures that may start
+// audio (not pointerdown or touchstart), so unlock and prime on those too.
 const wake = () => { unlock(); primeFromTap(); };
-document.addEventListener('pointerdown', wake, { capture: true });
-document.addEventListener('keydown', wake, { capture: true });
+for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
+  document.addEventListener(type, wake, { capture: true });
+}
 
 // ---------------------------------------------------------------- screens
 
@@ -438,6 +441,7 @@ function micError(err) {
 async function resumeListening() {
   if (!recorder || recorder.state === 'off') return;
   setSession('auto');
+  unlock(); // the audio engine may have been suspended for playback
   recError = '';
   try {
     await recorder.restore();
@@ -528,8 +532,14 @@ async function play(take, { auto = false } = {}) {
   wave?.showTake(take.samples);
   renderTakes();
   showState();
-  // With the mic freed, give the phone a moment to move sound back to its
-  // normal output (a Bluetooth speaker) before playing.
+  // With the mic freed, also suspend the audio engine: it ran the mic, and a
+  // running one can keep iOS in call mode (WebKit bugs 198545, 218012); the
+  // take plays through an audio element, not Web Audio. Then give the phone
+  // a moment to move sound back to its normal output (a Bluetooth speaker).
+  const engine = existingAudio();
+  if (freed && engine?.state === 'running') {
+    try { await engine.suspend(); } catch { /* keep going */ }
+  }
   const waitStart = performance.now();
   // iOS stays in call mode for several hundred ms after the mic closes.
   if (freed) await outputSettled(isWebKit() ? 1000 : 700);
@@ -542,6 +552,7 @@ async function play(take, { auto = false } = {}) {
     waitedMs: Math.round(performance.now() - waitStart),
     session: navigator.audioSession?.type ?? null,
     sessionState: navigator.audioSession?.state ?? null,
+    engine: existingAudio()?.state ?? 'none',
     via: 'audio element',
   };
   diag.lastPlayback = record;

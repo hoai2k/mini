@@ -286,6 +286,32 @@ type; `playback` also stops the silent switch muting Web Audio. Sources:
 [W3C WebRTC list: prompt once per document](https://lists.w3.org/Archives/Public/public-webrtc-logs/2019Oct/0176.html),
 [Huddee: the Web Audio mute-switch fix](https://huddee.com/blog/apple-quietly-fixed-web-audio-bug).
 
+**Known pitfalls checked** (October 2026) for playback reaching a Bluetooth
+speaker on iPhone with the mic allowed:
+
+- *Web Audio stuck quiet or on the earpiece after the mic was used*
+  ([WebKit 218012](https://bugs.webkit.org/show_bug.cgi?id=218012),
+  [198545](https://bugs.webkit.org/show_bug.cgi?id=198545),
+  [230902](https://bugs.webkit.org/show_bug.cgi?id=230902); still reported on
+  iOS 18.6, fixed for media elements but not Web Audio): takes play through
+  an `<audio>` element, not Web Audio. The audio engine that ran the mic is
+  suspended while a take plays (suspend/resume is the reported workaround,
+  and a running engine shouldn't hold iOS in call mode) and resumed when
+  listening starts. The metronome gets a fresh engine after the mic was used.
+- *Output staying in call mode after the mic stops*: the mic tracks are
+  stopped, Safari's session is set to `playback`, and the take waits up to
+  1 s for iOS to leave call mode.
+- *Autoplay*: WebKit only counts touchend, click and keydown as gestures
+  that may start audio, not pointerdown or touchstart, so the player is
+  primed (and the engine unlocked) on those; a take then starts on its own
+  on the primed element. If it is still refused, it falls back to Web Audio
+  (Audio check's last-take line says which was used).
+- *Changing Safari's session type*: per the Audio Session spec a new type
+  takes effect straight away; the app only switches it while no mic is
+  held, so the switch can't cut the mic off.
+- *Bluetooth mic*: recording through a Bluetooth device's mic switches it
+  to call quality; the built-in mic is preferred.
+
 **What can be detected on iPhone**: no speakers are listed at all, so a
 Bluetooth speaker without its own mic can't be seen, and the page can't
 choose the output. Bluetooth devices with a mic (AirPods, headsets) show up

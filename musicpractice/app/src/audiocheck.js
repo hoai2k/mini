@@ -150,6 +150,7 @@ function lastPlaybackText() {
     `${ago} s ago`,
     p.micFreed ? `mic freed, waited ${p.waitedMs} ms` : (p.micHeld ? 'mic held (call mode)' : 'no mic open'),
     `Safari mode ${p.session ?? 'n/a'}${p.sessionState ? ` (${p.sessionState})` : ''}`,
+    `audio engine ${p.engine ?? 'n/a'}`,
     `via ${p.via}`,
   ].join('; ');
 }
