@@ -1,16 +1,29 @@
-// Manhattan on the morning of the field trip (the prologue): a hand-shaped
-// city corner. You start on the south sidewalk of a cross street, walk west
-// to the avenue and north up it to Yancy Academy, where the yellow school bus
-// waits at the curb. Brownstones with stoops, a deli, a hot-dog cart, taxis,
-// a newsstand, a little park and a subway entrance; sewer rats come out of
-// the alleys, the subway stairs and the storm drains.
+// Manhattan on the morning of the field trip (the prologue, a training
+// board): a hand-shaped city corner. You start at the east end of a long
+// cross street, walk west along its north sidewalk to the avenue and north up
+// the avenue to Yancy Academy, where the yellow school bus waits at the curb.
+// The walk teaches the game in three beats (`beats`):
+//   walk    (x > 150) a quiet stretch to learn moving, and a dug-up sidewalk
+//           to jump over;
+//   melee   (x 84–150) sewer rats lounging round trash cans, an alley
+//           dumpster, the hot-dog cart and bin bags: they eat and sniff and
+//           notice you only up close (or when hit); now and then one dashes;
+//   ranged  (x < 84 and the avenue) rats where shooting first is the obvious
+//           move: behind the chain-link fence of a construction lot across
+//           the street, up on the sidewalk scaffolding across the avenue, on
+//           dumpster lids ahead, and single rats out of the storm drains.
+// Brownstones with stoops, a deli, hot-dog carts, taxis (two drive along the
+// cross street), a newsstand, a little park and a subway entrance.
 //
 // Axes as everywhere: +x east, +z south; the camera looks from the
 // south-east, so Yancy (north-west) is up the screen. The buildings south and
 // east of the walk are kept low so they never hide the heroes.
 // Returns the shape loadWorld() takes plus named spots:
 //   spawn, bus { pos, yaw, door }, goal (where to stand to board),
-//   rats: [{ at, out }] (rat holes and the way out of them), npcs, route.
+//   rats: [{ at, out, beat }] (rat holes and the way out of them),
+//   nests: [{ at, n, beat, perch?, notice?, alert?, r?, face? }] (where rats
+//   hang around from the start), beats: [{ id, x0, z0, x1, z1 }],
+//   trench (the dug-up sidewalk), movers (driving taxis), npcs, route.
 import * as THREE from 'three/webgpu';
 import { World } from './voxel.js';
 import { B } from './blocks.js';
@@ -19,7 +32,7 @@ import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
 import { oak } from './rooms.js';
 
-export const CITY = { SX: 96, SY: 34, SZ: 104, FY: 4 };
+export const CITY = { SX: 192, SY: 34, SZ: 104, FY: 4 };
 // the avenue (north-south) and the cross street (east-west)
 const AV = { x0: 38, x1: 49 }, ST = { z0: 62, z1: 71 };
 const SWW = { x0: 33, x1: 37 }, SWE = { x0: 50, x1: 54 };   // avenue sidewalks, west and east
@@ -33,7 +46,8 @@ export function buildManhattan(seed = 1717) {
   const k = new Kit(world, deco, shafts, seed);
   const W = world;
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const rats = [], npcs = [];
+  const rats = [], npcs = [], nests = [];
+  const beatOf = (x, z) => (x > 150 && z > 40 ? 'walk' : x > 84 && z > 40 ? 'melee' : 'ranged');
 
   // ------------------------------------------------------------ ground: asphalt, sidewalks
   k.floor(0, 0, SX - 1, SZ - 1, FY, B.sidewalk, 4);
@@ -47,8 +61,9 @@ export function buildManhattan(seed = 1717) {
   }
   for (let i = 0; i < 5; i++) for (const x of [AV.x0 - 3, AV.x0 - 2, AV.x1 + 2, AV.x1 + 3]) W.set(x, FY - 1, ST.z0 + i * 2, B.white_trim);
   // storm drains at the curbs (rats)
-  const grate = (x, z, ox, oz) => { W.set(x, FY - 1, z, B.metal_grate); rats.push({ at: V(x + 0.5, FY, z + 0.5), out: V(x + 0.5 + ox, FY, z + 0.5 + oz), kind: 'drain' }); };
-  grate(AV.x0, 44, 2, 0); grate(AV.x1, 30, -2, 0); grate(AV.x0, 8, 2, 0); grate(64, ST.z1, 0, -2); grate(26, ST.z0, 0, 2); grate(AV.x1, 86, -2, 0);
+  const grate = (x, z, ox, oz) => { W.set(x, FY - 1, z, B.metal_grate); rats.push({ at: V(x + 0.5, FY, z + 0.5), out: V(x + 0.5 + ox, FY, z + 0.5 + oz), kind: 'drain', beat: beatOf(x, z) }); };
+  grate(AV.x0, 44, 2, 0); grate(AV.x1, 30, -2, 0); grate(AV.x0, 8, 2, 0); grate(26, ST.z0, 0, 2); grate(AV.x1, 86, -2, 0);
+  grate(104, ST.z0, 0, 2); grate(118, ST.z1, 0, -2); grate(90, ST.z0, 0, 2); grate(AV.x1, 52, -2, 0);
   // world edges
   for (let x = 0; x < SX; x++) { W.fill(x, FY, 0, x, FY + 8, 0, B.barrier); W.fill(x, FY, SZ - 1, x, FY + 8, SZ - 1, B.barrier); }
   for (let z = 0; z < SZ; z++) { W.fill(0, FY, z, 0, FY + 8, z, B.barrier); W.fill(SX - 1, FY, z, SX - 1, FY + 8, z, B.barrier); }
@@ -142,28 +157,59 @@ export function buildManhattan(seed = 1717) {
   W.fill(YX0 - 1, FY, 41, YX0 - 1, FY + 10, 45, B.red_brick);
   for (const [x, z] of [[17, 42], [21, 44]]) { W.set(x, FY, z, B.crate); deco.prop('trash_can', x + 0.5 + 1, FY, z + 0.5); W.set(x + 1, FY, z, B.barrier); }
   deco.add('road_crack', 24.5, FY + 0.01, 43.5, { mode: 'flat', scale: 1.4 });
-  rats.push({ at: V(YX0 + 1.5, FY, 43.5), out: V(SWW.x0 + 1.5, FY, 43.5), kind: 'alley' });
+  rats.push({ at: V(YX0 + 1.5, FY, 43.5), out: V(SWW.x0 + 1.5, FY, 43.5), kind: 'alley', beat: 'ranged' });
   W.addLight(28.5, FY + 3, 43.5, 0xffc080, 2, 7);
 
   // east side of the avenue: lower brownstones (they stand between the camera and the walk), a deli on the corner, an alley at z 28-30
   row(0, 41, SWE.x1 + 1, 'w', 16, { hmin: 7, hmax: 9, gaps: [[28, 30]] });
   // the corner: a deli facing the avenue, then a row facing the cross street (where you start)
   building(SWE.x1 + 1, 42, SWE.x1 + 8, 56, 'w', 8, { mat: B.red_brick, shop: true });
-  row(SWE.x1 + 9, SX - 2, SWN.z0 - 1, 's', 15, { hmin: 9, hmax: 12, tall: true });
+  row(SWE.x1 + 9, SX - 6, SWN.z0 - 1, 's', 15, { hmin: 9, hmax: 12, tall: true, gaps: [[125, 130]] });
+  // the melee beat's alley on the north side (x 125-130): a dead end with a dumpster and bin bags
+  for (let x = 125; x <= 130; x++) for (let z = 42; z < SWN.z0; z++) W.set(x, FY - 1, z, x % 3 === 0 ? B.cobble : B.concrete);
+  W.fill(124, FY, 42, 124, FY + 9, SWN.z0 - 1, B.red_brick); W.fill(131, FY, 42, 131, FY + 9, SWN.z0 - 1, B.red_brick);
+  deco.prop('dumpster', 127.5, FY, 49.5, { scale: 0.8 }); W.set(127, FY, 49, B.barrier); W.set(128, FY, 49, B.barrier);
+  deco.prop('trash_bags', 129.2, FY, 53.4, { n: 6 }); deco.prop('trash_bags', 125.8, FY, 51.5, { n: 4 }); deco.prop('trash_can', 125.6, FY, 54.6);
+  W.addLight(127.5, FY + 3.5, 47.5, 0xffc080, 2.2, 7);
+  rats.push({ at: V(127.5, FY, 43.5), out: V(127.5, FY, 56.5), kind: 'alley', beat: 'melee' });
   for (let x = SWE.x1 + 1; x <= SWE.x1 + 16; x++) for (let z = 28; z <= 30; z++) { W.fill(x, FY, z, x, FY + 12, z, 0); W.set(x, FY - 1, z, x % 3 === 0 ? B.cobble : B.concrete); }
   W.fill(SWE.x1 + 17, FY, 27, SWE.x1 + 17, FY + 8, 31, B.red_brick);
   deco.prop('trash_can', 62.5, FY, 28.5); W.set(62, FY, 28, B.barrier); W.set(66, FY, 30, B.crate);
-  rats.push({ at: V(SWE.x1 + 15.5, FY, 29.5), out: V(SWE.x0 + 1.5, FY, 29.5), kind: 'alley' });
+  rats.push({ at: V(SWE.x1 + 15.5, FY, 29.5), out: V(SWE.x0 + 1.5, FY, 29.5), kind: 'alley', beat: 'ranged' });
   W.fill(SWE.x1 + 17, FY, 0, SX - 1, FY + 8, 41, B.brownstone);   // behind the east row
   // a deli sign on the corner shop
   deco.prop('text_sign', SWE.x1 + 0.4, FY + 4.4, 49.5, { text: 'DELI · BAGELS', w: 5, h: 0.9, rot: -Math.PI / 2, bg: '#1a5a2a', fg: '#ffe8a0', oneSided: true });
 
-  // south-east: where you start. Low brownstones facing the cross street, an alley at x 66-68
-  row(SWE.x1 + 1, SX - 2, SWS.z1 + 1, 'n', 14, { hmin: 4, hmax: 5, gaps: [[66, 68]], shopAt: [58, 74, 88] });
-  for (let x = 66; x <= 68; x++) for (let z = SWS.z1 + 1; z <= SWS.z1 + 13; z++) { W.fill(x, FY, z, x, FY + 10, z, 0); W.set(x, FY - 1, z, B.concrete); }
-  W.fill(65, FY, SWS.z1 + 14, 69, FY + 5, SWS.z1 + 14, B.red_brick);
-  rats.push({ at: V(67.5, FY, SWS.z1 + 12.5), out: V(67.5, FY, SWS.z0 + 1.5), kind: 'alley' });
+  // south of the cross street: low brownstones and shops facing it, and (x 55-83) a construction lot
+  row(84, SX - 6, SWS.z1 + 1, 'n', 14, { hmin: 4, hmax: 5, shopAt: [92, 108, 140, 162] });
   W.fill(SWE.x1 + 1, FY, SWS.z1 + 15, SX - 1, FY + 5, SZ - 1, B.brownstone);
+  // the east end of the street: a red-brick building closes it
+  building(SX - 5, SWN.z0 - 15, SX - 2, SWS.z1 + 14, 'w', 7, { mat: B.red_brick, stoop: false });
+  // The construction lot (the ranged beat): the south sidewalk is closed behind a
+  // chain-link fence (shots fly through it, rats don't), with a gap at its east
+  // end. Rats sniff round the dumpster and the pallets inside; they see you
+  // across the street and have to run round the fence to reach you.
+  { const x0 = 55, x1 = 83, z0 = SWS.z0, z1 = SWS.z1 + 14;
+    for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) { W.fill(x, FY, z, x, FY + 12, z, 0); W.set(x, FY - 1, z, (x * 7 + z * 3) % 5 ? B.dirt : B.cobble); }
+    W.fill(x0, FY, z1 + 1, x1, FY + 5, z1 + 1, B.red_brick);
+    const fence = (ax, az, bx, bz) => { for (let x = ax; x <= bx; x++) for (let z = az; z <= bz; z++) { W.set(x, FY, z, B.fence_barrier); W.set(x, FY + 1, z, B.fence_barrier); } };
+    fence(x0, z0, x1 - 3, z0);                       // along the curb, open at x1-2..x1 (the gate)
+    fence(x0, z0, x0, z1);                           // the avenue side
+    for (let x = x0; x < x1 - 3; x += 4) deco.prop('chain_fence', x + 2.5, FY, z0 + 0.5, { len: 4 });
+    for (let z = z0; z < z1; z += 4) deco.prop('chain_fence', x0 + 0.5, FY, z + 2.5, { len: 4, rot: Math.PI / 2 });
+    deco.prop('sawhorse', x1 - 1, FY, z0 + 0.6, { rot: 0.3 }); deco.prop('cone', x1 - 2.3, FY, z0 + 1.6); deco.prop('cone', x1 + 0.3, FY, z0 + 2.2);
+    deco.prop('text_sign', x0 + 14, FY + 2.3, z0 + 0.42, { text: 'SIDEWALK CLOSED', w: 3.2, h: 0.6, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a', rot: Math.PI, greek: true, near: 12 });
+    // inside: a dumpster (a rat sits on the lid), pallets, a sand pile, pipes
+    deco.prop('dumpster', 64.5, FY, 78.5, { scale: 0.8 }); W.set(64, FY, 78, B.barrier); W.set(65, FY, 78, B.barrier);
+    for (const [x, z] of [[71, 76], [72, 76], [71, 77]]) W.set(x, FY, z, B.crate);
+    for (let x = 74; x <= 77; x++) for (let z = 82; z <= 85; z++) W.set(x, FY, z, B.sand);
+    W.set(75, FY + 1, 83, B.sand); W.set(76, FY + 1, 84, B.sand);
+    deco.prop('trash_bags', 60.5, FY, 75.2, { n: 5 }); deco.prop('cone', 68.5, FY, 81.5); deco.prop('cone', 58.5, FY, 86.5);
+    W.addLight(68.5, FY + 4, 80.5, 0xffd890, 2.5, 10);
+    nests.push({ at: V(61, FY, 75.4), n: 2, beat: 'ranged', notice: 12, alert: 1.2, r: 1.4, face: V(60.5, FY, 75.2) });
+    nests.push({ at: V(70, FY, 74.5), n: 1, beat: 'ranged', notice: 12, alert: 1.2, r: 1.2 });
+    nests.push({ at: V(64.9, FY + 1, 78.5), n: 1, beat: 'ranged', perch: true, notice: 13, alert: 1.3, r: 0.3 });
+  }
   // the east end of the cross street: more of the city beyond the barrier
   // north side of the cross street east of the avenue: the row's backs already fill it
 
@@ -190,15 +236,15 @@ export function buildManhattan(seed = 1717) {
 
   // ------------------------------------------------------------ street furniture
   const streetlight = (x, z, rot) => { deco.prop('streetlight', x + 0.5, FY, z + 0.5, { rot }); W.set(x, FY, z, B.barrier); };
-  for (let z = 6; z < 56; z += 12) { streetlight(SWW.x1, z, 0); streetlight(SWE.x0, z + 6, Math.PI); }
-  for (let x = 58; x < 94; x += 12) { streetlight(x, SWS.z0, Math.PI / 2); streetlight(x + 6, SWN.z1, -Math.PI / 2); }
-  for (const [x, z] of [[SWW.x0 + 1, 10], [SWW.x0 + 1, 31], [SWW.x0 + 1, 50], [SWE.x1 - 1, 14], [SWE.x1 - 1, 40], [60, SWS.z1 - 1], [74, SWS.z1 - 1], [88, SWS.z1 - 1]]) {
+  for (let z = 6; z < 56; z += 12) { streetlight(SWW.x1, z, 0); if (z + 6 < 30 || z + 6 > 47) streetlight(SWE.x0, z + 6, Math.PI); }
+  for (let x = 58; x < SX - 8; x += 12) { if (x > 84) streetlight(x, SWS.z0, Math.PI / 2); streetlight(x + 6, SWN.z1, -Math.PI / 2); }
+  for (const [x, z] of [[SWW.x0 + 1, 10], [SWW.x0 + 1, 31], [SWE.x1 - 1, 14], [100, SWS.z1 - 1], [124, SWS.z1 - 1], [152, SWS.z1 - 1], [174, SWS.z1 - 1], [158, SWN.z0 + 1], [178, SWN.z0 + 1]]) {
     oak(k, x, z, FY, { h: 4, R: 1.7 });
     for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) if (W.get(x + dx, FY - 1, z + dz) === B.sidewalk) W.set(x + dx, FY - 1, z + dz, B.dirt);
   }
   const prop = (kind, x, z, o = {}, solid = true) => { deco.prop(kind, x + 0.5, FY, z + 0.5, o); if (solid) W.set(x, FY, z, B.barrier); };
-  prop('hydrant', SWW.x1, 27); prop('hydrant', 63, SWS.z0); prop('mailbox', SWE.x0, 58); prop('trash_can', SWW.x1, 56);
-  prop('trash_can', 78, SWS.z0); prop('bike_rack', 84, SWS.z1 - 1, { rot: 0 }); prop('newsstand', SWW.x0 + 1, 60, { rot: Math.PI / 2 });
+  prop('hydrant', SWW.x1, 27); prop('hydrant', 98, SWS.z0); prop('mailbox', SWE.x0, 58); prop('trash_can', SWW.x1, 56);
+  prop('trash_can', 88, SWS.z0 + 2); prop('bike_rack', 96, SWS.z1 - 1, { rot: 0 }); prop('newsstand', SWW.x0 + 1, 60, { rot: Math.PI / 2 });
   W.set(SWW.x0 + 1, FY, 59, B.barrier); W.set(SWW.x0 + 1, FY, 61, B.barrier);
   // the hot-dog cart on the corner, with its vendor
   prop('hotdog_cart', SWE.x0 + 2, SWS.z0 + 1, { rot: Math.PI }); W.set(SWE.x0 + 1, FY, SWS.z0 + 1, B.barrier); W.set(SWE.x0 + 3, FY, SWS.z0 + 1, B.barrier);
@@ -208,14 +254,59 @@ export function buildManhattan(seed = 1717) {
   deco.add('road_crack', 45.5, FY + 0.01, 38.5, { mode: 'flat', scale: 2 }); deco.add('road_crack', 70.5, FY + 0.01, 66.5, { mode: 'flat', scale: 1.6 });
   for (let i = 0; i < 26; i++) { const x = 2 + k.r() * (SX - 4), z = 2 + k.r() * (SZ - 4); const id = W.get(Math.floor(x), FY - 1, Math.floor(z)); if ((id === B.sidewalk || id === B.asphalt) && !W.get(Math.floor(x), FY, Math.floor(z))) deco.add('paper', x, FY, z, { mode: 'flat', scale: 0.5 }); }
 
+  // ------------------------------------------------------------ the walk to the bus, beat by beat
+  // walk: the dug-up sidewalk (x 165-167): a step down, a deeper trench, a step up. Jump it.
+  const trench = V(166.5, FY, SWN.z0 + 2.5);
+  for (let z = SWN.z0; z <= SWN.z1; z++) { W.set(165, FY - 1, z, 0); W.set(166, FY - 1, z, 0); W.set(166, FY - 2, z, 0); W.set(167, FY - 1, z, 0); W.set(166, FY - 3, z, B.dirt); W.set(165, FY - 2, z, B.dirt); W.set(167, FY - 2, z, B.dirt); }
+  deco.prop('sawhorse', 166.5, FY, SWN.z1 + 0.7); deco.prop('cone', 164.3, FY, SWN.z1 + 0.6); deco.prop('cone', 168.7, FY, SWN.z1 + 0.6); deco.prop('cone', 166.5, FY, SWN.z0 + 0.2);
+  for (let i = 0; i < 4; i++) deco.add('paper', 163.5 + i * 1.6, FY, SWN.z0 + 1 + (i % 2) * 2, { mode: 'flat', scale: 0.4 });
+  // melee: rats lounging round the trash along the north sidewalk (and one heap across the street)
+  const can = (x, z) => { deco.prop('trash_can', x + 0.5, FY, z + 0.5); W.set(x, FY, z, B.barrier); };
+  can(145, SWN.z1); can(147, SWN.z1); deco.prop('trash_bags', 146, FY, SWN.z1 + 0.2, { n: 3 });
+  nests.push({ at: V(146, FY, SWN.z1 - 1.2), n: 2, beat: 'melee', face: V(146, FY, SWN.z1 + 0.5) });
+  nests.push({ at: V(127.5, FY, 52.5), n: 2, beat: 'melee', r: 2, face: V(129.2, FY, 53.4) });
+  nests.push({ at: V(127.5, FY, SWN.z0 + 0.8), n: 1, beat: 'melee', r: 1.8 });
+  // a second hot-dog cart, its vendor, and rats after the dropped buns
+  prop('hotdog_cart', 112, SWN.z0 + 2, { rot: 0 }); W.set(111, FY, SWN.z0 + 2, B.barrier); W.set(113, FY, SWN.z0 + 2, B.barrier);
+  npcs.push({ id: 'tourist', pos: V(112.5, FY, SWN.z0 + 1.1), yaw: 0, idle: 'vendor' });
+  for (let i = 0; i < 3; i++) deco.add('paper', 111 + i * 1.1, FY, SWN.z0 + 3.6 + (i % 2) * 0.5, { mode: 'flat', scale: 0.35 });
+  nests.push({ at: V(112.5, FY, SWN.z1 - 0.4), n: 2, beat: 'melee', r: 1.4, face: V(112.5, FY, SWN.z0 + 2.5) });
+  deco.prop('trash_bags', 98.5, FY, SWN.z1 + 0.3, { n: 6 }); W.set(98, FY, SWN.z1, B.barrier);
+  nests.push({ at: V(98.5, FY, SWN.z1 - 1.4), n: 2, beat: 'melee', face: V(98.5, FY, SWN.z1 + 0.3) });
+  nests.push({ at: V(88.5, FY, SWS.z0 + 3.2), n: 2, beat: 'melee', face: V(88.5, FY, SWS.z0 + 2.5) });
+  // ranged, up the avenue: dumpsters ahead on the west sidewalk (a rat on each lid) ...
+  const dumpsterZ = (x, z) => { deco.prop('dumpster', x + 0.5, FY, z + 1, { rot: Math.PI / 2, scale: 0.8 }); W.set(x, FY, z, B.barrier); W.set(x, FY, z + 1, B.barrier); };
+  dumpsterZ(SWW.x0, 46); dumpsterZ(SWW.x0, 36);
+  nests.push({ at: V(SWW.x0 + 0.5, FY + 1, 47), n: 1, beat: 'ranged', perch: true, notice: 10, alert: 1.2, r: 0.2 });
+  nests.push({ at: V(SWW.x0 + 0.5, FY + 1, 37), n: 1, beat: 'ranged', perch: true, notice: 10, alert: 1.2, r: 0.2 });
+  // ... and sidewalk scaffolding across the avenue (z 30-41): rats up on the deck, three blocks up
+  for (let x = SWE.x0; x <= SWE.x1; x++) for (let z = 30; z <= 41; z++) W.set(x, FY + 2, z, B.metal_grate);
+  for (const z of [30, 34, 38, 41]) { W.set(SWE.x0, FY, z, B.barrier); W.set(SWE.x0, FY + 1, z, B.barrier); deco.prop('scaffold_post', SWE.x0 + 0.5, FY, z + 0.5, { h: 2 }); }
+  for (let z = 30; z <= 41; z += 3) deco.prop('fence', SWE.x0 + 0.1, FY + 3, z + 1.5, { len: 3, rot: Math.PI / 2, scale: 0.7 });
+  nests.push({ at: V(SWE.x0 + 2.5, FY + 3, 32.5), n: 1, beat: 'ranged', perch: true, notice: 15, alert: 1.3, r: 0.8 });
+  nests.push({ at: V(SWE.x0 + 2.5, FY + 3, 37.5), n: 2, beat: 'ranged', perch: true, notice: 15, alert: 1.3, r: 0.8 });
+  nests.push({ at: V(SWW.x1 - 0.6, FY, 55.2), n: 1, beat: 'ranged', face: V(SWW.x1 + 0.5, FY, 56.5) });
+  const beats = [
+    { id: 'walk', x0: 150, z0: 40, x1: SX, z1: 90 },
+    { id: 'melee', x0: 84, z0: 40, x1: 150, z1: 90 },
+    { id: 'ranged', x0: 0, z0: 0, x1: 84, z1: SZ },
+  ];
+
   // ------------------------------------------------------------ vehicles (groups, see world/vehicles.js) and their footprints
   // The bus: on the west curb in front of Yancy, heading south (its door on the curb side).
   const bus = { pos: V(39.9, FY, 19.5), yaw: -Math.PI / 2 };
   const parked = [
     { kind: 'taxi', pos: V(48.2, FY, 10), yaw: Math.PI / 2 }, { kind: 'taxi', pos: V(48.2, FY, 38), yaw: Math.PI / 2 },
     { kind: 'car', color: 0x6a2a2a, pos: V(39.9, FY, 50), yaw: -Math.PI / 2 }, { kind: 'taxi', pos: V(39.9, FY, 34), yaw: -Math.PI / 2 },
-    { kind: 'car', color: 0x2a5a6a, pos: V(82, FY, ST.z1 - 1.2), yaw: Math.PI }, { kind: 'taxi', pos: V(60, FY, ST.z0 + 1.2), yaw: 0 },
+    { kind: 'car', color: 0x2a5a6a, pos: V(134, FY, ST.z1 - 1.2), yaw: Math.PI }, { kind: 'taxi', pos: V(78, FY, ST.z0 + 1.2), yaw: 0 },
     { kind: 'taxi', pos: V(20, FY, ST.z1 - 1.2), yaw: Math.PI },
+    { kind: 'car', color: 0x7a6a2a, pos: V(166.5, FY, ST.z0 + 1.2), yaw: 0 }, { kind: 'taxi', pos: V(178, FY, ST.z1 - 1.2), yaw: Math.PI },
+    { kind: 'car', color: 0x3a3a6a, pos: V(120, FY, ST.z0 + 1.2), yaw: 0 },
+  ];
+  // taxis that drive along the cross street (east of the avenue), stopping for anyone in front
+  const movers = [
+    { kind: 'taxi', lane: 65.4, dir: -1, x: 150, from: SX - 8, to: 58, speed: 7 },
+    { kind: 'car', color: 0x2a6a4a, lane: 67.9, dir: 1, x: 96, from: 58, to: SX - 8, speed: 6.5 },
   ];
   const footprint = (pos, yaw, len, wid) => {
     const c = Math.cos(yaw), s = Math.sin(yaw);
@@ -236,13 +327,20 @@ export function buildManhattan(seed = 1717) {
   npcs.push({ id: 'student', pos: V(SWW.x0 + 2, FY, 24), yaw: 0, idle: 'wait' });
   npcs.push({ id: 'student', pos: V(SWW.x0 + 1.2, FY, 26.5), yaw: Math.PI * 0.8, idle: 'wait' });
   npcs.push({ id: 'student', pos: V(SWW.x0 + 3, FY, 52), yaw: Math.PI, walk: V(SWW.x0 + 3, FY, 25), idle: 'walk' });
-  npcs.push({ id: 'old_lady', pos: V(70, FY, SWS.z0 + 2), yaw: -Math.PI / 2, walk: V(90, FY, SWS.z0 + 2), idle: 'walk' });
+  npcs.push({ id: 'student', pos: V(door.x - 0.4, FY, door.z + 3.2), yaw: Math.PI, idle: 'wait' });
+  npcs.push({ id: 'old_lady', pos: V(100, FY, SWS.z0 + 2), yaw: -Math.PI / 2, walk: V(150, FY, SWS.z0 + 2), idle: 'walk' });
   npcs.push({ id: 'student', pos: V(78, FY, SWN.z0 + 1.5), yaw: -Math.PI / 2, walk: V(56, FY, SWN.z0 + 1.5), idle: 'walk' });
-  npcs.push({ id: 'tourist', pos: V(SWE.x0 + 2, FY, 44), yaw: 0, idle: 'photo' });
+  npcs.push({ id: 'tourist', pos: V(SWE.x0 + 2, FY, 52), yaw: 0, idle: 'photo' });
+  // the quiet stretch where you start: late students hurrying west, people out on the stoops
+  npcs.push({ id: 'student', pos: V(178, FY, SWN.z0 + 1.2), yaw: -Math.PI / 2, walk: V(150, FY, SWN.z0 + 1.2), idle: 'walk' });
+  npcs.push({ id: 'salesman', pos: V(158, FY, SWS.z0 + 1.5), yaw: Math.PI / 2, walk: V(184, FY, SWS.z0 + 1.5), idle: 'walk' });
+  npcs.push({ id: 'old_lady', pos: V(172, FY, SWN.z0 + 0.8), yaw: Math.PI, idle: 'wait' });
+  npcs.push({ id: 'farmer', pos: V(136, FY, SWS.z0 + 2), yaw: Math.PI / 2, walk: V(116, FY, SWS.z0 + 2), idle: 'walk' });
+  npcs.push({ id: 'tourist', pos: V(156, FY, SWS.z1 - 1), yaw: -Math.PI / 2, idle: 'photo' });
 
   world.collectBlockLights();
-  // you start on the north sidewalk of the cross street, by a stoop, late for the bus
-  const spawn = V(86.5, FY, SWN.z0 + 2.5);
+  // you start at the east end of the cross street, on the north sidewalk, late for the bus
+  const spawn = V(184.5, FY, SWN.z0 + 2.5);
   const route = [spawn.clone(), V(56, FY, SWN.z0 + 2.5), V(SWW.x0 + 2.5, FY, SWN.z1 - 1), V(SWW.x0 + 2.5, FY, 30), door.clone()];
-  return { world, deco, shafts, kit: k, spawn, stage: spawn.clone(), bus, parked, door, goal: door.clone(), rats, npcs, route, city: true };
+  return { world, deco, shafts, kit: k, spawn, stage: spawn.clone(), bus, parked, movers, door, goal: door.clone(), rats, nests, beats, trench, npcs, route, city: true };
 }

@@ -23,6 +23,11 @@
 //   sealT        seconds: held in place (artifacts)
 //   awake        a 'statue' monster is moving (set true to spawn it awake)
 //   bossSummon   the boss that called this monster (it may clear them on death)
+//   loiter       (monsters whose def has idle: 'loiter', the prologue's rats;
+//              rules in entities/ratRules.js) { home, r, notice, alert, perch,
+//              leash, face }: hangs around home (sniffs, eats, wanders) until a
+//              hero comes within `notice` or hits it, rears up for `alert`
+//              seconds, then chases; gives up past `leash`. dash(hero) sends it.
 // Players with `invisible === true` are never chosen or kept as targets.
 //
 // Crowd rules (Minecraft Dungeons feel):
@@ -43,6 +48,7 @@ import { FLASH_MATERIAL } from './character.js';
 import { poisonHero } from './holds.js';
 import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
+import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
@@ -113,6 +119,7 @@ export class Enemy {
     this.orbitSide = Math.random() < 0.5 ? -1 : 1;
     this.retreats = 0; this.retreating = false; this.capShots = 0;
     this.losT = Math.random() * 0.2;
+    if (this.def.idle === 'loiter') this.loiter = { home: this.pos.clone(), r: RAT.wander, notice: this.def.notice ?? RAT.notice, alert: RAT.alert, perch: false, leash: RAT.leash, face: null, act: null, actT: Math.random() * 1.5, alertT: null, calmT: 0, returning: false, to: null };
   }
   get name() { return this.disguised ? MORTALS[this.disguise].name : (this.elite ? ELITE_AFFIX[this.elite].label + ' ' : '') + this.def.name; }
   get tier() { return this.def.tier; }
@@ -179,6 +186,7 @@ export class Enemy {
     this.hp -= dmg;
     this.flashT = 0.1;
     this.aggro = true;
+    if (this.loiter) { this.loiter.alertT = null; this.loiter.returning = false; this.loiter.calmT = 0; }
     if (src && src.isPlayer && !this.target && !src.invisible) this.target = src;
     if (o.knock) {
       const k = o.knock.clone().multiplyScalar(1 - (this.def.knockResist ?? 0) * (o.blocked ? 1 : 0.8));
@@ -283,7 +291,7 @@ export class Enemy {
     const want = tmp.copy(dir).setY(0);
     if (want.lengthSq() > 0) want.normalize();
     const slow = (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1);
-    want.multiplyScalar(this.speed * speedMul * slow);
+    want.multiplyScalar(this.speed * speedMul * slow * (this.dashT > 0 ? 1.12 : 1));
     // separation: a push at full walking speed (not scaled by speedMul), so
     // monsters crowding a hero still spread out round them
     const sep = SEP.set(0, 0, 0);
@@ -313,7 +321,8 @@ export class Enemy {
     const wl = want.length();
     if (wl > 0.05) {
       const ax = this.pos.x + want.x / wl * 0.9, az = this.pos.z + want.z / wl * 0.9;
-      if (!groundAhead(g.world, ax, this.pos.y, az, 2.2)) want.set(-want.z, 0, want.x).multiplyScalar(0.3);
+      const drop = this.loiter && !this.aggro ? 0.9 : this.def.drop ?? 2.2;   // (a loitering rat never steps off its perch; a chasing one leaps down)
+      if (!groundAhead(g.world, ax, this.pos.y, az, drop)) want.set(-want.z, 0, want.x).multiplyScalar(0.3);
     }
     return want;
   }
@@ -354,12 +363,18 @@ export class Enemy {
     this.spawnT = Math.max(0, this.spawnT - dt); this.lastDt = dt;
     this.stateT += dt; this.cd -= dt; this.flashT -= dt; this.slowT = (this.slowT ?? 0) - dt;
     this.blinkCd -= dt;
+    if (this.dashT > 0) this.dashT -= dt;
     if (this.disguised) return this.updateDisguised(dt);
     if (this.bones) return this.updateBones(dt);
     if (this.def.ai === 'statue' && !this.awake) return this.updateDormant(dt);
     const S = this.status;
     S.fear = Math.max(0, S.fear - dt); S.root = Math.max(0, S.root - dt); S.slow = Math.max(0, S.slow - dt); this.mark = Math.max(0, this.mark - dt);
-    const t = this.pickTarget();
+    let t = this.loiter && !this.aggro ? this.watch(dt) : this.pickTarget();
+    if (this.loiter && this.aggro && t && this.state !== 'windup' && this.state !== 'recover' && givesUp({ homeDist: Math.hypot(this.pos.x - this.loiter.home.x, this.pos.z - this.loiter.home.z), targetDist: t.pos.distanceTo(this.pos), leash: this.loiter.leash })) {
+      // chased too far from home: back to loitering (no trains of rats down the street)
+      this.aggro = false; this.target = t = null; this.dashT = 0;
+      Object.assign(this.loiter, { returning: true, calmT: RAT.calm, alertT: null });
+    }
     let move = tmp2.set(0, 0, 0);
     const ai = this.def.ai;
     if (S.fear > 0 && this.state !== 'stagger') {
@@ -425,6 +440,8 @@ export class Enemy {
           if (ready && d < this.def.range + 0.3 && this.cd <= 0) this.startAttack('slash');
           break;
       }
+    } else if (this.loiter) {
+      move.copy(this.loiterMove(dt));
     } else {
       // idle wander near home
       this.wanderT -= dt;
@@ -439,6 +456,68 @@ export class Enemy {
     this.animate(dt);
     this.aura(dt);
     return true;
+  }
+  // ---- loitering (the prologue's rats; entities/ratRules.js)
+  // Not chasing yet: notice a hero who comes close (with line of sight), rear
+  // up and squeak for a moment, then chase. Returns the target once it does.
+  watch(dt) {
+    const g = this.game, L = this.loiter;
+    L.calmT = Math.max(0, L.calmT - dt);
+    let best = null, bd = Infinity;
+    for (const t of g.hostileTargets()) { if (t.dead || t.downed || t.untargetable || t.invisible) continue; const d = t.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = t; } }
+    if (this.spawnT > 0) return null;
+    if (L.alertT != null) {
+      L.alertT -= dt;
+      const hold = L.dashing ? Infinity : L.notice * 1.8;
+      if (!best || bd > hold) { L.alertT = null; L.dashing = false; return null; }   // the hero walked on
+      this.faceTo(best.pos, dt, 8);
+      if (L.alertT <= 0) {
+        L.alertT = null; this.aggro = true; this.target = best; this.cd = Math.min(this.cd, 0.4);
+        if (L.dashing) { L.dashing = false; this.dashT = 3; }
+        return best;
+      }
+      return null;
+    }
+    if (best && L.calmT <= 0 && bd <= L.notice) {
+      this.losT -= dt;
+      if (this.losT <= 0) {
+        this.losT = 0.2;
+        if (notices({ dist: bd, los: lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2), notice: L.notice, calm: L.calmT })) { L.alertT = L.alert; L.returning = false; this.voice(); }
+      }
+    }
+    return null;
+  }
+  // The director (world/roaming.js) sends this rat at a hero: a squeak, then a run.
+  dash(hero) {
+    const L = this.loiter; if (!L || this.aggro || this.dead) return false;
+    L.alertT = 0.5; L.dashing = true; L.returning = false; L.calmT = 0;
+    if (hero) this.facing = Math.atan2(hero.pos.x - this.pos.x, hero.pos.z - this.pos.z);
+    this.voice();
+    return true;
+  }
+  // Hanging around home: sniff, eat, wander a few steps; walk back after a chase.
+  loiterMove(dt) {
+    const L = this.loiter;
+    if (L.alertT != null || this.spawnT > 0) return TO.set(0, 0, 0);
+    if (L.returning) {
+      const to = TO.subVectors(L.home, this.pos).setY(0);
+      if (to.length() < 0.8) L.returning = false;
+      else { this.facing = dampAngle(this.facing, Math.atan2(to.x, to.z), 8, dt); return this.steer(to, 0.55); }
+    }
+    L.actT -= dt;
+    if (L.actT <= 0) {
+      const n = nextIdle(Math.random());
+      L.act = n.act; L.actT = n.dur; L.to = null;
+      if (n.act === 'wander') { const a = Math.random() * Math.PI * 2, r = L.r * (0.3 + Math.random() * 0.7); L.to = new THREE.Vector3(L.home.x + Math.cos(a) * r, L.home.y, L.home.z + Math.sin(a) * r); }
+    }
+    if (L.act === 'wander' && L.to) {
+      const to = TO.subVectors(L.to, this.pos).setY(0);
+      if (to.length() < 0.25) { L.act = 'sniff'; L.actT = 0.8 + Math.random() * 1.5; L.to = null; return TO.set(0, 0, 0); }
+      this.facing = dampAngle(this.facing, Math.atan2(to.x, to.z), 8, dt);
+      return this.steer(to, 0.3);
+    }
+    if (L.act === 'eat' && L.face) this.faceTo(L.face, dt, 3);
+    return TO.set(0, 0, 0);
   }
   // Mortal disguise: amble about near home like a harmless passer-by.
   updateDisguised(dt) {
@@ -558,6 +637,8 @@ export class Enemy {
     if (this.state === 'windup' && a) act = a.anim === 'raise' ? { type: 'raise', t: 0 } : a.anim === 'cast' ? { type: 'cast', t: 1, both: true } : { type: 'attack', t: Math.min(0.28, this.stateT / a.windup * 0.25), style: a.style, windup: 0.3, strike: 0.5 };
     else if (this.state === 'recover' && a) act = { type: 'attack', t: 0.3 + Math.min(0.7, this.stateT / (a.recover ?? 0.35) * 0.7), style: a.style, windup: 0.3, strike: 0.5 };
     else if (this.state === 'stagger') act = { type: 'hit', t: Math.min(1, this.stateT / Math.max(0.2, this.stagger)) };
+    else if (this.loiter && this.loiter.alertT != null) act = { type: 'raise', t: 0 };
+    else if (this.loiter && !this.aggro && (this.loiter.act === 'sniff' || this.loiter.act === 'eat') && !this.loiter.returning) act = { type: this.loiter.act, t: 0 };
     const bob = this.rig.float ? Math.sin(this.stateT * 2 + this.home.x) * 0.15 + this.rig.float : 0;
     let y = this.pos.y;
     this.visY = this.stepped ? damp(this.visY, y, 14, dt) : y; if (Math.abs(this.visY - y) < 0.01) this.stepped = 0;

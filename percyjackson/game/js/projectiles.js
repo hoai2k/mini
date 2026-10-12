@@ -67,7 +67,7 @@ export class Projectiles {
       if (p.trail) p.trail(p, dt);
       // world
       const id = w.get(Math.floor(p.pos.x), Math.floor(p.pos.y), Math.floor(p.pos.z));
-      if (id && BLOCKS[id].solid && !p.ghost) {
+      if (id && BLOCKS[id].solid && !p.ghost && !BLOCKS[id].shotThrough) {
         if (BLOCKS[id].hp && p.team === 'player') g.combat.damageBlock(Math.floor(p.pos.x), Math.floor(p.pos.y), Math.floor(p.pos.z), p.dmg);
         this.kill(p, 'wall'); continue;
       }

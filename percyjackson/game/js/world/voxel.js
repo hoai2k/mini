@@ -157,7 +157,7 @@ export class World {
     const solid = new MeshBuilder(), water = new MeshBuilder(), glow = new Map();
     for (let y = y0; y < y0 + CS && y < this.sy; y++) for (let z = z0; z < z0 + CS && z < this.sz; z++) for (let x = x0; x < x0 + CS && x < this.sx; x++) {
       const id = this.data[this.idx(x, y, z)];
-      if (!id || id === B.barrier) continue;
+      if (!id || id === B.barrier || BLOCKS[id].invisible) continue;
       const def = BLOCKS[id];
       if (def.liquid) {
         const mb = def.liquid === 'water' ? water : (glow.get(id) || glow.set(id, new MeshBuilder()).get(id));
@@ -202,7 +202,7 @@ export class World {
       const F = FACES[f];
       const nx = x + F.n[0], ny = y + F.n[1], nz = z + F.n[2];
       const nid = this.get(nx, ny, nz);
-      if (nid && BLOCKS[nid].opaque && nid !== B.barrier && !(this.roofs.length && this.inRoof(nx, ny, nz) && !this.inRoof(x, y, z))) continue;
+      if (nid && BLOCKS[nid].opaque && nid !== B.barrier && !BLOCKS[nid].invisible && !(this.roofs.length && this.inRoof(nx, ny, nz) && !this.inRoof(x, y, z))) continue;
       const tile = def[F.tile];
       const [u0, v0, u1, v1] = tileUV(tile);
       const ao = [0, 0, 0, 0];

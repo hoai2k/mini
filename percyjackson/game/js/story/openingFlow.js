@@ -11,11 +11,14 @@ import * as THREE from 'three/webgpu';
 import { toast } from '../ui/ui.js';
 import { BIOMES } from '../world/biomes.js';
 import { buildManhattan } from '../world/manhattan.js';
-import { schoolBus, taxi, car } from '../world/vehicles.js';
+import { schoolBus, taxi, car, spin } from '../world/vehicles.js';
+import { prologueHint, HINTS } from './prologueHints.js';
 import { buildMortal } from '../entities/mortals.js';
 import { Cutscene } from './cutscene.js';
 import { CUTSCENES } from './cutscenes.js';
 import { openingStep, openingDone, advanceOpening, nextStep, stepAfterChapter, STEP_INFO, isStep } from './opening.js';
+
+const onScreen = (g, v) => { const p = v.clone().project(g.rig.camera); return p.z < 1 && Math.abs(p.x) < 1.15 && Math.abs(p.y) < 1.15; };
 
 export class OpeningFlow {
   constructor(game) { this.game = game; this.running = null; }
@@ -62,8 +65,11 @@ export class OpeningFlow {
     g.minimap.level = null; g.hud.mini.classList.add('hidden');
     g.hud.show(true); g.touch?.show(true);
     // the bus at the curb, the parked cars, the people on the street
-    const bus = schoolBus(); bus.position.copy(L.bus.pos); bus.rotation.y = L.bus.yaw; g.world.group.add(bus);
+    // (its lettering is Greek letters until a hero is close: English a few seconds before you board)
+    const bus = schoolBus({ trigger: 'near', near: 15, pos: L.bus.pos }); bus.position.copy(L.bus.pos); bus.rotation.y = L.bus.yaw; g.world.group.add(bus);
+    for (const s of bus.userData.signs) g.signs?.add(s);
     for (const p of L.parked) { const v = p.kind === 'taxi' ? taxi() : car(p.color); v.position.copy(p.pos); v.rotation.y = p.yaw; g.world.group.add(v); }
+    const movers = (L.movers ?? []).map((m) => { const v = m.kind === 'taxi' ? taxi() : car(m.color); v.position.set(m.x, L.spawn.y, m.lane); v.rotation.y = m.dir > 0 ? 0 : Math.PI; g.world.group.add(v); return { m, v, x: m.x, v0: m.speed, sp: m.speed, waitT: 0, honked: false }; });
     const people = L.npcs.map((n) => {
       const rig = buildMortal(n.id); rig.root.position.copy(n.pos); rig.root.rotation.y = n.yaw; g.world.group.add(rig.root);
       return { n, rig, pos: n.pos.clone(), dir: 1, t: Math.random() * 5 };
@@ -83,6 +89,7 @@ export class OpeningFlow {
         }
         P.rig.animate({ dt, speed: sp, vel: new THREE.Vector3() });
       }
+      this.driveTraffic(movers, people, dt);
       return true;
     });
     // get on the bus: walk up and press X / E, or just walk into the door
@@ -93,14 +100,65 @@ export class OpeningFlow {
       return true;
     });
     g.mode = 'prologue';
-    g.tracker?.setGoal({ title: STEP_INFO.prologue.goal, desc: 'Yancy Academy’s field trip leaves from the curb, up the avenue', pos: L.goal, radius: 1.5 });
-    g.roaming?.configureCity(L.rats);
+    // the goal line, the edge arrow and the beam (no footprints here: the arrow is enough)
+    g.tracker?.setGoal({ title: STEP_INFO.prologue.goal, desc: 'Yancy Academy’s field trip leaves from the curb, up the avenue', pos: L.goal, radius: 1.5, feet: false });
+    g.roaming?.configureCity(L);
     g.online?.sceneChanged?.();
     toast('Manhattan · The Morning of the Field Trip', 'title');
-    const pad = g.input?.lastDevice?.startsWith?.('pad');
-    setTimeout(() => g.mode === 'prologue' && g.state === 'playing' && toast(`You're late for the field trip. Follow the gold footprints to the school bus.`), 2600);
-    setTimeout(() => g.mode === 'prologue' && g.state === 'playing' && toast(pad ? 'Left stick: move · X: attack · A: jump · B: dodge' : 'WASD: move · Left click: attack · Space: jump · Shift: dodge'), 7000);
+    this.startHints(L, world);
     return L;
+  }
+  // ---- the training board's hints: each once, when it is first useful (keyboard, controller or touch words)
+  startHints(L, world) {
+    const g = this.game;
+    const said = new Set();
+    const live = () => g.world === world && g.mode === 'prologue' && g.state === 'playing' && !g.paused;
+    const say = (id, delay = 0) => {
+      if (said.has(id)) return; said.add(id);
+      setTimeout(() => { if (live()) toast(prologueHint(id, g.input?.lastDevice), 'hint'); }, delay * 1000);
+    };
+    let t = 0, hp0 = 1;
+    const hpOf = () => Math.min(1, ...g.players.filter((p) => !p.ai && !p.remote).map((p) => p.hp / p.maxHp));
+    g.addUpdater((dt) => {
+      if (g.world !== world) return false;
+      if (!live()) return true;
+      t += dt;
+      const lead = g.tracker?.leader?.(); if (!lead) return true;
+      if (t > 6.2) say('late');
+      if (t > 10.5) say('move');
+      if (Math.hypot(lead.pos.x - L.trench.x, lead.pos.z - L.trench.z) < 9) say('jump');
+      const rats = g.enemies.filter((e) => e.kind === 'rat' && !e.dead);
+      const near = (b, d) => rats.some((e) => e.beat === b && e.pos.distanceTo(lead.pos) < d);
+      if (near('melee', 10) || rats.some((e) => e.aggro && e.pos.distanceTo(lead.pos) < 8)) say('melee');
+      if (said.has('melee') && rats.some((e) => e.dashT > 0 && e.pos.distanceTo(lead.pos) < 9)) say('dodge', 0.3);
+      const hp = hpOf(); if (said.has('melee') && hp < hp0 - 0.08) say('dodge'); hp0 = Math.max(hp, hp0 - dt * 0.5);
+      if (near('ranged', 17) && said.has('melee')) say('ranged');
+      return said.size < HINTS.length;
+    });
+  }
+  // cars driving along the cross street: they stop for anyone in front (and honk), and wrap round out of sight
+  driveTraffic(movers, people, dt) {
+    const g = this.game;
+    for (const M of movers) {
+      const m = M.m;
+      if (M.parkedT > 0) {   // at the end of the street: waits until nobody sees it go round
+        M.parkedT -= dt;
+        if (M.parkedT > 0) continue;
+        const start = new THREE.Vector3(m.from, M.v.position.y, m.lane);
+        if (!onScreen(g, M.v.position) && !onScreen(g, start) && !g.players.some((p) => Math.hypot(p.pos.x - m.from, p.pos.z - m.lane) < 14)) { M.x = m.from; M.sp = 0; M.parkedT = 0; }
+        else { M.parkedT = 0.5; continue; }
+      }
+      const ahead = (px, pz) => { const along = (px - M.x) * m.dir, side = Math.abs(pz - m.lane); return along > -0.5 && along < 5.5 && side < 1.7; };
+      let block = g.players.some((p) => !p.dead && ahead(p.pos.x, p.pos.z)) || people.some((P) => ahead(P.pos.x, P.pos.z));
+      block ||= movers.some((o) => o !== M && !(o.parkedT > 0) && o.m.lane === m.lane && (o.x - M.x) * m.dir > 0 && (o.x - M.x) * m.dir < 7);
+      M.sp += ((block ? 0 : M.v0) - M.sp) * Math.min(1, dt * (block ? 6 : 1.2));
+      if (block && M.sp < 0.3) { M.waitT += dt; if (M.waitT > 1.4 && !M.honked) { M.honked = true; if (g.players.some((p) => p.pos.distanceTo(M.v.position) < 25)) g.audio?.tone?.({ freq: 392, dur: 0.35, gain: 0.05, type: 'square', filter: 1200 }); } }
+      else { M.waitT = 0; if (!block) M.honked = false; }
+      const step = M.sp * dt * m.dir;
+      M.x += step; spin(M.v, Math.abs(step));
+      M.v.position.x = M.x; M.v.position.z = m.lane;
+      if ((M.x - m.to) * m.dir >= 0) { M.x = m.to; M.parkedT = 2; }
+    }
   }
   reachBus() {
     const g = this.game;
