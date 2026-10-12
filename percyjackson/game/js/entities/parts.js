@@ -11,12 +11,12 @@ import { mulberry32 } from '../util.js';
 export const HS = 1.12;           // the Rig's head scale: one head pixel is PX * HS
 export const solid = solidMat;
 
-// One material per skin id, painted once.
+// One material per skin id, painted once. opts.res paints a finer skin (2 = 128 × 128).
 const skins = new Map();
 export function skinMat(id, painter, opts = {}) {
   if (skins.has(id)) return skins.get(id);
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  const S = new Skin(seed);
+  const S = new Skin(seed, opts.res ?? 1);
   painter(S);
   const m = makeCharMaterial(S.texture(), { emitStrength: opts.emit ?? 3.2, roughness: opts.rough ?? 0.7, fill: opts.fill ?? 0.16 });
   m.alphaTest = 0.5;

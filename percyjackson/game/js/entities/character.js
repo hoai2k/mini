@@ -9,22 +9,50 @@ import { U } from '../gfx/materials.js';
 
 export const PX = 0.058;          // world units per skin pixel
 const SKIN = 64;
+const LIMB_STRIPS = [[16, 16, 8, 12, 4], [16, 32, 8, 12, 4], [40, 16, 4, 12, 4], [40, 32, 4, 12, 4], [32, 48, 4, 12, 4], [48, 48, 4, 12, 4], [0, 16, 4, 12, 4], [16, 48, 4, 12, 4]];
 
 // ---------------------------------------------------------------- skin painter
+// Coordinates are always in the 64 × 64 Minecraft skin layout. res > 1 paints
+// a finer texture (res = 2: 128 × 128): px and rect cover the same area, rect
+// noise varies per fine texel, and dot / dots paint single fine texels at
+// fractional coordinates (steps of 1 / res) for detail finer than a skin pixel.
 export class Skin {
-  constructor(seed = 1) {
+  constructor(seed = 1, res = 1) {
+    this.res = res;
     this.canvas = document.createElement('canvas');
-    this.canvas.width = SKIN; this.canvas.height = SKIN;
-    this.ctx = this.canvas.getContext('2d');
+    this.canvas.width = SKIN * res; this.canvas.height = SKIN * res;
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: res > 1 });
+    this.ctx.scale(res, res);
     this.r = mulberry32(seed);
   }
-  px(x, y, c) { this.ctx.fillStyle = typeof c === 'number' ? '#' + c.toString(16).padStart(6, '0') : c; this.ctx.fillRect(x, y, 1, 1); }
+  fill(c) { this.ctx.fillStyle = typeof c === 'number' ? '#' + c.toString(16).padStart(6, '0') : c; }
+  px(x, y, c) { this.fill(c); this.ctx.fillRect(x, y, 1, 1); }
+  // one fine texel (or an n × m block of them) at a fractional position
+  dot(x, y, c, n = 1, m = n) { this.fill(c); this.ctx.fillRect(x, y, n / this.res, m / this.res); }
   rect(x, y, w, h, c, noise = 0.08) {
-    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-      const col = new THREE.Color(c); const f = 1 + (this.r() - 0.5) * noise;
-      col.r = clamp(col.r * f, 0, 1); col.g = clamp(col.g * f, 0, 1); col.b = clamp(col.b * f, 0, 1);
-      this.px(x + i, y + j, '#' + col.getHexString());
+    const k = this.res, base = new THREE.Color(c), col = new THREE.Color();
+    for (let j = 0; j < h * k; j++) for (let i = 0; i < w * k; i++) {
+      const f = 1 + (this.r() - 0.5) * noise;
+      col.setRGB(clamp(base.r * f, 0, 1), clamp(base.g * f, 0, 1), clamp(base.b * f, 0, 1));
+      this.fill('#' + col.getHexString()); this.ctx.fillRect(x + i / k, y + j / k, 1 / k, 1 / k);
     }
+  }
+  // Light from above: the side faces of the given boxes ([u, v, w, h, d]),
+  // a little brighter at the top and darker at the bottom. Default: torso,
+  // arms and legs and their overlays.
+  shadeLimbs(strips = LIMB_STRIPS, top = 1.08, bottom = 0.88) {
+    const k = this.res, W = SKIN * k, img = this.ctx.getImageData(0, 0, W, W), D = img.data;
+    for (const [u, v, w, h, d] of strips) for (let y = 0; y < h * k; y++) {
+      const f = top + (bottom - top) * (y / (h * k - 1));
+      for (let x = u * k; x < (u + 2 * (w + d)) * k; x++) { const i = ((v * k + d * k + y) * W + x) * 4; for (let c = 0; c < 3; c++) D[i + c] = Math.min(255, D[i + c] * f); }
+    }
+    this.ctx.putImageData(img, 0, 0);
+  }
+  // Push colours away from grey (the tone mapping washes them out).
+  saturate(amount = 1.2) {
+    const W = SKIN * this.res, img = this.ctx.getImageData(0, 0, W, W), D = img.data;
+    for (let i = 0; i < D.length; i += 4) { const l = (D[i] + D[i + 1] + D[i + 2]) / 3; for (let c = 0; c < 3; c++) D[i + c] = Math.max(0, Math.min(255, l + (D[i + c] - l) * amount)); }
+    this.ctx.putImageData(img, 0, 0);
   }
   // Paint all six faces of a box laid out MC-style at (u,v) with size w,h,d.
   box(u, v, w, h, d, c, noise) {

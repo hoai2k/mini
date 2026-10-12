@@ -66,8 +66,9 @@ const inHead = (i, j, k) => i >= -4 && i < 4 && j >= 0 && j < 8 && k >= -4 && k 
 // pushed out of the outline; spike: share pushed out two cubes.
 export const HAIR = {
   mop: { c: [0, 7.4, -0.7], r: [6.4, 5.4, 6.5], bump: 0.32, fringe: 5.6, jag: 1.6, side: 3, back: 1, tuft: 0.14, spike: 0.02 },
-  curls: { c: [0, 4.4, -1], r: [6.6, 7.4, 6.2], bump: 0.4, fringe: 6, jag: 1.2, side: -3, back: -4, top: 8, shell: 2.4, tuft: 0.2, spike: 0.05 },
-  afro: { c: [0, 7.6, -0.7], r: [7.1, 6.1, 6.9], bump: 0.26, fringe: 6, jag: 1, side: 3.4, back: 1, tuft: 0.12, spike: 0.02 },
+  // pulled back off the face into a mass of curls behind, a lock in front of each ear
+  curls: { c: [0, 4.6, -2.4], r: [6.4, 7, 6], bump: 0.4, fringe: 6, jag: 1.2, side: -1, back: -4, top: 8, shell: 2, tuft: 0.2, spike: 0.05, pulled: 0.2, locks: [-1, 1] },
+  afro: { c: [0, 7.3, -0.7], r: [6.2, 5.3, 6.1], bump: 0.26, fringe: 6, jag: 1, side: 3.4, back: 1, tuft: 0.12, spike: 0.02 },
   shaggy: { c: [0, 7.4, -0.7], r: [6.6, 5.6, 6.6], bump: 0.3, fringe: 6.6, jag: 1, side: 2, back: 0, tuft: 0.14, spike: 0.03 },
   long: { c: [0, 4.6, -1.2], r: [5.6, 6.6, 5.6], bump: 0.32, fringe: 5.6, jag: 1.4, side: -2, back: -2, top: 7, helmetFront: true, tuft: 0.14, spike: 0.02 },
   spiky: { c: [0, 7.4, -0.6], r: [5.9, 5.1, 6.1], bump: 0.4, fringe: 5.2, jag: 2, side: 3, back: 1, tuft: 0.2, spike: 0.07 },
@@ -75,8 +76,10 @@ export const HAIR = {
 };
 
 // opts: { style, base, shade, light, warm?, seed, cap?, helmet? }
-export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false }) {
-  const S = { ...(HAIR[style] ?? HAIR.mop) };
+// shape: overrides for the style's numbers (e.g. { fringe: 7.6 } to lift a fringe).
+// beard: { length, mouth } adds a full voxel beard (head pixels below the chin, the mouth's row).
+export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap = false, helmet = false, shape = null, beard = null }) {
+  const S = { ...(HAIR[style] ?? HAIR.mop), ...shape };
   if (cap && S.top == null) S.top = 8;
   if (helmet && S.top == null) { S.top = 7; S.helmetFront = true; }
   const r = mulberry32(seed);
@@ -92,6 +95,12 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
     if (S.top != null && y > S.top + (z < -2 ? 0.6 : 0)) return true;
     if (S.helmetFront && z > 1.5 && y > 4.6) return true;               // the helmet's cheek guards
     if (Math.abs(x) < 4 && z > 3.6 && y < fringe.get(i)) return true;    // keep the face clear
+    if (S.front != null && z > S.front && y < fringe.get(Math.max(-5, Math.min(4, i))) + 2.5) return true;   // no fringe jutting out over the eyes
+    if (S.pulled != null && z > S.pulled) {
+      // hair pulled back from the face: only a lock or two in front of the ears
+      const lock = Math.abs(x) > 4 && Math.abs(x) < 5.2 && z < 3.4 && y > S.side && y < 7.5 && (S.locks ?? []).includes(Math.sign(x));
+      if (!lock) return true;
+    }
     if (y < (z < -1.5 ? S.back : S.side)) return true;
     if (Math.abs(x) < 4.2 && z > 0 && y < 1.5) return true;               // never under the chin
     return false;
@@ -146,6 +155,18 @@ export function heroHair({ style, base, shade, light, warm = null, seed = 1, cap
     const [i, j, k] = key.split(',').map(Number);
     if (j < cy && r() < 0.05 && !cells.has(`${i},${j + 1},${k}`)) cells.delete(key);
   }
+  // a full beard: the jaw, cheeks and chin, leaving the mouth clear
+  if (beard) {
+    const len = beard.length ?? 2, mouthY = beard.mouth ?? 0.5;
+    for (let i = -5; i < 5; i++) for (let j = -len; j < 5; j++) for (let k = -1; k < 6; k++) {
+      const x = i + 0.5, y = j + 0.5, z = k + 0.5;
+      if (inHead(i, j, k) || cells.has(`${i},${j},${k}`)) continue;
+      const side = Math.abs(x) > 4 && Math.abs(x) < 5.2 && z > -0.5 && z < 4.2 && y < 4.5 - (z > 2.5 ? 0.5 : 0);
+      const front = Math.abs(x) < 4.2 && z > 4 && z < 5.1 + (y < 0.5 ? 0.6 : 0) && y < 2.6 - Math.abs(x) * 0.15 && !(Math.abs(x) < 1.6 && y > mouthY - 0.5 && y < mouthY + 0.6);
+      const under = Math.abs(x) < 4.6 && y < 0 && z > -0.5 && z < 5.4 && y > -len + Math.abs(x) * 0.35 + Math.max(0, 2 - z) * 0.4;
+      if (side || front || under) cells.set(`${i},${j},${k}`, tone(x, y - 6, z));
+    }
+  }
   return { cells, solid: inHead };
 }
 
@@ -198,7 +219,8 @@ const B = (at, size, c) => ({ at, size, col: c instanceof THREE.Color ? c : col(
 
 // Footwear on a leg (the leg runs from y 0 at the hip to y -12).
 // kind: 'hitop' (canvas high-tops: dark upper, white toe cap, sole, laces),
-// 'boot' (laced work or combat boot), 'hoof' (split goat hoof with fur).
+// 'boot' (laced work or combat boot), 'hoof' (split goat hoof with fur),
+// 'sandal' (bare foot on a sole with straps; trim is the foot's skin).
 export function footwear(kind, { upper, sole, lace = 0xf0ece0, trim = null, seed = 1 }) {
   const L = [];
   if (kind === 'hoof') {
@@ -214,6 +236,14 @@ export function footwear(kind, { upper, sole, lace = 0xf0ece0, trim = null, seed
     return L;
   }
   const s = col(sole), u = col(upper), lc = col(lace);
+  if (kind === 'sandal') {
+    // bare feet on a thick sole, two straps over the toes and one round the ankle
+    L.push(B([0, -11.6, 0.6], [4.9, 0.8, 5.8], s));
+    L.push(B([0, -10.9, 1.2], [4.5, 0.7, 4.4], col(trim ?? 0xd89060)));
+    L.push(B([0, -10.6, 2.2], [4.7, 0.5, 0.8], u)); L.push(B([0, -10.6, 0.4], [4.7, 0.5, 0.8], u));
+    L.push(B([0, -9.4, -0.4], [4.6, 0.6, 4.6], u));
+    return L;
+  }
   if (kind === 'boot') {
     L.push(B([0, -11.55, 0.5], [5, 0.9, 5.8], s));
     L.push(B([0, -9.6, 0.4], [4.7, 3.2, 5.2], u));

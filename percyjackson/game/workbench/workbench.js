@@ -569,4 +569,4 @@ if (loadErrors.length) status(`Some modules failed to load:\n${loadErrors.join('
 if (!fromHash()) { const first = items.find((i) => i.group === 'heroes') ?? items[0]; if (first) select(first, { fromHash: true }); else renderInspector(); }
 status(isGPU ? '' : '');
 stageEl.title = isGPU ? 'WebGPU' : 'WebGL2';
-window.__wb = { items, thumbs, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
+window.__wb = { items, thumbs, camera, controls, select: (k) => select(itemByKey(k)), get current() { return current; }, backend: isGPU ? 'webgpu' : 'webgl2', queueLength: () => queue.length };
