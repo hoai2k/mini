@@ -54,3 +54,35 @@ export async function playSamples(samples, sampleRate) {
     resume: () => a.play(),
   };
 }
+
+/**
+ * After the mic is freed, the phone takes a moment to move sound back to its
+ * normal output (a Bluetooth speaker, say). Wait for it to report the change,
+ * or `maxMs` at most.
+ */
+export function outputSettled(maxMs = 700) {
+  return new Promise((resolve) => {
+    const md = navigator.mediaDevices;
+    let timer;
+    const done = () => {
+      clearTimeout(timer);
+      md?.removeEventListener?.('devicechange', changed);
+      resolve();
+    };
+    const changed = () => { clearTimeout(timer); timer = setTimeout(done, 200); };
+    md?.addEventListener?.('devicechange', changed);
+    timer = setTimeout(done, maxMs);
+  });
+}
+
+/** Send takes to a chosen speaker ('default' follows the system). */
+export async function setSpeaker(id) {
+  const a = element();
+  if (!('setSinkId' in a)) return false;
+  try {
+    await a.setSinkId(id === 'default' ? '' : id);
+    return true;
+  } catch {
+    return false;
+  }
+}

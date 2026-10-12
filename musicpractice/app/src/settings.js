@@ -57,6 +57,9 @@ export const DEFAULTS = Object.freeze({
   startOn: 'music',
   autoPlay: true,
   recordDuringPlayback: false,
+  mic: 'auto', // or a deviceId (Audio check)
+  speaker: 'default', // or a deviceId (Audio check, where the browser allows)
+  syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
 });
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -86,6 +89,9 @@ export function sanitize(raw) {
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),
     autoPlay: typeof s.autoPlay === 'boolean' ? s.autoPlay : DEFAULTS.autoPlay,
     recordDuringPlayback: typeof s.recordDuringPlayback === 'boolean' ? s.recordDuringPlayback : DEFAULTS.recordDuringPlayback,
+    mic: typeof s.mic === 'string' && s.mic.length < 200 ? s.mic : DEFAULTS.mic,
+    speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
+    syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
   };
 }
 

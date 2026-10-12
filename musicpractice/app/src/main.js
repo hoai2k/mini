@@ -1,9 +1,16 @@
 // Music Practice: the home screen, the metronome and the practice recorder.
 
-import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake } from './audio.js';
-import { playSamples, primeFromTap } from './player.js';
+import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
+import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
+import { openAudioCheck } from './audiocheck.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
+
+// "Record during playback" is parked: its setting is hidden and ignored, and
+// its code is kept to fix and re-enable later. Recording and playback are
+// separate: the recorder listens, records, plays the take back, listens again.
+const RECORD_DURING_PLAYBACK = false;
+const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
@@ -163,7 +170,10 @@ function startMetronome() {
   // tap, so the new one may start).
   const ctx = freshAudio();
   unlock();
-  if (!metronome || metronome.ctx !== ctx) metronome = new Metronome(ctx);
+  if (!metronome || metronome.ctx !== ctx) {
+    metronome = new Metronome(ctx);
+    if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+  }
   metronome.configure(settings);
   metronome.start();
   pendulum.classList.remove('resting');
@@ -356,7 +366,7 @@ function showState() {
 function configureRecorder() {
   if (recorder) {
     recorder.configure(settings);
-    recorder.echoCancel = settings.recordDuringPlayback;
+    recorder.echoCancel = recordDuringPlayback();
   }
   for (const el of document.querySelectorAll('.silence-sec')) el.textContent = fmtSec(settings.silenceSec);
   persist();
@@ -384,7 +394,8 @@ async function startRecorder() {
     recorder.addEventListener('miclost', () => { if (document.visibilityState === 'visible') recoverMic(); });
   }
   recorder.configure(settings);
-  recorder.echoCancel = settings.recordDuringPlayback;
+  recorder.echoCancel = recordDuringPlayback();
+  recorder.micChoice = settings.mic;
   recError = '';
   try {
     await recorder.on();
@@ -483,10 +494,11 @@ let playToken = 0;
 async function play(take, { auto = false } = {}) {
   stopPlayback({ resume: false });
   const token = ++playToken;
+  let freed = false;
   if (recorder && recorder.state !== 'off') {
     if (!auto) recorder.pause();
-    else if (!settings.recordDuringPlayback) recorder.hold();
-    if (!settings.recordDuringPlayback && recorder.micOpen) recorder.release();
+    else if (!recordDuringPlayback()) recorder.hold();
+    if (!recordDuringPlayback() && recorder.micOpen) freed = recorder.release();
   }
   // Playback mode only when no mic is held: switching while Safari holds one
   // could cut it off and interrupt the record-play-record loop.
@@ -495,6 +507,9 @@ async function play(take, { auto = false } = {}) {
   wave?.showTake(take.samples);
   renderTakes();
   showState();
+  // With the mic freed, give the phone a moment to move sound back to its
+  // normal output (a Bluetooth speaker) before playing.
+  if (freed) await outputSettled();
   if (token !== playToken) return; // stopped or replaced while waiting
   let handle;
   try {
@@ -621,7 +636,7 @@ chips($('starton-chips'), [{ id: 'music', label: 'Musical notes' }, { id: 'any',
 chips($('sens-chips'), [{ id: 'low', label: 'Low' }, { id: 'medium', label: 'Medium' }, { id: 'high', label: 'High' }], () => settings.sensitivity, (v) => { settings.sensitivity = v; configureRecorder(); });
 $('autoplay').checked = settings.autoPlay;
 $('autoplay').addEventListener('change', () => { settings.autoPlay = $('autoplay').checked; configureRecorder(); });
-$('rec-during').checked = settings.recordDuringPlayback;
+$('rec-during').checked = recordDuringPlayback();
 $('rec-during').addEventListener('change', () => {
   settings.recordDuringPlayback = $('rec-during').checked;
   configureRecorder();
@@ -679,6 +694,41 @@ store.list().then((saved) => {
   takes = [...takes, ...saved.filter((s) => !takes.some((t) => t.created === s.created))];
   renderTakes();
 });
+// Audio check choices: pendulum delay, speaker (where the browser allows).
+setExtraDelay(settings.syncMs / 1000);
+if (settings.speaker !== 'default') setSpeaker(settings.speaker);
+
+for (const b of document.querySelectorAll('.open-audio-check')) {
+  b.addEventListener('click', () => {
+    b.closest('dialog')?.close();
+    openAudioCheck({
+      settings,
+      save: persist,
+      recorder: () => recorder,
+      onMic: async (id) => {
+        settings.mic = id;
+        persist();
+        if (recorder) {
+          try { await recorder.chooseMic(id); } catch (err) { recError = micError(err); recorder.off(); }
+          showState();
+        }
+      },
+      onSpeaker: async (id) => {
+        settings.speaker = id;
+        persist();
+        const media = await setSpeaker(id);
+        if (existingAudio()) await setContextSpeaker(id);
+        return media;
+      },
+      onSync: (ms) => {
+        settings.syncMs = ms;
+        persist();
+        setExtraDelay(ms / 1000);
+      },
+    });
+  });
+}
+
 applyTheme();
 route();
 requestAnimationFrame(frame);

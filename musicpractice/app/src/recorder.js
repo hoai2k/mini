@@ -7,18 +7,35 @@
 // 'paused' (the player is using the takes list; the mic is ignored).
 
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
+import { listDevices, preferredMic, micPermission } from './devices.js';
 
 const PREROLL_SEC = 2;
 const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
 
 /*
- * The mic is asked for once and then held for the whole visit: asking again
- * can bring the permission prompt back (Safari and every iPhone browser ask
- * again unless the site is set to Allow). Turning listening off or playing a
- * take back only stops processing it and switches its track off. It is asked
- * for again only when the browser reports the held mic dead (the app was
- * left, a call took it), never on purpose.
+ * Asking for the mic again can bring the permission prompt back (Safari and
+ * every iPhone browser ask again unless the site's microphone is set to
+ * Allow), and a prompt would stall the listen → record → play back loop. But
+ * while a page holds the mic, phones stay in call mode and won't play on a
+ * Bluetooth speaker. So:
+ *
+ * - where the browser reports mic permission as granted for good, the mic is
+ *   freed for each playback (Bluetooth works) and taken back afterwards
+ *   without a prompt;
+ * - otherwise it is held for the whole visit, its track switched off when
+ *   not listening, and asked for again only if the browser reports it dead.
+ *
+ * If taking it back ever takes long enough to suggest a prompt appeared
+ * after all, the mic is held for the rest of the visit.
  */
+let promptSuspected = false;
+const PROMPT_SUSPECT_MS = 900;
+
+/** Is the mic freed while takes play (so a Bluetooth speaker can be used)? */
+export function freesMicForPlayback() {
+  return micPermission() === 'granted' && !promptSuspected;
+}
+export const promptWasSuspected = () => promptSuspected;
 const SETTLE_SEC = 0.35; // ignore the mic this long after playback (room echo)
 
 export class Recorder extends EventTarget {
@@ -35,6 +52,8 @@ export class Recorder extends EventTarget {
     this.ignoreUntil = 0;
     this.detector = new PlayDetector({ sampleRate: ctx.sampleRate });
     this.pending = new Float32Array(0); // samples not yet in a full frame
+    this.micChoice = 'auto';
+    this.freedOnPurpose = false;
   }
 
   configure({ silenceSec, sensitivity, startOn }) {
@@ -65,11 +84,38 @@ export class Recorder extends EventTarget {
     this.set('off');
   }
 
-  /** Stop listening to the mic but stay on (while a take plays back). */
+  /**
+   * Stop listening to the mic but stay on (while a take plays back). The mic
+   * is freed where it can be taken back without a prompt, so the phone leaves
+   * call mode and plays on a Bluetooth speaker; returns true if it was.
+   */
   release() {
-    if (this.state === 'off') return;
+    if (this.state === 'off') return false;
     if (this.state === 'recording') this.finish(false);
+    if (freesMicForPlayback()) {
+      this.closeMic(true);
+      this.freedOnPurpose = true;
+      return true;
+    }
     this.closeMic();
+    return false;
+  }
+
+  /** Which mic to use: 'auto' (built-in preferred) or a deviceId. Reopens it if open. */
+  async chooseMic(choice) {
+    this.micChoice = choice || 'auto';
+    if (!this.stream) return;
+    const listening = !!this.graph;
+    this.closeMic(true);
+    if (listening) {
+      await this.openMic();
+      if (this.state === 'waiting' || this.state === 'recording') this.listen();
+    }
+  }
+
+  /** The name of the mic in use, if the browser shows it. */
+  get micLabel() {
+    return this.stream?.getAudioTracks()[0]?.label || '';
   }
 
   /** Is the mic still held (it always is once granted, unless it died)? */
@@ -144,9 +190,13 @@ export class Recorder extends EventTarget {
     } else {
       if (stream) this.dropStream();
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: !!this.echo, noiseSuppression: false, autoGainControl: false },
-      });
+      const asked = performance.now();
+      stream = await this.request();
+      // Taking back a mic we freed should be instant; a long wait means the
+      // browser asked again, so hold the mic from now on.
+      if (this.freedOnPurpose && performance.now() - asked > PROMPT_SUSPECT_MS) promptSuspected = true;
+      this.freedOnPurpose = false;
+      stream = await this.preferBuiltIn(stream);
       this.keepStream(stream);
       // Turned off (or closed again) while the browser was opening it: hold it, switched off.
       if (ticket !== this.ticket) {
@@ -173,6 +223,48 @@ export class Recorder extends EventTarget {
     }
     src.connect(node).connect(sink);
     this.graph = { src, node, sink };
+  }
+
+  constraints(deviceId) {
+    return {
+      audio: {
+        echoCancellation: !!this.echo,
+        noiseSuppression: false,
+        autoGainControl: false,
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+      },
+    };
+  }
+
+  /** Ask for the preferred mic (names are known once permission was granted). */
+  async request() {
+    const { inputs, labelled } = await listDevices();
+    const id = labelled ? preferredMic(inputs, this.micChoice) : null;
+    try {
+      return await navigator.mediaDevices.getUserMedia(this.constraints(id));
+    } catch (err) {
+      if (!id) throw err;
+      return navigator.mediaDevices.getUserMedia(this.constraints(null)); // that device is gone
+    }
+  }
+
+  /**
+   * First time in, names were unknown: if the default turned out to be a
+   * Bluetooth mic and a built-in one exists, switch to it. The new mic is
+   * asked for while the first is still open, so there is no second prompt.
+   */
+  async preferBuiltIn(stream) {
+    const { inputs } = await listDevices();
+    const want = preferredMic(inputs, this.micChoice);
+    const have = stream.getAudioTracks()[0]?.getSettings?.().deviceId;
+    if (!want || want === have) return stream;
+    try {
+      const better = await navigator.mediaDevices.getUserMedia(this.constraints(want));
+      stream.getTracks().forEach((t) => t.stop());
+      return better;
+    } catch {
+      return stream;
+    }
   }
 
   keepStream(stream) {

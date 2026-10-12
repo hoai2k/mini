@@ -58,10 +58,39 @@ export function setSession(type) {
   } catch { /* not supported */ }
 }
 
-/** When the sound scheduled for `t` is heard, in context time. */
+/**
+ * How far behind the sound reaches the ears: the latency the browser reports
+ * (large on Bluetooth: often 0.15-0.3 s; Safari doesn't report it) plus a
+ * manual adjustment from Audio check. Clamped, so a strange report can't
+ * throw the pendulum off.
+ */
+let extraDelay = 0;
+export function setExtraDelay(sec) {
+  extraDelay = Math.max(-0.2, Math.min(0.5, Number(sec) || 0));
+}
+export function reportedLatency() {
+  const c = ctx;
+  if (!c) return null;
+  const v = c.outputLatency || c.baseLatency || 0;
+  return Number.isFinite(v) ? Math.min(Math.max(v, 0), 0.6) : 0;
+}
+
+/** When the sound scheduled for `t` is heard, in context time (drives the pendulum). */
 export function heardNow() {
   const c = audio();
-  return c.currentTime - (c.outputLatency || c.baseLatency || 0);
+  return c.currentTime - reportedLatency() - extraDelay;
+}
+
+/** Send Web Audio (the metronome) to a chosen speaker, where supported. */
+export async function setContextSpeaker(id) {
+  const c = audio();
+  if (typeof c.setSinkId !== 'function') return false;
+  try {
+    await c.setSinkId(id === 'default' ? '' : id);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Keep the screen awake while something is running. */
