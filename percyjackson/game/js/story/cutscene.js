@@ -35,6 +35,8 @@ export class Cutscene {
     this.buildOverlay();
     this.set = this.def.build(g, this) ?? { shots: [] };
     this.shots = this.set.shots ?? [];
+    // its music plays over the set's (story/cutscenes.js music keys; the generated music until a track arrives)
+    if (this.def.music) g.audio?.setOverride?.(this.def.music);
     this.total = this.shots.reduce((s, x) => s + x.dur, 0);
     this.fov0 = g.rig.camera.fov;
     this.onKey = (e) => { if (['Escape', 'Space', 'Enter', 'KeyE'].includes(e.code)) { this.held.key = e.type === 'keydown'; if (e.type === 'keydown') e.preventDefault(); } };
@@ -150,6 +152,7 @@ export class Cutscene {
     this.subH?.cancel?.();
     const el = this.el; el?.classList.remove('in'); setTimeout(() => el?.remove(), 400);
     this.set?.dispose?.();
+    if (this.def.music && this.game.audio?.overrideMusic === this.def.music) this.game.audio.setOverride(null);
     const cam = this.game.rig.camera;
     if (this.fov0 && cam.fov !== this.fov0) { cam.fov = this.fov0; cam.updateProjectionMatrix(); }
   }

@@ -89,8 +89,9 @@ export class Tracker {
     this.ring.position.y = 0.08;
     this.chev = add(new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.8, 4).rotateX(Math.PI), new THREE.MeshBasicNodeMaterial({ color: gold.clone().multiplyScalar(2.4) })));
     this.group.add(this.beam, this.ring, this.chev);
-    const fg = new THREE.BoxGeometry(0.17, 0.02, 0.32);
-    this.feet = add(new THREE.InstancedMesh(fg, new THREE.MeshBasicNodeMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending }), STEPS));
+    // footprints: bright gold (over the tone mapping, so they glow on pale pavements too)
+    const fg = new THREE.BoxGeometry(0.24, 0.03, 0.42);
+    this.feet = add(new THREE.InstancedMesh(fg, new THREE.MeshBasicNodeMaterial({ color: 0xffffff }), STEPS));
     this.feet.count = 0;
     for (let i = 0; i < STEPS; i++) this.feet.setColorAt(i, gold);
     this.col = new THREE.Color();
@@ -139,9 +140,9 @@ export class Tracker {
     const sw = window.innerWidth, sh = window.innerHeight;
     let sx = (tmp.x * 0.5 + 0.5) * sw, sy = (-tmp.y * 0.5 + 0.5) * sh;
     if (behind) { sx = sw - sx; sy = sh - sy; }
-    const m = 56;
+    const m = 56, mt = 96, mb = 140;   // (margins clear the objective ribbon and the hero cards)
     const label = dist < 3 ? '' : `${Math.round(dist)} m`;
-    if (!behind && sx > m && sx < sw - m && sy > m && sy < sh - m) {
+    if (!behind && sx > m && sx < sw - m && sy > mt && sy < sh - mb) {
       this.arrow.classList.add('hidden'); this.pin.classList.remove('hidden');
       this.pin.style.transform = `translate(${sx.toFixed(0)}px, ${sy.toFixed(0)}px)`;
       const d = this.pin.lastChild; if (d.textContent !== label) d.textContent = label;
@@ -149,7 +150,7 @@ export class Tracker {
       this.pin.classList.add('hidden'); this.arrow.classList.remove('hidden');
       const cx = sw / 2, cy = sh / 2; let dx = sx - cx, dy = sy - cy;
       if (Math.hypot(dx, dy) < 1) dy = -1;
-      const k = Math.min((cx - m) / Math.abs(dx || 1e-6), (cy - m) / Math.abs(dy || 1e-6));
+      const k = Math.min((cx - m) / Math.abs(dx || 1e-6), (dy < 0 ? cy - mt : cy - mb) / Math.abs(dy || 1e-6));
       const ax = cx + dx * k, ay = cy + dy * k, ang = Math.atan2(dy, dx);
       this.arrow.style.transform = `translate(${ax.toFixed(0)}px, ${ay.toFixed(0)}px)`;
       this.arrow.firstChild.style.transform = `rotate(${ang.toFixed(3)}rad)`;
@@ -173,9 +174,9 @@ export class Tracker {
         this.e.set(0, yaw, 0); this.q.setFromEuler(this.e);
         this.m4.compose(tmp.set(x + ox, y + 0.04, z + oz), this.q, this.s);
         this.feet.setMatrixAt(n, this.m4);
-        const a = still ? 0.55 : 0.25 + 0.6 * Math.max(0, Math.sin(this.t * 4 - n * 0.55));
-        const fade = Math.min(1, (STEPS - n) / 6);
-        this.feet.setColorAt(n, this.col.setRGB(1.0 * a * fade, 0.85 * a * fade, 0.3 * a * fade));
+        const a = still ? 1.4 : 0.9 + 1.3 * Math.max(0, Math.sin(this.t * 4 - n * 0.55));
+        const fade = 0.55 + 0.45 * Math.min(1, (STEPS - n) / 6);
+        this.feet.setColorAt(n, this.col.setRGB(1.0 * a * fade, 0.78 * a * fade, 0.22 * a * fade));
         n++; side = -side; t += GAP;
       }
       carry = t - L;

@@ -34,6 +34,7 @@ export class OpeningFlow {
     const g = this.game;
     if (!isStep(step)) step = 'prologue';
     this.running = step;
+    if (!g.online?.isGuest) this.setStep(step);   // (marks the save as in the opening, from the first step)
     const info = STEP_INFO[step];
     if (info.kind === 'level') return this.startPrologue(opts);
     if (info.kind === 'cutscene') return this.playCutscene(info.cutscene, { step });

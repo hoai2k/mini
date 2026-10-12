@@ -59,11 +59,11 @@ export const BIOMES = {
   // The prologue: a Manhattan street on a bright spring morning (the field trip).
   manhattan: {
     id: 'manhattan', name: 'Manhattan', sub: 'The Morning of the Field Trip',
-    skyTop: 0x4a8ad8, skyHorizon: 0xf0dcc0, fog: 0xd8d4cc, fogDensity: 0.008,
+    skyTop: 0x4a8ad8, skyHorizon: 0xf0dcc0, fog: 0xd8d4cc, fogDensity: 0.0045,
     hemiSky: 0xdceaff, hemiGround: 0x6a5a4a, hemiI: 1.1, sun: 0xffe6c0, sunI: 2.4,
     grade: { tint: [1.04, 1.0, 0.95], lift: [0.012, 0.008, 0.0], sat: 1.1, contrast: 1.05, vignette: 0.2 },
     floor: B.asphalt, floor2: B.asphalt_line, path: B.sidewalk, wall: B.brownstone, wall2: B.red_brick, trim: B.white_trim, pillar: B.concrete_pillar, roof: B.roof_slate, ground: B.sidewalk, accent: B.lantern, pit: B.concrete,
-    ambience: 'city', music: 'title', particles: 'pollen', wind: 0.6,
+    ambience: 'city', music: 'manhattan', particles: 'pollen', wind: 0.6,
   },
   // Chapter 1: the Greek and Roman galleries of a big city museum.
   museum: {

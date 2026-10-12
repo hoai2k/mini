@@ -23,7 +23,7 @@ const smooth = (k) => k * k * (3 - 2 * k);
 
 // A figure in a cutscene: a rig that can stand, turn and walk to a point.
 function actor(game, rig, pos, yaw = 0) {
-  rig.root.position.copy(pos); rig.root.rotation.y = yaw;
+  rig.root.position.copy(pos); rig.root.rotation.order = 'YXZ'; rig.root.rotation.y = yaw;   // (turn, then lie back)
   game.scene.add(rig.root);
   const a = { rig, pos: pos.clone(), yaw, to: null, speed: 3.2, vel: new THREE.Vector3(), lie: 0 };
   a.walk = (to, speed = 3.2) => { a.to = to.clone(); a.speed = speed; };
@@ -39,7 +39,7 @@ function actor(game, rig, pos, yaw = 0) {
     rig.root.position.copy(a.pos);
     rig.root.rotation.y += Math.atan2(Math.sin(a.yaw - rig.root.rotation.y), Math.cos(a.yaw - rig.root.rotation.y)) * Math.min(1, dt * 10);
     rig.root.rotation.x = -a.lie * Math.PI / 2;
-    rig.root.position.y = a.pos.y + a.lie * 0.45;
+    rig.root.position.y = a.pos.y + a.lie * 0.62;
     rig.animate({ dt, speed: sp, vel: a.vel });
   };
   a.dispose = () => game.scene.remove(rig.root);
@@ -66,13 +66,13 @@ function setLevel(game, L, biome) {
 export const CUTSCENES = {
   // ------------------------------------------------------------------ the bus to the museum
   bus: {
-    id: 'bus', title: 'The field trip',
+    id: 'bus', music: 'cutscene-journey', title: 'The field trip',
     build(game) {
       const L = buildAvenueSet();
       setLevel(game, L, BIOMES.manhattan);
       const bus = schoolBus(); bus.rotation.y = -Math.PI / 2; bus.position.copy(L.busFrom); game.scene.add(bus);
       // traffic: taxis in the other lanes
-      const traffic = [taxi(), car(0x2a5a6a), taxi(), car(0x7a2a2a), taxi()].map((t, i) => { t.rotation.y = i % 2 ? Math.PI / 2 : -Math.PI / 2; t.position.set(i % 2 ? 41 : 34, L.FY, 20 + i * 40); game.scene.add(t); return { t, v: i % 2 ? -9 : 7.5 }; });
+      const traffic = [taxi(), car(0x2a5a6a), taxi(), car(0x7a2a2a), taxi()].map((t, i) => { t.rotation.y = i % 2 ? Math.PI / 2 : -Math.PI / 2; t.position.set(i % 2 ? 37.5 : 34, L.FY, 20 + i * 40); game.scene.add(t); return { t, v: i % 2 ? -9 : 7.5 }; });
       const parked = [taxi(), car(0x3a3a6a)].map((t, i) => { t.rotation.y = -Math.PI / 2; t.position.set(30.2, L.FY, L.MC - 30 - i * 9); game.scene.add(t); return t; });
       const heroes = partyHeroes(game);
       const actors = [];
@@ -103,11 +103,12 @@ export const CUTSCENES = {
         { dur: 4.6, fadeIn: 'black',
           cam: move({ pos: [66, 30, -6], look: [34, 4, 30] }, { pos: [54, 16, 26], look: [32, 5, 52] }, { fov: 40, fov2: 36 }),
           lines: [{ at: 0.3, text: 'Yancy Academy’s field trip: twenty-eight kids, one yellow school bus, and New York in the morning.' }],
+          card: { src: 'assets/cards/scene-field-trip.jpg', at: 0.6, dur: 3.8 },
           act: (k, dt) => drive(L.busFrom.z + 80, dt) },
         { dur: 4.8,
           cam: follow(bus, [15, 5, -10], [-2, 1.6, 2], { offset2: [13, 4.2, 7], fov: 42 }),
           lines: [{ at: 0.2, text: 'Grover sits next to you, chewing on an apple core. He keeps glancing at the teacher at the front.' }],
-          card: { src: 'assets/cards/scene-field-trip.jpg', at: 0.4, dur: 4 },
+          card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 4 },
           act: (k, dt) => drive(L.MC - 40, dt) },
         { dur: 5.2,
           cam: move({ pos: [52, 8, L.MC + 42], look: [16, 9, L.MC + 2] }, { pos: [50, 14, L.MC + 30], look: [14, 12, L.MC] }, { fov: 46 }),
@@ -116,6 +117,7 @@ export const CUTSCENES = {
         { dur: 6.6,
           cam: move({ pos: [17.5, L.top + 3.2, L.MC - 6], look: [27, L.FY + 1.2, L.MC + 5] }, { pos: [16.5, L.top + 3.8, L.MC - 9], look: [22, L.FY + 1.6, L.MC + 4] }, { fov: 42 }),
           lines: [{ at: 0.8, text: 'Everybody off. Up the steps, past the columns, toward the old marble and bronze.' }],
+          card: { src: 'assets/cards/scene-museum-steps.jpg', at: 2.2, dur: 4 },
           act: (k, dt, t) => { drive(L.busStop.z, dt, 4); unload(t); } },
         { dur: 4.2, fadeOut: 'black',
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
@@ -134,7 +136,7 @@ export const CUTSCENES = {
   },
   // ------------------------------------------------------------------ summer, the storm, the drive
   summer: {
-    id: 'summer', title: 'Summer, and a storm',
+    id: 'summer', music: 'cutscene-storm', title: 'Summer, and a storm',
     build(game) {
       const L = buildMontaukSet();
       setLevel(game, L, BIOMES.storm_hill);
@@ -168,16 +170,17 @@ export const CUTSCENES = {
           lines: [{ at: 0.3, text: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she met your father.' }] },
         { dur: 5.6,
           enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 4.6); flash(); },
-          cam: move({ pos: [L.door.x - 7, 3.6, L.door.z + 6.5], look: [L.door.x - 0.5, 1.6 + L.FY, L.door.z] }, { pos: [L.door.x - 5.6, 3.2, L.door.z + 5], look: [L.door.x - 0.8, 1.6 + L.FY, L.door.z] }, { fov: 38 }),
+          cam: move({ pos: [L.door.x - 6, L.FY + 4.6, L.door.z - 8], look: [L.door.x - 1.2, L.FY + 1.4, L.door.z] }, { pos: [L.door.x - 5, L.FY + 4, L.door.z - 6.5], look: [L.door.x - 1, L.FY + 1.5, L.door.z] }, { fov: 40 }),
           lines: [{ at: 0.6, text: 'In the middle of the night, in a storm, someone bangs on the door. Grover. He has no trousers on. He has hooves.' }],
           card: { src: 'assets/cards/scene-montauk.jpg', at: 1.2, dur: 3.8 } },
         { dur: 5.4,
           enter: () => { grover.rig.root.visible = false; percy.rig.root.visible = false; mom.rig.root.visible = false; s = 0; },
-          cam: follow(cm, [-7, 4.2, 6], [3, 0.8, -2], { offset2: [-6, 3.6, -6], fov: 42 }),
+          cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
           lines: [{ at: 0.2, text: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.' }],
           act: (k, dt) => { const v = 13; s = Math.min(total, s + v * dt); place(s); spin(cm, v * dt); } },
         { dur: 4.6, fadeOut: 'white',
-          cam: move({ pos: [62, 9, 40], look: [80, 5, 22] }, { pos: [68, 8, 34], look: [80, 6, 14] }, { fov: 40, fov2: 34 }),
+          cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
+          card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
           lines: [{ at: 0.2, text: 'Toward a hill on Long Island, and a great pine tree at the top. Then the lightning hits.' }],
           act: (k, dt, t) => { const v = 13; s = Math.min(total - 2, s + v * dt); place(s); spin(cm, v * dt); if (t > 3.4 && !cm.userData.hit) { cm.userData.hit = true; flash(true); } } },
       ];
@@ -190,37 +193,39 @@ export const CUTSCENES = {
   },
   // ------------------------------------------------------------------ waking at the Big House
   wake: {
-    id: 'wake', title: 'Camp Half-Blood',
+    id: 'wake', music: 'cutscene-camp', title: 'Camp Half-Blood',
     build(game) {
       game.loadHub();
       game.mode = 'cutscene';
       hidePlayers(game);
       const L = game.level;
       // the hub's own Chiron steps aside for the cutscene's
-      const hidden = game.hubProps.filter((o) => o.position.distanceTo(L.chiron) < 0.1);
+      const hidden = game.hubProps.filter((o) => o.position.distanceTo(L.chiron) < 3);   // (Chiron and Mr. D)
       for (const o of hidden) o.visible = false;
       const porchY = L.chiron.y, pz = L.chiron.z;
       const actors = [];
-      const me = actor(game, buildHeroModel('percy'), V(49.5, porchY, pz - 0.4), Math.PI / 2); me.lie = 1; actors.push(me);
-      const ann = actor(game, buildHeroModel('annabeth'), V(51.2, porchY, pz + 0.6), -Math.PI * 0.6); actors.push(ann);
-      const chi = actor(game, buildNpc('chiron'), V(58, porchY, pz), -Math.PI / 2); actors.push(chi);
+      // on the lawn below the porch steps (the porch itself is too narrow for a camera)
+      const gy = porchY - 1;
+      const me = actor(game, buildHeroModel('percy'), V(58.2, gy + 0.35, 92.2), Math.PI / 2); me.lie = 1; actors.push(me);
+      const ann = actor(game, buildHeroModel('annabeth'), V(59.3, gy, 93.1), -1.05); actors.push(ann);
+      const chi = actor(game, buildNpc('chiron'), V(64.5, gy, 90.6), -Math.PI / 2); actors.push(chi);
       const chair = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.35, 1), new THREE.MeshStandardNodeMaterial({ color: 0x6a4a2a, roughness: 0.8 }));
-      chair.position.set(49.5, porchY + 0.2, pz - 0.4); chair.castShadow = true; game.scene.add(chair);
+      chair.position.set(57.2, gy + 0.2, 92.2); chair.castShadow = true; game.scene.add(chair);
       const shots = [
         { dur: 5.2, fadeIn: 'white',
-          cam: move({ pos: [30, 26, 70], look: [54, 9, 92] }, { pos: [44, 16, 104], look: [52, 9, 88] }, { fov: 42 }),
+          cam: move({ pos: [84, 34, 132], look: [54, 9, 90] }, { pos: [66, 20, 110], look: [52, 9, 88] }, { fov: 42 }),
           lines: [{ at: 0.4, text: 'You wake up on a porch, in the sun. Somebody is spooning something into your mouth. It tastes like your mom’s cookies.' }] },
         { dur: 5,
-          cam: move({ pos: [53.5, porchY + 2.6, pz + 5], look: [50, porchY + 0.8, pz] }, { pos: [52.6, porchY + 2.2, pz + 4], look: [50, porchY + 0.8, pz] }, { fov: 36 }),
+          cam: move({ pos: [55.2, gy + 2.8, 98.2], look: [58, gy + 0.7, 92.4] }, { pos: [55.8, gy + 2.4, 97.2], look: [58.1, gy + 0.8, 92.4] }, { fov: 40 }),
           lines: [{ at: 0.3, text: '“You drool when you sleep,” says a girl with curly blond hair and storm-grey eyes. Her name is Annabeth.' }],
           card: { src: 'assets/cards/scene-big-house.jpg', at: 0.5, dur: 4 } },
         { dur: 5.4,
-          enter: () => { chi.walk(V(53, porchY, pz + 0.2), 2.4); },
-          act: (k) => { me.lie = Math.max(0, 1 - Math.max(0, k - 0.35) * 3); if (me.lie === 0 && !me.stood) { me.stood = true; me.pos.y = porchY; me.yaw = Math.PI / 2; } },
-          cam: move({ pos: [55, porchY + 3, pz + 6.5], look: [52, porchY + 1.4, pz] }, { pos: [54, porchY + 2.6, pz + 5.6], look: [52.4, porchY + 1.6, pz] }, { fov: 38 }),
+          enter: () => { chi.walk(V(61.2, gy, 93.6), 2.4); },
+          act: (k) => { me.lie = Math.max(0, 1 - Math.max(0, k - 0.12) * 6); if (me.lie === 0 && !me.stood) { me.stood = true; me.pos.set(56.6, gy, 93); me.yaw = Math.PI * 0.6; } },
+          cam: move({ pos: [56.2, gy + 2.9, 97.8], look: [60, gy + 1.2, 92.2] }, { pos: [56.6, gy + 2.7, 97], look: [60, gy + 1.3, 92.2] }, { fov: 42 }),
           lines: [{ at: 0.3, text: 'And Mr. Brunner, your Latin teacher, trots over on four white legs. He is half horse. “Call me Chiron,” he says.' }] },
         { dur: 5.6, fadeOut: 'black',
-          cam: move({ pos: [56, porchY + 4, pz + 9], look: [54, porchY + 1, pz + 18] }, { pos: [62, 30, pz + 2], look: [54, 6, pz + 40] }, { fov: 40, fov2: 46 }),
+          cam: move({ pos: [54, porchY + 3, pz + 6], look: [54, 8, pz + 30] }, { pos: [54, 34, pz - 6], look: [54, 6, pz + 36] }, { fov: 40, fov2: 48 }),
           lines: [{ at: 0.3, text: 'Welcome to Camp Half-Blood: the one place in the world where kids like you are safe.' }] },
       ];
       return {

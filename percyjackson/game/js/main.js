@@ -787,7 +787,7 @@ class Game {
     U.camPos.value.copy(this.rig.camera.position);
     for (let i = 0; i < 4; i++) {
       const pl = this.players[i];
-      if (pl && !pl.dead) U.players.array[i].set(pl.pos.x, pl.pos.y, pl.pos.z, 1); else U.players.array[i].set(0, -999, 0, 0);
+      if (pl && !pl.dead && !this.cutscene) U.players.array[i].set(pl.pos.x, pl.pos.y, pl.pos.z, 1); else U.players.array[i].set(0, -999, 0, 0);   // (no see-through holes in cutscenes)
     }
     this.lights.update(dt, this.rig.focus);
     this.world.updateRoofs(this.players, realDt);

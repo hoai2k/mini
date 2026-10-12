@@ -104,7 +104,7 @@ export function buildMontaukSet() {
   for (let i = 0; i < 30; i++) { const x = 46 + Math.floor(k.r() * 48), zz = Math.floor(k.r() * SZ); if (W.get(x, FY - 1, zz) === B.grass) deco.add('tall_grass', x + 0.5, FY, zz + 0.5, { scale: 1.2 }); }
   for (let zz = 66; zz < 100; zz += 3) for (let x = 50; x < 92; x++) if (W.get(x, FY - 1, zz) === B.grass) W.set(x, FY - 1, zz, B.farm_soil);
   deco.prop('fence', 70, FY, 67.5, { len: 30 });
-  for (const [x, zz] of [[52, 40], [64, 30], [90, 70], [58, 80], [72, 92], [88, 88]]) pine(k, x, zz, FY, { h: 8 + Math.floor(k.r() * 4) });
+  for (const [x, zz] of [[52, 40], [90, 70], [58, 80], [72, 92], [88, 88]]) pine(k, x, zz, FY, { h: 8 + Math.floor(k.r() * 4) });
   // the hill and the great pine (where the drive ends)
   const HX = 78, HZ = 12;
   for (let zz = 0; zz < 26; zz++) for (let x = 64; x < 94; x++) { const d = Math.hypot(x - HX, (zz - HZ) * 1.2); const hh = Math.max(0, Math.min(5, Math.round(5.5 - d / 2.4))); for (let i = 0; i < hh; i++) W.set(x, FY + i, zz, i === hh - 1 ? B.grass : B.dirt); }

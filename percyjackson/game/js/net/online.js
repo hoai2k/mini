@@ -245,7 +245,8 @@ export class Online {
     }
     // the opening: the Manhattan prologue, or a cutscene (guests play the same one)
     if (g.mode === 'prologue') return { n: this.setupNonce, mode: 'prologue' };
-    if (g.mode === 'cutscene' && g.cutscene && !g.cutscene.done) return { n: this.setupNonce, mode: 'cut', id: g.cutscene.id };
+    // (between a cutscene and the chapter after it, the story cards: guests keep the cutscene's last picture)
+    if (g.mode === 'cutscene') return { n: this.setupNonce, mode: 'cut', id: g.cutscene && !g.cutscene.done ? g.cutscene.id : 'end' };
     const sc = { n: this.setupNonce, mode: 'hub' };
     if (this.storyCh && g.ui.isOpen('story')) sc.st = this.storyCh;
     return sc;
