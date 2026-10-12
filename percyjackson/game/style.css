@@ -286,10 +286,16 @@ input.focus, select.focus { outline: 3px solid var(--gold-hi); outline-offset: 2
 .ab .key { position: absolute; bottom: -1px; left: 0; right: 0; z-index: 3; font: 800 9px var(--font); text-align: center; color: var(--parch); background: rgba(0, 0, 0, .6); line-height: 11px; }
 .ab .cnt { position: absolute; right: 2px; top: 0; z-index: 3; font: 800 11px var(--font); color: var(--gold-hi); text-shadow: 0 1px 1px #000; }
 .ab.ready { border-color: var(--gold); }
+.ab.want { border-color: #8affc0; box-shadow: 0 0 12px rgba(120, 255, 180, .8); animation: flaskPulse 1.1s ease-in-out infinite; } @keyframes flaskPulse { 50% { box-shadow: 0 0 22px rgba(140, 255, 190, 1); transform: scale(1.06); } }
+.ammo { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; height: 36px; margin-left: -3px; border-radius: 8px; background: rgba(13, 10, 7, .82); border: 1px solid var(--gold-lo); font: 800 12px var(--font); line-height: 13px; color: var(--parch); text-shadow: 0 1px 1px #000; }
+.ammo .ai { font-size: 11px; line-height: 1; margin-bottom: 2px; filter: drop-shadow(0 1px 0 #000); }
+.ammo.low { color: #ffc24a; border-color: #b8862a; }
+.ammo.empty { color: #ff6a5a; border-color: #ff5a4a; }
+.ammo.dry { animation: ammoDry .35s ease-out; } @keyframes ammoDry { 0%, 60% { transform: translateX(-2px); background: rgba(120, 20, 10, .9); } 30% { transform: translateX(2px); } }
 .ab.ult { width: 46px; height: 46px; border-color: var(--gold); }
 .ab.ult.ready { border-color: var(--gold-hi); box-shadow: 0 0 14px rgba(255, 216, 74, .85); animation: pulse 1s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 24px rgba(255, 216, 74, 1); } }
 .pcards.multi .hcard { width: min(330px, 92vw); padding: 6px 8px 6px 6px; } .pcards.multi .port { width: 44px; height: 44px; }
-.pcards.multi .ab { width: 30px; height: 30px; font-size: 15px; } .pcards.multi .ab.ult { width: 36px; height: 36px; } .pcards.multi .ab .key { font-size: 8px; line-height: 9px; }
+.pcards.multi .ab { width: 30px; height: 30px; font-size: 15px; } .pcards.multi .ammo { height: 30px; width: 22px; font-size: 11px; } .pcards.multi .ab.ult { width: 36px; height: 36px; } .pcards.multi .ab .key { font-size: 8px; line-height: 9px; }
 .party-strip { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding-bottom: 2px; }
 .pm-row { display: flex; gap: 6px; }
 .pm { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--hc) var(--m, 360deg), #3a3326 0); border: 2px solid var(--gold-lo); box-shadow: 0 0 0 2px #0d0a07; }
@@ -330,6 +336,8 @@ input.focus, select.focus { outline: 3px solid var(--gold-hi); outline-offset: 2
 .tbtn { position: absolute; pointer-events: auto; border-radius: 50%; border: 3px solid var(--gold); background: rgba(23, 19, 15, .62); color: var(--gold-hi); font: 800 13px var(--font); display: grid; place-items: center; text-shadow: 0 1px 0 #000; touch-action: none; }
 .tbtn.on { background: rgba(201, 150, 58, .65); color: #17130f; }
 .tbtn .cd { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(rgba(0, 0, 0, .7) var(--p, 0%), transparent 0); }
+.tbtn .tcnt { position: absolute; right: -4px; top: -6px; font: 800 11px var(--font); font-style: normal; color: var(--parch); background: rgba(13, 10, 7, .85); border-radius: 8px; padding: 0 4px; }
+.tbtn.empty .tcnt { color: #ff6a5a; }
 .tbtn.ready-ult { border-color: var(--gold-hi); box-shadow: 0 0 16px rgba(255, 216, 74, .85); }
 .tpause { position: absolute; top: calc(10px + var(--safe-t)); left: 50%; transform: translateX(-50%); pointer-events: auto; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--gold); background: rgba(23, 19, 15, .6); color: var(--gold-hi); font-size: 16px; }
 #rotate-hint { position: fixed; inset: 0; z-index: 200; background: #17130f; color: var(--parch); display: none; place-items: center; text-align: center; font: 700 20px var(--head); padding: 30px; }
@@ -375,7 +383,7 @@ input.focus, select.focus { outline: 3px solid var(--gold-hi); outline-offset: 2
   .btn { min-width: 150px; padding: 8px 14px; font-size: 15px; }
   .panel { padding: 12px; } .panel h2 { font-size: 20px; margin-bottom: 8px; }
   .hcard { width: min(320px, 86vw); padding: 5px 8px 5px 5px; } .port { width: 44px; height: 44px; }
-  .ab { width: 30px; height: 30px; font-size: 15px; } .ab.ult { width: 36px; height: 36px; } .ab .key { font-size: 8px; line-height: 9px; }
+  .ab { width: 30px; height: 30px; font-size: 15px; } .ammo { height: 30px; width: 22px; font-size: 11px; } .ab.ult { width: 36px; height: 36px; } .ab .key { font-size: 8px; line-height: 9px; }
   .pcards { right: calc(110px + var(--safe-r)); }
   .minimap { width: 100px; height: 100px; } .mini-frame { padding: 10px; }
   .inv { grid-template-columns: 1fr; } .tree { grid-template-columns: repeat(2, 1fr); }

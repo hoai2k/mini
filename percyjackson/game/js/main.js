@@ -27,6 +27,7 @@ import { Boats } from './world/boats.js';
 import { generateLevel } from './world/levelgen.js';
 import { Mission } from './mission.js';
 import { Pickups } from './pickups.js';
+import { bundlesFrom } from './resources.js';
 import { Minimap } from './ui/minimap.js';
 import { BOSS_IDS, warmupGroup } from './entities/bosses.js';
 import { Player } from './entities/player.js';
@@ -379,7 +380,7 @@ class Game {
     this.players.forEach((p, i) => {
       p.spawn(at.clone().add(new THREE.Vector3((i % 2) * 1.4 - 0.7 * (i > 0), 0, Math.floor(i / 2) * 1.4)));
       p.hp = p.maxHp; p.dead = false; p.downed = false; p.deadT = 0; p.downT = 0; p.reviveProgress = 0;
-      p.action = null; p.healCharges = p.healMax; p.iframes = 2; p.knock?.set(0, 0, 0);
+      p.action = null; p.refill(); p.iframes = 2; p.knock?.set(0, 0, 0);
       p.hurtT = 0; p.rig.swap(null);
       p.rig.hips.rotation.x = 0;
     });
@@ -610,6 +611,7 @@ class Game {
       this.pickups.drop('coin', e.pos, a + Math.floor(Math.random() * (b - a + 1)));
       if (Math.random() < 0.08) this.pickups.drop('heal', e.pos, 1);
       if (Math.random() < 0.12) this.pickups.drop('ce', e.pos, 1);
+      const nb = bundlesFrom(e.elite ? 'elite' : e.def.tier ?? 'minor'); if (nb) this.pickups.drop('arrows', e.pos, nb);   // ammo bundles (resources.js)
       this.maybeDropFromMonster(e);
     }
   }

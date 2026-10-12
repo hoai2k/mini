@@ -27,6 +27,7 @@ import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
 import { isGuest, sendAct } from './objectives/common.js';
 import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
 import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
+import { bundlesFrom } from './resources.js';
 
 const OBJ_TEXT = {
   exorcise: (o) => ['Defeat the Monsters', `${o.done} / ${o.need} monsters defeated`],
@@ -210,6 +211,7 @@ export class Mission {
     g.particles.burst(c.pos.clone().setY(c.pos.y + 0.8), { count: 24, color: c.rarity === 'rare' ? 0x4ad0ff : 0xffd23a, speed: 4, up: 2, life: 0.8, size: 0.14, shape: 1 });
     g.pickups.drop('coin', c.pos, 6 + Math.floor(Math.random() * 6) + (c.rarity === 'rare' ? 10 : 0), 1);
     if (Math.random() < 0.5) g.pickups.drop('heal', c.pos, 1);
+    const nb = bundlesFrom(c.rarity === 'rare' ? 'rareChest' : 'chest'); if (nb) g.pickups.drop('arrows', c.pos, nb);
     g.onChestOpened?.(c, p);
     if (c.room.type === 'secret') { this.stats.secrets++; toast('Secret found!'); }
   }
@@ -467,6 +469,7 @@ export class Mission {
     const g = this.game;
     g.pickups.drop('coin', boss.pos, 40, 1);
     g.pickups.drop('heal', boss.pos, 3);
+    g.pickups.drop('arrows', boss.pos, bundlesFrom('boss'));
     // a moment of the story as the boss falls (chapter 3: Percy is claimed)
     const down = this.ch?.bossDown;
     if (down) setTimeout(() => { if (g.mission !== this) return; if (down.stinger) g.audio?.stinger?.(down.stinger); if (down.text) toast(down.text, 'big'); }, 1200);

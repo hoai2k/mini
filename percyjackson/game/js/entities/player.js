@@ -11,6 +11,7 @@ import { createKit } from '../heroes/index.js';
 import { applyGear } from '../loot.js';
 import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
+import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
 
 export const PLAYER_COLORS = ['#4fc8ff', '#ff5a6a', '#7aff7a', '#ffc94a'];
 
@@ -40,7 +41,6 @@ export class Player {
     this.cornerSlide = true;   // slide round pillar and door-frame corners (physics.js)
     this.autoRepeat = true;    // holding attack keeps the combo going, as in Minecraft Dungeons
     this.combo = BASE_COMBO; this.comboStep = 0; this.comboT = 0; this.attackBuffer = 0; this.struck = false;
-    this.healCharges = 3; this.healMax = 3; this.healCd = 0;
     this.downT = 0; this.reviveProgress = 0;
     this.slowT = 0;
     this.battleSense = 1;      // Battle Sense charge (0..1); a perfect dodge spends it
@@ -50,6 +50,10 @@ export class Player {
     this.skills = sv ? sv.hero(hero).skills : {};
     applyGear(this, sv ? sv.gearFor(hero) : []);
     this.hp = this.maxHp;
+    // Ambrosia: one flask that refills over a cooldown; the quiver for the
+    // basic ranged attack (resources.js)
+    this.flask = { left: 0, max: 0 };
+    this.quiver = newQuiver(this.stats);
     this.kit = createKit(this);
     this.heroLight = game.lights.attach(this.object, 0xffe8d0, 1.6, 7, { offsetY: 2.2, priority: 6 });
   }
@@ -59,6 +63,7 @@ export class Player {
     const sv = g.saveFor?.(this) ?? g.save;   // net: the profile of whoever plays this hero
     this.skills = sv ? sv.hero(this.hero).skills : {};
     applyGear(this, sv ? sv.gearFor(this.hero) : []);
+    resizeQuiver(this.quiver, this.stats);
     this.kit.dispose?.();
     this.kit = createKit(this);
   }
@@ -118,10 +123,15 @@ export class Player {
     g.audio?.enemyDie(true);
   }
   revive(frac = 0.4) { this.downed = false; this.dead = false; this.hp = this.maxHp * frac; this.iframes = 2; this.action = null; this.game.fx.heal(this.pos); this.game.audio?.energy('heal'); }
+  // the flask's state, read by the HUD, companions and the playthrough bot
+  get flaskLeft() { return this.flask.left; }
+  get ammo() { return this.quiver.ammo; }
+  get ammoMax() { return this.quiver.max; }
+  // Back to full: a respawn or a new place fills the flask and the quiver.
+  refill() { this.flask.left = 0; this.quiver.ammo = this.quiver.max; this.quiver.regen = 0; }
   useHeal() {
-    if (this.healCharges <= 0 || this.healCd > 0 || this.hp >= this.maxHp) return;
-    this.healCharges--; this.healCd = 1.2;
-    this.healOverTime = { left: this.maxHp * (0.45 + (this.stats.healBonus ?? 0)), t: 1.2 };
+    if (!canDrink(this.flask, this.hp, this.maxHp)) return;
+    this.healOverTime = { left: drink(this.flask, this.maxHp, this.stats), t: FLASK.dur };
     this.game.fx.heal(this.pos, 0x9affd8);
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
@@ -130,7 +140,7 @@ export class Player {
   // ---------------------------------------------------------------- combat
   updateCombat(dt, inp) {
     const g = this.game;
-    this.comboT -= dt; this.healCd = Math.max(0, this.healCd - dt);
+    this.comboT -= dt; tickFlask(this.flask, dt); tickQuiver(this.quiver, dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
     if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
     else this.attackBuffer -= dt;

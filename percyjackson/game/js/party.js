@@ -64,7 +64,9 @@ export class Companion {
       if (td > reach * 0.85) move = this.steer(target.pos, reach * 0.7);
       // held attack repeats: hold it to chain the combo
       else { move = new THREE.Vector3(); held.attack = Math.random() < 0.9; }
-      if (td > 4 && td < 11 && this.rangedT <= 0) { held.ranged = true; this.rangedT = 1.5 + Math.random() * 1.5; }
+      // shoot from the quiver: freely when it's well stocked, only at range (and less often) when it runs low
+      const low = p.ammo < p.ammoMax * 0.35;
+      if (td > (low ? 7 : 4) && td < 11 && this.rangedT <= 0 && p.ammo > 0) { held.ranged = true; this.rangedT = (low ? 3.5 : 1.5) + Math.random() * 1.5; }
       if (this.abilityT <= 0 && td < 8) {
         const slots = ['t1', 't2', 't3'].filter((k) => p.kit.slots[k] && p.kit.slots[k].cdLeft <= 0 && p.ce >= (p.kit.slots[k].ce ?? 0));
         if (slots.length) held[slots[Math.floor(Math.random() * slots.length)]] = true;
@@ -98,7 +100,7 @@ export class Companion {
       move = (move ?? new THREE.Vector3()).add(away.multiplyScalar(0.9));
       if (move.lengthSq() > 1) move.normalize();
     }
-    if (p.hp < p.maxHp * 0.35 && p.healCharges > 0 && p.healCd <= 0) held.heal = true;
+    if (p.hp < p.maxHp * 0.35 && p.flaskLeft <= 0) held.heal = true;   // the same rule as a player: one flask, refilling
     // jump: up to the leader's ledge, or across a gap in the way
     if (move && move.lengthSq() > 0.1 && p.grounded && this.jumpT <= 0 && this.wantsJump(move, lead, target)) { held.jump = true; this.jumpT = 0.6; }
     // unstuck: if trying to move but not moving, jump first, then hop sideways with a dodge

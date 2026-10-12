@@ -4,6 +4,7 @@ import * as THREE from 'three/webgpu';
 import { BLOCKS } from './world/blocks.js';
 import { tileAvgColor } from './gfx/textures.js';
 import { angleDiff } from './util.js';
+import { bundlesFrom } from './resources.js';
 
 const v1 = new THREE.Vector3(), v2 = new THREE.Vector3();
 
@@ -167,6 +168,8 @@ export class Combat {
     g.debris?.burst(center, def, def.debris);
     g.audio?.breakBlock(def.step === 'wood' ? 'wood' : 'stone');
     g.onBlockBroken?.(bx, by, bz, def);
+    // a broken crate or barrel sometimes holds an ammo bundle
+    if ((def.name === 'crate' || def.name === 'barrel') && g.pickups && bundlesFrom('crate')) g.pickups.drop('arrows', center, 1);
     if (def.name.includes('pillar') || def.name === 'cracked_brick') {
       for (let y = by + 1; y < by + 12; y++) { const up = w.get(bx, y, bz); if (up === id || (up && BLOCKS[up].name === 'dark_planks' && y === by + 1 + 0)) { w.set(bx, y, bz, 0); g.debris?.burst(new THREE.Vector3(bx + 0.5, y + 0.5, bz + 0.5), BLOCKS[up], 4); } else break; }
       for (let y = by - 1; y > by - 12; y--) { const dn = w.get(bx, y, bz); if (dn === id) { w.set(bx, y, bz, 0); g.debris?.burst(new THREE.Vector3(bx + 0.5, y + 0.5, bz + 0.5), BLOCKS[dn], 4); } else break; }
