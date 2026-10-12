@@ -6,12 +6,12 @@
 import * as THREE from 'three/webgpu';
 import { vertexColor } from 'three/tsl';
 import { Rig, PX } from './character.js';
-import { QuadRig, paintQuad, quadPart } from './quad.js';
+import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
 import { buildFury, bronzeSpider } from './monsters.js';
-import { HS, solid, skinMat, prop, group, voxHair, voxCubes, snake, lavaCracks, fur, spikedCollar, sway, rng, bruteLimbs } from './parts.js';
+import { heroHair, cellMesh, footwear } from './herovox.js';
+import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
 
-const GOLD = () => solid(0xc9963a, 0.15, 0.35, 0.75);
 
 // ---------------------------------------------------------------- voxel kit
 // The bosses are sculpted from voxels like the concept sheets: each rig part
@@ -101,7 +101,11 @@ function cells(shapes, { v = 1, seed = 1, bump = 0.18, fuzz = 0.12, cellsIn = ne
 }
 // One mesh from cells (grid v) and loose boxes ({ p: [x,y,z], s: [w,h,d], c, m?, r?: [rx,ry,rz] }),
 // with material groups. Hung on parent and registered with the rig.
-function voxMesh(rig, parent, { cells: C = null, v = 1, boxes = [] } = {}) {
+function voxMesh(rig, parent, opts = {}) {
+  const mesh = rig.mesh(kitGeometry(opts, PX), kitMats()); parent.add(mesh);
+  return mesh;
+}
+function kitGeometry({ cells: C = null, v = 1, boxes = [] } = {}, unit = PX) {
   const buf = [[], [], [], []].map(() => ({ P: [], N: [], Cc: [] }));
   if (C) for (const [key, [col, mi]] of C) {
     const [i, j, k] = key.split(',').map(Number), B = buf[mi];
@@ -131,9 +135,8 @@ function voxMesh(rig, parent, { cells: C = null, v = 1, boxes = [] } = {}) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
   g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(Cc, 3));
-  g.scale(PX, PX, PX);
-  const mesh = rig.mesh(g, kitMats()); parent.add(mesh);
-  return mesh;
+  g.scale(unit, unit, unit);
+  return g;
 }
 // sculpt + boxes in one call
 const vox = (rig, parent, shapes, opts = {}, boxes = []) => voxMesh(rig, parent, { cells: shapes.length ? cells(shapes, opts) : null, v: opts.v ?? 1, boxes });
@@ -141,40 +144,8 @@ const vox = (rig, parent, shapes, opts = {}, boxes = []) => voxMesh(rig, parent,
 const hideSkin = (...parts) => { for (const p of parts) for (const c of p.children) if (c.isMesh) c.visible = false; };
 // points along a curve (for horns, tails, tentacles): f(t) -> [x, y, z]
 const along = (f, n, r0, r1, col, extra = {}) => Array.from({ length: n }, (_, i) => { const t = i / (n - 1), [x, y, z] = f(t); const r = r0 + (r1 - r0) * t; return { e: [x, y, z, r, r, r], col: typeof col === 'function' ? col(t) : col, bump: 0.05, fuzz: 0.05, ...extra }; });
-const BRONZE = () => solid(0xb8782e, 0.1, 0.35, 0.7);
 
 // ---------------------------------------------------------------- shared bits
-// A dog's head (head, snout, hinged jaw) built from the QuadRig skin regions,
-// for Cerberus's extra heads.
-function dogHead(rig, parent, hs) {
-  const head = new THREE.Group(); parent.add(head);
-  head.add(rig.mesh(quadPart('head', hs, hs, hs, [0, 0, hs * 0.35])));
-  const sn = hs * 0.5;
-  head.add(rig.mesh(quadPart('snout', sn, sn * 0.75, sn, [0, -hs * 0.18, hs * 0.85 + sn * 0.5])));
-  const mouth = new THREE.Group(); mouth.position.set(0, -hs * 0.42 * PX, hs * 0.75 * PX); head.add(mouth);
-  mouth.add(rig.mesh(quadPart('jaw', sn * 0.9, sn * 0.35, sn, [0, -sn * 0.17, sn * 0.5])));
-  for (const sx of [-1, 1]) { const e = rig.mesh(quadPart('ear', 2, 3, 1, [0, 1.5, 0])); e.position.set(sx * hs * 0.32 * PX, hs * 0.5 * PX, hs * 0.2 * PX); e.rotation.z = -sx * 0.25; head.add(e); }
-  return { head, mouth };
-}
-// A lion's mane: layered cubes around the back of a QuadRig head.
-function mane(rig, head, hs, seed, cols, { thick = 1, chest = true } = {}) {
-  const r = rng(seed), cubes = [];
-  for (let i = 0; i < 150 * thick; i++) {
-    const a = r() * Math.PI * 2, R = hs * (0.62 + r() * 0.42);
-    const x = Math.cos(a) * R, y = Math.sin(a) * R * 0.95 - 0.3, z = hs * (-0.25 + r() * 0.45) - (R - hs * 0.6) * 0.5;
-    const sz = 1.2 + r() * 1.4;
-    cubes.push({ x, y, z, w: sz, h: sz * 1.2, d: sz, col: cols[Math.floor(r() * cols.length)] });
-  }
-  if (chest) for (let i = 0; i < 26; i++) cubes.push({ x: (r() - 0.5) * hs * 1.1, y: -hs * 0.55 - r() * hs * 0.7, z: hs * (-0.1 + r() * 0.35), w: 2.2, h: 2.6, d: 2.2, col: cols[Math.floor(r() * cols.length)] });
-  return voxCubes(rig, head, cubes);
-}
-// A fur clump over a part (minotaur shoulders, hellhound hackles).
-function furClump(rig, parent, seed, cols, { x = 0, y = 0, z = 0, sx = 8, sy = 4, sz = 6, n = 30, size = [1.6, 2.8] } = {}) {
-  const r = rng(seed), cubes = [];
-  for (let i = 0; i < n; i++) { const s = size[0] + r() * (size[1] - size[0]); cubes.push({ x: x + (r() - 0.5) * sx, y: y + (r() - 0.5) * sy, z: z + (r() - 0.5) * sz, w: s, h: s, d: s, col: cols[Math.floor(r() * cols.length)] }); }
-  return voxCubes(rig, parent, cubes);
-}
-
 // A shaggy wolf-dog head sculpted on a QuadRig-style head group and its jaw
 // (mouth) group: heavy brow, burning eyes, a long muzzle, fangs top and
 // bottom, a red mouth that shows when the jaw drops, tall pointed ears.
@@ -241,9 +212,59 @@ function wolfBody(rig, o) {
       { b: [-legW * 0.6, -legH - 0.2, -legW * 0.5, legW * 0.6, -legH + 1.6, legW * 0.85], col: furCol, bump: 0.05 },
       { e: [0, -legH * 0.62, 0.1, legW * 0.55 * t, legH * 0.38, legW * 0.6 * t], col: furCol, fuzz: 0.3 },
       { e: [0, -legH * 0.15, 0, legW * 0.85 * t, legH * 0.45, legW * 0.9 * t], col: furCol, fuzz: 0.35 },
-    ], { v: 0.9, seed: (o.seed ?? 9) + 3 }, [-1, 0, 1].map((dx) => ({ p: [dx * legW * 0.36, -legH - 0.1, legW * 0.95], s: [0.8, 1.1, 1.6], c: 0xe8dcc0, r: [0.4, 0, 0] })));
+    ], { v: 0.9, seed: (o.seed ?? 9) + 3 }, [-1, 0, 1].map((dx) => ({ p: [dx * legW * 0.36, -legH - 0.1, legW * 0.95], s: [0.8, 1.1, 1.6], c: lava ? 0xffa020 : 0xe8dcc0, m: lava ? 'e' : undefined, r: [0.4, 0, 0] })));
   }
 }
+
+// ---------------------------------------------------------------- people
+const shadeOf = (c, k) => new THREE.Color(c).multiplyScalar(k).getHex();
+// Fine features at half-pixel resolution on a res-2 skin (face front x 8..16,
+// y 8..16): lidded eyes with irises and catch-lights, shaped brows, a nose
+// shadow and a mouth. o: { skin, eye, brow, mouth: 'grin'|'smirk'|'frown'|'set', scowl, scar, stubble }
+function fineFace(S, o) {
+  const D = (x, y, c, n = 1, m = n) => S.dot(x, y, c, n, m), d = 0.5, ey = 12, skin = o.skin;
+  S.rect(8, ey - 2, 8, 6, skin, 0.04);
+  D(8, 8, shadeOf(skin, 0.92), 1, 16); D(15.5, 8, shadeOf(skin, 0.92), 1, 16); D(8, 15.5, shadeOf(skin, 0.86), 16, 1);
+  if (o.stubble) for (let i = 0; i < 40; i++) D(8.5 + Math.floor(S.r() * 14) / 2, 14 + Math.floor(S.r() * 4) / 2, o.stubble);
+  for (const [x0, sg] of [[9, 1], [13, -1]]) {
+    const wx = sg > 0 ? x0 : x0 + 1, ix = sg > 0 ? x0 + 1 : x0;
+    D(x0 - (sg > 0 ? d : 0), ey, 0x16100c, 5, 1);
+    D(wx, ey + d, 0xfaf6f0, 2, 3); D(ix, ey + d, o.eye, 2, 3); D(ix + (sg > 0 ? d : 0), ey + 1, 0x0c0a10, 1, 2); D(ix + (sg > 0 ? 0 : d), ey + d, 0xffffff, 1, 1);
+    D(x0, ey + 2, shadeOf(skin, 0.86), 4, 1);
+  }
+  const by = ey - 1.5, b = o.brow;
+  if (o.scowl) { D(8.5, by - d, b, 3, 1); D(9.5, by, b, 3, 2); D(13, by, b, 3, 2); D(14, by - d, b, 3, 1); D(10.5, by + d, b, 2, 1); D(13, by + d, b, 2, 1); }
+  else { D(8.5, by, b, 5, 2); D(13, by, b, 5, 2); }
+  D(11.5, ey + 2.5, shadeOf(skin, 0.78), 2, 1); D(11, ey + 2, shadeOf(skin, 0.88), 1, 1);
+  const my = ey + 3.5, dark = 0x3a1210, teeth = 0xfaf4ea;
+  if (o.mouth === 'grin') { D(9.5, my - 1, dark, 10, 3); D(10, my - 1, teeth, 8, 1); D(10.5, my, 0x8a2a22, 6, 1); D(9, my - 1.5, dark, 1, 1); D(14.5, my - 1.5, dark, 1, 1); }
+  else if (o.mouth === 'smirk') { D(10.5, my, dark, 5, 1); D(13, my - d, dark, 1, 1); D(13.5, my - 1, dark, 1, 1); D(11, my + d, shadeOf(skin, 0.8), 3, 1); }
+  else if (o.mouth === 'frown') { D(10.5, my, dark, 6, 1); D(10, my + d, dark, 1, 1); D(13.5, my + d, dark, 1, 1); }
+  else { D(10.5, my, shadeOf(skin, 0.6), 6, 1); }
+  if (o.scar) for (const [x, y] of [[14.5, ey - 0.5], [14, ey + 0.5], [14, ey + 1], [13.5, ey + 1.5], [13.5, ey + 2], [13, ey + 2.5], [14.5, ey + 1], [15, ey]]) D(x, y, o.scar, 1, 1);
+}
+// A res-2 humanoid skin: paintPerson's layout, fine features, then o.detail, shading and colour.
+const humanSkin = (id, o, opts = {}) => skinMat(id, (S) => { paintPerson(S, o); fineFace(S, o); o.detail?.(S, (x, y, c, n = 1, m = n) => S.dot(x, y, c, n, m)); S.shadeLimbs(); S.saturate(o.sat ?? 1.2); }, { res: 2, emit: 0, fill: 0.1, ...opts });
+// Grid-voxel hair (and beard) from the hero hair styles on a Rig head.
+function hairMesh(rig, vox) {
+  const hs = (rig.dims.headS / 8) * HS;
+  const { cells: C, solid: inHead } = heroHair(vox);
+  const mat = kitMats()[0], mesh = cellMesh(C, PX * hs, mat, inHead);
+  mesh.userData.baseMat = mat; rig.meshes.push(mesh); rig.head.add(mesh);
+  rig.extras.hair = mesh;
+  return mesh;
+}
+// Bulk up a standard-layout Rig without breaking its skin: scale the torso
+// boxes (w across, d deep) and move the shoulders out to match.
+function bulk(rig, { w = 1, d = 1, h = 1, armThick = 1, armLen = 1, legThick = 1, legX = 2 }) {
+  for (const c of rig.torso.children) if (c.isMesh) c.scale.set(w, h, d);
+  bruteLimbs(rig, { armLen, armThick, legThick, legX });
+  const { bodyW, bodyH, armW } = rig.dims;
+  for (const [a, s] of [[rig.armR, -1], [rig.armL, 1]]) a.position.set(s * (bodyW * w / 2 + armW * armThick / 2) * PX, (bodyH * h - 2) * PX, 0);
+  rig.neck.position.y = bodyH * h * PX;
+}
+// herovox outfit boxes ({ at, size, col }) as kit boxes, shifted by dy
+const kitBoxes = (list, dy = 0) => list.map((b) => ({ p: [b.at[0], b.at[1] + dy, b.at[2]], s: b.size, c: b.col }));
 
 // ---------------------------------------------------------------- builders
 export const BOSS_MODELS = {
@@ -379,9 +400,9 @@ export const BOSS_MODELS = {
       ], { v: 0.8, seed: 37 }, [[1.3, 3.6, 1.6], [1.5, 2.2, 1.1]].flatMap(([x, z, l]) => [-1, 1].map((sx) => ({ p: [sx * x * k, l / 2 * k, z * k], s: [0.7 * k, l * k, 0.7 * k], c: 0xfff4e0 }))));
     }
     // the goat rising from the back on a shaggy neck: yellow eyes, a beard, great ridged horns
-    const goat = group(rig.torso, 0, 3, -2.4, -0.2);
-    vox(rig, goat, [{ cap: [0, 0, 0, 0, 10, 1.4, 3, 2.2], col: greyF, fuzz: 0.4 }], { v: 0.9, seed: 38 });
-    const gh = group(goat, 0, 10.4, 1.8, 0.35);
+    const goat = group(rig.torso, 0, 3, -2.8, 0.25);
+    vox(rig, goat, [{ cap: [0, 0, 0, 0, 9, 1.6, 3.2, 2.2], col: greyF, fuzz: 0.4 }], { v: 0.9, seed: 38 });
+    const gh = group(goat, 0, 9.4, 2, 0.05);
     const hornA = (s) => along((t) => { const a = t * Math.PI * 1.35; return [s * (1.6 + 1.6 * t), 1.6 + 3.4 * Math.sin(a), -0.4 - 3.4 * (1 - Math.cos(a))]; }, 16, 1.25, 0.45, (t) => (Math.floor(t * 15) % 2 ? 0x2a221e : 0x3e342c));
     vox(rig, gh, [
       { b: [-1.9, 0.4, 2.6, -0.9, 1.2, 3.6], col: 0xffd020, m: 'e', bump: 0, fuzz: 0 }, { b: [0.9, 0.4, 2.6, 1.9, 1.2, 3.6], col: 0xffd020, m: 'e', bump: 0, fuzz: 0 },
@@ -426,7 +447,7 @@ export const BOSS_MODELS = {
     wolfBody(rig, { fur: furs, lava: true, seed: 41, spikes: 7, chest: 1.1 });
     hideSkin(rig.head, rig.mouth);
     wolfHead(rig, rig.head, rig.mouth, 8.6, { fur: furs, eye: 0xf04a08, inner: 0x6a1a10, lava: true, seed: 44, gape: 0.5 });
-    vox(rig, rig.neck, [{ e: [0, -1.2, -1.6, 4.6, 4.6, 4.4], col: (x, y, z, n, h) => (Math.abs(noise(x * 0.24, y * 0.2, z * 0.24, 79) - 0.5) < 0.028 ? [0xff3a00, 'e'] : furs[Math.floor(n * 4.99)]), fuzz: 0.45 }], { v: 1, seed: 45 }, collarBoxes(4.8, 12, { y: -1.8, z: 0, rx: -0.4 }));
+    vox(rig, rig.neck, [{ e: [0, -1.2, -1.6, 4.6, 4.6, 4.4], col: (x, y, z, n, h) => (Math.abs(noise(x * 0.24, y * 0.2, z * 0.24, 79) - 0.5) < 0.028 ? [0xff3a00, 'e'] : furs[Math.floor(n * 4.99)]), fuzz: 0.45 }], { v: 1, seed: 45 }, collarBoxes(5.8, 14, { y: -2, z: 0.6, rx: -0.4, w: 2.6 }));
     for (const g of rig.tail) hideSkin(g);
     rig.tail.forEach((g, i) => vox(rig, g, [{ e: [0, 0, -1.2, 1.6 - i * 0.15, 1.6 - i * 0.15, 1.6], col: (x, y, z, n, h) => (h < 0.12 ? [0xff5a10, 'e'] : furs[Math.floor(n * 3.99)]), fuzz: 0.4 }], { v: 0.9, seed: 46 + i }, i === rig.tail.length - 1 ? [{ p: [0, 0.6, -2.6], s: [1.8, 2.6, 1.8], c: 0xff3a00, m: 'e' }, { p: [0, 1.8, -3], s: [1, 1.6, 1], c: 0xff8a10, m: 'e' }] : []));
     // the glow inside the jaws
@@ -528,22 +549,46 @@ export const BOSS_MODELS = {
   // Crusty: a big smooth salesman in a white suit and red tie with a red
   // robe over his shoulders, a huge grin and a woodsman's axe.
   procrustes: () => {
-    const m = skinMat('boss_procrustes', (S) => paintPerson(S, { skin: 0xd8a07a, hair: 0x141012, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a1a0a, brow: 0x141012, grin: true, top: 0xf8f4ec, jacket: 0xece4d4, lapel: 0xd8ccb8, collar: 0xffffff, trim: 0xb8232f, sleeve: 0xece4d4, hand: 0xd8a07a, pants: 0xece4d4, shoes: 0x2a1a12,
-      body: (s) => { s.rect(23, 21, 2, 10, 0xb8232f, 0); s.rect(23, 37, 2, 10, 0xb8232f, 0); } }), { emit: 0, fill: 0.1 });
-    const red = solid(0xb8232f, 0, 0.8), redD = solid(0x8a1a22, 0, 0.8);
-    const rig = new Rig({ material: m, scale: 2.2, bodyW: 10, bodyD: 6, armW: 4.6, headS: 9, legH: 12, cape: { material: red, segments: 4, length: 26, width: 12 } });
-    voxHair(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, cap: true }, 0.88);
-    // the red robe panels down the front, with gold edging
-    for (const sx of [-1, 1]) { prop(rig, rig.torso, 2.6, 13, 1, red, sx * 4, 6, 3.2); prop(rig, rig.torso, 0.6, 13, 1.1, solid(0xc9963a, 0, 0.4, 0.6), sx * 2.8, 6, 3.3); prop(rig, rig.torso, 3, 2, 7, redD, sx * 5, 12, 0); }
-    prop(rig, rig.torso, 2.6, 2, 1, solid(0xffffff), -3, 10.4, 3.1);   // pocket square
-    // the axe: long haft, a broad bronze head
+    const skin = 0xc87c50, cream = 0xe6d6b8, creamD = 0xc8b494, red = 0xb01c24;
+    const m = humanSkin('boss_procrustes', { skin, hair: 0x141012, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a1a0a, brow: 0x141012, scowl: true, mouth: 'grin', stubble: shadeOf(skin, 0.8), top: cream, sleeve: cream, hand: skin, pants: cream, shoes: 0x3a2216,
+      detail: (S, D) => {
+        // the open jacket: lapels, a white shirt, a red tie, waistcoat buttons, a pocket square
+        D(22, 20, 0xfaf8f2, 8, 2); D(22.5, 21, 0xfaf8f2, 6, 3); D(23, 22.5, 0xfaf8f2, 4, 3); D(23.5, 24, 0xfaf8f2, 2, 2);
+        D(23.5, 20.5, red, 2, 1); D(23.25, 21, red, 3, 2); D(23.5, 22, red, 2, 9); D(23.75, 26.5, 0x7a1018, 1, 1); D(23.5, 26.5, red, 2, 2);
+        for (const sx of [-1, 1]) for (let y = 0; y < 5; y++) D(24 + sx * (1.5 + y * 0.5) - (sx < 0 ? 0.5 : 0), 20 + y, creamD, 1, 2);
+        for (const y of [27, 28.5, 30]) D(23.75, y, 0x6a4a2a, 1, 1);
+        D(16, 31, creamD, 48, 1); D(19.5, 20, shadeOf(cream, 0.9), 1, 12); D(28, 20, shadeOf(cream, 0.9), 1, 12);
+        D(25.5, 22, 0xfaf8f2, 2, 1); D(26, 21.5, red, 1, 1);
+        for (const [u, v] of [[40, 16], [32, 48]]) { D(u, v + 4 + 8.5, 0xfaf8f2, 32, 1); D(u, v + 4 + 9, skin, 32, 6); }
+        for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 5.5, v + 4, creamD, 1, 10); D(u, v + 4 + 9.5, creamD, 32, 1); }
+      } });
+    const redM = solid(0x9a1820, 0, 0.8);
+    const rig = new Rig({ material: m, scale: 2.1, headS: 8.6, legH: 12, cape: { material: redM, segments: 4, length: 26, width: 15 } });
+    bulk(rig, { w: 1.8, d: 1.8, armThick: 1.7, armLen: 1.1, legThick: 1.65, legX: 3.4 });
+    rig.cape[0].g.parent.position.z = -4 * PX;
+    hairMesh(rig, { style: 'mop', base: 0x1a1414, shade: 0x0a0808, light: 0x3a2e2a, seed: 81, shape: { c: [0, 7.8, -0.6], r: [4.9, 3, 5.1], bump: 0.15, shell: 1.2, fringe: 7, jag: 1, side: 5, back: 3, tuft: 0.25, spike: 0.03 } });
+    // the red robe over his shoulders: a draped yoke and two long gold-edged panels down the front
+    const reds = [0x8a1218, 0xa01820, 0xb4222a], gold = [0xd8a032, 0xe8b444];
+    const panel = (x, y, z, n, h) => { const ax = Math.abs(x); if (ax < 2.9) return [gold[Math.floor(h * 2)], 'm']; return reds[Math.floor((Math.sin(ax * 2.4) * 0.5 + 0.5) * 1.6 + n * 1.4)]; };
+    vox(rig, rig.torso, [
+      { e: [0, 12.6, 0.2, 2.6, 2.4, 2.2], cut: true, bump: 0, fuzz: 0 },
+      { b: [-2.6, -6.5, 3.5, -6.4, 11.4, 4.7], col: (x, y, z, n, h) => (y < -5.4 + h * 1.4 ? null : panel(x, y, z, n, h)), bump: 0 },
+      { b: [2.6, -6.5, 3.5, 6.4, 11.4, 4.7], col: (x, y, z, n, h) => (y < -5.4 + h * 1.4 ? null : panel(x, y, z, n, h)), bump: 0 },
+      { e: [0, 11.6, -0.2, 8.6, 2.4, 4.8], col: reds, bump: 0.1, fuzz: 0.05 },
+      { b: [-2.4, 3, 3.3, -0.6, 10.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (10.6 - y) * 0.05 - 0.6 || y > 9 ? 0xd8c8a8 : null), bump: 0 }, { b: [0.6, 3, 3.3, 2.4, 10.6, 3.9], col: (x, y) => (Math.abs(x) > 2.3 - (10.6 - y) * 0.05 - 0.6 || y > 9 ? 0xd8c8a8 : null), bump: 0 },
+    ], { v: 0.8, seed: 82 }, [
+      { p: [0, 12.8, 3.6], s: [3.4, 1, 1], c: 0xfaf8f2 },
+    ]);
+    // shoe shine and trouser cuffs
+    for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [{ p: [0, -11.4, 0.8], s: [7.2, 1.4, 8.2], c: 0x2a1810 }, { p: [0, -10.2, 0.5], s: [7, 1.2, 7.6], c: 0x4a2c1a }, { p: [0, -9.3, 0], s: [7, 0.7, 7], c: creamD }]);
+    // the axe: long haft, a broad steel head, a gold collar
     const axe = group(rig.handR, 0, -1, 1.5, -1.3, 0, 0);
-    prop(rig, axe, 1.6, 30, 1.6, solid(0x6a4022), 0, 8, 0);
-    prop(rig, axe, 1.2, 9, 7, solid(0xc8ccd4, 0.1, 0.3, 0.8), 0, 20, 3.4);
-    prop(rig, axe, 1.4, 11, 1.2, solid(0xe8ecf4, 0.3, 0.25, 0.9), 0, 20, 7.2);
-    prop(rig, axe, 2, 3, 3, GOLD(), 0, 20, -0.6);
+    vox(rig, axe, [], {}, [
+      { p: [0, 8, 0], s: [1.6, 30, 1.6], c: 0x6a4022 }, { p: [0, -6, 0], s: [2, 2, 2], c: 0x4a2c16 },
+      { p: [0, 20, 3.4], s: [1.2, 9, 7], c: 0xb8bcc4, m: 'm' }, { p: [0, 20, 7.2], s: [1.4, 11, 1.2], c: 0xe8ecf4, m: 'm' }, { p: [0, 20, -0.6], s: [2, 3, 3], c: 0xd8a032, m: 'm' },
+    ]);
     rig.extras.axe = axe;
-    rig.hunch = 0.05;
+    rig.hunch = 0.05; rig.armSpread = 0.3;
     return rig;
   },
 
@@ -566,7 +611,7 @@ export const BOSS_MODELS = {
       }
       wolfHead(rig, head, mouth, hs, { fur: furs, eye: 0xe84a08, inner: 0xa0182a, drool: true, seed: 60 + side * 3 });
       // a thick shaggy neck and a gold spiked collar
-      vox(rig, neck, side ? [{ e: [0, -1, -2, 4.2, 4.6, 4.6], col: furs, fuzz: 0.4 }] : [], { v: 1, seed: 70 + side }, collarBoxes(side ? 4.4 : 4.8, 12, { y: -1.6, z: 0.2, rx: -0.3 }));
+      vox(rig, neck, side ? [{ e: [0, -1, -2, 4.2, 4.6, 4.6], col: furs, fuzz: 0.4 }] : [], { v: 1, seed: 70 + side }, collarBoxes(side ? 5.2 : 6, 14, { y: -1.8, z: side ? 0.6 : 1.4, rx: -0.3, w: 2.6 }));
       heads.push({ neck, head, mouth, side, act: 0 });
     }
     rig.extras.heads = heads;
@@ -577,87 +622,165 @@ export const BOSS_MODELS = {
   // a red Spartan helmet, ripped trousers, boots, red-hot sunglasses and a
   // burning sword.
   ares: () => {
-    const skin = 0xc88a62;
-    const m = skinMat('boss_ares', (S) => paintPerson(S, { skin, hair: 0x1a1210, fringe: 1, hairSide: 2, hairBack: 4, eye: 0xff2a0a, eyeWhite: 0xff2a0a, brow: 0x1a1210, beard: 0x1e1612, top: 0x1a1618, jacket: 0x141214, lapel: 0x3a3438, sleeve: 0x141214, hand: skin, pants: 0x3a2c24, shoes: 0x141012,
-      body: (s) => { s.rect(21, 22, 6, 2, 0xd8401a, 0); s.rect(22, 24, 4, 4, 0xd8401a, 0); s.px(23, 25, 0x1a1618); s.px(24, 25, 0x1a1618); s.rect(23, 26, 2, 2, 0x1a1618, 0); s.rect(22, 28, 1, 1, 0xd8401a, 0);
-        for (let y = 36; y < 48; y += 2) { s.px(21, y, 0xc8c8d0); s.px(26, y, 0xc8c8d0); } s.rect(16, 46, 24, 2, 0x2a2428, 0);
-        for (const [u, v] of [[0, 16], [16, 48]]) { s.rect(u + 4, v + 7, 3, 2, skin, 0); s.rect(u + 9, v + 9, 2, 1, skin, 0); s.rect(u, v + 12, 16, 4, 0x141012, 0); } } }), { emit: 1.6 });
-    const rig = new Rig({ material: m, scale: 1.95, bodyW: 12, bodyH: 13, bodyD: 6, armW: 5, headS: 8, legH: 13 });
-    bruteLimbs(rig, { armLen: 1.1, armThick: 1.2, legThick: 1.35, legX: 3 });
-    rig.armSpread = 0.12;
-    voxHair(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, cap: true }, 0.72);
-    const hs = 8 / 8 * HS;
-    // red-hot wraparound sunglasses across the eyes, and a heavy beard
-    prop(rig, rig.head, 8.8 * hs, 1.8 * hs, 1, solid(0x1a0a08), 0, 4.5 * hs, 4.5 * hs);
-    prop(rig, rig.head, 3.2 * hs, 1.3 * hs, 0.6, solid(0xff3a14, 4), -2.1 * hs, 4.5 * hs, 4.9 * hs);
-    prop(rig, rig.head, 3.2 * hs, 1.3 * hs, 0.6, solid(0xff3a14, 4), 2.1 * hs, 4.5 * hs, 4.9 * hs);
-    prop(rig, rig.head, 8.4 * hs, 3 * hs, 1.4, solid(0x1e1612, 0, 0.9), 0, 0.9 * hs, 4.3 * hs);
-    prop(rig, rig.head, 4 * hs, 1.2 * hs, 1.2, solid(0x1e1612, 0, 0.9), 0, 2.6 * hs, 4.5 * hs);
-    // studded spiky shoulders, wristbands, boot buckles
-    const silver = solid(0xc8c8d0, 0.1, 0.3, 0.9), leather = solid(0x141214, 0, 0.5);
-    for (const arm of [rig.armR, rig.armL]) {
-      prop(rig, arm, 6.4, 3, 6.4, leather, 0, 1, 0);
-      for (const [x, z] of [[0, 0], [-2, 2], [2, -2], [2, 2], [-2, -2]]) prop(rig, arm, 1, 2, 1, silver, x, 3.4, z);
-      prop(rig, arm, 5.6, 2.4, 5.6, leather, 0, -8.5, 0); for (const z of [-1.4, 1.4]) prop(rig, arm, 0.8, 0.8, 0.8, silver, 2.8, -8.5, z);
+    const skin = 0xb8683e, leather = 0x161416, ember = 0xe8501a;
+    const HELMET = ['....##....', '...####...', '..######..', '.########.', '.########.', '.##....##.', '.##.##.##.', '.##.##.##.', '.###..###.', '..##..##..', '..##..##..'];
+    const m = humanSkin('boss_ares', { skin, hair: 0x141010, fringe: 1, hairSide: 2, hairBack: 4, eye: 0x2a1a10, brow: 0x141010, scowl: true, mouth: 'set', stubble: 0x2a1c16, top: 0x1c181a, jacket: leather, lapel: 0x3a3438, sleeve: skin, hand: 0x1e1a1a, pants: 0x4a3626, shoes: 0x141214, sat: 1.25,
+      detail: (S, D) => {
+        HELMET.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') D(21.5 + x * 0.5, 22 + y * 0.5, ember); }));
+        for (let y = 36; y < 47; y += 1) { D(21.5, y, 0xc8c8d0, 1, 1); D(26, y + 0.5, 0xc8c8d0, 1, 1); }
+        // short leather sleeves: bare forearms below
+        for (const [u, v] of [[40, 32], [48, 48]]) S.ctx.clearRect(u, v + 4 + 6, 16, 6);
+        for (const [u, v] of [[40, 32], [48, 48]]) D(u, v + 4 + 5.5, 0x3a3438, 32, 1);
+        for (const [u, v] of [[40, 16], [32, 48]]) { D(u + 4, v + 4 + 3, shadeOf(skin, 0.85), 4, 4); D(u + 4, v + 4 + 9, 0x2a2224, 32, 3); }
+        // cargo pockets, rips at the knees, boot tops
+        for (const [u, v] of [[0, 16], [16, 48]]) { D(u, v + 4 + 2, 0x3a2a1c, 8, 4); D(u + 4.5, v + 4 + 5, skin, 3, 2); D(u + 5, v + 4 + 4.5, 0xc8b8a0, 2, 1); D(u, v + 4 + 7, 0x141214, 32, 5); D(u + 1, v + 4 + 3, 0x5a4432, 2, 2); }
+      } });
+    const rig = new Rig({ material: m, scale: 1.95, headS: 7.6, legH: 13 });
+    const AT = 2.1, LT = 2, aw = 4 * AT, lw = 4 * LT;
+    bulk(rig, { w: 2, d: 1.8, h: 1.08, armThick: AT, armLen: 1.12, legThick: LT, legX: 4.3 });
+    rig.armSpread = 0.2;
+    hairMesh(rig, { style: 'spiky', base: 0x1a1210, shade: 0x0a0606, light: 0x3a2a22, seed: 91, shape: { c: [0, 7.6, -0.4], r: [4.8, 2.6, 5], bump: 0.12, shell: 1.1, fringe: 7.2, jag: 0.6, side: 4.6, back: 3, tuft: 0.2, spike: 0.03 }, beard: { length: 3, mouth: 1 } });
+    const hs = HS;
+    // red-hot wraparound sunglasses
+    vox(rig, rig.head, [], {}, [
+      { p: [0, 4.6 * hs, 4.75 * hs], s: [9.4 * hs, 1.9 * hs, 0.6], c: 0x120808 },
+      { p: [-2.1 * hs, 4.6 * hs, 4.95 * hs], s: [3.4 * hs, 1.4 * hs, 0.6], c: 0xff3a10, m: 'e' }, { p: [2.1 * hs, 4.6 * hs, 4.95 * hs], s: [3.4 * hs, 1.4 * hs, 0.6], c: 0xff3a10, m: 'e' },
+      { p: [-4.7 * hs, 4.8 * hs, 2], s: [0.6, 0.8, 5], c: 0x120808 }, { p: [4.7 * hs, 4.8 * hs, 2], s: [0.6, 0.8, 5], c: 0x120808 },
+    ]);
+    // the jacket: a raised collar, studs, spikes along the shoulders, a studded belt
+    const silver = 0xd0d0d8, spike = (x, y, z, r = [0, 0, 0], k = 1) => [{ p: [x, y, z], s: [1.6 * k, 1.4 * k, 1.6 * k], c: silver, m: 'm', r }, { p: [x, y + 1.2 * k, z], s: [0.9 * k, 1.4 * k, 0.9 * k], c: 0xf0f0f4, m: 'm', r }];
+    vox(rig, rig.torso, [], {}, [
+      { p: [-4.4, 13.6, -0.2], s: [3, 2.4, 7.4], c: leather, r: [0, 0, 0.35] }, { p: [4.4, 13.6, -0.2], s: [3, 2.4, 7.4], c: leather, r: [0, 0, -0.35] },
+      { p: [0, 14, -3.6], s: [6.4, 2.6, 1], c: leather },
+      { p: [-3.9, 9.4, 4.05], s: [2.6, 6.4, 0.7], c: 0x2a2628, r: [0, 0, -0.22] }, { p: [3.9, 9.4, 4.05], s: [2.6, 6.4, 0.7], c: 0x2a2628, r: [0, 0, 0.22] },
+      { p: [-2.7, 3.8, 4], s: [0.5, 7.4, 0.5], c: silver, m: 'm' }, { p: [2.7, 3.8, 4], s: [0.5, 7.4, 0.5], c: silver, m: 'm' },
+      ...spike(-3.6, 14.8, -3, [0, 0, 0.3]), ...spike(3.6, 14.8, -3, [0, 0, -0.3]), ...spike(0, 15.4, -3.6), ...spike(-6.6, 13.4, -1.6, [0, 0, 0.6]), ...spike(6.6, 13.4, -1.6, [0, 0, -0.6]),
+      { p: [0, 0.6, 0], s: [16.6, 1.6, 7.8], c: 0x1e1a1a }, { p: [0, 0.6, 3.95], s: [2.6, 2, 0.6], c: silver, m: 'm' },
+      ...[-6.4, -4.4, 4.4, 6.4].map((x) => ({ p: [x, 0.6, 3.95], s: [0.7, 0.7, 0.5], c: silver, m: 'm' })),
+      ...[[-4.6, 10], [4.6, 10], [-4.8, 5.4], [4.8, 5.4]].map(([x, y]) => ({ p: [x, y, 3.85], s: [0.8, 0.8, 0.5], c: silver, m: 'm' })),
+    ]);
+    hideSkin(rig.armR, rig.armL);
+    const skinT = [shadeOf(skin, 0.86), skin, shadeOf(skin, 1.1)];
+    for (const [arm, sx] of [[rig.armR, -1], [rig.armL, 1]]) {
+      // rounded arms: a leather-sleeved bicep, a bare forearm like a ham, a gloved fist
+      vox(rig, arm, [
+        { e: [0, -11.6, 0.6, aw / 2 + 0.5, 2.2, aw / 2 + 0.7], col: [0x1e1a1a, 0x2a2424], bump: 0.05, fuzz: 0.04 },
+        { e: [0, -6.4, 0.2, aw / 2 + 0.9, 3.6, aw / 2 + 0.9], col: skinT, bump: 0.1, fuzz: 0.06 },
+        { e: [0, -1.6, 0, aw / 2 + 0.9, 3.2, aw / 2 + 0.9], col: [0x161416, 0x221e20], bump: 0.08, fuzz: 0.04 },
+      ], { v: 0.8, seed: 93 + sx });
+      vox(rig, arm, [], {}, [
+        { p: [0, 1.4, 0], s: [aw + 1, 3.8, aw + 1], c: leather },
+        ...spike(sx * 1.6, 3.8, 0, [0, 0, -sx * 0.3]), ...spike(sx * 1.8, 3.4, 2.4, [0.3, 0, -sx * 0.3]), ...spike(sx * 1.8, 3.4, -2.4, [-0.3, 0, -sx * 0.3]), ...spike(sx * (aw / 2 + 0.6), 1.4, 0, [0, 0, -sx * 1.2], 0.9),
+        { p: [0, -9.4, 0], s: [aw + 0.6, 2.8, aw + 0.6], c: 0x1e1a1a }, ...[[-1.9, aw / 2 + 0.35], [1.9, aw / 2 + 0.35]].flatMap(([x, z]) => [{ p: [x, -9.4, z], s: [0.8, 0.8, 0.4], c: silver, m: 'm' }, { p: [x, -9.4, -z], s: [0.8, 0.8, 0.4], c: silver, m: 'm' }]),
+      ]);
     }
-    prop(rig, rig.torso, 11, 2, 6, leather, 0, 12, 0);
-    for (const leg of [rig.legR, rig.legL]) { prop(rig, leg, 5.4, 4, 6, solid(0x141012), 0, -10.6, 0.5); prop(rig, leg, 5.6, 0.8, 1, silver, 0, -9.4, 3.4); }
-    prop(rig, rig.torso, 10.6, 1.4, 5.6, solid(0x2a2020), 0, 0.6, 0); prop(rig, rig.torso, 2, 1.6, 1, silver, 0, 0.6, 2.9);
-    // the burning sword
+    for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [
+      { p: [0, -12.4, 1], s: [lw + 0.8, 1.4, lw + 2.2], c: 0x0e0c0e }, { p: [0, -10.4, 0.6], s: [lw + 0.6, 3, lw + 1.4], c: 0x1a1618 }, { p: [0, -7.6, 0], s: [lw + 0.4, 3, lw + 0.4], c: 0x1a1618 },
+      { p: [0, -10.6, 0.6], s: [lw + 0.9, 0.7, lw + 1.7], c: 0x3a3436 }, { p: [0, -8, 0], s: [lw + 0.7, 0.7, lw + 0.7], c: 0x3a3436 },
+      { p: [lw / 2 - 1, -10.6, lw / 2 + 1.4], s: [1.3, 1.1, 0.4], c: silver, m: 'm' }, { p: [lw / 2 - 1, -8, lw / 2 + 0.4], s: [1.3, 1.1, 0.4], c: silver, m: 'm' },
+    ]);
+    // the burning sword: gold guard, a blade of fire, flames licking off it
     const sword = group(rig.handR, 0, -1, 1, -1.35, 0, 0);
-    prop(rig, sword, 1.4, 5, 1.4, solid(0x2a1a10), 0, 0, 0); prop(rig, sword, 6, 1.2, 1.6, GOLD(), 0, 3, 0);
-    prop(rig, sword, 2.6, 18, 0.9, solid(0xff6a1a, 3.2), 0, 12.6, 0); prop(rig, sword, 1, 17, 1.1, solid(0xffd84a, 4), 0, 12.4, 0);
+    const fl = rng(92), flames = [];
+    for (let i = 0; i < 26; i++) { const t = fl(), y = 5 + t * 18, w = 0.6 + fl() * 1.4; flames.push({ p: [(fl() - 0.5) * 3.4 * (1 - t * 0.4), y + fl() * 2, (fl() - 0.5) * 1.2], s: [w, w * 1.3, w * 0.8], c: [0xff3a00, 0xff6a08, 0xffa020][Math.floor(fl() * 3)], m: 'e' }); }
+    vox(rig, sword, [], {}, [
+      { p: [0, 0, 0], s: [1.4, 5, 1.4], c: 0x2a1a10 }, { p: [0, -2.8, 0], s: [2, 1.4, 2], c: 0xd8a032, m: 'm' }, { p: [0, 3, 0], s: [6.4, 1.4, 1.8], c: 0xd8a032, m: 'm' }, { p: [0, 3.2, 0], s: [2, 2, 2], c: 0xe8b444, m: 'm' },
+      { p: [0, 12.6, 0], s: [2.6, 18, 0.9], c: 0xff6a10, m: 'e' }, { p: [0, 12.4, 0], s: [1, 17, 1.1], c: 0xffc040, m: 'e' }, { p: [0, 22.4, 0], s: [1.6, 1.8, 0.9], c: 0xff8a10, m: 'e' },
+      ...flames,
+    ]);
     rig.extras.sword = sword;
     // a spear for the thrust, slung on his back until he needs it
     const spear = group(rig.handL, 0, -1, 1, -1.5, 0, 0);
-    prop(rig, spear, 1.2, 40, 1.2, solid(0x3a2a1e), 0, 10, 0); prop(rig, spear, 2.6, 6, 0.8, solid(0xd8dce4, 0.4, 0.3, 0.9), 0, 32, 0);
+    vox(rig, spear, [], {}, [{ p: [0, 10, 0], s: [1.2, 40, 1.2], c: 0x3a2a1e }, { p: [0, 32, 0], s: [2.6, 6, 0.8], c: 0xd8dce4, m: 'm' }, { p: [0, 35.6, 0], s: [1.2, 2, 0.6], c: 0xd8dce4, m: 'm' }, { p: [0, 29, 0], s: [1.8, 1.2, 1.8], c: 0xd8a032, m: 'm' }]);
     spear.visible = false; rig.extras.spear = spear;
     // the motorcycle, only out for a charge
     const bike = new THREE.Group(); rig.root.add(bike); bike.visible = false; rig.extras.bike = bike;
-    const bm = (w, h, d, mat, x, y, z) => prop(rig, bike, w, h, d, mat, x, y, z);
-    const black = solid(0x141214, 0, 0.4, 0.5), chrome = solid(0xd8dce4, 0.1, 0.2, 0.95), tire = solid(0x0a0a0a, 0, 0.9), flame = solid(0xff5a14, 2.6);
-    for (const z of [-9, 10]) { bm(2.6, 8, 8, tire, 0, 4, z); bm(2.8, 3, 3, chrome, 0, 4, z); }
-    bm(4.4, 4, 15, black, 0, 7.5, 0.5); bm(5, 3, 6, solid(0x8a1a14, 0.3, 0.4, 0.4), 0, 10, 4); bm(3.6, 1.4, 8, solid(0x2a1a14), 0, 10.2, -3);
-    bm(9, 0.9, 0.9, chrome, 0, 14, 10); bm(0.9, 6, 0.9, chrome, 0, 11, 10); bm(2, 1.6, 6, chrome, 2.6, 4.4, -5); bm(2.4, 2.4, 1, solid(0xfff2c0, 3), 0, 11, 13);
-    for (let i = 0; i < 4; i++) bm(1.2, 1.2, 3, flame, 2.6, 4.4 + (i % 2), -9 - i * 2);
-    // the trail of fire behind the exhaust
+    const blk = 0x141214, chrome = 0xd8dce4, tire = 0x0a0a0a;
+    vox(rig, bike, [], {}, [
+      ...[-9, 10].flatMap((z) => [{ p: [0, 4, z], s: [2.6, 8, 8], c: tire }, { p: [0, 4, z], s: [2.6, 6, 9], c: tire }, { p: [0, 4, z], s: [2.8, 3, 3], c: chrome, m: 'm' }]),
+      { p: [0, 7.5, 0.5], s: [4.4, 4, 15], c: blk }, { p: [0, 10, 4], s: [5, 3, 6], c: 0x8a1a14, m: 'm' }, { p: [0, 10.2, -3], s: [3.6, 1.4, 8], c: 0x2a1a14 },
+      { p: [0, 14, 10], s: [9, 0.9, 0.9], c: chrome, m: 'm' }, { p: [0, 11, 10], s: [0.9, 6, 0.9], c: chrome, m: 'm' }, { p: [2.6, 4.4, -5], s: [2, 1.6, 6], c: chrome, m: 'm' }, { p: [0, 11, 13], s: [2.4, 2.4, 1], c: 0xfff2c0, m: 'e' },
+      ...Array.from({ length: 4 }, (_, i) => ({ p: [2.6, 4.4 + (i % 2), -9 - i * 2], s: [1.2, 1.2, 3], c: 0xff5a14, m: 'e' })),
+    ]);
     return rig;
   },
 
   // Luke Castellan: sandy curls, a scar down his cheek, the orange camp
   // shirt, and Backbiter, its blade half steel and half celestial bronze.
   luke: () => {
-    const skin = 0xe8b890;
-    const m = skinMat('boss_luke', (S) => paintPerson(S, { skin, hair: 0xd8a850, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a6ab8, brow: 0xa87a30, frown: true, top: 0xf28c28, sleeve: 0xf28c28, shortSleeve: true, pants: 0x3a5a8a, shoes: 0xf0f0f0,
-      face: (s, ey) => { s.px(14, ey + 1, 0xb8402a); s.px(14, ey + 2, 0xb8402a); s.px(13, ey + 3, 0xb8402a); s.px(15, ey, 0xb8402a); },
-      body: (s) => { const k = 0x17130f; s.rect(22, 23, 4, 2, k, 0); s.px(21, 22, k); s.px(26, 22, k); s.px(20, 21, k); s.px(27, 21, k); s.px(23, 25, k); s.px(24, 26, k); s.rect(16, 31, 24, 1, 0x5a3a22, 0); for (const [u, v] of [[0, 16], [16, 48]]) s.rect(u, v + 13, 16, 1, 0x2a3a5a, 0); } }), { emit: 0, fill: 0.1 });
+    const skin = 0xe0a074, orange = 0xe05200;
+    const PEG = ['.......##.', '..#....###', '.###..###.', '#####.##..', '.#########', '..#######.', '..##..##..', '..#....#..'];
+    const m = humanSkin('boss_luke', { skin, hair: 0xd8a040, fringe: 2, hairSide: 3, hairBack: 6, eye: 0x2a7ad8, brow: 0xa87020, mouth: 'smirk', scar: 0xb02a1e, top: orange, sleeve: orange, shortSleeve: true, pants: 0x2a4a80, shoes: 0x18161c, sat: 1.4,
+      detail: (S, D) => {
+        PEG.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') D(21.5 + x * 0.5, 22.5 + y * 0.5, 0x17130f); }));
+        D(21.5, 20, shadeOf(orange, 0.75), 10, 1); D(16, 31.5, shadeOf(orange, 0.8), 48, 1);
+        D(16, 30, 0x5a3418, 48, 1); D(23, 29.75, 0xd8a840, 4, 2);   // belt and buckle peeking under the hem
+        for (const [u, v] of [[40, 16], [32, 48]]) D(u, v + 4 + 4.5, shadeOf(orange, 0.8), 32, 1);
+        for (const [u, v] of [[0, 16], [16, 48]]) { D(u + 5.5, v + 4, 0x1e3a68, 1, 10); D(u + 4.5, v + 4 + 1, 0x3a5a90, 2, 2); D(u, v + 4 + 8.5, 0x3a5a90, 32, 1.5); D(u + 4, v + 4 + 5, 0x22406e, 4, 1); }
+      } });
     const rig = new Rig({ material: m, scale: 1.3 });
-    voxHair(rig, { style: 'shaggy', base: 0xd8a850, shade: 0xa87a30, light: 0xf0d080, seed: 101 }, 1);
-    // camp bead necklace
-    for (let i = 0; i < 5; i++) prop(rig, rig.torso, 1, 1, 1, solid([0x2a6ab8, 0xc82a1a, 0xf4f0e8, 0x2a8a3a, 0xffd84a][i], 0.3), -2 + i, 11.4, 2.3);
-    // Backbiter
+    hairMesh(rig, { style: 'mop', base: 0xe09a28, shade: 0xa86410, light: 0xf8c850, warm: 0xc87a18, seed: 101, shape: { c: [0, 7.4, -0.6], r: [5.6, 4.4, 5.8], bump: 0.4, fringe: 6.4, jag: 1.4, side: 3, back: 1, tuft: 0.24, spike: 0.05 } });
+    // hi-top sneakers, rolled jean cuffs, a camp bead necklace
+    for (const leg of [rig.legR, rig.legL]) vox(rig, leg, [], {}, [...kitBoxes(footwear('hitop', { upper: 0x18161c, sole: 0xf0ece0, lace: 0xf0ece0 })), { p: [0, -7.6, 0], s: [4.6, 1, 4.6], c: 0x3a5a90 }]);
+    vox(rig, rig.torso, [], {}, [
+      ...[0x2a6ab8, 0xc82a1a, 0xf4f0e8, 0x2a8a3a, 0xffd84a].map((c, i) => ({ p: [-2 + i, 11.3 - (i === 2 ? 0.4 : Math.abs(i - 2) === 1 ? 0.2 : 0), 2.3], s: [0.8, 0.8, 0.6], c })),
+      // the scabbard at his hip
+      { p: [-4.6, 0, 1], s: [1.4, 13, 1.8], c: 0x5a3018, r: [0.25, 0, -0.12] }, { p: [-5.4, -6.2, 2.6], s: [1.6, 1.6, 2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] }, { p: [-3.8, 6.4, -0.6], s: [1.8, 1.2, 2.2], c: 0xd8a032, m: 'm', r: [0.25, 0, -0.12] },
+    ]);
+    // Backbiter: half steel, half celestial bronze
     const sword = group(rig.handR, 0, -1, 1, -1.4, 0, 0);
-    prop(rig, sword, 1.2, 4.4, 1.2, solid(0x3a2418), 0, 0, 0); prop(rig, sword, 5, 1, 1.4, solid(0x8a8a90, 0, 0.3, 0.9), 0, 2.6, 0);
-    prop(rig, sword, 1.5, 17, 0.7, solid(0xc8ccd8, 0.4, 0.2, 0.95), -0.75, 11.5, 0);
-    prop(rig, sword, 1.5, 17, 0.7, solid(0xe0a040, 1.2, 0.25, 0.85), 0.75, 11.5, 0);
-    prop(rig, sword, 1.2, 1.6, 0.6, solid(0xe0a040, 1.2, 0.25, 0.85), 0, 19.6, 0);
+    vox(rig, sword, [], {}, [
+      { p: [0, 0, 0], s: [1.2, 4.4, 1.2], c: 0x3a2418 }, { p: [0, -2.4, 0], s: [1.6, 1, 1.6], c: 0xd8a032, m: 'm' }, { p: [0, 2.6, 0], s: [5, 1, 1.4], c: 0x8a8a90, m: 'm' },
+      { p: [-0.75, 11.5, 0], s: [1.5, 17, 0.7], c: 0xc8ccd8, m: 'm' }, { p: [0.75, 11.5, 0], s: [1.5, 17, 0.7], c: 0xe0a040, m: 'm' }, { p: [0, 20.4, 0], s: [1.6, 1.4, 0.6], c: 0xe0a040, m: 'm' },
+    ]);
     rig.extras.sword = sword;
     return rig;
   },
 };
 
-// Procrustes's "magic fingers" water bed: gilt posts, griffin panels, a red
-// mattress. Built on demand when he straps a hero down. Unit: world metres.
-let bedMats = null;
+// Procrustes's "magic fingers" water bed: gilt posts with knobbed finials,
+// black panels framed in gold with gold griffins, a quilted red mattress and
+// white pillows, after vox-bosses-1. Built on demand when he straps a hero
+// down. One merged mesh; unit: world metres.
+const GRIFFIN = ['.##.......', '####...##.', '.#####.###', '..########', '..#######.', '.###..###.', '.#.#...#.#', '.#.#...#.#'];
+let bedGeo = null;
 export function buildBed() {
-  bedMats ??= { gold: solid(0xc9963a, 0.15, 0.35, 0.75), panel: solid(0x241a14, 0, 0.7), red: solid(0xb8232f, 0, 0.8), white: solid(0xf4f0e8, 0, 0.9), griffin: solid(0xd8a840, 0.3, 0.4, 0.7) };
-  const M = bedMats, g = new THREE.Group();
-  const b = (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
-  b(1.5, 0.4, 2.6, M.panel, 0, 0.4, 0);
-  b(1.4, 0.3, 2.4, M.red, 0, 0.75, 0.05); b(1.3, 0.2, 0.5, M.white, 0, 0.9, -1.0);
-  for (const [x, z] of [[-0.75, -1.3], [0.75, -1.3], [-0.75, 1.3], [0.75, 1.3]]) { b(0.18, z < 0 ? 1.5 : 1.1, 0.18, M.gold, x, z < 0 ? 0.75 : 0.55, z); b(0.26, 0.2, 0.26, M.gold, x, z < 0 ? 1.55 : 1.15, z); }
-  b(1.5, 0.9, 0.12, M.panel, 0, 0.95, -1.3); b(1.5, 0.6, 0.12, M.panel, 0, 0.7, 1.3);
-  b(0.5, 0.4, 0.04, M.griffin, 0, 1.0, -1.23); b(0.4, 0.3, 0.04, M.griffin, 0, 0.7, 1.37);
-  b(1.56, 0.08, 0.16, M.gold, 0, 1.42, -1.3); b(1.56, 0.08, 0.16, M.gold, 0, 1.02, 1.3);
+  if (!bedGeo) {
+    const B = [], gold = 0xd8a032, goldL = 0xf0c050, goldD = 0xa87420, black = 0x1a1414, red = 0xb01c24, redD = 0x8a141a, white = 0xf4f0e8;
+    const b = (x, y, z, w, h, d, c, m) => B.push({ p: [x, y, z], s: [w, h, d], c, m });
+    // a black panel with a gold frame and a pair of griffins; n = outward normal axis
+    const panel = (x, y, z, w, h, axis, sgn) => {
+      const t = 0.06, f = 0.05;
+      if (axis === 'z') { b(x, y, z, w, h, t, black); b(x, y + h / 2, z, w, f, t + 0.02, gold, 'm'); b(x, y - h / 2, z, w, f, t + 0.02, gold, 'm'); }
+      else { b(x, y, z, t, h, w, black); b(x, y + h / 2, z, t + 0.02, f, w, gold, 'm'); b(x, y - h / 2, z, t + 0.02, f, w, gold, 'm'); }
+      const px = Math.min(0.035, h * 0.6 / 8), n = Math.max(1, Math.floor(w / (px * 14)));
+      for (let k = 0; k < n; k++) {
+        const cx = (k - (n - 1) / 2) * (w / n), flip = k % 2 ? -1 : 1;
+        GRIFFIN.forEach((row, j) => [...row].forEach((ch, i) => {
+          if (ch !== '#') return;
+          const u = cx + flip * (i - 4.5) * px, vv = y + (3.5 - j) * px;
+          if (axis === 'z') b(x + u, vv, z + sgn * (t / 2 + 0.008), px, px, 0.016, goldL, 'm');
+          else b(x + sgn * (t / 2 + 0.008), vv, z + u, 0.016, px, px, goldL, 'm');
+        }));
+      }
+    };
+    // posts: base block, shaft, collar, cap and a knob
+    for (const [x, z, top] of [[-0.75, -1.3, 1.5], [0.75, -1.3, 1.5], [-0.75, 1.3, 1.1], [0.75, 1.3, 1.1]]) {
+      b(x, 0.12, z, 0.26, 0.24, 0.26, goldD, 'm'); b(x, top / 2, z, 0.18, top, 0.18, gold, 'm');
+      b(x, top * 0.62, z, 0.24, 0.08, 0.24, goldD, 'm'); b(x, top + 0.04, z, 0.26, 0.08, 0.26, goldL, 'm'); b(x, top + 0.14, z, 0.16, 0.12, 0.16, gold, 'm'); b(x, top + 0.24, z, 0.08, 0.08, 0.08, goldL, 'm');
+    }
+    // frame, panels, rails
+    b(0, 0.32, 0, 1.4, 0.16, 2.5, 0x2a1e18);
+    panel(0, 1.02, -1.3, 1.32, 0.66, 'z', 1); panel(0, 0.62, 1.3, 1.32, 0.46, 'z', 1);
+    panel(-0.75, 0.52, 0, 2.42, 0.36, 'x', -1); panel(0.75, 0.52, 0, 2.42, 0.36, 'x', 1);
+    b(0, 1.4, -1.3, 1.5, 0.07, 0.14, goldL, 'm'); b(0, 0.9, 1.3, 1.5, 0.07, 0.14, goldL, 'm');
+    // quilted red mattress, a turned-down white sheet, a pillow
+    b(0, 0.8, 0.08, 1.34, 0.22, 2.36, red);
+    for (let i = 0; i < 6; i++) b(0, 0.915, 0.95 - i * 0.3, 1.36, 0.02, 0.04, redD);
+    b(0, 0.92, -0.62, 1.36, 0.06, 0.3, white); b(0, 0.98, -1.02, 1.1, 0.14, 0.4, white); b(0, 1.06, -1.02, 0.9, 0.05, 0.3, 0xffffff);
+    bedGeo = kitGeometry({ boxes: B }, 1);
+  }
+  const g = new THREE.Group(), m = new THREE.Mesh(bedGeo, kitMats());
+  m.castShadow = true; m.receiveShadow = true; g.add(m);
   return g;
 }
