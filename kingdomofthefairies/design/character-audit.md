@@ -64,3 +64,14 @@ prince was measured separately for body scale (`FILM_BODY_SCALE_TINTED` in
 sets differ by a few per cent per pose. The tinted gift fairies hold their own
 gifts, so the prologue no longer draws a second gift prop in their hands (only
 Aurora's flower, which her art does not hold).
+
+## Round F9: the rest of the film edition
+
+With the cast tinted, the figures, creatures and props the film edition still
+draws in the first, clean style stood out beside them: Neptune and his three
+attendants, the seahorse guard, the sea dragon, the sea spirit, the jellyfish
+and fish, the whale, the four gifts, the five keepsakes, the sinking sword,
+Aurora's star, the armour pickups, the tower window and the pearl. Round F9
+requests a tinted alternate of each (31) on the same terms as F8. These are
+older sprites drawn stretched to their boxes; their alternates are drawn the
+same way, not with the film art's proportional fitting.

@@ -78,7 +78,12 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { if (s.edition === 'film') { img.fitBox = true; img.bodyScale = bodyScaleOf(id); } out.images[id] = img; onImage?.(id, img); done(); };
+    // Film art keeps its proportions in its box (fitBox); a tinted alternate is
+    // drawn the way its original is, so one of an older, stretched-to-box
+    // sprite stays stretched rather than taking the film art's fitting.
+    const base = id.endsWith('-tinted') ? out.slots[id.slice(0, -7)] : null;
+    const fit = s.edition === 'film' && (!base || base.edition === 'film');
+    img.onload = () => { if (fit) { img.fitBox = true; img.bodyScale = bodyScaleOf(id); } out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
