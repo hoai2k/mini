@@ -188,3 +188,35 @@ The [request document](../image-requests.md) contains the briefs. [generation.js
 ## book-5
 
 [![The Last Olympian](book-5.png)](book-5.png)
+
+## Round 3: opening scenes and Manhattan kit
+
+[Prompts and generation records](generation-round-3.json).
+
+### scene-field-trip
+
+[![The field trip: the school bus in Manhattan](scene-field-trip.png)](scene-field-trip.png)
+
+### scene-montauk
+
+[![Montauk: Grover at the door in the storm](scene-montauk.png)](scene-montauk.png)
+
+### scene-bus-ride
+
+[![On the school bus to the museum](scene-bus-ride.png)](scene-bus-ride.png)
+
+### scene-museum-steps
+
+[![Arriving at the museum steps](scene-museum-steps.png)](scene-museum-steps.png)
+
+### scene-storm-drive
+
+[![The drive through the storm](scene-storm-drive.png)](scene-storm-drive.png)
+
+### vox-manhattan
+
+[![3D sheet: the Manhattan prologue kit and sewer rats](vox-manhattan.png)](vox-manhattan.png)
+
+### scene-big-house
+
+[![Waking on the porch of the Big House](scene-big-house.png)](scene-big-house.png)
