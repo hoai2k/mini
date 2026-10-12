@@ -61,6 +61,7 @@ agent. Newest first.
 
 | Commit | What |
 | --- | --- |
+| 2026-10-12 | A resting mouse no longer takes over from a controller or keyboard (needs about 24 px of movement in half a second; `nudge` in input.js): it made the Coot drift to the cursor |
 | 2026-10-12 | Pictures that fail to load are retried (3 tries, then again before each game: `loadImage`, `reloadMissing` in main.js); Scoop Stack pass mark 10 to 6 |
 | 2026-10-11 | Fullscreen on/off in Settings (`src/fullscreen.js`); World Record card with confetti, rosette and fanfare, and a smaller "Passed" tick and sparkles, on already-passed birds (`resultKind` in `src/reward.js`) |
 | 742e072 | Puddle Hop chicks one size as they fly off |

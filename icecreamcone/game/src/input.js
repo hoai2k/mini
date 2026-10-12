@@ -38,6 +38,7 @@ export function createInput(target) {
   let stickAngle = null;
   let navStickHeld = false; // the stick, held through lockHeld(), is ignored by nav() until centred
   let spin = 0;
+  const nudge = { d: 0, t: 0 }; // mouse movement while another device is in use
   let wheel = 0; // mouse-wheel notches since the last frame (+ toward you)
 
   const setKind = (k) => {
@@ -82,7 +83,17 @@ export function createInput(target) {
       toLogical(e);
       if (e.pointerType === 'mouse' || pointer.down) {
         pointer.active = true;
-        if (e.movementX || e.movementY) setKind('pointer');
+        // A mouse resting by a controller or keyboard player is easily
+        // nudged: it takes over (and games then steer towards it) only once
+        // it has really moved, about 24 px within half a second.
+        if (pointer.down || kind === 'pointer') setKind('pointer');
+        else if (e.movementX || e.movementY) {
+          const now = performance.now();
+          if (now - nudge.t > 500) nudge.d = 0;
+          nudge.t = now;
+          nudge.d += Math.abs(e.movementX) + Math.abs(e.movementY);
+          if (nudge.d > 24) setKind('pointer');
+        }
       }
     });
     const up = (e) => {
