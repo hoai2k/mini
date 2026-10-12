@@ -5,22 +5,22 @@
 Generate each image from its prompt and drop the files in `musicpractice/intake/`.
 Until a file is delivered the app draws a stand-in, so nothing here blocks use.
 
-**Round 1:** 6 images wanted: `home-metronome`, `home-record`, `metronome-body`, `metronome-pendulum`, `icon`, `cover`.
+**Round 1:** delivered and in use.
 
 **House style** (already included in every prompt): Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
 
 | Status | Id | File | Size |
 | --- | --- | --- | --- |
-| requested | `home-metronome` | `app/assets/ui/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| requested | `home-record` | `app/assets/ui/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| requested | `metronome-body` | `app/assets/ui/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| requested | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| requested | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
-| requested | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
+| delivered | `home-metronome` | `app/assets/ui/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| delivered | `home-record` | `app/assets/ui/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| delivered | `metronome-body` | `app/assets/ui/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| delivered | `metronome-pendulum` | `app/assets/ui/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| delivered | `icon` | `app/icons/icon-1024.png` | 1024×1024, PNG, full bleed, no transparency |
+| delivered | `cover` | `app/assets/ui/cover.webp` | 1200×900 (4:3), WebP |
 
 ## Home screen buttons
 
-### `home-metronome` · requested
+### `home-metronome` · delivered
 
 - File: `musicpractice/app/assets/ui/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -30,7 +30,7 @@ Until a file is delivered the app draws a stand-in, so nothing here blocks use.
 A classic pyramid-shaped mechanical metronome in polished walnut with a cream tempo scale on its face, its brass pendulum tilted a little to the right mid-swing, with two faint curved motion arcs beside the tip of the pendulum. Seen straight from the front. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no shadow beyond a soft contact shadow directly under the object.
 ```
 
-### `home-record` · requested
+### `home-record` · delivered
 
 - File: `musicpractice/app/assets/ui/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -42,7 +42,7 @@ A vintage brass-and-cream studio microphone on a short stand, with a glowing rou
 
 ## Metronome animation
 
-### `metronome-body` · requested
+### `metronome-body` · delivered
 
 - File: `musicpractice/app/assets/ui/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
@@ -52,7 +52,7 @@ A vintage brass-and-cream studio microphone on a short stand, with a glowing rou
 A classic pyramid-shaped mechanical metronome in polished walnut, seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. The front face is a tall recessed cream panel with a vertical scale of evenly spaced fine tick marks (no numbers). There is NO pendulum, rod or weight anywhere: the face panel is empty apart from the tick marks. Near the bottom of the face, centred left-to-right, a small round brass pivot screw sits exactly at 50% of the width and 83% of the height. A slightly wider walnut base at the bottom. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · requested
+### `metronome-pendulum` · delivered
 
 - File: `musicpractice/app/assets/ui/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
@@ -64,7 +64,7 @@ Just the pendulum of a mechanical metronome, isolated: a single thin, perfectly 
 
 ## App icon
 
-### `icon` · requested
+### `icon` · delivered
 
 - File: `musicpractice/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
@@ -76,7 +76,7 @@ An app icon, full bleed: a warm deep walnut-brown gradient ground fills the whol
 
 ## Game library card
 
-### `cover` · requested
+### `cover` · delivered
 
 - File: `musicpractice/app/assets/ui/cover.webp`
 - Size: 1200×900 (4:3), WebP

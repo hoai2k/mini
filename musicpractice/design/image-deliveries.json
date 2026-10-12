@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-12",
+  "assets": [
+    {
+      "id": "home-metronome",
+      "file": "musicpractice/app/assets/ui/home-metronome.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Home screen buttons",
+      "prompt": "A classic pyramid-shaped mechanical metronome in polished walnut with a cream tempo scale on its face, its brass pendulum tilted a little to the right mid-swing, with two faint curved motion arcs beside the tip of the pendulum. Seen straight from the front. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no shadow beyond a soft contact shadow directly under the object.\nSquare canvas.",
+      "note": "The big Metronome button on the home screen; the label is written by the app. Keep the tempo scale as plain tick marks (no numbers).",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-08b2c2b5-80f4-4d21-a745-274d1ca8d916.png"
+    },
+    {
+      "id": "home-record",
+      "file": "musicpractice/app/assets/ui/home-record.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Home screen buttons",
+      "prompt": "A vintage brass-and-cream studio microphone on a short stand, with a glowing round red record light beside it and a small ribbon of sound wave curling from the microphone back toward a looping arrow (record, then play back). Seen from the front, slightly from above. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no shadow beyond a soft contact shadow directly under the object.\nSquare canvas.",
+      "note": "The big Record/Playback button on the home screen; the label is written by the app.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-7766a63f-baa5-461a-b42c-fa0ffd19cc95.png"
+    },
+    {
+      "id": "metronome-body",
+      "file": "musicpractice/app/assets/ui/metronome-body.webp",
+      "size": "800\u00d71200, transparent PNG (shipped as WebP)",
+      "status": "delivered",
+      "group": "Metronome animation",
+      "prompt": "A classic pyramid-shaped mechanical metronome in polished walnut, seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. The front face is a tall recessed cream panel with a vertical scale of evenly spaced fine tick marks (no numbers). There is NO pendulum, rod or weight anywhere: the face panel is empty apart from the tick marks. Near the bottom of the face, centred left-to-right, a small round brass pivot screw sits exactly at 50% of the width and 83% of the height. A slightly wider walnut base at the bottom. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.\nPortrait canvas with aspect ratio 2:3. Empty cream face. Pivot screw exactly at (50%,83.33%).",
+      "note": "The app rotates the separate pendulum image over this one, pivoting on the brass screw at (400, 1000) in an 800\u00d71200 canvas. Exact symmetry and the pivot position matter more than detail; small offsets can be corrected in asset-list data.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-c6164dee-0994-424c-aecd-d035a994f8b3.png",
+      "correction_prompt": "Edit target: the attached metronome body. Preserve its walnut body, cream empty face, tick scale, symmetry and lighting. Remove ALL background lighting, glow, haze and backdrop: only the metronome itself on true transparent background. Move the brass pivot screw DOWN to exactly 50% width and 83.33% height of the full canvas, in the upper area of the walnut base below the cream panel. No rod or pendulum. Preserve 2:3 aspect ratio. Keep the feet entirely visible."
+    },
+    {
+      "id": "metronome-pendulum",
+      "file": "musicpractice/app/assets/ui/metronome-pendulum.webp",
+      "size": "200\u00d71000, transparent PNG (shipped as WebP)",
+      "status": "delivered",
+      "group": "Metronome animation",
+      "prompt": "Just the pendulum of a mechanical metronome, isolated: a single thin, perfectly straight, perfectly vertical polished brass rod running down the exact centre of a tall narrow canvas, from about 3% from the top to a round brass hub whose centre is at 96% of the height. A sliding brass weight shaped like a small trapezoid with a centre notch sits on the rod at about 30% of the height. Seen straight on, symmetrical, nothing else in the picture. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.\nTall 1:5 canvas. Keep the rod and hub entirely within the middle fifth of the width if the tool requires a wider canvas; isolated transparent margins on both sides. Thin vertical straight rod. Hub centre at 96% height.",
+      "note": "The app rotates this about the hub centre (100, 960) in a 200\u00d71000 canvas. The rod must be exactly vertical and centred left-to-right.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-a509c22f-3685-47c4-bac9-34ba7041165a.png"
+    },
+    {
+      "id": "icon",
+      "file": "musicpractice/app/icons/icon-1024.png",
+      "size": "1024\u00d71024, PNG, full bleed, no transparency",
+      "status": "delivered",
+      "group": "App icon",
+      "prompt": "An app icon, full bleed: a warm deep walnut-brown gradient ground fills the whole square right to the edges and corners (no rounded-square frame, no border, no white margin; the phone rounds the corners itself). Centred on it, a simple cream and brass pyramid metronome, pendulum tilted slightly, and in front of its lower right corner a small round red record dot with a soft glow. Bold, simple shapes that read at 60 pixels. Keep everything important inside the middle 80% (it is also used as a maskable Android icon). Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.\nSquare canvas.",
+      "note": "Resized to icons/icon-180.png, icon-192.png and icon-512.png.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-59840c79-965b-4634-b895-c430cfb71aef.png"
+    },
+    {
+      "id": "cover",
+      "file": "musicpractice/app/assets/ui/cover.webp",
+      "size": "1200\u00d7900 (4:3), WebP",
+      "status": "delivered",
+      "group": "Game library card",
+      "prompt": "A cosy music practice corner: a walnut metronome mid-swing on the left and a brass studio microphone on the right, standing on a wooden music stand shelf with an open page of sheet music behind them (staff lines and note heads only, no readable text), warm lamplight, soft blurred room behind. The centre of the picture is calm enough for a title laid over it. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.\nLandscape 4:3 canvas.",
+      "note": "The Music Practice card on the game library page (mini apps shelf).",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-ce19e003-260f-4938-9ca9-24fffd627d01.png"
+    }
+  ],
+  "exports": "Pillow LANCZOS resizing; alpha preserved for home art and metronome layers. Pendulum transparent side margins cropped to 1:5. App WebP exports at request sizes. Icon derivatives from make_icons.py.",
+  "animation_geometry": {
+    "body_canvas": [
+      800,
+      1200
+    ],
+    "body_pivot": [
+      400,
+      985
+    ],
+    "pendulum_canvas": [
+      200,
+      1000
+    ],
+    "pendulum_hub": [
+      102,
+      927
+    ]
+  }
+}

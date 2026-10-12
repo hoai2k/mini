@@ -2,31 +2,31 @@
   {
     "id": "home-metronome",
     "file": "assets/ui/home-metronome.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "home-record",
     "file": "assets/ui/home-record.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "metronome-body",
     "file": "assets/ui/metronome-body.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "metronome-pendulum",
     "file": "assets/ui/metronome-pendulum.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "icon",
     "file": "icons/icon-1024.png",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "cover",
     "file": "assets/ui/cover.webp",
-    "status": "requested"
+    "status": "delivered"
   }
 ]

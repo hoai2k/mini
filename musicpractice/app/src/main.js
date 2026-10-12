@@ -13,6 +13,8 @@ const persist = () => save(settings);
 
 // ---------------------------------------------------------------- art
 
+import { alignPendulum } from './assets.js';
+
 /** Swap a stand-in for its delivered image (see design/image-requests.md). */
 async function loadArt() {
   let list = [];
@@ -23,7 +25,10 @@ async function loadArt() {
       const img = new Image();
       img.alt = '';
       img.decoding = 'async';
-      img.onload = () => el.replaceChildren(img);
+      img.onload = () => {
+        el.replaceChildren(img);
+        if (a.id === 'metronome-pendulum') alignPendulum(el);
+      };
       img.src = a.file;
     }
   }

@@ -46,7 +46,7 @@ ICON_STYLE = (
 ASSETS = [
     # Home screen
     dict(id="home-metronome", file="assets/ui/home-metronome.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
-         status="requested", group="Home screen buttons",
+         status="delivered", group="Home screen buttons",
          prompt="A classic pyramid-shaped mechanical metronome in polished walnut with a cream "
                 "tempo scale on its face, its brass pendulum tilted a little to the right "
                 "mid-swing, with two faint curved motion arcs beside the tip of the pendulum. "
@@ -54,7 +54,7 @@ ASSETS = [
          note="The big Metronome button on the home screen; the label is written by the app. "
               "Keep the tempo scale as plain tick marks (no numbers)."),
     dict(id="home-record", file="assets/ui/home-record.webp", size="768×768, transparent PNG (shipped as 384×384 WebP)",
-         status="requested", group="Home screen buttons",
+         status="delivered", group="Home screen buttons",
          prompt="A vintage brass-and-cream studio microphone on a short stand, with a glowing "
                 "round red record light beside it and a small ribbon of sound wave curling "
                 "from the microphone back toward a looping arrow (record, then play back). "
@@ -62,7 +62,7 @@ ASSETS = [
          note="The big Record/Playback button on the home screen; the label is written by the app."),
     # Metronome animation (two layers: the body stays still, the pendulum rotates)
     dict(id="metronome-body", file="assets/ui/metronome-body.webp", size="800×1200, transparent PNG (shipped as WebP)",
-         status="requested", group="Metronome animation",
+         status="delivered", group="Metronome animation",
          prompt="A classic pyramid-shaped mechanical metronome in polished walnut, seen exactly "
                 "straight on from the front, perfectly symmetrical, standing upright and filling "
                 "the canvas top to bottom with a small margin. The front face is a tall recessed "
@@ -75,7 +75,7 @@ ASSETS = [
               "screw at (400, 1000) in an 800×1200 canvas. Exact symmetry and the pivot position "
               "matter more than detail; small offsets can be corrected in asset-list data."),
     dict(id="metronome-pendulum", file="assets/ui/metronome-pendulum.webp", size="200×1000, transparent PNG (shipped as WebP)",
-         status="requested", group="Metronome animation",
+         status="delivered", group="Metronome animation",
          prompt="Just the pendulum of a mechanical metronome, isolated: a single thin, perfectly "
                 "straight, perfectly vertical polished brass rod running down the exact centre of a "
                 "tall narrow canvas, from about 3% from the top to a round brass hub whose centre "
@@ -86,7 +86,7 @@ ASSETS = [
               "must be exactly vertical and centred left-to-right."),
     # App icon and library card
     dict(id="icon", file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency",
-         status="requested", group="App icon",
+         status="delivered", group="App icon",
          prompt="An app icon, full bleed: a warm deep walnut-brown gradient ground fills the whole "
                 "square right to the edges and corners (no rounded-square frame, no border, no "
                 "white margin; the phone rounds the corners itself). Centred on it, a simple cream "
@@ -96,7 +96,7 @@ ASSETS = [
                 "also used as a maskable Android icon). " + STYLE,
          note="Resized to icons/icon-180.png, icon-192.png and icon-512.png."),
     dict(id="cover", file="assets/ui/cover.webp", size="1200×900 (4:3), WebP",
-         status="requested", group="Game library card",
+         status="delivered", group="Game library card",
          prompt="A cosy music practice corner: a walnut metronome mid-swing on the left and a "
                 "brass studio microphone on the right, standing on a wooden music stand shelf with "
                 "an open page of sheet music behind them (staff lines and note heads only, no "
