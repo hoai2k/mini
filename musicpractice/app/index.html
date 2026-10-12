@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="deco">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -15,14 +15,18 @@
   <meta name="description" content="A metronome and a practice recorder that hears when you start and stop playing, then plays your take back.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Josefin+Sans:wght@400;600;700&family=Manrope:wght@500;600;700;800&family=Poiret+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply the saved theme before the page draws (settings.js owns the list).
+    try {
+      var t = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).theme;
+      document.documentElement.dataset.theme = t === 'straight' || t === 'deco' ? t : 'deco';
+    } catch (e) { document.documentElement.dataset.theme = 'deco'; }
+  </script>
 </head>
 <body>
-  <!-- Stand-in art, used until the requested images are delivered
-       (design/image-requests.md). Geometry matches the requests: the body is
-       800×1200 with its pivot at (400, 1000); the pendulum is 200×1000 with
-       its hub at (100, 960). -->
+  <!-- Gradients shared by the stand-in art in src/standins.js. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <linearGradient id="walnut" x1="0" x2="1">
@@ -34,27 +38,15 @@
       <linearGradient id="cream" x1="0" x2="0" y1="0" y2="1">
         <stop offset="0" stop-color="#fbf3e2"/><stop offset="1" stop-color="#e9d9b9"/>
       </linearGradient>
-      <symbol id="art-metronome" viewBox="0 0 100 100">
-        <path d="M43 8h14l22 78H21z" fill="url(#walnut)"/>
-        <path d="M46 16h8l15 58H31z" fill="url(#cream)"/>
-        <g stroke="#b08a5a" stroke-width="1.2">
-          <path d="M47 24h6M47 32h6M47 40h6M47 48h6M47 56h6M47 64h6"/>
-        </g>
-        <path d="M50 74 L64 22" stroke="url(#brass)" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M58.5 39l6 1.6-2.4 7.5-5.7-1.5z" fill="url(#brass)"/>
-        <circle cx="50" cy="74" r="3" fill="url(#brass)"/>
-        <path d="M17 84h66v8H17z" fill="#3e2414"/>
-        <path d="M70 18a20 20 0 0 1 6 10M74 13a26 26 0 0 1 8 14" fill="none" stroke="#f0cf7a" stroke-width="2" stroke-linecap="round" opacity=".7"/>
-      </symbol>
-      <symbol id="art-record" viewBox="0 0 100 100">
-        <rect x="36" y="10" width="28" height="44" rx="14" fill="url(#brass)"/>
-        <g stroke="#7b5420" stroke-width="1.4" opacity=".7"><path d="M40 22h20M40 28h20M40 34h20M40 40h20"/></g>
-        <path d="M28 44a22 22 0 0 0 44 0" fill="none" stroke="#e9d9b9" stroke-width="4" stroke-linecap="round"/>
-        <path d="M50 66v14M38 82h24" stroke="#e9d9b9" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="78" cy="24" r="9" fill="#e5484d"/>
-        <circle cx="78" cy="24" r="13" fill="none" stroke="#e5484d" stroke-width="2" opacity=".4"/>
-        <path d="M14 56c4-8 8 8 12 0" fill="none" stroke="#f0cf7a" stroke-width="2.4" stroke-linecap="round"/>
-      </symbol>
+      <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#8c6a1f"/><stop offset=".35" stop-color="#f6e2a0"/><stop offset=".6" stop-color="#d4af37"/><stop offset="1" stop-color="#7a5a17"/>
+      </linearGradient>
+      <linearGradient id="lacquer" x1="0" x2="1">
+        <stop offset="0" stop-color="#050506"/><stop offset=".5" stop-color="#22232a"/><stop offset="1" stop-color="#050506"/>
+      </linearGradient>
+      <linearGradient id="ivory" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#fbf6e8"/><stop offset="1" stop-color="#e6dbc0"/>
+      </linearGradient>
     </defs>
   </svg>
 
@@ -65,12 +57,12 @@
       <h1 id="home-title" class="brand">Music <em>Practice</em></h1>
       <div class="choices">
         <a class="choice" href="#metronome" id="go-metronome">
-          <span class="art" data-asset="home-metronome"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#art-metronome"/></svg></span>
+          <span class="art" data-asset="home-metronome"></span>
           <span class="label">Metronome</span>
         </a>
         <a class="choice" href="#record" id="go-record">
-          <span class="art" data-asset="home-record"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#art-record"/></svg></span>
-          <span class="label">Record/Playback</span>
+          <span class="art" data-asset="home-record"></span>
+          <span class="label">Playback Recorder</span>
         </a>
       </div>
     </section>
@@ -85,27 +77,8 @@
       <div class="met-body">
         <div class="met-visual">
           <div class="metronome" id="metronome-art" aria-hidden="true">
-            <div class="met-layer met-case" data-asset="metronome-body">
-              <svg viewBox="0 0 800 1200">
-                <path d="M362 40h76l242 1040H120z" fill="url(#walnut)"/>
-                <path d="M376 110h48l182 860H194z" fill="#3a2214" opacity=".5"/>
-                <path d="M384 128h32l168 820H216z" fill="url(#cream)"/>
-                <g stroke="#b08a5a" stroke-width="6" stroke-linecap="round">
-                  <path d="M370 220h60M376 300h48M370 380h60M376 460h48M370 540h60M376 620h48M370 700h60M376 780h48M370 860h60"/>
-                </g>
-                <path d="M90 1080h620v80H90z" fill="#3e2414"/>
-                <path d="M120 1080h560" stroke="#a9744a" stroke-width="6"/>
-                <circle cx="400" cy="1000" r="30" fill="#2a170c"/>
-              </svg>
-            </div>
-            <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum">
-              <svg viewBox="0 0 200 1000">
-                <rect x="93" y="30" width="14" height="930" rx="7" fill="url(#brass)"/>
-                <path d="M58 262h84l-16 86H74z" fill="url(#brass)" stroke="#7b5420" stroke-width="4"/>
-                <path d="M92 262h16v24H92z" fill="#7b5420"/>
-                <circle cx="100" cy="960" r="26" fill="url(#brass)" stroke="#7b5420" stroke-width="4"/>
-              </svg>
-            </div>
+            <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
+            <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
           <ol class="beats" id="beats" aria-hidden="true"></ol>
         </div>
@@ -133,6 +106,10 @@
       <dialog id="met-settings" class="sheet" aria-labelledby="met-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="met-settings-title">Metronome settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <fieldset>
+            <legend>Theme</legend>
+            <div class="chips theme-chips"></div>
+          </fieldset>
           <fieldset>
             <legend>Time signature</legend>
             <div class="chips" id="meter-chips"></div>
@@ -174,6 +151,10 @@
       <dialog id="rec-settings" class="sheet" aria-labelledby="rec-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="rec-settings-title">Playback Recorder settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <fieldset>
+            <legend>Theme</legend>
+            <div class="chips theme-chips"></div>
+          </fieldset>
           <label class="row"><span>Finish after silence of <b><span class="silence-sec">3</span> s</b></span><input type="range" class="slider" id="silence" min="1" max="10" step="0.5"></label>
           <fieldset>
             <legend>Start recording on</legend>

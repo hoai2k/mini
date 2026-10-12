@@ -92,7 +92,7 @@ ASSETS = [
                 "round red record light beside it and a small ribbon of sound wave curling "
                 "from the microphone back toward a looping arrow (record, then play back). "
                 "Seen from the front, slightly from above. " + ICON_STYLE,
-         note="The big Record/Playback button on the home screen; the label is written by the app."),
+         note="The big Playback Recorder button on the home screen; the label is written by the app."),
     # Metronome animation (two layers: the body stays still, the pendulum rotates)
     dict(id="metronome-body", theme="straight", round=1, file="assets/ui/metronome-body.webp", size="800×1200, transparent PNG (shipped as WebP)",
          status="delivered", group="Metronome animation",
@@ -156,7 +156,7 @@ ASSETS = [
                 "black-and-gold stand, a small glowing ruby-red record jewel set in a gold fan beside "
                 "it, and three thin gold arcs of sound radiating from it. Seen from the front, "
                 "symmetrical. " + DECO_ICON_STYLE,
-         note="The big Record/Playback button on the home screen in the Art Deco theme."),
+         note="The big Playback Recorder button on the home screen in the Art Deco theme."),
     dict(id="metronome-body", theme="deco", round=2, file="assets/ui/deco/metronome-body.webp",
          size="800×1200, transparent PNG (shipped as WebP)", status="requested", group="Art Deco · Metronome animation",
          prompt="An Art Deco mechanical metronome seen exactly straight on from the front, perfectly "

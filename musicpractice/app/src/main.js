@@ -5,33 +5,24 @@ import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { load, save, clampBpm, METERS, SOUNDS, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { load, save, clampBpm, METERS, SOUNDS, THEMES, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { applyArt, alignPendulum, swingOf } from './art.js';
 
 const $ = (id) => document.getElementById(id);
 const settings = load();
 const persist = () => save(settings);
 
-// ---------------------------------------------------------------- art
+// ---------------------------------------------------------------- theme
 
-import { alignPendulum } from './assets.js';
-
-/** Swap a stand-in for its delivered image (see design/image-requests.md). */
-async function loadArt() {
-  let list = [];
-  try { list = await (await fetch('data/asset-list.json')).json(); } catch { return; }
-  for (const a of list) {
-    if (a.status === 'requested') continue;
-    for (const el of document.querySelectorAll(`[data-asset="${a.id}"]`)) {
-      const img = new Image();
-      img.alt = '';
-      img.decoding = 'async';
-      img.onload = () => {
-        el.replaceChildren(img);
-        if (a.id === 'metronome-pendulum') alignPendulum(el);
-      };
-      img.src = a.file;
-    }
-  }
+/** Switch the whole app's look: colours and type (styles.css) and art. */
+function applyTheme() {
+  const theme = THEMES.find((t) => t.id === settings.theme) || THEMES[0];
+  document.documentElement.dataset.theme = theme.id;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
+  applyArt(theme.id, () => alignPendulum($('metronome-case'), $('pendulum')));
+  // Waveform colours come from the theme.
+  if (wave) wave.dirty = true;
+  for (const c of document.querySelectorAll('.take canvas')) c.redraw?.();
 }
 
 // Browsers only allow sound to start from a tap or key press.
@@ -213,6 +204,14 @@ for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
+const themeSyncs = [...document.querySelectorAll('.theme-chips')].map((el) =>
+  chips(el, THEMES, () => settings.theme, (v) => {
+    settings.theme = v;
+    persist();
+    applyTheme();
+    themeSyncs.forEach((sync) => sync());
+  }));
+
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
 chips($('meter-chips'), METERS.map((m) => ({ id: m.id, label: m.beats === 1 ? 'No bars' : m.id })), () => settings.meter, (v) => { settings.meter = v; metronomeConfigured(); });
@@ -237,7 +236,7 @@ function animateMetronome() {
   if (!metronome?.running) return;
   const now = heardNow();
   const beat = metronome.beatAt(now);
-  pendulum.style.transform = `rotate(${pendulumAngle(beat, now, metronome.period, 24).toFixed(2)}deg)`;
+  pendulum.style.transform = `rotate(${pendulumAngle(beat, now, metronome.period, swingOf(pendulum)).toFixed(2)}deg)`;
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
 }
@@ -437,7 +436,9 @@ function renderTakes() {
         <span class="bar-progress" aria-hidden="true"></span>`;
       li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
       li.querySelector('.del').addEventListener('click', () => removeTake(take));
-      requestAnimationFrame(() => drawThumb(li.querySelector('canvas'), take.samples));
+      const canvas = li.querySelector('canvas');
+      canvas.redraw = () => drawThumb(canvas, take.samples);
+      requestAnimationFrame(canvas.redraw);
     }
     const n = takes.length - i;
     const dur = take.samples.length / take.sampleRate;
@@ -556,6 +557,6 @@ store.list().then((saved) => {
   takes = [...takes, ...saved.filter((s) => !takes.some((t) => t.created === s.created))];
   renderTakes();
 });
-loadArt();
+applyTheme();
 route();
 requestAnimationFrame(frame);

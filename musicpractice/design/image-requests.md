@@ -49,7 +49,7 @@ A classic pyramid-shaped mechanical metronome in polished walnut with a cream te
 
 - File: `musicpractice/app/assets/ui/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: The big Record/Playback button on the home screen; the label is written by the app.
+- Note: The big Playback Recorder button on the home screen; the label is written by the app.
 
 ```text
 A vintage brass-and-cream studio microphone on a short stand, with a glowing round red record light beside it and a small ribbon of sound wave curling from the microphone back toward a looping arrow (record, then play back). Seen from the front, slightly from above. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no shadow beyond a soft contact shadow directly under the object.
@@ -119,7 +119,7 @@ An Art Deco metronome as a stepped ziggurat tower in black lacquer edged in gold
 
 - File: `musicpractice/app/assets/ui/deco/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: The big Record/Playback button on the home screen in the Art Deco theme.
+- Note: The big Playback Recorder button on the home screen in the Art Deco theme.
 
 ```text
 A 1930s Art Deco radio-studio microphone: a gold rounded-rectangle ribbon microphone with fine horizontal grille bars, held in a gold ring on a short stepped black-and-gold stand, a small glowing ruby-red record jewel set in a gold fan beside it, and three thin gold arcs of sound radiating from it. Seen from the front, symmetrical. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
