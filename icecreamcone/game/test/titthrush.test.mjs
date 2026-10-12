@@ -61,7 +61,7 @@ function hopper({ noise = 0.1, aim = 1, gold = false, wait = 0.3, skip = 0, see 
 
 const seeds = [1, 2, 3, 4, 5, 6, 7, 8];
 const beginnerBot = (seed) => hopper({ noise: 0.11, aim: 0.85, wait: 0.5, skip: 0.25, seed });
-const clumsyBot = (seed) => hopper({ noise: 0.16, aim: 0.9, wait: 0.7, skip: 0.35, seed });
+const clumsyBot = (seed) => hopper({ noise: 0.3, aim: 0.9, wait: 0.7, skip: 0.35, seed });
 const goodBot = (seed) => hopper({ noise: 0.035, aim: 0.3, gold: true, wait: 0.25, see: false, seed });
 
 // Mashing: pressing every few frames (it never gets a grip, so never lets go).
@@ -77,20 +77,64 @@ const steady = () => {
 };
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 
-test('titthrush: a beginner opens the next page, a good hopper far more; mashing, blind hopping and idling do not', () => {
-  const beginner = seeds.map((seed) => run(create, { seed, bot: beginnerBot(seed) }).game.score);
-  const clumsy = seeds.map((seed) => run(create, { seed, bot: clumsyBot(seed) }).game.score);
-  const good = seeds.slice(0, 4).map((seed) => run(create, { seed, bot: goodBot(seed) }).game.score);
-  const mash = seeds.slice(0, 4).map((seed) => run(create, { seed, bot: eager() }).game.score);
-  const blind = seeds.map((seed) => run(create, { seed, bot: steady() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('titthrush beginner', beginner, 'clumsy', clumsy, 'good', good, 'mash', mash, 'blind', blind, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass + 2, `beginners pass with room: ${beginner}`);
-  assert.ok(clumsy.filter((s) => s >= pass).length >= 6, `a clumsy player passes most rounds: ${clumsy}`);
-  assert.ok(mean(good) >= mean(beginner) * 1.4 && Math.min(...good) > mean(beginner), `good ${good} vs beginner ${beginner}`);
-  assert.ok(Math.max(...mash) <= 2, `mashing never gets a grip: ${mash}`);
-  assert.ok(Math.max(...blind) < pass && mean(blind) <= pass / 2, `hopping blind stays below the pass: ${blind}`);
+// The clumsy hopper's timing error is in seconds (0.3 s, three times the
+// medium's), so it misses more as the hands speed up and the clocks shrink.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const BOTS = {
+  idle: () => () => ({}),
+  mash: () => eager(),
+  blind: () => steady(),
+  clumsy: clumsyBot,
+  medium: beginnerBot, // the old beginner
+  good: goodBot,
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`titthrush pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('titthrush: at Normal a medium hopper passes, a good one far more; mashing, blind hopping and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) >= mean(t.medium) * 1.4, `good ${t.good} vs medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) < passRate(t.medium) && mean(t.clumsy) < mean(t.medium) - 5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'blind']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  assert.ok(Math.max(...t.mash) <= 2, `mashing never gets a grip: ${t.mash}`);
+});
+
+// A missed hop costs only time, and a faster hand offers more hops, so the
+// score rises with the pace for anyone who keeps up: Easier helps a clumsy
+// hopper less than it would in a game scored on accuracy.
+test('titthrush: Easier lets a clumsy hopper pass more often than Normal; mashing, blind hopping and idling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'blind']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('titthrush: Harder ends hard: the good hopper scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.4, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
+});
+
+test('titthrush: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const at = (level, seconds) => {
+    const game = create(env(1, { difficulty: level }));
+    for (let i = 0; i < seconds * 60; i++) game.update(1 / 60, blank());
+    return { period: game.period(), r: game.radius(), aim: game.aimLen() };
+  };
+  for (const level of ['easier', 'normal', 'harder']) {
+    const row = [0, 15, 30, 44.9].map((s) => at(level, s));
+    console.log('titthrush ramp', level, row.map((k) => `${k.period.toFixed(2)} s r ${k.r.toFixed(0)} line ${k.aim.toFixed(0)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].period <= row[i - 1].period && row[i].aim <= row[i - 1].aim, `${level} gets harder`);
+  }
+  assert.ok(at('easier', 44.9).period > 3.1, 'Easier never sweeps fast');
+  assert.ok(at('harder', 0).period < 3.1 && at('harder', 44.9).period < 2.05, 'Harder opens near medium and ends hard');
 });
 
 test('titthrush: letting go flies along the hand; lined up, it lands on that clock and scores', () => {
@@ -181,9 +225,9 @@ test('titthrush: it gets harder, and the clocks stay where a narrow screen can s
       if (c.dir < 0) backwards = true;
     }
   }
-  assert.ok(game.period() < early.period * 0.7, 'the hands sweep faster');
+  assert.ok(game.period() < early.period * 0.75, 'the hands sweep faster');
   assert.ok(game.radius() < early.r * 0.8, 'the clocks get smaller');
-  assert.ok(game.aimLen() < early.aim * 0.5, 'the dotted line gets shorter');
+  assert.ok(game.aimLen() < early.aim * 0.6, 'the dotted line gets shorter');
   assert.ok(backwards, 'the cuckoo clock (backwards) joins in');
   // the first third stays gentle: a third of the way in, each knob has moved
   // well under a third of the way to its end

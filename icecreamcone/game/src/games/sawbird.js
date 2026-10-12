@@ -14,6 +14,7 @@
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.planks': [1, 3], // three long planks seen from above at a slant: pale pine, honey oak, reddish cedar
@@ -78,11 +79,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets each new plank's length, how hard its grain
-  // pulls, and how many knots sit on its line.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets each new plank's length, how hard its grain
+  // pulls, and how many knots sit on its line. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.plankLen = () => knob(g.d(), 600, 810, 1050); // plank length, px (±15%)
+  g.grainPull = () => knob(g.d(), 0.05, 0.1, 0.16); // how hard the grain pulls the cut (×0.7-1.3)
+  g.knotCount = () => knob(g.d(), 0.7, 1.9, 3.3); // knots on the line, plus up to 0.6, rounded down (3 at most)
 
   function pop(text, x, y, color = INK, size = 46) {
     // Stack above a pop still showing nearby rather than on top of it.
@@ -91,15 +95,14 @@ export default function create(env) {
   }
 
   function newPlank() {
-    const k = g.ramp();
-    const len = lerp(600, 1050, k) * (0.85 + rng() * 0.3);
+    const len = g.plankLen() * (0.85 + rng() * 0.3);
     const left = W / 2 - len / 2;
     const right = W / 2 + len / 2;
     const lineY = LINE_Y + (rng() - 0.5) * 30;
-    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.05, 0.16, k) * (0.7 + rng() * 0.6);
+    const grain = (rng() < 0.5 ? -1 : 1) * g.grainPull() * (0.7 + rng() * 0.6);
     // Knots sit right on the line: saw round them, or grind slowly through.
     const knots = [];
-    const n = g.planks === 0 ? 0 : clamp(Math.floor(lerp(0.7, 3.3, k) + rng() * 0.6), 0, 3);
+    const n = g.planks === 0 ? 0 : clamp(Math.floor(g.knotCount() + rng() * 0.6), 0, 3);
     for (let i = 0; i < n; i++) {
       knots.push({ x: lerp(left + 110, right - 150, (i + 0.25 + rng() * 0.5) / n), dy: (rng() - 0.5) * 14, rx: lerp(24, 32, rng()), ry: lerp(16, 22, rng()), hit: false });
     }

@@ -39,23 +39,41 @@ at every station it meets 20.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets the three knobs; they used to move in a straight line.
+The stations follow the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | Middle | End | Before (start to end) |
-| --- | --- | --- | --- | --- |
-| Station width (share of the dial) | 5% | 3.75% | 2.5% | 4.5% to 2.7% |
-| Drift either way | 0.8% | 2.1% | 3.4% | 1.2% to 3% |
-| Drift speed (times each station's rate) | 0.45 | 0.75 | 1.05 | 0.5 to 1 |
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Station half-width (share of the dial) | 5% | 3.9% | 2.5% |
+| Drift either way (share of the dial) | 0.8% | 2.0% | 3.4% |
+| Drift speed (times each station's rate) | 0.45 | 0.72 | 1.05 |
 
-So the first third's stations are wide and stay near their pencil marks,
-the middle is as before, and at the end they are narrower and wander
-further. Bots before and after: beginner 85–207 to 120–207, good 251–317 to
-253–318, sweeping and creeping (with or without mashing) 0, pressing at
-every station 20, mashing 0–10 to 0–20, idle 0. Pass 75 kept. A test runs a
-good tuner on three seeds and checks the last third's stations are under
-65% as wide, stray over 2.5 times as far from their places, and take the
-tuner longer to find.
+At Normal the stations are 4.4% wide at 17 s, 3.9% at 34 s and 2.9% at the
+end; Easier never narrows below 4.2%; Harder opens at 4.0% and ends at 2.5%.
+
+**Pass mark stays at 75.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Sweep | Sweep + mash | Creep + mash | Press at every station | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 6 (0–19) | 0 | 0 | 0 | 18 (0–20) | 66 (30–105) 25% | 164 (125–232) 100% | 301 (252–318) |
+| Normal | 0 | 7 (0–19) | 0 | 0 | 0 | 18 (0–20) | 65 (30–92) 25% | 163 (93–230) 100% | 299 (252–318) |
+| Harder | 0 | 7 (0–27) | 0 | 0 | 0 | 18 (0–20) | 68 (30–108) 33% | 128 (51–190) 83% | 290 (251–319) |
+
+The medium tuner is the old beginner (skill 0.3); the clumsy one is the
+same tuner a step further down (skill −0.3: sweeps slower, overshoots more,
+is slower to press, forgets the pencil marks more often). A slow tuner's
+score is set by how fast it sweeps the dial and how often it forgets the
+marks, not by how narrow the stations are (the needle settles on a station
+it is near), so Easier lifts a clumsy tuner not at all: it passes a quarter
+of the time at every level. The narrow, wandering stations do bite at
+Harder, where the medium tuner drops from 163 to 128. This falls short of
+the guide's "Easier lets a clumsy player pass". `test/radiobird.test.mjs`
+checks the rest, the knobs third by third at each level, and (six seeds at
+Normal) that the last third's stations are under 80% as wide, stray twice
+as far, and take a good tuner longer to find.
 
 ## Images (IC-M18)
 

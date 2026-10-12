@@ -16,6 +16,7 @@
 
 import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   // shirt, handkerchief, trousers, silk scarf, pillowcase, tablecloth: laid flat, seen from above
@@ -118,10 +119,13 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve, slow to start and slow to
-  // finish, steering every knob (creases, their length, time per garment,
-  // which garments come).
-  const ramp = (p) => p * p * (3 - 2 * p);
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js). Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.creaseCount = () => knob(g.d(), 2, 4.1, 6.6); // creases per garment (before size and luck)
+  g.timeLimit = () => knob(g.d(), 14, 11.2, 7.5); // seconds per garment (plus 0.6 s a crease)
+  g.silkChance = () => knob(g.d(), 0.1, 0.23, 0.4); // chance of a silk scarf, after the first third
   function pop(text, x, y, color = INK, size = 42) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -135,17 +139,16 @@ export default function create(env) {
   // point pressed flat 0..1.
   function nextGarment() {
     const p = progress();
-    const k = ramp(p);
     g.count++;
     // The first third brings the smaller, plainer pieces; trousers, shirts
     // and (later still) silk join as the round goes on.
     let pool = GARMENTS.filter((G) => !G.silk && (p > 1 / 3 || G.w < 850) && (p < 2 / 3 || G.w > 600));
     if (g.count === 1) pool = [GARMENTS[0]];
-    else if (p > 1 / 3 && rng() < lerp(0.1, 0.4, k)) pool = [GARMENTS[5]];
+    else if (p > 1 / 3 && rng() < g.silkChance()) pool = [GARMENTS[5]];
     const G = pool[Math.floor(rng() * pool.length)];
     const cx = 830;
     const cy = 545;
-    const n = Math.min(7, Math.round(lerp(2, 6.6, k) + (G.w > 850 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
+    const n = Math.min(7, Math.round(g.creaseCount() + (G.w > 850 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
     const creases = [];
     for (let k = 0; k < n; k++) {
       let tries = 0;
@@ -175,7 +178,7 @@ export default function create(env) {
       }
       if (c) creases.push(c);
     }
-    const limit = lerp(14, 7.5, k) + creases.length * 0.6;
+    const limit = g.timeLimit() + creases.length * 0.6;
     g.garment = { ...G, cx, cy, creases, limit, at: g.elapsed, t: 0, slide: 1, scorched: 0, marks: [] };
     g.heat.fill(0);
     sfx('page');

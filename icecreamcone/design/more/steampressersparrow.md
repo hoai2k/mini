@@ -105,18 +105,37 @@ tipped up, so its eyes look bigger but the iron is not); a test checks it.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets every knob as each garment comes in:
+The round follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard, set as
+each garment comes in; hard is the old end of the round, medium a little
+gentler than the old middle.
 
-- **Creases:** two or three at first, about four by the middle, five or six
-  by the end (seven at most); longer ones later. A crease that won't fit on
-  the cloth is tried shorter, so late garments really get their creases.
-- **Time per garment:** 14 s at the start down to 7.5 s by the end, plus
-  0.6 s per crease.
-- **Garments:** the first third brings only the handkerchief, pillowcase and
-  tablecloth; shirts, trousers and silk scarves join after that (silk 10% of
-  garments, rising to 40%), and the last third leaves out the handkerchief.
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Creases per garment (+1 for shirts and trousers, +1 two times in five; 7 at most) | 2 | 4.1 | 6.6 |
+| Seconds per garment (plus 0.6 s a crease) | 14 | 11.2 | 7.5 |
+| Silk scarf chance (after the first third) | 0.10 | 0.23 | 0.40 |
 
-A test runs a good presser over six seeds and checks the last third's
-garments have well over one crease more, much less time per crease, and
-some silk, against the first third's.
+Unchanged: each later crease on a garment is longer than the one before
+(a crease that won't fit on the cloth is tried shorter); the first third
+brings only the handkerchief, pillowcase and tablecloth, shirts, trousers
+and silk join after that, and the last third leaves out the handkerchief.
+
+**Pass mark stays at 16.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Camp | Sweep | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 | 0 | 0 (0–1) | 16 (10–20) 67% | 26 (23–29) 100% | 44 (39–49) |
+| Normal | 0 | 0 | 0 | 0 (0–1) | 14 (11–18) 25% | 25 (20–30) 100% | 42 (35–44) |
+| Harder | 0 (0–2) | 0 | 0 | 0 (0–1) | 12 (7–16) 17% | 20 (13–26) 83% | 38 (35–43) |
+
+The medium presser is the old beginner (stick at 0.45, no steam); the
+clumsy one pushes at 0.3 and looks away a second in every three; the good
+one pushes at 0.75 and puffs steam. Points come from creases pressed, and a
+crease takes the same work at any level, so Easier (fewer creases, more
+time) helps a clumsy presser less than it would in a game scored on
+accuracy; it still passes twice as often as at Normal.
+`test/steampressersparrow.test.mjs` checks all of this, and the knobs third
+by third at each level.

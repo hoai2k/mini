@@ -13,7 +13,8 @@
 // Score: points (puddles hopped and birds kept dry).
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.wrenPoses': [3, 1], // umbrella open (floating, no longer used), umbrella open and walking, snagged inside-out
@@ -120,12 +121,19 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets the street's speed, the dry stretches, puddle
-  // widths, and when awnings, double puddles and gusts join in.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
-  const baseSpeed = () => lerp(300, 570, g.ramp());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js; `g.dNow`, since `g.d` is the distance walked). Each
+  // knob: easy, medium, hard. Awnings, double puddles and gusts still join in
+  // at fixed points of the round.
+  const dAt = curve(env);
+  g.dNow = () => dAt(progress());
+  g.speedNow = () => knob(g.dNow(), 300, 420, 570); // street speed, px/s
+  g.dryNow = () => knob(g.dNow(), 650, 465, 240); // dry stretch before the next thing, px (±)
+  g.widthNow = () => knob(g.dNow(), 235, 268, 310); // puddle width, px, plus up to...
+  g.widthSpread = () => knob(g.dNow(), 40, 98, 170); // ...this much more, px
+  g.awningChance = () => knob(g.dNow(), 0.3, 0.39, 0.5); // share of awnings, after 29%
+  g.doubleChance = () => knob(g.dNow(), 0.2, 0.31, 0.45); // chance of a second puddle, after 42%
+  const baseSpeed = () => g.speedNow();
   const top = () => g.h + (g.open ? TOP_OPEN : TOP_SHUT);
 
   function pop(text, x, y, color = INK, size = 44) {
@@ -138,11 +146,12 @@ export default function create(env) {
   // Lays the street out ahead: dry stretches, puddles, little birds, awnings.
   function lay() {
     const p = progress();
-    const k = ramp(p);
-    const dry = lerp(650, 240, k) * (0.8 + rng() * 0.5);
+    const dry = g.dryNow() * (0.8 + rng() * 0.5);
     let x = g.nextX + dry;
     const r = rng();
-    const widthNow = () => lerp(235, 310, k) + rng() * lerp(40, 170, k);
+    const base = g.widthNow();
+    const spread = g.widthSpread();
+    const widthNow = () => base + rng() * spread;
     if (p > 0.11 && r < 0.22) {
       g.chicks.push({ x, state: 'wait', t: 0, color: [PAL.lemon, PAL.strawberry, PAL.mint, PAL.ochre][Math.floor(rng() * 4)] });
       // a little bird often sits just before a puddle: shelter it on the way over
@@ -154,7 +163,7 @@ export default function create(env) {
       g.nextX = x;
       return;
     }
-    if (p > 0.29 && r < lerp(0.3, 0.5, k)) {
+    if (p > 0.29 && r < g.awningChance()) {
       const len = 340 + rng() * 200;
       g.awnings.push({ x0: x, x1: x + len, color: rng() < 0.5 ? 0 : 1 });
       g.nextX = x + len;
@@ -163,7 +172,7 @@ export default function create(env) {
     const w = widthNow();
     g.puddles.push({ x0: x, x1: x + w });
     g.nextX = x + w;
-    if (p > 0.42 && rng() < lerp(0.2, 0.45, k)) {
+    if (p > 0.42 && rng() < g.doubleChance()) {
       // a second one close behind: land and hop again, or float over both
       const gap = 170 + rng() * 60;
       const w2 = 230 + rng() * 80;

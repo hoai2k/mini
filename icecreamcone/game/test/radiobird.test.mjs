@@ -85,31 +85,88 @@ const presser = () => {
   };
 };
 
-test('radiobird: a beginner reaches the score, a good tuner well beyond; sweeping, mashing and idling do not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: tuner(0.3, seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: tuner(1, seed) }).game.score);
-  const sweep = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(1, false) }).game.score);
-  const sweepMash = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(1, true) }).game.score);
-  const creepMash = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(0.4, true) }).game.score);
-  const press = [1, 2, 3].map((seed) => run(create, { seed, bot: presser() }).game.score);
-  const idle = [1, 2, 3].map((seed) => run(create, { seed }).game.score);
-  let rr = 5;
+// A random masher: the dial anywhere, the button half the time.
+const masher = (seed) => {
+  let rr = seed * 5;
   const rnd = () => ((rr = (rr * 16807) % 2147483647) / 2147483647);
-  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: () => ({ x: rnd() * 2 - 1, action: rnd() < 0.5, spin: rnd() - 0.5 }) }).game.score);
-  console.log('radiobird beginner', beginner, 'good', good, 'sweep', sweep, 'sweep+mash', sweepMash, 'creep+mash', creepMash, 'press at every station', press, 'mash', mash, 'idle', idle, 'pass', pass);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  assert.ok(avg(good) > avg(beginner) * 1.3, `good ${good}`);
-  for (const [name, xs] of Object.entries({ sweep, sweepMash, creepMash, mash, idle })) assert.ok(Math.max(...xs) < pass, `${name} ${xs}`);
-  assert.ok(avg(press) < avg(good), `press ${press}`);
+  return () => ({ x: rnd() * 2 - 1, action: rnd() < 0.5, spin: rnd() - 0.5 });
+};
+
+// A tuner below 1 sweeps slower, overshoots and is slower to press, so it
+// loses more as the stations narrow and wander.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  sweep: () => sweepWith(1, false),
+  sweepMash: () => sweepWith(1, true),
+  creepMash: () => sweepWith(0.4, true),
+  pressAll: () => presser(),
+  clumsy: (seed) => tuner(-0.3, seed), // the same tuner a step below: slower, overshoots, forgets the marks
+  medium: (seed) => tuner(0.3, seed), // the old beginner
+  good: (seed) => tuner(1, seed),
+};
+const MASHES = ['idle', 'mash', 'sweep', 'sweepMash', 'creepMash'];
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`radiobird pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('radiobird: at Normal a medium tuner passes, a good one well beyond; sweeping, mashing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) * 1.3, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of MASHES) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  assert.ok(mean(t.pressAll) < mean(t.good), `press ${t.pressAll}`);
+});
+
+// A slow tuner's score is set by how fast it sweeps the dial and how often
+// it forgets the pencil marks, not by how narrow the stations are, so
+// Easier (wide, nearly still stations) lifts it very little.
+test('radiobird: Easier is calmer: medium passes, clumsy about as often as at Normal; sweeping, mashing and idling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.medium) === 1, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) >= passRate(TABLE.normal.clumsy) - 0.1, `clumsy ${t.clumsy} vs Normal ${TABLE.normal.clumsy}`);
+  for (const n of MASHES) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('radiobird: Harder ends hard: the good tuner scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.3, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.medium) < mean(TABLE.normal.medium) - 15, `medium ${mean(t.medium)} vs Normal ${mean(TABLE.normal.medium)}`);
+});
+
+test('radiobird: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const rows = {};
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ width: game.width(), drift: game.drift(), wander: game.wander() });
+    const row = [look()];
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < (50 / 3) * 60 - (i === 2 ? 1 : 0); f++) game.update(1 / 60, blank());
+      row.push(look());
+    }
+    console.log('radiobird ramp', level, row.map((k) => `width ${k.width.toFixed(3)} drift ${k.drift.toFixed(3)} wander ${k.wander.toFixed(2)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].width <= row[i - 1].width && row[i].drift >= row[i - 1].drift, `${level} gets harder`);
+    rows[level] = row;
+  }
+  const n = rows.normal;
+  assert.ok(n[1].width > (n[0].width + n[3].width) / 2, 'the first third stays gentle');
+  assert.ok(rows.easier[3].width > 0.04, 'Easier keeps wide stations');
+  assert.ok(rows.harder[0].width < 0.042 && rows.harder[3].width < 0.026, 'Harder opens near medium and ends hard');
 });
 
 test('radiobird: stations start wide and nearly still, and end narrow and wandering', () => {
   const part = () => ({ width: [], move: [], finds: [] });
   const early = part();
   const late = part();
-  for (const seed of [1, 2, 3]) {
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
     const bot = tuner(1, seed);
     let prev = null;
     let asked = 0;
@@ -132,8 +189,8 @@ test('radiobird: stations start wide and nearly still, and end narrow and wander
     });
   }
   const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
-  assert.ok(mean(late.width) < mean(early.width) * 0.65, `station width early ${mean(early.width).toFixed(3)}, late ${mean(late.width).toFixed(3)}`);
-  assert.ok(mean(late.move) > mean(early.move) * 2.5, `stations stray early ${mean(early.move).toFixed(4)}, late ${mean(late.move).toFixed(4)}`);
+  assert.ok(mean(late.width) < mean(early.width) * 0.8, `station width early ${mean(early.width).toFixed(3)}, late ${mean(late.width).toFixed(3)}`);
+  assert.ok(mean(late.move) > mean(early.move) * 2, `stations stray early ${mean(early.move).toFixed(4)}, late ${mean(late.move).toFixed(4)}`);
   assert.ok(mean(late.finds) > mean(early.finds), `a good tuner takes longer late: early ${mean(early.finds).toFixed(2)} s, late ${mean(late.finds).toFixed(2)} s`);
 });
 

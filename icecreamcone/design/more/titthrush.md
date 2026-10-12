@@ -85,38 +85,53 @@ sideways.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), drives every knob, where they used to move in a straight line
-with time (3.4 s to 2.1 s, 100 to 72, 1000 to 420):
+The clocks follow the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | 15 s | Middle | End |
-| --- | --- | --- | --- | --- |
-| Seconds per turn of the long hand | 3.7 | 3.25 | 2.85 | 2.0 |
-| Dial radius | 100 | 92 | 85 | 70 |
-| Dotted line | 1080 | 900 | 740 | 400 |
-| Sway (new clocks) | none | 16 | 21 | 32 |
-| Sideways drift (new clocks, from 60%) | none | none | none | 30–60 px/s, x0.96 rising to x1.15 |
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Seconds per turn of the long hand | 3.7 | 2.95 | 2.0 |
+| Dial radius (px) | 100 | 87 | 70 |
+| Dotted line (px) | 1080 | 780 | 400 |
+| Sway of new clocks (px, after the first third) | 10 | 20 | 32 |
+| Sideways drift of new clocks (×30–60 px/s, from 60%) | 0.6 | 0.85 | 1.15 |
 
-So the first third is slower and plainer than before, the middle about as it
-was, and the end a little harder. The start dial stays at 100: bigger dials
-leave too little room to place the gold watch, which then came late. The
-"it gets harder" test now also checks that by 15 s each knob has moved
-less than 30% of the way, and that no clock sways or drifts in the first
-third while late ones do.
+Unchanged: no clock sways or drifts in the first third, the cuckoo clock
+joins after a third, and the start dial stays at 100 (bigger dials leave too
+little room to place the gold watch). At Normal the hand takes 3.3 s at
+15 s, 2.95 s at 30 s and 2.3 s at the end; Easier never gets faster than
+3.2 s; Harder opens at 3.0 s and ends at 2.0 s.
 
 ## Balance
 
 Bots (`node --test test/titthrush.test.mjs`) watch the hand come round and
 press a moment ahead, with their timing off by up to `noise` either way:
 
-| Bot | How it plays | Scores (seeds 1–8) |
-| --- | --- | --- |
-| Beginner | ±0.11 s, takes any line through a clock, lets a quarter of chances go by | 23–34 (all pass) |
-| Clumsy | ±0.16 s, lets a third go by, slow to settle | 13–25 (6 of 8 pass) |
-| Good | ±0.035 s, waits for bullseyes, goes for the gold watch | 43–49 (seeds 1–4) |
-| Hopping blind | presses three times a second without looking | 1–9 (mean 4) |
-| Mashing | presses every few frames | 0 |
-| Idle | | 0 |
+| Bot | How it plays |
+| --- | --- |
+| Medium (the old beginner) | ±0.11 s, takes any line through a clock, lets a quarter of chances go by |
+| Clumsy | ±0.3 s (so it misses more as the hand speeds up), lets a third go by, slow to settle |
+| Good | ±0.035 s, waits for bullseyes, goes for the gold watch |
+| Hopping blind | presses three times a second without looking |
+| Mashing | presses every few frames |
+
+**Pass mark stays at 14.** Seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Blind | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 | 7 (2–13) | 16 (8–22) 75% | 22 (16–31) 100% | 45 (37–50) |
+| Normal | 0 | 0 | 3 (2–5) | 15 (7–23) 58% | 26 (16–35) 100% | 47 (35–62) |
+| Harder | 0 | 0 | 3 (0–6) | 13 (5–20) 50% | 28 (17–38) 100% | 53 (50–57) |
+
+A missed hop costs only time, and a faster hand offers more hops, so anyone
+who keeps up scores more on a faster clock: the medium player scores a
+little less at Easier, and the clumsy one passes only a little more often
+there (75% against 58%). Clumsy passing more than half the time at Normal
+is more than the guide's "seldom"; it is left so, as the old pass mark and
+clumsy rate (6 of 8) were chosen on purpose.
 
 ## Controls
 

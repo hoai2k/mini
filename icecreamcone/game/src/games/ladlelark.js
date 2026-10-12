@@ -16,6 +16,7 @@
 
 import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.larkBits': [5, 1], // carrot slice, pea, dumpling, mushroom, old boot
@@ -104,11 +105,16 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets the swirl, the orders' size and variety, the
-  // patience and the old boot; the pot's mix widens by thirds.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets the swirl, the orders' size and variety, the
+  // patience and the old boot; the pot's mix widens by thirds of the round.
+  // Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.swirlNow = () => knob(g.d(), 0.4, 0.72, 1.1); // the pot's swirl, rad/s
+  g.orderStep = () => Math.floor(knob(g.d(), 0, 1.15, 2.5)); // 0: 1-2 bits of one kind; 1: 2-3 of two; 2: 3-4 of three
+  g.patienceNow = () => knob(g.d(), 14, 11.1, 7.5); // seconds a creature waits, plus 1.5 a bit
+  g.bootChance = () => knob(g.d(), 0.12, 0.22, 0.35); // chance a new bit is the old boot, after the first third
   const kinds = () => (progress() < 0.14 ? 2 : progress() < 0.4 ? 3 : 4);
   function pop(text, x, y, color = INK, size = 34) {
     // Stack above a pop still showing nearby rather than on top of it.
@@ -148,16 +154,15 @@ export default function create(env) {
   }
   function pickKind() {
     const need = g.cust ? Object.keys(g.cust.order).filter((k) => g.cust.order[k] > (g.cust.got[k] || 0)) : [];
-    if (progress() > 1 / 3 && !g.bits.some((b) => b.kind === 'boot') && rng() < lerp(0.12, 0.35, g.ramp())) return 'boot';
+    if (progress() > 1 / 3 && !g.bits.some((b) => b.kind === 'boot') && rng() < g.bootChance()) return 'boot';
     if (need.length && rng() < 0.45) return need[Math.floor(rng() * need.length)];
     return KINDS[Math.floor(rng() * kinds())];
   }
 
   function newCustomer() {
-    const k = g.ramp();
     // one or two bits of one kind at first, two or three of two kinds in the
     // middle, three or four of three kinds at the end
-    const step = Math.floor(lerp(0, 2.5, k));
+    const step = g.orderStep();
     const n = 1 + step + Math.floor(rng() * 2);
     const nk = Math.min(kinds(), 1 + step);
     const pool = KINDS.slice(0, kinds());
@@ -173,7 +178,7 @@ export default function create(env) {
     }
     const who = g.queue.length ? g.queue.shift() : g.nextWho++ % 4;
     while (g.queue.length < 2) g.queue.push(g.nextWho++ % 4);
-    g.cust = { who, order, got: {}, extras: 0, t: 0, patience: lerp(14, 7.5, k) + n * 1.5, arrive: 0.5, mood: 0, bowl: [] };
+    g.cust = { who, order, got: {}, extras: 0, t: 0, patience: g.patienceNow() + n * 1.5, arrive: 0.5, mood: 0, bowl: [] };
     // The cook drops in more of anything the pot is short of.
     for (const kind of Object.keys(order)) {
       const have = g.bits.filter((b) => b.kind === kind).length;
@@ -275,7 +280,7 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    g.swirl = lerp(0.4, 1.1, g.ramp());
+    g.swirl = g.swirlNow();
     g.spin += g.swirl * dt;
 
     // Move the ladle: follow the pointer, or the stick.

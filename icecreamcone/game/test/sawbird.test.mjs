@@ -45,23 +45,69 @@ function sawyer(skill = 1, seed = 1, pump = false) {
 // Pushes the stick hard left and right as fast as it can, never steering.
 const jiggle = (period) => (game, t) => ({ x: Math.floor(t / period) % 2 ? 1 : -1 });
 
-test('sawbird: a beginner reaches the score, a good sawyer more; jiggling, unsteered strokes and idling do not', () => {
-  const beginner = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: sawyer(0.3, seed) }).game.score);
-  const good = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: sawyer(1, seed) }).game.score);
-  const jig = [1, 2].map((seed) => run(create, { seed, bot: jiggle(0.08) }).game.score);
-  const blind = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: jiggle(0.45) }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  const pumper = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sawyer(0.3, seed, true) }).game.score);
-  const mashA = [1, 2].map((seed) => run(create, { seed, bot: (game, t) => ({ kind: 'controller', action: Math.floor(t * 20) % 2 === 0 }) }).game.score);
-  console.log('sawbird beginner', beginner, 'good', good, 'beginner holding A', pumper, 'mashing A', mashA, 'jiggle', jig, 'unsteered', blind, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
-  assert.ok(Math.max(...jig) < pass, `jiggle ${jig}`);
-  assert.ok(Math.max(...blind) < pass, `unsteered ${blind}`);
-  assert.ok(Math.min(...pumper) >= pass, `holding A to push ${pumper}`);
-  assert.ok(Math.max(...mashA) < pass, `mashing A ${mashA}`);
+// A sawyer below 1 sees knots later and is slower to notice the cut
+// wandering, which costs more as the grain pulls harder and knots crowd in.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  jiggle: () => jiggle(0.08),
+  unsteered: () => jiggle(0.45),
+  mashA: () => (game, t) => ({ kind: 'controller', action: Math.floor(t * 20) % 2 === 0 }),
+  clumsy: (seed) => sawyer(-0.1, seed), // shorter strokes, longer pauses, sees knots late, a shakier hand
+  medium: (seed) => sawyer(0.3, seed), // the old beginner
+  holdA: (seed) => sawyer(0.3, seed, true), // the old beginner, holding A to push
+  good: (seed) => sawyer(1, seed),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`sawbird pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('sawbird: at Normal a medium sawyer passes (stick or holding A), a good one more; jiggling, unsteered strokes, mashing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(passRate(t.holdA) >= 0.75, `holding A ${t.holdA}`);
+  assert.ok(mean(t.good) > mean(t.medium), `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'jiggle', 'unsteered', 'mashA']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('sawbird: Easier lets a clumsy sawyer pass; jiggling, unsteered strokes, mashing and idling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'jiggle', 'unsteered', 'mashA']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('sawbird: Harder ends hard: the good sawyer scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 5, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
+});
+
+test('sawbird: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const rows = {};
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ len: game.plankLen(), grain: game.grainPull(), knots: game.knotCount() });
+    const row = [look()];
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < (50 / 3) * 60 - (i === 2 ? 1 : 0); f++) game.update(1 / 60, blank());
+      row.push(look());
+    }
+    console.log('sawbird ramp', level, row.map((k) => `${k.len.toFixed(0)} px grain ${k.grain.toFixed(3)} knots ${k.knots.toFixed(1)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].len >= row[i - 1].len && row[i].grain >= row[i - 1].grain && row[i].knots >= row[i - 1].knots, `${level} gets harder`);
+    rows[level] = row;
+  }
+  const n = rows.normal;
+  assert.ok(n[1].len < (n[0].len + n[3].len) / 2, 'the first third stays gentle');
+  assert.ok(rows.easier[3].knots < 1.6 && rows.easier[3].len < 760, 'Easier stays gentle');
+  assert.ok(rows.harder[0].len > 760 && rows.harder[3].knots > 3.2, 'Harder opens near medium and ends hard');
 });
 
 test('sawbird: the first planks are short and plain, the last long, knotty and pulling hard', () => {
@@ -86,7 +132,7 @@ test('sawbird: the first planks are short and plain, the last long, knotty and p
   const mean = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
   const len = (P) => P.right - P.left;
   assert.ok(early.length >= 6 && late.length >= 6, `${early.length} early, ${late.length} late`);
-  assert.ok(mean(late, len) > mean(early, len) * 1.3, `length early ${mean(early, len).toFixed(0)}, late ${mean(late, len).toFixed(0)}`);
+  assert.ok(mean(late, len) > mean(early, len) * 1.2, `length early ${mean(early, len).toFixed(0)}, late ${mean(late, len).toFixed(0)}`);
   assert.ok(mean(late, (P) => Math.abs(P.grain)) > mean(early, (P) => Math.abs(P.grain)) * 1.6, 'the grain pulls harder late');
   assert.ok(Math.max(...early.map((P) => P.knots.length)) <= 2, `early knots ${early.map((P) => P.knots.length)}`);
   assert.ok(mean(late, (P) => P.knots.length) >= mean(early, (P) => P.knots.length) + 1.2, `knots early ${mean(early, (P) => P.knots.length).toFixed(2)}, late ${mean(late, (P) => P.knots.length).toFixed(2)}`);

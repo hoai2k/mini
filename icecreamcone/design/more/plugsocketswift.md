@@ -35,11 +35,12 @@ Swift follows the pointer; a click or tap on a window (or the fuse box)
 sends the Swift there and acts when it arrives. The window the Swift is at
 is outlined. On a narrow screen the view follows the Swift, 820 wide.
 
-**Pass.** 11 rooms lit. Bots over seeds 1–5: a beginner (slower, lets a
-fourth lamp in, sometimes picks a window at random) 13–16; a good
-electrician (never more than three, unplugs the nearest sleeper first,
-serves the most impatient window) 17–18; plugging in everything and never
-unplugging 5–7; flying at random mashing 2–7; idle 0.
+**Pass.** 13 rooms lit (it was 11; see "Difficulty over the round"). A
+medium electrician (slower, lets a fourth lamp in, sometimes picks a window
+at random) lights 17–21 at Normal; a good one (never more than three,
+unplugs the nearest sleeper first, serves the most impatient window) 18–19;
+plugging in everything and never unplugging 8–10; flying at random mashing
+3–7; idle 0.
 
 **Images.** IC-M13a is the garden at dusk with the tall house, its front
 wall left blank for the game's windows and a clear patch on the garden wall
@@ -123,20 +124,39 @@ mashing 2–6, idle 0. The pass stays at 11.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets the three knobs for each new request, where they used to
-move in a straight line with time:
+Requests follow the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard, set
+for each new request; hard is the old end of the round, medium a little
+gentler than the old middle.
 
-| Knob | Start | Middle | End | Before (start to end) |
-| --- | --- | --- | --- | --- |
-| Seconds between requests | 2.5 | 1.55 | 0.6 | 2.2 to 0.65 |
-| Patience | 9.5 s | 7.15 s | 4.8 s | 8.5 to 5 |
-| Book (plus up to 1.5 s) | 3 s | 4.65 s | 6.3 s | 3.2 to 6 |
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Seconds between requests (±20%) | 2.5 | 1.65 | 0.6 |
+| Patience (s, ±10%) | 9.5 | 7.4 | 4.8 |
+| Book (s, plus up to 1.5) | 3 | 4.5 | 6.3 |
 
-The first third is calmer, the middle about as it was, and the last third
-busier, with longer books keeping more lamps on against the fuse. Bots
-before and after: beginner 12–14 to 13–16, good 19–20 to 17–18, greedy 5–8
-to 5–7, mashing 2–6 to 2–7, idle 0; pass 11 kept. A test runs a good
-electrician on five seeds and checks the last third brings over 1.5 times
-as many requests as the first, with patience under 70% and books over 2 s
-longer.
+**Pass mark 11 → 13.** At Easier the books stay short (3–4 s), so plugging
+in every window and never unplugging lit 10–12 rooms, passing 11 on nine
+seeds in twelve. At 13 it never passes. Bots over seeds 1–12 (mean, range,
+share passing at 13):
+
+| Level | Idle | Mash | Greedy | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 5 (2–7) | 11 (10–12) | 12 (11–13) 8% | 18 (17–19) 100% | 18 (17–19) |
+| Normal | 0 | 5 (3–7) | 9 (8–10) | 12 (11–12) 0% | 19 (17–21) 100% | 19 (18–19) |
+| Harder | 0 | 4 (1–7) | 4 (2–5) | 12 (11–12) 0% | 10 (8–11) 0% | 19 (18–19) |
+
+The medium electrician is the old beginner; the clumsy one is slower still,
+picks windows almost at random and takes 1.25 s to set off each time; the
+good one never lets a fourth lamp in. Rooms lit are capped by the three
+safe lamps and how fast the Swift gets round, not by how often windows
+ask, so a slow electrician lights about as many at any level: Easier is
+calmer but does not lift a clumsy score, and a good electrician is about
+level with a medium one at Normal. Harder is where the fuse bites: long
+books and quick requests blow it for anyone who lets a fourth lamp in, so
+the medium player drops to 10 while the good one keeps 19. This falls
+short of the guide's "Easier lets a clumsy player pass".
+`test/plugsocketswift.test.mjs` checks the rest, and the knobs third by
+third at each level.

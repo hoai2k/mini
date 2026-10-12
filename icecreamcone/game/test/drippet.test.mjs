@@ -8,8 +8,9 @@ const pass = entry.pass;
 
 // A runner: heads for the thirsty thing that is nearest, and hops when an old
 // puddle lies just ahead. `skill` slows the stick, makes it look less far
-// ahead and sometimes forget to hop.
-function runner(skill = 1, seed = 1) {
+// ahead and sometimes forget to hop. `late` is how long it takes to set off
+// for each new thing (a player slow to look up).
+function runner(skill = 1, seed = 1, late = 0) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let target = null;
@@ -19,7 +20,7 @@ function runner(skill = 1, seed = 1) {
     if (!target || target.over || !open.includes(target)) {
       open.sort((a, b) => Math.hypot(a.x - game.x, a.y - game.y) - Math.hypot(b.x - game.x, b.y - game.y));
       target = open[0] || null;
-      dither = (1 - skill) * 0.6 * rnd();
+      dither = (1 - skill) * 0.6 * rnd() + late;
     }
     if (!target) return {};
     if (dither > 0) {
@@ -81,21 +82,82 @@ const straight = () => (game) => {
 // Runs in circles around the kitchen, never aiming.
 const circler = () => (game, t) => ({ x: Math.cos(t * 1.5), y: Math.sin(t * 1.5) });
 
-test('drippet: a beginner reaches the score, a good runner more; idle and circling do not; careful runners beat constant hopping', () => {
-  const beginner = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: runner(0.35, seed) }).game.score);
-  const good = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: runner(1, seed) }).game.score);
-  const hops = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: bunny() }).game.score);
-  const blind = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: straight() }).game.score);
-  const circles = [1, 2].map((seed) => run(create, { seed, bot: circler() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('drippet beginner', beginner, 'good', good, 'bunny', hops, 'never looking', blind, 'circles', circles, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
-  assert.ok(Math.max(...circles) < pass, `circles ${circles}`);
-  assert.ok(avg(hops) < avg(good), `bunny ${hops}`);
-  assert.ok(avg(blind) < avg(good), `never looking ${blind}`);
+// Mashes: runs about at random and hops now and then.
+const masher = (seed) => {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  let d = [0, 0];
+  return (game, t) => {
+    if (rnd() < 0.03) d = [rnd() * 2 - 1, rnd() * 2 - 1];
+    return { x: d[0], y: d[1], action: Math.floor(t * 4) % 3 === 0 };
+  };
+};
+
+// A runner below 1 dithers before setting off and looks less far ahead, so
+// it skids more as the puddles grow and last.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  circles: () => circler(),
+  bunny: () => bunny(),
+  blind: () => straight(),
+  clumsy: (seed) => runner(0.1, seed, 0.9), // slow, looks only a little ahead, 0.9 s to set off for each thing
+  medium: (seed) => runner(0.35, seed), // the old beginner
+  good: (seed) => runner(1, seed),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`drippet pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('drippet: at Normal a medium runner passes, a good one more; idle, mashing and circling do not; careful runners beat constant hopping', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium), `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'circles']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+  assert.ok(mean(t.bunny) < mean(t.good), `bunny ${t.bunny}`);
+  assert.ok(mean(t.blind) < mean(t.good), `never looking ${t.blind}`);
+});
+
+// Things served are capped by how fast the Drippet gets round, so Easier
+// (calmer floor, more patient things) lifts a slow runner only a little.
+test('drippet: Easier lets a clumsy runner pass more often than Normal; idle, mashing and circling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'circles']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('drippet: Harder ends hard: the good runner scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 3, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
+});
+
+test('drippet: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const rows = {};
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const row = [game.knobs()];
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < 15 * 60 - (i === 2 ? 1 : 0); f++) game.update(1 / 60, blank());
+      row.push(game.knobs());
+    }
+    console.log('drippet ramp', level, row.map((k) => `drip ${k.drip.toFixed(2)} life ${k.life.toFixed(1)} size ${k.size.toFixed(0)} waits ${k.patience.toFixed(1)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].drip <= row[i - 1].drip && row[i].life >= row[i - 1].life && row[i].patience <= row[i - 1].patience, `${level} gets harder`);
+    rows[level] = row;
+  }
+  const n = rows.normal;
+  assert.ok(n[1].patience > (n[0].patience + n[3].patience) / 2, 'the first third stays gentle');
+  assert.ok(rows.easier[3].patience > 10 && rows.easier[3].life < 8.5, 'Easier stays gentle');
+  assert.ok(rows.harder[0].patience < 10 && rows.harder[3].patience < 6.6, 'Harder opens near medium and ends hard');
 });
 
 test('drippet: the kitchen starts dry and calm, and ends wet and busy', () => {
@@ -124,7 +186,7 @@ test('drippet: the kitchen starts dry and calm, and ends wet and busy', () => {
   assert.ok(mean(late.puddles) > mean(early.puddles) * 2, `wet floor early ${mean(early.puddles).toFixed(0)}, late ${mean(late.puddles).toFixed(0)}`);
   assert.equal(early.thirsty, 1, 'one thirsty thing at a time in the first third');
   assert.equal(late.thirsty, 2, 'two at once late');
-  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.8, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
 });
 
 test('drippet: a fresh drip is harmless, an old puddle makes the Drippet skid', () => {

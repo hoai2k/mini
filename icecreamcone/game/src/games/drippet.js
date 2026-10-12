@@ -14,6 +14,7 @@
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.drippetThings': [4, 2], // fern, cat bowl, glass, daisies: thirsty (top row), refreshed (bottom row)
@@ -75,16 +76,16 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets how often the tap drips, how big puddles grow
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets how often the tap drips, how big puddles grow
   // and how long they last, and how long a thirsty thing waits; a second
-  // thirsty thing joins after the first third.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
-  const dripEvery = () => lerp(0.38, 0.18, g.ramp());
-  const puddleLife = () => lerp(6, 13, g.ramp());
-  const puddleMax = () => lerp(32, 60, g.ramp());
-  const patience = () => lerp(12, 6.5, g.ramp());
+  // thirsty thing joins after the first third. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  const dripEvery = () => knob(g.d(), 0.38, 0.29, 0.18); // seconds between drips (±15%)
+  const puddleLife = () => knob(g.d(), 6, 9.2, 13); // seconds a puddle lasts
+  const puddleMax = () => knob(g.d(), 32, 45, 60); // how big a puddle grows, px
+  const patience = () => knob(g.d(), 12, 9.5, 6.5); // seconds a thirsty thing waits
   const wanted = () => (progress() > 1 / 3 ? 2 : 1);
   g.knobs = () => ({ drip: dripEvery(), life: puddleLife(), size: puddleMax(), patience: patience(), wanted: wanted() });
 

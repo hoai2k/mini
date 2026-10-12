@@ -19,6 +19,7 @@
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.watchFace': [1, 1], // the gold watch face, no hands (the ten o'clock bonus clock)
@@ -107,14 +108,17 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets the hands' speed, the clocks' size, the dotted
-  // line's length, and how much the clocks sway and drift.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
-  g.period = () => lerp(3.7, 2.0, g.ramp()); // seconds for the long hand to go round
-  g.radius = () => lerp(100, 70, g.ramp());
-  g.aimLen = () => lerp(1080, 400, g.ramp());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets the hands' speed, the clocks' size, the dotted
+  // line's length, and how much the clocks sway and drift. Each knob: easy,
+  // medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.period = () => knob(g.d(), 3.7, 2.95, 2.0); // seconds for the long hand to go round
+  g.radius = () => knob(g.d(), 100, 87, 70); // clock face radius, px
+  g.aimLen = () => knob(g.d(), 1080, 780, 400); // dotted line's length, px
+  g.sway = () => knob(g.d(), 10, 20, 32); // how far a clock sways, px, after the first third
+  g.drift = () => knob(g.d(), 0.6, 0.85, 1.15); // drift speed, times 30-60 px/s, after 60%
   const reach = (k) => k.r * REACH;
 
   function pop(text, x, y, color = INK, size = 44) {
@@ -137,8 +141,8 @@ export default function create(env) {
       fade: 0, // fading out once left (or the gold watch's time is up)
       ring: 0,
       phase: rng() * TAU,
-      sway: progress() > 1 / 3 ? lerp(10, 32, g.ramp()) : 0,
-      vx: progress() > 0.6 ? (rng() < 0.5 ? -1 : 1) * lerp(30, 60, rng()) * lerp(0.6, 1.15, g.ramp()) : 0,
+      sway: progress() > 1 / 3 ? g.sway() : 0,
+      vx: progress() > 0.6 ? (rng() < 0.5 ? -1 : 1) * lerp(30, 60, rng()) * g.drift() : 0,
       life: kind === GOLD ? GOLD_LIFE : Infinity,
     };
   }

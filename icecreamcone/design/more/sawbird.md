@@ -41,24 +41,34 @@ fast jiggling 4, mashing A 0, and idling 0.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets each new plank:
+Each new plank follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | Middle | End | Before (start to end) |
-| --- | --- | --- | --- | --- |
-| Length (±15%) | 600 | 825 | 1050 | 640 to 1000, straight line |
-| Grain pull | 0.05 | 0.105 | 0.16 | 0.06 to 0.14 |
-| Knots on the line | 0–1 (none on the first plank) | 2 | 3 | 0, 1, 2, then 2–3 by plank count |
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Length (px, ±15%) | 600 | 810 | 1050 |
+| Grain pull (×0.7–1.3) | 0.05 | 0.10 | 0.16 |
+| Knots on the line (+ up to 0.6, rounded down, 3 at most) | 0.7 | 1.9 | 3.3 |
 
-Knots used to step up with each plank, so a good sawyer met two knots by its
-third plank, about ten seconds in; now the first third has at most one or
-two, and three come only near the end. Bots before and after: beginner
-38–44 to 44–51, holding A 44–54 to 46–51, good 67–70 to 67–80, unsteered
-7–10 to 13–16, jiggling 1 to 4, mashing A 0, idle 0. The gentler start
-helps everyone a little; unsteered strokes stay far below the pass, so pass
-30 is kept. A test runs a good sawyer on six seeds and checks the last
-third's planks are 1.3 times as long, pull 1.6 times as hard, and carry over
-one more knot each, with at most two on any early plank.
+The first plank never has a knot. Easier's planks stay under about 750 px
+with at most two knots; Harder opens on 790 px planks with one or two.
+
+**Pass mark stays at 30.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Jiggle | Unsteered | Mash A | Clumsy | Medium | Medium holding A | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 4 | 19 (14–23) | 0 | 36 (31–41) 100% | 56 (48–70) 100% | 64 (58–68) 100% | 86 (80–90) |
+| Normal | 0 | 4 | 14 (10–16) | 0 | 29 (22–38) 42% | 52 (47–57) 100% | 58 (51–64) 100% | 79 (70–80) |
+| Harder | 0 | 1 | 6 (6–7) | 0 | 21 (18–31) 8% | 37 (31–41) 100% | 43 (35–51) 100% | 69 (60–70) |
+
+The medium sawyer is the old beginner (skill 0.3); the clumsy one is the
+same bot a step further down (skill −0.1: shorter strokes, longer pauses,
+sees knots later, a shakier hand), and its mistakes grow with the grain's
+pull and the knots. `test/sawbird.test.mjs` checks all of this, the knobs
+third by third at each level, and the planks early and late at Normal.
 
 ## Images (IC-M17)
 

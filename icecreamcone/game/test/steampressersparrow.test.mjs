@@ -3,22 +3,25 @@ import assert from 'node:assert/strict';
 import create from '../src/games/steampressersparrow.js';
 import entry from '../src/more/steampressersparrow.js';
 import { run, env, blank } from './harness.mjs';
+import { makeRng } from '../src/games/index.js';
 
 const pass = entry.pass;
 
 // A presser: goes to the nearest crease and runs the iron along it, end to
 // end and back, until it's flat, then on to the next. `speed` is how hard it
 // pushes the stick; with `steam` it puffs at the start of each stroke.
-function presser({ speed = 0.6, steam = false, kind = 'keyboard' } = {}) {
+function presser({ speed = 0.6, steam = false, kind = 'keyboard', rest = 0 } = {}) {
   let crease = null;
   let idx = 0;
   let dir = 1;
   let press = false;
-  return (game) => {
+  return (game, t) => {
     if (press) {
       press = false;
       return {};
     }
+    // a clumsy presser looks away for `rest` seconds in every three
+    if (rest && t % 3 < rest) return {};
     const open = game.open();
     if (!open.length) return {};
     if (!crease || crease.done || !open.includes(crease)) {
@@ -67,19 +70,85 @@ const sweeper = () => {
   };
 };
 
-test('steampressersparrow: a beginner opens the next page, a good presser more; camping, sweeping and idling do not', () => {
-  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: presser({ speed: 0.45 }) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: presser({ speed: 0.75, steam: true, kind: 'controller' }) }).game.score);
-  const camp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: camper() }).game.score);
-  const sweep = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sweeper() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('steampressersparrow beginner', beginner, 'good', good, 'camp', camp, 'sweep', sweep, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
-  assert.ok(Math.max(...camp) < pass, `camping must not open the next page: ${camp}`);
-  assert.ok(Math.max(...sweep) < pass, `sweeping must not open the next page: ${sweep}`);
+// Presses at random: the stick anywhere, steam now and then.
+const masher = (seed) => {
+  const rnd = makeRng(seed * 7 + 3);
+  let x = 0;
+  let y = 0;
+  return () => {
+    if (rnd() < 0.05) {
+      x = rnd() * 2 - 1;
+      y = rnd() * 2 - 1;
+    }
+    return { x, y, action: rnd() < 0.2 };
+  };
+};
+
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (s) => masher(s),
+  camp: () => camper(),
+  sweep: () => sweeper(),
+  clumsy: () => presser({ speed: 0.3, rest: 1 }), // slow on the stick, looks away a third of the time, no steam
+  medium: () => presser({ speed: 0.45 }), // the old beginner
+  good: () => presser({ speed: 0.75, steam: true, kind: 'controller' }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`steampressersparrow pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('steampressersparrow: at Normal a medium presser passes, a good one more; camping, sweeping, mashing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium), `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'camp', 'sweep']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// Points come from creases pressed, and pressing takes the same work at any
+// level, so Easier (fewer creases, more time) lifts a clumsy presser less than
+// it would in a game scored on accuracy. It still passes more often there.
+test('steampressersparrow: Easier lets a clumsy presser pass more often than Normal; nobody passes without pressing', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'camp', 'sweep']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('steampressersparrow: Harder ends hard: the good presser scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) * 1.25, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) <= mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
+});
+
+// The knobs third by third at each level, read from the game as it plays.
+test('steampressersparrow: the ramp, third by third', () => {
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ n: game.creaseCount(), limit: game.timeLimit(), silk: game.silkChance() });
+    const at = [look()];
+    for (const s of [15, 15, 14.9]) {
+      for (let i = 0; i < s * 60; i++) game.update(1 / 60, blank());
+      at.push(look());
+    }
+    console.log('steampressersparrow ramp', level, at.map((a) => `${a.n.toFixed(1)} creases ${a.limit.toFixed(1)} s silk ${a.silk.toFixed(2)}`).join(' | '));
+    for (let i = 1; i < at.length; i++) {
+      assert.ok(at[i].n >= at[i - 1].n && at[i].limit <= at[i - 1].limit, `${level} gets harder`);
+    }
+    if (level === 'normal') {
+      assert.ok(at[1].n < (at[0].n + at[3].n) / 2, 'the first third stays gentle');
+      assert.ok(at[3].n > at[0].n + 3 && at[3].limit < at[0].limit - 4, 'the end is much harder than the start');
+    }
+  }
+  assert.ok(create(env(1, { difficulty: 'easier' })).creaseCount() === 2, 'every level but Harder opens on the easy anchor');
+  assert.ok(create(env(1, { difficulty: 'harder' })).creaseCount() > 3.5, 'Harder opens near medium');
 });
 
 test('steampressersparrow: running the iron along a crease presses it out', () => {
@@ -167,7 +236,7 @@ test('steampressersparrow: the round starts gentle and ends hard: fewer, shorter
   const l0 = avg(early, (G) => G.limit / G.creases.length);
   const l1 = avg(late, (G) => G.limit / G.creases.length);
   assert.ok(early.length > 4 && late.length > 4);
-  assert.ok(n1 > n0 + 1.5, `creases early ${n0.toFixed(2)}, late ${n1.toFixed(2)}`);
+  assert.ok(n1 > n0 + 1, `creases early ${n0.toFixed(2)}, late ${n1.toFixed(2)}`);
   assert.ok(l1 < l0 * 0.75, `seconds per crease early ${l0.toFixed(2)}, late ${l1.toFixed(2)}`);
   assert.ok(early.every((G) => !G.silk && G.w < 850 || G.kind === 'hanky'), 'early garments are small, no silk');
   assert.ok(late.some((G) => G.silk), 'silk comes late');

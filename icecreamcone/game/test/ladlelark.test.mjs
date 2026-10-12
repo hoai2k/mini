@@ -34,7 +34,7 @@ const clean = (game, u, v, ahead, margin) => {
 // A cook: picks a wanted bit with nothing unwanted near it, follows it round
 // the pot, and dips just ahead of it. `skill` slows the hand, forgets to lead,
 // checks less carefully and sometimes dips in a hurry.
-function cook(skill = 1, seed = 1) {
+function cook(skill = 1, seed = 1, look = 0.6) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let pressed = false;
@@ -44,7 +44,7 @@ function cook(skill = 1, seed = 1) {
   return (game, t) => {
     if (pressed) {
       pressed = false;
-      rest = t + (skill >= 1 ? 0 : 0.6); // a beginner looks to see what came up
+      rest = t + (skill >= 1 ? 0 : look); // a beginner looks to see what came up
       return {};
     }
     if (game.dipT > 0 || t < rest) return {};
@@ -135,21 +135,67 @@ const grabber = () => {
   };
 };
 
-test('ladlelark: a beginner opens the next page, a good cook more; idle and mashing do not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: cook(0.4, seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: cook(1, seed) }).game.score);
-  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed, false) }).game.score);
-  const still = seeds.map((seed) => run(create, { seed, bot: masher(seed, true) }).game.score);
-  const grab = seeds.map((seed) => run(create, { seed, bot: grabber() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('ladlelark beginner', `${beginner}`, 'good', `${good}`, 'grab', `${grab}`, 'mash', `${mash}`, 'still', `${still}`, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  assert.ok(mean(good) > mean(beginner) + 3, `good ${good}`);
-  assert.ok(mean(grab) < mean(good), `grabbing ${grab}`);
-  assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
-  assert.ok(Math.max(...still) < pass, `dipping on the spot must not open the next page: ${still}`);
+// A cook below 1 dips where a bit is now, not where it will be, so it
+// misses more as the swirl speeds up.
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed, false),
+  still: (seed) => masher(seed, true),
+  grab: () => grabber(),
+  clumsy: (seed) => cook(0.3, seed, 1.8), // slower on the stick, 1.8 s to look up after a dip
+  medium: (seed) => cook(0.4, seed), // the old beginner
+  good: (seed) => cook(1, seed),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`ladlelark pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('ladlelark: at Normal a medium cook passes, a good one more; idle and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) + 3, `good ${t.good}`);
+  assert.ok(mean(t.grab) < mean(t.good), `grabbing ${t.grab}`);
+  assert.ok(passRate(t.clumsy) < passRate(t.medium) && mean(t.clumsy) < mean(t.medium) - 10, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'still']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('ladlelark: Easier lets a clumsy cook pass; idle and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.clumsy) > passRate(TABLE.normal.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'still']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('ladlelark: Harder ends hard: the good cook scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 6, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy), `clumsy ${mean(t.clumsy)} vs Normal ${mean(TABLE.normal.clumsy)}`);
+});
+
+test('ladlelark: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const rows = {};
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ swirl: game.swirlNow(), step: game.orderStep(), patience: game.patienceNow(), boot: game.bootChance() });
+    const row = [look()];
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < (50 / 3) * 60 - (i === 2 ? 1 : 0); f++) game.update(1 / 60, blank());
+      row.push(look());
+    }
+    console.log('ladlelark ramp', level, row.map((k) => `swirl ${k.swirl.toFixed(2)} step ${k.step} waits ${k.patience.toFixed(1)} boot ${k.boot.toFixed(2)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].swirl >= row[i - 1].swirl && row[i].step >= row[i - 1].step && row[i].patience <= row[i - 1].patience, `${level} gets harder`);
+    rows[level] = row;
+  }
+  const n = rows.normal;
+  assert.ok(n[1].swirl < (n[0].swirl + n[3].swirl) / 2 && n[1].step === 0, 'the first third stays gentle');
+  assert.ok(rows.easier[3].step === 0 && rows.easier[3].swirl < 0.65, 'Easier keeps small orders and a slow pot');
+  assert.ok(rows.harder[0].step === 1 && rows.harder[3].step === 2, 'Harder opens near medium and ends hard');
 });
 
 // A pot holding just these bits (at angle a, radius r), the swirl stopped.
@@ -202,10 +248,10 @@ test('ladlelark: the first customers ask for little from a slow pot; the last as
   }
   assert.ok(Math.max(...early.sizes) <= 2, `early orders ${early.sizes}`);
   assert.ok(Math.max(...early.kinds) === 1, `early orders of one kind: ${early.kinds}`);
-  assert.ok(mean(late.sizes) >= mean(early.sizes) + 1.5, `order sizes early ${mean(early.sizes).toFixed(2)}, late ${mean(late.sizes).toFixed(2)}`);
+  assert.ok(mean(late.sizes) >= mean(early.sizes) + 0.9, `order sizes early ${mean(early.sizes).toFixed(2)}, late ${mean(late.sizes).toFixed(2)}`);
   assert.ok(Math.max(...late.kinds) >= 3, `late orders mix kinds: ${late.kinds}`);
-  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
-  assert.ok(late.swirl > early.swirl * 1.8, `swirl early ${early.swirl.toFixed(2)}, late ${late.swirl.toFixed(2)}`);
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.8, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+  assert.ok(late.swirl > early.swirl * 1.6, `swirl early ${early.swirl.toFixed(2)}, late ${late.swirl.toFixed(2)}`);
   assert.equal(early.boot, false, 'no old boot in the first third');
   assert.ok(late.boot, 'the old boot bobs up late');
 });

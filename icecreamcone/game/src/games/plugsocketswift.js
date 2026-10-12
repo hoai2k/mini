@@ -15,7 +15,8 @@
 // longer, as dusk turns to night. Score: rooms lit.
 
 import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.swiftHouse': [3, 2], // dark window, asking, reading by a lamp, asleep with the lamp on, fuse box, fuse box blown
@@ -82,12 +83,15 @@ export default function create(env) {
   ROWS.forEach((y, r) => COLS.forEach((x, c) => g.rooms.push({ i: g.rooms.length, x, y, state: 'dark', t: 0, cool: rng() * 1.5, patience: 8, readT: 3, prog: 0, who: (r * 4 + c * 3) % 4, mood: 0 })));
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets how often windows ask, how long a creature
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets how often windows ask, how long a creature
   // waits, and how long its book is (longer books keep more lamps on, which
-  // is what heats the fuse).
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
+  // is what heats the fuse). Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.askGap = () => knob(g.d(), 2.5, 1.65, 0.6); // seconds between requests (±20%)
+  g.patienceNow = () => knob(g.d(), 9.5, 7.4, 4.8); // seconds a window asks before giving up (±10%)
+  g.readNow = () => knob(g.d(), 3, 4.5, 6.3); // seconds a reader reads, plus up to 1.5
   function pop(text, x, y, color = INK, size = 34) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -224,8 +228,6 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    const k = g.ramp();
-
     // Fly: follow the pointer, or the stick.
     const ox = g.x;
     const oy = g.y;
@@ -247,14 +249,14 @@ export default function create(env) {
     // Requests.
     g.spawnT -= dt;
     if (g.spawnT <= 0) {
-      g.spawnT = lerp(2.5, 0.6, k) * (0.8 + rng() * 0.4);
+      g.spawnT = g.askGap() * (0.8 + rng() * 0.4);
       const free = g.rooms.filter((r) => r.state === 'dark' && r.cool <= 0);
       if (free.length) {
         const r = free[Math.floor(rng() * free.length)];
         r.state = 'ask';
         r.t = 0;
-        r.patience = lerp(9.5, 4.8, k) * (0.9 + rng() * 0.2);
-        r.readT = lerp(3, 6.3, k) + rng() * 1.5;
+        r.patience = g.patienceNow() * (0.9 + rng() * 0.2);
+        r.readT = g.readNow() + rng() * 1.5;
         r.who = Math.floor(rng() * CREATURES.length);
         sfx('tick');
       }

@@ -55,21 +55,40 @@ standing without pressing and idling score 0.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets the three knobs:
+The washing-up follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | Middle | End |
+| Knob | Easy | Medium | Hard |
 | --- | --- | --- | --- |
-| Seconds between dishes | 3.1 | 2.05 | 1.0 |
-| Most dishes out at once | 2 | 4 | 6 |
-| Heavy pans and pie dishes | none in the first third (15 s) | about half | 68% |
+| Seconds between dishes (±15%) | 3.1 | 2.15 | 1.0 |
+| Most dishes out at once (rounded) | 2 | 4 | 6 |
+| Pans and pie dishes (after the first third) | 30% | 46% | 68% |
 
-Before, all three rose in a straight line (2.9 s down to 1.1 s; pans 35% to
-60% from 15 s). Now the first third is gentler, the middle about where it
-was, and the end busier. Pass 30 kept. A test runs a good player on six
-seeds and checks the last third brings over 1.6 times as many dishes as the
-first, more than a third of them pans (none in the first third), and more
-dishes out at once.
+Unchanged: the first two dishes are plates, and no pans come in the first
+third (15 s) at any level.
+
+**Pass mark stays at 30.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Hold | Bounce | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 10 (6–12) | 0 | 0 | 24 (12–33) 33% | 56 (49–61) 100% | 62 (60–65) |
+| Normal | 0 | 9 (0–21) | 0 | 0 | 23 (13–32) 25% | 54 (49–60) 100% | 72 (69–77) |
+| Harder | 0 | 9 (0–18) | 0 | 0 | 25 (15–34) 42% | 54 (49–60) 100% | 97 (93–101) |
+
+The medium player is the old beginner; the clumsy one runs at 0.4, winds up
+loosely, and forgets a dish one time in five plus one in five more for each
+other dish out; the good one carries dishes to the middle before a full
+"Hup!". A smashed dish costs nothing, so a slower player's score is how many
+dishes they can carry, whatever the level: Easier is calmer (fewer dishes,
+fewer pans) but does not lift a clumsy player's score, and Harder does not
+lower it. Only a player fast enough to keep up gains from a busier sink,
+which is where records are made. This falls short of the guide's "Easier
+lets a clumsy player pass"; it would take a cost for smashing to change.
+`test/glovedove.test.mjs` checks the rest, and the knobs third by third at
+each level.
 
 ## Controls
 

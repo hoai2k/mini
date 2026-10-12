@@ -26,10 +26,11 @@ function next(game) {
 // then keeps crouching until wound up to `wind` times a full crouch (give or
 // take `slop`) and lets go. With `carry`, a dish caught far from the rack is
 // carried right before the bump, so the "Hup!" reaches the rack. `forget` is
-// the chance it doesn't crouch for a dish at all. `speed` is how hard it
+// the chance it doesn't crouch for a dish at all, and `busy` adds to it for
+// each other dish out at once (a player who loses track as the sink fills). `speed` is how hard it
 // pushes the stick.
 const FULL = 0.45;
-function player({ speed = 1, lead = 0.35, wind = 1.1, slop = 0, carry = false, forget = 0, seed = 1 } = {}) {
+function player({ speed = 1, lead = 0.35, wind = 1.1, slop = 0, carry = false, forget = 0, busy = 0, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let want = wind;
@@ -47,7 +48,7 @@ function player({ speed = 1, lead = 0.35, wind = 1.1, slop = 0, carry = false, f
     lastHeld = null;
     const n = next(game);
     if (!n) return {};
-    if (n.d !== skip && n.d.forgot === undefined) n.d.forgot = rnd() < forget;
+    if (n.d !== skip && n.d.forgot === undefined) n.d.forgot = rnd() < forget + busy * (game.dishes.length - 1);
     const dx = n.l.x - 20 - game.catchX();
     const x = Math.max(-1, Math.min(1, dx / 30)) * speed;
     const action = !n.d.forgot && n.l.t <= lead && Math.abs(n.l.x - game.catchX()) < 120;
@@ -81,20 +82,67 @@ const bouncer = () => (game) => {
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 const seeds = [1, 2, 3, 4, 5, 6];
 
-test('glovedove: beginners open the next page, a good player more; mashing, holding, bouncing and idling do not', () => {
-  const beginner = seeds.map((seed) => run(create, { seed, bot: player({ speed: 0.65, lead: 0.4, wind: 1.2, slop: 0.5, seed }) }).game.score);
-  const clumsy = seeds.map((seed) => run(create, { seed, bot: player({ speed: 0.5, lead: 0.5, wind: 1.1, slop: 0.6, forget: 0.2, seed }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: player({ speed: 1, lead: 0.3, wind: 1.05, carry: true, seed }) }).game.score);
-  const mash = [2, 4, 8, 16, 30].flatMap((every) => [1, 2].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
-  const hold = [1, 2].map((seed) => run(create, { seed, bot: holder() }).game.score);
-  const bounce = [1, 2].map((seed) => run(create, { seed, bot: bouncer() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('glovedove beginner', beginner, 'clumsy', clumsy, 'good', good, 'mash', mash, 'hold', hold, 'bounce', bounce, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass * 1.25, `beginner ${beginner}`);
-  assert.ok(Math.min(...clumsy) >= pass, `clumsy beginner ${clumsy}`);
-  assert.ok(mean(good) > mean(beginner) + 8, `good ${good}`);
-  assert.ok(Math.max(...mash, ...hold, ...bounce) < pass, `mashing, holding and bouncing must not open the next page: ${mash} ${hold} ${bounce}`);
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher([2, 4, 8, 16, 30][seed % 5]),
+  hold: () => holder(),
+  bounce: () => bouncer(),
+  clumsy: (seed) => player({ speed: 0.4, lead: 0.5, wind: 1.1, slop: 0.7, forget: 0.2, busy: 0.2, seed }), // slow, loses track as the sink fills
+  medium: (seed) => player({ speed: 0.65, lead: 0.4, wind: 1.2, slop: 0.5, seed }), // the old beginner
+  good: (seed) => player({ speed: 1, lead: 0.3, wind: 1.05, carry: true, seed }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`glovedove pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('glovedove: at Normal a medium player passes, a good one more; mashing, holding, bouncing and idling do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) + 8, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'hold', 'bounce']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// A smashed dish costs nothing, so a slow player's score is how many dishes
+// they can carry, whatever the level: Easier (fewer dishes, fewer pans) is
+// calmer, but it lifts a clumsy player's score very little.
+test('glovedove: Easier is calmer: medium passes, clumsy about as often as at Normal; mashing, holding, bouncing and idling still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.medium) === 1, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) >= passRate(TABLE.normal.clumsy) - 0.1, `clumsy ${t.clumsy} vs Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'hold', 'bounce']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('glovedove: Harder ends hard: the good player scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 10, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.good) > mean(TABLE.normal.good) + 10, 'more dishes pay the good player more');
+});
+
+test('glovedove: the knobs, third by third at each level', () => {
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ gap: game.spawnGap(), most: game.maxOut(), pans: game.panChance() });
+    const at = [look()];
+    for (let third = 0; third < 3; third++) {
+      for (let i = 0; i < 15 * 60 - (third === 2 ? 1 : 0); i++) game.update(1 / 60, blank());
+      at.push(look());
+    }
+    console.log('glovedove ramp', level, at.map((a) => `${a.gap.toFixed(2)} s, ${a.most} out, pans ${a.pans.toFixed(2)}`).join(' | '));
+    for (let i = 1; i < at.length; i++) assert.ok(at[i].gap <= at[i - 1].gap && at[i].most >= at[i - 1].most, `${level} gets harder`);
+    if (level === 'normal') {
+      assert.ok(at[0].gap === 3.1 && at[0].most === 2, 'Normal opens easy');
+      assert.ok(at[1].gap > (at[0].gap + at[3].gap) / 2, 'the first third stays gentle');
+    }
+    if (level === 'easier') assert.ok(at[3].most <= 3 && at[3].gap > 2.4, 'Easier stays gentle');
+    if (level === 'harder') assert.ok(at[0].most >= 4 && at[3].most === 6, 'Harder opens near medium and ends hard');
+  }
 });
 
 // A dish falling straight onto the Dove's fingers.
@@ -128,7 +176,7 @@ test('glovedove: dishes come slowly and light at first, faster and heavier by th
       })(),
     });
   }
-  assert.ok(late.dishes > early.dishes * 1.6, `dishes early ${early.dishes}, late ${late.dishes}`);
+  assert.ok(late.dishes > early.dishes * 1.4, `dishes early ${early.dishes}, late ${late.dishes}`);
   assert.equal(early.heavy, 0, 'no pans in the first third');
   assert.ok(late.heavy / late.dishes > 0.35, `heavy late ${late.heavy}/${late.dishes}`);
   assert.ok(late.maxOut >= early.maxOut + 3, `dishes allowed out early ${early.maxOut}, late ${late.maxOut}`);

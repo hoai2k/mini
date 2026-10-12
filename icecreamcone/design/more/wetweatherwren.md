@@ -46,26 +46,42 @@ score 0, and eight mashing rhythms over three seeds score 3 to 10.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), drives the street:
+The street follows the shared difficulty curve (`g.dNow()`, since `g.d` is
+the distance walked; see `../difficulty.md`): 0 is easy, 0.5 medium, 1 hard.
+At Normal it is medium by about two-thirds of the round and ends at 0.85;
+Easier tops out at 0.35, Harder opens at 0.45 and ends at 1. Each knob is
+easy / medium / hard; hard is the old end of the round, medium a little
+gentler than the old middle.
 
-| Knob | Start | Middle | End |
+| Knob | Easy | Medium | Hard |
 | --- | --- | --- | --- |
-| Street speed (px/s) | 300 | 435 | 570 |
-| Dry stretch before the next thing | 650 | 445 | 240 |
-| Puddle width | 235 + up to 40 | 270 + up to 105 | 310 + up to 170 |
-| Awnings (share of what is laid) | none before 13 s | about 40% | 50% |
-| A second puddle close behind | none before 19 s | 20–33% | 45% |
-| Gusts | none before 17 s | every 3–6 s | every 3–6 s |
+| Street speed (px/s) | 300 | 420 | 570 |
+| Dry stretch before the next thing (px, ×0.8–1.3) | 650 | 465 | 240 |
+| Puddle width (px) | 235 + up to 40 | 268 + up to 98 | 310 + up to 170 |
+| Awnings (share of what is laid, from 13 s) | 30% | 39% | 50% |
+| A second puddle close behind (from 19 s) | 20% | 31% | 45% |
 
-The start is gentler than before (it was 320 px/s and 600 px dry), the
-middle as it was, and the end faster and more crowded (it was 540 px/s and
-260 px dry). Since a sloppy beginner now splashes more in the last third,
-the pass mark went from 15 to 14 (beginner 17–29 became 14–25; mashing tops
-out at 10). A test runs a good walker on four seeds and checks the last
-third's street is at least 1.4 times as fast, with wider puddles, dry
-stretches a quarter shorter, more awnings and gusts that the first third
-never has.
+Gusts still start at 17 s, every 3–6 s, whatever the level.
+
+**Pass mark stays at 14.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Hold | Mash | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 | 6 (1–10) | 17 (10–22) 83% | 17 (13–22) 92% | 20 (16–24) |
+| Normal | 0 | 0 | 6 (3–8) | 18 (10–23) 83% | 20 (14–26) 100% | 22 (15–27) |
+| Harder | 0 | 0 | 9 (4–17) 17% | 20 (12–29) 92% | 21 (13–28) 92% | 27 (21–33) |
+
+The medium walker is the old beginner; the clumsy one forgets a puddle more
+often as the street speeds up (27% of them at the start, 47% at the end);
+the good one presses late and steady. Points are puddles hopped, and a
+faster, busier street lays more puddles in the same 45 s, so every walker
+scores a little *less* at Easier: Easier is calmer, not higher-scoring. A
+splash costs little (1.35 s), so even the clumsy walker passes at every
+level, and mashing reaches the mark on one seed in six at Harder. Both fall
+short of the guide (clumsy should seldom pass at Normal); fixing it would
+mean a higher pass mark or a dearer splash, which is more than a light
+touch. `test/wetweatherwren.test.mjs` checks the rest, and the knobs third
+by third at each level.
 
 ## Controls
 

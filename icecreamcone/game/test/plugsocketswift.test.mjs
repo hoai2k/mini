@@ -10,13 +10,15 @@ const at = (game, w) => Math.hypot(w.x - game.x, w.y - game.y);
 // An electrician: keeps to the lamps the fuse can carry, unplugs sleepers
 // to make room, serves the window closest to giving up, and flips the fuse
 // back when it blows. `skill` slows its flight, lets a fourth lamp in, and
-// sometimes picks a window at random.
-function electrician(skill = 1, seed = 1) {
+// sometimes picks a window at random. `late` is how long it takes to get
+// going after picking where to go next (a player slow to look up).
+function electrician(skill = 1, seed = 1, late = 0) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let target = null;
   let pressed = false;
   let think = 0;
+  let going = 0;
   const valid = (game, tg) => (tg === 'fuse' ? game.blown : tg && (tg.state === 'ask' || tg.state === 'sleep'));
   return (game, t) => {
     if (pressed) {
@@ -33,8 +35,9 @@ function electrician(skill = 1, seed = 1) {
       if (load >= limit && sleepers.length) target = sleepers[0];
       else if (asking.length && load < limit) target = rnd() < skill ? asking[0] : asking[Math.floor(rnd() * asking.length)];
       else target = sleepers[0] || null;
+      going = t + late;
     }
-    if (!target) return {};
+    if (!target || t < going) return {};
     const w = target === 'fuse' ? game.fuse : target;
     const dx = w.x - game.x;
     const dy = w.y - game.y;
@@ -80,19 +83,70 @@ const masher = (seed) => {
   };
 };
 
-test('plugsocketswift: a beginner opens the next page, a good electrician more; idle, greedy and mashing do not', () => {
-  const seeds = [1, 2, 3, 4, 5];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: electrician(0.4, seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: electrician(1, seed) }).game.score);
-  const greed = seeds.map((seed) => run(create, { seed, bot: greedy() }).game.score);
-  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed) }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('plugsocketswift beginner', beginner, 'good', good, 'greedy', greed, 'mash', mash, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  assert.ok(Math.min(...good) > Math.max(...beginner) - 2, `good ${good}`);
-  assert.ok(Math.max(...greed) < pass, `greedy must not open the next page: ${greed}`);
-  assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  greedy: () => greedy(),
+  clumsy: (seed) => electrician(0.15, seed, 1.25), // slower, picks windows almost at random, 1.25 s to look up
+  medium: (seed) => electrician(0.4, seed), // the old beginner
+  good: (seed) => electrician(1, seed),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`plugsocketswift pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('plugsocketswift: at Normal a medium electrician passes, a good one more; idle, greedy and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  // the three safe lamps cap rooms lit, so at Normal a good electrician is about level with a medium one
+  assert.ok(Math.min(...t.good) > Math.max(...t.medium) - 4, `good ${t.good}`);
+  assert.ok(passRate(t.clumsy) <= 0.5, `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'mash', 'greedy']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// Rooms lit are capped by the three safe lamps and by how fast the Swift
+// gets round, not by how often windows ask, so a slow electrician lights
+// about as many at any level: Easier is calmer (shorter books, more patient
+// readers) but lifts a clumsy score only a little.
+test('plugsocketswift: Easier is calmer: medium passes, clumsy no worse than at Normal; idle, greedy and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.medium) === 1, `medium ${t.medium}`);
+  assert.ok(mean(t.clumsy) >= mean(TABLE.normal.clumsy), `clumsy ${t.clumsy} vs Normal ${TABLE.normal.clumsy}`);
+  for (const n of ['idle', 'mash', 'greedy']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('plugsocketswift: Harder ends hard: the good electrician scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 4, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.medium) < mean(TABLE.normal.medium) - 4, 'long books blow a careless fuse at Harder');
+});
+
+test('plugsocketswift: the knobs at each level: Easier stays gentle, Harder opens near medium', () => {
+  const at3 = (level) => {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ gap: game.askGap(), patience: game.patienceNow(), read: game.readNow() });
+    const row = [look()];
+    for (let third = 0; third < 3; third++) {
+      for (let i = 0; i < 15 * 60 - (third === 2 ? 1 : 0); i++) game.update(1 / 60, blank());
+      row.push(look());
+    }
+    console.log('plugsocketswift ramp', level, row.map((k) => `${k.gap.toFixed(2)} s, waits ${k.patience.toFixed(1)}, reads ${k.read.toFixed(1)}`).join(' | '));
+    for (let i = 1; i < row.length; i++) assert.ok(row[i].gap <= row[i - 1].gap && row[i].patience <= row[i - 1].patience && row[i].read >= row[i - 1].read, `${level} gets harder`);
+    return row;
+  };
+  const e = at3('easier');
+  const n = at3('normal');
+  const h = at3('harder');
+  assert.ok(n[1].gap > (n[0].gap + n[3].gap) / 2, 'the first third stays gentle');
+  assert.ok(e[3].gap > 1.9 && e[3].patience > 8, 'Easier stays gentle');
+  assert.ok(h[0].gap < 1.8 && h[3].gap < 0.65, 'Harder opens near medium and ends hard');
 });
 
 // Puts the Swift on a room and presses the action once.
@@ -121,9 +175,9 @@ test('plugsocketswift: dusk starts with few, patient requests and short books; n
     });
   }
   const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
-  assert.ok(late.asks > early.asks * 1.5, `requests early ${early.asks}, late ${late.asks}`);
-  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
-  assert.ok(mean(late.read) > mean(early.read) + 2, `books early ${mean(early.read).toFixed(1)}, late ${mean(late.read).toFixed(1)}`);
+  assert.ok(late.asks > early.asks * 1.4, `requests early ${early.asks}, late ${late.asks}`);
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.75, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+  assert.ok(mean(late.read) > mean(early.read) + 1.5, `books early ${mean(early.read).toFixed(1)}, late ${mean(late.read).toFixed(1)}`);
 });
 
 function pressAt(game, tg) {

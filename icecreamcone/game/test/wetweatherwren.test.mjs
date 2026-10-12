@@ -13,7 +13,9 @@ const FOOT = 22;
 // presses (jittered by `slop`); it floats over the puddle and lets go once
 // past; it keeps the umbrella shut near awnings (a quick tap hop for a
 // puddle near one); it opens over a little bird when it remembers to.
-function walker({ lead = 70, slop = 0, kind = 0.9, miss = 0, seed = 1 } = {}) {
+// `missK` makes it forget a puddle more often as the street speeds up (per
+// 1000 px/s of street).
+function walker({ lead = 70, slop = 0, kind = 0.9, miss = 0, missK = 0, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let tap = 0;
@@ -29,7 +31,7 @@ function walker({ lead = 70, slop = 0, kind = 0.9, miss = 0, seed = 1 } = {}) {
     }
     if (next !== target) {
       target = next;
-      jitter = rnd() < miss ? -1e4 : (rnd() - 0.5) * 2 * slop;
+      jitter = rnd() < miss + (missK * game.speed) / 1000 ? -1e4 : (rnd() - 0.5) * 2 * slop;
     }
     if (game.grounded) {
       if (next && next.x0 - d < lead + jitter + game.speed * 0.05 && next.x0 - d > -FOOT) {
@@ -57,19 +59,70 @@ const masher = (every = 6) => {
   return () => ({ action: k++ % every < every / 2 });
 };
 
-test('wetweatherwren: a beginner opens the next page, a good walker more; idling, holding and mashing do not', () => {
-  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: walker({ lead: 90, slop: 70, kind: 0.4, miss: 0.15, seed }) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: walker({ lead: 60, slop: 10, kind: 1, seed }) }).game.score);
-  const mash = [2, 4, 6, 10, 20, 30, 40, 60].flatMap((every) => [1, 2, 3].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
-  const hold = run(create, { seed: 1, bot: () => ({ action: true }) }).game.score;
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('wetweatherwren beginner', beginner, 'good', good, 'mash', mash, 'hold', hold, 'idle', idle, 'pass', pass);
-  assert.ok(idle < 3, `idle ${idle}`);
-  assert.ok(hold < pass, `hold ${hold}`);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
-  assert.ok(mean(good) > mean(beginner) + 2, `good ${good}`);
-  assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
+const SEEDS = Array.from({ length: 12 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  hold: () => () => ({ action: true }),
+  mash: (s) => masher([2, 4, 6, 10, 20, 40][s % 6]),
+  clumsy: (seed) => walker({ lead: 90, slop: 70, kind: 0.3, missK: 0.9, seed }), // forgets 27% of puddles at the start, 47% at the end
+  medium: (seed) => walker({ lead: 90, slop: 70, kind: 0.4, miss: 0.15, seed }), // the old beginner
+  good: (seed) => walker({ lead: 60, slop: 10, kind: 1, seed }),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, b] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: b(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`wetweatherwren pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('wetweatherwren: at Normal a medium walker passes, a good one more; idling, holding and mashing do not', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) > mean(t.medium) + 2, `good ${t.good}`);
+  assert.ok(mean(t.clumsy) < mean(t.medium), `clumsy ${t.clumsy}`);
+  for (const n of ['idle', 'hold', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+// Points are puddles hopped, and a faster, busier street lays more puddles in
+// the same 45 s: at Easier there are fewer to hop, so every walker scores a
+// little less there. Easier is calmer, not higher-scoring; a clumsy walker
+// still passes about half the time, and idling and mashing never do.
+test('wetweatherwren: Easier is calmer; a clumsy walker still passes about half the time; idling, holding and mashing fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.5, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  for (const n of ['idle', 'hold', 'mash']) assert.ok(Math.max(...t[n]) < pass, `${n} ${t[n]}`);
+});
+
+test('wetweatherwren: Harder ends hard: the good walker scores clearly more than the medium one', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 4, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.good) > mean(TABLE.normal.good), 'a faster street pays the good walker more');
+});
+
+test('wetweatherwren: the knobs, third by third at each level', () => {
+  for (const level of ['easier', 'normal', 'harder']) {
+    const game = create(env(1, { difficulty: level }));
+    const look = () => ({ speed: game.speedNow(), dry: game.dryNow(), width: game.widthNow() + game.widthSpread() / 2 });
+    const at = [look()];
+    for (let third = 0; third < 3; third++) {
+      // walk with the umbrella open so nothing stops the clock
+      for (let i = 0; i < 15 * 60 - (third === 2 ? 1 : 0); i++) game.update(1 / 60, blank());
+      at.push(look());
+    }
+    console.log('wetweatherwren ramp', level, at.map((a) => `${a.speed.toFixed(0)} px/s dry ${a.dry.toFixed(0)} width ${a.width.toFixed(0)}`).join(' | '));
+    for (let i = 1; i < at.length; i++) assert.ok(at[i].speed >= at[i - 1].speed && at[i].dry <= at[i - 1].dry, `${level} gets harder`);
+    if (level === 'normal') {
+      assert.equal(at[0].speed, 300);
+      assert.ok(at[1].speed < (at[0].speed + at[3].speed) / 2, 'the first third stays gentle');
+      assert.ok(at[3].speed > 500, 'the end is fast');
+    }
+    if (level === 'easier') assert.ok(at[3].speed < 400, 'Easier never gets near medium');
+    if (level === 'harder') assert.ok(at[0].speed > 400 && at[3].speed > 565, 'Harder opens near medium and ends at hard');
+  }
 });
 
 test('wetweatherwren: the street starts slow and sparse and ends fast and crowded, with awnings, double puddles and gusts only later', () => {

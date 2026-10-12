@@ -17,7 +17,8 @@
 // Score: points (3 for each dish put away, 1 for each "Hup!").
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, lerp, approach } from './index.js';
+import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.dishes': [3, 2], // plate, bowl, cup, saucepan, frying pan, pie dish: side views, handles to the right
@@ -136,12 +137,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets how often dishes come, how many may be out at
-  // once, and how many are heavy pans.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
-  g.maxOut = () => 2 + Math.round(4.4 * g.ramp());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets how often dishes come, how many may be out at
+  // once, and how many are heavy pans. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.maxOut = () => Math.round(knob(g.d(), 2, 3.9, 6.4)); // most dishes out at once
+  g.spawnGap = () => knob(g.d(), 3.1, 2.15, 1.0); // seconds between dishes (±15%)
+  g.panChance = () => knob(g.d(), 0.3, 0.46, 0.68); // share of pans and pie dishes, after the first third
   function pop(text, x, y, color = INK, size = 42) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -152,7 +155,7 @@ export default function create(env) {
   function spawn() {
     const n = g.put + g.smashed;
     const r = rng();
-    const kind = n < 2 ? 0 : progress() < 1 / 3 ? Math.floor(r * 3) : r < lerp(0.3, 0.68, g.ramp()) ? 3 + Math.floor(rng() * 3) : Math.floor(rng() * 3);
+    const kind = n < 2 ? 0 : progress() < 1 / 3 ? Math.floor(r * 3) : r < g.panChance() ? 3 + Math.floor(rng() * 3) : Math.floor(rng() * 3);
     g.dishes.push({ kind, x: 170 + rng() * 80, y: SINK_Y, vx: 250 + rng() * 90, vy: -(650 + rng() * 100), spin: (rng() - 0.5) * 6, a: 0, flicks: 0 });
     sfx('plop');
   }
@@ -279,7 +282,7 @@ export default function create(env) {
     g.spawnT -= dt;
     if (g.spawnT <= 0 && g.dishes.length < g.maxOut()) {
       spawn();
-      g.spawnT = lerp(3.1, 1.0, g.ramp()) * (0.85 + rng() * 0.3);
+      g.spawnT = g.spawnGap() * (0.85 + rng() * 0.3);
       if (g.queue > 0) g.queue--;
     } else if (g.spawnT <= 0) g.spawnT = 0.3;
 

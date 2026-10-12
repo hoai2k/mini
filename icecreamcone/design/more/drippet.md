@@ -37,26 +37,40 @@ in circles 0 to 1, idling 0.
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets the knobs; they used to move in a straight line.
+The kitchen follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | Middle | End | Before (start to end) |
-| --- | --- | --- | --- | --- |
-| Seconds between drips | 0.38 | 0.28 | 0.18 | 0.34 to 0.2 |
-| Puddle size (largest) | 32 | 46 | 60 | 36 to 56 |
-| Puddle lasts | 6 s | 9.5 s | 13 s | 6.5 to 12 |
-| Patience | 12 s | 9.25 s | 6.5 s | 11 to 7 |
-| Thirsty at once | 1 | 2 | 2 | 1, then 2 after 15 s |
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Seconds between drips (±15%) | 0.38 | 0.29 | 0.18 |
+| Puddle size, largest (px) | 32 | 45 | 60 |
+| Puddle lasts (s) | 6 | 9.2 | 13 |
+| Patience (s) | 12 | 9.5 | 6.5 |
 
-The second thirsty thing still comes at 15 s (now written as a third of the
-way in). Bots before and after: beginner 16–18 to 16–19, good 20–24 to
-20–22, hopping all the way 16–19 to 16–19, never looking 17–20 to 18–20,
-circles 0 to 0–1, idle 0. Pass 13 kept. While re-balancing, idling once
-scored a drink when a new thing was placed (as a last resort) right under
-the Drippet; that last resort now goes to the far side of the floor. A test
-runs a good runner on four seeds and checks the last third's floor holds
-over twice as much water, with two thirsty things at once (one in the first
-third) and under 70% of the patience.
+The second thirsty thing still comes a third of the way in (15 s) at every
+level. (While re-balancing before, idling once scored a drink when a new
+thing was placed as a last resort right under the Drippet; that last resort
+goes to the far side of the floor.)
+
+**Pass mark stays at 13.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Circles | Hop all the way | Never looking | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 0 (0–1) | 0 (0–1) | 18 (16–20) | 20 (18–23) | 13 (12–14) 67% | 19 (18–20) 100% | 22 (20–25) |
+| Normal | 0 | 0 (0–2) | 0 (0–1) | 18 (16–20) | 20 (18–21) | 12 (12–13) 33% | 18 (14–21) 100% | 22 (20–24) |
+| Harder | 0 | 0 (0–1) | 0 | 17 (16–19) | 19 (16–21) | 11 (9–13) 8% | 17 (15–18) 100% | 20 (18–23) |
+
+The medium runner is the old beginner; the clumsy one is slower, looks only
+a little ahead and takes 0.9 s to set off for each thing; the good one
+steers round old puddles. Things served are capped by how fast the Drippet
+gets round, so Easier lifts a slow runner only a little (67% against 33%),
+and hopping all the way or running straight in still pass at every level:
+the floor's puddles cost time, not points. `test/drippet.test.mjs` checks
+this, the knobs third by third at each level, and the floor, thirsty things
+and patience early and late at Normal.
 
 ## Images (IC-M16)
 

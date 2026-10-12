@@ -16,6 +16,7 @@
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint as showHint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 Object.assign(SHEETS, {
   'sprites.stations': [3, 2], // fiddle, trumpet, drum, bells, cuckoo clock, rain cloud
@@ -86,14 +87,15 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round: one eased curve (a smoothstep, slow to start
-  // and slow to finish) sets how narrow the stations are and how far and fast
-  // they drift from where they were pencilled.
-  const ramp = (p) => p * p * (3 - 2 * p);
-  g.ramp = () => ramp(progress());
-  const width = () => lerp(0.05, 0.025, g.ramp());
+  // Difficulty over the round: the shared curve for the chosen Difficulty
+  // (see difficulty.js) sets how narrow the stations are and how far and fast
+  // they drift from where they were pencilled. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  const width = () => knob(g.d(), 0.05, 0.039, 0.025); // a station's half-width, share of the dial
   g.width = width;
-  g.drift = () => lerp(0.008, 0.034, g.ramp());
+  g.drift = () => knob(g.d(), 0.008, 0.02, 0.034); // how far a station wanders, share of the dial
+  g.wander = () => knob(g.d(), 0.45, 0.72, 1.05); // how fast it wanders, times its own rate
 
   // Spread the six stations across the dial, apart from each other.
   const order = STATIONS.map((_, i) => i).sort(() => rng() - 0.5);
@@ -103,7 +105,7 @@ export default function create(env) {
   });
   g.freq = (i) => {
     const s = g.stations[i];
-    return clamp(s.base + g.drift() * Math.sin(g.elapsed * s.rate * lerp(0.45, 1.05, g.ramp()) + s.phase), 0.02, 0.98);
+    return clamp(s.base + g.drift() * Math.sin(g.elapsed * s.rate * g.wander() + s.phase), 0.02, 0.98);
   };
   // How clearly station i comes in at the needle: 1 dead on, 0 off it.
   g.clarity = (i, n = g.n) => clamp(1 - Math.abs(n - g.freq(i)) / width(), 0, 1);

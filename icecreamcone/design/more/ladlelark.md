@@ -140,33 +140,40 @@ Every painted pose is drawn so the character is one size, by the scale each cell
 
 ## Difficulty over the round
 
-One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
-to finish), sets the knobs. Before, the swirl and patience moved in a
-straight line and the orders stepped up at 10 s and 55%.
+The soup follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85; Easier tops out at 0.35,
+Harder opens at 0.45 and ends at 1. Each knob is easy / medium / hard; hard
+is the old end of the round, medium a little gentler than the old middle.
 
-| Knob | Start | Middle (25 s) | End |
+| Knob | Easy | Medium | Hard |
 | --- | --- | --- | --- |
-| Swirl (turn-rate) | 0.4 | 0.75 | 1.1 |
-| Order | 1–2 of one kind | 2–3 of up to two kinds | 3–4 of up to three kinds (from about 36 s) |
-| Patience, before 1.5 s per item | 14 s | 10.75 s | 7.5 s |
-| Old boot (chance per new bit, none in the first third) | none | 0.24 | 0.35 |
+| Swirl (rad/s) | 0.4 | 0.72 | 1.1 |
+| Order step, `floor(knob(d, 0, 1.15, 2.5))` | 0: 1–2 of one kind | 1: 2–3 of up to two kinds | 2: 3–4 of up to three kinds |
+| Patience, before 1.5 s per item (s) | 14 | 11.1 | 7.5 |
+| Old boot (chance per new bit, after the first third) | 0.12 | 0.22 | 0.35 |
 
-The kinds in the pot still widen by time: two to 7 s, three to 20 s, then
-four. So the first third is one-kind orders from a slow pot with no boot,
-the middle as before, and the end faster with less patience.
+The kinds in the pot still widen by time at every level: two to 7 s, three
+to 20 s, then four. At Normal the orders are one kind until about 28 s, two
+kinds from there and three only in the last 4 s; Easier keeps one-kind
+orders all round; Harder opens on two kinds and reaches three in the last
+fifth.
 
-Bots, before and after (seeds 1–6, the usual ring):
+**Pass mark stays at 36.** Bots over seeds 1–12 (mean, range, share passing):
 
-| Bot | Before | After |
-| --- | --- | --- |
-| Beginner | 46–57 | 44–75 |
-| Good cook | 51–79 | 42–78 |
-| Nearest wanted bit | 33–53 | 18–48 |
-| Mashing | 0–13 | 0–9 |
-| Dipping on the spot | 0–8 | 0–8 |
-| Idle | 0 | 0 |
+| Level | Idle | Mash | Dip on the spot | Nearest bit | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 6 (0–26) | 2 (0–8) | 56 (35–81) 92% | 44 (31–58) 83% | 68 (40–85) 100% | 61 (33–104) |
+| Normal | 0 | 2 (0–9) | 2 (0–8) | 43 (24–69) 58% | 36 (27–45) 58% | 61 (44–85) 100% | 67 (48–108) |
+| Harder | 0 | 3 (0–11) | 0 (0–4) | 18 (4–27) 0% | 28 (18–37) 8% | 47 (25–70) 75% | 67 (42–93) |
 
-Pass stays 36. A test runs a good cook on six seeds and checks the first
-third's orders are at most two of one kind, the last third's are 1.5 bits
-bigger on average with up to three kinds, patience under 70%, the swirl
-more than 1.8 times as fast, and the boot only late.
+The medium cook is the old beginner (dips where a bit is now, not where it
+will be, so it misses more as the swirl speeds up, and looks 0.6 s after
+each dip); the clumsy one is slower on the stick and takes 1.8 s to look
+up; the good one leads the swirl and dips between pairs. The clumsy cook
+passes at Normal more than the guide's "seldom" (58%), but Easier lifts it
+clearly (83%) and Harder stops it (8%). Small orders at Easier pay less
+per creature, so a good cook scores no more there than a medium one: the
+records are made at Normal and Harder. `test/ladlelark.test.mjs` checks this,
+the knobs third by third at each level, and the orders, patience, swirl
+and boot early and late at Normal.
