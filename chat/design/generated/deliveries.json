@@ -6811,5 +6811,290 @@
     "exportOperation": "resample to requested canvas",
     "accepted": true,
     "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G73",
+    "file": "assets/games/blocks-tile.webp",
+    "size": "128 x 128",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy puzzle-game art, clean shapes, soft highlights. A single square block seen straight on, filling the frame: a WHITE glossy jelly-like cube face with a bevelled rim, a bright highlight in the top left and a soft shadow at the bottom right, so the game can tint it any colour. No outline outside the square.\nSTRICT CANVAS: entirely opaque white square face, no rounded outer corners, no black corners, no transparent margin. Straight edges flush against ALL four image boundaries, square bevel shading contained INSIDE the square. Only white and neutral light grey tones; no background.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-534de340-e78c-4ec8-a3e8-b051d8f112e9.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G74",
+    "file": "assets/games/blocks-bg.webp",
+    "size": "1080 x 1920",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy puzzle-game art, clean shapes, soft highlights. A calm deep-purple and indigo night sky with soft glowing bokeh dots and faint geometric outlines of falling square blocks, darker in the middle where the playing well sits. No text.\nSTRICT BACKGROUND ONLY: simple abstract quiet deep-purple and indigo gradient night sky, small soft bokeh dots, faint outline squares mainly along edges. Dark nearly empty central vertical region. No people, animals, characters, faces, cats, rabbits, moon character, game board, well, grid, UI, buildings, foreground pieces or solid colourful blocks. Portrait 1080x1920.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-fbb04a0d-bbcf-4639-bc6f-a60d8ea07316.png",
+    "source_size": [
+      941,
+      1672
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G75",
+    "file": "assets/games/temple-runner.png",
+    "size": "1536 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A sprite sheet of six frames side by side, each 256 wide by 512 tall, of the same explorer seen from BEHIND, running away from the camera: frames 1-4 a running cycle, frame 5 jumping with knees up, frame 6 sliding low on one hip. WHITE shirt (so the game can tint it), khaki shorts, brown boots, a backpack. The head is a plain round skin-coloured shape with no hair, hat or features (the game draws the player's face there). Feet at the same baseline in every frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas aspect ratio 1536:512, intended export 1536 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow. Exactly SIX equal-width 256x512 cells across a single 1536x512 row; each figure fully contained in its cell, no overlap; all heads plain bald skin coloured from BEHIND. Frames 1-4 running with alternating legs, 5 jump, 6 slide. No dividers, labels or guides.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-61a8cd8b-c35c-4fe7-97e1-49a90147f006.png",
+    "source_size": [
+      2172,
+      724
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G76",
+    "file": "assets/games/temple-path.webp",
+    "size": "512 x 1024",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of a weathered temple walkway: big sandy-grey flagstones in three lanes with moss in the cracks. Tiles top to bottom. Flat, even lighting.\nProduction canvas aspect ratio 512:1024, intended export 512 x 1024. Opaque full-bleed art.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-1f080a61-65eb-4d0c-9f15-be744b2bb270.png",
+    "source_size": [
+      887,
+      1774
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G77",
+    "file": "assets/games/temple-wall.webp",
+    "size": "512 x 512",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A seamlessly tiling texture of mossy carved temple stone blocks with vines and small carved glyphs. Tiles in both directions. Flat, even lighting.\nProduction canvas aspect ratio 512:512, intended export 512 x 512. Opaque full-bleed art.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-0cce6445-c365-4195-9153-5901d1d4783d.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G78",
+    "file": "assets/games/temple-sky.webp",
+    "size": "2048 x 512",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. A wide panorama of a golden sunset sky over misty jungle treetops with distant temple pyramids and waterfalls; the bottom edge is dark green treetops. Tiles seamlessly left to right.\nProduction canvas aspect ratio 2048:512, intended export 2048 x 512. Opaque full-bleed art.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-7bd22c09-bd50-4ec3-b6d2-112355671cf3.png",
+    "source_size": [
+      2043,
+      770
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G79",
+    "file": "assets/games/temple-root.png",
+    "size": "512 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a thick gnarled tree root arching across the stone path, low enough to jump over, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nSTRICT ISOLATED OBSTACLE: only ONE long thick brown gnarled root lying horizontally at ankle height. Slight shallow upward hump at its middle, not a doorway or tall arch. No ground, paving, plants, rocks, foliage, path or backdrop. Game obstacle the runner jumps OVER. Transparent background. Wide 512x256.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-0654bc19-bd5c-453e-9f70-61e0b8624714.png",
+    "source_size": [
+      1774,
+      887
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G80",
+    "file": "assets/games/temple-arch.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a low broken stone archway with hanging vines spanning the path, high enough to slide under, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas aspect ratio 512:512, intended export 512 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-d69c1b1e-af69-4b2f-877b-aea7e2227464.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G81",
+    "file": "assets/games/temple-fire.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a row of carved stone fire vents with tall orange flames, spanning one lane, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas aspect ratio 256:256, intended export 256 x 256. Genuine transparent alpha, clean edges, no exterior glow or shadow.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-bec6d25a-2194-4a1b-bb07-4311a7f7a43b.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G82",
+    "file": "assets/games/temple-coin.png",
+    "size": "128 x 128",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a shiny gold temple coin with a carved sun on it, seen straight on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas aspect ratio 128:128, intended export 128 x 128. Genuine transparent alpha, clean edges, no exterior glow or shadow.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-cf85b923-e7fc-4b1d-a6d5-2080f759a091.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-G83",
+    "file": "assets/games/temple-monkeys.png",
+    "size": "1024 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas aspect ratio 1024:512, intended export 1024 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-42ece354-22d6-4c04-9bb5-dfa5487881f1.png",
+    "source_size": [
+      1774,
+      887
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-I101",
+    "file": "assets/icons/game-blocks.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-bf1d8198-d7e8-4180-8c97-e6d3a022449b.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-I102",
+    "file": "assets/icons/game-temple.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-e4f295a6-ed47-4ec6-b438-d9daee83ee11.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-N100",
+    "file": "assets/icons-art/art-game-blocks.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-f938d9b0-baa9-400f-89ff-0ac56491e07e.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-N101",
+    "file": "assets/icons-art/art-game-temple.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-a2b0cd51-bc81-4678-b3bc-40226e87f2e5.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-R100",
+    "file": "assets/icons-classic/classic-game-blocks.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-5ff42fb9-d0a2-4410-b7eb-b0f3697d4a0e.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-R101",
+    "file": "assets/icons-classic/classic-game-temple.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-e9f36ad0-a6bc-49a0-a5f7-a69afd3e6d72.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-K101",
+    "file": "assets/icons2/game2-blocks.png",
+    "size": "256 x 256",
+    "prompt": "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-8da69f03-1813-4520-a4f6-4f92bde5bd35.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-K102",
+    "file": "assets/icons2/game2-temple.png",
+    "size": "256 x 256",
+    "prompt": "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-6efac979-2ce1-4ffc-b54d-40c6bdd2b4bf.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed subject and style; checked dimensions, decoding and alpha where required."
   }
 ]

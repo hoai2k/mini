@@ -2241,78 +2241,78 @@ export const ASSET_LIST = {
   },
   "blocks-tile": {
     "file": "assets/games/blocks-tile.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "blocks-bg": {
     "file": "assets/games/blocks-bg.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-runner": {
     "file": "assets/games/temple-runner.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-path": {
     "file": "assets/games/temple-path.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-wall": {
     "file": "assets/games/temple-wall.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-sky": {
     "file": "assets/games/temple-sky.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-root": {
     "file": "assets/games/temple-root.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-arch": {
     "file": "assets/games/temple-arch.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-fire": {
     "file": "assets/games/temple-fire.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-coin": {
     "file": "assets/games/temple-coin.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "temple-monkeys": {
     "file": "assets/games/temple-monkeys.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-blocks": {
     "file": "assets/icons/game-blocks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-blocks": {
     "file": "assets/icons2/game2-blocks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-blocks": {
     "file": "assets/icons-art/art-game-blocks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-blocks": {
     "file": "assets/icons-classic/classic-game-blocks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-temple": {
     "file": "assets/icons/game-temple.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-temple": {
     "file": "assets/icons2/game2-temple.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-temple": {
     "file": "assets/icons-art/art-game-temple.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-temple": {
     "file": "assets/icons-classic/classic-game-temple.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
