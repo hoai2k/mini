@@ -248,6 +248,13 @@ GROUPS = [
          f'Redraw {aid}.webp (attach it) in the look of the 1903 film (attach references/expanded-world/source-frames/frame-00m26s.jpg, frame-04m54s.jpg and frame-05m51s.jpg). Keep exactly the same subject, pose, framing, scale, foot position and canvas, so it lays over the original. {TINT_NOTES.get(aid.split("-")[0], "")}', aid)
         for aid in TINT_IDS_2
     ]),
+    ('The prince\'s stride frames', 'Requested 12 October 2026 after play-testing: the delivered walk-a/walk-b pairs hardly move the legs, and the court-dress pair changes costume between frames (pink tights and a silver belt in A, grey tights and a green belt in B). The game flicks between two frames as he walks, so each pair must be two opposite strides of one identical figure. Until a pair arrives the game alternates walk-a with the standing pose. Each look has its own pair; draw the tinted ones over the tinted standing pose and the others over the original.', [
+        (f'prince-{c}stride-{ab}{t}', f'Prince {"in court dress" if c else "armed"}, stride {ab.upper()}{" (tinted)" if t else ""}', 220, 360, 'bottom centre', TINTED if t else SPRITE,
+         f'Prince Bel-Azor walking to the right, exactly the figure, costume, colours, scale and head height of prince-{"court" if c else "stand"}{t}.webp (attach it, and prince-{c}stride-{"b" if ab == "a" else "a"}{t}.webp if already drawn, which must match it in every detail but the legs and arms). '
+         + ('A full stride with the LEFT leg forward, heel down, and the right leg straight behind on its toes; the arms swing opposite to the legs. ' if ab == 'a' else 'A full stride with the RIGHT leg forward, heel down, and the left leg straight behind on its toes; the arms swing opposite to the legs. ')
+         + 'Both feet on one level ground line at the very bottom of the canvas; the head at the same height as in the standing pose. Nothing changes between the two frames but the legs and arms: same tights, belt, cloak, sword and shield.', f'prince-{c}walk-{ab}{t}')
+        for c in ('', 'court-') for t in ('-tinted', '') for ab in ('a', 'b')
+    ]),
 ]
 
 

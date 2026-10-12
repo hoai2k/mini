@@ -14,12 +14,22 @@
 // their own player state. Items travel as messages: 'box' (a box taken),
 // 'drop' and 'pop' (banana peels), 'bomb' and 'boom', 'hit' (spin someone
 // out); the owner keeps live peels and box timers in shared state for anyone
-// who joins mid-race. Late joiners watch and race in the next one.
+// who joins mid-race.
+//
+// Joining mid-race: the owner puts a newcomer on the road a little behind the
+// rearmost kart (lateSpot) and lists them in shared state `lt` as
+// [id, go, total, d]: their kart is held for a short countdown of their own
+// and their race clock starts at `go`. They start last and are ranked by
+// progress like everyone else; finishers are ordered by when they actually
+// crossed the line. Once someone has finished, or the race is nearly over,
+// newcomers watch and race in the next one (`cl`). `sn` records when each
+// racer joined the session, so someone who leaves and comes back mid-race is
+// put back in the same way rather than on the grid.
 
-import { buildTrack, scenery, itemBoxes, boostPads, obstacleGrid, gridSpot, pointAt, wrapAngle, lapOf, LAPS, WORLD } from './kart/track.js';
+import { buildTrack, scenery, itemBoxes, boostPads, obstacleGrid, gridSpot, lateSpot, pointAt, wrapAngle, lapOf, LAPS, WORLD, HALF } from './kart/track.js';
 import {
   newKart, stepKart, bumpKarts, rollItem, bombAt, standings, autopilot, watchStuck, packKart, unpackKart,
-  addItem, itemReady, takeItem, dragSteer,
+  addItem, itemReady, takeItem, dragSteer, bestLap, lateJoinOpen, LATE,
   SPIN_TIME, BOOST_TIME, STAR_TIME, BANANA_R, BOMB_R, BOMB_FUSE, ITEMS, ITEM_SLOTS, TOUCH,
 } from './kart/sim.js';
 import { createGround, averageColor } from './kart/gl.js';
@@ -54,17 +64,35 @@ function world() {
   return TRACK;
 }
 
-// Shared state from the owner, checked: { ph, r, go, racers, ai, res, bn, bx }.
+// Shared state from the owner, checked:
+// { ph, r, go, racers, sn, ai, res, bn, bx, lt, cl }.
 function parseShared(S) {
   if (!S || typeof S !== 'object' || (S.ph !== 'count' && S.ph !== 'done')) return null;
   if (!Number.isInteger(S.r) || S.r < 0 || !Number.isFinite(S.go)) return null;
   const str = (v, n) => typeof v === 'string' && v.length > 0 && v.length <= n;
-  const racers = Array.isArray(S.racers) ? S.racers.filter(id => str(id, 64)).slice(0, MAX_RACERS) : [];
+  // Racers, each with when they joined the session (0: not known).
+  const pairs = [];
+  if (Array.isArray(S.racers)) S.racers.forEach((id, i) => {
+    if (!str(id, 64) || pairs.some(p => p[0] === id) || pairs.length >= MAX_RACERS) return;
+    const since = Array.isArray(S.sn) && Number.isFinite(S.sn[i]) && S.sn[i] > 0 ? S.sn[i] : 0;
+    pairs.push([id, since]);
+  });
+  const racers = pairs.map(p => p[0]), sn = pairs.map(p => p[1]);
+  // Late starts: [id, go (ms), starting total (m), side offset (m)], one per racer.
+  const lt = [];
+  if (Array.isArray(S.lt)) for (const e of S.lt.slice(0, 16)) {
+    if (!Array.isArray(e) || e.length !== 4 || !racers.includes(e[0]) || !e.slice(1).every(Number.isFinite)) continue;
+    if (e[1] < S.go || e[1] > S.go + 3600000 || Math.abs(e[2]) > 1e4 || Math.abs(e[3]) > HALF) continue;
+    const i = lt.findIndex(x => x[0] === e[0]);
+    if (i >= 0) lt.splice(i, 1);
+    lt.push([e[0], e[1], e[2], e[3]]);
+  }
   const ai = Array.isArray(S.ai) ? S.ai.filter(a => Array.isArray(a) && str(a[0], 16) && /^#[0-9a-f]{6}$/i.test(a[1])).slice(0, 3) : [];
-  const res = Array.isArray(S.res) ? S.res.filter(e => Array.isArray(e) && str(e[0], 64) && str(e[1], 24) && /^#[0-9a-f]{6}$/i.test(e[2]) && Number.isFinite(e[3]) && Number.isFinite(e[4])).slice(0, 8) : null;
+  // Results: [id, name, colour, finish ms, best lap ms, late (1, optional)].
+  const res = Array.isArray(S.res) ? S.res.filter(e => Array.isArray(e) && (e.length === 5 || (e.length === 6 && e[5] === 1)) && str(e[0], 64) && str(e[1], 24) && /^#[0-9a-f]{6}$/i.test(e[2]) && Number.isFinite(e[3]) && Number.isFinite(e[4])).slice(0, 8) : null;
   const bn = Array.isArray(S.bn) ? S.bn.filter(b => Array.isArray(b) && str(b[0], 80) && Number.isFinite(b[1]) && Number.isFinite(b[2])).slice(0, 24) : [];
   const bx = Array.isArray(S.bx) ? S.bx.map(v => (Number.isFinite(v) ? v : 0)).slice(0, 32) : [];
-  return { ph: S.ph, r: S.r, go: S.go, racers, ai, res, bn, bx };
+  return { ph: S.ph, r: S.r, go: S.go, racers, sn, ai, res, bn, bx, lt, cl: S.cl === true };
 }
 
 export default {
@@ -111,6 +139,7 @@ export default {
       .kd-res li .dot { width: 12px; height: 12px; border-radius: 50%; }
       .kd-res li .t { font-variant-numeric: tabular-nums; color: #d8ccff; font-size: 13px; }
       .kd-res li.me { color: var(--sun, #ffd43b); }
+      .kd-res li small.late { font: 700 11px ui-rounded, system-ui, sans-serif; color: #c9bdf0; white-space: nowrap; }
       .kd-res .best { font: 700 12px ui-rounded, system-ui, sans-serif; color: #c9bdf0; margin-bottom: 10px; }
     `;
     const wrap = document.createElement('div');
@@ -222,6 +251,13 @@ export default {
     const now = () => performance.now();
     const raceTime = () => (S ? (Date.now() - S.go) / 1000 : -99);
     const racing = () => S && S.ph === 'count' && raceTime() >= 0;
+    // My own race clock: from the main start, or from my own late start.
+    const myTime = () => (S ? (Date.now() - (mine?.goAt ?? S.go)) / 1000 : -99);
+    const myRacing = () => !!mine && S.ph === 'count' && myTime() >= 0;
+    // A racer's late start, [id, go, total, d], or undefined.
+    const lateOf = id => S?.lt.find(e => e[0] === id);
+    const startOf = id => { const e = lateOf(id); return e ? Math.max(0, (e[1] - S.go) / 1000) : 0; };
+    const mySince = () => members().find(m => m.me)?.since ?? 0;
 
     // --- layout ------------------------------------------------------------
     let w = 1, h = 1, dpr = 1, glScale = 1, inset = { top: 0, bottom: 0 };
@@ -306,7 +342,8 @@ export default {
       const colors = BOT_COLORS.filter(c => !used.has(c.toLowerCase()));
       const nAi = ids.length >= 3 ? MAX_RACERS - ids.length : ids.length === 2 ? 2 : 3;
       const ai = Array.from({ length: nAi }, (_, i) => [BOT_NAMES[i], colors[i % colors.length] || BOT_COLORS[i]]);
-      api.setShared({ ph: 'count', r: (S?.r ?? 0) + 1, go: Date.now() + COUNT_MS, racers: ids, ai, res: null, bn: [], bx: [] });
+      const sn = ids.map(id => members().find(m => m.id === id)?.since || 0);
+      api.setShared({ ph: 'count', r: (S?.r ?? 0) + 1, go: Date.now() + COUNT_MS, racers: ids, sn, ai, res: null, bn: [], bx: [], lt: [], cl: false });
       S = parseShared(api.shared());
       syncRace();
     }
@@ -328,11 +365,24 @@ export default {
         camYaw = null;
       }
       const slot = S.racers.indexOf(myId);
-      if (slot >= 0 && (!mine || (raceTime() < 0 && mine.slot !== slot))) {
+      const since = S.sn[slot] || 0;
+      const late = lateOf(myId);
+      if (slot < 0 || (since && since !== mySince())) {
+        // Not racing, or I held this seat before leaving: wait for the owner to put me back in.
+        mine = null;
+      } else if (late) {
+        // Joining mid-race: behind the last kart, held for my own countdown.
+        const sig = late.join();
+        if (!mine || mine.lateSig !== sig) {
+          const [, go, total, d] = late;
+          mine = newKart({ ...pointAt(track, total, d), s: total }, { slot, late: true, lateSig: sig, goAt: go, partial: total > 0 });
+          myBrain = { lane: d, phase: Math.random() * 6, skill: 0.85, stuck: 0 };
+          camYaw = null;
+        }
+      } else if (!mine || (raceTime() < 0 && mine.slot !== slot)) {
         mine = newKart(gridSpot(track, slot), { slot });
         myBrain = { lane: (slot % 2 ? 1 : -1) * 2, phase: Math.random() * 6, skill: 0.85, stuck: 0 };
       }
-      if (slot < 0) mine = null;
       if (api.isOwner()) {
         S.ai.forEach((a, i) => {
           const spot = S.racers.length + i;
@@ -368,9 +418,10 @@ export default {
         const ids = ps.map(m => m.id).slice(0, MAX_RACERS);
         const keep = S.racers.filter(id => ids.includes(id));
         for (const id of ids) if (!keep.includes(id) && keep.length < MAX_RACERS) keep.push(id);
-        if (keep.join() !== S.racers.join()) {
+        const sn = keep.map(id => ps.find(m => m.id === id)?.since || 0);
+        if (keep.join() !== S.racers.join() || sn.join() !== S.sn.join()) {
           const nAi = keep.length >= 3 ? MAX_RACERS - keep.length : keep.length === 2 ? 2 : 3;
-          setShared({ racers: keep, ai: S.ai.slice(0, nAi) });
+          setShared({ racers: keep, sn, ai: S.ai.slice(0, nAi) });
         }
         return;
       }
@@ -378,18 +429,54 @@ export default {
       const entries = allKarts().filter(k => k.racer);
       const present = entries.filter(k => k.bot || ps.some(m => m.id === k.id));
       const humans = present.filter(k => !k.bot);
-      const first = Math.min(...present.map(k => k.finished || Infinity));
+      // When the first finisher actually crossed the line (late starters time from their own start).
+      const first = Math.min(...present.map(k => (k.finished ? k.finished + k.start : Infinity)));
       const allIn = humans.every(k => k.finished > 0) && present.every(k => k.finished > 0 || k.bot);
-      if (!humans.length || allIn || (Number.isFinite(first) && t > first + GRACE) || t > 600) {
+      if (!humans.length || allIn || (Number.isFinite(first) && t > first + GRACE) || t > LATE.maxTime) {
         const order = standings(present.map(k => ({ ...k })));
-        const res = order.map(k => [k.id, nameOf(k.id).slice(0, 24) || 'Racer', colorOf(k.id), Math.round((k.finished || 0) * 1000), Math.round((k.bestLap || 0) * 1000)]);
+        const res = order.map(k => [k.id, nameOf(k.id).slice(0, 24) || 'Racer', colorOf(k.id), Math.round((k.finished || 0) * 1000), Math.round((k.bestLap || 0) * 1000), ...(k.late ? [1] : [])]);
         setShared({ ph: 'done', res });
+        return;
       }
+      lateJoins(ps, present, first, t);
+    }
+    // Owner: newcomers mid-race (and racers back after leaving) get a kart
+    // behind the last one, unless the race is nearly over.
+    function lateJoins(ps, present, first, t) {
+      const lead = Math.max(0, ...present.filter(k => !k.finished).map(k => k.total));
+      const open = lateJoinOpen({ raceTime: t, firstFinish: first, leadTotal: lead, length: track.length });
+      if (!open) {
+        if (!S.cl) setShared({ cl: true });
+        return;
+      }
+      const racers = S.racers.slice(), sn = S.sn.slice();
+      let lt = S.lt.slice();
+      // Everything a new kart must not land on: karts, and late starts not driving yet.
+      const taken = present.map(k => ({ x: k.x, z: k.z, total: k.total, finished: k.finished }));
+      for (const [id, , total, d] of lt) {
+        if (!present.some(k => k.id === id)) taken.push({ ...pointAt(track, total, d), total, finished: 0 });
+      }
+      const hazards = [...bananas.values(), ...[...bombs.values()].map(b => bombAt(b, b.t))];
+      let changed = false;
+      for (const m of ps) {
+        const i = racers.indexOf(m.id);
+        const back = i >= 0 && sn[i] > 0 && m.since !== sn[i];
+        if (i >= 0 && !back) continue;
+        if (i < 0 && racers.length >= MAX_RACERS) continue;
+        const spot = lateSpot(track, taken, hazards);
+        const total = Math.round(spot.s * 10) / 10, d = Math.round(spot.d * 10) / 10;
+        if (i < 0) { racers.push(m.id); sn.push(m.since || 0); } else sn[i] = m.since || 0;
+        lt = lt.filter(e => e[0] !== m.id);
+        lt.push([m.id, Date.now() + LATE.count, total, d]);
+        taken.push({ x: spot.x, z: spot.z, total, finished: 0 });
+        changed = true;
+      }
+      if (changed) setShared({ racers, sn, lt });
     }
     function setShared(patch) {
       if (!api.isOwner() || !S) return;
       const next = { ...S, ...patch };
-      api.setShared({ ph: next.ph, r: next.r, go: next.go, racers: next.racers, ai: next.ai, res: next.res, bn: next.bn, bx: next.bx });
+      api.setShared({ ph: next.ph, r: next.r, go: next.go, racers: next.racers, sn: next.sn, ai: next.ai, res: next.res, bn: next.bn, bx: next.bx, lt: next.lt, cl: next.cl });
       S = parseShared(api.shared());
     }
 
@@ -398,15 +485,15 @@ export default {
     function allKarts() {
       const out = [];
       const flagsOf = k => (k.spin > 0 ? 1 : 0) | (k.boost > 0 ? 2 : 0) | (k.star > 0 ? 4 : 0) | (k.drift ? 8 : 0) | (k.drift > 0 ? 16 : 0) | (k.charge > 0.9 ? 32 : 0) | (k.charge > 1.9 ? 64 : 0);
-      const best = k => (k.lapTimes.length ? Math.min(...k.lapTimes) : 0);
-      if (mine) out.push({ id: myId, racer: true, me: true, x: mine.x, z: mine.z, h: mine.h, v: mine.v, fl: flagsOf(mine), total: mine.total, finished: mine.finished, hop: mine.hop, kart: mine, bestLap: best(mine), steer: mine.steer });
+      // start: how many seconds after the main start a late joiner's clock began.
+      if (mine) out.push({ id: myId, racer: true, me: true, x: mine.x, z: mine.z, h: mine.h, v: mine.v, fl: flagsOf(mine), total: mine.total, finished: mine.finished, hop: mine.hop, kart: mine, bestLap: bestLap(mine), steer: mine.steer, late: !!mine.late, start: mine.late ? startOf(myId) : 0 });
       if (api.isOwner()) {
-        for (const b of bots) out.push({ id: b.id, racer: true, bot: true, x: b.kart.x, z: b.kart.z, h: b.kart.h, v: b.kart.v, fl: flagsOf(b.kart), total: b.kart.total, finished: b.kart.finished, hop: b.kart.hop, kart: b.kart, bestLap: best(b.kart), steer: b.kart.steer });
+        for (const b of bots) out.push({ id: b.id, racer: true, bot: true, x: b.kart.x, z: b.kart.z, h: b.kart.h, v: b.kart.v, fl: flagsOf(b.kart), total: b.kart.total, finished: b.kart.finished, hop: b.kart.hop, kart: b.kart, bestLap: bestLap(b.kart), steer: b.kart.steer, late: false, start: 0 });
       }
       for (const [id, r] of remote) {
         if (r.stale) continue;
         if (api.isOwner() && id.startsWith('ai')) continue;
-        out.push({ id, racer: true, bot: id.startsWith('ai'), x: r.x, z: r.z, h: r.h, v: r.v, fl: r.fl, total: r.total, finished: r.finished, hop: (r.fl & 1) ? 0.2 : 0, kart: null, bestLap: r.bl || 0, steer: 0 });
+        out.push({ id, racer: true, bot: id.startsWith('ai'), x: r.x, z: r.z, h: r.h, v: r.v, fl: r.fl, total: r.total, finished: r.finished, hop: (r.fl & 1) ? 0.2 : 0, kart: null, bestLap: r.bl || 0, steer: 0, late: !!lateOf(id), start: startOf(id) });
       }
       return out;
     }
@@ -463,7 +550,7 @@ export default {
       const st = { r: S.r };
       if (mine) {
         st.k = packKart(mine);
-        st.bl = mine.lapTimes.length ? Math.round(Math.min(...mine.lapTimes) * 1000) : 0;
+        st.bl = Math.round(bestLap(mine) * 1000);
       }
       if (api.isOwner() && bots.length) st.ai = bots.map(b => packKart(b.kart));
       const sig = JSON.stringify(st);
@@ -494,6 +581,7 @@ export default {
     }
     function spinOut(k, kind, id) {
       if (!k || k.star > 0 || k.spin > 0) return false;
+      if (k === mine && !myRacing()) return false; // held for a late start
       k.spin = SPIN_TIME + (kind === 'bomb' ? 0.35 : 0);
       k.drift = 0;
       k.charge = 0;
@@ -555,7 +643,7 @@ export default {
       setShared({ bx });
     }
     function useItem(k, id) {
-      if (!k || !itemReady(k) || k.spin > 0 || !racing()) return false;
+      if (!k || !itemReady(k) || k.spin > 0 || !(k === mine ? myRacing() : racing())) return false;
       const item = takeItem(k);
       const fx = Math.cos(k.h), fz = Math.sin(k.h);
       if (item === 'boost') {
@@ -698,7 +786,8 @@ export default {
     }
 
     // --- simulation --------------------------------------------------------
-    const env = (scale = 1) => ({ track, obstacles: W.obstacles, pads: W.pads, raceTime: raceTime(), speedScale: scale });
+    // Each kart is timed on its own clock: mine may have started late.
+    const env = (scale, k) => ({ track, obstacles: W.obstacles, pads: W.pads, raceTime: k === mine ? myTime() : raceTime(), speedScale: scale });
     function handleEvents(ev, k, id) {
       for (const e of ev) {
         if (k !== mine) continue;
@@ -716,21 +805,23 @@ export default {
           lastPlace = place;
           api.sfx(place === 1 ? 'win' : 'score');
           floaters.push({ text: `Finish! ${ORD(place)}`, t: 0, color: place === 1 ? '#ffd43b' : '#fff', big: true });
-          if (!records.race || k.finished < records.race) { records.race = k.finished; api.store.set('bestRace', k.finished); }
-          if (place === 1 && rankOf(myId).count > 1) { records.wins++; api.store.set('wins', records.wins); }
+          // A late start is a shorter race: it doesn't count toward the race record or wins.
+          if (!k.late && (!records.race || k.finished < records.race)) { records.race = k.finished; api.store.set('bestRace', k.finished); }
+          if (!k.late && place === 1 && rankOf(myId).count > 1) { records.wins++; api.store.set('wins', records.wins); }
         }
       }
     }
     function noteLap(k) {
       const t = k.lapTimes[k.lapTimes.length - 1];
-      if (t > 5 && (!records.lap || t < records.lap)) {
+      if (k.partial && k.lapTimes.length === 1) return; // a late start's first lap is only part of one
+      if (t > 5&& (!records.lap || t < records.lap)) {
         records.lap = t;
         api.store.set('bestLap', t);
         floaters.push({ text: `Best lap ${fmt(t)}!`, t: -0.6, color: '#63e6be' });
       }
     }
     function driveLocal(k, id, inp, scale, dt) {
-      const ev = stepKart(k, inp, dt, env(scale));
+      const ev = stepKart(k, inp, dt, env(scale, k));
       handleEvents(ev, k, id);
       if (k.roll > 0) k.roll = Math.max(0, k.roll - dt);
       // Bump other karts (each moves only itself).
@@ -768,7 +859,7 @@ export default {
       const t = raceTime();
       const go = racing();
       if (mine) {
-        if (go) {
+        if (myRacing()) {
           const auto = now() < rookieUntil || mine.finished > 0 || S.ph === 'done';
           let inp;
           if (auto) {
@@ -1180,6 +1271,13 @@ export default {
       const [name, fn] = map[item];
       g.drawImage(pic(name, fn), 0, 0, size, size);
     }
+    // While I have no kart in a race under way: 'joining' (the owner is about
+    // to put me in) or 'next' (it's nearly over, or full: I race in the next one).
+    function joinNote() {
+      if (!S || mine || S.ph !== 'count' || raceTime() < 0) return null;
+      const inRace = S.racers.includes(myId);
+      return !S.cl && (inRace || S.racers.length < MAX_RACERS) ? 'joining' : 'next';
+    }
     let iconSig = '';
     function drawHud() {
       const top = inset.top + 10;
@@ -1206,10 +1304,15 @@ export default {
         hudText(`of ${count}`, 16, top + big + 18, 14, '#fff', 'left', 800);
         const lap = Math.min(LAPS, lapOf(Math.max(0, mine.total), track.length).lap);
         hudText(`LAP ${lap}/${LAPS}`, w - 14, top + 26, 24, '#fff', 'right');
-        hudText(fmt(mine.finished || Math.max(0, t)), w - 14, top + 46, 15, '#d8ccff', 'right', 800);
+        hudText(fmt(mine.finished || Math.max(0, myTime())), w - 14, top + 46, 15, '#d8ccff', 'right', 800);
       } else if (S && S.ph !== 'done') {
-        hudText('Watching', 14, top + 28, 24, '#fff');
-        hudText('You race in the next one', 14, top + 48, 14, '#d8ccff', 'left', 800);
+        if (joinNote() === 'joining') {
+          hudText('Joining the race…', 14, top + 28, 24, '#fff');
+          hudText('You start at the back', 14, top + 48, 14, '#d8ccff', 'left', 800);
+        } else {
+          hudText('Watching', 14, top + 28, 24, '#fff');
+          hudText('Next race starts soon', 14, top + 48, 14, '#d8ccff', 'left', 800);
+        }
       }
       // Minimap.
       const ms = Math.round(clamp(Math.min(w, h) * 0.26, 80, 130));
@@ -1249,8 +1352,10 @@ export default {
         itemBtn.setAttribute('aria-label', ready ? `Use ${held[0]}${held[1] && !(mine.roll > 0) ? `, then ${held[1]}` : ''}` : 'No item');
       }
       itemBtn.hidden = !mine || S?.ph === 'done';
-      // Countdown.
-      if (S && S.ph === 'count' && t < 1) {
+      // Countdown: the race's, or my own after joining late.
+      const ct = mine ? myTime() : t;
+      if (S && S.ph === 'count' && ct < 1) {
+        const t = ct;
         const n = Math.ceil(-t);
         const label = t >= 0 ? 'GO!' : n <= 3 ? String(n) : 'Get ready';
         const frac = t >= 0 ? t : -t - Math.floor(-t);
@@ -1275,6 +1380,11 @@ export default {
           const y0 = h - inset.bottom - 22 - (lines.length - 1) * 18;
           lines.forEach((l, i) => hudText(l, w / 2, y0 + i * 18, 13, '#fff', 'center', 800));
         }
+        if (mine?.late && t < 0.6) {
+          const size = Math.round(clamp(w * 0.05, 15, 22));
+          hudText('Joining the race —', w / 2, h * 0.42 + big * 0.9, size, '#fff', 'center');
+          hudText('you start at the back!', w / 2, h * 0.42 + big * 0.9 + size * 1.25, size, '#fff', 'center');
+        }
       }
       // Floating messages.
       floaters.forEach((f, i) => {
@@ -1296,7 +1406,7 @@ export default {
       const myPlace = S.res.findIndex(e => e[0] === myId);
       h2.textContent = myPlace === 0 ? 'You win!' : myPlace > 0 ? `You came ${ORD(myPlace + 1)}` : 'Race over';
       const ol = document.createElement('ol');
-      S.res.forEach(([id, name, color, fin, bl], i) => {
+      S.res.forEach(([id, name, color, fin, bl, late], i) => {
         const li = document.createElement('li');
         if (id === myId) li.className = 'me';
         const pos = document.createElement('span');
@@ -1306,6 +1416,12 @@ export default {
         dot.style.background = color;
         const nm = document.createElement('span');
         nm.textContent = name;
+        if (late === 1) {
+          const tag = document.createElement('small');
+          tag.className = 'late';
+          tag.textContent = 'joined late';
+          nm.append(' ', tag);
+        }
         const tm = document.createElement('span');
         tm.className = 't';
         tm.textContent = fin > 0 ? fmt(fin / 1000) + (bl > 0 ? ` · lap ${fmt(bl / 1000)}` : '') : id.startsWith('ai') ? '–' : 'DNF';
@@ -1363,7 +1479,7 @@ export default {
     }
     let lastCount = null;
     function countdownSounds() {
-      const n = S && S.ph === 'count' ? Math.ceil(-raceTime()) : null;
+      const n = S && S.ph === 'count' ? Math.ceil(-(mine ? myTime() : raceTime())) : null;
       if (n === lastCount) return;
       if (n != null && n >= 1 && n <= 3) api.sfx('tick');
       if (n != null && n <= 0 && lastCount === 1) api.sfx('honk');
@@ -1429,7 +1545,8 @@ export default {
           return {
             phase: !S ? 'none' : S.ph === 'done' ? 'done' : t < 0 ? 'count' : 'race', raceTime: t, racers: S?.racers ?? [], ai: S?.ai?.length ?? 0,
             me: k && { x: k.x, z: k.z, h: k.h, v: k.v, total: k.total, lap: lapOf(Math.max(0, k.total), track.length).lap, laps: k.lapTimes.length, finished: k.finished, spin: k.spin, item: k.items[0] ?? null, items: k.items.slice(), roll: k.roll || 0, boost: k.boost, star: k.star, drift: k.drift, d: k.d, offroad: k.offroad },
-            rank: mine ? rankOf(myId).rank + 1 : 0, karts: allKarts().map(k => ({ id: k.id, x: k.x, z: k.z, spin: !!(k.fl & 1), finished: k.finished, total: k.total })),
+            rank: mine ? rankOf(myId).rank + 1 : 0, karts: allKarts().map(k => ({ id: k.id, x: k.x, z: k.z, v: k.v, spin: !!(k.fl & 1), finished: k.finished, total: k.total, late: k.late })),
+            order: standings(allKarts()).map(k => k.id), late: !!mine?.late, myTime: myTime(), note: joinNote(), lt: S?.lt ?? [], cl: !!S?.cl,
             parts: parts.length, counts: { ...counts }, bananas: bananas.size, bombs: bombs.size, boxesUp: boxUntil.filter(u => now() >= u).length,
             results: S?.res ?? null, ground: ground?.kind, length: track.length,
           };

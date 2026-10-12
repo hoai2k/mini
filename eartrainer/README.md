@@ -50,7 +50,10 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   stars and ten points a note (plus a streak bonus for clean first tries in a
   row) on the first try, two stars and six a note on the second, one star and
   three a note after that; a skip before a clean run gets no stars and ends the
-  streak. Redo mid-run wipes that run's mistakes without using a try. Finishing
+  streak. Redo mid-run wipes that run's mistakes without using a try. While
+  the first note is marked on the keys, wrong keys before it is found aren't
+  mistakes. After a run with wrong notes, pressing a key starts the next try at
+  once (that key counts as its first note) instead of waiting for the replay. Finishing
   reveals every note on the staff and the title in the top bar, with a chime
   and confetti; right after the chime (about 1.5 s; the Next button fills up
   meanwhile) the next melody starts by itself. Playing on restarts

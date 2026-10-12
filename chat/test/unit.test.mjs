@@ -524,6 +524,70 @@ test('Kart Dash items: leaders get peels and bombs, the back gets boosts and sta
   assert.deepEqual(order.map(k => k.id), ['d', 'b', 'c', 'a']);
 });
 
+test('Kart Dash late joiners: a safe spot behind the last kart, ranked by progress', () => {
+  const { track, obstacles } = kartWorld;
+  const L = track.length;
+  const at = (s, d = 0, extra = {}) => ({ ...kartTrack.pointAt(track, s, d), total: s, finished: 0, ...extra });
+  const onRoad = p => {
+    const l = kartTrack.locate(track, p.x, p.z);
+    return Math.abs(l.d) < track.half - 2 && !obstacles.near(p.x, p.z).some(o => Math.hypot(o.x - p.x, o.z - p.z) < (o.r ?? 1.3) + kartSim.KART_R);
+  };
+  const clearOf = (p, list, r) => list.every(k => Math.hypot(k.x - p.x, k.z - p.z) >= r);
+  // A spread field: the spot is on the centre line about 12 m behind the rearmost kart.
+  const field = [at(400, 2), at(310, -3), at(250, 3.5), at(520)];
+  const a = kartTrack.lateSpot(track, field);
+  assert.ok(a.s < 250 - 10 && a.s > 250 - 20 && a.d === 0, `spot ${a.s.toFixed(1)} m, side ${a.d}`);
+  assert.ok(onRoad(a) && clearOf(a, field, 4.5));
+  close(a.h, kartTrack.pointAt(track, a.s).h, 1e-9);
+  // The spot is taken (a kart sitting there): it moves to one side or further back, still clear and on the road.
+  const blocked = [...field, at(238, 0), at(238, -3.5), at(238, 3.5)];
+  const b = kartTrack.lateSpot(track, blocked);
+  assert.ok(b.s < 250 && onRoad(b) && clearOf(b, blocked, 4.5), `spot ${b.s.toFixed(1)} m, side ${b.d}`);
+  // Banana peels count as taken too.
+  const peels = [kartTrack.pointAt(track, 238, 0)];
+  const c = kartTrack.lateSpot(track, field, peels);
+  assert.ok(clearOf(c, peels, 3.5) && onRoad(c));
+  // Finished karts don't set the back of the field (but are still kept clear of).
+  const d = kartTrack.lateSpot(track, [at(3 * L + 5, 0, { finished: 70 }), at(600)]);
+  assert.ok(d.s < 600 && d.s > 570);
+  // Just after the start, behind the grid: a negative total, still lap 1 and on the road.
+  const grid = [0, 1, 2, 3].map(i => ({ ...kartTrack.gridSpot(track, i), total: kartTrack.gridSpot(track, i).s, finished: 0 }));
+  const e = kartTrack.lateSpot(track, grid);
+  assert.ok(e.s < Math.min(...grid.map(g => g.total)) && onRoad(e) && clearOf(e, grid, 4.5));
+  assert.equal(kartTrack.lapOf(e.s, L).lap, 1);
+  // The rearmost kart on lap 2: the joiner starts on lap 1, physically just behind it, so a lap down.
+  const f = kartTrack.lateSpot(track, [at(L + 40), at(L + 300)]);
+  assert.ok(f.s >= 0 && f.s < L && kartTrack.lapOf(f.s, L).lap === 1);
+  const fp = kartTrack.pointAt(track, L + 40);
+  const dist = Math.hypot(f.x - fp.x, f.z - fp.z);
+  assert.ok(dist > 8 && dist < 20, `${dist.toFixed(1)} m behind`);
+  // A kart there starts last and is timed from its own start.
+  const late = kartSim.newKart({ ...kartTrack.pointAt(track, a.s, a.d), s: a.s }, { partial: true });
+  assert.equal(late.total, a.s);
+  assert.equal(kartSim.standings([...field.map((k, i) => ({ id: 'k' + i, ...k })), { id: 'late', ...late }]).at(-1).id, 'late');
+
+  // Standings with a late joiner: by progress while racing, by when they actually crossed once finished.
+  const order = kartSim.standings([
+    { id: 'early', total: 3 * L, finished: 90, start: 0 },    // crossed at 90 s
+    { id: 'late', total: 3 * L, finished: 70, start: 30 },    // started 30 s in, crossed at 100 s
+    { id: 'bot', total: 2.5 * L, finished: 0, start: 0 },
+    { id: 'late2', total: 2.6 * L, finished: 0, start: 12 },  // further round than the bot
+  ]);
+  assert.deepEqual(order.map(k => k.id), ['early', 'late', 'late2', 'bot']);
+  // A late start's first lap is only part of a lap: it isn't a best lap.
+  assert.equal(kartSim.bestLap({ lapTimes: [12, 40, 38], partial: true }), 38);
+  assert.equal(kartSim.bestLap({ lapTimes: [12, 40, 38] }), 12);
+  assert.equal(kartSim.bestLap({ lapTimes: [9], partial: true }), 0);
+
+  // Joining stays open until someone finishes or the race is nearly over.
+  assert.equal(kartSim.lateJoinOpen({ raceTime: 5, leadTotal: 100, length: L }), true);
+  assert.equal(kartSim.lateJoinOpen({ raceTime: -1, leadTotal: 0, length: L }), false);
+  assert.equal(kartSim.lateJoinOpen({ raceTime: 80, firstFinish: 78, leadTotal: 3 * L, length: L }), false);
+  assert.equal(kartSim.lateJoinOpen({ raceTime: 60, leadTotal: 3 * L - 100, length: L }), false); // ~4 s from the line
+  assert.equal(kartSim.lateJoinOpen({ raceTime: 60, leadTotal: 3 * L - 500, length: L }), true);
+  assert.equal(kartSim.lateJoinOpen({ raceTime: kartSim.LATE.maxTime - 10, leadTotal: 100, length: L }), false);
+});
+
 test('Kart Dash holds two items: a box fills the next slot, using takes the first', () => {
   const { track } = kartWorld;
   const k = kartSim.newKart(kartTrack.gridSpot(track, 0));

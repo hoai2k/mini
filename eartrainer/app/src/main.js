@@ -328,16 +328,21 @@ function keyDown(midi, source) {
   if (S.held.get(midi)) audio.noteOff(S.held.get(midi));
   S.held.set(midi, v);
   if (S.free) { freeNote(midi); return; }
+  // Straight after a run with wrong notes: a key starts the next try at once
+  // (and counts as its first note), rather than waiting for the replay.
+  if (S.awaitingRetry && !S.practice) startRetry({ listen: false });
   const r = S.round;
   if (!r || S.practice || r.done) {
     if (r?.done && S.solvedShown && $('#btn-skip').classList.contains('counting')) scheduleAuto(); // still playing: wait a little longer
     return;
   }
-  const result = press(r, midi);
+  const before = r.mistakes;
+  const result = press(r, midi, { freeFirst: settings.first });
   if (result === 'wrong') {
     kbd.flash(midi, 'bad');
     staff.flash(r.pos, 'wrong', 420);
-    const miss = $('#hud-miss'); miss.classList.remove('hit'); void miss.offsetWidth; miss.classList.add('hit');
+    // A wrong key before the marked first note is found isn't a mistake.
+    if (r.mistakes > before) { const miss = $('#hud-miss'); miss.classList.remove('hit'); void miss.offsetWidth; miss.classList.add('hit'); }
     haptic([18, 40, 18]);
     if (!S.replay) syncHud();
     setPrompt(r.pos === 0 ? 'Not that one. Try Repeat, or keep looking.' : `Not that one: note ${r.pos + 1} of ${r.notes.length}`, false, true);
@@ -422,7 +427,7 @@ function solved() {
 const RETRY_MS = 1800;
 let retryT = 0;
 const retryPending = () => retryT !== 0;
-function startRetry() {
+function startRetry({ listen = true } = {}) {
   clearTimeout(retryT);
   retryT = 0;
   if (S.mode !== 'play' || dialogs.length || !S.melody || S.free) return;
@@ -438,7 +443,8 @@ function startRetry() {
   $('#skip-label').textContent = 'Next';
   skip.dataset.tip = 'Next melody';
   syncStaff(); syncMarker(); syncHud();
-  playMelody();
+  if (listen) playMelody();
+  else idlePrompt();
 }
 
 // ---------------------------------------------------------------- moving on

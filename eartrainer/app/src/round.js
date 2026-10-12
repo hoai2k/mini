@@ -10,14 +10,17 @@ export function createRound(notes) {
   return { notes, pos: 0, mistakes: 0, done: false, misses: new Array(notes.length).fill(0) };
 }
 
-/** Press a key. Returns 'correct', 'wrong', 'done' (the last correct note) or 'free' (already solved). */
-export function press(round, midi) {
+/** Press a key. Returns 'correct', 'wrong', 'done' (the last correct note) or 'free' (already solved).
+ *  With `freeFirst` (the first note is marked on the keys), a wrong key before
+ *  the first note is found is still 'wrong' but isn't counted as a mistake. */
+export function press(round, midi, { freeFirst = false } = {}) {
   if (round.done) return 'free';
   if (midi === round.notes[round.pos].midi) {
     round.pos++;
     if (round.pos === round.notes.length) { round.done = true; return 'done'; }
     return 'correct';
   }
+  if (freeFirst && round.pos === 0) return 'wrong';
   round.mistakes++;
   round.misses[round.pos]++;
   return 'wrong';
