@@ -1,7 +1,7 @@
 // Music Practice: the home screen, the metronome and the practice recorder.
 
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake } from './audio.js';
-import { playSamples, primeFromTap, outputSettled } from './player.js';
+import { playSamples, primeFromTap } from './player.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
 import { Waveform, drawThumb } from './waveform.js';
@@ -55,7 +55,10 @@ function leave(name) {
 
 function enter(name) {
   if (name === 'metronome') {
-    setSession('playback');
+    // The metronome doesn't use the mic. A mic the recorder holds (switched
+    // off, so permission isn't asked again) is kept; Safari's session is left
+    // alone while it is held, since switching could cut it off.
+    if (!recorder?.holdsMic) setSession('playback');
     $('met-toggle').focus({ preventScroll: true });
   }
   if (name === 'record') startRecorder();
@@ -367,7 +370,10 @@ async function startRecorder() {
   if (!wave) wave = new Waveform($('wave'));
   // A new recorder when the context was replaced (the old one is off by then).
   if (!recorder || recorder.ctx !== ctx) {
+    const old = recorder;
     recorder = new Recorder(ctx);
+    // Hand over a mic the old recorder still holds, so there is no new prompt.
+    if (old?.stream) { recorder.keepStream(old.stream); old.stream = null; }
     recorder.addEventListener('state', () => {
       interruptPlayback();
       showState();
@@ -410,7 +416,10 @@ async function resumeListening() {
   showState();
 }
 
-/** Reopen the mic if the phone cut it off while listening or recording. */
+/**
+ * Reconnect the mic if it stopped delivering while listening or recording.
+ * The held mic is reused; it is asked for again only if it is dead.
+ */
 let reopening = false;
 function recoverMic(force = false) {
   if (!recorder || reopening || !recorder.micOpen) return;
@@ -474,21 +483,18 @@ let playToken = 0;
 async function play(take, { auto = false } = {}) {
   stopPlayback({ resume: false });
   const token = ++playToken;
-  let micWasOpen = false;
   if (recorder && recorder.state !== 'off') {
     if (!auto) recorder.pause();
     else if (!settings.recordDuringPlayback) recorder.hold();
-    if (!settings.recordDuringPlayback && recorder.micOpen) {
-      recorder.release();
-      micWasOpen = true;
-    }
+    if (!settings.recordDuringPlayback && recorder.micOpen) recorder.release();
   }
-  if (!settings.recordDuringPlayback) setSession('playback');
+  // Playback mode only when no mic is held: switching while Safari holds one
+  // could cut it off and interrupt the record-play-record loop.
+  if (!recorder?.holdsMic) setSession('playback');
   playing = { take, auto, handle: null };
   wave?.showTake(take.samples);
   renderTakes();
   showState();
-  if (micWasOpen) await outputSettled();
   if (token !== playToken) return; // stopped or replaced while waiting
   let handle;
   try {

@@ -54,22 +54,3 @@ export async function playSamples(samples, sampleRate) {
     resume: () => a.play(),
   };
 }
-
-/**
- * After the mic closes, the phone takes a moment to move sound back to its
- * normal output. Wait for it to report the change (or `maxMs` at most).
- */
-export function outputSettled(maxMs = 700) {
-  return new Promise((resolve) => {
-    const md = navigator.mediaDevices;
-    let timer;
-    const done = () => {
-      clearTimeout(timer);
-      md?.removeEventListener?.('devicechange', changed);
-      resolve();
-    };
-    const changed = () => { clearTimeout(timer); timer = setTimeout(done, 200); };
-    md?.addEventListener?.('devicechange', changed);
-    timer = setTimeout(done, maxMs);
-  });
-}
