@@ -98,6 +98,35 @@ test('drippet: a beginner reaches the score, a good runner more; idle and circli
   assert.ok(avg(blind) < avg(good), `never looking ${blind}`);
 });
 
+test('drippet: the kitchen starts dry and calm, and ends wet and busy', () => {
+  const part = () => ({ puddles: [], thirsty: 0, patience: [], frames: 0 });
+  const early = part();
+  const late = part();
+  for (const seed of [1, 2, 3, 4]) {
+    const seen = new Set();
+    const bot = runner(1, seed);
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        const p = game.elapsed / 45;
+        const q = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+        if (q) {
+          q.frames++;
+          q.puddles.push(game.puddles.reduce((s, d) => s + d.r * d.r, 0));
+          q.thirsty = Math.max(q.thirsty, game.things.filter((th) => !th.done).length);
+          for (const th of game.things) if (!seen.has(th)) { seen.add(th); q.patience.push(th.patience); }
+        }
+        return bot(game, t);
+      },
+    });
+  }
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  assert.ok(mean(late.puddles) > mean(early.puddles) * 2, `wet floor early ${mean(early.puddles).toFixed(0)}, late ${mean(late.puddles).toFixed(0)}`);
+  assert.equal(early.thirsty, 1, 'one thirsty thing at a time in the first third');
+  assert.equal(late.thirsty, 2, 'two at once late');
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+});
+
 test('drippet: a fresh drip is harmless, an old puddle makes the Drippet skid', () => {
   const game = create(env(1));
   game.puddles.push({ x: game.x - 100, y: game.y, r: 40, max: 40, age: 0.2, life: 9, seed: 1, shape: 0 });

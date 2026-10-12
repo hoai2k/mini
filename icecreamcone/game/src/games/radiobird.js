@@ -86,7 +86,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const width = () => lerp(0.045, 0.027, progress());
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets how narrow the stations are and how far and fast
+  // they drift from where they were pencilled.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  const width = () => lerp(0.05, 0.025, g.ramp());
+  g.width = width;
+  g.drift = () => lerp(0.008, 0.034, g.ramp());
 
   // Spread the six stations across the dial, apart from each other.
   const order = STATIONS.map((_, i) => i).sort(() => rng() - 0.5);
@@ -96,8 +103,7 @@ export default function create(env) {
   });
   g.freq = (i) => {
     const s = g.stations[i];
-    const amp = lerp(0.012, 0.03, progress());
-    return clamp(s.base + amp * Math.sin(g.elapsed * s.rate * lerp(0.5, 1, progress()) + s.phase), 0.02, 0.98);
+    return clamp(s.base + g.drift() * Math.sin(g.elapsed * s.rate * lerp(0.45, 1.05, g.ramp()) + s.phase), 0.02, 0.98);
   };
   // How clearly station i comes in at the needle: 1 dead on, 0 off it.
   g.clarity = (i, n = g.n) => clamp(1 - Math.abs(n - g.freq(i)) / width(), 0, 1);

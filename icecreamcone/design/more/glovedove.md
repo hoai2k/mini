@@ -39,18 +39,37 @@ at 30.
 
 ## Getting harder
 
-At first one or two plates come up every three seconds. From 15 s cups and
-bowls and then heavy pans and pie dishes join them (pans fly lower, so they
-need more bumps), and dishes come faster (every 1.1 s by the end) with up to
-six in the air at once, so a dish carried too long lets others fall.
+At first one or two plates come up every three seconds, then cups and
+bowls. From 15 s heavy pans and pie dishes join them (pans fly lower, so
+they need more bumps), and dishes come faster (every second by the end)
+with up to six in the air at once, so a dish carried too long lets others
+fall. See "Difficulty over the round" below.
 
 Bots (`node --test test/glovedove.test.mjs`, six seeds): a beginner (slow on
 the stick, crouching 0.4 s before a dish lands, letting go anywhere from 0.6
-to 1.8 full crouches) scores 44 to 63; a clumsy one (slower still, and
-forgetting one dish in five) 34 to 52; a good player (carries a dish to
-the middle of the counter before a full "Hup!") 85 to 89. Running under every
-dish and mashing at five rhythms scores 3 to 21; holding all the time,
+to 1.8 full crouches) scores 52 to 66; a clumsy one (slower still, and
+forgetting one dish in five) 35 to 43; a good player (carries a dish to
+the middle of the counter before a full "Hup!") 89 to 93. Running under every
+dish and mashing at five rhythms scores 0 to 18; holding all the time,
 standing without pressing and idling score 0.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets the three knobs:
+
+| Knob | Start | Middle | End |
+| --- | --- | --- | --- |
+| Seconds between dishes | 3.1 | 2.05 | 1.0 |
+| Most dishes out at once | 2 | 4 | 6 |
+| Heavy pans and pie dishes | none in the first third (15 s) | about half | 68% |
+
+Before, all three rose in a straight line (2.9 s down to 1.1 s; pans 35% to
+60% from 15 s). Now the first third is gentler, the middle about where it
+was, and the end busier. Pass 30 kept. A test runs a good player on six
+seeds and checks the last third brings over 1.6 times as many dishes as the
+first, more than a third of them pans (none in the first third), and more
+dishes out at once.
 
 ## Controls
 

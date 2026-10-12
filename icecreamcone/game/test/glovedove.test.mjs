@@ -98,6 +98,43 @@ test('glovedove: beginners open the next page, a good player more; mashing, hold
 });
 
 // A dish falling straight onto the Dove's fingers.
+test('glovedove: dishes come slowly and light at first, faster and heavier by the end', () => {
+  const part = () => ({ dishes: 0, heavy: 0, most: 0, maxOut: 0 });
+  const early = part();
+  const late = part();
+  for (const seed of seeds) {
+    const seen = new Set();
+    run(create, {
+      seed,
+      bot: (() => {
+        const b = player({ speed: 1, lead: 0.3, wind: 1.05, carry: true, seed });
+        return (game, t) => {
+          const p = game.elapsed / 45;
+          const q = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+          for (const d of game.dishes) {
+            if (seen.has(d)) continue;
+            seen.add(d);
+            if (q) {
+              q.dishes++;
+              if (d.kind >= 3) q.heavy++;
+            }
+          }
+          if (q) {
+            q.most = Math.max(q.most, game.dishes.length);
+            q.maxOut = Math.max(q.maxOut, game.maxOut());
+          }
+          return b(game, t);
+        };
+      })(),
+    });
+  }
+  assert.ok(late.dishes > early.dishes * 1.6, `dishes early ${early.dishes}, late ${late.dishes}`);
+  assert.equal(early.heavy, 0, 'no pans in the first third');
+  assert.ok(late.heavy / late.dishes > 0.35, `heavy late ${late.heavy}/${late.dishes}`);
+  assert.ok(late.maxOut >= early.maxOut + 3, `dishes allowed out early ${early.maxOut}, late ${late.maxOut}`);
+  assert.ok(late.most > early.most, `most out at once early ${early.most}, late ${late.most}`);
+});
+
 function dropOn(game, off = 30) {
   game.dishes = [{ kind: 0, x: game.catchX() + off, y: 120, vx: 0, vy: 0, spin: 0, a: 0, flicks: 0 }];
   game.spawnT = 99;

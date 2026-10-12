@@ -24,19 +24,41 @@ marked by how far, on average, the cut strayed from the chalk: dead straight
 (within 6 px) 10 points, straight (14 px) 7, a bit crooked (26 px) 4,
 crooked 1. The page opens at 30 points.
 
-**Getting harder:** planks grow from about 640 px to 1000 px long, the grain
-pulls up to three times as hard, and one knot, then two, sit on the line.
-The first plank is short with a gentle grain.
+**Getting harder:** planks grow from about 600 px to 1050 px long, the grain
+pulls up to three times as hard, and no knot, then one, two and three sit on
+the line. The first plank is short with a gentle grain and no knot. See
+"Difficulty over the round" below.
 
 **Controls:** stick or arrows/WASD (left-right to saw, up-down to steer);
 mouse or touch: drag left and right, and point where the cut should go. On a
 narrow screen the view follows the cut.
 
 **Bots** (`game/test/sawbird.test.mjs`): a beginner sawyer (shorter
-strokes, pauses, sees knots late, a shaky and slow steering hand) scores 38
-to 44 over six seeds; holding A to push, the same beginner scores 44 to 54;
-a good sawyer 67 to 70. Full strokes that never steer score 7 to 10,
-fast jiggling 1, mashing A 0, and idling and random mashing 0.
+strokes, pauses, sees knots late, a shaky and slow steering hand) scores 44
+to 51 over six seeds; holding A to push, the same beginner scores 46 to 51;
+a good sawyer 67 to 80. Full strokes that never steer score 13 to 16,
+fast jiggling 4, mashing A 0, and idling 0.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets each new plank:
+
+| Knob | Start | Middle | End | Before (start to end) |
+| --- | --- | --- | --- | --- |
+| Length (±15%) | 600 | 825 | 1050 | 640 to 1000, straight line |
+| Grain pull | 0.05 | 0.105 | 0.16 | 0.06 to 0.14 |
+| Knots on the line | 0–1 (none on the first plank) | 2 | 3 | 0, 1, 2, then 2–3 by plank count |
+
+Knots used to step up with each plank, so a good sawyer met two knots by its
+third plank, about ten seconds in; now the first third has at most one or
+two, and three come only near the end. Bots before and after: beginner
+38–44 to 44–51, holding A 44–54 to 46–51, good 67–70 to 67–80, unsteered
+7–10 to 13–16, jiggling 1 to 4, mashing A 0, idle 0. The gentler start
+helps everyone a little; unsteered strokes stay far below the pass, so pass
+30 is kept. A test runs a good sawyer on six seeds and checks the last
+third's planks are 1.3 times as long, pull 1.6 times as hard, and carry over
+one more knot each, with at most two on any early plank.
 
 ## Images (IC-M17)
 

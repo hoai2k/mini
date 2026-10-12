@@ -168,9 +168,14 @@ test('titthrush: it gets harder, and the clocks stay where a narrow screen can s
   const early = { period: game.period(), r: game.radius(), aim: game.aimLen() };
   const bot = hopper({ noise: 0.03, aim: 0.5, seed: 6 });
   let backwards = false;
+  const third = { period: 0, r: 0, aim: 0 };
+  const move = { early: 0, late: 0 };
   for (let i = 0; i < 60 * 44; i++) {
     const o = bot(game);
     game.update(1 / 60, blank({ ...o, actionPressed: !!o.action }));
+    if (i === 60 * 15) Object.assign(third, { period: game.period(), r: game.radius(), aim: game.aimLen() });
+    const part = game.elapsed < 15 ? 'early' : game.elapsed > 30 ? 'late' : null;
+    for (const c of game.clocks) if (part) move[part] = Math.max(move[part], c.sway + Math.abs(c.vx));
     for (const c of game.clocks) {
       assert.ok(c.bx >= BOX.x0 - 1 && c.bx <= BOX.x1 + 1 && c.by >= BOX.y0 - 1 && c.by <= BOX.y1 + 1, 'clock in the box');
       if (c.dir < 0) backwards = true;
@@ -180,6 +185,12 @@ test('titthrush: it gets harder, and the clocks stay where a narrow screen can s
   assert.ok(game.radius() < early.r * 0.8, 'the clocks get smaller');
   assert.ok(game.aimLen() < early.aim * 0.5, 'the dotted line gets shorter');
   assert.ok(backwards, 'the cuckoo clock (backwards) joins in');
+  // the first third stays gentle: a third of the way in, each knob has moved
+  // well under a third of the way to its end
+  const moved = (k) => (early[k] - third[k]) / (early[k] - game[{ period: 'period', r: 'radius', aim: 'aimLen' }[k]]());
+  for (const k of ['period', 'r', 'aim']) assert.ok(moved(k) < 0.3, `${k} has moved ${moved(k).toFixed(2)} of the way by 15 s`);
+  assert.equal(move.early, 0, 'no swaying or drifting clocks in the first third');
+  assert.ok(move.late > 40, `clocks sway and drift late: ${move.late}`);
   assert.equal(game.span, 1060);
   assert.ok(BOX.x1 - BOX.x0 + 2 * 100 * 1.2 <= game.span + 100);
 });

@@ -105,6 +105,38 @@ test('radiobird: a beginner reaches the score, a good tuner well beyond; sweepin
   assert.ok(avg(press) < avg(good), `press ${press}`);
 });
 
+test('radiobird: stations start wide and nearly still, and end narrow and wandering', () => {
+  const part = () => ({ width: [], move: [], finds: [] });
+  const early = part();
+  const late = part();
+  for (const seed of [1, 2, 3]) {
+    const bot = tuner(1, seed);
+    let prev = null;
+    let asked = 0;
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        const p = game.elapsed / 50;
+        const q = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+        const f = game.stations.map((_, i) => game.freq(i));
+        if (q) {
+          q.width.push(game.width());
+          // how far a station strays from its place on the dial
+          game.stations.forEach((st, i) => q.move.push(Math.abs(f[i] - st.base)));
+          if (game.asked !== asked && prev !== null) q.finds.push(prev);
+        }
+        asked = game.asked;
+        prev = game.findT;
+        return bot(game, t);
+      },
+    });
+  }
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  assert.ok(mean(late.width) < mean(early.width) * 0.65, `station width early ${mean(early.width).toFixed(3)}, late ${mean(late.width).toFixed(3)}`);
+  assert.ok(mean(late.move) > mean(early.move) * 2.5, `stations stray early ${mean(early.move).toFixed(4)}, late ${mean(late.move).toFixed(4)}`);
+  assert.ok(mean(late.finds) > mean(early.finds), `a good tuner takes longer late: early ${mean(early.finds).toFixed(2)} s, late ${mean(late.finds).toFixed(2)} s`);
+});
+
 test('radiobird: pressing on the asked-for station plays its song; a quick find scores more', () => {
   const game = create(env(1));
   const want = game.want;

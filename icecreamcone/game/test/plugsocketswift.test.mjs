@@ -96,6 +96,36 @@ test('plugsocketswift: a beginner opens the next page, a good electrician more; 
 });
 
 // Puts the Swift on a room and presses the action once.
+test('plugsocketswift: dusk starts with few, patient requests and short books; night brings many, impatient ones with long books', () => {
+  const part = () => ({ asks: 0, patience: [], read: [] });
+  const early = part();
+  const late = part();
+  for (const seed of [1, 2, 3, 4, 5]) {
+    const was = new Map();
+    const bot = electrician(1, seed);
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        const p = game.elapsed / 45;
+        const q = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+        for (const r of game.rooms) {
+          if (q && r.state === 'ask' && was.get(r) !== 'ask') {
+            q.asks++;
+            q.patience.push(r.patience);
+            q.read.push(r.readT);
+          }
+          was.set(r, r.state);
+        }
+        return bot(game, t);
+      },
+    });
+  }
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  assert.ok(late.asks > early.asks * 1.5, `requests early ${early.asks}, late ${late.asks}`);
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+  assert.ok(mean(late.read) > mean(early.read) + 2, `books early ${mean(early.read).toFixed(1)}, late ${mean(late.read).toFixed(1)}`);
+});
+
 function pressAt(game, tg) {
   const w = tg === 'fuse' ? game.fuse : tg;
   game.x = w.x;

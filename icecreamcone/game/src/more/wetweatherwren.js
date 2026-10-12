@@ -9,7 +9,7 @@ export default {
   tips: ['Press to pop open and hop; hold to float down slowly; let go to drop.', 'Land in a puddle and you slip and fall, then get up and shake your wings dry before carrying on.', 'Keep it shut under the shop awnings: an open umbrella catches on them.', 'Float over a little bird with the umbrella open to keep it dry.'],
   score: 'points',
   controls: [['Open the umbrella, hold to float', 'action']],
-  pass: 15,
+  pass: 14,
   tune: 'menu',
   color: '#7f93a8',
 };

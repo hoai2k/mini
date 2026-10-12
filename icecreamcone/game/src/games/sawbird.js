@@ -78,6 +78,11 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets each new plank's length, how hard its grain
+  // pulls, and how many knots sit on its line.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
 
   function pop(text, x, y, color = INK, size = 46) {
     // Stack above a pop still showing nearby rather than on top of it.
@@ -86,15 +91,15 @@ export default function create(env) {
   }
 
   function newPlank() {
-    const p = progress();
-    const len = lerp(640, 1000, p) * (0.85 + rng() * 0.3);
+    const k = g.ramp();
+    const len = lerp(600, 1050, k) * (0.85 + rng() * 0.3);
     const left = W / 2 - len / 2;
     const right = W / 2 + len / 2;
     const lineY = LINE_Y + (rng() - 0.5) * 30;
-    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.06, 0.14, p) * (0.7 + rng() * 0.6);
+    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.05, 0.16, k) * (0.7 + rng() * 0.6);
     // Knots sit right on the line: saw round them, or grind slowly through.
     const knots = [];
-    const n = g.planks === 0 ? 0 : g.planks === 1 ? 1 : g.planks === 2 ? 2 : 2 + (rng() < 0.5 ? 1 : 0);
+    const n = g.planks === 0 ? 0 : clamp(Math.floor(lerp(0.7, 3.3, k) + rng() * 0.6), 0, 3);
     for (let i = 0; i < n; i++) {
       knots.push({ x: lerp(left + 110, right - 150, (i + 0.25 + rng() * 0.5) / n), dy: (rng() - 0.5) * 14, rx: lerp(24, 32, rng()), ry: lerp(16, 22, rng()), hit: false });
     }

@@ -118,6 +118,10 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round: one eased curve, slow to start and slow to
+  // finish, steering every knob (creases, their length, time per garment,
+  // which garments come).
+  const ramp = (p) => p * p * (3 - 2 * p);
   function pop(text, x, y, color = INK, size = 42) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -131,20 +135,24 @@ export default function create(env) {
   // point pressed flat 0..1.
   function nextGarment() {
     const p = progress();
+    const k = ramp(p);
     g.count++;
-    let pool = GARMENTS.filter((G) => !G.silk);
+    // The first third brings the smaller, plainer pieces; trousers, shirts
+    // and (later still) silk join as the round goes on.
+    let pool = GARMENTS.filter((G) => !G.silk && (p > 1 / 3 || G.w < 850) && (p < 2 / 3 || G.w > 600));
     if (g.count === 1) pool = [GARMENTS[0]];
-    else if (g.elapsed > 14 && rng() < lerp(0.15, 0.35, p)) pool = [GARMENTS[5]];
+    else if (p > 1 / 3 && rng() < lerp(0.1, 0.4, k)) pool = [GARMENTS[5]];
     const G = pool[Math.floor(rng() * pool.length)];
     const cx = 830;
     const cy = 545;
-    const n = Math.min(7, Math.round(lerp(2, 6, p) + (G.w > 850 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
+    const n = Math.min(7, Math.round(lerp(2, 6.6, k) + (G.w > 850 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
     const creases = [];
     for (let k = 0; k < n; k++) {
       let tries = 0;
       let c = null;
-      while (tries++ < 40) {
-        const len = lerp(150, 290, rng()) * (0.8 + 0.4 * p);
+      while (tries++ < 60) {
+        // a crease that will not fit is tried shorter
+        const len = lerp(150, 290, rng()) * (0.8 + 0.45 * k) * Math.max(0.4, 1 - tries / 50);
         const a = (rng() - 0.5) * 2.2;
         const mx = cx + (rng() - 0.5) * (G.w - len * 0.8 - 60);
         const my = cy + (rng() - 0.5) * (G.h - 80);
@@ -167,8 +175,8 @@ export default function create(env) {
       }
       if (c) creases.push(c);
     }
-    const limit = lerp(13, 8, p) + creases.length * 0.6;
-    g.garment = { ...G, cx, cy, creases, limit, t: 0, slide: 1, scorched: 0, marks: [] };
+    const limit = lerp(14, 7.5, k) + creases.length * 0.6;
+    g.garment = { ...G, cx, cy, creases, limit, at: g.elapsed, t: 0, slide: 1, scorched: 0, marks: [] };
     g.heat.fill(0);
     sfx('page');
   }

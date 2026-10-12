@@ -76,11 +76,33 @@ opens at **14**.
 
 ## Getting harder
 
-Over the 45 s: the long hand goes round in 3.4 s at first and 2.1 s by the
-end; dials shrink from radius 100 to 72; the dotted line shortens from 1000
-to 420 (by the end a far clock is out of its reach, and you judge the
-rest); from 30% in, new clocks sway up and down; from 33%, the cuckoo
-clock (backwards) joins; from 60%, new clocks drift slowly sideways.
+Over the 45 s: the long hand goes round in 3.7 s at first and 2.0 s by the
+end; dials shrink from radius 100 to 70; the dotted line shortens from 1080
+to 400 (by the end a far clock is out of its reach, and you judge the
+rest); from a third of the way in (15 s), new clocks sway up and down and
+the cuckoo clock (backwards) joins; from 60%, new clocks drift slowly
+sideways.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), drives every knob, where they used to move in a straight line
+with time (3.4 s to 2.1 s, 100 to 72, 1000 to 420):
+
+| Knob | Start | 15 s | Middle | End |
+| --- | --- | --- | --- | --- |
+| Seconds per turn of the long hand | 3.7 | 3.25 | 2.85 | 2.0 |
+| Dial radius | 100 | 92 | 85 | 70 |
+| Dotted line | 1080 | 900 | 740 | 400 |
+| Sway (new clocks) | none | 16 | 21 | 32 |
+| Sideways drift (new clocks, from 60%) | none | none | none | 30–60 px/s, x0.96 rising to x1.15 |
+
+So the first third is slower and plainer than before, the middle about as it
+was, and the end a little harder. The start dial stays at 100: bigger dials
+leave too little room to place the gold watch, which then came late. The
+"it gets harder" test now also checks that by 15 s each knob has moved
+less than 30% of the way, and that no clock sways or drifts in the first
+third while late ones do.
 
 ## Balance
 
@@ -89,10 +111,10 @@ press a moment ahead, with their timing off by up to `noise` either way:
 
 | Bot | How it plays | Scores (seeds 1–8) |
 | --- | --- | --- |
-| Beginner | ±0.11 s, takes any line through a clock, lets a quarter of chances go by | 16–38 (all pass) |
-| Clumsy | ±0.16 s, lets a third go by, slow to settle | 13–24 (7 of 8 pass) |
-| Good | ±0.035 s, waits for bullseyes, goes for the gold watch | 45–54 (seeds 1–4) |
-| Hopping blind | presses three times a second without looking | 1–13 (mean 5) |
+| Beginner | ±0.11 s, takes any line through a clock, lets a quarter of chances go by | 23–34 (all pass) |
+| Clumsy | ±0.16 s, lets a third go by, slow to settle | 13–25 (6 of 8 pass) |
+| Good | ±0.035 s, waits for bullseyes, goes for the gold watch | 43–49 (seeds 1–4) |
+| Hopping blind | presses three times a second without looking | 1–9 (mean 4) |
 | Mashing | presses every few frames | 0 |
 | Idle | | 0 |
 

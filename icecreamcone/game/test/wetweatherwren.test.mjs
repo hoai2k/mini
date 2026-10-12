@@ -72,6 +72,49 @@ test('wetweatherwren: a beginner opens the next page, a good walker more; idling
   assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
 });
 
+test('wetweatherwren: the street starts slow and sparse and ends fast and crowded, with awnings, double puddles and gusts only later', () => {
+  const early = { speed: [], widths: [], gaps: [], awnings: 0, gust: false };
+  const late = { speed: [], widths: [], gaps: [], awnings: 0, gust: false };
+  for (const seed of [1, 2, 3, 4]) {
+    const seen = new Set();
+    let last = null; // the end of the hazard laid before
+    const laid = (part, x0, x1) => {
+      if (last !== null && x0 > last) part.gaps.push(x0 - last);
+      last = Math.max(last ?? x1, x1);
+    };
+    const bot = walker({ lead: 60, slop: 10, kind: 1, seed });
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        const p = game.elapsed / 45;
+        const part = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+        if (!part) last = null;
+        if (part) {
+          if (game.recoverT < 0 && game.grounded && !game.stun) part.speed.push(game.speed);
+          if (game.gust > 0) part.gust = true;
+          const fresh = [...game.puddles, ...game.awnings].filter((q) => !seen.has(q)).sort((a, b) => a.x0 - b.x0);
+          for (const q of fresh) {
+            seen.add(q);
+            if (game.awnings.includes(q)) part.awnings++;
+            else part.widths.push(q.x1 - q.x0);
+            laid(part, q.x0, q.x1);
+          }
+        }
+        return bot(game, t);
+      },
+    });
+  }
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  const s0 = Math.max(...early.speed);
+  const s1 = Math.max(...late.speed);
+  assert.ok(s1 > s0 * 1.4, `speed early ${s0.toFixed(0)}, late ${s1.toFixed(0)}`);
+  assert.ok(mean(late.widths) > mean(early.widths) + 40, `puddle width early ${mean(early.widths).toFixed(0)}, late ${mean(late.widths).toFixed(0)}`);
+  assert.ok(mean(late.gaps) < mean(early.gaps) * 0.75, `dry gaps early ${mean(early.gaps).toFixed(0)}, late ${mean(late.gaps).toFixed(0)}`);
+  assert.equal(early.gust, false, 'no gusts early');
+  assert.ok(late.gust, 'gusts late');
+  assert.ok(late.awnings > early.awnings, `awnings early ${early.awnings}, late ${late.awnings}`);
+});
+
 test('wetweatherwren: walking into a puddle slips, falls, gets up and shakes before resuming', () => {
   const game = create(env(1));
   game.update(1 / 60, blank());

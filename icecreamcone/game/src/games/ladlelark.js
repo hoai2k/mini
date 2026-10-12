@@ -104,7 +104,12 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const kinds = () => (g.elapsed < 7 ? 2 : g.elapsed < 20 ? 3 : 4);
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets the swirl, the orders' size and variety, the
+  // patience and the old boot; the pot's mix widens by thirds.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  const kinds = () => (progress() < 0.14 ? 2 : progress() < 0.4 ? 3 : 4);
   function pop(text, x, y, color = INK, size = 34) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -143,15 +148,18 @@ export default function create(env) {
   }
   function pickKind() {
     const need = g.cust ? Object.keys(g.cust.order).filter((k) => g.cust.order[k] > (g.cust.got[k] || 0)) : [];
-    if (g.elapsed > 12 && !g.bits.some((b) => b.kind === 'boot') && rng() < 0.25) return 'boot';
+    if (progress() > 1 / 3 && !g.bits.some((b) => b.kind === 'boot') && rng() < lerp(0.12, 0.35, g.ramp())) return 'boot';
     if (need.length && rng() < 0.45) return need[Math.floor(rng() * need.length)];
     return KINDS[Math.floor(rng() * kinds())];
   }
 
   function newCustomer() {
-    const k = progress();
-    const n = g.elapsed < 10 ? 1 + Math.floor(rng() * 2) : k < 0.55 ? 2 + Math.floor(rng() * 2) : 3 + Math.floor(rng() * 2);
-    const nk = Math.min(kinds(), g.elapsed < 10 ? 1 : k < 0.55 ? 2 : 3);
+    const k = g.ramp();
+    // one or two bits of one kind at first, two or three of two kinds in the
+    // middle, three or four of three kinds at the end
+    const step = Math.floor(lerp(0, 2.5, k));
+    const n = 1 + step + Math.floor(rng() * 2);
+    const nk = Math.min(kinds(), 1 + step);
     const pool = KINDS.slice(0, kinds());
     const chosen = [];
     while (chosen.length < nk) {
@@ -165,7 +173,7 @@ export default function create(env) {
     }
     const who = g.queue.length ? g.queue.shift() : g.nextWho++ % 4;
     while (g.queue.length < 2) g.queue.push(g.nextWho++ % 4);
-    g.cust = { who, order, got: {}, extras: 0, t: 0, patience: lerp(13, 8, k) + n * 1.5, arrive: 0.5, mood: 0, bowl: [] };
+    g.cust = { who, order, got: {}, extras: 0, t: 0, patience: lerp(14, 7.5, k) + n * 1.5, arrive: 0.5, mood: 0, bowl: [] };
     // The cook drops in more of anything the pot is short of.
     for (const kind of Object.keys(order)) {
       const have = g.bits.filter((b) => b.kind === kind).length;
@@ -267,8 +275,7 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    const k = progress();
-    g.swirl = lerp(0.45, 1.0, k);
+    g.swirl = lerp(0.4, 1.1, g.ramp());
     g.spin += g.swirl * dt;
 
     // Move the ladle: follow the pointer, or the stick.

@@ -173,6 +173,43 @@ function dipAt(game, u, v) {
   }
 }
 
+test('ladlelark: the first customers ask for little from a slow pot; the last ask for more, of more kinds, from a fast one, with less patience', () => {
+  const part = () => ({ sizes: [], kinds: [], patience: [], swirl: 0, boot: false });
+  const early = part();
+  const late = part();
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    let seen = null;
+    const bot = cook(1, seed);
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        const p = game.elapsed / 50;
+        const q = p < 1 / 3 ? early : p > 2 / 3 ? late : null;
+        if (q) {
+          q.swirl = Math.max(q.swirl, game.swirl);
+          if (game.bits.some((b) => b.kind === 'boot')) q.boot = true;
+          if (game.cust && game.cust !== seen) {
+            seen = game.cust;
+            const n = Object.values(seen.order).reduce((a, b) => a + b, 0);
+            q.sizes.push(n);
+            q.kinds.push(Object.keys(seen.order).length);
+            q.patience.push(seen.patience - n * 1.5);
+          }
+        }
+        return bot(game, t);
+      },
+    });
+  }
+  assert.ok(Math.max(...early.sizes) <= 2, `early orders ${early.sizes}`);
+  assert.ok(Math.max(...early.kinds) === 1, `early orders of one kind: ${early.kinds}`);
+  assert.ok(mean(late.sizes) >= mean(early.sizes) + 1.5, `order sizes early ${mean(early.sizes).toFixed(2)}, late ${mean(late.sizes).toFixed(2)}`);
+  assert.ok(Math.max(...late.kinds) >= 3, `late orders mix kinds: ${late.kinds}`);
+  assert.ok(mean(late.patience) < mean(early.patience) * 0.7, `patience early ${mean(early.patience).toFixed(1)}, late ${mean(late.patience).toFixed(1)}`);
+  assert.ok(late.swirl > early.swirl * 1.8, `swirl early ${early.swirl.toFixed(2)}, late ${late.swirl.toFixed(2)}`);
+  assert.equal(early.boot, false, 'no old boot in the first third');
+  assert.ok(late.boot, 'the old boot bobs up late');
+});
+
 test('ladlelark: a dip takes what is in the ring; just what was asked scores three, four when quick', () => {
   const game = pot({ carrot: 2 }, [['carrot', 0, 0.5], ['carrot', 0.1, 0.5], ['pea', Math.PI, 0.5]]);
   game.cust.t = game.cust.patience * 0.5;

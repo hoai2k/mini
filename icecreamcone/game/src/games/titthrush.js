@@ -107,9 +107,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  g.period = () => lerp(3.4, 2.1, progress()); // seconds for the long hand to go round
-  g.radius = () => lerp(100, 72, progress());
-  g.aimLen = () => lerp(1000, 420, progress());
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets the hands' speed, the clocks' size, the dotted
+  // line's length, and how much the clocks sway and drift.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  g.period = () => lerp(3.7, 2.0, g.ramp()); // seconds for the long hand to go round
+  g.radius = () => lerp(100, 70, g.ramp());
+  g.aimLen = () => lerp(1080, 400, g.ramp());
   const reach = (k) => k.r * REACH;
 
   function pop(text, x, y, color = INK, size = 44) {
@@ -132,8 +137,8 @@ export default function create(env) {
       fade: 0, // fading out once left (or the gold watch's time is up)
       ring: 0,
       phase: rng() * TAU,
-      sway: progress() > 0.3 ? lerp(14, 30, progress()) : 0,
-      vx: progress() > 0.6 ? (rng() < 0.5 ? -1 : 1) * lerp(30, 60, rng()) : 0,
+      sway: progress() > 1 / 3 ? lerp(10, 32, g.ramp()) : 0,
+      vx: progress() > 0.6 ? (rng() < 0.5 ? -1 : 1) * lerp(30, 60, rng()) * lerp(0.6, 1.15, g.ramp()) : 0,
       life: kind === GOLD ? GOLD_LIFE : Infinity,
     };
   }

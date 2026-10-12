@@ -20,9 +20,10 @@ game goes on, so a mark only says roughly where to look.
 
 **Score:** points. The page opens at 75.
 
-**Getting harder:** stations narrow from 4.5% to 2.7% of the dial and drift
-from 1.2% to 3% either way, faster as time goes on. The first request is
-the station nearest where the needle starts.
+**Getting harder:** stations narrow from 5% to 2.5% of the dial and drift
+from 0.8% to 3.4% either way, faster as time goes on. The first request is
+the station nearest where the needle starts. See "Difficulty over the
+round" below.
 
 **Controls:** tilt the stick or hold the arrows to sweep the dial (more tilt,
 faster); spin the stick for fine tuning; A, Space or Enter plays the station.
@@ -31,10 +32,30 @@ narrow screen the view follows the needle, and the speaker and the wanted
 station travel with it.
 
 **Bots** (`game/test/radiobird.test.mjs`): a beginner (slower sweep, slow to
-press, runs past stations, often forgets the marks) scores 85 to 207 over
-six seeds; a good tuner 251 to 317; sweeping, sweeping or creeping while
-mashing A, random mashing and idling all stay below 75 (at most 10); pressing
+press, runs past stations, often forgets the marks) scores 120 to 207 over
+six seeds; a good tuner 253 to 318; sweeping, sweeping or creeping while
+mashing A, random mashing and idling all stay below 75 (at most 20); pressing
 at every station it meets 20.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets the three knobs; they used to move in a straight line.
+
+| Knob | Start | Middle | End | Before (start to end) |
+| --- | --- | --- | --- | --- |
+| Station width (share of the dial) | 5% | 3.75% | 2.5% | 4.5% to 2.7% |
+| Drift either way | 0.8% | 2.1% | 3.4% | 1.2% to 3% |
+| Drift speed (times each station's rate) | 0.45 | 0.75 | 1.05 | 0.5 to 1 |
+
+So the first third's stations are wide and stay near their pencil marks,
+the middle is as before, and at the end they are narrower and wander
+further. Bots before and after: beginner 85–207 to 120–207, good 251–317 to
+253–318, sweeping and creeping (with or without mashing) 0, pressing at
+every station 20, mashing 0–10 to 0–20, idle 0. Pass 75 kept. A test runs a
+good tuner on three seeds and checks the last third's stations are under
+65% as wide, stray over 2.5 times as far from their places, and take the
+tuner longer to find.
 
 ## Images (IC-M18)
 

@@ -120,7 +120,12 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const baseSpeed = () => lerp(320, 540, progress());
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets the street's speed, the dry stretches, puddle
+  // widths, and when awnings, double puddles and gusts join in.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  const baseSpeed = () => lerp(300, 570, g.ramp());
   const top = () => g.h + (g.open ? TOP_OPEN : TOP_SHUT);
 
   function pop(text, x, y, color = INK, size = 44) {
@@ -132,13 +137,13 @@ export default function create(env) {
 
   // Lays the street out ahead: dry stretches, puddles, little birds, awnings.
   function lay() {
-    const t = g.elapsed;
     const p = progress();
-    const dry = lerp(600, 260, p) * (0.8 + rng() * 0.5);
+    const k = ramp(p);
+    const dry = lerp(650, 240, k) * (0.8 + rng() * 0.5);
     let x = g.nextX + dry;
     const r = rng();
-    const widthNow = () => lerp(250, 300, p) + rng() * lerp(60, 160, p);
-    if (t > 5 && r < 0.22) {
+    const widthNow = () => lerp(235, 310, k) + rng() * lerp(40, 170, k);
+    if (p > 0.11 && r < 0.22) {
       g.chicks.push({ x, state: 'wait', t: 0, color: [PAL.lemon, PAL.strawberry, PAL.mint, PAL.ochre][Math.floor(rng() * 4)] });
       // a little bird often sits just before a puddle: shelter it on the way over
       if (rng() < 0.6) {
@@ -149,16 +154,16 @@ export default function create(env) {
       g.nextX = x;
       return;
     }
-    if (t > 13 && r < 0.48) {
+    if (p > 0.29 && r < lerp(0.3, 0.5, k)) {
       const len = 340 + rng() * 200;
       g.awnings.push({ x0: x, x1: x + len, color: rng() < 0.5 ? 0 : 1 });
       g.nextX = x + len;
       return;
     }
-    const w = t < 6 ? 230 + rng() * 40 : widthNow();
+    const w = widthNow();
     g.puddles.push({ x0: x, x1: x + w });
     g.nextX = x + w;
-    if (t > 20 && rng() < 0.35) {
+    if (p > 0.42 && rng() < lerp(0.2, 0.45, k)) {
       // a second one close behind: land and hop again, or float over both
       const gap = 170 + rng() * 60;
       const w2 = 230 + rng() * 80;
@@ -252,7 +257,7 @@ export default function create(env) {
     if (!input.action || g.noOpen > 0 || g.recoverT >= 0) g.open = false;
 
     // Gusts, from a little way in: they lift an open umbrella.
-    if (g.elapsed > 17) {
+    if (progress() > 0.38) {
       if (g.gust > 0) g.gust -= dt;
       else {
         g.gustT -= dt;

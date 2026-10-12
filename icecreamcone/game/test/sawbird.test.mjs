@@ -64,6 +64,34 @@ test('sawbird: a beginner reaches the score, a good sawyer more; jiggling, unste
   assert.ok(Math.max(...mashA) < pass, `mashing A ${mashA}`);
 });
 
+test('sawbird: the first planks are short and plain, the last long, knotty and pulling hard', () => {
+  const early = [];
+  const late = [];
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    let seen = null;
+    const bot = sawyer(1, seed);
+    run(create, {
+      seed,
+      bot: (game, t) => {
+        if (game.plank !== seen) {
+          seen = game.plank;
+          const p = game.elapsed / 50;
+          if (p < 1 / 3) early.push(seen);
+          else if (p > 2 / 3) late.push(seen);
+        }
+        return bot(game, t);
+      },
+    });
+  }
+  const mean = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
+  const len = (P) => P.right - P.left;
+  assert.ok(early.length >= 6 && late.length >= 6, `${early.length} early, ${late.length} late`);
+  assert.ok(mean(late, len) > mean(early, len) * 1.3, `length early ${mean(early, len).toFixed(0)}, late ${mean(late, len).toFixed(0)}`);
+  assert.ok(mean(late, (P) => Math.abs(P.grain)) > mean(early, (P) => Math.abs(P.grain)) * 1.6, 'the grain pulls harder late');
+  assert.ok(Math.max(...early.map((P) => P.knots.length)) <= 2, `early knots ${early.map((P) => P.knots.length)}`);
+  assert.ok(mean(late, (P) => P.knots.length) >= mean(early, (P) => P.knots.length) + 1.2, `knots early ${mean(early, (P) => P.knots.length).toFixed(2)}, late ${mean(late, (P) => P.knots.length).toFixed(2)}`);
+});
+
 test('sawbird: short strokes barely cut, long strokes do', () => {
   const short = create(env(1));
   for (let i = 0; i < 300; i++) short.update(1 / 60, blank({ x: Math.floor(i / 4) % 2 ? 0.3 : -0.3 }));

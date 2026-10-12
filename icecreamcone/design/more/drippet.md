@@ -16,22 +16,47 @@ floods the floor rather than saving time. Running fast spreads the drips out
 into a dotted trail you can slip between; dawdling makes one big puddle in
 front of you.
 
-**Score:** drinks (one per thing filled). The page opens at 11.
+**Score:** drinks (one per thing filled). The page opens at 13.
 
-**Getting harder:** the tap drips faster (every 0.42 s down to 0.22 s), the
-puddles spread wider and last longer (5 s up to 9.5 s), the thirsty things
-lose patience sooner (11 s down to 7 s), and after 15 s two are thirsty at
-once. The first thing appears at least a short run away on a dry floor.
+**Getting harder:** the tap drips faster (every 0.38 s down to 0.18 s), the
+puddles spread wider and last longer (6 s up to 13 s), the thirsty things
+lose patience sooner (12 s down to 6.5 s), and after 15 s two are thirsty at
+once. The first thing appears at least a short run away on a dry floor, and
+a new thing never appears under the Drippet. See "Difficulty over the
+round" below.
 
 **Controls:** stick, D-pad, arrows or WASD run in any direction; A, Space or
 Enter hops. With a mouse or finger the Drippet runs towards the pointer, and
 a click or tap hops. On a narrow screen the view follows the Drippet.
 
 **Bots** (`game/test/drippet.test.mjs`): a beginner runner (shorter
-look-ahead, fewer ways round, sometimes forgets to hop) scores 11 to 17 over
-six seeds; a good one 17 to 22. Hopping all the way to every thing scores 7
-to 10, running straight at each thing without looking 5 to 10, and running
-in circles, idling and random mashing 0.
+look-ahead, fewer ways round, sometimes forgets to hop) scores 16 to 19 over
+six seeds; a good one 20 to 22. Hopping all the way to every thing scores 16
+to 19, running straight at each thing without looking 18 to 20, and running
+in circles 0 to 1, idling 0.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets the knobs; they used to move in a straight line.
+
+| Knob | Start | Middle | End | Before (start to end) |
+| --- | --- | --- | --- | --- |
+| Seconds between drips | 0.38 | 0.28 | 0.18 | 0.34 to 0.2 |
+| Puddle size (largest) | 32 | 46 | 60 | 36 to 56 |
+| Puddle lasts | 6 s | 9.5 s | 13 s | 6.5 to 12 |
+| Patience | 12 s | 9.25 s | 6.5 s | 11 to 7 |
+| Thirsty at once | 1 | 2 | 2 | 1, then 2 after 15 s |
+
+The second thirsty thing still comes at 15 s (now written as a third of the
+way in). Bots before and after: beginner 16–18 to 16–19, good 20–24 to
+20–22, hopping all the way 16–19 to 16–19, never looking 17–20 to 18–20,
+circles 0 to 0–1, idle 0. Pass 13 kept. While re-balancing, idling once
+scored a drink when a new thing was placed (as a last resort) right under
+the Drippet; that last resort now goes to the far side of the floor. A test
+runs a good runner on four seeds and checks the last third's floor holds
+over twice as much water, with two thirsty things at once (one in the first
+third) and under 70% of the patience.
 
 ## Images (IC-M16)
 

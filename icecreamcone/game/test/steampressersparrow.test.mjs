@@ -134,10 +134,43 @@ test('steampressersparrow: the next garment comes when its time runs out, and la
   const game = create(env(1));
   const first = game.garment;
   const n0 = first.creases.length;
-  for (let i = 0; i < 60 * 30; i++) game.update(1 / 60, blank());
+  for (let i = 0; i < 60 * 33; i++) game.update(1 / 60, blank());
   assert.notEqual(game.garment, first);
   assert.ok(game.count >= 3);
   assert.ok(game.garment.creases.length >= n0, `${game.garment.creases.length} >= ${n0}`);
+});
+
+test('steampressersparrow: the round starts gentle and ends hard: fewer, shorter-lived creases and no silk early, more creases and less time late', () => {
+  const early = [];
+  const late = [];
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    let seen = null;
+    run(create, {
+      seed,
+      bot: (() => {
+        const b = presser({ speed: 0.75, steam: true, kind: 'controller' });
+        return (game, t) => {
+          if (game.garment !== seen) {
+            seen = game.garment;
+            const p = seen.at / 45;
+            if (p < 1 / 3) early.push(seen);
+            else if (p > 2 / 3) late.push(seen);
+          }
+          return b(game, t);
+        };
+      })(),
+    });
+  }
+  const avg = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
+  const n0 = avg(early, (G) => G.creases.length);
+  const n1 = avg(late, (G) => G.creases.length);
+  const l0 = avg(early, (G) => G.limit / G.creases.length);
+  const l1 = avg(late, (G) => G.limit / G.creases.length);
+  assert.ok(early.length > 4 && late.length > 4);
+  assert.ok(n1 > n0 + 1.5, `creases early ${n0.toFixed(2)}, late ${n1.toFixed(2)}`);
+  assert.ok(l1 < l0 * 0.75, `seconds per crease early ${l0.toFixed(2)}, late ${l1.toFixed(2)}`);
+  assert.ok(early.every((G) => !G.silk && G.w < 850 || G.kind === 'hanky'), 'early garments are small, no silk');
+  assert.ok(late.some((G) => G.silk), 'silk comes late');
 });
 
 test('steampressersparrow: with a pointer, only a tap on the iron puffs steam', () => {

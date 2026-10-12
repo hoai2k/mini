@@ -19,12 +19,13 @@ the old boot that bobs up now and then, is "Yuck!": the creature leaves
 and it costs 1. A creature kept waiting too long leaves ("Hmph!"). An empty
 dip is just a splash.
 
-**Getting harder.** The soup swirls from 0.45 to 1 turn-rate as time goes
-on. Orders are one or two of a single thing for the first ten seconds,
-then two or three of up to two kinds, then three or four of up to three.
-Dumplings join after 7 s, mushrooms after 20 s, the boot after 12 s.
-Patience runs from 13 s down to 8 s, plus 1.5 s per item. The cook drops in
-more of anything the pot is short of, so every order can be made.
+**Getting harder.** The soup swirls from 0.4 to 1.1 turn-rate as time goes
+on. Orders are one or two of a single thing for the first 21 s, then two
+or three of up to two kinds, then (from about 36 s) three or four of up to
+three. Dumplings join after 7 s, mushrooms after 20 s, the boot after
+17 s. Patience runs from 14 s down to 7.5 s, plus 1.5 s per item. The cook
+drops in more of anything the pot is short of, so every order can be made.
+See "Difficulty over the round" at the end.
 
 **Controls.** Controller: left stick or D-pad moves the ring, A or RT
 dips, the right stick up / down makes the ring smaller / bigger.
@@ -36,9 +37,9 @@ right).
 
 **Pass.** 36 points. Bots over seeds 1–6: a beginner (slower, no lead,
 looks only at the ring as it is now, sometimes dips in a hurry, pauses to
-look after each dip) 42–53; a good cook (leads the swirl, dips two at
-once, checks the ring where it really is) 55–82; dipping on the nearest
-wanted bit without looking round it 27–46; mashing 0–9; dipping on the
+look after each dip) 44–75; a good cook (leads the swirl, dips two at
+once, checks the ring where it really is) 42–78; dipping on the nearest
+wanted bit without looking round it 18–48; mashing 0–9; dipping on the
 spot 0–8; idle 0.
 
 **Images.** IC-M15a is the soup kitchen, the middle kept plain for the
@@ -136,3 +137,36 @@ Sprites delivered (IC-M15b pot and bowl, IC-M15c bits, IC-M15d queue, IC-M15e po
 ## Third audit: pose sizes (2026-10-09)
 
 Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets the knobs. Before, the swirl and patience moved in a
+straight line and the orders stepped up at 10 s and 55%.
+
+| Knob | Start | Middle (25 s) | End |
+| --- | --- | --- | --- |
+| Swirl (turn-rate) | 0.4 | 0.75 | 1.1 |
+| Order | 1–2 of one kind | 2–3 of up to two kinds | 3–4 of up to three kinds (from about 36 s) |
+| Patience, before 1.5 s per item | 14 s | 10.75 s | 7.5 s |
+| Old boot (chance per new bit, none in the first third) | none | 0.24 | 0.35 |
+
+The kinds in the pot still widen by time: two to 7 s, three to 20 s, then
+four. So the first third is one-kind orders from a slow pot with no boot,
+the middle as before, and the end faster with less patience.
+
+Bots, before and after (seeds 1–6, the usual ring):
+
+| Bot | Before | After |
+| --- | --- | --- |
+| Beginner | 46–57 | 44–75 |
+| Good cook | 51–79 | 42–78 |
+| Nearest wanted bit | 33–53 | 18–48 |
+| Mashing | 0–13 | 0–9 |
+| Dipping on the spot | 0–8 | 0–8 |
+| Idle | 0 | 0 |
+
+Pass stays 36. A test runs a good cook on six seeds and checks the first
+third's orders are at most two of one kind, the last third's are 1.5 bits
+bigger on average with up to three kinds, patience under 70%, the swirl
+more than 1.8 times as fast, and the boot only late.

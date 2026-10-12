@@ -18,12 +18,9 @@ out with no scorch: +2. A scorch leaves an iron-shaped brown mark, costs 1
 (never below zero) and loses that garment's bonus. The next garment comes as soon as the last crease is
 out, or when its time runs out (the ribbon along the top of the board).
 
-**Getting harder.** Two or three creases at first, up to seven by the end,
-longer ones, and less time per garment (13 s down to 8 s, plus a little per
-crease). From 14 s some garments are silk (a little label says so), which
-heats 1.7 times as fast. Moving at 400 px a second or more never heats the
-cloth; standing still with steam scorches it in under a second, dry in
-about 2.5 s.
+**Getting harder.** See "Difficulty over the round" below. Moving at 400 px
+a second or more never heats the cloth; standing still with steam scorches
+it in under a second, dry in about 2.5 s.
 
 **Controls.** Controller: left stick or D-pad moves the iron, A puffs
 steam. Keyboard: arrows or WASD, Space; the iron eases in, so a short tap
@@ -32,8 +29,8 @@ the iron itself puffs steam (a finger put down elsewhere only moves it). On a na
 follows the iron.
 
 **Pass.** 16 points. Bots: a beginner (keyboard at less than half speed, no
-steam; seeds 1–8) 19–25; a good presser (stick, steam on every stroke)
-36–39; standing
+steam; seeds 1–8) 23–27; a good presser (stick, steam on every stroke)
+39–40; standing
 still puffing steam 0; sweeping the whole board row by row with steam 0–1;
 idle 0.
 
@@ -105,3 +102,21 @@ Scale check (owner's report that sprite birds shrink and grow): the pressing,
 steaming and scorched poses all draw at one scale and measure the same: the
 wooden handle is 415, 415 and 412 px along the iron (the scorched pose is
 tipped up, so its eyes look bigger but the iron is not); a test checks it.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets every knob as each garment comes in:
+
+- **Creases:** two or three at first, about four by the middle, five or six
+  by the end (seven at most); longer ones later. A crease that won't fit on
+  the cloth is tried shorter, so late garments really get their creases.
+- **Time per garment:** 14 s at the start down to 7.5 s by the end, plus
+  0.6 s per crease.
+- **Garments:** the first third brings only the handkerchief, pillowcase and
+  tablecloth; shirts, trousers and silk scarves join after that (silk 10% of
+  garments, rising to 40%), and the last third leaves out the handkerchief.
+
+A test runs a good presser over six seeds and checks the last third's
+garments have well over one crease more, much less time per crease, and
+some silk, against the first third's.

@@ -75,11 +75,18 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const dripEvery = () => lerp(0.34, 0.2, progress());
-  const puddleLife = () => lerp(6.5, 12, progress());
-  const puddleMax = () => lerp(36, 56, progress());
-  const patience = () => lerp(11, 7, progress());
-  const wanted = () => (g.elapsed > 15 ? 2 : 1);
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets how often the tap drips, how big puddles grow
+  // and how long they last, and how long a thirsty thing waits; a second
+  // thirsty thing joins after the first third.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  const dripEvery = () => lerp(0.38, 0.18, g.ramp());
+  const puddleLife = () => lerp(6, 13, g.ramp());
+  const puddleMax = () => lerp(32, 60, g.ramp());
+  const patience = () => lerp(12, 6.5, g.ramp());
+  const wanted = () => (progress() > 1 / 3 ? 2 : 1);
+  g.knobs = () => ({ drip: dripEvery(), life: puddleLife(), size: puddleMax(), patience: patience(), wanted: wanted() });
 
   function pop(text, x, y, color = INK, size = 44) {
     // Stack above a pop still showing nearby rather than on top of it.
@@ -134,7 +141,8 @@ export default function create(env) {
 
   function placeThing() {
     for (let tries = 0; tries < 40; tries++) {
-      const x = lerp(FLOOR_X0 + 90, FLOOR_X1 - 90, rng());
+      // the last try goes to the far side of the floor: never under the Drippet
+      const x = tries === 39 ? (g.x < (FLOOR_X0 + FLOOR_X1) / 2 ? FLOOR_X1 - 90 : FLOOR_X0 + 90) : lerp(FLOOR_X0 + 90, FLOOR_X1 - 90, rng());
       const y = lerp(FLOOR_TOP + 40, FLOOR_BOT - 30, rng());
       const far = Math.hypot(x - g.x, (y - g.y) * 1.4) > 330;
       const clear = g.things.every((t) => Math.hypot(x - t.x, y - t.y) > 260);

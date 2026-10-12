@@ -82,6 +82,12 @@ export default function create(env) {
   ROWS.forEach((y, r) => COLS.forEach((x, c) => g.rooms.push({ i: g.rooms.length, x, y, state: 'dark', t: 0, cool: rng() * 1.5, patience: 8, readT: 3, prog: 0, who: (r * 4 + c * 3) % 4, mood: 0 })));
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets how often windows ask, how long a creature
+  // waits, and how long its book is (longer books keep more lamps on, which
+  // is what heats the fuse).
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
   function pop(text, x, y, color = INK, size = 34) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -218,7 +224,7 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    const k = progress();
+    const k = g.ramp();
 
     // Fly: follow the pointer, or the stick.
     const ox = g.x;
@@ -241,14 +247,14 @@ export default function create(env) {
     // Requests.
     g.spawnT -= dt;
     if (g.spawnT <= 0) {
-      g.spawnT = lerp(2.2, 0.65, k) * (0.8 + rng() * 0.4);
+      g.spawnT = lerp(2.5, 0.6, k) * (0.8 + rng() * 0.4);
       const free = g.rooms.filter((r) => r.state === 'dark' && r.cool <= 0);
       if (free.length) {
         const r = free[Math.floor(rng() * free.length)];
         r.state = 'ask';
         r.t = 0;
-        r.patience = lerp(8.5, 5, k) * (0.9 + rng() * 0.2);
-        r.readT = lerp(3.2, 6, k) + rng() * 1.5;
+        r.patience = lerp(9.5, 4.8, k) * (0.9 + rng() * 0.2);
+        r.readT = lerp(3, 6.3, k) + rng() * 1.5;
         r.who = Math.floor(rng() * CREATURES.length);
         sfx('tick');
       }

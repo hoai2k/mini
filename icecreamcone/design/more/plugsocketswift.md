@@ -23,11 +23,11 @@ keeping things topped up (Bloom) or toggling one light (Safe Crossing).
 waiting gives up ("Too dark!") and so do readers when the fuse blows; they
 cost nothing but the point.
 
-**Getting harder.** Requests come every 2.2 s at first and every 0.65 s by
-the end; books take 3–4.5 s at first and up to 7.5 s at the end, so more
+**Getting harder.** Requests come every 2.5 s at first and every 0.6 s by
+the end; books take 3–4.5 s at first and up to 7.8 s at the end, so more
 lamps are wanted at once than the fuse can carry, and patience shrinks from
-8.5 s to 5 s. The sky darkens as it goes. The first ten seconds rarely need
-more than two lamps.
+9.5 s to 4.8 s. The sky darkens as it goes. The first ten seconds rarely need
+more than two lamps. See "Difficulty over the round" at the end.
 
 **Controls.** Controller: left stick or D-pad flies, A plugs in, unplugs
 or flips the fuse. Keyboard: arrows or WASD and Space. Mouse or touch: the
@@ -36,10 +36,10 @@ sends the Swift there and acts when it arrives. The window the Swift is at
 is outlined. On a narrow screen the view follows the Swift, 820 wide.
 
 **Pass.** 11 rooms lit. Bots over seeds 1–5: a beginner (slower, lets a
-fourth lamp in, sometimes picks a window at random) 12–14; a good
+fourth lamp in, sometimes picks a window at random) 13–16; a good
 electrician (never more than three, unplugs the nearest sleeper first,
-serves the most impatient window) 19–20; plugging in everything and never
-unplugging 5–8; flying at random mashing 2–9; idle 0.
+serves the most impatient window) 17–18; plugging in everything and never
+unplugging 5–7; flying at random mashing 2–7; idle 0.
 
 **Images.** IC-M13a is the garden at dusk with the tall house, its front
 wall left blank for the game's windows and a clear patch on the garden wall
@@ -120,3 +120,23 @@ What changed:
 
 The bots score as before: beginner 12–14, good 19–20, greedy 5–8,
 mashing 2–6, idle 0. The pass stays at 11.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), sets the three knobs for each new request, where they used to
+move in a straight line with time:
+
+| Knob | Start | Middle | End | Before (start to end) |
+| --- | --- | --- | --- | --- |
+| Seconds between requests | 2.5 | 1.55 | 0.6 | 2.2 to 0.65 |
+| Patience | 9.5 s | 7.15 s | 4.8 s | 8.5 to 5 |
+| Book (plus up to 1.5 s) | 3 s | 4.65 s | 6.3 s | 3.2 to 6 |
+
+The first third is calmer, the middle about as it was, and the last third
+busier, with longer books keeping more lamps on against the fuse. Bots
+before and after: beginner 12–14 to 13–16, good 19–20 to 17–18, greedy 5–8
+to 5–7, mashing 2–6 to 2–7, idle 0; pass 11 kept. A test runs a good
+electrician on five seeds and checks the last third brings over 1.5 times
+as many requests as the first, with patience under 70% and books over 2 s
+longer.

@@ -29,20 +29,43 @@ and an umbrella popped open under an awning snags.
 
 One point per puddle hopped and per little bird kept dry, and every fifth
 puddle in a row without a splash or a snag adds two more ("5 dry in a row!
-+2"). The page opens at 15.
++2"). The page opens at 14.
 
 ## Getting harder
 
 The first seconds are only small puddles with long dry stretches. Little
 birds join at 5 s, awnings at 13 s (with a reminder on screen), gusts of wind
 at 17 s (they lift an open umbrella, which stretches a glide and makes an
-awning riskier), and two puddles close together at 20 s. The dry stretches
-shorten, the puddles widen and the street speeds up throughout.
+awning riskier), and two puddles close together at 19 s. See "Difficulty
+over the round" below for the curve.
 
 Bots (`node --test test/wetweatherwren.test.mjs`): a sloppy
-beginner (presses early or late, forgets one puddle in seven) scores 18 to
-29 over eight seeds, a good walker 23 to 30; holding the button and idling
-score 0, and eight mashing rhythms over three seeds score 3 to 12.
+beginner (presses early or late, forgets one puddle in seven) scores 14 to
+25 over eight seeds, a good walker 22 to 31; holding the button and idling
+score 0, and eight mashing rhythms over three seeds score 3 to 10.
+
+## Difficulty over the round
+
+One eased curve, `k = ramp(progress())` (a smoothstep: slow to start, slow
+to finish), drives the street:
+
+| Knob | Start | Middle | End |
+| --- | --- | --- | --- |
+| Street speed (px/s) | 300 | 435 | 570 |
+| Dry stretch before the next thing | 650 | 445 | 240 |
+| Puddle width | 235 + up to 40 | 270 + up to 105 | 310 + up to 170 |
+| Awnings (share of what is laid) | none before 13 s | about 40% | 50% |
+| A second puddle close behind | none before 19 s | 20–33% | 45% |
+| Gusts | none before 17 s | every 3–6 s | every 3–6 s |
+
+The start is gentler than before (it was 320 px/s and 600 px dry), the
+middle as it was, and the end faster and more crowded (it was 540 px/s and
+260 px dry). Since a sloppy beginner now splashes more in the last third,
+the pass mark went from 15 to 14 (beginner 17–29 became 14–25; mashing tops
+out at 10). A test runs a good walker on four seeds and checks the last
+third's street is at least 1.4 times as fast, with wider puddles, dry
+stretches a quarter shorter, more awnings and gusts that the first third
+never has.
 
 ## Controls
 

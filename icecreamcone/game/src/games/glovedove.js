@@ -136,6 +136,12 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round: one eased curve (a smoothstep, slow to start
+  // and slow to finish) sets how often dishes come, how many may be out at
+  // once, and how many are heavy pans.
+  const ramp = (p) => p * p * (3 - 2 * p);
+  g.ramp = () => ramp(progress());
+  g.maxOut = () => 2 + Math.round(4.4 * g.ramp());
   function pop(text, x, y, color = INK, size = 42) {
     // Stack above a pop still showing nearby rather than on top of it.
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
@@ -146,7 +152,7 @@ export default function create(env) {
   function spawn() {
     const n = g.put + g.smashed;
     const r = rng();
-    const kind = n < 2 ? 0 : g.elapsed < 15 ? Math.floor(r * 3) : r < 0.35 + 0.25 * progress() ? 3 + Math.floor(rng() * 3) : Math.floor(rng() * 3);
+    const kind = n < 2 ? 0 : progress() < 1 / 3 ? Math.floor(r * 3) : r < lerp(0.3, 0.68, g.ramp()) ? 3 + Math.floor(rng() * 3) : Math.floor(rng() * 3);
     g.dishes.push({ kind, x: 170 + rng() * 80, y: SINK_Y, vx: 250 + rng() * 90, vy: -(650 + rng() * 100), spin: (rng() - 0.5) * 6, a: 0, flicks: 0 });
     sfx('plop');
   }
@@ -271,9 +277,9 @@ export default function create(env) {
 
     // More dishes, and faster, as the pile goes down.
     g.spawnT -= dt;
-    if (g.spawnT <= 0 && g.dishes.length < 2 + Math.round(4 * progress())) {
+    if (g.spawnT <= 0 && g.dishes.length < g.maxOut()) {
       spawn();
-      g.spawnT = lerp(2.9, 1.1, progress()) * (0.85 + rng() * 0.3);
+      g.spawnT = lerp(3.1, 1.0, g.ramp()) * (0.85 + rng() * 0.3);
       if (g.queue > 0) g.queue--;
     } else if (g.spawnT <= 0) g.spawnT = 0.3;
 
