@@ -140,12 +140,57 @@ tests keep working. Put the bot table in the game's design note.
   picks. Saved with the other settings (also in `?debug`, like every setting).
 - **The game gets it as `env.difficulty`.** A round keeps the level it
   started at, even if Settings change it from the pause menu.
-- **Bests per level.** `progress[id].best` is the Normal best (so old saves
-  carry over as Normal bests, no migration needed); `progress[id].by.easier`
-  and `.by.harder` hold the others. `bestAt(entry, level)` in store.js reads
-  one. The guide, the bird's page and the result card show the best for the
-  current level; World Record means a new best at that level.
+- **Bests per level, in points** (see Points below). `progress[id].best` is
+  the Normal best, `progress[id].by.easier` and `.by.harder` the others;
+  `progress[id].tally` holds the best plain score at each level. `bestAt(entry,
+  level)` and `tallyAt(entry, level)` in store.js read them. The guide, the
+  bird's page and the result card show the best points for the current level;
+  World Record means new best points at that level.
 - **A pass at any level counts for good** (`passed`), with the same mark.
-- **The result card** names the level when it isn't Normal ("Easier level").
+- **The result card** names the level when it isn't Normal ("Easier level"),
+  and shows the plain score with the points under it.
 - `mergeProgress`, `restoreProgress`, `canRestore` and `keepOldPasses` handle
   every level (`test/store.test.mjs`).
+
+## Points
+
+Each scoring action earns its value times **(1 + d)**, where `d` is the
+difficulty at that moment: 1x at the easiest, 2x at the hardest. The later in
+the round and the harder the level, the more it is worth, so a Harder player
+naturally outscores a Normal one for the same play. Points decide bests and
+World Records; **passing still uses the plain score** against the bird's pass
+mark, so Easier stays easier to pass.
+
+- **Worked out once, in the shell.** `src/points.js` `pointsFor(game)` wraps
+  each `game.update()` in main.js's play loop: it reads `d` just before the
+  update (the moment the action was taken, before a round or clock moves on),
+  and adds the change in `game.score` after it times (1 + d). Games are not
+  touched. Penalties (a fall in the score) scale the same way; points never go
+  below 0. The exact tally is kept; whole numbers are shown and saved.
+- **`d` comes from the game itself.** Every game exposes its curve as `g.d()`
+  (Puddle Hop as `g.dNow()`, its `g.d` being the distance walked), so the
+  shell needs no table of round lengths: most games follow time
+  (`elapsed / duration`), Gullfinch its beats, Dodo and Glass Harp their
+  rounds, Shuttercluck the further of shots taken and time. `test/points.test.mjs`
+  checks all 28 expose it, in 0..1, rising through a round.
+- **Scores that are not sums still work.** Scoop Stack's score is the tallest
+  stack so far: it earns (1 + d) each time it reaches a new height, and
+  nothing when the stack falls and is rebuilt below it. Games that clamp their
+  own score at 0 (Crow, Bin Day and others) give no change below 0, so no
+  points are lost there either.
+- **What it comes to.** Spread evenly through a round, one unit of score is
+  worth on average about 1.18 points at Easier, 1.38 at Normal and 1.68 at
+  Harder (`AVERAGE_MULTIPLIER` in store.js). The bots in `points.test.mjs`
+  earn per unit: Scoop Stack 1.19 / 1.38 / 1.64, Crow 1.21 / 1.47 / 1.84.
+- **Shown** on the result card ("12 scoops in your tallest stack", "19 points"
+  under it; for birds already scored in points, "12 points" and "19 with the
+  bonus"), in the HUD after the game's own line ("· 19 pts"), on the guide's
+  cards ("best 19 pts"), the bird's page and How to play.
+- **Old saves.** Bests saved before points were plain scores. Each is
+  converted once, as it loads, at its level's average multiplier (a Normal 10
+  becomes 14 points) and kept as that level's plain best too (`tally`); a
+  converted entry is marked `v: 2`. So the first round after the change
+  played as well as before earns about the converted best, rather than an
+  easy World Record (or one that can never be beaten). `mergeProgress`,
+  `restoreProgress` and `canRestore` convert a kept backup the same way;
+  `keepOldPasses` and the "passed" fallback read the plain best.

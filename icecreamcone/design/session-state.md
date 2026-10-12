@@ -14,10 +14,13 @@ agent. Newest first.
   the water on one plume scores about 8, above the pass of 6), Bobolinks
   (blind drumming passes about 1 round in 8). In throughput games Easier
   helps clumsy players little (see each design note).
-- **Next: points scaled by difficulty (user asked 2026-10-12).** Plan told to
-  the user: each scoring action earns base x (1 + d) at that moment (1x to
-  2x), worked out once in main.js from score deltas; passing still uses the
-  plain tally; the result card shows both; bests and records in points.
+- **Points scaled by difficulty: done 2026-10-12.** Each change in a game's
+  score earns (1 + d) at that moment (`src/points.js`, wrapped round
+  `update()` in main.js; d from each game's own `g.d()` / Puddle Hop's
+  `g.dNow()`). Passing still uses the plain score; bests and World Records
+  are in points (`tally` keeps plain bests). Old saves converted at each
+  level's average multiplier (Normal x1.38). See `design/difficulty.md`,
+  Points.
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws

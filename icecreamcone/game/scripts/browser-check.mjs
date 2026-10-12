@@ -25,6 +25,8 @@
 //     of it on the plain one. Settings' Fullscreen switch follows the real
 //     state and the D-pad reaches it. With reduced motion the card stands
 //     still; without the Fullscreen API the switch is greyed out with a note.
+//  3c. Points: the same play at Normal and Harder; the result card and HUD
+//     show the points, Harder earns more, and the best is kept in points.
 //  4. ?debug: every page is open; a round that reaches the score celebrates
 //     even when passed before, the next card shows locked, opens, and then
 //     every card is open again; B and a long press skip it all.
@@ -269,7 +271,7 @@ const MENU = 9;
   s.phase === 'result' ? ok('a round short of the score ends on the result card') : fail(`no result: ${JSON.stringify(s)}`);
   await shot(page, '07-result');
   const card = await page.evaluate(() => ({ buttons: document.querySelectorAll('#result button').length, score: document.querySelector('#result-score').textContent, extra: document.querySelector('#result-extra').textContent }));
-  card.buttons === 0 && /^3 /.test(card.score) && !/new page/i.test(card.extra) ? ok(`the result card: ${card.score}, no buttons`) : fail(`result card: ${JSON.stringify(card)}`);
+  card.buttons === 0 && /^3 .* · \d+ points$/.test(card.score) && !/new page/i.test(card.extra) ? ok(`the result card: ${card.score}, no buttons`) : fail(`result card: ${JSON.stringify(card)}`);
   const saved = await page.evaluate(() => window.__coot.progress.coot);
   saved && saved.plays === 1 ? ok(`progress saved (best ${saved.best})`) : fail('progress not saved');
   await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
@@ -487,7 +489,9 @@ const MENU = 9;
     kind: window.__coot.S.result?.kind,
     entry: window.__coot.progress.coot,
   }));
-  card.level === 'Easier level' && card.kind === 'record' && card.entry.best === 50 && card.entry.by?.easier === 7
+  // (the Normal best of 50 was saved before points: it is kept as 50 plain and
+  // converted to points at Normal's average multiplier)
+  card.level === 'Easier level' && card.kind === 'record' && card.entry.tally?.normal === 50 && card.entry.best > 50 && card.entry.by?.easier >= 7 && card.entry.tally?.easier === 7
     ? ok('a round at Easier says so on the result card, and keeps its own best')
     : fail(`easier round: ${JSON.stringify(card)}`);
   await shot(page, '14f-result-easier');
@@ -531,6 +535,55 @@ const MENU = 9;
   await shot(page, '14d-settings-no-fullscreen-390x844');
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors with reduced motion');
   await page.close();
+}
+
+// ---------- 3c: points, scaled by difficulty ----------
+// The same play (the same plain score at the same moment of the round) at
+// Normal and at Harder: the result card shows both numbers, the HUD shows the
+// points, and Harder earns more of them. Bests are kept in points.
+{
+  const got = {};
+  for (const level of ['normal', 'harder']) {
+    const { page, errors } = await newPage();
+    await page.evaluate((l) => localStorage.setItem('icecreamcone.settings.v1', JSON.stringify({ difficulty: l })), level);
+    await page.reload();
+    await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+    await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+    await page.evaluate(() => { Object.assign(window.__coot.progress, { coot: { v: 2, best: 1, plays: 1, passed: true } }); window.__coot.startBird(0); });
+    await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+    await page.evaluate(() => { window.__coot.S.game.score = 4; });
+    await wait(page, 150);
+    const hud = await page.evaluate(() => document.querySelector('#hud-status').textContent);
+    await page.evaluate(() => { window.__coot.S.game.done = true; });
+    await page.waitForFunction(() => window.__coot.S.phase === 'result', null, { timeout: 8000 }).catch(() => {});
+    if (level === 'harder') await page.evaluate(() => { window.__coot.S.result.time = 999; });
+    got[level] = await page.evaluate(() => ({
+      text: document.querySelector('#result-score').textContent,
+      last: window.__coot.S.last,
+      best: window.__coot.progress.coot,
+    }));
+    got[level].hud = hud;
+    const g = got[level];
+    /^4 scoops in your tallest stack · \d+ points$/.test(g.text) && g.last.score === 4 && g.text.endsWith(`${g.last.points} points`)
+      ? ok(`${level}: the result card shows the plain score and the points: "${g.text}"`)
+      : fail(`${level} points card: ${JSON.stringify(g)}`);
+    / \d+ pts$/.test(hud) ? ok(`${level}: the HUD shows the points: "${hud}"`) : fail(`${level} HUD: ${hud}`);
+    (level === 'normal' ? g.best.best === g.last.points && g.best.tally?.normal === 4 : g.best.by?.harder === g.last.points && g.best.tally?.harder === 4)
+      ? ok(`${level}: the best is kept in points (${g.last.points}), the plain score beside it`)
+      : fail(`${level} best: ${JSON.stringify(g.best)}`);
+    if (level === 'harder' && shots) {
+      for (const [w, h, tag] of [[1280, 720, ''], [390, 844, '-390x844']]) {
+        await page.setViewportSize({ width: w, height: h });
+        await wait(page, 1300);
+        await shot(page, '14g-result-points-harder' + tag);
+      }
+    }
+    errors.length ? fail('page errors: ' + errors.join(' | ')) : ok(`no page errors in the ${level} points round`);
+    await page.close();
+  }
+  got.harder.last.points > got.normal.last.points
+    ? ok(`the same play earns more points at Harder (${got.harder.last.points}) than at Normal (${got.normal.last.points})`)
+    : fail(`points by level: ${JSON.stringify(got)}`);
 }
 
 // ---------- 4: ?debug ----------

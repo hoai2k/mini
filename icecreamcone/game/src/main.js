@@ -3,10 +3,11 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, bestAt, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers, loadPhotos, savePhotos } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, bestAt, tallyAt, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers, loadPhotos, savePhotos } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { LEVEL_NAMES } from './games/difficulty.js';
+import { pointsFor } from './points.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
 import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, spreadCount, sheetCells } from './reward.js';
@@ -54,7 +55,8 @@ const S = {
   resultT: 0, // how long the brief result card has been up
   cele: null, // the sticker celebration, while it runs (screen 'celebrate')
   unlock: null, // the guide's next card opening, after a celebration
-  last: null, // how the last round ended: { id, score, outcome }
+  last: null, // how the last round ended: { id, score, points, level, outcome }
+  points: null, // the round's points (points.js), while it is played
   count: 0,
   overT: 0,
   paused: false,
@@ -370,11 +372,32 @@ function moveFocus(dx, dy) {
 
 // ---------- the guide ----------
 
-// The best at the Difficulty chosen in Settings: each level keeps its own.
+// The best points at the Difficulty chosen in Settings: each level keeps its own.
 const best = (id) => bestAt(progress[id], settings.difficulty);
 // A bird once passed stays passed, even if its pass mark is raised later, and
-// whatever level it was passed at. (An old save's best is a Normal best.)
-const passed = (i) => !!progress[BIRDS[i].id]?.passed || passes(BIRDS[i], bestAt(progress[BIRDS[i].id], 'normal'));
+// whatever level it was passed at. (An old save's plain best is a Normal one.)
+const passed = (i) => !!progress[BIRDS[i].id]?.passed || passes(BIRDS[i], tallyAt(progress[BIRDS[i].id], 'normal'));
+// "19 points", "1 point".
+const pointsText = (n) => `${n} point${n === 1 ? '' : 's'}`;
+// A round's plain score and its points: ["12 scoops", "19 points"]. When the
+// bird's own score is already counted in points: ["12 points", "19 with the bonus"].
+function scoreParts(b, score, pts) {
+  const word = score === 1 ? one(b.score) : b.score;
+  return [`${score} ${word}`, /^points?$/.test(b.score) ? `${pts} with the bonus` : pointsText(pts)];
+}
+// The same on the result card: "12 scoops · 19 points" as text, shown as two
+// lines, the points under the score (styles.css: .result-points).
+function fillScore(el, b, score, pts) {
+  const [tally, points] = scoreParts(b, score, pts);
+  const span = document.createElement('span');
+  span.className = 'result-points';
+  const sep = document.createElement('span');
+  sep.className = 'sep';
+  sep.textContent = '· ';
+  span.append(sep, points);
+  el.textContent = `${tally} `;
+  el.append(span);
+}
 // The card opening after a celebration shows locked until it flips, even in
 // ?debug.
 const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
@@ -423,9 +446,9 @@ function fillCard(card) {
   const hi = best(b.id);
   card.classList.toggle('locked', !open);
   card.classList.add('card');
-  card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + hi : ''}` : `Page ${i + 1}, not yet spotted`);
+  card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + pointsText(hi) : ''}` : `Page ${i + 1}, not yet spotted`);
   card.querySelector('.card-name').textContent = open ? b.name.replace(/^The /, '') : 'Not yet spotted';
-  card.querySelector('.card-sub').textContent = open ? (hi ? `${b.game} · best ${hi}` : b.game) : `Page ${i + 1}`;
+  card.querySelector('.card-sub').textContent = open ? (hi ? `${b.game} · best ${hi} pts` : b.game) : `Page ${i + 1}`;
 }
 
 // After a celebration: back to the guide with `sel` chosen; with `open`, that
@@ -595,7 +618,7 @@ function fillPage() {
   fillList($('#page-tips'), b.tips);
   S.pageKind = input.kind;
   $('#page-hint').textContent = input.kind === 'controller' ? '◀ ▶ turn the page · LS / RS ↑ ↓ scroll instructions' : '◀ ▶ turn the page';
-  $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}${levelTag()}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
+  $('#page-best').textContent = [best(b.id) ? `Best: ${pointsText(best(b.id))}${levelTag()}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
 }
 
@@ -713,6 +736,8 @@ function newGame() {
     subjects: b.id === 'shuttercluck' ? SUBJECT_IDS : undefined,
     onPhoto: b.id === 'shuttercluck' ? keepPhoto : undefined,
   });
+  // Points: each change in the score, times (1 + d) at that moment (points.js).
+  S.points = pointsFor(S.game);
   S.gameId = b.id;
 }
 
@@ -723,7 +748,7 @@ function fillHowto() {
   $('#howto-goal').textContent = b.goal;
   fillList($('#howto-controls'), controlLines(b));
   fillList($('#howto-tips'), b.tips);
-  $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${best(b.id)}${levelTag()}` : ''].filter(Boolean).join(' · ');
+  $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${pointsText(best(b.id))}${levelTag()}` : ''].filter(Boolean).join(' · ');
 }
 
 function begin() {
@@ -768,12 +793,16 @@ const one = (word) => word.replace(/(ches|shes|sses|xes)$/, (m) => m.slice(0, -2
 // card shows for a moment, then the guide comes back with the bird chosen.
 function finish() {
   const b = BIRDS[S.bird];
+  // The plain score decides passing; the points (scaled by difficulty) decide
+  // bests and World Records.
   const score = Math.round(S.game.score);
+  S.points.step(() => {}); // any change not yet counted, at the difficulty now
+  const pts = S.points.shown;
   const before = passed(S.bird);
-  const record = recordScore(progress, b.id, score, passes(b, score), S.level) && score > 0;
+  const record = recordScore(progress, b.id, pts, passes(b, score), S.level, score) && pts > 0;
   const now = passed(S.bird);
   const outcome = roundOutcome({ wasPassed: before, isPassed: now, reached: passes(b, score), debug: DEBUG });
-  S.last = { id: b.id, score, outcome };
+  S.last = { id: b.id, score, points: pts, level: S.level, outcome };
   if (outcome === 'celebrate') {
     celebrate(S.bird);
     return;
@@ -786,12 +815,12 @@ function finish() {
   const kind = resultKind({ record, reached: passes(b, score) });
   S.result = { kind, ...resultTiming(kind), fired: new Set() };
   $('#result-title').textContent = RESULT_TITLES[kind];
-  $('#result-score').textContent = `${score} ${score === 1 ? one(b.score) : b.score}`;
+  fillScore($('#result-score'), b, score, pts);
   const lv = S.level !== 'normal' ? LEVEL_NAMES[S.level] : '';
   $('#result-level').textContent = lv ? `${lv} level` : '';
   $('#result-level').hidden = !lv;
   const atLevel = bestAt(progress[b.id], S.level);
-  $('#result-best').textContent = [record ? '' : `Best${lv ? ' at ' + lv : ''}: ${atLevel}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
+  $('#result-best').textContent = [record ? '' : `Best${lv ? ' at ' + lv : ''}: ${pointsText(atLevel)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
   extra.textContent = '';
   for (const line of S.game.summary?.() || []) {
@@ -816,8 +845,10 @@ function quitToGuide() {
   const i = S.bird;
   const b = BIRDS[i];
   const score = Math.round(S.game?.score || 0);
+  S.points?.step(() => {}); // any change not yet counted, at the difficulty now
+  const pts = S.points?.shown || 0;
   const before = passed(i);
-  if (score > 0) recordScore(progress, b.id, score, passes(b, score), S.level);
+  if (score > 0 || pts > 0) recordScore(progress, b.id, pts, passes(b, score), S.level, score);
   const n = nextPage(i, BIRDS.length);
   if (!before && passed(i) && n >= 0) {
     // the page after it opens on the way back, unless every page is open already
@@ -1894,7 +1925,7 @@ function frame(now) {
     }
   } else if (playing && S.phase === 'play') {
     const st = input.state();
-    S.game.update(dt, st);
+    S.points.step(() => S.game.update(dt, st));
     if (S.game.done) {
       S.phase = 'over';
       S.overT = 1.1;
@@ -2041,7 +2072,21 @@ function renderStickerBook(t) {
 
 function updateHud() {
   const gm = S.game;
-  $('#hud-status').textContent = gm.hud ? gm.hud() : `Score ${Math.round(gm.score)}`;
+  const hs = $('#hud-status');
+  const text = gm.hud ? gm.hud() : `Score ${Math.round(gm.score)}`;
+  const pts = S.points ? `${S.points.shown} pts` : '';
+  // the points after the game's own line, kept whole when it wraps
+  if (hs.dataset.text !== text || hs.dataset.pts !== pts) {
+    hs.dataset.text = text;
+    hs.dataset.pts = pts;
+    hs.textContent = pts ? `${text} ` : text;
+    if (pts) {
+      const span = document.createElement('span');
+      span.className = 'hud-points';
+      span.textContent = pts;
+      hs.append(span);
+    }
+  }
   const tm = $('#hud-timer');
   if (typeof gm.time === 'number') {
     tm.hidden = false;

@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 24
+A video chat in the browser with 75 face effects and backgrounds and 25
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -253,6 +253,31 @@ someone has finished, or under about 15 seconds are left, newcomers watch
 karts already racing stay in, and the next race's grid is filled as usual.
 Records are kept per device; a late start counts toward the best lap (not its
 first, partial lap) but not the best race or wins.
+Block Drop is a falling-block puzzle on modern rules: a 10 x 20 well, the seven
+four-square pieces in their usual colours from a seeded 7-bag, SRS turning with
+wall kicks, hold, three next pieces, a ghost where the piece will land, soft and
+hard drops, half a second of lock delay, rows that flash white and burst before
+they clear, a level every ten lines with faster falling, and points for one to
+four rows (a 4-row clear is a Block Buster) plus combos. Everyone plays their
+own well from the same seed, so all get the same pieces in the same order, and
+sees everyone else's well live beside or above their own (up to three in a rail
+beside it on a phone, more in a strip on top; a column on the right sideways),
+with their face, score and the falling piece, updated eight times a second.
+Clearing two rows or more sends garbage (2 rows send 1, 3 send 2, 4 send 4, and
+a combo adds up to 4 more), first cancelling garbage waiting for you; it goes
+to your one opponent, or with more players to whoever leads on points, flies
+across as a streak, waits beside the well as a red bar and rises with one gap
+the next time that player locks a piece without clearing. Topping out puts you
+out to watch; the last one standing wins and the next round starts by itself.
+Alone it is an endless marathon with the best score kept per device; anyone
+joining mid-round starts at once with an empty well. On touch, tap to turn
+(a second finger's tap turns the other way), drag sideways and the piece
+follows a cell at a time, drag down to soft-drop, flick down to hard-drop, and
+tap Hold or swipe up to hold. Keys: arrows or A/D move, Down soft-drops, Up or
+X turns clockwise, Z or Ctrl anticlockwise, Space hard-drops, C or Shift holds;
+a controller's D-pad or stick moves and soft-drops, up hard-drops, A and X turn,
+Y, LB or RB hold. Starting a game shows friends an invite with a Join button.
+Records are kept per device.
 
 ## Thumbs up and down
 
@@ -296,7 +321,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 24 games with rookie controls, real turns, live Burger Stack
+  offers, all 25 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -334,6 +359,15 @@ itself to HTTPS.
   back behind the pack; screenshots in `local/chat-shots/kart-*.png`
   (`kart-late-countdown.png`, `kart-late-go.png`, `kart-late-wait.png` for
   the late joins)
+- `node chat/test/blocks-play.mjs`: two phone-sized Block Drop seats get the
+  same seed and the same pieces; real touches move the piece a cell at a time
+  both ways, a tap turns it, a slow drag down soft-drops, a quick swipe up
+  holds, a flick down hard-drops, and the D-pad moves it; each seat sees the
+  other's well, score and falling piece live; a 2-to-4-row clear sends the right
+  garbage, shown waiting on both seats and rising into the other well when it
+  locks a piece; a top-out ends the round with the same winner on both seats;
+  the next round starts by itself and rookie bots place pieces and clear rows
+  (screenshots in `local/chat-shots/blocks-*.png`)
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
@@ -461,6 +495,10 @@ with its state (see `js/gamehost.js`).
   icons are delivered and checked in the effects strip, grid and games sheet
   (`theme-shots.mjs`); Art's Tiny Face was redone once (CH-N56) because its
   first features vanished at icon size.
+- Artwork (Block Drop): the block tile (CH-G73, a white glossy cell the game
+  tints per piece) and the backdrop (CH-G74) are requested; until they arrive
+  the game draws bevelled jelly blocks and a night sky with drifting block
+  outlines itself.
 - Artwork (Go Fish): the thirteen creature cards (CH-G25 to CH-G37), the card
   back (CH-G38), the pond (CH-G39) and the Go Fish icon in each set (CH-I97,
   CH-K97, CH-N96, CH-R96) are delivered and checked in play
