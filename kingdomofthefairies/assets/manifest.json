@@ -3059,6 +3059,86 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-stride-a-tinted": {
+      "status": "requested",
+      "file": "prince-stride-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-stride-b-tinted": {
+      "status": "requested",
+      "file": "prince-stride-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-stride-a": {
+      "status": "requested",
+      "file": "prince-stride-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-stride-b": {
+      "status": "requested",
+      "file": "prince-stride-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stride-a-tinted": {
+      "status": "requested",
+      "file": "prince-court-stride-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stride-b-tinted": {
+      "status": "requested",
+      "file": "prince-court-stride-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stride-a": {
+      "status": "requested",
+      "file": "prince-court-stride-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stride-b": {
+      "status": "requested",
+      "file": "prince-court-stride-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

@@ -182,9 +182,23 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // loaded (FILM_CAST in theme.js, plus the act's own `cast`).
   let cast = {};
   const overQueue = [];
+  // The prince's walk: the delivered walk-a/walk-b pairs barely move the legs
+  // (and the court pair changes costume), so walking uses the matched stride
+  // frames (image requests F10) when delivered, and until then alternates
+  // walk-a with the standing pose of the same costume.
+  const WALK = { 'prince-walk-a': ['prince-stride-a', 'prince-walk-a'], 'prince-walk-b': ['prince-stride-b', 'prince-stand'],
+    'prince-court-walk-a': ['prince-court-stride-a', 'prince-court-walk-a'], 'prince-court-walk-b': ['prince-court-stride-b', 'prince-court'] };
+  const walkFrame = (r) => {
+    const w = WALK[r];
+    if (!w) return r;
+    const pair = w[0].replace(/-[ab]$/, '');   // both stride frames, or neither
+    return assets.images[pair + '-a'] && assets.images[pair + '-b'] ? w[0] : w[1];
+  };
   const img = (id) => {
-    const a = cast[id], r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
+    const a = cast[id];
+    let r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
     if (!r) return undefined;
+    if (FILM) r = walkFrame(r);
     // the tinted cast look (the default in the film edition; Settings or
     // ?look=original turn it off): a sprite's hand-tinted alternate
     return (tinted && assets.images[r + '-tinted']) || assets.images[r];
