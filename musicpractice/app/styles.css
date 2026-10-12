@@ -979,5 +979,46 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 /* iPhone microphone tip on the Playback Recorder */
 .mic-tip { margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--brass); border-radius: min(var(--radius), 12px); background: var(--panel); line-height: 1.45; display: grid; gap: 8px; }
 .mic-tip p { margin: 0; }
-.mic-tip .mic-tip-title { font-weight: 700; color: var(--brass-2); }
+.mic-tip .mic-tip-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; margin: 0; padding: 0; border: 0; background: none; text-align: left;
+  font-weight: 700; color: var(--brass-2); min-height: 32px;
+}
+.mic-tip-chev { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; transform: rotate(180deg); }
+.mic-tip.collapsed .mic-tip-chev { transform: none; }
+.mic-tip-body { display: grid; gap: 8px; }
+.mic-tip-body[hidden] { display: none; }
+.ac-steps li { margin-bottom: 4px; }
+.ac-alt { list-style: none; margin-left: -1.4em; color: var(--ink-2); font-size: 0.92em; }
+
+/* Drawings of iPhone controls in iOS's own style (light, whatever the theme) */
+.ios-bar, .ios-row, .ios-card {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0 2px; padding: 8px 10px;
+  max-width: 300px;
+  background: #f2f2f7; color: #000;
+  border-radius: 14px;
+  font: 500 15px/1.2 -apple-system, "SF Pro Text", system-ui, sans-serif;
+  letter-spacing: normal; text-transform: none; font-variant: normal;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+.ios-bar { border-radius: 999px; background: rgba(242, 242, 247, 0.96); padding: 6px 12px 6px 6px; }
+.ios-btn { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #007aff; box-shadow: 0 0 0 2px #007aff; font-weight: 600; }
+.ios-btn svg { width: 18px; height: 18px; fill: none; stroke: #007aff; stroke-width: 1.6; stroke-linejoin: round; }
+.ios-aa { font-size: 16px; } .ios-aa small { font-size: 11px; }
+.ios-or { color: #8e8e93; font-size: 13px; }
+.ios-url { color: #3c3c43; opacity: 0.7; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ios-row { justify-content: flex-start; background: #fff; }
+.ios-row-solo { width: max-content; }
+.ios-dots { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #e5e5ea; color: #007aff; font-size: 9px; letter-spacing: 1px; }
+.ios-gear { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: #8e8e93; }
+.ios-gear svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; }
+.ios-chev { margin-left: auto; color: #c7c7cc; font-size: 20px; line-height: 1; }
+.ios-value { margin-left: auto; color: #8e8e93; }
+.ios-value + .ios-chev { margin-left: 4px; }
+.ios-card { flex-direction: column; align-items: stretch; gap: 6px; background: #fff; padding: 6px 10px 10px; }
+.ios-card .ios-row { margin: 0; padding: 4px 0; box-shadow: none; }
+.ios-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #e5e5ea; border-radius: 9px; padding: 2px; font-size: 13px; text-align: center; }
+.ios-options span { padding: 5px 0; border-radius: 7px; color: #3c3c43; }
+.ios-options .on { background: #fff; color: #007aff; font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); }
 .mic-tip-actions { display: flex; flex-wrap: wrap; gap: 8px; }

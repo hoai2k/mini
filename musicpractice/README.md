@@ -224,10 +224,14 @@ asks again unless the site's microphone is set to Allow. So
   open those settings itself).
 - **iPhone tip**: on iPhone and iPad, when the Playback Recorder opens and
   the mic turns out not to be set to Allow, a card at the top of the screen
-  says why takes stay on the phone's speaker and gives the steps (Safari's
-  aA → Website Settings → Microphone → Allow, or the Settings app for a Home
-  Screen web app) with a Reload button. It doesn't block recording. Not now
-  hides it for the visit, Don't show again for good.
+  says Bluetooth playback won't work and shows how to fix it, with small
+  drawings of each control in iOS's own style (the page menu button, aA or
+  a page icon; More; Website Settings; Microphone → Allow), the all-sites
+  alternative (Settings app → Apps → Safari → Microphone) and a Reload
+  button. Drawn rather than screenshots, since Safari's layout shifts
+  between iOS versions. Its title (with a chevron) folds it to one line,
+  remembered between visits; it only goes away for good once the mic is
+  allowed. It doesn't block recording. Audio check shows the same steps.
 - **Safeguard**: if taking the mic back ever takes over 0.9 s (a prompt
   appeared after all), the mic is held for the rest of the visit.
 - The mic is asked for again only when the browser reports the held one

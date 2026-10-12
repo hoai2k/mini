@@ -24,10 +24,12 @@ function chime(sampleRate = 44100) {
   return { samples: out, sampleRate };
 }
 
+const SVG_TAGS = new Set(['svg', 'path', 'circle', 'rect', 'g']);
+
 function el(tag, attrs = {}, ...children) {
-  const e = document.createElement(tag);
+  const e = SVG_TAGS.has(tag) ? document.createElementNS('http://www.w3.org/2000/svg', tag) : document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
-    if (k === 'class') e.className = v;
+    if (k === 'class') e.setAttribute('class', v);
     else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
     else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v);
   }
@@ -61,7 +63,7 @@ async function render() {
         : '',
       'Once the Playback Recorder has been opened, sound plays on the phone\'s own speaker rather than a Bluetooth speaker: the mic is kept open so your browser doesn\'t ask for permission after every take. ',
       'To play on Bluetooth, allow the microphone for this site permanently, then reload:');
-    steps = allowSteps();
+    steps = allowSteps({ pictures: true });
   }
 
   // Microphone choice
@@ -152,19 +154,48 @@ function lastPlaybackText() {
   ].join('; ');
 }
 
+/*
+ * Small drawings of the iPhone controls each step names, in iOS's own style,
+ * so it's clear what to tap. They are drawn rather than screenshots: Safari's
+ * layout shifts between iOS versions (aA became a page icon in iOS 26), and
+ * these stay true across them.
+ */
+const ios = {
+  // The page menu button at the left of the address bar: aA, or a page icon.
+  pageMenu: () => el('span', { class: 'ios-bar', 'aria-hidden': 'true' },
+    el('span', { class: 'ios-btn' }, el('span', { class: 'ios-aa' }, el('small', {}, 'a'), 'A')),
+    el('span', { class: 'ios-or' }, 'or'),
+    el('span', { class: 'ios-btn' }, el('svg', { viewBox: '0 0 20 20' }, el('path', { d: 'M5 3h7l3 3v11H5z M12 3v3h3 M7.5 10h5 M7.5 13h5' }))),
+    el('span', { class: 'ios-url' }, location.host || 'this site')),
+  more: () => el('span', { class: 'ios-row ios-row-solo', 'aria-hidden': 'true' },
+    el('span', { class: 'ios-dots' }, '•••'), el('span', {}, 'More')),
+  websiteSettings: () => el('span', { class: 'ios-row', 'aria-hidden': 'true' },
+    el('span', { class: 'ios-gear' }, el('svg', { viewBox: '0 0 20 20' }, el('circle', { cx: 10, cy: 10, r: 3 }), el('path', { d: 'M10 2v3M10 15v3M2 10h3M15 10h3M4.3 4.3l2.1 2.1M13.6 13.6l2.1 2.1M4.3 15.7l2.1-2.1M13.6 6.4l2.1-2.1' }))),
+    el('span', {}, 'Website Settings'), el('span', { class: 'ios-chev' }, '›')),
+  microphone: () => el('span', { class: 'ios-card', 'aria-hidden': 'true' },
+    el('span', { class: 'ios-row' }, el('span', {}, 'Microphone'), el('span', { class: 'ios-value' }, 'Allow'), el('span', { class: 'ios-chev' }, '›')),
+    el('span', { class: 'ios-options' },
+      el('span', {}, 'Ask'), el('span', {}, 'Deny'), el('span', { class: 'on' }, 'Allow ✓'))),
+};
+
 /** How to set this site's microphone to Allow, for this browser. */
-export function allowSteps() {
+export function allowSteps({ pictures = false } = {}) {
+  const pic = (f) => (pictures ? f() : null);
   if (isWebKit()) {
     const standalone = globalThis.navigator?.standalone || matchMedia('(display-mode: standalone)').matches;
+    if (standalone) {
+      return el('ol', { class: 'ac-steps' },
+        el('li', {}, 'Open the ', el('b', {}, 'Settings'), ' app, then ', el('b', {}, 'Apps → Safari → Microphone'), '.'),
+        el('li', {}, 'Choose ', el('b', {}, 'Allow'), '.', pic(ios.microphone)),
+        el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'));
+    }
     return el('ol', { class: 'ac-steps' },
-      standalone
-        ? el('li', {}, 'Open the ', el('b', {}, 'Settings'), ' app, then ', el('b', {}, 'Apps → Safari → Microphone'), ', and choose ', el('b', {}, 'Allow'), '.')
-        : [
-            el('li', {}, 'In Safari, tap ', el('b', {}, 'aA'), ' (or the page menu) at the left of the address bar.'),
-            el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), '.'),
-            el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.'),
-          ],
-      el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'));
+      el('li', {}, 'Tap the ', el('b', {}, 'page menu'), ' button at the left of the address bar (', el('b', {}, 'aA'), ' or a page icon).', pic(ios.pageMenu)),
+      el('li', {}, 'If you see ', el('b', {}, 'More'), ', tap it.', pic(ios.more)),
+      el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), '.', pic(ios.websiteSettings)),
+      el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.', pic(ios.microphone)),
+      el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'),
+      pictures ? el('li', { class: 'ac-alt' }, 'Or, for every site: ', el('b', {}, 'Settings'), ' app → ', el('b', {}, 'Apps → Safari → Microphone'), ' → ', el('b', {}, 'Allow'), '.') : null);
   }
   return el('ol', { class: 'ac-steps' },
     el('li', {}, 'Tap the icon at the left of the address bar (site information).'),
@@ -174,18 +205,31 @@ export function allowSteps() {
 
 /**
  * On iPhone, opening the Playback Recorder with the mic not set to Allow:
- * a card at the top of the screen says why takes stay on the phone's speaker
- * and how to fix it. It doesn't block recording.
+ * a card at the top of the screen says so and shows how to fix it. Its title
+ * folds it away (remembered); it goes for good once the mic is allowed. It
+ * doesn't block recording.
  */
-export function renderMicTip(container, { onNotNow, onNever }) {
-  container.replaceChildren(
-    el('p', { class: 'mic-tip-title' }, 'Allow the microphone for Bluetooth playback'),
+export function renderMicTip(container, { collapsed, onToggle }) {
+  const body = el('div', { class: 'mic-tip-body', id: 'mic-tip-body' },
     el('p', {}, 'The microphone isn\'t set to Allow for this site yet, so Bluetooth playback won\'t work. To fix it:'),
-    allowSteps(),
+    allowSteps({ pictures: true }),
     el('div', { class: 'mic-tip-actions' },
-      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload'),
-      el('button', { type: 'button', class: 'pill', onclick: onNotNow }, 'Not now'),
-      el('button', { type: 'button', class: 'pill', onclick: onNever }, 'Don\'t show again')));
+      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload')));
+  const head = el('button', { type: 'button', class: 'mic-tip-title', 'aria-expanded': String(!collapsed), 'aria-controls': 'mic-tip-body' },
+    el('span', {}, 'Allow the microphone for Bluetooth playback'),
+    el('svg', { class: 'mic-tip-chev', viewBox: '0 0 24 24', 'aria-hidden': 'true' }, el('path', { d: 'M6 9l6 6 6-6' })));
+  const set = (c) => {
+    head.setAttribute('aria-expanded', String(!c));
+    body.hidden = c;
+    container.classList.toggle('collapsed', c);
+  };
+  head.addEventListener('click', () => {
+    const c = head.getAttribute('aria-expanded') === 'true';
+    set(c);
+    onToggle(c);
+  });
+  container.replaceChildren(head, body);
+  set(collapsed);
 }
 
 export function openAudioCheck(controls) {

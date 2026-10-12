@@ -411,17 +411,16 @@ async function startRecorder() {
 /**
  * iPhone only: once the recorder has the mic, if it isn't set to Allow (so the
  * app has to keep it open and takes stay off Bluetooth), say so and how to
- * fix it. Not now hides it for this visit; Don't show again for good.
+ * fix it. Its title folds it to one line (remembered); it only goes away for
+ * good once the mic is allowed.
  */
-let micTipDismissed = false;
 function showMicTip() {
   const tip = $('mic-tip');
-  const show = isIOS() && !!recorder?.holdsMic && !freesMicForPlayback()
-    && micPermission() !== 'denied' && !settings.hideMicTip && !micTipDismissed;
+  const show = isIOS() && !!recorder?.holdsMic && !freesMicForPlayback() && micPermission() !== 'denied';
   if (show && !tip.firstChild) {
     renderMicTip(tip, {
-      onNotNow: () => { micTipDismissed = true; tip.hidden = true; },
-      onNever: () => { settings.hideMicTip = true; persist(); tip.hidden = true; },
+      collapsed: settings.micTipCollapsed,
+      onToggle: (c) => { settings.micTipCollapsed = c; persist(); },
     });
   }
   tip.hidden = !show;
