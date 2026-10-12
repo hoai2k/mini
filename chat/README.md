@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 23
+A video chat in the browser with 75 face effects and backgrounds and 24
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -214,7 +214,12 @@ behind the plate, with your face on the slugger: tap the ball as it reaches
 the plate; when you swing sets the direction, early pulls and late is foul,
 and where you tap on the ball sets the launch, on top a grounder and under it
 a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
-ghost balls and everyone's home runs are on the scoreboard). Starting
+ghost balls and everyone's home runs are on the scoreboard). Kart Dash is a
+behind-the-kart Mode-7 racer (WebGL ground) for one to four racers with
+computer karts filling the grid: three laps, steering by holding either side
+(or arrows, or the stick), DRIFT for a mini boost, and item boxes giving boost
+rockets, banana peels, bouncing bombs and rainbow stars that spin karts out
+with wheels and panels flying, each kart driven by its player's live face. Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -259,7 +264,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 23 games with rookie controls, real turns, live Burger Stack
+  offers, all 24 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -279,6 +284,10 @@ itself to HTTPS.
   take; the round ends after ten pitches with the card, the home runs reach
   the friend's scoreboard and Bat again starts the next; a rookie bot in the
   other seat swings and sees the hits as ghosts
+- `node chat/test/kart-play.mjs`: two racers on phone-sized Kart Dash seats:
+  the countdown, steering, an item box, a banana spin-out with flying parts,
+  a bomb, and rookie bots racing three laps to a finishing order, with frame
+  times; screenshots in `local/chat-shots/kart-*.png`
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
