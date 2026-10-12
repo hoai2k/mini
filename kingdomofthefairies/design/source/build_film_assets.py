@@ -255,6 +255,13 @@ GROUPS = [
          + 'Both feet on one level ground line at the very bottom of the canvas; the head at the same height as in the standing pose. Nothing changes between the two frames but the legs and arms: same tights, belt, cloak, sword and shield.', f'prince-{c}walk-{ab}{t}')
         for c in ('', 'court-') for t in ('-tinted', '') for ab in ('a', 'b')
     ]),
+    ('Azurine\'s stride frames', 'Requested 12 October 2026 in the same audit: when Azurine walks beside the prince (the wedding street and the apotheosis) the game slides and bobs her standing pose, so she glides. Two opposite strides of one identical figure let her walk; until they arrive the game keeps the slide.', [
+        (f'azurine-walk-{ab}{t}', f'Azurine walking, stride {ab.upper()}{" (tinted)" if t else ""}', 200, 380, 'bottom centre', TINTED if t else SPRITE,
+         f'Princess Azurine walking to the LEFT, exactly the figure, gown, colours, scale and head height of azurine-stand{t}.webp (attach it, and azurine-walk-{"b" if ab == "a" else "a"}{t}.webp if already drawn, which must match it in every detail but the stride). '
+         + ('Her LEFT foot steps forward from under the hem, the gown swinging forward with it; one hand lifts her skirt a little, the other relaxed. ' if ab == 'a' else 'Her RIGHT foot steps forward from under the hem, the gown swinging the other way; the hands as in stride A but mirrored in their swing. ')
+         + 'Feet and hem on one level ground line at the very bottom of the canvas; the head at the same height as in the standing pose. Nothing changes between the two frames but the stride and the swing of the gown.', 'azurine-stand')
+        for t in ('-tinted', '') for ab in ('a', 'b')
+    ]),
 ]
 
 

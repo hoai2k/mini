@@ -3139,6 +3139,46 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "azurine-walk-a-tinted": {
+      "status": "requested",
+      "file": "azurine-walk-a-tinted.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-walk-b-tinted": {
+      "status": "requested",
+      "file": "azurine-walk-b-tinted.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-walk-a": {
+      "status": "requested",
+      "file": "azurine-walk-a.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-walk-b": {
+      "status": "requested",
+      "file": "azurine-walk-b.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
