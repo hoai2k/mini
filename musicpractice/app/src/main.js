@@ -1,6 +1,7 @@
 // Music Practice: the home screen, the metronome and the practice recorder.
 
-import { audio, unlock, setSession, heardNow, keepAwake } from './audio.js';
+import { audio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake } from './audio.js';
+import { playSamples, primeFromTap, outputSettled } from './player.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
 import { Waveform, drawThumb } from './waveform.js';
@@ -29,7 +30,7 @@ function applyTheme() {
 }
 
 // Browsers only allow sound to start from a tap or key press.
-const wake = () => { unlock(); };
+const wake = () => { unlock(); primeFromTap(); };
 document.addEventListener('pointerdown', wake, { capture: true });
 document.addEventListener('keydown', wake, { capture: true });
 
@@ -155,9 +156,11 @@ function metronomeConfigured() {
 }
 
 function startMetronome() {
-  const ctx = audio();
+  // A fresh context if the old one may be stuck on another output (this is a
+  // tap, so the new one may start).
+  const ctx = freshAudio();
   unlock();
-  if (!metronome) metronome = new Metronome(ctx);
+  if (!metronome || metronome.ctx !== ctx) metronome = new Metronome(ctx);
   metronome.configure(settings);
   metronome.start();
   pendulum.classList.remove('resting');
@@ -281,7 +284,7 @@ chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
   if (!metronome?.running) {
     const ctx = audio();
     unlock();
-    if (!metronome) metronome = new Metronome(ctx);
+    if (!metronome || metronome.ctx !== ctx) metronome = new Metronome(ctx);
     metronome.configure(settings);
     metronome.voice(ctx.currentTime + 0.02, 2);
   }
@@ -305,7 +308,7 @@ function animateMetronome() {
 let recorder = null;
 let wave = null;
 let takes = []; // newest first
-let playing = null; // { take, source, startedAt, auto }
+let playing = null; // { take, auto, handle: { ended, progress(), stop() } once sound starts }
 let recError = '';
 
 const STATUS = {
@@ -358,18 +361,19 @@ function configureRecorder() {
 }
 
 async function startRecorder() {
-  setSession('play-and-record');
+  setSession('auto');
   const ctx = audio();
   unlock();
-  if (!recorder) {
+  if (!wave) wave = new Waveform($('wave'));
+  // A new recorder when the context was replaced (the old one is off by then).
+  if (!recorder || recorder.ctx !== ctx) {
     recorder = new Recorder(ctx);
-    wave = new Waveform($('wave'));
     recorder.addEventListener('state', () => {
       interruptPlayback();
       showState();
       keepAwake(recorder.state !== 'off');
     });
-    recorder.addEventListener('chunk', (e) => wave.push(e.detail.data, ctx.sampleRate, e.detail.state));
+    recorder.addEventListener('chunk', (e) => wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state));
     recorder.addEventListener('take', (e) => onTake(e.detail));
   }
   recorder.configure(settings);
@@ -380,6 +384,7 @@ async function startRecorder() {
   } catch (err) {
     recError = micError(err);
   }
+  if (recorder.micOpen) markStale();
   showState();
 }
 
@@ -394,7 +399,7 @@ function micError(err) {
 /** Listen again after playback or a pause, reopening the mic if it was closed. */
 async function resumeListening() {
   if (!recorder || recorder.state === 'off') return;
-  setSession('play-and-record');
+  setSession('auto');
   recError = '';
   try {
     await recorder.restore();
@@ -433,45 +438,71 @@ async function onTake({ samples, sampleRate, playBack }) {
 }
 
 /**
- * Play a take. Playing from the list pauses listening. By default the mic is
- * also closed while a take plays, because an open mic puts a phone (iPhone
- * especially) into its quieter play-and-record mode; it reopens afterwards.
- * With "Record during playback" on, the mic stays open and an automatic
- * playback keeps listening, so playing again starts the next take.
+ * Play a take. Playing from the list pauses listening. Unless "Record during
+ * playback" is on, the mic is closed first and the take waits for the phone
+ * to move sound back to its normal output (a Bluetooth speaker, say), since
+ * an open mic puts phones in call mode, quieter and on the phone's own
+ * speaker; listening resumes when the take ends. With "Record during
+ * playback" on, the mic stays open and playing again starts the next take.
  */
-function play(take, { auto = false } = {}) {
+let playToken = 0;
+async function play(take, { auto = false } = {}) {
   stopPlayback({ resume: false });
-  const ctx = audio();
+  const token = ++playToken;
+  let micWasOpen = false;
+  if (recorder && recorder.state !== 'off') {
+    if (!auto) recorder.pause();
+    else if (!settings.recordDuringPlayback) recorder.hold();
+    if (!settings.recordDuringPlayback && recorder.micOpen) {
+      recorder.release();
+      micWasOpen = true;
+    }
+  }
+  if (!settings.recordDuringPlayback) setSession('playback');
+  playing = { take, auto, handle: null };
+  wave?.showTake(take.samples);
+  renderTakes();
+  showState();
+  if (micWasOpen) await outputSettled();
+  if (token !== playToken) return; // stopped or replaced while waiting
+  let handle;
+  try {
+    handle = await playSamples(take.samples, take.sampleRate);
+  } catch {
+    handle = playWithWebAudio(take); // the browser refused the media element
+  }
+  if (token !== playToken) { handle.stop(); return; }
+  playing.handle = handle;
+  handle.ended.then(() => { if (token === playToken) stopPlayback(); });
+}
+
+/** The old way: Web Audio. Used only if the media element is refused. */
+function playWithWebAudio(take) {
+  const ctx = audio(); // not freshAudio(): the recorder may still be using it
   unlock();
   const buf = ctx.createBuffer(1, take.samples.length, take.sampleRate);
   buf.copyToChannel(take.samples, 0);
   const source = ctx.createBufferSource();
   source.buffer = buf;
   source.connect(ctx.destination);
-  let delay = 0.03;
-  if (recorder && recorder.state !== 'off') {
-    if (!auto) recorder.pause();
-    else if (!settings.recordDuringPlayback) recorder.hold();
-    if (!settings.recordDuringPlayback && recorder.micOpen) {
-      recorder.release();
-      setSession('playback');
-      delay = 0.2; // give the phone a moment to switch its audio route back
-    }
-  }
-  playing = { take, source, startedAt: ctx.currentTime + delay, auto };
-  source.onended = () => { if (playing?.source === source) stopPlayback(); };
-  source.start(playing.startedAt);
-  wave?.showTake(take.samples);
-  renderTakes();
-  showState();
+  const startedAt = ctx.currentTime + 0.03;
+  let finish;
+  const ended = new Promise((resolve) => { finish = resolve; });
+  source.onended = () => finish();
+  source.start(startedAt);
+  return {
+    ended,
+    progress: () => Math.min(1, Math.max(0, (ctx.currentTime - startedAt) / buf.duration)),
+    stop: () => { source.onended = null; try { source.stop(); } catch { /* ended */ } finish(); },
+  };
 }
 
 function stopPlayback({ resume = true } = {}) {
   if (!playing) return;
-  const { source } = playing;
+  const { handle } = playing;
   playing = null;
-  source.onended = null;
-  try { source.stop(); } catch { /* already ended */ }
+  playToken++;
+  handle?.stop();
   wave?.showLive();
   if (resume && recorder && (recorder.state === 'playing' || recorder.state === 'paused') && toastTimer === null) resumeListening();
   renderTakes();
@@ -573,9 +604,7 @@ $('rec-during').addEventListener('change', () => {
 function animateRecorder() {
   if (!wave) return;
   if (playing) {
-    const ctx = audio();
-    const dur = playing.take.samples.length / playing.take.sampleRate;
-    const p = Math.min(1, Math.max(0, (ctx.currentTime - playing.startedAt) / dur));
+    const p = playing.handle ? playing.handle.progress() : 0;
     wave.setProgress(p);
     const row = $('takes').querySelector(`[data-key="${playing.take.created}"] .bar-progress`);
     if (row) row.style.width = `${(p * 100).toFixed(1)}%`;

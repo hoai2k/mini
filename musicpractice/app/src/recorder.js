@@ -9,6 +9,7 @@
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
 
 const PREROLL_SEC = 2;
+const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
 const SETTLE_SEC = 0.35; // ignore the mic this long after playback (room echo)
 
 export class Recorder extends EventTarget {
@@ -111,9 +112,9 @@ export class Recorder extends EventTarget {
     sink.connect(this.ctx.destination);
     let node;
     try {
-      if (!Recorder.workletReady) {
+      if (!WORKLET_LOADED.has(this.ctx)) {
         await this.ctx.audioWorklet.addModule(new URL('./capture-worklet.js', import.meta.url));
-        Recorder.workletReady = true;
+        WORKLET_LOADED.add(this.ctx);
       }
       node = new AudioWorkletNode(this.ctx, 'capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit' });
       node.port.onmessage = (e) => this.receive(e.data);

@@ -11,6 +11,28 @@ export function audio() {
   return ctx;
 }
 
+/*
+ * Safari keeps an AudioContext on the output it started with. One started
+ * while the mic was open (the phone's speaker, in call mode) or before a
+ * Bluetooth speaker connected can stay there, so it is marked stale and
+ * freshAudio() replaces it at the next tap that starts sound.
+ */
+let stale = false;
+export function markStale() {
+  stale = true;
+}
+navigator.mediaDevices?.addEventListener?.('devicechange', markStale);
+
+/** The AudioContext, replaced first if it may be on an old output. */
+export function freshAudio() {
+  if (ctx && stale) {
+    try { ctx.close(); } catch { /* already closed */ }
+    ctx = null;
+  }
+  stale = false;
+  return audio();
+}
+
 export async function unlock() {
   const c = audio();
   if (c.state !== 'running') {
@@ -20,8 +42,10 @@ export async function unlock() {
 }
 
 /**
- * Safari's audio session: 'playback' lets the metronome sound with the
- * ring/silent switch on; 'play-and-record' is needed while the mic is open.
+ * Safari's audio session: 'playback' sounds with the ring/silent switch on and
+ * keeps Bluetooth speakers; 'auto' lets Safari choose, which it does while
+ * the mic is open. The app never asks for 'play-and-record' itself, so the
+ * phone drops back to normal playback as soon as the mic closes.
  */
 export function setSession(type) {
   try {

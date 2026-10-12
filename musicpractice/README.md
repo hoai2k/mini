@@ -171,10 +171,24 @@ second phrase stopped the playback and started a new take.
 ## Known limits
 
 - The microphone needs https (GitHub Pages is) and permission.
-- On iPhone, playback while the microphone is open is quieter than normal
-  (iOS's play-and-record mode). That only happens with Record during
-  playback on. Closing and reopening the mic around each playback is checked
-  in Chromium; the volume itself still needs checking on an iPhone.
+- **Bluetooth speakers.** While the mic is open, phones switch to call mode:
+  sound goes to the phone's own speaker (or a speaker's low-quality headset
+  mode), quieter. Nothing plays while the recorder listens, so by default
+  that costs nothing: before a take plays back the app closes the mic, sets
+  Safari's session to `playback`, waits for the phone to report its output
+  change (0.7 s at most, `outputSettled` in `app/src/player.js`), and plays
+  the take through an `<audio>` element, which follows the current output
+  more reliably than Web Audio. The element is primed by the first tap,
+  since Safari only lets one start on its own after it has played from a
+  tap; if it is still refused, the take plays through Web Audio. The app
+  never asks for `play-and-record` itself (it uses `auto` while the mic is
+  open). An AudioContext started while the mic was open, or before an output
+  change, is replaced when the metronome's Start is pressed (`freshAudio`
+  in `app/src/audio.js`). With Record during playback on, the mic stays open,
+  so playback stays in call mode: use wired headphones or the phone's
+  speaker. Checked in Chromium (the take plays through the element about
+  0.7 s after the mic closes); Bluetooth itself still needs checking on a
+  phone.
 - If the browser stops remembering microphone permission, reopening the mic
   after each playback could ask again; turn on Record during playback to
   keep it open.
