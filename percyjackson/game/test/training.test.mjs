@@ -46,13 +46,21 @@ test('the dash director sends one rat a fair way off, never into a swarm', () =>
   const busy = Array.from({ length: RAT.maxAggro }, () => r(5, { aggro: true }));
   assert.equal(pickDasher([...busy, r(11)]), -1, 'enough rats on the heroes already');
 });
-test('the walk to the bus is in three beats, and long', () => {
-  const beats = [{ id: 'walk', x0: 150, z0: 40, x1: 192, z1: 90 }, { id: 'melee', x0: 84, z0: 40, x1: 150, z1: 90 }, { id: 'ranged', x0: 0, z0: 0, x1: 84, z1: 104 }];
-  assert.equal(beatAt(beats, 175, 60), 'walk'); assert.equal(beatAt(beats, 120, 60), 'melee'); assert.equal(beatAt(beats, 36, 30), 'ranged');
+test('the walk to the bus: a very short quiet start, then a fight the rest of the way', () => {
+  const beats = [{ id: 'walk', x0: 140, z0: 84, x1: 192, z1: 104 }, { id: 'melee', x0: 84, z0: 40, x1: 192, z1: 104 }, { id: 'ranged', x0: 0, z0: 0, x1: 84, z1: 104 }];
+  assert.equal(beatAt(beats, 150, 95), 'walk'); assert.equal(beatAt(beats, 150, 80), 'melee'); assert.equal(beatAt(beats, 120, 60), 'melee'); assert.equal(beatAt(beats, 36, 30), 'ranged');
   const m = read('world/manhattan.js');
-  assert.match(m, /export const CITY = \{ SX: 192,/, 'twice as long a street');
-  const spawn = m.match(/const spawn = V\(([\d.]+), FY, SWN\.z0 \+ ([\d.]+)\)/);
-  assert.ok(spawn && +spawn[1] - 37 + 40 >= 170, 'spawn far from the bus (about 180 m of walking, was about 90)');
+  assert.match(m, /export const CITY = \{ SX: 192, SY: 34, SZ: 104,/);
+  assert.match(m, /const QUIET = 84;/);
+  assert.match(m, /\{ id: 'walk', x0: 140, z0: QUIET, x1: SX, z1: SZ \}/, 'the quiet beat is only the start of the side avenue');
+  assert.match(m, /const spawn = V\(EA\.w0 \+ 2\.5, FY, SZ - 7\.5\)/, 'you start at the south end of the side avenue');
+  // up-right (north), up-left (west), up-right (north) on screen: the route's legs
+  const legs = [[149.5, 96.5], [149.5, 59.5], [56, 59.5], [35.5, 60], [35.5, 30]];
+  assert.ok(legs[0][1] - legs[1][1] > 30 && legs[1][0] - legs[2][0] > 80 && legs[3][1] - legs[4][1] > 25);
+  const walked = legs.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - legs[i][0], p[1] - legs[i][1]), 0);
+  assert.ok(walked > 150 && walked < 200, `about as long a walk as before (${walked.toFixed(0)} m)`);
+  assert.ok(96.5 - 84 <= 15, 'the quiet start is a dozen metres');
+  assert.ok(RAT.dashEvery[1] <= 10 && RAT.maxAggro <= 3, 'steady pressure, never a swarm');
   for (const k of ['trench', 'nests', 'beats', 'movers']) assert.match(m, new RegExp(`\\b${k}\\b`), k);
   assert.match(read('entities/monsters.js'), /rat: \{[^}]*idle: 'loiter'/, 'only the rat loiters');
   assert.match(read('story/openingFlow.js'), /feet: false/, 'no footprints in the prologue');
@@ -88,7 +96,7 @@ test('narration is plain English; titles, names and signs use the Greek letters'
   assert.doesNotMatch(read('ui/storyCards.js'), /demigodText\(lineEl/, 'story-card lines');
   assert.match(read('ui/storyCards.js'), /demigodText\(titleEl, title, \{ timing: GREEK\.title \}\)/, 'story-card title');
   assert.match(read('ui/hud.js'), /timing: GREEK\.boss/, 'boss name');
-  assert.match(read('main.js'), /chapter\.title : `[^`]*`, 'title'\)/, 'chapter title toast');
+  assert.match(read('main.js'), /this\.chapter\.place : this\.chapter\.title\) : `[^`]*`, 'title'\)/, 'chapter title (or, after its story cards, the place) toast');
   assert.match(read('world/vehicles.js'), /new LiveSign\(sign,/, 'the bus lettering');
   assert.match(read('story/cutscenes.js'), /readBus\(\)/, 'the bus lettering settles before the cut');
   assert.match(read('world/camp.js'), /greek: true/, 'the Road West signs');

@@ -12,28 +12,35 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 
 - **The opening of a new game** tells the start of the book before camp
   opens up: a morning in Manhattan (the walk to the yellow school bus at Yancy
-  Academy, about two to four minutes), a cutscene of the bus driving to the American Museum of
+  Academy, a minute or two of fighting), a cutscene of the bus driving to the American Museum of
   Natural History, chapter 1 in the museum, a cutscene of summer at Montauk
   and the drive through the storm, chapter 2 on Half-Blood Hill, and a
   cutscene of waking at the Big House. Then Camp Half-Blood is the open hub.
-  - The walk to the bus is a training board in three beats, with a one-time
-    hint for each control in the words of the device you play with:
-    - a quiet stretch of street to learn moving, and a dug-up sidewalk to
+  - The walk to the bus goes up-right on screen, then up-left, then up-right
+    again: north up a short side avenue, west along a long cross street, north
+    up the avenue to Yancy. It is a training board with a one-time hint for
+    each control in the words of the device you play with (a new hint
+    replaces the last, never a stack):
+    - a dozen quiet metres to learn moving, ending at a dug-up sidewalk to
       jump;
-    - sewer rats lounging round trash cans, an alley dumpster, a hot-dog cart
-      and bin bags (melee). They sniff, eat and wander, and notice you only
-      up close (about 4–5 m) or when hit: they rear up and squeak, then come
-      at you. Now and then one a fair way off dashes at you, never more than
-      three rats at once. Your companions leave idle rats to you;
-    - rats where shooting first is the obvious move (ranged): behind the
-      chain-link fence of a construction lot (shots go through it, rats have
-      to run round to the gate), on a dumpster lid and on sidewalk
+    - then a fight the rest of the way: sewer rats lounging round trash cans
+      at the corner, an alley dumpster, a hot-dog cart and bin bags (melee).
+      They sniff, eat and wander, and notice you only up close (about 4–5 m)
+      or when hit: they rear up and squeak, then come at you. Every five to
+      nine seconds one a fair way off dashes at you, never more than three
+      rats at once. Your companions leave idle rats to you;
+    - further on, rats where shooting first is the obvious move (ranged):
+      behind the chain-link fence of a construction lot (shots go through it,
+      rats have to run round to the gate), on a dumpster lid and on sidewalk
       scaffolding ahead, which see you from further off and rear up for
       longer, and single rats out of the storm drains.
     - Students, passers-by, hot-dog vendors and two taxis that drive along
       the street (and stop, and honk, for anyone in front).
   - Cutscenes are in the engine (letterbox, subtitles in the story voice in
-    plain English, story-card pictures); hold A, Esc or the screen to skip.
+    plain English with time to read each, story-card pictures; people climb
+    steps one at a time); hold A, Esc or the screen to skip. Each story beat
+    is told once: the cutscenes, the chapter cards and the results don't
+    repeat each other.
   - A save keeps where it is in the opening, and Continue picks it up in the
     prologue or at the start of a cutscene. Saves that had already finished
     chapters 1 and 2 start in camp. Settings → Data → Skip the opening goes
@@ -171,8 +178,11 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   hold for a while and then settle, letter by letter, into English with time
   to read them: chapter and place titles (about 1.8 s of Greek, then English
   for 2.5 s or more), boss names, godly powers, the chapter map, the words on
-  the school bus (English a few seconds before the camera moves on or you
-  board), and signs in the world (they settle once you have had a look).
+  the school bus (all Greek until you are close to it in Manhattan, and in
+  the cutscene until its last shot of the bus, about two seconds before the
+  cut), and signs in the world (they settle once you have had a look). The
+  Greek is Greek all the way through: no letter stands in for a Latin one
+  that looks the same.
   Narration, objectives, hints and messages are always plain English.
   Settings → Greek letters turns it off; reduced motion shows English.
 - **Loading:** a loading screen with the title and a bar that follows the

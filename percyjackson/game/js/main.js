@@ -442,11 +442,12 @@ class Game {
     const ch = chapterDef(id);
     if (!ch || !Mission.playable(ch)) { toast('That chapter is still being written'); return; }
     this.ui.closeAll();
-    const go = () => { this.online.story?.(null); const def = Mission.defForChapter(ch, difficulty); if (opening) def.opening = id; this.startMission(def); };
+    let carded = false;
+    const go = () => { this.online.story?.(null); const def = Mission.defForChapter(ch, difficulty); if (opening) def.opening = id; this.startMission(def, { carded }); };
     this.online.story?.(ch);   // net: guests see the story cards too
     // (in the opening the cutscene before chapter 2 already told its first line)
     const lines = opening && id === 'lt2' ? ch.intro.slice(1) : ch.intro;
-    if (Screens.openStoryCards && lines?.length) Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines }, go);
+    if (Screens.openStoryCards && lines?.length) { carded = true; Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines }, go); }
     else go();
   }
   // Compile every monster's (and this chapter's boss's) materials while the
@@ -459,7 +460,8 @@ class Game {
     const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
     if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
   }
-  startMission(def) {
+  // carded: its story cards (with the chapter's title) were just shown, so the level names the place instead
+  startMission(def, { carded = false } = {}) {
     this.online.loading?.();   // net: guests wait while the host builds the level
     Mission.resolveDef(def);   // a biome or boss not built yet falls back to one that is
     this.endCutscene();
@@ -483,7 +485,7 @@ class Game {
     this.mission.setup();
     this.mode = 'mission';
     this.online.sceneChanged();
-    toast(this.chapter ? this.chapter.title : `${L.biome.name} · ${L.biome.sub}`, 'title');
+    toast(this.chapter ? (carded && this.chapter.place ? this.chapter.place : this.chapter.title) : `${L.biome.name} · ${L.biome.sub}`, 'title');
     if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Click the right stick (V) to see through it.' : 'Click the right stick (V) to see through the Mist.'), 2600);
   }
   completeMission() {

@@ -33,13 +33,19 @@ export const settledBy = (t) => (t.hold ?? 0) + (t.settle ?? 0.8);
 // How long a toast of this kind stays on screen (English for `read` at the end).
 export const showFor = (t) => settledBy(t) + (t.read ?? 2.4);
 
-// Look-alike Greek letters; any other letter becomes a random Greek one.
+// Each English letter's Greek stand-in. None of them looks like a Latin
+// letter (no Α for A, Ο for O, Ϲ for C...), so writing in Greek reads as
+// Greek all the way through, even from a distance (the bus, a sign), until it
+// settles; where it can, the stand-in echoes the letter's shape or sound.
 export const LOOK = {
-  A: 'Α', B: 'Β', E: 'Ε', Z: 'Ζ', H: 'Η', I: 'Ι', K: 'Κ', M: 'Μ', N: 'Ν', O: 'Ο', P: 'Ρ', T: 'Τ', Y: 'Υ', X: 'Χ',
-  C: 'Ϲ', S: 'Σ', D: 'Δ', L: 'Λ', G: 'Γ', F: 'Φ', R: 'Ρ', U: 'Υ', V: 'Ν', W: 'Ω', J: 'Ϳ',
-  a: 'α', b: 'β', d: 'δ', e: 'ε', i: 'ι', k: 'κ', l: 'λ', m: 'μ', n: 'η', o: 'ο', p: 'ρ', r: 'ρ', s: 'σ', t: 'τ', u: 'υ', v: 'ν', w: 'ω', x: 'χ', y: 'γ', z: 'ζ', c: 'ϲ', f: 'φ', g: 'γ', h: 'η', j: 'ϳ',
+  A: 'Λ', B: 'Ξ', C: 'Σ', D: 'Δ', E: 'Ξ', F: 'Φ', G: 'Γ', H: 'Π', I: 'Ψ', J: 'Γ', K: 'Ψ', L: 'Λ', M: 'Ω',
+  N: 'Π', O: 'Θ', P: 'Φ', Q: 'Θ', R: 'Γ', S: 'Σ', T: 'Ψ', U: 'Ω', V: 'Λ', W: 'Ω', X: 'Ξ', Y: 'Ψ', Z: 'Ξ',
+  a: 'α', b: 'β', c: 'ς', d: 'δ', e: 'ε', f: 'φ', g: 'ξ', h: 'η', i: 'θ', j: 'ζ', k: 'λ', l: 'λ', m: 'μ',
+  n: 'η', o: 'θ', p: 'π', q: 'φ', r: 'ζ', s: 'σ', t: 'ψ', u: 'μ', v: 'ω', w: 'ω', x: 'ξ', y: 'ψ', z: 'ζ',
 };
-const RAND_L = 'αβγδεζηθκλμνξπρστφχψω';
+// Greek letters that look like Latin ones: never used for a stand-in or a scramble.
+export const LATINISH = 'ΑΒΕΖΗΙΚΜΝΟΡΤΥΧϹϳͿοικνρτυχγ';
+const RAND_L = 'αβδεζηθλμξπσφψω';
 const RAND_U = 'ΓΔΘΛΞΠΣΦΨΩ';
 export const isLetter = (c) => /[A-Za-z]/.test(c);
 export const upperOf = (c) => c === c.toUpperCase();

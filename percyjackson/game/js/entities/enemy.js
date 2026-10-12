@@ -572,7 +572,20 @@ export class Enemy {
       if (near) this.faceTo(near.pos, dt, 2);
     }
     if (this.spawnT > 0) move.set(0, 0, 0);
+    const px = this.pos.x, pz = this.pos.z;
     this.moveBody(dt, move);
+    // walked into a wall, a ledge, a prop or someone: turn away (or stop for a moment) rather than keep pushing
+    if (move.lengthSq() > 0.01 && dt > 0 && Math.hypot(this.pos.x - px, this.pos.z - pz) / dt < 0.2) {
+      this.mistBlockT = (this.mistBlockT ?? 0) + dt;
+      if (this.mistBlockT > 0.35 && !(this.recoilT > 0)) {
+        this.mistBlockT = 0;
+        if (this.wander?.lengthSq() > 0) { const a = Math.PI + (Math.random() - 0.5) * Math.PI * 0.5, c = Math.cos(a), s = Math.sin(a);   // (back the way they came, more or less)
+          this.wander.set(this.wander.x * c - this.wander.z * s, 0, this.wander.x * s + this.wander.z * c); }
+        this.mistBlocks = (this.mistBlocks ?? 0) + 1;
+        if (this.mistBlocks >= 2 || Math.random() < 0.35) { this.wander = new THREE.Vector3(); this.mistBlocks = 0; }   // (hemmed in: just stand a while)
+        this.wanderT = 1.5 + Math.random() * 2;
+      }
+    } else { this.mistBlockT = 0; if (move.lengthSq() > 0.01) this.mistBlocks = 0; }
     this.rig.swap(null);
     this.animate(dt);
     // a real mortal under True Sight: a soft, calm outline (nothing to fight here)

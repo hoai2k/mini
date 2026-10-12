@@ -40,6 +40,8 @@ export class LiveSign {
     this.paint(this.ctx, str, this.text, this);
     this.texture.needsUpdate = true;
   }
+  // back to all Greek letters (a cutscene's bus starts unread, whatever happened before)
+  reset() { this.state = greekOn() ? 'greek' : 'english'; this.t = 0; this.seen = 0; this.draw(this.state === 'greek' ? this.greek : this.text); }
   // settle into English now
   read() { if (this.state === 'greek') { this.state = 'settling'; this.t = 0; } }
   get english() { return this.state === 'english'; }
