@@ -218,3 +218,16 @@ test('tries: stars and points for the clean run, none for a skip', () => {
   assert.equal(pointsForTry(8, 3), pointsForTry(8, 9));
   assert.ok(pointsForTry(8, 1, 4) > pointsForTry(8, 1, 0), 'a streak adds to a first-try finish');
 });
+
+test('with the first note marked, wrong keys before it are free', () => {
+  const r = createRound(parseNotes('C4 D4 E4'));
+  assert.equal(press(r, 65, { freeFirst: true }), 'wrong');
+  assert.equal(press(r, 61, { freeFirst: true }), 'wrong');
+  assert.equal(r.mistakes, 0, 'not counted before the first note');
+  assert.equal(press(r, 60, { freeFirst: true }), 'correct');
+  assert.equal(press(r, 63, { freeFirst: true }), 'wrong');
+  assert.equal(r.mistakes, 1, 'counted after it');
+  const strict = createRound(parseNotes('C4 D4'));
+  press(strict, 65);
+  assert.equal(strict.mistakes, 1, 'without the marker, every wrong key counts');
+});
