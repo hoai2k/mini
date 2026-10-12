@@ -22,7 +22,7 @@ MAP = ROOT / 'game' / 'workbench' / 'sources.json'
 W, H = 2000, 1333   # the boxes below are measured on a 2000 × 1333 view of each sheet
 
 SHEETS = ['vox-percy', 'vox-annabeth', 'vox-grover', 'vox-tyson', 'vox-clarisse', 'vox-thalia', 'vox-nico',
-          'vox-npcs', 'vox-enemies', 'vox-bosses-1', 'vox-bosses-2']
+          'vox-npcs', 'vox-enemies', 'vox-bosses-1', 'vox-bosses-2', 'vox-manhattan']
 
 # model key (group:id) -> (sheet, box x0, y0, x1, y1 or None for the whole sheet, caption)
 SOURCES = {
@@ -47,6 +47,7 @@ SOURCES = {
     'bosses:cerberus': ('vox-bosses-1', (770, 665, 1450, 1265), 'Cerberus'),
     'bosses:ares': ('vox-bosses-1', (1390, 660, 1995, 1215), 'Ares'),
     'bosses:luke': ('vox-npcs', (1590, 120, 1995, 625), 'Luke'),
+    'monsters:rat': ('vox-manhattan', (20, 1020, 1320, 1333), 'Sewer rats'),
     'mortals:teacher': ('vox-npcs', (1040, 740, 1450, 1255), 'Mrs. Dodds'),
 }
 

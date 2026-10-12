@@ -42,6 +42,29 @@ in [music-requests.md](music-requests.md). Delivered tracks live in
 > stab, a hint of a lyre motif underneath as if something ancient is
 > watching. Playful, a little mischievous, never scary. Loopable.
 
+### Covering the rest of Book 1
+
+Two tracks would give every remaining place music that really fits:
+
+**`road-west` — ✓ delivered · The Road West: the quest across America** *(loop, 108 BPM)*
+Plays in chapters 6, 7, 9 and 11 (the Arch, Waterland, the desert, the
+beach) and the bus-ride cutscene.
+> Upbeat road-trip quest music for three young heroes crossing America on a
+> mythic mission, instrumental. Strummed acoustic guitar and bouzouki over a
+> driving drum groove, a soaring fiddle and lyre melody, warm strings, a
+> hint of twangy western guitar, open-sky horns on the chorus; adventurous,
+> sunny with an edge of danger, wide horizons. Loopable, steady energy.
+
+**`otherworld` — ✓ delivered · Between the worlds** *(loop, 80 BPM)*
+Plays in chapters 8, 10 and 12 (the Lotus Casino, the Underworld, Olympus)
+and the storm and Big House cutscenes.
+> Hypnotic, majestic and uncanny music for places outside the mortal world,
+> instrumental. A slow pulsing harp and celesta ostinato, a deep sub-bass
+> drone, a wordless choir that swells from hushed to radiant, distant bells,
+> a lyre melody in a Phrygian mode that turns briefly major and golden;
+> dreamlike, awe-filled, a little dangerous, timeless. Loopable, no big
+> climax.
+
 ### Book 1 chapters
 
 **`museum` — ✓ delivered · Ch 1, The Pre-Algebra Teacher (thick Mist)** *(loop, 84 BPM)*
