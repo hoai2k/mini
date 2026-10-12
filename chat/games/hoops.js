@@ -85,6 +85,13 @@ function newBall(from, v, hoop) {
   };
 }
 
+// Whether a ball draws behind the front of the rim and net: on its way down
+// at the hoop (it drops through or behind the ring), but never on the way up,
+// and not once it has bounced well back towards the player.
+function behindRim(b, hoop) {
+  return b.vy < 0 && b.z > hoop.z - RIM_R - BALL_R - 0.3;
+}
+
 // Advances a ball by one fixed step. Returns 'rim', 'board', 'score' or null.
 function stepBall(b) {
   let event = null;
@@ -623,8 +630,8 @@ export default {
       const mine = ball || (waiting ? { ...held, vy: 0, spin: 0 } : null);
       if (mine) all.push({ b: mine, alpha: 1, tint: null, name: null, lift: grab ? 1.06 : 1 });
       all.sort((a, c) => c.b.z - a.b.z);
-      // Balls behind the rim's front edge draw before the front of the hoop.
-      const inside = e => e.b.z > hoop.z - RIM_R - BALL_R && e.b.y < hoop.y + BALL_R * 2 && e.b.vy < 0;
+      // Balls coming down at the hoop draw before the front of the rim and net.
+      const inside = e => behindRim(e.b, hoop);
       for (const e of all.filter(inside)) drawBall(e.b, e.alpha, e.tint);
       drawHoop(true);
       for (const e of all.filter(e => !inside(e))) {
@@ -744,4 +751,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _physics = { throwVelocity, idealVy, newBall, stepBall, SPOTS, REST, U0, FORWARD };
+export const _physics = { throwVelocity, idealVy, newBall, stepBall, behindRim, SPOTS, REST, U0, FORWARD };

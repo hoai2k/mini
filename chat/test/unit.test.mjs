@@ -157,3 +157,25 @@ test('Go Fish deals thirteen creatures, four of each, and books sets of four', a
   assert.deepEqual(t.hand, [1, 5, 1]);
   assert.deepEqual(takeBooks([2, 2, 2]).books, []);
 });
+
+test('Hoops: the ball is in front of the rim going up and behind it coming down', () => {
+  const { throwVelocity, newBall, stepBall, behindRim, SPOTS, REST, U0 } = hoops;
+  const hoop = SPOTS[0];
+  let fallingAtHoop = 0;
+  for (const k of [0.9, 1, 1.1, 1.25]) {
+    const b = newBall(REST, throwVelocity(REST, U0 * k, hoop.x, hoop), hoop);
+    for (let i = 0; i < 2000 && !b.done; i++) {
+      stepBall(b);
+      if (b.vy > 0) assert.equal(behindRim(b, hoop), false, `rising ball in front (k ${k})`);
+      // Coming down through rim height near the hoop: behind the front rim.
+      if (b.vy < 0 && Math.abs(b.y - hoop.y) < 0.3 && b.z > hoop.z - 0.4) {
+        assert.equal(behindRim(b, hoop), true, `falling ball at the rim is behind (k ${k})`);
+        fallingAtHoop++;
+      }
+      if (b.vy < 0 && b.y < hoop.y - 1) break;
+    }
+  }
+  assert.ok(fallingAtHoop > 10, 'shots came down past the rim');
+  // A ball that bounced well back towards the player stays in front.
+  assert.equal(behindRim({ vy: -2, z: hoop.z - 1.2 }, hoop), false);
+});
