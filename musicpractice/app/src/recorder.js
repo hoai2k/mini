@@ -56,8 +56,9 @@ export class Recorder extends EventTarget {
     this.freedOnPurpose = false;
   }
 
-  configure({ silenceSec, sensitivity, startOn }) {
+  configure({ silenceSec, sensitivity, startOn, autoPlay = true }) {
     this.detector.configure({ silenceSec, sensitivity, mode: startOn, maxSec: 600 });
+    this.autoPlayback = autoPlay;
   }
 
   set(state) {
@@ -354,9 +355,13 @@ export class Recorder extends EventTarget {
         this.set('recording');
       } else if (event?.type === 'end') {
         this.pending = new Float32Array(0);
-        this.finish(true);
-        // A 'take' listener may have started playback; otherwise listen again.
-        if (this.state === 'recording') this.listen();
+        const emitted = this.finish(true);
+        // A take that will play back goes straight to 'playing' (no moment of
+        // listening while it is saved); otherwise listen again.
+        if (this.state === 'recording') {
+          if (emitted && this.autoPlayback) this.hold();
+          else this.listen();
+        }
         return;
       }
     }
@@ -374,7 +379,9 @@ export class Recorder extends EventTarget {
     d.reset();
     if (samples.length > this.ctx.sampleRate * 0.25) {
       this.dispatchEvent(new CustomEvent('take', { detail: { samples, sampleRate: this.ctx.sampleRate, playBack } }));
+      return true;
     }
+    return false;
   }
 
   /** The take is being played back: ignore the mic until listen(). */
