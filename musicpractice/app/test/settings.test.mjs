@@ -14,13 +14,14 @@ test('defaults: 120 BPM in 4/4 with a strong first beat', () => {
   assert.equal(s.meter, '4/4');
   assert.equal(s.accent, true);
   assert.equal(s.silenceSec, 3);
+  assert.equal(s.recordDuringPlayback, false);
 });
 
 test('settings survive a save and load', () => {
   const store = memoryStorage();
-  save({ ...DEFAULTS, bpm: 72, meter: '6/8', accent: false, silenceSec: 4.5, startOn: 'any' }, store);
+  save({ ...DEFAULTS, bpm: 72, meter: '6/8', accent: false, silenceSec: 4.5, startOn: 'any', recordDuringPlayback: true }, store);
   const s = load(store);
-  assert.deepEqual([s.bpm, s.meter, s.accent, s.silenceSec, s.startOn], [72, '6/8', false, 4.5, 'any']);
+  assert.deepEqual([s.bpm, s.meter, s.accent, s.silenceSec, s.startOn, s.recordDuringPlayback], [72, '6/8', false, 4.5, 'any', true]);
 });
 
 test('bad or damaged values fall back safely', () => {

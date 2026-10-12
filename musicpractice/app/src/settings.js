@@ -38,6 +38,7 @@ export const DEFAULTS = Object.freeze({
   sensitivity: 'medium',
   startOn: 'music',
   autoPlay: true,
+  recordDuringPlayback: false,
 });
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -62,6 +63,7 @@ export function sanitize(raw) {
     sensitivity: oneOf(s.sensitivity, ['low', 'medium', 'high'], DEFAULTS.sensitivity),
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),
     autoPlay: typeof s.autoPlay === 'boolean' ? s.autoPlay : DEFAULTS.autoPlay,
+    recordDuringPlayback: typeof s.recordDuringPlayback === 'boolean' ? s.recordDuringPlayback : DEFAULTS.recordDuringPlayback,
   };
 }
 

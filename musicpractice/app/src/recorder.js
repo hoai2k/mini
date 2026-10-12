@@ -44,11 +44,68 @@ export class Recorder extends EventTarget {
   /** Open the microphone and start listening. Throws if access is refused. */
   async on() {
     if (this.state !== 'off') return;
+    await this.openMic();
+    this.listen();
+  }
+
+  /** Close the microphone. A take in progress is kept (without playback). */
+  off() {
+    if (this.state === 'recording') this.finish(false);
+    this.closeMic(); // also cancels a mic that is still opening
+    this.set('off');
+  }
+
+  /**
+   * Close the microphone but stay on (while a take plays back), so the
+   * phone leaves its play-and-record mode and plays at full volume.
+   */
+  release() {
+    if (this.state === 'off') return;
+    if (this.state === 'recording') this.finish(false);
+    this.closeMic();
+  }
+
+  /** Reopen the microphone after release() and listen again. */
+  async restore() {
+    if (this.state === 'off') return;
+    if (!this.graph) {
+      try {
+        await this.openMic();
+      } catch (err) {
+        this.set('off');
+        throw err;
+      }
+    }
+    if (this.state !== 'off') this.listen();
+  }
+
+  get micOpen() {
+    return !!this.graph;
+  }
+
+  /**
+   * Echo cancellation keeps a take being played from being heard as playing,
+   * but it also dulls the recording, so it is only used while recording
+   * during playback is allowed. Takes effect the next time the mic opens.
+   */
+  set echoCancel(on) {
+    this.echo = !!on;
+  }
+
+  async openMic() {
+    if (this.graph) return;
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    const ticket = (this.ticket = (this.ticket || 0) + 1);
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: !!this.echo, noiseSuppression: false, autoGainControl: false },
     });
-    const src = this.ctx.createMediaStreamSource(this.stream);
+    // Turned off (or closed again) while the browser was opening it.
+    if (ticket !== this.ticket) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    this.stream = stream;
+    const src = this.ctx.createMediaStreamSource(stream);
     const sink = this.ctx.createGain();
     sink.gain.value = 0;
     sink.connect(this.ctx.destination);
@@ -66,23 +123,20 @@ export class Recorder extends EventTarget {
     }
     src.connect(node).connect(sink);
     this.graph = { src, node, sink };
-    this.listen();
   }
 
-  /** Close the microphone. A take in progress is kept (without playback). */
-  off() {
-    if (this.state === 'off') return;
-    if (this.state === 'recording') this.finish(false);
+  closeMic() {
+    this.ticket = (this.ticket || 0) + 1;
     if (this.graph) {
       this.graph.src.disconnect();
       this.graph.node.disconnect();
       this.graph.sink.disconnect();
       if (this.graph.node.port) this.graph.node.port.onmessage = null;
+      else this.graph.node.onaudioprocess = null;
       this.graph = null;
     }
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = null;
-    this.set('off');
   }
 
   /** Stop paying attention to the mic for a while (the takes list is in use). */
@@ -94,7 +148,7 @@ export class Recorder extends EventTarget {
 
   /** Back to waiting for the first note (after playback or a pause). */
   listen() {
-    if (this.state === 'off' && !this.graph) return;
+    if (!this.graph) return;
     this.detector.reset();
     this.preroll = [];
     this.chunks = [];
