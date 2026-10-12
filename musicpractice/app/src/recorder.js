@@ -91,14 +91,10 @@ export class Recorder extends EventTarget {
    */
   release() {
     if (this.state === 'off') return false;
+    const had = !!this.stream;
     if (this.state === 'recording') this.finish(false);
-    if (freesMicForPlayback()) {
-      this.closeMic(true);
-      this.freedOnPurpose = true;
-      return true;
-    }
     this.closeMic();
-    return false;
+    return had && !this.stream;
   }
 
   /** Which mic to use: 'auto' (built-in preferred) or a deviceId. Reopens it if open. */
@@ -296,14 +292,23 @@ export class Recorder extends EventTarget {
       else this.graph.node.onaudioprocess = null;
       this.graph = null;
     }
-    if (dead) this.dropStream();
-    else this.stream?.getTracks().forEach((t) => { t.enabled = false; });
+    if (dead) {
+      this.dropStream();
+    } else if (this.stream && freesMicForPlayback()) {
+      // Allowed in advance: close it, so the phone leaves call mode (full
+      // volume, Bluetooth speakers); it comes back without a prompt.
+      this.dropStream();
+      this.freedOnPurpose = true;
+    } else {
+      this.stream?.getTracks().forEach((t) => { t.enabled = false; });
+    }
   }
 
   /** Stop paying attention to the mic for a while (the takes list is in use). */
   pause() {
     if (this.state === 'off' || this.state === 'paused') return;
     if (this.state === 'recording') this.finish(false);
+    this.closeMic(); // closed, or held switched off; listen() brings it back
     this.set('paused');
   }
 

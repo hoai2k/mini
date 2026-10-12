@@ -208,10 +208,15 @@ asks again unless the site's microphone is set to Allow. So
   Android once allowed), or the first mic request was granted at once
   (under 0.6 s, so no prompt was shown: how a Safari site set to Allow
   shows, since Safari may not report that setting through the permissions
-  API): the mic is
-  freed for each playback, the take waits up to 0.7 s for the phone to move
-  sound back to its normal output (`outputSettled`), plays (on a Bluetooth
-  speaker if one is connected), and the mic is taken back without a prompt.
+  API). Then the mic is open **only while listening or recording**: it is
+  closed for each playback (automatic or from the list), when Record is off,
+  and when the recorder screen is left (so the metronome plays outside call
+  mode too), and taken back without a prompt when listening starts again.
+  Before a take plays, the app waits for the phone to leave call mode (up to
+  1 s on iPhone, 0.7 s elsewhere; `outputSettled`). It doesn't close the mic
+  when the app loses focus: on a computer you may be reading music in
+  another tab while recording, and phones cut the mic in the background
+  anyway (see Leaving the app and coming back).
 - **Permission not saved**: the mic is asked for once and held for the
   visit, its track switched off when not listening, so the loop never
   stops for a prompt; sound stays on the phone's speaker. Audio check says
@@ -247,6 +252,26 @@ permission and how long the first request took) and the **last take
 played**: whether the mic was freed, how long playback waited, Safari's
 audio mode at that moment and which player was used, so a take that still
 misses a Bluetooth speaker can be traced.
+
+**What others found** (researched October 2026): on iOS, once any page or
+app has the mic open the audio session is "play and record", in which
+Bluetooth A2DP output isn't available (Apple engineers on the developer
+forums call this expected), so sound goes to the phone or a headset's
+call-quality mode; web pages can't choose the output. iOS stays in that
+mode for several hundred ms after the mic is closed. Developers shipping
+voice apps in Safari settle on the same pattern used here: ask for the mic
+once for permission, open it only while listening, close it before playing.
+Safari asks again for the mic once per page (and after a timeout) unless the
+site is set to Allow. `navigator.audioSession` (iOS 17+) sets the session
+type; `playback` also stops the silent switch muting Web Audio. Sources:
+[Sam Eddy, iOS Safari audio sessions](https://samueleddy.com/writing/ios-safari-audio-sessions/),
+[Apple forums: Bluetooth with PlayAndRecord](https://developer.apple.com/forums/thread/4340),
+[Apple forums: A2DP as output](https://developer.apple.com/forums/thread/5787),
+[MDN: AudioSession](https://developer.mozilla.org/en-US/docs/Web/API/AudioSession),
+[W3C Audio Session](https://www.w3.org/TR/audio-session/),
+[WebKit bug 215884](https://bugs.webkit.org/show_bug.cgi?id=215884),
+[W3C WebRTC list: prompt once per document](https://lists.w3.org/Archives/Public/public-webrtc-logs/2019Oct/0176.html),
+[Huddee: the Web Audio mute-switch fix](https://huddee.com/blog/apple-quietly-fixed-web-audio-bug).
 
 **What can be detected on iPhone**: no speakers are listed at all, so a
 Bluetooth speaker without its own mic can't be seen, and the page can't

@@ -3,7 +3,7 @@
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
 import { openAudioCheck } from './audiocheck.js';
-import { diag } from './devices.js';
+import { diag, isWebKit } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
 
@@ -495,12 +495,13 @@ let playToken = 0;
 async function play(take, { auto = false } = {}) {
   stopPlayback({ resume: false });
   const token = ++playToken;
-  let freed = false;
+  const hadMic = !!recorder?.holdsMic;
   if (recorder && recorder.state !== 'off') {
     if (!auto) recorder.pause();
     else if (!recordDuringPlayback()) recorder.hold();
-    if (!recordDuringPlayback() && recorder.micOpen) freed = recorder.release();
+    if (!recordDuringPlayback() && recorder.micOpen) recorder.release();
   }
+  const freed = hadMic && !recorder?.holdsMic; // the mic was just closed
   // Playback mode only when no mic is held: switching while Safari holds one
   // could cut it off and interrupt the record-play-record loop.
   if (!recorder?.holdsMic) setSession('playback');
@@ -511,7 +512,8 @@ async function play(take, { auto = false } = {}) {
   // With the mic freed, give the phone a moment to move sound back to its
   // normal output (a Bluetooth speaker) before playing.
   const waitStart = performance.now();
-  if (freed) await outputSettled();
+  // iOS stays in call mode for several hundred ms after the mic closes.
+  if (freed) await outputSettled(isWebKit() ? 1000 : 700);
   if (token !== playToken) return; // stopped or replaced while waiting
   // What happened, for Audio check (to tell why a take didn't reach Bluetooth).
   const record = {
