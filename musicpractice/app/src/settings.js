@@ -25,10 +25,17 @@ export const SOUNDS = [
   { id: 'beep', label: 'Beep' },
 ];
 
+/** Looks for the whole app; more can be added (styles.css, standins.js, image requests). */
+export const THEMES = [
+  { id: 'deco', label: 'Art Deco', color: '#0b0c0f' },
+  { id: 'straight', label: 'Straight', color: '#1d1510' },
+];
+
 export const BPM_MIN = 40;
 export const BPM_MAX = 500;
 
 export const DEFAULTS = Object.freeze({
+  theme: 'deco',
   bpm: 120,
   meter: '4/4',
   accent: true,
@@ -54,6 +61,7 @@ export function clampBpm(v) {
 export function sanitize(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
   return {
+    theme: oneOf(s.theme, THEMES.map((t) => t.id), DEFAULTS.theme),
     bpm: clampBpm(num(s.bpm, DEFAULTS.bpm)),
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
