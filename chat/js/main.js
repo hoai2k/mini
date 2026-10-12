@@ -367,7 +367,7 @@ async function start() {
       const media = t.media;
       const w = media.videoWidth || media.width, h = media.videoHeight || media.height;
       if (!w || !h) return null;
-      return { rect: t.el.getBoundingClientRect(), w, h };
+      return { rect: t.el.getBoundingClientRect(), w, h, fit: id === me.id || t.el.classList.contains('pip') ? 'cover' : 'contain' };
     },
     face: id => {
       if (id === me.id) {

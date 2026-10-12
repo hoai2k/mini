@@ -67,7 +67,10 @@ so the picture stays clear:
   This is a session-only control, not a saved preference.
 - **Videos:** names show only for a moment (when someone arrives, renames or
   the videos swap); connection messages show while connecting and then go.
-  Your friend fills the screen and everyone else floats over it. Tap a small
+  Your friend fills the screen and everyone else floats over it. The main
+  video shows a friend's whole picture in its own shape, letterboxed (a friend
+  holding their phone sideways shows wide on your upright one); small videos
+  all keep one shape and crop to it, and your own view always fills. Tap a small
   video to make it primary (or focus it and press Enter/Space); drag each small video
   independently to position it. This also works with three or more people.
   A quiet **Copy** prompt names the effect used by the person in the main video.
