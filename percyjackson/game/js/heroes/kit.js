@@ -8,6 +8,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, sin, length, smoothstep, atan, mix } from 'three/tsl';
 import { BASE_COMBO } from '../combat.js';
 import { U } from '../gfx/materials.js';
+import { shoot, ammoInfo } from '../resources.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
@@ -177,8 +178,12 @@ export class Kit {
         s.cdLeft = s.chargesLeft > 0 ? s.gate : s.cd * this.cdr - (s.recharge ?? 0);
       } else s.cdLeft = Math.max(0, s.cdLeft - dt);
       const pressed = s.hold ? inp.held[k] : inp.pressed[k];
+      // the basic ranged attack shoots from the quiver (resources.js); abilities don't
+      const quiver = k === 'ranged' ? this.p.quiver : null;
+      if (pressed && quiver && quiver.ammo <= 0 && s.cdLeft <= 0) { this.dryFire(); continue; }
       if (pressed && s.cdLeft <= 0 && this.p.ce >= (s.ce ?? 0) && this.canCast(s)) {
         if (s.use() !== false) {
+          if (quiver) shoot(quiver);
           if (s.maxCharges) { s.chargesLeft--; s.gate = s.gateTime ?? 0.3; } else s.cdLeft = s.cd * this.cdr;
           this.p.ce -= s.ce ?? 0;
         }
@@ -190,6 +195,18 @@ export class Kit {
       this.game.startDomain(this.p, this.domain);
     }
     this.tick?.(dt, inp);
+  }
+  // Ranged with an empty quiver: a dry click, and (once) a word on how it refills.
+  dryFire() {
+    const g = this.game, p = this.p;
+    if ((this.dryT ?? -9) > g.time - 0.25) return;
+    this.dryT = g.time;
+    if (!p.ai && !p.remote) {
+      g.audio?.tone?.({ freq: 1400, to: 900, dur: 0.04, gain: 0.07, type: 'square', filter: 2400 });
+      g.audio?.tone?.({ freq: 520, to: 380, dur: 0.05, gain: 0.05, type: 'triangle' });
+      if (!Kit.dryHinted) { Kit.dryHinted = true; g.toast?.(ammoInfo(p.hero).out); }
+      p.dryFlashT = 0.35;   // the HUD's ammo count flashes
+    }
   }
   canCast() { const a = this.p.action; return this.p.dodgeT <= 0 && !(a && a.type === 'cast' && a.lock); }
   cast(dur = 0.35, both = false, extra = {}) { this.p.action = { type: 'cast', dur, elapsed: 0, t: 0, both, moveScale: 0.35, ...extra }; this.p.facing = Math.atan2(this.p.aimDir.x, this.p.aimDir.z); }

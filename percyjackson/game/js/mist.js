@@ -1,6 +1,6 @@
 // The Mist and True Sight. The Mist hides the gods' world from mortals: in a
 // chapter with Mist, the level looks ordinary and some monsters walk around
-// disguised as mortals. A hero can see through it (LT / V): a ring spreads
+// disguised as mortals. A hero can see through it (right stick click / V): a ring spreads
 // out from them and repaints the world (see sightLook in gfx/materials.js),
 // disguised monsters inside the ring show their true form, and walls made of
 // Mist (B.mist_wall) dissolve to reveal hidden places. True Sight drains a

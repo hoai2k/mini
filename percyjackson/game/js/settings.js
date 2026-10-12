@@ -7,6 +7,7 @@ const DEFAULTS = {
   battleSense: true,   // a perfect dodge slows time for the team
   greekText: true,     // titles and signs first appear as Greek letters, then settle into English (narration is always plain English)
   vibration: true,     // controller rumble
+  rightStick: 'dodge', // controller right stick: 'dodge' (flick to roll, as in Minecraft Dungeons II) or 'aim'
   reduceMotion: false, // also honours the system "reduce motion" preference
 };
 export const settings = { ...DEFAULTS };

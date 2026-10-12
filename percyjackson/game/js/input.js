@@ -2,19 +2,12 @@
 // player is bound to one device; per-frame state gives a move vector, an aim
 // (mouse point, right stick or auto-aim) and edge-triggered buttons.
 import { isMobile } from './util.js';
+import { padFrame, keyFrame } from './padmap.js';
+import { settings } from './settings.js';
 
-const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap', 'jump'];
-const KEYMAP = {
-  Space: 'jump', Digit1: 't1', Digit2: 't2', Digit3: 't3', KeyF: 'domain', KeyE: 'interact', KeyQ: 'heal',
-  KeyM: 'map', Tab: 'swap', KeyV: 'sight', Escape: 'pause', KeyP: 'pause', KeyZ: 'rotL', KeyC: 'rotR', ShiftLeft: 'dodge', ShiftRight: 'dodge', KeyR: 'art1', KeyT: 'art2', KeyI: 'inv',
-};
-// Standard (Xbox) gamepad mapping. A jumps, X is melee, and X interacts
-// instead while an interact prompt is showing for that controller (poll()).
-// LB and RB are abilities 1 and 2; pressed together they are the godly power
-// (resolved in poll()). LT is True Sight. View opens the inventory, clicking
-// the right stick (R3) the map.
-const PADMAP = { 0: 'jump', 1: 'dodge', 2: 'attack', 3: 't3', 6: 'sight', 7: 'ranged', 8: 'inv', 9: 'pause', 11: 'map', 12: 'heal', 13: 'swap', 14: 'art1', 15: 'art2' };
-const CHORD = 0.12;   // seconds LB/RB wait for the other shoulder before firing alone
+const ACTIONS = ['attack', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'interact', 'heal', 'map', 'pause', 'rotL', 'rotR', 'art1', 'art2', 'inv', 'sight', 'swap', 'jump', 'trail', 'slam', 'root', 'quest'];
+// The keyboard-and-mouse layout is in padmap.js too (keyFrame).
+// The Xbox controller layout (after Minecraft Dungeons II) is in padmap.js.
 
 function blank() { const o = {}; for (const a of ACTIONS) o[a] = false; return o; }
 
@@ -22,7 +15,7 @@ export class Input {
   constructor(canvas) {
     this.canvas = canvas;
     this.keys = new Set();
-    this.mouse = { x: 0, y: 0, ndcX: 0, ndcY: 0, left: false, right: false, moved: false };
+    this.mouse = { x: 0, y: 0, ndcX: 0, ndcY: 0, left: false, right: false, moved: false, down: new Set() };
     this.wheel = 0;
     this.pinch = 0;
     this.touch = { stick: null, stickVec: { x: 0, y: 0 }, buttons: blank(), active: isMobile };
@@ -40,12 +33,13 @@ export class Input {
       this.keys.add(e.code); this.lastDevice = 'kbm'; this.kbmActivity = performance.now();
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('blur', () => { this.keys.clear(); this.mouse.left = this.mouse.right = false; });
+    window.addEventListener('blur', () => { this.keys.clear(); this.mouse.left = this.mouse.right = false; this.mouse.down.clear(); });
     const c = this.canvas;
     c.addEventListener('mousemove', (e) => this.setMouse(e));
     window.addEventListener('mousemove', (e) => this.setMouse(e));
-    c.addEventListener('mousedown', (e) => { this.setMouse(e); if (e.button === 0) this.mouse.left = true; if (e.button === 2) this.mouse.right = true; this.lastDevice = 'kbm'; this.kbmActivity = performance.now(); });
-    window.addEventListener('mouseup', (e) => { if (e.button === 0) this.mouse.left = false; if (e.button === 2) this.mouse.right = false; });
+    c.addEventListener('mousedown', (e) => { this.setMouse(e); if (e.button === 0) this.mouse.left = true; if (e.button === 2) this.mouse.right = true; this.mouse.down.add(e.button); if (e.button === 1 || e.button > 2) e.preventDefault(); this.lastDevice = 'kbm'; this.kbmActivity = performance.now(); });
+    c.addEventListener('auxclick', (e) => e.preventDefault());   // (Mouse 4 / 5 mustn't navigate back or forward)
+    window.addEventListener('mouseup', (e) => { if (e.button === 0) this.mouse.left = false; if (e.button === 2) this.mouse.right = false; this.mouse.down.delete(e.button); if (e.button > 2) e.preventDefault(); });
     c.addEventListener('contextmenu', (e) => e.preventDefault());
     c.addEventListener('wheel', (e) => { e.preventDefault(); this.wheel += Math.sign(e.deltaY) * Math.min(3, Math.abs(e.deltaY) / 60 + 0.5); }, { passive: false });
   }
@@ -71,15 +65,9 @@ export class Input {
   // Poll once per frame.
   poll() {
     // keyboard + mouse
-    const k = this.keys;
-    const kb = blank();
-    for (const code of k) { const a = KEYMAP[code]; if (a) kb[a] = true; }
-    kb.attack = this.mouse.left; kb.ranged = this.mouse.right;
-    let mx = 0, my = 0;
-    if (k.has('KeyA') || k.has('ArrowLeft')) mx -= 1; if (k.has('KeyD') || k.has('ArrowRight')) mx += 1;
-    if (k.has('KeyW') || k.has('ArrowUp')) my += 1; if (k.has('KeyS') || k.has('ArrowDown')) my -= 1;
-    const ml = Math.hypot(mx, my) || 1;
-    this.setState('kbm', { move: { x: mx / ml, y: my / ml }, aimStick: null, mouse: true, held: kb });
+    const kf = keyFrame(this.keys, this.mouse.down, (this.kbSt ??= {}), performance.now() / 1000, { interact: this.nearInteract?.has('kbm') });
+    const kb = blank(); Object.assign(kb, kf.held);
+    this.setState('kbm', { move: kf.move, aimStick: null, mouse: true, held: kb, dodgeToAim: kf.dodgeToAim });
     // gamepads
     const connected = this.pads();
     const connectedIds = new Set(connected.map((p) => 'pad' + p.index));
@@ -92,35 +80,15 @@ export class Input {
     if (this.lastDevice.startsWith('pad') && !connectedIds.has(this.lastDevice)) this.lastDevice = 'kbm';
     for (const p of connected) {
       const id = 'pad' + p.index;
-      const held = blank();
-      p.buttons.forEach((b, i) => { const a = PADMAP[i]; if (a && (b.pressed || b.value > 0.5)) held[a] = true; });
-      this.shoulders(id, held, !!p.buttons[4]?.pressed, !!p.buttons[5]?.pressed);
-      // X interacts while a prompt is up for this controller (set by the game)
-      if (this.nearInteract?.has(id)) { held.interact = held.attack; held.attack = false; }
-      const dz = (x, y) => { const l = Math.hypot(x, y); if (l < 0.2) return { x: 0, y: 0 }; const s = Math.min(1, (l - 0.2) / 0.75) / l; return { x: x * s, y: y * s }; };
-      const move = dz(p.axes[0] || 0, -(p.axes[1] || 0));
-      const aim = dz(p.axes[2] || 0, -(p.axes[3] || 0));
-      held.rotL = false; held.rotR = false;
-      this.setState(id, { move, aimStick: (aim.x || aim.y) ? aim : null, mouse: false, held });
+      const st = (this.padSt ??= {})[id] ??= {};
+      const f = padFrame(p, st, performance.now() / 1000, { interact: this.nearInteract?.has(id), stick: settings.rightStick === 'aim' || this.aimOnly ? 'aim' : 'dodge' });
+      const held = blank(); Object.assign(held, f.held);
+      const move = f.move;
+      this.setState(id, { move, aimStick: f.aimStick, dodgeDir: f.dodgeDir, mouse: false, held });
       if (Object.values(held).some(Boolean) || move.x || move.y) this.lastDevice = id;
     }
     // touch
     this.setState('touch', { move: { ...this.touch.stickVec }, aimStick: null, mouse: false, held: { ...this.touch.buttons }, auto: true });
-  }
-  // LB/RB: a shoulder pressed alone becomes its ability after a short wait;
-  // both together within the wait become the godly power.
-  shoulders(id, held, lb, rb) {
-    const c = (this.chord ??= {})[id] ??= { t: 0, mode: null };
-    const now = performance.now() / 1000;
-    if (!lb && !rb) { c.mode = null; c.t = 0; return; }
-    if (!c.mode) { c.mode = 'wait'; c.t = now; }
-    if (c.mode === 'wait') {
-      if (lb && rb) c.mode = 'power';
-      else if (now - c.t >= CHORD) c.mode = lb ? 't1' : 't2';
-    }
-    if (c.mode === 'power') held.domain = true;
-    else if (c.mode === 't1') held.t1 = lb;
-    else if (c.mode === 't2') held.t2 = rb;
   }
   // AI companions drive their hero through a virtual device with the same
   // shape as a controller: { move (world-space via worldMove), held }.

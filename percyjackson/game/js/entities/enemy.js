@@ -54,6 +54,7 @@ import { toast } from '../ui/ui.js';
 import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
 import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
+import { monsterDamage } from '../resources.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
 let bonesHint = false;
@@ -86,7 +87,7 @@ export class Enemy {
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = d.radius; this.height = d.height;
     const scale = 1 + (level - 1) * 0.35;
-    this.maxHp = d.hp * scale; this.dmg = d.dmg * (1 + (level - 1) * (game.biome?.dmgStep ?? 0.25));   // (per difficulty step; the biome can set its own)
+    this.maxHp = d.hp * scale; this.dmg = monsterDamage(d.dmg, d.tier, level, game.biome?.dmgStep ?? 0.25);   // (scaled by tier, resources.js; per difficulty step, which the biome can set)
     this.speed = d.speed * (0.92 + Math.random() * 0.16);
     this.armor = d.armor ?? 0;
     this.elite = elite;
@@ -826,7 +827,7 @@ export class Enemy {
   hitPlayer(p, dmg, knock) {
     if (p.iframes > 0 || p.dead) return;
     const dealt = p.takeDamage(dmg, this, { knock });
-    if (dealt > 0 && this.def.poison) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / this.def.dmg), this.def.poison.dur, this);
+    if (dealt > 0 && this.def.poison) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / monsterDamage(this.def.dmg, this.def.tier)), this.def.poison.dur, this);   // (poison grows with the difficulty, not the tier's hit scale)
     if (dealt > 0 && this.elite === 'vampiric') { this.hp = Math.min(this.maxHp, this.hp + dealt * 1.5); }
   }
   blink(evade) {

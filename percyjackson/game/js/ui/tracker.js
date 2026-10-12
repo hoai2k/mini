@@ -111,6 +111,9 @@ export class Tracker {
     // the way there, worked out once (a few milliseconds on camp's 116 x 184 columns)
     try { this.field = distanceField(g.world, goal.pos.x, goal.pos.z, goal.radius ?? 1.5); } catch (e) { console.warn('tracker', e); this.field = null; }
   }
+  // Left stick click: show the footprints to the goal for a few seconds, even
+  // where they are normally hidden (the prologue). False when there is no goal.
+  flash(secs = 4) { if (!this.goal) return false; this.flashT = secs; this.pathT = 0; return true; }
   hide() { this.group.visible = false; this.feet.visible = false; this.arrow.classList.add('hidden'); this.pin.classList.add('hidden'); }
   // after a level change the old scene objects went with the world
   reattach() { const g = this.game; if (this.goal) { g.scene.add(this.group); g.scene.add(this.feet); } }
@@ -133,7 +136,8 @@ export class Tracker {
     // footprints along the way
     this.pathT -= dt;
     if (this.pathT <= 0 && this.field) { this.pathT = 0.35; this.path = pathFrom(this.field, lead.pos.x, lead.pos.z, 120); }
-    if (goal.feet === false) this.feet.visible = false; else this.drawFeet(lead, dist, still);
+    this.flashT = Math.max(0, (this.flashT ?? 0) - dt);
+    if (goal.feet === false && !(this.flashT > 0)) this.feet.visible = false; else this.drawFeet(lead, dist, still);
     // screen: a pin over the goal, or an arrow at the edge
     const cam = g.rig.camera;
     tmp.copy(goal.pos).setY(goal.pos.y + 3.2).project(cam);

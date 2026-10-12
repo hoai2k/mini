@@ -92,7 +92,7 @@ export class OpeningFlow {
       this.driveTraffic(movers, people, dt);
       return true;
     });
-    // get on the bus: walk up and press X / E, or just walk into the door
+    // get on the bus: walk up and press A / click, or just walk into the door
     g.interactables.push({ id: 'bus', pos: L.door.clone(), radius: 2.8, label: 'Get on the bus', action: (p) => this.reachBus(p) });
     g.addUpdater(() => {
       if (g.world !== world || g.mode !== 'prologue') return g.world === world;

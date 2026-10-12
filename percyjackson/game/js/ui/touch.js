@@ -64,6 +64,13 @@ export class TouchControls {
   }
   show(on) { this.root.classList.toggle('hidden', !on); document.body.classList.toggle('playing', on); }
   // p: cooldown fraction 0..1 per action
+  // a small count on a button (the quiver's shots on ranged)
+  setCount(a, text) {
+    const b = this.btns[a]; if (!b) return;
+    let c = b.querySelector('.tcnt'); if (!c) { c = document.createElement('i'); c.className = 'tcnt'; b.appendChild(c); }
+    if (c.textContent !== text) c.textContent = text;
+    b.classList.toggle('empty', text === '0');
+  }
   setCooldown(a, frac, ready = false) {
     const b = this.btns[a]; if (!b) return;
     b.firstChild.style.setProperty('--p', (frac * 100).toFixed(0) + '%');

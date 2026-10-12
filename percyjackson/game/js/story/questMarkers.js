@@ -1,7 +1,7 @@
 // Chapters start from places in camp. Each playable chapter has a start
 // marker somewhere fitting (the field-trip bus by the camp road, Thalia's
 // pine on Half-Blood Hill, the edge of the woods…): a column of gold light
-// with the chapter's card floating in it. Walk up and press X / E. The early
+// with the chapter's card floating in it. Walk up and press A / click. The early
 // chapters sit near where you arrive; later ones open up further out as the
 // story goes on. A chapter you can't play yet shows a grey marker that says
 // what to finish first. The Big House chapter map still lists everything.

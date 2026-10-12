@@ -40,7 +40,7 @@ export const CHAPTERS = [
     intro: [
       'Look, I didn’t want to be a half-blood.',
       'On the field trip to the museum, Mrs. Dodds keeps staring at you as if you have done something terrible.',
-      'Something is wrong with her. Hold LT (or V) to see through the Mist.',
+      'Something is wrong with her. Click the right stick (or press V) to see through the Mist.',
     ],
     outro: 'Mrs. Dodds bursts into yellow dust. Nobody else remembers her. “Mrs. Dodds? There is no Mrs. Dodds.”',
   },
@@ -129,7 +129,7 @@ export const CHAPTERS = [
     intro: [
       'The Lotus Hotel and Casino, Las Vegas. A free room, free games, and a green card with unlimited credit. Nobody ever wants to leave.',
       'The bellhops keep offering you lotus flowers. Every one makes you forget a little more, and the days slip by.',
-      'Find the way out before too many days pass. True Sight (LT / V) shows the door the Mist is hiding. Don’t eat the flowers.',
+      'Find the way out before too many days pass. True Sight (right stick click / V) shows the door the Mist is hiding. Don’t eat the flowers.',
     ],
     outro: 'Outside, it is five days later than when you went in. The summer solstice is close. You wave down a taxi with the green card: “Los Angeles. And step on it.”',
   },

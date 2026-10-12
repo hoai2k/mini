@@ -8,15 +8,17 @@ import { demigodText, GREEK } from './greekText.js';
 import { HEROES } from '../heroes/index.js';
 import { settings } from '../settings.js';
 import { isMobile } from '../util.js';
+import { ammoInfo } from '../resources.js';
+import { PAD_LABEL, KEY_LABEL } from '../padmap.js';
 
-const KEYS = { ranged: 'RMB', t1: '1', t2: '2', t3: '3', heal: 'Q', domain: 'F', art1: 'R', art2: 'T' };
-const PADKEYS = { ranged: 'RT', t1: 'LB', t2: 'RB', t3: 'Y', heal: '↑', domain: 'LB+RB', art1: '←', art2: '→' };
+const KEYS = KEY_LABEL;   // the keyboard layout (padmap.js)
+const PADKEYS = PAD_LABEL;   // the Xbox layout (padmap.js)
 const tmp = new THREE.Vector3();
 const EYE = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="currentColor"/><circle cx="16" cy="16" r="2" fill="#17130f"/></svg>';
 const COIN = '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="cg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffe9a0"/><stop offset=".6" stop-color="#e0a93a"/><stop offset="1" stop-color="#8a5a14"/></radialGradient></defs><circle cx="16" cy="16" r="14" fill="url(#cg)" stroke="#6a4410" stroke-width="2"/><circle cx="16" cy="16" r="10" fill="none" stroke="#8a5a14" stroke-width="1.5"/><path d="M11 21V11h5a3.5 3.5 0 0 1 0 7h-5" fill="none" stroke="#6a4410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(1 1) scale(.9)"/></svg>';
 const heroName = (p) => HEROES[p.hero]?.name ?? p.hero;
-const switchKey = (p) => (p?.device?.startsWith('pad') ? 'D-pad ↓' : p?.device === 'touch' ? '' : 'Tab');
-const sightKey = (p) => (p?.device?.startsWith('pad') ? 'LT' : p?.device === 'touch' ? '' : 'V');
+const switchKey = (p) => (p?.device?.startsWith('pad') ? 'D-pad ↓' : p?.device === 'touch' ? '' : 'F');
+const sightKey = (p) => (p?.device?.startsWith('pad') ? 'RS' : p?.device === 'touch' ? '' : 'V');
 
 export class HUD {
   constructor(game) {
@@ -89,7 +91,16 @@ export class HUD {
       row.appendChild(el); els[slot] = { el, cd, cnt };
     };
     const k = p.kit;
-    for (const slot of ['ranged', 't1', 't2', 't3']) if (k?.slots?.[slot]) mk(slot, k.slots[slot]);
+    for (const slot of ['ranged', 't1', 't2', 't3']) {
+      if (!k?.slots?.[slot]) continue;
+      mk(slot, k.slots[slot]);
+      // the quiver: shots left for the basic ranged attack, next to its slot
+      if (slot === 'ranged') {
+        const n = h('b', {}, String(p.ammo ?? ''));
+        const el = h('div', { class: 'ammo', title: 'Quiver: ' + ammoInfo(p.hero).name + ' (refills over time)', role: 'img', 'aria-label': 'Ammo' }, h('span', { class: 'ai' }, ammoInfo(p.hero).icon), n);
+        row.appendChild(el); els.ammo = { el, n, ammo: true };
+      }
+    }
     mk('heal', { name: 'Ambrosia', icon: '🟨' });
     p.artifacts.forEach((a, i) => mk('art' + (i + 1), { name: a.base.name, icon: a.base.icon }));
     if (k?.domain) mk('domain', { name: 'Godly power: ' + k.domain.name, icon: k.domain.icon ?? '⚡' }, true);
@@ -165,14 +176,28 @@ export class HUD {
       const hp = Math.max(0, p.hp / p.maxHp), pw = Math.min(1, (p.ce ?? p.power ?? 0) / (p.maxCe ?? p.maxPower ?? 100));
       if (c.last.hp !== hp) { c.hpI.style.width = (hp * 100).toFixed(1) + '%'; c.hpB.style.width = (hp * 100).toFixed(1) + '%'; c.last.hp = hp; c.hpTxt.textContent = `${Math.ceil(Math.min(p.hp, p.maxHp))} / ${Math.ceil(p.maxHp)}`; c.card.classList.toggle('low', hp < 0.3 && hp > 0); }
       if (c.last.pw !== pw) { c.pwI.style.width = (pw * 100).toFixed(1) + '%'; c.pw.classList.toggle('full', pw >= 1); c.last.pw = pw; }
-      const ex = p.dead ? 'DOWN' : p.downed ? `Revive ${Math.ceil(p.downT)}s` : `🟨 ${p.healCharges}`;
+      const ex = p.dead ? 'DOWN' : p.downed ? `Revive ${Math.ceil(p.downT)}s` : '';
       if (c.last.ex !== ex) { c.extra.textContent = ex; c.last.ex = ex; }
       const bs = bsOn && p.battleSense !== undefined ? Math.max(0, Math.min(1, p.battleSense)) : -1;
       if (c.last.bs !== bs) { c.last.bs = bs; c.bs.classList.toggle('hidden', bs < 0); c.bs.style.setProperty('--m', (bs * 360).toFixed(0) + 'deg'); c.bs.classList.toggle('ready', bs >= 1); }
       for (const slot in c.els) {
         const e = c.els[slot];
+        if (e.ammo) {
+          // the quiver count: amber when low, red and flashing when empty (or a dry click)
+          const a = p.ammo ?? 0, mx = p.ammoMax ?? 1, key = `${a}/${mx}/${p.dryFlashT > 0}`;
+          p.dryFlashT = Math.max(0, (p.dryFlashT ?? 0) - dt);
+          if (e.last !== key) { e.last = key; e.n.textContent = String(a); e.el.classList.toggle('low', a > 0 && a <= mx * 0.25); e.el.classList.toggle('empty', a <= 0); e.el.classList.toggle('dry', p.dryFlashT > 0); }
+          if (p.device === 'touch') g.touch?.setCount?.('ranged', String(a));
+          continue;
+        }
         let frac = 0, ready = true, cnt = '';
-        if (slot === 'heal') { frac = p.healCharges > 0 ? p.healCd / 1.2 : 1; ready = p.healCharges > 0; cnt = String(p.healCharges); }
+        if (slot === 'heal') {
+          // one flask: a radial fill while it refills, a glow when it's ready and you're hurt
+          const f = p.flask ?? { left: 0, max: 1 };
+          frac = f.max > 0 ? f.left / f.max : 0; ready = f.left <= 0;
+          cnt = ready ? '' : String(Math.ceil(f.left));
+          e.el.classList.toggle('want', ready && !p.dead && !p.downed && p.hp < p.maxHp * 0.7);
+        }
         else if (slot.startsWith('art')) { const a = p.artifacts[+slot[3] - 1]; if (!a) continue; frac = a.cdLeft / (a.cd * (1 - p.stats.cdr)); ready = a.cdLeft <= 0; }
         else if (slot === 'domain') { frac = 1 - pw; ready = pw >= 1 && !g.domain; }
         else { const ab = p.kit.slots[slot]; if (!ab) continue; frac = ab.cdLeft / Math.max(0.01, ab.cd * p.kit.cdr); ready = ab.cdLeft <= 0 && (p.ce ?? 0) >= (ab.ce ?? 0); if (ab.maxCharges > 1) cnt = String(ab.chargesLeft ?? ''); }

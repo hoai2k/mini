@@ -84,7 +84,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   and Nico are shown as coming later.
   - The party is always three heroes (four with four players), and the AI
     plays whoever is missing. Alone, you lead two AI companions; two players
-    share one, the third hero, and either can swap into it. D-pad ↓ or Tab
+    share one, the third hero, and either can swap into it. D-pad ↓ or F
     switches (one swap at a time, so two players pressing together never
     fight over a hero). With three or four players there are no companions
     and switching is off. Online, the same rule counts everyone in the room.
@@ -97,12 +97,12 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     only where there's floor to land on).
   - A boss's health grows with the party: 60% more for each extra player,
     35% for each AI companion.
-  - Any player standing at a prompt can use it (X or E), even with another
+  - Any player standing at a prompt can use it (A or left click), even with another
     player nearer to it.
 - **Falling in a boss fight:** if the whole party is down, it comes back
   just inside the arena door after a moment, with two seconds of safety, to
   try again; the boss keeps the wounds it has taken.
-- **The Mist and True Sight:** LT or V repaints the world in teal and gold,
+- **The Mist and True Sight:** clicking the right stick (or V) repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
   - Where the Mist is thick, mortals mill around (students, tourists, guards,
@@ -118,6 +118,28 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     isn't there when you come back, and Continue keeps it so.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes.
+- **Healing and ammo, as in Minecraft Dungeons:**
+  - Ambrosia (LT or E) is one square on a cooldown: a bite restores 65%
+    of your health over 1.2 s, then it refills over 22 s (shown as a radial
+    fill on its icon, which glows when it is ready and you are hurt). General
+    cooldown reduction counts for half, the Hebe's Cup enchantment (12% a
+    level) and the Golden Fleece Mantle in full; it never drops below 9 s.
+    Apollo's Blessing makes a bite heal more. Companions bite below 35%.
+  - The ranged attack (RT or right click) shoots from a quiver of 20, shown
+    next to its icon (Percy's water, Annabeth's knives, Grover's notes,
+    Tyson's boulders, Clarisse's sparks). A second after the last shot it
+    refills one shot every 1.75 s; ammo bundles (+8) drop from 7% of minor
+    monsters, 25% of elites, 15% of crates and barrels, 60% of chests (every
+    rare chest) and two from every boss, and fly only to a hero whose quiver
+    isn't full. Empty, the button clicks and says once that it comes back
+    over time. Abilities never use ammo. Artemis's Quiver (+5 a level) and
+    the Hunter's Silver Parka (+10) carry more. Companions shoot only at range
+    when they run low.
+  - Monster hits are scaled by tier (`js/resources.js`): at Mortal with the
+    starting gear a minor monster's hit takes about a tenth of a hero's health,
+    an elite's about a fifth, a boss's big telegraphed blow about a third;
+    Demigod and Hero add their step on top. The prologue's rats bite for about
+    6%.
 - **Gear:** in the Minecraft Dungeons style, from Greek myth.
   - 61 weapons, armours and magic items.
   - Enchantment rows with choices, refunded when you salvage.
@@ -182,23 +204,29 @@ The full design, including the later chapters and books, is in
 
 | Action | Xbox controller | Keyboard and mouse |
 | --- | --- | --- |
-| Move · aim | Left stick · right stick | WASD · mouse |
+| Move | Left stick | WASD (or the arrow keys) |
+| Show the way to the goal | Click the left stick | Middle click |
+| Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
+| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
+| Attack in place (stand still, face the cursor) | — | Hold Shift |
+| Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
-| Dodge (Battle Sense) | B | Shift |
-| Abilities 1 · 2 · 3 | LB · RB · Y | 1 · 2 · 3 |
-| Godly power | LB + RB together | F |
-| True Sight | LT | V |
-| Interact | X (when a prompt shows) | E |
-| Ambrosia (heal) | D-pad ↑ | Q |
-| Switch hero | D-pad ↓ | Tab |
-| Magic items | D-pad ← · → | R · T |
-| Inventory | View | I |
-| Map | Click the right stick | M |
+| Interact | A (when a prompt shows) | Left click (when a prompt shows) |
+| Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
+| Godly power | Y + B together | 4, or 1 + 2 together |
+| Ambrosia (heal) | LT | E |
+| True Sight | Click the right stick | V |
+| Inventory | D-pad ↑ | I or Tab |
+| Switch hero | D-pad ↓ | F |
+| Magic items | D-pad ← · → | Z · X |
+| Map (in camp: the chapter map) | View | M (chapter map: J) |
 | Pause | Menu | Esc |
+| Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
-The in-game Instructions screen has the controller diagram.
+The controller and keyboard layouts follow Minecraft Dungeons II's defaults (`game/js/padmap.js`; WASD still moves);
+the in-game Instructions screen has the controller diagram.
 
 ## Online
 
@@ -264,12 +292,14 @@ across every screen.
 | `game/js/ui/greekTiming.js`, `ui/greekText.js`, `world/liveSign.js` | Greek letters settling into English: the timings, on the page, on painted signs and the bus |
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
+| `game/js/padmap.js` | The Xbox controller layout (after Minecraft Dungeons II): buttons, the Y + B chord, the right-stick flick dodge |
+| `game/js/resources.js` | The Ambrosia flask's cooldown, the quiver (refill, size, bundle drops) and monster hit scaling by tier |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

@@ -40,10 +40,12 @@ export const ENCHANTS = {
   health: { name: 'Ambrosia-Fed', desc: (l) => `+${l * 15} health`, for: ['armor'], stat: (s, l) => { s.maxHp += 15 * l; } },
   protection: { name: 'Aegis Ward', desc: (l) => `+${l * 6}% damage reduction`, for: ['armor'], stat: (s, l) => { s.armor += 0.06 * l; } },
   swiftness: { name: 'Hermes’s Speed', desc: (l) => `+${l * 6}% move speed`, for: ['armor'], stat: (s, l) => { s.speed += 0.06 * l; } },
-  cooldown: { name: 'Focus', desc: (l) => `-${l * 8}% ability cooldowns`, for: ['armor', 'artifact'], stat: (s, l) => { s.cdr += 0.08 * l; } },
+  cooldown: { name: 'Focus', desc: (l) => `-${l * 8}% ability cooldowns (Ambrosia -${l * 4}%)`, for: ['armor', 'artifact'], stat: (s, l) => { s.cdr += 0.08 * l; } },
   surge: { name: 'Godly Blood', desc: (l) => `+${l * 15}% Power gain`, for: ['armor', 'artifact'], stat: (s, l) => { s.ceGain += 0.15 * l; } },
   potency: { name: 'Divine Might', desc: (l) => `+${l * 10}% ability damage`, for: ['armor', 'artifact'], stat: (s, l) => { s.techMult += 0.1 * l; } },
-  vitality: { name: 'Apollo’s Blessing', desc: (l) => `Ambrosia heals ${l * 10}% more`, for: ['armor'], stat: (s, l) => { s.healBonus += 0.1 * l; } },
+  vitality: { name: 'Apollo’s Blessing', desc: (l) => `Ambrosia heals ${l * 10}% more of your health`, for: ['armor'], stat: (s, l) => { s.healBonus += 0.1 * l; } },
+  nectar: { name: 'Hebe’s Cup', desc: (l) => `Ambrosia refills ${l * 12}% faster`, for: ['armor', 'artifact'], stat: (s, l) => { s.flaskCdr += 0.12 * l; } },
+  quiver: { name: 'Artemis’s Quiver', desc: (l) => `+${l * 5} shots in your quiver`, for: ['armor'], stat: (s, l) => { s.quiver += 5 * l; } },
   thorns: { name: 'Demeter’s Briars', desc: (l) => `Monsters that hit you take ${l * 25}% of the damage back`, for: ['armor'], stat: (s, l) => { s.thorns += 0.25 * l; } },
   embers: { name: 'Hephaestus’s Embers', desc: (l) => `Burn monsters right next to you for ${l * 6} damage a second`, for: ['armor'], proc: 'embers', powerful: true },
   evasion: { name: 'Nimble as a Satyr', desc: (l) => `${l * 4}% chance to dodge a hit`, for: ['armor'], stat: (s, l) => { s.evade += 0.04 * l; } },
@@ -80,19 +82,20 @@ export const ITEMS = [
   { id: 'trident_blade', kind: 'weapon', name: 'Tide-Forged Sword', icon: '🌊', rarity: 'unique', desc: 'Cooled in the sea by Poseidon’s Cyclopes. It hits like a wave.', dmg: 1.45, speed: 1.05, knock: 1.5, hero: 'percy', fixed: ['swirling'] },
   // ---------------------------------------------------------------- armour
   // hp · armor (damage reduction) · speed · cdr (cooldowns) · ce (Power gain) ·
-  // meleeMult · techMult · regen (health per second) · evade (chance to dodge a hit)
+  // meleeMult · techMult · regen (health per second) · evade (chance to dodge a hit) ·
+  // quiver (extra shots for the ranged attack) · flaskCdr (Ambrosia refills faster)
   { id: 'camp_shirt', kind: 'armor', name: 'Camp Half-Blood T-shirt', icon: '👕', rarity: 'common', desc: 'Orange, with a pegasus. Surprisingly tough.', hp: 20, armor: 0.06 },
   { id: 'bronze_breastplate', kind: 'armor', name: 'Bronze Breastplate', icon: '🛡️', rarity: 'common', desc: 'Standard camp battle armour. Heavy.', hp: 30, armor: 0.12, speed: -0.05 },
   { id: 'hermes_uniform', kind: 'armor', name: 'Hermes Express Uniform', icon: '📦', rarity: 'common', desc: 'Built for fast deliveries.', hp: 10, speed: 0.1, hero: 'grover' },
   { id: 'linothorax', kind: 'armor', name: 'Linothorax', icon: '🥋', rarity: 'common', desc: 'Layered linen armour: light and quick to move in.', hp: 15, armor: 0.06, cdr: 0.06 },
   { id: 'biker_jacket', kind: 'armor', name: 'Biker Jacket of Ares', icon: '🧥', rarity: 'rare', desc: 'Smells of smoke and war. Fighting makes you stronger.', hp: 25, meleeMult: 0.12, hero: 'clarisse' },
-  { id: 'hunter_parka', kind: 'armor', name: 'Hunter’s Silver Parka', icon: '🧥', rarity: 'rare', desc: 'Silver, light and warm. Abilities come back faster.', hp: 20, cdr: 0.1, evade: 0.05, hero: 'annabeth' },
+  { id: 'hunter_parka', kind: 'armor', name: 'Hunter’s Silver Parka', icon: '🧥', rarity: 'rare', desc: 'Silver, light and warm, with a huntress’s quiver. Abilities come back faster.', hp: 20, cdr: 0.1, evade: 0.05, quiver: 10, hero: 'annabeth' },
   { id: 'sea_armor', kind: 'armor', name: 'Sea-Green Mail', icon: '🌊', rarity: 'rare', desc: 'Scales from Poseidon’s armoury. Power flows like the tide.', hp: 25, ce: 0.25, hero: 'percy' },
   { id: 'hoplite_panoply', kind: 'armor', name: 'Hoplite Panoply', icon: '🛡️', rarity: 'rare', desc: 'Full bronze armour of a Greek soldier: helm, cuirass and greaves.', hp: 45, armor: 0.16, speed: -0.06, hero: 'tyson' },
   { id: 'spartan_cloak', kind: 'armor', name: 'Spartan Crimson Cloak', icon: '🧣', rarity: 'rare', desc: 'Come back with your shield, or on it.', hp: 25, armor: 0.06, meleeMult: 0.1 },
   { id: 'satyr_vest', kind: 'armor', name: 'Satyr’s Woven Vest', icon: '🌿', rarity: 'rare', desc: 'Wild-grown and alive. It mends you slowly.', hp: 20, regen: 1, hero: 'grover' },
   { id: 'nemean_pelt', kind: 'armor', name: 'Nemean Lion Pelt', icon: '🦁', rarity: 'unique', desc: 'The golden pelt no blade can pierce.', hp: 45, armor: 0.18, fixed: ['protection'] },
-  { id: 'fleece_cloak', kind: 'armor', name: 'Golden Fleece Mantle', icon: '🐏', rarity: 'unique', desc: 'Healing magic woven into gold.', hp: 35, regen: 1.5, fixed: ['vitality'] },
+  { id: 'fleece_cloak', kind: 'armor', name: 'Golden Fleece Mantle', icon: '🐏', rarity: 'unique', desc: 'Healing magic woven into gold. Ambrosia refills faster.', hp: 35, regen: 1.5, flaskCdr: 0.15, fixed: ['vitality'] },
   { id: 'forge_apron', kind: 'armor', name: 'Fireproof Forge Apron', icon: '🔥', rarity: 'unique', desc: 'Hephaestus’s own. Nothing near you stays cool for long.', hp: 40, armor: 0.08, hero: 'tyson', fixed: ['embers'] },
   { id: 'amazon_armor', kind: 'armor', name: 'Armour of the Amazons', icon: '🏹', rarity: 'unique', desc: 'Queen Hylla’s fighters move like the wind and strike true.', hp: 30, speed: 0.08, evade: 0.08, fixed: ['evasion'] },
   { id: 'achilles_armor', kind: 'armor', name: 'Armour of Achilles', icon: '⚜️', rarity: 'unique', desc: 'Forged by Hephaestus for the greatest hero of Troy. Nearly invulnerable.', hp: 55, armor: 0.22, fixed: ['health'] },
@@ -200,14 +203,14 @@ export function activeEnchants(it) {
 
 // A hero's stats with this gear (also used to compare items in the inventory).
 export function gearStats(gear, hero = null) {
-  const s = { damage: 1, armor: 0, speed: 1, cdr: 0, ceGain: 1, crit: 0.08, lifesteal: 0, meleeMult: 1, committed: 0, techMult: 1, healBonus: 0, attackSpeed: 1, reach: 1, arc: 1, knock: 1, maxHp: 100, bane: 0, thorns: 0, luck: 0, regen: 0, evade: 0 };
+  const s = { damage: 1, armor: 0, speed: 1, cdr: 0, ceGain: 1, crit: 0.08, lifesteal: 0, meleeMult: 1, committed: 0, techMult: 1, healBonus: 0, attackSpeed: 1, reach: 1, arc: 1, knock: 1, maxHp: 100, bane: 0, thorns: 0, luck: 0, regen: 0, evade: 0, quiver: 0, flaskCdr: 0 };
   const procs = {}; let weapon = null; const artifacts = []; let twin = false, pierce = false;
   for (const it of gear) {
     if (!it) continue;
     const b = itemInfo(it); if (!b) continue;
     const pm = powerMult(it, hero) * itemRarity(it).mult;
     if (b.kind === 'weapon') { weapon = it; s.meleeMult *= (b.dmg ?? 1) * pm; s.attackSpeed *= b.speed ?? 1; s.reach *= b.reach ?? 1; s.arc *= b.arc ?? 1; s.knock *= b.knock ?? 1; twin = !!b.twin; pierce = !!b.pierce; }
-    if (b.kind === 'armor') { s.maxHp += (b.hp ?? 0) * pm; s.armor += (b.armor ?? 0) + 0.04 * pm; s.cdr += b.cdr ?? 0; s.ceGain += b.ce ?? 0; s.speed += b.speed ?? 0; s.meleeMult += b.meleeMult ?? 0; s.techMult += b.techMult ?? 0; s.regen += b.regen ?? 0; s.evade += b.evade ?? 0; }
+    if (b.kind === 'armor') { s.maxHp += (b.hp ?? 0) * pm; s.armor += (b.armor ?? 0) + 0.04 * pm; s.cdr += b.cdr ?? 0; s.ceGain += b.ce ?? 0; s.speed += b.speed ?? 0; s.meleeMult += b.meleeMult ?? 0; s.techMult += b.techMult ?? 0; s.regen += b.regen ?? 0; s.evade += b.evade ?? 0; s.quiver += b.quiver ?? 0; s.flaskCdr += b.flaskCdr ?? 0; }
     if (b.kind === 'artifact') { artifacts.push({ it, base: b, cdLeft: 0, cd: b.cd }); s.techMult += 0.04 * pm; }
     for (const e of activeEnchants(it)) {
       const E = ENCHANTS[e.id]; if (!E) continue;
@@ -215,7 +218,7 @@ export function gearStats(gear, hero = null) {
       if (E.proc) procs[E.proc] = Math.max(procs[E.proc] ?? 0, e.level);
     }
   }
-  s.armor = Math.min(0.7, s.armor); s.cdr = Math.min(0.6, s.cdr); s.evade = Math.min(0.3, s.evade);
+  s.armor = Math.min(0.7, s.armor); s.cdr = Math.min(0.6, s.cdr); s.evade = Math.min(0.3, s.evade); s.flaskCdr = Math.min(0.6, s.flaskCdr);
   return { s, procs, weapon, artifacts, twin, pierce };
 }
 

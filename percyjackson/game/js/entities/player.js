@@ -11,6 +11,10 @@ import { createKit } from '../heroes/index.js';
 import { applyGear } from '../loot.js';
 import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
+import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
+
+// the jump slam: damage before gear, radius in metres, knock-back
+export const SLAM = { dmg: 20, radius: 2.6, knock: 8 };
 
 export const PLAYER_COLORS = ['#4fc8ff', '#ff5a6a', '#7aff7a', '#ffc94a'];
 
@@ -40,7 +44,6 @@ export class Player {
     this.cornerSlide = true;   // slide round pillar and door-frame corners (physics.js)
     this.autoRepeat = true;    // holding attack keeps the combo going, as in Minecraft Dungeons
     this.combo = BASE_COMBO; this.comboStep = 0; this.comboT = 0; this.attackBuffer = 0; this.struck = false;
-    this.healCharges = 3; this.healMax = 3; this.healCd = 0;
     this.downT = 0; this.reviveProgress = 0;
     this.slowT = 0;
     this.battleSense = 1;      // Battle Sense charge (0..1); a perfect dodge spends it
@@ -50,6 +53,10 @@ export class Player {
     this.skills = sv ? sv.hero(hero).skills : {};
     applyGear(this, sv ? sv.gearFor(hero) : []);
     this.hp = this.maxHp;
+    // Ambrosia: one flask that refills over a cooldown; the quiver for the
+    // basic ranged attack (resources.js)
+    this.flask = { left: 0, max: 0 };
+    this.quiver = newQuiver(this.stats);
     this.kit = createKit(this);
     this.heroLight = game.lights.attach(this.object, 0xffe8d0, 1.6, 7, { offsetY: 2.2, priority: 6 });
   }
@@ -59,6 +66,7 @@ export class Player {
     const sv = g.saveFor?.(this) ?? g.save;   // net: the profile of whoever plays this hero
     this.skills = sv ? sv.hero(this.hero).skills : {};
     applyGear(this, sv ? sv.gearFor(this.hero) : []);
+    resizeQuiver(this.quiver, this.stats);
     this.kit.dispose?.();
     this.kit = createKit(this);
   }
@@ -118,10 +126,15 @@ export class Player {
     g.audio?.enemyDie(true);
   }
   revive(frac = 0.4) { this.downed = false; this.dead = false; this.hp = this.maxHp * frac; this.iframes = 2; this.action = null; this.game.fx.heal(this.pos); this.game.audio?.energy('heal'); }
+  // the flask's state, read by the HUD, companions and the playthrough bot
+  get flaskLeft() { return this.flask.left; }
+  get ammo() { return this.quiver.ammo; }
+  get ammoMax() { return this.quiver.max; }
+  // Back to full: a respawn or a new place fills the flask and the quiver.
+  refill() { this.flask.left = 0; this.quiver.ammo = this.quiver.max; this.quiver.regen = 0; }
   useHeal() {
-    if (this.healCharges <= 0 || this.healCd > 0 || this.hp >= this.maxHp) return;
-    this.healCharges--; this.healCd = 1.2;
-    this.healOverTime = { left: this.maxHp * (0.45 + (this.stats.healBonus ?? 0)), t: 1.2 };
+    if (!canDrink(this.flask, this.hp, this.maxHp)) return;
+    this.healOverTime = { left: drink(this.flask, this.maxHp, this.stats), t: FLASK.dur };
     this.game.fx.heal(this.pos, 0x9affd8);
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
@@ -130,9 +143,13 @@ export class Player {
   // ---------------------------------------------------------------- combat
   updateCombat(dt, inp) {
     const g = this.game;
-    this.comboT -= dt; this.healCd = Math.max(0, this.healCd - dt);
+    this.comboT -= dt; tickFlask(this.flask, dt); tickQuiver(this.quiver, dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
-    if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
+    // X in the air after a jump: a jump slam (Minecraft Dungeons II's heavy jump attack)
+    if ((inp.pressed.attack || (inp.pressed.slam && !this.slamQueued)) && this.canSlam()) this.startSlam();
+    if (this.slamQueued && (this.grounded && this.jumpedT === 0 || this.jumpedT > 0.24)) { this.slamQueued = false; if (this.canSlam()) this.startSlam(); }
+    if (this.slam) { this.attackBuffer = 0; if (this.grounded || this.inLiquid || (this.slam.t += dt) > 1.5) this.landSlam(); }
+    else if (inp.pressed.attack || (inp.held.attack && this.autoRepeat && this.attackBuffer <= 0)) this.attackBuffer = 0.28;
     else this.attackBuffer -= dt;
     if (inp.held.attack) this.attackHeldT = (this.attackHeldT ?? 0) + dt; else this.attackHeldT = 0;
     if (inp.pressed.heal) this.useHeal();
@@ -171,6 +188,29 @@ export class Player {
       this.action.root = new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)).multiplyScalar(lunge).addScaledVector(this.moveIntent || new THREE.Vector3(), 1.4);
     }
     this.kit.update?.(dt, inp);
+  }
+  // ---------------------------------------------------------------- jump slam
+  // In the air from a jump, a melee press dives the hero down and the landing
+  // knocks back and hurts everything round about.
+  canSlam() { return !this.slam && !this.grounded && !this.inLiquid && this.coyote <= 0 && this.jumpedT > 0.12 && this.dodgeT <= 0 && !this.downed && !this.minigameLock && !(this.action && this.action.lock); }
+  startSlam() {
+    this.slam = { t: 0 };
+    this.vel.y = Math.min(this.vel.y, -16);
+    this.action = { type: 'attack', step: { style: 'spin', strike: 0.99, custom: true, dur: 1, chainAt: 1 }, style: 'spin', dur: 0.6, elapsed: 0, t: 0, struck: true, moveScale: 0.3 };
+    this.game.audio?.whoosh(0.9);
+  }
+  landSlam() {
+    const g = this.game; this.slam = null; this.action = null;
+    if (this.inLiquid) return;
+    const at = this.pos.clone(); at.y += 0.3;
+    const dmg = SLAM.dmg * (this.stats.meleeMult ?? 1) * (this.stats.damage ?? 1);
+    g.combat.aoe(at, SLAM.radius, dmg, this, { knock: SLAM.knock, stagger: 0.45, melee: true, blocks: true });
+    g.fx.rings?.spawn(at.clone().setY(this.pos.y + 0.08), { color: 0xffe0a0, r1: SLAM.radius, dur: 0.35, thick: 0.3 });
+    g.fx.landDust?.(this.pos, 18);
+    g.particles?.burst?.(at, { count: 16, color: 0xd8c8a8, speed: 5, up: 1.2, life: 0.5, size: 0.16 });
+    g.shake(0.35); g.hitStop?.(0.05);
+    if (!g.audio?.sample?.('hit', { gain: 0.8, rate: 0.7 })) g.audio?.thud?.();
+    this.iframes = Math.max(this.iframes, 0.2);
   }
   startAttack(step, idx) {
     // snap facing to aim; melee "magnetises" toward a curse in front of you
@@ -237,13 +277,17 @@ export class Player {
       if (mvLen > 0.01) mv.normalize().multiplyScalar(mvLen);
     }
     if (mv.lengthSq() > 1) mv.normalize();
+    // hold Shift (keyboard): stand still and attack in place, facing the cursor
+    if (inp.held.root) mv.set(0, 0, 0);
     this.moveIntent = mv;
     this.iframes = Math.max(0, this.iframes - dt);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll: on the ground (or just off a ledge); a press in the air or
     // a moment early is remembered briefly, so the roll always comes out
-    if (inp.pressed.dodge) this.dodgeBuffer = this.grounded ? 0.2 : 0.75; else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
-    if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(mv); }
+    // (a right-stick flick rolls the way it was flicked, a screen direction; LB and Shift roll the way you move or face)
+    if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : inp.dodgeToAim ? this.aimDir.clone().setY(0) : null; }
+    else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
+    if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(this.dodgeAim?.lengthSq() > 0.01 ? this.dodgeAim : mv); this.dodgeAim = null; }
     // jump (A, Space): about a block and a half, from the ground or just after leaving a ledge
     // In a pool (the camp creek pond, the lava pool by the climbing wall) the
     // bank can be two blocks high, more than a jump clears: kick off the
@@ -251,10 +295,13 @@ export class Player {
     // so nobody (player or companion) is ever trapped in the water.
     const wading = this.inLiquid && this.grounded && this.hitWall && mv.lengthSq() > 0.25 && !this.downed && this.dodgeT <= 0;
     this.wadeT = wading ? (this.wadeT ?? 0) + dt : 0;
-    if ((inp.pressed.jump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
-      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0;
+    // Q (keyboard): a jump slam from the ground jumps first and slams near the top
+    const slamJump = inp.pressed.slam && !this.slam && this.dodgeT <= 0;
+    if ((inp.pressed.jump || slamJump || this.wadeT > 0.25) && !this.downed && (this.grounded || this.coyote > 0) && this.dodgeT <= 0 && (!this.action || this.action.cancelable !== false)) {
+      this.vel.y = this.inLiquid ? 12.6 : 10.5; this.grounded = false; this.coyote = 0; this.wadeT = 0; this.jumpedT = 0.001; if (slamJump) this.slamQueued = true;
       this.game.particles?.burst?.(this.pos.clone().setY(this.pos.y + 0.1), { count: 6, color: 0xd8c8a8, speed: 1.5, up: 1, life: 0.4, size: 0.1 });
     }
+    if (this.jumpedT > 0) this.jumpedT = this.grounded && this.jumpedT > 0.1 ? 0 : this.jumpedT + dt;   // time since a jump, while airborne
     if (!this.downed) this.updateCombat(dt, inp);
     if (this.hurtT > 0) { this.hurtT -= dt; if (this.hurtT <= 0) this.rig.swap(null); }
     this.slowT = Math.max(0, this.slowT - dt);
@@ -302,7 +349,7 @@ export class Player {
     let targetFacing = this.facing;
     if (this.dodgeT > 0) targetFacing = Math.atan2(this.dodgeDir.x, this.dodgeDir.z);
     else if (this.action && this.action.faceAim !== false) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
-    else if ((inp.mouse && this.aiming && (inp.held.attack || inp.held.ranged)) || inp.aimStick) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
+    else if ((inp.mouse && this.aiming && (inp.held.attack || inp.held.ranged || inp.held.root)) || inp.aimStick) targetFacing = Math.atan2(this.aimDir.x, this.aimDir.z);
     else if (moving) targetFacing = Math.atan2(this.vel.x, this.vel.z);
     this.facing = dampAngle(this.facing, targetFacing, this.action ? 30 : 14, dt);
     // footsteps

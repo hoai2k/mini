@@ -39,6 +39,7 @@ import { rigOffsets } from './parts.js';
 import { moveEntity } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
+import { monsterDamage } from '../resources.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 const H = BOOK1_HOOKS;
@@ -99,7 +100,7 @@ const BOSSES = {
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
   },
   ares: {
-    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 24, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
+    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 21, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
     build: BOSS_MODELS.ares,
     phases: [['sword_combo', 'spear_thrust', 'bike_charge', 'sword_combo'], ['sword_combo', 'bike_charge', 'spear_thrust', 'war_cry'], ['bike_charge', 'sword_combo', 'spear_thrust', 'war_cry', 'bike_charge']],
     tick: (b, dt) => H.aresTick(b, dt), damageMul: (b, src, o) => H.aresHit(b, src, o), onDie: (b) => H.aresDie(b),
@@ -136,7 +137,7 @@ export class Boss {
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = this.B.radius ?? 1.1; this.height = this.B.height ?? 4.2;
     this.maxHp = this.B.hp * (1 + (level - 1) * 0.45) * partyHpScale(game.players); this.hp = this.maxHp;
-    this.dmg = this.B.dmg * (1 + (level - 1) * 0.2);
+    this.dmg = monsterDamage(this.B.dmg, 'boss', level, 0.2);   // (scaled for bosses, resources.js)
     this.level = level;
     // The rig turns inside an unrotated holder, so a boss can carry parts that
     // don't turn with it (the Furies' circling sisters).

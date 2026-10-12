@@ -12,6 +12,7 @@
 import { h, toast, confirmDialog } from './ui.js';
 import { HEROES } from '../heroes/index.js';
 import { RARITY, BLESSED, ENCHANTS, KIND_LABEL, itemInfo, itemRarity, salvageValue, enchCost, spentPoints, gearStats, temperCost, rerollCost, rerollRow, powerFor } from '../loot.js';
+import { flaskCooldown, quiverMax } from '../resources.js';
 
 const SLOT_NAMES = ['Weapon', 'Armour', 'Magic item 1', 'Magic item 2'];
 const SLOT_ICON = ['🗡️', '🛡️', '✨', '✨'];
@@ -65,8 +66,9 @@ export function openInventory(game, player, { forge = false } = {}) {
     const statLines = (s) => [
       ['Health', Math.round(s.maxHp), false], ['Melee damage', s.meleeMult, true], ['Ability damage', s.techMult, true], ['Attack speed', s.attackSpeed, true],
       ['Damage reduction', s.armor, 'pct'], ['Move speed', s.speed, true], ['Critical chance', s.crit, 'pct'], ['Cooldowns', -s.cdr, 'pct'], ['Dodge chance', s.evade, 'pct'],
+      ['Ambrosia refills in', -flaskCooldown(s), 'secs'], ['Quiver', quiverMax(s), false],
     ];
-    const fmt = (v, kind) => (kind === 'pct' ? `${Math.round(v * 100)}%` : kind ? `×${v.toFixed(2)}` : String(v));
+    const fmt = (v, kind) => (kind === 'pct' ? `${Math.round(v * 100)}%` : kind === 'secs' ? `${Math.abs(v).toFixed(0)} s` : kind ? `×${v.toFixed(2)}` : String(v));
 
     const renderDetail = () => {
       detail.textContent = '';

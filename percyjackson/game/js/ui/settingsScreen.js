@@ -44,7 +44,8 @@ export function openSettings(game, onClose) {
         row('Greek letters on titles and signs (they settle into English)', check('greekText')),
         row('Reduce motion', check('reduceMotion')),
         row('Damage numbers', check('damageNumbers')),
-        row('Camera rotation (Z / C)', check('cameraRotate')),
+        row('Controller right stick', select('rightStick', [['dodge', 'Dodge (flick to roll)'], ['aim', 'Aim']])),
+        row('Camera rotation ([ / ])', check('cameraRotate')),
         rrow('Default zoom', 'cameraZoom', 12, 42, 1, (v) => { game.rig.zoomTarget = v; }, (v) => String(Math.round(v))),
       );
     } else if (tab === 'graphics') {
