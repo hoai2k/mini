@@ -10,7 +10,7 @@ import { driveRookie } from './rookie.js';
 
 // No permissions or microphone: the bot's camera is a drawing and its face
 // expressions are simulated. Nobody needs another device to test multiplayer.
-window.startDebugBot = async ({ me, ownerId, rooms, mediaOf }) => {
+window.startDebugBot = async ({ me, ownerId, rooms, mediaOf, room = 'everyone' }) => {
   setSfxMuted(true);
   const [effects, loadedGames] = await Promise.all([loadEffects(), loadGames()]);
   const camera = document.createElement('canvas');
@@ -39,7 +39,7 @@ window.startDebugBot = async ({ me, ownerId, rooms, mediaOf }) => {
     for (let y = Math.floor(h * 0.22); y < h * 0.73; y++) data.fill(255, y * w + Math.floor(w * 0.32), y * w + Math.floor(w * 0.68));
     return data;
   });
-  const net = createNet({ game: 'chat', room: 'everyone', me, rooms });
+  const net = createNet({ game: 'chat', room, me, rooms });
   const rtc = createRtc({ net, stream: studio.stream });
   const videos = new Map();
   rtc.on('stream', (id, stream) => {
@@ -102,5 +102,6 @@ window.startDebugBot = async ({ me, ownerId, rooms, mediaOf }) => {
     for (const v of videos.values()) v.srcObject = null;
   };
   window.addEventListener('pagehide', stop, { once: true });
+  window.debugBot = { host, net };   // for test/bot-app-check.mjs
   return { net, studio, host, stop };
 };

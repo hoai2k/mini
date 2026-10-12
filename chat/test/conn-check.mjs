@@ -15,7 +15,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = `${root}local/chat-shots/`;
 await mkdir(outDir, { recursive: true });
 const relayDir = `${root}multiplayer/server`;
-const relay = spawn(process.execPath, [`${relayDir}/node_modules/wrangler/bin/wrangler.js`, 'dev', '--port', '8787', '--ip', '127.0.0.1', '--persist-to', '.wrangler/chat-test-state'], {
+const relay = spawn(process.execPath, [`${relayDir}/node_modules/wrangler/bin/wrangler.js`, 'dev', '--local', '--port', '8787', '--ip', '127.0.0.1', '--persist-to', '.wrangler/chat-test-state'], {
   cwd: relayDir, stdio: 'ignore', detached: true, env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
 });
 const stopRelay = () => { try { process.kill(-relay.pid, 'SIGTERM'); } catch {} };

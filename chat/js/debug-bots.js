@@ -5,7 +5,7 @@ import { COLORS } from './palette.js';
 import { randomId } from './store.js';
 
 export const MAX_DEBUG_BOTS = 4;
-export function createDebugBots({ ownerId, rooms, mediaOf, onChange, toast }) {
+export function createDebugBots({ ownerId, rooms, mediaOf, onChange, toast, room = 'everyone' }) {
   const bots = new Map();
   let desired = 0, stopped = false;
   let work = Promise.resolve();
@@ -35,7 +35,7 @@ export function createDebugBots({ ownerId, rooms, mediaOf, onChange, toast }) {
           document.body.append(frame);
         });
         if (stopped || !bots.has(me.id)) { frame.remove(); break; }
-        rec.runtime = await frame.contentWindow.startDebugBot({ me, ownerId, rooms, mediaOf });
+        rec.runtime = await frame.contentWindow.startDebugBot({ me, ownerId, rooms, mediaOf, room });
         if (stopped || !bots.has(me.id)) { rec.runtime.stop(); frame.remove(); break; }
         onChange();
       } catch (e) {

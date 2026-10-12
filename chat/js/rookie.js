@@ -13,14 +13,21 @@ function canSpell(board, word, cell = -1, used = 0, offset = 0) {
 }
 export function driveRookie(current, step) {
   const { game, instance, el } = current;
+  // Games that need aiming (Air Hockey, Minigolf, Bowling, Hoops) give the
+  // bot a simple move of their own; it still presses buttons (lobbies,
+  // rematches) but skips the random stick and pointer input below.
+  const ownMove = typeof instance.rookie === 'function';
+  if (ownMove) {
+    try { instance.rookie(step); } catch (e) { console.warn('rookie move failed', e); }
+  }
   const pressed = step % 5 === 0;
   const direction = Math.floor(step / 4) % 4;
   const pad = { x: Math.sin(step * 0.47) * 0.8, y: Math.cos(step * 0.31) * 0.8, rx: 0, ry: 0,
     up: direction === 0, right: direction === 1, down: direction === 2, left: direction === 3,
     a: pressed, b: false, xBtn: false, yBtn: false, rt: 0, lt: 0,
     pressed: [pressed], edge: k => k === 0 && pressed };
-  instance.onPad?.(pad);
-  if (game.id === 'wordblitz' && step % 12 === 0) {
+  if (!ownMove) instance.onPad?.(pad);
+  if (game.id === 'wordblitz' && !ownMove && step % 12 === 0) {
     // Look only at the visible letters, and try an occasional simple word.
     const board = [...el.querySelectorAll('.wb-t')].map(t => t.textContent.toLowerCase());
     const found = [...el.querySelectorAll('.wb-w')].map(t => t.textContent.toLowerCase());
@@ -45,7 +52,7 @@ export function driveRookie(current, step) {
   // Rookie cursor movement, drawing and aiming. Pointer capture is intentionally
   // omitted for synthetic input; dispatch only inside this bot's game window.
   const canvas = el.querySelector('canvas');
-  if (canvas) {
+  if (canvas && !ownMove) {
     // Synthetic events have no active OS pointer to capture.
     canvas.setPointerCapture = () => {};
     const r = canvas.getBoundingClientRect();

@@ -1293,6 +1293,15 @@ export default {
         window.removeEventListener('keyup', onKey);
       },
       onChange() { sync(); },
+      // A test bot's move (js/rookie.js): a putt roughly at the cup, about
+      // hard enough for the distance. Too many strokes picks the ball up, so
+      // every hole ends.
+      rookie() {
+        if (!canPutt()) return;
+        const d = Math.hypot(hole.cup.x - ball.x, hole.cup.y - ball.y);
+        const angle = Math.atan2(hole.cup.y - ball.y, hole.cup.x - ball.x) + (Math.random() - 0.5) * 0.5;
+        putt(angle, clamp(d / 180 + (Math.random() - 0.3) * 0.2, 0.12, 0.9));
+      },
       onPad(pad) {
         if (!canPutt()) { if (charge) charge = null; return; }
         if (Math.hypot(pad.x, pad.y) > 0.4) aim = Math.atan2(pad.y, pad.x);

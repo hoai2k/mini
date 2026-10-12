@@ -752,7 +752,23 @@ export default {
     refreshChips();
     paint();
 
+    // A test bot's move (js/rookie.js): every few seconds, a word that is on
+    // the board (the board's words are found once per round). Slow enough to
+    // lose to a person, but it plays.
+    let botWords = null, botKey = '';
+    function rookie(step) {
+      if (!playing() || step % 8 !== 0) return;
+      if (botKey !== boardKey) {
+        botKey = boardKey;
+        botWords = [];
+        for (const w of WORDS) if (w.length >= 3 && w.length <= 6 && findPath(board, w)) botWords.push(w);
+      }
+      const left = botWords.filter(w => !foundSet.has(w));
+      if (left.length) submit(left[Math.floor(Math.random() * left.length)], null);
+    }
+
     return {
+      rookie,
       destroy() {
         destroyed = true;
         clearInterval(timer);

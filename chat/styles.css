@@ -547,4 +547,6 @@ body:not(.in-call) .field.in-call { display: none; }
 .debug-bot-count output { min-width: 2ch; text-align: center; font-weight: 800; }
 .debug-bot-note { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
 /* Keep bot game windows laid out and animating, without taking focus. */
-.debug-bot-frame { position: fixed; left: -10000px; top: 0; width: 640px; height: 480px; border: 0; pointer-events: none; }
+/* On screen but invisible and click-through: browsers (Safari especially) pause
+   animation in frames outside the viewport, which would freeze the bots. */
+.debug-bot-frame { position: fixed; left: 0; top: 0; width: 640px; height: 480px; border: 0; pointer-events: none; opacity: 0; z-index: -1; }

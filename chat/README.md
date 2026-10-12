@@ -56,7 +56,13 @@ so the picture stays clear:
   tapped to change it. **Add Debug Bot** near the bottom uses − / + for up to
   four test players; the count applies when Settings closes, including Escape.
   Bots use simulated cameras, accept any shared effect, and join human game
-  sessions with simple rookie inputs. Their scores never update your records.
+  sessions with simple rookie inputs: every game gets a move from them, and
+  games that need aiming give the bot a simple one of their own (`rookie()`:
+  Air Hockey chases the puck, Minigolf putts at the cup, Bowling rolls,
+  Hoops tosses, Word Blitz finds a word now and then). They join the same
+  room as you (a `?room=` call too) and run in an invisible window kept on
+  screen, since browsers pause animation in off-screen frames. Their scores
+  never update your records.
   They leave when removed, when you leave the call, or when the page reloads.
   This is a session-only control, not a saved preference.
 - **Videos:** names show only for a moment (when someone arrives, renames or
@@ -179,7 +185,8 @@ a good throw, so speeds near it change the height gently and far ones a lot)
 and its direction on screen where it is sideways; the hoop moves every five
 shots; the ball is drawn in front of the rim on the way up and behind the rim and net on the way down), Flappy Face (your face is the bird; tap to
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
-can drag from below it), Connect Four, Quick Draw, Staring Contest,
+can drag from below it; after a goal the puck waits, still, on the side of
+the player who conceded until someone hits it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls; pull back to aim and the
 arrow sits behind the ball, following your finger, pointing the way it will go),
@@ -244,6 +251,11 @@ itself to HTTPS.
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
+- `chat/publish.sh local/pages/chat && node chat/test/bot-app-check.mjs [ids]`:
+  the real app with a debug bot in each game (the human seat plays too),
+  checking the bot's window keeps animating and the bot makes moves
+- `node chat/test/airhockey-check.mjs`: the puck waits, still, after a serve
+  until someone hits it, and a bot goes and hits it
 - `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; screenshots of a cast, a low pond,
