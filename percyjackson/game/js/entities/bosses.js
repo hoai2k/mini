@@ -18,7 +18,7 @@
 //   • The spider queen (ch7): Hephaestus's bronze queen spits nets that root,
 //     calls her swarm; destroying her ends it.
 //   • Procrustes (ch9): axe sweeps; straps a hero to a water bed (a teammate's
-//     hit or mashing frees them).
+//     hit or mashing frees them; mashing free tips him onto his own bed: dazed).
 //   • Cerberus (ch10): three heads (fire, bite, lunge); a sleepy spell when
 //     his heads droop and he takes double damage.
 //   • Ares (ch11): sword combos, spear thrust, motorcycle charge; heroes in the
@@ -31,7 +31,7 @@
 // animates, damageMul(boss, src, o) → factor, onDie(boss), ambient(boss, dt).
 import * as THREE from 'three/webgpu';
 import { FLASH_MATERIAL } from './character.js';
-import { goldDust, animateExtras } from './monsters.js';
+import { goldDust, animateExtras, MONSTERS, MONSTER_IDS, buildMonsterModel } from './monsters.js';
 import { BOSS_MODELS } from './bossmodels.js';
 import { BOOK1_PATTERNS, BOOK1_HOOKS } from './bosses-book1.js';
 import { releaseAllBy } from './holds.js';
@@ -553,8 +553,11 @@ export class Boss {
     this.mark = Math.max(0, this.mark - dt);
     for (const k in this.status) this.status[k] = Math.max(0, this.status[k] - dt);
     const t = this.target();
+    // dazed (a hook knocked it out: Procrustes tipped onto his bed): stunned,
+    // taking double damage, its attack patterns paused until it comes to
+    if (this.dazeT > 0) { this.dazeT -= dt; this.stunT = this.dazeT > 0 ? Math.max(this.stunT, this.dazeT) : 0; }
     // coroutine
-    if (this.intro <= 0) {
+    if (this.intro <= 0 && !(this.dazeT > 0)) {
       if (this.coWait > 0) this.coWait -= dt;
       else {
         if (!this.co) this.co = this.pickPattern();
@@ -603,3 +606,15 @@ export class Boss {
   }
 }
 Object.assign(Boss.prototype, BOOK1_PATTERNS);
+
+// One model of each monster kind and boss, hidden far below the level, for
+// renderer.compileAsync at chapter load: every skin and prop material is
+// shared per kind, so after this nothing a chapter spawns compiles a shader.
+// Usage: const w = warmupGroup(kinds, [bossId]); scene.add(w);
+// await renderer.compileAsync(scene, camera); scene.remove(w);
+export function warmupGroup(kinds = MONSTER_IDS, bosses = []) {
+  const grp = new THREE.Group(); grp.position.set(0, -500, 0);
+  for (const k of kinds) if (MONSTERS[k]) grp.add(buildMonsterModel(MONSTERS[k].model).root);
+  for (const id of bosses) { const b = BOSSES[BOSS_ALIASES[id] ?? id]; if (!b) continue; grp.add(b.build().root); if (b === BOSSES.furies) { grp.add(BOSS_MODELS.megaera().root, BOSS_MODELS.tisiphone().root); } }
+  return grp;
+}

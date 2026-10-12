@@ -398,7 +398,7 @@ export const BOOK1_PATTERNS = {
         onRelease: (p, why) => {
           g.scene.remove(bed); g.fx.poof?.(bedPos);
           if (self.grabbed === p) { self.grabbed = null; self.bed = null; }
-          if (why === 'mash' && !self.dead) { toast('You tip Crusty onto his own bed!', 'big'); self.stunT = 2.5; self.anim = { type: 'stagger', t: 0 }; }
+          if (why === 'mash' && !self.dead) { toast('You tip Crusty onto his own bed!', 'big'); self.dazeT = 2.5; }
           else if (why === 'freed' && !self.dead) toast('Freed!');
         } });
       toast(`Crusty straps ${heroName(g, caught)} to a water bed! Hit him, or mash to break free!`, 'big');
@@ -710,14 +710,14 @@ export const BOOK1_HOOKS = {
   },
   spidersDie(b) {
     let n = 0;
-    for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b && e.kind === 'spider') { e.hp = 0; e.die?.({}); n++; }   // (automatons keep their Greek fire)
+    for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b) { e.hp = 0; e.die?.({ quiet: true }); n++; }   // the whole swarm winds down with her
     toast(n ? 'The queen falls — her swarm winds down!' : 'The bronze queen falls!', 'big');
   },
   // ---- Procrustes
   procrustesHit(b, src) {
     if (b.grabbed && src && src !== b.grabbed && !src.isBoss && src.isPlayer) {
       b.freeHits = (b.freeHits ?? 0) + 1;
-      if (b.freeHits >= 2) { const p = b.grabbed; releaseHero(b.game, p, 'freed'); b.stunT = Math.max(b.stunT, 0.8); }
+      if (b.freeHits >= 2) { const p = b.grabbed; releaseHero(b.game, p, 'freed'); b.dazeT = Math.max(b.dazeT ?? 0, 0.8); }
     }
     return 1;
   },

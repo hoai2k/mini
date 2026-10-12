@@ -233,11 +233,16 @@ function sealDoor(k, cor, id, secretSide, side) {
   const edge = room === cor.aRoom ? cor.from : cor.to;
   const y = room.y;
   const blocks = [];
-  // the doorway, plus the room edge either side of it, five high: heroes jump
-  // about 1.7 blocks, so a gate must not be passable round its ends or over the top
-  for (let t = -4; t <= 4; t++) for (let yy = y; yy < y + 5; yy++) {
+  // the doorway, plus the room edge either side of it: heroes jump about 1.7
+  // blocks, so a gate must not be passable round its ends or over the top. It
+  // stands five above the higher end of the corridor (whose stairs and rail posts
+  // would otherwise be a step up onto it), and its outer ends cover any floor a
+  // diagonal jump from the corridor could land on.
+  const top = Math.max(cor.ya, cor.yb, y) + 5;
+  for (let t = -6; t <= 6; t++) for (let yy = y; yy < (Math.abs(t) <= 4 ? top : y + 5); yy++) {
     const x = cor.axis === 'x' ? edge : cor.at + t, z = cor.axis === 'x' ? cor.at + t : edge;
     if (Math.abs(t) > 2 && k.w.get(x, yy, z)) continue;
+    if (Math.abs(t) > 4 && !k.w.get(x, y - 1, z)) continue;
     k.w.set(x, yy, z, id); blocks.push([x, yy, z]);
   }
   const pos = new THREE.Vector3(cor.axis === 'x' ? edge + 0.5 : cor.at + 0.5, y, cor.axis === 'x' ? cor.at + 0.5 : edge + 0.5);

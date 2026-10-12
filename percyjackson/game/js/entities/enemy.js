@@ -194,7 +194,13 @@ export class Enemy {
     else if (this.elite === 'shadow' && Math.random() < 0.25) this.blink(true);
     return dmg;
   }
-  cancelAttack() { if (this.marker) { this.game.markers.cancel(this.marker); this.marker = null; } this.action = null; }
+  // Drop an attack in progress. Whoever calls this owns the next state; an
+  // enemy left in 'windup' or 'recover' without an action falls back to idle.
+  cancelAttack() {
+    if (this.marker) { this.game.markers.cancel(this.marker); this.marker = null; }
+    this.action = null;
+    if (this.state === 'windup' || this.state === 'recover') { this.state = 'idle'; this.stateT = 0; }
+  }
   die(o = {}) {
     if (this.dead) return;
     // skeleton warriors fall to bones and get back up unless hit while down
@@ -214,7 +220,7 @@ export class Enemy {
     goldDust(g, c, this.height * 0.6, { color: this.elite ? 0xfff2a0 : 0xffd84a, big: this.big });
     g.audio?.enemyDie(this.big);
     g.onEnemyKilled?.(this, o);
-    if (this.elite === 'explosive' || this.def.ai === 'blob') this.explode(o.fromBlob);
+    if (!o.quiet && (this.elite === 'explosive' || this.def.ai === 'blob')) this.explode(o.fromBlob);   // quiet: wound down by its boss
   }
   explode(chained) {
     const g = this.game;
@@ -363,6 +369,9 @@ export class Enemy {
       if (Math.random() < dt * 3) g.particles.glow.emit(this.pos.x, this.pos.y + this.height + 0.3, this.pos.z, 0, 0.8, 0, 0.6, 1.6, 1.4, 2.2, 0.12, 0, 1, 0.05, 1);
     } else if (this.state === 'stagger') {
       if (this.stateT > this.stagger) this.state = 'idle';
+    } else if ((this.state === 'windup' || this.state === 'recover') && !this.action) {
+      // an attack was dropped without a state change (a net update, a hold): back to the chase
+      this.state = 'idle'; this.stateT = 0;
     } else if (this.state === 'windup') {
       if (t) this.faceTo(t.pos, dt, this.def.ai === 'tank' ? 2.5 : 6);
       if (ai === 'blob') move.copy(this.steer(t ? tmp.subVectors(t.pos, this.pos) : tmp.set(0, 0, 0), 0.4));
@@ -555,7 +564,7 @@ export class Enemy {
     this.object.position.set(this.pos.x, this.visY + bob + rise, this.pos.z);
     this.object.rotation.y = this.facing;
     if (this.rig.blob) {
-      const inflate = this.state === 'windup' ? 1 + this.stateT / a.windup * 0.5 : 1;
+      const inflate = this.state === 'windup' && a ? 1 + this.stateT / a.windup * 0.5 : 1;
       const sq = 1 + Math.sin(this.stateT * 12) * 0.08 * speed;
       this.rig.root.scale.set(inflate * sq * 0.9, inflate / sq * 0.9, inflate * sq * 0.9);
     }

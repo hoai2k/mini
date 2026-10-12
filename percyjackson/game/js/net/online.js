@@ -308,7 +308,9 @@ export class Online {
         else if (!e.ai) {
           // a person's hero with the key of one of my AI heroes: unless I'm holding it for them, the person wins
           const ai = g.players.find((p) => p.ai && !p.remote && this.keyOf(p) === e.k);
-          if (ai && !ai.heldFor) ai.netKey = 'ai:' + ai.hero;
+          // (their own hero, played by the AI since they left: they get it back where it is)
+          if (ai && !ai.heldFor && this.isHost) { this.knownKeys.add(e.k); this.giveHero(peer.uid, e.k, e.i, ai); }
+          else if (ai && !ai.heldFor) ai.netKey = 'ai:' + ai.hero;
         }
         continue;
       }
@@ -347,12 +349,16 @@ export class Online {
       if (g.mode !== 'mission') continue;
       const free = g.players.filter((p) => p.ai && !p.remote && !p.heldFor && !p.dead);
       const C = free.find((p) => p.netKey === R.key) ?? free[0];
-      if (!C) continue;
-      const st = { x: r2(C.pos.x), y: r2(C.pos.y), z: r2(C.pos.z), f: r2(C.facing), hp: Math.round(C.hp), mh: Math.round(C.maxHp), ce: Math.round(C.ce) };
-      this.session.send('swapok', { to: R.uid, k: R.key, i: R.entry?.i ?? 0, h: C.hero, take: 1, ...st });
-      this.removeHero(C);
-      g.fx?.summonCircle?.(V3(st.x, st.y, st.z), 0x6ad8ff);
+      if (C) this.giveHero(R.uid, R.key, R.entry?.i ?? 0, C);
     }
+  }
+  // hand the companion C to the player `key` on screen `uid`: they carry on as that hero, from where it is
+  giveHero(uid, key, idx, C) {
+    const st = { x: r2(C.pos.x), y: r2(C.pos.y), z: r2(C.pos.z), f: r2(C.facing), hp: Math.round(C.hp), mh: Math.round(C.maxHp), ce: Math.round(C.ce) };
+    this.session.send('swapok', { to: uid, k: key, i: idx, h: C.hero, take: 1, ...st });
+    this.removeHero(C);
+    this.game.fx?.summonCircle?.(V3(st.x, st.y, st.z), 0x6ad8ff);
+    this.setParty();
   }
   // Guest: one of this screen's players stopped (their controller went): the host's AI plays the hero on.
   dropLocalHuman(p) { this.removeHero(p); this.setParty(); this.game.hud?.rebuildCards?.(); }

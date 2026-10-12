@@ -165,6 +165,9 @@ def('elevator_door', { top: 'gold_plate', side: 'elevator_door' }, { metal: 0.7,
 def('neon_bulbs', 'neon_bulbs', { emit: 1.8, light: [0xffd070, 3, 8] });
 def('waystone', { top: 'gold_plate', side: 'marble_white' }, { rough: 0.25 });
 def('poplar_leaves', 'basalt', { step: 'grass', rough: 0.9 });
+// cloud drifting round Olympus: drawn like cloud, but you fall through it (so it never
+// bridges two rooms or strands a hero below the floor)
+def('cloud_puff', 'cloud', { solid: false, rough: 0.95 });
 
 export const BLOCKS = defs;
 export const isSolid = (id) => defs[id].solid;

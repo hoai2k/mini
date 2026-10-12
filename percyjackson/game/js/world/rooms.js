@@ -1377,6 +1377,7 @@ Object.assign(TEMPLATES, {
     k.w.set(cx - 2, y + 4, cz, 0); k.w.set(cx - 2, y + 4, cz - 1, 0); k.w.set(cx - 2, y + 4, cz + 1, 0);
     k.stairs(cx - 6, cz - 1, y, 4, [1, 0], 3, B.rust_metal);
     for (let x = cx - 6; x <= cx - 3; x++) for (let zz = cz - 1; zz <= cz + 1; zz++) for (let yy = y - 1; yy < y + (x - (cx - 6)); yy++) k.w.set(x, yy, zz, B.rust_metal);
+    c.reserved ??= new Set(); for (let x = cx - 6; x <= cx + 2; x++) for (let zz = cz - 2; zz <= cz + 2; zz++) c.reserved.add(x + ',' + zz);   // spawns stay off the tower
     // two slides off the east side, stepping down
     for (const [dz, col] of [[-1, B.slide_glass], [1, B.slide_glass]]) {
       let x = cx + 3, z = cz + dz, h = 3;
@@ -1879,7 +1880,7 @@ function cloudSkirt(c, n = 10) {
     const side = Math.floor(c.r() * 4), t = c.r();
     const x = side < 2 ? Math.round(x0 + t * (x1 - x0)) : side === 2 ? x0 - 1 : x1 + 1, z = side >= 2 ? Math.round(z0 + t * (z1 - z0)) : side === 0 ? z0 - 1 : z1 + 1;
     const R = 1.5 + c.r() * 1.5;
-    for (let dy = -3; dy <= 0; dy++) for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) if (Math.hypot(dx, dy * 1.6, dz) < R && !k.w.get(x + dx, y - 2 + dy, z + dz)) k.w.set(x + dx, y - 2 + dy, z + dz, B.cloud);
+    for (let dy = -3; dy <= 0; dy++) for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) if (Math.hypot(dx, dy * 1.6, dz) < R && !k.w.get(x + dx, y - 2 + dy, z + dz)) k.w.set(x + dx, y - 2 + dy, z + dz, B.cloud_puff);
   }
 }
 function goldLamp(c, x, z) { if (!free(c, x, z) || doorAisle(c, x, z)) return false; c.k.d.prop('brazier', x + 0.5, c.y, z + 0.5); collider(c, x, z, 1); lightAt(c, x + 0.5, c.y + 1.8, z + 0.5, 0xffd890, 3.5, 9); return true; }
@@ -1912,7 +1913,7 @@ Object.assign(TEMPLATES, {
     const { k, x0, z0, x1, z1, y } = c;
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) for (let d = 1; d <= 6; d++) k.w.set(x, y - d, z, 0);
     const blobs = 7;
-    for (let i = 0; i < blobs; i++) { const [x, z] = cellIn(c, 2); const R = 2 + c.r() * 2.5; for (let dz = -5; dz <= 5; dz++) for (let dx = -5; dx <= 5; dx++) { const d = Math.hypot(dx, dz); if (d < R) { k.w.set(x + dx, y - 1, z + dz, B.cloud); if (d < R - 1) k.w.set(x + dx, y - 2, z + dz, B.cloud); } } }
+    for (let i = 0; i < blobs; i++) { const [x, z] = cellIn(c, 2); const R = 2 + c.r() * 2.5; for (let dz = -5; dz <= 5; dz++) for (let dx = -5; dx <= 5; dx++) { const d = Math.hypot(dx, dz); if (x + dx < x0 || x + dx > x1 || z + dz < z0 || z + dz > z1) continue; if (d < R) { k.w.set(x + dx, y - 1, z + dz, B.cloud); if (d < R - 1) k.w.set(x + dx, y - 2, z + dz, B.cloud); } } }
     // walkways joining every door through the middle
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     const walk = (ax, az, bx, bz) => { const n = Math.max(Math.abs(bx - ax), Math.abs(bz - az)); for (let s = 0; s <= n; s++) { const px = Math.round(ax + (bx - ax) * s / n), pz = Math.round(az + (bz - az) * s / n); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { k.w.set(px + a, y - 1, pz + b, Math.abs(a) + Math.abs(b) === 2 ? B.gold_marble : B.marble_white); k.w.set(px + a, y - 2, pz + b, B.cloud); } } };

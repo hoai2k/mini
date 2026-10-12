@@ -91,7 +91,7 @@ export function releaseAllBy(g, by) {
 // Poison: dps for dur seconds, refreshed (not stacked) by new bites.
 export function poisonHero(g, p, dps, dur, src = null) {
   if (!p || p.dead || p.remote) return;
-  if (p.poison) { p.poison.t = 0; p.poison.dur = Math.max(p.poison.dur - p.poison.t, dur); p.poison.dps = Math.max(p.poison.dps, dps); return; }
+  if (p.poison) { const P = p.poison; P.dur = Math.max(P.dur - P.t, dur); P.t = 0; P.dps = Math.max(P.dps, dps); return; }
   const P = p.poison = { t: 0, dur, dps, tick: 0.5 };
   g.addUpdater((dt) => {
     if (p.poison !== P || p.dead) { if (p.poison === P) p.poison = null; return false; }
