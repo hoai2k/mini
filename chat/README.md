@@ -177,7 +177,7 @@ is essentially 2D: every ball reaches the hoop and never goes past it; the
 swipe's speed sets how high it is when it gets there (an S-curve centred on
 a good throw, so speeds near it change the height gently and far ones a lot)
 and its direction on screen where it is sideways; the hoop moves every five
-shots), Flappy Face (your face is the bird; tap to
+shots; the ball is drawn in front of the rim on the way up and behind the rim and net on the way down), Flappy Face (your face is the bird; tap to
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
