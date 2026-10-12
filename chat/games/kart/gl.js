@@ -55,7 +55,7 @@ void main() {
     vec3 m = texture2D(uMap, g / uWorld).rgb;
     float road = 1.0 - clamp((m.g - max(m.r, m.b)) * 6.0, 0.0, 1.0);
     vec3 gd = texture2D(uGrass, g / 10.0).rgb / uGrassAvg;
-    vec3 rd = texture2D(uRoad, g / 8.0).rgb / uRoadAvg;
+    vec3 rd = mix(vec3(1.0), texture2D(uRoad, g / 3.0).rgb / uRoadAvg, 0.7);
     col = m * mix(gd, rd, road);
     float dist = t * hz;
     col = mix(col, uHaze, smoothstep(70.0, 230.0, dist) * 0.85);
