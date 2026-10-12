@@ -122,14 +122,8 @@ ASSETS = [
     # App icon and library card
     dict(id="icon", theme=None, round=1, file="icons/icon-1024.png", size="1024×1024, PNG, full bleed, no transparency",
          status="delivered", group="App icon",
-         prompt="An app icon, full bleed: a warm deep walnut-brown gradient ground fills the whole "
-                "square right to the edges and corners (no rounded-square frame, no border, no "
-                "white margin; the phone rounds the corners itself). Centred on it, a simple cream "
-                "and brass pyramid metronome, pendulum tilted slightly, and in front of its lower "
-                "right corner a small round red record dot with a soft glow. Bold, simple shapes "
-                "that read at 60 pixels. Keep everything important inside the middle 80% (it is "
-                "also used as a maskable Android icon). " + STYLE,
-         note="Resized to icons/icon-180.png, icon-192.png and icon-512.png."),
+         prompt="Create a square Music Practice favicon/app icon in Art Deco style, matching the reference's black lacquer, gold and jade geometric design. Use a simplified stepped ziggurat metronome with a cream face, a thick champagne-gold pendulum tilted slightly right, and a small bright ruby-red record jewel at its lower right. Strong simple silhouette readable at 32 pixels; remove fine ornamental details and tiny scale marks. Full-bleed dark jade/black background right to all square edges, no rounded square frame, no border, no light margins. Motif within central 80%. Crisp black lacquer surfaces, gold edging, small sunburst accent. No text, letters, numbers, watermark or other objects. Reference image is a style reference only.",
+         note="Art Deco favicon and app icon delivered. Resized to icons/icon-32.png, icon-180.png, icon-192.png and icon-512.png."),
     dict(id="cover", theme=None, round=1, file="assets/ui/cover.webp", size="1200×900 (4:3), WebP",
          status="delivered", group="Game library card",
          prompt="A cosy music practice corner: a walnut metronome mid-swing on the left and a "

@@ -13,7 +13,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ICONS = Path(__file__).resolve().parents[2] / "app" / "icons"
-SIZES = (180, 192, 512)
+SIZES = (32, 180, 192, 512)
 
 
 def standin(n: int = 1024) -> Image.Image:
