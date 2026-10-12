@@ -155,27 +155,73 @@ function lastPlaybackText() {
 }
 
 /*
- * Small drawings of the iPhone controls each step names, in iOS's own style,
- * so it's clear what to tap. They are drawn rather than screenshots: Safari's
- * layout shifts between iOS versions (aA became a page icon in iOS 26), and
- * these stay true across them.
+ * Pictures for the steps: a phone screen with the place to tap circled in
+ * red. They show *where* things are rather than exactly what the buttons
+ * look like, since Safari restyles its buttons between iOS versions (aA
+ * became a page icon in iOS 26) while their places stay put. Labels that
+ * don't change (Website Settings, Microphone, Allow) are written in.
  */
-const ios = {
-  // The page menu button at the left of the address bar: aA, or a page icon.
-  pageMenu: () => el('span', { class: 'ios-bar', 'aria-hidden': 'true' },
-    el('span', { class: 'ios-btn' }, el('span', { class: 'ios-aa' }, el('small', {}, 'a'), 'A')),
-    el('span', { class: 'ios-or' }, 'or'),
-    el('span', { class: 'ios-btn' }, el('svg', { viewBox: '0 0 20 20' }, el('path', { d: 'M5 3h7l3 3v11H5z M12 3v3h3 M7.5 10h5 M7.5 13h5' }))),
-    el('span', { class: 'ios-url' }, location.host || 'this site')),
-  more: () => el('span', { class: 'ios-row ios-row-solo', 'aria-hidden': 'true' },
-    el('span', { class: 'ios-dots' }, '•••'), el('span', {}, 'More')),
-  websiteSettings: () => el('span', { class: 'ios-row', 'aria-hidden': 'true' },
-    el('span', { class: 'ios-gear' }, el('svg', { viewBox: '0 0 20 20' }, el('circle', { cx: 10, cy: 10, r: 3 }), el('path', { d: 'M10 2v3M10 15v3M2 10h3M15 10h3M4.3 4.3l2.1 2.1M13.6 13.6l2.1 2.1M4.3 15.7l2.1-2.1M13.6 6.4l2.1-2.1' }))),
-    el('span', {}, 'Website Settings'), el('span', { class: 'ios-chev' }, '›')),
-  microphone: () => el('span', { class: 'ios-card', 'aria-hidden': 'true' },
-    el('span', { class: 'ios-row' }, el('span', {}, 'Microphone'), el('span', { class: 'ios-value' }, 'Allow'), el('span', { class: 'ios-chev' }, '›')),
-    el('span', { class: 'ios-options' },
-      el('span', {}, 'Ask'), el('span', {}, 'Deny'), el('span', { class: 'on' }, 'Allow ✓'))),
+const RED = '#ff3b30';
+const host = () => (location.host || 'this site').replace(/^www\./, '');
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function figure(svg, caption = '') {
+  const f = el('figure', { class: 'ios-fig' });
+  f.innerHTML = svg;
+  if (caption) f.append(el('figcaption', {}, caption));
+  return f;
+}
+
+// The lower part of a phone showing a web page and Safari's address bar.
+function phone(inner, { menu = '' } = {}) {
+  return `<svg viewBox="0 0 240 170" role="img" aria-hidden="true" class="ios-svg">
+    <rect x="6" y="2" width="228" height="200" rx="26" fill="#fff" stroke="#c7c7cc" stroke-width="2"/>
+    <g fill="#e5e5ea"><rect x="24" y="18" width="150" height="9" rx="4"/><rect x="24" y="34" width="190" height="7" rx="3.5"/><rect x="24" y="47" width="176" height="7" rx="3.5"/><rect x="24" y="60" width="184" height="7" rx="3.5"/><rect x="24" y="73" width="120" height="7" rx="3.5"/></g>
+    ${menu}
+    <rect x="18" y="124" width="204" height="34" rx="17" fill="#f2f2f7" stroke="#d1d1d6"/>
+    <circle cx="38" cy="141" r="11" fill="#e5e5ea"/>
+    <g stroke="#007aff" stroke-width="1.6" stroke-linecap="round"><path d="M33 138h10M33 142h10M33 146h6"/></g>
+    <text x="120" y="145.5" text-anchor="middle" font-size="12" fill="#3c3c43" font-family="-apple-system,system-ui,sans-serif">${esc(host())}</text>
+    <g fill="#007aff"><circle cx="196" cy="141" r="1.7"/><circle cx="202" cy="141" r="1.7"/><circle cx="208" cy="141" r="1.7"/></g>
+    ${inner}
+  </svg>`;
+}
+
+const PICS = {
+  // 1. The button at the left end of the address bar
+  pageMenu: () => figure(phone(`
+    <circle cx="38" cy="141" r="17" fill="none" stroke="${RED}" stroke-width="3"/>
+    <path d="M62 112 L50 128" stroke="${RED}" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="64" y="110" font-size="12" font-weight="700" fill="${RED}" font-family="-apple-system,system-ui,sans-serif">Tap here</text>`),
+    'The address bar may be at the top or bottom of the screen.'),
+  // 2. Website Settings in the menu that opens (More first, if shown)
+  menu: () => figure(phone(`
+    <rect x="21" y="84" width="150" height="26" rx="8" fill="none" stroke="${RED}" stroke-width="3"/>`, { menu: `
+    <rect x="16" y="6" width="160" height="112" rx="14" fill="#fff" stroke="#d1d1d6"/>
+    <g fill="#e5e5ea"><rect x="28" y="16" width="96" height="8" rx="4"/><rect x="28" y="34" width="110" height="8" rx="4"/><rect x="28" y="52" width="84" height="8" rx="4"/></g>
+    <g font-family="-apple-system,system-ui,sans-serif" font-size="11.5" fill="#000">
+      <text x="44" y="78" fill="#3c3c43">More</text><g fill="#007aff"><circle cx="31" cy="74" r="1.5"/><circle cx="35" cy="74" r="1.5"/><circle cx="39" cy="74" r="1.5"/></g>
+      <rect x="27" y="90" width="12" height="12" rx="3" fill="#8e8e93"/><text x="44" y="100">Website Settings</text>
+    </g>` })),
+  // 3. Microphone, set to Allow
+  settings: (title = 'Website Settings') => figure(`<svg viewBox="0 0 240 170" role="img" aria-hidden="true" class="ios-svg">
+    <rect x="6" y="2" width="228" height="200" rx="26" fill="#f2f2f7" stroke="#c7c7cc" stroke-width="2"/>
+    <g font-family="-apple-system,system-ui,sans-serif" font-size="12">
+      <text x="120" y="24" text-anchor="middle" font-weight="600" fill="#000">${esc(title)}</text>
+      <rect x="18" y="34" width="204" height="90" rx="10" fill="#fff"/>
+      <text x="30" y="54" fill="#000">Camera</text><text x="196" y="54" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="54" fill="#c7c7cc">›</text>
+      <path d="M30 64H222" stroke="#e5e5ea"/>
+      <text x="30" y="84" fill="#000">Microphone</text><text x="196" y="84" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="84" fill="#c7c7cc">›</text>
+      <path d="M30 94H222" stroke="#e5e5ea"/>
+      <text x="30" y="114" fill="#000">Location</text><text x="196" y="114" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="114" fill="#c7c7cc">›</text>
+      <rect x="20" y="68" width="200" height="24" rx="7" fill="none" stroke="${RED}" stroke-width="3"/>
+      <rect x="40" y="132" width="160" height="28" rx="9" fill="#e5e5ea"/>
+      <rect x="146" y="134" width="52" height="24" rx="7" fill="#fff"/>
+      <text x="66" y="150" text-anchor="middle" fill="#3c3c43">Ask</text><text x="120" y="150" text-anchor="middle" fill="#3c3c43">Deny</text>
+      <text x="172" y="150" text-anchor="middle" fill="#007aff" font-weight="600">Allow</text>
+      <rect x="143" y="131" width="58" height="30" rx="9" fill="none" stroke="${RED}" stroke-width="3"/>
+    </g>
+  </svg>`),
 };
 
 /** How to set this site's microphone to Allow, for this browser. */
@@ -186,14 +232,13 @@ export function allowSteps({ pictures = false } = {}) {
     if (standalone) {
       return el('ol', { class: 'ac-steps' },
         el('li', {}, 'Open the ', el('b', {}, 'Settings'), ' app, then ', el('b', {}, 'Apps → Safari → Microphone'), '.'),
-        el('li', {}, 'Choose ', el('b', {}, 'Allow'), '.', pic(ios.microphone)),
+        el('li', {}, 'Choose ', el('b', {}, 'Allow'), '.', pic(() => PICS.settings('Microphone'))),
         el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'));
     }
     return el('ol', { class: 'ac-steps' },
-      el('li', {}, 'Tap the ', el('b', {}, 'page menu'), ' button at the left of the address bar (', el('b', {}, 'aA'), ' or a page icon).', pic(ios.pageMenu)),
-      el('li', {}, 'If you see ', el('b', {}, 'More'), ', tap it.', pic(ios.more)),
-      el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), '.', pic(ios.websiteSettings)),
-      el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.', pic(ios.microphone)),
+      el('li', {}, 'Tap the button at the left end of Safari\'s address bar (', el('b', {}, 'aA'), ' or a page icon).', pic(PICS.pageMenu)),
+      el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), ' (tap ', el('b', {}, 'More'), ' first if you don\'t see it).', pic(PICS.menu)),
+      el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.', pic(() => PICS.settings())),
       el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'),
       pictures ? el('li', { class: 'ac-alt' }, 'Or, for every site: ', el('b', {}, 'Settings'), ' app → ', el('b', {}, 'Apps → Safari → Microphone'), ' → ', el('b', {}, 'Allow'), '.') : null);
   }
