@@ -52,7 +52,11 @@ def main() -> None:
             im.save(dst, "JPEG", quality=84, optimize=True, progressive=True)
         print("wrote", dst.relative_to(ROOT))
     if check and stale:
-        sys.exit("cards out of date: " + ", ".join(stale))
+        # A card without a web copy just isn't shown (the game draws a parchment
+        # stand-in), so newly delivered art must not block every game's deploy:
+        # warn, and run this script to make the copies.
+        print("warning: cards without web copies (run build_cards.py): " + ", ".join(stale))
+        return
     if check:
         print("cards up to date")
 
