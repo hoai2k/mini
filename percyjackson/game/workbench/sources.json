@@ -296,6 +296,17 @@
   ],
   "caption": "Luke"
  },
+ "monsters:rat": {
+  "sheet": "../assets/concept/vox-manhattan.jpg",
+  "design": "design/concept/vox-manhattan.png",
+  "box": [
+   0.01,
+   0.7652,
+   0.65,
+   0.2348
+  ],
+  "caption": "Sewer rats"
+ },
  "mortals:teacher": {
   "sheet": "../assets/concept/vox-npcs.jpg",
   "design": "design/concept/vox-npcs.png",

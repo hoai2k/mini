@@ -113,8 +113,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   writing that rearranges itself from Greek letters.
 
 **Music:** delivered tracks play from `game/assets/music/` (title, camp,
-museum, storm, boss, minigame, oracle, woods, highway, garden, manhattan;
-places still without their own track play the closest delivered one), looping with
+museum, storm, boss, minigame, oracle, woods, highway, garden, manhattan,
+road-west and otherworld; the last two cover every chapter and cutscene
+without its own track), looping with
 a crossfade; places without a track yet keep the generated music. The
 victory, defeat and prophecy stingers come from
 `design/source/build_stingers.py` (ElevenLabs). Camp and the woods have a

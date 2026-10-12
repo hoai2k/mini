@@ -6,9 +6,11 @@ import { settings } from './settings.js';
 // Music keys (biome music, 'hub', 'title', 'boss', 'minigame', 'oracle') that
 // have a delivered track, and its file under assets/music/.
 const MUSIC_FILES = { title: 'title', hub: 'camp', camp: 'camp', museum: 'museum', storm: 'storm', boss: 'boss', minigame: 'minigame', oracle: 'oracle', forest: 'woods', woods: 'woods', highway: 'highway', gorgon: 'garden', garden: 'garden', manhattan: 'manhattan',
-  // stand-ins until their own tracks are delivered (design/music-requests.md): the closest delivered mood
-  'cutscene-journey': 'manhattan', 'cutscene-storm': 'storm', 'cutscene-camp': 'camp',
-  arch: 'woods', waterland: 'garden', waterpark: 'garden', casino: 'garden', lotus: 'garden', desert: 'highway', underworld: 'oracle', beach: 'boss', olympus: 'title' };
+  // places sharing a track until their own are delivered (design/music-requests.md): road-west and
+  // otherworld were made to cover the rest of Book 1
+  'cutscene-journey': 'road-west', 'cutscene-storm': 'otherworld', 'cutscene-camp': 'otherworld',
+  arch: 'road-west', waterland: 'road-west', waterpark: 'road-west', desert: 'road-west', beach: 'road-west',
+  casino: 'otherworld', lotus: 'otherworld', underworld: 'otherworld', olympus: 'otherworld' };
 // Ambiences with a recorded bed under assets/ambience/ (replacing the synthesised chirps).
 const AMB_FILES = { forest: 'crickets', night: 'crickets' };
 
