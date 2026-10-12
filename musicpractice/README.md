@@ -116,7 +116,9 @@ favour of the two-button home screen.
   icon and the library cover) is delivered; prompts, files and export
   details are in `design/image-deliveries.json`. The four Round 2 Art Deco
   theme images are delivered; their prompts, files and measured anchors are
-  in `design/image-deliveries-round-2.json`.
+  in `design/image-deliveries-round-2.json`. Round 3 delivers 24 images across
+  Vintage 60s, 18th Century, Sci Fi Future, French Nouveau, Anime and Steam
+  Punk; prompts, paths and layer geometry are in `design/image-deliveries-round-3.json`.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
 - `publish.sh`: copies the app to `local/pages/musicpractice/`.

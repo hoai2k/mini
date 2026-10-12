@@ -332,6 +332,22 @@ def round3_assets(t: dict) -> list[dict]:
 
 
 ROUND3 = [a for t in MORE_THEMES for a in round3_assets(t)]
+
+# Measured anchors and fitted pendulum scales in the delivered Round 3 art.
+ROUND3_GEOMETRY = {'sixties': {'pivot': [400, 867], 'hub': [100.0, 855.1], 'scale': 1},
+ 'baroque': {'pivot': [400, 877], 'hub': [99.4, 866.3], 'scale': 0.8},
+ 'scifi': {'pivot': [400, 893], 'hub': [100.3, 924.7], 'scale': 0.85},
+ 'nouveau': {'pivot': [400, 937], 'hub': [99.7, 898.7], 'scale': 0.85},
+ 'anime': {'pivot': [400, 871], 'hub': [98.0, 927.9], 'scale': 0.8},
+ 'steampunk': {'pivot': [400, 776], 'hub': [94.8, 870.6], 'scale': 0.65}}
+for asset in ROUND3:
+    asset["status"] = "delivered"
+    geometry = ROUND3_GEOMETRY[asset["theme"]]
+    if asset["id"] == "metronome-body":
+        asset["anchors"] = {"pivot": geometry["pivot"]}
+    elif asset["id"] == "metronome-pendulum":
+        asset["anchors"] = {"hub": geometry["hub"]}
+        asset["scale"] = geometry["scale"]
 ASSETS += ROUND3
 
 
@@ -386,7 +402,7 @@ def render() -> tuple[str, str]:
             lines.append(f"- Note: {a['note']}")
         lines += ["", "```text", a["prompt"], "```"]
     doc = "\n".join(lines) + "\n"
-    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing")
+    keys = ("id", "theme", "file", "status", "canvas", "anchors", "swing", "scale")
     assets = json.dumps([{k: a[k] for k in keys if a.get(k) is not None} for a in ASSETS], indent=2) + "\n"
     return doc, assets
 

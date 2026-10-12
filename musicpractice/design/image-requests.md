@@ -10,7 +10,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 2 (Art Deco theme):** delivered and in use.
 
-**Round 3 (Vintage 60s, 18th Century, Sci Fi Future, French Nouveau, Anime, Steam Punk themes):** 24 images wanted: `assets/ui/sixties/home-metronome.webp`, `assets/ui/sixties/home-record.webp`, `assets/ui/sixties/metronome-body.webp`, `assets/ui/sixties/metronome-pendulum.webp`, `assets/ui/baroque/home-metronome.webp`, `assets/ui/baroque/home-record.webp`, `assets/ui/baroque/metronome-body.webp`, `assets/ui/baroque/metronome-pendulum.webp`, `assets/ui/scifi/home-metronome.webp`, `assets/ui/scifi/home-record.webp`, `assets/ui/scifi/metronome-body.webp`, `assets/ui/scifi/metronome-pendulum.webp`, `assets/ui/nouveau/home-metronome.webp`, `assets/ui/nouveau/home-record.webp`, `assets/ui/nouveau/metronome-body.webp`, `assets/ui/nouveau/metronome-pendulum.webp`, `assets/ui/anime/home-metronome.webp`, `assets/ui/anime/home-record.webp`, `assets/ui/anime/metronome-body.webp`, `assets/ui/anime/metronome-pendulum.webp`, `assets/ui/steampunk/home-metronome.webp`, `assets/ui/steampunk/home-record.webp`, `assets/ui/steampunk/metronome-body.webp`, `assets/ui/steampunk/metronome-pendulum.webp`.
+**Round 3 (Vintage 60s, 18th Century, Sci Fi Future, French Nouveau, Anime, Steam Punk themes):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -40,30 +40,30 @@ the measured ones for the delivered file in `build_requests.py`.
 | 2 | Art Deco | delivered | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 2 | Art Deco | delivered | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 2 | Art Deco | delivered | `metronome-pendulum` | `app/assets/ui/deco/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | Vintage 60s | requested | `home-metronome` | `app/assets/ui/sixties/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Vintage 60s | requested | `home-record` | `app/assets/ui/sixties/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Vintage 60s | requested | `metronome-body` | `app/assets/ui/sixties/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | Vintage 60s | requested | `metronome-pendulum` | `app/assets/ui/sixties/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | 18th Century | requested | `home-metronome` | `app/assets/ui/baroque/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | 18th Century | requested | `home-record` | `app/assets/ui/baroque/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | 18th Century | requested | `metronome-body` | `app/assets/ui/baroque/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | 18th Century | requested | `metronome-pendulum` | `app/assets/ui/baroque/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | Sci Fi Future | requested | `home-metronome` | `app/assets/ui/scifi/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Sci Fi Future | requested | `home-record` | `app/assets/ui/scifi/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Sci Fi Future | requested | `metronome-body` | `app/assets/ui/scifi/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | Sci Fi Future | requested | `metronome-pendulum` | `app/assets/ui/scifi/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | French Nouveau | requested | `home-metronome` | `app/assets/ui/nouveau/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | French Nouveau | requested | `home-record` | `app/assets/ui/nouveau/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | French Nouveau | requested | `metronome-body` | `app/assets/ui/nouveau/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | French Nouveau | requested | `metronome-pendulum` | `app/assets/ui/nouveau/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | Anime | requested | `home-metronome` | `app/assets/ui/anime/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Anime | requested | `home-record` | `app/assets/ui/anime/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Anime | requested | `metronome-body` | `app/assets/ui/anime/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | Anime | requested | `metronome-pendulum` | `app/assets/ui/anime/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 3 | Steam Punk | requested | `home-metronome` | `app/assets/ui/steampunk/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Steam Punk | requested | `home-record` | `app/assets/ui/steampunk/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 3 | Steam Punk | requested | `metronome-body` | `app/assets/ui/steampunk/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
-| 3 | Steam Punk | requested | `metronome-pendulum` | `app/assets/ui/steampunk/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | Vintage 60s | delivered | `home-metronome` | `app/assets/ui/sixties/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Vintage 60s | delivered | `home-record` | `app/assets/ui/sixties/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Vintage 60s | delivered | `metronome-body` | `app/assets/ui/sixties/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | Vintage 60s | delivered | `metronome-pendulum` | `app/assets/ui/sixties/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | 18th Century | delivered | `home-metronome` | `app/assets/ui/baroque/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | 18th Century | delivered | `home-record` | `app/assets/ui/baroque/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | 18th Century | delivered | `metronome-body` | `app/assets/ui/baroque/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | 18th Century | delivered | `metronome-pendulum` | `app/assets/ui/baroque/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | Sci Fi Future | delivered | `home-metronome` | `app/assets/ui/scifi/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Sci Fi Future | delivered | `home-record` | `app/assets/ui/scifi/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Sci Fi Future | delivered | `metronome-body` | `app/assets/ui/scifi/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | Sci Fi Future | delivered | `metronome-pendulum` | `app/assets/ui/scifi/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | French Nouveau | delivered | `home-metronome` | `app/assets/ui/nouveau/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | French Nouveau | delivered | `home-record` | `app/assets/ui/nouveau/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | French Nouveau | delivered | `metronome-body` | `app/assets/ui/nouveau/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | French Nouveau | delivered | `metronome-pendulum` | `app/assets/ui/nouveau/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | Anime | delivered | `home-metronome` | `app/assets/ui/anime/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Anime | delivered | `home-record` | `app/assets/ui/anime/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Anime | delivered | `metronome-body` | `app/assets/ui/anime/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | Anime | delivered | `metronome-pendulum` | `app/assets/ui/anime/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 3 | Steam Punk | delivered | `home-metronome` | `app/assets/ui/steampunk/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Steam Punk | delivered | `home-record` | `app/assets/ui/steampunk/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 3 | Steam Punk | delivered | `metronome-body` | `app/assets/ui/steampunk/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
+| 3 | Steam Punk | delivered | `metronome-pendulum` | `app/assets/ui/steampunk/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
 
 ## Home screen buttons
 
@@ -183,7 +183,7 @@ Just the pendulum of an Art Deco metronome, isolated: a single thin, perfectly s
 
 ## Vintage 60s · Home screen buttons
 
-### `home-metronome` · Vintage 60s · requested
+### `home-metronome` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -193,7 +193,7 @@ Just the pendulum of an Art Deco metronome, isolated: a single thin, perfectly s
 A rounded mid-century metronome in teak with a mustard-yellow face and a teal base, its chrome pendulum tilted a little to the right, with a small orange atomic starburst beside the tip. Seen from the front. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Vintage 60s · requested
+### `home-record` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -205,22 +205,22 @@ A chrome 1960s 'bullet' microphone on a short teak stand with a round orange rec
 
 ## Vintage 60s · Metronome animation
 
-### `metronome-body` · Vintage 60s · requested
+### `metronome-body` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 867) in a 800×1200 canvas
 - Note: The app rotates the Vintage 60s pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 A rounded mid-century metronome in warm teak with softly rounded corners and a slight tapering pyramid shape, a mustard-yellow front face with evenly spaced cream tick marks (no numbers) and a thin teal band near the base, standing on a short flared teal plinth with tapered peg feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round chrome pivot cap sits exactly at 50% of the width and 83% of the height. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Vintage 60s · requested
+### `metronome-pendulum` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (100.0, 855.1) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
@@ -229,7 +229,7 @@ Just the pendulum of a metronome, isolated: a thin straight chrome rod with a ro
 
 ## 18th Century · Home screen buttons
 
-### `home-metronome` · 18th Century · requested
+### `home-metronome` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -239,7 +239,7 @@ Just the pendulum of a metronome, isolated: a thin straight chrome rod with a ro
 An elegant 18th-century metronome case in carved walnut with gilt acanthus scrolls and an ivory dial panel, its gilt pendulum tilted a little to the right. Seen from the front. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · 18th Century · requested
+### `home-record` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -251,22 +251,22 @@ A period-inspired recording horn: a gilded flared brass horn on a carved walnut 
 
 ## 18th Century · Metronome animation
 
-### `metronome-body` · 18th Century · requested
+### `metronome-body` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 877) in a 800×1200 canvas
 - Note: The app rotates the 18th Century pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 An 18th-century style metronome case in carved walnut with a tall arched top crowned by a small gilt finial, gilt rococo scrolls and shell ornaments around its edges, and a tall ivory dial panel with fine engraved tick marks (no numbers), on a moulded plinth with small gilt scroll feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gilt rosette sits exactly at 50% of the width and 83% of the height. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · 18th Century · requested
+### `metronome-pendulum` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (99.4, 866.3) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
@@ -275,7 +275,7 @@ Just the pendulum of a metronome, isolated: a thin straight gilt rod with a smal
 
 ## Sci Fi Future · Home screen buttons
 
-### `home-metronome` · Sci Fi Future · requested
+### `home-metronome` · Sci Fi Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -285,7 +285,7 @@ Just the pendulum of a metronome, isolated: a thin straight gilt rod with a smal
 A futuristic metronome as a chamfered graphite-and-titanium obelisk with a glowing cyan scale and a light-blade pendulum tilted a little to the right. Seen from the front. Sleek science-fiction illustration of a far-future starship console: deep space navy and graphite, glowing cyan and magenta light lines, brushed titanium, glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a soft neon glow. Clean, futuristic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Sci Fi Future · requested
+### `home-record` · Sci Fi Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -297,22 +297,22 @@ A futuristic floating microphone: a glowing cyan ring around a small titanium ca
 
 ## Sci Fi Future · Metronome animation
 
-### `metronome-body` · Sci Fi Future · requested
+### `metronome-body` · Sci Fi Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 893) in a 800×1200 canvas
 - Note: The app rotates the Sci Fi Future pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 A futuristic metronome: a tall tapering graphite-and-titanium obelisk with chamfered (cut) corners, a dark glass front panel with a vertical row of glowing cyan hud tick marks (no numbers), thin cyan light lines along its edges, on a hexagonal titanium base. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round glowing cyan pivot ring sits exactly at 50% of the width and 83% of the height. Sleek science-fiction illustration of a far-future starship console: deep space navy and graphite, glowing cyan and magenta light lines, brushed titanium, glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a soft neon glow. Clean, futuristic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Sci Fi Future · requested
+### `metronome-pendulum` · Sci Fi Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (100.3, 924.7) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
@@ -321,7 +321,7 @@ Just the pendulum of a metronome, isolated: a thin straight glowing cyan light-b
 
 ## French Nouveau · Home screen buttons
 
-### `home-metronome` · French Nouveau · requested
+### `home-metronome` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -331,7 +331,7 @@ Just the pendulum of a metronome, isolated: a thin straight glowing cyan light-b
 An art nouveau metronome whose case curves like a lily stem in sage green and gold, with a cream face and a gold pendulum tilted a little to the right. Seen from the front. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · French Nouveau · requested
+### `home-record` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -343,22 +343,22 @@ An art nouveau microphone wrapped in gold vines and an iris flower on a curving 
 
 ## French Nouveau · Metronome animation
 
-### `metronome-body` · French Nouveau · requested
+### `metronome-body` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 937) in a 800×1200 canvas
 - Note: The app rotates the French Nouveau pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 An art nouveau metronome: a tall case with gently curving whiplash sides and a rounded arched top, in sage green enamel with gold vine and lily ornaments climbing its edges, a cream front face with fine gold tick marks (no numbers), on a softly flared base with curling gold feet. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round gold flower-shaped pivot sits exactly at 50% of the width and 83% of the height. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · French Nouveau · requested
+### `metronome-pendulum` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (99.7, 898.7) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
@@ -367,7 +367,7 @@ Just the pendulum of a metronome, isolated: a thin straight gold rod with a smal
 
 ## Anime · Home screen buttons
 
-### `home-metronome` · Anime · requested
+### `home-metronome` · Anime · delivered
 
 - File: `musicpractice/app/assets/ui/anime/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -377,7 +377,7 @@ Just the pendulum of a metronome, isolated: a thin straight gold rod with a smal
 A cute rounded metronome in candy pink with a white face and a sky-blue pendulum tilted a little to the right, with sparkles and motion lines. Seen from the front. Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Anime · requested
+### `home-record` · Anime · delivered
 
 - File: `musicpractice/app/assets/ui/anime/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -389,22 +389,22 @@ A cute rounded anime-style microphone in sky blue and white with a heart-shaped 
 
 ## Anime · Metronome animation
 
-### `metronome-body` · Anime · requested
+### `metronome-body` · Anime · delivered
 
 - File: `musicpractice/app/assets/ui/anime/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 871) in a 800×1200 canvas
 - Note: The app rotates the Anime pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 A cute anime-style metronome: a rounded pyramid in candy pink with a bold dark outline, a white front face with simple sky-blue tick marks (no numbers), a little sparkle glint on the top corner, on a rounded lilac base. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round sky-blue pivot button sits exactly at 50% of the width and 83% of the height. Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Anime · requested
+### `metronome-pendulum` · Anime · delivered
 
 - File: `musicpractice/app/assets/ui/anime/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (98.0, 927.9) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
@@ -413,7 +413,7 @@ Just the pendulum of a metronome, isolated: a thin straight sky-blue rod with a 
 
 ## Steam Punk · Home screen buttons
 
-### `home-metronome` · Steam Punk · requested
+### `home-metronome` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -423,7 +423,7 @@ Just the pendulum of a metronome, isolated: a thin straight sky-blue rod with a 
 A steampunk metronome of riveted copper plates with visible brass gears and a brass pendulum tilted a little to the right. Seen from the front. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```
 
-### `home-record` · Steam Punk · requested
+### `home-record` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/home-record.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -435,22 +435,22 @@ A steampunk microphone: a brass and copper capsule with a riveted grille, small 
 
 ## Steam Punk · Metronome animation
 
-### `metronome-body` · Steam Punk · requested
+### `metronome-body` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/metronome-body.webp`
 - Size: 800×1200, transparent PNG (shipped as WebP)
-- Anchors (requested): pivot (400, 1000) in a 800×1200 canvas
+- Anchors (measured): pivot (400, 776) in a 800×1200 canvas
 - Note: The app rotates the Steam Punk pendulum over this one about the pivot. Ask for (400, 1000) in an 800×1200 canvas, then measure where it really is in the delivered file and record it as this image's pivot anchor.
 
 ```text
 A steampunk metronome: a tapering pyramid of riveted copper and brass plates on a dark mahogany frame, a cream enamel front face with fine black tick marks (no numbers), a few exposed brass cogs at its sides and a small pressure gauge on the base, on a heavy riveted brass plinth. Seen exactly straight on from the front, perfectly symmetrical, standing upright and filling the canvas top to bottom with a small margin. There is NO pendulum, rod or weight anywhere. Near the bottom of the face, centred left-to-right, a round brass gear-shaped pivot sits exactly at 50% of the width and 83% of the height. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
 ```
 
-### `metronome-pendulum` · Steam Punk · requested
+### `metronome-pendulum` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/metronome-pendulum.webp`
 - Size: 200×1000, transparent PNG (shipped as WebP)
-- Anchors (requested): hub (100, 960) in a 200×1000 canvas; swings ±24°
+- Anchors (measured): hub (94.8, 870.6) in a 200×1000 canvas; swings ±24°
 - Note: The app rotates this about the hub. Ask for (100, 960) in a 200×1000 canvas, then record the measured hub as this image's anchor. The rod must be exactly vertical.
 
 ```text
