@@ -118,7 +118,8 @@ export class Session {
     this.peers.clear();
     let done = false;
     const finish = (err) => { if (done) return; done = true; clearTimeout(timer); cb(err); };
-    const timer = setTimeout(() => { if (!done) { try { room.leave(); } catch (e) { /* gone */ } if (this.room === room) this.room = null; finish('timeout'); } }, 9000);
+    // (connected but this page was too busy to hear it yet, e.g. building a level: not a timeout)
+    const timer = setTimeout(() => { if (!done && !room.ready) { try { room.leave(); } catch (e) { /* gone */ } if (this.room === room) this.room = null; finish('timeout'); } }, 12000);
     room.onClose((reason) => {
       if (!done) { if (this.room === room) this.room = null; finish(reason || 'disconnected'); return; }
       if (this.room === room) { this.room = null; this.lost(reason || 'disconnected'); }

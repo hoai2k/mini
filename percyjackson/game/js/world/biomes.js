@@ -87,7 +87,7 @@ export const BIOMES = {
   highway: {
     id: 'highway', name: 'The New Jersey Turnpike', sub: 'The Kindly Ones · Rain',
     skyTop: 0x0a0e16, skyHorizon: 0x3a3a44, fog: 0x262a32, fogDensity: 0.026,
-    hemiSky: 0x7a88a8, hemiGround: 0x1e1a16, hemiI: 0.85, sun: 0xa8b8d8, sunI: 0.8,
+    hemiSky: 0x8a98b8, hemiGround: 0x2a241e, hemiI: 1.1, sun: 0xb8c8e8, sunI: 1.0,
     grade: { tint: [0.97, 0.99, 1.05], lift: [0.008, 0.006, 0.016], sat: 0.88, contrast: 1.12, vignette: 0.4 },
     floor: B.asphalt, floor2: B.asphalt_line, path: B.asphalt, wall: B.concrete, wall2: B.red_brick, trim: B.guardrail, pillar: B.concrete_pillar, roof: B.bus_panel, ground: B.grass, accent: B.lantern, pit: B.dirt,
     ambience: 'highway', music: 'highway', particles: 'stormfire', wind: 2.0, storm: true,
