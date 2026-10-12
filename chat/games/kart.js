@@ -19,7 +19,8 @@
 import { buildTrack, scenery, itemBoxes, boostPads, obstacleGrid, gridSpot, pointAt, wrapAngle, lapOf, LAPS, WORLD } from './kart/track.js';
 import {
   newKart, stepKart, bumpKarts, rollItem, bombAt, standings, autopilot, watchStuck, packKart, unpackKart,
-  SPIN_TIME, BOOST_TIME, STAR_TIME, BANANA_R, BOMB_R, BOMB_FUSE, ITEMS,
+  addItem, itemReady, takeItem, dragSteer,
+  SPIN_TIME, BOOST_TIME, STAR_TIME, BANANA_R, BOMB_R, BOMB_FUSE, ITEMS, ITEM_SLOTS, TOUCH,
 } from './kart/sim.js';
 import { createGround, averageColor } from './kart/gl.js';
 import * as art from './kart/art.js';
@@ -93,7 +94,14 @@ export default {
       .kd-btn:focus-visible { outline: 3px solid var(--aqua, #3fe0d0); outline-offset: 3px; }
       .kd-btn.on { background: rgba(255,95,162,0.75); transform: translateY(2px); box-shadow: none; }
       .kd-btn canvas { position: static; width: 54px; height: 54px; pointer-events: none; }
+      .kd-item { overflow: visible; }
+      .kd-item.empty > canvas:first-child { opacity: 0; }
       .kd-item.empty { opacity: 0.55; }
+      .kd-item .kd-next { position: absolute; left: -34px; top: -14px; width: 42px; height: 42px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.85); background: rgba(30,16,50,0.7); display: grid; place-items: center; pointer-events: none; }
+      .kd-item .kd-next canvas { width: 32px; height: 32px; }
+      .kd-item .kd-next.empty { opacity: 0.45; }
+      .kd-item .kd-next.empty canvas { opacity: 0; }
       .kd-res { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); min-width: 250px; max-width: calc(100% - 32px);
         background: rgba(30,16,50,0.93); border: 2px solid rgba(255,255,255,0.18); border-radius: 18px; padding: 14px 16px 16px; color: #fff;
         box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; }
@@ -111,21 +119,23 @@ export default {
     glCanvas.className = 'kd-gl';
     const canvas = document.createElement('canvas');
     canvas.className = 'g-canvas';
-    canvas.setAttribute('aria-label', 'Kart Dash race. Hold the left or right side to steer.');
-    const driftBtn = document.createElement('button');
-    driftBtn.className = 'kd-btn kd-drift';
-    driftBtn.textContent = 'DRIFT';
-    driftBtn.setAttribute('aria-label', 'Drift (hold while turning)');
+    canvas.setAttribute('aria-label', 'Kart Dash race. Drag a finger left or right to steer, down to brake; touch with a second finger to drift.');
     const itemBtn = document.createElement('button');
     itemBtn.className = 'kd-btn kd-item empty';
     itemBtn.setAttribute('aria-label', 'Use item');
     const itemIcon = document.createElement('canvas');
     itemIcon.width = itemIcon.height = 108;
-    itemBtn.append(itemIcon);
+    // The queued (second) item, small beside the button.
+    const nextBox = document.createElement('span');
+    nextBox.className = 'kd-next empty';
+    const nextIcon = document.createElement('canvas');
+    nextIcon.width = nextIcon.height = 56;
+    nextBox.append(nextIcon);
+    itemBtn.append(itemIcon, nextBox);
     const results = document.createElement('div');
     results.className = 'kd-res';
     results.hidden = true;
-    wrap.append(glCanvas, canvas, driftBtn, itemBtn, results);
+    wrap.append(glCanvas, canvas, itemBtn, results);
     api.el.append(style, wrap);
     const ctx = canvas.getContext('2d');
 
@@ -234,8 +244,6 @@ export default {
       inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
       baseF = Math.min(w * 1.05, h * 1.12);
       const pad = Math.max(12, inset.bottom + 12);
-      driftBtn.style.left = '14px';
-      driftBtn.style.bottom = pad + 'px';
       itemBtn.style.right = '14px';
       itemBtn.style.bottom = pad + 'px';
     }
@@ -533,10 +541,9 @@ export default {
         api.send('box', { r: S.r, i });
         if (api.isOwner()) noteBox(i);
         if (k === mine) { sfx('pop'); counts.pickups++; }
-        if (!k.item) {
+        if (k.items.length < ITEM_SLOTS) {
           const { rank, count } = rankOf(id);
-          k.item = rollItem(rank, count);
-          k.roll = 0.9;
+          addItem(k, rollItem(rank, count));
         }
       });
     }
@@ -548,9 +555,8 @@ export default {
       setShared({ bx });
     }
     function useItem(k, id) {
-      if (!k || !k.item || k.roll > 0 || k.spin > 0 || !racing()) return false;
-      const item = k.item;
-      k.item = null;
+      if (!k || !itemReady(k) || k.spin > 0 || !racing()) return false;
+      const item = takeItem(k);
       const fx = Math.cos(k.h), fz = Math.sin(k.h);
       if (item === 'boost') {
         k.boost = BOOST_TIME * 1.3;
@@ -625,8 +631,7 @@ export default {
 
     // --- input -------------------------------------------------------------
     const keys = new Set();
-    const pointers = new Map();
-    let driftHeld = false, padIn = { steer: 0, drift: false, brake: false };
+    let padIn = { steer: 0, drift: false, brake: false };
     let useQueued = false;
     const typing = e => /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName);
     function onKey(e) {
@@ -643,44 +648,52 @@ export default {
     }
     window.addEventListener('keydown', onKey);
     window.addEventListener('keyup', onKey);
-    const blur = () => { keys.clear(); pointers.clear(); driftHeld = false; driftBtn.classList.remove('on'); };
-    window.addEventListener('blur', blur);
 
+    // Touch (after Brick Kart): the first finger down anywhere but the item
+    // button steers by dragging sideways from where it went down (dragSteer),
+    // and brakes when dragged well down; any further finger held is drift.
+    let drag = null;                 // { id, x0, y0, steer, brake }
+    const extra = new Set();         // drift fingers
+    let touchSteer = 0;              // smoothed
+    const blur = () => { keys.clear(); drag = null; extra.clear(); touchSteer = 0; };
+    window.addEventListener('blur', blur);
     canvas.addEventListener('pointerdown', e => {
+      e.preventDefault();
       canvas.setPointerCapture?.(e.pointerId);
-      pointers.set(e.pointerId, e.offsetX);
+      if (!drag) drag = { id: e.pointerId, x0: e.offsetX, y0: e.offsetY, steer: 0, brake: false };
+      else extra.add(e.pointerId);
     });
-    canvas.addEventListener('pointermove', e => { if (pointers.has(e.pointerId)) pointers.set(e.pointerId, e.offsetX); });
-    const lift = e => pointers.delete(e.pointerId);
+    canvas.addEventListener('pointermove', e => {
+      if (!drag || drag.id !== e.pointerId) return;
+      Object.assign(drag, dragSteer(drag, e.offsetX, e.offsetY, w, h));
+    });
+    const lift = e => {
+      if (drag && drag.id === e.pointerId) drag = null;
+      extra.delete(e.pointerId);
+    };
     canvas.addEventListener('pointerup', lift);
     canvas.addEventListener('pointercancel', lift);
-    const driftOn = e => { e.preventDefault(); driftHeld = true; driftBtn.classList.add('on'); driftBtn.setPointerCapture?.(e.pointerId); };
-    const driftOff = () => { driftHeld = false; driftBtn.classList.remove('on'); };
-    driftBtn.addEventListener('pointerdown', driftOn);
-    driftBtn.addEventListener('pointerup', driftOff);
-    driftBtn.addEventListener('pointercancel', driftOff);
-    driftBtn.addEventListener('click', e => e.preventDefault());
-    itemBtn.addEventListener('pointerdown', e => { e.preventDefault(); useQueued = true; });
-    itemBtn.addEventListener('click', e => { if (e.detail === 0) useQueued = true; }); // keyboard / controller focus
+    canvas.addEventListener('lostpointercapture', lift);
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+    // A tap uses one item on pointerdown; the click a tap also makes is ignored
+    // (it would use the queued second item too). Clicks without a press first
+    // come from keyboard / controller focus.
+    let itemPressAt = -1e9;
+    itemBtn.addEventListener('pointerdown', e => { e.preventDefault(); itemPressAt = now(); useQueued = true; });
+    itemBtn.addEventListener('click', e => { if (e.detail === 0 && now() - itemPressAt > 800) useQueued = true; });
 
-    function humanInput() {
+    function humanInput(dt) {
+      // Light smoothing on the finger (about 0.05 s), none on keys and sticks.
+      const want = drag ? drag.steer : 0;
+      touchSteer += (want - touchSteer) * Math.min(1, dt / TOUCH.smooth);
+      if (!drag && Math.abs(touchSteer) < 0.01) touchSteer = 0;
       let steer = 0;
       if (Math.abs(padIn.steer) > 0.12) steer = padIn.steer;
       else if (keys.has('ArrowLeft') || keys.has('KeyA') || keys.has('ArrowRight') || keys.has('KeyD')) {
         steer = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0);
-      } else if (pointers.size) {
-        let sum = 0;
-        for (const x of pointers.values()) sum += clamp((x - w / 2) / (w * 0.3), -1, 1);
-        steer = sum / pointers.size;
-        if (Math.abs(steer) < 0.08) steer = 0;
-      }
-      // Two fingers, one on each side: brake (and back up when stopped).
-      let left = false, right = false;
-      for (const x of pointers.values()) { if (x < w * 0.4) left = true; if (x > w * 0.6) right = true; }
-      const touchBrake = left && right;
-      if (touchBrake) steer = 0;
-      const drift = driftHeld || padIn.drift || keys.has('ShiftLeft') || keys.has('ShiftRight') || keys.has('KeyX') || keys.has('KeyC') || keys.has('KeyZ');
-      const brake = touchBrake || padIn.brake || keys.has('ArrowDown') || keys.has('KeyS');
+      } else steer = touchSteer;
+      const drift = extra.size > 0 || padIn.drift || keys.has('ShiftLeft') || keys.has('ShiftRight') || keys.has('KeyX') || keys.has('KeyC') || keys.has('KeyZ');
+      const brake = !!drag?.brake || padIn.brake || keys.has('ArrowDown') || keys.has('KeyS');
       return { steer, drift, brake };
     }
 
@@ -762,12 +775,12 @@ export default {
             watchStuck(myBrain, mine, dt);
             inp = autopilot(mine, track, myBrain, t);
             // The autopilot uses items after a moment.
-            if (mine.item && !mine.roll) {
+            if (itemReady(mine)) {
               if (!itemAt) itemAt = now() + 600 + Math.random() * 2200;
               if (now() > itemAt) { useItem(mine, myId); itemAt = 0; }
             }
           } else {
-            inp = humanInput();
+            inp = humanInput(dt);
           }
           driveLocal(mine, myId, inp, 1, dt);
           if (mine.drift && Math.random() < 0.5) sparkAt(mine);
@@ -784,7 +797,7 @@ export default {
           const gap = lead - b.kart.total;
           const scale = clamp(b.speed + gap * 0.0008, 0.84, 1.0);
           driveLocal(b.kart, b.id, inp, scale, dt);
-          if (b.kart.item && !b.kart.roll) {
+          if (itemReady(b.kart)) {
             if (!b.useAt) b.useAt = now() + 900 + Math.random() * 3500;
             if (now() > b.useAt) { useItem(b.kart, b.id); b.useAt = 0; }
           }
@@ -1215,17 +1228,27 @@ export default {
         ctx.stroke();
       }
       // Item: drawn into the item button.
-      const it = mine?.item;
-      const shown = mine && it ? (mine.roll > 0 ? ITEMS[Math.floor(now() / 80) % ITEMS.length] : it) : '';
-      if (shown !== iconSig) {
-        iconSig = shown;
+      // The first item large, the queued one small beside it; the newest
+      // one spins through the items while it rolls.
+      const held = mine ? mine.items : [];
+      const spinning = ITEMS[Math.floor(now() / 80) % ITEMS.length];
+      const slot = i => (held[i] ? (mine.roll > 0 && i === held.length - 1 ? spinning : held[i]) : '');
+      const shown = slot(0), queued = slot(1);
+      const sig = shown + '|' + queued + '|' + (mine?.roll > 0);
+      if (sig !== iconSig) {
+        iconSig = sig;
         const g = itemIcon.getContext('2d');
         g.clearRect(0, 0, 108, 108);
         if (shown) drawItemIcon(g, shown, 108);
+        const g2 = nextIcon.getContext('2d');
+        g2.clearRect(0, 0, 56, 56);
+        if (queued) drawItemIcon(g2, queued, 56);
         itemBtn.classList.toggle('empty', !shown);
-        itemBtn.setAttribute('aria-label', shown && !mine.roll ? `Use ${shown}` : 'No item');
+        nextBox.classList.toggle('empty', !queued);
+        const ready = mine && itemReady(mine);
+        itemBtn.setAttribute('aria-label', ready ? `Use ${held[0]}${held[1] && !(mine.roll > 0) ? `, then ${held[1]}` : ''}` : 'No item');
       }
-      driftBtn.hidden = itemBtn.hidden = !mine || S?.ph === 'done';
+      itemBtn.hidden = !mine || S?.ph === 'done';
       // Countdown.
       if (S && S.ph === 'count' && t < 1) {
         const n = Math.ceil(-t);
@@ -1248,7 +1271,7 @@ export default {
         }
         if (t < -1.5 && mine) {
           const touch = matchMedia?.('(pointer: coarse)').matches;
-          const lines = touch ? ['Hold left or right to steer', 'DRIFT in bends · tap the item', 'Hold both sides to brake'] : ['Arrows steer · Shift drifts', 'Space uses items · Down brakes'];
+          const lines = touch ? ['Drag left / right to steer', 'Drag down to brake', '2nd finger drifts · tap item'] : ['Arrows steer · Shift drifts', 'Space uses items · Down brakes'];
           const y0 = h - inset.bottom - 22 - (lines.length - 1) * 18;
           lines.forEach((l, i) => hudText(l, w / 2, y0 + i * 18, 13, '#fff', 'center', 800));
         }
@@ -1405,13 +1428,16 @@ export default {
           const k = mine;
           return {
             phase: !S ? 'none' : S.ph === 'done' ? 'done' : t < 0 ? 'count' : 'race', raceTime: t, racers: S?.racers ?? [], ai: S?.ai?.length ?? 0,
-            me: k && { x: k.x, z: k.z, h: k.h, v: k.v, total: k.total, lap: lapOf(Math.max(0, k.total), track.length).lap, laps: k.lapTimes.length, finished: k.finished, spin: k.spin, item: k.item, roll: k.roll || 0, boost: k.boost, star: k.star, drift: k.drift, d: k.d, offroad: k.offroad },
+            me: k && { x: k.x, z: k.z, h: k.h, v: k.v, total: k.total, lap: lapOf(Math.max(0, k.total), track.length).lap, laps: k.lapTimes.length, finished: k.finished, spin: k.spin, item: k.items[0] ?? null, items: k.items.slice(), roll: k.roll || 0, boost: k.boost, star: k.star, drift: k.drift, d: k.d, offroad: k.offroad },
             rank: mine ? rankOf(myId).rank + 1 : 0, karts: allKarts().map(k => ({ id: k.id, x: k.x, z: k.z, spin: !!(k.fl & 1), finished: k.finished, total: k.total })),
             parts: parts.length, counts: { ...counts }, bananas: bananas.size, bombs: bombs.size, boxesUp: boxUntil.filter(u => now() >= u).length,
             results: S?.res ?? null, ground: ground?.kind, length: track.length,
           };
         },
-        give(item) { if (mine && ITEMS.includes(item)) { mine.item = item; mine.roll = 0; } },
+        // Hands me an item, ready to use: in place of what I hold, or added to the next free slot.
+        give(item, add = false) { if (mine && ITEMS.includes(item)) { if (!add) mine.items = []; addItem(mine, item, 0); } },
+        // Where my steering finger's anchor is, its steer and brake (null when no finger is down), and drift fingers.
+        touch: () => ({ drag: drag && { ...drag }, extra: extra.size, steer: touchSteer, w, h }),
         use() { useQueued = true; },
         place(s, d = 0, v = 0) {
           if (!mine) return;
