@@ -13,7 +13,7 @@ const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // swap that import for a stub where block 1 is solid.
 const code = readFileSync(resolve(GAME, 'js/physics.js'), 'utf8')
   .replace(/import \{ BLOCKS \} from '[^']+';/, 'const BLOCKS = [null, { solid: true }];');
-const { moveEntity } = await import('data:text/javascript,' + encodeURIComponent(code));
+const { moveEntity, platformAt } = await import('data:text/javascript,' + encodeURIComponent(code));
 
 // floor at y = 0 everywhere; extra solid cells from a set "x,y,z"
 function world(cells = []) {
@@ -56,4 +56,22 @@ test('no ground under a body (y = -Infinity) does not hang', () => {
   const e = body(3.5, 0.5); e.pos.y = -Infinity;
   moveEntity(e, world(), 1 / 60);
   assert.equal(e.pos.y, -Infinity);
+});
+
+test('a hero lands on a floating boat deck and rides it', async () => {
+
+  const world = { get: () => 0, liquidAt: () => null, platforms: [{ x: 10, z: 10, rot: 0.4, hx: 1.55, hz: 0.42, top: 5, vel: 0, load: 0 }] };
+  const b = world.platforms[0];
+  // along the boat (rotated) is on deck; off its side is not
+  const along = { x: 10 + Math.cos(0.4) * 1.2, z: 10 - Math.sin(0.4) * 1.2 };
+  assert.equal(platformAt(world, along.x, along.z, 0.3), b);
+  assert.equal(platformAt(world, 10 + Math.sin(0.4) * 1.5, 10 + Math.cos(0.4) * 1.5, 0.3), null);
+  const e = { pos: { x: 10, y: 6, z: 10 }, vel: { x: 0, y: 0, z: 0 }, radius: 0.35, height: 1.8, grounded: false };
+  for (let i = 0; i < 60; i++) moveEntity(e, world, 1 / 60);
+  assert.equal(e.grounded, true);
+  assert.ok(Math.abs(e.pos.y - 5) < 1e-6, 'stands on the deck');
+  assert.equal(e.platform, b);
+  assert.ok(b.vel < 0, 'the boat dips when the hero lands');
+  b.top = 4.9; moveEntity(e, world, 1 / 60);
+  assert.ok(Math.abs(e.pos.y - 4.9) < 1e-6, 'rides the deck down as it bobs');
 });

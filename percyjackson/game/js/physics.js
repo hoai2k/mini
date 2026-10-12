@@ -5,6 +5,19 @@ import { BLOCKS } from './world/blocks.js';
 
 const GRAV = 32;
 
+// The floating platform (a boat, world.platforms) whose deck is under (x, z)
+// for a body of radius r. A platform: { x, z, rot, hx, hz, top, vel, load }.
+export function platformAt(world, x, z, r = 0.3) {
+  const list = world.platforms;
+  if (!list?.length) return null;
+  for (const b of list) {
+    const dx = x - b.x, dz = z - b.z, c = Math.cos(b.rot), s = Math.sin(b.rot);
+    const lx = dx * c - dz * s, lz = dx * s + dz * c;
+    if (Math.abs(lx) <= b.hx && Math.abs(lz) <= b.hz + r * 0.4) return b;
+  }
+  return null;
+}
+
 function boxHits(world, x, y, z, r, h) {
   const x0 = Math.floor(x - r), x1 = Math.floor(x + r - 1e-4);
   const z0 = Math.floor(z - r), z1 = Math.floor(z + r - 1e-4);
@@ -61,7 +74,14 @@ export function moveEntity(e, world, dt) {
   if (!e.noGravity) e.vel.y -= GRAV * dt * (e.gravityScale ?? 1);
   const dy = e.vel.y * dt;
   const ny = p.y + dy;
-  if (dy < 0 && feetHit(world, p.x, ny, p.z, r * 0.9)) {
+  // floating platforms (boats, world.platforms): land on the deck and ride it
+  // as it bobs; a body arriving from above makes it dip
+  const pf = world.platforms?.length ? platformAt(world, p.x, p.z, r) : null;
+  if (pf && dy <= 0.001 && p.y >= pf.top - 0.4 && (ny <= pf.top + 0.02 || (e.platform === pf && p.y <= pf.top + 0.35))) {   // standing on it: stick to the deck as it drops
+    if (e.platform !== pf) { pf.vel -= Math.min(1.2, 0.35 + Math.max(0, -e.vel.y) * 0.08); if (!e.grounded && e.onLand) e.onLand(-e.vel.y); }
+    p.y = pf.top; e.vel.y = 0; e.grounded = true; e.coyote = 0.12; e.platform = pf; pf.load++;
+  } else if (dy < 0 && feetHit(world, p.x, ny, p.z, r * 0.9)) {
+    e.platform = null;
     // land on top of block
     p.y = Math.floor(ny) + 1;
     if (!e.grounded && e.onLand) e.onLand(-e.vel.y);
@@ -69,7 +89,7 @@ export function moveEntity(e, world, dt) {
   } else if (dy > 0 && boxHits(world, p.x, ny, p.z, r * 0.9, h)) {
     e.vel.y = 0;
   } else {
-    p.y = ny;
+    p.y = ny; e.platform = null;
     // still grounded if something is right below
     e.grounded = feetHit(world, p.x, p.y - 0.06, p.z, r * 0.9);
     if (e.grounded && e.vel.y < 0) e.vel.y = 0;
