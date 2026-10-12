@@ -264,9 +264,87 @@ test('Mob Whack: points, combos, layout and untrusted state', async () => {
   for (const bad of [null, 5, {}, { round: 0, seed: 1, startAt: Date.now() }, { round: 1, seed: -1, startAt: Date.now() }, { round: 1, seed: 1, startAt: 'x' }, { round: 1, seed: 1.5, startAt: Date.now() }]) {
     assert.equal(W.validShared(bad), false);
   }
-  assert.equal(W.readState({ round: 2, score: 50 }, 3), null);
-  assert.deepEqual(W.readState({ round: 3, score: 1e9, hearts: 99, play: true, out: 'yes' }, 3), { score: 99999, hearts: 3, play: true, out: false });
-  assert.deepEqual(W.readState({ round: 3, score: 'lots', hearts: -2 }, 3), { score: 0, hearts: 0, play: false, out: false });
+  // The shared tally is cleaned up on arrival: bad players and outcomes dropped, numbers clamped.
+  const now = Date.now();
+  const S = W.readShared({
+    round: 3, seed: 9, startAt: now,
+    pl: [['a', 'Ana', '#ff0000', 120, 2, 3, 9, 4], ['b', '<b>Bo</b>', 'red; x', 1e9, 99, -1, 'x', 2], ['a', 'dup'], [5, 'num'], 'junk'],
+    o: [[1, 0, 500, 0, 10], [2, 5, 500, 0, 10], [3, -1, 900, 0, -10], ['x'], [4, 1, 1e9, 0, 10]],
+  });
+  assert.deepEqual(S.pl.map(p => p.id), ['a', 'b']);
+  assert.deepEqual(S.pl[0], { id: 'a', name: 'Ana', color: '#ff0000', score: 120, hearts: 2, combo: 3, hits: 9, best: 4 });
+  assert.deepEqual(S.pl[1], { id: 'b', name: '<b>Bo</b>', color: '#ffffff', score: 0, hearts: 0, combo: 0, hits: 0, best: 2 });
+  assert.deepEqual(S.o, [{ id: 1, seat: 0, t: 500, stop: 0, pts: 10 }, { id: 3, seat: -1, t: 900, stop: 0, pts: -10 }]);
+  assert.deepEqual(W.readShared(W.packShared(S)), S, 'packs and reads back the same');
+  assert.deepEqual(W.readShared({ round: 1, seed: 1, startAt: now }).pl, [], 'an old shared state without a tally');
+  assert.equal(W.readShared({ round: 0, seed: 1, startAt: now }), null);
+});
+
+test('Mob Whack shared field: claims, the referee and the tally', async () => {
+  const { _logic: W } = await import('../games/whack.js');
+  const sched = W.makeSchedule(4242);
+  const z = sched.find(e => e.kind === 'zombie' && e.stops[0].t > 3000);
+  const cr = sched.find(e => e.kind === 'creeper');
+  const en = sched.find(e => e.kind === 'enderman');
+  const zs = z.stops[0], mid = zs.t + Math.round(zs.dur / 2);
+
+  // Messages are checked strictly.
+  assert.deepEqual(W.readClaim({ r: 2, id: z.id, h: zs.hole, t: mid + 0.4 }), { r: 2, id: z.id, h: zs.hole, t: mid });
+  for (const bad of [null, 'w', { r: 0, id: 1, h: 0, t: 5 }, { r: 1, id: 1, h: 9, t: 5 }, { r: 1, id: 1, h: -1, t: 5 }, { r: 1, id: 1.5, h: 0, t: 5 },
+    { r: 1, id: -2, h: 0, t: 5 }, { r: 1, id: 1, h: 0, t: NaN }, { r: 1, id: 1, h: 0, t: 1e9 }, { r: 1, id: 1, h: '3', t: 5 }]) {
+    assert.equal(W.readClaim(bad), null, JSON.stringify(bad));
+  }
+
+  // The owner judges a claim against the schedule and its own clock.
+  const c = { r: 1, id: z.id, h: zs.hole, t: mid };
+  assert.deepEqual(W.judgeClaim(sched, c, mid + 80), { ok: true, j: 0, late: false });
+  assert.equal(W.judgeClaim(sched, { ...c, h: (zs.hole + 1) % 9 }, mid + 80).ok, false, 'wrong hole');
+  assert.equal(W.judgeClaim(sched, { ...c, t: zs.t + zs.dur + 50 }, zs.t + zs.dur + 100).ok, false, 'after it sank');
+  assert.equal(W.judgeClaim(sched, { ...c, t: zs.t + 5 }, zs.t + 100).ok, false, 'before it rose');
+  assert.equal(W.judgeClaim(sched, { ...c, id: 99999 }, mid).ok, false, 'no such mob');
+  assert.equal(W.judgeClaim(sched, c, mid - W.SKEW - 10).ok, false, 'from the future');
+  assert.equal(W.judgeClaim(sched, c, mid + W.STALE + 10).ok, false, 'too old');
+  assert.deepEqual(W.judgeClaim(sched, { r: 1, id: -1, h: 4, t: mid }, mid), { ok: true, miss: true });
+  const cs = cr.stops[0];
+  assert.equal(W.judgeClaim(sched, { r: 1, id: cr.id, h: cs.hole, t: cs.t + cs.dur - 20 }, cs.t + cs.dur).late, true, 'a flashing creeper');
+  const e0 = en.stops[0], eL = en.stops[en.stops.length - 1];
+  assert.deepEqual(W.judgeClaim(sched, { r: 1, id: en.id, h: e0.hole, t: e0.t + 100 }, e0.t + 100), { ok: false, why: 'hopping' });
+  assert.equal(W.judgeClaim(sched, { r: 1, id: en.id, h: eL.hole, t: eL.t + 100 }, eL.t + 100).ok, true, 'caught where it settles');
+
+  // Rival claims: the earliest wins, a claim can't count from much before it
+  // arrived, ties go to the lower seat, and order of arrival doesn't matter.
+  assert.equal(W.claimTime(1000, 1100), 1000);
+  assert.equal(W.claimTime(200, 1100), 1100 - W.LAG, 'a claim pretending to be early');
+  const a = { seat: 0, eff: 1000 }, b = { seat: 1, eff: 990 }, tie = { seat: 2, eff: 990 };
+  assert.equal(W.pickClaim([a, b]), b);
+  assert.equal(W.pickClaim([b, a]), b);
+  assert.equal(W.pickClaim([tie, b]), b);
+  assert.equal(W.pickClaim([b, tie]), b);
+  assert.equal(W.pickClaim([]), null);
+
+  // The tally: the whacker scores, a villager costs only its whacker, a
+  // creeper explosion costs everyone still in a heart and 10 points.
+  let ana = W.newPlayer({ id: 'a', name: 'Ana', color: '#ff0000' }), bo = W.newPlayer({ id: 'b', name: 'Bo', color: 'nope' });
+  assert.equal(bo.color, '#ffffff');
+  for (let i = 0; i < 4; i++) ({ p: ana } = W.scoreHit(ana, 'zombie'));
+  assert.deepEqual([ana.score, ana.combo, ana.hits, ana.best], [10 + 10 + 10 + 20, 4, 4, 4]);
+  let r = W.scoreHit(ana, 'villager');
+  assert.equal(r.pts, -20);
+  assert.deepEqual([r.p.score, r.p.combo], [30, 0]);
+  assert.deepEqual([W.scoreHit(bo, 'villager').p.score], [0], 'never below zero');
+  r = W.scoreHit(bo, 'creeper', true);
+  assert.equal(r.pts, 30);
+  bo = r.p;
+  [ana, bo] = [ana, bo].map(W.scoreBoom);
+  assert.deepEqual([ana.hearts, ana.score, ana.combo, bo.hearts, bo.score], [2, 40, 0, 2, 20]);
+  [ana, bo] = [ana, bo].map(W.scoreBoom).map(W.scoreBoom);
+  assert.deepEqual([ana.hearts, bo.hearts], [0, 0]);
+  assert.deepEqual(W.scoreBoom(ana), ana, 'out players lose nothing more');
+  assert.equal(W.scoreMiss({ ...bo, combo: 5 }).combo, 0);
+  assert.equal(W.scoreEscape({ ...W.newPlayer({ id: 'c' }), combo: 3 }).combo, 0);
+  assert.equal(W.mobEnd(z), zs.t + zs.dur);
+  assert.equal(W.stopUpAt(en, eL.hole, eL.t + 50), en.stops.length - 1);
+  assert.equal(W.stopUpAt(z, zs.hole, zs.t + zs.dur + 1), -1);
 });
 
 test('Baseball: pitches reach their target, and contact decides the hit', async () => {
