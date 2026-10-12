@@ -368,6 +368,9 @@ export class Mission {
     const g = this.game;
     if (this.bossSpawned) return;
     this.bossSpawned = true;
+    // some arenas have their own lighting (Luke's duel on the camp hill at night)
+    const biome = this.L.biome;
+    if (biome?.bossEnv && room === this.L.bossRoom) g.env?.set({ ...biome, ...biome.bossEnv }, false);
     // seal the arena behind the players (an arena boss: bring stragglers in)
     this.sealGates();
     if (!at && room === this.L.bossRoom) this.pullIntoArena(room);
