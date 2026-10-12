@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 22
+A video chat in the browser with 75 face effects and backgrounds and 23
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -209,7 +209,12 @@ bounces in your hand; tap it and it flies to the asker, or press Go Fish if you
 have none. If they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher) and Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on their own field, with live scores and a winner). Starting
+deals; alone you play Robo-Fisher), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on their own field, with live scores and a winner) and Baseball (a home run derby seen from
+behind the plate, with your face on the slugger: tap the ball as it reaches
+the plate; when you swing sets the direction, early pulls and late is foul,
+and where you tap on the ball sets the launch, on top a grounder and under it
+a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
+ghost balls and everyone's home runs are on the scoreboard). Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -235,7 +240,7 @@ itself to HTTPS.
 
 ## Checks
 
-- `node --test chat/test/*.test.mjs`: face geometry, Hoops physics, and the
+- `node --test chat/test/*.test.mjs`: face geometry, Hoops and Baseball physics, and the
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
@@ -254,7 +259,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 22 games with rookie controls, real turns, live Burger Stack
+  offers, all 23 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -268,6 +273,12 @@ itself to HTTPS.
   accounted for and every book gets made; screenshots of a cast, a low pond,
   the Go Fish bubbles and the end in `local/chat-shots/`
 - `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats get the same spawns, and mouse whacks show zombies scoring, an unwhacked creeper exploding, a villager costing, an enderman teleporting, one winner on both seats and rookie bots scoring (screenshots in `local/chat-shots/whack-*.png`)
+- `node chat/test/baseball-play.mjs`: on two phone-sized seats, taps timed
+  to the pitch: right on the ball as it reaches the plate is a home run, far
+  too early misses, late is foul, above the ball is a grounder, no swing is a
+  take; the round ends after ten pitches with the card, the home runs reach
+  the friend's scoreboard and Bat again starts the next; a rookie bot in the
+  other seat swings and sees the hits as ghosts
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a

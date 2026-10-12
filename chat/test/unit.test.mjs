@@ -97,7 +97,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 22);
+  assert.equal(GAME_IDS.length, 23);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -243,4 +243,49 @@ test('Mob Whack: points, combos, layout and untrusted state', async () => {
   assert.equal(W.readState({ round: 2, score: 50 }, 3), null);
   assert.deepEqual(W.readState({ round: 3, score: 1e9, hearts: 99, play: true, out: 'yes' }, 3), { score: 99999, hearts: 3, play: true, out: false });
   assert.deepEqual(W.readState({ round: 3, score: 'lots', hearts: -2 }, 3), { score: 0, hearts: 0, play: false, out: false });
+});
+
+test('Baseball: pitches reach their target, and contact decides the hit', async () => {
+  const { makePitch, pitchPos, contact, launchVelocity, outcome, fenceDist, TIMING, FOUL } = (await import('../games/baseball.js'))._physics;
+  // Every pitch crosses the plate at its target, at its time.
+  let seed = 1;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 30; i++) {
+    const p = makePitch(rand);
+    const b = pitchPos(p, p.T);
+    close(b.x, p.tx, 1e-9);
+    close(b.y, p.ty, 1e-9);
+    close(b.z, 0, 1e-9);
+    assert.ok(['fast', 'change', 'curve'].includes(p.type) && p.T > 0.5 && p.T < 1.1);
+    assert.ok(pitchPos(p, p.T + 0.1).z < 0, 'it carries on past the plate');
+  }
+  // The wall: 377 ft to centre, 322 ft down the lines.
+  close(fenceDist(0), 115);
+  close(fenceDist(FOUL), 98);
+
+  const from = { x: 0, y: 0.8, z: 0 };
+  const hit = (dt, dx, dy) => {
+    const c = contact(dt, dx, dy);
+    return c && { c, ...outcome(from, launchVelocity(c)) };
+  };
+  // Right on the ball, right on time: a home run to centre.
+  const best = hit(0, 0, 0);
+  assert.equal(best.c.q, 1);
+  assert.equal(best.kind, 'hr');
+  assert.ok(best.dist > fenceDist(0) && best.dist < 150, `carries ${best.dist}`);
+  // Outside the timing window or out of reach: a miss.
+  assert.equal(contact(TIMING + 0.01, 0, 0), null);
+  assert.equal(contact(-TIMING - 0.01, 0, 0), null);
+  assert.equal(contact(0, 0, 0.35), null);
+  assert.equal(contact(NaN, 0, 0), null);
+  // Early pulls it to left field, late pushes it to right; very late is foul.
+  assert.ok(hit(-0.05, 0, 0).c.spray < -10);
+  assert.ok(hit(0.05, 0, 0).c.spray > 10);
+  assert.equal(hit(0.12, 0, 0).kind, 'foul');
+  assert.equal(hit(-0.12, 0, 0).kind, 'foul');
+  // On top of the ball: a grounder; well under it: a pop-up.
+  assert.equal(hit(0, 0, 0.27).kind, 'grounder');
+  assert.equal(hit(0, 0, -0.29).kind, 'pop');
+  // A slightly early swing still goes out, down the left field side.
+  assert.equal(hit(-0.04, 0, 0).kind, 'hr');
 });

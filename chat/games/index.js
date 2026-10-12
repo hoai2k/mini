@@ -25,6 +25,7 @@ export const GAME_IDS = [
   'wordblitz',
   'gofish',
   'whack',
+  'baseball',
 ];
 
 export async function loadGames() {
