@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 195 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 164 of 195 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 195 of 195 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1306,37 +1306,37 @@ Requested 12 October 2026 after the tinted cast arrived: the remaining figures, 
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `sea-king-throne-tinted` | 600 × 620 | bottom centre | `sea-king-throne` | requested |
-| `attendant-pink-tinted` | 220 × 420 | bottom centre | `attendant-pink` | requested |
-| `attendant-blue-tinted` | 220 × 420 | bottom centre | `attendant-blue` | requested |
-| `attendant-green-tinted` | 220 × 420 | bottom centre | `attendant-green` | requested |
-| `seahorse-guard-tinted` | 240 × 460 | bottom centre | `seahorse-guard` | requested |
-| `sea-dragon-tinted` | 400 × 160 | bottom centre | `sea-dragon` | requested |
-| `sea-spirit-tinted` | 300 × 600 | bottom centre | `sea-spirit` | requested |
-| `sea-spirit-idle-b-tinted` | 300 × 600 | bottom centre | `sea-spirit-idle-b` | requested |
-| `sea-spirit-idle-c-tinted` | 300 × 600 | bottom centre | `sea-spirit-idle-c` | requested |
-| `jellyfish-tinted` | 180 × 280 | bottom centre | `jellyfish` | requested |
-| `fish-large-tinted` | 700 × 400 | bottom centre | `fish-large` | requested |
-| `fish-school-tinted` | 420 × 200 | bottom centre | `fish-school` | requested |
-| `whale-beached-tinted` | 1800 × 900 | bottom centre | `whale-beached` | requested |
-| `whale-mouth-tinted` | 1600 × 1200 | bottom centre | `whale-mouth` | requested |
-| `whale-tail-tinted` | 700 × 500 | bottom centre | `whale-tail` | requested |
-| `whale-side-tinted` | 3000 × 1100 | bottom centre | `whale-side` | requested |
-| `gift-ring-tinted` | 96 × 96 | bottom centre | `gift-ring` | requested |
-| `gift-flower-tinted` | 96 × 96 | bottom centre | `gift-flower` | requested |
-| `gift-crown-tinted` | 96 × 96 | bottom centre | `gift-crown` | requested |
-| `gift-gold-tinted` | 96 × 96 | bottom centre | `gift-gold` | requested |
-| `keepsake-star-tinted` | 128 × 128 | bottom centre | `keepsake-star` | requested |
-| `keepsake-sword-tinted` | 128 × 128 | bottom centre | `keepsake-sword` | requested |
-| `keepsake-shell-tinted` | 128 × 128 | bottom centre | `keepsake-shell` | requested |
-| `keepsake-seal-tinted` | 128 × 128 | bottom centre | `keepsake-seal` | requested |
-| `keepsake-lamp-tinted` | 128 × 128 | bottom centre | `keepsake-lamp` | requested |
-| `sword-sinking-tinted` | 220 × 520 | centre | `sword-sinking` | requested |
-| `aurora-star-tinted` | 64 × 64 | bottom centre | `aurora-star` | requested |
-| `armour-helmet-tinted` | 128 × 128 | bottom centre | `armour-helmet` | requested |
-| `armour-shield-tinted` | 128 × 128 | bottom centre | `armour-shield` | requested |
-| `tower-window-tinted` | 200 × 260 | bottom centre | `tower-window` | requested |
-| `pearl-tinted` | 64 × 64 | bottom centre | `pearl` | requested |
+| `sea-king-throne-tinted` | 600 × 620 | bottom centre | `sea-king-throne` | [delivered](../assets/sea-king-throne-tinted.webp) |
+| `attendant-pink-tinted` | 220 × 420 | bottom centre | `attendant-pink` | [delivered](../assets/attendant-pink-tinted.webp) |
+| `attendant-blue-tinted` | 220 × 420 | bottom centre | `attendant-blue` | [delivered](../assets/attendant-blue-tinted.webp) |
+| `attendant-green-tinted` | 220 × 420 | bottom centre | `attendant-green` | [delivered](../assets/attendant-green-tinted.webp) |
+| `seahorse-guard-tinted` | 240 × 460 | bottom centre | `seahorse-guard` | [delivered](../assets/seahorse-guard-tinted.webp) |
+| `sea-dragon-tinted` | 400 × 160 | bottom centre | `sea-dragon` | [delivered](../assets/sea-dragon-tinted.webp) |
+| `sea-spirit-tinted` | 300 × 600 | bottom centre | `sea-spirit` | [delivered](../assets/sea-spirit-tinted.webp) |
+| `sea-spirit-idle-b-tinted` | 300 × 600 | bottom centre | `sea-spirit-idle-b` | [delivered](../assets/sea-spirit-idle-b-tinted.webp) |
+| `sea-spirit-idle-c-tinted` | 300 × 600 | bottom centre | `sea-spirit-idle-c` | [delivered](../assets/sea-spirit-idle-c-tinted.webp) |
+| `jellyfish-tinted` | 180 × 280 | bottom centre | `jellyfish` | [delivered](../assets/jellyfish-tinted.webp) |
+| `fish-large-tinted` | 700 × 400 | bottom centre | `fish-large` | [delivered](../assets/fish-large-tinted.webp) |
+| `fish-school-tinted` | 420 × 200 | bottom centre | `fish-school` | [delivered](../assets/fish-school-tinted.webp) |
+| `whale-beached-tinted` | 1800 × 900 | bottom centre | `whale-beached` | [delivered](../assets/whale-beached-tinted.webp) |
+| `whale-mouth-tinted` | 1600 × 1200 | bottom centre | `whale-mouth` | [delivered](../assets/whale-mouth-tinted.webp) |
+| `whale-tail-tinted` | 700 × 500 | bottom centre | `whale-tail` | [delivered](../assets/whale-tail-tinted.webp) |
+| `whale-side-tinted` | 3000 × 1100 | bottom centre | `whale-side` | [delivered](../assets/whale-side-tinted.webp) |
+| `gift-ring-tinted` | 96 × 96 | bottom centre | `gift-ring` | [delivered](../assets/gift-ring-tinted.webp) |
+| `gift-flower-tinted` | 96 × 96 | bottom centre | `gift-flower` | [delivered](../assets/gift-flower-tinted.webp) |
+| `gift-crown-tinted` | 96 × 96 | bottom centre | `gift-crown` | [delivered](../assets/gift-crown-tinted.webp) |
+| `gift-gold-tinted` | 96 × 96 | bottom centre | `gift-gold` | [delivered](../assets/gift-gold-tinted.webp) |
+| `keepsake-star-tinted` | 128 × 128 | bottom centre | `keepsake-star` | [delivered](../assets/keepsake-star-tinted.webp) |
+| `keepsake-sword-tinted` | 128 × 128 | bottom centre | `keepsake-sword` | [delivered](../assets/keepsake-sword-tinted.webp) |
+| `keepsake-shell-tinted` | 128 × 128 | bottom centre | `keepsake-shell` | [delivered](../assets/keepsake-shell-tinted.webp) |
+| `keepsake-seal-tinted` | 128 × 128 | bottom centre | `keepsake-seal` | [delivered](../assets/keepsake-seal-tinted.webp) |
+| `keepsake-lamp-tinted` | 128 × 128 | bottom centre | `keepsake-lamp` | [delivered](../assets/keepsake-lamp-tinted.webp) |
+| `sword-sinking-tinted` | 220 × 520 | centre | `sword-sinking` | [delivered](../assets/sword-sinking-tinted.webp) |
+| `aurora-star-tinted` | 64 × 64 | bottom centre | `aurora-star` | [delivered](../assets/aurora-star-tinted.webp) |
+| `armour-helmet-tinted` | 128 × 128 | bottom centre | `armour-helmet` | [delivered](../assets/armour-helmet-tinted.webp) |
+| `armour-shield-tinted` | 128 × 128 | bottom centre | `armour-shield` | [delivered](../assets/armour-shield-tinted.webp) |
+| `tower-window-tinted` | 200 × 260 | bottom centre | `tower-window` | [delivered](../assets/tower-window-tinted.webp) |
+| `pearl-tinted` | 64 × 64 | bottom centre | `pearl` | [delivered](../assets/pearl-tinted.webp) |
 
 #### `sea-king-throne-tinted` — sea-king-throne, tinted after the film
 
