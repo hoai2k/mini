@@ -99,7 +99,7 @@ export class HUD {
     for (const q of party) {
       if (q === human || (!q.ai && this.humans().length > 1)) continue;   // net: with several humans, only the companions
       const info = HEROES[q.hero] ?? { name: q.hero, color: '#999' };
-      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};background-image:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
+      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` }, h('span', {}, info.name[0]));
       row.appendChild(el); this.partyEls.push({ q, el, last: -1 });
     }
     const k = switchKey(human);

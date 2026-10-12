@@ -60,7 +60,7 @@ export const CHAPTERS = [
   {
     id: 'lt3', book: 'book1', num: 3, title: 'Capture the Flag', place: 'Camp woods and the creek',
     biome: 'camp_woods', objective: 'flag', objText: 'Capture the red team’s banner', boss: 'hellhound_alpha', mist: 0.3, disguise: [],
-    card: 'assets/cards/scene-capture-the-flag.jpg', prophecyLine: null, ready: false, pending: true,
+    card: 'assets/cards/scene-capture-the-flag.jpg', prophecyLine: null, ready: true,
     start: { at: 'woodsEdge', place: 'the edge of the woods, past the cabins' },
     bossDown: { stinger: 'claimed', text: 'Everyone is staring above your head: a glowing green trident. You have been claimed.' },
     intro: [
@@ -73,7 +73,7 @@ export const CHAPTERS = [
   {
     id: 'lt4', book: 'book1', num: 4, title: 'The Kindly Ones', place: 'A Greyhound bus, New Jersey',
     biome: 'highway', objective: 'exorcise', objText: 'Get off the bus alive', boss: 'furies', mist: 0.8, disguise: ['old_lady', 'tourist'],
-    card: 'assets/cards/scene-bus.jpg', prophecyLine: 0, ready: false, pending: true,
+    card: 'assets/cards/scene-bus.jpg', prophecyLine: 0, ready: true,
     start: { at: 'road1', place: 'the first milestone on the Road West' },
     intro: [
       'The Oracle gives you a prophecy, and you go west: Annabeth, Grover and you, on a Greyhound bus out of New York.',
@@ -85,7 +85,7 @@ export const CHAPTERS = [
   {
     id: 'lt5', book: 'book1', num: 5, title: 'Aunty Em’s Garden Gnome Emporium', place: 'A statue garden',
     biome: 'statue_garden', objective: 'rescue', objText: 'Free the stone satyrs', captive: 'statue', boss: 'medusa', mist: 0.8, disguise: ['old_lady'],
-    card: 'assets/cards/scene-medusa.jpg', ready: false, pending: true,
+    card: 'assets/cards/scene-medusa.jpg', ready: true,
     start: { at: 'road2', place: 'a garden gnome by the Road West' },
     intro: [
       'Hungry and lost, you smell burgers: Aunty Em’s Garden Gnome Emporium. The garden is full of statues, and they all look scared.',
@@ -97,7 +97,7 @@ export const CHAPTERS = [
   {
     id: 'lt6', book: 'book1', num: 6, title: 'The Gateway Arch', place: 'St. Louis, the top of the Arch',
     biome: 'arch', objective: 'exorcise', objText: 'Climb to the top of the Arch', boss: 'chimera', mist: 0.6, disguise: ['tourist'],
-    card: 'assets/cards/scene-arch.jpg', ready: false, pending: true,
+    card: 'assets/cards/scene-arch.jpg', ready: true,
     start: { at: 'road3', place: 'the river crossing on the Road West' },
     intro: [
       'St. Louis. Annabeth wants to see the Gateway Arch, because it is a great piece of architecture.',
@@ -109,7 +109,7 @@ export const CHAPTERS = [
   {
     id: 'lt7', book: 'book1', num: 7, title: 'Waterland', place: 'An abandoned water park, Denver',
     biome: 'waterland', objective: 'seal', objText: 'Shut Hephaestus’s traps', seal: 'trap', boss: 'spiders', mist: 0.5, disguise: [],
-    card: 'assets/cards/scene-waterland.jpg', ready: false, pending: true,
+    card: 'assets/cards/scene-waterland.jpg', ready: true,
     start: { at: 'road4', place: 'a water slide by the Road West' },
     intro: [
       'In a Denver diner, a biker in a red leather duster makes you an offer: fetch his shield from a water park, and he will get you a ride west.',
@@ -121,7 +121,7 @@ export const CHAPTERS = [
   {
     id: 'lt8', book: 'book1', num: 8, title: 'The Lotus Hotel and Casino', place: 'Las Vegas',
     biome: 'casino', objective: 'escape', objText: 'Get out of the Lotus Casino', boss: null, mist: 0.9, disguise: ['bellhop', 'tourist'],
-    card: 'assets/cards/scene-lotus.jpg', ready: false, pending: true,
+    card: 'assets/cards/scene-lotus.jpg', ready: true,
     start: { at: 'road5', place: 'a neon sign by the Road West' },
     intro: [
       'The Lotus Hotel and Casino, Las Vegas. A free room, free games, and a green card with unlimited credit. Nobody ever wants to leave.',
@@ -133,7 +133,7 @@ export const CHAPTERS = [
   {
     id: 'lt9', book: 'book1', num: 9, title: 'Crusty’s Water Bed Palace', place: 'The Nevada desert',
     biome: 'desert', objective: 'exorcise', objText: 'Get past Crusty’s showroom', boss: 'procrustes', mist: 0.6, disguise: ['salesman'],
-    card: 'assets/cards/scene-procrustes.jpg', ready: false, pending: true,
+    card: 'assets/cards/scene-procrustes.jpg', ready: true,
     start: { at: 'road6', place: 'a water bed on the Road West' },
     intro: [
       'Crusty’s Water Bed Palace, in the Nevada desert. The salesman is huge, and his smile has too many teeth.',
@@ -145,7 +145,7 @@ export const CHAPTERS = [
   {
     id: 'lt10', book: 'book1', num: 10, title: 'DOA Recording Studios', place: 'Los Angeles and the Underworld',
     biome: 'underworld', objective: 'seal', objText: 'Close the rifts to Tartarus', seal: 'rift', boss: 'cerberus', mist: 0.2, disguise: [],
-    card: 'assets/cards/scene-underworld.jpg', prophecyLine: 3, ready: false, pending: true,
+    card: 'assets/cards/scene-underworld.jpg', prophecyLine: 3, ready: true,
     start: { at: 'road7', place: 'a recording-studio door on the Road West' },
     intro: [
       'DOA Recording Studios is the way into the Underworld. Charon the ferryman wants drachmas. Lots of them.',
@@ -157,7 +157,7 @@ export const CHAPTERS = [
   {
     id: 'lt11', book: 'book1', num: 11, title: 'The God of War', place: 'Santa Monica beach',
     biome: 'beach', objective: 'boss', objText: 'Duel Ares in the surf', boss: 'ares', mist: 0, disguise: [],
-    card: 'assets/cards/scene-ares-beach.jpg', prophecyLine: 1, ready: false, pending: true,
+    card: 'assets/cards/scene-ares-beach.jpg', prophecyLine: 1, ready: true,
     start: { at: 'road8', place: 'the surf at the end of the Road West' },
     intro: [
       'Santa Monica. Ares is waiting on the beach beside a black motorcycle. He set you up from the start.',
@@ -169,7 +169,7 @@ export const CHAPTERS = [
   {
     id: 'lt12', book: 'book1', num: 12, title: 'The Six-Hundredth Floor', place: 'Olympus, then camp',
     biome: 'olympus', objective: 'boss', objText: 'Return the master bolt', boss: 'luke', mist: 0, disguise: [],
-    card: 'assets/cards/scene-olympus.jpg', prophecyLine: 2, ready: false, pending: true,
+    card: 'assets/cards/scene-olympus.jpg', prophecyLine: 2, ready: true,
     start: { at: 'road9', place: 'the last milestone on the Road West' },
     intro: [
       'The six-hundredth floor of the Empire State Building. Zeus takes back his master bolt, and the war is called off.',

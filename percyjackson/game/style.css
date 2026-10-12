@@ -432,4 +432,4 @@ body.is-touch .sight { bottom: calc(120px + var(--safe-b)); left: 50%; }
 .port.has-face { background-size: cover; background-position: center; }
 .port.has-face > span { opacity: 0; }
 .slot .hero-art { display: block; width: 100%; max-height: 34vh; object-fit: cover; object-position: center 20%; border-radius: 8px; border: 2px solid var(--hc, #c9963a); margin: 4px 0 6px; }
-.pm.has-face { background-size: cover; background-position: center; } .pm.has-face > span { opacity: 0; }
+.pm.has-face::before { background: var(--face) center / cover, #17130f; } .pm.has-face > span { opacity: 0; }   /* face inside the health ring */
