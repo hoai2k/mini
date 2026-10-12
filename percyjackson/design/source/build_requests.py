@@ -826,6 +826,41 @@ REQUESTS += [
         ),
     },
     {
+        "id": "scene-bus-ride",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "On the school bus to the museum",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-grover", "scene-field-trip"],
+        "use": "Card shown in the cutscene while the school bus drives up Central Park West.",
+        "prompt": (
+            f"Inside a yellow school bus rattling up Central Park West on a bright morning, trees "
+            f"of the park flashing past the windows on one side and apartment houses on the other. "
+            f"{PERCY} (in a plain school polo, no camp shirt yet) slumps in a seat by the window; "
+            f"beside him {GROVER} nervously chews an apple core and glances toward the front, where "
+            f"a stern pre-algebra teacher in a black leather jacket sits very straight and stares "
+            f"back. A freckled red-haired girl two rows ahead flicks a bit of sandwich; a kind "
+            f"bearded teacher in a wheelchair is strapped in at the front. Funny and a little "
+            f"ominous, for ages 8 to 14. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-museum-steps",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "Arriving at the museum steps",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-grover", "scene-museum"],
+        "use": "Card shown in the cutscene where the class gets off the bus at the American Museum of Natural History.",
+        "prompt": (
+            f"The grand front of the American Museum of Natural History on Central Park West: "
+            f"broad stone steps, four huge columns, a great arched entrance, tall red and blue "
+            f"banners of Greek vases and heroes between the columns. A yellow school bus has "
+            f"stopped at the curb and a class of twelve-year-olds in school uniform climbs the "
+            f"steps; {PERCY} and {GROVER} trail at the back. At the top of the steps a stern "
+            f"teacher in a black leather jacket waits, her shadow on the steps faintly shaped like "
+            f"a winged Fury. Morning light, pigeons, a hot-dog cart. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
         "id": "scene-montauk",
         "group": "Round 3 · The opening (cutscene cards)",
         "title": "Montauk: Grover at the door in the storm",
@@ -839,6 +874,45 @@ REQUESTS += [
             f"mother (kind, tired, long brown hair) stare. Behind Grover, an old blue car waits in "
             f"the rain with its headlights on. Lightning as gold zigzag ornament, the sea as "
             f"curling teal ribbons. Dramatic but warm. {WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "scene-storm-drive",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "The drive through the storm",
+        "size": "2560 × 1440",
+        "references": ["key-art", "char-percy", "char-grover", "scene-montauk"],
+        "use": "Card shown in the cutscene's last shots before chapter 2 (the drive to Half-Blood Hill).",
+        "prompt": (
+            f"Night, a hurricane over a Long Island country road. An old blue Camaro races through "
+            f"sheets of rain, headlights cutting the dark; inside, Percy's mother grips the wheel, "
+            f"{GROVER} clutches the back seat and {PERCY} looks back through the rear window, where "
+            f"a huge horned silhouette lumbers out of the storm far behind. Ahead, a hill with a "
+            f"great pine tree on top, and a bolt of lightning about to strike the road. Lightning "
+            f"as gold zigzag ornament, rain as fine diagonal lines. Dramatic, never gory. "
+            f"{WORLD_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-manhattan",
+        "group": "Round 3 · The opening (cutscene cards)",
+        "title": "3D sheet: the Manhattan prologue kit and sewer rats",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "vox-enemies"],
+        "use": "Reference for the prologue's blocky Manhattan street (game/js/world/manhattan.js, vehicles.js) and the rat monster (entities/monsters.js); not loaded by the game.",
+        "prompt": (
+            "A model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, warm "
+            "morning light, isometric three-quarter views on a flat parchment-cream background, "
+            "every object built from chunky cubes with hand-painted pixel textures: a New York "
+            "brownstone (three storeys, a stoop of steps with black iron railings, tall windows, a "
+            "pressed-metal cornice, a rooftop water tower); a red-brick boarding school front with "
+            "white trim, two columns and a navy flag (Yancy Academy); a yellow school bus with "
+            "black rub rails and a folding door; a yellow taxi; a hot-dog cart with a striped "
+            "umbrella; a green subway entrance with globe lamps; a fire hydrant, a blue mailbox, a "
+            "newsstand and a storm drain. Bottom row: a sewer rat monster seen front, side and back "
+            "(grey-brown fur, pink ears, nose and long tail, glowing too-red eyes, a little "
+            "bigger than a cat), plus a pack of three rats scurrying out of the storm drain, comic "
+            "rather than scary. Clean silhouettes, no text on the signs. " + PALETTE + " " + NO_TEXT
         ),
     },
     {
