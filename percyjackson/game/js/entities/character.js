@@ -88,6 +88,9 @@ export function makeCharMaterial(map, opts = {}) {
 }
 
 // ---------------------------------------------------------------- rig
+// The rest pose (radians): arms out to the sides and a touch forward, legs apart.
+const IDLE = { armZ: 0.22, armX: -0.06, legZ: 0.1 };
+
 // A spec describes the body. Defaults give a MCD-proportioned humanoid.
 export class Rig {
   constructor(spec) {
@@ -153,6 +156,9 @@ export class Rig {
         parent = seg;
       }
     }
+    // start in the idle stance, so a model that is never animated stands like one that is
+    this.armR.rotation.set(IDLE.armX, 0, -IDLE.armZ); this.armL.rotation.set(IDLE.armX, 0, IDLE.armZ);
+    this.legR.rotation.z = -IDLE.legZ; this.legL.rotation.z = IDLE.legZ;
     // extras (weapons/props)
     this.extras = {};
     // animation state
@@ -174,9 +180,11 @@ export class Rig {
       hipsY: this.dims.legH * PX + Math.abs(Math.cos(cyc)) * 0.06 * run + Math.sin(t * 2.2) * 0.01 * (1 - run),
       torsoX: 0.08 * run, torsoY: 0, torsoZ: 0,
       headX: -0.05 * run + Math.sin(t * 2.2) * 0.02, headY: 0,
-      armRX: -sw * 1.0, armRZ: 0.06 + Math.sin(t * 2.2) * 0.02 * (1 - run), armRY: 0,
-      armLX: sw * 1.0, armLZ: -0.06 - Math.sin(t * 2.2) * 0.02 * (1 - run), armLY: 0,
-      legRX: sw * 1.0, legLX: -sw * 1.0, legRZ: 0, legLZ: 0,
+      // idle stance: arms held a little out from the body and feet apart,
+      // as on the hero sheets; running brings them back in
+      armRX: -sw * 1.0 + IDLE.armX * (1 - run), armRZ: -IDLE.armZ * (1 - run) - 0.04 * run - Math.sin(t * 2.2) * 0.02 * (1 - run), armRY: 0,
+      armLX: sw * 1.0 + IDLE.armX * (1 - run), armLZ: IDLE.armZ * (1 - run) + 0.04 * run + Math.sin(t * 2.2) * 0.02 * (1 - run), armLY: 0,
+      legRX: sw * 1.0, legLX: -sw * 1.0, legRZ: -IDLE.legZ * (1 - run), legLZ: IDLE.legZ * (1 - run),
       rootX: 0, rootZ: 0, lift: 0,
     };
     // breathing
