@@ -38,8 +38,8 @@ const MELODY = [
 // starting with the four-beat count-in.
 const BASS = [0, 7, 0, 5, 0, 5, 0, 7, 0, 5, 0, 5, 7, 7, 7, 0, 0, 0, 7, 7, 0, 7, 5, 7, 0, 5, 7, 0, 0, 0];
 const LEAD = 4; // beats of count-in before the first note
-const BPM0 = 80;
-const BPM1 = 104;
+const BPM0 = 72; // the song's tempo at the start (was 80)...
+const BPM1 = 110; // ...and at the end (was 104), along the eased curve below
 
 // ---------- feel ----------
 
@@ -106,12 +106,23 @@ export default function create(env) {
 
   // ---------- song time ----------
 
-  const bpmAt = (beat) => lerp(BPM0, BPM1, clamp(beat / TOTAL, 0, 1));
+  // Difficulty over the song: one eased curve (smoothstep of how far the
+  // song has got, 0 to 1). It speeds the tempo, narrows the timing windows
+  // (1.25x at the start, 0.9x at the end) and runs the spring down faster
+  // (0.7x to 1.6x). The melody itself already moves from quarters to eighths.
+  const ramp = (beat) => {
+    const k = clamp(beat / TOTAL, 0, 1);
+    return k * k * (3 - 2 * k);
+  };
+  g.ramp = () => ramp(g.beat);
+  const bpmAt = (beat) => lerp(BPM0, BPM1, ramp(beat));
+  g.bpm = () => bpmAt(g.beat);
+  g.windows = () => lerp(1.25, 0.9, g.ramp());
   // 1 at a good spring, down to 0.5 when it has run right down.
   const tempo = () => (g.spring >= SAG ? 1 : lerp(0.5, 1, g.spring / SAG));
   const spb = () => 60 / (bpmAt(g.beat) * tempo()); // seconds per beat now
   const sag = () => 1 - (tempo() - 0.5) / 0.5; // 0 fine .. 1 fully sagged
-  const winScale = () => 1 - sag() * 0.45;
+  const winScale = () => (1 - sag() * 0.45) * g.windows();
   g.tempo = tempo;
   g.secPerBeat = spb;
   // Seconds until a note reaches the needle (negative once it has passed).
@@ -220,7 +231,7 @@ export default function create(env) {
     g.kind = input.kind;
 
     // The spring runs down, and the song plays on at its speed.
-    g.spring = Math.max(0, g.spring - dt * DRAIN * (1 + (g.beat / TOTAL) * 0.4));
+    g.spring = Math.max(0, g.spring - dt * DRAIN * lerp(0.7, 1.6, g.ramp()));
     g.beat += dt / spb();
     g.wobble = sag();
 

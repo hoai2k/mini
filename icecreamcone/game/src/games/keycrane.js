@@ -9,7 +9,8 @@
 // (or press the action again to let it go). The string swings: moving the
 // trolley sets the Crane swinging, and a swinging Crane misses the ring, so
 // stop, let it settle (or time the swing), then drop. Swing too hard while
-// carrying and the prize slips off. Rings get smaller as time goes on.
+// carrying and the prize slips off. It starts gentle: rings get smaller, the
+// swing settles more slowly and a prize slips more easily as time goes on.
 // Score: prizes in the chute; a golden pocket watch counts as three.
 
 import { drawBird, drawSprite, spriteCell, scene, art, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
@@ -64,11 +65,9 @@ const PRIZE_TOP_DX = [3, -1, -1, 4, 26, 2, 12, 15];
 const L_TOP = 230; // string + bird at rest, pivot to claws
 const L_MAX = FLOOR - PIVOT_Y - 4;
 const GRAV = 1800; // px/s², for the swing
-const DAMP = 3.0; // how quickly the swing dies down
 const VMAX = 640; // trolley speed (slower with a prize)
 const DOWN = 950;
 const UP = 1000;
-const SLIP = 0.42; // a carried prize slips off past this swing angle (radians)
 
 // The prizes: drawn size and where the ring is.
 const KINDS = {
@@ -112,7 +111,15 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const ringNow = () => lerp(32, 20, progress());
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (big rings, a swing that settles fast and holds on to a prize), about the
+  // old average by the middle, and harder than before at the end. Every knob
+  // below follows this one curve.
+  const level = () => Math.pow(progress(), 1.6);
+  g.level = level;
+  const ringNow = () => lerp(34, 18, level()); // ring radius for new prizes
+  g.damp = () => lerp(3.2, 2.7, level()); // how quickly the swing dies down
+  g.slipAngle = () => lerp(0.47, 0.37, level()); // a carried prize slips off past this swing
   g.foot = () => [g.x + g.L * Math.sin(g.th), PIVOT_Y + g.L * Math.cos(g.th)];
   g.ring = (p) => [p.x, p.y - KINDS[p.kind].h - p.ringR * 0.75];
   g.tolerance = (p) => p.ringR * 0.85 + 4;
@@ -281,7 +288,7 @@ export default function create(env) {
 
     // The swing: a pendulum hung from a moving trolley, on a string that
     // lengthens and shortens.
-    const al = (-GRAV * Math.sin(g.th) - acc * Math.cos(g.th) - 2 * Ld * g.om) / g.L - DAMP * g.om;
+    const al = (-GRAV * Math.sin(g.th) - acc * Math.cos(g.th) - 2 * Ld * g.om) / g.L - g.damp() * g.om;
     g.om += al * dt;
     g.om = clamp(g.om, -6, 6);
     g.th += g.om * dt;
@@ -291,7 +298,7 @@ export default function create(env) {
     if (g.carry) {
       g.claw = 1;
       const [fx] = g.foot();
-      if (Math.abs(g.th) > SLIP) letGo(true);
+      if (Math.abs(g.th) > g.slipAngle()) letGo(true);
       else if (g.state === 'top' && fx > CHUTE_X0 + 30 && fx < CHUTE_X1 - 40) letGo(false);
     }
 

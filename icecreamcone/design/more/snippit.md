@@ -17,20 +17,25 @@ for 0.8 s; the same balloon is still wanted. A snip away from every knot
 does nothing. Each snipped balloon is replaced by a new one dropping into
 the bunch in a colour not already there.
 
-**Getting harder.** Three balloons at first, four from 10 s, five from
-20 s, six from 31 s. Strings curl more as the game goes on, so they cross
-more than once. From 22 s the wind jostles the bunch: every 4.5 s (3 s
-after 34 s) two neighbours drift past each other, re-crossing their
-strings while you look.
+**Difficulty over the round.** One eased curve (`levelAt`, progress to the
+power 1.6) drives every knob, so the first third stays gentle, the middle
+is about the old average and the end is harder than before (2026-10-12).
+Three balloons at first, four from about 12 s, five from 22 s, six from
+33 s. Strings curl more as the game goes on (25 up to 195, was 30 to 180),
+so they cross more than once. From about 21 s the wind jostles the bunch,
+first every 5 s and down to every 2.4 s by the end (was 4.5 s, then 3 s):
+two neighbours drift past each other, re-crossing their strings while you
+look.
 
 **Controls.** Controller: left stick or D-pad walks and turns, A snips. Keyboard:
 arrows or A/D walk, Space snips. Mouse or touch: the Snippit follows the
 pointer; a click or tap snips at the knot under it straight away. On a
 narrow screen the view keeps the whole tangle (1000 wide) in sight.
 
-**Pass.** 120 points. Bots (seeds 1–4): a beginner (slow to look, one
-string in eight wrong) 155–180; a good snipper 540–600; walking up and down
-snipping all the time 0–35; standing still and snipping 10–15; idle 0.
+**Pass.** 120 points. Bots (seeds 1–10, since the ramp): a beginner (slow
+to look, one string in eight wrong) 120–240, average 177 (was 140–210,
+average 182); a good snipper 445–675; walking up and down snipping all the
+time 0–30; standing still and snipping 0; idle 0.
 
 **Images.** IC-M04a is the fairground fence behind it all, with the top
 rail kept plain for the knots and the sky kept empty for the bunch. IC-M04b

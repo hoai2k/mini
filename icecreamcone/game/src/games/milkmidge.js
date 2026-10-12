@@ -81,8 +81,14 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (near, wide steps, a slow float, hardly a dog), about the old average by
+  // the middle, and harder than before at the end. Every knob follows it.
+  const level = () => Math.pow(progress(), 1.6);
+  g.level = level;
+  g.floatSpeed = () => lerp(140, 245, level());
   // How long a full wind-up takes, out to the farthest step.
-  g.windTime = () => lerp(1.35, 1.15, progress());
+  g.windTime = () => lerp(1.4, 1.12, level());
   // Where a bottle let go at this charge lands, on screen.
   g.landY = (c = g.charge) => lerp(NEAR, FAR, c);
   // And the charge that lands on a step.
@@ -109,20 +115,21 @@ export default function create(env) {
 
   // The next house along the street.
   function addHouse() {
-    const p = progress();
+    const p = level();
     const n = g.houseN++;
-    const early = n < 4; // the first few: near, wide, no dogs, no cards
-    const lo = early ? 445 : lerp(410, STEP_MIN, p);
-    const hi = early ? 550 : STEP_MAX;
+    const early = n < 3; // the very first few: no dogs, no cards
+    // steps start near and spread back; cards and dogs come more often
+    const lo = lerp(450, STEP_MIN - 10, p);
+    const hi = lerp(548, STEP_MAX, p);
     const stepY = lo + rng() * (hi - lo);
     const s = depth(stepY);
-    const note = !early && n > 0 && rng() < lerp(0.12, 0.24, p);
-    const dog = !early && rng() < lerp(0.3, 0.5, p);
+    const note = !early && rng() < lerp(0.05, 0.28, p);
+    const dog = !early && rng() < lerp(0.12, 0.55, p);
     const h = {
       x: g.nextX,
       stepY,
       s,
-      half: (early ? 76 : lerp(68, 52, p)) * s,
+      half: lerp(78, 50, p) * s,
       note,
       wants: note ? 0 : 1,
       got: 0,
@@ -135,7 +142,7 @@ export default function create(env) {
     if (h.dog) h.dog.x = h.x + h.dog.side * (h.half + 70 * s);
     if (h.dog) h.dog.y = lerp(stepY, FENCE, 0.55);
     g.houses.push(h);
-    g.nextX += (early ? 400 : lerp(360, 250, p)) * (0.85 + rng() * 0.3);
+    g.nextX += lerp(420, 235, p) * (0.85 + rng() * 0.3);
   }
   while (g.nextX < g.fx + W + 400) addHouse();
 
@@ -211,7 +218,7 @@ export default function create(env) {
     g.elapsed += dt;
     g.time = Math.max(0, DURATION - g.elapsed);
 
-    g.speed = lerp(150, 235, progress());
+    g.speed = g.floatSpeed();
     g.fx += g.speed * dt;
     while (g.nextX < g.fx + W + 400) addHouse();
 

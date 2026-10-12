@@ -52,6 +52,46 @@ test('shuttercluck: a good photographer opens the next page; idle earns nothing'
   console.log('shuttercluck photographer scores', scores, 'slow', slow, 'pass', pass);
 });
 
+test('shuttercluck: a beginner passes about half the time or more; mashing does not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: photographer({ greed: 0.4, speed: 0.25 }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: photographer() }).game.score);
+  const mash = seeds.map((seed) => {
+    let r = seed;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    return run(create, { seed, bot: () => ({ x: rnd() * 2 - 1, y: rnd() * 2 - 1, action: rnd() < 0.5 }) }).game.score;
+  });
+  console.log('shuttercluck beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
+  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+});
+
+test('shuttercluck: the first birds peek longer and one at a time; the last ones are quicker and together', () => {
+  const game = create(env(1));
+  assert.ok(game.diff() < 0.05);
+  const early = game.upFactor(game.diff());
+  const birds = { early: [], late: [] };
+  const crowd = { early: 0, late: 0 };
+  const seen = new Set();
+  // shoot every 4 s at nothing in particular, so the round moves on by shots too
+  for (let i = 0; i < 60 * 60 && !game.done; i++) {
+    const press = i % 240 === 239;
+    game.update(1 / 60, blank({ action: press, actionPressed: press }));
+    const half = game.diff() < 0.3 ? 'early' : game.diff() > 0.7 ? 'late' : null;
+    if (!half) continue;
+    crowd[half] = Math.max(crowd[half], game.birds.length);
+    for (const b of game.birds) if (!seen.has(b)) {
+      seen.add(b);
+      birds[half].push(b.up / [1.75, 1.2, 0.75][b.tier]);
+    }
+  }
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  assert.ok(birds.early.length && birds.late.length);
+  assert.ok(mean(birds.late) < mean(birds.early) * 0.7, `peeks shorten: ${mean(birds.early)} vs ${mean(birds.late)}`);
+  assert.ok(crowd.early === 1 && crowd.late >= 2, `crowds grow: ${crowd.early} vs ${crowd.late}`);
+  assert.ok(early > game.upFactor(1));
+});
+
 test('shuttercluck: ten shots end the game, and an empty frame scores nothing', () => {
   const game = create(env(3));
   let shots = 0;

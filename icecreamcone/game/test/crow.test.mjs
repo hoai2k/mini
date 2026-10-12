@@ -9,9 +9,11 @@ const pass = BIRDS.find((b) => b.id === 'crow').pass;
 // A signaller: gives the cars a few seconds of green, then lets the birds go
 // once a couple are waiting (or one is getting cross); goes back to green
 // only when the crossing is empty and the cars have waited longer.
-function signaller(minGreen = 3.5, urgent = 0.6) {
+// `slow` is how long it takes to act once switching is wanted (a beginner).
+function signaller(minGreen = 3.5, urgent = 0.6, slow = 0) {
   let press = false;
-  return (game) => {
+  let since = -1;
+  return (game, t) => {
     if (press) {
       press = false;
       return { action: false };
@@ -23,6 +25,11 @@ function signaller(minGreen = 3.5, urgent = 0.6) {
     let want = false;
     if (game.light === 'green') want = birds.length > 0 && ((game.phase > minGreen && birds.length >= 2) || bw > urgent);
     else if (game.light === 'red') want = game.onCrossing() === 0 && cars.length > 0 && game.phase > 1 && (birds.length === 0 || cw > bw);
+    // a beginner notices late: the wish has to last `slow` seconds first
+    if (!want) since = -1;
+    else if (since < 0) since = t;
+    if (want && t - since < slow) want = false;
+    if (want) since = -1;
     press = want;
     return { action: want };
   };
@@ -31,16 +38,42 @@ function signaller(minGreen = 3.5, urgent = 0.6) {
 // Someone who switches blindly every few seconds, never looking.
 const blind = (every) => (game, t) => ({ action: t % every < 0.05 });
 
-test('crow: a signaller earns well; blind switching less; idle nothing', () => {
+test('crow: a signaller earns well, a beginner passes; blind switching less; mashing and idle fail', () => {
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: signaller() }).game.score);
+  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: signaller(5, 0.8, 0.6) }).game.score);
   const lazy = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: blind(5) }).game.score);
+  const mash = [1, 2].map((seed) => run(create, { seed, bot: (g, t) => ({ action: t % 0.4 < 0.2 }) }).game.score);
   const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('crow signaller', good, 'blind', lazy, 'idle', idle, 'pass', pass);
+  console.log('crow signaller', good, 'beginner', beginner, 'blind', lazy, 'mash', mash, 'idle', idle, 'pass', pass);
   assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
+  assert.ok(Math.max(...mash) < pass, `mash ${mash}`);
+  assert.ok(beginner.filter((s) => s >= pass).length >= 2, `beginner ${beginner}`);
   assert.ok(Math.min(...good) >= pass, `signaller ${good}`);
   assert.ok(Math.max(...good) >= pass * 1.5, `signaller ${good}`);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   assert.ok(avg(good) > avg(lazy), 'watching the road beats switching blindly');
+});
+
+// The round starts gentle and gets busier: cars and flocks come further
+// apart, cars drive slower and everyone waits longer at the start than at the
+// end, read from the game's own knobs as it plays.
+test('crow: the round starts gentle and ends busier', () => {
+  const game = create(env(1));
+  const look = () => ({ car: game.carGap(), bird: game.birdGap(), speed: game.carSpeed(), patience: game.patienceNow() });
+  const start = look();
+  const step = (s) => { for (let i = 0; i < s * 60; i++) game.update(1 / 60, blank()); };
+  step(15);
+  const third = look();
+  step(29);
+  const end = look();
+  console.log('crow ramp', { start, third, end });
+  for (const [a, b] of [[start, third], [third, end]]) {
+    assert.ok(a.car > b.car && a.bird > b.bird, 'arrivals come faster');
+    assert.ok(a.speed < b.speed, 'cars drive faster');
+    assert.ok(a.patience > b.patience, 'patience runs shorter');
+  }
+  assert.ok(start.car > end.car * 2.5 && start.bird > end.bird * 2, 'the end is much busier than the start');
+  assert.ok(third.car > (start.car + end.car) / 2, 'the first third stays on the gentle side');
 });
 
 test('crow: green to red goes through amber', () => {

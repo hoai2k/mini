@@ -15,12 +15,17 @@ leaf (about one in eleven). Only what the broom has touched in the last
 three seconds goes in; anything else, blown or drifting, bumps off the
 pan's lip, so a gust never scores for you.
 
-**Getting harder.** No wind for the first 13 s. Then gusts, warned 1.3 s
-ahead by the tree's leaves shivering and a "Gust!" arrow, blow everything
-loose across the floor for 1.5 s, every 12 s at first and every 8 s by
-the end; they leave swept things alone. Leaves fall faster (every 2.2 s, down to 1.1 s; at most 18 on the
-floor). The dustpan moves to another wall (left, right or back) after
-every eight sweepings.
+**Difficulty over the round.** One eased curve (`level()`, progress to the
+power 1.6) drives every knob, so the first third stays gentle, the middle
+is about the old average and the end is harder than before (2026-10-12).
+No wind for the first 13 s. Then gusts, warned ahead by the tree's leaves
+shivering and a "Gust!" arrow (1.6 s at first, 1.0 s by the end), blow
+everything loose across the floor for 1.5 s, every 14 s at first and every
+7 s by the end, and harder as they go (0.7 to 1.25 times the old push);
+they leave swept things alone. Leaves fall faster (every 2.0 s, down to
+1.0 s; at most 18 on the floor). The pan's mouth narrows from 120 to 100
+floor units each side. The dustpan moves to another wall (left, right or
+back) after every eight sweepings.
 
 **Controls.** Controller: left stick or D-pad sweeps, A flicks. Keyboard:
 arrows or WASD sweep, Space flicks. Mouse or touch: the broom follows the
@@ -28,10 +33,11 @@ pointer, so a quick swipe pushes hard; click or tap to flick. On a narrow
 screen the view follows the broom, 1000 wide.
 
 **Pass.** 15 points. Sweeping is physical, so runs vary; bots over seeds
-1–10: a beginner (two-thirds speed, slower to line up, no flicks) 16–23,
-average 20.5; a good sweeper 22–32, average 27; one that also flicks 21–30;
-running about at random and flicking 0–5; wandering in smooth loops 4–9;
-zigzagging along the floor 0–1; idle 0.
+1–10, since the ramp: a beginner (two-thirds speed, slower to line up, no
+flicks) 15–30, average 22 (was 16–23); a good sweeper 21–30, average 26
+(was 22–32); one that also flicks 17–30; running about at random and
+flicking 0–5; wandering in smooth loops 7–12 (at most 14 over forty seeds);
+zigzagging along the floor 2–3; idle 0.
 
 **Images.** IC-M06a is the courtyard, its floor of flagstones kept
 completely clear. IC-M06b is four leaves, a dust ball, a feather, a golden

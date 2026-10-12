@@ -18,16 +18,18 @@ const HAT_W = 190 * HS;
 const LIFT = 170;
 
 // Each round: hats, moves, seconds per move, how long the Dodo is shown,
-// and the chance of a feint, a double swap or a ring of three.
+// and the chance of a feint, a double swap or a ring of three. Difficulty
+// over the round: the first rounds are few, slow swaps to learn on; the
+// middle is the old pace; the last two are longer and quicker than before.
 const ROUNDS = [
-  { n: 3, moves: 3, dur: 0.8, show: 1.6, answer: 5 },
-  { n: 3, moves: 5, dur: 0.62, show: 1.4, answer: 5 },
-  { n: 4, moves: 6, dur: 0.52, show: 1.3, answer: 5 },
+  { n: 3, moves: 2, dur: 0.95, show: 1.8, answer: 6 },
+  { n: 3, moves: 4, dur: 0.72, show: 1.5, answer: 5 },
+  { n: 4, moves: 5, dur: 0.56, show: 1.3, answer: 5 },
   { n: 4, moves: 8, dur: 0.44, show: 1.2, answer: 4.5, fake: 0.2 },
   { n: 4, moves: 10, dur: 0.38, show: 1.1, answer: 4.5, fake: 0.25 },
   { n: 5, moves: 10, dur: 0.34, show: 1.0, answer: 4, fake: 0.2, double: 0.25 },
-  { n: 5, moves: 12, dur: 0.31, show: 1.0, answer: 4, fake: 0.2, double: 0.3, ring: 0.2 },
-  { n: 5, moves: 14, dur: 0.28, show: 0.9, answer: 4, fake: 0.2, double: 0.35, ring: 0.25 },
+  { n: 5, moves: 13, dur: 0.3, show: 0.95, answer: 4, fake: 0.2, double: 0.3, ring: 0.25 },
+  { n: 5, moves: 16, dur: 0.26, show: 0.85, answer: 4, fake: 0.25, double: 0.35, ring: 0.3 },
 ];
 // One painted hat design for all the hats of a round (the sprites in hats.png).
 const HAT_CELL = [0, 2, 1, 0, 1, 2, 0, 1];

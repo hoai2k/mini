@@ -33,6 +33,25 @@ test('cupadee: a decent pourer opens the next page, a sharp one far more; idle e
   assert.ok(Math.max(...sharp) >= pass * 2.5, `sharp ${sharp}`);
 });
 
+// Mashing: tapping the action at random, or holding it down.
+function masher(seed) {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  return () => ({ action: rnd() < 0.5 });
+}
+
+test('cupadee: a beginner passes about half the time or more; mashing and holding do not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: pourer(0.24, seed) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: pourer(0.04, seed) }).game.score);
+  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed) }).game.score);
+  const hold = run(create, { seed: 1, bot: () => ({ action: true }) }).game.score;
+  console.log('cupadee beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'hold', `${hold}`, 'pass', pass);
+  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+  assert.ok(hold < pass, `holding ${hold}`);
+});
+
 test('cupadee: holding on too long spills the cup and breaks the combo', () => {
   const game = create(env(1));
   game.streak = 3;
@@ -74,4 +93,28 @@ test('cupadee: every painted pose shows the Cupadee the same size, on the same f
   } finally {
     undo();
   }
+});
+
+test('cupadee: the round starts with big, still cups and ends with small, moving ones', () => {
+  const early = [];
+  const late = [];
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const game = create(env(seed));
+    const seen = new Set(game.birds);
+    while (!game.done) {
+      game.update(1 / 60, blank({ action: false }));
+      for (const b of game.birds) {
+        if (seen.has(b)) continue;
+        seen.add(b);
+        (game.elapsed < 15 ? early : game.elapsed > 30 ? late : []).push(b);
+      }
+    }
+  }
+  const hard = (b) => (b.kind !== 'big' ? 1 : 0) + (b.motion !== 'still' ? 1 : 0);
+  const mean = (a, f) => a.reduce((s, b) => s + f(b), 0) / a.length;
+  assert.ok(early.length && late.length);
+  assert.ok(mean(early, hard) < 0.5, `early cups mostly big and still: ${mean(early, hard)}`);
+  assert.ok(mean(late, hard) > mean(early, hard) + 0.7, `late cups harder: ${mean(early, hard)} vs ${mean(late, hard)}`);
+  assert.ok(mean(late, (b) => b.cap) < mean(early, (b) => b.cap) * 0.85, 'late cups smaller');
+  assert.ok(mean(late, (b) => b.patience) < mean(early, (b) => b.patience), 'late Cupadees less patient');
 });

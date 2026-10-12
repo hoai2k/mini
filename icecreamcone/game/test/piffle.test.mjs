@@ -27,9 +27,44 @@ test('piffle: a careful sewer opens the next page; idle earns little', () => {
   const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 6, dare: 0.5 }) }).game.score);
   const bold = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 4, dare: 1.2 }) }).game.score);
   const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('piffle careful', careful, 'steady', steady, 'bold', bold, 'idle', idle, 'pass', pass);
+  console.log('piffle trio careful', careful, 'steady', steady, 'bold', bold, 'idle', idle, 'pass', pass);
   assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
   assert.ok(Math.min(...careful) >= pass, `careful ${careful}`);
+});
+
+test('piffle: a beginner passes about half the time or more; mashing does not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: sewer({ lag: 16, gain: 60, look: 0 }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: sewer({ lag: 6, dare: 0.5 }) }).game.score);
+  const mash = seeds.map((seed) => {
+    let r = seed * 31;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    let d = 0;
+    return run(create, { seed, bot: () => {
+      if (rnd() < 0.03) d = rnd() * 2 - 1;
+      return { x: d, action: rnd() < 0.5 };
+    } }).game.score;
+  });
+  console.log('piffle beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
+  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+});
+
+test('piffle: the quilt starts slow with a gentle seam and ends fast and twisty', () => {
+  const game = create(env(1));
+  const sample = () => {
+    // how far the seam swings over the next 600 px of quilt
+    let swing = 0;
+    for (let s = 0; s < 600; s += 20) swing += Math.abs(game.seamX(game.dist + s + 20) - game.seamX(game.dist + s));
+    return { speed: game.speed(), swing };
+  };
+  // the first stretch of seam is laid at the start; look at what lies ahead later
+  for (let i = 0; i < 60 * 12; i++) game.update(1 / 60, blank({ x: Math.sign(game.seamX(game.dist) - game.x) }));
+  const early = sample();
+  while (game.elapsed < 44) game.update(1 / 60, blank({ x: Math.sign(game.seamX(game.dist) - game.x) }));
+  const late = sample();
+  assert.ok(late.speed > early.speed * 1.3, `speed ${early.speed} to ${late.speed}`);
+  assert.ok(late.swing > early.swing * 1.5, `seam swing per 600 px ${early.swing} to ${late.swing}`);
 });
 
 test('piffle: a stitch on the seam scores, one off it does not', () => {

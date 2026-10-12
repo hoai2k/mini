@@ -15,20 +15,25 @@ no help.
   the mat ("On the mat! +2"). A bottle that misses smashes: no points lost,
   but the Midge needs 0.7 s to fetch another. A smash near a sleeping dog
   wakes it (−1), and a bottle on the step of a house with a "No milk" card
-  comes back (−1). The score never drops below zero. Pass: 16 points.
-- **Ramp.** The first four houses are near, with wide steps, no dogs and no
-  cards. Then the steps spread from near to far and narrow, houses come
-  closer together, the float speeds up from 150 to 235 px/s, the full
-  wind-up quickens from 1.35 to 1.15 s, and dogs (30% to 50% of houses) and
-  cards (12% to 24%) come more often. The depth that counts as on the step
-  stays ±30 px. Close neighbours can't both be reached: choose.
+  comes back (−1). The score never drops below zero. Pass: 15 points.
+- **Difficulty over the round.** One eased curve (`level()`, progress to
+  the power 1.6) drives every knob, so the first third stays gentle, the
+  middle is about the old average and the end is harder than before. Steps
+  start near and wide (depth 450–548, half-width 78) and spread back to
+  320–565 and narrow to 50; houses start 420 apart and close to 235; the
+  float speeds up from 140 to 245 px/s and the full wind-up quickens from
+  1.4 to 1.12 s. The first three houses have no dog or card; after that dogs
+  rise from 12% to 55% of houses and cards from 5% to 28%. The depth that
+  counts as on the step stays ±30 px. Close neighbours can't both be
+  reached: choose.
 - **Controls.** Controller A / RT, Space or Enter, or a mouse button or
   touch: hold to wind up, release to throw. The stick isn't used; the float
   drives itself. On a phone the view keeps the Midge, the lane and the next
   house in sight.
 - **Bots (tests).** A beginner (±26 px off in depth, often late, throws at
-  a card house a quarter of the time) scores 19–25 over six seeds; a good
-  milkman 38–44; tapping, flinging at random and idling score 0–2.
+  a card house a quarter of the time) scores 15–23 over twelve seeds (pass
+  lowered from 16 to 15 with the ramp, 2026-10-12); a good milkman 30–42;
+  tapping, flinging at random and idling score 0–2.
 
 ## Images (IC-M01)
 

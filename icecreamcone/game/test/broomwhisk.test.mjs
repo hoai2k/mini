@@ -124,6 +124,39 @@ test('broomwhisk: a beginner opens the next page, a good sweeper more; flailing 
   assert.ok(Math.max(...flail, ...zig, ...wan) < pass, `flailing must not open the next page: ${flail} ${zig}`);
 });
 
+// The round starts gentle and ends harder, read from what the game does:
+// the gusts that come late blow harder, with less warning and more often,
+// leaves fall faster, and the pan's mouth is narrower than at the start.
+test('broomwhisk: the courtyard starts gentle and ends harder', () => {
+  const game = create(env(2));
+  const gusts = [];
+  let last = null;
+  const falls = { early: 0, late: 0 };
+  const seen = new Set(game.items);
+  const mouth0 = game.mouth();
+  for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    game.items = game.items.filter((it) => it.z > 0); // keep the floor clear so leaves keep falling
+    game.update(1 / 60, blank());
+    if (game.gust && game.gust !== last) gusts.push({ at: game.elapsed, power: game.gust.power, warn: game.gust.warn });
+    last = game.gust;
+    for (const it of game.items) {
+      if (seen.has(it)) continue;
+      seen.add(it);
+      if (game.elapsed < 15) falls.early++;
+      else if (game.elapsed > 30) falls.late++;
+    }
+  }
+  console.log('broomwhisk ramp', { gusts, falls, mouth: [mouth0, game.mouth()] });
+  assert.ok(gusts.length >= 3, `gusts ${gusts.length}`);
+  assert.ok(gusts[0].at > 12, 'no gust in the first twelve seconds');
+  const a = gusts[0];
+  const z = gusts[gusts.length - 1];
+  assert.ok(z.power > a.power * 1.3 && z.warn < a.warn, 'late gusts blow harder, with less warning');
+  assert.ok(gusts[gusts.length - 1].at - gusts[gusts.length - 2].at < gusts[1].at - gusts[0].at, 'and come more often');
+  assert.ok(falls.late > falls.early * 1.3, `leaves fall faster late: ${falls.early} vs ${falls.late}`);
+  assert.ok(game.mouth() < mouth0, 'the pan mouth narrows');
+});
+
 test('broomwhisk: the broom pushes a leaf on with its own speed, and it slides on', () => {
   const game = create(env(1));
   game.items = [];
@@ -172,6 +205,7 @@ test('broomwhisk: a flick sends what is in front of the broom skidding', () => {
 
 test('broomwhisk: a gust blows the loose leaves, and the pan moves after eight', () => {
   const game = create(env(5));
+  game.elapsed = 30; // a gust two thirds of the way in, at its usual strength
   game.leafT = 99;
   game.gustT = 0.01;
   const before = game.items.map((it) => it.x);

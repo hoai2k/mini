@@ -16,9 +16,13 @@ toss with no coat above flies away harmlessly (the way to get rid of a
 wrong pick). A coat that leaves with open holes simply goes; the results
 count the coats buttoned all the way.
 
-**Getting harder.** The line speeds up from 80 to 140 px/s and the coats
-come closer together. Coats have one hole for the first 8 s, one or two
-until 22 s, then two or three. At 18 s two more bowls join the tin with
+**Difficulty over the round.** One eased curve (`levelAt`, progress to the
+power 1.6) drives every knob, so the first third stays gentle, the middle
+is about the old average and the end is harder than before (2026-10-12).
+The line speeds up from 75 to 150 px/s and the coats come closer together
+(330 px apart down to 220). Coats have one hole through the first third,
+about one and a half on average by the middle, and two or three (mostly
+three) at the end. At about 20 s two more bowls join the tin with
 look-alike buttons: a pink square with two holes beside the pink round with
 four, a blue flower beside the blue round.
 
@@ -28,8 +32,9 @@ they follow the pointer; tap a bowl to pick from it, tap up by the coats
 to toss from there. On a narrow screen the view follows them, 1000 wide.
 
 **Pass.** 10 buttons. Bots (seeds 1–4): a beginner (slower, a moment to
-look, now and then a look-alike by mistake) 12–14; a good tailor 25–26;
-walking up and down pressing all the time 4–5; idle 0.
+look, now and then a look-alike by mistake) 12–13 (was 12–14 before the
+ramp); a good tailor 20–21 (was 25–26: fewer holes early); walking up and
+down pressing all the time 3–5; idle 0.
 
 **Images.** IC-M05a is the garden with the two clothes posts and the
 front of the tin; the line itself is drawn by the game so the coats hang

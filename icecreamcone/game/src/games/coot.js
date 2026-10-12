@@ -5,7 +5,8 @@
 // stack, and the Coot's own running sways it. Lean too far and the whole stack
 // spills: the scoops above its weak point slide off (all of them, if it
 // leans too far at the bottom). Pickles and socks knock scoops off; a golden
-// cherry counts three.
+// cherry counts three. Things fall slowly and sparsely at first, with
+// few pickles and socks; faster, thicker and nastier by the end (`g.ramp()`).
 // Score: the tallest stack built (counting cherries as three).
 //
 // A scoop that hits the side of the stack clings there for a moment, then
@@ -310,16 +311,26 @@ export default function create(env) {
   const viewTop = () => GROUND + (GROUND - GROUND / g.zoom - groundY()) / g.depth;
   const toWorldX = (x) => W / 2 + (x - W / 2) / (g.zoom * g.depth);
 
+  // Difficulty over the round: one eased curve (smoothstep of the round's
+  // progress), 0 at the start and 1 at the end, so the first third is gentle.
+  // It sets how fast things fall, how often, and how many are pickles and socks.
+  g.ramp = () => {
+    const k = Math.min(1, g.elapsed / DURATION);
+    return k * k * (3 - 2 * k);
+  };
+  g.fallSpeed = () => 170 + g.ramp() * 330; // 170 px/s at first, 500 at the end (was 230 to 490)
+  g.gap = () => 1.2 - g.ramp() * 0.75; // seconds between items, 1.2 to 0.45, plus up to 0.25 (was 1.0 to 0.45)
+  g.hazard = () => (g.elapsed > 6 ? 0.04 + g.ramp() * 0.17 : 0); // pickles and socks, 4% to 21% (was 8% to 18%)
+
   function spawnItem() {
-    const t = g.elapsed / DURATION;
     const roll = rng();
     let kind = 'scoop';
-    if (g.elapsed > 6 && roll < 0.08 + t * 0.1) kind = rng() < 0.5 ? 'pickle' : 'sock';
+    if (roll < g.hazard()) kind = rng() < 0.5 ? 'pickle' : 'sock';
     else if (roll > 0.955) kind = 'cherry';
     g.items.push({
       x: 160 + rng() * (W - 320),
       y: viewTop() - 40,
-      vy: 230 + t * 260 + rng() * 60,
+      vy: g.fallSpeed() + rng() * 60,
       kind,
       color: FLAVOURS[Math.floor(rng() * FLAVOURS.length)],
       spin: (rng() - 0.5) * 3,
@@ -363,8 +374,7 @@ export default function create(env) {
     g.spawn -= dt;
     if (g.spawn <= 0) {
       spawnItem();
-      const t = g.elapsed / DURATION;
-      g.spawn = 1.0 - t * 0.55 + rng() * 0.25;
+      g.spawn = g.gap() + rng() * 0.25;
     }
 
     for (const it of g.items) {

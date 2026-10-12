@@ -19,9 +19,14 @@ forth) makes the prize slip off and fall back onto the pile, or, if it was
 nearly there, into the chute. A new prize tumbles in from above for each
 one taken, so the pile always has six or so.
 
-**Getting harder.** Rings start generous (about 64 px across) and shrink
-to about 40 px by the end, and golden watches, with smaller rings still,
-turn up after 8 s. The trolley is slower with a prize in the claws.
+**Difficulty over the round.** One eased curve (`level()`, progress to the
+power 1.6) drives every knob, so the first third stays gentle, the middle
+is about the old average and the end is harder than before (2026-10-12).
+Rings start generous (about 68 px across) and shrink to about 36 px by the
+end; golden watches, with smaller rings still, turn up after 8 s. The swing
+dies down a little more slowly as the round goes on (damping 3.2 down to
+2.7), and a carried prize slips off at a smaller swing (0.47 rad down to
+0.37). The trolley is slower with a prize in the claws.
 
 **Controls.** Controller: left stick or D-pad moves the trolley, A drops
 (and lets go). Keyboard: arrows or A/D, Space. Mouse or touch: the trolley
@@ -32,8 +37,8 @@ in sight too.
 
 **Pass.** 5 prizes. Bots: a beginner (half-speed stick, waits until the
 swing is small; seeds 1–8) 7–9; a good operator (full speed, drops while it
-is still swinging a little, goes for golden watches) 10–12; wandering and
-dropping all the time 0; idle 0.
+is still swinging a little, goes for golden watches) 8–10 on seeds 1–4
+(was 8–10 before the ramp); wandering and dropping all the time 0; idle 0.
 
 **Images.** IC-M07a is the inside of the cabinet: the brass rail, the
 wallpaper, the velvet floor and the chute, with the space between kept

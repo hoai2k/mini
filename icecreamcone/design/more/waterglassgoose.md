@@ -12,12 +12,15 @@ are five of a pentatonic scale (C D E G A), so any order sounds pleasant.
   note within 0.8 s ("Quick! +1"), and a whole tune played back 3 more. A
   wrong glass cracks it and ends that tune; so does waiting more than 5 s
   for the next note. Three cracks end the concert early (three little
-  glasses under the tune's dots count them). Most: 84. Pass: 30.
-- **Ramp.** Tunes of 2, 3, 3, 4, 4, 5, 6 and 7 notes, on 3 glasses (C, E and
-  A, far apart in pitch, colour and water level), then 4, then 5; the Goose
-  plays faster (0.85 s down to 0.45 s between notes). From the fifth tune a
-  note can repeat (never three alike). The tints are blue, green, yellow,
-  pink and orange.
+  glasses under the tune's dots count them). Most: 88. Pass: 30.
+- **Difficulty over the round.** Tunes of 2, 3, 3, 4, 4, 5, 7 and 8 notes,
+  on 3 glasses (C, E and A, far apart in pitch, colour and water level), then
+  4, then 5; the Goose plays faster (0.9 s down to 0.4 s between notes). The
+  first third (tunes 1–3) is gentle: short tunes on few glasses, played
+  slowly. The middle is the old normal; the last two tunes (7 and 8 notes,
+  0.47 and 0.4 s) are harder than the old 6 and 7 at 0.5 and 0.45 s
+  (2026-10-12). From the fifth tune a note can repeat (never three alike).
+  The tints are blue, green, yellow, pink and orange.
 - **Controls.** Stick, D-pad, arrows or WASD step the Goose one glass at a
   time (holding repeats after a moment); A, Space or Enter taps. With a mouse
   or touch, the Goose goes to the glass under the pointer and a click or tap
@@ -25,7 +28,7 @@ are five of a pentatonic scale (C D E G A), so any order sounds pleasant.
   yellow. On a phone the whole row, the dots and the crack count stay in
   view.
 - **Bots (tests).** A beginner whose memory slips more on longer tunes, and
-  who is slow to tap, scores 32–63 over six seeds; a good ear 84; tapping at
+  who is slow to tap, scores 32–62 over six seeds; a good ear 81–88; tapping at
   random 0–2; idling 0.
 
 ## Images (IC-M02)

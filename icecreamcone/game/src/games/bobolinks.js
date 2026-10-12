@@ -16,7 +16,7 @@ import { birdById } from '../birds.js';
 
 const DURATION = 40;
 const STUMBLE = 0.6; // seconds the boots wobble after a splash
-const FLUSTER = 1.5; // a splash this soon after the last one stumbles longer (mashing doesn't pay)
+const FLUSTER = 1.5; // a splash this soon after recovering from the last one stumbles longer (mashing doesn't pay)
 const BOTH = 0.15; // seconds to land the second foot of a double
 const BOTH_POINTER = 0.3; // more time for touch, where two taps can't be at once
 const AHEAD = 9; // stones kept queued
@@ -69,18 +69,26 @@ export default function create(env) {
 
   // ---------- the stones ----------
 
-  // How fast the target sinks, and how tricky the pattern is, by time.
-  const sinkTime = () => lerp(2.4, 1.05, clamp(g.elapsed / DURATION, 0, 1));
+  // Difficulty over the night: one eased curve (smoothstep of the round's
+  // progress, 0 to 1) sets how fast the target sinks (2.6 s at first, 0.95 s
+  // at the end; was 2.4 to 1.05, straight), how often the stones simply
+  // alternate (85% at first, 45% at the end; was 85% to 50%) and how often a
+  // double comes (none in the first 7 s, then 3% rising to 25%; was 5% to 22%).
+  g.ramp = () => {
+    const k = clamp(g.elapsed / DURATION, 0, 1);
+    return k * k * (3 - 2 * k);
+  };
+  const sinkTime = () => lerp(2.6, 0.95, g.ramp());
   g.sinkTime = sinkTime;
 
   function addStone() {
-    const k = clamp(g.elapsed / DURATION, 0, 1);
+    const k = g.ramp();
     const prev = g.stones.length ? g.stones[g.stones.length - 1] : g.under;
     let side;
-    if (g.elapsed > 7 && prev.side !== 0 && rng() < 0.05 + k * 0.17) side = 0;
+    if (g.elapsed > 7 && prev.side !== 0 && rng() < 0.03 + k * 0.22) side = 0;
     else {
       const last = prev.side === 0 ? g.lastSide : prev.side;
-      side = rng() < lerp(0.85, 0.5, k) ? -last : last;
+      side = rng() < lerp(0.85, 0.45, k) ? -last : last;
       g.lastSide = side;
     }
     g.stones.push({ side, sink: 0, wob: rng() * 6 });
@@ -127,11 +135,13 @@ export default function create(env) {
   }
 
   function splash(why) {
-    // a wrong press soon after the last one rattles the boots for longer
+    // a wrong press soon after the boots got over the last one rattles them
+    // for longer (counted from the end of that stumble, so a long stumble
+    // doesn't wipe the slate)
     const pressed = why !== 'Too slow!';
     g.flustered = pressed && g.clock - g.lastSplash < FLUSTER ? Math.min(3, g.flustered + 1) : 0;
-    if (pressed) g.lastSplash = g.clock;
     g.stumble = STUMBLE * (1 + g.flustered * 0.8);
+    if (pressed) g.lastSplash = g.clock + g.stumble;
     g.pending = null;
     if (g.streak >= 5) pop('Streak lost', OV.x, HORIZON - 70, PAL.strawberry, 34, 'streak');
     g.streak = 0;

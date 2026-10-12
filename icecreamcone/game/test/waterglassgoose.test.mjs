@@ -53,6 +53,30 @@ test('waterglassgoose: a beginner opens the next page, a good ear more; idling a
   assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
 });
 
+// The concert starts gentle and ends harder: read each tune as it is played,
+// the first three are short, on few glasses and slow; the last are long and quick.
+test('waterglassgoose: the tunes start gentle and end harder', () => {
+  const tunes = [];
+  run(create, {
+    seed: 4,
+    bot: (() => {
+      const b = listener();
+      return (game, t) => {
+        if (game.phase === 'play' && tunes.length === game.round) tunes.push({ len: game.tune.length, glasses: game.glasses.length, gap: game.noteGap() });
+        return b(game, t);
+      };
+    })(),
+  });
+  console.log('waterglassgoose ramp', tunes);
+  assert.equal(tunes.length, 8);
+  const first = tunes.slice(0, 3);
+  const last = tunes.slice(-2);
+  assert.ok(Math.max(...first.map((x) => x.len)) < Math.min(...last.map((x) => x.len)) / 2, 'early tunes are much shorter');
+  assert.ok(Math.max(...first.map((x) => x.glasses)) < Math.min(...last.map((x) => x.glasses)), 'early tunes use fewer glasses');
+  assert.ok(Math.min(...first.map((x) => x.gap)) > Math.max(...last.map((x) => x.gap)) * 1.5, 'early tunes are played slower');
+  for (let i = 1; i < tunes.length; i++) assert.ok(tunes[i].len >= tunes[i - 1].len && tunes[i].gap <= tunes[i - 1].gap, 'never easier than the tune before');
+});
+
 // Plays until it is the player's turn.
 function toPlay(game) {
   for (let i = 0; i < 60 * 20 && game.phase !== 'play'; i++) game.update(1 / 60, blank());

@@ -8,7 +8,7 @@
 // gets across scores one. Anyone kept waiting too long gets cross (watch the
 // little clocks) and leaves, which costs one; switching to green while birds
 // are still on the crossing is a near miss: the cars brake hard and it costs
-// three. Arrivals come faster as time goes on. Score: crossings.
+// three. Arrivals start slow and come faster as time goes on. Score: crossings.
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
@@ -67,7 +67,16 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const patience = () => lerp(7.5, 5, progress()) * (0.9 + rng() * 0.2);
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (a newcomer learns the light), about the old average by the middle, and
+  // busier than before at the end. Every knob below follows this one curve.
+  const level = () => Math.pow(progress(), 1.6);
+  g.level = level;
+  g.carGap = () => lerp(3.3, 1.15, level()); // seconds between cars, per lane
+  g.birdGap = () => lerp(4.6, 1.95, level()); // seconds between flocks, per side
+  g.carSpeed = () => lerp(240, 335, level());
+  g.patienceNow = () => lerp(8.5, 4.6, level());
+  const patience = () => g.patienceNow() * (0.9 + rng() * 0.2);
   const add = (n) => {
     g.score = Math.max(0, g.score + n);
   };
@@ -121,7 +130,7 @@ export default function create(env) {
     const s0 = d > 0 ? -20 : -(W + 20);
     const last = g.cars.filter((c) => c.lane === lane && !c.leaving).sort((a, b) => a.s - b.s)[0];
     if (last && last.s - CAR_LEN - GAP < s0 + 10) return; // the road is full back there
-    g.cars.push({ lane, s: s0, v: lerp(260, 320, progress()), wait: 0, patience: patience(), committed: false, counted: false, leaving: 0, honked: false, color: CAR_COLS[Math.floor(rng() * CAR_COLS.length)], bob: rng() * 6 });
+    g.cars.push({ lane, s: s0, v: g.carSpeed(), wait: 0, patience: patience(), committed: false, counted: false, leaving: 0, honked: false, color: CAR_COLS[Math.floor(rng() * CAR_COLS.length)], bob: rng() * 6 });
   }
 
   function spawnBird(side) {
@@ -171,19 +180,19 @@ export default function create(env) {
     g.flash = Math.max(0, g.flash - dt);
 
     // Arrivals, faster as time goes on.
-    const p = progress();
+    const p = level();
     for (let l = 0; l < 2; l++) {
       g.carT[l] -= dt;
       if (g.carT[l] <= 0) {
         spawnCar(l);
-        g.carT[l] = lerp(2.7, 1.35, p) * (0.7 + rng() * 0.6);
+        g.carT[l] = g.carGap() * (0.7 + rng() * 0.6);
       }
       g.birdT[l] -= dt;
       if (g.birdT[l] <= 0) {
         // birds come in little flocks, bigger later on
-        const n = 1 + (rng() < 0.45 + p * 0.3 ? 1 : 0) + (rng() < p * 0.5 ? 1 : 0);
+        const n = 1 + (rng() < 0.3 + p * 0.5 ? 1 : 0) + (rng() < p * 0.6 ? 1 : 0);
         for (let i = 0; i < n; i++) spawnBird(l);
-        g.birdT[l] = lerp(3.7, 2.2, p) * (0.75 + rng() * 0.5);
+        g.birdT[l] = g.birdGap() * (0.75 + rng() * 0.5);
       }
     }
 
@@ -192,7 +201,7 @@ export default function create(env) {
     for (let l = 0; l < 2; l++) {
       const lane = g.cars.filter((c) => c.lane === l && !c.leaving).sort((a, b) => b.s - a.s);
       lane.forEach((c, i) => {
-        const V = lerp(260, 320, p);
+        const V = g.carSpeed();
         let limit = Infinity;
         if (i > 0) limit = lane[i - 1].s - CAR_LEN - GAP;
         if (!c.committed && c.s <= stopS(l) + 2) {

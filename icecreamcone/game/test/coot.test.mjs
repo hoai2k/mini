@@ -25,6 +25,46 @@ test('coot: a careful chaser opens the next page; idle earns nothing', () => {
   console.log('coot chaser scores', scores, 'pass', pass);
 });
 
+// A beginner: reacts late, aims loosely, runs at partial speed and pays no
+// heed to pickles and socks.
+function beginner(seed) {
+  let r = seed * 7919;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  let target = null;
+  let wait = 0;
+  return (game) => {
+    const top = game.x - 86;
+    wait -= 1 / 60;
+    if (wait <= 0) {
+      wait = 0.45 + rnd() * 0.3; // looks up now and then
+      const good = game.items.filter((i) => i.kind !== 'pickle' && i.kind !== 'sock').sort((a, b) => b.y - a.y)[0];
+      target = good ? good.x + (rnd() - 0.5) * 110 : null;
+    }
+    if (target === null) return {};
+    return { x: Math.max(-1, Math.min(1, (target - top) / 80)) * 0.6 };
+  };
+}
+// Mashing: running back and forth at random.
+function masher(seed) {
+  let r = seed * 31;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  let d = 0;
+  return () => {
+    if (rnd() < 0.03) d = rnd() * 2 - 1;
+    return { x: d, action: rnd() < 0.5 };
+  };
+}
+
+test('coot: a beginner passes about half the time or more; mashing does not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const begin = seeds.map((seed) => run(create, { seed, bot: beginner(seed) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: chaser }).game.score);
+  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed) }).game.score);
+  console.log('coot beginner', `${begin}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
+  assert.ok(begin.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${begin}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+});
+
 test('coot: an off-centre stack spills from its weak point, keeping what is below it', () => {
   const game = create({ W: 1600, H: 900, rng: () => 0.5, sfx: () => {} });
   game.spawn = 1e9;
@@ -188,4 +228,27 @@ test('coot: every painted pose shows the Coot the same size, on the same feet', 
   } finally {
     undo();
   }
+});
+
+test('coot: the round starts gentle and ends hard: slower, sparser, fewer pickles and socks at first', () => {
+  const thirds = [0, 1, 2].map(() => ({ n: 0, vy: 0, bad: 0 }));
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const game = create(env(seed));
+    const seen = new Set();
+    while (!game.done) {
+      game.update(1 / 60, blank());
+      for (const it of game.items) {
+        if (seen.has(it)) continue;
+        seen.add(it);
+        const b = thirds[Math.min(2, Math.floor(game.elapsed / 15))];
+        b.n++;
+        b.vy += it.vy;
+        if (it.kind === 'pickle' || it.kind === 'sock') b.bad++;
+      }
+    }
+  }
+  const [a, , c] = thirds;
+  assert.ok(c.vy / c.n > (a.vy / a.n) * 1.6, `falls faster: ${a.vy / a.n} vs ${c.vy / c.n}`);
+  assert.ok(c.n > a.n * 1.5, `more often: ${a.n} vs ${c.n}`);
+  assert.ok(c.bad / c.n > (a.bad / a.n) * 2, `more pickles and socks: ${a.bad}/${a.n} vs ${c.bad}/${c.n}`);
 });

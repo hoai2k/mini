@@ -91,3 +91,18 @@ Sprites delivered (IC-M14b plates, IC-M14c diners, IC-M14d hanging poses, IC-M14
 - **Diners:** they now stand behind the table's left end (x 320, waist at y 600, 220 tall), drawn before the table so its top hides the cut-off waist. The plate arrives in front of them.
 - **Plates:** 200 wide by their painted plate. The salt dots sit on each dish's food height as drawn.
 - **Still drawn in code:** the brass rail, the salt and its spills, and the flags. The painted table doesn't show itself turning (the turning knots were only on the code table); the plates going round show it. No pose is missing.
+
+## Difficulty over the round
+
+The lunch rush builds on one eased curve, `g.ramp()` (smoothstep of the
+round's progress), so the first third is gentle and the end the hardest.
+- **First half:** plates mostly want one pinch, now and then two (two in five
+  by halfway). Never more than two.
+- **Second half:** one to three pinches, then two to four from 70% of the
+  round, two to five in the last 15%.
+- **Table speed:** 0.36 rad/s at the start, 0.78 at the end (was 0.40 to 0.65).
+- **Plates:** about 2.9 s apart at the start, 1.15 s at the end (was 2.8 to 1.35).
+- **Puddings:** none in the first fifth, then 12% rising to 22%.
+- Pass mark 30 to 35: the easy opening lifts every score. Mashing still tops
+  out near 30 over 40 seeds. `test/saltshakershrike.test.mjs` checks the ramp
+  from the plates themselves.

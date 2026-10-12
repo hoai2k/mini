@@ -221,12 +221,29 @@ scene shrinks together, down to half size. Until that painting arrives the
 seaside stays put and only the Coot and its scoops shrink. The view closes
 in again slowly after a topple.
 
+**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
+round's progress) sets every knob, so the first third is gentle and the end
+harder than before: scoops fall at 170 px/s at first and 500 at the end (was
+230 to 490), come every 1.2 s to 0.45 s (was 1.0 to 0.45), and pickles and
+socks, none in the first 6 s, rise from 4% to 21% of what falls (was 8% to
+18%). Pass mark stays at 6.
+
 ### 2. Cupadee: Tea Time (45 s)
 
 A row of Cupadees walks in under the teapot one at a time. Hold the action
 to pour and let go when the tea reaches the line. Close to the line scores
 more, a perfect fill scores most, and a spill scores nothing and makes the
 bird squawk. Later cups are smaller, walk faster or bob up and down.
+
+**Difficulty over the round.** It used to step up by how many cups had been
+served (small from the 5th, bobbing from the 7th, strolling from the 9th).
+Now one eased curve over the round's time (`g.ramp()`, smoothstep) picks each
+Cupadee's cup as it joins the queue. The first third is mostly big, still
+cups with the line near the middle (0.72 ± 0.05). Then small cups (up to 65%),
+bobbing cups (up to 30%), the line spread to 0.57 to 0.87, and strollers and
+tiny cups after a third of the round (up to 45% and 40%). Strollers walk
+34 to 68 px/s (was 34 to 60), and patience falls from 5.5 s to 3.5 s. Pass
+mark stays at 600.
 
 ### 3. Shuttercluck: Say Cheese (10 photos)
 
@@ -243,6 +260,14 @@ find, so the score to reach stays the same. Each is drawn from its painting
 action to take a picture. A bird in the middle of the frame scores most;
 rarer birds score more. You have ten shots. The results show your photos.
 
+**Difficulty over the round.** How far along the round is (shots taken or
+time spent, whichever is further) is eased with a smoothstep (`g.diff()`), so
+the first shots are gentle and the last ones hardest. A bird stays up 1.3
+times its tier's time at first and 0.6 times at the end (was 1 to 0.65). Its
+warning rustle runs 1.15 to 0.65 times (was 1 to 0.7). Birds come every 1.15
+to 0.45 s plus up to 0.6 s (was 1.0 to 0.5). One at a time at first, up to
+three at once by the end. Pass mark stays at 500.
+
 ### 4. Gramophone Gullfinch: Wind and Sing (one song)
 
 Notes drift along the record's groove toward the needle. Press the action as
@@ -250,6 +275,13 @@ each one reaches it: perfect, good or miss. The spring runs down as you play,
 and the song slows and sags; turn the left stick in circles (or mash the
 action between notes, or drag in circles) to wind it back up. Score is the
 accuracy, with a bonus for long streaks.
+
+**Difficulty over the round.** The melody already moves from quarters to
+eighths. On top of it, one eased curve over the song (`g.ramp()`, smoothstep
+of how far the song has got) sets the rest. The tempo runs 72 to 110 bpm
+(was 80 to 104, straight). The timing windows are 1.25 times wider at the
+start and 0.9 times at the end. The spring runs down 0.7 to 1.6 times its base
+rate (was 1 to 1.4). Pass mark stays at 1500.
 
 ### 5. Flowerpot Plume: Bloom (45 s)
 
@@ -260,6 +292,12 @@ sprout. A plume left dry wilts and loses its growth; one watered too long
 gets soggy and stops growing for a moment. Plants dry out faster as time goes
 on.
 
+**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
+round's progress) sets it. The pots dry at 0.06 a second at the start, slow
+enough to tend one Plume at a time, and 0.27 at the end (was 0.09 to 0.22,
+straight). A watered Plume soaks up to soggy 0.85 to 1.15 times as fast.
+Pass mark stays at 6.
+
 ### 6. Highbutton Bobolinks: Left Foot, Right Foot (40 s)
 
 The boots cross a moonlit stream on stepping stones. Each stone is on the
@@ -267,12 +305,31 @@ left or the right; press the matching side to step. A wrong step splashes
 and costs a moment. Score is the stones crossed. The stones come faster, and
 some are doubles (both at once).
 
+**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
+round's progress) sets it. The stone underfoot sinks in 2.6 s at first and
+0.95 s at the end (was 2.4 to 1.05, straight). Stones simply alternate 85% of
+the time at first and 45% at the end (was 85% to 50%). Doubles start after
+7 s at 3% and rise to 25% (was 5% to 22%). Mashing also pays less now: a
+fluster counts from when the boots recover, not from the splash. Before, a
+long stumble outlasted the 1.5 s window and wiped the slate, so random
+mashing passed 4 seeds in 12. Pass mark stays at 40. Known: fast blind
+drumming, left-right ten times a second, still scores well over the pass
+mark, as it did before.
+
 ### 7. Newspaper Peeper: Hot off the Press (45 s)
 
 A word is printed at the top. Letters flutter down like loose feathers; move
 the Peeper to catch the letters of the word in order. The wrong letter
 smudges the word and costs a point. Finished words score by length. Words get
 longer as you go.
+
+**Difficulty over the round.** One eased curve (`diff()`, smoothstep of the
+round's progress) sets it, so the first third is gentle and the end hardest.
+Letters fall at 120 to 310 px/s (was 140 to 290, straight). They sway 25 to
+110 px (was 30 to 100) and come loose every 0.62 to 0.34 s (was 0.55 to
+0.36). The needed letter is 48% to 22% of them (was 42% to 24%). The words
+still lengthen as they are finished. Pass mark 18 to 22: wandering and
+mashing reached 19 to 21 on some seeds, before and after the ramp.
 
 ### 8. Pincushion Piffle: Stitch in Time (45 s)
 
@@ -283,12 +340,31 @@ needle a little for a tricky bend, or hold LT or RT to steer more finely
 without slowing the quilt (the further the trigger, the finer). Score is the
 stitches sewn on the line, so going slowly is safer but sews fewer.
 
+**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
+round's progress) sets it, so the first third is gentle and the end hardest.
+The quilt runs at 150 to 270 px/s (was 170 to 250, straight; the same
+distance over the round). The seam's bends come 360 to 170 px apart (was 330
+to 190) and swing up to 110 to 320 px (was 150 to 300). The seam is laid
+about 2000 px ahead, so its bends lag the clock by a few seconds. Pass mark
+stays at 120.
+
 ### 9. Dollarbill Dodo: Spot the Dodo (8 rounds)
 
 The Dodo hides under one of three hats on the counter (four, then five in
 later rounds). The hats shuffle, faster each round. When they stop, move to
 the right hat and press the action. Score is the rounds won, with a bonus for
 answering quickly.
+
+**Difficulty over the round.** The rounds already stepped up; now the first
+two are gentler and the last two harder. Round 1 is two slow swaps (0.95 s
+each, was three at 0.8). Round 2 is four (0.72 s, was five at 0.62). Round 3
+is five at 0.56 s (was six at 0.52). Rounds 4 to 6 are as before. Round 7 is 13 swaps at 0.3 s
+(was 12 at 0.31), and round 8 is 16 at 0.26 s (was 14 at 0.28) with more
+feints, doubles and rings, the Dodo shown for 0.85 s. The hat counts are
+unchanged (3, 3, 4, 4, 4, 5, 5, 5), so guessing is no luckier. Pass mark
+450 to 550: the gentler opening lifts a beginner by about 90, and pure
+guessing still passed about one game in ten at 450. At 550 a beginner passes
+a little over half the time and guessing about one game in twelve.
 
 ### 10. Safecrossing Crow: Safe Crossing (45 s)
 
@@ -298,6 +374,13 @@ the pavements and cross on red; cars pile up on red and honk. Score is
 everyone who crosses (birds and cars). Waiting too long makes them give up
 and leave, and switching while someone is still on the crossing is a
 near-miss that costs points.
+
+**Difficulty over the round.** One eased curve (`level()`, progress to the
+power 1.6) sets every knob, so the first third stays gentle and the end is
+busier than the old round: a car per lane every 3.3 s at the start to 1.15 s
+at the end, a flock per pavement every 4.6 s to 1.95 s (flocks of one or two
+at first, up to three later), cars 240 to 335 px/s, and patience 8.5 s down
+to 4.6 s.
 
 ## Look and sound
 

@@ -20,8 +20,8 @@
 // lid pushes canary and catch into the bin; shut it on something just at the
 // mouth and that is caught too (snap down on top). Open it under something
 // just above or behind the lid and the lid knocks that thing back out of the
-// way. Things come faster and closer together as time goes on, more of them
-// aren't rubbish, and gusts hurry some along. Score: points.
+// way. It starts gentle; things come faster and closer together as time goes
+// on, more of them aren't rubbish, and gusts hurry some along. Score: points.
 //
 // Controls: the stick, D-pad, arrows or WASD walk the bin (up and down is
 // across the street); hold the action for the lid. Mouse or touch: press on
@@ -86,7 +86,6 @@ const PULL_SPEED = 420; // px/s, pulling something down into the bin (slow enoug
 const FRESH = 1.3;
 const WHISK = 2.4;
 const WHISK_EVERY = 1.2;
-const NEAR = 0.3; // after the first 8 s, this share of the rubbish still comes near the bin's lane
 const LEAD_IN = 300; // things start this far off the right edge, shown by an arrow there
 const MOUTH_R = 95; // bird units: anything passing this close to the mouth's middle falls in
 // The canary neck sheet (IC-M08e): each cell's neck base on its centre line
@@ -194,6 +193,17 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (slow things, mostly rubbish, mostly in the bin's own lane, no gusts),
+  // about the old average by the middle, and harder than before at the end.
+  // Every knob in spawn() follows this one curve.
+  const level = () => Math.pow(progress(), 1.6);
+  g.level = level;
+  g.windSpeed = () => lerp(225, 550, level()); // how fast things blow along
+  g.keepChance = () => lerp(0.22, 0.55, level()); // share that isn't rubbish
+  g.nearShare = () => lerp(1, 0.25, Math.min(1, level() * 4)); // rubbish that comes near the bin's lane
+  g.gustChance = () => (g.elapsed > 14 ? lerp(0.05, 0.4, level()) : 0);
+  g.spawnGap = () => lerp(1.35, 0.5, level()); // seconds between things, on average
   function pop(text, x, y, color = INK, size = 44) {
     while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
@@ -210,26 +220,25 @@ export default function create(env) {
   const itemR = (it) => ITEM_R * depthScale(it.lane);
 
   function spawn() {
-    const p = progress();
+    const p = level();
     // the first one is always rubbish; never three keepers in a row
-    const keepChance = g.binned + g.missed + g.items.length === 0 ? 0 : lerp(0.35, 0.5, p);
+    const keepChance = g.binned + g.missed + g.items.length === 0 ? 0 : g.keepChance();
     let keep = rng() < keepChance;
     if (g.lastKeep && keep && rng() < 0.5) keep = false;
     g.lastKeep = keep;
     const kind = keep ? KEEP[Math.floor(rng() * KEEP.length)] : RUBBISH[Math.floor(rng() * RUBBISH.length)];
     const k = KINDS[kind];
-    // gentle for the first 15 s
-    const base = g.elapsed < 15 ? lerp(230, 300, g.elapsed / 15) : lerp(300, 520, p);
+    const base = g.windSpeed();
     const speed = base * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
     // early on, rubbish comes near the bin's lane; later, anywhere
-    const near = clamp(g.by + (rng() - 0.5) * lerp(160, 400, p), DEPTH0 + 8, DEPTH1 - 8);
+    const near = clamp(g.by + (rng() - 0.5) * lerp(150, 420, p), DEPTH0 + 8, DEPTH1 - 8);
     // things that aren't rubbish tend to come your way (step aside, or keep
     // the lid shut); rubbish comes anywhere, but near you at first
     const anywhere = DEPTH0 + 8 + rng() * (DEPTH1 - DEPTH0 - 16);
-    const lane = !k.rub ? clamp(g.by + (rng() - 0.5) * 140, DEPTH0 + 8, DEPTH1 - 8) : g.elapsed < 8 || rng() < NEAR ? near : anywhere;
-    const gust = g.elapsed > 14 && rng() < lerp(0.1, 0.35, p) ? 1100 - rng() * 300 : null;
+    const lane = !k.rub ? clamp(g.by + (rng() - 0.5) * 140, DEPTH0 + 8, DEPTH1 - 8) : rng() < g.nearShare() ? near : anywhere;
+    const gust = rng() < g.gustChance() ? 1100 - rng() * 300 : null;
     g.items.push({ kind, rub: k.rub, lane, x: W + LEAD_IN, y: lane, vx: -speed, vy: 0, t: 0, phase: rng() * 6, amp: 40 + rng() * 60, hop: 220 + rng() * 140, gust, gusted: false, state: 'come', rot: 0, spin: (rng() - 0.5) * 4, life: 0 });
-    g.spawnT = Math.max(0.45, lerp(1.25, 0.55, p) * (0.75 + rng() * 0.5));
+    g.spawnT = Math.max(0.42, g.spawnGap() * (0.75 + rng() * 0.5));
   }
 
   // How high it is above its lane's ground: it drifts about, and settles to

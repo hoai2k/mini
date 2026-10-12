@@ -9,8 +9,9 @@
 // has touched goes into the pan; anything else bumps off its lip. Every so
 // often a gust (warned by the tree rustling and the door rattling) scatters
 // everything loose across the floor. The pan moves to another wall after
-// every eight sweepings, the leaves fall faster, and the gusts come more
-// often as time goes on. A golden leaf is worth three. Score: points.
+// every eight sweepings. It starts gentle (few leaves, a wide pan, soft
+// gusts); the leaves fall faster, the pan's mouth narrows, and the gusts come
+// more often and blow harder as time goes on. A golden leaf is worth three. Score: points.
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
@@ -36,7 +37,6 @@ const I_T = FLOOR_T + 42;
 const I_B = FLOOR_B - 12; // the bristles' reach, in floor units (y counts double: the floor is foreshortened)
 const SIZE = 300;
 const FLICK = 0.45;
-const MOUTH = 110; // half the pan's mouth, in floor units
 const FUNNEL = 130; // how near the mouth a swept thing is drawn in
 const PER_PAN = 8; // sweepings before the pan moves
 const SWEPT = 3; // seconds a touched thing still counts as swept
@@ -78,8 +78,6 @@ function drawPose(c, key, i, x, y, s, flip, rot) {
 
 // Floor depth: things further back are drawn smaller.
 export const depth = (y) => 0.68 + 0.4 * clamp((y - FLOOR_T) / (FLOOR_B - FLOOR_T), 0, 1);
-const leafEvery = (t) => 2.2 - Math.min(1, t / DURATION) * 1.1;
-const gustEvery = (t) => 12 - Math.min(1, t / DURATION) * 4;
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -107,6 +105,18 @@ export default function create(env) {
     streaks: [],
   };
   g.pan = { ...PANS[0] };
+
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (few leaves, a wide pan mouth, no gust for 13 s and soft ones after),
+  // about the old average by the middle, and harder than before at the end.
+  // Every knob below follows this one curve.
+  const level = () => Math.pow(Math.min(1, g.elapsed / DURATION), 1.6);
+  g.level = level;
+  g.leafGap = () => lerp(2.0, 1.0, level()); // seconds between falling leaves
+  g.gustGap = () => lerp(14, 7, level()); // seconds between gusts
+  g.gustPower = () => lerp(0.7, 1.25, level()); // how hard a gust blows
+  g.gustWarn = () => lerp(1.6, 1.0, level()); // the rustle before it blows
+  g.mouth = () => lerp(120, 100, level()); // half the pan's mouth, in floor units
 
   function pop(text, x, y, color = INK, size = 44) {
     // Stack above a pop still showing nearby rather than on top of it.
@@ -221,7 +231,7 @@ export default function create(env) {
     if (!g.gust) {
       g.gustT -= dt;
       if (g.gustT <= 0) {
-        g.gust = { dir: rng() < 0.5 ? -1 : 1, warn: 1.3, t: 1.5, ty: (rng() - 0.5) * 0.6 };
+        g.gust = { dir: rng() < 0.5 ? -1 : 1, warn: g.gustWarn(), t: 1.5, ty: (rng() - 0.5) * 0.6, power: g.gustPower() };
         g.gusts++;
         sfx('shuffle');
       }
@@ -233,7 +243,7 @@ export default function create(env) {
       if (rng() < dt * 30) g.streaks.push({ x: g.gust.dir > 0 ? -100 : W + 100, y: FLOOR_T - 200 + rng() * 600, life: 0.8, dir: g.gust.dir });
       if (g.gust.t <= 0) {
         g.gust = null;
-        g.gustT = gustEvery(g.elapsed) + rng() * 2;
+        g.gustT = g.gustGap() + rng() * 2;
       }
     }
     const blowing = g.gust && g.gust.warn <= 0;
@@ -242,7 +252,7 @@ export default function create(env) {
     g.leafT -= dt;
     const onFloor = g.items.length;
     if (g.leafT <= 0) {
-      g.leafT = leafEvery(g.elapsed) * (0.7 + rng() * 0.6);
+      g.leafT = g.leafGap() * (0.7 + rng() * 0.6);
       if (onFloor < 18) {
         const kind = rng() < 0.09 ? 'gold' : rng() < 0.25 ? 'dust' : 'leaf';
         if (kind === 'dust') addItem('dust', 250 + rng() * 1100, 560 + rng() * 280);
@@ -263,8 +273,9 @@ export default function create(env) {
       }
       // Gusts blow only what lies loose: a swept thing is on its way to the pan.
       if (blowing && it.swept <= 0) {
-        it.vx += g.gust.dir * K.gust * dt;
-        it.vy += g.gust.ty * K.gust * 0.5 * dt;
+        const power = g.gust.power ?? 1;
+        it.vx += g.gust.dir * K.gust * power * dt;
+        it.vy += g.gust.ty * K.gust * power * 0.5 * dt;
         it.spin += g.gust.dir * dt * 6;
       }
       // The bristles push whatever they touch.
@@ -331,7 +342,7 @@ export default function create(env) {
       // the dustpan
       if (g.panMove <= 0) {
         const p = panLocal(it.x, it.y);
-        if (p.side < MOUTH && p.along < 48 && p.along > -110) {
+        if (p.side < g.mouth() && p.along < 48 && p.along > -110) {
           if (it.swept > 0) collect(it);
           else if (!it.bumped) {
             // not swept: it bumps off the lip

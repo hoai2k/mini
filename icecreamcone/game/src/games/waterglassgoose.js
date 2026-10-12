@@ -9,7 +9,7 @@
 // the last within 0.8 s, so a quick, sure player always has more to win),
 // and a whole tune played back three more. A wrong glass, or waiting too long, cracks a
 // glass and ends that tune: three cracks and the concert is over. Eight
-// tunes: they start with two notes on three glasses and grow to seven notes
+// tunes: they start with two notes on three glasses and grow to eight notes
 // on five, played faster. Score: points.
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
@@ -22,15 +22,18 @@ Object.assign(SHEETS, {
 });
 
 // Each tune: how many glasses, how many notes, and the seconds between notes.
+// Difficulty over the round: the first third (tunes 1-3) is gentle, short
+// tunes on few glasses played slowly; the middle is the game's normal; the
+// last two tunes are longer and quicker than they used to be.
 const ROUNDS = [
-  { n: 3, len: 2, gap: 0.85 },
-  { n: 3, len: 3, gap: 0.8 },
-  { n: 4, len: 3, gap: 0.72 },
+  { n: 3, len: 2, gap: 0.9 },
+  { n: 3, len: 3, gap: 0.82 },
+  { n: 4, len: 3, gap: 0.74 },
   { n: 4, len: 4, gap: 0.66 },
   { n: 5, len: 4, gap: 0.6 },
   { n: 5, len: 5, gap: 0.55 },
-  { n: 5, len: 6, gap: 0.5 },
-  { n: 5, len: 7, gap: 0.45 },
+  { n: 5, len: 7, gap: 0.47 },
+  { n: 5, len: 8, gap: 0.4 },
 ];
 const MAX_CRACKS = 3;
 const BONUS = 3; // for a whole tune
@@ -83,6 +86,7 @@ export default function create(env) {
   };
   g.ROUNDS = ROUNDS;
   const R = () => ROUNDS[clamp(g.round, 0, ROUNDS.length - 1)];
+  g.noteGap = () => R().gap; // seconds between the Goose's notes this tune
   g.glassX = (i, n = g.glasses.length) => 800 + (i - (n - 1) / 2) * (n > 4 ? 250 : n > 3 ? 290 : 330);
 
   function pop(text, x, y, color = INK, size = 44) {

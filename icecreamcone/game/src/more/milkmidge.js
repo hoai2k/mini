@@ -14,7 +14,7 @@ export default {
   ],
   score: 'points',
   controls: [['Wind up and throw (hold, then let go)', 'action']],
-  pass: 16,
+  pass: 15,
   tune: 'play',
   color: '#c9d9e0',
 };

@@ -10,9 +10,11 @@
 // the middle, so shake ahead of it, or catch it at the ends. At the left the
 // diner tastes it: just right scores three, one pinch out scores one, and
 // more than that gets a frown and nothing. Puddings (a flag with the shaker
-// crossed out) want no salt at all: salting one costs one. The table turns
-// faster and the plates want more salt as the lunch rush builds. Score:
-// points.
+// crossed out) want no salt at all: salting one costs one. The lunch rush
+// builds over the round (one eased curve, `g.ramp()`): through the first half
+// plates mostly want one pinch, now and then two, the table turns slowly and
+// plates come further apart; puddings join after the opening; only in the
+// second half do orders of three to five pinches come, faster. Score: points.
 
 import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
@@ -88,7 +90,13 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  g.omega = () => lerp(0.4, 0.65, progress()); // the table's turn, radians per second
+  // The lunch rush: 0 at the start, 1 at the end, easing in (smoothstep) so
+  // the first third is gentle and the last part the hardest.
+  g.ramp = () => {
+    const k = progress();
+    return k * k * (3 - 2 * k);
+  };
+  g.omega = () => lerp(0.36, 0.78, g.ramp()); // the table's turn, radians per second
   // Where a plate is `ahead` seconds from now: x, its foot's y, the food's y.
   g.at = (p, ahead = 0) => {
     const a = Math.min(Math.PI, p.a + g.omega() * ahead);
@@ -106,11 +114,17 @@ export default function create(env) {
 
   function spawn() {
     const k = progress();
-    const dessert = g.elapsed > 8 && rng() < 0.2;
-    // one to three pinches at first, then two to four, then two to five
-    const lo = k < 0.2 ? 1 : 2;
-    const hi = k < 0.2 ? 3 : k < 0.55 ? 4 : 5;
-    const n = dessert ? 0 : lo + Math.floor(rng() * (hi - lo + 1));
+    const dessert = k > 0.2 && rng() < lerp(0.12, 0.22, k);
+    // First half: mostly one pinch, now and then two (more twos as it goes).
+    // Second half: one to three, then two to four, then two to five.
+    let n;
+    if (k < 0.5) n = rng() < lerp(0.2, 0.45, k / 0.5) ? 2 : 1;
+    else {
+      const lo = k < 0.7 ? 1 : 2;
+      const hi = k < 0.7 ? 3 : k < 0.85 ? 4 : 5;
+      n = lo + Math.floor(rng() * (hi - lo + 1));
+    }
+    if (dessert) n = 0;
     const kind = dessert ? DESSERTS[Math.floor(rng() * 2)] : Math.floor(rng() * 6);
     g.plates.push({ id: g.nextId++, a: 0, x: rimX(0), y: rimY(0), n, got: 0, kind, dessert, who: Math.floor(rng() * 4), wob: 0, set: 0.3 });
   }
@@ -233,7 +247,7 @@ export default function create(env) {
     const last = g.plates[g.plates.length - 1];
     if (g.spawnT <= 0 && (!last || last.a > 0.6)) {
       spawn();
-      g.spawnT = lerp(2.8, 1.35, k) * (0.85 + rng() * 0.3);
+      g.spawnT = lerp(2.9, 1.15, g.ramp()) * (0.85 + rng() * 0.3);
     }
 
     g.diner.t = Math.max(0, g.diner.t - dt);

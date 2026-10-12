@@ -35,12 +35,16 @@ bobs.
     more).
   Full, and he whistles: "Peep! Caught!" and a 1.6 s daze, no points lost.
   It drains 0.5/s while he looks away. Pass: 12 snips.
-- **Ramp.** For the first 8 s the Keeper never looks round, the walkers are
-  slow and there are no balloons. Walkers speed up (90 to 165 px/s), come a
-  little more often, and people walking the same way keep at least 420 px
-  apart. After 60% of the game a few carry two things. Children with
-  balloons join after 10 s, and the Keeper looks round more often (away
-  4.2 s to 2.2 s), for longer, with less warning.
+- **Difficulty over the round.** One eased curve (`level()`, progress to
+  the power 1.6) drives every knob, so the first third stays gentle, the
+  middle is about the old average and the end is harder than before
+  (2026-10-12). For the first 8.5 s the Keeper never looks round and there
+  are no balloons until 10 s. Walkers speed up from 80 to 175 px/s and come
+  every 1.75 s down to 0.82 s; people walking the same way keep at least
+  420 px apart. Balloons go from 12% to 34% of walkers, and from about a
+  third of the way in a growing share (up to 32%) carry two things. The
+  Keeper looks round more often (back turned 4.8 s down to 2.0 s), for
+  longer (1.2 s to 2.6 s) and with less warning (1.0 s to 0.45 s).
 - **Controls.** Stick, D-pad, arrows or WASD fly left and right, and up and
   down (▲ higher, ▼ lower); A, Space or Enter swoops. With a mouse or touch
   the Niffy follows the pointer across and in height (between the two
@@ -49,11 +53,11 @@ bobs.
   and the Keeper's "!", eye and meter show beside it.
 - **Bots (tests).** A beginner (lines up within ±55 px, stays at its
   starting height and flies about freely, careless one swoop in seven)
-  scores 14–22 over six seeds (14–23 over sixteen); a careful snipper that
+  scores 17–22 over six seeds since the ramp (was 14–22); a careful snipper that
   cruises low, keeps still under the Keeper's eye (risking one quick low
   swoop when something walks into its ring and he has hardly noticed it),
-  darts while his back is turned and climbs after a miss scores 18–24
-  (17–28 over sixteen); sweeping the sky while mashing scores 0–2 at either
+  darts while his back is turned and climbs after a miss scores 19–25
+  (was 18–24); sweeping the sky while mashing scores 0–2 at either
   height; mashing from one spot as people walk under scores 1–11 (11 at
   most over sixteen seeds); idling 0. Over 1 s of the Keeper watching:
   still, high or low, 0; flying to and fro high, under 0.01; low, caught;

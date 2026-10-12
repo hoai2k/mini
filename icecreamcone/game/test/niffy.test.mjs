@@ -91,6 +91,39 @@ test('niffy: a beginner opens the next page, a careful snipper more; idling and 
   assert.ok(Math.max(...mash, ...mashLow, ...camp) < pass, `mashing must not open the next page: ${mash}`);
 });
 
+// The round starts gentle and ends harder, read from what the game actually
+// does: the strollers that come by early are slower and fewer, with fewer
+// balloons, and the Keeper keeps his back turned longer than at the end.
+test('niffy: the promenade starts gentle and ends harder', () => {
+  const game = create(env(3));
+  const seen = new Set();
+  const early = [];
+  const late = [];
+  const away = { early: [], late: [] };
+  let prev = game.keeper.state;
+  let since = 0;
+  for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    for (const w of game.walkers) {
+      if (seen.has(w)) continue;
+      seen.add(w);
+      (game.elapsed < 15 ? early : game.elapsed > 30 ? late : []).push(w);
+    }
+    const st = game.keeper.state;
+    if (st !== prev) {
+      if (prev === 'away' && since > 0) (game.elapsed < 22 ? away.early : away.late).push(game.elapsed - since);
+      if (st === 'away') since = game.elapsed;
+      prev = st;
+    }
+  }
+  const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const speed = (a) => avg(a.map((w) => Math.abs(w.vx)));
+  console.log('niffy ramp', { early: early.length, late: late.length, speed: [speed(early), speed(late)], away: [avg(away.early), avg(away.late)], level: [game.walkerGap(), game.keeperAway()] });
+  assert.ok(late.length > early.length * 1.3, `more strollers late: ${early.length} vs ${late.length}`);
+  assert.ok(speed(late) > speed(early) * 1.5, 'late strollers walk faster');
+  assert.ok(avg(away.early) > avg(away.late) * 1.3, 'the Keeper looks round more often late');
+});
+
 // A walker carrying one thing, set right under the Niffy.
 function walkerUnder(game, kind) {
   game.walkers.length = 0;

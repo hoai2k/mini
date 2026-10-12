@@ -7,12 +7,12 @@
 // pick it up, then walk under the coat as it passes and press again to toss
 // it up: it sews itself into the matching hole. A button that doesn't match
 // anything on that coat bounces off and is lost, and the Buttonbeaks are
-// dazed for a moment. Coats with open holes simply carry on and away. The
-// line runs faster as time goes on, coats come with more holes, and two more
-// bowls of look-alike buttons join the tin. Score: buttons sewn on.
+// dazed for a moment. Coats with open holes simply carry on and away. It
+// starts slow, one hole a coat; the line runs faster as time goes on, coats
+// come with more holes, and two more bowls of look-alike buttons join the tin. Score: buttons sewn on.
 
 import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, approach } from './index.js';
+import { clamp, lerp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
 Object.assign(SHEETS, {
@@ -95,10 +95,19 @@ export const KINDS = [
 ];
 const COAT_COLS = [PAL.mustard, PAL.olive, PAL.dusty, PAL.ochre, '#9aa8b8', PAL.mauve, '#c9b48a'];
 
-const bowlsAt = (t) => (t < 18 ? 4 : 6);
-const speedAt = (t) => 80 + Math.min(1, t / DURATION) * 60;
-const gapAt = (t) => 320 - Math.min(1, t / DURATION) * 90;
-const holesAt = (t, r) => (t < 8 ? 1 : t < 22 ? 1 + (r < 0.6 ? 1 : 0) : 2 + (r < 0.45 ? 1 : 0));
+// Difficulty over the round, 0 to 1: slow to rise through the first third
+// (a slow line, one hole a coat, four bowls), about the old average by the
+// middle, and harder than before at the end. Every knob follows this curve.
+export const levelAt = (t) => Math.pow(Math.min(1, t / DURATION), 1.6);
+const bowlsAt = (t) => (levelAt(t) < 0.28 ? 4 : 6); // the look-alikes join at about 20 s
+const speedAt = (t) => lerp(75, 150, levelAt(t));
+const gapAt = (t) => lerp(330, 220, levelAt(t));
+// holes on a coat: one at first, about one and a half by the middle, two or
+// three (mostly three) at the end
+const holesAt = (t, r) => {
+  const h = lerp(1, 2.7, levelAt(t));
+  return Math.floor(h) + (r < h - Math.floor(h) ? 1 : 0);
+};
 export const bowlX = (i, n) => 800 + (i - (n - 1) / 2) * BOWL_GAP;
 const lineY = (x) => LINE_Y + SAG * Math.max(0, 1 - Math.pow((x - 800) / ((HOOK_R - HOOK_L) / 2), 2));
 
@@ -153,6 +162,7 @@ export default function create(env) {
   g.nextCoat = gapAt(0) - 70;
 
   g.coatTop = (coat) => lineY(coat.x) + 8;
+  g.lineSpeed = () => speedAt(g.elapsed);
   g.bowlX = (i) => bowlX(i, g.bowls);
   // The bowl in front of the Buttonbeaks, if any.
   g.overBowl = (x = g.x) => {

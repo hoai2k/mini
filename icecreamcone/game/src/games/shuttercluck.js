@@ -94,8 +94,17 @@ export default function create(env) {
   };
   const busy = new Set();
 
-  // How hard it is now, 0..1: by shots taken and time spent.
-  const diff = () => clamp(Math.max((SHOTS - g.shotsLeft) / SHOTS, g.elapsed / 45), 0, 1);
+  // How hard it is now, 0..1: by shots taken and time spent, eased
+  // (smoothstep) so the first shots are gentle and the last ones hardest.
+  // Birds peek longer and one at a time at first; later they peek briefly,
+  // rustle less warning and come up two or three at once.
+  const diff = () => {
+    const k = clamp(Math.max((SHOTS - g.shotsLeft) / SHOTS, g.elapsed / 45), 0, 1);
+    return k * k * (3 - 2 * k);
+  };
+  g.diff = diff;
+  g.upFactor = (d) => 1.3 - d * 0.7; // how long a bird stays up, 1.3x to 0.6x its tier's time (was 1x to 0.65x)
+  g.rustleFactor = (d) => 1.15 - d * 0.5; // its warning rustle, 1.15x to 0.65x (was 1x to 0.7x)
 
   // Where a bird's feet are, given how far out it is (e, 0..1).
   function feet(b) {
@@ -186,8 +195,8 @@ export default function create(env) {
     const b = {
       id, tier, spot, x: 0,
       state: 'rustle',
-      t: T.rustle * (1 - d * 0.3),
-      up: (T.up[0] + rng() * (T.up[1] - T.up[0])) * (1 - d * 0.35),
+      t: T.rustle * g.rustleFactor(d),
+      up: (T.up[0] + rng() * (T.up[1] - T.up[0])) * g.upFactor(d),
       e: 0,
       snapped: false,
       flip: sp.kind !== 'gate' && sp.kind !== 'knot' && rng() < 0.4,
@@ -296,7 +305,7 @@ export default function create(env) {
     g.spawn -= dt;
     if (g.spawn <= 0 && g.birds.length < maxUp && !g.ending) {
       spawnBird();
-      g.spawn = 1.0 - d * 0.5 + rng() * 0.6;
+      g.spawn = 1.15 - d * 0.7 + rng() * 0.6;
     }
     for (const b of g.birds) {
       b.t -= dt;

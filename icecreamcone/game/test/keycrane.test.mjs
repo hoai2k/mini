@@ -64,6 +64,37 @@ test('keycrane: a beginner opens the next page, a good operator more; mashing an
   assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
 });
 
+// The round starts gentle and ends harder, read from the prizes the cabinet
+// actually holds as an operator plays: the rings on the first jumble are
+// bigger than those that drop in late, and late on the swing settles more
+// slowly and a carried prize slips more easily.
+test('keycrane: the cabinet starts gentle and ends harder', () => {
+  const game = create(env(2));
+  const first = game.prizes.map((p) => p.ringR);
+  const look = () => ({ damp: game.damp(), slip: game.slipAngle() });
+  const start = look();
+  const late = [];
+  const seen = new Set(game.prizes);
+  const bot = operator({ speed: 1, settle: 1.8, care: 0.3 });
+  let t = 0;
+  while (!game.done) {
+    const over = bot(game, t) || {};
+    game.update(1 / 60, blank({ ...over, actionPressed: !!over.action }));
+    t += 1 / 60;
+    for (const p of game.prizes) {
+      if (seen.has(p)) continue;
+      seen.add(p);
+      if (game.elapsed > 30 && !p.golden) late.push(p.ringR);
+    }
+  }
+  const end = look();
+  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
+  console.log('keycrane ramp', { first, late, start, end });
+  assert.ok(late.length >= 2, `prizes dropped in late: ${late.length}`);
+  assert.ok(avg(first) > avg(late) * 1.25, 'early rings are bigger');
+  assert.ok(end.damp < start.damp && end.slip < start.slip, 'late swings settle slower and prizes slip sooner');
+});
+
 test('keycrane: dropping straight onto a ring hooks the prize; the chute scores it', () => {
   const game = create(env(1));
   const p = game.prizes[0];
@@ -85,10 +116,11 @@ test('keycrane: dropping straight onto a ring hooks the prize; the chute scores 
 test('keycrane: a swinging Crane misses the ring', () => {
   const game = create(env(1));
   const p = game.prizes[0];
+  game.prizes = [p]; // nothing else to hook by luck
   game.x = p.x;
   game.th = 0.5; // swinging hard
   game.update(1 / 60, blank({ actionPressed: true, action: true }));
-  for (let i = 0; i < 120 && game.state !== 'up'; i++) game.update(1 / 60, blank());
+  for (let i = 0; i < 300 && game.state !== 'up'; i++) game.update(1 / 60, blank());
   assert.equal(game.carry, null);
   assert.ok(game.misses >= 1);
 });

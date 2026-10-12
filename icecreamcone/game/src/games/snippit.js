@@ -6,12 +6,13 @@
 // the Snippit to the knot where it is tied, and snip. The right string lets
 // that balloon float away (10 points, 5 more if you were quick); a wrong one
 // loses a balloon nobody asked for, costs 5 points and jams the blades for a
-// moment. Every snipped balloon is replaced by a new one. More balloons join
-// the bunch as time goes on, their strings curl more, and later they jostle
-// in the wind and drift past each other while you look. Score: points.
+// moment. Every snipped balloon is replaced by a new one. It starts gentle:
+// more balloons join the bunch as time goes on, their strings curl more, and
+// later they jostle in the wind, more and more often, and drift past each
+// other while you look. Score: points.
 
 import { drawBird, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
-import { clamp, approach } from './index.js';
+import { clamp, lerp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
 Object.assign(SHEETS, {
@@ -79,9 +80,23 @@ export const COLORS = [
   { name: 'orange', c: PAL.orange, d: '#b0702a' },
 ];
 
+// Difficulty over the round, 0 to 1: slow to rise through the first third
+// (three or four balloons on gently curled strings, no wind), about the old
+// average by the middle, and harder than before at the end (curlier strings,
+// the wind jostling the bunch more often). Every knob follows this curve.
+export const levelAt = (t) => Math.pow(Math.min(1, t / DURATION), 1.6);
 // How many balloons are in the bunch, and how much their strings curl.
-const countAt = (t) => (t < 10 ? 3 : t < 20 ? 4 : t < 31 ? 5 : 6);
-const curlAt = (t) => 30 + Math.min(1, t / 35) * 150;
+const countAt = (t) => {
+  const k = levelAt(t);
+  return k < 0.12 ? 3 : k < 0.32 ? 4 : k < 0.6 ? 5 : 6; // 4 at about 12 s, 5 at 22 s, 6 at 33 s
+};
+const curlAt = (t) => lerp(25, 195, levelAt(t));
+// Seconds between the wind swapping two neighbours: none until about 21 s,
+// then every 5 s, down to every 2.4 s at the end.
+const swapAt = (t) => {
+  const k = levelAt(t);
+  return k < 0.3 ? Infinity : lerp(5, 2.4, (k - 0.3) / 0.7);
+};
 const slotX = (i, n) => (n <= 1 ? 800 : X0 + ((X1 - X0) * i) / (n - 1));
 
 export default function create(env) {
@@ -107,6 +122,7 @@ export default function create(env) {
     happyT: 0, // watching a balloon it let go float off
     moving: false,
     swapT: 6,
+    swaps: 0, // times the wind has jostled the bunch
     right: 0,
     wrong: 0,
     quick: 0,
@@ -123,6 +139,8 @@ export default function create(env) {
   }
 
   const curl = () => curlAt(g.elapsed);
+  g.curl = curl;
+  g.bunchSize = () => countAt(g.elapsed);
 
   // A new balloon (or kite) in a colour nobody in the bunch has, tied to a
   // knot somewhere along the rail and floating somewhere in the bunch.
@@ -331,10 +349,11 @@ export default function create(env) {
       b.w2 = clamp(b.w2, -c, c);
     }
     // Later the wind jostles the bunch: two neighbours drift past each other.
-    if (g.elapsed > 22 && g.balloons.length > 2) {
+    if (swapAt(g.elapsed) < Infinity && g.balloons.length > 2) {
       g.swapT -= dt;
       if (g.swapT <= 0) {
-        g.swapT = g.elapsed > 34 ? 3 : 4.5;
+        g.swapT = swapAt(g.elapsed);
+        g.swaps++;
         const sky = [...g.balloons].sort((a, b) => a.skyK - b.skyK);
         const i = Math.floor(rng() * (sky.length - 1));
         const t = sky[i].skyK;

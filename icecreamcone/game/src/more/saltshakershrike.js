@@ -9,7 +9,7 @@ export default {
   tips: ['One press is one pinch. The flag fills in as the salt lands.', 'Plates creep at the ends of the table and swing fast across the middle: the ends are easiest.', 'Just right scores three; one pinch out scores one.', 'Salt takes a moment to fall: shake a little ahead. Puddings want none at all!'],
   score: 'points',
   controls: [['Move along the rail', 'move', 'Tap above a plate to shake'], ['Shake a pinch', 'action']],
-  pass: 30,
+  pass: 35,
   tune: 'play',
   color: '#9ab0b8',
 };

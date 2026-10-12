@@ -77,6 +77,37 @@ test('milkmidge: a beginner opens the next page, a good milkman more; idling and
   assert.ok(Math.max(...mash, ...fling) < pass, `mashing and flinging must not open the next page: ${mash} ${fling}`);
 });
 
+// The round starts gentle and ends harder, read from the houses the street
+// actually lays out and the float's own speed: early steps are nearer, wider
+// and further apart, with fewer dogs and cards, than late ones.
+test('milkmidge: the street starts gentle and ends harder', () => {
+  const game = create(env(5));
+  const seen = new Set();
+  const early = [];
+  const late = [];
+  let speed0 = game.floatSpeed();
+  for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    for (const h of game.houses) {
+      if (seen.has(h)) continue;
+      seen.add(h);
+      if (game.elapsed < 15) early.push(h);
+      else if (game.elapsed > 30) late.push(h);
+    }
+  }
+  const avg = (a, f) => a.reduce((s, h) => s + f(h), 0) / a.length;
+  const gap = (a) => (a[a.length - 1].x - a[0].x) / (a.length - 1);
+  const look = (a) => ({ gap: gap(a), depth: avg(a, (h) => h.stepY), half: avg(a, (h) => h.half / h.s), dogs: avg(a, (h) => (h.dog ? 1 : 0)), cards: avg(a, (h) => (h.note ? 1 : 0)) });
+  const e = look(early);
+  const l = look(late);
+  console.log('milkmidge ramp', { early: e, late: l, speed: [speed0, game.floatSpeed()] });
+  assert.ok(e.depth > l.depth + 25, 'early steps are nearer the pavement');
+  assert.ok(e.half > l.half * 1.2, 'early steps are wider');
+  assert.ok(e.dogs + e.cards < l.dogs + l.cards, 'dogs and cards come later');
+  assert.ok(e.gap > l.gap * 1.4, 'late houses stand closer together');
+  assert.ok(game.floatSpeed() > speed0 * 1.5, 'the float speeds up');
+});
+
 // Holds for exactly the charge that lands on a step, in front of it.
 function throwAt(game, h, dy = 0) {
   const goal = game.chargeFor(h.stepY + dy);

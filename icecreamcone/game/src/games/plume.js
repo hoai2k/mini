@@ -63,7 +63,17 @@ export default function create(env) {
     soundT: 0,
   };
 
-  const dryRate = () => 0.09 + 0.13 * Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round: one eased curve (smoothstep of the round's
+  // progress, 0 to 1). The pots dry slowly at first (0.06 a second, so a
+  // newcomer can tend one Plume at a time) and fast by the end (0.27; was
+  // 0.09 to 0.22, straight), and late on a Plume soaks up to soggy sooner.
+  g.ramp = () => {
+    const k = Math.min(1, g.elapsed / DURATION);
+    return k * k * (3 - 2 * k);
+  };
+  const dryRate = () => 0.06 + 0.21 * g.ramp();
+  g.dryRate = dryRate;
+  g.soakRate = () => SOAK * (0.85 + 0.3 * g.ramp());
   // The Plume under the rose, if any.
   g.under = () => g.plants.find((p) => Math.abs(p.x - g.x) < POT_HALF) || null;
 
@@ -94,7 +104,7 @@ export default function create(env) {
   function drink(p, amount) {
     if (p.bloomT > 0 || p.soggy > 0) return;
     p.dry = Math.max(0, p.dry - DRINK * amount);
-    p.soak += SOAK * amount;
+    p.soak += g.soakRate() * amount;
     p.growth += GROW * amount;
     if (p.soak >= 1) {
       p.soggy = SOGGY;

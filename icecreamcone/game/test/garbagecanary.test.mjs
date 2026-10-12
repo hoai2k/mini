@@ -66,6 +66,37 @@ test('garbagecanary: a clumsy beginner opens the next page on most rounds, a beg
   assert.ok(avg(flapSlow) < avg(clumsy), `slowly flapping the lid while wandering: ${flapSlow}`);
 });
 
+// The round starts gentle and ends harder, read from the things the wind
+// actually brings: early on they blow slower, come further apart, are nearly
+// all rubbish and never gusted; late on they are quicker, thicker, more often
+// not rubbish, and some are gusted along.
+test('garbagecanary: the street starts gentle and ends harder', () => {
+  const look = { early: [], late: [] };
+  for (const seed of [1, 2, 3]) {
+    const game = create(env(seed));
+    const seen = new Set();
+    for (let i = 0; i < 45 * 60 && !game.done; i++) {
+      game.update(1 / 60, blank());
+      for (const it of game.items) {
+        if (seen.has(it) || it.state !== 'come') continue;
+        seen.add(it);
+        if (game.elapsed < 15) look.early.push(it);
+        else if (game.elapsed > 30) look.late.push(it);
+      }
+    }
+  }
+  const avg = (a, f) => a.reduce((s, it) => s + f(it), 0) / a.length;
+  const sum = (a) => ({ n: a.length, speed: avg(a, (it) => -it.vx), keep: avg(a, (it) => (it.rub ? 0 : 1)), gust: avg(a, (it) => (it.gust ? 1 : 0)) });
+  const e = sum(look.early);
+  const l = sum(look.late);
+  console.log('garbagecanary ramp', { early: e, late: l });
+  assert.ok(l.n > e.n * 1.5, 'things come thicker late');
+  assert.ok(l.speed > e.speed * 1.6, 'and blow faster');
+  assert.ok(l.keep > e.keep * 1.5, 'more of them are not rubbish');
+  assert.equal(e.gust, 0, 'no gusts in the first 15 s');
+  assert.ok(l.gust > 0.15, 'gusts late on');
+});
+
 // A game with nothing blowing in, and one thing put `dx` in front of the bin
 // in its lane.
 function setup(kind, dx = 300, seed = 1) {

@@ -7,7 +7,8 @@
 // right on it is Perfect, and Perfects in a row build a combo. Fill past the
 // brim and it spills: no points, a squawk, and the combo is gone. Later cups
 // are smaller (they fill faster), bob up and down, or stroll on under the
-// spout while you pour. Score: points.
+// spout while you pour: the first third is big, still cups, and the mix
+// hardens over the round (`g.ramp()`). Score: points.
 
 import { drawBird, drawSprite, art, scene, band, blob, poly, wash, ink, hatch, eye, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
@@ -99,24 +100,31 @@ export default function create(env) {
   // The front bird: the first one not yet done.
   const front = () => g.birds.find((b) => b.state === 'walk' || b.state === 'serve') || null;
 
+  // Difficulty over the round: one eased curve (smoothstep of the round's
+  // progress, 0 to 1). Each Cupadee takes its cup from the curve as it joins
+  // the queue: big, still cups and a line near the middle at first; then
+  // smaller cups, bobbing and strolling ones, and lines further off.
+  g.ramp = () => {
+    const k = Math.min(1, g.elapsed / DURATION);
+    return k * k * (3 - 2 * k);
+  };
+  const part = (e, from, to) => clamp((e - from) / (to - from), 0, 1);
+
   function makeBird() {
     const n = g.made++;
-    const p = Math.min(1, n / 14);
+    const e = g.ramp();
     let size = 'big';
     let motion = 'still';
     let line = 0.72;
-    if (n >= 3) {
-      line = 0.6 + rng() * 0.25;
+    if (n >= 2) {
+      line = 0.72 + (rng() - 0.5) * (0.1 + 0.2 * part(e, 0, 0.5));
       const r = rng();
-      if (n >= 9 && r < 0.3) size = 'tiny';
-      else if (n >= 4 && r < 0.65) size = 'small';
+      if (r < 0.4 * part(e, 0.35, 1)) size = 'tiny';
+      else if (r < 0.65 * part(e, 0.08, 0.5)) size = 'small';
       const m = rng();
-      if (n >= 6 && m < 0.25 + p * 0.2) motion = 'bob';
-      else if (n >= 8 && m < 0.45 + p * 0.25) motion = 'stroll';
+      if (m < 0.3 * part(e, 0.15, 0.6)) motion = 'bob';
+      else if (m < 0.3 * part(e, 0.15, 0.6) + 0.45 * part(e, 0.3, 1)) motion = 'stroll';
     }
-    if (n === 4) size = 'small';
-    if (n === 6) motion = 'bob';
-    if (n === 8) motion = 'stroll';
     const S = SIZES[size];
     g.birds.push({
       x: Math.max(W + 220, ...g.birds.map((b) => b.x + QUEUE_GAP)),
@@ -134,7 +142,7 @@ export default function create(env) {
       tilt: 0,
       wait: 0,
       settle: 0,
-      patience: 5.5 - p * 1.5,
+      patience: 5.5 - e * 2,
       grade: null,
     });
   }
@@ -270,7 +278,7 @@ export default function create(env) {
         k++;
         b.wait += dt;
         if (b.motion === 'stroll') {
-          b.x -= (34 + Math.min(1, g.elapsed / DURATION) * 26) * dt;
+          b.x -= (34 + g.ramp() * 34) * dt;
           b.walk += dt * 4;
         } else b.walk = 0;
         if (b.motion === 'bob') b.squash = Math.sin(b.phase * 3.4) * 0.075;

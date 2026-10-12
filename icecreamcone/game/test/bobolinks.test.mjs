@@ -46,9 +46,65 @@ test('bobolinks: a careful walker opens the next page; idle earns nothing', () =
   const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: walker({ rt: 0.42, slip: 0.05, seed }) }).game.score);
   const quick = [1, 2, 3].map((seed) => run(create, { seed, bot: walker({ rt: 0.3, slip: 0.03, seed }) }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('bobolinks beginner', beginner, 'steady', steady, 'quick', quick, 'idle', idle, 'pass', pass);
+  console.log('bobolinks beginner3', beginner, 'steady', steady, 'quick', quick, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
+});
+
+test('bobolinks: a beginner passes about half the time or more; mashing does not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: walker({ rt: 0.75, slip: 0.1, seed: seed * 7 }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: walker({ rt: 0.35, slip: 0.03, seed: seed * 7 }) }).game.score);
+  const mash = seeds.map((seed) => {
+    let r = seed * 31;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    return run(create, { seed, bot: () => (rnd() < 0.3 ? (rnd() < 0.5 ? { left: true } : { right: true }) : {}) }).game.score;
+  });
+  let k = 0;
+  const alternate = run(create, { seed: 1, bot: () => (k++ % 12 === 0 ? (k % 24 < 12 ? { left: true } : { right: true }) : {}) }).game.score;
+  console.log('bobolinks beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'alternate', `${alternate}`, 'pass', pass);
+  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+  assert.ok(alternate < pass, `blind alternating ${alternate}`);
+});
+
+test('bobolinks: the stones start slow and simple, and end quick and tricky', () => {
+  const tally = { early: { n: 0, alt: 0, dbl: 0 }, late: { n: 0, alt: 0, dbl: 0 } };
+  let sinkEarly = 0;
+  let sinkLate = 0;
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const game = create(env(seed));
+    sinkEarly = game.sinkTime();
+    const seen = new Set(game.stones);
+    let prev = game.stones[game.stones.length - 1];
+    let lastSide = prev.side;
+    // walk perfectly so new stones keep coming
+    while (!game.done) {
+      const s = game.stones[0];
+      const inp = s.side === 0 ? { left: true, right: true } : s.side < 0 ? { left: true } : { right: true };
+      game.update(1 / 60, blank(game.stumble > 0 || game.pending ? {} : inp));
+      game.update(1 / 60, blank());
+      for (const st of game.stones) {
+        if (seen.has(st)) continue;
+        seen.add(st);
+        const half = game.elapsed < 13 ? 'early' : game.elapsed > 27 ? 'late' : null;
+        if (half) {
+          const t = tally[half];
+          t.n++;
+          if (st.side === 0) t.dbl++;
+          else if (prev.side !== 0 && st.side === -lastSide) t.alt++;
+        }
+        if (st.side !== 0) lastSide = st.side;
+        prev = st;
+      }
+      if (game.elapsed > 39) sinkLate = game.sinkTime();
+    }
+  }
+  const { early, late } = tally;
+  assert.ok(early.n > 10 && late.n > 10, `${early.n} ${late.n}`);
+  assert.ok(sinkLate < sinkEarly * 0.45, `sinking ${sinkEarly} to ${sinkLate}`);
+  assert.ok(late.dbl / late.n > (early.dbl / early.n) * 2, `doubles ${early.dbl}/${early.n} vs ${late.dbl}/${late.n}`);
+  assert.ok(late.alt / late.n < (early.alt / early.n) * 0.75, `plain alternating ${early.alt}/${early.n} vs ${late.alt}/${late.n}`);
 });
 
 test('bobolinks: mashing both feet gets nowhere', () => {

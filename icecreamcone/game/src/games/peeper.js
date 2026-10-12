@@ -61,7 +61,17 @@ export default function create(env) {
     used: new Set(),
   };
 
-  const diff = () => clamp(g.elapsed / DURATION, 0, 1);
+  // Difficulty over the round: one eased curve (smoothstep of the round's
+  // progress, 0 to 1), so the first third is gentle and the end hardest. It
+  // sets how fast letters fall (120 to 310 px/s; was 140 to 290, straight),
+  // how wide they sway (25 to 110; was 30 to 100), how often one comes loose
+  // (every 0.62 to 0.34 s; was 0.55 to 0.36) and how many are the one you
+  // need (48% to 22%; was 42% to 24%). The words lengthen as you finish them.
+  const diff = () => {
+    const k = clamp(g.elapsed / DURATION, 0, 1);
+    return k * k * (3 - 2 * k);
+  };
+  g.diff = diff;
   const need = () => g.word[g.idx];
 
   function nextWord() {
@@ -83,7 +93,7 @@ export default function create(env) {
     // the needed letter, whenever none is on its way down
     const coming = g.letters.some((l) => l.ch === n && l.y < CATCH_Y - 160);
     const roll = rng();
-    const pNeed = lerp(0.42, 0.24, d);
+    const pNeed = lerp(0.48, 0.22, d);
     let ch;
     if (!coming || roll < pNeed) ch = n;
     else if (roll < pNeed + 0.3) {
@@ -95,7 +105,7 @@ export default function create(env) {
       do ch = ABC[Math.floor(rng() * ABC.length)];
       while (ch === n);
     }
-    const amp = lerp(30, 100, d) * (0.6 + rng() * 0.4);
+    const amp = lerp(25, 110, d) * (0.6 + rng() * 0.4);
     const lo = 140 + amp;
     const span = W - 280 - amp * 2;
     let bx = lo + rng() * span;
@@ -106,7 +116,7 @@ export default function create(env) {
       ch,
       bx,
       y: SPAWN_Y,
-      vy: lerp(140, 290, d) + rng() * 30,
+      vy: lerp(120, 310, d) + rng() * 30,
       amp,
       w: 1.3 + rng() * 1.2,
       ph: rng() * Math.PI * 2,
@@ -181,7 +191,7 @@ export default function create(env) {
     if (g.spawn <= 0) {
       spawnLetter();
       const d = diff();
-      g.spawn = lerp(0.55, 0.36, d) + rng() * 0.12;
+      g.spawn = lerp(0.62, 0.34, d) + rng() * 0.12;
     }
 
     for (const l of g.letters) {

@@ -33,7 +33,47 @@ test('peeper: a sharp reader opens the next page; idle earns nothing', () => {
   const idle = run(create, { seed: 1 }).game;
   assert.ok(idle.score < pass, `idle ${idle.score}`);
   assert.ok(Math.min(...sharp) >= pass, `sharp ${sharp}`);
-  console.log('peeper reader scores', sharp, 'slow', slow, 'idle', idle.score, 'pass', pass);
+  console.log('peeper readers', sharp, 'slow', slow, 'idle', idle.score, 'pass', pass);
+});
+
+test('peeper: a beginner passes about half the time or more; mashing does not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: reader({ speed: 0.5, look: 0, react: 0.6 }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: reader() }).game.score);
+  const mash = seeds.map((seed) => {
+    let r = seed * 31;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    let d = 0;
+    return run(create, { seed, bot: () => {
+      if (rnd() < 0.03) d = rnd() * 2 - 1;
+      return { x: d, action: rnd() < 0.5 };
+    } }).game.score;
+  });
+  console.log('peeper beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
+  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${beginner}`);
+  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+});
+
+test('peeper: letters start slow, steady and helpful, and end fast and swaying', () => {
+  const early = [];
+  const late = [];
+  for (const seed of [1, 2, 3, 4]) {
+    const game = create(env(seed));
+    const seen = new Set();
+    while (!game.done) {
+      game.update(1 / 60, blank());
+      for (const l of game.letters) {
+        if (seen.has(l)) continue;
+        seen.add(l);
+        const half = game.elapsed < 15 ? early : game.elapsed > 30 ? late : null;
+        if (half) half.push({ vy: l.vy, amp: l.amp });
+      }
+    }
+  }
+  const mean = (a, f) => a.reduce((s, x) => s + f(x), 0) / a.length;
+  assert.ok(late.length > early.length * 1.2, `more letters late: ${early.length} vs ${late.length}`);
+  assert.ok(mean(late, (l) => l.vy) > mean(early, (l) => l.vy) * 1.6, 'they fall faster');
+  assert.ok(mean(late, (l) => l.amp) > mean(early, (l) => l.amp) * 2, 'they sway wider');
 });
 
 test('peeper: right letters stamp the word, wrong ones smudge, a word pays its length', () => {

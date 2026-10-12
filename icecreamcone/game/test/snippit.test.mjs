@@ -74,6 +74,29 @@ test('snippit: a beginner opens the next page, a good snipper more; mashing and 
   assert.ok(Math.max(...mash, ...camp) < pass, `mashing must not open the next page: ${mash} ${camp}`);
 });
 
+// The round starts gentle and ends harder, read from the bunch itself: a
+// small bunch on gently curled strings and no wind at first; a bigger bunch,
+// curlier strings and the wind swapping balloons more and more often late on.
+test('snippit: the bunch starts gentle and ends harder', () => {
+  const game = create(env(3));
+  const at = {};
+  const swapTimes = [];
+  let swaps = 0;
+  for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    if (game.swaps > swaps) swapTimes.push(game.elapsed);
+    swaps = game.swaps;
+    for (const s of [5, 25, 44]) if (!at[s] && game.elapsed >= s) at[s] = { n: game.balloons.length + game.pending, curl: game.curl() };
+  }
+  console.log('snippit ramp', at, swapTimes.map((t) => +t.toFixed(1)));
+  assert.equal(at[5].n, 3, 'three balloons at first');
+  assert.ok(at[44].n > at[25].n && at[25].n > at[5].n, 'the bunch grows');
+  assert.ok(at[44].curl > at[25].curl && at[25].curl > at[5].curl * 2, 'the strings curl more');
+  assert.ok(swapTimes[0] > 15, 'no wind in the first third');
+  const gaps = swapTimes.slice(1).map((t, i) => t - swapTimes[i]);
+  assert.ok(gaps.length >= 3 && gaps[gaps.length - 1] < gaps[0], `the wind jostles more often: ${gaps}`);
+});
+
 test('snippit: snipping the asked-for string scores and lets it go', () => {
   const game = create(env(2));
   game.update(1 / 60, blank());

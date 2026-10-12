@@ -17,8 +17,8 @@
 // only movement: a Niffy keeping still is never seen, one flying about is
 // seen more the lower it is (high up, hardly at all), and a swoop is seen
 // fast. His noticing fills a ring; full, and he whistles and dazes the
-// Niffy (no points lost). People come in steadily, never bunched; they get
-// quicker, and the Keeper looks round more often. Score: snips.
+// Niffy (no points lost). People come in steadily, never bunched; they start
+// slow and get quicker, and the Keeper looks round more often and for longer. Score: snips.
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
@@ -121,6 +121,19 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
+  // Difficulty over the round, 0 to 1: slow to rise through the first third
+  // (slow strollers, few balloons, a Keeper who seldom looks round), about
+  // the old average by the middle, and harder than before at the end. Every
+  // knob below follows this one curve.
+  const level = () => Math.pow(progress(), 1.6);
+  g.level = level;
+  g.walkSpeed = () => lerp(80, 175, level());
+  g.walkerGap = () => lerp(1.75, 0.82, level()); // seconds between strollers
+  g.balloonChance = () => lerp(0.12, 0.34, level());
+  g.pairChance = () => 0.32 * clamp((level() - 0.3) / 0.7, 0, 1); // two things on one stroller
+  g.keeperAway = () => lerp(4.8, 2.0, level()); // seconds with his back turned
+  g.keeperWatch = () => lerp(1.2, 2.6, level()); // seconds he looks round
+  g.keeperTurn = () => lerp(1.0, 0.45, level()); // the warning before he looks
   const add = (n) => {
     g.score = Math.max(0, g.score + n);
   };
@@ -139,22 +152,21 @@ export default function create(env) {
   // far enough that they won't bunch up (so no more than two ever overlap).
   const clear = (dir) => !g.walkers.some((w) => Math.sign(w.vx) === dir && (dir > 0 ? w.x < GAP - 120 : w.x > W + 120 - GAP));
   function spawn() {
-    const p = progress();
     let dir = rng() < 0.5 ? -1 : 1;
     if (!clear(dir)) dir = -dir;
     if (!clear(dir)) return false;
-    const kid = g.elapsed > 10 && rng() < lerp(0.18, 0.3, p);
+    const kid = g.elapsed > 10 && rng() < g.balloonChance();
     const kinds = ['feather', 'flower', 'thread', 'feather', 'flower', 'thread', 'tag'];
     const items = [];
     if (kid) items.push({ kind: 'balloon' });
     else {
       items.push({ kind: kinds[Math.floor(rng() * kinds.length)] });
-      if (p > 0.6 && rng() < 0.15) {
+      if (rng() < g.pairChance()) {
         const k2 = kinds[Math.floor(rng() * kinds.length)];
         if (k2 !== items[0].kind) items.push({ kind: k2 });
       }
     }
-    const v = lerp(90, 165, p) * (0.95 + rng() * 0.1);
+    const v = g.walkSpeed() * (0.95 + rng() * 0.1);
     g.walkers.push({
       x: dir > 0 ? -120 : W + 120,
       vx: dir * v,
@@ -280,19 +292,18 @@ export default function create(env) {
 
   function updateKeeper(dt) {
     const k = g.keeper;
-    const p = progress();
     k.t -= dt;
     if (k.t > 0) return;
     if (k.state === 'away') {
       k.state = 'turning';
-      k.t = lerp(0.9, 0.5, p);
+      k.t = g.keeperTurn();
       sfx('tick');
     } else if (k.state === 'turning') {
       k.state = 'watch';
-      k.t = lerp(1.4, 2.4, p) * (0.8 + rng() * 0.4);
+      k.t = g.keeperWatch() * (0.8 + rng() * 0.4);
     } else {
       k.state = 'away';
-      k.t = lerp(4.2, 2.2, p) * (0.75 + rng() * 0.5);
+      k.t = g.keeperAway() * (0.75 + rng() * 0.5);
     }
   }
 
@@ -304,12 +315,11 @@ export default function create(env) {
       g.done = true;
       return;
     }
-    const p = progress();
 
     // People strolling by.
     g.spawnT -= dt;
     if (g.spawnT <= 0 && g.time > 1.5) {
-      g.spawnT = spawn() ? lerp(1.6, 0.9, p) * (0.85 + rng() * 0.3) : 0.2;
+      g.spawnT = spawn() ? g.walkerGap() * (0.85 + rng() * 0.3) : 0.2;
     }
     for (const w of g.walkers) {
       w.x += w.vx * dt;

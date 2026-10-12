@@ -76,6 +76,33 @@ const masher = () => {
   };
 };
 
+// The round starts gentle and ends harder, read from the coats the line
+// actually brings: early coats have fewer holes, come slower and use fewer
+// kinds of button than late ones.
+test('buttonbeaks: the line starts gentle and ends harder', () => {
+  const game = create(env(3));
+  const seen = new Set(game.coats);
+  const early = [];
+  const late = [];
+  const speed0 = game.lineSpeed();
+  const bowls0 = game.bowls;
+  for (let i = 0; i < 45 * 60 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    for (const c of game.coats) {
+      if (seen.has(c)) continue;
+      seen.add(c);
+      (game.elapsed < 15 ? early : game.elapsed > 30 ? late : []).push(c);
+    }
+  }
+  const holes = (a) => a.reduce((s, c) => s + c.holes.length, 0) / a.length;
+  const kinds = (a) => Math.max(...a.flatMap((c) => c.holes.map((h) => h.kind))) + 1;
+  console.log('buttonbeaks ramp', { early: [early.length, holes(early), kinds(early)], late: [late.length, holes(late), kinds(late)], speed: [speed0, game.lineSpeed()], bowls: [bowls0, game.bowls] });
+  assert.ok(holes(early) < 1.4 && holes(late) > 1.9, 'one hole a coat at first, two or three at the end');
+  assert.ok(kinds(early) <= 4 && kinds(late) > 4, 'look-alike buttons only later');
+  assert.ok(game.lineSpeed() > speed0 * 1.8, 'the line speeds up');
+  assert.ok(late.length > early.length, 'coats come thicker');
+});
+
 test('buttonbeaks: a beginner opens the next page, a good tailor more; mashing and idling do not', () => {
   const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tailor(0.3, seed) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tailor(1, seed) }).game.score);
