@@ -901,6 +901,26 @@ export default {
     }
 
     // --- drawing ---------------------------------------------------------------
+    // The average colour of the art's bottom edge (its dirt), worked out once.
+    let dirt = null;
+    function dirtOf(art) {
+      if (dirt?.art === art) return dirt.color;
+      let color = '#c98a55';
+      try {
+        const c = document.createElement('canvas');
+        c.width = 32; c.height = 4;
+        const g = c.getContext('2d');
+        g.drawImage(art, 0, art.height - 24, art.width, 24, 0, 0, 32, 4);
+        const d = g.getImageData(0, 0, 32, 4).data;
+        let r = 0, gr = 0, b = 0;
+        for (let i = 0; i < d.length; i += 4) { r += d[i]; gr += d[i + 1]; b += d[i + 2]; }
+        const n = d.length / 4;
+        color = `rgb(${Math.round(r / n)},${Math.round(gr / n)},${Math.round(b / n)})`;
+      } catch { /* keep the default */ }
+      dirt = { art, color };
+      return color;
+    }
+
     function background() {
       const art = api.img('baseball-field');
       const still = Math.abs(cam.yaw) < 1e-3 && Math.abs(cam.pitch - cam.base) < 1e-3 && cheer <= 0;
@@ -915,6 +935,12 @@ export default {
         ctx.fillStyle = '#7cc4f2';
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(art, x, y, art.width * s, art.height * s);
+        // A tall screen shows ground below the picture: carry on its dirt.
+        const bottom = y + art.height * s;
+        if (bottom < h) {
+          ctx.fillStyle = dirtOf(art);
+          ctx.fillRect(0, bottom - 1, w, h - bottom + 1);
+        }
         return;
       }
       if (still && bgCache && bgCache.w === w && bgCache.h === h) {

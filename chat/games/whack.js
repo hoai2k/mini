@@ -26,12 +26,17 @@
 // on a 3x3 grid across its middle, so the art and the game line up.
 
 const IMG_W = 1600, IMG_H = 1200;
-const HOLE_X = [480, 800, 1120];
-const HOLE_Y = [440, 650, 860];
-const HOLE_RX = 122, HOLE_RY = 50;
+// The holes, matched to the field picture: three rows in perspective, the far
+// row higher, narrower and closer together. rx, ry: the opening; s: how big a
+// mob in that row is drawn (1 in the front row).
+const HOLE_ROWS = [
+  { y: 433, rx: 80, ry: 35, s: 0.78, xs: [495, 797, 1102] },
+  { y: 585, rx: 92, ry: 43, s: 0.88, xs: [456, 795, 1140] },
+  { y: 768, rx: 104, ry: 51, s: 1, xs: [413, 792, 1180] },
+];
 const HOLES = 9;
 // The part of the field that must stay on screen: the holes and risen mobs.
-const REGION = { x0: 300, x1: 1300, y0: 190, y1: 950 };
+const REGION = { x0: 260, x1: 1340, y0: 190, y1: 900 };
 const MOB = 262;               // mob picture size, field pixels
 
 const DURATION = 60000;        // ms a round lasts
@@ -50,7 +55,7 @@ const POINTS = { zombie: 10, creeper: 20, creeperLate: 30, enderman: 50, village
 const FONT = 'ui-rounded, system-ui, sans-serif';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
-const holeXY = h => ({ x: HOLE_X[h % 3], y: HOLE_Y[Math.floor(h / 3)] });
+const holeXY = h => { const r = HOLE_ROWS[Math.floor(h / 3)]; return { x: r.xs[h % 3], y: r.y, rx: r.rx, ry: r.ry, s: r.s }; };
 
 // --- pure logic (exported for tests) --------------------------------------
 
@@ -361,7 +366,7 @@ function standInField() {
   // Flowers and tufts.
   for (let i = 0; i < 70; i++) {
     const x = Math.floor(hash(i, 1, 9) * 128), y = Math.floor(hash(i, 2, 9) * 96);
-    const near = HOLE_Y.some(hy => Math.abs(y * cell - hy) < 90) && HOLE_X.some(hx => Math.abs(x * cell - hx) < 190);
+    const near = Array.from({ length: HOLES }, (_, h) => holeXY(h)).some(p => Math.abs(y * cell - p.y) < 90 && Math.abs(x * cell - p.x) < 190);
     if (near) continue;
     const kind = hash(i, 3, 9);
     if (kind < 0.3) { box(x, y, 1, 1, '#e8343b', 0); box(x, y + 1, 1, 1, '#2f6b22', 0); }
@@ -382,7 +387,7 @@ function standInField() {
   tree(6, 12, 6); tree(121, 10, 7); tree(3, 70, 6); tree(124, 78, 6); tree(64, 0, 5);
   // Holes: a ring of dirt, the far inside wall lit, the rest dark.
   for (let h = 0; h < HOLES; h++) {
-    const { x: hx, y: hy } = holeXY(h);
+    const { x: hx, y: hy, rx: HOLE_RX, ry: HOLE_RY } = holeXY(h);
     for (let j = -10; j <= 10; j++) {
       for (let i = -14; i <= 14; i++) {
         const px = hx + (i + 0.5) * cell, py = hy + (j + 0.5) * cell;
@@ -557,8 +562,8 @@ export default {
       L = fieldLayout(w, h, hudH);
       bg = null;
       if (ham.x < 0) {
-        const p = toScreen(HOLE_X[1], HOLE_Y[1]);
-        ham.x = p.x; ham.y = p.y;
+        const p = holeXY(4), q = toScreen(p.x, p.y);
+        ham.x = q.x; ham.y = q.y;
       }
     }
     const ro = new ResizeObserver(resize);
@@ -666,15 +671,15 @@ export default {
     function holeAtPoint(fx, fy, t) {
       let pickHole = -1, pickY = -1;
       for (let hole = 0; hole < HOLES; hole++) {
-        const { x, y } = holeXY(hole);
-        if (Math.abs(fx - x) > 160 || fy < y - MOB * 0.82 || fy > y + HOLE_RY * 1.4) continue;
+        const { x, y, ry, s } = holeXY(hole);
+        if (Math.abs(fx - x) > 160 * s || fy < y - MOB * s * 0.82 || fy > y + ry * 1.4) continue;
         if (mobAt(hole, t) && y > pickY) { pickHole = hole; pickY = y; }
       }
       if (pickHole >= 0) return pickHole;
       let bestD = Infinity;
       for (let hole = 0; hole < HOLES; hole++) {
         const { x, y } = holeXY(hole);
-        const d = Math.hypot(fx - x, (fy - (y - 60)) * 1.3);
+        const d = Math.hypot(fx - x, (fy - (y - 60 * holeXY(hole).s)) * 1.3);
         if (d < bestD) { bestD = d; pickHole = hole; }
       }
       return bestD < 260 ? pickHole : -1;
@@ -706,7 +711,7 @@ export default {
       if (!active()) return;
       const t = roundT();
       const at = mobAt(hole, t);
-      const top = p.y - MOB * 0.45;
+      const top = p.y - MOB * p.s * 0.45;
       if (!at) {
         combo = 0;
         api.sfx('click');
@@ -786,9 +791,9 @@ export default {
 
     function explode(hole) {
       const p = holeXY(hole);
-      booms.push({ x: p.x, y: p.y - 110, t: performance.now() });
+      booms.push({ x: p.x, y: p.y - 110 * p.s, t: performance.now() });
       api.sfx('bang');
-      burst(p.x, p.y - 110, ['#ffffff', '#ffe066', '#ff9f43', '#9a9a9a', '#5a5a5a'], 26, 1300, 30);
+      burst(p.x, p.y - 110 * p.s, ['#ffffff', '#ffe066', '#ff9f43', '#9a9a9a', '#5a5a5a'], 26, 1300, 30);
       shake = reduced ? 4 : 16;
       flashT = reduced ? 0 : 1;
       if (!active()) return;
@@ -943,20 +948,20 @@ export default {
           const age = t - leave;
           if (age < 0 || age > 420 + HOP_GAP) continue;
           const a = holeXY(ev.stops[j].hole), b = holeXY(ev.stops[j + 1].hole);
-          if (age <= 420) sparkle(a.x, a.y - 110, age, ev.id * 7 + j);
-          if (age >= HOP_GAP * 0.5) sparkle(b.x, b.y - 110, age - HOP_GAP * 0.5, ev.id * 7 + j + 3);
+          if (age <= 420) sparkle(a.x, a.y - 110 * a.s, age, ev.id * 7 + j);
+          if (age >= HOP_GAP * 0.5) sparkle(b.x, b.y - 110 * b.s, age - HOP_GAP * 0.5, ev.id * 7 + j + 3);
         }
       }
     }
 
     function drawMob({ ev, s, j, u, mode, isLast }, t, now) {
-      const { x, y } = holeXY(s.hole);
+      const { x, y, rx, ry, s: k } = holeXY(s.hole);
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x - 220, y - 420, 440, 420);
-      ctx.ellipse(x, y, HOLE_RX, HOLE_RY, 0, 0, Math.PI * 2);
+      ctx.rect(x - 220 * k, y - 420 * k, 440 * k, 420 * k);
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
       ctx.clip();
-      const bottom = y + HOLE_RY + 4;
+      const bottom = y + ry + 4;
       let rise = mode === 'up' ? easeOutBack(u) : mode === 'sink' ? u : 1;
       let sx = 1, sy = 1, alpha = 1, name = ev.kind, dx = 0;
       if (ev.kind === 'creeper' && mode === 'up') {
@@ -985,19 +990,19 @@ export default {
           rise = 1 - clamp((u - 0.35) / 0.65, 0, 1);
         }
       }
-      const yOff = (1 - rise) * MOB * 0.92;
-      drawSprite(spriteOf(name), x + dx, bottom + yOff, sx, sy, alpha);
+      const yOff = (1 - rise) * MOB * k * 0.92;
+      drawSprite(spriteOf(name), x + dx * k, bottom + yOff, sx * k, sy * k, alpha);
       ctx.restore();
       // Dizzy stars over a whacked mob; a sad thought over a whacked villager.
       if (mode === 'hit' && ev.kind !== 'villager') {
         for (let i = 0; i < 3; i++) {
           const a = now / 160 + (i * Math.PI * 2) / 3;
           ctx.fillStyle = '#ffe066';
-          ctx.fillRect(x + Math.cos(a) * 70 - 9, y - 150 + Math.sin(a) * 18 + yOff * 0.6 - 9, 18, 18);
+          ctx.fillRect(x + Math.cos(a) * 70 * k - 9, y - 150 * k + Math.sin(a) * 18 + yOff * 0.6 - 9, 18, 18);
         }
       }
       if (mode === 'hit' && ev.kind === 'villager' && u < 0.85) {
-        const bx = x + 70, by = y - 270;
+        const bx = x + 70 * k, by = y - 270 * k;
         ctx.fillStyle = 'rgba(255,255,255,0.95)';
         ctx.strokeStyle = '#1b1420';
         ctx.lineWidth = 6;
@@ -1074,11 +1079,11 @@ export default {
 
     function drawCursor() {
       if (!cursorOn) return;
-      const { x, y } = holeXY(ham.hole);
+      const { x, y, ry, s } = holeXY(ham.hole);
       ctx.strokeStyle = '#ffd43b';
       ctx.lineWidth = 10;
       ctx.setLineDash([26, 14]);
-      ctx.strokeRect(x - 150, y - MOB * 0.8, 300, MOB * 0.8 + HOLE_RY + 24);
+      ctx.strokeRect(x - 150 * s, y - MOB * s * 0.8, 300 * s, MOB * s * 0.8 + ry + 24);
       ctx.setLineDash([]);
     }
 
@@ -1087,7 +1092,7 @@ export default {
     function drawHammer(now) {
       let px = ham.x, py = ham.y;
       if (!ham.free) {
-        const p = toScreen(HOLE_X[ham.hole % 3], HOLE_Y[Math.floor(ham.hole / 3)] - 110);
+        const h = holeXY(ham.hole), p = toScreen(h.x, h.y - 110 * h.s);
         px = p.x; py = p.y;
       }
       const size = clamp(270 * L.k, 52, 170);
@@ -1216,7 +1221,7 @@ export default {
     }
 
     function drawCenter(t) {
-      const midY = clamp(L.oy + HOLE_Y[1] * L.k - 40, hudH + 40, h - 60);
+      const midY = clamp(L.oy + holeXY(4).y * L.k - 40, hudH + 40, h - 60);
       if (t < 0) {
         const n = Math.ceil(-t / 1000);
         const u = 1 - (-t / 1000 - (n - 1));
@@ -1385,7 +1390,7 @@ export default {
         const up = [];
         for (let hole = 0; hole < HOLES; hole++) {
           const m = mobAt(hole, t);
-          if (m) up.push({ hole, kind: m.ev.kind, id: m.ev.id, stop: m.j, stops: m.ev.stops.length, since: t - m.s.t, left: m.s.t + m.s.dur - t, screen: toScreen(HOLE_X[hole % 3], HOLE_Y[Math.floor(hole / 3)] - 110) });
+          if (m) up.push({ hole, kind: m.ev.kind, id: m.ev.id, stop: m.j, stops: m.ev.stops.length, since: t - m.s.t, left: m.s.t + m.s.dur - t, screen: toScreen(holeXY(hole).x, holeXY(hole).y - 110 * holeXY(hole).s) });
         }
         return {
           round, startAt, t, score, hearts, combo, hits, playing, out,
@@ -1436,4 +1441,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _logic = { makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readState, HOLE_X, HOLE_Y, REGION, IMG_W, IMG_H, DURATION, RISE, POINTS };
+export const _logic = { makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readState, HOLE_ROWS, holeXY, REGION, IMG_W, IMG_H, DURATION, RISE, POINTS };
