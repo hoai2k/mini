@@ -3,6 +3,7 @@
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
 import { openAudioCheck } from './audiocheck.js';
+import { diag } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder } from './recorder.js';
 
@@ -509,13 +510,26 @@ async function play(take, { auto = false } = {}) {
   showState();
   // With the mic freed, give the phone a moment to move sound back to its
   // normal output (a Bluetooth speaker) before playing.
+  const waitStart = performance.now();
   if (freed) await outputSettled();
   if (token !== playToken) return; // stopped or replaced while waiting
+  // What happened, for Audio check (to tell why a take didn't reach Bluetooth).
+  const record = {
+    at: Date.now(),
+    micFreed: freed,
+    micHeld: !!recorder?.holdsMic,
+    waitedMs: Math.round(performance.now() - waitStart),
+    session: navigator.audioSession?.type ?? null,
+    sessionState: navigator.audioSession?.state ?? null,
+    via: 'audio element',
+  };
+  diag.lastPlayback = record;
   let handle;
   try {
     handle = await playSamples(take.samples, take.sampleRate);
   } catch {
     handle = playWithWebAudio(take); // the browser refused the media element
+    record.via = 'Web Audio (the audio element was refused)';
   }
   if (token !== playToken) { handle.stop(); return; }
   playing.handle = handle;

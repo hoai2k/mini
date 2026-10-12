@@ -7,7 +7,7 @@
 // 'paused' (the player is using the takes list; the mic is ignored).
 
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
-import { listDevices, preferredMic, micPermission } from './devices.js';
+import { listDevices, preferredMic, micPermission, noteFirstRequest, allowedInAdvance } from './devices.js';
 
 const PREROLL_SEC = 2;
 const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
@@ -33,7 +33,7 @@ const PROMPT_SUSPECT_MS = 900;
 
 /** Is the mic freed while takes play (so a Bluetooth speaker can be used)? */
 export function freesMicForPlayback() {
-  return micPermission() === 'granted' && !promptSuspected;
+  return (micPermission() === 'granted' || allowedInAdvance()) && !promptSuspected;
 }
 export const promptWasSuspected = () => promptSuspected;
 const SETTLE_SEC = 0.35; // ignore the mic this long after playback (room echo)
@@ -195,6 +195,7 @@ export class Recorder extends EventTarget {
       // Taking back a mic we freed should be instant; a long wait means the
       // browser asked again, so hold the mic from now on.
       if (this.freedOnPurpose && performance.now() - asked > PROMPT_SUSPECT_MS) promptSuspected = true;
+      if (!this.freedOnPurpose) noteFirstRequest(performance.now() - asked);
       this.freedOnPurpose = false;
       stream = await this.preferBuiltIn(stream);
       this.keepStream(stream);

@@ -204,8 +204,11 @@ and every iPhone browser (Apple requires them all to use Safari's engine),
 asks again unless the site's microphone is set to Allow. So
 (`app/src/recorder.js`, `app/src/devices.js`):
 
-- **Permission saved** (the browser reports it as granted: Chrome and
-  Android once allowed; Safari once the site is set to Allow): the mic is
+- **Permission saved**: the browser reports it as granted (Chrome and
+  Android once allowed), or the first mic request was granted at once
+  (under 0.6 s, so no prompt was shown: how a Safari site set to Allow
+  shows, since Safari may not report that setting through the permissions
+  API): the mic is
   freed for each playback, the take waits up to 0.7 s for the phone to move
   sound back to its normal output (`outputSettled`), plays (on a Bluetooth
   speaker if one is connected), and the mic is taken back without a prompt.
@@ -238,6 +241,12 @@ Bluetooth marked); the speaker choice where the browser allows one
 system's switching); a pendulum sync adjustment; and what the browser
 reports (engine, permission, mic state, devices, Bluetooth names, output
 delay, Safari's audio mode).
+
+Audio check's "What the browser reports" shows both signs (the reported
+permission and how long the first request took) and the **last take
+played**: whether the mic was freed, how long playback waited, Safari's
+audio mode at that moment and which player was used, so a take that still
+misses a Bluetooth speaker can be traced.
 
 **What can be detected on iPhone**: no speakers are listed at all, so a
 Bluetooth speaker without its own mic can't be seen, and the page can't

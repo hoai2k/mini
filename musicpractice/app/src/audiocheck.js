@@ -2,7 +2,7 @@
 // permission, how takes will play as a result, and the choices it allows
 // (microphone, speaker, pendulum sync). Opened from any settings sheet.
 
-import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit } from './devices.js';
+import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, diag, allowedInAdvance, QUICK_GRANT_MS } from './devices.js';
 import { freesMicForPlayback, promptWasSuspected } from './recorder.js';
 import { reportedLatency, unlock } from './audio.js';
 import { playSamples } from './player.js';
@@ -120,14 +120,17 @@ async function render() {
 
   const rows = [
     ['Browser engine', isWebKit() ? 'Safari / WebKit (all iPhone browsers)' : 'Not WebKit'],
-    ['Mic permission', { granted: 'Allowed for this site', prompt: 'Asked each visit (not saved)', denied: 'Blocked', unknown: 'Not reported' }[permission] || permission],
+    ['Mic permission (reported)', { granted: 'Allowed for this site', prompt: 'Asked each visit (not saved)', denied: 'Blocked', unknown: 'Not reported' }[permission] || permission],
+    ['First mic request', diag.firstRequestMs == null ? 'Not made yet (open the Playback Recorder)'
+      : `${diag.firstRequestMs} ms: ${allowedInAdvance() ? 'granted at once, so allowed in advance' : `slower than ${QUICK_GRANT_MS} ms, so the browser asked`}`],
     ['Mic during playback', frees ? 'Freed (Bluetooth can be used)' : 'Kept (avoids permission prompts)'],
     ['Mic now', rec?.holdsMic ? (rec.micOpen ? 'In use' : 'Held, switched off') : 'Not held'],
     ['Microphones', labelled ? inputs.map((d) => tag(d.label)).filter(Boolean).join(', ') || 'None' : `${inputs.length} (names hidden)`],
     ['Speakers', outputs.length ? (labelled ? outputs.map((d) => tag(d.label)).filter(Boolean).join(', ') : `${outputs.length} (names hidden)`) : 'Not shown by this browser'],
     ['Bluetooth seen', btNames.length ? btNames.join(', ') : 'None by name (a speaker without a mic can\'t be seen on iPhone)'],
     ['Output delay', latencyMs == null ? 'Start the metronome or recorder to measure' : `${latencyMs} ms${latencyMs > 100 ? ' (likely Bluetooth)' : ''}`],
-    ['Safari audio mode', navigator.audioSession ? navigator.audioSession.type : 'Not available'],
+    ['Safari audio mode', navigator.audioSession ? `${navigator.audioSession.type}${navigator.audioSession.state ? ` (${navigator.audioSession.state})` : ''}` : 'Not available'],
+    ['Last take played', lastPlaybackText()],
   ];
 
   body.replaceChildren(...[
@@ -144,6 +147,18 @@ async function render() {
     el('details', { class: 'ac-details' }, el('summary', {}, 'What the browser reports'),
       el('dl', {}, rows.map(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))),
   ].filter(Boolean));
+}
+
+function lastPlaybackText() {
+  const p = diag.lastPlayback;
+  if (!p) return 'None yet';
+  const ago = Math.round((Date.now() - p.at) / 1000);
+  return [
+    `${ago} s ago`,
+    p.micFreed ? `mic freed, waited ${p.waitedMs} ms` : (p.micHeld ? 'mic held (call mode)' : 'no mic open'),
+    `Safari mode ${p.session ?? 'n/a'}${p.sessionState ? ` (${p.sessionState})` : ''}`,
+    `via ${p.via}`,
+  ].join('; ');
 }
 
 export function openAudioCheck(controls) {

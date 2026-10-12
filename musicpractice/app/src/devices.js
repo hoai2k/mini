@@ -54,3 +54,19 @@ export const canChooseSpeaker = () => typeof HTMLMediaElement !== 'undefined' &&
 
 /** iPhone/iPad (every browser there is Safari underneath) or Safari on a Mac. */
 export const isWebKit = () => typeof globalThis.GestureEvent !== 'undefined' || /iP(hone|ad|od)/.test(globalThis.navigator?.userAgent || '');
+
+/*
+ * Was the mic allowed in advance? Browsers don't always say (Safari may not
+ * report a site set to Allow), so the first request is timed too: granted
+ * without a prompt it resolves almost at once, while a prompt needs a tap,
+ * which takes a second or more.
+ */
+export const QUICK_GRANT_MS = 600;
+export const diag = {
+  firstRequestMs: null, // how long the first mic request took
+  lastPlayback: null, // { at, micFreed, waitedMs, session, sessionState, via }
+};
+export function noteFirstRequest(ms) {
+  if (diag.firstRequestMs == null) diag.firstRequestMs = Math.round(ms);
+}
+export const allowedInAdvance = () => diag.firstRequestMs != null && diag.firstRequestMs < QUICK_GRANT_MS;
