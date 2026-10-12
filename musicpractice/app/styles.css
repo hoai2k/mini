@@ -24,6 +24,11 @@
   --wave-head: #f6ecda;
   --on-accent: #2a1a0c;
   --glow: #34251a;
+  --wave-bg: linear-gradient(180deg, #17100b, #20170f);
+  --wave-thumb: #a48e6d;
+  --pressed: linear-gradient(180deg, #f2ead9, #d9cbb0);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --backdrop: rgba(10, 6, 3, 0.6);
   --radius: 18px;
   --gutter: max(16px, env(safe-area-inset-left));
   color-scheme: dark;
@@ -78,7 +83,7 @@ button { cursor: pointer; }
   border-radius: 26px;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid var(--line);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 30px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   color: var(--ink);
   text-decoration: none;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
@@ -190,7 +195,7 @@ button { cursor: pointer; }
 .big-btn:active { transform: scale(0.98); }
 .big-btn svg { width: 24px; height: 24px; fill: currentColor; }
 .big-btn .i-stop { display: none; }
-.big-btn[aria-pressed="true"] { background: linear-gradient(180deg, #f2ead9, #d9cbb0); }
+.big-btn[aria-pressed="true"] { background: var(--pressed); }
 .big-btn[aria-pressed="true"] .i-stop { display: block; }
 .big-btn[aria-pressed="true"] .i-play { display: none; }
 .meter-note { margin: 2px 0 0; text-align: center; color: var(--ink-3); font-size: 0.9rem; }
@@ -216,9 +221,9 @@ button { cursor: pointer; }
   padding: 0;
   background: var(--bg-2);
   color: var(--ink);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px var(--shadow);
 }
-.sheet::backdrop { background: rgba(10, 6, 3, 0.6); }
+.sheet::backdrop { background: var(--backdrop); }
 .sheet form { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; }
 .sheet-head h3 { margin: 0; font: 700 1.2rem var(--display); }
@@ -300,7 +305,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   width: 100%;
   height: clamp(110px, 22dvh, 200px);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, #17100b, #20170f);
+  background: var(--wave-bg);
   border: 1px solid var(--line);
   display: block;
 }
@@ -332,7 +337,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .take .meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .take .name { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; }
 .take .name span:last-child { color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.take canvas { width: 100%; height: 26px; display: block; --wave-take: #a48e6d; }
+.take canvas { width: 100%; height: 26px; display: block; --wave-take: var(--wave-thumb); }
 .take .del { width: 48px; height: 48px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-3); display: grid; place-items: center; }
 .take .del:hover { color: var(--red-2); background: var(--panel-2); }
 .take .del svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -576,3 +581,303 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="deco"] .take .name { font-weight: 600; letter-spacing: 0.04em; }
 [data-theme="deco"] .toast { border-radius: 0; background: #f4ecd6; outline: 1px solid var(--brass); outline-offset: 3px; }
 [data-theme="deco"] .toast .pill { color: var(--brass-2); background: var(--on-accent); }
+
+/* ================================================================ Vintage 60s
+   Cream, mustard, orange and teal; rounded shapes, offset print shadows,
+   a striped band and polka dots. */
+
+[data-theme="sixties"] {
+  --display: Righteous, "Arial Rounded MT Bold", sans-serif;
+  --ui: Nunito, "Avenir Next", system-ui, sans-serif;
+  --bg: #f3e6c8; --bg-2: #fbf3e1; --panel: #fff8ea; --panel-2: #f0dfbd; --line: #c9a46a;
+  --ink: #3b2a1e; --ink-2: #6b4f36; --ink-3: #8f7152;
+  --brass: #e0622a; --brass-2: #e8a13a; --red: #d6452b; --red-2: #e8573a; --focus: #2a8a86;
+  --on-accent: #fff8ea; --glow: #fbf3e1;
+  --wave-bg: #fff8ea; --wave-axis: rgba(59, 42, 30, 0.15); --wave-idle: rgba(107, 79, 54, 0.25);
+  --wave-wait: #2a8a86; --wave-rec: #e0622a; --wave-take: #d7bd8c; --wave-play: #2a8a86; --wave-head: #3b2a1e; --wave-thumb: #b48b5a;
+  --pressed: #2a8a86; --shadow: rgba(91, 53, 24, 0.22); --backdrop: rgba(59, 42, 30, 0.4);
+  --radius: 28px;
+  color-scheme: light;
+}
+[data-theme="sixties"] body {
+  background:
+    linear-gradient(180deg, #e0622a 0 10px, #e8a13a 10px 20px, #2a8a86 20px 30px, transparent 30px) top / 100% 30px no-repeat,
+    radial-gradient(rgba(201, 164, 106, 0.35) 2px, transparent 2.5px) 0 0 / 24px 24px,
+    var(--bg);
+}
+[data-theme="sixties"] .brand { font-weight: 400; color: #2a8a86; }
+[data-theme="sixties"] .brand em { color: var(--brass); }
+[data-theme="sixties"] .bar h2, [data-theme="sixties"] .sheet-head h3, [data-theme="sixties"] .rec-state, [data-theme="sixties"] .takes-title { font-weight: 400; }
+[data-theme="sixties"] .choice { border: 3px solid var(--ink); border-radius: 32px; background: var(--panel); box-shadow: 7px 7px 0 #2a8a86; }
+[data-theme="sixties"] .choice:hover { border-color: var(--ink); box-shadow: 9px 9px 0 var(--brass); }
+[data-theme="sixties"] .choice .label { color: var(--ink); font-weight: 800; }
+[data-theme="sixties"] .big-btn { background: var(--brass); color: #fff8ea; border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+[data-theme="sixties"] .big-btn[aria-pressed="true"] { background: #2a8a86; }
+[data-theme="sixties"] .step { border: 3px solid var(--ink); background: #e8a13a; color: var(--ink); }
+[data-theme="sixties"] .chip, [data-theme="sixties"] .select, [data-theme="sixties"] .pill { border: 2px solid var(--ink); background-color: var(--panel); }
+[data-theme="sixties"] .chip[aria-checked="true"] { background: #2a8a86; border-color: var(--ink); color: #fff8ea; }
+[data-theme="sixties"] .beats li { border-color: var(--ink); }
+[data-theme="sixties"] .beats li.on { background: #e8a13a; border-color: var(--ink); }
+[data-theme="sixties"] .beats li.strong.on { background: var(--brass); }
+[data-theme="sixties"] .sheet { border: 3px solid var(--ink); border-radius: 28px; box-shadow: 8px 8px 0 #2a8a86; }
+[data-theme="sixties"] .wave { border: 3px solid var(--ink); border-radius: 22px; }
+[data-theme="sixties"] .take { border: 2px solid var(--ink); border-radius: 22px; background: var(--panel); }
+[data-theme="sixties"] .rec-btn { border-color: var(--ink); background: var(--panel); }
+[data-theme="sixties"] .slider::-webkit-slider-thumb { border-color: var(--ink); background: #e8a13a; }
+
+/* ================================================================ 18th Century
+   Parchment, sepia ink, gilt and burgundy; engraved type, small capitals,
+   double rules and a fleuron. */
+
+[data-theme="baroque"] {
+  --display: "IM Fell English", "Times New Roman", serif;
+  --ui: "EB Garamond", Garamond, Georgia, serif;
+  --bg: #f4ecd9; --bg-2: #fbf6ea; --panel: #fffaf0; --panel-2: #efe3c8; --line: #c9a86a;
+  --ink: #3a2416; --ink-2: #5e4330; --ink-3: #85694f;
+  --brass: #9b7428; --brass-2: #c99a3f; --red: #7c1f2c; --red-2: #9b2a3a; --focus: #7c1f2c;
+  --on-accent: #fffaf0; --glow: #fbf6ea;
+  --wave-bg: #fffaf0; --wave-axis: rgba(58, 36, 22, 0.15); --wave-idle: rgba(94, 67, 48, 0.25);
+  --wave-wait: #5e4330; --wave-rec: #9b2a3a; --wave-take: #d7c19a; --wave-play: #9b7428; --wave-head: #3a2416; --wave-thumb: #a98c5c;
+  --pressed: linear-gradient(180deg, #fffaf0, #efe3c8); --shadow: rgba(58, 36, 22, 0.2); --backdrop: rgba(58, 36, 22, 0.35);
+  --radius: 4px;
+  color-scheme: light;
+}
+[data-theme="baroque"] body {
+  font-size: 17px;
+  background: radial-gradient(ellipse at 50% 40%, #fbf6ea 35%, #e9d8b2 100%) fixed, var(--bg);
+}
+[data-theme="baroque"] .brand { font-weight: 400; font-variant: small-caps; letter-spacing: 0.04em; }
+[data-theme="baroque"] .brand em { font-style: italic; font-variant: normal; color: var(--red); }
+[data-theme="baroque"] .brand::after {
+  content: "❦";
+  display: block;
+  width: min(260px, 70vw);
+  margin: 10px auto 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--brass);
+  background:
+    linear-gradient(var(--brass), var(--brass)) left 50% / 42% 1px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) right 50% / 42% 1px no-repeat;
+}
+[data-theme="baroque"] .bar h2, [data-theme="baroque"] .sheet-head h3, [data-theme="baroque"] .rec-state, [data-theme="baroque"] .takes-title { font-weight: 400; font-variant: small-caps; letter-spacing: 0.04em; }
+[data-theme="baroque"] .marking { font-family: var(--display); }
+[data-theme="baroque"] .choice { border: 4px double var(--brass-2); border-radius: 4px; background: var(--panel); }
+[data-theme="baroque"] .choice .label, [data-theme="baroque"] .row, [data-theme="baroque"] legend { font-variant: small-caps; letter-spacing: 0.04em; }
+[data-theme="baroque"] .big-btn { background: var(--red); color: #fffaf0; border: 2px solid var(--brass-2); border-radius: 4px; box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 4px rgba(201, 154, 63, 0.7); font-variant: small-caps; letter-spacing: 0.06em; }
+[data-theme="baroque"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--red); box-shadow: none; }
+[data-theme="baroque"] .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--red); }
+[data-theme="baroque"] .chip, [data-theme="baroque"] .select, [data-theme="baroque"] .pill { border-radius: 4px; border-color: var(--brass-2); background-color: var(--panel); }
+[data-theme="baroque"] .chip[aria-checked="true"] { background: var(--red); border-color: var(--red); color: #fffaf0; }
+[data-theme="baroque"] .sheet { border: 4px double var(--brass-2); border-radius: 4px; }
+[data-theme="baroque"] .wave, [data-theme="baroque"] .take { border-radius: 4px; border: 1px solid var(--brass-2); background: var(--panel); }
+[data-theme="baroque"] .beats li.on { background: var(--brass-2); }
+[data-theme="baroque"] .beats li.strong.on { background: var(--red); border-color: var(--red); }
+[data-theme="baroque"] .rec-btn { border-style: double; border-width: 6px; border-color: var(--brass-2); background: var(--panel); }
+
+/* ================================================================ Sci Fi Future
+   Deep space navy, cyan and magenta light, a HUD grid, chamfered panels and
+   a soft neon glow. */
+
+[data-theme="scifi"] {
+  --display: Orbitron, "Eurostile", system-ui, sans-serif;
+  --ui: "Exo 2", system-ui, sans-serif;
+  --bg: #060a14; --bg-2: #0b1222; --panel: #0e1628; --panel-2: #142039; --line: #1f4a63;
+  --ink: #d8f7ff; --ink-2: #9fd3e3; --ink-3: #6c9cae;
+  --brass: #3ef2ff; --brass-2: #8ff7ff; --red: #ff3cac; --red-2: #ff6cc4; --focus: #ff6cc4;
+  --on-accent: #031018; --glow: #0b1d33;
+  --wave-bg: #050a14; --wave-axis: rgba(62, 242, 255, 0.2); --wave-idle: rgba(159, 211, 227, 0.25);
+  --wave-wait: #8ff7ff; --wave-rec: #ff3cac; --wave-take: #1f6f86; --wave-play: #3ef2ff; --wave-head: #ffffff; --wave-thumb: #3aa9c2;
+  --pressed: linear-gradient(180deg, #ff6cc4, #ff3cac); --shadow: rgba(0, 0, 0, 0.6); --backdrop: rgba(2, 5, 12, 0.7);
+  --radius: 0;
+  --chamfer: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+[data-theme="scifi"] body {
+  background:
+    linear-gradient(rgba(62, 242, 255, 0.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(62, 242, 255, 0.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    radial-gradient(90% 60% at 50% 0%, #0f2440, var(--bg) 70%) fixed,
+    var(--bg);
+}
+[data-theme="scifi"] .brand, [data-theme="scifi"] .bar h2, [data-theme="scifi"] .sheet-head h3, [data-theme="scifi"] .rec-state, [data-theme="scifi"] .takes-title {
+  text-transform: uppercase; letter-spacing: 0.12em; text-shadow: 0 0 14px rgba(62, 242, 255, 0.55);
+}
+[data-theme="scifi"] .brand { font-size: clamp(1.7rem, 6.6vw, 3.2rem); }
+[data-theme="scifi"] .brand em { color: var(--brass); }
+[data-theme="scifi"] .bar h2 { font-size: clamp(0.95rem, 4vw, 1.2rem); }
+[data-theme="scifi"] .choice { border-radius: 0; clip-path: var(--chamfer); border: 1px solid var(--brass); background: linear-gradient(160deg, #10203a, #090f1e); box-shadow: inset 0 0 30px rgba(62, 242, 255, 0.12); }
+[data-theme="scifi"] .choice .label, [data-theme="scifi"] .big-btn, [data-theme="scifi"] .chip, [data-theme="scifi"] legend, [data-theme="scifi"] .row { text-transform: uppercase; letter-spacing: 0.1em; }
+[data-theme="scifi"] .choice .label { color: var(--brass-2); }
+[data-theme="scifi"] .big-btn { border-radius: 0; clip-path: var(--chamfer); background: var(--brass); box-shadow: 0 0 24px rgba(62, 242, 255, 0.45); }
+[data-theme="scifi"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: #1a0010; box-shadow: 0 0 24px rgba(255, 60, 172, 0.5); }
+[data-theme="scifi"] .step { border-radius: 0; clip-path: var(--chamfer); border-color: var(--brass); color: var(--brass); background: var(--panel); }
+[data-theme="scifi"] .bpm-box input { color: var(--brass-2); text-shadow: 0 0 16px rgba(62, 242, 255, 0.6); }
+[data-theme="scifi"] .chip, [data-theme="scifi"] .select, [data-theme="scifi"] .pill { border-radius: 0; border-color: var(--line); background-color: transparent; }
+[data-theme="scifi"] .chip[aria-checked="true"] { background: var(--brass); color: var(--on-accent); box-shadow: 0 0 12px rgba(62, 242, 255, 0.5); }
+[data-theme="scifi"] .sheet { border-radius: 0; border: 1px solid var(--brass); box-shadow: 0 0 40px rgba(62, 242, 255, 0.2); }
+[data-theme="scifi"] .beats li { border-radius: 2px; }
+[data-theme="scifi"] .beats li.on { background: var(--brass); box-shadow: 0 0 12px var(--brass); }
+[data-theme="scifi"] .beats li.strong.on { background: var(--red); box-shadow: 0 0 12px var(--red); }
+[data-theme="scifi"] .wave { border-radius: 0; border-color: var(--line); box-shadow: inset 0 0 30px rgba(62, 242, 255, 0.08); }
+[data-theme="scifi"] .take { border-radius: 0; clip-path: var(--chamfer); }
+[data-theme="scifi"] .take .play { border-radius: 0; clip-path: var(--chamfer); }
+[data-theme="scifi"] .rec-btn { border-color: var(--brass); box-shadow: 0 0 18px rgba(62, 242, 255, 0.35); }
+[data-theme="scifi"] .icon-btn svg { filter: drop-shadow(0 0 6px rgba(62, 242, 255, 0.6)); }
+
+/* ================================================================ French Nouveau
+   Sage, cream, muted gold and rose; organic asymmetric curves and the
+   flowing lines of a Paris Métro entrance. */
+
+[data-theme="nouveau"] {
+  --display: Italiana, "Didot", serif;
+  --ui: "Cormorant Garamond", Garamond, Georgia, serif;
+  --bg: #eef0e4; --bg-2: #f8f6ec; --panel: #fbf9f1; --panel-2: #e3e7d2; --line: #b8a46a;
+  --ink: #2f3a2a; --ink-2: #4c5a42; --ink-3: #727f65;
+  --brass: #8c6b22; --brass-2: #b8933f; --red: #94405a; --red-2: #b5687a; --focus: #94405a;
+  --on-accent: #fbf9f1; --glow: #f8f6ec;
+  --wave-bg: #fbf9f1; --wave-axis: rgba(47, 58, 42, 0.15); --wave-idle: rgba(76, 90, 66, 0.25);
+  --wave-wait: #5f7a5a; --wave-rec: #b5687a; --wave-take: #cdc4a2; --wave-play: #8c6b22; --wave-head: #2f3a2a; --wave-thumb: #9aa883;
+  --pressed: linear-gradient(180deg, #fbf9f1, #e3e7d2); --shadow: rgba(47, 58, 42, 0.18); --backdrop: rgba(47, 58, 42, 0.35);
+  --radius: 26px;
+  --organic: 44px 10px 44px 10px;
+  color-scheme: light;
+}
+[data-theme="nouveau"] body {
+  font-size: 18px;
+  font-weight: 600;
+  background:
+    radial-gradient(120% 60% at 0% 100%, rgba(127, 154, 122, 0.3), transparent 60%) fixed,
+    radial-gradient(110% 55% at 100% 0%, rgba(181, 104, 122, 0.14), transparent 60%) fixed,
+    var(--bg);
+}
+[data-theme="nouveau"] .brand { font-weight: 400; letter-spacing: 0.06em; font-size: clamp(2.3rem, 9vw, 4rem); }
+[data-theme="nouveau"] .brand em { color: var(--red); }
+[data-theme="nouveau"] .brand::after {
+  content: "";
+  display: block;
+  width: min(240px, 66vw);
+  height: 18px;
+  margin: 12px auto 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 18'%3E%3Cpath d='M2 9C40 -4 70 22 110 9M238 9C200 -4 170 22 130 9' fill='none' stroke='%23b8933f' stroke-width='1.6'/%3E%3Ccircle cx='120' cy='9' r='5' fill='%23b5687a'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="nouveau"] .bar h2, [data-theme="nouveau"] .sheet-head h3, [data-theme="nouveau"] .rec-state, [data-theme="nouveau"] .takes-title { font-weight: 400; letter-spacing: 0.04em; }
+[data-theme="nouveau"] .choice { border: 2px solid var(--brass-2); border-radius: var(--organic); background: linear-gradient(170deg, #fbf9f1, #eef0e4); }
+[data-theme="nouveau"] .choice:hover { border-color: var(--red-2); }
+[data-theme="nouveau"] .big-btn { background: #6f8a69; color: #fbf9f1; border: 2px solid var(--brass-2); border-radius: 30px 8px 30px 8px; box-shadow: none; }
+[data-theme="nouveau"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
+[data-theme="nouveau"] .step { border: 2px solid var(--brass-2); background: var(--panel); color: var(--brass); border-radius: 26px 6px 26px 6px; }
+[data-theme="nouveau"] .chip, [data-theme="nouveau"] .select, [data-theme="nouveau"] .pill { border-color: var(--brass-2); background-color: var(--panel); border-radius: 18px 4px 18px 4px; }
+[data-theme="nouveau"] .chip[aria-checked="true"] { background: #6f8a69; border-color: #6f8a69; color: #fbf9f1; }
+[data-theme="nouveau"] .sheet { border: 2px solid var(--brass-2); border-radius: var(--organic); }
+[data-theme="nouveau"] .wave { border: 2px solid var(--brass-2); border-radius: var(--organic); }
+[data-theme="nouveau"] .take { border-radius: 28px 6px 28px 6px; background: var(--panel); border: 1px solid var(--line); }
+[data-theme="nouveau"] .beats li.on { background: var(--brass-2); }
+[data-theme="nouveau"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
+[data-theme="nouveau"] .rec-btn { border-color: var(--brass-2); background: var(--panel); }
+
+/* ================================================================ Anime
+   Candy pink and sky blue on white, bold outlines, hard manga-panel
+   shadows, halftone dots and sparkles. */
+
+[data-theme="anime"] {
+  --display: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  --ui: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  --bg: #fff4fa; --bg-2: #ffffff; --panel: #ffffff; --panel-2: #ffe3f0; --line: #2b2340;
+  --ink: #2b2340; --ink-2: #4a3f66; --ink-3: #7d7399;
+  --brass: #ff5fa2; --brass-2: #5cc4ff; --red: #ff4f8b; --red-2: #ff4f8b; --focus: #5cc4ff;
+  --on-accent: #ffffff; --glow: #e8f6ff;
+  --wave-bg: #ffffff; --wave-axis: rgba(43, 35, 64, 0.15); --wave-idle: rgba(74, 63, 102, 0.22);
+  --wave-wait: #5cc4ff; --wave-rec: #ff4f8b; --wave-take: #ffc2dc; --wave-play: #ff5fa2; --wave-head: #2b2340; --wave-thumb: #ff8fc0;
+  --pressed: #5cc4ff; --shadow: rgba(43, 35, 64, 0.18); --backdrop: rgba(43, 35, 64, 0.35);
+  --radius: 22px;
+  color-scheme: light;
+}
+[data-theme="anime"] body {
+  background:
+    radial-gradient(rgba(255, 95, 162, 0.16) 2.2px, transparent 2.7px) 0 0 / 18px 18px,
+    linear-gradient(180deg, #e8f6ff, var(--bg) 55%) fixed,
+    var(--bg);
+}
+[data-theme="anime"] .brand { font-weight: 800; color: var(--ink); text-shadow: 3px 3px 0 var(--brass-2); }
+[data-theme="anime"] .brand em { color: var(--brass); }
+[data-theme="anime"] .brand::after { content: "✦ ✧ ✦"; display: block; margin-top: 10px; font-size: 18px; letter-spacing: 0.3em; color: #ffc93c; text-shadow: none; }
+[data-theme="anime"] .bar h2, [data-theme="anime"] .sheet-head h3, [data-theme="anime"] .rec-state, [data-theme="anime"] .takes-title { font-weight: 800; }
+[data-theme="anime"] .choice { border: 3px solid var(--ink); border-radius: 24px; background: var(--panel); box-shadow: 6px 6px 0 var(--ink); }
+[data-theme="anime"] .choice:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--brass); border-color: var(--ink); }
+[data-theme="anime"] .choice .label { font-weight: 800; }
+[data-theme="anime"] .big-btn { background: var(--brass); color: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); font-weight: 800; }
+[data-theme="anime"] .big-btn[aria-pressed="true"] { background: var(--pressed); color: var(--ink); }
+[data-theme="anime"] .step { border: 3px solid var(--ink); background: var(--brass-2); color: var(--ink); font-weight: 800; box-shadow: 3px 3px 0 var(--ink); }
+[data-theme="anime"] .chip, [data-theme="anime"] .select, [data-theme="anime"] .pill { border: 2px solid var(--ink); background-color: var(--panel); font-weight: 800; }
+[data-theme="anime"] .chip[aria-checked="true"] { background: var(--brass); color: #fff; border-color: var(--ink); }
+[data-theme="anime"] .sheet { border: 3px solid var(--ink); border-radius: 24px; box-shadow: 8px 8px 0 var(--ink); }
+[data-theme="anime"] .wave { border: 3px solid var(--ink); border-radius: 20px; }
+[data-theme="anime"] .take { border: 2px solid var(--ink); background: var(--panel); box-shadow: 3px 3px 0 var(--ink); }
+[data-theme="anime"] .take .play { border: 2px solid var(--ink); }
+[data-theme="anime"] .beats li { border-color: var(--ink); border-width: 3px; }
+[data-theme="anime"] .beats li.on { background: #ffc93c; border-color: var(--ink); }
+[data-theme="anime"] .beats li.strong.on { background: var(--brass); }
+[data-theme="anime"] .rec-btn { border-color: var(--ink); background: var(--panel); box-shadow: 4px 4px 0 var(--ink); }
+[data-theme="anime"] .bpm-box input { font-weight: 800; }
+
+/* ================================================================ Steam Punk
+   Dark leather and mahogany, brass and copper plates with rivets, a
+   typewritten face and engraved capitals. */
+
+[data-theme="steampunk"] {
+  --display: Cinzel, "Trajan Pro", Georgia, serif;
+  --ui: "Special Elite", "Courier New", monospace;
+  --bg: #1c130c; --bg-2: #261a10; --panel: #2e2014; --panel-2: #3a2918; --line: #7a5a2e;
+  --ink: #f1e2c2; --ink-2: #d2bb8f; --ink-3: #a68d63;
+  --brass: #d9a44a; --brass-2: #f0c56b; --red: #c8452c; --red-2: #e0603e; --focus: #f0c56b;
+  --on-accent: #1c130c; --glow: #3a2516;
+  --wave-bg: linear-gradient(180deg, #160e08, #22170e); --wave-axis: rgba(217, 164, 74, 0.22); --wave-idle: rgba(210, 187, 143, 0.25);
+  --wave-wait: #d2bb8f; --wave-rec: #e0603e; --wave-take: #7a5a2e; --wave-play: #f0c56b; --wave-head: #f1e2c2; --wave-thumb: #b8743a;
+  --pressed: linear-gradient(180deg, #e7a26a, #b8743a); --shadow: rgba(0, 0, 0, 0.55); --backdrop: rgba(14, 9, 5, 0.65);
+  --radius: 6px;
+  --rivets:
+    radial-gradient(circle at 10px 10px, #f0c56b 0 3px, #5a3a1e 3.5px 4.5px, transparent 5px),
+    radial-gradient(circle at calc(100% - 10px) 10px, #f0c56b 0 3px, #5a3a1e 3.5px 4.5px, transparent 5px),
+    radial-gradient(circle at 10px calc(100% - 10px), #f0c56b 0 3px, #5a3a1e 3.5px 4.5px, transparent 5px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #f0c56b 0 3px, #5a3a1e 3.5px 4.5px, transparent 5px);
+}
+[data-theme="steampunk"] body {
+  background:
+    repeating-radial-gradient(circle at 50% 120%, rgba(217, 164, 74, 0.05) 0 2px, transparent 2px 40px) fixed,
+    radial-gradient(100% 70% at 50% 0%, #3a2516, var(--bg) 70%) fixed,
+    var(--bg);
+}
+[data-theme="steampunk"] .brand, [data-theme="steampunk"] .bar h2, [data-theme="steampunk"] .sheet-head h3, [data-theme="steampunk"] .rec-state, [data-theme="steampunk"] .takes-title { text-transform: uppercase; letter-spacing: 0.08em; }
+[data-theme="steampunk"] .brand { color: var(--brass-2); text-shadow: 0 2px 0 #5a3a1e; font-size: clamp(1.9rem, 7vw, 3.4rem); }
+[data-theme="steampunk"] .brand em { color: #e7a26a; }
+[data-theme="steampunk"] .brand::after { content: "⚙"; display: block; margin-top: 8px; font-size: 26px; color: var(--brass); }
+[data-theme="steampunk"] .choice { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), linear-gradient(160deg, #3a2918, #24180e); box-shadow: inset 0 0 0 1px #5a3a1e, 0 10px 24px var(--shadow); }
+[data-theme="steampunk"] .choice:hover { border-color: var(--brass-2); }
+[data-theme="steampunk"] .choice .label { color: var(--brass-2); }
+[data-theme="steampunk"] .big-btn { background: var(--rivets), linear-gradient(180deg, #f0c56b, #b8862f); border: 2px solid #5a3a1e; border-radius: 8px; color: #1c130c; box-shadow: 0 4px 0 #5a3a1e; }
+[data-theme="steampunk"] .big-btn[aria-pressed="true"] { background: var(--rivets), var(--pressed); }
+[data-theme="steampunk"] .step { border: 3px solid #b8743a; background: radial-gradient(circle at 35% 30%, #f0c56b, #9a6a2a); color: #1c130c; }
+[data-theme="steampunk"] .chip, [data-theme="steampunk"] .select, [data-theme="steampunk"] .pill { border-radius: 6px; border-color: #b8743a; background-color: var(--panel); }
+[data-theme="steampunk"] .chip[aria-checked="true"] { background: linear-gradient(180deg, #f0c56b, #b8862f); color: #1c130c; }
+[data-theme="steampunk"] .sheet { border: 3px solid #b8743a; border-radius: 8px; background: var(--rivets), var(--bg-2); }
+[data-theme="steampunk"] .wave { border: 3px solid #b8743a; border-radius: 8px; }
+[data-theme="steampunk"] .take { border-radius: 8px; border: 1px solid #7a5a2e; background: var(--rivets), var(--panel); padding-left: 14px; padding-right: 14px; }
+[data-theme="steampunk"] .beats li { border-color: #b8743a; }
+[data-theme="steampunk"] .beats li.on { background: var(--brass-2); }
+[data-theme="steampunk"] .beats li.strong.on { background: var(--red-2); border-color: var(--red-2); }
+[data-theme="steampunk"] .rec-btn { border: 5px solid #b8743a; background: radial-gradient(circle at 35% 30%, #3a2918, #1c130c); }
+
+/* ---------------------------------------------------------------- shared theme touches */
+/* Slider tracks that show on light grounds */
+[data-theme="baroque"] .slider::-webkit-slider-runnable-track, [data-theme="nouveau"] .slider::-webkit-slider-runnable-track,
+[data-theme="sixties"] .slider::-webkit-slider-runnable-track, [data-theme="anime"] .slider::-webkit-slider-runnable-track { background: var(--line); opacity: 0.55; }
+[data-theme="baroque"] .slider::-moz-range-track, [data-theme="nouveau"] .slider::-moz-range-track,
+[data-theme="sixties"] .slider::-moz-range-track, [data-theme="anime"] .slider::-moz-range-track { background: var(--line); opacity: 0.55; }
+/* Dropdown arrows in each theme's colour */
+[data-theme="sixties"] .select, [data-theme="anime"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%232b2340' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+[data-theme="baroque"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%237c1f2c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+[data-theme="scifi"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%233ef2ff' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E"); }
+[data-theme="nouveau"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%238c6b22' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+/* Long titles and small display faces */
+[data-theme="steampunk"] .bar h2 { font-size: clamp(0.9rem, 4.2vw, 1.25rem); }
+[data-theme="baroque"] .choice .label, [data-theme="nouveau"] .choice .label { font-size: clamp(1.05rem, 4.4vw, 1.4rem); }

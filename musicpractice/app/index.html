@@ -16,13 +16,15 @@
   <meta name="description" content="A metronome and a practice recorder that hears when you start and stop playing, then plays your take back.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Josefin+Sans:wght@400;600;700&family=Manrope:wght@500;600;700;800&family=Poiret+One&display=swap" rel="stylesheet">
+  <!-- Each theme loads its own fonts (THEMES in src/settings.js); Classic's load here as the default. -->
+  <link id="theme-fonts" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script>
     // Apply the saved theme before the page draws (settings.js owns the list).
     try {
       var s = JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {};
-      var t = s.themeChosen === true && s.theme === 'deco' ? 'deco' : 'classic';
+      var ids = ['classic', 'deco', 'sixties', 'baroque', 'scifi', 'nouveau', 'anime', 'steampunk'];
+      var t = s.themeChosen === true && ids.indexOf(s.theme) > 0 ? s.theme : 'classic';
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'classic'; }
   </script>
@@ -115,10 +117,7 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span>Volume</span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
-          <fieldset>
-            <legend>Theme</legend>
-            <div class="chips theme-chips"></div>
-          </fieldset>
+          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>
@@ -166,10 +165,7 @@
             <label class="row toggle"><span>Record during playback</span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
             <p class="help" id="rec-during-help">Off: the microphone turns off while a take plays and back on afterwards, so playback is full volume. On: it keeps listening, and playing over a take starts the next one (echo cancellation is used; headphones work best, and on iPhone playback is quieter).</p>
           </div>
-          <fieldset>
-            <legend>Theme</legend>
-            <div class="chips theme-chips"></div>
-          </fieldset>
+          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>

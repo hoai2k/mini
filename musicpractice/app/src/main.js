@@ -19,6 +19,9 @@ function applyTheme() {
   const theme = THEMES.find((t) => t.id === settings.theme) || THEMES[0];
   document.documentElement.dataset.theme = theme.id;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
+  const fonts = `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`;
+  const link = $('theme-fonts');
+  if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
   applyArt(theme.id, () => alignPendulum($('metronome-case'), $('pendulum')));
   // Waveform colours come from the theme.
   if (wave) wave.dirty = true;
@@ -204,14 +207,18 @@ for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-const themeSyncs = [...document.querySelectorAll('.theme-chips')].map((el) =>
-  chips(el, THEMES, () => settings.theme, (v) => {
-    settings.theme = v;
+const themeSelects = [...document.querySelectorAll('.theme-select')];
+for (const sel of themeSelects) {
+  sel.replaceChildren(...THEMES.map((t) => new Option(t.label, t.id)));
+  sel.value = settings.theme;
+  sel.addEventListener('change', () => {
+    settings.theme = sel.value;
     settings.themeChosen = true;
     persist();
     applyTheme();
-    themeSyncs.forEach((sync) => sync());
-  }));
+    for (const other of themeSelects) other.value = settings.theme;
+  });
+}
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
