@@ -2061,182 +2061,182 @@ export const ASSET_LIST = {
   },
   "burger-bacon": {
     "file": "assets/games/burger-bacon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-ketchup": {
     "file": "assets/games/burger-ketchup.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-pickles": {
     "file": "assets/games/burger-pickles.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-onion": {
     "file": "assets/games/burger-onion.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-egg": {
     "file": "assets/games/burger-egg.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "baseball-field": {
     "file": "assets/games/baseball-field.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "baseball-ball": {
     "file": "assets/games/baseball-ball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "baseball-bat": {
     "file": "assets/games/baseball-bat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "baseball-pitcher-windup": {
     "file": "assets/games/baseball-pitcher-windup.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "baseball-pitcher-throw": {
     "file": "assets/games/baseball-pitcher-throw.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-field": {
     "file": "assets/games/whack-field.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-zombie": {
     "file": "assets/games/whack-zombie.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-creeper": {
     "file": "assets/games/whack-creeper.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-creeper-flash": {
     "file": "assets/games/whack-creeper-flash.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-villager": {
     "file": "assets/games/whack-villager.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-enderman": {
     "file": "assets/games/whack-enderman.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-explosion": {
     "file": "assets/games/whack-explosion.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-teleport": {
     "file": "assets/games/whack-teleport.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "whack-hammer": {
     "file": "assets/games/whack-hammer.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-back": {
     "file": "assets/games/kart-back.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-left": {
     "file": "assets/games/kart-left.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-right": {
     "file": "assets/games/kart-right.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-sky": {
     "file": "assets/games/kart-sky.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-grass": {
     "file": "assets/games/kart-grass.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-road": {
     "file": "assets/games/kart-road.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-itembox": {
     "file": "assets/games/kart-itembox.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-boost": {
     "file": "assets/games/kart-boost.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-banana": {
     "file": "assets/games/kart-banana.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-bomb": {
     "file": "assets/games/kart-bomb.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-star": {
     "file": "assets/games/kart-star.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-parts": {
     "file": "assets/games/kart-parts.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-tyres": {
     "file": "assets/games/kart-tyres.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "kart-tree": {
     "file": "assets/games/kart-tree.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-baseball": {
     "file": "assets/icons/game-baseball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-baseball": {
     "file": "assets/icons2/game2-baseball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-baseball": {
     "file": "assets/icons-art/art-game-baseball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-baseball": {
     "file": "assets/icons-classic/classic-game-baseball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-whack": {
     "file": "assets/icons/game-whack.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-whack": {
     "file": "assets/icons2/game2-whack.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-whack": {
     "file": "assets/icons-art/art-game-whack.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-whack": {
     "file": "assets/icons-classic/classic-game-whack.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-kart": {
     "file": "assets/icons/game-kart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-kart": {
     "file": "assets/icons2/game2-kart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-kart": {
     "file": "assets/icons-art/art-game-kart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-kart": {
     "file": "assets/icons-classic/classic-game-kart.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };

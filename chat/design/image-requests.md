@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-471 delivered, 45 requested, 516 in total.
+516 delivered, 516 in total.
 
 ## Brand
 
@@ -898,7 +898,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 512 x 192, transparent
 - **Used for:** Burger Stack: a falling topping to catch, then a layer of the burger.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of two crispy wavy strips of bacon side by side, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -910,7 +910,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 192, transparent
 - **Used for:** Burger Stack: a falling topping to catch, then a layer of the burger.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of a glossy red zigzag squiggle of ketchup lying flat, like a sauce layer, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -922,7 +922,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 192, transparent
 - **Used for:** Burger Stack: a falling topping to catch, then a layer of the burger.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of four round green pickle slices in a row, slightly overlapping, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -934,7 +934,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 192, transparent
 - **Used for:** Burger Stack: a falling topping to catch, then a layer of the burger.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of three white-and-purple onion rings in a row, slightly overlapping, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -946,7 +946,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 192, transparent
 - **Used for:** Burger Stack: a falling topping to catch, then a layer of the burger.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of a fried egg with a round yellow yolk and wavy white edges, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -958,7 +958,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 1600 x 1000, opaque
 - **Used for:** Baseball: the view from just behind home plate, out over the diamond.
 - **Stand-in until delivered:** A canvas-drawn field.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A sunny cartoon baseball stadium seen from just behind and above home plate: the dirt diamond and pitcher's mound in the middle distance, bright green outfield with mowed stripes, a curved outfield wall with distance numbers, colourful stands full of tiny fans, and blue sky. Leave home plate and the pitcher's mound empty (the game draws the players).
@@ -970,7 +970,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 256 x 256, transparent
 - **Used for:** Baseball: the ball.
 - **Stand-in until delivered:** A drawn ball.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A white baseball with red stitching, slightly tilted. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -982,7 +982,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 128, transparent
 - **Used for:** Baseball: the bat the player swings.
 - **Stand-in until delivered:** A drawn bat.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A wooden baseball bat lying horizontally, handle on the left, glossy honey-coloured wood with a dark grip tape handle. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -994,7 +994,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 768, transparent
 - **Used for:** Baseball: the pitcher on the mound before the throw.
 - **Stand-in until delivered:** A drawn figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon baseball pitcher in a white and red uniform and cap, seen from the front (facing the batter), in the wind-up: one knee raised high, glove and ball held together at the chest. Full body, feet at the bottom. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1006,7 +1006,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 768, transparent
 - **Used for:** Baseball: the pitcher releasing the ball.
 - **Stand-in until delivered:** A drawn figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. The same cartoon pitcher (white and red uniform and cap), seen from the front, in the follow-through just after throwing: throwing arm swung down across the body, leaning forward, front leg planted. Full body, feet at the bottom. No ball in the hand. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1018,10 +1018,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 1600 x 1200, opaque
 - **Used for:** Mob Whack: the field the mobs pop up in.
 - **Stand-in until delivered:** A canvas-drawn field.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A grassy blocky meadow seen slightly from above at dusk: grass blocks with dirt sides, a few blocky trees and flowers at the edges, and a 3 by 3 grid of nine round dark holes dug into the grass, evenly spaced across the middle of the picture. No creatures.
+Exactly NINE dark ROUND oval holes, arranged in exactly THREE rows of THREE. No other holes, pits, cavities, trenches or openings anywhere including foreground and edges. Camera more overhead, small oval holes all same size, all fully contained inside central grassy meadow. Preserve voxel style landscape, trees and flowers only at edges.
 ```
 
 ### CH-G51 · Zombie
@@ -1030,7 +1031,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: zombie popping up out of a hole.
 - **Stand-in until delivered:** A drawn blocky figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky zombie: green square head with dark hollow eyes, cyan shirt, arms stretched forward, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1042,7 +1043,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: creeper popping up out of a hole.
 - **Stand-in until delivered:** A drawn blocky figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky creeper: tall green mottled body with four short legs and the famous sad dark face, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1054,7 +1055,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: creeper about to explode popping up out of a hole.
 - **Stand-in until delivered:** A drawn blocky figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. the same blocky creeper, swollen and flashing white, about to explode, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1066,7 +1067,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: villager popping up out of a hole.
 - **Stand-in until delivered:** A drawn blocky figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky villager: big nose, single unibrow, brown robe with hands folded in the sleeves, looking worried, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1078,7 +1079,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: enderman popping up out of a hole.
 - **Stand-in until delivered:** A drawn blocky figure.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky enderman: very tall thin black body, long arms, glowing purple eyes, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1090,7 +1091,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: a creeper going off.
 - **Stand-in until delivered:** Drawn squares.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A chunky pixel explosion: a burst of white, yellow and orange cube particles and grey smoke puffs. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1102,7 +1103,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Mob Whack: where an enderman vanishes and reappears.
 - **Stand-in until delivered:** Drawn squares.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A cloud of small purple and magenta square particles, swirling. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1114,7 +1115,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Mob Whack: the hammer that follows your finger and swings.
 - **Stand-in until delivered:** A drawn hammer.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A blocky iron hammer (pixel-art tool) held diagonally, handle at the bottom right, head at the top left. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1126,7 +1127,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Kart Dash: every player's kart (the game tints it in their colour and puts their face in the seat).
 - **Stand-in until delivered:** A drawn kart.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen straight from behind, driving away: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1138,7 +1139,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Kart Dash: every player's kart (the game tints it in their colour and puts their face in the seat).
 - **Stand-in until delivered:** A drawn kart.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen from behind and slightly to the side, leaning into a left turn, front wheels turned left: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1150,7 +1151,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Kart Dash: every player's kart (the game tints it in their colour and puts their face in the seat).
 - **Stand-in until delivered:** A drawn kart.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen from behind and slightly to the side, leaning into a right turn, front wheels turned right: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1162,7 +1163,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 2048 x 512, opaque
 - **Used for:** Kart Dash: the horizon behind the track; scrolls sideways as you turn.
 - **Stand-in until delivered:** A drawn gradient.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A wide panorama of a bright blue sky with puffy clouds over rolling green hills and a few distant mountains; the bottom edge is the horizon line in flat green. Tiles seamlessly left to right.
@@ -1174,7 +1175,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 512 x 512, opaque
 - **Used for:** Kart Dash: the ground beside the track, seen from above.
 - **Stand-in until delivered:** A green fill.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of short bright cartoon grass with a few tiny flowers. Flat, no shadows.
@@ -1186,7 +1187,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 512 x 512, opaque
 - **Used for:** Kart Dash: the track surface, seen from above.
 - **Stand-in until delivered:** A grey fill.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of smooth grey cartoon asphalt with subtle speckles. Flat, no lines.
@@ -1198,7 +1199,7 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: item box.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a floating translucent rainbow cube with a big white question mark on its faces, glowing. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1210,7 +1211,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: boost rocket.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a small red and yellow rocket booster with flames, power-up icon. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1222,7 +1223,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: banana peel.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a slippery yellow banana peel lying on the ground. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1234,10 +1235,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: bouncing bomb.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a round shiny black cartoon bomb with a lit fuse and little springy feet. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
 ```
 
 ### CH-G69 · Rainbow star
@@ -1246,10 +1248,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: rainbow star.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a sparkling five-pointed star glowing in rainbow colours, power-up icon. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
 ```
 
 ### CH-G70 · Flying kart parts
@@ -1258,10 +1261,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 768 x 512, transparent
 - **Used for:** Kart Dash: flying kart parts.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a sprite sheet of six separate kart pieces flying apart, arranged in a 3 by 2 grid with space between: a wheel, a bolt, a bent white body panel, a spoiler, a spring and an exhaust pipe. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 768 x 512. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
 ```
 
 ### CH-G71 · Tyre stack
@@ -1270,10 +1274,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Kart Dash: tyre stack.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a stack of three black tyres with red and white stripes, a trackside barrier. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
 ```
 
 ### CH-G72 · Trackside tree
@@ -1282,10 +1287,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 384, transparent
 - **Used for:** Kart Dash: trackside tree.
 - **Stand-in until delivered:** A drawn shape.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a round cartoon tree with a short brown trunk. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 384. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.
 ```
 
 ## 360° worlds
@@ -2562,10 +2568,11 @@ Edit attached Games Chat Go Fish icon. Preserve its red Anomalocaris playing car
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baseball card in the game picker.
 - **Stand-in until delivered:** An emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a baseball flying off a swinging bat with motion lines, in front of a stadium. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-I99 · Mob Whack icon
@@ -2574,10 +2581,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mob Whack card in the game picker.
 - **Stand-in until delivered:** An emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-I100 · Kart Dash icon
@@ -2586,10 +2594,11 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** The Kart Dash card in the game picker.
 - **Stand-in until delivered:** An emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Only an unoccupied cartoon go-kart drifting around a bend with sparks, rainbow star and banana peel. No driver, no animal, no dog, no person. All three elements neatly contained inside the rounded-square gradient tile.
 ```
 
 ## Theme title screens
@@ -3830,10 +3839,11 @@ Edit attached Games Chat ART theme Go Fish icon. Preserve French New Wave screen
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baseball card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-N98 · Mob Whack icon (Art theme)
@@ -3842,10 +3852,11 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mob Whack card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-N99 · Kart Dash icon (Art theme)
@@ -3854,10 +3865,11 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 - **Size:** 256 x 256, transparent
 - **Used for:** The Kart Dash card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ## Effect and game icons, Classical theme
@@ -5022,10 +5034,11 @@ Edit attached CLASSICAL theme Games Chat Go Fish icon. Preserve the Rococo paint
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baseball card in the game picker in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-R98 · Mob Whack icon (Classical theme)
@@ -5034,10 +5047,11 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mob Whack card in the game picker in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-R99 · Kart Dash icon (Classical theme)
@@ -5046,10 +5060,11 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Kart Dash card in the game picker in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -6226,10 +6241,11 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Baseball card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-K99 · Mob Whack icon (second set)
@@ -6238,10 +6254,11 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Mob Whack card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```
 
 ### CH-K100 · Kart Dash icon (second set)
@@ -6250,8 +6267,9 @@ Sleek modern app-icon illustration for a video-chat app used by teenagers and yo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Kart Dash card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+Production canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.
 ```

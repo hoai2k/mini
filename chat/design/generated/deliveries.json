@@ -6136,5 +6136,680 @@
     "reference": "assets/ui/icon.png",
     "preparation": "Converted to opaque RGB and fitted to 1024 x 1024 with Lanczos; copied to the iOS AppIcon asset catalogue.",
     "accepted": true
+  },
+  {
+    "id": "CH-G40",
+    "file": "assets/games/burger-bacon.png",
+    "size": "512 x 192",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of two crispy wavy strips of bacon side by side, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-231b938e-cd86-43b0-80df-53bc55ff30b4.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G41",
+    "file": "assets/games/burger-ketchup.png",
+    "size": "512 x 192",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of a glossy red zigzag squiggle of ketchup lying flat, like a sauce layer, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-51a6fa07-5405-46e2-acf1-385eca78689b.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G42",
+    "file": "assets/games/burger-pickles.png",
+    "size": "512 x 192",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of four round green pickle slices in a row, slightly overlapping, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-aef0487b-9360-4196-91f8-c5c6ff4c8417.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G43",
+    "file": "assets/games/burger-onion.png",
+    "size": "512 x 192",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of three white-and-purple onion rings in a row, slightly overlapping, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-598be61a-0798-4738-bdb2-36c05ddb63b6.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G44",
+    "file": "assets/games/burger-egg.png",
+    "size": "512 x 192",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of a fried egg with a round yellow yolk and wavy white edges, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-42e33c81-3cfc-4660-a908-ac2e42ff8f3a.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G45",
+    "file": "assets/games/baseball-field.webp",
+    "size": "1600 x 1000",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A sunny cartoon baseball stadium seen from just behind and above home plate: the dirt diamond and pitcher's mound in the middle distance, bright green outfield with mowed stripes, a curved outfield wall with distance numbers, colourful stands full of tiny fans, and blue sky. Leave home plate and the pitcher's mound empty (the game draws the players).",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1586,
+      992
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-20dda2c0-51c8-49b9-be33-b975db71eb66.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G46",
+    "file": "assets/games/baseball-ball.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A white baseball with red stitching, slightly tilted. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-a1fc47bd-4111-4a7e-98ef-059038a6b8d3.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G47",
+    "file": "assets/games/baseball-bat.png",
+    "size": "512 x 128",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A wooden baseball bat lying horizontally, handle on the left, glossy honey-coloured wood with a dark grip tape handle. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1983,
+      793
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-9296bc7a-5c69-4e96-b485-ef6cecc3ba6b.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G48",
+    "file": "assets/games/baseball-pitcher-windup.png",
+    "size": "512 x 768",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon baseball pitcher in a white and red uniform and cap, seen from the front (facing the batter), in the wind-up: one knee raised high, glove and ball held together at the chest. Full body, feet at the bottom. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1024,
+      1536
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-f8b82427-05f0-4e8e-90c5-5e436145f821.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G49",
+    "file": "assets/games/baseball-pitcher-throw.png",
+    "size": "512 x 768",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. The same cartoon pitcher (white and red uniform and cap), seen from the front, in the follow-through just after throwing: throwing arm swung down across the body, leaning forward, front leg planted. Full body, feet at the bottom. No ball in the hand. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1024,
+      1536
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-253a73d3-bdc3-4477-b983-1a12cd8ef573.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G50",
+    "file": "assets/games/whack-field.webp",
+    "size": "1600 x 1200",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A grassy blocky meadow seen slightly from above at dusk: grass blocks with dirt sides, a few blocky trees and flowers at the edges, and a 3 by 3 grid of nine round dark holes dug into the grass, evenly spaced across the middle of the picture. No creatures.\nExactly NINE dark ROUND oval holes, arranged in exactly THREE rows of THREE. No other holes, pits, cavities, trenches or openings anywhere including foreground and edges. Camera more overhead, small oval holes all same size, all fully contained inside central grassy meadow. Preserve voxel style landscape, trees and flowers only at edges.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-b5b9cf08-bb9c-4b4e-9cc8-918e8634b0d2.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G51",
+    "file": "assets/games/whack-zombie.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky zombie: green square head with dark hollow eyes, cyan shirt, arms stretched forward, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-d68011c0-7f1b-4132-b1be-ac9c8f33efc4.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G52",
+    "file": "assets/games/whack-creeper.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky creeper: tall green mottled body with four short legs and the famous sad dark face, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-c4a12079-a7ea-4af4-ae10-7ec8592988d0.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G53",
+    "file": "assets/games/whack-creeper-flash.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. the same blocky creeper, swollen and flashing white, about to explode, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-8320ea6d-1819-4d42-ad6b-6ab60facaa31.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G54",
+    "file": "assets/games/whack-villager.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky villager: big nose, single unibrow, brown robe with hands folded in the sleeves, looking worried, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-331ab873-3b5d-4d92-bd78-842bbca1b536.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G55",
+    "file": "assets/games/whack-enderman.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. a blocky enderman: very tall thin black body, long arms, glowing purple eyes, front view, from the waist up as if rising out of a hole (the bottom edge is cut off straight). Centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-79b92419-c05d-47c2-9603-1b0567c11e8a.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G56",
+    "file": "assets/games/whack-explosion.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A chunky pixel explosion: a burst of white, yellow and orange cube particles and grey smoke puffs. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-8c39453d-c867-4ef3-afd4-83ef2260d105.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G57",
+    "file": "assets/games/whack-teleport.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A cloud of small purple and magenta square particles, swirling. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-854bd372-e05a-4b34-8d1c-199a86a23159.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G58",
+    "file": "assets/games/whack-hammer.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Blocky voxel game art in the style of Minecraft: everything built from cubes, chunky 16-pixel textures on each face, flat lighting with simple shading per face. A blocky iron hammer (pixel-art tool) held diagonally, handle at the bottom right, head at the top left. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-f0f53830-c812-48c5-967e-9ac6ae4a93d9.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G59",
+    "file": "assets/games/kart-back.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen straight from behind, driving away: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-54ced64b-95a2-48c0-88b5-7b4df4c00d2d.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G60",
+    "file": "assets/games/kart-left.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen from behind and slightly to the side, leaning into a left turn, front wheels turned left: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-a1345270-5ccb-4718-aa69-28c78b88d725.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G61",
+    "file": "assets/games/kart-right.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A go-kart seen from behind and slightly to the side, leaning into a right turn, front wheels turned right: chunky white body panels (so the game can tint them), black tyres, exhaust pipes, a big rear spoiler, and an EMPTY round seat with no driver (the game draws the player's face there). Low and wide, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-54960e30-2831-4e47-a410-56691b6cd95e.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G62",
+    "file": "assets/games/kart-sky.webp",
+    "size": "2048 x 512",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. A wide panorama of a bright blue sky with puffy clouds over rolling green hills and a few distant mountains; the bottom edge is the horizon line in flat green. Tiles seamlessly left to right.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      2048,
+      768
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-1cfb6a09-1f00-4a33-af4d-6ad2830382d6.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G63",
+    "file": "assets/games/kart-grass.webp",
+    "size": "512 x 512",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of short bright cartoon grass with a few tiny flowers. Flat, no shadows.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-0f208421-553e-43ce-8312-24c281c4eb99.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G64",
+    "file": "assets/games/kart-road.webp",
+    "size": "512 x 512",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A seamlessly tiling top-down texture of smooth grey cartoon asphalt with subtle speckles. Flat, no lines.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-1f2949bd-ee84-48be-a89c-79b366a1a89a.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G65",
+    "file": "assets/games/kart-itembox.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a floating translucent rainbow cube with a big white question mark on its faces, glowing. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-bfdb8a6a-f9d7-4850-9a48-b196ee75066a.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G66",
+    "file": "assets/games/kart-boost.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a small red and yellow rocket booster with flames, power-up icon. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-b3ab23d8-3320-4e49-99b7-039f3ab3fb96.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G67",
+    "file": "assets/games/kart-banana.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a slippery yellow banana peel lying on the ground. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-4c9847a1-285f-4b95-bd0b-3b983e7135da.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G68",
+    "file": "assets/games/kart-bomb.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a round shiny black cartoon bomb with a lit fuse and little springy feet. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-a7233c9e-271f-4ada-bcf6-c469f7a27d83.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G69",
+    "file": "assets/games/kart-star.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a sparkling five-pointed star glowing in rainbow colours, power-up icon. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-44f52f2b-b952-4bd9-be74-f9548aab1942.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G70",
+    "file": "assets/games/kart-parts.png",
+    "size": "768 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a sprite sheet of six separate kart pieces flying apart, arranged in a 3 by 2 grid with space between: a wheel, a bolt, a bent white body panel, a spoiler, a spring and an exhaust pipe. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 768 x 512. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1536,
+      1024
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-0ea700d9-e310-4b8e-abb7-8da4725c1df4.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G71",
+    "file": "assets/games/kart-tyres.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a stack of three black tyres with red and white stripes, a trackside barrier. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 256. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-8e609184-27de-4e99-8532-de009cac5524.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-G72",
+    "file": "assets/games/kart-tree.png",
+    "size": "256 x 384",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon racing-game art, chunky shapes, saturated colours. a round cartoon tree with a short brown trunk. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 384. Single standalone harmless cartoon videogame pickup sprite. Actual transparent alpha, clean edges, no cast shadow behind subject.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1024,
+      1536
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-01753f41-3356-4ede-8d2a-5288a61286aa.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-I98",
+    "file": "assets/icons/game-baseball.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a baseball flying off a swinging bat with motion lines, in front of a stadium. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-c0fa44a9-ed06-4883-92a8-e884db956208.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-I99",
+    "file": "assets/icons/game-whack.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-9cf14bb6-d68f-498c-9bce-6481a773a68b.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-I100",
+    "file": "assets/icons/game-kart.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nOnly an unoccupied cartoon go-kart drifting around a bend with sparks, rainbow star and banana peel. No driver, no animal, no dog, no person. All three elements neatly contained inside the rounded-square gradient tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-9709166f-064c-407e-a390-785eb8cfc598.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-N97",
+    "file": "assets/icons-art/art-game-baseball.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-29474d49-07e5-498f-adab-908596cdcb5d.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-N98",
+    "file": "assets/icons-art/art-game-whack.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-35bca092-c93d-4c70-ab69-1763ff5c179e.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-N99",
+    "file": "assets/icons-art/art-game-kart.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-7ef50116-3c30-49e6-b732-1d7720019be3.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-R97",
+    "file": "assets/icons-classic/classic-game-baseball.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-1d76ac5b-c768-4335-8e5f-dd22ac377d71.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-R98",
+    "file": "assets/icons-classic/classic-game-whack.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-ab89c470-7147-4702-a49c-40a28c8f6ba6.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-R99",
+    "file": "assets/icons-classic/classic-game-kart.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-68d872a2-78a4-41f2-9bef-38db2173fd06.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-K98",
+    "file": "assets/icons2/game2-baseball.png",
+    "size": "256 x 256",
+    "prompt": "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a baseball flying off a swinging bat with motion lines, in front of a stadium. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-40963a2f-780f-4f6f-bc73-c713d71a15ef.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-K99",
+    "file": "assets/icons2/game2-whack.png",
+    "size": "256 x 256",
+    "prompt": "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a blocky hammer about to whack a blocky green zombie popping out of a hole, with a creeper peeking from another hole. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-9167d8d0-0109-4820-8f9b-2623d6880dba.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
+  },
+  {
+    "id": "CH-K100",
+    "file": "assets/icons2/game2-kart.png",
+    "size": "256 x 256",
+    "prompt": "Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: a cartoon go-kart drifting round a bend with sparks, a rainbow star and a banana peel flying. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nProduction canvas: 256 x 256. Single app icon tile. Actual transparent alpha strictly outside rounded tile, no exterior glow. Keep all scene elements neatly contained inside tile. Use drawn illustration, not photorealism.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-94d6bd90-268e-4a85-9839-7e38656a94b2.png",
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed generated subject and style; verified dimensions, decoding and transparent alpha for sprites/icons."
   }
 ]
