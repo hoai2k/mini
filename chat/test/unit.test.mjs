@@ -102,6 +102,18 @@ test('contain mapping letterboxes a landscape video in an upright tile', () => {
   close(d.y, (844 + 390 * 0.75) / 2);
 });
 
+test('a moved picture moves the mapping with it', () => {
+  const rect = { left: 0, top: 0, width: 390, height: 844 };
+  // Letterboxed and slid to the top: the picture's top edge is the screen's.
+  close(mapCover(rect, 640, 480, 0.5, 0, 'contain', { x: 0.5, y: 0 }).y, 0);
+  // Filled and dragged to show the picture's left edge.
+  const k = 844 / 480;
+  close(mapCover(rect, 640, 480, 0, 0.5, 'cover', { x: 0, y: 0.5 }).x, 0);
+  close(mapCover(rect, 640, 480, 1, 0.5, 'cover', { x: 1, y: 0.5 }).x, 390);
+  close(mapCover(rect, 640, 480, 0.5, 0.5, 'cover').x, 195);
+  assert.ok(640 * k > 390);
+});
+
 test('every listed effect and game has a file', () => {
   const fx = readdirSync(new URL('../effects/', import.meta.url));
   const games = readdirSync(new URL('../games/', import.meta.url));
@@ -551,5 +563,20 @@ test('Copy Cat: puffed cheeks against the resting face, and one eye shut', async
   const eye = C.EXPRS.find(e => e.text.startsWith('Close one eye'));
   assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.1 })) > eye.thr);
   assert.ok(eye.get(face(140, { blinkL: 0.9, blinkR: 0.85 })) < eye.thr, 'both eyes shut is not one eye');
+  assert.ok(eye.get(face(140, { blinkL: 0.45, blinkR: 0.15 })) > eye.thr, 'a half-hearted wink with the other eye squinting still counts');
+  assert.ok(eye.get(face(140, { blinkL: 0.15, blinkR: 0.08 })) < eye.thr, 'resting eyes are not a wink');
+  // By the eyelids: one gap a third of the other's, with blink scores that missed it.
+  const lids = (l, r) => {
+    const f = face(140);
+    const eye = ([top, bottom, a, b], cx, gap) => {
+      f.pts[a] = { x: cx - 15, y: 0 }; f.pts[b] = { x: cx + 15, y: 0 };
+      f.pts[top] = { x: cx, y: -gap / 2 }; f.pts[bottom] = { x: cx, y: gap / 2 };
+    };
+    eye(C.LIDS.l, -35, l); eye(C.LIDS.r, 35, r);
+    return f;
+  };
+  assert.ok(eye.get(lids(3, 9)) > eye.thr, 'one eyelid gap well under the other counts');
+  assert.ok(eye.get(lids(8, 9)) < eye.thr, 'two open eyes are not a wink');
+  assert.ok(eye.get(lids(1, 1.2)) < eye.thr, 'two shut eyes are not a wink');
   assert.ok(!C.EXPRS.some(e => /both eyes|Wink/.test(e.text)));
 });

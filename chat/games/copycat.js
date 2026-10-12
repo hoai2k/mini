@@ -26,12 +26,28 @@ const EXPRS = [
   { emoji: '🤨', text: 'Raise your eyebrows!', thr: 0.6, get: f => f.browUp },
   { emoji: '🐡', text: 'Puff your cheeks!', thr: 0.45, get: () => puff.score },
   { emoji: '☹️', text: 'Frown!', thr: 0.45, get: f => f.frown },
-  { emoji: '😉', text: 'Close one eye!', thr: 0.4, get: f => oneEye(f) },
+  { emoji: '😉', text: 'Close one eye!', thr: 0.5, get: f => oneEye(f) },
 ];
 
-// One eye shut and the other open: how far apart the two blinks are.
+// One eye shut and the other open. Forgiving on purpose: the open eye
+// usually squints along, and the tracker's blink score for the shut one often
+// stops short. Either signal is enough: the blink scores a quarter apart
+// (full marks at 0.4), or one eyelid gap under ~60% of the other's.
+const LIDS = { l: [159, 145, 33, 133], r: [386, 374, 362, 263] };
+function eyeOpen(pts, [top, bottom, a, b]) {
+  const d = (i, j) => Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+  const w = d(a, b);
+  return w > 0 ? d(top, bottom) / w : 0;
+}
 function oneEye(f) {
-  return clamp(Math.abs(f.blinkL - f.blinkR), 0, 1);
+  const blink = clamp((Math.abs(f.blinkL - f.blinkR) - 0.05) / 0.35, 0, 1);
+  let lids = 0;
+  if (f.pts?.length >= 400) {
+    const l = eyeOpen(f.pts, LIDS.l), r = eyeOpen(f.pts, LIDS.r);
+    const hi = Math.max(l, r), lo = Math.min(l, r);
+    if (hi > 0.12) lids = clamp((0.8 - lo / hi) / 0.4, 0, 1);
+  }
+  return Math.max(blink, lids);
 }
 
 // Puffed cheeks. The tracker's cheekPuff score barely moves for most faces,
@@ -491,4 +507,4 @@ export default {
   },
 };
 
-export const _logic = { EXPRS, puff, puffScore, trackPuff, oneEye, cheekRatio };
+export const _logic = { EXPRS, puff, puffScore, trackPuff, oneEye, cheekRatio, eyeOpen, LIDS };

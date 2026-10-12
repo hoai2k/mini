@@ -111,6 +111,8 @@ button { cursor: pointer; }
    letterboxed (a friend in landscape on your upright phone). Small floating
    tiles all keep one shape and crop to it, and your own view always fills. */
 .tile:not(.self):not(.pip) > :is(video, canvas) { object-fit: contain; }
+/* Pinch and drag the main view (see mainViewGestures) instead of the page. */
+.tile.main-friend { touch-action: none; }
 .tile .name {
   position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.5);
   font-weight: 800; font-size: 0.85rem; display: flex; gap: 6px; align-items: center; max-width: calc(100% - 20px); z-index: 1;

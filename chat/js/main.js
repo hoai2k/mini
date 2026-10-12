@@ -367,7 +367,7 @@ async function start() {
       const media = t.media;
       const w = media.videoWidth || media.width, h = media.videoHeight || media.height;
       if (!w || !h) return null;
-      return { rect: t.el.getBoundingClientRect(), w, h, fit: id === me.id || t.el.classList.contains('pip') ? 'cover' : 'contain' };
+      return { rect: t.el.getBoundingClientRect(), w, h, ...(isMainFriend(t) ? (v => ({ fit: v.fill ? 'cover' : 'contain', pos: v }))(viewOf(id)) : { fit: 'cover' }) };
     },
     face: id => {
       if (id === me.id) {
@@ -443,6 +443,31 @@ function makeTile(id, media) {
 // One primary video fills the screen; every other video floats independently.
 // Positions are fractions of the available area, so they survive resizing.
 let primaryId = null;
+
+// How a friend in the main view is framed, remembered per friend: their whole
+// picture letterboxed (fill false), or filling the screen and cropped (fill
+// true). x, y: where the picture sits in its spare room, or which part of it
+// the crop shows, 0..1 like CSS object-position.
+const views = new Map();
+const viewOf = id => views.get(id) ?? { fill: false, x: 0.5, y: 0.5 };
+const isMainFriend = rec => rec.id !== me.id && !rec.el.classList.contains('pip') && !games?.current;
+function applyView(rec) {
+  const m = rec.media.style;
+  if (!isMainFriend(rec)) { m.objectFit = ''; m.objectPosition = ''; return; }
+  const v = viewOf(rec.id);
+  m.objectFit = v.fill ? 'cover' : 'contain';
+  m.objectPosition = `${(v.x * 100).toFixed(2)}% ${(v.y * 100).toFixed(2)}%`;
+}
+// The room a friend's picture has to move in, in pixels, along each axis:
+// positive is spare room around a letterboxed picture, negative is the part
+// a filled picture crops away.
+function viewRoom(rec, fill) {
+  const w = rec.media.videoWidth || rec.media.width, h = rec.media.videoHeight || rec.media.height;
+  const W = rec.el.clientWidth, H = rec.el.clientHeight;
+  if (!w || !h || !W || !H) return { x: 0, y: 0 };
+  const k = (fill ? Math.max : Math.min)(W / w, H / h);
+  return { x: W - w * k, y: H - h * k };
+}
 const pipPositions = new Map();
 function promoteTile(id) {
   const position = pipPositions.get(id);
@@ -492,6 +517,8 @@ function updatePip() {
     }
     if (pip && !games?.current) placePip(rec);
     else { rec.el.style.left = ''; rec.el.style.top = ''; }
+    rec.el.classList.toggle('main-friend', isMainFriend(rec));
+    applyView(rec);
   }
   updateGrabButton();
 }
@@ -545,6 +572,69 @@ function tileGestures(rec) {
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
+  mainViewGestures(rec);
+}
+
+// A friend in the main view: pinch out to fill the screen (cropped), pinch in
+// for their whole picture again; drag to choose the part a filled picture
+// shows, or to slide a letterboxed one within its spare room. On a computer,
+// a trackpad pinch or a double-click switches between the two.
+function mainViewGestures(rec) {
+  const el = rec.el;
+  const fingers = new Map();
+  let pinch = null, pan = null;
+  const setView = v => { views.set(rec.id, v); applyView(rec); };
+  const toggle = fill => {
+    const v = viewOf(rec.id);
+    if (v.fill === fill) return;
+    // Switching starts centred, so the new framing doesn't open on an edge.
+    setView({ fill, x: 0.5, y: 0.5 });
+    sfx('click');
+  };
+  el.addEventListener('pointerdown', e => {
+    if (!isMainFriend(rec) || e.target.closest('button')) return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    el.setPointerCapture?.(e.pointerId);
+    if (fingers.size === 2) {
+      const [a, b] = [...fingers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, done: false };
+      pan = null;
+    } else if (fingers.size === 1) {
+      pan = { x: e.clientX, y: e.clientY, v: { ...viewOf(rec.id) }, room: viewRoom(rec, viewOf(rec.id).fill) };
+    }
+  });
+  el.addEventListener('pointermove', e => {
+    if (!fingers.has(e.pointerId) || !isMainFriend(rec)) return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && fingers.size >= 2) {
+      const [a, b] = [...fingers.values()];
+      const r = Math.hypot(a.x - b.x, a.y - b.y) / pinch.d;
+      if (!pinch.done && r > 1.15) { pinch.done = true; toggle(true); }
+      else if (!pinch.done && r < 0.87) { pinch.done = true; toggle(false); }
+      return;
+    }
+    if (!pan) return;
+    const along = (room, d, start) => (Math.abs(room) < 2 ? start : Math.max(0, Math.min(1, start + d / room)));
+    setView({ ...pan.v, x: along(pan.room.x, e.clientX - pan.x, pan.v.x), y: along(pan.room.y, e.clientY - pan.y, pan.v.y) });
+  });
+  const lift = e => {
+    if (!fingers.delete(e.pointerId)) return;
+    if (fingers.size < 2) pinch = null;
+    if (fingers.size === 1) {
+      // The finger left on the screen carries on dragging from here.
+      const [p] = [...fingers.values()];
+      pan = { x: p.x, y: p.y, v: { ...viewOf(rec.id) }, room: viewRoom(rec, viewOf(rec.id).fill) };
+    } else if (!fingers.size) pan = null;
+  };
+  el.addEventListener('pointerup', lift);
+  el.addEventListener('pointercancel', lift);
+  el.addEventListener('dblclick', () => { if (isMainFriend(rec)) toggle(!viewOf(rec.id).fill); });
+  // Trackpad pinches arrive as wheel events with ctrlKey set.
+  el.addEventListener('wheel', e => {
+    if (!isMainFriend(rec) || !e.ctrlKey) return;
+    e.preventDefault();
+    if (Math.abs(e.deltaY) > 2) toggle(e.deltaY < 0);
+  }, { passive: false });
 }
 
 function addSelfTile() {
