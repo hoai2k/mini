@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 21
+A video chat in the browser with 75 face effects and backgrounds and 22
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -254,7 +254,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 21 games with rookie controls, real turns, live Burger Stack
+  offers, all 22 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
