@@ -77,8 +77,15 @@ const CSS = `
 .gf-card .nm { position: absolute; left: 2px; right: 2px; bottom: 5px; text-align: center; font-size: calc(var(--w) * 0.145 * var(--fit, 1)); font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gf-card .x { position: absolute; top: -7px; right: -7px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--sun); color: #2b1f4a; font-size: 0.8rem; font-weight: 900; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 .gf-card.sel { transform: translateY(-8px); box-shadow: 0 0 0 3px var(--aqua), 0 0 16px rgba(63,224,208,0.7), 0 3px 0 rgba(0,0,0,0.35); }
-.gf-card.want { animation: gf-want 0.9s ease-in-out infinite; }
-@keyframes gf-want { 50% { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--sun), 0 0 18px rgba(255,212,59,0.8); } }
+.gf-card.want { animation: gf-want 1.3s infinite; transform-origin: 50% 100%; }
+@keyframes gf-want {
+  0%, 100% { transform: translateY(0) scale(1.06, 0.92); box-shadow: 0 0 0 3px var(--sun), 0 0 10px rgba(255,212,59,0.5), 0 3px 0 rgba(0,0,0,0.35); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+  22% { transform: translateY(-20px) scale(0.94, 1.1); box-shadow: 0 0 0 3px var(--sun), 0 0 24px rgba(255,212,59,0.9), 0 3px 0 rgba(0,0,0,0.35); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+  40% { transform: translateY(0) scale(1.1, 0.86); animation-timing-function: ease-out; }
+  52% { transform: translateY(-7px) scale(0.98, 1.04); animation-timing-function: ease-in; }
+  62% { transform: translateY(0) scale(1.03, 0.97); }
+  78% { transform: translateY(0) scale(1); box-shadow: 0 0 0 3px var(--sun), 0 0 12px rgba(255,212,59,0.5), 0 3px 0 rgba(0,0,0,0.35); }
+}
 .gf-card.new { animation: gf-in 0.5s cubic-bezier(.3,1.4,.5,1); }
 @keyframes gf-in { from { transform: translateY(-30px) scale(0.6); opacity: 0; } }
 .gf-card[aria-disabled="true"] { cursor: default; }
@@ -615,6 +622,32 @@ export default {
       act('ask', { rank, to }, game => applyAsk(api.me.id, rank, to, game));
     };
     const answer = () => { api.sfx('click'); act('answer', {}, game => applyAnswer(api.me.id, game)); };
+    // Tapping the wanted card: it flies from my hand to the asker's chip, then the answer goes out.
+    let giving = false;
+    function giveCard(cardBtn, from) {
+      if (giving) return;
+      giving = true;
+      api.sfx('whoosh');
+      const done = () => { giving = false; if (!destroyed) answer(); };
+      const chip = [...top.children].find(c => c.dataset.pid === from);
+      const base = root.getBoundingClientRect();
+      const a = cardBtn.getBoundingClientRect();
+      const b = (chip || top).getBoundingClientRect();
+      const fly = cardBtn.cloneNode(true);
+      fly.classList.remove('want', 'sel', 'new');
+      fly.style.cssText = `position:absolute;margin:0;z-index:30;pointer-events:none;--w:${a.width}px;left:${a.left - base.left}px;top:${a.top - base.top}px;transform-origin:50% 50%`;
+      root.append(fly);
+      cardBtn.style.visibility = 'hidden';
+      const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+      if (!fly.animate) { fly.remove(); done(); return; }
+      const an = fly.animate([
+        { transform: 'translate(0,0) scale(1)', offset: 0 },
+        { transform: `translate(${dx * 0.1}px, ${-26}px) scale(1.12, 0.94)`, offset: 0.2, easing: 'cubic-bezier(.4,0,.8,.6)' },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.3) rotate(${dx > 0 ? 25 : -25}deg)`, opacity: 0.2, offset: 1 },
+      ], { duration: 520, fill: 'forwards' });
+      an.onfinish = () => { fly.remove(); done(); };
+      an.oncancel = () => { fly.remove(); done(); };
+    }
     const goFish = () => act('fish', {}, game => applyFish(api.me.id, game));
     // Deals a new game for everyone here (from the lobby or after a game).
     const deal = () => { const s = sharedNow(); if (!s) return; api.sfx('click'); if (api.isOwner()) api.setShared(freshShared(s.game + 1)); else api.send('deal', { game: s.game }); };
@@ -728,6 +761,7 @@ export default {
       for (const id of s.order) {
         if (id === me) continue;
         const c = chipEl(id, s);
+        c.dataset.pid = id;
         c.classList.toggle('turn', s.turn === id && s.phase !== 'over');
         if (choosing && askable.length > 1) {
           c.classList.add('pick');
@@ -771,7 +805,8 @@ export default {
         if (to === me) {
           const n = myHand.filter(r => r === rank).length;
           status = `${nameOf(from, s)} asks: got any ${cardWord(rank)}?`;
-          actions.append(n > 0 ? button(`Give ${n} ${cardWord(rank, n)}`, 'aqua', answer) : button('Go Fish! 🎣', 'fish', answer));
+          if (n > 0) status = `${nameOf(from, s)} asks: got any ${cardWord(rank)}? Tap ${n > 1 ? 'them' : 'it'} to give ${n > 1 ? 'them' : 'it'} over`;
+          else actions.append(button('Go Fish! 🎣', 'fish', answer));
         } else status = `${nameOf(from, s)} asks ${to === me ? 'you' : nameOf(to, s)} for ${cardWord(rank)}…`;
       } else if (s.phase === 'fish') {
         if (myTurn) {
@@ -818,11 +853,16 @@ export default {
         c.classList.toggle('sel', choosing && picked === r);
         c.classList.toggle('want', s.phase === 'answer' && s.ask?.to === me && s.ask.rank === r);
         if (fresh.has(r)) c.classList.add('new');
-        c.setAttribute('aria-disabled', choosing ? 'false' : 'true');
+        const wanted = s.phase === 'answer' && s.ask?.to === me && s.ask.rank === r;
+        c.setAttribute('aria-disabled', choosing || wanted ? 'false' : 'true');
+        if (giving && wanted) c.style.visibility = 'hidden';
         c.addEventListener('click', () => {
+          if (wanted) { giveCard(c, s.ask.from); return; }
           if (!choosing) return;
           picked = picked === r ? -1 : r;
           api.sfx('click');
+          // With one opponent there is nobody to choose: tapping a creature asks straight away.
+          if (picked >= 0 && askable.length === 1) { target = askable[0]; ask(); return; }
           render();
         });
         hand.append(c);
