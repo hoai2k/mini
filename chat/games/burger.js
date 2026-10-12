@@ -2,7 +2,7 @@
 // bun by moving your head left and right (or drag, arrow keys, controller
 // stick, or tilting your phone). Caught ingredients stack up and the stack
 // sways more the higher it gets; sway too much and the top ingredient topples
-// off. Dodge the old boots and fish. Catch the top bun to finish the burger
+// off. Dodge the old boots and poop. Catch the top bun to finish the burger
 // and bank its height as points, then start the next one, faster. Three
 // ingredients that hit the ground end the game.
 //
@@ -15,13 +15,19 @@ const ASPECT = 192 / 512;     // ingredient art is 512 x 192
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const initial = name => (String(name || '?').trim()[0] || '?').toUpperCase();
 
-const KINDS = ['patty', 'cheese', 'lettuce', 'tomato'];
+const KINDS = ['patty', 'cheese', 'lettuce', 'tomato', 'bacon', 'ketchup', 'pickles', 'onion', 'egg'];
 const ART = {
   top: 'burger-bun-top', bottom: 'burger-bun-bottom', patty: 'burger-patty',
   cheese: 'burger-cheese', lettuce: 'burger-lettuce', tomato: 'burger-tomato',
+  bacon: 'burger-bacon', ketchup: 'burger-ketchup', pickles: 'burger-pickles',
+  onion: 'burger-onion', egg: 'burger-egg',
 };
 // Vertical space an ingredient takes in the stack, as a fraction of its height.
-const THICK = { top: 0.8, bottom: 0.9, patty: 0.5, cheese: 0.3, lettuce: 0.34, tomato: 0.38 };
+// Thinner than the drawn art, so layers overlap and sit snugly like a real burger.
+const THICK = {
+  top: 0.62, bottom: 0.68, patty: 0.4, cheese: 0.17, lettuce: 0.22, tomato: 0.27,
+  bacon: 0.16, ketchup: 0.15, pickles: 0.2, onion: 0.2, egg: 0.26,
+};
 
 // --- stand-in art ---------------------------------------------------------
 
@@ -121,6 +127,110 @@ function drawIngredient(ctx, kind, x, y, w) {
       ctx.ellipse(w * (cx - 0.07), h * 0.38, w * 0.07, h * 0.08, -0.4, 0, Math.PI * 2);
       ctx.fill();
     }
+  } else if (kind === 'bacon') {
+    // Two wavy rashers, red with pale fat stripes.
+    for (const [x0, y0] of [[0.02, 0.18], [0.1, 0.42]]) {
+      ctx.beginPath();
+      ctx.moveTo(w * x0, h * y0);
+      for (let i = 0; i <= 10; i++) ctx.lineTo(w * (x0 + 0.88 * i / 10), h * (y0 + (i % 2 ? 0.1 : 0)));
+      for (let i = 10; i >= 0; i--) ctx.lineTo(w * (x0 + 0.88 * i / 10), h * (y0 + 0.36 + (i % 2 ? 0.1 : 0)));
+      ctx.closePath();
+      ctx.fillStyle = '#c0392b';
+      ctx.fill();
+      ctx.lineWidth = Math.max(1.5, h * 0.05);
+      ctx.strokeStyle = '#7a1f14';
+      ctx.stroke();
+      ctx.strokeStyle = '#f6c9b4';
+      ctx.lineWidth = Math.max(1.5, h * 0.06);
+      ctx.beginPath();
+      ctx.moveTo(w * (x0 + 0.04), h * (y0 + 0.2));
+      ctx.lineTo(w * (x0 + 0.84), h * (y0 + 0.2));
+      ctx.stroke();
+    }
+  } else if (kind === 'ketchup') {
+    // A glossy red squirt with drips.
+    ctx.beginPath();
+    ctx.moveTo(w * 0.04, h * 0.4);
+    ctx.bezierCurveTo(w * 0.2, h * 0.2, w * 0.35, h * 0.55, w * 0.5, h * 0.35);
+    ctx.bezierCurveTo(w * 0.65, h * 0.15, w * 0.8, h * 0.5, w * 0.96, h * 0.38);
+    ctx.lineTo(w * 0.95, h * 0.58);
+    ctx.lineTo(w * 0.84, h * 0.58);
+    ctx.quadraticCurveTo(w * 0.83, h * 0.85, w * 0.78, h * 0.85);
+    ctx.quadraticCurveTo(w * 0.73, h * 0.85, w * 0.72, h * 0.58);
+    ctx.lineTo(w * 0.3, h * 0.6);
+    ctx.quadraticCurveTo(w * 0.29, h * 0.8, w * 0.25, h * 0.8);
+    ctx.quadraticCurveTo(w * 0.21, h * 0.8, w * 0.2, h * 0.6);
+    ctx.lineTo(w * 0.05, h * 0.58);
+    ctx.closePath();
+    ctx.fillStyle = '#e03131';
+    ctx.fill();
+    ctx.lineWidth = Math.max(1.5, h * 0.05);
+    ctx.strokeStyle = '#8f1a1a';
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(w * 0.3, h * 0.36, w * 0.06, h * 0.045, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(w * 0.68, h * 0.34, w * 0.05, h * 0.04, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (kind === 'pickles') {
+    // Three green slices with seeds.
+    for (const cx of [0.2, 0.5, 0.8]) {
+      ctx.beginPath();
+      ctx.ellipse(w * cx, h * 0.5, w * 0.15, h * 0.34, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#7bb540';
+      ctx.fill();
+      ctx.lineWidth = Math.max(1.5, h * 0.06);
+      ctx.strokeStyle = '#3f6b1c';
+      ctx.stroke();
+      ctx.fillStyle = '#c5e58a';
+      ctx.beginPath();
+      ctx.ellipse(w * cx, h * 0.5, w * 0.1, h * 0.22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7bb540';
+      for (const dy of [-0.1, 0.1]) {
+        ctx.beginPath();
+        ctx.ellipse(w * cx, h * (0.5 + dy), w * 0.015, h * 0.04, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (kind === 'onion') {
+    // Pale purple-white rings.
+    for (const cx of [0.2, 0.5, 0.8]) {
+      for (const [rx, ry, col] of [[0.16, 0.34, '#b57edc'], [0.12, 0.26, '#f3e9fa'], [0.08, 0.16, '#d9bdf0'], [0.05, 0.09, '#f3e9fa']]) {
+        ctx.beginPath();
+        ctx.ellipse(w * cx, h * 0.5, w * rx, h * ry, 0, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.fill();
+        ctx.lineWidth = Math.max(1, h * 0.03);
+        ctx.strokeStyle = '#8a4fb0';
+        ctx.stroke();
+      }
+    }
+  } else if (kind === 'egg') {
+    // A fried egg: wobbly white with a yolk.
+    ctx.beginPath();
+    ctx.moveTo(w * 0.04, h * 0.6);
+    ctx.bezierCurveTo(w * 0.0, h * 0.2, w * 0.2, h * 0.1, w * 0.32, h * 0.3);
+    ctx.bezierCurveTo(w * 0.4, h * 0.05, w * 0.62, h * 0.05, w * 0.7, h * 0.3);
+    ctx.bezierCurveTo(w * 0.85, h * 0.1, w * 1.0, h * 0.3, w * 0.96, h * 0.6);
+    ctx.bezierCurveTo(w * 0.94, h * 0.9, w * 0.7, h * 0.8, w * 0.55, h * 0.88);
+    ctx.bezierCurveTo(w * 0.3, h * 0.95, w * 0.08, h * 0.9, w * 0.04, h * 0.6);
+    ctx.closePath();
+    ctx.fillStyle = '#fffdf5';
+    ctx.fill();
+    ctx.lineWidth = Math.max(1.5, h * 0.05);
+    ctx.strokeStyle = '#d8cfa8';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(w * 0.5, h * 0.5, w * 0.12, h * 0.3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffb300';
+    ctx.fill();
+    ctx.strokeStyle = '#e08a00';
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(w * 0.47, h * 0.38, w * 0.035, h * 0.08, -0.3, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
@@ -236,7 +346,7 @@ export default {
         kind = 'top';
         g.topAt = 99;                                 // one top bun until it is caught
       } else if (Math.random() < clamp(0.14 + g.burgers * 0.03, 0.14, 0.3)) {
-        junk = Math.random() < 0.5 ? '🥾' : '🐟';
+        junk = Math.random() < 0.5 ? '🥾' : '💩';
         kind = 'junk';
       } else {
         kind = KINDS[Math.floor(Math.random() * KINDS.length)];
@@ -402,7 +512,7 @@ export default {
           if (f.kind === 'junk') {
             g.swayV += (f.x < tx ? 1 : -1) * 6;
             if (g.stack.length) topple();
-            drop(f.x, f.junk === '🥾' ? 'Boot!' : 'Fish!');
+            drop(f.x, f.junk === '🥾' ? 'Boot!' : 'Yuck!');
           } else {
             land(f);
           }
@@ -507,7 +617,7 @@ export default {
       const items = [{ kind: 'bottom', ox: 0 }, ...stack];
       items.forEach((s, i) => {
         const t = i === 0 ? bot : slab(s.kind);
-        const mid = height + t * 0.5 + (i === 0 ? 0 : itemH() * 0.12);
+        const mid = height + t * 0.5;
         const x = bx + s.ox + sway * (height + t * 0.5);
         ctx.globalAlpha = dim;
         drawItem(s.kind, x, screenY(mid), iw, sway * 1.5);
@@ -593,7 +703,7 @@ export default {
           const fx = clamp(Number(f.x) || 0, 0, 1) * 96;
           const fy = clamp(Number(f.y) || 0, -0.2, 1.2) * 108;
           if (ART[f.kind]) drawIngredient(c, f.kind, fx, fy, iw);
-          else if (f.kind === 'junk') { c.font = '18px sans-serif'; c.fillText(f.junk === '🥾' ? '🥾' : '🐟', fx, fy); }
+          else if (f.kind === 'junk') { c.font = '18px sans-serif'; c.fillText(f.junk === '🥾' ? '🥾' : '💩', fx, fy); }
         }
       }
     }

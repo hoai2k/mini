@@ -219,7 +219,7 @@ export default {
 
     function newRun(startAt) {
       return {
-        startAt, x: FIELD / 2, target: FIELD / 2, dist: 0, vel: 0, tilt: 0,
+        startAt, born: Date.now(), x: FIELD / 2, target: FIELD / 2, dist: 0, vel: 0, tilt: 0,
         shields: SHIELDS, hurtUntil: 0, starsGot: 0, over: false, floaters: [], taken: new Set(), shake: 0,
       };
     }
@@ -242,7 +242,15 @@ export default {
     resize();
 
     const rocketPx = () => clamp(Math.min(w, h) * 0.2, 62, 120);
-    const rocketY = () => h - inset.bottom - rocketPx() * 0.75 - 14;
+    // The ship rests about 27% of the play area above the bottom, leaving room below for the finger.
+    const rocketHome = () => { const bottom = h - inset.bottom; return bottom - Math.max(rocketPx() * 0.75 + 14, (bottom - inset.top) * 0.27); };
+    // At the start of a run it flies up from below the bottom edge (0.7 s, eased out).
+    const rocketY = () => {
+      const home = rocketHome();
+      const k = clamp((Date.now() - run.born) / 700, 0, 1);
+      const e = 1 - Math.pow(1 - k, 3);
+      return home + (1 - e) * (h - home + rocketPx());
+    };
     const hitR = () => (rocketPx() * 0.3) / s;
     const speedAt = d => clamp(330 + d * 0.012, 330, 760);
     const toX = x => ox + x * s;
@@ -517,11 +525,12 @@ export default {
       ctx.save();
       if (run.shake > 0) ctx.translate((Math.random() - 0.5) * 12 * run.shake, (Math.random() - 0.5) * 12 * run.shake);
       drawSpace(run.dist);
-      const ry = rocketY();
-      const yOf = d => ry - (d - run.dist) * s;
+      const ry = rocketY();           // where the ship is drawn (rising at the start)
+      const home = rocketHome();      // where the world is anchored
+      const yOf = d => home - (d - run.dist) * s;
 
       // Rocks and stars on screen.
-      const dTop = run.dist + (ry + 100) / s, dBot = run.dist - (h - ry + 100) / s;
+      const dTop = run.dist + (home + 100) / s, dBot = run.dist - (h - home + 100) / s;
       const i0 = Math.max(0, Math.floor((dBot - FIRST) / SPACING) - 1), i1 = Math.floor((dTop - FIRST) / SPACING) + 1;
       for (let i = i0; i <= i1; i++) {
         const row = field.row(i);
