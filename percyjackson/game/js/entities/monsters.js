@@ -11,9 +11,9 @@
 import * as THREE from 'three/webgpu';
 import { vertexColor, vec3, mix, step, screenCoordinate, interleavedGradientNoise } from 'three/tsl';
 import { Rig, PX } from './character.js';
-import { QuadRig, paintQuad, quadPart } from './quad.js';
+import { QuadRig, paintQuad } from './quad.js';
 import { paintPerson } from './mortals.js';
-import { HS, solid, skinMat, prop, group, voxHair, flameHair, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
+import { HS, solid, skinMat, group, lavaCracks, fur, sway, rng, bruteLimbs } from './parts.js';
 import { heroHair, cellMesh, footwear } from './herovox.js';
 
 export { skinMat };
@@ -55,7 +55,7 @@ function kitGeometry(list) {
   for (const b of list) {
     const c = b.col, hot = Math.max(c.r, c.g, c.b) >= 0.999;
     const rot = b.rx || b.ry || b.rz;
-    if (rot) { _q.setFromEuler(_e.set(b.rx, b.ry, b.rz)); _m4.compose(_p.set(b.x, b.y, b.z), _q, _one); }
+    if (rot) { _q.setFromEuler(_e.set(b.rx, b.ry, b.rz, b.order ?? 'XYZ')); _m4.compose(_p.set(b.x, b.y, b.z), _q, _one); }
     for (const [n, vs, sh] of KFACES) {
       _n.set(n[0], n[1], n[2]); if (rot) _n.applyQuaternion(_q);
       const k = hot ? 1 : sh;
@@ -85,6 +85,9 @@ export class VoxKit {
     this.lists.get(p).push({ x, y, z, w, h, d, col: toCol(col), rx, ry, rz });
     return this;
   }
+  // a skirt strip: turned to face outward (yaw about y), then its hem tilted
+  // out by tilt (rad)
+  flare(p, x, y, z, w, h, d, col, yaw, tilt) { this.box(p, x, y, z, w, h, d, col, -tilt, yaw, 0); this.lists.get(p).at(-1).order = 'YXZ'; return this; }
   // a box in a local frame at o turned by ry about y (no extra group or mesh)
   boxY(p, o, ry, x, y, z, w, h, d, col, rx = 0) {
     const c = Math.cos(ry), sn = Math.sin(ry);
@@ -576,12 +579,12 @@ export function buildFury(id, { scale = 1, skin = 0xb0a898, hair = 0xdcdcd8, win
       if (Math.abs(a) < 0.25 && i % 2 === 0) continue;                  // the slit up the front
       // an upper strip hanging close to the hips, then a lower one flaring out, then torn ends
       const L1 = 5.5, L2 = 6.5 + K.r() * 3.5, l3 = 1.5 + K.r() * 3.5;
-      const x = sa * 3.7, z = ca * 2.5, f2 = 0.14, f3 = 0.32, col = K.tone(RAG, 0.15);
-      K.box(g, x, -L1 / 2 + 0.6, z, 1.7, L1, 1, col, ca * 0.08, 0, -sa * 0.08);
+      const x = sa * 3.7, z = ca * 2.5, f2 = 0.22, f3 = 0.4, col = K.tone(RAG, 0.15);
+      K.box(g, x, -L1 / 2 + 0.6, z, 1.7, L1, 1, col, -ca * 0.08, 0, sa * 0.08);
       const y2 = -L1 + 0.6, ox2 = sa * (0.4 + L2 * Math.sin(f2) / 2), oz2 = ca * (0.4 + L2 * Math.sin(f2) / 2);
-      K.box(g, x + ox2, y2 - L2 * Math.cos(f2) / 2, z + oz2, 1.9, L2, 1, col, ca * f2, 0, -sa * f2);
+      K.box(g, x + ox2, y2 - L2 * Math.cos(f2) / 2, z + oz2, 1.9, L2, 1, col, -ca * f2, 0, sa * f2);
       const y3 = y2 - L2 * Math.cos(f2), o3 = 0.4 + L2 * Math.sin(f2) + l3 * Math.sin(f3) / 2;
-      K.box(g, x + sa * o3, y3 - l3 * Math.cos(f3) / 2, z + ca * o3, 0.7 + K.r() * 0.7, l3, 0.6, K.tone(RAG, 0.1), ca * f3, 0, -sa * f3);
+      K.box(g, x + sa * o3, y3 - l3 * Math.cos(f3) / 2, z + ca * o3, 0.7 + K.r() * 0.7, l3, 0.6, K.tone(RAG, 0.1), -ca * f3, 0, sa * f3);
     }
     sway(rig, g, q % 2 ? 'z' : 'x', 0.06, 2.3, q * 1.3);
   }
@@ -683,7 +686,7 @@ function buildDracaena() {
   // skirt of leather strips with gold studs, and a gold belt
   for (let i = 0; i < 12; i++) {
     const a = i / 12 * Math.PI * 2, x = Math.sin(a) * 4.3, z = Math.cos(a) * 2.8, L = 4.5 + (i % 3);
-    K.box(rig.hips, x, -L / 2 + 0.5, z, 2.1, L, 0.7, i % 2 ? 0x1a2a1a : blk, Math.cos(a) * 0.12, a, 0);
+    K.flare(rig.hips, x, -L / 2 + 0.5, z, 2.1, L, 0.7, i % 2 ? 0x1a2a1a : blk, a, 0.18);
     K.box(rig.hips, x * 1.05, 0, z * 1.08, 0.6, 0.6, 0.4, gold, 0, a, 0);
   }
   K.box(rig.torso, 0, 0.6, 0, 8.8, 1.4, 4.8, gold); K.box(rig.torso, 0, 0.6, 2.5, 2, 2, 0.4, 0xf0c040);
@@ -752,8 +755,8 @@ function buildEmpousa() {
   // pleated skirt: alternating orange and darker pleats with a white stripe
   for (let i = 0; i < 16; i++) {
     const a = i / 16 * Math.PI * 2, x = Math.sin(a) * 4.2, z = Math.cos(a) * 2.7;
-    K.box(rig.hips, x * 1.02, -1.8, z * 1.04, 1.8, 4.4, 0.7, i % 2 ? orange : 0xc85008, 0.15 * Math.cos(a), a, 0);
-    K.box(rig.hips, x * 1.15, -3.2, z * 1.18, 1.9, 0.6, 0.75, white, 0.15 * Math.cos(a), a, 0);
+    K.flare(rig.hips, x * 1.06, -1.8, z * 1.08, 1.8, 4.4, 0.7, i % 2 ? orange : 0xc85008, a, 0.3);
+    K.flare(rig.hips, x * 1.06 + Math.sin(a) * 0.55, -3.3, z * 1.08 + Math.cos(a) * 0.55, 1.9, 0.6, 0.75, white, a, 0.3);
   }
   // the bronze leg: thigh plates, a riveted knee, a jointed shin and a pointed foot
   const bronze = [0xd08a20, 0xb06a14, 0xe8a830];
@@ -891,7 +894,7 @@ function buildCyclops() {
   K.box(T, 0, 1.4, 0, 12, 2.4, 7, gold); K.box(T, 0, 1.4, 3.6, 3, 3, 0.6, 0xf0c040); K.box(T, 0, 1.4, 3.9, 1.4, 1.4, 0.4, 0x8a5a10);
   for (let i = 0; i < 20; i++) {
     const a = i / 20 * Math.PI * 2, x = Math.sin(a) * 6.2, z = Math.cos(a) * 3.8, L = 5 + K.r() * 3;
-    K.box(rig.hips, x, -L / 2 + 0.6, z, 2.1, L, 0.9, K.tone(wool, 0.1), Math.cos(a) * 0.15, a, 0);
+    K.flare(rig.hips, x, -L / 2 + 0.6, z, 2.1, L, 0.9, K.tone(wool, 0.1), a, 0.14);
   }
   // a ram's skull with curled horns on the right shoulder
   const ram = group(T, -6, 12.6, 0.5, 0, 0.3, 0);
@@ -937,7 +940,7 @@ function buildStatue() {
   const T = rig.torso;
   K.box(T, 0, 7.5, 0, 9, 9, 5, ST[1]); K.box(T, -1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]); K.box(T, 1.6, 9.2, 2.6, 3, 2.4, 0.5, ST[2]);
   for (const y of [5, 3.6]) K.box(T, 0, y, 2.6, 5, 0.8, 0.5, ST[3]);
-  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, L = 4; K.box(rig.hips, Math.sin(a) * 4.4, -L / 2 + 0.8, Math.cos(a) * 2.6, 1.9, L, 0.7, ST[i % 2 ? 1 : 3], 0.1 * Math.cos(a), a, 0); }
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, L = 4; K.flare(rig.hips, Math.sin(a) * 4.4, -L / 2 + 0.8, Math.cos(a) * 2.6, 1.9, L, 0.7, ST[i % 2 ? 1 : 3], a, 0.12); }
   for (const leg of [rig.legR, rig.legL]) { K.box(leg, 0, -8.2, 0.3, 4.6, 5, 4.6, ST[2]); K.box(leg, 0, -6, 0.3, 4.7, 0.6, 4.7, ST[3]); }
   for (const arm of [rig.armR, rig.armL]) K.box(arm, 0, 1, 0, 4.8, 3, 4.8, ST[1]);
   // chips and moss over everything, and cracks that glow faintly green (Medusa's curse)
