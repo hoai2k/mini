@@ -118,8 +118,16 @@ export class Session {
     this.peers.clear();
     let done = false;
     const finish = (err) => { if (done) return; done = true; clearTimeout(timer); cb(err); };
-    // (connected but this page was too busy to hear it yet, e.g. building a level: not a timeout)
-    const timer = setTimeout(() => { if (!done && !room.ready) { try { room.leave(); } catch (e) { /* gone */ } if (this.room === room) this.room = null; finish('timeout'); } }, 12000);
+    // Give up after 12 s of waiting, counting only time this page was free to
+    // hear the answer (a page busy building a level isn't the network's fault).
+    let waited = 0, last = now(), timer = null;
+    const tick = () => {
+      if (done) return;
+      const t = now(); waited += Math.min(1500, t - last); last = t;
+      if (waited > 12000 && !room.ready) { try { room.leave(); } catch (e) { /* gone */ } if (this.room === room) this.room = null; finish('timeout'); return; }
+      timer = setTimeout(tick, 1000);
+    };
+    timer = setTimeout(tick, 1000);
     room.onClose((reason) => {
       if (!done) { if (this.room === room) this.room = null; finish(reason || 'disconnected'); return; }
       if (this.room === room) { this.room = null; this.lost(reason || 'disconnected'); }
