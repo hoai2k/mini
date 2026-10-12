@@ -150,3 +150,8 @@ second phrase stopped the playback and started a new take.
 - If the browser stops remembering microphone permission, reopening the mic
   after each playback could ask again; turn on Record during playback to
   keep it open.
+
+The browser favicon uses the conventional walnut metronome on a transparent
+background (`icons/favicon-metronome-32.png` and `favicon-metronome-192.png`).
+The Art Deco versions are kept as `favicon-art-deco-32.png` and
+`favicon-art-deco-192.png` for a later switch; `make_icons.py` exports both.

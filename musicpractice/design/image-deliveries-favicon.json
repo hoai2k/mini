@@ -11,5 +11,17 @@
     "musicpractice/app/icons/icon-192.png",
     "musicpractice/app/icons/icon-512.png"
   ],
-  "export": "Pillow LANCZOS resizing, RGB PNG."
+  "export": "Pillow LANCZOS resizing, RGB PNG.",
+  "active_browser_favicon": {
+    "source": "musicpractice/app/assets/ui/home-metronome.webp",
+    "files": [
+      "musicpractice/app/icons/favicon-metronome-32.png",
+      "musicpractice/app/icons/favicon-metronome-192.png"
+    ],
+    "export": "Existing conventional metronome art, resized with Pillow LANCZOS as RGBA PNG; original alpha preserved."
+  },
+  "preserved_art_deco_favicon": [
+    "musicpractice/app/icons/favicon-art-deco-32.png",
+    "musicpractice/app/icons/favicon-art-deco-192.png"
+  ]
 }
