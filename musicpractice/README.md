@@ -24,9 +24,10 @@ two buttons: **Metronome** and **Record/Playback**.
   you switch to another tab (it's a practice tool; a hidden-tab mute would
   stop your metronome). The screen is kept awake while it runs.
 
-## Record/Playback
+## Playback Recorder
 
-Opening it turns on the microphone and starts listening.
+The **Record/Playback** button on the home screen opens the Playback
+Recorder. Opening it turns on the microphone and starts listening.
 
 1. **Listening:** waits for you to play. A take starts on a held, clearly
    pitched note (about 130 ms of one steady pitch, louder than the room).
@@ -40,6 +41,16 @@ Opening it turns on the microphone and starts listening.
    when the last note has rung down) and **played back**, with its waveform
    and a playhead. Then it listens again.
 
+By default the microphone is **closed while a take plays** (from the list
+too) and reopened when playback ends, so the app never plays and records at
+once. An open mic puts phones, iPhone especially, into a quieter
+play-and-record mode; closing it lets playback run at full volume.
+Settings → **Record during playback** keeps the mic open instead: automatic
+playback keeps listening, and starting to play over a take stops it and
+begins the next one. That mode turns on the browser's echo cancellation so
+the take being played isn't heard as playing; headphones work best, and on
+iPhone playback is quieter.
+
 Every take goes in the list under the waveform, saved in the browser
 (IndexedDB) so it's still there next time. Each has a play/stop button and a
 trash button (with a few seconds to Undo). While you use the list, listening
@@ -49,7 +60,8 @@ a take keeps the take.
 
 Settings (gear): silence to finish, start on musical notes or any sound,
 sensitivity (lower it in a noisy room, raise it for quiet instruments), and
-whether to play each take back automatically. All settings are kept in
+whether to play each take back automatically, and record during playback
+(off by default). All settings are kept in
 `localStorage`.
 
 How the detector works (`app/src/detect.js`): each 2048-sample frame is
@@ -96,10 +108,19 @@ thumps and check which start a take, when it ends and how it is trimmed. The
 whole flow was also checked in Chromium with a synthesized session as the
 microphone (a scrape, then a phrase, then silence): the scrape was ignored,
 the take started on the first note, ended 3 s after the last, was trimmed to
-the phrase, played back, and listening resumed.
+the phrase, played back, and listening resumed. A second run, with a
+second phrase starting during playback, checked both modes. By default the
+mic was closed during playback (the second phrase was ignored) and reopened
+afterwards. With Record during playback on, the mic stayed open and the
+second phrase stopped the playback and started a new take.
 
 ## Known limits
 
 - The microphone needs https (GitHub Pages is) and permission.
-- On iPhone, playback while the microphone is open can be quieter than
-  normal; that is iOS's play-and-record audio mode.
+- On iPhone, playback while the microphone is open is quieter than normal
+  (iOS's play-and-record mode). That only happens with Record during
+  playback on. Closing and reopening the mic around each playback is checked
+  in Chromium; the volume itself still needs checking on an iPhone.
+- If the browser stops remembering microphone permission, reopening the mic
+  after each playback could ask again; turn on Record during playback to
+  keep it open.

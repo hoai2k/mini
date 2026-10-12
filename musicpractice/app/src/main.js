@@ -65,7 +65,7 @@ function enter(name) {
   }
   if (name === 'record') startRecorder();
   if (name === 'home') document.title = 'Music Practice';
-  else document.title = `${name === 'metronome' ? 'Metronome' : 'Record/Playback'} · Music Practice`;
+  else document.title = `${name === 'metronome' ? 'Metronome' : 'Playback Recorder'} · Music Practice`;
 }
 
 window.addEventListener('hashchange', route);
@@ -281,11 +281,19 @@ function showState() {
   if (state === 'waiting' && audio().state !== 'running') h = 'Tap anywhere to let the app hear you.';
   $('rec-hint').textContent = h;
   $('rec-hint').classList.toggle('error', state === 'off' && !!recError);
+  // Recording during playback: the take plays while the mic keeps listening.
+  if (playing?.auto && state === 'waiting') {
+    $('rec-state').textContent = 'Playing back';
+    $('rec-hint').textContent = 'Start playing any time to begin a new take.';
+  }
   $('rec-skip').hidden = !(playing && playing.auto);
 }
 
 function configureRecorder() {
-  recorder?.configure(settings);
+  if (recorder) {
+    recorder.configure(settings);
+    recorder.echoCancel = settings.recordDuringPlayback;
+  }
   for (const el of document.querySelectorAll('.silence-sec')) el.textContent = fmtSec(settings.silenceSec);
   persist();
   showState();
@@ -299,6 +307,7 @@ async function startRecorder() {
     recorder = new Recorder(ctx);
     wave = new Waveform($('wave'));
     recorder.addEventListener('state', () => {
+      interruptPlayback();
       showState();
       keepAwake(recorder.state !== 'off');
     });
@@ -306,17 +315,40 @@ async function startRecorder() {
     recorder.addEventListener('take', (e) => onTake(e.detail));
   }
   recorder.configure(settings);
+  recorder.echoCancel = settings.recordDuringPlayback;
   recError = '';
   try {
     await recorder.on();
   } catch (err) {
-    recError = err?.name === 'NotAllowedError'
-      ? 'Microphone access was refused. Allow it in your browser\'s site settings, then tap the button.'
-      : err?.message === 'unsupported'
-        ? 'This browser can\'t use the microphone here. Try Safari or Chrome over https.'
-        : 'Couldn\'t open the microphone. Check that no other app is using it, then tap the button.';
+    recError = micError(err);
   }
   showState();
+}
+
+function micError(err) {
+  return err?.name === 'NotAllowedError'
+    ? 'Microphone access was refused. Allow it in your browser\'s site settings, then tap the button.'
+    : err?.message === 'unsupported'
+      ? 'This browser can\'t use the microphone here. Try Safari or Chrome over https.'
+      : 'Couldn\'t open the microphone. Check that no other app is using it, then tap the button.';
+}
+
+/** Listen again after playback or a pause, reopening the mic if it was closed. */
+async function resumeListening() {
+  if (!recorder || recorder.state === 'off') return;
+  setSession('play-and-record');
+  recError = '';
+  try {
+    await recorder.restore();
+  } catch (err) {
+    recError = micError(err);
+  }
+  showState();
+}
+
+// Starting a new take while a take plays back (record during playback) stops the playback.
+function interruptPlayback() {
+  if (playing?.auto && recorder?.state === 'recording') stopPlayback({ resume: false });
 }
 
 function stopRecorder() {
@@ -342,7 +374,13 @@ async function onTake({ samples, sampleRate, playBack }) {
   }
 }
 
-/** Play a take. Auto playback holds the recorder; playing from the list pauses it. */
+/**
+ * Play a take. Playing from the list pauses listening. By default the mic is
+ * also closed while a take plays, because an open mic puts a phone (iPhone
+ * especially) into its quieter play-and-record mode; it reopens afterwards.
+ * With "Record during playback" on, the mic stays open and an automatic
+ * playback keeps listening, so playing again starts the next take.
+ */
 function play(take, { auto = false } = {}) {
   stopPlayback({ resume: false });
   const ctx = audio();
@@ -352,8 +390,17 @@ function play(take, { auto = false } = {}) {
   const source = ctx.createBufferSource();
   source.buffer = buf;
   source.connect(ctx.destination);
-  if (recorder && recorder.state !== 'off') auto ? recorder.hold() : recorder.pause();
-  playing = { take, source, startedAt: ctx.currentTime + 0.03, auto };
+  let delay = 0.03;
+  if (recorder && recorder.state !== 'off') {
+    if (!auto) recorder.pause();
+    else if (!settings.recordDuringPlayback) recorder.hold();
+    if (!settings.recordDuringPlayback && recorder.micOpen) {
+      recorder.release();
+      setSession('playback');
+      delay = 0.2; // give the phone a moment to switch its audio route back
+    }
+  }
+  playing = { take, source, startedAt: ctx.currentTime + delay, auto };
   source.onended = () => { if (playing?.source === source) stopPlayback(); };
   source.start(playing.startedAt);
   wave?.showTake(take.samples);
@@ -368,7 +415,7 @@ function stopPlayback({ resume = true } = {}) {
   source.onended = null;
   try { source.stop(); } catch { /* already ended */ }
   wave?.showLive();
-  if (resume && recorder && (recorder.state === 'playing' || recorder.state === 'paused') && toastTimer === null) recorder.listen();
+  if (resume && recorder && (recorder.state === 'playing' || recorder.state === 'paused') && toastTimer === null) resumeListening();
   renderTakes();
   showState();
 }
@@ -432,7 +479,7 @@ function hideToast(final = false) {
   $('toast').hidden = true;
   if (lastDeleted) store.remove(lastDeleted.take.id);
   lastDeleted = null;
-  if (!final && !playing && recorder?.state === 'paused') recorder.listen();
+  if (!final && !playing && recorder?.state === 'paused') resumeListening();
 }
 
 $('toast-undo').addEventListener('click', () => {
@@ -452,6 +499,16 @@ chips($('starton-chips'), [{ id: 'music', label: 'Musical notes' }, { id: 'any',
 chips($('sens-chips'), [{ id: 'low', label: 'Low' }, { id: 'medium', label: 'Medium' }, { id: 'high', label: 'High' }], () => settings.sensitivity, (v) => { settings.sensitivity = v; configureRecorder(); });
 $('autoplay').checked = settings.autoPlay;
 $('autoplay').addEventListener('change', () => { settings.autoPlay = $('autoplay').checked; configureRecorder(); });
+$('rec-during').checked = settings.recordDuringPlayback;
+$('rec-during').addEventListener('change', () => {
+  settings.recordDuringPlayback = $('rec-during').checked;
+  configureRecorder();
+  // Reopen an idle mic so echo cancellation matches the new choice.
+  if (recorder?.state === 'waiting' && recorder.micOpen && !playing) {
+    recorder.release();
+    resumeListening();
+  }
+});
 
 function animateRecorder() {
   if (!wave) return;
