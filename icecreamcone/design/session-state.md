@@ -6,7 +6,7 @@ agent. Newest first.
 
 ## Open
 
-- **Agents running (this session):** none.
+- **Agents running (started 2026-10-12):** three agents giving every game an easy-to-hard ramp over the round (Salt Shaker Shrike: mostly 1-2 salts in the first half). Brief in scratchpad `ramp-brief.txt`; group A: saltshakershrike coot cupadee shuttercluck gullfinch plume bobolinks peeper piffle dodo; B: crow milkmidge waterglassgoose niffy broomwhisk buttonbeaks keycrane snippit garbagecanary; C: steampressersparrow wetweatherwren glovedove titthrush plugsocketswift ladlelark drippet sawbird radiobird. When they report: run all checks, commit, push.
 - **Clean Sweep redraw (IC-M06f, IC-M06g):** requested 2026-10-09. The
   Broomwhisk's pose sheets paint the head at portrait size and the broom about
   12% smaller. Until the new sheets arrive, `src/games/broomwhisk.js` draws
