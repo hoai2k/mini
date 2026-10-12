@@ -19,13 +19,17 @@ function landing(game, p, extra = 0) {
 // A cook: takes the plates nearest the diner first, shakes where each will
 // be when the salt lands, and counts the pinches it sends. `skill` slows it,
 // leads too little, aims looser and now and then loses count (one pinch too
-// many).
-function cook(skill = 1, seed = 1) {
+// many). `clumsy` is a weaker player still: it leads less, shakes slowly,
+// looks up late when it moves on to the next plate and loses count more.
+const C = { lead: 0.3, tol: 40, lose: 0.15, speed: 0.5, beat: 0.5, react: 0.7 };
+function cook(skill = 1, seed = 1, clumsy = false) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   const sent = new Map();
   let pressed = false;
-  return (game) => {
+  let cur = null;
+  let ready = 0;
+  return (game, t) => {
     if (pressed) {
       pressed = false;
       return {};
@@ -34,19 +38,25 @@ function cook(skill = 1, seed = 1) {
       .filter((p) => !p.dessert && p.n > (sent.get(p.id) || 0) && landing(game, p).a < Math.PI - 0.12)
       .sort((a, b) => b.a - a.a)[0];
     if (!p) return {};
+    if (clumsy && p.id !== cur) {
+      cur = p.id;
+      ready = t + C.react;
+    }
+    if (clumsy && t < ready) return {};
     const full = landing(game, p).x;
-    const aim = skill >= 1 ? full : p.x + (full - p.x) * 0.7;
+    const aim = skill >= 1 ? full : p.x + (full - p.x) * (clumsy ? C.lead : 0.7);
     const dx = aim - game.x;
-    if (Math.abs(dx) < (skill >= 1 ? 12 : 26) && game.cool <= 0) {
+    if (Math.abs(dx) < (skill >= 1 ? 12 : clumsy ? C.tol : 26) && game.cool <= 0) {
       pressed = true;
       let n = (sent.get(p.id) || 0) + 1;
-      if (skill < 1 && rnd() < 0.12) n--; // lost count
+      if (skill < 1 && rnd() < (clumsy ? C.lose : 0.12)) n--; // lost count
       sent.set(p.id, n);
+      if (clumsy) ready = t + C.beat;
       return { action: true };
     }
     // a good cook keeps pace with where the plate is going
     const follow = skill >= 1 ? (landing(game, p, 0.05).x - full) / 0.05 / 950 : 0;
-    return { x: clamp(follow + dx / 50, -1, 1) * (0.55 + 0.45 * skill) };
+    return { x: clamp(follow + dx / 50, -1, 1) * (clumsy ? C.speed : 0.55 + 0.45 * skill) };
   };
 }
 
@@ -69,20 +79,52 @@ const salter = () => (game, t) => {
   return { x: clamp(dx / 50, -1, 1), action: Math.floor(t * 8) % 2 === 0 };
 };
 
-test('saltshakershrike: a beginner opens the next page, a good cook more; idle, mashing and over-salting do not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const beginner = seeds.map((seed) => run(create, { seed, bot: cook(0.4, seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: cook(1, seed) }).game.score);
-  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed, false) }).game.score);
-  const still = seeds.map((seed) => run(create, { seed, bot: masher(seed, true) }).game.score);
-  const salt = seeds.map((seed) => run(create, { seed, bot: salter() }).game.score);
-  const idle = run(create, { seed: 1 }).game.score;
-  console.log('saltshakershrike beginner', `${beginner}`, 'good', `${good}`, 'mash', `${mash}`, 'still', `${still}`, 'salter', `${salt}`, 'idle', idle, 'pass', pass);
-  assert.equal(idle, 0);
-  assert.ok(beginner.filter((s) => s >= pass).length >= seeds.length * 0.75, `beginner ${beginner}`);
-  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-  assert.ok(mean(good) > mean(beginner) + 5, `good ${good}`);
-  for (const [name, s] of [['mashing', mash], ['shaking on the spot', still], ['over-salting', salt]]) assert.ok(Math.max(...s) < pass, `${name} must not open the next page: ${s}`);
+const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed, false),
+  still: (seed) => masher(seed, true),
+  salter: () => salter(),
+  clumsy: (seed) => cook(0.3, seed, true), // slow, leads little, loses count often
+  medium: (seed) => cook(0.4, seed), // competent, not expert: handles medium
+  good: (seed) => cook(1, seed),
+};
+// Every bot at every level, once (the tests below read this table).
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => {
+    return run(create, { seed, bot: bot(seed), difficulty: level }).game.score;
+  });
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`saltshakershrike pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('saltshakershrike: at Normal a medium player opens the next page, a clumsy one seldom; idle, mashing and over-salting never', () => {
+  const t = TABLE.normal;
+  assert.equal(Math.max(...t.idle), 0);
+  assert.ok(passRate(t.medium) >= 0.9, `medium ${t.medium}`);
+  assert.ok(passRate(t.clumsy) <= 0.35, `clumsy at Normal ${t.clumsy}`);
+  assert.ok(mean(t.good) >= mean(t.medium), `good ${t.good}`);
+  for (const name of ['mash', 'still', 'salter']) assert.ok(Math.max(...t[name]) < pass, `${name} must not pass at Normal: ${t[name]}`);
+});
+
+test('saltshakershrike: Easier lets a clumsy cook pass, but not idling or mashing', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.75, `clumsy at Easier ${t.clumsy}`);
+  assert.ok(passRate(TABLE.normal.clumsy) < passRate(t.clumsy), 'Easier is easier for the clumsy cook');
+  for (const name of ['idle', 'mash', 'still', 'salter']) assert.ok(Math.max(...t[name]) < pass, `${name} must not pass at Easier: ${t[name]}`);
+});
+
+// Points come from plates served, so a busier table pays more to whoever
+// keeps up: the hard end is where records are made.
+test('saltshakershrike: Harder ends hard: the good cook scores clearly more there; a clumsy one falls apart', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 4, `good ${mean(t.good)} vs medium ${mean(t.medium)} at Harder`);
+  assert.ok(mean(t.good) > mean(TABLE.normal.good) + 6, `good at Harder ${mean(t.good)} vs Normal ${mean(TABLE.normal.good)}`);
+  assert.ok(mean(t.clumsy) < mean(TABLE.normal.clumsy) * 0.7, 'Harder is harder for the clumsy cook');
 });
 
 // A plate with its order, alone on the table under the Shrike, the table stopped.
@@ -150,32 +192,44 @@ test('saltshakershrike: plates creep at the ends of the table and swing fast acr
   assert.ok(vx(Math.PI / 2) > 4 * vx(0.1), `middle ${vx(Math.PI / 2)} vs end ${vx(0.1)}`);
 });
 
-test('saltshakershrike: the lunch rush builds: mostly one pinch in the first half, more and faster in the second', () => {
-  const early = [];
-  const late = [];
-  const gaps = { early: [], late: [] };
-  const turn = { early: [], late: [] };
+// What the plates want, third by third of the round, at a level.
+function orders(difficulty) {
+  const thirds = [0, 1, 2].map(() => ({ n: [], gaps: [], turn: [] }));
   for (const seed of [1, 2, 3, 4, 5, 6]) {
-    const game = create(env(seed));
+    const game = create(env(seed, { difficulty }));
     const seen = new Set();
     let lastSpawn = null;
     while (!game.done) {
       game.update(1 / 60, blank());
-      const half = game.elapsed < 22.5 ? 'early' : 'late';
-      turn[half].push(game.omega());
+      const third = thirds[Math.min(2, Math.floor(game.elapsed / 15))];
+      third.turn.push(game.omega());
       for (const p of game.plates) {
         if (seen.has(p.id)) continue;
         seen.add(p.id);
-        if (lastSpawn !== null) gaps[half].push(game.elapsed - lastSpawn);
+        if (lastSpawn !== null) third.gaps.push(game.elapsed - lastSpawn);
         lastSpawn = game.elapsed;
-        if (!p.dessert) (half === 'early' ? early : late).push(p.n);
+        if (!p.dessert) third.n.push(p.n);
       }
     }
   }
-  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-  assert.ok(Math.max(...early) <= 2, `first half wants at most two pinches: ${early}`);
-  assert.ok(early.filter((n) => n === 1).length > early.length / 2, `first half mostly one pinch: ${early}`);
-  assert.ok(Math.max(...late) >= 4 && mean(late) > mean(early) + 1, `second half wants more: ${mean(early)} vs ${mean(late)}`);
-  assert.ok(mean(turn.late) > mean(turn.early) * 1.4, `the table turns faster: ${mean(turn.early)} vs ${mean(turn.late)}`);
-  assert.ok(mean(gaps.late) < mean(gaps.early) * 0.75, `plates come closer together: ${mean(gaps.early)} vs ${mean(gaps.late)}`);
+  return thirds;
+}
+
+test('saltshakershrike: the lunch rush builds: one and two pinches at first, more and faster at the end', () => {
+  const [a, , c] = orders('normal');
+  assert.ok(Math.max(...a.n) <= 2, `the first third wants at most two pinches: ${a.n}`);
+  assert.ok(a.n.filter((n) => n === 1).length > a.n.length * 0.7, `the first third is mostly one pinch: ${a.n}`);
+  assert.ok(Math.max(...c.n) >= 4 && mean(c.n) > mean(a.n) + 1, `the last third wants more: ${mean(a.n)} vs ${mean(c.n)}`);
+  assert.ok(mean(c.turn) > mean(a.turn) * 1.4, `the table turns faster: ${mean(a.turn)} vs ${mean(c.turn)}`);
+  assert.ok(mean(c.gaps) < mean(a.gaps) * 0.75, `plates come closer together: ${mean(a.gaps)} vs ${mean(c.gaps)}`);
+});
+
+test('saltshakershrike: Easier stays at one and two pinches on a slow table; Harder opens at medium', () => {
+  const easier = orders('easier');
+  assert.ok(Math.max(...easier.flatMap((t) => t.n)) <= 2, 'never more than two pinches at Easier');
+  assert.ok(Math.max(...easier[2].turn) < 0.5, 'the table stays slow');
+  const harder = orders('harder');
+  const normal = orders('normal');
+  assert.ok(mean(harder[0].n) > mean(normal[0].n) + 0.4, `Harder's opening wants more: ${mean(normal[0].n)} vs ${mean(harder[0].n)}`);
+  assert.ok(Math.max(...harder[2].n) === 5, 'Harder ends with five-pinch orders');
 });

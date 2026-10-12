@@ -10,7 +10,10 @@ const pass = BIRDS.find((b) => b.id === 'crow').pass;
 // once a couple are waiting (or one is getting cross); goes back to green
 // only when the crossing is empty and the cars have waited longer.
 // `slow` is how long it takes to act once switching is wanted (a beginner).
-function signaller(minGreen = 3.5, urgent = 0.6, slow = 0) {
+// `seconds`: reads waits in seconds, not off the little clocks, so `urgent`
+// is how many seconds a lone bird waits before it is noticed (a clumsy
+// player, who doesn't watch the clocks).
+function signaller(minGreen = 3.5, urgent = 0.6, slow = 0, seconds = false) {
   let press = false;
   let since = -1;
   return (game, t) => {
@@ -20,8 +23,8 @@ function signaller(minGreen = 3.5, urgent = 0.6, slow = 0) {
     }
     const birds = game.waitingBirds();
     const cars = game.waitingCars();
-    const bw = birds.reduce((m, b) => Math.max(m, b.wait / b.patience), 0);
-    const cw = cars.reduce((m, c) => Math.max(m, c.wait / c.patience), 0);
+    const bw = birds.reduce((m, b) => Math.max(m, b.wait / (seconds ? 1 : b.patience)), 0);
+    const cw = cars.reduce((m, c) => Math.max(m, c.wait / (seconds ? 1 : c.patience)), 0);
     let want = false;
     if (game.light === 'green') want = birds.length > 0 && ((game.phase > minGreen && birds.length >= 2) || bw > urgent);
     else if (game.light === 'red') want = game.onCrossing() === 0 && cars.length > 0 && game.phase > 1 && (birds.length === 0 || cw > bw);
@@ -38,20 +41,48 @@ function signaller(minGreen = 3.5, urgent = 0.6, slow = 0) {
 // Someone who switches blindly every few seconds, never looking.
 const blind = (every) => (game, t) => ({ action: t % every < 0.05 });
 
-test('crow: a signaller earns well, a beginner passes; blind switching less; mashing and idle fail', () => {
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: signaller() }).game.score);
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: signaller(5, 0.8, 0.6) }).game.score);
-  const lazy = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: blind(5) }).game.score);
-  const mash = [1, 2].map((seed) => run(create, { seed, bot: (g, t) => ({ action: t % 0.4 < 0.2 }) }).game.score);
-  const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('crow signaller', good, 'beginner', beginner, 'blind', lazy, 'mash', mash, 'idle', idle, 'pass', pass);
-  assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
-  assert.ok(Math.max(...mash) < pass, `mash ${mash}`);
-  assert.ok(beginner.filter((s) => s >= pass).length >= 2, `beginner ${beginner}`);
-  assert.ok(Math.min(...good) >= pass, `signaller ${good}`);
-  assert.ok(Math.max(...good) >= pass * 1.5, `signaller ${good}`);
-  const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(lazy), 'watching the road beats switching blindly');
+const SEEDS = Array.from({ length: 16 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: () => (g, t) => ({ action: t % 0.4 < 0.2 }),
+  blind: () => blind(5),
+  clumsy: () => signaller(6, 4.5, 1.2, true), // slow, doesn't watch the clocks
+  medium: () => signaller(5, 0.8, 0.6), // competent, not expert
+  good: () => signaller(),
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`crow pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+test('crow: at Normal a medium signaller passes, a good one earns well; blind switching less; mashing and idle fail', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(Math.min(...t.good) >= pass, `good ${t.good}`);
+  assert.ok(mean(t.good) > mean(t.blind), 'watching the road beats switching blindly');
+  for (const name of ['idle', 'mash']) assert.ok(Math.max(...t[name]) < pass, `${name} ${t[name]}`);
+});
+
+// Every car and bird across scores, so a quieter road also means fewer
+// points for everyone: Easier helps a clumsy signaller less than it would in
+// a game scored on accuracy. It still passes more often there than at Normal.
+test('crow: Easier lets a clumsy signaller pass more often than Normal; idle and mashing still fail', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.6, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(TABLE.normal.clumsy) < passRate(t.clumsy), `clumsy at Normal ${TABLE.normal.clumsy}`);
+  assert.ok(passRate(t.medium) === 1, `medium ${t.medium}`);
+  for (const name of ['idle', 'mash']) assert.ok(Math.max(...t[name]) < pass, `${name} ${t[name]}`);
+});
+
+test('crow: Harder ends hard: the good signaller scores clearly more than the medium one there', () => {
+  const t = TABLE.harder;
+  assert.ok(mean(t.good) > mean(t.medium) + 8, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(mean(t.good) > mean(TABLE.normal.good), 'a busier road pays the good signaller more');
 });
 
 // The round starts gentle and gets busier: cars and flocks come further
@@ -72,7 +103,7 @@ test('crow: the round starts gentle and ends busier', () => {
     assert.ok(a.speed < b.speed, 'cars drive faster');
     assert.ok(a.patience > b.patience, 'patience runs shorter');
   }
-  assert.ok(start.car > end.car * 2.5 && start.bird > end.bird * 2, 'the end is much busier than the start');
+  assert.ok(start.car > end.car * 1.9 && start.bird > end.bird * 1.7, 'the end is much busier than the start');
   assert.ok(third.car > (start.car + end.car) / 2, 'the first third stays on the gentle side');
 });
 

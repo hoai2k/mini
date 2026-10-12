@@ -447,6 +447,50 @@ const MENU = 9;
     focused = await page.evaluate(() => document.activeElement?.id);
   }
   focused === 'fullscreen-toggle' ? ok('the D-pad reaches the Fullscreen switch') : fail(`D-pad focus: ${focused}`);
+  // Difficulty: one more down reaches it; right and left step it, like the
+  // volume slider; it is saved, and a reload keeps it.
+  await press(page, 13);
+  const diff = () => page.evaluate(() => ({
+    focus: document.activeElement?.dataset?.choice || document.activeElement?.id || '',
+    checked: document.querySelector('[data-choice="difficulty"] [aria-checked="true"]')?.dataset.value,
+    saved: JSON.parse(localStorage.getItem('icecreamcone.settings.v1') || '{}').difficulty,
+  }));
+  let d = await diff();
+  d.focus === 'difficulty' && d.checked === 'normal' ? ok('the D-pad reaches Difficulty, at Normal') : fail(`difficulty focus: ${JSON.stringify(d)}`);
+  await press(page, 15);
+  d = await diff();
+  d.checked === 'harder' && d.saved === 'harder' && d.focus === 'difficulty' ? ok('right on the D-pad makes it Harder, and saves it') : fail(`difficulty right: ${JSON.stringify(d)}`);
+  await press(page, 15);
+  d = await diff();
+  d.checked === 'harder' ? ok('Harder is the last: right again stays') : fail(`difficulty past the end: ${JSON.stringify(d)}`);
+  await shot(page, '14e-settings-harder');
+  await page.reload();
+  await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+  await page.locator('[data-open="settings"]:visible').first().click();
+  await wait(page, 200);
+  d = await diff();
+  d.checked === 'harder' && d.saved === 'harder' ? ok('after a reload Difficulty is still Harder') : fail(`difficulty after reload: ${JSON.stringify(d)}`);
+  // a click picks a level too
+  await page.click('[data-choice="difficulty"] [data-value="easier"]');
+  d = await diff();
+  d.checked === 'easier' && d.saved === 'easier' ? ok('clicking Easier picks it') : fail(`difficulty click: ${JSON.stringify(d)}`);
+  await page.keyboard.press('Escape');
+  await wait(page, 200);
+  // a round played at Easier: its level on the result card, its best kept apart
+  await page.evaluate(() => { Object.assign(window.__coot.progress, { coot: { best: 50, plays: 1, passed: true } }); window.__coot.startBird(0); });
+  await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+  await page.evaluate(() => { const S = window.__coot.S; S.game.score = 7; S.game.done = true; });
+  await page.waitForFunction(() => window.__coot.S.phase === 'result', null, { timeout: 8000 }).catch(() => {});
+  const card = await page.evaluate(() => ({
+    level: document.querySelector('#result-level').hidden ? '' : document.querySelector('#result-level').textContent,
+    kind: window.__coot.S.result?.kind,
+    entry: window.__coot.progress.coot,
+  }));
+  card.level === 'Easier level' && card.kind === 'record' && card.entry.best === 50 && card.entry.by?.easier === 7
+    ? ok('a round at Easier says so on the result card, and keeps its own best')
+    : fail(`easier round: ${JSON.stringify(card)}`);
+  await shot(page, '14f-result-easier');
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors on the result cards');
   await page.close();
 }

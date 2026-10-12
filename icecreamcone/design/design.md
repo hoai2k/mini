@@ -221,12 +221,22 @@ scene shrinks together, down to half size. Until that painting arrives the
 seaside stays put and only the Coot and its scoops shrink. The view closes
 in again slowly after a topple.
 
-**Difficulty over the round.** One eased curve (`g.ramp()`, smoothstep of the
-round's progress) sets every knob, so the first third is gentle and the end
-harder than before: scoops fall at 170 px/s at first and 500 at the end (was
-230 to 490), come every 1.2 s to 0.45 s (was 1.0 to 0.45), and pickles and
-socks, none in the first 6 s, rise from 4% to 21% of what falls (was 8% to
-18%). Pass mark stays at 6.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets every knob, easy / medium / hard: scoops fall at 170 /
+290 / 500 px/s, come every 1.2 / 0.92 / 0.45 s (plus up to 0.25), and pickles
+and socks, none in the first 6 s, are 4% / 10% / 21% of what falls. Pass mark
+stays at 6. Bots over 24 seeds (mean, range, share passing):
+
+| Level | Idle | Run at random | Clumsy | Medium | Good chaser |
+| --- | --- | --- | --- | --- | --- |
+| Easier | 2 (1–4) | 3 (1–7) 13% | 6 (2–10) 54% | 10 (5–16) 92% | 29 (9–41) |
+| Normal | 2 (0–5) | 3 (0–6) 4% | 6 (2–10) 63% | 8 (4–14) 88% | 29 (11–40) |
+| Harder | 2 (0–5) | 2 (1–4) 0% | 5 (2–9) 38% | 8 (4–18) 83% | 24 (9–37) |
+
+The score is the tallest stack, so luck plays a part: a random runner now and
+then has scoops land on its head, as it did before the curve (about one round
+in twenty at Normal with the mark at 6). The stack's balance, not the pace,
+is what limits a weak player, so Easier helps a clumsy one only a little.
 
 ### 2. Cupadee: Tea Time (45 s)
 
@@ -375,12 +385,23 @@ everyone who crosses (birds and cars). Waiting too long makes them give up
 and leave, and switching while someone is still on the crossing is a
 near-miss that costs points.
 
-**Difficulty over the round.** One eased curve (`level()`, progress to the
-power 1.6) sets every knob, so the first third stays gentle and the end is
-busier than the old round: a car per lane every 3.3 s at the start to 1.15 s
-at the end, a flock per pavement every 4.6 s to 1.95 s (flocks of one or two
-at first, up to three later), cars 240 to 335 px/s, and patience 8.5 s down
-to 4.6 s.
+**Difficulty over the round.** The shared curve (`g.d()`, see
+`difficulty.md`) sets every knob, easy / medium / hard: a car per lane every
+3.3 / 2.45 / 1.15 s, a flock per pavement every 4.6 / 3.5 / 1.95 s (a second
+bird 30% / 50% / 80% of the time, a third 0% / 24% / 60%), cars 240 / 278 /
+335 px/s, patience 8.5 / 6.9 / 4.6 s. Pass mark stays at 40. Bots over 16
+seeds (mean, range, share passing):
+
+| Level | Idle | Mash | Blind every 5 s | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- |
+| Easier | 3 (0–7) | 4 (0–9) | 43 (34–52) 88% | 40 (10–52) 63% | 51 (42–58) 100% | 53 (47–60) |
+| Normal | 2 (0–6) | 5 (2–9) | 48 (41–58) 100% | 38 (21–53) 44% | 53 (35–65) 94% | 62 (56–68) |
+| Harder | 1 (0–3) | 2 (0–4) | 64 (54–74) 100% | 42 (35–50) 63% | 55 (42–67) 100% | 79 (58–91) |
+
+Every car and bird across scores, so a busier road pays more to anyone who
+keeps it moving, and a quieter one (Easier) pays everyone less: Easier helps
+a clumsy signaller only a little. Blind switching every five seconds passes
+at Normal, as it did before.
 
 ## Look and sound
 

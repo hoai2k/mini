@@ -8,10 +8,12 @@
 // gets across scores one. Anyone kept waiting too long gets cross (watch the
 // little clocks) and leaves, which costs one; switching to green while birds
 // are still on the crossing is a near miss: the cars brake hard and it costs
-// three. Arrivals start slow and come faster as time goes on. Score: crossings.
+// three. Arrivals start slow and come faster as time goes on, along the
+// shared difficulty curve (`g.d()`, see difficulty.js). Score: crossings.
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 // The scale each chick cell is painted at, against the first (standing x3,
 // walking x2, flying): design/source/pose-scales.json.
@@ -67,15 +69,18 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  // Difficulty over the round, 0 to 1: slow to rise through the first third
-  // (a newcomer learns the light), about the old average by the middle, and
-  // busier than before at the end. Every knob below follows this one curve.
-  const level = () => Math.pow(progress(), 1.6);
-  g.level = level;
-  g.carGap = () => lerp(3.3, 1.15, level()); // seconds between cars, per lane
-  g.birdGap = () => lerp(4.6, 1.95, level()); // seconds between flocks, per side
-  g.carSpeed = () => lerp(240, 335, level());
-  g.patienceNow = () => lerp(8.5, 4.6, level());
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(progress());
+  g.carGap = () => knob(g.d(), 3.3, 2.45, 1.15); // seconds between cars, per lane
+  g.birdGap = () => knob(g.d(), 4.6, 3.5, 1.95); // seconds between flocks, per side
+  g.carSpeed = () => knob(g.d(), 240, 278, 335);
+  g.patienceNow = () => knob(g.d(), 8.5, 6.9, 4.6); // seconds before giving up
+  // birds come in little flocks, bigger later on: the chance of a second
+  // bird, and of a third
+  g.pairChance = () => knob(g.d(), 0.3, 0.5, 0.8);
+  g.trioChance = () => knob(g.d(), 0, 0.24, 0.6);
   const patience = () => g.patienceNow() * (0.9 + rng() * 0.2);
   const add = (n) => {
     g.score = Math.max(0, g.score + n);
@@ -180,7 +185,6 @@ export default function create(env) {
     g.flash = Math.max(0, g.flash - dt);
 
     // Arrivals, faster as time goes on.
-    const p = level();
     for (let l = 0; l < 2; l++) {
       g.carT[l] -= dt;
       if (g.carT[l] <= 0) {
@@ -189,8 +193,7 @@ export default function create(env) {
       }
       g.birdT[l] -= dt;
       if (g.birdT[l] <= 0) {
-        // birds come in little flocks, bigger later on
-        const n = 1 + (rng() < 0.3 + p * 0.5 ? 1 : 0) + (rng() < p * 0.6 ? 1 : 0);
+        const n = 1 + (rng() < g.pairChance() ? 1 : 0) + (rng() < g.trioChance() ? 1 : 0);
         for (let i = 0; i < n; i++) spawnBird(l);
         g.birdT[l] = g.birdGap() * (0.75 + rng() * 0.5);
       }

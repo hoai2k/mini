@@ -94,15 +94,34 @@ Sprites delivered (IC-M14b plates, IC-M14c diners, IC-M14d hanging poses, IC-M14
 
 ## Difficulty over the round
 
-The lunch rush builds on one eased curve, `g.ramp()` (smoothstep of the
-round's progress), so the first third is gentle and the end the hardest.
-- **First half:** plates mostly want one pinch, now and then two (two in five
-  by halfway). Never more than two.
-- **Second half:** one to three pinches, then two to four from 70% of the
-  round, two to five in the last 15%.
-- **Table speed:** 0.36 rad/s at the start, 0.78 at the end (was 0.40 to 0.65).
-- **Plates:** about 2.9 s apart at the start, 1.15 s at the end (was 2.8 to 1.35).
-- **Puddings:** none in the first fifth, then 12% rising to 22%.
-- Pass mark 30 to 35: the easy opening lifts every score. Mashing still tops
-  out near 30 over 40 seeds. `test/saltshakershrike.test.mjs` checks the ramp
-  from the plates themselves.
+The lunch rush follows the shared difficulty curve (`g.d()`, see
+`../difficulty.md`): 0 is easy, 0.5 medium, 1 hard. At Normal it is medium by
+about two-thirds of the round and ends at 0.85. Each knob is easy / medium /
+hard; hard is roughly the old end of the round, medium a little gentler than
+the old middle.
+
+| Knob | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| Table turn (rad/s) | 0.36 | 0.55 | 0.78 |
+| Seconds between plates (±15%) | 2.7 | 1.95 | 1.15 |
+| Pudding chance | 0 | 0.15 | 0.22 |
+| Pinches wanted | all 1 | 1–3 | 2–5 |
+
+Pinches: `floor(knob(d, 1, 1, 2) + r * knob(d, 1, 2.4, 3.6))`, so a Normal
+round opens on ones, twos creep in, threes come near the middle, and fours
+and fives only at the end. Easier never asks for more than two.
+
+**Pass mark stays at 35.** Bots over seeds 1–12 (mean, range, share passing):
+
+| Level | Idle | Mash | Shake on the spot | Over-salt | Clumsy | Medium | Good |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easier | 0 | 15 (9–19) | 27 (18–34) | 0 | 39 (35–42) 100% | 42 (35–48) 100% | 45 (39–48) |
+| Normal | 0 | 15 (1–25) | 27 (21–32) | 0 | 29 (15–38) 17% | 45 (39–51) 100% | 48 (36–54) |
+| Harder | 0 | 10 (4–16) | 18 (11–28) | 2 | 13 (5–24) 0% | 52 (43–57) 100% | 58 (45–69) |
+
+The medium player is the old beginner (leads 70%, loses count one pinch in
+eight). The clumsy one leads 30%, shakes only every half second and looks up
+0.7 s late on each new plate. Points come from plates served, so a busier
+table pays more to whoever keeps up: the hard end is where records are made.
+`test/saltshakershrike.test.mjs` checks all of this, and the orders third by
+third at each level.

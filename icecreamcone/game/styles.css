@@ -442,6 +442,16 @@ body.reduce-motion .stamp-record .shine { display: none; }
 .row input[type='range'] { accent-color: var(--accent); width: 100%; }
 .row input[type='checkbox'] { accent-color: var(--accent); width: 24px; height: 24px; }
 .setting-note { margin: -4px 0 4px; font-size: 0.85rem; }
+.row.choice-row { grid-template-columns: auto 1fr; }
+/* Difficulty: three segments in one control; ◀ ▶ (D-pad, arrows) step it,
+   a click or tap picks one. */
+.seg { display: flex; justify-self: end; border: 2px solid var(--ink); border-radius: 12px 10px 13px 9px; overflow: hidden; background: var(--paper); outline: none; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; font: 600 0.95rem var(--sans); color: var(--ink); min-height: 40px; }
+.seg button + button { border-left: 2px solid var(--ink); }
+.seg button[aria-checked='true'] { background: var(--accent); color: #fff8ef; }
+.seg button:hover:not([aria-checked='true']) { background: #fff8e8; }
+@media (max-width: 420px) { .seg button { padding: 6px 9px; font-size: 0.9rem; } }
+.result-level { margin: 0; font: 700 0.95rem var(--sans); color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
 
 .gathering-head { margin-top: 0; }
 /* The finale's words sit on a paper label over the painting, so they read

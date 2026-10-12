@@ -10,11 +10,11 @@ agent. Newest first.
   possible, easiest first, medium by about two-thirds, some hard only at the
   end. Pass = handling medium; hard is for records, never needed to pass. Most
   games are tuned between medium and hard now, so ease them. A Difficulty
-  setting: Easier / Normal / Harder. Step 1 (agent running): shared
+  setting: Easier / Normal / Harder. Step 1 (done, committed): shared
   `src/games/difficulty.js` (`difficulty(p, setting)`, `knob(d, easy, medium,
   hard)`), the setting, per-level bests (a pass at any level counts), three
   worked games (saltshakershrike, coot, crow) and a guide in
-  `design/difficulty.md`. Step 2 (next): agents convert the other 25 games by
+  `design/difficulty.md`. Step 2 (starting): agents convert the other 25 games by
   that guide. The ramps committed in 44fea729 and cc2cd898 are the starting
   point (one curve per game already). User: most games feel good already;
   keep changes very subtle (mostly where in the round values are reached).

@@ -11,7 +11,9 @@ export const DEFAULTS = {
   sound: true,
   vibration: true,
   unlockAll: false,
+  difficulty: 'normal', // 'easier' | 'normal' | 'harder' (src/games/difficulty.js)
 };
+const LEVELS = ['easier', 'normal', 'harder'];
 
 // Not settings the player changes: music and effects keep a fixed balance
 // under the one volume, and motion follows the device's own preference.
@@ -59,26 +61,43 @@ function write(key, value, { session = false } = {}) {
 export function loadSettings() {
   const saved = read(SETTINGS_KEY) || {};
   const own = Object.fromEntries(Object.keys(DEFAULTS).filter((k) => k in saved).map((k) => [k, saved[k]]));
+  if (!LEVELS.includes(own.difficulty)) delete own.difficulty;
   return { ...DEFAULTS, ...own, ...FIXED };
 }
 export function saveSettings(s) {
   write(SETTINGS_KEY, Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, s[k]])));
 }
 
-// { [birdId]: { best: number, plays: number } }
+// { [birdId]: { best, plays, passed?, by? } }. `best` is the best at Normal
+// (so saves from before the Difficulty setting carry over as Normal bests);
+// `by` holds the bests at the other levels: { easier?: n, harder?: n }.
+// A pass at any level counts for good (`passed`).
+export const level = (l) => (LEVELS.includes(l) ? l : 'normal');
+
+export function bestAt(e, l = 'normal') {
+  if (!e) return 0;
+  return (level(l) === 'normal' ? e.best : e.by?.[l]) || 0;
+}
+
 export function loadProgress() {
   const p = read(PROGRESS_KEY, { session: true });
   return p && typeof p === 'object' ? p : {};
 }
 
-// Records a score; returns true when it is a new best. `passedNow` marks the
-// bird passed for good: a pass is kept even if its pass mark rises later.
-export function recordScore(progress, id, score, passedNow = false) {
+// Records a score at a level; returns true when it is a new best for that
+// level. `passedNow` marks the bird passed for good: a pass is kept even if
+// its pass mark rises later, and whichever level it was made at.
+export function recordScore(progress, id, score, passedNow = false, at = 'normal') {
   const e = progress[id] || { best: 0, plays: 0 };
+  const l = level(at);
   e.plays++;
   if (passedNow) e.passed = true;
-  const isBest = score > e.best;
-  if (isBest) e.best = score;
+  const isBest = score > bestAt(e, l);
+  if (isBest) {
+    if (l === 'normal') e.best = score;
+    else e.by = { ...e.by, [l]: score };
+  }
+  e.best ||= 0;
   progress[id] = e;
   write(PROGRESS_KEY, progress, { session: true });
   return isBest;
@@ -89,7 +108,8 @@ export function recordScore(progress, id, score, passedNow = false) {
 const BACKUP_KEY = 'icecreamcone.progress.backup.v1';
 const STICKERS_BACKUP_KEY = 'icecreamcone.stickers.backup.v1';
 
-// The higher best (and the larger number of plays) for every bird in either.
+// The higher best at each level (and the larger number of plays) for every
+// bird in either.
 export function mergeProgress(a = {}, b = {}) {
   const out = {};
   for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
@@ -97,6 +117,10 @@ export function mergeProgress(a = {}, b = {}) {
     const y = b[id] || { best: 0, plays: 0 };
     out[id] = { best: Math.max(x.best || 0, y.best || 0), plays: Math.max(x.plays || 0, y.plays || 0) };
     if (x.passed || y.passed) out[id].passed = true;
+    for (const l of LEVELS.filter((l) => l !== 'normal')) {
+      const v = Math.max(bestAt(x, l), bestAt(y, l));
+      if (v) out[id].by = { ...out[id].by, [l]: v };
+    }
   }
   return out;
 }
@@ -116,7 +140,7 @@ export function loadBackup() {
 
 // True when the kept scores hold a best higher than today's for some bird.
 export function canRestore(progress) {
-  return Object.entries(loadBackup()).some(([id, e]) => (e?.best || 0) > (progress[id]?.best || 0));
+  return Object.entries(loadBackup()).some(([id, e]) => LEVELS.some((l) => bestAt(e, l) > bestAt(progress[id], l)));
 }
 
 // Brings back the kept scores, merged with today's; the sticker book comes

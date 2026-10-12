@@ -110,3 +110,67 @@ test('photographs persist normally and debug keeps them separate', async () => {
   assert.deepEqual(fresh.loadPhotos(), []);
   assert.deepEqual(JSON.parse(localStorage.getItem('icecreamcone.photos.v1')), [photo]);
 });
+
+test('difficulty: a setting, Normal unless saved as one of the three', async () => {
+  const fresh = await import('../src/store.js?difficulty');
+  localStorage.setItem('icecreamcone.settings.v1', JSON.stringify({ volume: 40 }));
+  assert.equal(fresh.loadSettings().difficulty, 'normal', 'an old save is Normal');
+  fresh.saveSettings({ ...fresh.loadSettings(), difficulty: 'harder' });
+  assert.equal(fresh.loadSettings().difficulty, 'harder');
+  assert.equal(JSON.parse(localStorage.getItem('icecreamcone.settings.v1')).difficulty, 'harder', 'saved with the others');
+  localStorage.setItem('icecreamcone.settings.v1', JSON.stringify({ difficulty: 'nightmare' }));
+  assert.equal(fresh.loadSettings().difficulty, 'normal', 'an unknown level is Normal');
+  fresh.keepForSessionOnly();
+  fresh.saveSettings({ ...fresh.loadSettings(), difficulty: 'easier' });
+  assert.equal(JSON.parse(localStorage.getItem('icecreamcone.settings.v1')).difficulty, 'easier', 'in ?debug it is still saved, like every setting');
+});
+
+test('difficulty: bests are kept per level; a pass at any level counts; old bests are Normal bests', async () => {
+  const s = await import('../src/store.js?levels');
+  // An old save: one best, no levels. It reads as the Normal best.
+  const p = { coot: { best: 9, plays: 4, passed: true } };
+  assert.equal(s.bestAt(p.coot, 'normal'), 9);
+  assert.equal(s.bestAt(p.coot, 'harder'), 0);
+  assert.equal(s.bestAt(p.coot), 9, 'Normal by default');
+  // Each level keeps its own best.
+  assert.equal(s.recordScore(p, 'coot', 5, false, 'easier'), true, 'a first Easier score is an Easier best');
+  assert.equal(s.recordScore(p, 'coot', 7, false, 'normal'), false, 'not a Normal best');
+  assert.equal(s.recordScore(p, 'coot', 12, false, 'harder'), true);
+  assert.deepEqual(p.coot, { best: 9, plays: 7, passed: true, by: { easier: 5, harder: 12 } });
+  assert.equal(s.recordScore(p, 'coot', 3, false, 'bogus'), false, 'an unknown level is Normal');
+  // A pass at Easier opens the next page for good.
+  const q = {};
+  s.recordScore(q, 'crow', 50, true, 'easier');
+  assert.equal(q.crow.passed, true);
+  assert.equal(q.crow.best, 0, 'no Normal best yet');
+  assert.equal(s.bestAt(q.crow, 'easier'), 50);
+  // Merging takes the higher best at every level.
+  const m = s.mergeProgress(
+    { coot: { best: 9, plays: 3, by: { easier: 5 } } },
+    { coot: { best: 4, plays: 6, passed: true, by: { easier: 8, harder: 2 } } },
+  );
+  assert.deepEqual(m, { coot: { best: 9, plays: 6, passed: true, by: { easier: 8, harder: 2 } } });
+});
+
+test('difficulty: forgetting and restoring keeps every level; restore is offered for a better Harder best alone', async () => {
+  const s = await import('../src/store.js?restore-levels');
+  let p = s.loadProgress();
+  for (const id of Object.keys(p)) delete p[id];
+  s.recordScore(p, 'plume', 4, false, 'normal');
+  s.recordScore(p, 'plume', 20, true, 'harder');
+  s.resetProgress();
+  p = s.loadProgress();
+  assert.deepEqual(p, {});
+  s.recordScore(p, 'plume', 6, false, 'normal');
+  assert.equal(s.canRestore(p), true, 'the Harder 20 is worth restoring');
+  const back = s.restoreProgress(p);
+  assert.equal(back.plume.best, 6);
+  assert.equal(s.bestAt(back.plume, 'harder'), 20);
+  assert.equal(back.plume.passed, true);
+  assert.equal(s.canRestore(back), false);
+  // keepOldPasses still reads the Normal best of an old save.
+  const { BIRDS } = await import('../src/birds.js');
+  const old = { [BIRDS[0].id]: { best: BIRDS[0].pass, plays: 1 } };
+  assert.equal(s.keepOldPasses(old, BIRDS), true);
+  assert.equal(old[BIRDS[0].id].passed, true);
+});

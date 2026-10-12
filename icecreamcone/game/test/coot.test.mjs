@@ -26,8 +26,10 @@ test('coot: a careful chaser opens the next page; idle earns nothing', () => {
 });
 
 // A beginner: reacts late, aims loosely, runs at partial speed and pays no
-// heed to pickles and socks.
-function beginner(seed) {
+// heed to pickles and socks. This is the medium player: it handles medium.
+// `clumsy` looks up less often, aims looser and runs slower still.
+const CL = { look: 0.6, aim: 180, speed: 0.5 };
+function beginner(seed, clumsy = false) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let target = null;
@@ -36,12 +38,13 @@ function beginner(seed) {
     const top = game.x - 86;
     wait -= 1 / 60;
     if (wait <= 0) {
-      wait = 0.45 + rnd() * 0.3; // looks up now and then
+      wait = (clumsy ? CL.look : 0.45) + rnd() * 0.3; // looks up now and then
       const good = game.items.filter((i) => i.kind !== 'pickle' && i.kind !== 'sock').sort((a, b) => b.y - a.y)[0];
-      target = good ? good.x + (rnd() - 0.5) * 110 : null;
+      // the faster it falls, the looser the aim (110 px across at medium speed)
+      target = good ? good.x + (rnd() - 0.5) * (clumsy ? CL.aim : 110) * (good.vy / 340) : null;
     }
     if (target === null) return {};
-    return { x: Math.max(-1, Math.min(1, (target - top) / 80)) * 0.6 };
+    return { x: Math.max(-1, Math.min(1, (target - top) / 80)) * (clumsy ? CL.speed : 0.6) };
   };
 }
 // Mashing: running back and forth at random.
@@ -55,14 +58,51 @@ function masher(seed) {
   };
 }
 
-test('coot: a beginner passes about half the time or more; mashing does not', () => {
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const begin = seeds.map((seed) => run(create, { seed, bot: beginner(seed) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: chaser }).game.score);
-  const mash = seeds.map((seed) => run(create, { seed, bot: masher(seed) }).game.score);
-  console.log('coot beginner', `${begin}`, 'good', `${good}`, 'mash', `${mash}`, 'pass', pass);
-  assert.ok(begin.filter((s) => s >= pass).length >= seeds.length / 2, `beginner ${begin}`);
-  assert.ok(Math.max(...mash) < pass, `mashing ${mash}`);
+const SEEDS = Array.from({ length: 24 }, (_, i) => i + 1);
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const BOTS = {
+  idle: () => () => ({}),
+  mash: (seed) => masher(seed),
+  clumsy: (seed) => beginner(seed, true),
+  medium: (seed) => beginner(seed),
+  good: () => chaser,
+};
+const TABLE = {};
+for (const level of ['easier', 'normal', 'harder']) {
+  TABLE[level] = {};
+  for (const [name, bot] of Object.entries(BOTS)) TABLE[level][name] = SEEDS.map((seed) => run(create, { seed, bot: bot(seed), difficulty: level }).game.score);
+}
+const passRate = (a) => a.filter((s) => s >= pass).length / a.length;
+console.log(`coot pass ${pass}`);
+for (const [level, row] of Object.entries(TABLE)) console.log(level, Object.entries(row).map(([n, a]) => `${n} ${Math.round(mean(a))} [${Math.min(...a)}-${Math.max(...a)}] ${Math.round(passRate(a) * 100)}%`).join(' · '));
+
+// The score is the tallest stack, so luck plays a part: a random runner now
+// and then has scoops land on its head (about one round in twenty at Normal,
+// as before the curve; the pass mark was lowered to 6 on purpose). So the
+// checks on idling and mashing are on how often, not never.
+test('coot: at Normal a medium player passes; idle and mashing seldom, and well below on average', () => {
+  const t = TABLE.normal;
+  assert.ok(passRate(t.medium) >= 0.75, `medium ${t.medium}`);
+  assert.ok(mean(t.good) >= pass * 3, `good ${t.good}`);
+  for (const name of ['idle', 'mash']) {
+    assert.ok(passRate(t[name]) <= 0.1, `${name} ${t[name]}`);
+    assert.ok(mean(t[name]) < pass * 0.6, `${name} ${t[name]}`);
+  }
+});
+
+test('coot: Easier: a clumsy player passes about half the time, the medium player nearly always; idling never', () => {
+  const t = TABLE.easier;
+  assert.ok(passRate(t.clumsy) >= 0.45, `clumsy ${t.clumsy}`);
+  assert.ok(passRate(t.medium) >= 0.85 && mean(t.medium) >= mean(TABLE.normal.medium), `medium ${t.medium}`);
+  assert.ok(Math.max(...t.idle) < pass, `idle ${t.idle}`);
+  assert.ok(passRate(t.mash) <= 0.15 && mean(t.mash) < pass * 0.6, `mash ${t.mash}`);
+});
+
+test('coot: Harder ends hard: fewer clumsy passes; the good chaser still builds far taller than the medium player', () => {
+  const t = TABLE.harder;
+  assert.ok(passRate(t.clumsy) < passRate(TABLE.normal.clumsy), `clumsy ${t.clumsy}`);
+  assert.ok(mean(t.good) > mean(t.medium) * 2.5, `good ${mean(t.good)} vs medium ${mean(t.medium)}`);
+  assert.ok(Math.max(...t.idle, ...t.mash) < pass, 'no luck at Harder');
 });
 
 test('coot: an off-centre stack spills from its weak point, keeping what is below it', () => {
@@ -230,10 +270,10 @@ test('coot: every painted pose shows the Coot the same size, on the same feet', 
   }
 });
 
-test('coot: the round starts gentle and ends hard: slower, sparser, fewer pickles and socks at first', () => {
+function thirds(difficulty) {
   const thirds = [0, 1, 2].map(() => ({ n: 0, vy: 0, bad: 0 }));
   for (const seed of [1, 2, 3, 4, 5, 6]) {
-    const game = create(env(seed));
+    const game = create(env(seed, { difficulty }));
     const seen = new Set();
     while (!game.done) {
       game.update(1 / 60, blank());
@@ -247,8 +287,22 @@ test('coot: the round starts gentle and ends hard: slower, sparser, fewer pickle
       }
     }
   }
-  const [a, , c] = thirds;
+  return thirds;
+}
+
+test('coot: the round starts gentle and ends hard: slower, sparser, fewer pickles and socks at first', () => {
+  const [a, , c] = thirds('normal');
   assert.ok(c.vy / c.n > (a.vy / a.n) * 1.6, `falls faster: ${a.vy / a.n} vs ${c.vy / c.n}`);
-  assert.ok(c.n > a.n * 1.5, `more often: ${a.n} vs ${c.n}`);
+  assert.ok(c.n > a.n * 1.25, `more often: ${a.n} vs ${c.n}`);
   assert.ok(c.bad / c.n > (a.bad / a.n) * 2, `more pickles and socks: ${a.bad}/${a.n} vs ${c.bad}/${c.n}`);
+});
+
+test('coot: Easier stays gentle all round; Harder ends busier than Normal', () => {
+  const e = thirds('easier');
+  const n = thirds('normal');
+  const h = thirds('harder');
+  assert.ok(e[2].vy / e[2].n < n[2].vy / n[2].n * 0.75, 'Easier ends slower');
+  assert.ok(e[2].n < n[2].n, 'Easier ends sparser');
+  assert.ok(h[2].n > n[2].n && h[2].bad / h[2].n > n[2].bad / n[2].n, 'Harder ends busier and nastier');
+  assert.ok(h[0].vy / h[0].n > n[0].vy / n[0].n * 1.4, 'Harder opens near medium');
 });

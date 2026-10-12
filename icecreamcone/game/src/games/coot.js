@@ -6,7 +6,8 @@
 // spills: the scoops above its weak point slide off (all of them, if it
 // leans too far at the bottom). Pickles and socks knock scoops off; a golden
 // cherry counts three. Things fall slowly and sparsely at first, with
-// few pickles and socks; faster, thicker and nastier by the end (`g.ramp()`).
+// few pickles and socks; faster, thicker and nastier as the round goes on,
+// along the shared difficulty curve (`g.d()`, see difficulty.js).
 // Score: the tallest stack built (counting cherries as three).
 //
 // A scoop that hits the side of the stack clings there for a moment, then
@@ -20,6 +21,7 @@
 
 import { drawBird, birdPoint, drawSprite, scene, art, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { curve, knob } from './difficulty.js';
 
 const DURATION = 45;
 const GROUND = 840;
@@ -311,16 +313,15 @@ export default function create(env) {
   const viewTop = () => GROUND + (GROUND - GROUND / g.zoom - groundY()) / g.depth;
   const toWorldX = (x) => W / 2 + (x - W / 2) / (g.zoom * g.depth);
 
-  // Difficulty over the round: one eased curve (smoothstep of the round's
-  // progress), 0 at the start and 1 at the end, so the first third is gentle.
-  // It sets how fast things fall, how often, and how many are pickles and socks.
-  g.ramp = () => {
-    const k = Math.min(1, g.elapsed / DURATION);
-    return k * k * (3 - 2 * k);
-  };
-  g.fallSpeed = () => 170 + g.ramp() * 330; // 170 px/s at first, 500 at the end (was 230 to 490)
-  g.gap = () => 1.2 - g.ramp() * 0.75; // seconds between items, 1.2 to 0.45, plus up to 0.25 (was 1.0 to 0.45)
-  g.hazard = () => (g.elapsed > 6 ? 0.04 + g.ramp() * 0.17 : 0); // pickles and socks, 4% to 21% (was 8% to 18%)
+  // How hard it is now, 0 (easy) .. 0.5 (medium) .. 1 (hard), along the
+  // shared curve for the chosen Difficulty. It sets how fast things fall, how
+  // often, and how many are pickles and socks. Each knob: easy, medium, hard.
+  const dAt = curve(env);
+  g.d = () => dAt(Math.min(1, g.elapsed / DURATION));
+  g.fallSpeed = () => knob(g.d(), 170, 290, 500); // px/s, plus up to 60
+  g.gap = () => knob(g.d(), 1.2, 0.92, 0.45); // seconds between items, plus up to 0.25
+  // pickles and socks: none for the first 6 s, then this share of what falls
+  g.hazard = () => (g.elapsed > 6 ? knob(g.d(), 0.04, 0.1, 0.21) : 0);
 
   function spawnItem() {
     const roll = rng();

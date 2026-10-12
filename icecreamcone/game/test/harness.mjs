@@ -20,8 +20,10 @@ export function blank(over = {}) {
 
 // Runs a game to the end. `bot(game, t, prev)` returns a partial input each
 // frame (held `action` is turned into pressed/released edges automatically).
-export function run(create, { seed = 1, dt = 1 / 60, maxSeconds = 600, bot = () => ({}) } = {}) {
-  const game = create(env(seed));
+// `difficulty` is the Settings level ('easier' | 'normal' | 'harder'); left
+// out, the game plays at Normal.
+export function run(create, { seed = 1, dt = 1 / 60, maxSeconds = 600, bot = () => ({}), difficulty } = {}) {
+  const game = create(env(seed, difficulty ? { difficulty } : {}));
   let t = 0;
   let held = false;
   while (!game.done && t < maxSeconds) {

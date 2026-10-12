@@ -3,9 +3,10 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers, loadPhotos, savePhotos } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, bestAt, resetProgress, canRestore, restoreProgress, keepOldPasses, loadStickers, saveStickers, resetStickers, loadPhotos, savePhotos } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
+import { LEVEL_NAMES } from './games/difficulty.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
 import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, spreadCount, sheetCells } from './reward.js';
@@ -348,6 +349,13 @@ function moveFocus(dx, dy) {
     bestEl = nearest(own);
     if (!bestEl && dx) bestEl = own[own.indexOf(cur) + dx] || null;
   }
+  // In a list (Settings) up and down go row by row, in order, whatever
+  // the widths of the controls on each row.
+  const list = cur.closest('[data-nav-list]');
+  if (!bestEl && list && dy) {
+    const own = items.filter((e) => list.contains(e));
+    bestEl = own[own.indexOf(cur) + dy] || null;
+  }
   bestEl ||= nearest(items);
   if (!bestEl) {
     // Nothing that way: step through the list in order instead.
@@ -362,9 +370,11 @@ function moveFocus(dx, dy) {
 
 // ---------- the guide ----------
 
-const best = (id) => progress[id]?.best || 0;
-// A bird once passed stays passed, even if its pass mark is raised later.
-const passed = (i) => !!progress[BIRDS[i].id]?.passed || passes(BIRDS[i], best(BIRDS[i].id));
+// The best at the Difficulty chosen in Settings: each level keeps its own.
+const best = (id) => bestAt(progress[id], settings.difficulty);
+// A bird once passed stays passed, even if its pass mark is raised later, and
+// whatever level it was passed at. (An old save's best is a Normal best.)
+const passed = (i) => !!progress[BIRDS[i].id]?.passed || passes(BIRDS[i], bestAt(progress[BIRDS[i].id], 'normal'));
 // The card opening after a celebration shows locked until it flips, even in
 // ?debug.
 const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
@@ -557,6 +567,9 @@ function shineCard(c, w, h, k, t) {
 
 // ---------- a bird's page ----------
 
+// " (Harder)" after a best shown at a level other than Normal.
+const levelTag = () => (settings.difficulty !== 'normal' ? ` (${LEVEL_NAMES[settings.difficulty]})` : '');
+
 // What it takes to open the next page (or, on the last page, to finish).
 function goalLine(b) {
   const i = BIRDS.indexOf(b);
@@ -582,7 +595,7 @@ function fillPage() {
   fillList($('#page-tips'), b.tips);
   S.pageKind = input.kind;
   $('#page-hint').textContent = input.kind === 'controller' ? '◀ ▶ turn the page · LS / RS ↑ ↓ scroll instructions' : '◀ ▶ turn the page';
-  $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
+  $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}${levelTag()}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
 }
 
@@ -686,6 +699,9 @@ function newGame() {
     savePhotos(photos);
   }
   S.seed = (Date.now() & 0xffff) + 1;
+  // The round keeps the level it started at, even if Settings change it from
+  // the pause menu: its score is recorded at that level.
+  S.level = settings.difficulty;
   S.game = S.factory({
     W,
     H,
@@ -693,6 +709,7 @@ function newGame() {
     sfx: audio.sfx,
     vibrate,
     reduceMotion: settings.reduceMotion,
+    difficulty: S.level,
     subjects: b.id === 'shuttercluck' ? SUBJECT_IDS : undefined,
     onPhoto: b.id === 'shuttercluck' ? keepPhoto : undefined,
   });
@@ -706,7 +723,7 @@ function fillHowto() {
   $('#howto-goal').textContent = b.goal;
   fillList($('#howto-controls'), controlLines(b));
   fillList($('#howto-tips'), b.tips);
-  $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${best(b.id)}` : ''].filter(Boolean).join(' · ');
+  $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${best(b.id)}${levelTag()}` : ''].filter(Boolean).join(' · ');
 }
 
 function begin() {
@@ -753,7 +770,7 @@ function finish() {
   const b = BIRDS[S.bird];
   const score = Math.round(S.game.score);
   const before = passed(S.bird);
-  const record = recordScore(progress, b.id, score, passes(b, score)) && score > 0;
+  const record = recordScore(progress, b.id, score, passes(b, score), S.level) && score > 0;
   const now = passed(S.bird);
   const outcome = roundOutcome({ wasPassed: before, isPassed: now, reached: passes(b, score), debug: DEBUG });
   S.last = { id: b.id, score, outcome };
@@ -770,7 +787,11 @@ function finish() {
   S.result = { kind, ...resultTiming(kind), fired: new Set() };
   $('#result-title').textContent = RESULT_TITLES[kind];
   $('#result-score').textContent = `${score} ${score === 1 ? one(b.score) : b.score}`;
-  $('#result-best').textContent = [record ? '' : `Best: ${best(b.id)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
+  const lv = S.level !== 'normal' ? LEVEL_NAMES[S.level] : '';
+  $('#result-level').textContent = lv ? `${lv} level` : '';
+  $('#result-level').hidden = !lv;
+  const atLevel = bestAt(progress[b.id], S.level);
+  $('#result-best').textContent = [record ? '' : `Best${lv ? ' at ' + lv : ''}: ${atLevel}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
   extra.textContent = '';
   for (const line of S.game.summary?.() || []) {
@@ -796,7 +817,7 @@ function quitToGuide() {
   const b = BIRDS[i];
   const score = Math.round(S.game?.score || 0);
   const before = passed(i);
-  if (score > 0) recordScore(progress, b.id, score, passes(b, score));
+  if (score > 0) recordScore(progress, b.id, score, passes(b, score), S.level);
   const n = nextPage(i, BIRDS.length);
   if (!before && passed(i) && n >= 0) {
     // the page after it opens on the way back, unless every page is open already
@@ -1654,6 +1675,7 @@ function syncSettingsUi() {
   syncSoundButton();
   $('#restore-btn').hidden = !canRestore(progress);
   syncFullscreenUi();
+  syncChoices();
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = !!settings[k];
@@ -1664,6 +1686,41 @@ function syncSettingsUi() {
     }
   }
 }
+// A segmented choice (Difficulty): the chosen segment is checked.
+function syncChoices() {
+  for (const el of document.querySelectorAll('[data-choice]')) {
+    for (const b of el.querySelectorAll('[data-value]')) b.setAttribute('aria-checked', String(b.dataset.value === settings[el.dataset.choice]));
+  }
+}
+// Picks a choice's value (from a click, or ◀ ▶ stepping it).
+function choose(k, value) {
+  if (settings[k] === value) return;
+  settings[k] = value;
+  saveSettings(settings);
+  syncChoices();
+  audio.sfx('move');
+  // the guide's cards show the best at this level
+  if (k === 'difficulty') for (const card of document.querySelectorAll('#cards .card')) fillCard(card);
+}
+function stepChoice(el, dx) {
+  const values = [...el.querySelectorAll('[data-value]')].map((b) => b.dataset.value);
+  const i = values.indexOf(settings[el.dataset.choice]);
+  const j = Math.max(0, Math.min(values.length - 1, i + dx));
+  if (j !== i) choose(el.dataset.choice, values[j]);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest?.('[data-choice] [data-value]');
+  const el = e.target.closest?.('[data-choice]');
+  if (!el) return;
+  if (b) choose(el.dataset.choice, b.dataset.value);
+  else {
+    // A (or Enter) on the control itself moves on to the next, round again
+    const values = [...el.querySelectorAll('[data-value]')].map((v) => v.dataset.value);
+    choose(el.dataset.choice, values[(values.indexOf(settings[el.dataset.choice]) + 1) % values.length]);
+  }
+  el.focus({ preventScroll: true });
+});
+
 function applySettings() {
   audio.setVolumes(settings);
   syncSoundButton();
@@ -1698,6 +1755,11 @@ addEventListener('keydown', (e) => {
   audio.unlock();
   const el = document.activeElement;
   const isRange = el?.type === 'range';
+  if (el?.dataset?.choice && (e.code === 'Enter' || e.code === 'Space') && !e.repeat) {
+    e.preventDefault();
+    el.click();
+    return;
+  }
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
     if (S.screen === 'play' && S.phase === 'play' && !S.paused) {
       e.preventDefault();
@@ -1787,7 +1849,9 @@ function menuInput(dt) {
   }
 
   const el = document.activeElement;
-  if ((dx || dy) && el?.type === 'range' && dx && pad()) {
+  if (dx && el?.dataset?.choice) {
+    stepChoice(el, dx); // ◀ ▶ step a segmented choice, like a slider
+  } else if ((dx || dy) && el?.type === 'range' && dx && pad()) {
     el.value = Number(el.value) + dx * Number(el.step || 1);
     el.dispatchEvent(new Event('input', { bubbles: true }));
   } else if (dx || dy) {
