@@ -1,23 +1,48 @@
 [
   {
     "id": "home-metronome",
+    "theme": "straight",
     "file": "assets/ui/home-metronome.webp",
     "status": "delivered"
   },
   {
     "id": "home-record",
+    "theme": "straight",
     "file": "assets/ui/home-record.webp",
     "status": "delivered"
   },
   {
     "id": "metronome-body",
+    "theme": "straight",
     "file": "assets/ui/metronome-body.webp",
-    "status": "delivered"
+    "status": "delivered",
+    "canvas": [
+      800,
+      1200
+    ],
+    "anchors": {
+      "pivot": [
+        400,
+        985
+      ]
+    }
   },
   {
     "id": "metronome-pendulum",
+    "theme": "straight",
     "file": "assets/ui/metronome-pendulum.webp",
-    "status": "delivered"
+    "status": "delivered",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        102,
+        927
+      ]
+    },
+    "swing": 24
   },
   {
     "id": "icon",
@@ -28,5 +53,50 @@
     "id": "cover",
     "file": "assets/ui/cover.webp",
     "status": "delivered"
+  },
+  {
+    "id": "home-metronome",
+    "theme": "deco",
+    "file": "assets/ui/deco/home-metronome.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-record",
+    "theme": "deco",
+    "file": "assets/ui/deco/home-record.webp",
+    "status": "requested"
+  },
+  {
+    "id": "metronome-body",
+    "theme": "deco",
+    "file": "assets/ui/deco/metronome-body.webp",
+    "status": "requested",
+    "canvas": [
+      800,
+      1200
+    ],
+    "anchors": {
+      "pivot": [
+        400,
+        1000
+      ]
+    }
+  },
+  {
+    "id": "metronome-pendulum",
+    "theme": "deco",
+    "file": "assets/ui/deco/metronome-pendulum.webp",
+    "status": "requested",
+    "canvas": [
+      200,
+      1000
+    ],
+    "anchors": {
+      "hub": [
+        100,
+        960
+      ]
+    },
+    "swing": 26
   }
 ]
