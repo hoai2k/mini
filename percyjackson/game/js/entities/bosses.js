@@ -1,118 +1,137 @@
 // Chapter bosses. Each boss runs attack patterns as coroutines (generator
 // functions that yield wait times), picks patterns by phase, and telegraphs
-// every big hit with red ground markers.
+// every big hit with red ground markers. The models are in bossmodels.js;
+// the patterns of the bosses from chapter 3 on are in bosses-book1.js.
 //   • Alecto (Mrs. Dodds as a Fury, ch1): whip lash, swoop, ring of fire,
 //     summons pups and harpies, a screech that slows.
 //   • The Minotaur (ch2): telegraphed charges; a charge that hits a tree or a
 //     wall leaves him stuck and stunned for 3 s, taking double damage (the
 //     myth riddle: make it charge into the pine tree). Horn sweep, stomp,
 //     rock throw; chained charges later.
-//   • The Chimera: fire breath, lobbed fireballs, rattlesnake tail strike, pounce.
+//   • The alpha hellhound (ch3): shadow-travels between shadows and lunges
+//     out of them, mauls, howls up pups.
+//   • The Furies (ch4): Alecto, Megaera and Tisiphone share one health bar;
+//     one fights on the ground while her sisters circle, and they take turns.
+//   • Medusa (ch5): her stare petrifies every hero FACING her when it lands
+//     (turn away!). True Sight shows the gaze cone. Snake bites poison.
+//   • The Chimera (ch6): fire breath, lobbed fireballs, rattlesnake tail, pounce.
+//   • The spider queen (ch7): Hephaestus's bronze queen spits nets that root,
+//     calls her swarm; destroying her ends it.
+//   • Procrustes (ch9): axe sweeps; straps a hero to a water bed (a teammate's
+//     hit or mashing frees them).
+//   • Cerberus (ch10): three heads (fire, bite, lunge); a sleepy spell when
+//     his heads droop and he takes double damage.
+//   • Ares (ch11): sword combos, spear thrust, motorcycle charge; heroes in the
+//     sea heal and hit harder (def.waterBonus).
+//   • Luke (ch12): fast duel with parry and riposte; summons pit scorpions.
 // Bosses honour `mark` (+50% damage taken) and `status.slow`; they shrug off
-// fear and root. They never target players with `invisible === true`.
+// fear and root. They never target heroes who are `invisible` or `untargetable`.
+//
+// Per-boss hooks in BOSSES[id]: init(boss), tick(boss, dt) after the rig
+// animates, damageMul(boss, src, o) → factor, onDie(boss), ambient(boss, dt).
 import * as THREE from 'three/webgpu';
-import { Skin, Rig, makeCharMaterial, PX, FLASH_MATERIAL } from './character.js';
-import { QuadRig, paintQuad } from './quad.js';
-import { paintPerson, solidMat } from './mortals.js';
-import { addWings, addWhip, goldDust, animateExtras } from './monsters.js';
+import { FLASH_MATERIAL } from './character.js';
+import { goldDust, animateExtras } from './monsters.js';
+import { BOSS_MODELS } from './bossmodels.js';
+import { BOOK1_PATTERNS, BOOK1_HOOKS } from './bosses-book1.js';
+import { releaseAllBy } from './holds.js';
+import { rigOffsets } from './parts.js';
 import { moveEntity } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
-const solid = solidMat;
-const HS = 1.12;
-function prop(rig, parent, w, h, d, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
-  const m = rig.mesh(new THREE.BoxGeometry(w * PX, h * PX, d * PX), mat);
-  m.position.set(x * PX, y * PX, z * PX); m.rotation.set(rx, ry, rz); parent.add(m); return m;
-}
-function skinMat(seed, painter, emit = 3) {
-  const S = new Skin(seed); painter(S);
-  const m = makeCharMaterial(S.texture(), { emitStrength: emit, fill: 0.2 }); m.alphaTest = 0.5;
-  return m;
-}
+const H = BOOK1_HOOKS;
 
 const BOSSES = {
   alecto: {
     name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 16, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
-    build() {
-      const m = skinMat(501, (S) => paintPerson(S, { skin: 0x7a6a5a, hair: 0x9a9a9e, hairVolume: true, fringe: 2, hairSide: 5, hairBack: 7, eye: 0xff2a0a, eyeWhite: 0xffd84a, scowl: true, wrinkles: 0x4a3a2a, fangs: 0xf4f0e0, grin: true, top: 0x5a1a22, jacket: 0x161618, lapel: 0x2a2a2e, sleeve: 0x6a5a4a, hand: 0x6a5a4a, pants: 0x161618, skirt: 0x161618, skirtLen: 12, shoes: 0x4a3a2a }));
-      const rig = new Rig({ material: m, scale: 1.75, bodyW: 7, armW: 3 });
-      rig.legR.visible = rig.legL.visible = false;
-      const rag = solid(0x161618);
-      for (let i = 0; i < 6; i++) prop(rig, rig.hips, 1.8, 7 + (i % 3) * 2, 2, rag, -3.6 + i * 1.45, -3.5 - (i % 3), (i % 2) - 0.5);
-      // her grey bun, now wild
-      for (const [x, z, rz] of [[0, -3.4, 0], [-2.6, -2, 0.7], [2.6, -2, -0.7]]) prop(rig, rig.head, 3, 4, 3, solid(0x9a9a9e), x * HS, 8.6 * HS, z * HS, 0.4, 0, rz);
-      addWings(rig, { span: 20, chord: 11, mat: solid(0x3a2a24), tip: solid(0x2a1c18), kind: 'bat', y: 10.5, flap: 0.8 });
-      addWhip(rig, { segs: 9, len: 3.4 });
-      rig.hunch = 0.2;
-      return rig;
-    },
+    build: BOSS_MODELS.alecto,
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
+    ambient: (b) => H.whipGlow(b),
   },
   minotaur: {
     name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
-    build() {
-      const fur = 0x6a4228;
-      const m = skinMat(777, (S) => paintPerson(S, { skin: fur, hair: 0x3a2214, fringe: 1, hairSide: 2, hairBack: 3, eye: 0xff2a1a, eyeWhite: 0xff8a3a, scowl: true, brow: 0x2a160c, mouth: false, top: fur, sleeve: fur, hand: 0x4a2c18, pants: fur, skirt: 0xe2dccc, skirtLen: 3, shoes: 0x2a1a10, body: (s) => { s.rect(20, 30, 8, 2, 0xe2dccc, 0.04); s.rect(32, 30, 8, 2, 0xe2dccc, 0.04); s.rect(16, 30, 4, 2, 0xe2dccc, 0.04); s.rect(28, 30, 4, 2, 0xe2dccc, 0.04); s.rect(23, 29, 2, 1, 0xc9963a, 0); for (let i = 0; i < 30; i++) s.px(16 + Math.floor(s.r() * 24), 20 + Math.floor(s.r() * 9), 0x5a3420); } }));
-      const rig = new Rig({ material: m, scale: 2.35, bodyW: 11, bodyD: 6, armW: 5, headS: 9, legH: 11 });
-      // bull muzzle, nose ring and horns
-      const muzzle = prop(rig, rig.head, 6, 4, 3, solid(0x4a2c18), 0, 2.2 * HS, 5.2 * HS);
-      prop(rig, muzzle, 1, 1, 0.4, solid(0x120a06), -1.5, 0.6, 1.6); prop(rig, muzzle, 1, 1, 0.4, solid(0x120a06), 1.5, 0.6, 1.6);
-      prop(rig, muzzle, 3, 2.4, 0.6, solid(0xc9963a, 0.3, 0.3, 0.8), 0, -1.6, 1.8);
-      const horn = solid(0xeadfc4);
-      for (const s of [-1, 1]) {
-        const h1 = prop(rig, rig.head, 5, 2, 2, horn, s * 6.2 * HS, 6.5 * HS, 0.5 * HS, 0, 0, s * 0.25);
-        prop(rig, h1, 2, 4, 1.8, horn, s * 2.2, 2.6, 0, 0, 0, -s * 0.3);
-        prop(rig, h1, 1.4, 2.5, 1.4, solid(0x3a3020), s * 2.8, 5.6, 0, 0, 0, -s * 0.5);
-      }
-      for (const s of [-1, 1]) prop(rig, rig.head, 2.5, 1.5, 1, solid(0x4a2c18), s * 5 * HS, 5 * HS, -1 * HS, 0, 0, s * 0.4);
-      rig.extras.muzzle = muzzle;
-      rig.hunch = 0.18;
-      return rig;
-    },
+    build: BOSS_MODELS.minotaur,
     phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'bull_charge', 'rock_throw', 'horn_sweep']],
+    ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
+  },
+  hellhound_alpha: {
+    name: 'The Hellhound', title: 'THE HELLHOUND · SUMMONED INTO CAMP', hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.5, height: 3.4,
+    build: BOSS_MODELS.hellhound_alpha,
+    phases: [['maul', 'lunge', 'shadow_travel', 'maul'], ['maul', 'shadow_travel', 'howl', 'lunge'], ['shadow_travel', 'lunge', 'howl', 'maul', 'shadow_travel']],
+    ambient: (b, dt) => H.hellhoundSmoke(b, dt),
+  },
+  furies: {
+    name: 'The Furies', title: 'THE KINDLY ONES · ALECTO, MEGAERA, TISIPHONE', hp: 2600, speed: 3.6, dmg: 15, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    build: BOSS_MODELS.alecto,
+    phases: [['fury_whip', 'fury_swoop', 'sister_swap', 'fury_whip'], ['fury_whip', 'fury_swoop', 'sister_swap', 'triple_whip', 'screech'], ['triple_whip', 'fury_swoop', 'sister_swap', 'whip_ring', 'fury_swoop', 'screech']],
+    init: (b) => H.furiesInit(b), tick: (b, dt) => H.furiesTick(b, dt), onDie: (b) => H.furiesDie(b), ambient: (b) => H.whipGlow(b),
+  },
+  medusa: {
+    name: 'Medusa', title: 'MEDUSA · AUNTY EM', hp: 2400, speed: 2.4, dmg: 18, color: 0x8aff6a, radius: 1.0, height: 4,
+    build: BOSS_MODELS.medusa,
+    phases: [['gaze', 'snake_bite', 'veil_sweep', 'snake_bite'], ['gaze', 'snake_bite', 'wake_statues', 'veil_sweep'], ['gaze', 'snake_bite', 'gaze', 'wake_statues', 'veil_sweep']],
+    tick: (b, dt) => H.medusaTick(b, dt), onDie: (b) => H.medusaDie(b),
   },
   chimera: {
     name: 'The Chimera', title: 'THE CHIMERA · ECHIDNA’S “CHIHUAHUA”', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
-    build() {
-      const m = skinMat(313, (S) => paintQuad(S, { base: 0x8a7a66, dark: 0x5a4c3e, belly: 0xa89a84, back: 0x7a6a58, eye: 0xffc81a, eyeLow: 0xff7a1a, nose: 0x3a2214, teeth: 0xfff4e0, speckles: 50, custom: (s) => { s.box(0, 0, 8, 8, 8, 0xd8a040, 0.12); s.rect(9, 10, 2, 2, 0xffd84a, 0); s.rect(13, 10, 2, 2, 0xffd84a, 0); s.px(10, 11, 0x1a0a00); s.px(13, 11, 0x1a0a00); s.box(32, 0, 4, 4, 4, 0xe0b060, 0.1); s.rect(36, 4, 4, 1, 0x3a2214, 0); s.box(40, 32, 2, 2, 6, 0x5a7a3a, 0.2); for (let x = 40; x < 56; x += 2) s.px(x, 34 + (x % 4 ? 1 : 0), 0xd8c88a); } }), 2.6);
-      const rig = new QuadRig({ material: m, scale: 2.5, bodyL: 13, bodyW: 7, bodyH: 7, legH: 7, legW: 3, headS: 7.5, ears: true, tail: 5, tailLen: 12, tailW: 2, tailCurl: 0.25, gait: 0.7 });
-      // lion mane
-      const mane = solid(0x9a5a1a);
-      for (const [x, y, z, w, h] of [[0, 4.5, -0.5, 10, 4], [-4.6, 0, -0.5, 2.4, 9], [4.6, 0, -0.5, 2.4, 9], [0, -4, -0.5, 8, 2.4], [0, 2, -3, 9, 7]]) prop(rig, rig.head, w, h, 3, mane, x, y, z + 2.6);
-      // goat head rising from the back, with curling horns
-      const goat = new THREE.Group(); goat.position.set(0, 4 * PX, 1 * PX); rig.torso.add(goat);
-      prop(rig, goat, 2.6, 5, 2.6, solid(0x6a6058), 0, 2.5, 0, 0.2);
-      const gh = prop(rig, goat, 4, 4, 5, solid(0x7a7068), 0, 6, 1.4);
-      prop(rig, gh, 0.8, 0.8, 0.4, solid(0xffd84a, 2), -1.3, 0.6, 2.6); prop(rig, gh, 0.8, 0.8, 0.4, solid(0xffd84a, 2), 1.3, 0.6, 2.6);
-      for (const s of [-1, 1]) { const h = prop(rig, gh, 1.2, 4, 1.2, solid(0x4a4038), s * 1.5, 3, -1.5, -0.6, 0, s * 0.3); prop(rig, h, 1.2, 1.2, 3, solid(0x4a4038), 0, 2, -1.2); }
-      rig.extras.goat = goat;
-      // rattlesnake head at the tail tip, and rattle
-      const sn = prop(rig, rig.tailTip, 3, 2.4, 4, solid(0x4a6a3a), 0, 0.6, -3.4);
-      prop(rig, sn, 0.6, 0.6, 0.4, solid(0xffe04a, 2), -0.9, 0.6, -2); prop(rig, sn, 0.6, 0.6, 0.4, solid(0xffe04a, 2), 0.9, 0.6, -2);
-      prop(rig, sn, 0.4, 1.4, 0.4, solid(0xffffff), -0.6, -1.4, -1.6); prop(rig, sn, 0.4, 1.4, 0.4, solid(0xffffff), 0.6, -1.4, -1.6);
-      rig.extras.snake = sn;
-      return rig;
-    },
+    build: BOSS_MODELS.chimera,
     phases: [['fire_breath', 'fireballs', 'tail_strike'], ['fire_breath', 'pounce', 'fireballs', 'tail_strike'], ['fire_breath', 'fireballs', 'pounce', 'tail_strike', 'fire_breath']],
+    ambient: (b) => { const g = b.game; if (Math.random() < 0.4) { const c = b.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); } },
+  },
+  spiders: {
+    name: 'The Spider Queen', title: 'HEPHAESTUS’S SPIDERS · THE BRONZE QUEEN', hp: 2000, speed: 3.2, dmg: 16, color: 0xffb02a, radius: 1.6, height: 2.6,
+    build: BOSS_MODELS.spiders,
+    phases: [['net_spit', 'leg_stab', 'spawn_swarm', 'net_spit'], ['net_spit', 'leg_stab', 'skitter', 'spawn_swarm'], ['net_spit', 'skitter', 'spawn_swarm', 'leg_stab', 'net_spit']],
+    init: (b) => H.spidersInit(b), tick: (b, dt) => H.spidersTick(b, dt), onDie: (b) => H.spidersDie(b),
+  },
+  procrustes: {
+    name: 'Procrustes', title: 'PROCRUSTES · CRUSTY’S WATER BED PALACE', hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 4.4,
+    build: BOSS_MODELS.procrustes,
+    phases: [['axe_sweep', 'grab_bed', 'axe_chop', 'axe_sweep'], ['axe_sweep', 'grab_bed', 'axe_chop', 'sales_pitch'], ['grab_bed', 'axe_sweep', 'axe_chop', 'sales_pitch', 'grab_bed']],
+    damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),
+  },
+  cerberus: {
+    name: 'Cerberus', title: 'CERBERUS · GUARDIAN OF THE UNDERWORLD', hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 2.0, height: 4.4,
+    build: BOSS_MODELS.cerberus,
+    phases: [['triple_attack', 'head_bite', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'triple_attack', 'sleepy', 'cerberus_stomp']],
+    tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
+  },
+  ares: {
+    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 24, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
+    build: BOSS_MODELS.ares,
+    phases: [['sword_combo', 'spear_thrust', 'bike_charge', 'sword_combo'], ['sword_combo', 'bike_charge', 'spear_thrust', 'war_cry'], ['bike_charge', 'sword_combo', 'spear_thrust', 'war_cry', 'bike_charge']],
+    tick: (b, dt) => H.aresTick(b, dt), damageMul: (b, src, o) => H.aresHit(b, src, o), onDie: (b) => H.aresDie(b),
+  },
+  luke: {
+    name: 'Luke Castellan', title: 'LUKE CASTELLAN · BACKBITER', hp: 2200, speed: 4.4, dmg: 17, color: 0xe0a040, radius: 0.7, height: 2.6,
+    build: BOSS_MODELS.luke,
+    phases: [['duel_combo', 'parry', 'lunge_strike', 'duel_combo'], ['duel_combo', 'parry', 'summon_scorpion', 'lunge_strike'], ['duel_combo', 'parry', 'lunge_strike', 'summon_scorpion', 'duel_combo', 'parry']],
+    damageMul: (b, src, o) => H.lukeHit(b, src, o), onDie: (b) => H.lukeDie(b),
   },
 };
+// Old chapter data may still name these.
+const BOSS_ALIASES = { hellhound: 'hellhound_alpha', pit_scorpion: 'luke', kindly_ones: 'furies', spider_queen: 'spiders' };
 
-export const BOSS_IDS = ['alecto', 'minotaur', 'chimera'];
+export const BOSS_IDS = Object.keys(BOSSES);
 export const BOSS_DEFS = BOSSES;
 
 export class Boss {
   constructor(game, id, pos, level = 1) {
+    id = BOSS_ALIASES[id] ?? id;
     if (!BOSSES[id]) { console.warn('unknown boss', id, '- using the Minotaur'); id = 'minotaur'; }
     this.game = game; this.id = id; this.B = BOSSES[id];
-    this.def = { name: this.B.name, tier: 'boss', knockResist: 0.95, pitch: 0.5 };
+    this.def = { name: this.B.name, tier: 'boss', knockResist: 0.95, pitch: 0.5, waterBonus: !!this.B.waterBonus };
     this.displayName = this.B.name;
     this.pos = pos.clone(); this.vel = new THREE.Vector3(); this.knock = new THREE.Vector3();
     this.radius = this.B.radius ?? 1.1; this.height = this.B.height ?? 4.2;
     this.maxHp = this.B.hp * (1 + (level - 1) * 0.45) * (1 + (game.players.length - 1) * 0.6); this.hp = this.maxHp;
     this.dmg = this.B.dmg * (1 + (level - 1) * 0.2);
-    this.rig = this.B.build(); this.object = this.rig.root; this.object.position.copy(pos);
+    this.level = level;
+    // The rig turns inside an unrotated holder, so a boss can carry parts that
+    // don't turn with it (the Furies' circling sisters).
+    this.rig = this.B.build(); this.object = new THREE.Group(); this.object.add(this.rig.root); this.object.position.copy(pos);
     this.rig.tick ??= (dt2, e) => animateExtras(this.rig, dt2, e);
     this.facing = 0; this.phase = 0; this.isBoss = true; this.isEnemy = true;
     this.co = null; this.coWait = 0; this.flashT = 0; this.dead = false; this.deathT = 0;
@@ -123,13 +142,16 @@ export class Boss {
     this.intro = 2.6;
     this.lastPattern = null;
     this.lightH = game.lights.attach(this.object, this.B.color, 4, 10, { offsetY: 5, priority: 3 });
+    this.B.init?.(this);
   }
   get name() { return this.B.name; }
   get title() { return this.B.title; }
   // ---------------------------------------------------------------- damage
   takeDamage(amount, src, o = {}) {
     if (this.dead || this.untargetable || this.intro > 0) return 0;
-    const dmg = amount * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
+    const mul = this.B.damageMul ? this.B.damageMul(this, src, o) : 1;
+    if (mul <= 0) return 0;
+    const dmg = amount * mul * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
     this.hp -= dmg; this.flashT = 0.08;
     if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, 0.08);
     const f = this.hp / this.maxHp;
@@ -142,6 +164,7 @@ export class Boss {
     const g = this.game;
     this.phase = n;
     this.swooping = false; this.knock.set(0, 0, 0);
+    this.cleanupPattern?.(); this.cleanupPattern = null;
     this.co = this.roar(); this.coWait = 0;
     toast(`PHASE ${n + 1}`, 'big');
     g.audio?.boss();
@@ -150,7 +173,11 @@ export class Boss {
   }
   die() {
     const g = this.game;
+    if (this.dead) return;
     this.dead = true; this.deathT = 0; this.co = null; this.stunT = 0;
+    this.cleanupPattern?.(); this.cleanupPattern = null;
+    releaseAllBy(g, this);
+    this.B.onDie?.(this);
     g.slowMo(1.6, 0.25);
     g.shake(1); g.fx.flash(0xffd84a, 0.6, 0.4);
     g.audio?.enemyDie(true); g.audio?.gong();
@@ -164,6 +191,8 @@ export class Boss {
     for (const p of this.game.hostileTargets()) { if (p.dead || p.downed || p.invisible || p.untargetable) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = p; } }
     return best;
   }
+  // every hero a boss may pick on (alive, visible)
+  targets() { return this.game.hostileTargets().filter((p) => !p.dead && !p.downed && !p.invisible && !p.untargetable); }
   hurtPlayers(center, radius, dmg, knockPow = 8, filter = null) {
     for (const p of this.game.hostileTargets()) {
       if (p.dead) continue;
@@ -173,16 +202,40 @@ export class Boss {
   }
   // players inside a line from `from` along `dir`
   hurtLine(from, dir, len, half, dmg, knockPow = 8, hit = null) {
+    const out = [];
     for (const p of this.game.hostileTargets()) {
       if (p.dead || hit?.has(p)) continue;
       tmp.subVectors(p.pos, from); const dy = tmp.y; tmp.y = 0;
       const along = tmp.dot(dir), lat = Math.abs(tmp.x * dir.z - tmp.z * dir.x);
-      if (along > -0.5 && along < len && lat < half + (p.radius ?? 0.3) && Math.abs(dy) < 3) { hit?.add(p); p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(knockPow) }); }
+      if (along > -0.5 && along < len && lat < half + (p.radius ?? 0.3) && Math.abs(dy) < 3) { hit?.add(p); if (p.takeDamage(dmg, this, { knock: dir.clone().multiplyScalar(knockPow) }) > 0) out.push(p); }
     }
+    return out;
+  }
+  // players inside a cone in front (radius, half-angle)
+  hurtCone(radius, half, dmg, knockPow = 8, facing = this.facing, center = this.pos) {
+    const out = [];
+    for (const p of this.game.hostileTargets()) {
+      if (p.dead) continue;
+      tmp.subVectors(p.pos, center); const dy = tmp.y; tmp.y = 0;
+      if (tmp.length() < radius + (p.radius ?? 0.3) && Math.abs(dy) < 3 && Math.abs(angleDiff(facing, Math.atan2(tmp.x, tmp.z))) < half) { if (p.takeDamage(dmg, this, { knock: tmp.normalize().multiplyScalar(knockPow).setY(3) }) > 0) out.push(p); }
+    }
+    return out;
   }
   ground(p) { const gy = this.game.world.groundBelow(p.x, p.z, p.y + 4); return isFinite(gy) ? gy : p.y; }
   faceTarget(t) { if (t) this.facing = Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z); return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
+  fwd() { return new THREE.Vector3(Math.sin(this.facing), 0, Math.cos(this.facing)); }
   mouth() { return this.rig.mouthWorld ? this.rig.mouthWorld(new THREE.Vector3()) : this.pos.clone().setY(this.pos.y + this.height * 0.8); }
+  // spawn helpers for summons: a ring of monsters around a point
+  summon(kinds, center = this.pos, r = 3.5, color = this.B.color) {
+    const g = this.game, out = [];
+    kinds.forEach((kind, i) => {
+      const a = i / kinds.length * Math.PI * 2 + Math.random() * 0.6;
+      const s = center.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); s.y = this.ground(s);
+      if (g.world.solidAt?.(s.x, s.y + 0.5, s.z)) return;
+      const e = g.spawnEnemy(kind, s, { summoned: true, level: g.mission?.def?.difficulty ?? this.level }); if (e) { g.fx.summonCircle(s, color); e.aggro = true; e.bossSummon = this; out.push(e); }
+    });
+    return out;
+  }
   // A straight dash along dir (swoop, charge, pounce). Returns 'wall' if a
   // tall obstacle stopped it and stopOnWall is set.
   *dashLine(dir, speed, ticks, dmg, { stopOnWall = false, hitR = 2.2, dust = 0x8a7a6a, trail = null } = {}) {
@@ -489,7 +542,7 @@ export class Boss {
     if (this.dead) {
       this.deathT += dt;
       if (Math.random() < 0.5) goldDust(g, this.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * this.height, (Math.random() - 0.5) * 3)), 1);
-      this.object.scale.setScalar(Math.max(0.01, (1 - this.deathT / 1.8)) * (this.rig.spec.scale ?? 1));
+      this.object.scale.setScalar(Math.max(0.01, 1 - this.deathT / 1.8));
       this.object.rotation.y += dt * 4;
       if (this.deathT > 1.8) { goldDust(g, this.pos.clone().setY(this.pos.y + 2), 3, { big: true }); return false; }
       return true;
@@ -506,7 +559,7 @@ export class Boss {
       else {
         if (!this.co) this.co = this.pickPattern();
         const r = this.co.next();
-        if (r.done) { this.co = null; this.coWait = 0.4 + Math.random() * 0.6 - this.phase * 0.15; }
+        if (r.done) { this.co = null; this.cleanupPattern = null; this.coWait = 0.4 + Math.random() * 0.6 - this.phase * 0.15; }
         else this.coWait = r.value ?? 0;
       }
     }
@@ -515,7 +568,7 @@ export class Boss {
     if (t && this.moving && this.intro <= 0 && this.stunT <= 0) {
       tmp.subVectors(t.pos, this.pos).setY(0); const d = tmp.length();
       const slow = (this.status.slow > 0 ? 0.6 : 1) * (this.slowT > 0 ? 0.7 : 1);
-      if (d > 3.5) move.copy(tmp.normalize().multiplyScalar(this.B.speed * (1 + this.phase * 0.2) * slow));
+      if (d > (this.B.keep ?? 3.5)) move.copy(tmp.normalize().multiplyScalar(this.B.speed * (1 + this.phase * 0.2) * slow * (this.speedMul ?? 1)));
       this.facing = dampAngle(this.facing, Math.atan2(t.pos.x - this.pos.x, t.pos.z - this.pos.z), 4, dt);
     }
     this.slowT = (this.slowT ?? 0) - dt;
@@ -528,13 +581,15 @@ export class Boss {
     this.hover = damp(this.hover ?? this.hoverY, this.hoverY, this.swooping ? 10 : 3, dt);
     const bob = this.B.hover ? Math.sin(performance.now() * 0.003) * 0.2 : 0;
     this.object.position.set(this.pos.x, this.visY + this.hover + bob + (this.intro > 0 ? -this.intro * 1.2 : 0), this.pos.z);
-    this.object.rotation.y = this.facing;
+    this.rig.root.rotation.y = this.facing;
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
     const sp = Math.hypot(this.vel.x, this.vel.z) / this.B.speed;
     const act = this.stunT > 0 ? { type: 'stagger', t: 0 } : this.anim ?? (this.intro > 0 ? { type: 'raise', t: 0 } : null);
+    rigOffsets(this.rig, -1);   // hunch and arm spread ride on top of the pose
     this.rig.animate({ dt, speed: Math.min(1, sp), vel: this.vel, action: act });
-    if (this.rig.hunch) this.rig.torso.rotation.x += this.rig.hunch;
+    rigOffsets(this.rig, 1);
     this.rig.tick?.(dt, this);
+    this.B.tick?.(this, dt);
     this.ambient(dt);
     return true;
   }
@@ -544,8 +599,7 @@ export class Boss {
       const a = performance.now() * 0.006 + Math.random() * 6;
       g.particles.glow.emit(this.pos.x + Math.cos(a) * 1.1, this.pos.y + this.height + 0.6, this.pos.z + Math.sin(a) * 1.1, 0, 0.3, 0, 0.5, 2.6, 2.2, 0.6, 0.18, 0, 0, 0.05, 1);
     }
-    if (this.id === 'alecto' && this.rig.extras.whipTip && Math.random() < 0.7) { const c = this.rig.extras.whipTip.getWorldPosition(tmp); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5), 1 + Math.random(), (Math.random() - 0.5), 0.4, 2.6, 1.1, 0.3, 0.22, -1, 1, 0.05, 0); }
-    if (this.id === 'minotaur' && Math.random() < dt * 1.5) { const c = this.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(this.facing) * 1.5, -0.2, Math.cos(this.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); }
-    if (this.id === 'chimera' && Math.random() < 0.4) { const c = this.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); }
+    this.B.ambient?.(this, dt);
   }
 }
+Object.assign(Boss.prototype, BOOK1_PATTERNS);
