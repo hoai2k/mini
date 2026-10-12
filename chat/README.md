@@ -241,7 +241,18 @@ let go; touch with a second finger while steering to hop into a drift, and let
 go of it for the mini or super boost. Keys: arrows or A/D steer, Shift (or
 X/C/Z) drifts, Down or S brakes, Space, Enter or E uses an item; a controller's
 stick steers, RT, RB or X drifts, LT, LB or down brakes and A uses an item. Starting
-one shows friends an invite with a Join button. Records are kept per device.
+one shows friends an invite with a Join button. Anyone who joins (or comes
+back) after GO races straight away: the owner puts their kart on the road a
+little behind the last one, clear of the other karts and peels, they get a
+"Get ready, 3-2-1-GO" of their own ("Joining the race — you start at the
+back!") and their race clock starts at their GO. They start last and are
+ranked by distance like everyone else; finishers are ordered by when they
+actually crossed the line, and the results mark them "joined late". Once
+someone has finished, or under about 15 seconds are left, newcomers watch
+("Next race starts soon") and are on the grid for the next race; computer
+karts already racing stay in, and the next race's grid is filled as usual.
+Records are kept per device; a late start counts toward the best lap (not its
+first, partial lap) but not the best race or wins.
 
 ## Thumbs up and down
 
@@ -310,13 +321,19 @@ itself to HTTPS.
   ball's top and bottom edges both connect, the top one lower; a rookie bot in
   the other seat swings and sees the hits as ghosts (mid-swing picture in
   `local/chat-shots/baseball-swing.png`)
-- `node chat/test/kart-play.mjs`: two racers on phone-sized Kart Dash seats:
+- `node chat/test/kart-play.mjs`: racers on phone-sized Kart Dash seats:
   the countdown, touch drag-steering both ways, dragging down to brake and
   reverse, a second finger drifting, stick steering, two item boxes filling
   both slots and a tap on the item button using the first, a banana spin-out
   with flying parts,
-  a bomb, and rookie bots racing three laps to a finishing order, with frame
-  times; screenshots in `local/chat-shots/kart-*.png`
+  a bomb, a third seat joining after GO (a kart behind the last racer, its own
+  countdown, then driving, last in both other seats' standings and marked
+  "joined late" in the results), rookie bots racing three laps to a finishing
+  order with frame times, a fourth seat joining after the first finisher
+  that waits for the next race, and the owner leaving mid-race and coming
+  back behind the pack; screenshots in `local/chat-shots/kart-*.png`
+  (`kart-late-countdown.png`, `kart-late-go.png`, `kart-late-wait.png` for
+  the late joins)
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
@@ -346,7 +363,8 @@ itself to HTTPS.
   picks the player colour), screenshots in `local/chat-shots/themes/`
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
-hand.
+hand; add `&hold=1` to keep the last seat out until `joinSeat(i)` is called
+from the console (joining mid-game), and `leaveSeat(i)` closes a seat's game.
 
 ## Connection status
 

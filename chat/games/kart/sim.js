@@ -255,14 +255,36 @@ export function bombAt(b, t) {
   return { x: b.x + Math.cos(b.h) * dist, z: b.z + Math.sin(b.h) * dist, y: bounce + 0.6, done: t >= BOMB_FUSE };
 }
 
-// Rank karts: finished first by finish time, then by distance driven.
+// Rank karts: finished first by finish time, then by distance driven. A kart
+// that joined late times its race from its own start, `start` seconds after
+// the main start, so finishers are compared by when they actually crossed.
 export function standings(list) {
   return [...list].sort((a, b) => {
-    if (a.finished && b.finished) return a.finished - b.finished;
+    if (a.finished && b.finished) return a.finished + (a.start || 0) - (b.finished + (b.start || 0));
     if (a.finished) return -1;
     if (b.finished) return 1;
     return b.total - a.total;
   });
+}
+
+// A kart's best lap. A late joiner's first lap starts wherever they were put
+// on the track (k.partial), so it doesn't count.
+export function bestLap(k) {
+  const laps = k.partial ? k.lapTimes.slice(1) : k.lapTimes;
+  return laps.length ? Math.min(...laps) : 0;
+}
+
+// Joining a race already under way: a kart and a short countdown of their
+// own, unless the race is nearly over. LATE.count is that countdown (ms);
+// LATE.closeLeft the seconds before the end when the next race is nearer.
+export const LATE = { count: 4000, closeLeft: 15, pace: 24, maxTime: 600 };
+// o = { raceTime (s since GO), firstFinish (s, Infinity if nobody has
+// finished), leadTotal (metres the leader has driven), length (of a lap) }.
+export function lateJoinOpen({ raceTime, firstFinish = Infinity, leadTotal = 0, length, laps = LAPS }) {
+  if (!(raceTime >= 0) || Number.isFinite(firstFinish)) return false;
+  if (LATE.maxTime - raceTime < LATE.closeLeft) return false;
+  const left = (laps * length - Math.max(0, leadTotal)) / LATE.pace;
+  return left >= LATE.closeLeft;
 }
 
 // The computer driver (and the debug bots' autopilot): follows the track a

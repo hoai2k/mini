@@ -84,14 +84,19 @@
     seats.push(seat);
   }
 
+  // ?hold=k keeps the last k seats out of the game until a test calls
+  // window.joinSeat(i) (joining mid-game); window.leaveSeat(i) closes a seat's game.
+  const hold = Math.max(0, Math.min(n - 1, parseInt(q.get('hold') || '0', 10)));
+  const joinLater = seat => {
+    const s = seat.gh.sessions().find(x => x.id === gameId);
+    if (s) seat.gh.join(s);
+    else setTimeout(() => joinLater(seat), 150);
+  };
+  window.joinSeat = i => joinLater(seats[i]);
+  window.leaveSeat = i => seats[i].gh.close();
   const start = () => {
     seats[0].gh.open(gameId);
-    const joinLater = seat => {
-      const s = seat.gh.sessions().find(x => x.id === gameId);
-      if (s) seat.gh.join(s);
-      else setTimeout(() => joinLater(seat), 150);
-    };
-    seats.slice(1).forEach((seat, k) => setTimeout(() => joinLater(seat), 300 + k * 200));
+    seats.slice(1, n - hold).forEach((seat, k) => setTimeout(() => joinLater(seat), 300 + k * 200));
   };
   // Wait until every seat is connected to the fake relay.
   const wait = () => (seats.every(s => s.net.status === 'connected') ? setTimeout(start, 200) : setTimeout(wait, 50));

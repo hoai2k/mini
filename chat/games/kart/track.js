@@ -166,6 +166,31 @@ export function gridSpot(track, slot) {
   return { ...pointAt(track, s, side * 3.5), s };
 }
 
+// Where a late joiner starts: on the road a little behind the rearmost kart
+// still racing, clear of every kart (and of hazards such as banana peels).
+// karts = [{ x, z, total, finished }], hazards = [{ x, z }]. Tries the centre
+// line first, then either side, then further back. Returns
+// { x, z, h, s, d } where s is the kart's starting total: on lap 1 (taken
+// round the lap, so a joiner behind someone on lap 2 is a lap down) and
+// below the rearmost kart's total, so they start in last place.
+export function lateSpot(track, karts, hazards = [], gap = 12) {
+  const L = track.length;
+  const live = karts.filter(k => Number.isFinite(k.total) && !(k.finished > 0));
+  const back = live.length ? Math.min(...live.map(k => k.total)) : 0;
+  const clear = (p, list, r) => list.every(o => Math.hypot(o.x - p.x, o.z - p.z) >= r);
+  const spot = (total, d) => {
+    const lap1 = total < 0 ? Math.max(total, -L / 2) : total % L;
+    return { ...pointAt(track, lap1, d), s: lap1, d };
+  };
+  for (let extra = 0; extra <= 60; extra += 6) {
+    for (const d of [0, -3.5, 3.5, -6, 6]) {
+      const p = spot(back - gap - extra, d);
+      if (clear(p, karts, 4.5) && clear(p, hazards, 3.5)) return p;
+    }
+  }
+  return spot(back - gap - 66, 0);
+}
+
 // Seeded random numbers (mulberry32), so every player builds the same scenery.
 export function rng(seed) {
   let a = seed >>> 0;
