@@ -56,7 +56,7 @@ export const SIDE = 0.02;                      // the tin rim at x = SIDE and 1 
 export const RAIL_Y = 1.02;                    // past the bases the foul lines are rails
 export const CATCH_Y = 1.517;                  // a pitch this far down is in the catcher's mitt
 export const PLATE_HALF = 0.05;
-export const PIVOT = { x: 0.385, y: 1.392 };   // the bat's pivot, beside the plate
+export const PIVOT = { x: 0.36, y: 1.392 };    // the bat's pivot, beside the plate (a square hit meets the sweet spot)
 export const BAT_L = 0.2;
 export const BAT_W = 0.011;                    // half the barrel's thickness
 export const FIELDER_R = 0.03;
@@ -211,9 +211,14 @@ export const swingAt = (sw, ms) => {
 };
 
 // How lively the bat is along its length: the sweet spot is near the barrel.
-export const batE = r => Math.max(0.12, Math.min(0.5, 0.5 - 30 * (r - 0.13) * (r - 0.13)));
-export const VMAX = 3.0;
+export const batE = r => Math.max(0.12, Math.min(0.5, 0.5 - 30 * (r - 0.14) * (r - 0.14)));
+export const VMAX = 2.5;
 const SPIN_K = 0.35, SPIN_MAX = 1.6;
+// The ball rolls slowly past the bat, so where along the groove they meet only
+// turns the hit a little; this widens it so that timing spreads hits across
+// the whole field (tuned with human-like timing, about +-70 ms: about 10%
+// foul, the rest spread from the corners to straight away).
+const AIM_GAIN = 2.4;
 
 // The ball (centre b, velocity v) against the bat at angle th turning at om:
 // null when they don't touch or are parting, otherwise the ball's new velocity
@@ -238,6 +243,7 @@ export function batHit(b, v, th, om) {
   const vt = rvx * tx + rvy * ty;
   let ox = ux + rvx - (1 + e) * vn * nx - 0.12 * vt * tx;
   let oy = uy + rvy - (1 + e) * vn * ny - 0.12 * vt * ty;
+  { const a = Math.atan2(ox, -oy) * AIM_GAIN, m = Math.sqrt(ox * ox + oy * oy); ox = Math.sin(a) * m; oy = -Math.cos(a) * m; }
   const sp = Math.hypot(ox, oy);
   if (sp > VMAX) { ox *= VMAX / sp; oy *= VMAX / sp; }
   const spin = Math.max(-SPIN_MAX, Math.min(SPIN_MAX, SPIN_K * vt));
@@ -428,10 +434,11 @@ export function outcome(r, pk, bonus) {
   if (r.end === 'over') return 'H';
   if (r.end === 'foul') return 'F';
   if (r.end === 'pocket') return slotLabel(pk, bonus, r.slot);
-  // Fielded: an out if someone is close, otherwise a hit (a double deep).
+  // Fielded: an out if someone is close, otherwise a hit (a double deep, a
+  // triple if it dies by the wall).
   const near = nearestFielder(r.x, r.y);
   if (near.d < (r.y > BASES[1].y ? REACH_IN : REACH)) return 'O';
-  return r.y < 0.47 ? '2' : '1';
+  return r.y < 0.29 ? '3' : r.y < 0.5 ? '2' : '1';
 }
 export function nearestFielder(x, y) {
   // The catcher pounces on anything that dribbles in front of the plate.
