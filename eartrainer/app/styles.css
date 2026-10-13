@@ -99,6 +99,7 @@ html.touch [data-tip]:hover::after { display: none; }
 .chip[aria-checked="true"] { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); }
 .chip:hover { color: var(--ink); }
 .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.book-grid .loading { grid-column: 1 / -1; color: var(--muted, #9aa); margin: 8px 2px; }
 .book { text-align: left; border: 1px solid var(--line); background: linear-gradient(160deg, var(--panel-2), var(--panel)); border-radius: 14px; padding: 12px 12px 10px;
   display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto auto; column-gap: 10px; position: relative; overflow: hidden; transition: transform .14s, border-color .2s; }
 .book:hover, .book.pad-focus, .book:focus-visible { border-color: var(--brass); transform: translateY(-2px); }

@@ -25,9 +25,44 @@ export const LEVELS = [
   { id: 'l3', name: '3 · Medium', short: 'Medium', range: [3, 3], blurb: 'Longer phrases, wider leaps' },
   { id: 'l4', name: '4 · Hard', short: 'Hard', range: [4, 4], blurb: 'Big leaps, some chromatic notes' },
   { id: 'l5', name: '5 · Expert', short: 'Expert', range: [5, 5], blurb: 'Long, leaping, chromatic lines' },
+  { id: 'songs', name: 'Full songs', short: 'Full songs', range: null, songs: true, blurb: 'A whole song, phrase by phrase' },
 ];
+export const isSongs = (level) => level === 'songs';
 // Older saves named the levels differently.
 export const LEVEL_ALIASES = { easy: 'l2', medium: 'l3', hard: 'l4', expert: 'l5' };
+
+/**
+ * Whole songs for the Full Songs mode. Each phrase is a melody of its own
+ * (id `<song>#<n>`) that knows its song and place; the song keeps its phrases
+ * in order and its overall level (that of its hardest phrase).
+ */
+export function buildSongs(lists) {
+  const songs = [];
+  for (const list of lists) {
+    for (const s of list) {
+      const song = { id: s.id, title: s.title, by: s.by, cat: s.cat, bpm: s.bpm };
+      song.phrases = s.phrases.map((notes, i) => {
+        const parsed = parseNotes(notes);
+        return { id: `${s.id}#${i + 1}`, title: s.title, by: s.by, cat: s.cat, bpm: s.bpm, notes, parsed,
+          ...range(parsed), level: difficulty(parsed), song, index: i };
+      });
+      song.level = Math.max(...song.phrases.map((p) => p.level));
+      songs.push(song);
+    }
+  }
+  return songs;
+}
+
+/** The next song: one not yet finished (or with the fewest stars), not played lately. */
+export function pickSong(pool, { best = {}, recent = [], rng = Math.random } = {}) {
+  if (!pool.length) return null;
+  let candidates = pool.filter((s) => !recent.includes(s.id));
+  if (!candidates.length) candidates = pool;
+  const score = (s) => best[s.id] ?? -1;
+  const lowest = Math.min(...candidates.map(score));
+  const tier = candidates.filter((s) => score(s) === lowest);
+  return tier[Math.floor(rng() * tier.length)];
+}
 
 /** How many melodies of a pool sit at a level (all of them for Adaptive). */
 export function countAt(pool, level) {

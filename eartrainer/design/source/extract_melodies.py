@@ -529,7 +529,7 @@ def last_note(ev):
     return None
 
 
-def parse_musicxml(root):
+def parse_musicxml(root, skip_first_endings=False):
     """Return (events, tempo_bpm or None, lyric words, mid-word note indices) for
     the first part, one voice. A note is mid-word when its lyric syllable runs on
     into the next note's ("dream-" of "dreamer")."""
@@ -540,7 +540,20 @@ def parse_musicxml(root):
     ev, tempo, tie_open = [], None, False
     words: list = []  # (event index, lyric word) for verse 1
     midword: set = set()
+    in_first = False
     for mi, meas in enumerate(part.findall("measure")):
+        if skip_first_endings:
+            # A whole song is read once straight through: the first-time ending
+            # is left out and the last-time ending kept.
+            ends = [(e.get("number", ""), e.get("type")) for e in meas.findall("barline/ending")]
+            starts_first = any(n.split(",")[0].strip() == "1" and "2" not in n and t == "start" for n, t in ends)
+            stops_first = any(n.split(",")[0].strip() == "1" and t in ("stop", "discontinue") for n, t in ends)
+            if starts_first:
+                in_first = True
+            if in_first:
+                if stops_first:
+                    in_first = False
+                continue
         if mi:
             ev.append(("|",))  # a bar line
         for el in meas:
@@ -650,9 +663,11 @@ def key_pc(notes):
     return best[1]
 
 
-def phrase_scores(ev, midword=frozenset()):
+def phrase_scores(ev, midword=frozenset(), from_note=0):
     """(note index, event index, score) for each note of an event list with bar
-    markers. `midword` holds the event indices of notes sung mid-word."""
+    markers. `midword` holds the event indices of notes sung mid-word. With
+    `from_note`, a phrase starts at that note (bars count from there) and note
+    indices count from it."""
     t, bars, notes = Fraction(0), [Fraction(0)], []
     for i, e in enumerate(ev):
         if e[0] == "|":
@@ -663,11 +678,11 @@ def phrase_scores(ev, midword=frozenset()):
         else:
             notes.append((i, t, e))
             t += e[4]
-    if len(notes) < PHRASE_MIN:
+    if len(notes) - from_note < PHRASE_MIN:
         return []
     lens = [b - a for a, b in zip(bars, bars[1:])]
     bar_len = max(set(lens), key=lens.count) if lens else Fraction(4)
-    start = notes[0][1]
+    start = notes[from_note][1]
     # The first full bar: a pickup (a short first bar, or starting mid-bar) doesn't count.
     full = [b for b in bars if b >= start]
     first = full[0] if full else start
@@ -679,6 +694,8 @@ def phrase_scores(ev, midword=frozenset()):
     pace = gaps[len(gaps) // 2] if gaps else Fraction(1)
     out = []
     for k, (i, on, e) in enumerate(notes):
+        if k < from_note:
+            continue
         nxt = notes[k + 1] if k + 1 < len(notes) else None
         d = (nxt[1] - on) if nxt else e[4]  # sounding length plus any rest after it
         rest = d - e[4]
@@ -712,7 +729,7 @@ def phrase_scores(ev, midword=frozenset()):
             sc -= 1.5
         if i in midword:
             sc -= 5  # never end in the middle of a sung word
-        out.append((k, i, sc))
+        out.append((k - from_note, i, sc))
     return out
 
 
@@ -966,10 +983,13 @@ ABC_TOKEN = re.compile(
     r"|.", re.S)
 
 
-def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fraction):
+def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fraction,
+               skip_first_endings: bool = False):
     """Notes of the opening bars (a pickup does not count as a bar):
-    returns a list of (event, bar_index)."""
+    returns a list of (event, bar_index). With `skip_first_endings` the tune is
+    read once straight through, leaving out first-time endings."""
     ev, bars, fill = [], 0, Fraction(0)
+    in_first = False
     bar_acc: dict = {}
     tuplet, tuplet_left = Fraction(1), 0
     tie_next, broken = False, None
@@ -982,6 +1002,11 @@ def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fra
             tuplet, tuplet_left = Fraction(q, p), p
             continue
         if m.group(9):
+            if skip_first_endings:
+                if "1" in s:
+                    in_first = True
+                elif in_first and (":" in s or "2" in s):
+                    in_first = False
             if started and ev and fill > 0:
                 ev.append((("|",), bars))  # a bar line
                 if not (bars == 0 and fill < bar_len and not counted_pickup):
@@ -1031,6 +1056,9 @@ def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fra
                 newl, beats = lb * (1 - frac), beats * (1 + frac)
             ev[-1] = ((("r", newl) if last[0] == "r" else last[:4] + (newl,)), ev[-1][1])
         broken = None
+        if in_first:
+            tie_next = False
+            continue
         started = True
         fill += beats
         if letter in "zx":
@@ -1413,6 +1441,219 @@ def jazzheads(lib: Library):
     return header, sections, count
 
 # --------------------------------------------------------------------------
+# Whole songs, phrase by phrase (the Full Songs mode). Only songs free to use
+# whole: public-domain lead sheets and the traditional dance tunes. The phrase
+# finder runs again from the end of each phrase to the end of the song. A song
+# is kept only if every phrase ends cleanly and fits the keyboard; it is
+# shifted by one whole number of octaves for all its phrases.
+
+SONG_MAX_PHRASES = 24
+
+
+def split_song(ev, max_notes: int, midword=frozenset()):
+    """A whole tune as phrases: a list of event lists (bar markers kept), or None."""
+    total = sum(1 for e in ev if e[0] == "n")
+    out, at, last_i = [], 0, -1
+    while at < total:
+        left = total - at
+        if left < PHRASE_MIN:
+            if not out:
+                return None
+            out[-1] = out[-1] + ev[last_i + 1:]  # a short tail joins the phrase before it
+            break
+        cands = [(k, i, sc) for k, i, sc in phrase_scores(ev, midword, at) if PHRASE_MIN <= k + 1 <= max_notes]
+        # Don't leave a tail too short to be a phrase of its own.
+        cands = [c for c in cands if left - (c[0] + 1) == 0 or left - (c[0] + 1) >= PHRASE_MIN]
+        pick = next((c for c in cands if c[2] >= PHRASE_SCORE), None)
+        if pick is None:
+            fair = sorted((c for c in cands if c[2] >= PHRASE_FAIR), key=lambda c: (-c[2], c[0]))
+            pick = fair[0] if fair else None
+        if pick is None:
+            return None
+        k, i, _ = pick
+        out.append(ev[last_i + 1:i + 1])
+        at += k + 1
+        last_i = i
+    return out
+
+
+def place_song(phrases):
+    """Notes strings for a song's phrases, all shifted by the same octaves, or None."""
+    cleaned = [merge_rests([e for e in ph if e[0] != "|"]) for ph in phrases]
+    if not (2 <= len(cleaned) <= SONG_MAX_PHRASES):
+        return None
+    ms_all = []
+    for ph in cleaned:
+        ms = [midi(e) for e in ph if e[0] == "n"]
+        if not (PHRASE_MIN <= len(ms) <= 16) or max(ms) - min(ms) > 16 or len(set(ms)) < 2:
+            return None
+        ms_all += ms
+    lo, hi = min(ms_all), max(ms_all)
+    k = min(range(-4, 5), key=lambda k: (max(0, 57 - (lo + 12 * k)) + max(0, (hi + 12 * k) - 86), abs(k)))
+    if lo + 12 * k < 36 or hi + 12 * k > 96:
+        return None
+    out = []
+    for ph in cleaned:
+        toks = []
+        for e in ph:
+            if e[0] == "r":
+                toks.append(f"r:{fmt_beats(e[1])}")
+                continue
+            _, letter, alter, octave, beats = e
+            if alter not in ACC or float(fmt_beats(beats)) <= 0:
+                return None
+            b = fmt_beats(beats)
+            name = f"{letter}{ACC[alter]}{octave + k}"
+            toks.append(name if b == "1" else f"{name}:{b}")
+        out.append(" ".join(toks))
+    return out
+
+
+def songs():
+    """Full songs from OpenEWLD (public-domain lead sheets) and Nottingham."""
+    ids: set = set()
+
+    def sid(title):
+        base = "song-" + "-".join(re.sub(r"[^a-z0-9]+", "-", fold(title).lower()).strip("-").split("-")[:7])
+        mid, n = base, 2
+        while mid in ids:
+            mid, n = f"{base}-{n}", n + 1
+        ids.add(mid)
+        return mid
+
+    seen: set = set()
+    lead = {c: [] for c in ("traditional", "holiday", "classical", "jazz", "popular")}
+    base = fetch("openewld")
+    db = sqlite3.connect(base / "OpenEWLD.db")
+    deaths = {n: d for n, d in db.execute("select common_name, death from authors")}
+    rows = db.execute(
+        "select w.id, w.title, w.first_performance_date, w.path_leadsheet, "
+        "(select group_concat(author, '|') from work_author a where a.id = w.id), "
+        "(select group_concat(genre, '|') from work_genres g where g.id = w.id), "
+        "(select group_concat(style, '|') from work_style s where s.id = w.id) "
+        "from works w").fetchall()
+    rows.sort(key=lambda r: (r[1] or "").lower())
+    for wid, title, date, path, authors, genres, styles in rows:
+        title = clean_ewld_title(title or "")
+        if not title or title in SKIP_TITLES or norm(title) in seen:
+            continue
+        mxl = base / path
+        if not mxl.exists():
+            continue
+        try:
+            root = xml_root(mxl)
+        except (zipfile.BadZipFile, ET.ParseError, KeyError):
+            continue
+        composers = [clean_person(c.text or "") for c in root.findall(".//creator[@type='composer']")]
+        composers = [c for c in composers if c and "," not in c]
+        if composers and all(c == "Traditional" for c in composers):
+            composers = []
+        authors_l = [clean_person(a) for a in (authors or "").split("|") if a]
+        people = [p for p in (composers or authors_l) if p and p != "Traditional"] or ["Traditional"]
+        who = BY_FIX.get(title) or " & ".join(dict.fromkeys(people))
+        year = int(date[:4]) if date and date[:4].isdigit() else None
+        died = [deaths.get(a) for a in authors_l]
+        died_years = [int(str(d)[:4]) for d in died if d and str(d)[:4].isdigit()]
+        # Whole songs only where the song is clearly out of copyright everywhere:
+        # traditional, published by 1930, or undated with every author dead by 1930.
+        public = (who.startswith("Traditional") or (year is not None and year <= 1930)
+                  or (year is None and authors_l and len(died_years) == len(authors_l)
+                      and max(died_years) < 1930))
+        if not public:
+            continue
+        g = (genres or "") + "|" + (styles or "")
+        if HOLIDAY_WORDS.search(title):
+            cat = "holiday"
+        elif any(CLASSICAL.search(p) for p in people) or ("Classical" in (genres or "") and not year):
+            cat = "classical"
+        elif who.startswith("Traditional") or HYMN_PEOPLE.search(who) or TRAD_COMPOSERS.search(who) or (
+                "Folk, World" in g and (year is None or year < 1900)):
+            cat = "traditional"
+        elif any(JAZZ_PEOPLE.search(p) for p in people) or (year and 1917 <= year < 1960):
+            cat = "jazz"
+        else:
+            cat = "popular"
+        cat = CAT_FIX.get(title, cat)
+        ev, tempo, _, midword = parse_musicxml(root, skip_first_endings=True)
+        if not ev:
+            continue
+        phrases = split_song(ev, 12, midword)
+        got = place_song(phrases) if phrases else None
+        if not got:
+            continue
+        seen.add(norm(title))
+        bpm = int(round(tempo)) if tempo and 40 <= tempo <= 260 else (
+            110 if cat in ("traditional", "holiday") else 120)
+        lead[cat].append({"id": sid(title), "title": title, "by": who, "cat": cat, "bpm": bpm, "phrases": got})
+    sections = [(f"Lead sheets from OpenEWLD: {c}", lead[c]) for c in lead]
+    # Nottingham: every tune of the chosen files that splits cleanly.
+    nbase = fetch("nottingham") / "ABC_cleaned"
+    for fname, label, _want, cat in NOTT_FILES:
+        tunes = parse_abc_tunes((nbase / fname).read_text(encoding="latin-1"))
+        tunes.sort(key=lambda t: stable_key(fname + t["head"].get("T", "")))
+        got_l = []
+        for t in tunes:
+            h = t["head"]
+            if re.search(r"\b(19|20)\d\d\b", h.get("S", "")):
+                continue
+            title = nott_title(h.get("T", ""))
+            if not title or title in NOTT_SKIP or norm(title) in seen:
+                continue
+            unit = Fraction(h.get("L", "1/8"))
+            body = re.sub(r"^[A-Za-z]:.*$", "", "\n".join(t["body"]), flags=re.M)
+            meter = {"C": "4/4", "C|": "2/2"}.get(h.get("M", "4/4").strip(), h.get("M", "4/4").strip())
+            try:
+                bar_len = Fraction(meter) * 4
+            except (ValueError, ZeroDivisionError):
+                bar_len = Fraction(4)
+            ev = abc_events(body, unit, key_alters(h.get("K", "C")), 10 ** 6, bar_len, skip_first_endings=True)
+            phrases = split_song([e for e, _ in ev], 14)
+            got = place_song(phrases) if phrases else None
+            if not got:
+                continue
+            seen.add(norm(title))
+            bpm = 110
+            q = re.search(r"(?:\d+/\d+=)?(\d+)", h.get("Q", ""))
+            if q and 40 <= int(q.group(1)) <= 260:
+                bpm = int(q.group(1))
+            c, by = cat, label
+            if cat == "holiday" and not re.search(r"christmas|ding dong|noel|carol|boar", title, re.I):
+                c, by = "traditional", "Traditional"
+            got_l.append({"id": sid(title), "title": title, "by": by, "cat": c, "bpm": bpm, "phrases": got})
+        sections.append((f"Nottingham Music Database: {fname[:-4]}", got_l))
+    return sections
+
+
+def write_songs(path: Path, sections):
+    lines = [
+        "// Full songs, phrase by phrase, for the Full Songs mode: whole public-domain lead",
+        "// sheets from OpenEWLD and traditional dance tunes from the Nottingham Music",
+        "// Database, read once straight through (first-time endings left out). Each",
+        "// phrase ends where a musician hears it end (see the Phrases section of",
+        "// extract_melodies.py); a song is kept only if every phrase does. One octave",
+        "// shift for the whole song.",
+        "//",
+        "// GENERATED by eartrainer/design/source/extract_melodies.py; do not edit by hand.",
+        f"// Sources: {SOURCES['openewld']} (MIT; public-domain scores)",
+        f"//   and {SOURCES['nottingham']} (GPL v3).",
+        "export default [",
+    ]
+    n = 0
+    for name, items in sections:
+        if not items:
+            continue
+        lines.append(f"  // {name}")
+        for m in items:
+            ph = ", ".join(js_str(x) for x in m["phrases"])
+            lines.append(f"  {{ id: {js_str(m['id'])}, title: {js_str(m['title'])}, by: {js_str(m['by'])}, "
+                         f"cat: {js_str(m['cat'])}, bpm: {m['bpm']}, phrases: [{ph}] }},")
+            n += 1
+    lines.append("];")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return n
+
+
+# --------------------------------------------------------------------------
 
 
 def main():
@@ -1429,6 +1670,8 @@ def main():
         counts[name] = n
     for k, v in counts.items():
         print(f"{k}: {v} melodies")
+    n = write_songs(OUT.parent / "songs" / "dataset.js", songs())
+    print(f"songs/dataset.js: {n} full songs")
 
 
 if __name__ == "__main__":

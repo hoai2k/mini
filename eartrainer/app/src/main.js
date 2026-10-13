@@ -6,7 +6,7 @@ import { createStaff } from './staff.js';
 import { noteName } from './music.js';
 import { perform, secondsPerBeat, MAX_HOLD } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
-import { buildLibrary, inBook, transpose, randomShift, pickNext, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
+import { buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
@@ -33,8 +33,19 @@ const S = {
   play: null, // { token, voices, timers }
   held: new Map(), // midi -> voice
   recent: [],
+  recentSongs: [],
+  song: null, // Full Songs: { song, index, shift, stars }
   solvedShown: false,
 };
+
+// Whole songs for the Full Songs mode load in the background.
+let SONGS = null;
+const songsReady = import('../data/songs/index.js').then((mod) => {
+  SONGS = buildSongs(mod.default);
+  if (S.mode === 'books') renderBooks();
+  return SONGS;
+}).catch(() => { SONGS = []; return SONGS; });
+const songsIn = (book) => (SONGS ? inBook(SONGS, book) : []);
 
 // ---------------------------------------------------------------- audio
 const audio = createAudio();
@@ -142,8 +153,9 @@ function renderBooks() {
   const grid = $('#book-grid');
   grid.innerHTML = '';
   let solvedAll = 0;
+  const songs = isSongs(progress.level);
   for (const book of SONGBOOKS) {
-    const pool = inBook(LIB, book.id);
+    const pool = songs ? songsIn(book.id) : inBook(LIB, book.id);
     if (!pool.length) continue;
     const solved = pool.filter((m) => progress.best[m.id]).length;
     if (book.id === 'all') solvedAll = solved;
@@ -154,7 +166,8 @@ function renderBooks() {
       <span class="meter"><i style="width:${(solved / pool.length) * 100}%"></i></span><span class="count">${solved}/${pool.length}</span><span class="at"></span>`;
     const at = countAt(pool, progress.level);
     const lvName = LEVELS.find((l) => l.id === progress.level);
-    if (lvName?.range) b.querySelector('.at').textContent = at ? `${at} at ${lvName.short}` : `None at ${lvName.short}: nearest level instead`;
+    if (songs) b.querySelector('.at').textContent = `${pool.length} whole song${pool.length === 1 ? '' : 's'}`;
+    else if (lvName?.range) b.querySelector('.at').textContent = at ? `${at} at ${lvName.short}` : `None at ${lvName.short}: nearest level instead`;
     if (cover) b.querySelector('.glyph').style.backgroundImage = `url("${cover}")`;
     b.querySelector('.name').textContent = book.name;
     b.querySelector('.blurb').textContent = book.blurb;
@@ -162,11 +175,14 @@ function renderBooks() {
     b.addEventListener('click', () => startBook(book.id));
     grid.append(b);
   }
-  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solvedAll}/${LIB.length}`;
+  if (songs && !SONGS) grid.innerHTML = '<p class="loading">Loading the songs…</p>';
+  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solvedAll}/${songs ? (SONGS?.length ?? 0) : LIB.length}`;
 }
 
-function startBook(id) {
+async function startBook(id) {
+  if (isSongs(progress.level) && !SONGS) await songsReady;
   progress.book = id; save();
+  S.song = null;
   setFree(false);
   S.practice = false; syncPractice();
   show('play');
@@ -217,11 +233,26 @@ function nextMelody() {
   S.awaitingRetry = false;
   S.attempt = 1;
   stopPlayback();
-  const pool = inBook(LIB, progress.book);
-  const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
-  if (!m) return;
-  S.recent = [m.id, ...S.recent.filter((x) => x !== m.id)].slice(0, Math.min(25, Math.floor(pool.length / 2)));
-  S.melody = transpose(m, settings.key === 'random' ? randomShift() : 0);
+  if (isSongs(progress.level)) {
+    // Full Songs: the song's next phrase, or a new song after its last.
+    const cur = S.song;
+    if (cur && cur.index + 1 < cur.song.phrases.length) cur.index++;
+    else {
+      const pool = songsIn(progress.book);
+      const song = pickSong(pool, { best: progress.best, recent: S.recentSongs });
+      if (!song) return;
+      S.recentSongs = [song.id, ...S.recentSongs.filter((x) => x !== song.id)].slice(0, Math.min(15, Math.floor(pool.length / 2)));
+      S.song = { song, index: 0, shift: settings.key === 'random' ? randomShift() : 0, stars: [] };
+    }
+    S.melody = transpose(S.song.song.phrases[S.song.index], S.song.shift);
+  } else {
+    S.song = null;
+    const pool = inBook(LIB, progress.book);
+    const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
+    if (!m) return;
+    S.recent = [m.id, ...S.recent.filter((x) => x !== m.id)].slice(0, Math.min(25, Math.floor(pool.length / 2)));
+    S.melody = transpose(m, settings.key === 'random' ? randomShift() : 0);
+  }
   S.round = createRound(S.melody.notes);
   S.replay = false;
   S.solvedShown = false;
@@ -234,7 +265,7 @@ function nextMelody() {
   syncStaff();
   syncMarker();
   syncHud();
-  setPrompt('Listen…', true);
+  setPrompt(S.song ? (S.song.index ? `Phrase ${S.song.index + 1} of ${S.song.song.phrases.length}: listen…` : 'A new song. Listen…') : 'Listen…', true);
   setTimeout(() => { if (S.round && S.round.notes === S.melody.notes && !dialogs.length) playMelody(); }, 650);
 }
 
@@ -245,10 +276,21 @@ function syncStaff() {
 function showSolved(on) {
   $('#solved').hidden = !on;
   $('#prompt').hidden = on;
+  syncSkip(on);
+}
+// Skip moves on before a clean run (in Full Songs, to the next song); Next
+// after one (in Full Songs, to the song's next phrase).
+function syncSkip(next) {
   const skip = $('#btn-skip');
-  skip.classList.toggle('next', on);
-  $('#skip-label').textContent = on ? 'Next' : 'Skip';
-  skip.dataset.tip = on ? 'Next melody' : 'Skip to another melody';
+  skip.classList.toggle('next', next);
+  const last = S.song && S.song.index + 1 >= S.song.song.phrases.length;
+  if (S.song) {
+    $('#skip-label').textContent = next ? 'Next' : 'Skip song';
+    skip.dataset.tip = next ? (last ? 'Next song' : 'Next phrase') : 'Skip to the next song';
+  } else {
+    $('#skip-label').textContent = next ? 'Next' : 'Skip';
+    skip.dataset.tip = next ? 'Next melody' : 'Skip to another melody';
+  }
 }
 function syncMarker() {
   const r = S.round;
@@ -259,7 +301,8 @@ function syncHud() {
   $('#hud-miss span').textContent = S.round ? S.round.mistakes : 0;
   const st = $('#hud-streak'); st.hidden = progress.streak < 2; st.querySelector('span').textContent = progress.streak;
   const lv = S.melody ? LEVELS.find((l) => l.range && l.range[0] === S.melody.level) : null;
-  $('#hud-level').textContent = lv ? `Level ${lv.name}${progress.level === 'adaptive' ? ' · Adaptive' : ''}` : '';
+  if (S.song) $('#hud-level').textContent = `Full song · phrase ${S.song.index + 1} of ${S.song.song.phrases.length}`;
+  else $('#hud-level').textContent = lv ? `Level ${lv.name}${progress.level === 'adaptive' ? ' · Adaptive' : ''}` : '';
 }
 function setPrompt(text, listening = false, wrong = false) {
   const p = $('#prompt');
@@ -392,7 +435,8 @@ function solved() {
     progress.streak = st === 3 ? progress.streak + 1 : 0;
     progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
     progress.score += gain;
-    progress.best[m.id] = Math.max(progress.best[m.id] || 0, st);
+    if (S.song) S.song.stars.push(st);
+    else progress.best[m.id] = Math.max(progress.best[m.id] || 0, st);
     progress.solved++;
     if (progress.level === 'adaptive') progress.rating = rate(progress.rating, st);
     save();
@@ -410,7 +454,14 @@ function solved() {
   $('#song-title').textContent = m.title;
   const key = m.shift ? ` · transposed ${m.shift > 0 ? 'up' : 'down'} ${Math.abs(m.shift)} semitone${Math.abs(m.shift) === 1 ? '' : 's'}` : '';
   const tries = !S.replay && settings.retry && S.attempt > 1 ? ` · clean on try ${S.attempt}` : '';
-  $('#song-by').textContent = `${m.by}${key}${tries}`;
+  let where = '';
+  if (S.song) {
+    const n = S.song.song.phrases.length, i = S.song.index + 1;
+    where = i < n ? ` · phrase ${i} of ${n}` : ' · the whole song!';
+    $('#song-title').textContent = `${m.title} · ${i}/${n}`;
+    if (i === n && !S.replay) songDone();
+  }
+  $('#song-by').textContent = `${m.by}${where}${key}${tries}`;
   $('#gain').textContent = S.replay ? '' : `+${gain}`;
   $('#solved').setAttribute('aria-label', `Solved: ${m.title}. ${st} star${st > 1 ? 's' : ''}.`);
   announce(`Solved: ${m.title}, ${st} star${st > 1 ? 's' : ''}${gain ? `, plus ${gain} points` : ''}.`);
@@ -418,6 +469,16 @@ function solved() {
   syncHud();
   S.retry = false;
   scheduleAuto();
+}
+
+// The last phrase of a song: the song's stars are the average of its phrases'.
+function songDone() {
+  const { song, stars: got } = S.song;
+  if (!got.length) return;
+  const st = Math.max(1, Math.round(got.reduce((a, b) => a + b, 0) / got.length));
+  progress.best[song.id] = Math.max(progress.best[song.id] || 0, st);
+  save();
+  toast(`Song complete: ${song.title} · ${'★'.repeat(st)}`);
 }
 
 // ---------------------------------------------------------------- once more, cleanly
@@ -438,10 +499,7 @@ function startRetry({ listen = true } = {}) {
   S.retry = true;
   S.solvedShown = false;
   showSolved(false);
-  const skip = $('#btn-skip');
-  skip.classList.add('next');
-  $('#skip-label').textContent = 'Next';
-  skip.dataset.tip = 'Next melody';
+  if (!S.song) syncSkip(true);
   syncStaff(); syncMarker(); syncHud();
   if (listen) playMelody();
   else idlePrompt();
@@ -500,10 +558,17 @@ function doNext() {
   if (!S.round) return;
   // Moving on before a clean run is a skip: no stars, and the streak ends.
   if (!S.solvedShown && !S.free) {
-    toast(`Skipped: ${S.melody.title}`);
     progress.streak = 0;
-    progress.best[S.melody.id] = Math.max(progress.best[S.melody.id] || 0, 0);
-    if (progress.level === 'adaptive') progress.rating = rate(progress.rating, 1);
+    if (S.song) {
+      // Full Songs: Skip moves on to the next song, not the next phrase.
+      toast(`Skipped the song: ${S.song.song.title}`);
+      progress.best[S.song.song.id] = Math.max(progress.best[S.song.song.id] || 0, 0);
+      S.song = null;
+    } else {
+      toast(`Skipped: ${S.melody.title}`);
+      progress.best[S.melody.id] = Math.max(progress.best[S.melody.id] || 0, 0);
+      if (progress.level === 'adaptive') progress.rating = rate(progress.rating, 1);
+    }
     save();
   }
   nextMelody();
