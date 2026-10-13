@@ -8,6 +8,7 @@ import {
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { FILM } from '../theme.js';
 import { drawMovement, whalePose } from './sailor-motion.js';
+import { walkPose } from '../walking.js';
 import { cavernScene, cavernOver, cavernEvent } from './act4cavern-art.js';
 
 const REV = [
@@ -492,7 +493,7 @@ export function drawSailor(k, frame, dy = 0) {
   const id = 'sailor-' + frame, w = frame === 'leap' ? 79 : 67;
   if (k.asset(id, 0, dy, w, 110)) return;
   const c = k.c;
-  const legs = { stand: [[-6, 0], [6, 0]], 'walk-a': [[-16, 0], [14, 0]], 'walk-b': [[10, 0], [-8, 0]], leap: [[-18, -10], [16, -22]] }[frame];
+  const legs = { stand: [[-6, 0], [6, 0]], 'walk-a': [[-16, 0], [14, 0]], 'pass-a': [[-3, 0], [3, -6]], 'walk-b': [[10, 0], [-8, 0]], 'pass-b': [[-3, -6], [3, 0]], leap: [[-18, -10], [16, -22]] }[frame];
   c.lineCap = 'round';
   for (const [fx, fy] of legs) {
     c.strokeStyle = k.col('#7d7f86'); c.lineWidth = 11;
@@ -502,7 +503,7 @@ export function drawSailor(k, frame, dy = 0) {
   // pea coat
   c.fillStyle = k.col('#24324f');
   c.beginPath(); c.moveTo(-15, -40); c.lineTo(-13, -86); c.lineTo(13, -86); c.lineTo(16, -40); c.fill();
-  const arm = frame === 'leap' ? -1.9 : frame === 'stand' ? 0.15 : frame === 'walk-a' ? 0.5 : -0.4;
+  const arm = frame === 'leap' ? -1.9 : frame === 'stand' || frame.startsWith('pass-') ? 0.15 : frame === 'walk-a' ? 0.5 : -0.4;
   c.save(); c.translate(2, -82); c.rotate(arm); c.fillStyle = k.col('#1d2a44'); c.beginPath(); c.roundRect(-5, 0, 10, 34, 4); c.fill();
   c.fillStyle = k.col('#e9c9a8'); k.circle(0, 36, 5); c.restore();
   c.fillStyle = k.col('#d9b34a'); for (const dy of [-76, -64, -52]) k.circle(6, dy, 2);
@@ -641,7 +642,7 @@ function crawler(k, a, b, p, drawFig, t) {
   const x = a.x + (b.x - a.x) * m, y = a.y + (b.y - a.y) * m - Math.sin(Math.PI * m) * 10;
   const rot = 1.25 * (1 - easeInOut((p - 0.72) / 0.28));
   c.save(); c.translate(x, y); c.rotate(rot + (rot > 0.3 ? Math.sin(t * 10) * 0.04 : 0));
-  drawFig(p < 1 ? 'walk-a' : 'stand');
+  drawFig(p < 1 ? walkPose(t * 120) : 'stand');
   c.restore();
 }
 

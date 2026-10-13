@@ -76,7 +76,7 @@ function partialWords(root) {
 // whenever that art is loaded (delivered, or an interim cut-out), else the
 // legacy art. Acts add their own with a `cast` map (src/acts/CONTRACT.md).
 export const FILM_CAST = {
-  ...Object.fromEntries(['stand', 'walk-a', 'walk-b', 'leap', 'crouch', 'carry', 'swim-a', 'swim-b', 'seated', 'hang', 'pullup',
+  ...Object.fromEntries(['stand', 'walk-a', 'walk-b', 'pass-a', 'pass-b', 'leap', 'crouch', 'carry', 'carry-walk-a', 'carry-pass-a', 'carry-walk-b', 'carry-pass-b', 'swim-a', 'swim-b', 'seated', 'hang', 'pullup',
     'climb-a', 'climb-b', 'apex', 'fall', 'land', 'stairs-a', 'stairs-b'].map((p) => ['sailor-' + p, 'prince-' + p])),
   'sailor-throw': 'prince-push',
   'reveller-yellow': 'crew-squire', 'reveller-jester': 'crew-helmsman', 'reveller-lady': 'crew-manatarms', 'reveller-shaggy': 'crew-bosun',
@@ -106,5 +106,9 @@ export const FILM_BODY_SCALE_TINTED = {
   'prince-climb-a': 0.80, 'prince-climb-b': 0.80, 'prince-apex': 0.91, 'prince-fall': 0.84,
   'prince-land': 0.76, 'prince-stairs-a': 0.79, 'prince-stairs-b': 0.81, 'prince-push': 0.85,
 };
-export const bodyScaleOf = (id) => (id.endsWith('-tinted') ? FILM_BODY_SCALE_TINTED[id.slice(0, -7)] : FILM_BODY_SCALE[id]) || 1;
+export const bodyScaleOf = (id) => {
+  const tinted = id.endsWith('-tinted');
+  const base = (tinted ? id.slice(0, -7) : id).replace(/-carry-(?:walk|pass)-[ab]$/, '-carry');
+  return (tinted ? FILM_BODY_SCALE_TINTED[base] : FILM_BODY_SCALE[base]) || 1;
+};
 

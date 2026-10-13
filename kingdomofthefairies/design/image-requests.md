@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 207 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 233 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 195 of 207 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 233 of 233 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1530,14 +1530,14 @@ Requested 12 October 2026 after play-testing: the delivered walk-a/walk-b pairs 
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-stride-a-tinted` | 220 × 360 | bottom centre | `prince-walk-a-tinted` | requested |
-| `prince-stride-b-tinted` | 220 × 360 | bottom centre | `prince-walk-b-tinted` | requested |
-| `prince-stride-a` | 220 × 360 | bottom centre | `prince-walk-a` | requested |
-| `prince-stride-b` | 220 × 360 | bottom centre | `prince-walk-b` | requested |
-| `prince-court-stride-a-tinted` | 220 × 360 | bottom centre | `prince-court-walk-a-tinted` | requested |
-| `prince-court-stride-b-tinted` | 220 × 360 | bottom centre | `prince-court-walk-b-tinted` | requested |
-| `prince-court-stride-a` | 220 × 360 | bottom centre | `prince-court-walk-a` | requested |
-| `prince-court-stride-b` | 220 × 360 | bottom centre | `prince-court-walk-b` | requested |
+| `prince-stride-a-tinted` | 220 × 360 | bottom centre | `prince-walk-a-tinted` | [delivered](../assets/prince-stride-a-tinted.webp) |
+| `prince-stride-b-tinted` | 220 × 360 | bottom centre | `prince-walk-b-tinted` | [delivered](../assets/prince-stride-b-tinted.webp) |
+| `prince-stride-a` | 220 × 360 | bottom centre | `prince-walk-a` | [delivered](../assets/prince-stride-a.webp) |
+| `prince-stride-b` | 220 × 360 | bottom centre | `prince-walk-b` | [delivered](../assets/prince-stride-b.webp) |
+| `prince-court-stride-a-tinted` | 220 × 360 | bottom centre | `prince-court-walk-a-tinted` | [delivered](../assets/prince-court-stride-a-tinted.webp) |
+| `prince-court-stride-b-tinted` | 220 × 360 | bottom centre | `prince-court-walk-b-tinted` | [delivered](../assets/prince-court-stride-b-tinted.webp) |
+| `prince-court-stride-a` | 220 × 360 | bottom centre | `prince-court-walk-a` | [delivered](../assets/prince-court-stride-a.webp) |
+| `prince-court-stride-b` | 220 × 360 | bottom centre | `prince-court-walk-b` | [delivered](../assets/prince-court-stride-b.webp) |
 
 #### `prince-stride-a-tinted` — Prince armed, stride A (tinted)
 
@@ -1593,10 +1593,10 @@ Requested 12 October 2026 in the same audit: when Azurine walks beside the princ
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `azurine-walk-a-tinted` | 200 × 380 | bottom centre | `azurine-stand` | requested |
-| `azurine-walk-b-tinted` | 200 × 380 | bottom centre | `azurine-stand` | requested |
-| `azurine-walk-a` | 200 × 380 | bottom centre | `azurine-stand` | requested |
-| `azurine-walk-b` | 200 × 380 | bottom centre | `azurine-stand` | requested |
+| `azurine-walk-a-tinted` | 200 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-walk-a-tinted.webp) |
+| `azurine-walk-b-tinted` | 200 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-walk-b-tinted.webp) |
+| `azurine-walk-a` | 200 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-walk-a.webp) |
+| `azurine-walk-b` | 200 × 380 | bottom centre | `azurine-stand` | [delivered](../assets/azurine-walk-b.webp) |
 
 #### `azurine-walk-a-tinted` — Azurine walking, stride A (tinted)
 
@@ -1621,6 +1621,202 @@ Requested 12 October 2026 in the same audit: when Azurine walks beside the princ
 200 × 380 px, anchor bottom centre.
 
 > Princess Azurine walking to the LEFT, exactly the figure, gown, colours, scale and head height of azurine-stand.webp (attach it, and azurine-walk-a.webp if already drawn, which must match it in every detail but the stride). Her RIGHT foot steps forward from under the hem, the gown swinging the other way; the hands as in stride A but mirrored in their swing. Feet and hem on one level ground line at the very bottom of the canvas; the head at the same height as in the standing pose. Nothing changes between the two frames but the stride and the swing of the gown. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F12. Walking passing poses
+
+Requested 12 October 2026: complete every ground-walking cycle with contact A, passing A, contact B, passing B. Passing poses bring the legs together beneath the hips, with one support foot planted and the opposite knee bent as its foot swings through. They are moving poses, not standing stills. Keep costume, face, head scale and ground anchor consistent across the entire cycle. The sailor poses are shared by the partial and Widow’s Bay editions.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-pass-a-tinted` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-pass-a-tinted.webp) |
+| `prince-pass-b-tinted` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-pass-b-tinted.webp) |
+| `prince-pass-a` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-pass-a.webp) |
+| `prince-pass-b` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-pass-b.webp) |
+| `prince-court-pass-a-tinted` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-court-pass-a-tinted.webp) |
+| `prince-court-pass-b-tinted` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-court-pass-b-tinted.webp) |
+| `prince-court-pass-a` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-court-pass-a.webp) |
+| `prince-court-pass-b` | 220 × 360 | bottom centre | new | [delivered](../assets/prince-court-pass-b.webp) |
+| `azurine-pass-a-tinted` | 200 × 380 | bottom centre | new | [delivered](../assets/azurine-pass-a-tinted.webp) |
+| `azurine-pass-b-tinted` | 200 × 380 | bottom centre | new | [delivered](../assets/azurine-pass-b-tinted.webp) |
+| `azurine-pass-a` | 200 × 380 | bottom centre | new | [delivered](../assets/azurine-pass-a.webp) |
+| `azurine-pass-b` | 200 × 380 | bottom centre | new | [delivered](../assets/azurine-pass-b.webp) |
+| `sailor-pass-a` | 220 × 360 | bottom centre | new | [delivered](../assets/sailor-pass-a.webp) |
+| `sailor-pass-b` | 220 × 360 | bottom centre | new | [delivered](../assets/sailor-pass-b.webp) |
+
+#### `prince-pass-a-tinted` — prince, passing A (tinted)
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-stand-tinted.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-pass-b-tinted` — prince, passing B (tinted)
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-stand-tinted.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-pass-a` — prince, passing A
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-stand.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-pass-b` — prince, passing B
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-stand.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-pass-a-tinted` — prince-court, passing A (tinted)
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-court-tinted.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-pass-b-tinted` — prince-court, passing B (tinted)
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-court-tinted.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-pass-a` — prince-court, passing A
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-court.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-pass-b` — prince-court, passing B
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in prince-court.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-pass-a-tinted` — azurine, passing A (tinted)
+
+200 × 380 px, anchor bottom centre.
+
+> Exactly the character in azurine-stand-tinted.webp (attach it and the matching delivered stride-A frame): walking left, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-pass-b-tinted` — azurine, passing B (tinted)
+
+200 × 380 px, anchor bottom centre.
+
+> Exactly the character in azurine-stand-tinted.webp (attach it and the matching delivered stride-A frame): walking left, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-pass-a` — azurine, passing A
+
+200 × 380 px, anchor bottom centre.
+
+> Exactly the character in azurine-stand.webp (attach it and the matching delivered stride-A frame): walking left, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-pass-b` — azurine, passing B
+
+200 × 380 px, anchor bottom centre.
+
+> Exactly the character in azurine-stand.webp (attach it and the matching delivered stride-A frame): walking left, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-pass-a` — sailor, passing A
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in sailor-stand.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The left leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-pass-b` — sailor, passing B
+
+220 × 360 px, anchor bottom centre.
+
+> Exactly the character in sailor-stand.webp (attach it and the matching delivered stride-A frame): walking right, at the legs-together PASSING phase. The right leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F13. Walking while carrying
+
+Requested 12 October 2026: carrying someone still requires a ground-walking cycle. These contact and passing frames keep the carried woman, the carrier’s arms and the hold unchanged while the legs move. Walking uses all four phases, including carrying on stairs; stationary carrying and airborne movement retain their own poses. The sailor set is shared by the partial and Widow’s Bay editions.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-carry-walk-a-tinted` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-walk-a-tinted.webp) |
+| `prince-carry-pass-a-tinted` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-pass-a-tinted.webp) |
+| `prince-carry-walk-b-tinted` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-walk-b-tinted.webp) |
+| `prince-carry-pass-b-tinted` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-pass-b-tinted.webp) |
+| `prince-carry-walk-a` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-walk-a.webp) |
+| `prince-carry-pass-a` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-pass-a.webp) |
+| `prince-carry-walk-b` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-walk-b.webp) |
+| `prince-carry-pass-b` | 360 × 400 | bottom centre | `prince-carry` | [delivered](../assets/prince-carry-pass-b.webp) |
+| `sailor-carry-walk-a` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/sailor-carry-walk-a.webp) |
+| `sailor-carry-pass-a` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/sailor-carry-pass-a.webp) |
+| `sailor-carry-walk-b` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/sailor-carry-walk-b.webp) |
+| `sailor-carry-pass-b` | 360 × 400 | bottom centre | `sailor-carry` | [delivered](../assets/sailor-carry-pass-b.webp) |
+
+#### `prince-carry-walk-a-tinted` — prince carrying, walk-a (tinted)
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry-tinted.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-a phase. Left leg forward, heel down; right leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-pass-a-tinted` — prince carrying, pass-a (tinted)
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry-tinted.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-a phase. Left support leg vertical beneath the hip; right knee bent and right foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-walk-b-tinted` — prince carrying, walk-b (tinted)
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry-tinted.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-b phase. Right leg forward with a bent leading knee, heel down; left leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-pass-b-tinted` — prince carrying, pass-b (tinted)
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry-tinted.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-b phase. Right support leg vertical beneath the hip; left knee bent and left foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-walk-a` — prince carrying, walk-a
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-a phase. Left leg forward, heel down; right leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-pass-a` — prince carrying, pass-a
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-a phase. Left support leg vertical beneath the hip; right knee bent and right foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-walk-b` — prince carrying, walk-b
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-b phase. Right leg forward with a bent leading knee, heel down; left leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-carry-pass-b` — prince carrying, pass-b
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in prince-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-b phase. Right support leg vertical beneath the hip; left knee bent and left foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-carry-walk-a` — sailor carrying, walk-a
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in sailor-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-a phase. Left leg forward, heel down; right leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-carry-pass-a` — sailor carrying, pass-a
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in sailor-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-a phase. Left support leg vertical beneath the hip; right knee bent and right foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-carry-walk-b` — sailor carrying, walk-b
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in sailor-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the walk-b phase. Right leg forward with a bent leading knee, heel down; left leg straight behind, toe down. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-carry-pass-b` — sailor carrying, pass-b
+
+360 × 400 px, anchor bottom centre.
+
+> Exactly the two figures and carrying hold in sailor-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-b phase. Right support leg vertical beneath the hip; left knee bent and left foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

@@ -1,3 +1,4 @@
+import { walkFrame, walkStep } from '../walking.js';
 // Act III drawing: the Sea King's court. Every piece of art has a procedural
 // stand-in until its file is delivered (ids and sizes are in
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
@@ -71,9 +72,9 @@ function transformation(k, st, t) {
     if (!k.asset('pearl', px, py + 14, 30, 30)) { c.fillStyle = k.col('#f7f2fa'); k.circle(px, py, 10); }
   });
   // the prince (the recast sailor sprites)
-  const moving = Math.abs(f.vx) > 20, step = Math.floor(f.walk / 34) % 2;
+  const moving = Math.abs(f.vx) > 20, step = walkFrame('sailor', f.walk, 34);
   c.save(); c.translate(f.x, P.y); c.scale(f.face, 1);
-  if (!k.asset(f.knockT > 0 ? 'sailor-fall' : moving ? (step ? 'sailor-walk-a' : 'sailor-walk-b') : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
+  if (!k.asset(f.knockT > 0 ? 'sailor-fall' : moving ? step : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
   c.restore();
   // the way on glows at the right
   c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(P.exit + 40, P.y - 90, 40, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
@@ -495,10 +496,10 @@ function player(k, st, t) {
   c.scale(s * (p.frozen ? 1 : p.face), s);
   if (p.frozen) { if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); }
   else {
-    const stride = Math.floor(p.walk * 5) % 2;
+    const stride = walkFrame('sailor', p.walk, 0.2);
     const walking = p.moving && st.phase === 'play';
-    const id = walking ? (stride ? 'sailor-walk-b' : 'sailor-walk-a') : 'sailor-stand';
-    if (!k.asset(id, 0, 0, 110, 180)) sailorStandin(k, walking ? (stride ? 1 : -1) : 0, st.taken);
+    const id = walking ? stride : 'sailor-stand';
+    if (!k.asset(id, 0, 0, 110, 180)) sailorStandin(k, walking ? walkStep(p.walk, 0.2) : 0, st.taken);
   }
   c.restore();
   // spotted: an exclamation over him while the beam holds

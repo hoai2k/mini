@@ -3061,7 +3061,7 @@
       "edition": "film"
     },
     "prince-stride-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stride-a-tinted.webp",
       "size": [
         220,
@@ -3071,7 +3071,7 @@
       "edition": "film"
     },
     "prince-stride-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stride-b-tinted.webp",
       "size": [
         220,
@@ -3081,7 +3081,7 @@
       "edition": "film"
     },
     "prince-stride-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stride-a.webp",
       "size": [
         220,
@@ -3091,7 +3091,7 @@
       "edition": "film"
     },
     "prince-stride-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-stride-b.webp",
       "size": [
         220,
@@ -3101,7 +3101,7 @@
       "edition": "film"
     },
     "prince-court-stride-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-stride-a-tinted.webp",
       "size": [
         220,
@@ -3111,7 +3111,7 @@
       "edition": "film"
     },
     "prince-court-stride-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-stride-b-tinted.webp",
       "size": [
         220,
@@ -3121,7 +3121,7 @@
       "edition": "film"
     },
     "prince-court-stride-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-stride-a.webp",
       "size": [
         220,
@@ -3131,7 +3131,7 @@
       "edition": "film"
     },
     "prince-court-stride-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-court-stride-b.webp",
       "size": [
         220,
@@ -3141,7 +3141,7 @@
       "edition": "film"
     },
     "azurine-walk-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-walk-a-tinted.webp",
       "size": [
         200,
@@ -3151,7 +3151,7 @@
       "edition": "film"
     },
     "azurine-walk-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-walk-b-tinted.webp",
       "size": [
         200,
@@ -3161,7 +3161,7 @@
       "edition": "film"
     },
     "azurine-walk-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-walk-a.webp",
       "size": [
         200,
@@ -3171,7 +3171,7 @@
       "edition": "film"
     },
     "azurine-walk-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "azurine-walk-b.webp",
       "size": [
         200,
@@ -3179,6 +3179,266 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-pass-a-tinted": {
+      "status": "delivered",
+      "file": "prince-pass-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-pass-b-tinted": {
+      "status": "delivered",
+      "file": "prince-pass-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-pass-a": {
+      "status": "delivered",
+      "file": "prince-pass-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-pass-b": {
+      "status": "delivered",
+      "file": "prince-pass-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-pass-a-tinted": {
+      "status": "delivered",
+      "file": "prince-court-pass-a-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-pass-b-tinted": {
+      "status": "delivered",
+      "file": "prince-court-pass-b-tinted.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-pass-a": {
+      "status": "delivered",
+      "file": "prince-court-pass-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-pass-b": {
+      "status": "delivered",
+      "file": "prince-court-pass-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-pass-a-tinted": {
+      "status": "delivered",
+      "file": "azurine-pass-a-tinted.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-pass-b-tinted": {
+      "status": "delivered",
+      "file": "azurine-pass-b-tinted.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-pass-a": {
+      "status": "delivered",
+      "file": "azurine-pass-a.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-pass-b": {
+      "status": "delivered",
+      "file": "azurine-pass-b.webp",
+      "size": [
+        200,
+        380
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sailor-pass-a": {
+      "status": "delivered",
+      "file": "sailor-pass-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "sailor-pass-b": {
+      "status": "delivered",
+      "file": "sailor-pass-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "prince-carry-walk-a-tinted": {
+      "status": "delivered",
+      "file": "prince-carry-walk-a-tinted.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-pass-a-tinted": {
+      "status": "delivered",
+      "file": "prince-carry-pass-a-tinted.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-walk-b-tinted": {
+      "status": "delivered",
+      "file": "prince-carry-walk-b-tinted.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-pass-b-tinted": {
+      "status": "delivered",
+      "file": "prince-carry-pass-b-tinted.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-walk-a": {
+      "status": "delivered",
+      "file": "prince-carry-walk-a.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-pass-a": {
+      "status": "delivered",
+      "file": "prince-carry-pass-a.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-walk-b": {
+      "status": "delivered",
+      "file": "prince-carry-walk-b.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-pass-b": {
+      "status": "delivered",
+      "file": "prince-carry-pass-b.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sailor-carry-walk-a": {
+      "status": "delivered",
+      "file": "sailor-carry-walk-a.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "sailor-carry-pass-a": {
+      "status": "delivered",
+      "file": "sailor-carry-pass-a.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "sailor-carry-walk-b": {
+      "status": "delivered",
+      "file": "sailor-carry-walk-b.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "sailor-carry-pass-b": {
+      "status": "delivered",
+      "file": "sailor-carry-pass-b.webp",
+      "size": [
+        360,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
     }
   },
   "audio": {

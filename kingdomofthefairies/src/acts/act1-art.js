@@ -1,3 +1,4 @@
+import { walkFrame } from '../walking.js';
 import { LEGACY, FILM } from '../theme.js';
 // Act I drawing: the voyage (kit.voyage) and the ending scenes. Every piece
 // of new art has a procedural stand-in until its file is delivered (ids are
@@ -148,9 +149,9 @@ function deckScene(k, st, deck, t) {
 
 // The prince on the deck in the tempest, and the lantern above him he can light.
 function tempestPrince(k, st, t, off) {
-  const c = k.c, p = st.tp, moving = Math.abs(p.vx) > 20, step = Math.floor(p.walk / 34) % 2;
+  const c = k.c, p = st.tp, moving = Math.abs(p.vx) > 20, step = walkFrame('prince', p.walk, 34);
   if (st.phaseT < 0.6) return;
-  const id = p.knockT > 0 ? 'prince-fall' : moving ? (step ? 'prince-walk-a' : 'prince-walk-b') : 'prince-stand';
+  const id = p.knockT > 0 ? 'prince-fall' : moving ? step : 'prince-stand';
   c.save(); c.translate(p.x, TEMPEST.y + off); c.scale(p.face, 1);
   if (!k.asset(id, 0, 0, id === 'prince-fall' ? 150 : 92, id === 'prince-fall' ? 183 : 150)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-12, -120, 24, 120); }
   c.restore();

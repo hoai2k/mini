@@ -42,3 +42,13 @@ The user-marked sword hand in `prince-leap-tinted` was separately corrected: a c
 F9 verification: all 31 originals and prepared images passed dimension, anchor, alpha, reference-file and accepted-review checks; original-look sprite files stayed unchanged. The film gameplay, theme, animation and generated-request checks passed.
 
 The browser check exposed a pre-existing asset-URL shadowing bug in the new tinted-fitting loader. Renaming the local original-slot variable preserves the caller’s base URL. After the fix, the browser loaded all 95 tinted sprites and rendered 36 film scenes with no page errors. `qa/assets-loader.test.mjs` covers original/tinted URLs, the opening load wave, and preservation of legacy fitting.
+
+## Complete walking cycles (F10–F13)
+
+Delivered 38 new images: 12 stride frames from the latest F10/F11 briefs, 14 normal passing poses, and 12 carrying-cycle frames. Each walk uses contact A → passing A → contact B → passing B through `src/walking.js`. Armed/court-dress Bel-Azor and Azurine have both looks; the shared sailor frames also load in the partial and Widow’s Bay editions. Carrying keeps the held woman and supporting arms in the frame throughout the cycle. Stair and slope walking insert passing phases between step poses; idle, airborne and climbing/swimming actions use their own selectors. Body scaling for carrying phases inherits the calibrated carrying pose.
+
+Standing references fixed costume colours; prince stride-B attempts that copied A too closely were rejected and regenerated with clearer knee/foot placement. The sailor passing-A extra hand was removed after anatomy review. Rejected originals/records are preserved under `progress/rejected/`. Each accepted image has its native original, full submitted prompt, references, generation ID and review record. `progress/f10-f11-requests.json` and `progress/passing-requests.json` retain the prompt sets; their state files record completion.
+
+The repository’s `GAME_GUIDELINES.md` and the character audit now document passing phases as a required part of walking sprite requests. Unit tests cover phase order, cadence, reverse positions, carrying names, stair phases and complete asset sets; the walking browser test checks both film looks and both older editions.
+
+Verification passed: all 38 new originals/prepared files, transparency, dimensions, bottom anchors and references; complete walking sets in each look; all gameplay suites in the older editions plus the film suite; animation, motion, loader, walking and generated-request checks. The browser exercised contact/passing selection and actual passing draws in both film looks and both older editions, rendering all scenes without page errors. Existing sprite files remain unchanged.

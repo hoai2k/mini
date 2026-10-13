@@ -41,7 +41,7 @@ for path in sorted(BATCH.glob('*.json')):
         cached.update(record)
         records.append(cached)
         manifest['slots'][ident].update(status='delivered', file=ident + '.webp',
-                                       size=record['size'], anchor=record['anchor'], edition='film')
+                                       size=record['size'], anchor=record['anchor'], edition=record.get('edition', 'film'))
         continue
     with Image.open(original) as source:
         source.verify()
@@ -66,7 +66,7 @@ for path in sorted(BATCH.glob('*.json')):
                   native_size=native, source_crop=crop, placement=placement)
     records.append(record)
     slot = manifest['slots'][ident]
-    slot.update(status='delivered', file=ident + '.webp', size=[w, h], anchor=record['anchor'], edition='film')
+    slot.update(status='delivered', file=ident + '.webp', size=[w, h], anchor=record['anchor'], edition=record.get('edition', 'film'))
 manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
 (BATCH / 'deliveries.json').write_text(json.dumps({'generated': len(records), 'images': records}, indent=2) + '\n')
 print('Validated and prepared', len(records), 'film production images.')

@@ -265,6 +265,29 @@ GROUPS = [
 ]
 
 
+# A walk is not just two spread-leg contacts. Each support leg needs a
+# legs-together passing phase, including when the actor carries someone.
+GROUPS.extend([
+    ('Walking passing poses', 'Requested 12 October 2026: complete every ground-walking cycle with contact A, passing A, contact B, passing B. Passing poses bring the legs together beneath the hips, with one support foot planted and the opposite knee bent as its foot swings through. They are moving poses, not standing stills. Keep costume, face, head scale and ground anchor consistent across the entire cycle. The sailor poses are shared by the partial and Widow’s Bay editions.', [
+        (f'{base}-pass-{ab}{t}', f'{base}, passing {ab.upper()}{" (tinted)" if t else ""}',
+         200 if base == 'azurine' else 220, 380 if base == 'azurine' else 360, 'bottom centre', TINTED if t else SPRITE,
+         f'Exactly the character in {standing}{t}.webp (attach it and the matching delivered stride-A frame): walking {"left" if base == "azurine" else "right"}, at the legs-together PASSING phase. '
+         + (f'The {"left" if ab == "a" else "right"} leg supports the body vertically, its foot planted beneath the hip; the other knee is bent and its foot is lifted just off the floor as it passes close beside the support ankle. ')
+         + 'Both legs close together beneath the hips, not spread in a stride and not both feet standing flat. Arms counter-swing through a neutral position. Same face, costume, tights, belt, cloak/gown, props, body scale and head height as the standing and stride frames. The planted sole meets the bottom ground line. Keep anatomically coherent hands and weapon grips, and exactly two arms and two legs. No floor or shadow.', None)
+        for base, standing, looks in [('prince', 'prince-stand', ('-tinted', '')), ('prince-court', 'prince-court', ('-tinted', '')), ('azurine', 'azurine-stand', ('-tinted', '')), ('sailor', 'sailor-stand', ('',))]
+        for t in looks for ab in ('a', 'b')
+    ]),
+    ('Walking while carrying', 'Requested 12 October 2026: carrying someone still requires a ground-walking cycle. These contact and passing frames keep the carried woman, the carrier’s arms and the hold unchanged while the legs move. Walking uses all four phases, including carrying on stairs; stationary carrying and airborne movement retain their own poses. The sailor set is shared by the partial and Widow’s Bay editions.', [
+        (f'{base}-carry-{phase}{t}', f'{base} carrying, {phase}{" (tinted)" if t else ""}', 360, 400, 'bottom centre', TINTED if t else SPRITE,
+         f'Exactly the two figures and carrying hold in {base}-carry{t}.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the {phase} phase. '
+         + ({'walk-a': 'Left leg forward, heel down; right leg straight behind, toe down. ', 'walk-b': 'Right leg forward with a bent leading knee, heel down; left leg straight behind, toe down. ', 'pass-a': 'Left support leg vertical beneath the hip; right knee bent and right foot lifted beside the support ankle. ', 'pass-b': 'Right support leg vertical beneath the hip; left knee bent and left foot lifted beside the support ankle. '}[phase])
+         + 'The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow.', 'sailor-carry' if base == 'sailor' else 'prince-carry')
+        for base, looks in [('prince', ('-tinted', '')), ('sailor', ('',))]
+        for t in looks for phase in ('walk-a', 'pass-a', 'walk-b', 'pass-b')
+    ]),
+])
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

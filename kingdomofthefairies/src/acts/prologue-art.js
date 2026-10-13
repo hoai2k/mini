@@ -1,3 +1,4 @@
+import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
@@ -172,13 +173,13 @@ function figure(k, id, x, by, t, s = 1, face = 1) {
 // The prince: in court dress until he takes up his arms, then in armour.
 function prince(k, st, t, cx = 0) {
   const c = k.c, p = st.p, armed = st.arms.length === ARMS.length && sceneOf(st.phase) === 2;
-  const moving = Math.abs(p.vx) > 20, step = Math.floor(p.walk / 34) % 2;
+  const moving = Math.abs(p.vx) > 20, step = walkPose(p.walk, 34);
   if (p.knockT > 0 && Math.floor(t * 16) % 2) c.globalAlpha = 0.5;
   c.save(); c.translate(p.x - cx, p.y); c.scale(p.face, 1);
   let id;
   if (st.phase === 'bind' && k.img('prince-bound')) id = 'prince-bound';
-  else if (armed) id = !p.on ? 'prince-leap' : moving ? (step ? 'prince-walk-a' : 'prince-walk-b') : 'prince-stand';
-  else id = moving && k.img('prince-court-walk-a') ? (step ? 'prince-court-walk-a' : 'prince-court-walk-b') : 'prince-court';
+  else if (armed) id = !p.on ? 'prince-leap' : moving ? 'prince-' + step : 'prince-stand';
+  else id = moving && k.img('prince-court-walk-a') ? 'prince-court-' + step : 'prince-court';
   // without walk frames, the court-dress still rocks as a puppet on its slide
   const bob = moving && id === 'prince-court' ? Math.abs(Math.sin(p.walk / 22)) * 6 : 0;
   const tip = moving && id === 'prince-court' ? Math.sin(p.walk / 22) * 0.05 : !p.on ? -0.12 : 0;

@@ -124,3 +124,10 @@ Every title includes an Instructions screen accessible from the title screen and
 ## Next step
 
 Wait for the first game's description before choosing its mechanics, theme, title, control mapping, or generating its assets. Apply these guidelines to that title and all subsequent games in this folder.
+
+## Walking sprites
+
+- A walking cycle must include a legs-together **passing pose** between the two opposite contact/stride poses. Two spread-leg pictures alone produce a shuffle or slide.
+- Prefer four phases: contact A → passing A → contact B → passing B. One passing pose reused between contacts is the minimum; two passing poses distinguish the support legs. A passing frame has the support leg beneath the hips while the other foot swings through, not two feet planted in an idle stance.
+- Provide the cycle for every walking character and costume/look, including walking while carrying someone. Keep face, costume colours, body/head scale and the ground anchor consistent. Review the frames together or animated, not only one at a time.
+- Select walking frames from travelled distance (or an explicit motion phase for scripted walks). Idle, airborne, climbing and swimming actions retain their own poses. Procedural walkers must also pass through legs-together between contacts.

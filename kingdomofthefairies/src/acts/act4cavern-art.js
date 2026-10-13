@@ -1,3 +1,4 @@
+import { walkPose } from '../walking.js';
 // Drawing for Act IV's cavern route (film edition; rules in act4cavern.js).
 // The painted cavern cloth behind, rock floors and black pools, the delivered
 // cavern-ledge cut-outs, stalactites, and the dark: only a pool of light
@@ -123,7 +124,7 @@ function drop(k, d, t) {
 function prince(k, st, t) {
   const c = k.c, s = st.cv.s;
   if (st.grace > 0 && Math.floor(t * 14) % 2) c.globalAlpha = 0.35;
-  const frame = !s.on ? airbornePose(s.vy) : s.landT > 0 ? 'land' : Math.abs(s.vx) > 30 ? (Math.floor(s.walk / 38) % 2 ? 'walk-a' : 'walk-b') : 'stand';
+  const frame = !s.on ? airbornePose(s.vy) : s.landT > 0 ? 'land' : Math.abs(s.vx) > 30 ? walkPose(s.walk) : 'stand';
   c.save(); c.translate(s.x, s.y); c.scale(s.face, 1);
   drawSailor(k, frame);
   if (st.stone) {

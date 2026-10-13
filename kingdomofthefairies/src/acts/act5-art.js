@@ -7,6 +7,7 @@ import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY, cl
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
+import { walkFrame, walkStep, walkFrameFromSwing } from '../walking.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
 const LEGS = [450, 564]; // the giant's boots on their shelf under the lip
@@ -136,14 +137,17 @@ function artFlip(k, id, x, by, w, h, face = 1) {
 }
 
 // The sailor's movement poses share an anatomical scale and foot anchor.
-export function sailor(k, x, by, s, pose, face = 1, step = 0) {
+export function sailor(k, x, by, s, pose, face = 1, step = 0, travel = null) {
   if (drawMovement(k, pose, x, by, 180 * s, face)) return;
   if (pose === 'apex' || pose === 'fall') pose = 'leap';
   if (pose.startsWith('climb-')) pose = 'climb';
-  if (pose.startsWith('stairs-')) pose = 'walk';
+  if (pose.startsWith('stairs-pass-')) pose = pose.slice('stairs-'.length);
+  else if (pose.startsWith('stairs-')) pose = 'walk';
   if (pose === 'land') pose = 'stand';
   if (pose === 'carry') {
-    if (artFlip(k, 'sailor-carry', x, by, 180 * s, 200 * s, face)) return;
+    const carryId = travel == null ? 'sailor-carry' : walkFrame('sailor-carry', travel);
+    if (artFlip(k, carryId, x, by, 180 * s, 200 * s, face)
+        || carryId !== 'sailor-carry' && artFlip(k, 'sailor-carry', x, by, 180 * s, 200 * s, face)) return;
     person(k, x, by, 180 * s, SAILOR, { face, arms: 'out', step });
     // her, across his arms: head at his shoulder, skirt falling past his knees
     const c = k.c;
@@ -160,7 +164,7 @@ export function sailor(k, x, by, s, pose, face = 1, step = 0) {
     c.restore();
     return;
   }
-  const id = pose === 'walk' ? (step > 0 ? 'sailor-walk-a' : 'sailor-walk-b') : pose === 'leap' || pose === 'climb' ? 'sailor-leap' : 'sailor-stand';
+  const id = pose.startsWith('pass-') ? 'sailor-' + pose : pose === 'walk' ? (travel == null ? walkFrameFromSwing('sailor', step) : walkFrame('sailor', travel)) : pose === 'leap' || pose === 'climb' ? 'sailor-leap' : 'sailor-stand';
   const w = pose === 'leap' || pose === 'climb' ? 130 : 110;
   if (artFlip(k, id, x, by, w * s, 180 * s, face)) return;
   const arms = pose === 'climb' ? 'up' : pose === 'leap' ? 'reach' : pose === 'throw' ? 'throw' : 'down';
@@ -517,7 +521,7 @@ export function climber(k, st, t) {
     const x = lerp(st.walkFromX, HOUSE.door + 30, easeInOut(st.phaseT / 1.3));
     const walking = st.phaseT < 1.3;
     // on the painted floor edge (HOUSE.floors[0]), 14 px above the cliff line, when the art is hung
-    sailor(k, x, -CLIFF.top - (k.img('stone-house') ? 640 - HOUSE.floors[0] : 0), S, walking ? 'walk' : 'stand', -1, walking ? Math.sin(st.phaseT * 12) : 0);
+    sailor(k, x, -CLIFF.top - (k.img('stone-house') ? 640 - HOUSE.floors[0] : 0), S, walking ? 'walk' : 'stand', -1, walking ? walkStep(st.phaseT * 150) : 0, walking ? st.phaseT * 150 : null);
     return;
   }
   const p = climberPos(st), cl = st.cl, h = st.holds[cl.at];
@@ -898,10 +902,13 @@ export function player(k, st, t) {
   if (st.defeatT != null) tilt = Math.min(1.4, st.defeatT * 2) * -p.face;
   if (tilt) { c.translate(p.x, p.y); c.rotate(tilt); c.translate(-p.x, -p.y); }
   const walking = p.f >= 0 && !p.conn && Math.abs(p.vx) > 1;
-  const step = walking ? Math.sin(p.x * 0.09) : 0;
+  const stairTravel = p.conn && ['stairs', 'slope'].includes(p.conn.c.kind)
+    ? p.conn.u * Math.hypot(p.conn.c.b.x - p.conn.c.a.x, HOUSE.floors[p.conn.c.b.f] - HOUSE.floors[p.conn.c.a.f]) : null;
+  const travel = walking ? p.x : stairTravel;
+  const step = travel == null ? 0 : walkStep(travel);
   const s = st.phase === 'quay' ? 0.8 : S;
   const pose = housePose(st, HOUSE.floors);
-  sailor(k, p.x, p.y, s, pose, pose === 'throw' ? 1 : p.face, step);
+  sailor(k, p.x, p.y, s, pose, pose === 'throw' ? 1 : p.face, step, travel);
   c.restore();
 }
 
@@ -1017,7 +1024,7 @@ function lampEnding(k, st, t, pt) {
   distantHouse(k, st, t, 0, lit ? 'lit' : 'dark');
   quayGround(k, t, lit);
   const meet = easeInOut((pt - 0.6) / 1.8);
-  sailor(k, lerp(520, 606, meet), QUAY.y, 0.8, meet < 1 ? 'walk' : 'stand', 1, meet < 1 ? Math.sin(pt * 10) : 0);
+  sailor(k, lerp(520, 606, meet), QUAY.y, 0.8, meet < 1 ? 'walk' : 'stand', 1, meet < 1 ? walkStep(pt * 120) : 0, meet < 1 ? pt * 120 : null);
   beloved(k, lerp(760, 662, meet), QUAY.y, 0.8, -1, meet >= 1 ? 'out' : 'down');
   if (meet >= 1) {
     // her pearl, home on its chain

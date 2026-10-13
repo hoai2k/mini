@@ -98,3 +98,9 @@ Every film scene was played and photographed mid-walk.
   their feet on their floors.
 - **Layering.** The demons' chariot flew across the gargoyles on the
   foreground parapet; it now flies above their heads.
+
+## Walking-cycle requirement
+
+The stride-only F10/F11 briefs were incomplete. Ground walking now requires contact A → passing A → contact B → passing B. The passing phases bring the legs together beneath the hips, with one foot supporting and the other swinging through. They are not standing stills. Use consistent face, costume, head/body scale and ground anchor across all four phases. Review the cycle together, including a carried character when present.
+
+F12 supplies passing frames for armed Bel-Azor, court-dress Bel-Azor, Azurine (both looks), and the shared sailor. F13 supplies complete walking-while-carrying cycles for both prince looks and the shared sailor. Every ground-walking selector uses `src/walking.js`, including the prologue, tempest deck, sea court, whale, cavern, tower floors, coast, wedding street and scripted older-edition walks. Procedural ground-walker fallbacks have legs-together phases too. Stair and slope walking also inserts passing phases between its existing step poses, keeping the support-boot anchor. Climbing, swimming, stationary carrying and airborne actions keep their own poses.

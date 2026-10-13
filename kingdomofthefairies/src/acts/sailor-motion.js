@@ -1,6 +1,7 @@
 // New poses are fitted by head/body scale, not by silhouette height. A squat
 // gets shorter; a raised hand gets taller. Each 360x440 canvas shares the
 // same body-axis/lowest-boot anchor at (180, 440), in 2x art pixels.
+import { walkPose } from '../walking.js';
 export const MOVEMENT_SIZE = [360, 440];
 export const MOVEMENT_IDS = ['sailor-apex', 'sailor-fall', 'sailor-land', 'sailor-throw',
   'sailor-climb-a', 'sailor-climb-b', 'sailor-stairs-a', 'sailor-stairs-b'];
@@ -24,7 +25,7 @@ export function whalePose(s, phase) {
   if (phase === 'down') return 'fall';
   if (!s.on) return airbornePose(s.vy);
   if (s.landT > 0) return 'land';
-  return Math.abs(s.vx) > 30 ? (Math.floor(s.walk / 38) % 2 ? 'walk-a' : 'walk-b') : 'stand';
+  return Math.abs(s.vx) > 30 ? walkPose(s.walk) : 'stand';
 }
 
 export function cliffPose(st, pos, hold) {
@@ -49,8 +50,9 @@ export function housePose(st, floors) {
     const steps = p.conn.c.kind === 'stairs' || p.conn.c.kind === 'slope';
     const { a, b } = p.conn.c;
     const length = Math.hypot(b.x - a.x, floors[b.f] - floors[a.f]);
+    if (steps) return 'stairs-' + walkPose(p.conn.u * length, 26).replace('walk-', '');
     const stride = Math.floor(p.conn.u * length / 26) % 2;
-    return (steps ? 'stairs-' : 'climb-') + (stride ? 'b' : 'a');
+    return 'climb-' + (stride ? 'b' : 'a');
   }
   if (p.f < 0) return airbornePose(p.vy);
   if (st.throwT != null && st.throwT < 0.4) return 'throw';
