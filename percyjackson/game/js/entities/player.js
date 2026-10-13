@@ -213,15 +213,21 @@ export class Player {
     this.iframes = Math.max(this.iframes, 0.2);
   }
   startAttack(step, idx) {
-    // snap facing to aim; melee "magnetises" toward a curse in front of you
+    // A swing goes where the hero faces: the cursor, the right stick, or the
+    // way they're moving. A person's hero is never turned toward an enemy;
+    // AI companions still steer their swings at their target.
     this.facing = Math.atan2(this.aimDir.x, this.aimDir.z);
-    let best = null, bd = 4.5;
+    const steer = this.ai || this.input().virtual;
+    let best = null, bd = steer ? 4.5 : step.range + 0.6;
     for (const e of this.game.enemies) {
       if (e.dead || e.untargetable) continue;
       const dx = e.pos.x - this.pos.x, dz = e.pos.z - this.pos.z, d = Math.hypot(dx, dz);
       if (d < bd && Math.abs(Math.atan2(Math.sin(Math.atan2(dx, dz) - this.facing), Math.cos(Math.atan2(dx, dz) - this.facing))) < 0.9) { bd = d; best = e; }
     }
-    if (best) { this.facing = Math.atan2(best.pos.x - this.pos.x, best.pos.z - this.pos.z); step = { ...step, lunge: step.lunge * Math.min(1.6, Math.max(0.2, (bd - 1.2) / 1.6)) }; }
+    if (steer) { if (best) { this.facing = Math.atan2(best.pos.x - this.pos.x, best.pos.z - this.pos.z); step = { ...step, lunge: step.lunge * Math.min(1.6, Math.max(0.2, (bd - 1.2) / 1.6)) }; } }
+    // a person's swing only nudges forward a little, and not at all when
+    // an enemy is already in reach in front
+    else step = { ...step, lunge: best ? 0 : (step.lunge ?? 0) * 0.4 };
     this.action = { type: 'attack', step, style: step.style, dur: step.dur / ((this.stats.attackSpeed ?? 1) * (this.rampageT > 0 ? 1 + (this.procs.rampage ?? 0) * 0.1 : 1)), elapsed: 0, t: 0, windup: step.windup, strike: step.strike, struck: false, step: step, idx, moveScale: 0.25 };
     this.comboT = step.dur + 0.35;
     this.game.audio?.swing(idx);
@@ -229,6 +235,21 @@ export class Player {
   spawn(p) { this.pos.copy(p); this.vel.set(0, 0, 0); this.visY = p.y; this.safePos.copy(p); this.object.position.copy(p); }
   input() { return this.game.input.get(this.device); }
 
+  // Ranged aim help for a controller or touch: the nearest enemy within 20°
+  // of the aim line. Mouse and right-stick aim get none.
+  rangedAssist() {
+    const inp = this.input();
+    if (inp.mouse || inp.aimStick || inp.virtual || this.ai) return null;
+    let best = null, bd = 16;
+    const face = Math.atan2(this.aimDir.x, this.aimDir.z);
+    for (const e of this.game.enemies) {
+      if (e.dead || e.untargetable || e.disguised) continue;
+      const dx = e.pos.x - this.pos.x, dz = e.pos.z - this.pos.z, d = Math.hypot(dx, dz);
+      const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - face), Math.cos(Math.atan2(dx, dz) - face));
+      if (d < bd && Math.abs(off) < 0.35) { bd = d; best = e; }
+    }
+    return best;
+  }
   // Determine aim direction for this frame.
   updateAim(inp) {
     const g = this.game;
@@ -241,8 +262,17 @@ export class Player {
       g.rig.screenToWorldDir(inp.aimStick.x, inp.aimStick.y, this.aimDir).normalize();
       this.aiming = true;
       this.aimPoint.copy(this.pos).addScaledVector(this.aimDir, 6);
+    } else if (!inp.virtual && !this.ai) {
+      // a controller without the right stick (or touch): aim the way the hero
+      // moves, or keeps facing when standing still; never turned toward an
+      // enemy. Ranged shots get a little help from an enemy close to that
+      // line (assistTarget, heroes/kit.js), without turning the hero.
+      this.autoTarget = null;
+      if (Math.hypot(inp.move.x, inp.move.y) > 0.2) g.rig.screenToWorldDir(inp.move.x, inp.move.y, this.aimDir).setY(0).normalize();
+      else this.aimDir.set(Math.sin(this.facing), 0, Math.cos(this.facing));
+      this.aimPoint.copy(this.pos).addScaledVector(this.aimDir, 5);
     } else {
-      // auto-aim at nearest enemy, else movement direction
+      // AI companions: auto-aim at nearest enemy, else movement direction
       const t = g.nearestEnemy?.(this.pos, 11);
       if (t) { this.aimDir.set(t.pos.x - this.pos.x, 0, t.pos.z - this.pos.z).normalize(); this.aimPoint.copy(t.pos); this.autoTarget = t; }
       else {
