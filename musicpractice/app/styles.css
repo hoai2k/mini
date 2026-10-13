@@ -479,6 +479,10 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   max-width: calc(100vw - 32px);
 }
 .toast .pill { background: var(--on-accent); color: var(--ink); border-color: var(--on-accent); }
+.toast.note { margin: 0; padding: 12px 20px; }
+.take .save.busy svg { animation: saving 1s linear infinite; opacity: 0.6; }
+.take .save.ready { color: var(--on-accent); background: var(--brass); animation: breathe 1.4s ease-in-out infinite; }
+@keyframes saving { 50% { transform: translateY(3px); } }
 .error { color: var(--red-2); }
 
 /* ================================================================ Art Deco

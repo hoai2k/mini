@@ -28,10 +28,35 @@ export function freshAudio() {
   if (ctx && stale) {
     try { ctx.close(); } catch { /* already closed */ }
     ctx = null;
+    away = false;
   }
   stale = false;
   return audio();
 }
+
+/**
+ * Replace the AudioContext now, and start the new one. Call it from a tap:
+ * iPhone can leave a context 'interrupted' for good after another app took
+ * the sound (a call, Messenger, a video), and only a new one works again.
+ */
+export function replaceAudio() {
+  if (ctx) {
+    try { ctx.close(); } catch { /* already closed */ }
+    ctx = null;
+  }
+  stale = false;
+  away = false;
+  const c = audio();
+  c.resume().catch(() => { /* the next tap resumes it */ });
+  return c;
+}
+
+/** Has the page been in the background since the context was made? */
+let away = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && ctx) away = true;
+});
+export const audioWasAway = () => away;
 
 /** The AudioContext if one exists (without creating one). */
 export function existingAudio() {

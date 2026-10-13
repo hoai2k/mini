@@ -166,12 +166,14 @@ export class Recorder extends EventTarget {
   /**
    * Reconnect the mic after it stopped delivering. The held mic is reused if
    * the browser still reports it alive; only a dead one is asked for again.
+   * `fresh`: it was reused and still delivered nothing, so it is dead even
+   * if the browser says otherwise (iPhone, after another app took the sound).
    * A take in progress is kept, without playback.
    */
-  async reopen() {
+  async reopen({ fresh = false } = {}) {
     if (this.state === 'off') return;
     if (this.state === 'recording') this.finish(false);
-    this.closeMic(!this.micAlive());
+    this.closeMic(fresh || !this.micAlive());
     await this.openMic();
     if (this.state === 'waiting' || this.state === 'recording') this.listen();
   }
