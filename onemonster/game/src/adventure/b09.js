@@ -768,9 +768,10 @@ export default function create(env) {
     }
   }
 
-  // The jar shelf at the bottom left: the bag's three, and the plain ones counted.
+  // The jar shelf along the bottom, middle-left so a phone held upright keeps
+  // it in view: the bag's three, and the plain ones counted.
   function drawShelf(g, tt) {
-    const x0 = 36, y = H - 22;
+    const x0 = W / 2 - 400, y = H - 22;
     g.save();
     // The plank.
     g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 3;
