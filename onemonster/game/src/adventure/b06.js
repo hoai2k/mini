@@ -20,6 +20,7 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const { W, H, clamp, lerp } = kit;
 const ENTRY = BOARDS.find((b) => b.n === 6);
@@ -66,10 +67,10 @@ export default function create(env) {
   const slope = (len, dh) => { segs.push({ x0: cx, x1: cx + len, y0: cy, y1: cy + dh, kind: dh < 0 ? 'up' : 'down' }); cx += len; cy += dh; };
   const hole = (len) => { segs.push({ x0: cx, x1: cx + len, hole: true }); cx += len; };
   // Section 1, the jungle edge: flat.
-  flat(3600);
+  flat(4000);
   // Section 2, the goo curtains: flat with a dip.
   const S2 = cx;
-  flat(1300); slope(300, 60); flat(900); slope(300, -60); flat(400);
+  flat(1300); slope(300, 60); flat(900); slope(300, -60); flat(900);
   // Section 3, holes and slopes.
   const S3 = cx;
   flat(400); hole(240); flat(500); // a first hole, hoppable
@@ -80,7 +81,7 @@ export default function create(env) {
   hole(400); flat(500); // the big hole: fly it off the ramp
   // Section 4, the falling things: open ground with low bumps.
   const S4 = cx;
-  flat(700); slope(400, -70); flat(700); slope(400, 70); flat(1500);
+  flat(700); slope(400, -70); flat(700); slope(400, 70); flat(2000);
   // The open space.
   const OPEN_X = cx;
   flat(1900);
@@ -110,10 +111,10 @@ export default function create(env) {
   addBush(1000, 1); addBush(2100, 1); addBush(2900, 2);
   addRock(S2 + 700, 1); addBush(S2 + 1500, 1);
   addBush(S2 + 2500, 1);
-  addRock(S3 + 1400, 2); addBoulder(S3 + 2050, 300, 150); // on the hill top
+  addRock(S3 + 1400, 2); addBoulder(S3 + 1990, 260, 150); // on the hill top
   addRock(S4 + 300, 1);
   addBoulder(S4 + 1500, 340, 160); addBush(S4 + 2200, 1);
-  addBush(S4 + 2900, 1); addRock(OPEN_X - 350, 2);
+  addBush(S4 + 2950, 1); addRock(OPEN_X - 350, 2);
 
   // The walking surface at x (with the blocks that can be stood on), or null over a hole.
   function gy(x) {
@@ -127,7 +128,7 @@ export default function create(env) {
   const trees = [{ x: 700, paper: 2 }, { x: 1900, paper: 2 }, { x: S2 + 400, paper: 0 }, { x: S2 + 2000, paper: 2 }, { x: S3 - 300, paper: 0 },
     { x: S3 + 2600, paper: 2 }, { x: S4 + 1000, paper: 2 }, { x: OPEN_X - 500, paper: 0 }, { x: WORLD - 500, paper: 0 }]
     .map((t) => ({ ...t, shakeT: 0, seed: rng() }));
-  const curtains = [S2 + 300, S2 + 1000, S2 + 1750, S2 + 2250, S2 + 2750].map((x) => ({ x, w: 130, bottom: 690, dripT: rng() * 2 }));
+  const curtains = [S2 + 300, S2 + 1000, S2 + 1750, S2 + 2250, S2 + 2750, S2 + 3300].map((x) => ({ x, w: 130, bottom: 690, dripT: rng() * 2 }));
   const toads = [{ x0: S2 + 1100, x1: S2 + 1400 }, { x0: S2 + 1800, x1: S2 + 2100 }, { x0: S3 + 1000, x1: S3 + 1300 }, { x0: S4 + 1800, x1: S4 + 2100 }]
     .map((t, i) => ({ ...t, x: (t.x0 + t.x1) / 2, dir: i % 2 ? -1 : 1, hop: rng() * 2, stun: 0, grump: 0, bowled: false }));
   const cps = kit.makeCheckpoints([0, S2 + 100, S3, S4, OPEN_X]);
@@ -152,13 +153,13 @@ export default function create(env) {
   }
   // On the ground along the way (y is the paper's middle).
   const onGround = (x, kind) => addPaper(x, (gy(x) ?? GY) - 40, kind);
-  [300, 1250, 1350, 2300, 2700].forEach((x, i) => onGround(x, ['scrap', 'menu', 'scrap', 'news', 'bag'][i]));
+  [300, 1250, 1350, 2300, 2700, 3500].forEach((x, i) => onGround(x, ['scrap', 'menu', 'scrap', 'news', 'bag', 'ticket'][i]));
   [600, 1250, 2400, 3000].forEach((d, i) => onGround(S2 + d, ['ticket', 'scrap', 'ball', 'news'][i]));
   [300, 1100, 1700, 2350, 3700, 5000].forEach((d, i) => onGround(S3 + d, ['bag', 'scrap', 'hat', 'menu', 'news', 'scrap'][i]));
   // On the hill-top boulder and the big boulder (a hop up).
-  addPaper(S3 + 2050, profileY(S3 + 2050) - 150 - 40, 'bag');
+  addPaper(S3 + 1990, profileY(S3 + 1990) - 150 - 40, 'bag');
   addPaper(S4 + 1500, profileY(S4 + 1500) - 160 - 40, 'menu');
-  [200, 800, 2600, 3100].forEach((d, i) => onGround(S4 + d, ['ticket', 'scrap', 'ball', 'menu'][i]));
+  [200, 800, 2600, 3300].forEach((d, i) => onGround(S4 + d, ['ticket', 'scrap', 'ball', 'menu'][i]));
   onGround(OPEN_X + 900, 'news');
   // In the trees and bushes, locked until shaken out.
   for (const t of trees) for (let i = 0; i < t.paper; i++) addPaper(t.x + (i - (t.paper - 1) / 2) * 80, GY - 470 + (i % 2) * 30, null, { locked: true, tree: t });
@@ -282,7 +283,7 @@ export default function create(env) {
     const k = FALLING[kind];
     const x = cloud.x + 30;
     const y = cloud.y + 70;
-    const g = (gentle ? 900 : 1150) * k.gk;
+    const g = (gentle ? 760 : 960) * k.gk;
     // Fall time to the ground, aiming at targetX.
     const landY = gy(targetX) ?? GY;
     const T = Math.sqrt(2 * Math.max(60, landY - y) / g);
@@ -343,7 +344,7 @@ export default function create(env) {
   }
 
   function startClimax() {
-    climax.on = true; climax.t = 0; climax.wait = 3.2;
+    climax.on = true; climax.t = 0; climax.wait = 3.6;
     cps.reach(OPEN_X);
     env.sfx('thunder');
   }
@@ -521,7 +522,7 @@ export default function create(env) {
 
     if (p.mode === 'walk') {
       const ev = kit.walkerControl(p, inp, dt, {
-        speed: 380 * stickK, accel: 2200, decel: 2600, airAccel: 1200, jump: 1250 * (p.sticky > 0 ? 0.7 : 1), jumpCut: 0.55, coyote: 0.1, buffer: 0.12,
+        speed: 350 * stickK, accel: 2200, decel: 2600, airAccel: 1200, jump: 1250 * (p.sticky > 0 ? 0.7 : 1), jumpCut: 0.55, coyote: 0.1, buffer: 0.12,
       });
       if (ev.jumped) { art.kick(yc, -0.5); env.sfx('jump'); dust(p.x, p.y, 4); }
       // Trundling uphill is slower, downhill a touch faster.
@@ -543,7 +544,7 @@ export default function create(env) {
       }
     } else if (p.mode === 'ball') {
       p.rollT += dt;
-      const target = ix * 720;
+      const target = ix * 680;
       const same = ix && Math.sign(ix) === Math.sign(p.vx || ix);
       // Pushing on at speed only bleeds off slowly: a roll keeps what the hill gave it.
       const acc = same && Math.abs(p.vx) > Math.abs(target) ? 140 : same ? 950 : ix ? 600 : 180;
@@ -573,7 +574,7 @@ export default function create(env) {
       if (b.gone) continue;
       const half = b.w / 2 + (p.mode === 'ball' ? 70 : 50);
       if (Math.abs(p.x - b.x) < half && p.y > b.top + 14) {
-        if (b.kind === 'bush' && p.mode === 'ball' && Math.abs(p.vx) > 250) { bowlBush(b); continue; }
+        if (b.kind === 'bush' && p.mode === 'ball' && Math.abs(p.vx) > 120) { bowlBush(b); continue; }
         const side = Math.sign(ox - b.x) || -Math.sign(p.vx) || 1;
         p.x = b.x + side * half;
         if (p.mode === 'ball' && Math.abs(p.vx) > 200) {
@@ -894,20 +895,37 @@ export default function create(env) {
 
   function drawBoulder(g, b) {
     kit.sprite(g, TERRAIN, 6, b.x, b.top + b.h + 4, { height: b.h + 20, ay: 1 }, (gg) => {
+      const L = b.x - b.w / 2, R = b.x + b.w / 2, T = b.top, B = b.top + b.h + 4;
       gg.save();
-      gg.fillStyle = '#9b958c'; gg.strokeStyle = INK; gg.lineWidth = 4;
+      gg.fillStyle = '#a89a86'; gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.beginPath();
-      gg.moveTo(b.x - b.w / 2 - 10, b.top + b.h + 4);
-      gg.quadraticCurveTo(b.x - b.w / 2 - 6, b.top + 10, b.x - b.w / 2 + 50, b.top);
-      gg.lineTo(b.x + b.w / 2 - 40, b.top + 2);
-      gg.quadraticCurveTo(b.x + b.w / 2 + 12, b.top + 14, b.x + b.w / 2 + 8, b.top + b.h + 4);
+      gg.moveTo(L - 14, B);
+      gg.lineTo(L - 8, T + b.h * 0.55);
+      gg.lineTo(L + 14, T + 18);
+      gg.lineTo(L + 60, T + 2);
+      gg.lineTo(b.x + 10, T);
+      gg.lineTo(R - 50, T + 4);
+      gg.lineTo(R - 10, T + 24);
+      gg.lineTo(R + 10, T + b.h * 0.5);
+      gg.lineTo(R + 12, B);
       gg.closePath(); gg.fill(); gg.stroke();
-      gg.strokeStyle = 'rgba(43,29,20,0.35)'; gg.lineWidth = 2;
+      // Cracks and hatching on the shaded side.
+      gg.strokeStyle = 'rgba(43,29,20,0.5)'; gg.lineWidth = 2.5;
       gg.beginPath();
-      for (let x = b.x - b.w / 2 + 20; x < b.x + b.w / 2 - 10; x += 26) { gg.moveTo(x, b.top + 30 + kit.hash(x) * 20); gg.lineTo(x + 14, b.top + b.h - 20); }
+      gg.moveTo(L + 40, T + 30); gg.lineTo(L + 70, T + 70); gg.lineTo(L + 60, T + 110);
+      gg.moveTo(R - 70, T + 20); gg.lineTo(R - 40, T + 60);
       gg.stroke();
-      gg.fillStyle = 'rgba(255,255,255,0.25)';
-      gg.beginPath(); gg.ellipse(b.x - b.w * 0.2, b.top + 24, b.w * 0.2, 9, 0, 0, Math.PI * 2); gg.fill();
+      gg.strokeStyle = 'rgba(43,29,20,0.28)'; gg.lineWidth = 2;
+      gg.beginPath();
+      for (let x = b.x; x < R + 8; x += 16) { gg.moveTo(x, T + 40 + kit.hash(x) * 20); gg.lineTo(x + 10, B - 6); }
+      gg.stroke();
+      gg.fillStyle = 'rgba(255,255,255,0.28)';
+      gg.beginPath(); gg.ellipse(L + b.w * 0.3, T + 22, b.w * 0.18, 8, 0, 0, Math.PI * 2); gg.fill();
+      // Moss tufts along the top.
+      gg.strokeStyle = '#6f9a3c'; gg.lineWidth = 3;
+      gg.beginPath();
+      for (let x = L + 30; x < R - 20; x += 34) { gg.moveTo(x, T + 4); gg.lineTo(x - 4, T - 10); gg.moveTo(x + 6, T + 4); gg.lineTo(x + 9, T - 12); }
+      gg.stroke();
       gg.restore();
     });
   }
@@ -1096,6 +1114,7 @@ export default function create(env) {
       g.strokeStyle = '#b3402e'; g.lineWidth = 4; g.setLineDash([10, 10]);
       g.beginPath(); g.ellipse(it.landX, it.landY + 4, w + 16, (w + 16) * 0.24, 0, 0, Math.PI * 2); g.stroke();
       g.restore();
+      if (Math.abs(it.landX - p.x) > 60) marker(g, it.landX, it.landY - 40, { t, label: 'Stand here!' });
     }
   }
 
@@ -1116,15 +1135,14 @@ export default function create(env) {
     g.save();
     g.fillStyle = 'rgba(248,241,224,0.92)'; g.strokeStyle = INK; g.lineWidth = 4;
     const w = munch.need * 40 + 30;
-    g.beginPath(); g.roundRect ? g.roundRect(cx - w / 2, cy - 34, w, 90, 18) : g.rect(cx - w / 2, cy - 34, w, 90); g.fill(); g.stroke();
+    g.beginPath(); g.roundRect ? g.roundRect(cx - w / 2, cy - 34, w, 60, 18) : g.rect(cx - w / 2, cy - 34, w, 60); g.fill(); g.stroke();
     for (let i = 0; i < munch.need; i++) {
       g.fillStyle = i < munch.n ? '#f2c53d' : 'rgba(51,36,26,0.18)';
       g.beginPath(); g.arc(cx - w / 2 + 35 + i * 40, cy - 4, 14, 0, Math.PI * 2); g.fill();
       if (i < munch.n) g.stroke();
     }
-    g.fillStyle = INK; g.font = '700 24px Questrial, sans-serif'; g.textAlign = 'center';
-    g.fillText('Mash Action to munch!', cx, cy + 40);
     g.restore();
+    actionPrompt(g, cx, cy - 50, 'Munch! Mash it!', { kind: env.inputKind, t, pulse: 1 });
   }
 
   function drawHat(g, tt) {
@@ -1136,7 +1154,7 @@ export default function create(env) {
     }
     const sq = yc.sq;
     const top = p.y - (HEAD + 18) * (1 - sq) - (yc.z || 0);
-    drawOctopus(g, p.x + 8 * facing, top - 8 + Math.sin(tt * 3) * 2, { height: 80, flip: facing < 0 });
+    drawOctopus(g, p.x + 6 * facing, top + 26 + Math.sin(tt * 3) * 2, { height: 80, flip: facing < 0 });
   }
 
   // ---------- the board ----------
@@ -1227,8 +1245,9 @@ export default function create(env) {
         }
       }
       for (const pp of paper) if (!pp.locked && !(pp.got && pp.t > 0.5) && cam.sees(pp.x)) drawPaper(g, pp, tt);
-      // The Typhoonigator overhead.
+      // The Typhoonigator overhead, with the letter.
       art.drawCreature(g, tc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+      if (!climax.caught) letterTag(g, cloud.x + 70, tc.y + 125, { t: tt });
       // The Yalapappus.
       if (p.mode !== 'fell') {
         art.drawCreature(g, yc, tt, { reduceMotion: env.reduceMotion });
@@ -1252,6 +1271,9 @@ export default function create(env) {
       for (const it of items) if (it.state !== 'lying' && cam.sees(it.x)) drawItem(g, it, tt);
       if (burst && burst.t < 0.6) art.drawSprite(g, art.prop('yalapappus', 9), burst.x, burst.y - 10, { height: 120 + burst.t * 160, ay: 0.6, alpha: 1 - burst.t / 0.6 });
       parts.draw(g);
+      // A nudge at the first tree: pound here.
+      const tr0 = trees[0];
+      if (!self.done && tr0.paper && paper.some((pp) => pp.locked && pp.tree === tr0) && Math.abs(p.x - tr0.x) < 500 && p.mode === 'walk') actionPrompt(g, tr0.x, (profileY(tr0.x) ?? GY) - 300, 'then Down: pound!', { kind: env.inputKind, t });
       cam.end(g);
       // Falling into a hole: a fade.
       if (p.mode === 'fell') {
@@ -1293,6 +1315,43 @@ export default function create(env) {
 
   return self;
 }
+
+// ---------- the how-to-play page ----------
+
+export const HOWTO = [
+  {
+    text: 'Hop with Action; down in the air pounds the ground and shakes paper out of the trees.',
+    scene: 'scenes/yalapappus', crop: [0, 200, 1200, 675],
+    items: [
+      { creature: 'yalapappus', anim: 'hop', x: 220, y: 300, h: 190 },
+      { sprite: ['props.yalapappus', 5], x: 430, y: 150, h: 40, rot: 0.4 },
+      { sprite: ['props.bombanat', 7], x: 470, y: 230, h: 50, rot: -0.3 },
+      { path: [[220, 300], [250, 200], [330, 240], [360, 430]], arrow: true },
+      { word: 'POUND!', x: 460, y: 430, size: 44 },
+    ],
+  },
+  {
+    text: 'Hold Sprint to roll into a ball: bowl through bushes, speed down slopes, and fly off ramps.',
+    scene: 'scenes/yalapappus', crop: [400, 300, 1200, 675],
+    items: [
+      { sprite: ['yalapappus.swaps', 9], x: 200, y: 420, h: 130, ay: 1 },
+      { sprite: ['props.trollusk', 5], x: 420, y: 430, h: 120 },
+      { path: [[260, 360], [380, 350], [520, 380]], arrow: true },
+      { word: 'Wheee!', x: 320, y: 230, size: 40 },
+    ],
+  },
+  {
+    text: 'Watch the shadows: boats and fish bonk! At the end, stand under the bottle and munch the note.',
+    scene: 'scenes/yalapappus', crop: [600, 150, 1200, 675],
+    items: [
+      { creature: 'typhoonigator', anim: 'letgo', x: 180, y: 120, h: 150 },
+      { sprite: ['props.yalapappus', 10], x: 420, y: 250, h: 70, ay: 0.5, rot: 1.2 },
+      { ring: [420, 400, 60] },
+      { creature: 'yalapappus', anim: 'idle', x: 420, y: 430, h: 180 },
+      { word: 'KER-PLOP!', x: 320, y: 330, size: 40 },
+    ],
+  },
+];
 
 // ---------- the autopilot ----------
 
@@ -1345,7 +1404,7 @@ export function autopilot(board) {
   for (const it of falling) {
     if (it.kind === 'octopus') continue;
     const dx = it.landX - x;
-    if (Math.abs(dx) < 150 && it.y < p.y - 120 && it.y > it.landY - 700) {
+    if (Math.abs(dx) < 240 && it.y < p.y - 120 && it.y > it.landY - 700) {
       inp.x = dx >= 0 ? -1 : 1;
       if (p.mode === 'ball') inp.sprint = true;
       return inp;
@@ -1398,6 +1457,8 @@ export function autopilot(board) {
     inp.actionPressed = true; inp.action = true; ap.pound = 30; inp.x = 0.4;
     return inp;
   }
+  // Sticky beside a bush: wait for the goo to dry rather than push into it.
+  if (p.sticky > 0 && block && block.kind === 'bush' && block.x > x && block.x - block.w / 2 - x < 200) { inp.x = 0; return inp; }
   // A bush with paper, a goo curtain or a downhill: roll.
   if ((bush && bush.x - x < 380 && bush.x - x > 0) || (curtain && curtain.x - x < 300 && curtain.x - x > -60) || slope > 0.1) {
     if (p.onGround && p.sticky <= 0 && holeAhead > 150) { inp.sprint = true; return inp; }
