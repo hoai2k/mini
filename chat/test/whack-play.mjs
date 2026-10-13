@@ -208,9 +208,16 @@ for (;;) {
       await click(s, m.screen);
       if (m.kind === 'villager') {
         await wait(500);
-        const after = await views();
+        // Wait for the verdict to reach Bo's seat; a click that missed the
+        // sinking villager isn't counted (another villager comes along).
+        let after = await views();
+        const hitBy = x => x.outcomes.find(o => o.id === m.id && o.how === 'hit')?.by;
+        for (let k = 0; k < 10 && !(hitBy(after[1]) && line(after[1], 0).score !== line(before[1], 0).score); k++) {
+          await wait(150);
+          after = await views();
+        }
         const hearts = [0, 1].map(k => line(before[1], k).hearts === line(after[1], k).hearts);
-        if (hearts.every(Boolean)) {
+        if (hearts.every(Boolean) && hitBy(after[1])) {
           seen.villager = {
             ana: [line(before[1], 0).score, line(after[1], 0).score],
             bo: [line(before[1], 1).score, line(after[1], 1).score],
