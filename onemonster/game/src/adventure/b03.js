@@ -509,7 +509,7 @@ export default function create(env) {
       // Circles down onto the island's near edge.
       L.T += dt;
       const tx = PERCH.x + Math.cos(L.T * 1.4) * Math.max(0, 160 - L.T * 60);
-      const ty = PERCH.y - 150 + Math.min(150, L.T * 55);
+      const ty = PERCH.y - 90 + Math.min(90, L.T * 33);
       L.vx = ease(L.vx, clamp((tx - L.x) * 3, -420, 420), 4, dt);
       L.vy = ease(L.vy, clamp((ty - L.y) * 3, -300, 300), 4, dt);
       L.x += L.vx * dt; L.y += L.vy * dt;
