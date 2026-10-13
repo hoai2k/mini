@@ -543,7 +543,8 @@ export default function create(env) {
   function netHoop(bu) {
     const top = GROUND - 60 - 470 * Math.max(0, bu.net);
     const delivered = !!art.sprite('adv.b08.props', 9);
-    return { x: bu.x - (delivered ? 90 : 0), y: top + 70, rx: delivered ? 120 : 105, ry: delivered ? 72 : 78, top };
+    // The delivered net leans left: its hoop sits up and to the left of the pole.
+    return { x: bu.x - (delivered ? 64 : 0), y: top + (delivered ? 10 : 70), rx: delivered ? 110 : 105, ry: delivered ? 70 : 78, top };
   }
 
   // Hints on a cream band, so they read over the busy backdrop (the kit's

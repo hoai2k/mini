@@ -31,8 +31,8 @@ const { W, H, clamp } = kit;
 
 const INK = '#2b1d14';
 const PAPER = '#f8f1e0';
-const WORLD_W = 15000;
-const FINISH_X = 14450;
+const WORLD_W = 15800;
+const FINISH_X = 15250;
 const GY = 930; // the base ground line
 const YAL_X = 2480; // where the Yalapappus sits munching
 const START_X = 220;
@@ -46,25 +46,25 @@ const PROFILE = [
   { hole: true, x0: 3700, x1: 3900 },
   { x0: 3900, x1: 4720, y: GY },
   { hole: true, x0: 4720, x1: 4920 },
-  { x0: 4920, x1: 6500, y: GY },
-  { x0: 6500, x1: 7100, y: GY, y1: 820 },
-  { x0: 7100, x1: 7900, y: 820 },
-  { x0: 7900, x1: 8500, y: 820, y1: GY },
-  { x0: 8500, x1: 8900, y: GY },
-  { hole: true, x0: 8900, x1: 9100 },
-  { x0: 9100, x1: 9600, y: GY },
-  { stream: true, x0: 9600, x1: 10300 },
-  { x0: 10300, x1: 11900, y: GY },
-  { x0: 11900, x1: 12400, y: GY, y1: 830 },
-  { x0: 12400, x1: 13000, y: 830 },
-  { x0: 13000, x1: 13500, y: 830, y1: GY },
-  { x0: 13500, x1: 13700, y: GY },
-  { hole: true, x0: 13700, x1: 13900 },
-  { x0: 13900, x1: WORLD_W, y: GY },
+  { x0: 4920, x1: 6400, y: GY },
+  { x0: 6400, x1: 7300, y: GY, y1: 840 },
+  { x0: 7300, x1: 8100, y: 840 },
+  { x0: 8100, x1: 9000, y: 840, y1: GY },
+  { x0: 9000, x1: 9250, y: GY },
+  { hole: true, x0: 9250, x1: 9450 },
+  { x0: 9450, x1: 9750, y: GY },
+  { stream: true, x0: 9750, x1: 10450 },
+  { x0: 10450, x1: 11900, y: GY },
+  { x0: 11900, x1: 12800, y: GY, y1: 840 },
+  { x0: 12800, x1: 13500, y: 840 },
+  { x0: 13500, x1: 14400, y: 840, y1: GY },
+  { x0: 14400, x1: 14600, y: GY },
+  { hole: true, x0: 14600, x1: 14800 },
+  { x0: 14800, x1: WORLD_W, y: GY },
 ];
 const HOLES = PROFILE.filter((s) => s.hole);
 const STREAM = PROFILE.find((s) => s.stream);
-const STONES = [9750, 9960, 10170]; // stepping stones across the stream
+const STONES = [9900, 10110, 10320]; // stepping stones across the stream
 
 // The ground line at world x from the profile (null over a hole or the stream).
 export function profileY(x) {
@@ -86,11 +86,11 @@ const COVER = [
   { x: 2120, kind: 'rock', rx: 85 },
 ];
 // The getaway's hazards.
-const ROCKS = [3380, 4350, 5250, 6050, 10700, 14300];
-const BRANCHES = [7330, 12580]; // low branches: slide under
-const PALMS = [7760, 11660]; // fallen palm trunks: slide under
-const PUDDLES = [4080, 9320, 11050, 12880]; // goo puddles: hop or wade slowly
-const SIGNS = [2900, 6840, 9260, 10400, 13520]; // crooked signposts (sections)
+const ROCKS = [3380, 4350, 5250, 6050, 10800, 15100];
+const BRANCHES = [7480, 13000]; // low branches: slide under
+const PALMS = [7900, 11600]; // fallen palm trunks: slide under
+const PUDDLES = [4080, 9570, 11100, 13330]; // goo puddles: hop or wade slowly
+const SIGNS = [2900, 6300, 9100, 10600, 14450]; // crooked signposts (sections)
 
 // Mid-layer decor from the delivered art, behind the play layer: flowerbeds and
 // small rocks on the sneak (nothing that looks like cover), ferns, bushes and
@@ -162,9 +162,9 @@ export default function create(env) {
   for (const x of [400, 700, 820, 1120, 1240, 1520, 1600, 1900, 2000, 2280]) addStamp(x);
   addStamp(960, GY - 170); addStamp(2120, GY - 170); // on the cover rocks
   // The getaway: along the path, over holes, on rock tops, under branches, on stones.
-  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 6250, 6700, 7250, 7330, 7760, 8050, 9025, 9750, 10170, 10550, 11250, 11660, 12580, 12880, 13805]) addStamp(x);
-  for (const x of [3380, 4350, 6050, 10700, 14300]) addStamp(x, profileY(x) - 160); // on the rock tops
-  addStamp(3820, GY - 110); addStamp(8050, 820 - 120); // higher: a hop for them
+  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 6250, 6700, 7000, 7480, 7900, 8300, 8700, 9350, 9900, 10320, 10600, 11100, 11600, 12300, 13000, 13330, 14000, 14700, 15000]) addStamp(x);
+  for (const x of [3380, 4350, 6050, 10800, 15100]) addStamp(x, profileY(x) - 160); // on the rock tops
+  addStamp(3820, GY - 110); addStamp(7700, 840 - 120); // higher: a hop for them
   const pickups = kit.makePickups(stampList, { radius: 72 });
   pickups.items.forEach((p, i) => { p.kind = 1 + (i % 4); p.fly = null; p.eaten = false; });
 
@@ -200,10 +200,10 @@ export default function create(env) {
   const hints = kit.makeHints([
     { x: 0, text: 'Tiptoe up behind him. Hold Down behind a fern to hide.', show: 5 },
     { x: 3150, text: 'Hop the rocks and holes: Action', show: 4 },
-    { x: 7120, text: 'Low branch! Hold Down while running: slide under', show: 4 },
-    { x: 7880, text: 'Downhill he rolls! Sprint!', show: 3 },
-    { x: 9380, text: 'Hop the stepping stones', show: 3.5 },
-    { x: 13100, text: 'The open ground! Nearly away!', show: 3.5 },
+    { x: 7250, text: 'Low branch! Hold Down while running: slide under', show: 4 },
+    { x: 8050, text: 'Downhill he rolls! Sprint!', show: 3 },
+    { x: 9480, text: 'Hop the stepping stones', show: 3.5 },
+    { x: 14000, text: 'The open ground! Nearly away!', show: 3.5 },
   ]);
   let warnedOnce = false;
   let phase = 'sneak';
@@ -672,7 +672,7 @@ export default function create(env) {
       drawYal(g, tt);
       if (yFirst) drawPlayer(g, tt);
       for (const c of COVER) if (cam.sees(c.x)) drawCover(g, c, tt);
-      if (cam.sees(STREAM.x0, STREAM.x1)) drawWaterFront(g, tt);
+      if (!art.sprite('adv.b07.props', 10) && cam.sees(STREAM.x0, STREAM.x1)) drawWaterFront(g, tt);
       for (const b of branches) if (cam.sees(b.x, b.x + b.w)) drawBranch(g, b, tt);
       for (const b of palms) if (cam.sees(b.x, b.x + b.w)) drawFallenPalm(g, b);
       // Who has the letter, and what to press.
@@ -721,122 +721,128 @@ export default function create(env) {
     }
   }
 
-  function drawGroundAll(g) {
-    const have = !!art.sprite('terrain.nowhere', 1);
-    if (have) {
-      for (const s of solids) {
-        if (s.kind === 'ground' && cam.sees(s.x, s.x + s.w)) kit.drawGround(g, cam, s, { sheet: 'terrain.nowhere', item: 1, height: 240, lift: 14, fill: '#a07a3a' });
+  // terrain.nowhere 1 is 1400 x 125: grass tufts in rows 10-48, the walkable
+  // earth edge at row 48, earth to row 121. Items 2 and 3 are the slopes
+  // (1399 x 201): the rising one's top edge runs from row 144 at the left to
+  // row 25 at the right; the falling one's from row 21 to row 164.
+  const STRIP = { edge: 48, bottom: 121, earth0: 64, earth1: 118 };
+  const SLOPE = { 2: { l: 144, r: 25 }, 3: { l: 21, r: 164 } };
+
+  // Earth under a piece of ground: rows of the strip's earth tiled down from
+  // yTop(x) to the bottom of the screen, darker the deeper.
+  function earthFill(g, x0, x1, yTop) {
+    const sp = art.sprite('terrain.nowhere', 1);
+    const a = Math.max(x0, cam.x - 40), b = Math.min(x1, cam.x + W + 40);
+    if (b <= a) return;
+    const bottom = H + 60;
+    g.save();
+    g.beginPath();
+    g.moveTo(a, bottom);
+    for (let x = a; x <= b; x += 30) g.lineTo(Math.min(x, b), yTop(Math.min(x, b)));
+    g.lineTo(b, yTop(b)); g.lineTo(b, bottom); g.closePath();
+    g.clip();
+    if (sp) {
+      const rh = STRIP.earth1 - STRIP.earth0;
+      const yStart = Math.min(yTop(a), yTop(b)) - 10;
+      for (let x = Math.floor(a / sp.w) * sp.w; x < b; x += sp.w) {
+        for (let y = yStart; y < bottom; y += rh) g.drawImage(sp.img, 0, STRIP.earth0, sp.w, rh, x, y, sp.w, rh + 1);
       }
-      for (const seg of PROFILE) {
-        if (seg.y1 === undefined || !cam.sees(seg.x0, seg.x1)) continue;
-        const up = seg.y1 < seg.y;
-        kit.sprite(g, 'terrain.nowhere', up ? 2 : 3, seg.x0, Math.max(seg.y, seg.y1), { ax: 0, ay: 1, scale: (seg.x1 - seg.x0) / (art.sprite('terrain.nowhere', up ? 2 : 3)?.w || 1) }, () => inkSlope(g, seg));
-        g.fillStyle = '#a07a3a';
-        g.fillRect(seg.x0, Math.max(seg.y, seg.y1) - 6, seg.x1 - seg.x0, H + 60 - Math.max(seg.y, seg.y1));
-      }
-      return;
-    }
-    inkProfile(g, cam);
+    } else { g.fillStyle = '#b08a42'; g.fillRect(a, 0, b - a, bottom); }
+    const gr = g.createLinearGradient(0, GY, 0, bottom);
+    gr.addColorStop(0, 'rgba(60,35,15,0.05)'); gr.addColorStop(1, 'rgba(40,22,8,0.45)');
+    g.fillStyle = gr;
+    g.fillRect(a, 0, b - a, bottom);
+    g.restore();
   }
 
+  function drawGroundAll(g) {
+    const have = !!art.sprite('terrain.nowhere', 1);
+    if (!have) { inkProfile(g, cam); return; }
+    for (const seg of PROFILE) {
+      if (seg.hole || seg.stream || !cam.sees(seg.x0, seg.x1)) continue;
+      const yAt = (x) => (seg.y1 === undefined ? seg.y : seg.y + (seg.y1 - seg.y) * ((x - seg.x0) / (seg.x1 - seg.x0)));
+      earthFill(g, seg.x0, seg.x1, (x) => yAt(x) + 40);
+      if (seg.y1 === undefined) {
+        const sol = { x: seg.x0, y: seg.y, w: seg.x1 - seg.x0, h: 400 };
+        kit.drawGround(g, cam, sol, { sheet: 'terrain.nowhere', item: 1, height: 125, lift: STRIP.edge });
+      } else {
+        const up = seg.y1 < seg.y;
+        const item = up ? 2 : 3;
+        const sp = art.sprite('terrain.nowhere', item);
+        const m = SLOPE[item];
+        const sx = (seg.x1 - seg.x0) / sp.w;
+        const sy = Math.abs(seg.y1 - seg.y) / Math.abs(m.r - m.l);
+        g.save();
+        g.translate(seg.x0, seg.y - m.l * sy);
+        g.scale(sx, sy);
+        g.drawImage(sp.img, 0, 0);
+        g.restore();
+      }
+    }
+  }
+
+  // terrain.nowhere 4 (465 x 186) is the left bank of a hole: its right side
+  // is the hole wall, its earth edge at row 49. Item 5 (472 x 188) is the
+  // right bank, wall on its left, earth edge at row 55.
   function drawHoles(g) {
     for (const h of HOLES) {
       if (!cam.sees(h.x0, h.x1)) continue;
       const w = h.x1 - h.x0;
-      // The pit: earth walls shading into the dark, drawn boldly.
       g.save();
       g.fillStyle = '#3a2616';
-      g.fillRect(h.x0 - 6, GY - 2, w + 12, H + 60 - GY);
-      // Lit left wall and shadowed right wall, ragged, with strata lines.
-      g.lineWidth = 4; g.strokeStyle = INK;
-      g.fillStyle = '#8c6a42';
-      g.beginPath(); g.moveTo(h.x0 - 2, GY - 2);
-      g.lineTo(h.x0 + 26, GY + 30); g.lineTo(h.x0 + 14, GY + 70); g.lineTo(h.x0 + 34, GY + 120); g.lineTo(h.x0 + 20, GY + 180); g.lineTo(h.x0 + 30, GY + 240);
-      g.lineTo(h.x0 - 2, GY + 240); g.closePath(); g.fill(); g.stroke();
-      g.fillStyle = '#5a3e26';
-      g.beginPath(); g.moveTo(h.x1 + 2, GY - 2);
-      g.lineTo(h.x1 - 30, GY + 36); g.lineTo(h.x1 - 16, GY + 80); g.lineTo(h.x1 - 36, GY + 130); g.lineTo(h.x1 - 22, GY + 190); g.lineTo(h.x1 - 34, GY + 240);
-      g.lineTo(h.x1 + 2, GY + 240); g.closePath(); g.fill(); g.stroke();
-      // Strata and hatching on the walls, roots dangling in.
-      g.lineWidth = 2.5; g.strokeStyle = 'rgba(43,29,20,0.8)';
-      g.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const yy = GY + 30 + i * 42;
-        g.moveTo(h.x0, yy); g.quadraticCurveTo(h.x0 + 14, yy + 6, h.x0 + 26, yy + 14);
-        g.moveTo(h.x1, yy + 16); g.quadraticCurveTo(h.x1 - 16, yy + 20, h.x1 - 30, yy + 30);
-      }
-      for (let i = 0; i < 9; i++) { const yy = GY + 20 + i * 24; g.moveTo(h.x1 - 8 - (i % 3) * 8, yy); g.lineTo(h.x1 - 26 - (i % 3) * 6, yy + 16); }
-      g.stroke();
-      g.lineWidth = 3; g.strokeStyle = '#4a3220';
-      g.beginPath();
-      g.moveTo(h.x0 + 40, GY); g.quadraticCurveTo(h.x0 + 60, GY + 40, h.x0 + 44, GY + 90); g.quadraticCurveTo(h.x0 + 38, GY + 110, h.x0 + 50, GY + 126);
-      g.moveTo(h.x1 - 60, GY); g.quadraticCurveTo(h.x1 - 76, GY + 30, h.x1 - 62, GY + 60); g.lineTo(h.x1 - 70, GY + 80);
-      g.stroke();
-      // Stones in the walls, and the dark below.
-      g.fillStyle = '#c3bdb1'; g.strokeStyle = INK; g.lineWidth = 2.5;
-      for (let i = 0; i < 3; i++) { g.beginPath(); g.ellipse(h.x0 + 14 + (i % 2) * 10, GY + 56 + i * 60, 10, 7, 0.3, 0, Math.PI * 2); g.fill(); g.stroke(); }
-      for (let i = 0; i < 2; i++) { g.beginPath(); g.ellipse(h.x1 - 18 - i * 8, GY + 100 + i * 70, 9, 6, -0.3, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      g.fillRect(h.x0 - 4, GY - 2, w + 8, H + 60 - GY);
       g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 2.5;
       g.beginPath();
-      for (let x = h.x0 + 20; x < h.x1 + 200; x += 14) { g.moveTo(x, GY + 40); g.lineTo(x - 200, GY + 260); }
+      for (let x = h.x0; x < h.x1 + 220; x += 14) { g.moveTo(x, GY + 20); g.lineTo(x - 220, GY + 260); }
       g.stroke();
-      const gr = g.createLinearGradient(0, GY + 40, 0, GY + 230);
+      const gr = g.createLinearGradient(0, GY + 20, 0, GY + 220);
       gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(10,5,0,0.85)');
       g.fillStyle = gr;
-      g.fillRect(h.x0 - 6, GY + 40, w + 12, H - GY);
+      g.fillRect(h.x0 - 4, GY + 20, w + 8, H - GY);
       g.restore();
-      kit.sprite(g, 'terrain.nowhere', 4, h.x0 + 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 3), h.x0 + 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x0, 1));
-      kit.sprite(g, 'terrain.nowhere', 5, h.x1 - 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 4), h.x1 - 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x1, -1));
+      const ok = kit.sprite(g, 'terrain.nowhere', 4, h.x0 + 6, GY - 49, { scale: 1, ax: 1, ay: 0 }, () => art.drawSprite(g, art.prop('yalapappus', 3), h.x0 + 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x0, 1));
+      kit.sprite(g, 'terrain.nowhere', 5, h.x1 - 6, GY - 55, { scale: 1, ax: 0, ay: 0 }, () => art.drawSprite(g, art.prop('yalapappus', 4), h.x1 - 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x1, -1));
+      void ok;
     }
   }
 
+  // adv.b07.props 10 (300 x 253) is a stream with stepping stones seen from
+  // the bank, grass along its top edge: stretched across the gap with its top
+  // edge at the ground line it fills the cut to the bottom of the screen.
   function drawStream(g, tt) {
     const s = STREAM;
     if (!cam.sees(s.x0, s.x1)) return;
-    kit.sprite(g, 'adv.b07.props', 10, (s.x0 + s.x1) / 2, GY + 150, { height: 220 }, () => {
-      g.save();
-      // Water: light near the surface, deep blue below, in bands.
-      const bands = ['#7fb6d8', '#5a98c6', '#3f7bb0', '#2f5f90'];
-      bands.forEach((c, i) => { g.fillStyle = c; g.fillRect(s.x0, GY + 50 + i * 70, s.x1 - s.x0, i === 3 ? H + 60 - GY : 72); });
-      // Curling wave hatching in ink and cream.
-      g.lineWidth = 3; g.lineCap = 'round';
-      for (let row = 0; row < 8; row++) {
-        const yy = GY + 86 + row * 36;
-        g.strokeStyle = row % 2 ? 'rgba(43,29,20,0.7)' : 'rgba(248,241,224,0.85)';
-        g.beginPath();
-        for (let x = s.x0 + 12 + (row % 2) * 34 + ((tt * (row % 2 ? 18 : -12)) % 70); x < s.x1 - 50; x += 70) {
-          g.moveTo(x, yy); g.quadraticCurveTo(x + 12, yy - 12, x + 26, yy); g.quadraticCurveTo(x + 36, yy + 8, x + 30, yy + 12);
-        }
-        g.stroke();
-      }
-      // Dark hatching toward the bottom.
-      g.strokeStyle = 'rgba(20,30,60,0.55)'; g.lineWidth = 2.5;
-      g.beginPath();
-      for (let x = s.x0; x < s.x1 + 200; x += 12) { g.moveTo(x, GY + 230); g.lineTo(x - 200, H + 60); }
-      g.stroke();
-      // Earth banks shelving into the water: bold ink, lit left, shadowed right, roots and pebbles.
-      for (const [bx, dir, col] of [[s.x0, 1, '#9a7a4e'], [s.x1, -1, '#6a4a2e']]) {
-        g.fillStyle = col; g.strokeStyle = INK; g.lineWidth = 4;
-        g.beginPath();
-        g.moveTo(bx - dir * 6, GY - 2);
-        g.lineTo(bx + dir * 18, GY + 14); g.lineTo(bx + dir * 10, GY + 36); g.lineTo(bx + dir * 40, GY + 50); g.lineTo(bx + dir * 34, GY + 74); g.lineTo(bx + dir * 70, GY + 90);
-        g.lineTo(bx + dir * 70, GY + 170); g.lineTo(bx - dir * 6, GY + 170); g.closePath(); g.fill(); g.stroke();
-        g.lineWidth = 2.5; g.strokeStyle = 'rgba(43,29,20,0.8)';
-        g.beginPath();
-        for (let i = 0; i < 6; i++) { g.moveTo(bx + dir * (6 + i * 10), GY + 20 + i * 12); g.lineTo(bx + dir * (2 + i * 10), GY + 160); }
-        for (let i = 0; i < 4; i++) { const yy = GY + 30 + i * 30; g.moveTo(bx, yy); g.quadraticCurveTo(bx + dir * 30, yy + 4, bx + dir * 60, yy + 14); }
-        g.stroke();
-        g.strokeStyle = '#4a3220'; g.lineWidth = 3.5;
-        g.beginPath(); g.moveTo(bx + dir * 30, GY + 50); g.quadraticCurveTo(bx + dir * 44, GY + 90, bx + dir * 30, GY + 120); g.lineTo(bx + dir * 36, GY + 140); g.stroke();
-        g.fillStyle = '#c9c2b3'; g.strokeStyle = INK; g.lineWidth = 2.5;
-        for (let i = 0; i < 4; i++) { g.beginPath(); g.ellipse(bx + dir * (14 + i * 14), GY + 26 + i * 16, 8, 5, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
-      }
-      g.restore();
-    });
+    const sp = art.sprite('adv.b07.props', 10);
+    if (sp) {
+      const k = (s.x1 - s.x0 + 60) / sp.w;
+      art.drawSprite(g, sp, (s.x0 + s.x1) / 2, GY - 24, { scale: k, ax: 0.5, ay: 0 });
+    } else inkStream(g, s, tt);
     for (const st of stones) {
+      // A ring of ripples round each stone, then the stone.
+      g.save();
+      g.strokeStyle = 'rgba(248,241,224,0.85)'; g.lineWidth = 3;
+      for (let i = 0; i < 2; i++) { g.beginPath(); g.ellipse(st.cx, GY + 62, 70 + i * 22 + Math.sin(tt * 2 + i) * 3, 14 + i * 6, 0, 0, Math.PI * 2); g.stroke(); }
+      g.restore();
       kit.sprite(g, 'adv.b07.props', 4, st.cx, GY + 76, { height: 96 }, () => art.drawSprite(g, art.prop('yalapappus', 1), st.cx, GY + 76, { height: 96 }) || inkRock(g, st.cx, GY + 76, 96));
     }
   }
+  function inkStream(g, s, tt) {
+    g.save();
+    const bands = ['#7fb6d8', '#5a98c6', '#3f7bb0', '#2f5f90'];
+    bands.forEach((c, i) => { g.fillStyle = c; g.fillRect(s.x0, GY + 50 + i * 70, s.x1 - s.x0, i === 3 ? H + 60 - GY : 72); });
+    g.lineWidth = 3; g.lineCap = 'round';
+    for (let row = 0; row < 8; row++) {
+      const yy = GY + 86 + row * 36;
+      g.strokeStyle = row % 2 ? 'rgba(43,29,20,0.7)' : 'rgba(248,241,224,0.85)';
+      g.beginPath();
+      for (let x = s.x0 + 12 + (row % 2) * 34 + ((tt * (row % 2 ? 18 : -12)) % 70); x < s.x1 - 50; x += 70) {
+        g.moveTo(x, yy); g.quadraticCurveTo(x + 12, yy - 12, x + 26, yy); g.quadraticCurveTo(x + 36, yy + 8, x + 30, yy + 12);
+      }
+      g.stroke();
+    }
+    g.restore();
+  }
+
   function drawWaterFront(g, tt) {
     const s = STREAM;
     g.fillStyle = 'rgba(78,147,194,0.55)';
@@ -861,7 +867,7 @@ export default function create(env) {
   }
 
   function drawPuddle(g, q, tt) {
-    kit.sprite(g, 'adv.b07.props', 6, q.cx, q.y + 10, { height: 70 }, () => {
+    kit.sprite(g, 'adv.b07.props', 6, q.cx, q.y + 14, { height: 90 }, () => {
       g.save();
       g.strokeStyle = INK;
       g.lineWidth = 3.5;
@@ -919,26 +925,30 @@ export default function create(env) {
   }
 
   function drawFarDecor(g) {
-    // Palms (terrain.nowhere 8) and trunks far back, scrolling slower.
-    const k = 0.78;
-    for (let i = 0; i < 20; i++) {
-      const wx = 350 + i * 760 + kit.hash(i) * 300;
-      const sx = wx - cam.x * k;
-      if (sx < -300 || sx > W + 300) continue;
-      const h = 420 + kit.hash(i * 3.1) * 160;
-      kit.sprite(g, 'terrain.nowhere', 8, sx, GY - 40, { height: h, flip: i % 2 === 1, alpha: 0.85 }, () => inkPalm(g, sx, GY - 40, h, i));
+    // Palms (terrain.nowhere 8) standing on the ground behind the path, a
+    // mid layer between the painted backdrop and the play layer.
+    for (let i = 0; i < 16; i++) {
+      const wx = 500 + i * 1050 + kit.hash(i) * 400;
+      if (!cam.sees(wx, wx, 400)) continue;
+      const gy = profileY(wx);
+      if (gy === null || Math.abs(wx - YAL_X) < 500 || wx > FINISH_X - 300) continue;
+      if (lowSolids.some((s) => wx > s.x - 260 && wx < s.x + s.w + 260) || SIGNS.some((x) => Math.abs(x - wx) < 220)) continue;
+      const h = 340 + kit.hash(i * 3.1) * 90;
+      g.save(); g.globalAlpha = 0.92;
+      kit.sprite(g, 'terrain.nowhere', 8, wx, gy + 10, { height: h, flip: i % 2 === 1 }, () => inkPalm(g, wx, gy + 10, h, i));
+      g.restore();
     }
   }
 
   function drawNearDecor(g) {
     // Goo curtains (terrain.nowhere 7) dripping across the top, nearer than the play layer.
     const k = 1.18;
-    for (let i = 0; i < 24; i++) {
-      const wx = 900 + i * 640 + kit.hash(i * 7.7) * 400;
+    for (let i = 0; i < 20; i++) {
+      const wx = 900 + i * 920 + kit.hash(i * 7.7) * 400;
       const sx = wx - cam.x * k;
-      if (sx < -200 || sx > W + 200) continue;
-      const h = 150 + kit.hash(i * 2.3) * 170;
-      kit.sprite(g, 'terrain.nowhere', 7, sx, 0, { height: h, ay: 0, alpha: 0.9 }, () => inkGoo(g, sx, h, i));
+      if (sx < -500 || sx > W + 500) continue;
+      const h = 150 + kit.hash(i * 2.3) * 150;
+      kit.sprite(g, 'terrain.nowhere', 7, sx, -6, { height: h, ay: 0, flip: i % 3 === 1 }, () => inkGoo(g, sx, h, i));
     }
   }
 
@@ -1165,53 +1175,20 @@ function inkGoo(g, x, h, i) {
   g.restore();
 }
 
+// adv.b07.props 5 (360 x 212) is the bough alone, sloping down to the right
+// with leaves hanging under it: drawn levelled (rotated) so its wood runs
+// through the solid, from a bole that stands behind the path.
 function drawBranch(g, b, tt) {
   const x = b.cx, bottom = b.y + b.h, top = b.y;
+  const sp = art.sprite('adv.b07.props', 5);
+  if (sp) {
+    inkBole(g, b, tt);
+    art.drawSprite(g, sp, x + 10, (top + bottom) / 2 + 26, { height: 240, ax: 0.5, ay: 0.5, rot: -0.2 });
+    return;
+  }
   kit.sprite(g, 'adv.b07.props', 5, x, bottom, { height: 150 }, () => {
+    inkBole(g, b, tt);
     g.save();
-    g.lineJoin = 'round';
-    // The tree stands behind the path at the left end: a gnarled, bulging
-    // bole with bark furrows, knots and a root flare, lit on the left.
-    const tx0 = b.x - 100, tw = 76;
-    const wob = (k, ph) => 7 * Math.sin(k * 9.1 + ph) + 5 * Math.sin(k * 23 + ph * 2);
-    g.strokeStyle = INK; g.lineWidth = 4.5; g.fillStyle = '#9a7a4e';
-    g.beginPath();
-    g.moveTo(tx0 - 56, bottom + 150);
-    g.quadraticCurveTo(tx0 - 10, bottom + 40, tx0 + 2, top + 10);
-    for (let k = 0; k <= 1; k += 0.04) g.lineTo(tx0 + wob(k, 0) - k * 6, top + 10 - k * 760);
-    g.lineTo(tx0 + tw + 10, top - 750);
-    for (let k = 1; k >= 0; k -= 0.04) g.lineTo(tx0 + tw + wob(k, 1) + 6 - k * 6, top + 10 - k * 760);
-    g.quadraticCurveTo(tx0 + tw + 14, bottom + 40, tx0 + tw + 60, bottom + 150);
-    g.closePath(); g.fill(); g.stroke();
-    // The shadow side.
-    g.fillStyle = 'rgba(60,35,15,0.35)';
-    g.beginPath();
-    g.moveTo(tx0 + tw * 0.55, top + 10);
-    for (let k = 0; k <= 1; k += 0.04) g.lineTo(tx0 + tw * 0.55 + wob(k, 1) * 0.5 - k * 6, top + 10 - k * 760);
-    for (let k = 1; k >= 0; k -= 0.04) g.lineTo(tx0 + tw + wob(k, 1) + 6 - k * 6, top + 10 - k * 760);
-    g.quadraticCurveTo(tx0 + tw + 14, bottom + 40, tx0 + tw + 60, bottom + 150);
-    g.lineTo(tx0 + tw * 0.55, bottom + 150);
-    g.closePath(); g.fill();
-    // Furrows down the bark, bold.
-    g.lineWidth = 3; g.strokeStyle = 'rgba(43,29,20,0.85)';
-    g.beginPath();
-    for (let f = 0; f < 6; f++) {
-      const fx = tx0 + 8 + f * 12;
-      g.moveTo(fx, bottom + 20);
-      for (let yy = bottom; yy > top - 760; yy -= 48) g.quadraticCurveTo(fx + 9 * Math.sin(yy * 0.05 + f), yy - 24, fx + 4 * Math.sin(yy * 0.03 + f * 2), yy - 48);
-    }
-    g.stroke();
-    g.lineWidth = 2.2; g.strokeStyle = 'rgba(43,29,20,0.7)';
-    g.beginPath();
-    for (let yy = top - 740; yy < bottom + 60; yy += 11) { g.moveTo(tx0 + tw - 30, yy); g.lineTo(tx0 + tw - 2, yy + 9); }
-    g.stroke();
-    g.strokeStyle = INK; g.lineWidth = 3.5;
-    for (const [kx, ky, kr] of [[tx0 + 38, top - 300, 14], [tx0 + 24, top - 560, 11]]) {
-      g.fillStyle = '#6a4a2e';
-      g.beginPath(); g.ellipse(kx, ky, kr, kr * 1.7, 0.2, 0, Math.PI * 2); g.fill(); g.stroke();
-      g.fillStyle = '#2b1d14';
-      g.beginPath(); g.ellipse(kx, ky, kr * 0.4, kr * 0.8, 0.2, 0, Math.PI * 2); g.fill();
-    }
     // The bough: thick at the bole, knobbly, tapering to a forked tip.
     g.lineWidth = 4.5; g.fillStyle = '#a3804e'; g.strokeStyle = INK;
     g.beginPath();
@@ -1269,6 +1246,58 @@ function drawBranch(g, b, tt) {
   });
 }
 
+// The gnarled bole the low branch grows from: it stands behind the path at
+// the branch's left end and runs off the top of the screen.
+function inkBole(g, b, tt) {
+  const bottom = b.y + b.h, top = b.y;
+  void tt;
+  g.save();
+    g.lineJoin = 'round';
+    // The tree stands behind the path at the left end: a gnarled, bulging
+    // bole with bark furrows, knots and a root flare, lit on the left.
+    const tx0 = b.x - 100, tw = 76;
+    const wob = (k, ph) => 7 * Math.sin(k * 9.1 + ph) + 5 * Math.sin(k * 23 + ph * 2);
+    g.strokeStyle = INK; g.lineWidth = 4.5; g.fillStyle = '#9a7a4e';
+    g.beginPath();
+    g.moveTo(tx0 - 56, bottom + 150);
+    g.quadraticCurveTo(tx0 - 10, bottom + 40, tx0 + 2, top + 10);
+    for (let k = 0; k <= 1; k += 0.04) g.lineTo(tx0 + wob(k, 0) - k * 6, top + 10 - k * 760);
+    g.lineTo(tx0 + tw + 10, top - 750);
+    for (let k = 1; k >= 0; k -= 0.04) g.lineTo(tx0 + tw + wob(k, 1) + 6 - k * 6, top + 10 - k * 760);
+    g.quadraticCurveTo(tx0 + tw + 14, bottom + 40, tx0 + tw + 60, bottom + 150);
+    g.closePath(); g.fill(); g.stroke();
+    // The shadow side.
+    g.fillStyle = 'rgba(60,35,15,0.35)';
+    g.beginPath();
+    g.moveTo(tx0 + tw * 0.55, top + 10);
+    for (let k = 0; k <= 1; k += 0.04) g.lineTo(tx0 + tw * 0.55 + wob(k, 1) * 0.5 - k * 6, top + 10 - k * 760);
+    for (let k = 1; k >= 0; k -= 0.04) g.lineTo(tx0 + tw + wob(k, 1) + 6 - k * 6, top + 10 - k * 760);
+    g.quadraticCurveTo(tx0 + tw + 14, bottom + 40, tx0 + tw + 60, bottom + 150);
+    g.lineTo(tx0 + tw * 0.55, bottom + 150);
+    g.closePath(); g.fill();
+    // Furrows down the bark, bold.
+    g.lineWidth = 3; g.strokeStyle = 'rgba(43,29,20,0.85)';
+    g.beginPath();
+    for (let f = 0; f < 6; f++) {
+      const fx = tx0 + 8 + f * 12;
+      g.moveTo(fx, bottom + 20);
+      for (let yy = bottom; yy > top - 760; yy -= 48) g.quadraticCurveTo(fx + 9 * Math.sin(yy * 0.05 + f), yy - 24, fx + 4 * Math.sin(yy * 0.03 + f * 2), yy - 48);
+    }
+    g.stroke();
+    g.lineWidth = 2.2; g.strokeStyle = 'rgba(43,29,20,0.7)';
+    g.beginPath();
+    for (let yy = top - 740; yy < bottom + 60; yy += 11) { g.moveTo(tx0 + tw - 30, yy); g.lineTo(tx0 + tw - 2, yy + 9); }
+    g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 3.5;
+    for (const [kx, ky, kr] of [[tx0 + 38, top - 300, 14], [tx0 + 24, top - 560, 11]]) {
+      g.fillStyle = '#6a4a2e';
+      g.beginPath(); g.ellipse(kx, ky, kr, kr * 1.7, 0.2, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.fillStyle = '#2b1d14';
+      g.beginPath(); g.ellipse(kx, ky, kr * 0.4, kr * 0.8, 0.2, 0, Math.PI * 2); g.fill();
+    }
+  g.restore();
+}
+
 // A pointed leaf from (x0, y0) to its tip (x1, y1), with a bold midrib and veins.
 function inkLeaf(g, x0, y0, x1, y1, fill) {
   const dx = x1 - x0, dy = y1 - y0;
@@ -1288,9 +1317,12 @@ function inkLeaf(g, x0, y0, x1, y1, fill) {
   g.stroke();
 }
 
+// adv.b07.props 8 shows the palm lying flat on the ground, crown and all: it
+// can't be slid under, so the propped-up stand-in stays until a raised one
+// is delivered.
 function drawFallenPalm(g, b) {
   const bottom = b.y + b.h, top = b.y;
-  kit.sprite(g, 'adv.b07.props', 8, b.cx, bottom, { height: 110 }, () => {
+  (() => {
     g.save();
     g.lineJoin = 'round';
     g.strokeStyle = INK; g.lineWidth = 4.5; g.fillStyle = '#b08d58';
@@ -1356,6 +1388,22 @@ function drawFallenPalm(g, b) {
 }
 
 function drawSignpost(g, x, gy, tt) {
+  const sp = art.sprite('adv.b07.props', 7);
+  if (sp) {
+    const k = 300 / sp.h;
+    art.drawSprite(g, sp, x, gy + 4, { scale: k });
+    // The book's words on its two blank boards.
+    g.save();
+    g.translate(x - sp.w * k / 2, gy + 4 - sp.h * k);
+    g.scale(k, k);
+    g.fillStyle = INK; g.textAlign = 'center';
+    g.font = '800 23px Fraunces, Georgia, serif';
+    g.save(); g.translate(92, 76); g.rotate(-0.3); g.fillText('TO NOWHERE', 0, 0); g.restore();
+    g.font = '800 20px Fraunces, Georgia, serif';
+    g.save(); g.translate(152, 138); g.rotate(0.17); g.fillText('and BACKAGAIN', 0, 0); g.restore();
+    g.restore();
+    return;
+  }
   kit.sprite(g, 'adv.b07.props', 7, x, gy + 4, { height: 300 }, () => {
     g.save();
     g.translate(x, gy + 4);
