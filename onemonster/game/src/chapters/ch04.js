@@ -14,6 +14,7 @@ import * as art from '../art.js';
 import { makeFx, roundRect } from '../chasedraw.js';
 import { marksFor } from './index.js';
 import { actionPrompt, marker, letterTag, buttonName } from '../prompt.js';
+import { SPRITES } from '../sprites.js';
 
 // Tuning: the numbers that make the chapter fair (logical px and seconds).
 export const TUNE = {
@@ -100,6 +101,7 @@ export function chargeReach(fury) {
 }
 
 const SIZE = 1.05; // the iceberg about 315 px tall: big enough to read from above
+const LION_H = 80; // a sea lion sitting up, on the ledges of the big berg
 const PEG_H = 215; // the Peg's sprite height: plainly bigger than a rowing boat (100)
 
 export default function create(env) {
@@ -160,7 +162,8 @@ export default function create(env) {
   function lionOff() {
     ferg.lions = Math.max(0, ferg.lions - 1);
     const dir = rng() < 0.5 ? -1 : 1;
-    parts.push({ k: 'lion', x: ferg.x + dir * 40, y: ferg.y - 150, vx: dir * 160, vy: -120, t: 0, life: 0.8, dir });
+    const spot = ledgeSpots()[ferg.lions] || { x: ferg.x, y: ferg.y - 150 };
+    parts.push({ k: 'lion', x: spot.x, y: spot.y, vx: dir * 170, vy: -140, t: 0, life: 0.8, dir });
     env.sfx('splash');
     if (ferg.lions === 0) {
       setMode('dazed', F.dazed);
@@ -505,7 +508,7 @@ export default function create(env) {
         if (p.k === 'chip' || p.k === 'lion') p.vy += 900 * dt;
         else { p.vx *= Math.exp(-1.5 * dt); p.vy *= Math.exp(-1.5 * dt); }
       }
-      if (p.k === 'lion' && p.t >= p.life && !p.splashed) { p.splashed = true; splashRing(p.x, p.y, 90); }
+      if (p.k === 'lion' && p.t >= p.life && !p.splashed) { p.splashed = true; splashRing(p.x, p.y, 90); parts.push({ k: 'lionsplash', x: p.x, y: p.y + 20, t: 0, life: 0.55 }); }
       if (p.t > p.life) parts.splice(i, 1);
     }
   }
@@ -871,7 +874,54 @@ export default function create(env) {
     g.restore();
     if (ferg.mode === 'huff' || ferg.mode === 'windup') drawAim(g, tt);
     if (ferg.mode === 'charge') drawChargeTrail(g, tt);
-    art.drawCreature(g, fc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+    if (!drawBareBerg(g, tt)) art.drawCreature(g, fc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+  }
+
+  // The berg without its lions (iceferg.bare) with the sea lions still aboard
+  // placed on its ledges (iceferg.sealions), so the count drops as they are
+  // lost and each reacts: dozing, sitting up when it huffs, clinging when it
+  // charges. The crash and the celebration keep the key poses (the lions
+  // tumbling and clapping are drawn in them).
+  const BARE = { drift: 1, recover: 1, dazed: 1, huff: 2, windup: 2, charge: 3 };
+  function bareScale(sp) {
+    const first = SPRITES.sheets['iceferg.poses']?.items[0];
+    const a = SPRITES.sheets['iceferg.poses']?.scale || 1, b = SPRITES.sheets['iceferg.bare']?.scale || 1;
+    return first ? (fc.M.height / first.h) * fc.sizeK * (a / b) : (fc.M.height / sp.h) * fc.sizeK;
+  }
+  // Where the lions sit, in the frame: the three ledges of the bare berg.
+  const LEDGES = [[0.3, 0.3], [0.74, 0.42], [0.36, 0.62]]; // fractions of the sprite's width and height from its top-left
+  function bergFrame() {
+    const item = BARE[ferg.mode];
+    const sp = item ? art.sprite('iceferg.bare', item) : null;
+    if (!sp) return null;
+    const k = bareScale(sp);
+    return { sp, k, w: sp.w * k, h: sp.h * k, item };
+  }
+  function ledgeSpots() {
+    const f = bergFrame();
+    if (!f) return [];
+    const flip = fc.facing < 0;
+    return LEDGES.map(([u, v]) => ({ x: fc.x + (flip ? 0.5 - u : u - 0.5) * f.w, y: fc.y - f.h + v * f.h }));
+  }
+  function drawBareBerg(g, tt) {
+    const f = bergFrame();
+    if (!f) return false;
+    const A = fc.M.anims[fc.anim] || {};
+    const bob = A.bob && !env.reduceMotion ? Math.sin(tt * 3.1) * A.bob : 0;
+    const shake = A.shake && !env.reduceMotion ? (Math.sin(tt * 31) * 0.6 + Math.sin(tt * 17.3) * 0.4) * A.shake : 0;
+    const sq = env.reduceMotion ? fc.sq * 0.4 : fc.sq;
+    const wobble = ferg.mode === 'dazed' || ferg.mode === 'recover' ? Math.sin(tt * 6) * 0.06 : 0;
+    const x = fc.x + shake, y = fc.y;
+    art.drawSprite(g, f.sp, x, y, { scale: f.k, ax: 0.5, ay: 1, flip: fc.facing < 0, rot: wobble, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob) });
+    const item = ferg.mode === 'charge' ? 3 : ferg.mode === 'huff' || ferg.mode === 'windup' ? 2 : 1;
+    const spots = ledgeSpots();
+    for (let i = 0; i < ferg.lions; i++) {
+      const s = spots[i];
+      const jig = ferg.mode === 'charge' ? Math.sin(tt * 25 + i) * 3 : item === 2 ? Math.sin(tt * 9 + i * 2) * 2 : 0;
+      const lsp = art.sprite('iceferg.sealions', item);
+      if (!art.drawSprite(g, lsp, s.x + shake, s.y + jig, { height: item === 1 ? LION_H * 0.55 : LION_H, ay: 0.95, flip: (i % 2 === 1) !== (fc.facing < 0) })) seaLion(g, s.x, s.y, 0.9, 0);
+    }
+    return true;
   }
 
   // The aim: a wide pale lane the charge will take, as far as it reaches, with
@@ -998,7 +1048,10 @@ export default function create(env) {
       g.lineWidth = 3;
       g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.stroke();
     } else if (p.k === 'lion' && p.t < p.life) {
-      seaLion(g, p.x, p.y, 1, p.dir * p.t * 5);
+      if (!art.drawSprite(g, art.sprite('iceferg.sealions', 4), p.x, p.y, { height: LION_H, ay: 0.6, flip: p.dir < 0, rot: p.dir * p.t * 3 })) seaLion(g, p.x, p.y, 1, p.dir * p.t * 5);
+    } else if (p.k === 'lionsplash') {
+      g.globalAlpha = 1 - k * k;
+      art.drawSprite(g, art.sprite('iceferg.sealions', 6), p.x, p.y, { height: LION_H * 1.1, ay: 0.85 });
     }
     g.restore();
   }
