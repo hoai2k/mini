@@ -736,6 +736,8 @@ export default function create(env) {
   const FILL = '#7d5e31'; // the strip's lowest soil, for everything below it
   const stripOpts = { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT, fill: FILL };
   const originCam = { x: 0 }; // for the kit's culling inside a transformed space
+  const flatsByY = new Map();
+  for (const s of segs) if (!s.hole && s.kind === 'flat') { if (!flatsByY.has(s.y0)) flatsByY.set(s.y0, []); flatsByY.get(s.y0).push(s); }
   function drawGround(g) {
     const delivered = !!art.sprite(TERRAIN, 1);
     if (delivered) {
@@ -753,12 +755,19 @@ export default function create(env) {
         g.fillRect(-40, -STRIP_LIFT + STRIP_H - 9 * STRIP_K, s.x1 - s.x0 + 80, H + 300);
         g.restore();
       }
-      for (const s of segs) {
-        if (s.hole || s.kind !== 'flat' || !cam.sees(s.x0, s.x1)) continue;
-        kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, stripOpts);
+      // The flats at each height as one strip from the world's start, clipped to
+      // them, so the tiles keep one phase across holes and hills.
+      for (const [y, list] of flatsByY) {
+        if (!list.some((s) => cam.sees(s.x0, s.x1))) continue;
+        g.save();
+        g.beginPath();
+        for (const s of list) g.rect(s.x0, 0, s.x1 - s.x0, H + 100);
+        g.clip();
+        kit.drawGround(g, cam, { x: 0, y, w: WORLD, h: H + 100 - y }, stripOpts);
         // Cover the strip's own ink bottom edge with the soil fill.
         g.fillStyle = FILL;
-        g.fillRect(Math.max(s.x0, cam.x - 40), s.y0 - STRIP_LIFT + STRIP_H - 9 * STRIP_K, Math.min(s.x1, cam.x + W + 40) - Math.max(s.x0, cam.x - 40), H);
+        g.fillRect(cam.x - 40, y - STRIP_LIFT + STRIP_H - 9 * STRIP_K, W + 80, H);
+        g.restore();
       }
       for (const s of segs) if (!s.hole && s.kind !== 'flat' && cam.sees(s.x0, s.x1)) drawSlopePiece(g, s);
     } else {

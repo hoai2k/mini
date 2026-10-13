@@ -1164,7 +1164,7 @@ export default function create(env) {
       g.closePath();
       g.fill(); g.stroke();
     }
-    hatch(g, ferg.x - hw, WL + off + 10, hw * 2, 300, { step: 11, alpha: 0.22, colour: '40,60,110' });
+    if (!art.sprite('terrain.sea', 1)) hatch(g, ferg.x - hw, WL + off + 10, hw * 2, 300, { step: 11, alpha: 0.22, colour: '40,60,110' });
     g.restore();
     if (sp) {
       const k = iceH / (sp.h * (1 - frac));
