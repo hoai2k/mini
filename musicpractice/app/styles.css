@@ -185,6 +185,23 @@ button { cursor: pointer; }
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
+/* The pulse: a glow behind the metronome on each beat (set from main.js). */
+.met-pulse {
+  position: absolute; inset: -12% -45%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--brass-2), transparent 75%); /* without color-mix */
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brass-2) 70%, transparent), color-mix(in srgb, var(--brass) 25%, transparent) 55%, transparent 100%);
+  opacity: 0; pointer-events: none; will-change: opacity, transform;
+}
+.met-pulse.strong { background: radial-gradient(closest-side, var(--red-2), transparent 75%); }
+.met-pulse.strong { background: radial-gradient(closest-side, color-mix(in srgb, var(--red-2) 70%, transparent), color-mix(in srgb, var(--red) 25%, transparent) 55%, transparent 100%); }
+.sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
+.sync-title { margin: 0; font: 700 1.15rem var(--display); }
+.sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.sync-tap { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.sync-tap:active { transform: scale(0.96); }
+.sync-status { min-height: 1.4em; }
+.sync-bar .pill { align-self: center; min-width: 96px; }
 .met-layer > * { width: 100%; height: 100%; display: block; }
 .met-case { inset: 0; }
 /* 200×1000 pendulum whose hub (100, 960) sits on the body's pivot (400, 1000). */

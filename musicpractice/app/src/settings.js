@@ -60,6 +60,8 @@ export const DEFAULTS = Object.freeze({
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
+  metMotion: true, // the pendulum swings
+  metPulse: true, // a glow pulses on each beat
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   homeOrder: ['metronome', 'tuner', 'record'], // the home screen's buttons, hold and drag to reorder
   tuning: 'chromatic', // tuner: an id from TUNINGS in tuning.js
@@ -101,6 +103,8 @@ export function sanitize(raw) {
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
+    metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
+    metPulse: typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
     homeOrder: homeOrder(s.homeOrder),
     tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),

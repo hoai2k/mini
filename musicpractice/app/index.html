@@ -109,6 +109,7 @@
       <div class="met-body">
         <div class="met-visual">
           <div class="metronome" id="metronome-art" aria-hidden="true">
+            <div class="met-pulse" id="met-pulse"></div>
             <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
             <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
@@ -133,6 +134,20 @@
           </button>
           <p class="meter-note" id="meter-note">4/4 · strong beat on 1</p>
         </div>
+        <!-- Line up the visuals with the sound (Bluetooth speakers play late). -->
+        <div class="sync-bar" id="sync-bar" hidden>
+          <h3 class="sync-title">Line up with the sound</h3>
+          <p class="help">Watch the pulse and listen. If the flash comes before the click, press +; if after, press −.</p>
+          <div class="tempo">
+            <button class="step" id="sync-down" type="button" aria-label="Show the beat 10 ms sooner">−</button>
+            <output class="sync-val" id="sync-val" aria-live="polite">0 ms</output>
+            <button class="step" id="sync-up" type="button" aria-label="Show the beat 10 ms later">+</button>
+          </div>
+          <p class="help">Or tap along: tap the button on every click you hear, and it works out the delay.</p>
+          <button class="big-btn sync-tap" id="sync-tap" type="button">Tap on each click</button>
+          <p class="help sync-status" id="sync-status" aria-live="polite"></p>
+          <button class="pill" id="sync-done" type="button">Done</button>
+        </div>
       </div>
 
       <dialog id="met-settings" class="sheet" aria-labelledby="met-settings-title">
@@ -145,6 +160,10 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span>Volume</span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
+          <label class="row toggle"><span>Swinging pendulum</span><input type="checkbox" id="met-motion" role="switch"></label>
+          <label class="row toggle"><span>Pulse on each beat</span><input type="checkbox" id="met-pulse-on" role="switch"></label>
+          <button type="button" class="pill" id="sync-open">Line up visuals with the sound…</button>
+          <p class="help">For Bluetooth speakers and headphones, which play late.</p>
           <button type="button" class="pill open-audio-check">Audio check…</button>
           <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>

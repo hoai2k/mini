@@ -80,7 +80,30 @@ when the Art Deco art arrives, measure and record its own.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
-  Dots under it show the beat of the bar.
+  Dots under it show the beat of the bar, and a glow behind it pulses on
+  each beat (red on the downbeat, gold otherwise), dying away quickly.
+  **Swinging pendulum** and **Pulse on each beat** in the settings turn
+  either off.
+- Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
+  the time of the sound reaching your ears. It takes the smoother of the
+  context's output timestamp (`getOutputTimestamp`, which includes the
+  device's delay where the browser knows it, Bluetooth too on iPhone and
+  Android) and its current time less the reported output latency, without
+  counting a delay twice, then the manual adjustment, and looks one frame
+  ahead because a frame drawn now appears about a frame later. Checked in
+  Chromium: at 120 BPM the pulse peaks every 500 ms on the same frame as the
+  pendulum reaching the end of its swing and the beat dot moving on.
+- **Line up visuals with the sound…** (metronome settings) is for Bluetooth
+  speakers and headphones, which play late and don't always say by how much:
+  the controls give way to a sync bar while the metronome plays, with − / +
+  (10 ms steps) to move the visuals until the flash meets the click, or
+  **Tap on each click**: eight taps along with the clicks measure the delay
+  (from when each finger came down), skip the first two, take the median,
+  and set the adjustment beyond what the browser already reports (a tap
+  pattern spread over more than 150 ms is rejected). Checked with simulated
+  taps 180 ms after each beat: it set +160 ms (the 20 ms difference is the
+  frame of look-ahead already allowed for). The setting is shared with Audio
+  check's pendulum sync.
 - Tempo from 40 to 500 BPM: a slider, a number box (type any tempo; values
   outside the range are pulled in), and − / + buttons (hold to run). The
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.

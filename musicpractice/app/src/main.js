@@ -90,7 +90,7 @@ const homeOrder = setupHomeOrder({
 
 function leave(name) {
   if (name === 'home') homeOrder.stop();
-  if (name === 'metronome') stopMetronome();
+  if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
   if (name === 'tuner') stopTuner();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
@@ -223,6 +223,7 @@ function stopMetronome() {
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
+  $('met-pulse').style.opacity = '0';
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = 'Start';
   keepAwake(false);
@@ -343,14 +344,110 @@ $('accent').addEventListener('change', () => { settings.accent = $('accent').che
 $('met-volume').value = settings.volume;
 $('met-volume').addEventListener('input', () => { settings.volume = Number($('met-volume').value); metronomeConfigured(); });
 
+$('met-motion').checked = settings.metMotion;
+$('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); });
+$('met-pulse-on').checked = settings.metPulse;
+$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; persist(); });
+
+/*
+ * Everything you see follows heardNow(): the time of the sound reaching your
+ * ears (the output delay the browser knows, plus the Audio check / sync
+ * adjustment), looked one frame ahead because a frame drawn now appears on
+ * screen about a frame later. So the pendulum reaches the end of its swing,
+ * the pulse flashes and the beat dot lights as each click is heard.
+ */
+const pulse = $('met-pulse');
+let lastFrame = 0;
+let frameSec = 1 / 60;
 function animateMetronome() {
   if (!metronome?.running) return;
-  const now = heardNow();
+  const t = performance.now();
+  if (lastFrame && t - lastFrame < 100) frameSec = frameSec * 0.9 + ((t - lastFrame) / 1000) * 0.1;
+  lastFrame = t;
+  const now = heardNow(frameSec);
   const beat = metronome.beatAt(now);
-  pendulum.style.transform = `rotate(${pendulumAngle(beat, now, metronome.period, swingOf(pendulum)).toFixed(2)}deg)`;
+  const angle = settings.metMotion ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
+  pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+  // The pulse: a flash on the beat that dies away quickly, strongest on the downbeat.
+  let k = 0;
+  if (settings.metPulse && beat) {
+    const since = now - beat.time;
+    k = Math.exp(-since / Math.min(0.11, metronome.period * 0.28)) * [0.6, 0.8, 1][beat.strength];
+  }
+  pulse.style.opacity = k.toFixed(3);
+  pulse.style.transform = `scale(${(0.86 + 0.18 * k).toFixed(3)})`;
+  pulse.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
 }
+
+// ---------------------------------------------------------------- visual sync
+
+/*
+ * Bluetooth plays late (often 150-300 ms), and not every browser says by how
+ * much. The sync bar adjusts the delay while watching and listening, or
+ * measures it from taps along with the clicks.
+ */
+const syncBar = $('sync-bar');
+let taps = [];
+function showSync() {
+  $('sync-val').textContent = `${settings.syncMs > 0 ? '+' : ''}${settings.syncMs} ms`;
+}
+function setSync(ms) {
+  settings.syncMs = Math.max(-200, Math.min(500, Math.round(ms / 10) * 10));
+  setExtraDelay(settings.syncMs / 1000);
+  persist();
+  showSync();
+}
+function openSync() {
+  metSettings.close();
+  taps = [];
+  $('sync-status').textContent = '';
+  syncBar.hidden = false;
+  document.querySelector('.met-controls').hidden = true;
+  showSync();
+  if (!metronome?.running) startMetronome();
+}
+function closeSync() {
+  syncBar.hidden = true;
+  document.querySelector('.met-controls').hidden = false;
+}
+$('sync-open').addEventListener('click', openSync);
+$('sync-done').addEventListener('click', closeSync);
+$('sync-down').addEventListener('click', () => setSync(settings.syncMs - 10));
+$('sync-up').addEventListener('click', () => setSync(settings.syncMs + 10));
+const TAPS_NEEDED = 8;
+$('sync-tap').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  if (!metronome?.running) { startMetronome(); return; }
+  const c = metronome.ctx;
+  // When the finger came down, in the scheduling clock.
+  const at = c.currentTime - Math.max(0, performance.now() - e.timeStamp) / 1000;
+  // How long after a click was scheduled the tap came: that's the delay to
+  // the ears (taps come a little late from the screen and a little early from
+  // anticipation, which roughly cancel). Up to a beat, less a little.
+  const p = metronome.period;
+  const recent = metronome.recent.filter((b) => b.time <= at + 0.1);
+  const b = recent[recent.length - 1];
+  if (!b) return;
+  let off = at - b.time;
+  if (off > p - 0.1) off -= p;
+  taps.push(off);
+  if (taps.length <= 2) { $('sync-status').textContent = `Keep tapping… (${taps.length} of ${TAPS_NEEDED})`; return; }
+  const use = taps.slice(2).sort((x, y) => x - y);
+  if (taps.length < TAPS_NEEDED) { $('sync-status').textContent = `Keep tapping… (${taps.length} of ${TAPS_NEEDED})`; return; }
+  const median = use[use.length >> 1];
+  const spread = use[use.length - 1] - use[0];
+  // Already allowed for: the output delay the browser reports.
+  const known = c.currentTime - heardNow() - settings.syncMs / 1000;
+  if (spread > 0.15) {
+    $('sync-status').textContent = 'Those taps were uneven. Try again, tapping right on each click.';
+  } else {
+    setSync((median - known) * 1000);
+    $('sync-status').textContent = `Set to ${settings.syncMs} ms from your taps (the sound takes about ${Math.round(median * 1000)} ms to reach you). Fine-tune with − and + if needed.`;
+  }
+  taps = [];
+});
 
 // ---------------------------------------------------------------- recorder
 
