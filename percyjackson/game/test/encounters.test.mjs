@@ -173,3 +173,23 @@ test('the runtime wires it up: groups seeded per room, traps seal and open, gues
   assert.match(o, /tg: bits\(m\.L\.trapGates/, 'trap doors are in the host snapshot');
   assert.match(e, /L\.kind === 'pack'/);
 });
+test('groups are mixed by role: melee in front, a few ranged, now and then an exploder; swarms are melee or spirits', () => {
+  const R = { pup: 'rusher', harpy: 'ranged', automaton: 'exploder', spider: 'rusher', fury: 'trickster', dracaena: 'tank', ghost: 'caster' };
+  const inf = (k) => ({ ...INFO[k], role: R[k] ?? INFO[k]?.role, ...(k === 'ghost' ? { tier: 'minor', ai: 'ranged' } : {}) });
+  const table = [...TABLE, ['ghost', 1]];
+  let swarms = 0, mixed = 0;
+  for (let s = 1; s <= 300; s++) {
+    const r = mulberry32(s);
+    const plan = roster({ packs: [{ minors: 8, elites: 1 }], scouts: 2, strays: 0, waves: [] }, table, inf, 2, r);
+    const p = plan.packs[0], base = p.members.filter((m) => m.humans <= 1);
+    for (const sc of plan.scouts) assert.ok(['pup', 'spider'].includes(sc.kind), 'scouts are fast rushers');
+    if (p.theme !== 'mixed') { swarms++; const k = p.theme.split(':')[1]; assert.ok(['rusher', 'fodder', 'caster'].includes(R[k]), `a swarm of ${k}`); continue; }
+    mixed++;
+    const roles = base.filter((m) => inf(m.kind).tier === 'minor').map((m) => R[m.kind]);
+    const ranged = roles.filter((x) => x === 'ranged' || x === 'caster').length, boom = roles.filter((x) => x === 'exploder').length;
+    assert.ok(ranged >= 1 && ranged <= 3, `${ranged} ranged`); assert.ok(boom <= 1);
+    assert.ok(roles.length - ranged - boom >= 4, 'the melee is the bulk of it');
+    assert.ok(base.some((m) => m.big), 'an elite');
+  }
+  assert.ok(swarms > 20 && swarms < 100, `${swarms} swarms of 300`);
+});

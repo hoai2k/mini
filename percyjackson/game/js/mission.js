@@ -32,29 +32,12 @@ import { isGuest, sendAct } from './objectives/common.js';
 import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
 import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
 import { bundlesFrom } from './resources.js';
-import { PACK, joinDelay, wokenByHit } from './entities/packRules.js';
+import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
 
 const PRIME = 12;        // a room's monsters are there once a hero is this close to it (metres)
 const TRAP_IN = 3;       // a trap springs once a hero is this far inside the room
 const TRAP_GIVE_UP = 150; // seconds: a trap nobody can finish opens anyway
-
-// A group of monsters (one of a room's packs): the alarm runs through it.
-class Pack {
-  constructor(at) { this.center = at; this.members = []; this.alarmed = false; }
-  // Everyone idle joins the fight, the nearest to `src` first (local: only
-  // those right next to it, for a hit at the edge of the group).
-  alarm(src, { local = false } = {}) {
-    if (this.alarmed && !local) return;
-    if (!local) this.alarmed = true;
-    for (const e of this.members) {
-      if (e === src || e.dead || e.aggro || e.disguised || !e.loiter || e.loiter.joinT != null || e.loiter.alertT != null) continue;
-      const d = e.pos.distanceTo(src.pos);
-      if (local && !wokenByHit(d)) continue;
-      e.loiter.joinT = joinDelay(d, Math.random());
-    }
-  }
-}
 
 const OBJ_TEXT = {
   exorcise: (o) => ['Defeat the Monsters', `${o.done} / ${o.need} monsters defeated`],
@@ -410,7 +393,7 @@ export class Mission {
   // spot if their group hasn't been roused, else coming at the party).
   spawnReserve(room, first = false) {
     const g = this.game, cap = g.gr.preset.enemyCap;
-    let live = g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal).length;
+    let live = this.activeCount();
     if (!first && live > cap - 2) return;
     while (room.reserve.length && live < cap) {
       const { m, pack, disguise } = room.reserve.shift();
@@ -423,8 +406,7 @@ export class Mission {
       room.enemies.push(e);
       e.spawnT = 0; e.facing = Math.random() * Math.PI * 2;
       if (e.disguised || e.def.ai === 'statue') continue;
-      if (pack) pack.members.push(e);
-      e.loiter = { kind: 'pack', area: { x0: room.x0 - 3, z0: room.z0 - 3, x1: room.x1 + 4, z1: room.z1 + 4 }, home: pos.clone(), r: m.role === 'stray' ? PACK.wander * 1.5 : PACK.wander, notice: m.role === 'scout' ? PACK.scoutNotice : PACK.notice, alert: m.role === 'scout' ? PACK.scoutAlert : PACK.alert, perch: false, leash: Infinity, face: pack ? pack.center : null, act: null, actT: Math.random() * 2, alertT: null, calmT: 0, returning: false, to: null, pack, scout: m.role === 'scout', joinT: null };
+      packLoiter(e, { pack, role: m.role, area: { x0: room.x0 - 3, z0: room.z0 - 3, x1: room.x1 + 4, z1: room.z1 + 4 } });
       if (!first && pack?.alarmed) {
         // a latecomer to a fight already on: up out of the ground, straight in
         e.spawnT = 0.5; e.loiter.joinT = 0.3 + Math.random() * 0.8;
@@ -432,11 +414,11 @@ export class Mission {
       }
     }
   }
-  // An idle monster was hit (enemy.js): a scout runs for its group, a group
-  // monster wakes the ones next to it.
-  onPackHit(e) {
-    const L = e.loiter; if (!L?.pack) return;
-    if (L.scout) e.scoutCall?.(); else L.pack.alarm(e, { local: true });
+  // Monsters that count against the cap: those in a fight or near a hero (a
+  // group milling about in a room nobody is in yet costs next to nothing).
+  activeCount() {
+    const g = this.game, hs = g.players.filter((p) => !p.dead);
+    return g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal && (e.aggro || e.isBoss || hs.some((p) => Math.abs(p.pos.x - e.pos.x) < 22 && Math.abs(p.pos.z - e.pos.z) < 22))).length;
   }
   // ---------------------------------------------------------------- traps
   // The doors slam shut behind the party, waves come in from the marked
@@ -506,7 +488,7 @@ export class Mission {
     // room's kill total can always be met).
     const later = [];
     wave.forEach((s, i) => {
-      if (g.enemies.filter((e) => !e.dead && !e.isDummy && !e.def?.mortal).length >= cap) { later.push(s); return; }
+      if (!room.trap && this.activeCount() >= cap) { later.push(s); return; }   // (a trap's waves always come: they are the fight you are shut in with)
       const sp = spots[(i * 7 + room.waveIdx * 3) % spots.length];
       // search from just above the spawn's floor, so nothing lands on a roof
       const pos = this.standAt(sp[0] + (Math.random() - 0.5) * 1.5, sp[1], sp[2] + (Math.random() - 0.5) * 1.5) ?? this.standAt(sp[0], sp[1], sp[2]) ?? new THREE.Vector3(sp[0], sp[1], sp[2]);
@@ -518,6 +500,7 @@ export class Mission {
       const e = g.spawnEnemy(kind, pos, { elite: s.elite, level: this.def.difficulty, disguise: room.trap ? null : disguise });
       if (e) { room.enemies.push(e); if (room.trap) e.aggro = true; if (!e.disguised) g.fx.summonCircle(pos, room.trap ? 0xff3a2a : e.elite ? 0xff9aff : 0xffc84a); } else later.push(s);
     });
+    if (later.length === wave.length) { room.waveIdx--; room.waves[room.waveIdx] = later; room.waveT = 1; return; }   // (nobody came: try again in a moment)
     if (later.length) {
       if (room.waveIdx < room.waves.length) room.waves[room.waveIdx] = [...later, ...room.waves[room.waveIdx]];
       else room.waves.push(later);

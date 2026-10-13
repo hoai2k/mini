@@ -349,6 +349,24 @@ const MODELS = {
   empousa: () => buildEmpousa(),
   scorpion: () => buildScorpion(),
   skeleton: () => buildSkeleton(),
+  spartoi: () => buildSkeleton({ melee: true }),
+  // Telekhine (the sea-demon smiths of Rhodes, Hephaestus's old forge hands):
+  // half dog, half seal, sleek grey-blue hide, flippers for forefeet, and a
+  // pot of Greek fire slung on its back that it lobs at you.
+  telekhine: () => {
+    const rig = new QuadRig({ material: skinMat('telekhine', (S) => paintQuad(S, { base: 0x4e5e6e, dark: 0x2a3440, belly: 0x9aa8b0, back: 0x3a4856, eye: 0xffa01a, eyeLow: 0xff5a10, nose: 0x1a1e24, teeth: 0xf4ecd8, speckles: 60, stripes: 0x34404c })),
+      scale: 1.1, bodyL: 11, bodyW: 6.5, bodyH: 6, legH: 3.6, legW: 2.4, headS: 6, snoutS: 3.6, ears: false, tail: 3, tailLen: 7, tailW: 3.2, tailCurl: 0, neckUp: 3.2, gait: 1.2, jawOpen: 0.2 });
+    const flip = solid(0x2a3440), brass = solid(0xc8902a, 0.3), fire = solid(0xff7a1a, 2.4);
+    for (const leg of rig.legs.slice(0, 2)) prop(rig, leg, 3.6, 0.6, 3, flip, 0, -3.8, 0.8, 0, 0, 0);
+    if (rig.tailTip) prop(rig, rig.tailTip, 5, 0.6, 2.6, flip, 0, 0, -1.2);
+    // the fire pot on its back, strapped on with brass bands
+    prop(rig, rig.torso, 4.2, 3.4, 4.2, brass, 0, 4.4, -1);
+    rig.extras.pot = prop(rig, rig.torso, 3.2, 1.2, 3.2, fire, 0, 6.6, -1);
+    prop(rig, rig.torso, 7, 0.8, 1.2, solid(0x6a4a2a), 0, 3.2, -1);
+    rig.extras.fire = rig.extras.pot;
+    prop(rig, rig.mouth, 1.6, 0.6, 1.6, fire, 0, 0.3, 1.6);   // embers in the jaws
+    return rig;
+  },
   cyclops: () => buildCyclops(),
   gorgon_statue: () => buildStatue(),
   ghost: () => buildGhost(),
@@ -817,10 +835,12 @@ function buildEmpousa() {
 // olive combat helmet with ear pads and goggles, a camo plate carrier with
 // pouches, camo shorts, bare bone arms and shins with knobby joints, tan
 // combat boots and a rifle held across the body.
-function buildSkeleton() {
-  const bone = 0xe0d6bc, boneD = 0xb0a688, olive = 0x4a5a2a, oliveD = 0x2e3a1a, khaki = 0x8a7a50;
-  const CAMO = [olive, oliveD, 0x6a6a3a, 0x3a3020];
-  const mat = skinMat('skeleton', (S) => {
+// melee: a spartoi, the sown skeleton warrior who comes at you with a kopis
+// and a round bronze shield (desert-tan fatigues), instead of the rifleman.
+function buildSkeleton({ melee = false } = {}) {
+  const bone = 0xe0d6bc, boneD = 0xb0a688, olive = melee ? 0x8a7650 : 0x4a5a2a, oliveD = melee ? 0x5e4e32 : 0x2e3a1a, khaki = melee ? 0x5a4a30 : 0x8a7a50;
+  const CAMO = melee ? [olive, oliveD, 0xa08e64, 0x4a3c24] : [olive, oliveD, 0x6a6a3a, 0x3a3020];
+  const mat = skinMat(melee ? 'spartoi' : 'skeleton', (S) => {
     paintPerson(S, { skin: bone, eye: 0x0a0806, eyeWhite: 0x0a0806, brow: boneD, mouth: false, top: olive, sleeve: olive, shortSleeve: true, hand: bone, pants: olive, shoes: khaki,
       face: (s, ey) => {
         s.rect(9, ey - 1, 2, 2, 0x0a0806, 0); s.rect(13, ey - 1, 2, 2, 0x0a0806, 0); s.dot(9.5, ey - 0.5, 0x2a1a10); s.dot(13.5, ey - 0.5, 0x2a1a10);
@@ -868,6 +888,17 @@ function buildSkeleton() {
   for (const x of [-2.8, 0, 2.8]) { K.box(T, x, 5.2, 3, 2.4, 2.8, 1.2, olive); K.box(T, x, 6.5, 3.2, 2.5, 0.6, 1.2, oliveD); }
   for (const sx of [-1, 1]) K.box(T, sx * 2.8, 11.6, 0, 1.8, 0.8, 5.6, oliveD);
   K.box(T, 0, 1.2, 0, 8.6, 1.2, 4.6, 0x3a3020); K.box(T, 0, 1.2, 2.35, 1.4, 1, 0.3, 0x8a8a7a);
+  if (melee) {
+    // a bronze kopis in the right hand, a round shield with a red crest on the left arm
+    const blade = group(rig.handR, 0, -1, 1, -1.2, 0, 0);
+    K.box(blade, 0, 0, 0, 1.2, 1.2, 3, 0x4a3020); K.box(blade, 0, 0, 1.8, 2.6, 0.8, 0.8, 0xc8902a);
+    K.box(blade, 0, 0.2, 5.4, 0.5, 1.6, 7, 0xd8b060); K.box(blade, 0, 0.8, 8.6, 0.5, 1.4, 1.6, 0xd8b060);
+    const sh = group(rig.armL, -0.6, -6, 2.6, 0, -0.35, 0);
+    K.box(sh, 0, 0, 0, 9, 9, 1, 0xb07a2a); K.box(sh, 0, 0, 0.6, 6, 6, 0.4, 0xc8902a); K.box(sh, 0, 0, 0.9, 2, 2, 0.4, 0x8a1a14);
+    K.box(Hd, 0, 11.6 * hk, -0.5, 1.4, 2.4, 9 * hk, 0x9a1a14);   // the crest
+    K.done();
+    return rig;
+  }
   // rifle held across the body
   const gun = group(rig.handR, 0, -1, 2, -1.45, 0, 0);
   const metal = 0x2a2a2c, wood = 0x5a3e24;
@@ -1137,6 +1168,9 @@ function buildScorpion() {
 
 // ---- stat blocks -------------------------------------------------------------
 // ai: melee | ranged | tank | teleport | summon | blob | statue
+// role (what it does in a fight; world/encounters.js mixes groups by it):
+//   rusher (fast melee) | fodder (steady melee) | ranged | caster (homing) |
+//   lobber (arcing shots) | exploder | tank | bruiser | trickster | summoner | ambusher
 // tier: minor | elite | champion | boss
 // aura: 'smoke' | 'fire' | 'greekfire' | 'spark' | 'wisp' | null  (ambient particles)
 // projectile (ranged): 'feather' | 'fire' | 'acid' | 'bullet' | 'wisp'
@@ -1144,24 +1178,28 @@ function buildScorpion() {
 // regrow: true   falls to bones and gets back up unless hit again while down
 // wake: metres   'statue' monsters stand frozen until a hero comes this close
 export const MONSTERS = {
-  pup: { name: 'Hellhound Pup', tier: 'minor', hp: 32, speed: 5, dmg: 7, radius: 0.45, height: 1.1, ai: 'melee', range: 1.5, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.5, voice: 'bark' },
-  rat: { name: 'Sewer Rat', tier: 'minor', hp: 14, speed: 6.4, dmg: 5, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
-  serpent: { name: 'Mist Serpent', tier: 'minor', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
+  pup: { name: 'Hellhound Pup', tier: 'minor', role: 'rusher', hp: 32, speed: 5, dmg: 7, radius: 0.45, height: 1.1, ai: 'melee', range: 1.5, windup: 0.4, cd: 1.1, xp: 3, coins: [1, 3], model: 'pup', pitch: 1.5, voice: 'bark' },
+  rat: { name: 'Sewer Rat', tier: 'minor', role: 'rusher', hp: 14, speed: 6.4, dmg: 5, radius: 0.42, height: 0.85, ai: 'melee', range: 1.1, windup: 0.3, cd: 1.1, xp: 2, coins: [0, 2], model: 'rat', pitch: 2.4, voice: 'squeak', knockResist: 0, idle: 'loiter', notice: 4.5, drop: 3.4 },   // idle 'loiter': hangs around trash until a hero is close (entities/ratRules.js)
+  serpent: { name: 'Mist Serpent', tier: 'minor', role: 'fodder', hp: 40, speed: 4.4, dmg: 8, radius: 0.55, height: 1.3, ai: 'melee', range: 1.9, windup: 0.5, cd: 1.3, xp: 4, coins: [1, 3], model: 'serpent', pitch: 0.9, voice: 'hiss', knockResist: 0.2, poison: { dps: 2, dur: 3 } },
   // a real mortal in the Mist (entities/mistPeople.js): always looks like a person, never fights, can't be hurt
-  mortal: { name: 'Mortal', tier: 'minor', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
-  spider: { name: 'Bronze Spider', tier: 'minor', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
-  harpy: { name: 'Wild Harpy', tier: 'minor', hp: 40, speed: 3.8, dmg: 8, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.55, cd: 2.1, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', voice: 'screech' },
-  stymphalian: { name: 'Stymphalian Bird', tier: 'minor', hp: 34, speed: 4.4, dmg: 7, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.5, cd: 2.3, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', voice: 'screech' },
-  automaton: { name: 'Greek-Fire Automaton', tier: 'minor', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
-  ghost: { name: 'Restless Spirit', tier: 'minor', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.6, cd: 2.2, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
-  fury: { name: 'Fury', tier: 'elite', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
-  dracaena: { name: 'Dracaena', tier: 'elite', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
-  hellhound: { name: 'Hellhound', tier: 'elite', hp: 220, speed: 3.6, dmg: 20, radius: 1.1, height: 2.6, ai: 'melee', range: 2.6, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
-  empousa: { name: 'Empousa', tier: 'elite', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
-  scorpion: { name: 'Pit Scorpion', tier: 'elite', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a },
-  skeleton: { name: 'Skeleton Warrior', tier: 'elite', hp: 110, speed: 3, dmg: 15, radius: 0.45, height: 2, ai: 'ranged', range: 12, keep: 7, windup: 0.6, cd: 1.9, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', voice: 'rattle', regrow: true },
-  gorgon_statue: { name: 'Living Statue', tier: 'elite', hp: 150, speed: 2.6, dmg: 16, radius: 0.5, height: 2.1, ai: 'statue', range: 2.2, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
-  cyclops: { name: 'Cyclops', tier: 'champion', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
+  mortal: { name: 'Mortal', tier: 'minor', role: 'none', hp: 100, speed: 1.4, dmg: 0, radius: 0.38, height: 1.9, ai: 'none', range: 0, windup: 1, cd: 1, xp: 0, coins: [0, 0], model: 'pup', mortal: true },
+  spider: { name: 'Bronze Spider', tier: 'minor', role: 'rusher', hp: 20, speed: 5.8, dmg: 5, radius: 0.38, height: 0.8, ai: 'melee', range: 1.3, windup: 0.35, cd: 1, xp: 2, coins: [0, 2], model: 'spider', pitch: 2.2, voice: 'click', aura: 'spark' },
+  harpy: { name: 'Wild Harpy', tier: 'minor', role: 'ranged', hp: 40, speed: 3.8, dmg: 8, radius: 0.4, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.55, cd: 2.1, xp: 5, coins: [2, 4], model: 'harpy', pitch: 1.3, projectile: 'feather', voice: 'screech' },
+  stymphalian: { name: 'Stymphalian Bird', tier: 'minor', role: 'ranged', hp: 34, speed: 4.4, dmg: 7, radius: 0.45, height: 1.7, ai: 'ranged', range: 11, keep: 7, windup: 0.5, cd: 2.3, xp: 4, coins: [1, 4], model: 'stymphalian', pitch: 1.7, projectile: 'feather', voice: 'screech' },
+  automaton: { name: 'Greek-Fire Automaton', tier: 'minor', role: 'exploder', hp: 30, speed: 3.9, dmg: 16, radius: 0.55, height: 1.1, ai: 'blob', range: 1.8, windup: 0.9, cd: 0, xp: 4, coins: [1, 4], model: 'automaton', pitch: 1.8, aura: 'greekfire', blast: 0x6aff3a },
+  ghost: { name: 'Restless Spirit', tier: 'minor', role: 'caster', hp: 38, speed: 3.2, dmg: 8, radius: 0.45, height: 2, ai: 'ranged', range: 10, keep: 6.5, windup: 0.6, cd: 2.2, xp: 4, coins: [1, 3], model: 'ghost', pitch: 0.9, projectile: 'wisp', voice: 'moan', aura: 'wisp', knockResist: 0.2 },
+  fury: { name: 'Fury', tier: 'elite', role: 'trickster', hp: 95, speed: 3.8, dmg: 13, radius: 0.45, height: 2.1, ai: 'teleport', range: 2.2, windup: 0.45, cd: 1.6, xp: 10, coins: [4, 7], model: 'fury', pitch: 1.1, puff: 0x3a2a24, slashColor: 0xff8a2a, voice: 'screech' },
+  dracaena: { name: 'Dracaena', tier: 'elite', role: 'tank', hp: 190, speed: 2.4, dmg: 18, radius: 0.8, height: 2.6, ai: 'tank', range: 2.6, windup: 0.85, cd: 2.2, xp: 12, coins: [5, 9], model: 'dracaena', armor: 0.25, shield: true, knockResist: 0.75, pitch: 0.8, voice: 'hiss' },
+  hellhound: { name: 'Hellhound', tier: 'elite', role: 'bruiser', hp: 220, speed: 3.6, dmg: 20, radius: 1.1, height: 2.6, ai: 'melee', range: 2.6, windup: 0.7, cd: 1.8, xp: 14, coins: [6, 10], model: 'hellhound', knockResist: 0.7, superArmor: true, pitch: 0.5, aura: 'smoke', voice: 'bark' },
+  empousa: { name: 'Empousa', tier: 'elite', role: 'summoner', hp: 160, speed: 2.6, dmg: 10, radius: 0.5, height: 2.3, ai: 'summon', range: 9, keep: 8, windup: 1.0, cd: 5, xp: 16, coins: [8, 14], model: 'empousa', knockResist: 0.4, pitch: 1.2, summons: 'pup', aura: 'fire', projectile: 'fire', voice: 'screech' },
+  scorpion: { name: 'Pit Scorpion', tier: 'elite', role: 'bruiser', hp: 140, speed: 3.4, dmg: 12, radius: 0.8, height: 1.3, ai: 'melee', range: 2.2, windup: 0.55, cd: 1.5, xp: 10, coins: [4, 8], model: 'scorpion', armor: 0.2, knockResist: 0.5, pitch: 1.4, voice: 'click', poison: { dps: 4, dur: 4 }, slashColor: 0x9aff3a },
+  skeleton: { name: 'Skeleton Warrior', tier: 'elite', role: 'ranged', hp: 110, speed: 3, dmg: 15, radius: 0.45, height: 2, ai: 'ranged', range: 12, keep: 7, windup: 0.6, cd: 1.9, xp: 9, coins: [3, 7], model: 'skeleton', pitch: 1.1, projectile: 'bullet', voice: 'rattle', regrow: true },
+  // a spartoi: the steady melee fodder of the sown skeleton army (beach, underworld, desert)
+  spartoi: { name: 'Spartoi', tier: 'minor', role: 'fodder', hp: 52, speed: 3.3, dmg: 9, radius: 0.45, height: 2, ai: 'melee', range: 1.8, windup: 0.5, cd: 1.4, xp: 4, coins: [1, 3], model: 'spartoi', pitch: 1.2, voice: 'rattle', knockResist: 0.2 },
+  // a telekhine: lobs Greek fire in an arc (a marked spot that burns a moment): keep moving
+  telekhine: { name: 'Telekhine', tier: 'minor', role: 'lobber', hp: 38, speed: 3, dmg: 11, radius: 0.55, height: 1.3, ai: 'ranged', range: 12, keep: 8, windup: 0.9, cd: 3.2, xp: 5, coins: [1, 4], model: 'telekhine', pitch: 0.9, projectile: 'fire', lob: true, voice: 'bark', aura: 'greekfire' },
+  gorgon_statue: { name: 'Living Statue', tier: 'elite', role: 'ambusher', hp: 150, speed: 2.6, dmg: 16, radius: 0.5, height: 2.1, ai: 'statue', range: 2.2, windup: 0.7, cd: 1.6, xp: 9, coins: [3, 6], model: 'gorgon_statue', armor: 0.35, knockResist: 0.6, pitch: 0.7, voice: 'grind', wake: 5 },
+  cyclops: { name: 'Cyclops', tier: 'champion', role: 'bruiser', hp: 620, speed: 2.3, dmg: 28, radius: 1.2, height: 4.2, ai: 'tank', range: 3.2, windup: 1.0, cd: 2.4, xp: 40, coins: [15, 25], model: 'cyclops', knockResist: 0.9, superArmor: true, pitch: 0.45, voice: 'roar', slamR: 3.6 },
 };
 // Old Cursed Dungeons kinds still requested by shared code (wave spawner,
 // level tables) map onto the Greek bestiary.

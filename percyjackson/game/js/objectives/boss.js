@@ -1,7 +1,12 @@
 // Straight to the boss (chapters 11 and 12). The heroes start in the room
 // just before the arena: one fight on the approach (its strays, or a group if
-// the level put one there), then the gate is open and the boss waits inside.
-import { roomSpot, seeded } from './common.js';
+// the level put one there), then the gate opens and the boss waits inside.
+// The gate stays shut while the approach's monsters are up (so they don't
+// pile into the boss fight behind you); it opens anyway after a while.
+import { roomSpot, seeded, isGuest } from './common.js';
+import { toast } from '../ui/ui.js';
+
+const GIVE_UP = 75;   // seconds: the gate opens even if a monster is out of reach
 
 export class BossObjective {
   constructor(m) { this.m = m; this.g = m.game; this.approach = true; }
@@ -16,6 +21,19 @@ export class BossObjective {
     g.minimap.reveal(room);
     m.obj.need = 0; m.obj.done = 0;
     m.objDone = true; g.objectiveDone = true;
-    for (const gate of L.gates) m.openGate(gate);
+    this.room = room; this.t = 0;
   }
+  get open() { return this.m.L.gates.every((gt) => gt.open); }
+  update(dt) {
+    const m = this.m, room = this.room;
+    if (this.open || isGuest(m)) return;
+    this.t += dt;
+    const left = (room.enemies ?? []).filter((e) => !e.dead && !e.disguised).length + (room.reserve?.length ?? 0) + Math.max(0, (room.waves?.length ?? 0) - (room.waveIdx ?? 0));
+    if ((room.primed || !(room.packs?.length || room.loose?.length)) && left <= 1 || this.t > GIVE_UP) {
+      for (const gate of m.L.gates) m.openGate(gate);
+      toast('The way to the arena opens', 'big'); this.g.audio?.gong?.();
+      m.updateText();
+    }
+  }
+  text() { return this.open ? null : [this.m.def.objText ?? 'Face the Monster', 'Clear the way to the arena']; }
 }

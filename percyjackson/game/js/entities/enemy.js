@@ -200,7 +200,8 @@ export class Enemy {
     const wasIdle = !this.aggro;
     this.aggro = true;
     if (this.loiter) { this.loiter.alertT = null; this.loiter.joinT = null; this.loiter.returning = false; this.loiter.calmT = 0; }
-    if (wasIdle && this.loiter?.pack) this.game.mission?.onPackHit?.(this);
+    // an idle group monster hit: a scout runs for its group, the rest wake the ones next to them
+    if (wasIdle && this.loiter?.pack) { if (this.loiter.scout) this.scoutCall(); else this.loiter.pack.alarm(this, { local: true }); }
     if (src && src.isPlayer && !this.target && !src.invisible) this.target = src;
     if (o.knock) {
       const k = o.knock.clone().multiplyScalar(1 - (this.def.knockResist ?? 0) * (o.blocked ? 1 : 0.8));
@@ -860,7 +861,9 @@ export class Enemy {
           g.audio?.tone({ freq: 500, to: 800, dur: 0.3, gain: 0.05, type: 'sine', rev: 0.6 });
           break;
         }
-        const flight = clamp(dist / 11, 0.45, 1.1);
+        const flight = clamp(dist / 11, this.def.lob ? 0.8 : 0.45, this.def.lob ? 1.3 : 1.1);
+        // a lobber's shot is marked where it will land: time to step out
+        if (this.def.lob) { const gy = g.world.groundBelow(lead.x, lead.z, lead.y + 2); g.markers.spawn({ pos: new THREE.Vector3(lead.x, isFinite(gy) ? gy : lead.y, lead.z), radius: 1.5, dur: flight }); }
         const grav = 14;
         const vel = new THREE.Vector3((lead.x - from.x) / flight, (lead.y + 0.8 - from.y) / flight + 0.5 * grav * flight, (lead.z - from.z) / flight);
         const col = this.def.projectile === 'fire' ? 0xff7a1a : 0x9aff3a;

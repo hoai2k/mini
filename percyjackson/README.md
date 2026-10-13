@@ -55,7 +55,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   up out of sight in the camp woods and along the Road West (pups, bronze
   spiders, Stymphalian birds, scorpions on the far road), never inside the
   cabins, the Big House or the forge (a monster that strays there turns
-  back), and not during minigames or cutscenes.
+  back), and not during minigames or cutscenes. Each is a little group with
+  one posted a few metres toward you as a scout, which sees you first and runs
+  back to raise the others.
 - **Camp Half-Blood** is the home base, with Half-Blood Hill, the Big House,
   the twelve cabins, the forge, the store, the archery range and the lava
   climbing wall.
@@ -123,6 +125,36 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     they can be fought, and they stay revealed. Real mortals stay people,
     with a soft calm outline. A monster you killed is gone: that "person"
     isn't there when you come back, and Continue keeps it so.
+- **Battles, as in Minecraft Dungeons:** the monsters are already there when
+  you come near a room, in big groups milling about in the open, with a scout
+  or two posted toward the way you come in. You meet a couple first, then more
+  and more as the alarm runs through the group (the nearest join first); pick
+  the scouts off at range before they run back and you can take a group a few
+  at a time, or charge in and take it all at once. Companions leave a group
+  milling about to you unless it's right by them.
+  - The rooms you fight in are large and open: combat rooms fill their part of
+    the map, one on the way to the boss is a battleground two rooms long, with
+    boulders, columns or stubs of wall to fight round. Each chapter goes: a
+    group, the big battleground (more groups further on, on harder settings),
+    and a quieter room with a few strays before the boss, with groups growing
+    along the way. Side rooms hold a smaller group guarding a chest.
+  - Traps: now and then (none to two a chapter) a small side room slams its
+    gates shut behind you ("It's a trap!"), and waves come in from marked
+    points until they're beaten; then the gates open. Fall there and you're
+    back on your feet inside, to finish it.
+  - Groups are mixed by what monsters do: a clump of melee monsters (the
+    board's commonest kind at the core), two or three that shoot or lob from
+    the back, now and then a Greek-fire automaton, and an elite (a dracaena,
+    a Fury, a hellhound…) in the middle; sometimes a swarm of one kind (all
+    bronze spiders, a ghost swarm). Bigger on harder settings, later in the
+    chapter, and with more players. Every board has its own signature monsters
+    (Mist serpents and Furies in the museum, living statues in Aunty Em's
+    garden, bronze spiders and telekhines at Waterland, scorpions in the
+    desert, spirits and spartoi in the Underworld, Stymphalian birds and a rare
+    cyclops on Olympus).
+  - Spartoi (sword-and-shield skeleton warriors) and telekhines (seal-dog
+    smiths that lob Greek fire at a marked spot) fill the melee and artillery
+    parts of the boards that lacked them.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes.
 - **Healing and ammo, as in Minecraft Dungeons:**
@@ -294,6 +326,7 @@ across every screen.
 | `game/js/heroes/` | The hero kits |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
+| `game/js/world/encounters.js`, `game/js/entities/packRules.js` | The battle cadence: each room's part (group, battleground, strays, breather, guard, trap), group sizes and role mix, where groups and scouts stand; how a group notices you and joins in |
 | `game/js/story/` | Books and chapters, chapter start places in camp, the opening (`opening.js` steps, `openingFlow.js`), cutscenes (`cutscene.js` player, `cutscenes.js` the three of the opening) |
 | `game/js/world/manhattan.js`, `cutsceneSets.js`, `vehicles.js`, `roaming.js`, `roamZones.js` | The Manhattan prologue, the cutscene sets (Central Park West and the museum, Montauk), the bus and cars, roaming monsters and where they may go |
 | `game/js/ui/tracker.js` | Where to go: the goal line, the edge arrow, the beam and the footprints |
@@ -309,7 +342,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

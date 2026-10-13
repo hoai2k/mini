@@ -17,6 +17,7 @@ import { standY } from '../ui/tracker.js';
 import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, spawnAllowed } from './roamZones.js';
 import { RAT, pickDasher, beatAt } from '../entities/ratRules.js';
 import { lineOfSight } from '../entities/enemy.js';
+import { Pack, packLoiter } from '../entities/packRules.js';
 
 const rand = ([a, b]) => a + Math.random() * (b - a);
 
@@ -130,14 +131,20 @@ export class Roaming {
       const area = CAMP_ROAM.find((a) => inRect(a.area, x, z));
       const kind = pickKind(area.kinds, Math.random());
       const { count, level } = packFor(chapters, kind, Math.random());
+      // a little group milling about, with one posted a few metres toward the
+      // hero as a scout (entities/packRules.js): it sees you first and runs back
       let made = 0;
+      const pack = new Pack(new THREE.Vector3(x, y, z));
+      const toH = tmp.set(h.pos.x - x, 0, h.pos.z - z); const hd = toH.length(); if (hd > 0.01) toH.multiplyScalar(1 / hd);
       for (let i = 0; i < count; i++) {
-        const px = x + (Math.random() - 0.5) * 3, pz = z + (Math.random() - 0.5) * 3;
+        const scout = i === 0 && count >= 3;
+        const px = scout ? x + toH.x * 6 + (Math.random() - 0.5) * 2 : x + (Math.random() - 0.5) * 3, pz = scout ? z + toH.z * 6 + (Math.random() - 0.5) * 2 : z + (Math.random() - 0.5) * 3;
         const py = standY(g.world, Math.floor(px), Math.floor(pz));
-        if (py == null || Math.abs(py - y) > 1.5) continue;
+        if (py == null || Math.abs(py - y) > 1.5 || !spawnAllowed(px, pz, pts)) continue;
         const e = g.spawnEnemy(kind, new THREE.Vector3(px, py, pz), { level });
         if (!e) continue;
         e.roamer = true; e.spawnT = 0.5;
+        if (e.def.ai !== 'statue') packLoiter(e, { pack, role: scout ? 'scout' : 'pack' });
         this.list.push(e); made++;
       }
       return made;

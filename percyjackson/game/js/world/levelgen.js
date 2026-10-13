@@ -19,7 +19,7 @@ import { LightShafts } from './shafts.js';
 import { TEMPLATES, BIOME_ROOMS, OPEN_ROOMS, DRESS, NO_SPAWN, boulder, column } from './rooms.js';
 import { BIOMES } from './biomes.js';
 import { MONSTERS } from '../entities/monsters.js';
-import { ENC, NONE, planRoles, budget, roster, place, killNeed } from './encounters.js';
+import { ENC, NONE, planRoles, budget, roster, place, killNeed, walkDist } from './encounters.js';
 import { mulberry32 } from '../util.js';
 
 const CELL = 26;
@@ -32,20 +32,24 @@ export const ENEMY_TABLES = {
   cursed_forest: [['pup', 4], ['harpy', 3], ['automaton', 1], ['dracaena', 0.8], ['fury', 0.6], ['empousa', 1]],
   flooded_subway: [['pup', 4], ['harpy', 1.5], ['automaton', 2.5], ['dracaena', 1.5], ['fury', 1.2], ['empousa', 0.5]],
   shibuya: [['pup', 4], ['harpy', 2], ['automaton', 2], ['dracaena', 1.5], ['fury', 1.5], ['empousa', 1]],
-  // Half-Blood Quests
-  museum: [['pup', 5], ['harpy', 2.5], ['fury', 1.5], ['dracaena', 0.8], ['empousa', 0.3]],
-  storm_hill: [['pup', 5], ['automaton', 2], ['harpy', 2], ['hellhound', 0.6]],
-  camp_woods: [['pup', 4], ['spider', 3], ['dracaena', 1.5], ['hellhound', 1]],
+  // Half-Blood Quests. Each board has its signature monsters (the first one
+  // or two, and the elite marked *) and mixes the roles round them: fast
+  // rushers, steady melee, ranged, an exploder or lobber, a tank or bruiser,
+  // now and then a caster or summoner (monsters.js `role`; groups are mixed
+  // by role in world/encounters.js).
+  museum: [['serpent', 3], ['pup', 2.5], ['harpy', 2], ['spider', 1.2], ['ghost', 1], ['automaton', 0.6], ['fury', 1.4] /* * */, ['dracaena', 0.6], ['empousa', 0.25]],
+  storm_hill: [['pup', 4.5], ['harpy', 2.5], ['automaton', 1.5], ['spider', 1], ['hellhound', 0.8] /* * */, ['dracaena', 0.4], ['fury', 0.3]],
+  camp_woods: [['spider', 3.5], ['pup', 3], ['serpent', 1], ['harpy', 1], ['automaton', 0.5], ['dracaena', 1.2] /* * */, ['hellhound', 0.8]],
   // the road west (chapters 4-12)
-  highway: [['harpy', 3.5], ['pup', 3], ['fury', 1.6], ['stymphalian', 1.2], ['automaton', 0.8]],
-  statue_garden: [['gorgon_statue', 2.6], ['pup', 2.5], ['dracaena', 1.4], ['harpy', 1.2], ['empousa', 0.3]],
-  arch: [['pup', 3.5], ['stymphalian', 2], ['hellhound', 1], ['automaton', 1.5], ['harpy', 1]],
-  waterland: [['spider', 6], ['automaton', 2.5], ['pup', 1.2]],
-  casino: [['empousa', 1.2], ['pup', 3], ['automaton', 1.5], ['harpy', 1.2], ['dracaena', 0.8]],
-  desert: [['scorpion', 2.4], ['pup', 3], ['stymphalian', 1.6], ['harpy', 1.2], ['dracaena', 0.8]],
-  underworld: [['ghost', 3], ['skeleton', 2.4], ['pup', 2.4], ['hellhound', 1.2], ['fury', 0.8]],
-  beach: [['harpy', 2.5], ['pup', 3], ['skeleton', 1.4], ['hellhound', 1], ['fury', 1]],
-  olympus: [['automaton', 2.5], ['stymphalian', 2], ['scorpion', 1.6], ['dracaena', 1], ['empousa', 0.5]],
+  highway: [['harpy', 3.5], ['pup', 2.5], ['stymphalian', 1], ['automaton', 1], ['serpent', 0.6], ['fury', 1.8] /* * */, ['dracaena', 0.5]],
+  statue_garden: [['serpent', 3], ['pup', 2], ['harpy', 1.2], ['automaton', 0.6], ['gorgon_statue', 2.4] /* * */, ['dracaena', 1], ['empousa', 0.25]],
+  arch: [['pup', 3.5], ['stymphalian', 2], ['telekhine', 1.2], ['automaton', 1], ['harpy', 0.6], ['hellhound', 1.2] /* * */, ['dracaena', 0.5], ['empousa', 0.3], ['cyclops', 0.15]],
+  waterland: [['spider', 6], ['automaton', 2.2], ['telekhine', 1.6], ['pup', 0.6], ['cyclops', 0.35] /* * */, ['scorpion', 0.4]],
+  casino: [['pup', 2], ['automaton', 1.2], ['harpy', 1], ['serpent', 1], ['spider', 0.6], ['ghost', 0.4], ['empousa', 1.4] /* * */, ['fury', 0.6], ['dracaena', 0.6]],
+  desert: [['pup', 2.5], ['stymphalian', 1.6], ['spartoi', 1.4], ['harpy', 0.8], ['automaton', 0.6], ['scorpion', 2.4] /* * */, ['skeleton', 0.6], ['dracaena', 0.5], ['fury', 0.3]],
+  underworld: [['ghost', 3], ['spartoi', 2.6], ['pup', 1.4], ['automaton', 0.4], ['skeleton', 1.4] /* * */, ['hellhound', 1.2], ['fury', 0.8]],
+  beach: [['spartoi', 3.2], ['harpy', 2], ['pup', 1.6], ['telekhine', 1], ['automaton', 0.5], ['skeleton', 1.6] /* * */, ['hellhound', 0.7], ['fury', 0.4]],
+  olympus: [['stymphalian', 2.6], ['automaton', 2], ['telekhine', 1.4], ['spider', 1], ['pup', 0.6], ['cyclops', 0.5] /* * */, ['dracaena', 1], ['scorpion', 0.5], ['empousa', 0.4]],
 };
 
 export function generateLevel(mission) {
@@ -161,7 +165,7 @@ export function generateLevel(mission) {
     else {
       // the open-field fights get the open templates; a trap the tighter ones
       const open = OPEN_ROOMS[mission.biome] ?? pool;
-      const list = room.role === 'pack' || room.role === 'arena' || room.role === 'strays' ? open : room.role === 'trap' ? (pool.filter((x) => !open.includes(x)).length ? pool.filter((x) => !open.includes(x)) : pool) : pool;
+      const list = room.role === 'pack' || room.role === 'arena' || room.role === 'strays' || room.role === 'breather' ? open : room.role === 'trap' ? (pool.filter((x) => !open.includes(x)).length ? pool.filter((x) => !open.includes(x)) : pool) : pool;
       let t = list[Math.floor(r() * list.length)];
       if (room.type === 'secret') t = 'hall';
       TEMPLATES[t](c);
@@ -195,6 +199,14 @@ export function generateLevel(mission) {
       gate.trap = true; room.trap.gates.push(trapGates.length); trapGates.push(gate);
     }
   }
+  // each room's floor (world/encounters.js): spawn points for chests and
+  // objectives only where you can walk to from the door, at floor height
+  for (const room of rooms) {
+    if (room.type === 'start' || room.type === 'boss') continue;
+    const grid = room.grid = roomGrid(k.w, room), dist = walkDist(grid);
+    const good = room.spawns.filter(([x, y, z]) => { const i = (Math.floor(z) - room.z0) * grid.W + (Math.floor(x) - room.x0); return dist[i] >= 0 && grid.ok[i] && Math.abs(grid.H[i] - room.y) <= 1 && Math.abs(grid.H[i] - y) <= 1; });
+    if (good.length) room.spawns = good;
+  }
   // ---------------------------------------------------------------- objectives & props
   const objRooms0 = rooms.filter((q) => (q.type === 'combat' || q.type === 'side') && q.role !== 'trap' && q.role !== 'breather');
   const objRooms = objRooms0.length ? objRooms0 : rooms.filter((q) => q.type === 'combat' || q.type === 'side');
@@ -220,15 +232,16 @@ export function generateLevel(mission) {
   for (const room of rooms) {
     room.waves = []; room.packs = []; room.loose = [];
     if (room.type === 'start' || room.type === 'boss') continue;
-    const grid = roomGrid(k.w, room);
+    const grid = room.grid;
     const area = grid.H.reduce((a, h) => a + (h !== NONE ? 1 : 0), 0);
-    const plan = roster(budget(room.role ?? 'strays', { diff, t: room.pathT ?? 0.5, area }, r), table, info, diff, r);
+    const plan = roster(budget(room.role ?? 'strays', { diff, t: room.pathT ?? 0.5, area }, r), table, info, diff, r, { champion: diff >= 2 && room.role === 'arena' });
     const spots = place(grid, plan, r);
     const W = (p) => [room.x0 + p[0] + 0.5, p[2], room.z0 + p[1] + 0.5];
-    room.packs = spots.packs.map((p) => ({ at: W(p.at), members: p.members.map((m) => ({ ...m, at: W(m.at) })) }));
+    room.packs = spots.packs.map((p, i) => ({ at: W(p.at), theme: plan.packs[i]?.theme, members: p.members.map((m) => ({ ...m, at: W(m.at) })) }));
     room.loose = spots.loose.map((m) => ({ ...m, at: W(m.at) }));
     room.waves = plan.waves;
     if (room.trap) room.trap.points = spots.points.map(W);
+    delete room.grid;
     // what one player meets here (traps are a detour; the kill objective doesn't count on them)
     if (room.role !== 'trap') totalEnemies += room.loose.length + room.packs.reduce((a, p) => a + p.members.filter((m) => m.humans <= 1).length, 0);
   }
@@ -290,7 +303,8 @@ function cover(c, n) {
     else { const along = r() < 0.5; for (let t = -1; t <= 1; t++) for (let h = 0; h < (t === 0 ? 2 : 1 + Math.floor(r() * 2)); h++) k.w.set(along ? x + t : x, y + h, along ? z : z + t, h === 0 && b.wall2 ? b.wall2 : b.wall); }
     placed.push([x, z]);
   }
-  for (const [x, z] of placed) c.spawns = c.spawns.filter(([sx, , sz]) => Math.hypot(sx - x - 0.5, sz - z - 0.5) > 1.6);
+  // (spawn points, chests and objectives never end up on or in a piece of cover)
+  for (const [x, z] of placed) c.spawns = c.spawns.filter(([sx, , sz]) => Math.max(Math.abs(sx - x - 0.5), Math.abs(sz - z - 0.5)) > 3.2);
 }
 
 // The doorway and the first cells inside it: always open (a prop or a wall a

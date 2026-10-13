@@ -89,33 +89,64 @@ export function budget(role, { diff = 1, t = 0.5, area = 400 } = {}, r = Math.ra
   }
 }
 
-// The monsters themselves. table: [[kind, weight]]; info(kind) -> { tier,
-// speed, ai }. Each member: { kind, elite (affix or null), role: 'pack' |
-// 'scout' | 'stray', humans: players needed for it to come (1-4) }.
+// The monsters themselves. table: [[kind, weight]] (the board's roster);
+// info(kind) -> { tier, role, speed, ai }. Groups are mixed by role, as in
+// Minecraft Dungeons: a clump of melee (the board's commonest kind at its
+// core), a few ranged monsters behind, now and then an exploder, and an elite
+// bruiser or tank in the middle; sometimes a themed swarm of one kind (all
+// spiders, a ghost swarm). A champion (a cyclops) only in a battleground from
+// Demigod up (opts.champion). Scouts are fast rushers.
+// Each member: { kind, elite (affix or null), role: 'pack' | 'scout' |
+// 'stray', humans: players needed for it to come (1-4), ranged, big }.
 const AFFIXES = ['swift', 'armored', 'vampiric', 'explosive', 'shadow'];
-export function roster(plan, table, info, diff, r) {
-  const minorT = table.filter(([k]) => info(k)?.tier === 'minor');
-  const eliteT = table.filter(([k]) => { const t = info(k)?.tier; return t === 'elite' || t === 'champion'; });
-  const ranged = (k) => info(k)?.ai === 'ranged' || info(k)?.ai === 'summon';
-  const big = (k) => info(k)?.tier === 'elite' || info(k)?.tier === 'champion';
+export const MELEE_ROLES = ['rusher', 'fodder'], RANGED_ROLES = ['ranged', 'caster', 'lobber'];
+export function roleOf(info, k) { const d = info(k); return d?.role ?? (d?.ai === 'ranged' || d?.ai === 'summon' ? 'ranged' : d?.ai === 'blob' ? 'exploder' : 'fodder'); }
+export function roster(plan, table, info, diff, r, opts = {}) {
+  const tierOf = (k) => info(k)?.tier;
+  const minorT = table.filter(([k]) => tierOf(k) === 'minor');
+  const eliteT = table.filter(([k]) => tierOf(k) === 'elite' || (opts.champion && tierOf(k) === 'champion'));
   const pick = (T) => { const tw = T.reduce((a, b) => a + b[1], 0); let x = r() * tw; for (const [k, w] of T) { x -= w; if (x <= 0) return k; } return T[0][0]; };
   const minors = minorT.length ? minorT : table;
+  const by = (roles) => minors.filter(([k]) => roles.includes(roleOf(info, k)));
+  const meleeT = by(MELEE_ROLES), rangedT = by(RANGED_ROLES), boomT = by(['exploder']);
   const fast = minors.filter(([k]) => (info(k)?.speed ?? 0) >= 4.5 && info(k)?.ai === 'melee');
   const affix = () => AFFIXES[Math.floor(r() * AFFIXES.length)];
+  const ranged = (k) => RANGED_ROLES.includes(roleOf(info, k)) || info(k)?.ai === 'summon';
+  const big = (k) => tierOf(k) === 'elite' || tierOf(k) === 'champion';
   // how many humans it takes for the i-th of n (counted for one human) to come
   const needs = (n) => { const out = []; for (let h = 1; h <= 4; h++) { const k = Math.round(n * ENC.party(h)); while (out.length < k) out.push(h); } return out; };
+  // the minor monsters of one group, n of them, mixed by role
+  const mix = (n, core, swarm) => {
+    if (swarm) return Array.from({ length: n }, () => swarm);
+    const nR = rangedT.length ? Math.max(1, Math.min(3, Math.round(n * 0.25))) : 0;
+    const nX = boomT.length && (n >= 8 || r() < 0.4) ? 1 : 0;
+    const out = [];
+    for (let i = 0; i < nR; i++) out.push(pick(rangedT));
+    for (let i = 0; i < nX; i++) out.push(pick(boomT));
+    while (out.length < n) out.push(meleeT.length ? (r() < 0.6 ? core : pick(meleeT)) : pick(minors));
+    return out;
+  };
   const packs = plan.packs.map((p) => {
-    const core = pick(minors);
-    const members = [];
-    needs(p.minors).forEach((h) => members.push({ kind: r() < 0.55 ? core : pick(minors), elite: r() < 0.03 * diff ? affix() : null, role: 'pack', humans: h }));
-    for (let i = 0; i < p.elites; i++) members.push(eliteT.length ? { kind: pick(eliteT), elite: diff >= 4 && r() < 0.3 ? affix() : null, role: 'pack', humans: i === 0 ? 1 : 2 } : { kind: core, elite: affix(), role: 'pack', humans: 1 });
-    return { members };
+    const core = meleeT.length ? pick(meleeT) : pick(minors);
+    // a themed swarm: melee monsters or spirits (never a pack of nothing but shooters or bombs)
+    const swarmT = minors.filter(([k]) => ['rusher', 'fodder', 'caster'].includes(roleOf(info, k)));
+    const swarm = p.minors >= 6 && swarmT.length && r() < 0.18 ? pick(swarmT) : null;
+    const hs = needs(p.minors);
+    const base = mix(p.minors, core, swarm), extra = mix(hs.length - p.minors, core, swarm);
+    const members = [...base, ...extra].map((kind, i) => ({ kind, elite: r() < 0.03 * diff ? affix() : null, role: 'pack', humans: hs[i] }));
+    let champ = false;
+    for (let i = 0; i < p.elites && !champ; i++) {
+      if (swarm || !eliteT.length) { members.push({ kind: swarm ?? core, elite: affix(), role: 'pack', humans: i === 0 ? 1 : 2 }); continue; }
+      const kind = pick(eliteT); champ = tierOf(kind) === 'champion';
+      members.push({ kind, elite: diff >= 4 && r() < 0.3 ? affix() : null, role: 'pack', humans: i === 0 ? 1 : 2 });
+    }
+    return { members, theme: swarm ? 'swarm:' + swarm : 'mixed' };
   });
   const scouts = [];
   for (let i = 0; i < plan.scouts; i++) scouts.push({ kind: fast.length ? pick(fast) : pick(minors), elite: null, role: 'scout', humans: 1 });
   const strays = [];
   for (let i = 0; i < plan.strays; i++) strays.push({ kind: pick(minors), elite: null, role: 'stray', humans: 1 });
-  const waves = plan.waves.map((n, wi) => Array.from({ length: n }, (_, i) => ({ kind: i === 0 && wi === plan.waves.length - 1 && eliteT.length ? pick(eliteT) : pick(minors), elite: r() < 0.06 + 0.03 * diff ? affix() : null })));
+  const waves = plan.waves.map((n, wi) => mix(n, meleeT.length ? pick(meleeT) : pick(minors), null).map((kind, i) => ({ kind: i === 0 && wi === plan.waves.length - 1 && eliteT.length ? pick(eliteT.filter(([k]) => tierOf(k) !== 'champion').length ? eliteT.filter(([k]) => tierOf(k) !== 'champion') : eliteT) : kind, elite: r() < 0.06 + 0.03 * diff ? affix() : null })));
   for (const m of [...packs.flatMap((p) => p.members), ...scouts, ...strays]) { m.ranged = ranged(m.kind); m.big = big(m.kind) || !!m.elite; }
   return { packs, scouts, strays, waves };
 }
