@@ -656,7 +656,8 @@ function actWon() {
 }
 
 function handleEvent(e) {
-  audio.play(e.type);
+  // an event may name its own sound and loudness (e.sound, e.gain)
+  audio.play(e.sound || e.type, e.gain ?? 1);
   renderer.onEvent(e, currentView());
   const rumble = settings.vibration && input.owner() !== null;
   if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); if (TOUCH && settings.vibration) navigator.vibrate?.(70); }
