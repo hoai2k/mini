@@ -58,7 +58,7 @@ export function createInput(target = window) {
       pause: ke('Escape', 'KeyP') || te('pause'),
       // B in play (refuse, cancel): pad B, or X / Backspace on keys.
       bPress: ke('KeyX', 'Backspace'),
-      anyPad: false, stickNav: false, padA: false, padStart: false, padB: false,
+      anyPad: false, stickNav: false, padA: false, padStart: false, padB: false, padX: false,
       keyAny: keyEdges.length > 0,
     };
 
@@ -91,6 +91,7 @@ export function createInput(target = window) {
       if (now[BTN.A] && !h.has(BTN.A)) s.aHeld = true;
       if (edges[BTN.A]) { s.leap = true; s.padA = true; }
       if (edges[BTN.B]) { s.back = true; s.padB = true; }
+      if (edges[BTN.X]) s.padX = true;
       if (edges[BTN.MENU]) { s.pause = true; s.padStart = true; }
       if (edges[BTN.UP]) s.up = true;
       if (edges[BTN.DOWN]) s.down = true;

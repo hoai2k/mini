@@ -5,10 +5,9 @@
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
-import { TEMPEST } from '../src/acts/act1.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
-import act2, { FAIRY_AT } from '../src/acts/act2.js';
+import act2, { FAIRY_AT, FILM_DIVE } from '../src/acts/act2.js';
 import act3, { PASSAGE, guardOpen } from '../src/acts/act3.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
@@ -113,20 +112,40 @@ test('prologue: the rampart fire burns on; each touch costs a lantern, and none 
   assert.ok(presses <= 6, `${presses} presses`);
 });
 
-test('Act I: in the tempest he walks the deck and lights each lantern (nothing on the beat)', () => {
+test('Act I: the tempest is a scene; the crew light the lanterns and the witch turns on the ship', () => {
   const st = ACTS[1].create({ seed: 2, from: { scene: 4 } });
   assert.equal(st.phase, 'party');
-  let clock = 0, last = false;
-  run(ACTS[1], st, 30, (s) => {
-    const i = s.party.on.findIndex((o) => !o), x = TEMPEST.lanternX[Math.max(0, i)];
-    const want = s.tp.near >= 0, a = want && !last; last = want;
-    return { moveX: Math.abs(x - s.tp.x) > 10 ? Math.sign(x - s.tp.x) : 0, a, beat: (clock += DT) / BEAT };
-  }, (s) => s.phase !== 'party');
+  let clock = 0;
+  run(ACTS[1], st, 20, () => ({ beat: (clock += DT) / BEAT }), (s) => s.phase !== 'party');   // no input at all
   assert.equal(st.party.lit, 4);
+  assert.deepEqual(st.party.on, [true, true, true, true]);
   assert.equal(st.phase, 'turn');
-  const s2 = ACTS[1].create({ seed: 2, from: { scene: 4 } });
-  run(ACTS[1], s2, 4, () => ({ a: true }));
-  assert.ok(s2.party.lit <= 1, 'A away from the lanterns lights nothing');
+});
+
+test('Act II dive: X wakes a sleeper within reach and takes an open clam\'s pearl; the sword runs on ahead', () => {
+  const st = act2.create({ seed: 3, carry: {}, from: { scene: 1 } });
+  assert.equal(st.phase, 'swim');
+  const s = st.sailor, still = () => { s.vx = 0; s.vy = 0; };
+  // a sleeper beside him (outside the conch's touch range) wakes on X
+  const sl = st.sleepers.find((q) => q.state === 'asleep' && q.y > 1000);
+  Object.assign(s, { x: sl.x + 160, y: sl.y }); st.hornT = 0; st.guitar.y = s.y + 600; still();
+  act2.step(st, 1 / 60, { beat: 0.5 });
+  assert.equal(sl.state, 'asleep');
+  assert.equal(st.reach?.kind, 'sleeper', 'the X prompt shows');
+  still(); act2.step(st, 1 / 60, { x: true, beat: 0.5 });
+  assert.equal(sl.state, 'rising');
+  // an open clam's pearl from just above it, with X
+  const cl = st.clams[0], beat = cl.off + 0.5;
+  Object.assign(s, { x: cl.x, y: cl.y - 48 - 90 }); st.guitar.y = s.y + 600; still();
+  const before = st.pearls;
+  act2.step(st, 1 / 60, { beat });
+  assert.equal(st.pearls, before, 'not by hovering near');
+  still(); act2.step(st, 1 / 60, { x: true, beat });
+  assert.equal(st.pearls, before + 1);
+  // the sword, close below, sinks faster than he cruises
+  st.guitar.y = s.y + FILM_DIVE.lead + 20; const gy = st.guitar.y;
+  act2.step(st, 1, { beat: 3 });
+  assert.ok(st.guitar.y - gy >= 200, `sword sank ${st.guitar.y - gy}`);
 });
 
 test('Act II: he swims to the Water Fairy for her blessing (no button, no refusal)', () => {

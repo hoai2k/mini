@@ -10,11 +10,6 @@ import * as art from './act1-art.js';
 // on: the deck rises as soon as the ship's bell has rung.
 export const ENDING = { landho: 1.7, party: 6, turn: 4.4, wreck: 4.6, sink: 5.0, iris: 1.2 };
 export const LANTERNS = 4; // paper lanterns lit on the beat during the party
-// The film tempest on the deck (stage px): where he walks, the lanterns' x
-// (beneath each pair on the string, act1-art.js), the witch's lightning.
-export const TEMPEST = { y: 486, x0: 200, x1: 1080, start: 640, walk: 250, acc: 2000, reach: 46, lanternX: [415, 558, 718, 865],  // beneath each pair on the string (act1-art.js lanternX)
- 
-  every: [1.5, 2.2], warn: 0.9, bolt: 0.25, hitR: 62, knock: 300, max: 30 };
 // Cues within the turn and the wreck (seconds into the phase).
 export const CUES = { strike: 1.2, shipBreak: 2.0, splash: 3.2 };
 // Where the revellers land on the deck set (stage px, feet; s = scale). The
@@ -56,7 +51,6 @@ export default {
       board: createBoard(seed), phase: 'voyage', phaseT: 0,
       status: 'play', statusT: 0, events: [], result: null,
       party: { lit: 0, beats: new Set(), revelry: false, on: [false, false, false, false] },
-      tp: { x: TEMPEST.start, vx: 0, face: 1, walk: 0, knockT: 0, knocks: 0, near: -1, bolts: [], nextBolt: 2.2, doneT: 0 },
       witchAt: null, checkpoint: null,
     };
     const k = from?.scene | 0;
@@ -102,14 +96,15 @@ export default {
     // The stage keeps scrolling gently behind the ending.
     stepBoard(b, dt, {}); b.events.length = 0;
 
-    // The film edition's tempest: the prince walks the deck and lights each
-    // lantern (A beneath it) while the witch strikes the boards with
-    // lightning where it glows. All four lit, or the storm at its height,
-    // and she turns on the ship.
+    // The film edition's tempest is a scene: the crew light the ship's
+    // lanterns themselves, one on each beat, before the witch turns on it.
     if (st.phase === 'party' && FILM) {
-      tempest(st, dt, input);
-      if ((st.party.lit === LANTERNS && st.tp.doneT > 1.2) || st.phaseT >= TEMPEST.max) next(st);
-      return;
+      const k = Math.floor(input.beat ?? st.phaseT / 0.784);
+      if (st.phaseT > 0.6 && st.party.lit < LANTERNS && !st.party.beats.has(k)) {
+        st.party.beats.add(k); st.party.on[st.party.lit] = true; st.party.lit++;
+        st.events.push({ type: 'partyHit', n: st.party.lit, i: st.party.lit - 1 });
+        if (st.party.lit === LANTERNS) { st.party.revelry = true; st.events.push({ type: 'revelry' }); }
+      }
     } else if (st.phase === 'party') {
       if (input.a && st.party.lit < LANTERNS) {
         const k = beatHit(input.beat, BEAT_WINDOW);
@@ -146,8 +141,7 @@ export default {
     if (e.type === 'keepsake') return FILM ? `Aurora's star ${e.n} of 3.` : `Tea leaf ${e.n} of 3.`;
     if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
     if (e.type === 'arrive') return LEGACY ? "Widow's Bay in sight." : FILM ? "The sky blackens: the witch's tempest." : 'The enchanted tower in sight.';
-    if (e.type === 'boltHit') return 'Struck by her lightning.';
-    if (e.type === 'cheer') return FILM ? "The witch's tempest! Walk beneath each lantern and press A to light it. Keep clear of the glowing boards." : 'A celebration on deck! Press A on the beat to light the lanterns.';
+    if (e.type === 'cheer') return FILM ? "The witch's tempest! The crew light the ship's lanterns against the dark." : 'A celebration on deck! Press A on the beat to light the lanterns.';
     if (e.type === 'revelry') return FILM ? 'Every lantern lit: they hold against the storm.' : 'Every lantern lit.';
     if (e.type === 'strike') return 'The witch strikes the mast.';
     if (e.type === 'shipBreak') return FILM ? 'The royal ship breaks on the rocks.' : 'The ship breaks apart.';
@@ -157,39 +151,6 @@ export default {
 
   draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
-
-function tempest(st, dt, input) {
-  const T = TEMPEST, p = st.tp;
-  p.knockT = Math.max(0, p.knockT - dt);
-  const mx = p.knockT > 0 ? 0 : Math.max(-1, Math.min(1, input.moveX || 0));
-  if (Math.abs(mx) > 0.15) p.face = Math.sign(mx);
-  p.vx += Math.max(-T.acc * dt, Math.min(T.acc * dt, mx * T.walk - p.vx));
-  p.x = Math.max(T.x0, Math.min(T.x1, p.x + p.vx * dt)); p.walk += Math.abs(p.vx) * dt;
-  if (st.party.lit === LANTERNS) p.doneT += dt;
-  // the next unlit lantern he stands beneath
-  p.near = T.lanternX.findIndex((x, i) => !st.party.on[i] && Math.abs(p.x - x) < T.reach);
-  if (input.a && p.near >= 0 && p.knockT <= 0) {
-    st.party.on[p.near] = true; st.party.lit++; st.board.score += 50;
-    st.events.push({ type: 'partyHit', n: st.party.lit, i: p.near });
-    if (st.party.lit === LANTERNS) { st.party.revelry = true; st.board.score += 200; st.events.push({ type: 'revelry' }); }
-  }
-  // her lightning: a glow on the boards, then the bolt
-  p.nextBolt -= dt;
-  if (p.nextBolt <= 0 && st.party.lit < LANTERNS) {
-    const n = p.bolts.length + st.party.lit;
-    p.bolts.push({ x: Math.max(T.x0, Math.min(T.x1, p.x + ((n * 137) % 220) - 110)), t: 0, struck: false });
-    p.nextBolt = T.every[0] + ((n * 0.61) % 1) * (T.every[1] - T.every[0]);
-    st.events.push({ type: 'boltWarn' });
-  }
-  for (const b of p.bolts) {
-    b.t += dt;
-    if (!b.struck && b.t >= T.warn) {
-      b.struck = true; st.events.push({ type: 'boltStrike', x: b.x });
-      if (Math.abs(p.x - b.x) < T.hitR && p.knockT <= 0) { p.knockT = 0.7; p.vx = T.knock * Math.sign(p.x - b.x || 1); p.knocks++; st.events.push({ type: 'boltHit', x: p.x }); }
-    }
-  }
-  p.bolts = p.bolts.filter((b) => b.t < T.warn + T.bolt);
-}
 
 function next(st) {
   const i = st.phase === 'voyage' ? 0 : ORDER.indexOf(st.phase) + 1;

@@ -1200,7 +1200,7 @@ function star(c, x, y, r) {
 // Prompt text may name buttons as [A], [B], [MENU] or [LS]. They are drawn
 // for the input in use (`mode`): Xbox controller buttons ('pad'), key caps
 // ('key') or the on-screen touch buttons ('touch').
-const GLYPH_KEYS = { A: 'Space', B: 'Esc', MENU: 'Esc', LS: '← →' };
+const GLYPH_KEYS = { A: 'Space', B: 'Esc', X: 'X', MENU: 'Esc', LS: '← →' };
 const XBOX = { A: '#3fa535', B: '#d6262c', X: '#2a6fd6', Y: '#e8b320' };
 function glyphWidth(c, tok, mode, px) {
   if (mode === 'key') { c.save(); c.font = `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`; const w = c.measureText(GLYPH_KEYS[tok]).width; c.restore(); return w + px * 0.7; }
@@ -1220,7 +1220,7 @@ function drawGlyph(c, tok, mode, cx, cy, px, col) {
     c.fillStyle = col('#b8862e'); c.strokeStyle = col('#f1e3c8'); c.lineWidth = Math.max(1.5, px * 0.06);
     c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
     c.fillStyle = col('#fff8e8'); c.font = `700 ${Math.round(px * 0.5)}px "Josefin Sans", sans-serif`;
-    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok, cx, cy + px * 0.03);
+    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok === 'X' ? 'B' : tok, cx, cy + px * 0.03);   // touch's B button stands in for X
   } else {
     // Xbox: A, B, X, Y in their colours; Menu and the left stick in charcoal.
     const face = XBOX[tok];
@@ -1235,7 +1235,7 @@ function drawGlyph(c, tok, mode, cx, cy, px, col) {
 }
 // Draw one line of prompt text centred on x (baseline y) with its button glyphs.
 export function richText(c, str, x, y, { px, mode = 'key', col = (h) => h } = {}) {
-  const parts = str.split(/\[(A|B|MENU|LS)\]/);
+  const parts = str.split(/\[(A|B|X|MENU|LS)\]/);
   const gap = px * 0.18;
   const widths = parts.map((p, i) => (i % 2 ? glyphWidth(c, p, mode, px) + gap * 2 : c.measureText(p).width));
   const total = widths.reduce((a, b) => a + b, 0);

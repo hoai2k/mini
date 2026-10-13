@@ -33,6 +33,9 @@ export const TUNE = {
   eelReach: 300, eelGlow: 1.0, eelCD: 2.6,
   guitarLead: 110,   // he can never get closer than this above the guitar
 };
+// The film edition's dive: the sword sinks quicker (so it rarely holds him
+// up), and X takes what is within reach: an open clam's pearl or a sleeper.
+export const FILM_DIVE = { lead: 80, sink: [30, 80, 150, 230], reach: 110, wakeR: 170 };
 
 // Cues in the take: the rose leaves her hand, reaches him, the sleepers rise.
 export const ROSE_CUES = { fly: 0.7, arrive: 1.5, wake: 1.6 };
@@ -152,7 +155,7 @@ export const ridePearlX = (p, rideT) => 1250 - (rideT - p.at) * RIDE.speed;
 // ---------------------------------------------------------------- module
 export default {
   id: 2, key: 'grotto', kicker: 'Act II', title: FILM ? 'The Water Fairy' : "The Sleepers' Grotto", size: 110,
-  sub: FILM ? 'Follow the sinking sword down.\nSound the conch horns to wake your drowned crew.'
+  sub: FILM ? 'Follow the sinking sword down.\nX takes a pearl from an open clam, or wakes a sleeping crewman.'
     : words('Follow the sinking guitar down.\nSound the conch horns to wake the drowned.'),
   // The film edition: the Water Fairy in the witch's place, and the marine
   // procession's dolphin carriage for the moon boat.
@@ -234,6 +237,9 @@ export default {
     }
   },
 
+  // touch shows its B button for X in the film's dive, and for refusing
+  needB: (st) => (FILM ? st.phase === 'swim' : st.phase === 'offer'),
+
   hud(st) {
     if (st.phase === 'open' || st.phase === 'iris' || st.phase === 'drown') return null;
     const keepsakes = [{ id: 'guitar', have: st.guitar.held }, { id: 'rose', have: st.rose }];
@@ -246,7 +252,7 @@ export default {
     if (FILM) {
       const film = {
         sailorWake: 'The Water Fairy breathes life into the prince. He wakes among his drowned crew.',
-        swimStart: 'Swim down after the sword. Press A to kick. Sound the conch to wake your crew.',
+        swimStart: 'Swim down after the sword. Press A to kick. Press X beside an open clam to take its pearl, or beside a sleeping crewman to wake him.',
         conchBlow: 'The conch sings. Swim close to your crew to wake them.',
         guitarCatch: 'You catch the enchanted sword.',
         witchOffer: 'The Water Fairy waits by the wreck. Swim to her for her blessing.',
@@ -323,7 +329,8 @@ function stepSwim(st, dt, input) {
   if (!g.settled) {
     const gap = g.y - s.y;
     // It sets the pace: quicker when he is close behind, waiting when he lags.
-    g.y += (gap > 520 ? 12 : gap > 300 ? 28 : gap > 160 ? 42 : 52) * dt;
+    const sink = FILM ? FILM_DIVE.sink : [12, 28, 42, 52];
+    g.y += (gap > 520 ? sink[0] : gap > 300 ? sink[1] : gap > 160 ? sink[2] : sink[3]) * dt;
     if (g.y >= REST.y) { g.y = REST.y; g.settled = true; st.events.push({ type: 'guitarSettle' }); }
     g.x = lerp(g.x, guitarX(g.y), clamp(dt * 2, 0, 1));
   } else if (!g.held) {
@@ -356,7 +363,10 @@ function stepSwim(st, dt, input) {
   }
   st.inVent = vent;
   if (!offering) {
-    if (vent) st.air = Math.min(1, st.air + TUNE.airRefill * dt);
+    if (vent && st.air < 1) {
+      st.air = Math.min(1, st.air + TUNE.airRefill * dt);
+      if (st.air >= 1) st.events.push({ type: 'airFull' });
+    }
     else st.air = Math.max(0, st.air - dt / TUNE.air);
     if (st.air < 0.25 && !st.airLowed) { st.airLowed = true; st.events.push({ type: 'airLow' }); }
     if (st.air > 0.4) st.airLowed = false;
@@ -370,11 +380,15 @@ function stepSwim(st, dt, input) {
     }
   }
   st.hornT = Math.max(0, st.hornT - dt);
-  // Sleepers wake as he passes, while the conch sings or the guitar is his.
-  if (st.hornT > 0 || g.held) {
-    for (const sl of st.sleepers) {
-      if (sl.state === 'asleep' && Math.hypot(s.x - sl.x, s.y - sl.y) < TUNE.wakeR) wake(st, sl, 'sleeperWake');
-    }
+  // Sleepers wake as he passes, while the conch sings or the guitar is his;
+  // in the film edition X wakes one within reach at any time.
+  const grab = FILM && !offering && !!input.x;
+  st.reach = null;
+  for (const sl of st.sleepers) {
+    if (sl.state !== 'asleep') continue;
+    const d = Math.hypot(s.x - sl.x, s.y - sl.y);
+    if ((st.hornT > 0 || g.held) && d < TUNE.wakeR) wake(st, sl, 'sleeperWake');
+    else if (FILM && d < FILM_DIVE.wakeR) { if (grab) wake(st, sl, 'sleeperWake'); else st.reach = { kind: 'sleeper', x: sl.x, y: sl.y - 60 }; }
   }
 
   // Clams open on the beat, for one beat. Open: a pearl. Closed: solid.
@@ -390,7 +404,10 @@ function stepSwim(st, dt, input) {
     cl.wasOpen = open;
     const ex = 60, ey = 48, cy = cl.y - 48; // the painted shell spans y -96..0
     const dx = (s.x - cl.x) / ex, dy = (s.y - cy) / ey, dd = Math.hypot(dx, dy);
-    if (dd >= 1) continue;
+    // film: a visible pearl is his on touch, or with X from within reach
+    const near = FILM && open && cl.lastBeat !== bi && clamRipe(cl) && Math.hypot(s.x - cl.x, s.y - cy) < FILM_DIVE.reach;
+    if (near && !grab && dd >= 1) st.reach = { kind: 'pearl', x: cl.x, y: cy - 60 };
+    if (dd >= 1 && !(near && grab)) continue;
     if (open) {
       if (cl.lastBeat !== bi && clamRipe(cl)) {
         cl.lastBeat = bi; cl.got++; st.pearls++; st.score += 50; cl.grow = 0; cl.rest = TUNE.clamRest;
@@ -459,7 +476,7 @@ function snapshot(st, scene, x, y, gy) {
 function keepInBounds(st) {
   const s = st.sailor, g = st.guitar;
   s.x = clamp(s.x, BOUNDS.x0, BOUNDS.x1);
-  const yMax = g.settled ? FLOOR - 30 : g.y - TUNE.guitarLead;
+  const yMax = g.settled ? FLOOR - 30 : g.y - (FILM ? FILM_DIVE.lead : TUNE.guitarLead);
   if (s.y > yMax) { s.y = yMax; s.vy = Math.min(0, s.vy); }
   if (s.y < BOUNDS.y0) { s.y = BOUNDS.y0; s.vy = Math.max(0, s.vy); }
 }

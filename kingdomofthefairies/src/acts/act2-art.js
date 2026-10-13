@@ -9,6 +9,7 @@ import {
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
 import { FILM, words } from '../theme.js';
+import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const TAU = Math.PI * 2;
 const sy = (st, wy) => wy - st.cam + 60;           // world y -> stage y
@@ -52,7 +53,8 @@ export function onEvent(k, e, st) {
     case 'hit': k.shake(0.35); k.burst(x, y, '#c8321e', 12, 'streak'); k.burst(x, y, '#eef3ea', 8, 'bubble'); break;
     case 'airOut': k.text('Out of air!', x, y - 80, true); break;
     case 'airLow': k.text('Air low: find a vent', x, y - 80); break;
-    case 'airVent': k.burst(x, y - 30, '#eef3ea', 8, 'bubble'); break;
+    case 'airVent': k.burst(x, y - 30, '#eef3ea', 16, 'bubble'); k.text('Air!', x, y - 80); break;
+    case 'airFull': k.burst(x, y - 30, '#9fe0d0', 12, 'sparkle'); k.text('Air full', x, y - 80); break;
     case 'guitarCatch': k.burst(x, y, '#d9b34a', 26, 'sparkle'); k.text(words('The guitar!'), x, y - 90, true); break;
     case 'witchOffer': k.burst(WITCH_X + WITCH_ROSE.x, sy(st, FLOOR) + 44 + WITCH_ROSE.y, '#f3c6dc', 16, 'sparkle'); break;
     // Taking the rose: the wand sparkles first, then the rose in her hand,
@@ -438,7 +440,10 @@ function sleeper(k, st, sl, t) {
   c.translate(x + 62 * (1 - up), y - 14 * (1 - up) + Math.sin(t * 1.5 + x) * 3 * up);
   c.rotate(-Math.PI / 2 * (1 - up) + Math.sin(t * 2 + x) * 0.08 * up);
   if (rise > 3.5) c.globalAlpha = clamp(1 - (rise - 3.5) / 1.5, 0, 1);
-  if (!k.asset(sl.id, 0, 0, 70, 135)) figure(k, 0, 0, REV_COLS[sl.kind], 0.62);
+  // the man-at-arms carries the prince's shield and plume until his redraw
+  // (F17) arrives, so another crewman wakes in his place
+  const id = FILM && sl.id === 'reveller-lady' && !k.img('crew-manatarms-redo') ? 'reveller-yellow' : sl.id;
+  if (!k.asset(id, 0, 0, 70, 135)) figure(k, 0, 0, REV_COLS[sl.kind], 0.62);
   c.restore();
   c.globalAlpha = 1;
   asleepBubbles(k, sl, x, y, t);
@@ -865,6 +870,26 @@ function label(k, str, x, y, size = 20, colr = '#f1e3c8') {
 
 function captions(k, st, t) {
   const c = k.c, ph = st.phase, pt = st.phaseT;
+  // breathing in a vent: bubbles stream up around him while the air fills
+  if (ph === 'swim' && st.inVent && st.air < 1) {
+    const s = st.sailor, x = s.x, y = sy(st, s.y);
+    c.save(); c.fillStyle = k.col('#eef3ea');
+    for (let i = 0; i < 9; i++) {
+      const f = (t * 0.9 + i / 9) % 1;
+      c.globalAlpha = 0.7 * (1 - f); k.circle(x - 50 + ((i * 37) % 100) + Math.sin(t * 3 + i) * 6, y + 20 - f * 150, 3 + (i % 3) * 2);
+    }
+    c.restore();
+    label(k, 'Breathing in', x, y - 96, 18, '#9fe0d0');
+  }
+  // X takes what is within reach (film edition)
+  if (ph === 'swim' && st.reach) {
+    const r = st.reach, y = sy(st, r.y), str = r.kind === 'pearl' ? '[X] Take the pearl' : '[X] Wake him';
+    c.save(); c.font = '700 18px "Josefin Sans", sans-serif'; c.textAlign = 'center';
+    c.fillStyle = k.col('#2a1424'); c.globalAlpha = 0.8; const w = c.measureText(str).width + 44;
+    c.beginPath(); c.roundRect(r.x - w / 2, y - 22, w, 32, 16); c.fill(); c.globalAlpha = 1;
+    c.fillStyle = k.col('#ffe27a'); richText(c, str, r.x, y, { px: 18, mode: k.inputMode || 'key', col: k.col });
+    c.restore();
+  }
   if (ph === 'swim' && !st.conches[0].used && pt < 14 && onScreen(st, SHELF_Y)) {
     const cn = st.conches[0];
     label(k, 'Swim into the conch', cn.x, sy(st, cn.y) - 86, 18, '#ffe27a');
