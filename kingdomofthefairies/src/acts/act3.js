@@ -170,9 +170,9 @@ export default {
   id: 3, key: 'court', kicker: 'Act III', title: FILM ? "Neptune's Court" : "The Sea King's Court", size: 110,
   sub: FILM ? "Cross Neptune's hall to his seal of passage.\nThe witch is watching through her scrying eye."
     : "Cross the Sea King's hall to the treasury\nand take her pearl from its pedestal.",
-  // Shown as a silent-film intertitle after the act card ([A] is the A button).
-  intertitle: FILM ? "Press [A] beside a courtier\nto hide from the witch's scrying eye.\n\nNeptune grants you passage:\nwalk up to his seal at the far end of the hall."
-    : "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
+  // Shown as a silent-film intertitle after the act card.
+  intertitle: FILM ? "Hide beside a courtier\nfrom the witch's scrying eye.\n\nNeptune grants you passage:\nwalk up to his seal at the far end of the hall."
+    : "Hide beside a courtier\nfrom the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
   action: 'A: hide',
   scenes: SCENES,
   // touch: B held bows past the lobster guards (film passage)

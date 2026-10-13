@@ -209,7 +209,7 @@ function beginAct(i, from = null) {
   S.curtain = 0; S.curtainTarget = 0;
   const scene = from && S.act.scenes?.[from.scene | 0];
   S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120,
-    sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : (TOUCH && S.act.touchSub) || S.act.sub,
+    sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : S.act.sub,
     prompts: { touch: `Tap to begin · ${touchVerbHint(S.act)}`, other: 'Press [A] to begin' }, alpha: 0 };
   S.readyT = 0;
   S.skipIntertitle = !!from?.retry;

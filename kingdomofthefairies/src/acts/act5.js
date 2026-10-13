@@ -152,7 +152,7 @@ export default {
   id: 5, kicker: 'Act V', title: BAY_TITLE, size: 120,
   sub: 'Climb the cliff to the stone house.\nCarry her out of the fire.',
   // Shown as a silent-film intertitle after the act card.
-  intertitle: 'Press toward a glowing hold to climb to it:\nits arrow shows which way.\n\n[A] leaps to a far hold along the dotted arc.\nDust above means a stone is about to fall.',
+  intertitle: 'Climb toward a glowing hold:\nits arrow shows which way.\n\nLeap to a far hold along the dotted arc.\nDust above means a stone is about to fall.',
   action: 'A: leap',
   scenes: SCENES,
 
