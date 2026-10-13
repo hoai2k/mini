@@ -52,7 +52,7 @@ test('chapter 8: the swat is telegraphed, and only lands on a low Bombanat in re
   let whap = false;
   for (let t = 0; t < 1.5 && !whap; t += DT) {
     ch.update(DT, {}, {});
-    if (yal.state === 'windup') assert.notEqual(s.mode, 'stumble', 'the warning comes before the hit');
+    if (yal.state === 'windup') assert.equal(yal.hit, false, 'the warning comes before the hit');
     if (s.mode === 'stumble' && yal.hit) whap = true;
   }
   assert.ok(whap, 'WHAP');

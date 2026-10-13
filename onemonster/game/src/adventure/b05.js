@@ -80,6 +80,9 @@ export default function create(env) {
   const total = kit.boardTime(env, ENTRY.time);
   const cam = kit.makeCamera(WORLD, { lead: 300, anchor: 0.38, rate: 3.4 });
   const fx = kit.makeParticles();
+  const popRaw = fx.pop;
+  // Pop words stay inside the screen (and under the HUD).
+  fx.pop = (x, y, text, opts) => popRaw(clamp(x, cam.x + 230, cam.x + W - 230), Math.max(300, y), text, opts);
   const cps = kit.makeCheckpoints([0, 2700, 5400, 8000, EDDY.x0]);
   const hints = kit.makeHints([
     { x: 0, text: 'Hold Action to suck up the sea!', show: 4.5 },
@@ -871,6 +874,45 @@ export default function create(env) {
     }
   }
 
+
+  // Weathered wood: a faded wash, grain lines and a knot or two, in ink.
+  function woodGrain(g, x, y, w, h, seed = 0, fill = '#b89a74') {
+    g.save();
+    g.fillStyle = fill;
+    g.strokeStyle = INK;
+    g.lineWidth = 3.5;
+    g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h);
+    g.beginPath(); g.rect(x, y, w, h); g.clip();
+    g.fillStyle = 'rgba(70,50,35,0.18)';
+    g.fillRect(x, y + h * 0.55, w, h);
+    g.strokeStyle = 'rgba(60,40,25,0.55)';
+    g.lineWidth = 1.6;
+    g.beginPath();
+    const along = w >= h;
+    const n = Math.max(3, Math.floor((along ? h : w) / 9));
+    for (let i = 0; i < n; i++) {
+      const u = (i + 0.5) / n, wob = (hash(seed + i) - 0.5) * 6;
+      if (along) { g.moveTo(x, y + u * h + wob); g.bezierCurveTo(x + w * 0.3, y + u * h - wob, x + w * 0.7, y + u * h + wob * 1.5, x + w, y + u * h); }
+      else { g.moveTo(x + u * w + wob, y); g.bezierCurveTo(x + u * w - wob, y + h * 0.3, x + u * w + wob * 1.5, y + h * 0.7, x + u * w, y + h); }
+    }
+    g.stroke();
+    const kx = x + w * (0.25 + hash(seed + 3) * 0.5), ky = y + h * (0.3 + hash(seed + 5) * 0.4);
+    g.lineWidth = 2;
+    g.beginPath(); g.ellipse(kx, ky, 5, 3.5, 0.3, 0, Math.PI * 2); g.stroke();
+    g.restore();
+  }
+
+  // Paint a shape with the scene's own rocks (the headland in the painting), under an ink outline.
+  function rockPaint(g, x0, y0, w, h, seed = 0) {
+    const scene = art.image('scenes/typhoonigator');
+    if (!scene) { g.fillStyle = '#857b88'; g.fillRect(x0, y0, w, h); return; }
+    const k = scene.width / 1920;
+    const sx = (1395 + hash(seed) * 120) * k, sy = 320 * k, sw = 230 * k, sh = 230 * k;
+    g.drawImage(scene, sx, sy, sw, sh, x0, y0, w, h);
+    g.fillStyle = 'rgba(120,100,120,0.28)';
+    g.fillRect(x0, y0, w, h);
+  }
+
   // A crag in ink and wash: a jagged slab with a lit top face, a shaded side,
   // cracks, hatching and a few tufts, like the rocks of the book's headlands.
   function inkCrag(g, x, y, w, h, seed = 0, { grass = true } = {}) {
@@ -895,6 +937,17 @@ export default function create(env) {
     g.fill();
     g.stroke();
     g.clip();
+    rockPaint(g, x - w / 2, y - h - 10, w, h + 30, seed);
+    // Stone courses: a few irregular slab lines.
+    g.strokeStyle = 'rgba(43,29,20,0.55)';
+    g.lineWidth = 2.2;
+    g.beginPath();
+    for (let yy = y - h * 0.85, r = 0; yy < y; yy += 24 + hash(seed + yy) * 22, r++) {
+      const o = (hash(seed + r * 3) - 0.5) * 30;
+      g.moveTo(x - w / 2, yy + o); g.quadraticCurveTo(x - w * 0.2, yy - 6 + o, x + w * 0.1, yy + 4 + o); g.quadraticCurveTo(x + w * 0.3, yy + 8 + o, x + w / 2, yy - 4 + o);
+      for (let bx = x - w * 0.4 + (r % 2) * w * 0.15; bx < x + w * 0.45; bx += w * 0.3) { g.moveTo(bx, yy + o); g.lineTo(bx + 3, yy + o + 18); }
+    }
+    g.stroke();
     // The shaded right side and a darker foot.
     g.fillStyle = 'rgba(70,58,80,0.42)';
     g.beginPath(); g.moveTo(x + w * 0.1, y - h); g.lineTo(x + w, y - h * 0.9); g.lineTo(x + w, y + 20); g.lineTo(x + w * 0.2, y + 20); g.closePath(); g.fill();
@@ -917,10 +970,11 @@ export default function create(env) {
     g.strokeStyle = 'rgba(43,29,20,0.38)';
     g.lineWidth = 1.8;
     g.beginPath();
-    for (let yy = y - h + 20; yy < y + 10; yy += 13) {
+    for (let yy = y - h + 20; yy < y + 10; yy += 9) {
       const o = hash(seed + yy) * 18;
-      const x0 = x + w * 0.12 + o, x1 = x + w * 0.5 - (yy - y + h) * 0.02;
-      g.moveTo(x0, yy); g.lineTo(x1, yy + 9);
+      const x0 = x + w * 0.08 + o, x1 = x + w * 0.5 - (yy - y + h) * 0.02;
+      g.moveTo(x0, yy); g.lineTo(x1, yy + 7);
+      if (yy % 18 < 9) { g.moveTo(x0 + 10, yy + 8); g.lineTo(x1 - 6, yy - 2); }
       if (yy > y - h * 0.3) { g.moveTo(x - w * 0.45, yy); g.lineTo(x - w * 0.2 + o, yy + 6); }
     }
     g.stroke();
@@ -968,23 +1022,51 @@ export default function create(env) {
   }
 
   function inkLighthouse(g, x, base, h, w) {
+    const kAt = (yy) => 0.5 - 0.16 * ((base - yy) / h);
     g.save();
     g.strokeStyle = INK;
     g.lineWidth = 4;
-    // The tower, white with red bands.
-    g.fillStyle = '#f3ebe0';
+    g.fillStyle = '#ece2d2';
     g.beginPath(); g.moveTo(x - w / 2, base); g.lineTo(x - w * 0.34, base - h + 40); g.lineTo(x + w * 0.34, base - h + 40); g.lineTo(x + w / 2, base); g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = '#c8443a';
+    g.save();
+    g.clip();
+    g.fillStyle = '#b8403a';
     for (let i = 0; i < 3; i++) {
       const y0 = base - h * (0.2 + i * 0.26), y1 = y0 - h * 0.11;
-      const k0 = 0.5 - 0.16 * ((base - y0) / h), k1 = 0.5 - 0.16 * ((base - y1) / h);
-      g.beginPath(); g.moveTo(x - w * k0, y0); g.lineTo(x - w * k1, y1); g.lineTo(x + w * k1, y1); g.lineTo(x + w * k0, y0); g.closePath(); g.fill();
+      g.fillRect(x - w, y1, 2 * w, y0 - y1);
+      g.strokeStyle = 'rgba(43,29,20,0.6)'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(x - w, y0); g.lineTo(x + w, y0); g.moveTo(x - w, y1); g.lineTo(x + w, y1); g.stroke();
     }
-    // The lamp.
+    // Stone courses and the shaded side.
+    g.strokeStyle = 'rgba(43,29,20,0.42)';
+    g.lineWidth = 1.6;
+    g.beginPath();
+    for (let yy = base - 12, r = 0; yy > base - h + 40; yy -= 15, r++) {
+      const kw = w * kAt(yy);
+      g.moveTo(x - kw, yy); g.lineTo(x + kw, yy);
+      for (let bx = -kw + 10 + (r % 2) * 14; bx < kw; bx += 28) { g.moveTo(x + bx, yy); g.lineTo(x + bx, yy - 15); }
+    }
+    g.stroke();
+    g.fillStyle = 'rgba(70,58,80,0.28)';
+    g.beginPath(); g.moveTo(x + w * 0.1, base - h); g.lineTo(x + w, base - h); g.lineTo(x + w, base + 10); g.lineTo(x + w * 0.16, base + 10); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(43,29,20,0.35)';
+    g.beginPath(); for (let yy = base - h + 44; yy < base; yy += 8) { g.moveTo(x + w * 0.14, yy); g.lineTo(x + w * 0.5, yy + 6); } g.stroke();
+    g.restore();
+    // The door and a window.
+    g.fillStyle = '#5a4630';
+    g.beginPath(); g.roundRect ? g.roundRect(x - 12, base - 46, 24, 46, [12, 12, 0, 0]) : g.rect(x - 12, base - 46, 24, 46); g.fill(); g.stroke();
+    g.fillStyle = '#7fa6c0';
+    g.fillRect(x - 9, base - h * 0.6, 18, 22); g.strokeRect(x - 9, base - h * 0.6, 18, 22);
+    // The lamp room and its cap.
     g.fillStyle = '#f2c53d';
     g.fillRect(x - w * 0.3, base - h + 4, w * 0.6, 36); g.strokeRect(x - w * 0.3, base - h + 4, w * 0.6, 36);
+    g.strokeStyle = 'rgba(43,29,20,0.6)'; g.lineWidth = 2;
+    g.beginPath(); for (let i = 1; i < 4; i++) { g.moveTo(x - w * 0.3 + i * w * 0.15, base - h + 4); g.lineTo(x - w * 0.3 + i * w * 0.15, base - h + 40); } g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 4;
     g.fillStyle = '#6f6274';
     g.beginPath(); g.moveTo(x - w * 0.38, base - h + 4); g.lineTo(x, base - h - 22); g.lineTo(x + w * 0.38, base - h + 4); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.8;
+    g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(x + 4 + i * 6, base - h - 16 + i * 4); g.lineTo(x + w * 0.3, base - h + 2); } g.stroke();
     g.restore();
   }
 
@@ -1007,27 +1089,51 @@ export default function create(env) {
   }
 
   function drawBanks(g, tt) {
+    const scene = art.image('scenes/typhoonigator');
     for (const s of solids) {
       if (s.kind !== 'bank' || !cam.sees(s.x - 300, s.x + s.w + 300)) continue;
       const bottom = s.y + s.h;
-      g.save();
-      const x0 = s.x - 160, x1 = s.x + s.w + 160;
-      // The mass of the bank above, washed and hatched.
-      g.fillStyle = '#8a7b90';
-      g.fillRect(x0 - 100, -200, x1 - x0 + 200, bottom - 90);
-      g.strokeStyle = 'rgba(43,29,20,0.3)';
-      g.lineWidth = 2;
-      g.beginPath();
-      for (let y = -180; y < bottom - 100; y += 16) { const o = hash(y + s.x) * 30; g.moveTo(x0 - 90 + o, y); g.lineTo(x0 + 60 + o, y + 10); g.moveTo(x1 - 60 - o, y + 5); g.lineTo(x1 + 90 - o, y + 15); }
-      g.stroke();
-      for (let row = 2; row >= 0; row--) {
-        const r = 58 + row * 14;
-        const y = bottom - r - row * 90;
-        const fill = row === 0 ? '#a394a6' : row === 1 ? '#948499' : '#8a7b90';
-        for (let x = x0 - row * 40, i = 0; x <= x1 + row * 40; x += r * 1.3, i++) {
-          const bob = env.reduceMotion ? 0 : Math.sin(tt * 1.3 + x * 0.02) * 4;
-          puff(g, x, y + bob, r, fill, s.x + row * 7 + i);
+      const x0 = s.x - 190, x1 = s.x + s.w + 190;
+      // The bank's edge: a row of scallops, the outer ones higher.
+      const edge = (x, k) => bottom - k * 70 - (Math.abs(x - (x0 + x1) / 2) / ((x1 - x0) / 2)) ** 2 * 90;
+      const scallops = (k) => {
+        g.beginPath();
+        g.moveTo(x0 - 80, -300);
+        g.lineTo(x0 - 80, edge(x0, k) - 40);
+        for (let x = x0, i = 0; x < x1; x += 76, i++) {
+          const r = 44 + hash(s.x + i * 2 + k) * 14;
+          const bob = env.reduceMotion ? 0 : Math.sin(tt * 1.1 + i) * 3;
+          g.arc(x + 38, edge(x + 38, k) - r * 0.4 + bob, r, Math.PI * 0.95, Math.PI * 0.05, true);
         }
+        g.lineTo(x1 + 80, edge(x1, k) - 40);
+        g.lineTo(x1 + 80, -300);
+        g.closePath();
+      };
+      g.save();
+      for (let k = 1; k >= 0; k--) {
+        g.save();
+        scallops(k);
+        g.clip();
+        if (scene) g.drawImage(scene, 0, 0, scene.width, scene.height * 0.26, x0 - 140 + k * 60, -260, x1 - x0 + 280, bottom + 320);
+        else { g.fillStyle = '#8a7b90'; g.fillRect(x0 - 100, -300, x1 - x0 + 200, bottom + 300); }
+        g.fillStyle = k ? 'rgba(70,58,86,0.3)' : 'rgba(55,45,70,0.5)';
+        g.fillRect(x0 - 100, -300, x1 - x0 + 200, bottom + 300);
+        // Curling strokes and hatching under each scallop, the book's cloud line.
+        g.strokeStyle = 'rgba(43,29,20,0.55)';
+        g.lineWidth = 2;
+        g.beginPath();
+        for (let x = x0, i = 0; x < x1; x += 76, i++) {
+          const cx = x + 38, cy = edge(cx, k) - 20;
+          g.moveTo(cx - 26, cy - 6); g.quadraticCurveTo(cx - 10, cy - 34, cx + 14, cy - 18); g.quadraticCurveTo(cx + 2, cy - 6, cx - 4, cy - 14);
+          for (let j = 0; j < 6; j++) { const hx = cx - 30 + j * 11; g.moveTo(hx, cy + 10); g.lineTo(hx - 8, cy + 30 - j * 2); }
+          for (let j = 0; j < 3; j++) { g.moveTo(cx - 40 + j * 7, cy - 70 - j * 24); g.lineTo(cx - 10 + j * 7, cy - 58 - j * 24); }
+        }
+        g.stroke();
+        g.restore();
+        scallops(k);
+        g.strokeStyle = INK;
+        g.lineWidth = 3.5;
+        g.stroke();
       }
       // Rain from the bank.
       g.strokeStyle = 'rgba(200,205,225,0.5)';
@@ -1048,12 +1154,8 @@ export default function create(env) {
     const sx = SHORE + 390, sy = y - 250;
     g.save();
     g.strokeStyle = INK; g.lineWidth = 4;
-    g.fillStyle = '#8a6a44';
-    g.fillRect(sx - 7, sy - 190, 14, 190); g.strokeRect(sx - 7, sy - 190, 14, 190);
-    g.fillStyle = '#e8dcc4';
-    g.fillRect(sx - 95, sy - 250, 190, 70); g.strokeRect(sx - 95, sy - 250, 190, 70);
-    g.strokeStyle = 'rgba(43,29,20,0.3)'; g.lineWidth = 1.5;
-    g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(sx - 90, sy - 240 + i * 14); g.lineTo(sx + 90, sy - 238 + i * 14); } g.stroke();
+    woodGrain(g, sx - 7, sy - 190, 14, 190, 7.1, '#8a6a44');
+    woodGrain(g, sx - 95, sy - 250, 190, 70, 8.3, '#d9c7a4');
     g.fillStyle = INK;
     g.font = '800 26px Fraunces, Georgia, serif';
     g.textAlign = 'center';
@@ -1088,13 +1190,18 @@ export default function create(env) {
       g.save();
       g.strokeStyle = INK;
       g.lineWidth = 4;
-      g.fillStyle = '#c8443a';
+      g.fillStyle = '#c0463c';
       g.beginPath(); g.ellipse(x, y, 42, 16, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-      g.fillStyle = '#8a6a44';
-      g.fillRect(x - 6, y - 150, 12, 150); g.strokeRect(x - 6, y - 150, 12, 150);
-      g.fillStyle = '#e8dcc4';
+      g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.8;
+      g.beginPath(); for (let i = -3; i <= 3; i++) { g.moveTo(x - 36 + i * 4, y + i * 4); g.lineTo(x + 30 - Math.abs(i) * 6, y + 2 + i * 4); } g.stroke();
+      g.strokeStyle = INK; g.lineWidth = 4;
+      woodGrain(g, x - 7, y - 150, 14, 150, x * 0.01, '#8a6a44');
       const w = 200;
-      g.beginPath(); g.moveTo(x - w / 2, y - 200); g.lineTo(x + w / 2 - 20, y - 200); g.lineTo(x + w / 2 + 10, y - 178); g.lineTo(x + w / 2 - 20, y - 156); g.lineTo(x - w / 2, y - 156); g.closePath(); g.fill(); g.stroke();
+      g.save();
+      g.beginPath(); g.moveTo(x - w / 2, y - 200); g.lineTo(x + w / 2 - 20, y - 200); g.lineTo(x + w / 2 + 10, y - 178); g.lineTo(x + w / 2 - 20, y - 156); g.lineTo(x - w / 2, y - 156); g.closePath();
+      g.save(); g.clip(); woodGrain(g, x - w / 2 - 4, y - 204, w + 24, 52, x * 0.02, '#d9c7a4'); g.restore();
+      g.strokeStyle = INK; g.lineWidth = 4; g.stroke();
+      g.restore();
       g.fillStyle = INK;
       g.font = '800 24px Fraunces, Georgia, serif';
       g.textAlign = 'center';
@@ -1115,8 +1222,11 @@ export default function create(env) {
       g.beginPath(); g.moveTo(wm.x - 70, bot); g.lineTo(wm.x - 42, top); g.lineTo(wm.x + 42, top); g.lineTo(wm.x + 70, bot); g.closePath(); g.fill(); g.stroke();
       g.fillStyle = '#8a6a44';
       g.beginPath(); g.moveTo(wm.x - 54, top + 4); g.lineTo(wm.x, top - 50); g.lineTo(wm.x + 54, top + 4); g.closePath(); g.fill(); g.stroke();
-      g.fillStyle = '#5a4630';
-      g.fillRect(wm.x - 16, bot - 70, 32, 70); g.strokeRect(wm.x - 16, bot - 70, 32, 70);
+      g.save(); g.clip();
+      g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.8;
+      g.beginPath(); for (let yy = top - 40; yy < top + 4; yy += 9) { g.moveTo(wm.x - 60, yy); g.lineTo(wm.x + 60, yy); for (let bx = wm.x - 50 + (yy % 2) * 7; bx < wm.x + 50; bx += 14) { g.moveTo(bx, yy); g.lineTo(bx, yy + 9); } } g.stroke();
+      g.restore();
+      woodGrain(g, wm.x - 16, bot - 70, 32, 70, wm.x * 0.01, '#5a4630');
       g.save();
       g.beginPath(); g.moveTo(wm.x - 70, bot); g.lineTo(wm.x - 42, top); g.lineTo(wm.x + 42, top); g.lineTo(wm.x + 70, bot); g.closePath(); g.clip();
       g.fillStyle = 'rgba(70,58,80,0.3)';
@@ -1143,13 +1253,19 @@ export default function create(env) {
     for (let i = 0; i < 4; i++) {
       g.save();
       g.rotate(wm.ang + (i * Math.PI) / 2);
-      g.fillStyle = '#e8dcc4';
-      g.beginPath(); g.rect(20, -6, wm.len - 20, 12); g.fill(); g.stroke();
-      g.fillStyle = 'rgba(232,220,196,0.85)';
+      woodGrain(g, 20, -6, wm.len - 20, 12, i * 3.3, '#b89a74');
+      g.fillStyle = '#e4d8bf';
+      g.strokeStyle = INK; g.lineWidth = 3.5;
       g.beginPath(); g.moveTo(40, -6); g.lineTo(wm.len - 10, -6); g.lineTo(wm.len - 10, -46); g.lineTo(40, -34); g.closePath(); g.fill(); g.stroke();
+      g.save(); g.clip();
+      g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
       g.beginPath();
-      for (let k = 60; k < wm.len - 10; k += 28) { g.moveTo(k, -6); g.lineTo(k, -40 + (k - 40) * 0.06 * 0.2 - 2); }
+      for (let k = 54; k < wm.len - 10; k += 24) { g.moveTo(k, -6); g.lineTo(k, -50); }
+      for (let r = -14; r > -46; r -= 10) { g.moveTo(40, r); g.lineTo(wm.len, r - 6); }
       g.stroke();
+      g.strokeStyle = 'rgba(43,29,20,0.28)'; g.lineWidth = 1.4;
+      g.beginPath(); for (let k = 46; k < wm.len; k += 7) { g.moveTo(k, -6); g.lineTo(k - 8, -22); } g.stroke();
+      g.restore();
       g.restore();
     }
     g.fillStyle = '#c8443a';

@@ -189,9 +189,12 @@ export function stepChase(c, inS, inH, dt) {
 
   // Actions.
   const d = len(h.x - s.x, h.y - s.y);
-  if (inS.actionPressed && s.mode === 'move') {
+  // (A hidden holder can't be grabbed or lunged at: over their cover, Action
+  // does nothing, and waiting there flushes them out.)
+  const overCover = h.hidden && h.inCover && ((s.x - h.inCover.x) / (h.inCover.rx * 1.3)) ** 2 + ((s.y - h.inCover.y) / (h.inCover.ry * 1.6)) ** 2 < 1;
+  if (inS.actionPressed && s.mode === 'move' && !overCover) {
     if (d < s.grabRange + s.radius && !h.hidden) beginTug(c);
-    else if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange) startLunge(c, s, h.x, h.y);
+    else if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange && !h.hidden) startLunge(c, s, h.x, h.y);
     else if (s.cool <= 0 && s.winded <= 0) startLunge(c, s, s.x + s.dirX * 200, s.y + s.dirY * 200);
   }
   if (inH.actionPressed && h.mode === 'move' && h.cool <= 0 && h.winded <= 0) startDodge(c, h);
@@ -202,7 +205,7 @@ export function stepChase(c, inS, inH, dt) {
 
   // A lunge that reaches a holder who is not mid-dodge grabs them.
   const d2 = len(h.x - s.x, h.y - s.y);
-  if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode !== 'dodge') beginTug(c);
+  if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode !== 'dodge' && !h.hidden) beginTug(c);
   if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode === 'dodge') c.events.push({ type: 'dodged' });
 
   // Flushing: a snatcher waiting right over the holder's cover scares them out.

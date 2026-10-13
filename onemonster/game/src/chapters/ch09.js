@@ -386,7 +386,7 @@ export default function create(env) {
         bin = env.versus ? (inH || {}) : aiHolder(chase, brain, env.skill, dt);
         if (!env.versus) {
           // Tangled in the net it can't wriggle as fast as it would like: some of its pulls slip.
-          if (chase.tug && bin.actionPressed && env.rng() > 0.5 + 0.3 * env.skill) bin = { ...bin, actionPressed: false };
+          if (chase.tug && bin.actionPressed && env.rng() > 0.4 + 0.3 * env.skill) bin = { ...bin, actionPressed: false };
           // A canny Bombanat keeps away from the mailbox side of the clearing:
           // caught there, the letter would be posted in a moment.
           if (!chase.tug && bomb.mode === 'move' && !bomb.hidden && bomb.x > 1100) {
@@ -424,7 +424,7 @@ export default function create(env) {
       }
       const ev = stepChase(chase, gin, bin, dt);
       eventFx(env, ev, fx);
-      if (ev.some((e) => e.type === 'free')) { fx.say('Wriggled out!', bomb.x, bomb.y - bz - 200); hint = { text: 'It wriggled out! Net it again!', t: 2 }; }
+      if (ev.some((e) => e.type === 'free')) hint = { text: 'It wriggled out! Net it again!', t: 2 };
       if (ev.some((e) => e.type === 'flushed')) hint = { text: 'Out it comes!', t: 1.5 };
       stepGrithix(dt);
 
@@ -513,7 +513,7 @@ export default function create(env) {
       things.sort((a, b) => a.y - b.y);
       for (const th of things) th.draw();
       drawMarkers(g, tt);
-      if (chase.tug) tugBar(g, chase, (gx.x + bomb.x) / 2, Math.min(gx.y, bomb.y) - 400, ['In the net!', 'Wriggle out!'], { kind: env.inputKind, t: tt, W });
+      if (chase.tug) tugBar(g, chase, (gx.x + bomb.x) / 2, Math.min(gx.y, bomb.y) - 400, ['In the net!', 'Wriggle out!'], { kind: env.versus ? env.inputKind : null, t: tt, W });
       fx.draw(g);
       g.restore();
       drawJars(g, tt);

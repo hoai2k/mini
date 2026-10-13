@@ -435,7 +435,7 @@ export default function create(env) {
   // its lips to the water and the cloud never hides what it is sucking.
   function lift(y) { return 300 * persp(y); }
   function cloudK() { return 0.95 * lerp(0.86, 1.08, (persp(p.y) - 0.74) / 0.26); }
-  function cloudX() { return p.x + side * 170 * cloud.sizeK; }
+  function cloudX() { return clamp(p.x + side * 170 * cloud.sizeK, 230, W - 230); }
   function cloudY() { return p.y - lift(p.y); }
   function mouth() {
     const [mx, my] = MOUTH[cloud.anim] || MOUTH.suck;
