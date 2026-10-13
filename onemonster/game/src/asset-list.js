@@ -524,7 +524,7 @@ export const ASSETS = {
   },
   "howto.ch08.3": {
     "file": "assets/howto/ch08-3.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch09.1": {
     "file": "assets/howto/ch09-1.webp",
@@ -532,11 +532,11 @@ export const ASSETS = {
   },
   "howto.ch09.2": {
     "file": "assets/howto/ch09-2.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch09.3": {
     "file": "assets/howto/ch09-3.webp",
-    "delivered": false
+    "delivered": true
   },
   "bombanat.plain": {
     "file": "assets/monsters/bombanat/plain.png",

@@ -810,6 +810,24 @@
       "file": "assets/howto/ch09-1.webp",
       "size": "1024 x 768, opaque",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg ."
+    },
+    {
+      "id": "OM-H8c",
+      "file": "assets/howto/ch08-3.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg ."
+    },
+    {
+      "id": "OM-H9b",
+      "file": "assets/howto/ch09-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg ."
+    },
+    {
+      "id": "OM-H9c",
+      "file": "assets/howto/ch09-3.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg ."
     }
   ],
   "delivered": [
@@ -1487,6 +1505,21 @@
       "id": "OM-H9a",
       "file": "assets/howto/ch09-1.webp",
       "sha256": "b75353050b6d95d1510fccb2a2aa4561bad3b160d887f37137af7d011cb0d77e"
+    },
+    {
+      "id": "OM-H8c",
+      "file": "assets/howto/ch08-3.webp",
+      "sha256": "c4c03da72bef60faf215c4a189530e4bd7c37e9daa679e95bb85dc7abe40492f"
+    },
+    {
+      "id": "OM-H9b",
+      "file": "assets/howto/ch09-2.webp",
+      "sha256": "63a7d8517a82efd9dd4ccb5d105cce115b2dea98d7e43ea340635a207bdba2dc"
+    },
+    {
+      "id": "OM-H9c",
+      "file": "assets/howto/ch09-3.webp",
+      "sha256": "8c56c633d128a9f615a07fe6b901b00ab9991b3d17361e9c915114cb116b6798"
     }
   ],
   "request_revision": "1add341",
@@ -3264,6 +3297,69 @@
       "references": [
         "onemonster/game/assets/monsters/grithix/model-sheet.png",
         "onemonster/game/assets/monsters/bombanat/model-sheet.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H8c",
+      "file": "assets/howto/ch08-3.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Use case: stylized-concept. Draw a brand NEW friendly game instruction vignette, horizontal 4:3, 1024 x 768, opaque warm cream paper with drawing fading at edges. Exactly TWO characters, each once, matching attached canonical designs: Trollusk (reference1) runs to the RIGHT, shown in right-facing side profile, with his checked teal hat, brown fur, ONE short pink pig snout on his ONE head, one tusk, pink paws and MY STAMPS bag. Bombanat (reference2) swoops down in front of Trollusk at the RIGHT, grabbing a SINGLE white envelope from Trollusk's normal face snout with its teeth. Bombanat has pink long snout, mauve wings, dark fur, red propeller cap, striped tie, curling tail. Trollusk's shoulder is covered only in fur: no tube, trunk, second snout, extra face, long appendage or extra limbs. Empty hands. Woodland lane at bottom with sparse grass and dust. Pen-and-ink heavy wiry hatching with faded watercolor earth colors. Clear readable pose, no borders, no other text.",
+      "references": [
+        "onemonster/game/assets/monsters/trollusk/model-sheet.png",
+        "onemonster/game/assets/monsters/bombanat/model-sheet.png"
+      ],
+      "revision_prompt": "Regenerated the whole chase from clean canonical sheets to remove the extra shoulder snout.",
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H9b",
+      "file": "assets/howto/ch09-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Use case: stylized-concept. New friendly game instruction spot vignette on plain warm cream paper, 1024 x 768, horizontal 4:3, fading edges. Exactly TWO characters: the tall pink Grithix in a long magenta coat, blue scaled shoulder shell, green bow tie, curved horned snout and spiked tail from reference1 walks right holding ONE white envelope in his hand and a butterfly net over his shoulder. He carefully steps around the squat brown Trollusk from reference2 who emerges from ferns at his feet trying playfully to trip him. Trollusk has one pig snout, one tusk, checked teal hat and yellow MY STAMPS bag, and holds NO envelope. Dense fine black ink hatching with thin muted watercolor washes, cream sky, mossy woodland floor, simple clear poses. No additional characters, letters, numbers, labels or border, except the existing bag words.",
+      "references": [
+        "onemonster/game/assets/monsters/grithix/model-sheet.png",
+        "onemonster/game/assets/monsters/trollusk/model-sheet.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H9c",
+      "file": "assets/howto/ch09-3.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Use case: stylized-concept. New friendly game instruction spot vignette on warm cream paper, 1024 x 768, horizontal 4:3, drawing fading to plain cream edges. Exactly ONE character, the Grithix from the attached canonical reference: tall pink monster with a curved horned snout, long magenta coat, blue-green scaled shoulder shell, green bow tie, spiked tail and butterfly net over his shoulder. He happily deposits ONE white envelope into the narrow mail slot of a squat riveted grey-mauve official mailbox with a rounded arched top in a leafy woodland clearing. Only character, mailbox, sparse trees and ferns. Dense wiry black pen lines and heavy hatching with muted watercolor washes. No book, frame, text, words, numbers or labels.",
+      "references": [
+        "onemonster/game/assets/monsters/grithix/model-sheet.png"
       ],
       "generator": "built-in image_gen",
       "source_size": [

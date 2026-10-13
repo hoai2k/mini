@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-3 requested, 135 delivered, 138 in total.
+0 requested, 138 delivered, 138 in total.
 
 ## Brand
 
@@ -1788,7 +1788,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 3 of chapter 8's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/trollusk-and-yalapappus-running.jpg`](../reference/trollusk-and-yalapappus-running.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg .
@@ -1814,7 +1814,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 2 of chapter 9's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/grithix-nets-bombanat-page.jpg`](../reference/grithix-nets-bombanat-page.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .
@@ -1827,7 +1827,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 3 of chapter 9's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/grithix-nets-bombanat-page.jpg`](../reference/grithix-nets-bombanat-page.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .
