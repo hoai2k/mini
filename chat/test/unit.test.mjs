@@ -1767,3 +1767,48 @@ test('Beach Bump: a drop costs the player whose zone it fell in; the last one st
   close(over.x, P.courtWidth(2) / 4, 1e-9);
   assert.equal(over.t, hang.t);
 });
+
+test('Baseball: human-like timing spreads hits over the whole field', async () => {
+  // Swings released around the moment that would send the ball straight away,
+  // with a person's timing (+-70 ms), mostly fully pulled: the results should
+  // use the whole board, not mostly fly out or mostly dribble.
+  const B = (await import('../games/baseball.js'))._physics;
+  let seed = 4242;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
+  const ideal = (p, pull) => {
+    let best = null;
+    for (let t = -0.8; t < p.end; t += 0.006) {
+      const c = B.findContact(p, pull, t);
+      if (!c || c.L.vy >= 0) continue;
+      const a = Math.abs(Math.atan2(c.L.vx, -c.L.vy));
+      if (!best || a < best.a) best = { t, a };
+    }
+    return best?.t;
+  };
+  const { pk, bonus } = B.dealLabels(rnd);
+  const n = { all: 0, F: 0, H: 0, O: 0, hits: 0, deep: 0, shallow: 0, wide: 0 };
+  const types = ['fast', 'fast', 'slow', 'curveL', 'curveR'];
+  for (let i = 0; i < 160; i++) {
+    const p = B.makePitch(types[i % 5], Math.floor(rnd() * 2 ** 31));
+    const pull = rnd() < 0.6 ? B.PULL_MAX : 0.6 + rnd() * 0.6;
+    const t0 = ideal(p, pull);
+    if (t0 == null) continue;
+    const c = B.findContact(p, pull, t0 + gauss() * 0.07);
+    n.all++;
+    if (!c) continue;
+    if (Math.abs(Math.atan2(c.L.vx, -c.L.vy)) > 0.6) n.wide++;
+    const r = B.roll(c.L, rnd(), 0);
+    const o = B.outcome(r, pk, bonus);
+    n[o] = (n[o] || 0) + 1;
+    if ('123H'.includes(o)) n.hits++;
+    if (r.end === 'over' || r.y < 0.6) n.deep++;
+    else if (r.y > 1.0) n.shallow++;
+  }
+  const f = k => n[k] / n.all;
+  assert.ok(f('F') > 0.03 && f('F') < 0.25, `fouls ${f('F')}`);
+  assert.ok(f('H') > 0.04 && f('H') < 0.25, `home runs ${f('H')}`);
+  assert.ok(f('hits') > 0.35 && f('hits') < 0.75, `hits ${f('hits')}`);
+  assert.ok(f('deep') > 0.15 && f('shallow') > 0.15, `deep ${f('deep')}, shallow ${f('shallow')}`);
+  assert.ok(f('wide') > 0.15, `hits towards the corners ${f('wide')}`);
+});
