@@ -1,11 +1,13 @@
 // Checks for a hero's combat resources (js/resources.js): the Ambrosia flask
 // on its refilling cooldown, the quiver for the ranged attack (refill, size,
 // bundles), and the damage monsters deal by tier.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FLASK, flaskCooldown, flaskHeal, canDrink, drink, tickFlask, flaskFill, QUIVER, quiverMax, newQuiver, resizeQuiver, shoot, tickQuiver, addBundle, wantsBundle, bundlesFrom, BUNDLE_DROP, ammoInfo, HIT_SCALE, monsterDamage } from '../js/resources.js';
 import { gearStats, rollItem, ENCHANTS } from '../js/loot.js';
 import { readFileSync } from 'node:fs';
+import { mulberry32 } from '../js/util.js';
 
 // monsters.js builds models with Three.js: read just its stat table
 const src = readFileSync(new URL('../js/entities/monsters.js', import.meta.url), 'utf8');
@@ -37,10 +39,10 @@ test('the flask: cooldown gear shortens the refill, never below the floor', () =
   close(flaskHeal(100, { healBonus: 0.2 }), 100 * (FLASK.heal + 0.2));  // Apollo's Blessing II
   assert.equal(flaskHeal(100, { healBonus: 3 }), 100, 'never more than full');
   // gear stats feed it
-  const fleece = rollItem(20, { id: 'fleece_cloak' });
+  const fleece = rollItem(20, { id: 'fleece_cloak', rng: mulberry32(1), blessed: false });
   const s = gearStats([null, fleece, null, null]).s;
   assert.ok(s.flaskCdr >= 0.15 && flaskCooldown(s) < FLASK.cooldown);
-  const parka = rollItem(20, { id: 'hunter_parka' });
+  const parka = rollItem(20, { id: 'hunter_parka', rng: mulberry32(1), blessed: false });
   assert.equal(quiverMax(gearStats([null, parka]).s), QUIVER.max + 10);
   assert.ok(ENCHANTS.nectar && ENCHANTS.quiver, 'Hebe’s Cup and Artemis’s Quiver exist');
 });

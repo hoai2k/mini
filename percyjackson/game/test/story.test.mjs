@@ -1,6 +1,7 @@
 // The story as it is told: the bus lettering in the bus cutscene stays all
 // Greek until the last shot of the bus, every subtitle has time to be read,
 // and the narration of the opening never says the same thing twice.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

@@ -1,5 +1,6 @@
 // The opening of a new game (story/opening.js) and where roaming monsters
 // may appear (world/roamZones.js).
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

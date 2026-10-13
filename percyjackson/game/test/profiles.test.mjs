@@ -3,6 +3,7 @@
 // chapters and unlocks, the higher level, union of the inventory by uid,
 // nothing counted twice), export codes round-trip, writes are debounced and
 // merge with a newer stored revision instead of overwriting it.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Profiles, mergeProfiles, encodeProfile, decodeProfile, INDEX_KEY, PROFILE_KEY } from '../js/profiles.js';

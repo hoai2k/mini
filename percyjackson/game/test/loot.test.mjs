@@ -1,6 +1,7 @@
 // Loot rules: items roll valid, enchantment rows offer choices, salvage
 // refunds exactly what was spent, favourites and blessings work, every magic
 // item's effect exists, and old saved items are converted.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

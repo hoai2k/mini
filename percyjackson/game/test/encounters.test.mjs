@@ -2,6 +2,7 @@
 // role, groups with scouts placed on the reachable floor from the seed, traps
 // limited per chapter, room sizes, and a kill objective a level can always
 // meet.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

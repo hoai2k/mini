@@ -1,5 +1,6 @@
 // Checks for the Xbox controller layout (js/padmap.js), after Minecraft
 // Dungeons II's defaults, driven with a fake gamepad.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

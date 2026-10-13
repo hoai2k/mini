@@ -3,6 +3,7 @@
 //     or a prop over it (js/objectives/common.js ground / openGround / roomSpot),
 //   - boss health counts an AI companion for less than a player
 //     (js/entities/bosses.js partyHpScale).
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

@@ -2,6 +2,7 @@
 // world: heroes slide round pillar corners instead of snagging, walls still
 // stop them, a 1-block ledge is stepped up, and a position with no ground
 // under it (y = -Infinity) returns instead of looping forever.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

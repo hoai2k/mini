@@ -1,6 +1,7 @@
 // The prologue as a training board (rats that loiter, the dash director,
 // the hints), Greek letters on titles and signs (never on narration), the
 // pictures preloaded behind the loading screen, and the people in the Mist.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';

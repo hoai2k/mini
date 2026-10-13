@@ -5,6 +5,7 @@
 //   - every relative import points at a file that exists and exports the
 //     names imported from it,
 //   - the chapter, hero, monster and boss ids agree across the data files.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
