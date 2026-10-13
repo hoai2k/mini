@@ -108,7 +108,7 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     // A note stopped before it sounds stays silent.
     v.g.gain.setValueAtTime(when < v.t + 0.004 ? 0 : v.level, when);
     v.g.gain.setTargetAtTime(0, when, tau);
-    try { v.src.stop(when + tau * 8); } catch { /* already stopped */ }
+    try { v.src.stop(when + tau * 7); } catch { /* already stopped */ }
   }
 
   /** Strike a note. Returns a handle for release(), or null if not loaded. */
@@ -137,7 +137,8 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     return v;
   }
 
-  function noteOff(v, when = 0) { if (v) stopVoice(v, Math.max(ctx.currentTime, when || ctx.currentTime)); }
+  /** Let a note go at `when`, fading with time constant `tau` (default: the instrument's). */
+  function noteOff(v, when = 0, tau = inst.release) { if (v) stopVoice(v, Math.max(ctx.currentTime, when || ctx.currentTime), tau); }
 
   function stopAll() { for (const v of voices) stopVoice(v, ctx.currentTime, 0.06); }
 
