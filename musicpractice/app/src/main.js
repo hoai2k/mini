@@ -2,6 +2,7 @@
 
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
+import { encodeWav } from './wav.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
@@ -601,6 +602,75 @@ function stopPlayback({ resume = true } = {}) {
   showState();
 }
 
+/**
+ * Rename a take: its title turns into a text field. Enter or leaving the
+ * field keeps the name, Escape cancels, and an empty name goes back to the
+ * default. Listening pauses while typing, like any use of the list.
+ */
+function renameTake(take, li) {
+  const title = li.querySelector('.title');
+  if (!title) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'title-input';
+  input.maxLength = 60;
+  input.value = take.name || '';
+  input.placeholder = li.dataset.label;
+  input.setAttribute('aria-label', 'Take name');
+  input.enterKeyHint = 'done';
+  const pausedHere = recorder && (recorder.state === 'waiting' || recorder.state === 'recording');
+  if (pausedHere) recorder.pause();
+  title.replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = async (keep) => {
+    if (done) return;
+    done = true;
+    const name = input.value.trim().slice(0, 60);
+    input.replaceWith(title);
+    if (keep && name !== (take.name || '')) {
+      take.name = name;
+      renderTakes();
+      await store.rename(take.id, name);
+    }
+    if (pausedHere && !playing && toastTimer === null && recorder?.state === 'paused') resumeListening();
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+  });
+  input.addEventListener('blur', () => finish(true));
+}
+
+/**
+ * Save a take as a WAV file. On phones it opens the share sheet (Save to
+ * Files, AirDrop, Messages, Voice Memos…), the way iPhone saves files from
+ * the web; elsewhere, or if sharing isn't offered, it downloads.
+ */
+async function saveTake(take, label) {
+  const base = (label || 'Take').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Take';
+  const blob = encodeWav(take.samples, take.sampleRate);
+  const file = new File([blob], `${base}.wav`, { type: 'audio/wav' });
+  const phone = isIOS() || /Android/i.test(navigator.userAgent);
+  if (phone && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: base });
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return; // closed the share sheet
+    }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 function renderTakes() {
   const list = $('takes');
   $('takes-empty').hidden = takes.length > 0;
@@ -613,22 +683,32 @@ function renderTakes() {
       li.dataset.key = take.created;
       li.innerHTML = `
         <button class="play" type="button"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
-        <div class="meta"><div class="name"><span></span><span></span></div><canvas aria-hidden="true"></canvas></div>
+        <div class="meta"><div class="name"><button type="button" class="title"></button><span></span></div><canvas aria-hidden="true"></canvas></div>
+        <button class="save" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></button>
         <button class="del" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
         <span class="bar-progress" aria-hidden="true"></span>`;
       li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
       li.querySelector('.del').addEventListener('click', () => removeTake(take));
+      li.querySelector('.save').addEventListener('click', () => saveTake(take, li.dataset.label));
+      li.querySelector('.title').addEventListener('click', () => renameTake(take, li));
       const canvas = li.querySelector('canvas');
       canvas.redraw = () => drawThumb(canvas, take.samples);
       requestAnimationFrame(canvas.redraw);
     }
     const n = takes.length - i;
     const dur = take.samples.length / take.sampleRate;
-    const [name, len] = li.querySelectorAll('.name span');
-    name.textContent = `Take ${n} · ${fmtWhen(take.created)}`;
+    const title = li.querySelector('.title');
+    const len = li.querySelector('.name > span');
+    const label = take.name || `Take ${n} · ${fmtWhen(take.created)}`;
+    li.dataset.label = label;
+    if (title) {
+      title.textContent = label;
+      title.setAttribute('aria-label', `${label}. Tap to rename`);
+    }
     len.textContent = fmtDur(Math.max(1, Math.round(dur)));
     li.querySelector('.play').setAttribute('aria-label', `${playing?.take === take ? 'Stop' : 'Play'} take ${n}`);
     li.querySelector('.del').setAttribute('aria-label', `Delete take ${n}`);
+    li.querySelector('.save').setAttribute('aria-label', `Save take ${n} as a file`);
     li.classList.toggle('playing', playing?.take === take);
     if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
     return li;

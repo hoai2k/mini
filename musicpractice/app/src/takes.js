@@ -56,7 +56,7 @@ export function toFloat32(i16) {
 export async function list() {
   try {
     const rows = await run('readonly', (s) => s.getAll());
-    return rows.map((r) => ({ id: r.id, created: r.created, sampleRate: r.sampleRate, samples: toFloat32(new Int16Array(r.pcm)) })).reverse();
+    return rows.map((r) => ({ id: r.id, created: r.created, name: r.name || '', sampleRate: r.sampleRate, samples: toFloat32(new Int16Array(r.pcm)) })).reverse();
   } catch {
     return [...memory.values()].reverse();
   }
@@ -71,6 +71,23 @@ export async function add(samples, sampleRate, created = Date.now()) {
     memory.set(id, { id, created, sampleRate, samples });
     return id;
   }
+}
+
+/** Give a take a name ('' for the default). */
+export async function rename(id, name) {
+  const m = memory.get(id);
+  if (m) m.name = name;
+  try {
+    await open().then((db) => new Promise((resolve, reject) => {
+      if (!db) return reject(new Error('no db'));
+      const tx = db.transaction(STORE, 'readwrite');
+      const st = tx.objectStore(STORE);
+      const req = st.get(id);
+      req.onsuccess = () => { if (req.result) st.put({ ...req.result, name }); };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    }));
+  } catch { /* memory only */ }
 }
 
 export async function remove(id) {

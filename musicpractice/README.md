@@ -106,6 +106,13 @@ is paused; it resumes when playback ends or the Undo goes away. The big
 record button turns listening on and off at any time; turning it off during
 a take keeps the take.
 
+Tap a take's title to rename it (Enter or tapping away keeps it, Escape
+cancels, an empty name goes back to "Take N · time"; listening pauses while
+typing). The save button beside it exports the take as a WAV file named
+after it: on iPhone and Android it opens the share sheet (Save to Files,
+AirDrop, Messages, Voice Memos…), which is how iPhone saves files from the
+web; elsewhere, or if sharing isn't offered, it downloads.
+
 Settings (gear): silence to finish, start on musical notes or any sound,
 sensitivity (lower it in a noisy room, raise it for quiet instruments), and
 whether to play each take back automatically, and record during playback
