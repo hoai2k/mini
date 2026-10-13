@@ -8,6 +8,7 @@ import { diag, isWebKit, isIOS, micPermission } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
+import { setupHomeOrder } from './homeorder.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -80,7 +81,15 @@ function route() {
   enter(next);
 }
 
+const homeOrder = setupHomeOrder({
+  container: $('choices'),
+  done: $('home-done'),
+  order: settings.homeOrder,
+  onChange: (order) => { settings.homeOrder = order; persist(); },
+});
+
 function leave(name) {
+  if (name === 'home') homeOrder.stop();
   if (name === 'metronome') stopMetronome();
   if (name === 'record') stopRecorder();
   if (name === 'tuner') stopTuner();
@@ -987,6 +996,7 @@ document.addEventListener('keydown', (e) => {
   const t = e.target;
   // Typing in a field (a take's name, the tempo) keeps its keys.
   const typing = (t instanceof HTMLInputElement && t.type !== 'checkbox') || t instanceof HTMLTextAreaElement || t?.isContentEditable;
+  if (e.key === 'Escape' && screen === 'home') { homeOrder.stop(); return; }
   if (e.key === 'Escape' && screen !== 'home') { location.hash = ''; return; }
   if (screen === 'metronome') {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }

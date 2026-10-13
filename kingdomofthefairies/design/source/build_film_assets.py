@@ -329,6 +329,26 @@ GROUPS.append(
 )
 
 
+# Play-testing, 13 October 2026: the man-at-arms reads as the prince.
+GROUPS.append(
+    ('The man-at-arms, unlike the prince', 'Requested 13 October 2026 after play-testing Act II: the man-at-arms carries the prince\'s own blue shield with the gold star, a plumed silver helmet and a red cape, so when he wakes on the cave floor and rises he looks like a second prince. Redraw him (and his idle frames) in his crew\'s livery with heraldry of his own. Each -redo frame replaces its file on delivery; until then Act II casts another crewman in his place.', [
+        (f'crew-manatarms{idle}{t}-redo', f'The man-at-arms{", idle frame " + idle[-1].upper() if idle else ""}{" (tinted)" if t else ""}, redrawn unlike the prince', 220, 420, 'bottom centre', TINTED if t else SPRITE,
+         f'Redraw crew-manatarms{idle}{t}.webp (attach it, and prince-stand{t}.webp to show what he must NOT resemble). The same man, pose, halberd, scale, foot position and 220 x 420 canvas, in the same striped crew livery as crew-squire{t}.webp and crew-helmsman{t}.webp. Change everything he shares with the prince: an open iron kettle-hat with no plume instead of the plumed silver helmet; a short cloak in the crew\'s green and ochre instead of the red cape; a red-and-ochre striped heater shield with no star, or no shield at all, instead of the blue star shield. No floor or shadow.'
+         + (f' Keep it an idle frame of the redrawn crew-manatarms{t}-redo.webp: exactly the same figure, with only the detail that moved in crew-manatarms{idle}{t}.webp moving.' if idle else ''), f'crew-manatarms{idle}{t}')
+        for idle in ('', '-idle-b', '-idle-c') for t in ('-tinted', '')
+    ]),
+)
+
+
+# Play-testing, 13 October 2026: the tinted guard flickers between two looks.
+GROUPS.append(
+    ('The lobster guard, one look in both poses', 'Requested 13 October 2026 after play-testing Act III: in the tinted look the guard\'s two poses do not match. lobster-guard-open-tinted is a warm, shaded red with full sea-green weed; lobster-guard-closed-tinted is a flatter, pinker red with paler weed, so he flickers between two creatures as his claws open and shut. Redraw the shut pose to match the open one exactly. The -redo frame replaces lobster-guard-closed-tinted.webp on delivery.', [
+        ('lobster-guard-closed-tinted-redo', 'The lobster guard, claws shut (tinted), matched to the open pose', 500, 340, 'bottom centre', TINTED,
+         'Redraw lobster-guard-closed-tinted.webp (attach it, and lobster-guard-open-tinted.webp, which it must match). The same pose: crouched, the halberd held across the way, claws shut; the same canvas, scale and foot position. But exactly the colouring, shading, weed, shells and film finish of lobster-guard-open-tinted.webp: the same red of the shell, the same depth of shadow, the same sea-green and rose weed and pearl trim. Laid side by side the two must read as one guard in two poses. No floor or shadow.', 'lobster-guard-closed-tinted'),
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

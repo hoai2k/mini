@@ -2,7 +2,7 @@ import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
-import { FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, T, GIFTS, sceneOf } from './prologue.js';
+import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, T, GIFTS, sceneOf } from './prologue.js';
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
@@ -57,9 +57,9 @@ export function onEvent(k, e, st) {
   if (e.type === 'scene' && e.phase === 'curse') { k.flash(0.6); k.shake(0.4); k.burst(220, FLOOR - 150, '#5f3a6a', 30, 'smoke'); }
   if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
   if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
-  if (e.type === 'scene' && e.phase === 'free') { k.flash(0.5); k.burst(st?.p.x ?? 420, FLOOR - 120, '#fff2b0', 34, 'sparkle'); }
-  if (e.type === 'arm') { k.burst(e.x, FLOOR - 90, '#fff2b0', 20, 'sparkle'); }
-  if (e.type === 'knighted') { k.flash(0.6); k.burst(st?.p.x ?? 900, FLOOR - 120, '#fff2b0', 40, 'sparkle'); }
+  if (e.type === 'scene' && e.phase === 'free') { k.flash(0.5); k.burst(st?.p.x ?? 420, ARM_FLOOR - 120, '#fff2b0', 34, 'sparkle'); }
+  if (e.type === 'arm') { k.burst(e.x, ARM_FLOOR - 50, '#fff2b0', 20, 'sparkle'); }
+  if (e.type === 'knighted') { k.flash(0.6); k.burst(st?.p.x ?? 900, ARM_FLOOR - 120, '#fff2b0', 40, 'sparkle'); }
 }
 
 // ---------------------------------------------------------------- the court
@@ -69,19 +69,23 @@ function courtScene(k, st, t) {
   // the king and queen before their thrones on the dais
   figure(k, 'king-stand', 560, 412, t, 0.82, 1);
   figure(k, 'queen-stand', 722, 412, t + 1, 0.82, -1);
-  // the fairies in a line, each holding her gift until she gives it
+  // the fairies in a line, each holding her gift until she gives it; the
+  // gifts are drawn after the prince, so he reaches behind what he takes
+  const held = [];
   for (const f of FAIRIES) {
     const given = st.gifts.includes(f.gift);
     if (f.gift === 'flower' || !k.img(f.id)) {
       // Aurora (her flower is drawn in her hand), or a fairy not yet delivered
       figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, f.id === 'aurora-stand' ? -1 : 1);
-      if (!given) gift(k, f.gift, f.x - 34, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x));
+      if (!given) held.push(() => gift(k, f.gift, f.x + f.hand, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x)));
     } else if (k.img(f.id + '-empty')) {
-      // empty-handed art (F15): the game puts her gift in her hands until she gives it
-      figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1, given ? null : (c, s, im) => {
+      // empty-handed art (F15): the game puts her gift in her hands until she
+      // gives it, in the same sway as her figure
+      figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1);
+      if (!given) held.push(() => figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1, (c, s, im) => {
         const [hx, hb, hw] = GIFT_IN_HAND[f.id + (/-tinted\./.test(im.src) ? '-tinted' : '')];
         gift(k, f.gift, (hx - (im.naturalWidth || im.width) / 2) * s, (hb - (im.naturalHeight || im.height)) * s, (hw * s) / 96);
-      });
+      }, true));
     } else if (!given) figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, 1);
     // Until then her art holds the gift itself, so once she has given it she
     // vanishes in a burst of sparkle, a stop trick, rather than keep it.
@@ -96,6 +100,7 @@ function courtScene(k, st, t) {
   });
   if (st.phase === 'curse') curse(k, st, t);
   prince(k, st, t);
+  for (const draw of held) draw();
 }
 
 function curse(k, st, t) {
@@ -124,8 +129,7 @@ function rampartScene(k, st, t) {
   for (const f of st.fires) {
     const x = f.x - cx;
     if (!f.lit) { c.fillStyle = k.col('#ffcf7a'); k.circle(x, f.y, 9); c.fillStyle = k.col('#e9693a'); k.circle(x, f.y - 8, 6); continue; }
-    const a = 1 - clamp((f.burn - (RAMPART.burn - 0.4)) / 0.4, 0, 1);
-    flame(k, x, rampartFloor(f.x) + 4, 0.75 * a, t + f.x);
+    flame(k, x, rampartFloor(f.x) + 4, 0.75, t + f.x);   // it burns on
   }
   // the chariot of fire, with her demons and Azurine asleep
   const up = st.phase === 'escape' ? easeOut(Math.min(1, ch.up / 2)) : 0;
@@ -151,22 +155,22 @@ function chariot(k, x, y, t) {
 function armouryScene(k, st, t) {
   const c = k.c;
   if (!k.asset('armoury', 640, 720, 1280, 720)) { c.fillStyle = k.col('#30283a'); c.fillRect(0, 0, 1280, 720); }
-  // the arms on their stands
-  for (const a of ARMS) {
-    if (st.arms.includes(a.id)) continue;
-    c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3 + a.x); c.fillStyle = k.col('#fff2b0'); k.circle(a.x, FLOOR - 70, 50); c.restore();
-    arm(k, a.id, a.x, FLOOR - 24, t);
-  }
   const ph = st.phase;
   if (ph === 'bind') {
     const a = clamp(st.phaseT / 0.5, 0, 1);
-    c.save(); c.globalAlpha = a; figure(k, 'witch-cloud', 820, FLOOR + 30, t, 0.9, 1); c.restore();
+    c.save(); c.globalAlpha = a; figure(k, 'witch-cloud', 820, ARM_FLOOR + 30, t, 0.9, 1); c.restore();
   }
   if (ph === 'free' || ph === 'armoury' || ph === 'knighted' || ph === 'iris') {
     const a = ph === 'free' ? clamp(st.phaseT / 0.6, 0, 1) : 1;
-    c.save(); c.globalAlpha = a; figure(k, ph === 'free' ? 'aurora-point' : 'aurora-stand', 200, FLOOR + 6, t, 1, -1); c.restore();
+    c.save(); c.globalAlpha = a; figure(k, ph === 'free' ? 'aurora-point' : 'aurora-stand', 200, ARM_FLOOR + 4, t, 1, -1); c.restore();
   }
   prince(k, st, t);
+  // the arms on the flagstones, in front of him as he comes to take them
+  for (const a of ARMS) {
+    if (st.arms.includes(a.id)) continue;
+    c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3 + a.x); c.fillStyle = k.col('#fff2b0'); k.circle(a.x, ARM_FLOOR - 40, 46); c.restore();
+    arm(k, a.id, a.x, ARM_FLOOR + 2, t);
+  }
   // the witch's cords about him until Aurora breaks them
   if (ph === 'bind' || (ph === 'free' && st.phaseT < 0.9)) cords(k, st, t, ph === 'free' ? 1 - st.phaseT / 0.9 : clamp((st.phaseT - 0.4) / 0.4, 0, 1));
 }
@@ -184,10 +188,11 @@ function cords(k, st, t, a) {
 
 // ---------------------------------------------------------------- the cast
 // A standing cut-out with the film idle, feet at (x, by); `face` -1 mirrors.
-function figure(k, id, x, by, t, s = 1, face = 1, over = null) {
+// `over` draws what she holds (see kit.idle); `onlyOver` draws just that.
+function figure(k, id, x, by, t, s = 1, face = 1, over = null, onlyOver = false) {
   const c = k.c;
   c.save(); c.translate(x, by); c.scale(face, 1);
-  if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s, undefined, over)) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
+  if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s, undefined, over, onlyOver) && !onlyOver) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
   c.restore();
 }
 
@@ -195,7 +200,7 @@ function figure(k, id, x, by, t, s = 1, face = 1, over = null) {
 function prince(k, st, t, cx = 0) {
   const c = k.c, p = st.p, armed = st.arms.length === ARMS.length && sceneOf(st.phase) === 2;
   const moving = Math.abs(p.vx) > 20, step = walkPose(p.walk, 34);
-  if (p.knockT > 0 && Math.floor(t * 16) % 2) c.globalAlpha = 0.5;
+  if ((p.knockT > 0 || st.grace > 0) && Math.floor(t * 16) % 2) c.globalAlpha = 0.5;
   c.save(); c.translate(p.x - cx, p.y); c.scale(p.face, 1);
   let id;
   if (st.phase === 'bind' && k.img('prince-bound')) id = 'prince-bound';

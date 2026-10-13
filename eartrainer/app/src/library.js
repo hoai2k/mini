@@ -1,6 +1,9 @@
 // The melody library: songbooks, difficulty, transposition and what comes next.
 import { parseNotes, range, difficulty, fitWindow } from './music.js';
 import LISTS from '../data/melodies/index.js';
+import SONG_LISTS from '../data/songs/index.js';
+
+export { SONG_LISTS };
 
 export const WHITES = 11; // white keys on screen: an octave and a half
 export const LOWEST = 36; // C2
@@ -25,9 +28,44 @@ export const LEVELS = [
   { id: 'l3', name: '3 · Medium', short: 'Medium', range: [3, 3], blurb: 'Longer phrases, wider leaps' },
   { id: 'l4', name: '4 · Hard', short: 'Hard', range: [4, 4], blurb: 'Big leaps, some chromatic notes' },
   { id: 'l5', name: '5 · Expert', short: 'Expert', range: [5, 5], blurb: 'Long, leaping, chromatic lines' },
+  { id: 'songs', name: 'Full songs', short: 'Full songs', range: null, songs: true, blurb: 'A whole song, phrase by phrase' },
 ];
+export const isSongs = (level) => level === 'songs';
 // Older saves named the levels differently.
 export const LEVEL_ALIASES = { easy: 'l2', medium: 'l3', hard: 'l4', expert: 'l5' };
+
+/**
+ * Whole songs for the Full Songs mode. Each phrase is a melody of its own
+ * (id `<song>#<n>`) that knows its song and place; the song keeps its phrases
+ * in order and its overall level (that of its hardest phrase).
+ */
+export function buildSongs(lists) {
+  const songs = [];
+  for (const list of lists) {
+    for (const s of list) {
+      const song = { id: s.id, title: s.title, by: s.by, cat: s.cat, bpm: s.bpm };
+      song.phrases = s.phrases.map((notes, i) => {
+        const parsed = parseNotes(notes);
+        return { id: `${s.id}#${i + 1}`, title: s.title, by: s.by, cat: s.cat, bpm: s.bpm, notes, parsed,
+          ...range(parsed), level: difficulty(parsed), song, index: i };
+      });
+      song.level = Math.max(...song.phrases.map((p) => p.level));
+      songs.push(song);
+    }
+  }
+  return songs;
+}
+
+/** The next song: one not yet finished (or with the fewest stars), not played lately. */
+export function pickSong(pool, { best = {}, recent = [], rng = Math.random } = {}) {
+  if (!pool.length) return null;
+  let candidates = pool.filter((s) => !recent.includes(s.id));
+  if (!candidates.length) candidates = pool;
+  const score = (s) => best[s.id] ?? -1;
+  const lowest = Math.min(...candidates.map(score));
+  const tier = candidates.filter((s) => score(s) === lowest);
+  return tier[Math.floor(rng() * tier.length)];
+}
 
 /** How many melodies of a pool sit at a level (all of them for Adaptive). */
 export function countAt(pool, level) {
@@ -35,7 +73,7 @@ export function countAt(pool, level) {
   return lv?.range ? pool.filter((m) => m.level >= lv.range[0] && m.level <= lv.range[1]).length : pool.length;
 }
 
-export function buildLibrary(lists = LISTS) {
+export function buildLibrary(lists = LISTS, songLists = SONG_LISTS) {
   const all = [];
   for (const list of lists) {
     for (const m of list) {
@@ -43,7 +81,48 @@ export function buildLibrary(lists = LISTS) {
       all.push({ ...m, parsed: notes, ...range(notes), level: difficulty(notes) });
     }
   }
-  return all;
+  return [...all, ...songPhrases(buildSongs(songLists), all)];
+}
+
+// A melody's shape, in any key: its intervals, as ",2,2,-4," (timing is never judged).
+const shape = (notes) => `,${notes.slice(1).map((n, i) => n.midi - notes[i].midi).join(',')},`;
+// A title without its bracketed part, as letters only: "Twinkle, Twinkle (Up Above…)" -> "twinkletwinkle".
+const baseTitle = (t) => t.replace(/\(.*?\)/g, '').toLowerCase().replace(/[^a-z]/g, '');
+
+/**
+ * Phrases from the middle of whole songs, for the one-phrase modes: each
+ * different phrase once. A phrase is left out when it repeats one met earlier
+ * in its song, in any key (a chorus, a repeated line, or a line that holds or
+ * is held in an earlier one), when the library already has it (or
+ * a melody containing it, or one it contains) under the same title, or when it
+ * is too plain to be worth a round (under four notes or three pitches).
+ */
+export function songPhrases(songs, library = []) {
+  const byTitle = new Map();
+  for (const m of library) {
+    const t = baseTitle(m.title);
+    if (!byTitle.has(t)) byTitle.set(t, []);
+    byTitle.get(t).push(shape(m.parsed));
+  }
+  // The same tune under a longer or shorter title ("Camptown Races" in "Gwine to Run All Night, or De Camptown Races").
+  const same = (a, b) => (a.length < 8 || b.length < 8 ? a === b || a.startsWith(b) || b.startsWith(a) : a.includes(b) || b.includes(a));
+  const known = (title) => [...byTitle].filter(([t]) => t && same(title, t)).flatMap(([, v]) => v);
+  const out = [];
+  for (const song of songs) {
+    const others = known(baseTitle(song.title));
+    const mine = [];
+    for (const p of song.phrases) {
+      if (p.parsed.length < 4 || new Set(p.parsed.map((n) => n.midi)).size < 3) continue;
+      const sh = shape(p.parsed);
+      const overlaps = (o) => o.includes(sh) || sh.includes(o);
+      if (mine.some(overlaps)) continue;
+      mine.push(sh);
+      if (others.some(overlaps)) continue;
+      const { song: _s, ...m } = p;
+      out.push({ ...m, part: p.index + 1 });
+    }
+  }
+  return out;
 }
 
 export function inBook(lib, book) {

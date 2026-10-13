@@ -16,7 +16,12 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+/* A phone app, not a document: no double-tap or pinch zooming of the page and
+   no blue text selection from taps; typing fields and chat messages can still
+   be selected. (Games and the main video handle their own pinches.) */
+html, body { height: 100%; touch-action: manipulation; }
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable="true"], .msg { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 body {
   margin: 0;
   overflow: hidden;
@@ -113,6 +118,7 @@ button { cursor: pointer; }
 .tile:not(.self):not(.pip) > :is(video, canvas) { object-fit: contain; }
 /* Pinch and drag the main view (see mainViewGestures) instead of the page. */
 .tile.main-friend { touch-action: none; }
+.tile .fit-btn { position: absolute; left: 50%; bottom: calc(var(--bottom-ui) + 66px); transform: translateX(-50%); z-index: 2; border: 0; border-radius: 999px; padding: 8px 16px; background: rgba(0, 0, 0, 0.6); color: #fff; font-weight: 800; font-size: 0.85rem; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); cursor: pointer; }
 .tile .name {
   position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.5);
   font-weight: 800; font-size: 0.85rem; display: flex; gap: 6px; align-items: center; max-width: calc(100% - 20px); z-index: 1;
@@ -489,6 +495,8 @@ button { cursor: pointer; }
 .mini-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.12); color: #fff; display: grid; place-items: center; flex: none; }
 .mini-btn svg { width: 20px; height: 20px; }
 .mini-btn:active { transform: scale(0.94); }
+.mini-btn:disabled { opacity: 0.35; cursor: default; }
+.mini-btn:disabled:active { transform: none; }
 @media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
 
 /* Favorites: a plain strip (tap to use), a grid when dragged up. */

@@ -232,3 +232,52 @@ test('with the first note marked, wrong keys before it are free', () => {
   press(strict, 65);
   assert.equal(strict.mistakes, 1, 'without the marker, every wrong key counts');
 });
+
+import { buildSongs, pickSong, isSongs } from '../src/library.js';
+import SONG_LISTS from '../data/songs/index.js';
+
+test('full songs: phrases in order, each a melody that knows its song', () => {
+  const songs = buildSongs(SONG_LISTS);
+  assert.ok(songs.length >= 150);
+  assert.ok(isSongs(LEVELS.find((l) => l.songs).id));
+  const twinkle = songs.find((s) => s.id === 'song-twinkle');
+  assert.equal(twinkle.phrases.length, 6);
+  assert.equal(twinkle.phrases[1].id, 'song-twinkle#2');
+  assert.equal(twinkle.phrases[1].song, twinkle);
+  assert.equal(twinkle.phrases[5].parsed.at(-1).midi, 60); // home to C
+  for (const s of songs) for (const p of s.phrases) {
+    assert.ok(p.parsed.length >= 3 && p.parsed.length <= 16, `${p.id}`);
+    assert.ok(p.hi - p.lo <= 16, `${p.id}`);
+  }
+  assert.ok(new Set(songs.map((s) => s.cat)).has('children'));
+});
+
+test('full songs: unfinished songs come first, recent ones are avoided', () => {
+  const songs = buildSongs(SONG_LISTS).filter((s) => s.cat === 'children');
+  const best = Object.fromEntries(songs.slice(1).map((s) => [s.id, 3]));
+  assert.equal(pickSong(songs, { best }).id, songs[0].id);
+  const recent = songs.slice(0, songs.length - 1).map((s) => s.id);
+  assert.equal(pickSong(songs, { recent }).id, songs.at(-1).id);
+});
+
+test('one-phrase modes: phrases from the middle of songs, each different phrase once', () => {
+  const lib = buildLibrary();
+  const parts = lib.filter((m) => m.part);
+  assert.ok(parts.length > 800);
+  const shape = (m) => `,${m.parsed.slice(1).map((n, i) => n.midi - m.parsed[i].midi).join(',')},`;
+  const bySong = new Map();
+  for (const m of parts) {
+    const k = m.id.split('#')[0];
+    if (!bySong.has(k)) bySong.set(k, []);
+    bySong.get(k).push(shape(m));
+  }
+  for (const [k, shapes] of bySong) {
+    shapes.forEach((a, i) => shapes.forEach((b, j) => {
+      if (i !== j) assert.ok(!a.includes(b), `${k}: a phrase repeats (or sits inside) another`);
+    }));
+  }
+  // Twinkle's lines are already hand-written melodies; Camptown's opening is too.
+  assert.ok(!parts.some((m) => m.id.startsWith('song-twinkle#')));
+  assert.ok(!parts.some((m) => m.id.startsWith('song-gwine') && m.part === 1));
+  assert.ok(parts.some((m) => m.id.startsWith('song-auld-lang-syne') && m.part > 1));
+});

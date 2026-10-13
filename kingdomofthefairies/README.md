@@ -34,11 +34,12 @@ acts. The first four keep their stage machinery and rules, recast:
 0. Prologue, The Betrothal: a short playable scene on the delivered sets. The
    prince receives the fairies' gifts in the betrothal court, the witch curses
    it, he chases the demons' chariot along the rampart, and Aurora arms him in
-   the armoury. Nothing can be lost; B skips a scene; it leads straight into
-   the Royal Crossing.
+   the armoury. The fire on the rampart burns on: leap it, or each touch costs
+   one of three lanterns, and losing all three starts the chase again. B skips
+   a scene; it leads straight into the Royal Crossing.
 1. The Royal Crossing: the royal ship's voyage (the original ship), then the
-   witch's tempest: walk the deck lighting the four lanterns while dodging her
-   lightning.
+   witch's tempest, a scene: the crew light the lanterns, she strikes the mast
+   and the ship breaks on the rocks.
 2. The Water Fairy: the sleepers' grotto; he swims to the Water Fairy for her
    blessing, and her dolphin carriage carries him on.
 3. Neptune's Court: a walk through the lobster palace (past the guards'

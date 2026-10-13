@@ -70,6 +70,9 @@ function applyTheme(t) {
   document.querySelectorAll('[data-color-of]').forEach(e => e.style.setProperty('--c', themedColor(e.dataset.colorOf)));
   updateTitleArt(theme);
   refreshIcons();
+  // The page was kept hidden until now (see index.html) so it never shows the
+  // default look first.
+  requestAnimationFrame(() => document.documentElement.classList.remove('booting'));
 }
 setVolume(settings.volume);
 setSoundOn(!settings.muted);
@@ -453,11 +456,31 @@ const viewOf = id => views.get(id) ?? { fill: false, x: 0.5, y: 0.5 };
 const isMainFriend = rec => rec.id !== me.id && !rec.el.classList.contains('pip') && !games?.current;
 function applyView(rec) {
   const m = rec.media.style;
-  if (!isMainFriend(rec)) { m.objectFit = ''; m.objectPosition = ''; return; }
+  const main = isMainFriend(rec);
   const v = viewOf(rec.id);
+  // While a friend fills the screen, a button brings back their whole picture
+  // (as well as pinching in or double-tapping), so nobody gets stuck zoomed.
+  let fit = rec.el.querySelector('.fit-btn');
+  if (main && v.fill && !fit) {
+    fit = document.createElement('button');
+    fit.type = 'button';
+    fit.className = 'fit-btn';
+    fit.textContent = 'Show whole picture';
+    fit.addEventListener('click', e => {
+      e.stopPropagation();
+      views.set(rec.id, { fill: false, x: 0.5, y: 0.5 });
+      applyView(rec);
+      sfx('click');
+    });
+    rec.el.append(fit);
+  } else if (fit && !(main && v.fill)) fit.remove();
+  if (!main) { m.objectFit = ''; m.objectPosition = ''; return; }
   m.objectFit = v.fill ? 'cover' : 'contain';
   m.objectPosition = `${(v.x * 100).toFixed(2)}% ${(v.y * 100).toFixed(2)}%`;
 }
+// iPhone Safari zooms the whole page on a pinch whatever the viewport says;
+// its own gesture events stop that (the main video's pinch uses pointers).
+for (const type of ['gesturestart', 'gesturechange']) document.addEventListener(type, e => e.preventDefault(), { passive: false });
 // The room a friend's picture has to move in, in pixels, along each axis:
 // positive is spare room around a letterboxed picture, negative is the part
 // a filled picture crops away.
@@ -690,6 +713,7 @@ function onPeers(peers) {
   rtc.sync([...peers].filter(([, p]) => p.debugOwner !== me.id).map(([id]) => id));
   studio.setPeerCount(peers.size);
   queueMicrotask(updateGrabButton);
+  updateShareButton();
   for (const [id, p] of peers) {
     let rec = tiles.get(id);
     if (!rec) {
@@ -1215,6 +1239,8 @@ function initControls() {
   $('#chat-close').addEventListener('click', () => toggleTray(null));
   $('#fx-info').addEventListener('click', () => showEffectInfo(studio.effect));
   $('#fx-share').addEventListener('click', shareEffect);
+  $('#fx-snap').addEventListener('click', snapshotMain);
+  updateShareButton();
   initSheets();
   $('#btn-leave').addEventListener('click', () => {
     debugBots?.stop();
@@ -1493,9 +1519,48 @@ function showEffectInfo(fx) {
 }
 
 // Share: offer the effect that's on to everyone.
+// Share is for the others in the call: greyed out while nobody else is here.
+function updateShareButton() {
+  const b = $('#fx-share');
+  if (!b) return;
+  const alone = !net || net.peers.size === 0;
+  b.disabled = alone;
+  b.title = alone ? 'Share with everyone (nobody else is here yet)' : 'Share with everyone';
+}
+
+// The camera button: a picture of the main video, saved to the device (on a
+// phone, the share sheet's Save Image puts it in Photos).
+async function snapshotMain() {
+  const rec = tiles.get(primaryId ?? me.id) ?? tiles.get(me.id);
+  const m = rec?.media;
+  const w = m?.videoWidth || m?.width, h = m?.videoHeight || m?.height;
+  if (!w || !h) { toast('Nothing to snap yet'); return; }
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  try { c.getContext('2d').drawImage(m, 0, 0, w, h); } catch { toast("Couldn't take the snapshot"); return; }
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (!blob) { toast("Couldn't take the snapshot"); return; }
+  sfx('click');
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  const file = new File([blob], `games-chat-${stamp}.png`, { type: 'image/png' });
+  const touch = matchMedia('(pointer: coarse)').matches;
+  if (touch && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Games Chat snapshot' }); return; } catch (e) { if (e?.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Snapshot saved');
+}
+
 function shareEffect() {
   const fx = studio.effect;
   if (!fx) return;
+  if (!net || net.peers.size === 0) return;
   net.send('fxshare', { fx: fx.id });
   toast(`Shared ${fx.emoji} ${fx.name} with everyone`);
 }

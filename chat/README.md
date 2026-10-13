@@ -74,7 +74,10 @@ so the picture stays clear:
   on a friend's main video to fill the screen with it (cropped) and drag to
   pick the part you see; pinch in for their whole picture again, and drag that
   to slide it up or down (or across) in its spare room. On a computer a trackpad
-  pinch or a double-click switches. Each friend's framing is remembered. Tap a small
+  pinch or a double-click switches, and while a friend fills the screen a "Show
+  whole picture" button brings it back. Each friend's framing is remembered. The
+  page itself never zooms (no double-tap or pinch zoom) and taps don't select text,
+  except in typing fields and chat messages. Tap a small
   video to make it primary (or focus it and press Enter/Space); drag each small video
   independently to position it. This also works with three or more people.
   A quiet **Copy** prompt names the effect used by the person in the main video.
@@ -307,7 +310,7 @@ Records are kept per device; a late start counts toward the best lap (not its
 first, partial lap) but not the best race or wins.
 Block Drop is a falling-block puzzle on modern rules: a 10 x 20 well, the seven
 four-square pieces in their usual colours from a seeded 7-bag, SRS turning with
-wall kicks, hold, three next pieces, a ghost where the piece will land, soft and
+wall kicks, hold, three next pieces (no ghost piece showing where it lands), soft and
 hard drops, half a second of lock delay, rows that flash white and burst before
 they clear, a level every ten lines with faster falling, and points for one to
 four rows (a 4-row clear is a Block Buster) plus combos. Everyone plays their
@@ -347,6 +350,15 @@ someone goes down; a fallen runner taps to run again from the start (or
 watches the leader) while the others carry on, and the best distance this
 session is crowned in the chips at the top. Keys: arrows or WASD, Space jumps;
 a controller's stick or D-pad, A jumps and X slides.
+
+## Snapshots, sharing and the first paint
+
+While an effect is on, its title bar has a camera button at the right that
+saves a picture of the main video (on a phone the share sheet opens, where Save
+Image puts it in Photos; on a computer it downloads as a PNG). Its Share button
+is greyed out while nobody else is in the call. The page keeps itself hidden
+until the saved theme and colour are applied (at most about a second), so it
+never flashes the default look first.
 
 ## Thumbs up and down
 
