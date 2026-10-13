@@ -750,7 +750,7 @@ export default function create(env) {
       g.restore();
     }
     const d = Math.hypot(peg.x - ferg.x, peg.y - ferg.y);
-    const px = ferg.x, py = ferg.y - 250;
+    const px = ferg.x, py = ferg.y - 330;
     if (ferg.mode === 'drift' && ferg.charges === 0 && d < 1100) {
       // Never charged yet: say how.
       actionPrompt(g, px, py, 'Hold: huff!', { kind, side: 0, t: tt, size: 34 });
@@ -983,7 +983,7 @@ export default function create(env) {
   function drawMeters(g) {
     // The fury bar, above the iceberg, while it huffs and rears back. (The sea
     // lions aboard are counted in the shell's HUD line and seen on the ledges.)
-    const x = ferg.x, y = ferg.y - 385;
+    const x = ferg.x, y = ferg.y - 448;
     g.save();
     if (ferg.mode === 'huff' || ferg.mode === 'windup') {
       const w = 300, hh = 44;

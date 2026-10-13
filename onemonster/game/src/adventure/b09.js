@@ -35,7 +35,7 @@ const TIME = 150;
 const CHECKPOINTS = [0, 1700, 3700, 5800, 7400, 10300];
 
 // Ground segments; the gaps between are streams.
-const GROUND = [[0, 4000], [4300, 4700], [5000, 5300], [5600, 9350], [9690, WORLD_W]];
+const GROUND = [[0, 4000], [4240, 4700], [4940, 5300], [5540, 9350], [9590, WORLD_W]];
 const LOGS = [2750, 3650, 8550]; // fallen logs (their middles): vault them
 const LOG_W = 190, LOG_H = 110;
 const ROOTS = [900, 1500, 2150, 3330, 7550, 8050, 10080]; // gnarled roots: step high or vault
@@ -44,8 +44,12 @@ const BRANCHES = [[2560, 3080], [9000, 9720]]; // one-way platforms up at GY - 2
 const BRANCH_Y = GY - 290;
 const FERNS = [7700, 8350, 10250, 10750]; // the Trollusk's hiding places, in order
 const DECOR_FERNS = [400, 1950, 3300, 4850, 6400, 7000, 9850, 11250];
-const TRUNKS = [250, 1850, 4000, 5500, 7350, 9500, 10800];
-const STUMPS = [1200, 5900, 7100];
+const TRUNKS = [300, 1850, 4450, 6700, 9800]; // tree bases with faces, behind the action
+const STUMPS = [1200, 7100]; // the stump with a face
+const HOLLOWS = [5900, 10900]; // the hollow stump
+const ROCKS = [3150, 8000, 10600]; // piles of rocks
+const MOUNDS = [650, 4480, 6350]; // mounds of roots
+const LOW_LOGS = [1750, 8150]; // the long mossy log lying on the floor
 const ROLL_AT = [7800, 8700, 9750]; // where the Yalapappus's rolls are set off
 
 // The Grithix.
@@ -63,10 +67,14 @@ const ROOT_HALF = 60;
 // draws the swing pose leaned back with a little hop, so its hoop is that
 // pose's hoop turned the same way: see hoopAt().
 const HOOP = {
-  swing: { fx: 0.86, fy: 0.33, r: 0.1 },
-  netUp: { fx: 0.86, fy: 0.33, r: 0.1, rot: -0.5, hop: 40 },
-  slam: { fx: 0.78, fy: 0.88, r: 0.13 },
-  netLow: { fx: 0.78, fy: 0.88, r: 0.13 },
+  swing: { sheet: 'grithix.poses', item: 5, size: [720, 603], fx: 0.86, fy: 0.33, r: 0.1 },
+  slam: { sheet: 'grithix.poses', item: 6, size: [596, 530], fx: 0.78, fy: 0.88, r: 0.13 },
+  // The moves sheet's overhead swing and low scoop (grithix.moves 1 and 2);
+  // until it arrives, the swing pose leaned back with a hop, and the slam.
+  netUp: { sheet: 'grithix.moves', item: 1, size: [353, 720], fx: 0.28, fy: 0.16, r: 0.2,
+    fallback: { sheet: 'grithix.poses', item: 5, size: [720, 603], fx: 0.86, fy: 0.33, r: 0.1, rot: -0.5, hop: 40 } },
+  netLow: { sheet: 'grithix.moves', item: 2, size: [593, 405], fx: 0.89, fy: 0.83, r: 0.11,
+    fallback: { sheet: 'grithix.poses', item: 6, size: [596, 530], fx: 0.78, fy: 0.88, r: 0.13 } },
 };
 
 // The how-to-play page (src/chapters/index.js, "THE HOW-TO-PLAY PAGE").
@@ -134,8 +142,8 @@ export default function create(env) {
   // h is the height of the flutter's middle above the ground it is over.
   const flock = [];
   const addB = (x, h, pat = 'bob', o = {}) => {
-    const c = art.makeCreature('bombanat', x, GY - h);
-    c.sizeK = 0.42; c.animT = flock.length * 0.37;
+    const c = art.makeCreature('bombanatPlain', x, GY - h);
+    c.sizeK = 0.48; c.animT = flock.length * 0.37;
     flock.push({ x, y: GY - h, pat, amp: 28, span: 0, speed: 1, ...o, phase: flock.length * 1.37, got: false, t: 0, cx: 0, cy: 0, c });
   };
   // The opening: low ones to learn the sweep, one overhead, one skimming.
@@ -190,19 +198,26 @@ export default function create(env) {
   const shake = (a) => cam.shake(a, env.reduceMotion);
 
   // Where the hoop is now, in the world (null when the net is not out).
-  function hoopAt() {
-    const pose = mode === 'sweep' ? swingKind : mode === 'slam' && modeT < 0.1 ? 'slam' : null;
-    if (!pose) return null;
-    const hp = HOOP[pose];
-    const sp = art.sprite('grithix.poses', pose === 'netUp' ? 5 : pose === 'netLow' ? 6 : pose === 'swing' ? 5 : 6);
+  // The hoop of a swing kind relative to the feet, facing right: { dx, dy, r }
+  // and, for the fallback pose, how the body is drawn (rot, hop).
+  function hoopFor(kind) {
+    let hp = HOOP[kind];
+    let sp = art.sprite(hp.sheet, hp.item);
+    if (!sp && hp.fallback) { hp = hp.fallback; sp = art.sprite(hp.sheet, hp.item); }
     // Sprite size on screen (the stand-in uses the key pose's sizes).
-    const w = (sp?.w ?? (pose === 'swing' || pose === 'netUp' ? 720 : 596)) * poseScale();
-    const h = (sp?.h ?? (pose === 'swing' || pose === 'netUp' ? 603 : 530)) * poseScale();
+    const w = (sp?.w ?? hp.size[0]) * poseScale();
+    const h = (sp?.h ?? hp.size[1]) * poseScale();
     // The sprite is anchored where art.js anchors it (the middle of its feet).
     const ax = sp ? feetAnchor(sp) : 0.5;
     let dx = (hp.fx - ax) * w, dy = -(1 - hp.fy) * h;
     if (hp.rot) { const c = Math.cos(hp.rot), s = Math.sin(hp.rot); [dx, dy] = [dx * c - dy * s, dx * s + dy * c]; }
-    return { x: body.x + dx * gc.facing, y: body.y - (hp.hop || 0) + dy, r: hp.r * w };
+    return { dx, dy: dy - (hp.hop || 0), r: hp.r * w, rot: hp.rot || 0, hop: hp.hop || 0 };
+  }
+  function hoopAt() {
+    const pose = mode === 'sweep' ? swingKind : mode === 'slam' && modeT < 0.1 ? 'slam' : null;
+    if (!pose) return null;
+    const h = hoopFor(pose);
+    return { x: body.x + h.dx * gc.facing, y: body.y + h.dy, r: h.r };
   }
   function poseScale() { return (300 / 628) * gc.sizeK; }
 
@@ -371,7 +386,7 @@ export default function create(env) {
     }
     prevX = body.x;
     // Into a stream.
-    if (body.y > GY + 90 && mode !== 'soak') soak();
+    if (body.y > GY + 230 && mode !== 'soak') soak();
 
     catchFlock();
     cps.reach(body.x);
@@ -387,7 +402,7 @@ export default function create(env) {
       case 'windup': art.setAnim(gc, 'windup'); break;
       case 'sweep':
         art.setAnim(gc, swingKind);
-        if (swingKind === 'netUp' && !art.sprite('grithix.moves', 1)) { gc.rot = HOOP.netUp.rot * gc.facing; gc.z = HOOP.netUp.hop; }
+        { const h = hoopFor(swingKind); gc.rot = h.rot * gc.facing; gc.z = h.hop; }
         break;
       case 'slam': art.setAnim(gc, 'slam'); break;
       case 'rest': art.setAnim(gc, 'slam'); break;
@@ -400,9 +415,10 @@ export default function create(env) {
         break;
       }
       default:
-        if (!body.onGround) { art.setAnim(gc, airT < 0.12 && body.bounced ? 'vault' : 'balance'); if (gc.anim === 'vault') gc.animT = 1 / 4 + 0.01; }
+        if (!body.onGround) { art.setAnim(gc, body.bounced || body.vy < 0 ? 'vault' : 'stride'); if (gc.anim === 'vault') gc.animT = 1 / 4 + 0.01; }
         else if (phase === 'carry') { art.setAnim(gc, 'carry'); if (sp > 30) gc.z = Math.abs(Math.sin(gc.dist / 90 * Math.PI)) * 10; }
-        else if (highStep && sp > 30) art.setAnim(gc, 'stepHigh');
+        else if (highStep && sp > 30 && ROOTS.some((rx) => Math.abs(rx - body.x) < 110)) art.setAnim(gc, 'stepHigh');
+        else if (highStep && sp > 30) art.setAnim(gc, 'stride');
         else art.setAnim(gc, sp > 30 ? 'stride' : 'idle');
     }
   }
@@ -578,7 +594,7 @@ export default function create(env) {
     LOOP,
     get trips() { return trips; },
     get soaks() { return soaks; },
-    cam, solids, streams, cps, GY, MAIL_X, CLEAR, ROOTS, LOGS, TOADSTOOLS, BRANCHES, VAULT, HOOP, hoopAt,
+    cam, solids, streams, cps, GY, MAIL_X, CLEAR, ROOTS, LOGS, TOADSTOOLS, BRANCHES, VAULT, HOOP, hoopAt, hoopFor,
     update(dt, inS) {
       t += dt;
       fx.update(dt);
@@ -675,21 +691,37 @@ export default function create(env) {
 
   function drawWorld(g, tt) {
     // Far: tall trunks and stumps with faces, behind everything.
-    for (const x of TRUNKS) if (cam.sees(x - 200, x + 200)) kit.sprite(g, 'terrain.wood', 6, x, GY + 20, { height: 1000 }, inkTrunk);
+    for (const x of TRUNKS) {
+      if (!cam.sees(x - 500, x + 500)) continue;
+      // The delivered piece is a tree's foot (roots, ivy, a face), cut off at
+      // the top: a plain bark column behind it carries the trunk out of frame.
+      if (art.sprite('terrain.wood', 6)) { inkTrunkColumn(g, x, GY - 300, 300); art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 440, flip: kit.hash(x) > 0.5 }); }
+      else inkTrunk(g, x, GY + 20, { height: 1000 });
+    }
+    for (const x of MOUNDS) if (cam.sees(x - 300, x + 300)) kit.sprite(g, 'terrain.wood', 5, x, GY + 8, { height: 120 }, () => {});
+    for (const x of LOW_LOGS) if (cam.sees(x - 300, x + 300)) kit.sprite(g, 'terrain.wood', 3, x, GY + 8, { height: 96, flip: x > 5000 }, () => {});
     // Streams in the gaps, under the ground's edges.
-    for (const s of streams) if (cam.sees(s.x0, s.x1)) drawStream(g, s, tt);
+    for (const s of streams) {
+      if (!cam.sees(s.x0 - 300, s.x1 + 300)) continue;
+      // The delivered gap: two banks and the stream between; its banks reach
+      // under the ground either side (the ground strip is drawn over them).
+      const gw = s.x1 - s.x0;
+      kit.sprite(g, 'adv.b09.props', 6, (s.x0 + s.x1) / 2, GY, { height: gw * 2.9 * (269 / 309), ay: 0.145 }, () => drawStream(g, s, tt));
+    }
     // The ground and the logs.
     for (const s of solids) {
       if (!cam.sees(s.x, s.x + s.w)) continue;
       if (s.kind === 'ground') {
-        kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 18, fill: '#6b5236', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
+        kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 100, fill: '#5a4630', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
         if (!art.sprite('terrain.wood', 1)) groundTexture(g, s, Math.max(s.x, cam.x - 40), Math.min(s.x + s.w, cam.x + W + 40));
       }
-      else if (s.kind === 'log') kit.sprite(g, 'terrain.wood', 3, s.x + s.w / 2, s.y + s.h, { height: s.h + 16 }, (g2, x, y) => inkLog(g2, x, y, s.w + 24, s.h));
-      else if (s.kind === 'branch') kit.sprite(g, 'terrain.wood', 2, s.x, s.y, { height: 120, ax: 0, ay: 0.2 }, (g2, x, y) => inkBranch(g2, x, y, s.w));
+      else if (s.kind === 'log') kit.sprite(g, 'adv.b09.props', 8, s.x + s.w / 2, s.y + s.h + 8, { height: s.h + 28 }, (g2, x, y) => inkLog(g2, x, y - 8, s.w + 24, s.h));
+      else if (s.kind === 'branch') kit.sprite(g, 'terrain.wood', 2, s.x - 60, s.y, { scale: (s.w + 90) / 1375, ax: 0, ay: 0.24 }, (g2, x, y) => inkBranch(g2, x + 60, y, s.w));
     }
-    drawGroundDecor(g);
-    for (const x of STUMPS) if (cam.sees(x)) kit.sprite(g, 'terrain.wood', 4, x, GY + 6, { height: 150 }, inkStump);
+    if (!art.sprite('terrain.wood', 1)) drawGroundDecor(g);
+    for (const x of STUMPS) if (cam.sees(x - 250, x + 250)) kit.sprite(g, 'terrain.wood', 4, x, GY + 6, { height: 140 }, inkStump);
+    for (const x of HOLLOWS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 12, x, GY + 6, { height: 150 }, () => {});
+    for (const x of ROCKS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 11, x, GY + 6, { height: 110 }, () => {});
     for (const x of ROOTS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 4, x, GY + 10, { height: 110 }, (g2, xx, yy) => art.drawSprite(g2, art.prop('grithix', 5), xx, yy, { height: 110 }) || inkRoot(g2, xx, yy));
     for (const x of TOADSTOOLS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 5, x, GY + 4, { height: 124, sy: body.bounced && Math.abs(body.x - x) < 120 ? 0.85 : 1 }, (g2, xx, yy, o) => inkToadstool(g2, xx, yy, o));
     // Signposts.
@@ -856,7 +888,7 @@ function feetAnchor(sp) {
 const INK = '#2b1d14';
 
 function drawFern(g, x, y, h, lean, alpha = 1) {
-  const sp = art.prop('grithix', 4);
+  const sp = art.sprite('adv.b09.props', 7) || art.prop('grithix', 4);
   if (sp) { art.drawSprite(g, sp, x, y, { height: h, rot: lean, alpha }); return; }
   g.save();
   g.translate(x, y); g.rotate(lean);
@@ -1005,6 +1037,22 @@ function knotFace(g, x, y, r, seed = 0) {
   }
   g.beginPath(); g.moveTo(x - r * 0.1, y - r * 0.1); g.quadraticCurveTo(x + r * 0.25, y + r * 0.1, x - r * 0.05, y + r * 0.3); g.stroke();
   g.beginPath(); g.moveTo(x - r * 0.4, y + r * 0.6 + (seed % 2 ? 4 : 0)); g.quadraticCurveTo(x, y + r * 0.5, x + r * 0.4, y + r * 0.62); g.stroke();
+  g.restore();
+}
+
+// A plain bark column rising out of the frame, behind a delivered tree foot.
+function inkTrunkColumn(g, x, y, w) {
+  g.save();
+  g.fillStyle = '#8f7556'; g.strokeStyle = INK; g.lineWidth = 3.5;
+  g.beginPath();
+  g.moveTo(x - w / 2, y + 40); g.quadraticCurveTo(x - w / 2 + 10, y - 400, x - w / 2 + 24, y - 1000);
+  g.lineTo(x + w / 2 - 20, y - 1000); g.quadraticCurveTo(x + w / 2 - 6, y - 400, x + w / 2, y + 40);
+  g.closePath(); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 7; i++) { const gx = x - w / 2 + 30 + i * (w - 60) / 6; g.moveTo(gx, y - 1000); g.bezierCurveTo(gx - 12, y - 700, gx + 14, y - 300, gx - 4, y + 40); }
+  g.stroke();
+  hatch(g, x + w * 0.1, y - 1000, w * 0.4, 1040, { step: 9, alpha: 0.28 });
   g.restore();
 }
 
@@ -1239,19 +1287,9 @@ export function autopilot(board) {
   const moving = Math.abs(b.vx) >= board.VAULT.minSpeed;
   const stopped = Math.abs(b.vx) < 80;
   const ap = board._ap || (board._ap = { backTo: null });
-  const hp = board.HOOP;
-  const k = 300 / 628;
-  // The three swings' hoops, relative to the feet, facing right (the drawn
-  // poses' anchors sit a little left of their middles; close enough here).
-  const reach = {
-    swing: { dx: (hp.swing.fx - 0.46) * 720 * k, dy: -(1 - hp.swing.fy) * 603 * k, r: hp.swing.r * 720 * k },
-    netLow: { dx: (hp.netLow.fx - 0.46) * 596 * k, dy: -(1 - hp.netLow.fy) * 530 * k, r: hp.netLow.r * 596 * k },
-  };
-  {
-    const c = Math.cos(hp.netUp.rot), s = Math.sin(hp.netUp.rot);
-    const dx = reach.swing.dx, dy = reach.swing.dy;
-    reach.netUp = { dx: dx * c - dy * s, dy: dx * s + dy * c - hp.netUp.hop, r: reach.swing.r };
-  }
+  // The three swings' hoops, relative to the feet, facing right, as the board
+  // measures them on the drawn poses.
+  const reach = { swing: board.hoopFor('swing'), netUp: board.hoopFor('netUp'), netLow: board.hoopFor('netLow') };
   const groundOk = (x) => { const gy = kit.groundAt(board.solids, x, b.y - 4); return gy !== null && Math.abs(gy - b.y) < 2; };
   // Which swing nets a thing at (tx, ty)? Returns the kind, where to stand
   // and which way to face (the way he faces now when it can be either).

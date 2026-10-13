@@ -541,8 +541,9 @@ export default function create(env) {
 
   // The hoop of a bush's net when it is up: the net rises 480 px out of the bush.
   function netHoop(bu) {
-    const top = GROUND - 60 - 480 * Math.max(0, bu.net);
-    return { x: bu.x, y: top + 70, rx: 105, ry: 78, top };
+    const top = GROUND - 60 - 470 * Math.max(0, bu.net);
+    const delivered = !!art.sprite('adv.b08.props', 9);
+    return { x: bu.x - (delivered ? 90 : 0), y: top + 70, rx: delivered ? 120 : 105, ry: delivered ? 72 : 78, top };
   }
 
   // Hints on a cream band, so they read over the busy backdrop (the kit's
@@ -622,11 +623,11 @@ export default function create(env) {
     for (const x of BENT_TREES) if (cam.sees(x)) kit.sprite(g, 'adv.b08.props', 12, x, GROUND + 4, { height: 360 }, inkBentTree);
     drawKite(g, tt);
     // Warm air, clouds and rain.
-    for (const tx of THERMALS) if (cam.sees(tx)) kit.sprite(g, 'adv.b08.props', 3, tx, GROUND, { height: GROUND - 270, alpha: 0.75 }, (gg, x, yy) => inkThermal(gg, x, yy, tt));
-    for (const c of clouds) if (cam.sees(c.x, c.x, 400)) kit.sprite(g, 'adv.b08.props', 4, c.x, c.y, { height: 180, ay: 0.5 }, (gg, x, yy) => inkCloud(gg, x, yy, tt));
-    for (const c of clouds) if (cam.sees(c.x, c.x, 400)) inkRain(g, c, tt);
+    for (const tx of THERMALS) if (cam.sees(tx)) drawThermal(g, tx, tt);
+    for (const c of clouds) if (cam.sees(c.x, c.x, 400)) inkRain(g, c, tt, !!art.sprite('adv.b08.props', 4));
+    for (const c of clouds) if (cam.sees(c.x, c.x, 400)) kit.sprite(g, 'adv.b08.props', 4, c.x, c.y - 40, { height: 330, ay: 0.5 }, (gg, x, yy) => inkCloud(gg, x, yy + 40, tt));
     // The ground and what stands on it.
-    for (const s of solids) kit.drawGround(g, cam, s, { sheet: 'terrain.nowhere', item: 1, height: 240, lift: 10, fill: '#b2843f', standin: GROUND_STANDIN });
+    for (const s of solids) kit.drawGround(g, cam, s, { sheet: 'terrain.nowhere', item: 1, height: 150, lift: 62, fill: '#8f6a38', standin: GROUND_STANDIN });
     if (!art.sprite('terrain.nowhere', 1)) inkGroundDecor(g);
     for (const s of SIGNS) if (cam.sees(s.x)) inkSignpost(g, s);
     for (const r of BOULDERS) if (cam.sees(r.x)) kit.sprite(g, 'terrain.nowhere', 6, r.x, GROUND + 8, { height: 120 }, (gg, x, yy, o) => { if (!art.drawSprite(gg, art.prop('yalapappus', r.item), x, yy, o)) inkRock(gg, x, yy); });
@@ -645,7 +646,7 @@ export default function create(env) {
     // Things in the air.
     for (const s of shots) if (cam.sees(s.x)) drawShot(g, s);
     pickups.draw(g, cam, tt, drawScrap);
-    for (const c of crows) if (cam.sees(c.x)) kit.sprite(g, 'adv.b08.props', 8, c.x, c.y, { height: 70, ay: 0.5, flip: c.vx > 0 }, (gg, x, yy) => inkCrow(gg, x, yy, tt + c.seed));
+    for (const c of crows) if (cam.sees(c.x)) kit.sprite(g, 'adv.b08.props', 8, c.x, c.y, { height: 115, ay: 0.5, flip: c.vx < 0, sy: 1 + Math.sin((tt + c.seed) * 14) * 0.08 }, (gg, x, yy) => inkCrow(gg, x, yy, tt + c.seed));
     // The Bombanat: his shadow on the ground, his aim when diving, his stamina, him.
     drawBombanat(g, tt);
     fx.draw(g);
@@ -710,7 +711,7 @@ export default function create(env) {
 
   function drawShot(g, s) {
     if (s.kind === 'fork') {
-      kit.sprite(g, 'adv.b08.props', 5, s.x, s.y, { height: 96, ay: 0.5, rot: Math.atan2(s.vy, s.vx) }, (gg, x, yy) => inkFork(gg, x, yy, Math.atan2(s.vy, s.vx)));
+      kit.sprite(g, 'adv.b08.props', 5, s.x, s.y, { height: 100, ay: 0.5, rot: Math.atan2(s.vy, s.vx) - Math.PI / 4 }, (gg, x, yy) => inkFork(gg, x, yy, Math.atan2(s.vy, s.vx)));
     } else if (s.kind === 'rock') {
       kit.sprite(g, 'adv.b08.props', 6, s.x, s.y, { height: 76, ay: 0.5, rot: s.rot }, (gg, x, yy, o) => { if (!art.drawSprite(gg, art.prop('yalapappus', 1), x, yy, o)) inkRock(gg, x, yy + 38, 0.6); });
     } else {
@@ -720,7 +721,7 @@ export default function create(env) {
 
   function drawStuck(g, s) {
     g.save(); g.globalAlpha = s.t > 10 ? (12 - s.t) / 2 : 1;
-    if (s.kind === 'fork') kit.sprite(g, 'adv.b08.props', 5, s.x, GROUND - 6, { height: 96, ay: 0.9, rot: -Math.PI / 2 + s.rot }, (gg, x, yy) => inkFork(gg, x, yy - 40, -Math.PI / 2 + s.rot));
+    if (s.kind === 'fork') kit.sprite(g, 'adv.b08.props', 5, s.x, GROUND - 6, { height: 100, ay: 0.9, rot: -Math.PI * 0.75 + s.rot }, (gg, x, yy) => inkFork(gg, x, yy - 40, -Math.PI / 2 + s.rot));
     else kit.sprite(g, 'adv.b08.props', 6, s.x, GROUND + 6, { height: 76 }, (gg, x, yy, o) => { if (!art.drawSprite(gg, art.prop('yalapappus', 1), x, yy, o)) inkRock(gg, x, yy, 0.6); });
     g.restore();
   }
@@ -757,7 +758,29 @@ export default function create(env) {
   function drawNet(g, bu, tt) {
     const hoop = netHoop(bu);
     const top = hoop.top;
-    kit.sprite(g, 'adv.b08.props', 9, bu.x, GROUND - 60, { height: GROUND - 60 - top + 150, ay: 1 }, () => inkNet(g, bu.x, top, GROUND - 60, bu.holds, tt));
+    const sp = art.sprite('adv.b08.props', 9);
+    if (!sp) { inkNet(g, bu.x, top, GROUND - 60, bu.holds, tt); return; }
+    // The net shoots up out of the bush: the sprite (net, pole and its own
+    // bush) slides up from under the ground line, clipped there.
+    const hgt = 640;
+    const wob = bu.holds ? Math.sin(tt * 30) * 5 : 0;
+    g.save();
+    g.beginPath(); g.rect(bu.x - 300, 0, 600, GROUND + 12); g.clip();
+    art.drawSprite(g, sp, bu.x + wob, GROUND + 12 + (1 - Math.max(0, bu.net)) * 470, { height: hgt });
+    g.restore();
+  }
+
+  // The warm air: the delivered swirl rising from the ground, a second, fainter
+  // copy above it drifting upward, so it reads as one current to the top.
+  function drawThermal(g, tx, tt) {
+    const sp = art.sprite('adv.b08.props', 3);
+    if (!sp) { inkThermal(g, tx, GROUND, tt); return; }
+    const rise = (tt * 60) % 120;
+    g.save();
+    g.beginPath(); g.rect(tx - 260, 250, 520, GROUND - 250); g.clip();
+    art.drawSprite(g, sp, tx, GROUND + 10 - rise * 0.4, { height: 500, alpha: 0.85 });
+    art.drawSprite(g, sp, tx + 20, GROUND - 330 - rise, { height: 420, alpha: 0.42 });
+    g.restore();
   }
 
   function drawKite(g, tt) {
@@ -765,9 +788,9 @@ export default function create(env) {
     const kx = KITE.x + Math.sin(tt * 0.9) * 40, ky = KITE.y + Math.cos(tt * 0.7) * 25;
     g.save();
     g.strokeStyle = 'rgba(43,29,20,0.6)'; g.lineWidth = 2;
-    g.beginPath(); g.moveTo(KITE.x - 260, GROUND - 20); g.quadraticCurveTo(KITE.x - 120, ky + 200, kx, ky + 50); g.stroke();
+    g.beginPath(); g.moveTo(KITE.x - 320, GROUND - 20); g.quadraticCurveTo(KITE.x - 160, ky + 260, kx - 10, ky - 10); g.stroke();
     g.restore();
-    kit.sprite(g, 'adv.b08.props', 10, kx, ky, { height: 150, ay: 0.5, rot: Math.sin(tt * 0.9) * 0.15 }, (gg, x, yy, o) => { if (!art.drawSprite(gg, art.prop('grumley', 1), x, yy, o)) inkKite(gg, x, yy); });
+    kit.sprite(g, 'adv.b08.props', 10, kx, ky, { height: 200, ay: 0.5, rot: Math.sin(tt * 0.9) * 0.12 }, (gg, x, yy, o) => { if (!art.drawSprite(gg, art.prop('grumley', 1), x, yy, o)) inkKite(gg, x, yy); });
   }
 
   function drawForeground(g) {
@@ -910,16 +933,20 @@ export default function create(env) {
     }
   }
 
-  function inkRain(g, c, tt) {
+  // The rain under a cloud, down to the ground: the soaking zone. With the
+  // delivered cloud (which has its own drops) only a soft wash and a few
+  // falling drops; in ink, the full streaks.
+  function inkRain(g, c, tt, delivered = false) {
     g.save();
-    g.fillStyle = 'rgba(70,100,160,0.16)';
+    g.fillStyle = delivered ? 'rgba(70,100,160,0.11)' : 'rgba(70,100,160,0.16)';
     g.fillRect(c.x - 185, c.y + 60, 370, GROUND - c.y - 60);
-    g.strokeStyle = 'rgba(40,70,140,0.75)'; g.lineWidth = 4; g.lineCap = 'round';
+    g.strokeStyle = delivered ? 'rgba(40,60,110,0.55)' : 'rgba(40,70,140,0.75)'; g.lineWidth = delivered ? 3 : 4; g.lineCap = 'round';
     g.beginPath();
-    for (let i = 0; i < 14; i++) {
-      const x = c.x - 170 + i * 26 + Math.sin(i * 3.1) * 6;
+    const n = delivered ? 8 : 14, step = delivered ? 46 : 26;
+    for (let i = 0; i < n; i++) {
+      const x = c.x - 165 + i * step + Math.sin(i * 3.1) * 6;
       const off = ((tt * 900 + i * 61) % 120);
-      for (let yy = c.y + 70 + off; yy < GROUND - 10; yy += 120) { g.moveTo(x, yy); g.lineTo(x - 4, yy + 34); }
+      for (let yy = c.y + (delivered ? 150 : 70) + off; yy < GROUND - 10; yy += 120) { g.moveTo(x, yy); g.lineTo(x - 3, yy + (delivered ? 22 : 34)); }
     }
     g.stroke();
     g.restore();

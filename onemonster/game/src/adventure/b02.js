@@ -50,7 +50,7 @@ const COVERS = [
   [2, [[10950, 'bush'], [11500, 'log'], [11950, 'bush']]],
   [3, [[13150, 'bush'], [13650, 'lowbush'], [14150, 'log']]],
 ];
-const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 220, h: 150 }, log: { w: 330, h: 140 } };
+const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log: { w: 240, h: 150 } };
 
 // Trunks rise from the floor (top y); boughs hang from the canopy (bottom y);
 // branches reach in from a trunk off screen, flat on top to perch on
@@ -76,7 +76,7 @@ const SCRAPS = [[500, 600], [700, 900], [850, 700],
 // 5 mound of roots, and the delivered ferns and roots (props.grithix 4, 5).
 const DECOR = [[150, 'fern'], [600, 'log'], [900, 'root'], [3700, 'stump'], [4350, 'fern'], [7450, 'log'], [7950, 'fern'], [8100, 'root'],
   [11100, 'stump'], [11750, 'fern'], [12200, 'mound'], [12900, 'fern'], [13350, 'log'], [13900, 'fern'], [14350, 'root']];
-const FERNS_FRONT = [350, 2100, 4400, 6000, 7600, 9200, 11300, 12400, 13800];
+const FERNS_FRONT = [350, 4400, 7600, 11300, 13800];
 
 // The Bombanat's flight numbers.
 const P = {
@@ -116,7 +116,8 @@ export default function create(env) {
   const solids = [{ x: -400, y: FLOOR, w: 14850, h: 400, kind: 'floor' }];
   for (const s of SECTIONS) if (!s.open) solids.push({ x: s.x0, y: LEAF_TOP, w: s.x1 - s.x0, h: FLOOR - LEAF_TOP, kind: 'leaves' });
   const trees = TRUNKS.map(([x, top, face]) => {
-    const s = { x: x - 70, y: top, w: 140, h: FLOOR - top, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x };
+    const hw = face ? 100 : 70;
+    const s = { x: x - hw, y: top, w: hw * 2, h: FLOOR - top, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw };
     solids.push(s);
     return s;
   });
@@ -689,7 +690,7 @@ export default function create(env) {
     cam.begin(g);
     drawMidLayer(g);
     for (const s of solids) if (s.kind === 'floor' && cam.sees(s.x, s.x + s.w)) {
-      kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 260, lift: 14, fill: '#6e5236', standin: { top: '#8d9a4e', body: '#7b5b3b', ink: INK } });
+      kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 250, lift: 104, fill: '#5a4030', standin: { top: '#8d9a4e', body: '#7b5b3b', ink: INK } });
     }
     drawFloorBits(g);
     drawCliff(g);
@@ -724,7 +725,7 @@ export default function create(env) {
       const fxp = cam.x + (x - cam.x) * 1.25;
       if (fxp > cam.x - 300 && fxp < cam.x + W + 300) {
         g.save(); g.globalAlpha = 0.9;
-        if (!art.drawSprite(g, art.prop('grithix', 4), fxp, H + 10, { height: 260 })) inkFern(g, fxp, H + 10, 260);
+        if (!art.drawSprite(g, art.prop('grithix', 4), fxp, H + 10, { height: 190 })) inkFern(g, fxp, H + 10, 190);
         g.restore();
       }
     }
@@ -821,44 +822,52 @@ export default function create(env) {
     g.restore();
   }
 
+  // A broken-off trunk, a pillar to weave past, in ink: the delivered trunk
+  // piece (terrain.wood 6) is a wide tree foot with roots, cut flat at the
+  // top, so it cannot stand as a tall column; it stays unused here.
   function drawTrunk(g, s, tt) {
     const x = s.cx;
-    kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 4, { height: FLOOR + 4 - s.y, ay: 1 }, () => inkTrunk(g, s));
+    inkTrunk(g, s);
     if (s.face) {
       const fy = s.y + 150;
-      kit.sprite(g, 'adv.b02.props', 12, x, fy, { height: 120, ay: 0.5 }, () => inkKnotFace(g, x, fy, s, tt));
+      if (s.state === 'idle') inkKnotFace(g, x, fy, s, tt);
+      else {
+        // The knot face swells into the blowing face (adv.b02.props 12).
+        const k = s.state === 'puff' ? 0.8 + 0.2 * Math.min(1, s.t / 0.75) : 1;
+        kit.sprite(g, 'adv.b02.props', 12, x, fy + 10, { height: 260 * k, ay: 0.55 }, () => inkKnotFace(g, x, fy, s, tt));
+      }
     }
   }
 
   function inkTrunk(g, s) {
-    const x = s.cx, top = s.y;
+    const x = s.cx, top = s.y, hw = (s.hw || 70) - 8;
     g.save();
     g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
     const outline = () => {
       g.beginPath();
-      g.moveTo(x - 120, FLOOR + 4); g.quadraticCurveTo(x - 80, FLOOR - 30, x - 66, FLOOR - 160);
-      for (let y = FLOOR - 160; y > top + 60; y -= 60) g.lineTo(x - 62 + Math.sin(y * 0.05) * 6, y);
-      g.quadraticCurveTo(x - 58, top + 10, x - 40, top + 4);
-      g.lineTo(x + 40, top + 4); g.quadraticCurveTo(x + 58, top + 10, x + 62, top + 60);
-      for (let y = top + 60; y < FLOOR - 160; y += 60) g.lineTo(x + 62 + Math.cos(y * 0.05) * 6, y);
-      g.quadraticCurveTo(x + 80, FLOOR - 30, x + 120, FLOOR + 4);
+      g.moveTo(x - hw - 58, FLOOR + 4); g.quadraticCurveTo(x - hw - 18, FLOOR - 30, x - hw - 4, FLOOR - 160);
+      for (let y = FLOOR - 160; y > top + 60; y -= 60) g.lineTo(x - hw + Math.sin(y * 0.05) * 6, y);
+      g.quadraticCurveTo(x - hw + 4, top + 10, x - hw + 22, top + 4);
+      g.lineTo(x + hw - 22, top + 4); g.quadraticCurveTo(x + hw - 4, top + 10, x + hw, top + 60);
+      for (let y = top + 60; y < FLOOR - 160; y += 60) g.lineTo(x + hw + Math.cos(y * 0.05) * 6, y);
+      g.quadraticCurveTo(x + hw + 18, FLOOR - 30, x + hw + 58, FLOOR + 4);
       g.closePath();
     };
     outline(); g.fill();
     // Bark: long wavy ink lines, a darker side, knots.
     g.save(); outline(); g.clip();
-    g.fillStyle = 'rgba(43,29,20,0.18)'; g.fillRect(x + 20, top, 60, FLOOR - top);
+    g.fillStyle = 'rgba(43,29,20,0.18)'; g.fillRect(x + hw * 0.3, top, hw, FLOOR - top);
     g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
     g.beginPath();
-    for (let i = 0; i < 9; i++) {
-      const bx = x - 52 + i * 13 + hash(i + x) * 6;
+    for (let i = 0; i < Math.round(hw / 7); i++) {
+      const bx = x - hw + 10 + i * 13 + hash(i + x) * 6;
       g.moveTo(bx, top + 20 + hash(bx) * 60);
       for (let y = top + 60; y < FLOOR; y += 40) g.lineTo(bx + Math.sin(y * 0.03 + i) * 5 + (y > FLOOR - 160 ? (bx - x) * (y - FLOOR + 160) / 300 : 0), y);
     }
     g.stroke();
     g.lineWidth = 1.5;
     g.beginPath();
-    for (let y = top + 40; y < FLOOR; y += 26) { const w = 10 + hash(y + x) * 20; const bx = x - 50 + hash(y * 3 + x) * 90; g.moveTo(bx, y); g.lineTo(bx + w, y + 4); }
+    for (let y = top + 40; y < FLOOR; y += 26) { const w = 10 + hash(y + x) * 20; const bx = x - hw + 12 + hash(y * 3 + x) * (hw * 2 - 30); g.moveTo(bx, y); g.lineTo(bx + w, y + 4); }
     g.stroke();
     for (let i = 0; i < 2; i++) {
       const ky = top + 120 + i * 220 + hash(x + i) * 100;
@@ -872,9 +881,9 @@ export default function create(env) {
     g.fillStyle = '#8d9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
     g.beginPath(); g.ellipse(x - 50, FLOOR - 30, 36, 22, -0.3, 0, Math.PI * 2); g.fill(); g.stroke();
     g.fillStyle = '#c9a97a'; g.lineWidth = 3.5;
-    g.beginPath(); g.ellipse(x, top + 4, 50, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.beginPath(); g.ellipse(x, top + 4, hw - 12, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.5;
-    g.beginPath(); g.ellipse(x, top + 4, 30, 8, 0, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(x, top + 4, hw * 0.5, 8, 0, 0, Math.PI * 2); g.stroke();
     g.beginPath(); g.ellipse(x, top + 4, 12, 3.5, 0, 0, Math.PI * 2); g.stroke();
     g.restore();
   }
@@ -933,7 +942,10 @@ export default function create(env) {
 
   function drawBranch(g, s) {
     const base = s.dir > 0 ? s.x : s.x + s.w;
-    kit.sprite(g, 'terrain.wood', 2, base, s.y, { height: 150, ax: 0, ay: 0.3, flip: s.dir < 0 }, () => inkBranch(g, s));
+    // The delivered branch (1375 x 309, base at the left, mossy top about a
+    // quarter down) scaled to the solid's length, its top edge on the solid.
+    const k = (s.w + 50) / 1375;
+    kit.sprite(g, 'terrain.wood', 2, base - s.dir * 20, s.y, { height: 309 * k, ax: 0, ay: 0.26, flip: s.dir < 0 }, () => inkBranch(g, s));
   }
 
   function inkBranch(g, s) {
@@ -1026,15 +1038,17 @@ export default function create(env) {
     return cv;
   }
   function paintCanopy(g, s, x0, x1) {
-    const i0 = Math.floor((x0 - s.x) / 130);
-    for (let i = i0; s.x + i * 130 < x1 + 130; i++) {
-      const x = s.x + i * 130 + 65;
-      leafBlob(g, x, LEAF_TOP + 40 + hash(i * 5 + s.x) * 40, 96, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
+    // Hanging bunches with gaps between, not a hedge: the floor shows through.
+    const i0 = Math.floor((x0 - s.x) / 190);
+    for (let i = i0; s.x + i * 190 < x1 + 190; i++) {
+      const x = s.x + i * 190 + 95 + hash(i * 9 + s.x) * 50;
+      leafBlob(g, x, LEAF_TOP + 50 + hash(i * 5 + s.x) * 40, 72, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
     }
-    const j0 = Math.floor((x0 - s.x) / 100);
-    for (let j = j0; s.x + j * 100 < x1 + 100; j++) {
-      const x = s.x + j * 100 + 50;
-      leafBlob(g, x, LEAF_TOP + hash(j * 3 + s.x) * 30, 70, j * 0.61 + 3, '#6b8a44', '#9fb05a');
+    const j0 = Math.floor((x0 - s.x) / 150);
+    for (let j = j0; s.x + j * 150 < x1 + 150; j++) {
+      if (hash(j * 4.3 + s.x) < 0.22) continue;
+      const x = s.x + j * 150 + 75;
+      leafBlob(g, x, LEAF_TOP + 8 + hash(j * 3 + s.x) * 24, 56, j * 0.61 + 3, '#6b8a44', '#9fb05a');
     }
     // The ends drape down to the undergrowth where the clearing opens.
     for (const ex of [s.x + 30, s.x + s.w - 30]) {
@@ -1055,11 +1069,11 @@ export default function create(env) {
     if (x1 <= x0) return;
     const sway = env.reduceMotion ? 0 : Math.sin(tt * 0.9) * 3;
     // Undergrowth: the delivered bushes along the floor, varied, he runs behind them.
-    const k0 = Math.floor((x0 - s.x) / 210);
-    for (let k = k0; s.x + k * 210 < x1; k++) {
-      const x = s.x + k * 210 + 100 + hash(k * 2.3 + s.x) * 40;
+    const k0 = Math.floor((x0 - s.x) / 340);
+    for (let k = k0; s.x + k * 340 < x1; k++) {
+      const x = s.x + k * 340 + 160 + hash(k * 2.3 + s.x) * 60;
       if (x < s.x + 60 || x > s.x + s.w - 60) continue;
-      const hgt = 200 + hash(k * 7 + s.x) * 70;
+      const hgt = 160 + hash(k * 7 + s.x) * 60;
       if (!art.drawSprite(g, art.prop('trollusk', 5), x, FLOOR + 8, { height: hgt, flip: hash(k) > 0.5 })) inkBush(g, x, FLOOR + 8, hgt * 1.2, hgt);
     }
     const strip = canopyStrip(s);
@@ -1071,7 +1085,7 @@ export default function create(env) {
 
   function drawVine(g, v, tt) {
     const a = v.swing + (env.reduceMotion ? 0 : Math.sin(tt * 1.3 + v.x) * 0.04);
-    kit.sprite(g, 'adv.b02.props', 8, v.x, 0, { height: v.len, ay: 0, rot: a }, () => {
+    kit.sprite(g, 'adv.b02.props', 8, v.x, -20, { height: v.len + 40, ay: 0, rot: a }, () => {
       g.save();
       g.translate(v.x, 0); g.rotate(a);
       g.strokeStyle = INK; g.lineWidth = 9; g.lineCap = 'round';
@@ -1092,7 +1106,7 @@ export default function create(env) {
 
   function drawWeb(g, w, tt) {
     const shake = w.shake && !env.reduceMotion ? Math.sin(tt * 40) * 4 * w.shake : 0;
-    kit.sprite(g, 'adv.b02.props', 7, w.x + shake, w.y, { height: w.r * 2, ay: 0.5, alpha: w.torn ? 0.5 : 1 }, () => {
+    kit.sprite(g, 'adv.b02.props', 7, w.x + shake, w.y, { height: w.r * 2.3, ay: 0.5, alpha: w.torn ? 0.45 : 1 }, () => {
       g.save();
       g.translate(w.x + shake, w.y);
       g.strokeStyle = 'rgba(250,250,255,0.9)';
@@ -1129,6 +1143,9 @@ export default function create(env) {
 
   function drawGust(g, tr, tt) {
     const k = Math.min(1, tr.t / 0.3) * Math.min(1, (1.1 - tr.t) / 0.3);
+    const ph = (tr.t * 0.9) % 1;
+    const drawn = kit.sprite(g, 'adv.b02.props', 9, tr.cx + 120 + ph * 380, tr.y + 140 - ph * 260, { height: 240, ay: 0.5, alpha: k });
+    if (drawn) { kit.sprite(g, 'adv.b02.props', 9, tr.cx + 300 + ((ph + 0.5) % 1) * 380, tr.y + 60 - ((ph + 0.5) % 1) * 200, { height: 200, ay: 0.5, alpha: k * 0.8 }); return; }
     kit.sprite(g, 'adv.b02.props', 9, tr.cx + 300, tr.y + 60, { height: 300, ay: 0.5, alpha: k }, () => {
       g.save();
       g.globalAlpha = k * 0.85;
@@ -1152,7 +1169,7 @@ export default function create(env) {
     const shake = bd.state === 'cross' && !env.reduceMotion ? Math.sin(tt * 50) * 5 : 0;
     const bob = flying && !env.reduceMotion ? Math.sin(tt * 18) * 6 : 0;
     const x = bd.x + shake, y = bd.y + bob;
-    kit.sprite(g, 'adv.b02.props', flying ? 5 : 6, x, y, { height: flying ? 90 : 100, ay: flying ? 0.5 : 1, flip: bd.facing > 0 }, () => inkBird(g, x, y, flying, bd.facing, tt));
+    kit.sprite(g, 'adv.b02.props', flying ? 5 : 6, x, y + (flying ? 0 : 20), { height: flying ? 110 : 120, ay: flying ? 0.5 : 0.72, flip: bd.facing > 0 }, () => inkBird(g, x, y, flying, bd.facing, tt));
     if (bd.state === 'cross') {
       g.save();
       g.font = '800 46px Fraunces, Georgia, serif'; g.textAlign = 'center';
