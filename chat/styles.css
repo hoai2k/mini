@@ -495,6 +495,8 @@ button { cursor: pointer; }
 .mini-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.12); color: #fff; display: grid; place-items: center; flex: none; }
 .mini-btn svg { width: 20px; height: 20px; }
 .mini-btn:active { transform: scale(0.94); }
+.mini-btn:disabled { opacity: 0.35; cursor: default; }
+.mini-btn:disabled:active { transform: none; }
 @media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
 
 /* Favorites: a plain strip (tap to use), a grid when dragged up. */
