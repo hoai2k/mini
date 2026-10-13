@@ -250,15 +250,29 @@ from the pond while it still holds four cards: they draw four ("Bo joins and
 draws 4"), any book among them goes straight to the table, and they sit right
 after the player whose turn it is, so they play next; with fewer than four
 cards left, or five already at the table, they watch and are dealt in at the
-next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner; someone who joins mid-round is seated by the owner straight away with 0 points and full hearts, plays the rest of the round on the same field, and shows in the tally and the results with when they joined) and Baseball (a home run derby seen from
-behind the plate in the style of Wii Sports Baseball's batting, with your face
-on the slugger: the pitch grows from a dot in the pitcher's hand to a big
-streaking ball at the plate, and you tap it as it gets there; the slugger
-loads as it comes and swings in about a third of a second, the bat level
-through the ball and round over his front shoulder; when you swing sets the direction, early pulls and late is foul,
-and where you tap on the ball sets the launch, on top a grounder and under it
-a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
-ghost balls and everyone's home runs are on the scoreboard). In the two-player
+next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner; someone who joins mid-round is seated by the owner straight away with 0 points and full hearts, plays the rest of the round on the same field, and shows in the tally and the results with when they joined) and Baseball (a top-down tabletop baseball board after the Japanese
+Yakyūban toy and the pinball baseball arcades: the pitcher rolls the ball down
+a groove from the mound (fastball, slow ball, a curve either way, and once an
+inning the vanishing pitch that drops under the board by the plate and pops up
+behind it); the batter holds to pull the spring bat back, its tension shown,
+and lets go to swing it round the pivot: a full pull drives it, a tap bunts
+it, an early swing meets the ball in front of the plate and pulls it, a late
+one sends it the other way. The ball comes off the moving bat by real 2D
+physics and rolls across the board, off the wall, the rails and the little
+fielders, into pockets labelled OUT, 1B, 2B, 3B and HOME RUN; the home run
+pocket slides along the wall during each pitch, the board is dealt fresh every
+half-inning and between batters pockets trade labels and a lit pocket counts
+one base more; a ball that stops on open turf is fielded by the nearest
+fielder (out if they're close, a hit in a gap) and one that hits the wall hard
+enough hops it. Three outs a side, runners move round the bases, three innings
+by default (1, 2, 3 or 5 for the next game). Players alternate between two
+teams as they join, each team bats in order and pitches in turn, a newcomer
+joins the shorter batting order, and alone you play the Robots, who pitch to
+you and bat against your pitches; the batter's face is at the plate and the
+pitcher's on the mound. The pitcher's client sends the pitch, the batter's
+client finds the contact with its own bat and sends the launch, and every
+client rolls it with the same fixed-step, sqrt-only simulation into the same
+pocket while the owner records the outcome). In the two-player
 games (Connect Four, Battleship and Air Hockey) everyone else who joins waits
 in line and sees their place ("You're up next", "2nd in line"): when a player
 leaves, the front of the line takes the seat, and after a game with someone
@@ -337,6 +351,15 @@ watches the leader) while the others carry on, and the best distance this
 session is crowned in the chips at the top. Keys: arrows or WASD, Space jumps;
 a controller's stick or D-pad, A jumps and X slides.
 
+## Snapshots, sharing and the first paint
+
+While an effect is on, its title bar has a camera button at the right that
+saves a picture of the main video (on a phone the share sheet opens, where Save
+Image puts it in Photos; on a computer it downloads as a PNG). Its Share button
+is greyed out while nobody else is in the call. The page keeps itself hidden
+until the saved theme and colour are applied (at most about a second), so it
+never flashes the default look first.
+
 ## Thumbs up and down
 
 Every effect and game has 👍 and 👎 buttons: on the effects strip next to the
@@ -360,7 +383,7 @@ itself to HTTPS.
 
 ## Checks
 
-- `node --test chat/test/*.test.mjs`: face geometry, Hoops and Baseball physics,
+- `node --test chat/test/*.test.mjs`: face geometry, Hoops physics, Baseball's spring bat (pull-back to swing speed, contact reflection, early pulls and late goes the other way), its deterministic rolls, pockets and label deals, bases, outs, innings and message checks,
   Temple Dash's seeded temples (the same for a seed, laid out fairly and run
   for 3 km by perfect play), its collisions, turns and state checks, and the
   room layer on an in-memory relay (also run by the Pages workflow)
@@ -403,17 +426,17 @@ itself to HTTPS.
   (`gofish-join.png`), the Go Fish bubbles and the end in `local/chat-shots/`
 - `node chat/test/beachbump-play.mjs`: two phone-sized Beach Bump seats with mouse-moved heads: a still head under the serve keeps the ball bouncing straight up to the same height on both seats, meeting it off-centre knocks it into the other zone where the non-owner heads it on, a ball nobody reaches costs a life to (only) the player whose zone it fell in and the next serve hangs over them, both seats see the very same launches, a third seat joining mid-game stands on the sand with full lives as the court widens, rookie bots keep it up and pass it, and the next seat runs the game when the owner leaves (screenshots in `local/chat-shots/beachbump-*.png`)
 - `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, a third seat joining mid-round being seated at once with 0 points and full hearts, scoring on the shared field and appearing (with when it joined) on both other seats' tallies and results, the same scores and winner on every seat, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
-- `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
-  swing (arms keep their length, both hands stay on the bat, the bat sweeps
-  one way from behind his head, level through the zone, over his front
-  shoulder) and that the ball is 6-10% of the screen's width at the plate, then
-  taps timed to the pitch: right on the ball as it reaches the plate is a home run, far
-  too early misses, late is foul, above the ball is a grounder, no swing is a
-  take; the round ends after ten pitches with the card, the home runs reach
-  the friend's scoreboard and Bat again starts the next, where taps on the
-  ball's top and bottom edges both connect, the top one lower; a rookie bot in
-  the other seat swings and sees the hits as ghosts (mid-swing picture in
-  `local/chat-shots/baseball-swing.png`)
+- `node chat/test/baseball-play.mjs`: on phone-sized seats, Ana bats and Bo
+  pitches with only Bo given the pitch buttons; Bo's fastball rolls on both
+  seats, Ana holds (the bat pulls back against its spring) and lets go timed
+  to the pitch, and both seats get the same launch, roll it into the same
+  pocket and agree with the owner's call; a second hit moves the runner on and
+  runs count, a vanishing pitch is used up for the inning, three outs switch
+  sides (Bo bats, Ana pitches, bases cleared); a third seat joining mid-game
+  joins a batting order and watches the same board; rookie bots pitch and
+  swing on every seat; the next seat runs the game when the owner leaves;
+  alone the computer pitches; and the landscape layout puts the scoreboard and
+  controls beside the board (pictures `local/chat-shots/baseball-*.png`)
 - `node chat/test/kart-play.mjs`: racers on phone-sized Kart Dash seats:
   the countdown, touch drag-steering both ways, dragging down to brake and
   reverse, a second finger drifting, stick steering, two item boxes filling

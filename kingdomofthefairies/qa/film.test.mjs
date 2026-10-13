@@ -5,15 +5,15 @@
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
-import { TEMPEST } from '../src/acts/act1.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
-import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS } from '../src/acts/prologue.js';
-import act2, { FAIRY_AT } from '../src/acts/act2.js';
-import act3, { PASSAGE, guardOpen } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
+import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
+import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
+import act3, { PASSAGE } from '../src/acts/act3.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, FILM_CLIFF_HALF } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
+import { HOOKS } from '../src/acts/act4.js';
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log('ok -', name); };
@@ -54,7 +54,7 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
     const p = s.p, beat = (clock += DT) / BEAT;
     if (s.phase === 'court') {
       const f = FAIRIES.find((q) => !s.gifts.includes(q.gift));
-      const to = f ? f.x : AZURINE_X - 60;
+      const to = f ? f.x + f.hand - HAND : AZURINE_X - 60;   // his hand at her gift
       return { moveX: Math.abs(to - p.x) > 20 ? Math.sign(to - p.x) : 0, a: press(!!s.near), beat };
     }
     if (s.phase === 'rampart') {
@@ -69,19 +69,43 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
     return { beat };
   });
   assert.equal(st.status, 'won', st.phase);
+  assert.equal(st.knocks, 0, 'a prince who leaps every fire is never burned');
   assert.deepEqual([...st.gifts].sort(), [...GIFTS].sort());
   assert.ok(st.betrothed);
   assert.equal(st.arms.length, 3);
   assert.ok(prologue.intro, 'flows straight into Act I');
 });
 
-test('prologue: fire on the rampart only knocks him back, and B skips each scene', () => {
+test('prologue: a gift is taken with his hand, not by walking into her', () => {
+  const st = prologue.create({});
+  const ring = FAIRIES.find((f) => f.gift === 'ring');
+  Object.assign(st.p, { x: ring.x, face: 1 });   // standing in her: his hand is past her gift
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.ok(!st.gifts.includes('ring'));
+  Object.assign(st.p, { x: ring.x + ring.hand - HAND, face: 1 });
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.deepEqual(st.gifts, ['ring']);
+});
+
+test('prologue: the rampart fire burns on; each touch costs a lantern, and none left loses the chase', () => {
   const st = prologue.create({ from: { scene: 1 } });
   assert.equal(st.phase, 'rampart');
-  st.fires.push({ x: st.p.x + 5, y: RAMPART.y, lit: true, burn: 0 });
+  assert.equal(st.lanterns, LANTERNS);
+  const fire = { x: st.p.x + 5, y: RAMPART.y, lit: true, burn: 0 };
+  st.fires.push(fire);
   prologue.step(st, DT, { moveX: 1, beat: 0 });
   assert.equal(st.knocks, 1);
-  assert.equal(st.status, 'play');
+  assert.equal(st.lanterns, LANTERNS - 1);
+  for (let i = 0; i < 20; i++) prologue.step(st, DT, { beat: 0 });   // grace: no second burn at once
+  assert.equal(st.lanterns, LANTERNS - 1);
+  for (let i = 0; i < 600; i++) prologue.step(st, DT, { beat: 0 });
+  assert.ok(st.fires.includes(fire) && fire.lit, 'the fire is still burning ten seconds on');
+  for (let n = st.lanterns; n > 0; n--) { st.grace = 0; st.fires.push({ x: st.p.x, y: RAMPART.y, lit: true, burn: 0 }); prologue.step(st, DT, { beat: 0 }); }
+  assert.equal(st.lanterns, 0);
+  run(prologue, st, PRO_T.defeat + 1, () => ({ beat: 0 }));
+  assert.equal(st.status, 'lost');
+  assert.match(st.lostTitle, /Chariot/);
+  assert.deepEqual(st.checkpoint, { scene: 1 }, 'a retry starts the chase again');
   const s2 = prologue.create({});
   let presses = 0;
   run(prologue, s2, 10, (s) => { const b = Math.floor(s.t * 3) !== Math.floor((s.t - DT) * 3); if (b) presses++; return { b }; });
@@ -89,20 +113,48 @@ test('prologue: fire on the rampart only knocks him back, and B skips each scene
   assert.ok(presses <= 6, `${presses} presses`);
 });
 
-test('Act I: in the tempest he walks the deck and lights each lantern (nothing on the beat)', () => {
+test('Act I: the tempest is a scene; the crew light the lanterns and the witch turns on the ship', () => {
   const st = ACTS[1].create({ seed: 2, from: { scene: 4 } });
   assert.equal(st.phase, 'party');
-  let clock = 0, last = false;
-  run(ACTS[1], st, 30, (s) => {
-    const i = s.party.on.findIndex((o) => !o), x = TEMPEST.lanternX[Math.max(0, i)];
-    const want = s.tp.near >= 0, a = want && !last; last = want;
-    return { moveX: Math.abs(x - s.tp.x) > 10 ? Math.sign(x - s.tp.x) : 0, a, beat: (clock += DT) / BEAT };
-  }, (s) => s.phase !== 'party');
+  let clock = 0;
+  run(ACTS[1], st, 20, () => ({ beat: (clock += DT) / BEAT }), (s) => s.phase !== 'party');   // no input at all
   assert.equal(st.party.lit, 4);
+  assert.deepEqual(st.party.on, [true, true, true, true]);
   assert.equal(st.phase, 'turn');
-  const s2 = ACTS[1].create({ seed: 2, from: { scene: 4 } });
-  run(ACTS[1], s2, 4, () => ({ a: true }));
-  assert.ok(s2.party.lit <= 1, 'A away from the lanterns lights nothing');
+});
+
+test('Act II dive: X wakes a sleeper within reach and takes an open clam\'s pearl; the sword runs on ahead', () => {
+  const st = act2.create({ seed: 3, carry: {}, from: { scene: 1 } });
+  assert.equal(st.phase, 'swim');
+  const s = st.sailor, still = () => { s.vx = 0; s.vy = 0; };
+  // a sleeper beside him (outside the conch's touch range) wakes on X
+  const sl = st.sleepers.find((q) => q.state === 'asleep' && q.y > 1000);
+  Object.assign(s, { x: sl.x + 160, y: sl.y }); st.hornT = 0; st.guitar.y = s.y + 600; still();
+  act2.step(st, 1 / 60, { beat: 0.5 });
+  assert.equal(sl.state, 'asleep');
+  assert.equal(st.reach?.kind, 'sleeper', 'the X prompt shows');
+  still(); act2.step(st, 1 / 60, { x: true, beat: 0.5 });
+  assert.equal(sl.state, 'rising');
+  // an open clam's pearl from just above it, with X
+  const cl = st.clams[0], beat = cl.off + 0.5;
+  Object.assign(s, { x: cl.x, y: cl.y - 48 - 90 }); st.guitar.y = s.y + 600; still();
+  const before = st.pearls;
+  act2.step(st, 1 / 60, { beat });
+  assert.equal(st.pearls, before, 'not by hovering near');
+  still(); act2.step(st, 1 / 60, { x: true, beat });
+  assert.equal(st.pearls, before + 1);
+  // the sword, close below, sinks faster than he cruises
+  st.guitar.y = s.y + FILM_DIVE.lead + 20; const gy = st.guitar.y;
+  act2.step(st, 1, { beat: 3 });
+  assert.ok(st.guitar.y - gy >= 200, `sword sank ${st.guitar.y - gy}`);
+});
+
+test('Act II ride: pearls to leap for float only over the top row, and the whole carriage catches', () => {
+  const st = act2.create({ seed: 3, carry: {}, from: { scene: 5 } });
+  assert.equal(st.phase, 'ride');
+  assert.ok(st.ride.pearls.some((p) => p.high));
+  assert.ok(st.ride.pearls.filter((p) => p.high).every((p) => p.row === 0));
+  assert.ok(RIDE.catchX >= 120, 'the stern catches as well as the bow');
 });
 
 test('Act II: he swims to the Water Fairy for her blessing (no button, no refusal)', () => {
@@ -114,20 +166,42 @@ test('Act II: he swims to the Water Fairy for her blessing (no button, no refusa
   assert.ok(act2.cast['witch-stand'] === 'water-fairy-stand');
 });
 
-test('Act III: he walks through the lobster palace, past the claws, the sea flora and the grotto into the court', () => {
+test('Act III: he bows past the lobster guards, leaps for the sea-flora pearls, and walks into the court', () => {
   const st = act3.create({ seed: 1, carry: {} });
   assert.ok(st.tf, 'the passage opens the act');
   let clock = 0;
   run(act3, st, 40, (s) => {
     if (!s.tf) return {};
-    const f = s.tf, g = f.set === 0 && PASSAGE.guards.find((q) => q.x > f.x && q.x - f.x < 130);
-    const wait = g && !guardOpen(g, f.t + 0.35);
-    return { moveX: wait ? 0 : 1, beat: (clock += DT) / BEAT };
+    const f = s.tf;
+    if (f.x < PASSAGE.guards[1].x + 60) return { moveX: 1, xHeld: true, beat: (clock += DT) / BEAT };   // bow past the guards
+    const p = PASSAGE.pearls.find(([px], i) => !f.got.includes(i) && px - f.x > 55 && px - f.x < 110);
+    return { moveX: 1, a: !!p && f.lift === 0, beat: (clock += DT) / BEAT };
   }, (s) => !s.tf);
   assert.equal(st.tf, null);
-  assert.equal(st.pearls, 3);
+  assert.equal(st.pearls, PASSAGE.pearls.length, 'every pearl, by leaping');
+  // upright before a guard, he is caught and thrown back; bowing, he passes
+  const s3 = act3.create({ seed: 1, carry: {} });
+  run(act3, s3, 3, () => ({ moveX: 1 }), (s) => s.tf.caught > 0);
+  assert.equal(s3.tf.caught, 1);
+  assert.ok(s3.tf.x < PASSAGE.guards[0].x);
+  // walking under the pearls without leaping takes none
+  const s4 = act3.create({ seed: 1, carry: {} });
+  s4.tf.x = PASSAGE.guards[1].x + 60;
+  run(act3, s4, 8, () => ({ moveX: 1 }), (s) => !s.tf || s.tf.fade > 0);
+  assert.equal(s4.pearls, 0);
   const s2 = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
   assert.ok(!s2.tf, 'not on a resume');
+});
+
+test('Act III court: the courtier he poses behind holds still while he hides', () => {
+  const st = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
+  const p = st.p, c = st.courtiers.find((q) => q.kind !== 'guard' && q.row === p.row) || st.courtiers.find((q) => q.kind !== 'guard');
+  p.row = p.from = c.row; p.x = c.x;
+  const x = c.x;
+  let beat = 0;
+  for (let i = 0; i < 60 * 8; i++) act3.step(st, 1 / 60, { aHeld: true, beat: (beat += 1 / 60 / 0.784) });
+  assert.ok(p.frozen);
+  assert.equal(c.x, x, 'his courtier did not step away');
 });
 
 test('Act V: the swim is won by diving under her swoops, then the tower wall begins', () => {
@@ -147,6 +221,31 @@ test('Act V: a swimmer who never dives is caught', () => {
   const st = actTower.create({ seed: 9, carry: {}, from: { scene: 2 } });
   run(actTower, st, 30, () => ({ moveX: 0.6 }));
   assert.ok(st.lanterns < 3);
+});
+
+test('Act V: the film cliff climbs its painted ledges from the shore to the clifftop, and on into the dive', () => {
+  for (const scene of [0, 1]) {
+    const st = actTower.create({ seed: 1, carry: {}, from: scene ? { scene } : null });
+    assert.equal(st.holds.length, FILM_CLIFF.length);
+    assert.equal(st.cl.at, scene ? FILM_CLIFF_HALF : FILM_CLIFF.findIndex((h) => h.start));
+    assert.ok(!st.holds.some((h) => h.kind === 'boot' || h.kind === 'gap'), 'no giant and no guitarist');
+  }
+  const st = actTower.create({ seed: 1, carry: {} });
+  const seen = new Set([st.cl.at]), q = [st.cl.at];
+  const dirs = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0.6, y: 0.8 }, { x: -0.6, y: 0.8 }];
+  while (q.length) {
+    const i = q.shift(); st.cl.at = i;
+    for (const d of dirs) for (const leap of [false, true]) { const j = pickHold(st, i, d, leap); if (j >= 0 && !seen.has(j)) { seen.add(j); q.push(j); } }
+  }
+  assert.ok(st.holds.some((h, i) => h.kind === 'top' && seen.has(i)), 'the clifftop is reachable');
+  assert.ok(st.holds.every((h, i) => !h.pearl || seen.has(i)), 'every pearl is reachable');
+  // over the grass edge: the dive follows
+  const s2 = actTower.create({ seed: 1, carry: {} });
+  const top = s2.holds.findIndex((h) => h.kind === 'top');
+  const below = s2.holds.findIndex((h) => h.x === 580 && h.y === 1874);
+  s2.cl.at = s2.cl.from = below; s2.inv = 99;
+  run(actTower, s2, 2, () => ({ up: true }), (s) => s.phase !== 'cliff');
+  assert.equal(s2.phase, 'dive', `phase ${s2.phase}, at ${s2.cl.at} (top ${top})`);
 });
 
 test('Act V: the tower wall has a route from its foot to the window', () => {
@@ -260,6 +359,11 @@ test('Act IV cavern: a pool costs a lantern and puts him back on firm rock', () 
   act4.step(st, DT, { beat: 0 });
   assert.equal(st.lanterns, 2);
   assert.ok(st.cv.s.y <= 600 && st.cv.s.x < 560, `respawned at ${st.cv.s.x}`);
+});
+
+test('Act IV (film): the whale hangs half as many hooks or fewer, two of them higher', () => {
+  assert.ok(HOOKS.length <= 5, `${HOOKS.length} hooks`);
+  assert.ok(HOOKS.filter((h) => h.tipY <= 150).length >= 2);
 });
 
 test('Act IV (film): the beach leads on into the cavern', () => {

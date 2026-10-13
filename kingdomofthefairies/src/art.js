@@ -1091,8 +1091,9 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // idlePose) when Extra Animations is on; the plain still otherwise.
   // `over(c, s, im)` draws something held by the figure (a gift in her
   // hands): called at the figure's bottom centre inside its idle sway, with
-  // `s` the stage pixels per art pixel.
-  function drawIdle(c, id, time, cx, by, w, h, step, over) {
+  // `s` the stage pixels per art pixel. `onlyOver` draws just what is held,
+  // in the same sway (so it can be drawn over a figure in front of hers).
+  function drawIdle(c, id, time, cx, by, w, h, step, over, onlyOver = false) {
     if (!img(id)) return false;
     const held = (im) => {
       if (!over) return;
@@ -1100,14 +1101,15 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       over(c, im.fitBox ? Math.min(h / ih, (w * 1.6) / iw) * (im.bodyScale || 1) : h / ih, im);
     };
     if (!extraAnimations) {
-      drawAsset(c, P, img(id), cx, by, w, h);
+      if (!onlyOver) drawAsset(c, P, img(id), cx, by, w, h);
       if (over) { c.save(); c.translate(cx, by); held(img(id)); c.restore(); }
       return true;
     }
     const pose = idlePose(id, time, { step, amp: filmAmp, w, h });
     c.save(); c.translate(cx + pose.dx, by + pose.dy); c.rotate(pose.rot); c.scale(1, pose.sy);
     const im = img(idleId(id, pose.time, step));
-    drawAsset(c, P, im, 0, 0, w, h); held(im);
+    if (!onlyOver) drawAsset(c, P, im, 0, 0, w, h);
+    held(im);
     c.restore();
     return true;
   }
@@ -1135,7 +1137,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
     // A person's still, flicked with its idle frames when Extra Animations is
     // on (see idleFrameId); false if the still isn't delivered.
-    idle(id, time, cx, by, w, h, step, over) { return drawIdle(kit.c, id, time, cx, by, w, h, step, over); },
+    idle(id, time, cx, by, w, h, step, over, onlyOver) { return drawIdle(kit.c, id, time, cx, by, w, h, step, over, onlyOver); },
     // Draw a delivered image (bottom-centre anchor); false if not delivered.
     asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
     // Part of a delivered image: source rect in art pixels -> stage box.
@@ -1198,7 +1200,7 @@ function star(c, x, y, r) {
 // Prompt text may name buttons as [A], [B], [MENU] or [LS]. They are drawn
 // for the input in use (`mode`): Xbox controller buttons ('pad'), key caps
 // ('key') or the on-screen touch buttons ('touch').
-const GLYPH_KEYS = { A: 'Space', B: 'Esc', MENU: 'Esc', LS: '← →' };
+const GLYPH_KEYS = { A: 'Space', B: 'Esc', X: 'X', MENU: 'Esc', LS: '← →' };
 const XBOX = { A: '#3fa535', B: '#d6262c', X: '#2a6fd6', Y: '#e8b320' };
 function glyphWidth(c, tok, mode, px) {
   if (mode === 'key') { c.save(); c.font = `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`; const w = c.measureText(GLYPH_KEYS[tok]).width; c.restore(); return w + px * 0.7; }
@@ -1218,7 +1220,7 @@ function drawGlyph(c, tok, mode, cx, cy, px, col) {
     c.fillStyle = col('#b8862e'); c.strokeStyle = col('#f1e3c8'); c.lineWidth = Math.max(1.5, px * 0.06);
     c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
     c.fillStyle = col('#fff8e8'); c.font = `700 ${Math.round(px * 0.5)}px "Josefin Sans", sans-serif`;
-    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok, cx, cy + px * 0.03);
+    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok === 'X' ? 'B' : tok, cx, cy + px * 0.03);   // touch's B button stands in for X
   } else {
     // Xbox: A, B, X, Y in their colours; Menu and the left stick in charcoal.
     const face = XBOX[tok];
@@ -1233,7 +1235,7 @@ function drawGlyph(c, tok, mode, cx, cy, px, col) {
 }
 // Draw one line of prompt text centred on x (baseline y) with its button glyphs.
 export function richText(c, str, x, y, { px, mode = 'key', col = (h) => h } = {}) {
-  const parts = str.split(/\[(A|B|MENU|LS)\]/);
+  const parts = str.split(/\[(A|B|X|MENU|LS)\]/);
   const gap = px * 0.18;
   const widths = parts.map((p, i) => (i % 2 ? glyphWidth(c, p, mode, px) + gap * 2 : c.measureText(p).width));
   const total = widths.reduce((a, b) => a + b, 0);

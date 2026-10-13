@@ -2047,24 +2047,8 @@ export const ASSET_LIST = {
     "file": "assets/games/burger-egg.png",
     "status": "delivered"
   },
-  "baseball-field": {
-    "file": "assets/games/baseball-field.webp",
-    "status": "delivered"
-  },
   "baseball-ball": {
     "file": "assets/games/baseball-ball.png",
-    "status": "delivered"
-  },
-  "baseball-bat": {
-    "file": "assets/games/baseball-bat.png",
-    "status": "delivered"
-  },
-  "baseball-pitcher-windup": {
-    "file": "assets/games/baseball-pitcher-windup.png",
-    "status": "delivered"
-  },
-  "baseball-pitcher-throw": {
-    "file": "assets/games/baseball-pitcher-throw.png",
     "status": "delivered"
   },
   "whack-field": {
@@ -2249,19 +2233,19 @@ export const ASSET_LIST = {
   },
   "temple-beam": {
     "file": "assets/games/temple-beam.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-board": {
     "file": "assets/games/bb2-board.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-bat": {
     "file": "assets/games/bb2-bat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-fielder": {
     "file": "assets/games/bb2-fielder.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-blocks": {
     "file": "assets/icons/game-blocks.png",

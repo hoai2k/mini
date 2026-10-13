@@ -237,5 +237,305 @@ export const ASSETS = {
   "story.lucyjane": {
     "file": "assets/story/lucyjane.webp",
     "delivered": true
+  },
+  "monster.trollusk.moves": {
+    "file": "assets/monsters/trollusk/moves.png",
+    "delivered": false
+  },
+  "monster.bombanat.moves": {
+    "file": "assets/monsters/bombanat/moves.png",
+    "delivered": false
+  },
+  "monster.grumley.moves": {
+    "file": "assets/monsters/grumley/moves.png",
+    "delivered": false
+  },
+  "monster.iceferg.moves": {
+    "file": "assets/monsters/iceferg/moves.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.moves": {
+    "file": "assets/monsters/typhoonigator/moves.png",
+    "delivered": false
+  },
+  "monster.yalapappus.moves": {
+    "file": "assets/monsters/yalapappus/moves.png",
+    "delivered": false
+  },
+  "monster.grithix.moves": {
+    "file": "assets/monsters/grithix/moves.png",
+    "delivered": false
+  },
+  "terrain.lane": {
+    "file": "assets/adventure/terrain/lane.png",
+    "delivered": false
+  },
+  "terrain.wood": {
+    "file": "assets/adventure/terrain/wood.png",
+    "delivered": false
+  },
+  "terrain.goo": {
+    "file": "assets/adventure/terrain/goo.png",
+    "delivered": false
+  },
+  "terrain.sea": {
+    "file": "assets/adventure/terrain/sea.png",
+    "delivered": false
+  },
+  "terrain.nowhere": {
+    "file": "assets/adventure/terrain/nowhere.png",
+    "delivered": false
+  },
+  "adv.b01.backdrop1": {
+    "file": "assets/adventure/b01/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b01.backdrop2": {
+    "file": "assets/adventure/b01/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b01.backdrop3": {
+    "file": "assets/adventure/b01/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b01.props": {
+    "file": "assets/adventure/b01/props.png",
+    "delivered": false
+  },
+  "adv.b02.backdrop1": {
+    "file": "assets/adventure/b02/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b02.backdrop2": {
+    "file": "assets/adventure/b02/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b02.backdrop3": {
+    "file": "assets/adventure/b02/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b02.props": {
+    "file": "assets/adventure/b02/props.png",
+    "delivered": false
+  },
+  "adv.b03.backdrop1": {
+    "file": "assets/adventure/b03/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b03.backdrop2": {
+    "file": "assets/adventure/b03/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b03.backdrop3": {
+    "file": "assets/adventure/b03/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b03.props": {
+    "file": "assets/adventure/b03/props.png",
+    "delivered": false
+  },
+  "adv.b04.backdrop1": {
+    "file": "assets/adventure/b04/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b04.backdrop2": {
+    "file": "assets/adventure/b04/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b04.backdrop3": {
+    "file": "assets/adventure/b04/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b04.props": {
+    "file": "assets/adventure/b04/props.png",
+    "delivered": false
+  },
+  "adv.b05.backdrop1": {
+    "file": "assets/adventure/b05/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b05.backdrop2": {
+    "file": "assets/adventure/b05/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b05.backdrop3": {
+    "file": "assets/adventure/b05/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b05.props": {
+    "file": "assets/adventure/b05/props.png",
+    "delivered": false
+  },
+  "adv.b06.backdrop1": {
+    "file": "assets/adventure/b06/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b06.backdrop2": {
+    "file": "assets/adventure/b06/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b06.backdrop3": {
+    "file": "assets/adventure/b06/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b06.props": {
+    "file": "assets/adventure/b06/props.png",
+    "delivered": false
+  },
+  "adv.b07.backdrop1": {
+    "file": "assets/adventure/b07/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b07.backdrop2": {
+    "file": "assets/adventure/b07/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b07.backdrop3": {
+    "file": "assets/adventure/b07/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b07.props": {
+    "file": "assets/adventure/b07/props.png",
+    "delivered": false
+  },
+  "adv.b08.backdrop1": {
+    "file": "assets/adventure/b08/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b08.backdrop2": {
+    "file": "assets/adventure/b08/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b08.backdrop3": {
+    "file": "assets/adventure/b08/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b08.props": {
+    "file": "assets/adventure/b08/props.png",
+    "delivered": false
+  },
+  "adv.b09.backdrop1": {
+    "file": "assets/adventure/b09/backdrop-1.webp",
+    "delivered": false
+  },
+  "adv.b09.backdrop2": {
+    "file": "assets/adventure/b09/backdrop-2.webp",
+    "delivered": false
+  },
+  "adv.b09.backdrop3": {
+    "file": "assets/adventure/b09/backdrop-3.webp",
+    "delivered": false
+  },
+  "adv.b09.props": {
+    "file": "assets/adventure/b09/props.png",
+    "delivered": false
+  },
+  "howto.ch01.1": {
+    "file": "assets/howto/ch01-1.webp",
+    "delivered": false
+  },
+  "howto.ch01.2": {
+    "file": "assets/howto/ch01-2.webp",
+    "delivered": false
+  },
+  "howto.ch01.3": {
+    "file": "assets/howto/ch01-3.webp",
+    "delivered": false
+  },
+  "howto.ch02.1": {
+    "file": "assets/howto/ch02-1.webp",
+    "delivered": false
+  },
+  "howto.ch02.2": {
+    "file": "assets/howto/ch02-2.webp",
+    "delivered": false
+  },
+  "howto.ch02.3": {
+    "file": "assets/howto/ch02-3.webp",
+    "delivered": false
+  },
+  "howto.ch03.1": {
+    "file": "assets/howto/ch03-1.webp",
+    "delivered": false
+  },
+  "howto.ch03.2": {
+    "file": "assets/howto/ch03-2.webp",
+    "delivered": false
+  },
+  "howto.ch03.3": {
+    "file": "assets/howto/ch03-3.webp",
+    "delivered": false
+  },
+  "howto.ch04.1": {
+    "file": "assets/howto/ch04-1.webp",
+    "delivered": false
+  },
+  "howto.ch04.2": {
+    "file": "assets/howto/ch04-2.webp",
+    "delivered": false
+  },
+  "howto.ch04.3": {
+    "file": "assets/howto/ch04-3.webp",
+    "delivered": false
+  },
+  "howto.ch05.1": {
+    "file": "assets/howto/ch05-1.webp",
+    "delivered": false
+  },
+  "howto.ch05.2": {
+    "file": "assets/howto/ch05-2.webp",
+    "delivered": false
+  },
+  "howto.ch05.3": {
+    "file": "assets/howto/ch05-3.webp",
+    "delivered": false
+  },
+  "howto.ch06.1": {
+    "file": "assets/howto/ch06-1.webp",
+    "delivered": false
+  },
+  "howto.ch06.2": {
+    "file": "assets/howto/ch06-2.webp",
+    "delivered": false
+  },
+  "howto.ch06.3": {
+    "file": "assets/howto/ch06-3.webp",
+    "delivered": false
+  },
+  "howto.ch07.1": {
+    "file": "assets/howto/ch07-1.webp",
+    "delivered": false
+  },
+  "howto.ch07.2": {
+    "file": "assets/howto/ch07-2.webp",
+    "delivered": false
+  },
+  "howto.ch07.3": {
+    "file": "assets/howto/ch07-3.webp",
+    "delivered": false
+  },
+  "howto.ch08.1": {
+    "file": "assets/howto/ch08-1.webp",
+    "delivered": false
+  },
+  "howto.ch08.2": {
+    "file": "assets/howto/ch08-2.webp",
+    "delivered": false
+  },
+  "howto.ch08.3": {
+    "file": "assets/howto/ch08-3.webp",
+    "delivered": false
+  },
+  "howto.ch09.1": {
+    "file": "assets/howto/ch09-1.webp",
+    "delivered": false
+  },
+  "howto.ch09.2": {
+    "file": "assets/howto/ch09-2.webp",
+    "delivered": false
+  },
+  "howto.ch09.3": {
+    "file": "assets/howto/ch09-3.webp",
+    "delivered": false
   }
 };

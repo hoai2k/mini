@@ -137,3 +137,14 @@ dips about 9 px. `design/source/audit_sprites.py` now measures every walking
 cycle (and every figure's canvas and ground line) and writes
 [sprite-audit.md](sprite-audit.md). Until the F16 redraws arrive, those four
 frames are scaled up from the feet to a natural dip (`src/sprite-fit.js`).
+
+## Delivery check: F17 and F18 (13 October 2026)
+
+- **The man-at-arms (F17)**, all six frames: an open kettle-hat, the crew's
+  green-and-ochre stripes and a red-and-ochre shield. Nothing he wears is the
+  prince's any more, so Act II wakes him in his own place again (the stand-in
+  crewman was only until this arrived). Canvas and ground line match his idle
+  frames; the sprite audit passes.
+- **The tinted lobster guard's shut pose (F18)** now has the open pose's red,
+  shading and sea-green weed, so the guard no longer changes colour as he
+  opens his claws for a bowing prince.

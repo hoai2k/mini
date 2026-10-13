@@ -26,4 +26,4 @@ put on the lip), Act V storm (climber put on the top hold, phase set to
 `storm`). The curtain call is drawn by a copy of `drawCurtainCall` from
 `src/main.js`, so keep the two in step.
 
-The default viewer excludes modern band characters. Add `?widowsbay=on` for the preserved cast and title (`?widowsbay=off` for the film edition). Story continuity for future revisions is in `../design/film-story.md`.
+The default viewer shows the film edition. Add `?widowsbay=on` for the preserved cast and title, or `?widowsbay=partial` for the classic acts without the band. Story continuity for future revisions is in `../design/film-story.md`.

@@ -4,7 +4,7 @@ import { walkFrame } from '../walking.js';
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, FILM_T, BARREL, DIVE, WEDDING, APOTH } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DIVE, WEDDING, APOTH } from './act5film.js';
 import { HOUSE, QUAY, T } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -27,15 +27,16 @@ export function drawTower(k, st, t) {
   const c = k.c;
   c.save(); c.translate(0, 640 + st.camY);
   c.globalAlpha = clamp(pt / 0.6, 0, 1);
-  if (!k.asset('azurine-window', 640, -TOWER_TOP - 2, 84, 105)) { c.fillStyle = k.col('#c9d8ee'); k.circle(640, -TOWER_TOP - 60, 16); }
+  // in the painted window's arch, above its sill
+  if (!k.asset('azurine-window', TOWER_WINDOW.x, -TOWER_TOP - 4, 64, 80)) { c.fillStyle = k.col('#c9d8ee'); k.circle(TOWER_WINDOW.x, -TOWER_TOP - 50, 14); }
   c.restore();
   card(k, 'Her Window', 'Azurine is held inside', cardAlpha(pt, FILM_T.window + 9));
 }
 
 export function drawOverTower(k, st) {
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
-  if (st.phase === 'iris') k.iris(1000, 220, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
-  if (st.status === 'won') k.iris(1000, 220, 0);
+  if (st.phase === 'iris') k.iris(TOWER_WINDOW.x, 640 + st.camY - TOWER_TOP - 50, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
+  if (st.status === 'won') k.iris(TOWER_WINDOW.x, 640 + st.camY - TOWER_TOP - 50, 0);
 }
 
 export function onEventTower(k, e, st) {
@@ -171,7 +172,8 @@ function towerScene(k, st, t) {
     c.fillStyle = k.col('#6d6872');
     for (let x = WALL.x0; x < WALL.x1; x += 64) c.fillRect(x, -TOWER_TOP - 80, 40, 42);
   }
-  if (!k.asset('tower-window', 640, -TOWER_TOP + 10, 100, 130)) {
+  if (k.img('tower-wall-tall')) { /* the cloth paints her window */ }
+  else if (!k.asset('tower-window', 640, -TOWER_TOP + 10, 100, 130)) {
     c.fillStyle = k.col('#e9c46a'); c.globalAlpha = 0.7 + 0.25 * Math.sin(t * 3);
     c.beginPath(); c.moveTo(600, -TOWER_TOP + 6); c.lineTo(600, -TOWER_TOP - 70); c.arc(640, -TOWER_TOP - 70, 40, Math.PI, 0); c.lineTo(680, -TOWER_TOP + 6); c.closePath(); c.fill();
     c.globalAlpha = 1; c.fillStyle = k.col('#2a2430');
@@ -206,7 +208,7 @@ export function drawOverBurning(k, st) {
 export function onEventBurning(k, e, st) {
   if (e.type === 'barrelShake') { k.burst(e.x, BARREL.y - 120, '#5fd0c0', 8, 'sparkle'); return; }
   if (e.type === 'barrelKnock') { k.shake(0.4); k.flash(0.2); k.burst(e.x, BARREL.y - 70, '#c8321e', 12, 'streak'); return; }
-  if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1040, 600, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
+  if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1000, 610, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
   if (e.type === 'petal') { k.burst(e.x, e.y, '#f3c6dc', 8, 'sparkle'); return; }
   if (e.type === 'ascend') { k.flash(0.6); k.burst(640, 480, '#fff2b0', 50, 'sparkle'); return; }
   if (e.type === 'witchReturns') { k.flash(0.4); return; }
@@ -223,6 +225,15 @@ export function onEventBurning(k, e, st) {
 const TOWER_ART = [640, 683, 487, 627];
 function towerInterior(k, st, t) {
   const c = k.c, H = HOUSE;
+  // the night outside the cut-away tower: the sea gap behind, darkened, and
+  // the fire's glow rising from its foot, so no bare stage shows either side
+  if (k.img('tower-interior')) {
+    if (k.asset('coast-gap', 640, 720, 1280, 720)) k.wash('#120610', 0.55);
+    else { c.fillStyle = k.col('#140a14'); c.fillRect(0, 0, 1280, 720); }
+    const g = c.createLinearGradient(0, 720, 0, 200);
+    g.addColorStop(0, `rgba(255,120,50,${0.42 + 0.08 * Math.sin(t * 5)})`); g.addColorStop(1, 'rgba(255,90,40,0)');
+    c.fillStyle = g; c.fillRect(0, 200, 1280, 520);
+  }
   const painted = k.asset('tower-interior', ...TOWER_ART);
   if (!painted) {
     tableau(k, 'tower-fire', 6, 12, { zoom: 0.04, focus: [640, 360] });
@@ -268,6 +279,15 @@ function towerInterior(k, st, t) {
   flames(k, st, t, 1);
   // Azurine in front of the smoke, so she can always be seen
   if (!st.p.carry) beloved(k, H.beloved, H.floors[2], 0.6, -1, Math.sin(t * 5) > 0.3 ? 'reach' : 'down');
+  // where he is going: to her at the top, then out of the door with her
+  const [gx, gy, label] = st.p.carry ? [H.door + 10, H.floors[0], 'Out of the door'] : [H.beloved, H.floors[2], 'To her'];
+  const bob = Math.sin(t * 4) * 6, ty = gy - (st.p.carry ? 170 : 150) + bob;
+  c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#fff2b0');
+  c.beginPath(); c.moveTo(gx - 14, ty); c.lineTo(gx + 14, ty); c.lineTo(gx, ty + 18); c.closePath(); c.fill();
+  c.font = '700 15px "Josefin Sans", sans-serif'; c.textAlign = 'center';
+  c.fillStyle = k.col('#2a1424'); c.fillText(label, gx + 1, ty - 7); c.fillStyle = k.col('#fff2b0'); c.fillText(label, gx, ty - 8);
+  c.restore();
+  if (st.phaseT < 7 && !st.p.carry) hint(k, 'Climb the stairs and ladders to Azurine · [A] leaps the burnt gaps');
 }
 
 // Out across the clifftop with her, the tower falling behind.
@@ -327,14 +347,19 @@ function azurineOnFoot(k, a, y, h = 168) {
   c.restore();
 }
 // A short instruction on a plum label near the top of the stage.
-function hint(k, text, y = 150) {
-  const c = k.c;
-  c.save(); c.textAlign = 'center'; c.font = '700 18px "Josefin Sans", sans-serif';
-  const w = c.measureText(text.replace(/\[(\w+)\]/g, 'XX')).width + 60;
-  c.globalAlpha = 0.85; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(640 - w / 2, y - 24, w, 36, 18); c.fill();
-  c.globalAlpha = 1; c.fillStyle = k.col('#f3c6dc');
-  richText(c, text, 640, y, { px: 18, mode: k.inputMode || 'key', col: k.col });
-  c.restore();
+// A short instruction on a plum label, drawn over the stage frame (so the
+// valance never clips it) low on the stage unless placed.
+function hint(k, text, y = 630) {
+  const draw = () => {
+    const c = k.c;
+    c.save(); c.textAlign = 'center'; c.font = '700 18px "Josefin Sans", sans-serif';
+    const w = c.measureText(text.replace(/\[(\w+)\]/g, 'XX')).width + 60;
+    c.globalAlpha = 0.88; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(640 - w / 2, y - 24, w, 36, 18); c.fill();
+    c.globalAlpha = 1; c.fillStyle = k.col('#f3c6dc');
+    richText(c, text, 640, y, { px: 18, mode: k.inputMode || 'key', col: k.col });
+    c.restore();
+  };
+  if (k.over) k.over(draw); else draw();
 }
 
 // Act V: the clifftop over the sea gap; he walks to the edge and dives.
@@ -348,23 +373,30 @@ function diveScene(k, st, t) {
     c.restore();
   } else if (!d) princeOnFoot(k, w, 124);
   if (d?.splash) { c.save(); c.globalAlpha = Math.max(0, 1 - d.t / FILM_T.splash); c.fillStyle = k.col('#eef3ea'); c.beginPath(); c.ellipse(w.x, 600, 40 + d.t * 80, 10, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
-  if (!d && st.phaseT < 6) hint(k, 'Walk to the cliff edge · [A] dives for the tower');
+  // the edge to dive from: a glowing mark on the path
+  if (!d) {
+    const a = 0.45 + 0.3 * Math.sin(t * 5);
+    c.save(); c.globalAlpha = a; c.fillStyle = k.col('#fff2b0');
+    c.beginPath(); c.ellipse(DIVE.edge - 30, DIVE.y + 2, 46, 9, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.moveTo(DIVE.edge - 42, DIVE.y - 150); c.lineTo(DIVE.edge - 18, DIVE.y - 150); c.lineTo(DIVE.edge - 30, DIVE.y - 130); c.closePath(); c.fill();
+    c.restore();
+  }
+  if (!d && st.phaseT < 7) hint(k, 'Walk to the cliff edge · [A] dives for the tower');
 }
 
 // Act VI: the witch's barrel on the cliff over the whirlpool.
 function barrelScene(k, st, t) {
   const c = k.c, b = st.barrel, w = st.w;
   if (!k.asset('cliff-whirlpool', 640, 720, 1280, 720)) { c.fillStyle = k.col('#1c1630'); c.fillRect(0, 0, 1280, 720); c.fillStyle = k.col('#7a6a5a'); c.fillRect(BARREL.x0, BARREL.y, BARREL.edge - BARREL.x0, 300); }
-  c.save(); c.translate(1040, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1);
-  k.asset('whirlpool', 0, 60, 420, 136);
-  c.restore();
+  // the cloth paints its own whirlpool (centre ~ x 1000, y 610); the cut-out only without it
+  if (!k.img('cliff-whirlpool')) { c.save(); c.translate(1040, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1); k.asset('whirlpool', 0, 60, 420, 136); c.restore(); }
   if (!k.asset('aurora-point', 250, BARREL.y + 6, 150, 212)) { c.fillStyle = k.col('#f4ead2'); k.circle(250, BARREL.y - 120, 16); }
   if (!b || !w) return;
   const fallK = b.fallT == null ? 0 : clamp(b.fallT / FILM_T.barrelFall, 0, 1);
   // the barrel: shaking when she is about to lurch it back, then over the edge
   let x = b.x, y = BARREL.y, rot = b.rot * 0.15;
   if (b.state === 'shake') { x += Math.sin(t * 50) * 4; rot += Math.sin(t * 40) * 0.08; }
-  if (fallK > 0) { const f = easeInOut(fallK); x = lerp(b.x, 1040, f); y = BARREL.y + f * f * 260; rot = f * 6; }
+  if (fallK > 0) { const f = easeInOut(fallK); x = lerp(b.x, 1000, f); y = BARREL.y + f * f * 200; rot = f * 6; }
   c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = 1 - clamp((fallK - 0.8) / 0.2, 0, 1);
   if (b.state === 'shake') { c.save(); c.globalAlpha *= 0.4 + 0.3 * Math.sin(t * 20); c.fillStyle = k.col('#5fd0c0'); k.circle(0, -60, 70); c.restore(); }
   if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
@@ -374,6 +406,11 @@ function barrelScene(k, st, t) {
     c.save(); c.translate(w.x + 10, w.y); k.asset('prince-push', 0, 0, 140, 172); c.restore();
   } else princeOnFoot(k, w, 140);
   if (fallK > 0) { c.save(); c.globalAlpha = 0.5 * Math.sin(Math.PI * fallK); c.fillStyle = k.col('#eef3ea'); c.fillRect(0, 0, 1280, 720); c.restore(); }
+  if (fallK === 0) {   // the cliff edge it must go over
+    c.save(); c.globalAlpha = 0.4 + 0.25 * Math.sin(t * 5); c.fillStyle = k.col('#fff2b0');
+    c.beginPath(); c.moveTo(BARREL.edge - 14, BARREL.y - 170); c.lineTo(BARREL.edge + 14, BARREL.y - 170); c.lineTo(BARREL.edge, BARREL.y - 148); c.closePath(); c.fill();
+    c.fillRect(BARREL.edge - 2, BARREL.y - 140, 4, 140); c.restore();
+  }
   if (fallK === 0 && st.phaseT < 6) hint(k, 'Walk into the barrel to push it over the edge · stand clear when it shakes');
 }
 

@@ -8,23 +8,30 @@
 //   after it along the parapet, leaping the fire it drops;
 // - the armoury: the witch binds him, Aurora frees him, and he takes up his
 //   helmet, shield and the enchanted sword.
-// Nothing can be lost here: fire only knocks him back. B skips the scene.
+// The fire it drops burns on: leap it, or each touch costs one of three
+// lanterns of health; at none the chase starts again. B skips a scene.
 // Headless: drawing is in prologue-art.js.
 import { clamp } from './shared.js';
 import * as art from './prologue-art.js';
 
 export const BEAT_S = 60 / 76.5;
-export const FLOOR = 600;                       // the court's and the armoury's floor
+export const FLOOR = 600;                       // the court's floor
+export const ARM_FLOOR = 628;                   // the armoury's flagstones, below its stairs
 export const PHYS = { g: 2000, jump: 760, walk: 250, acc: 2200, cut: 2400, buffer: 0.13 };
 export const REACH = 70;                        // how near he must stand to take or give
 // Who stands where in the court (stage px, feet on the floor unless `y`).
 export const GIFTS = ['flower', 'ring', 'crown', 'gold'];
+// `hand`: where she holds her gift out, stage px from her centre (toward him).
 export const FAIRIES = [
-  { gift: 'flower', id: 'aurora-stand', x: 300, name: 'Aurora' },
-  { gift: 'ring', id: 'fairy-ring', x: 450, name: 'the fairy of the ring' },
-  { gift: 'crown', id: 'fairy-crown', x: 600, name: 'the fairy of the crown' },
-  { gift: 'gold', id: 'fairy-gold', x: 750, name: 'the fairy of gold' },
+  { gift: 'flower', id: 'aurora-stand', x: 300, hand: -34, name: 'Aurora' },
+  { gift: 'ring', id: 'fairy-ring', x: 450, hand: -50, name: 'the fairy of the ring' },
+  { gift: 'crown', id: 'fairy-crown', x: 600, hand: -38, name: 'the fairy of the crown' },
+  { gift: 'gold', id: 'fairy-gold', x: 750, hand: -46, name: 'the fairy of gold' },
 ];
+// He takes a gift with his outstretched hand (prince-court's right hand, this
+// far ahead of his centre), within GRASP of where she holds it.
+export const HAND = 55, GRASP = 42;
+export const handX = (p) => p.x + p.face * HAND;
 export const AZURINE_X = 1080;
 export const COURT_START = 205;   // just inside the left curtain
 // The rampart: a 2560-wide walk along the parapet; the chariot stays ahead.
@@ -32,12 +39,14 @@ export const COURT_START = 205;   // just inside the left curtain
 // (its top face runs y 482-490), in line with the gargoyles' bases
 // The coping steps down in perspective over the strip's first 600 px.
 export const rampartFloor = (x) => (x <= 440 ? 508 : x >= 600 ? 494 : 508 - ((x - 440) / 160) * 14);
-export const RAMPART = { w: 2560, y: 494, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, burn: 1.7, fireW: 30, knock: 330 };
+export const RAMPART = { w: 2560, y: 494, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, fireW: 30, knock: 330, grace: 1.6 };
+export const LANTERNS = 3;
 export const CHARIOT_Y = 165;
 // The armoury: the racks he takes his arms from.
-export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 980 }, { id: 'sword', x: 1140 }];
+// clear of the right curtain (its edge is near x 1120)
+export const ARMS = [{ id: 'helmet', x: 760 }, { id: 'shield', x: 900 }, { id: 'sword', x: 1040 }];
 export const DOOR_X = 1230;   // the way out of the armoury, once armed
-export const T = { curse: 4.8, escape: 2.6, bind: 1.8, free: 2.2, knighted: 2.0, iris: 1.3, fade: 0.6 };
+export const T = { defeat: 1.4, curse: 4.8, escape: 2.6, bind: 1.8, free: 2.2, knighted: 2.0, iris: 1.3, fade: 0.6 };
 const ORDER = ['court', 'curse', 'rampart', 'escape', 'bind', 'free', 'armoury', 'knighted', 'iris'];
 export const SCENES = [{ name: 'The Betrothal' }, { name: 'The Abduction' }, { name: 'The Arming' }];
 const SCENE_PHASE = ['court', 'rampart', 'bind'];
@@ -59,7 +68,7 @@ export default {
       phase: 'court', phaseT: 0, t: 0, beat: 0, fade: 0,
       p: { x: COURT_START, y: FLOOR, vx: 0, vy: 0, face: 1, on: true, walk: 0, buffer: 0, knockT: 0 },
       gifts: [], betrothed: false, near: null,
-      chariot: { x: 0, y: 250, up: 0 }, fires: [], dropT: 0, knocks: 0,
+      chariot: { x: 0, y: 250, up: 0 }, fires: [], dropT: 0, knocks: 0, lanterns: LANTERNS, grace: 0, defeatT: null,
       arms: [], score: 0,
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
@@ -75,20 +84,27 @@ export default {
     st.fade = Math.max(0, st.fade - dt / T.fade);
     const ph = st.phase;
     // B skips to the next scene (or out of the prologue from the last).
+    if (st.defeatT != null) {
+      // out of lanterns: he falls, then the retry card (the chase again)
+      st.defeatT += dt;
+      if (st.defeatT >= T.defeat) { st.status = 'lost'; st.statusT = 0; }
+      return;
+    }
     if (input.b && st.phaseT > 0.3) return skip(st);
     if (ph === 'court') court(st, dt, input);
     else if (ph === 'curse') { walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 }); if (st.phaseT >= T.curse) next(st); }
     else if (ph === 'rampart') rampart(st, dt, input);
     else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
     else if (ph === 'bind' && st.phaseT >= T.bind) next(st);
-    else if (ph === 'free') { walk(st, dt, st.phaseT > 0.9 ? input.moveX || 0 : 0, input); if (st.phaseT >= T.free) next(st); }
+    else if (ph === 'free') { walk(st, dt, st.phaseT > 0.9 ? input.moveX || 0 : 0, input, { floor: ARM_FLOOR }); if (st.phaseT >= T.free) next(st); }
     else if (ph === 'armoury') armoury(st, dt, input);
     // armed, he walks out of the armoury's door at the right himself
-    else if (ph === 'knighted') { walk(st, dt, input.moveX || 0, input, { x1: 1300 }); if (st.p.x >= DOOR_X) next(st); }
-    else if (ph === 'iris') { walk(st, dt, 1, {}, { x1: 1400 }); if (st.phaseT >= T.iris) finish(st); }
+    else if (ph === 'knighted') { walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x1: 1300 }); if (st.p.x >= DOOR_X) next(st); }
+    else if (ph === 'iris') { walk(st, dt, 1, {}, { floor: ARM_FLOOR, x1: 1400 }); if (st.phaseT >= T.iris) finish(st); }
   },
 
-  hud: () => null,
+  hud: (st) => (st.phase === 'rampart' || st.phase === 'escape'
+    ? { lanterns: st.lanterns, maxLanterns: LANTERNS, pearls: 0, progress: clamp(st.p.x / RAMPART.end, 0, 1), keepsakes: null } : null),
 
   announce(e) {
     if (e.type === 'scene') return {
@@ -131,7 +147,7 @@ function court(st, dt, input) {
   walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 });
   const p = st.p;
   // who he is beside, and what A does there
-  const f = FAIRIES.find((q) => !st.gifts.includes(q.gift) && Math.abs(q.x - p.x) < REACH);
+  const f = FAIRIES.find((q) => !st.gifts.includes(q.gift) && Math.abs(q.x + q.hand - handX(p)) < GRASP);
   const done = st.gifts.length === GIFTS.length;
   st.near = f ? { verb: 'Receive', at: f.x, label: `Receive ${f.gift === 'gold' ? 'the gold' : 'the ' + f.gift}` }
     : done && Math.abs(AZURINE_X - 60 - p.x) < REACH ? { verb: 'Take her hand', at: AZURINE_X, label: 'Take her hand' }
@@ -153,21 +169,26 @@ function rampart(st, dt, input) {
   // it drops fire on the parapet ahead of him
   st.dropT += dt;
   if (st.dropT >= R.dropEvery && ch.x < R.end + 200) { st.dropT = 0; st.fires.push({ x: ch.x - 40, y: ch.y + 40, vy: 0, burn: 0, lit: false }); st.events.push({ type: 'fireDrop' }); }
+  st.grace = Math.max(0, st.grace - dt);
   for (const f of st.fires) {
     if (!f.lit) { f.vy += 1400 * dt; f.y += f.vy * dt; if (f.y >= rampartFloor(f.x)) { f.y = rampartFloor(f.x); f.lit = true; st.events.push({ type: 'fireLand', x: f.x }); } }
     else f.burn += dt;
-    // fire on the parapet knocks him back (nothing is lost)
-    if (f.lit && f.burn < R.burn && p.knockT <= 0 && Math.abs(p.x - f.x) < R.fireW && p.y > rampartFloor(p.x) - 40) {
+    // the fire burns on: leap it, or touching it costs a lantern
+    if (f.lit && st.grace <= 0 && Math.abs(p.x - f.x) < R.fireW && p.y > rampartFloor(p.x) - 40) {
       p.knockT = 0.45; p.vx = -R.knock * Math.sign(f.x - p.x || 1); p.vy = -280; p.on = false; st.knocks++;
-      st.events.push({ type: 'scorched', x: p.x });
+      st.lanterns--; st.grace = R.grace;
+      st.events.push({ type: 'scorched', x: p.x }, { type: 'hit' });
+      if (st.lanterns <= 0) {
+        st.defeatT = 0;
+        st.lostTitle = 'The Chariot\nGets Away'; st.lostSub = 'Leap the fire it drops: touching it costs a lantern.';
+      }
     }
   }
-  st.fires = st.fires.filter((f) => !f.lit || f.burn < R.burn);
   if (p.x >= R.end) next(st);
 }
 
 function armoury(st, dt, input) {
-  walk(st, dt, input.moveX || 0, input, { x1: 1200 });
+  walk(st, dt, input.moveX || 0, input, { floor: ARM_FLOOR, x1: 1200 });
   const p = st.p, a = ARMS.find((q) => !st.arms.includes(q.id) && Math.abs(q.x - p.x) < REACH);
   st.near = a ? { verb: 'Take', at: a.x, label: `Take the ${a.id}` } : null;
   if (input.a && a) {
@@ -180,8 +201,8 @@ function armoury(st, dt, input) {
 function enter(st, phase) {
   st.phase = phase; st.phaseT = 0; st.near = null;
   const p = st.p;
-  if (phase === 'rampart') { Object.assign(p, { x: 140, y: rampartFloor(140), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; }
-  if (phase === 'bind') { Object.assign(p, { x: 420, y: FLOOR, vx: 0, vy: 0, on: true, face: 1 }); st.fade = 1; }
+  if (phase === 'rampart') { Object.assign(p, { x: 140, y: rampartFloor(140), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; st.lanterns = LANTERNS; st.grace = 0; }
+  if (phase === 'bind') { Object.assign(p, { x: 420, y: ARM_FLOOR, vx: 0, vy: 0, on: true, face: 1 }); st.fade = 1; }
   if (phase === 'curse') p.vx = 0;
   st.events.push({ type: 'scene', phase });
   const k = SCENE_PHASE.indexOf(phase);

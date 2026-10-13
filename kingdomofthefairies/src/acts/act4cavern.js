@@ -15,7 +15,7 @@ export const WATER_Y = 562;             // the pools' surface, drawn
 export const CEIL_Y = 100;              // the stalactites hang from here
 export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13 };
 export const BODY = { hw: 16, h: 110 };
-export const LIGHT = { own: 250, lamp: 430 };   // how far he sees, stage px
+export const LIGHT = { own: 360, lamp: 540 };   // how far he sees, stage px
 export const GRACE = 1.6;
 // A stalactite shakes for `shake` s once he comes within `near` px of it
 // (from either side, ahead of him more), then falls; it strikes within

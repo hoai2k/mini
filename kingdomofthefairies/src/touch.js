@@ -37,7 +37,7 @@ export function createTouch(root) {
   const btnB = root.querySelector('[data-t=b]');
   const btnPause = root.querySelector('[data-t=pause]');
 
-  const st = { mode: 'stick', holdT: 0, lastFlick: 0, f: null, ax: 0, ay: 0, aHeld: false, edges: [], used: false, flickUpIsA: false };
+  const st = { mode: 'stick', holdT: 0, lastFlick: 0, f: null, ax: 0, ay: 0, aHeld: false, bHeld: false, edges: [], used: false, flickUpIsA: false };
   const rep = { dir: null, t: 0 };
   let taps = [];
 
@@ -131,7 +131,7 @@ export function createTouch(root) {
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   };
   press(btnA, () => { st.aHeld = true; st.edges.push('a'); }, () => { st.aHeld = false; });
-  press(btnB, () => st.edges.push('b'));
+  press(btnB, () => { st.bHeld = true; st.edges.push('b'); }, () => { st.bHeld = false; });
   press(btnPause, () => st.edges.push('pause'));
 
   // ---- taps outside play (cards, playbill, curtain call), in stage coords
@@ -146,7 +146,7 @@ export function createTouch(root) {
     // Called by input.poll each frame; returns this frame's touch input.
     poll(dt) {
       st.holdT = Math.max(0, st.holdT - dt);
-      const out = { moveX: st.ax, moveY: st.mode === 'stick' ? st.ay : 0, aHeld: st.aHeld || st.holdT > 0, a: false, b: false, pause: false,
+      const out = { moveX: st.ax, moveY: st.mode === 'stick' ? st.ay : 0, aHeld: st.aHeld || st.holdT > 0, bHeld: st.bHeld, a: false, b: false, pause: false,
         up: false, down: false, left: false, right: false, tap: taps[0] || null, used: st.used };
       for (const e of st.edges) out[e] = true;
       st.edges = []; taps = [];

@@ -85,7 +85,7 @@ export const FLOATERS = [
 // Swallowed fish-hooks on lines from the dark above, swinging on the beat.
 // Each sweeps `sweep` either side of `ax` at about `tipY`: across a gap, never
 // over the whole of a platform, so there is always somewhere safe to stand.
-export const HOOKS = [
+const ALL_HOOKS = [
   { ax: 1515, tipY: 140, sweep: 90, phase: 0 },
   { ax: 1795, tipY: -150, sweep: 100, phase: Math.PI },
   { ax: 2380, tipY: 250, sweep: 120, phase: 1 },
@@ -96,7 +96,16 @@ export const HOOKS = [
   { ax: 5790, tipY: -220, sweep: 80, phase: 3.5 },
   { ax: 5890, tipY: -460, sweep: 90, phase: 1.2 },
   { ax: 5510, tipY: -560, sweep: 80, phase: 0 },
-].map((h) => {
+];
+// The film edition hangs four of them, two of those higher, so they threaten
+// a leap across a gap rather than every step of the way.
+const FILM_HOOKS = [
+  { ax: 2380, tipY: 140, sweep: 120, phase: 1 },
+  { ax: 3490, tipY: 250, sweep: 110, phase: 2.5 },
+  { ax: 4615, tipY: 150, sweep: 70, phase: 0.5 },
+  { ax: 5570, tipY: 20, sweep: 100, phase: 2 },
+];
+export const HOOKS = (FILM ? FILM_HOOKS : ALL_HOOKS).map((h) => {
   const ay = Math.min(-1300, h.tipY - 700), len = h.tipY - ay;
   return { ...h, ay, len, amp: Math.asin(h.sweep / len), period: 4 };
 });

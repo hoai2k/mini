@@ -1,11 +1,9 @@
-import { walkFrame } from '../walking.js';
 import { LEGACY, FILM } from '../theme.js';
 // Act I drawing: the voyage (kit.voyage) and the ending scenes. Every piece
 // of new art has a procedural stand-in until its file is delivered (ids are
 // in design/image-requests.md, Part C2).
-import { LANTERNS, ENDING, SPOTS, TEMPEST } from './act1.js';
+import { LANTERNS, ENDING, SPOTS } from './act1.js';
 import { clamp, easeOut, easeInOut, beatPhase } from './shared.js';
-import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 // The deck set as delivered (drawn 1280x500 with its foot at the deck line,
 // y 660 when fully up): the deck floor runs y 395-480 behind the carved rail,
@@ -62,8 +60,6 @@ export function onEvent(k, e, st) {
     }
     k.text(FILM ? '✦' : '♪', lanternX(i), 140);
   }
-  if (e.type === 'boltStrike') { k.flash(0.35); k.burst(e.x, TEMPEST.y - 10, '#f4ecff', 14, 'streak'); }
-  if (e.type === 'boltHit') { k.shake(0.4); k.burst(e.x, TEMPEST.y - 80, '#c8321e', 12, 'streak'); }
   if (e.type === 'revelry') { k.text(FILM ? 'The lanterns hold!' : 'Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
   // the keel breaks where the spout holds it up; each half splashes down where it fell
@@ -141,53 +137,8 @@ function deckScene(k, st, deck, t) {
       c.restore();
     } });
   });
-  if (FILM && st.phase === 'party') items.push({ y: TEMPEST.y, f: () => tempestPrince(k, st, t, off) });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.f();
-  if (FILM && st.phase === 'party') bolts(k, st, t, off);
-}
-
-// The prince on the deck in the tempest, and the lantern above him he can light.
-function tempestPrince(k, st, t, off) {
-  const c = k.c, p = st.tp, moving = Math.abs(p.vx) > 20, step = walkFrame('prince', p.walk, 34);
-  if (st.phaseT < 0.6) return;
-  const id = p.knockT > 0 ? 'prince-fall' : moving ? step : 'prince-stand';
-  c.save(); c.translate(p.x, TEMPEST.y + off); c.scale(p.face, 1);
-  if (!k.asset(id, 0, 0, id === 'prince-fall' ? 150 : 92, id === 'prince-fall' ? 183 : 150)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-12, -120, 24, 120); }
-  c.restore();
-  if (p.near >= 0) {
-    const x = TEMPEST.lanternX[p.near];
-    c.save(); c.globalAlpha = 0.35 + 0.25 * Math.sin(t * 6); c.strokeStyle = k.col('#ffe27a'); c.lineWidth = 4;
-    c.beginPath(); c.arc(x, 175 + off * 0, 40, 0, Math.PI * 2); c.stroke(); c.restore();
-    c.save(); c.textAlign = 'center'; c.font = '700 15px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#ffe27a');
-    richText(c, '[A] LIGHT', x, 250, { px: 15, mode: k.inputMode || 'key', col: k.col }); c.restore();
-  }
-  if (st.phaseT < 7) k.over(() => {
-    const c = k.c, msg = 'Walk beneath each lantern and press [A] to light it · keep clear of the glowing boards';
-    c.save(); c.textAlign = 'center'; c.font = '700 16px "Josefin Sans", sans-serif';
-    const w = c.measureText(msg).width + 40;
-    c.globalAlpha = 0.88; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(640 - w / 2, 650, w, 30, 15); c.fill();
-    c.globalAlpha = 1; c.fillStyle = k.col('#f3c6dc');
-    richText(c, msg, 640, 671, { px: 16, mode: k.inputMode || 'key', col: k.col }); c.restore();
-  });
-}
-
-// Her lightning: a glow on the boards, then the bolt from the storm cloud.
-function bolts(k, st, t, off) {
-  const c = k.c;
-  for (const b of st.tp.bolts) {
-    const y = TEMPEST.y + off;
-    if (!b.struck) {
-      const f = b.t / TEMPEST.warn;
-      c.save(); c.globalAlpha = 0.25 + 0.5 * f; c.fillStyle = k.col('#c89cf0');
-      c.beginPath(); c.ellipse(b.x, y - 4, TEMPEST.hitR * (0.6 + 0.4 * f), 12, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    } else {
-      c.save(); c.globalAlpha = 1 - (b.t - TEMPEST.warn) / TEMPEST.bolt; c.strokeStyle = k.col('#f4ecff'); c.lineWidth = 6;
-      c.beginPath(); c.moveTo(990, 140); let x = 990;
-      for (let i = 1; i <= 8; i++) { const yy = 140 + (y - 140) * i / 8; x = 990 + (b.x - 990) * i / 8 + (i < 8 ? ((i * 53) % 40) - 20 : 0); c.lineTo(x, yy); }
-      c.stroke(); c.restore();
-    }
-  }
 }
 
 // Revelling on the spot: a hop on every beat, as on the old line-up, scaled

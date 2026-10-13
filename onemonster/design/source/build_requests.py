@@ -1091,6 +1091,603 @@ REQUESTS += [
 ]
 
 
+# ---------- The Adventure: side-scrolling boards (design/adventure.md) ----------
+#
+# Each board is a long side-scrolling level played as one monster. It needs
+# three backdrop panels (a far layer, scrolled slowly behind the action and
+# blended where they meet), the ground pieces of its place, a props sheet of
+# its obstacles, hazards, creatures and collectibles, and new key poses for
+# the monsters' platforming moves. The game draws stand-ins for all of them
+# until they arrive.
+
+SECTIONS["adventure-moves"] = (
+    "Adventure: new key poses",
+    "Extra key poses for the side-scrolling Adventure (design/adventure.md): jumping, "
+    "climbing, swimming and the other moves the minigames never needed. Draw each sheet "
+    "with the monster's model sheet attached, at the same scale as its key-poses sheet "
+    "(OM-K), so the new poses mix with the old ones frame to frame.",
+)
+SECTIONS["adventure-backdrops"] = (
+    "Adventure: backdrop panels",
+    "Three panels per board, shown one after another from left to right as the player "
+    "travels, slowly, behind the action. The game blends each panel into the next where "
+    "they meet, so the horizon sits at the same height across all three and the edges are "
+    "quiet. The bottom of each panel is covered by the game's own ground, so it stays simple.",
+)
+SECTIONS["adventure-terrain"] = (
+    "Adventure: ground pieces",
+    "The walkable ground of each place, seen exactly side-on, cut into pieces the game "
+    "lays end to end (mirroring every other copy so the joins match).",
+)
+SECTIONS["adventure-props"] = (
+    "Adventure: board props",
+    "The obstacles, hazards, creatures, platforms and collectibles of each board, one sheet "
+    "per board. The game cuts each sheet into single sprites on integration.",
+)
+
+# New poses for each monster, same scale as its key poses (OM-K).
+MOVES = {
+    "trollusk": [
+        "crouched to jump, knees bent, hat squashed down",
+        "jumping up, arms flung up, bag swinging below",
+        "falling, legs dangling, hat lifting off his head",
+        "landing in a deep squash, dust puffing out",
+        "hanging from a ledge by both hands, feet kicking",
+        "pulling himself up over a ledge, one knee up",
+        "sliding along on his belly under something low, snout first",
+        "knocked back, tumbling, stars round his head, stamps flying from the bag",
+        "balancing on tiptoe on a narrow rail, arms out wide",
+        "sniffing a postage stamp held up in both hands, eyes shut in bliss",
+        "running flat out and looking back over his shoulder in alarm, a letter clamped in his snout",
+        "soaked and dripping, hat drooping, after a splash of water",
+    ],
+    "bombanat": [
+        "flying flat out with a white envelope in his teeth, wings at mid-stroke",
+        "tumbling through the air after a bump, wings crumpled, propeller bent",
+        "hanging upside down from a branch by his feet, wings wrapped round him, asleep",
+        "banking hard into a turn, one wing high",
+        "straining at a hard climbing stroke, wings swept fully down",
+        "pulling up out of a dive into a swoop, wings spread, propeller whirring",
+        "munching a scrap of paper in flight, cheeks full",
+        "blown backwards by a gust, wings inside out like an umbrella",
+        "wings drooping and heavy, soaked and dripping",
+    ],
+    "grumley": [
+        "swimming underwater seen side-on facing right, body stretched out, tentacles streaming behind, crab arms reaching forward",
+        "swimming underwater, the tentacles pulled in for the next kick",
+        "diving steeply down, head first, tentacles trailing up behind",
+        "bursting up out of the goo in a leap, the whole body in the air, tentacles flung out",
+        "squirting a jet of goo from his mouth to shoot forward, cheeks puffed",
+        "both crab claws stretched straight up, snapping shut",
+        "tangled in a fishing net, struggling",
+        "spun and dizzy after a bump, spectacles askew",
+        "clinging to a rock with his tentacles, resting",
+    ],
+    "iceferg": [
+        "seen exactly side-on facing right, floating, the waterline along its bottom edge",
+        "sunk low in the water, only its top ledges and the eye above the waterline",
+        "risen high, its great dark underwater part showing below a waterline near the bottom",
+        "charging forward side-on, leaning in, spray bursting off the front",
+        "cracked, a chunk broken off its front, glaring",
+        "small and melted down to half its size, dripping, still glaring",
+    ],
+    "typhoonigator": [
+        "seen side-on facing right, rolling along the sky, the water spout trailing back below it",
+        "side-on, sucking hard, cheeks hollow, the spout pulled straight down",
+        "side-on, blowing a great gust forward, cheeks puffed out",
+        "side-on, swollen huge and heavy with everything it swallowed, sagging",
+        "side-on, shrunk to a thin wispy little cloud, worried",
+        "side-on, thundering in a temper, dark, a little lightning crackling",
+    ],
+    "yalapappus": [
+        "crouching to hop, knees bent, fork up",
+        "in the air at the top of a big hop",
+        "dropping bottom-first in a ground-pound, ears flying up",
+        "hugging a tree trunk and shaking it",
+        "stuck in a blob of blue goo up to his knees, straining",
+        "looking straight up with arms raised and mouth open, waiting to catch something on his head",
+        "trundling after something in a temper, fork raised, shouting",
+        "rolling uphill in a ball, slowing",
+    ],
+    "grithix": [
+        "swinging the net straight up overhead",
+        "scooping the net low along the ground",
+        "striding along holding a letter up high in one hand, the net over his shoulder",
+        "ducking under a low branch, robe gathered",
+        "balancing on a log, arms and net out",
+        "stepping high over a root, robe lifted",
+    ],
+}
+
+# The places the boards travel through: ground pieces, shared between boards.
+TERRAIN = [
+    ("lane", "Faddle Street", "pages-06-07-sally-ann-and-mailbox.jpg", [
+        "a long strip of packed dirt lane with a grassy verge and little flowers along its top edge, about four times as wide as tall, its top edge level",
+        "a short raised grassy bank with a rounded top, as a step up",
+        "a stretch of white picket fence, side-on, six pickets long, its top rail level so it can be walked along",
+        "a low brick garden wall with a flat top",
+        "a wooden porch step with three stairs",
+        "a dug flowerbed of dark soil with tulips and daisies, long and low",
+    ]),
+    ("wood", "the wood", "endpapers.jpg", [
+        "a long strip of mossy wood floor with roots and tiny ferns along its top edge, about four times as wide as tall, its top edge level",
+        "a thick gnarled branch reaching out sideways from the left, flat enough on top to stand on",
+        "a fallen mossy log lying side-on",
+        "a gnarled tree stump with a face in its knot, flat-topped",
+        "a mound of roots and earth, as a rise in the ground",
+        "a tall gnarled tree trunk with a face in its knots, cut off at the top and bottom of the cell",
+    ]),
+    ("goo", "the Blue Ocean of Bubbley Goo", "bombanat-over-the-goo.jpg", [
+        "a long strip of the goo's surface seen side-on: glossy blue and teal waves with bubbles, about four times as wide as tall, its top edge the wavy surface and the goo continuing to the bottom edge",
+        "a long strip of the goo's bottom: dark blue sand and pebbles with weed, about four times as wide as tall",
+        "a tall knobbly rock rising from the bottom, side-on",
+        "a rocky island sticking up out of the goo, with a few tufts of grass on top",
+        "a tall swaying clump of goo-weed",
+        "a sunken bathtub on its side, half buried",
+    ]),
+    ("sea", "the open sea", "pages-18-19-ice-ferg.png", [
+        "a long strip of choppy slate-blue sea seen side-on, curling waves along its top edge, about four times as wide as tall, the water continuing to the bottom edge",
+        "a jagged sea rock sticking up out of the water, side-on",
+        "a long wooden pier on stilts, side-on",
+        "a stone harbour wall with a little lighthouse on its end, side-on",
+        "a flat drifting ice floe, side-on",
+        "a low stone bridge arch, side-on",
+    ]),
+    ("nowhere", "the edge of Nowhere", "yalapappus-bottle-on-head.jpg", [
+        "a long strip of bumpy ochre ground with tufts of grass and pebbles along its top edge, about four times as wide as tall, its top edge level",
+        "a grassy slope rising from left to right, side-on",
+        "a grassy slope falling from left to right, side-on",
+        "a hole in the ground seen side-on: the left edge of it",
+        "the right edge of the same hole",
+        "a big flat-topped boulder, side-on",
+        "a curtain of blue goo dripping from a branch, long and hanging",
+        "a palm tree, side-on, its trunk curving",
+    ]),
+]
+
+BOARDS = [
+    {
+        "n": 1, "monster": "trollusk", "place": "lane", "title": "Faddle Street",
+        "ref": "pages-06-07-sally-ann-and-mailbox.jpg",
+        "horizon": 55, "floor": "grass and the foot of hedges",
+        "panels": [
+            "Panel 1: the edge of a deep old wood where the Trollusk lives, gnarled trees with "
+            "faces in their knots, a fallen log and ferns, opening out to the right onto a "
+            "country lane under a pale lilac morning sky.",
+            "Panel 2: along the lane, a neighbour's cottage with a porch and a rocking chair, "
+            "flowerbeds, a kennel by a garden gate, washing on a line, a dustbin, and gnarled "
+            "trees; rolling green fields and a little farm far off.",
+            "Panel 3: Sally Ann's house, white clapboard with an upstairs window with curtains, "
+            "a picket fence, hollyhocks, a big gnarled tree, and the grey rural mailbox with a "
+            "red flag on its wooden post at the right; the road curving away over a hill where "
+            "the mailman will come from.",
+        ],
+        "props": [
+            "a red postage stamp with a scalloped edge, fluttering",
+            "a blue postage stamp with a scalloped edge, spinning",
+            "a garden sprinkler on a spike, side-on",
+            "a tin dustbin with its lid on, side-on",
+            "a dustbin lid lying flat, as a springboard",
+            "a scruffy little dog asleep in front of a wooden kennel",
+            "the same dog awake, barking, straining on a rope",
+            "the same dog running, ears flapping",
+            "a garden gnome with a fishing rod",
+            "a wheelbarrow full of flowerpots, side-on",
+            "a round leafy hedge bush to hide in",
+            "a wooden signpost with a blank board, side-on",
+        ],
+    },
+    {
+        "n": 2, "monster": "bombanat", "place": "wood", "title": "Out of Nowhere",
+        "ref": "bombanat-and-pony-express-boy.jpg",
+        "horizon": 50, "floor": "mossy wood floor",
+        "panels": [
+            "Panel 1: deep in the wood, looking through layers of gnarled trees with faces in "
+            "their knots, tangled branches and leaf clusters, shafts of pale light and mauve sky "
+            "between the treetops.",
+            "Panel 2: the wood thins: tall trunks, hanging vines and big cobwebs between the "
+            "branches, a hollow tree, a glade of ferns, and pink-and-lilac clouds through the "
+            "canopy.",
+            "Panel 3: the edge of the wood on a cliff, the trees opening onto a wide view of the "
+            "glossy blue Ocean of Bubbley Goo far below, with a rocky coast, a windmill and a "
+            "billboard with a blank board.",
+        ],
+        "props": [
+            "a torn old ticket, fluttering",
+            "a folded paper hat, fluttering",
+            "a crumpled newspaper page, blowing",
+            "a paper menu, flapping",
+            "a red bird in flight, cross, beak open",
+            "the same red bird perched",
+            "a big cobweb strung between two twigs",
+            "a hanging vine with leaves",
+            "a gust of wind drawn as curling strokes and blown leaves",
+            "a hollow log with a dark opening, side-on",
+            "a low bush, round and leafy",
+            "a tree knot face blowing out its cheeks",
+        ],
+    },
+    {
+        "n": 3, "monster": "grumley", "place": "goo", "title": "A Nice Bombanat Lunch",
+        "ref": "grumley-in-the-goo.jpg",
+        "horizon": 35, "floor": "under the goo, deep blue and teal fading darker",
+        "panels": [
+            "Panel 1: the Blue Ocean of Bubbley Goo seen side-on and cut away, as in a "
+            "cross-section: lilac sky and curling clouds in the top third, the glossy goo "
+            "surface across it, and below it the goo deep blue and teal with bubbles, shafts of "
+            "light, and far-off rocks and weed; a rocky coast at the left.",
+            "Panel 2: the same cross-section out at sea: tall goo-weed forests and arches of "
+            "rock below the surface, a sunken rowing boat, and in the sky a far-off fishing boat "
+            "on the horizon.",
+            "Panel 3: the same cross-section near a little rocky island with a palm tree: rocks "
+            "rising from the bottom, bubbles streaming up, and an orange evening sky above.",
+        ],
+        "props": [
+            "a plain mauve bat-winged Bombanat in flight, with no necktie and no cap",
+            "the same plain Bombanat, wings up",
+            "a scowling fish, side-on",
+            "a giant eye in the goo, open, with a lid",
+            "the same giant eye shut",
+            "a long tentacle curling up from below",
+            "a heavy ship's anchor on a chain, falling",
+            "a fishing net hanging down on a rope, open",
+            "a whirlpool in the goo, seen side-on as a swirling funnel",
+            "a big wobbly goo bubble, glossy",
+            "a wicker picnic basket, lid open",
+            "a shark fin cutting through the surface",
+        ],
+    },
+    {
+        "n": 4, "monster": "iceferg", "place": "sea", "title": "SCRUNNCCCHHH!!",
+        "ref": "pages-18-19-ice-ferg.png",
+        "horizon": 45, "floor": "choppy grey-blue sea",
+        "panels": [
+            "Panel 1: the open northern sea seen side-on: a cold lilac sky with long streaky "
+            "clouds, slate-blue sea to the horizon, distant icebergs and floes.",
+            "Panel 2: rocky islands with sea birds, a lighthouse on a crag far off, low grey "
+            "clouds and a shaft of pale sun on the sea.",
+            "Panel 3: the coast ahead, a harbour town far off with houses, a church spire, a "
+            "jetty and a breakwater with a lighthouse, the evening sky pink.",
+        ],
+        "props": [
+            "an olive-yellow whiskered sea lion lounging, side-on",
+            "the same sea lion sitting up, clapping its flippers",
+            "the same sea lion sliding off, flippers up",
+            "a wooden crate floating",
+            "a red-and-white buoy, bobbing",
+            "a barrel floating",
+            "a small tugboat with a funnel, side-on",
+            "the captain's fishing boat, the Peg, side-on, sailing right: a stout teal hull with portholes, a wooden wheelhouse and a crane with a net",
+            "a seagull, wings spread",
+            "a puff of freezing mist",
+            "a warm current drawn as wavy orange-pink streaks in the water",
+            "a burst of ice shards and spray",
+        ],
+    },
+    {
+        "n": 5, "monster": "typhoonigator", "place": "sea", "title": "Suck It All Up",
+        "ref": "typhoonigator-spread.jpg",
+        "horizon": 62, "floor": "stormy sea",
+        "panels": [
+            "Panel 1: a wide stormy sky over the Blue Ocean of Bubbley Goo, seen side-on: heavy "
+            "lilac-and-grey clouds above, rain streaks, the goo sea rolling below to the horizon.",
+            "Panel 2: the same sky and sea with sea cliffs and a lighthouse on a headland, a "
+            "windmill on the cliff top, gulls far off.",
+            "Panel 3: the storm breaking, gaps of pale morning sun, the sea further off and "
+            "drained low, stranded boats on a bare sea floor, and the edge of Nowhere, bumpy "
+            "brown land with palms and a blank signpost, at the right.",
+        ],
+        "props": [
+            "the captain's glass bottle, corked, with a red-and-white label and a rolled note inside, bobbing upright",
+            "a plain green bottle, bobbing",
+            "a plain brown bottle, bobbing",
+            "a silver fish leaping",
+            "a pink rubber raft with three hooded sailors paddling and an S.O.S. flag, side-on",
+            "the captain in the raft reaching out with a boat hook",
+            "a windmill, side-on, sails turning",
+            "a flock of gulls",
+            "a shaft of sunlight breaking through the cloud",
+            "a dark little rain cloud",
+            "a lighthouse on a rock",
+            "a blob of blue goo, flying",
+        ],
+    },
+    {
+        "n": 6, "monster": "yalapappus", "place": "nowhere", "title": "KER-PLOP",
+        "ref": "yalapappus-bottle-on-head.jpg",
+        "horizon": 55, "floor": "bumpy ochre ground",
+        "panels": [
+            "Panel 1: the edge of Nowhere: palms, ferns and gnarled trees, curtains of blue goo "
+            "dripping from the branches, a pale lilac morning sky streaked with the last storm "
+            "clouds.",
+            "Panel 2: deeper in, giant ferns, a tumbledown hut, a blank wooden signpost on a tree, "
+            "and rolling hills with a winding road far off.",
+            "Panel 3: a wide open space at the edge of Nowhere with nothing much in it, a few "
+            "palms and boulders, the big sky above it full of the swollen storm cloud's shadow.",
+        ],
+        "props": [
+            "a torn scrap of paper",
+            "a paper menu",
+            "a crumpled newspaper",
+            "a paper bag",
+            "a small fishing boat falling, side-on, upside down",
+            "a fish falling, flapping",
+            "a falling blob of blue goo",
+            "the captain's bottle falling, red-and-white label",
+            "a little pink octopus, waving",
+            "a grumpy toad, side-on",
+            "a bush full of paper scraps caught in its leaves",
+            "a round shadow on the ground (a soft dark ellipse)",
+        ],
+    },
+    {
+        "n": 7, "monster": "trollusk", "place": "nowhere", "title": "Just Passing By",
+        "ref": "trollusk-and-yalapappus-running.jpg",
+        "horizon": 55, "floor": "bumpy ochre ground",
+        "panels": [
+            "Panel 1: the edge of Nowhere where the Yalapappus sits to munch: ferns, palms and "
+            "rocks to hide behind, dripping goo, a lilac sky.",
+            "Panel 2: a long track through the jungle edge, palms bent, a blank crooked "
+            "signpost, a stream, hills far off.",
+            "Panel 3: the jungle giving way to open grassy ground with a few scrubby bushes, a "
+            "big sky, and a dark wood far off at the right.",
+        ],
+        "props": [
+            "a red postage stamp with a scalloped edge, fluttering",
+            "a green postage stamp with a scalloped edge, spinning",
+            "a big fern clump to hide behind",
+            "a round grey rock",
+            "a low branch hanging across the path",
+            "a puddle of goo on the ground, side-on",
+            "a crooked signpost with two blank boards pointing opposite ways",
+            "a fallen palm trunk across the path",
+            "a pile of munched paper scraps",
+            "a stream with stepping stones, side-on",
+            "a scrubby bush",
+            "a cloud of dust kicked up",
+        ],
+    },
+    {
+        "n": 8, "monster": "bombanat", "place": "nowhere", "title": "SNIP!",
+        "ref": "bombanat-over-the-goo.jpg",
+        "horizon": 70, "floor": "open grassy ground",
+        "panels": [
+            "Panel 1: a huge open sky over open grassy ground at the edge of Nowhere, towering "
+            "pink-and-lilac clouds, the jungle edge far behind at the left.",
+            "Panel 2: the same open sky with a few dark leftover rain clouds, a far-off line of "
+            "hills, and a kite caught in a lone tree.",
+            "Panel 3: the sky over the edge of a thick wood, gnarled treetops rising at the "
+            "right, evening coming on.",
+        ],
+        "props": [
+            "a torn scrap of paper fluttering",
+            "a rolled scrap of note, scribbled (no readable words)",
+            "a rising warm air current drawn as wavy upward strokes",
+            "a dark rain cloud, raining",
+            "a flying fork",
+            "a flying rock",
+            "a flying blob of goo",
+            "a crow in flight",
+            "a butterfly net on a yellow pole poking up out of a bush",
+            "a kite with a tail, side-on",
+            "a scrubby bush",
+            "a lone bent tree",
+        ],
+    },
+    {
+        "n": 9, "monster": "grithix", "place": "wood", "title": "FLIP-FLOP",
+        "ref": "back-cover-grithix.jpg",
+        "horizon": 50, "floor": "mossy wood floor",
+        "panels": [
+            "Panel 1: the Grithix's wood: dense ferns and leaves, gnarled trees with faces in "
+            "their knots, a cottage with a round door in a hollow tree far off, shelves of jars "
+            "glimpsed through its window.",
+            "Panel 2: a wide mossy clearing in the wood with toadstools and a stream.",
+            "Panel 3: the wood thinning into scrub, and at the right a little open space where "
+            "the road comes in, with room for an official-looking mailbox in front.",
+        ],
+        "props": [
+            "a plain mauve bat-winged Bombanat fluttering, no necktie and no cap",
+            "a glass collecting jar with a cork, empty",
+            "the same jar with a small angry Bombanat inside",
+            "a gnarled root arching out of the ground, to trip over",
+            "a big toadstool, flat-topped, to bounce on",
+            "a gap in the ground with a little stream at the bottom, side-on",
+            "a clump of ferns to hide in",
+            "a fallen log",
+            "the official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot",
+            "a low branch",
+            "a pile of rocks",
+            "a hollow stump",
+        ],
+    },
+]
+
+ADV_PANEL = (
+    "Background panel for a side-scrolling children's game, wide 16:9, full bleed, in the "
+    "style of a picture-book spread. It is {which} of three panels shown one after another "
+    "from left to right behind the action as the player travels: keep the horizon at about "
+    "{h}% of the way down from the top, keep the left and right edges quiet (sky and distant "
+    "land, nothing big cut by the edge) so the panels can be blended where they meet, and keep "
+    "the bottom quarter simple ({floor}), because the game draws its own ground, platforms and "
+    "props in front of it. Empty of monsters, people and animals. "
+)
+TERRAIN_SHEET = (
+    "A sheet of separate ground pieces for a side-scrolling game, all seen exactly side-on "
+    "and drawn at the same scale, each one complete on its own with a crisp, solid silhouette "
+    "and fully drawn ends: "
+)
+BOARD_PROPS = (
+    "A sheet of separate small game sprites for a side-scrolling game, all seen side-on, each "
+    "one complete on its own and drawn at the same scale as the others: "
+)
+
+for i, mid in enumerate(MOVES, start=1):
+    m = next(m for m in MONSTERS if m["id"] == mid)
+    rig = RIGS[mid]
+    poses = MOVES[mid]
+    base = f"assets/monsters/{mid}/"
+    mi = [mm["id"] for mm in MONSTERS].index(mid) + 1
+    look = STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"]
+    REQUESTS.append({
+        "id": f"OM-A{i:02d}",
+        "section": "adventure-moves",
+        "name": m["name"].replace("The ", "") + ": adventure poses",
+        "key": f"monster.{mid}.moves",
+        "file": base + "moves.png",
+        "size": "2048 x 2048, transparent",
+        "used": "The side-scrolling Adventure: jumps, falls, climbs and the other new moves.",
+        "standin": "The nearest existing key pose.",
+        "status": "requested",
+        "ref": m.get("refs") or m["ref"],
+        "prompt": look + " (Use this description for the design only; the pose is given below.) "
+        + FROM_SHEET.format(f"OM-C{mi:02d}", f"onemonster/game/{base}model-sheet.png")
+        + f"Also attach its key-poses sheet, request OM-K{mi:02d} (file onemonster/game/{base}poses.png), "
+        "and draw these at exactly the same scale. "
+        + POSES.format(rig["view"]) + f"The {len(poses)} poses: " + numbered(poses) + " "
+        + GRID.format(*grid(len(poses))) + ALPHA,
+    })
+
+for i, (pid, pname, ref, items) in enumerate(TERRAIN, start=1):
+    REQUESTS.append({
+        "id": f"OM-G{i:02d}",
+        "section": "adventure-terrain",
+        "name": f"Ground pieces: {pname}",
+        "key": f"terrain.{pid}",
+        "file": f"assets/adventure/terrain/{pid}.png",
+        "size": "2048 x 2048, transparent",
+        "used": "The ground, ledges and platforms of the boards in " + pname + ".",
+        "standin": "Ground and ledges drawn in code with an ink outline.",
+        "status": "requested",
+        "ref": ref,
+        "prompt": STYLE + " " + TERRAIN_SHEET + numbered(items) + " Lay them out one above "
+        "the other in the order listed, each across the full width of the sheet except the "
+        "small ones, with clear space between them. No labels. " + ALPHA + " "
+        + REF_SCENE.format(ref),
+    })
+
+for b in BOARDS:
+    m = next(m for m in MONSTERS if m["id"] == b["monster"])
+    for k, desc in enumerate(b["panels"], start=1):
+        REQUESTS.append({
+            "id": f"OM-B{b['n']:02d}{'abc'[k - 1]}",
+            "section": "adventure-backdrops",
+            "name": f"Board {b['n']}, {b['title']}: backdrop panel {k} of 3",
+            "key": f"adv.b{b['n']:02d}.backdrop{k}",
+            "file": f"assets/adventure/b{b['n']:02d}/backdrop-{k}.webp",
+            "size": "1920 x 1080, opaque",
+            "used": f"The far layer of board {b['n']} ({m['name']}), scrolled slowly behind the action.",
+            "standin": "The chapter's scene painting, mirrored and scrolled.",
+            "status": "requested",
+            "ref": b["ref"],
+            "prompt": STYLE + " " + ADV_PANEL.format(which=["the first (left)", "the second (middle)", "the third (right)"][k - 1],
+                                                     h=b["horizon"], floor=b["floor"])
+            + desc + " " + REF_SCENE.format(b["ref"]),
+        })
+    REQUESTS.append({
+        "id": f"OM-Y{b['n']:02d}",
+        "section": "adventure-props",
+        "name": f"Board {b['n']}, {b['title']}: props",
+        "key": f"adv.b{b['n']:02d}.props",
+        "file": f"assets/adventure/b{b['n']:02d}/props.png",
+        "size": "2048 x 2048, transparent",
+        "used": f"The obstacles, hazards, creatures and collectibles of board {b['n']}.",
+        "standin": "The same things drawn in code.",
+        "status": "requested",
+        "ref": b["ref"],
+        "prompt": STYLE + " " + BOARD_PROPS + numbered(b["props"]) + " "
+        + GRID.format(*grid(len(b["props"]))) + ALPHA + " " + REF_SCENE.format(b["ref"]),
+    })
+
+
+# ---------- How to play: three spot illustrations per minigame ----------
+#
+# Each minigame opens with a picture-book "How to play" page (design.md, Flow):
+# three numbered steps, each a small spot illustration with the game's caption
+# under it, then the controls. Until a picture arrives the game composes the
+# step in code from the monster's poses and the chapter's props.
+
+SECTIONS["howto"] = (
+    "How to play pages",
+    "Three small spot illustrations per minigame, shown side by side on the page before "
+    "it starts, each with a numbered caption the game writes underneath: what you do "
+    "first, the danger to watch for, and how you win. Draw the characters from their "
+    "model sheets (attach them), clear and simple enough to read small.",
+)
+
+HOWTO = {
+    1: ("trollusk", "pages-06-07-sally-ann-and-mailbox.jpg", [
+        "The Trollusk tiptoeing along a country lane from one round leafy bush toward the next, a dotted line of little footprints showing the way, a picket fence behind",
+        "The Trollusk ducked down in a flowerbed, only his checked hat showing, while a plump old lady in a rocking chair on her porch opens one eye and peers over her spectacles",
+        "The Trollusk on tiptoe pulling a white envelope out of a grey rural mailbox with a red flag, while far down the road a little mailman on a motorcycle putters closer",
+    ]),
+    2: ("bombanat", "bombanat-and-pony-express-boy.jpg", [
+        "The Bombanat flapping over a wood, looking down at the Trollusk running along the ground below with a white envelope in his snout",
+        "The Trollusk hiding in a leafy bush, only his hat showing, while the Bombanat hovers just above the bush, peering in",
+        "The Bombanat diving steeply onto the running Trollusk and snapping the envelope out of his snout with its long toothy jaws",
+    ]),
+    3: ("grumley", "grumley-in-the-goo.jpg", [
+        "Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead",
+        "Among several plain Bombanats, one with a red-and-white striped necktie and a white envelope in its teeth dipping low over the goo",
+        "The Grumley's long spiny crab arm shooting up out of the goo in a splash and grabbing the Bombanat in the striped necktie",
+    ]),
+    4: ("iceferg", "pages-18-19-ice-ferg.png", [
+        "Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea",
+        "The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury",
+        "The Ice-Ferg charging into the side of a stout teal fishing boat with a wheelhouse and a crane, SCRUNCH, spray and ice flying, a harbour with a lighthouse in the distance",
+    ]),
+    5: ("typhoonigator", "typhoonigator-spread.jpg", [
+        "The Typhoonigator, a storm cloud with a face and big pink lips, rolling across the sky over the sea, its water spout dangling down to the waves",
+        "Fish, plain green and brown bottles and blobs of goo spiralling up the spout as the Typhoonigator sucks hard, cheeks hollow",
+        "Among the plain bottles, one glass bottle with a red-and-white label and a rolled note inside, being sucked up the spout, the Typhoonigator delighted",
+    ]),
+    6: ("yalapappus", "yalapappus-bottle-on-head.jpg", [
+        "The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each",
+        "The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was",
+        "A glass bottle with a red-and-white label landing KER-PLOP on the Yalapappus's head and breaking, a rolled note falling out, which he munches gleefully",
+    ]),
+    7: ("trollusk", "trollusk-snatches-from-yalapappus.jpg", [
+        "The Trollusk creeping up behind the Yalapappus, who sits munching paper with a white envelope on his fork, at the edge of Nowhere",
+        "The Yalapappus turning round to look while the Trollusk freezes behind a leafy twig held up as a disguise",
+        "The Trollusk running away with the envelope in his snout, stamps flying from his bag, the Yalapappus trundling after him with knife and fork",
+    ]),
+    8: ("bombanat", "trollusk-and-yalapappus-running.jpg", [
+        "The Bombanat flying high over open ground, the Trollusk running below with the envelope and the Yalapappus stomping behind him",
+        "The Bombanat swerving away from the Yalapappus's big swiping paw reaching up at it",
+        "The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout",
+    ]),
+    9: ("grithix", "grithix-nets-bombanat-page.jpg", [
+        "The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing",
+        "The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him",
+        "The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased",
+    ]),
+}
+
+HOWTO_PROMPT = (
+    "A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm "
+    "cream paper that the drawing fades into at the edges (no frame, no border), in the style "
+    "of the book's own spot illustrations. One clear moment, the characters large and easy to "
+    "read when shown small: "
+)
+
+for n, (mid, ref, steps) in HOWTO.items():
+    for k, desc in enumerate(steps, start=1):
+        REQUESTS.append({
+            "id": f"OM-H{n}{'abc'[k - 1]}",
+            "section": "howto",
+            "name": f"Chapter {n}: how to play, step {k}",
+            "key": f"howto.ch{n:02d}.{k}",
+            "file": f"assets/howto/ch{n:02d}-{k}.webp",
+            "size": "1024 x 768, opaque",
+            "used": f"Step {k} of chapter {n}'s how-to-play page.",
+            "standin": "The step composed in code from the monster's poses and the chapter's props.",
+            "status": "requested",
+            "ref": ref,
+            "prompt": STYLE + " " + HOWTO_PROMPT + desc + ". Draw the characters from their "
+            "canonical model sheets where you have them. " + REF_SCENE.format(ref),
+        })
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"
@@ -1175,6 +1772,14 @@ def document() -> str:
         "11. Order of work: the model sheets, then the portraits, then the parts and swaps, then "
         "the key poses, props, scenes and story pages. The game keeps its stand-ins for anything "
         "not yet delivered.",
+        "12. **The Adventure** (`design/adventure.md`) adds four kinds of request: new poses for "
+        "each monster (`OM-A`, drawn with its model sheet and key-poses sheet attached, at the "
+        "same scale), three backdrop panels per board (`OM-B01a` to `OM-B09c`), the ground pieces "
+        "of each place (`OM-G`) and a props sheet per board (`OM-Y`). Every board plays with "
+        "stand-ins until they arrive. Good order: the backdrops of a board and its props sheet "
+        "together, so they match, then the ground pieces of that place.",
+        "13. **How to play** (`OM-H`): three spot illustrations per minigame for its "
+        "how-to-play page, with the model sheets of the characters in them attached.",
         "",
         "## Status",
         "",
