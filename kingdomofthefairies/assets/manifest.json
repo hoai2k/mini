@@ -3579,6 +3579,66 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "crew-manatarms-tinted-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-tinted-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-b-tinted-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-b-tinted-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-b-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-b-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-c-tinted-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-c-tinted-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-idle-c-redo": {
+      "status": "requested",
+      "file": "crew-manatarms-idle-c-redo.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
