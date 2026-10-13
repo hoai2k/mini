@@ -1712,67 +1712,67 @@ export const SPRITES = {
     "a lighthouse on a rock",
     "a blob of blue goo, flying"
    ],
-   "scale": 0.31196,
+   "scale": 0.61433,
    "items": [
     {
      "src": "sprites/adv/b05/props/01.webp",
-     "w": 121,
-     "h": 150
+     "w": 239,
+     "h": 295
     },
     {
      "src": "sprites/adv/b05/props/02.webp",
-     "w": 123,
-     "h": 139
+     "w": 242,
+     "h": 273
     },
     {
      "src": "sprites/adv/b05/props/03.webp",
-     "w": 117,
-     "h": 138
+     "w": 231,
+     "h": 272
     },
     {
      "src": "sprites/adv/b05/props/04.webp",
-     "w": 118,
-     "h": 146
+     "w": 233,
+     "h": 288
     },
     {
      "src": "sprites/adv/b05/props/05.webp",
      "w": 360,
-     "h": 171
+     "h": 337
     },
     {
      "src": "sprites/adv/b05/props/06.webp",
-     "w": 170,
-     "h": 173
+     "w": 352,
+     "h": 223
     },
     {
      "src": "sprites/adv/b05/props/07.webp",
-     "w": 110,
-     "h": 117
+     "w": 335,
+     "h": 342
     },
     {
      "src": "sprites/adv/b05/props/08.webp",
-     "w": 60,
-     "h": 49
+     "w": 217,
+     "h": 230
     },
     {
      "src": "sprites/adv/b05/props/09.webp",
-     "w": 159,
-     "h": 163
+     "w": 313,
+     "h": 321
     },
     {
      "src": "sprites/adv/b05/props/10.webp",
-     "w": 134,
-     "h": 127
+     "w": 264,
+     "h": 249
     },
     {
      "src": "sprites/adv/b05/props/11.webp",
-     "w": 164,
-     "h": 174
+     "w": 324,
+     "h": 342
     },
     {
      "src": "sprites/adv/b05/props/12.webp",
-     "w": 129,
-     "h": 80
+     "w": 253,
+     "h": 149
     }
    ]
   },
@@ -1874,13 +1874,13 @@ export const SPRITES = {
    "items": [
     {
      "src": "sprites/adv/b07/props/01.webp",
-     "w": 219,
+     "w": 190,
      "h": 174
     },
     {
      "src": "sprites/adv/b07/props/02.webp",
      "w": 182,
-     "h": 213
+     "h": 230
     },
     {
      "src": "sprites/adv/b07/props/03.webp",
@@ -1899,18 +1899,18 @@ export const SPRITES = {
     },
     {
      "src": "sprites/adv/b07/props/06.webp",
+     "w": 311,
+     "h": 131
+    },
+    {
+     "src": "sprites/adv/b07/props/07.webp",
      "w": 246,
      "h": 319
     },
     {
-     "src": "sprites/adv/b07/props/07.webp",
+     "src": "sprites/adv/b07/props/08.webp",
      "w": 315,
      "h": 269
-    },
-    {
-     "src": "sprites/adv/b07/props/08.webp",
-     "w": 311,
-     "h": 131
     },
     {
      "src": "sprites/adv/b07/props/09.webp",
@@ -1930,7 +1930,7 @@ export const SPRITES = {
     {
      "src": "sprites/adv/b07/props/12.webp",
      "w": 265,
-     "h": 232
+     "h": 228
     }
    ]
   },
@@ -2245,7 +2245,7 @@ export const SPRITES = {
     {
      "src": "sprites/terrain/sea/03.webp",
      "w": 1397,
-     "h": 297
+     "h": 257
     },
     {
      "src": "sprites/terrain/sea/04.webp",
@@ -2309,13 +2309,13 @@ export const SPRITES = {
     },
     {
      "src": "sprites/terrain/nowhere/07.webp",
-     "w": 917,
-     "h": 353
+     "w": 1022,
+     "h": 354
     },
     {
      "src": "sprites/terrain/nowhere/08.webp",
-     "w": 475,
-     "h": 492
+     "w": 476,
+     "h": 494
     }
    ]
   },
@@ -2433,13 +2433,13 @@ export const SPRITES = {
     },
     {
      "src": "sprites/iceferg/sealions/04.webp",
-     "w": 517,
-     "h": 575
+     "w": 627,
+     "h": 457
     },
     {
      "src": "sprites/iceferg/sealions/05.webp",
-     "w": 627,
-     "h": 457
+     "w": 517,
+     "h": 575
     },
     {
      "src": "sprites/iceferg/sealions/06.webp",
@@ -2679,6 +2679,16 @@ export const SPRITES = {
    "w": 1024,
    "h": 768
   },
+  "howto/ch03-2": {
+   "src": "sprites/howto/ch03-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch03-3": {
+   "src": "sprites/howto/ch03-3.webp",
+   "w": 1024,
+   "h": 768
+  },
   "howto/ch04-1": {
    "src": "sprites/howto/ch04-1.webp",
    "w": 1024,
@@ -2686,6 +2696,11 @@ export const SPRITES = {
   },
   "howto/ch04-2": {
    "src": "sprites/howto/ch04-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-3": {
+   "src": "sprites/howto/ch04-3.webp",
    "w": 1024,
    "h": 768
   },
