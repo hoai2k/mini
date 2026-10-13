@@ -13,6 +13,7 @@ import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIV
 import { pickHold } from '../src/acts/act5.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
+import { HOOKS } from '../src/acts/act4.js';
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log('ok -', name); };
@@ -333,6 +334,11 @@ test('Act IV cavern: a pool costs a lantern and puts him back on firm rock', () 
   act4.step(st, DT, { beat: 0 });
   assert.equal(st.lanterns, 2);
   assert.ok(st.cv.s.y <= 600 && st.cv.s.x < 560, `respawned at ${st.cv.s.x}`);
+});
+
+test('Act IV (film): the whale hangs half as many hooks or fewer, two of them higher', () => {
+  assert.ok(HOOKS.length <= 5, `${HOOKS.length} hooks`);
+  assert.ok(HOOKS.filter((h) => h.tipY <= 150).length >= 2);
 });
 
 test('Act IV (film): the beach leads on into the cavern', () => {
