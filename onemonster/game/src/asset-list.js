@@ -557,5 +557,9 @@ export const ASSETS = {
   "adv.b07.palmArch": {
     "file": "assets/adventure/b07/palm-arch.png",
     "delivered": false
+  },
+  "adv.b05.windmill": {
+    "file": "assets/adventure/b05/windmill.png",
+    "delivered": false
   }
 };
