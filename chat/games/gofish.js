@@ -5,7 +5,8 @@
 // fish shadows swim (as many as the cards left, from four down), and reels up
 // a card. Catching what you asked for earns another go. Four of a kind make a
 // book; most books wins. Players gather in a lobby first and anyone deals;
-// alone, you play Robo-Fisher.
+// alone, you play Robo-Fisher. Someone joining mid-game is dealt in from the
+// pond (see dealIn) while it holds a hand's worth, else at the next deal.
 //
 // The owner holds the whole game in shared state (hands, pond, books, phase)
 // and runs the clocks; everyone else sends 'ask', 'answer', 'fish' and draws
@@ -122,6 +123,33 @@ export function takeBooks(hand) {
 }
 
 const sortHand = h => [...h].sort((a, b) => a - b);
+
+// How many cards someone joining mid-game draws from the pond.
+export const JOIN_HAND = 4;
+
+// Deals friends who arrive mid-game in from the pond, while it still holds a
+// hand's worth for each: they draw JOIN_HAND cards (any book goes straight to
+// the table) and sit right after the player whose turn it is, so they play
+// next. Returns { s, dealt, waiting } with s a new state; those who can't be
+// dealt in (pond too low, table full) wait for the next deal.
+export function dealIn(s0, ids, { size = JOIN_HAND, max = MAX_PLAYERS, names = {} } = {}) {
+  const fresh = ids.filter(id => !s0.order.includes(id));
+  if (!fresh.length) return { s: s0, dealt: [], waiting: [] };
+  const s = structuredClone(s0);
+  const dealt = [], waiting = [];
+  for (const id of fresh) {
+    if (s.order.length >= max || s.pond.length < size) { waiting.push(id); continue; }
+    const t = takeBooks(s.pond.splice(s.pond.length - size, size));
+    s.hands[id] = sortHand(t.hand);
+    s.books[id] = [...(s.books[id] || []), ...t.books];
+    s.names = { ...(s.names || {}), [id]: String(names[id] ?? s.names?.[id] ?? 'Player').slice(0, 24) };
+    // After the current turn (and any friend dealt in just before them).
+    const at = s.order.indexOf(s.turn) + 1 + dealt.length;
+    s.order.splice(at > 0 ? at : s.order.length, 0, id);
+    dealt.push(id);
+  }
+  return { s, dealt, waiting };
+}
 
 function validShared(s) {
   const cards = a => Array.isArray(a) && a.every(r => Number.isInteger(r) && r >= 0 && r < N);
@@ -556,6 +584,22 @@ export default {
       const s = sharedNow();
       if (!s) { api.setShared(lobby(1)); return; }
       if (s.phase === 'over' || s.phase === 'lobby') return;
+      // Friends who arrive mid-game are dealt in from the pond while it holds
+      // a hand's worth; otherwise they wait for the next deal.
+      if (totalBooks(s) < N) {
+        const names = Object.fromEntries(api.players().map(p => [p.id, p.name]));
+        const j = dealIn(s, humans().map(p => p.id), { names });
+        if (j.dealt.length) {
+          const evs = [];
+          for (const id of j.dealt) {
+            evs.push({ kind: 'joined', by: id, n: JOIN_HAND });
+            for (const r of j.s.books[id] || []) if (!(s.books[id] || []).includes(r)) evs.push({ kind: 'book', by: id, rank: r });
+          }
+          checkOver(j.s);
+          publish(j.s, ...evs);
+          return;
+        }
+      }
       const here = new Set([...api.players().map(p => p.id), BOT]);
       const gone = s.order.filter(id => !here.has(id));
       if (gone.length) {
@@ -657,7 +701,12 @@ export default {
       const evs = s.evs.filter(e => e.seq > seenSeq);
       const late = seenSeq < 0;          // just joined: don't replay old news
       seenSeq = Math.max(seenSeq, s.seq || 0);
-      if (late) return;
+      if (late) {
+        // Except being dealt in myself.
+        const mine = evs.find(e => e.kind === 'joined' && e.by === api.me.id);
+        if (mine) { api.sfx('score'); api.toast(`You join the game and draw ${mine.n} from the pond`); }
+        return;
+      }
       for (const e of evs) {
         if (e.kind === 'ask') api.sfx('pop');
         else if (e.kind === 'gofish') api.sfx('honk');
@@ -675,7 +724,11 @@ export default {
           api.sfx('win');
           api.toast(`${nameOf(e.by, s)} made a book of ${RANKS[e.rank].name}! ${RANKS[e.rank].fact}`);
         } else if (e.kind === 'draw' && e.by === api.me.id) { api.toast('Out of cards: you take one from the pond'); }
-        else if (e.kind === 'dry') api.toast('The pond is empty!');
+        else if (e.kind === 'joined') {
+          api.sfx('pop');
+          api.toast(e.by === api.me.id ? `You join the game and draw ${e.n} from the pond` : `${nameOf(e.by, s)} joins and draws ${e.n}`);
+          if (e.by === api.me.id) (s.hands[e.by] || []).forEach(r => fresh.add(r));
+        } else if (e.kind === 'dry') api.toast('The pond is empty!');
         else if (e.kind === 'left') api.toast('A player left: their cards went back in the pond');
       }
     }
@@ -790,7 +843,7 @@ export default {
         status = here.length > 1 ? `Ready to play: ${here.map(p => (p.me ? 'you' : p.name)).join(', ')}` : 'Wait for friends to join, or play Robo-Fisher';
         if (here.some(p => p.me)) actions.append(button(here.length > 1 ? 'Deal the cards' : 'Play Robo-Fisher 🤖', 'aqua', deal));
       } else if (s.phase === 'over') status = '';
-      else if (!seated) status = `${nameOf(s.turn, s)} ${s.phase === 'catch' ? 'is fishing' : 'is playing'}. You'll be dealt in next game.`;
+      else if (!seated) status = `${nameOf(s.turn, s)} ${s.phase === 'catch' ? 'is fishing' : 'is playing'}. ${s.order.length >= MAX_PLAYERS ? `The table is full (${MAX_PLAYERS} players): you'll be dealt in next game.` : s.pond.length >= JOIN_HAND ? 'Dealing you in…' : `Fewer than ${JOIN_HAND} cards left in the pond: you'll be dealt in next game.`}`;
       else if (s.phase === 'ask') {
         if (myTurn) {
           if (picked < 0) status = 'Your turn: tap a creature in your hand to ask for it';
@@ -807,7 +860,7 @@ export default {
           status = `${nameOf(from, s)} asks: got any ${cardWord(rank)}?`;
           if (n > 0) status = `${nameOf(from, s)} asks: got any ${cardWord(rank)}? Tap ${n > 1 ? 'them' : 'it'} to give ${n > 1 ? 'them' : 'it'} over`;
           else actions.append(button('Go Fish! 🎣', 'fish', answer));
-        } else status = `${nameOf(from, s)} asks ${to === me ? 'you' : nameOf(to, s)} for ${cardWord(rank)}…`;
+        } else status = `${from === me ? 'You ask' : `${nameOf(from, s)} asks`} ${nameOf(to, s)} for ${cardWord(rank)}…`;
       } else if (s.phase === 'fish') {
         if (myTurn) {
           status = s.ask ? `${nameOf(s.ask.to, s)} says Go Fish!` : 'Nobody else has cards: go fish!';
