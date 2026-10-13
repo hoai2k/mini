@@ -1843,6 +1843,24 @@ REQUESTS.append({
 })
 
 
+# Boards 2 and 9 need tree trunks that run from the floor up out of the frame;
+# OM-G02 item 6 came as a tree's rooted foot, cut flat, which cannot stand tall.
+REQUESTS.append({
+    "id": "OM-Z09", "section": "audit", "name": "Wood: a tall trunk column, with and without a hollow",
+    "key": "adv.trunks", "file": "assets/adventure/terrain/trunks.png",
+    "size": "2048 x 2048, transparent", "status": "requested", "ref": "endpapers.jpg",
+    "used": "Boards 2 and 9: tree trunks that rise from the floor out of the top of the frame (board 2's Bombanat flies through the hollow).",
+    "standin": "Trunks drawn in code.",
+    "prompt": STYLE + " Two separate game sprites side by side, each a straight-ish section of a "
+    "gnarled old tree trunk seen side-on, bark only (no branches, no leaves, no roots, no ground), "
+    "cut off flat at the top and the bottom so it tiles vertically, about four times as tall as "
+    "wide, with deep bark furrows, a knot or two and moss patches: 1. a plain trunk section; "
+    "2. the same trunk with a large dark oval hollow right through it in the middle, big enough "
+    "for a bat-winged creature to fly through, its lower lip flat enough to perch on. "
+    + ALPHA + " " + REF_SCENE.format("endpapers.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"

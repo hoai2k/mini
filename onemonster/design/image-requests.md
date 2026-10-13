@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-13 requested, 129 delivered, 142 in total.
+14 requested, 129 delivered, 143 in total.
 
 ## Brand
 
@@ -1939,4 +1939,17 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A big, shaggy, expressive picture-book monster with a lot of character: greedy, sly or put-upon rather than frightening, with pink snout, paws and feet where it has them. The Letter-Eating Bombanat, as in the book: a small, dark, shaggy body with huge lilac-mauve bat wings with thin finger bones and little claws at the tips, a long pink crocodile-like snout full of small sharp teeth, a sly frowning eye, a red striped cap with a little yellow propeller on top, a red-and-white striped necktie, clawed pink feet and a thin curling pink tail. Flying with wings spread, a white envelope in his teeth. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C02 (file onemonster/game/assets/monsters/bombanat/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach the plain Bombanats sheet, request OM-Z01 (file onemonster/game/assets/monsters/bombanat/plain.png), and match it: an ordinary Bombanat with NO necktie, NO cap or propeller and NO letter, duller grey-brown fur. A single sprite: perched with the wings folded, gripping with its clawed feet, side view facing right, standing on NOTHING (no branch, no ground), its feet level at the bottom of the drawing, at the same scale as the plain Bombanats sheet. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### OM-Z09 · Wood: a tall trunk column, with and without a hollow
+
+- **File:** `onemonster/game/assets/adventure/terrain/trunks.png`
+- **Size:** 2048 x 2048, transparent
+- **Used for:** Boards 2 and 9: tree trunks that rise from the floor out of the top of the frame (board 2's Bombanat flies through the hollow).
+- **Stand-in until delivered:** Trunks drawn in code.
+- **Reference:** [`reference/endpapers.jpg`](../reference/endpapers.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, each a straight-ish section of a gnarled old tree trunk seen side-on, bark only (no branches, no leaves, no roots, no ground), cut off flat at the top and the bottom so it tiles vertically, about four times as tall as wide, with deep bark furrows, a knot or two and moss patches: 1. a plain trunk section; 2. the same trunk with a large dark oval hollow right through it in the middle, big enough for a bat-winged creature to fly through, its lower lip flat enough to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/endpapers.jpg .
 ```
