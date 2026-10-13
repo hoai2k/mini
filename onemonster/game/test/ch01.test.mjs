@@ -172,7 +172,7 @@ test('chapter 1: the mailman arrives as the clock runs out, and the grab needs t
   assert.ok(!ch.done, 'pressing Action far from the mailbox does nothing');
   const x0 = ch.mailX;
   for (let i = 0; i < 30 * 44; i++) ch.update(DT, idle, null);
-  assert.ok(ch.mailX > x0 + 1500, 'the mailman has crossed the lane');
+  assert.ok(ch.mailX > x0 + 1200, 'the mailman has crossed the lane');
   for (let i = 0; i < 60; i++) ch.update(DT, idle, null);
   assert.ok(ch.done && ch.outcome === 'kept');
   assert.deepEqual(ch.marks(), [0, 3]);

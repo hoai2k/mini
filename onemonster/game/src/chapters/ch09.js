@@ -40,7 +40,7 @@ const SLOT = { x: 1762, y: 590 }; // the slot itself, for the marker
 const B = { x0: 230, x1: 1690, y0: 645, y1: 915 };
 const VAULT = { time: 0.8, dist: 420, cost: 0.3, height: 170 };
 const NET = { ahead: 150, rx: 190, ry: 70 }; // the net's reach: an ellipse on the ground in front of him
-const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.16;
+const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.22;
 const PEEK = 0.5, SLIDE = 0.3, SPRAWL = 0.9;
 const JAR_TIME = 6;
 const POST_RANGE = 150;
@@ -215,7 +215,7 @@ export default function create(env) {
           env.sfx('thump'); shake = Math.max(shake, 0.2); art.kick(gc, 0.5);
           fx.say('Missed!', gx.x + gx.swingDir * NET.ahead, gx.y - 160);
           // The Bombanat grows wary of a wild swinger and keeps out of reach for a while.
-          if (phase === 'net' && !env.versus) brain.wary = 1.6;
+          if (phase === 'net' && !env.versus) brain.wary = 2.4;
         }
       }
     }
@@ -403,7 +403,7 @@ export default function create(env) {
           brain.backOff = Math.max(0, (brain.backOff || 0) - dt);
           if (brain.backOff > 0 && !chase.tug && !bin.actionPressed) {
             const dx = bomb.x - gx.x, dy = bomb.y - gx.y, d = Math.hypot(dx, dy) || 1;
-            bin = { ...bin, x: dx / d, y: dy / d, sprint: bomb.st > 0.15 };
+            bin = { ...bin, x: dx / d, y: dy / d, sprint: bomb.st > 0.6 };
           }
           if (brain.dodgeAt && t >= brain.dodgeAt) { brain.dodgeAt = 0; if (!chase.tug) bin = { ...bin, actionPressed: true }; }
           // Wary after his miss: it flaps along just out of reach (no sprint: it saves its breath).
