@@ -20,7 +20,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
-| `musicpractice/` | Music Practice (a metronome, and a Playback Recorder that hears when you start and stop playing and plays each take back) | https://hoai2k.github.io/mini/musicpractice/ |
+| `musicpractice/` | Music Practice (a metronome, a tuner, and a Playback Recorder that hears when you start and stop playing and plays each take back) | https://hoai2k.github.io/mini/musicpractice/ |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |

@@ -1,4 +1,4 @@
-// Music Practice: the home screen, the metronome and the practice recorder.
+// Music Practice: the home screen, the metronome, the practice recorder and the tuner.
 
 import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
@@ -7,6 +7,7 @@ import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
+import { setupTuner } from './tunerui.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -48,13 +49,15 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 
 // ---------------------------------------------------------------- screens
 
+const SCREENS = ['home', 'metronome', 'record', 'tuner'];
+const TITLES = { metronome: 'Metronome', record: 'Playback Recorder', tuner: 'Tuner' };
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
-  const next = ['home', 'metronome', 'record'].includes(want) ? want : 'home';
+  const next = SCREENS.includes(want) ? want : 'home';
   if (next === screen && document.getElementById(next).hidden === false) return;
   leave(screen);
-  for (const id of ['home', 'metronome', 'record']) $(id).hidden = id !== next;
+  for (const id of SCREENS) $(id).hidden = id !== next;
   screen = next;
   enter(next);
 }
@@ -62,6 +65,7 @@ function route() {
 function leave(name) {
   if (name === 'metronome') stopMetronome();
   if (name === 'record') stopRecorder();
+  if (name === 'tuner') stopTuner();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
 }
 
@@ -74,8 +78,8 @@ function enter(name) {
     $('met-toggle').focus({ preventScroll: true });
   }
   if (name === 'record') startRecorder();
-  if (name === 'home') document.title = 'Music Practice';
-  else document.title = `${name === 'metronome' ? 'Metronome' : 'Playback Recorder'} · Music Practice`;
+  if (name === 'tuner') startTuner();
+  document.title = TITLES[name] ? `${TITLES[name]} · Music Practice` : 'Music Practice';
 }
 
 window.addEventListener('hashchange', route);
@@ -335,6 +339,7 @@ const STATUS = {
   recording: ['Recording', () => `Stop playing for ${fmtSec(settings.silenceSec)} s to finish.`],
   playing: ['Playing back', () => 'Listening starts again when it ends.'],
   paused: ['Paused', () => 'Listening starts again when you\'re done here.'],
+  tuning: ['Off', () => ''], // the tuner has the mic (never shown: the screens are separate)
 };
 
 const fmtSec = (s) => (Number.isInteger(s) ? String(s) : s.toFixed(1));
@@ -378,10 +383,12 @@ function configureRecorder() {
   showState();
 }
 
-async function startRecorder() {
-  setSession('auto');
+/**
+ * The one Recorder, shared by the recorder and the tuner, so the mic one
+ * grants is the mic the other uses and permission is never asked twice.
+ */
+function ensureRecorder() {
   const ctx = audio();
-  unlock();
   if (!wave) wave = new Waveform($('wave'));
   // A new recorder when the context was replaced (the old one is off by then).
   if (!recorder || recorder.ctx !== ctx) {
@@ -392,12 +399,24 @@ async function startRecorder() {
     recorder.addEventListener('state', () => {
       interruptPlayback();
       showState();
+      showTunerState();
       keepAwake(recorder.state !== 'off');
     });
-    recorder.addEventListener('chunk', (e) => wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state));
+    recorder.addEventListener('chunk', (e) => {
+      if (e.detail.state === 'tuning') tuner.receive(e.detail.data, recorder.ctx.sampleRate);
+      else wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state);
+    });
     recorder.addEventListener('take', (e) => onTake(e.detail));
     recorder.addEventListener('miclost', () => { if (document.visibilityState === 'visible') recoverMic(); });
   }
+  recorder.micChoice = settings.mic;
+  return recorder;
+}
+
+async function startRecorder() {
+  setSession('auto');
+  unlock();
+  ensureRecorder();
   recorder.configure(settings);
   recorder.echoCancel = recordDuringPlayback();
   recorder.micChoice = settings.mic;
@@ -459,12 +478,12 @@ async function resumeListening() {
 let reopening = false;
 function recoverMic(force = false) {
   if (!recorder || reopening || !recorder.micOpen) return;
-  if (recorder.state !== 'waiting' && recorder.state !== 'recording') return;
+  if (!['waiting', 'recording', 'tuning'].includes(recorder.state)) return;
   if (!force && recorder.micAlive()) return;
   reopening = true;
   recorder.reopen()
-    .catch((err) => { recError = micError(err); recorder.off(); })
-    .finally(() => { reopening = false; showState(); });
+    .catch((err) => { recError = micError(err); tunerError = recError.replace('tap the button', 'tap Try again'); recorder.off(); })
+    .finally(() => { reopening = false; showState(); showTunerState(); });
 }
 
 // Coming back to the app: phones suspend sound, pause media and cut the mic
@@ -477,6 +496,7 @@ document.addEventListener('visibilitychange', () => {
   if (playing?.handle?.isPaused?.()) playing.handle.resume().catch(() => stopPlayback());
   recoverMic();
   showState();
+  showTunerState();
 });
 
 // Starting a new take while a take plays back (record during playback) stops the playback.
@@ -788,6 +808,61 @@ function animateRecorder() {
   wave.draw();
 }
 
+// ---------------------------------------------------------------- tuner
+
+const tuner = setupTuner({ settings, persist, chips });
+let tunerError = '';
+
+/** Open the mic for the tuner: the same held mic as the recorder's, so no new prompt. */
+async function startTuner() {
+  setSession('auto');
+  unlock();
+  ensureRecorder();
+  tunerError = '';
+  tuner.reset();
+  showTunerState();
+  try {
+    await recorder.tune();
+  } catch (err) {
+    tunerError = micError(err).replace('tap the button', 'tap Try again');
+  }
+  if (recorder.micOpen) markStale();
+  showTunerState();
+}
+
+function stopTuner() {
+  tuner.stop();
+  if (recorder?.state === 'tuning') recorder.off();
+  showTunerState();
+}
+
+function showTunerState() {
+  if (screen !== 'tuner') return;
+  const state = recorder?.state || 'off';
+  const status = $('tuner-status');
+  let text = '';
+  if (state === 'off') text = tunerError || 'The microphone is off.';
+  else if (audio().state !== 'running') text = 'Tap anywhere to let the tuner hear you.';
+  status.textContent = text;
+  status.hidden = !text;
+  status.classList.toggle('error', state === 'off');
+  $('tuner-retry').hidden = state !== 'off';
+  if (state === 'off') tuner.reset();
+}
+$('tuner-retry').addEventListener('click', () => startTuner());
+
+const tunerSettings = $('tuner-settings');
+$('tuner-settings-btn').addEventListener('click', () => tunerSettings.showModal());
+
+let tunerHintShown = '';
+function animateTuner() {
+  tuner.animate();
+  if (recorder?.micOpen && recorder.state === 'tuning' && audio().state === 'running' && recorder.silentFor > 2.5) recoverMic(true);
+  // The "tap anywhere" note goes once the sound engine runs.
+  const running = existingAudio()?.state === 'running';
+  if (String(running) !== tunerHintShown) { tunerHintShown = String(running); showTunerState(); }
+}
+
 // ---------------------------------------------------------------- keys
 
 document.addEventListener('keydown', (e) => {
@@ -803,6 +878,10 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     $('rec-toggle').click();
   }
+  if (screen === 'tuner' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLSelectElement)) {
+    e.preventDefault();
+    tuner.playReference();
+  }
 });
 
 // ---------------------------------------------------------------- start
@@ -810,6 +889,7 @@ document.addEventListener('keydown', (e) => {
 function frame() {
   if (screen === 'metronome') animateMetronome();
   if (screen === 'record') animateRecorder();
+  if (screen === 'tuner') animateTuner();
   requestAnimationFrame(frame);
 }
 

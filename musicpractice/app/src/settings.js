@@ -61,7 +61,13 @@ export const DEFAULTS = Object.freeze({
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
+  tuning: 'chromatic', // tuner: an id from TUNINGS in tuning.js
+  a4: 440, // tuner reference pitch, 415-466 Hz
+  flats: false, // tuner: spell notes with flats
+  transpose: 'C', // tuner: written pitch for a transposing instrument
 });
+
+const TUNING_IDS = ['chromatic', 'guitar', 'guitar-dropd', 'guitar-dadgad', 'bass4', 'bass5', 'ukulele', 'violin', 'viola', 'cello', 'mandolin', 'banjo'];
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
@@ -94,6 +100,10 @@ export function sanitize(raw) {
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
+    tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),
+    a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
+    flats: s.flats === true,
+    transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
   };
 }
 
