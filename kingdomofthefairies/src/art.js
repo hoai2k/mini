@@ -1091,8 +1091,9 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // idlePose) when Extra Animations is on; the plain still otherwise.
   // `over(c, s, im)` draws something held by the figure (a gift in her
   // hands): called at the figure's bottom centre inside its idle sway, with
-  // `s` the stage pixels per art pixel.
-  function drawIdle(c, id, time, cx, by, w, h, step, over) {
+  // `s` the stage pixels per art pixel. `onlyOver` draws just what is held,
+  // in the same sway (so it can be drawn over a figure in front of hers).
+  function drawIdle(c, id, time, cx, by, w, h, step, over, onlyOver = false) {
     if (!img(id)) return false;
     const held = (im) => {
       if (!over) return;
@@ -1100,14 +1101,15 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       over(c, im.fitBox ? Math.min(h / ih, (w * 1.6) / iw) * (im.bodyScale || 1) : h / ih, im);
     };
     if (!extraAnimations) {
-      drawAsset(c, P, img(id), cx, by, w, h);
+      if (!onlyOver) drawAsset(c, P, img(id), cx, by, w, h);
       if (over) { c.save(); c.translate(cx, by); held(img(id)); c.restore(); }
       return true;
     }
     const pose = idlePose(id, time, { step, amp: filmAmp, w, h });
     c.save(); c.translate(cx + pose.dx, by + pose.dy); c.rotate(pose.rot); c.scale(1, pose.sy);
     const im = img(idleId(id, pose.time, step));
-    drawAsset(c, P, im, 0, 0, w, h); held(im);
+    if (!onlyOver) drawAsset(c, P, im, 0, 0, w, h);
+    held(im);
     c.restore();
     return true;
   }
@@ -1135,7 +1137,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
     // A person's still, flicked with its idle frames when Extra Animations is
     // on (see idleFrameId); false if the still isn't delivered.
-    idle(id, time, cx, by, w, h, step, over) { return drawIdle(kit.c, id, time, cx, by, w, h, step, over); },
+    idle(id, time, cx, by, w, h, step, over, onlyOver) { return drawIdle(kit.c, id, time, cx, by, w, h, step, over, onlyOver); },
     // Draw a delivered image (bottom-centre anchor); false if not delivered.
     asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
     // Part of a delivered image: source rect in art pixels -> stage box.

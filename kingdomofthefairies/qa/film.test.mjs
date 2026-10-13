@@ -7,7 +7,7 @@ import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
 import { TEMPEST } from '../src/acts/act1.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
-import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS } from '../src/acts/prologue.js';
+import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT } from '../src/acts/act2.js';
 import act3, { PASSAGE, guardOpen } from '../src/acts/act3.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
@@ -54,7 +54,7 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
     const p = s.p, beat = (clock += DT) / BEAT;
     if (s.phase === 'court') {
       const f = FAIRIES.find((q) => !s.gifts.includes(q.gift));
-      const to = f ? f.x : AZURINE_X - 60;
+      const to = f ? f.x + f.hand - HAND : AZURINE_X - 60;   // his hand at her gift
       return { moveX: Math.abs(to - p.x) > 20 ? Math.sign(to - p.x) : 0, a: press(!!s.near), beat };
     }
     if (s.phase === 'rampart') {
@@ -69,19 +69,43 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
     return { beat };
   });
   assert.equal(st.status, 'won', st.phase);
+  assert.equal(st.knocks, 0, 'a prince who leaps every fire is never burned');
   assert.deepEqual([...st.gifts].sort(), [...GIFTS].sort());
   assert.ok(st.betrothed);
   assert.equal(st.arms.length, 3);
   assert.ok(prologue.intro, 'flows straight into Act I');
 });
 
-test('prologue: fire on the rampart only knocks him back, and B skips each scene', () => {
+test('prologue: a gift is taken with his hand, not by walking into her', () => {
+  const st = prologue.create({});
+  const ring = FAIRIES.find((f) => f.gift === 'ring');
+  Object.assign(st.p, { x: ring.x, face: 1 });   // standing in her: his hand is past her gift
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.ok(!st.gifts.includes('ring'));
+  Object.assign(st.p, { x: ring.x + ring.hand - HAND, face: 1 });
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.deepEqual(st.gifts, ['ring']);
+});
+
+test('prologue: the rampart fire burns on; each touch costs a lantern, and none left loses the chase', () => {
   const st = prologue.create({ from: { scene: 1 } });
   assert.equal(st.phase, 'rampart');
-  st.fires.push({ x: st.p.x + 5, y: RAMPART.y, lit: true, burn: 0 });
+  assert.equal(st.lanterns, LANTERNS);
+  const fire = { x: st.p.x + 5, y: RAMPART.y, lit: true, burn: 0 };
+  st.fires.push(fire);
   prologue.step(st, DT, { moveX: 1, beat: 0 });
   assert.equal(st.knocks, 1);
-  assert.equal(st.status, 'play');
+  assert.equal(st.lanterns, LANTERNS - 1);
+  for (let i = 0; i < 20; i++) prologue.step(st, DT, { beat: 0 });   // grace: no second burn at once
+  assert.equal(st.lanterns, LANTERNS - 1);
+  for (let i = 0; i < 600; i++) prologue.step(st, DT, { beat: 0 });
+  assert.ok(st.fires.includes(fire) && fire.lit, 'the fire is still burning ten seconds on');
+  for (let n = st.lanterns; n > 0; n--) { st.grace = 0; st.fires.push({ x: st.p.x, y: RAMPART.y, lit: true, burn: 0 }); prologue.step(st, DT, { beat: 0 }); }
+  assert.equal(st.lanterns, 0);
+  run(prologue, st, PRO_T.defeat + 1, () => ({ beat: 0 }));
+  assert.equal(st.status, 'lost');
+  assert.match(st.lostTitle, /Chariot/);
+  assert.deepEqual(st.checkpoint, { scene: 1 }, 'a retry starts the chase again');
   const s2 = prologue.create({});
   let presses = 0;
   run(prologue, s2, 10, (s) => { const b = Math.floor(s.t * 3) !== Math.floor((s.t - DT) * 3); if (b) presses++; return { b }; });
