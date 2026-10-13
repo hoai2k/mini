@@ -520,9 +520,9 @@ export default function create(env) {
     g.lineJoin = 'round'; g.lineCap = 'round';
     // The wall and gable: a faded cream wash, darker up under the eaves.
     const wash = g.createLinearGradient(0, peak, 0, bottom);
-    wash.addColorStop(0, 'rgba(226,206,164,0.92)');
-    wash.addColorStop(0.35, 'rgba(241,228,196,0.88)');
-    wash.addColorStop(1, 'rgba(236,222,190,0.9)');
+    wash.addColorStop(0, 'rgba(226,206,164,0.97)');
+    wash.addColorStop(0.35, 'rgba(241,228,196,0.96)');
+    wash.addColorStop(1, 'rgba(236,222,190,0.97)');
     g.fillStyle = wash;
     g.beginPath(); g.moveTo(x0 + 3, top + 2); g.lineTo(cx - 2, peak + 3); g.lineTo(x1 - 2, top); g.lineTo(x1 - 1, bottom); g.lineTo(x0 + 1, bottom); g.closePath(); g.fill();
     // A shadow wash under the eaves, and hatching in it.
@@ -544,7 +544,7 @@ export default function create(env) {
     inkLine(g, x0, top, x0, bottom, 7); inkLine(g, x1, top, x1, bottom, 9);
     // The roof: a rusty wash, shingle rows hatched, a wobbly outline.
     const rf = g.createLinearGradient(0, top - 176, 0, top + 14);
-    rf.addColorStop(0, 'rgba(176,96,74,0.92)'); rf.addColorStop(1, 'rgba(142,74,58,0.9)');
+    rf.addColorStop(0, 'rgba(176,96,74,0.97)'); rf.addColorStop(1, 'rgba(142,74,58,0.97)');
     g.fillStyle = rf;
     g.beginPath(); g.moveTo(x0 - 36, top + 14); g.lineTo(cx, peak - 8); g.lineTo(x1 + 36, top + 14); g.lineTo(x1 + 36, top - 4); g.lineTo(cx, peak - 26); g.lineTo(x0 - 36, top - 4); g.closePath(); g.fill();
     g.save();

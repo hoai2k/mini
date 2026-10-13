@@ -275,7 +275,7 @@ export default function create(env) {
     got += 1;
     G.munchT = 0.7;
     env.sfx('slurp');
-    say('Lunch!', f.x, f.y - 70);
+    say('Lunch!', f.x, f.y + 70);
     lunch.push({ sx: f.x - cam.x, sy: f.y, t: 0 });
     for (const o of fliers) if (!o.got && o !== f && Math.abs(o.x - G.x) < 360) o.scatter = 0.9;
   }
@@ -868,6 +868,35 @@ export default function create(env) {
       g.fillStyle = gr;
       g.fillRect(x0, SURF, x1 - x0, H - SURF);
     }
+    // The painting's bubbley goo, as a slow parallax texture under the surface.
+    const scene = art.image('scenes/grumley');
+    if (scene) {
+      const sy = 660, sh = 420;
+      const k = (H - SURF) / sh;
+      const tw = scene.width * k;
+      const off = cam.x * 0.5;
+      g.save();
+      g.globalAlpha = 0.5;
+      const i0 = Math.floor((x0 + off) / tw);
+      for (let i = i0; i * tw - off < x1; i++) {
+        const x = i * tw - off;
+        if (i % 2) { g.translate(x + tw, SURF); g.scale(-1, 1); g.drawImage(scene, 0, sy, scene.width, sh, 0, 0, tw, H - SURF); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(-Math.round(cam.x) + cam.sx, cam.sy); }
+        else g.drawImage(scene, 0, sy, scene.width, sh, x, SURF, tw, H - SURF);
+      }
+      g.restore();
+      g.fillStyle = 'rgba(16,50,96,0.45)';
+      g.fillRect(x0, SURF, x1 - x0, H - SURF);
+    }
+    // Ink hatching, fading with depth.
+    g.save();
+    g.strokeStyle = 'rgba(15,35,60,0.16)';
+    g.lineWidth = 2;
+    g.beginPath();
+    for (let x = Math.floor(x0 / 46) * 46; x < x1; x += 46) {
+      for (let y = SURF + 60 + kit.hash(x) * 40; y < FLOOR; y += 86) { g.moveTo(x, y); g.lineTo(x + 26, y + 18); }
+    }
+    g.stroke();
+    g.restore();
     // Shafts of light.
     g.save();
     g.fillStyle = 'rgba(220,245,255,0.07)';
@@ -885,6 +914,27 @@ export default function create(env) {
       sheet: TERRAIN, item: 2, height: 160, lift: 10, fill: '#11283f',
       standin: { top: '#3c6f8c', body: '#23486a', ink: INK, tufts: false },
     });
+    if (art.sprite(TERRAIN, 2)) return;
+    // Pebbles, shells and weed tufts along the sand.
+    const { x0, x1 } = V();
+    g.save();
+    g.lineWidth = 2.5;
+    for (let x = Math.floor(x0 / 64) * 64; x < x1; x += 64) {
+      const h1 = kit.hash(x * 0.7), h2 = kit.hash(x * 1.3 + 5);
+      const px = x + h1 * 50, py = FLOOR + 6 + h2 * 50;
+      if (h2 < 0.55) {
+        g.fillStyle = h1 < 0.5 ? '#5d7f93' : '#6f8a97'; g.strokeStyle = INK;
+        g.beginPath(); g.ellipse(px, py, 9 + h1 * 12, 6 + h2 * 6, h1 * 1.2, 0, Math.PI * 2); g.fill(); g.stroke();
+      } else if (h2 < 0.8) {
+        g.strokeStyle = '#2f8a79'; g.lineWidth = 3;
+        g.beginPath(); g.moveTo(px, FLOOR + 4); g.quadraticCurveTo(px - 8, FLOOR - 14, px - 3, FLOOR - 30); g.moveTo(px + 6, FLOOR + 4); g.quadraticCurveTo(px + 14, FLOOR - 10, px + 10, FLOOR - 24); g.stroke();
+        g.lineWidth = 2.5;
+      } else {
+        g.strokeStyle = 'rgba(27,42,58,0.4)';
+        g.beginPath(); g.moveTo(px - 14, py + 20); g.lineTo(px + 14, py + 20); g.moveTo(px - 8, py + 30); g.lineTo(px + 18, py + 30); g.stroke();
+      }
+    }
+    g.restore();
   }
 
   function drawFarDecor(g) {
@@ -914,16 +964,37 @@ export default function create(env) {
     g.globalAlpha = alpha;
     kit.sprite(g, TERRAIN, 3, x, y, { height: h, flip }, () => {
       const w = h * 0.55;
-      g.fillStyle = '#4b5f72'; g.strokeStyle = INK; g.lineWidth = 4;
+      g.save();
+      g.fillStyle = '#5a6a76'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
+      // A knobbly outline: lumps along the silhouette.
       g.beginPath();
       g.moveTo(x - w / 2, y);
-      g.quadraticCurveTo(x - w * 0.62, y - h * 0.35, x - w * 0.3, y - h * 0.55);
-      g.quadraticCurveTo(x - w * 0.35, y - h * 0.8, x - w * 0.05, y - h);
-      g.quadraticCurveTo(x + w * 0.3, y - h * 0.95, x + w * 0.32, y - h * 0.6);
-      g.quadraticCurveTo(x + w * 0.6, y - h * 0.45, x + w / 2, y);
+      const n = 11;
+      for (let i = 1; i < n; i++) {
+        const u = i / n;
+        const a = Math.PI * (1 - u);
+        const r = 1 + (kit.hash(x + i * 7) - 0.5) * 0.3;
+        const px = x + Math.cos(a) * (w / 2) * r * (1 - 0.25 * Math.sin(a)), py = y - Math.sin(a) * h * r;
+        const cx = x + Math.cos(a + 0.14) * (w / 2) * 1.12, cy = y - Math.sin(a + 0.14) * h * 1.08;
+        g.quadraticCurveTo(cx, cy, px, py);
+      }
+      g.lineTo(x + w / 2, y);
       g.closePath(); g.fill(); g.stroke();
-      g.strokeStyle = 'rgba(27,42,58,0.35)'; g.lineWidth = 2.5;
-      g.beginPath(); g.moveTo(x - w * 0.2, y - h * 0.3); g.lineTo(x + w * 0.1, y - h * 0.5); g.moveTo(x + w * 0.05, y - h * 0.2); g.lineTo(x + w * 0.25, y - h * 0.35); g.stroke();
+      g.clip();
+      // Shadow side and hatching.
+      g.fillStyle = 'rgba(27,42,58,0.18)';
+      g.beginPath(); g.moveTo(x + w * 0.1, y - h); g.quadraticCurveTo(x + w * 0.5, y - h * 0.5, x + w * 0.2, y); g.lineTo(x + w, y); g.lineTo(x + w, y - h); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(27,42,58,0.4)'; g.lineWidth = 2;
+      g.beginPath();
+      for (let yy = y - h + 20; yy < y; yy += 26) { const o = kit.hash(yy + x) * 30; g.moveTo(x + o, yy); g.lineTo(x + o + 22 + kit.hash(yy) * 30, yy + 14); }
+      g.stroke();
+      // Barnacles.
+      g.fillStyle = '#c9c4b2'; g.strokeStyle = INK; g.lineWidth = 1.5;
+      for (let i = 0; i < 7; i++) {
+        const bx = x - w * 0.4 + kit.hash(x + i * 13) * w * 0.8, by = y - kit.hash(x + i * 17 + 2) * h * 0.9;
+        g.beginPath(); g.arc(bx, by, 4 + kit.hash(i + x) * 4, 0, Math.PI * 2); g.fill(); g.stroke();
+      }
+      g.restore();
     });
     g.restore();
   }
@@ -933,17 +1004,24 @@ export default function create(env) {
     g.globalAlpha = alpha;
     const sway = env.reduceMotion ? 0 : Math.sin(t * 1.1 + x * 0.02) * 18;
     kit.sprite(g, TERRAIN, 5, x + sway * 0.3, y, { height: h, flip }, () => {
-      g.strokeStyle = INK; g.lineWidth = 3.5; g.lineCap = 'round';
-      const fronds = [[-34, 0.8], [-12, 1], [10, 0.92], [32, 0.78], [0, 0.6]];
-      for (const [dx, k] of fronds) {
-        g.fillStyle = k > 0.85 ? '#2f8a79' : '#2a6f6a';
+      g.strokeStyle = INK; g.lineWidth = 3; g.lineCap = 'round'; g.lineJoin = 'round';
+      const fronds = [[-40, 0.78, -1], [-14, 1, 1], [12, 0.9, -1], [36, 0.74, 1], [0, 0.55, 1]];
+      for (const [dx, k, side] of fronds) {
+        g.fillStyle = k > 0.85 ? '#3c8f7c' : '#30736c';
         const top = y - h * k;
         const s = sway * k;
+        const bend = side * 30 * k;
+        // A wavy-edged leaf, curling at the tip.
         g.beginPath();
-        g.moveTo(x + dx - 14, y);
-        g.quadraticCurveTo(x + dx - 26 + s * 0.5, y - h * k * 0.5, x + dx + s, top);
-        g.quadraticCurveTo(x + dx + 26 + s * 0.5, y - h * k * 0.5, x + dx + 14, y);
+        g.moveTo(x + dx - 12, y);
+        g.bezierCurveTo(x + dx - 36 + bend, y - h * k * 0.35, x + dx - 10 + bend + s, y - h * k * 0.7, x + dx + s + bend * 0.5, top);
+        g.bezierCurveTo(x + dx + 30 + bend + s, y - h * k * 0.7, x + dx + 32 + bend, y - h * k * 0.35, x + dx + 12, y);
         g.closePath(); g.fill(); g.stroke();
+        // The midrib and veins.
+        g.strokeStyle = 'rgba(20,50,50,0.55)'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(x + dx, y); g.quadraticCurveTo(x + dx + bend * 0.6 + s * 0.5, y - h * k * 0.5, x + dx + s + bend * 0.5, top + 10); g.stroke();
+        for (let i = 1; i < 5; i++) { const u = i / 5; const vx = x + dx + bend * 0.6 * (1 - (1 - u) ** 2) * 1.2, vy = y - h * k * u; g.beginPath(); g.moveTo(vx, vy); g.lineTo(vx + 10, vy - 8); g.moveTo(vx, vy); g.lineTo(vx - 10, vy - 8); g.stroke(); }
+        g.strokeStyle = INK; g.lineWidth = 3;
       }
     });
     g.restore();
@@ -972,17 +1050,38 @@ export default function create(env) {
     g.beginPath(); g.rect(I.x - 100, above ? -100 : SURF, I.w + 200, above ? SURF + 100 : H - SURF); g.clip();
     kit.sprite(g, TERRAIN, 4, I.x + I.w / 2, SURF + 20, { height: SURF + 20 - I.y + 160 }, () => {
       g.save();
-      g.fillStyle = '#5b5a52'; g.strokeStyle = INK; g.lineWidth = 5;
+      // Boulders piled below the surface, then the island's rock above.
+      for (const [bx, by, bw, bh] of [[I.x + 120, FLOOR + 10, 420, 520], [I.x + 460, FLOOR + 10, 380, 440], [I.x + 300, SURF + 230, 520, 300]]) {
+        g.fillStyle = '#56636f'; g.strokeStyle = INK; g.lineWidth = 4;
+        g.beginPath();
+        g.moveTo(bx - bw / 2, by);
+        for (let i = 1; i < 9; i++) { const a = Math.PI * (1 - i / 9); const r = 1 + (kit.hash(bx + i * 5) - 0.5) * 0.25; g.lineTo(bx + Math.cos(a) * bw / 2 * r, by - Math.sin(a) * bh * r); }
+        g.lineTo(bx + bw / 2, by); g.closePath(); g.fill(); g.stroke();
+      }
+      g.fillStyle = '#6b6457'; g.strokeStyle = INK; g.lineWidth = 5; g.lineJoin = 'round';
       g.beginPath();
-      g.moveTo(I.x - 40, SURF + 30);
-      g.quadraticCurveTo(I.x + 20, I.y + 20, I.x + 110, I.y);
-      g.quadraticCurveTo(I.x + 240, I.y - 24, I.x + 330, I.y - 10);
-      g.quadraticCurveTo(I.x + 460, I.y - 30, I.x + 520, I.y + 20);
-      g.quadraticCurveTo(I.x + 600, I.y + 40, I.x + I.w + 60, SURF + 30);
-      g.lineTo(I.x + I.w + 60, FLOOR + 40); g.lineTo(I.x - 40, FLOOR + 40);
+      g.moveTo(I.x - 40, SURF + 40);
+      g.quadraticCurveTo(I.x + 10, I.y + 40, I.x + 70, I.y + 12);
+      g.quadraticCurveTo(I.x + 110, I.y - 6, I.x + 150, I.y + 4);
+      g.quadraticCurveTo(I.x + 240, I.y - 26, I.x + 330, I.y - 12);
+      g.quadraticCurveTo(I.x + 400, I.y - 34, I.x + 470, I.y - 18);
+      g.quadraticCurveTo(I.x + 540, I.y + 6, I.x + 590, I.y + 50);
+      g.quadraticCurveTo(I.x + 640, I.y + 100, I.x + I.w + 60, SURF + 40);
+      g.lineTo(I.x + I.w + 60, SURF + 260); g.lineTo(I.x - 40, SURF + 260);
       g.closePath(); g.fill(); g.stroke();
-      g.strokeStyle = 'rgba(27,42,58,0.35)'; g.lineWidth = 3;
-      for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(I.x + 60 + i * 90, I.y + 30 + (i % 2) * 20); g.lineTo(I.x + 110 + i * 90, I.y + 60 + (i % 3) * 12); g.stroke(); }
+      g.save(); g.clip();
+      g.fillStyle = 'rgba(27,42,58,0.16)';
+      g.beginPath(); g.moveTo(I.x + 380, I.y - 40); g.quadraticCurveTo(I.x + 520, I.y + 80, I.x + 420, SURF + 100); g.lineTo(I.x + I.w + 80, SURF + 300); g.lineTo(I.x + I.w + 80, I.y - 60); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(27,42,58,0.4)'; g.lineWidth = 2.5;
+      g.beginPath();
+      for (let yy = I.y + 10; yy < SURF + 240; yy += 24) { const o = kit.hash(yy) * 400; g.moveTo(I.x + o, yy); g.lineTo(I.x + o + 40 + kit.hash(yy + 1) * 60, yy + 16); }
+      g.stroke();
+      g.strokeStyle = INK; g.lineWidth = 3;
+      for (const [cx, cy] of [[I.x + 200, I.y + 60], [I.x + 420, I.y + 40], [I.x + 120, I.y + 110], [I.x + 500, I.y + 130]]) { g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(cx + 40, cy + 20, cx + 90, cy + 10); g.stroke(); }
+      // Barnacles at the goo line.
+      g.fillStyle = '#c9c4b2'; g.lineWidth = 1.5;
+      for (let i = 0; i < 16; i++) { const bx = I.x + kit.hash(i * 3) * I.w, by = SURF - 10 + kit.hash(i * 7 + 1) * 50; g.beginPath(); g.arc(bx, by, 4 + kit.hash(i) * 5, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      g.restore();
       // Grass tufts.
       g.strokeStyle = '#4e7d3a'; g.lineWidth = 5; g.lineCap = 'round';
       for (let i = 0; i < 14; i++) {
@@ -1127,6 +1226,11 @@ export default function create(env) {
       g.beginPath(); g.moveTo(0, 0); g.lineTo(-30, -26); g.lineTo(-22, 0); g.lineTo(-30, 26); g.closePath(); g.fill(); g.stroke();
       g.restore();
       g.beginPath(); g.ellipse(0, 0, 58, 30, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.save(); g.beginPath(); g.ellipse(0, 0, 56, 28, 0, 0, Math.PI * 2); g.clip();
+      g.strokeStyle = 'rgba(27,42,58,0.35)'; g.lineWidth = 1.5;
+      for (let r = 0; r < 4; r++) for (let cx = -40 + (r % 2) * 7; cx < 30; cx += 14) { g.beginPath(); g.arc(cx, -20 + r * 13, 7, 0.2, Math.PI - 0.2); g.stroke(); }
+      g.fillStyle = 'rgba(255,255,255,0.25)'; g.beginPath(); g.ellipse(-6, 14, 40, 10, 0, 0, Math.PI * 2); g.fill();
+      g.restore();
       g.beginPath(); g.moveTo(-10, -28); g.lineTo(4, -48); g.lineTo(22, -26); g.closePath(); g.fill(); g.stroke();
       // Scowl and teeth.
       g.fillStyle = '#fff'; g.beginPath(); g.arc(30, -8, 9, 0, Math.PI * 2); g.fill(); g.stroke();
@@ -1213,14 +1317,35 @@ export default function create(env) {
     g.strokeStyle = INK; g.lineWidth = 5; g.lineJoin = 'round';
     // Hull.
     g.fillStyle = b.kind === 'net' ? '#2f7f86' : '#3b6a9c';
-    g.beginPath(); g.moveTo(-230, -70); g.lineTo(230, -70); g.lineTo(190, 30); g.quadraticCurveTo(0, 50, -190, 30); g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = '#f8f1e0';
-    for (let i = -2; i <= 2; i++) { g.beginPath(); g.arc(i * 70, -20, 13, 0, Math.PI * 2); g.fill(); g.stroke(); }
+    const hull = () => { g.beginPath(); g.moveTo(-236, -74); g.quadraticCurveTo(-250, -40, -196, 30); g.quadraticCurveTo(0, 52, 196, 30); g.quadraticCurveTo(250, -40, 236, -74); g.closePath(); };
+    hull(); g.fill(); g.stroke();
+    g.save(); hull(); g.clip();
+    // Planks and the shaded underside.
+    g.strokeStyle = 'rgba(27,42,58,0.45)'; g.lineWidth = 2;
+    for (let yy = -52; yy < 40; yy += 22) { g.beginPath(); g.moveTo(-260, yy); g.lineTo(260, yy + (yy > 0 ? 6 : 0)); g.stroke(); }
+    g.fillStyle = 'rgba(27,42,58,0.2)';
+    g.beginPath(); g.moveTo(-260, 0); g.lineTo(260, 0); g.lineTo(260, 60); g.lineTo(-260, 60); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(27,42,58,0.35)';
+    g.beginPath(); for (let xx = -230; xx < 240; xx += 30) { g.moveTo(xx, 4); g.lineTo(xx + 14, 36); } g.stroke();
+    g.restore();
+    // The rail, a bumper of old tyres, and portholes.
+    g.fillStyle = '#c9a66b'; g.fillRect(-236, -82, 472, 12); g.strokeRect(-236, -82, 472, 12);
+    g.fillStyle = '#f8f1e0'; g.lineWidth = 4;
+    for (let i = -2; i <= 2; i++) { g.beginPath(); g.arc(i * 70, -28, 13, 0, Math.PI * 2); g.fill(); g.stroke(); g.beginPath(); g.arc(i * 70, -28, 7, 0, Math.PI * 2); g.stroke(); }
+    g.fillStyle = INK; for (const tx of [-200, 200]) { g.beginPath(); g.arc(tx, -10, 14, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5a6672'; g.beginPath(); g.arc(tx, -10, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = INK; }
+    g.lineWidth = 5;
     // Wheelhouse.
-    g.fillStyle = '#9a6a3c';
-    g.fillRect(-110, -150, 150, 80); g.strokeRect(-110, -150, 150, 80);
-    g.fillStyle = '#cfe6ee'; g.fillRect(-90, -135, 40, 34); g.strokeRect(-90, -135, 40, 34); g.fillRect(-30, -135, 40, 34); g.strokeRect(-30, -135, 40, 34);
-    g.fillStyle = '#6b4a32'; g.fillRect(-60, -190, 24, 40); g.strokeRect(-60, -190, 24, 40);
+    g.fillStyle = '#a8773f';
+    g.fillRect(-110, -152, 150, 78); g.strokeRect(-110, -152, 150, 78);
+    g.strokeStyle = 'rgba(27,42,58,0.4)'; g.lineWidth = 2;
+    for (let xx = -96; xx < 40; xx += 18) { g.beginPath(); g.moveTo(xx, -150); g.lineTo(xx, -76); g.stroke(); }
+    g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#7a4f2a'; g.fillRect(-120, -166, 170, 16); g.strokeRect(-120, -166, 170, 16);
+    g.fillStyle = '#cfe6ee'; g.fillRect(-92, -138, 40, 34); g.strokeRect(-92, -138, 40, 34); g.fillRect(-32, -138, 40, 34); g.strokeRect(-32, -138, 40, 34);
+    g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 3; g.beginPath(); g.moveTo(-86, -132); g.lineTo(-70, -112); g.moveTo(-26, -132); g.lineTo(-10, -112); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#4e4a44'; g.fillRect(-64, -206, 26, 42); g.strokeRect(-64, -206, 26, 42);
+    g.fillStyle = 'rgba(240,240,240,0.5)'; g.beginPath(); g.arc(-40, -222, 12, 0, Math.PI * 2); g.arc(-24, -238, 9, 0, Math.PI * 2); g.fill();
     if (b.kind === 'net') {
       // The crane over the side.
       g.strokeStyle = INK; g.lineWidth = 12; g.lineCap = 'round';
@@ -1404,8 +1529,8 @@ export default function create(env) {
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
     // The letter he carries, and when he is coming down to land, the target.
     const bob = env.reduceMotion ? 0 : Math.sin(t * 4) * 5;
-    letterTag(g, L.x, L.y - 118 + bob, { t, r: 40 });
-    if (!self.done && (L.mode === 'perched' || (L.mode === 'landing' && L.T > 1.2))) marker(g, L.x, L.y - 190, { t, label: L.mode === 'perched' ? 'Grab him!' : '' });
+    letterTag(g, L.x - (L.mode === 'perched' ? -70 : 100), L.y - 50 + bob, { t, r: 38 });
+    if (!self.done && (L.mode === 'perched' || (L.mode === 'landing' && L.T > 1.2))) marker(g, L.x, L.y - 110, { t, label: L.mode === 'perched' ? 'Grab him!' : '' });
   }
 
   // "Grab!" over the Grumley when the letter Bombanat is in reach of a lunge.

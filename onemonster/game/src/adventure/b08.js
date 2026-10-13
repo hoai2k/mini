@@ -81,7 +81,7 @@ export default function create(env) {
   const cam = kit.makeCamera(WORLD_W, { lead: 0, anchor: 0.42, rate: 3.4 });
   const fx = kit.makeParticles();
   const cps = kit.makeCheckpoints([0, ...SIGNS.map((s) => s.x)]);
-  const hints = kit.makeHints([
+  const hints = makeBandHints([
     { x: 0, text: 'Action: flap · Down: dive, let go to swoop up', show: 5 },
     { x: 1150, text: 'Warm air rising: ride it up for height', show: 4 },
     { x: 2500, text: 'The Yalapappus is throwing things! Mind the dotted arcs', show: 4.5 },
@@ -545,6 +545,38 @@ export default function create(env) {
     return { x: bu.x, y: top + 70, rx: 105, ry: 78, top };
   }
 
+  // Hints on a cream band, so they read over the busy backdrop (the kit's
+  // makeHints with a band behind the text; same contract).
+  function makeBandHints(list, { show = 4 } = {}) {
+    const items = list.map((hh) => ({ ...hh, t: -1 }));
+    let cur = null;
+    return {
+      update(dt, px) {
+        for (const hh of items) if (hh.t < 0 && px >= hh.x) { hh.t = 0; cur = hh; }
+        if (cur) cur.t += dt;
+        if (cur && cur.t > (cur.show ?? show)) cur = null;
+      },
+      say(text, secs = 2.5) { cur = { text, t: 0, show: secs }; },
+      draw(g) {
+        if (!cur) return;
+        const sh = cur.show ?? show;
+        const a = Math.min(1, cur.t * 4, (sh - cur.t) * 2);
+        if (a <= 0) return;
+        g.save();
+        g.globalAlpha = a;
+        g.font = '700 40px Fraunces, Georgia, serif';
+        const w = g.measureText(cur.text).width + 70;
+        g.fillStyle = 'rgba(251,246,232,0.94)';
+        g.strokeStyle = INK; g.lineWidth = 3;
+        g.beginPath();
+        g.roundRect ? g.roundRect(W / 2 - w / 2, 170, w, 58, 29) : g.rect(W / 2 - w / 2, 170, w, 58);
+        g.fill(); g.stroke();
+        g.restore();
+        kit.hint(g, cur.text, { alpha: a, y: 212 });
+      },
+    };
+  }
+
   // ---------- the outro ----------
 
   function outro(dt) {
@@ -829,37 +861,53 @@ export default function create(env) {
   function inkCloud(g, x, yy, tt) {
     g.save();
     g.translate(x, yy + Math.sin(tt * 0.8) * 4);
-    g.fillStyle = '#7e7488'; g.strokeStyle = INK; g.lineWidth = 4;
-    g.beginPath();
-    g.arc(-130, 20, 62, 0, Math.PI * 2);
-    g.arc(-50, -30, 80, 0, Math.PI * 2);
-    g.arc(50, -20, 86, 0, Math.PI * 2);
-    g.arc(140, 25, 62, 0, Math.PI * 2);
-    g.rect(-150, 20, 290, 50);
-    g.fill();
-    // Curling pen strokes inside, darker toward the underside.
-    g.save(); g.clip();
-    g.fillStyle = '#5c5268'; g.fillRect(-200, 25, 400, 60);
-    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
-    for (let i = 0; i < 26; i++) {
-      const cx = -170 + kit.hash(i * 2.3 + x) * 340, cy = -70 + kit.hash(i * 7.1 + x) * 140, r = 10 + kit.hash(i * 3.7) * 14;
-      g.beginPath(); g.arc(cx, cy, r, Math.PI * 0.9, Math.PI * 2.1); g.stroke();
+    g.fillStyle = '#9a90a4'; g.strokeStyle = INK; g.lineWidth = 3.5;
+    const shape = () => {
+      g.beginPath();
+      g.arc(-130, 20, 62, 0, Math.PI * 2);
+      g.arc(-50, -30, 80, 0, Math.PI * 2);
+      g.arc(50, -20, 86, 0, Math.PI * 2);
+      g.arc(140, 25, 62, 0, Math.PI * 2);
+      g.rect(-150, 20, 290, 50);
+    };
+    shape(); g.fill();
+    // Inside: a lighter lilac top, a slate underside, and rows of curling pen
+    // strokes, as the book draws its clouds.
+    g.save(); shape(); g.clip();
+    g.fillStyle = '#c3b6c8'; g.fillRect(-220, -130, 440, 90);
+    g.fillStyle = '#6a6274'; g.fillRect(-220, 30, 440, 60);
+    g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 1.8;
+    for (let row = 0; row < 7; row++) {
+      const cy = -80 + row * 24;
+      for (let i = 0; i < 18; i++) {
+        const cx = -200 + i * 22 + (row % 2) * 11 + kit.hash(row * 9 + i + x) * 6, r = 9 + kit.hash(i * 3.7 + row) * 5;
+        g.beginPath(); g.arc(cx, cy, r, Math.PI * 1.05, Math.PI * 2.15); g.stroke();
+      }
     }
+    g.strokeStyle = 'rgba(43,29,20,0.45)'; g.lineWidth = 1.5;
     g.beginPath();
-    for (let i = 0; i < 40; i++) { const hx = -190 + i * 10; g.moveTo(hx, 30 + kit.hash(i) * 10); g.lineTo(hx + 6, 72); }
+    for (let i = 0; i < 44; i++) { const hx = -200 + i * 9; g.moveTo(hx, 36 + kit.hash(i) * 8); g.lineTo(hx + 5, 76); }
     g.stroke();
     g.restore();
+    // The ink outline follows the puffs, not the rectangle.
     g.beginPath();
     g.arc(-130, 20, 62, Math.PI * 0.5, Math.PI * 1.5);
     g.arc(-50, -30, 80, Math.PI * 1.1, Math.PI * 1.85);
     g.arc(50, -20, 86, Math.PI * 1.2, Math.PI * 1.95);
     g.arc(140, 25, 62, Math.PI * 1.5, Math.PI * 0.5);
     g.closePath(); g.stroke();
-    // A cross face: heavy brows.
-    g.lineWidth = 5; g.beginPath(); g.moveTo(-30, -20); g.lineTo(10, -8); g.moveTo(70, -8); g.lineTo(110, -20); g.stroke();
-    g.fillStyle = '#f6efe0'; g.beginPath(); g.arc(-8, 4, 9, 0, Math.PI * 2); g.arc(88, 4, 9, 0, Math.PI * 2); g.fill();
-    g.fillStyle = INK; g.beginPath(); g.arc(-6, 6, 4, 0, Math.PI * 2); g.arc(90, 6, 4, 0, Math.PI * 2); g.fill();
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(43,29,20,0.6)';
+    g.beginPath(); g.arc(-50, -30, 70, Math.PI * 1.15, Math.PI * 1.8); g.stroke();
+    g.beginPath(); g.arc(50, -20, 76, Math.PI * 1.25, Math.PI * 1.9); g.stroke();
     g.restore();
+    if (false) {
+    g.beginPath();
+    g.arc(-130, 20, 62, Math.PI * 0.5, Math.PI * 1.5);
+    g.arc(-50, -30, 80, Math.PI * 1.1, Math.PI * 1.85);
+    g.arc(50, -20, 86, Math.PI * 1.2, Math.PI * 1.95);
+    g.arc(140, 25, 62, Math.PI * 1.5, Math.PI * 0.5);
+    g.closePath(); g.stroke();
+    }
   }
 
   function inkRain(g, c, tt) {
@@ -948,7 +996,7 @@ export default function create(env) {
 
   function inkPalm(g, x, base) {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#a8865a';
+    g.strokeStyle = INK; g.lineWidth = 3.5; g.fillStyle = '#b89a6c';
     g.beginPath(); g.moveTo(x - 14, base); g.quadraticCurveTo(x + 10, base - 200, x + 50, base - 380); g.lineTo(x + 66, base - 374); g.quadraticCurveTo(x + 30, base - 200, x + 14, base); g.closePath(); g.fill(); g.stroke();
     // The trunk's rings and its shaded side.
     g.lineWidth = 2; g.strokeStyle = 'rgba(43,29,20,0.6)';
@@ -965,7 +1013,7 @@ export default function create(env) {
       const a = -Math.PI * 0.95 + (i / 6) * Math.PI * 0.95;
       const ex = cx + Math.cos(a) * 170, ey = cy + Math.sin(a) * 120 + 60;
       const mx = cx + Math.cos(a) * 110, my = cy + Math.sin(a) * 110 - 30;
-      g.fillStyle = i % 2 ? '#8aa24a' : '#7a9440';
+      g.fillStyle = i % 2 ? '#96a458' : '#7f8f48';
       g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(mx, my, ex, ey); g.quadraticCurveTo(cx + Math.cos(a) * 100, cy + Math.sin(a) * 60 + 10, cx, cy); g.fill();
       g.strokeStyle = INK; g.lineWidth = 3;
       g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();

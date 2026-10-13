@@ -190,10 +190,11 @@ test('chapter 9: netting the Trollusk or the Yalapappus jars them for a while an
   yal.goal = { x: r.x, y: r.y }; yal.until = 99; yal.T = 0; // stays put
   yal.sawWindup = true; // and doesn't hop aside this time
   ch.update(DT, { actionPressed: true }, {});
-  for (let t = 0; t < 0.6 && yal.mode !== 'jar'; t += DT) ch.update(DT, {}, {});
+  let slammed = false;
+  for (let t = 0; t < 1 && !(yal.mode === 'jar' && s.mode === 'move'); t += DT) { ch.update(DT, {}, {}); if (s.mode === 'slam') slammed = true; }
   assert.equal(yal.mode, 'jar');
   assert.equal(ch.bonus, 1);
-  assert.equal(s.mode, 'move', 'a swing that lands needs no recovery');
+  assert.ok(!slammed && s.mode === 'move', 'a swing that lands needs no recovery');
 });
 
 test('chapter 9: the how-to page has three steps composed from the art, and the chapter draws every phase', () => {

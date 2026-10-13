@@ -267,7 +267,7 @@ export default function create(env) {
     c: art.makeCreature('grumley', 1250, 880),
   };
   G.c.facing = -1;
-  const L = makeFlier(env, { letter: true, x: 900, y: 330, lane: 870 });
+  const L = makeFlier(env, { letter: true, x: 1350, y: 430, lane: 870 });
   const birds = [L];
   const lanes = [800, 840, 930];
   for (let i = 0; i < 3; i++) birds.push(makeFlier(env, { letter: false, x: 700 + i * 420 + rng() * 120, y: 200 + rng() * 300, lane: lanes[i] }));
@@ -901,7 +901,7 @@ export const HOWTO = [
       { creature: 'grumley', anim: 'lurk', x: 320, y: 475, h: 170, shadow: false },
       { draw: (g) => { g.fillStyle = 'rgba(242,197,61,0.22)'; g.fillRect(230, 150, 180, 260); g.strokeStyle = '#f2c53d'; g.lineWidth = 4; g.setLineDash([10, 8]); g.strokeRect(230, 150, 180, 260); } },
       { path: [[120, 50], [220, 100], [300, 210]], arrow: true },
-      { creature: 'bombanat', anim: 'land', x: 330, y: 275, h: 150, shadow: false },
+      { creature: 'bombanat', anim: 'land', x: 300, y: 262, h: 150, shadow: false },
       { draw: (g, t) => letterTag(g, 330, 160, { t, r: 32 }) },
     ],
   },
