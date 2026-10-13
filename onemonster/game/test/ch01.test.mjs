@@ -1,40 +1,23 @@
-// Chapter 1 balance: a patient player who creeps from cover to cover while the
-// lookouts rest can snatch with time to spare; a player who sprints straight
-// at the mailbox through the open is spotted most of the time; the lookouts
-// can never watch all the time.
+// Chapter 1 balance: a careful player who creeps from cover to cover and hides
+// when an eye warns snatches with time to spare (the autopilot, and a slower
+// child who reacts late and never sprints); a player who sprints straight at
+// the mailbox through the open is spotted most of the time; the lookouts can
+// never watch all the time; the ring drawn is the ring that sees.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeEnv, idle } from './harness.mjs';
-import create, { COVER, MAILBOX, inZone } from '../src/chapters/ch01.js';
+import { makeEnv, idle, masher } from './harness.mjs';
+import create, { COVER, MAILBOX, LOOKOUTS, HOWTO, inZone, zoneEllipse, atMailbox, autopilot } from '../src/chapters/ch01.js';
 
 const DT = 1 / 30;
 const inp = (x, y, o = {}) => ({ x, y, action: false, actionPressed: false, actionReleased: false, sprint: false, ...o });
 
-// Watches the eye warnings and the rest clocks, as a careful child would.
-function patientBot(ch) {
+// A child: the autopilot's choices, but each seen a third of a second late, and no sprinting.
+function child(ch) {
+  const queue = [];
   return () => {
-    const { tr, look } = ch;
-    const atBox = Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR - 10;
-    if (atBox) return inp(0, 0, { actionPressed: true, action: true });
-    // Next stop: the first cover ahead, else the mailbox.
-    const next = COVER.find((k) => k.x > tr.x + 40) || { x: MAILBOX.grabX - 30, y: MAILBOX.grabY + 10 };
-    const covers = (L) => L.zone[1] >= Math.min(tr.x, next.x) && L.zone[0] <= Math.max(tr.x, next.x);
-    const threat = look.some((L) => covers(L) && (L.state === 'warn' || L.state === 'look'));
-    const soon = look.some((L) => covers(L) && L.state === 'ready');
-    if (tr.cover) {
-      if (threat || soon) return inp(0, 0, { action: true }); // duck and wait
-    } else if (threat) {
-      // Caught out by a warning: make for the nearest cover if it is close, else freeze.
-      const near = [...COVER].sort((a, b) => Math.abs(a.x - tr.x) - Math.abs(b.x - tr.x))[0];
-      const warnLeft = Math.min(...look.filter((L) => covers(L) && L.state === 'warn').map((L) => L.t));
-      if (Number.isFinite(warnLeft) && Math.abs(near.x - tr.x) - near.rx * 0.8 < warnLeft * 160) {
-        const dx = near.x - tr.x, dy = near.y - tr.y, d = Math.hypot(dx, dy) || 1;
-        return inp(dx / d, dy / d);
-      }
-      return idle;
-    }
-    const dx = next.x - tr.x, dy = next.y - tr.y, d = Math.hypot(dx, dy) || 1;
-    return inp(dx / d, dy / d);
+    const want = autopilot(ch);
+    queue.push({ ...want, sprint: false });
+    return queue.length > 10 ? queue.shift() : inp(0, 0);
   };
 }
 
@@ -42,35 +25,49 @@ function sprinter(ch) {
   return () => {
     const { tr } = ch;
     const dx = MAILBOX.grabX - 20 - tr.x, dy = MAILBOX.grabY + 10 - tr.y, d = Math.hypot(dx, dy) || 1;
-    const atBox = Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR - 10;
-    return atBox ? inp(0, 0, { action: true, actionPressed: true }) : inp(dx / d, dy / d, { sprint: true });
+    return atMailbox(tr.x, tr.y) ? inp(0, 0, { action: true, actionPressed: true }) : inp(dx / d, dy / d, { sprint: true });
   };
 }
 
-function run(ch, bot) {
-  let t = 0, spotted = 0, wasScuttle = false, firstSpot = null;
+function run(ch, bot, holderBot = null) {
+  let t = 0, spotted = 0, wasScuttle = false;
   while (!ch.done && t < 200) {
-    ch.update(DT, bot(), null);
+    ch.update(DT, bot(), holderBot ? holderBot() : null);
     const sc = ch.tr.mode === 'scuttle';
-    if (sc && !wasScuttle) { spotted++; if (firstSpot === null) firstSpot = t; }
+    if (sc && !wasScuttle) spotted++;
     wasScuttle = sc;
     t += DT;
   }
-  return { outcome: ch.outcome, spare: ch.time / ch.total, spotted, firstSpot, marks: ch.marks() };
+  return { outcome: ch.outcome, spare: ch.time / ch.total, spotted, marks: ch.marks() };
 }
 
-test('chapter 1: a patient creeper snatches with time to spare', () => {
+test('chapter 1: the autopilot snatches with time to spare at every skill', () => {
   const N = 30;
   for (const skill of [0.35, 0.55, 0.8]) {
-    let wins = 0, spare = 0, spots = 0, two = 0;
+    let wins = 0, spare = 0, three = 0;
     for (let seed = 1; seed <= N; seed++) {
       const ch = create(makeEnv({ seed, skill }));
-      const r = run(ch, patientBot(ch));
-      if (r.outcome === 'snatched') { wins++; spare += r.spare; if (r.marks[0] >= 2) two++; }
+      const r = run(ch, () => autopilot(ch));
+      if (r.outcome === 'snatched') { wins++; spare += r.spare; if (r.marks[0] === 3) three++; }
+    }
+    console.log(`  autopilot, skill ${skill}: snatched ${wins}/${N}, mean spare ${(spare / Math.max(1, wins)).toFixed(2)}, three postmarks ${three}`);
+    assert.ok(wins >= N * 0.9, `the autopilot wins (${wins}/${N})`);
+    assert.ok(spare / wins > 0.4, 'with time to spare');
+  }
+});
+
+test('chapter 1: a slow child who hides when the eye warns still wins most of the time', () => {
+  const N = 30;
+  for (const skill of [0.35, 0.55, 0.8]) {
+    let wins = 0, spare = 0, spots = 0, one = 0;
+    for (let seed = 1; seed <= N; seed++) {
+      const ch = create(makeEnv({ seed, skill }));
+      const r = run(ch, child(ch));
+      if (r.outcome === 'snatched') { wins++; spare += r.spare; if (r.marks[0] >= 1) one++; }
       spots += r.spotted;
     }
-    console.log(`  patient, skill ${skill}: snatched ${wins}/${N}, mean spare ${(spare / Math.max(1, wins)).toFixed(2)}, 2+ postmarks ${two}, spotted ${spots} times`);
-    assert.ok(wins >= N * 0.8, `patient player wins most (${wins}/${N})`);
+    console.log(`  child, skill ${skill}: snatched ${wins}/${N}, mean spare ${(spare / Math.max(1, wins)).toFixed(2)}, spotted ${spots} times`);
+    assert.ok(wins >= N * 0.8, `a child wins most of the time (${wins}/${N})`);
     assert.ok(spare / wins > 0.15, 'with time to spare');
   }
 });
@@ -90,6 +87,23 @@ test('chapter 1: sprinting straight through the open gets spotted most of the ti
   }
 });
 
+test('chapter 1: versus, the autopilot beats a mashing holder, who still earns a postmark for holding out', () => {
+  const N = 20;
+  let wins = 0, held = 0;
+  for (let seed = 1; seed <= N; seed++) {
+    const env = makeEnv({ seed, versus: true });
+    const ch = create(env);
+    const m = masher(env.rng);
+    let i = 0;
+    const r = run(ch, () => autopilot(ch), () => { i++; const h = m(); return { ...h, x: i % 25 === 0 ? 1 : 0, actionPressed: i % 9 === 0 }; });
+    if (r.outcome === 'snatched') wins++;
+    if (r.marks[1] >= 1) held++;
+  }
+  console.log(`  versus: snatched ${wins}/${N}, holder got a postmark in ${held}`);
+  assert.ok(wins >= N * 0.8);
+  assert.ok(held >= N * 0.5);
+});
+
 test('chapter 1: versus lookouts cannot watch all the time', () => {
   const ch = create(makeEnv({ versus: true }));
   // The holder mashes Action on whichever lookout is selected, cycling.
@@ -106,16 +120,16 @@ test('chapter 1: versus lookouts cannot watch all the time', () => {
   assert.ok(frac < 0.45, 'rest after each look');
 });
 
-test('chapter 1: the ring drawn is the ring that sees', async () => {
-  const { LOOKOUTS, inZone, zoneEllipse } = await import('../src/chapters/ch01.js');
+test('chapter 1: the ring drawn is the ring that sees', () => {
   for (const L of LOOKOUTS) {
     const e = zoneEllipse(L);
     assert.ok(inZone(L, e.cx, e.cy), 'centre is inside');
-    // Just above the ring, near the end of its stretch (inside the old x-only test): not seen.
     const x = e.cx + e.rx * 0.8, y = e.cy - e.ry * 0.7;
     assert.ok(x > L.zone[0] && x < L.zone[1]);
     assert.ok(!inZone(L, x, y), `${L.id}: outside the drawn ring is unseen`);
   }
+  // Every cover and the mailbox lie in some lookout's ring, and the rings overlap: no blind path.
+  for (const k of [...COVER, { x: MAILBOX.grabX, y: MAILBOX.grabY }]) assert.ok(LOOKOUTS.some((L) => inZone(L, k.x, k.y)), `watched at ${k.x}`);
   // In play: frozen just outside the ring while it looks, he is never judged.
   for (let seed = 1; seed <= 20; seed++) {
     const ch = create(makeEnv({ seed, skill: 0.8 }));
@@ -130,66 +144,44 @@ test('chapter 1: the ring drawn is the ring that sees', async () => {
   }
 });
 
-test('chapter 1: the dash gets him out of a warned ring, but not out of a look', () => {
-  const ch = create(makeEnv({ seed: 3, skill: 0.5 }));
-  // Out in the open between bushes, in the neighbour's ring.
-  ch.tr.x = 620; ch.tr.y = 900;
-  for (let i = 0; i < 3; i++) ch.update(DT, idle, null);
-  const x0 = ch.tr.x;
-  ch.update(DT, inp(1, 0, { action: true, actionPressed: true }), null);
-  for (let i = 0; i < 10; i++) ch.update(DT, inp(1, 0, { action: true }), null);
-  const moved = ch.tr.x - x0;
-  assert.ok(moved > 180, `a dash covers ground fast (${moved.toFixed(0)} px in a third of a second)`);
-  // On cooldown: a second press does nothing.
-  const x1 = ch.tr.x;
-  ch.update(DT, inp(-1, 0, { actionPressed: true, action: true }), null);
-  ch.update(DT, idle, null);
-  assert.ok(Math.abs(ch.tr.x - x1) < 40, 'the dash needs to recharge');
-  assert.ok(ch.alert > 0.05, 'and it is loud');
-  // Dashing while a lookout is looking at him: heard.
-  const ch2 = create(makeEnv({ seed: 4, skill: 0.5 }));
-  ch2.tr.x = 350; ch2.tr.y = 900; ch2.tr.cover = null;
-  ch2.update(DT, idle, null);
-  const L = ch2.look[0];
-  L.state = 'look'; L.lookFor = L.t = 1.5; L.grace = 0; L.survived = true; L.judged = true;
-  ch2.update(DT, inp(1, 0, { actionPressed: true, action: true }), null);
-  ch2.update(DT, inp(1, 0, { action: true }), null);
-  assert.equal(ch2.tr.mode, 'scuttle', 'a dash in plain view is heard');
+test('chapter 1: ducking in cover is safe, moving in the open while looked at is not', () => {
+  const ch = create(makeEnv({ seed: 5, skill: 0.5 }));
+  // In the neighbour's ring, standing in the first bush and ducking.
+  const L = ch.look[0];
+  L.state = 'look'; L.lookFor = L.t = 1.5; L.grace = 0; L.judged = false;
+  for (let i = 0; i < 30; i++) ch.update(DT, inp(0, 0, { action: true }), null);
+  assert.equal(ch.tr.mode, 'free', 'ducked in a bush, unseen');
+  assert.ok(ch.tr.ducking);
+  // Out in the open, creeping, while she looks: spotted and sent back.
+  const ch2 = create(makeEnv({ seed: 6, skill: 0.5 }));
+  ch2.tr.x = 320; ch2.tr.y = 900; ch2.tr.cover = null;
+  ch2.update(DT, inp(1, 0), null);
+  const L2 = ch2.look[0];
+  L2.state = 'look'; L2.lookFor = L2.t = 1.5; L2.grace = 0; L2.judged = false;
+  ch2.update(DT, inp(1, 0), null);
+  assert.equal(ch2.tr.mode, 'scuttle', 'creeping in plain view is spotted');
+  assert.equal(ch2.spots, 1);
+  for (let i = 0; i < 60; i++) ch2.update(DT, idle, null);
+  assert.equal(ch2.tr.mode, 'free');
+  assert.equal(ch2.tr.cover, COVER[0], 'and he scuttles back to the last cover');
 });
 
-// Dash toward the mailbox whenever it is ready, versus creep and dash only out of a warned ring.
-function dasher(ch, smart) {
-  let prev = false;
-  return () => {
-    const { tr, look } = ch;
-    const atBox = Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR - 10;
-    if (atBox) return inp(0, 0, { action: true, actionPressed: true });
-    const dx = MAILBOX.grabX - 20 - tr.x, dy = MAILBOX.grabY + 10 - tr.y, d = Math.hypot(dx, dy) || 1;
-    if (!smart) { prev = !prev; return inp(dx / d, dy / d, { action: prev, actionPressed: prev && tr.dashCd <= 0 }); }
-    if (look.some((L) => L.state === 'look' && inZone(L, tr.x, tr.y))) return tr.cover ? inp(0, 0, { action: true }) : idle;
-    if (look.some((L) => L.state === 'warn' && inZone(L, tr.x, tr.y))) {
-      if (tr.cover) return inp(0, 0, { action: true });
-      return tr.dashCd <= 0 ? inp(1, 0, { action: true, actionPressed: true }) : idle;
-    }
-    return inp(dx / d, dy / d);
-  };
-}
+test('chapter 1: the mailman arrives as the clock runs out, and the grab needs the mailbox', () => {
+  const ch = create(makeEnv({ seed: 2 }));
+  ch.update(DT, inp(0, 0, { actionPressed: true, action: true }), null);
+  assert.ok(!ch.done, 'pressing Action far from the mailbox does nothing');
+  const x0 = ch.mailX;
+  for (let i = 0; i < 30 * 44; i++) ch.update(DT, idle, null);
+  assert.ok(ch.mailX > x0 + 1500, 'the mailman has crossed the lane');
+  for (let i = 0; i < 60; i++) ch.update(DT, idle, null);
+  assert.ok(ch.done && ch.outcome === 'kept');
+  assert.deepEqual(ch.marks(), [0, 3]);
+});
 
-test('chapter 1: dashing out of warned rings beats spamming the dash', () => {
-  const N = 30;
-  for (const skill of [0.35, 0.8]) {
-    const score = (smart) => {
-      let mk = 0, spots = 0;
-      for (let seed = 1; seed <= N; seed++) {
-        const ch = create(makeEnv({ seed, skill }));
-        run(ch, dasher(ch, smart));
-        mk += ch.marks()[0]; spots += ch.spots;
-      }
-      return { mk: mk / N, spots: spots / N };
-    };
-    const spam = score(false), smart = score(true);
-    console.log(`  skill ${skill}: dash spam ${spam.mk.toFixed(2)} postmarks (${spam.spots.toFixed(1)} spots), careful dashes ${smart.mk.toFixed(2)} (${smart.spots.toFixed(1)} spots)`);
-    assert.ok(spam.mk <= 2.05, 'spamming the dash never earns the unseen postmark');
-    assert.ok(smart.mk > spam.mk + 0.4, 'timing the dash pays');
+test('chapter 1: the how-to page has three captioned steps', () => {
+  assert.equal(HOWTO.length, 3);
+  for (const st of HOWTO) {
+    assert.ok(st.text.length > 10 && st.items.length >= 3);
+    for (const it of st.items) if (it.creature) assert.equal(it.creature, 'trollusk');
   }
 });

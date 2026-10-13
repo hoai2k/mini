@@ -174,7 +174,7 @@ export default function create(env) {
   const yal = makeMover({
     x: seat.x, y: seat.y, speed: 215, sprint: 560, accel: 1500, radius: 62, canHide: false, hopsLogs: false,
     lungeRange: 330, lungeSpeed: 920, lungeTime: 0.3, lungeCooldown: 1.6, stumbleTime: 1.0, grabRange: 70,
-    drain: 0.48, regen: 0.17,
+    drain: 0.3, regen: 0.2,
   });
   const tro = makeMover({ x: seat.x + START_DX, y: START_Y, speed: 255, sprint: 450, accel: 2600, radius: 44, drain: 0.42 });
   yal.facing = -1;
@@ -200,6 +200,8 @@ export default function create(env) {
   let alarmT = 0;
   let surprisedT = 0; // phase 2: the moment after the snatch
   let ballT = 0; // phase 2: unrolling after a roll
+  let rollT = 0; // phase 2, the computer: how long the roll he's committed to still lasts
+  let rollRest = 0; // ...and how long until he may roll again
   let windT = 2;
   let frozen = false; // the Trollusk's pose: twig up, or creeping (with hysteresis)
   let poseHold = 0; // seconds the current Trollusk pose has been held
@@ -385,6 +387,15 @@ export default function create(env) {
             // He knows where the way out is: cut the Trollusk off when level.
             if (Math.abs(tro.x - yal.x) < 120 && tro.x > yal.x) yin.x = Math.max(yin.x, 0.5);
           }
+        }
+        // The computer commits to each roll (a ball bowls along; it doesn't
+        // flicker in and out) and rests a moment between rolls.
+        if (!env.versus && !chase.tug) {
+          rollT = Math.max(0, rollT - dt); rollRest = Math.max(0, rollRest - dt);
+          if (rollT > 0) yin.sprint = yal.st > 0.05;
+          else if (yin.sprint && rollRest <= 0 && yal.st > 0.35) rollT = 0.8 + env.skill * 0.5;
+          else if (yin.sprint) yin.sprint = false;
+          if (rollT <= 0 && yal.sprinting) rollRest = 0.7;
         }
         // Rolled into a ball: fast, but no grabbing; unrolling takes a wobble.
         if (yal.sprinting) ballT = 0.35;

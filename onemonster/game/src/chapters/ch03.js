@@ -36,7 +36,7 @@ export const TUNE = {
   riseT: 0.2, holdT: 0.2, sinkT: 0.35, clawHalf: 130,
   splutterT: 1.1, munchT: 0.9,
   // The fliers.
-  bx0: 560, bx1: 1860, topY: 140,
+  bx0: 560, bx1: 1860, topY: 250,
   gravity: 560, flapV: 360, glideSink: 150, diveSink: 480, flatSink: 70,
   flapCost: 0.04, flapCd: 0.2, dartV: 900, dartT: 0.3, dartCd: 1.4, dartCost: 0.12,
   regenLanded: 0.6, regenLow: 0.2, regenHigh: 0, windedT: 1.8,
@@ -715,7 +715,7 @@ export default function create(env) {
   }
 
   // Where the letter tag sits over the letter Bombanat (kept on screen).
-  const tagY = (b) => Math.max(90, b.y - 165);
+  const tagY = (b) => Math.max(120, b.y - 165);
 
   function drawFlier(g, b, tt) {
     const c = b.c;
@@ -852,14 +852,14 @@ function hint(g, text, W, t) {
   g.save();
   g.globalAlpha = a;
   g.fillStyle = 'rgba(251,246,232,0.9)';
-  g.fillRect(0, 108, W, 84);
+  g.fillRect(0, 196, W, 84);
   g.fillStyle = 'rgba(51,36,26,0.5)';
-  g.fillRect(0, 108, W, 4); g.fillRect(0, 188, W, 4);
+  g.fillRect(0, 196, W, 4); g.fillRect(0, 276, W, 4);
   g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.textBaseline = 'alphabetic';
   g.fillStyle = '#33241a';
-  g.fillText(text, W / 2, 165);
+  g.fillText(text, W / 2, 253);
   g.restore();
 }
 
@@ -898,11 +898,11 @@ export const HOWTO = [
     items: [
       greyBat(1, 110, 70, 70, false),
       greyBat(3, 560, 90, 70, true),
-      { creature: 'grumley', anim: 'lurk', x: 320, y: 440, h: 200, shadow: false },
-      { draw: (g) => { g.fillStyle = 'rgba(242,197,61,0.22)'; g.fillRect(230, 150, 180, 240); g.strokeStyle = '#f2c53d'; g.lineWidth = 4; g.setLineDash([10, 8]); g.strokeRect(230, 150, 180, 240); } },
-      { path: [[150, 60], [240, 120], [320, 250]], arrow: true },
-      { creature: 'bombanat', anim: 'land', x: 330, y: 290, h: 150, shadow: false },
-      { draw: (g, t) => letterTag(g, 330, 180, { t, r: 32 }) },
+      { creature: 'grumley', anim: 'lurk', x: 320, y: 475, h: 170, shadow: false },
+      { draw: (g) => { g.fillStyle = 'rgba(242,197,61,0.22)'; g.fillRect(230, 150, 180, 260); g.strokeStyle = '#f2c53d'; g.lineWidth = 4; g.setLineDash([10, 8]); g.strokeRect(230, 150, 180, 260); } },
+      { path: [[120, 50], [220, 100], [300, 210]], arrow: true },
+      { creature: 'bombanat', anim: 'land', x: 330, y: 275, h: 150, shadow: false },
+      { draw: (g, t) => letterTag(g, 330, 160, { t, r: 32 }) },
     ],
   },
   {
@@ -913,13 +913,13 @@ export const HOWTO = [
       {
         draw: (g) => {
           g.save();
-          g.beginPath(); g.rect(0, 0, 640, 300); g.clip();
-          art.drawSprite(g, art.sprite('grumley.poses', 3), 320, 470, { height: 440 });
+          g.beginPath(); g.rect(0, 0, 640, 305); g.clip();
+          art.drawSprite(g, art.sprite('grumley.poses', 3), 320, 480, { height: 380 });
           g.restore();
-          art.drawSprite(g, art.prop('grumley', 6), 320, 320, { height: 90 });
+          art.drawSprite(g, art.prop('grumley', 6), 320, 322, { height: 90 });
         },
       },
-      { creature: 'bombanat', anim: 'grabbed', x: 300, y: 70, h: 140, shadow: false },
+      { creature: 'bombanat', anim: 'grabbed', x: 310, y: 95, h: 130, shadow: false },
       { word: 'SNAP!', x: 500, y: 110, size: 54 },
     ],
   },

@@ -621,7 +621,7 @@ export default function create(env) {
     },
     marks() {
       const feat = self.outcome === 'snatched' && postedWith?.has('bombanat') && postedWith.has('trollusk') && postedWith.has('yalapappus');
-      return kit.boardMarks({ snatched: self.outcome === 'snatched', got, total: TOTAL, feat });
+      return kit.boardMarks({ snatched: self.outcome === 'snatched', got: flock.filter((f) => f.got).length, total: TOTAL, feat });
     },
     hud() {
       const jars = `Jars ${got}/${TOTAL}`;

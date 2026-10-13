@@ -191,7 +191,7 @@ export default function create(env) {
       const a = (cl.face > 0 ? 0 : Math.PI) + (rng() - 0.5) * 1.1 + 0.35;
       parts.push({ x: mx, y: MOUTH_Y, vx: Math.cos(a) * (200 + rng() * 260), vy: Math.abs(Math.sin(a)) * 200 + rng() * 120, t: 0, life: 0.5 + rng() * 0.3, r: 6 + rng() * 8, col: '#5fa8d3', g: 900 });
     }
-    if (kind === 'bottle') { bottleHome = false; fx.say('The bottle!', mx, MOUTH_Y + 120); env.sfx('tinkle'); }
+    if (kind === 'bottle') { bottleHome = false; env.sfx('tinkle'); }
     return it;
   }
 
@@ -316,7 +316,7 @@ export default function create(env) {
     // The computer Typhoonigator.
     const e = elapsed();
     ai.wait += dt;
-    if (!ai.plan && bottleHome && (e >= ai.bottleAt || self.time <= forceAt + 1) && cl.lastDrop > 0.6) {
+    if (!ai.plan && bottleHome && (e >= ai.bottleAt || self.time <= forceAt + 1) && cl.lastDrop > 0.6 && (y.mode !== 'dazed' || self.time <= forceAt + 1)) {
       ai.plan = 'bottle';
       ai.wait = 0;
       // Toss it to the side with more room.
@@ -333,7 +333,8 @@ export default function create(env) {
       tx = y.x + ai.side * D;
       if (tx > CX1 || tx < CX0) { ai.side = -ai.side; tx = y.x + ai.side * D; }
       tx = Math.max(CX0, Math.min(CX1, tx));
-      if ((Math.abs(cl.x - tx) < 60 && ai.wait > 0.5) || ai.wait > 2.6 || self.time <= forceAt) {
+      const ready = y.mode !== 'dazed' || self.time <= forceAt + 1; // not onto a dazed head
+      if ((ready && ((Math.abs(cl.x - tx) < 60 && ai.wait > 0.5) || ai.wait > 2.6)) || self.time <= forceAt) {
         const away = Math.sign(cl.x - y.x) || ai.side;
         drop('bottle', away * (40 + 150 * skill) * (gentleS ? 0.6 : 1));
         ai.plan = null;

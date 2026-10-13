@@ -1436,32 +1436,28 @@ export default function create(env) {
   }
 
   function drawMeters(g, tt) {
-    const w = 420, x = (W - w) / 2;
+    const w = 340, x = (W - w) / 2;
     g.save();
-    g.font = '800 22px Fraunces, Georgia, serif';
-    g.textAlign = 'left';
-    g.lineWidth = 5;
-    g.strokeStyle = 'rgba(248,241,224,0.95)';
-    g.lineJoin = 'round';
     // The goo meter: how much of the Blue Ocean of Bubbley Goo is inside it.
-    let y = 136, h = 22;
-    roundRect(g, x, y, w, h, 11); g.fillStyle = 'rgba(248,241,224,0.9)'; g.fill(); g.strokeStyle = INK; g.lineWidth = 3; g.stroke();
-    if (goo > 0.01) { roundRect(g, x + 3, y + 3, (w - 6) * goo, h - 6, 8); g.fillStyle = goo >= TUNE.feat ? '#2f9a6a' : GOO; g.fill(); }
+    let y = 134, h = 26;
+    roundRect(g, x, y, w, h, 13); g.fillStyle = 'rgba(248,241,224,0.9)'; g.fill(); g.strokeStyle = INK; g.lineWidth = 3; g.stroke();
+    if (goo > 0.01) { roundRect(g, x + 3, y + 3, (w - 6) * goo, h - 6, 10); g.fillStyle = goo >= TUNE.feat ? '#2f9a6a' : GOO; g.fill(); }
     g.strokeStyle = 'rgba(51,36,26,0.5)'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(x + w * TUNE.feat, y + 3); g.lineTo(x + w * TUNE.feat, y + h - 3); g.stroke();
-    label(g, `Goo ${Math.round(goo * 100)}%`, x + w + 14, y + 17);
+    label(g, `Goo ${Math.round(goo * 100)}%`, x + 12, y + 20);
     // The fullness: how big it is.
-    y = 164; h = 16;
+    y = 166; h = 20;
     const f = full / TUNE.cap;
     const shake = full >= TUNE.cap - 0.02 && !env.reduceMotion ? Math.sin(tt * 50) * 3 : 0;
     g.translate(shake, 0);
-    roundRect(g, x + 60, y, w - 120, h, 8); g.fillStyle = 'rgba(248,241,224,0.9)'; g.fill(); g.strokeStyle = INK; g.lineWidth = 3; g.stroke();
-    if (f > 0.01) { roundRect(g, x + 63, y + 3, (w - 126) * f, h - 6, 5); g.fillStyle = f > 0.95 ? '#c8443a' : f > 0.7 ? '#e09a3a' : '#9a8aa0'; g.fill(); }
-    label(g, 'Full', x + w - 46, y + 14);
+    roundRect(g, x + 40, y, w - 80, h, 10); g.fillStyle = 'rgba(248,241,224,0.9)'; g.fill(); g.strokeStyle = INK; g.lineWidth = 3; g.stroke();
+    if (f > 0.01) { roundRect(g, x + 43, y + 3, (w - 86) * f, h - 6, 7); g.fillStyle = f > 0.95 ? '#c8443a' : f > 0.7 ? '#e09a3a' : '#9a8aa0'; g.fill(); }
+    label(g, f > 0.95 ? 'Full!' : 'Full', x + 52, y + 16, 18);
     g.restore();
   }
-  function label(g, text, x, y) {
-    g.font = '800 22px Fraunces, Georgia, serif';
+  function label(g, text, x, y, size = 20) {
+    g.font = `800 ${size}px Fraunces, Georgia, serif`;
+    g.textAlign = 'left';
     g.lineWidth = 5; g.strokeStyle = 'rgba(248,241,224,0.95)';
     g.strokeText(text, x, y);
     g.fillStyle = INK; g.fillText(text, x, y);

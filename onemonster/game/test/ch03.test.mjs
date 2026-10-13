@@ -102,6 +102,7 @@ test('the reach column is the claw\'s hit box: a Bombanat inside it is grabbed, 
     const ch = create(makeEnv({ versus: true }));
     for (let t = 0; t < TUNE.chargeTime + 0.5; t += DT) ch.update(DT, idle, idle);
     ch.L.x = ch.G.x; ch.L.y = y; ch.L.vx = 0; ch.L.vy = 0;
+    for (const b of ch.birds) if (!b.letter) { b.gone = true; b.respawn = 99; } // no plain one in the way
     ch.update(DT, { ...idle, actionPressed: true }, idle);
     for (let t = 0; t < 1.5 && !ch.done && ch.G.mode === 'lunge'; t += DT) { ch.L.x = ch.G.x; ch.L.y = y; ch.update(DT, idle, idle); }
     return ch;

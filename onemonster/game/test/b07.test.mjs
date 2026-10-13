@@ -67,7 +67,7 @@ test('board 7: a low branch bumps a running Trollusk and spills stamps; sliding 
     const p = ch._.player;
     ch._.set({ phase: 'getaway', yState: 'dazed', protect: 99 });
     const branch = ch._.solids.find((s) => s.kind === 'branch');
-    p.x = branch.x - 520; p.y = profileY(p.x);
+    p.x = branch.x - 400; p.y = profileY(p.x);
     for (const s of ch._.pickups.items.slice(0, 6)) s.got = true;
     let spilled = 0;
     run(ch, () => { spilled += ch._.pickups.items.filter((s) => s.fly && s.fly.t < DT).length; return { ...right, y: slide && p.x > branch.x - 260 ? 1 : 0 }; }, 3);

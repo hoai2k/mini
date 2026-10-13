@@ -15,6 +15,7 @@
 
 import * as art from '../art.js';
 import { makeFx } from '../chasedraw.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 import { marksFor } from './index.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -23,34 +24,39 @@ const lerp = (a, b, k) => a + (b - a) * k;
 // ---------- the lane (logical 1920 x 1080, matching scenes/trollusk) ----------
 
 export const LANE = { x0: 70, x1: 1860, y0: 805, y1: 1000 };
-export const MAILBOX = { x: 1810, y: 770, grabX: 1790, grabY: 820, grabR: 115 };
+export const MAILBOX = { x: 1815, y: 780, grabX: 1790, grabY: 820, grabR: 115 };
 export const START = { x: 150, y: 860 };
+// Cover: round bushes (prop 5) and low flowerbeds (prop 6). Standing in a bush
+// hides all but his hat; ducking (hold Action) hides him in either.
 export const COVER = [
-  { x: 150, y: 860, item: 5, h: 205, rx: 115, ry: 46 },
-  { x: 480, y: 955, item: 6, h: 125, rx: 120, ry: 40 },
-  { x: 800, y: 845, item: 5, h: 200, rx: 112, ry: 44 },
-  { x: 1110, y: 955, item: 6, h: 125, rx: 120, ry: 40 },
-  { x: 1420, y: 855, item: 5, h: 205, rx: 112, ry: 44 },
+  { x: 150, y: 860, item: 5, h: 265, rx: 135, ry: 50 },
+  { x: 480, y: 955, item: 6, h: 165, rx: 140, ry: 44 },
+  { x: 800, y: 845, item: 5, h: 260, rx: 132, ry: 48 },
+  { x: 1110, y: 955, item: 6, h: 165, rx: 140, ry: 44 },
+  { x: 1420, y: 855, item: 5, h: 265, rx: 132, ry: 48 },
 ];
+// Sally Ann's house: the end wall of it rises behind the hedge and the picket
+// fence between the two trees, with her window in it.
+export const HOUSE = { x0: 690, x1: 1130, top: 262, bottom: 600 };
 // The three lookouts: who, where they are drawn, and the stretch of lane each watches.
 // cast sprites: 1 Sally Ann looking / 2 turned away; 3 neighbour peering / 4 dozing; 5 dog staring / 6 asleep.
 export const LOOKOUTS = [
-  { id: 'neighbour', name: 'Neighbour', x: 330, y: 778, h: 235, look: 3, away: 4, zone: [0, 700], lookTime: 1.9, rest: 4.4 },
-  { id: 'sally', name: 'Sally Ann', x: 1150, y: 505, h: 215, look: 1, away: 2, zone: [560, 1330], lookTime: 1.9, rest: 3.8 },
-  { id: 'dog', name: 'Dog', x: 1640, y: 790, h: 165, hAway: 100, look: 5, away: 6, zone: [1230, 1920], lookTime: 1.5, rest: 3.2 },
+  { id: 'neighbour', name: 'Neighbour', x: 330, y: 778, h: 262, look: 3, away: 4, zone: [0, 700], lookTime: 1.9, rest: 4.4 },
+  { id: 'sally', name: 'Sally Ann', x: 910, y: 548, h: 232, look: 1, away: 2, zone: [540, 1300], lookTime: 1.9, rest: 3.8 },
+  { id: 'dog', name: 'Dog', x: 1640, y: 790, h: 192, hAway: 118, look: 5, away: 6, zone: [1230, 1920], lookTime: 1.5, rest: 3.2 },
 ];
 
 const SNEAK = 175;
 const SPRINT = 400;
 const SPOT_PENALTY = 2; // seconds
-// The dash (Action with the stick, or Action in the open): a quick burst out of a
-// stretch that is about to be looked at. It is loud: it has a cooldown, he skids
-// to a stop afterwards, and any lookout ready in the ring he lands in turns to
-// look, so it saves him from a warning but not from a look. Land in a bush.
-export const DASH = { speed: 1150, time: 0.2, skid: 0.3, cooldown: 1.6, alert: 0.12 };
 // The mailman's road runs just behind the picket fence and behind both trees:
 // the scene's foreground (scenes/trollusk-front) is drawn over him. He stops at the mailbox.
-const MAIL_ROAD = { x0: -140, x1: 1745, y: 615 };
+const MAIL_ROAD = { x0: -160, x1: 1745, y: 615 };
+
+const INK = '#33241a';
+const CREAM = 'rgba(251,246,232,0.94)';
+const YELLOW = '#f2c53d';
+const RED = '#c8443a';
 
 // The ring a lookout watches: one ellipse, used both to draw it and to judge
 // whether his feet are inside it, so what you see is what they see.
@@ -65,9 +71,9 @@ export function inZone(L, x, y) {
   return dx * dx + dy * dy <= 1;
 }
 
-const atMailbox = (x, y) => Math.hypot(x - MAILBOX.grabX, (y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR;
+export const atMailbox = (x, y) => Math.hypot(x - MAILBOX.grabX, (y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR;
 
-function inCoverOf(x, y) {
+export function inCoverOf(x, y) {
   for (const k of COVER) {
     const dx = (x - k.x) / k.rx, dy = (y - k.y) / (k.ry * 1.6);
     if (dx * dx + dy * dy <= 1) return k;
@@ -80,13 +86,12 @@ export default function create(env) {
   const total = 45 + (env.gentle[0] ? 10 : 0);
   const fx = makeFx();
   const tc = art.makeCreature('trollusk', START.x, START.y);
-  tc.sizeK = 0.8;
+  tc.sizeK = 1.1;
   const tr = {
     x: START.x, y: START.y, vx: 0, vy: 0, facing: 1,
     mode: 'free', // 'free' | 'scuttle' | 'grab'
     cover: COVER[0], lastCover: COVER[0], ducking: false, frozen: false, sprinting: false, moving: false,
-    safeT: 0, freezeUses: 0, stepT: 0, noiseT: 0,
-    dashT: 0, skidT: 0, dashCd: 0, dashX: 1, dashY: 0,
+    safeT: 0, freezeUses: 0, stepT: 0, noiseT: 0, hideT: 0,
   };
   const look = LOOKOUTS.map((L, i) => ({
     ...L, i, state: 'rest', t: 0, restFor: 0.7 + i * 0.35, judged: false, survived: false, spotted: 0, grace: 0,
@@ -102,6 +107,7 @@ export default function create(env) {
   let outroT = 0;
   let mailX = MAIL_ROAD.x0;
   let motorT = 1;
+  let hurryT = 0;
 
   const warnTime = () => {
     if (env.versus) return 0.85 * (env.gentle[0] ? 1.25 : 1);
@@ -122,7 +128,7 @@ export default function create(env) {
     env.sfx('caught');
     env.sfx('gabble');
     env.vibrate(80);
-    fx.say(why || 'Spotted!', tr.x, tr.y - 230);
+    fx.say(why || 'Spotted!', tr.x, tr.y - 290);
     self.time = Math.max(0, self.time - SPOT_PENALTY);
     tr.mode = 'scuttle';
     tr.ducking = false; tr.frozen = false;
@@ -136,7 +142,7 @@ export default function create(env) {
     if (tr.mode !== 'free' || tr.safeT > 0) return;
     if (!inZone(L, tr.x, tr.y)) return;
     if (L.grace > 0) return;
-    if (tr.dashT > 0 || (tr.sprinting && tr.moving)) return spot(L, 'Heard you!');
+    if (tr.sprinting && tr.moving) return spot(L, 'Heard you!');
     if (tr.cover) {
       if (tr.ducking) return;
       // Standing tall in a bush is safe, unless the noise has them on edge.
@@ -152,7 +158,7 @@ export default function create(env) {
     if (!L.survived) {
       const p = clamp(0.85 * Math.pow(0.7, tr.freezeUses) - alert * 0.2, 0.05, 0.95);
       tr.freezeUses++;
-      if (env.rng() < p) { L.survived = true; fx.say('…a twig?', tr.x, tr.y - 230); }
+      if (env.rng() < p) { L.survived = true; fx.say('…a twig?', tr.x, tr.y - 290); }
       else spot(L, 'Not fooled!');
     }
   }
@@ -177,7 +183,7 @@ export default function create(env) {
         judge(L);
         L.t -= dt;
         if (L.t <= 0) {
-          if (L.survived && tr.mode === 'free') fx.say('Phew!', tr.x, tr.y - 230);
+          if (L.survived && tr.mode === 'free') fx.say('Phew!', tr.x, tr.y - 290);
           L.state = 'rest'; L.t = 0;
           L.restFor = env.versus ? L.rest * (env.gentle[1] ? 0.85 : 1) : L.rest * (0.8 + env.rng() * 0.5);
         }
@@ -190,6 +196,8 @@ export default function create(env) {
     ai.nextT -= dt;
     const busy = look.some((L) => L.state === 'warn' || L.state === 'look');
     if (alert > 0.3 && !busy) ai.nextT = Math.min(ai.nextT, 0.25);
+    // A keen lookout notices him moving in the open and looks sooner.
+    if (!busy && !tr.cover && tr.moving && tr.mode === 'free') ai.nextT = Math.min(ai.nextT, lerp(1.4, 0.3, env.skill));
     if (ai.nextT > 0 || busy) return;
     const ready = look.filter((L) => L.state === 'ready');
     if (!ready.length) return;
@@ -232,51 +240,13 @@ export default function create(env) {
       }
       tr.cover = inCoverOf(tr.x, tr.y);
       tr.moving = true; tr.sprinting = false; tr.ducking = false; tr.frozen = false;
-      tr.dashT = 0; tr.skidT = 0;
       return;
     }
-    tr.dashCd = Math.max(0, tr.dashCd - dt);
     let ix = inS?.x || 0, iy = inS?.y || 0;
     const m = Math.hypot(ix, iy);
     if (m > 1) { ix /= m; iy /= m; }
-    // Action dashes: with the stick pushed anywhere, or in the open with it still
-    // (then straight ahead). In cover with the stick still it ducks; at the mailbox it grabs.
-    if (inS?.actionPressed && tr.dashT <= 0 && !atMailbox(tr.x, tr.y) && (m > 0.3 || !tr.cover)) {
-      if (tr.dashCd > 0) env.sfx('back');
-      else {
-        const d = m > 0.3 ? 1 : 0;
-        tr.dashX = d ? ix / Math.hypot(ix, iy) : (tc.facing || 1); tr.dashY = d ? iy / Math.hypot(ix, iy) : 0;
-        tr.dashT = DASH.time; tr.dashCd = DASH.cooldown;
-        alert = Math.min(1, alert + DASH.alert);
-        art.kick(tc, -0.45); env.sfx('swoosh'); env.sfx('step');
-        noise.push({ x: tr.x - tr.dashX * 40, y: tr.y - 20, t: 0, s: 1 });
-      }
-    }
-    if (tr.dashT > 0 || tr.skidT > 0) {
-      if (tr.dashT > 0) {
-        tr.dashT -= dt;
-        tr.vx = tr.dashX * DASH.speed; tr.vy = tr.dashY * DASH.speed * 0.7;
-        if (tr.dashT <= 0) {
-          tr.skidT = DASH.skid;
-          // The thud of his landing: a lookout whose ring he lands in turns to look, if she can.
-          for (const L of look) if (inZone(L, tr.x, tr.y) && press(L)) fx.say('What was that?', L.x, L.y - L.h - 40);
-        }
-      } else {
-        tr.skidT -= dt;
-        const a = 1 - Math.exp(-16 * dt);
-        tr.vx -= tr.vx * a; tr.vy -= tr.vy * a;
-      }
-      tr.x = clamp(tr.x + tr.vx * dt, LANE.x0, LANE.x1);
-      tr.y = clamp(tr.y + tr.vy * dt, LANE.y0, LANE.y1);
-      tr.moving = tr.dashT > 0; tr.sprinting = false; tr.ducking = false;
-      const was = tr.cover;
-      tr.cover = inCoverOf(tr.x, tr.y);
-      if (tr.cover) tr.lastCover = tr.cover;
-      if (tr.cover && tr.cover !== was) { env.sfx('rustle'); tr.cover.shake = 0.8; }
-      tr.frozen = !tr.cover && tr.dashT <= 0;
-      return;
-    }
-    const wantDuck = !!inS?.action && !!tr.cover;
+    // Holding Action in cover ducks down out of sight (at the mailbox it grabs, below).
+    const wantDuck = !!inS?.action && !!tr.cover && !atMailbox(tr.x, tr.y);
     tr.ducking = wantDuck;
     const active = m > 0.2 && !wantDuck;
     tr.sprinting = active && !!inS?.sprint;
@@ -328,15 +298,18 @@ export default function create(env) {
       s.t += dt;
       s.x += s.vx * dt * (0.7 + 0.5 * Math.sin(s.t * 1.7));
       s.y = clamp(s.y + Math.sin(s.t * 2.3) * 22 * dt, LANE.y0, LANE.y1);
-      if (tr.mode === 'free' && Math.hypot(s.x - tr.x, (s.y - tr.y) * 1.3) < 80) {
+      if (tr.mode === 'free' && Math.hypot(s.x - tr.x, (s.y - tr.y) * 1.3) < 90) {
         stamps.splice(i, 1);
         self.bonus = Math.min(4, self.bonus + 1);
         env.sfx('snap'); env.sfx('tinkle');
         art.kick(tc, 0.25);
-        fx.say('Stamp!', s.x, s.y - 120);
+        fx.say('Stamp!', s.x, s.y - 140);
       } else if (s.x < -80 || s.x > W + 80) stamps.splice(i, 1);
     }
   }
+
+  // A lookout warning or looking over the stretch of lane he is on.
+  const threatOn = (x, y) => look.find((L) => (L.state === 'warn' || L.state === 'look') && inZone(L, x, y)) || null;
 
   const self = {
     focus: () => [tc, ...(env.versus ? LOOKOUTS : [])], // what the camera frames: the snatcher (then the lookouts)
@@ -348,6 +321,7 @@ export default function create(env) {
     tr, look, stamps, holder, // for tests and the bot
     get alert() { return alert; },
     get spots() { return spots; },
+    get mailX() { return mailX; },
     press: (i) => press(look[i]),
     update(dt, inS, inH) {
       t += dt;
@@ -361,6 +335,8 @@ export default function create(env) {
       self.time = Math.max(0, self.time - dt);
       motorT -= dt;
       if (motorT <= 0) { motorT = self.time < 10 ? 1.2 : 2.8; env.sfx('motor'); }
+      if (self.time < 10 && self.time + dt >= 10) { hurryT = 2.2; env.sfx('horn'); }
+      hurryT = Math.max(0, hurryT - dt);
       alert = Math.max(0, alert - dt * 0.1);
       moveTrollusk(dt, inS);
       if (env.versus) holderStep(inH); else aiStep(dt);
@@ -368,8 +344,9 @@ export default function create(env) {
       stepLookouts(dt);
       stepStamps(dt);
       animTrollusk(dt);
+      tr.hideT = tr.mode === 'free' && !tr.cover && !tr.frozen && threatOn(tr.x, tr.y)?.state === 'warn' ? tr.hideT + dt : 0;
       // The grab: at the mailbox, Action.
-      if (tr.mode === 'free' && inS?.actionPressed && tr.dashT <= 0 && atMailbox(tr.x, tr.y)) {
+      if (tr.mode === 'free' && inS?.actionPressed && atMailbox(tr.x, tr.y)) {
         self.done = true;
         self.outcome = 'snatched';
         tr.mode = 'grab';
@@ -377,39 +354,40 @@ export default function create(env) {
         art.setAnim(tc, 'grab');
         art.kick(tc, -0.6);
         env.sfx('snatch'); env.sfx('gabble'); env.vibrate(150);
-        fx.say('Got it!', MAILBOX.x, 380);
+        fx.say('Got it!', MAILBOX.x - 60, 400);
         return;
       }
       if (self.time <= 0) {
         self.done = true;
         self.outcome = 'kept';
         env.sfx('horn');
+        fx.say('Mail!', MAIL_ROAD.x1, 440);
       }
     },
     draw(g, tt) {
       art.drawScene(g, 'scenes/trollusk', W, H);
+      drawHouse(g, tt);
+      drawRoute(g);
       drawMailman(g, tt);
       const front = art.image('scenes/trollusk-front');
       if (front) g.drawImage(front, 0, 0, W, H);
-      drawHouse(g);
       drawZones(g, tt);
       // The mailbox: painted in the scene; open with the flag up once robbed.
-      if (self.outcome === 'snatched') {
-        drawOpenMailbox(g);
-      }
+      if (self.outcome === 'snatched') drawOpenMailbox(g);
       const things = [
         ...COVER.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawBush(g, k, tt) })),
         ...look.filter((L) => L.id !== 'sally').map((L) => ({ y: L.y, draw: () => drawLookout(g, L, tt) })),
-        ...stamps.map((s) => ({ y: s.y, draw: () => art.drawSprite(g, art.prop('trollusk', s.item), s.x, s.y - 18 - Math.abs(Math.sin(s.t * 4)) * 14, { height: 52, rot: Math.sin(s.t * 3) * 0.5 }) })),
+        ...stamps.map((s) => ({ y: s.y, draw: () => art.drawSprite(g, art.prop('trollusk', s.item), s.x, s.y - 18 - Math.abs(Math.sin(s.t * 4)) * 14, { height: 74, rot: Math.sin(s.t * 3) * 0.5 }) })),
         { y: tr.cover && tr.mode !== 'grab' ? tr.cover.y + tr.cover.ry * 0.9 - 1 : tr.y, draw: () => drawTrollusk(g, tt) },
       ].sort((a, b) => a.y - b.y);
       for (const th of things) th.draw();
       drawNoise(g);
       drawLookoutUi(g, tt);
+      drawPrompts(g, tt);
       fx.draw(g);
-      if (t < 3.2 && !self.done) hint(g, env.versus
-        ? 'Trollusk: creep from cover to cover · Lookouts: pick one, then look out!'
-        : 'Creep from cover to cover. Watch for the eye! A: dash out of the ring.', W);
+      if (t < 4 && !self.done) hint(g, env.versus
+        ? 'Trollusk: creep to the mailbox · Lookouts: pick one and look out!'
+        : 'Creep to the mailbox. When an eye pops up, hide!', W, t);
     },
     marks() {
       const elapsed = total - self.time;
@@ -424,7 +402,6 @@ export default function create(env) {
     tc.x = tr.x; tc.y = tr.y;
     if (tr.mode === 'scuttle') art.setAnim(tc, 'scuttle');
     else if (tr.ducking) art.setAnim(tc, 'duck');
-    else if (tr.dashT > 0) art.setAnim(tc, 'run');
     else if (tr.sprinting) art.setAnim(tc, 'run');
     else if (tr.moving) art.setAnim(tc, 'sneak');
     else if (tr.frozen) art.setAnim(tc, 'freeze');
@@ -450,25 +427,34 @@ export default function create(env) {
 
   function drawTrollusk(g, tt) {
     art.drawCreature(g, tc, tt, { reduceMotion: env.reduceMotion });
-    if (tr.dashCd > 0 && tr.mode === 'free' && !self.done) {
-      // The dash recharging: a little ring at his feet that fills back up.
-      g.save();
-      g.lineWidth = 6; g.strokeStyle = 'rgba(51,36,26,0.35)';
-      g.beginPath(); g.arc(tr.x, tr.y + 34, 16, 0, Math.PI * 2); g.stroke();
-      g.strokeStyle = '#f2c53d';
-      g.beginPath(); g.arc(tr.x, tr.y + 34, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - tr.dashCd / DASH.cooldown)); g.stroke();
-      g.restore();
-    }
     if (tr.frozen && tr.mode === 'free') {
       // How much his twig is still worth: leaves left on a little sprig.
       const left = Math.max(0, 4 - tr.freezeUses);
       g.save();
-      g.fillStyle = '#5f8a3a'; g.strokeStyle = '#33241a'; g.lineWidth = 3;
+      g.fillStyle = '#5f8a3a'; g.strokeStyle = INK; g.lineWidth = 3;
       for (let i = 0; i < 4; i++) {
         g.globalAlpha = i < left ? 1 : 0.25;
-        g.beginPath(); g.ellipse(tr.x - 33 + i * 22, tr.y + 26, 9, 6, 0.5, 0, Math.PI * 2); g.fill(); g.stroke();
+        g.beginPath(); g.ellipse(tr.x - 36 + i * 24, tr.y + 28, 10, 7, 0.5, 0, Math.PI * 2); g.fill(); g.stroke();
       }
       g.restore();
+    }
+  }
+
+  // What to do right now, said in the world: the letter, the grab, the duck, the hide.
+  function drawPrompts(g, tt) {
+    const opts = { kind: env.inputKind, t: tt };
+    if (self.outcome !== 'snatched') letterTag(g, MAILBOX.x + 55, 522, { t: tt });
+    if (self.done) return;
+    if (t < 7) marker(g, MAILBOX.x + 20, 420, { t: tt, label: 'The letter!' });
+    if (tr.mode !== 'free') return;
+    const size = art.creatureSize(tc);
+    const top = tr.y - size.h - 24;
+    if (atMailbox(tr.x, tr.y)) actionPrompt(g, tr.x, top, 'Grab!', { ...opts, pulse: 1, size: 40 });
+    else if (tr.cover && !tr.ducking && threatOn(tr.x, tr.y)) actionPrompt(g, tr.x, top, 'Duck!', { ...opts, pulse: 1 });
+    else if (tr.hideT > 0 && tr.hideT < 1.5) bang(g, tr.x, top - 10, 'Hide!', RED, 1, 60);
+    if (env.versus) {
+      const L = look[holder.sel];
+      if (L.state === 'ready') actionPrompt(g, L.x, L.y - L.h - 150, 'Look out!', { ...opts, side: 1, size: 30 });
     }
   }
 
@@ -476,7 +462,7 @@ export default function create(env) {
     const shake = k.shake > 0 && !env.reduceMotion ? Math.sin(tt * 60) * 5 * k.shake : 0;
     const sp = art.prop('trollusk', k.item);
     if (!art.drawSprite(g, sp, k.x + shake, k.y + k.ry * 0.9, { height: k.h, rot: shake * 0.004 })) {
-      g.save(); g.fillStyle = '#5f7a45'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+      g.save(); g.fillStyle = '#5f7a45'; g.strokeStyle = INK; g.lineWidth = 4;
       g.beginPath(); g.ellipse(k.x + shake, k.y - k.h * 0.3, k.rx, k.h * 0.6, 0, 0, Math.PI * 2); g.fill(); g.stroke();
       g.restore();
     }
@@ -503,29 +489,47 @@ export default function create(env) {
     g.restore();
   }
 
-  // Sally Ann's house: a clapboard wall with her window, up behind the fence.
-  function drawHouse(g) {
+  // Sally Ann's house: the clapboard end wall of it standing behind the hedge
+  // and the fence (the scene's foreground hides its foot), her window in it.
+  function drawHouse(g, tt) {
     const L = look[1];
-    const x0 = L.x - 175, x1 = L.x + 175, y0 = 228, y1 = 548;
+    const { x0, x1, top, bottom } = HOUSE;
+    const cx = (x0 + x1) / 2;
     g.save();
-    g.fillStyle = '#efe0bf';
-    g.strokeStyle = '#4a3526';
     g.lineWidth = 5;
-    g.fillRect(x0, y0, x1 - x0, y1 - y0);
+    g.strokeStyle = '#4a3526';
+    // The gable and its roof.
+    g.fillStyle = '#efe0bf';
+    g.beginPath(); g.moveTo(x0, top); g.lineTo(cx, top - 150); g.lineTo(x1, top); g.closePath(); g.fill(); g.stroke();
+    g.fillRect(x0, top, x1 - x0, bottom - top);
     g.lineWidth = 2;
     g.strokeStyle = 'rgba(74,53,38,0.35)';
-    for (let y = y0 + 26; y < y1; y += 26) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
+    for (let y = top + 26; y < bottom; y += 26) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
     g.lineWidth = 5;
     g.strokeStyle = '#4a3526';
-    g.strokeRect(x0, y0, x1 - x0, y1 - y0);
-    // The roof eave.
+    g.beginPath(); g.moveTo(x0, top); g.lineTo(x0, bottom); g.moveTo(x1, top); g.lineTo(x1, bottom); g.stroke();
     g.fillStyle = '#9b4b3a';
-    g.beginPath(); g.moveTo(x0 - 40, y0 + 8); g.lineTo(x1 + 40, y0 + 8); g.lineTo(x1 + 10, y0 - 50); g.lineTo(x0 - 10, y0 - 50); g.closePath(); g.fill(); g.stroke();
-    // A step and a flower box.
-    g.fillStyle = '#b07a52';
-    g.fillRect(L.x - 120, L.y - 6, 240, 22); g.strokeRect(L.x - 120, L.y - 6, 240, 22);
+    g.beginPath(); g.moveTo(x0 - 36, top + 14); g.lineTo(cx, top - 158); g.lineTo(x1 + 36, top + 14); g.lineTo(x1 + 36, top - 4); g.lineTo(cx, top - 176); g.lineTo(x0 - 36, top - 4); g.closePath(); g.fill(); g.stroke();
+    // A chimney, and a window box of geraniums under her sill.
+    g.fillStyle = '#9b4b3a';
+    g.fillRect(x1 - 110, top - 120, 44, 90); g.strokeRect(x1 - 110, top - 120, 44, 90);
     g.restore();
-    drawLookout(g, L, 0);
+    drawLookout(g, L, tt);
+    g.save();
+    g.lineWidth = 4; g.strokeStyle = '#4a3526'; g.fillStyle = '#b07a52';
+    g.fillRect(L.x - 118, L.y - 8, 236, 24); g.strokeRect(L.x - 118, L.y - 8, 236, 24);
+    g.fillStyle = '#c8443a';
+    for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(L.x - 95 + i * 38, L.y - 16, 11, 0, Math.PI * 2); g.fill(); g.stroke(); }
+    g.restore();
+  }
+
+  // The mailman's road: a dotted track above the fence from where he starts to
+  // the mailbox, so how far he has to go reads as the clock.
+  function drawRoute(g) {
+    g.save();
+    g.fillStyle = 'rgba(51,36,26,0.5)';
+    for (let x = 40; x < MAIL_ROAD.x1 - 10; x += 44) { g.beginPath(); g.arc(x, 478, 5, 0, Math.PI * 2); g.fill(); }
+    g.restore();
   }
 
   function drawMailman(g, tt) {
@@ -539,50 +543,47 @@ export default function create(env) {
       const k = ((tt * 1.5 + i / 3) % 1);
       g.globalAlpha = 0.35 * (1 - k);
       g.fillStyle = '#d8d2c8';
-      g.beginPath(); g.arc(x - 70 - k * 60, y - 18 - k * 20, 10 + k * 14, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(x - 90 - k * 70, y - 24 - k * 24, 12 + k * 16, 0, Math.PI * 2); g.fill();
     }
     g.restore();
-    if (!art.drawSprite(g, sp, x, y, { height: 112, flip: true })) {
-      g.save(); g.fillStyle = '#b8443a'; g.fillRect(x - 50, y - 50, 100, 50); g.restore();
+    if (!art.drawSprite(g, sp, x, y, { height: 170, flip: true })) {
+      g.save(); g.fillStyle = '#b8443a'; g.fillRect(x - 60, y - 70, 120, 70); g.restore();
+    }
+    if (hurryT > 0 && !self.done) {
+      const k = 1 + 0.1 * Math.sin(tt * 16);
+      bang(g, x, y - 180, 'Hurry!', RED, Math.min(1, hurryT), 56 * k);
     }
   }
 
-  // The stretch of lane a lookout watches: dashed while the eye warns, a beam while looking.
+  // The stretch of lane a lookout watches, drawn from their eyes: a cone down to
+  // a dashed ring while the eye warns, a lit cone and ring while they look.
   function drawZones(g, tt) {
     for (const L of look) {
       if (L.state !== 'warn' && L.state !== 'look') continue;
-      const [z0, z1] = L.zone;
       const e = zoneEllipse(L);
+      const looking = L.state === 'look';
+      const ex = L.x, ey = L.y - L.h * 0.72;
       g.save();
-      if (L.state === 'warn') {
-        g.globalAlpha = 0.6 + 0.3 * Math.sin(tt * 18);
-        g.beginPath(); g.ellipse(e.cx, e.cy, e.rx, e.ry, 0, 0, Math.PI * 2);
-        g.fillStyle = 'rgba(242,197,61,0.14)';
+      const gr = g.createLinearGradient(0, ey, 0, e.cy);
+      const c = L.spotted > 0 ? '200,68,58' : '255,236,150';
+      gr.addColorStop(0, `rgba(${c},${looking ? 0.12 : 0.05})`);
+      gr.addColorStop(1, `rgba(${c},${looking ? 0.4 : 0.18})`);
+      g.fillStyle = gr;
+      g.beginPath(); g.moveTo(ex - 18, ey); g.lineTo(ex + 18, ey); g.lineTo(e.cx + e.rx * 0.75, e.cy); g.lineTo(e.cx - e.rx * 0.75, e.cy); g.closePath(); g.fill();
+      g.beginPath(); g.ellipse(e.cx, e.cy, e.rx, e.ry, 0, 0, Math.PI * 2);
+      if (looking) {
+        g.fillStyle = L.spotted > 0 ? 'rgba(200,68,58,0.22)' : 'rgba(255,236,150,0.32)';
+        g.fill();
+        g.lineWidth = 10; g.strokeStyle = 'rgba(51,36,26,0.55)'; g.stroke();
+        g.lineWidth = 6; g.strokeStyle = L.spotted > 0 ? RED : YELLOW; g.stroke();
+      } else {
+        g.globalAlpha = 0.65 + 0.3 * Math.sin(tt * 14);
+        g.fillStyle = 'rgba(242,197,61,0.12)';
         g.fill();
         g.setLineDash([26, 18]);
-        g.lineWidth = 10;
-        g.strokeStyle = 'rgba(51,36,26,0.55)';
-        g.stroke();
-        g.lineWidth = 5;
-        g.strokeStyle = '#f2c53d';
-        g.stroke();
-      } else {
-        const ex = L.x, ey = L.y - L.h * 0.72;
-        // A faint beam from the eye down to the ring; only the ring itself counts.
-        const gr = g.createLinearGradient(0, ey, 0, e.cy);
-        gr.addColorStop(0, 'rgba(255,236,150,0.08)');
-        gr.addColorStop(1, 'rgba(255,236,150,0.22)');
-        g.fillStyle = gr;
-        g.beginPath(); g.moveTo(ex - 18, ey); g.lineTo(ex + 18, ey); g.lineTo(e.cx + e.rx * 0.6, e.cy); g.lineTo(e.cx - e.rx * 0.6, e.cy); g.closePath(); g.fill();
-        g.beginPath(); g.ellipse(e.cx, e.cy, e.rx, e.ry, 0, 0, Math.PI * 2);
-        g.fillStyle = L.spotted > 0 ? 'rgba(200,68,58,0.2)' : 'rgba(255,236,150,0.3)';
-        g.fill();
-        g.lineWidth = 10;
-        g.strokeStyle = 'rgba(51,36,26,0.55)';
-        g.stroke();
-        g.lineWidth = 6;
-        g.strokeStyle = L.spotted > 0 ? '#c8443a' : '#f2c53d';
-        g.stroke();
+        g.lineDashOffset = -tt * 60;
+        g.lineWidth = 10; g.strokeStyle = 'rgba(51,36,26,0.55)'; g.stroke();
+        g.lineWidth = 5; g.strokeStyle = YELLOW; g.stroke();
       }
       g.restore();
     }
@@ -595,7 +596,7 @@ export default function create(env) {
     // A lean-out when they start looking, settling back after.
     const pop = looking ? Math.max(0, 1 - (L.lookFor - L.t) * 5) : 0;
     if (!art.drawSprite(g, sp, L.x, L.y, { height: h, sx: 1 + pop * 0.08, sy: 1 + pop * 0.12 })) {
-      g.save(); g.fillStyle = looking ? '#e6b8a0' : '#a89a90'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+      g.save(); g.fillStyle = looking ? '#e6b8a0' : '#a89a90'; g.strokeStyle = INK; g.lineWidth = 4;
       g.beginPath(); g.ellipse(L.x, L.y - h / 2, h * 0.3, h / 2, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
     }
   }
@@ -606,33 +607,33 @@ export default function create(env) {
       const top = L.y - L.h - 16;
       if (L.state === 'warn') {
         const k = 1 + 0.12 * Math.sin(tt * 20);
-        art.drawSprite(g, art.prop('trollusk', 9), L.x, top + 6, { height: 120 * k }) || ring(g, L.x, top - 50, 40, '#f2c53d');
+        art.drawSprite(g, art.prop('trollusk', 9), L.x, top + 6, { height: 150 * k }) || ring(g, L.x, top - 60, 50, YELLOW);
       }
-      if (L.spotted > 0) bang(g, L.x + 70, top + 20, '!', '#c8443a');
-      else if (alert > 0.3 && L.state !== 'warn') bang(g, L.x + 70, top + 30, alert > 0.6 ? '!' : '?', '#f2c53d', 0.6 + alert * 0.4);
+      if (L.spotted > 0) bang(g, L.x + 80, top + 20, '!', RED);
+      else if (alert > 0.3 && L.state !== 'warn') bang(g, L.x + 80, top + 30, alert > 0.6 ? '!' : '?', YELLOW, 0.6 + alert * 0.4);
       // The rest: a small clock that fills as they recover; a green dot when ready.
-      const cx = L.x - 80, cy = top + 30;
+      const cx = L.x - 90, cy = top + 30;
       g.save();
-      g.lineWidth = 4; g.strokeStyle = '#33241a';
+      g.lineWidth = 4; g.strokeStyle = INK;
       if (L.state === 'rest') {
         g.fillStyle = 'rgba(248,241,224,0.9)';
-        g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill(); g.stroke();
+        g.beginPath(); g.arc(cx, cy, 22, 0, Math.PI * 2); g.fill(); g.stroke();
         g.fillStyle = '#8f8a86';
-        g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (L.t / L.restFor)); g.closePath(); g.fill();
+        g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, 18, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (L.t / L.restFor)); g.closePath(); g.fill();
       } else if (L.state === 'ready') {
         g.fillStyle = '#6aa84f';
-        g.beginPath(); g.arc(cx, cy, 13, 0, Math.PI * 2); g.fill(); g.stroke();
+        g.beginPath(); g.arc(cx, cy, 14, 0, Math.PI * 2); g.fill(); g.stroke();
       }
       g.restore();
       if (env.versus && holder.sel === L.i && !self.done) {
         const bob = Math.sin(tt * 5) * 6;
         g.save();
-        g.fillStyle = holder.deny > 0 ? '#c8443a' : '#f2c53d';
-        g.strokeStyle = '#33241a'; g.lineWidth = 5;
-        const ay = top - 90 + bob;
+        g.fillStyle = holder.deny > 0 ? RED : YELLOW;
+        g.strokeStyle = INK; g.lineWidth = 5;
+        const ay = top - 60 + bob;
         g.beginPath(); g.moveTo(L.x - 26, ay - 30); g.lineTo(L.x + 26, ay - 30); g.lineTo(L.x, ay); g.closePath(); g.fill(); g.stroke();
         g.font = '800 30px Fraunces, Georgia, serif';
-        g.textAlign = 'center'; g.lineWidth = 7; g.strokeStyle = 'rgba(248,241,224,0.95)'; g.fillStyle = '#33241a';
+        g.textAlign = 'center'; g.lineWidth = 7; g.strokeStyle = 'rgba(248,241,224,0.95)'; g.fillStyle = INK;
         g.strokeText(L.name, L.x, ay - 42); g.fillText(L.name, L.x, ay - 42);
         g.restore();
       }
@@ -641,7 +642,7 @@ export default function create(env) {
 
   function drawNoise(g) {
     g.save();
-    g.strokeStyle = '#33241a';
+    g.strokeStyle = INK;
     g.lineCap = 'round';
     for (const n of noise) {
       const k = n.t / 0.7;
@@ -663,49 +664,99 @@ export default function create(env) {
 }
 
 function ring(g, x, y, r, c) {
-  g.save(); g.fillStyle = c; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+  g.save(); g.fillStyle = c; g.strokeStyle = INK; g.lineWidth = 4;
   g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
   return true;
 }
 
-function bang(g, x, y, s, c, a = 1) {
+function bang(g, x, y, s, c, a = 1, size = 54) {
   g.save();
   g.globalAlpha = a;
-  g.font = '900 54px Fraunces, Georgia, serif';
+  g.font = `900 ${size}px Fraunces, Georgia, serif`;
   g.textAlign = 'center';
-  g.lineWidth = 8; g.strokeStyle = '#33241a'; g.fillStyle = c;
+  g.lineWidth = 8; g.strokeStyle = INK; g.fillStyle = c;
   g.strokeText(s, x, y); g.fillText(s, x, y);
   g.restore();
 }
 
-function hint(g, text, W) {
+// The opening hint: big type on a cream band across the top of the lane.
+function hint(g, text, W, t) {
+  const a = Math.min(1, t * 3, (4 - t) * 2);
   g.save();
-  g.font = '700 36px Fraunces, Georgia, serif';
+  g.globalAlpha = Math.max(0, a);
+  g.fillStyle = CREAM;
+  g.fillRect(0, 108, W, 84);
+  g.fillStyle = INK;
+  g.fillRect(0, 108, W, 4); g.fillRect(0, 188, W, 4);
+  g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
-  g.lineWidth = 8;
-  g.strokeStyle = 'rgba(248,241,224,0.95)';
-  g.fillStyle = '#33241a';
-  g.strokeText(text, W / 2, 150);
-  g.fillText(text, W / 2, 150);
+  g.textBaseline = 'middle';
+  g.fillText(text, W / 2, 152);
   g.restore();
 }
 
+// ---------- the how-to-play page (chapters/index.js, THE HOW-TO-PLAY PAGE) ----------
+// Three pictures, matching image requests OM-H1a, b and c.
+
+export const HOWTO = [
+  {
+    text: 'Creep from bush to bush along the lane.',
+    scene: 'scenes/trollusk', crop: [360, 400, 1120, 640],
+    items: [
+      { sprite: ['props.trollusk', 5], x: 110, y: 420, h: 180 },
+      { path: [[150, 440], [230, 452], [330, 440], [420, 452], [530, 440]], arrow: true },
+      { creature: 'trollusk', anim: 'sneak', x: 300, y: 428, h: 200 },
+      { sprite: ['props.trollusk', 5], x: 560, y: 436, h: 190 },
+    ],
+  },
+  {
+    text: 'An eye pops up? Hide, and hold to duck.',
+    scene: 'scenes/trollusk', crop: [160, 380, 1120, 640],
+    items: [
+      { cast: 3, x: 170, y: 340, h: 270 },
+      { sprite: ['props.trollusk', 9], x: 225, y: 110, h: 110 },
+      { creature: 'trollusk', anim: 'duck', x: 455, y: 436, h: 140 },
+      { sprite: ['props.trollusk', 6], x: 455, y: 456, h: 150 },
+      { ring: [455, 400, 92] },
+    ],
+  },
+  {
+    text: 'At the mailbox, grab the letter before the mailman comes!',
+    scene: 'scenes/trollusk', crop: [1100, 300, 820, 540],
+    items: [
+      { cast: 7, x: 110, y: 230, h: 84, flip: true },
+      { path: [[150, 215], [250, 215], [350, 215]], arrow: true },
+      { sprite: ['props.trollusk', 8], x: 470, y: 430, h: 240 },
+      { creature: 'trollusk', anim: 'grab', x: 330, y: 438, h: 220 },
+      { word: 'Grab!', x: 300, y: 160, size: 48 },
+    ],
+  },
+];
+
 // A competent player's input for the next frame (scripts/chapter-check.mjs):
-// creeps from cover to cover while the lookouts rest, ducks when one warns.
+// creeps from cover to cover while no lookout warns over the way, ducks in
+// cover while one does, and caught in the open, hurries to the nearest cover
+// if it is close or freezes behind the twig.
 export function autopilot(ch) {
   const { tr, look } = ch;
   const inp = (x, y, o = {}) => ({ x, y, action: false, actionPressed: false, actionReleased: false, sprint: false, ...o });
-  const atBox = Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR - 10;
-  if (atBox) return inp(0, 0, { actionPressed: true, action: true });
-  const next = COVER.find((k) => k.x > tr.x + 40) || { x: MAILBOX.grabX - 30, y: MAILBOX.grabY + 10 };
-  const covers = (L) => L.zone[1] >= Math.min(tr.x, next.x) && L.zone[0] <= Math.max(tr.x, next.x);
-  const threat = look.some((L) => covers(L) && (L.state === 'warn' || L.state === 'look'));
-  const soon = look.some((L) => covers(L) && L.state === 'ready');
+  if (atMailbox(tr.x, tr.y)) return inp(0, 0, { actionPressed: true, action: true });
+  if (tr.mode !== 'free') return inp(0, 0);
+  const next = COVER.find((k) => k.x > tr.x + 40) || { x: MAILBOX.grabX - 30, y: MAILBOX.grabY + 10, rx: 60 };
+  const onWay = (L) => inZone(L, tr.x, tr.y) || inZone(L, next.x, tr.y);
+  const threats = look.filter((L) => onWay(L) && (L.state === 'warn' || L.state === 'look'));
+  const toward = (k, o) => { const dx = k.x - tr.x, dy = k.y - tr.y, d = Math.hypot(dx, dy) || 1; return inp(dx / d, dy / d, o); };
   if (tr.cover) {
-    if (threat || soon) return inp(0, 0, { action: true });
-  } else if (threat) {
-    return inp(0, 0);
+    if (threats.length) return inp(0, 0, { action: true }); // duck and wait
+    return toward(next);
   }
-  const dx = next.x - tr.x, dy = next.y - tr.y, d = Math.hypot(dx, dy) || 1;
-  return inp(dx / d, dy / d);
+  if (!threats.length) return toward(next);
+  if (threats.some((L) => L.state === 'look')) return inp(0, 0); // freeze: a twig
+  // Warned in the open: the nearest cover, if he can make it before the look.
+  const warnLeft = Math.min(...threats.map((L) => L.t));
+  const near = [...COVER].sort((a, b) => Math.abs(a.x - tr.x) - Math.abs(b.x - tr.x))[0];
+  const gap = Math.max(0, Math.abs(near.x - tr.x) - near.rx * 0.7);
+  if (gap < warnLeft * 170) return toward(near);
+  if (gap < warnLeft * 380) return toward(near, { sprint: true });
+  return inp(0, 0);
 }

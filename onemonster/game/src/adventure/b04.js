@@ -189,9 +189,9 @@ export default function create(env) {
     ferg.riders--;
     riders.pop();
     const dir = ferg.cdx > 0 ? -1 : 1; // slides off the back
-    const x = ferg.x + dir * (hullHW() + 40);
+    const x = ferg.x + dir * (hullHW() + 200);
     parts.ps.push({ x: ferg.x + dir * hullHW() * 0.5, y: iceTop() + 60, vx: dir * 240, vy: -160, t: 0, life: 0.75, gravity: 1100, lion: true, size: 0, colour: '#b07a3a' });
-    strays.push({ x: x + dir * 90, t: -0.8 });
+    strays.push({ x: x + dir * 120, t: -0.8 });
     env.sfx('splash');
     if (reason) pop(reason, ferg.x, iceTop() - 40);
   }
@@ -463,7 +463,7 @@ export default function create(env) {
         if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 50 : -50) : 0);
         else { l.y = WL - 4; l.floe = null; l.swim = true; } // its floe smashed from under it
       }
-      if (!sunk() && Math.abs(l.x - ferg.x) < hw + 70) { l.got = true; l.t = 0; lionAboard(l); }
+      if (!sunk() && Math.abs(l.x - ferg.x) < hw + (l.floe ? 170 : 70)) { l.got = true; l.t = 0; lionAboard(l); } // from a floe pushed along at the bow, too
     }
     for (let i = strays.length - 1; i >= 0; i--) {
       const s = strays[i];
@@ -1261,7 +1261,9 @@ export function autopilot(board) {
     if (smashables.length) { target = smashables[0]; wantFury = Math.min(1, need[target.kind] / ferg.size + 0.3); }
   }
   const levelOk = (!overheads.length || ferg.level < -0.55) && (!reefs.length || ferg.level > 0.5) && !(zone && zone.warm && ferg.size <= 0.72 && ferg.level > -0.55);
-  const pegNear = Math.abs(gap) < 1000 && !overheads.length && !reefs.length;
+  // The Peg: huff only once it is within a full charge, or the captain just
+  // chugs out of reach while the ice huffs.
+  const pegNear = Math.abs(gap) < 700 + hw && !overheads.length && !reefs.length;
   if (pegNear) { target = peg; wantFury = 1; }
   if (!target) return inp;
   const dist = Math.abs(target.x - ferg.x);
@@ -1271,14 +1273,10 @@ export function autopilot(board) {
     if (levelOk || target !== peg) { inp.action = true; inp.actionPressed = true; }
   } else if (m === 'huff') {
     let release = ferg.fury >= wantFury && dist <= reach * 0.9 + hw && levelOk && ferg.aim === dir;
-    if (target === peg) {
-      // Wait for the captain to spend his steam, unless he is nearly home.
-      const spent = peg.steamCd > 0.8 || peg.x > HARBOUR_X - 450;
-      release = release && (spent || ferg.holdT > 4) && ferg.level > -0.3;
-    }
+    if (target === peg) release = ferg.fury >= 1 && dist <= 700 + hw && ferg.level > -0.3 && ferg.aim === dir;
     inp.action = !release;
     inp.actionReleased = release;
-    if (ferg.holdT > 7) { inp.action = false; inp.actionReleased = true; } // never hold forever
+    if (ferg.holdT > (target === peg ? 3 : 7)) { inp.action = false; inp.actionReleased = true; } // never hold forever
   }
   return inp;
 }

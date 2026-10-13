@@ -127,10 +127,16 @@ function holderBot(ch, rng) {
     const d = gd(foot, bottle);
     const ux = bottle.x - foot.x, uy = (bottle.y - foot.y) / K, l = Math.hypot(ux, uy) || 1;
     const away = d < 500;
+    // Keep off the edges (the corners trap it), like the computer's bottle.
+    const x1 = bottle.y < 585 ? 1630 : 1850;
+    let ax = away ? ux / l : 0, ay = away ? uy / l : 0;
+    ax += Math.max(0, 1 - (bottle.x - 90) / 300) * 1.5 - Math.max(0, 1 - (x1 - bottle.x) / 300) * 1.5;
+    ay += Math.max(0, 1 - (bottle.y - 500) / 160) * 1.5 - Math.max(0, 1 - (1035 - bottle.y) / 160) * 1.5;
+    const al = Math.max(1, Math.hypot(ax, ay));
     let press = false;
     if (ch.power > 0.2 && d < ch.radius * 0.95 && bottle.duck <= 0 && bottle.cd <= 0 && react < 0) react = 0.15 + rng() * 0.25;
     if (react >= 0) { react -= DT; if (react < 0) press = true; }
-    return { x: away ? ux / l : 0, y: away ? uy / l : 0, action: press, actionPressed: press, actionReleased: false, sprint: false };
+    return { x: ax / al, y: ay / al, action: press, actionPressed: press, actionReleased: false, sprint: false };
   };
 }
 

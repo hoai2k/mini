@@ -45,7 +45,8 @@ test('b04: a charge smashes a crate in splinters; a drift only shoves it along',
 
 test('b04: a charge into a reef cracks the ice and a sea lion slides off; risen it floats over', () => {
   const ch = create(makeEnv());
-  const reef = thing(ch, 'reef', 3900);
+  const reef = thing(ch, 'reef', 4850);
+  for (const l of ch.lions.items) l.got = true; // none left to hop aboard and muddle the count
   ch.ferg.riders = 3;
   for (let i = 0; i < 3; i++) ch.riders.push({ slot: i, state: 'doze', t: 0 });
   ch.ferg.x = reef.x - 400;
@@ -100,26 +101,28 @@ test('b04: warm water melts it smaller and faster; it refreezes slowly', () => {
 test('b04: ramming the Peg is the snatch; a sunk charge slips under; the feat needs eight sea lions', () => {
   for (const riders of [8, 3]) {
     const ch = create(makeEnv());
-    ch.peg.x = 6000; ch.peg.sp = 0; ch.peg.steamCd = 99;
-    ch.ferg.x = 5600;
+    ch.peg.steamCd = 99;
+    ch.ferg.x = 1000;
     ch.ferg.riders = riders;
-    charge(ch);
+    run(ch, 1.6, (b) => { b.peg.x = b.ferg.x + 300; return inp({ action: true, x: 1 }); }); // the Peg kept just ahead
+    ch.update(DT, inp({ x: 1, actionReleased: true }), null);
     run(ch, 1.5, idle);
     assert.equal(ch.outcome, 'snatched');
     assert.ok(ch.done);
-    assert.equal(ch.marks()[0], riders >= 8 ? 3 : 1); // few sea lions found: no collect mark
+    assert.equal(ch.marks()[0], riders >= 8 ? 2 : 1); // few sea lions found: no collect mark
     assert.equal(ch.featDone, riders >= 8);
     for (let i = 0; i < 120; i++) { ch.update(DT, idle, null); ch.draw(g, i * DT); }
   }
   const ch = create(makeEnv());
-  ch.peg.x = 6000; ch.peg.sp = 0; ch.peg.steamCd = 99;
-  ch.ferg.x = 5600;
+  ch.peg.steamCd = 99;
+  ch.ferg.x = 1000;
   run(ch, 2, inp({ y: 1 }));
-  run(ch, 1.6, inp({ action: true, x: 1, y: 1 }));
+  run(ch, 1.6, (b) => { b.peg.x = b.ferg.x + 300; return inp({ action: true, x: 1, y: 1 }); });
+  const pegX = ch.peg.x;
   ch.update(DT, inp({ x: 1, y: 1, actionReleased: true }), null);
   run(ch, 1.5, inp({ y: 1 }));
   assert.equal(ch.outcome, null, 'slipped under, no snatch');
-  assert.ok(ch.ferg.x > 6000, 'and came out the other side');
+  assert.ok(ch.ferg.x > pegX, 'and came out the other side');
 });
 
 test('b04: the Peg reaching the harbour keeps the letter; Gentle mode gives more time', () => {

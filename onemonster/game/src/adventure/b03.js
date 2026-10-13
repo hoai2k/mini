@@ -25,6 +25,11 @@ const ENTRY = BOARDS.find((b) => b.n === 3);
 const SHEET = 'adv.b03.props';
 const TERRAIN = 'terrain.goo';
 const INK = '#1b2a3a';
+// The Grumley's key poses are scaled so that his lurk pose (horns and eyes)
+// stands M.height tall; the full-body poses used under the goo are about 2.5
+// times that, so this sizeK makes him about 250 px tall.
+const SIZE = 0.4;
+const HALF = 125; // half his height: his (x, y) is his middle
 
 export const SURF = 380; // the goo's surface (world y)
 export const FLOOR = 1000; // the top of the sea floor
@@ -66,17 +71,17 @@ function layout(rng) {
   perched(PILLAR.x + 44, PILLAR.top - 2, 1); // (perched takes world x)
   // 2. The weed forest.
   for (const x of [2900, 3250, 3600, 4000, 4350, 4700, 5000]) skim(x);
-  high(3150, 200);
-  high(4600, 190);
+  high(3150, 185);
+  high(4600, 180);
   // 3. The fishing grounds.
   for (const x of [5420, 5850, 6350, 6850, 7250, 7700]) skim(x, 140);
   perched(sx(6100) - 35, SURF - 136, 1); // on a wheelhouse roof
   perched(sx(7020) - 35, SURF - 136, -1);
   // 4. The whirlpools.
-  high(8250, 150);
-  high(8950, 160);
-  high(9750, 140);
-  high(10400, 150);
+  high(8250, 180);
+  high(8950, 188);
+  high(9750, 176);
+  high(10400, 184);
   for (const x of [8700, 9500, 10200]) skim(x);
   // 5. The island.
   perched(ISLAND.x + 330, ISLAND.y - 18, -1);
@@ -166,10 +171,10 @@ export default function create(env) {
     munchT: 0, bubble: null, bubbleLeave: 0, bubbleT: 0.4, rippleT: 0, net: null, mash: 0,
     flung: null, c: art.makeCreature('grumley', 300, SURF + 240),
   };
-  G.c.sizeK = 0.9;
+  G.c.sizeK = SIZE;
   // The holder: the Bombanat in the necktie, flying ahead.
   const L = {
-    x: G.x + T.holderLead, y: 150, vx: 0, vy: 0, mode: 'fly', scare: 0, perchT: 0, ph: 0, flapT: 0,
+    x: G.x + T.holderLead, y: 235, vx: 0, vy: 0, mode: 'fly', scare: 0, perchT: 0, ph: 0, flapT: 0,
     c: art.makeCreature('bombanat', 0, 0),
   };
   L.c.sizeK = 0.85;
@@ -494,7 +499,7 @@ export default function create(env) {
     const landX = PERCH.x;
     if (L.mode === 'fly') {
       const tx = clamp(G.x + T.holderLead + Math.sin(t * 0.7) * 80, L.x - 90, landX);
-      const ty = (L.scare > 0 ? 70 : 150) + Math.sin(t * 1.3 + 1) * 30;
+      const ty = (L.scare > 0 ? 150 : 235) + Math.sin(t * 1.3 + 1) * 25;
       L.vx = ease(L.vx, clamp((tx - L.x) * 3, -T.holderV, T.holderV), 3, dt);
       L.vy = ease(L.vy, clamp((ty - L.y) * 3, -420, 420), 3, dt);
       L.x += L.vx * dt; L.y += L.vy * dt;
@@ -809,8 +814,9 @@ export default function create(env) {
       for (const b of boats) if (cam.sees(b.x - 300, b.x + 300)) drawUnderBoat(g, b);
       drawBubbles(g);
       drawGrumley(g);
+      drawIsland(g, false);
       drawGooTint(g);
-      drawIsland(g);
+      drawIsland(g, true);
       drawSigns(g);
       for (const b of boats) if (cam.sees(b.x - 300, b.x + 300)) drawBoat(g, b);
       for (const f of fliers) if (!f.got && cam.sees(f.x)) drawFlier(g, f);
@@ -958,9 +964,12 @@ export default function create(env) {
   }
 
   // The island: rock above the surface with grass, and its roots below.
-  function drawIsland(g) {
+  function drawIsland(g, above) {
     if (!cam.sees(ISLAND.x - 100, ISLAND.x + ISLAND.w + 100)) return;
     const I = ISLAND;
+    g.save();
+    // Below the surface it is drawn under the goo's tint; above, crisp.
+    g.beginPath(); g.rect(I.x - 100, above ? -100 : SURF, I.w + 200, above ? SURF + 100 : H - SURF); g.clip();
     kit.sprite(g, TERRAIN, 4, I.x + I.w / 2, SURF + 20, { height: SURF + 20 - I.y + 160 }, () => {
       g.save();
       g.fillStyle = '#5b5a52'; g.strokeStyle = INK; g.lineWidth = 5;
@@ -984,6 +993,7 @@ export default function create(env) {
     });
     // The picnic basket waits on the island (the book's picnic).
     art.drawSprite(g, art.prop('grumley', 4), I.x + 200, I.y - 12, { height: 90 });
+    g.restore();
   }
 
   function drawSigns(g) {
@@ -1009,6 +1019,8 @@ export default function create(env) {
     const spin = env.reduceMotion ? 0 : t * 2.2;
     kit.sprite(g, SHEET, 9, w.x, w.y + 30, { height: 300 }, () => {
       g.save();
+      g.fillStyle = 'rgba(150,215,245,0.22)';
+      g.beginPath(); g.moveTo(w.x - 260, w.y - 270); g.quadraticCurveTo(w.x - 60, w.y - 160, w.x - 30, w.y); g.lineTo(w.x + 30, w.y); g.quadraticCurveTo(w.x + 60, w.y - 160, w.x + 260, w.y - 270); g.closePath(); g.fill();
       g.strokeStyle = 'rgba(225,245,255,0.75)';
       g.lineWidth = 5;
       g.lineCap = 'round';
@@ -1243,11 +1255,11 @@ export default function create(env) {
     const c = G.c;
     if (self.done && self.outcome === 'snatched') return; // drawn risen, above the tint
     c.x = G.x;
-    c.y = G.y + 118;
+    c.y = G.y + HALF;
     c.facing = G.facing;
-    c.sizeK = 0.9;
+    c.sizeK = SIZE;
     // Netted: inside the net.
-    if (G.mode === 'netted') c.sizeK = 0.72;
+    if (G.mode === 'netted') c.sizeK = SIZE * 0.8;
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
     // The V of his wake when he swims near the surface.
     const sp = Math.hypot(G.vx, G.vy);
@@ -1270,7 +1282,7 @@ export default function create(env) {
   // After the snatch: out of the goo, holding him up (then netted and hauled up).
   function drawGrumleyRisen(g) {
     const c = G.c;
-    c.x = G.x; c.y = G.y + 118; c.facing = G.facing; c.sizeK = 0.9;
+    c.x = G.x; c.y = G.y + HALF; c.facing = G.facing; c.sizeK = SIZE;
     g.save();
     if (c.z < 30) { g.beginPath(); g.rect(cam.x - 50, -200, W + 100, SURF + 110); g.clip(); }
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
@@ -1378,7 +1390,7 @@ export default function create(env) {
     const c = L.c;
     if (L.mode === 'grabbed') {
       if (outroT >= 0.5) return; // in the Grumley's claw in his celebrate pose
-      c.x = G.x + G.facing * 90; c.y = G.y - 250; c.facing = -G.facing;
+      c.x = G.x + G.facing * 70; c.y = G.y - 150; c.facing = -G.facing;
       art.setAnim(c, 'grabbed');
       art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
       return;

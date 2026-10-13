@@ -34,7 +34,7 @@ export const TUNE = {
   water: 0.018, sprintWater: 0.03, // fullness per second of sucking, just sea water
   capture: 55, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
   footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings wide
-  bottleSpeed: 140, bottleAccel: 480, duck: 0.8, duckCd: 2.5, bottlePull: 0.5, suckSlow: 0.6,
+  bottleSpeed: 140, bottleAccel: 480, duck: 1.0, duckCd: 2.1, duckDash: 1.8, bottlePull: 0.35, suckSlow: 0.7,
   junk: 11,
 };
 
@@ -365,7 +365,8 @@ export default function create(env) {
       splashes.push({ x: b.x, y: b.y, t: 0, k: 0.8 });
       if (power > 0.3 && gdist(b.x, b.y, foot.x, foot.y) < radius() * 1.1) say('Ducked!', b.x, b.y - 110);
     }
-    const top = (TUNE.bottleSpeed + (hg ? 20 : 0)) * (b.duck > 0 ? 0.9 : 1);
+    // Under the wave it slips along faster: duck, then get out of the ring.
+    const top = (TUNE.bottleSpeed + (hg ? 20 : 0)) * (b.duck > 0 ? TUNE.duckDash : 1);
     const ix = clamp(inp?.x || 0, -1, 1), iy = clamp(inp?.y || 0, -1, 1);
     const il = Math.max(1, Math.hypot(ix, iy));
     const [cx, cy] = current(b.x, b.y);
@@ -405,8 +406,8 @@ export default function create(env) {
     brain.skip = Math.max(0, brain.skip - dt);
     const danger = power > 0.25 && d < radius() * (0.7 + 0.35 * sk) + 30;
     if (danger && brain.react < 0 && brain.skip <= 0 && b.cd <= 0 && b.duck <= 0) {
-      if (rng() < 0.3 * (1 - sk)) brain.skip = 0.7; // fumbled it
-      else brain.react = 0.1 + (1 - sk) * 0.4 + rng() * 0.2;
+      if (rng() < 0.08 + 0.3 * (1 - sk)) brain.skip = 0.7; // fumbled it
+      else brain.react = 0.15 + (1 - sk) * 0.5 + rng() * 0.25;
     }
     if (brain.react >= 0) {
       brain.react -= dt;
@@ -808,7 +809,7 @@ export function autopilot(ch) {
   s.rest -= dt;
   const was = s.held > 0;
   let action = false;
-  if (bottle.duck <= 0 && s.rest <= 0 && ch.full < 0.85 && (was ? fd < ch.TUNE.radius * 0.85 : fd < 70)) {
+  if (bottle.duck <= 0 && s.rest <= 0 && ch.full < 0.85 && (was ? fd < ch.TUNE.radius * 0.85 : fd < 110)) {
     s.held += dt;
     action = s.held < 1.6;
     if (!action) { s.held = 0; s.rest = 0.3; }

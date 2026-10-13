@@ -159,7 +159,7 @@ export default function create(env) {
     done: false,
     outcome: null,
     outroTime: 2.2,
-    S: { b, h, bc, hc, cam, solids, trees, clearings, covers, webs, vines, birds, pickups, stamps, fx, hints, cps, gentle, skill },
+    S: { b, h, bc, hc, cam, solids, trees, clearings, covers, webs, vines, birds, pickups, stamps, fx, hints, cps, gentle, skill, rng: env.rng },
     get snapClearing() { return snapClearing; },
     update(dt, inS) {
       t += dt;
@@ -260,7 +260,7 @@ export default function create(env) {
     b.hitT = Math.max(0, b.hitT - dt);
     b.swoopT = Math.max(0, b.swoopT - dt);
     b.blown = Math.max(0, b.blown - dt);
-    if (Math.abs(ix) > 0.3 && b.mode !== 'tumble' && b.mode !== 'web') b.facing = Math.sign(ix);
+    if (Math.abs(ix) > 0.3 && b.mode !== 'tumble' && b.mode !== 'web' && !b.diving && b.swoopT <= 0) b.facing = Math.sign(ix);
 
     if (b.mode === 'perched') {
       b.st = Math.min(1, b.st + P.regenPerch * dt);
@@ -405,6 +405,18 @@ export default function create(env) {
   // ---------- the Trollusk ----------
 
   function startPeek() { h.mode = 'peek'; h.modeT = 0; h.vx = 0; env.sfx('eye'); }
+  // Where his next dash goes (the next cover, or the canopy past the clearing).
+  function nextTarget() {
+    const c = h.clearing;
+    const next = h.coverI + h.dir;
+    if (next >= 0 && next < c.covers.length) return c.covers[next].x;
+    return c.last ? c.covers[h.coverI - h.dir].x : c.x1 + 80;
+  }
+  function lowOverPath() {
+    if (b.mode !== 'fly' || b.y < 360) return false;
+    const a = Math.min(h.x, nextTarget()) - 120, c = Math.max(h.x, nextTarget()) + 120;
+    return b.x > a && b.x < c;
+  }
   function startDash() {
     h.mode = 'dash'; h.modeT = 0; h.dodged = false; h.dashes++;
     const c = h.clearing;
@@ -435,11 +447,13 @@ export default function create(env) {
       // He sits tight until the hawk has been over the clearing a moment, not diving.
       const inView = b.x > h.clearing.x0 - 150 && Math.abs(b.x - h.x) < 1100 && !b.diving;
       h.seen = inView ? (h.seen || 0) + dt : Math.max(0, (h.seen || 0) - dt);
-      if (h.modeT > 0.8 && h.seen > 1.1) startPeek();
+      if (h.modeT > 0.8 && h.seen > 1.1) { if (lowOverPath()) { h.mode = 'feint'; h.modeT = 0; env.sfx('eye'); } else startPeek(); }
     } else if (h.mode === 'hide') {
-      // He waits a little longer while the hawk hangs right over his bush.
-      const hovering = Math.abs(b.x - h.x) < 130 && b.y < 720 && !b.diving && b.mode === 'fly';
-      if (h.modeT > h.hideT && !(hovering && h.modeT < h.hideT + 1.4)) startPeek();
+      // He will not run under a hawk hanging low over his path: he peeks and
+      // ducks back (a feint) until it goes higher or further off.
+      if (h.modeT > h.hideT) { if (lowOverPath()) { h.mode = 'feint'; h.modeT = 0; env.sfx('eye'); } else startPeek(); }
+    } else if (h.mode === 'feint') {
+      if (h.modeT > PEEK) { h.mode = 'hide'; h.modeT = 0; h.hideT = 0.7 + env.rng() * 0.5; }
     } else if (h.mode === 'peek') {
       if (h.modeT > PEEK) startDash();
     } else if (h.mode === 'skid') {
@@ -469,7 +483,7 @@ export default function create(env) {
       h.vx = 0;
     }
     h.underCanopy = underCanopy(h.x);
-    h.hidden = h.underCanopy || h.mode === 'wait' || h.mode === 'hide' || h.mode === 'peek';
+    h.hidden = h.underCanopy || h.mode === 'wait' || h.mode === 'hide' || h.mode === 'peek' || h.mode === 'feint';
     if (h.mode === 'skid' && h.modeT > 0.35) { /* back on the run */ }
   }
 
@@ -656,7 +670,7 @@ export default function create(env) {
     else if (m === 'wail') art.setAnim(hc, 'wail');
     else if (m === 'celebrate') art.setAnim(hc, 'celebrate');
     else if (m === 'skid') art.setAnim(hc, 'skid');
-    else if (m === 'peek') art.setAnim(hc, 'eye');
+    else if (m === 'peek' || m === 'feint') art.setAnim(hc, 'eye');
     else if (m === 'hide' || m === 'wait') art.setAnim(hc, 'duck');
     else if (m === 'dash') art.setAnim(hc, 'run');
     else art.setAnim(hc, 'run');
@@ -1047,7 +1061,7 @@ export default function create(env) {
   }
 
   function drawHolder(g, tt) {
-    if (h.hidden && h.cover && (h.mode === 'hide' || h.mode === 'wait')) {
+    if (h.hidden && h.cover && (h.mode === 'hide' || h.mode === 'wait' || h.mode === 'feint')) {
       // Tucked into cover, drawn behind it; his hat shows over the top.
       const z = hc.y;
       hc.y = h.y + (h.cover.kind === 'log' ? 24 : 12);
@@ -1060,7 +1074,7 @@ export default function create(env) {
     if (!h.hidden) {
       letterTag(g, h.x + h.dir * 70, h.y - 150, { t: tt });
       if (h.mode === 'dash' || h.mode === 'skid') marker(g, h.x, h.y - 270, { t: tt, label: 'Dive!' });
-    } else if (h.mode === 'peek') marker(g, h.x, h.y - 300, { t: tt, label: 'Ready…', colour: '#f2c53d' });
+    } else if (h.mode === 'peek' || h.mode === 'feint') marker(g, h.x, h.y - 300, { t: tt, label: 'Ready…', colour: '#f2c53d' });
   }
 
   function drawBombanat(g, tt) {
@@ -1193,8 +1207,8 @@ export const HOWTO = [
 // dives when he bolts, aiming where he will be.
 
 export function autopilot(board) {
-  const { b, h, solids, webs, clearings, pickups, birds, trees } = board.S;
-  const ap = board.S.ap || (board.S.ap = { frame: 0, lastFlap: -9 });
+  const { b, h, solids, webs, clearings, pickups, birds, trees, rng } = board.S;
+  const ap = board.S.ap || (board.S.ap = { frame: 0, lastFlap: -9, jitter: 0, jitterFor: -1 });
   ap.frame++;
   const out = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
   const press = () => { if (ap.frame - ap.lastFlap >= 2) { out.actionPressed = true; out.action = true; ap.lastFlap = ap.frame; } };
@@ -1212,7 +1226,7 @@ export function autopilot(board) {
 
   // Hunting: the Trollusk is in a clearing and we are near it.
   const cl = h.clearing;
-  const hunting = cl && b.x > cl.x0 - 400 && (h.mode === 'wait' || h.mode === 'hide' || h.mode === 'peek' || h.mode === 'dash' || h.mode === 'skid');
+  const hunting = cl && b.x > cl.x0 - 400 && (h.mode === 'wait' || h.mode === 'hide' || h.mode === 'feint' || h.mode === 'peek' || h.mode === 'dash' || h.mode === 'skid');
   if (b.mode === 'perched') {
     if (b.st < 0.9 && !hunting && b.modeT < 2.5) return out; // a rest
     out.x = 1; press();
@@ -1221,8 +1235,10 @@ export function autopilot(board) {
 
   if (hunting) {
     const dir = h.dir;
-    const hoverY = 440;
+    const hoverY = 300;
     if (h.mode === 'dash' || h.mode === 'skid' || h.mode === 'peek') {
+      // Reading his peek as a human would: a little early or late each time.
+      if (h.mode === 'peek' && ap.jitterFor !== h.dashes) { ap.jitterFor = h.dashes; ap.jitter = (rng() - 0.5) * 0.3; }
       // Where will he be when the jaws reach the floor? Simulate the dive.
       let sx = b.x, sy = b.y, svx = b.vx, svy = b.diving ? b.vy : 0, tt = 0;
       while (sy + 150 < FLOOR - 130 && tt < 1.5) {
@@ -1231,9 +1247,8 @@ export function autopilot(board) {
         svx += (dir * 620 - svx) * (1 - Math.exp(-2 * dt));
         sx += svx * dt; sy += svy * dt; tt += dt;
       }
-      const peekLeft = h.mode === 'peek' ? Math.max(0, PEEK - h.modeT) : 0;
-      const skidLeft = h.mode === 'skid' ? Math.max(0, 0.35 - h.modeT) : 0;
-      const runT = Math.max(0, tt - peekLeft - skidLeft);
+      const peekLeft = h.mode === 'peek' ? Math.max(0, PEEK + ap.jitter - h.modeT) : 0;
+      const runT = Math.max(0, tt - peekLeft); // as if he keeps running: a skid fools us
       let hx = h.x + dir * 440 * runT;
       // He stops at his next cover (or the canopy): no use diving past it.
       if ((hx - h.target) * dir > 0) hx = h.target;
@@ -1246,21 +1261,20 @@ export function autopilot(board) {
         return out;
       }
       const stopsShort = Math.abs(hx - h.target) < 30 && h.mode !== 'peek';
-      // A human's reaction: the dive starts only once he is seen running.
-      const seenRunning = h.mode === 'dash' ? h.modeT >= 0.22 : h.mode === 'skid';
+      // A human's reaction: on the peek (read with the jitter), or once he is seen running.
+      const seenRunning = h.mode === 'peek' || (h.mode === 'dash' && h.modeT >= 0.22);
       const inWindow = Math.abs(miss) < 60 && seenRunning && !stopsShort;
       if (inWindow && b.y < 700) { out.y = 1; return out; }
       // Not yet: close on where he will be (he runs under us), at hover height.
-      if (h.mode === 'peek') out.x = -dir * 0.7;
-      else out.x = miss > 0 ? dir : -dir * 0.7;
+      out.x = miss > 0 ? dir : -dir * 0.7;
       if (b.y > hoverY + 20 && b.vy > -150) press();
       return out;
     }
     // He is hiding: hover a little ahead of his cover (right over it, he sits tight).
     if (b.diving) { out.y = 0; out.x = dir; return out; }
-    out.x = holdX(h.x + dir * 250);
+    out.x = holdX(h.x + dir * 160);
     if (b.y > hoverY + 20 && b.vy > -150) press();
-    if (b.y < hoverY - 200 && b.vy < 300) out.y = 1;
+    if (b.y < hoverY - 120 && b.vy < 240) out.y = 1;
     return out;
   }
 

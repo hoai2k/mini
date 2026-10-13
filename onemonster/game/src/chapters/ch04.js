@@ -906,7 +906,7 @@ export default function create(env) {
     const col = hot ? '#ff6b4a' : '#fff6dc';
     g.save();
     g.lineCap = 'round';
-    g.globalAlpha = hot ? 0.3 + Math.sin(tt * 12) * 0.08 : 0.22;
+    g.globalAlpha = hot ? 0.38 + Math.sin(tt * 12) * 0.08 : 0.3;
     g.strokeStyle = col;
     g.lineWidth = (P.radius + 70) * 2 * 0.8;
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
@@ -949,7 +949,7 @@ export default function create(env) {
   function drawMeters(g) {
     // The fury bar, above the iceberg, while it huffs and rears back. (The sea
     // lions aboard are counted in the shell's HUD line and seen on the ledges.)
-    const x = ferg.x, y = ferg.y - 362;
+    const x = ferg.x, y = ferg.y - 385;
     g.save();
     if (ferg.mode === 'huff' || ferg.mode === 'windup') {
       const w = 300, hh = 44;
@@ -1122,7 +1122,7 @@ export const HOWTO = [
     ],
   },
   {
-    text: 'Charge into the Peg before it reaches the harbour. SCRUNNCCCHHH!!',
+    text: 'Charge into the Peg before it gets to the harbour. SCRUNCH!',
     scene: 'scenes/iceferg', crop: [980, 40, 920, 690],
     items: [
       { sprite: ['props.iceferg', 6], x: 430, y: 390, h: 150, ay: 0.5 },
