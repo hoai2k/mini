@@ -204,6 +204,8 @@ export default function create(env) {
   const clawR = T.clawR + (gentle ? 18 : 0);
   const total = kit.boardTime(env, ENTRY.time);
   const world = layout(rng);
+  // Art the shell does not preload for a board: the surface boats and the branchless perched Bombanat.
+  art.preload(['adv.b03.boats', 'bombanat/plain-perched']);
   const { fliers, fish, boats, whirlpools, vents } = world;
   const cam = kit.makeCamera(WORLD, { lead: 300, anchor: 0.38 });
   const parts = kit.makeParticles();

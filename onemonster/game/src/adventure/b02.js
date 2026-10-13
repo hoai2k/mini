@@ -57,14 +57,14 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log:
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
 const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700, 230, true], [10650, 240], [12500, 230, true]];
-const HOLE = 253; // the hollow's height: the drawn hole of adv.trunks 2 at the column's width
+const HOLE = 300; // the hollow's height: the drawn hole of adv.trunks 2 at the column's width
 // The trunk column sprites (adv.trunks): item 1 plain bark, item 2 with a hole
 // through it. Drawn TRUNK_W wide; the hole in item 2 spans rows 127..213 of 360.
-const TRUNK_W = 300;
+const TRUNK_W = 356;
 const HOLE_TOP = 127 / 360, HOLE_BOTTOM = 213 / 360;
 const BOUGHS = [[2250, 400], [5800, 390], [9350, 360], [12900, 400]];
-const BRANCHES = [[200, 380, 420, 1], [1250, 520, 350, 1], [2900, 410, 380, -1],
-  [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
+const BRANCHES = [[200, 380, 420, 1], [1100, 520, 350, 1], [2900, 410, 380, -1],
+  [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 340, 1], [12050, 580, 250, 1]];
 const WEBS = [[5550, 300, 120], [5950, 290, 110], [6700, 560, 115]];
 const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
 const BIRDS = [[9000, 400], [10150, 400]];
@@ -122,7 +122,7 @@ export default function create(env) {
   const solids = [{ x: -400, y: FLOOR, w: 14850, h: 400, kind: 'floor' }];
   for (const s of SECTIONS) if (!s.open) solids.push({ x: s.x0, y: LEAF_TOP, w: s.x1 - s.x0, h: FLOOR - LEAF_TOP, kind: 'leaves' });
   const trees = TRUNKS.map(([x, top, face]) => {
-    const hw = 140;
+    const hw = 160; // the drawn bark is about 330 wide
     // The trunk below the hollow (its sill can be perched on) and above it.
     const s = { x: x - hw, y: top + HOLE, w: hw * 2, h: FLOOR - top - HOLE, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw, hole: top };
     solids.push(s);

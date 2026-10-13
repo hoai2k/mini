@@ -138,5 +138,15 @@ export async function loadBoardModule(file) {
 export function boardArt(b) {
   const nn = String(b.n).padStart(2, '0');
   return [`adv/b${nn}/backdrop-1`, `adv/b${nn}/backdrop-2`, `adv/b${nn}/backdrop-3`, `adv.b${nn}.props`,
-    `terrain.${b.place}`, `${b.snatcher}.moves`];
+    `terrain.${b.place}`, `${b.snatcher}.moves`, ...(EXTRA_ART[b.n] || [])];
 }
+
+// Pieces a board uses beyond its standard sheets (the requests added when the
+// delivered art went in: OM-Z01, Z05 to Z09).
+const EXTRA_ART = {
+  2: ['adv.trunks'],
+  3: ['adv.b03.boats', 'bombanat.plain', 'bombanat/plain-perched'],
+  5: ['adv.b05.windmill'],
+  7: ['adv/b07/palm-arch'],
+  9: ['adv.trunks', 'bombanat.plain', 'bombanat/plain-perched'],
+};
