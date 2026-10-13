@@ -16,10 +16,11 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 10. Every monster's design now comes from a photo of the book. Where a prompt adds something of our own (the Ice-Ferg's crack-mouth, for one), it says so.
 11. Order of work: the model sheets, then the portraits, then the parts and swaps, then the key poses, props, scenes and story pages. The game keeps its stand-ins for anything not yet delivered.
 12. **The Adventure** (`design/adventure.md`) adds four kinds of request: new poses for each monster (`OM-A`, drawn with its model sheet and key-poses sheet attached, at the same scale), three backdrop panels per board (`OM-B01a` to `OM-B09c`), the ground pieces of each place (`OM-G`) and a props sheet per board (`OM-Y`). Every board plays with stand-ins until they arrive. Good order: the backdrops of a board and its props sheet together, so they match, then the ground pieces of that place.
+13. **How to play** (`OM-H`): three spot illustrations per minigame for its how-to-play page, with the model sheets of the characters in them attached.
 
 ## Status
 
-48 requested, 59 delivered, 107 in total.
+75 requested, 59 delivered, 134 in total.
 
 ## Brand
 
@@ -1474,4 +1475,359 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A sheet of separate small game sprites for a side-scrolling game, all seen side-on, each one complete on its own and drawn at the same scale as the others: 1. A plain mauve bat-winged Bombanat fluttering, no necktie and no cap. 2. A glass collecting jar with a cork, empty. 3. The same jar with a small angry Bombanat inside. 4. A gnarled root arching out of the ground, to trip over. 5. A big toadstool, flat-topped, to bounce on. 6. A gap in the ground with a little stream at the bottom, side-on. 7. A clump of ferns to hide in. 8. A fallen log. 9. The official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot. 10. A low branch. 11. A pile of rocks. 12. A hollow stump. Lay them out in a grid of 4 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/back-cover-grithix.jpg .
+```
+
+## How to play pages
+
+Three small spot illustrations per minigame, shown side by side on the page before it starts, each with a numbered caption the game writes underneath: what you do first, the danger to watch for, and how you win. Draw the characters from their model sheets (attach them), clear and simple enough to read small.
+
+### OM-H1a · Chapter 1: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch01-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 1's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-06-07-sally-ann-and-mailbox.jpg`](../reference/pages-06-07-sally-ann-and-mailbox.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk tiptoeing along a country lane from one round leafy bush toward the next, a dotted line of little footprints showing the way, a picket fence behind. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg .
+```
+
+### OM-H1b · Chapter 1: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch01-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 1's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-06-07-sally-ann-and-mailbox.jpg`](../reference/pages-06-07-sally-ann-and-mailbox.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk ducked down in a flowerbed, only his checked hat showing, while a plump old lady in a rocking chair on her porch opens one eye and peers over her spectacles. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg .
+```
+
+### OM-H1c · Chapter 1: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch01-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 1's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-06-07-sally-ann-and-mailbox.jpg`](../reference/pages-06-07-sally-ann-and-mailbox.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk on tiptoe pulling a white envelope out of a grey rural mailbox with a red flag, while far down the road a little mailman on a motorcycle putters closer. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg .
+```
+
+### OM-H2a · Chapter 2: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch02-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 2's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/bombanat-and-pony-express-boy.jpg`](../reference/bombanat-and-pony-express-boy.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat flapping over a wood, looking down at the Trollusk running along the ground below with a white envelope in his snout. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/bombanat-and-pony-express-boy.jpg .
+```
+
+### OM-H2b · Chapter 2: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch02-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 2's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/bombanat-and-pony-express-boy.jpg`](../reference/bombanat-and-pony-express-boy.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk hiding in a leafy bush, only his hat showing, while the Bombanat hovers just above the bush, peering in. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/bombanat-and-pony-express-boy.jpg .
+```
+
+### OM-H2c · Chapter 2: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch02-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 2's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/bombanat-and-pony-express-boy.jpg`](../reference/bombanat-and-pony-express-boy.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat diving steeply onto the running Trollusk and snapping the envelope out of his snout with its long toothy jaws. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/bombanat-and-pony-express-boy.jpg .
+```
+
+### OM-H3a · Chapter 3: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch03-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 3's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grumley-in-the-goo.jpg`](../reference/grumley-in-the-goo.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .
+```
+
+### OM-H3b · Chapter 3: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch03-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 3's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grumley-in-the-goo.jpg`](../reference/grumley-in-the-goo.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Among several plain Bombanats, one with a red-and-white striped necktie and a white envelope in its teeth dipping low over the goo. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .
+```
+
+### OM-H3c · Chapter 3: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch03-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 3's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grumley-in-the-goo.jpg`](../reference/grumley-in-the-goo.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grumley's long spiny crab arm shooting up out of the goo in a splash and grabbing the Bombanat in the striped necktie. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .
+```
+
+### OM-H4a · Chapter 4: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch04-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 4's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-18-19-ice-ferg.png`](../reference/pages-18-19-ice-ferg.png)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .
+```
+
+### OM-H4b · Chapter 4: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch04-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 4's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-18-19-ice-ferg.png`](../reference/pages-18-19-ice-ferg.png)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .
+```
+
+### OM-H4c · Chapter 4: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch04-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 4's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/pages-18-19-ice-ferg.png`](../reference/pages-18-19-ice-ferg.png)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Ice-Ferg charging into the side of a stout teal fishing boat with a wheelhouse and a crane, SCRUNCH, spray and ice flying, a harbour with a lighthouse in the distance. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .
+```
+
+### OM-H5a · Chapter 5: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch05-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 5's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/typhoonigator-spread.jpg`](../reference/typhoonigator-spread.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Typhoonigator, a storm cloud with a face and big pink lips, rolling across the sky over the sea, its water spout dangling down to the waves. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg .
+```
+
+### OM-H5b · Chapter 5: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch05-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 5's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/typhoonigator-spread.jpg`](../reference/typhoonigator-spread.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Fish, plain green and brown bottles and blobs of goo spiralling up the spout as the Typhoonigator sucks hard, cheeks hollow. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg .
+```
+
+### OM-H5c · Chapter 5: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch05-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 5's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/typhoonigator-spread.jpg`](../reference/typhoonigator-spread.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Among the plain bottles, one glass bottle with a red-and-white label and a rolled note inside, being sucked up the spout, the Typhoonigator delighted. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg .
+```
+
+### OM-H6a · Chapter 6: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch06-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 6's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/yalapappus-bottle-on-head.jpg`](../reference/yalapappus-bottle-on-head.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .
+```
+
+### OM-H6b · Chapter 6: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch06-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 6's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/yalapappus-bottle-on-head.jpg`](../reference/yalapappus-bottle-on-head.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .
+```
+
+### OM-H6c · Chapter 6: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch06-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 6's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/yalapappus-bottle-on-head.jpg`](../reference/yalapappus-bottle-on-head.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: A glass bottle with a red-and-white label landing KER-PLOP on the Yalapappus's head and breaking, a rolled note falling out, which he munches gleefully. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .
+```
+
+### OM-H7a · Chapter 7: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch07-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 7's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-snatches-from-yalapappus.jpg`](../reference/trollusk-snatches-from-yalapappus.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk creeping up behind the Yalapappus, who sits munching paper with a white envelope on his fork, at the edge of Nowhere. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-snatches-from-yalapappus.jpg .
+```
+
+### OM-H7b · Chapter 7: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch07-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 7's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-snatches-from-yalapappus.jpg`](../reference/trollusk-snatches-from-yalapappus.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus turning round to look while the Trollusk freezes behind a leafy twig held up as a disguise. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-snatches-from-yalapappus.jpg .
+```
+
+### OM-H7c · Chapter 7: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch07-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 7's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-snatches-from-yalapappus.jpg`](../reference/trollusk-snatches-from-yalapappus.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Trollusk running away with the envelope in his snout, stamps flying from his bag, the Yalapappus trundling after him with knife and fork. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-snatches-from-yalapappus.jpg .
+```
+
+### OM-H8a · Chapter 8: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch08-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 8's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-and-yalapappus-running.jpg`](../reference/trollusk-and-yalapappus-running.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat flying high over open ground, the Trollusk running below with the envelope and the Yalapappus stomping behind him. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg .
+```
+
+### OM-H8b · Chapter 8: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch08-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 8's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-and-yalapappus-running.jpg`](../reference/trollusk-and-yalapappus-running.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat swerving away from the Yalapappus's big swiping paw reaching up at it. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg .
+```
+
+### OM-H8c · Chapter 8: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch08-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 8's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/trollusk-and-yalapappus-running.jpg`](../reference/trollusk-and-yalapappus-running.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg .
+```
+
+### OM-H9a · Chapter 9: how to play, step 1
+
+- **File:** `onemonster/game/assets/howto/ch09-1.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 1 of chapter 9's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grithix-nets-bombanat-page.jpg`](../reference/grithix-nets-bombanat-page.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .
+```
+
+### OM-H9b · Chapter 9: how to play, step 2
+
+- **File:** `onemonster/game/assets/howto/ch09-2.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 2 of chapter 9's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grithix-nets-bombanat-page.jpg`](../reference/grithix-nets-bombanat-page.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .
+```
+
+### OM-H9c · Chapter 9: how to play, step 3
+
+- **File:** `onemonster/game/assets/howto/ch09-3.webp`
+- **Size:** 1024 x 768, opaque
+- **Used for:** Step 3 of chapter 9's how-to-play page.
+- **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
+- **Reference:** [`reference/grithix-nets-bombanat-page.jpg`](../reference/grithix-nets-bombanat-page.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .
 ```

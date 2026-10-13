@@ -1600,6 +1600,94 @@ for b in BOARDS:
     })
 
 
+# ---------- How to play: three spot illustrations per minigame ----------
+#
+# Each minigame opens with a picture-book "How to play" page (design.md, Flow):
+# three numbered steps, each a small spot illustration with the game's caption
+# under it, then the controls. Until a picture arrives the game composes the
+# step in code from the monster's poses and the chapter's props.
+
+SECTIONS["howto"] = (
+    "How to play pages",
+    "Three small spot illustrations per minigame, shown side by side on the page before "
+    "it starts, each with a numbered caption the game writes underneath: what you do "
+    "first, the danger to watch for, and how you win. Draw the characters from their "
+    "model sheets (attach them), clear and simple enough to read small.",
+)
+
+HOWTO = {
+    1: ("trollusk", "pages-06-07-sally-ann-and-mailbox.jpg", [
+        "The Trollusk tiptoeing along a country lane from one round leafy bush toward the next, a dotted line of little footprints showing the way, a picket fence behind",
+        "The Trollusk ducked down in a flowerbed, only his checked hat showing, while a plump old lady in a rocking chair on her porch opens one eye and peers over her spectacles",
+        "The Trollusk on tiptoe pulling a white envelope out of a grey rural mailbox with a red flag, while far down the road a little mailman on a motorcycle putters closer",
+    ]),
+    2: ("bombanat", "bombanat-and-pony-express-boy.jpg", [
+        "The Bombanat flapping over a wood, looking down at the Trollusk running along the ground below with a white envelope in his snout",
+        "The Trollusk hiding in a leafy bush, only his hat showing, while the Bombanat hovers just above the bush, peering in",
+        "The Bombanat diving steeply onto the running Trollusk and snapping the envelope out of his snout with its long toothy jaws",
+    ]),
+    3: ("grumley", "grumley-in-the-goo.jpg", [
+        "Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead",
+        "Among several plain Bombanats, one with a red-and-white striped necktie and a white envelope in its teeth dipping low over the goo",
+        "The Grumley's long spiny crab arm shooting up out of the goo in a splash and grabbing the Bombanat in the striped necktie",
+    ]),
+    4: ("iceferg", "pages-18-19-ice-ferg.png", [
+        "Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea",
+        "The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury",
+        "The Ice-Ferg charging into the side of a stout teal fishing boat with a wheelhouse and a crane, SCRUNCH, spray and ice flying, a harbour with a lighthouse in the distance",
+    ]),
+    5: ("typhoonigator", "typhoonigator-spread.jpg", [
+        "The Typhoonigator, a storm cloud with a face and big pink lips, rolling across the sky over the sea, its water spout dangling down to the waves",
+        "Fish, plain green and brown bottles and blobs of goo spiralling up the spout as the Typhoonigator sucks hard, cheeks hollow",
+        "Among the plain bottles, one glass bottle with a red-and-white label and a rolled note inside, being sucked up the spout, the Typhoonigator delighted",
+    ]),
+    6: ("yalapappus", "yalapappus-bottle-on-head.jpg", [
+        "The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each",
+        "The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was",
+        "A glass bottle with a red-and-white label landing KER-PLOP on the Yalapappus's head and breaking, a rolled note falling out, which he munches gleefully",
+    ]),
+    7: ("trollusk", "trollusk-snatches-from-yalapappus.jpg", [
+        "The Trollusk creeping up behind the Yalapappus, who sits munching paper with a white envelope on his fork, at the edge of Nowhere",
+        "The Yalapappus turning round to look while the Trollusk freezes behind a leafy twig held up as a disguise",
+        "The Trollusk running away with the envelope in his snout, stamps flying from his bag, the Yalapappus trundling after him with knife and fork",
+    ]),
+    8: ("bombanat", "trollusk-and-yalapappus-running.jpg", [
+        "The Bombanat flying high over open ground, the Trollusk running below with the envelope and the Yalapappus stomping behind him",
+        "The Bombanat swerving away from the Yalapappus's big swiping paw reaching up at it",
+        "The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout",
+    ]),
+    9: ("grithix", "grithix-nets-bombanat-page.jpg", [
+        "The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing",
+        "The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him",
+        "The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased",
+    ]),
+}
+
+HOWTO_PROMPT = (
+    "A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm "
+    "cream paper that the drawing fades into at the edges (no frame, no border), in the style "
+    "of the book's own spot illustrations. One clear moment, the characters large and easy to "
+    "read when shown small: "
+)
+
+for n, (mid, ref, steps) in HOWTO.items():
+    for k, desc in enumerate(steps, start=1):
+        REQUESTS.append({
+            "id": f"OM-H{n}{'abc'[k - 1]}",
+            "section": "howto",
+            "name": f"Chapter {n}: how to play, step {k}",
+            "key": f"howto.ch{n:02d}.{k}",
+            "file": f"assets/howto/ch{n:02d}-{k}.webp",
+            "size": "1024 x 768, opaque",
+            "used": f"Step {k} of chapter {n}'s how-to-play page.",
+            "standin": "The step composed in code from the monster's poses and the chapter's props.",
+            "status": "requested",
+            "ref": ref,
+            "prompt": STYLE + " " + HOWTO_PROMPT + desc + ". Draw the characters from their "
+            "canonical model sheets where you have them. " + REF_SCENE.format(ref),
+        })
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"
@@ -1690,6 +1778,8 @@ def document() -> str:
         "of each place (`OM-G`) and a props sheet per board (`OM-Y`). Every board plays with "
         "stand-ins until they arrive. Good order: the backdrops of a board and its props sheet "
         "together, so they match, then the ground pieces of that place.",
+        "13. **How to play** (`OM-H`): three spot illustrations per minigame for its "
+        "how-to-play page, with the model sheets of the characters in them attached.",
         "",
         "## Status",
         "",
