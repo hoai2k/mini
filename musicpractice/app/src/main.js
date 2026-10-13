@@ -9,7 +9,7 @@ import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
-import { Drone } from './drone.js';
+import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
@@ -1108,6 +1108,7 @@ function droneEngine() {
     if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
   }
   unlock();
+  preloadDrone(drone.ctx, settings.droneVoice); // every note of the voice ready to play
   return drone;
 }
 const droneUI = setupDrone({

@@ -320,6 +320,53 @@ async function renderPlucked(id, f0) {
   return buf;
 }
 
+// ---------------------------------------------------------------- recorded voices
+
+/*
+ * Recorded voices: a few notes of the real thing (generated with ElevenLabs
+ * sound effects; see design/drone-sounds.md), each cut into a seamless loop
+ * (a steady stretch whose end is crossfaded into its start, a whole number
+ * of periods long). The loop nearest the wanted note, never more than three
+ * semitones away, is retuned to it exactly by playback rate. Each file holds
+ * `margin` seconds of the loop's own continuation before and after it, so
+ * the loop points stay inside seamless material even if a decoder shifts the
+ * audio a little. `hz` is each loop's measured pitch.
+ */
+export const SAMPLED = {
+  cello: { level: 1.25, wet: 0.14, loops: [
+    { file: 'cello-D2.mp3', hz: 73.572, margin: 0.3, loop: 5.003583 },
+    { file: 'cello-E2.mp3', hz: 82.967, margin: 0.3, loop: 7.470181 },
+    { file: 'cello-G2.mp3', hz: 98.724, margin: 0.3, loop: 8.333356 },
+    { file: 'cello-D3.mp3', hz: 146.187, margin: 0.3, loop: 7.353243 },
+    { file: 'cello-A3.mp3', hz: 219.474, margin: 0.3, loop: 5.81263 },
+  ] },
+};
+
+/** The loop nearest a pitch (in semitones). */
+export function nearestLoop(loops, hz) {
+  return loops.reduce((best, l) => (Math.abs(Math.log2(hz / l.hz)) < Math.abs(Math.log2(hz / best.hz)) ? l : best));
+}
+
+const decodedLoops = new WeakMap(); // context -> Map(file -> Promise<AudioBuffer>)
+function loadLoop(ctx, file) {
+  if (!decodedLoops.has(ctx)) decodedLoops.set(ctx, new Map());
+  const cache = decodedLoops.get(ctx);
+  if (!cache.has(file)) {
+    const url = new URL(`../assets/audio/drone/${file}`, import.meta.url);
+    const p = fetch(url)
+      .then((r) => { if (!r.ok) throw new Error(`${file}: ${r.status}`); return r.arrayBuffer(); })
+      .then((data) => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)));
+    p.catch(() => cache.delete(file)); // try again next time
+    cache.set(file, p);
+  }
+  return cache.get(file);
+}
+
+/** Load (once) every loop of a recorded voice, so changing notes is instant. */
+export function preload(ctx, voice) {
+  for (const l of SAMPLED[voice]?.loops || []) loadLoop(ctx, l.file).catch(() => {});
+}
+
 // ---------------------------------------------------------------- the engine
 
 /** A hall: decaying stereo noise, darker as it fades. */
@@ -385,20 +432,49 @@ export class Drone {
   async play({ midi, voice, a4 = 440, fifth = false }) {
     const ticket = (this.ticket = (this.ticket || 0) + 1);
     const f0 = a4 * 2 ** ((midi - 69) / 12);
-    const id = LIVE[voice] || PLUCKED[voice] ? voice : 'cello';
+    let id = SAMPLED[voice] || LIVE[voice] || PLUCKED[voice] ? voice : 'cello';
+    const addFifth = fifth && !VOICES.find((x) => x.id === id)?.fifth;
+    // A recorded voice: the loops nearest the note (and its fifth).
+    let recorded = null;
+    if (SAMPLED[id]) {
+      const want = addFifth ? [f0, f0 * 1.5] : [f0];
+      try {
+        recorded = await Promise.all(want.map(async (hz) => {
+          const l = nearestLoop(SAMPLED[id].loops, hz);
+          return { l, rate: hz / l.hz, buffer: await loadLoop(this.ctx, l.file) };
+        }));
+      } catch {
+        recorded = null; // couldn't load: the synthesized voice instead
+        if (!LIVE[id]) id = 'cello';
+      }
+    }
     const loops = PLUCKED[id] ? [await renderPlucked(id, f0)] : null;
-    if (ticket !== this.ticket) return; // replaced while rendering
+    if (ticket !== this.ticket) return; // replaced while loading or rendering
     const t = this.ctx.currentTime + 0.02;
     this.fadeOut(t);
     const v = { gain: this.ctx.createGain(), nodes: [] };
     v.gain.gain.setValueAtTime(0, t);
     v.gain.gain.setTargetAtTime(1, t, FADE_IN);
     v.gain.connect(this.bus);
-    const wet = (LIVE[id] || PLUCKED[id]).wet ?? 0.32;
+    const wet = ((recorded && SAMPLED[id]) || LIVE[id] || PLUCKED[id]).wet ?? 0.32;
     this.wet.gain.setTargetAtTime(wet, t, 0.5);
     this.dry.gain.setTargetAtTime(1 - wet * 0.5, t, 0.5);
-    const addFifth = fifth && !VOICES.find((x) => x.id === id)?.fifth;
-    if (loops) {
+    if (recorded) {
+      recorded.forEach(({ l, rate, buffer }, i) => {
+        const src = this.ctx.createBufferSource();
+        src.buffer = buffer;
+        src.loop = true;
+        src.loopStart = l.margin;
+        src.loopEnd = l.margin + l.loop;
+        src.playbackRate.value = rate;
+        const g = this.ctx.createGain();
+        g.gain.value = SAMPLED[id].level * (i ? 0.5 : 1) * (recorded.length > 1 ? 0.85 : 1);
+        src.connect(g).connect(v.gain);
+        // Start somewhere along the loop, so repeated plays don't always begin alike.
+        src.start(t, l.margin + ((midi * 0.37 + i * 1.7) % 1) * l.loop * 0.5);
+        v.nodes.push(src);
+      });
+    } else if (loops) {
       const b = this.ctx.createBuffer(1, loops[0].length, RENDER_RATE);
       b.copyToChannel(loops[0], 0);
       const src = this.ctx.createBufferSource();

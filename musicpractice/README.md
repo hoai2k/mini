@@ -230,23 +230,23 @@ tones, scales over a tonic.
   reference pitch (A4 = 415 to 466 Hz) is shared with the tuner. Everything
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
-How it sounds (`app/src/drone.js`): no recordings. The bowed and blown voices
-play live in Web Audio: oscillators whose harmonics (1/n for a bowed string,
-reed and pipe spectra for the others) are shaped by the instrument's body
-resonances at the exact pitch, with slow random drift in pitch (a cent or
-two), bow or bellows pressure and brightness so the tone lives, a little bow
-hair or wind noise, and a warm 2.8 s hall. The tanpura and sitar are rendered
-once (yielding between strings) into a seamless loop of their plucking
-pattern, each pluck with the jawari bridge's buzz (overtones that bloom and
-sweep down as it rings): tanpura Pa, Sa, Sa, low Sa about every 5 s; sitar
-drone strings struck every 0.75 s with sympathetic strings ringing on. The
-pitch is exact, so it can be tuned to. Rendered offline in Chromium, every
-voice was in tune (cellos within 1 cent, wandering by a cent or two;
-the others an octave or two lower only because they include lower strings,
-whose combined period is longer), within about 3 dB of each other in
-loudness, faded in by about 2 s and to silence after stopping. Played live
-through the page's output: C3 at 130.87 Hz, a crossfade to C♯3 on +, the
-timed drone moving on to D3 after 30 s, and silence on pause and on leaving.
+How it sounds (`app/src/drone.js`): the **Cello** plays recordings, generated
+with ElevenLabs sound effects and cut into seamless loops on five notes (D2,
+E2, G2, D3, A3), so every note is at most three semitones from a real take and
+is retuned to it exactly by playback rate (following the reference pitch).
+Each loop file carries 0.3 s of its own continuation either side, so the loop
+points stay inside seamless audio whatever the decoder does; the five load
+when the Drone starts, so changing notes is instant. If they can't load, the
+synthesized cello plays instead. Takes, prompts, how the loops are made and
+how they were checked: `design/drone-sounds.md` (every note: within ±1.4 cents,
+loudness within 1.5 dB, no clicks, no audible joins).
+
+The other voices are still synthesized, to be replaced by recordings the same
+way. The bowed and blown ones play live in Web Audio: oscillators whose
+harmonics are shaped by the instrument's body resonances at the exact pitch,
+with slow random drift so the tone lives, and a warm 2.8 s hall. The tanpura
+and sitar are rendered once into a seamless loop of their plucking pattern,
+each pluck with the jawari bridge's buzz.
 
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.
@@ -283,6 +283,9 @@ favour of the two-button home screen.
   in `design/image-deliveries-round-2.json`. Round 3 delivers 24 images across
   Vintage 60s, 18th Century, Robot Future, French Nouveau, Candy and Steam
   Punk; prompts, paths and layer geometry are in `design/image-deliveries-round-3.json`.
+- `app/assets/audio/drone/`: the Drone's recorded loops; `design/drone-sounds.md`
+  explains them, `design/sounds/drone/` holds the source takes and
+  `design/source/drone/` the tools that make the loops.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
 - `publish.sh`: copies the app to `local/pages/musicpractice/`.
