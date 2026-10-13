@@ -2014,7 +2014,9 @@ export function autopilot(board) {
     // Perched ones: come up from below so as not to startle them.
     const wantY = f.kind === 'perched' ? SURF + 150 : SURF - 50;
     // Lead a skimming one a little.
-    const px = f.x + (f.kind === 'perched' ? 0 : f.dir * 40);
+    // A roof perch sits just right of the red boat's crane: come up on its far side, clear of the net.
+    const onNetBoat = f.kind === 'perched' && boats.some((b) => b.kind === 'net' && Math.abs(b.hx - f.x) < 320);
+    const px = f.x + (f.kind === 'perched' ? (onNetBoat ? 90 : 0) : f.dir * 40);
     if (lungeAt(px, f.y)) return inp;
     seek(px, wantY, 0.015);
     return inp;

@@ -720,6 +720,7 @@ export default function create(env) {
       art.drawSprite(g, art.prop('trollusk', st.item), st.x, y, { height: 46, rot: Math.sin(tt * 2 + st.x) * 0.25, alpha: st.got ? 1 - st.t * 2 : 1 });
     }
     for (const s of solids) if (s.kind === 'leaves' && cam.sees(s.x, s.x + s.w)) drawLeaves(g, s, tt);
+    for (const tr of trees) if (tr.face && cam.sees(tr.cx - 200, tr.cx + 200)) drawKnotFace(g, tr, tt);
     for (const v of vines) if (cam.sees(v.x)) drawVine(g, v, tt);
     for (const w of webs) if (cam.sees(w.x)) drawWeb(g, w, tt);
     pickups.draw(g, cam, tt, (gg, p, x, y, alpha, ttt) => {
@@ -870,15 +871,18 @@ export default function create(env) {
     }
     // The delivered tree foot (terrain.wood 6, roots and a face) at the base.
     kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 6, { height: 330 });
-    if (s.face) {
-      // The knot face (adv.b02.props 12) on the trunk under the hollow; it
-      // swells as it draws breath and shakes as it blows.
-      const fy = s.y + 100;
-      const k = s.state === 'puff' ? 0.86 + 0.14 * Math.min(1, s.t / 0.9) : s.state === 'blow' ? 1 : 0.86;
-      const shake = s.state === 'blow' && !env.reduceMotion ? Math.sin(tt * 40) * 3 : 0;
-      kit.sprite(g, 'adv.b02.props', 12, x + shake, fy, { height: 250 * k, ay: 0.5 }, () => inkKnotFace(g, x, fy, s, tt));
-      if (s.state === 'puff' && Math.floor(tt * 6) % 2) { g.save(); g.font = '800 48px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#b3402e'; g.lineWidth = 7; g.strokeStyle = PAPER; g.strokeText('!', x, fy - 150); g.fillText('!', x, fy - 150); g.restore(); }
-    }
+  }
+
+  // The knot face (adv.b02.props 12) on the trunk under the hollow, drawn
+  // after the canopy so the leaves do not hide it; it swells as it draws
+  // breath and shakes as it blows.
+  function drawKnotFace(g, s, tt) {
+    const x = s.cx;
+    const fy = s.y + 100;
+    const k = s.state === 'puff' ? 0.86 + 0.14 * Math.min(1, s.t / 0.9) : s.state === 'blow' ? 1 : 0.86;
+    const shake = s.state === 'blow' && !env.reduceMotion ? Math.sin(tt * 40) * 3 : 0;
+    kit.sprite(g, 'adv.b02.props', 12, x + shake, fy, { height: 250 * k, ay: 0.5 }, () => inkKnotFace(g, x, fy, s, tt));
+    if (s.state === 'puff' && Math.floor(tt * 6) % 2) { g.save(); g.font = '800 48px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#b3402e'; g.lineWidth = 7; g.strokeStyle = PAPER; g.strokeText('!', x, fy - 150); g.fillText('!', x, fy - 150); g.restore(); }
   }
 
   function inkTrunk(g, s) {
