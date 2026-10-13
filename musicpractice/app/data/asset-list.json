@@ -374,5 +374,53 @@
     },
     "swing": 24,
     "scale": 0.65
+  },
+  {
+    "id": "home-tuner",
+    "theme": "classic",
+    "file": "assets/ui/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "deco",
+    "file": "assets/ui/deco/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "anime",
+    "file": "assets/ui/anime/home-tuner.webp",
+    "status": "requested"
+  },
+  {
+    "id": "home-tuner",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/home-tuner.webp",
+    "status": "requested"
   }
 ]

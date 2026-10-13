@@ -375,6 +375,57 @@ for asset in ROUND3:
         )
 
 
+# Round 5: a home-screen icon for the new Tuner, in every theme.
+TUNER_SUBJECT = {
+    "classic": ("a classic chromatic tuner: a small walnut-and-brass case with a cream dial and a "
+                "thin brass needle pointing straight up at the centre mark, with a polished brass "
+                "tuning fork leaning against its right side", STYLE),
+    "deco": ("an Art Deco chromatic tuner: a black lacquer case edged in gold with a fan-shaped "
+             "ivory dial and a gold needle pointing straight up at the centre, a gold sunburst "
+             "behind it and a slim gold tuning fork beside it", DECO_STYLE),
+    "sixties": ("a mid-century tuner: a rounded teak case with a mustard-yellow dial and a chrome "
+                "needle pointing straight up at the centre, a chrome tuning fork beside it and a "
+                "small orange starburst", None),
+    "baroque": ("an 18th-century style tuning device: a carved walnut case with gilt scrolls, an "
+                "ivory dial with fine engraved marks and a gilt needle pointing straight up at the "
+                "centre, and a gilt tuning fork beside it", None),
+    "scifi": ("a futuristic tuner: a chamfered graphite-and-titanium panel with a glowing cyan arc "
+              "gauge, the needle a cyan light line pointing straight up at the centre, a small "
+              "magenta indicator light, and a sleek titanium tuning fork beside it", None),
+    "nouveau": ("an Art Nouveau tuner: a sage-green enamel case with curving whiplash sides and "
+                "gold vines, a cream dial with a gold needle pointing straight up at the centre, "
+                "and a gold tuning fork entwined with a lily stem beside it", None),
+    "anime": ("a cute candy-pink tuner with a bold outline, a white dial with a sky-blue needle "
+              "pointing straight up at the centre, a happy sparkle above it and a little sky-blue "
+              "tuning fork beside it", None),
+    "steampunk": ("a steampunk tuner: a riveted brass gauge with a cream enamel dial and a black "
+                  "needle pointing straight up at the centre, small cogs at its sides, and a copper "
+                  "tuning fork beside it", None),
+}
+
+def round5_assets() -> list[dict]:
+    out = []
+    names = {t["id"]: t["name"] for t in THEMES}
+    for theme, (subject, style) in TUNER_SUBJECT.items():
+        if style is None:
+            style = next(t for t in MORE_THEMES if t["id"] == theme)["style"]
+        folder = "assets/ui" if theme == "classic" else f"assets/ui/{theme}"
+        out.append(dict(
+            id="home-tuner", theme=theme, round=5, file=f"{folder}/home-tuner.webp",
+            size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested",
+            group=f"{names[theme]} · Home screen buttons",
+            prompt=(subject[0].upper() + subject[1:] + ". Seen from the front, the needle centred to "
+                    "show a note in tune. " + style + " A single centred object on a fully "
+                    "transparent background, bold readable silhouette that still reads at 64 pixels, "
+                    "generous even margin on every side, no cast shadow."),
+            note=f"The big Tuner button on the home screen in the {names[theme]} theme; the label is "
+                 "written by the app. Dial marks only, no numbers or letters.",
+        ))
+    return out
+
+
+ASSETS += round5_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -389,7 +440,7 @@ def render() -> tuple[str, str]:
     ]
     for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme"),
                        (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes"),
-                       (4, "revisions")):
+                       (4, "revisions"), (5, "Tuner home icons, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{"s" if len(wanted) != 1 else ""} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."

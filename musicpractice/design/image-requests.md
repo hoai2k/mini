@@ -14,6 +14,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 4 (revisions):** 1 image wanted: `assets/ui/sixties/home-metronome.webp`.
 
+**Round 5 (Tuner home icons, every theme):** 8 images wanted: `assets/ui/home-tuner.webp`, `assets/ui/deco/home-tuner.webp`, `assets/ui/sixties/home-tuner.webp`, `assets/ui/baroque/home-tuner.webp`, `assets/ui/scifi/home-tuner.webp`, `assets/ui/nouveau/home-tuner.webp`, `assets/ui/anime/home-tuner.webp`, `assets/ui/steampunk/home-tuner.webp`.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -66,6 +68,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Steam Punk | delivered | `home-record` | `app/assets/ui/steampunk/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Steam Punk | delivered | `metronome-body` | `app/assets/ui/steampunk/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Steam Punk | delivered | `metronome-pendulum` | `app/assets/ui/steampunk/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
+| 5 | Classic | requested | `home-tuner` | `app/assets/ui/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Art Deco | requested | `home-tuner` | `app/assets/ui/deco/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Vintage 60s | requested | `home-tuner` | `app/assets/ui/sixties/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | 18th Century | requested | `home-tuner` | `app/assets/ui/baroque/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Robot Future | requested | `home-tuner` | `app/assets/ui/scifi/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | French Nouveau | requested | `home-tuner` | `app/assets/ui/nouveau/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Candy | requested | `home-tuner` | `app/assets/ui/anime/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Steam Punk | requested | `home-tuner` | `app/assets/ui/steampunk/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 
 ## Home screen buttons
 
@@ -457,4 +467,100 @@ A steampunk metronome: a tapering pyramid of riveted copper and brass plates on 
 
 ```text
 Just the pendulum of a metronome, isolated: a thin straight brass rod with a small riveted copper sliding weight with a tiny cog, and a round brass gear-shaped hub. The rod is perfectly straight and perfectly vertical down the exact centre of a tall narrow canvas, from about 3% from the top to the hub, whose centre is at 96% of the height; the weight sits on the rod at about 30% of the height. Seen straight on, symmetrical, nothing else in the picture. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Fully transparent background.
+```
+
+## Classic · Home screen buttons
+
+### `home-tuner` · Classic · requested
+
+- File: `musicpractice/app/assets/ui/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Classic theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+A classic chromatic tuner: a small walnut-and-brass case with a cream dial and a thin brass needle pointing straight up at the centre mark, with a polished brass tuning fork leaning against its right side. Seen from the front, the needle centred to show a note in tune. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Art Deco · Home screen buttons
+
+### `home-tuner` · Art Deco · requested
+
+- File: `musicpractice/app/assets/ui/deco/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Art Deco theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+An Art Deco chromatic tuner: a black lacquer case edged in gold with a fan-shaped ivory dial and a gold needle pointing straight up at the centre, a gold sunburst behind it and a slim gold tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Vintage 60s · Home screen buttons
+
+### `home-tuner` · Vintage 60s · requested
+
+- File: `musicpractice/app/assets/ui/sixties/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Vintage 60s theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+A mid-century tuner: a rounded teak case with a mustard-yellow dial and a chrome needle pointing straight up at the centre, a chrome tuning fork beside it and a small orange starburst. Seen from the front, the needle centred to show a note in tune. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## 18th Century · Home screen buttons
+
+### `home-tuner` · 18th Century · requested
+
+- File: `musicpractice/app/assets/ui/baroque/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the 18th Century theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+An 18th-century style tuning device: a carved walnut case with gilt scrolls, an ivory dial with fine engraved marks and a gilt needle pointing straight up at the centre, and a gilt tuning fork beside it. Seen from the front, the needle centred to show a note in tune. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Robot Future · Home screen buttons
+
+### `home-tuner` · Robot Future · requested
+
+- File: `musicpractice/app/assets/ui/scifi/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Robot Future theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+A futuristic tuner: a chamfered graphite-and-titanium panel with a glowing cyan arc gauge, the needle a cyan light line pointing straight up at the centre, a small magenta indicator light, and a sleek titanium tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Sleek science-fiction illustration of a far-future starship console: deep space navy and graphite, glowing cyan and magenta light lines, brushed titanium, glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a soft neon glow. Clean, futuristic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## French Nouveau · Home screen buttons
+
+### `home-tuner` · French Nouveau · requested
+
+- File: `musicpractice/app/assets/ui/nouveau/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the French Nouveau theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+An Art Nouveau tuner: a sage-green enamel case with curving whiplash sides and gold vines, a cream dial with a gold needle pointing straight up at the centre, and a gold tuning fork entwined with a lily stem beside it. Seen from the front, the needle centred to show a note in tune. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Candy · Home screen buttons
+
+### `home-tuner` · Candy · requested
+
+- File: `musicpractice/app/assets/ui/anime/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Candy theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+A cute candy-pink tuner with a bold outline, a white dial with a sky-blue needle pointing straight up at the centre, a happy sparkle above it and a little sky-blue tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Steam Punk · Home screen buttons
+
+### `home-tuner` · Steam Punk · requested
+
+- File: `musicpractice/app/assets/ui/steampunk/home-tuner.webp`
+- Size: 768×768, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Tuner button on the home screen in the Steam Punk theme; the label is written by the app. Dial marks only, no numbers or letters.
+
+```text
+A steampunk tuner: a riveted brass gauge with a cream enamel dial and a black needle pointing straight up at the centre, small cogs at its sides, and a copper tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
 ```

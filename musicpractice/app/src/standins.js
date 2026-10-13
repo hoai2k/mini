@@ -16,7 +16,27 @@ function rays(cx, cy, r, from, to, n, attrs) {
   return `<path d="${d}" ${attrs}/>`;
 }
 
+/** The Tuner's home icon: a dial with its needle centred, and a tuning fork. */
+function tunerIcon({ body, line, dial, needle, fork, accent, lineW = 2 }) {
+  let ticks = '';
+  for (let a = -60; a <= 60; a += 15) {
+    const r = (a * Math.PI) / 180;
+    const r1 = a === 0 ? 14 : 17;
+    ticks += `M${(43 + r1 * Math.sin(r)).toFixed(1)} ${(64 - r1 * Math.cos(r)).toFixed(1)}L${(43 + 21 * Math.sin(r)).toFixed(1)} ${(64 - 21 * Math.cos(r)).toFixed(1)}`;
+  }
+  return svg(100, 100, `
+    <path d="M77 14v38a5.5 5.5 0 0 0 11 0V14" fill="none" stroke="${fork}" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M82.5 57.5V86" stroke="${fork}" stroke-width="4.4" stroke-linecap="round"/>
+    <rect x="12" y="30" width="62" height="52" rx="11" fill="${body}" stroke="${line}" stroke-width="${lineW}"/>
+    <path d="M19 66A24 24 0 0 1 67 66Z" fill="${dial}" stroke="${line}" stroke-width="${lineW * 0.6}"/>
+    <path d="${ticks}" stroke="${line}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M43 64V43" stroke="${needle}" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="43" cy="64" r="3.4" fill="${needle}"/>
+    <circle cx="43" cy="74" r="3" fill="${accent}"/>`);
+}
+
 const CLASSIC = {
+  'home-tuner': { html: tunerIcon({ body: 'url(#walnut)', line: '#3e2414', dial: 'url(#cream)', needle: '#9b6c25', fork: 'url(#brass)', accent: '#e5484d' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M43 8h14l22 78H21z" fill="url(#walnut)"/>
     <path d="M46 16h8l15 58H31z" fill="url(#cream)"/>
@@ -65,6 +85,7 @@ function stepped(right, cx) {
 const TOWER = stepped([[428, 28], [428, 72], [450, 72], [520, 468], [542, 468], [614, 872], [636, 872], [676, 1080]], 400);
 
 const DECO = {
+  'home-tuner': { html: tunerIcon({ body: 'url(#lacquer)', line: 'url(#gold)', dial: 'url(#ivory)', needle: '#b8902a', fork: 'url(#gold)', accent: '#c0303a' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M45 6h10v6h3l9 30h3l9 32h3l3 10H15l3-10h3l9-32h3l9-30h3z" fill="url(#lacquer)" ${GOLD} stroke-width="1.6" stroke-linejoin="miter"/>
     <path d="M47 16h6l14 58H33z" fill="url(#ivory)"/>
@@ -217,6 +238,7 @@ function themed(t) {
   return {
     'home-metronome': { html: homeMetronome },
     'home-record': { html: homeRecord },
+    'home-tuner': { html: tunerIcon({ body: t.caseFill, line: t.caseLine, dial: t.face, needle: t.metalLine, fork: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
     'metronome-body': { canvas: [800, 1200], anchors: { pivot: [400, 1000] }, html: svg(800, 1200, bodyInner) },
     'metronome-pendulum': {
       canvas: [200, 1000], anchors: { hub: [100, 960] }, swing: 24,
