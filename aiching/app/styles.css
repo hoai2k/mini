@@ -117,6 +117,8 @@ html:not(.has-ui-clouds) .clouds {
 .prompt-bar .hint { flex: 1; }
 .hint { color: var(--ink-soft); font-size: 0.8rem; }
 .hint .dot { color: var(--cinnabar); }
+.hint-short { display: none; }
+@media (max-width: 720px) { .hint-long { display: none; } .hint-short { display: inline; } }
 .actions { display: flex; align-items: center; gap: 8px; }
 .send {
   flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; cursor: pointer;

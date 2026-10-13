@@ -537,5 +537,21 @@ export const ASSETS = {
   "howto.ch09.3": {
     "file": "assets/howto/ch09-3.webp",
     "delivered": false
+  },
+  "bombanat.plain": {
+    "file": "assets/monsters/bombanat/plain.png",
+    "delivered": false
+  },
+  "iceferg.bare": {
+    "file": "assets/monsters/iceferg/bare.png",
+    "delivered": false
+  },
+  "iceferg.sealions": {
+    "file": "assets/monsters/iceferg/sealions.png",
+    "delivered": false
+  },
+  "ch01.house": {
+    "file": "assets/props/sallyann-house.png",
+    "delivered": false
   }
 };
