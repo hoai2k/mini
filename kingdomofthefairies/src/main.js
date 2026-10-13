@@ -262,8 +262,22 @@ function resume() {
 function openDialog(el, focusOn = null) {
   el.hidden = false;
   dialogs.push({ el, restore: document.activeElement });
-  focusEl(focusOn || el.querySelector('[data-focus]'));
+  focusEl(focusOn || el.querySelector('[data-focus]:not(.card-x)'));
 }
+// A tap or click outside a dialog's card closes it (the pause menu resumes).
+// Only a tap that both starts and ends on the backdrop: the tap that opened
+// the dialog (the pause button under it) mustn't close it again.
+document.querySelectorAll('.layer.dialog').forEach((el) => {
+  let downOnBackdrop = false;
+  el.addEventListener('pointerdown', (e) => { downOnBackdrop = e.target === el; });
+  el.addEventListener('click', (e) => {
+    const ok = downOnBackdrop && e.target === el && dialogs[dialogs.length - 1]?.el === el;
+    downOnBackdrop = false;
+    if (!ok) return;
+    audio.play('ui');
+    if (el.id === 'pause') resume(); else closeDialog();
+  });
+});
 
 // ---------------------------------------------------------------- instructions
 // One page per act; the dialog opens on the act being played (or chosen on
@@ -338,19 +352,19 @@ function closeAllDialogs() { while (dialogs.length) closeDialog(); }
 document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
   const a = b.dataset.act;
   audio.play('ui');
-  if (a === 'close') closeDialog();
+  if (a === 'close') { if (b.closest('#pause')) resume(); else closeDialog(); }
   if (a === 'resume') resume();
   if (a === 'instructions') openInstructions();
   if (a === 'scenes') openScenes();
   if (a === 'settings') openDialog($('#settings'));
-  if (a === 'credits') openDialog($('#credits'), $('#credits [data-act=close]'));
+  if (a === 'credits') openDialog($('#credits'), $('#credits .scroll'));
   if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
 $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openInstructions(); });
 $('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
-$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits [data-act=close]')); });
+$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits .scroll')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
 $('#btn-sound').addEventListener('click', () => {
   settings.sound = !settings.sound;

@@ -56,6 +56,7 @@
     <!-- Pause -->
     <section id="pause" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="pause-h" hidden>
       <div class="card">
+        <button class="card-x" data-focus data-act="close" aria-label="Close">×</button>
         <h2 id="pause-h">Intermission</h2>
         <div class="stack">
           <button data-focus data-act="resume">Resume</button>
@@ -73,6 +74,7 @@
     <!-- Instructions -->
     <section id="instructions" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="ins-h" hidden>
       <div class="card wide">
+        <button class="card-x" data-focus data-act="close" aria-label="Close">×</button>
         <h2 id="ins-h">How the Play Goes</h2>
         <div class="tabs" role="tablist" aria-label="Instructions pages">
           <button role="tab" data-focus data-page="0">The Play</button>
@@ -367,23 +369,23 @@
             </table>
           </div>
         </div>
-        <div class="row"><button data-focus data-act="close">Close</button></div>
       </div>
     </section>
 
     <!-- Scene select (built by src/main.js from each act's scenes) -->
     <section id="scenes" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="scn-h" hidden>
       <div class="card wide">
+        <button class="card-x" data-focus data-act="close" aria-label="Close">×</button>
         <h2 id="scn-h">Scene Select</h2>
         <div class="scroll scene-list" id="scene-list"></div>
         <p class="note" id="scene-note"></p>
-        <div class="row"><button data-focus data-act="close">Close</button></div>
       </div>
     </section>
 
     <!-- Credits -->
     <section id="credits" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="cred-h" hidden>
       <div class="card credits">
+        <button class="card-x" data-focus data-act="close" aria-label="Close">×</button>
         <h2 id="cred-h">Credits</h2>
         <div class="scroll credits-list" tabindex="0" data-focus>
           <p class="cred-show"><span data-widowsbay="Widow’s Bay">Kingdom of the Fairies</span><br><small>a toy theatre in five acts</small></p>
@@ -398,13 +400,13 @@
             <dd><em>Le Royaume des fées</em> (1903), Georges Méliès</dd>
           </dl>
         </div>
-        <div class="row"><button data-focus data-act="close">Close</button></div>
       </div>
     </section>
 
     <!-- Settings -->
     <section id="settings" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="set-h" hidden>
       <div class="card">
+        <button class="card-x" data-focus data-act="close" aria-label="Close">×</button>
         <h2 id="set-h">Settings</h2>
         <div class="stack">
           <button data-focus data-key="sound" class="toggle">Sound: <span></span></button>
@@ -416,7 +418,6 @@
           <button data-focus data-key="castLook" class="toggle" data-film-only>Cast look: <span></span></button>
           <button data-focus data-key="vibration" class="toggle">Vibration: <span></span></button>
         </div>
-        <div class="row"><button data-focus data-act="close">Close</button></div>
       </div>
     </section>
 

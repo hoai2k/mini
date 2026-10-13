@@ -122,6 +122,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding: 28px 30px 24px; width: min(420px, 100%); max-height: calc(var(--app-h, 100dvh) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px;
 }
 .card.wide { width: min(760px, 100%); }
+.card { position: relative; }
+/* the close X in a dialog's top right corner */
+.card .card-x { position: absolute; top: 18px; right: 18px; width: 38px; height: 38px; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; font-size: 26px; line-height: 1; text-align: center; font-weight: 400; z-index: 1; }
+@media (pointer: coarse) { .card .card-x { width: 40px; height: 40px; top: 16px; right: 16px; } }
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) { .card .card-x { width: 34px; height: 34px; top: 12px; right: 12px; font-size: 22px; } }
 /* A card never spills past the screen: its body scrolls inside it. */
 .card { overflow: hidden; }
 .card > .stack, .card > .scroll, .card > .scene-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
@@ -352,3 +358,6 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 .unlock-edition li { opacity: 0.45; } .unlock-edition li::after { content: ' · locked'; font-size: 12px; } .unlock-edition li.open { opacity: 1; } .unlock-edition li.open::after { content: ''; } .unlock-edition li.open::marker { color: #e9c46a; }
 .unlock-editor .unlock-row { margin-top: 14px; text-align: right; }
 .unlock-editor .unlock-row button { font: 700 15px "Josefin Sans", sans-serif; padding: 8px 22px; border-radius: 18px; border: 0; background: #e0127a; color: #fff; cursor: pointer; }
+.unlock-editor { position: fixed; }
+.unlock-editor .card-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; background: #3d1f35; color: #f3c6dc;
+  border: 2px solid #7d5470; font-size: 26px; line-height: 1; cursor: pointer; }
