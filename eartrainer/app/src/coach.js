@@ -86,7 +86,7 @@ function chooseSkill(pool, ears, focus, now) {
  * The next thing to play in Focus: { melody, kind, skill } where kind is
  * 'test' | 'drill' | 'check' | 'mix' | 'review' | 'explore'.
  */
-export function nextFocus(pool, ears, focus, { now = Date.now(), rng = Math.random, names = {}, ...opts } = {}) {
+export function nextFocus(pool, ears, focus, { now = Date.now(), rng = Math.random, ...opts } = {}) {
   if (!focus.skill) {
     focus.skill = chooseSkill(pool, ears, focus, now);
     Object.assign(focus, { stage: 'test', drill: 1, drillOk: 0, drills: 0, streak: 0, items: [], slip: null });
@@ -112,12 +112,12 @@ export function nextFocus(pool, ears, focus, { now = Date.now(), rng = Math.rand
     const melody = freshest(without.length ? without : pool.filter((m) => fair(m, ears)), { ...opts, rng });
     if (melody) return { melody, kind: 'mix', skill: null };
   }
-  if (focus.stage === 'drill') return { melody: makeDrill(skill, focus.drill, rng, names), kind: 'drill', skill };
+  if (focus.stage === 'drill') return { melody: makeDrill(skill, focus.drill, rng), kind: 'drill', skill };
   const exclude = [...(opts.recent || []), ...focus.items, ...(focus.slip ? [focus.slip.item] : [])];
   const level = focus.stage === 'check' && focus.slip ? focus.slip.level : levelOf(ears, skill);
   const cands = melodiesFor(pool, ears, skill, level, { exclude });
   const melody = freshest(cands, { ...opts, recent: [], rng });
-  if (!melody) return { melody: makeDrill(skill, Math.max(focus.drill, 3), rng, names), kind: 'drill', skill };
+  if (!melody) return { melody: makeDrill(skill, Math.max(focus.drill, 3), rng), kind: 'drill', skill };
   return { melody, kind: focus.stage, skill };
 }
 

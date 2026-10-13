@@ -11,7 +11,7 @@ import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullsc
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
-import { SKILLS, SKILL, INTERVALS, judge, record, emptyEars, accuracy, weakSkills, levelOf, overallLevel, topConfusions, describeConfusion } from './skills.js';
+import { SKILLS, SKILL, judge, record, emptyEars, accuracy, weakSkills, levelOf, overallLevel, topConfusions, describeConfusion } from './skills.js';
 import { pickAdaptive, newFocus, nextFocus, afterFocus } from './coach.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -28,7 +28,6 @@ const LIB = buildLibrary();
 if (!progress.ears) progress.ears = emptyEars(progress.rating || 1);
 const ears = progress.ears;
 const skillName = (id) => (SKILL[id] ? SKILL[id].name.toLowerCase() : id);
-const DRILL_NAMES = Object.fromEntries(SKILLS.map((s) => [s.id, s.id.startsWith('int') ? INTERVALS[s.semis] : skillName(s.id)]));
 
 const S = {
   mode: 'title',
@@ -255,7 +254,7 @@ function nextMelody() {
       // Focus: the coach picks (coach.js). A songbook too small for the skill borrows from the whole library.
       if (!ears.focus) ears.focus = newFocus();
       if (pool.length < 60) pool = LIB;
-      S.pick = nextFocus(pool, ears, ears.focus, { best: progress.best, recent: S.recent, names: DRILL_NAMES });
+      S.pick = nextFocus(pool, ears, ears.focus, { best: progress.best, recent: S.recent });
       m = S.pick.melody;
     } else if (progress.level === 'adaptive') {
       m = pickAdaptive(pool, ears, { best: progress.best, recent: S.recent }).melody;
@@ -319,8 +318,8 @@ function syncHud() {
   if (S.song) $('#hud-level').textContent = `Full song · phrase ${S.song.index + 1} of ${S.song.song.phrases.length}`;
   else if (S.pick && progress.level === 'focus') {
     const p = S.pick;
-    $('#hud-level').textContent = p.kind === 'drill' ? `Focus · ${DRILL_NAMES[p.skill]} · drill step ${S.melody.drillLevel} of 4`
-      : `Focus · ${p.skill && ['test', 'check', 'review'].includes(p.kind) ? `${skillName(p.skill)} · ` : ''}${FOCUS_KIND[p.kind]}`;
+    // Never what is being worked on: naming it would give the notes away (Your ears tells, when asked).
+    $('#hud-level').textContent = p.kind === 'drill' ? `Focus · drill, step ${S.melody.drillLevel} of 4` : 'Focus';
   }
   else $('#hud-level').textContent = lv ? `Level ${lv.name}${progress.level === 'adaptive' ? ' · Adaptive' : ''}` : '';
 }
@@ -510,21 +509,15 @@ function judgeRun() {
   progress.rating = overallLevel(ears);
   if (S.pick && progress.level === 'focus') {
     const ev = afterFocus(ears.focus, ears, S.pick, m, scores);
-    const name = ev && skillName(ev.skill);
-    if (ev?.type === 'turnaround') toast(`Turned around: ${name}. Clean on a new melody after the drills.`);
-    else if (ev?.type === 'fixed') toast(`${name[0].toUpperCase()}${name.slice(1)}: reliable now. On to the next thing.`);
-    else if (ev?.type === 'rest') toast(`Enough ${name} for now. We'll come back to them.`);
+    // Said without naming the skill (Your ears has the details).
+    if (ev?.type === 'turnaround') toast('Turned around! Clean on a new melody after the drills.');
+    else if (ev?.type === 'fixed') toast('Something you found hard is reliable now. On to the next thing.');
+    else if (ev?.type === 'rest') toast("Enough of that for now. We'll come back to it.");
   }
   save();
 }
-const FOCUS_KIND = { test: 'test', check: 'check', drill: 'drill', mix: 'something different', review: 'review', explore: 'looking for something to work on' };
 function focusPrompt() {
-  const p = S.pick;
-  if (!p) return 'Listen…';
-  if (p.kind === 'drill') return `Drill: ${DRILL_NAMES[p.skill]}. Listen…`;
-  if (p.kind === 'test' || p.kind === 'check') return `Focus on ${skillName(p.skill)}. Listen…`;
-  if (p.kind === 'review') return `A look back at ${skillName(p.skill)}. Listen…`;
-  return 'Listen…';
+  return S.pick?.kind === 'drill' ? 'Drill. Listen…' : 'Listen…';
 }
 
 // The last phrase of a song: the song's stars are the average of its phrases'.
