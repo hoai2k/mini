@@ -1,4 +1,4 @@
-// Unit tests that need no browser: face geometry, Hoops physics, and the
+// Unit tests that need no browser: face geometry, Hoops and Baseball physics, and the
 // shared-room layer (net.js) running on the in-memory relay.
 //   node --test chat/test/
 import { test } from 'node:test';
@@ -348,49 +348,221 @@ test('Mob Whack shared field: claims, the referee and the tally', async () => {
   assert.equal(W.stopUpAt(z, zs.hole, zs.t + zs.dur + 1), -1);
 });
 
-test('Baseball: pitches reach their target, and contact decides the hit', async () => {
-  const { makePitch, pitchPos, contact, launchVelocity, outcome, fenceDist, TIMING, FOUL } = (await import('../games/baseball.js'))._physics;
-  // Every pitch crosses the plate at its target, at its time.
-  let seed = 1;
-  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 30; i++) {
-    const p = makePitch(rand);
-    const b = pitchPos(p, p.T);
-    close(b.x, p.tx, 1e-9);
-    close(b.y, p.ty, 1e-9);
-    close(b.z, 0, 1e-9);
-    assert.ok(['fast', 'change', 'curve'].includes(p.type) && p.T > 0.5 && p.T < 1.1);
-    assert.ok(pitchPos(p, p.T + 0.1).z < 0, 'it carries on past the plate');
-  }
-  // The wall: 377 ft to centre, 322 ft down the lines.
-  close(fenceDist(0), 115);
-  close(fenceDist(FOUL), 98);
+test('Baseball: the spring bat swings faster the further it is pulled back', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  // Pulling back is a hold: the longer, the further, up to the stop.
+  close(B.pullFor(B.holdFor(0.7)), 0.7);
+  assert.equal(B.pullFor(10000), B.PULL_MAX);
+  assert.ok(B.pullFor(0) > 0, 'a tap still swings a little');
+  assert.ok(B.swingSpeed(1.2) > B.swingSpeed(0.6) && B.swingSpeed(0.6) > B.swingSpeed(0.1));
+  // Released, it swings round through the plate (th 0) and on to its stop;
+  // a full pull gets there sooner and is going faster.
+  const across = sw => sw.th.findIndex(a => a <= 0);
+  const full = B.makeSwing(1.2), soft = B.makeSwing(0.4);
+  assert.ok(full.th[0] > B.TH_REST && full.th.at(-1) < -1.5, 'from behind the batter round over the front shoulder');
+  assert.ok(across(full) > 0 && across(full) < across(soft));
+  assert.ok(Math.abs(full.om[across(full)]) > Math.abs(soft.om[across(soft)]) * 1.4);
+  for (let i = 1; i < full.done; i++) assert.ok(full.th[i] <= full.th[i - 1], 'one way only');
+});
 
-  const from = { x: 0, y: 0.8, z: 0 };
-  const hit = (dt, dx, dy) => {
-    const c = contact(dt, dx, dy);
-    return c && { c, ...outcome(from, launchVelocity(c)) };
-  };
-  // Right on the ball, right on time: a home run to centre.
-  const best = hit(0, 0, 0);
-  assert.equal(best.c.q, 1);
-  assert.equal(best.kind, 'hr');
-  assert.ok(best.dist > fenceDist(0) && best.dist < 150, `carries ${best.dist}`);
-  // Outside the timing window or out of reach: a miss.
-  assert.equal(contact(TIMING + 0.01, 0, 0), null);
-  assert.equal(contact(-TIMING - 0.01, 0, 0), null);
-  assert.equal(contact(0, 0, 0.35), null);
-  assert.equal(contact(NaN, 0, 0), null);
-  // Early pulls it to left field, late pushes it to right; very late is foul.
-  assert.ok(hit(-0.05, 0, 0).c.spray < -10);
-  assert.ok(hit(0.05, 0, 0).c.spray > 10);
-  assert.equal(hit(0.12, 0, 0).kind, 'foul');
-  assert.equal(hit(-0.12, 0, 0).kind, 'foul');
-  // On top of the ball: a grounder; well under it: a pop-up.
-  assert.equal(hit(0, 0, 0.27).kind, 'grounder');
-  assert.equal(hit(0, 0, -0.29).kind, 'pop');
-  // A slightly early swing still goes out, down the left field side.
-  assert.equal(hit(-0.04, 0, 0).kind, 'hr');
+test('Baseball: the ball comes off the moving bat by its contact point', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  const { PIVOT } = B;
+  const at = (th, r) => ({ x: PIVOT.x + Math.cos(th) * r + Math.sin(th) * 0.02, y: PIVOT.y + Math.sin(th) * r - Math.cos(th) * 0.02 });
+  // A still bat: the ball bounces straight back, slower (restitution < 1).
+  const still = B.batHit(at(0, 0.13), { x: 0, y: 0.5 }, 0, 0);
+  assert.ok(still && Math.abs(still.vx) < 1e-9 && still.vy < 0 && -still.vy < 0.5);
+  // Swinging adds the bat's speed at the contact point: faster swings, harder hits.
+  const slow = B.batHit(at(0, 0.13), { x: 0, y: 0.5 }, 0, -4);
+  const fast = B.batHit(at(0, 0.13), { x: 0, y: 0.5 }, 0, -11);
+  assert.ok(-fast.vy > -slow.vy && -slow.vy > -still.vy);
+  // Further out along the bat moves faster than near the hands.
+  assert.ok(-B.batHit(at(0, 0.16), { x: 0, y: 0.5 }, 0, -8).vy > -B.batHit(at(0, 0.05), { x: 0, y: 0.5 }, 0, -8).vy);
+  // Early (bat already past square) pulls it left, late pushes it right.
+  assert.ok(B.batHit(at(-0.4, 0.13), { x: 0, y: 0.5 }, -0.4, -10).vx < -0.3);
+  assert.ok(B.batHit(at(0.4, 0.13), { x: 0, y: 0.5 }, 0.4, -10).vx > 0.3);
+  // Not touching, or already parting: nothing.
+  assert.equal(B.batHit({ x: 0.9, y: 0.9 }, { x: 0, y: 0.5 }, 0, -10), null);
+  assert.equal(B.batHit(at(0, 0.13), { x: 0, y: -3 }, 0, 0), null);
+  // Never faster than the cap.
+  assert.ok(Math.hypot(fast.vx, fast.vy) <= B.VMAX + 1e-9);
+});
+
+test('Baseball: swing timing against a pitch: early pulls, late goes the other way', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  const p = B.makePitch('fast', 99);
+  const hits = [];
+  for (let tRel = -0.4; tRel < p.end; tRel += 0.01) {
+    const c = B.findContact(p, B.PULL_MAX, tRel);
+    if (c) hits.push({ tRel, ang: Math.atan2(c.L.vx, -c.L.vy), sp: Math.hypot(c.L.vx, c.L.vy), L: c.L });
+  }
+  assert.ok(hits.length > 20, `${hits.length} contacts`);
+  // The later the swing, the further right it goes.
+  const fair = hits.filter(h => Math.abs(h.ang) < 0.8 && h.L.vy < 0 && h.sp > 1.5);
+  const lo = fair.reduce((m, h) => (h.ang < m.ang ? h : m)), hi = fair.reduce((m, h) => (h.ang > m.ang ? h : m));
+  assert.ok(lo.ang < -0.4 && hi.ang > 0.4 && lo.tRel < hi.tRel, `${lo.ang} at ${lo.tRel} .. ${hi.ang} at ${hi.tRel}`);
+  const third = Math.floor(fair.length / 3), avg = a => a.reduce((n, h) => n + h.ang, 0) / a.length;
+  assert.ok(avg(fair.slice(0, third)) < -0.2 && avg(fair.slice(-third)) > 0.2);
+  // Way too early or too late: a miss.
+  assert.equal(B.findContact(p, 1.0, -1.5), null);
+  assert.equal(B.findContact(p, 1.0, p.end + 0.1), null);
+  // A full swing drives it; a tap bunts it.
+  const mid = fair[Math.floor(fair.length / 2)];
+  const bunt = B.findContact(p, B.pullFor(30), mid.tRel - 0.2) || B.findContact(p, B.pullFor(30), 0);
+  assert.ok(bunt && Math.hypot(bunt.L.vx, bunt.L.vy) < 1, 'a tap bunts it');
+  assert.ok(mid.sp > 2, `a full swing launches it (${mid.sp})`);
+  // The vanishing pitch can't be touched while it is under the board.
+  const v = B.makePitch('vanish', 5);
+  for (let tRel = -0.5; tRel < v.end; tRel += 0.01) {
+    const c = B.findContact(v, 1.0, tRel);
+    if (c) assert.ok(c.L.y <= B.HATCH[0] + 0.02 || c.L.y >= B.HATCH[1] - 0.02, `touched at ${c.L.y}`);
+  }
+  // Curves break across the plate; fastballs are strikes.
+  const cl = B.makePitch('curveL', 3), cr = B.makePitch('curveR', 3);
+  assert.ok(B.pitchAt(cl, cl.T).x < 0.5 && B.pitchAt(cr, cr.T).x > 0.5);
+  assert.ok(B.pitchAt(cl, cl.T * 0.25).x > 0.5, 'a curve starts the other way');
+  assert.ok(B.inZone(B.makePitch('fast', 1)) && B.inZone(B.makePitch('slow', 2)));
+});
+
+test('Baseball: a launch rolls the same way every time, into pockets, walls and foul ground', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  const L = { x: 0.5, y: B.HOME.y - 0.07, vx: -0.9, vy: -2.3, s: 0.05, t: 0.4 };
+  const a = B.roll(L, 0.3, 800), b = B.roll(JSON.parse(JSON.stringify(L)), 0.3, 800);
+  assert.deepEqual(a, b);
+  assert.ok(['pocket', 'stop', 'over', 'foul'].includes(a.end) && a.path.length > 10);
+  // Rolled gently over a pocket, it drops in; rolled hard, it skims across.
+  const P = B.POCKETS[5];
+  const gentle = B.roll({ x: P.x, y: P.y + 0.12, vx: 0, vy: -0.75, s: 0, t: 0 });
+  assert.equal(gentle.end, 'pocket');
+  assert.equal(gentle.slot, 5);
+  const hard = B.roll({ x: P.x, y: P.y + 0.12, vx: 0, vy: -2.6, s: 0, t: 0 });
+  assert.ok(hard.path.some((v, i) => i % 2 === 1 && v < P.y - 0.1), 'a hard one rolls on over the hole');
+  // Hit back behind the plate, or out across the line in the infield: foul.
+  assert.equal(B.roll({ x: 0.5, y: B.HOME.y + 0.01, vx: 0.2, vy: 1.5, s: 0, t: 0 }).end, 'foul');
+  assert.equal(B.roll({ x: 0.5, y: B.HOME.y - 0.04, vx: 2, vy: -0.6, s: 0, t: 0 }).end, 'foul');
+  // A rocket into the wall hops it.
+  assert.equal(B.roll({ x: 0.44, y: B.HOME.y - 0.02, vx: 0, vy: -3, s: 0, t: 0 }, 0.95, 0).end, 'over');
+  // Past the bases the foul lines are rails: it stays fair.
+  const rail = B.roll({ x: 0.3, y: 0.95, vx: -1.2, vy: 0.3, s: 0, t: 0 });
+  assert.notEqual(rail.end, 'foul');
+  // The home run pocket slides along the wall: the same place for the same moment.
+  assert.deepEqual(B.sliderPos(B.sliderU(0.2, 700, 0.3)), B.sliderPos(B.sliderU(0.2, 700, 0.3)));
+  assert.ok(B.sliderPos(0).x < 0.2 && B.sliderPos(1).x > 0.8 && B.sliderPos(0.5).y < 0.3);
+});
+
+test('Baseball: pocket labels are dealt, shuffled and lit', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  const d1 = B.dealLabels(B.rng(11)), d2 = B.dealLabels(B.rng(11));
+  assert.deepEqual(d1, d2, 'the same deal for the same seed');
+  const seen = new Set();
+  for (let k = 1; k < 60; k++) {
+    const { pk, bonus } = B.dealLabels(B.rng(k));
+    seen.add(pk);
+    assert.match(pk, new RegExp(`^[O123H]{${B.SLOTS}}$`));
+    // The infield pockets are mostly outs; the lit pocket is a hit pocket.
+    assert.ok([...pk.slice(0, 3)].filter(c => c === 'O').length >= 2);
+    assert.ok(bonus >= 0 && '123'.includes(pk[bonus]));
+    // Between batters two labels trade places and the light moves.
+    const n = B.nudgeLabels(pk, bonus, B.rng(k + 100));
+    assert.deepEqual([...n.pk].sort(), [...pk].sort());
+    assert.notEqual(n.bonus, bonus);
+  }
+  assert.ok(seen.size > 20, 'deals vary');
+  // A lit pocket counts one base more; the slider is always a home run.
+  assert.equal(B.slotLabel('2OOOOOOOOO', 0, 0), '3');
+  assert.equal(B.slotLabel('2OOOOOOOOO', -1, 0), '2');
+  assert.equal(B.slotLabel('OOOOOOOOOO', -1, B.SLOTS), 'H');
+  // Outcomes.
+  assert.equal(B.outcome({ end: 'over' }, 'OOOOOOOOOO', -1), 'H');
+  assert.equal(B.outcome({ end: 'foul' }, 'OOOOOOOOOO', -1), 'F');
+  assert.equal(B.outcome({ end: 'pocket', slot: 3 }, 'OOO1OOOOOO', -1), '1');
+  const f = B.FIELDERS[3];
+  assert.equal(B.outcome({ end: 'stop', x: f.x + 0.05, y: f.y }, 'OOOOOOOOOO', -1), 'O', 'fielded');
+  assert.equal(B.outcome({ end: 'stop', x: 0.5, y: 0.7 }, 'OOOOOOOOOO', -1), '1', 'in a gap');
+  assert.equal(B.outcome({ end: 'stop', x: 0.08, y: 0.35 }, 'OOOOOOOOOO', -1), '2', 'deep in a gap');
+});
+
+test('Baseball: runners, counts, outs, innings and teams', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  // Hits move everyone up; runners past third score.
+  let r = B.advance(['a', null, 'b'], 2, 'c');
+  assert.deepEqual(r.bases, [null, 'c', 'a']);
+  assert.equal(r.runs, 1);
+  assert.deepEqual(r.moves.map(m => [m.id, m.from, m.to]), [['b', 3, 4], ['a', 1, 3], ['c', 0, 2]]);
+  r = B.advance(['a', 'b', 'c'], 4, 'd');
+  assert.equal(r.runs, 4);
+  assert.deepEqual(r.bases, [null, null, null]);
+  // A walk only pushes forced runners.
+  assert.deepEqual(B.walk([null, 'b', null], 'c').bases, ['c', 'b', null]);
+  r = B.walk(['a', 'b', 'c'], 'd');
+  assert.deepEqual([r.bases, r.runs], [['d', 'a', 'b'], 1]);
+  // Teams: alternate in join order; leavers drop out; newcomers fill the smaller.
+  assert.deepEqual(B.syncTeams([[], []], ['a', 'b', 'c']), [['a', 'c'], ['b']]);
+  assert.deepEqual(B.syncTeams([['a', 'c'], ['b']], ['a', 'c', 'd']), [['a', 'c'], ['d']]);
+  // A game: Ana (team 0) bats first against Bo.
+  let s = B.newGame(['a', 'b'], 1, 1, B.rng(1));
+  assert.deepEqual([s.bat, s.pit, s.half, s.inn], ['a', 'b', 0, 1]);
+  const solo = B.newGame(['a'], 3, 1, B.rng(1));
+  assert.equal(solo.pit, B.CPU, 'alone, the computer pitches');
+  // Three strikes: out, and a foul with two strikes is not a third.
+  s = B.applyResult(s, 'S', B.rng(2));
+  s = B.applyResult(s, 'F', B.rng(2));
+  s = B.applyResult(s, 'F', B.rng(2));
+  assert.deepEqual([s.s, s.outs], [2, 0]);
+  s = B.applyResult(s, 'W', B.rng(2));
+  assert.deepEqual([s.s, s.outs, s.last.res], [0, 1, 'K']);
+  // Four balls: a walk.
+  for (let k = 0; k < 4; k++) s = B.applyResult(s, 'B', B.rng(3));
+  assert.deepEqual([s.b, s.bases[0], s.last.res], [0, 'a', 'BB']);
+  // A home run scores two.
+  s = B.applyResult(s, 'H', B.rng(4));
+  assert.deepEqual([s.score[0], s.line[0][0], s.st.a], [2, 2, [1, 1, 2]]);
+  // Two more outs switch sides: bases cleared, Bo bats, Ana pitches, the board is dealt again.
+  const lay = s.lay;
+  s = B.applyResult(s, 'O', B.rng(5));
+  s = B.applyResult(s, 'O', B.rng(6));
+  assert.deepEqual([s.half, s.outs, s.bat, s.pit, s.bases, s.vn], [1, 0, 'b', 'a', [null, null, null], 1]);
+  assert.ok(s.lay > lay && s.last.side);
+  // Bo goes ahead in the bottom of the last inning: a walk-off.
+  s = B.applyResult(s, 'H', B.rng(7));
+  assert.equal(s.phase, 'ready');
+  s = B.applyResult(s, 'H', B.rng(8));
+  s = B.applyResult(s, 'H', B.rng(9));
+  assert.deepEqual([s.phase, s.over, s.score], ['over', 1, [2, 3]]);
+  // Tied after the last inning: extra innings.
+  let t = B.newGame(['a', 'b'], 1, 1, B.rng(1));
+  for (let k = 0; k < 6; k++) t = B.applyResult(t, 'O', B.rng(k));
+  assert.deepEqual([t.phase, t.inn, t.half], ['ready', 2, 0]);
+  // The home team ahead after the top of the last: no need for the bottom.
+  let u = B.newGame(['a', 'b'], 2, 1, B.rng(1));
+  for (let k = 0; k < 3; k++) u = B.applyResult(u, 'O', B.rng(k));
+  u = B.applyResult(u, 'H', B.rng(1));
+  assert.deepEqual([u.phase, u.score], ['ready', [0, 1]]);
+  for (let k = 0; k < 6; k++) u = B.applyResult(u, 'O', B.rng(k));
+  assert.deepEqual([u.phase, u.over, u.inn, u.half], ['over', 1, 2, 0]);
+});
+
+test('Baseball: messages and shared state are checked', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  assert.deepEqual(B.readPitchMsg({ n: 3, type: 'curveL', seed: 7, lead: 800, x: 1 }), { n: 3, type: 'curveL', seed: 7, lead: 800 });
+  for (const bad of [null, 5, { n: 3, type: 'spitball', seed: 7, lead: 800 }, { n: 0, type: 'fast', seed: 7, lead: 800 },
+    { n: 3, type: 'fast', seed: -1, lead: 800 }, { n: 3, type: 'fast', seed: 7, lead: 99999 }, { n: '3', type: 'fast', seed: 7, lead: 800 }]) {
+    assert.equal(B.readPitchMsg(bad), null);
+  }
+  const L = { x: 0.5, y: 1.55, vx: 0.3, vy: -2, s: 0.1, t: 0.4 };
+  assert.deepEqual(B.readBatMsg({ n: 2, L }), { n: 2, L });
+  assert.deepEqual(B.readBatMsg({ n: 2, miss: true, sw: 1 }), { n: 2, miss: true, sw: false });
+  for (const bad of [{ ...L, vx: 5 }, { ...L, vx: 2.5, vy: -2.5 }, { ...L, x: NaN }, { ...L, y: 0.2 }, { ...L, s: 9 }, { ...L, t: -1 }, 'L']) {
+    assert.equal(B.readBatMsg({ n: 2, L: bad }), null);
+  }
+  assert.deepEqual(B.readSwingMsg({ n: 4, pull: 0.5 }), { n: 4, pull: 0.5 });
+  assert.equal(B.readSwingMsg({ n: 4, pull: 7 }), null);
+  // Shared state from the owner is cleaned before use.
+  assert.equal(B.readShared({ v: 1 }), null);
+  const s = B.newGame(['a', 'b'], 3, 1, B.rng(1));
+  assert.deepEqual(B.readShared(JSON.parse(JSON.stringify(s))), { ...s, play: null, last: null });
+  const junk = B.readShared({ ...s, pk: 'XX', bases: ['a', 7, { id: 'x' }], teams: [['a', 5, ''], 'b'], outs: 9, inns: 4, st: { a: [1, 2], b: [1, 0, 0] }, play: { n: 1, res: 'Z' } });
+  assert.deepEqual([junk.pk, junk.bases, junk.teams, junk.outs, junk.inns, junk.st, junk.play], ['O'.repeat(B.SLOTS), ['a', null, null], [['a'], []], 0, 3, { b: [1, 0, 0] }, null]);
 });
 
 // --- Kart Dash ---------------------------------------------------------------
