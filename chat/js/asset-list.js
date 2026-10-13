@@ -2249,19 +2249,19 @@ export const ASSET_LIST = {
   },
   "temple-beam": {
     "file": "assets/games/temple-beam.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-board": {
     "file": "assets/games/bb2-board.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-bat": {
     "file": "assets/games/bb2-bat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "bb2-fielder": {
     "file": "assets/games/bb2-fielder.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-blocks": {
     "file": "assets/icons/game-blocks.png",
