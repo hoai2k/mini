@@ -107,6 +107,7 @@ function buildStamps() {
 
 export default function create(env) {
   const total = kit.boardTime(env, ENTRY.time);
+  art.preload(['scenes/bombanat']); // the wood's edge in the backdrop at the start
   const gentle = !!env.gentle?.[0];
   const cam = kit.makeCamera(WORLD, { lead: 300, anchor: 0.36 });
   const solids = buildSolids();
@@ -602,18 +603,17 @@ export default function create(env) {
       g.fillStyle = gr; g.fillRect(0, 0, W, H);
       return;
     }
-    const tiles = (img, sx0, sw, draw) => {
+    const tiles = (img, sx0, sw, mirror) => {
       const i0 = Math.floor((off - 200) / sw);
       for (let i = i0; i * sw - off < W + 200; i++) {
         const x = i * sw - off;
         g.save();
-        if (i % 2) { g.translate(x + sw, 0); g.scale(-1, 1); draw(img, sx0, 0, sw, 1080, 0, 0, sw, H); }
-        else draw(img, sx0, 0, sw, 1080, x, 0, sw, H);
+        if (mirror && i % 2) { g.translate(x + sw, 0); g.scale(-1, 1); g.drawImage(img, sx0, 0, sw, 1080, 0, 0, sw, H); }
+        else g.drawImage(img, sx0, 0, sw, 1080, x, 0, sw, H);
         g.restore();
       }
     };
-    const dr = (img, ...a) => g.drawImage(img, ...a);
-    if (lane) tiles(lane, 0, 1060, dr);
+    if (lane) tiles(lane, 0, 1060, false);
     // The wood at the start, fading into the lane over a few hundred px of backdrop.
     const B0 = 1000, FADE = 500;
     if (wood && off < B0 + FADE + 100) {
@@ -626,7 +626,7 @@ export default function create(env) {
         if (a <= 0) break;
         g.globalAlpha = Math.min(1, a);
         g.beginPath(); g.rect(sx, 0, 40.6, H); g.clip();
-        tiles(wood, 0, 1500, dr);
+        tiles(wood, 0, 1500, true);
         g.restore(); g.save();
       }
       g.restore();

@@ -186,7 +186,9 @@ test('chapter 9: netting the Trollusk or the Yalapappus jars them for a while an
   const { s } = ch.chase;
   const r = ch.reach();
   const yal = ch.others[1];
-  yal.x = r.x; yal.y = r.y;
+  yal.x = r.x; yal.y = r.y; yal.vx = yal.vy = 0;
+  yal.goal = { x: r.x, y: r.y }; yal.until = 99; yal.T = 0; // stays put
+  yal.sawWindup = true; // and doesn't hop aside this time
   ch.update(DT, { actionPressed: true }, {});
   for (let t = 0; t < 0.6 && yal.mode !== 'jar'; t += DT) ch.update(DT, {}, {});
   assert.equal(yal.mode, 'jar');

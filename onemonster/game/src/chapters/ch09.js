@@ -105,7 +105,10 @@ export default function create(env) {
 
   // ---------- the net's reach ----------
   function reach() {
-    const dir = gx.mode === 'swing' || gx.mode === 'windup' || gx.mode === 'slam' ? gx.swingDir || gx.facing : gx.facing;
+    // Once the swing starts the patch is fixed where he wound up: what is
+    // drawn is what the sweep catches, step or no step.
+    if (gx.swingAt && (gx.mode === 'swing' || gx.mode === 'slam')) return gx.swingAt;
+    const dir = gx.mode === 'windup' ? gx.swingDir || gx.facing : gx.facing;
     return { x: gx.x + dir * NET.ahead, y: gx.y, rx: NET.rx, ry: NET.ry };
   }
   function inReach(o) {
@@ -202,7 +205,7 @@ export default function create(env) {
 
   // The three beats of the swing, the vault, the trip and the post.
   function stepGrithix(dt) {
-    if (gx.mode === 'windup' && gx.modeT >= WINDUP) { gx.mode = 'swing'; gx.modeT = 0; env.sfx('swoosh'); }
+    if (gx.mode === 'windup' && gx.modeT >= WINDUP) { gx.swingAt = reach(); gx.mode = 'swing'; gx.modeT = 0; env.sfx('swoosh'); }
     if (gx.mode === 'swing') {
       // He steps into it, and the net sweeps the patch in front of him.
       gx.x = clamp(gx.x + gx.swingDir * 160 * dt, B.x0, B.x1);

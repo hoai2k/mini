@@ -303,7 +303,10 @@ export function aiHolder(c, brain, skill, dt) {
   if (gd > 5) { out.x = gx / gd; out.y = gy / gd; }
   // Sprint when the snatcher is close or sprinting, and we have breath: in
   // committed bursts, not a fresh decision every frame.
-  out.sprint = sprintWindow(brain, h, dt, c.rng, () => h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360)) && c.rng() > (1 - skill) * 0.2);
+  // (The luck in it is rolled once a second or so, not every frame.)
+  brain.luckT = (brain.luckT || 0) - dt;
+  if (brain.luckT <= 0) { brain.luck = c.rng() > (1 - skill) * 0.2; brain.luckT = 0.8 + c.rng() * 0.5; }
+  out.sprint = brain.luck && h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360));
   // On purpose, now and then, a mistake: a moment's hesitation.
   if (c.rng() < dt * (1 - skill) * 0.8) brain.goal = { x: h.x, y: h.y }, brain.until = brain.t + 0.3;
   return out;

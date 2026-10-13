@@ -497,35 +497,99 @@ export default function create(env) {
 
   // Sally Ann's house: the clapboard end wall of it standing behind the hedge
   // and the fence (the scene's foreground hides its foot), her window in it.
+  // Drawn in the book's ink-and-wash: wobbly ink lines, thin washes, hatching.
+  const wob = (i, k = 1) => (Math.sin(i * 12.9898) * 43758.5453 % 1) * k; // a fixed jitter, never flickering
+  function inkLine(g, x0, y0, x1, y1, seed, amp = 1.6) {
+    const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / 28));
+    g.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const k = i / n, x = x0 + (x1 - x0) * k, y = y0 + (y1 - y0) * k;
+      const px = x + wob(seed + i * 3, amp) * (i && i < n ? 1 : 0), py = y + wob(seed + i * 7 + 1, amp) * (i && i < n ? 1 : 0);
+      i ? g.lineTo(px, py) : g.moveTo(px, py);
+    }
+    g.stroke();
+  }
+  function hatch(g, x0, y0, x1, y1, step, seed, slant = 0.35) {
+    for (let x = x0, i = 0; x < x1; x += step, i++) inkLine(g, x + wob(seed + i, 3), y0, x + (y1 - y0) * slant + wob(seed + i + 50, 3), y1, seed + i * 11, 0.8);
+  }
   function drawHouse(g, tt) {
     const L = look[1];
     const { x0, x1, top, bottom } = HOUSE;
-    const cx = (x0 + x1) / 2;
+    const cx = (x0 + x1) / 2, peak = top - 150;
     g.save();
-    g.lineWidth = 5;
-    g.strokeStyle = '#4a3526';
-    // The gable and its roof.
-    g.fillStyle = '#efe0bf';
-    g.beginPath(); g.moveTo(x0, top); g.lineTo(cx, top - 150); g.lineTo(x1, top); g.closePath(); g.fill(); g.stroke();
-    g.fillRect(x0, top, x1 - x0, bottom - top);
-    g.lineWidth = 2;
-    g.strokeStyle = 'rgba(74,53,38,0.35)';
-    for (let y = top + 26; y < bottom; y += 26) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
-    g.lineWidth = 5;
-    g.strokeStyle = '#4a3526';
-    g.beginPath(); g.moveTo(x0, top); g.lineTo(x0, bottom); g.moveTo(x1, top); g.lineTo(x1, bottom); g.stroke();
-    g.fillStyle = '#9b4b3a';
-    g.beginPath(); g.moveTo(x0 - 36, top + 14); g.lineTo(cx, top - 158); g.lineTo(x1 + 36, top + 14); g.lineTo(x1 + 36, top - 4); g.lineTo(cx, top - 176); g.lineTo(x0 - 36, top - 4); g.closePath(); g.fill(); g.stroke();
-    // A chimney, and a window box of geraniums under her sill.
-    g.fillStyle = '#9b4b3a';
-    g.fillRect(x1 - 110, top - 120, 44, 90); g.strokeRect(x1 - 110, top - 120, 44, 90);
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    // The wall and gable: a faded cream wash, darker up under the eaves.
+    const wash = g.createLinearGradient(0, peak, 0, bottom);
+    wash.addColorStop(0, 'rgba(226,206,164,0.92)');
+    wash.addColorStop(0.35, 'rgba(241,228,196,0.88)');
+    wash.addColorStop(1, 'rgba(236,222,190,0.9)');
+    g.fillStyle = wash;
+    g.beginPath(); g.moveTo(x0 + 3, top + 2); g.lineTo(cx - 2, peak + 3); g.lineTo(x1 - 2, top); g.lineTo(x1 - 1, bottom); g.lineTo(x0 + 1, bottom); g.closePath(); g.fill();
+    // A shadow wash under the eaves, and hatching in it.
+    const sh = g.createLinearGradient(0, top - 10, 0, top + 70);
+    sh.addColorStop(0, 'rgba(120,88,58,0.35)'); sh.addColorStop(1, 'rgba(120,88,58,0)');
+    g.fillStyle = sh;
+    g.beginPath(); g.moveTo(x0, top); g.lineTo(cx, peak); g.lineTo(x1, top); g.lineTo(x1, top + 70); g.lineTo(x0, top + 70); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(74,53,38,0.45)'; g.lineWidth = 1.6;
+    hatch(g, x0 + 8, top + 4, x1 - 6, top + 40, 11, 3);
+    // Clapboards: a thin ink line and a faint shadow under each, slightly uneven.
+    for (let y = top + 24, i = 0; y < bottom; y += 25 + wob(i, 3), i++) {
+      g.strokeStyle = 'rgba(74,53,38,0.55)'; g.lineWidth = 1.8;
+      inkLine(g, x0, y, x1, y, 100 + i * 5, 1.2);
+      g.strokeStyle = 'rgba(120,88,58,0.14)'; g.lineWidth = 5;
+      inkLine(g, x0, y + 4, x1, y + 4, 100 + i * 5, 1.2);
+    }
+    // The wall's ink outline.
+    g.strokeStyle = '#4a3526'; g.lineWidth = 4.5;
+    inkLine(g, x0, top, x0, bottom, 7); inkLine(g, x1, top, x1, bottom, 9);
+    // The roof: a rusty wash, shingle rows hatched, a wobbly outline.
+    const rf = g.createLinearGradient(0, top - 176, 0, top + 14);
+    rf.addColorStop(0, 'rgba(176,96,74,0.92)'); rf.addColorStop(1, 'rgba(142,74,58,0.9)');
+    g.fillStyle = rf;
+    g.beginPath(); g.moveTo(x0 - 36, top + 14); g.lineTo(cx, peak - 8); g.lineTo(x1 + 36, top + 14); g.lineTo(x1 + 36, top - 4); g.lineTo(cx, peak - 26); g.lineTo(x0 - 36, top - 4); g.closePath(); g.fill();
+    g.save();
+    g.clip();
+    g.strokeStyle = 'rgba(60,30,22,0.5)'; g.lineWidth = 1.5;
+    for (let i = 0; i < 4; i++) {
+      const k = 0.2 + i * 0.22;
+      inkLine(g, x0 - 36, top + 14 - 18 * k, cx, peak - 8 + (top - peak) * (1 - k) * 0.1 - 18 * k, 200 + i, 1.5);
+      inkLine(g, cx, peak - 8 + (top - peak) * (1 - k) * 0.1 - 18 * k, x1 + 36, top + 14 - 18 * k, 230 + i, 1.5);
+    }
+    hatch(g, x0 - 30, top - 4, x1 + 36, top + 14, 9, 300, 0.2);
+    g.restore();
+    g.strokeStyle = '#4a3526'; g.lineWidth = 4.5;
+    inkLine(g, x0 - 36, top + 14, cx, peak - 8, 11); inkLine(g, cx, peak - 8, x1 + 36, top + 14, 13);
+    inkLine(g, x0 - 36, top - 4, cx, peak - 26, 15); inkLine(g, cx, peak - 26, x1 + 36, top - 4, 17);
+    inkLine(g, x0 - 36, top - 4, x0 - 36, top + 14, 19); inkLine(g, x1 + 36, top - 4, x1 + 36, top + 14, 21);
+    // The chimney: brick wash, a few bricks inked in.
+    g.fillStyle = 'rgba(160,86,66,0.9)';
+    g.fillRect(x1 - 110, top - 126, 44, 96);
+    g.strokeStyle = 'rgba(74,53,38,0.5)'; g.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) inkLine(g, x1 - 110, top - 112 + i * 18, x1 - 66, top - 112 + i * 18, 400 + i, 1);
+    for (let i = 0; i < 5; i++) inkLine(g, x1 - 88 + (i % 2) * 11 - 5, top - 112 + i * 18, x1 - 88 + (i % 2) * 11 - 5, top - 94 + i * 18, 420 + i, 0.8);
+    g.strokeStyle = '#4a3526'; g.lineWidth = 4;
+    inkLine(g, x1 - 110, top - 126, x1 - 110, top - 30, 23); inkLine(g, x1 - 66, top - 126, x1 - 66, top - 30, 25);
+    inkLine(g, x1 - 114, top - 126, x1 - 62, top - 126, 27);
     g.restore();
     drawLookout(g, L, tt);
+    // Her window box, with geraniums, under the sill.
     g.save();
-    g.lineWidth = 4; g.strokeStyle = '#4a3526'; g.fillStyle = '#b07a52';
-    g.fillRect(L.x - 118, L.y - 8, 236, 24); g.strokeRect(L.x - 118, L.y - 8, 236, 24);
-    g.fillStyle = '#c8443a';
-    for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(L.x - 95 + i * 38, L.y - 16, 11, 0, Math.PI * 2); g.fill(); g.stroke(); }
+    g.lineCap = 'round';
+    g.fillStyle = 'rgba(176,122,82,0.9)';
+    g.fillRect(L.x - 118, L.y - 8, 236, 24);
+    g.strokeStyle = 'rgba(74,53,38,0.5)'; g.lineWidth = 1.5;
+    hatch(g, L.x - 112, L.y - 4, L.x + 118, L.y + 14, 10, 500, 0.3);
+    g.strokeStyle = '#4a3526'; g.lineWidth = 3.5;
+    inkLine(g, L.x - 118, L.y - 8, L.x + 118, L.y - 8, 31); inkLine(g, L.x - 118, L.y + 16, L.x + 118, L.y + 16, 33);
+    inkLine(g, L.x - 118, L.y - 8, L.x - 118, L.y + 16, 35); inkLine(g, L.x + 118, L.y - 8, L.x + 118, L.y + 16, 37);
+    for (let i = 0; i < 6; i++) {
+      const fxp = L.x - 95 + i * 38 + wob(i, 6), fy = L.y - 16 + wob(i + 9, 5);
+      g.fillStyle = '#6f8f45'; g.strokeStyle = '#4a3526'; g.lineWidth = 2.5;
+      g.beginPath(); g.ellipse(fxp - 10, fy + 6, 12, 7, -0.4, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.fillStyle = 'rgba(200,68,58,0.95)';
+      g.beginPath(); g.arc(fxp, fy, 11, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.beginPath(); g.arc(fxp + 9, fy + 4, 7, 0, Math.PI * 2); g.fill(); g.stroke();
+    }
     g.restore();
   }
 
