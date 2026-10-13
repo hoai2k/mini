@@ -45,8 +45,8 @@ const SIGNPOSTS = [0, 1000, 4700, 8400, 12100];
 // Cover in the clearings: what the Trollusk hides in. kind: bush (props.trollusk
 // 5), lowbush (adv.b02.props 11), log (adv.b02.props 10, a hollow log).
 const COVERS = [
-  [0, [[3550, 'bush'], [4000, 'log'], [4550, 'bush']]],
-  [1, [[7250, 'bush'], [7700, 'lowbush'], [8250, 'log']]],
+  [0, [[3550, 'bush'], [4000, 'log'], [4450, 'bush']]],
+  [1, [[7250, 'bush'], [7700, 'lowbush'], [8150, 'log']]],
   [2, [[10950, 'bush'], [11500, 'log'], [11950, 'bush']]],
   [3, [[13150, 'bush'], [13650, 'lowbush'], [14150, 'log']]],
 ];
@@ -1241,7 +1241,7 @@ export function autopilot(board) {
     const hoverY = 300;
     if (h.mode === 'dash' || h.mode === 'skid' || h.mode === 'peek') {
       // Reading his peek as a human would: a little early or late each time.
-      if (h.mode === 'peek' && ap.jitterFor !== h.dashes) { ap.jitterFor = h.dashes; ap.jitter = (rng() - 0.5) * 0.3; }
+      if (h.mode === 'peek' && ap.jitterFor !== h.dashes) { ap.jitterFor = h.dashes; ap.jitter = (rng() - 0.5) * 0.7; }
       // Where will he be when the jaws reach the floor? Simulate the dive.
       let sx = b.x, sy = b.y, svx = b.vx, svy = b.diving ? b.vy : 0, tt = 0;
       while (sy + 150 < FLOOR - 130 && tt < 1.5) {

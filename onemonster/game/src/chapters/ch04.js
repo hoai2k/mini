@@ -517,6 +517,7 @@ export default function create(env) {
     outcome: null,
     bonus: 0,
     outroTime: 3.2, // the Peg goes down and the bottle bobs away before the celebration
+    banner: 'SCRUNNCCCHHH!!', // the shell's word when the strike lands
     ferg, peg, rowboats, fc, TUNE, HARBOUR,
     update(dt, inS, inH) {
       t += dt;
@@ -587,7 +588,6 @@ export default function create(env) {
       for (const th of things) th.draw();
       for (const p of parts) if (p.k !== 'ring') drawPart(g, p);
       if (!self.done) { drawMeters(g); drawPrompts(g, tt); }
-      if (self.done && self.outcome === 'snatched') drawScrunch(g, tt);
       fx.draw(g);
       g.restore();
       if (flash > 0) { g.save(); g.globalAlpha = flash * 0.8; g.fillStyle = '#fbf6e8'; g.fillRect(0, 0, W, H); g.restore(); }
@@ -770,26 +770,6 @@ export default function create(env) {
     return along > 0 && along < reach + 60 && across < P.radius + 70;
   }
 
-  // The SCRUNNCCCHHH itself, big across the sea.
-  function drawScrunch(g, tt) {
-    const k = clamp(outT / 0.35, 0, 1);
-    if (outT > 2.2) return;
-    g.save();
-    g.globalAlpha = outT > 1.7 ? 1 - (outT - 1.7) / 0.5 : 1;
-    // Below the crash (the shell's SNATCH! banner sits mid-screen), kept on screen.
-    g.translate(clamp((ferg.x + peg.x) / 2, 480, W - 480), Math.min(H - 70, Math.max(ferg.y, peg.y) + 190));
-    g.rotate(-0.1 + Math.sin(tt * 30) * 0.015 * (1 - k));
-    const s = 0.5 + 0.5 * (1 - (1 - k) * (1 - k)) + (freeze > 0 ? 0.25 : 0);
-    g.scale(s, s);
-    g.font = '900 96px Fraunces, Georgia, serif';
-    g.textAlign = 'center';
-    g.lineWidth = 14;
-    g.strokeStyle = '#33241a';
-    g.fillStyle = '#f2c53d';
-    g.strokeText('SCRUNNCCCHHH!!', 0, 0);
-    g.fillText('SCRUNNCCCHHH!!', 0, 0);
-    g.restore();
-  }
 
   function drawWakes(g) {
     g.save();
