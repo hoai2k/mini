@@ -63,7 +63,7 @@ export function drawSprite(g, sp, x, y, { height, scale, ax = 0.5, ay = 1, flip 
 
 // ---------- creatures ----------
 
-const ANCHOR = { bombanat: 0.55, typhoonigator: 0.5 }; // flyers hang from their middle
+const ANCHOR = { bombanat: 0.55, bombanatPlain: 0.55, typhoonigator: 0.5 }; // flyers hang from their middle
 
 export function makeCreature(id, x = 0, y = 0) {
   const M = MONSTERS[id];
@@ -101,6 +101,10 @@ function poseFrame(c) {
   return { A, pose: A.frames[i] };
 }
 
+// A creature's key-poses sheet: '<id>.poses', or the monster's own `sheet`
+// (the plain Bombanats use 'bombanat.plain').
+const poseSheet = (c) => c.M.sheet || `${c.id}.poses`;
+
 // An extra pose (not from the key-poses sheet) is [sheet, item, height on
 // screen, fallback pose]; until its sheet is delivered the fallback is drawn.
 function extraSprite(c, pose) {
@@ -109,10 +113,10 @@ function extraSprite(c, pose) {
 }
 
 function poseSprite(c, pose) {
-  if (c.M.poses[pose]) return sprite(`${c.id}.poses`, c.M.poses[pose]);
+  if (c.M.poses[pose]) return sprite(poseSheet(c), c.M.poses[pose]);
   const ex = c.M.extras?.[pose];
   if (!ex) return null;
-  return extraSprite(c, pose) || (ex[3] && c.M.poses[ex[3]] ? sprite(`${c.id}.poses`, c.M.poses[ex[3]]) : null);
+  return extraSprite(c, pose) || (ex[3] && c.M.poses[ex[3]] ? sprite(poseSheet(c), c.M.poses[ex[3]]) : null);
 }
 
 // An extra piece (not from the pose sheet) has its own height on screen.
@@ -122,7 +126,7 @@ function extraScale(c, pose, sp) {
   if (!own || own.img !== sp.img) return null;
   if (ex[2]) return (ex[2] / sp.h) * c.sizeK;
   // Drawn at the scale of the key poses: undo the two sheets' web scales.
-  const a = SPRITES.sheets[`${c.id}.poses`]?.scale || 1;
+  const a = SPRITES.sheets[poseSheet(c)]?.scale || 1;
   const b = SPRITES.sheets[ex[0]]?.scale || 1;
   return baseScale(c) * (b ? a / b : 1);
 }
@@ -130,7 +134,7 @@ function extraScale(c, pose, sp) {
 // Scale that makes this creature's idle pose stand c.M.height tall (times sizeK).
 function baseScale(c) {
   const first = Object.values(c.M.poses)[0];
-  const it = SPRITES.sheets[`${c.id}.poses`]?.items[first - 1];
+  const it = SPRITES.sheets[poseSheet(c)]?.items[first - 1];
   return it ? (c.M.height / it.h) * c.sizeK : c.sizeK;
 }
 
@@ -229,7 +233,7 @@ export function creatureSize(c) {
   return sp ? { w: sp.w * k, h: sp.h * k } : { w: c.M.height * 0.8, h: c.M.height };
 }
 
-const STAND_IN = { trollusk: '#6b4a32', bombanat: '#9a7fa6', grumley: '#c4913a', iceferg: '#dfe2f0', typhoonigator: '#a69aa8', yalapappus: '#d0b24a', grithix: '#d59bb4' };
+const STAND_IN = { trollusk: '#6b4a32', bombanat: '#9a7fa6', bombanatPlain: '#8e8a92', grumley: '#c4913a', iceferg: '#dfe2f0', typhoonigator: '#a69aa8', yalapappus: '#d0b24a', grithix: '#d59bb4' };
 
 function standIn(g, c, x, y, k, ay) {
   const h = c.M.height * c.sizeK;

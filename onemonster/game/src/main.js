@@ -342,6 +342,8 @@ async function showCard(ci) {
   if (MONSTERS[c.holder]) keys.push(`${c.holder}.poses`);
   // A board shows the others on the way too: load every monster's poses.
   if (adv) keys.push(...boardArt(c), ...Object.keys(MONSTERS).flatMap((m) => [`${m}.poses`, `${m}.moves`]));
+  // The audit's extra sheets (plain Bombanats, the bare Ice-Ferg and its sea lions, Sally Ann's house).
+  keys.push('bombanat.plain', 'iceferg.bare', 'iceferg.sealions', 'props/sallyann-house');
   art.preload(keys);
   S.howto = null;
   (adv ? loadBoardModule : loadChapterModule)(c.file).then((m) => {

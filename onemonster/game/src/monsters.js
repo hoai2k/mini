@@ -196,4 +196,23 @@ for (const [id, list] of Object.entries(MOVES)) {
   });
 }
 
+// An ordinary Bombanat for the flocks (chapter 3, boards 3 and 9): no
+// necktie, no cap, no letter (request OM-Z01, sheet 'bombanat.plain'), at the
+// Bombanat's scale. Until the sheet is delivered its poses are missing and
+// the game draws its stand-in.
+MONSTERS.bombanatPlain = {
+  name: 'A plain Bombanat', short: 'Bombanat', wants: 'nothing much', height: 190, voice: 'flap',
+  sheet: 'bombanat.plain',
+  poses: { glide: 1, flapUp: 2, flapDown: 3, dive: 4, grabbed: 5, netted: 6, perched: 7, stall: 8 },
+  anims: {
+    glide: { frames: ['glide'], bob: 0.03 },
+    flap: { frames: ['flapUp', 'glide', 'flapDown', 'glide'], fps: 12 },
+    dive: { frames: ['dive'] },
+    grabbed: { frames: ['grabbed'], shake: 4 },
+    netted: { frames: ['netted'], shake: 3 },
+    perched: { frames: ['perched'] },
+    stall: { frames: ['stall'], shake: 3 },
+  },
+};
+
 export const ORDER = ['trollusk', 'bombanat', 'grumley', 'iceferg', 'typhoonigator', 'yalapappus', 'grithix'];
