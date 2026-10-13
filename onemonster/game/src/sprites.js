@@ -1175,6 +1175,96 @@ export const SPRITES = {
    "src": "sprites/story/lucyjane.webp",
    "w": 1920,
    "h": 1080
+  },
+  "howto/ch01-1": {
+   "src": "sprites/howto/ch01-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch01-2": {
+   "src": "sprites/howto/ch01-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch01-3": {
+   "src": "sprites/howto/ch01-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-1": {
+   "src": "sprites/howto/ch02-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-2": {
+   "src": "sprites/howto/ch02-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-3": {
+   "src": "sprites/howto/ch02-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch03-1": {
+   "src": "sprites/howto/ch03-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch03-2": {
+   "src": "sprites/howto/ch03-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch03-3": {
+   "src": "sprites/howto/ch03-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-1": {
+   "src": "sprites/howto/ch04-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-2": {
+   "src": "sprites/howto/ch04-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-3": {
+   "src": "sprites/howto/ch04-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch05-1": {
+   "src": "sprites/howto/ch05-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch05-2": {
+   "src": "sprites/howto/ch05-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch05-3": {
+   "src": "sprites/howto/ch05-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-1": {
+   "src": "sprites/howto/ch06-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-2": {
+   "src": "sprites/howto/ch06-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-3": {
+   "src": "sprites/howto/ch06-3.webp",
+   "w": 1024,
+   "h": 768
   }
  }
 };
