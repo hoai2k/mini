@@ -12,9 +12,9 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 3 (Vintage 60s, 18th Century, Robot Future, French Nouveau, Candy, Steam Punk themes):** delivered and in use.
 
-**Round 4 (revisions):** 1 image wanted: `assets/ui/sixties/home-metronome.webp`.
+**Round 4 (revisions):** delivered and in use.
 
-**Round 5 (Tuner home icons, every theme):** 8 images wanted: `assets/ui/home-tuner.webp`, `assets/ui/deco/home-tuner.webp`, `assets/ui/sixties/home-tuner.webp`, `assets/ui/baroque/home-tuner.webp`, `assets/ui/scifi/home-tuner.webp`, `assets/ui/nouveau/home-tuner.webp`, `assets/ui/anime/home-tuner.webp`, `assets/ui/steampunk/home-tuner.webp`.
+**Round 5 (Tuner home icons, every theme):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -44,7 +44,7 @@ the measured ones for the delivered file in `build_requests.py`.
 | 2 | Art Deco | delivered | `home-record` | `app/assets/ui/deco/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 2 | Art Deco | delivered | `metronome-body` | `app/assets/ui/deco/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 2 | Art Deco | delivered | `metronome-pendulum` | `app/assets/ui/deco/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 4 | Vintage 60s | revise | `home-metronome` | `app/assets/ui/sixties/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 4 | Vintage 60s | delivered | `home-metronome` | `app/assets/ui/sixties/home-metronome.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Vintage 60s | delivered | `home-record` | `app/assets/ui/sixties/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Vintage 60s | delivered | `metronome-body` | `app/assets/ui/sixties/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Vintage 60s | delivered | `metronome-pendulum` | `app/assets/ui/sixties/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
@@ -68,14 +68,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 3 | Steam Punk | delivered | `home-record` | `app/assets/ui/steampunk/home-record.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 3 | Steam Punk | delivered | `metronome-body` | `app/assets/ui/steampunk/metronome-body.webp` | 800×1200, transparent PNG (shipped as WebP) |
 | 3 | Steam Punk | delivered | `metronome-pendulum` | `app/assets/ui/steampunk/metronome-pendulum.webp` | 200×1000, transparent PNG (shipped as WebP) |
-| 5 | Classic | requested | `home-tuner` | `app/assets/ui/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | Art Deco | requested | `home-tuner` | `app/assets/ui/deco/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | Vintage 60s | requested | `home-tuner` | `app/assets/ui/sixties/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | 18th Century | requested | `home-tuner` | `app/assets/ui/baroque/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | Robot Future | requested | `home-tuner` | `app/assets/ui/scifi/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | French Nouveau | requested | `home-tuner` | `app/assets/ui/nouveau/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | Candy | requested | `home-tuner` | `app/assets/ui/anime/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
-| 5 | Steam Punk | requested | `home-tuner` | `app/assets/ui/steampunk/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Classic | delivered | `home-tuner` | `app/assets/ui/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Art Deco | delivered | `home-tuner` | `app/assets/ui/deco/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Vintage 60s | delivered | `home-tuner` | `app/assets/ui/sixties/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | 18th Century | delivered | `home-tuner` | `app/assets/ui/baroque/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Robot Future | delivered | `home-tuner` | `app/assets/ui/scifi/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | French Nouveau | delivered | `home-tuner` | `app/assets/ui/nouveau/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Candy | delivered | `home-tuner` | `app/assets/ui/anime/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 5 | Steam Punk | delivered | `home-tuner` | `app/assets/ui/steampunk/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 
 ## Home screen buttons
 
@@ -195,11 +195,11 @@ Just the pendulum of an Art Deco metronome, isolated: a single thin, perfectly s
 
 ## Vintage 60s · Home screen buttons
 
-### `home-metronome` · Vintage 60s · revise
+### `home-metronome` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/home-metronome.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
-- Note: Revision: the delivered icon (starbursts and boomerangs on the face, gold feet) doesn't look like the metronome on the metronome screen (assets/ui/sixties/metronome-body.webp and metronome-pendulum.webp). Match that metronome's shape, colours, plain ticked face, chrome rod, boomerang weight and chrome disc hub. Replaces the file at the same path.
+- Note: Round 4 delivered: the previous icon (starbursts and boomerangs on the face, gold feet) was replaced to match the metronome on the metronome screen (assets/ui/sixties/metronome-body.webp and metronome-pendulum.webp). Match that metronome's shape, colours, plain ticked face, chrome rod, boomerang weight and chrome disc hub. Replaces the file at the same path.
 
 ```text
 The same metronome as the Vintage 60s metronome screen, drawn as an icon: a smooth tapering pyramid case in glossy burnt-orange wood with softly rounded corners, a mustard-yellow front face with two columns of short cream tick marks and nothing else on it (no starbursts, boomerangs or other decorations), a teal band across the lower case and a flared teal plinth on three short turned orange-wood peg feet. A thin straight chrome rod tilted a little to the right, pivoting on a round brushed-chrome disc hub near the bottom of the face, with a small teal-and-orange boomerang-shaped sliding weight near the top of the rod. Seen from the front. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
@@ -471,7 +471,7 @@ Just the pendulum of a metronome, isolated: a thin straight brass rod with a sma
 
 ## Classic · Home screen buttons
 
-### `home-tuner` · Classic · requested
+### `home-tuner` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -483,7 +483,7 @@ A classic chromatic tuner: a small walnut-and-brass case with a cream dial and a
 
 ## Art Deco · Home screen buttons
 
-### `home-tuner` · Art Deco · requested
+### `home-tuner` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -495,7 +495,7 @@ An Art Deco chromatic tuner: a black lacquer case edged in gold with a fan-shape
 
 ## Vintage 60s · Home screen buttons
 
-### `home-tuner` · Vintage 60s · requested
+### `home-tuner` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -507,7 +507,7 @@ A mid-century tuner: a rounded teak case with a mustard-yellow dial and a chrome
 
 ## 18th Century · Home screen buttons
 
-### `home-tuner` · 18th Century · requested
+### `home-tuner` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -519,7 +519,7 @@ An 18th-century style tuning device: a carved walnut case with gilt scrolls, an 
 
 ## Robot Future · Home screen buttons
 
-### `home-tuner` · Robot Future · requested
+### `home-tuner` · Robot Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -531,7 +531,7 @@ A futuristic tuner: a chamfered graphite-and-titanium panel with a glowing cyan 
 
 ## French Nouveau · Home screen buttons
 
-### `home-tuner` · French Nouveau · requested
+### `home-tuner` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -543,7 +543,7 @@ An Art Nouveau tuner: a sage-green enamel case with curving whiplash sides and g
 
 ## Candy · Home screen buttons
 
-### `home-tuner` · Candy · requested
+### `home-tuner` · Candy · delivered
 
 - File: `musicpractice/app/assets/ui/anime/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)
@@ -555,7 +555,7 @@ A cute candy-pink tuner with a bold outline, a white dial with a sky-blue needle
 
 ## Steam Punk · Home screen buttons
 
-### `home-tuner` · Steam Punk · requested
+### `home-tuner` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/home-tuner.webp`
 - Size: 768×768, transparent PNG (shipped as 384×384 WebP)

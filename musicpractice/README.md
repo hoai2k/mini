@@ -385,3 +385,7 @@ The browser favicon uses the conventional walnut metronome on a transparent
 background (`icons/favicon-metronome-32.png` and `favicon-metronome-192.png`).
 The Art Deco versions are kept as `favicon-art-deco-32.png` and
 `favicon-art-deco-192.png` for a later switch; `make_icons.py` exports both.
+
+Round 4’s Vintage 60s home metronome revision and Round 5’s eight tuner
+icons are delivered. Prompts and final paths are recorded in
+`design/image-deliveries-rounds-4-5.json`.

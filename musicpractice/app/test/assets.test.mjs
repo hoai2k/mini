@@ -5,7 +5,7 @@ import { pick, pendulumLayout } from '../src/art.js';
 import { THEMES } from '../src/settings.js';
 
 const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
-const IDS = ['home-metronome', 'home-record', 'metronome-body', 'metronome-pendulum'];
+const IDS = ['home-metronome', 'home-record', 'home-tuner', 'metronome-body', 'metronome-pendulum'];
 
 test('every theme shows its delivered art or its own stand-in, with the hub on the pivot', () => {
   for (const { id: theme } of THEMES) {
