@@ -1,8 +1,8 @@
 // Music Practice: the home screen, the metronome, the practice recorder and the tuner.
 
-import { audio, existingAudio, freshAudio, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
+import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
-import { encodeWav } from './wav.js';
+import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
@@ -42,7 +42,25 @@ function applyTheme() {
 // Browsers only allow sound to start from a tap or key press.
 // WebKit only counts touchend, click and keydown as gestures that may start
 // audio (not pointerdown or touchstart), so unlock and prime on those too.
-const wake = () => { unlock(); primeFromTap(); };
+//
+// Coming back from another app (a call, Messenger, a video), iPhone can leave
+// the audio engine 'interrupted' for good. A tap while listening is stuck
+// like that starts listening again on a new engine.
+const wake = (e) => {
+  if (e.type !== 'pointerdown' && listeningActive() && engineStuck()) {
+    restartListening();
+    return;
+  }
+  unlock();
+  primeFromTap();
+  // A tap that doesn't get the engine going marks it stuck for the next tap.
+  const ctx = existingAudio();
+  if (e.type !== 'pointerdown' && listeningActive() && ctx && ctx.state !== 'running') {
+    setTimeout(() => {
+      if (listeningActive() && ctx === existingAudio() && ctx.state !== 'running') { needsTap = true; showState(); showTunerState(); }
+    }, 700);
+  }
+};
 for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
   document.addEventListener(type, wake, { capture: true });
 }
@@ -362,7 +380,8 @@ function showState() {
   const [title, hint] = STATUS[state];
   $('rec-state').textContent = state === 'recording' ? `${title} ${fmtDur(recorder.recordingSec)}` : title;
   let h = hint();
-  if (state === 'waiting' && audio().state !== 'running') h = 'Tap anywhere to let the app hear you.';
+  if (state === 'waiting' && needsTap) h = 'Tap anywhere to start listening again.';
+  else if (state === 'waiting' && audio().state !== 'running') h = 'Tap anywhere to let the app hear you.';
   $('rec-hint').textContent = h;
   $('rec-hint').classList.toggle('error', state === 'off' && !!recError);
   // Recording during playback: the take plays while the mic keeps listening.
@@ -403,6 +422,8 @@ function ensureRecorder() {
       keepAwake(recorder.state !== 'off');
     });
     recorder.addEventListener('chunk', (e) => {
+      recoverTries = 0;
+      if (needsTap && existingAudio()?.state === 'running') { needsTap = false; showState(); showTunerState(); }
       if (e.detail.state === 'tuning') tuner.receive(e.detail.data, recorder.ctx.sampleRate);
       else wave.push(e.detail.data, recorder.ctx.sampleRate, e.detail.state);
     });
@@ -476,18 +497,67 @@ async function resumeListening() {
  * The held mic is reused; it is asked for again only if it is dead.
  */
 let reopening = false;
+let recoverTries = 0; // reset whenever the mic delivers
 function recoverMic(force = false) {
   if (!recorder || reopening || !recorder.micOpen) return;
   if (!['waiting', 'recording', 'tuning'].includes(recorder.state)) return;
   if (!force && recorder.micAlive()) return;
+  // First reconnect the mic we hold; if that stays silent, it is dead even
+  // if the browser says it's fine: ask for it again. If even that gets
+  // nothing, the engine is at fault, and the next tap replaces it.
+  recoverTries++;
+  if (recoverTries > 2) {
+    if (!needsTap) { needsTap = true; showState(); showTunerState(); }
+    return;
+  }
   reopening = true;
-  recorder.reopen()
+  recorder.reopen({ fresh: recoverTries > 1 })
     .catch((err) => { recError = micError(err); tunerError = recError.replace('tap the button', 'tap Try again'); recorder.off(); })
     .finally(() => { reopening = false; showState(); showTunerState(); });
 }
 
+/** Is the mic in use (listening, recording or tuning)? */
+function listeningActive() {
+  return !!recorder && ['waiting', 'recording', 'tuning'].includes(recorder.state);
+}
+
+/** Does listening need a new audio engine (only a tap can start one)? */
+let needsTap = false;
+function engineStuck() {
+  const c = existingAudio();
+  if (!c) return false;
+  return needsTap || (c.state !== 'running' && (c.state === 'interrupted' || audioWasAway()));
+}
+
+/** Is listening on but getting nothing (a stuck engine or a silent mic)? */
+function listeningStuck() {
+  if (!listeningActive()) return false;
+  if (engineStuck() || existingAudio()?.state !== 'running') return true;
+  return recorder.micOpen && recorder.silentFor > 1.5;
+}
+
+/**
+ * Start listening (or tuning) again from scratch: a new audio engine, and the
+ * mic reconnected (asked for again only if it turns out to be dead). Call it
+ * from a tap, which a new engine needs on phones.
+ */
+let restartedAt = -1e9;
+function restartListening() {
+  restartedAt = performance.now();
+  needsTap = false;
+  recoverTries = 0;
+  const tuning = recorder?.state === 'tuning';
+  stopPlayback({ resume: false });
+  recorder?.off();
+  replaceAudio();
+  primeFromTap();
+  if (tuning) startTuner();
+  else startRecorder();
+}
+
 // Coming back to the app: phones suspend sound, pause media and cut the mic
-// while it is away. Pick everything up again where it was.
+// while it is away. Pick everything up again where it was; if the engine
+// won't start again by itself, the next tap starts a new one.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   markStale(); // the output may have changed while away; the next Start gets a fresh context
@@ -512,8 +582,16 @@ function stopRecorder() {
 }
 
 $('rec-toggle').addEventListener('click', () => {
-  if (!recorder || recorder.state === 'off') startRecorder();
-  else stopRecorder();
+  if (performance.now() - restartedAt < 1000) return; // this tap already started listening again
+  if (!recorder || recorder.state === 'off') {
+    // After a trip to another app, start on a new engine (this is a tap).
+    if (audioWasAway() || existingAudio()?.state !== 'running') replaceAudio();
+    startRecorder();
+  } else if (listeningStuck()) {
+    restartListening(); // it says it's listening but hears nothing: start again rather than stop
+  } else {
+    stopRecorder();
+  }
 });
 $('rec-skip').addEventListener('click', () => stopPlayback());
 
@@ -664,14 +742,31 @@ function renameTake(take, li) {
 }
 
 /**
- * Save a take as a WAV file. On phones it opens the share sheet (Save to
- * Files, AirDrop, Messages, Voice Memos…), the way iPhone saves files from
- * the web; elsewhere, or if sharing isn't offered, it downloads.
+ * Save a take as an MP3. On phones it opens the share sheet (Save to Files,
+ * AirDrop, Messages, Voice Memos…), the way iPhone saves files from the web;
+ * elsewhere, or if sharing isn't offered, it downloads. The MP3 is made once
+ * and kept with the take. iPhone only opens the share sheet straight from a
+ * tap; if making a long take's MP3 used that up, the button says it's ready
+ * and the next tap shares it at once.
  */
-async function saveTake(take, label) {
+async function saveTake(take, label, button) {
+  if (button.classList.contains('busy')) return;
+  button.classList.remove('ready');
   const base = (label || 'Take').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Take';
-  const blob = encodeWav(take.samples, take.sampleRate);
-  const file = new File([blob], `${base}.wav`, { type: 'audio/wav' });
+  if (!take.mp3) {
+    button.classList.add('busy');
+    button.setAttribute('aria-label', 'Making the MP3…');
+    try {
+      take.mp3 = await encodeMp3(take.samples, take.sampleRate);
+    } catch {
+      note('Couldn\'t make the MP3. Try again.');
+      return;
+    } finally {
+      button.classList.remove('busy');
+      renderTakes();
+    }
+  }
+  const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
   const phone = isIOS() || /Android/i.test(navigator.userAgent);
   if (phone && navigator.canShare?.({ files: [file] })) {
     try {
@@ -679,6 +774,12 @@ async function saveTake(take, label) {
       return;
     } catch (err) {
       if (err?.name === 'AbortError') return; // closed the share sheet
+      if (err?.name === 'NotAllowedError') {
+        button.classList.add('ready');
+        button.setAttribute('aria-label', 'MP3 ready: tap to save');
+        note('MP3 ready: tap save again.');
+        return;
+      }
     }
   }
   const url = URL.createObjectURL(file);
@@ -689,6 +790,16 @@ async function saveTake(take, label) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/** A short message at the bottom of the screen. */
+let noteTimer = 0;
+function note(text) {
+  const el = $('note');
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
 function renderTakes() {
@@ -709,7 +820,7 @@ function renderTakes() {
         <span class="bar-progress" aria-hidden="true"></span>`;
       li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
       li.querySelector('.del').addEventListener('click', () => removeTake(take));
-      li.querySelector('.save').addEventListener('click', () => saveTake(take, li.dataset.label));
+      li.querySelector('.save').addEventListener('click', (e) => saveTake(take, li.dataset.label, e.currentTarget));
       li.querySelector('.title').addEventListener('click', () => renameTake(take, li));
       const canvas = li.querySelector('canvas');
       canvas.redraw = () => drawThumb(canvas, take.samples);
@@ -728,7 +839,8 @@ function renderTakes() {
     len.textContent = fmtDur(Math.max(1, Math.round(dur)));
     li.querySelector('.play').setAttribute('aria-label', `${playing?.take === take ? 'Stop' : 'Play'} take ${n}`);
     li.querySelector('.del').setAttribute('aria-label', `Delete take ${n}`);
-    li.querySelector('.save').setAttribute('aria-label', `Save take ${n} as a file`);
+    const save = li.querySelector('.save');
+    if (!save.classList.contains('busy') && !save.classList.contains('ready')) save.setAttribute('aria-label', `Save take ${n} as an MP3`);
     li.classList.toggle('playing', playing?.take === take);
     if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
     return li;
@@ -842,6 +954,7 @@ function showTunerState() {
   const status = $('tuner-status');
   let text = '';
   if (state === 'off') text = tunerError || 'The microphone is off.';
+  else if (needsTap) text = 'Tap anywhere to start listening again.';
   else if (audio().state !== 'running') text = 'Tap anywhere to let the tuner hear you.';
   status.textContent = text;
   status.hidden = !text;
@@ -849,7 +962,11 @@ function showTunerState() {
   $('tuner-retry').hidden = state !== 'off';
   if (state === 'off') tuner.reset();
 }
-$('tuner-retry').addEventListener('click', () => startTuner());
+$('tuner-retry').addEventListener('click', () => {
+  if (performance.now() - restartedAt < 1000) return;
+  if (audioWasAway() || existingAudio()?.state !== 'running') replaceAudio();
+  startTuner();
+});
 
 const tunerSettings = $('tuner-settings');
 $('tuner-settings-btn').addEventListener('click', () => tunerSettings.showModal());
@@ -867,7 +984,9 @@ function animateTuner() {
 
 document.addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]')) return;
-  const typing = e.target instanceof HTMLInputElement && (e.target.type === 'number' || e.target.type === 'range');
+  const t = e.target;
+  // Typing in a field (a take's name, the tempo) keeps its keys.
+  const typing = (t instanceof HTMLInputElement && t.type !== 'checkbox') || t instanceof HTMLTextAreaElement || t?.isContentEditable;
   if (e.key === 'Escape' && screen !== 'home') { location.hash = ''; return; }
   if (screen === 'metronome') {
     if (e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('met-toggle').click(); }
@@ -878,7 +997,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     $('rec-toggle').click();
   }
-  if (screen === 'tuner' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLSelectElement)) {
+  if (screen === 'tuner' && e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLSelectElement)) {
     e.preventDefault();
     tuner.playReference();
   }
