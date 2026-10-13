@@ -3639,6 +3639,16 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "lobster-guard-closed-tinted-redo": {
+      "status": "requested",
+      "file": "lobster-guard-closed-tinted-redo.webp",
+      "size": [
+        500,
+        340
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

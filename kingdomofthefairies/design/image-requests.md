@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 253 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 254 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 247 of 253 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 247 of 254 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1985,6 +1985,20 @@ Requested 13 October 2026 after play-testing Act II: the man-at-arms carries the
 220 × 420 px, anchor bottom centre.
 
 > Redraw crew-manatarms-idle-c.webp (attach it, and prince-stand.webp to show what he must NOT resemble). The same man, pose, halberd, scale, foot position and 220 x 420 canvas, in the same striped crew livery as crew-squire.webp and crew-helmsman.webp. Change everything he shares with the prince: an open iron kettle-hat with no plume instead of the plumed silver helmet; a short cloak in the crew's green and ochre instead of the red cape; a red-and-ochre striped heater shield with no star, or no shield at all, instead of the blue star shield. No floor or shadow. Keep it an idle frame of the redrawn crew-manatarms-redo.webp: exactly the same figure, with only the detail that moved in crew-manatarms-idle-c.webp moving. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F18. The lobster guard, one look in both poses
+
+Requested 13 October 2026 after play-testing Act III: in the tinted look the guard's two poses do not match. lobster-guard-open-tinted is a warm, shaded red with full sea-green weed; lobster-guard-closed-tinted is a flatter, pinker red with paler weed, so he flickers between two creatures as his claws open and shut. Redraw the shut pose to match the open one exactly. The -redo frame replaces lobster-guard-closed-tinted.webp on delivery.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `lobster-guard-closed-tinted-redo` | 500 × 340 | bottom centre | `lobster-guard-closed-tinted` | requested |
+
+#### `lobster-guard-closed-tinted-redo` — The lobster guard, claws shut (tinted), matched to the open pose
+
+500 × 340 px, anchor bottom centre.
+
+> Redraw lobster-guard-closed-tinted.webp (attach it, and lobster-guard-open-tinted.webp, which it must match). The same pose: crouched, the halberd held across the way, claws shut; the same canvas, scale and foot position. But exactly the colouring, shading, weed, shells and film finish of lobster-guard-open-tinted.webp: the same red of the shell, the same depth of shadow, the same sea-green and rose weed and pearl trim. Laid side by side the two must read as one guard in two poses. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

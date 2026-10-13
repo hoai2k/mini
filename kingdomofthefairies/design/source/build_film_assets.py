@@ -340,6 +340,15 @@ GROUPS.append(
 )
 
 
+# Play-testing, 13 October 2026: the tinted guard flickers between two looks.
+GROUPS.append(
+    ('The lobster guard, one look in both poses', 'Requested 13 October 2026 after play-testing Act III: in the tinted look the guard\'s two poses do not match. lobster-guard-open-tinted is a warm, shaded red with full sea-green weed; lobster-guard-closed-tinted is a flatter, pinker red with paler weed, so he flickers between two creatures as his claws open and shut. Redraw the shut pose to match the open one exactly. The -redo frame replaces lobster-guard-closed-tinted.webp on delivery.', [
+        ('lobster-guard-closed-tinted-redo', 'The lobster guard, claws shut (tinted), matched to the open pose', 500, 340, 'bottom centre', TINTED,
+         'Redraw lobster-guard-closed-tinted.webp (attach it, and lobster-guard-open-tinted.webp, which it must match). The same pose: crouched, the halberd held across the way, claws shut; the same canvas, scale and foot position. But exactly the colouring, shading, weed, shells and film finish of lobster-guard-open-tinted.webp: the same red of the shell, the same depth of shadow, the same sea-green and rose weed and pearl trim. Laid side by side the two must read as one guard in two poses. No floor or shadow.', 'lobster-guard-closed-tinted'),
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
