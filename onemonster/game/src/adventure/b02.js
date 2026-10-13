@@ -973,9 +973,11 @@ export default function create(env) {
     for (let x = Math.min(base, tip); x <= Math.max(base, tip); x += 18) g.lineTo(x, s.y - 1 - hash(x) * 9);
     g.lineTo(tip, s.y + 6); g.closePath(); g.fill(); g.stroke();
     g.restore();
-    // Leaf clumps: the delivered bush at the tip and partway along.
+    // Leaf clumps: the delivered bush at the tip, partway along, and a big
+    // one hiding the base where the branch leaves its trunk.
     if (!art.drawSprite(g, art.prop('trollusk', 5), tip - dir * 10, s.y + 36, { height: 120, flip: dir < 0 })) leafBlob(g, tip - dir * 10, s.y - 10, 46, 0.2, '#6b8a44', '#9fb05a');
     if (!art.drawSprite(g, art.prop('trollusk', 5), base + dir * len * 0.4, s.y + 2, { height: 78, flip: dir > 0 })) leafBlob(g, base + dir * len * 0.4, s.y - 20, 34, 0.7, '#6b8a44', '#8aa352');
+    if (!art.drawSprite(g, art.prop('trollusk', 5), base - dir * 30, s.y + 110, { height: 190, flip: dir > 0 })) leafBlob(g, base - dir * 30, s.y + 20, 70, 0.9, '#6b8a44', '#8aa352');
   }
 
   // A clump of many small leaves, each in ink, in the book's greens. Used

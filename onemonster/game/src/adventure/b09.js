@@ -133,7 +133,11 @@ export default function create(env) {
   // ---------- the plain Bombanats ----------
   // h is the height of the flutter's middle above the ground it is over.
   const flock = [];
-  const addB = (x, h, pat = 'bob', o = {}) => flock.push({ x, y: GY - h, pat, amp: 28, span: 0, speed: 1, ...o, phase: flock.length * 1.37, got: false, t: 0, cx: 0, cy: 0 });
+  const addB = (x, h, pat = 'bob', o = {}) => {
+    const c = art.makeCreature('bombanat', x, GY - h);
+    c.sizeK = 0.42; c.animT = flock.length * 0.37;
+    flock.push({ x, y: GY - h, pat, amp: 28, span: 0, speed: 1, ...o, phase: flock.length * 1.37, got: false, t: 0, cx: 0, cy: 0, c });
+  };
   // The opening: low ones to learn the sweep, one overhead, one skimming.
   addB(620, 180); addB(1150, 160, 'patrol', { span: 100, speed: 0.7 }); addB(1340, 200, 'circle', { amp: 36 }); addB(1700, 175);
   // Roots, the toadstool, the branch and the logs.
@@ -409,6 +413,7 @@ export default function create(env) {
       b.t += dt;
       if (b.got) continue;
       if (!cam.sees(b.x, b.x, 500)) continue;
+      b.c.animT += dt;
       const k = b.t * b.speed + b.phase;
       switch (b.pat) {
         case 'patrol': b.cx = Math.sin(k * 1.1) * b.span; b.cy = Math.sin(k * 3.1) * 14; break;
@@ -676,7 +681,10 @@ export default function create(env) {
     // The ground and the logs.
     for (const s of solids) {
       if (!cam.sees(s.x, s.x + s.w)) continue;
-      if (s.kind === 'ground') kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 18, fill: '#6b5236', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
+      if (s.kind === 'ground') {
+        kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 18, fill: '#6b5236', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
+        if (!art.sprite('terrain.wood', 1)) groundTexture(g, s);
+      }
       else if (s.kind === 'log') kit.sprite(g, 'terrain.wood', 3, s.x + s.w / 2, s.y + s.h, { height: s.h + 16 }, (g2, x, y) => inkLog(g2, x, y, s.w + 24, s.h));
       else if (s.kind === 'branch') kit.sprite(g, 'terrain.wood', 2, s.x, s.y, { height: 120, ax: 0, ay: 0.2 }, (g2, x, y) => inkBranch(g2, x, y, s.w));
     }
@@ -714,11 +722,13 @@ export default function create(env) {
     // The plain Bombanats.
     for (const b of flock) {
       if (!cam.sees(b.x, b.x, 300)) continue;
-      if (b.got) {
-        if (b.t < 0.5) { g.save(); g.globalAlpha = 1 - b.t * 2; drawPlainBombanat(g, b.x + b.cx, b.y + b.cy - b.t * 120, tt, b.facing, 0.6); g.restore(); }
-        continue;
-      }
-      drawPlainBombanat(g, b.x + b.cx, b.y + b.cy, tt + b.phase, b.facing || 1, 1);
+      if (b.got && b.t >= 0.5) continue;
+      const c = b.c;
+      c.x = b.x + b.cx; c.y = b.y + b.cy - (b.got ? b.t * 120 : 0);
+      c.facing = b.facing || 1;
+      c.alpha = b.got ? 1 - b.t * 2 : 1;
+      if (b.got) { art.setAnim(c, 'netted'); } else art.setAnim(c, b.pat === 'skim' ? 'glide' : 'flap');
+      art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
     }
     // The letter Bombanat (in the net or free), and the player.
     const grithixFirst = bomb.mode === 'netted';
@@ -845,44 +855,6 @@ function feetAnchor(sp) {
 
 const INK = '#2b1d14';
 
-function drawPlainBombanat(g, x, y, t, facing, alpha) {
-  const flap = Math.sin(t * 14);
-  g.save();
-  g.translate(x, y);
-  g.scale(facing, 1);
-  g.globalAlpha *= alpha;
-  g.lineWidth = 3;
-  g.strokeStyle = INK;
-  // Wings: mauve, clawed tips, flapping.
-  g.fillStyle = '#b39ac4';
-  for (const s of [-1, 1]) {
-    g.save();
-    g.scale(1, 1);
-    g.beginPath();
-    g.moveTo(-6 * s, -4);
-    g.quadraticCurveTo(-30 * s, -34 - flap * 22, -62 * s, -18 - flap * 30);
-    g.lineTo(-54 * s, -8 - flap * 18);
-    g.lineTo(-46 * s, 4 - flap * 8);
-    g.lineTo(-36 * s, 10);
-    g.quadraticCurveTo(-18 * s, 14, -6 * s, 10);
-    g.closePath();
-    g.fill(); g.stroke();
-    g.restore();
-  }
-  // Body: dark shaggy, with a pink snout and a sly eye.
-  g.fillStyle = '#4a3a3a';
-  g.beginPath(); g.ellipse(0, 4, 22, 15, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.fillStyle = '#e8a0a8';
-  g.beginPath(); g.moveTo(14, -2); g.lineTo(42, 4); g.lineTo(16, 12); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#fff';
-  g.beginPath(); g.arc(10, -3, 5, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.fillStyle = INK; g.beginPath(); g.arc(11, -3, 2.2, 0, Math.PI * 2); g.fill();
-  // Tail.
-  g.strokeStyle = '#e8a0a8'; g.lineWidth = 3;
-  g.beginPath(); g.moveTo(-20, 8); g.quadraticCurveTo(-36, 18 + flap * 4, -44, 6); g.stroke();
-  g.restore();
-}
-
 function drawFern(g, x, y, h, lean, alpha = 1) {
   const sp = art.prop('grithix', 4);
   if (sp) { art.drawSprite(g, sp, x, y, { height: h, rot: lean, alpha }); return; }
@@ -898,45 +870,6 @@ function drawFern(g, x, y, h, lean, alpha = 1) {
     g.quadraticCurveTo(Math.sin(a) * h * 0.55 + 16, -h * 0.5, 14, 0);
     g.closePath(); g.fill(); g.stroke();
   }
-  g.restore();
-}
-
-function inkTrunk(g, x, y, { height }) {
-  g.save();
-  g.globalAlpha *= 0.85;
-  g.fillStyle = '#8a6e52'; g.strokeStyle = INK; g.lineWidth = 4;
-  g.beginPath();
-  g.moveTo(x - 70, y); g.quadraticCurveTo(x - 60, y - height * 0.5, x - 50, y - height);
-  g.lineTo(x + 50, y - height); g.quadraticCurveTo(x + 62, y - height * 0.5, x + 90, y);
-  g.closePath(); g.fill(); g.stroke();
-  // Bark lines and a face in a knot.
-  g.lineWidth = 2.5; g.strokeStyle = 'rgba(43,29,20,0.6)';
-  g.beginPath();
-  for (let i = 0; i < 9; i++) { g.moveTo(x - 52 + i * 13, y - height); g.quadraticCurveTo(x - 36 + i * 13 + kit.hash(i) * 20, y - height * 0.5, x - 60 + i * 16, y); }
-  g.stroke();
-  g.lineWidth = 1.5;
-  g.beginPath();
-  for (let yy = y - height + 20; yy < y; yy += 44) { const hx = x - 50 + kit.hash(yy) * 90; g.moveTo(hx, yy); g.lineTo(hx + 14, yy + 10); g.moveTo(hx + 20, yy + 4); g.lineTo(hx + 30, yy + 12); }
-  g.stroke();
-  for (let k = 0; k < 3; k++) {
-    const ky = y - height * (0.15 + k * 0.3) - 60, kx = x + (kit.hash(k + x) - 0.5) * 60;
-    g.beginPath(); g.ellipse(kx, ky, 12, 20, 0.2, 0, Math.PI * 2); g.stroke();
-    g.beginPath(); g.ellipse(kx, ky, 5, 9, 0.2, 0, Math.PI * 2); g.stroke();
-  }
-  g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#6e5438';
-  g.beginPath(); g.ellipse(x + 10, y - height * 0.55, 30, 42, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y - height * 0.58, 7, 0, Math.PI * 2); g.arc(x + 20, y - height * 0.58, 7, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.beginPath(); g.moveTo(x - 4, y - height * 0.5); g.quadraticCurveTo(x + 10, y - height * 0.47, x + 24, y - height * 0.51); g.stroke();
-  g.restore();
-}
-
-function inkStump(g, x, y, { height }) {
-  g.save();
-  g.fillStyle = '#8a6e52'; g.strokeStyle = INK; g.lineWidth = 3.5;
-  g.beginPath(); g.moveTo(x - 50, y); g.lineTo(x - 44, y - height * 0.8); g.lineTo(x + 44, y - height * 0.8); g.lineTo(x + 56, y); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#c9b48a'; g.beginPath(); g.ellipse(x, y - height * 0.8, 46, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(x - 12, y - height * 0.5, 6, 0, Math.PI * 2); g.arc(x + 12, y - height * 0.5, 6, 0, Math.PI * 2); g.fill(); g.stroke();
-  g.beginPath(); g.moveTo(x - 10, y - height * 0.32); g.quadraticCurveTo(x, y - height * 0.25, x + 10, y - height * 0.32); g.stroke();
   g.restore();
 }
 
@@ -961,35 +894,36 @@ function inkLog(g, x, y, w, h) {
   g.restore();
 }
 
-function inkBranch(g, x, y, w) {
+// The mossy floor's texture over the kit's ink ground: tufts and little ferns
+// along the edge, an earth band, strata and hatching in the body.
+function groundTexture(g, s) {
+  const x0 = Math.max(s.x, Math.floor((s.x) / 1) ), x1 = s.x + s.w;
   g.save();
-  g.fillStyle = '#9a7a56'; g.strokeStyle = INK; g.lineWidth = 4;
+  g.beginPath(); g.rect(s.x, s.y - 30, s.w, 400); g.clip();
+  // A darker earth band under the moss, with a wobbly edge.
+  g.fillStyle = 'rgba(70,50,30,0.18)';
+  g.beginPath(); g.moveTo(x0, s.y + 30);
+  for (let x = x0; x <= x1 + 24; x += 24) g.lineTo(x, s.y + 30 + kit.hash(x * 0.3) * 14);
+  g.lineTo(x1, s.y + 90); g.lineTo(x0, s.y + 90); g.closePath(); g.fill();
+  // Strata lines and hatching.
+  g.strokeStyle = 'rgba(43,29,20,0.45)'; g.lineWidth = 1.8;
   g.beginPath();
-  g.moveTo(x - 30, y - 4);
-  for (let i = 0; i <= w; i += 40) g.lineTo(x + i, y - 2 - kit.hash(i + x) * 10);
-  g.lineTo(x + w + 34, y + 12); g.lineTo(x + w + 8, y + 30);
-  for (let i = w; i >= 0; i -= 40) g.lineTo(x + i, y + 40 + kit.hash(i * 3 + x) * 8);
-  g.lineTo(x - 30, y + 50);
-  g.closePath(); g.fill(); g.stroke();
-  // Bark grain and hatching under the top.
-  g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
-  g.beginPath();
-  for (let i = 10; i < w; i += 26) { g.moveTo(x + i, y + 14); g.lineTo(x + i + 18, y + 20 + kit.hash(i) * 6); g.moveTo(x + i + 4, y + 30); g.lineTo(x + i + 16, y + 38); }
-  g.stroke();
-  // Moss along the top, and little leaf clusters hanging below.
-  g.fillStyle = '#8a9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
-  g.beginPath();
-  g.moveTo(x, y + 2);
-  for (let i = 0; i <= w; i += 24) g.lineTo(x + i, y - 2 - kit.hash(i * 0.7 + x) * 12);
-  g.lineTo(x + w, y + 8); g.lineTo(x, y + 8); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#7d8a4a';
-  for (let i = 30; i < w; i += 110) {
-    const lx = x + i + kit.hash(i) * 40, ly = y + 48;
-    for (let k = 0; k < 5; k++) {
-      const a = -0.4 + k * 0.35;
-      g.beginPath(); g.ellipse(lx + Math.sin(a) * 22, ly + 10 + Math.cos(a) * 10, 11, 6, a, 0, Math.PI * 2); g.fill(); g.stroke();
-    }
+  for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) {
+    for (let k = 0; k < 3; k++) { const yy = s.y + 60 + k * 55 + kit.hash(x + k) * 20; g.moveTo(x, yy); g.quadraticCurveTo(x + 30, yy + 6, x + 56, yy - 2); }
   }
+  g.stroke();
+  hatch(g, x0, s.y + 36, x1 - x0, 170, { step: 14, alpha: 0.22, slope: 1.2 });
+  // Moss tufts and root squiggles along the top edge.
+  g.strokeStyle = INK; g.lineWidth = 2;
+  g.beginPath();
+  for (let x = Math.floor(x0 / 23) * 23; x < x1; x += 23) {
+    const h = kit.hash(x * 1.7);
+    if (h < 0.3) continue;
+    const yy = s.y + 2;
+    g.moveTo(x, yy); g.lineTo(x - 5, yy - 10 - h * 10); g.moveTo(x + 3, yy); g.lineTo(x + 4, yy - 14 - h * 8); g.moveTo(x + 6, yy); g.lineTo(x + 12, yy - 9 - h * 10);
+    if (h > 0.8) { g.moveTo(x + 10, yy + 20); g.quadraticCurveTo(x + 30, yy + 30, x + 50, yy + 22); }
+  }
+  g.stroke();
   g.restore();
 }
 
@@ -1007,19 +941,6 @@ function inkStones(g, x, y, seed) {
   g.beginPath();
   for (let i = 0; i < 6; i++) { const hx = x - 40 + i * 22, hy = y + 40 + kit.hash(i + seed * 7) * 20; g.moveTo(hx, hy); g.lineTo(hx + 12, hy + 9); }
   g.stroke();
-  g.restore();
-}
-
-function inkToadstool(g, x, y, { height, sy = 1 }) {
-  const h = height * sy;
-  g.save();
-  g.strokeStyle = INK; g.lineWidth = 4;
-  g.fillStyle = '#efe4c8';
-  g.beginPath(); g.moveTo(x - 24, y); g.lineTo(x - 18, y - h * 0.55); g.lineTo(x + 18, y - h * 0.55); g.lineTo(x + 24, y); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#c94a3a';
-  g.beginPath(); g.moveTo(x - 90, y - h * 0.5); g.quadraticCurveTo(x, y - h * 1.25, x + 90, y - h * 0.5); g.lineTo(x + 78, y - h * 0.42); g.lineTo(x - 78, y - h * 0.42); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#f8f1e0';
-  for (const [dx, dy, r] of [[-50, -0.72, 11], [-10, -0.9, 13], [36, -0.75, 10], [60, -0.6, 7]]) { g.beginPath(); g.arc(x + dx, y + dy * h, r, 0, Math.PI * 2); g.fill(); g.stroke(); }
   g.restore();
 }
 
@@ -1055,39 +976,236 @@ function inkSignpost(g, x, y, n, t) {
   g.restore();
 }
 
-function drawStream(g, s, t) {
-  const y0 = GY + 50;
+
+// Hatching in ink: short parallel strokes filling a box, a shadow side.
+function hatch(g, x0, y0, w, h, { step = 9, alpha = 0.35, slope = 0.8 } = {}) {
   g.save();
-  // Banks.
-  g.fillStyle = '#6e5a3c';
-  g.fillRect(s.x0 - 2, GY, s.x1 - s.x0 + 4, y0 - GY);
-  // Water.
-  g.fillStyle = '#7fa6b8';
-  g.fillRect(s.x0, y0, s.x1 - s.x0, H + 60 - y0);
-  // Rows of curling strokes, as the book draws water, and hatching between.
-  g.strokeStyle = 'rgba(43,29,20,0.7)'; g.lineWidth = 2.2;
+  g.beginPath(); g.rect(x0, y0, w, h); g.clip();
+  g.strokeStyle = `rgba(43,29,20,${alpha})`; g.lineWidth = 1.6;
   g.beginPath();
-  for (let i = 0; i < 5; i++) {
-    const yy = y0 + 22 + i * 34;
-    for (let x = s.x0 + 14; x < s.x1 - 24; x += 34) {
+  for (let x = x0 - h * slope; x < x0 + w; x += step) { g.moveTo(x, y0 + h); g.lineTo(x + h * slope, y0); }
+  g.stroke();
+  g.restore();
+}
+
+// A knot with a face, as the book draws them in its gnarled trees: heavy-lidded
+// eyes, a bump of a nose and a long-suffering mouth, all in line.
+function knotFace(g, x, y, r, seed = 0) {
+  g.save();
+  g.strokeStyle = INK; g.lineWidth = 2.5;
+  g.fillStyle = 'rgba(80,58,36,0.35)';
+  g.beginPath(); g.ellipse(x, y, r * 1.1, r * 1.5, 0.15, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(x, y, r * 0.85, r * 1.2, 0.15, 0, Math.PI * 2); g.stroke();
+  // Eyes: lids drawn as arcs, a dot under each.
+  for (const sx of [-1, 1]) {
+    const ex = x + sx * r * 0.38, ey = y - r * 0.35;
+    g.beginPath(); g.arc(ex, ey + 2, r * 0.24, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+    g.beginPath(); g.arc(ex, ey + 3, r * 0.22, 0.1, Math.PI - 0.1); g.stroke();
+    g.fillStyle = INK; g.beginPath(); g.arc(ex + sx * 2, ey + 5, r * 0.07, 0, Math.PI * 2); g.fill();
+  }
+  g.beginPath(); g.moveTo(x - r * 0.1, y - r * 0.1); g.quadraticCurveTo(x + r * 0.25, y + r * 0.1, x - r * 0.05, y + r * 0.3); g.stroke();
+  g.beginPath(); g.moveTo(x - r * 0.4, y + r * 0.6 + (seed % 2 ? 4 : 0)); g.quadraticCurveTo(x, y + r * 0.5, x + r * 0.4, y + r * 0.62); g.stroke();
+  g.restore();
+}
+
+function inkTrunk(g, x, y, { height }) {
+  const h = height;
+  g.save();
+  g.globalAlpha *= 0.92;
+  // A wavy, flaring trunk in two washes.
+  g.fillStyle = '#9c8062'; g.strokeStyle = INK; g.lineWidth = 4;
+  g.beginPath();
+  g.moveTo(x - 110, y);
+  g.quadraticCurveTo(x - 70, y - 60, x - 62, y - h * 0.3);
+  g.quadraticCurveTo(x - 52, y - h * 0.6, x - 66, y - h);
+  g.lineTo(x + 58, y - h);
+  g.quadraticCurveTo(x + 48, y - h * 0.55, x + 60, y - h * 0.3);
+  g.quadraticCurveTo(x + 76, y - 60, x + 124, y);
+  g.closePath(); g.fill(); g.stroke();
+  // Shadow side wash and hatching.
+  g.save();
+  g.beginPath(); g.moveTo(x + 10, y - h); g.lineTo(x + 58, y - h); g.quadraticCurveTo(x + 48, y - h * 0.55, x + 60, y - h * 0.3); g.quadraticCurveTo(x + 76, y - 60, x + 124, y); g.lineTo(x + 20, y); g.closePath(); g.clip();
+  g.fillStyle = 'rgba(70,50,30,0.22)'; g.fillRect(x, y - h, 130, h);
+  hatch(g, x + 10, y - h, 120, h, { step: 8, alpha: 0.3 });
+  g.restore();
+  // Long grain lines following the trunk.
+  g.strokeStyle = 'rgba(43,29,20,0.7)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const gx = x - 50 + i * 15 + kit.hash(i + x) * 8;
+    g.moveTo(gx + 4, y - h);
+    g.bezierCurveTo(gx - 10, y - h * 0.7, gx + 14, y - h * 0.4, gx - 6 - i * 4, y - 20);
+  }
+  g.stroke();
+  // Knots and a face.
+  knotFace(g, x + 6, y - h * 0.56, 26, Math.round(x));
+  for (const k of [0.22, 0.82]) {
+    const kx = x + (kit.hash(k * 7 + x) - 0.5) * 70, ky = y - h * k;
+    g.strokeStyle = INK; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(kx, ky, 9, 16, 0.3, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(kx, ky, 4, 8, 0.3, 0, Math.PI * 2); g.stroke();
+  }
+  // Roots flaring at the foot, and a mossy collar.
+  g.fillStyle = '#7d8a4a'; g.strokeStyle = INK; g.lineWidth = 2.5;
+  g.beginPath();
+  g.moveTo(x - 118, y + 2);
+  for (let i = -118; i <= 130; i += 22) g.lineTo(x + i, y - 8 - kit.hash(i * 1.3 + x) * 22);
+  g.lineTo(x + 132, y + 2); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+}
+
+function inkStump(g, x, y, { height }) {
+  const h = height;
+  g.save();
+  g.fillStyle = '#9c8062'; g.strokeStyle = INK; g.lineWidth = 3.5;
+  g.beginPath();
+  g.moveTo(x - 60, y); g.quadraticCurveTo(x - 50, y - h * 0.4, x - 46, y - h * 0.78);
+  g.lineTo(x + 46, y - h * 0.78); g.quadraticCurveTo(x + 52, y - h * 0.4, x + 66, y);
+  g.closePath(); g.fill(); g.stroke();
+  hatch(g, x + 10, y - h * 0.78, 58, h * 0.78, { step: 7, alpha: 0.3 });
+  g.strokeStyle = 'rgba(43,29,20,0.7)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 6; i++) { const gx = x - 36 + i * 14; g.moveTo(gx, y - h * 0.76); g.quadraticCurveTo(gx + 6, y - h * 0.4, gx - 4, y - 4); }
+  g.stroke();
+  // The cut top with its rings.
+  g.fillStyle = '#d9c4a0'; g.strokeStyle = INK; g.lineWidth = 3;
+  g.beginPath(); g.ellipse(x, y - h * 0.78, 48, 15, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.lineWidth = 1.5; g.strokeStyle = 'rgba(43,29,20,0.6)';
+  for (const r of [0.75, 0.5, 0.25]) { g.beginPath(); g.ellipse(x + 2, y - h * 0.78, 48 * r, 15 * r, 0, 0, Math.PI * 2); g.stroke(); }
+  knotFace(g, x - 4, y - h * 0.42, 15, Math.round(x));
+  // Moss at the foot.
+  g.fillStyle = '#7d8a4a'; g.strokeStyle = INK; g.lineWidth = 2.5;
+  g.beginPath(); g.moveTo(x - 70, y + 2);
+  for (let i = -70; i <= 76; i += 18) g.lineTo(x + i, y - 6 - kit.hash(i + x) * 14);
+  g.lineTo(x + 78, y + 2); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+}
+
+function inkBranch(g, x, y, w) {
+  g.save();
+  // The branch: a wavy bough, thicker at the root (its left), in a bark wash.
+  g.fillStyle = '#9c8062'; g.strokeStyle = INK; g.lineWidth = 4;
+  g.beginPath();
+  g.moveTo(x - 40, y - 14);
+  for (let i = 0; i <= w; i += 40) g.lineTo(x + i, y - 2 - kit.hash(i + x) * 10);
+  g.quadraticCurveTo(x + w + 30, y + 2, x + w + 44, y + 16);
+  g.quadraticCurveTo(x + w + 20, y + 30, x + w, y + 30);
+  for (let i = w; i >= 0; i -= 40) g.lineTo(x + i, y + 36 + (1 - i / w) * 16 + kit.hash(i * 3 + x) * 8);
+  g.lineTo(x - 40, y + 62);
+  g.closePath(); g.fill(); g.stroke();
+  // Grain along it, hatching underneath.
+  g.strokeStyle = 'rgba(43,29,20,0.7)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let k = 0; k < 4; k++) {
+    const yy = y + 8 + k * 9;
+    g.moveTo(x - 30, yy + k * 2);
+    for (let i = 0; i <= w; i += 60) g.quadraticCurveTo(x + i + 30, yy + 4 + kit.hash(i + k) * 6, x + i + 60, yy + (k > 1 ? 4 : 0));
+  }
+  g.stroke();
+  hatch(g, x - 40, y + 26, w + 60, 40, { step: 8, alpha: 0.3 });
+  // Twigs with leaf clusters hanging under it.
+  g.strokeStyle = INK; g.lineWidth = 2.5;
+  for (let i = 60; i < w; i += 140) {
+    const lx = x + i + kit.hash(i) * 50, ly = y + 44 + (1 - i / w) * 12;
+    g.beginPath(); g.moveTo(lx, ly); g.quadraticCurveTo(lx + 10, ly + 24, lx + 4, ly + 42); g.stroke();
+    g.fillStyle = '#8a9a4e';
+    for (let k = 0; k < 6; k++) {
+      const a = -0.6 + k * 0.4, px = lx + 4 + Math.sin(a) * 24, py = ly + 34 + Math.cos(a) * 14;
+      g.beginPath(); g.ellipse(px, py, 10, 5, a, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(px - 8, py); g.lineTo(px + 8, py); g.stroke();
+    }
+  }
+  // Moss on top.
+  g.fillStyle = '#8a9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
+  g.beginPath();
+  g.moveTo(x - 20, y + 4);
+  for (let i = -20; i <= w; i += 22) g.lineTo(x + i, y - 3 - kit.hash(i * 0.7 + x) * 12);
+  g.lineTo(x + w, y + 8); g.lineTo(x - 20, y + 8); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+}
+
+function inkToadstool(g, x, y, { height, sy = 1 }) {
+  const h = height * sy;
+  g.save();
+  g.strokeStyle = INK; g.lineWidth = 3.5;
+  // Stalk: cream with a wavy edge, hatched on one side.
+  g.fillStyle = '#efe4c8';
+  g.beginPath();
+  g.moveTo(x - 26, y); g.quadraticCurveTo(x - 16, y - h * 0.3, x - 18, y - h * 0.56);
+  g.lineTo(x + 18, y - h * 0.56); g.quadraticCurveTo(x + 18, y - h * 0.3, x + 28, y);
+  g.closePath(); g.fill(); g.stroke();
+  hatch(g, x + 2, y - h * 0.56, 28, h * 0.56, { step: 6, alpha: 0.28 });
+  // Gills under the cap.
+  g.fillStyle = '#e2d2b0';
+  g.beginPath(); g.ellipse(x, y - h * 0.52, 84, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.lineWidth = 1.5; g.strokeStyle = 'rgba(43,29,20,0.6)';
+  g.beginPath(); for (let i = -76; i <= 76; i += 9) { g.moveTo(x + i, y - h * 0.52 - 6); g.lineTo(x + i * 0.3, y - h * 0.52 + 12); } g.stroke();
+  // Cap: a faded brick red, crosshatched on the shadow side, ink-rimmed spots.
+  g.strokeStyle = INK; g.lineWidth = 3.5;
+  g.fillStyle = '#c2574a';
+  g.beginPath();
+  g.moveTo(x - 92, y - h * 0.5);
+  g.bezierCurveTo(x - 80, y - h * 1.15, x + 80, y - h * 1.2, x + 92, y - h * 0.5);
+  g.quadraticCurveTo(x, y - h * 0.4, x - 92, y - h * 0.5);
+  g.closePath(); g.fill(); g.stroke();
+  g.save();
+  g.beginPath(); g.moveTo(x - 92, y - h * 0.5); g.bezierCurveTo(x - 80, y - h * 1.15, x + 80, y - h * 1.2, x + 92, y - h * 0.5); g.closePath(); g.clip();
+  hatch(g, x + 10, y - h * 1.2, 90, h * 0.8, { step: 7, alpha: 0.35 });
+  hatch(g, x + 30, y - h * 1.2, 70, h * 0.8, { step: 9, alpha: 0.25, slope: -0.8 });
+  g.restore();
+  g.fillStyle = '#f3ead6'; g.lineWidth = 2.5;
+  for (const [dx, dy, r] of [[-52, -0.7, 11], [-12, -0.92, 13], [34, -0.78, 10], [62, -0.6, 7], [-70, -0.55, 6]]) {
+    g.beginPath(); g.ellipse(x + dx, y + dy * h, r, r * 0.75, 0.2, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+  g.restore();
+}
+
+// A gap in the ground: earth banks in ink and hatching, roots dangling from
+// them, and the stream below in rows of curling strokes.
+function drawStream(g, s, t) {
+  const y0 = GY + 54;
+  g.save();
+  // The banks' faces, with earth hatching and strata.
+  g.fillStyle = '#7a6244';
+  g.fillRect(s.x0 - 4, GY - 2, 24, y0 - GY + 10); g.fillRect(s.x1 - 20, GY - 2, 24, y0 - GY + 10);
+  // The water.
+  g.fillStyle = '#8fb3c2';
+  g.fillRect(s.x0, y0, s.x1 - s.x0, H + 60 - y0);
+  g.fillStyle = 'rgba(60,90,110,0.25)';
+  g.fillRect(s.x0, y0 + 90, s.x1 - s.x0, H + 60 - y0 - 90);
+  // Rows of curling strokes, as the book draws water; hatching deeper down.
+  g.strokeStyle = 'rgba(43,29,20,0.75)'; g.lineWidth = 2.4;
+  g.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const yy = y0 + 18 + i * 30;
+    for (let x = s.x0 + 10 + (i % 2) * 17; x < s.x1 - 26; x += 34) {
       const ph = Math.sin(t * 2.2 + i + x * 0.05) * 3;
-      g.moveTo(x, yy + ph); g.quadraticCurveTo(x + 10, yy - 8 + ph, x + 20, yy + ph); g.quadraticCurveTo(x + 24, yy + 4 + ph, x + 18, yy + 6 + ph);
+      g.moveTo(x, yy + ph); g.quadraticCurveTo(x + 10, yy - 9 + ph, x + 20, yy + ph); g.quadraticCurveTo(x + 25, yy + 4 + ph, x + 17, yy + 7 + ph);
     }
   }
   g.stroke();
-  g.strokeStyle = 'rgba(43,29,20,0.28)'; g.lineWidth = 1.5;
+  hatch(g, s.x0, y0 + 100, s.x1 - s.x0, H - y0, { step: 10, alpha: 0.3, slope: 0.3 });
+  g.strokeStyle = '#f2f8fa'; g.lineWidth = 2;
   g.beginPath();
-  for (let x = s.x0 + 8; x < s.x1 - 8; x += 12) { g.moveTo(x, y0 + 10); g.lineTo(x + 6, H + 40); }
+  for (let x = s.x0 + 20; x < s.x1 - 30; x += 58) { const yy = y0 + 8 + Math.sin(t * 3 + x) * 3; g.moveTo(x, yy); g.lineTo(x + 22, yy); }
   g.stroke();
-  g.strokeStyle = '#eef6f8'; g.lineWidth = 2;
-  g.beginPath();
-  for (let x = s.x0 + 20; x < s.x1 - 30; x += 58) { const yy = y0 + 12 + Math.sin(t * 3 + x) * 3; g.moveTo(x, yy); g.lineTo(x + 22, yy); }
-  g.stroke();
+  // The banks in ink: a wobbly earth edge, strata, dangling roots.
   g.strokeStyle = INK; g.lineWidth = 3.5;
-  g.beginPath(); g.moveTo(s.x0, GY); g.lineTo(s.x0, y0); g.lineTo(s.x1, y0); g.lineTo(s.x1, GY); g.stroke();
-  // A few pebbles.
-  g.fillStyle = '#b8b0a0';
-  for (let x = s.x0 + 30; x < s.x1 - 30; x += 70) { g.beginPath(); g.ellipse(x, y0 - 6, 12, 6, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
+  g.beginPath();
+  g.moveTo(s.x0, GY); g.quadraticCurveTo(s.x0 + 14, GY + 20, s.x0 + 6, y0 + 4); g.lineTo(s.x1 - 6, y0 + 4); g.quadraticCurveTo(s.x1 - 14, GY + 20, s.x1, GY);
+  g.stroke();
+  g.lineWidth = 2; g.strokeStyle = 'rgba(43,29,20,0.7)';
+  for (const [bx, dir] of [[s.x0, 1], [s.x1, -1]]) {
+    g.beginPath();
+    for (let i = 0; i < 4; i++) { const yy = GY + 10 + i * 12; g.moveTo(bx, yy); g.lineTo(bx + dir * (14 + kit.hash(i + bx) * 10), yy + 3); }
+    // Roots.
+    g.moveTo(bx + dir * 6, GY + 8); g.quadraticCurveTo(bx + dir * 30, GY + 30, bx + dir * 22, y0 + 20);
+    g.moveTo(bx + dir * 2, GY + 24); g.quadraticCurveTo(bx + dir * 12, GY + 50, bx + dir * 36, y0 + 36);
+    g.stroke();
+  }
+  // Pebbles along the water line.
+  g.fillStyle = '#b8b0a0'; g.strokeStyle = INK; g.lineWidth = 2;
+  for (let x = s.x0 + 30; x < s.x1 - 30; x += 70) { g.beginPath(); g.ellipse(x, y0 - 4, 12, 6, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
   g.restore();
 }
 

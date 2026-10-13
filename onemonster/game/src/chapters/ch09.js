@@ -138,7 +138,6 @@ export default function create(env) {
     env.sfx('snap'); env.sfx('flipflop'); env.vibrate(60);
     shake = 0.3;
     art.kick(bc, 0.5);
-    fx.say('In the net!', bomb.x, bomb.y - bz - 200);
   }
 
   // The sweep: whatever stands in the net's reach is caught.

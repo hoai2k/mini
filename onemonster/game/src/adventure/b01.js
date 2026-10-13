@@ -603,35 +603,42 @@ export default function create(env) {
       g.fillStyle = gr; g.fillRect(0, 0, W, H);
       return;
     }
-    const tiles = (img, sx0, sw, mirror) => {
+    const tiles = (c, img, sx0, sw, mirror) => {
       const i0 = Math.floor((off - 200) / sw);
       for (let i = i0; i * sw - off < W + 200; i++) {
         const x = i * sw - off;
-        g.save();
-        if (mirror && i % 2) { g.translate(x + sw, 0); g.scale(-1, 1); g.drawImage(img, sx0, 0, sw, 1080, 0, 0, sw, H); }
-        else g.drawImage(img, sx0, 0, sw, 1080, x, 0, sw, H);
-        g.restore();
+        c.save();
+        if (mirror && i % 2) { c.translate(x + sw, 0); c.scale(-1, 1); c.drawImage(img, sx0, 0, sw, 1080, 0, 0, sw, H); }
+        else c.drawImage(img, sx0, 0, sw, 1080, x, 0, sw, H);
+        c.restore();
       }
     };
-    if (lane) tiles(lane, 0, 1060, false);
-    // The wood at the start, fading into the lane over a few hundred px of backdrop.
-    const B0 = 1000, FADE = 500;
+    // The lane: the stretch between the painting's two big trees (fence,
+    // hollyhocks, hedge, hills and sky), mirrored so the joins are seamless.
+    if (lane) tiles(g, lane, 330, 730, true);
+    // The wood at the start, fading into the lane over a stretch of backdrop.
+    const B0 = 900, FADE = 600;
     if (wood && off < B0 + FADE + 100) {
-      const n = Math.ceil((B0 + FADE - off + 200) / 40);
-      g.save();
-      for (let k = 0; k < Math.min(n, 60); k++) {
-        const sx = -200 + k * 40; // screen slice
-        const B = sx + off;
-        const a = B < B0 ? 1 : 1 - (B - B0) / FADE;
-        if (a <= 0) break;
-        g.globalAlpha = Math.min(1, a);
-        g.beginPath(); g.rect(sx, 0, 40.6, H); g.clip();
-        tiles(wood, 0, 1500, true);
-        g.restore(); g.save();
+      if (typeof document !== 'undefined') {
+        if (!blendCv) { blendCv = document.createElement('canvas'); blendCv.width = W; blendCv.height = H; }
+        const c = blendCv.getContext('2d');
+        c.clearRect(0, 0, W, H);
+        tiles(c, wood, 0, 1500, true);
+        c.globalCompositeOperation = 'destination-in';
+        const gr = c.createLinearGradient(B0 - off, 0, B0 + FADE - off, 0);
+        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = gr; c.fillRect(0, 0, W, H);
+        c.globalCompositeOperation = 'source-over';
+        g.drawImage(blendCv, 0, 0);
+      } else {
+        g.save();
+        g.beginPath(); g.rect(0, 0, Math.max(0, B0 - off), H); g.clip();
+        tiles(g, wood, 0, 1500, true);
+        g.restore();
       }
-      g.restore();
     }
   }
+  let blendCv = null;
 
   // The hedge row behind the road, built from the delivered leafy bush at
   // varied sizes, darkened a little for depth, drawn once to a tile.
