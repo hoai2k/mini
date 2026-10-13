@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-530 delivered, 530 in total.
+526 delivered, 526 in total.
 
 ## Brand
 
@@ -952,18 +952,6 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Side view of a fried egg with a round yellow yolk and wavy white edges, the same flat burger-layer shape and width as the other toppings, so it stacks. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
-### CH-G45 · Baseball field
-
-- **File:** `chat/assets/games/baseball-field.webp`
-- **Size:** 1600 x 1000, opaque
-- **Used for:** Baseball: the view from just behind home plate, out over the diamond.
-- **Stand-in until delivered:** A canvas-drawn field.
-- **Status:** delivered
-
-```text
-Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A sunny cartoon baseball stadium seen from just behind and above home plate: the dirt diamond and pitcher's mound in the middle distance, bright green outfield with mowed stripes, a curved outfield wall with distance numbers, colourful stands full of tiny fans, and blue sky. Leave home plate and the pitcher's mound empty (the game draws the players).
-```
-
 ### CH-G46 · Baseball
 
 - **File:** `chat/assets/games/baseball-ball.png`
@@ -974,42 +962,6 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A white baseball with red stitching, slightly tilted. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-```
-
-### CH-G47 · Bat
-
-- **File:** `chat/assets/games/baseball-bat.png`
-- **Size:** 512 x 128, transparent
-- **Used for:** Baseball: the bat the player swings.
-- **Stand-in until delivered:** A drawn bat.
-- **Status:** delivered
-
-```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A wooden baseball bat lying horizontally, handle on the left, glossy honey-coloured wood with a dark grip tape handle. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-```
-
-### CH-G48 · Pitcher winding up
-
-- **File:** `chat/assets/games/baseball-pitcher-windup.png`
-- **Size:** 512 x 768, transparent
-- **Used for:** Baseball: the pitcher on the mound before the throw.
-- **Stand-in until delivered:** A drawn figure.
-- **Status:** delivered
-
-```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon baseball pitcher in a white and red uniform and cap, seen from the front (facing the batter), in the wind-up: one knee raised high, glove and ball held together at the chest. Full body, feet at the bottom. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-```
-
-### CH-G49 · Pitcher throwing
-
-- **File:** `chat/assets/games/baseball-pitcher-throw.png`
-- **Size:** 512 x 768, transparent
-- **Used for:** Baseball: the pitcher releasing the ball.
-- **Stand-in until delivered:** A drawn figure.
-- **Status:** delivered
-
-```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. The same cartoon pitcher (white and red uniform and cap), seen from the front, in the follow-through just after throwing: throwing arm swung down across the body, leaning forward, front leg planted. Full body, feet at the bottom. No ball in the hand. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### CH-G50 · Whack field

@@ -196,7 +196,11 @@ REQUESTS: list[dict] = []
 # request numbers of everything after them don't change; req() drops their art.
 RETIRED_GAMES = {"stare", "dontsmile"}
 # Single pictures no longer used (replaced by a later request).
-RETIRED_ASSETS = {"temple-arch"}   # by temple-beam (CH-G84): the archway looked tall enough to run through
+RETIRED_ASSETS = {
+    "temple-arch",   # by temple-beam (CH-G84): the archway looked tall enough to run through
+    # The first Baseball (behind the plate), replaced by the tabletop board (CH-G85 to G87).
+    "baseball-field", "baseball-bat", "baseball-pitcher-windup", "baseball-pitcher-throw",
+}
 
 
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,

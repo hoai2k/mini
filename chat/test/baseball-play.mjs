@@ -1,21 +1,22 @@
-// Plays a round of Baseball in test/game.html on two phone-sized seats.
-// Seat 1 taps through the page's pointer events, timed against the pitch:
-//   - the ball is drawn big at the plate (6-10% of the screen's width), and
-//     a tap right on it as it reaches the plate is a home run;
-//   - the batter's swing keeps both hands on the bat and the arms the same
-//     length all the way round, sweeping the bat level across the plate at
-//     contact and over his front shoulder after; a mid-swing picture is taken;
-//   - a swing far too early misses, a late one goes foul, a tap well above
-//     the ball tops it, and no swing is a taken pitch;
-//   - after ten pitches the round ends with the card, the home runs are in
-//     the player's state for friends to see, and Bat again starts round two,
-//     where taps on the top and bottom edges of the big ball both make
-//     contact, the top one hit lower than the bottom one.
-// Seat 2 is a debug bot (js/rookie.js driven every 400 ms) that must swing
-// and get through pitches, and it sees seat 1's hits as ghost balls.
+// Plays the tabletop Baseball board in test/game.html on phone-sized seats.
+//   - Two seats: Ana bats (top of the 1st) and Bo pitches; the pitch buttons
+//     show only for Bo, and the board and line-up agree on both seats.
+//   - Bo's fastball rolls down the groove on both seats.
+//   - Ana holds (pointer down) to pull the bat back, the spring winds up, and
+//     lets go timed to the pitch: the bat swings, meets the ball and both
+//     seats roll the very same ball into the very same pocket (or spot), the
+//     owner records that outcome, and runners, count and score agree.
+//   - Takes and a used-up vanishing pitch; three outs switch sides: Bo bats,
+//     Ana pitches.
+//   - A third seat (Cy) joining mid-game is put in a team's batting order,
+//     watches the same board and is told where they are in the order.
+//   - Debug-bot rookie moves (js/rookie.js) pitch and swing for every seat,
+//     and the next seat runs the game when the owner leaves.
+//   - Alone, the computer pitches and the player bats.
+//   - Landscape: the board with the scoreboard and controls beside it.
 //   node chat/test/baseball-play.mjs
 // Pictures land in local/chat-shots/baseball-*.png.
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { serve, launch } from './lib.mjs';
 
@@ -25,202 +26,237 @@ await mkdir(outDir, { recursive: true });
 
 const server = await serve(chatDir);
 const browser = await launch();
-const page = await browser.newPage({ viewport: { width: 2 * 402 + 30, height: 860 } });
-const errors = [];
-page.on('pageerror', e => errors.push(e.message));
-await page.goto(`${server.url}/test/game.html?game=baseball&n=2&w=390&h=720&expr=0`);
-await page.waitForFunction(() => window.ready === true && window.seats.every(s => s.gh.current), null, { timeout: 20000 });
-await page.waitForTimeout(500);
-
 let failed = 0;
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`);
   if (!ok) failed++;
 };
-const view = i => page.evaluate(i => window.seats[i].gh.current.instance._view(), i);
+const errors = [];
 
-// The bot in seat 2, as Settings > Add Debug Bot drives it.
-await page.evaluate(async () => {
-  const { driveRookie } = await import('../js/rookie.js');
-  let step = 0;
-  window.botSwings = 0;
-  window.botTimer = setInterval(() => {
-    step++;
-    const cur = window.seats[1].gh.current;
-    if (!cur) return;
-    const before = cur.instance._view().lastHit;
-    driveRookie(cur, step);
-    if (cur.instance._view().lastHit !== before) window.botSwings++;
-  }, 400);
-  // Counts the bot's swings between calls too (they happen in its frame loop).
-  window.botSeen = new Set();
-  const watch = () => {
-    const v = window.seats[1].gh.current?.instance._view();
-    if (v?.lastHit) window.botSeen.add(v.lastHit);
-    window.botGhosts = Math.max(window.botGhosts || 0, v?.ghosts || 0);
-    requestAnimationFrame(watch);
-  };
-  watch();
-});
+async function open(query, viewport) {
+  const page = await browser.newPage({ viewport });
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto(`${server.url}/test/game.html?game=baseball&expr=0&${query}`);
+  await page.waitForFunction(() => window.ready === true && window.seats.some(s => s.gh.current), null, { timeout: 20000 });
+  return page;
+}
+const views = page => page.evaluate(() => window.seats.map(s => s.gh.current?.instance._view() ?? null));
+async function until(page, fn, arg, ms = 15000) {
+  try {
+    await page.waitForFunction(fn, arg, { timeout: ms, polling: 50 });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-// Waits for seat 1's next pitch and taps `early` seconds before it reaches
-// the plate (negative: late), `offY` px below the ball (negative: above), or
-// doesn't swing at all. Returns the pitch's result once it is known.
-// `edge` taps that many drawn ball radii below the ball's centre instead;
-// `shot` grabs the canvas `shot` seconds after the tap.
-async function bat({ early = 0, offY = 0, swing = true, edge = null, shot = null } = {}) {
-  await page.waitForFunction(() => window.seats[0].gh.current.instance._view().phase === 'pitch', null, { timeout: 15000 });
-  const tapped = await page.evaluate(async ({ early, offY, swing, edge, shot }) => {
-    const inst = window.seats[0].gh.current.instance;
-    const canvas = window.seats[0].el.querySelector('.panel canvas');
+// Clicks a pitch button on seat i.
+async function pitch(page, i, type = 'fast') {
+  await until(page, i => window.seats[i].gh.current.instance._view().buttons, i, 25000);
+  return page.evaluate(({ i, type }) => {
+    const b = window.seats[i].el.querySelector(`.bb-pitch button[data-type="${type}"]`);
+    if (!b || b.disabled) return false;
+    b.click();
+    return true;
+  }, { i, type });
+}
+// Seat i bats the current pitch: holds the pointer for `pull`'s worth of
+// spring and lets go so the bat meets the ball heading `angle` off straight
+// up (+ is to the right). `shot` grabs the page that long after the release.
+async function swing(page, i, pn, pull, angle, shot = null, want = null) {
+  await until(page, ({ i, pn }) => window.seats[i].gh.current.instance._view().pitch?.n === pn, { i, pn });
+  const r = await page.evaluate(async ({ i, pull, angle, want }) => {
+    const inst = window.seats[i].gh.current.instance;
+    const soon = performance.now() + 150;
+    const aim = (want && inst._aim(pull, angle, [...want], soon)) || inst._aim(pull, angle, null, soon) || inst._aim(pull, angle);
+    if (!aim) return null;
+    const canvas = window.seats[i].el.querySelector('.panel canvas');
+    const box = canvas.getBoundingClientRect();
+    const fire = type => canvas.dispatchEvent(new PointerEvent(type, { pointerId: 1, pointerType: 'touch', clientX: box.left + box.width / 2, clientY: box.top + box.height * 0.6, bubbles: true }));
+    const relAt = aim.t0 + aim.tRel * 1000, pressAt = relAt - aim.hold;
+    const at = async t => {
+      while (performance.now() < t - 20) await new Promise(r => requestAnimationFrame(r));
+      while (performance.now() < t) { /* spin to the millisecond */ }
+    };
+    await at(pressAt);
+    const pressed = performance.now();
+    fire('pointerdown');
+    await at(pressAt + aim.hold * 0.6);
+    const mid = inst._view().bat;
+    await at(relAt);
+    fire('pointerup');
+    return { aim, late: pressed - pressAt, searched: soon - 150, mid, after: inst._view().bat };
+  }, { i, pull, angle, want });
+  if (shot) {
+    await page.waitForTimeout(shot);
+    await page.screenshot({ path: `${outDir}baseball-swing.png` });
+  }
+  return r;
+}
+const sameState = (a, b) => JSON.stringify([a.score, a.outs, a.b, a.s, a.bases, a.inn, a.half, a.pk, a.bonus, a.bat, a.pit, a.teams])
+  === JSON.stringify([b.score, b.outs, b.b, b.s, b.bases, b.inn, b.half, b.pk, b.bonus, b.bat, b.pit, b.teams]);
+// Waits for pitch pn's result to be applied on every open seat.
+const settled = (page, pn, n = 2) => until(page, ({ pn, n }) => window.seats.slice(0, n).every(s => {
+  const v = s.gh.current?.instance._view();
+  return v && v.sh && v.sh.last && v.sh.last.n >= pn && v.sh.phase !== 'play';
+}), { pn, n }, 20000);
+
+// --- two seats, then a third ---------------------------------------------------
+{
+  const page = await open('n=3&hold=1&w=390&h=720', { width: 3 * 402 + 30, height: 860 });
+  await until(page, () => window.seats.slice(0, 2).every(s => s.gh.current?.instance._view().sh?.teams[1].length === 1));
+  await page.waitForTimeout(300);
+  let v = await views(page);
+  check(v[0].role === 'bat' && v[1].role === 'pitch', `roles: Ana ${v[0].role}, Bo ${v[1].role}`);
+  check(v[0].sh.half === 0 && v[0].sh.inn === 1 && sameState(v[0].sh, v[1].sh), 'both seats see the same board: top of the 1st, same pockets and line-up');
+  check(!v[0].buttons && v[1].buttons, 'only the pitcher has the pitch buttons');
+  check(/pull back|choosing/i.test(v[0].status) && /pitch/i.test(v[1].status), `told what to do: "${v[0].status}" / "${v[1].status}"`);
+  await page.screenshot({ path: `${outDir}baseball-ready.png` });
+
+  // A fastball, and a swing timed for a hit.
+  check(await pitch(page, 1, 'fast'), 'Bo throws a fastball');
+  const swung = swing(page, 0, 1, 0.9, -0.3, 40, '123H');
+  await until(page, () => window.seats.slice(0, 2).every(s => s.gh.current.instance._view().pitch?.n === 1));
+  const flight = await page.evaluate(async () => {
     const frame = () => new Promise(r => requestAnimationFrame(r));
-    const n0 = inst._view().n;
-    for (let k = 0; k < 400; k++) {
-      const v = inst._view();
-      if (v.phase !== 'pitch' || !swing) return { n0 };
-      if (swing && v.sinceRelease >= v.T - early - 0.008) {
-        const p = inst._ahead(0);
-        const r = canvas.getBoundingClientRect();
-        const radius = inst._ballRadius();
-        const dy = edge == null ? offY : edge * radius;
-        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: r.left + p.x, clientY: r.top + p.y + dy, bubbles: true }));
-        let picture = null;
-        if (shot) {
-          const t0 = performance.now();
-          while (performance.now() - t0 < shot * 1000) await frame();
-          picture = canvas.toDataURL('image/png');
-        }
-        return { n0, at: v.sinceRelease, T: v.T, radius, width: r.width, picture };
-      }
+    for (let k = 0; k < 200; k++) {
+      const v = window.seats[0].gh.current.instance._view();
+      if (v.pitch && v.pitch.t > 0.1) break;
       await frame();
     }
-    return { n0 };
-  }, { early, offY, swing, edge, shot });
-  // The result is known once the pitch counts.
-  await page.waitForFunction(n0 => window.seats[0].gh.current.instance._view().n > n0, tapped.n0, { timeout: 15000 });
-  const v = await view(0);
-  return { kind: v.result?.kind, dist: v.result?.dist, hit: v.lastHit, tapped };
-}
+    return window.seats.slice(0, 2).map(s => s.gh.current.instance._view().pitch);
+  });
+  check(flight[0].type === 'fast' && flight[1].type === 'fast' && flight[0].t > 0 && flight[1].t > 0 && Math.abs(flight[0].t - flight[1].t) < 0.15,
+    `the pitch is rolling on both seats (${flight.map(f => f.t.toFixed(2)).join(' / ')} s out of the mound)`);
+  const sw = await swung;
+  check(sw && sw.late < 15 && sw.mid.mode === 'pull' && sw.mid.th > 0.95 + 0.3, `holding pulls the bat back against the spring (to ${sw?.mid.th.toFixed(2)} rad)`);
+  check(sw && sw.after.mode === 'swing', 'letting go swings it');
+  await until(page, () => window.seats.slice(0, 2).every(s => s.gh.current.instance._view().ball?.done), null, 12000);
+  v = await views(page);
+  check(v[0].ball && v[1].ball, `the bat met the ball (launch ${JSON.stringify(v[0].ball?.L)}, aimed for ${sw?.aim.o})`);
+  if (v[0].ball && v[1].ball) {
+    const a = v[0].ball, b = v[1].ball;
+    check(JSON.stringify(a.L) === JSON.stringify(b.L), 'both seats have the same launch');
+    check(a.end === b.end && a.slot === b.slot && a.x === b.x && a.y === b.y,
+      `the same roll on both seats: ${a.end}${a.slot >= 0 ? ` into pocket ${a.slot}` : ''} at (${a.x.toFixed(3)}, ${a.y.toFixed(3)}), ${a.res}`);
+    check(a.L.vy < 0, `the ball goes out into the field (vx ${a.L.vx}, vy ${a.L.vy})`);
+  }
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: `${outDir}baseball-hit.png` });
+  check(await settled(page, 1), 'the owner applies the result');
+  v = await views(page);
+  check(v[0].ball?.res === v[0].sh.last.res && v[1].ball?.res === v[0].sh.last.res, `the owner's call matches the roll on both seats: ${v[0].ball?.res} / ${v[1].ball?.res} -> ${v[0].sh.last.res}`);
+  check(sameState(v[0].sh, v[1].sh), `runners, count and score agree: bases ${JSON.stringify(v[0].sh.bases)}, score ${v[0].sh.score}, outs ${v[0].sh.outs}`);
+  check('123H'.includes(v[0].sh.last.res) && v[0].sh.last.moves.some(m => m.id === 'client1' && m.from === 0), `a hit: Ana runs from home (${v[0].sh.last.res})`);
 
-const fmt = r => `${r.kind}${r.dist ? ` ${Math.round(r.dist * 3.281)} ft` : ''}${r.hit ? ` (dt ${r.hit.dt.toFixed(3)} s, dy ${r.hit.dy.toFixed(3)} m)` : ''}`;
-await page.screenshot({ path: `${outDir}baseball-ready.png` });
+  // Ana again (her team has only her): another hit moves the runner on.
+  let pn = 2;
+  check(await pitch(page, 1, 'slow'), 'Bo throws a slow ball');
+  await swing(page, 0, pn, 0.9, 0.25, null, '123H');
+  await page.waitForTimeout(200);
+  await settled(page, pn);
+  await page.waitForTimeout(450);
+  await page.screenshot({ path: `${outDir}baseball-runners.png` });
+  v = await views(page);
+  check(sameState(v[0].sh, v[1].sh), `runners, count and score agree: bases ${JSON.stringify(v[0].sh.bases)}, score ${v[0].sh.score}`);
+  const moved = v[0].sh.last.moves;
+  check('123H'.includes(v[0].sh.last.res) && moved.some(m => m.from > 0 && m.to > m.from), `the runner moves up on the next hit (${v[0].sh.last.res}: ${moved.map(m => `${m.from}->${m.to}`).join(', ')})`);
+  check(v[0].sh.score[0] === moved.filter(m => m.to === 4).length, `runs score as runners reach home (${v[0].sh.score[0]})`);
 
-// The swing, worked through in the world: the arms keep their length and
-// both hands stay on the bat; the bat is up behind his head in the stance,
-// near level (within 20°) across the plate, through the ball, at contact and round over his front shoulder after.
-const rig = await page.evaluate(() => {
-  const inst = window.seats[0].gh.current.instance;
-  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-  const out = { arms: [], grip: [], angles: [] };
-  for (const aim of [{ x: 0, y: 0.8 }, { x: -0.2, y: 0.55 }, { x: 0.2, y: 1.05 }]) {
-    for (let u = 0; u <= 1.0; u += 0.01) {
-      const r = inst._rig(u, aim);
-      out.arms.push(dist(r.front, r.elbowF), dist(r.elbowF, r.grip), dist(r.back, r.elbowB), dist(r.elbowB, r.topHand));
-      out.grip.push(dist(r.grip, r.topHand));
-      if (aim.x === 0 && u <= 0.33) out.angles.push(Math.atan2(r.d.z, r.d.x) * 180 / Math.PI);
+  // Then Bo strikes out the side: taken pitches, one the vanishing pitch.
+  let usedVanish = false;
+  for (let k = 0; k < 14; k++) {
+    const s0 = (await views(page))[0].sh;
+    if (s0.half !== 0 || s0.phase === 'over') break;
+    pn = s0.pn + 1;
+    const type = !usedVanish ? 'vanish' : 'fast';
+    if (!(await pitch(page, 1, type))) check(false, `pitch ${pn}: ${type}`);
+    if (type === 'vanish') {
+      usedVanish = true;
+      const under = await until(page, pn => window.seats.slice(0, 2).every(s => { const v = s.gh.current.instance._view(); return v.pitch?.n === pn && v.pitch.t > 0.35 && v.sh.vn === 0; }), pn, 5000);
+      v = await views(page);
+      check(under && v[1].sh.vn === 0 && v[1].sh.pitch.type === 'vanish', 'the vanishing pitch is thrown and used up for the inning');
     }
+    await settled(page, pn);
+    v = await views(page);
+    if (!sameState(v[0].sh, v[1].sh)) check(false, `seats disagree after pitch ${pn}`);
   }
-  const stance = inst._rig(null), hit = inst._rig(0.05, { x: 0, y: 0.8 }), finish = inst._rig(0.32, { x: 0, y: 0.8 });
-  out.stance = stance.d;
-  out.hit = { d: hit.d, grip: hit.grip, tip: hit.tip };
-  out.finish = finish.d;
-  return out;
-});
-const armMin = Math.min(...rig.arms), armMax = Math.max(...rig.arms);
-check(armMax - armMin < 1e-6 && Math.max(...rig.grip) - Math.min(...rig.grip) < 1e-6, `arms keep their length (${armMin.toFixed(3)}-${armMax.toFixed(3)} m) and both hands stay on the bat`);
-let unwrapped = rig.angles.map((a, i, all) => a);
-for (let i = 1; i < unwrapped.length; i++) while (unwrapped[i] < unwrapped[i - 1] - 180) unwrapped[i] += 360;
-const sweep = unwrapped.slice(5);
-check(sweep.every((a, i) => i === 0 || a >= sweep[i - 1] - 1e-6) && sweep[sweep.length - 1] - sweep[0] > 180, `the bat sweeps one way round, ${Math.round(sweep[0])}° to ${Math.round(sweep[sweep.length - 1])}°`);
-check(rig.stance.y > 0.7, `in the stance the bat is up behind him (${rig.stance.y.toFixed(2)} up)`);
-check(rig.hit.d.x > 0.9 && Math.abs(rig.hit.d.y) < 0.35 && rig.hit.grip.x < -0.3 && rig.hit.tip.x > 0.15, `at contact the bat is near level (within 20°) across the plate (from x ${rig.hit.grip.x.toFixed(2)} to ${rig.hit.tip.x.toFixed(2)} m, direction ${JSON.stringify(rig.hit.d, (k, v) => typeof v === "number" ? +v.toFixed(2) : v)})`);
-check(rig.finish.x < -0.5 && rig.finish.y > 0.3, 'it finishes over his front shoulder');
+  v = await views(page);
+  check(v[0].sh.half === 1 && v[0].sh.outs === 0 && sameState(v[0].sh, v[1].sh), `three outs switch sides (bottom of the ${v[0].sh.inn}, ${v[0].sh.score.join('-')})`);
+  check(v[0].role === 'pitch' && v[1].role === 'bat', `now Bo bats and Ana pitches (${v[0].role} / ${v[1].role})`);
+  check(v[0].sh.bases.every(b => b === null) && v[0].sh.vn === 1, 'the bases are cleared and the new pitcher has a vanishing pitch');
+  await page.screenshot({ path: `${outDir}baseball-switch.png` });
 
-// 1-2: right on the ball, right on time.
-const perfect = [];
-for (let i = 0; i < 2; i++) {
-  if (i === 0) {
-    // Picture the ball on its way in.
-    await page.waitForFunction(() => {
-      const v = window.seats[0].gh.current.instance._view();
-      return v.phase === 'pitch' && v.sinceRelease > v.T * 0.6;
-    }, null, { timeout: 15000 });
-    await page.screenshot({ path: `${outDir}baseball-pitch.png` });
-  }
-  const r = await bat({ shot: i === 0 ? 0.09 : null });
-  perfect.push(r);
-  if (r.tapped.picture) await writeFile(`${outDir}baseball-swing.png`, Buffer.from(r.tapped.picture.split(',')[1], 'base64'));
-  if (i === 0) {
-    await page.waitForTimeout(1400);
-    await page.screenshot({ path: `${outDir}baseball-flight.png` });
-  }
+  // Cy joins mid-game.
+  await page.evaluate(() => window.joinSeat(2));
+  await until(page, () => window.seats.every(s => s.gh.current?.instance._view().sh?.teams.flat().includes('client3')), null, 15000);
+  await page.waitForTimeout(400);
+  v = await views(page);
+  check(v[2] && v[2].sh.teams[0].includes('client3'), `Cy joins Ana's team, in the batting order (${JSON.stringify(v[2]?.sh.teams)})`);
+  check(v[2] && v[2].role === 'watch' && sameState(v[0].sh, v[2].sh) && sameState(v[1].sh, v[2].sh), `Cy watches the same board: "${v[2]?.status}"`);
+  check(/fielding|order|deck/i.test(v[2]?.status || ''), 'and is told what is going on');
+  await page.screenshot({ path: `${outDir}baseball-join.png` });
+
+  // Rookie bots play every seat for a while.
+  const before = (await views(page)).map(x => ({ ...x.stats, pn: x.sh.pn }));
+  await page.evaluate(async () => {
+    const { driveRookie } = await import('../js/rookie.js');
+    let step = 0;
+    window.botTimer = setInterval(() => {
+      step++;
+      for (const s of window.seats) if (s.gh.current) driveRookie(s.gh.current, step);
+    }, 400);
+  });
+  await page.waitForTimeout(26000);
+  let after = await views(page);
+  const pitched = after[0].sh.pn - before[0].pn;
+  const swings = after.reduce((n, x, i) => n + x.stats.swings - before[i].swings, 0);
+  const contacts = after.reduce((n, x, i) => n + x.stats.sent - before[i].sent, 0);
+  check(pitched >= 4, `rookie bots pitch (${pitched} pitches)`);
+  check(swings >= 2, `rookie bots swing (${swings} swings, ${contacts} pitches reported)`);
+  check(after.every(x => sameState(x.sh, after[0].sh)) || after.some(x => x.sh.phase === 'play'), 'all three seats agree');
+  await page.screenshot({ path: `${outDir}baseball-bots.png` });
+
+  // The owner leaves: Bo runs the game on.
+  const pnBefore = after[1].sh.pn;
+  await page.evaluate(() => window.leaveSeat(0));
+  await until(page, pn => window.seats[1].gh.current.instance._view().sh.pn > pn + 1 || window.seats[1].gh.current.instance._view().sh.phase === 'over', pnBefore, 25000);
+  after = await views(page);
+  check(after[1].owner === 'client2' && (after[1].sh.pn > pnBefore + 1 || after[1].sh.phase === 'over'), `Bo takes over and the game goes on (pitch ${pnBefore} -> ${after[1].sh.pn})`);
+  check(!after[1].sh.teams.flat().includes('client1'), 'Ana is out of the line-up');
+  await page.evaluate(() => clearInterval(window.botTimer));
+  await page.close();
 }
-check(perfect.every(r => r.kind === 'hr'), `taps right on the ball as it reaches the plate are home runs: ${perfect.map(fmt).join(', ')}`);
-const size = perfect[0].tapped.radius * 2 / perfect[0].tapped.width;
-check(size > 0.06 && size < 0.1, `the ball is big at the plate: ${(size * 100).toFixed(1)}% of the screen's width`);
-check((await page.evaluate(() => window.botGhosts)) > 0, 'the bot sees those hits as ghost balls');
 
-// 3: far too early.
-const early = await bat({ early: 0.3 });
-check(early.kind === 'miss', `a swing 0.3 s early misses: ${fmt(early)}`);
-// 4: late.
-const late = await bat({ early: -0.11 });
-check(late.kind === 'foul', `a swing 0.11 s late is fouled off: ${fmt(late)}`);
-// 5: tapping well above the ball.
-const top = await bat({ offY: -30 });
-check(['grounder', 'miss'].includes(top.kind), `a tap well above the ball tops it: ${fmt(top)}`);
-// 6: no swing.
-const take = await bat({ swing: false });
-check(take.kind === 'take', `no swing is a taken pitch: ${fmt(take)}`);
-// 7-10: a bit early (pulled) and right on.
-const rest = [];
-for (const e of [0.04, 0, -0.03, 0]) {
-  const r = await bat({ early: e });
-  rest.push(r);
-  if (r.kind === 'hr' && !rest.shot) {
-    rest.shot = true;
-    await page.waitForTimeout(900);
-    await page.screenshot({ path: `${outDir}baseball-homerun.png` });
-  }
+// --- alone against the computer ---------------------------------------------------
+{
+  const page = await open('n=1&w=390&h=720', { width: 430, height: 860 });
+  await until(page, () => window.seats[0].gh.current?.instance._view().sh?.pn >= 1, null, 15000);
+  let v = (await views(page))[0];
+  check(v.sh.pit === 'cpu' && v.role === 'bat', `alone: the computer pitches to me (${v.sh.pit})`);
+  const sw = await swing(page, 0, v.sh.pn, 1.1, 0);
+  check(!!sw, 'I swing at the computer\'s pitch');
+  await settled(page, v.sh.pn, 1);
+  v = (await views(page))[0];
+  check(!!v.sh.last && v.sh.last.n >= 1, `and it counts: ${v.sh.last?.res}`);
+  // Landscape: drawn mid-pitch.
+  await page.setViewportSize({ width: 430, height: 860 });
+  await page.close();
 }
-check(rest.filter(r => r.kind === 'hr').length >= 3, `good timing a little either side still goes out: ${rest.map(fmt).join(', ')}`);
-
-// The round ends after ten pitches.
-await page.waitForFunction(() => window.seats[0].gh.current.instance._view().phase === 'over', null, { timeout: 15000 });
-const end = await view(0);
-const hrs = [...perfect, early, late, top, take, ...rest].filter(r => r.kind === 'hr').length;
-check(end.n === 10 && end.hr === hrs, `the round ends after 10 pitches with ${end.hr} home runs (counted ${hrs})`);
-check(end.record.best === end.hr && end.record.longest > 0, `records kept: best round ${end.record.best}, longest ${Math.round(end.record.longest * 3.281)} ft`);
-const seen = await page.evaluate(() => window.seats[1].gh.current.api.players().find(p => !p.me).state);
-check(seen?.hr === end.hr && seen?.n === 10, `the friend's scoreboard shows ${seen?.hr} home runs and ${seen?.n}/10`);
-const cardShown = await page.evaluate(() => {
-  const b = [...window.seats[0].el.querySelectorAll('button')].find(x => /Bat again/.test(x.textContent));
-  return !!b && !!b.getClientRects().length;
-});
-check(cardShown, 'the round card shows with Bat again');
-await page.screenshot({ path: `${outDir}baseball-over.png` });
-await page.evaluate(() => [...window.seats[0].el.querySelectorAll('button')].find(x => /Bat again/.test(x.textContent)).click());
-await page.waitForTimeout(300);
-const again = await view(0);
-check(again.r === 2 && again.n === 0 && again.phase !== 'over', `Bat again starts round ${again.r}`);
-
-// Round two: the top and bottom edges of the big ball.
-const topEdge = await bat({ edge: -0.8 });
-const bottomEdge = await bat({ edge: 0.8 });
-check(topEdge.hit?.contact && bottomEdge.hit?.contact && topEdge.hit.contact.launch < bottomEdge.hit.contact.launch,
-  `taps on the ball's edges both connect, the top lower than the bottom: launch ${topEdge.hit?.contact?.launch.toFixed(0)}° and ${bottomEdge.hit?.contact?.launch.toFixed(0)}°`);
-
-// The bot.
-const bot = await view(1);
-const botSwings = await page.evaluate(() => window.botSeen.size);
-check(botSwings >= 3 && (bot.n > 3 || bot.r > 1), `the bot swings (${botSwings} swings) and gets through pitches (round ${bot.r}, pitch ${bot.n}, ${bot.hr} HR)`);
+{
+  const page = await open('n=1&w=844&h=390', { width: 880, height: 520 });
+  await until(page, () => window.seats[0].gh.current?.instance._view().pitch?.t > 0.15, null, 15000);
+  const v = (await views(page))[0];
+  check(v.layout.panel, 'landscape: scoreboard and controls sit beside the board');
+  await page.screenshot({ path: `${outDir}baseball-landscape.png` });
+  await page.close();
+}
 
 check(!errors.length, `no page errors${errors.length ? `: ${errors.slice(0, 3).join(' | ')}` : ''}`);
-await page.evaluate(() => clearInterval(window.botTimer));
 await browser.close();
 server.close();
 if (failed) {
-  console.log(`${failed} checks failed`);
+  console.log(`${failed} check(s) failed`);
   process.exit(1);
 }
 console.log('all baseball checks passed');
