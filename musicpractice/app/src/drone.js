@@ -334,11 +334,11 @@ async function renderPlucked(id, f0) {
  */
 export const SAMPLED = {
   cello: { level: 1.25, wet: 0.14, loops: [
-    { file: 'cello-D2.mp3', hz: 73.572, margin: 0.3, loop: 5.003583 },
-    { file: 'cello-E2.mp3', hz: 82.967, margin: 0.3, loop: 7.470181 },
-    { file: 'cello-G2.mp3', hz: 98.724, margin: 0.3, loop: 8.333356 },
-    { file: 'cello-D3.mp3', hz: 146.187, margin: 0.3, loop: 7.353243 },
-    { file: 'cello-A3.mp3', hz: 219.474, margin: 0.3, loop: 5.81263 },
+    { file: 'cello-D2.mp3', hz: 73.496, margin: 0.3, loop: 2.421769 },
+    { file: 'cello-E2.mp3', hz: 83.053, margin: 0.3, loop: 3.636327 },
+    { file: 'cello-G2.mp3', hz: 99.774, margin: 0.3, loop: 6.003583 },
+    { file: 'cello-D3.mp3', hz: 146.51, margin: 0.3, loop: 3.856349 },
+    { file: 'cello-A3.mp3', hz: 219.401, margin: 0.3, loop: 1.978095 },
   ] },
 };
 
