@@ -1151,57 +1151,81 @@ function drawBranch(g, b, tt) {
   const x = b.cx, bottom = b.y + b.h, top = b.y;
   kit.sprite(g, 'adv.b07.props', 5, x, bottom, { height: 150 }, () => {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#9a7a4e';
-    // The trunk stands behind the path at the left end, barked and knotted.
-    const tx0 = b.x - 84, tw = 58;
+    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#8f6f45';
+    // The trunk stands behind the path at the left end: a gnarled, bulging
+    // bole with bark furrows, knots and a root flare.
+    const tx0 = b.x - 96, tw = 70;
+    const side = (k, dir) => dir * (6 * Math.sin(k * 9.1) + 4 * Math.sin(k * 23 + 1)); // a wobbly outline
     g.beginPath();
-    g.moveTo(tx0, top + b.h + 30);
-    g.quadraticCurveTo(tx0 - 10, top - 200, tx0 + 6, top - 420);
-    g.lineTo(tx0 + tw + 10, top - 420);
-    g.quadraticCurveTo(tx0 + tw + 14, top - 200, tx0 + tw, top + b.h + 30);
+    g.moveTo(tx0 - 40, bottom + 120);
+    g.quadraticCurveTo(tx0 - 10, bottom + 40, tx0 + 2, top + 20);
+    for (let k = 0; k <= 1; k += 0.05) g.lineTo(tx0 + side(k, 1) - k * 4, top + 20 - k * 720);
+    g.lineTo(tx0 + tw + 10, top - 700);
+    for (let k = 1; k >= 0; k -= 0.05) g.lineTo(tx0 + tw + side(k, -1) + 4 - k * 4, top + 20 - k * 720);
+    g.quadraticCurveTo(tx0 + tw + 14, bottom + 40, tx0 + tw + 46, bottom + 120);
     g.closePath(); g.fill(); g.stroke();
-    g.lineWidth = 2;
-    g.strokeStyle = 'rgba(43,29,20,0.55)';
+    // Furrows down the bark, a shadowed side, knots.
+    g.lineWidth = 2.2;
+    g.strokeStyle = 'rgba(43,29,20,0.7)';
     g.beginPath();
-    for (let yy = top - 400; yy < top + b.h + 20; yy += 22) { g.moveTo(tx0 + 8, yy); g.quadraticCurveTo(tx0 + 20, yy + 10, tx0 + 14 + (yy % 44 ? 18 : 30), yy + 18); }
-    for (let yy = top - 380; yy < top + b.h; yy += 60) { g.moveTo(tx0 + tw - 16, yy); g.lineTo(tx0 + tw - 6, yy + 30); }
-    g.stroke();
-    g.strokeStyle = INK;
-    g.beginPath(); g.ellipse(tx0 + 30, top - 250, 9, 15, 0.2, 0, Math.PI * 2); g.stroke();
-    g.beginPath(); g.ellipse(tx0 + 30, top - 250, 4, 8, 0.2, 0, Math.PI * 2); g.stroke();
-    // The bough: thick at the trunk, tapering, with bark lines along it.
-    g.lineWidth = 4;
-    g.beginPath();
-    g.moveTo(tx0 + tw - 6, top - 30);
-    g.quadraticCurveTo(x - 60, top - 36, x + 40, top - 4);
-    g.quadraticCurveTo(b.x + b.w - 40, top + 14, b.x + b.w + 30, top + 28);
-    g.quadraticCurveTo(b.x + b.w - 30, bottom - 8, x + 20, bottom - 4);
-    g.quadraticCurveTo(x - 80, bottom + 2, tx0 + tw - 6, bottom + 18);
-    g.closePath(); g.fill(); g.stroke();
-    g.lineWidth = 2;
-    g.strokeStyle = 'rgba(43,29,20,0.5)';
-    g.beginPath();
-    for (let k = 0; k < 4; k++) {
-      const yy = top + 10 + k * 14;
-      g.moveTo(tx0 + tw, yy + 4); g.quadraticCurveTo(x - 40, yy - 8 + k * 3, b.x + b.w - 20, yy + 12 + k * 2);
+    for (let f = 0; f < 5; f++) {
+      const fx = tx0 + 10 + f * 13;
+      g.moveTo(fx, top + 10);
+      for (let yy = top; yy > top - 700; yy -= 40) g.quadraticCurveTo(fx + 6 * Math.sin(yy * 0.05 + f), yy - 20, fx + 3 * Math.sin(yy * 0.03 + f * 2), yy - 40);
     }
-    for (let xx = tx0 + tw + 20; xx < b.x + b.w; xx += 34) { g.moveTo(xx, bottom - 10); g.lineTo(xx + 8, bottom - 2); }
     g.stroke();
-    // Twigs with leaf clusters above and under.
+    g.strokeStyle = 'rgba(43,29,20,0.4)';
+    g.lineWidth = 1.6;
+    g.beginPath();
+    for (let yy = top - 690; yy < bottom + 40; yy += 9) { g.moveTo(tx0 + tw - 26, yy); g.lineTo(tx0 + tw - 4, yy + 7); }
+    g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 2.5;
+    for (const [kx, ky, kr] of [[tx0 + 36, top - 260, 12], [tx0 + 22, top - 520, 9]]) {
+      g.beginPath(); g.ellipse(kx, ky, kr, kr * 1.6, 0.2, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.ellipse(kx, ky, kr * 0.45, kr * 0.8, 0.2, 0, Math.PI * 2); g.stroke();
+    }
+    // The bough: thick at the trunk, tapering, knobbly, with bark lines along it
+    // and a fork near the end.
+    g.lineWidth = 4;
+    g.fillStyle = '#9a7a4e';
+    g.beginPath();
+    g.moveTo(tx0 + tw - 6, top - 40);
+    g.quadraticCurveTo(x - 90, top - 40, x - 20, top - 14);
+    g.quadraticCurveTo(x + 60, top + 4, b.x + b.w + 10, top + 22);
+    g.quadraticCurveTo(b.x + b.w + 50, top + 10, b.x + b.w + 70, top - 20);
+    g.quadraticCurveTo(b.x + b.w + 30, top + 30, b.x + b.w + 20, top + 44);
+    g.quadraticCurveTo(b.x + b.w - 50, bottom - 2, x + 10, bottom - 4);
+    g.quadraticCurveTo(x - 100, bottom + 4, tx0 + tw - 6, bottom + 20);
+    g.closePath(); g.fill(); g.stroke();
+    g.lineWidth = 2;
+    g.strokeStyle = 'rgba(43,29,20,0.6)';
+    g.beginPath();
+    for (let k = 0; k < 5; k++) {
+      const yy = top - 20 + k * 15;
+      g.moveTo(tx0 + tw, yy + 6);
+      for (let xx = tx0 + tw; xx < b.x + b.w; xx += 60) g.quadraticCurveTo(xx + 30, yy + 8 * Math.sin(xx * 0.07 + k), xx + 60, yy + 12 * (xx - tx0) / b.w + k * 2);
+    }
+    for (let xx = tx0 + tw + 14; xx < b.x + b.w; xx += 26) { g.moveTo(xx, bottom - 16); g.lineTo(xx + 9, bottom - 3); }
+    g.stroke();
     g.strokeStyle = INK;
-    for (let i = 0; i < 6; i++) {
-      const lx = b.x + 30 + i * (b.w - 50) / 5;
+    for (const [kx, ky] of [[x - 40, top + 24], [b.x + b.w - 60, top + 40]]) { g.beginPath(); g.ellipse(kx, ky, 11, 7, 0.4, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.ellipse(kx, ky, 4, 3, 0.4, 0, Math.PI * 2); g.stroke(); }
+    // Twigs with leaf clusters above and hanging under, and a vine loop.
+    for (let i = 0; i < 7; i++) {
+      const lx = b.x + 20 + i * (b.w - 30) / 6;
       const sway = Math.sin(tt * 2 + i) * 3;
       const up = i % 2 === 0;
-      const ty = up ? top - 8 : bottom - 4;
-      g.lineWidth = 2.5;
-      g.beginPath(); g.moveTo(lx, ty); g.lineTo(lx + sway + (up ? 10 : -6), ty + (up ? -34 : 30)); g.stroke();
-      for (let k = 0; k < 4; k++) {
-        const a = (up ? -Math.PI / 2 : Math.PI / 2) + (k - 1.5) * 0.55;
-        const ex = lx + sway + Math.cos(a) * 38, ey = ty + Math.sin(a) * 34 + (up ? -14 : 10);
-        inkLeaf(g, lx + sway + (up ? 6 : -4), ty + (up ? -24 : 20), ex, ey, k % 2 ? '#86a24a' : '#637f36');
+      const ty = up ? top - 14 + i * 4 : bottom - 6;
+      g.lineWidth = 2.6;
+      g.beginPath(); g.moveTo(lx, ty); g.quadraticCurveTo(lx + 8, ty + (up ? -24 : 24), lx + sway + (up ? 14 : -10), ty + (up ? -48 : 44)); g.stroke();
+      for (let k = 0; k < 5; k++) {
+        const a = (up ? -Math.PI / 2 : Math.PI / 2) + (k - 2) * 0.5;
+        const bx = lx + sway + (up ? 8 : -6), by = ty + (up ? -30 : 26);
+        inkLeaf(g, bx, by, bx + Math.cos(a) * 52, by + Math.sin(a) * 44, k % 2 ? '#86a24a' : '#637f36');
       }
     }
+    g.lineWidth = 2.4;
+    g.strokeStyle = '#4f6a2c';
+    g.beginPath(); g.moveTo(x - 30, bottom - 4); g.quadraticCurveTo(x + 20, bottom + 90 + Math.sin(tt * 1.5) * 6, x + 90, bottom); g.stroke();
     g.restore();
   });
 }
@@ -1225,42 +1249,51 @@ function inkLeaf(g, x0, y0, x1, y1, fill) {
 }
 
 function drawFallenPalm(g, b) {
-  const bottom = b.y + b.h;
+  const bottom = b.y + b.h, top = b.y;
   kit.sprite(g, 'adv.b07.props', 8, b.cx, bottom, { height: 110 }, () => {
     g.save();
     g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#b08d58';
-    // The stump it rests on at the left, with rings.
+    // The stump it rests on at the left: a broken trunk with rings and a split top.
     g.beginPath();
-    g.moveTo(b.x - 14, bottom - 6); g.lineTo(b.x + 44, bottom - 6); g.lineTo(b.x + 50, bottom + 110); g.lineTo(b.x - 20, bottom + 110); g.closePath();
+    g.moveTo(b.x - 16, bottom - 4); g.lineTo(b.x - 4, bottom - 16); g.lineTo(b.x + 14, bottom - 2); g.lineTo(b.x + 30, bottom - 14); g.lineTo(b.x + 48, bottom - 4);
+    g.lineTo(b.x + 54, bottom + 120); g.lineTo(b.x - 24, bottom + 120); g.closePath();
     g.fill(); g.stroke();
-    g.lineWidth = 2;
+    g.lineWidth = 2.2; g.strokeStyle = 'rgba(43,29,20,0.7)';
     g.beginPath();
-    for (let yy = bottom + 12; yy < bottom + 100; yy += 16) { g.moveTo(b.x - 14, yy); g.quadraticCurveTo(b.x + 16, yy + 6, b.x + 46, yy); }
+    for (let yy = bottom + 10; yy < bottom + 110; yy += 13) { g.moveTo(b.x - 18, yy); g.quadraticCurveTo(b.x + 16, yy + 7, b.x + 50, yy); }
     g.stroke();
-    // The trunk, lying across: a slightly bent log with ring marks and a broken butt.
-    g.lineWidth = 4;
+    // The trunk lying across: a segmented log, each ring a raised band, the
+    // butt end splintered, the underside in shadow.
+    g.strokeStyle = INK; g.lineWidth = 4;
     g.beginPath();
-    g.moveTo(b.x - 24, b.y + 4);
-    g.lineTo(b.x - 34, b.y + 18); g.lineTo(b.x - 22, b.y + 30); g.lineTo(b.x - 36, b.y + 44); g.lineTo(b.x - 20, bottom - 4);
-    g.quadraticCurveTo(b.cx, bottom + 8, b.x + b.w + 10, bottom - 2);
-    g.lineTo(b.x + b.w + 10, b.y + 10);
-    g.quadraticCurveTo(b.cx, b.y - 10, b.x - 24, b.y + 4);
+    g.moveTo(b.x - 26, top + 2);
+    g.lineTo(b.x - 40, top + 14); g.lineTo(b.x - 26, top + 24); g.lineTo(b.x - 44, top + 38); g.lineTo(b.x - 28, top + 48); g.lineTo(b.x - 24, bottom - 2);
+    g.quadraticCurveTo(b.cx, bottom + 10, b.x + b.w + 8, bottom - 4);
+    g.lineTo(b.x + b.w + 8, top + 10);
+    g.quadraticCurveTo(b.cx, top - 8, b.x - 26, top + 2);
     g.closePath(); g.fill(); g.stroke();
-    g.lineWidth = 2;
-    g.strokeStyle = 'rgba(43,29,20,0.55)';
+    g.fillStyle = 'rgba(60,40,20,0.22)';
+    g.beginPath(); g.moveTo(b.x - 24, bottom - 22); g.quadraticCurveTo(b.cx, bottom - 10, b.x + b.w + 8, bottom - 24); g.lineTo(b.x + b.w + 8, bottom - 4); g.quadraticCurveTo(b.cx, bottom + 10, b.x - 24, bottom - 2); g.closePath(); g.fill();
+    g.lineWidth = 2.4; g.strokeStyle = 'rgba(43,29,20,0.75)';
     g.beginPath();
-    for (let x = b.x + 10; x < b.x + b.w; x += 30) { g.moveTo(x, b.y + 2); g.quadraticCurveTo(x - 8, b.y + b.h / 2, x, bottom + 2); }
-    for (let x = b.x + 20; x < b.x + b.w; x += 30) { g.moveTo(x, bottom - 18); g.lineTo(x + 10, bottom - 6); }
+    for (let x = b.x + 6; x < b.x + b.w; x += 24) {
+      g.moveTo(x, top + 1); g.quadraticCurveTo(x - 9, top + b.h / 2, x, bottom + 1);
+      g.moveTo(x + 10, top + 1); g.quadraticCurveTo(x + 2, top + b.h / 2, x + 10, bottom + 1);
+    }
+    g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 1.5;
+    g.beginPath();
+    for (let x = b.x + 14; x < b.x + b.w; x += 24) { for (let yy = top + 12; yy < bottom - 6; yy += 10) { g.moveTo(x, yy); g.lineTo(x + 7, yy + 5); } }
     g.stroke();
     g.strokeStyle = INK;
-    // The crown at the right: drooping fronds.
-    const cx = b.x + b.w + 16, cy = b.y + 20;
+    // The crown at the right: drooping, ribbed fronds, some brown and dry.
+    const cx = b.x + b.w + 16, cy = top + 20;
     for (let k = 0; k < 7; k++) {
       const a = -1.5 + k * 0.42;
       const len = 120 + kit.hash(k * 2.7 + b.cx) * 40;
       const ex = cx + Math.cos(a) * len + 20, ey = cy + Math.sin(a) * len * 0.7 + 70;
       const mx = cx + Math.cos(a) * len * 0.6 + 10, my = cy + Math.sin(a) * len * 0.4 + 10;
-      g.fillStyle = k % 2 ? '#86a24a' : '#637f36';
+      g.fillStyle = k === 2 || k === 5 ? '#b89a52' : k % 2 ? '#86a24a' : '#637f36';
       g.lineWidth = 3;
       g.beginPath();
       g.moveTo(cx, cy);
@@ -1270,10 +1303,10 @@ function drawFallenPalm(g, b) {
       g.lineWidth = 1.5;
       g.beginPath();
       g.moveTo(cx, cy + 3); g.quadraticCurveTo(mx, my + 1, ex, ey);
-      for (let j = 0.25; j < 1; j += 0.15) {
+      for (let j = 0.2; j < 1; j += 0.12) {
         const px = (1 - j) * (1 - j) * cx + 2 * (1 - j) * j * mx + j * j * ex;
         const py = (1 - j) * (1 - j) * cy + 2 * (1 - j) * j * my + j * j * ey;
-        g.moveTo(px, py); g.lineTo(px - 6, py + 14);
+        g.moveTo(px, py); g.lineTo(px - 7, py + 15);
       }
       g.stroke();
     }

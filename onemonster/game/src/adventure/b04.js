@@ -596,6 +596,7 @@ export default function create(env) {
       if (captain) drawCaptain(g, tt);
       drawFerg(g, tt);
       drawWash(g, tt);
+      drawKeelGlimpse(g);
       drawZones(g, tt);
       drawWaves(g, tt, false);
       for (const th of things) if ((th.kind === 'pier' || th.kind === 'bridge') && cam.sees(th.x - th.hw - 100, th.x + th.hw + 100)) drawOverhead(g, th, tt);
@@ -1098,8 +1099,8 @@ export default function create(env) {
     g.clip();
     if (keelSp) {
       const kk = iceH / (keelSp.h * (1 - SEA_FRAC.drift));
-      g.globalAlpha = 0.5;
-      art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.6, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.62, sx: 0.92 });
+      g.globalAlpha = 0.72;
+      art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
       g.globalAlpha = 1;
     } else {
       g.fillStyle = '#c9d2ee';
@@ -1135,6 +1136,19 @@ export default function create(env) {
       g.beginPath(); g.moveTo(cx - 30, cy - 60); g.lineTo(cx, cy - 20); g.lineTo(cx - 14, cy + 20); g.lineTo(cx + 16, cy + 70); g.stroke();
       g.restore();
     }
+  }
+
+  // The keel seen through the water: the mirrored ice again, faint, over the wash.
+  function drawKeelGlimpse(g) {
+    const keelSp = art.sprite('iceferg.poses', fc.M.poses.drift);
+    if (!keelSp) return;
+    const off = levelOff(ferg.level), iceH = F.ice * fc.sizeK, hw = hullHW();
+    const kk = iceH / (keelSp.h * (1 - SEA_FRAC.drift));
+    g.save();
+    g.beginPath(); g.rect(ferg.x - hw * 1.2, WL + 10, hw * 2.4, 420); g.clip();
+    g.globalAlpha = 0.38;
+    art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
+    g.restore();
   }
 
   // The sea lions aboard, on the ledges.

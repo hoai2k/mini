@@ -388,7 +388,7 @@ html, body { overscroll-behavior: none; touch-action: manipulation; }
 
 #howto { align-items: center; justify-content: center; }
 .howto-page {
-  width: min(1240px, 96%); max-height: 100%; overflow: auto;
+  width: min(1240px, 96%, 150vh); max-height: 100%; overflow: auto;
   background: #fbf6e8; border: 2.5px solid var(--ink); border-radius: 6px;
   padding: 14px 26px 16px; box-shadow: 4px 6px 0 rgba(51, 36, 26, 0.3);
   display: flex; flex-direction: column; gap: 10px;
@@ -425,3 +425,5 @@ html, body { overscroll-behavior: none; touch-action: manipulation; }
   .howto-keys li { font-size: 0.85rem; }
   .howto-goal { font-size: 0.9rem; margin-bottom: 2px; }
 }
+.howto-page > .row-buttons { position: sticky; bottom: -16px; margin: 0 -26px -16px; padding: 8px 26px 12px; background: #fbf6e8; border-top: 1.5px solid rgba(51, 36, 26, 0.25); }
+@media (max-height: 520px) { .howto-page > .row-buttons { bottom: -6px; margin: 0 -14px -6px; padding: 6px 14px 8px; } }

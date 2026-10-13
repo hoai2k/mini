@@ -40,7 +40,7 @@ export const MONSTERS = {
       swoop: { frames: ['swoop'] },
       snap: { frames: ['snap'] },
       land: { frames: ['land'] },
-      stall: { frames: ['stall', 'flapUp'], fps: 14 },
+      stall: { frames: ['stall'], shake: 3 },
       walk: { frames: ['walkA', 'walkB'], stride: 50 },
       perched: { frames: ['perched'] },
       grabbed: { frames: ['grabbed'], shake: 4 },

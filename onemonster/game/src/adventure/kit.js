@@ -278,62 +278,120 @@ export function drawGround(g, cam, s, opts = {}) {
   inkGround(g, s, x0, x1, bottom, opts.standin || {});
 }
 
-// Ground in ink: a filled body under a wobbly grassy edge, with hatching.
-export function inkGround(g, s, x0, x1, bottom, { top = '#7d8a4a', body = '#8a6a44', ink = '#2b1d14', tufts = true } = {}) {
+// Ground in ink, in the book's manner: an earth body that darkens with depth,
+// wavy strata, pebbles and dangling roots, hatched shadow under a wobbly
+// grassy lip with tufts in two greens. Deterministic (hash), so nothing
+// shimmers. The ink sides at its ends are drawn only for raised blocks (not
+// for ground running to the bottom, where pieces abut); `ends` overrides.
+export function inkGround(g, s, x0, x1, bottom, { top = '#7d8a4a', body = '#8a6a44', ink = '#2b1d14', tufts = true, ends = s.y < H - 260 && s.h < 600 } = {}) {
   const step = 24;
   const edge = (x) => s.y + (hash(Math.floor(x / step) + s.x * 0.013) - 0.5) * 6;
+  const xs0 = Math.floor(x0 / step) * step;
   g.save();
-  g.fillStyle = body;
+  // The body, darker as it goes down.
+  const gr = g.createLinearGradient(0, s.y, 0, Math.min(bottom, s.y + 260));
+  gr.addColorStop(0, body);
+  gr.addColorStop(1, shade(body, -0.32));
+  g.fillStyle = gr;
   g.beginPath();
   g.moveTo(x0, bottom);
-  for (let x = Math.floor(x0 / step) * step; x <= x1 + step; x += step) g.lineTo(clamp(x, x0, x1), edge(x));
+  for (let x = xs0; x <= x1 + step; x += step) g.lineTo(clamp(x, x0, x1), edge(x));
   g.lineTo(x1, bottom);
   g.closePath();
   g.fill();
-  // Hatching in the body.
-  g.strokeStyle = 'rgba(43,29,20,0.22)';
-  g.lineWidth = 2;
+  g.save();
+  g.clip();
+  // A hatched band of shadow under the lip.
+  g.strokeStyle = 'rgba(43,29,20,0.35)';
+  g.lineWidth = 1.6;
   g.beginPath();
-  for (let x = Math.floor(x0 / 38) * 38; x < x1; x += 38) {
-    for (let y = s.y + 40 + hash(x) * 30; y < bottom; y += 70) {
-      g.moveTo(x, y); g.lineTo(x + 22, y + 16);
-    }
+  for (let x = Math.floor(x0 / 9) * 9; x < x1; x += 9) {
+    const y = edge(x) + 16;
+    g.moveTo(x, y); g.lineTo(x + 7, y + 14 + hash(x * 0.37) * 10);
   }
   g.stroke();
-  // The grassy top band.
+  // Wavy strata.
+  g.strokeStyle = 'rgba(43,29,20,0.28)';
+  g.lineWidth = 2;
+  for (let k = 0; k < 4; k++) {
+    const y0 = s.y + 70 + k * 58;
+    if (y0 > bottom) break;
+    g.beginPath();
+    for (let x = Math.floor(x0 / 40) * 40; x <= x1 + 40; x += 40) {
+      const y = y0 + Math.sin(x * 0.006 + k * 1.7) * 9 + (hash(x * 0.11 + k) - 0.5) * 6;
+      if (x === Math.floor(x0 / 40) * 40) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+  // Pebbles and roots.
+  for (let x = Math.floor(x0 / 47) * 47; x < x1; x += 47) {
+    const h = hash(x * 0.71 + 3);
+    const y = s.y + 50 + hash(x * 1.9) * Math.max(10, Math.min(220, bottom - s.y - 60));
+    if (h < 0.42) {
+      const r = 5 + h * 14;
+      g.fillStyle = shade(body, 0.18 + h * 0.2);
+      g.beginPath(); g.ellipse(x, y, r * 1.3, r, h * 3, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = ink; g.lineWidth = 1.8; g.stroke();
+      g.beginPath(); g.moveTo(x - r * 0.4, y + r * 0.6); g.lineTo(x + r * 0.9, y + r * 0.3); g.stroke();
+    } else if (h > 0.86) {
+      g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
+      g.beginPath();
+      let rx = x, ry = edge(x) + 12;
+      g.moveTo(rx, ry);
+      for (let i = 0; i < 5; i++) { rx += (hash(x + i) - 0.5) * 22; ry += 14 + hash(x * 3 + i) * 10; g.lineTo(rx, ry); }
+      g.stroke();
+    }
+  }
+  g.restore();
+  // The grassy lip.
   g.fillStyle = top;
   g.beginPath();
-  g.moveTo(x0, s.y + 26);
-  for (let x = Math.floor(x0 / step) * step; x <= x1 + step; x += step) g.lineTo(clamp(x, x0, x1), edge(x) - (tufts ? hash(x * 0.7) * 10 : 0));
-  g.lineTo(x1, s.y + 26);
+  g.moveTo(x0, s.y + 24);
+  for (let x = xs0; x <= x1 + step; x += step) g.lineTo(clamp(x, x0, x1), edge(x) - (tufts ? hash(x * 0.7) * 10 : 0));
+  for (let x = Math.ceil(x1 / step) * step; x >= x0 - step; x -= step) g.lineTo(clamp(x, x0, x1), edge(x) + 16 + hash(x * 0.29) * 10);
   g.closePath();
   g.fill();
   g.strokeStyle = ink;
   g.lineWidth = 3.5;
   g.beginPath();
-  for (let x = Math.floor(x0 / step) * step; x <= x1 + step; x += step) {
+  for (let x = xs0; x <= x1 + step; x += step) {
     const xx = clamp(x, x0, x1);
-    if (x === Math.floor(x0 / step) * step) g.moveTo(xx, edge(x)); else g.lineTo(xx, edge(x));
+    if (x === xs0) g.moveTo(xx, edge(x)); else g.lineTo(xx, edge(x));
   }
   g.stroke();
   if (tufts) {
+    const dark = shade(top, -0.3);
     g.lineWidth = 2;
-    g.beginPath();
-    for (let x = Math.floor(x0 / 31) * 31; x < x1; x += 31) {
-      if (hash(x * 1.3) < 0.45) continue;
-      const y = edge(x);
-      g.moveTo(x, y); g.lineTo(x - 4, y - 12);
-      g.moveTo(x + 5, y); g.lineTo(x + 7, y - 14);
+    for (let pass = 0; pass < 2; pass++) {
+      g.strokeStyle = pass ? ink : dark;
+      g.beginPath();
+      for (let x = Math.floor(x0 / 19) * 19 + pass * 9; x < x1; x += 19) {
+        if (hash(x * 1.3 + pass) < 0.35) continue;
+        const y = edge(x) + 2;
+        const hgt = 8 + hash(x * 2.1) * 12;
+        g.moveTo(x, y); g.quadraticCurveTo(x - 3, y - hgt * 0.6, x - 6, y - hgt);
+        g.moveTo(x + 3, y); g.quadraticCurveTo(x + 5, y - hgt * 0.7, x + 9, y - hgt * 0.9);
+      }
+      g.stroke();
     }
+  }
+  if (ends) {
+    g.lineWidth = 3.5;
+    g.strokeStyle = ink;
+    g.beginPath();
+    if (s.x >= x0 - 1) { g.moveTo(s.x, s.y); g.lineTo(s.x, bottom); }
+    if (s.x + s.w <= x1 + 1) { g.moveTo(s.x + s.w, s.y); g.lineTo(s.x + s.w, bottom); }
     g.stroke();
   }
-  // The ends of a raised piece get an ink side.
-  g.lineWidth = 3.5;
-  g.beginPath();
-  if (s.x >= x0 - 1) { g.moveTo(s.x, s.y); g.lineTo(s.x, bottom); }
-  if (s.x + s.w <= x1 + 1) { g.moveTo(s.x + s.w, s.y); g.lineTo(s.x + s.w, bottom); }
-  g.stroke();
   g.restore();
+}
+
+// Lighten (k > 0) or darken (k < 0) a #rrggbb colour.
+export function shade(hex, k) {
+  const n = parseInt(hex.slice(1, 7), 16);
+  const f = (c) => Math.round(k < 0 ? c * (1 + k) : c + (255 - c) * k);
+  const r = f((n >> 16) & 255), gg = f((n >> 8) & 255), b = f(n & 255);
+  return `#${((1 << 24) | (r << 16) | (gg << 8) | b).toString(16).slice(1)}`;
 }
 
 // A floating ledge or plank in ink (for one-way platforms until art arrives).
