@@ -49,6 +49,7 @@ try {
       const act = ACTS[0], state = act.create({ from: { scene: 0 } });
       renderer.render({ act, state, t: 8, curtain: 1, film: 'off', tinted: look === 'tinted', hud: true });
       const prefixes = edition === 'film' ? ['prince', 'prince-court', 'azurine', 'sailor', 'sailor-carry'] : ['sailor', 'sailor-carry'];
+      const sailorStrides = !!(assets.images['sailor-stride-a'] && assets.images['sailor-stride-b']);
       const selections = [];
       for (const prefix of prefixes) for (let phase = 0; phase < 4; phase++) {
         const requested = walkFrame(prefix, phase * 19 + 1);
@@ -57,18 +58,22 @@ try {
           expected = expected.replace(/^sailor/, 'prince');
           if (/^prince(?:-court)?-walk-/.test(expected)) expected = expected.replace('-walk-', '-stride-');
           if (look === 'tinted') expected += '-tinted';
-        }
+        } else if (prefix === 'sailor' && !sailorStrides) {
+          // his passing frames carry the sack his first walk frames lack:
+          // each stride holds through its passing beat until F14 arrives
+          expected = expected.replace('-pass-', '-walk-');
+        } else if (prefix === 'sailor') expected = expected.replace('-walk-', '-stride-');
         const image = renderer.kit.img(requested);
         selections.push({ requested, expected, ok: !!image && image === assets.images[expected] && image.naturalWidth > 0 });
       }
       // Carrying artwork inherits the calibrated carrying body scale.
       const carryScale = edition !== 'film' || ['walk-a', 'pass-a', 'walk-b', 'pass-b'].every(pose =>
         assets.images['prince-carry-' + pose + (look === 'tinted' ? '-tinted' : '')].bodyScale === assets.images['prince-carry' + (look === 'tinted' ? '-tinted' : '')].bodyScale);
-      return { scenes, selections, carryScale, actualPassing: [...actualPassing] };
+      return { scenes, selections, carryScale, sailorStrides, actualPassing: [...actualPassing] };
     }, { edition, look });
     assert.ok(result.selections.every(selection => selection.ok), JSON.stringify(result.selections));
     assert.equal(result.carryScale, true);
-    const required = edition === 'film' ? ['prince', 'prince-court', 'azurine', 'prince-carry'] : ['sailor', 'sailor-carry'];
+    const required = edition === 'film' ? ['prince', 'prince-court', 'azurine', 'prince-carry'] : result.sailorStrides ? ['sailor', 'sailor-carry'] : ['sailor-carry'];
     for (const prefix of required) for (const phase of ['a', 'b']) assert.ok(result.actualPassing.includes(prefix + '-pass-' + phase),
       `${edition}/${look}: actual scenes must draw ${prefix}-pass-${phase}; saw ${result.actualPassing}`);
     assert.deepEqual(errors, []);

@@ -104,3 +104,24 @@ Every film scene was played and photographed mid-walk.
 The stride-only F10/F11 briefs were incomplete. Ground walking now requires contact A → passing A → contact B → passing B. The passing phases bring the legs together beneath the hips, with one foot supporting and the other swinging through. They are not standing stills. Use consistent face, costume, head/body scale and ground anchor across all four phases. Review the cycle together, including a carried character when present.
 
 F12 supplies passing frames for armed Bel-Azor, court-dress Bel-Azor, Azurine (both looks), and the shared sailor. F13 supplies complete walking-while-carrying cycles for both prince looks and the shared sailor. Every ground-walking selector uses `src/walking.js`, including the prologue, tempest deck, sea court, whale, cavern, tower floors, coast, wedding street and scripted older-edition walks. Procedural ground-walker fallbacks have legs-together phases too. Stair and slope walking also inserts passing phases between its existing step poses, keeping the support-boot anchor. Climbing, swimming, stationary carrying and airborne actions keep their own poses.
+
+## Delivery check: walking cycles (13 October 2026)
+
+The F10–F13 frames were compared side by side against their standing poses
+(canvas, ground line, head height, costume) and watched in play (the court,
+the tempest deck, the quay carry, the wedding street and the apotheosis).
+
+- **Even and consistent:** the tinted prince (armed and in court dress),
+  Azurine in both looks, both carrying cycles and the sailor's carry. Every
+  frame shares its standing pose's canvas and ground line, and the carrying
+  frames take the carrying pose's body scale.
+- **The Original-look prince limps:** stride B (armed and court dress) is a
+  longer lunge than stride A, so the head drops 24–26 px of 360 on alternate
+  steps. Round F14 requests even `-redo` frames, which replace the two stride B
+  files on delivery. The tinted look, the default, is unaffected.
+- **The sailor's sack:** his new passing frames carry the sack, but his first
+  walk frames do not. Until his own strides (`sailor-stride-a/b`, F14) arrive,
+  he holds each stride through its passing beat (a two-frame walk) instead of
+  blinking the sack on and off. `src/art.js` switches to the full four-phase
+  cycle when both strides are delivered, and `qa/walking-browser.mjs`
+  then requires it.

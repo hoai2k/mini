@@ -186,19 +186,27 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // (and the court pair changes costume), so walking uses the matched stride
   // frames (image requests F10) when delivered, and until then alternates
   // walk-a with the standing pose of the same costume.
-  const WALK = { 'prince-walk-a': ['prince-stride-a', 'prince-walk-a'], 'prince-walk-b': ['prince-stride-b', 'prince-stand'],
-    'prince-court-walk-a': ['prince-court-stride-a', 'prince-court-walk-a'], 'prince-court-walk-b': ['prince-court-stride-b', 'prince-court'] };
+  // Walking frames resolved from what is delivered: id -> [pair, when the
+  // pair is loaded, otherwise]. The prince's strides (F10) replace his first
+  // walk frames. The shared sailor's passing frames carry his sack and his
+  // first walk frames do not, so until his own strides (F14) arrive he holds
+  // each stride through its passing beat rather than blinking the sack.
+  const WALK = {
+    'prince-walk-a': ['prince-stride', 'prince-stride-a', 'prince-walk-a'], 'prince-walk-b': ['prince-stride', 'prince-stride-b', 'prince-stand'],
+    'prince-court-walk-a': ['prince-court-stride', 'prince-court-stride-a', 'prince-court-walk-a'], 'prince-court-walk-b': ['prince-court-stride', 'prince-court-stride-b', 'prince-court'],
+    'sailor-walk-a': ['sailor-stride', 'sailor-stride-a', 'sailor-walk-a'], 'sailor-walk-b': ['sailor-stride', 'sailor-stride-b', 'sailor-walk-b'],
+    'sailor-pass-a': ['sailor-stride', 'sailor-pass-a', 'sailor-walk-a'], 'sailor-pass-b': ['sailor-stride', 'sailor-pass-b', 'sailor-walk-b'],
+  };
   const walkFrame = (r) => {
     const w = WALK[r];
     if (!w) return r;
-    const pair = w[0].replace(/-[ab]$/, '');   // both stride frames, or neither
-    return assets.images[pair + '-a'] && assets.images[pair + '-b'] ? w[0] : w[1];
+    return assets.images[w[0] + '-a'] && assets.images[w[0] + '-b'] ? w[1] : w[2];   // both frames, or neither
   };
   const img = (id) => {
     const a = cast[id];
     let r = a && assets.images[a] ? a : a && PARTIAL ? null : id;
     if (!r) return undefined;
-    if (FILM) r = walkFrame(r);
+    r = walkFrame(r);
     // the tinted cast look (the default in the film edition; Settings or
     // ?look=original turn it off): a sprite's hand-tinted alternate
     return (tinted && assets.images[r + '-tinted']) || assets.images[r];
