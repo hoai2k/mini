@@ -667,3 +667,24 @@ function hint(g, text, W) {
   g.fillText(text, W / 2, 150);
   g.restore();
 }
+
+// A competent player's input for the next frame (scripts/chapter-check.mjs):
+// steer the spout's foot onto the bottle, suck in bursts once over it, let go
+// while the bottle is ducked or the tummy is nearly full.
+export function autopilot(ch) {
+  const s = ch._ap || (ch._ap = { held: 0, rest: 0 });
+  const DT = 1 / 20;
+  const { p, foot, bottle } = ch;
+  const dx = bottle.x - p.x, dy = (bottle.y - p.y) / K;
+  const d = Math.hypot(dx, dy) || 1;
+  const m = Math.min(1, d / 90);
+  const over = Math.hypot(foot.x - bottle.x, (foot.y - bottle.y) / K) < 75;
+  s.rest -= DT;
+  let action = false;
+  if (over && bottle.duck <= 0 && s.rest <= 0 && ch.full < 0.85) {
+    s.held += DT;
+    action = s.held < 1.2;
+    if (!action) { s.held = 0; s.rest = 0.35; }
+  } else s.held = 0;
+  return { x: (dx / d) * m, y: (dy / d) * m, sprint: d > 450, action, actionPressed: action && s.held <= DT + 1e-9, actionReleased: false };
+}
