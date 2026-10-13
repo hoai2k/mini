@@ -611,7 +611,7 @@ export default function create(env) {
       drawWash(g, tt);
       drawKeelGlimpse(g);
       drawZones(g, tt);
-      drawWaves(g, tt, false);
+      if (!art.sprite('terrain.sea', 1)) drawWaves(g, tt, false);
       for (const th of things) if ((th.kind === 'pier' || th.kind === 'bridge') && cam.sees(th.x - th.hw - 100, th.x + th.hw + 100)) drawOverhead(g, th, tt);
       drawHarbourWall(g, tt);
       parts.draw(g);
@@ -861,14 +861,35 @@ export default function create(env) {
   function drawWash(g, tt) {
     const x0 = cam.x - 40, x1 = cam.x + W + 40;
     g.save();
-    g.fillStyle = 'rgba(70,118,142,0.5)';
-    g.fillRect(x0, WL + 8, x1 - x0, H - WL + 60);
-    const gr = g.createLinearGradient(0, WL + 8, 0, WL + 300);
-    gr.addColorStop(0, 'rgba(60,100,125,0)'); gr.addColorStop(1, 'rgba(46,78,100,0.85)');
-    g.fillStyle = gr;
-    g.fillRect(x0, WL + 8, x1 - x0, 292);
-    g.fillStyle = '#2f5268';
-    g.fillRect(x0, WL + 300, x1 - x0, H - WL);
+    const strip = art.sprite('terrain.sea', 1);
+    if (strip) {
+      // The delivered sea strip is the surface: its crests ride above the
+      // waterline, and below it the same water, tiled and darkening with depth.
+      const h = 150, k = h / strip.h, tw = strip.w * k;
+      const rows = [[WL - 42, 1], [WL + 100, 1], [WL + 232, 1], [WL + 364, 1]];
+      for (let r = 0; r < rows.length; r++) {
+        const [y, a] = rows[r];
+        if (y > H) break;
+        g.globalAlpha = a;
+        for (let i = Math.floor(x0 / tw); i * tw < x1; i++) {
+          art.drawSprite(g, strip, i * tw + (r % 2 ? tw * 0.5 : 0), y, { scale: k, ax: 0, ay: 0, flip: (i + r) % 2 === 1 });
+        }
+      }
+      g.globalAlpha = 1;
+      const gr = g.createLinearGradient(0, WL + 90, 0, H);
+      gr.addColorStop(0, 'rgba(20,40,60,0.1)'); gr.addColorStop(0.5, 'rgba(20,40,60,0.45)'); gr.addColorStop(1, 'rgba(15,30,50,0.7)');
+      g.fillStyle = gr;
+      g.fillRect(x0, WL + 90, x1 - x0, H - WL);
+    } else {
+      g.fillStyle = 'rgba(70,118,142,0.5)';
+      g.fillRect(x0, WL + 8, x1 - x0, H - WL + 60);
+      const gr = g.createLinearGradient(0, WL + 8, 0, WL + 300);
+      gr.addColorStop(0, 'rgba(60,100,125,0)'); gr.addColorStop(1, 'rgba(46,78,100,0.85)');
+      g.fillStyle = gr;
+      g.fillRect(x0, WL + 8, x1 - x0, 292);
+      g.fillStyle = '#2f5268';
+      g.fillRect(x0, WL + 300, x1 - x0, H - WL);
+    }
     // Shafts of light slanting down through the water.
     g.fillStyle = 'rgba(220,240,245,0.07)';
     for (let x = Math.floor(x0 / 420) * 420; x < x1; x += 420) {
@@ -876,7 +897,7 @@ export default function create(env) {
       g.beginPath(); g.moveTo(x, WL + 10); g.lineTo(x + sw, WL + 10); g.lineTo(x + sw + lean * 1.6, H); g.lineTo(x + lean * 1.6 - sw * 0.6, H); g.closePath(); g.fill();
     }
     // Long ink swells in the deep, and a few drifting bubbles of light.
-    g.strokeStyle = 'rgba(20,35,50,0.35)';
+    g.strokeStyle = strip ? 'rgba(20,35,50,0.12)' : 'rgba(20,35,50,0.35)';
     g.lineWidth = 2.5;
     g.lineCap = 'round';
     g.beginPath();
@@ -905,7 +926,7 @@ export default function create(env) {
       g.save();
       g.lineCap = 'round';
       // Warm water: a rosy wash and streaks; cold: foam streaks.
-      if (z.warm) {
+      if (z.warm && !art.sprite('adv.b04.props', 11)) {
         g.fillStyle = 'rgba(232,150,110,0.22)';
         g.fillRect(z.x0, WL - 6, z.x1 - z.x0, 150);
       }
@@ -916,7 +937,7 @@ export default function create(env) {
         const x = z.x0 + (z.x1 - z.x0) * p;
         const y = WL + 20 + ((i * 37) % 5) * 16;
         const a = Math.sin(p * Math.PI);
-        kit.sprite(g, 'adv.b04.props', 11, x, y + 20, { height: 80, ay: 0.5, alpha: a * (z.warm ? 0.9 : 0.5), flip: z.dir < 0 }, (gg, xx, yy) => {
+        kit.sprite(g, 'adv.b04.props', 11, x, y + 24, { height: 72, ay: 0.5, alpha: a * a * (z.warm ? 0.9 : 0.45), flip: z.dir < 0 }, (gg, xx, yy) => {
           gg.globalAlpha = a * (z.warm ? 0.8 : 0.6);
           gg.strokeStyle = z.warm ? '#e07a52' : '#f4fbfb';
           gg.lineWidth = z.warm ? 5 : 4;

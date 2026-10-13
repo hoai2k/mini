@@ -1563,8 +1563,8 @@ export function autopilot(board) {
   const wall = solids.some((s) => s.kind !== 'floor' && s.kind !== 'leaves' && s.x > b.x + 40 && s.x < b.x + 300 && b.y + 60 > s.y - 10 && b.y - 60 < s.y + s.h + 10);
   // (A dive always drives forward, so near a wall he brakes and sinks instead.)
   if (wall && !wait) {
-    if (err < -70) out.x = b.vx > 30 ? -1 : 0; // brake and sink
-    else if (err > 70) out.x = b.vx > -60 ? -1 : 0; // back off and climb
+    if (err < -35) out.x = b.vx > 30 ? -1 : 0; // brake and sink
+    else if (err > 35) out.x = b.vx > -60 ? -1 : 0; // back off and climb
   }
   if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
   else if (err < -130 && !wall && b.vy < 240 && !b.swoopT) out.y = 1;
@@ -1572,8 +1572,8 @@ export function autopilot(board) {
   const clearAhead = pick && pick.iv[1] - pick.iv[0] > 200 && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 90 > s.y - 40 && b.y - 90 < s.y + s.h + 40);
   // A cross bird coming: outrun it (he is faster on hard wingbeats than it is).
   const birdNear = birds.some((bd) => (bd.state === 'cross' || bd.state === 'fly') && Math.abs(bd.x - b.x) < 600);
-  out.sprint = (!wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90) || (dash && b.st > 0.2 && Math.abs(err) < 70);
-  if (dash && Math.abs(err) < 70) out.x = 1;
+  out.sprint = (!wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90) || (dash && b.st > 0.2 && Math.abs(err) < 35);
+  if (dash && Math.abs(err) < 35) out.x = 1;
   if (birdNear && !wait && Math.abs(err) < 90) { out.x = 1; out.sprint = b.st > 0.1; }
   return out;
 }

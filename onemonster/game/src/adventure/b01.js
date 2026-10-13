@@ -862,7 +862,7 @@ export default function create(env) {
     // The strip (1400 x 175): the grass meets the dirt at row 55, so the tufts stand that far above the surface.
     const strip = art.sprite(TERRAIN, 1);
     if (strip) {
-      const k = 290 / 175, lift = 55 * k, tw = strip.w * k, ov = 150 * k, step = tw - ov;
+      const k = 290 / 175, lift = 55 * k, tw = strip.w * k, ov = 6 * k, step = tw - ov; // mirrored, overlapping the strip's two empty end columns
       const x0 = Math.max(s.x, cam.x - 40), x1 = Math.min(s.x + s.w, cam.x + W + 40);
       g.save();
       g.fillStyle = '#a8865a'; g.fillRect(x0, s.y + 290 - lift - 6, x1 - x0, H + 60 - (s.y + 290 - lift - 6));

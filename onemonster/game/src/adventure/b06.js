@@ -780,9 +780,18 @@ export default function create(env) {
       for (let i = 0; i < 5; i++) { const y = yr + 40 + i * 60; g.moveTo(s.x1 - 8, y); g.quadraticCurveTo(s.x1 - 40, y + 25, s.x1 - 30 - kit.hash(i + s.x1) * 40, y + 65); }
       g.stroke();
       g.restore();
-      // The edge pieces: their walkable soil edge (45/186 down) on the ground line, the cut face at the hole.
-      kit.sprite(g, TERRAIN, 4, s.x0 + 6, yl, { height: 236, ax: 400 / 465, ay: 45 / 186 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 3), x + 22, y + 26, { height: 150, ax: 1, ay: 1 }));
-      kit.sprite(g, TERRAIN, 5, s.x1 - 6, yr, { height: 238, ax: 65 / 472, ay: 45 / 188 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 4), x - 22, y + 26, { height: 150, ax: 0, ay: 1 }));
+      // The edge pieces: their walkable soil edge (45/186 down) on the ground line,
+      // the top of the cut face exactly at the hole's edge (the wall recedes under
+      // it), the far end and the bottom cut flush with the strip around them.
+      const cut = STRIP_H - STRIP_LIFT - 9 * STRIP_K;
+      g.save();
+      g.beginPath(); g.rect(s.x0 - 330, yl - 130, 332, 130 + cut); g.clip();
+      kit.sprite(g, TERRAIN, 4, s.x0, yl, { height: 236, ax: 1, ay: 45 / 186 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 3), x + 28, y + 26, { height: 150, ax: 1, ay: 1 }));
+      g.restore();
+      g.save();
+      g.beginPath(); g.rect(s.x1 - 2, yr - 130, 332, 130 + cut); g.clip();
+      kit.sprite(g, TERRAIN, 5, s.x1, yr, { height: 238, ax: 0, ay: 45 / 188 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 4), x - 28, y + 26, { height: 150, ax: 0, ay: 1 }));
+      g.restore();
     }
   }
 
