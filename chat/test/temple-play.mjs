@@ -135,6 +135,11 @@ const until = async (fn, ms, what) => {
 // 4. Swipe down slides under an arch.
 {
   const arch = await call(0, 'find', 'arch', 20);
+  // Coming up to it: the beam across the whole walkway and the "Slide!" cue.
+  await call(0, 'place', arch.s - 14, 0);
+  await call(0, 'scale', 0.05);
+  await new Promise(r => setTimeout(r, 400));
+  await shot('temple-beam-ahead.png');
   await call(0, 'place', arch.s - 3.2, 0);
   await call(0, 'scale', 0.12);
   await swipe(0, 0, 80);

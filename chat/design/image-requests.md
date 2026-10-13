@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-527 delivered, 1 requested, 528 in total.
+526 delivered, 1 requested, 527 in total.
 
 ## Brand
 
@@ -1383,19 +1383,6 @@ Production canvas aspect ratio 2048:512, intended export 2048 x 512. Opaque full
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a thick gnarled tree root arching across the stone path, low enough to jump over, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 STRICT ISOLATED OBSTACLE: only ONE long thick brown gnarled root lying horizontally at ankle height. Slight shallow upward hump at its middle, not a doorway or tall arch. No ground, paving, plants, rocks, foliage, path or backdrop. Game obstacle the runner jumps OVER. Transparent background. Wide 512x256.
-```
-
-### CH-G80 · Low arch
-
-- **File:** `chat/assets/games/temple-arch.png`
-- **Size:** 512 x 512, transparent
-- **Used for:** Temple Dash: low arch.
-- **Stand-in until delivered:** A drawn shape.
-- **Status:** delivered
-
-```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a low broken stone archway with hanging vines spanning the path, high enough to slide under, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-Production canvas aspect ratio 512:512, intended export 512 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.
 ```
 
 ### CH-G81 · Fire trap

@@ -195,11 +195,13 @@ REQUESTS: list[dict] = []
 # Games taken out of Games Chat. Their entries stay in the lists above so the
 # request numbers of everything after them don't change; req() drops their art.
 RETIRED_GAMES = {"stare", "dontsmile"}
+# Single pictures no longer used (replaced by a later request).
+RETIRED_ASSETS = {"temple-arch"}   # by temple-beam (CH-G84): the archway looked tall enough to run through
 
 
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested", ext=None):
-    if any(asset in (f"game-{g}", f"game2-{g}", f"art-game-{g}", f"classic-game-{g}") for g in RETIRED_GAMES):
+    if asset in RETIRED_ASSETS or any(asset in (f"game-{g}", f"game2-{g}", f"art-game-{g}", f"classic-game-{g}") for g in RETIRED_GAMES):
         return
     ext = ext or ("png" if alpha else "webp")
     folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds",

@@ -32,7 +32,9 @@ const CAM_D = 3.7, CAM_H = 2.3, CAM_H_TALL = 2.55, PITCH = 0.22;
 const RUN_W = (art.FRAME_W / art.FRAME_H) * art.RUNNER_H;
 const STRIDE = 2.7;             // metres per four running frames
 const ROOT_W = P.HW * 2 + 0.6, ROOT_H = ROOT_W * 0.25;
-const ARCH_W = P.HW * 2 + 1.2, ARCH_H = ARCH_W * 0.6;
+// The slide-under beam spans the whole walkway and more, drawn 2:1 so its
+// underside (62% down the picture) is about 1.25 m up.
+const ARCH_W = P.HW * 2 + 1.2, ARCH_H = ARCH_W * 0.5;
 const FIRE_W = 1.55, FIRE_H = 1.6, COIN_W = 0.48;
 const CAUSE_TEXT = { edge: 'Off the edge!', gap: 'Fell in!', crash: 'Crashed!', caught: 'Caught by monkeys!' };
 const FONT = 'ui-rounded, system-ui, sans-serif';
@@ -695,7 +697,7 @@ export default {
           if (!p) continue;
           const fa = fogAlpha(p.depth);
           if (o.type === 'root') list.push({ depth: p.depth, draw: () => across(pic('temple-root', art.drawRoot), seg, o.s + o.len / 2, -ROOT_W / 2, ROOT_W / 2, ROOT_H, fa) });
-          else if (o.type === 'arch') list.push({ depth: p.depth, draw: () => across(pic('temple-arch', art.drawArch), seg, o.s + o.len / 2, -ARCH_W / 2, ARCH_W / 2, ARCH_H, fa) });
+          else if (o.type === 'arch') list.push({ depth: p.depth, draw: () => across(pic('temple-beam', art.drawBeam), seg, o.s + o.len / 2, -ARCH_W / 2, ARCH_W / 2, ARCH_H, fa) });
           else if (o.type === 'fire') {
             for (let l = 0; l < 3; l++) {
               if (!(o.mask & (1 << l))) continue;
@@ -874,6 +876,13 @@ export default {
           const pulse = inWin ? 1 + 0.12 * Math.sin(now() / 70) : 1;
           drawArrow(w / 2, h * 0.3, Math.round(clamp(Math.min(w, h) * 0.16, 48, 90) * pulse), seg.dir, inWin);
           if (inWin) hudText('Turn!', w / 2, h * 0.3 + clamp(Math.min(w, h) * 0.16, 48, 90) * 0.75, 18, '#ffd43b', 'center');
+        } else if (!run.slide) {
+          // A beam coming up: every lane is blocked, so say it plainly.
+          const beam = seg.obs.find(o => o.type === 'arch' && o.s > run.s && o.s - run.s < v * 1.4);
+          if (beam) {
+            const pulse = 1 + 0.1 * Math.sin(now() / 70);
+            hudText('⬇ Slide!', w / 2, h * 0.3, Math.round(clamp(Math.min(w, h) * 0.09, 26, 44) * pulse), '#ffd43b', 'center');
+          }
         }
       }
       // The countdown.
