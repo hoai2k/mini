@@ -602,5 +602,866 @@
    ],
    "clip": false
   }
+ ],
+ "assets/monsters/grumley/moves.png": [
+  {
+   "rect": [
+    24,
+    250,
+    776,
+    380
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    800,
+    250,
+    650,
+    380
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1482,
+    12,
+    540,
+    690
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    54,
+    659,
+    642,
+    752
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    710,
+    828,
+    752,
+    522
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1482,
+    702,
+    540,
+    660
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    34,
+    1392,
+    652,
+    602
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    710,
+    1367,
+    618,
+    618
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1380,
+    1453,
+    652,
+    572
+   ],
+   "clip": false
+  }
+ ],
+ "assets/monsters/iceferg/moves.png": [
+  {
+   "rect": [
+    10,
+    250,
+    712,
+    758
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    714,
+    529,
+    682,
+    482
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1340,
+    184,
+    692,
+    932
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    17,
+    1170,
+    728,
+    720
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    745,
+    1170,
+    700,
+    720
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1457,
+    1353,
+    557,
+    492
+   ],
+   "clip": false
+  }
+ ],
+ "assets/monsters/typhoonigator/moves.png": [
+  {
+   "rect": [
+    3,
+    396,
+    698,
+    574
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    711,
+    383,
+    580,
+    630
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1291,
+    383,
+    750,
+    630
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    23,
+    1137,
+    689,
+    586
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    716,
+    1383,
+    632,
+    329
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1326,
+    1139,
+    714,
+    608
+   ],
+   "clip": false
+  }
+ ],
+ "assets/monsters/yalapappus/moves.png": [
+  {
+   "rect": [
+    72,
+    151,
+    612,
+    587
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    737,
+    58,
+    602,
+    592
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1354,
+    113,
+    667,
+    637
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    100,
+    740,
+    690,
+    695
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    720,
+    872,
+    667,
+    572
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1457,
+    772,
+    572,
+    662
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    60,
+    1436,
+    730,
+    560
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    934,
+    1462,
+    642,
+    532
+   ],
+   "clip": false
+  }
+ ],
+ "assets/monsters/grithix/moves.png": [
+  {
+   "rect": [
+    30,
+    39,
+    537,
+    1062
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    621,
+    332,
+    859,
+    750
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1480,
+    332,
+    560,
+    750
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    18,
+    1143,
+    728,
+    782
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    734,
+    1146,
+    728,
+    792
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1446,
+    1173,
+    592,
+    787
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/b08/props.png": [
+  {
+   "rect": [
+    68,
+    245,
+    410,
+    377
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    560,
+    384,
+    440,
+    297
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1081,
+    102,
+    403,
+    597
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1496,
+    145,
+    544,
+    553
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    73,
+    876,
+    460,
+    303
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    554,
+    943,
+    424,
+    213
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1054,
+    934,
+    452,
+    282
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1526,
+    772,
+    503,
+    522
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    53,
+    1341,
+    469,
+    632
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    612,
+    1336,
+    384,
+    619
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1025,
+    1506,
+    502,
+    439
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1532,
+    1383,
+    506,
+    576
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/b09/props.png": [
+  {
+   "rect": [
+    54,
+    211,
+    566,
+    523
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    620,
+    211,
+    326,
+    523
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1070,
+    205,
+    403,
+    548
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1506,
+    359,
+    532,
+    381
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    10,
+    846,
+    512,
+    484
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    519,
+    885,
+    490,
+    441
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1015,
+    885,
+    500,
+    441
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1520,
+    885,
+    510,
+    441
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    7,
+    1427,
+    512,
+    456
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    508,
+    1419,
+    516,
+    367
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1012,
+    1450,
+    515,
+    444
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1530,
+    1450,
+    500,
+    444
+   ],
+   "clip": true
+  }
+ ],
+ "assets/monsters/bombanat/plain.png": [
+  {
+   "rect": [
+    17,
+    269,
+    780,
+    347
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    740,
+    118,
+    624,
+    520
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1366,
+    345,
+    648,
+    375
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    86,
+    731,
+    614,
+    583
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    722,
+    742,
+    625,
+    582
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1385,
+    766,
+    641,
+    522
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    44,
+    1439,
+    656,
+    506
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    728,
+    1407,
+    626,
+    514
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/terrain/wood.png": [
+  {
+   "rect": [
+    235,
+    92,
+    1583,
+    250
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    251,
+    386,
+    1556,
+    357
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    316,
+    727,
+    1451,
+    265
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    622,
+    1017,
+    834,
+    286
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    342,
+    1316,
+    1391,
+    291
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    658,
+    1630,
+    728,
+    353
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/terrain/goo.png": [
+  {
+   "rect": [
+    33,
+    330,
+    1986,
+    301
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    30,
+    665,
+    1989,
+    438
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    29,
+    1124,
+    486,
+    824
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    516,
+    1280,
+    659,
+    669
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1155,
+    1181,
+    323,
+    768
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1485,
+    1558,
+    536,
+    392
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/terrain/sea.png": [
+  {
+   "rect": [
+    19,
+    107,
+    2010,
+    202
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    271,
+    350,
+    785,
+    338
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    20,
+    634,
+    2008,
+    428
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    20,
+    1062,
+    2008,
+    495
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    20,
+    1582,
+    2009,
+    156
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    20,
+    1747,
+    2009,
+    262
+   ],
+   "clip": false
+  }
+ ],
+ "assets/adventure/terrain/nowhere.png": [
+  {
+   "rect": [
+    43,
+    34,
+    1962,
+    184
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    42,
+    237,
+    1964,
+    289
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    41,
+    542,
+    1960,
+    290
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    43,
+    843,
+    661,
+    270
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    1335,
+    838,
+    669,
+    275
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    438,
+    1117,
+    1043,
+    357
+   ],
+   "clip": false
+  },
+  {
+   "rect": [
+    49,
+    1497,
+    1280,
+    493
+   ],
+   "clip": true
+  },
+  {
+   "rect": [
+    1335,
+    1328,
+    663,
+    687
+   ],
+   "clip": true
+  }
  ]
 }
