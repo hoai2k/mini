@@ -192,8 +192,15 @@ DELIVERIES = {r["id"]: r for r in json.loads(DELIVERIES_FILE.read_text())
 REQUESTS: list[dict] = []
 
 
+# Games taken out of Games Chat. Their entries stay in the lists above so the
+# request numbers of everything after them don't change; req() drops their art.
+RETIRED_GAMES = {"stare", "dontsmile"}
+
+
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested", ext=None):
+    if any(asset in (f"game-{g}", f"game2-{g}", f"art-game-{g}", f"classic-game-{g}") for g in RETIRED_GAMES):
+        return
     ext = ext or ("png" if alpha else "webp")
     folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds",
               "themes": "themes", "icons-art": "icons-art", "icons-classic": "icons-classic"}[section]

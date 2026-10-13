@@ -77,7 +77,7 @@ leave the game, so stop every `requestAnimationFrame`, timer and listener.
 - **Score attack** (Hoops, Flappy Face): everyone plays their own copy.
   Publish your score in `setState`, broadcast your actions so friends' ghosts
   can be drawn, and keep personal records in `store`.
-- **Rounds with a referee** (Quick Draw, Staring Contest, Copy Cat): the
+- **Rounds with a referee** (Quick Draw, Copy Cat): the
   owner runs the round clock in shared state (`phase`, `startAt` timestamps)
   and decides winners from what players send.
 - Presence is the only thing a newcomer gets on joining (messages are not

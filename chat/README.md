@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 26
+A video chat in the browser with 75 face effects and backgrounds and 24
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -201,8 +201,7 @@ the player who conceded until someone hits it), Connect Four, Quick Draw
 (during a duel every seated player stands as a gunslinger tile with their live
 face and win pips, and each tile is stamped "BANG 231 ms" or "TOO EARLY" the
 moment that player's shot reaches the referee, before the round's result;
-latecomers watch with a "You're in next round" note), Staring Contest
-(latecomers watch the round under way with a "You're in next round" note),
+latecomers watch with a "You're in next round" note),
 Copy Cat (friends' live faces sit beside your own on wide screens and under it
 on tall ones, never over your face or the prompt, and each lights up green
 with a tick and a pop as their match for the prompt arrives), Rock Paper Scissors, Doodle Guess (anyone who joins mid-game guesses
@@ -222,10 +221,7 @@ a fried egg, packed snugly on the bun; dodge the boots and the poop; live
 miniature kitchens show friends' stacks, falling ingredients, scores and
 remaining lives), Asteroid Dodge (steer with your head or by tilting the phone
 or dragging; the ship sits about a quarter of the way up the screen, clear of
-your finger, and flies up from below the edge when a run starts),
-Don't Smile (who plays a round is fixed at its 3-2-1: someone who joins
-mid-round watches with a "You're in next round" note and plays from the next
-one), Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
+your finger, and flies up from below the edge when a run starts), Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
 Word Blitz (a Boggle-style word race on a 20,000-word dictionary) and Go Fish
 (thirteen creatures from the ancient oceans, from Anomalocaris and Opabinia to
 Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
@@ -371,7 +367,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 26 games with rookie controls, real turns, live Burger Stack
+  offers, all 24 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock

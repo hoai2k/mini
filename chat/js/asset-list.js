@@ -515,10 +515,6 @@ export const ASSET_LIST = {
     "file": "assets/icons/game-flappy.png",
     "status": "delivered"
   },
-  "game-stare": {
-    "file": "assets/icons/game-stare.png",
-    "status": "delivered"
-  },
   "game-quickdraw": {
     "file": "assets/icons/game-quickdraw.png",
     "status": "delivered"
@@ -765,10 +761,6 @@ export const ASSET_LIST = {
   },
   "game-asteroids": {
     "file": "assets/icons/game-asteroids.png",
-    "status": "delivered"
-  },
-  "game-dontsmile": {
-    "file": "assets/icons/game-dontsmile.png",
     "status": "delivered"
   },
   "game-snake": {
@@ -1159,10 +1151,6 @@ export const ASSET_LIST = {
     "file": "assets/icons-art/art-game-quickdraw.png",
     "status": "delivered"
   },
-  "art-game-stare": {
-    "file": "assets/icons-art/art-game-stare.png",
-    "status": "delivered"
-  },
   "art-game-copycat": {
     "file": "assets/icons-art/art-game-copycat.png",
     "status": "delivered"
@@ -1197,10 +1185,6 @@ export const ASSET_LIST = {
   },
   "art-game-asteroids": {
     "file": "assets/icons-art/art-game-asteroids.png",
-    "status": "delivered"
-  },
-  "art-game-dontsmile": {
-    "file": "assets/icons-art/art-game-dontsmile.png",
     "status": "delivered"
   },
   "art-game-snake": {
@@ -1539,10 +1523,6 @@ export const ASSET_LIST = {
     "file": "assets/icons-classic/classic-game-quickdraw.png",
     "status": "delivered"
   },
-  "classic-game-stare": {
-    "file": "assets/icons-classic/classic-game-stare.png",
-    "status": "delivered"
-  },
   "classic-game-copycat": {
     "file": "assets/icons-classic/classic-game-copycat.png",
     "status": "delivered"
@@ -1577,10 +1557,6 @@ export const ASSET_LIST = {
   },
   "classic-game-asteroids": {
     "file": "assets/icons-classic/classic-game-asteroids.png",
-    "status": "delivered"
-  },
-  "classic-game-dontsmile": {
-    "file": "assets/icons-classic/classic-game-dontsmile.png",
     "status": "delivered"
   },
   "classic-game-snake": {
@@ -1919,10 +1895,6 @@ export const ASSET_LIST = {
     "file": "assets/icons2/game2-quickdraw.png",
     "status": "delivered"
   },
-  "game2-stare": {
-    "file": "assets/icons2/game2-stare.png",
-    "status": "delivered"
-  },
   "game2-copycat": {
     "file": "assets/icons2/game2-copycat.png",
     "status": "delivered"
@@ -1957,10 +1929,6 @@ export const ASSET_LIST = {
   },
   "game2-asteroids": {
     "file": "assets/icons2/game2-asteroids.png",
-    "status": "delivered"
-  },
-  "game2-dontsmile": {
-    "file": "assets/icons2/game2-dontsmile.png",
     "status": "delivered"
   },
   "game2-snake": {
