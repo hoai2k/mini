@@ -7,7 +7,9 @@
 // the page loads) and with the keyboard:
 //
 //  1. Title: no errors; any controller button starts and opens the guide.
-//  2. Guide → the first bird's page (its controls and tips on it) → Play →
+//  2. A fresh save: all 28 cards are there to pick, each bird's silhouette
+//     (not its painting) on its card and page, its name and rhyme shown.
+//     Guide → the first bird's page (its controls and tips on it) → Play →
 //     count-in → play, with stick and A input. The pause menu: A on How to
 //     play opens it, its Controls button opens the controls, B steps back, A
 //     on a leaf page goes straight back to the game; B resumes, and so does a
@@ -16,7 +18,8 @@
 //     the guide is back with that bird chosen.
 //  3. The sticker celebration: the first time the score is reached, presses
 //     step through it (sticker, book, flight, stuck), then the guide shows
-//     the next card opening and chooses it. Playing that bird again ends on
+//     that bird's own card turning over from silhouette to painting, chosen;
+//     the next card stays a silhouette. Playing that bird again ends on
 //     the brief result card, and a press goes back to the guide with it
 //     chosen.
 //  3b. On a bird passed before: a new best above the mark ends on the World
@@ -25,13 +28,18 @@
 //     of it on the plain one. Settings' Fullscreen switch follows the real
 //     state and the D-pad reaches it. With reduced motion the card stands
 //     still; without the Fullscreen API the switch is greyed out with a note.
+//  3d. A fresh save opens and plays the 10th bird straight away; passing it
+//     celebrates and turns over its own card (the only one turned).
 //  3c. Points: the same play at Normal and Harder; the result card and HUD
 //     show the points, Harder earns more, and the best is kept in points.
-//  4. ?debug: every page is open; a round that reaches the score celebrates
-//     even when passed before, the next card shows locked, opens, and then
-//     every card is open again; B and a long press skip it all.
+//  4. ?debug: every card shows its painting; a round that reaches the score
+//     celebrates even when passed before, the bird's own card shows its
+//     silhouette, turns over, and then every card shows its painting again;
+//     B and a long press skip it all.
 //  5. Keyboard: Enter through the title, guide and page; Space steps
-//     through a celebration.
+//     through a celebration; Escape skips to the guide, the bird chosen.
+//  5b. Exit to Field Guide counts the round: short of the score the card
+//     stays a silhouette; a pass turns the bird's own card over.
 //  6. The guide's 28 cards with ?all: the D-pad moves down a row (not to the
 //     buttons below) and on past the end of a row, the chosen card is
 //     scrolled into view, the last row leads down to the buttons, and a
@@ -147,14 +155,28 @@ const press = async (page, b) => {
   await page.evaluate((b) => window.__pad(0, { buttons: { [b]: false } }), b);
   await wait(page, 80);
 };
-// The guide: which card is chosen, which are locked, which is opening.
+// The guide: which card is chosen, which are unspotted (silhouettes), which
+// is turning over.
 const guideState = (page) =>
   page.evaluate(() => ({
     screen: window.__coot.S.screen,
     focus: document.activeElement?.dataset?.bird !== undefined ? Number(document.activeElement.dataset.bird) : null,
-    locked: [...document.querySelectorAll('#cards .card.locked')].map((c) => Number(c.dataset.bird)),
+    unspotted: [...document.querySelectorAll('#cards .card.unspotted')].map((c) => Number(c.dataset.bird)),
     unlock: window.__coot.S.unlock ? window.__coot.S.unlock.i : null,
   }));
+// How many colours a picture has: a silhouette is one ink (a handful with
+// the page's wash behind it), a painting dozens. `sel` is a card's canvas or
+// the stage.
+const variety = (page, sel) =>
+  page.evaluate((sel) => {
+    const cv = document.querySelector(sel);
+    const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+    const seen = new Set();
+    for (let i = 0; i < d.length; i += 4 * 7) if (d[i + 3] > 200) seen.add(((d[i] >> 4) << 8) | ((d[i + 1] >> 4) << 4) | (d[i + 2] >> 4));
+    return seen.size;
+  }, sel);
+const cardCanvas = (i) => `#cards .card[data-bird="${i}"] canvas`;
+const SILHOUETTE = 12; // fewer colours than this: a silhouette
 // Ends the round now, reaching the bird's score or not.
 const reach = (page, pass) =>
   page.evaluate((pass) => {
@@ -178,11 +200,26 @@ const MENU = 9;
   s.screen === 'guide' ? ok('controller A on the title opens the guide') : fail(`after A on title: ${JSON.stringify(s)}`);
   await wait(page, 300);
   await shot(page, '02-guide');
+  {
+    const g0 = await guideState(page);
+    const v = await variety(page, cardCanvas(0));
+    const info = await page.evaluate(() => ({ name: document.querySelector('#cards .card[data-bird="0"] .card-name').textContent, sub: document.querySelector('#cards .card[data-bird="0"] .card-sub').textContent, label: document.querySelector('#cards .card[data-bird="0"]').getAttribute('aria-label') }));
+    g0.unspotted.length === 28 && v < SILHOUETTE && /Coot/.test(info.name) && info.sub === 'Scoop Stack' && /not yet spotted/.test(info.label)
+      ? ok(`a fresh guide: all 28 cards unspotted, the Coot's a silhouette (${v} colours), named, "${info.sub}"`)
+      : fail(`fresh guide: ${JSON.stringify({ g0, v, info })}`);
+  }
   await press(page, A);
   s = await state(page);
   s.screen === 'page' ? ok('A on the first card opens its page') : fail(`after A on card: ${JSON.stringify(s)}`);
   await wait(page, 400);
   await shot(page, '03-page');
+  {
+    const v = await page.evaluate(() => window.__coot.S.pageArt);
+    const words = await page.evaluate(() => ({ name: document.querySelector('#page-name').textContent, rhyme: document.querySelectorAll('#page-rhyme p').length, number: document.querySelector('#page-number').textContent }));
+    v === 'silhouette' && /Coot/.test(words.name) && words.rhyme > 0 && /not yet spotted/.test(words.number)
+      ? ok(`an unspotted page: the bird's name and rhyme, its silhouette`)
+      : fail(`unspotted page: ${JSON.stringify({ v, words })}`);
+  }
   const pageInfo = await page.evaluate(() => ({
     buttons: [...document.querySelectorAll('#page [data-nav]')].map((b) => b.textContent.trim()),
     controls: document.querySelectorAll('#page-controls li').length,
@@ -320,14 +357,17 @@ const MENU = 9;
   await wait(page, 40);
   s = await guideState(page);
   await page.evaluate(() => window.__pad(0, { buttons: { 0: false } }));
-  s.screen === 'guide' && s.unlock === 1 && s.locked.includes(1) ? ok('then the guide, the next card still locked, opening') : fail(`after the celebration: ${JSON.stringify(s)}`);
-  await shot(page, '12-guide-unlocking');
+  s.screen === 'guide' && s.unlock === 0 && s.unspotted.includes(0) ? ok("then the guide, the Coot's own card still a silhouette, turning over") : fail(`after the celebration: ${JSON.stringify(s)}`);
+  await shot(page, '12-guide-turning');
   await page.waitForFunction(() => !window.__coot.S.unlock, null, { timeout: 8000 }).catch(() => {});
   s = await guideState(page);
-  s.focus === 1 && !s.locked.includes(1) && s.locked.includes(2) ? ok('the new card opens and is chosen') : fail(`after opening: ${JSON.stringify(s)}`);
-  await shot(page, '13-guide-opened');
+  await wait(page, 100);
+  const vc = await variety(page, cardCanvas(0));
+  s.focus === 0 && !s.unspotted.includes(0) && s.unspotted.includes(1) && s.unspotted.length === 27 && vc >= SILHOUETTE
+    ? ok(`the Coot's card turns over to its painting (${vc} colours) and is chosen; no other card turns`)
+    : fail(`after turning over: ${JSON.stringify({ ...s, vc })}`);
+  await shot(page, '13-guide-turned');
   // The Coot again: a pass, but not the first: the brief result.
-  await press(page, 14); // D-pad left, to the Coot
   await press(page, A);
   await press(page, A);
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
@@ -537,6 +577,56 @@ const MENU = 9;
   await page.close();
 }
 
+// ---------- 3d: any bird from the start: the 10th, on a fresh save ----------
+for (const [w, h, tag] of [[1280, 720, ''], [390, 844, '-390x844']]) {
+  const { page, errors } = await newPage();
+  await page.setViewportSize({ width: w, height: h });
+  await page.evaluate(() => window.__pad(0, {}));
+  await wait(page, 200);
+  await press(page, A); // title → guide
+  await wait(page, 400);
+  await shot(page, '20-fresh-guide' + tag);
+  const n = 9;
+  await page.evaluate((n) => document.querySelector(`#cards .card[data-bird="${n}"]`).focus(), n);
+  await wait(page, 300);
+  const vCard = await variety(page, cardCanvas(n));
+  await shot(page, '20b-fresh-guide-10th-chosen' + tag);
+  await press(page, A);
+  await wait(page, 400);
+  const pg = await page.evaluate(() => ({ screen: window.__coot.S.screen, bird: window.__coot.S.bird, name: document.querySelector('#page-name').textContent, rhyme: document.querySelectorAll('#page-rhyme p').length, play: !document.querySelector('#page-play').hidden }));
+  const vPage = await page.evaluate(() => window.__coot.S.pageArt);
+  await shot(page, '21-fresh-10th-page' + tag);
+  pg.screen === 'page' && pg.bird === n && pg.play && pg.rhyme > 0 && vCard < SILHOUETTE && vPage === 'silhouette'
+    ? ok(`${tag || '1280x720'}: a fresh save opens the 10th bird's page (${pg.name}), its card a silhouette (${vCard} colours), its page too`)
+    : fail(`10th page: ${JSON.stringify({ pg, vCard, vPage })}`);
+  await press(page, A); // Play
+  await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+  let s = await state(page);
+  s.phase === 'play' ? ok('the 10th bird plays straight away') : fail(`10th play: ${JSON.stringify(s)}`);
+  await wait(page, 300);
+  await reach(page, true);
+  await page.waitForFunction(() => window.__coot.S.screen === 'celebrate', null, { timeout: 8000 }).catch(() => {});
+  s = await state(page);
+  const line = await page.evaluate(() => window.__coot.S.cele?.line);
+  s.screen === 'celebrate' && line === '1 of 28 birds spotted!' ? ok(`passing it celebrates ("${line}")`) : fail(`10th celebration: ${JSON.stringify({ s, line })}`);
+  for (let i = 0; i < 4; i++) await press(page, A); // sticker, book, fly, stuck, done
+  await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
+  if (shots) {
+    await page.evaluate(() => { if (window.__coot.S.unlock) window.__coot.S.unlock.t = 0.75; });
+    await shot(page, '22-card-turning' + tag);
+  }
+  await page.waitForFunction(() => !window.__coot.S.unlock, null, { timeout: 8000 }).catch(() => {});
+  await wait(page, 200);
+  const g = await guideState(page);
+  const vAfter = await variety(page, cardCanvas(n));
+  g.focus === n && g.unspotted.length === 27 && !g.unspotted.includes(n) && vAfter >= SILHOUETTE
+    ? ok(`its own card turned over to its painting (${vAfter} colours), chosen; the rest still silhouettes`)
+    : fail(`10th after: ${JSON.stringify({ ...g, vAfter })}`);
+  await shot(page, '23-card-turned' + tag);
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the 10th-bird round');
+  await page.close();
+}
+
 // ---------- 3c: points, scaled by difficulty ----------
 // The same play (the same plain score at the same moment of the round) at
 // Normal and at Harder: the result card shows both numbers, the HUD shows the
@@ -593,7 +683,7 @@ const MENU = 9;
   await page.keyboard.press('Enter');
   await wait(page, 200);
   let s = await guideState(page);
-  s.screen === 'guide' && s.locked.length === 0 ? ok('?debug opens every page') : fail(`debug guide: ${JSON.stringify(s)}`);
+  s.screen === 'guide' && s.unspotted.length === 0 ? ok('?debug shows every card turned over') : fail(`debug guide: ${JSON.stringify(s)}`);
   // A pass of a bird with nothing passed: the whole celebration, untouched.
   await page.evaluate(() => window.__coot.startBird(5));
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
@@ -601,10 +691,10 @@ const MENU = 9;
   await page.waitForFunction(() => window.__coot.S.screen === 'celebrate', null, { timeout: 8000 }).catch(() => {});
   await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 15000 }).catch(() => {});
   s = await guideState(page);
-  s.unlock === 6 && s.locked.join() === '6' ? ok('?debug: after the celebration the next card shows locked, then opens') : fail(`debug unlock: ${JSON.stringify(s)}`);
+  s.unlock === 5 && s.unspotted.join() === '5' ? ok("?debug: after the celebration the bird's own card shows its silhouette, then turns over") : fail(`debug turn: ${JSON.stringify(s)}`);
   await page.waitForFunction(() => !window.__coot.S.unlock, null, { timeout: 8000 }).catch(() => {});
   s = await guideState(page);
-  s.focus === 6 && s.locked.length === 0 ? ok('?debug: then every card is open again, the new one chosen') : fail(`debug after: ${JSON.stringify(s)}`);
+  s.focus === 5 && s.unspotted.length === 0 ? ok('?debug: then every card is turned over again, that bird chosen') : fail(`debug after: ${JSON.stringify(s)}`);
   // The same bird again: celebrates again in debug; B skips it all.
   await page.evaluate(() => window.__coot.startBird(5));
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
@@ -614,7 +704,7 @@ const MENU = 9;
   s.screen === 'celebrate' ? ok('?debug: a pass celebrates again') : fail(`debug repeat: ${JSON.stringify(s)}`);
   await press(page, B);
   s = await guideState(page);
-  s.screen === 'guide' && s.unlock === null && s.focus === 6 ? ok('B skips the whole celebration') : fail(`B skip: ${JSON.stringify(s)}`);
+  s.screen === 'guide' && s.unlock === null && s.focus === 5 ? ok('B skips the whole celebration') : fail(`B skip: ${JSON.stringify(s)}`);
   // A long press skips it too.
   await page.evaluate(() => window.__coot.startBird(5));
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
@@ -634,7 +724,7 @@ const MENU = 9;
   s.phase === 'result' ? ok('?debug: a round short of the score shows the brief result') : fail(`debug short: ${JSON.stringify(s)}`);
   await page.waitForFunction(() => window.__coot.S.screen === 'guide', null, { timeout: 8000 }).catch(() => {});
   s = await guideState(page);
-  s.focus === 2 && s.locked.length === 0 ? ok('?debug: then the guide, that bird chosen, every page open') : fail(`debug short after: ${JSON.stringify(s)}`);
+  s.focus === 2 && s.unspotted.length === 0 ? ok('?debug: then the guide, that bird chosen, every card turned over') : fail(`debug short after: ${JSON.stringify(s)}`);
   const plays = await page.evaluate(() => window.__coot.progress[window.__coot.BIRDS[5].id]?.plays);
   plays === 3 ? ok('?debug still records progress') : fail(`debug progress: ${plays}`);
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the debug round');
@@ -669,7 +759,7 @@ const MENU = 9;
   await page.keyboard.press('Escape');
   await wait(page, 100);
   s = await guideState(page);
-  s.screen === 'guide' && s.focus === 1 ? ok('Escape skips to the guide, the next card chosen') : fail(`Escape in the celebration: ${JSON.stringify(s)}`);
+  s.screen === 'guide' && s.focus === 0 && s.unlock === null && !s.unspotted.includes(0) ? ok('Escape skips to the guide, the bird chosen, its card already turned') : fail(`Escape in the celebration: ${JSON.stringify(s)}`);
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the keyboard round');
   await page.close();
 }
@@ -685,17 +775,20 @@ if (!only) {
     await wait(page, 200);
     await page.evaluate(() => document.querySelector('[data-action="quit-guide"]').click());
     await wait(page, 600);
-    return page.evaluate(() => ({ screen: window.__coot.S.screen, confirm: !document.querySelector('#confirm').hidden, best: window.__coot.progress.coot?.best || 0, focus: Number(document.activeElement?.dataset?.bird ?? -1), unlock: window.__coot.S.unlock?.i ?? null, locked: [...document.querySelectorAll('#cards .card.locked')].map((c) => Number(c.dataset.bird)) }));
+    return page.evaluate(() => ({ screen: window.__coot.S.screen, confirm: !document.querySelector('#confirm').hidden, best: window.__coot.progress.coot?.best || 0, focus: Number(document.activeElement?.dataset?.bird ?? -1), unlock: window.__coot.S.unlock?.i ?? null, unspotted: [...document.querySelectorAll('#cards .card.unspotted')].map((c) => Number(c.dataset.bird)) }));
   };
   const pass = await page.evaluate(() => window.__coot.BIRDS[0].pass);
   let r = await playUntil(Math.max(1, pass - 3));
-  r.screen === 'guide' && !r.confirm && r.best === Math.max(1, pass - 3) && r.locked.includes(1)
-    ? ok('Exit to Field Guide asks nothing and keeps the round as a best, the next page still shut')
+  r.screen === 'guide' && !r.confirm && r.best === Math.max(1, pass - 3) && r.unspotted.includes(0) && r.unlock === null
+    ? ok('Exit to Field Guide asks nothing and keeps the round as a best, the card still a silhouette')
     : fail(`exit short of the mark: ${JSON.stringify(r)}`);
   r = await playUntil(pass + 2);
-  r.screen === 'guide' && r.best === pass + 2 && r.unlock === 1
-    ? ok('Exit with a passing score opens the next page on the way back')
+  r.screen === 'guide' && r.best === pass + 2 && r.unlock === 0
+    ? ok("Exit with a passing score turns the bird's own card over on the way back")
     : fail(`exit with a pass: ${JSON.stringify(r)}`);
+  await page.waitForFunction(() => !window.__coot.S.unlock, null, { timeout: 8000 }).catch(() => {});
+  const g = await guideState(page);
+  g.focus === 0 && !g.unspotted.includes(0) && g.unspotted.length === 27 ? ok('then it is turned over and chosen') : fail(`exit after turning: ${JSON.stringify(g)}`);
   errors.length ? fail('exit: page errors: ' + errors.join(' | ')) : ok('exit: no page errors');
   await page.close();
 }

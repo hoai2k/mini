@@ -74,7 +74,7 @@ export function cycle(list, current, d) {
   return list[(i + d + list.length * 4) % list.length];
 }
 
-// The picture to show: the chosen one while it is still unlocked, else the first.
+// The picture to show: the chosen one while it is still available (its bird spotted), else the first.
 export const shownBackground = (list, bg) => (list.includes(bg) ? bg : list[0]);
 
 // Where a sticker of size `s` (in stage units) dropped at (x, y) goes on a

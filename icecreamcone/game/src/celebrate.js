@@ -676,7 +676,8 @@ export function celebrationLayout(n, wide, i = 0, gather = false) {
 }
 
 // The whole scene at time t. c: { index, birds, earned (Set of indices
-// already stuck), next (the page that opens, or null), pos (where the player
+// already stuck), line (how many birds are spotted now, shown once it is
+// stuck), pos (where the player
 // has put stickers in the sticker book), bg (its picture, { img, full }, or
 // null) };
 // o: { lw, lh, px, reduce, wide }.
@@ -812,7 +813,7 @@ export function drawCelebration(g, c, t, o) {
       label(g, shortName(b.name), lx, ly, { size, color: '#5a4636', weight: 600 });
       g.restore();
     }
-    nextLine(g, c, t, lw, wide);
+    countLine(g, c, t, lw, wide);
   } else if (t >= land) {
     // stuck: a slap (a squash that settles), a puff, then still
     const k = t - land;
@@ -827,17 +828,18 @@ export function drawCelebration(g, c, t, o) {
       puff(g, slot.x, slotY, slot.s, b.color, k / 0.6);
       glints(g, slot.x, slotY, slot.s * 0.55, t, clamp01(1 - (k - 0.4) / 0.6), 7);
     }
-    nextLine(g, c, t, lw, wide);
+    countLine(g, c, t, lw, wide);
   }
 }
 
-// After the sticker is stuck: what it opened.
-function nextLine(g, c, t, lw, wide) {
+// After the sticker is stuck: how many birds are spotted now.
+function countLine(g, c, t, lw, wide) {
   if (t < at.stuck - 0.05) return;
   const a = clamp01((t - at.stuck + 0.05) / 0.4);
   g.save();
   g.globalAlpha = a;
-  const line = c.next ? `A new page is open: ${c.next.name}!` : `Every one of the ${c.birds.length} rare birds, spotted!`;
+  const line = c.line || '';
+  if (!line) return g.restore();
   const y0 = wide ? 170 : 330;
   fitLabel(g, line, lw / 2 + 3, y0 + 3, lw - 60, { size: wide ? 46 : 44, weight: 700, color: PAL.strawberry });
   fitLabel(g, line, lw / 2, y0, lw - 60, { size: wide ? 46 : 44, weight: 700 });

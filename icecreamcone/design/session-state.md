@@ -6,10 +6,15 @@ agent. Newest first.
 
 ## Open
 
-- **All birds playable (agent running, 2026-10-13):** every card selectable
-  from the start as an unspotted silhouette; a first pass plays the sticker
-  celebration and turns over that bird's own card (no next-card unlock);
-  the Unlock all setting goes away.
+- **All birds playable: done 2026-10-13 (not yet merged).** Every card is
+  playable from the start. An unspotted bird shows its silhouette on its
+  card and page (name, rhyme, game and tips all shown; the game draws it in
+  full). A first pass plays the sticker celebration, then the guide turns
+  over that bird's own card (`turnsOver`, `spottedLine` in reward.js); Exit
+  to Field Guide with a first pass turns it over too. No next-card unlock;
+  the Unlock all setting is gone (old saved flag ignored). Sticker book,
+  gathering and the spotted count follow passed birds; Shuttercluck's
+  subjects were already every bird.
 - **Difficulty rework: done 2026-10-12.** All 28 games use
   `src/games/difficulty.js` (`curve(env)`, `knob(d, easy, medium, hard)`);
   Easier / Normal / Harder in Settings; per-level bests. Pass marks changed:
@@ -103,6 +108,7 @@ agent. Newest first.
 - Size sprites from a feature that doesn't change between poses (eye, rim,
   lid, handle), never from cell or outline height; each game's test holds its
   poses within 4-5% of standing.
-- `?debug` unlocks everything and keeps saves for the session only.
+- `?debug` shows every card turned over, celebrates every pass, and keeps saves
+  for the session only.
 - When agents share the checkout, commit with explicit file lists and test
   the staged change in a clean worktree.

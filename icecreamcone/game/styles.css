@@ -211,8 +211,9 @@ body.reduce-motion .cards { scroll-behavior: auto; }
 .card canvas { flex: 1; min-height: 0; width: 100%; }
 .card .card-name { font-family: var(--serif); font-weight: 600; font-size: clamp(0.78rem, 1.25vw, 0.98rem); line-height: 1.12; text-align: center; }
 .card .card-sub { font-size: 0.75rem; color: var(--muted); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card.locked { background: var(--paper-2); }
-.card.locked .card-name { color: var(--muted); }
+/* A bird not yet spotted: its silhouette on a darker page. Still a card to
+   pick and play: it lifts and rings like the rest. */
+.card.unspotted { background: var(--paper-2); }
 /* The chosen card is lifted a little and ringed in a thin pink line, its
    name inked pink; the others step back only slightly. */
 .card:focus {
@@ -433,7 +434,7 @@ body.reduce-motion .stamp-record .shine { display: none; }
 #celebrate { pointer-events: none; justify-content: flex-start; align-items: flex-end; }
 .celebrate-hint { background: rgba(250, 244, 228, 0.8); padding: 2px 12px; border-radius: 999px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
-/* A card just opened after a celebration: turned over, with a New tab. */
+/* A bird's card turning over after it is first spotted, with a New tab. */
 .card.unlocking { z-index: 3; transition: none; box-shadow: 0 0 0 4px rgba(192, 64, 122, 0.55), 0 0 22px 6px rgba(239, 217, 106, 0.7); }
 .card.new::after {
   content: 'New!';

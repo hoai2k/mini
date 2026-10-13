@@ -8,7 +8,7 @@ what its object does. What the book looks like is in
 
 It is for school-age kids, at about the level of Mario Party minigames: easy
 to pick up, short (30 to 60 seconds), with a real score to beat. Each game
-keeps your best score, has one score to reach to open the next page, and gets
+keeps your best score, has one score to reach to spot the bird, and gets
 harder the longer it runs. There are no medals or grades: beating your best
 says "New World Record!" and nothing more specific.
 
@@ -21,10 +21,13 @@ says "New World Record!" and nothing more specific.
    `GAME_GUIDELINES.md`).
 2. **The field guide.** A card for each of the book's 28 birds, in order:
    the ten below first, then the other 18 (the Milkbottle Midge to the Radio
-   Bird; their games are in [`more/`](more/)). A bird you haven't met yet
-   shows as an ink silhouette marked "Not yet spotted". The first bird is open
-   from the start; reaching a bird's score opens the next page. Each tab shows
-   your best score, and the heading counts the birds spotted ("3 of 28").
+   Bird; their games are in [`more/`](more/)). Every card can be picked and
+   played from the start, in any order. A bird not yet spotted shows as an
+   ink silhouette on a darker card, with its name and its game's name; you
+   see it in full only in its game until you reach its score, which spots it:
+   then its painting shows on its card, its page and in the sticker book.
+   Each tab shows your best score, and the heading counts the birds spotted
+   ("3 of 28").
    The cards sit seven to a row (five on a narrower screen, three on a phone
    held upright) in a sheet that scrolls, its top and bottom edges fading
    like paper running on; the chosen card is always scrolled into view. Down
@@ -39,8 +42,10 @@ says "New World Record!" and nothing more specific.
    breathes, blinks, shuffles, does its thing now and then), with its name, a
    short rhyme in the game's own words (not the book's verses), and how its
    game plays: the goal, the controls for the device you are using, a few
-   tips, and the score that opens the next page (until you've reached it) or
-   your best. One button,
+   tips, and the score that spots the bird (until you've reached it) or your
+   best. Until the bird is spotted its picture here is a still silhouette and
+   the page number says "Not yet spotted"; its name and rhyme are there all
+   along, as an introduction. One button,
    Play, starts the game; B, Esc or the × in the corner goes back to the
    guide.
 4. **Play.** A 3-2-1 count, the game, then "Time!".
@@ -55,23 +60,24 @@ says "New World Record!" and nothing more specific.
    other), the stickers already earned stuck in theirs (or wherever the
    player has put them, over the picture chosen for the book) and the rest
    pencilled outlines with their page numbers; the new sticker flies to its
-   place and sticks with a slap and a puff ("A new page is open: ..."). When
+   place and sticks with a slap and a puff ("4 of 28 birds spotted!", or
+   "Every one of the 28 rare birds, spotted!" for the last). When
    the book is open at all the birds together (below) it opens at that one
    spread instead (upright, zoomed onto the bird's page), and the new
    sticker flies to its own greyed spot in the painting, shrinks to fit it
    and melts in with a bloom of its colour: the grey lifts and the bird is
    there in full colour, snapped in (and saved so) for good. Then the guide comes
-   back, the next card still locked; it turns over to show its bird, with a
-   New tab, and is chosen, ready to play (after the last bird, the bird
-   itself is chosen). Any press (A, Enter, Space, a click or tap) jumps to
-   the next step; B, Esc or a long press skips to the end. With reduced
-   motion the steps fade instead of flying and turning.
+   back with that bird's own card chosen, still its silhouette; it turns
+   over to show its painting, with a New tab. Any press (A, Enter, Space, a
+   click or tap) jumps to the next step; B, Esc or a long press skips to the
+   end, where the card is already turned. With reduced motion the steps fade
+   instead of flying and turning.
 
    Every other round shows the result card for about three seconds: the
    score, under "New World Record!" when it beats your best and reaches the
-   score that opens the next page ("Personal Best!" when it beats your best
-   but falls short; otherwise "Time!" and your best), the score that opens
-   the next page if you haven't reached it yet, and the game's own summary
+   bird's score ("Personal Best!" when it beats your best but falls short;
+   otherwise "Time!" and your best), the score that spots the bird if you
+   haven't reached it yet, and the game's own summary
    lines. It has no buttons: a little bar runs down, any press goes on
    sooner, and the guide comes back with the bird just played chosen.
 6. **The sticker book.** From the guide (its button, or Y), the book alone,
@@ -149,9 +155,10 @@ says "New World Record!" and nothing more specific.
    the paintings' atlases). Any bird can be replayed at any time.
 
 **Settings** are only Volume (one slider; music and effects keep a fixed
-balance under it), Vibration, and Unlock all, which opens every page so any
-game can be played without first passing the ones before it (the first-pass
-celebration still plays, without a card to unlock). Motion follows the
+balance under it), Sound, Vibration, Fullscreen and Difficulty. (There was an
+Unlock all switch while pages opened one after another; every bird is
+playable from the start now, so it is gone, and an old saved setting is
+ignored.) Motion follows the
 device's reduced-motion preference. Forget my scores asks first (No is the
 default) and keeps the forgotten scores aside, merged with anything forgotten
 before (`icecreamcone.progress.backup.v1`, with the sticker book in
@@ -164,8 +171,8 @@ and, small at the foot, Restart and Exit to Field Guide. There is no Resume
 or Back button: B (or Esc, or the Menu button again), the × in the corner, or
 a click or tap outside the dialog returns to the game. Exit to Field Guide
 asks nothing: the round so far counts as if it had ended (a new best is kept),
-and if that score passes the bird for the first time the guide opens the next
-page as it comes back. How to play shows the
+and if that score spots the bird for the first time its own card turns over
+as the guide comes back (no celebration then). How to play shows the
 bird's card again, with a Controls button for the simple controls page. These
 two pages have nothing else to choose, so A goes straight back to the game
 and B steps back one page; nothing is focused until the stick moves.
@@ -189,7 +196,7 @@ Every minigame uses the same small set of inputs, so kids learn them once.
 
 These are the first ten; the other 18 (pages 11 to 28) are described in
 [`more/`](more/), one file per bird, with their guide entries in
-`game/src/more/`. Scores are whole numbers. The score that opens the next page (`pass`) is in
+`game/src/more/`. Scores are whole numbers. The score that spots each bird (`pass`) is in
 `game/src/birds.js`, tuned so it comes within a try or two.
 
 ### 1. Ice-Cream Cone Coot: Scoop Stack (45 s)

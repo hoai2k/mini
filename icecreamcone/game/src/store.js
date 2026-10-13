@@ -13,7 +13,6 @@ export const DEFAULTS = {
   volume: 80,
   sound: true,
   vibration: true,
-  unlockAll: false,
   difficulty: 'normal', // 'easier' | 'normal' | 'harder' (src/games/difficulty.js)
 };
 const LEVELS = ['easier', 'normal', 'harder'];

@@ -10,7 +10,7 @@ import { LEVEL_NAMES } from './games/difficulty.js';
 import { pointsFor } from './points.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
-import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, spreadCount, sheetCells } from './reward.js';
+import { roundOutcome, turnsOver, spottedLine, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, spreadCount, sheetCells } from './reward.js';
 import * as fs from './fullscreen.js';
 import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSize, stickerSpot, regionRect, regionSize, SNAP_TIME, snapGrey } from './celebrate.js';
 import { prepareWhenIdle } from './celebrate.js';
@@ -22,8 +22,9 @@ const W = 1600;
 const H = 900;
 const params = new URLSearchParams(location.search);
 const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
-// ?debug opens every page (?all is the old name for it), and every round
-// that reaches its score plays the whole celebration, as if for the first time.
+// Every page can be played from the start. ?debug shows every card turned
+// over (?all is the old name for that), and every round that reaches its
+// score plays the whole celebration, as if for the first time.
 const DEBUG = params.has('debug');
 const ALL_OPEN = DEBUG || params.has('all');
 if (DEBUG) keepForSessionOnly();
@@ -54,7 +55,7 @@ const S = {
   phase: 'idle', // 'loading' | 'count' | 'play' | 'over' | 'result'
   resultT: 0, // how long the brief result card has been up
   cele: null, // the sticker celebration, while it runs (screen 'celebrate')
-  unlock: null, // the guide's next card opening, after a celebration
+  unlock: null, // the guide's card turning over, after a bird is first spotted
   last: null, // how the last round ended: { id, score, points, level, outcome }
   points: null, // the round's points (points.js), while it is played
   count: 0,
@@ -398,9 +399,12 @@ function fillScore(el, b, score, pts) {
   el.textContent = `${tally} `;
   el.append(span);
 }
-// The card opening after a celebration shows locked until it flips, even in
-// ?debug.
-const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
+// Whether a card (and its page) shows the bird's painting, name and rhyme:
+// once the bird is spotted (its score reached), or always in ?debug. The card
+// turning over after a pass shows its silhouette until it flips, even in
+// ?debug. Every card can be played either way.
+const shown = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || passed(i));
+const spottedCount = () => BIRDS.filter((b, i) => passed(i)).length;
 
 function buildGuide() {
   const wrap = $('#cards');
@@ -419,18 +423,13 @@ function buildGuide() {
     fillCard(card);
     card.addEventListener('click', () => {
       audio.unlock();
-      if (!unlocked(i)) {
-        toast(`Score ${BIRDS[i - 1].pass} on page ${i} to open this one.`);
-        audio.sfx('back');
-        return;
-      }
       audio.sfx('page');
       S.bird = i;
       show('page');
     });
     wrap.append(card);
   });
-  const spotted = BIRDS.filter((b, i) => passed(i)).length;
+  const spotted = spottedCount();
   $('#guide-count').textContent = `${spotted} of ${BIRDS.length} birds spotted`;
   $('#gathering-btn').hidden = spotted < BIRDS.length && !ALL_OPEN;
   const target = wrap.children[Math.min(S.bird, BIRDS.length - 1)];
@@ -438,21 +437,26 @@ function buildGuide() {
   target?.scrollIntoView?.({ block: 'center' });
 }
 
-// A card's words, open or locked.
+// A card's words, spotted or not. Every card names its bird and its game; a
+// bird not yet spotted shows its silhouette on darker paper.
 function fillCard(card) {
   const i = Number(card.dataset.bird);
   const b = BIRDS[i];
-  const open = unlocked(i);
+  const open = shown(i);
   const hi = best(b.id);
-  card.classList.toggle('locked', !open);
+  card.classList.toggle('unspotted', !open);
   card.classList.add('card');
-  card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + pointsText(hi) : ''}` : `Page ${i + 1}, not yet spotted`);
-  card.querySelector('.card-name').textContent = open ? b.name.replace(/^The /, '') : 'Not yet spotted';
-  card.querySelector('.card-sub').textContent = open ? (hi ? `${b.game} · best ${hi} pts` : b.game) : `Page ${i + 1}`;
+  const bestText = hi ? `, best ${pointsText(hi)}` : '';
+  card.setAttribute('aria-label', `${b.name}, ${b.game}${open ? '' : ', not yet spotted'}${bestText}`);
+  card.querySelector('.card-name').textContent = b.name.replace(/^The /, '');
+  // (no room on a small card for a note as well: the silhouette and the
+  // darker paper say it)
+  card.querySelector('.card-sub').textContent = hi ? `${b.game} · best ${hi} pts` : b.game;
 }
 
-// After a celebration: back to the guide with `sel` chosen; with `open`, that
-// card shows locked, then flips open and shines first (a press skips it).
+// Back to the guide with `sel` chosen; with `open`, that card (the bird just
+// spotted) shows its silhouette, then turns over to its painting and shines
+// first (a press skips it).
 function toGuide(sel, open = -1) {
   S.bird = sel;
   show('guide');
@@ -492,10 +496,10 @@ function revealCard(u, card) {
   fillCard(card);
   card.classList.add('new');
   audio.sfx('bloom');
-  $('#guide-live').textContent = `A new page is open: ${BIRDS[u.i].name}.`;
+  $('#guide-live').textContent = `Spotted: ${BIRDS[u.i].name}.`;
 }
 
-// The card is open, and chosen, ready to play.
+// The card is turned over, and chosen.
 function endUnlock() {
   const u = S.unlock;
   if (!u) return;
@@ -511,7 +515,7 @@ function endUnlock() {
 }
 
 // Only cards in view are drawn, and each only when something about it
-// changes (opened, resized); the chosen card, and one opening, every frame.
+// changes (spotted, resized); the chosen card, and one turning over, every frame.
 function drawCards(t) {
   const wrap = $('#cards');
   const vr = wrap.getBoundingClientRect();
@@ -526,7 +530,7 @@ function drawCards(t) {
     if (r.bottom < vr.top - 40 || r.top > vr.bottom + 40) continue; // drawn when it scrolls into view
     const u = S.unlock?.i === i ? S.unlock : null;
     const live = card === document.activeElement || !!u;
-    const key = `${unlocked(i)}|${w}|${h}|${dpr}`;
+    const key = `${shown(i)}|${w}|${h}|${dpr}`;
     if (!live && cv._drawn === key) continue;
     cv._drawn = live ? '' : key;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
@@ -547,13 +551,13 @@ function drawCards(t) {
       c.globalAlpha = 1 - k;
       drawSilhouette(c, BIRDS[i].id, opts);
       c.globalAlpha = 1;
-    } else if (unlocked(i)) drawBird(c, BIRDS[i].id, opts);
+    } else if (shown(i)) drawBird(c, BIRDS[i].id, opts);
     else drawSilhouette(c, BIRDS[i].id, opts);
     if (u && u.revealed && !settings.reduceMotion) shineCard(c, w, h, (u.t - UNLOCK.wait - UNLOCK.flip * 0.5) / (UNLOCK.flip * 0.5 + UNLOCK.shine), t);
   }
 }
 
-// A light sweeping across a card's bird as it opens, and a few glints.
+// A light sweeping across a card's bird as it turns over, and a few glints.
 function shineCard(c, w, h, k, t) {
   if (k < 0 || k > 1) return;
   c.save();
@@ -593,15 +597,17 @@ function shineCard(c, w, h, k, t) {
 // " (Harder)" after a best shown at a level other than Normal.
 const levelTag = () => (settings.difficulty !== 'normal' ? ` (${LEVEL_NAMES[settings.difficulty]})` : '');
 
-// What it takes to open the next page (or, on the last page, to finish).
-function goalLine(b) {
-  const i = BIRDS.indexOf(b);
-  return i + 1 < BIRDS.length ? `Score ${b.pass} to open the next page` : `Score ${b.pass} to spot every bird`;
-}
+// What it takes to spot the bird (its sticker, its card turned over).
+const goalLine = (b) => `Score ${b.pass} to spot this bird`;
 
+// A bird's page: its name, rhyme and game, spotted or not. Until it is
+// spotted its picture beside them is a silhouette (renderPage); the game
+// itself draws the bird in full.
 function fillPage() {
   const b = BIRDS[S.bird];
-  $('#page-number').textContent = `Page ${S.bird + 1} of ${BIRDS.length}`;
+  const open = shown(S.bird);
+  $('#page').classList.toggle('unspotted', !open);
+  $('#page-number').textContent = `Page ${S.bird + 1} of ${BIRDS.length}${open ? '' : ' · not yet spotted'}`;
   $('#page-name').textContent = b.name;
   $('#page-object').textContent = `A rare bird that is ${b.object}.`;
   const r = $('#page-rhyme');
@@ -634,10 +640,6 @@ function fillList(ul, lines) {
 function turnPage(d) {
   let i = S.bird + d;
   if (i < 0 || i >= BIRDS.length) return;
-  if (!unlocked(i)) {
-    toast('That page is not open yet.');
-    return;
-  }
   S.bird = i;
   audio.sfx('page');
   fillPage();
@@ -811,7 +813,7 @@ function finish() {
   S.resultT = 0;
   // A new best that reaches the score is a World Record, with confetti and a
   // rosette; reaching it again without one gets a tick stamp; a best that
-  // still falls short of the next page is only a personal one.
+  // still falls short of the score is only a personal one.
   const kind = resultKind({ record, reached: passes(b, score) });
   S.result = { kind, ...resultTiming(kind), fired: new Set() };
   $('#result-title').textContent = RESULT_TITLES[kind];
@@ -839,8 +841,8 @@ function finish() {
 }
 
 // Exit to Field Guide from the pause menu: the round so far counts. If that
-// passes the bird for the first time, the guide opens the next page as it
-// comes back (no celebration); otherwise it just goes back, the bird chosen.
+// spots the bird for the first time, its own card turns over as the guide
+// comes back (no celebration); either way the bird is chosen.
 function quitToGuide() {
   const i = S.bird;
   const b = BIRDS[i];
@@ -849,13 +851,14 @@ function quitToGuide() {
   const pts = S.points?.shown || 0;
   const before = passed(i);
   if (score > 0 || pts > 0) recordScore(progress, b.id, pts, passes(b, score), S.level, score);
-  const n = nextPage(i, BIRDS.length);
-  if (!before && passed(i) && n >= 0) {
-    // the page after it opens on the way back, unless every page is open already
-    toGuide(n, settings.unlockAll && !DEBUG ? -1 : n);
-    return;
-  }
-  toGuide(i);
+  const turn = turnsOver({ quit: true, wasPassed: before, isPassed: passed(i) });
+  toGuide(i, turn ? i : -1);
+  if (turn) allSpottedToast();
+}
+
+// After the last of the birds is spotted.
+function allSpottedToast() {
+  if (spottedCount() === BIRDS.length) toast(spottedLine(BIRDS.length, BIRDS.length));
 }
 
 // From the result card back to the guide, the bird just played chosen.
@@ -937,8 +940,8 @@ function tickResultSounds() {
 
 function celebrate(i) {
   const earned = new Set(BIRDS.map((_, j) => j).filter((j) => j !== i && passed(j)));
-  const n = nextPage(i, BIRDS.length);
-  S.cele = { index: i, birds: BIRDS, earned, next: n >= 0 ? BIRDS[n] : null, t: 0, hold: 0, fired: new Set(), pos: book.pos, bg: bookPicture() };
+  const line = spottedLine(spottedCount(), BIRDS.length);
+  S.cele = { index: i, birds: BIRDS, earned, line, t: 0, hold: 0, fired: new Set(), pos: book.pos, bg: bookPicture() };
   // With the book at all the birds together, the new sticker snaps into its
   // own spot in the painting, and stays there.
   if (isGather() && hasGathering()) {
@@ -950,7 +953,7 @@ function celebrate(i) {
   for (const b of BIRDS) sticker(b.id);
   show('celebrate');
   const b = BIRDS[i];
-  $('#celebrate-live').textContent = `Spotted! ${b.name}. A new sticker for your field guide.` + (n >= 0 ? ` A new page is open: ${BIRDS[n].name}.` : '');
+  $('#celebrate-live').textContent = `Spotted! ${b.name}. A new sticker for your field guide. ${line}`;
   celebrateHint();
 }
 
@@ -981,18 +984,14 @@ function tickCelebration(dt) {
   if (c.t >= END) endCelebration(false);
 }
 
-// Over: back to the guide, where the next page opens (shown, unless skipped)
-// and is chosen; after the last bird, the bird itself is chosen.
+// Over: back to the guide, the bird chosen, where its own card turns over
+// from silhouette to painting (unless the celebration was skipped).
 function endCelebration(skipped) {
   const c = S.cele;
   if (!c) return;
-  const n = nextPage(c.index, BIRDS.length);
-  const sel = selectAfter(c.index, BIRDS.length, 'celebrate');
-  // With every page open already (Unlock all), there's nothing to unlock.
-  if (skipped || n < 0 || (settings.unlockAll && !DEBUG)) {
-    toGuide(sel);
-    if (n < 0) toast(`Every one of the ${BIRDS.length} rare birds, spotted!`);
-  } else toGuide(sel, n);
+  const i = c.index;
+  toGuide(i, turnsOver({ outcome: 'celebrate', skipped }) ? i : -1);
+  allSpottedToast();
 }
 
 // Any press: the next step; B or a long press: straight to the end.
@@ -1766,7 +1765,6 @@ document.addEventListener('input', (e) => {
   saveSettings(settings);
   applySettings();
   syncSettingsUi();
-  if (k === 'unlockAll') buildGuide();
 });
 
 // ---------- toast ----------
@@ -2161,7 +2159,7 @@ function renderPage(t) {
     g.ellipse(view.cw / 2, area * 0.5 + 8, Math.min(view.cw * 0.45, size * 0.7), area * 0.46, 0, 0, Math.PI * 2);
     g.fill();
     g.restore();
-    drawBird(g, b.id, { x: view.cw / 2 + size * 0.06, y: 8 + area * 0.97, size, t, pose: pagePose(t) });
+    pageBird(b.id, { x: view.cw / 2 + size * 0.06, y: 8 + area * 0.97, size, t, pose: pagePose(t) });
     return;
   }
   g.save();
@@ -2176,7 +2174,15 @@ function renderPage(t) {
   g.restore();
   const size = (portrait ? 520 : 640) * fit;
   const pose = pagePose(t);
-  drawBird(g, b.id, { x: cx + size * 0.06, y: cy + 352 + (fit < 1 ? 20 : 0), size, t, pose });
+  pageBird(b.id, { x: cx + size * 0.06, y: cy + 352 + (fit < 1 ? 20 : 0), size, t, pose });
+}
+
+// The page's bird: its painting once spotted, else its silhouette, standing
+// still (a shadow that moved would give too much away).
+function pageBird(id, opts) {
+  S.pageArt = shown(S.bird) ? 'painting' : 'silhouette'; // (for the browser check)
+  if (shown(S.bird)) drawBird(g, id, opts);
+  else drawSilhouette(g, id, { ...opts, t: 0, pose: { growth: 0.2, light: 'green', fill: 0.6 } });
 }
 
 // The finale: all the birds together. On a wide screen the 16:9 painting

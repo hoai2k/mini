@@ -5,8 +5,12 @@ Other Rare Birds* (1971), with a Mario Party-style minigame for each bird:
 catch scoops as the Ice-Cream Cone Coot, pour tea into the Cupadee, take
 pictures as the Shuttercluck, and so on through all 28 of the book's birds. Each game lasts 30
 to 60 seconds and keeps your best score ("New World Record!" when you beat
-it, or "Personal Best!" while it's still short of opening the next page); reaching a set score opens the next page of the guide
-and earns the bird's sticker for the sticker book. The book opens at a
+it, or "Personal Best!" while it's still short of the bird's score). Every
+bird can be played from the start; until you reach its score it shows only
+as a silhouette in the guide (its name, rhyme and game are all there, and
+the game itself draws it in full). Reaching the score spots it: its sticker
+goes in the sticker book and its card in the guide turns over to its
+painting. The book opens at a
 painting of all the birds together, each bird's spot greyed until its
 sticker is snapped into it (it melts in and the bird takes its colour; on a
 phone the painting is zoomed in and scrolls); the stickers can also be put
@@ -48,10 +52,10 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | `game/src/main.js` | Screens, menus and navigation, the guide, bird pages, running a minigame (count-in, HUD, pause, results, best scores) |
 | `game/src/reward.js` | After a round: celebration or brief result, the celebration's steps and timing, the sticker book's layout (two spreads of 14, or all the birds together on one spread with the sticker sheet) |
 | `game/src/celebrate.js` | The sticker celebration and the sticker book screen, drawn on the stage: die-cut stickers from the portraits, the book and its pictures, the greyed spots of all the birds together and a sticker snapping into one, the flight, the hand |
-| `game/src/stickerbook.js` | The sticker book's rules: where a dropped sticker goes, the pile's order, the pictures unlocked, what is saved (and loading older saves); on all the birds together, which spot a drop lands on (from `assets/book/gathering.atlas.json`), snapping in and out, and the zoomed view's scrolling |
-| `game/src/birds.js` | The field guide's 28 birds in order: names, rhymes, goals, tips, the score that opens the next page (the first ten here) |
+| `game/src/stickerbook.js` | The sticker book's rules: where a dropped sticker goes, the pile's order, the pictures available, what is saved (and loading older saves); on all the birds together, which spot a drop lands on (from `assets/book/gathering.atlas.json`), snapping in and out, and the zoomed view's scrolling |
+| `game/src/birds.js` | The field guide's 28 birds in order: names, rhymes, goals, tips, the score that spots each bird (the first ten here) |
 | `game/src/more/*.js` | The book's other 18 birds' guide entries (pages 11 to 28), with their controls; `more/index.js` puts them in order |
-| `game/src/subjects.js` | The birds Shuttercluck can photograph (the 18 above and ten of our own): names, rarity, their stand-in drawings and where each painting goes; a round uses our ten and whichever of the 18 are still locked |
+| `game/src/subjects.js` | The birds Shuttercluck can photograph (the 18 above and ten of our own): names, rarity, their stand-in drawings and where each painting goes; a round can show any of them, spotted or not |
 | `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
 | `game/src/draw.js` | Ink-and-wash drawing: the stand-in birds, how each delivered portrait is placed, and what is drawn over it (lamps, growth, blinks) |
 | `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
@@ -81,14 +85,16 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 ```sh
 cd icecreamcone/game
 python3 -m http.server 8125        # then open http://localhost:8125/
-                                   # ?debug opens every page (and every sticker and picture in
-                                   # the sticker book), and every round that reaches its score
-                                   # plays the sticker celebration (?all: pages only); in ?debug
+                                   # every bird is playable anyway; ?debug shows every card turned
+                                   # over (and every sticker and picture in the sticker book), and
+                                   # every round that reaches its score plays the sticker
+                                   # celebration (?all: the cards only); in ?debug
                                    # scores, stickers and resets last only for the tab's session
 node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game,
                                    # the sticker book's layout and rules
 node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result → guide,
-                                   # first pass → sticker celebration → next card opening, repeat → result,
+                                   # first pass → sticker celebration → its own card turning over, repeat → result,
+                                   # a fresh save playing the 10th bird and turning its card,
                                    # (snapping into all the birds together), ?debug, keyboard round,
                                    # the 28-card guide, the sticker book (all the birds together:
                                    # snap in, wrong spot, take out, with the mouse and the controller;

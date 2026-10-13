@@ -2,10 +2,12 @@
 // celebration. Pure: no DOM, no canvas, so the tests can run it (the drawing
 // is in celebrate.js, the flow in main.js).
 //
-// The first time a bird's score is reached the round ends in a celebration
-// (the bird's sticker, the sticker book, the next page opening in the guide);
-// every other round shows its result card briefly and goes back to the guide.
-// With ?debug every round that reaches the score celebrates.
+// Every bird can be played from the start; a bird is spotted once its score
+// is reached. The first time it is, the round ends in a celebration (the
+// bird's sticker, the sticker book, then the bird's own card in the guide
+// turning over from its silhouette to its painting); every other round shows
+// its result card briefly and goes back to the guide, the bird chosen. With
+// ?debug every round that reaches the score celebrates.
 
 // 'celebrate' or 'brief'.
 export function roundOutcome({ wasPassed, isPassed, reached, debug = false }) {
@@ -13,18 +15,23 @@ export function roundOutcome({ wasPassed, isPassed, reached, debug = false }) {
   return !wasPassed && isPassed ? 'celebrate' : 'brief';
 }
 
-// The page that opens after bird i is passed, or -1 after the last bird.
-export const nextPage = (i, n) => (i + 1 < n ? i + 1 : -1);
-
-// The card chosen in the guide afterwards: the newly opened page after a
-// celebration (the bird itself after the last one), else the bird just played.
-export function selectAfter(i, n, outcome) {
-  return outcome === 'celebrate' && i + 1 < n ? i + 1 : i;
+// Whether the guide turns the bird's own card over as it comes back: after a
+// celebration that played to its end, and after Exit to Field Guide when the
+// round so far spots the bird for the first time (no celebration then). A
+// celebration skipped with B or a long press goes straight back, the card
+// already turned.
+export function turnsOver({ outcome = 'brief', skipped = false, quit = false, wasPassed = false, isPassed = false }) {
+  if (quit) return !wasPassed && isPassed;
+  return outcome === 'celebrate' && !skipped;
 }
 
+// The line under the sticker once it is stuck: how many of the guide's
+// birds are spotted now, or all of them.
+export const spottedLine = (count, total) => (count >= total ? `Every one of the ${total} rare birds, spotted!` : `${count} of ${total} birds spotted!`);
+
 // The celebration's steps, in seconds. Any press jumps to the next step;
-// B or a long press skips to the end. After 'done' the guide shows the next
-// card unlocking (UNLOCK).
+// B or a long press skips to the end. After 'done' the guide shows the
+// bird's own card turning over (UNLOCK).
 export const STEPS = [
   { name: 'sticker', at: 0 }, // the sticker pops in, with the bird's name
   { name: 'book', at: 1.6 }, // the sticker book opens under it
@@ -36,8 +43,8 @@ export const FLY_TIME = 0.9; // the flight, from 'fly' to landing
 export const END = STEPS.at(-1).at;
 export const HOLD_TO_SKIP = 0.6; // seconds a press is held to skip it all
 
-// The guide's new card: still locked for a moment, then it flips open (the
-// bird shows from halfway), then it shines; then it is chosen.
+// The bird's card in the guide: still a silhouette for a moment, then it
+// turns over (the painting shows from halfway), then it shines; it is chosen.
 export const UNLOCK = { wait: 0.4, flip: 0.8, shine: 0.6 };
 export const UNLOCK_TIME = UNLOCK.wait + UNLOCK.flip + UNLOCK.shine;
 export const RESULT_TIME = 3; // how long the result card stays after other rounds

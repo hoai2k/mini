@@ -43,11 +43,12 @@ test('in debug, changes and resets stay in the session and the saved game is unt
   assert.equal(store.loadSettings().volume, 10, 'settings are still saved');
 });
 
-test('settings are volume, vibration and unlock all; the rest is fixed', () => {
+test('settings are volume, sound, vibration and difficulty; the rest is fixed', () => {
   localStorage.setItem('icecreamcone.settings.v1', JSON.stringify({ volume: 40, music: 0, sfx: 0, readAloud: true, unlockAll: true }));
   const s = store.loadSettings();
   assert.equal(s.volume, 40);
-  assert.equal(s.unlockAll, true);
+  assert.equal(s.unlockAll, undefined, 'the old Unlock all is ignored: every bird can be played anyway');
+  assert.ok(!('unlockAll' in store.DEFAULTS));
   assert.equal(s.music, 50, 'music keeps its fixed balance');
   assert.equal(s.sfx, 80);
   assert.equal(s.readAloud, undefined);

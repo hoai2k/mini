@@ -1,12 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { roundOutcome, nextPage, selectAfter, stepAt, skipFrom, STEPS, END, bookLayout, spreadCount, spreadOf, PER_SPREAD, pop, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, RESULT_TIME, RESULT_GUARD } from '../src/reward.js';
+import { roundOutcome, turnsOver, spottedLine, stepAt, skipFrom, STEPS, END, bookLayout, spreadCount, spreadOf, PER_SPREAD, pop, UNLOCK_TIME, resultKind, resultTiming, RESULT_TITLES, RESULT_TIME, RESULT_GUARD } from '../src/reward.js';
 
 test('the first pass celebrates; every other round shows the result briefly', () => {
   assert.equal(roundOutcome({ wasPassed: false, isPassed: true, reached: true }), 'celebrate');
   assert.equal(roundOutcome({ wasPassed: true, isPassed: true, reached: true }), 'brief', 'passing again');
   assert.equal(roundOutcome({ wasPassed: true, isPassed: true, reached: false }), 'brief', 'falling short after passing');
   assert.equal(roundOutcome({ wasPassed: false, isPassed: false, reached: false }), 'brief', 'not yet');
+});
+
+test('any bird can be the first spotted: a pass celebrates whatever was passed before it', () => {
+  // the outcome depends only on this bird (no page has to be opened first)
+  for (const debug of [false, true]) assert.equal(roundOutcome({ wasPassed: false, isPassed: true, reached: true, debug }), 'celebrate');
 });
 
 test('the result card: a World Record, a pass, a personal best, or plain', () => {
@@ -36,12 +41,20 @@ test('in debug every round that reaches the score celebrates', () => {
   assert.equal(roundOutcome({ wasPassed: true, isPassed: true, reached: false, debug: true }), 'brief');
 });
 
-test('afterwards the guide chooses the new page, or the bird just played', () => {
-  assert.equal(nextPage(0, 10), 1);
-  assert.equal(nextPage(9, 10), -1);
-  assert.equal(selectAfter(0, 10, 'celebrate'), 1);
-  assert.equal(selectAfter(9, 10, 'celebrate'), 9, 'the last bird stays chosen');
-  assert.equal(selectAfter(3, 10, 'brief'), 3);
+test("afterwards the bird's own card turns over: after a first pass, not after a skip or a brief round", () => {
+  assert.equal(turnsOver({ outcome: 'celebrate' }), true);
+  assert.equal(turnsOver({ outcome: 'celebrate', skipped: true }), false, 'B or a long press goes straight back');
+  assert.equal(turnsOver({ outcome: 'brief' }), false);
+  // Exit to Field Guide counts the round so far: a first pass turns it over too
+  assert.equal(turnsOver({ quit: true, wasPassed: false, isPassed: true }), true);
+  assert.equal(turnsOver({ quit: true, wasPassed: true, isPassed: true }), false, 'spotted before');
+  assert.equal(turnsOver({ quit: true, wasPassed: false, isPassed: false }), false, 'short of the score');
+});
+
+test('the line under the stuck sticker counts the birds spotted', () => {
+  assert.equal(spottedLine(1, 28), '1 of 28 birds spotted!');
+  assert.equal(spottedLine(10, 28), '10 of 28 birds spotted!');
+  assert.equal(spottedLine(28, 28), 'Every one of the 28 rare birds, spotted!');
 });
 
 test('the celebration steps, and a press jumps to the next', () => {

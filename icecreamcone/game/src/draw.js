@@ -885,12 +885,19 @@ function variant(id, pose) {
   return null;
 }
 
-// A dark ink silhouette of a bird, for pages not yet spotted.
+// A dark ink silhouette of a bird, for birds not yet spotted.
+// One scratch canvas, reused (a page draws its silhouette every frame).
+let silCanvas = null;
 export function drawSilhouette(g, id, opts) {
-  const c = document.createElement('canvas');
-  c.width = g.canvas.width;
-  c.height = g.canvas.height;
+  const c = (silCanvas ||= document.createElement('canvas'));
+  if (c.width !== g.canvas.width || c.height !== g.canvas.height) {
+    c.width = g.canvas.width;
+    c.height = g.canvas.height;
+  }
   const h = c.getContext('2d');
+  h.setTransform(1, 0, 0, 1, 0, 0);
+  h.globalCompositeOperation = 'source-over';
+  h.clearRect(0, 0, c.width, c.height);
   h.setTransform(g.getTransform());
   drawBird(h, id, opts);
   h.setTransform(1, 0, 0, 1, 0, 0);
