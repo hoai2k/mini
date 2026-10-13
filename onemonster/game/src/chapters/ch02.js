@@ -11,7 +11,7 @@
 // used by chapter 8: the chase kit, the drawing order, the prompts that say
 // what to press and when, the tug bar and the opening hint.
 
-import { makeMover, makeChase, stepChase, aiHolder, aiSnatcher, snatchChance, dodgeChance, flushProgress } from '../chase.js';
+import { makeMover, makeChase, stepChase, aiHolder, aiSnatcher, snatchChance, dodgeChance, flushProgress, tugDrift } from '../chase.js';
 import * as art from '../art.js';
 import { staminaRing, breathBar, tugBar, drawCover, eventFx, makeFx, hintBand, chasePrompt } from '../chasedraw.js';
 import { marker, letterTag } from '../prompt.js';
@@ -56,6 +56,7 @@ export function chaseChapter(env, opts) {
       self.time = Math.max(0, self.time - dt);
       const hin = env.versus ? inH : aiHolder(chase, brain, env.skill, dt);
       const ev = stepChase(chase, opts.mapS ? opts.mapS(inS) : inS, hin, dt);
+      tugDrift(chase, dt); // no tug drags on: the side ahead gains ground
       eventFx(env, ev, fx);
       for (const k of cover) {
         if (h.inCover === k && h.rustle > 0.2) k.shake = Math.max(k.shake, h.rustle);

@@ -34,7 +34,7 @@ export const TUNE = {
   water: 0.018, sprintWater: 0.03, // fullness per second of sucking, just sea water
   capture: 55, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
   footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings wide
-  bottleSpeed: 140, bottleAccel: 480, duck: 1.0, duckCd: 2.1, duckDash: 1.8, bottlePull: 0.35, suckSlow: 0.7,
+  bottleSpeed: 140, bottleAccel: 480, duck: 1.0, duckCd: 1.9, duckDash: 1.6, bottlePull: 0.35, suckSlow: 0.7,
   junk: 11,
 };
 
@@ -359,7 +359,11 @@ export default function create(env) {
       b.duck -= dt;
       if (b.duck <= 0) { env.sfx('bubble'); splashes.push({ x: b.x, y: b.y, t: 0, k: 0.6 }); }
     }
-    if (inp?.actionPressed && b.duck <= 0 && b.cd <= 0) {
+    // A press just before the cooldown ends is kept, so a well-timed duck
+    // never fails by a frame.
+    b.want = inp?.actionPressed ? 0.3 : Math.max(0, (b.want || 0) - dt);
+    if (b.want > 0 && b.duck <= 0 && b.cd <= 0) {
+      b.want = 0;
       b.duck = duckTime; b.cd = duckCd; b.spin = 0;
       env.sfx('splash');
       splashes.push({ x: b.x, y: b.y, t: 0, k: 0.8 });

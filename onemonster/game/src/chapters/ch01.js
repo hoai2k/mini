@@ -194,15 +194,17 @@ export default function create(env) {
   // The computer lookouts: the same presses a player would make.
   function aiStep(dt) {
     ai.nextT -= dt;
-    const busy = look.some((L) => L.state === 'warn' || L.state === 'look');
+    // Where he will be when the warning is over (a keen lookout reads his heading).
+    const px = tr.x + tr.vx * warnTime() * env.skill;
+    // Busy: a lookout already warns or looks over where he is or will be. One
+    // looking at an empty stretch does not stop another from looking at him.
+    const busy = look.some((L) => (L.state === 'warn' || L.state === 'look') && (inZone(L, tr.x, tr.y) || inZone(L, px, tr.y)));
     if (alert > 0.3 && !busy) ai.nextT = Math.min(ai.nextT, 0.25);
     // A keen lookout notices him moving in the open and looks sooner.
     if (!busy && !tr.cover && tr.moving && tr.mode === 'free') ai.nextT = Math.min(ai.nextT, lerp(1.4, 0.3, env.skill));
     if (ai.nextT > 0 || busy) return;
     const ready = look.filter((L) => L.state === 'ready');
     if (!ready.length) return;
-    // Where he will be when the warning is over (a keen lookout reads his heading).
-    const px = tr.x + tr.vx * warnTime() * env.skill;
     const watching = ready.filter((L) => inZone(L, px, tr.y));
     let pick;
     if (watching.length && env.rng() < 0.35 + 0.5 * env.skill) pick = watching[Math.floor(env.rng() * watching.length)];

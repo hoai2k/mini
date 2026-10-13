@@ -134,8 +134,9 @@ function holderBot(ch, rng) {
     ay += Math.max(0, 1 - (bottle.y - 500) / 160) * 1.5 - Math.max(0, 1 - (1035 - bottle.y) / 160) * 1.5;
     const al = Math.max(1, Math.hypot(ax, ay));
     let press = false;
-    if (ch.power > 0.2 && d < ch.radius * 0.95 && bottle.duck <= 0 && bottle.cd <= 0 && react < 0) react = 0.15 + rng() * 0.25;
+    if (ch.power > 0.2 && d < ch.radius * 0.95 && bottle.duck <= 0 && react < 0) react = 0.15 + rng() * 0.25;
     if (react >= 0) { react -= DT; if (react < 0) press = true; }
+    if (press && bottle.cd > 0.3) { react = 0.05; press = false; } // not yet: keep trying
     return { x: ax / al, y: ay / al, action: press, actionPressed: press, actionReleased: false, sprint: false };
   };
 }

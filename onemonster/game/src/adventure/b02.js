@@ -149,8 +149,9 @@ export default function create(env) {
     hideT: 1.5, dodged: false, dropT: 0, target: 0, dashes: 0,
   };
   const RUN = gentle ? 270 : 295;
-  const DASH = gentle ? 400 : 440;
-  const pDodge = gentle ? 0.12 : 0.22 + 0.3 * skill;
+  // Fresh in the first clearings, he dashes faster and dodges more; later he tires.
+  const dashSpeed = () => (h.clearing && h.clearing.i <= 1 ? (gentle ? 440 : 500) : (gentle ? 400 : 440));
+  const pDodge = () => (gentle ? 0.12 : (h.clearing && h.clearing.i <= 1 ? 0.3 : 0.2) + 0.3 * skill);
 
   let t = 0;
   let snapClearing = -1;
@@ -463,9 +464,9 @@ export default function create(env) {
       // A dive coming at him: now and then he skids to a stop so it misses.
       if (!h.dodged && b.diving && Math.abs(b.x - h.x) < 280 && b.y > 430 && b.y < 760) {
         h.dodged = true;
-        if (env.rng() < pDodge) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
+        if (env.rng() < pDodge()) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
       }
-      h.vx = h.dir * DASH;
+      h.vx = h.dir * dashSpeed();
       h.x += h.vx * dt;
       h.dropT -= dt;
       if (h.dropT <= 0 && stamps.length < 6) {
@@ -1249,7 +1250,7 @@ export function autopilot(board) {
       }
       const peekLeft = h.mode === 'peek' ? Math.max(0, PEEK + ap.jitter - h.modeT) : 0;
       const runT = Math.max(0, tt - peekLeft); // as if he keeps running: a skid fools us
-      let hx = h.x + dir * 440 * runT;
+      let hx = h.x + dir * (cl.i <= 1 ? 500 : 440) * runT;
       // He stops at his next cover (or the canopy): no use diving past it.
       if ((hx - h.target) * dir > 0) hx = h.target;
       const landX = sx + dir * 110;
@@ -1262,7 +1263,7 @@ export function autopilot(board) {
       }
       const stopsShort = Math.abs(hx - h.target) < 30 && h.mode !== 'peek';
       // A human's reaction: on the peek (read with the jitter), or once he is seen running.
-      const seenRunning = h.mode === 'peek' || (h.mode === 'dash' && h.modeT >= 0.22);
+      const seenRunning = h.mode === 'peek' || (h.mode === 'dash' && h.modeT >= 0.28);
       const inWindow = Math.abs(miss) < 60 && seenRunning && !stopsShort;
       if (inWindow && b.y < 700) { out.y = 1; return out; }
       // Not yet: close on where he will be (he runs under us), at hover height.

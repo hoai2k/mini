@@ -14,7 +14,7 @@
 // snapped up before the Yalapappus munches them off the ground.
 
 import * as art from '../art.js';
-import { aiHolder, aiSnatcher, snatchChance, tugDrift } from '../chase.js';
+import { aiHolder, aiSnatcher, snatchChance } from '../chase.js';
 import { marker, letterTag } from '../prompt.js';
 import { chaseChapter, animBombanat, animTrollusk, stampDrops } from './ch02.js';
 
@@ -70,7 +70,6 @@ export default function create(env) {
     diveBlocked: (self) => yal.state !== 'hold' && near(yal, self.h) < REACH && yal.swatCool <= 0,
     update(self, dt, ev) {
       const { s, h, chase, fx } = self;
-      tugDrift(chase, dt);
       if (ev.some((e) => e.type === 'grab') && yal.state === 'hold') {
         // The Bombanat took him off the Yalapappus: his paws are empty again.
         yal.state = 'stomp'; yal.cool = 1.5; yal.swatCool = 2;
@@ -237,7 +236,11 @@ export default function create(env) {
       // Tired, with the Bombanat about: shelter near the Yalapappus (at a
       // respectful distance), where a dive gets swatted.
       gx = -dx / d; gy = -dy / d;
-    } else return o;
+    } else if (Math.abs(h.x - 960) < 560) return o;
+    // Never into a corner between the two of them: near a wall, bend back
+    // toward the middle of the ground, dives or no dives.
+    const edge = Math.max(0, (Math.abs(h.x - 960) - 500) / 320);
+    gx -= Math.sign(h.x - 960) * 2.2 * edge;
     const m = Math.hypot(gx * 1.5 + (o.x || 0), gy * 1.5 + (o.y || 0)) || 1;
     o.x = (gx * 1.5 + (o.x || 0)) / m; o.y = (gy * 1.5 + (o.y || 0)) / m;
     return o;

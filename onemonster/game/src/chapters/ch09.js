@@ -40,7 +40,7 @@ const SLOT = { x: 1762, y: 590 }; // the slot itself, for the marker
 const B = { x0: 230, x1: 1690, y0: 645, y1: 915 };
 const VAULT = { time: 0.8, dist: 420, cost: 0.3, height: 170 };
 const NET = { ahead: 150, rx: 190, ry: 70 }; // the net's reach: an ellipse on the ground in front of him
-const WINDUP = 0.22, SWING = 0.2, SLAM = 0.6, SWING_COOL = 0.9, SWING_COST = 0.12;
+const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.2;
 const PEEK = 0.5, SLIDE = 0.3, SPRAWL = 0.9;
 const JAR_TIME = 6;
 const POST_RANGE = 150;
@@ -197,7 +197,9 @@ export default function create(env) {
         gx.mode = 'windup'; gx.modeT = 0; swingHit = false;
         gx.swingDir = Math.abs(out.x) > 0.2 ? Math.sign(out.x) : gx.facing;
         gx.facing = gx.swingDir;
+        // Every swing costs breath: swing at nothing all the time and he is winded.
         gx.st = Math.max(0, gx.st - SWING_COST);
+        if (gx.st <= 0 && gx.winded <= 0) { gx.winded = gx.windedTime; env.sfx('pant'); fx.say('Winded!', gx.x, gx.y - 330); }
         art.kick(gc, -0.2);
         env.sfx('swish');
         return { x: 0, y: 0 };

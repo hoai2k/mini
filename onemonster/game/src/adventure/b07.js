@@ -31,8 +31,8 @@ const { W, H, clamp } = kit;
 
 const INK = '#2b1d14';
 const PAPER = '#f8f1e0';
-const WORLD_W = 12900;
-const FINISH_X = 12350;
+const WORLD_W = 15000;
+const FINISH_X = 14450;
 const GY = 930; // the base ground line
 const YAL_X = 2480; // where the Yalapappus sits munching
 const START_X = 220;
@@ -64,7 +64,7 @@ const PROFILE = [
 ];
 const HOLES = PROFILE.filter((s) => s.hole);
 const STREAM = PROFILE.find((s) => s.stream);
-const STONES = [8750, 8960, 9170]; // stepping stones across the stream
+const STONES = [9750, 9960, 10170]; // stepping stones across the stream
 
 // The ground line at world x from the profile (null over a hole or the stream).
 export function profileY(x) {
@@ -86,11 +86,11 @@ const COVER = [
   { x: 2120, kind: 'rock', rx: 85 },
 ];
 // The getaway's hazards.
-const ROCKS = [3380, 4350, 5250, 12200];
-const BRANCHES = [6330, 10480]; // low branches: slide under
-const PALMS = [6760, 9560]; // fallen palm trunks: slide under
-const PUDDLES = [4080, 8320, 10780]; // goo puddles: hop or wade slowly
-const SIGNS = [2900, 6150, 8260, 11420]; // crooked signposts (sections)
+const ROCKS = [3380, 4350, 5250, 6050, 10700, 14300];
+const BRANCHES = [7330, 12580]; // low branches: slide under
+const PALMS = [7760, 11660]; // fallen palm trunks: slide under
+const PUDDLES = [4080, 9320, 11050, 12880]; // goo puddles: hop or wade slowly
+const SIGNS = [2900, 7150, 9260, 10400, 13520]; // crooked signposts (sections)
 
 export default function create(env) {
   art.preload(['props.trollusk', 'props.yalapappus', 'props.grithix', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses', 'trollusk.moves', 'yalapappus.moves', 'adv.b07.props', 'terrain.nowhere', 'ui/letter']);
@@ -144,9 +144,9 @@ export default function create(env) {
   for (const x of [400, 700, 820, 1120, 1240, 1520, 1600, 1900, 2000, 2280]) addStamp(x);
   addStamp(960, GY - 170); addStamp(2120, GY - 170); // on the cover rocks
   // The getaway: along the path, over holes, on rock tops, under branches, on stones.
-  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 5700, 5950, 6250, 6330, 6760, 7050, 8025, 8460, 8750, 9170, 9560, 10200, 10480, 10780, 11705, 11960]) addStamp(x);
-  for (const x of [3380, 4350, 5250, 12200]) addStamp(x, profileY(x) - 160); // on the rock tops
-  addStamp(3820, GY - 110); addStamp(7050, 820 - 120); // higher: a hop for them
+  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 5700, 6250, 6700, 6950, 7250, 7330, 7760, 8050, 9025, 9460, 9750, 10170, 10550, 10900, 11250, 11660, 12300, 12580, 12880, 13805, 14060]) addStamp(x);
+  for (const x of [3380, 4350, 6050, 10700, 14300]) addStamp(x, profileY(x) - 160); // on the rock tops
+  addStamp(3820, GY - 110); addStamp(8050, 820 - 120); // higher: a hop for them
   const pickups = kit.makePickups(stampList, { radius: 72 });
   pickups.items.forEach((p, i) => { p.kind = 1 + (i % 4); p.fly = null; p.eaten = false; });
 
@@ -182,10 +182,10 @@ export default function create(env) {
   const hints = kit.makeHints([
     { x: 0, text: 'Tiptoe up behind him. Hold Down behind a fern to hide.', show: 5 },
     { x: 3150, text: 'Hop the rocks and holes: Action', show: 4 },
-    { x: 6120, text: 'Low branch! Hold Down while running: slide under', show: 4 },
-    { x: 6880, text: 'Downhill he rolls! Sprint!', show: 3 },
-    { x: 8380, text: 'Hop the stepping stones', show: 3.5 },
-    { x: 11000, text: 'The open ground! Nearly away!', show: 3.5 },
+    { x: 7120, text: 'Low branch! Hold Down while running: slide under', show: 4 },
+    { x: 7880, text: 'Downhill he rolls! Sprint!', show: 3 },
+    { x: 9380, text: 'Hop the stepping stones', show: 3.5 },
+    { x: 13100, text: 'The open ground! Nearly away!', show: 3.5 },
   ]);
   let warnedOnce = false;
   let phase = 'sneak';
@@ -455,6 +455,8 @@ export default function create(env) {
     const seg = PROFILE.find((s) => p.x >= s.x0 && p.x < s.x1);
     if (seg?.hole && p.y > GY + 70) fell(seg);
     if (seg?.stream && p.y > GY + 40) soaked(seg);
+    // Never lost below the world: back onto the last ground stood on.
+    if (p.y > H + 120) { p.x = lastGroundX; p.y = profileY(p.x) ?? GY; p.vx = 0; p.vy = 0; daze('fall', 0.6); }
     p.x = clamp(p.x, 40, WORLD_W - 60);
   }
 

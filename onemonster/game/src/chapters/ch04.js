@@ -204,7 +204,7 @@ export default function create(env) {
     splashRing((ferg.x + peg.x) / 2, (ferg.y + peg.y) / 2, 340);
     // The blow shoves the boat clear of the ice, so it is seen going down.
     const bx = peg.x - ferg.x + ferg.cdx * 40, by = peg.y - ferg.y + ferg.cdy * 40, bd = Math.hypot(bx, by) || 1;
-    peg.nvx = (bx / bd) * 420; peg.nvy = (by / bd) * 420;
+    peg.nvx = (bx / bd) * 560; peg.nvy = (by / bd) * 560;
   }
 
   // ---------- the Ice-Ferg ----------
@@ -578,7 +578,8 @@ export default function create(env) {
       for (const p of parts) if (p.k === 'ring') drawRing(g, p);
       const things = [
         ...rowboats.filter((b) => b.wait <= 0 && b.alpha > 0).map((b) => ({ y: b.y, draw: () => drawRow(g, b, tt) })),
-        { y: peg.y, draw: () => drawPeg(g, tt) },
+        // Once struck, the Peg is drawn over the ice so it is seen going down.
+        { y: self.outcome === 'snatched' ? ferg.y + 31 : peg.y, draw: () => drawPeg(g, tt) },
         { y: ferg.y + 30, draw: () => drawFerg(g, tt) },
       ];
       if (bottle) things.push({ y: bottle.y, draw: () => art.drawSprite(g, art.prop('typhoonigator', 1), bottle.x, bottle.y + Math.sin(tt * 4) * 5, { height: 70, ay: 0.7, rot: Math.sin(tt * 2.3) * 0.5, alpha: bottle.a }) });
@@ -775,13 +776,14 @@ export default function create(env) {
     if (outT > 2.2) return;
     g.save();
     g.globalAlpha = outT > 1.7 ? 1 - (outT - 1.7) / 0.5 : 1;
-    g.translate((ferg.x + peg.x) / 2, Math.min(ferg.y, peg.y) - 230);
+    // Below the crash (the shell's SNATCH! banner sits mid-screen), kept on screen.
+    g.translate(clamp((ferg.x + peg.x) / 2, 480, W - 480), Math.min(H - 70, Math.max(ferg.y, peg.y) + 190));
     g.rotate(-0.1 + Math.sin(tt * 30) * 0.015 * (1 - k));
     const s = 0.5 + 0.5 * (1 - (1 - k) * (1 - k)) + (freeze > 0 ? 0.25 : 0);
     g.scale(s, s);
-    g.font = '900 110px Fraunces, Georgia, serif';
+    g.font = '900 96px Fraunces, Georgia, serif';
     g.textAlign = 'center';
-    g.lineWidth = 16;
+    g.lineWidth = 14;
     g.strokeStyle = '#33241a';
     g.fillStyle = '#f2c53d';
     g.strokeText('SCRUNNCCCHHH!!', 0, 0);

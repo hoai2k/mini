@@ -80,14 +80,28 @@ test('chapter 7: the autopilot gets away with time to spare against the computer
   assert.ok(spare / Math.max(1, won) >= 8, `time to spare ${spare / Math.max(1, won)}`);
 });
 
-test('chapter 7: Snatch & Keep is a contest: a keeper who looks and chases wins some, not all', () => {
-  let won = 0;
+test('chapter 7: Snatch & Keep is a contest: a keeper who looks and chases gets his hands on him and earns postmarks', () => {
+  // A perfect Trollusk still gets away in the end (as in the book: once he has
+  // it, running out of time counts as away), but the keeper catches him on
+  // the way and holds out long enough for postmarks of his own.
+  let won = 0, grabbed = 0, keptMarks = 0;
   const seeds = [5, 15, 25, 35, 45, 55, 65, 75];
   for (const seed of seeds) {
-    const ch = run(makeEnv({ seed, versus: true }), keeper);
+    const ch = ch07(makeEnv({ seed, versus: true }));
+    const b = {};
+    let t = 0, wasTug = false, grabs = 0;
+    while (!ch.done && t < 100) {
+      ch.update(DT, autopilot(ch), keeper(ch, b, DT)); t += DT;
+      if (ch.chase.tug && !wasTug) grabs++;
+      wasTug = !!ch.chase.tug;
+    }
     if (ch.outcome === 'snatched') won++;
+    if (grabs) grabbed++;
+    keptMarks += ch.marks()[1];
   }
-  assert.ok(won >= 2 && won <= seeds.length - 1, `the Trollusk won ${won} of ${seeds.length}`);
+  assert.ok(won >= seeds.length / 2, `the Trollusk won ${won} of ${seeds.length}`);
+  assert.ok(grabbed >= seeds.length / 2, `the keeper caught him in ${grabbed} of ${seeds.length}`);
+  assert.ok(keptMarks / seeds.length >= 1, `keeper postmarks ${keptMarks / seeds.length}`);
 });
 
 test('chapter 7: the how-to page has three captioned steps, and every phase draws', () => {
