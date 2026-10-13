@@ -108,7 +108,7 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     // A note stopped before it sounds stays silent.
     v.g.gain.setValueAtTime(when < v.t + 0.004 ? 0 : v.level, when);
     v.g.gain.setTargetAtTime(0, when, tau);
-    try { v.src.stop(when + tau * 8); } catch { /* already stopped */ }
+    try { v.src.stop(when + tau * 7); } catch { /* already stopped */ }
   }
 
   /** Strike a note. Returns a handle for release(), or null if not loaded. */

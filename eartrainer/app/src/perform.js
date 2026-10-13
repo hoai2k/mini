@@ -73,16 +73,16 @@ export function perform(notes, spb, { maxHold = MAX_HOLD } = {}) {
 }
 
 // ---------------------------------------------------------------- the player's touch
-// How long a key was held says how it was meant: a quick tap is short and
-// detached (staccato) but still rings a little, a slightly held press lets the
-// note bloom a bit, and a held key sustains, with a longer tail when let go,
-// as if the pedal were half down.
+// How long a key was held says how it was meant, but every note sounds out and
+// fades gently, never cut off: a quick tap still blooms fully and then fades
+// over about a second; a slightly held press rings on longer; a held key
+// sustains, with a long tail when let go, as if the pedal were half down.
 export const TOUCH = {
-  minSound: 0.16, // even the quickest tap sounds at least this long (seconds)
-  tap: 0.1, // held this long or less: a tap
-  held: 0.6, // held this long or more: full sustain
-  tapTail: 1.25, // release time constant for a tap, as a multiple of the instrument's
-  heldTail: 3.2, // and for a held key
+  minSound: 0.4, // every note sounds at least this long, however quick the tap (seconds)
+  tap: 0.12, // held this long or less: a tap
+  held: 0.5, // held this long or more: full sustain
+  tapTail: 2.5, // release time constant for a tap, as a multiple of the instrument's
+  heldTail: 6.5, // and for a held key
 };
 
 /**

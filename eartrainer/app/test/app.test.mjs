@@ -284,13 +284,14 @@ test('one-phrase modes: phrases from the middle of songs, each different phrase 
 
 import { touchRelease, TOUCH } from '../src/perform.js';
 
-test('the player’s touch: taps are short but ring a little, held keys sustain', () => {
+test('the player’s touch: no note is cut off; held keys sustain longer', () => {
   const base = 0.16;
   const tap = touchRelease(0.04, base), mid = touchRelease(0.3, base), held = touchRelease(1.2, base);
   assert.ok(Math.abs(0.04 + tap.delay - TOUCH.minSound) < 1e-9, 'a quick tap still sounds a moment');
   assert.ok(tap.tau > base, 'and rings a little past the bare release');
-  assert.equal(mid.delay, 0);
+  assert.ok(Math.abs(0.3 + mid.delay - TOUCH.minSound) < 1e-9 && held.delay === 0, 'every note sounds its minimum, held ones as long as held');
   assert.ok(tap.tau < mid.tau && mid.tau < held.tau, 'longer presses ring longer');
-  assert.ok(held.tau >= base * 3, 'a held key sustains');
+  assert.ok(held.tau >= base * 6, 'a held key sustains');
+  assert.ok(tap.tau >= base * 2.5, 'even a tap fades gently, not cut off');
   assert.deepEqual(touchRelease(5, base), held, 'no more than full sustain');
 });
