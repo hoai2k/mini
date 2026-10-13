@@ -13,8 +13,16 @@ The buttons can be put in any order, like apps on an iPhone home screen
 jiggle; the held one lifts and follows the finger (or mouse) while the others
 slide out of its way, and letting go drops it there. While they jiggle, any
 button can be dragged at once and tapping one doesn't open it; tapping the
-background, **Done** or Escape stops. Arrow keys move the focused button
-while jiggling. The order is saved with the settings and applied before the
+background, **Done** or Escape stops, and so do 5 seconds untouched. Arrow
+keys move the focused button while jiggling.
+
+Two iPhone details shape the code. Safari sends no click for a tap on plain
+background, so the background is watched for the touch itself. And Safari
+stops sending touch events to an element that is moved in the page while it
+is being dragged (after which nothing could be moved), so during a drag the
+buttons only slide by transforms and the page is reordered on drop. Moves
+and releases are watched on the whole page, and a drag whose end never
+arrived is dropped when the next touch starts. The order is saved with the settings and applied before the
 page draws, so there's no flash of the default order.
 
 ## Themes
