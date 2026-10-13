@@ -1227,15 +1227,8 @@ export default function create(env) {
         if (i % 4 === 1) { g.fillStyle = '#e9c84a'; g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.arc(gx + 6, gy - 36, 5, 0, Math.PI * 2); g.fill(); g.stroke(); }
       }
       // Barnacles at the goo line.
-      g.fillStyle = '#c9c4b2'; g.lineWidth = 1.5;
+      g.fillStyle = '#c9c4b2'; g.strokeStyle = INK; g.lineWidth = 1.5;
       for (let i = 0; i < 16; i++) { const bx = I.x + kit.hash(i * 3) * I.w, by = SURF - 10 + kit.hash(i * 7 + 1) * 50; g.beginPath(); g.arc(bx, by, 4 + kit.hash(i) * 5, 0, Math.PI * 2); g.fill(); g.stroke(); }
-      g.restore();
-      // Grass tufts.
-      g.strokeStyle = '#4e7d3a'; g.lineWidth = 5; g.lineCap = 'round';
-      for (let i = 0; i < 14; i++) {
-        const x = I.x + 80 + i * 36, y = I.y + 2 - Math.sin(i * 0.5) * 14;
-        g.beginPath(); g.moveTo(x, y + 4); g.lineTo(x - 7, y - 22); g.moveTo(x + 6, y + 4); g.lineTo(x + 12, y - 18); g.stroke();
-      }
       g.restore();
     });
     // The picnic basket waits on the island (the book's picnic).
