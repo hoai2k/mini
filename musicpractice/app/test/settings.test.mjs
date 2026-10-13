@@ -76,10 +76,22 @@ test('tuner settings: defaults, saved, and bad values fall back', () => {
   assert.deepEqual([bad.tuning, bad.a4, bad.transpose], ['chromatic', 466, 'C']);
 });
 
-test('home order: metronome, tuner, recorder by default; a saved order is kept and repaired', () => {
-  assert.deepEqual(load(memoryStorage()).homeOrder, ['metronome', 'tuner', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: ['record', 'metronome', 'tuner'] }).homeOrder, ['record', 'metronome', 'tuner']);
-  // Unknown or repeated tools dropped, a missing one added at the end.
-  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'kazoo', 'tuner'] }).homeOrder, ['tuner', 'metronome', 'record']);
-  assert.deepEqual(sanitize({ homeOrder: 'record' }).homeOrder, ['metronome', 'tuner', 'record']);
+test('home order: metronome, tuner, drone, recorder by default; a saved order is kept and repaired', () => {
+  assert.deepEqual(load(memoryStorage()).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+  assert.deepEqual(sanitize({ homeOrder: ['record', 'drone', 'metronome', 'tuner'] }).homeOrder, ['record', 'drone', 'metronome', 'tuner']);
+  // An order saved before the Drone: it goes in after the Tuner, wherever that is.
+  assert.deepEqual(sanitize({ homeOrder: ['metronome', 'tuner', 'record'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'record', 'metronome'] }).homeOrder, ['tuner', 'drone', 'record', 'metronome']);
+  // Unknown or repeated tools dropped.
+  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'kazoo', 'tuner'] }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+  assert.deepEqual(sanitize({ homeOrder: 'record' }).homeOrder, ['metronome', 'tuner', 'drone', 'record']);
+});
+
+test('drone settings: defaults, kept, and bad values fall back', () => {
+  const d = load(memoryStorage());
+  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneTimed, d.droneMinutes, d.droneThen, d.droneFifth], [48, 'cello', false, 3, 'stop', false]);
+  const s = sanitize({ droneMidi: 41, droneVoice: 'tanpura', droneTimed: true, droneMinutes: 7.5, droneThen: 'fifths', droneFifth: true });
+  assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen, s.droneFifth], [41, 'tanpura', true, 7.5, 'fifths', true]);
+  const bad = sanitize({ droneMidi: 90, droneVoice: 'kazoo', droneMinutes: -2, droneThen: 'random' });
+  assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'stop']);
 });

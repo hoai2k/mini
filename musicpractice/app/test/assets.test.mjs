@@ -5,7 +5,7 @@ import { pick, pendulumLayout } from '../src/art.js';
 import { THEMES } from '../src/settings.js';
 
 const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
-const IDS = ['home-metronome', 'home-record', 'home-tuner', 'metronome-body', 'metronome-pendulum'];
+const IDS = ['home-metronome', 'home-record', 'home-tuner', 'home-drone', 'metronome-body', 'metronome-pendulum'];
 
 test('public icons use the normal metronome across browser, iOS, installed app and library', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');

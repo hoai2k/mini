@@ -185,6 +185,23 @@ button { cursor: pointer; }
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
+/* The pulse: a glow behind the metronome on each beat (set from main.js). */
+.met-pulse {
+  position: absolute; inset: -12% -45%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--brass-2), transparent 75%); /* without color-mix */
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brass-2) 70%, transparent), color-mix(in srgb, var(--brass) 25%, transparent) 55%, transparent 100%);
+  opacity: 0; pointer-events: none; will-change: opacity, transform;
+}
+.met-pulse.strong { background: radial-gradient(closest-side, var(--red-2), transparent 75%); }
+.met-pulse.strong { background: radial-gradient(closest-side, color-mix(in srgb, var(--red-2) 70%, transparent), color-mix(in srgb, var(--red) 25%, transparent) 55%, transparent 100%); }
+.sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
+.sync-title { margin: 0; font: 700 1.15rem var(--display); }
+.sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.sync-tap { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.sync-tap:active { transform: scale(0.96); }
+.sync-status { min-height: 1.4em; }
+.sync-bar .pill { align-self: center; min-width: 96px; }
 .met-layer > * { width: 100%; height: 100%; display: block; }
 .met-case { inset: 0; }
 /* 200×1000 pendulum whose hub (100, 960) sits on the body's pivot (400, 1000). */
@@ -394,6 +411,37 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .gauge-wrap { grid-row: 2 / span 4; }
   .gauge { width: auto; height: min(44dvh, 220px); }
   .tuner-note { font-size: 3rem; }
+}
+
+/* Drone */
+.drone-body { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(100%, 520px); margin: 0 auto; }
+.drone-art { position: relative; width: clamp(130px, 28dvh, 240px); aspect-ratio: 1; display: grid; place-items: center; }
+.drone-art .art { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+.drone-art .art > * { width: 100%; height: 100%; object-fit: contain; }
+.drone-glow {
+  position: absolute; inset: -18%; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--brass-2), transparent 75%);
+  opacity: 0; transition: opacity 1.2s ease;
+}
+.drone-body.playing .drone-glow { animation: drone-breath 5s ease-in-out infinite; }
+.drone-body.playing .drone-art .art { animation: drone-sway 7s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes drone-breath { 0%, 100% { opacity: 0.22; transform: scale(0.92); } 50% { opacity: 0.5; transform: scale(1.04); } }
+@keyframes drone-sway { 0%, 100% { rotate: -1.2deg; } 50% { rotate: 1.2deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .drone-body.playing .drone-glow { animation: none; opacity: 0.4; }
+  .drone-body.playing .drone-art .art { animation: none; }
+}
+.drone-readout { display: flex; flex-direction: column; align-items: center; }
+.drone-note { margin-top: 0; font-size: clamp(3.4rem, 15vw, 5rem); }
+.drone-hz { margin: 0; color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
+.drone-pitch .select { min-width: 112px; }
+.drone-voice .select { min-width: 240px; max-width: 100%; }
+#dr-toggle { min-width: 200px; }
+.drone-timer { margin: 0; color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
+  .drone-art { grid-row: 1 / span 5; width: min(60dvh, 220px); }
+  .drone-note { font-size: 3rem; }
 }
 
 /* Record / Playback */

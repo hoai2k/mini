@@ -1,12 +1,13 @@
 # Music Practice
 
-A metronome, a practice recorder and a tuner. Open it at
+A metronome, a tuner, a drone and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
-three buttons, **Metronome**, **Tuner** and **Playback Recorder** (two across
-and the third centred below on phones, three across on wider screens), and a
-settings gear.
+four buttons, **Metronome**, **Tuner**, **Drone** and **Playback Recorder**
+(two by two on phones, in a row on wider screens), and a settings gear. A
+tool added later goes in after the one it follows by default, even in an
+order someone saved before it existed.
 
 The buttons can be put in any order, like apps on an iPhone home screen
 (`app/src/homeorder.js`): hold one for about half a second and they all
@@ -80,7 +81,30 @@ when the Art Deco art arrives, measure and record its own.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
-  Dots under it show the beat of the bar.
+  Dots under it show the beat of the bar, and a glow behind it pulses on
+  each beat (red on the downbeat, gold otherwise), dying away quickly.
+  **Swinging pendulum** and **Pulse on each beat** in the settings turn
+  either off.
+- Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
+  the time of the sound reaching your ears. It takes the smoother of the
+  context's output timestamp (`getOutputTimestamp`, which includes the
+  device's delay where the browser knows it, Bluetooth too on iPhone and
+  Android) and its current time less the reported output latency, without
+  counting a delay twice, then the manual adjustment, and looks one frame
+  ahead because a frame drawn now appears about a frame later. Checked in
+  Chromium: at 120 BPM the pulse peaks every 500 ms on the same frame as the
+  pendulum reaching the end of its swing and the beat dot moving on.
+- **Line up visuals with the sound…** (metronome settings) is for Bluetooth
+  speakers and headphones, which play late and don't always say by how much:
+  the controls give way to a sync bar while the metronome plays, with − / +
+  (10 ms steps) to move the visuals until the flash meets the click, or
+  **Tap on each click**: eight taps along with the clicks measure the delay
+  (from when each finger came down), skip the first two, take the median,
+  and set the adjustment beyond what the browser already reports (a tap
+  pattern spread over more than 150 ms is rejected). Checked with simulated
+  taps 180 ms after each beat: it set +160 ms (the 20 ms difference is the
+  frame of look-ahead already allowed for). The setting is shared with Audio
+  check's pendulum sync.
 - Tempo from 40 to 500 BPM: a slider, a number box (type any tempo; values
   outside the range are pulled in), and − / + buttons (hold to run). The
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.
@@ -183,6 +207,50 @@ note changes. Tests check sine tones from 31 Hz to 1.3 kHz to within a cent,
 and instrument-like tones (strong overtones, a weak fundamental, odd
 harmonics only) to within 1.5 cents and in the right octave.
 
+## Drone
+
+A sustained tone to play along with: tuning intervals against it, long
+tones, scales over a tonic.
+
+- The note, big (letter, accidental, octave) with its frequency; − / + move a
+  semitone and the list picks any note from C2 to B3 (the drone's two
+  octaves, from the cello's open C). Past either end, notes wrap round by an
+  octave. **Play** fades in over about 2 s and **Pause** fades out over about
+  1.5 s; changing the note or instrument while it plays crossfades.
+- Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker,
+  fewer overtones), **Cello section** (four cellos a few cents apart, spread
+  left to right), **Tanpura**, **Sitar**, **Shruti box**, **Organ** and
+  **Bagpipe drones**.
+- Settings: volume; **Add a fifth above** (a pure 3:2 fifth; the tanpura,
+  sitar and shruti box have theirs already); **Timed drone** (off by
+  default; 0.5 to 20 minutes, 3 by default), and **When time's up**: stop,
+  or move on to the next note chromatically up or down, up or down the major
+  scale of the starting note, or up a fifth or a fourth (round all twelve
+  notes). Choosing a note by hand starts the sequence again from it. The
+  reference pitch (A4 = 415 to 466 Hz) is shared with the tuner. Everything
+  is kept between visits. Space plays and pauses; arrow keys move the note.
+
+How it sounds (`app/src/drone.js`): no recordings. The bowed and blown voices
+play live in Web Audio: oscillators whose harmonics (1/n for a bowed string,
+reed and pipe spectra for the others) are shaped by the instrument's body
+resonances at the exact pitch, with slow random drift in pitch (a cent or
+two), bow or bellows pressure and brightness so the tone lives, a little bow
+hair or wind noise, and a warm 2.8 s hall. The tanpura and sitar are rendered
+once (yielding between strings) into a seamless loop of their plucking
+pattern, each pluck with the jawari bridge's buzz (overtones that bloom and
+sweep down as it rings): tanpura Pa, Sa, Sa, low Sa about every 5 s; sitar
+drone strings struck every 0.75 s with sympathetic strings ringing on. The
+pitch is exact, so it can be tuned to. Rendered offline in Chromium, every
+voice was in tune (cellos within 1 cent, wandering by a cent or two;
+the others an octave or two lower only because they include lower strings,
+whose combined period is longer), within about 3 dB of each other in
+loudness, faded in by about 2 s and to silence after stopping. Played live
+through the page's output: C3 at 130.87 Hz, a crossfade to C♯3 on +, the
+timed drone moving on to D3 after 30 s, and silence on pause and on leaving.
+
+The home icons (a cello and bow per theme) are Round 6 of the image
+requests; their prompts are in `design/image-deliveries-drone.json`.
+
 ## Controls
 
 Touch or mouse throughout. Keyboard: `Space` starts/stops the metronome or
@@ -205,7 +273,8 @@ favour of the two-button home screen.
   `wav.js` the WAV encoding it uses, `mp3.js` and `mp3-worker.js` MP3
   files for saving, `devices.js` mics, speakers and
   permission, `audiocheck.js` the Audio check dialog, `tuning.js` pitch
-  detection and note names, `tunerui.js` the tuner screen.
+  detection and note names, `tunerui.js` the tuner screen, `drone.js` the
+  drone's notes, sequences and sound, `droneui.js` its screen.
 - `design/image-requests.md` and `app/data/asset-list.json`: generated by
   `design/source/build_requests.py`. Round 1 (the Classic theme, the app
   icon and the library cover) is delivered; prompts, files and export
@@ -434,9 +503,10 @@ Art Deco icons. `design/image-deliveries-normal-icons.json` records the art
 and references. The Art Deco master and derivatives remain under
 `icon-art-deco-*` and `favicon-art-deco-*` for a future switch.
 
-Artwork for a future **Drone** feature (cello tones to play along with) is
-prepared in all eight themes: `assets/ui/home-drone.webp` for Classic and
-`assets/ui/<theme>/home-drone.webp` for the other themes.
-`design/drone-image-requests.md` and `design/image-deliveries-drone.json`
-record the prompts and exports. This artwork is not wired into the runtime
-asset list or UI; the Drone feature is not implemented.
+The **Drone** home icons (a cello and bow in each of the eight themes:
+`assets/ui/home-drone.webp` for Classic and `assets/ui/<theme>/home-drone.webp`
+for the others) are Round 6 of the image requests and in use;
+`design/image-deliveries-drone.json` records their prompts and exports. They
+were checked at full size: complete four-string cellos with bow, endpin and
+scroll, nothing cropped (the scrolls come close to the top edge), each in its
+theme's style.

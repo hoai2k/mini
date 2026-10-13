@@ -422,5 +422,53 @@
     "theme": "steampunk",
     "file": "assets/ui/steampunk/home-tuner.webp",
     "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "classic",
+    "file": "assets/ui/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "deco",
+    "file": "assets/ui/deco/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "sixties",
+    "file": "assets/ui/sixties/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "baroque",
+    "file": "assets/ui/baroque/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "scifi",
+    "file": "assets/ui/scifi/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "nouveau",
+    "file": "assets/ui/nouveau/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "anime",
+    "file": "assets/ui/anime/home-drone.webp",
+    "status": "delivered"
+  },
+  {
+    "id": "home-drone",
+    "theme": "steampunk",
+    "file": "assets/ui/steampunk/home-drone.webp",
+    "status": "delivered"
   }
 ]

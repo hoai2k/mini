@@ -16,6 +16,8 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 5 (Tuner home icons, every theme):** delivered and in use.
 
+**Round 6 (Drone home icons, every theme):** delivered and in use.
+
 **House styles** (already included in every prompt):
 
 - Classic: Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one.
@@ -76,6 +78,14 @@ the measured ones for the delivered file in `build_requests.py`.
 | 5 | French Nouveau | delivered | `home-tuner` | `app/assets/ui/nouveau/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 5 | Candy | delivered | `home-tuner` | `app/assets/ui/anime/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
 | 5 | Steam Punk | delivered | `home-tuner` | `app/assets/ui/steampunk/home-tuner.webp` | 768×768, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Classic | delivered | `home-drone` | `app/assets/ui/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Art Deco | delivered | `home-drone` | `app/assets/ui/deco/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Vintage 60s | delivered | `home-drone` | `app/assets/ui/sixties/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | 18th Century | delivered | `home-drone` | `app/assets/ui/baroque/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Robot Future | delivered | `home-drone` | `app/assets/ui/scifi/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | French Nouveau | delivered | `home-drone` | `app/assets/ui/nouveau/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Candy | delivered | `home-drone` | `app/assets/ui/anime/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
+| 6 | Steam Punk | delivered | `home-drone` | `app/assets/ui/steampunk/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 
 ## Home screen buttons
 
@@ -563,4 +573,100 @@ A cute candy-pink tuner with a bold outline, a white dial with a sky-blue needle
 
 ```text
 A steampunk tuner: a riveted brass gauge with a cream enamel dial and a black needle pointing straight up at the centre, small cogs at its sides, and a copper tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.
+```
+
+## Classic · Home screen buttons
+
+### `home-drone` · Classic · delivered
+
+- File: `musicpractice/app/assets/ui/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Classic theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One warm amber varnished maple cello with a simple dark fingerboard. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Art Deco · Home screen buttons
+
+### `home-drone` · Art Deco · delivered
+
+- File: `musicpractice/app/assets/ui/deco/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Art Deco theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One black lacquer cello with restrained champagne-gold edging and a small jade accent. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Art Deco illustration in the manner of a 1920s–30s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Vintage 60s · Home screen buttons
+
+### `home-drone` · Vintage 60s · delivered
+
+- File: `musicpractice/app/assets/ui/sixties/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Vintage 60s theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Generate a Vintage 60s version of the reference cello emblem. Use this reference ONLY for correct cello anatomy: four strings, four tuning pegs, four small attachment buttons on the tailpiece, two f-holes, a bridge, fingerboard and endpin, and the separate bow. Render it in mid-century 1960s screen-print illustration: burnt-orange teak body, dark teal fingerboard and tailpiece, mustard yellow and teal uninterrupted sound ribbons. Flat color and soft print grain. Square canvas with generous even transparent margin; complete cello and bow inside canvas. No people, letters, numbers, staves, labels or additional objects. Keep exactly FOUR visibly separated string lines from fingerboard across bridge to FOUR tailpiece buttons, as in the reference. The four strings are an essential feature.
+```
+
+## 18th Century · Home screen buttons
+
+### `home-drone` · 18th Century · delivered
+
+- File: `musicpractice/app/assets/ui/baroque/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the 18th Century theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One warm fruitwood cello with restrained gilt acanthus ornament at the edges and a burgundy accent. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Robot Future · Home screen buttons
+
+### `home-drone` · Robot Future · delivered
+
+- File: `musicpractice/app/assets/ui/scifi/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Robot Future theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One graphite and brushed titanium cello with thin cyan edge lighting and a magenta sound ribbon. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Sleek science-fiction illustration of a far-future starship console: deep space navy and graphite, glowing cyan and magenta light lines, brushed titanium, glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a soft neon glow. Clean, futuristic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## French Nouveau · Home screen buttons
+
+### `home-drone` · French Nouveau · delivered
+
+- File: `musicpractice/app/assets/ui/nouveau/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the French Nouveau theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One sage-green cello with restrained gold vine ornament and a small iris accent. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris Métro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Candy · Home screen buttons
+
+### `home-drone` · Candy · delivered
+
+- File: `musicpractice/app/assets/ui/anime/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Candy theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One candy-pink cello with a sky-blue fingerboard and tiny yellow glints. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
+```
+
+## Steam Punk · Home screen buttons
+
+### `home-drone` · Steam Punk · delivered
+
+- File: `musicpractice/app/assets/ui/steampunk/home-drone.webp`
+- Size: 1024×1024, transparent PNG (shipped as 384×384 WebP)
+- Note: The big Drone button on the home screen in the Steam Punk theme; the label is written by the app. Prompts and source files: design/image-deliveries-drone.json.
+
+```text
+Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained cello tones for musicians to play along with). One dark mahogany cello with restrained brass and copper edge fittings and small rivets. A recognizable full-size four-string acoustic cello silhouette: classic hourglass body, two f-holes, a bridge, long straight fingerboard, scroll with paired tuning pegs, and a short endpin. A single straight cello bow rests beside it at a slight diagonal, with taut light bow hair; do not obscure the instrument's body or strings. Two thin smooth continuous sound ribbons drift gently outward from the body to suggest one sustained tone, not a melody. Show the complete cello and bow, isolated, from the front. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. Square composition, single centered instrument emblem on a genuinely transparent background, generous even margins, clean silhouette readable at 64 pixels. No people, hands, music notes, staves, microphones, tuner dials, metronomes, flying drones, drones aircraft, text or labels. Keep the cello anatomy plausible and the bow straight.
 ```

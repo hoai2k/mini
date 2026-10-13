@@ -426,6 +426,27 @@ def round5_assets() -> list[dict]:
 
 ASSETS += round5_assets()
 
+
+def round6_assets() -> list[dict]:
+    """The Drone home icons: a cello and bow per theme, delivered with the
+    exact prompts recorded in design/image-deliveries-drone.json."""
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        out.append(dict(
+            id="home-drone", theme=a["theme"], round=6, file=a["file"].removeprefix("musicpractice/app/"),
+            size="1024×1024, transparent PNG (shipped as 384×384 WebP)", status="delivered",
+            group=f"{names[a['theme']]} · Home screen buttons",
+            prompt=a["prompt"],
+            note=f"The big Drone button on the home screen in the {names[a['theme']]} theme; the label "
+                 "is written by the app. Prompts and source files: design/image-deliveries-drone.json.",
+        ))
+    return out
+
+
+ASSETS += round6_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -440,7 +461,8 @@ def render() -> tuple[str, str]:
     ]
     for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme"),
                        (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes"),
-                       (4, "revisions"), (5, "Tuner home icons, every theme")):
+                       (4, "revisions"), (5, "Tuner home icons, every theme"),
+                       (6, "Drone home icons, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
