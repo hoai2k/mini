@@ -47,7 +47,7 @@ const DECOR_FERNS = [400, 1950, 3300, 4850, 6400, 7000, 9850, 11250];
 // Tall background trunks: adv.trunks tiles (1 plain, 2 with a hollow) stacked
 // up out of the frame, on terrain.wood 6, the rooted foot with a face.
 const TRUNKS = [[300, 1], [1850, 2], [4450, 1], [6700, 2], [9800, 1]];
-const TRUNK_W = 220;
+const TRUNK_W = 170;
 const STUMPS = [1200, 7100]; // the stump with a face
 const HOLLOWS = [5900, 10900]; // the hollow stump
 const ROCKS = [3150, 8000, 10600]; // piles of rocks
@@ -703,8 +703,8 @@ export default function create(env) {
         // Tiles stacked from behind the foot up out of the frame, mirrored
         // every other one so the bark joins.
         const k = TRUNK_W / tile.w, th = tile.h * k;
-        for (let i = 0, y = GY - 160; y > -th; i++, y -= th) art.drawSprite(g, tile, x, y, { scale: k, flip: i % 2 === 1 });
-        if (art.sprite('terrain.wood', 6)) art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 300, flip: kit.hash(x) > 0.5 });
+        for (let i = 0, y = GY - 130; y > -th; i++, y -= th) art.drawSprite(g, tile, x, y, { scale: k, flip: i % 2 === 1 });
+        if (art.sprite('terrain.wood', 6)) art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 240, flip: kit.hash(x) > 0.5 });
       } else if (art.sprite('terrain.wood', 6)) { inkTrunkColumn(g, x, GY - 300, 300); art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 300, flip: kit.hash(x) > 0.5 }); }
       else inkTrunk(g, x, GY + 20, { height: 1000 });
     }
@@ -1346,6 +1346,13 @@ export function autopilot(board) {
   // measures them on the drawn poses.
   const reach = { swing: board.hoopFor('swing'), netUp: board.hoopFor('netUp'), netLow: board.hoopFor('netLow') };
   const groundOk = (x) => { const gy = kit.groundAt(board.solids, x, b.y - 4); return gy !== null && Math.abs(gy - b.y) < 2; };
+  // Can he walk from where he is to x without a stream or a log in the way?
+  const pathClear = (x) => {
+    const lo = Math.min(px, x), hi = Math.max(px, x);
+    if (b.y < GYv - 1) return true; // up on a branch
+    if (board.streams.some((st) => st.x1 > lo && st.x0 < hi)) return false;
+    return !board.LOGS.some((lx) => lx + 95 > lo && lx - 95 < hi);
+  };
   // Which swing nets a thing at (tx, ty)? Returns the kind, where to stand
   // and which way to face (the way he faces now when it can be either).
   function planFor(tx, ty, slack) {
@@ -1356,7 +1363,7 @@ export function autopilot(board) {
       if (Math.abs(dy) > r.r + slack - 10) continue;
       for (const f of [1, -1]) {
         const stand = tx - r.dx * f;
-        if (!groundOk(stand)) continue;
+        if (!groundOk(stand) || !pathClear(stand)) continue;
         const cost = Math.abs(dy) + Math.abs(stand - px) * 0.2 + (f === board.facing ? 0 : 15);
         if (!best || cost < best.cost) best = { kind, stand, cost, face: f };
       }
