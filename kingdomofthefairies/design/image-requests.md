@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 237 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 233 of 237 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 237 of 237 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1824,10 +1824,10 @@ Requested 13 October 2026 after checking the F10–F13 deliveries side by side. 
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-stride-b-redo` | 220 × 360 | bottom centre | `prince-stride-b` | requested |
-| `prince-court-stride-b-redo` | 220 × 360 | bottom centre | `prince-court-stride-b` | requested |
-| `sailor-stride-a` | 220 × 360 | bottom centre | `sailor-walk-a` | requested |
-| `sailor-stride-b` | 220 × 360 | bottom centre | `sailor-walk-b` | requested |
+| `prince-stride-b-redo` | 220 × 360 | bottom centre | `prince-stride-b` | [delivered](../assets/prince-stride-b-redo.webp) |
+| `prince-court-stride-b-redo` | 220 × 360 | bottom centre | `prince-court-stride-b` | [delivered](../assets/prince-court-stride-b-redo.webp) |
+| `sailor-stride-a` | 220 × 360 | bottom centre | `sailor-walk-a` | [delivered](../assets/sailor-stride-a.webp) |
+| `sailor-stride-b` | 220 × 360 | bottom centre | `sailor-walk-b` | [delivered](../assets/sailor-stride-b.webp) |
 
 #### `prince-stride-b-redo` — Prince armed, stride B, redrawn to match stride A
 

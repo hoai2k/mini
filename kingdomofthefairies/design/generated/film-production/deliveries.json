@@ -1,5 +1,5 @@
 {
-  "generated": 233,
+  "generated": 237,
   "images": [
     {
       "id": "apotheosis",
@@ -5195,6 +5195,57 @@
       ]
     },
     {
+      "id": "prince-court-stride-b-redo",
+      "title": "Prince in court dress, stride B, redrawn to match stride A",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "prompt": "Redraw prince-court-stride-b.webp (attach it with prince-court-stride-a.webp, prince-court-pass-a.webp and prince-court.webp). Exactly the same figure, costume and colours, walking right, with the RIGHT leg forward, heel down, and the left leg behind on its toes; but the stride exactly as long as in prince-court-stride-a.webp (mirrored legs), so the top of the head sits within 6 px of where it is in stride A (about 5 px from the top of the canvas). Same arm swing as stride A mirrored. Feet on the bottom ground line; no floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nImage 1 is stride A, the geometry/scale reference and edit target. Image 2 is the old B showing the opposite support leg only; do NOT copy its wider lunge or reduced head height. Images 3 and 4 confirm identity and scale. Produce stride B by exchanging only the legs and arm swing of image 1. Keep its head, torso, exact costume, canvas placement and stride span unchanged. Do not stretch the trailing leg farther, spread the feet wider, lower the head, redesign the costume, or mirror the entire figure. Target canvas 220 x 360, aspect ratio 220:360. One isolated sprite on genuine transparency.",
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-court-stride-a.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-court-stride-b.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-court-pass-a.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-court.webp"
+      ],
+      "transparent": true,
+      "replaces": "prince-court-stride-b",
+      "edition": "film",
+      "generator": "built-in image_gen",
+      "source_commit": "6300475",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-7775f7db-6db8-4723-afbd-e75a6dca000b.png",
+      "generation_id": "exec-7775f7db-6db8-4723-afbd-e75a6dca000b",
+      "review_status": "accepted: matched costume and moderate opposite stride; export painted bounds aligned to stride A within 3% adjustment; measured head-top and ground line match A",
+      "install_as": "prince-court-stride-b",
+      "align_to": "prince-court-stride-a",
+      "alignment_bounds": [
+        0,
+        4,
+        220,
+        360
+      ],
+      "original": "design/generated/film-production/prince-court-stride-b-redo-original.png",
+      "file": "assets/prince-court-stride-b-redo.webp",
+      "native_size": [
+        980,
+        1605
+      ],
+      "source_crop": [
+        0,
+        13,
+        966,
+        1544
+      ],
+      "placement": [
+        0,
+        4,
+        220,
+        356
+      ],
+      "installed_file": "assets/prince-court-stride-b.webp"
+    },
+    {
       "id": "prince-court-stride-b-tinted",
       "title": "Prince in court dress, stride B (tinted)",
       "size": [
@@ -5260,7 +5311,7 @@
       "generation_id": "exec-0f951447-2198-4f85-867d-926d009d5fc5",
       "review_status": "accepted: full separated stride, coherent arms and legs, standing costume and face retained, paired gait and costume continuity reviewed",
       "original": "design/generated/film-production/prince-court-stride-b-original.png",
-      "file": "assets/prince-court-stride-b.webp",
+      "file": "design/generated/film-production/progress/superseded-f14/prince-court-stride-b.webp",
       "native_size": [
         980,
         1605
@@ -5276,7 +5327,8 @@
         26,
         220,
         334
-      ]
+      ],
+      "superseded_by": "prince-court-stride-b-redo"
     },
     {
       "id": "prince-court-tinted",
@@ -6579,6 +6631,57 @@
       ]
     },
     {
+      "id": "prince-stride-b-redo",
+      "title": "Prince armed, stride B, redrawn to match stride A",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "prompt": "Redraw prince-stride-b.webp (attach it with prince-stride-a.webp, prince-pass-a.webp and prince-stand.webp). Exactly the same figure, costume and colours, walking right, with the RIGHT leg forward, heel down, and the left leg behind on its toes; but the stride exactly as long as in prince-stride-a.webp (mirrored legs), so the top of the head sits within 6 px of where it is in stride A (about 5 px from the top of the canvas). Same arm swing as stride A mirrored. Feet on the bottom ground line; no floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nImage 1 is stride A, the geometry/scale reference and edit target. Image 2 is the old B showing the opposite support leg only; do NOT copy its wider lunge or reduced head height. Images 3 and 4 confirm identity and scale. Produce stride B by exchanging only the legs and arm swing of image 1. Keep its head, torso, exact costume, canvas placement and stride span unchanged. Do not stretch the trailing leg farther, spread the feet wider, lower the head, redesign the costume, or mirror the entire figure. Target canvas 220 x 360, aspect ratio 220:360. One isolated sprite on genuine transparency.",
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-stride-a.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-stride-b.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-pass-a.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/prince-stand.webp"
+      ],
+      "transparent": true,
+      "replaces": "prince-stride-b",
+      "edition": "film",
+      "generator": "built-in image_gen",
+      "source_commit": "6300475",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-e1a28e31-acf9-48eb-b6af-257038969cfd.png",
+      "generation_id": "exec-e1a28e31-acf9-48eb-b6af-257038969cfd",
+      "review_status": "accepted: matched costume and moderate opposite stride; export painted bounds aligned to stride A within 3% adjustment; measured head-top and ground line match A",
+      "install_as": "prince-stride-b",
+      "align_to": "prince-stride-a",
+      "alignment_bounds": [
+        0,
+        4,
+        220,
+        360
+      ],
+      "original": "design/generated/film-production/prince-stride-b-redo-original.png",
+      "file": "assets/prince-stride-b-redo.webp",
+      "native_size": [
+        980,
+        1604
+      ],
+      "source_crop": [
+        4,
+        14,
+        972,
+        1549
+      ],
+      "placement": [
+        0,
+        4,
+        220,
+        356
+      ],
+      "installed_file": "assets/prince-stride-b.webp"
+    },
+    {
       "id": "prince-stride-b-tinted",
       "title": "Prince armed, stride B (tinted)",
       "size": [
@@ -6644,7 +6747,7 @@
       "generation_id": "exec-cd0ae57e-5909-4420-99da-43b6ebf63608",
       "review_status": "accepted: full separated stride, coherent arms and legs, standing costume and face retained, paired gait and costume continuity reviewed",
       "original": "design/generated/film-production/prince-stride-b-original.png",
-      "file": "assets/prince-stride-b.webp",
+      "file": "design/generated/film-production/progress/superseded-f14/prince-stride-b.webp",
       "native_size": [
         980,
         1605
@@ -6660,7 +6763,8 @@
         24,
         220,
         336
-      ]
+      ],
+      "superseded_by": "prince-stride-b-redo"
     },
     {
       "id": "prince-swim-a-tinted",
@@ -7346,6 +7450,87 @@
         0,
         176,
         220
+      ]
+    },
+    {
+      "id": "sailor-stride-a",
+      "title": "The sailor, stride A, with his sack",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "prompt": "The sailor exactly as in sailor-stand.webp and sailor-pass-a.webp (attach both, and sailor-stride-b.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: LEFT leg forward, heel down; right leg straight behind on its toes. The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow\u2019s Bay editions. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nImage 1 fixes identity, clothing, sack and head scale; image 2 fixes the passing-frame costume and sack. Exactly two anatomically coherent arms: ONE hand grips the sack strap, the other swings naturally. No third hand behind the sack. Keep the same sack on the same shoulder in every frame. Use a moderate full stride so the head height and body scale match the reference rather than a very wide lunge. Target canvas 220 x 360, aspect ratio 220:360. One isolated sprite on genuine transparency.",
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/sailor-stand.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/sailor-pass-a.webp"
+      ],
+      "transparent": true,
+      "replaces": "sailor-walk-a",
+      "edition": "shared",
+      "generator": "built-in image_gen",
+      "source_commit": "6300475",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-607abd68-982e-4858-bdce-9bacbd318606.png",
+      "generation_id": "exec-607abd68-982e-4858-bdce-9bacbd318606",
+      "review_status": "accepted: same cap, coat, scarf, trousers, boots and sack in both strides; coherent two-arm strap grip; head-top and ground line match passing poses",
+      "original": "design/generated/film-production/sailor-stride-a-original.png",
+      "file": "assets/sailor-stride-a.webp",
+      "native_size": [
+        979,
+        1606
+      ],
+      "source_crop": [
+        41,
+        0,
+        962,
+        1581
+      ],
+      "placement": [
+        5,
+        0,
+        210,
+        360
+      ]
+    },
+    {
+      "id": "sailor-stride-b",
+      "title": "The sailor, stride B, with his sack",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "prompt": "The sailor exactly as in sailor-stand.webp and sailor-pass-b.webp (attach both, and sailor-stride-a.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: RIGHT leg forward, heel down; left leg straight behind on its toes. The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow\u2019s Bay editions. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges M\u00e9li\u00e8s' 1903 film Le Royaume des f\u00e9es: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).\nImage 1 fixes identity, clothing, sack and head scale; image 2 fixes the passing-frame costume and sack. Exactly two anatomically coherent arms: ONE hand grips the sack strap, the other swings naturally. No third hand behind the sack. Keep the same sack on the same shoulder in every frame. Use a moderate full stride so the head height and body scale match the reference rather than a very wide lunge. Target canvas 220 x 360, aspect ratio 220:360. One isolated sprite on genuine transparency.\nImage 3 is the accepted stride A: copy its face, cap, coat, sack, strap-hand position, boots, colours and head/foot height exactly. Change only the legs to the opposite stride and the free arm swing. Do not make a longer lunge or change the sack.",
+      "references": [
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/sailor-stand.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/sailor-pass-b.webp",
+        "/Volumes/BACKUP/Backup/Games/mini/kingdomofthefairies/assets/sailor-stride-a.webp"
+      ],
+      "transparent": true,
+      "replaces": "sailor-walk-b",
+      "edition": "shared",
+      "generator": "built-in image_gen",
+      "source_commit": "6300475",
+      "path": "/Users/hoai/.codex/generated_images/01a12c3b-6d36-7021-b741-4772e373f30e/exec-0432e258-06b6-4b34-ae54-6525b3ea800c.png",
+      "generation_id": "exec-0432e258-06b6-4b34-ae54-6525b3ea800c",
+      "review_status": "accepted: same cap, coat, scarf, trousers, boots and sack in both strides; coherent two-arm strap grip; head-top and ground line match passing poses",
+      "original": "design/generated/film-production/sailor-stride-b-original.png",
+      "file": "assets/sailor-stride-b.webp",
+      "native_size": [
+        980,
+        1604
+      ],
+      "source_crop": [
+        27,
+        0,
+        980,
+        1577
+      ],
+      "placement": [
+        1,
+        0,
+        218,
+        360
       ]
     },
     {

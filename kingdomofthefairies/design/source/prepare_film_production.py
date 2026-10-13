@@ -7,6 +7,7 @@ delivery fitting routine. No generated artwork is repainted.
 from pathlib import Path
 import argparse
 import json
+import shutil
 from datetime import datetime, timedelta, timezone
 from PIL import Image
 from prepare_part_c_delivery import fit_sprite
@@ -26,12 +27,15 @@ for path in sorted(BATCH.glob('*.json')):
         continue
     record = json.loads(path.read_text())
     ident = record['id']
+    if record.get('align_to'):
+        with Image.open(GAME / 'assets' / (record['align_to'] + '.webp')) as reference:
+            record['alignment_bounds'] = list(reference.getchannel('A').point(lambda value: 255 if value >= 8 else 0).getbbox())
     original = BATCH / (ident + '-original.png')
     delivery = GAME / 'assets' / (ident + '.webp')
     cached = previous.get(ident)
     if (cached and delivery.exists() and (delivery.stat().st_mtime >= original.stat().st_mtime
             or selected is not None and ident not in selected)
-            and all(cached.get(k) == record.get(k) for k in ['prompt', 'size', 'anchor', 'transparent'])):
+            and all(cached.get(k) == record.get(k) for k in ['prompt', 'size', 'anchor', 'transparent', 'align_to', 'alignment_bounds'])):
         with Image.open(delivery) as check:
             check.verify()
         with Image.open(delivery) as check:
@@ -52,6 +56,17 @@ for path in sorted(BATCH.glob('*.json')):
         if record['transparent']:
             assert source.getchannel('A').getextrema()[0] == 0, ident + ': missing transparency'
             final, crop, placement = fit_sprite(source, w, h, record['anchor'], ident in {'rampart-strip', 'tower-wall-tall', 'tower-interior'})
+            if record.get('alignment_bounds'):
+                x0, y0, x1, y1 = record['alignment_bounds']
+                bw, bh = x1 - x0, y1 - y0
+                # Only a small export adjustment is allowed. Larger pose or
+                # proportion differences need a new generated image.
+                sx, sy = bw / (crop[2] - crop[0]), bh / (crop[3] - crop[1])
+                assert abs(sy / sx - 1) <= 0.03, ident + ': alignment exceeds 3%; regenerate'
+                fitted, crop, _ = fit_sprite(source, bw, bh, record['anchor'], True)
+                final = Image.new('RGBA', (w, h))
+                final.paste(fitted, (x0, y0))
+                placement = [x0, y0, bw, bh]
             assert final.getchannel('A').getbbox(), ident + ': empty artwork'
         else:
             final = source.convert('RGB').resize((w, h), Image.Resampling.LANCZOS)
@@ -67,6 +82,20 @@ for path in sorted(BATCH.glob('*.json')):
     records.append(record)
     slot = manifest['slots'][ident]
     slot.update(status='delivered', file=ident + '.webp', size=[w, h], anchor=record['anchor'], edition=record.get('edition', 'film'))
+by_id = {record['id']: record for record in records}
+installed = set()
+for record in records:
+    target = record.get('install_as')
+    if not target or record.get('superseded_by'):
+        continue
+    assert target not in installed, target + ': multiple active replacements'
+    installed.add(target)
+    assert manifest['slots'][target]['size'] == record['size'], target
+    previous_file = BATCH / 'progress/superseded-f14' / (target + '.webp')
+    assert previous_file.exists(), target + ': archive the earlier prepared file before replacement'
+    shutil.copy2(GAME / record['file'], GAME / 'assets' / (target + '.webp'))
+    record['installed_file'] = 'assets/' + target + '.webp'
+    by_id[target].update(file=str(previous_file.relative_to(GAME)), superseded_by=record['id'])
 manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
 (BATCH / 'deliveries.json').write_text(json.dumps({'generated': len(records), 'images': records}, indent=2) + '\n')
 print('Validated and prepared', len(records), 'film production images.')

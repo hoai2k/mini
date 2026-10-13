@@ -125,3 +125,5 @@ the tempest deck, the quay carry, the wedding street and the apotheosis).
   blinking the sack on and off. `src/art.js` switches to the full four-phase
   cycle when both strides are delivered, and `qa/walking-browser.mjs`
   then requires it.
+
+F14 delivered: the two Original-look prince B repairs now match stride A’s painted head-top and ground bounds (y=4 and y=360). The sailor’s new sack-carrying strides match the passing-frame head top (y=0) and ground (y=360), restoring his four-phase walk in both older editions. All four were reviewed together and checked in the walking browser suite. Superseded prince artwork remains archived with its generation records.

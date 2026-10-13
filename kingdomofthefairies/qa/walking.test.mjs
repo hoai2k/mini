@@ -32,14 +32,23 @@ console.log('Walking contacts, both passing phases, direction, carry naming, sta
 const slots = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url))).slots;
 for (const [prefix, looks, contact] of [
   ['prince', ['', '-tinted'], 'stride'], ['prince-court', ['', '-tinted'], 'stride'],
-  ['azurine', ['', '-tinted'], 'walk'], ['sailor', [''], 'walk'],
+  ['azurine', ['', '-tinted'], 'walk'], ['sailor', [''], 'stride'],
   ['prince-carry', ['', '-tinted'], 'walk'], ['sailor-carry', [''], 'walk'],
 ]) for (const look of looks) for (const pose of WALK_PHASES) {
   const id = `${prefix}-${pose.replace('walk', contact)}${look}`;
   assert.equal(slots[id]?.status, 'delivered', id + ' must exist for a complete walking cycle');
   assert.ok(existsSync(new URL('../assets/' + slots[id].file, import.meta.url)), id);
-  if (prefix.startsWith('sailor') && (pose.startsWith('pass') || prefix.includes('carry'))) {
+  if (prefix.startsWith('sailor')) {
     assert.notEqual(slots[id].edition, 'film', 'shared sailor phases must load in the older editions');
   }
 }
 console.log('Every walking character/look has complete delivered contact and passing frames');
+const deliveries = JSON.parse(readFileSync(new URL('../design/generated/film-production/deliveries.json', import.meta.url))).images;
+for (const record of deliveries.filter(record => record.install_as && !record.superseded_by)) {
+  assert.ok(readFileSync(new URL('../' + record.installed_file, import.meta.url)).equals(
+    readFileSync(new URL('../' + record.file, import.meta.url))), record.id + ' must replace its runtime filename');
+  const earlier = deliveries.find(earlier => earlier.id === record.install_as);
+  assert.equal(earlier.superseded_by, record.id);
+  assert.ok(existsSync(new URL('../' + earlier.file, import.meta.url)), 'superseded frame remains archived');
+}
+console.log('Delivered stride repairs are installed and superseded frames remain available');
