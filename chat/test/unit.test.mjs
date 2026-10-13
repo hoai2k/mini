@@ -367,7 +367,7 @@ test('Baseball: the spring bat swings faster the further it is pulled back', asy
 
 test('Baseball: the ball comes off the moving bat by its contact point', async () => {
   const B = (await import('../games/baseball.js'))._physics;
-  const PIVOT = { x: 0.385, y: 1.575 };
+  const { PIVOT } = B;
   const at = (th, r) => ({ x: PIVOT.x + Math.cos(th) * r + Math.sin(th) * 0.02, y: PIVOT.y + Math.sin(th) * r - Math.cos(th) * 0.02 });
   // A still bat: the ball bounces straight back, slower (restitution < 1).
   const still = B.batHit(at(0, 0.13), { x: 0, y: 0.5 }, 0, 0);
@@ -415,7 +415,7 @@ test('Baseball: swing timing against a pitch: early pulls, late goes the other w
   const v = B.makePitch('vanish', 5);
   for (let tRel = -0.5; tRel < v.end; tRel += 0.01) {
     const c = B.findContact(v, 1.0, tRel);
-    if (c) assert.ok(c.L.y <= 1.465 + 0.02 || c.L.y >= 1.585 - 0.02, `touched at ${c.L.y}`);
+    if (c) assert.ok(c.L.y <= B.HATCH[0] + 0.02 || c.L.y >= B.HATCH[1] - 0.02, `touched at ${c.L.y}`);
   }
   // Curves break across the plate; fastballs are strikes.
   const cl = B.makePitch('curveL', 3), cr = B.makePitch('curveR', 3);
@@ -426,7 +426,7 @@ test('Baseball: swing timing against a pitch: early pulls, late goes the other w
 
 test('Baseball: a launch rolls the same way every time, into pockets, walls and foul ground', async () => {
   const B = (await import('../games/baseball.js'))._physics;
-  const L = { x: 0.5, y: 1.52, vx: -0.9, vy: -2.3, s: 0.05, t: 0.4 };
+  const L = { x: 0.5, y: B.HOME.y - 0.07, vx: -0.9, vy: -2.3, s: 0.05, t: 0.4 };
   const a = B.roll(L, 0.3, 800), b = B.roll(JSON.parse(JSON.stringify(L)), 0.3, 800);
   assert.deepEqual(a, b);
   assert.ok(['pocket', 'stop', 'over', 'foul'].includes(a.end) && a.path.length > 10);
@@ -438,12 +438,12 @@ test('Baseball: a launch rolls the same way every time, into pockets, walls and 
   const hard = B.roll({ x: P.x, y: P.y + 0.12, vx: 0, vy: -2.6, s: 0, t: 0 });
   assert.ok(hard.path.some((v, i) => i % 2 === 1 && v < P.y - 0.1), 'a hard one rolls on over the hole');
   // Hit back behind the plate, or out across the line in the infield: foul.
-  assert.equal(B.roll({ x: 0.5, y: 1.6, vx: 0.2, vy: 1.5, s: 0, t: 0 }).end, 'foul');
-  assert.equal(B.roll({ x: 0.5, y: 1.55, vx: 2, vy: -0.6, s: 0, t: 0 }).end, 'foul');
+  assert.equal(B.roll({ x: 0.5, y: B.HOME.y + 0.01, vx: 0.2, vy: 1.5, s: 0, t: 0 }).end, 'foul');
+  assert.equal(B.roll({ x: 0.5, y: B.HOME.y - 0.04, vx: 2, vy: -0.6, s: 0, t: 0 }).end, 'foul');
   // A rocket into the wall hops it.
-  assert.equal(B.roll({ x: 0.44, y: 1.5, vx: 0, vy: -3, s: 0, t: 0 }, 0.95, 0).end, 'over');
+  assert.equal(B.roll({ x: 0.44, y: B.HOME.y - 0.02, vx: 0, vy: -3, s: 0, t: 0 }, 0.95, 0).end, 'over');
   // Past the bases the foul lines are rails: it stays fair.
-  const rail = B.roll({ x: 0.3, y: 1.2, vx: -1.2, vy: 0.3, s: 0, t: 0 });
+  const rail = B.roll({ x: 0.3, y: 0.95, vx: -1.2, vy: 0.3, s: 0, t: 0 });
   assert.notEqual(rail.end, 'foul');
   // The home run pocket slides along the wall: the same place for the same moment.
   assert.deepEqual(B.sliderPos(B.sliderU(0.2, 700, 0.3)), B.sliderPos(B.sliderU(0.2, 700, 0.3)));
@@ -479,7 +479,7 @@ test('Baseball: pocket labels are dealt, shuffled and lit', async () => {
   const f = B.FIELDERS[3];
   assert.equal(B.outcome({ end: 'stop', x: f.x + 0.05, y: f.y }, 'OOOOOOOOOO', -1), 'O', 'fielded');
   assert.equal(B.outcome({ end: 'stop', x: 0.5, y: 0.7 }, 'OOOOOOOOOO', -1), '1', 'in a gap');
-  assert.equal(B.outcome({ end: 'stop', x: 0.08, y: 0.5 }, 'OOOOOOOOOO', -1), '2', 'deep in a gap');
+  assert.equal(B.outcome({ end: 'stop', x: 0.08, y: 0.35 }, 'OOOOOOOOOO', -1), '2', 'deep in a gap');
 });
 
 test('Baseball: runners, counts, outs, innings and teams', async () => {

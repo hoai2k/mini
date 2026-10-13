@@ -40,62 +40,66 @@
 import { ordinal } from '../js/seatqueue.js';
 
 // --- the board ---------------------------------------------------------------
+// Measured off the delivered board picture (bb2-board, 1080 x 1920): a pixel
+// (px, py) is (px / 1080, py / 1080) in board units.
 export const BW = 1;
 export const BH = 16 / 9;
 export const BR = 0.016;                       // ball radius
-export const HOME = { x: 0.5, y: 1.595 };      // middle of home plate
-export const APEX = { x: 0.5, y: 1.62 };       // back tip of the plate: the foul lines meet here
-export const MOUND = { x: 0.5, y: 1.31 };
+export const HOME = { x: 0.5, y: 1.412 };      // middle of home plate
+export const APEX = { x: 0.5, y: 1.444 };      // where the foul lines meet, at the back of the plate
+export const FOUL_K = 1.123;                   // the foul lines: K |x - 0.5| = APEX.y - y
+export const MOUND = { x: 0.5, y: 1.074 };
 export const PITCHER_R = 0.045;                // the pitcher's bubble on the mound
-export const BASES = [{ x: 0.81, y: 1.31 }, { x: 0.5, y: 1.0 }, { x: 0.19, y: 1.31 }];
-export const WALL = { x: 0.5, y: 0.66, r: 0.47 };   // the outfield wall arc
-export const SIDE = 0.03;                      // side walls at x = SIDE and 1 - SIDE
-export const RAIL_Y = 1.31;                    // past the bases the foul lines are rails
-export const CATCH_Y = 1.70;                   // a pitch this far down is in the catcher's mitt
+export const BASES = [{ x: 0.839, y: 1.02 }, { x: 0.5, y: 0.776 }, { x: 0.161, y: 1.02 }];
+export const WALL = { x: 0.5, y: 1.175, r: 1.0 };   // the outfield wall: a wide arc, its face 0.175 down in the middle
+export const SIDE = 0.02;                      // the tin rim at x = SIDE and 1 - SIDE
+export const RAIL_Y = 1.02;                    // past the bases the foul lines are rails
+export const CATCH_Y = 1.517;                  // a pitch this far down is in the catcher's mitt
 export const PLATE_HALF = 0.05;
-export const PIVOT = { x: 0.385, y: 1.575 };   // the bat's pivot, beside the plate
+export const PIVOT = { x: 0.385, y: 1.392 };   // the bat's pivot, beside the plate
 export const BAT_L = 0.2;
 export const BAT_W = 0.011;                    // half the barrel's thickness
-export const FIELDER_R = 0.03; 
+export const FIELDER_R = 0.03;
 export const REACH = 0.08;                     // an outfielder gets to a ball this close
 export const REACH_IN = 0.11;                  // and an infielder
 
-// The fielders. The little figures are obstacles; the pitcher (a face bubble
-// on the mound) and the catcher only field the ball, it rolls past them.
+// The fielders, on the grass. The little figures are obstacles; the pitcher
+// (a face bubble on the mound) and the catcher only field the ball, it rolls
+// past them.
 export const FIELDERS = [
-  { id: 'P', x: 0.5, y: 1.31, r: PITCHER_R, soft: true },
-  { id: '1B', x: 0.765, y: 1.24, r: FIELDER_R },
-  { id: '2B', x: 0.615, y: 1.07, r: FIELDER_R },
-  { id: 'SS', x: 0.385, y: 1.07, r: FIELDER_R },
-  { id: '3B', x: 0.235, y: 1.24, r: FIELDER_R },
-  { id: 'LF', x: 0.2, y: 0.7, r: FIELDER_R },
-  { id: 'CF', x: 0.5, y: 0.55, r: FIELDER_R },
-  { id: 'RF', x: 0.8, y: 0.7, r: FIELDER_R },
+  { id: 'P', x: MOUND.x, y: MOUND.y, r: PITCHER_R, soft: true },
+  { id: '1B', x: 0.735, y: 1.075, r: FIELDER_R },
+  { id: '2B', x: 0.615, y: 0.955, r: FIELDER_R },
+  { id: 'SS', x: 0.385, y: 0.955, r: FIELDER_R },
+  { id: '3B', x: 0.265, y: 1.075, r: FIELDER_R },
+  { id: 'LF', x: 0.2, y: 0.55, r: FIELDER_R },
+  { id: 'CF', x: 0.5, y: 0.4, r: FIELDER_R },
+  { id: 'RF', x: 0.8, y: 0.55, r: FIELDER_R },
 ];
-export const CATCHER = { x: 0.5, y: 1.715 };
+export const CATCHER = { x: 0.5, y: 1.532 };
 
 // Pockets: ten fixed ones in groups (their labels are dealt per group) and
 // the home run pocket that slides along the wall (slot 10).
 export const POCKETS = [
-  { x: 0.655, y: 1.185, r: 0.034, g: 'i' },
-  { x: 0.345, y: 1.185, r: 0.034, g: 'i' },
-  { x: 0.5, y: 1.135, r: 0.034, g: 'i' },
-  { x: 0.25, y: 0.93, r: 0.036, g: 'm' },
-  { x: 0.75, y: 0.93, r: 0.036, g: 'm' },
-  { x: 0.5, y: 0.8, r: 0.036, g: 'm' },
-  { x: 0.1, y: 0.88, r: 0.036, g: 'c' },
-  { x: 0.9, y: 0.88, r: 0.036, g: 'c' },
-  { x: 0.32, y: 0.56, r: 0.038, g: 'd' },
-  { x: 0.68, y: 0.56, r: 0.038, g: 'd' },
+  { x: 0.645, y: 1.135, r: 0.032, g: 'i' },
+  { x: 0.355, y: 1.135, r: 0.032, g: 'i' },
+  { x: 0.5, y: 0.93, r: 0.032, g: 'i' },
+  { x: 0.25, y: 0.71, r: 0.036, g: 'm' },
+  { x: 0.75, y: 0.71, r: 0.036, g: 'm' },
+  { x: 0.5, y: 0.56, r: 0.036, g: 'm' },
+  { x: 0.085, y: 0.76, r: 0.036, g: 'c' },
+  { x: 0.915, y: 0.76, r: 0.036, g: 'c' },
+  { x: 0.3, y: 0.41, r: 0.038, g: 'd' },
+  { x: 0.7, y: 0.41, r: 0.038, g: 'd' },
 ];
 export const SLOTS = POCKETS.length;           // fixed slots; the slider is slot SLOTS
 export const SLIDER_R = 0.045;
 // The slider's track, just inside the wall (written out so every browser has
-// exactly the same numbers; 0.425 from the wall's centre, -155 to -25 deg).
+// exactly the same numbers; 0.94 from the wall's centre, -114 to -66 deg).
 const TRACK = [
-  [0.1148, 0.4804], [0.1554, 0.4112], [0.2083, 0.3509], [0.2716, 0.3016], [0.3431, 0.265],
-  [0.4201, 0.2426], [0.5, 0.235], [0.5799, 0.2426], [0.6569, 0.265], [0.7284, 0.3016],
-  [0.7917, 0.3509], [0.8446, 0.4112], [0.8852, 0.4804],
+  [0.1177, 0.3163], [0.1785, 0.2917], [0.2409, 0.2714], [0.3046, 0.2555], [0.3692, 0.2441],
+  [0.4344, 0.2373], [0.5, 0.235], [0.5656, 0.2373], [0.6308, 0.2441], [0.6954, 0.2555],
+  [0.7591, 0.2714], [0.8215, 0.2917], [0.8823, 0.3163],
 ];
 export const SLIDE_SPEED = 0.32;               // track lengths per second while a pitch is on
 
@@ -112,7 +116,7 @@ export function sliderPos(u) {
 }
 // The slider moves from su while a pitch is on: windup (lead ms) then flight (t s).
 export const sliderU = (su, lead, t) => pingpong(su + SLIDE_SPEED * (lead / 1000 + t));
-export const fair = (x, y) => Math.abs(x - 0.5) <= APEX.y - y;
+export const fair = (x, y) => FOUL_K * Math.abs(x - 0.5) <= APEX.y - y;
 
 // A small deterministic random generator (integer maths only).
 export function rng(seed) {
@@ -127,7 +131,7 @@ export function rng(seed) {
 }
 
 // --- pitches -------------------------------------------------------------------
-export const PITCH_Y0 = MOUND.y + PITCHER_R;   // the ball leaves the front of the mound
+export const PITCH_Y0 = MOUND.y + 0.075;      // the ball leaves the front of the mound, into the groove
 export const TYPES = {
   fast: { name: 'Fastball', v: 0.5, short: 'Fast' },
   slow: { name: 'Slow ball', v: 0.26, short: 'Slow' },
@@ -136,7 +140,7 @@ export const TYPES = {
   vanish: { name: 'Vanishing pitch', v: 0.38, vanish: true, short: 'Vanish' },
 };
 export const TYPE_IDS = Object.keys(TYPES);
-export const HATCH = [1.465, 1.585];           // where the vanishing pitch is under the board
+export const HATCH = [HOME.y - 0.13, HOME.y - 0.01];           // where the vanishing pitch is under the board
 
 export function makePitch(type, seed) {
   const k = TYPES[type] || TYPES.fast;
@@ -272,7 +276,7 @@ const WALL_E = 0.5, RAIL_E = 0.55, FIELDER_E = 0.35;
 export const V_OVER = 0.9;                     // into the wall this fast and it hops over
 const V_CAP = 1.3;                             // a pocket catches a ball slower than this
 const HOLE_PULL = 9;
-const SQRT1_2 = 0.7071067811865476;
+const RAIL_NX = 0.7468219712063605, RAIL_NY = 0.6650240171027253;   // the foul lines' unit normal
 const ROLL_STEPS = 2400;
 
 // Rolls a launch to its end: { end: 'pocket'|'over'|'foul'|'stop', slot, x, y,
@@ -353,9 +357,9 @@ export function roll(L, su = 0, lead = 0) {
     if (isFair) wasFair = true;
     else if (wasFair && (y < RAIL_Y || touched) && y < APEX.y) {
       const left = x < 0.5;
-      const nx = left ? SQRT1_2 : -SQRT1_2, ny = -SQRT1_2;
-      const g = (APEX.y - y) - Math.abs(x - 0.5);   // < 0 outside
-      const back = -g * SQRT1_2 + 1e-4;
+      const nx = left ? RAIL_NX : -RAIL_NX, ny = -RAIL_NY;
+      const g = (APEX.y - y) - FOUL_K * Math.abs(x - 0.5);   // < 0 outside
+      const back = -g * RAIL_NY + 1e-4;
       x += nx * back; y += ny * back;
       const vn = vx * nx + vy * ny;
       if (vn < 0) { vx -= (1 + RAIL_E) * vn * nx; vy -= (1 + RAIL_E) * vn * ny; }
@@ -427,7 +431,7 @@ export function outcome(r, pk, bonus) {
   // Fielded: an out if someone is close, otherwise a hit (a double deep).
   const near = nearestFielder(r.x, r.y);
   if (near.d < (r.y > BASES[1].y ? REACH_IN : REACH)) return 'O';
-  return r.y < 0.62 ? '2' : '1';
+  return r.y < 0.47 ? '2' : '1';
 }
 export function nearestFielder(x, y) {
   // The catcher pounces on anything that dribbles in front of the plate.
@@ -587,7 +591,7 @@ export function readPitchMsg(d) {
 }
 export function readLaunch(L) {
   if (!L || typeof L !== 'object') return null;
-  const ok = isNum(L.x, 0.25, 0.75) && isNum(L.y, 1.3, 1.78) && isNum(L.vx, -VMAX - 0.01, VMAX + 0.01)
+  const ok = isNum(L.x, 0.25, 0.75) && isNum(L.y, HOME.y - 0.3, HOME.y + 0.2) && isNum(L.vx, -VMAX - 0.01, VMAX + 0.01)
     && isNum(L.vy, -VMAX - 0.01, VMAX + 0.01) && Math.hypot(L.vx, L.vy) <= VMAX + 0.01
     && isNum(L.s, -SPIN_MAX, SPIN_MAX) && isNum(L.t, 0, 6);
   return ok ? { x: L.x, y: L.y, vx: L.vx, vy: L.vy, s: L.s, t: L.t } : null;
@@ -801,11 +805,24 @@ export default {
     // --- the board picture ---------------------------------------------------
     function fieldPath(g, s) {
       g.beginPath();
-      g.moveTo(SIDE * s, WALL.y * s);
-      g.arc(WALL.x * s, WALL.y * s, WALL.r * s, Math.PI, 2 * Math.PI);
-      g.lineTo((1 - SIDE) * s, BH * s);
-      g.lineTo(SIDE * s, BH * s);
-      g.closePath();
+      g.arc(WALL.x * s, WALL.y * s, WALL.r * s, 0, 2 * Math.PI);
+    }
+    // The trapdoor in the groove the vanishing pitch drops through.
+    function drawHatch(g, s) {
+      const top = HATCH[0], len = HATCH[1] - HATCH[0] - 0.03;
+      g.fillStyle = 'rgba(0,0,0,0.3)';
+      g.fillRect((0.5 - 0.02) * s, (top + 0.004) * s, 0.044 * s, len * s);
+      g.fillStyle = '#4a4f5c';
+      g.fillRect((0.5 - 0.022) * s, top * s, 0.044 * s, len * s);
+      g.strokeStyle = '#9aa1b1';
+      g.lineWidth = 0.003 * s;
+      g.strokeRect((0.5 - 0.022) * s, top * s, 0.044 * s, len * s);
+      g.strokeStyle = '#2b2f38';
+      g.beginPath(); g.moveTo(0.5 * s, (top + 0.004) * s); g.lineTo(0.5 * s, (top + len - 0.004) * s); g.stroke();
+      g.fillStyle = '#c3c8d4';
+      for (const [dx, dy] of [[-0.016, 0.006], [0.016, 0.006], [-0.016, len - 0.006], [0.016, len - 0.006]]) {
+        g.beginPath(); g.arc((0.5 + dx) * s, (top + dy) * s, 0.003 * s, 0, Math.PI * 2); g.fill();
+      }
     }
     function paintBoard() {
       const s = L.s * dpr;
@@ -816,17 +833,18 @@ export default {
       const art = api.img('bb2-board');
       if (art) {
         g.drawImage(art, 0, 0, c.width, c.height);
+        drawHatch(g, s);
         return c;
       }
       const R = rng(42);
       // The stands and the crowd behind the wall.
-      const sky = g.createLinearGradient(0, 0, 0, WALL.y * s);
+      const sky = g.createLinearGradient(0, 0, 0, 0.35 * s);
       sky.addColorStop(0, '#1b2350');
       sky.addColorStop(1, '#2b3778');
       g.fillStyle = sky;
       g.fillRect(0, 0, c.width, c.height);
       for (let i = 0; i < 900; i++) {
-        const x = R(), y = R() * WALL.y;
+        const x = R(), y = R() * 0.35;
         if (Math.hypot(x - WALL.x, y - WALL.y) < WALL.r + 0.04) continue;
         g.fillStyle = CROWD[Math.floor(R() * CROWD.length)];
         g.globalAlpha = 0.55 + R() * 0.45;
@@ -845,8 +863,8 @@ export default {
       }
       // Side walls and the bottom rail.
       g.fillStyle = '#2f6fd6';
-      g.fillRect(0, WALL.y * s, SIDE * s, c.height);
-      g.fillRect((1 - SIDE) * s, WALL.y * s, SIDE * s, c.height);
+      g.fillRect(0, 0, SIDE * s, c.height);
+      g.fillRect((1 - SIDE) * s, 0, SIDE * s, c.height);
       // The turf, mown in stripes round home plate.
       g.save();
       fieldPath(g, s);
@@ -863,10 +881,10 @@ export default {
       g.fillStyle = 'rgba(20,70,30,0.45)';
       g.beginPath();
       g.moveTo(APEX.x * s, APEX.y * s);
-      g.lineTo(SIDE * s, (APEX.y - (0.5 - SIDE)) * s);
+      g.lineTo(SIDE * s, (APEX.y - FOUL_K * (0.5 - SIDE)) * s);
       g.lineTo(SIDE * s, BH * s);
       g.lineTo((1 - SIDE) * s, BH * s);
-      g.lineTo((1 - SIDE) * s, (APEX.y - (0.5 - SIDE)) * s);
+      g.lineTo((1 - SIDE) * s, (APEX.y - FOUL_K * (0.5 - SIDE)) * s);
       g.closePath();
       g.fill();
       // The infield dirt: an arc round the mound, the base paths, the plate circle.
@@ -874,13 +892,13 @@ export default {
       g.save();
       g.beginPath();
       g.moveTo(APEX.x * s, APEX.y * s);
-      g.lineTo((APEX.x - 0.62) * s, (APEX.y - 0.62) * s);
-      g.lineTo((APEX.x + 0.62) * s, (APEX.y - 0.62) * s);
+      g.lineTo((APEX.x - 0.62) * s, (APEX.y - 0.62 * FOUL_K) * s);
+      g.lineTo((APEX.x + 0.62) * s, (APEX.y - 0.62 * FOUL_K) * s);
       g.closePath();
       g.clip();
       g.fillStyle = dirt;
       g.beginPath();
-      g.arc(MOUND.x * s, (MOUND.y + 0.02) * s, 0.4 * s, 0, Math.PI * 2);
+      g.arc(MOUND.x * s, (MOUND.y + 0.02) * s, 0.42 * s, 0, Math.PI * 2);
       g.fill();
       g.restore();
       g.fillStyle = '#43a845';
@@ -901,17 +919,17 @@ export default {
       g.lineWidth = 0.03 * s;
       g.strokeStyle = '#2f6fd6';
       g.beginPath();
-      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.015) * s, Math.PI, 2 * Math.PI);
+      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.015) * s, 0, 2 * Math.PI);
       g.stroke();
       g.lineWidth = 0.006 * s;
       g.strokeStyle = '#ffd43b';
       g.beginPath();
-      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.03) * s, Math.PI, 2 * Math.PI);
+      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.03) * s, 0, 2 * Math.PI);
       g.stroke();
       g.strokeStyle = 'rgba(255,255,255,0.35)';
       g.lineWidth = 0.003 * s;
       g.beginPath();
-      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.002) * s, Math.PI, 2 * Math.PI);
+      g.arc(WALL.x * s, WALL.y * s, (WALL.r + 0.002) * s, 0, 2 * Math.PI);
       g.stroke();
       // Foul lines.
       g.strokeStyle = '#f8f9fa';
@@ -920,7 +938,7 @@ export default {
         g.beginPath();
         g.moveTo(APEX.x * s, APEX.y * s);
         const len = 0.5 - SIDE;
-        g.lineTo((APEX.x + sgn * len) * s, (APEX.y - len) * s);
+        g.lineTo((APEX.x + sgn * len) * s, (APEX.y - len * FOUL_K) * s);
         g.stroke();
       }
       // Batter's boxes.
@@ -937,15 +955,7 @@ export default {
       g.lineWidth = 0.02 * s;
       g.beginPath(); g.moveTo(0.5 * s, PITCH_Y0 * s); g.lineTo(0.5 * s, (HOME.y - 0.03) * s); g.stroke();
       g.lineCap = 'butt';
-      g.fillStyle = '#4a4f5c';
-      g.fillRect((0.5 - 0.022) * s, HATCH[0] * s, 0.044 * s, (HATCH[1] - HATCH[0] - 0.03) * s);
-      g.strokeStyle = '#9aa1b1';
-      g.lineWidth = 0.003 * s;
-      g.strokeRect((0.5 - 0.022) * s, HATCH[0] * s, 0.044 * s, (HATCH[1] - HATCH[0] - 0.03) * s);
-      g.fillStyle = '#c3c8d4';
-      for (const [dx, dy] of [[-0.016, 0.006], [0.016, 0.006], [-0.016, HATCH[1] - HATCH[0] - 0.036], [0.016, HATCH[1] - HATCH[0] - 0.036]]) {
-        g.beginPath(); g.arc((0.5 + dx) * s, (HATCH[0] + dy) * s, 0.003 * s, 0, Math.PI * 2); g.fill();
-      }
+      drawHatch(g, s);
       // The mound and its rubber.
       g.fillStyle = '#d9a46a';
       g.beginPath(); g.arc(MOUND.x * s, MOUND.y * s, 0.05 * s, 0, Math.PI * 2); g.fill();
@@ -1112,24 +1122,57 @@ export default {
       }
     }
 
+    // The delivered figure with its white cap tinted (cached per colour).
+    const tinted = new Map();
+    function fielderArt(color) {
+      const art = api.img('bb2-fielder');
+      if (!art) return null;
+      if (tinted.has(color)) return tinted.get(color);
+      let out = art;
+      try {
+        const c = document.createElement('canvas');
+        c.width = art.naturalWidth || art.width;
+        c.height = art.naturalHeight || art.height;
+        const g = c.getContext('2d');
+        g.drawImage(art, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height);
+        const k = c.width / 256;
+        const tc = document.createElement('canvas').getContext('2d');
+        tc.fillStyle = color;
+        tc.fillRect(0, 0, 1, 1);
+        const [tr, tg, tb] = tc.getImageData(0, 0, 1, 1).data;
+        for (let y = 0; y < c.height; y++) {
+          for (let x = 0; x < c.width; x++) {
+            const ex = (x / k - 105) / 54, ey = (y / k - 82) / 50;
+            if (ex * ex + ey * ey > 1) continue;
+            const i = (y * c.width + x) * 4;
+            const r = d.data[i], gg = d.data[i + 1], bb = d.data[i + 2];
+            if (d.data[i + 3] < 128 || Math.min(r, gg, bb) < 140 || Math.max(r, gg, bb) - Math.min(r, gg, bb) > 40) continue;
+            const lum = (r + gg + bb) / 765;
+            d.data[i] = tr * lum; d.data[i + 1] = tg * lum; d.data[i + 2] = tb * lum;
+          }
+        }
+        g.putImageData(d, 0, 0);
+        out = c;
+      } catch { /* untinted */ }
+      tinted.set(color, out);
+      return out;
+    }
     function drawFielder(f, color, t) {
       const s = L.s;
       const cx = X(f.x), cy = Y(f.y), r = FIELDER_R * s;
-      const ang = Math.atan2(HOME.y - f.y, HOME.x - f.x);
-      const art = api.img('bb2-fielder');
+      const art = fielderArt(color);
       ctx.save();
       ctx.translate(cx, cy);
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.beginPath(); ctx.ellipse(r * 0.15, r * 0.25, r * 1.15, r * 1.05, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.rotate(ang - Math.PI / 2);
       if (art) {
-        ctx.drawImage(art, -r * 1.3, -r * 1.3, r * 2.6, r * 2.6);
-        ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = color;
-        ctx.beginPath(); ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2); ctx.fill();
-        ctx.globalCompositeOperation = 'source-over';
+        // Standing up on its round base, the base centred on the spot.
+        const D = r * 4.6;
+        ctx.drawImage(art, -D * (105 / 256), -D * (172 / 256) + Math.sin(t / 500 + f.x * 9) * r * 0.04, D, D);
       } else {
         // Base, shoulders, glove, cap.
+        ctx.rotate(Math.atan2(HOME.y - f.y, HOME.x - f.x) - Math.PI / 2);
         ctx.fillStyle = '#e9ecef';
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'rgba(0,0,0,0.25)';
@@ -1710,7 +1753,7 @@ export default {
       } else {
         // On the board, in the foul ground right of the plate.
         const wd = Math.min(0.36 * L.s, 190);
-        Object.assign(pitchBox.style, { left: `${X(0.985) - wd}px`, top: `${Y(1.385)}px`, width: `${wd}px`, gridTemplateColumns: '1fr 1fr' });
+        Object.assign(pitchBox.style, { left: `${X(0.985) - wd}px`, top: `${Y(HOME.y - 0.02)}px`, width: `${wd}px`, gridTemplateColumns: '1fr 1fr' });
         pitchBox.style.setProperty('--bb-bh', `${Math.round(clamp(0.085 * L.s, 24, 40))}px`);
         pitchBox.style.setProperty('--bb-fs', `${Math.round(clamp(0.032 * L.s, 10, 14))}px`);
       }
@@ -1926,7 +1969,7 @@ export default {
         if (k >= 1) shake = null;
         else ctx.translate((Math.random() - 0.5) * shake.mag * (1 - k), (Math.random() - 0.5) * shake.mag * (1 - k));
       }
-      if (!boardCache) boardCache = paintBoard();
+      if (!boardCache || (!boardCache.art && api.img('bb2-board'))) { boardCache = paintBoard(); boardCache.art = !!api.img('bb2-board'); }
       ctx.drawImage(boardCache, L.ox, L.oy, L.bw, L.bh);
       drawPockets(t);
       const fieldColor = sh ? TEAM_COLORS[1 - sh.half] : TEAM_COLORS[1];
@@ -2157,4 +2200,5 @@ export const _physics = {
   roll, sliderPos, sliderU, dealLabels, nudgeLabels, pickBonus, slotLabel, outcome, nearestFielder, advance, walk,
   syncTeams, newGame, applyResult, batterOf, pitcherOf, readShared, readPitchMsg, readBatMsg, readSwingMsg, readLaunch,
   planSwing, cpuPitch, rng, fair, POCKETS, FIELDERS, SLOTS, TH_REST, PULL_MAX, VMAX, CPU,
+  PIVOT, HOME, HATCH, BASES, MOUND, APEX,
 };
