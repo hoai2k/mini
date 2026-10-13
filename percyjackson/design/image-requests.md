@@ -56,4 +56,27 @@ Character sheets use:
 Open requests only. Delivered ones, with the prompts they were made from,
 are in [image-request-history.md](image-request-history.md).
 
-Nothing is waiting: every request has been delivered.
+| Id | Image | Size | Status |
+| --- | --- | --- | --- |
+| `vox-spartoi` | Spartoi, the sown skeleton warriors | 2560 × 1440 | requested |
+| `vox-telekhine` | Telekhines, the seal-dog smiths with Greek fire | 2560 × 1440 | requested |
+
+### Round 4 · New monsters
+
+#### `vox-spartoi` — Spartoi, the sown skeleton warriors
+
+- **File:** `vox-spartoi.png`, 2560 × 1440 px, delivered to `design/concept/vox-spartoi.png`
+- **References:** `vox-key`, `vox-enemies`
+- **Use:** Reference for the spartoi model (entities/monsters.js, buildSkeleton with melee): steady sword-and-shield fodder in the desert, the Underworld and on the beach; not loaded by the game.
+- **Status:** requested
+
+> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Spartoi: skeleton warriors that grew from dragon's teeth sown in the earth, the size of a grown man. Old ivory bones with dark empty eye sockets, wearing tattered desert-tan military fatigues and boots over the bones, a dented bronze Greek helmet with a short crest, a curved bronze kopis sword in one hand and a round bronze hoplite shield in the other, painted with a black dragon-tooth emblem. Show one spartoi front, side and back; then in a ready stance behind the shield, mid-slash, and staggered back; then a squad of four marching in step, and one clawing up out of cracked earth. Menacing but readable, not gory. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-telekhine` — Telekhines, the seal-dog smiths with Greek fire
+
+- **File:** `vox-telekhine.png`, 2560 × 1440 px, delivered to `design/concept/vox-telekhine.png`
+- **References:** `vox-key`, `vox-enemies`
+- **Use:** Reference for the telekhine model (entities/monsters.js): a lobber at Waterland that throws pots of Greek fire at a marked spot; not loaded by the game.
+- **Status:** requested
+
+> A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, isometric three-quarter views on a flat parchment-cream background, every part built from chunky cubes with hand-painted pixel textures. Telekhines: ancient sea-demon smiths, half dog and half seal, about the size of a large dog. Sleek grey-blue hide with darker speckles and a pale belly, a dog's head with a blunt seal snout, small fangs and glowing orange eyes, flippers for front feet, a stubby seal tail, a leather smith's apron and a brass harness carrying a clay pot of glowing green-orange Greek fire on its back. Show one telekhine front, side and back; then rearing up to hurl a fire pot in a high arc, the pot landing on a glowing ring marked on the ground, and the splash of green-orange flame; then a pack of three waddling on their flippers. Sly and mischievous rather than frightening. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
