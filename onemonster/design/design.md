@@ -14,6 +14,11 @@ to beat. The letter always goes on, as in the book: nobody is stuck on a
 chapter, and a weak score still passes the letter along. What you collect is
 **postmarks**: one, two or three stamped on the envelope per chapter.
 
+The game has two ways to tell it: the **minigames** below (the Minigame
+Journey, *Snatch & Keep* and party play), and **the Adventure**, the same nine
+snatches as long side-scrolling boards, in
+[`adventure.md`](adventure.md).
+
 ## The idea that holds it together
 
 - **The letter is the hero.** It is on screen in every chapter, it shows each
@@ -35,10 +40,11 @@ chapter, and a weak score still passes the letter along. What you collect is
 
 1. **Title.** The logo, Press Start, and the Instructions, Settings and
    Fullscreen buttons at the bottom right (see `GAME_GUIDELINES.md`).
-2. **Choose.** *The Journey* (play every chapter in order, alone or with
-   up to four players taking turns), *Snatch & Keep* (the journey for two
-   players head to head, below), or *One Monster* (replay any chapter already
-   reached, alone or head to head). For more than one player, each presses A
+2. **Choose.** *The Adventure* (the side-scrolling boards, `adventure.md`,
+   alone or with up to four players taking turns), *The Minigame Journey*
+   (play every chapter in order, alone or taking turns), *Snatch & Keep* (the
+   journey for two players head to head, below), or *One Monster* (replay any
+   board or chapter already reached, alone or head to head). For more than one player, each presses A
    on their own controller to join, or a single controller is shared and
    passed.
 3. **Prologue.** A picture-book page in the book's layout (big painting

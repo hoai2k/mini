@@ -180,7 +180,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .menu-col h2 { text-align: center; font-size: clamp(1.6rem, 3.6vw, 2.4rem); margin-bottom: 8px; }
 .menu-btn small { display: block; font: 0.85rem var(--sans); opacity: 0.8; font-weight: 400; }
 .players { align-items: center; margin: 0 0 8px; }
-.players .menu-btn { flex: 0 1 auto; padding: 6px 14px; }
+.players .menu-btn { flex: 0 1 auto; padding: 6px 14px; min-width: 52px; }
+.players { flex-wrap: nowrap; }
+.players .muted { white-space: nowrap; }
 .join-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 .join-slot { border: 2px dashed var(--muted); border-radius: 14px; padding: 10px; text-align: center; }
 .join-slot.ready { border-style: solid; border-color: var(--accent); background: #f6ecf4; }
@@ -199,7 +201,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: auto;
   gap: 12px; max-width: 1300px; width: 100%; margin: 0 auto; overflow-y: auto; align-content: start;
 }
-.cards .cards-shelf { grid-column: 1 / -1; align-self: end; margin: 6px 0 -4px; font: 800 clamp(1.1rem, 2.2vw, 1.5rem) var(--serif); }
+.cards .cards-shelf { grid-column: 1 / -1; justify-self: start; margin: 6px 0 -2px; padding: 2px 14px; border-radius: 10px; background: rgba(251, 245, 230, 0.92); font: 800 clamp(1.1rem, 2.2vw, 1.5rem) var(--serif); }
 .cards .chapter-card { min-height: clamp(130px, 21vh, 230px); }
 @media (max-width: 760px), (max-aspect-ratio: 1/1) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; } .cards .chapter-card { min-height: 200px; } }
 .chapter-card {

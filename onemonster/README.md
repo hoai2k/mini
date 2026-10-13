@@ -10,6 +10,14 @@ with the prize, and then the next monster is spotted eyeing it. Up to four
 players can take turns, and in *Snatch & Keep* two players go head to head,
 one snatching and one keeping the letter, swapping sides each chapter.
 
+*The Adventure* tells the same story as a side-scrolling picture book: nine
+long boards, one per snatch, each played as a different monster with its own
+moves (the Trollusk tiptoes and hops along Faddle Street, the Bombanat weaves
+through the wood, the Grumley swims under the goo, and so on), its own
+hazards and its own things to gather on the way, ending in the snatch. One
+player, or two to four taking a board each. See
+[`design/adventure.md`](design/adventure.md).
+
 Play it at https://hoai2k.github.io/mini/onemonster/. It sits behind the
 shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one in
 the `hoai2k.github.io` repository), which is off on localhost.
@@ -17,6 +25,8 @@ the `hoai2k.github.io` repository), which is off on localhost.
 - [`design/design.md`](design/design.md): the flow, the controls, the
   two-player mode, the nine snatches, the chase rules, how each creature moves,
   and how the sprites are animated.
+- [`design/adventure.md`](design/adventure.md): the side-scrolling Adventure,
+  board by board.
 - [`design/image-requests.md`](design/image-requests.md): the image requests,
   generated from [`design/source/build_requests.py`](design/source/build_requests.py)
   (which also writes `game/src/asset-list.js`); edit the data there and rerun it.
@@ -31,6 +41,7 @@ the `hoai2k.github.io` repository), which is off on localhost.
 | --- | --- |
 | `game/src/main.js` | Screens, menus, the journey (solo, turn-taking, Snatch & Keep), story pages, running a chapter (card, count-in, HUD, pause, celebration, postmarks) |
 | `game/src/chapters/*.js` | One module per snatch; `chapters/index.js` has the contract they keep and each chapter's texts |
+| `game/src/adventure/*.js` | The Adventure: `index.js` lists the boards and their texts, `kit.js` is the side-scroll kit (camera, backdrop panels, platforming, ground, pickups, route strip), `bNN.js` is one board each, with an `autopilot` that plays it |
 | `game/src/chase.js` | The chase kit: sprint and stamina, hiding and flushing, lunge and dodge, grab and tug, and the computer players |
 | `game/src/chasedraw.js` | Stamina rings, the tug bar, rustling cover, chase sounds |
 | `game/src/art.js`, `monsters.js` | Loading the sprites; drawing the monsters from their key poses with squash, lean, bob and shadows |
@@ -62,9 +73,11 @@ Leaving the tab or the window pauses play and suspends all sound.
 ```sh
 cd onemonster/game
 python3 -m http.server 8126           # then open http://localhost:8126/ (?all opens every chapter)
-node --test test/*.test.mjs           # the chase balance, every chapter's contract, each chapter's bots
+node --test test/*.test.mjs           # the chase balance, every chapter's and board's contract, the bots and autopilots
 node scripts/browser-check.mjs        # in Chromium: title, modes, prologue, then every chapter
                                       # through card, play, pause and celebration (SHOTS=dir for screenshots)
+node scripts/adventure-check.mjs      # in Chromium: every board played on its autopilot, with screenshots
+                                      # (board numbers to pick; SHOTS=dir, EVERY=seconds, PHONE=1)
 python3 ../design/source/build_requests.py --check
 python3 ../tools/build_sprites.py     # after new art is delivered: recut game/sprites/ (about 8 minutes)
 ```
