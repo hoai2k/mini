@@ -960,32 +960,6 @@ export default function create(env) {
     }
   }
 
-  function inkStack(g, s, bottom) {
-    const top = s.y;
-    g.save();
-    g.fillStyle = '#6f6274';
-    g.strokeStyle = INK;
-    g.lineWidth = 4.5;
-    g.lineJoin = 'round';
-    g.beginPath();
-    g.moveTo(s.x - 30, bottom);
-    const n = 8;
-    for (let i = 0; i <= n; i++) { const u = i / n; g.lineTo(s.x - 30 + (hash(s.x + i) - 0.3) * 40 + u * 25, lerp(bottom, top + 10, u)); }
-    g.lineTo(s.x + 8, top); g.lineTo(s.x + s.w * 0.5, top - 10); g.lineTo(s.x + s.w - 6, top);
-    for (let i = n; i >= 0; i--) { const u = i / n; g.lineTo(s.x + s.w + 30 - (hash(s.x + 50 + i) - 0.3) * 40 - u * 25, lerp(bottom, top + 10, u)); }
-    g.closePath();
-    g.fill(); g.stroke();
-    // A grassy top and hatching.
-    g.fillStyle = '#7d8a4a';
-    g.beginPath(); g.moveTo(s.x + 6, top + 2); g.lineTo(s.x + s.w * 0.5, top - 10); g.lineTo(s.x + s.w - 6, top + 2); g.lineTo(s.x + s.w - 20, top + 22); g.lineTo(s.x + 20, top + 22); g.closePath(); g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.35)';
-    g.lineWidth = 2;
-    g.beginPath();
-    for (let y = top + 60; y < bottom; y += 56) { const o = hash(y) * 40; g.moveTo(s.x + 20 + o, y); g.lineTo(s.x + 60 + o, y + 22); g.moveTo(s.x + s.w - 60 - o, y + 30); g.lineTo(s.x + s.w - 20 - o, y + 50); }
-    g.stroke();
-    g.restore();
-  }
-
   function inkLighthouse(g, x, base, h, w) {
     g.save();
     g.strokeStyle = INK;

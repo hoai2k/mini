@@ -47,16 +47,6 @@ const POST_RANGE = 150;
 
 const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-// A tug between two worn-out monsters mashing equally could last for ever:
-// the rope slowly slides toward whoever is ahead, faster the longer it goes.
-function tugTiebreak(chase, dt) {
-  const tg = chase.tug;
-  if (!tg) return;
-  const lead = tg.v - 0.5;
-  const k = 0.12 + Math.max(0, tg.t - 2.5) * 0.12;
-  tg.v = clamp(tg.v + (Math.sign(lead) || 1) * k * dt, 0.001, 0.999);
-}
-
 export default function create(env) {
   const { W, H } = env;
   art.preload(['props.grithix', 'props.trollusk', 'trollusk.poses', 'yalapappus.poses', 'yalapappus.swaps', 'bombanat.poses', 'grithix.poses']);
@@ -392,6 +382,8 @@ export default function create(env) {
       if (phase === 'net') {
         bin = env.versus ? (inH || {}) : aiHolder(chase, brain, env.skill, dt);
         if (!env.versus) {
+          // Tangled in the net it can't wriggle as fast as it would like: some of its pulls slip.
+          if (chase.tug && bin.actionPressed && env.rng() > 0.5 + 0.3 * env.skill) bin = { ...bin, actionPressed: false };
           // A canny Bombanat keeps away from the mailbox side of the clearing:
           // caught there, the letter would be posted in a moment.
           if (!chase.tug && bomb.mode === 'move' && !bomb.hidden && bomb.x > 1100) {
@@ -427,7 +419,6 @@ export default function create(env) {
         ghost.x = gx.x < 920 ? B.x1 : B.x0; ghost.y = gx.y < 785 ? B.y1 : B.y0;
         ghost.vx = ghost.vy = 0; ghost.mode = 'move';
       }
-      tugTiebreak(chase, dt);
       const ev = stepChase(chase, gin, bin, dt);
       eventFx(env, ev, fx);
       if (ev.some((e) => e.type === 'free')) { fx.say('Wriggled out!', bomb.x, bomb.y - bz - 200); hint = { text: 'It wriggled out! Net it again!', t: 2 }; }

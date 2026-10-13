@@ -715,7 +715,7 @@ export default function create(env) {
   }
 
   // Where the letter tag sits over the letter Bombanat (kept on screen).
-  const tagY = (b) => Math.max(120, b.y - 165);
+  const tagY = (b) => Math.max(170, b.y - 165);
 
   function drawFlier(g, b, tt) {
     const c = b.c;
@@ -852,14 +852,14 @@ function hint(g, text, W, t) {
   g.save();
   g.globalAlpha = a;
   g.fillStyle = 'rgba(251,246,232,0.9)';
-  g.fillRect(0, 196, W, 84);
+  g.fillRect(0, 300, W, 84);
   g.fillStyle = 'rgba(51,36,26,0.5)';
-  g.fillRect(0, 196, W, 4); g.fillRect(0, 276, W, 4);
+  g.fillRect(0, 300, W, 4); g.fillRect(0, 380, W, 4);
   g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.textBaseline = 'alphabetic';
   g.fillStyle = '#33241a';
-  g.fillText(text, W / 2, 253);
+  g.fillText(text, W / 2, 357);
   g.restore();
 }
 

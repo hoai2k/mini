@@ -1241,7 +1241,7 @@ export function autopilot(board) {
     const hoverY = 300;
     if (h.mode === 'dash' || h.mode === 'skid' || h.mode === 'peek') {
       // Reading his peek as a human would: a little early or late each time.
-      if (h.mode === 'peek' && ap.jitterFor !== h.dashes) { ap.jitterFor = h.dashes; ap.jitter = (rng() - 0.5) * 0.7; }
+      if (h.mode === 'peek' && ap.jitterFor !== h.dashes) { ap.jitterFor = h.dashes; ap.jitter = (rng() - 0.5) * 0.5; }
       // Where will he be when the jaws reach the floor? Simulate the dive.
       let sx = b.x, sy = b.y, svx = b.vx, svy = b.diving ? b.vy : 0, tt = 0;
       while (sy + 150 < FLOOR - 130 && tt < 1.5) {
