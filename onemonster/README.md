@@ -27,6 +27,15 @@ the `hoai2k.github.io` repository), which is off on localhost.
   story, style and monsters, for the image generator. Reference only; never
   published.
 
+The [Adventure design](design/adventure.md) has all 48 new image requests
+delivered: seven monster movement sheets in `game/assets/monsters/*/moves.png`,
+five terrain sheets in `game/assets/adventure/terrain/`, and three backdrop
+panels plus a prop sheet for each of the nine boards in `game/assets/adventure/bNN/`.
+The prompts, corrections, source dimensions and final checksums are recorded in
+`design/image-deliveries.json`. Generated images were resized to the requested
+canvases, preserving PNG alpha. Adventure gameplay and slicing these new sheets
+into web sprites are still pending; the existing minigames use their current sprites.
+
 | File | What it is |
 | --- | --- |
 | `game/src/main.js` | Screens, menus, the journey (solo, turn-taking, Snatch & Keep), story pages, running a chapter (card, count-in, HUD, pause, celebration, postmarks) |
