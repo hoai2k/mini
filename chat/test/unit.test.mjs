@@ -402,7 +402,8 @@ test('Baseball: swing timing against a pitch: early pulls, late goes the other w
   const lo = fair.reduce((m, h) => (h.ang < m.ang ? h : m)), hi = fair.reduce((m, h) => (h.ang > m.ang ? h : m));
   assert.ok(lo.ang < -0.4 && hi.ang > 0.4 && lo.tRel < hi.tRel, `${lo.ang} at ${lo.tRel} .. ${hi.ang} at ${hi.tRel}`);
   const third = Math.floor(fair.length / 3), avg = a => a.reduce((n, h) => n + h.ang, 0) / a.length;
-  assert.ok(avg(fair.slice(0, third)) < -0.2 && avg(fair.slice(-third)) > 0.2);
+  // (Late is the narrower side: a ball already past the plate is a miss, not a foul.)
+  assert.ok(avg(fair.slice(0, third)) < -0.2 && avg(fair.slice(-third)) > 0.1 && avg(fair.slice(-third)) - avg(fair.slice(0, third)) > 0.4);
   // Way too early or too late: a miss.
   assert.equal(B.findContact(p, 1.0, -1.5), null);
   assert.equal(B.findContact(p, 1.0, p.end + 0.1), null);
@@ -1768,36 +1769,43 @@ test('Beach Bump: a drop costs the player whose zone it fell in; the last one st
   assert.equal(over.t, hang.t);
 });
 
+test('Baseball: letting go as the ball reaches the plate hits it fair, straight away', async () => {
+  const B = (await import('../games/baseball.js'))._physics;
+  for (const type of ['fast', 'slow', 'curveL', 'curveR']) {
+    for (const seed of [3, 12, 21, 77]) {
+      const p = B.makePitch(type, seed);
+      let tPlate = 0;
+      for (let t = 0; t < p.end; t += 0.001) if (B.pitchAt(p, t).y >= B.HOME.y) { tPlate = t; break; }
+      for (const pull of [B.PULL_MAX, 0.8]) {
+        const c = B.findContact(p, pull, tPlate);
+        assert.ok(c, `${type}/${seed}/${pull}: the bat meets it`);
+        const ang = Math.atan2(c.L.vx, -c.L.vy) * 180 / Math.PI;
+        assert.ok(Math.abs(ang) < 25 && c.L.vy < 0, `${type}/${seed}/${pull}: out into the field (${ang.toFixed(0)} deg)`);
+        assert.notEqual(B.roll(c.L, 0.5, 0).end, 'foul', `${type}/${seed}/${pull}: fair`);
+      }
+    }
+  }
+});
+
 test('Baseball: human-like timing spreads hits over the whole field', async () => {
-  // Swings released around the moment that would send the ball straight away,
-  // with a person's timing (+-70 ms), mostly fully pulled: the results should
-  // use the whole board, not mostly fly out or mostly dribble.
+  // Players let go as the ball reaches the plate, give or take 80 ms, mostly
+  // fully pulled: few whiffs or fouls, and the hits use the whole board.
   const B = (await import('../games/baseball.js'))._physics;
   let seed = 4242;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
   const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
-  const ideal = (p, pull) => {
-    let best = null;
-    for (let t = -0.8; t < p.end; t += 0.006) {
-      const c = B.findContact(p, pull, t);
-      if (!c || c.L.vy >= 0) continue;
-      const a = Math.abs(Math.atan2(c.L.vx, -c.L.vy));
-      if (!best || a < best.a) best = { t, a };
-    }
-    return best?.t;
-  };
   const { pk, bonus } = B.dealLabels(rnd);
-  const n = { all: 0, F: 0, H: 0, O: 0, hits: 0, deep: 0, shallow: 0, wide: 0 };
+  const n = { all: 0, miss: 0, F: 0, H: 0, O: 0, hits: 0, deep: 0, shallow: 0, wide: 0 };
   const types = ['fast', 'fast', 'slow', 'curveL', 'curveR'];
-  for (let i = 0; i < 160; i++) {
+  for (let i = 0; i < 200; i++) {
     const p = B.makePitch(types[i % 5], Math.floor(rnd() * 2 ** 31));
     const pull = rnd() < 0.6 ? B.PULL_MAX : 0.6 + rnd() * 0.6;
-    const t0 = ideal(p, pull);
-    if (t0 == null) continue;
-    const c = B.findContact(p, pull, t0 + gauss() * 0.07);
+    let tPlate = 0;
+    for (let t = 0; t < p.end; t += 0.001) if (B.pitchAt(p, t).y >= B.HOME.y) { tPlate = t; break; }
+    const c = B.findContact(p, pull, tPlate - 0.03 + gauss() * 0.08);
     n.all++;
-    if (!c) continue;
-    if (Math.abs(Math.atan2(c.L.vx, -c.L.vy)) > 0.6) n.wide++;
+    if (!c) { n.miss++; continue; }
+    if (Math.abs(Math.atan2(c.L.vx, -c.L.vy)) > 0.5) n.wide++;
     const r = B.roll(c.L, rnd(), 0);
     const o = B.outcome(r, pk, bonus);
     n[o] = (n[o] || 0) + 1;
@@ -1806,9 +1814,10 @@ test('Baseball: human-like timing spreads hits over the whole field', async () =
     else if (r.y > 1.0) n.shallow++;
   }
   const f = k => n[k] / n.all;
-  assert.ok(f('F') > 0.03 && f('F') < 0.25, `fouls ${f('F')}`);
+  assert.ok(f('miss') < 0.15, `whiffs ${f('miss')}`);
+  assert.ok(f('F') < 0.2, `fouls ${f('F')}`);
   assert.ok(f('H') > 0.04 && f('H') < 0.25, `home runs ${f('H')}`);
-  assert.ok(f('hits') > 0.35 && f('hits') < 0.75, `hits ${f('hits')}`);
-  assert.ok(f('deep') > 0.15 && f('shallow') > 0.15, `deep ${f('deep')}, shallow ${f('shallow')}`);
-  assert.ok(f('wide') > 0.15, `hits towards the corners ${f('wide')}`);
+  assert.ok(f('hits') > 0.35 && f('hits') < 0.8, `hits ${f('hits')}`);
+  assert.ok(f('deep') > 0.15 && f('shallow') > 0.1, `deep ${f('deep')}, shallow ${f('shallow')}`);
+  assert.ok(f('wide') > 0.08, `hits towards the corners ${f('wide')}`);
 });

@@ -55,9 +55,12 @@ export const BASES = [{ x: 0.839, y: 1.02 }, { x: 0.5, y: 0.776 }, { x: 0.161, y
 export const WALL = { x: 0.5, y: 1.175, r: 1.0 };   // the outfield wall: a wide arc, its face 0.175 down in the middle
 export const SIDE = 0.02;                      // the tin rim at x = SIDE and 1 - SIDE
 export const RAIL_Y = 1.02;                    // past the bases the foul lines are rails
-export const CATCH_Y = 1.517;                  // a pitch this far down is in the catcher's mitt
+export const CATCH_Y = 1.56;                   // a pitch this far down is in the catcher's mitt
 export const PLATE_HALF = 0.05;
-export const PIVOT = { x: 0.36, y: 1.392 };    // the bat's pivot, beside the plate (a square hit meets the sweet spot)
+// The bat's pivot, beside and a little behind the plate: the bat squares up
+// over the plate, so letting go as the ball arrives hits it straight away (and
+// a fair hit any time from a quarter second early to a moment late).
+export const PIVOT = { x: 0.36, y: 1.48 };
 export const BAT_L = 0.2;
 export const BAT_W = 0.011;                    // half the barrel's thickness
 export const FIELDER_R = 0.03;
@@ -77,7 +80,7 @@ export const FIELDERS = [
   { id: 'CF', x: 0.5, y: 0.4, r: FIELDER_R },
   { id: 'RF', x: 0.8, y: 0.55, r: FIELDER_R },
 ];
-export const CATCHER = { x: 0.5, y: 1.532 };
+export const CATCHER = { x: 0.5, y: 1.6 };      // behind the plate, clear of the swinging bat
 
 // Pockets: ten fixed ones in groups (their labels are dealt per group) and
 // the home run pocket that slides along the wall (slot 10).
@@ -148,7 +151,7 @@ export function makePitch(type, seed) {
   const r = rng(seed)();
   const T = (HOME.y - PITCH_Y0) / k.v;
   let off = 0, D = 0;
-  if (k.side) D = k.side * (0.03 + 0.06 * r);
+  if (k.side) D = k.side * (0.015 + 0.025 * r);
   else off = (r - 0.5) * 0.024;
   return { type: TYPES[type] ? type : 'fast', seed, v: k.v, T, off, D, vanish: !!k.vanish, end: (CATCH_Y - PITCH_Y0) / k.v };
 }
@@ -178,9 +181,9 @@ export const PULL_MAX = 1.2;
 export const PULL_MIN = 0.06;
 export const PULL_RATE = 2.6;                  // rad/s while held
 export const TH_END = -1.75;
-// Stiff, like the toy's flipper: let go and the bat meets a ball at the plate
-// about a tenth of a second later.
-const SPRING_K = 300;
+// Stiff, like the toy's flipper: let go and the bat is round to the plate in
+// well under a tenth of a second.
+const SPRING_K = 600;
 const PRELOAD = 0.35;
 const BAT_DRAG = 3;                            // rad/s² once the spring lets go
 export const SWING_MS = 1200;                  // longest a swing can last
@@ -215,17 +218,12 @@ export const swingAt = (sw, ms) => {
 
 // How lively the bat is along its length: the sweet spot is near the barrel.
 export const batE = r => Math.max(0.12, Math.min(0.5, 0.5 - 30 * (r - 0.14) * (r - 0.14)));
-export const VMAX = 2.8;
+export const VMAX = 2.75;
 // Hits ease towards VMAX rather than stopping dead at it, so a harder swing
 // still hits harder.
-const VSOFT = 4.8;
+const VSOFT = 5.6;
 const SPIN_K = 0.35, SPIN_MAX = 1.6;
-// The ball rolls slowly past the bat, so where along the groove they meet only
-// turns the hit a little; this widens it so that timing spreads hits across
-// the whole field. Tuned with human-like timing (+-70 ms around the best
-// release): about 9% missed, 10% foul, and the rest spread from the corners
-// to straight away, 11% of them home runs.
-const AIM_GAIN = 1.7;
+const AIM_GAIN = 1.3;
 
 // The ball (centre b, velocity v) against the bat at angle th turning at om:
 // null when they don't touch or are parting, otherwise the ball's new velocity
@@ -251,6 +249,8 @@ export function batHit(b, v, th, om) {
   const vt = rvx * tx + rvy * ty;
   let ox = ux + rvx - (1 + e) * vn * nx - 0.12 * vt * tx;
   let oy = uy + rvy - (1 + e) * vn * ny - 0.12 * vt * ty;
+  // Widened a little (about the straight-away line) so timing reaches the
+  // corners: letting go as the ball arrives still hits it straight away.
   { const a = Math.atan2(ox, -oy) * AIM_GAIN, m = Math.sqrt(ox * ox + oy * oy); ox = Math.sin(a) * m; oy = -Math.cos(a) * m; }
   const sp = Math.hypot(ox, oy);
   { const k = sp > 1e-9 ? (VMAX * Math.tanh(sp / VSOFT)) / sp : 1; ox *= k; oy *= k; }
@@ -270,6 +270,7 @@ export function findContact(p, pull, tRel) {
     if (t > p.end) break;
     const b = pitchAt(p, t);
     if (b.under || b.held) continue;
+    if (b.y > HOME.y + 0.08) break;           // gone past the plate: too late to hit, a miss (not a foul)
     const h = batHit(b, { x: b.vx, y: b.vy }, sw.th[i], sw.om[i]);
     if (h) {
       return { ms: i, t: Math.round(t * 1000) / 1000, th: sw.th[i], along: h.along,
@@ -2198,6 +2199,17 @@ export default {
       // right); with `want` (outcomes such as '123H') only a release whose
       // neighbours a few ms either side roll to one of them too.
       _aim(pull, angle = 0, want = null, earliest = 0) {
+        if (!cur || !sh) return null;
+        // A wanted result the asked pull can't give reliably: try other pulls.
+        if (want && !this._aim1(pull, angle, want, earliest)) {
+          for (const p of [PULL_MAX, 1.0, 0.8, 0.6, 0.4]) {
+            const r = this._aim1(p, angle, want, earliest);
+            if (r) return r;
+          }
+        }
+        return this._aim1(pull, angle, want, earliest);
+      },
+      _aim1(pull, angle = 0, want = null, earliest = 0) {
         if (!cur || !sh) return null;
         const res = tRel => {
           const c = findContact(cur.p, pull, tRel);
