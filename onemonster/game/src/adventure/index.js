@@ -120,9 +120,14 @@ for (const b of BOARDS) {
 const loaders = Object.fromEntries(BOARDS.map((b) => [b.file, () => import(`./${b.file}.js`)]));
 
 export async function loadBoard(file) {
+  return (await loadBoardModule(file))?.default || null;
+}
+
+// The whole module: default (the factory), autopilot, and optionally HOWTO
+// (the how-to-play page's three steps, as for a chapter; chapters/index.js).
+export async function loadBoardModule(file) {
   try {
-    const m = await loaders[file]();
-    return m.default;
+    return await loaders[file]();
   } catch (e) {
     console.warn('[adventure] could not load', file, e);
     return null;

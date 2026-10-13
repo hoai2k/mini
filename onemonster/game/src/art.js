@@ -134,16 +134,56 @@ function baseScale(c) {
   return it ? (c.M.height / it.h) * c.sizeK : c.sizeK;
 }
 
+// Where a pose stands. Each pose is trimmed to its own bounding box, so an arm
+// flung out moves the box's middle: anchoring every pose at its middle makes
+// the creature hop sideways when the pose changes. Instead each pose is
+// anchored at its body: the middle of its feet (the bottom rows of the
+// drawing) for walkers, the middle of the whole drawing for fliers, measured
+// once from the image's alpha.
+const bodyX = new WeakMap(); // img -> { feet, mass } as 0..1 of the width
+function anchorX(sp, feet) {
+  let m = bodyX.get(sp.img);
+  if (m === undefined) {
+    m = null;
+    try {
+      const w = 64, h = Math.max(8, Math.round((64 * sp.h) / sp.w));
+      const cv = typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+      const cg = cv.getContext('2d', { willReadFrequently: true });
+      cg.drawImage(sp.img, 0, 0, w, h);
+      const d = cg.getImageData(0, 0, w, h).data;
+      let fx = 0, fn = 0, mx = 0, mn = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const a = d[(y * w + x) * 4 + 3];
+        if (a < 60) continue;
+        mx += x; mn++;
+        if (y >= h * 0.72) { fx += x; fn++; }
+      }
+      if (mn) m = { feet: fn ? (fx / fn + 0.5) / w : (mx / mn + 0.5) / w, mass: (mx / mn + 0.5) / w };
+    } catch { m = null; }
+    bodyX.set(sp.img, m);
+  }
+  if (!m) return 0.5;
+  // Stay near the middle: a pose drawn mid-stride is anchored partway.
+  return 0.5 + ((feet ? m.feet : m.mass) - 0.5) * 0.85;
+}
+
+// A smooth tremble for shaking poses (struggling, huffing): a random jolt
+// every frame reads as flicker, so this sways a few times a second instead.
+const tremble = (t, seed) => Math.sin(t * 31 + seed) * 0.6 + Math.sin(t * 17.3 + seed * 2) * 0.4;
+
+const FADE = 0.08; // seconds a pose change blends over
+
 // Draw at (c.x, c.y - c.z): feet (or middle, for flyers) at that point.
 export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true } = {}) {
   const { A, pose } = poseFrame(c);
   const sp = poseSprite(c, pose);
   const k = extraScale(c, pose, sp) ?? baseScale(c);
   const ay = A.spin && c.M.extras?.[pose] ? 0.5 : ANCHOR[c.id] ?? 1;
+  const ax = sp && !A.spin ? anchorX(sp, ay === 1) : 0.5;
   let x = c.x, y = c.y - c.z;
   const bob = A.bob && !reduceMotion ? Math.sin(t * 3.1 + c.x * 0.01) * A.bob : 0;
   const hop = A.hop && !reduceMotion ? -Math.abs(Math.sin(c.animT * 7)) * A.hop : 0;
-  const shake = A.shake && !reduceMotion ? (Math.random() - 0.5) * A.shake * 2 : 0;
+  const shake = A.shake && !reduceMotion ? tremble(t, c.x * 0.01) * A.shake : 0;
   const sq = reduceMotion ? c.sq * 0.4 : c.sq;
   const rot = c.lean + c.rot + (A.spin ? c.animT * 9 : 0);
   if (shadow && c.z >= 0) {
@@ -156,10 +196,24 @@ export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true 
     g.restore();
   }
   if (sp) {
-    drawSprite(g, sp, x + shake, y + hop, { scale: k, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob), alpha: c.alpha });
+    const o = { scale: k, ax, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob) };
+    // Blend from the last pose for a moment, so a change of pose doesn't pop.
+    if (c.drawnImg !== sp.img) {
+      if (c.drawnImg && !reduceMotion) c.fade = { sp: c.drawnSp, o: c.drawnO, t: FADE };
+      c.drawnImg = sp.img;
+    }
+    c.drawnSp = sp;
+    c.drawnO = o;
+    const f = c.fade;
+    if (f && f.t > 0) {
+      const a = f.t / FADE;
+      f.t -= 1 / 60;
+      drawSprite(g, f.sp, x + shake, y + hop, { ...f.o, alpha: c.alpha * a });
+      drawSprite(g, sp, x + shake, y + hop, { ...o, alpha: c.alpha * Math.min(1, 1.15 - a * 0.6) });
+    } else drawSprite(g, sp, x + shake, y + hop, { ...o, alpha: c.alpha });
     if (c.flash > 0) {
       g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = c.flash * 0.35;
-      drawSprite(g, sp, x + shake, y + hop, { scale: k, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob) });
+      drawSprite(g, sp, x + shake, y + hop, o);
       g.restore();
     }
   } else {

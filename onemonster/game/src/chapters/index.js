@@ -39,6 +39,22 @@
 //                               (default 1.4), for a longer story beat
 //   }
 //
+// THE HOW-TO-PLAY PAGE. A chapter module also exports HOWTO: the three steps
+// shown on the page before it starts (design.md, Flow), each
+//   { text: 'Creep from bush to bush.',      the caption, one short sentence
+//     scene: 'scenes/trollusk', crop: [x, y, w, h],   the backdrop: a part of a
+//                                            1920 x 1080 scene, scaled to fill
+//     items: [ ... ] }                       drawn in order on a 640 x 480 picture
+// The picture howto/chNN-k (image-requests.md, OM-H) replaces the composed one
+// when it arrives. Items, in 640 x 480 units:
+//   { creature: 'trollusk', anim: 'sneak', x, y, h, flip }  feet (fliers: middle) at x, y, h tall
+//   { sprite: ['props.trollusk', 5], x, y, h, ax, ay, rot }  a sprite (anchor default bottom middle)
+//   { cast: 3, x, y, h }                                    a cast sprite
+//   { path: [[x, y], ...], arrow: true }                    a dotted ink path, arrowhead at the end
+//   { ring: [x, y, r] }                                     a dashed ink ring, to point something out
+//   { word: 'SNAP!', x, y, size }                           a sound word in the book's style
+//   { draw: (g, t) => {} }                                  anything else, in code
+
 // Draw creatures with art.js (makeCreature, setAnim, animate, drawCreature),
 // props with art.prop(), scenes with art.drawScene(g, 'scenes/<monster>', W, H).
 // Chases use chase.js. Time running out must end in the snatch anyway, as in the
@@ -140,9 +156,13 @@ export const CHAPTERS = [
 const loaders = Object.fromEntries(CHAPTERS.map((c) => [c.file, () => import(`./${c.file}.js`)]));
 
 export async function loadChapter(file) {
+  return (await loadChapterModule(file))?.default || null;
+}
+
+// The whole module: default (the factory) and HOWTO (the how-to-play page).
+export async function loadChapterModule(file) {
   try {
-    const m = await loaders[file]();
-    return m.default;
+    return await loaders[file]();
   } catch (e) {
     console.warn('[chapters] could not load', file, e);
     return null;
