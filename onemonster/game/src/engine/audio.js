@@ -144,6 +144,18 @@ const SFX = {
   horn: () => tone(sfxBus, { f: 233, d: 0.6, v: 0.15, type: 'sawtooth', q: { f: 700 } }),
   motor: () => { for (let i = 0; i < 5; i++) tone(sfxBus, { f: 70, t: i * 0.07, d: 0.06, v: 0.1, type: 'sawtooth', q: { f: 400 } }); },
   eye: () => tone(sfxBus, { f: 1200, f2: 1600, d: 0.12, v: 0.06, type: 'sine' }),
+  // The Adventure's platforming sounds.
+  jump: () => tone(sfxBus, { f: 300, f2: 620, d: 0.14, v: 0.1, type: 'triangle' }),
+  land: () => noise(sfxBus, { d: 0.08, v: 0.14, f: 380, type: 'lowpass' }),
+  pickup: () => { tone(sfxBus, { f: 990, d: 0.07, v: 0.08, type: 'triangle' }); tone(sfxBus, { f: 1480, t: 0.06, d: 0.1, v: 0.08, type: 'triangle' }); },
+  boing: () => tone(sfxBus, { f: 180, f2: 520, d: 0.3, v: 0.16, type: 'sine', curve: 'lin' }),
+  crack: () => { noise(sfxBus, { d: 0.25, v: 0.4, f: 2600, f2: 500, q: 0.8 }); tone(sfxBus, { f: 160, f2: 60, d: 0.2, v: 0.2, type: 'square', q: { f: 900 } }); },
+  gust: () => noise(sfxBus, { d: 0.9, v: 0.14, f: 500, f2: 1200, q: 0.5 }),
+  bark: () => [0, 0.16].forEach((t) => tone(sfxBus, { f: 520, f2: 300, t, d: 0.09, v: 0.16, type: 'sawtooth', q: { f: 1600, q: 3 } })),
+  pop: () => tone(sfxBus, { f: 500, f2: 1400, d: 0.06, v: 0.12, type: 'sine' }),
+  checkpoint: () => [0, 7, 12].forEach((s, i) => tone(sfxBus, { f: 523 * 2 ** (s / 12), t: i * 0.07, d: 0.16, v: 0.08, type: 'triangle' })),
+  drip: () => tone(sfxBus, { f: 900, f2: 300, d: 0.12, v: 0.08, type: 'sine' }),
+  thunder: () => { noise(sfxBus, { d: 1.1, v: 0.35, f: 220, type: 'lowpass' }); tone(sfxBus, { f: 55, f2: 40, d: 0.9, v: 0.25, type: 'sine' }); },
   caught: () => [0, -1].forEach((s, i) => tone(sfxBus, { f: 500 * 2 ** (s / 12), t: i * 0.12, d: 0.14, v: 0.12, type: 'square', q: { f: 1500 } })),
 };
 

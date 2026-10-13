@@ -101,16 +101,30 @@ function poseFrame(c) {
   return { A, pose: A.frames[i] };
 }
 
+// An extra pose (not from the key-poses sheet) is [sheet, item, height on
+// screen, fallback pose]; until its sheet is delivered the fallback is drawn.
+function extraSprite(c, pose) {
+  const ex = c.M.extras?.[pose];
+  return ex ? sprite(ex[0], ex[1]) : null;
+}
+
 function poseSprite(c, pose) {
   if (c.M.poses[pose]) return sprite(`${c.id}.poses`, c.M.poses[pose]);
   const ex = c.M.extras?.[pose];
-  return ex ? sprite(ex[0], ex[1]) : null;
+  if (!ex) return null;
+  return extraSprite(c, pose) || (ex[3] && c.M.poses[ex[3]] ? sprite(`${c.id}.poses`, c.M.poses[ex[3]]) : null);
 }
 
 // An extra piece (not from the pose sheet) has its own height on screen.
 function extraScale(c, pose, sp) {
   const ex = c.M.extras?.[pose];
-  return ex && sp ? (ex[2] / sp.h) * c.sizeK : null;
+  const own = ex && sp ? extraSprite(c, pose) : null;
+  if (!own || own.img !== sp.img) return null;
+  if (ex[2]) return (ex[2] / sp.h) * c.sizeK;
+  // Drawn at the scale of the key poses: undo the two sheets' web scales.
+  const a = SPRITES.sheets[`${c.id}.poses`]?.scale || 1;
+  const b = SPRITES.sheets[ex[0]]?.scale || 1;
+  return baseScale(c) * (b ? a / b : 1);
 }
 
 // Scale that makes this creature's idle pose stand c.M.height tall (times sizeK).
@@ -157,7 +171,7 @@ export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true 
 export function creatureSize(c) {
   const { pose } = poseFrame(c);
   const sp = poseSprite(c, pose);
-  const k = baseScale(c);
+  const k = extraScale(c, pose, sp) ?? baseScale(c);
   return sp ? { w: sp.w * k, h: sp.h * k } : { w: c.M.height * 0.8, h: c.M.height };
 }
 

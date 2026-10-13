@@ -52,7 +52,14 @@
     <section id="modes" class="screen" hidden aria-labelledby="modes-title">
       <div class="menu-col">
         <h2 id="modes-title">How shall we play?</h2>
-        <button class="menu-btn primary" data-nav data-action="journey-1">The Journey <small>every snatch in the book, one after another</small></button>
+        <button class="menu-btn primary" data-nav data-action="adventure-1">The Adventure <small>follow the letter across nine boards, a different monster on each</small></button>
+        <div class="row-buttons players">
+          <span class="muted">Taking turns:</span>
+          <button class="menu-btn" data-nav data-action="adventure-2">2 players</button>
+          <button class="menu-btn" data-nav data-action="adventure-3">3</button>
+          <button class="menu-btn" data-nav data-action="adventure-4">4</button>
+        </div>
+        <button class="menu-btn" data-nav data-action="journey-1">The Minigame Journey <small>every snatch in the book as a quick minigame</small></button>
         <div class="row-buttons players">
           <span class="muted">Taking turns:</span>
           <button class="menu-btn" data-nav data-action="journey-2">2 players</button>
@@ -60,7 +67,7 @@
           <button class="menu-btn" data-nav data-action="journey-4">4</button>
         </div>
         <button class="menu-btn" data-nav data-action="versus">Snatch &amp; Keep <small>two players head to head: one snatches, one keeps</small></button>
-        <button class="menu-btn" data-nav data-action="chapters">One Monster <small>play any chapter you have reached</small></button>
+        <button class="menu-btn" data-nav data-action="chapters">One Monster <small>play any board or minigame you have reached</small></button>
         <button class="text-btn" data-nav data-action="title">Back</button>
       </div>
     </section>
@@ -86,7 +93,7 @@
 
     <!-- One Monster: the chapters -->
     <section id="chapters" class="screen" hidden aria-labelledby="chapters-title">
-      <header class="screen-head"><h2 id="chapters-title">One Monster</h2><p class="muted" id="chapters-sub">Play any snatch you have reached.</p></header>
+      <header class="screen-head"><h2 id="chapters-title">One Monster</h2><p class="muted" id="chapters-sub">Play any board or minigame you have reached.</p></header>
       <div id="chapter-cards" class="cards"></div>
       <footer class="screen-foot">
         <button class="text-btn" data-nav data-action="modes">Back</button>
