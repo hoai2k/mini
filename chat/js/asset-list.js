@@ -2047,24 +2047,8 @@ export const ASSET_LIST = {
     "file": "assets/games/burger-egg.png",
     "status": "delivered"
   },
-  "baseball-field": {
-    "file": "assets/games/baseball-field.webp",
-    "status": "delivered"
-  },
   "baseball-ball": {
     "file": "assets/games/baseball-ball.png",
-    "status": "delivered"
-  },
-  "baseball-bat": {
-    "file": "assets/games/baseball-bat.png",
-    "status": "delivered"
-  },
-  "baseball-pitcher-windup": {
-    "file": "assets/games/baseball-pitcher-windup.png",
-    "status": "delivered"
-  },
-  "baseball-pitcher-throw": {
-    "file": "assets/games/baseball-pitcher-throw.png",
     "status": "delivered"
   },
   "whack-field": {
