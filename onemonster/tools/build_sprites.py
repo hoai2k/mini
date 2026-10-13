@@ -66,6 +66,7 @@ IMAGES += [(f"assets/monsters/{m['id']}/portrait.png", f"portraits/{m['id']}.web
 IMAGES += [(f"assets/scenes/{m['id']}.webp", f"scenes/{m['id']}.webp", 1920) for m in br.MONSTERS]
 IMAGES += [(f"assets/story/{s}.webp", f"story/{s}.webp", 1920) for s in ("prologue", "mailman", "lucyjane")]
 IMAGES.append(("assets/props/sallyann-house.png", "props/sallyann-house.webp", 1024))
+IMAGES.append(("assets/monsters/bombanat/plain-perched.png", "bombanat/plain-perched.webp", 720))
 IMAGES.append(("assets/adventure/b07/palm-arch.png", "adv/b07/palm-arch.webp", 1400))
 # The minigames' how-to-play pictures.
 IMAGES += [(f"assets/howto/ch{n:02d}-{k}.webp", f"howto/ch{n:02d}-{k}.webp", 1024) for n in br.HOWTO for k in (1, 2, 3)]
@@ -95,6 +96,8 @@ def sheets() -> list[dict]:
     out += [{"key": sh["key"], "kind": "poses", "file": sh["file"], "items": sh["items"]} for sh in br.AUDIT_SHEETS]
     out.append({"key": "adv.b05.windmill", "kind": "props", "file": "assets/adventure/b05/windmill.png",
                 "items": ["the windmill tower on its island, no sails", "the four sails alone, hub in the centre"]})
+    out.append({"key": "adv.b03.boats", "kind": "props", "file": "assets/adventure/b03/boats.png",
+                "items": ["a teal fishing boat like the Peg", "a red fishing boat with a crane and net"]})
     out.append({"key": "cast", "kind": "cast", "file": "assets/cast/sprites.png", "items": [
         "Sally Ann at her window, looking out", "Sally Ann at her window, turned away writing",
         "the neighbour peering over her spectacles", "the neighbour dozing",

@@ -221,7 +221,7 @@ export default function create(env) {
 
   function takeOff() {
     b.mode = 'fly'; b.modeT = 0; b.perch = null;
-    b.vy = -340; b.vx = b.facing * 240;
+    b.vy = -260; b.vx = b.facing * 240;
     b.flapT = 0.3;
     art.kick(bc, -0.4);
     env.sfx('flap');
@@ -1491,7 +1491,7 @@ export function autopilot(board) {
   // Travelling: sweep columns ahead and keep the y-ranges a flier can reach
   // (climbing or sinking about a pixel per pixel of travel); make for the
   // farthest reachable gap, and back out of a pocket that closes ahead.
-  const M = 58;
+  const M = 76; // the body's half height plus a margin
   const freeIn = (x0, x1) => {
     const blocked = [];
     for (const s of solids) {
@@ -1563,6 +1563,7 @@ export function autopilot(board) {
   const wall = solids.some((s) => s.kind !== 'floor' && s.kind !== 'leaves' && s.x > b.x + 40 && s.x < b.x + 300 && b.y + 60 > s.y - 10 && b.y - 60 < s.y + s.h + 10);
   // (A dive always drives forward, so near a wall he brakes and sinks instead.)
   if (wall && Math.abs(err) > 70 && !wait) out.x = b.vx > -60 ? -1 : 0;
+  ap.dbg = { target, wall, depth, pick: pick && pick.iv };
   if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
   else if (err < -130 && !wall && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.

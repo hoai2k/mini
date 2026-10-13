@@ -129,7 +129,7 @@ export default function create(env) {
     { x: S3 + 2600, paper: 2 }, { x: S4 + 1000, paper: 2 }, { x: OPEN_X - 500, paper: 0 }, { x: WORLD - 500, paper: 0 }]
     .map((t) => ({ ...t, shakeT: 0, seed: rng() }));
   // Each curtain is a goo-dripping branch (terrain 7); its long drips are the sticky zones.
-  const curtains = [S2 + 500, S2 + 1500, S2 + 2500, S2 + 3400].map((x) => ({ x, w: 600, zones: [[-290, 90], [140, 300]], top: 320, bottom: 690, dripT: rng() * 2 }));
+  const curtains = [S2 + 500, S2 + 1500, S2 + 2500, S2 + 3400].map((x) => ({ x, w: 600, zones: [[-200, 300], [300, 340]], top: 320, bottom: 690, dripT: rng() * 2 }));
   const toads = [{ x0: S2 + 850, x1: S2 + 1100 }, { x0: S2 + 1980, x1: S2 + 2130 }, { x0: S3 + 1000, x1: S3 + 1300 }, { x0: S4 + 1800, x1: S4 + 2100 }]
     .map((t, i) => ({ ...t, x: (t.x0 + t.x1) / 2, dir: i % 2 ? -1 : 1, hop: rng() * 2, stun: 0, grump: 0, bowled: false }));
   const cps = kit.makeCheckpoints([0, S2 + 100, S3, S4, OPEN_X]);
@@ -733,33 +733,34 @@ export default function create(env) {
   // arrives), slopes as ink polygons with the slope pieces on top.
   // The strip's walkable soil edge sits 52/125 down the piece (grass tufts above it).
   const STRIP_H = 240, STRIP_K = STRIP_H / 125, STRIP_LIFT = 52 * STRIP_K;
-  const FILL = '#b0843f'; // the strip's lower soil, for everything below it
+  const FILL = '#7d5e31'; // the strip's lowest soil, for everything below it
   const stripOpts = { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT, fill: FILL };
   const originCam = { x: 0 }; // for the kit's culling inside a transformed space
   function drawGround(g) {
     const delivered = !!art.sprite(TERRAIN, 1);
     if (delivered) {
+      // Slopes first: the strip sheared along the hill (overflowing a little into
+      // the flats so the tufts join), then the flats over it, then the slope pieces.
       for (const s of segs) {
-        if (s.hole || !cam.sees(s.x0, s.x1)) continue;
-        if (s.kind === 'flat') {
-          kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, stripOpts);
-          // Cover the strip's own ink bottom edge with the soil fill.
-          g.fillStyle = FILL;
-          g.fillRect(Math.max(s.x0, cam.x - 40), s.y0 - STRIP_LIFT + STRIP_H - 9 * STRIP_K, Math.min(s.x1, cam.x + W + 40) - Math.max(s.x0, cam.x - 40), H);
-        } else {
-          // The strip sheared along the slope, so the soil texture runs on, then the slope piece over its edge.
-          const k = (s.y1 - s.y0) / (s.x1 - s.x0);
-          g.save();
-          g.beginPath(); g.rect(s.x0, 0, s.x1 - s.x0, H + 100); g.clip();
-          g.translate(s.x0, s.y0);
-          g.transform(1, k, 0, 1, 0, 0);
-          kit.drawGround(g, originCam, { x: 0, y: 0, w: s.x1 - s.x0, h: H + 300 }, stripOpts);
-          g.fillStyle = FILL;
-          g.fillRect(0, -STRIP_LIFT + STRIP_H - 9 * STRIP_K, s.x1 - s.x0, H + 300);
-          g.restore();
-          drawSlope(g, s, true);
-        }
+        if (s.hole || s.kind === 'flat' || !cam.sees(s.x0, s.x1)) continue;
+        const k = (s.y1 - s.y0) / (s.x1 - s.x0);
+        g.save();
+        g.beginPath(); g.rect(s.x0 - 40, 0, s.x1 - s.x0 + 80, H + 100); g.clip();
+        g.translate(s.x0, s.y0);
+        g.transform(1, k, 0, 1, 0, 0);
+        kit.drawGround(g, originCam, { x: -40, y: 0, w: s.x1 - s.x0 + 80, h: H + 300 }, stripOpts);
+        g.fillStyle = FILL;
+        g.fillRect(-40, -STRIP_LIFT + STRIP_H - 9 * STRIP_K, s.x1 - s.x0 + 80, H + 300);
+        g.restore();
       }
+      for (const s of segs) {
+        if (s.hole || s.kind !== 'flat' || !cam.sees(s.x0, s.x1)) continue;
+        kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, stripOpts);
+        // Cover the strip's own ink bottom edge with the soil fill.
+        g.fillStyle = FILL;
+        g.fillRect(Math.max(s.x0, cam.x - 40), s.y0 - STRIP_LIFT + STRIP_H - 9 * STRIP_K, Math.min(s.x1, cam.x + W + 40) - Math.max(s.x0, cam.x - 40), H);
+      }
+      for (const s of segs) if (!s.hole && s.kind !== 'flat' && cam.sees(s.x0, s.x1)) drawSlopePiece(g, s);
     } else {
       drawProfileInk(g);
     }
@@ -769,7 +770,7 @@ export default function create(env) {
       const yl = profileY(s.x0 - 1), yr = profileY(s.x1 + 1);
       g.save();
       const gr = g.createLinearGradient(0, Math.min(yl, yr), 0, H + 100);
-      gr.addColorStop(0, '#7a5330'); gr.addColorStop(0.35, '#3e2a18'); gr.addColorStop(1, '#120b06');
+      gr.addColorStop(0, FILL); gr.addColorStop(0.35, '#3e2a18'); gr.addColorStop(1, '#120b06');
       g.fillStyle = gr;
       g.beginPath(); g.moveTo(s.x0 - 30, yl); g.lineTo(s.x1 + 30, yr); g.lineTo(s.x1 + 30, H + 100); g.lineTo(s.x0 - 30, H + 100); g.closePath(); g.fill();
       // Roots in the walls.
@@ -866,16 +867,25 @@ export default function create(env) {
     g.restore();
   }
 
+  // The slope pieces are wedges with a level bottom (a ramp lying on flat
+  // ground), so only their grassy edge is used: scaled and turned so the drawn
+  // soil edge runs from (x0, y0) to (x1, y1), and clipped to a band along it;
+  // the sheared strip beneath supplies the soil.
   function drawSlopePiece(g, s) {
     const up = s.kind === 'up';
     const sp = art.sprite(TERRAIN, up ? 2 : 3);
     if (!sp) return;
-    const [ax0, ay0, ax1, ay1] = up ? [140, 170, 1240, 35] : [250, 30, 1300, 165];
-    const sx = (s.x1 - s.x0) / (ax1 - ax0);
-    const sy = Math.abs(s.y1 - s.y0) / Math.abs(ay1 - ay0);
+    const [ax0, ay0, ax1, ay1, soil] = up ? [140, 170, 1240, 35, 26] : [250, 30, 1300, 165, 37];
+    const k = Math.hypot(s.x1 - s.x0, s.y1 - s.y0) / Math.hypot(ax1 - ax0, ay1 - ay0);
+    const rot = Math.atan2(s.y1 - s.y0, s.x1 - s.x0) - Math.atan2(ay1 - ay0, ax1 - ax0);
+    const b = soil * k - 6;
     g.save();
+    g.beginPath();
+    g.moveTo(s.x0, s.y0 - 130); g.lineTo(s.x1, s.y1 - 130); g.lineTo(s.x1, s.y1 + b); g.lineTo(s.x0, s.y0 + b);
+    g.closePath(); g.clip();
     g.translate(s.x0, s.y0);
-    g.scale(sx, sy);
+    g.rotate(rot);
+    g.scale(k, k);
     g.drawImage(sp.img, -ax0, -ay0, sp.w, sp.h);
     g.restore();
   }
@@ -1028,7 +1038,7 @@ export default function create(env) {
     const y = gy(td.x) ?? GY;
     const hopZ = td.stun > 0 ? 0 : Math.max(0, Math.sin(td.hop * 7)) * 26;
     const flip = td.dir < 0;
-    kit.sprite(g, PROPS, 10, td.x, y - hopZ, { height: 110, ay: 1, flip }, (gg) => {
+    kit.sprite(g, PROPS, 10, td.x, y - hopZ + 4, { height: 130, ay: 1, flip }, (gg) => {
       gg.save();
       gg.translate(td.x, y - hopZ);
       gg.scale(flip ? -1 : 1, 1);

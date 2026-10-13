@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-11 requested, 129 delivered, 140 in total.
+13 requested, 129 delivered, 142 in total.
 
 ## Brand
 
@@ -1913,4 +1913,30 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, side-on, at the same scale, with plenty of clear space between them. On the left: an old stone windmill tower with a shingled cap, standing on a small rocky island with waves at its foot, WITHOUT any sails: only the round hub on the front of the cap. On the right: the four wooden lattice sails alone, as one cross-shaped piece seen face-on, their hub exactly in the centre of the image, so the game can spin them about that centre. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg .
+```
+
+### OM-Z07 · Board 3: fishing boats on the goo, side-on
+
+- **File:** `onemonster/game/assets/adventure/b03/boats.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Board 3's fishing grounds: boats on the surface that drop anchors and nets on the Grumley.
+- **Stand-in until delivered:** Boats drawn in code.
+- **Reference:** [`reference/pages-16-17-grumley-netted.jpg`](../reference/pages-16-17-grumley-netted.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, both seen exactly side-on facing right, at the same scale, floating, the waterline straight along their bottom with only a little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-16-17-grumley-netted.jpg .
+```
+
+### OM-Z08 · Plain Bombanat perched, without a branch
+
+- **File:** `onemonster/game/assets/monsters/bombanat/plain-perched.png`
+- **Size:** 1024 x 1024, transparent
+- **Used for:** Plain Bombanats perched on boat roofs, rocks and the island (boards 3 and 9).
+- **Stand-in until delivered:** Plain Bombanat pose 7, which is drawn on a leafy branch.
+- **Reference:** [`reference/bombanat-and-pony-express-boy.jpg`](../reference/bombanat-and-pony-express-boy.jpg), [`reference/bombanat-over-the-goo.jpg`](../reference/bombanat-over-the-goo.jpg), [`reference/cover-golden-book-1974.jpg`](../reference/cover-golden-book-1974.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A big, shaggy, expressive picture-book monster with a lot of character: greedy, sly or put-upon rather than frightening, with pink snout, paws and feet where it has them. The Letter-Eating Bombanat, as in the book: a small, dark, shaggy body with huge lilac-mauve bat wings with thin finger bones and little claws at the tips, a long pink crocodile-like snout full of small sharp teeth, a sly frowning eye, a red striped cap with a little yellow propeller on top, a red-and-white striped necktie, clawed pink feet and a thin curling pink tail. Flying with wings spread, a white envelope in his teeth. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C02 (file onemonster/game/assets/monsters/bombanat/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach the plain Bombanats sheet, request OM-Z01 (file onemonster/game/assets/monsters/bombanat/plain.png), and match it: an ordinary Bombanat with NO necktie, NO cap or propeller and NO letter, duller grey-brown fur. A single sprite: perched with the wings folded, gripping with its clawed feet, side view facing right, standing on NOTHING (no branch, no ground), its feet level at the bottom of the drawing, at the same scale as the plain Bombanats sheet. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
