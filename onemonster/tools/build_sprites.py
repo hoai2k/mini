@@ -52,7 +52,7 @@ import scene_front  # noqa: E402
 # Longest side, in pixels, of the biggest item on each kind of sheet; the rest of
 # the sheet keeps its scale relative to it. About twice what the game draws on a
 # 1920 x 1080 screen, so it stays sharp on high-density displays.
-SIZES = {"poses": 720, "props": 360, "cast": 480, "swaps": 480}
+SIZES = {"poses": 720, "moves": 720, "props": 360, "cast": 480, "swaps": 480, "terrain": 1400}
 # Single images: (source, output, longest side).
 IMAGES = [("assets/ui/logo.png", "ui/logo.webp", 1600),
           ("assets/ui/icon.png", "ui/icon.webp", 512),
@@ -65,8 +65,14 @@ IMAGES += [(f"assets/monsters/{m['id']}/portrait.png", f"portraits/{m['id']}.web
            for m in br.MONSTERS]
 IMAGES += [(f"assets/scenes/{m['id']}.webp", f"scenes/{m['id']}.webp", 1920) for m in br.MONSTERS]
 IMAGES += [(f"assets/story/{s}.webp", f"story/{s}.webp", 1920) for s in ("prologue", "mailman", "lucyjane")]
+IMAGES.append(("assets/props/sallyann-house.png", "props/sallyann-house.webp", 1024))
+IMAGES.append(("assets/monsters/bombanat/plain-perched.png", "bombanat/plain-perched.webp", 720))
+IMAGES.append(("assets/adventure/b07/palm-arch.png", "adv/b07/palm-arch.webp", 1400))
 # The minigames' how-to-play pictures.
 IMAGES += [(f"assets/howto/ch{n:02d}-{k}.webp", f"howto/ch{n:02d}-{k}.webp", 1024) for n in br.HOWTO for k in (1, 2, 3)]
+# The Adventure's backdrop panels (design/adventure.md).
+IMAGES += [(f"assets/adventure/b{b['n']:02d}/backdrop-{k}.webp", f"adv/b{b['n']:02d}/backdrop-{k}.webp", 1920)
+           for b in br.BOARDS for k in (1, 2, 3)]
 # Colour fixes for single items: sheet key -> {item number: hue in degrees}.
 RECOLOUR = {"props.grumley": {6: 205}}  # the goo ring came out olive; the goo is blue
 
@@ -79,6 +85,21 @@ def sheets() -> list[dict]:
                 "items": br.RIGS["yalapappus"]["swaps"]})
     out += [{"key": f"props.{mid}", "kind": "props", "file": f"assets/props/{mid}.png", "items": items}
             for mid, _view, items in br.PROPS]
+    # The Adventure: each monster's new poses, each board's props, each place's ground.
+    out += [{"key": f"{mid}.moves", "kind": "moves", "file": f"assets/monsters/{mid}/moves.png", "items": items}
+            for mid, items in br.MOVES.items()]
+    out += [{"key": f"adv.b{b['n']:02d}.props", "kind": "props", "file": f"assets/adventure/b{b['n']:02d}/props.png",
+             "items": b["props"]} for b in br.BOARDS]
+    out += [{"key": f"terrain.{pid}", "kind": "terrain", "file": f"assets/adventure/terrain/{pid}.png", "items": items}
+            for pid, _name, _ref, items in br.TERRAIN]
+    # The minigame audit's extra sheets (OM-Z01..03).
+    out += [{"key": sh["key"], "kind": "poses", "file": sh["file"], "items": sh["items"]} for sh in br.AUDIT_SHEETS]
+    out.append({"key": "adv.b05.windmill", "kind": "props", "file": "assets/adventure/b05/windmill.png",
+                "items": ["the windmill tower on its island, no sails", "the four sails alone, hub in the centre"]})
+    out.append({"key": "adv.b03.boats", "kind": "props", "file": "assets/adventure/b03/boats.png",
+                "items": ["a teal fishing boat like the Peg", "a red fishing boat with a crane and net"]})
+    out.append({"key": "adv.trunks", "kind": "props", "file": "assets/adventure/terrain/trunks.png",
+                "items": ["a plain trunk section", "a trunk section with a hollow through it"]})
     out.append({"key": "cast", "kind": "cast", "file": "assets/cast/sprites.png", "items": [
         "Sally Ann at her window, looking out", "Sally Ann at her window, turned away writing",
         "the neighbour peering over her spectacles", "the neighbour dozing",
@@ -175,7 +196,9 @@ def main() -> int:
             problems.append(f"{s['key']}: {how}")
             continue
         scale = SIZES[s["kind"]] / max(max(c.shape[:2]) for c in cuts)
-        entry = {"names": s["items"], "items": []}
+        # scale: web pixels per delivered pixel, so sheets drawn at one scale
+        # (a monster's poses and its moves) can be matched in the game.
+        entry = {"names": s["items"], "scale": round(scale, 5), "items": []}
         for i, c in enumerate(cuts, start=1):
             im = Image.fromarray(c)
             im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)

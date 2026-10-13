@@ -6,7 +6,8 @@
 import { createInput, BTN } from './engine/input.js';
 import * as audio from './engine/audio.js';
 import { loadSettings, saveSettings, loadProgress, saveProgress, resetProgress } from './engine/store.js';
-import { CHAPTERS, loadChapter, makeRng } from './chapters/index.js';
+import { CHAPTERS, loadChapterModule, makeRng } from './chapters/index.js';
+import { BOARDS, loadBoardModule, boardArt } from './adventure/index.js';
 import { MONSTERS } from './monsters.js';
 import * as art from './art.js';
 
@@ -27,7 +28,7 @@ const S = {
   screen: 'title',
   modals: [],
   titleUtil: false,
-  mode: { kind: 'journey', players: 1 }, // kind: 'journey' | 'versus' | 'one'
+  mode: { kind: 'journey', players: 1 }, // kind: 'adventure' | 'journey' | 'versus' | 'one' (list: 'adv' | 'mini')
   ci: 0, // chapter index 0..8
   factory: null,
   chapter: null,
@@ -133,7 +134,7 @@ function cover(img) {
 
 // ---------- screens and modals ----------
 
-const SCREENS = ['title', 'modes', 'join', 'chapters', 'story', 'card', 'celebrate', 'final'];
+const SCREENS = ['title', 'modes', 'join', 'chapters', 'story', 'card', 'howto', 'celebrate', 'final'];
 
 function show(screen) {
   S.screen = screen;
@@ -230,10 +231,13 @@ function moveFocus(dx, dy) {
 
 // ---------- who plays what ----------
 
-const chapterOf = (ci) => CHAPTERS[ci];
+// The Adventure plays the side-scrolling boards; everything else the minigames.
+const isAdv = () => S.mode.kind === 'adventure' || (S.mode.kind === 'one' && S.mode.list === 'adv');
+const list = () => (isAdv() ? BOARDS : CHAPTERS);
+const chapterOf = (ci) => list()[ci];
 function snatcherPlayer(ci) {
   if (S.mode.kind === 'versus') return ci % 2;
-  if (S.mode.kind === 'journey') return ci % S.mode.players;
+  if (S.mode.kind === 'journey' || S.mode.kind === 'adventure') return ci % S.mode.players;
   return 0;
 }
 const holderPlayer = (ci) => (S.mode.kind === 'versus' ? 1 - snatcherPlayer(ci) : -1);
@@ -241,32 +245,43 @@ const pName = (p) => `Player ${p + 1}`;
 
 // ---------- the chapters list (One Monster) ----------
 
-const reached = (ci) => ALL_OPEN || ci + 1 <= progress.reached;
+// Progress is kept apart for the Adventure (advReached, advBest) and the minigames.
+const reachedIn = (adv, ci) => ALL_OPEN || ci + 1 <= (adv ? progress.advReached || 1 : progress.reached);
+const bestIn = (adv) => (adv ? (progress.advBest ||= {}) : progress.best);
 
 function buildChapters() {
   const wrap = $('#chapter-cards');
   wrap.textContent = '';
-  CHAPTERS.forEach((c, ci) => {
-    const open = reached(ci);
+  for (const adv of [true, false]) {
+    const h = document.createElement('h3');
+    h.className = 'cards-shelf';
+    h.textContent = adv ? 'The Adventure' : 'The minigames';
+    wrap.append(h);
+    (adv ? BOARDS : CHAPTERS).forEach((c, ci) => wrap.append(chapterButton(adv, c, ci)));
+  }
+  wrap.querySelector('button')?.focus();
+}
+
+function chapterButton(adv, c, ci) {
+    const open = reachedIn(adv, ci);
     const b = document.createElement('button');
     b.className = 'chapter-card' + (open ? '' : ' locked');
     b.dataset.nav = '';
     const M = MONSTERS[c.snatcher];
     if (open) b.style.backgroundImage = `url(${art.imageSrc('portraits/' + c.snatcher)})`;
-    b.setAttribute('aria-label', open ? `Chapter ${c.n}: ${c.title}, as ${M.name}` : `Chapter ${c.n}, not yet reached`);
-    const best = progress.best[c.n] || 0;
+    const word = adv ? 'Board' : 'Chapter';
+    b.setAttribute('aria-label', open ? `${word} ${c.n}: ${c.title}, as ${M.name}` : `${word} ${c.n}, not yet reached`);
+    const best = bestIn(adv)[c.n] || 0;
     b.innerHTML = `<span class="cc-n">${c.n}</span><span class="cc-title">${open ? c.title : 'Not yet reached'}</span><span class="cc-marks">${open ? `${M.short} · ${'✉'.repeat(best)}${'·'.repeat(3 - best)}` : ''}</span>`;
     b.addEventListener('click', () => {
       audio.unlock();
-      if (!open) { toast('Play the journey to reach this chapter.'); audio.sfx('back'); return; }
+      if (!open) { toast(adv ? 'Play the Adventure to reach this board.' : 'Play the journey to reach this chapter.'); audio.sfx('back'); return; }
       audio.sfx('select');
-      S.mode = { kind: 'one', players: 1 };
+      S.mode = { kind: 'one', players: 1, list: adv ? 'adv' : 'mini' };
       S.tally = [0];
       showCard(ci);
     });
-    wrap.append(b);
-  });
-  wrap.children[0]?.focus();
+    return b;
 }
 
 // ---------- story pages ----------
@@ -300,6 +315,15 @@ function startJourney(players) {
   showStory(STORY.prologue, () => showCard(0));
 }
 
+function startAdventure(players) {
+  S.mode = { kind: 'adventure', players };
+  S.tally = Array(players).fill(0);
+  S.log = [];
+  input.assign(0, ['all']);
+  input.setTouchZones(1);
+  showStory(STORY.prologue, () => showCard(0));
+}
+
 function startVersus() {
   S.mode = { kind: 'versus', players: 2 };
   S.tally = [0, 0];
@@ -312,16 +336,28 @@ async function showCard(ci) {
   const c = chapterOf(ci);
   const M = MONSTERS[c.snatcher];
   S.factory = null;
+  const adv = isAdv();
   const keys = [`${c.snatcher}.poses`, c.scene, `${c.scene}-front`, 'portraits/' + c.snatcher, 'cast', 'ui/letter', 'ui/postmark', 'yalapappus.swaps',
     ...['trollusk', 'bombanat', 'grumley', 'iceferg', 'typhoonigator', 'yalapappus', 'grithix'].map((p) => `props.${p}`)];
   if (MONSTERS[c.holder]) keys.push(`${c.holder}.poses`);
+  // A board shows the others on the way too: load every monster's poses.
+  if (adv) keys.push(...boardArt(c), ...Object.keys(MONSTERS).flatMap((m) => [`${m}.poses`, `${m}.moves`]));
+  // The audit's extra sheets (plain Bombanats, the bare Ice-Ferg and its sea lions, Sally Ann's house).
+  keys.push('bombanat.plain', 'iceferg.bare', 'iceferg.sealions', 'props/sallyann-house');
   art.preload(keys);
-  loadChapter(c.file).then((f) => { if (S.ci === ci) S.factory = f; });
+  S.howto = null;
+  (adv ? loadBoardModule : loadChapterModule)(c.file).then((m) => {
+    if (S.ci !== ci || chapterOf(ci) !== c || !m) return;
+    S.factory = m.default || null;
+    S.howto = m.HOWTO || null;
+    const nn = String(c.n).padStart(2, '0');
+    if (S.howto) art.preload(S.howto.map((_, k) => `howto/${adv ? 'b' : 'ch'}${nn}-${k + 1}`));
+  });
   // DOM
   $('#card-eyeing').textContent = c.eyeing;
   $('#card-portrait').src = art.imageSrc('portraits/' + c.snatcher) || '';
   $('#card-portrait').alt = M.name;
-  $('#card-chapter').textContent = `Chapter ${c.n} of ${CHAPTERS.length} · ${c.title}`;
+  $('#card-chapter').textContent = `${adv ? 'Board' : 'Chapter'} ${c.n} of ${list().length} · ${c.title}`;
   $('#card-name').textContent = M.name;
   $('#card-wants').textContent = `What it wants: ${M.wants}.`;
   let turn = '';
@@ -330,14 +366,152 @@ async function showCard(ci) {
   $('#card-turn').textContent = turn;
   $('#card-turn').hidden = !turn;
   $('#card-goal').textContent = c.goal;
-  fillList('#card-controls', c.controlsS);
-  $('#card-holder').hidden = S.mode.kind !== 'versus';
-  $('#card-holder-goal').textContent = c.holderGoal;
-  fillList('#card-holder-controls', c.controlsH);
-  $('#card-go').textContent = input.kind === 'controller' ? 'Snatch it! (A)' : 'Snatch it!';
+  $('#card-go').textContent = input.kind === 'controller' ? 'How to play ▸ (A)' : 'How to play ▸';
   buildTableau(c, 'eye');
   show('card');
   audio.playMusic('menu');
+}
+
+// ---------- how to play ----------
+// A page of the book before each chapter: three numbered pictures of what to
+// do (the chapter's HOWTO, chapters/index.js), then each side's goal and
+// controls, shown as the buttons of the device in use.
+
+function showHowto() {
+  const c = chapterOf(S.ci);
+  const adv = isAdv();
+  const versus = S.mode.kind === 'versus';
+  const steps = S.howto || [];
+  $('#howto-title').textContent = `How to play: ${c.title}`;
+  $('#howto-steps').hidden = !steps.length;
+  document.querySelectorAll('#howto-steps .howto-step').forEach((fig, k) => {
+    fig.hidden = !steps[k];
+    fig.querySelector('.howto-text').textContent = steps[k]?.text || '';
+  });
+  const M = MONSTERS[c.snatcher];
+  const sides = [{ who: versus ? `${pName(snatcherPlayer(S.ci))}: the ${M.short}` : `You are the ${M.short}`, goal: c.goal, lines: c.controlsS, keys: versus ? 'kb1' : 'kb' }];
+  if (versus) sides.push({ who: `${pName(holderPlayer(S.ci))}: ${c.holderName}`, goal: c.holderGoal, lines: c.controlsH, keys: 'kb2' });
+  for (let i = 0; i < 2; i++) {
+    const el = $('#howto-side-' + i);
+    el.hidden = !sides[i];
+    if (!sides[i]) continue;
+    el.querySelector('.howto-who').textContent = sides[i].who;
+    el.querySelector('.howto-goal').textContent = steps.length && !versus ? '' : sides[i].goal;
+    const ul = el.querySelector('.howto-keys');
+    ul.textContent = '';
+    for (const line of sides[i].lines) ul.append(controlItem(line, sides[i].keys));
+  }
+  $('#howto-marks').textContent = adv
+    ? `Postmarks: one for the snatch, one for gathering ${c.collect}, one for this: ${c.feat.toLowerCase()}.`
+    : 'Postmarks: the faster the snatch, the more you get (up to three).';
+  const go = adv ? 'Off we go!' : versus ? 'Ready!' : 'Snatch it!';
+  $('#howto-go').textContent = input.kind === 'controller' ? `${go} (A)` : go;
+  S.howtoT = 0;
+  S.howtoCreatures = steps.map((st) => (st.items || []).map((it) => {
+    if (!it.creature) return null;
+    const cr = art.makeCreature(it.creature, 0, 0);
+    if (it.anim) art.setAnim(cr, it.anim);
+    return cr;
+  }));
+  show('howto');
+}
+
+// One control line ("Action: hop; at a ledge, grab it") with the glyph of the
+// button it names on the device in use.
+const GLYPHS = {
+  controller: { Move: '<span class="chip">Left stick</span>', Action: '<span class="xb xb-a">A</span>', Sprint: '<span class="xb xb-b">B</span>', Down: '<span class="chip">Stick ↓</span>', Up: '<span class="chip">Stick ↑</span>' },
+  kb: { Move: '<kbd>WASD</kbd><kbd>←↑↓→</kbd>', Action: '<kbd>Space</kbd>', Sprint: '<kbd>Shift</kbd>', Down: '<kbd>S</kbd><kbd>↓</kbd>', Up: '<kbd>W</kbd><kbd>↑</kbd>' },
+  kb1: { Move: '<kbd>WASD</kbd>', Action: '<kbd>Space</kbd>', Sprint: '<kbd>Left Shift</kbd>', Down: '<kbd>S</kbd>', Up: '<kbd>W</kbd>' },
+  kb2: { Move: '<kbd>←↑↓→</kbd>', Action: '<kbd>Enter</kbd>', Sprint: '<kbd>Right Shift</kbd>', Down: '<kbd>↓</kbd>', Up: '<kbd>↑</kbd>' },
+  touch: { Move: '<span class="chip">Drag</span>', Action: '<span class="chip">Action</span>', Sprint: '<span class="chip">Sprint</span>', Down: '<span class="chip">Drag ↓</span>', Up: '<span class="chip">Drag ↑</span>' },
+};
+function controlItem(line, keys) {
+  const li = document.createElement('li');
+  const m = /^([^:]+):\s*(.*)$/.exec(line);
+  const name = m ? m[1].trim() : '';
+  const set = input.kind === 'controller' ? GLYPHS.controller : input.kind === 'touch' ? GLYPHS.touch : GLYPHS[keys] || GLYPHS.kb;
+  const key = Object.keys(set).find((k) => name === k || name.startsWith(k + ' ') || name.endsWith(' ' + k));
+  const glyph = document.createElement('span');
+  glyph.className = 'glyph';
+  if (key) glyph.innerHTML = set[key];
+  const text = document.createElement('span');
+  text.textContent = key && name === key ? m[2] : line;
+  li.append(glyph, text);
+  return li;
+}
+
+// Draw the three step pictures (each frame while the page is up).
+function drawHowto(dt) {
+  const steps = S.howto || [];
+  S.howtoT += dt;
+  const adv = isAdv();
+  const nn = String(chapterOf(S.ci).n).padStart(2, '0');
+  document.querySelectorAll('#howto-steps canvas').forEach((cv, k) => {
+    const st = steps[k];
+    if (!st) return;
+    const cg = cv.getContext('2d');
+    cg.setTransform(1, 0, 0, 1, 0, 0);
+    const pic = art.image(`howto/${adv ? 'b' : 'ch'}${nn}-${k + 1}`);
+    if (pic) { cg.drawImage(pic, 0, 0, 640, 480); return; }
+    drawStep(cg, st, S.howtoCreatures[k] || [], S.howtoT + k * 0.7, dt);
+  });
+}
+
+function drawStep(cg, st, creatures, t, dt) {
+  cg.fillStyle = '#f3e9d2';
+  cg.fillRect(0, 0, 640, 480);
+  const bg = st.scene ? art.image(st.scene) : null;
+  if (bg) {
+    const [x, y, w, h] = st.crop || [0, 0, 1920, 1080];
+    const k = Math.max(640 / w, 480 / h);
+    cg.drawImage(bg, x, y, w, h, (640 - w * k) / 2, (480 - h * k) / 2, w * k, h * k);
+  }
+  (st.items || []).forEach((it, i) => {
+    cg.save();
+    if (it.creature) {
+      const cr = creatures[i];
+      cr.x = it.x; cr.y = it.y; cr.facing = it.flip ? -1 : 1;
+      cr.sizeK = (it.h || cr.M.height) / cr.M.height;
+      art.animate(cr, dt);
+      art.drawCreature(cg, cr, t, { reduceMotion: settings.reduceMotion, shadow: it.shadow !== false });
+    } else if (it.sprite || it.cast) {
+      const sp = it.cast ? art.cast(it.cast) : art.sprite(it.sprite[0], it.sprite[1]);
+      art.drawSprite(cg, sp, it.x, it.y, { height: it.h, ax: it.ax ?? 0.5, ay: it.ay ?? 1, rot: it.rot || 0, flip: !!it.flip });
+    } else if (it.path) {
+      cg.strokeStyle = '#33241a'; cg.lineWidth = 4; cg.lineCap = 'round'; cg.setLineDash([2, 12]);
+      cg.beginPath();
+      it.path.forEach(([x, y], j) => (j ? cg.lineTo(x, y) : cg.moveTo(x, y)));
+      cg.stroke();
+      cg.setLineDash([]);
+      if (it.arrow !== false && it.path.length > 1) {
+        const [x1, y1] = it.path[it.path.length - 1];
+        const [x0, y0] = it.path[it.path.length - 2];
+        const a = Math.atan2(y1 - y0, x1 - x0);
+        cg.lineWidth = 5;
+        cg.beginPath();
+        cg.moveTo(x1 - Math.cos(a - 0.5) * 22, y1 - Math.sin(a - 0.5) * 22); cg.lineTo(x1, y1);
+        cg.lineTo(x1 - Math.cos(a + 0.5) * 22, y1 - Math.sin(a + 0.5) * 22);
+        cg.stroke();
+      }
+    } else if (it.ring) {
+      const [x, y, r] = it.ring;
+      cg.strokeStyle = '#b5463a'; cg.lineWidth = 4; cg.setLineDash([10, 8]);
+      cg.beginPath(); cg.arc(x, y, r * (1 + Math.sin(t * 4) * 0.04), 0, Math.PI * 2); cg.stroke();
+    } else if (it.word) {
+      cg.font = `800 ${it.size || 46}px Fraunces, Georgia, serif`;
+      cg.textAlign = 'center';
+      cg.translate(it.x, it.y); cg.rotate(it.rot ?? -0.08);
+      cg.lineWidth = 9; cg.strokeStyle = '#fbf6e8'; cg.strokeText(it.word, 0, 0);
+      cg.fillStyle = '#b5463a'; cg.fillText(it.word, 0, 0);
+    } else if (it.draw) it.draw(cg, t);
+    cg.restore();
+  });
+  // Fade the picture into the paper at its edges, like a spot illustration.
+  const gr = cg.createRadialGradient(320, 240, 170, 320, 240, 420);
+  gr.addColorStop(0, 'rgba(251,246,232,0)');
+  gr.addColorStop(1, 'rgba(251,246,232,0.85)');
+  cg.fillStyle = gr;
+  cg.fillRect(0, 0, 640, 480);
 }
 
 function fillList(sel, lines) {
@@ -413,7 +587,7 @@ function begin() {
     input.assign(1, []);
   }
   const gentle = [!!settings.gentle[versus ? sp : 0], versus ? !!settings.gentle[hp] : false];
-  let skill = S.mode.kind === 'journey' ? Math.min(0.8, 0.35 + S.ci * 0.05) : 0.55;
+  let skill = S.mode.kind === 'journey' || S.mode.kind === 'adventure' ? Math.min(0.8, 0.35 + S.ci * 0.05) : 0.55;
   if (gentle[0]) skill -= 0.2;
   S.chapter = S.factory({
     W, H,
@@ -424,8 +598,9 @@ function begin() {
     versus,
     gentle,
     skill: Math.max(0.1, skill),
+    inputKind: input.kind, // for in-world button prompts (prompt.js)
   });
-  $('#hud-chapter').textContent = `${c.n} · ${c.title}`;
+  $('#hud-chapter').textContent = `${isAdv() ? 'Board ' : ''}${c.n} · ${c.title}`;
   show('play');
   S.phase = 'count';
   S.count = 3.2;
@@ -465,8 +640,11 @@ function finishChapter() {
   if (S.mode.kind === 'versus') { S.tally[sp] += marks[0]; S.tally[hp] += marks[1]; } else S.tally[sp] += marks[0];
   S.log.push({ ci: S.ci, marks, outcome: ch.outcome, snatcher: sp, holder: hp });
   // Progress: reaching the next chapter, and the best postmarks here.
-  progress.reached = Math.max(progress.reached, Math.min(CHAPTERS.length, S.ci + 2));
-  progress.best[c.n] = Math.max(progress.best[c.n] || 0, marks[0]);
+  const adv = isAdv();
+  if (adv) progress.advReached = Math.max(progress.advReached || 1, Math.min(BOARDS.length, S.ci + 2));
+  else progress.reached = Math.max(progress.reached, Math.min(CHAPTERS.length, S.ci + 2));
+  const best = bestIn(adv);
+  best[c.n] = Math.max(best[c.n] || 0, marks[0]);
   saveProgress(progress);
 
   const snatched = ch.outcome === 'snatched';
@@ -480,7 +658,7 @@ function finishChapter() {
     ? `${pName(sp)} (snatching): ${marks[0]} ✉ · ${pName(hp)} (keeping): ${marks[1]} ✉`
     : `${marks[0]} postmark${marks[0] === 1 ? '' : 's'}`;
   $('#cel-tally').textContent = tallyLine();
-  const last = S.ci + 1 >= CHAPTERS.length;
+  const last = S.ci + 1 >= list().length;
   $('#cel-next').textContent = S.mode.kind === 'one' ? 'Back to the chapters' : last ? 'The end of the story ▸' : 'Turn the page ▸';
   $('#cel-retry').hidden = S.mode.kind === 'versus';
   show('celebrate');
@@ -489,7 +667,7 @@ function finishChapter() {
 }
 
 function tallyLine() {
-  if (S.mode.kind === 'one') return `Best here: ${progress.best[chapterOf(S.ci).n] || 0} ✉`;
+  if (S.mode.kind === 'one') return `Best here: ${bestIn(isAdv())[chapterOf(S.ci).n] || 0} ✉`;
   if (S.mode.players === 1) return `Postmarks so far: ${S.tally[0]}`;
   return S.tally.map((v, i) => `${pName(i)}: ${v}`).join(' · ');
 }
@@ -515,20 +693,21 @@ function stampMarks(sel, n) {
 
 function next() {
   if (S.mode.kind === 'one') { show('chapters'); return; }
-  if (S.ci + 1 < CHAPTERS.length) { showCard(S.ci + 1); return; }
+  if (S.ci + 1 < list().length) { showCard(S.ci + 1); return; }
   showStory(STORY.epilogue, showFinal);
 }
 
 function showFinal() {
   const total = S.tally.reduce((a, b) => a + b, 0);
-  if (S.mode.players === 1) progress.journeyBest = Math.max(progress.journeyBest || 0, total);
+  const bestKey = S.mode.kind === 'adventure' ? 'adventureBest' : 'journeyBest';
+  if (S.mode.players === 1) progress[bestKey] = Math.max(progress[bestKey] || 0, total);
   saveProgress(progress);
   stampMarks('#final-marks', Math.min(6, total));
   const box = $('#final-tally');
   box.textContent = '';
   const best = Math.max(...S.tally);
   if (S.mode.players === 1) {
-    box.innerHTML = `<p>${total} postmarks on the letter${total >= 20 ? ' — a well-travelled letter!' : '.'}</p><p class="muted">Best journey: ${progress.journeyBest}</p>`;
+    box.innerHTML = `<p>${total} postmarks on the letter${total >= 20 ? ' — a well-travelled letter!' : '.'}</p><p class="muted">Best ${S.mode.kind === 'adventure' ? 'adventure' : 'journey'}: ${progress[bestKey]}</p>`;
   } else {
     const winners = S.tally.map((v, i) => (v === best ? i : -1)).filter((i) => i >= 0);
     for (let i = 0; i < S.tally.length; i++) {
@@ -602,6 +781,10 @@ function act(action) {
     case 'sound': settings.sound = !settings.sound; saveSettings(settings); applySettings(); syncSettingsUi(); break;
     case 'title': show('title'); break;
     case 'modes': show('modes'); break;
+    case 'adventure-1': startAdventure(1); break;
+    case 'adventure-2': startAdventure(2); break;
+    case 'adventure-3': startAdventure(3); break;
+    case 'adventure-4': startAdventure(4); break;
     case 'journey-1': startJourney(1); break;
     case 'journey-2': startJourney(2); break;
     case 'journey-3': startJourney(3); break;
@@ -616,6 +799,8 @@ function act(action) {
     case 'chapters': show('chapters'); break;
     case 'story-next': storyNext(); break;
     case 'begin': begin(); break;
+    case 'howto': showHowto(); break;
+    case 'howto-back': show('card'); break;
     case 'pause': pause(); break;
     case 'resume': resume(); break;
     case 'retry': retry(); break;
@@ -664,6 +849,7 @@ function back() {
   audio.sfx('back');
   if (S.screen === 'modes' || S.screen === 'final') show('title');
   else if (S.screen === 'join' || S.screen === 'chapters') show('modes');
+  else if (S.screen === 'howto') show('card');
   else if (S.screen === 'card' || S.screen === 'celebrate' || S.screen === 'story') act('quit-ask');
   else if (S.screen === 'title' && S.titleUtil) { S.titleUtil = false; $('#press-start').focus(); }
 }
@@ -831,7 +1017,7 @@ function frame(now) {
       S.overT = S.chapter.outroTime ?? 1.4;
       const b = $('#banner');
       b.hidden = false;
-      b.textContent = S.chapter.outcome === 'snatched' ? 'SNATCH!' : versus ? 'KEPT IT!' : 'TIME!';
+      b.textContent = S.chapter.outcome === 'snatched' ? S.chapter.banner || 'SNATCH!' : versus ? 'KEPT IT!' : 'TIME!';
       audio.sfx(S.chapter.outcome === 'snatched' ? 'snatch' : 'aww');
       vibrate(160);
     }
@@ -876,7 +1062,8 @@ function render(dt) {
     return;
   }
   logical();
-  if (['card', 'celebrate'].includes(S.screen)) drawTableau(t, dt);
+  if (['card', 'howto', 'celebrate'].includes(S.screen)) drawTableau(t, dt);
+  if (S.screen === 'howto') drawHowto(dt);
   else if (S.screen === 'final') art.drawScene(g, 'story/lucyjane', W, H, { dim: 0.15 });
   else {
     const bg = art.image('ui/title-bg');
@@ -989,5 +1176,12 @@ requestAnimationFrame((n) => { last = n; frame(n); });
 globalThis.__onemonster = {
   S, act, show, showCard, begin, CHAPTERS, input,
   get progress() { return progress; },
-  jump(ci, kind = 'one') { S.mode = { kind, players: kind === 'versus' ? 2 : 1 }; S.tally = kind === 'versus' ? [0, 0] : [0]; if (kind === 'versus') S.join = [['kb1'], ['kb2']]; return showCard(ci); },
+  jump(ci, kind = 'one') {
+    // kind: 'one' (a minigame), 'adv' (a board), 'adventure' or 'journey' (from there on), 'versus'.
+    S.mode = kind === 'adv' ? { kind: 'one', players: 1, list: 'adv' } : { kind, players: kind === 'versus' ? 2 : 1 };
+    S.tally = kind === 'versus' ? [0, 0] : [0];
+    if (kind === 'versus') S.join = [['kb1'], ['kb2']];
+    return showCard(ci);
+  },
+  BOARDS,
 };

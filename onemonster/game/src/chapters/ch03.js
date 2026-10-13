@@ -3,11 +3,12 @@
 // the Blue Ocean of Bubbley Goo with only his horns and spectacled eyes
 // showing, gliding about and leaving a wake and bubbles. Action lunges a claw
 // up out of the goo: the longer he has waited since the last lunge, the higher
-// it reaches. Above, the Bombanat with the letter flies among plain Bombanats
-// and drifting decoys (a kite, an umbrella); its wings tire high up, so it has
-// to come down to the goo to rest and eat, and that is when it is in reach.
-// A miss warns it off. Plain Bombanats grabbed on the way go in the lunch
-// basket (the bonus); a decoy costs time.
+// it reaches, and a cream column over him shows exactly how high and how wide
+// the claw will go. Above, the Bombanat with the letter (ringed with the
+// letter tag) flies among plain grey Bombanats; its wings tire high up, so it
+// has to come down to the goo to rest and eat, and that is when it is in
+// reach: the column turns red and a "Lunge!" prompt says so. A miss warns it
+// off. Plain Bombanats grabbed on the way go in the lunch basket (the bonus).
 //
 // Why no move always wins: lunging all the time gives short, weak reaches, a
 // splutter after every miss and a Bombanat that keeps clear; sitting high and
@@ -17,9 +18,11 @@
 
 import * as art from '../art.js';
 import { makeFx } from '../chasedraw.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 import { marksFor } from './index.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const IDLE = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
 
 // Tuning, in logical px and seconds.
 export const TUNE = {
@@ -29,15 +32,18 @@ export const TUNE = {
   gSpeed: 230, gSprint: 370, gDepthK: 0.45,
   // The lunge: reach (px above the goo, at depth scale 1) grows with the time
   // since the last lunge, from reachMin to reachMax over chargeTime.
-  reachMin: 120, reachMax: 470, chargeTime: 4,
-  riseT: 0.2, holdT: 0.18, sinkT: 0.35, clawHalf: 105,
-  splutterT: 1.1, munchT: 0.9, blehT: 1.4, decoyPenalty: 3,
+  reachMin: 130, reachMax: 470, chargeTime: 4,
+  riseT: 0.2, holdT: 0.2, sinkT: 0.35, clawHalf: 130,
+  splutterT: 1.1, munchT: 0.9,
   // The fliers.
-  bx0: 560, bx1: 1860, topY: 120,
+  bx0: 560, bx1: 1860, topY: 250,
   gravity: 560, flapV: 360, glideSink: 150, diveSink: 480, flatSink: 70,
   flapCost: 0.04, flapCd: 0.2, dartV: 900, dartT: 0.3, dartCd: 1.4, dartCost: 0.12,
   regenLanded: 0.6, regenLow: 0.2, regenHigh: 0, windedT: 1.8,
   letterSpeed: 400, plainSpeed: 290, warnT: 3,
+  // Sizes (art.js sizeK): the letter Bombanat ~210 px tall, the plain ones
+  // smaller and grey, the Grumley's lurking head ~220 px.
+  letterSize: 1.1, plainSize: 0.78, grumleySize: 0.85,
 };
 
 // Depth scale on the goo: smaller at the back.
@@ -46,11 +52,12 @@ const depthK = (y) => 0.78 + 0.22 * clamp((y - TUNE.gy0) / (TUNE.gy1 - TUNE.gy0)
 // ---------- the fliers (the Bombanats) ----------
 
 function makeFlier(env, { letter, x, y, lane }) {
-  const c = art.makeCreature('bombanat', x, y);
-  c.sizeK = letter ? 0.85 : 0.6;
+  const c = art.makeCreature(letter ? 'bombanat' : 'bombanatPlain', x, y);
+  c.sizeK = letter ? TUNE.letterSize : TUNE.plainSize;
   return {
     letter, x, y, lane, vx: 0, vy: 0, st: 1, winded: 0, flapCd: 0, dartT: 0, dartCd: 0, dartDir: 1,
-    landed: false, mode: 'fly', warnT: 0, wasSprint: false, flapT: 0, c, brain: { state: 'cruise', T: 2 + env.rng() * 3, tx: x, ta: 350, knownAge: 99, known: 0 },
+    landed: false, mode: 'fly', warnT: 0, wasSprint: false, flapT: 0, animHold: 0, c,
+    brain: { state: 'cruise', T: 2 + env.rng() * 3, tx: x, ta: 350, knownAge: 99, known: 0 },
     gone: false, respawn: 0,
   };
 }
@@ -256,29 +263,33 @@ export default function create(env) {
 
   const G = {
     x: 1250, y: 880, vx: 0, vy: 0, mode: 'lurk', modeT: 0, charge: 1, misses: 0, still: 0, vis: 0.1,
-    sprinting: false, facing: -1, lunge: null, held: null, bubbleT: 0.5, rippleT: 0,
+    sprinting: false, facing: -1, lunge: null, held: null, bubbleT: 0.5, rippleT: 0, gliding: false, animHold: 0,
     c: art.makeCreature('grumley', 1250, 880),
   };
   G.c.facing = -1;
-  const L = makeFlier(env, { letter: true, x: 900, y: 330, lane: 870 });
+  const L = makeFlier(env, { letter: true, x: 1350, y: 430, lane: 870 });
   const birds = [L];
   const lanes = [800, 840, 930];
   for (let i = 0; i < 3; i++) birds.push(makeFlier(env, { letter: false, x: 700 + i * 420 + rng() * 120, y: 200 + rng() * 300, lane: lanes[i] }));
   for (const b of birds) { b.brain.T = 1.5 + rng() * 4; b.brain.known = G.x; b.brain.knownAge = 0; }
   L.brain.T = 3.5;
-  const decoys = [];
-  let decoyT = 4 + rng() * 3;
   const bubbles = []; // { x, y, t, life, s }
   const ripples = []; // { x, y, t }
   const drops = []; // flung goo: { x, y, vx, vy, t }
   const flying = []; // a lunch Bombanat on its way to the basket
   let ambientT = 0.5;
   let basketKick = 0;
+  let basketFull = false;
   let outroT = 0;
   let net = null;
   let bubbleSfxT = 0;
 
   const reachNow = () => reachMin + (T.reachMax - reachMin) * clamp(G.charge / T.chargeTime, 0, 1);
+  // The claw's column: what a lunge now would close on (clawCheck uses the
+  // same box), as drawn under the Grumley.
+  const colHalf = () => clawHalf * depthK(G.y);
+  const inColumn = (x, y, top) => Math.abs(x - G.x) < colHalf() && y >= top - 45 && y <= G.y + 10;
+  const inReach = (b) => !b.gone && b.mode === 'fly' && inColumn(b.x, b.y, G.y - reachNow());
 
   function setMode(m) { G.mode = m; G.modeT = 0; }
 
@@ -299,7 +310,10 @@ export default function create(env) {
       if (b.gone || b.mode !== 'fly') continue;
       b.brain.known = G.x;
       b.brain.knownAge = 0;
-      if (b.letter ? missed : Math.abs(b.x - G.x) < 400) b.warnT = T.warnT * (b.letter ? 1 : 0.6);
+      if (b.letter ? missed : Math.abs(b.x - G.x) < 400) {
+        b.warnT = T.warnT * (b.letter ? 1 : 0.6);
+        if (b.letter) fx.say('Eek!', b.x, b.y - 120);
+      }
     }
   }
 
@@ -316,16 +330,12 @@ export default function create(env) {
     ripples.push({ x: G.x, y: G.y, t: 0, big: true });
   }
 
-  // What the claw closes on: the letter Bombanat first, then a plain one,
-  // then a decoy.
+  // What the claw closes on: the letter Bombanat first, then a plain one.
   function clawCheck() {
     const tip = G.lunge.tip;
-    const inCol = (x, y) => Math.abs(x - G.x) < clawHalf * depthK(G.y) && y >= tip - 45 && y <= G.y + 10;
-    if (L.mode === 'fly' && inCol(L.x, L.y)) return { kind: 'letter', b: L };
-    const pb = birds.find((b) => !b.letter && !b.gone && b.mode === 'fly' && inCol(b.x, b.y));
+    if (L.mode === 'fly' && inColumn(L.x, L.y, tip)) return { kind: 'letter', b: L };
+    const pb = birds.find((b) => !b.letter && !b.gone && b.mode === 'fly' && inColumn(b.x, b.y, tip));
     if (pb) return { kind: 'plain', b: pb };
-    const d = decoys.find((d) => !d.gone && inCol(d.x, d.y));
-    if (d) return { kind: 'decoy', d };
     return null;
   }
 
@@ -354,7 +364,11 @@ export default function create(env) {
     G.still = sp < 25 && G.mode === 'lurk' ? G.still + dt : 0;
     // Patience charges the reach: it builds while he keeps still, a little
     // while he creeps, and ebbs away while he glides fast or sprints.
-    if (G.mode === 'lurk') G.charge = clamp(G.charge + dt * (G.sprinting && sp > 120 ? -1.5 : sp > 150 ? -0.6 : sp > 25 ? 0.3 : 1), 0, T.chargeTime);
+    if (G.mode === 'lurk') {
+      const was = G.charge >= T.chargeTime;
+      G.charge = clamp(G.charge + dt * (G.sprinting && sp > 120 ? -1.5 : sp > 150 ? -0.6 : sp > 25 ? 0.3 : 1), 0, T.chargeTime);
+      if (!was && G.charge >= T.chargeTime) env.sfx('pop'); // fully charged: the claw clicks
+    }
     // How easy he is to spot: still and sunk, hardly; gliding, plainly;
     // sprinting, his bubbles boil up all round him.
     G.vis = G.mode !== 'lurk' ? 1 : G.sprinting && sp > 120 ? 1 : sp > 150 ? 0.3 + 0.4 * Math.min(1, sp / T.gSpeed) : sp > 25 ? 0.09 : G.still > 1 ? 0.04 : 0.08;
@@ -392,14 +406,14 @@ export default function create(env) {
           G.misses += 1;
           setMode('splutter');
           env.sfx('stumble');
-          fx.say('Missed!', G.x, G.y - 200);
+          art.kick(G.c, 0.5);
+          fx.say('Missed!', G.x, G.y - 260);
           warn(true);
           splash(G.x, G.y - 10, 5, 0.5);
         } else setMode('lurk');
       }
     } else if (G.mode === 'splutter' && G.modeT > T.splutterT + 0.4 * Math.min(3, G.misses - 1)) setMode('lurk');
     else if (G.mode === 'munch' && G.modeT > T.munchT) setMode('lurk');
-    else if (G.mode === 'bleh' && G.modeT > T.blehT) setMode('lurk');
   }
 
   function grab(hit) {
@@ -411,78 +425,61 @@ export default function create(env) {
       Lg.caught = 'letter';
       L.mode = 'grabbed';
       setMode('won');
+      fx.say('SNAP!', G.x, Lg.tip - 80);
       splash(G.x, G.y - 10, 16, 1.2);
       self.done = true;
       self.outcome = 'snatched';
       return;
     }
-    if (hit.kind === 'plain') {
-      const b = hit.b;
-      Lg.caught = 'plain';
-      b.mode = 'grabbed';
-      b.gone = true;
-      b.respawn = 4 + rng() * 2;
-      self.bonus += 1;
-      basketFull = true;
-      flying.push({ x0: b.x, y0: b.y, t: 0, b });
-      env.sfx('slurp');
-      fx.say('Lunch!', b.x, b.y - 60);
-      setMode('munch');
-      warn(false);
-      G.lunge = null;
-      return;
-    }
-    const d = hit.d;
-    Lg.caught = 'decoy';
-    d.gone = true;
-    self.time = Math.max(0, self.time - T.decoyPenalty);
-    env.sfx('bonk');
-    fx.say(d.item === 1 ? 'Bleh! A kite!' : 'Bleh! An umbrella!', d.x, d.y - 60);
-    fx.say(`-${T.decoyPenalty} s`, d.x, d.y + 10);
-    setMode('bleh');
+    const b = hit.b;
+    Lg.caught = 'plain';
+    b.mode = 'grabbed';
+    b.gone = true;
+    b.respawn = 4 + rng() * 2;
+    self.bonus += 1;
+    basketFull = true;
+    flying.push({ x0: b.x, y0: b.y, t: 0, b });
+    env.sfx('slurp');
+    fx.say('Lunch!', b.x, b.y - 60);
+    setMode('munch');
     warn(false);
     G.lunge = null;
   }
-  let basketFull = false;
 
-  function stepDecoys(dt) {
-    decoyT -= dt;
-    if (decoyT <= 0 && decoys.filter((d) => !d.gone).length < 2) {
-      decoyT = 6 + rng() * 4;
-      const fromLeft = rng() < 0.5;
-      decoys.push({
-        item: rng() < 0.45 ? 1 : 2, x: fromLeft ? 520 : W + 140, base: 250 + rng() * 330, y: 0, vx: (fromLeft ? 1 : -1) * (110 + rng() * 70),
-        ph: rng() * 6, t: 0, flipAt: 2 + rng() * 5, lane: 820 + rng() * 120, gone: false,
-      });
-    }
-    for (const d of decoys) {
-      d.t += dt;
-      d.x += d.vx * dt;
-      d.y = d.base + Math.sin(d.t * 1.7 + d.ph) * 90;
-      if (d.item === 2 && d.t > d.flipAt) { d.item = 3; env.sfx('swish'); }
-      if (d.x < 380 || d.x > W + 200) d.gone = true;
-    }
-    for (let i = decoys.length - 1; i >= 0; i--) if (decoys[i].gone) decoys.splice(i, 1);
-  }
-
-  function animFlier(b) {
+  // Poses that show the action, each held for a moment so a change of speed
+  // or a quick wing beat doesn't flicker between two drawings.
+  function animFlier(b, dt) {
     const c = b.c;
-    if (b.mode === 'grabbed') art.setAnim(c, 'grabbed');
-    else if (b.landed) art.setAnim(c, 'perched');
-    else if (b.winded > 0) art.setAnim(c, 'stall');
-    else if (b.dartT > 0) art.setAnim(c, 'swoop');
-    else if (b.vy > 320) art.setAnim(c, 'dive');
-    else if (b.flapT < 0.4) art.setAnim(c, 'flap');
-    else art.setAnim(c, 'glide');
+    b.animHold = Math.max(0, b.animHold - dt);
+    let want;
+    if (b.mode === 'grabbed') want = 'grabbed';
+    else if (b.landed) want = 'perched';
+    else if (b.winded > 0) want = 'stall';
+    else if (b.dartT > 0) want = b.letter ? 'swoop' : 'dive';
+    else if (b.vy > (c.anim === 'dive' ? 220 : 340)) want = 'dive';
+    else if (b.flapT < 0.45) want = 'flap';
+    else want = 'glide';
+    const urgent = want === 'grabbed' || want === 'perched' || want === 'swoop';
+    if (want !== c.anim && (urgent || b.animHold <= 0)) {
+      art.setAnim(c, want);
+      b.animHold = 0.25;
+    }
   }
 
-  function animGrumley() {
+  function animGrumley(dt) {
     const c = G.c;
-    if (G.mode === 'lunge') art.setAnim(c, G.modeT < 0.06 ? 'rise' : 'lunge');
-    else if (G.mode === 'splutter' || G.mode === 'bleh') art.setAnim(c, 'splutter');
-    else if (G.mode === 'munch') art.setAnim(c, 'lunch');
-    else if (Math.hypot(G.vx, G.vy) > 40) art.setAnim(c, 'glide');
-    else art.setAnim(c, 'lurk');
+    G.animHold = Math.max(0, G.animHold - dt);
+    const sp = Math.hypot(G.vx, G.vy);
+    if (G.gliding ? sp < 25 : sp > 60) G.gliding = !G.gliding; // hysteresis
+    let want;
+    if (G.mode === 'lunge') want = 'lunge';
+    else if (G.mode === 'splutter') want = 'splutter';
+    else if (G.mode === 'munch') want = 'lunch';
+    else want = G.gliding ? 'glide' : 'lurk';
+    if (want !== c.anim && (G.mode !== 'lurk' || G.animHold <= 0)) {
+      art.setAnim(c, want);
+      G.animHold = 0.3;
+    }
   }
 
   const self = {
@@ -492,7 +489,7 @@ export default function create(env) {
     done: false,
     outcome: null,
     bonus: 0,
-    G, L, birds, decoys, bubbles, reachNow,
+    G, L, birds, bubbles, reachNow, inReach,
     update(dt, inS, inH) {
       t += dt;
       fx.update(dt);
@@ -503,7 +500,6 @@ export default function create(env) {
       const skill = clamp(env.skill + 0.25 * (elapsed / total), 0, 1);
       stepGrumley(inS || {}, dt);
       if (self.done) return;
-      stepDecoys(dt);
       // Ambient goo bubbles, so a bubble is only a clue.
       ambientT -= dt;
       if (ambientT <= 0) {
@@ -525,10 +521,10 @@ export default function create(env) {
         const ev = stepFlier(env, b, hin, dt, b.letter && env.gentle[1]);
         if (ev === 'winded' && b.letter) { env.sfx('pant'); fx.say('Tired!', b.x, b.y - 90); }
         art.animate(b.c, dt, b.vx, b.vy);
-        animFlier(b);
+        animFlier(b, dt);
       }
       art.animate(G.c, dt, G.vx, 0);
-      animGrumley();
+      animGrumley(dt);
       if (self.time <= 0) {
         self.done = true;
         self.outcome = 'kept';
@@ -538,9 +534,9 @@ export default function create(env) {
       art.drawScene(g, 'scenes/grumley', W, H);
       drawBasket(g, tt);
       drawRipples(g);
+      drawReach(g, tt);
       const things = [
         ...bubbles.map((b) => ({ y: b.y, draw: () => drawBubble(g, b) })),
-        ...decoys.map((d) => ({ y: d.lane, draw: () => drawDecoy(g, d, tt) })),
         ...birds.filter((b) => !b.gone && b.mode === 'fly').map((b) => ({ y: b.lane, draw: () => drawFlier(g, b, tt) })),
         { y: G.y, draw: () => drawGrumley(g, tt) },
       ].sort((a, b) => a.y - b.y);
@@ -549,8 +545,9 @@ export default function create(env) {
       for (const f of flying) drawLunchFlight(g, f);
       drawDrops(g);
       if (net) drawNet(g);
+      drawPrompts(g, tt);
       fx.draw(g);
-      if (t < 3.5 && !self.done) hint(g, env.versus ? 'Grumley: lurk, then lunge when he dips! · Bombanat: watch the bubbles!' : 'Keep still, then lunge when the Bombanat with the letter dips low!', W);
+      if (t < 4 && !self.done) hint(g, env.versus ? 'Grumley: lunge when the Bombanat dips into your reach! Bombanat: keep clear!' : 'Keep still. When the ringed Bombanat dips into your reach, lunge!', W, t);
     },
     marks() {
       const elapsed = total - self.time;
@@ -665,6 +662,41 @@ export default function create(env) {
     g.restore();
   }
 
+  // The reach column: how high and how wide the claw would go if he lunged
+  // now. Cream while charging, gold and pulsing when full, red when the letter
+  // Bombanat is inside it (that is the moment).
+  function drawReach(g, tt) {
+    if (G.mode !== 'lurk' || self.done) return;
+    const R = reachNow();
+    const full = G.charge >= T.chargeTime;
+    const hot = inReach(L);
+    const half = colHalf();
+    const top = G.y - R;
+    const pulse = env.reduceMotion ? 0 : Math.sin(tt * 8) * 0.5 + 0.5;
+    g.save();
+    const [fill, line] = hot ? ['rgba(200,68,58,', '#c8443a'] : full ? ['rgba(242,197,61,', '#f2c53d'] : ['rgba(251,246,232,', '#fbf6e8'];
+    g.fillStyle = fill + (hot ? 0.22 + 0.1 * pulse : full ? 0.16 + 0.06 * pulse : 0.12) + ')';
+    g.fillRect(G.x - half, top, half * 2, G.y - top);
+    g.strokeStyle = line;
+    g.lineWidth = hot ? 6 : 4;
+    g.setLineDash([12, 10]);
+    g.lineDashOffset = -tt * 40;
+    g.beginPath(); g.moveTo(G.x - half, G.y); g.lineTo(G.x - half, top); g.moveTo(G.x + half, G.y); g.lineTo(G.x + half, top); g.stroke();
+    g.setLineDash([]);
+    // The lid: a pair of claw tips showing where the snap would close.
+    g.lineWidth = hot ? 8 : 6;
+    g.lineCap = 'round';
+    g.beginPath(); g.moveTo(G.x - half, top); g.lineTo(G.x + half, top); g.stroke();
+    for (const s of [-1, 1]) {
+      g.beginPath();
+      g.moveTo(G.x + s * half * 0.55, top + 2);
+      g.lineTo(G.x + s * half * 0.35, top - 26);
+      g.lineTo(G.x + s * half * 0.15, top + 2);
+      g.stroke();
+    }
+    g.restore();
+  }
+
   function drawBubble(g, b) {
     const k = depthK(b.y);
     if (b.t > b.life) {
@@ -677,19 +709,13 @@ export default function create(env) {
     if (!art.drawSprite(g, art.prop('bombanat', item), b.x, b.y + 4, { height: h })) {
       g.save();
       g.fillStyle = 'rgba(150,200,240,0.8)';
-      g.beginPath(); g.ellipse(b.x, b.y - h / 2, h * 0.55, h / 2, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(b.x, b.y - h / 2, h * 0.55, h / 2, 0, 0, Math.PI * 2); g.fill(); g.stroke();
       g.restore();
     }
   }
 
-  function drawDecoy(g, d, tt) {
-    const k = 0.7;
-    // Its shadow on the goo.
-    g.save(); g.globalAlpha = 0.14; g.fillStyle = '#10304a';
-    g.beginPath(); g.ellipse(d.x, d.lane, 60, 12, 0, 0, Math.PI * 2); g.fill(); g.restore();
-    const rot = Math.sin(tt * 2.3 + d.ph) * (d.item === 1 ? 0.25 : 0.15);
-    art.drawSprite(g, art.prop('grumley', d.item), d.x, d.y, { height: (d.item === 1 ? 170 : 140) * k / 0.7 * 0.8, ay: 0.4, rot });
-  }
+  // Where the letter tag sits over the letter Bombanat (kept on screen).
+  const tagY = (b) => Math.max(170, b.y - 165);
 
   function drawFlier(g, b, tt) {
     const c = b.c;
@@ -698,8 +724,8 @@ export default function create(env) {
     if (b.mode === 'grabbed' && b === L) {
       // Held up in the Grumley's claw.
       const k = depthK(G.y);
-      c.x = G.x + G.facing * 110 * k;
-      c.y = G.y - 300 * k;
+      c.x = G.x + G.facing * 130 * k;
+      c.y = G.y - 360 * k;
       c.facing = -G.facing;
     }
     if (b.mode === 'fly') {
@@ -709,67 +735,60 @@ export default function create(env) {
       g.beginPath(); g.ellipse(b.x, b.lane, 70 * c.sizeK, 13 * c.sizeK, 0, 0, Math.PI * 2); g.fill(); g.restore();
     }
     g.save();
-    if (!b.letter) g.filter = 'saturate(0.45) brightness(1.08)';
+    // The plain Bombanats are their own, duller creature; the letter one wears
+    // the cap and necktie.
     art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
     g.restore();
     if (b.letter && b.mode === 'fly') {
-      // The letter he carries, shown clearly over his head.
-      const img = art.image('ui/letter');
-      const bob = env.reduceMotion ? 0 : Math.sin(tt * 4) * 6;
-      const y = b.y - 150 + bob;
+      // The letter tag over his head, with a ring showing his wing stamina.
+      const y = tagY(b);
       g.save();
-      g.fillStyle = 'rgba(248,241,224,0.9)';
-      g.strokeStyle = '#c8443a';
-      g.lineWidth = 4;
-      g.beginPath(); g.arc(b.x, y, 36, 0, Math.PI * 2); g.fill(); g.stroke();
-      g.fillStyle = '#c8443a';
-      g.beginPath(); g.moveTo(b.x - 10, y + 34); g.lineTo(b.x + 10, y + 34); g.lineTo(b.x, y + 50); g.closePath(); g.fill();
-      if (img) g.drawImage(img, b.x - 28, y - 28, 56, 56);
-      g.restore();
-      // A ring showing his wing stamina.
-      g.save();
-      g.lineWidth = 6;
+      g.lineWidth = 7;
       g.strokeStyle = 'rgba(40,25,20,0.3)';
-      g.beginPath(); g.arc(b.x, y, 44, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(b.x, y, 58, 0, Math.PI * 2); g.stroke();
       g.strokeStyle = b.winded > 0 ? '#8f8a86' : b.st < 0.3 ? '#c8443a' : '#f2c53d';
-      g.beginPath(); g.arc(b.x, y, 44, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (b.winded > 0 ? 1 : b.st)); g.stroke();
+      g.beginPath(); g.arc(b.x, y, 58, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (b.winded > 0 ? 1 : b.st)); g.stroke();
       g.restore();
+      letterTag(g, b.x, y, { t: tt, r: 46 });
+    }
+  }
+
+  // In-world prompts, drawn over everything: "The letter!" at the start, and
+  // "Lunge!" / "Flap!" when the letter Bombanat is in the claw's reach.
+  function drawPrompts(g, tt) {
+    if (self.done) return;
+    const kind = env.inputKind || 'keyboard';
+    const hot = G.mode === 'lurk' && inReach(L);
+    if (t < 5 && L.mode === 'fly' && !hot) {
+      // Over the tag, or (when he is up near the clock) under him, pointing up.
+      if (tagY(L) >= 240) marker(g, L.x, tagY(L) - 70, { t: tt, label: 'The letter!' });
+      else upMarker(g, L.x, L.y + 120, tt, 'The letter!');
+    }
+    if (hot) {
+      const k = depthK(G.y);
+      actionPrompt(g, G.x, G.y - 150 * k, 'Lunge!', { kind, t: tt, pulse: 1, side: 0 });
+      if (env.versus) actionPrompt(g, L.x, tagY(L) - 60, L.landed ? 'Fly!' : 'Flap!', { kind, t: tt, pulse: 1, side: 1 });
     }
   }
 
   function drawGrumley(g, tt) {
     const c = G.c;
     const k = depthK(G.y);
-    c.sizeK = 0.62 * k;
+    c.sizeK = T.grumleySize * k;
     c.x = G.x;
     c.y = G.y + 28 * k;
     c.facing = G.facing;
+    // Sunk still and quiet: a little fainter, but never lost.
     const sunk = G.mode === 'lurk' && G.still > 1.2;
-    c.alpha += ((sunk ? 0.5 : 1) - c.alpha) * 0.08;
-    // Reach marker: how high the claw would go now.
-    if (G.mode === 'lurk' && !self.done) {
-      const R = reachNow();
-      const full = G.charge >= T.chargeTime;
-      g.save();
-      g.globalAlpha = full ? 0.45 + 0.15 * Math.sin(tt * 6) : 0.28;
-      g.strokeStyle = '#f8f1e0';
-      g.lineWidth = 4;
-      g.setLineDash([10, 14]);
-      g.beginPath(); g.moveTo(G.x, G.y - 120 * k); g.lineTo(G.x, G.y - R); g.stroke();
-      g.setLineDash([]);
-      g.lineWidth = 6;
-      g.strokeStyle = full ? '#f2c53d' : '#f8f1e0';
-      g.beginPath(); g.moveTo(G.x - 22, G.y - R + 14); g.lineTo(G.x, G.y - R); g.lineTo(G.x + 22, G.y - R + 14); g.stroke();
-      g.restore();
-    }
+    c.alpha += ((sunk ? 0.78 : 1) - c.alpha) * 0.08;
     const rising = G.mode === 'lunge' || G.mode === 'won' || (self.done && self.outcome === 'snatched');
     if (G.mode === 'lunge' && G.lunge) {
-      // The claw rises out of the goo up to the tip: a lunge pose, risen from
-      // below the goo and stretched for a long reach.
-      const sp = art.sprite('grumley.poses', c.M.poses[c.anim === 'rise' ? 'rise' : 'lunge']);
+      // The claws rise out of the goo up to the tip: the lunge pose, risen
+      // from below the goo and stretched for a long reach.
+      const sp = art.sprite('grumley.poses', c.M.poses.lunge);
       const above = G.y - G.lunge.tip + 30;
-      const natural = 586 * (260 / 229) * c.sizeK;
-      const sy = Math.max(1, Math.min(1.7, above / natural));
+      const natural = sp ? sp.h * (c.M.height / 218) * c.sizeK : 540 * c.sizeK;
+      const sy = Math.max(1, Math.min(1.6, above / natural));
       const drawn = natural * sy;
       const bottom = G.y + 30 + Math.max(0, drawn - above);
       g.save();
@@ -778,16 +797,16 @@ export default function create(env) {
         g.fillStyle = '#c4913a'; g.fillRect(G.x - 40, G.lunge.tip, 80, G.y - G.lunge.tip);
       }
       g.restore();
-      art.drawSprite(g, art.prop('grumley', 6), G.x, G.y + 40 * k, { height: 95 * k });
+      art.drawSprite(g, art.prop('grumley', 6), G.x, G.y + 40 * k, { height: 110 * k });
     } else if (rising) {
       // Out of the goo: triumph, celebrate, netted.
-      c.sizeK = 0.5 * k;
+      c.sizeK = 0.62 * k;
       g.save();
       if (c.z < 40) { g.beginPath(); g.rect(0, 0, W, G.y + 30); g.clip(); }
       c.y = G.y + 60 * k;
       art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
       g.restore();
-      if (c.z < 200) art.drawSprite(g, art.prop('grumley', 6), G.x, G.y + 40 * k, { height: 95 * k, alpha: 1 - c.z / 200 });
+      if (c.z < 200) art.drawSprite(g, art.prop('grumley', 6), G.x, G.y + 40 * k, { height: 110 * k, alpha: 1 - c.z / 200 });
     } else {
       art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
     }
@@ -795,13 +814,13 @@ export default function create(env) {
 
   function drawNet(g) {
     const c = G.c;
-    const top = net.phase === 'down' ? net.y - 280 : G.y - 290 * depthK(G.y) - c.z;
+    const top = net.phase === 'down' ? net.y - 280 : G.y - 330 * depthK(G.y) - c.z;
     g.save();
     g.strokeStyle = '#3a2a1e';
     g.lineWidth = 5;
     g.beginPath(); g.moveTo(G.x, -10); g.lineTo(G.x, top); g.stroke();
     g.restore();
-    if (net.phase === 'down') art.drawSprite(g, art.prop('grumley', 7), G.x, net.y, { height: 300 });
+    if (net.phase === 'down') art.drawSprite(g, art.prop('grumley', 7), G.x, net.y, { height: 340 });
   }
 
   function drawDrops(g) {
@@ -821,24 +840,116 @@ export default function create(env) {
     const u = Math.min(1, f.t / 0.9);
     const x = f.x0 + (228 - f.x0) * u;
     const y = f.y0 + (560 - f.y0) * u - Math.sin(u * Math.PI) * 260;
-    const sp = art.sprite('bombanat.poses', 7);
+    const sp = art.sprite('bombanat.plain', 5);
     g.save();
-    g.filter = 'saturate(0.45) brightness(1.08)';
-    art.drawSprite(g, sp, x, y, { height: 110 * (1 - u * 0.5), ay: 0.5, rot: u * 6 });
+    art.drawSprite(g, sp, x, y, { height: 140 * (1 - u * 0.5), ay: 0.5, rot: u * 6 });
     g.restore();
   }
 
   return self;
 }
 
-function hint(g, text, W) {
+// A marker pointing up at something above it, its label underneath.
+function upMarker(g, x, y, t, label) {
   g.save();
-  g.font = '700 36px Fraunces, Georgia, serif';
+  g.translate(x, y);
+  g.scale(1, -1);
+  marker(g, 0, 0, { t });
+  g.restore();
+  g.save();
+  g.font = '800 30px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.lineWidth = 8;
-  g.strokeStyle = 'rgba(248,241,224,0.95)';
+  g.strokeStyle = 'rgba(251,246,232,0.96)';
+  g.strokeText(label, x, y + 78);
   g.fillStyle = '#33241a';
-  g.strokeText(text, W / 2, 150);
-  g.fillText(text, W / 2, 150);
+  g.fillText(label, x, y + 78);
   g.restore();
+}
+
+// The opening hint: a cream band along the bottom edge, below the goo the
+// Grumley lurks in and clear of the Bombanats' sky, in big ink type.
+function hint(g, text, W, t) {
+  const a = t > 3.2 ? Math.max(0, 1 - (t - 3.2) / 0.8) : 1;
+  g.save();
+  g.globalAlpha = a;
+  g.fillStyle = 'rgba(251,246,232,0.9)';
+  g.fillRect(0, 988, W, 84);
+  g.fillStyle = 'rgba(51,36,26,0.5)';
+  g.fillRect(0, 988, W, 4); g.fillRect(0, 1068, W, 4);
+  g.font = '800 44px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+  g.fillStyle = '#33241a';
+  g.fillText(text, W / 2, 1045);
+  g.restore();
+}
+
+// ---------- the how-to-play page ----------
+
+// A plain Bombanat for the pictures (the bombanat.plain sheet).
+const greyBat = (pose, x, y, h, flip) => ({ sprite: ['bombanat.plain', pose], x, y, h, ay: 0.55, flip });
+// The scene's goo line (y 720 of 1080) lands at y 192 of the 480 picture.
+const GOO = { scene: 'scenes/grumley', crop: [600, 420, 1000, 750] };
+
+export const HOWTO = [
+  {
+    text: 'Keep still under the goo: only your horns and spectacles show.',
+    ...GOO,
+    items: [
+      greyBat(1, 150, 80, 70, false),
+      greyBat(2, 520, 60, 80, true),
+      { creature: 'bombanat', anim: 'glide', x: 340, y: 110, h: 120, shadow: false },
+      { draw: (g, t) => letterTag(g, 340, 40, { t, r: 30 }) },
+      { creature: 'grumley', anim: 'lurk', x: 320, y: 400, h: 230, shadow: false },
+      { word: 'Shh...', x: 520, y: 330, size: 40 },
+    ],
+  },
+  {
+    text: 'Wait for the Bombanat with the letter to dip low over the goo.',
+    ...GOO,
+    items: [
+      greyBat(1, 110, 70, 70, false),
+      greyBat(3, 560, 90, 70, true),
+      { creature: 'grumley', anim: 'lurk', x: 320, y: 475, h: 170, shadow: false },
+      { draw: (g) => { g.fillStyle = 'rgba(242,197,61,0.22)'; g.fillRect(230, 150, 180, 260); g.strokeStyle = '#f2c53d'; g.lineWidth = 4; g.setLineDash([10, 8]); g.strokeRect(230, 150, 180, 260); } },
+      { path: [[120, 50], [220, 100], [300, 210]], arrow: true },
+      { creature: 'bombanat', anim: 'land', x: 300, y: 262, h: 150, shadow: false },
+      { draw: (g, t) => letterTag(g, 330, 160, { t, r: 32 }) },
+    ],
+  },
+  {
+    text: 'Lunge! SNAP! The claw shoots up and grabs him.',
+    ...GOO,
+    items: [
+      greyBat(1, 560, 70, 60, true),
+      {
+        draw: (g) => {
+          g.save();
+          g.beginPath(); g.rect(0, 0, 640, 305); g.clip();
+          art.drawSprite(g, art.sprite('grumley.poses', 3), 320, 480, { height: 380 });
+          g.restore();
+          art.drawSprite(g, art.prop('grumley', 6), 320, 322, { height: 90 });
+        },
+      },
+      { creature: 'bombanat', anim: 'grabbed', x: 310, y: 95, h: 130, shadow: false },
+      { word: 'SNAP!', x: 500, y: 110, size: 54 },
+    ],
+  },
+];
+
+// A competent player's input for the next frame (scripts/chapter-check.mjs):
+// keeps still, creeps under the letter Bombanat when it comes low, and lunges
+// the moment it is inside the claw's reach.
+export function autopilot(ch) {
+  const { G, L } = ch;
+  if (G.mode !== 'lurk') return IDLE;
+  if (ch.inReach(L) && G.charge > 1.2) return { ...IDLE, actionPressed: true };
+  const dx = L.x - G.x;
+  const alt = L.lane - 30 - L.y;
+  // Low and near: creep under it. Far off: drift that way slowly (a slow
+  // glide still charges the claw and hardly shows).
+  if (alt < 300 && Math.abs(dx) < 520 && Math.abs(dx) > 25) return { ...IDLE, x: Math.sign(dx) * 0.55 };
+  if (Math.abs(dx) > 420) return { ...IDLE, x: Math.sign(dx) * 0.4 };
+  return IDLE;
 }

@@ -1146,7 +1146,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Visual status only: the tool stays clickable and keyboard-accessible. */
 .choice .in-progress-label { display: none; }
-.choice[data-in-progress] .art { filter: grayscale(1); opacity: 0.45; }
+/* Looks disabled the usual way: the whole card faded, the picture in its own colours. */
+.choice[data-in-progress] { opacity: 0.5; box-shadow: none; }
+.choice[data-in-progress]:hover { opacity: 0.7; }
 .choice[data-in-progress] .in-progress-label {
   display: block;
   margin-top: 6px;

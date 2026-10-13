@@ -189,9 +189,12 @@ export function stepChase(c, inS, inH, dt) {
 
   // Actions.
   const d = len(h.x - s.x, h.y - s.y);
-  if (inS.actionPressed && s.mode === 'move') {
+  // (A hidden holder can't be grabbed or lunged at: over their cover, Action
+  // does nothing, and waiting there flushes them out.)
+  const overCover = h.hidden && h.inCover && ((s.x - h.inCover.x) / (h.inCover.rx * 1.3)) ** 2 + ((s.y - h.inCover.y) / (h.inCover.ry * 1.6)) ** 2 < 1;
+  if (inS.actionPressed && s.mode === 'move' && !overCover) {
     if (d < s.grabRange + s.radius && !h.hidden) beginTug(c);
-    else if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange) startLunge(c, s, h.x, h.y);
+    else if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange && !h.hidden) startLunge(c, s, h.x, h.y);
     else if (s.cool <= 0 && s.winded <= 0) startLunge(c, s, s.x + s.dirX * 200, s.y + s.dirY * 200);
   }
   if (inH.actionPressed && h.mode === 'move' && h.cool <= 0 && h.winded <= 0) startDodge(c, h);
@@ -202,7 +205,7 @@ export function stepChase(c, inS, inH, dt) {
 
   // A lunge that reaches a holder who is not mid-dodge grabs them.
   const d2 = len(h.x - s.x, h.y - s.y);
-  if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode !== 'dodge') beginTug(c);
+  if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode !== 'dodge' && !h.hidden) beginTug(c);
   if (s.mode === 'lunge' && d2 < s.grabRange + s.radius && h.mode === 'dodge') c.events.push({ type: 'dodged' });
 
   // Flushing: a snatcher waiting right over the holder's cover scares them out.
@@ -237,6 +240,25 @@ function beginTug(c) {
 // ---------- the computer players ----------
 // skill 0..1: how quickly they react and how often they choose well. Each
 // keeps its own little memory in `brain`.
+
+// A computer player's sprint comes in committed windows: once it decides to
+// sprint it keeps it up for 0.8-1.3 s (unless its breath runs out), then rests
+// at least 0.7 s before deciding again, so its running pose doesn't flicker
+// with a decision made afresh every frame. `want()` is that decision.
+function sprintWindow(brain, m, dt, rng, want) {
+  brain.sprintT = (brain.sprintT || 0) - dt;
+  if (brain.sprintT <= 0) {
+    brain.sprintOn = want();
+    brain.sprintT = brain.sprintOn ? 0.8 + rng() * 0.5 : 0.7;
+    brain.sprintOff = 0;
+  } else if (brain.sprintOn) {
+    // A window ends early when the reason for it has gone (for a quarter of a
+    // second, so a flicker at a threshold doesn't end it), or breath is gone.
+    brain.sprintOff = want() ? 0 : (brain.sprintOff || 0) + dt;
+    if (brain.sprintOff > 0.25 || m.st < 0.08 || m.winded > 0) { brain.sprintOn = false; brain.sprintT = 0.5; }
+  }
+  return brain.sprintOn;
+}
 
 export function aiHolder(c, brain, skill, dt) {
   const { s, h } = c;
@@ -282,8 +304,12 @@ export function aiHolder(c, brain, skill, dt) {
     return out;
   }
   if (gd > 5) { out.x = gx / gd; out.y = gy / gd; }
-  // Sprint when the snatcher is close or sprinting, and we have breath.
-  out.sprint = h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360)) && c.rng() > (1 - skill) * 0.2;
+  // Sprint when the snatcher is close or sprinting, and we have breath: in
+  // committed bursts, not a fresh decision every frame.
+  // (The luck in it is rolled once a second or so, not every frame.)
+  brain.luckT = (brain.luckT || 0) - dt;
+  if (brain.luckT <= 0) { brain.luck = c.rng() > (1 - skill) * 0.2; brain.luckT = 0.8 + c.rng() * 0.5; }
+  out.sprint = brain.luck && h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360));
   // On purpose, now and then, a mistake: a moment's hesitation.
   if (c.rng() < dt * (1 - skill) * 0.8) brain.goal = { x: h.x, y: h.y }, brain.until = brain.t + 0.3;
   return out;
@@ -318,7 +344,7 @@ export function aiSnatcher(c, brain, skill, dt) {
     if (k) { const kx = k.x - s.x, ky = k.y - s.y, kd = len(kx, ky) || 1; out.x = kx / kd; out.y = ky / kd; }
     if (h.rustle > 0.3) { out.x = (h.x - s.x) / (len(h.x - s.x, h.y - s.y) || 1); out.y = (h.y - s.y) / (len(h.x - s.x, h.y - s.y) || 1); }
   }
-  out.sprint = s.st > 0.3 && d > 200 && d < 650 && (h.st < 0.5 || c.rng() < 0.6 + 0.3 * skill);
+  out.sprint = sprintWindow(brain, s, dt, c.rng, () => s.st > 0.3 && d > 200 && d < 650 && (h.st < 0.5 || c.rng() < 0.6 + 0.3 * skill));
   // Grab when close; lunge when in range, more readily at a tired or sprinting holder.
   if (seen && s.mode === 'move') {
     const dd = len(h.x - s.x, h.y - s.y);
@@ -332,4 +358,42 @@ export function aiSnatcher(c, brain, skill, dt) {
     }
   }
   return out;
+}
+
+// ---------- reading the state, for prompts ----------
+// What a press of Action would do for the snatcher right now: 'grab' (close
+// enough to take hold), 'lunge' (a lunge would reach), or null. `open` is true
+// when the holder can't answer with a dodge (winded, dodge spent, held, or
+// sprinting flat out): the moment to go.
+export function snatchChance(c) {
+  const { s, h } = c;
+  const d = len(h.x - s.x, h.y - s.y);
+  const open = h.mode !== 'move' || h.cool > 0 || h.winded > 0 || h.sprinting;
+  if (c.tug || s.mode !== 'move' || h.hidden) return { kind: null, open, d };
+  if (d < s.grabRange + s.radius) return { kind: 'grab', open, d };
+  if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange) return { kind: 'lunge', open, d };
+  return { kind: null, open, d };
+}
+
+// True while a lunge is coming at the holder and a dodge now would beat it.
+export function dodgeChance(c) {
+  const { s, h } = c;
+  if (c.tug || s.mode !== 'lunge' || h.mode !== 'move' || h.cool > 0 || h.winded > 0) return false;
+  const dx = h.x - s.x, dy = h.y - s.y;
+  return len(dx, dy) < 340 && (s.lx * dx + s.ly * dy) > 0;
+}
+
+// How far the snatcher has got with flushing the hidden holder out, 0..1.
+export function flushProgress(c) {
+  return c.h.hidden ? clamp(c.flushT / c.s.flushTime, 0, 1) : 0;
+}
+
+// A tug never stalls for ever: the side ahead gains ground, faster the longer
+// it has gone on, so a dead heat ends one way or the other.
+export function tugDrift(c, dt) {
+  const tg = c.tug;
+  if (!tg) return;
+  const lead = tg.v - 0.5;
+  const k = 0.12 + Math.max(0, tg.t - 2.5) * 0.12;
+  tg.v = clamp(tg.v + (Math.sign(lead) || 1) * k * dt, 0.001, 0.999);
 }

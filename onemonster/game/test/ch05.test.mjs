@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stubContext, makeEnv } from './harness.mjs';
-import create from '../src/chapters/ch05.js';
+import create, { autopilot, HOWTO } from '../src/chapters/ch05.js';
 
 const g = stubContext();
 const DT = 1 / 30;
@@ -116,4 +116,71 @@ test('chapter 5: a ducked bottle cannot be pulled; ducking has a cooldown', () =
     ch.update(DT, { ...still, action: true }, { ...still, action: true, actionPressed: n % 3 === 0 });
   }
   assert.equal(ch.outcome, 'snatched');
+});
+
+// A human-ish holder for versus: drifts away from the spout's foot and ducks
+// when the reach ring comes over it, a little late, then has to wait.
+function holderBot(ch, rng) {
+  let react = -1;
+  return () => {
+    const { foot, bottle } = ch;
+    const d = gd(foot, bottle);
+    const ux = bottle.x - foot.x, uy = (bottle.y - foot.y) / K, l = Math.hypot(ux, uy) || 1;
+    const away = d < 500;
+    // Keep off the edges (the corners trap it), like the computer's bottle.
+    const x1 = bottle.y < 585 ? 1630 : 1850;
+    let ax = away ? ux / l : 0, ay = away ? uy / l : 0;
+    ax += Math.max(0, 1 - (bottle.x - 90) / 300) * 1.5 - Math.max(0, 1 - (x1 - bottle.x) / 300) * 1.5;
+    ay += Math.max(0, 1 - (bottle.y - 500) / 160) * 1.5 - Math.max(0, 1 - (1035 - bottle.y) / 160) * 1.5;
+    const al = Math.max(1, Math.hypot(ax, ay));
+    let press = false;
+    if (ch.power > 0.2 && d < ch.radius * 0.95 && bottle.duck <= 0 && react < 0) react = 0.15 + rng() * 0.25;
+    if (react >= 0) { react -= DT; if (react < 0) press = true; }
+    if (press && bottle.cd > 0.3) { react = 0.05; press = false; } // not yet: keep trying
+    return { x: ax / al, y: ay / al, action: press, actionPressed: press, actionReleased: false, sprint: false };
+  };
+}
+
+test('chapter 5: the autopilot snatches with time to spare on most seeds', () => {
+  for (const skill of [0.45, 0.8]) {
+    const N = 12;
+    let wins = 0, left = 0, marks = 0;
+    for (let seed = 1; seed <= N; seed++) {
+      const env = makeEnv({ seed, skill });
+      const ch = create(env);
+      run(ch, () => autopilot(ch));
+      if (ch.outcome === 'snatched') { wins++; left += ch.time; marks += ch.marks()[0]; }
+    }
+    console.log(`autopilot vs skill ${skill}: ${wins}/${N}, ${(left / Math.max(1, wins)).toFixed(1)} s left, ${(marks / Math.max(1, wins)).toFixed(1)} postmarks`);
+    assert.ok(wins >= N * 0.75, `skill ${skill}: autopilot won ${wins}/${N}`);
+    assert.ok(left / Math.max(1, wins) > 12, 'with time to spare');
+  }
+});
+
+test('chapter 5: versus is fair both ways: a ducking holder keeps it sometimes, not always', () => {
+  const N = 16;
+  let wins = 0, held = 0, hm = 0;
+  for (let seed = 1; seed <= N; seed++) {
+    const env = makeEnv({ seed, versus: true });
+    const ch = create(env);
+    const hold = holderBot(ch, env.rng);
+    let t = 0;
+    while (!ch.done && t < 120) { ch.update(DT, autopilot(ch), hold()); t += DT; }
+    if (ch.outcome === 'snatched') { wins++; held += 45 - ch.time; }
+    hm += ch.marks()[1];
+  }
+  console.log(`versus: snatcher ${wins}/${N}, held ${(held / Math.max(1, wins)).toFixed(1)} s, holder postmarks ${(hm / N).toFixed(1)}`);
+  // A sharp bottle makes even a perfect cloud work for it: it holds out a
+  // good while (ducks tire it, so not for ever) and earns postmarks of its own.
+  assert.ok(held / Math.max(1, wins) > 9, 'the holder makes it a chase');
+  assert.ok(hm / N >= 0.4, 'the holder earns postmarks');
+});
+
+test('chapter 5: the how-to page has three captioned steps with the cloud in each', () => {
+  assert.equal(HOWTO.length, 3);
+  for (const st of HOWTO) {
+    assert.ok(st.text.length > 10 && st.text.length < 70);
+    assert.ok(st.items.some((it) => it.creature === 'typhoonigator'));
+  }
+  assert.ok(HOWTO[2].items.some((it) => it.sprite && it.sprite[1] === 0), 'step 3 shows the captain’s bottle');
 });

@@ -14,6 +14,11 @@ to beat. The letter always goes on, as in the book: nobody is stuck on a
 chapter, and a weak score still passes the letter along. What you collect is
 **postmarks**: one, two or three stamped on the envelope per chapter.
 
+The game has two ways to tell it: the **minigames** below (the Minigame
+Journey, *Snatch & Keep* and party play), and **the Adventure**, the same nine
+snatches as long side-scrolling boards, in
+[`adventure.md`](adventure.md).
+
 ## The idea that holds it together
 
 - **The letter is the hero.** It is on screen in every chapter, it shows each
@@ -35,10 +40,11 @@ chapter, and a weak score still passes the letter along. What you collect is
 
 1. **Title.** The logo, Press Start, and the Instructions, Settings and
    Fullscreen buttons at the bottom right (see `GAME_GUIDELINES.md`).
-2. **Choose.** *The Journey* (play every chapter in order, alone or with
-   up to four players taking turns), *Snatch & Keep* (the journey for two
-   players head to head, below), or *One Monster* (replay any chapter already
-   reached, alone or head to head). For more than one player, each presses A
+2. **Choose.** *The Adventure* (the side-scrolling boards, `adventure.md`,
+   alone or with up to four players taking turns), *The Minigame Journey*
+   (play every chapter in order, alone or taking turns), *Snatch & Keep* (the
+   journey for two players head to head, below), or *One Monster* (replay any
+   board or chapter already reached, alone or head to head). For more than one player, each presses A
    on their own controller to join, or a single controller is shared and
    passed.
 3. **Prologue.** A picture-book page in the book's layout (big painting
@@ -48,8 +54,11 @@ chapter, and a weak score still passes the letter along. What you collect is
    - *Name card:* the monster's portrait, its full name in the book's style
      ("The Stamp-Collecting Trollusk"), a one-line "what it wants" (stamps,
      a letter to eat, a Bombanat lunch), and in party mode whose turn it is.
-   - *How to play:* the goal, the controls for the device in use, and the
-     postmark targets. Any button starts.
+   - *How to play:* a page of the book: three numbered spot illustrations
+     of what to do (the first move, the danger, how to win; requests OM-H,
+     composed from the sprites until they arrive), then the goal, each
+     control shown as the button of the device in use (both players' in
+     Snatch & Keep) and how postmarks are earned.
    - *Eyeing the prize:* a short scene (skippable) of the new monster
      watching the holder with the letter, from hiding.
    - *Play:* a 3-2-1 count, then the snatch: get the letter from the holder.
@@ -161,15 +170,16 @@ A side-on country lane: the picket fence, gnarled trees, flowerbeds, and Sally
 Ann's mailbox at the far end, with the mailman's motorcycle puttering closer
 along the road behind the fence (only his top shows over the pickets, and he
 passes behind the trees and the house) as the clock runs. Move the Trollusk
-from cover to cover toward the mailbox; hold A to duck into a flowerbed. Sally Ann at her
-window, a dozing neighbour and a dog look out now and then (a little eye
-warning first), each over the ring of lane drawn when the eye warns; only his
-feet inside that ring count. Caught moving in the open and the Trollusk
-scuttles back to the last cover. When a ring warns over him, A (with the stick,
-or anywhere in the open) is a quick dash out of it or into a bush: loud, with a
-1.6 s recharge and a skid at the end, and any ready lookout whose ring he lands
-in turns to look at once (so land in a bush). It beats a warning, never a look.
-The third postmark is for a snatch nobody saw.
+from cover to cover toward the mailbox; hold A to duck in a bush or a
+flowerbed. Sally Ann at the window of her house behind the hedge, a dozing
+neighbour and a dog look out now and then: a little eye warns first, and a
+cone from the lookout's eyes to a ring on the lane shows what they will see;
+only his feet inside that ring count. In-world prompts say "Duck!" in cover
+and "Hide!" in the open. Standing still in the open he freezes behind a twig,
+which fools a lookout once. Caught moving in the open and the Trollusk
+scuttles back to the last cover. (An earlier quick-dash move was cut in the
+audit: one rule, hide or freeze, reads better for children.) The third
+postmark is for a snatch nobody saw.
 Reach the mailbox and press A to grab the letter before the
 mailman gets there. Bonus: loose stamps blowing along the lane.
 
@@ -205,9 +215,12 @@ The goo seen side-on. The Grumley lurks with only his eyes above the goo;
 move left and right, sinking out of sight, and press A to lunge up with a
 crab claw. The letter Bombanat (the one in the red-and-white necktie) swoops
 and dips among other Bombanats, looking for somewhere to land; each lunge
-that misses warns it off for a while. Grabbing a plain Bombanat costs time;
-the letter Bombanat is the one. Bonus: plain Bombanats grabbed for lunch
-along the way, popped into the lunch basket on the shore.
+that misses warns it off for a while. The letter Bombanat is drawn in colour
+and ringed; the plain ones are grey. A column over the Grumley shows exactly
+how far the claw reaches, and turns red with a "Lunge!" prompt when the
+letter Bombanat is in it. Bonus: plain Bombanats grabbed for lunch along the
+way, popped into the lunch basket on the shore. (The kite and umbrella decoys
+were cut in the audit: children could not tell why they cost time.)
 
 *Celebrate:* napkin on, fork up... and SNAP! A big fishing net snags him and
 hauls him wiggly-squiggly aboard the fishing boat *Peg*, Bombanat, letter and
@@ -307,14 +320,34 @@ letter: he mails it.
 
 A clearing in the wood. The Bombanat with the letter, the Trollusk and the
 Yalapappus scramble about; move the Grithix and press A to swing his net,
-FLIP-FLOP. Net the Bombanat to get the letter, then carry it to the
-official-looking mailbox while the Trollusk and the Yalapappus try to trip
-you (step round them, or net them too). Bonus: everyone netted before
-posting.
+FLIP-FLOP: a ring on the grass in front of him is exactly what the net will
+catch. Net the Bombanat to get the letter (if it hides in the ferns, net the
+ferns), then carry it to the official-looking mailbox while the Trollusk and
+the Yalapappus try to trip you: each crouches with a "!" first and only its
+dive trips him (step round them, pole-vault, or net them too). Bonus:
+everyone netted before posting.
 
 *Celebrate:* he drops the letter in the slot, dusts off his hands, and
 doesn't care a snickle. And who is eyeing the official mailbox? The official
 mailman, for the epilogue.
+
+## Readability rules (from the audit)
+
+Every minigame keeps these, after an audit found monsters flickering, goals
+unclear and nothing saying when to act:
+
+- **The goal reads in two seconds.** An opening line on a cream band, a
+  ringed envelope (`letterTag`) on whoever has the letter, and markers on
+  where to go.
+- **Say when to act.** A bubble naming the right button on the device in use
+  (`prompt.js`) whenever an action is possible: "Grab!", "Lunge!", "Dive!",
+  "Post it!", and in versus each player's own.
+- **Big enough to read.** Monsters about 200 to 330 units tall on the
+  1920 x 1080 board, props in scale, hitboxes matching what is drawn.
+- **Actions, not flicker.** Each pose is anchored at the body and blends over
+  a moment; animations hold a minimum time with hysteresis on speed; every
+  action has a pose and a consequence you can see and hear.
+- **Telegraph, then hurt.** Every danger warns before it lands.
 
 ## Chases
 
@@ -338,7 +371,10 @@ chase, with each creature's own speed, weight and moves.
   inside cover makes it rustle, so creeping is a giveaway; sitting still is
   safe but gets you nowhere and the clock is the snatcher's enemy, not yours.
   In versus, where both players see the same screen, some cover rustles on
-  its own (the wind, a bird) so the snatcher still has to guess.
+  its own (the wind, a bird) so the snatcher still has to guess. A hidden holder
+  cannot be lunged at or grabbed; the snatcher hovers or stands over the
+  cover to flush them out (a ring fills), and the hat pokes out of the bush
+  so the player always knows where they went.
 - **Lunge** (snatcher: A at a distance). A fast committed dash or dive at the
   holder, longer for the Bombanat's dive and the Grithix's net swing. If it
   misses, the snatcher stumbles and can't lunge again for a moment. A lunge is

@@ -15,7 +15,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen) | https://hoai2k.github.io/mini/gliders/ |
 | `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
-| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, alone or two players head to head); behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
+| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
 | `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures) | https://hoai2k.github.io/mini/fibreart/ |
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
