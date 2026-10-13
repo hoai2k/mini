@@ -202,12 +202,16 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   background: radial-gradient(circle at 40% 32%, #5a1b45, #2a1424 70%); border: 2px solid #d9b34a; box-shadow: 0 3px 10px #000a, inset 0 0 0 5px #2a142488; }
 .tbtn.on { background: radial-gradient(circle at 40% 32%, #ff3d9a, #e0127a 70%); transform: scale(.94); }
 .tbtn-a { right: max(26px, calc(env(safe-area-inset-right) + 16px)); bottom: max(34px, env(safe-area-inset-bottom)); width: 104px; height: 104px;
-  display: grid; place-content: center; gap: 0; }
-.tbtn-a .letter { font-family: "Yesteryear", cursive; font-size: 40px; line-height: .9; }
-.tbtn-a .verb { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  display: flex; align-items: center; justify-content: center; }
+/* each button is named for what it does here ("Leap", "Take", "Action") */
+.tbtn .verb { display: block; width: 100%; padding: 0 14%; box-sizing: border-box; text-align: center; font-family: "Yesteryear", cursive; font-size: 30px; line-height: .95; text-shadow: 0 1px 3px #000c; }
+.tbtn .verb.long { font-size: 21px; }
 .tbtn-b { right: max(146px, calc(env(safe-area-inset-right) + 136px)); bottom: max(96px, calc(env(safe-area-inset-bottom) + 70px)); width: 66px; height: 66px;
-  font-family: "Yesteryear", cursive; font-size: 30px; }
-.tbtn-b[hidden] { display: none; }
+  display: flex; align-items: center; justify-content: center; }
+.tbtn-b .verb { font-size: 19px; padding: 0 8%; }
+.tbtn-b .verb.long { font-size: 14px; }
+.tbtn-a[hidden], .tbtn-b[hidden] { display: none; }
+.stick-hint:empty { display: none; }
 .tbtn-pause { right: max(16px, calc(env(safe-area-inset-right) + 8px)); top: max(14px, env(safe-area-inset-top)); width: 46px; height: 46px; font-size: 14px; }
 .tbtn.has-art { background: center/contain no-repeat var(--art); border: 0; box-shadow: none; }
 .tbtn.has-art.on { filter: brightness(1.35); }

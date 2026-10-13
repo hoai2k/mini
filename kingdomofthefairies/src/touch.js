@@ -26,6 +26,13 @@ const REPEAT_FIRST = 0.36, REPEAT_NEXT = 0.14;
 const GESTURE_HOLD = 0.28;    // a tap or swipe-up "A" counts as A held this long (full jumps)
 const FLICK_GAP = 200;        // ms between swipes within one drag
 
+function label(btn, verb) {
+  btn.hidden = !verb;
+  if (!verb) { btn.classList.remove('on'); return; }
+  const el = btn.querySelector('.verb');
+  if (el.textContent !== verb) { el.textContent = verb; el.classList.toggle('long', verb.length > 6); btn.setAttribute('aria-label', verb); }
+}
+
 export function isTouchDevice() {
   return matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
 }
@@ -209,14 +216,16 @@ export function createTouch(root) {
       return out;
     },
     // What the shell shows: play controls, the scheme, the A verb, B.
-    show({ playing, mode = 'stick', verb, needB, hintText, flickUpIsA = false }) {
+    // A and B show only when they do something, each named for what it does.
+    show({ playing, mode = 'stick', verb, verbB, hintText, flickUpIsA = false }) {
       root.hidden = false;
       root.classList.toggle('playing', playing);
       if (mode !== st.mode) { st.mode = mode; st.f = null; st.ax = st.ay = 0; base.classList.remove('on'); knob.style.transform = ''; }
       st.flickUpIsA = flickUpIsA;
       root.classList.toggle('swipe', mode === 'swipe');
-      btnA.querySelector('.verb').textContent = verb || '';
-      btnB.hidden = !needB;
+      label(btnA, verb); label(btnB, verbB);
+      if (!verb) st.aHeld = false;
+      if (!verbB) st.bHeld = false;
       if (hintText != null && hint.textContent !== hintText) hint.textContent = hintText;
       if (!playing) { st.f = null; st.ax = st.ay = 0; st.aHeld = false; base.classList.remove('on'); knob.style.transform = ''; }
     },

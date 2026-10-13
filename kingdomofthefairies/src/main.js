@@ -4,7 +4,7 @@ applyDocumentTheme();
 import { ACTS } from './acts/index.js';
 import { loadSave, writeSave, carryInto, recordResult } from './save.js';
 import { editorWanted, openEditor } from './editor.js';
-import { createRenderer, loadAssets, richText } from './art.js';
+import { createRenderer, loadAssets, richText, setTouchNames } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
@@ -209,7 +209,7 @@ function beginAct(i, from = null) {
   S.curtain = 0; S.curtainTarget = 0;
   const scene = from && S.act.scenes?.[from.scene | 0];
   S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120,
-    sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : S.act.sub,
+    sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : (TOUCH && S.act.touchSub) || S.act.sub,
     prompts: { touch: `Tap to begin · ${touchVerbHint(S.act)}`, other: 'Press [A] to begin' }, alpha: 0 };
   S.readyT = 0;
   S.skipIntertitle = !!from?.retry;
@@ -669,16 +669,41 @@ function handleEvent(e) {
 
 // ---------------------------------------------------------------- touch
 // What the A button says, scene by scene, and when B is needed.
+// Whether the player has the scene in hand: not a cutscene, an outro or an
+// ending. Outside these the action buttons and the drag hint stay away.
+function touchLive() {
+  const st = S.state, id = S.act?.id, ph = st?.phase;
+  if (!st || st.status !== 'play') return false;
+  if (S.act.touchLive) return S.act.touchLive(st);
+  if (id === 1) return ph === 'voyage' || (!FILM_ED && ph === 'party');
+  if (id === 2) return ph === 'swim' || ph === 'ride' || ph === 'offer';
+  if (id === 3) return ph === 'play';
+  if (id === 4) return ph === 'climb' || (ph === 'cavern' && !st.cv?.done);
+  if (id === 5) return ph === 'cliff' || ph === 'house' || ph === 'quay';
+  return true;
+}
 function touchVerb() {
   const st = S.state, id = S.act?.id;
   if (!st) return '';
   if (S.act.touchVerb) return S.act.touchVerb(st);
-  if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? (FILM_ED ? (st.tp?.near >= 0 ? 'Light' : '') : 'On the beat') : '';
-  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? 'Leap' : 'Kick';
-  if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
+  if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' && !FILM_ED ? 'Light' : '';
+  if (id === 2) return st.phase === 'offer' ? (FILM_ED ? '' : 'Take') : st.phase === 'ride' ? 'Leap' : 'Swim';
+  if (id === 3) return st.tf ? 'Leap' : S.state?.canTake ? 'Take' : 'Hide';
   if (id === 4) return 'Leap';
-  if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / throw' : 'Leap';
+  if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap';
   return '';
+}
+// The second button (pad X, the X key), where a scene uses it.
+function touchVerbB() {
+  const st = S.state;
+  if (!st) return '';
+  if (S.act.touchVerbB) return S.act.touchVerbB(st);
+  const needB = S.act?.needB ? S.act.needB(st) : S.act?.id === 2 && st.phase === 'offer';
+  if (!needB) return '';
+  if (S.act.id === 2 && st.phase === 'offer') return 'Refuse';
+  if (S.act.id === 2) return st.reach?.kind === 'pearl' ? 'Take' : st.reach?.kind === 'sleeper' ? 'Wake' : 'Action';
+  if (S.act.id === 3) return 'Bow';
+  return 'Action';
 }
 function touchVerbHint(act) {
   if (act.touchHint) return act.touchHint;
@@ -690,9 +715,9 @@ function touchVerbHint(act) {
 function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
   if (S.act?.touchScheme) return S.act.touchScheme(S.state || {});
-  if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? (FILM_ED ? 'Drag ↔ to walk · tap to light a lantern' : 'Tap on the beat') : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
+  if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
   if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' } : { mode: 'stick', hint: 'Drag to swim' };
-  if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
+  if (id === 3) return { mode: 'swipe', hint: S.state?.tf ? 'Drag ↔ to walk · tap to leap' : 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };
 }
@@ -716,7 +741,7 @@ function updateIcons(dt) {
   iconsEl.classList.toggle('menu-up', !inPlay);
   if (!inPlay && TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
 }
-let lastPortrait = null, lastTouchScene = '';
+let lastPortrait = null, lastTouchScene = '', liveT = 0, lastFrameAt = 0;
 function updateTouch() {
   const portrait = innerHeight > innerWidth;
   if (portrait !== lastPortrait) {
@@ -728,11 +753,18 @@ function updateTouch() {
   // A new scene (or act) doesn't inherit a drag held over from the last one.
   const sceneKey = `${S.actIndex}:${S.state?.phase}:${S.state?.tf ? 'tf' : ''}`;
   if (sceneKey !== lastTouchScene) { lastTouchScene = sceneKey; touch.settle?.(); }
+  const live = playing && touchLive();
+  const now = performance.now(), dt = Math.min(0.1, (now - (lastFrameAt || now)) / 1000); lastFrameAt = now;
+  liveT = S.mode !== 'play' ? 0 : live ? liveT + dt : liveT;
   const sch = playing ? touchScheme() : { mode: 'stick', hint: '' };
-  touch.show({ playing, mode: sch.mode, hintText: sch.hint, flickUpIsA: !!sch.flickUpIsA,
-    verb: playing ? touchVerb() : '', needB: playing && (S.act?.needB ? S.act.needB(S.state) : S.act?.id === 2 && S.state?.phase === 'offer') });
-  // The hint shows for the first few seconds of each act (and the party).
-  if (playing) $('#touch').classList.toggle('stick-used', S.modeT > 7 && !(S.act?.id === 1 && S.state?.phase === 'party' && S.state.phaseT < 4));
+  const verb = live ? touchVerb() : '';
+  // an act may keep its second button through a cutscene (the prologue's Skip)
+  const verbB = playing && S.act?.touchVerbB ? S.act.touchVerbB(S.state) : live ? touchVerbB() : '';
+  touch.show({ playing, mode: sch.mode, hintText: live ? sch.hint : '', flickUpIsA: !!sch.flickUpIsA, verb, verbB });
+  setTouchNames({ A: verb, X: verbB });
+  // The hint shows for the first few seconds of play in each act (not counting
+  // its opening cutscene), and in the classic party.
+  if (playing) $('#touch').classList.toggle('stick-used', liveT > 7 && !(!FILM_ED && S.act?.id === 1 && S.state?.phase === 'party' && S.state.phaseT < 4));
 }
 
 // ---------------------------------------------------------------- shell scenes

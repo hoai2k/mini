@@ -1202,7 +1202,14 @@ function star(c, x, y, r) {
 // ('key') or the on-screen touch buttons ('touch').
 const GLYPH_KEYS = { A: 'Space', B: 'Esc', X: 'X', MENU: 'Esc', LS: '← →' };
 const XBOX = { A: '#3fa535', B: '#d6262c', X: '#2a6fd6', Y: '#e8b320' };
+// On touch the buttons carry no letters, only what they do here, so a prompt
+// names them the same way (the shell keeps these current; setTouchNames).
+const TOUCH_NAMES = { A: 'Tap', X: 'Action', B: 'Back', MENU: '❚❚', LS: 'Drag' };
+let touchNames = { ...TOUCH_NAMES };
+export function setTouchNames({ A, X } = {}) { touchNames = { ...TOUCH_NAMES, ...(A ? { A } : {}), ...(X ? { X } : {}) }; }
+const touchFont = (px) => `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`;
 function glyphWidth(c, tok, mode, px) {
+  if (mode === 'touch') { c.save(); c.font = touchFont(px); const w = c.measureText(touchNames[tok].toUpperCase()).width; c.restore(); return w + px * 0.8; }
   if (mode === 'key') { c.save(); c.font = `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`; const w = c.measureText(GLYPH_KEYS[tok]).width; c.restore(); return w + px * 0.7; }
   return px * 1.0;
 }
@@ -1217,10 +1224,13 @@ function drawGlyph(c, tok, mode, cx, cy, px, col) {
     c.beginPath(); c.roundRect(cx - w / 2, cy - h / 2, w, h, px * 0.14); c.fill(); c.stroke();
     c.fillStyle = col('#2a1424'); c.fillText(GLYPH_KEYS[tok], cx, cy + px * 0.03);
   } else if (mode === 'touch') {
+    // a gold pill with the button's name ("Leap", "Take"); touch's second button stands in for X
+    const name = touchNames[tok].toUpperCase();
+    c.font = touchFont(px);
+    const w = c.measureText(name).width + px * 0.6, h = px * 0.88;
     c.fillStyle = col('#b8862e'); c.strokeStyle = col('#f1e3c8'); c.lineWidth = Math.max(1.5, px * 0.06);
-    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
-    c.fillStyle = col('#fff8e8'); c.font = `700 ${Math.round(px * 0.5)}px "Josefin Sans", sans-serif`;
-    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok === 'X' ? 'B' : tok, cx, cy + px * 0.03);   // touch's B button stands in for X
+    c.beginPath(); c.roundRect(cx - w / 2, cy - h / 2, w, h, h / 2); c.fill(); c.stroke();
+    c.fillStyle = col('#fff8e8'); c.fillText(name, cx, cy + px * 0.03);
   } else {
     // Xbox: A, B, X, Y in their colours; Menu and the left stick in charcoal.
     const face = XBOX[tok];

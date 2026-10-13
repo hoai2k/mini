@@ -204,6 +204,7 @@ export const actTower = {
   action: 'A: leap',
   scenes: TOWER_SCENES,
   mood: (st) => (st.phase === 'swim' ? 'storm' : st.phase === 'dive' || st.phase === 'window' ? 'tender' : 'storm'),
+  touchLive: (st) => ['cliff', 'tower', 'swim'].includes(st.phase) || (st.phase === 'dive' && !st.dv),
   touchVerb: (st) => (st.phase === 'swim' || st.phase === 'dive' ? 'Dive' : 'Leap'),
   touchHint: 'drag to climb, A to leap; in the sea, drag to swim, A to dive',
   touchScheme: (st) => (st.phase === 'swim' ? { mode: 'stick', hint: 'Drag to swim · tap to dive' } : { mode: 'stick', hint: 'Drag to climb' }),
@@ -324,7 +325,8 @@ export const actBurning = {
   action: 'A: leap',
   scenes: BURNING_SCENES,
   mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'revel' : 'storm'),
-  touchVerb: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / lamp' : 'Leap'),
+  touchLive: (st) => ['house', 'quay'].includes(st.phase) || (st.phase === 'barrel' && st.barrel?.fallT == null),
+  touchVerb: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
   touchHint: 'drag to walk and climb, A to leap',
   touchScheme: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
