@@ -480,7 +480,7 @@ export const ASSETS = {
   },
   "howto.ch05.1": {
     "file": "assets/howto/ch05-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch05.2": {
     "file": "assets/howto/ch05-2.webp",
@@ -488,7 +488,7 @@ export const ASSETS = {
   },
   "howto.ch05.3": {
     "file": "assets/howto/ch05-3.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch06.1": {
     "file": "assets/howto/ch06-1.webp",
@@ -500,7 +500,7 @@ export const ASSETS = {
   },
   "howto.ch06.3": {
     "file": "assets/howto/ch06-3.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch07.1": {
     "file": "assets/howto/ch07-1.webp",
