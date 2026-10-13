@@ -13,7 +13,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-metronome-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-metronome-192.png">
   <title>Music Practice</title>
-  <meta name="description" content="A metronome and a practice recorder that hears when you start and stop playing, then plays your take back.">
+  <meta name="description" content="A metronome, a tuner and a practice recorder that hears when you start and stop playing, then plays your take back.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Each theme loads its own fonts (THEMES in src/settings.js); Classic's load here as the default. -->
@@ -56,7 +56,7 @@
 
   <main id="app">
 
-    <!-- Home: two big buttons -->
+    <!-- Home: a big button for each tool -->
     <section id="home" class="screen" aria-labelledby="home-title">
       <button class="icon-btn home-gear" id="app-settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand">Music <em>Practice</em></h1>
@@ -68,6 +68,10 @@
         <a class="choice" href="#record" id="go-record">
           <span class="art" data-asset="home-record"></span>
           <span class="label">Playback Recorder</span>
+        </a>
+        <a class="choice" href="#tuner" id="go-tuner">
+          <span class="art" data-asset="home-tuner"></span>
+          <span class="label">Tuner</span>
         </a>
       </div>
 
@@ -180,6 +184,57 @@
             <label class="row toggle"><span>Record during playback</span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
             <p class="help" id="rec-during-help">Off: the microphone turns off while a take plays and back on afterwards, so playback is full volume. On: it keeps listening, and playing over a take starts the next one (echo cancellation is used; headphones work best, and on iPhone playback is quieter).</p>
           </div>
+          <button type="button" class="pill open-audio-check">Audio check…</button>
+          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+        </form>
+      </dialog>
+    </section>
+
+    <!-- Tuner -->
+    <section id="tuner" class="screen" aria-labelledby="tuner-title" hidden>
+      <header class="bar">
+        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="tuner-title">Tuner</h2>
+        <button class="icon-btn" id="tuner-settings-btn" aria-label="Tuner settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+      </header>
+      <div class="tuner-body" id="tuner-body" data-state="idle">
+        <label class="tuner-instrument"><span class="visually-hidden">Instrument</span><select class="select" id="tuning-select"></select></label>
+        <div class="gauge-wrap">
+          <svg class="gauge" id="gauge" viewBox="0 0 320 196" aria-hidden="true">
+            <path class="gauge-zone" id="gauge-zone"/>
+            <g id="gauge-ticks"></g>
+            <text class="gauge-flat" x="40" y="78">♭</text>
+            <text class="gauge-sharp" x="280" y="78">♯</text>
+            <g id="needle"><line x1="160" y1="176" x2="160" y2="40"/><circle cx="160" cy="176" r="9"/></g>
+          </svg>
+          <div class="tuner-note" aria-live="off"><span id="tn-letter">–</span><span class="acc" id="tn-acc"></span><span class="oct" id="tn-oct"></span></div>
+        </div>
+        <p class="tuner-readout"><span id="tn-cents">&nbsp;</span><span id="tn-hz"></span></p>
+        <p class="tuner-hint" id="tn-hint" aria-live="polite">Play a note</p>
+        <div class="strings" id="strings" role="group" aria-label="Strings: tap one to hear it"></div>
+        <button class="pill" id="ref-tone" type="button">Play A4</button>
+        <p class="tuner-status" id="tuner-status" hidden></p>
+        <button class="pill" id="tuner-retry" type="button" hidden>Try again</button>
+      </div>
+
+      <dialog id="tuner-settings" class="sheet" aria-labelledby="tuner-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="tuner-settings-title">Tuner settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <div class="row">
+            <span>Reference pitch: A4 = <b><span id="a4-val">440</span> Hz</b></span>
+            <div class="a4-row">
+              <button type="button" class="step" id="a4-down" aria-label="Lower by 1 Hz">−</button>
+              <input type="range" class="slider" id="a4" min="415" max="466" step="1" aria-label="Reference pitch in hertz">
+              <button type="button" class="step" id="a4-up" aria-label="Higher by 1 Hz">+</button>
+            </div>
+            <p class="help">440 Hz is standard. Some orchestras tune to 442; baroque groups to 415.</p>
+          </div>
+          <fieldset>
+            <legend>Note names</legend>
+            <div class="chips" id="flats-chips"></div>
+          </fieldset>
+          <label class="row"><span>Transposing instrument</span><select class="select" id="transpose"></select></label>
+          <p class="help">Shows notes as written for your instrument: a concert B♭ reads as C on a B♭ clarinet or trumpet.</p>
           <button type="button" class="pill open-audio-check">Audio check…</button>
           <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>

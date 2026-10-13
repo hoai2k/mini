@@ -4,7 +4,8 @@
 //
 // States: 'off' (mic closed), 'waiting' (listening for the first note),
 // 'recording', 'playing' (the take is being played back; the mic is ignored),
-// 'paused' (the player is using the takes list; the mic is ignored).
+// 'paused' (the player is using the takes list; the mic is ignored),
+// 'tuning' (the tuner reads the mic's sound; nothing is recorded).
 
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
 import { listDevices, preferredMic, micPermission, noteFirstRequest, allowedInAdvance } from './devices.js';
@@ -78,8 +79,21 @@ export class Recorder extends EventTarget {
     this.listen();
   }
 
+  /**
+   * Open the microphone for the tuner: its sound is passed on as 'chunk'
+   * events and nothing is recorded. The same held mic serves the recorder,
+   * so switching between them never asks again. Throws if access is refused.
+   */
+  async tune() {
+    if (this.state === 'recording') this.finish(false);
+    this.tuneWanted = true;
+    await this.openMic();
+    if (this.tuneWanted && this.graph) this.set('tuning');
+  }
+
   /** Close the microphone. A take in progress is kept (without playback). */
   off() {
+    this.tuneWanted = false;
     if (this.state === 'recording') this.finish(false);
     this.closeMic(); // also cancels a mic that is still opening
     this.set('off');
@@ -159,7 +173,7 @@ export class Recorder extends EventTarget {
     if (this.state === 'recording') this.finish(false);
     this.closeMic(!this.micAlive());
     await this.openMic();
-    if (this.state !== 'off' && this.state !== 'playing' && this.state !== 'paused') this.listen();
+    if (this.state === 'waiting' || this.state === 'recording') this.listen();
   }
 
   /**

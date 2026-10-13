@@ -64,3 +64,14 @@ test('Classic is the default theme; a picked theme is kept', () => {
   save({ ...DEFAULTS, theme: 'deco', themeChosen: true }, store);
   assert.equal(load(store).theme, 'deco');
 });
+
+test('tuner settings: defaults, saved, and bad values fall back', () => {
+  const store = memoryStorage();
+  const d = load(store);
+  assert.deepEqual([d.tuning, d.a4, d.flats, d.transpose], ['chromatic', 440, false, 'C']);
+  save({ ...DEFAULTS, tuning: 'bass5', a4: 442, flats: true, transpose: 'Eb' }, store);
+  const s = load(store);
+  assert.deepEqual([s.tuning, s.a4, s.flats, s.transpose], ['bass5', 442, true, 'Eb']);
+  const bad = sanitize({ tuning: 'kazoo', a4: 1000, transpose: 'G' });
+  assert.deepEqual([bad.tuning, bad.a4, bad.transpose], ['chromatic', 466, 'C']);
+});
