@@ -215,8 +215,19 @@ rack resets or the turn changes; anyone can join at any frame: they bowl from
 the frame in progress, after everyone already in it, the frames they missed
 count 0 and show as "–" on their card, and the final scores include them as
 "joined late"; the owner seats them so every lane agrees; only a full lane of
-six makes newcomers wait for the next game), Beach Bump (bump
-a ball between faces by nodding), Burger Stack (catch ingredients by moving
+six makes newcomers wait for the next game), Beach Bump (everyone's
+live face is a bubble on the sand in their own zone of the beach; move your
+head, or the mouse, a finger, the arrow keys or a stick, to keep a beach ball
+up. The ball flies under gravity and bounces off heads with no energy lost: on
+top of a still head it goes straight back up to the same height forever, met
+off-centre it is knocked sideways, far enough to reach a friend, and a head
+pushed into it (a nod up) sends it higher; the sides of the court bounce too.
+A ball that reaches the sand costs a life to whoever's zone it fell in, and
+the next serve hangs over them; the last player with lives wins, and alone
+you count bounces against your best. Each player's own device rules on
+touches with their own head and sends the new flight to everyone, who
+follow the same parabola, so every screen sees the same ball; newcomers
+step onto the sand at once with full lives and the court widens), Burger Stack (catch ingredients by moving
 your head: patty, cheese, lettuce, tomato, bacon, ketchup, pickles, onion and
 a fried egg, packed snugly on the bun; dodge the boots and the poop; live
 miniature kitchens show friends' stacks, falling ingredients, scores and
@@ -390,6 +401,7 @@ itself to HTTPS.
   is down to 30 and must be dealt four from the pond, be announced to the
   others and get a turn; screenshots of a cast, a low pond, the late join
   (`gofish-join.png`), the Go Fish bubbles and the end in `local/chat-shots/`
+- `node chat/test/beachbump-play.mjs`: two phone-sized Beach Bump seats with mouse-moved heads: a still head under the serve keeps the ball bouncing straight up to the same height on both seats, meeting it off-centre knocks it into the other zone where the non-owner heads it on, a ball nobody reaches costs a life to (only) the player whose zone it fell in and the next serve hangs over them, both seats see the very same launches, a third seat joining mid-game stands on the sand with full lives as the court widens, rookie bots keep it up and pass it, and the next seat runs the game when the owner leaves (screenshots in `local/chat-shots/beachbump-*.png`)
 - `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, a third seat joining mid-round being seated at once with 0 points and full hearts, scoring on the shared field and appearing (with when it joined) on both other seats' tallies and results, the same scores and winner on every seat, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
 - `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
   swing (arms keep their length, both hands stay on the bat, the bat sweeps
