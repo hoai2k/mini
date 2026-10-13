@@ -408,3 +408,10 @@ The Art Deco versions are kept as `favicon-art-deco-32.png` and
 Round 4’s Vintage 60s home metronome revision and Round 5’s eight tuner
 icons are delivered. Prompts and final paths are recorded in
 `design/image-deliveries-rounds-4-5.json`.
+
+Public identity uses the normal metronome: transparent browser favicons and
+library-card art (`favicon-metronome-*`), and opaque ivory iOS/Android icons
+(`icon-metronome-*`). These explicit filenames avoid the previously cached
+Art Deco icons. `design/image-deliveries-normal-icons.json` records the art
+and references. The Art Deco master and derivatives remain under
+`icon-art-deco-*` and `favicon-art-deco-*` for a future switch.

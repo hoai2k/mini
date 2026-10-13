@@ -38,13 +38,21 @@ def main() -> None:
     master = ICONS / "icon-1024.png"
     src = Image.open(master).convert("RGB") if master.exists() else standin()
     for size in SIZES:
-        src.resize((size, size), Image.LANCZOS).save(ICONS / f"icon-{size}.png", optimize=True)
+        icon = src.resize((size, size), Image.LANCZOS)
+        icon.save(ICONS / f"icon-{size}.png", optimize=True)
+        icon.save(ICONS / f"icon-metronome-{size}.png", optimize=True)
     # The browser favicon uses the conventional metronome with its original alpha.
     # Keep named Art Deco variants so switching back only needs an HTML href change.
     metronome = Image.open(ICONS.parent / "assets/ui/home-metronome.webp").convert("RGBA")
-    for size in (32, 192):
+    for size in (32, 192, 512):
         metronome.resize((size, size), Image.LANCZOS).save(ICONS / f"favicon-metronome-{size}.png", optimize=True)
-        src.resize((size, size), Image.LANCZOS).save(ICONS / f"favicon-art-deco-{size}.png", optimize=True)
+    deco_master = ICONS / "icon-art-deco-1024.png"
+    if deco_master.exists():
+        deco = Image.open(deco_master).convert("RGB")
+        for size in SIZES:
+            deco.resize((size, size), Image.LANCZOS).save(ICONS / f"icon-art-deco-{size}.png", optimize=True)
+        for size in (32, 192):
+            deco.resize((size, size), Image.LANCZOS).save(ICONS / f"favicon-art-deco-{size}.png", optimize=True)
     print(f"wrote icons {SIZES} from {'icon-1024.png' if master.exists() else 'the stand-in'}")
 
 

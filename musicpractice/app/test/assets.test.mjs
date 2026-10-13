@@ -7,6 +7,19 @@ import { THEMES } from '../src/settings.js';
 const list = JSON.parse(readFileSync(new URL('../data/asset-list.json', import.meta.url)));
 const IDS = ['home-metronome', 'home-record', 'home-tuner', 'metronome-body', 'metronome-pendulum'];
 
+test('public icons use the normal metronome across browser, iOS, installed app and library', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const iconLinks = [...html.matchAll(/<link\b[^>]*rel="(?:icon|apple-touch-icon)"[^>]*>/g)].map((m) => m[0]);
+  assert.equal(iconLinks.length, 3);
+  for (const link of iconLinks) assert.match(link, /(?:favicon|icon)-metronome-/);
+  const manifest = JSON.parse(readFileSync(new URL('../manifest.webmanifest', import.meta.url)));
+  for (const icon of manifest.icons) assert.match(icon.src, /^icons\/icon-metronome-/);
+  const library = readFileSync(new URL('../../../index.html', import.meta.url), 'utf8');
+  const card = library.match(/<a class="game musicpractice"[\s\S]*?<\/a>/)[0];
+  assert.match(card, /musicpractice\/icons\/favicon-metronome-512\.png/);
+  assert.doesNotMatch(card, /art-deco|icons\/icon-512\.png/);
+});
+
 test('every theme shows its delivered art or its own stand-in, with the hub on the pivot', () => {
   for (const { id: theme } of THEMES) {
     for (const id of IDS) {
