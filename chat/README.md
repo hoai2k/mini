@@ -251,7 +251,9 @@ draws 4"), any book among them goes straight to the table, and they sit right
 after the player whose turn it is, so they play next; with fewer than four
 cards left, or five already at the table, they watch and are dealt in at the
 next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner; someone who joins mid-round is seated by the owner straight away with 0 points and full hearts, plays the rest of the round on the same field, and shows in the tally and the results with when they joined) and Baseball (a top-down tabletop baseball board after the Japanese
-Yakyūban toy and the pinball baseball arcades: the pitcher rolls the ball down
+Yakyūban toy and the pinball baseball arcades; the view is close in on the
+diamond for each pitch and, when a hit leaves the diamond, follows the ball,
+widening to fit the ball and any runners on the move: the pitcher rolls the ball down
 a groove from the mound (fastball, slow ball, a curve either way, and once an
 inning the vanishing pitch that drops under the board by the plate and pops up
 behind it); the batter holds to pull the spring bat back, its tension shown,

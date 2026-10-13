@@ -322,12 +322,14 @@ function prompt(k, st, near) {
   const w = c.measureText(near.label).width + 60;
   c.globalAlpha = 0.88; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(x - w / 2, y - 20, w, 30, 15); c.fill();
   c.globalAlpha = 1; c.fillStyle = k.col('#f3c6dc');
-  richText(c, '[A] ' + near.label.toUpperCase(), x, y + 1, { px: 15, mode: k.inputMode || 'key', col: k.col });
+  // on touch the button itself is named for it, so the label alone
+  richText(c, (k.inputMode === 'touch' ? '' : '[A] ') + near.label.toUpperCase(), x, y + 1, { px: 15, mode: k.inputMode || 'key', col: k.col });
   c.restore();
 }
 
 function skipHint(k, st) {
   const c = k.c;
+  if (k.inputMode === 'touch') return;   // the Skip button says it
   c.save(); c.globalAlpha = 0.7; c.textAlign = 'right'; c.fillStyle = k.col('#f3c6dc');
   c.font = '700 13px "Josefin Sans", sans-serif';
   richText(c, '[B] SKIP SCENE', 1150, 92, { px: 13, mode: k.inputMode || 'key', col: k.col });
