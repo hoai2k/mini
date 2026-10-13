@@ -1,9 +1,14 @@
 // Connect Four: two players drop red and yellow discs into a 7x6 grid; four in
-// a row wins. The first two members of the session play, anyone else watches
-// and takes over a seat when a player leaves. The owner holds the whole game
+// a row wins. The first two members of the session play and everyone else
+// waits in line (js/seatqueue.js): the front of the line takes over a seat
+// when a player leaves, and after a game with someone waiting the winner
+// stays on, the loser goes to the back of the line and the next in line sits
+// down (after a draw, whoever has sat longest makes way). The owner holds the whole game
 // in shared state and validates every move sent by the other player, so the
 // game carries on from shared() alone if the owner leaves. Each device keeps a
 // win/loss/draw record against every opponent name.
+
+import { readLineup, syncSeats, rotateSeats, queueLabel, swapText } from '../js/seatqueue.js';
 
 const COLS = 7;
 const ROWS = 6;
@@ -12,10 +17,13 @@ const COLOR = { r: '#ff4d6d', y: '#ffd43b' };
 const DARK = { r: '#b3123a', y: '#c79500' };
 const NAME = { r: 'Red', y: 'Yellow' };
 
+
 // --- rules ---------------------------------------------------------------
 
-function freshShared(game, first, seats) {
-  return { board: EMPTY.repeat(COLS * ROWS), seats, turn: first, first, winner: null, line: [], last: -1, game };
+// seats, q (the line of watchers), sat (when each seat sat down) and swap
+// (who just rotated in, for the announcement) come from js/seatqueue.js.
+function freshShared(game, first, seats, q = [], sat = [0, 0], swap = null) {
+  return { board: EMPTY.repeat(COLS * ROWS), seats, q, sat, swap, turn: first, first, winner: null, line: [], last: -1, game };
 }
 
 // Lowest empty row in a column, or -1 when the column is full.
@@ -132,20 +140,18 @@ export default {
     };
 
     // --- owner: keep the game and the two seats healthy ---------------------
-    // Seats whose player left are given to the next watcher (in join order).
+    // Seats whose player left are given to the front of the line, newcomers
+    // join the back of it (js/seatqueue.js).
     function ensure() {
       if (!api.isOwner()) return;
       const ids = api.players().map(p => p.id);
       let s = sharedNow();
       if (!s) s = freshShared(1, 'r', [null, null]);
-      const seats = s.seats.map(id => (ids.includes(id) ? id : null));
-      for (let i = 0; i < 2; i++) {
-        if (seats[i]) continue;
-        const next = ids.find(id => !seats.includes(id));
-        if (next) seats[i] = next;
-      }
-      if (seats[0] !== s.seats[0] || seats[1] !== s.seats[1] || s !== api.shared()) api.setShared({ ...s, seats });
+      const lu = syncSeats(readLineup(s), ids);
+      if (lu.changed || s !== api.shared()) api.setShared({ ...s, seats: lu.seats, q: lu.q, sat: lu.sat });
     }
+    const lineup = s => readLineup(s);
+    const placeOf = (s, id) => lineup(s).q.indexOf(id);
 
     // Applies one move (owner only). Returns true if it was legal.
     function applyMove(by, col, game) {
@@ -170,12 +176,19 @@ export default {
       return true;
     }
 
-    // New game, the loser (or after a draw the player who did not start) first.
+    // New game. With someone waiting, the loser (after a draw whoever has
+    // sat longest) makes way for the front of the line, who starts. Otherwise
+    // the loser (or after a draw the player who did not start) goes first.
+    // The players and the next in line may ask for it.
     function resetGame(by, game) {
       const s = sharedNow();
-      if (!s || !s.winner || game !== s.game || !s.seats.includes(by)) return;
-      const first = s.winner === 'draw' ? (s.first === 'r' ? 'y' : 'r') : (s.winner === 'r' ? 'y' : 'r');
-      api.setShared(freshShared(s.game + 1, first, s.seats));
+      if (!s || !s.winner || game !== s.game) return;
+      const lu = lineup(s);
+      if (!lu.seats.includes(by) && lu.q[0] !== by) return;
+      const r = rotateSeats(lu, s.winner === 'draw' ? -1 : s.winner === 'r' ? 0 : 1);
+      const first = r.swap ? (r.swap.seat === 0 ? 'r' : 'y')
+        : s.winner === 'draw' ? (s.first === 'r' ? 'y' : 'r') : (s.winner === 'r' ? 'y' : 'r');
+      api.setShared(freshShared(s.game + 1, first, r.seats, r.q, r.sat, r.swap && { ...r.swap, game: s.game + 1 }));
     }
 
     api.on('move', (d, from) => {
@@ -196,7 +209,7 @@ export default {
     }
     function playAgain() {
       const s = sharedNow();
-      if (!s || !s.winner || mySeat(s) < 0) return;
+      if (!s || !s.winner || (mySeat(s) < 0 && placeOf(s, api.me.id) !== 0)) return;
       if (api.isOwner()) resetGame(api.me.id, s.game);
       else api.send('again', { game: s.game });
     }
@@ -210,8 +223,14 @@ export default {
       const s = sharedNow();
       if (!s) return;
       if (!shown || shown.game !== s.game) {
+        const fresh = !!shown;
         shown = { game: s.game, board: s.board };
         drops.length = 0;
+        const sw = s.swap;
+        if (fresh && sw && sw.game === s.game && typeof sw.in === 'string' && typeof sw.out === 'string') {
+          api.toast(swapText(sw, api.me.id, nameOf));
+          if (sw.in === api.me.id) api.sfx('win');
+        }
         if (s.winner) announced = s.game;   // joined after the end: no fanfare
         return;
       }
@@ -273,13 +292,23 @@ export default {
       if (statusEl.textContent !== text) statusEl.textContent = text;
 
       let rec = '';
+      const place = s ? placeOf(s, api.me.id) : -1;
+      const q = s ? lineup(s).q : [];
+      const sw = s?.swap;
+      const justSwapped = s && sw && sw.game === s.game && s.board === EMPTY.repeat(COLS * ROWS) && typeof sw.in === 'string';
       if (s && key) {
         const opp = nameOf(s.seats[key === 'r' ? 1 : 0]);
         const r = records['@' + opp];
         rec = `You vs ${opp}: ${Array.isArray(r) ? r.join('–') : '0–0–0'}  (wins–losses–draws)`;
+        if (q.length) rec += ` · Next up: ${nameOf(q[0])}`;
+      } else if (s && place >= 0) {
+        rec = place === 0 ? `${queueLabel(0)}: you play the winner.` : `${queueLabel(place)} to play.`;
       }
+      if (justSwapped) rec = `${swapText(sw, api.me.id, nameOf)}${rec ? ' · ' + rec : ''}`;
       if (recEl.textContent !== rec) recEl.textContent = rec;
-      again.hidden = !(s && s.winner && settled && key);
+      again.hidden = !(s && s.winner && settled && (key || place === 0));
+      const label = key ? 'Play again' : 'Play next';
+      if (again.textContent !== label) again.textContent = label;
     }
 
     // --- drawing ---------------------------------------------------------
@@ -438,7 +467,7 @@ export default {
       const s = sharedNow();
       render(s);
       if (s && s.winner && announced !== s.game && !animating()) announce(s);
-      const sig = JSON.stringify([s && s.board, s && s.winner, s && s.turn, s && s.seats, announced, animating(), api.players().map(p => p.name)]);
+      const sig = JSON.stringify([s && s.board, s && s.winner, s && s.turn, s && s.seats, s && s.q, s && s.swap, announced, animating(), api.players().map(p => p.name)]);
       if (sig !== lastSig) {
         lastSig = sig;
         updateHead(s);

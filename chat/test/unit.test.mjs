@@ -1183,3 +1183,99 @@ test('Temple Dash checks shared state, runners and messages strictly', () => {
   assert.deepEqual(temple.parseFell({ n: 2, d: 99.5, k: 1 }), { n: 2, d: 99.5, k: 1 });
   for (const bad of [null, {}, { n: 2, d: 99, k: 0 }, { n: 2, d: 99, k: 5 }, { n: -1, d: 1, k: 1 }, { n: 1, d: Infinity, k: 1 }]) assert.equal(temple.parseFell(bad), null);
 });
+
+test('Two-seat games: the line of watchers, seat takeover and the winner-stays rotation', async () => {
+  const Q = await import('../js/seatqueue.js');
+  const empty = { seats: [null, null], q: [], sat: [0, 0] };
+  // The first two sit down, the rest wait in the order they joined.
+  let lu = Q.syncSeats(empty, ['a', 'b', 'c', 'd'], 10);
+  assert.deepEqual([lu.seats, lu.q, lu.sat, lu.changed], [['a', 'b'], ['c', 'd'], [10, 10], true]);
+  assert.equal(Q.syncSeats(lu, ['a', 'b', 'c', 'd'], 20).changed, false, 'nothing to do');
+  // A newcomer goes to the back; someone who left drops out of the line.
+  lu = Q.syncSeats(lu, ['a', 'b', 'd', 'e'], 20);
+  assert.deepEqual([lu.seats, lu.q], [['a', 'b'], ['d', 'e']]);
+  // A player leaves: the front of the line takes the seat, with a new sat time.
+  lu = Q.syncSeats(lu, ['b', 'd', 'e'], 30);
+  assert.deepEqual([lu.seats, lu.q, lu.sat], [['d', 'b'], ['e'], [30, 10]]);
+  // Nobody waiting: the seat stays open.
+  assert.deepEqual(Q.syncSeats({ seats: ['a', 'b'], q: [], sat: [1, 1] }, ['b'], 5).seats, [null, 'b']);
+
+  // After a game the winner stays, the loser goes to the back, the longest-waiting watcher sits down.
+  const base = { seats: ['a', 'b'], q: ['c', 'd'], sat: [1, 2] };
+  let r = Q.rotateSeats(base, 0, 50);
+  assert.deepEqual([r.seats, r.q, r.sat, r.swap], [['a', 'c'], ['d', 'b'], [1, 50], { seat: 1, out: 'b', in: 'c' }]);
+  r = Q.rotateSeats(base, 1, 50);
+  assert.deepEqual([r.seats, r.q, r.sat, r.swap], [['c', 'b'], ['d', 'a'], [50, 2], { seat: 0, out: 'a', in: 'c' }]);
+  assert.deepEqual(base, { seats: ['a', 'b'], q: ['c', 'd'], sat: [1, 2] }, 'the input is left alone');
+  // A draw: whoever has sat longest (the older sat time) makes way.
+  assert.deepEqual(Q.rotateSeats(base, -1, 50).swap, { seat: 0, out: 'a', in: 'c' });
+  assert.deepEqual(Q.rotateSeats({ ...base, sat: [9, 3] }, -1, 50).swap, { seat: 1, out: 'b', in: 'c' });
+  // Nobody waiting, or a seat empty: no change.
+  assert.deepEqual(Q.rotateSeats({ seats: ['a', 'b'], q: [], sat: [1, 2] }, 0, 50), { seats: ['a', 'b'], q: [], sat: [1, 2], swap: null });
+  assert.equal(Q.rotateSeats({ seats: ['a', null], q: ['c'], sat: [1, 2] }, 0, 50).swap, null);
+  // Everyone gets a turn: with the same seat winning, each watcher sits down in turn.
+  let cur = { seats: ['a', 'b'], q: ['c', 'd'], sat: [0, 0] };
+  const challengers = [];
+  for (let i = 0; i < 4; i++) { cur = Q.rotateSeats(cur, 0, i + 1); challengers.push(cur.seats[1]); }
+  assert.deepEqual(challengers, ['c', 'd', 'b', 'c']);
+
+  // Shared state is untrusted: bad ids, duplicates and seated ids leave the line.
+  assert.deepEqual(Q.readLineup({ seats: ['a', 'a'], q: ['a', 'c', 'c', 5, '', 'x'.repeat(65), 'd'], sat: [1, 'x'] }),
+    { seats: ['a', null], q: ['c', 'd'], sat: [0, 0] });
+  assert.deepEqual(Q.readLineup(null), { seats: [null, null], q: [], sat: [0, 0] });
+  assert.equal(Q.readLineup({ seats: ['a', 'b'], q: Array.from({ length: 99 }, (_, i) => `p${i}`) }).q.length, Q.MAX_QUEUE);
+
+  // What watchers are told.
+  assert.equal(Q.queueLabel(0), 'You’re up next');
+  assert.equal(Q.queueLabel(1), '2nd in line');
+  assert.equal(Q.queueLabel(2), '3rd in line');
+  assert.equal(Q.queueLabel(10), '11th in line');
+  assert.equal(Q.queueLabel(-1), '');
+  assert.equal(Q.ordinal(21), '21st');
+  const nm = id => ({ a: 'Ana', b: 'Bo', c: 'Cy' })[id];
+  const sw = { seat: 1, out: 'b', in: 'c' };
+  assert.match(Q.swapText(sw, 'c', nm), /You’re in! You take Bo’s seat/);
+  assert.match(Q.swapText(sw, 'b', nm), /Cy takes your seat/);
+  assert.equal(Q.swapText(sw, 'a', nm), 'Cy takes Bo’s seat.');
+});
+
+test('Don’t Smile: the round’s players are fixed at the 3-2-1, mid-round joiners wait', async () => {
+  const { _logic: D } = await import('../games/dontsmile.js');
+  const ps = ['a', 'b', 'c'].map(id => ({ id }));
+  const ids = list => list.map(p => p.id);
+  // In the lobby everyone present (up to the limit) plays.
+  assert.deepEqual(ids(D.roundContestants({ phase: 'lobby' }, ps)), ['a', 'b', 'c']);
+  assert.deepEqual(ids(D.roundContestants(null, ps)), ['a', 'b', 'c']);
+  const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}` }));
+  assert.equal(D.roundContestants({ phase: 'lobby' }, many).length, D.MAX_PLAYERS);
+  // During the count and the round: only the snapshot, minus anyone who left.
+  for (const phase of ['count', 'play']) {
+    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, ps)), ['a', 'b'], `${phase}: c joined mid-round`);
+    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, [{ id: 'b' }, { id: 'c' }])), ['b'], `${phase}: a left`);
+  }
+  // Junk in the snapshot is ignored; an old state without one uses the members.
+  assert.deepEqual(ids(D.roundContestants({ phase: 'play', in: [5, null, 'c'] }, ps)), ['c']);
+  assert.deepEqual(ids(D.roundContestants({ phase: 'play' }, ps)), ['a', 'b', 'c']);
+});
+
+test('Mob Whack: a late joiner is seated mid-round with 0 points and full hearts', async () => {
+  const { _logic: W } = await import('../games/whack.js');
+  const now = Date.now();
+  const S = W.readShared({ round: 2, seed: 7, startAt: now - 20000, pl: [['a', 'Ana', '#ff0000', 120, 2, 3, 9, 4]], o: [] });
+  const people = [{ id: 'a', name: 'Ana', color: '#ff0000' }, { id: 'b', name: 'Bo', color: '#00ff00' }];
+  const next = W.seatJoiners(S, people, now);
+  assert.equal(next.pl.length, 2);
+  assert.deepEqual(next.pl[0], S.pl[0], 'the others keep their line');
+  assert.deepEqual(next.pl[1], { id: 'b', name: 'Bo', color: '#00ff00', score: 0, hearts: W.HEARTS, combo: 0, hits: 0, best: 0, j: 20000 });
+  assert.deepEqual(W.readShared(W.packShared(next)), next, 'the join time survives the wire');
+  assert.equal(W.seatJoiners(next, people, now), null, 'already seated');
+  // Before the start no join mark; after the end nobody is seated.
+  assert.equal(W.seatJoiners({ ...S, startAt: now + 2000 }, people, now).pl[1].j, undefined);
+  assert.equal(W.seatJoiners({ ...S, startAt: now - W.DURATION - 1 }, people, now), null);
+  // Someone who left and came back keeps their line; a full field seats nobody.
+  const back = W.readShared({ round: 2, seed: 7, startAt: now - 5000, pl: [['a', 'Ana', '#ff0000', 0, 3, 0, 0, 0], ['b', 'Bo', '#00ff00', 40, 1, 0, 4, 2, 3000]] });
+  assert.equal(back.pl[1].j, 3000);
+  assert.equal(W.seatJoiners(back, people, now), null);
+  const full = { ...S, pl: Array.from({ length: W.MAX_PLAYERS }, (_, i) => W.newPlayer({ id: `p${i}` })) };
+  assert.equal(W.seatJoiners(full, people, now), null);
+});

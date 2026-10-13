@@ -8,6 +8,9 @@
 //   - a creeper nobody whacks explodes for both: each loses a heart;
 //   - whacking a villager costs only the player who whacked it;
 //   - an enderman teleports between holes before it can be caught;
+//   - a third seat (Cy) joining mid-round is seated at once with 0 points and
+//     full hearts, scores on the shared field, and shows (with when she
+//     joined) on the other two seats' tallies and results;
 //   - the round ends with the same scores and winner on both seats;
 //   - in a second round, debug-bot rookie moves (js/rookie.js) score on the
 //     shared field and the seats still agree.
@@ -23,29 +26,32 @@ await mkdir(outDir, { recursive: true });
 
 const server = await serve(chatDir);
 const browser = await launch();
-const page = await browser.newPage({ viewport: { width: 2 * 402 + 30, height: 820 } });
+const page = await browser.newPage({ viewport: { width: 3 * 402 + 30, height: 820 } });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
-await page.goto(`${server.url}/test/game.html?game=whack&n=2&w=390&h=690&expr=0`);
-await page.waitForFunction(() => window.ready === true && window.seats.every(s => s.gh.current?.instance?._view), null, { timeout: 20000 });
+// Seat 3 (Cy) is held back and joins in the middle of round 1.
+await page.goto(`${server.url}/test/game.html?game=whack&n=3&hold=1&w=390&h=690&expr=0`);
+await page.waitForFunction(() => window.ready === true && window.seats.slice(0, 2).every(s => s.gh.current?.instance?._view), null, { timeout: 20000 });
 
 let failed = 0;
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`);
   if (!ok) failed++;
 };
-const views = () => page.evaluate(() => window.seats.map(s => s.gh.current.instance._view()));
-const boxes = await page.evaluate(() => window.seats.map(s => {
-  const r = s.el.querySelector('canvas.g-canvas').getBoundingClientRect();
-  return { x: r.left, y: r.top };
+// The open seats' views (Cy's only once she has joined).
+const views = () => page.evaluate(() => window.seats.filter(s => s.gh.current).map(s => s.gh.current.instance._view()));
+const boxOf = () => page.evaluate(() => window.seats.map(s => {
+  const r = s.el.querySelector('canvas.g-canvas')?.getBoundingClientRect();
+  return r ? { x: r.left, y: r.top } : null;
 }));
+let boxes = await boxOf();
 const click = (seat, p) => page.mouse.click(boxes[seat].x + p.x, boxes[seat].y + p.y);
-const ID = ['client1', 'client2'];
+const ID = ['client1', 'client2', 'client3'];
 const line = (v, seat) => v.tally.find(p => p.id === ID[seat]) || { score: 0, hearts: 0, hits: 0 };
 const wait = ms => page.waitForTimeout(ms);
 
 // --- round 1: played by hand -------------------------------------------------
-await page.waitForFunction(() => window.seats.every(s => s.gh.current.instance._view().playing), null, { timeout: 10000 });
+await page.waitForFunction(() => window.seats.slice(0, 2).every(s => s.gh.current.instance._view().playing), null, { timeout: 10000 });
 let v = await views();
 check(v[0].round === v[1].round && v[0].startAt === v[1].startAt && v[0].sched === v[1].sched && v[0].sched.length > 100,
   `both seats have the same round, start and spawns (${v[0].sched.split(',').length} mobs)`);
@@ -55,9 +61,10 @@ await page.screenshot({ path: `${outDir}whack-countdown.png` });
 
 const seen = {
   single: null, slow: null, early: null, hammer: null, villager: null, boom: null,
-  enderHoles: new Map(), enderCaught: false, shots: new Set(),
+  enderHoles: new Map(), enderCaught: false, shots: new Set(), join: null, cyHits: 0,
 };
-const clicked = [new Set(), new Set()];
+const clicked = [new Set(), new Set(), new Set()];
+const taken = id => clicked.some(c => c.has(id));
 let sameUp = 0, upChecks = 0, prev = null;
 for (;;) {
   v = await views();
@@ -95,7 +102,22 @@ for (;;) {
     }
   }
   const both = v[0].up.filter(m => m.since > 120 && m.left > 500 && v[1].up.some(n => n.id === m.id && n.stop === m.stop));
-  const zombie = both.find(m => m.kind === 'zombie' && !clicked[0].has(m.id) && !clicked[1].has(m.id));
+  // Cy joins mid-round: the owner seats her straight away, on both tallies.
+  if (!seen.join && seen.early && v[0].t > 15000 && v[0].t < 40000) {
+    const at = v[0].t;
+    await page.evaluate(() => window.joinSeat(2));
+    await page.waitForFunction(() => window.seats[2].gh.current?.instance?._view?.().playing, null, { timeout: 6000 }).catch(() => {});
+    const after = await views();
+    boxes = await boxOf();
+    seen.join = {
+      at, wait: after[2] ? after[2].t - at : Infinity, playing: !!after[2]?.playing,
+      lines: after.slice(0, 2).map(x => line(x, 2)), own: after[2] ? line(after[2], 2) : null,
+    };
+    await wait(300);
+    await page.screenshot({ path: `${outDir}whack-join.png` });
+    continue;
+  }
+  const zombie = both.find(m => m.kind === 'zombie' && !taken(m.id));
   if (zombie && v[0].t > 1500 && v[0].t < 55000) {
     const before = await views();
     if (!seen.single) {
@@ -154,11 +176,15 @@ for (;;) {
   }
   // Then: Ana whacks odd zombies, endermen where they settle, creepers once
   // one has exploded, and one villager once she has points; Bo whacks even zombies.
-  for (let s = 0; s < 2; s++) {
+  // Cy, once in, gets the first go at zombies until she has a few hits.
+  for (const s of v[2] ? [2, 0, 1] : [0, 1]) {
     for (const m of v[s].up) {
-      if (clicked[0].has(m.id) || clicked[1].has(m.id) || m.since < 120 || !seen.early) continue;
+      if (taken(m.id) || m.since < 120 || !seen.early) continue;
       let go = false;
-      if (s === 0) {
+      if (s === 2) {
+        go = m.kind === 'zombie' && m.left > 400 && seen.cyHits < 3;
+        if (go) seen.cyHits++;
+      } else if (s === 0) {
         if (m.kind === 'zombie') go = m.id % 2 === 1;
         else if (m.kind === 'creeper') go = !!seen.boom;
         else if (m.kind === 'enderman') go = m.stop === m.stops - 1;
@@ -213,18 +239,27 @@ check(VI && VI.by === ID[0] && VI.ana[1] < VI.ana[0] && VI.bo[1] === VI.bo[0],
   `a villager costs only its whacker (Ana ${VI?.ana.join(' → ')}, Bo ${VI?.bo.join(' → ')})`);
 const hops = [...seen.enderHoles.values()].map(s => s.size);
 check(hops.some(n => n >= 2), `an enderman teleports between holes (holes per enderman: ${hops.join(', ') || 'none seen'}; caught: ${seen.enderCaught})`);
+const J = seen.join;
+check(J && J.playing && J.wait < 2500 && J.lines.every(l => l.id === ID[2] && l.score === 0 && l.hearts === 3 && l.j > 10000) && J.own?.j === J.lines[0].j,
+  `Cy joining ${((J?.at ?? 0) / 1000).toFixed(1)} s into the round is seated within ${J?.wait} ms with 0 points and full hearts, on both other seats`);
 
 await page.waitForFunction(() => window.seats.every(s => s.gh.current.instance._view().winner), null, { timeout: 8000 }).catch(() => {});
 await wait(1600);
 v = await views();
 const names = await page.evaluate(() => window.seats.map(s => s.me.name));
 const winnerOf = x => (x.winner === 'client1' || x.winner === 'client2' ? names[Number(x.winner.slice(6)) - 1] : x.winner);
-const [a1, b1] = [line(v[0], 0).score, line(v[0], 1).score];
-const expected = a1 > b1 ? 'Ana' : b1 > a1 ? 'Bo' : '';
-check(JSON.stringify(v[0].tally) === JSON.stringify(v[1].tally) && v[0].score === a1 && v[1].score === b1 && !v[0].pending && !v[1].pending,
-  `final scores agree on both seats (Ana ${a1}, Bo ${b1})`);
+const [a1, b1, c1] = [line(v[0], 0).score, line(v[0], 1).score, line(v[0], 2).score];
+const top = Math.max(a1, b1, c1);
+const expected = [a1, b1, c1].filter(x => x === top).length > 1 ? '' : a1 === top ? 'Ana' : b1 === top ? 'Bo' : 'Cy';
+check(JSON.stringify(v[0].tally) === JSON.stringify(v[1].tally) && JSON.stringify(v[2].tally) === JSON.stringify(v[1].tally)
+  && v[0].score === a1 && v[1].score === b1 && v[2].score === c1 && !v.some(x => x.pending),
+  `final scores agree on all three seats (Ana ${a1}, Bo ${b1}, Cy ${c1})`);
+const cyLine = line(v[0], 2);
+const rows = await page.evaluate(() => window.seats.slice(0, 2).map(s => [...s.el.querySelectorAll('.mw-row span')].map(e => e.textContent)));
+check(cyLine.hits > 0 && c1 > 0 && rows.every(r => r.some(t => /Cy joined at \d+ s/.test(t))),
+  `the late joiner scored on the shared field (${c1} points, ${cyLine.hits} hits) and is in both other seats' results (${rows[0].join(' | ')})`);
 check(v.every(x => x.over) && winnerOf(v[0]) === expected && winnerOf(v[1]) === expected,
-  `the round ends with the same winner on both seats (${winnerOf(v[0])} / ${winnerOf(v[1])})`);
+  `the round ends with the same winner on Ana's and Bo's seats (${winnerOf(v[0])} / ${winnerOf(v[1])})`);
 await page.screenshot({ path: `${outDir}whack-over.png` });
 
 // --- round 2: debug-bot rookie moves ----------------------------------------

@@ -6,7 +6,11 @@
 // The last straight face wins the round; alone you play for the longest time.
 //
 // The owner referees from shared state { phase, round, seed, startAt, ready,
-// smiled: {id: ms}, scores, last }. The silly events are derived from the
+// in: [ids], smiled: {id: ms}, scores, last }. `in` is who plays the round,
+// fixed when the 3-2-1 starts: someone who joins mid-round watches with a
+// "You're in next round" note and plays from the next one (they would
+// otherwise count as a straight face and could win after a few seconds).
+// The silly events are derived from the
 // seed and the clock, so every client shows the same ones at the same time
 // and a new owner can carry on from shared() alone.
 
@@ -64,6 +68,16 @@ function slotEvent(seed, slot, n) {
 
 const fmt = ms => `${(ms / 1000).toFixed(1)} s`;
 
+// Who plays: in the lobby the first MAX_PLAYERS members; once the 3-2-1 has
+// started, only those in the round's snapshot `in` who are still here. An old
+// shared state without a snapshot falls back to the members.
+function roundContestants(sh, players) {
+  const live = players.slice(0, MAX_PLAYERS);
+  if (!sh || (sh.phase !== 'count' && sh.phase !== 'play') || !Array.isArray(sh.in)) return live;
+  const ids = new Set(sh.in.filter(id => typeof id === 'string').slice(0, MAX_PLAYERS));
+  return players.filter(p => ids.has(p.id));
+}
+
 export default {
   id: 'dontsmile',
   name: 'Don’t Smile',
@@ -115,7 +129,7 @@ export default {
     resize();
 
     // --- referee (owner) ---------------------------------------------------
-    const contestants = () => api.players().slice(0, MAX_PLAYERS);
+    const contestants = () => roundContestants(api.shared(), api.players());
     const isContestant = id => contestants().some(m => m.id === id);
 
     function initialShared() {
@@ -132,7 +146,7 @@ export default {
       const list = contestants();
       if (sh.phase === 'lobby') {
         if (list.length && list.every(m => sh.ready?.[m.id])) {
-          api.setShared({ ...sh, phase: 'count', startAt: now + COUNT_MS, smiled: {}, seed: Math.floor(Math.random() * 1e6) });
+          api.setShared({ ...sh, phase: 'count', startAt: now + COUNT_MS, smiled: {}, in: list.map(m => m.id), seed: Math.floor(Math.random() * 1e6) });
         }
       } else if (sh.phase === 'count') {
         if (now >= sh.startAt) api.setShared({ ...sh, phase: 'play' });
@@ -566,7 +580,10 @@ export default {
       const spectating = !isContestant(api.me.id);
       let msg = '', btn = false, enabled = true;
       if (!sh) msg = 'Getting ready…';
-      else if (spectating) msg = 'The game is full: watching this one.';
+      else if (spectating) {
+        const full = api.players().findIndex(p => p.id === api.me.id) >= MAX_PLAYERS;
+        msg = full ? 'The game is full: watching this one.' : 'You’re in next round! Watch them try not to smile.';
+      }
       else if (sh.phase === 'lobby') {
         const waiting = list.filter(m => !sh.ready?.[m.id]);
         if (!face) { msg = 'Don’t Smile needs your camera to see your face. Turn it on and face the screen.'; btn = true; enabled = false; }
@@ -635,3 +652,6 @@ export default {
     };
   },
 };
+
+// Exposed for tests.
+export const _logic = { roundContestants, MAX_PLAYERS };
