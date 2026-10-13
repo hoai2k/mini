@@ -464,7 +464,7 @@ export default function create(env) {
       // A dive coming at him: now and then he skids to a stop so it misses.
       if (!h.dodged && b.diving && Math.abs(b.x - h.x) < 280 && b.y > 430 && b.y < 760) {
         h.dodged = true;
-        if (env.rng() < pDodge()) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
+        const _r = env.rng(); console.error('dodge check', _r.toFixed(2), pDodge().toFixed(2)); if (_r < pDodge()) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
       }
       h.vx = h.dir * dashSpeed();
       h.x += h.vx * dt;
