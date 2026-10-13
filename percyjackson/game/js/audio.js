@@ -50,7 +50,7 @@ export class Audio {
     if (!this.started) return;
     const g = settings.muted || this.away ? 0 : settings.master;
     this.master.gain.setTargetAtTime(g, this.ctx.currentTime, 0.03);
-    this.sfxBus.gain.value = settings.sfx;
+    this.sfxBus.gain.value = settings.sfx * 0.7;   // effects sit about 3 dB under the slider, below the music
     this.musicBus.gain.value = settings.music * 0.55;
     this.ambBus.gain.value = settings.sfx * 0.5;
   }

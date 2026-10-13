@@ -182,7 +182,13 @@ export class Kit {
       const quiver = k === 'ranged' ? this.p.quiver : null;
       if (pressed && quiver && quiver.ammo <= 0 && s.cdLeft <= 0) { this.dryFire(); continue; }
       if (pressed && s.cdLeft <= 0 && this.p.ce >= (s.ce ?? 0) && this.canCast(s)) {
-        if (s.use() !== false) {
+        // controller/touch ranged help: shoot at an enemy close to the aim
+        // line, then put the hero's aim and facing back as they were
+        const assist = quiver ? this.p.rangedAssist?.() : null, keepAim = assist && this.p.aimDir.clone(), keepFace = this.p.facing;
+        if (assist) { this.p.aimDir.set(assist.pos.x - this.p.pos.x, 0, assist.pos.z - this.p.pos.z).normalize(); this.p.autoTarget = assist; this.p.aimPoint.copy(assist.pos); }
+        const used = s.use();
+        if (assist) { this.p.aimDir.copy(keepAim); this.p.facing = keepFace; this.p.autoTarget = null; }
+        if (used !== false) {
           if (quiver) shoot(quiver);
           if (s.maxCharges) { s.chargesLeft--; s.gate = s.gateTime ?? 0.3; } else s.cdLeft = s.cd * this.cdr;
           this.p.ce -= s.ce ?? 0;
