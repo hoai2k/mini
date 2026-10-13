@@ -148,11 +148,14 @@ export default function create(env) {
     { x: 6900, hub: 560, len: 150, ang: 1.1, spin: -1.25 },
     { x: 7700, hub: 560, len: 150, ang: 0.4, spin: 1.1 },
   ];
-  // The delivered windmill (adv.b05.props 7) stands on its own island, hub up
-  // and to the right of its middle; drawn WM_H tall with the island's waves at the waterline.
-  const WM_H = 430, WM_BASE = SEA0 + 30;
-  const hasWindmill = () => !!art.sprite('adv.b05.props', 7);
-  const hubX = (wm) => wm.x + (hasWindmill() ? 47 : 0);
+  // The delivered windmill (adv.b05.windmill: 1 the tower on its island, no
+  // sails; 2 the sails alone, hub in the centre): the tower is drawn WM_H tall
+  // with its island's waves at the waterline, the sails spin about the small
+  // boss on the right of its cap. The sails lie diagonally in their sprite.
+  const WM_H = 400, WM_BASE = SEA0 + 30, SAIL_OFF = Math.PI / 4;
+  const hasWindmill = () => !!art.sprite('adv.b05.windmill', 1);
+  const hubX = (wm) => wm.x + (hasWindmill() ? 33 : 0);
+  for (const wm of windmills) wm.hub = WM_BASE - 313;
   // Sea rocks: [x, height] (decor).
   const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10080, 100]];
 
@@ -488,16 +491,10 @@ export default function create(env) {
     if (chopCd <= 0) {
       for (const wm of windmills) {
         if (Math.abs(wm.x - p.x) > wm.len + rx + 60) continue;
-        if (hasWindmill()) {
-          // Painted sails: the disc they sweep.
-          const d = Math.hypot(p.x - hubX(wm), (p.y - wm.hub) * k);
-          if (d < wm.len * 0.95 + rx * 0.8) chop(wm, Math.atan2(p.y - wm.hub, p.x - hubX(wm)));
-          if (chopCd > 0) break;
-          continue;
-        }
+        const hx = hubX(wm);
         for (let i = 0; i < 4; i++) {
-          const a = wm.ang + (i * Math.PI) / 2;
-          const ax = wm.x, ay = wm.hub * k, bx = wm.x + Math.cos(a) * wm.len, by = (wm.hub + Math.sin(a) * wm.len) * k;
+          const a = wm.ang + SAIL_OFF + (i * Math.PI) / 2;
+          const ax = hx, ay = wm.hub * k, bx = hx + Math.cos(a) * wm.len, by = (wm.hub + Math.sin(a) * wm.len) * k;
           const px = p.x, py = p.y * k;
           const l2 = (bx - ax) ** 2 + (by - ay) ** 2;
           const u = clamp(((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / l2, 0, 1);
@@ -1240,7 +1237,7 @@ export default function create(env) {
 
   function drawWindmillTower(g, wm) {
     const base = WM_BASE;
-    kit.sprite(g, 'adv.b05.props', 7, wm.x, base, { height: WM_H, ay: 1 }, () => {
+    kit.sprite(g, 'adv.b05.windmill', 1, wm.x, base, { height: WM_H, ay: 1 }, () => {
       inkRock(g, wm.x, base, 150, 260);
       g.save();
       g.strokeStyle = INK;
@@ -1273,9 +1270,10 @@ export default function create(env) {
   }
 
   function drawSails(g, wm) {
-    if (art.sprite('adv.b05.props', 7)) return; // the delivered windmill has its own sails
+    if (art.drawSprite(g, art.sprite('adv.b05.windmill', 2), hubX(wm), wm.hub, { height: wm.len * 2.06, ax: 0.5, ay: 0.5, rot: wm.ang })) return;
     g.save();
     g.translate(hubX(wm), wm.hub);
+    g.rotate(SAIL_OFF);
     g.strokeStyle = INK;
     g.lineWidth = 4;
     for (let i = 0; i < 4; i++) {
