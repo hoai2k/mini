@@ -2251,6 +2251,10 @@ export const ASSET_LIST = {
     "file": "assets/games/temple-monkeys.png",
     "status": "delivered"
   },
+  "temple-beam": {
+    "file": "assets/games/temple-beam.png",
+    "status": "requested"
+  },
   "game-blocks": {
     "file": "assets/icons/game-blocks.png",
     "status": "delivered"

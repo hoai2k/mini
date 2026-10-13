@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-527 delivered, 527 in total.
+527 delivered, 1 requested, 528 in total.
 
 ## Brand
 
@@ -1435,6 +1435,18 @@ Production canvas aspect ratio 128:128, intended export 128 x 128. Genuine trans
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 Production canvas aspect ratio 1024:512, intended export 1024 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.
+```
+
+### CH-G84 · Low beam (slide under)
+
+- **File:** `chat/assets/games/temple-beam.png`
+- **Size:** 1024 x 512, transparent
+- **Used for:** Temple Dash: the obstacle you slide under. It spans the whole walkway, all three lanes, so the only way past is to slide (it replaces the open archway, which looked tall enough to run through).
+- **Stand-in until delivered:** A drawn beam.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. Seen straight from the front: one massive horizontal carved stone beam lying across the FULL width of the image, thick and heavy, with carved glyphs and moss on top and a few short vines hanging from its underside. The beam's top edge is about 20% down from the top of the image and its flat underside about 62% down. Below the beam the image is EMPTY (transparent) right across, except two short broken stone blocks at the very left and right edges (each under 8% of the width) that hold the beam up. Vines stop well above the bottom third. No archway, no rounded opening, nothing in the middle below the beam. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ## 360° worlds
