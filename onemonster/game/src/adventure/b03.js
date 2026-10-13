@@ -871,17 +871,18 @@ export default function create(env) {
     // The painting's bubbley goo, as a slow parallax texture under the surface.
     const scene = art.image('scenes/grumley');
     if (scene) {
-      const sy = 660, sh = 420;
+      // (the goo to the right of the painting's shore, so the shore does not repeat)
+      const sx0 = 760, sw = scene.width - 760, sy = 660, sh = 420;
       const k = (H - SURF) / sh;
-      const tw = scene.width * k;
+      const tw = sw * k;
       const off = cam.x * 0.5;
       g.save();
       g.globalAlpha = 0.5;
       const i0 = Math.floor((x0 + off) / tw);
       for (let i = i0; i * tw - off < x1; i++) {
         const x = i * tw - off;
-        if (i % 2) { g.translate(x + tw, SURF); g.scale(-1, 1); g.drawImage(scene, 0, sy, scene.width, sh, 0, 0, tw, H - SURF); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(-Math.round(cam.x) + cam.sx, cam.sy); }
-        else g.drawImage(scene, 0, sy, scene.width, sh, x, SURF, tw, H - SURF);
+        if (i % 2) { g.translate(x + tw, SURF); g.scale(-1, 1); g.drawImage(scene, sx0, sy, sw, sh, 0, 0, tw, H - SURF); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(-Math.round(cam.x) + cam.sx, cam.sy); }
+        else g.drawImage(scene, sx0, sy, sw, sh, x, SURF, tw, H - SURF);
       }
       g.restore();
       g.fillStyle = 'rgba(16,50,96,0.45)';
@@ -1050,14 +1051,10 @@ export default function create(env) {
     g.beginPath(); g.rect(I.x - 100, above ? -100 : SURF, I.w + 200, above ? SURF + 100 : H - SURF); g.clip();
     kit.sprite(g, TERRAIN, 4, I.x + I.w / 2, SURF + 20, { height: SURF + 20 - I.y + 160 }, () => {
       g.save();
-      // Boulders piled below the surface, then the island's rock above.
-      for (const [bx, by, bw, bh] of [[I.x + 120, FLOOR + 10, 420, 520], [I.x + 460, FLOOR + 10, 380, 440], [I.x + 300, SURF + 230, 520, 300]]) {
-        g.fillStyle = '#56636f'; g.strokeStyle = INK; g.lineWidth = 4;
-        g.beginPath();
-        g.moveTo(bx - bw / 2, by);
-        for (let i = 1; i < 9; i++) { const a = Math.PI * (1 - i / 9); const r = 1 + (kit.hash(bx + i * 5) - 0.5) * 0.25; g.lineTo(bx + Math.cos(a) * bw / 2 * r, by - Math.sin(a) * bh * r); }
-        g.lineTo(bx + bw / 2, by); g.closePath(); g.fill(); g.stroke();
-      }
+      // Knobbly rocks piled up from the floor, then the island's rock above.
+      drawRock(g, I.x + 130, FLOOR + 10, 600, false, 1);
+      drawRock(g, I.x + 500, FLOOR + 10, 540, true, 1);
+      drawRock(g, I.x + 320, FLOOR + 10, 690, false, 1);
       g.fillStyle = '#6b6457'; g.strokeStyle = INK; g.lineWidth = 5; g.lineJoin = 'round';
       g.beginPath();
       g.moveTo(I.x - 40, SURF + 40);
@@ -1067,14 +1064,15 @@ export default function create(env) {
       g.quadraticCurveTo(I.x + 400, I.y - 34, I.x + 470, I.y - 18);
       g.quadraticCurveTo(I.x + 540, I.y + 6, I.x + 590, I.y + 50);
       g.quadraticCurveTo(I.x + 640, I.y + 100, I.x + I.w + 60, SURF + 40);
-      g.lineTo(I.x + I.w + 60, SURF + 260); g.lineTo(I.x - 40, SURF + 260);
+      g.quadraticCurveTo(I.x + 450, SURF + 150, I.x + 300, SURF + 140);
+      g.quadraticCurveTo(I.x + 120, SURF + 130, I.x - 40, SURF + 40);
       g.closePath(); g.fill(); g.stroke();
       g.save(); g.clip();
       g.fillStyle = 'rgba(27,42,58,0.16)';
       g.beginPath(); g.moveTo(I.x + 380, I.y - 40); g.quadraticCurveTo(I.x + 520, I.y + 80, I.x + 420, SURF + 100); g.lineTo(I.x + I.w + 80, SURF + 300); g.lineTo(I.x + I.w + 80, I.y - 60); g.closePath(); g.fill();
       g.strokeStyle = 'rgba(27,42,58,0.4)'; g.lineWidth = 2.5;
       g.beginPath();
-      for (let yy = I.y + 10; yy < SURF + 240; yy += 24) { const o = kit.hash(yy) * 400; g.moveTo(I.x + o, yy); g.lineTo(I.x + o + 40 + kit.hash(yy + 1) * 60, yy + 16); }
+      for (let yy = I.y + 10; yy < SURF + 130; yy += 24) { const o = kit.hash(yy) * 400; g.moveTo(I.x + o, yy); g.lineTo(I.x + o + 40 + kit.hash(yy + 1) * 60, yy + 16); }
       g.stroke();
       g.strokeStyle = INK; g.lineWidth = 3;
       for (const [cx, cy] of [[I.x + 200, I.y + 60], [I.x + 420, I.y + 40], [I.x + 120, I.y + 110], [I.x + 500, I.y + 130]]) { g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(cx + 40, cy + 20, cx + 90, cy + 10); g.stroke(); }

@@ -22,8 +22,11 @@ const REACH = 320; // how far the Yalapappus's swat reaches, on the ground
 const WINDUP = 0.4; // seconds of warning before the swat lands
 const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+// The art starts loading as soon as the module does, so the how-to page and
+// the first frames draw the real Yalapappus, not a stand-in.
+art.preload(['yalapappus.poses', 'props.trollusk', 'props.yalapappus', 'trollusk.poses', 'bombanat.poses', 'scenes/yalapappus']);
+
 export default function create(env) {
-  art.preload(['yalapappus.poses', 'props.trollusk', 'props.yalapappus', 'trollusk.poses', 'bombanat.poses']);
   // The stomping Yalapappus: a plain AI pursuer, not part of the chase kit.
   const yal = {
     x: 200, y: 1000, vx: 0, vy: 0, facing: 1, speed: 170,

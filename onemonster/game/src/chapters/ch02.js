@@ -254,8 +254,11 @@ export function animBombanat(c, m, chase, dt = 1 / 60) {
 
 // ---------- chapter 2 ----------
 
+// The art starts loading as soon as the module does, so the how-to page and
+// the first frames draw the real creatures, not stand-ins.
+art.preload(['props.trollusk', 'trollusk.poses', 'bombanat.poses', 'scenes/bombanat']);
+
 export default function create(env) {
-  art.preload(['props.trollusk', 'trollusk.poses', 'bombanat.poses']);
   return chaseChapter(env, {
     time: 45,
     scene: 'scenes/bombanat',
@@ -323,8 +326,8 @@ export const HOWTO = [
     items: [
       { creature: 'trollusk', anim: 'duck', x: 330, y: 330, h: 170, shadow: false },
       { sprite: ['props.trollusk', 5], x: 330, y: 470, h: 200 },
-      { draw: (g, t) => flushRing(g, 330, 200, 0.5 + Math.sin(t * 2) * 0.3, t) },
-      { creature: 'bombanat', anim: 'flap', x: 330, y: 90, h: 150, shadow: false },
+      { draw: (g, t) => flushRing(g, 470, 300, 0.5 + Math.sin(t * 2) * 0.3, t) },
+      { creature: 'bombanat', anim: 'flap', x: 300, y: 80, h: 150, shadow: false },
     ],
   },
   {

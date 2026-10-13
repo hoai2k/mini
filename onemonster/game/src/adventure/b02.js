@@ -790,10 +790,16 @@ export default function create(env) {
     g.strokeStyle = INK;
     g.lineWidth = 4;
     g.beginPath();
-    g.moveTo(x, FLOOR - 4);
-    g.lineTo(x + 60, FLOOR + 90); g.lineTo(x + 20, FLOOR + 200); g.lineTo(x + 90, FLOOR + 320); g.lineTo(x + 40, H + 60);
-    g.lineTo(x - 40, H + 60); g.closePath();
+    g.moveTo(x - 60, FLOOR - 4); g.lineTo(x + 30, FLOOR - 4);
+    g.lineTo(x + 50, FLOOR + 40); g.lineTo(x + 20, FLOOR + 90); g.lineTo(x + 70, FLOOR + 160); g.lineTo(x + 30, FLOOR + 230); g.lineTo(x + 60, H + 60);
+    g.lineTo(x - 60, H + 60); g.closePath();
     g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
+    g.beginPath();
+    for (let y = FLOOR + 20; y < H + 40; y += 34) { g.moveTo(x - 50, y); g.lineTo(x + 10 + hash(y) * 30, y + 14); }
+    g.stroke();
+    g.fillStyle = '#8d9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
+    g.beginPath(); g.ellipse(x - 10, FLOOR + 2, 50, 10, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.restore();
   }
 
@@ -1029,6 +1035,12 @@ export default function create(env) {
     for (let j = j0; s.x + j * 100 < x1 + 100; j++) {
       const x = s.x + j * 100 + 50;
       leafBlob(g, x, LEAF_TOP + hash(j * 3 + s.x) * 30, 70, j * 0.61 + 3, '#6b8a44', '#9fb05a');
+    }
+    // The ends drape down to the undergrowth where the clearing opens.
+    for (const ex of [s.x + 30, s.x + s.w - 30]) {
+      if (ex < x0 - 100 || ex > x1 + 100) continue;
+      leafBlob(g, ex, LEAF_TOP + 95, 70, ex * 0.01, '#5e7a3a', '#8aa352');
+      leafBlob(g, ex + (ex < s.x + 100 ? 20 : -20), LEAF_TOP + 135, 52, ex * 0.02, '#6b8a44', '#9fb05a');
     }
     // The branches that hold it up, peeping through.
     g.save();
@@ -1304,10 +1316,15 @@ function inkStump(g, x, y, tt) {
   g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
   g.beginPath(); g.ellipse(x, y - 120, 36, 10, 0, 0, Math.PI * 2); g.stroke();
   g.beginPath(); g.ellipse(x, y - 120, 16, 5, 0, 0, Math.PI * 2); g.stroke();
-  // A sleepy face in the bark.
-  g.strokeStyle = INK; g.lineWidth = 3;
-  g.beginPath(); g.arc(x - 22, y - 70, 9, 0, Math.PI); g.arc(x + 22, y - 70, 9, 0, Math.PI); g.stroke();
-  g.beginPath(); g.ellipse(x, y - 40, 14, 8 + Math.sin(tt) * 2, 0, 0, Math.PI * 2); g.stroke();
+  // Bark lines, and a sleepy face in a knot.
+  g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 5; i++) { const bx = x - 50 + i * 25; g.moveTo(bx, y - 110); g.lineTo(bx + (bx - x) * 0.25, y - 6); }
+  g.stroke();
+  g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#5c3f28';
+  for (const ex of [-22, 22]) { g.beginPath(); g.ellipse(x + ex, y - 72, 11, 8, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.beginPath(); g.moveTo(x + ex - 9, y - 74); g.quadraticCurveTo(x + ex, y - 66, x + ex + 9, y - 74); g.stroke(); }
+  g.beginPath(); g.ellipse(x, y - 52, 7, 5, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(x, y - 34, 14, 7 + Math.sin(tt) * 2, 0, 0, Math.PI * 2); g.fill(); g.stroke();
   g.restore();
 }
 

@@ -683,7 +683,7 @@ export default function create(env) {
       if (!cam.sees(s.x, s.x + s.w)) continue;
       if (s.kind === 'ground') {
         kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 18, fill: '#6b5236', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
-        if (!art.sprite('terrain.wood', 1)) groundTexture(g, s);
+        if (!art.sprite('terrain.wood', 1)) groundTexture(g, s, Math.max(s.x, cam.x - 40), Math.min(s.x + s.w, cam.x + W + 40));
       }
       else if (s.kind === 'log') kit.sprite(g, 'terrain.wood', 3, s.x + s.w / 2, s.y + s.h, { height: s.h + 16 }, (g2, x, y) => inkLog(g2, x, y, s.w + 24, s.h));
       else if (s.kind === 'branch') kit.sprite(g, 'terrain.wood', 2, s.x, s.y, { height: 120, ax: 0, ay: 0.2 }, (g2, x, y) => inkBranch(g2, x, y, s.w));
@@ -896,8 +896,8 @@ function inkLog(g, x, y, w, h) {
 
 // The mossy floor's texture over the kit's ink ground: tufts and little ferns
 // along the edge, an earth band, strata and hatching in the body.
-function groundTexture(g, s) {
-  const x0 = Math.max(s.x, Math.floor((s.x) / 1) ), x1 = s.x + s.w;
+function groundTexture(g, s, x0, x1) {
+  if (x1 <= x0) return;
   g.save();
   g.beginPath(); g.rect(s.x, s.y - 30, s.w, 400); g.clip();
   // A darker earth band under the moss, with a wobbly edge.

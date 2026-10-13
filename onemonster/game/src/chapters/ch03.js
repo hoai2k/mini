@@ -759,7 +759,11 @@ export default function create(env) {
     if (self.done) return;
     const kind = env.inputKind || 'keyboard';
     const hot = G.mode === 'lurk' && inReach(L);
-    if (t < 5 && L.mode === 'fly' && !hot) marker(g, L.x, tagY(L) - 70, { t: tt, label: 'The letter!' });
+    if (t < 5 && L.mode === 'fly' && !hot) {
+      // Over the tag, or (when he is up near the clock) under him, pointing up.
+      if (tagY(L) >= 240) marker(g, L.x, tagY(L) - 70, { t: tt, label: 'The letter!' });
+      else upMarker(g, L.x, L.y + 120, tt, 'The letter!');
+    }
     if (hot) {
       const k = depthK(G.y);
       actionPrompt(g, G.x, G.y - 150 * k, 'Lunge!', { kind, t: tt, pulse: 1, side: 0 });
@@ -846,20 +850,39 @@ export default function create(env) {
   return self;
 }
 
-// The opening hint: a cream band across the sky with big ink type.
+// A marker pointing up at something above it, its label underneath.
+function upMarker(g, x, y, t, label) {
+  g.save();
+  g.translate(x, y);
+  g.scale(1, -1);
+  marker(g, 0, 0, { t });
+  g.restore();
+  g.save();
+  g.font = '800 30px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  g.lineWidth = 8;
+  g.strokeStyle = 'rgba(251,246,232,0.96)';
+  g.strokeText(label, x, y + 78);
+  g.fillStyle = '#33241a';
+  g.fillText(label, x, y + 78);
+  g.restore();
+}
+
+// The opening hint: a cream band along the bottom edge, below the goo the
+// Grumley lurks in and clear of the Bombanats' sky, in big ink type.
 function hint(g, text, W, t) {
   const a = t > 3.2 ? Math.max(0, 1 - (t - 3.2) / 0.8) : 1;
   g.save();
   g.globalAlpha = a;
   g.fillStyle = 'rgba(251,246,232,0.9)';
-  g.fillRect(0, 300, W, 84);
+  g.fillRect(0, 988, W, 84);
   g.fillStyle = 'rgba(51,36,26,0.5)';
-  g.fillRect(0, 300, W, 4); g.fillRect(0, 380, W, 4);
+  g.fillRect(0, 988, W, 4); g.fillRect(0, 1068, W, 4);
   g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.textBaseline = 'alphabetic';
   g.fillStyle = '#33241a';
-  g.fillText(text, W / 2, 357);
+  g.fillText(text, W / 2, 1045);
   g.restore();
 }
 

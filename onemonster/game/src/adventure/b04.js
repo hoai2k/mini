@@ -22,7 +22,7 @@ import { actionPrompt, letterTag } from '../prompt.js';
 const ENTRY = BOARDS.find((b) => b.n === 4);
 const { W, H, clamp, ease, approach, hash } = kit;
 
-export const WL = 640; // the waterline
+export const WL = 780; // the waterline
 export const WORLD = 15000;
 export const HARBOUR_X = 14350; // the Peg is safe once it is this far
 
@@ -32,7 +32,7 @@ export const TUNE = {
     furyTime: 1.4, furyTimeGentle: 1.05, minFury: 0.2,
     chargeMin: 330, chargeAdd: 420, chargeDur: 0.42, chargeDurAdd: 0.36,
     windup: 0.22, recover: 1.0, recoverAdd: 0.6, dazed: 1.6,
-    levelRate: 1.6, riseOff: -80, sinkOff: 95, ice: 330, minSize: 0.62,
+    levelRate: 1.6, riseOff: -90, sinkOff: 100, ice: 400, minSize: 0.62,
     melt: 0.065, meltGentle: 0.045, refreeze: 0.02,
   },
   // The captain opens the throttle when the eye opens (scare, fading over
@@ -80,7 +80,7 @@ const ZONES = [
 ];
 const NEED = { floe: 0.15, crate: 0.2, barrel: 0.2, buoy: 0.3, tug: 0.5 };
 const HALF = { floe: 130, crate: 48, barrel: 42, buoy: 44, tug: 120, reef: 90 };
-const OVERHEAD = { pier: 260, bridge: 250 }; // clearance above the waterline
+const OVERHEAD = { pier: 330, bridge: 320 }; // clearance above the waterline
 
 // How far a charge of this fury carries (the stand-in arrow shows it).
 export function chargeReach(fury) {
@@ -97,7 +97,7 @@ const SEA_FRAC = { drift: 0.17, huff: 0.17, charge: 0.3, crash: 0.2, dazed: 0.18
 const POSE_OF = { side: 'drift', sunk: 'drift', risen: 'drift', chargeSide: 'charge', cracked: 'crash', melted: 'dazed' };
 
 // Where the extra sea lions sit, as fractions of the ice's width and height.
-const LEDGES = [[0.02, -0.98], [-0.16, -0.8], [0.2, -0.74], [0.4, -0.5], [-0.5, -0.44], [0.1, -0.56], [-0.1, -0.36], [0.3, -0.3], [-0.46, -0.2], [0.5, -0.2], [-0.3, -0.12], [0.0, -0.18]];
+const LEDGES = [[-0.08, -0.96], [-0.3, -0.84], [0.16, -0.8], [0.42, -0.56], [-0.56, -0.46], [0.5, -0.3], [0.1, -0.44], [-0.46, -0.16]];
 
 export default function create(env) {
   const F = TUNE.ferg, P = TUNE.peg;
@@ -134,7 +134,7 @@ export default function create(env) {
   const lionList = [];
   for (const t of things) {
     if (t.kind !== 'floe') continue;
-    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 50 : -50) * (t.lions > 1 ? 1 : 0), y: WL - 48, floe: t, k });
+    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 56 : -56) * (t.lions > 1 ? 1 : 0), y: WL - 54, floe: t, k });
   }
   for (const x of SWIMMERS) lionList.push({ x, y: WL - 4, swim: true });
   const lions = kit.makePickups(lionList, { radius: 0 });
@@ -154,7 +154,7 @@ export default function create(env) {
 
   // ---------- helpers ----------
   function setMode(m, d = 0) { ferg.mode = m; ferg.modeT = d; }
-  const drawnW = () => 434 * ferg.size; // the ice's width on screen
+  const drawnW = () => 526 * ferg.size; // the ice's width on screen
   const hullHW = () => drawnW() * 0.42;
   const iceTop = () => WL + levelOff(ferg.level) - F.ice * ferg.size; // world y of the summit
   const sunk = () => ferg.level <= TUNE.sunkLevel;
@@ -460,7 +460,7 @@ export default function create(env) {
     for (const l of lions.items) {
       if (l.got) { l.t += dt; continue; }
       if (l.floe) {
-        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 50 : -50) : 0);
+        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 56 : -56) : 0);
         else { l.y = WL - 4; l.floe = null; l.swim = true; } // its floe smashed from under it
       }
       if (!sunk() && Math.abs(l.x - ferg.x) < hw + (l.floe ? 170 : 70)) { l.got = true; l.t = 0; lionAboard(l); } // from a floe pushed along at the bow, too
@@ -498,7 +498,7 @@ export default function create(env) {
         peg.steamT = 0.8;
         env.sfx('steam');
         if (rng() < 0.5) env.sfx('horn');
-        for (let i = 0; i < 7; i++) parts.ps.push({ x: peg.x - 30, y: WL - 190, vx: -60 - Math.random() * 80, vy: -70 - Math.random() * 60, t: 0, life: 1.3, gravity: -30, mist: true, size: 18 + Math.random() * 16, colour: '#f3eee8', ink: false });
+        for (let i = 0; i < 7; i++) parts.ps.push({ x: peg.x - 34, y: WL - 225, vx: -60 - Math.random() * 80, vy: -70 - Math.random() * 60, t: 0, life: 1.3, gravity: -30, mist: true, size: 18 + Math.random() * 16, colour: '#f3eee8', ink: false });
       }
     }
     // Ahead of the Peg and not sunk: it goes astern, wary, unless it can slip over a sunk berg.
@@ -514,7 +514,7 @@ export default function create(env) {
     peg.vx = peg.sp + peg.nv;
     peg.x += peg.vx * dt;
     peg.x = clamp(peg.x, 300, HARBOUR_X + 420);
-    if (peg.steamT > 0 || Math.random() < dt * 2.5) parts.ps.push({ x: peg.x - 28, y: WL - 196, vx: -40 - Math.random() * 30, vy: -50 - Math.random() * 30, t: 0, life: 1.1, gravity: -20, mist: true, size: 12 + Math.random() * 10, colour: '#f3eee8', ink: false });
+    if (peg.steamT > 0 || Math.random() < dt * 2.5) parts.ps.push({ x: peg.x - 32, y: WL - 228, vx: -40 - Math.random() * 30, vy: -50 - Math.random() * 30, t: 0, life: 1.1, gravity: -20, mist: true, size: 12 + Math.random() * 10, colour: '#f3eee8', ink: false });
     // Ice meets boat.
     const hw = hullHW();
     if (Math.abs(peg.x - ferg.x) < hw + 110 && !sunk()) {
@@ -663,7 +663,7 @@ export default function create(env) {
       peg.sp = ease(peg.sp, 60, 2, dt);
       peg.x += peg.sp * dt;
       peg.rock += dt;
-      if (Math.random() < dt * 3) parts.ps.push({ x: peg.x - 28, y: WL - 196, vx: -40, vy: -60, t: 0, life: 1.2, gravity: -20, mist: true, size: 14, colour: '#f3eee8', ink: false });
+      if (Math.random() < dt * 3) parts.ps.push({ x: peg.x - 32, y: WL - 228, vx: -40, vy: -60, t: 0, life: 1.2, gravity: -20, mist: true, size: 14, colour: '#f3eee8', ink: false });
       setMode('dazed', 99);
       ferg.x += ferg.vx * dt;
       ferg.vx *= Math.exp(-2 * dt);
@@ -854,6 +854,12 @@ export default function create(env) {
     g.fillRect(x0, WL + 8, x1 - x0, 292);
     g.fillStyle = '#2f5268';
     g.fillRect(x0, WL + 300, x1 - x0, H - WL);
+    // Shafts of light slanting down through the water.
+    g.fillStyle = 'rgba(220,240,245,0.07)';
+    for (let x = Math.floor(x0 / 420) * 420; x < x1; x += 420) {
+      const sw = 60 + hash(x * 0.01) * 50, lean = 90 + Math.sin(tt * 0.3 + x * 0.003) * 20;
+      g.beginPath(); g.moveTo(x, WL + 10); g.lineTo(x + sw, WL + 10); g.lineTo(x + sw + lean * 1.6, H); g.lineTo(x + lean * 1.6 - sw * 0.6, H); g.closePath(); g.fill();
+    }
     // Long ink swells in the deep, and a few drifting bubbles of light.
     g.strokeStyle = 'rgba(20,35,50,0.35)';
     g.lineWidth = 2.5;
@@ -925,9 +931,9 @@ export default function create(env) {
 
   function drawReef(g, th, tt) {
     const bob = 0;
-    kit.sprite(g, 'terrain.sea', 2, th.x, WL + 60 + bob, { height: 170 }, (gg, x, y) => {
+    kit.sprite(g, 'terrain.sea', 2, th.x, WL + 64 + bob, { height: 200 }, (gg, x, y) => {
       // The delivered jagged brown rock stands in until the sea rock arrives.
-      if (art.drawSprite(gg, art.prop('yalapappus', 2), x, y, { height: 170 })) return;
+      if (art.drawSprite(gg, art.prop('yalapappus', 2), x, y, { height: 200 })) return;
       gg.fillStyle = '#6e6258'; gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.beginPath(); gg.moveTo(x - 90, y); gg.lineTo(x - 60, y - 80); gg.lineTo(x - 20, y - 50); gg.lineTo(x + 10, y - 115); gg.lineTo(x + 45, y - 60); gg.lineTo(x + 90, y); gg.closePath(); gg.fill(); gg.stroke();
     });
@@ -947,8 +953,8 @@ export default function create(env) {
     const bob = Math.sin(tt * 2.2 + th.seed) * 4;
     const y = WL + bob;
     if (th.kind === 'floe') {
-      kit.sprite(g, 'terrain.sea', 5, th.x, y + 30, { height: 90, rot: rock }, (gg, x, yy) => {
-        gg.save(); gg.translate(x, yy); gg.rotate(rock);
+      kit.sprite(g, 'terrain.sea', 5, th.x, y + 34, { height: 104, rot: rock }, (gg, x, yy) => {
+        gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#e8edf8'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath(); gg.moveTo(-130, -30); gg.lineTo(-100, -52); gg.lineTo(-30, -46); gg.lineTo(40, -58); gg.lineTo(120, -40); gg.lineTo(130, -26); gg.lineTo(110, 20); gg.lineTo(-110, 24); gg.closePath(); gg.fill(); gg.stroke();
         gg.fillStyle = '#c9d4ee'; gg.beginPath(); gg.moveTo(-110, 24); gg.lineTo(110, 20); gg.lineTo(100, 40); gg.lineTo(-95, 42); gg.closePath(); gg.fill(); gg.stroke();
@@ -958,8 +964,8 @@ export default function create(env) {
         gg.restore();
       });
     } else if (th.kind === 'crate') {
-      kit.sprite(g, 'adv.b04.props', 4, th.x, y + 24, { height: 96, rot: rock }, (gg, x, yy) => {
-        gg.save(); gg.translate(x, yy); gg.rotate(rock);
+      kit.sprite(g, 'adv.b04.props', 4, th.x, y + 26, { height: 110, rot: rock }, (gg, x, yy) => {
+        gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#b98a52'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.fillRect(-46, -92, 92, 92); gg.strokeRect(-46, -92, 92, 92);
         gg.beginPath(); gg.moveTo(-46, -92); gg.lineTo(46, 0); gg.moveTo(46, -92); gg.lineTo(-46, 0); gg.stroke();
@@ -969,8 +975,8 @@ export default function create(env) {
         gg.restore();
       });
     } else if (th.kind === 'barrel') {
-      kit.sprite(g, 'adv.b04.props', 6, th.x, y + 26, { height: 100, rot: rock }, (gg, x, yy) => {
-        gg.save(); gg.translate(x, yy); gg.rotate(rock);
+      kit.sprite(g, 'adv.b04.props', 6, th.x, y + 28, { height: 112, rot: rock }, (gg, x, yy) => {
+        gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#8f5f36'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath(); gg.moveTo(-36, -96); gg.quadraticCurveTo(-50, -48, -36, 0); gg.lineTo(36, 0); gg.quadraticCurveTo(50, -48, 36, -96); gg.closePath(); gg.fill(); gg.stroke();
         gg.strokeStyle = '#4a3a2a'; gg.lineWidth = 6; gg.beginPath(); gg.moveTo(-42, -72); gg.lineTo(42, -72); gg.moveTo(-44, -26); gg.lineTo(44, -26); gg.stroke();
@@ -981,7 +987,7 @@ export default function create(env) {
     } else if (th.kind === 'buoy') {
       kit.sprite(g, 'adv.b04.props', 5, th.x, y + 20, { height: 120, rot: rock }, (gg, x, yy) => {
         // The delivered round buoy stands in until the side-on one arrives.
-        if (art.drawSprite(gg, art.prop('typhoonigator', 6), x, yy + 10, { height: 120, rot: rock })) return;
+        if (art.drawSprite(gg, art.prop('typhoonigator', 6), x, yy + 12, { height: 136, rot: rock })) return;
         gg.save(); gg.translate(x, yy); gg.rotate(rock);
         gg.fillStyle = '#d9583f'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath(); gg.arc(0, -40, 44, 0, Math.PI * 2); gg.fill(); gg.stroke();
@@ -996,8 +1002,8 @@ export default function create(env) {
     const rock = Math.sin(tt * 2 + tg.i) * 0.05 + (tg.pushing ? Math.sin(tt * 14) * 0.03 : 0);
     const y = WL + (tg.spin ? tg.y : Math.sin(tt * 2.4 + tg.i) * 4);
     const rot = tg.spin ? tg.spin : rock;
-    kit.sprite(g, 'adv.b04.props', 7, tg.x, y + 30, { height: 150, rot, flip: false }, (gg, x, yy) => {
-      gg.save(); gg.translate(x, yy); gg.rotate(rot);
+    kit.sprite(g, 'adv.b04.props', 7, tg.x, y + 34, { height: 175, rot, flip: false }, (gg, x, yy) => {
+      gg.save(); gg.translate(x, yy); gg.rotate(rot); gg.scale(1.15, 1.15);
       // The hull: stout, teal, bow to the left (it steams left).
       gg.fillStyle = '#3f7f84'; gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.beginPath(); gg.moveTo(-120, -60); gg.lineTo(110, -60); gg.quadraticCurveTo(128, -30, 100, 0); gg.lineTo(-90, 0); gg.quadraticCurveTo(-130, -20, -120, -60); gg.closePath(); gg.fill(); gg.stroke();
@@ -1027,8 +1033,8 @@ export default function create(env) {
     const rot = peg.rot + rock;
     const y = WL + Math.sin(tt * 2.6) * 3 + peg.sink * 150;
     const alpha = 1 - peg.sink * 0.3;
-    kit.sprite(g, 'adv.b04.props', 8, peg.x, y + 40, { height: 250, rot, alpha }, (gg, x, yy) => {
-      gg.save(); gg.translate(x, yy); gg.rotate(rot); gg.globalAlpha = alpha;
+    kit.sprite(g, 'adv.b04.props', 8, peg.x, y + 46, { height: 290, rot, alpha }, (gg, x, yy) => {
+      gg.save(); gg.translate(x, yy); gg.rotate(rot); gg.globalAlpha = alpha; gg.scale(1.15, 1.15);
       gg.strokeStyle = INK; gg.lineWidth = 4;
       // The hull, pale teal with a pink rail, bow to the right.
       gg.fillStyle = '#6fa3a4';
@@ -1057,10 +1063,10 @@ export default function create(env) {
       g.save();
       g.lineWidth = 7;
       g.strokeStyle = 'rgba(30,40,60,0.3)';
-      g.beginPath(); g.arc(peg.x, WL - 250, 22, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(peg.x, WL - 285, 22, 0, Math.PI * 2); g.stroke();
       const f = peg.steamCd <= 0 ? 1 : 1 - peg.steamCd / steamCdMax;
       g.strokeStyle = peg.steamCd <= 0 ? '#f8f1e0' : '#9fb4c0';
-      g.beginPath(); g.arc(peg.x, WL - 250, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
+      g.beginPath(); g.arc(peg.x, WL - 285, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
       g.restore();
     }
     // A wake behind it.
@@ -1082,22 +1088,33 @@ export default function create(env) {
     const frac = SEA_FRAC[pose] ?? 0.17;
     const sp = art.sprite('iceferg.poses', fc.M.poses[pose]);
     const iceH = F.ice * fc.sizeK; // sizeK carries the melt and the huff swell
-    // The keel under the water, drawn before the wash dims it.
+    // The keel under the water, drawn before the wash dims it: the ice's own
+    // pose mirrored down into the water, squashed, pale and hatched.
     const hw = hullHW();
+    const keelSp = art.sprite('iceferg.poses', fc.M.poses.drift);
     g.save();
-    g.fillStyle = '#c9d2ee';
-    g.strokeStyle = 'rgba(43,51,64,0.5)';
-    g.lineWidth = 3;
     g.beginPath();
-    g.moveTo(ferg.x - hw * 0.95, WL + off + 10);
-    g.lineTo(ferg.x - hw * 0.6, WL + off + 150 + 60 * size);
-    g.lineTo(ferg.x + hw * 0.2, WL + off + 210 + 60 * size);
-    g.lineTo(ferg.x + hw * 0.9, WL + off + 90);
-    g.lineTo(ferg.x + hw * 0.95, WL + off + 10);
-    g.closePath();
-    g.fill(); g.stroke();
+    g.rect(ferg.x - hw * 1.2, WL + off + 6, hw * 2.4, 420);
     g.clip();
-    hatch(g, ferg.x - hw, WL + off + 10, hw * 2, 300, { step: 11, alpha: 0.25, colour: '60,70,110' });
+    if (keelSp) {
+      const kk = iceH / (keelSp.h * (1 - SEA_FRAC.drift));
+      g.globalAlpha = 0.5;
+      art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.6, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.62, sx: 0.92 });
+      g.globalAlpha = 1;
+    } else {
+      g.fillStyle = '#c9d2ee';
+      g.strokeStyle = 'rgba(43,51,64,0.5)';
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(ferg.x - hw * 0.95, WL + off + 10);
+      g.lineTo(ferg.x - hw * 0.6, WL + off + 150 + 60 * size);
+      g.lineTo(ferg.x + hw * 0.2, WL + off + 210 + 60 * size);
+      g.lineTo(ferg.x + hw * 0.9, WL + off + 90);
+      g.lineTo(ferg.x + hw * 0.95, WL + off + 10);
+      g.closePath();
+      g.fill(); g.stroke();
+    }
+    hatch(g, ferg.x - hw, WL + off + 10, hw * 2, 300, { step: 11, alpha: 0.22, colour: '40,60,110' });
     g.restore();
     if (sp) {
       const k = iceH / (sp.h * (1 - frac));
@@ -1137,37 +1154,70 @@ export default function create(env) {
       } else if (r.state === 'cling') { scale = 0.9; rot = fc.facing * 0.15; item = 2; }
       else if (r.state === 'up') { y -= Math.abs(Math.sin(tt * 9 + i)) * 6; }
       const bob = r.state === 'doze' ? Math.sin(tt * 1.5 + i) * 2 : 0;
-      drawLion(g, item, x, y + bob, 50 * scale * ferg.size, rot, fc.facing, tt + i);
+      drawLion(g, item, x, y + bob, 62 * scale * ferg.size, rot, fc.facing, tt + i);
     }
   }
 
+  // A sea lion in the book's ink and wash: olive-yellow with brown shading,
+  // hair-by-hair strokes, whiskers and a wet black nose. h is its height.
   function drawLion(g, item, x, y, h, rot, facing, tt) {
     kit.sprite(g, 'adv.b04.props', item, x, y, { height: h, rot, flip: facing < 0 }, (gg, xx, yy) => {
-      gg.save(); gg.translate(xx, yy); gg.rotate(rot); gg.scale(facing < 0 ? -1 : 1, 1);
-      gg.fillStyle = '#b8873c'; gg.strokeStyle = '#2b1d14'; gg.lineWidth = 3;
-      if (item === 1) { // lounging, long and low
-        gg.beginPath(); gg.moveTo(-40, 0); gg.quadraticCurveTo(-46, -22, -20, -26); gg.quadraticCurveTo(10, -30, 26, -30); gg.arc(32, -34, 14, Math.PI * 0.8, Math.PI * 2.2); gg.quadraticCurveTo(40, -6, 30, 0); gg.closePath(); gg.fill(); gg.stroke();
-        gg.beginPath(); gg.moveTo(-40, 0); gg.lineTo(-52, -12); gg.lineTo(-48, 2); gg.closePath(); gg.fill(); gg.stroke();
-      } else if (item === 2) { // sitting up, clapping
-        gg.beginPath(); gg.moveTo(-26, 0); gg.quadraticCurveTo(-30, -40, -8, -52); gg.arc(4, -64, 15, Math.PI * 0.9, Math.PI * 2.3); gg.quadraticCurveTo(26, -30, 24, 0); gg.closePath(); gg.fill(); gg.stroke();
-        const c = Math.sin(tt * 14) * 6;
-        gg.beginPath(); gg.moveTo(-18, -34); gg.lineTo(-34 + c, -46); gg.moveTo(18, -34); gg.lineTo(34 - c, -46); gg.stroke();
-      } else { // sliding off
-        gg.beginPath(); gg.ellipse(0, -16, 34, 16, 0.5, 0, Math.PI * 2); gg.fill(); gg.stroke();
-        gg.beginPath(); gg.arc(26, -36, 13, 0, Math.PI * 2); gg.fill(); gg.stroke();
+      const k = h / 66;
+      gg.save(); gg.translate(xx, yy); gg.rotate(rot); gg.scale((facing < 0 ? -1 : 1) * k, k);
+      gg.lineJoin = 'round'; gg.lineCap = 'round';
+      const FUR = '#c7a24c', SHADE = 'rgba(120,80,30,0.45)', INKL = '#3a2a18';
+      gg.fillStyle = FUR; gg.strokeStyle = INKL; gg.lineWidth = 2.6;
+      const furStrokes = (pts) => { gg.strokeStyle = 'rgba(90,60,20,0.5)'; gg.lineWidth = 1.1; gg.beginPath(); for (const [a, b, c, d] of pts) { gg.moveTo(a, b); gg.lineTo(c, d); } gg.stroke(); };
+      if (item === 1) { // lounging: a long body, chest raised, head up, tail flipper
+        gg.beginPath();
+        gg.moveTo(-44, 0); gg.quadraticCurveTo(-50, -14, -34, -18); gg.quadraticCurveTo(-10, -26, 12, -30);
+        gg.quadraticCurveTo(22, -50, 36, -50); gg.quadraticCurveTo(50, -50, 52, -40); gg.quadraticCurveTo(54, -32, 44, -28);
+        gg.quadraticCurveTo(40, -12, 30, 0); gg.closePath(); gg.fill(); gg.stroke();
+        gg.fillStyle = SHADE; gg.beginPath(); gg.moveTo(-40, -2); gg.quadraticCurveTo(-20, -8, 20, -6); gg.quadraticCurveTo(10, 0, 28, 0); gg.lineTo(-42, 0); gg.closePath(); gg.fill();
+        gg.fillStyle = FUR; gg.beginPath(); gg.moveTo(-44, 0); gg.lineTo(-58, -10); gg.lineTo(-56, 2); gg.closePath(); gg.fill(); gg.stroke(); // tail flipper
+        gg.beginPath(); gg.moveTo(4, -14); gg.quadraticCurveTo(-4, -2, 10, 0); gg.quadraticCurveTo(16, -4, 12, -14); gg.fill(); gg.stroke(); // fore flipper
+        furStrokes([[-30, -14, -26, -20], [-18, -18, -14, -24], [-6, -22, -2, -28], [6, -14, 10, -20], [-24, -8, -20, -12], [-10, -10, -6, -14], [22, -26, 26, -32], [30, -44, 32, -48]]);
+        drawFace(gg, 44, -42);
+      } else if (item === 2) { // sitting up, flippers out, clapping
+        gg.beginPath();
+        gg.moveTo(-28, 0); gg.quadraticCurveTo(-34, -30, -16, -48); gg.quadraticCurveTo(-8, -58, 2, -60);
+        gg.quadraticCurveTo(10, -72, 22, -70); gg.quadraticCurveTo(32, -68, 30, -56); gg.quadraticCurveTo(26, -48, 18, -46);
+        gg.quadraticCurveTo(26, -24, 26, 0); gg.closePath(); gg.fill(); gg.stroke();
+        gg.fillStyle = SHADE; gg.beginPath(); gg.moveTo(-26, -2); gg.quadraticCurveTo(-10, -20, 2, -40); gg.quadraticCurveTo(-8, -20, 24, -2); gg.closePath(); gg.fill();
+        const c = Math.sin(tt * 14) * 5;
+        gg.fillStyle = FUR;
+        gg.beginPath(); gg.moveTo(-18, -34); gg.quadraticCurveTo(-34 + c, -48, -40 + c, -38); gg.quadraticCurveTo(-30, -30, -14, -26); gg.closePath(); gg.fill(); gg.stroke();
+        gg.beginPath(); gg.moveTo(18, -34); gg.quadraticCurveTo(34 - c, -48, 40 - c, -38); gg.quadraticCurveTo(30, -30, 14, -26); gg.closePath(); gg.fill(); gg.stroke();
+        gg.beginPath(); gg.moveTo(-28, 0); gg.lineTo(-40, 4); gg.lineTo(-20, 6); gg.closePath(); gg.fill(); gg.stroke();
+        furStrokes([[-14, -14, -10, -22], [-8, -30, -4, -38], [8, -14, 12, -22], [4, -34, 8, -42], [-20, -6, -16, -12], [14, -6, 18, -12], [12, -56, 14, -62]]);
+        drawFace(gg, 22, -64);
+      } else { // sliding off, belly up, flippers flailing
+        gg.beginPath(); gg.ellipse(0, -18, 36, 17, 0.45, 0, Math.PI * 2); gg.fill(); gg.stroke();
+        gg.fillStyle = SHADE; gg.beginPath(); gg.ellipse(-6, -10, 26, 7, 0.45, 0, Math.PI * 2); gg.fill();
+        gg.fillStyle = FUR;
+        gg.beginPath(); gg.moveTo(-10, -30); gg.lineTo(-22, -46); gg.lineTo(-4, -38); gg.closePath(); gg.fill(); gg.stroke();
+        gg.beginPath(); gg.moveTo(-34, -6); gg.lineTo(-50, 0); gg.lineTo(-40, -14); gg.closePath(); gg.fill(); gg.stroke();
+        gg.beginPath(); gg.arc(28, -38, 14, 0, Math.PI * 2); gg.fill(); gg.stroke();
+        furStrokes([[-20, -20, -16, -26], [-6, -24, -2, -30], [8, -22, 12, -28], [0, -10, 4, -16]]);
+        drawFace(gg, 36, -40);
       }
-      gg.strokeStyle = 'rgba(43,29,20,0.4)'; gg.lineWidth = 1.2; gg.beginPath();
-      if (item === 1) for (let k = -34; k < 20; k += 7) { gg.moveTo(k, -4); gg.lineTo(k + 4, -16); }
-      else if (item === 2) for (let k = -20; k < 20; k += 7) { gg.moveTo(k, -6); gg.lineTo(k + 3, -22); }
-      else for (let k = -28; k < 28; k += 7) { gg.moveTo(k, -8); gg.lineTo(k + 5, -20); }
-      gg.stroke();
-      gg.fillStyle = '#2b1d14';
-      const ex = item === 1 ? 36 : item === 2 ? 8 : 30, ey = item === 1 ? -38 : item === 2 ? -68 : -40;
-      gg.beginPath(); gg.arc(ex, ey, 2.5, 0, Math.PI * 2); gg.fill();
-      gg.strokeStyle = '#2b1d14'; gg.lineWidth = 1.5;
-      gg.beginPath(); gg.moveTo(ex + 6, ey + 6); gg.lineTo(ex + 18, ey + 2); gg.moveTo(ex + 6, ey + 8); gg.lineTo(ex + 18, ey + 10); gg.stroke();
       gg.restore();
     });
+  }
+
+  // The face: a round eye with a glint, a black nose and whiskers.
+  function drawFace(gg, nx, ny) {
+    gg.fillStyle = '#2b1d14';
+    gg.beginPath(); gg.ellipse(nx + 4, ny + 2, 4.5, 3.5, 0, 0, Math.PI * 2); gg.fill(); // nose
+    gg.beginPath(); gg.arc(nx - 10, ny - 2, 3.2, 0, Math.PI * 2); gg.fill(); // eye
+    gg.fillStyle = '#fff'; gg.beginPath(); gg.arc(nx - 11, ny - 3, 1.1, 0, Math.PI * 2); gg.fill();
+    gg.strokeStyle = '#2b1d14'; gg.lineWidth = 1.2;
+    gg.beginPath();
+    gg.moveTo(nx + 2, ny + 5); gg.lineTo(nx + 16, ny + 1);
+    gg.moveTo(nx + 2, ny + 7); gg.lineTo(nx + 17, ny + 7);
+    gg.moveTo(nx + 2, ny + 9); gg.lineTo(nx + 15, ny + 13);
+    gg.moveTo(nx - 2, ny + 6); gg.lineTo(nx - 14, ny + 4);
+    gg.stroke();
   }
 
   function drawLionsAtSea(g, tt) {
@@ -1176,29 +1226,29 @@ export default function create(env) {
       if (p.swim) {
         // A head above the water, looking about.
         gg.save(); gg.globalAlpha = alpha;
-        drawLion(gg, 2, x, y + 36, 54, Math.sin(tt * 2 + p.seed) * 0.08, x > ferg.x ? -1 : 1, tt + p.seed);
+        drawLion(gg, 2, x, y + 40, 62, Math.sin(tt * 2 + p.seed) * 0.08, x > ferg.x ? -1 : 1, tt + p.seed);
         gg.restore();
       } else {
         gg.save(); gg.globalAlpha = alpha;
-        drawLion(gg, p.k ? 2 : 1, x, y + 10, 62, 0, p.k ? -1 : 1, tt + p.seed);
+        drawLion(gg, p.k ? 2 : 1, x, y + 12, 70, 0, p.k ? -1 : 1, tt + p.seed);
         gg.restore();
       }
     }, { bob: 3 });
     for (const s of strays) {
       if (!cam.sees(s.x)) continue;
-      drawLion(g, 2, s.x, WL + 34 + Math.sin(tt * 2.5) * 3, 54, 0, s.x > ferg.x ? -1 : 1, tt);
+      drawLion(g, 2, s.x, WL + 38 + Math.sin(tt * 2.5) * 3, 62, 0, s.x > ferg.x ? -1 : 1, tt);
     }
   }
 
   function drawLionParts(g) {
-    for (const p of parts.ps) if (p.lion) drawLion(g, 3, p.x, p.y, 60, p.vx > 0 ? p.t * 4 : -p.t * 4, p.vx > 0 ? 1 : -1, p.t);
+    for (const p of parts.ps) if (p.lion) drawLion(g, 3, p.x, p.y, 66, p.vx > 0 ? p.t * 4 : -p.t * 4, p.vx > 0 ? 1 : -1, p.t);
   }
 
   function drawOverhead(g, th, tt) {
     const x0 = th.x - th.hw, x1 = th.x + th.hw;
     if (th.kind === 'pier') {
-      const deckY = WL - OVERHEAD.pier - 70; // the deck's top
-      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 40, { height: 420 }, (gg) => {
+      const deckY = WL - OVERHEAD.pier - 76; // the deck's top
+      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 40, { height: 500 }, (gg) => {
         gg.save();
         gg.strokeStyle = INK; gg.lineWidth = 4;
         // The stilts, pairs, down into the water.
@@ -1227,7 +1277,7 @@ export default function create(env) {
       });
     } else {
       const top = WL - OVERHEAD.bridge; // the arch's underside at the middle
-      kit.sprite(g, 'terrain.sea', 6, th.x, WL + 40, { height: 480 }, (gg) => {
+      kit.sprite(g, 'terrain.sea', 6, th.x, WL + 40, { height: 560 }, (gg) => {
         gg.save();
         gg.fillStyle = '#9a9aa6'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath();
@@ -1257,7 +1307,7 @@ export default function create(env) {
   function drawHarbourWall(g, tt) {
     const x0 = HARBOUR_X + 60;
     if (!cam.sees(x0 - 100, WORLD)) return;
-    kit.sprite(g, 'terrain.sea', 4, x0, WL + 60, { height: 560, ax: 0 }, (gg) => {
+    kit.sprite(g, 'terrain.sea', 4, x0, WL + 60, { height: 640, ax: 0 }, (gg) => {
       gg.save();
       gg.strokeStyle = INK; gg.lineWidth = 4;
       // The wall, stones, and the lighthouse on its end.
@@ -1292,19 +1342,19 @@ export default function create(env) {
 
   // The letter is on the Peg; and when it is in reach, which button to press.
   function drawPrompts(g, tt) {
-    if (cam.sees(peg.x - 200, peg.x + 200)) letterTag(g, peg.x - 10, WL - 270, { t: tt });
+    if (cam.sees(peg.x - 200, peg.x + 200)) letterTag(g, peg.x - 12, WL - 335, { t: tt });
     const gap = Math.abs(peg.x - ferg.x);
     const inReach = gap < chargeReach(1) + hullHW() + 160 && !sunk() && (ferg.mode === 'drift' || ferg.mode === 'huff');
     if (!inReach) return;
     const spent = peg.steamCd > 0.8;
     const text = ferg.mode === 'drift' ? 'Hold: huff!' : ferg.fury >= 1 ? 'Let go: RAM!' : 'Keep huffing';
-    actionPrompt(g, ferg.x, Math.max(iceTop(), 330) - 70, text, { kind: env.inputKind, t: tt, pulse: ferg.mode === 'huff' && ferg.fury >= 1 && spent ? 1 : 0 });
+    actionPrompt(g, ferg.x, Math.max(iceTop(), 300) - 104, text, { kind: env.inputKind, t: tt, pulse: ferg.mode === 'huff' && ferg.fury >= 1 && spent ? 1 : 0 });
   }
 
   function drawMeter(g) {
     const m = ferg.mode;
     if (m !== 'huff' && m !== 'windup') return;
-    const x = ferg.x, y = Math.max(iceTop(), 330) - 20;
+    const x = ferg.x, y = Math.max(iceTop(), 300) - 60;
     const w = 240;
     g.save();
     g.fillStyle = 'rgba(248,241,224,0.9)';
@@ -1349,7 +1399,7 @@ export const HOWTO = [
 export function autopilot(board) {
   const { ferg, peg, things, tugs, ZONES: Z } = board;
   const inp = { x: 1, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
-  const hw = 434 * ferg.size * 0.42;
+  const hw = 526 * ferg.size * 0.42;
   const gap = peg.x - ferg.x;
   const dir = gap < 0 ? -1 : 1; // the way to go: after the Peg
   const between = (o, dist) => (dir > 0 ? o.x + (o.hw || 0) > ferg.x - hw && o.x - (o.hw || 0) < ferg.x + dist : o.x - (o.hw || 0) < ferg.x + hw && o.x + (o.hw || 0) > ferg.x - dist);

@@ -1311,14 +1311,32 @@ export default function create(env) {
 
   function drawRainCloud(g, rc, tt) {
     kit.sprite(g, 'adv.b05.props', 10, rc.x, rc.y, { height: 150, ay: 0.5 }, () => {
+      const scene = art.image('scenes/typhoonigator');
+      const shape = () => {
+        g.beginPath();
+        g.arc(rc.x - 44, rc.y + 8, 34, Math.PI * 0.5, Math.PI * 1.5);
+        g.arc(rc.x - 10, rc.y - 20, 40, Math.PI * 1.1, Math.PI * 1.75);
+        g.arc(rc.x + 36, rc.y - 8, 36, Math.PI * 1.3, Math.PI * 0.5);
+        g.lineTo(rc.x - 44, rc.y + 42);
+        g.closePath();
+      };
       g.save();
-      puff(g, rc.x - 44, rc.y + 8, 34, '#6a6076', 1);
-      puff(g, rc.x + 46, rc.y + 10, 32, '#6a6076', 2);
-      puff(g, rc.x, rc.y - 14, 46, '#746a80', 3);
-      g.fillStyle = '#6a6076';
-      g.fillRect(rc.x - 60, rc.y + 18, 120, 22);
-      g.strokeStyle = INK; g.lineWidth = 3.5;
-      g.beginPath(); g.moveTo(rc.x - 70, rc.y + 40); g.lineTo(rc.x + 72, rc.y + 40); g.stroke();
+      shape(); g.clip();
+      if (scene) g.drawImage(scene, 0, 0, scene.width, scene.height * 0.22, rc.x - 110, rc.y - 90, 230, 160);
+      g.fillStyle = 'rgba(50,42,66,0.62)';
+      g.fillRect(rc.x - 120, rc.y - 100, 240, 180);
+      // Curls and hatching, the book's cloud line.
+      g.strokeStyle = 'rgba(43,29,20,0.6)';
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(rc.x - 60, rc.y + 10); g.quadraticCurveTo(rc.x - 50, rc.y - 20, rc.x - 28, rc.y - 6);
+      g.moveTo(rc.x - 20, rc.y - 30); g.quadraticCurveTo(rc.x - 2, rc.y - 56, rc.x + 18, rc.y - 36);
+      g.moveTo(rc.x + 30, rc.y - 18); g.quadraticCurveTo(rc.x + 56, rc.y - 36, rc.x + 62, rc.y - 4);
+      for (let i = 0; i < 12; i++) { const hx = rc.x - 66 + i * 11; g.moveTo(hx, rc.y + 22); g.lineTo(hx - 6, rc.y + 44); }
+      g.stroke();
+      g.restore();
+      shape();
+      g.strokeStyle = INK; g.lineWidth = 3.5; g.stroke();
       g.strokeStyle = '#7fa6c0';
       g.lineWidth = 3;
       g.beginPath();
@@ -1328,7 +1346,6 @@ export default function create(env) {
         g.moveTo(x, rc.y + 48 + o); g.lineTo(x - 4, rc.y + 64 + o);
       }
       g.stroke();
-      g.restore();
     });
   }
 

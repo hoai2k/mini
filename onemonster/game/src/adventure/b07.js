@@ -695,7 +695,8 @@ export default function create(env) {
       // Screen overlays.
       const letterX = phase === 'getaway' ? p.x : y.x;
       const m = Math.max(0, Math.round((p.x - y.x) / PX_PER_M));
-      kit.route(g, { you: p.x / WORLD_W, letter: letterX / WORLD_W, signs: cps.fracs(WORLD_W), label: self.done ? '' : phase === 'sneak' ? 'Just passing by…' : `${m} m ahead` });
+      kit.route(g, { you: p.x / WORLD_W, letter: letterX / WORLD_W, signs: cps.fracs(WORLD_W) });
+      if (!self.done) routeLabel(g, phase === 'sneak' ? 'Just passing by…' : `${m} m ahead`);
       if (!self.done) hints.draw(g);
     },
   };
@@ -755,6 +756,19 @@ export default function create(env) {
       gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.7)');
       g.fillStyle = gr;
       g.fillRect(h.x0 - 6, GY + 60, h.x1 - h.x0 + 12, H - GY);
+      // The earth walls: root-ends and stones in the sides, lit on the left.
+      g.save();
+      g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#7a5a38';
+      g.beginPath(); g.moveTo(h.x0, GY); g.quadraticCurveTo(h.x0 + 14, GY + 90, h.x0 + 6, GY + 200); g.lineTo(h.x0 - 2, GY + 200); g.lineTo(h.x0 - 2, GY); g.closePath(); g.fill(); g.stroke();
+      g.fillStyle = '#5a3e26';
+      g.beginPath(); g.moveTo(h.x1, GY); g.quadraticCurveTo(h.x1 - 16, GY + 90, h.x1 - 8, GY + 200); g.lineTo(h.x1 + 2, GY + 200); g.lineTo(h.x1 + 2, GY); g.closePath(); g.fill(); g.stroke();
+      g.lineWidth = 2; g.strokeStyle = 'rgba(43,29,20,0.7)';
+      g.beginPath();
+      for (let i = 0; i < 4; i++) { const yy = GY + 40 + i * 42; g.moveTo(h.x0 + 4, yy); g.quadraticCurveTo(h.x0 + 24, yy + 8, h.x0 + 30 + (i % 2) * 14, yy + 26); g.moveTo(h.x1 - 4, yy + 20); g.quadraticCurveTo(h.x1 - 24, yy + 26, h.x1 - 34, yy + 44); }
+      g.stroke();
+      g.fillStyle = '#b9b3a8';
+      for (let i = 0; i < 3; i++) { g.beginPath(); g.ellipse(h.x0 + 10 + (i % 2) * 8, GY + 70 + i * 55, 7, 5, 0.3, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      g.restore();
       kit.sprite(g, 'terrain.nowhere', 4, h.x0 + 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 3), h.x0 + 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x0, 1));
       kit.sprite(g, 'terrain.nowhere', 5, h.x1 - 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 4), h.x1 - 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x1, -1));
     }
@@ -770,8 +784,16 @@ export default function create(env) {
       gr.addColorStop(0, '#5fa3cf'); gr.addColorStop(0.5, '#3f7fb0'); gr.addColorStop(1, '#2d5a86');
       g.fillStyle = gr;
       g.fillRect(s.x0, GY + 50, s.x1 - s.x0, H + 60 - GY);
-      g.fillStyle = '#7a5a38';
-      g.fillRect(s.x0 - 6, GY, 12, 60); g.fillRect(s.x1 - 6, GY, 12, 60);
+      // Earth banks shelving into the water, with roots and pebbles.
+      g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#8a6a44';
+      g.beginPath(); g.moveTo(s.x0 - 4, GY); g.quadraticCurveTo(s.x0 + 30, GY + 30, s.x0 + 60, GY + 56); g.lineTo(s.x0 + 60, GY + 140); g.lineTo(s.x0 - 4, GY + 140); g.closePath(); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(s.x1 + 4, GY); g.quadraticCurveTo(s.x1 - 30, GY + 30, s.x1 - 60, GY + 56); g.lineTo(s.x1 - 60, GY + 140); g.lineTo(s.x1 + 4, GY + 140); g.closePath(); g.fill(); g.stroke();
+      g.lineWidth = 2; g.strokeStyle = 'rgba(43,29,20,0.6)';
+      g.beginPath();
+      for (let i = 0; i < 5; i++) { g.moveTo(s.x0 + 6 + i * 11, GY + 70 + i * 12); g.lineTo(s.x0 + 2 + i * 11, GY + 128); g.moveTo(s.x1 - 6 - i * 11, GY + 70 + i * 12); g.lineTo(s.x1 - 2 - i * 11, GY + 128); }
+      g.stroke();
+      g.fillStyle = '#c9c2b3'; g.strokeStyle = INK; g.lineWidth = 1.5;
+      for (let i = 0; i < 4; i++) { g.beginPath(); g.ellipse(s.x0 + 12 + i * 12, GY + 24 + i * 9, 6, 4, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.beginPath(); g.ellipse(s.x1 - 12 - i * 12, GY + 24 + i * 9, 6, 4, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
       // Wave hatching in ink, and foam lines in cream.
       g.strokeStyle = 'rgba(43,29,20,0.45)';
       g.lineWidth = 2;
@@ -1284,20 +1306,56 @@ function drawSignpost(g, x, gy, tt) {
 function drawFinishSign(g, x, gy, tt) {
   g.save();
   g.translate(x, gy + 4);
-  g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4;
-  g.fillRect(-90, -320, 20, 320); g.strokeRect(-90, -320, 20, 320);
-  g.fillRect(70, -320, 20, 320); g.strokeRect(70, -320, 20, 320);
-  g.fillStyle = '#e6d6a6';
-  roundRect(g, -190, -330, 380, 150, 14); g.fill(); g.stroke();
-  g.fillStyle = INK;
   g.textAlign = 'center';
-  g.font = '800 30px Fraunces, Georgia, serif';
-  g.fillText('YOU ARE NOW LEAVING', 0, -280);
   g.font = '800 40px Fraunces, Georgia, serif';
-  g.fillText('THE EDGE OF NOWHERE', 0, -228);
+  const w2 = g.measureText('THE EDGE OF NOWHERE').width;
+  g.font = '800 28px Fraunces, Georgia, serif';
+  const w1 = g.measureText('YOU ARE NOW LEAVING').width;
+  const bw = Math.max(w1, w2) + 70, bh = 150;
+  g.fillStyle = '#9a7a4e'; g.strokeStyle = INK; g.lineWidth = 4;
+  // Two posts with ring hatching.
+  for (const px of [-bw / 2 + 50, bw / 2 - 70]) {
+    g.fillRect(px, -330, 22, 330); g.strokeRect(px, -330, 22, 330);
+    g.lineWidth = 1.5;
+    g.beginPath();
+    for (let yy = -310; yy < -10; yy += 18) { g.moveTo(px + 3, yy); g.quadraticCurveTo(px + 11, yy + 5, px + 19, yy); }
+    g.stroke();
+    g.lineWidth = 4;
+  }
+  // The board: weathered planks.
+  g.fillStyle = '#e6d6a6';
+  roundRect(g, -bw / 2, -340, bw, bh, 12); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(43,29,20,0.45)';
+  g.lineWidth = 2;
+  g.beginPath();
+  g.moveTo(-bw / 2 + 6, -340 + bh / 2); g.lineTo(bw / 2 - 6, -340 + bh / 2 + 3);
+  for (let xx = -bw / 2 + 14; xx < bw / 2 - 10; xx += 46) { g.moveTo(xx, -336); g.lineTo(xx + 5, -338 + bh - 6); }
+  g.stroke();
+  g.strokeStyle = INK;
+  for (const [nx, ny] of [[-bw / 2 + 16, -326], [bw / 2 - 16, -326], [-bw / 2 + 16, -204], [bw / 2 - 16, -204]]) { g.beginPath(); g.arc(nx, ny, 4, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = INK;
+  g.font = '800 28px Fraunces, Georgia, serif';
+  g.fillText('YOU ARE NOW LEAVING', 0, -286);
+  g.font = '800 40px Fraunces, Georgia, serif';
+  g.fillText('THE EDGE OF NOWHERE', 0, -232);
   g.fillStyle = '#c8443a';
   const bob = Math.sin(tt * 6) * 8;
-  g.beginPath(); g.moveTo(140 + bob, -170); g.lineTo(190 + bob, -145); g.lineTo(140 + bob, -120); g.closePath(); g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(bw / 2 + 10 + bob, -170); g.lineTo(bw / 2 + 60 + bob, -145); g.lineTo(bw / 2 + 10 + bob, -120); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+}
+
+// The line under the route strip, on a cream tag so it reads over the goo.
+function routeLabel(g, text) {
+  g.save();
+  g.font = '700 26px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  const w = g.measureText(text).width + 36;
+  g.fillStyle = 'rgba(251,246,232,0.92)';
+  g.strokeStyle = INK;
+  g.lineWidth = 3;
+  roundRect(g, W / 2 - w / 2, 132, w, 40, 14); g.fill(); g.stroke();
+  g.fillStyle = INK;
+  g.fillText(text, W / 2, 161);
   g.restore();
 }
 
