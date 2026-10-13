@@ -1774,6 +1774,23 @@ REQUESTS.append({
 })
 
 
+# Asked for when the delivered art went in: the board 7 fallen palm (OM-Y07
+# item 8) lies flat on the ground, so the Trollusk has nothing to slide under.
+REQUESTS.append({
+    "id": "OM-Z05", "section": "audit", "name": "Board 7: a fallen palm propped up to slide under",
+    "key": "adv.b07.palmArch", "file": "assets/adventure/b07/palm-arch.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "yalapappus-bottle-on-head.jpg",
+    "used": "Board 7's slide-under obstacle: the Trollusk belly-slides through the gap beneath it.",
+    "standin": "The flat fallen palm (OM-Y07 item 8) with a drawn gap.",
+    "prompt": STYLE + " A single side-on game sprite: a fallen palm trunk lying across a jungle "
+    "path, its root end propped up on a mossy boulder at the left and its crown of fronds resting "
+    "on a low stump at the right, so there is a clear empty gap beneath the trunk along its whole "
+    "length, about a third of the trunk's height off the ground. Ringed palm bark, a splintered "
+    "broken end, a few dry brown fronds. Nothing under the trunk. Wide landscape composition. "
+    + ALPHA + " " + REF_SCENE.format("yalapappus-bottle-on-head.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"

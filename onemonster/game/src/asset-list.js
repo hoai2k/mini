@@ -553,5 +553,9 @@ export const ASSETS = {
   "ch01.house": {
     "file": "assets/props/sallyann-house.png",
     "delivered": true
+  },
+  "adv.b07.palmArch": {
+    "file": "assets/adventure/b07/palm-arch.png",
+    "delivered": false
   }
 };
