@@ -52,7 +52,7 @@ const depthK = (y) => 0.78 + 0.22 * clamp((y - TUNE.gy0) / (TUNE.gy1 - TUNE.gy0)
 // ---------- the fliers (the Bombanats) ----------
 
 function makeFlier(env, { letter, x, y, lane }) {
-  const c = art.makeCreature('bombanat', x, y);
+  const c = art.makeCreature(letter ? 'bombanat' : 'bombanatPlain', x, y);
   c.sizeK = letter ? TUNE.letterSize : TUNE.plainSize;
   return {
     letter, x, y, lane, vx: 0, vy: 0, st: 1, winded: 0, flapCd: 0, dartT: 0, dartCd: 0, dartDir: 1,
@@ -455,7 +455,7 @@ export default function create(env) {
     if (b.mode === 'grabbed') want = 'grabbed';
     else if (b.landed) want = 'perched';
     else if (b.winded > 0) want = 'stall';
-    else if (b.dartT > 0) want = 'swoop';
+    else if (b.dartT > 0) want = b.letter ? 'swoop' : 'dive';
     else if (b.vy > (c.anim === 'dive' ? 220 : 340)) want = 'dive';
     else if (b.flapT < 0.45) want = 'flap';
     else want = 'glide';
@@ -735,8 +735,8 @@ export default function create(env) {
       g.beginPath(); g.ellipse(b.x, b.lane, 70 * c.sizeK, 13 * c.sizeK, 0, 0, Math.PI * 2); g.fill(); g.restore();
     }
     g.save();
-    // The plain Bombanats are drawn grey, so the one in colour is the one.
-    if (!b.letter) { g.filter = 'grayscale(0.85) brightness(1.12) contrast(0.85)'; g.globalAlpha *= 0.9; }
+    // The plain Bombanats are their own, duller creature; the letter one wears
+    // the cap and necktie.
     art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
     g.restore();
     if (b.letter && b.mode === 'fly') {
@@ -840,9 +840,8 @@ export default function create(env) {
     const u = Math.min(1, f.t / 0.9);
     const x = f.x0 + (228 - f.x0) * u;
     const y = f.y0 + (560 - f.y0) * u - Math.sin(u * Math.PI) * 260;
-    const sp = art.sprite('bombanat.poses', 7);
+    const sp = art.sprite('bombanat.plain', 5);
     g.save();
-    g.filter = 'grayscale(0.85) brightness(1.12) contrast(0.85)';
     art.drawSprite(g, sp, x, y, { height: 140 * (1 - u * 0.5), ay: 0.5, rot: u * 6 });
     g.restore();
   }
@@ -888,17 +887,8 @@ function hint(g, text, W, t) {
 
 // ---------- the how-to-play page ----------
 
-const GREY = 'grayscale(0.85) brightness(1.12) contrast(0.85)';
-// A plain grey Bombanat for the pictures (drawSprite has no filter of its own).
-const greyBat = (pose, x, y, h, flip) => ({
-  draw: (g) => {
-    g.save();
-    g.filter = GREY;
-    g.globalAlpha = 0.9;
-    art.drawSprite(g, art.sprite('bombanat.poses', pose), x, y, { height: h, ay: 0.55, flip });
-    g.restore();
-  },
-});
+// A plain Bombanat for the pictures (the bombanat.plain sheet).
+const greyBat = (pose, x, y, h, flip) => ({ sprite: ['bombanat.plain', pose], x, y, h, ay: 0.55, flip });
 // The scene's goo line (y 720 of 1080) lands at y 192 of the 480 picture.
 const GOO = { scene: 'scenes/grumley', crop: [600, 420, 1000, 750] };
 
