@@ -1688,6 +1688,92 @@ for n, (mid, ref, steps) in HOWTO.items():
         })
 
 
+# ---------- Asked for by the minigame audit ----------
+
+SECTIONS["audit"] = (
+    "Minigame audit: extra sprites",
+    "Sprites the audit of the minigames found missing: plain Bombanats for the flocks (the "
+    "delivered poses all wear the necktie and carry the letter), the Ice-Ferg without its "
+    "sea lions with the sea lions on their own (so the count on the ice can change), and "
+    "the end wall of Sally Ann's house for chapter 1.",
+)
+
+AUDIT_SHEETS = [
+    {
+        "id": "OM-Z01", "key": "bombanat.plain", "monster": "bombanat",
+        "name": "Plain Bombanats (no necktie, no letter)",
+        "file": "assets/monsters/bombanat/plain.png",
+        "used": "The ordinary Bombanats in the flocks of chapter 3 and boards 3 and 9, so the one with the letter stands out.",
+        "intro": "The same Bombanat design but an ordinary one of its kind: NO necktie, NO cap or propeller, "
+        "NO letter, slightly duller grey-brown fur and greyer mauve wings, otherwise identical in "
+        "shape and scale. ",
+        "items": [
+            "gliding, wings spread level", "flapping, wings at the top of the stroke",
+            "flapping, wings at the bottom of the stroke", "swooping down in a steep dive, wings swept back",
+            "grabbed from below, wriggling and flapping wildly", "tangled in a butterfly net, wings crumpled",
+            "perched with the wings folded", "stalling in a frantic flutter",
+        ],
+    },
+    {
+        "id": "OM-Z02", "key": "iceferg.bare", "monster": "iceferg",
+        "name": "Ice-Ferg without sea lions",
+        "file": "assets/monsters/iceferg/bare.png",
+        "used": "Chapter 4 and board 4: the Ice-Ferg drawn without its sea lions, which the game places on its ledges one by one.",
+        "intro": "Exactly the same iceberg as in its key poses, same view and scale, but with NO sea "
+        "lions on it: its ledges empty and flat enough for sea lions to sit on. ",
+        "items": [
+            "floating calmly, drifting", "huffing itself up, swelling, freezing mist pouring off it, the eye narrowed",
+            "charging forward, spray bursting off the front", "seen exactly side-on facing right, floating",
+        ],
+    },
+    {
+        "id": "OM-Z03", "key": "iceferg.sealions", "monster": "iceferg",
+        "name": "The Ice-Ferg's sea lions",
+        "file": "assets/monsters/iceferg/sealions.png",
+        "used": "The sea lions on the Ice-Ferg's ledges in chapter 4 and board 4, reacting to what it does.",
+        "intro": "The olive-yellow whiskered sea lions that lounge on the Ice-Ferg's ledges, alone, at "
+        "the same scale and view as in its key poses, each pose a single sea lion: ",
+        "items": [
+            "dozing, lying on its belly", "sitting up in alarm, whiskers bristling",
+            "clinging on with its flippers, eyes shut tight", "sliding off backwards, flippers up",
+            "clapping its flippers", "falling with a splash",
+        ],
+    },
+]
+
+for sh in AUDIT_SHEETS:
+    m = next(m for m in MONSTERS if m["id"] == sh["monster"])
+    mi = [mm["id"] for mm in MONSTERS].index(sh["monster"]) + 1
+    look = STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"]
+    base = f"assets/monsters/{sh['monster']}/"
+    REQUESTS.append({
+        "id": sh["id"], "section": "audit", "name": sh["name"], "key": sh["key"], "file": sh["file"],
+        "size": "2048 x 2048, transparent", "used": sh["used"],
+        "standin": "The delivered poses with a filter, or a drawn stand-in.",
+        "status": "requested", "ref": m.get("refs") or m["ref"],
+        "prompt": look + " (Use this description for the design only.) "
+        + FROM_SHEET.format(f"OM-C{mi:02d}", f"onemonster/game/{base}model-sheet.png")
+        + f"Also attach its key-poses sheet, request OM-K{mi:02d} (file onemonster/game/{base}poses.png), "
+        "and draw these at exactly the same scale. " + sh["intro"] + f"The {len(sh['items'])} drawings: "
+        + numbered(sh["items"]) + " " + GRID.format(*grid(len(sh["items"]))) + ALPHA,
+    })
+
+REQUESTS.append({
+    "id": "OM-Z04", "section": "audit", "name": "Sally Ann's house, the end wall with her window",
+    "key": "ch01.house", "file": "assets/props/sallyann-house.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Chapter 1: the gable end of Sally Ann's house rising behind the hedge, Sally Ann (a cast sprite) at its window.",
+    "standin": "The wall drawn in ink in code.",
+    "status": "requested", "ref": "pages-06-07-sally-ann-and-mailbox.jpg",
+    "prompt": STYLE + " A single game sprite: the gable end wall of a small white clapboard country "
+    "house seen straight on, with a steep shingled roof edge, a brick chimney, and in the middle "
+    "of the wall one open sash window with gathered curtains and a window box of red geraniums. "
+    "The window opening itself is EMPTY and transparent (the game draws a girl in it), and the "
+    "bottom of the wall fades out into nothing (a hedge hides it in the game). Nothing else. "
+    + ALPHA + " " + REF_SCENE.format("pages-06-07-sally-ann-and-mailbox.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"
@@ -1780,6 +1866,8 @@ def document() -> str:
         "together, so they match, then the ground pieces of that place.",
         "13. **How to play** (`OM-H`): three spot illustrations per minigame for its "
         "how-to-play page, with the model sheets of the characters in them attached.",
+        "14. **Minigame audit extras** (`OM-Z`): plain Bombanats, the Ice-Ferg without its sea "
+        "lions and the sea lions alone, and Sally Ann's house end wall.",
         "",
         "## Status",
         "",
