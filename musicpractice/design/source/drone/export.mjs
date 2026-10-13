@@ -10,12 +10,17 @@ const steadyMode = args.includes('--steady');
 const [outDir, voice, ...pairs] = args.filter((a) => a !== '--steady');
 const out = [];
 for (const p of pairs) {
-  // NOTE=take, or NOTE=take:sp to steady the brightness too (spectral.mjs).
+  // NOTE=take, then optional flags: :sp to steady the brightness too
+  // (spectral.mjs), :whole to use the whole steady stretch rather than one
+  // bow stroke (an ensemble changes bow at staggered times), :p2 for a sound
+  // that repeats every two periods (a tonic with its fifth), :xf2 for a
+  // 2 s crossfade (very steady sounds show a short join more).
   const [note, spec] = p.split('=');
-  const [take, flag] = spec.split(':');
+  const [take, ...flags] = spec.split(':');
+  const flag = flags.includes('sp') ? 'sp' : '';
   const x = decode(new URL(`../../sounds/drone/${take}.mp3`, import.meta.url).pathname);
   const s = steady(x);
-  const loop = level(steadyMode ? steadyLoop(x, s.a, s.b, s.hz, { spectral: flag === 'sp' ? 0.85 : 0 }).loop : makeLoop(x, s.a, s.b, { hz: s.hz }), -20);
+  const loop = level(steadyMode ? steadyLoop(x, s.a, s.b, s.hz, { spectral: flag === 'sp' ? 0.85 : 0, wholeStretch: flags.includes('whole'), periods: flags.includes('p2') ? 2 : 1, xfade: Number((flags.find((f) => f.startsWith('xf')) || 'xf0.8').slice(2)) }).loop : makeLoop(x, s.a, s.b, { hz: s.hz }), -20);
   // The pitch of the finished loop itself (played round twice, so windows cross the seam too).
   const two = new Float32Array(loop.length * 2); two.set(loop); two.set(loop, loop.length);
   const hz = median(track(two).filter((r) => r.hz).map((r) => r.hz));

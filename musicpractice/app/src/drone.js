@@ -335,15 +335,66 @@ async function renderPlucked(id, f0) {
 export const SAMPLED = {
   cello: { level: 1.25, wet: 0.14, loops: [
     { file: 'cello-D2.mp3', hz: 74.246, margin: 0.3, loop: 4.943265 },
-    { file: 'cello-G2.mp3', hz: 99.774, margin: 0.3, loop: 6.003583 },
+    { file: 'cello-G2.mp3', hz: 99.77, margin: 0.3, loop: 5.813152 },
     { file: 'cello-D3.mp3', hz: 144.6, margin: 0.3, loop: 6.245238 },
     { file: 'cello-A3.mp3', hz: 220.49, margin: 0.3, loop: 11.274376 },
   ] },
+  'cello-section': { level: 1.25, wet: 0.22, loops: [
+    { file: 'section-D2.mp3', hz: 73.5, margin: 0.3, loop: 10.353741 },
+    { file: 'section-G2.mp3', hz: 97.566, margin: 0.3, loop: 9.859955 },
+    { file: 'section-D3.mp3', hz: 146.997, margin: 0.3, loop: 9.863946 },
+    { file: 'section-A3.mp3', hz: 219.393, margin: 0.3, loop: 10.587823 },
+  ] },
+  tanpura: { level: 1.3, wet: 0.15, loops: [
+    { file: 'tanpura-E2.mp3', hz: 82.058, margin: 0.3, loop: 11.454558 },
+    { file: 'tanpura-C3.mp3', hz: 131.616, margin: 0.3, loop: 10.186939 },
+    { file: 'tanpura-Ab3.mp3', hz: 210.052, margin: 0.3, loop: 11.19483 },
+  ] },
+  sitar: { level: 1.3, wet: 0.15, loops: [
+    { file: 'sitar-C3.mp3', hz: 132.216, margin: 0.3, loop: 10.004626 },
+    { file: 'sitar-A3.mp3', hz: 221.227, margin: 0.3, loop: 10.451678 },
+  ] },
+  shruti: { level: 1.1, wet: 0.18, loops: [
+    { file: 'shruti-E2.mp3', hz: 81.82, margin: 0.3, loop: 12.442222 },
+    { file: 'shruti-C3.mp3', hz: 131.642, margin: 0.3, loop: 12.45805 },
+    { file: 'shruti-Fs3.mp3', hz: 185.289, margin: 0.3, loop: 12.499048 },
+    { file: 'shruti-C4.mp3', hz: 262.494, margin: 0.3, loop: 12.55619 },
+  ] },
+  organ: { level: 1.4, wet: 0.3, maxShift: 7, loops: [
+    { file: 'organ-G2.mp3', hz: 98.225, margin: 0.3, loop: 6.841905 },
+    { file: 'organ-C3.mp3', hz: 130.861, margin: 0.3, loop: 7.779274 },
+    { file: 'organ-D3.mp3', hz: 147.984, margin: 0.3, loop: 10.365805 },
+    { file: 'organ-F3.mp3', hz: 175.002, margin: 0.3, loop: 10.771429 },
+  ] },
+  bagpipes: { level: 1.2, wet: 0.15, loops: [
+    { file: 'bagpipes-Fs2.mp3', hz: 92.451, margin: 0.3, loop: 8.36102 },
+    { file: 'bagpipes-Bb2.mp3', hz: 116.358, margin: 0.3, loop: 11.18093 },
+    { file: 'bagpipes-D3.mp3', hz: 146.521, margin: 0.3, loop: 9.166508 },
+  ] },
 };
 
-/** The loop nearest a pitch (in semitones). */
-export function nearestLoop(loops, hz) {
-  return loops.reduce((best, l) => (Math.abs(Math.log2(hz / l.hz)) < Math.abs(Math.log2(hz / best.hz)) ? l : best));
+// The soft cello: the same steady cello, darker (as if bowed over the
+// fingerboard, sul tasto), with a little more room.
+SAMPLED['cello-soft'] = { ...SAMPLED.cello, level: 1.2, wet: 0.2, lowpass: 900 };
+
+/**
+ * The loop for a pitch: the nearest (in semitones), with `target`, the pitch
+ * to retune it to. An instrument with a narrower natural range than the drone
+ * plays a note it can't reach within `maxShift` semitones an octave up or
+ * down instead (the same note name), rather than stretching a recording so
+ * far it stops sounding like itself.
+ */
+export function nearestLoop(loops, hz, maxShift = 4) {
+  const shift = (h, l) => Math.abs(12 * Math.log2(h / l.hz));
+  const pick = (h) => loops.reduce((best, l) => (shift(h, l) < shift(h, best) ? l : best));
+  let best = { ...pick(hz), target: hz };
+  if (shift(hz, best) > maxShift) {
+    for (const h of [hz * 2, hz / 2]) {
+      const l = pick(h);
+      if (shift(h, l) < shift(best.target, best)) best = { ...l, target: h };
+    }
+  }
+  return best;
 }
 
 const decodedLoops = new WeakMap(); // context -> Map(file -> Promise<AudioBuffer>)
@@ -439,12 +490,12 @@ export class Drone {
       const want = addFifth ? [f0, f0 * 1.5] : [f0];
       try {
         recorded = await Promise.all(want.map(async (hz) => {
-          const l = nearestLoop(SAMPLED[id].loops, hz);
-          return { l, rate: hz / l.hz, buffer: await loadLoop(this.ctx, l.file) };
+          const l = nearestLoop(SAMPLED[id].loops, hz, SAMPLED[id].maxShift);
+          return { l, rate: l.target / l.hz, buffer: await loadLoop(this.ctx, l.file) };
         }));
       } catch {
         recorded = null; // couldn't load: the synthesized voice instead
-        if (!LIVE[id]) id = 'cello';
+        if (!LIVE[id] && !PLUCKED[id]) id = 'cello';
       }
     }
     const loops = PLUCKED[id] ? [await renderPlucked(id, f0)] : null;
@@ -468,7 +519,16 @@ export class Drone {
         src.playbackRate.value = rate;
         const g = this.ctx.createGain();
         g.gain.value = SAMPLED[id].level * (i ? 0.5 : 1) * (recorded.length > 1 ? 0.85 : 1);
-        src.connect(g).connect(v.gain);
+        if (SAMPLED[id].lowpass) {
+          const lp = this.ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.value = SAMPLED[id].lowpass;
+          lp.Q.value = 0.5;
+          src.connect(lp).connect(g);
+        } else {
+          src.connect(g);
+        }
+        g.connect(v.gain);
         // Start somewhere along the loop, so repeated plays don't always begin alike.
         src.start(t, l.margin + ((midi * 0.37 + i * 1.7) % 1) * l.loop * 0.5);
         v.nodes.push(src);
