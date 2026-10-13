@@ -75,3 +75,11 @@ test('tuner settings: defaults, saved, and bad values fall back', () => {
   const bad = sanitize({ tuning: 'kazoo', a4: 1000, transpose: 'G' });
   assert.deepEqual([bad.tuning, bad.a4, bad.transpose], ['chromatic', 466, 'C']);
 });
+
+test('home order: metronome, tuner, recorder by default; a saved order is kept and repaired', () => {
+  assert.deepEqual(load(memoryStorage()).homeOrder, ['metronome', 'tuner', 'record']);
+  assert.deepEqual(sanitize({ homeOrder: ['record', 'metronome', 'tuner'] }).homeOrder, ['record', 'metronome', 'tuner']);
+  // Unknown or repeated tools dropped, a missing one added at the end.
+  assert.deepEqual(sanitize({ homeOrder: ['tuner', 'kazoo', 'tuner'] }).homeOrder, ['tuner', 'metronome', 'record']);
+  assert.deepEqual(sanitize({ homeOrder: 'record' }).homeOrder, ['metronome', 'tuner', 'record']);
+});
