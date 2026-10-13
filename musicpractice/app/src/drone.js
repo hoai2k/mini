@@ -1,12 +1,17 @@
 // The Drone: a sustained tone to play along with. Pitches, the timed
 // sequences that move between them, and the sound engine.
 //
-// Bowed and blown voices (cellos, shruti box, organ, bagpipes) play live in
-// Web Audio: oscillators whose harmonics are shaped by each instrument's body
-// resonances at the exact pitch, with slow random drift in pitch, bow
-// pressure and brightness so the tone lives. Plucked voices (tanpura, sitar)
-// are rendered once into a seamless loop of their plucking pattern. All go
-// through a warm hall reverb, and fade in and out smoothly.
+// The voices (cello, soft cello, organ) play recordings: steady seamless loops
+// on a few notes, retuned by playback rate (see SAMPLED and
+// design/drone-sounds.md). If their files can't load, a synthesized version
+// plays instead: oscillators whose harmonics are shaped by the instrument's
+// body resonances at the exact pitch, with slow random drift so the tone
+// lives. The Synth organ is that synthesized organ on purpose: pipes (8', 4'
+// and 16') with a touch of wind. All go through a warm hall reverb, and fade
+// in and out smoothly.
+// More voices (cello section, tanpura, sitar, shruti box, bagpipes) were
+// recorded but aren't good enough yet; their loops are archived in
+// design/sounds/drone/archive/ (not published), with their settings.
 
 export const DRONE_MIN = 36; // C2, the cello's open C string
 export const DRONE_MAX = 59; // B3: two octaves, every note twice
@@ -22,12 +27,8 @@ export function wrap(midi) {
 export const VOICES = [
   { id: 'cello', label: 'Cello' },
   { id: 'cello-soft', label: 'Cello, soft (sul tasto)' },
-  { id: 'cello-section', label: 'Cello section' },
-  { id: 'tanpura', label: 'Tanpura', fifth: true },
-  { id: 'sitar', label: 'Sitar', fifth: true },
-  { id: 'shruti', label: 'Shruti box', fifth: true },
   { id: 'organ', label: 'Organ' },
-  { id: 'bagpipes', label: 'Bagpipe drones' },
+  { id: 'organ-synth', label: 'Synth organ' },
 ];
 
 /** What happens when a timed drone's time is up. */
@@ -73,21 +74,12 @@ function celloBody(f) {
   return r / (1 + (f / 3200) ** 2);
 }
 
-/** A reed's nasal formants. */
-function reedBody(f, peaks) {
-  let r = 0.4;
-  for (const [c, w, g] of peaks) r += bump(f, c, w, g);
-  return r / (1 + (f / 5000) ** 2);
-}
-
 const SPECTRA = {
   // Helmholtz motion (1/n) through the body, a weak 9th (bowed a ninth of the way along).
   cello: (n, f) => (1 / n) * celloBody(f) * (n % 9 === 0 ? 0.25 : 1),
   celloBright: (n, f) => (1 / n ** 0.6) * celloBody(f) * (n % 9 === 0 ? 0.25 : 1),
   celloSoft: (n, f) => (1 / n ** 1.55) * celloBody(f),
-  shruti: (n, f) => (1 / n ** 0.7) * reedBody(f, [[1200, 0.35, 1], [2600, 0.3, 0.5]]),
   organ: (n) => [1, 0.38, 0.22, 0.14, 0.09, 0.06, 0.045, 0.035, 0.025, 0.02][n - 1] ?? 0,
-  bagpipe: (n, f) => (1 / n ** 0.45) * reedBody(f, [[1700, 0.3, 1.4], [3000, 0.25, 0.8]]),
 };
 
 function wave(ctx, spectrum, f0, seed = 1) {
@@ -196,7 +188,7 @@ function sustained(ctx, dest, f0, layer, t, nodes, seed) {
   }
 }
 
-/** Each live voice: its layers, and how loud it is overall. */
+/** Each live voice (synthesized): its layers, and how loud it is overall. */
 const LIVE = {
   cello: { level: 0.5, layers: [
     { spectrum: 'cello', bright: 'celloBright', drift: 1.8, breath: 0.1, air: { freq: 2400, gain: 0.05 } },
@@ -204,121 +196,14 @@ const LIVE = {
   'cello-soft': { level: 0.42, layers: [
     { spectrum: 'celloSoft', drift: 1.4, driftRate: 0.07, breath: 0.08, breathRate: 0.08, air: { freq: 1300, q: 0.7, gain: 0.025 } },
   ] },
-  'cello-section': { level: 0.34, wet: 0.42, layers: [
-    { spectrum: 'cello', bright: 'celloBright', cents: -6, pan: -0.6, drift: 2.5, driftRate: 0.08, breath: 0.12, breathRate: 0.09, air: { freq: 2300, gain: 0.03 } },
-    { spectrum: 'cello', bright: 'celloBright', cents: -1.5, pan: -0.2, drift: 2.5, driftRate: 0.11, breath: 0.12, breathRate: 0.13 },
-    { spectrum: 'cello', bright: 'celloBright', cents: 2.5, pan: 0.25, drift: 2.5, driftRate: 0.095, breath: 0.12, breathRate: 0.07, air: { freq: 2600, gain: 0.03 } },
-    { spectrum: 'cello', bright: 'celloBright', cents: 6.5, pan: 0.6, drift: 2.5, driftRate: 0.125, breath: 0.12, breathRate: 0.105 },
-  ] },
-  shruti: { level: 0.38, layers: [
-    // Sa, its pure fifth and its octave, each reed with a slightly detuned twin.
-    { spectrum: 'shruti', breath: 0.22, breathRate: 0.16, air: { freq: 3000, gain: 0.04 }, pan: -0.15 },
-    { spectrum: 'shruti', cents: 3, gain: 0.8, pan: 0.15, breath: 0.22, breathRate: 0.16 },
-    { spectrum: 'shruti', ratio: 1.5, gain: 0.55, breath: 0.22, breathRate: 0.16, pan: 0.3 },
-    { spectrum: 'shruti', ratio: 2, gain: 0.4, cents: -2, breath: 0.22, breathRate: 0.16, pan: -0.3 },
-  ] },
   organ: { level: 0.42, wet: 0.45, layers: [
     { spectrum: 'organ', drift: 0.3, air: { freq: 1800, q: 0.6, gain: 0.012 } }, // 8', with a little wind
     { spectrum: 'organ', ratio: 2, gain: 0.32, cents: 0.8, pan: 0.2, drift: 0.3 }, // 4'
     { spectrum: 'organ', ratio: 0.5, gain: 0.45, pan: -0.2, drift: 0.2 }, // 16'
   ] },
-  bagpipes: { level: 0.27, layers: [
-    // Two tenor drones on the note, a bass drone an octave below.
-    { spectrum: 'bagpipe', cents: -1.5, pan: -0.35, drift: 0.8, breath: 0.04 },
-    { spectrum: 'bagpipe', cents: 1.5, pan: 0.35, drift: 0.8, breath: 0.04, driftRate: 0.12 },
-    { spectrum: 'bagpipe', ratio: 0.5, gain: 0.9, drift: 0.6, breath: 0.04, driftRate: 0.07 },
-  ] },
 };
-
-// ---------------------------------------------------------------- plucked voices
-
-const RENDER_RATE = 24000;
-
-/**
- * A plucked string with a jawari bridge (tanpura, sitar): its overtones bloom
- * and the bright buzz sweeps down as it rings. Adds `dur` seconds of it,
- * starting at `t0`, into the circular buffer `buf` (so the loop is seamless).
- */
-function pluck(buf, sr, f, t0, dur, { gain = 1, sweepFrom = 5000, sweepTo = 700, sweepTau = 1.2, decay = 7, maxHz = 6000, symp = 0 }) {
-  const len = buf.length;
-  const n0 = Math.round(t0 * sr);
-  const total = Math.round(dur * sr);
-  const fade = Math.round(0.08 * sr); // damped just before the string is plucked again
-  const partials = Math.min(70, Math.floor(maxHz / f));
-  const BLOCK = 64;
-  for (let k = 1; k <= partials; k++) {
-    const w = (2 * Math.PI * f * k) / sr;
-    const c2 = 2 * Math.cos(w);
-    let y1 = Math.sin(-w);
-    let y2 = Math.sin(-2 * w);
-    const tau = decay / (1 + 0.045 * k);
-    const base = 0.3 / k ** 0.8;
-    const lf = Math.log2(f * k);
-    for (let b = 0; b < total; b += BLOCK) {
-      const t = b / sr;
-      const fp = sweepTo + (sweepFrom - sweepTo) * Math.exp(-t / sweepTau);
-      const jw = Math.exp(-((lf - Math.log2(fp)) ** 2) / (2 * 0.45 * 0.45));
-      let a = gain * Math.exp(-t / tau) * (base + (0.9 * jw) / Math.sqrt(k)) * (1 - Math.exp(-t / 0.003));
-      if (total - b < fade) a *= (total - b) / fade;
-      const end = Math.min(total, b + BLOCK);
-      for (let i = b; i < end; i++) {
-        const y = c2 * y1 - y2;
-        y2 = y1;
-        y1 = y;
-        buf[(n0 + i) % len] += a * y;
-      }
-    }
-  }
-  // Sympathetic strings: a quiet, long shimmer on the note's octaves and fifth.
-  if (symp) {
-    for (const [r, g] of [[2, 1], [3, 0.6], [4, 0.7], [6, 0.4]]) {
-      const w = (2 * Math.PI * f * r) / sr;
-      const c2 = 2 * Math.cos(w);
-      let y1 = Math.sin(-w);
-      let y2 = Math.sin(-2 * w);
-      for (let i = 0; i < total; i++) {
-        const t = i / sr;
-        let a = symp * g * gain * Math.exp(-t / 2.5) * (1 - Math.exp(-t / 0.4));
-        if (total - i < fade) a *= (total - i) / fade;
-        const y = c2 * y1 - y2;
-        y2 = y1;
-        y1 = y;
-        buf[(n0 + i) % len] += a * y;
-      }
-    }
-  }
-}
-
-const PLUCKED = {
-  // Pa (a fifth below), Sa, Sa, then Sa an octave below, evenly, about 5 s round.
-  tanpura: { level: 1.35, cycle: 4.8, plucks: [[0.75, 0, 0.9], [1, 1.2, 1], [1, 2.4, 0.95], [0.5, 3.6, 1.1]],
-    opts: { sweepFrom: 5000, sweepTo: 650, sweepTau: 1.3, decay: 7, maxHz: 6000 } },
-  // The sitar's drone strings struck in a steady pattern, brighter and quicker,
-  // with sympathetic strings ringing on.
-  sitar: { level: 1.25, cycle: 3, plucks: [[1, 0, 1], [2, 0.75, 0.7], [2, 1.5, 0.6], [1.5, 2.25, 0.65]],
-    opts: { sweepFrom: 7000, sweepTo: 1300, sweepTau: 0.6, decay: 3.2, maxHz: 9000, symp: 0.05 } },
-};
-
-const rendered = new Map();
-
-/** Render a plucked voice's loop at pitch `f0`, yielding between strings so the page stays responsive. */
-async function renderPlucked(id, f0) {
-  const key = `${id}:${f0.toFixed(4)}`;
-  if (rendered.has(key)) return rendered.get(key);
-  const v = PLUCKED[id];
-  const sr = RENDER_RATE;
-  const buf = new Float32Array(Math.round(v.cycle * sr));
-  for (const [ratio, at, g] of v.plucks) {
-    pluck(buf, sr, f0 * ratio, at, v.cycle, { ...v.opts, gain: g });
-    await new Promise((r) => setTimeout(r, 0));
-  }
-  let peak = 0;
-  for (const x of buf) peak = Math.max(peak, Math.abs(x));
-  if (peak > 0) for (let i = 0; i < buf.length; i++) buf[i] *= 0.7 / peak;
-  rendered.set(key, buf);
-  if (rendered.size > 12) rendered.delete(rendered.keys().next().value);
-  return buf;
-}
+// The Synth organ voice: the synthesized organ itself, level with the recordings.
+LIVE['organ-synth'] = { ...LIVE.organ, level: 0.3 };
 
 // ---------------------------------------------------------------- recorded voices
 
@@ -339,37 +224,11 @@ export const SAMPLED = {
     { file: 'cello-D3.mp3', hz: 144.6, margin: 0.3, loop: 6.245238 },
     { file: 'cello-A3.mp3', hz: 220.49, margin: 0.3, loop: 11.274376 },
   ] },
-  'cello-section': { level: 1.25, wet: 0.22, loops: [
-    { file: 'section-D2.mp3', hz: 73.5, margin: 0.3, loop: 10.353741 },
-    { file: 'section-G2.mp3', hz: 97.566, margin: 0.3, loop: 9.859955 },
-    { file: 'section-D3.mp3', hz: 146.997, margin: 0.3, loop: 9.863946 },
-    { file: 'section-A3.mp3', hz: 219.393, margin: 0.3, loop: 10.587823 },
-  ] },
-  tanpura: { level: 1.3, wet: 0.15, loops: [
-    { file: 'tanpura-E2.mp3', hz: 82.058, margin: 0.3, loop: 11.454558 },
-    { file: 'tanpura-C3.mp3', hz: 131.616, margin: 0.3, loop: 10.186939 },
-    { file: 'tanpura-Ab3.mp3', hz: 210.052, margin: 0.3, loop: 11.19483 },
-  ] },
-  sitar: { level: 1.3, wet: 0.15, loops: [
-    { file: 'sitar-C3.mp3', hz: 132.216, margin: 0.3, loop: 10.004626 },
-    { file: 'sitar-A3.mp3', hz: 221.227, margin: 0.3, loop: 10.451678 },
-  ] },
-  shruti: { level: 1.1, wet: 0.18, loops: [
-    { file: 'shruti-E2.mp3', hz: 81.82, margin: 0.3, loop: 12.442222 },
-    { file: 'shruti-C3.mp3', hz: 131.642, margin: 0.3, loop: 12.45805 },
-    { file: 'shruti-Fs3.mp3', hz: 185.289, margin: 0.3, loop: 12.499048 },
-    { file: 'shruti-C4.mp3', hz: 262.494, margin: 0.3, loop: 12.55619 },
-  ] },
   organ: { level: 1.4, wet: 0.3, maxShift: 7, loops: [
     { file: 'organ-G2.mp3', hz: 98.225, margin: 0.3, loop: 6.841905 },
     { file: 'organ-C3.mp3', hz: 130.861, margin: 0.3, loop: 7.779274 },
     { file: 'organ-D3.mp3', hz: 147.984, margin: 0.3, loop: 10.365805 },
     { file: 'organ-F3.mp3', hz: 175.002, margin: 0.3, loop: 10.771429 },
-  ] },
-  bagpipes: { level: 1.2, wet: 0.15, loops: [
-    { file: 'bagpipes-Fs2.mp3', hz: 92.451, margin: 0.3, loop: 8.36102 },
-    { file: 'bagpipes-Bb2.mp3', hz: 116.358, margin: 0.3, loop: 11.18093 },
-    { file: 'bagpipes-D3.mp3', hz: 146.521, margin: 0.3, loop: 9.166508 },
   ] },
 };
 
@@ -482,8 +341,8 @@ export class Drone {
   async play({ midi, voice, a4 = 440, fifth = false }) {
     const ticket = (this.ticket = (this.ticket || 0) + 1);
     const f0 = a4 * 2 ** ((midi - 69) / 12);
-    let id = SAMPLED[voice] || LIVE[voice] || PLUCKED[voice] ? voice : 'cello';
-    const addFifth = fifth && !VOICES.find((x) => x.id === id)?.fifth;
+    let id = SAMPLED[voice] || LIVE[voice] ? voice : 'cello';
+    const addFifth = fifth;
     // A recorded voice: the loops nearest the note (and its fifth).
     let recorded = null;
     if (SAMPLED[id]) {
@@ -495,18 +354,17 @@ export class Drone {
         }));
       } catch {
         recorded = null; // couldn't load: the synthesized voice instead
-        if (!LIVE[id] && !PLUCKED[id]) id = 'cello';
+        if (!LIVE[id]) id = 'cello';
       }
     }
-    const loops = PLUCKED[id] ? [await renderPlucked(id, f0)] : null;
-    if (ticket !== this.ticket) return; // replaced while loading or rendering
+    if (ticket !== this.ticket) return; // replaced while loading
     const t = this.ctx.currentTime + 0.02;
     this.fadeOut(t);
     const v = { gain: this.ctx.createGain(), nodes: [] };
     v.gain.gain.setValueAtTime(0, t);
     v.gain.gain.setTargetAtTime(1, t, FADE_IN);
     v.gain.connect(this.bus);
-    const wet = ((recorded && SAMPLED[id]) || LIVE[id] || PLUCKED[id]).wet ?? 0.32;
+    const wet = ((recorded && SAMPLED[id]) || LIVE[id]).wet ?? 0.32;
     this.wet.gain.setTargetAtTime(wet, t, 0.5);
     this.dry.gain.setTargetAtTime(1 - wet * 0.5, t, 0.5);
     if (recorded) {
@@ -533,17 +391,6 @@ export class Drone {
         src.start(t, l.margin + ((midi * 0.37 + i * 1.7) % 1) * l.loop * 0.5);
         v.nodes.push(src);
       });
-    } else if (loops) {
-      const b = this.ctx.createBuffer(1, loops[0].length, RENDER_RATE);
-      b.copyToChannel(loops[0], 0);
-      const src = this.ctx.createBufferSource();
-      src.buffer = b;
-      src.loop = true;
-      const g = this.ctx.createGain();
-      g.gain.value = PLUCKED[id].level;
-      src.connect(g).connect(v.gain);
-      src.start(t);
-      v.nodes.push(src);
     } else {
       const spec = LIVE[id];
       const lvl = this.ctx.createGain();
