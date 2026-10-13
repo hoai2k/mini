@@ -4,7 +4,7 @@ import { createKeyboard } from './keyboard.js';
 import { createNavigator } from './navigator.js';
 import { createStaff } from './staff.js';
 import { noteName } from './music.js';
-import { perform, secondsPerBeat, MAX_HOLD } from './perform.js';
+import { perform, secondsPerBeat, MAX_HOLD, touchRelease } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
 import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
@@ -392,9 +392,13 @@ function keyDown(midi, source) {
   if (result === 'done') solved();
   else idlePrompt();
 }
+// Letting a key go: how long it was held shapes the release (see touchRelease).
 function keyUp(midi) {
   const v = S.held.get(midi);
-  if (v) { audio.noteOff(v); S.held.delete(midi); }
+  if (!v) return;
+  S.held.delete(midi);
+  const { delay, tau } = touchRelease(audio.now() - v.t, audio.instrument.release);
+  audio.noteOff(v, audio.now() + delay, tau);
 }
 function sparkOn(midi) {
   const el = $(`.key[data-midi="${midi}"]`);
@@ -532,8 +536,8 @@ function doRedo() {
     showSolved(false);
   } else redo(S.round);
   syncStaff(); syncMarker(); syncHud();
-  setPrompt('From the top.');
-  setTimeout(idlePrompt, 1200);
+  // From the top: hear it again first.
+  playMelody();
 }
 function doRepeat() { cancelAuto(); if (S.round && !S.free) playMelody({ light: !!(S.round.done && settings.light) }); }
 function doPractice() {

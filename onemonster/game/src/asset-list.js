@@ -429,5 +429,129 @@ export const ASSETS = {
   "adv.b09.props": {
     "file": "assets/adventure/b09/props.png",
     "delivered": true
+  },
+  "howto.ch01.1": {
+    "file": "assets/howto/ch01-1.webp",
+    "delivered": false
+  },
+  "howto.ch01.2": {
+    "file": "assets/howto/ch01-2.webp",
+    "delivered": false
+  },
+  "howto.ch01.3": {
+    "file": "assets/howto/ch01-3.webp",
+    "delivered": false
+  },
+  "howto.ch02.1": {
+    "file": "assets/howto/ch02-1.webp",
+    "delivered": false
+  },
+  "howto.ch02.2": {
+    "file": "assets/howto/ch02-2.webp",
+    "delivered": false
+  },
+  "howto.ch02.3": {
+    "file": "assets/howto/ch02-3.webp",
+    "delivered": false
+  },
+  "howto.ch03.1": {
+    "file": "assets/howto/ch03-1.webp",
+    "delivered": false
+  },
+  "howto.ch03.2": {
+    "file": "assets/howto/ch03-2.webp",
+    "delivered": false
+  },
+  "howto.ch03.3": {
+    "file": "assets/howto/ch03-3.webp",
+    "delivered": false
+  },
+  "howto.ch04.1": {
+    "file": "assets/howto/ch04-1.webp",
+    "delivered": false
+  },
+  "howto.ch04.2": {
+    "file": "assets/howto/ch04-2.webp",
+    "delivered": false
+  },
+  "howto.ch04.3": {
+    "file": "assets/howto/ch04-3.webp",
+    "delivered": false
+  },
+  "howto.ch05.1": {
+    "file": "assets/howto/ch05-1.webp",
+    "delivered": false
+  },
+  "howto.ch05.2": {
+    "file": "assets/howto/ch05-2.webp",
+    "delivered": false
+  },
+  "howto.ch05.3": {
+    "file": "assets/howto/ch05-3.webp",
+    "delivered": false
+  },
+  "howto.ch06.1": {
+    "file": "assets/howto/ch06-1.webp",
+    "delivered": false
+  },
+  "howto.ch06.2": {
+    "file": "assets/howto/ch06-2.webp",
+    "delivered": false
+  },
+  "howto.ch06.3": {
+    "file": "assets/howto/ch06-3.webp",
+    "delivered": false
+  },
+  "howto.ch07.1": {
+    "file": "assets/howto/ch07-1.webp",
+    "delivered": false
+  },
+  "howto.ch07.2": {
+    "file": "assets/howto/ch07-2.webp",
+    "delivered": false
+  },
+  "howto.ch07.3": {
+    "file": "assets/howto/ch07-3.webp",
+    "delivered": false
+  },
+  "howto.ch08.1": {
+    "file": "assets/howto/ch08-1.webp",
+    "delivered": false
+  },
+  "howto.ch08.2": {
+    "file": "assets/howto/ch08-2.webp",
+    "delivered": false
+  },
+  "howto.ch08.3": {
+    "file": "assets/howto/ch08-3.webp",
+    "delivered": false
+  },
+  "howto.ch09.1": {
+    "file": "assets/howto/ch09-1.webp",
+    "delivered": false
+  },
+  "howto.ch09.2": {
+    "file": "assets/howto/ch09-2.webp",
+    "delivered": false
+  },
+  "howto.ch09.3": {
+    "file": "assets/howto/ch09-3.webp",
+    "delivered": false
+  },
+  "bombanat.plain": {
+    "file": "assets/monsters/bombanat/plain.png",
+    "delivered": false
+  },
+  "iceferg.bare": {
+    "file": "assets/monsters/iceferg/bare.png",
+    "delivered": false
+  },
+  "iceferg.sealions": {
+    "file": "assets/monsters/iceferg/sealions.png",
+    "delivered": false
+  },
+  "ch01.house": {
+    "file": "assets/props/sallyann-house.png",
+    "delivered": false
   }
 };

@@ -1600,6 +1600,180 @@ for b in BOARDS:
     })
 
 
+# ---------- How to play: three spot illustrations per minigame ----------
+#
+# Each minigame opens with a picture-book "How to play" page (design.md, Flow):
+# three numbered steps, each a small spot illustration with the game's caption
+# under it, then the controls. Until a picture arrives the game composes the
+# step in code from the monster's poses and the chapter's props.
+
+SECTIONS["howto"] = (
+    "How to play pages",
+    "Three small spot illustrations per minigame, shown side by side on the page before "
+    "it starts, each with a numbered caption the game writes underneath: what you do "
+    "first, the danger to watch for, and how you win. Draw the characters from their "
+    "model sheets (attach them), clear and simple enough to read small.",
+)
+
+HOWTO = {
+    1: ("trollusk", "pages-06-07-sally-ann-and-mailbox.jpg", [
+        "The Trollusk tiptoeing along a country lane from one round leafy bush toward the next, a dotted line of little footprints showing the way, a picket fence behind",
+        "The Trollusk ducked down in a flowerbed, only his checked hat showing, while a plump old lady in a rocking chair on her porch opens one eye and peers over her spectacles",
+        "The Trollusk on tiptoe pulling a white envelope out of a grey rural mailbox with a red flag, while far down the road a little mailman on a motorcycle putters closer",
+    ]),
+    2: ("bombanat", "bombanat-and-pony-express-boy.jpg", [
+        "The Bombanat flapping over a wood, looking down at the Trollusk running along the ground below with a white envelope in his snout",
+        "The Trollusk hiding in a leafy bush, only his hat showing, while the Bombanat hovers just above the bush, peering in",
+        "The Bombanat diving steeply onto the running Trollusk and snapping the envelope out of his snout with its long toothy jaws",
+    ]),
+    3: ("grumley", "grumley-in-the-goo.jpg", [
+        "Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead",
+        "Among several plain Bombanats, one with a red-and-white striped necktie and a white envelope in its teeth dipping low over the goo",
+        "The Grumley's long spiny crab arm shooting up out of the goo in a splash and grabbing the Bombanat in the striped necktie",
+    ]),
+    4: ("iceferg", "pages-18-19-ice-ferg.png", [
+        "Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea",
+        "The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury",
+        "The Ice-Ferg charging into the side of a stout teal fishing boat with a wheelhouse and a crane, SCRUNCH, spray and ice flying, a harbour with a lighthouse in the distance",
+    ]),
+    5: ("typhoonigator", "typhoonigator-spread.jpg", [
+        "The Typhoonigator, a storm cloud with a face and big pink lips, rolling across the sky over the sea, its water spout dangling down to the waves",
+        "Fish, plain green and brown bottles and blobs of goo spiralling up the spout as the Typhoonigator sucks hard, cheeks hollow",
+        "Among the plain bottles, one glass bottle with a red-and-white label and a rolled note inside, being sucked up the spout, the Typhoonigator delighted",
+    ]),
+    6: ("yalapappus", "yalapappus-bottle-on-head.jpg", [
+        "The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each",
+        "The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was",
+        "A glass bottle with a red-and-white label landing KER-PLOP on the Yalapappus's head and breaking, a rolled note falling out, which he munches gleefully",
+    ]),
+    7: ("trollusk", "trollusk-snatches-from-yalapappus.jpg", [
+        "The Trollusk creeping up behind the Yalapappus, who sits munching paper with a white envelope on his fork, at the edge of Nowhere",
+        "The Yalapappus turning round to look while the Trollusk freezes behind a leafy twig held up as a disguise",
+        "The Trollusk running away with the envelope in his snout, stamps flying from his bag, the Yalapappus trundling after him with knife and fork",
+    ]),
+    8: ("bombanat", "trollusk-and-yalapappus-running.jpg", [
+        "The Bombanat flying high over open ground, the Trollusk running below with the envelope and the Yalapappus stomping behind him",
+        "The Bombanat swerving away from the Yalapappus's big swiping paw reaching up at it",
+        "The Bombanat swooping down and snipping the envelope out of the running Trollusk's snout",
+    ]),
+    9: ("grithix", "grithix-nets-bombanat-page.jpg", [
+        "The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing",
+        "The Grithix striding along holding the envelope, stepping round the Trollusk who pops out of the ferns trying to trip him",
+        "The Grithix dropping the envelope into the slot of a squat riveted grey-mauve official-looking mailbox, very pleased",
+    ]),
+}
+
+HOWTO_PROMPT = (
+    "A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm "
+    "cream paper that the drawing fades into at the edges (no frame, no border), in the style "
+    "of the book's own spot illustrations. One clear moment, the characters large and easy to "
+    "read when shown small: "
+)
+
+for n, (mid, ref, steps) in HOWTO.items():
+    for k, desc in enumerate(steps, start=1):
+        REQUESTS.append({
+            "id": f"OM-H{n}{'abc'[k - 1]}",
+            "section": "howto",
+            "name": f"Chapter {n}: how to play, step {k}",
+            "key": f"howto.ch{n:02d}.{k}",
+            "file": f"assets/howto/ch{n:02d}-{k}.webp",
+            "size": "1024 x 768, opaque",
+            "used": f"Step {k} of chapter {n}'s how-to-play page.",
+            "standin": "The step composed in code from the monster's poses and the chapter's props.",
+            "status": "requested",
+            "ref": ref,
+            "prompt": STYLE + " " + HOWTO_PROMPT + desc + ". Draw the characters from their "
+            "canonical model sheets where you have them. " + REF_SCENE.format(ref),
+        })
+
+
+# ---------- Asked for by the minigame audit ----------
+
+SECTIONS["audit"] = (
+    "Minigame audit: extra sprites",
+    "Sprites the audit of the minigames found missing: plain Bombanats for the flocks (the "
+    "delivered poses all wear the necktie and carry the letter), the Ice-Ferg without its "
+    "sea lions with the sea lions on their own (so the count on the ice can change), and "
+    "the end wall of Sally Ann's house for chapter 1.",
+)
+
+AUDIT_SHEETS = [
+    {
+        "id": "OM-Z01", "key": "bombanat.plain", "monster": "bombanat",
+        "name": "Plain Bombanats (no necktie, no letter)",
+        "file": "assets/monsters/bombanat/plain.png",
+        "used": "The ordinary Bombanats in the flocks of chapter 3 and boards 3 and 9, so the one with the letter stands out.",
+        "intro": "The same Bombanat design but an ordinary one of its kind: NO necktie, NO cap or propeller, "
+        "NO letter, slightly duller grey-brown fur and greyer mauve wings, otherwise identical in "
+        "shape and scale. ",
+        "items": [
+            "gliding, wings spread level", "flapping, wings at the top of the stroke",
+            "flapping, wings at the bottom of the stroke", "swooping down in a steep dive, wings swept back",
+            "grabbed from below, wriggling and flapping wildly", "tangled in a butterfly net, wings crumpled",
+            "perched with the wings folded", "stalling in a frantic flutter",
+        ],
+    },
+    {
+        "id": "OM-Z02", "key": "iceferg.bare", "monster": "iceferg",
+        "name": "Ice-Ferg without sea lions",
+        "file": "assets/monsters/iceferg/bare.png",
+        "used": "Chapter 4 and board 4: the Ice-Ferg drawn without its sea lions, which the game places on its ledges one by one.",
+        "intro": "Exactly the same iceberg as in its key poses, same view and scale, but with NO sea "
+        "lions on it: its ledges empty and flat enough for sea lions to sit on. ",
+        "items": [
+            "floating calmly, drifting", "huffing itself up, swelling, freezing mist pouring off it, the eye narrowed",
+            "charging forward, spray bursting off the front", "seen exactly side-on facing right, floating",
+        ],
+    },
+    {
+        "id": "OM-Z03", "key": "iceferg.sealions", "monster": "iceferg",
+        "name": "The Ice-Ferg's sea lions",
+        "file": "assets/monsters/iceferg/sealions.png",
+        "used": "The sea lions on the Ice-Ferg's ledges in chapter 4 and board 4, reacting to what it does.",
+        "intro": "The olive-yellow whiskered sea lions that lounge on the Ice-Ferg's ledges, alone, at "
+        "the same scale and view as in its key poses, each pose a single sea lion: ",
+        "items": [
+            "dozing, lying on its belly", "sitting up in alarm, whiskers bristling",
+            "clinging on with its flippers, eyes shut tight", "sliding off backwards, flippers up",
+            "clapping its flippers", "falling with a splash",
+        ],
+    },
+]
+
+for sh in AUDIT_SHEETS:
+    m = next(m for m in MONSTERS if m["id"] == sh["monster"])
+    mi = [mm["id"] for mm in MONSTERS].index(sh["monster"]) + 1
+    look = STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"]
+    base = f"assets/monsters/{sh['monster']}/"
+    REQUESTS.append({
+        "id": sh["id"], "section": "audit", "name": sh["name"], "key": sh["key"], "file": sh["file"],
+        "size": "2048 x 2048, transparent", "used": sh["used"],
+        "standin": "The delivered poses with a filter, or a drawn stand-in.",
+        "status": "requested", "ref": m.get("refs") or m["ref"],
+        "prompt": look + " (Use this description for the design only.) "
+        + FROM_SHEET.format(f"OM-C{mi:02d}", f"onemonster/game/{base}model-sheet.png")
+        + f"Also attach its key-poses sheet, request OM-K{mi:02d} (file onemonster/game/{base}poses.png), "
+        "and draw these at exactly the same scale. " + sh["intro"] + f"The {len(sh['items'])} drawings: "
+        + numbered(sh["items"]) + " " + GRID.format(*grid(len(sh["items"]))) + ALPHA,
+    })
+
+REQUESTS.append({
+    "id": "OM-Z04", "section": "audit", "name": "Sally Ann's house, the end wall with her window",
+    "key": "ch01.house", "file": "assets/props/sallyann-house.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Chapter 1: the gable end of Sally Ann's house rising behind the hedge, Sally Ann (a cast sprite) at its window.",
+    "standin": "The wall drawn in ink in code.",
+    "status": "requested", "ref": "pages-06-07-sally-ann-and-mailbox.jpg",
+    "prompt": STYLE + " A single game sprite: the gable end wall of a small white clapboard country "
+    "house seen straight on, with a steep shingled roof edge, a brick chimney, and in the middle "
+    "of the wall one open sash window with gathered curtains and a window box of red geraniums. "
+    "The window opening itself is EMPTY and transparent (the game draws a girl in it), and the "
+    "bottom of the wall fades out into nothing (a hedge hides it in the game). Nothing else. "
+    + ALPHA + " " + REF_SCENE.format("pages-06-07-sally-ann-and-mailbox.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"
@@ -1690,6 +1864,10 @@ def document() -> str:
         "of each place (`OM-G`) and a props sheet per board (`OM-Y`). Every board plays with "
         "stand-ins until they arrive. Good order: the backdrops of a board and its props sheet "
         "together, so they match, then the ground pieces of that place.",
+        "13. **How to play** (`OM-H`): three spot illustrations per minigame for its "
+        "how-to-play page, with the model sheets of the characters in them attached.",
+        "14. **Minigame audit extras** (`OM-Z`): plain Bombanats, the Ice-Ferg without its sea "
+        "lions and the sea lions alone, and Sally Ann's house end wall.",
         "",
         "## Status",
         "",
