@@ -70,6 +70,9 @@ function applyTheme(t) {
   document.querySelectorAll('[data-color-of]').forEach(e => e.style.setProperty('--c', themedColor(e.dataset.colorOf)));
   updateTitleArt(theme);
   refreshIcons();
+  // The page was kept hidden until now (see index.html) so it never shows the
+  // default look first.
+  requestAnimationFrame(() => document.documentElement.classList.remove('booting'));
 }
 setVolume(settings.volume);
 setSoundOn(!settings.muted);
@@ -710,6 +713,7 @@ function onPeers(peers) {
   rtc.sync([...peers].filter(([, p]) => p.debugOwner !== me.id).map(([id]) => id));
   studio.setPeerCount(peers.size);
   queueMicrotask(updateGrabButton);
+  updateShareButton();
   for (const [id, p] of peers) {
     let rec = tiles.get(id);
     if (!rec) {
@@ -1235,6 +1239,8 @@ function initControls() {
   $('#chat-close').addEventListener('click', () => toggleTray(null));
   $('#fx-info').addEventListener('click', () => showEffectInfo(studio.effect));
   $('#fx-share').addEventListener('click', shareEffect);
+  $('#fx-snap').addEventListener('click', snapshotMain);
+  updateShareButton();
   initSheets();
   $('#btn-leave').addEventListener('click', () => {
     debugBots?.stop();
@@ -1513,9 +1519,48 @@ function showEffectInfo(fx) {
 }
 
 // Share: offer the effect that's on to everyone.
+// Share is for the others in the call: greyed out while nobody else is here.
+function updateShareButton() {
+  const b = $('#fx-share');
+  if (!b) return;
+  const alone = !net || net.peers.size === 0;
+  b.disabled = alone;
+  b.title = alone ? 'Share with everyone (nobody else is here yet)' : 'Share with everyone';
+}
+
+// The camera button: a picture of the main video, saved to the device (on a
+// phone, the share sheet's Save Image puts it in Photos).
+async function snapshotMain() {
+  const rec = tiles.get(primaryId ?? me.id) ?? tiles.get(me.id);
+  const m = rec?.media;
+  const w = m?.videoWidth || m?.width, h = m?.videoHeight || m?.height;
+  if (!w || !h) { toast('Nothing to snap yet'); return; }
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  try { c.getContext('2d').drawImage(m, 0, 0, w, h); } catch { toast("Couldn't take the snapshot"); return; }
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (!blob) { toast("Couldn't take the snapshot"); return; }
+  sfx('click');
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  const file = new File([blob], `games-chat-${stamp}.png`, { type: 'image/png' });
+  const touch = matchMedia('(pointer: coarse)').matches;
+  if (touch && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Games Chat snapshot' }); return; } catch (e) { if (e?.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Snapshot saved');
+}
+
 function shareEffect() {
   const fx = studio.effect;
   if (!fx) return;
+  if (!net || net.peers.size === 0) return;
   net.send('fxshare', { fx: fx.id });
   toast(`Shared ${fx.emoji} ${fx.name} with everyone`);
 }

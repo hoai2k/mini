@@ -337,6 +337,15 @@ watches the leader) while the others carry on, and the best distance this
 session is crowned in the chips at the top. Keys: arrows or WASD, Space jumps;
 a controller's stick or D-pad, A jumps and X slides.
 
+## Snapshots, sharing and the first paint
+
+While an effect is on, its title bar has a camera button at the right that
+saves a picture of the main video (on a phone the share sheet opens, where Save
+Image puts it in Photos; on a computer it downloads as a PNG). Its Share button
+is greyed out while nobody else is in the call. The page keeps itself hidden
+until the saved theme and colour are applied (at most about a second), so it
+never flashes the default look first.
+
 ## Thumbs up and down
 
 Every effect and game has 👍 and 👎 buttons: on the effects strip next to the
