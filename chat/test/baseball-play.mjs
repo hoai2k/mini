@@ -115,7 +115,8 @@ const settled = (page, pn, n = 2) => until(page, ({ pn, n }) => window.seats.sli
 
   // A fastball, and a swing timed for a hit.
   check(await pitch(page, 1, 'fast'), 'Bo throws a fastball');
-  const swung = swing(page, 0, 1, 0.9, -0.3, 40, '123H');
+  // (Not a home run: the next check needs her still on base.)
+  const swung = swing(page, 0, 1, 0.9, -0.3, 40, '123');
   await until(page, () => window.seats.slice(0, 2).every(s => s.gh.current.instance._view().pitch?.n === 1));
   const flight = await page.evaluate(async () => {
     const frame = () => new Promise(r => requestAnimationFrame(r));
