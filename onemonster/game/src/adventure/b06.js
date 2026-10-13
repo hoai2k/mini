@@ -732,15 +732,34 @@ export default function create(env) {
   // The ground: flat stretches through the kit (the terrain strip when it
   // arrives), slopes as ink polygons with the slope pieces on top.
   // The strip's walkable soil edge sits 52/125 down the piece (grass tufts above it).
-  const STRIP_H = 200, STRIP_LIFT = 52 / 125 * STRIP_H;
+  const STRIP_H = 240, STRIP_K = STRIP_H / 125, STRIP_LIFT = 52 * STRIP_K;
+  const FILL = '#b0843f'; // the strip's lower soil, for everything below it
+  const stripOpts = { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT, fill: FILL };
+  const originCam = { x: 0 }; // for the kit's culling inside a transformed space
   function drawGround(g) {
     const delivered = !!art.sprite(TERRAIN, 1);
     if (delivered) {
       for (const s of segs) {
         if (s.hole || !cam.sees(s.x0, s.x1)) continue;
-        if (s.kind === 'flat') kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT, fill: GROUND_INK.body });
+        if (s.kind === 'flat') {
+          kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, stripOpts);
+          // Cover the strip's own ink bottom edge with the soil fill.
+          g.fillStyle = FILL;
+          g.fillRect(Math.max(s.x0, cam.x - 40), s.y0 - STRIP_LIFT + STRIP_H - 9 * STRIP_K, Math.min(s.x1, cam.x + W + 40) - Math.max(s.x0, cam.x - 40), H);
+        } else {
+          // The strip sheared along the slope, so the soil texture runs on, then the slope piece over its edge.
+          const k = (s.y1 - s.y0) / (s.x1 - s.x0);
+          g.save();
+          g.beginPath(); g.rect(s.x0, 0, s.x1 - s.x0, H + 100); g.clip();
+          g.translate(s.x0, s.y0);
+          g.transform(1, k, 0, 1, 0, 0);
+          kit.drawGround(g, originCam, { x: 0, y: 0, w: s.x1 - s.x0, h: H + 300 }, stripOpts);
+          g.fillStyle = FILL;
+          g.fillRect(0, -STRIP_LIFT + STRIP_H - 9 * STRIP_K, s.x1 - s.x0, H + 300);
+          g.restore();
+          drawSlope(g, s, true);
+        }
       }
-      for (const s of segs) if (!s.hole && s.kind !== 'flat' && cam.sees(s.x0, s.x1)) drawSlope(g, s, true);
     } else {
       drawProfileInk(g);
     }
@@ -829,6 +848,7 @@ export default function create(env) {
   // (140, 170) to (1240, 35) on item 2 and from (250, 30) to (1300, 165) on item 3.
   function drawSlope(g, s, delivered = false) {
     const { top, body, ink } = GROUND_INK;
+    if (delivered) { drawSlopePiece(g, s); return; }
     g.save();
     g.fillStyle = body;
     g.beginPath(); g.moveTo(s.x0, s.y0 + 4); g.lineTo(s.x1, s.y1 + 4); g.lineTo(s.x1, H + 100); g.lineTo(s.x0, H + 100); g.closePath(); g.fill();
@@ -839,15 +859,14 @@ export default function create(env) {
       for (let y = y0 + 50 + kit.hash(x) * 30; y < H + 60; y += 70) { g.moveTo(x, y); g.lineTo(x + 22, y + 16); }
     }
     g.stroke();
-    if (!delivered) {
-      g.fillStyle = top;
-      g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.lineTo(s.x1, s.y1 + 26); g.lineTo(s.x0, s.y0 + 26); g.closePath(); g.fill();
-      g.strokeStyle = ink; g.lineWidth = 3.5;
-      g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.stroke();
-      g.restore();
-      return;
-    }
+    g.fillStyle = top;
+    g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.lineTo(s.x1, s.y1 + 26); g.lineTo(s.x0, s.y0 + 26); g.closePath(); g.fill();
+    g.strokeStyle = ink; g.lineWidth = 3.5;
+    g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.stroke();
     g.restore();
+  }
+
+  function drawSlopePiece(g, s) {
     const up = s.kind === 'up';
     const sp = art.sprite(TERRAIN, up ? 2 : 3);
     if (!sp) return;

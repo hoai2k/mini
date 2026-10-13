@@ -63,7 +63,7 @@ const BRANCHES = [[200, 380, 420, 1], [1250, 420, 350, 1], [2900, 410, 380, -1],
   [4950, 430, 380, 1], [9050, 410, 380, -1], [10000, 430, 420, 1], [12300, 420, 300, 1]];
 const WEBS = [[5450, 540, 115], [6000, 300, 120], [6700, 500, 115], [6950, 590, 100]];
 const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
-const BIRDS = [[8950, 410], [10300, 430]];
+const BIRDS = [[9000, 400], [10150, 400]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
   [1400, 330], [1550, 330], [1900, 380], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 390], [3400, 450],
@@ -1560,11 +1560,13 @@ export function autopilot(board) {
   else out.x = slow ? 0.45 : 1;
   const err = b.y - target;
   if (err > 20 && b.vy > -170) press();
-  else if (err < -60 && b.vy < 240 && !b.swoopT) out.y = 1;
+  else if (err < -130 && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.
   const clearAhead = pick && pick.iv[1] - pick.iv[0] > 200 && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 90 > s.y - 40 && b.y - 90 < s.y + s.h + 40);
-  const birdNear = birds.some((bd) => bd.state !== 'perched' && Math.abs(bd.x - b.x) < 500);
+  // A cross bird coming: outrun it (he is faster on hard wingbeats than it is).
+  const birdNear = birds.some((bd) => (bd.state === 'cross' || bd.state === 'fly') && Math.abs(bd.x - b.x) < 600);
   out.sprint = (!wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90) || (dash && b.st > 0.2 && Math.abs(err) < 70);
   if (dash && Math.abs(err) < 70) out.x = 1;
+  if (birdNear && !wait && Math.abs(err) < 90) { out.x = 1; out.sprint = b.st > 0.1; }
   return out;
 }

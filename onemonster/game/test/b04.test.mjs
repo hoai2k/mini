@@ -138,17 +138,17 @@ test('b04: the Peg reaching the harbour keeps the letter; Gentle mode gives more
 
 test('b04: sea lions hop aboard from floes and from the water; the autopilot gathers most', () => {
   const ch = create(makeEnv());
-  assert.equal(ch.lions.total, 37);
+  assert.equal(ch.lions.total, 36);
   const floe = thing(ch, 'floe', 800);
   ch.ferg.x = floe.x - 500;
   run(ch, 6, inp({ x: 1 }));
   assert.ok(ch.ferg.riders >= 1, 'hopped aboard');
-  assert.equal(ch.hud(), `Sea lions aboard ${ch.ferg.riders} · found ${ch.lions.count}/37`);
+  assert.equal(ch.hud(), `Sea lions aboard ${ch.ferg.riders} · found ${ch.lions.count}/36`);
   const ch2 = create(makeEnv({ seed: 3 }));
   let t = 0;
   while (!ch2.done && t < 200) { ch2.update(1 / 30, autopilot(ch2), null); t += 1 / 30; }
   assert.equal(ch2.outcome, 'snatched');
-  assert.ok(ch2.lions.count >= 0.6 * 37, `found ${ch2.lions.count}`);
+  assert.ok(ch2.lions.count >= 0.6 * 36, `found ${ch2.lions.count}`);
   assert.ok(ch2.time > 25 && ch2.time < 60, `time left ${ch2.time}`);
   const f = ch2.focus()[0];
   assert.ok(f.y > 0 && f.y < WL + 200);

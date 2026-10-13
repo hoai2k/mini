@@ -62,16 +62,16 @@ const THINGS = [
   { kind: 'floe', x: 7900, lions: 2 }, { kind: 'crate', x: 8150 }, { kind: 'floe', x: 8600, lions: 1 }, { kind: 'buoy', x: 8800 },
   { kind: 'barrel', x: 9050 }, { kind: 'floe', x: 9250, lions: 2 },
   // 4. the pier and the bridge
-  { kind: 'floe', x: 9650, lions: 1 }, { kind: 'pier', x: 8942, w: 1816 }, { kind: 'crate', x: 10250 }, { kind: 'barrel', x: 10880 },
-  { kind: 'bridge', x: 11050, w: 1300 }, { kind: 'floe', x: 12520, lions: 1 },
+  { kind: 'floe', x: 9650, lions: 1 }, { kind: 'pier', x: 9800, w: 1607 }, { kind: 'crate', x: 11450 }, { kind: 'bridge', x: 11500, w: 1100 },
+  { kind: 'floe', x: 12750, lions: 1 },
   // 5. the harbour
-  { kind: 'floe', x: 12850, lions: 2 }, { kind: 'buoy', x: 13050 }, { kind: 'floe', x: 13250, lions: 1 }, { kind: 'buoy', x: 13700 },
+  { kind: 'floe', x: 12980, lions: 2 }, { kind: 'buoy', x: 13200 }, { kind: 'floe', x: 13480, lions: 1 }, { kind: 'buoy', x: 13720 },
   { kind: 'floe', x: 13950, lions: 2 },
 ];
 // Sea lions swimming in the open water (they hop aboard too).
-const SWIMMERS = [2300, 4600, 5500, 7450, 8300, 11700, 12700, 13150, 14150];
+const SWIMMERS = [2300, 4600, 5500, 7450, 8300, 9560, 12650, 13330, 14150];
 // Tugboats: where each starts, steaming left for the Ice-Ferg.
-const TUGS = [10900, 12700, 13500];
+const TUGS = [9750, 12700, 13560];
 // Surface currents: warm ones flow right and melt the ice; the cold one flows left.
 const ZONES = [
   { x0: 6700, x1: 7600, dir: 1, speed: 150, warm: true },
@@ -80,7 +80,7 @@ const ZONES = [
 ];
 const NEED = { floe: 0.15, crate: 0.2, barrel: 0.2, buoy: 0.3, tug: 0.5 };
 const HALF = { floe: 200, crate: 60, barrel: 50, buoy: 50, tug: 120, reef: 90 };
-const OVERHEAD = { pier: 85, bridge: 90 }; // clearance above the waterline (the delivered pier and bridge are low: sink right down)
+const OVERHEAD = { pier: 75, bridge: 90 }; // clearance above the waterline (the delivered pier and bridge are low: sink right down)
 
 // How far a charge of this fury carries (the stand-in arrow shows it).
 export function chargeReach(fury) {
@@ -1312,7 +1312,7 @@ export default function create(env) {
     const x0 = th.x - th.hw, x1 = th.x + th.hw;
     if (th.kind === 'pier') {
       const deckY = WL - OVERHEAD.pier - 76; // the deck's top
-      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 42, { height: 334 }, (gg) => {
+      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 37, { height: 296 }, (gg) => {
         gg.save();
         gg.strokeStyle = INK; gg.lineWidth = 4;
         // The stilts, pairs, down into the water.

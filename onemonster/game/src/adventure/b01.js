@@ -42,44 +42,68 @@ const P = {
 function solid(kind, x, y, w, h, extra = {}) { return { kind, x, y, w, h, ...extra }; }
 
 export const DOG = { x: 6100, rope: 520, speed: 640 };
-export const SPRINKLER = { x: 8450, reach: 330, rate: 1.4, height: 190 };
-export const LID = { x: 9050, w: 150, h: 34, boost: 1760 };
+const KENNEL = { k: 0.91, dogCol: 0.57, base: 188, dogBottom: 300 }; // adv.b01.props 6: the dog asleep in front of its kennel
+export const SPRINKLER = { x: 8880, reach: 330, rate: 1.4, height: 190 };
+export const LID = { x: 9420, w: 160, h: 34, boost: 1760 };
 export const MAILBOX = { x: 12700, grabR: 130 };
 const MAIL_ROAD = 850; // how far up the road past the mailbox the mailman starts
 
 export const LOOKOUTS = [
   // cast sprites: 3 neighbour peering / 4 dozing; 1 Sally Ann looking / 2 writing.
-  { id: 'neighbour', name: 'The neighbour', x: 3700, y: G - 62, h: 250, look: 3, away: 4, zone: [2700, 4800], warn: 1.0, lookTime: 2.0, rest: 3.6, eyeY: G - 300 },
-  { id: 'sally', name: 'Sally Ann', x: 11600, y: 640, h: 260, look: 1, away: 2, zone: [10500, 12450], warn: 0.95, lookTime: 2.0, rest: 3.4, eyeY: 400 },
+  { id: 'neighbour', name: 'The neighbour', x: 3700, y: G - 175, h: 250, look: 3, away: 4, zone: [2700, 4800], warn: 1.0, lookTime: 2.0, rest: 3.6, eyeY: G - 485 },
+  { id: 'sally', name: 'Sally Ann', x: 11600, y: 664, h: 300, look: 1, away: 2, zone: [10500, 12450], warn: 0.95, lookTime: 2.0, rest: 3.4, eyeY: 300 },
 ];
 
 // Cover: bushes (props.trollusk 5) and flowerbeds (6). Ducked inside one he is hidden.
 export const COVER = [
   { x: 2900, kind: 'bush' }, { x: 3250, kind: 'bed' }, { x: 3550, kind: 'bush' }, { x: 3900, kind: 'bed' }, { x: 4250, kind: 'bush' }, { x: 4550, kind: 'bed' }, { x: 4850, kind: 'bush' },
-  { x: 7150, kind: 'bush' }, { x: 9900, kind: 'bush' },
+  { x: 7150, kind: 'bush' },
   { x: 10400, kind: 'bush' }, { x: 10750, kind: 'bed' }, { x: 11150, kind: 'bush' }, { x: 11450, kind: 'bed' }, { x: 11750, kind: 'bush' }, { x: 12050, kind: 'bed' }, { x: 12350, kind: 'bush' },
 ];
 const COVER_W = { bush: 100, bed: 135 }; // half-widths of the hiding spot
 const COVER_H = { bush: 190, bed: 115 };
 
-export const CHECKPOINTS = [220, 2400, 5050, 7450, 10150];
+export const CHECKPOINTS = [220, 2600, 5050, 7350, 10400];
+
+// The raised bank (terrain.lane 2) is a mound with a flat top and a slope down
+// one side. It is drawn mirrored, so its cut end is a little cliff on the left
+// (hop or grab up) and the slope runs down to the right. In the sprite (705 x
+// 194) the base is the bottom edge, the flat top is at row 28 over columns
+// 380–690, and the slope's top edge is sampled below; the slope is walked on a
+// stair of small solids under it.
+const BANK = { w: 705, h: 194, base: 191, top: 28, flat0: 380, flat1: 690,
+  slope: [[375, 12], [350, 19], [325, 24], [300, 34], [275, 39], [250, 56], [225, 76], [200, 85], [175, 95], [150, 98], [125, 93], [100, 95], [75, 104], [50, 112]] };
+function bank(s, x0, h) {
+  const k = h / (BANK.base - BANK.top);
+  const sx = x0 - (BANK.w - BANK.flat1) * k; // the mirrored sprite's left edge (its column 690)
+  s.push(solid('bank', x0, G - h, (BANK.flat1 - BANK.flat0) * k, h, { grab: true, k, sx }));
+  for (const [c, r] of BANK.slope) {
+    const top = G + 2 - (BANK.base - r - 8) * k;
+    s.push(solid('step', sx + (BANK.flat1 - c) * k, top, 25 * k + 1, G - top + 2, { step: true }));
+  }
+}
+// The picket fence (terrain.lane 3, 924 x 231): the picket points at row 30
+// are the walkway, the base at row 212; one tile per stretch.
+const FENCE = { w: 924, h: 231, top: 30, base: 212 };
+const FENCE_W = (170 / (FENCE.base - FENCE.top)) * FENCE.w; // 863 at a 170 px fence
+const WALL = { w: 1149, h: 190, top: 3, base: 182 };
 
 function buildSolids() {
   const s = [solid('lane', -400, G, WORLD + 800, 600)];
-  // 1. The wood's edge: roots and banks to hop, the third too tall to hop (grab it).
-  s.push(solid('bank', 700, G - 90, 260, 90, { grab: true }));
-  s.push(solid('bank', 1200, G - 130, 230, 130, { grab: true }));
-  s.push(solid('bank', 1720, G - 205, 320, 205, { grab: true }));
-  s.push(solid('bank', 2150, G - 110, 200, 110, { grab: true }));
+  // 1. The wood's edge: three banks to hop, the third too tall to hop (grab it).
+  bank(s, 600, 90);
+  bank(s, 1100, 130);
+  bank(s, 1750, 205);
   // 3. The dog's yard: a dustbin and the fence to get up on, another bin past the rope.
-  s.push(solid('bin', 5450, G - 150, 110, 150, { grab: true }));
-  s.push(solid('fence', 5700, G - 170, 800, 170, { oneWay: true, grab: true }));
-  s.push(solid('bin', 6750, G - 150, 110, 150, { grab: true }));
+  s.push(solid('bin', 5440, G - 150, 120, 150, { grab: true }));
+  s.push(solid('fence', 5700, G - 170, FENCE_W, 170, { oneWay: true, grab: true }));
+  s.push(solid('bin', 6750, G - 150, 120, 150, { grab: true }));
   // 4. The fence run: fence tops over the sprinkler, a lid, a low wall.
-  s.push(solid('fence', 7600, G - 170, 460, 170, { oneWay: true, grab: true }));
-  s.push(solid('fence', 8180, G - 170, 560, 170, { oneWay: true, grab: true }));
+  s.push(solid('fence', 7500, G - 170, FENCE_W, 170, { oneWay: true, grab: true }));
+  s.push(solid('fence', 8450, G - 170, FENCE_W, 170, { oneWay: true, grab: true }));
   s.push(solid('lid', LID.x - LID.w / 2, G - LID.h, LID.w, LID.h, { oneWay: true }));
-  s.push(solid('wall', 9400, G - 110, 300, 110, { grab: true }));
+  const wk = 113 / (WALL.base - WALL.top);
+  s.push(solid('wall', 9600, G - 113, WALL.w * wk, 113, { grab: true }));
   return s;
 }
 
@@ -90,16 +114,16 @@ function buildStamps() {
   const L = [];
   const at = (x, y, o = {}) => L.push({ x, y, ...o });
   // 1. The wood's edge.
-  at(520, G - 70); at(640, G - 70, { wind: true }); at(830, G - 170); at(1040, G - 300, { wind: true });
-  at(1310, G - 220); at(1500, G - 70); at(1880, G - 290); at(2250, G - 200, { wind: true });
+  at(480, G - 70); at(700, G - 180, { wind: true }); at(900, G - 150); at(1000, G - 260, { wind: true });
+  at(1260, G - 210); at(1680, G - 70); at(1900, G - 290); at(2250, G - 210, { wind: true });
   // 2. The neighbour's garden.
   at(2900, G - 60); at(3250, G - 50); at(3700, G - 260, { wind: true }); at(3900, G - 50); at(4250, G - 60); at(4550, G - 50); at(4850, G - 60);
   // 3. The dog's yard.
   at(5505, G - 240); at(5800, G - 250); at(6100, G - 250); at(6400, G - 250); at(5950, G - 60); at(6250, G - 60, { wind: true }); at(6805, G - 240);
   // 4. The fence run.
-  at(7700, G - 250); at(7920, G - 250); at(8120, G - 300, { wind: true }); at(8300, G - 250); at(8600, G - 250);
+  at(7700, G - 250); at(7920, G - 250); at(8140, G - 300, { wind: true }); at(8300, G - 250); at(8700, G - 250); at(9000, G - 250); at(9200, G - 300, { wind: true });
   at(LID.x, G - 330); at(LID.x, G - 440); at(LID.x, G - 550, { wind: true }); at(LID.x + 10, G - 660);
-  at(9550, G - 200); at(9700, G - 290);
+  at(9550, G - 200); at(9800, G - 290);
   // 5. Sally Ann's house.
   at(10400, G - 60); at(10750, G - 50); at(11150, G - 60); at(11600, G - 250, { wind: true }); at(12050, G - 50); at(12350, G - 60); at(12620, G - 240, { wind: true });
   return L;
@@ -117,12 +141,12 @@ export default function create(env) {
   const cps = kit.makeCheckpoints(CHECKPOINTS);
   const hints = kit.makeHints([
     { x: 0, text: 'Tiptoe with the stick. Action: hop (hold it for higher)', show: 5 },
-    { x: 1450, text: 'Too tall? Hop at the ledge to grab it, then pull up' },
-    { x: 2410, text: 'The neighbour peers out. When the eye shows, duck (down) in a bush!' },
+    { x: 1550, text: 'Too tall? Hop at the ledge to grab it, then pull up' },
+    { x: 2610, text: 'The neighbour peers out. When the eye shows, duck (down) in a bush!' },
     { x: 5060, text: 'Shh! Scurrying wakes the dog. Hop up on the dustbin and the fence' },
-    { x: 7460, text: 'Walk the fence tops. Mind the sprinkler!' },
-    { x: 8800, text: 'Land on the dustbin lid: boing!' },
-    { x: 10160, text: 'Sally Ann is at her window, and the mailman is coming!' },
+    { x: 7360, text: 'Walk the fence tops. Mind the sprinkler!' },
+    { x: 9150, text: 'Land on the dustbin lid: boing!' },
+    { x: 10410, text: 'Sally Ann is at her window, and the mailman is coming!' },
     { x: 12400, text: 'At the mailbox, Action: pull the letter out!' },
   ]);
 
@@ -400,7 +424,7 @@ export default function create(env) {
         env.sfx('boing'); env.vibrate(30);
         fx.pop(b.x, b.y - 280, 'BOING!', { size: 46 });
         art.kick(tc, -0.7);
-      } else {
+      } else if (st.landed > 220 || !b.ground?.step) {
         const hard = st.landed > 900;
         env.sfx('land'); art.kick(tc, hard ? 0.6 : 0.35);
         pl.landT = hard ? 0.16 : 0.08;
@@ -640,74 +664,33 @@ export default function create(env) {
   }
   let blendCv = null;
 
-  // The hedge row behind the road, built from the delivered leafy bush at
-  // varied sizes, darkened a little for depth, drawn once to a tile.
-  let hedgeTile = null;
-  const HEDGE_W = 2400, HEDGE_H = 420;
-  function getHedgeTile() {
-    if (hedgeTile) return hedgeTile;
-    const sp = art.prop('trollusk', 5);
-    if (!sp || typeof document === 'undefined') return null;
-    const cv = document.createElement('canvas');
-    cv.width = HEDGE_W; cv.height = HEDGE_H;
-    const c = cv.getContext('2d');
-    const list = [];
-    for (let i = 0; i < 20; i++) {
-      list.push({ x: i * 120 + kit.hash(i * 2.3) * 70, h: 180 + kit.hash(i * 5.1) * 110, y: HEDGE_H - 10 - kit.hash(i * 7.7) * 24, flip: i % 3 === 1 });
-    }
-    list.sort((a, b) => a.h - b.h);
-    for (const b of list) for (const dx of [0, -HEDGE_W, HEDGE_W]) {
-      if (b.x + dx < -300 || b.x + dx > HEDGE_W + 300) continue;
-      art.drawSprite(c, sp, b.x + dx, b.y, { height: b.h, flip: b.flip });
-    }
-    c.globalCompositeOperation = 'source-atop';
-    c.fillStyle = 'rgba(30,45,40,0.2)';
-    c.fillRect(0, 0, HEDGE_W, HEDGE_H);
-    hedgeTile = cv;
-    return cv;
-  }
-
-  // Between the backdrop and the lane: the hedge (scrolling a little slower),
-  // the road behind it where the mailman putters along, and the grassy verge.
+  // Between the backdrop and the lane: the road where the mailman putters
+  // along, and the grassy verge the kennel and the porch stand on.
+  const ROAD = { y0: 740, y1: 786 };
   function drawRoad(g, tt) {
     const x0 = cam.x - 50, x1 = cam.x + W + 50;
-    const hx = cam.x * 0.45;
-    const tile = getHedgeTile();
-    if (tile) {
-      const i0 = Math.floor((cam.x + hx) / HEDGE_W) - 1;
-      for (let i = i0; i * HEDGE_W - hx < cam.x + W; i++) g.drawImage(tile, i * HEDGE_W - hx, 800 - HEDGE_H);
-    } else {
-      const sp = art.prop('trollusk', 5);
-      for (let i = Math.floor((cam.x + hx) / 120) - 2; i * 120 - hx < cam.x + W + 200; i++) {
-        const x = i * 120 - hx + kit.hash(i * 2.3) * 70, h = 180 + kit.hash(i * 5.1) * 110;
-        if (!art.drawSprite(g, sp, x, 790, { height: h, alpha: 0.85 })) {
-          g.save(); g.fillStyle = '#6f8a3e'; g.strokeStyle = INK; g.lineWidth = 3;
-          g.beginPath(); g.ellipse(x, 790 - h * 0.45, h * 0.55, h * 0.5, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
-        }
-      }
-    }
     g.save();
     // The road and the verge.
-    g.fillStyle = '#c9ab74'; g.fillRect(x0, 772, x1 - x0, 46);
-    g.fillStyle = '#a4b35c'; g.fillRect(x0, 816, x1 - x0, G - 816 + 4);
+    g.fillStyle = '#c9ab74'; g.fillRect(x0, ROAD.y0, x1 - x0, ROAD.y1 - ROAD.y0);
+    g.fillStyle = '#a4b35c'; g.fillRect(x0, ROAD.y1, x1 - x0, G - ROAD.y1 + 4);
     g.strokeStyle = INK; g.lineWidth = 3.5;
-    g.beginPath(); g.moveTo(x0, 772); g.lineTo(x1, 772); g.moveTo(x0, 818); g.lineTo(x1, 818); g.stroke();
+    g.beginPath(); g.moveTo(x0, ROAD.y0); g.lineTo(x1, ROAD.y0); g.moveTo(x0, ROAD.y1 + 2); g.lineTo(x1, ROAD.y1 + 2); g.stroke();
     g.strokeStyle = 'rgba(43,29,20,0.28)'; g.lineWidth = 1.5;
     g.beginPath();
-    for (let x = Math.floor(x0 / 46) * 46; x < x1; x += 46) { g.moveTo(x, 780 + kit.hash(x) * 20); g.lineTo(x + 26, 786 + kit.hash(x) * 20); }
+    for (let x = Math.floor(x0 / 46) * 46; x < x1; x += 46) { g.moveTo(x, ROAD.y0 + 8 + kit.hash(x) * 20); g.lineTo(x + 26, ROAD.y0 + 14 + kit.hash(x) * 20); }
     g.stroke();
     g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
     g.beginPath();
     for (let x = Math.floor(x0 / 31) * 31; x < x1; x += 31) {
       if (kit.hash(x * 1.9) < 0.5) continue;
-      const y = 826 + kit.hash(x * 0.4) * 44;
+      const y = ROAD.y1 + 10 + kit.hash(x * 0.4) * 70;
       g.moveTo(x, y + 10); g.lineTo(x - 3, y); g.moveTo(x + 5, y + 10); g.lineTo(x + 8, y - 2);
     }
     g.stroke();
     g.fillStyle = '#f8f1e0'; g.strokeStyle = INK; g.lineWidth = 1.5;
     for (let x = Math.floor(x0 / 90) * 90; x < x1; x += 90) {
       if (kit.hash(x * 0.3) < 0.5) continue;
-      const y = 835 + kit.hash(x) * 30;
+      const y = ROAD.y1 + 20 + kit.hash(x) * 50;
       for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; g.beginPath(); g.ellipse(x + Math.cos(a) * 6, y + Math.sin(a) * 6, 3.5, 2.5, a, 0, Math.PI * 2); g.fill(); g.stroke(); }
       g.fillStyle = '#f2c53d'; g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill(); g.fillStyle = '#f8f1e0';
     }
@@ -715,7 +698,7 @@ export default function create(env) {
     if (!cam.sees(mailX - 120, mailX + 120)) return;
     const parked = self.done && self.outcome === 'kept';
     const bounce = parked ? 0 : Math.floor(tt * 7) % 2;
-    const x = mailX, yy = 814 - bounce * 3;
+    const x = mailX, yy = ROAD.y1 + 2 - bounce * 3;
     g.save();
     for (let i = 0; i < 3; i++) {
       const k = (tt * 1.5 + i / 3) % 1;
@@ -764,9 +747,9 @@ export default function create(env) {
     g.beginPath(); g.ellipse(x + 8, G - 300, 4, 8, 0.2, 0, Math.PI * 2); g.stroke();
     g.restore();
     // The crown.
-    const sp = art.prop('trollusk', 5);
-    const crown = [[x - 150, top + 120, 330, false], [x + 150, top + 110, 340, true], [x + 10, top + 150, 300, false], [x - 60, top + 40, 360, true], [x + 90, top + 30, 350, false], [x, top - 20, 380, true]];
-    for (const [cx, cy, h, flip] of crown) {
+    const crown = [[x - 150, top + 120, 330, false, 11], [x + 150, top + 110, 340, true, 5], [x + 10, top + 150, 300, false, 11], [x - 60, top + 40, 360, true, 5], [x + 90, top + 30, 350, false, 11], [x, top - 20, 380, true, 11]];
+    for (const [cx, cy, h, flip, item] of crown) {
+      const sp = item === 11 ? art.sprite(PROPS, 11) || art.prop('trollusk', 5) : art.prop('trollusk', 5);
       if (!art.drawSprite(g, sp, cx, cy, { height: h, flip })) {
         g.save(); g.fillStyle = '#7f9a4c'; ink(g, 4);
         g.beginPath(); g.ellipse(cx, cy - h * 0.45, h * 0.6, h * 0.5, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
@@ -777,19 +760,24 @@ export default function create(env) {
   // The neighbour's porch: terrain.lane 5 (a wooden porch step, three stairs) behind the lane.
   function drawPorch(g, N, tt) {
     const x0 = N.x - 200, x1 = N.x + 200, top = N.y;
-    kit.sprite(g, TERRAIN, 5, (x0 + x1) / 2, G + 2, { height: G + 2 - top + 60, ax: 0.5, ay: 1 }, (g) => {
+    const PORCH = { w: 669, h: 215, top: 2, base: 211, platform: 0.72 }; // terrain.lane 5
+    const pk = (G + 2 - top) / (PORCH.base - PORCH.top);
+    // The posts and the roof, behind the step.
+    g.save(); ink(g, 4);
+    for (const px of [N.x - 100, N.x + 80]) woodPost(g, px, top - 330, 22, 330);
+    g.fillStyle = '#9b4b3a';
+    g.beginPath(); g.moveTo(N.x - 150, top - 330); g.lineTo(N.x + 130, top - 330); g.lineTo(N.x + 110, top - 390); g.lineTo(N.x - 130, top - 390); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
+    for (let y = top - 378; y < top - 332; y += 12) {
+      g.beginPath(); g.moveTo(N.x - 130 + (top - 330 - y) * 0.33, y); g.lineTo(N.x + 110 - (top - 330 - y) * 0.33, y); g.stroke();
+      for (let x = N.x - 120 + ((y / 12) % 2 ? 0 : 16); x < N.x + 110; x += 32) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 12); g.stroke(); }
+    }
+    ink(g, 4);
+    g.fillStyle = '#8a6a44'; g.fillRect(N.x - 150, top - 336, 280, 10); g.strokeRect(N.x - 150, top - 336, 280, 10);
+    g.restore();
+    kit.sprite(g, TERRAIN, 5, N.x, G + 2 + (PORCH.h - PORCH.base) * pk, { height: PORCH.h * pk, ax: PORCH.platform, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
-      // The posts and the roof, behind.
-      for (const px of [x0 + 30, x1 - 52]) woodPost(g, px, top - 330, 22, 330);
       g.fillStyle = '#9b4b3a';
-      g.beginPath(); g.moveTo(x0 - 30, top - 330); g.lineTo(x1 + 30, top - 330); g.lineTo(x1 + 10, top - 390); g.lineTo(x0 - 10, top - 390); g.closePath(); g.fill(); g.stroke();
-      g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
-      for (let y = top - 378; y < top - 332; y += 12) {
-        g.beginPath(); g.moveTo(x0 - 10 + (top - 330 - y) * 0.33, y); g.lineTo(x1 + 10 - (top - 330 - y) * 0.33, y); g.stroke();
-        for (let x = x0 + ((y / 12) % 2 ? 0 : 16); x < x1; x += 32) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 12); g.stroke(); }
-      }
-      ink(g, 4);
-      g.fillStyle = '#8a6a44'; g.fillRect(x0 - 30, top - 336, x1 - x0 + 60, 10); g.strokeRect(x0 - 30, top - 336, x1 - x0 + 60, 10);
       // The deck: planks with grain, a dark gap under the edge.
       g.fillStyle = '#c9a070';
       g.fillRect(x0, top, x1 - x0, G + 2 - top); g.strokeRect(x0, top, x1 - x0, G + 2 - top);
@@ -846,37 +834,28 @@ export default function create(env) {
     g.restore();
   }
 
-  // Sally Ann's house: a clapboard wall with her window (cast 1 / 2 come framed).
+  // Sally Ann's house (props/sallyann-house, 1024 x 1024, its window an empty
+  // opening at columns 421–607, rows 399–655, the bottom fading out): Sally Ann
+  // (cast 1 / 2, which come framed) is drawn behind it, so only the opening
+  // shows her.
+  const HOUSE = { k: 0.85, holeX: 0.502, holeY: 527 };
   function drawHouse(g, S, tt) {
+    const img = art.image('props/sallyann-house');
+    if (!img) { drawHouseStandin(g, S, tt); return; }
+    const k = HOUSE.k, w = 1024 * k, top = S.y - 150 - HOUSE.holeY * k;
+    drawLookout(g, S, tt);
+    g.drawImage(img, S.x - w * HOUSE.holeX, top, w, w);
+  }
+
+  function drawHouseStandin(g, S, tt) {
     const x0 = S.x - 330, x1 = S.x + 330, y0 = 150, y1 = G + 2;
     g.save();
     g.fillStyle = '#efe0bf'; ink(g, 5);
     g.fillRect(x0, y0, x1 - x0, y1 - y0);
     g.strokeStyle = 'rgba(74,53,38,0.45)'; g.lineWidth = 2;
     for (let y = y0 + 28; y < y1; y += 28) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
-    // A shadow hatch under each clapboard, and the odd knot.
-    g.strokeStyle = 'rgba(74,53,38,0.2)'; g.lineWidth = 1.4;
-    g.beginPath();
-    for (let y = y0 + 28; y < y1; y += 28) for (let x = x0 + 6 + kit.hash(y) * 12; x < x1 - 6; x += 15) { g.moveTo(x, y + 2); g.lineTo(x + 6, y + 8); }
-    g.stroke();
-    for (let y = y0 + 28; y < y1; y += 28) { if (kit.hash(y * 0.7) < 0.75) continue; const kx = x0 + 40 + kit.hash(y * 1.3) * (x1 - x0 - 80); g.beginPath(); g.ellipse(kx, y + 14, 7, 4, 0, 0, Math.PI * 2); g.stroke(); }
     ink(g, 5); g.strokeRect(x0, y0, x1 - x0, y1 - y0);
-    g.fillStyle = '#9b4b3a';
-    g.beginPath(); g.moveTo(x0 - 50, y0 + 10); g.lineTo(x1 + 50, y0 + 10); g.lineTo(x1 + 10, y0 - 70); g.lineTo(x0 - 10, y0 - 70); g.closePath(); g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
-    for (let y = y0 - 58; y < y0 + 8; y += 13) {
-      const inset = (y0 + 10 - y) * 0.5;
-      g.beginPath(); g.moveTo(x0 - 50 + inset, y); g.lineTo(x1 + 50 - inset, y); g.stroke();
-      for (let x = x0 + ((y / 13) % 2 ? 0 : 18); x < x1; x += 36) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 13); g.stroke(); }
-    }
-    ink(g, 5);
-    // A door and a flower box under the window.
-    g.fillStyle = '#7a5538'; g.fillRect(S.x + 140, G - 260, 120, 262); g.strokeRect(S.x + 140, G - 260, 120, 262);
-    woodGrain(g, S.x + 148, G - 250, 104, 240, 7); g.strokeRect(S.x + 158, G - 240, 84, 90); g.strokeRect(S.x + 158, G - 130, 84, 110);
-    g.fillStyle = '#f2c53d'; g.beginPath(); g.arc(S.x + 240, G - 130, 7, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#b07a52'; g.fillRect(S.x - 150, S.y + 6, 300, 30); g.strokeRect(S.x - 150, S.y + 6, 300, 30);
-    g.fillStyle = '#c8443a';
-    for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(S.x - 125 + i * 50, S.y - 4, 12, 0, Math.PI * 2); g.fill(); g.stroke(); }
     g.restore();
     drawLookout(g, S, tt);
   }
@@ -894,6 +873,7 @@ export default function create(env) {
   function drawGroundAll(g) {
     for (const s of solids) {
       if (!cam.sees(s.x, s.x + s.w)) continue;
+      if (s.step) continue;
       if (s.kind === 'lane') drawLane(g, s);
       else if (s.kind === 'bank') drawBank(g, s);
       else if (s.kind === 'wall') drawWall(g, s);
@@ -906,7 +886,8 @@ export default function create(env) {
   // The lane (terrain.lane 1): packed dirt under a grassy edge, with wheel
   // ruts, pebbles and hatching until the strip arrives.
   function drawLane(g, s) {
-    if (art.sprite(TERRAIN, 1)) { kit.drawGround(g, cam, s, { sheet: TERRAIN, item: 1, height: 240, fill: '#b08a58' }); return; }
+    // The strip (1400 x 175): the grass meets the dirt at row 55, so the tufts stand that far above the surface.
+    if (art.sprite(TERRAIN, 1)) { kit.drawGround(g, cam, s, { sheet: TERRAIN, item: 1, height: 290, lift: 55 * (290 / 175), fill: '#a8865a' }); return; }
     const x0 = Math.max(s.x, cam.x - 40), x1 = Math.min(s.x + s.w, cam.x + W + 40);
     kit.inkGround(g, s, x0, x1, H + 60, { top: '#97a552', body: '#cfb17c', ink: INK });
     g.save();
@@ -943,6 +924,12 @@ export default function create(env) {
 
   // A raised grassy bank (terrain.lane 2): a rounded mound with a grassy top.
   function drawBank(g, s) {
+    const sp = art.sprite(TERRAIN, 2);
+    if (sp) {
+      // Mirrored: its cut end on the left, the slope down to the right.
+      art.drawSprite(g, sp, s.sx + BANK.w * s.k, G + 2 + (BANK.h - BANK.base) * s.k, { scale: s.k, ax: 0, ay: 1, flip: true });
+      return;
+    }
     kit.sprite(g, TERRAIN, 2, s.x + s.w / 2, s.y + s.h + 2, { height: s.h + 20, ax: 0.5, ay: 1 }, (g) => {
       const r = Math.min(40, s.h * 0.45);
       g.save(); ink(g, 4);
@@ -973,7 +960,8 @@ export default function create(env) {
 
   // A low brick garden wall (terrain.lane 4).
   function drawWall(g, s) {
-    kit.sprite(g, TERRAIN, 4, s.x + s.w / 2, s.y + s.h, { height: s.h, ax: 0.5, ay: 1 }, (g) => {
+    const wk = s.h / (WALL.base - WALL.top);
+    kit.sprite(g, TERRAIN, 4, s.x + s.w / 2, s.y + s.h + (WALL.h - WALL.base) * wk, { height: WALL.h * wk, ax: 0.5, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
       g.fillStyle = '#b86a4e'; g.fillRect(s.x, s.y, s.w, s.h); g.strokeRect(s.x, s.y, s.w, s.h);
       g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 2;
@@ -989,7 +977,8 @@ export default function create(env) {
 
   // A tin dustbin (adv.b01.props 4).
   function drawBin(g, s) {
-    kit.sprite(g, PROPS, 4, s.x + s.w / 2, s.y + s.h, { height: s.h + 14, ax: 0.5, ay: 1 }, (g) => {
+    // The bin (263 x 301): the lid's rim at row 31 is where he stands; the base at row 297.
+    kit.sprite(g, PROPS, 4, s.x + s.w / 2, s.y + s.h + 4 * (s.h / 266), { height: 301 * (s.h / 266), ax: 0.5, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
       const l = s.x + 4, r = s.x + s.w - 4, top = s.y + 10, bot = s.y + s.h;
       g.fillStyle = '#aab4ba';
@@ -1020,10 +1009,10 @@ export default function create(env) {
   function drawFence(g, s) {
     const sp = art.sprite(TERRAIN, 3);
     if (sp) {
-      const k = s.h / sp.h, tw = sp.w * k;
-      g.save(); g.beginPath(); g.rect(s.x, s.y - 40, s.w, s.h + 40); g.clip();
-      for (let x = s.x; x < s.x + s.w; x += tw) art.drawSprite(g, sp, x, s.y + s.h, { scale: k, ax: 0, ay: 1 });
-      g.restore();
+      const k = s.h / (FENCE.base - FENCE.top);
+      const n = Math.max(1, Math.round(s.w / (FENCE.w * k)));
+      const sx = s.w / (n * FENCE.w * k);
+      for (let i = 0; i < n; i++) art.drawSprite(g, sp, s.x + (i * s.w) / n, s.y + s.h + (FENCE.h - FENCE.base) * k, { scale: k, ax: 0, ay: 1, sx });
       return;
     }
     const x0 = Math.max(s.x, cam.x - 60), x1 = Math.min(s.x + s.w, cam.x + W + 60);
@@ -1044,7 +1033,8 @@ export default function create(env) {
   // The dustbin lid on the lane, a springboard (adv.b01.props 5), with the bin it fell off behind.
   function drawLid(g, s) {
     const sq = lidSquash;
-    kit.sprite(g, PROPS, 5, s.x + s.w / 2, s.y + s.h, { height: s.h + 24, ax: 0.5, ay: 1, sy: 1 - sq * 0.4, sx: 1 + sq * 0.15 }, (g) => {
+    // The lid (308 x 99): its rim at row 28, the base at row 91.
+    kit.sprite(g, PROPS, 5, s.x + s.w / 2, s.y + s.h + 8 * (s.h / 63), { height: 99 * (s.h / 63), ax: 0.5, ay: 1, sy: 1 - sq * 0.4, sx: 1 + sq * 0.15 }, (g) => {
       g.save(); ink(g, 4);
       g.translate(s.x + s.w / 2, s.y + s.h); g.scale(1 + sq * 0.15, 1 - sq * 0.4);
       g.fillStyle = '#b9c2c8';
@@ -1063,7 +1053,8 @@ export default function create(env) {
   function drawSignposts(g) {
     for (const x of cps.list) {
       if (!cam.sees(x)) continue;
-      kit.sprite(g, PROPS, 12, x, G + 2, { height: 230, ax: 0.5, ay: 1 }, (g) => {
+      // The post (216 x 360) stands at column 100; its board's middle is at row 122.
+      const drawn = kit.sprite(g, PROPS, 12, x, G + 6, { height: 230, ax: 0.46, ay: 1 }, (g) => {
         g.save(); ink(g, 4);
         woodPost(g, x - 9, G - 214, 18, 216, '#9c7a52');
         g.fillStyle = '#e8d8b0';
@@ -1078,9 +1069,14 @@ export default function create(env) {
         for (let i = -3; i <= 3; i++) { g.beginPath(); g.moveTo(x + i * 7, G + 2); g.quadraticCurveTo(x + i * 9, G - 10, x + i * 11, G - 18 - Math.abs(i) * 2); g.stroke(); }
         g.restore();
       });
+      if (drawn) {
+        g.save(); g.fillStyle = INK; g.font = '800 20px Fraunces, Georgia, serif'; g.textAlign = 'center';
+        g.fillText('FADDLE ST', x + 8, G + 6 - (360 - 128) * (230 / 360));
+        g.restore();
+      }
       if (cps.last >= x) {
         g.save(); g.fillStyle = '#f2c53d'; ink(g, 3);
-        g.beginPath(); g.arc(x - 44, G - 182, 10, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
+        g.beginPath(); g.arc(x - 44, G - 158, 10, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
       }
     }
   }
@@ -1088,8 +1084,8 @@ export default function create(env) {
   // Little things along the lane: a gnome, a wheelbarrow, the kennel.
   function drawDecor(g, tt) {
     // The garden gnome with his fishing rod (adv.b01.props 9).
-    if (cam.sees(2600)) kit.sprite(g, PROPS, 9, 2600, G + 2, { height: 150, ax: 0.5, ay: 1 }, (g) => {
-      const x = 2600;
+    if (cam.sees(5150)) kit.sprite(g, PROPS, 9, 5150, G + 4, { height: 160, ax: 0.5, ay: 1 }, (g) => {
+      const x = 5150;
       g.save(); ink(g, 3.5);
       // Boots, coat, belt.
       g.fillStyle = '#4a3526'; g.beginPath(); g.ellipse(x - 14, G - 6, 16, 8, 0, 0, Math.PI * 2); g.ellipse(x + 14, G - 6, 16, 8, 0, 0, Math.PI * 2); g.fill(); g.stroke();
@@ -1119,8 +1115,8 @@ export default function create(env) {
       g.restore();
     });
     // The wheelbarrow full of flowerpots (adv.b01.props 10).
-    if (cam.sees(7350)) kit.sprite(g, PROPS, 10, 7350, G + 2, { height: 150, ax: 0.5, ay: 1 }, (g) => {
-      const x = 7350;
+    if (cam.sees(7150)) kit.sprite(g, PROPS, 10, 7150, G + 4, { height: 175, ax: 0.5, ay: 1 }, (g) => {
+      const x = 7150;
       g.save(); ink(g, 4);
       // The leg and the wheel.
       g.beginPath(); g.moveTo(x + 50, G - 60); g.lineTo(x + 62, G - 2); g.moveTo(x + 76, G - 60); g.lineTo(x + 80, G - 2); g.stroke();
@@ -1150,9 +1146,32 @@ export default function create(env) {
       }
       g.restore();
     });
-    // The kennel, behind the dog.
-    if (cam.sees(DOG.x - 200, DOG.x + 200)) {
-      const kx = DOG.x + 150, ky = G + 2;
+    // The kennel: in the delivered sprite (adv.b01.props 6) the dog sleeps in
+    // front of it, so it is drawn clipped to the kennel while the dog is up.
+    if (cam.sees(DOG.x - 200, DOG.x + 200)) drawKennel(g);
+  }
+
+  function drawKennel(g) {
+    const sp = art.sprite(PROPS, 6);
+    const ky = G + 2;
+    if (sp) {
+      const k = KENNEL.k;
+      const top = ky - KENNEL.dogBottom * k;
+      const asleep = dog.state === 'asleep';
+      g.save();
+      if (!asleep) { g.beginPath(); g.rect(DOG.x - 400, top - 20, 800, KENNEL.base * k + 20); g.clip(); }
+      art.drawSprite(g, sp, DOG.x, ky, { scale: k, ax: KENNEL.dogCol, ay: 1 });
+      g.restore();
+      g.save(); ink(g, 4);
+      g.setLineDash([16, 14]); g.strokeStyle = dog.state === 'asleep' ? 'rgba(43,29,20,0.45)' : '#c8443a'; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(DOG.x - DOG.rope, G + 14); g.lineTo(DOG.x + DOG.rope, G + 14); g.stroke();
+      g.setLineDash([]);
+      for (const px of [DOG.x - DOG.rope, DOG.x + DOG.rope]) { g.beginPath(); g.moveTo(px, G + 2); g.lineTo(px, G + 26); g.stroke(); }
+      g.restore();
+      return;
+    }
+    {
+      const kx = DOG.x + 150;
       g.save(); ink(g, 4);
       g.fillStyle = '#b07a52'; g.fillRect(kx - 100, ky - 170, 200, 170); g.strokeRect(kx - 100, ky - 170, 200, 170);
       g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
@@ -1181,22 +1200,28 @@ export default function create(env) {
     if (!cam.sees(dog.x - 200, dog.x + 200)) return;
     const asleep = dog.state === 'asleep';
     const running = dog.state !== 'asleep' && Math.abs(dog.vx) > 60;
-    const kx = DOG.x + 150;
-    // The rope from the kennel to the dog's collar.
-    g.save(); ink(g, 4); g.strokeStyle = '#8a6a44';
-    g.beginPath(); g.moveTo(kx - 40, G - 60);
-    const sag = asleep ? 30 : Math.max(0, 60 - Math.abs(dog.x - kx) * 0.1);
-    g.quadraticCurveTo((kx + dog.x) / 2, G - 60 + sag, dog.x, G - 90); g.stroke();
-    g.restore();
-    const item = asleep ? 6 : running ? 8 : 7;
+    const have = !!art.sprite(PROPS, 6);
+    const kx = have ? DOG.x - 40 : DOG.x + 150;
+    if (!asleep) {
+      // The rope from the kennel to the dog's collar.
+      g.save(); ink(g, 4); g.strokeStyle = '#8a6a44';
+      g.beginPath(); g.moveTo(kx, G - 100);
+      const sag = Math.max(0, 60 - Math.abs(dog.x - kx) * 0.1);
+      g.quadraticCurveTo((kx + dog.x) / 2, G - 100 + sag, dog.x - dog.facing * 40, G - 80); g.stroke();
+      g.restore();
+    }
     const bob = running ? Math.abs(Math.sin(tt * 18)) * 10 : 0;
-    kit.sprite(g, PROPS, item, dog.x, G + 2 - bob, { height: asleep ? 110 : 165, ax: 0.5, ay: 1, flip: dog.facing > 0 }, (g) => {
-      const sp = art.cast(asleep ? 6 : 5);
-      if (!art.drawSprite(g, sp, dog.x, G + 2 - bob, { height: asleep ? 110 : 165, flip: dog.facing > 0, rot: running ? Math.sin(tt * 18) * 0.08 : 0 })) {
-        g.save(); g.fillStyle = '#c9a070'; ink(g, 4);
-        g.beginPath(); g.ellipse(dog.x, G - 60, 70, asleep ? 40 : 60, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
-      }
-    });
+    // 06 is drawn whole by drawKennel (the dog asleep is part of it); 07 strains on the rope (its stub runs back toward the kennel), 08 runs.
+    if (!(asleep && have)) {
+      const item = asleep ? 6 : running ? 8 : 7;
+      kit.sprite(g, PROPS, item, dog.x, G + 4 - bob, { height: running ? 200 : 235, ax: 0.5, ay: 1, flip: dog.facing < 0 }, (g) => {
+        const sp = art.cast(asleep ? 6 : 5);
+        if (!art.drawSprite(g, sp, dog.x, G + 2 - bob, { height: asleep ? 110 : 165, flip: dog.facing > 0, rot: running ? Math.sin(tt * 18) * 0.08 : 0 })) {
+          g.save(); g.fillStyle = '#c9a070'; ink(g, 4);
+          g.beginPath(); g.ellipse(dog.x, G - 60, 70, asleep ? 40 : 60, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
+        }
+      });
+    }
     if (asleep) {
       g.save(); g.font = '800 34px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = INK;
       const k = (dog.zz * 0.6) % 1;
@@ -1206,15 +1231,24 @@ export default function create(env) {
       g.restore();
     } else if (dog.state === 'awake') {
       g.save(); g.font = '900 54px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.lineWidth = 8; g.strokeStyle = INK; g.fillStyle = '#c8443a';
-      g.strokeText('!', dog.x, G - 200); g.fillText('!', dog.x, G - 200); g.restore();
+      g.strokeText('!', dog.x, G - 250); g.fillText('!', dog.x, G - 250); g.restore();
     }
   }
 
   // The garden sprinkler (adv.b01.props 3) and its sweeping jet; the wet spot is where it lands.
   function drawSprinkler(g, tt) {
     if (!cam.sees(SPRINKLER.x - 450, SPRINKLER.x + 450)) return;
-    const sx = SPRINKLER.x, sy = G - 30;
-    kit.sprite(g, PROPS, 3, sx, G + 2, { height: 80, ax: 0.5, ay: 1 }, (g) => {
+    const sx = SPRINKLER.x;
+    const head = art.sprite(PROPS, 3);
+    // The sprite (337 x 315) carries its own spray above row 95: only the head and stem are drawn, the moving jet is ours.
+    const sy = head ? G + 2 - (315 - 115) * (200 / 315) + 30 : G - 30;
+    if (head) {
+      const k = 200 / 315;
+      g.save(); g.beginPath(); g.rect(sx - 200, G + 2 - (315 - 95) * k, 400, 400); g.clip();
+      art.drawSprite(g, head, sx, G + 4, { scale: k });
+      g.restore();
+    }
+    if (!head) kit.sprite(g, PROPS, 3, sx, G + 2, { height: 80, ax: 0.5, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
       g.fillStyle = '#6aa84f'; g.beginPath(); g.moveTo(sx - 40, G); g.lineTo(sx + 40, G); g.lineTo(sx + 26, G - 24); g.lineTo(sx - 26, G - 24); g.closePath(); g.fill(); g.stroke();
       g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 1.5;
@@ -1332,7 +1366,7 @@ export default function create(env) {
   function drawStamp(g, p, x, y, alpha, tt) {
     const item = 1 + (p.seed * 10 % 4 | 0);
     const rot = p.wind ? Math.sin(tt * 4 + p.seed) * 0.6 : Math.sin(tt * 1.5 + p.seed) * 0.12;
-    const sp = art.prop('trollusk', item);
+    const sp = (p.wind && art.sprite(PROPS, 1 + (item % 2))) || art.prop('trollusk', item);
     if (art.drawSprite(g, sp, x, y, { height: 46, ay: 0.5, rot, alpha, sx: p.wind ? 0.7 + 0.3 * Math.abs(Math.cos(tt * 5 + p.seed)) : 1 })) return;
     g.save(); g.globalAlpha = alpha; g.translate(x, y); g.rotate(rot);
     g.fillStyle = ['#c8443a', '#5f8a3a', '#3b6fa0', '#f2c53d'][item - 1]; ink(g, 3);
@@ -1380,7 +1414,8 @@ export default function create(env) {
       const shake = k.shake > 0 && !env.reduceMotion ? Math.sin(tt * 60) * 5 * k.shake : 0;
       const h = COVER_H[k.kind];
       const item = k.kind === 'bush' ? 5 : 6;
-      if (!art.drawSprite(g, art.prop('trollusk', item), k.x + shake, G + 6, { height: h, rot: shake * 0.004 })) {
+      const sp = (k.kind === 'bush' && kit.hash(k.x) > 0.5 && art.sprite(PROPS, 11)) || art.prop('trollusk', item);
+      if (!art.drawSprite(g, sp, k.x + shake, G + 6, { height: h, rot: shake * 0.004 })) {
         g.save(); g.fillStyle = k.kind === 'bush' ? '#5f7a45' : '#6a8a3a'; ink(g, 4);
         g.beginPath(); g.ellipse(k.x + shake, G - h * 0.45, COVER_W[k.kind], h * 0.5, 0, 0, Math.PI * 2); g.fill(); g.stroke();
         g.restore();
@@ -1522,7 +1557,7 @@ export function autopilot(board) {
     const front = px + b.w / 2;
     for (const s of solids) {
       if (!s.grab && !s.oneWay) continue;
-      if (s.kind === 'lid') continue;
+      if (s.kind === 'lid' || s.step) continue;
       const gap = s.x - front;
       if (gap > -30 && gap < 50 + Math.abs(b.vx) * 0.2 && s.y < b.y - 60 && s.y > b.y - 320) press(s.y < b.y - 150 ? 9 : 5);
     }
