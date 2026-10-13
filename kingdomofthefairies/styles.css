@@ -226,6 +226,16 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   html.touch .tbtn-b { bottom: max(30px, calc((var(--band-below, 0px) - 66px) / 2)); right: max(150px, calc(env(safe-area-inset-right) + 140px)); }
 }
 
+/* The A side (the default: buttons on the left, the stick on the right). */
+#touch.a-left .tbtn-a { left: max(26px, calc(env(safe-area-inset-left) + 16px)); right: auto; }
+#touch.a-left .tbtn-b { left: max(146px, calc(env(safe-area-inset-left) + 136px)); right: auto; }
+#touch.a-left .stick-zone { left: auto; right: 0; }
+#touch.a-left .stick-base, #touch.a-left .stick-hint { left: calc(100% - max(110px, calc(env(safe-area-inset-right) + 90px))); }
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+  #touch.a-left .tbtn-b { left: max(128px, calc(env(safe-area-inset-left) + 118px)); }
+}
+.tbtn-a.dragging { opacity: .8; transition: none; box-shadow: 0 0 0 4px #f3c6dc88, 0 3px 10px #000a; }
+
 /* Swipe scheme: the whole screen is the control and no stick is drawn. */
 #touch.swipe .stick-zone { width: 100%; }
 #touch.swipe .stick-base { display: none; }
