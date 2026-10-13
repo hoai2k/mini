@@ -82,10 +82,7 @@ for (const id of ids) {
     clearInterval(human);
     return { inGame: !!bot.host.current, fps: frames / secs, states: seen.size, sends: [...new Set(sends)].join(','), nSends: sends.length };
   }, secs);
-  // Staring Contest and Don't Smile are played with the face: the bot's
-  // simulated face blinks and smiles on its own, so being there is playing.
-  const faceGame = ['stare', 'dontsmile'].includes(id);
-  const moved = faceGame || report.states > 2 || report.nSends > 0;
+  const moved = report.states > 2 || report.nSends > 0;
   const ok = report.inGame && moved && report.fps > 5;   // > 5: running, not frozen (headless runs slow)
   if (!ok) failed++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${id.padEnd(11)} bot in game: ${report.inGame}, its window ${report.fps.toFixed(0)} fps, ${report.states} distinct states, ${report.nSends} messages (${report.sends})${errors.length ? `  ERRORS: ${errors.slice(0, 2).join(' | ')}` : ''}`);

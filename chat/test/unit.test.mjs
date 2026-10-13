@@ -122,7 +122,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 26);
+  assert.equal(GAME_IDS.length, 24);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -1396,25 +1396,6 @@ test('Two-seat games: the line of watchers, seat takeover and the winner-stays r
   assert.match(Q.swapText(sw, 'c', nm), /You’re in! You take Bo’s seat/);
   assert.match(Q.swapText(sw, 'b', nm), /Cy takes your seat/);
   assert.equal(Q.swapText(sw, 'a', nm), 'Cy takes Bo’s seat.');
-});
-
-test('Don’t Smile: the round’s players are fixed at the 3-2-1, mid-round joiners wait', async () => {
-  const { _logic: D } = await import('../games/dontsmile.js');
-  const ps = ['a', 'b', 'c'].map(id => ({ id }));
-  const ids = list => list.map(p => p.id);
-  // In the lobby everyone present (up to the limit) plays.
-  assert.deepEqual(ids(D.roundContestants({ phase: 'lobby' }, ps)), ['a', 'b', 'c']);
-  assert.deepEqual(ids(D.roundContestants(null, ps)), ['a', 'b', 'c']);
-  const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}` }));
-  assert.equal(D.roundContestants({ phase: 'lobby' }, many).length, D.MAX_PLAYERS);
-  // During the count and the round: only the snapshot, minus anyone who left.
-  for (const phase of ['count', 'play']) {
-    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, ps)), ['a', 'b'], `${phase}: c joined mid-round`);
-    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, [{ id: 'b' }, { id: 'c' }])), ['b'], `${phase}: a left`);
-  }
-  // Junk in the snapshot is ignored; an old state without one uses the members.
-  assert.deepEqual(ids(D.roundContestants({ phase: 'play', in: [5, null, 'c'] }, ps)), ['c']);
-  assert.deepEqual(ids(D.roundContestants({ phase: 'play' }, ps)), ['a', 'b', 'c']);
 });
 
 test('Mob Whack: a late joiner is seated mid-round with 0 points and full hearts', async () => {
