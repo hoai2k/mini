@@ -1104,6 +1104,17 @@ for rid, (asset, title, desc, size) in zip(["CH-G79", "CH-G80", "CH-G81", "CH-G8
 ]):
     req("games", rid, asset, title, size, f"Temple Dash: {title.lower()}.", TEMPLE + desc + ".", "A drawn shape.")
 
+req("games", "CH-G84", "temple-beam", "Low beam (slide under)", "1024 x 512",
+    "Temple Dash: the obstacle you slide under. It spans the whole walkway, all three lanes, so the "
+    "only way past is to slide (it replaces the open archway, which looked tall enough to run through).",
+    TEMPLE + "Seen straight from the front: one massive horizontal carved stone beam lying across the FULL "
+    "width of the image, thick and heavy, with carved glyphs and moss on top and a few short vines hanging "
+    "from its underside. The beam's top edge is about 20% down from the top of the image and its flat "
+    "underside about 62% down. Below the beam the image is EMPTY (transparent) right across, except two "
+    "short broken stone blocks at the very left and right edges (each under 8% of the width) that hold the "
+    "beam up. Vines stop well above the bottom third. No archway, no rounded opening, nothing in the middle "
+    "below the beam.", "A drawn beam.")
+
 NEW_GAMES_3 = [
     ("blocks", "Block Drop", "colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears"),
     ("temple", "Temple Dash", "an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind"),
