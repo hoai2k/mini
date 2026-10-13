@@ -2704,6 +2704,36 @@ export const SPRITES = {
    "w": 1024,
    "h": 768
   },
+  "howto/ch05-1": {
+   "src": "sprites/howto/ch05-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch05-2": {
+   "src": "sprites/howto/ch05-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch05-3": {
+   "src": "sprites/howto/ch05-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-1": {
+   "src": "sprites/howto/ch06-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-2": {
+   "src": "sprites/howto/ch06-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch06-3": {
+   "src": "sprites/howto/ch06-3.webp",
+   "w": 1024,
+   "h": 768
+  },
   "adv/b01/backdrop-1": {
    "src": "sprites/adv/b01/backdrop-1.webp",
    "w": 1920,
