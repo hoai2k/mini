@@ -57,16 +57,20 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log:
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
 const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700, 230, true], [10650, 240], [12500, 230, true]];
-const HOLE = 300; // the hollow's height
-const BOUGHS = [[2250, 400], [5800, 390], [9350, 360], [12900, 400]];
-const BRANCHES = [[200, 380, 420, 1], [1250, 520, 350, 1], [2900, 410, 380, -1],
-  [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
-const WEBS = [[5550, 300, 120], [5950, 290, 110], [6700, 560, 115]];
+const HOLE = 300; // the hollow's height: the drawn hole of adv.trunks 2 at the column's width
+// The trunk column sprites (adv.trunks): item 1 plain bark, item 2 with a hole
+// through it. Drawn TRUNK_W wide; the hole in item 2 spans rows 127..213 of 360.
+const TRUNK_W = 356;
+const HOLE_TOP = 127 / 360, HOLE_BOTTOM = 213 / 360;
+const BOUGHS = [[2400, 400], [5800, 390], [9350, 360], [12950, 400]];
+const BRANCHES = [[200, 380, 420, 1], [1100, 520, 350, 1], [2800, 410, 380, -1],
+  [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 340, 1], [12050, 580, 250, 1]];
+const WEBS = [[5500, 300, 120], [5850, 250, 110], [6700, 560, 115]];
 const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
 const BIRDS = [[9000, 400], [10150, 400]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
-  [1400, 330], [1550, 330], [1900, 380], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 390], [3400, 450],
+  [1400, 330], [1550, 330], [1900, 380], [2400, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 390], [3400, 450],
   [3800, 850], [4300, 880], [4150, 300],
   [5100, 340], [5550, 560], [5800, 560], [6000, 580], [6350, 380], [6700, 330], [6950, 400],
   [7500, 870], [8000, 880], [7900, 300],
@@ -118,7 +122,7 @@ export default function create(env) {
   const solids = [{ x: -400, y: FLOOR, w: 14850, h: 400, kind: 'floor' }];
   for (const s of SECTIONS) if (!s.open) solids.push({ x: s.x0, y: LEAF_TOP, w: s.x1 - s.x0, h: FLOOR - LEAF_TOP, kind: 'leaves' });
   const trees = TRUNKS.map(([x, top, face]) => {
-    const hw = 100;
+    const hw = 160; // the drawn bark is about 330 wide
     // The trunk below the hollow (its sill can be perched on) and above it.
     const s = { x: x - hw, y: top + HOLE, w: hw * 2, h: FLOOR - top - HOLE, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw, hole: top };
     solids.push(s);
@@ -716,6 +720,7 @@ export default function create(env) {
       art.drawSprite(g, art.prop('trollusk', st.item), st.x, y, { height: 46, rot: Math.sin(tt * 2 + st.x) * 0.25, alpha: st.got ? 1 - st.t * 2 : 1 });
     }
     for (const s of solids) if (s.kind === 'leaves' && cam.sees(s.x, s.x + s.w)) drawLeaves(g, s, tt);
+    for (const tr of trees) if (tr.face && cam.sees(tr.cx - 200, tr.cx + 200)) drawKnotFace(g, tr, tt);
     for (const v of vines) if (cam.sees(v.x)) drawVine(g, v, tt);
     for (const w of webs) if (cam.sees(w.x)) drawWeb(g, w, tt);
     pickups.draw(g, cam, tt, (gg, p, x, y, alpha, ttt) => {
@@ -844,18 +849,40 @@ export default function create(env) {
   // top, so it cannot stand as a tall column; it stays unused here.
   function drawTrunk(g, s, tt) {
     const x = s.cx;
-    inkTrunk(g, s);
+    const plain = art.sprite('adv.trunks', 1), holed = art.sprite('adv.trunks', 2);
+    if (!plain || !holed) inkTrunk(g, s);
+    else {
+      // The column: the holed section with its drawn hole on the gameplay
+      // hollow, plain bark tiled below it to the floor and above it out of
+      // the frame, every other tile mirrored so the joins vary.
+      const k2 = TRUNK_W / holed.w, k1 = TRUNK_W / plain.w;
+      const h2 = holed.h * k2, h1 = plain.h * k1;
+      const top2 = s.hole - HOLE_TOP * h2;
+      const bottom2 = top2 + h2;
+      let i = 0;
+      for (let y = bottom2; y < FLOOR + 6; y += h1, i++) {
+        const cut = Math.min(h1, FLOOR + 6 - y) / k1;
+        g.save(); g.beginPath(); g.rect(x - TRUNK_W, y, TRUNK_W * 2, cut * k1 + 1); g.clip();
+        art.drawSprite(g, plain, x, y, { scale: k1, ax: 0.5, ay: 0, flip: i % 2 === 1 });
+        g.restore();
+      }
+      for (let y = top2 - h1, j = 1; y + h1 > -60; y -= h1, j++) art.drawSprite(g, plain, x, y, { scale: k1, ax: 0.5, ay: 0, flip: j % 2 === 1 });
+      art.drawSprite(g, holed, x, top2, { scale: k2, ax: 0.5, ay: 0 });
+    }
     // The delivered tree foot (terrain.wood 6, roots and a face) at the base.
     kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 6, { height: 330 });
-    if (s.face) {
-      // The knot face (adv.b02.props 12) on the trunk under the hollow; it
-      // swells as it draws breath and shakes as it blows.
-      const fy = s.y + 100;
-      const k = s.state === 'puff' ? 0.86 + 0.14 * Math.min(1, s.t / 0.9) : s.state === 'blow' ? 1 : 0.86;
-      const shake = s.state === 'blow' && !env.reduceMotion ? Math.sin(tt * 40) * 3 : 0;
-      kit.sprite(g, 'adv.b02.props', 12, x + shake, fy, { height: 250 * k, ay: 0.5 }, () => inkKnotFace(g, x, fy, s, tt));
-      if (s.state === 'puff' && Math.floor(tt * 6) % 2) { g.save(); g.font = '800 48px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#b3402e'; g.lineWidth = 7; g.strokeStyle = PAPER; g.strokeText('!', x, fy - 150); g.fillText('!', x, fy - 150); g.restore(); }
-    }
+  }
+
+  // The knot face (adv.b02.props 12) on the trunk under the hollow, drawn
+  // after the canopy so the leaves do not hide it; it swells as it draws
+  // breath and shakes as it blows.
+  function drawKnotFace(g, s, tt) {
+    const x = s.cx;
+    const fy = s.y + 100;
+    const k = s.state === 'puff' ? 0.86 + 0.14 * Math.min(1, s.t / 0.9) : s.state === 'blow' ? 1 : 0.86;
+    const shake = s.state === 'blow' && !env.reduceMotion ? Math.sin(tt * 40) * 3 : 0;
+    kit.sprite(g, 'adv.b02.props', 12, x + shake, fy, { height: 250 * k, ay: 0.5 }, () => inkKnotFace(g, x, fy, s, tt));
+    if (s.state === 'puff' && Math.floor(tt * 6) % 2) { g.save(); g.font = '800 48px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#b3402e'; g.lineWidth = 7; g.strokeStyle = PAPER; g.strokeText('!', x, fy - 150); g.fillText('!', x, fy - 150); g.restore(); }
   }
 
   function inkTrunk(g, s) {
