@@ -852,6 +852,12 @@
       "file": "assets/adventure/terrain/trunks.png",
       "size": "2048 x 2048, transparent",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, each a straight-ish section of a gnarled old tree trunk seen side-on, bark only (no branches, no leaves, no roots, no ground), cut off flat at the top and the bottom so it tiles vertically, about four times as tall as wide, with deep bark furrows, a knot or two and moss patches: 1. a plain trunk section; 2. the same trunk with a large dark oval hollow right through it in the middle, big enough for a bat-winged creature to fly through, its lower lip flat enough to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/endpapers.jpg ."
+    },
+    {
+      "id": "OM-Z07",
+      "file": "assets/adventure/b03/boats.png",
+      "size": "2048 x 1024, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, both seen exactly side-on facing right, at the same scale, floating, the waterline straight along their bottom with only a little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-16-17-grumley-netted.jpg ."
     }
   ],
   "delivered": [
@@ -1564,6 +1570,11 @@
       "id": "OM-Z09",
       "file": "assets/adventure/terrain/trunks.png",
       "sha256": "3080d594b653c3560a207f63ec868b5ba1cb90f36fbd17fa52dab4ab6f2686e9"
+    },
+    {
+      "id": "OM-Z07",
+      "file": "assets/adventure/b03/boats.png",
+      "sha256": "4c86c0f710d8fad971d33c976cbd0d82dc12f92a515b5aaf8fe6a7f22ff57a7c"
     }
   ],
   "request_revision": "1add341",
@@ -3494,6 +3505,27 @@
       "saved_size": [
         2048,
         2048
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-Z07",
+      "file": "assets/adventure/b03/boats.png",
+      "size": "2048 x 1024, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, both seen exactly side-on facing right, at the same scale, floating, the waterline straight along their bottom with only a little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-16-17-grumley-netted.jpg .\nUse case: stylized-concept. NEW separate game sprite asset, attached images are design/style references only. Never draw a book or photo. Requested 2048 x 1024, transparent. Genuine alpha background, complete isolated pieces with generous clear margins and gaps. ",
+      "references": [
+        "onemonster/reference/pages-16-17-grumley-netted.jpg"
+      ],
+      "revision_prompt": "Edit this transparent boat sprite sheet. Remove BOTH small bat-winged creatures perched on the wheelhouse roofs; fill their areas with actual alpha transparency and leave both wheelhouse rooftops flat and empty. Also remove ONLY the bearded fisherman from the LEFT teal boat, leaving a plain rail and empty deck there. Keep the fisherman on the RIGHT brick-red crane boat, both boats' hulls, fish crate, portholes, wheelhouses, crane and hanging net, their exact side-on right-facing views, scale, positions, and narrow waterline foam. No creatures or other people added. Preserve true alpha, wide 2:1 canvas, 2048 x 1024.",
+      "generator": "built-in image_gen",
+      "source_size": [
+        1774,
+        887
+      ],
+      "saved_size": [
+        2048,
+        1024
       ],
       "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
       "review": "Reviewed scene/identity, count/order, margins and background against request"

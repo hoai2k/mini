@@ -564,7 +564,7 @@ export const ASSETS = {
   },
   "adv.b03.boats": {
     "file": "assets/adventure/b03/boats.png",
-    "delivered": false
+    "delivered": true
   },
   "bombanat.plainPerch": {
     "file": "assets/monsters/bombanat/plain-perched.png",

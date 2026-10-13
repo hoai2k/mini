@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-1 requested, 142 delivered, 143 in total.
+0 requested, 143 delivered, 143 in total.
 
 ## Brand
 
@@ -1922,7 +1922,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Board 3's fishing grounds: boats on the surface that drop anchors and nets on the Grumley.
 - **Stand-in until delivered:** Boats drawn in code.
 - **Reference:** [`reference/pages-16-17-grumley-netted.jpg`](../reference/pages-16-17-grumley-netted.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, both seen exactly side-on facing right, at the same scale, floating, the waterline straight along their bottom with only a little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-16-17-grumley-netted.jpg .
