@@ -7,6 +7,11 @@
 // cannot see a face get an "I did it!" button instead, marked with a 🙈 so
 // friends can laugh. Solo play works.
 //
+// Friends' live faces sit in a strip beside your own (to the side on wide
+// screens, underneath on tall ones), never over your face or the prompt; each
+// lights up green with a tick, and pops, the moment their match for the
+// current prompt reaches the referee.
+//
 // Referee state (owner only writes it):
 //   { phase: 'lobby' | 'prompt' | 'reveal' | 'over', match, round, idx, prompts,
 //     promptAt, endsAt, nextAt, names, matched: { id: { ms, fb } },
@@ -85,6 +90,70 @@ function puffScore(f) {
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+// Lays out my face and `n` friends' tiles inside the box (x, y, bw, bh)
+// without overlap. Wide boxes put the friends in a block to the right of my
+// face; tall ones in a strip underneath it. Tiles are portrait-ish (0.8:1).
+// Returns { self: { x, y, w, h }, tiles: [{ x, y, w, h }] }.
+function faceLayout(n, x, y, bw, bh, gap = 6) {
+  const selfBox = (sx, sy, sw, shh) => {
+    const vw = Math.min(sw, shh * 1.33);
+    return { x: sx + (sw - vw) / 2, y: sy, w: vw, h: shh };
+  };
+  if (n <= 0) return { self: selfBox(x, y, bw, bh), tiles: [] };
+  // The largest grid of n tiles that fits a box.
+  const grid = (gw, gh) => {
+    let best = null;
+    for (let cols = 1; cols <= n; cols++) {
+      const rows = Math.ceil(n / cols);
+      const tw = Math.min((gw - gap * (cols - 1)) / cols, ((gh - gap * (rows - 1)) / rows) * 0.8);
+      if (tw > 0 && (!best || tw > best.tw)) best = { cols, rows, tw, th: tw / 0.8 };
+    }
+    return best || { cols: n, rows: 1, tw: 1, th: 1.25 };
+  };
+  const place = (g, gx, gy, gw, gh) => {
+    const tiles = [];
+    const used = g.rows * g.th + (g.rows - 1) * gap;
+    for (let i = 0; i < n; i++) {
+      const row = Math.floor(i / g.cols), col = i % g.cols;
+      const inRow = row === g.rows - 1 ? n - row * g.cols : g.cols;
+      const rx = gx + (gw - inRow * g.tw - (inRow - 1) * gap) / 2;
+      tiles.push({ x: rx + col * (g.tw + gap), y: gy + (gh - used) / 2 + row * (g.th + gap), w: g.tw, h: g.th });
+    }
+    return tiles;
+  };
+  if (bw >= bh * 1.05) {
+    // Side: my face keeps most of the width; friends take the rest, at most
+    // about a third.
+    const sideW = clamp(bw * 0.3, Math.min(70, bw * 0.4), 260);
+    const g = grid(sideW, bh);
+    const blockW = g.cols * g.tw + (g.cols - 1) * gap;
+    const vw = Math.min(bw - blockW - gap * 2, bh * 1.33);
+    const x0 = x + (bw - vw - gap * 2 - blockW) / 2;
+    return { self: { x: x0, y, w: vw, h: bh }, tiles: place(g, x0 + vw + gap * 2, y, blockW, bh) };
+  }
+  // Below: a strip of up to two rows, about a quarter of the height.
+  const stripH = clamp(bh * 0.27, Math.min(56, bh * 0.35), 150);
+  const g = grid(bw, stripH);
+  const used = g.rows * g.th + (g.rows - 1) * gap;
+  const self = selfBox(x, y, bw, bh - used - gap);
+  return { self, tiles: place(g, x, y + bh - used, bw, used) };
+}
+
+// Draws a video or canvas cropped to fill a box. False when there's nothing to draw.
+function drawCover(ctx, media, x, y, tw, th) {
+  const sw = media?.videoWidth || media?.width || 0;
+  const sh = media?.videoHeight || media?.height || 0;
+  if (!media || !sw || !sh || (media.readyState !== undefined && media.readyState < 2)) return false;
+  const s = Math.max(tw / sw, th / sh);
+  const cw = tw / s, ch = th / s;
+  try {
+    ctx.drawImage(media, (sw - cw) / 2, (sh - ch) / 2, cw, ch, x, y, tw, th);
+  } catch {
+    return false;
+  }
+  return true;
+}
+
 function outlined(ctx, text, x, y, size, fill, align = 'center', weight = 900) {
   ctx.font = `${weight} ${size}px ${FONT}`;
   ctx.textAlign = align;
@@ -141,6 +210,8 @@ export default {
     let uiSig = '';
     let noFaceSince = 0;
     const local = { round: -1, start: 0, hold: null, matched: false, ms: 0, announced: -1, revealed: -1 };
+    // Friends' matches already seen this prompt, and when each popped in.
+    const seen = { round: -1, ids: new Set(), at: new Map() };
 
     function resize() {
       const r = api.el.getBoundingClientRect();
@@ -358,6 +429,91 @@ export default {
       ctx.stroke();
     }
 
+    // A friend's live face; green with a tick once their match is in.
+    function drawFriend(sh, p, r) {
+      if (!r) return;
+      const m = sh.phase === 'prompt' ? sh.matched?.[p.id] : sh.reveal?.[p.id];
+      const missed = sh.phase === 'reveal' && !m;
+      const rad = Math.min(12, r.w * 0.14);
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(r.x, r.y, r.w, r.h, rad);
+      ctx.clip();
+      ctx.fillStyle = '#2a1f4d';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      if (missed && ctx.filter !== undefined) ctx.filter = 'grayscale(0.8) brightness(0.7)';
+      if (!drawCover(ctx, api.mediaOf(p.id), r.x, r.y, r.w, r.h)) {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.globalAlpha = 1;
+        outlined(ctx, (p.name[0] || '?').toUpperCase(), r.x + r.w / 2, r.y + r.h / 2, r.h * 0.4, '#fff');
+      }
+      ctx.filter = 'none';
+      if (m) {
+        ctx.fillStyle = 'rgba(105,219,124,0.28)';
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+      }
+      const foot = clamp(r.h * 0.2, 13, 24);
+      ctx.fillStyle = 'rgba(20,12,40,0.6)';
+      ctx.fillRect(r.x, r.y + r.h - foot, r.w, foot);
+      ctx.restore();
+
+      ctx.lineWidth = m ? 4 : 2;
+      ctx.strokeStyle = m ? '#69db7c' : p.color;
+      ctx.beginPath();
+      ctx.roundRect(r.x, r.y, r.w, r.h, rad);
+      ctx.stroke();
+
+      const fs = clamp(foot * 0.62, 9, 14);
+      ctx.font = `800 ${fs}px ${FONT}`;
+      let name = p.name;
+      while (name.length > 2 && ctx.measureText(name).width > r.w - 6) name = name.slice(0, -2) + '…';
+      outlined(ctx, name, r.x + r.w / 2, r.y + r.h - foot / 2, fs, '#fff', 'center', 800);
+      if (m) {
+        // Tick badge, with a ring that pops out as the match arrives.
+        const br = clamp(r.w * 0.17, 9, 18);
+        const bx = r.x + r.w - br * 0.9, by = r.y + br * 0.9;
+        const age = (performance.now() - (seen.at.get(p.id) ?? -1e9)) / 1000;
+        if (age < 0.5) {
+          ctx.strokeStyle = `rgba(105,219,124,${1 - age / 0.5})`;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.roundRect(r.x - age * 24, r.y - age * 24, r.w + age * 48, r.h + age * 48, rad + age * 24);
+          ctx.stroke();
+        }
+        const grow = age < 0.25 ? 1 + 0.5 * Math.sin((age / 0.25) * Math.PI) : 1;
+        ctx.fillStyle = '#2f9e44';
+        ctx.beginPath();
+        ctx.arc(bx, by, br * grow, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        const label = sh.phase === 'reveal' ? `+${m.pts}` : m.fb ? '🙈' : '✔';
+        outlined(ctx, label, bx, by + 1, br * (label.length > 1 && label !== '🙈' ? 0.95 : 1.2), '#fff', 'center', 900);
+      } else if (missed) {
+        outlined(ctx, '✖', r.x + r.w / 2, r.y + r.h * 0.42, clamp(r.h * 0.3, 12, 40), 'rgba(255,255,255,0.8)');
+      }
+    }
+
+    // A pop (and a sound) as each friend's match for this prompt arrives.
+    function noticeMatches(sh) {
+      if (sh.phase !== 'prompt') return;
+      if (seen.round !== sh.round) {
+        seen.round = sh.round;
+        seen.ids.clear();
+        seen.at.clear();
+      }
+      for (const id of Object.keys(sh.matched || {})) {
+        if (seen.ids.has(id)) continue;
+        seen.ids.add(id);
+        if (id === api.me.id) continue;
+        seen.at.set(id, performance.now());
+        api.sfx('pop');
+      }
+    }
+
     function render(sh, face) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = '#1d1533';
@@ -399,16 +555,19 @@ export default {
       // Bottom status chips: who has matched.
       const chipsH = small ? 26 : 34;
       const meterH = 16;
-      const vy = top + 8 + promptH;
-      const vh = Math.max(60, h - vy - chipsH - meterH - pad * 2 - (fallback.hidden ? 0 : 50));
-      const vw = Math.min(w - pad * 2, vh * 1.33);
-      const vx = (w - vw) / 2;
+      const vy0 = top + 8 + promptH;
+      const boxH = Math.max(60, h - vy0 - chipsH - meterH - pad * 2 - (fallback.hidden ? 0 : 50));
+      // My face, and friends' faces beside or under it.
+      const friends = seated().filter(p => p.id !== api.me.id);
+      const L = faceLayout(friends.length, pad, vy0, w - pad * 2, boxH);
+      const { x: vx, y: vy, w: vw, h: vh } = L.self;
       const val = face ? clamp(ex.get(face) / ex.thr, 0, 1.2) : 0;
       const ok = sh.phase === 'prompt' ? local.matched || val >= 1 : !!sh.reveal[api.me.id];
       drawSelf(vx, vy, vw, vh, ok);
+      friends.forEach((p, i) => drawFriend(sh, p, L.tiles[i]));
 
       // Meter for my current expression, and the time left beneath it.
-      const my = vy + vh + 8;
+      const my = vy0 + boxH + 8;
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.beginPath();
       ctx.roundRect(vx, my, vw, meterH, 8);
@@ -422,7 +581,8 @@ export default {
         ctx.fillStyle = left < 0.3 ? '#ff5c6c' : '#ffd43b';
         ctx.fillRect(vx, my + meterH + 3, vw * left, 4);
       }
-      if (local.matched && sh.phase === 'prompt') outlined(ctx, `Got it! ${(local.ms / 1000).toFixed(2)} s`, w / 2, vy + vh / 2, clamp(vw / 9, 16, 40), '#69db7c');
+      if (local.matched && sh.phase === 'prompt') outlined(ctx, `Got it! ${(local.ms / 1000).toFixed(2)} s`, vx + vw / 2, vy + vh / 2, clamp(vw / 9, 16, 40), '#69db7c');
+
 
       // Who got it.
       const cy = h - chipsH / 2 - 4;
@@ -454,6 +614,7 @@ export default {
       const sh = api.shared();
       if (sh) {
         watchFace(sh, now, face);
+        noticeMatches(sh);
         // Sounds and records for the end of a prompt and of the match.
         if (sh.phase === 'reveal' && local.revealed !== sh.round) {
           local.revealed = sh.round;
@@ -507,4 +668,4 @@ export default {
   },
 };
 
-export const _logic = { EXPRS, puff, puffScore, trackPuff, oneEye, cheekRatio, eyeOpen, LIDS };
+export const _logic = { EXPRS, puff, puffScore, trackPuff, oneEye, cheekRatio, eyeOpen, LIDS, faceLayout };

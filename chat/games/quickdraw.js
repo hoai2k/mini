@@ -6,6 +6,12 @@
 // that showed DRAW!, so network delay never decides a duel. Firing early puts
 // you out of the round. Fastest shot wins the round; first to 5 wins the match.
 //
+// During a duel every seated player stands as a gunslinger tile along the
+// top with their live face; as each shot (or early trigger) reaches the
+// referee's results it is stamped on that player's tile ("BANG 231 ms" or
+// "TOO EARLY"), live, before the round's result. Anyone joining mid-duel
+// watches with a "You're in next round" note and is dealt in at the next round.
+//
 // Referee state (owner only writes it):
 //   { phase: 'lobby' | 'wait' | 'result' | 'over', match, round, drawAt, nextAt,
 //     ids, names, results: { id: { ms } | { early: true } }, wins: { id: n },
@@ -120,6 +126,78 @@ function drawStandIn(g, w, h) {
   cactus(g, w * 0.08, horizon + (h - horizon) * 0.35, s * 1.2);
   cactus(g, w * 0.9, horizon + (h - horizon) * 0.5, s * 1.5);
   cactus(g, w * 0.3, horizon + (h - horizon) * 0.12, s * 0.7);
+}
+
+// Where the gunslinger tiles go: a row along the top, portrait tiles as big
+// as fit (at most about 30% of the height). Returns { tw, th, y, xs, bottom }.
+function tileLayout(n, w, h) {
+  const gap = 8, side = 8;
+  const maxTh = clamp(h * 0.3, 60, 220);
+  const tw = Math.max(20, Math.min((w - side * 2 - gap * (n - 1)) / Math.max(1, n), maxTh * 0.8));
+  const th = tw / 0.8;
+  const x0 = (w - n * tw - (n - 1) * gap) / 2;
+  const y = 8;
+  return { tw, th, y, xs: Array.from({ length: n }, (_, i) => x0 + i * (tw + gap)), bottom: y + th };
+}
+
+// Draws a video or canvas cropped to fill a box. False when there's nothing to draw.
+function drawCover(ctx, media, x, y, tw, th) {
+  const sw = media?.videoWidth || media?.width || 0;
+  const sh = media?.videoHeight || media?.height || 0;
+  if (!media || !sw || !sh || (media.readyState !== undefined && media.readyState < 2)) return false;
+  const s = Math.max(tw / sw, th / sh);
+  const cw = tw / s, ch = th / s;
+  try {
+    ctx.drawImage(media, (sw - cw) / 2, (sh - ch) / 2, cw, ch, x, y, tw, th);
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+// A tilted rubber stamp across a tile: a big first line and an optional
+// smaller second one, shrunk to fit `maxW`.
+function stamp(ctx, cx, cy, maxW, size, line1, line2, color, rot = -0.18) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.font = `900 ${size}px ${POSTER}`;
+  const w1 = ctx.measureText(line1).width;
+  const s = w1 + size * 0.6 > maxW ? size * (maxW / (w1 + size * 0.6)) : size;
+  const s2 = s * 0.62;
+  ctx.font = `900 ${s}px ${POSTER}`;
+  let bw = ctx.measureText(line1).width;
+  if (line2) {
+    ctx.font = `900 ${s2}px ${FONT}`;
+    bw = Math.max(bw, ctx.measureText(line2).width);
+  }
+  bw += s * 0.6;
+  const bh = s * (line2 ? 1.85 : 1.25);
+  ctx.fillStyle = 'rgba(255,248,225,0.86)';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2.5, s * 0.12);
+  ctx.beginPath();
+  ctx.roundRect(-bw / 2, -bh / 2, bw, bh, s * 0.2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `900 ${s}px ${POSTER}`;
+  ctx.fillText(line1, 0, line2 ? -s * 0.3 : s * 0.04);
+  if (line2) {
+    ctx.font = `900 ${s2}px ${FONT}`;
+    ctx.fillText(line2, 0, s * 0.52);
+  }
+  ctx.restore();
+}
+
+// What goes on a player's tile for their entry in the results (or null).
+function stampFor(r) {
+  if (!r || typeof r !== 'object') return null;
+  if (r.early === true) return { line1: 'TOO EARLY', line2: '', color: '#d0233a' };
+  if (Number.isFinite(r.ms)) return { line1: 'BANG', line2: `${Math.round(r.ms)} ms`, color: '#b5480c' };
+  return null;
 }
 
 function drawTumbleweed(ctx, x, y, r, rot) {
@@ -457,8 +535,98 @@ export default {
       if (best) plain(ctx, `Best draw ${best} ms`, w - 10, h - 14 * s, 13 * s, '#fff', 'right');
     }
 
-    function renderWait(sh, t) {
-      const s = clamp(Math.min(w / 640, h / 420), 0.6, 1.5);
+    // --- the gunslingers: one tile per seated player with their live face ------
+    function drawSlinger(sh, id, x, y, tw, th) {
+      const r = sh.results?.[id];
+      const out = r?.early === true;
+      const won = sh.phase === 'result' && sh.winner === id;
+      const band = Math.min(22, th * 0.16), foot = Math.min(26, th * 0.2);
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(x, y, tw, th, 12);
+      ctx.clip();
+      ctx.fillStyle = '#3a1d0c';
+      ctx.fillRect(x, y, tw, th);
+      if (out && ctx.filter !== undefined) ctx.filter = 'grayscale(0.9) brightness(0.75)';
+      const media = !present(id) ? null : id === api.me.id ? (api.selfCanvas || api.mediaOf(id)) : api.mediaOf(id);
+      if (!drawCover(ctx, media, x, y, tw, th)) {
+        ctx.fillStyle = colorOf(id);
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(x, y, tw, th);
+        ctx.globalAlpha = 1;
+        poster(ctx, (nameOf(sh, id)[0] || '?').toUpperCase(), x + tw / 2, y + th * 0.45, th * 0.38, '#fff');
+      }
+      ctx.filter = 'none';
+      // Dusty bands at the top and the bottom for the pips and the name.
+      ctx.fillStyle = 'rgba(30,10,0,0.5)';
+      ctx.fillRect(x, y, tw, band);
+      ctx.fillRect(x, y + th - foot, tw, foot);
+      ctx.restore();
+
+      ctx.lineWidth = won ? 6 : 3;
+      ctx.strokeStyle = won ? '#ffd43b' : colorOf(id);
+      ctx.beginPath();
+      ctx.roundRect(x, y, tw, th, 12);
+      ctx.stroke();
+
+      // Win tally as pips along the top.
+      const n = sh.wins?.[id] || 0;
+      const pr = clamp(tw / (WIN_AT * 3.4), 2.5, 6);
+      for (let k = 0; k < WIN_AT; k++) {
+        ctx.beginPath();
+        ctx.arc(x + tw / 2 + (k - (WIN_AT - 1) / 2) * pr * 2.7, y + band / 2, pr, 0, Math.PI * 2);
+        ctx.fillStyle = k < n ? '#ffd43b' : 'rgba(30,10,0,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = '#2a1206';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      const fs = clamp(th * 0.11, 10, 17);
+      ctx.font = `800 ${fs}px ${FONT}`;
+      let name = `${won ? '★ ' : ''}${nameOf(sh, id)}`;
+      while (name.length > 2 && ctx.measureText(name).width > tw - 10) name = name.slice(0, -2) + '…';
+      plain(ctx, name, x + tw / 2, y + th - foot / 2, fs, '#fff');
+
+      // The stamp, as soon as the referee has their shot.
+      const st = stampFor(r) || (sh.phase === 'result' ? { line1: 'NO SHOT', line2: '', color: '#6b5a48' } : null);
+      if (st) stamp(ctx, x + tw / 2, y + th * 0.52, tw * 0.94, clamp(tw * 0.24, 12, 40), st.line1, st.line2, st.color);
+    }
+
+    // Draws the row of gunslingers; returns where it ends.
+    function slingers(sh) {
+      const ids = sh.ids || [];
+      if (!ids.length) return 0;
+      const L = tileLayout(ids.length, w, h);
+      ids.forEach((id, i) => drawSlinger(sh, id, L.xs[i], L.y, L.tw, L.th));
+      return L.bottom;
+    }
+
+    // A note for anyone watching this round from the side.
+    function watchNote(sh) {
+      if (!sh.ids || sh.ids.includes(api.me.id)) return;
+      const text = isSeated(api.me.id) ? 'You’re in next round' : 'The saloon is full: you’re watching';
+      const fs = clamp(w / 22, 13, 22);
+      ctx.font = `800 ${fs}px ${FONT}`;
+      const bw = Math.min(w - 16, ctx.measureText(text).width + fs * 1.6), bh = fs * 2;
+      const y = h - bh - 10;
+      ctx.fillStyle = 'rgba(30,10,0,0.72)';
+      ctx.strokeStyle = '#ffd43b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(w / 2 - bw / 2, y, bw, bh, bh / 2);
+      ctx.fill();
+      ctx.stroke();
+      plain(ctx, text, w / 2, y + bh / 2, fs, '#ffd43b');
+    }
+
+    // The middle of the space under the tiles, and a size scale for it.
+    function stage(top) {
+      const room = Math.max(80, h - top);
+      return { cy: top + room * 0.42, s: clamp(Math.min(w / 640, room / 300), 0.5, 1.5) };
+    }
+
+    function renderWait(sh, t, top) {
+      const { cy, s } = stage(top);
       const drawn = t >= sh.drawAt;
       if (!drawn) {
         // Steady... a tumbleweed rolls past while everyone holds their nerve.
@@ -468,11 +636,11 @@ export default {
         const bounce = Math.abs(Math.sin(clock * 5)) * 18 * s;
         drawTumbleweed(ctx, x, gy - 30 * s - bounce, 30 * s, clock * 4);
         if (local.early) {
-          poster(ctx, 'TOO EARLY!', w / 2, h * 0.4, 64 * s, '#ff5c6c', -0.05);
-          plain(ctx, 'You’re out this round', w / 2, h * 0.4 + 56 * s, 20 * s);
+          poster(ctx, 'TOO EARLY!', w / 2, cy, 64 * s, '#ff5c6c', -0.05);
+          plain(ctx, 'You’re out this round', w / 2, cy + 50 * s, 20 * s);
         } else {
-          poster(ctx, 'STEADY…', w / 2, h * 0.4, 70 * s, '#ffd43b', -0.03);
-          plain(ctx, 'Wait for it. Tap / Space / A / open wide', w / 2, h * 0.4 + 56 * s, 16 * s);
+          poster(ctx, 'STEADY…', w / 2, cy, 70 * s, '#ffd43b', -0.03);
+          plain(ctx, 'Wait for it. Tap / Space / A / open wide', w / 2, cy + 50 * s, 16 * s);
         }
         return;
       }
@@ -483,26 +651,30 @@ export default {
         ctx.fillStyle = flash ? 'rgba(255,80,40,0.45)' : 'rgba(255,220,60,0.45)';
         ctx.fillRect(0, 0, w, h);
         const shake = (Math.random() - 0.5) * 8 * s;
-        poster(ctx, 'DRAW!', w / 2 + shake, h * 0.42 + shake, clamp(Math.min(w / 4.2, h / 2.2), 40, 190), '#fff04a', -0.04);
+        poster(ctx, 'DRAW!', w / 2 + shake, cy + shake, clamp(Math.min(w / 4.2, (h - top) / 2), 40, 190), '#fff04a', -0.04);
       } else if (local.early) {
-        poster(ctx, 'TOO EARLY!', w / 2, h * 0.4, 64 * s, '#ff5c6c', -0.05);
+        poster(ctx, 'TOO EARLY!', w / 2, cy, 64 * s, '#ff5c6c', -0.05);
       } else {
-        poster(ctx, 'BANG!', w / 2, h * 0.38, 90 * s, '#ffd43b', 0.04);
-        plain(ctx, `${local.ms} ms`, w / 2, h * 0.38 + 80 * s, 34 * s, '#fff');
-        plain(ctx, 'Waiting for the others…', w / 2, h * 0.38 + 118 * s, 15 * s);
+        poster(ctx, 'BANG!', w / 2, cy - 10 * s, 84 * s, '#ffd43b', 0.04);
+        plain(ctx, `${local.ms} ms`, w / 2, cy + 52 * s, 30 * s, '#fff');
+        plain(ctx, 'Waiting for the others…', w / 2, cy + 84 * s, 15 * s);
       }
     }
 
-    function renderResult(sh, t) {
-      const s = clamp(Math.min(w / 640, h / 420), 0.6, 1.3);
+    function renderResult(sh, t, top) {
+      const { s } = stage(top);
       const mid = sh.matchWinner ? `${nameOf(sh, sh.matchWinner)} takes the match!` : sh.winner ? `${nameOf(sh, sh.winner)} wins the round!` : 'Nobody drew in time';
-      poster(ctx, mid.toUpperCase(), w / 2, h * 0.22, clamp(36 * s * (w < 420 ? 0.7 : 1), 18, 52), sh.winner ? '#ffd43b' : '#ff9a8a');
+      const text = mid.toUpperCase();
+      let ps = clamp(36 * s * (w < 420 ? 0.7 : 1), 16, 52);
+      ctx.font = `900 ${ps}px ${POSTER}`;
+      ps *= Math.min(1, (w - 24) / Math.max(1, ctx.measureText(text).width + ps * 0.3));
+      poster(ctx, text, w / 2, top + ps * 0.8, ps, sh.winner ? '#ffd43b' : '#ff9a8a');
       // Reaction times, fastest first, on a paper strip per player.
       const rows = sh.ids.map(id => ({ id, r: sh.results[id] }));
       rows.sort((a, b) => (a.r?.ms ?? Infinity) - (b.r?.ms ?? Infinity));
-      const rh = Math.min(40 * s, (h * 0.5) / Math.max(1, rows.length));
-      const rw = Math.min(w - 24, 420 * s);
-      let y = h * 0.34;
+      let y = top + ps * 1.7;
+      const rh = clamp((h - y - 30) / Math.max(1, rows.length), 16, 34 * s);
+      const rw = Math.min(w - 24, 380 * s);
       for (const { id, r } of rows) {
         const won = id === sh.winner;
         ctx.fillStyle = won ? 'rgba(255,230,140,0.95)' : 'rgba(245,225,185,0.88)';
@@ -522,7 +694,7 @@ export default {
         ctx.fillText(r?.early ? 'Too early!' : r ? `${r.ms} ms` : 'no shot', w / 2 + rw / 2 - 12, y + (rh - 6) / 2);
         y += rh;
       }
-      if (!sh.matchWinner) plain(ctx, 'Next duel coming up…', w / 2, Math.min(h - 40 * s, y + 24 * s), 15 * s);
+      if (!sh.matchWinner && sh.ids.includes(api.me.id)) plain(ctx, 'Next duel coming up…', w / 2, Math.min(h - 12, y + 12), 13, '#fff');
     }
 
     // Round announcements: sound and toast once per round.
@@ -544,17 +716,24 @@ export default {
       ctx.drawImage(background(), 0, 0, w, h);
       if (!sh) return;
       const t = Date.now();
-      if (sh.phase === 'wait') {
-        syncLocal(sh);
-        if (sh.ids.includes(api.me.id)) renderWait(sh, t);
+      if (sh.phase === 'wait' || sh.phase === 'result') {
+        const top = slingers(sh) + 8;
+        if (sh.phase === 'result') renderResult(sh, t, top);
         else {
-          // Watching: show the beat but nobody to fire for.
-          poster(ctx, t >= sh.drawAt ? 'DRAW!' : 'STEADY…', w / 2, h * 0.4, 64, '#ffd43b');
+          syncLocal(sh);
+          if (sh.ids.includes(api.me.id)) renderWait(sh, t, top);
+          else {
+            // Watching: show the beat but nobody to fire for.
+            const { cy, s } = stage(top);
+            poster(ctx, t >= sh.drawAt ? 'DRAW!' : 'STEADY…', w / 2, cy, 64 * s, '#ffd43b');
+          }
+          if (best && sh.ids.includes(api.me.id)) plain(ctx, `Best draw ${best} ms`, w - 10, h - 12, 12, '#fff', 'right');
         }
-      } else if (sh.phase === 'result') {
-        renderResult(sh, t);
+        watchNote(sh);
+      } else if (sh.phase === 'over') {
+        hud(sh);
       }
-      if (sh.phase !== 'lobby') hud(sh);
+
     }
 
     // --- loop ------------------------------------------------------------------
@@ -596,3 +775,6 @@ export default {
     };
   },
 };
+
+// Exposed for tests.
+export const _logic = { tileLayout, stampFor };
