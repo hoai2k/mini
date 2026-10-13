@@ -15,7 +15,19 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   white keys, remembered). Keys being played, the first-note marker and the
   melody's range show on the miniature. A sideways trackpad scroll slides the
   keys too. `app/src/keyboard.js`, `app/src/navigator.js`.
-- **Free play** (on the songbook screen) is the whole piano with no melody to
+- **The choice screen** (after Press Start): the **songbook** on the left as a
+  button with a chevron that opens a visual dropdown of the songbooks (their
+  pictures, blurbs and progress, three across), and the **difficulty**
+  (Adaptive, or 1 Beginner to 5 Expert) beside it as another dropdown. Below,
+  what to do, as five cards in a two-column grid (Melody Challenges, the main
+  one, across both; one column on a narrow window): **Melody Challenges** (the songbook at the
+  difficulty), **Free Play**, **Your Ears**, **Focus Mode** and **Full Songs**
+  (both in the songbook). The dropdowns are dialogs, so a controller's A and
+  B, Escape and a tap outside work in them; the songbook and difficulty are
+  saved (an older save whose level was Focus or Full songs gets Adaptive as its
+  difficulty). It fits a phone held sideways without
+  scrolling (checked at 844×390 and 667×375).
+- **Free play** (on the choice screen) is the whole piano with no melody to
   find; the staff shows the last 16 notes played, with a Clear button.
 - A melody plays and the keyboard slides to wherever it sits (centred if it
   fits the keys on screen, else from its lowest note). A glowing dot marks the first note until you
@@ -128,7 +140,7 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
       runs, first), drills it up and down, turns it around on a different
       melody, and makes it reliable;
     - a player who never improves gets no turnarounds and isn't called fixed.
-- Full songs, a choice beside the levels, plays whole songs phrase by phrase.
+- Full Songs, on the choice screen, plays whole songs phrase by phrase.
   - Each phrase is answered like any melody. Once it's played cleanly, the
     song's next phrase follows; the top bar counts the phrases (3/7).
   - Skip moves on to the next song, not the next phrase. Next, after a clean
@@ -145,7 +157,7 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
     is kept only if every phrase ends cleanly and fits the keyboard.
   - The Real Book and Omnibook tunes stay opening phrases only, as their
     compositions are under copyright.
-- The one-phrase modes (the levels and Adaptive) also take phrases from the
+- The one-phrase modes (Melody Challenges at any difficulty) also take phrases from the
   middle of these songs, each different phrase once (`songPhrases` in
   `library.js`).
   - A phrase is left out if it repeats one earlier in its song, in any key.

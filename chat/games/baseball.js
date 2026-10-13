@@ -45,6 +45,7 @@ import { ordinal } from '../js/seatqueue.js';
 export const BW = 1;
 export const BH = 16 / 9;
 export const BR = 0.016;                       // ball radius
+const BR_HIT = BR * 1.3;                       // its size as drawn, for the bat
 export const HOME = { x: 0.5, y: 1.412 };      // middle of home plate
 export const APEX = { x: 0.5, y: 1.444 };      // where the foul lines meet, at the back of the plate
 export const FOUL_K = 1.123;                   // the foul lines: K |x - 0.5| = APEX.y - y
@@ -54,9 +55,12 @@ export const BASES = [{ x: 0.839, y: 1.02 }, { x: 0.5, y: 0.776 }, { x: 0.161, y
 export const WALL = { x: 0.5, y: 1.175, r: 1.0 };   // the outfield wall: a wide arc, its face 0.175 down in the middle
 export const SIDE = 0.02;                      // the tin rim at x = SIDE and 1 - SIDE
 export const RAIL_Y = 1.02;                    // past the bases the foul lines are rails
-export const CATCH_Y = 1.517;                  // a pitch this far down is in the catcher's mitt
+export const CATCH_Y = 1.56;                   // a pitch this far down is in the catcher's mitt
 export const PLATE_HALF = 0.05;
-export const PIVOT = { x: 0.36, y: 1.392 };    // the bat's pivot, beside the plate (a square hit meets the sweet spot)
+// The bat's pivot, beside and a little behind the plate: the bat squares up
+// over the plate, so letting go as the ball arrives hits it straight away (and
+// a fair hit any time from a quarter second early to a moment late).
+export const PIVOT = { x: 0.36, y: 1.48 };
 export const BAT_L = 0.2;
 export const BAT_W = 0.011;                    // half the barrel's thickness
 export const FIELDER_R = 0.03;
@@ -76,7 +80,7 @@ export const FIELDERS = [
   { id: 'CF', x: 0.5, y: 0.4, r: FIELDER_R },
   { id: 'RF', x: 0.8, y: 0.55, r: FIELDER_R },
 ];
-export const CATCHER = { x: 0.5, y: 1.532 };
+export const CATCHER = { x: 0.5, y: 1.6 };      // behind the plate, clear of the swinging bat
 
 // Pockets: ten fixed ones in groups (their labels are dealt per group) and
 // the home run pocket that slides along the wall (slot 10).
@@ -133,11 +137,11 @@ export function rng(seed) {
 // --- pitches -------------------------------------------------------------------
 export const PITCH_Y0 = MOUND.y + 0.075;      // the ball leaves the front of the mound, into the groove
 export const TYPES = {
-  fast: { name: 'Fastball', v: 0.5, short: 'Fast' },
-  slow: { name: 'Slow ball', v: 0.26, short: 'Slow' },
-  curveL: { name: 'Curveball', v: 0.36, side: -1, short: 'Curve ◀' },
-  curveR: { name: 'Curveball', v: 0.36, side: 1, short: 'Curve ▶' },
-  vanish: { name: 'Vanishing pitch', v: 0.38, vanish: true, short: 'Vanish' },
+  fast: { name: 'Fastball', v: 0.75, short: 'Fast' },
+  slow: { name: 'Slow ball', v: 0.39, short: 'Slow' },
+  curveL: { name: 'Curveball', v: 0.54, side: -1, short: 'Curve ◀' },
+  curveR: { name: 'Curveball', v: 0.54, side: 1, short: 'Curve ▶' },
+  vanish: { name: 'Vanishing pitch', v: 0.57, vanish: true, short: 'Vanish' },
 };
 export const TYPE_IDS = Object.keys(TYPES);
 export const HATCH = [HOME.y - 0.13, HOME.y - 0.01];           // where the vanishing pitch is under the board
@@ -147,7 +151,7 @@ export function makePitch(type, seed) {
   const r = rng(seed)();
   const T = (HOME.y - PITCH_Y0) / k.v;
   let off = 0, D = 0;
-  if (k.side) D = k.side * (0.03 + 0.06 * r);
+  if (k.side) D = k.side * (0.015 + 0.025 * r);
   else off = (r - 0.5) * 0.024;
   return { type: TYPES[type] ? type : 'fast', seed, v: k.v, T, off, D, vanish: !!k.vanish, end: (CATCH_Y - PITCH_Y0) / k.v };
 }
@@ -177,7 +181,9 @@ export const PULL_MAX = 1.2;
 export const PULL_MIN = 0.06;
 export const PULL_RATE = 2.6;                  // rad/s while held
 export const TH_END = -1.75;
-const SPRING_K = 60;
+// Stiff, like the toy's flipper: let go and the bat is round to the plate in
+// well under a tenth of a second.
+const SPRING_K = 600;
 const PRELOAD = 0.35;
 const BAT_DRAG = 3;                            // rad/s² once the spring lets go
 export const SWING_MS = 1200;                  // longest a swing can last
@@ -212,13 +218,12 @@ export const swingAt = (sw, ms) => {
 
 // How lively the bat is along its length: the sweet spot is near the barrel.
 export const batE = r => Math.max(0.12, Math.min(0.5, 0.5 - 30 * (r - 0.14) * (r - 0.14)));
-export const VMAX = 2.5;
+export const VMAX = 2.75;
+// Hits ease towards VMAX rather than stopping dead at it, so a harder swing
+// still hits harder.
+const VSOFT = 5.6;
 const SPIN_K = 0.35, SPIN_MAX = 1.6;
-// The ball rolls slowly past the bat, so where along the groove they meet only
-// turns the hit a little; this widens it so that timing spreads hits across
-// the whole field (tuned with human-like timing, about +-70 ms: about 10%
-// foul, the rest spread from the corners to straight away).
-const AIM_GAIN = 2.4;
+const AIM_GAIN = 1.3;
 
 // The ball (centre b, velocity v) against the bat at angle th turning at om:
 // null when they don't touch or are parting, otherwise the ball's new velocity
@@ -230,7 +235,8 @@ export function batHit(b, v, th, om) {
   const px = PIVOT.x + c * along, py = PIVOT.y + s * along;
   let nx = b.x - px, ny = b.y - py;
   const d = Math.hypot(nx, ny);
-  if (d >= BR + BAT_W) return null;
+  // The ball as drawn (a little bigger than it rolls): if they touch on screen, they touch.
+  if (d >= BR_HIT + BAT_W) return null;
   if (d < 1e-9) { nx = Math.sin(th) * -Math.sign(om || -1); ny = -Math.cos(th) * -Math.sign(om || -1); }
   else { nx /= d; ny /= d; }
   // The bat's surface velocity where they touch.
@@ -243,9 +249,11 @@ export function batHit(b, v, th, om) {
   const vt = rvx * tx + rvy * ty;
   let ox = ux + rvx - (1 + e) * vn * nx - 0.12 * vt * tx;
   let oy = uy + rvy - (1 + e) * vn * ny - 0.12 * vt * ty;
+  // Widened a little (about the straight-away line) so timing reaches the
+  // corners: letting go as the ball arrives still hits it straight away.
   { const a = Math.atan2(ox, -oy) * AIM_GAIN, m = Math.sqrt(ox * ox + oy * oy); ox = Math.sin(a) * m; oy = -Math.cos(a) * m; }
   const sp = Math.hypot(ox, oy);
-  if (sp > VMAX) { ox *= VMAX / sp; oy *= VMAX / sp; }
+  { const k = sp > 1e-9 ? (VMAX * Math.tanh(sp / VSOFT)) / sp : 1; ox *= k; oy *= k; }
   const spin = Math.max(-SPIN_MAX, Math.min(SPIN_MAX, SPIN_K * vt));
   return { vx: ox, vy: oy, s: spin, along, e };
 }
@@ -262,6 +270,7 @@ export function findContact(p, pull, tRel) {
     if (t > p.end) break;
     const b = pitchAt(p, t);
     if (b.under || b.held) continue;
+    if (b.y > HOME.y + 0.08) break;           // gone past the plate: too late to hit, a miss (not a foul)
     const h = batHit(b, { x: b.vx, y: b.vy }, sw.th[i], sw.om[i]);
     if (h) {
       return { ms: i, t: Math.round(t * 1000) / 1000, th: sw.th[i], along: h.along,
@@ -1255,26 +1264,37 @@ export default {
       bat.th = th;
       const px = X(PIVOT.x), py = Y(PIVOT.y);
       const pullK = bat.mode === 'pull' ? clamp((th - TH_REST) / PULL_MAX, 0, 1) : 0;
-      // The spring: from a post behind the batter to the bat's handle.
-      const post = { x: X(PIVOT.x + 0.02), y: Y(PIVOT.y + 0.115) };
-      const hook = { x: px + Math.cos(th) * 0.045 * s, y: py + Math.sin(th) * 0.045 * s };
-      ctx.save();
-      ctx.fillStyle = '#868e96';
-      ctx.beginPath(); ctx.arc(post.x, post.y, 0.012 * s, 0, Math.PI * 2); ctx.fill();
-      const coils = 9, dx = hook.x - post.x, dy = hook.y - post.y, len = Math.hypot(dx, dy) || 1;
-      const nx = -dy / len, ny = dx / len, amp = 0.009 * s * (1 - pullK * 0.4);
-      ctx.strokeStyle = pullK > 0.66 ? '#ff6b6b' : pullK > 0.33 ? '#ffd43b' : '#ced4da';
-      ctx.lineWidth = Math.max(1.5, 0.004 * s);
-      ctx.beginPath();
-      ctx.moveTo(post.x, post.y);
-      for (let i = 1; i < coils * 2; i++) {
-        const u = i / (coils * 2);
-        const side = i % 2 ? 1 : -1;
-        ctx.lineTo(post.x + dx * u + nx * amp * side, post.y + dy * u + ny * amp * side);
+      // The spring: a coil wound round the pivot pin, like a mousetrap's. Its
+      // outer end is pinned to the board; its inner end turns with the bat, so
+      // pulling back winds it tighter (more turns, closer together).
+      {
+        const anchor = TH_REST + PULL_MAX + 0.6;          // where the outer end is pinned
+        const turns = 1.4 + (th - TH_REST) / (Math.PI * 2) + 0.15;
+        const r0 = 0.009 * s, r1 = 0.026 * s - (th - TH_REST) * 0.003 * s;
+        const steps = 90;
+        ctx.save();
+        ctx.lineCap = 'round';
+        const spiral = () => {
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const ang = anchor + (th - anchor) * u - turns * Math.PI * 2 * u;
+            const r = r1 + (r0 - r1) * u;
+            const x = px + Math.cos(ang) * r, y = py + Math.sin(ang) * r;
+            if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+          }
+        };
+        ctx.strokeStyle = 'rgba(20,24,30,0.55)';
+        ctx.lineWidth = Math.max(2.5, 0.0065 * s);
+        spiral(); ctx.stroke();
+        ctx.strokeStyle = '#ced4da';
+        ctx.lineWidth = Math.max(1.5, 0.0038 * s);
+        spiral(); ctx.stroke();
+        // The pinned end.
+        ctx.fillStyle = '#868e96';
+        ctx.beginPath(); ctx.arc(px + Math.cos(anchor) * r1, py + Math.sin(anchor) * r1, 0.006 * s, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
       }
-      ctx.lineTo(hook.x, hook.y);
-      ctx.stroke();
-      ctx.restore();
       // The tension meter: an arc round the pivot.
       if (bat.mode === 'pull') {
         ctx.save();
@@ -1282,7 +1302,7 @@ export default {
         ctx.lineWidth = 0.012 * s;
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.beginPath(); ctx.arc(px, py, 0.075 * s, TH_REST, TH_REST + PULL_MAX); ctx.stroke();
-        ctx.strokeStyle = pullK > 0.85 ? '#ff4d4d' : pullK > 0.45 ? '#ffd43b' : '#69db7c';
+        ctx.strokeStyle = `rgba(255,255,255,${0.55 + 0.4 * pullK})`;
         ctx.beginPath(); ctx.arc(px, py, 0.075 * s, TH_REST, th); ctx.stroke();
         ctx.restore();
       }
@@ -2180,6 +2200,17 @@ export default {
       // neighbours a few ms either side roll to one of them too.
       _aim(pull, angle = 0, want = null, earliest = 0) {
         if (!cur || !sh) return null;
+        // A wanted result the asked pull can't give reliably: try other pulls.
+        if (want && !this._aim1(pull, angle, want, earliest)) {
+          for (const p of [PULL_MAX, 1.0, 0.8, 0.6, 0.4]) {
+            const r = this._aim1(p, angle, want, earliest);
+            if (r) return r;
+          }
+        }
+        return this._aim1(pull, angle, want, earliest);
+      },
+      _aim1(pull, angle = 0, want = null, earliest = 0) {
+        if (!cur || !sh) return null;
         const res = tRel => {
           const c = findContact(cur.p, pull, tRel);
           return c ? { c, o: outcome(roll(c.L, sh.su, cur.lead), sh.pk, sh.bonus) } : null;
@@ -2190,8 +2221,10 @@ export default {
           if (!r || cur.t0 + tRel * 1000 - holdFor(pull) < earliest) continue;
           if (want) {
             if (!want.includes(r.o)) continue;
-            const a = res(tRel - 0.006), b = res(tRel + 0.006);
-            if (!a || !b || !want.includes(a.o) || !want.includes(b.o)) continue;
+            // Robust to a test browser's timing jitter (its release may be up to 15 ms
+            // late): the same result 18 ms either side.
+            const near = [-0.018, -0.012, -0.006, 0.006, 0.012, 0.018].map(d => res(tRel + d));
+            if (near.some(n => !n || !want.includes(n.o))) continue;
           }
           const ang = Math.atan2(r.c.L.vx, -r.c.L.vy);
           if (!best || Math.abs(ang - angle) < best.err) best = { tRel, err: Math.abs(ang - angle), L: r.c.L, o: r.o };

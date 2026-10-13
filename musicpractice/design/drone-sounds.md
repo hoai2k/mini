@@ -1,10 +1,16 @@
 # Drone sounds
 
-Every Drone voice plays recordings: takes generated with ElevenLabs sound
-effects (`eleven_text_to_sound_v2`, 15 s, prompt influence 0.7), each cut into
-a seamless loop. The bowed and blown voices are also made perfectly steady, as
-if the bow or breath never ended. The synthesized voices in `app/src/drone.js`
-remain only as a fallback if a voice's files can't load.
+The Drone's voices (Cello, Cello soft and Organ) play recordings: takes
+generated with ElevenLabs sound effects (`eleven_text_to_sound_v2`, 15 s,
+prompt influence 0.7), each cut into a seamless loop and made perfectly steady,
+as if the bow or breath never ended. The synthesized voices in
+`app/src/drone.js` remain only as a fallback if a voice's files can't load.
+
+Five more voices were recorded and looped the same way (cello section,
+tanpura, sitar, shruti box, bagpipe drones) but don't sound right yet. Their
+loops are archived in `sounds/drone/archive/`, outside the published app, with
+`manifest.json` holding their settings (pitches, loop lengths, levels, reverb)
+so one can be brought back as it was.
 
 ## Cello takes
 
@@ -45,9 +51,11 @@ Picked from 37 cello takes. What was learned on the way:
   with G2's prompt gave longer strokes, and brightness steadying (below)
   brought their brightness variation under G2's.
 
-## The other voices
+## The other voices (organ in use; the rest archived)
 
-Made the same way, from the takes in `sounds/drone/`. Where an instrument's
+The organ is in use; the others are archived (their loops are in
+`sounds/drone/archive/`). All were made the same way, from the takes in
+`sounds/drone/`. Where an instrument's
 natural range doesn't reach a note within 4 semitones (7 for the organ), it
 plays that note an octave up or down. **Cello, soft** is the steady cello
 through a 900 Hz low-pass (darker, as if bowed over the fingerboard), a

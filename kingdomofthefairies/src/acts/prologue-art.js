@@ -15,7 +15,13 @@ const GIFT_IN_HAND = {
   'fairy-crown': [50, 116, 82], 'fairy-crown-tinted': [42, 130, 78],
   'fairy-gold': [34, 105, 58], 'fairy-gold-tinted': [27, 118, 56],
 };
-const PRINCE = { w: 137, h: 225 };        // the prince (220 x 360 art)
+const PRINCE = { w: 137, h: 225 };
+// A present held up to the audience as he takes it: it rises from where it
+// was to the middle of the stage, grows, holds, then settles where it goes.
+const SHOW = { rise: 0.45, hold: 1.25, settle: 1.75, x: 640, y: 330, size: 250 };
+const shown = [];                         // { st, kind: 'gift'|'arm', id, x, by, size, t0, slot }
+const giftAt = {};                        // where each held gift was last drawn, stage px
+const LABELS = { gold: 'Gold!', flower: 'The flower!', ring: 'The ring!', crown: 'The crown!', helmet: 'The helmet!', shield: 'The shield!', sword: 'The enchanted sword!' };        // the prince (220 x 360 art)
 const camX = (st) => (sceneOf(st.phase) === 1 ? clamp(st.p.x - 420, 0, RAMPART.w - 1280) : 0);
 const CAPTIONS = {
   court: ['The Betrothal', 'Receive the fairies’ gifts for Princess Azurine'],
@@ -52,13 +58,23 @@ export function onEvent(k, e, st) {
     const f = FAIRIES.find((q) => q.gift === e.gift);
     if (f && f.gift !== 'flower' && k.img(f.id) && !k.img(f.id + '-empty')) { k.flash(0.25); k.burst(e.x, FLOOR - 130, '#f4ead2', 28, 'smoke'); }
   }
-  if (e.type === 'gift') { k.burst(e.x, FLOOR - 180, '#fff2b0', 22, 'sparkle'); k.text(e.gift === 'gold' ? 'Gold!' : `The ${e.gift}!`, e.x, FLOOR - 270); }
+  if (e.type === 'gift' && st) {
+    // sparkle from the gift itself, where it was in her hands
+    const f = FAIRIES.find((q) => q.gift === e.gift);
+    const at = giftAt[e.gift] ?? { x: f ? f.x + f.hand : e.x, by: FLOOR - 120, size: 77 };
+    k.burst(at.x, at.by - at.size / 2, '#fff2b0', 22, 'sparkle');
+    show(st, 'gift', e.gift, at, e.t ?? st.t, (e.n ?? st.gifts.length) - 1);
+  }
   if (e.type === 'betrothed') { k.flash(0.4); k.burst(AZURINE_X - 40, FLOOR - 170, '#f3c6dc', 30, 'sparkle'); }
   if (e.type === 'scene' && e.phase === 'curse') { k.flash(0.6); k.shake(0.4); k.burst(220, FLOOR - 150, '#5f3a6a', 30, 'smoke'); }
   if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
   if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
   if (e.type === 'scene' && e.phase === 'free') { k.flash(0.5); k.burst(st?.p.x ?? 420, ARM_FLOOR - 120, '#fff2b0', 34, 'sparkle'); }
-  if (e.type === 'arm') { k.burst(e.x, ARM_FLOOR - 50, '#fff2b0', 20, 'sparkle'); }
+  if (e.type === 'arm' && st) {
+    const size = e.arm === 'sword' ? 90 : 84;
+    k.burst(e.x, ARM_FLOOR + 2 - size / 2, '#fff2b0', 20, 'sparkle');
+    show(st, 'arm', e.arm, { x: e.x, by: ARM_FLOOR + 2, size }, e.t ?? st.t, -1);
+  }
   if (e.type === 'knighted') { k.flash(0.6); k.burst(st?.p.x ?? 900, ARM_FLOOR - 120, '#fff2b0', 40, 'sparkle'); }
 }
 
@@ -77,14 +93,21 @@ function courtScene(k, st, t) {
     if (f.gift === 'flower' || !k.img(f.id)) {
       // Aurora (her flower is drawn in her hand), or a fairy not yet delivered
       figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, f.id === 'aurora-stand' ? -1 : 1);
-      if (!given) held.push(() => gift(k, f.gift, f.x + f.hand, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x)));
+      if (!given) held.push(() => {
+        const s = 0.8 + 0.1 * Math.sin(t * 3 + f.x);
+        giftAt[f.gift] = { x: f.x + f.hand, by: FLOOR - 120, size: 96 * s };
+        gift(k, f.gift, f.x + f.hand, FLOOR - 120, s);
+      });
     } else if (k.img(f.id + '-empty')) {
       // empty-handed art (F15): the game puts her gift in her hands until she
       // gives it, in the same sway as her figure
       figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1);
       if (!given) held.push(() => figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1, (c, s, im) => {
         const [hx, hb, hw] = GIFT_IN_HAND[f.id + (/-tinted\./.test(im.src) ? '-tinted' : '')];
-        gift(k, f.gift, (hx - (im.naturalWidth || im.width) / 2) * s, (hb - (im.naturalHeight || im.height)) * s, (hw * s) / 96);
+        const gx = (hx - (im.naturalWidth || im.width) / 2) * s, gb = (hb - (im.naturalHeight || im.height)) * s;
+        const m = c.getTransform?.();
+        if (m) giftAt[f.gift] = { x: m.a * gx + m.c * gb + m.e, by: m.b * gx + m.d * gb + m.f, size: hw * s * Math.abs(m.a) };
+        gift(k, f.gift, gx, gb, (hw * s) / 96);
       }, true));
     } else if (!given) figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, 1);
     // Until then her art holds the gift itself, so once she has given it she
@@ -94,6 +117,7 @@ function courtScene(k, st, t) {
   // the gifts laid at her feet; the witch's curse withers the flower
   const wither = st.phase === 'curse' ? clamp((st.phaseT - 1.6) / 1.2, 0, 1) : 0;
   st.gifts.forEach((g, i) => {
+    if (showing(st, g)) return;
     c.save(); if (g === 'flower' && wither) { c.globalAlpha = 1 - 0.6 * wither; }
     gift(k, g, AZURINE_X - 120 + i * 42, FLOOR + 4, 0.55);
     c.restore();
@@ -101,6 +125,7 @@ function courtScene(k, st, t) {
   if (st.phase === 'curse') curse(k, st, t);
   prince(k, st, t);
   for (const draw of held) draw();
+  drawShown(k, st, t);
 }
 
 function curse(k, st, t) {
@@ -171,6 +196,7 @@ function armouryScene(k, st, t) {
     c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3 + a.x); c.fillStyle = k.col('#fff2b0'); k.circle(a.x, ARM_FLOOR - 40, 46); c.restore();
     arm(k, a.id, a.x, ARM_FLOOR + 2, t);
   }
+  drawShown(k, st, t);
   // the witch's cords about him until Aurora breaks them
   if (ph === 'bind' || (ph === 'free' && st.phaseT < 0.9)) cords(k, st, t, ph === 'free' ? 1 - st.phaseT / 0.9 : clamp((st.phaseT - 0.4) / 0.4, 0, 1));
 }
@@ -213,6 +239,56 @@ function prince(k, st, t, cx = 0) {
   if (!k.asset(id, 0, -bob, PRINCE.w, PRINCE.h)) { c.fillStyle = k.col('#6a2a5a'); c.fillRect(-20, -200, 40, 200); }
   c.restore();
   c.globalAlpha = 1;
+}
+
+function show(st, kind, id, at, t0, slot) {
+  for (let i = shown.length - 1; i >= 0; i--) if (shown[i].st !== st || shown[i].id === id) shown.splice(i, 1);
+  shown.push({ st, kind, id, x: at.x, by: at.by, size: at.size, t0, slot });
+}
+const showing = (st, id) => shown.some((s) => s.st === st && s.id === id && st.t - s.t0 >= 0 && st.t - s.t0 < SHOW.settle);
+
+// Each present being shown: up to the middle, big, with its name beneath,
+// then down to Azurine's feet (a gift) or onto the prince (his arms).
+function drawShown(k, st, t) {
+  const c = k.c;
+  for (const s of shown) {
+    const age = st.t - s.t0;
+    if (s.st !== st || age < 0 || age >= SHOW.settle) continue;
+    const end = s.kind === 'gift'
+      ? { x: AZURINE_X - 120 + s.slot * 42, by: FLOOR + 4, size: 96 * 0.55 }
+      : { x: st.p.x, by: st.p.y - 70, size: 40 };
+    const mid = { x: SHOW.x, by: SHOW.y + SHOW.size / 2, size: SHOW.size };
+    let a = 1, from = s, to = mid, u;
+    if (age < SHOW.rise) u = easeOut(age / SHOW.rise);
+    else if (age < SHOW.hold) u = 1;
+    else { from = mid; to = end; u = easeInOut((age - SHOW.hold) / (SHOW.settle - SHOW.hold)); if (s.kind === 'arm') a = 1 - u * u; }
+    const x = from.x + (to.x - from.x) * u, by = from.by + (to.by - from.by) * u, size = from.size + (to.size - from.size) * u;
+    const big = age < SHOW.hold ? u : 1 - u;   // how far up and grown it is
+    c.save();
+    // a soft glow behind it, and a dimming of the stage while it is held up
+    if (big > 0) {
+      c.globalAlpha = 0.3 * big; c.fillStyle = '#000'; c.fillRect(0, 0, 1280, 720);
+      const g = c.createRadialGradient(x, by - size / 2, size * 0.1, x, by - size / 2, size * 0.75);
+      g.addColorStop(0, 'rgba(255,242,176,0.75)'); g.addColorStop(1, 'rgba(255,242,176,0)');
+      c.globalAlpha = big * (0.85 + 0.15 * Math.sin(t * 6)); c.fillStyle = g; c.fillRect(x - size, by - size * 1.5, size * 2, size * 2);
+    }
+    c.globalAlpha = a;
+    if (s.kind === 'gift') gift(k, s.id, x, by, size / 96);
+    else armShown(k, s.id, x, by, size, t);
+    if (big > 0.6 && LABELS[s.id]) {
+      c.globalAlpha = clamp((big - 0.6) / 0.4, 0, 1);
+      c.textAlign = 'center'; c.font = '700 34px "Josefin Sans", sans-serif';
+      c.lineWidth = 6; c.strokeStyle = 'rgba(30,14,30,0.85)'; c.strokeText(LABELS[s.id], x, by + 44);
+      c.fillStyle = k.col('#fff2b0'); c.fillText(LABELS[s.id], x, by + 44);
+    }
+    c.restore();
+  }
+}
+
+// An arm drawn at any size (arm() draws them at their size on the floor).
+function armShown(k, id, x, by, size, t) {
+  const c = k.c, s = size / (id === 'sword' ? 90 : 84);
+  c.save(); c.translate(x, by); c.scale(s, s); arm(k, id, 0, 0, t); c.restore();
 }
 
 function gift(k, g, x, by, s) {

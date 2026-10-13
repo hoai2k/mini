@@ -28,10 +28,12 @@ export const FAIRIES = [
   { gift: 'crown', id: 'fairy-crown', x: 600, hand: -38, name: 'the fairy of the crown' },
   { gift: 'gold', id: 'fairy-gold', x: 750, hand: -46, name: 'the fairy of gold' },
 ];
-// He takes a gift with his outstretched hand (prince-court's right hand, this
-// far ahead of his centre), within GRASP of where she holds it.
-export const HAND = 55, GRASP = 42;
+// He takes a gift with either hand, within GRASP of where she holds it: the
+// outstretched one (prince-court's right hand, HAND ahead of his centre) or
+// the one at his side (NEAR_HAND behind it).
+export const HAND = 55, NEAR_HAND = -18, GRASP = 42;
 export const handX = (p) => p.x + p.face * HAND;
+export const handsX = (p) => [p.x + p.face * HAND, p.x + p.face * NEAR_HAND];
 export const AZURINE_X = 1080;
 export const COURT_START = 205;   // just inside the left curtain
 // The rampart: a 2560-wide walk along the parapet; the chariot stays ahead.
@@ -133,11 +135,11 @@ function walk(st, dt, mx, input = {}, { leap = false, floor = FLOOR, x0 = 40, x1
   if (Math.abs(mx) > 0.15) p.face = Math.sign(mx);
   p.vx += clamp(mx * PHYS.walk - p.vx, -PHYS.acc * dt, PHYS.acc * dt);
   p.buffer = input.a ? PHYS.buffer : Math.max(0, p.buffer - dt);
-  if (leap && p.on && p.buffer > 0) { p.vy = -PHYS.jump; p.on = false; p.buffer = 0; st.events.push({ type: 'leap' }); }
+  if (leap && p.on && p.buffer > 0) { p.vy = -PHYS.jump; p.on = false; p.buffer = 0; st.events.push({ type: 'hop' }); }   // silent: only the landing is heard
   if (!p.on) {
     p.vy += (PHYS.g + (p.vy < 0 && !input.aHeld ? PHYS.cut : 0)) * dt;
     p.y += p.vy * dt;
-    if (p.y >= floorAt(p.x)) { p.y = floorAt(p.x); p.vy = 0; p.on = true; st.events.push({ type: 'land' }); }
+    if (p.y >= floorAt(p.x)) { p.y = floorAt(p.x); p.vy = 0; p.on = true; st.events.push({ type: 'land', sound: 'thud', gain: 0.22 }); }
   }
   p.x = clamp(p.x + p.vx * dt, x0, x1);
   if (p.on) { p.y = floorAt(p.x); p.walk += Math.abs(p.vx) * dt; }
@@ -147,7 +149,7 @@ function court(st, dt, input) {
   walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 });
   const p = st.p;
   // who he is beside, and what A does there
-  const f = FAIRIES.find((q) => !st.gifts.includes(q.gift) && Math.abs(q.x + q.hand - handX(p)) < GRASP);
+  const f = FAIRIES.find((q) => !st.gifts.includes(q.gift) && handsX(p).some((hx) => Math.abs(q.x + q.hand - hx) < GRASP));
   const done = st.gifts.length === GIFTS.length;
   st.near = f ? { verb: 'Receive', at: f.x, label: `Receive ${f.gift === 'gold' ? 'the gold' : 'the ' + f.gift}` }
     : done && Math.abs(AZURINE_X - 60 - p.x) < REACH ? { verb: 'Take her hand', at: AZURINE_X, label: 'Take her hand' }
@@ -155,7 +157,7 @@ function court(st, dt, input) {
   if (!input.a || !st.near) return;
   if (f) {
     st.gifts.push(f.gift); st.score += 50;
-    st.events.push({ type: 'gift', gift: f.gift, from: f.name, x: f.x, n: st.gifts.length });
+    st.events.push({ type: 'gift', gift: f.gift, from: f.name, x: f.x, n: st.gifts.length, t: st.t });
   } else { st.betrothed = true; st.near = null; st.events.push({ type: 'betrothed' }); next(st); }
 }
 
@@ -193,7 +195,7 @@ function armoury(st, dt, input) {
   st.near = a ? { verb: 'Take', at: a.x, label: `Take the ${a.id}` } : null;
   if (input.a && a) {
     st.arms.push(a.id); st.score += 50;
-    st.events.push({ type: 'arm', arm: a.id, x: a.x, n: st.arms.length });
+    st.events.push({ type: 'arm', arm: a.id, x: a.x, n: st.arms.length, t: st.t });
     if (st.arms.length === ARMS.length) { st.events.push({ type: 'knighted' }); next(st); }
   }
 }

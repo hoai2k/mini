@@ -45,7 +45,7 @@ export function openEditor(onChange = () => {}) {
   dlg.id = 'unlock-editor';
   dlg.className = 'unlock-editor';
   dlg.setAttribute('aria-labelledby', 'unlock-h');
-  dlg.innerHTML = `<h2 id="unlock-h">Unlocked acts on this machine</h2>
+  dlg.innerHTML = `<button type="button" class="card-x" aria-label="Close">×</button><h2 id="unlock-h">Unlocked acts on this machine</h2>
     <p class="unlock-note">Each version of the game keeps its own progress. Choose how far each one is open; it is saved in this browser only.</p>
     <div class="unlock-list"></div>
     <div class="unlock-row"><button type="button" data-close data-focus>Done</button></div>`;
@@ -81,6 +81,12 @@ export function openEditor(onChange = () => {}) {
     paint();
   }
   dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
+  dlg.querySelector('.card-x').addEventListener('click', () => dlg.close());
+  // a tap on the backdrop, outside the panel, closes it
+  const outside = (e) => { const r = dlg.getBoundingClientRect(); return e.target === dlg && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom); };
+  let downOut = false;
+  dlg.addEventListener('pointerdown', (e) => { downOut = outside(e); });
+  dlg.addEventListener('click', (e) => { if (downOut && outside(e)) dlg.close(); downOut = false; });
   document.body.append(dlg);
   dlg.showModal();
   return dlg;

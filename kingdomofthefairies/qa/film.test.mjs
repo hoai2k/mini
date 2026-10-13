@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
-import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
+import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, FILM_CLIFF_HALF } from '../src/acts/act5film.js';
@@ -76,15 +76,31 @@ test('prologue: gifts, her hand, the chase along the rampart and the arming', ()
   assert.ok(prologue.intro, 'flows straight into Act I');
 });
 
-test('prologue: a gift is taken with his hand, not by walking into her', () => {
+test('prologue: a gift is taken with either hand, not by walking into her', () => {
   const st = prologue.create({});
   const ring = FAIRIES.find((f) => f.gift === 'ring');
-  Object.assign(st.p, { x: ring.x, face: 1 });   // standing in her: his hand is past her gift
+  Object.assign(st.p, { x: ring.x + ring.hand + 62, face: 1 });   // past her, short of the crown: both hands miss
   prologue.step(st, DT, { a: true, beat: 0 });
   assert.ok(!st.gifts.includes('ring'));
-  Object.assign(st.p, { x: ring.x + ring.hand - HAND, face: 1 });
+  Object.assign(st.p, { x: ring.x + ring.hand - HAND, face: 1 });   // the outstretched hand
   prologue.step(st, DT, { a: true, beat: 0 });
   assert.deepEqual(st.gifts, ['ring']);
+  const crown = FAIRIES.find((f) => f.gift === 'crown');
+  Object.assign(st.p, { x: crown.x + crown.hand - NEAR_HAND, face: 1 });   // the near hand, behind him
+  prologue.step(st, DT, { a: true, beat: 0 });
+  assert.deepEqual(st.gifts, ['ring', 'crown']);
+});
+
+test('prologue: his leap is silent and his landing a quiet thud', () => {
+  const st = prologue.create({ from: { scene: 1 } });
+  st.fires.length = 0;
+  for (let i = 0; i < 300 && st.phase !== 'rampart'; i++) prologue.step(st, DT, { beat: 0 });
+  const seen = [];
+  for (let i = 0; i < 120; i++) { st.events.length = 0; prologue.step(st, DT, { a: i === 0, aHeld: i < 10, beat: 0 }); seen.push(...st.events); }
+  const hop = seen.find((e) => e.type === 'hop'), land = seen.find((e) => e.type === 'land');
+  assert.ok(hop && !hop.sound, 'the leap makes no sound');
+  assert.ok(land && land.sound === 'thud' && land.gain <= 0.3, 'a quiet landing');
+  assert.ok(!seen.some((e) => e.type === 'leap'), 'no loud leap sound');
 });
 
 test('prologue: the rampart fire burns on; each touch costs a lantern, and none left loses the chase', () => {

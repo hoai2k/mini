@@ -92,14 +92,58 @@ html.touch [data-tip]:hover::after { display: none; }
 #books { display: flex; flex-direction: column; padding: calc(10px + var(--safe-t)) calc(16px + var(--safe-r)) calc(10px + var(--safe-b)) calc(16px + var(--safe-l));
   background: radial-gradient(ellipse at 50% 0, #1b2440, var(--bg) 70%); overflow: auto; }
 .books-head { display: flex; align-items: center; gap: 10px; }
-.books-head h2 { margin: 0; font: 700 clamp(22px, 4vmin, 32px) var(--display); flex: 1; }
-.books-head .total { color: var(--brass-2); font-weight: 800; }
-.levels { display: flex; gap: 6px; margin: 8px 0 12px; flex-wrap: wrap; }
+.books-head .total { color: var(--brass-2); font-weight: 800; margin-left: auto; white-space: nowrap; }
+/* The songbook and difficulty dropdown buttons */
+.pickers { display: flex; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.picker-btn { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%; padding: 6px 12px 6px 8px; border: 1px solid var(--line-2); border-radius: 14px;
+  background: linear-gradient(160deg, var(--panel-2), var(--panel)); color: var(--ink); text-align: left; transition: border-color .2s; }
+.picker-btn:not(.book-pick) { padding-left: 14px; }
+.picker-btn:hover, .picker-btn.pad-focus, .picker-btn:focus-visible, .picker-btn[aria-expanded="true"] { border-color: var(--brass); }
+.picker-btn .pk { display: flex; flex-direction: column; min-width: 0; }
+.picker-btn small { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.picker-btn b { font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picker-btn .glyph { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; background: rgba(226, 180, 94, .14) center / cover; color: var(--brass-2); }
+.picker-btn .glyph.art { font-size: 0; }
+.picker-btn .chev { flex: none; width: 18px; height: 18px; color: var(--brass-2); transition: transform .2s; }
+.picker-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+/* What to do: Melody Challenges, Free Play, Your Ears, Focus Mode, Full Songs */
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; align-content: start; }
+/* A card like the songbook cards were: the icon on the left, its name, blurb and progress beside it. */
+.mode { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto; column-gap: 12px; align-items: start; align-content: start; text-align: left;
+  padding: 12px 14px 11px 12px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); color: var(--ink);
+  min-width: 0; transition: transform .14s, border-color .2s; }
+.modes > .mode:first-child { grid-column: 1 / -1; } /* Melody Challenges, the main thing to do, across both columns */
+.mode:hover, .mode.pad-focus, .mode:focus-visible { border-color: var(--brass); transform: translateY(-2px); }
+.mode:active { transform: scale(.97); }
+.mode:disabled { opacity: .45; transform: none; }
+.mode .mode-icon { grid-row: 1 / 3; width: 26px; height: 26px; color: var(--brass-2); padding: 9px; border-radius: 12px; background: rgba(226, 180, 94, .14); box-sizing: content-box; }
+.mode .name { font-weight: 800; font-size: 15px; line-height: 1.25; }
+.mode .blurb { color: var(--muted); font-size: 12px; line-height: 1.3; }
+.mode .meter { grid-column: 1 / -1; margin-top: 8px; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.mode .meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--brass), var(--brass-2)); border-radius: 3px; }
+.mode .at { grid-column: 1 / -1; margin-top: 4px; font-size: 11px; color: var(--brass-2); font-weight: 700; }
+.mode .at:empty { display: none; }
+@media (max-width: 480px) { .modes { grid-template-columns: 1fr; } }
+/* The dropdown panels: under their button, over a light dim */
+.dialog.picker-pop { display: block; background: rgba(5, 8, 14, .35); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.pop-panel { position: fixed; overflow: auto; background: linear-gradient(170deg, var(--panel-2), var(--panel)); border: 1px solid var(--line-2); border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .6); padding: 8px; animation: fade .15s; }
+.book-list { width: min(760px, calc(100vw - 24px)); display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.book-list .book { padding: 9px 10px 8px; grid-template-columns: 40px 1fr; }
+.book-list .book .glyph { width: 40px; height: 40px; }
+.book-list .book .name { font-size: 14px; }
+.book-list .book .blurb { font-size: 11px; }
+.book-list .book .meter { margin-top: 6px; }
+.book[aria-selected="true"], .level-item[aria-selected="true"] { border-color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); }
+.level-list { width: min(320px, calc(100vw - 24px)); display: flex; flex-direction: column; gap: 4px; }
+.level-item { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 8px 12px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--ink); }
+.level-item:hover, .level-item.pad-focus, .level-item:focus-visible { background: rgba(226, 180, 94, .1); border-color: var(--line-2); }
+.level-item .name { font-weight: 800; font-size: 15px; }
+.level-item .blurb { color: var(--muted); font-size: 12px; }
 .chip { border: 1px solid var(--line-2); background: transparent; border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 13px; color: var(--muted); }
 .chip[aria-checked="true"] { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); }
 .chip:hover { color: var(--ink); }
-.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
-.book { text-align: left; border: 1px solid var(--line); background: linear-gradient(160deg, var(--panel-2), var(--panel)); border-radius: 14px; padding: 12px 12px 10px;
+.book { text-align: left; color: var(--ink); border: 1px solid var(--line); background: linear-gradient(160deg, var(--panel-2), var(--panel)); border-radius: 14px; padding: 12px 12px 10px;
   display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto auto; column-gap: 10px; position: relative; overflow: hidden; transition: transform .14s, border-color .2s; }
 .book:hover, .book.pad-focus, .book:focus-visible { border-color: var(--brass); transform: translateY(-2px); }
 .book:active { transform: scale(.97); }
@@ -227,7 +271,6 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
 #play.free .ctl.clear { display: inline-flex; grid-column: 1 / -1; grid-row: 1 / -1; }
 #play.free .panel { width: clamp(90px, 12vw, 140px); }
 .staff-card[data-empty]::after { content: attr(data-empty); position: absolute; inset: 0; display: grid; place-items: center; padding: 0 16px; text-align: center; color: #6b6556; font-weight: 700; font-size: 13px; }
-.free-btn { margin-right: 8px; }
 
 /* ---------------------------------------------------------------- keyboard */
 .kbd-wrap { position: relative; padding: 0 var(--safe-r) var(--safe-b) var(--safe-l); width: 100%; max-width: 1280px; justify-self: center;
@@ -363,3 +406,10 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { touch-ac
 .ears-row .lv { font-size: 13px; color: var(--muted); text-align: right; }
 .ears-list { margin: 4px 0; padding-left: 18px; } .ears-list li { margin: 3px 0; }
 .ears-note { color: var(--muted); font-size: 14px; }
+@media (max-height: 460px) {
+  .level-item { padding: 5px 12px; }
+  .modes { margin-top: 8px; gap: 8px; }
+  .mode { padding: 8px 12px 8px 10px; }
+  .mode .mode-icon { width: 22px; height: 22px; padding: 7px; }
+  .mode .meter { margin-top: 5px; }
+}

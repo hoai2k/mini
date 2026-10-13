@@ -168,7 +168,7 @@ if (editorWanted()) {
   const b = document.createElement('button');
   b.className = 'icon unlock-btn'; b.textContent = 'Unlocks'; b.setAttribute('aria-label', 'Unlocked acts'); b.dataset.focus = '';
   b.addEventListener('click', () => openEditor(reload));
-  document.querySelector('#title nav.corner')?.prepend(b);
+  document.querySelector('#icons .corner-left')?.prepend(b);
   addEventListener('load', () => openEditor(reload), { once: true });
 }
 
@@ -262,8 +262,22 @@ function resume() {
 function openDialog(el, focusOn = null) {
   el.hidden = false;
   dialogs.push({ el, restore: document.activeElement });
-  focusEl(focusOn || el.querySelector('[data-focus]'));
+  focusEl(focusOn || el.querySelector('[data-focus]:not(.card-x)'));
 }
+// A tap or click outside a dialog's card closes it (the pause menu resumes).
+// Only a tap that both starts and ends on the backdrop: the tap that opened
+// the dialog (the pause button under it) mustn't close it again.
+document.querySelectorAll('.layer.dialog').forEach((el) => {
+  let downOnBackdrop = false;
+  el.addEventListener('pointerdown', (e) => { downOnBackdrop = e.target === el; });
+  el.addEventListener('click', (e) => {
+    const ok = downOnBackdrop && e.target === el && dialogs[dialogs.length - 1]?.el === el;
+    downOnBackdrop = false;
+    if (!ok) return;
+    audio.play('ui');
+    if (el.id === 'pause') resume(); else closeDialog();
+  });
+});
 
 // ---------------------------------------------------------------- instructions
 // One page per act; the dialog opens on the act being played (or chosen on
@@ -338,19 +352,19 @@ function closeAllDialogs() { while (dialogs.length) closeDialog(); }
 document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
   const a = b.dataset.act;
   audio.play('ui');
-  if (a === 'close') closeDialog();
+  if (a === 'close') { if (b.closest('#pause')) resume(); else closeDialog(); }
   if (a === 'resume') resume();
   if (a === 'instructions') openInstructions();
   if (a === 'scenes') openScenes();
   if (a === 'settings') openDialog($('#settings'));
-  if (a === 'credits') openDialog($('#credits'), $('#credits [data-act=close]'));
+  if (a === 'credits') openDialog($('#credits'), $('#credits .scroll'));
   if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
 $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openInstructions(); });
 $('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
-$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits [data-act=close]')); });
+$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits .scroll')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
 $('#btn-sound').addEventListener('click', () => {
   settings.sound = !settings.sound;
@@ -366,7 +380,8 @@ $('#btn-fullscreen').addEventListener('click', () => {
 // ---------------------------------------------------------------- focus nav
 function focusables() {
   const layer = dialogs.length ? dialogs[dialogs.length - 1].el : (S.mode === 'title' ? $('#title') : null);
-  return layer ? [...layer.querySelectorAll('[data-focus]')].filter((e) => !e.closest('[hidden]')) : [];
+  const extra = !dialogs.length && S.mode === 'title' ? [...$('#icons').querySelectorAll('[data-focus]')] : [];
+  return layer ? [...layer.querySelectorAll('[data-focus]'), ...extra].filter((e) => !e.closest('[hidden]')) : [];
 }
 function clearNavFocus() { document.querySelectorAll('.nav-focus').forEach((e) => e.classList.remove('nav-focus')); }
 function focusEl(el, mark = true) {
@@ -521,6 +536,7 @@ function update(dt, i) {
   audio.setStage(S.mode === 'play' && !S.paused, CRACKLE && !LEGACY);
   S.curtain += (S.curtainTarget - S.curtain) * Math.min(1, dt * 2.2);
   if (TOUCH) updateTouch();
+  updateIcons(dt);
 
   // Menus have the input while any dialog is open.
   if (dialogs.length) { menuInput(i); return; }
@@ -640,7 +656,8 @@ function actWon() {
 }
 
 function handleEvent(e) {
-  audio.play(e.type);
+  // an event may name its own sound and loudness (e.sound, e.gain)
+  audio.play(e.sound || e.type, e.gain ?? 1);
   renderer.onEvent(e, currentView());
   const rumble = settings.vibration && input.owner() !== null;
   if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); if (TOUCH && settings.vibration) navigator.vibrate?.(70); }
@@ -678,6 +695,26 @@ function touchScheme() {
   if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };
+}
+// The option buttons (#icons): the guide buttons at the left on the title and
+// playbill; settings, sound and fullscreen at the right throughout. In play on
+// a phone those hide, and a tap at the bottom right shows them for 7 s.
+const ICONS_SHOW = 7;
+let iconsT = 0;
+const iconsEl = $('#icons');
+iconsEl.classList.toggle('autohide', TOUCH);
+const revealIcons = () => { iconsT = ICONS_SHOW; iconsEl.classList.add('revealed'); };
+iconsEl.querySelector('.corner-reveal').addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); revealIcons(); });
+iconsEl.querySelector('.corner-right').addEventListener('pointerdown', () => { if (iconsT > 0) iconsT = ICONS_SHOW; });
+function updateIcons(dt) {
+  const menu = S.mode === 'title' || S.mode === 'playbill';
+  const show = menu ? 'menu' : S.mode === 'curtaincall' ? 'none' : 'play';
+  if (iconsEl.dataset.show !== show) iconsEl.dataset.show = show;
+  // paused or in a dialog, the options stay out (a menu is up)
+  const inPlay = S.mode === 'play' && !S.paused && !dialogs.length;
+  if (iconsT > 0 && inPlay) { iconsT -= dt; if (iconsT <= 0) iconsEl.classList.remove('revealed'); }
+  iconsEl.classList.toggle('menu-up', !inPlay);
+  if (!inPlay && TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
 }
 let lastPortrait = null, lastTouchScene = '';
 function updateTouch() {

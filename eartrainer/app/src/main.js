@@ -23,6 +23,12 @@ const state = loadState();
 const { settings, progress } = state;
 const save = () => saveState(state);
 progress.level = LEVEL_ALIASES[progress.level] || progress.level;
+// The difficulty for Melody Challenges is kept on its own; `level` is what the
+// current mode plays (a difficulty, 'focus' or 'songs'). Older saves had one.
+const DIFFICULTIES = LEVELS.filter((l) => l.id === 'adaptive' || l.range);
+if (!DIFFICULTIES.some((l) => l.id === progress.difficulty)) {
+  progress.difficulty = DIFFICULTIES.some((l) => l.id === progress.level) ? progress.level : 'adaptive';
+}
 const LIB = buildLibrary();
 // The skill profile (skills.js): what each melody asks, and how the player's first presses went.
 if (!progress.ears) progress.ears = emptyEars(progress.rating || 1);
@@ -138,46 +144,131 @@ function openBooks() {
   focusFirst($('#books'));
 }
 
+// The choice screen: the songbook and difficulty as dropdowns along the top,
+// and what to do below: Melody Challenges, Free Play, Your Ears, Focus Mode
+// and Full Songs.
+const MODES = [
+  { id: 'melody', name: 'Melody Challenges', icon: '<path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16" r="2.5" fill="currentColor"/>' },
+  { id: 'free', name: 'Free Play', blurb: 'The whole piano, no melody to find', icon: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 5v8M12 5v8M16 5v8" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'ears', name: 'Your Ears', blurb: 'What you hear well, and what to work on', icon: '<path d="M8 18a2 2 0 0 0 4 0c0-2 4-3 4-8a6 6 0 0 0-12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 10a2 2 0 0 1 4 0c0 1.5-2 2-2 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { id: 'focus', name: 'Focus Mode', blurb: 'Works on what you find hardest, with drills', icon: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>' },
+  { id: 'songs', name: 'Full Songs', blurb: 'A whole song, phrase by phrase', icon: '<path d="M5 4h11l3 3v13H5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 10h8M8 14h8M8 18h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+];
+const bookOf = (id) => SONGBOOKS.find((b) => b.id === id) || SONGBOOKS[0];
+const difficultyName = (id) => (id === 'adaptive' ? `Adaptive · ${overallLevel(ears).toFixed(1)}` : LEVELS.find((l) => l.id === id)?.name || id);
+function setGlyph(el, book) {
+  const cover = S.covers?.[`book-${book.id}`];
+  el.textContent = cover ? '' : book.glyph;
+  el.classList.toggle('art', !!cover);
+  el.style.backgroundImage = cover ? `url("${cover}")` : '';
+}
+
 function renderBooks() {
-  const lv = $('#levels');
-  lv.innerHTML = '';
-  for (const l of LEVELS) {
-    const b = document.createElement('button');
-    b.className = 'chip'; b.setAttribute('role', 'radio'); b.dataset.focus = '';
-    b.setAttribute('aria-checked', String(progress.level === l.id));
-    b.textContent = l.id === 'adaptive' ? `Adaptive · ${overallLevel(ears).toFixed(1)}` : l.name;
-    if (l.blurb) b.title = l.blurb;
-    b.addEventListener('click', () => { progress.level = l.id; save(); renderBooks(); focusEl($(`#levels [data-level="${l.id}"]`)); });
-    b.dataset.level = l.id;
-    lv.append(b);
-  }
-  const grid = $('#book-grid');
+  const book = bookOf(progress.book);
+  setGlyph($('#pick-book-glyph'), book);
+  $('#pick-book-name').textContent = book.name;
+  $('#pick-book').setAttribute('aria-label', `Songbook: ${book.name}. Choose another`);
+  $('#pick-level-name').textContent = difficultyName(progress.difficulty);
+  $('#pick-level').setAttribute('aria-label', `Difficulty: ${difficultyName(progress.difficulty)}. Choose another`);
+
+  const melodies = inBook(LIB, book.id);
+  const songs = songsIn(book.id);
+  const lv = LEVELS.find((l) => l.id === progress.difficulty);
+  const solved = (pool) => pool.filter((m) => progress.best[m.id]).length;
+  const grid = $('#modes');
   grid.innerHTML = '';
-  let solvedAll = 0;
-  const songs = isSongs(progress.level);
-  for (const book of SONGBOOKS) {
-    const pool = songs ? songsIn(book.id) : inBook(LIB, book.id);
-    if (!pool.length) continue;
-    const solved = pool.filter((m) => progress.best[m.id]).length;
-    if (book.id === 'all') solvedAll = solved;
+  for (const mode of MODES) {
     const b = document.createElement('button');
-    b.className = 'book'; b.dataset.focus = ''; b.dataset.book = book.id;
-    const cover = S.covers?.[`book-${book.id}`];
-    b.innerHTML = `<span class="glyph${cover ? ' art' : ''}" aria-hidden="true">${book.glyph}</span><span class="name"></span><span class="blurb"></span>
-      <span class="meter"><i style="width:${(solved / pool.length) * 100}%"></i></span><span class="count">${solved}/${pool.length}</span><span class="at"></span>`;
-    const at = countAt(pool, progress.level);
-    const lvName = LEVELS.find((l) => l.id === progress.level);
-    if (songs) b.querySelector('.at').textContent = `${pool.length} whole song${pool.length === 1 ? '' : 's'}`;
-    else if (lvName?.range) b.querySelector('.at').textContent = at ? `${at} at ${lvName.short}` : `None at ${lvName.short}: nearest level instead`;
-    if (cover) b.querySelector('.glyph').style.backgroundImage = `url("${cover}")`;
-    b.querySelector('.name').textContent = book.name;
-    b.querySelector('.blurb').textContent = book.blurb;
-    b.setAttribute('aria-label', `${book.name}: ${book.blurb}. ${solved} of ${pool.length} solved.`);
-    b.addEventListener('click', () => startBook(book.id));
+    b.className = 'mode'; b.dataset.focus = ''; b.dataset.mode = mode.id;
+    b.innerHTML = `<svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">${mode.icon}</svg><span class="name"></span><span class="blurb"></span><span class="meter" hidden><i></i></span><span class="at"></span>`;
+    b.querySelector('.name').textContent = mode.name;
+    let blurb = mode.blurb || '', at = '', meter = null;
+    if (mode.id === 'melody') {
+      blurb = `Hear a melody, play it back · ${lv?.short || 'Adaptive'}`;
+      const n = countAt(melodies, progress.difficulty);
+      meter = [solved(melodies), melodies.length];
+      at = lv?.range ? (n ? `${n} at ${lv.short}` : `None at ${lv.short}: nearest level instead`) : `${melodies.length} melodies`;
+    } else if (mode.id === 'songs') {
+      meter = [solved(songs), songs.length];
+      at = songs.length ? `${songs.length} whole song${songs.length === 1 ? '' : 's'}` : 'None in this songbook';
+    }
+    b.querySelector('.blurb').textContent = blurb;
+    b.querySelector('.at').textContent = at;
+    if (meter && meter[1]) {
+      const m = b.querySelector('.meter');
+      m.hidden = false;
+      m.querySelector('i').style.width = `${(meter[0] / meter[1]) * 100}%`;
+      b.querySelector('.at').textContent = `${at} · ${meter[0]}/${meter[1]} solved`;
+    }
+    if (mode.id === 'songs' && !songs.length) b.disabled = true;
+    b.setAttribute('aria-label', `${mode.name}: ${b.querySelector('.blurb').textContent}. ${b.querySelector('.at').textContent}`);
+    b.addEventListener('click', () => startMode(mode.id));
     grid.append(b);
   }
-  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solvedAll}/${songs ? SONGS.length : LIB.length}`;
+  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solved(LIB)}/${LIB.length}`;
 }
+
+function startMode(id) {
+  if (id === 'free') return startFree();
+  if (id === 'ears') return openEars();
+  progress.level = id === 'melody' ? progress.difficulty : id; // 'focus' or 'songs'
+  save();
+  startBook(progress.book);
+}
+
+// The dropdowns: a panel under its button, opened as a dialog (so the
+// controller's A and B, Escape and a tap outside all work as in other dialogs).
+function openPicker(btn, menu) {
+  const panel = menu.querySelector('.pop-panel');
+  openDialog(menu);
+  btn.setAttribute('aria-expanded', 'true');
+  const r = btn.getBoundingClientRect();
+  const margin = 12;
+  panel.style.left = `${Math.max(margin, Math.min(r.left, innerWidth - panel.offsetWidth - margin))}px`;
+  panel.style.top = `${r.bottom + 6}px`;
+  panel.style.maxHeight = `${innerHeight - r.bottom - 6 - margin}px`;
+  const chosen = panel.querySelector('[aria-selected="true"]');
+  if (chosen) { chosen.scrollIntoView?.({ block: 'nearest' }); if (padMode || !TOUCH) focusEl(chosen); }
+}
+
+function renderBookMenu() {
+  const list = $('#book-list');
+  list.innerHTML = '';
+  for (const book of SONGBOOKS) {
+    const pool = inBook(LIB, book.id);
+    if (!pool.length) continue;
+    const done = pool.filter((m) => progress.best[m.id]).length;
+    const b = document.createElement('button');
+    b.className = 'book'; b.dataset.focus = ''; b.dataset.book = book.id;
+    b.setAttribute('role', 'option');
+    b.setAttribute('aria-selected', String(book.id === progress.book));
+    b.innerHTML = `<span class="glyph" aria-hidden="true"></span><span class="name"></span><span class="blurb"></span>
+      <span class="meter"><i style="width:${(done / pool.length) * 100}%"></i></span><span class="count">${done}/${pool.length}</span>`;
+    setGlyph(b.querySelector('.glyph'), book);
+    b.querySelector('.name').textContent = book.name;
+    b.querySelector('.blurb').textContent = book.blurb;
+    b.setAttribute('aria-label', `${book.name}: ${book.blurb}. ${done} of ${pool.length} solved.`);
+    b.addEventListener('click', () => { progress.book = book.id; save(); closeDialog(); renderBooks(); });
+    list.append(b);
+  }
+}
+function renderLevelMenu() {
+  const list = $('#level-list');
+  list.innerHTML = '';
+  for (const l of DIFFICULTIES) {
+    const b = document.createElement('button');
+    b.className = 'level-item'; b.dataset.focus = ''; b.dataset.level = l.id;
+    b.setAttribute('role', 'option');
+    b.setAttribute('aria-selected', String(l.id === progress.difficulty));
+    b.innerHTML = '<span class="name"></span><span class="blurb"></span>';
+    b.querySelector('.name').textContent = difficultyName(l.id);
+    b.querySelector('.blurb').textContent = l.id === 'adaptive' ? 'Follows how you are doing' : l.blurb;
+    b.addEventListener('click', () => { progress.difficulty = l.id; save(); closeDialog(); renderBooks(); });
+    list.append(b);
+  }
+}
+$('#pick-book').addEventListener('click', (e) => { renderBookMenu(); openPicker(e.currentTarget, $('#book-menu')); });
+$('#pick-level').addEventListener('click', (e) => { renderLevelMenu(); openPicker(e.currentTarget, $('#level-menu')); });
 
 function startBook(id) {
   progress.book = id; save();
@@ -219,7 +310,6 @@ function freeNote(midi) {
   staff.update({ pos: notes.length, done: true, practice: false });
   setPrompt(noteName(midi, { flats: false }));
 }
-$('#btn-free').addEventListener('click', startFree);
 $('#btn-clear').addEventListener('click', () => { S.freeNotes = []; staff.clear('Cleared. Play on.'); });
 
 function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('title'); focusEl($('#start'), false); }
@@ -717,7 +807,6 @@ function openEars() {
   body.innerHTML = html;
   openDialog($('#ears'));
 }
-$('#btn-ears').addEventListener('click', openEars);
 
 // ---------------------------------------------------------------- dialogs
 const dialogs = []; // { el, returnFocus }
@@ -740,6 +829,7 @@ function closeDialog() {
     clearTimeout(retryT); retryT = setTimeout(startRetry, 900);
   }
   d.el.hidden = true;
+  $$(`[aria-controls="${d.el.id}"]`).forEach((b) => b.setAttribute('aria-expanded', 'false'));
   if (d.returnFocus?.isConnected && !d.returnFocus.closest('[hidden]')) focusEl(d.returnFocus, padMode);
   chrome.update();
 }
@@ -808,7 +898,7 @@ function syncStaffSetting() { $('#play').classList.toggle('no-staff', !settings.
 syncStaffSetting();
 $('#set-vibrate').addEventListener('change', (e) => { settings.vibrate = e.target.checked; save(); });
 $('#set-reset').addEventListener('click', () => confirmBox('Reset your score, stars and level? Settings stay.', () => {
-  Object.assign(progress, structuredClone(DEFAULTS.progress), { book: progress.book, level: progress.level });
+  Object.assign(progress, structuredClone(DEFAULTS.progress), { book: progress.book, level: progress.level, difficulty: progress.difficulty });
   for (const k of Object.keys(ears)) delete ears[k];
   Object.assign(ears, emptyEars(1));
   progress.ears = ears;
@@ -834,7 +924,7 @@ function focusEl(el, visible = padMode) {
 }
 function focusFirst(layer) {
   const f = focusables(layer);
-  const pick = layer.id === 'books' ? f.find((e) => e.dataset.book === progress.book) || f[0] : f[0];
+  const pick = layer.id === 'books' ? f.find((e) => e.dataset.mode === 'melody') || f[0] : f[0];
   if (padMode || !TOUCH) focusEl(pick); else document.activeElement?.blur?.();
 }
 function moveFocus(dir) {

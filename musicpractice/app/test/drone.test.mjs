@@ -43,7 +43,8 @@ test('the settings accept exactly the voices and sequences the drone has', async
 test('recorded voices: every note is close to a recording (or its octave), and the files are there', async () => {
   const { SAMPLED, VOICES, nearestLoop } = await import('../src/drone.js');
   const { existsSync, statSync } = await import('node:fs');
-  for (const v of VOICES) assert.ok(SAMPLED[v.id], `${v.id} has recordings`);
+  // Every voice is recorded, apart from the Synth organ, which is synthesized on purpose.
+  for (const v of VOICES) assert.ok(SAMPLED[v.id] || v.id === 'organ-synth', `${v.id} has recordings`);
   for (const [id, voice] of Object.entries(SAMPLED)) {
     const limit = (voice.maxShift ?? 4) + 0.6; // + the reference pitch moving (A4 415-466)
     for (let m = DRONE_MIN; m <= DRONE_MAX; m++) {
