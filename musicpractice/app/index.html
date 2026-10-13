@@ -60,20 +60,32 @@
     <section id="home" class="screen" aria-labelledby="home-title">
       <button class="icon-btn home-gear" id="app-settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       <h1 id="home-title" class="brand">Music <em>Practice</em></h1>
-      <div class="choices">
-        <a class="choice" href="#metronome" id="go-metronome">
+      <button class="pill home-done" id="home-done" type="button" hidden>Done</button>
+      <div class="choices" id="choices">
+        <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
           <span class="label">Metronome</span>
         </a>
-        <a class="choice" href="#record" id="go-record">
-          <span class="art" data-asset="home-record"></span>
-          <span class="label">Playback Recorder</span>
-        </a>
-        <a class="choice" href="#tuner" id="go-tuner">
+        <a class="choice" href="#tuner" id="go-tuner" data-tool="tuner" draggable="false">
           <span class="art" data-asset="home-tuner"></span>
           <span class="label">Tuner</span>
         </a>
+        <a class="choice" href="#record" id="go-record" data-tool="record" draggable="false">
+          <span class="art" data-asset="home-record"></span>
+          <span class="label">Playback Recorder</span>
+        </a>
       </div>
+      <script>
+        // Put the buttons in the saved order before the page draws (src/homeorder.js does the rest).
+        try {
+          var order = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).homeOrder;
+          var box = document.getElementById('choices');
+          if (Array.isArray(order)) order.forEach(function (id) {
+            var el = box.querySelector('[data-tool="' + id + '"]');
+            if (el) box.appendChild(el);
+          });
+        } catch (e) { /* default order */ }
+      </script>
 
       <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
         <form method="dialog">

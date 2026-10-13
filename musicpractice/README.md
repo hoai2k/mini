@@ -4,9 +4,18 @@ A metronome, a practice recorder and a tuner. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
-three buttons, **Metronome**, **Playback Recorder** and **Tuner** (two across
+three buttons, **Metronome**, **Tuner** and **Playback Recorder** (two across
 and the third centred below on phones, three across on wider screens), and a
 settings gear.
+
+The buttons can be put in any order, like apps on an iPhone home screen
+(`app/src/homeorder.js`): hold one for about half a second and they all
+jiggle; the held one lifts and follows the finger (or mouse) while the others
+slide out of its way, and letting go drops it there. While they jiggle, any
+button can be dragged at once and tapping one doesn't open it; tapping the
+background, **Done** or Escape stops. Arrow keys move the focused button
+while jiggling. The order is saved with the settings and applied before the
+page draws, so there's no flash of the default order.
 
 ## Themes
 
@@ -177,7 +186,8 @@ favour of the two-button home screen.
 ## Files
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
-  modules, no build step). `main.js` the screens, `metronome.js` the
+  modules, no build step). `main.js` the screens, `homeorder.js` hold and
+  drag to reorder the home screen, `metronome.js` the
   scheduler, sounds and pendulum, `recorder.js` the mic and take state
   machine, `capture-worklet.js` the mic tap, `detect.js` the music/noise
   detector and trimming, `waveform.js` the waveform views, `takes.js` saved
