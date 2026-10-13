@@ -184,7 +184,7 @@ export default function create(env) {
       if (floating < TUNE.junk - 3 && rng() < dt * 0.8) spawnJunk(SEA.x0 - 30, lerp(SEA.y0 + 20, SEA.y1 - 10, rng()));
 
       // ---- full up: burp ----
-      if (self.full > TUNE.bloatedAt && !warned) { warned = true; say('Getting full!', cloudX(), cloudY() - 210); env.sfx('creak'); }
+      if (self.full > TUNE.bloatedAt && !warned) { warned = true; say('Getting full!', cloudX() - side * 200 * cloud.sizeK, cloudY() - 90); env.sfx('creak'); }
       if (self.full >= 1 && burpT <= 0) burp();
       if (burpT > 0) {
         burpT -= dt;
@@ -209,7 +209,7 @@ export default function create(env) {
       if (bottle.state === 'gone') {
         self.done = true; self.outcome = 'snatched';
         env.sfx('snatch'); env.sfx('cheer'); env.vibrate(160);
-        say('Got it!', cloud.x, cloud.y - 220);
+        say('Got it!', cloud.x - side * 200 * cloud.sizeK, cloud.y - 60);
         art.kick(cloud, 0.6);
       } else if (self.time <= 0) {
         self.done = true; self.outcome = 'kept';
@@ -242,8 +242,8 @@ export default function create(env) {
       drawMeter(g, tt);
       if (!self.done) drawPrompts(g, tt);
       if (t < 4 && !self.done) hint(g, env.versus
-        ? 'Cloud: suck up the red-and-white bottle!  Bottle: duck when the spout comes!'
-        : 'Suck up the red-and-white bottle. Nothing else!', W);
+        ? 'Cloud: suck up the red-and-white bottle!  Bottle: duck!'
+        : 'Suck up the red-and-white bottle. Nothing else!', W, env.versus ? 215 : 150);
     },
 
     marks() {
@@ -309,7 +309,7 @@ export default function create(env) {
     art.kick(cloud, 0.35);
     if (t - lastSlurp > 0.25) { env.sfx('slurp'); lastSlurp = t; }
     env.sfx('bubble');
-    say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], cloudX() + (rng() - 0.5) * 120, cloudY() - 200);
+    say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], cloudX() - side * 190 * cloud.sizeK, cloudY() - 40 + (rng() - 0.5) * 60);
   }
 
   function burp() {
@@ -319,7 +319,7 @@ export default function create(env) {
     env.sfx('burp');
     env.vibrate(120);
     art.kick(cloud, -0.6);
-    say('Too full! BURP!', cloudX(), cloudY() - 230);
+    say('Too full! BURP!', cloudX() - side * 220 * cloud.sizeK, cloudY() - 60);
     const M = mouth();
     const n = 3 + Math.floor(rng() * 3);
     for (let i = 0; i < n; i++) {
@@ -689,15 +689,15 @@ export default function create(env) {
     if (b.state === 'float') {
       const top = b.y - (b.duck > 0 ? 60 : BOTTLE_H * 0.8) * pk;
       letterTag(g, b.x, top - 50, { t: tt, r: 40 });
-      if (t < 6) marker(g, b.x, top - 120, { t: tt, label: 'The captain’s bottle!' });
+      if (t < 4.5) marker(g, b.x, top - 120, { t: tt, label: 'The captain’s bottle!' });
     }
     const d = gdist(b.x, b.y, foot.x, foot.y);
     const inReach = b.state === 'float' && d < radius() * 0.9;
     if (inReach && b.duck <= 0 && power < 0.5 && burpT <= 0) {
       actionPrompt(g, foot.x, foot.y - 40 * persp(foot.y), 'Suck!', { kind: env.inputKind, t: tt, pulse: 1, side: 0 });
     }
-    if (env.versus && b.state === 'float' && b.duck <= 0 && b.cd <= 0 && d < radius() * 1.3 + 60 && power > 0.15) {
-      actionPrompt(g, b.x, b.y - BOTTLE_H * 0.95 * pk - (t < 6 ? 120 : 0), 'Duck!', { kind: env.inputKind, t: tt, pulse: 1, side: 1 });
+    if (env.versus && t >= 4.5 && b.state === 'float' && b.duck <= 0 && b.cd <= 0 && d < radius() * 1.3 + 60 && power > 0.15) {
+      actionPrompt(g, b.x, b.y - BOTTLE_H * 0.95 * pk, 'Duck!', { kind: env.inputKind, t: tt, pulse: 1, side: 1 });
     }
   }
 
@@ -724,7 +724,7 @@ export default function create(env) {
 
 // The opening line, in big type on a cream band. The band is the text's own
 // thick stroke, so the shell can refit the line on a narrow screen.
-function hint(g, text, W) {
+function hint(g, text, W, y = 150) {
   g.save();
   g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
@@ -732,12 +732,12 @@ function hint(g, text, W) {
   g.lineJoin = 'round';
   g.strokeStyle = '#33241a';
   g.lineWidth = 30;
-  g.strokeText(text, W / 2, 150);
+  g.strokeText(text, W / 2, y);
   g.strokeStyle = 'rgba(251,246,232,0.97)';
   g.lineWidth = 24;
-  g.strokeText(text, W / 2, 150);
+  g.strokeText(text, W / 2, y);
   g.fillStyle = '#33241a';
-  g.fillText(text, W / 2, 150);
+  g.fillText(text, W / 2, y);
   g.restore();
 }
 

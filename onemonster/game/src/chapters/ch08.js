@@ -93,14 +93,14 @@ export default function create(env) {
           yal.state = 'hold'; yal.T = 0; yal.holdT = env.gentle[1] ? 1.0 : 1.4;
           h.mode = 'grabbed'; h.modeT = 0; h.vx = h.vy = 0;
           env.sfx('thump'); env.vibrate(70);
-          fx.say('Got him!', yal.x, yal.y - 360);
+          fx.say('Got him!', yal.x, yal.y - 460);
           art.kick(self.hc, 0.4); art.kick(yal.c, 0.3);
         }
         // Wind up to swat at a Bombanat that comes down low within reach.
         if (lowNow(self) && near(yal, s) < REACH && yal.swatCool <= 0) {
           yal.state = 'windup'; yal.T = 0; yal.facing = Math.sign(s.x - yal.x) || yal.facing;
           env.sfx('shout');
-          fx.say('Grrr!', yal.x, yal.y - 360);
+          fx.say('Grrr!', yal.x, yal.y - 460);
         }
       } else if (yal.state === 'hold') {
         // He holds the Trollusk up; mashing Action wriggles out sooner.

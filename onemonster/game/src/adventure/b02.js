@@ -65,13 +65,13 @@ const BIRDS = [[8950, 410], [10300, 430]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
   [1400, 330], [1550, 330], [1900, 320], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 330], [3400, 450],
-  [3800, 850], [4300, 880], [4100, 500],
+  [3800, 850], [4300, 880], [4150, 300],
   [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 330], [6700, 300], [6950, 400],
-  [7500, 870], [8000, 880], [7750, 500],
+  [7500, 870], [8000, 880], [7900, 300],
   [8700, 330], [8950, 320], [9350, 560], [9700, 320], [10200, 340], [10400, 480], [10650, 320],
-  [11200, 870], [11700, 880],
+  [11200, 870], [11700, 880], [11300, 300],
   [12400, 330], [12900, 560],
-  [13400, 850], [13900, 870], [14300, 600]];
+  [13400, 850], [13900, 870], [14300, 600], [13800, 300]];
 // Floor decor in the open: terrain.wood 3 fallen log, 4 stump with a face,
 // 5 mound of roots, and the delivered ferns and roots (props.grithix 4, 5).
 const DECOR = [[150, 'fern'], [600, 'log'], [900, 'root'], [3700, 'stump'], [4350, 'fern'], [7450, 'log'], [7950, 'fern'], [8100, 'root'],
@@ -151,7 +151,7 @@ export default function create(env) {
   const RUN = gentle ? 270 : 295;
   // Fresh in the first clearings, he dashes faster and dodges more; later he tires.
   const dashSpeed = () => (h.clearing && h.clearing.i <= 1 ? (gentle ? 440 : 500) : (gentle ? 400 : 440));
-  const pDodge = () => (gentle ? 0.12 : (h.clearing && h.clearing.i <= 1 ? 0.3 : 0.2) + 0.3 * skill);
+  const pDodge = () => (gentle ? 0.12 : (h.clearing && h.clearing.i <= 1 ? 0.4 : 0.2) + 0.3 * skill);
 
   let t = 0;
   let snapClearing = -1;
@@ -1205,6 +1205,15 @@ export const HOWTO = [
 ];
 
 // ---------- the autopilot ----------
+
+// Where the Trollusk's next dash ends (mirrors nextTarget in create).
+function nextTargetOf(h) {
+  const c = h.clearing;
+  if (!c) return h.x;
+  const next = h.coverI + h.dir;
+  if (next >= 0 && next < c.covers.length) return c.covers[next].x;
+  return c.last ? c.covers[h.coverI - h.dir].x : c.x1 + 80;
+}
 // Flies right through the wood, keeping to the free gap ahead and nosing
 // toward scraps; in a clearing it hangs back over the Trollusk's cover and
 // dives when he bolts, aiming where he will be.
@@ -1265,7 +1274,7 @@ export function autopilot(board) {
       }
       const stopsShort = Math.abs(hx - h.target) < 30 && h.mode !== 'peek';
       // A human's reaction: on the peek (read with the jitter), or once he is seen running.
-      const seenRunning = h.mode === 'peek' || (h.mode === 'dash' && h.modeT >= 0.28);
+      const seenRunning = h.mode === 'peek' || (h.mode === 'dash' && h.modeT >= Math.max(0.05, ap.jitter));
       const inWindow = Math.abs(miss) < 60 && seenRunning && !stopsShort;
       if (inWindow && b.y < 700) { out.y = 1; return out; }
       // Not yet: close on where he will be (he runs under us), at hover height.
@@ -1273,9 +1282,12 @@ export function autopilot(board) {
       if (b.y > hoverY + 20 && b.vy > -150) press();
       return out;
     }
-    // He is hiding: hover a little ahead of his cover (right over it, he sits tight).
+    // He is hiding: hover ahead of his cover so his dash carries him under the
+    // dive (a dive drops about 330 px forward from a hover), high enough that
+    // he does not sit tight.
     if (b.diving) { out.y = 0; out.x = dir; return out; }
-    out.x = holdX(h.x + dir * 160);
+    const L = Math.abs(nextTargetOf(h) - h.x);
+    out.x = holdX(h.x + dir * clamp(Math.min(L, 520) - 330 - 50, 40, 200));
     if (b.y > hoverY + 20 && b.vy > -150) press();
     if (b.y < hoverY - 120 && b.vy < 240) out.y = 1;
     return out;

@@ -685,6 +685,8 @@ export default function create(env) {
     g.fillRect(0, 0, W, H);
     if (!img) return;
     const kx = img.width / W, ky = img.height / H;
+    // The painting's clouds, stretched over the top of the frame.
+    g.drawImage(img, 0, 0, 1100 * kx, 40 * ky, 0, 0, W, 170);
     // The skyline: hills and clouds, tiled and mirrored, very slow.
     const skyH = 150, skyW = 1100;
     let off = cam.x * 0.08;
@@ -725,24 +727,7 @@ export default function create(env) {
   }
 
   function drawFar(g, tt) {
-    // Distant islands and the harbour town, far off along the horizon.
-    const far = [[1200, 150, 0.22], [3400, 120, 0.3], [6200, 180, 0.26], [9000, 140, 0.2]];
     g.save();
-    g.fillStyle = 'rgba(120,118,138,0.35)';
-    g.strokeStyle = 'rgba(43,51,64,0.35)';
-    g.lineWidth = 3;
-    for (const [x, w, k] of far) {
-      const sx = x - cam.x * k + cam.x; // parallax: slower than the world
-      if (sx + w < cam.x - 200 || sx - w > cam.x + W + 200) continue;
-      g.beginPath();
-      g.moveTo(sx - w, WL - 2);
-      g.lineTo(sx - w * 0.6, WL - 40 - w * 0.2);
-      g.lineTo(sx - w * 0.2, WL - 30);
-      g.lineTo(sx + w * 0.3, WL - 55 - w * 0.15);
-      g.lineTo(sx + w, WL - 2);
-      g.closePath();
-      g.fill(); g.stroke();
-    }
     // Seagulls, far up.
     g.strokeStyle = INK;
     g.lineWidth = 3;

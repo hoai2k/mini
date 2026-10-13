@@ -41,7 +41,7 @@ const B = { x0: 230, x1: 1690, y0: 645, y1: 915 };
 const VAULT = { time: 0.8, dist: 420, cost: 0.3, height: 170 };
 const NET = { ahead: 150, rx: 190, ry: 70 }; // the net's reach: an ellipse on the ground in front of him
 const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.22;
-const PEEK = 0.5, SLIDE = 0.3, SPRAWL = 0.9;
+const PEEK = 0.45, SLIDE = 0.4, SPRAWL = 0.9;
 const JAR_TIME = 6;
 const POST_RANGE = 150;
 
@@ -247,14 +247,14 @@ export default function create(env) {
   }
 
   // ---------- the trippers ----------
-  function startTackle(o, tx, ty) {
-    // The telegraph: a crouch (the Trollusk peeks out, the Yalapappus tucks down), then the dive.
+  function startTackle(o) {
+    // The telegraph: a crouch (the Trollusk peeks out, the Yalapappus tucks
+    // down), then the dive, always at the Grithix's feet (where he is now: he
+    // can still step out of its line).
     const dx = gx.x - o.x, dy = gx.y - o.y, dd = Math.hypot(dx, dy) || 1;
-    const sx = Math.hypot(tx, ty) > 0.2 ? tx : dx / dd, sy = Math.hypot(tx, ty) > 0.2 ? ty : dy / dd;
-    const sm = Math.hypot(sx, sy) || 1;
     o.mode = 'peek'; o.T = 0; o.vx = o.vy = 0; o.cool = PEEK + SLIDE + 1.4;
-    o.dive = { x: sx / sm, y: sy / sm };
-    o.facing = Math.sign(sx) || o.facing;
+    o.dive = { x: dx / dd, y: dy / dd };
+    o.facing = Math.sign(dx) || o.facing;
     env.sfx(o === tro ? 'rustle' : 'dodge');
     if (!tripHint && !env.versus) { tripHint = true; hint = { text: 'Look out! Step round them, or Sprint to pole-vault.', t: 3 }; }
   }
@@ -315,14 +315,14 @@ export default function create(env) {
       if (o.T > 0.25) { o.mode = 'run'; o.T = 0; }
     } else if (o.mode === 'peek') {
       o.vx = o.vy = 0;
-      if (o.T > PEEK) { o.mode = 'slide'; o.T = 0; o.vx = o.dive.x * 720; o.vy = o.dive.y * 540; env.sfx(o === yal ? 'whoosh' : 'dodge'); }
+      if (o.T > PEEK) { o.mode = 'slide'; o.T = 0; o.vx = o.dive.x * 760; o.vy = o.dive.y * 570; env.sfx(o === yal ? 'whoosh' : 'dodge'); }
     } else if (o.mode === 'slide') {
       if (o.T > SLIDE) { o.mode = 'sprawl'; o.T = 0; env.sfx('stumble'); }
     } else if (o.mode === 'sprawl') {
       o.vx *= Math.exp(-10 * dt); o.vy *= Math.exp(-10 * dt);
       if (o.T > SPRAWL) { o.mode = 'run'; o.T = 0; }
     } else {
-      if (act && o.cool <= 0 && phase === 'carry') startTackle(o, tx, ty);
+      if (act && o.cool <= 0 && phase === 'carry') startTackle(o);
       else {
         o.sprinting = sprint && o.st > 0;
         const top = o.sprinting ? o.speed * 1.7 : o.speed;
@@ -605,7 +605,7 @@ export default function create(env) {
       const h = o.c.M.height * o.c.sizeK;
       g.save();
       g.strokeStyle = '#b5463a'; g.lineWidth = 5; g.setLineDash([10, 10]); g.lineDashOffset = -tt * 60;
-      g.beginPath(); g.moveTo(o.x, o.y); g.lineTo(o.x + o.dive.x * 230, o.y + o.dive.y * 170); g.stroke();
+      g.beginPath(); g.moveTo(o.x, o.y); g.lineTo(o.x + o.dive.x * 300, o.y + o.dive.y * 225); g.stroke();
       g.setLineDash([]);
       const s = 1 + Math.sin(tt * 14) * 0.08;
       g.translate(o.x, o.y - h * 0.75 - 40);

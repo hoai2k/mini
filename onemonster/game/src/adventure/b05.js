@@ -146,7 +146,7 @@ export default function create(env) {
     { x: 7700, hub: 540, len: 200, ang: 0.4, spin: 1.1 },
   ];
   // Sea rocks: [x, height] (decor).
-  const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10500, 100]];
+  const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10230, 100]];
 
   // ---------- the sunbeams and the rain clouds ----------
   const beams = [
@@ -173,6 +173,7 @@ export default function create(env) {
   // The goo: blobs on the sea (sucked up the spout) and blobs in the air (roll through them).
   const seaBlobX = [600, 1100, 1700, 2300, 2900, 3700, 4600, 5300, 5700, 6400, 7200, 7900, 8300, 8900, 9500, 10100, 10700, 11200];
   for (const x of seaBlobX) spawnJunk(x + (rng() - 0.5) * 120, 8);
+  for (const it of items) for (const gp of gaps) if (it.x > gp.x - 70 && it.x < gp.x + gp.w + 70) it.x = it.x < gp.x + gp.w / 2 ? gp.x - 90 : gp.x + gp.w + 90;
   const airBlobs = kit.makePickups([
     [900, 300], [1500, 580], [2100, 240], [3415, 450], [4315, 460], [5100, 475], [5700, 250], [6000, 310], [6450, 600],
     [6900, 260], [7300, 540], [7700, 280], [8500, 400], [9250, 300], [9950, 450], [8800, 610], [10800, 300], [11300, 520],
@@ -562,6 +563,12 @@ export default function create(env) {
       it.vx += (cur - it.vx) * Math.min(1, dt * 2);
       if (pull(it, R, dt, 1)) { it.state = 'lift'; it.lt = 0; }
       it.x += it.vx * dt;
+      // Not through a stack: it bumps round the rock.
+      for (const gp of gaps) {
+        if (it.x > gp.x - 70 && it.x < gp.x + gp.w + 70) {
+          if (it.x < gp.x + gp.w / 2) { it.x = gp.x - 70; it.vx = -Math.abs(it.vx); } else { it.x = gp.x + gp.w + 70; it.vx = Math.abs(it.vx); }
+        }
+      }
       if (it.x < 60) { it.x = 60; it.vx = Math.abs(it.vx); }
       if (it.x > SHORE - 60) { it.x = SHORE - 60; it.vx = -Math.abs(it.vx); }
     }
@@ -1329,9 +1336,9 @@ export default function create(env) {
     const captain = r.state === 'hook' || r.state === 'throw';
     const h = 250;
     const item = captain ? 6 : 5;
-    kit.sprite(g, 'adv.b05.props', item, r.x, y, { height: h, ay: 0.9, flip: r.facing < 0 }, () => {
+    kit.sprite(g, 'adv.b05.props', item, r.x, y, { height: h, ay: 0.9 }, () => {
       const sp = captain ? art.cast(9) : art.cast(r.frame ? 11 : 10);
-      if (art.drawSprite(g, sp, r.x, y, { height: h, ay: 0.9, flip: r.facing < 0 && !captain })) return;
+      if (art.drawSprite(g, sp, r.x, y, { height: h, ay: 0.9 })) return;
       // Ink: a pink raft with hooded sailors and the S.O.S. flag.
       g.save();
       g.strokeStyle = INK; g.lineWidth = 4;

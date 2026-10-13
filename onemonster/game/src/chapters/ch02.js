@@ -103,7 +103,9 @@ export function chaseChapter(env, opts) {
         ...cover.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
         ...obstacles.map((o) => ({ y: o.y + o.ry, draw: () => o.draw?.(g) })),
         ...extras.map((e) => ({ y: e.y, draw: () => e.draw(g, tt) })),
-        { y: h.hidden && h.inCover ? h.inCover.y - h.inCover.ry - 1 : h.y, draw: () => {
+        // Hidden: just behind his bush (hat poking out). Rustling through a
+        // bush: in front of it, so he never vanishes behind the leaves.
+        { y: h.hidden && h.inCover ? h.inCover.y - h.inCover.ry - 1 : h.inCover ? h.inCover.y + h.inCover.ry * 0.9 + 1 : h.y, draw: () => {
           if (h.hidden && h.inCover && !self.done) {
             const k = h.inCover;
             const y0 = hc.y, x0 = hc.x;
@@ -137,11 +139,11 @@ export function chaseChapter(env, opts) {
           if (p > 0) flushRing(g, k.x, k.y + k.ry * 0.9 - k.h - 60, p, tt);
           else marker(g, k.x, k.y + k.ry * 0.9 - k.h - 70, { t: tt, label: 'Hover here!' });
         } else if (!chase.tug) {
-          letterTag(g, h.x + h.facing * 70 * hc.sizeK, h.y - 120 * hc.sizeK, { t: tt });
+          letterTag(g, h.x + h.facing * 80 * hc.sizeK, h.y - 190 * hc.sizeK, { t: tt, r: 56 });
         }
         // What to press, and when.
         if (chase.tug) {
-          tugBar(g, chase, (s.x + h.x) / 2, Math.min(s.y - z, h.y) - 260 * hc.sizeK, opts.tugLabels || ['Snatch!', 'Break free!'], { kind: env.inputKind, t: tt, sides: [0, env.versus ? 1 : 0], W });
+          tugBar(g, chase, (s.x + h.x) / 2, Math.min(s.y - z, h.y) - 260 * hc.sizeK, opts.tugLabels || ['Snatch!', 'Break free!'], { kind: env.inputKind, t: tt, sides: env.versus ? [0, 1] : [0], W });
         } else {
           if (chance.kind === 'grab') chasePrompt(g, env, s.x, top(s, sc), 'Snatch!', { t: tt, pulse: 1 });
           else if (chance.kind === 'lunge' && !(opts.diveBlocked?.(self))) chasePrompt(g, env, s.x, top(s, sc), chance.open ? 'Dive now!' : 'Dive!', { t: tt, pulse: chance.open ? 1 : 0.3 });
@@ -149,7 +151,7 @@ export function chaseChapter(env, opts) {
         }
       }
       fx.draw(g);
-      if (t < HINT_TIME && !self.done) hintBand(g, opts.hint, W, { sub: opts.hintSub });
+      if (t < HINT_TIME && !self.done) hintBand(g, opts.hint, W, { y: 215, sub: opts.hintSub });
     },
     marks() {
       const elapsed = total - self.time;
@@ -244,7 +246,7 @@ export function animBombanat(c, m, chase, dt = 1 / 60) {
   if (m.mode === 'lunge') return want(c, 'dive', dt, { force: true });
   if (m.mode === 'grabbing') return want(c, 'snap', dt, { force: true });
   if (m.mode === 'stumble') return want(c, 'swoop', dt, { force: true, min: 0.5 });
-  if (m.mode === 'dazed' || m.winded > 0) return want(c, 'stall', dt, { force: true, min: 0.5 });
+  if (m.mode === 'dazed' || m.winded > 0) return want(c, 'tumble', dt, { force: true, min: 0.5 });
   if (m.sprinting || chase.flushT > 0) return want(c, 'flap', dt, { min: 0.5 });
   const slow = c.anim === 'flap' ? sp < 200 : sp < 110;
   want(c, slow ? 'flap' : 'glide', dt, { min: 0.5 });
@@ -308,31 +310,31 @@ export const HOWTO = [
     text: 'Fly over the wood. The Trollusk runs below with the letter in his snout.',
     scene: 'scenes/bombanat', crop: CROP,
     items: [
-      { sprite: ['props.trollusk', 5], x: 540, y: 470, h: 130 },
-      { creature: 'trollusk', anim: 'run', x: 360, y: 455, h: 150, flip: true },
-      { draw: (g, t) => letterTag(g, 300, 380, { t, r: 36 }) },
-      { creature: 'bombanat', anim: 'glide', x: 330, y: 150, h: 150, flip: true, shadow: false },
-      { path: [[520, 110], [420, 90], [300, 110]], arrow: true },
+      { sprite: ['props.trollusk', 5], x: 560, y: 470, h: 140 },
+      { creature: 'trollusk', anim: 'run', x: 380, y: 465, h: 190, flip: true },
+      { draw: (g, t) => letterTag(g, 300, 360, { t, r: 40 }) },
+      { creature: 'bombanat', anim: 'glide', x: 300, y: 140, h: 170, flip: true, shadow: false },
+      { path: [[560, 100], [460, 80], [330, 100]], arrow: true },
     ],
   },
   {
     text: 'In a bush he is safe. Hover over it until he bolts out.',
     scene: 'scenes/bombanat', crop: CROP,
     items: [
-      { creature: 'trollusk', anim: 'duck', x: 330, y: 400, h: 120, shadow: false },
-      { sprite: ['props.trollusk', 5], x: 330, y: 470, h: 180 },
-      { draw: (g, t) => { g.save(); g.lineWidth = 10; g.strokeStyle = '#c8443a'; g.beginPath(); g.arc(330, 230, 34, -Math.PI / 2, Math.PI * 0.9); g.stroke(); g.restore(); } },
-      { creature: 'bombanat', anim: 'flap', x: 330, y: 120, h: 140, shadow: false },
+      { creature: 'trollusk', anim: 'duck', x: 330, y: 330, h: 170, shadow: false },
+      { sprite: ['props.trollusk', 5], x: 330, y: 470, h: 200 },
+      { draw: (g, t) => flushRing(g, 330, 200, 0.5 + Math.sin(t * 2) * 0.3, t) },
+      { creature: 'bombanat', anim: 'flap', x: 330, y: 90, h: 150, shadow: false },
     ],
   },
   {
     text: 'Dive! Press Action when he is in reach, then mash it to snatch the letter.',
     scene: 'scenes/bombanat', crop: CROP,
     items: [
-      { creature: 'trollusk', anim: 'run', x: 420, y: 455, h: 150, flip: true },
-      { creature: 'bombanat', anim: 'dive', x: 250, y: 220, h: 190, shadow: false },
+      { creature: 'trollusk', anim: 'run', x: 430, y: 465, h: 180, flip: true },
+      { creature: 'bombanat', anim: 'dive', x: 250, y: 220, h: 200, shadow: false },
       { path: [[150, 90], [230, 160], [340, 330]], arrow: true },
-      { word: 'SNAP!', x: 500, y: 250, size: 54 },
+      { word: 'SNAP!', x: 510, y: 250, size: 54 },
     ],
   },
 ];

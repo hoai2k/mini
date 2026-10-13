@@ -238,6 +238,25 @@ function beginTug(c) {
 // skill 0..1: how quickly they react and how often they choose well. Each
 // keeps its own little memory in `brain`.
 
+// A computer player's sprint comes in committed windows: once it decides to
+// sprint it keeps it up for 0.8-1.3 s (unless its breath runs out), then rests
+// at least 0.7 s before deciding again, so its running pose doesn't flicker
+// with a decision made afresh every frame. `want()` is that decision.
+function sprintWindow(brain, m, dt, rng, want) {
+  brain.sprintT = (brain.sprintT || 0) - dt;
+  if (brain.sprintT <= 0) {
+    brain.sprintOn = want();
+    brain.sprintT = brain.sprintOn ? 0.8 + rng() * 0.5 : 0.7;
+    brain.sprintOff = 0;
+  } else if (brain.sprintOn) {
+    // A window ends early when the reason for it has gone (for a quarter of a
+    // second, so a flicker at a threshold doesn't end it), or breath is gone.
+    brain.sprintOff = want() ? 0 : (brain.sprintOff || 0) + dt;
+    if (brain.sprintOff > 0.25 || m.st < 0.08 || m.winded > 0) { brain.sprintOn = false; brain.sprintT = 0.5; }
+  }
+  return brain.sprintOn;
+}
+
 export function aiHolder(c, brain, skill, dt) {
   const { s, h } = c;
   brain.t = (brain.t || 0) + dt;
@@ -282,8 +301,9 @@ export function aiHolder(c, brain, skill, dt) {
     return out;
   }
   if (gd > 5) { out.x = gx / gd; out.y = gy / gd; }
-  // Sprint when the snatcher is close or sprinting, and we have breath.
-  out.sprint = h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360)) && c.rng() > (1 - skill) * 0.2;
+  // Sprint when the snatcher is close or sprinting, and we have breath: in
+  // committed bursts, not a fresh decision every frame.
+  out.sprint = sprintWindow(brain, h, dt, c.rng, () => h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360)) && c.rng() > (1 - skill) * 0.2);
   // On purpose, now and then, a mistake: a moment's hesitation.
   if (c.rng() < dt * (1 - skill) * 0.8) brain.goal = { x: h.x, y: h.y }, brain.until = brain.t + 0.3;
   return out;
@@ -318,7 +338,7 @@ export function aiSnatcher(c, brain, skill, dt) {
     if (k) { const kx = k.x - s.x, ky = k.y - s.y, kd = len(kx, ky) || 1; out.x = kx / kd; out.y = ky / kd; }
     if (h.rustle > 0.3) { out.x = (h.x - s.x) / (len(h.x - s.x, h.y - s.y) || 1); out.y = (h.y - s.y) / (len(h.x - s.x, h.y - s.y) || 1); }
   }
-  out.sprint = s.st > 0.3 && d > 200 && d < 650 && (h.st < 0.5 || c.rng() < 0.6 + 0.3 * skill);
+  out.sprint = sprintWindow(brain, s, dt, c.rng, () => s.st > 0.3 && d > 200 && d < 650 && (h.st < 0.5 || c.rng() < 0.6 + 0.3 * skill));
   // Grab when close; lunge when in range, more readily at a tired or sprinting holder.
   if (seen && s.mode === 'move') {
     const dd = len(h.x - s.x, h.y - s.y);

@@ -61,12 +61,11 @@ export function tugBar(g, c, x, y, labels = ['Snatch!', 'Break free!'], opts = {
   g.textAlign = 'right';
   g.fillText(labels[1], w, -28);
   if (kind) {
-    // Each side's own button, named: "Mash A!" / "Mash Enter!".
+    // Each player's own button, named: "Mash A!" / "Mash Enter!". A side
+    // without a player (the computer) gets no prompt.
     g.font = '700 26px Questrial, sans-serif';
-    g.textAlign = 'left';
-    g.fillText(`Mash ${buttonName(kind, 'action', sides[0])}!`, 0, 48);
-    g.textAlign = 'right';
-    g.fillText(`Mash ${buttonName(kind, 'action', sides[1])}!`, w, 48);
+    if (sides[0] != null) { g.textAlign = 'left'; g.fillText(`Mash ${buttonName(kind, 'action', sides[0])}!`, 0, 48); }
+    if (sides[1] != null) { g.textAlign = 'right'; g.fillText(`Mash ${buttonName(kind, 'action', sides[1])}!`, w, 48); }
     g.textAlign = 'center';
     g.font = '600 22px Questrial, sans-serif';
     g.fillText('pull away with the stick', w / 2, 48);

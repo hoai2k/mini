@@ -90,7 +90,25 @@ const ROCKS = [3380, 4350, 5250, 6050, 10700, 14300];
 const BRANCHES = [7330, 12580]; // low branches: slide under
 const PALMS = [7760, 11660]; // fallen palm trunks: slide under
 const PUDDLES = [4080, 9320, 11050, 12880]; // goo puddles: hop or wade slowly
-const SIGNS = [2900, 7150, 9260, 10400, 13520]; // crooked signposts (sections)
+const SIGNS = [2900, 6980, 9260, 10400, 13520]; // crooked signposts (sections)
+
+// Mid-layer decor from the delivered art, behind the play layer: flowerbeds and
+// small rocks on the sneak (nothing that looks like cover), ferns, bushes and
+// jagged rocks along the getaway, kept clear of the hazards.
+const DECOR = [];
+{
+  const avoid = [...HOLES.map((h) => [h.x0 - 260, h.x1 + 260]), [STREAM.x0 - 260, STREAM.x1 + 260],
+    ...BRANCHES.map((x) => [x - 320, x + 320]), ...PALMS.map((x) => [x - 320, x + 320]), ...ROCKS.map((x) => [x - 220, x + 220]),
+    ...PUDDLES.map((x) => [x - 220, x + 220]), ...SIGNS.map((x) => [x - 160, x + 160]), ...COVER.map((c) => [c.x - 220, c.x + 220]), [YAL_X - 300, YAL_X + 400]];
+  for (let i = 0; i < 70; i++) {
+    const x = 300 + i * 205 + kit.hash(i * 3.3) * 160;
+    if (x > WORLD_W - 300 || avoid.some(([a, b]) => x > a && x < b)) continue;
+    const r = kit.hash(i * 7.1);
+    const sneak = x < 2700;
+    const kind = sneak ? (r < 0.6 ? 'flowers' : 'pebble') : r < 0.3 ? 'fern' : r < 0.55 ? 'bush' : r < 0.75 ? 'flowers' : 'pebble';
+    DECOR.push({ x, kind, k: 0.55 + kit.hash(i * 1.9) * 0.3, flip: kit.hash(i * 4.4) < 0.5 });
+  }
+}
 
 export default function create(env) {
   art.preload(['props.trollusk', 'props.yalapappus', 'props.grithix', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses', 'trollusk.moves', 'yalapappus.moves', 'adv.b07.props', 'terrain.nowhere', 'ui/letter']);
@@ -631,6 +649,7 @@ export default function create(env) {
       drawGroundAll(g);
       drawHoles(g);
       drawStream(g, tt);
+      for (const d of DECOR) if (cam.sees(d.x)) drawDecor(g, d);
       for (const r of rocks) if (cam.sees(r.x, r.x + r.w)) drawRock(g, r);
       for (const x of SIGNS) if (cam.sees(x)) drawSignpost(g, x, profileY(x) ?? GY, tt);
       if (cam.sees(FINISH_X)) drawFinishSign(g, FINISH_X + 120, GY, tt);
@@ -722,10 +741,20 @@ export default function create(env) {
   function drawHoles(g) {
     for (const h of HOLES) {
       if (!cam.sees(h.x0, h.x1)) continue;
-      g.fillStyle = '#3a2616';
+      g.fillStyle = '#4a3220';
       g.fillRect(h.x0 - 6, GY - 2, h.x1 - h.x0 + 12, H + 60 - GY);
-      g.fillStyle = 'rgba(0,0,0,0.25)';
-      g.fillRect(h.x0 - 6, GY + 90, h.x1 - h.x0 + 12, H - GY);
+      g.save();
+      g.strokeStyle = 'rgba(20,10,5,0.55)';
+      g.lineWidth = 2;
+      g.beginPath();
+      for (let x = h.x0 - 6; x < h.x1 + 160; x += 16) { g.moveTo(x, GY); g.lineTo(x - 160, GY + 220); }
+      for (let x = h.x0 - 160; x < h.x1 + 6; x += 22) { g.moveTo(x, GY + 60); g.lineTo(x + 160, GY + 220); }
+      g.stroke();
+      g.restore();
+      const gr = g.createLinearGradient(0, GY + 60, 0, GY + 240);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.7)');
+      g.fillStyle = gr;
+      g.fillRect(h.x0 - 6, GY + 60, h.x1 - h.x0 + 12, H - GY);
       kit.sprite(g, 'terrain.nowhere', 4, h.x0 + 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 3), h.x0 + 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x0, 1));
       kit.sprite(g, 'terrain.nowhere', 5, h.x1 - 28, GY + 42, { height: 112 }, () => art.drawSprite(g, art.prop('yalapappus', 4), h.x1 - 28, GY + 42, { height: 112 }) || inkHoleEdge(g, h.x1, -1));
     }
@@ -735,10 +764,24 @@ export default function create(env) {
     const s = STREAM;
     if (!cam.sees(s.x0, s.x1)) return;
     kit.sprite(g, 'adv.b07.props', 10, (s.x0 + s.x1) / 2, GY + 150, { height: 220 }, () => {
-      g.fillStyle = '#4e93c2';
+      g.save();
+      // The bed: a dark bank wall each side, deep water shading to the bottom.
+      const gr = g.createLinearGradient(0, GY + 50, 0, H + 60);
+      gr.addColorStop(0, '#5fa3cf'); gr.addColorStop(0.5, '#3f7fb0'); gr.addColorStop(1, '#2d5a86');
+      g.fillStyle = gr;
       g.fillRect(s.x0, GY + 50, s.x1 - s.x0, H + 60 - GY);
-      // Ripples.
-      g.strokeStyle = 'rgba(248,241,224,0.7)';
+      g.fillStyle = '#7a5a38';
+      g.fillRect(s.x0 - 6, GY, 12, 60); g.fillRect(s.x1 - 6, GY, 12, 60);
+      // Wave hatching in ink, and foam lines in cream.
+      g.strokeStyle = 'rgba(43,29,20,0.45)';
+      g.lineWidth = 2;
+      g.beginPath();
+      for (let row = 0; row < 7; row++) {
+        const yy = GY + 100 + row * 38;
+        for (let x = s.x0 + 10 + (row % 2) * 30; x < s.x1 - 40; x += 62) { g.moveTo(x, yy); g.quadraticCurveTo(x + 15, yy - 7, x + 30, yy); g.quadraticCurveTo(x + 40, yy + 5, x + 50, yy); }
+      }
+      g.stroke();
+      g.strokeStyle = 'rgba(248,241,224,0.75)';
       g.lineWidth = 3;
       g.beginPath();
       for (let i = 0; i < 12; i++) {
@@ -747,8 +790,10 @@ export default function create(env) {
         g.moveTo(x, yy); g.quadraticCurveTo(x + 14, yy - 6, x + 30, yy);
       }
       g.stroke();
-      g.fillStyle = '#5e4630';
-      g.fillRect(s.x0 - 4, GY + 150, s.x1 - s.x0 + 8, 20);
+      // Pebbles on the bed, seen through.
+      g.fillStyle = 'rgba(200,190,170,0.5)'; g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 1.5;
+      for (let x = s.x0 + 30; x < s.x1 - 30; x += 54) { g.beginPath(); g.ellipse(x, GY + 300 + kit.hash(x) * 40, 12, 7, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
+      g.restore();
     });
     for (const st of stones) {
       kit.sprite(g, 'adv.b07.props', 4, st.cx, GY + 76, { height: 96 }, () => art.drawSprite(g, art.prop('yalapappus', 1), st.cx, GY + 76, { height: 96 }) || inkRock(g, st.cx, GY + 76, 96));
@@ -780,18 +825,31 @@ export default function create(env) {
   function drawPuddle(g, q, tt) {
     kit.sprite(g, 'adv.b07.props', 6, q.cx, q.y + 10, { height: 70 }, () => {
       g.save();
-      g.fillStyle = '#3fa7b5';
       g.strokeStyle = INK;
       g.lineWidth = 3.5;
+      // A rim of darker goo, the pool, and a sheen.
+      g.fillStyle = '#2d7f8c';
+      g.beginPath(); g.ellipse(q.cx, q.y + 2, 118, 24, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.fillStyle = '#3fa7b5';
+      g.beginPath(); g.ellipse(q.cx - 4, q.y - 4, 100, 16, 0, 0, Math.PI * 2); g.fill();
+      g.lineWidth = 2;
+      g.strokeStyle = 'rgba(43,29,20,0.55)';
       g.beginPath();
-      g.ellipse(q.cx, q.y - 2, 112, 20, 0, 0, Math.PI * 2);
-      g.fill(); g.stroke();
-      g.fillStyle = 'rgba(248,241,224,0.5)';
-      g.beginPath(); g.ellipse(q.cx - 30, q.y - 8, 34, 6, 0, 0, Math.PI * 2); g.fill();
-      // A bubble now and then.
-      const b = (tt * 0.7 + q.cx) % 1;
-      g.strokeStyle = 'rgba(43,29,20,0.6)'; g.lineWidth = 2;
-      g.beginPath(); g.arc(q.cx + 40, q.y - 6 - b * 14, 5 + b * 5, 0, Math.PI * 2); g.stroke();
+      for (let x = q.cx - 90; x < q.cx + 90; x += 14) { g.moveTo(x, q.y + 10 + Math.abs(x - q.cx) * 0.08); g.lineTo(x + 6, q.y + 18); }
+      g.stroke();
+      g.fillStyle = 'rgba(248,241,224,0.55)';
+      g.beginPath(); g.ellipse(q.cx - 34, q.y - 8, 30, 4, 0, 0, Math.PI * 2); g.fill();
+      // Bubbles rising and a slow drip-ring.
+      g.strokeStyle = INK; g.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const bt = (tt * 0.5 + q.cx * 0.001 + i * 0.37) % 1;
+        const bx = q.cx - 50 + i * 48, by = q.y - 4 - bt * 12;
+        g.fillStyle = '#5fc3cf';
+        g.beginPath(); g.arc(bx, by, 4 + bt * 6, 0, Math.PI * 2); g.fill(); g.stroke();
+      }
+      g.strokeStyle = 'rgba(43,29,20,0.6)';
+      const rt = (tt * 0.6 + q.cx * 0.01) % 1;
+      g.beginPath(); g.ellipse(q.cx + 30, q.y - 2, 10 + rt * 30, 3 + rt * 7, 0, 0, Math.PI * 2); g.stroke();
       g.restore();
     });
   }
@@ -807,6 +865,19 @@ export default function create(env) {
         g.restore();
       }
     });
+  }
+
+  function drawDecor(g, d) {
+    const gy = profileY(d.x);
+    if (gy === null) return;
+    g.save();
+    g.globalAlpha = 0.88;
+    const o = { flip: d.flip };
+    if (d.kind === 'fern') art.drawSprite(g, art.prop('grithix', 4), d.x, gy + 4, { height: 150 * d.k + 60, ...o });
+    else if (d.kind === 'bush') art.drawSprite(g, art.prop('trollusk', 5), d.x, gy + 4, { height: 150 * d.k + 50, ...o });
+    else if (d.kind === 'flowers') art.drawSprite(g, art.prop('trollusk', 6), d.x, gy + 4, { height: 90 * d.k + 30, ...o });
+    else art.drawSprite(g, art.prop('yalapappus', 2), d.x, gy + 6, { height: 70 * d.k + 30, ...o });
+    g.restore();
   }
 
   function drawFarDecor(g) {
@@ -857,6 +928,32 @@ function inkProfile(g, cam) {
     g.lineTo(b, edge(b));
     g.lineTo(b, bottom);
     g.closePath(); g.fill();
+    // The painting's own ground (the bottom band of the scene), tiled and
+    // clipped to this piece, so the strip is textured like the backdrop.
+    const img = art.image('scenes/yalapappus');
+    if (img) {
+      g.save();
+      g.clip();
+      g.globalAlpha = 0.62;
+      const sy = img.height * 0.79, sh = img.height * 0.21;
+      const th = 250, tw = (img.width / sh) * th;
+      for (let x = Math.floor(a / tw) * tw; x < b; x += tw) {
+        const tx = Math.floor(x / tw);
+        const yy = yAt(Math.max(a, Math.min(b, x + tw / 2))) - 8;
+        if (tx % 2) { g.save(); g.translate(x + tw, 0); g.scale(-1, 1); g.drawImage(img, 0, sy, img.width, sh, 0, yy, tw, th); g.restore(); }
+        else g.drawImage(img, 0, sy, img.width, sh, x, yy, tw, th);
+      }
+      g.globalAlpha = 1;
+      // A darker, cross-hatched band deeper down.
+      g.fillStyle = 'rgba(90,60,30,0.28)';
+      g.fillRect(a, bottom - 160, b - a, 160);
+      g.strokeStyle = 'rgba(43,29,20,0.28)';
+      g.lineWidth = 1.5;
+      g.beginPath();
+      for (let x = Math.floor(a / 26) * 26; x < b + 160; x += 26) { g.moveTo(x, bottom - 150); g.lineTo(x - 150, bottom + 10); }
+      g.stroke();
+      g.restore();
+    }
     // Hatching and pebbles.
     g.strokeStyle = 'rgba(43,29,20,0.2)';
     g.lineWidth = 2;
@@ -963,19 +1060,49 @@ function dustCloud(g, x, y) {
 
 function inkPalm(g, x, y, h, i) {
   g.save();
-  g.globalAlpha = 0.8;
-  g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#9a7a46';
-  const lean = (kit.hash(i * 5.3) - 0.5) * 120;
-  g.beginPath(); g.moveTo(x - 14, y); g.quadraticCurveTo(x + lean * 0.3, y - h * 0.6, x + lean, y - h); g.lineTo(x + lean + 18, y - h); g.quadraticCurveTo(x + lean * 0.3 + 18, y - h * 0.6, x + 14, y); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#6f8f3a';
-  for (let k = 0; k < 7; k++) {
-    const a = -Math.PI + (k / 6) * Math.PI;
-    const cx = x + lean + 9, cy = y - h;
-    g.beginPath(); g.moveTo(cx, cy);
-    g.quadraticCurveTo(cx + Math.cos(a) * 90, cy + Math.sin(a) * 60 - 30, cx + Math.cos(a) * 160, cy + Math.sin(a) * 50 + 40);
-    g.quadraticCurveTo(cx + Math.cos(a) * 80, cy + Math.sin(a) * 40, cx, cy);
-    g.fill(); g.stroke();
+  g.globalAlpha = 0.82;
+  g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#b08d58';
+  const lean = (kit.hash(i * 5.3) - 0.5) * 140;
+  const tx = (k) => x + lean * k * k, ty = (k) => y - h * k; // the trunk's curve
+  g.beginPath();
+  g.moveTo(x - 16, y);
+  for (let k = 0; k <= 1; k += 0.1) g.lineTo(tx(k) - 14 + k * 5, ty(k));
+  for (let k = 1; k >= 0; k -= 0.1) g.lineTo(tx(k) + 14 - k * 5, ty(k));
+  g.closePath(); g.fill(); g.stroke();
+  // Ring marks and a hatched shadow side.
+  g.lineWidth = 2;
+  g.beginPath();
+  for (let k = 0.05; k < 0.97; k += 0.07) { g.moveTo(tx(k) - 12 + k * 4, ty(k)); g.quadraticCurveTo(tx(k), ty(k) + 6, tx(k) + 12 - k * 4, ty(k)); }
+  for (let k = 0.02; k < 0.97; k += 0.035) { g.moveTo(tx(k) + 2, ty(k)); g.lineTo(tx(k) + 11 - k * 4, ty(k) - 6); }
+  g.stroke();
+  // Fronds: ribbed leaves fanning out, lighter and darker.
+  const cx = tx(1), cy = ty(1);
+  for (let k = 0; k < 8; k++) {
+    const a = -Math.PI * 1.05 + (k / 7) * Math.PI * 1.1;
+    const len = 150 + kit.hash(i + k) * 50;
+    const ex = cx + Math.cos(a) * len, ey = cy + Math.sin(a) * len * 0.55 + 55;
+    const mx = cx + Math.cos(a) * len * 0.55, my = cy + Math.sin(a) * len * 0.35 - 30;
+    g.fillStyle = k % 2 ? '#86a24a' : '#637f36';
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.quadraticCurveTo(mx - 10, my - 18, ex, ey);
+    g.quadraticCurveTo(mx + 14, my + 22, cx, cy + 6);
+    g.closePath(); g.fill(); g.stroke();
+    // The midrib and leaflets.
+    g.lineWidth = 1.6;
+    g.beginPath();
+    g.moveTo(cx, cy + 2); g.quadraticCurveTo(mx, my + 2, ex, ey);
+    for (let j = 0.2; j < 1; j += 0.13) {
+      const px = (1 - j) * (1 - j) * cx + 2 * (1 - j) * j * mx + j * j * ex;
+      const py = (1 - j) * (1 - j) * (cy + 2) + 2 * (1 - j) * j * (my + 2) + j * j * ey;
+      g.moveTo(px, py); g.lineTo(px - 8, py + 16);
+    }
+    g.stroke();
+    g.lineWidth = 3;
   }
+  // Coconuts.
+  g.fillStyle = '#8a6a44';
+  for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(cx - 12 + k * 12, cy + 14 + (k % 2) * 8, 9, 0, Math.PI * 2); g.fill(); g.stroke(); }
   g.restore();
 }
 
@@ -1002,50 +1129,131 @@ function drawBranch(g, b, tt) {
   const x = b.cx, bottom = b.y + b.h, top = b.y;
   kit.sprite(g, 'adv.b07.props', 5, x, bottom, { height: 150 }, () => {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#8a6a44';
-    // The trunk stands behind the path at the left end; the bough reaches across.
-    g.fillRect(b.x - 70, top - 400, 44, 400 + b.h + 20);
-    g.strokeRect(b.x - 70, top - 400, 44, 400 + b.h + 20);
+    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#9a7a4e';
+    // The trunk stands behind the path at the left end, barked and knotted.
+    const tx0 = b.x - 84, tw = 58;
     g.beginPath();
-    g.moveTo(b.x - 30, top - 10);
-    g.quadraticCurveTo(x, top - 30, b.x + b.w, top + 10);
-    g.lineTo(b.x + b.w, bottom - 10);
-    g.quadraticCurveTo(x, bottom + 10, b.x - 30, bottom);
+    g.moveTo(tx0, top + b.h + 30);
+    g.quadraticCurveTo(tx0 - 10, top - 200, tx0 + 6, top - 420);
+    g.lineTo(tx0 + tw + 10, top - 420);
+    g.quadraticCurveTo(tx0 + tw + 14, top - 200, tx0 + tw, top + b.h + 30);
     g.closePath(); g.fill(); g.stroke();
-    // Leaves hanging under and over.
-    g.fillStyle = '#6f8f3a';
-    for (let i = 0; i < 7; i++) {
-      const lx = b.x + 20 + i * (b.w - 40) / 6;
-      const sway = Math.sin(tt * 2 + i) * 4;
-      g.beginPath(); g.ellipse(lx + sway, top - 22 - (i % 2) * 14, 26, 16, 0.3, 0, Math.PI * 2); g.fill(); g.stroke();
-      if (i % 2) { g.beginPath(); g.ellipse(lx + sway, bottom + 12, 22, 12, -0.3, 0, Math.PI * 2); g.fill(); g.stroke(); }
+    g.lineWidth = 2;
+    g.strokeStyle = 'rgba(43,29,20,0.55)';
+    g.beginPath();
+    for (let yy = top - 400; yy < top + b.h + 20; yy += 22) { g.moveTo(tx0 + 8, yy); g.quadraticCurveTo(tx0 + 20, yy + 10, tx0 + 14 + (yy % 44 ? 18 : 30), yy + 18); }
+    for (let yy = top - 380; yy < top + b.h; yy += 60) { g.moveTo(tx0 + tw - 16, yy); g.lineTo(tx0 + tw - 6, yy + 30); }
+    g.stroke();
+    g.strokeStyle = INK;
+    g.beginPath(); g.ellipse(tx0 + 30, top - 250, 9, 15, 0.2, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(tx0 + 30, top - 250, 4, 8, 0.2, 0, Math.PI * 2); g.stroke();
+    // The bough: thick at the trunk, tapering, with bark lines along it.
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(tx0 + tw - 6, top - 30);
+    g.quadraticCurveTo(x - 60, top - 36, x + 40, top - 4);
+    g.quadraticCurveTo(b.x + b.w - 40, top + 14, b.x + b.w + 30, top + 28);
+    g.quadraticCurveTo(b.x + b.w - 30, bottom - 8, x + 20, bottom - 4);
+    g.quadraticCurveTo(x - 80, bottom + 2, tx0 + tw - 6, bottom + 18);
+    g.closePath(); g.fill(); g.stroke();
+    g.lineWidth = 2;
+    g.strokeStyle = 'rgba(43,29,20,0.5)';
+    g.beginPath();
+    for (let k = 0; k < 4; k++) {
+      const yy = top + 10 + k * 14;
+      g.moveTo(tx0 + tw, yy + 4); g.quadraticCurveTo(x - 40, yy - 8 + k * 3, b.x + b.w - 20, yy + 12 + k * 2);
+    }
+    for (let xx = tx0 + tw + 20; xx < b.x + b.w; xx += 34) { g.moveTo(xx, bottom - 10); g.lineTo(xx + 8, bottom - 2); }
+    g.stroke();
+    // Twigs with leaf clusters above and under.
+    g.strokeStyle = INK;
+    for (let i = 0; i < 6; i++) {
+      const lx = b.x + 30 + i * (b.w - 50) / 5;
+      const sway = Math.sin(tt * 2 + i) * 3;
+      const up = i % 2 === 0;
+      const ty = up ? top - 8 : bottom - 4;
+      g.lineWidth = 2.5;
+      g.beginPath(); g.moveTo(lx, ty); g.lineTo(lx + sway + (up ? 10 : -6), ty + (up ? -34 : 30)); g.stroke();
+      for (let k = 0; k < 4; k++) {
+        const a = (up ? -Math.PI / 2 : Math.PI / 2) + (k - 1.5) * 0.55;
+        const ex = lx + sway + Math.cos(a) * 38, ey = ty + Math.sin(a) * 34 + (up ? -14 : 10);
+        inkLeaf(g, lx + sway + (up ? 6 : -4), ty + (up ? -24 : 20), ex, ey, k % 2 ? '#86a24a' : '#637f36');
+      }
     }
     g.restore();
   });
+}
+
+// A pointed leaf from (x0, y0) to its tip (x1, y1), with a midrib and veins.
+function inkLeaf(g, x0, y0, x1, y1, fill) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const nx = -dy * 0.3, ny = dx * 0.3;
+  g.fillStyle = fill;
+  g.lineWidth = 2.2;
+  g.beginPath();
+  g.moveTo(x0, y0);
+  g.quadraticCurveTo(x0 + dx * 0.5 + nx, y0 + dy * 0.5 + ny, x1, y1);
+  g.quadraticCurveTo(x0 + dx * 0.5 - nx, y0 + dy * 0.5 - ny, x0, y0);
+  g.closePath(); g.fill(); g.stroke();
+  g.lineWidth = 1.3;
+  g.beginPath();
+  g.moveTo(x0, y0); g.lineTo(x1, y1);
+  for (let j = 0.3; j < 0.9; j += 0.2) { g.moveTo(x0 + dx * j, y0 + dy * j); g.lineTo(x0 + dx * (j + 0.1) + nx * 0.5, y0 + dy * (j + 0.1) + ny * 0.5); }
+  g.stroke();
 }
 
 function drawFallenPalm(g, b) {
   const bottom = b.y + b.h;
   kit.sprite(g, 'adv.b07.props', 8, b.cx, bottom, { height: 110 }, () => {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#a3804a';
-    // Resting on a stump at the left and its own crown at the right.
-    g.fillRect(b.x - 10, bottom - 8, 50, 110); g.strokeRect(b.x - 10, bottom - 8, 50, 110);
+    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#b08d58';
+    // The stump it rests on at the left, with rings.
     g.beginPath();
-    g.moveTo(b.x - 20, b.y); g.lineTo(b.x + b.w, b.y + 6); g.lineTo(b.x + b.w, bottom); g.lineTo(b.x - 20, bottom - 6); g.closePath();
+    g.moveTo(b.x - 14, bottom - 6); g.lineTo(b.x + 44, bottom - 6); g.lineTo(b.x + 50, bottom + 110); g.lineTo(b.x - 20, bottom + 110); g.closePath();
     g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 2;
+    g.lineWidth = 2;
     g.beginPath();
-    for (let x = b.x + 10; x < b.x + b.w; x += 36) { g.moveTo(x, b.y + 6); g.lineTo(x + 6, bottom - 6); }
+    for (let yy = bottom + 12; yy < bottom + 100; yy += 16) { g.moveTo(b.x - 14, yy); g.quadraticCurveTo(b.x + 16, yy + 6, b.x + 46, yy); }
     g.stroke();
-    g.strokeStyle = INK; g.lineWidth = 3.5; g.fillStyle = '#6f8f3a';
-    for (let k = 0; k < 6; k++) {
-      const a = -1.6 + k * 0.5;
-      const cx = b.x + b.w + 10, cy = b.y + 20;
-      g.beginPath(); g.moveTo(cx, cy);
-      g.quadraticCurveTo(cx + Math.cos(a) * 100, cy + Math.sin(a) * 70, cx + Math.cos(a) * 150 + 30, cy + Math.sin(a) * 80 + 60);
-      g.quadraticCurveTo(cx + Math.cos(a) * 80 + 10, cy + Math.sin(a) * 50, cx, cy);
-      g.fill(); g.stroke();
+    // The trunk, lying across: a slightly bent log with ring marks and a broken butt.
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(b.x - 24, b.y + 4);
+    g.lineTo(b.x - 34, b.y + 18); g.lineTo(b.x - 22, b.y + 30); g.lineTo(b.x - 36, b.y + 44); g.lineTo(b.x - 20, bottom - 4);
+    g.quadraticCurveTo(b.cx, bottom + 8, b.x + b.w + 10, bottom - 2);
+    g.lineTo(b.x + b.w + 10, b.y + 10);
+    g.quadraticCurveTo(b.cx, b.y - 10, b.x - 24, b.y + 4);
+    g.closePath(); g.fill(); g.stroke();
+    g.lineWidth = 2;
+    g.strokeStyle = 'rgba(43,29,20,0.55)';
+    g.beginPath();
+    for (let x = b.x + 10; x < b.x + b.w; x += 30) { g.moveTo(x, b.y + 2); g.quadraticCurveTo(x - 8, b.y + b.h / 2, x, bottom + 2); }
+    for (let x = b.x + 20; x < b.x + b.w; x += 30) { g.moveTo(x, bottom - 18); g.lineTo(x + 10, bottom - 6); }
+    g.stroke();
+    g.strokeStyle = INK;
+    // The crown at the right: drooping fronds.
+    const cx = b.x + b.w + 16, cy = b.y + 20;
+    for (let k = 0; k < 7; k++) {
+      const a = -1.5 + k * 0.42;
+      const len = 120 + kit.hash(k * 2.7 + b.cx) * 40;
+      const ex = cx + Math.cos(a) * len + 20, ey = cy + Math.sin(a) * len * 0.7 + 70;
+      const mx = cx + Math.cos(a) * len * 0.6 + 10, my = cy + Math.sin(a) * len * 0.4 + 10;
+      g.fillStyle = k % 2 ? '#86a24a' : '#637f36';
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(cx, cy);
+      g.quadraticCurveTo(mx - 8, my - 14, ex, ey);
+      g.quadraticCurveTo(mx + 12, my + 16, cx, cy + 8);
+      g.closePath(); g.fill(); g.stroke();
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.moveTo(cx, cy + 3); g.quadraticCurveTo(mx, my + 1, ex, ey);
+      for (let j = 0.25; j < 1; j += 0.15) {
+        const px = (1 - j) * (1 - j) * cx + 2 * (1 - j) * j * mx + j * j * ex;
+        const py = (1 - j) * (1 - j) * cy + 2 * (1 - j) * j * my + j * j * ey;
+        g.moveTo(px, py); g.lineTo(px - 6, py + 14);
+      }
+      g.stroke();
     }
     g.restore();
   });

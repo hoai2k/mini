@@ -757,7 +757,7 @@ export default function create(env) {
   function leafClump(g, x, yy, r, seed, fill = '#7f9a44') {
     g.save();
     g.fillStyle = fill; g.strokeStyle = INK; g.lineWidth = 2;
-    const n = Math.round(r / 4);
+    const n = Math.round(r / 1.6);
     for (let i = 0; i < n; i++) {
       const a = kit.hash(seed + i * 1.7) * Math.PI * 2, d = Math.sqrt(kit.hash(seed + i * 3.1)) * r;
       const lx = x + Math.cos(a) * d, ly = yy + Math.sin(a) * d * 0.8;

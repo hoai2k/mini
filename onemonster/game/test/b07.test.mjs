@@ -70,7 +70,7 @@ test('board 7: a low branch bumps a running Trollusk and spills stamps; sliding 
     p.x = branch.x - 400; p.y = profileY(p.x);
     for (const s of ch._.pickups.items.slice(0, 6)) s.got = true;
     let spilled = 0;
-    run(ch, () => { spilled += ch._.pickups.items.filter((s) => s.fly && s.fly.t < DT).length; return { ...right, y: slide && p.x > branch.x - 260 ? 1 : 0 }; }, 3);
+    run(ch, () => { spilled += ch._.pickups.items.filter((s) => s.fly && s.fly.t <= DT + 1e-6).length; return { ...right, y: slide && p.x > branch.x - 260 ? 1 : 0 }; }, 3);
     if (slide) {
       assert.ok(p.x > branch.x + branch.w, 'slid under and out the far side');
       assert.equal(spilled, 0, 'no stamps lost');
