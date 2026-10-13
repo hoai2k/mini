@@ -13,6 +13,7 @@ import { GAME_IDS } from '../games/index.js';
 import { readdirSync } from 'node:fs';
 import * as kartTrack from '../games/kart/track.js';
 import * as kartSim from '../games/kart/sim.js';
+import * as temple from '../games/temple/path.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} != ${b}`);
 
@@ -121,7 +122,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 25);
+  assert.equal(GAME_IDS.length, 26);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -1009,4 +1010,176 @@ test('Block Drop: the bot finds a sensible place, and layouts fit', async () => 
     assert.equal(L.slots.length, n);
     for (const sl of L.slots) assert.ok(sl.x >= 0 && sl.x + sl.w <= w + 1 && sl.y + sl.h <= h + 1, `slot inside ${w}x${h} n=${n}`);
   }
+});
+
+// --- Temple Dash ------------------------------------------------------------
+test('Temple Dash temples are deterministic per seed', () => {
+  const a = temple.createTemple(12345), b = temple.createTemple(12345), c = temple.createTemple(54321);
+  const dump = t => JSON.stringify(Array.from({ length: 30 }, (_, k) => t.seg(k)));
+  assert.equal(dump(a), dump(b));
+  assert.notEqual(dump(a), dump(c));
+  // Generating out of order gives the same segments.
+  const d = temple.createTemple(12345);
+  d.seg(20);
+  assert.equal(JSON.stringify(d.seg(7)), JSON.stringify(a.seg(7)));
+  assert.equal(a.segAt(a.seg(5).D - 0.1).k, 5);
+  assert.equal(a.segAt(a.seg(5).D).k, 6);
+});
+
+test('Temple Dash temples are laid out fairly: turns spaced, obstacles passable, coins clear', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const t = temple.createTemple((seed * 2654435761) >>> 0 || 1);
+    for (let k = 0; k < 40; k++) {
+      const seg = t.seg(k);
+      if (k > 0) {
+        assert.ok(seg.L >= 78, 'corners at least 78 m apart');
+        assert.equal(seg.S, t.seg(k - 1).D);
+        assert.equal(seg.yaw, (t.seg(k - 1).yaw + t.seg(k - 1).dir + 4) % 4);
+      }
+      if (k >= 2) assert.ok(!(seg.dir === t.seg(k - 1).dir && seg.dir === t.seg(k - 2).dir), 'never three turns the same way');
+      const runIn = seg.D - temple.early(temple.speedAt(seg.D)) - 12;
+      let prevEnd = -Infinity;
+      for (const o of seg.obs) {
+        const v = temple.speedAt(o.s);
+        assert.ok(['root', 'fire', 'arch', 'gap'].includes(o.type));
+        assert.ok(o.s >= (k === 0 ? 40 : seg.S + temple.HW + 12), 'a clear run-out after the corner');
+        assert.ok(o.s + o.len <= runIn, 'a clear run-up to the corner');
+        assert.ok(o.s - prevEnd >= v * 1.2 - 0.2, `obstacles at least 1.2 s apart (${(o.s - prevEnd).toFixed(1)} m at ${v.toFixed(1)} m/s)`);
+        if (o.type === 'fire') assert.ok(o.mask >= 1 && o.mask <= 6, 'fire never fills all three lanes');
+        else assert.equal(o.mask, temple.FULL);
+        if (o.type === 'gap') {
+          assert.ok(o.len - 0.6 < v * temple.JUMP_T - 2.5, 'every gap can be jumped with room to spare');
+          assert.ok(o.s >= 160, 'no gaps on the opening stretch');
+        }
+        prevEnd = o.s + o.len;
+      }
+      if (k === 0) assert.equal(seg.obs[0].type, 'root', 'the first obstacle is a gentle root');
+      for (const c of seg.coins) {
+        assert.ok(c.s >= seg.S && c.s <= seg.D - temple.HW, 'coins on this stretch, before the corner');
+        assert.ok([-1, 0, 1].includes(c.lane));
+        for (const o of seg.obs) {
+          if (c.s < o.s - 0.5 || c.s > o.s + o.len + 0.5) continue;
+          if (!(o.mask & (1 << (c.lane + 1)))) continue;
+          assert.ok(o.type === 'root' || o.type === 'gap', `no coin inside a ${o.type}`);
+          assert.ok(c.y > temple.ROOT_H + 0.4, 'coins over a root or gap are up where a jump goes');
+        }
+      }
+    }
+  }
+});
+
+test('Temple Dash temples can be run forever by perfect play', () => {
+  for (let seed = 1; seed <= 12; seed++) {
+    const t = temple.createTemple(seed * 7919);
+    const run = temple.newRun(1);
+    const brain = temple.newBrain({ react: 0, mistakes: 0, rnd: temple.mulberry32(seed) });
+    for (let i = 0; i < 60 * 400 && run.alive && run.s < 3000; i++) temple.stepRun(run, t, temple.autopilot(run, t, brain, 1 / 60), 1 / 60);
+    assert.ok(run.alive, `seed ${seed}: ${run.cause} at ${run.s.toFixed(0)} m`);
+    assert.equal(run.stumbles, 0, `seed ${seed}: no stumbles`);
+    assert.ok(run.s >= 3000 && run.g > 10 && run.coins > 100, `seed ${seed}: ${run.s.toFixed(0)} m, ${run.g} corners, ${run.coins} coins`);
+  }
+});
+
+test('Temple Dash collisions: roots and fire trip, arches crash unless sliding, gaps swallow', () => {
+  const root = { type: 'root', s: 10, len: 0.9, mask: 7 }, arch = { type: 'arch', s: 10, len: 1, mask: 7 };
+  const fire = { type: 'fire', s: 10, len: 1.2, mask: 0b100 }, gap = { type: 'gap', s: 10, len: 2.6, mask: 7 };
+  assert.equal(temple.collide(root, 10.4, 0, 0, false), 'stumble');
+  assert.equal(temple.collide(root, 10.4, 0, 0.8, false), null, 'jumped over');
+  assert.equal(temple.collide(root, 8, 0, 0, false), null, 'not there yet');
+  assert.equal(temple.collide(root, 11.5, 0, 0, false), null, 'past it');
+  assert.equal(temple.collide(fire, 10.5, 1.6, 0, false), 'stumble', 'fire in the right lane');
+  assert.equal(temple.collide(fire, 10.5, 0, 0, false), null, 'not in the centre lane');
+  assert.equal(temple.collide(fire, 10.5, 1.6, 1.0, false), null, 'over the flames');
+  assert.equal(temple.collide(arch, 10.5, 0, 0, false), 'crash');
+  assert.equal(temple.collide(arch, 10.5, 0, 0, true), null, 'slid under');
+  assert.equal(temple.collide(arch, 10.5, 0, 1.0, false), 'crash', 'jumping into it');
+  assert.equal(temple.collide(gap, 11.3, 0, 0, false), 'fall');
+  assert.equal(temple.collide(gap, 11.3, 0, 0.5, false), null, 'in the air over it');
+  assert.equal(temple.collide(gap, 10.1, 0, 0, false), null, 'its lip holds');
+  // In a run: one stumble brings the monkeys, a second while they're close catches you.
+  const t = temple.createTemple(99);
+  const first = t.seg(0).obs[0];
+  const run = temple.newRun(1);
+  run.s = first.s - 2;
+  for (let i = 0; i < 60 && run.alive && !run.stumbles; i++) temple.stepRun(run, t, null, 1 / 60);
+  assert.equal(run.stumbles, 1);
+  assert.ok(run.alive && run.chase > 0.9);
+  // Long enough later the monkeys drop back and a stumble is just a stumble.
+  for (let i = 0; i < 60 * (temple.CHASE_T + 0.5); i++) { run.s = 1; temple.stepRun(run, t, null, 1 / 60); }
+  assert.equal(run.chase, 0);
+  run.s = first.s - 2;
+  run.hit.clear();
+  for (let i = 0; i < 60 && run.stumbles < 2; i++) temple.stepRun(run, t, null, 1 / 60);
+  assert.ok(run.alive && run.stumbles === 2, 'a stumble with the monkeys far behind');
+  run.s = first.s - 2;
+  run.hit.clear();
+  for (let i = 0; i < 60 && run.alive; i++) temple.stepRun(run, t, null, 1 / 60);
+  assert.ok(!run.alive && run.cause === 'caught', 'a second one while they are close');
+  // Coins are picked up on the way past.
+  const r2 = temple.newRun(1);
+  const c = t.seg(0).coins.find(q => q.y < 1);
+  r2.s = c.s - 3; r2.lane = c.lane; r2.x = temple.laneX(c.lane);
+  r2.hit = new Set(t.seg(0).obs.map(o => o.id));
+  for (let i = 0; i < 30; i++) temple.stepRun(r2, t, null, 1 / 60);
+  assert.ok(r2.got.has(c.id) && r2.coins >= 1);
+});
+
+test('Temple Dash turns: inside the window a swipe turns, early it changes lane, missed is a fall', () => {
+  const t = temple.createTemple(7);
+  const seg = t.seg(0), v = temple.speedAt(seg.D);
+  const [a, b] = temple.turnWindow(seg, v);
+  assert.ok(a < seg.D - 8 && b > seg.D + 1.5, 'a forgiving window');
+  const at = s => { const r = temple.newRun(1); r.s = s; r.hit = new Set(seg.obs.map(o => o.id)); return r; };
+  // Early: a lane change.
+  let r = at(a - 3);
+  temple.side(r, t, seg.dir);
+  assert.equal(r.turned, -1);
+  assert.equal(r.lane, seg.dir);
+  // Inside: the turn, made at the corner.
+  r = at(a + 0.5);
+  const ev = temple.side(r, t, seg.dir);
+  assert.equal(r.turned, 0);
+  assert.equal(r.lane, 0);
+  assert.ok(ev.some(e => e.type === 'turn'));
+  for (let i = 0; i < 120; i++) temple.stepRun(r, t, null, 1 / 60);
+  assert.ok(r.alive && r.g === 1, 'round the corner');
+  // The other way inside the window is a lane change.
+  r = at(a + 0.5);
+  temple.side(r, t, -seg.dir);
+  assert.equal(r.turned, -1);
+  assert.equal(r.lane, -seg.dir);
+  // A little late (past the corner's centre) still turns.
+  r = at(seg.D + 1);
+  temple.side(r, t, seg.dir);
+  assert.equal(r.g, 1);
+  // Missed: off the edge.
+  r = at(a);
+  for (let i = 0; i < 120 && r.alive; i++) temple.stepRun(r, t, null, 1 / 60);
+  assert.ok(!r.alive && r.cause === 'edge');
+  // A turn keeps the runner's lane and reports how far their drawn position jumps.
+  r = at(a + 0.5);
+  r.lane = 1; r.x = temple.LANE;
+  temple.side(r, t, seg.dir);
+  let turned = null;
+  for (let i = 0; i < 120 && !turned; i++) turned = temple.stepRun(r, t, null, 1 / 60).find(e => e.type === 'turned');
+  assert.ok(turned && Math.hypot(turned.ox, turned.oz) < 2.5 && r.lane === 1);
+});
+
+test('Temple Dash checks shared state, runners and messages strictly', () => {
+  assert.deepEqual(temple.parseShared({ seed: 5, at: 1000, junk: 1 }), { seed: 5, at: 1000 });
+  for (const bad of [null, 5, {}, { seed: 0, at: 1 }, { seed: 1.5, at: 1 }, { seed: 2 ** 33, at: 1 }, { seed: 5, at: NaN }, { seed: '5', at: 1 }]) assert.equal(temple.parseShared(bad), null);
+  const t = temple.createTemple(5);
+  const run = temple.newRun(3);
+  run.s = 42.25; run.x = 1.6; run.coins = 4;
+  const st = temple.packRun(run, 5, 120);
+  assert.deepEqual(temple.parseRunner(st, 5, t), { sd: 5, n: 3, g: 0, d: 42.3, x: 1.6, y: 0, a: 0, c: 4, b: 120, k: 0, ch: 0 });
+  assert.equal(temple.packRun(run, 5, 0, true).a, 5, 'waiting for the countdown');
+  assert.equal(temple.parseRunner(st, 6, t), null, 'another temple');
+  for (const patch of [{ d: NaN }, { d: '4' }, { x: 9 }, { a: 6 }, { g: -1 }, { g: 1.5 }, { n: -1 }, { c: 1e9 }, { k: 7 }, { ch: 2 }, { y: 99 }, { b: -1 }, { sd: 0 }, { g: 3 }]) {
+    assert.equal(temple.parseRunner({ ...st, ...patch }, 5, t), null, JSON.stringify(patch));
+  }
+  assert.equal(temple.parseRunner(null, 5), null);
+  assert.equal(temple.parseRunner('x', 5), null);
+  assert.deepEqual(temple.parseFell({ n: 2, d: 99.5, k: 1 }), { n: 2, d: 99.5, k: 1 });
+  for (const bad of [null, {}, { n: 2, d: 99, k: 0 }, { n: 2, d: 99, k: 5 }, { n: -1, d: 1, k: 1 }, { n: 1, d: Infinity, k: 1 }]) assert.equal(temple.parseFell(bad), null);
 });
