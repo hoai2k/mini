@@ -53,6 +53,6 @@ test('recorded cello: every note is within three semitones of a recording, and t
   for (const l of SAMPLED.cello.loops) {
     const f = new URL(`../assets/audio/drone/${l.file}`, import.meta.url);
     assert.ok(existsSync(f) && statSync(f).size > 50000, l.file);
-    assert.ok(l.loop > 5 && l.margin >= 0.25, `${l.file}: a loop of ${l.loop} s with ${l.margin} s either side`);
+    assert.ok(l.loop > 1.5 && l.margin >= 0.25, `${l.file}: a loop of ${l.loop} s with ${l.margin} s either side`);
   }
 });

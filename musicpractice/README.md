@@ -231,15 +231,17 @@ tones, scales over a tonic.
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
 How it sounds (`app/src/drone.js`): the **Cello** plays recordings, generated
-with ElevenLabs sound effects and cut into seamless loops on five notes (D2,
-E2, G2, D3, A3), so every note is at most three semitones from a real take and
-is retuned to it exactly by playback rate (following the reference pitch).
+with ElevenLabs sound effects, made perfectly steady (one bow stroke only, so
+no bow change is ever heard, its pitch held exactly and its level evened out,
+as if the bow never ended) and cut into seamless loops on five notes (D2, E2,
+G2, D3, A3), so every note is at most three semitones from a real take and is
+retuned to it exactly by playback rate (following the reference pitch).
 Each loop file carries 0.3 s of its own continuation either side, so the loop
 points stay inside seamless audio whatever the decoder does; the five load
 when the Drone starts, so changing notes is instant. If they can't load, the
 synthesized cello plays instead. Takes, prompts, how the loops are made and
-how they were checked: `design/drone-sounds.md` (every note: within ±1.4 cents,
-loudness within 1.5 dB, no clicks, no audible joins).
+how they were checked: `design/drone-sounds.md` (every note: on pitch, wavering
+under 0.6 cents and 0.9 dB, loudness within 1 dB, no clicks, no audible joins).
 
 The other voices are still synthesized, to be replaced by recordings the same
 way. The bowed and blown ones play live in Web Audio: oscillators whose
