@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 233 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 237 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 233 of 233 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 233 of 237 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1817,6 +1817,41 @@ Requested 12 October 2026: carrying someone still requires a ground-walking cycl
 360 × 400 px, anchor bottom centre.
 
 > Exactly the two figures and carrying hold in sailor-carry.webp (attach it). Keep both faces, costumes, colours, the carried woman’s pose and the supporting arms unchanged. The carrier walks RIGHT in the pass-b phase. Right support leg vertical beneath the hip; left knee bent and left foot lifted beside the support ankle. The passing phases have the legs together under the hips, distinct from the spread-leg contacts. Preserve the carrier’s head height and body scale, place the planted foot on the bottom ground line. Exactly the existing two people, no extra limbs or hands; no ground or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F14. Walking cycle repairs
+
+Requested 13 October 2026 after checking the F10–F13 deliveries side by side. In the Original look, stride B of the armed prince and of the court-dress prince is a far longer lunge than stride A, so his head drops 24–26 px (of 360) on every other step and he limps; the tinted frames are even. The shared sailor carries his sack in the standing and new passing frames but not in the older walk-a/walk-b frames, so the sack blinked on and off with each step; until sailor-stride-a/b arrive the game holds each stride through its passing beat (a two-frame walk). The -redo frames replace prince-stride-b.webp and prince-court-stride-b.webp when delivered.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-stride-b-redo` | 220 × 360 | bottom centre | `prince-stride-b` | requested |
+| `prince-court-stride-b-redo` | 220 × 360 | bottom centre | `prince-court-stride-b` | requested |
+| `sailor-stride-a` | 220 × 360 | bottom centre | `sailor-walk-a` | requested |
+| `sailor-stride-b` | 220 × 360 | bottom centre | `sailor-walk-b` | requested |
+
+#### `prince-stride-b-redo` — Prince armed, stride B, redrawn to match stride A
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-stride-b.webp (attach it with prince-stride-a.webp, prince-pass-a.webp and prince-stand.webp). Exactly the same figure, costume and colours, walking right, with the RIGHT leg forward, heel down, and the left leg behind on its toes; but the stride exactly as long as in prince-stride-a.webp (mirrored legs), so the top of the head sits within 6 px of where it is in stride A (about 5 px from the top of the canvas). Same arm swing as stride A mirrored. Feet on the bottom ground line; no floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stride-b-redo` — Prince in court dress, stride B, redrawn to match stride A
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-court-stride-b.webp (attach it with prince-court-stride-a.webp, prince-court-pass-a.webp and prince-court.webp). Exactly the same figure, costume and colours, walking right, with the RIGHT leg forward, heel down, and the left leg behind on its toes; but the stride exactly as long as in prince-court-stride-a.webp (mirrored legs), so the top of the head sits within 6 px of where it is in stride A (about 5 px from the top of the canvas). Same arm swing as stride A mirrored. Feet on the bottom ground line; no floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-stride-a` — The sailor, stride A, with his sack
+
+220 × 360 px, anchor bottom centre.
+
+> The sailor exactly as in sailor-stand.webp and sailor-pass-a.webp (attach both, and sailor-stride-b.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: LEFT leg forward, heel down; right leg straight behind on its toes. The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow’s Bay editions. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sailor-stride-b` — The sailor, stride B, with his sack
+
+220 × 360 px, anchor bottom centre.
+
+> The sailor exactly as in sailor-stand.webp and sailor-pass-b.webp (attach both, and sailor-stride-a.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: RIGHT leg forward, heel down; left leg straight behind on its toes. The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow’s Bay editions. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

@@ -3439,6 +3439,46 @@
       ],
       "anchor": "bottom centre",
       "edition": "shared"
+    },
+    "prince-stride-b-redo": {
+      "status": "requested",
+      "file": "prince-stride-b-redo.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stride-b-redo": {
+      "status": "requested",
+      "file": "prince-court-stride-b-redo.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "sailor-stride-a": {
+      "status": "requested",
+      "file": "sailor-stride-a.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
+    },
+    "sailor-stride-b": {
+      "status": "requested",
+      "file": "sailor-stride-b.webp",
+      "size": [
+        220,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "shared"
     }
   },
   "audio": {
