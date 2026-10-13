@@ -2,6 +2,7 @@
 // held exactly constant and its level evened out, looped a whole number of
 // cycles long.
 import { SR } from './loop.mjs';
+import { holdSpectrum } from './spectral.mjs';
 
 const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
 
@@ -104,6 +105,8 @@ export function steadyLoop(x, a, b, f0, opts = {}) {
   const track = pitchTrack(x, Math.round(s * SR), Math.round(e * SR), f0);
   const Pm = median(track.map((t) => t.period));
   const P = Math.round(Pm); // an integer period: every cycle lines up exactly
-  const y = holdLevel(holdPitch(x, track, P), P, opts.levelAmount ?? 0.92);
+  let y = holdLevel(holdPitch(x, track, P), P, opts.levelAmount ?? 0.92);
+  // Steady brightness too (after the pitch is held, each harmonic stays in its bin).
+  if (opts.spectral) y = holdLevel(holdSpectrum(y, { amount: opts.spectral }), P, 0.92);
   return { loop: cycleLoop(y, P, opts.xfade ?? 0.8), stroke: [s, e], hz: SR / P, wobble: track.map((t) => 1200 * Math.log2(Pm / t.period)) };
 }

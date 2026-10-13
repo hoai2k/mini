@@ -233,11 +233,12 @@ tones, scales over a tonic.
 How it sounds (`app/src/drone.js`): the **Cello** plays recordings, generated
 with ElevenLabs sound effects, made perfectly steady (one bow stroke only, so
 no bow change is ever heard, its pitch held exactly and its level evened out,
-as if the bow never ended) and cut into seamless loops on five notes (D2, E2,
-G2, D3, A3), so every note is at most three semitones from a real take and is
-retuned to it exactly by playback rate (following the reference pitch).
+as if the bow never ended, with its brightness held steady too) and cut into
+seamless loops on four notes a fifth apart (D2, G2, D3, A3), so every note is
+at most about three semitones from a real take and is retuned to it exactly by
+playback rate (following the reference pitch).
 Each loop file carries 0.3 s of its own continuation either side, so the loop
-points stay inside seamless audio whatever the decoder does; the five load
+points stay inside seamless audio whatever the decoder does; the four load
 when the Drone starts, so changing notes is instant. If they can't load, the
 synthesized cello plays instead. Takes, prompts, how the loops are made and
 how they were checked: `design/drone-sounds.md` (every note: on pitch, wavering
