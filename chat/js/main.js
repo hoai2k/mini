@@ -453,11 +453,31 @@ const viewOf = id => views.get(id) ?? { fill: false, x: 0.5, y: 0.5 };
 const isMainFriend = rec => rec.id !== me.id && !rec.el.classList.contains('pip') && !games?.current;
 function applyView(rec) {
   const m = rec.media.style;
-  if (!isMainFriend(rec)) { m.objectFit = ''; m.objectPosition = ''; return; }
+  const main = isMainFriend(rec);
   const v = viewOf(rec.id);
+  // While a friend fills the screen, a button brings back their whole picture
+  // (as well as pinching in or double-tapping), so nobody gets stuck zoomed.
+  let fit = rec.el.querySelector('.fit-btn');
+  if (main && v.fill && !fit) {
+    fit = document.createElement('button');
+    fit.type = 'button';
+    fit.className = 'fit-btn';
+    fit.textContent = 'Show whole picture';
+    fit.addEventListener('click', e => {
+      e.stopPropagation();
+      views.set(rec.id, { fill: false, x: 0.5, y: 0.5 });
+      applyView(rec);
+      sfx('click');
+    });
+    rec.el.append(fit);
+  } else if (fit && !(main && v.fill)) fit.remove();
+  if (!main) { m.objectFit = ''; m.objectPosition = ''; return; }
   m.objectFit = v.fill ? 'cover' : 'contain';
   m.objectPosition = `${(v.x * 100).toFixed(2)}% ${(v.y * 100).toFixed(2)}%`;
 }
+// iPhone Safari zooms the whole page on a pinch whatever the viewport says;
+// its own gesture events stop that (the main video's pinch uses pointers).
+for (const type of ['gesturestart', 'gesturechange']) document.addEventListener(type, e => e.preventDefault(), { passive: false });
 // The room a friend's picture has to move in, in pixels, along each axis:
 // positive is spare room around a letterboxed picture, negative is the part
 // a filled picture crops away.
