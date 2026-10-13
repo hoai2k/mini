@@ -112,7 +112,7 @@ html.touch [data-tip]:hover::after { display: none; }
 .mode { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto; column-gap: 12px; align-items: start; align-content: start; text-align: left;
   padding: 12px 14px 11px 12px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); color: var(--ink);
   min-width: 0; transition: transform .14s, border-color .2s; }
-.modes > .mode:last-child:nth-child(odd) { grid-column: 1 / -1; } /* the fifth spans both columns */
+.modes > .mode:first-child { grid-column: 1 / -1; } /* Melody Challenges, the main thing to do, across both columns */
 .mode:hover, .mode.pad-focus, .mode:focus-visible { border-color: var(--brass); transform: translateY(-2px); }
 .mode:active { transform: scale(.97); }
 .mode:disabled { opacity: .45; transform: none; }
