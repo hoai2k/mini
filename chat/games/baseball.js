@@ -772,6 +772,14 @@ export default {
     const fx = [];             // particles and rings
     const floats = [];         // floating texts
     let shake = null;
+    // The camera: close in on the diamond for the pitch; when a hit leaves the
+    // diamond it follows the ball, widening to fit everything that's moving.
+    const DIAMOND = { x0: 0.12, x1: 0.88, y0: 0.7, y1: 1.68 };
+    const camHome = () => ({
+      x: (DIAMOND.x0 + DIAMOND.x1) / 2, y: (DIAMOND.y0 + DIAMOND.y1) / 2,
+      z: Math.min(BW / (DIAMOND.x1 - DIAMOND.x0), BH / (DIAMOND.y1 - DIAMOND.y0)),
+    });
+    let cam = camHome(), camAt = 0;
     const flips = new Map();   // slot -> { at, from }
     let shownPk = sh?.pk ?? null, shownBonus = sh?.bonus ?? -1, shownLay = sh?.lay ?? 0;
     let runAnim = null;        // { moves, at }
@@ -841,7 +849,8 @@ export default {
       }
     }
     function paintBoard() {
-      const s = L.s * dpr;
+      // Painted at the camera's closest zoom, so the board stays sharp close in.
+      const s = Math.min(L.s * dpr * camHome().z, 2160 / BW);
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(BW * s));
       c.height = Math.max(1, Math.round(BH * s));
@@ -1985,8 +1994,44 @@ export default {
       if (ball && !ball.done && rollState(t).done) finishRoll(t);
     }
 
+    // Where the camera wants to be now (board units; z = zoom).
+    function camTarget(t) {
+      const home = camHome();
+      const pts = [];
+      if (ball && !(ball.done && t - (ball.doneAt || t) > 900)) {
+        const rs = rollState(t);
+        if (!(rs.done && ball.r.end === 'over')) pts.push({ x: rs.x, y: rs.y });
+        else pts.push({ x: rs.x, y: Math.max(0.1, rs.y - 0.2) });
+      }
+      if (runAnim && t - runAnim.at < runAnim.dur) {
+        const k = clamp((t - runAnim.at) / (runAnim.dur - 250), 0, 1);
+        for (const m of runAnim.moves) pts.push(runnerAt(m, easeOut(k)));
+      }
+      // Nothing has left the diamond: stay close in.
+      const inside = p => p.x > DIAMOND.x0 + 0.04 && p.x < DIAMOND.x1 - 0.04 && p.y > DIAMOND.y0 + 0.04;
+      if (!pts.length || pts.every(inside)) return home;
+      // Frame everything that's moving, with room round it.
+      const m = 0.16;
+      const x0 = Math.min(...pts.map(p => p.x)) - m, x1 = Math.max(...pts.map(p => p.x)) + m;
+      const y0 = Math.min(...pts.map(p => p.y)) - m, y1 = Math.max(...pts.map(p => p.y)) + m;
+      const z = clamp(Math.min(BW / (x1 - x0), BH / (y1 - y0)), 1, home.z);
+      return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, z };
+    }
+    function moveCam(t) {
+      const want = camTarget(t);
+      const dt = camAt ? Math.min(0.1, (t - camAt) / 1000) : 1;
+      camAt = t;
+      const k = 1 - Math.exp(-dt * 3.5);
+      cam = { x: cam.x + (want.x - cam.x) * k, y: cam.y + (want.y - cam.y) * k, z: cam.z + (want.z - cam.z) * k };
+      // Never past the board's edges.
+      const hw = BW / cam.z / 2, hh = BH / cam.z / 2;
+      cam.x = clamp(cam.x, hw, BW - hw);
+      cam.y = clamp(cam.y, hh, BH - hh);
+    }
+
     function draw(t) {
       if (!L) return;
+      moveCam(t);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = '#10162e';
       ctx.fillRect(0, 0, w, h);
@@ -1996,6 +2041,11 @@ export default {
         if (k >= 1) shake = null;
         else ctx.translate((Math.random() - 0.5) * shake.mag * (1 - k), (Math.random() - 0.5) * shake.mag * (1 - k));
       }
+      // The camera: board points scale about the view's centre.
+      ctx.beginPath(); ctx.rect(L.ox, L.oy, L.bw, L.bh); ctx.clip();
+      ctx.translate(L.ox + L.bw / 2, L.oy + L.bh / 2);
+      ctx.scale(cam.z, cam.z);
+      ctx.translate(-X(cam.x), -Y(cam.y));
       if (!boardCache || (!boardCache.art && api.img('bb2-board'))) { boardCache = paintBoard(); boardCache.art = !!api.img('bb2-board'); }
       ctx.drawImage(boardCache, L.ox, L.oy, L.bw, L.bh);
       drawPockets(t);
@@ -2188,6 +2238,7 @@ export default {
         const t = now();
         return {
           me, owner: api.owner(), role: role(), sh: sh && JSON.parse(JSON.stringify(sh)),
+          cam: { ...cam },
           pitch: cur && { n: cur.n, type: cur.type, t: pitchClock(), T: cur.p.T, end: cur.p.end, t0: cur.t0 },
           bat: { mode: bat.mode, th: batAngle(t), by: bat.by },
           ball: ball && { n: ball.n, end: ball.r.end, slot: ball.r.slot ?? -1, x: ball.r.x, y: ball.r.y, res: ball.res, done: ball.done, L: ball.L, ...(() => { const r = rollState(t); return { px: r.x, py: r.y }; })() },
