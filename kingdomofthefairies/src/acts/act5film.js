@@ -62,6 +62,71 @@ export const TOWER_HOLDS = [
 export const TOWER_HALF = TOWER_HOLDS.findIndex((h) => h.x === 515 && h.y === 925);
 export const TOWER_WINDOW = { x: 825, y: TOWER_TOP };
 
+// The film's cliff (cliff-face-tall-2 as Act V draws it: 820 wide from x 230,
+// its foot at y -30): every ledge hold is on the top face of one of its
+// painted ledges, and every grip in its painted ivy; leaps cross the dark
+// cleft to the pearls on the right. No giant, no boot: he climbs over the
+// grass edge from the ledge below it. Plain moves reach 130, leaps 190.
+export const FILM_CLIFF = [
+  { x: 670, y: 70, kind: 'ledge', painted: true, start: true },
+  { x: 745, y: 160, kind: 'ledge', painted: true },
+  { x: 620, y: 180, ivy: true },
+  { x: 610, y: 290, ivy: true },
+  { x: 880, y: 300, kind: 'ledge', painted: true, pearl: true },
+  { x: 760, y: 380, kind: 'ledge', painted: true },
+  { x: 650, y: 410, kind: 'ledge', painted: true },
+  { x: 540, y: 435, kind: 'ledge', painted: true },
+  { x: 430, y: 455, kind: 'ledge', painted: true },
+  { x: 330, y: 380, ivy: true },
+  { x: 350, y: 520, ivy: true },
+  { x: 380, y: 612, kind: 'ledge', painted: true },
+  { x: 500, y: 600, kind: 'ledge', painted: true },
+  { x: 620, y: 585, kind: 'ledge', painted: true, pearl: true },
+  { x: 300, y: 690, ivy: true },
+  { x: 370, y: 785, kind: 'ledge', painted: true },
+  { x: 490, y: 772, kind: 'ledge', painted: true },
+  { x: 610, y: 760, kind: 'ledge', painted: true },
+  { x: 730, y: 745, kind: 'ledge', painted: true },
+  { x: 900, y: 712, kind: 'ledge', painted: true },
+  { x: 975, y: 860, ivy: true },
+  { x: 960, y: 945, kind: 'ledge', painted: true, pearl: true },
+  { x: 450, y: 870, ivy: true },
+  { x: 420, y: 965, kind: 'ledge', painted: true },
+  { x: 540, y: 955, kind: 'ledge', painted: true },
+  { x: 660, y: 945, kind: 'ledge', painted: true },
+  { x: 770, y: 930, kind: 'ledge', painted: true },
+  { x: 430, y: 1060, kind: 'ledge', painted: true },
+  { x: 560, y: 1040, kind: 'ledge', painted: true, pearl: true },
+  { x: 350, y: 1145, ivy: true },
+  { x: 310, y: 1230, ivy: true },
+  { x: 400, y: 1275, kind: 'ledge', painted: true },
+  { x: 520, y: 1248, kind: 'ledge', painted: true },
+  { x: 640, y: 1240, kind: 'ledge', painted: true },
+  { x: 760, y: 1236, kind: 'ledge', painted: true },
+  { x: 900, y: 1225, kind: 'ledge', painted: true },
+  { x: 900, y: 1300, ivy: true },
+  { x: 950, y: 1385, kind: 'ledge', painted: true, pearl: true },
+  { x: 575, y: 1350, ivy: true, kind: 'crumble' },
+  { x: 450, y: 1418, kind: 'ledge', painted: true },
+  { x: 580, y: 1414, kind: 'ledge', painted: true },
+  { x: 380, y: 1492, kind: 'ledge', painted: true },
+  { x: 520, y: 1498, kind: 'ledge', painted: true },
+  { x: 660, y: 1502, kind: 'ledge', painted: true },
+  { x: 640, y: 1580, ivy: true },
+  { x: 370, y: 1667, kind: 'ledge', painted: true },
+  { x: 500, y: 1663, kind: 'ledge', painted: true },
+  { x: 640, y: 1658, kind: 'ledge', painted: true },
+  { x: 330, y: 1760, ivy: true, kind: 'crumble' },
+  { x: 380, y: 1850, ivy: true },
+  { x: 470, y: 1878, kind: 'ledge', painted: true },
+  { x: 580, y: 1874, kind: 'ledge', painted: true },
+  { x: 690, y: 1870, kind: 'ledge', painted: true },
+  { x: 850, y: 1830, kind: 'ledge', painted: true, pearl: true },
+  { x: 560, y: CLIFF.top + 6, kind: 'top' },
+  { x: 680, y: CLIFF.top + 6, kind: 'top' },
+];
+export const FILM_CLIFF_HALF = FILM_CLIFF.findIndex((h) => h.x === 420 && h.y === 965);
+
 // Cut-scene lengths, seconds.
 export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };
 
@@ -148,6 +213,15 @@ export const actTower = {
     // The cliff, from Act V's own create (scene 1 is its halfway checkpoint).
     const st = act5.create({ seed, carry, from: k === 1 ? { ...from, scene: 1 } : null });
     st.part = 'tower';
+    // the film's own cliff route, on the cliff's painted ledges and ivy
+    st.holds = FILM_CLIFF.map((h) => ({ kind: 'hold', ...h, gone: false }));
+    st.climb = { top: CLIFF.top, camMax: CLIFF.camMax, half: FILM_CLIFF_HALF, halfScene: 1, openTop: true };
+    {
+      const i = k === 1 ? (from.hold ?? FILM_CLIFF_HALF) : st.holds.findIndex((h) => h.start);
+      st.cl = { at: i, from: i, moveT: 0, moveDur: 0, kind: null, crumbleT: 0 };
+      st.camY = k === 1 ? clamp(st.holds[i].y - 250, 0, CLIFF.camMax) : 0;
+      if (k === 1) for (const j of from.taken ?? st.holds.map((h, j) => (h.pearl && j <= i ? j : -1)).filter((j) => j >= 0)) if (st.holds[j]) st.holds[j].taken = true;
+    }
     st.carry = { ...CARRY_DEFAULT, ...carry };
     st.events.length = 0;
     if (k >= 2) { st.score = from.score ?? 0; st.pearls = from.pearls ?? 0; }

@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, FILM_CLIFF_HALF } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
@@ -221,6 +221,31 @@ test('Act V: a swimmer who never dives is caught', () => {
   const st = actTower.create({ seed: 9, carry: {}, from: { scene: 2 } });
   run(actTower, st, 30, () => ({ moveX: 0.6 }));
   assert.ok(st.lanterns < 3);
+});
+
+test('Act V: the film cliff climbs its painted ledges from the shore to the clifftop, and on into the dive', () => {
+  for (const scene of [0, 1]) {
+    const st = actTower.create({ seed: 1, carry: {}, from: scene ? { scene } : null });
+    assert.equal(st.holds.length, FILM_CLIFF.length);
+    assert.equal(st.cl.at, scene ? FILM_CLIFF_HALF : FILM_CLIFF.findIndex((h) => h.start));
+    assert.ok(!st.holds.some((h) => h.kind === 'boot' || h.kind === 'gap'), 'no giant and no guitarist');
+  }
+  const st = actTower.create({ seed: 1, carry: {} });
+  const seen = new Set([st.cl.at]), q = [st.cl.at];
+  const dirs = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0.6, y: 0.8 }, { x: -0.6, y: 0.8 }];
+  while (q.length) {
+    const i = q.shift(); st.cl.at = i;
+    for (const d of dirs) for (const leap of [false, true]) { const j = pickHold(st, i, d, leap); if (j >= 0 && !seen.has(j)) { seen.add(j); q.push(j); } }
+  }
+  assert.ok(st.holds.some((h, i) => h.kind === 'top' && seen.has(i)), 'the clifftop is reachable');
+  assert.ok(st.holds.every((h, i) => !h.pearl || seen.has(i)), 'every pearl is reachable');
+  // over the grass edge: the dive follows
+  const s2 = actTower.create({ seed: 1, carry: {} });
+  const top = s2.holds.findIndex((h) => h.kind === 'top');
+  const below = s2.holds.findIndex((h) => h.x === 580 && h.y === 1874);
+  s2.cl.at = s2.cl.from = below; s2.inv = 99;
+  run(actTower, s2, 2, () => ({ up: true }), (s) => s.phase !== 'cliff');
+  assert.equal(s2.phase, 'dive', `phase ${s2.phase}, at ${s2.cl.at} (top ${top})`);
 });
 
 test('Act V: the tower wall has a route from its foot to the window', () => {

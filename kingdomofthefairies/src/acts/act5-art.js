@@ -313,7 +313,10 @@ const IVY = Array.from({ length: 40 }, (_, i) => ({ x: (i * 263) % 680 + 300, y:
 
 export function cliffScene(k, st, t) {
   const c = k.c, cam = st.camY, storm = st.phase === 'storm';
-  bay(k, st, t, st.fire, 470 + cam * 0.08);
+  // The film edition climbs its own coast: the sea gap and the witch's tower
+  // across it behind the cliff, darkened a little; else the bay.
+  if (st.part && k.img('coast-gap')) { k.asset('coast-gap', 640, 720 + cam * 0.05, 1280, 720); k.wash('#0b0a18', 0.25); }
+  else bay(k, st, t, st.fire, 470 + cam * 0.08);
   c.save(); c.translate(0, 640 + cam); // world: draw at y = -wy
   const lo = Math.max(-120, cam - 120), hi = cam + 720;
   // shore and surf (cliff-face paints its own surf at its foot)
@@ -378,7 +381,7 @@ export function cliffScene(k, st, t) {
     if (!k.img('cliff-ledge')) { c.fillStyle = k.col('#8d8170'); c.fillRect(LEGS[0] - 70, -(CLIFF.top - 100), 250, 14); }
   }
   // the giant's shelf, 250 wide: three 104 x 24 cliff-ledge tiles, top on the shelf line
-  if (hi > CLIFF.top - 200) for (const lx0 of [LEGS[0] - 18, LEGS[0] + 55, LEGS[0] + 128]) k.asset('cliff-ledge', lx0, -(CLIFF.top - 100) + 24, 104, 24);
+  if (hi > CLIFF.top - 200 && !st.part) for (const lx0 of [LEGS[0] - 18, LEGS[0] + 55, LEGS[0] + 128]) k.asset('cliff-ledge', lx0, -(CLIFF.top - 100) + 24, 104, 24);
   holds(k, st, t);
   c.restore();
 
@@ -396,7 +399,7 @@ export function cliffScene(k, st, t) {
   // the giant's legs, shifting weight on the beat; they stride off in the storm
   const off = storm ? easeInOut((st.phaseT - 0.3) / 1.6) * 1100 : 0;
   const beat = st.beat || 0;
-  for (const half of [0, 1]) {
+  if (!st.part) for (const half of [0, 1]) {
     const lift = (half ? bootLift(beat - 1) : bootLift(beat)) * CLIFF.bootLift;
     giantLeg(k, LEGS[half], -(CLIFF.top - 100) - lift - off - 4, half);
   }
@@ -406,7 +409,7 @@ export function cliffScene(k, st, t) {
   c.restore();
   rockWarnings(k, st, t);
   if (storm) stormFx(k, st, t);
-  hugeGuitarist(k, st, t);
+  if (!st.part) hugeGuitarist(k, st, t);
 }
 
 export function holds(k, st, t) {
