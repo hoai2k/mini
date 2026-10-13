@@ -2235,10 +2235,6 @@ export const ASSET_LIST = {
     "file": "assets/games/temple-root.png",
     "status": "delivered"
   },
-  "temple-arch": {
-    "file": "assets/games/temple-arch.png",
-    "status": "delivered"
-  },
   "temple-fire": {
     "file": "assets/games/temple-fire.png",
     "status": "delivered"

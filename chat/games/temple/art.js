@@ -640,58 +640,48 @@ export function drawRoot() {
   return c;
 }
 
-// A low broken arch across the path: 512 x 512 (drawn squashed to 0.6 of its
-// height): posts at the sides, a lintel whose underside is 1.2 m up.
-export function drawArch() {
-  const c = canvas(512, 512);
+// A low beam across the whole walkway, the slide-under obstacle: 1024 x 512,
+// drawn 2:1 over the walkway's full width. The beam runs from 20% to 62% down,
+// so its underside is about 1.25 m up: a standing runner hits it, a sliding
+// one passes under; below it only two stubby blocks at the outer edges.
+export function drawBeam() {
+  const c = canvas(1024, 512);
   const g = c.getContext('2d');
-  const r = mulberry32(17);
+  const r = mulberry32(23);
+  const top = 102, bottom = 318;
   const block = (x, y, w, h, base) => {
-    g.fillStyle = rgb(base, 0.92 + r() * 0.14);
+    g.fillStyle = rgb(base, 0.9 + r() * 0.16);
     g.fillRect(x, y, w, h);
     g.fillStyle = 'rgba(255,236,200,0.22)';
-    g.fillRect(x, y, w, 6);
-    g.fillStyle = 'rgba(30,20,10,0.35)';
-    g.fillRect(x, y + h - 7, w, 7);
-    g.strokeStyle = 'rgba(40,30,18,0.6)';
-    g.lineWidth = 3;
-    g.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    g.fillRect(x, y, w, 7);
+    g.fillStyle = 'rgba(30,20,10,0.38)';
+    g.fillRect(x, y + h - 9, w, 9);
+    g.strokeStyle = 'rgba(40,30,18,0.65)';
+    g.lineWidth = 4;
+    g.strokeRect(x + 2, y + 2, w - 4, h - 4);
   };
-  const stone = [150, 136, 108];
-  // Posts.
-  for (const x of [0, 442]) for (let y = 352; y < 512; y += 54) block(x, y, 70, 54, stone);
-  // Lintel blocks with a jagged broken top.
-  for (let x = 0; x < 512; x += 128) block(x, 248, 128, 104, [158, 142, 110]);
-  g.fillStyle = '#958466';
-  g.beginPath();
-  g.moveTo(0, 250);
-  for (let x = 0; x <= 512; x += 32) g.lineTo(x, 250 - 20 - r() * 50);
-  g.lineTo(512, 250);
-  g.closePath();
-  g.fill();
-  // Carvings on the lintel.
+  // The supports: short and only at the very edges.
+  for (const x of [0, 948]) for (let y = bottom; y < 512; y += 64) block(x, y, 76, 64, [132, 120, 96]);
+  // The beam: big carved blocks with a dark underside so its edge reads.
+  for (let x = 0; x < 1024; x += 128) block(x, top, 128, bottom - top, [158, 142, 110]);
+  g.fillStyle = 'rgba(25,16,8,0.55)';
+  g.fillRect(0, bottom - 18, 1024, 18);
   g.strokeStyle = 'rgba(60,44,26,0.6)';
-  g.lineWidth = 5;
-  for (let x = 64; x < 512; x += 128) {
-    g.beginPath(); g.arc(x, 300, 26, 0, TAU); g.stroke();
-    g.beginPath(); g.arc(x - 9, 294, 5, 0, TAU); g.arc(x + 9, 294, 5, 0, TAU); g.stroke();
-    g.beginPath(); g.moveTo(x - 12, 312); g.lineTo(x + 12, 312); g.stroke();
+  g.lineWidth = 6;
+  for (let x = 64; x < 1024; x += 128) {
+    g.beginPath(); g.arc(x, 210, 38, 0, TAU); g.stroke();
+    g.beginPath(); g.arc(x - 13, 200, 7, 0, TAU); g.arc(x + 13, 200, 7, 0, TAU); g.stroke();
+    g.beginPath(); g.moveTo(x - 18, 228); g.lineTo(x + 18, 228); g.stroke();
   }
-  // Hanging vines.
-  for (let i = 0; i < 14; i++) {
-    const x = 20 + r() * 472, len = 30 + r() * 60;
-    g.strokeStyle = '#3d7c34';
-    g.lineWidth = 5;
-    g.beginPath();
-    g.moveTo(x, 340);
-    g.quadraticCurveTo(x + (r() - 0.5) * 20, 340 + len / 2, x + (r() - 0.5) * 10, 340 + len);
-    g.stroke();
-    g.fillStyle = '#5aa04a';
-    for (let y = 350; y < 340 + len; y += 14) { g.beginPath(); g.ellipse(x + (y % 28 ? 6 : -6), y, 6, 3, 0.5, 0, TAU); g.fill(); }
-  }
-  // Moss on top.
+  // Moss along the top, a few short vines under it (well clear of the gap).
   g.fillStyle = '#5f9a3c';
-  for (let x = 10; x < 512; x += 22) { g.beginPath(); g.ellipse(x, 222 + r() * 20, 14, 7, 0, 0, TAU); g.fill(); }
+  for (let x = 8; x < 1024; x += 24) { g.beginPath(); g.ellipse(x, top + 2 + r() * 10, 16, 8, 0, 0, TAU); g.fill(); }
+  for (let i = 0; i < 12; i++) {
+    const x = 90 + r() * 844, len = 18 + r() * 26;
+    g.strokeStyle = '#3d7c34';
+    g.lineWidth = 6;
+    g.beginPath(); g.moveTo(x, bottom - 4); g.lineTo(x + (r() - 0.5) * 8, bottom + len); g.stroke();
+  }
   return c;
 }
 
