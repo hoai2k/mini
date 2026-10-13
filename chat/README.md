@@ -223,7 +223,9 @@ miniature kitchens show friends' stacks, falling ingredients, scores and
 remaining lives), Asteroid Dodge (steer with your head or by tilting the phone
 or dragging; the ship sits about a quarter of the way up the screen, clear of
 your finger, and flies up from below the edge when a run starts),
-Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
+Don't Smile (who plays a round is fixed at its 3-2-1: someone who joins
+mid-round watches with a "You're in next round" note and plays from the next
+one), Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
 Word Blitz (a Boggle-style word race on a 20,000-word dictionary) and Go Fish
 (thirteen creatures from the ancient oceans, from Anomalocaris and Opabinia to
 Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
@@ -238,7 +240,7 @@ from the pond while it still holds four cards: they draw four ("Bo joins and
 draws 4"), any book among them goes straight to the table, and they sit right
 after the player whose turn it is, so they play next; with fewer than four
 cards left, or five already at the table, they watch and are dealt in at the
-next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner) and Baseball (a home run derby seen from
+next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner; someone who joins mid-round is seated by the owner straight away with 0 points and full hearts, plays the rest of the round on the same field, and shows in the tally and the results with when they joined) and Baseball (a home run derby seen from
 behind the plate in the style of Wii Sports Baseball's batting, with your face
 on the slugger: the pitch grows from a dot in the pitcher's hand to a big
 streaking ball at the plate, and you tap it as it gets there; the slugger
@@ -246,7 +248,14 @@ loads as it comes and swings in about a third of a second, the bat level
 through the ball and round over his front shoulder; when you swing sets the direction, early pulls and late is foul,
 and where you tap on the ball sets the launch, on top a grounder and under it
 a pop-up; ten fastballs, changeups and curves a round, friends' hits fly as
-ghost balls and everyone's home runs are on the scoreboard). Kart Dash is a
+ghost balls and everyone's home runs are on the scoreboard). In the two-player
+games (Connect Four, Battleship and Air Hockey) everyone else who joins waits
+in line and sees their place ("You're up next", "2nd in line"): when a player
+leaves, the front of the line takes the seat, and after a game with someone
+waiting the winner stays on, the loser goes to the back of the line and the
+longest-waiting watcher sits down (after a draw, whoever has sat longest makes
+way). Everyone is told who came in, and the next in line can start the next
+game too ("Play next"); the owner decides the line (`js/seatqueue.js`). Kart Dash is a
 behind-the-kart Mode-7 racer (WebGL ground) for one to four racers with
 computer karts filling the grid: three laps and item boxes giving boost
 rockets, banana peels, bouncing bombs and rainbow stars that spin karts out
@@ -370,14 +379,18 @@ itself to HTTPS.
   the real app with a debug bot in each game (the human seat plays too),
   checking the bot's window keeps animating and the bot makes moves
 - `node chat/test/airhockey-check.mjs`: the puck waits, still, after a serve
-  until someone hits it, and a bot goes and hits it
+  until someone hits it, and a bot goes and hits it; then with three people
+  the third waits in line, rotates in after a match (winner stays, loser to
+  the back of the line, everyone told), plays as a bot, and the next in line
+  takes the owner's seat when the owner leaves (screenshots
+  `local/chat-shots/airhockey-queue.png`, `airhockey-swap.png`)
 - `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
   accounted for and every book gets made; one more seat joins once the pond
   is down to 30 and must be dealt four from the pond, be announced to the
   others and get a turn; screenshots of a cast, a low pond, the late join
   (`gofish-join.png`), the Go Fish bubbles and the end in `local/chat-shots/`
-- `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, the same scores and winner on both seats, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
+- `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, a third seat joining mid-round being seated at once with 0 points and full hearts, scoring on the shared field and appearing (with when it joined) on both other seats' tallies and results, the same scores and winner on every seat, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
 - `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
   swing (arms keep their length, both hands stay on the bat, the bat sweeps
   one way from behind his head, level through the zone, over his front

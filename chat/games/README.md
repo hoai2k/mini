@@ -18,7 +18,7 @@ export default {
   emoji: '🔴',               // picker icon until the icon art (game-<id>) arrives
   blurb: 'Drop discs, get four in a row.',   // one line in the picker
   minPlayers: 2,             // shown in the picker; 1 means it can be played alone
-  maxPlayers: 2,             // extra people who join watch
+  maxPlayers: 2,             // seats in play; others wait in line (see js/seatqueue.js) and anyone can join mid-game
   needsFace: false,          // true: the studio tracks my face every frame
   fullBleed: false,          // true: the game fills the whole screen, under the
                              // floating top and bottom bars (see api.insets)

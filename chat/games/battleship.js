@@ -1,6 +1,8 @@
 // Battleship: two players hide a fleet (5, 4, 3, 3 and 2 squares long) on a
 // 10x10 grid and take turns firing at each other's waters. Anyone else in the
-// session watches.
+// session waits in line (js/seatqueue.js): the front of the line takes a seat
+// when a player leaves, and after a game with someone waiting the winner stays
+// on, the loser goes to the back of the line and the next in line sits down.
 //
 // Secrecy: a fleet only ever exists on its owner's device. It is never put in
 // state or shared state. The shooter sends 'fire' { x, y, turn }; the defender
@@ -13,9 +15,12 @@
 // survivors can be shown.
 //
 // Shared state: { game, phase: 'place' | 'battle' | 'over', seats: [id, id],
-// turn, turnNo, ready: [ids], shots: { id: [[x, y, hit, sunk]] }, winner }
+// q: [ids waiting], sat: [when each seat sat down], swap: { seat, out, in,
+// game } | null, turn, turnNo, ready: [ids], shots: { id: [[x, y, hit, sunk]] }, winner }
 // where shots[id] are the shots id has fired at the other seat. It holds
 // everything the owner needs, so a new owner carries on from shared() alone.
+
+import { readLineup, syncSeats, rotateSeats, queueLabel, swapText } from '../js/seatqueue.js';
 
 const N = 10;
 const SHIPS = [5, 4, 3, 3, 2];
@@ -84,8 +89,9 @@ function validShared(s) {
     && typeof s.phase === 'string' && s.shots && typeof s.shots === 'object' && Array.isArray(s.ready);
 }
 
-function freshShared(a, b) {
-  return { game: Date.now(), phase: 'place', seats: [a, b], turn: null, turnNo: 0, ready: [], shots: { [a]: [], [b]: [] }, winner: null };
+function freshShared(a, b, q = [], sat = [0, 0], swap = null) {
+  const game = Date.now();
+  return { game, phase: 'place', seats: [a, b], q, sat, swap: swap && { ...swap, game }, turn: null, turnNo: 0, ready: [], shots: { [a]: [], [b]: [] }, winner: null };
 }
 
 // Which of my shots' cells formed a ship that was sunk? The sunk length is
@@ -120,7 +126,7 @@ export default {
   id: 'battleship',
   name: 'Battleship',
   emoji: '🚢',
-  blurb: 'Hide your fleet, sink theirs. Two players, everyone else watches.',
+  blurb: 'Hide your fleet, sink theirs. Two play; the next in line plays the winner.',
   minPlayers: 2,
   maxPlayers: 2,
   needsFace: false,
@@ -230,9 +236,14 @@ export default {
       const s = sh();
       if (ps.length < 2) { if (api.shared() != null) api.setShared(null); return; }
       const ids = ps.map(p => p.id);
-      if (!s || s.seats.some(id => !ids.includes(id))) {
+      // The line-up: a seat whose player left goes to the front of the line
+      // (a new game, since fleets are secret); newcomers join the back.
+      const lu = syncSeats(s ? readLineup(s) : { seats: [null, null], q: [], sat: [0, 0] }, ids);
+      if (!s || lu.seats[0] !== s.seats[0] || lu.seats[1] !== s.seats[1]) {
         if (s) api.toast('A player left: starting a new game.');
-        api.setShared(freshShared(ids[0], ids[1]));
+        api.setShared(freshShared(lu.seats[0], lu.seats[1], lu.q, lu.sat));
+      } else if (lu.changed) {
+        api.setShared({ ...JSON.parse(JSON.stringify(s)), q: lu.q, sat: lu.sat });
       }
     }
 
@@ -285,11 +296,17 @@ export default {
       api.setShared(next);
     }
 
+    // Rematch, asked for by a player or the next in line: with someone
+    // waiting, the winner stays and the loser makes way.
     function ownerAgain(d, from) {
       const s = sh();
-      if (!api.isOwner() || !s || s.phase !== 'over' || seatOf(s, from) < 0) return;
-      api.setShared(freshShared(s.seats[0], s.seats[1]));
+      if (!api.isOwner() || !s || s.phase !== 'over') return;
+      const lu = readLineup(s);
+      if (seatOf(s, from) < 0 && lu.q[0] !== from) return;
+      const r = rotateSeats(lu, seatOf(s, s.winner));
+      api.setShared(freshShared(r.seats[0], r.seats[1], r.q, r.sat, r.swap));
     }
+    const placeOf = (s, id) => (s ? readLineup(s).q.indexOf(id) : -1);
 
     // --- messages --------------------------------------------------------
     // Everything I send is also handled locally, since the relay does not echo.
@@ -577,7 +594,15 @@ export default {
     // --- per-frame state ---------------------------------------------------
     function sync(dt) {
       const s = sh();
-      if (s && s.game !== game) resetLocal(s.game);
+      if (s && s.game !== game) {
+        const fresh = game !== 0;
+        resetLocal(s.game);
+        const sw = s.swap;
+        if (fresh && sw && sw.game === s.game && typeof sw.in === 'string' && typeof sw.out === 'string') {
+          api.toast(swapText(sw, api.me.id, nameOf));
+          if (sw.in === api.me.id) api.sfx('win');
+        }
+      }
       if (!s) return;
       if (outstanding && (s.shots[api.me.id] || []).some(e => e[0] === outstanding.x && e[1] === outstanding.y)) outstanding = null;
       if (outstanding && s.turn !== api.me.id) outstanding = null;
@@ -633,6 +658,9 @@ export default {
       } else if (!seat) {
         main = `${nameOf(s.seats[0])} vs ${nameOf(s.seats[1])}`;
         sub = s.phase === 'place' ? 'Both captains are placing their fleets.' : s.phase === 'battle' ? `${nameOf(s.turn)} is firing.` : `${nameOf(s.winner)} wins!`;
+        const place = placeOf(s, api.me.id);
+        if (place === 0) sub += ` · ${queueLabel(0)}: you play the winner.`;
+        else if (place > 0) sub += ` · ${queueLabel(place)} to play.`;
       } else {
         const opp = oppOf(s), on = nameOf(opp);
         if (s.phase === 'place') {
@@ -651,6 +679,11 @@ export default {
           const rec = record()[on.slice(0, 24)] || [0, 0];
           sub = `Your ships afloat: ${left || 'none'} · Theirs: ${enemyLeft.join(' ') || 'none'} · Record vs ${on}: ${rec[0]}-${rec[1]}`;
         }
+        const q = readLineup(s).q;
+        if (q.length) sub += ` · Next up: ${nameOf(q[0])}`;
+      }
+      if (s && s.phase === 'place' && s.swap?.game === s.game && typeof s.swap.in === 'string' && typeof s.swap.out === 'string') {
+        sub = `${swapText(s.swap, api.me.id, nameOf)} · ${sub}`;
       }
       headMain.textContent = main;
       headSub.textContent = sub;
@@ -658,7 +691,9 @@ export default {
       btnRandom.hidden = !(place && !locked);
       btnReady.hidden = !(place && !locked);
       btnFire.hidden = !(seat && myTurn(s) && !outstanding);
-      btnAgain.hidden = !(seat && s.phase === 'over');
+      const next = !seat && !!s && placeOf(s, api.me.id) === 0;
+      btnAgain.hidden = !((seat || next) && s.phase === 'over');
+      btnAgain.textContent = seat ? 'Play again' : 'Play next';
       const tabs = !!s && ps.length >= 2 && !wide && !place;
       btnMine.hidden = btnEnemy.hidden = !tabs;
       if (tabs) {

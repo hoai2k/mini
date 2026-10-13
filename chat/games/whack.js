@@ -27,9 +27,12 @@
 // a heart and 10 points (whacking it is worth 20, or 30 while flashing). A
 // villager costs only the player who whacked it. Each player publishes their
 // hammer's spot { hm: [x, y] } in their own state, so everyone's hammer is
-// drawn in their colour. Players who arrive after the first moments of a
-// round watch until the next one; if the owner leaves, the next member
-// inherits the shared tally and goes on refereeing. The personal best lives
+// drawn in their colour. Players who arrive while a round is on are seated by
+// the owner straight away (seatJoiners): a new line in the tally with 0 points
+// and full hearts, marked with when they joined, and they play the rest of the
+// round on the same field. Claims count only from players in the tally. If the
+// owner leaves, the next member inherits the shared tally and goes on
+// refereeing. The personal best lives
 // in api.store.
 //
 // Artwork (whack-field, -zombie, -creeper, -creeper-flash, -villager,
@@ -56,7 +59,6 @@ const DURATION = 60000;        // ms a round lasts
 const READY = 3000;            // ms countdown before it starts
 const GRACE = 1500;            // ms after time is up before the results settle
 const AGAIN_AFTER = 3500;      // ms the results stay before Play again is offered
-const LATE = 1500;             // joining later than this into a round: watch it
 const MAX_PLAYERS = 8;
 const HEARTS = 3;
 const RISE = 140;              // ms a mob takes to rise or sink
@@ -196,19 +198,20 @@ const int = (v, a, b) => Number.isInteger(v) && v >= a && v <= b;
 
 // The shared round, cleaned up, or null:
 //   { round, seed, startAt, pl: [player], o: [outcome] }
-// player: { id, name, color, score, hearts, combo, hits, best }, in seat order
-//   (the order they joined the round).
+// player: { id, name, color, score, hearts, combo, hits, best, j? }, in seat
+//   order (the order they joined the round); j: ms into the round they joined
+//   (only for players who came in after the start).
 // outcome: { id, seat, t, stop, pts }: mob `id` was whacked by pl[seat] at
 //   round time t at its stop `stop`, for pts points; seat -1: its time ran out
 //   (a creeper exploded, anything else got away).
-// On the wire players are [id, name, color, score, hearts, combo, hits, best]
+// On the wire players are [id, name, color, score, hearts, combo, hits, best, j?]
 // and outcomes [id, seat, t, stop, pts], to keep presence small.
 function readShared(s) {
   if (!validShared(s)) return null;
   const pl = [];
   for (const p of Array.isArray(s.pl) ? s.pl.slice(0, 16) : []) {
     if (!Array.isArray(p) || typeof p[0] !== 'string' || !p[0] || p[0].length > 64 || pl.some(q => q.id === p[0])) continue;
-    pl.push({
+    const q = {
       id: p[0],
       name: typeof p[1] === 'string' && p[1] ? p[1].slice(0, 24) : 'Player',
       color: typeof p[2] === 'string' && COLOR.test(p[2]) ? p[2] : '#ffffff',
@@ -217,7 +220,9 @@ function readShared(s) {
       combo: int(p[5], 0, 9999) ? p[5] : 0,
       hits: int(p[6], 0, 9999) ? p[6] : 0,
       best: int(p[7], 0, 9999) ? p[7] : 0,
-    });
+    };
+    if (int(p[8], 1, DURATION)) q.j = p[8];
+    pl.push(q);
   }
   const o = [];
   for (const r of Array.isArray(s.o) ? s.o.slice(-100) : []) {
@@ -230,7 +235,7 @@ function readShared(s) {
 function packShared(S) {
   return {
     round: S.round, seed: S.seed, startAt: S.startAt,
-    pl: S.pl.map(p => [p.id, p.name, p.color, p.score, p.hearts, p.combo, p.hits, p.best]),
+    pl: S.pl.map(p => (p.j ? [p.id, p.name, p.color, p.score, p.hearts, p.combo, p.hits, p.best, p.j] : [p.id, p.name, p.color, p.score, p.hearts, p.combo, p.hits, p.best])),
     o: S.o.slice(-KEEP).map(r => [r.id, r.seat, Math.round(r.t), r.stop, r.pts]),
   };
 }
@@ -244,6 +249,20 @@ function newPlayer(p) {
     score: 0, hearts: HEARTS, combo: 0, hits: 0, best: 0,
   };
 }
+// Seats the people present (`people`, in join order, at most MAX_PLAYERS
+// already) who are not in the round's tally yet, while the round is still on
+// at time `now`: each gets a fresh line (0 points, full hearts) marked with j,
+// the ms into the round they joined (none if it hasn't started). Returns the
+// new round, or null when nobody needs seating. A player who left and came
+// back keeps their old line.
+function seatJoiners(S, people, now) {
+  const t = Math.round(now - S.startAt);
+  if (t >= DURATION) return null;
+  const add = people.filter(p => !S.pl.some(q => q.id === p.id)).slice(0, Math.max(0, MAX_PLAYERS - S.pl.length));
+  if (!add.length) return null;
+  return { ...S, pl: [...S.pl, ...add.map(p => (t > 0 ? { ...newPlayer(p), j: Math.min(DURATION, t) } : newPlayer(p)))] };
+}
+
 // The tally line after a player whacks a mob of `kind` (late: a flashing
 // creeper), and the points it shows.
 function scoreHit(p, kind, late = false) {
@@ -561,6 +580,7 @@ export default {
 .mw-row.me { outline: 3px solid var(--sun); }
 .mw-row i { width: 14px; height: 14px; flex: none; box-shadow: inset -3px -3px 0 rgba(0,0,0,0.3); }
 .mw-row span { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-joined { font-weight: 700; font-size: 0.75em; color: #ffe8a3; opacity: 0.85; }
 .mw-row b { color: var(--sun); font-variant-numeric: tabular-nums; }
 .mw-over .btn[hidden] { display: none; }
 `;
@@ -641,14 +661,13 @@ export default {
     function newRound(r) {
       commit({ round: r, seed: Math.floor(Math.random() * 4294967296), startAt: Date.now() + READY, pl: seated().map(newPlayer), o: [] });
     }
-    // Starts the first round, and seats players who arrive in its first moments.
+    // Starts the first round, and seats players who arrive while it's on.
     function ownerTick() {
       if (!api.isOwner()) return;
       const s = sharedNow();
       if (!s) return newRound(1);
-      if (Date.now() >= s.startAt + LATE) return;
-      const add = seated().filter(p => !s.pl.some(q => q.id === p.id));
-      if (add.length && s.pl.length < MAX_PLAYERS) commit({ ...s, pl: [...s.pl, ...add.map(newPlayer)].slice(0, MAX_PLAYERS) });
+      const next = seatJoiners(s, seated(), Date.now());
+      if (next) commit(next);
     }
     api.on('again', (d, from) => {
       const s = sharedNow();
@@ -1037,19 +1056,21 @@ export default {
         pending.delete(rec.id);
         r.pend = false;
         const last = ev.stops.length - 1;
+        // Outcomes from well before I saw them (I just joined): no fanfare.
+        const quiet = !mineWas && rec.t < roundT() - 4000;
         if (rec.seat >= 0) {
           const who = S.pl[rec.seat];
           const j = clamp(rec.stop, 0, last);
           r.how = 'hit'; r.at = rec.t; r.stop = j; r.by = who.id;
           if (who.id === api.me.id) {
-            if (!mineWas) hitFx(ev, j, rec.pts, who, false);
+            if (!mineWas && !quiet) hitFx(ev, j, rec.pts, who, false);
           } else {
             if (mineWas) {
               // Someone beat me to it: take back my popup.
               texts = texts.filter(tx => tx.mob !== rec.id);
               tooSlow(ev.stops[j].hole);
             }
-            hitFx(ev, j, rec.pts, who, false);
+            if (!quiet) hitFx(ev, j, rec.pts, who, false);
           }
         } else {
           if (mineWas) {
@@ -1061,8 +1082,8 @@ export default {
           r.at = rec.t;
           r.stop = last;
           if (ev.kind === 'creeper') {
-            if (was !== 'boom') explodeFx(ev.stops[last].hole);
-            if (playing && heartsSeen > 0) {
+            if (was !== 'boom' && !quiet) explodeFx(ev.stops[last].hole);
+            if (playing && heartsSeen > 0 && !quiet) {
               const p = holeXY(ev.stops[last].hole);
               say(p.x, p.y - 250, `${POINTS.boom}  −♥`, '#ff6b6b', 64);
             }
@@ -1600,6 +1621,11 @@ export default {
       if (sub) txt(sub, w / 2, y + fs * 0.62, fs * 0.5, '#ffe8a3', 'center', 800);
     }
 
+    // Not in the round: about to be seated by the owner, or the field is full.
+    function watchNote() {
+      return S && S.pl.length >= MAX_PLAYERS ? ['Watching', 'The field is full: you join the next round', h - 50] : ['Joining…', 'You come in with full hearts', h - 50];
+    }
+
     function drawCenter(t) {
       const midY = clamp(L.oy + holeXY(4).y * L.k - 40, hudH + 40, h - 60);
       if (t < 0) {
@@ -1607,7 +1633,7 @@ export default {
         const u = 1 - (-t / 1000 - (n - 1));
         const fs = clamp(Math.min(w, h) * 0.25, 60, 140) * (1.3 - 0.3 * Math.min(1, u * 3));
         txt(String(n), w / 2, midY, fs, '#ffd43b', 'center');
-        if (!playing) banner('Watching', 'You join the next round', h - 50);
+        if (!playing) banner(...watchNote());
         else txt('Whack the mobs! Leave villagers alone.', w / 2, midY + fs * 0.75, clamp(w * 0.04, 12, 18), '#fff', 'center', 800);
         return;
       }
@@ -1615,7 +1641,7 @@ export default {
         txt('WHACK!', w / 2, midY, clamp(Math.min(w, h) * 0.17, 44, 100), '#80ff20', 'center');
       }
       if (t < DURATION) {
-        if (!playing) banner('Watching', 'You join the next round', h - 50);
+        if (!playing) banner(...watchNote());
         else if (out) banner('Out of hearts!', `${myScore()} points · waiting for the round to end`, h - 56);
       } else if (over.hidden) banner("Time's up!", null, midY);
     }
@@ -1623,8 +1649,8 @@ export default {
     // --- results -----------------------------------------------------------
     function results(s) {
       const rows = [];
-      if (playing) rows.push({ name: 'You', color: api.me.color, score: myScore(), me: true });
-      for (const o of others(s)) rows.push({ name: o.name, color: o.color, score: o.score, me: false });
+      if (playing) rows.push({ name: 'You', color: api.me.color, score: myScore(), me: true, j: mine.j || 0 });
+      for (const o of others(s)) rows.push({ name: o.name, color: o.color, score: o.score, me: false, j: o.j || 0 });
       rows.sort((a, b) => b.score - a.score);
       return rows;
     }
@@ -1664,6 +1690,12 @@ export default {
         sq.style.background = typeof r.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(r.color) ? r.color : '#fff';
         const nm = document.createElement('span');
         nm.textContent = `${i + 1}. ${r.name}`;
+        if (r.j) {
+          const note = document.createElement('small');
+          note.className = 'mw-joined';
+          note.textContent = ` joined at ${Math.floor(r.j / 1000)} s`;
+          nm.append(note);
+        }
         const pts = document.createElement('b');
         pts.textContent = String(r.score);
         el.append(sq, nm, pts);
@@ -1786,7 +1818,7 @@ export default {
           round, startAt, t, playing, out,
           score: myScore(), scoreAuth: mine ? mine.score : 0, hearts: mine ? mine.hearts : HEARTS, combo: myCombo(), hits: mine ? mine.hits : 0,
           owner: api.isOwner(),
-          tally: S ? S.pl.map(p => ({ id: p.id, name: p.name, score: p.score, hearts: p.hearts, hits: p.hits })) : [],
+          tally: S ? S.pl.map(p => ({ id: p.id, name: p.name, score: p.score, hearts: p.hearts, hits: p.hits, j: p.j || 0 })) : [],
           pending: pending.size,
           hammers: over.hidden ? otherHammers().map(o => ({ id: o.id, name: o.name, ...toScreen(o.hm.x, o.hm.y) })) : [],
           sched: sched.map(e => `${e.kind[0]}${e.stops.map(s => `${s.hole}@${s.t}`).join('>')}`).join(','),
@@ -1842,7 +1874,7 @@ export default {
 
 // Exposed for tests.
 export const _logic = {
-  makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readShared, packShared, newPlayer,
+  makeSchedule, mulberry32, comboMult, pointsFor, fieldLayout, validShared, readShared, packShared, newPlayer, seatJoiners, MAX_PLAYERS,
   scoreHit, scoreMiss, scoreEscape, scoreBoom, stopUpAt, mobEnd, readClaim, judgeClaim, claimTime, pickClaim,
   HOLE_ROWS, holeXY, REGION, IMG_W, IMG_H, DURATION, RISE, POINTS, HEARTS, LAG, SKEW, STALE,
 };
