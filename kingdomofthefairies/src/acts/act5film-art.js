@@ -4,7 +4,7 @@ import { walkFrame } from '../walking.js';
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, FILM_T, BARREL, DIVE, WEDDING, APOTH } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DIVE, WEDDING, APOTH } from './act5film.js';
 import { HOUSE, QUAY, T } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -27,15 +27,16 @@ export function drawTower(k, st, t) {
   const c = k.c;
   c.save(); c.translate(0, 640 + st.camY);
   c.globalAlpha = clamp(pt / 0.6, 0, 1);
-  if (!k.asset('azurine-window', 640, -TOWER_TOP - 2, 84, 105)) { c.fillStyle = k.col('#c9d8ee'); k.circle(640, -TOWER_TOP - 60, 16); }
+  // in the painted window's arch, above its sill
+  if (!k.asset('azurine-window', TOWER_WINDOW.x, -TOWER_TOP - 4, 64, 80)) { c.fillStyle = k.col('#c9d8ee'); k.circle(TOWER_WINDOW.x, -TOWER_TOP - 50, 14); }
   c.restore();
   card(k, 'Her Window', 'Azurine is held inside', cardAlpha(pt, FILM_T.window + 9));
 }
 
 export function drawOverTower(k, st) {
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
-  if (st.phase === 'iris') k.iris(1000, 220, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
-  if (st.status === 'won') k.iris(1000, 220, 0);
+  if (st.phase === 'iris') k.iris(TOWER_WINDOW.x, 640 + st.camY - TOWER_TOP - 50, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
+  if (st.status === 'won') k.iris(TOWER_WINDOW.x, 640 + st.camY - TOWER_TOP - 50, 0);
 }
 
 export function onEventTower(k, e, st) {
@@ -171,7 +172,8 @@ function towerScene(k, st, t) {
     c.fillStyle = k.col('#6d6872');
     for (let x = WALL.x0; x < WALL.x1; x += 64) c.fillRect(x, -TOWER_TOP - 80, 40, 42);
   }
-  if (!k.asset('tower-window', 640, -TOWER_TOP + 10, 100, 130)) {
+  if (k.img('tower-wall-tall')) { /* the cloth paints her window */ }
+  else if (!k.asset('tower-window', 640, -TOWER_TOP + 10, 100, 130)) {
     c.fillStyle = k.col('#e9c46a'); c.globalAlpha = 0.7 + 0.25 * Math.sin(t * 3);
     c.beginPath(); c.moveTo(600, -TOWER_TOP + 6); c.lineTo(600, -TOWER_TOP - 70); c.arc(640, -TOWER_TOP - 70, 40, Math.PI, 0); c.lineTo(680, -TOWER_TOP + 6); c.closePath(); c.fill();
     c.globalAlpha = 1; c.fillStyle = k.col('#2a2430');

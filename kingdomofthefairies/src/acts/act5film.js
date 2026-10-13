@@ -25,19 +25,42 @@ import * as art from './act5film-art.js';
 export const SWIM = { len: 2400, speed: 240, current: 45, dive: 0.9, diveCD: 0.45, every: [1.8, 2.4], warn: 1.5, swoops: 3, auroraAt: 0.7, aurora: 2.0 };
 
 // ---------------------------------------------------------------- the tower
-// The tower wall: x on stage, y up from the rocks at its foot to the window.
+// The tower wall: x on stage, y up from the rocks at its foot to her window.
+// Every hold is on the delivered tower-wall-tall: `painted` holds are the
+// stones that jut from its wall (their top faces, measured on the cloth as
+// drawn: 760 wide, centred, foot at y -30), and `ivy` holds are grips in its
+// painted ivy, drawn as a knot of vine. The top is the sill of her window,
+// the painted one at the upper right. Plain moves reach 130, leaps 190.
 export const TOWER_TOP = 1520;
 export const TOWER_HOLDS = [
-  { x: 500, y: 0, kind: 'ledge' }, { x: 620, y: 0, kind: 'ledge', start: true }, { x: 740, y: 0, kind: 'ledge' },
-  { x: 570, y: 100 }, { x: 680, y: 105 }, { x: 610, y: 200 }, { x: 730, y: 205, pearl: true },
-  { x: 660, y: 300 }, { x: 550, y: 305 }, { x: 470, y: 395 }, { x: 530, y: 490, kind: 'ledge' },
-  { x: 640, y: 480 }, { x: 750, y: 485 }, { x: 830, y: 575, kind: 'crumble' }, { x: 730, y: 585 }, { x: 625, y: 590, pearl: true },
-  { x: 540, y: 680 }, { x: 460, y: 770 }, { x: 560, y: 860, kind: 'ledge' },
-  { x: 670, y: 945 }, { x: 600, y: 1040, kind: 'crumble' }, { x: 710, y: 1045 }, { x: 810, y: 1135, pearl: true }, { x: 730, y: 1225 },
-  { x: 620, y: 1230 }, { x: 520, y: 1320 }, { x: 600, y: 1415, kind: 'ledge' },
-  { x: 640, y: TOWER_TOP, kind: 'top' },
+  { x: 590, y: 128, kind: 'ledge', painted: true, start: true },   // the flat rock at its foot
+  { x: 460, y: 210, kind: 'ledge', painted: true },                // the rock beside it
+  { x: 545, y: 240, ivy: true },
+  { x: 512, y: 345, kind: 'ledge', painted: true },
+  { x: 575, y: 455, ivy: true },
+  { x: 600, y: 550, ivy: true },
+  { x: 590, y: 640, kind: 'ledge', painted: true },
+  { x: 500, y: 720, ivy: true },
+  { x: 405, y: 750, kind: 'ledge', painted: true, pearl: true },
+  { x: 470, y: 830, ivy: true },
+  { x: 515, y: 925, kind: 'ledge', painted: true },                // halfway
+  { x: 530, y: 1035, kind: 'ledge', painted: true },
+  { x: 560, y: 1130, ivy: true, kind: 'crumble' },                 // dry ivy: it tears away
+  { x: 495, y: 1235, kind: 'ledge', painted: true },               // the lower window's sill
+  { x: 560, y: 1330, ivy: true },
+  { x: 595, y: 1425, kind: 'ledge', painted: true },
+  // a detour up the right of the wall, for its pearls
+  { x: 700, y: 752, ivy: true },
+  { x: 752, y: 830, kind: 'ledge', painted: true },
+  { x: 812, y: 960, kind: 'ledge', painted: true, pearl: true },
+  { x: 770, y: 1060, ivy: true },
+  { x: 738, y: 1155, kind: 'ledge', painted: true, pearl: true },
+  { x: 680, y: 1395, ivy: true },
+  { x: 760, y: 1430, ivy: true },                                  // under her sill
+  { x: 812, y: TOWER_TOP, kind: 'top' },                           // her window's sill
 ];
-export const TOWER_HALF = TOWER_HOLDS.findIndex((h) => h.x === 560 && h.y === 860);
+export const TOWER_HALF = TOWER_HOLDS.findIndex((h) => h.x === 515 && h.y === 925);
+export const TOWER_WINDOW = { x: 825, y: TOWER_TOP };
 
 // Cut-scene lengths, seconds.
 export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedding: 7.5, apotheosis: 8.5, defeat: 1.8, splash: 1.0, rise: 3.2 };

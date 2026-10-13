@@ -90,6 +90,10 @@ syncSettingsUI();
 // ---------------------------------------------------------------- state
 let assets = { slots: {}, images: {} };
 let assetsLoaded = false;
+// How much of the art has arrived: the act card waits for it (up to
+// ART_WAIT s), so a scene never opens on its stand-ins.
+let artLoaded = 0, artTotal = 0, artAll = false;
+const ART_WAIT = 12;
 // The song gates the curtain: 'ready', or given up on ('failed'/'none').
 const songStatus = () => (assetsLoaded ? audio.trackStatus() : { state: 'loading', progress: 0 });
 const songSettled = () => ['ready', 'failed', 'none'].includes(songStatus().state);
@@ -127,11 +131,14 @@ const showLogo = (logo) => {
 };
 const TOUCH_ART = new Set(['touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'rotate-card']);
 loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
+  artLoaded++;
   if (id === 'logo') showLogo(im);
   // Images arrive after the manifest; apply the touch art as each one lands.
   if (TOUCH && TOUCH_ART.has(id)) touchArt({ images: { [id]: im } });
 } }).then((a) => {
   assets = a;
+  artTotal = Object.values(a.slots).filter((sl) => sl.status === 'delivered' && sl.file).length;
+  a.all.then(() => { artAll = true; });
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
   const sfx = Object.fromEntries(Object.entries(a.sfx || {})
@@ -553,8 +560,10 @@ function update(dt, i) {
 
   if (S.mode === 'intro') {
     S.card.alpha = Math.min(1, S.modeT * 2.5);
-    // Hold the card until the song can play, showing its progress.
+    // Hold the card until the song can play and the art has arrived,
+    // showing their progress.
     if (!songSettled()) { S.card.loading = songStatus().progress; S.readyT = 0; if (i.pause) pause(); return; }
+    if (!artAll && S.modeT < ART_WAIT) { S.card.loading = artTotal ? Math.min(0.99, artLoaded / artTotal) : 0; S.readyT = 0; if (i.pause) pause(); return; }
     if (S.card.loading != null) { S.card.loading = null; announce('Ready.'); }
     S.readyT = (S.readyT || 0) + dt;
     if ((go && S.readyT > 0.4) || S.readyT > (S.card.body ? 12 : 6)) {

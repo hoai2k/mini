@@ -415,6 +415,17 @@ export function holds(k, st, t) {
     const y = -holdY(h, st.beat || 0);
     if (-y < cam - 140 || -y > cam + 720) return;
     if (h.kind === 'boot' || h.kind === 'top') return;
+    // (film tower) a stone painted on the wall is its own hold; a grip in the
+    // painted ivy is a knot of vine, dry and brown where it will tear
+    if (h.painted || h.ivy) {
+      if (h.ivy && !h.gone) ivyGrip(k, h.x + (h.kind === 'crumble' && st.cl.at === i && st.cl.crumbleT < 0.5 ? Math.sin(t * 60) * 2.5 : 0), y, h.kind === 'crumble', t + i);
+      if (h.pearl && !h.taken) {
+        const by = y - 8 + Math.sin(t * 3 + i) * 3;
+        c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 4 + i); c.fillStyle = k.col('#fff2b0'); k.circle(h.x, by - 11, 18); c.restore();
+        if (!k.asset('pearl', h.x, by, 22, 22)) { c.fillStyle = k.col('#efe9f2'); k.circle(h.x, by - 10, 9); }
+      }
+      return;
+    }
     if (h.gone) { if (!k.asset('cliff-hold-gone', h.x, y + 12, 40, 12)) { c.fillStyle = k.col('#7d7262'); c.fillRect(h.x - 16, y + 2, 32, 5); } return; }
     const occupied = st.cl.at === i;
     let x = h.x;
@@ -451,6 +462,27 @@ export function holds(k, st, t) {
       if (!k.asset('pearl', x, by, 22, 22)) { c.fillStyle = k.col('#efe9f2'); k.circle(x, by - 10, 9); c.fillStyle = k.col('#ffffff'); k.circle(x - 3, by - 13, 3); }
     }
   });
+}
+
+// A grip in the painted ivy: a twist of vine with three leaves, its top at y.
+function ivyGrip(k, x, y, dry, t) {
+  const c = k.c;
+  c.save(); c.translate(x, y); c.scale(1.35, 1.35);
+  // a pale rim, so the grip reads against the painted ivy
+  c.strokeStyle = k.col('#f1e3c8'); c.globalAlpha = 0.55; c.lineWidth = 9; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-20, 6); c.quadraticCurveTo(-6, -6, 0, 2); c.quadraticCurveTo(8, 10, 20, -2); c.stroke();
+  c.globalAlpha = 1;
+  c.strokeStyle = k.col(dry ? '#8a6a3a' : '#5a3e24'); c.lineWidth = 5;
+  c.beginPath(); c.moveTo(-20, 6); c.quadraticCurveTo(-6, -6, 0, 2); c.quadraticCurveTo(8, 10, 20, -2); c.stroke();
+  c.strokeStyle = k.col(dry ? '#c9a36a' : '#8a6a44'); c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-18, 4); c.quadraticCurveTo(-6, -7, 0, 0); c.stroke();
+  const leaf = dry ? ['#b88a4a', '#9a7038', '#c79a5a'] : ['#3f6a4a', '#2f5a52', '#5a8a5a'];
+  [[-14, -2, -0.6], [2, -6, 0.2], [15, -4, 0.9]].forEach(([lx, ly, r], j) => {
+    c.save(); c.translate(lx, ly); c.rotate(r + Math.sin(t * 2 + j) * 0.08);
+    c.fillStyle = k.col(leaf[j]); c.beginPath(); c.ellipse(0, -6, 6, 9, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+  });
+  c.restore();
 }
 
 // What a press would do, shown on the cliff while he waits on a hold: every

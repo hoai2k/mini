@@ -22,19 +22,24 @@ export function cavernScene(k, st, t) {
     g.addColorStop(0, k.col('#2a1826')); g.addColorStop(1, k.col('#0c0810'));
     c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
   }
-  // dimmed, so its painted rocks read as scenery behind the real floors
-  k.wash('#0b070c', 0.5);
+  // dimmed a little, so its painted rocks read as scenery behind the floors
+  k.wash('#0b070c', 0.28);
   c.save(); c.translate(-cx, 0);
   exit(k, t);
   pools(k, cx, t);
   for (const f of FLOORS) floor(k, f);
   for (const l of LEDGES) ledge(k, l);
   for (const d of cv.drops) drop(k, d, t);
-  for (const p of cv.pearls) if (!p.got && !k.asset('pearl', p.x, p.y + 12, 26, 26)) { c.fillStyle = k.col('#f7f2fa'); k.circle(p.x, p.y, 9); }
+  for (const p of cv.pearls) {
+    if (p.got) continue;
+    const bob = Math.sin(t * 2.4 + p.i) * 4;
+    c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 4 + p.i); c.fillStyle = k.col('#fff2b0'); k.circle(p.x, p.y + bob, 22); c.restore();
+    if (!k.asset('pearl', p.x, p.y + 14 + bob, 30, 30)) { c.fillStyle = k.col('#f7f2fa'); k.circle(p.x, p.y + bob, 10); }
+  }
   prince(k, st, t);
   c.restore();
   dark(k, st, t);
-  if (cv.t < 4 && !cv.done) caption(k, st, cv.t);
+  if (cv.t < 6 && !cv.done) caption(k, st, cv.t);
 }
 
 export function cavernOver(k, st) {
@@ -46,7 +51,8 @@ export function cavernOver(k, st) {
 export function cavernEvent(k, e, st) {
   const x = (wx) => wx - camX(st.cv), s = st.cv.s;
   if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); k.burst(x(s.x), s.y - 60, '#c8321e', 12, 'streak'); }
-  if (e.type === 'pearl') k.burst(x(e.x), e.y, '#efe9f2', 8, 'sparkle');
+  if (e.type === 'pearl') { k.burst(x(e.x), e.y, '#efe9f2', 12, 'sparkle'); k.text('+10', x(e.x), e.y - 40); }
+  if (e.type === 'leap') k.burst(x(s.x), s.y, '#b9a4a8', 4, 'chip');
   if (e.type === 'poolSplash') k.burst(x(e.x), e.y, '#9fb8c0', 22, 'drop');
   if (e.type === 'dropShake') k.burst(x(e.x), CEIL_Y + 6, '#b9a4a8', 6, 'chip');
   if (e.type === 'dropShatter') { k.shake(0.25); k.burst(x(e.x), e.y, '#d7c4c8', 16, 'chip'); }
@@ -68,21 +74,29 @@ function exit(k, t) {
 // The black pools between the floors, glinting.
 function pools(k, cx, t) {
   const c = k.c;
-  c.fillStyle = k.col(POOL); c.fillRect(cx - 20, WATER_Y, 1320, 720 - WATER_Y);
+  const g = c.createLinearGradient(0, WATER_Y, 0, 720);
+  g.addColorStop(0, k.col('#1d3a46')); g.addColorStop(1, k.col(POOL));
+  c.fillStyle = g; c.fillRect(cx - 20, WATER_Y, 1320, 720 - WATER_Y);
   c.strokeStyle = k.col(POOL_LIT); c.lineWidth = 2;
-  for (let x = Math.floor(cx / 90) * 90; x < cx + 1320; x += 90) {
+  for (let x = Math.floor(cx / 70) * 70; x < cx + 1320; x += 70) {
     const o = Math.sin(t * 1.6 + x * 0.05) * 10;
-    c.globalAlpha = 0.5; c.beginPath(); c.moveTo(x + o, WATER_Y + 8); c.lineTo(x + 34 + o, WATER_Y + 8); c.stroke();
+    for (const [dy, a] of [[6, 0.7], [20, 0.4], [40, 0.22]]) {
+      c.globalAlpha = a; c.beginPath(); c.moveTo(x + o + dy, WATER_Y + dy); c.lineTo(x + 30 + o + dy, WATER_Y + dy); c.stroke();
+    }
   }
   c.globalAlpha = 1;
 }
 
 function floor(k, f) {
   const c = k.c;
-  c.fillStyle = k.col(ROCK);
+  const g = c.createLinearGradient(0, f.y, 0, 720);
+  g.addColorStop(0, k.col('#6a4a58')); g.addColorStop(0.35, k.col(ROCK)); g.addColorStop(1, k.col('#1c1218'));
+  c.fillStyle = g;
   c.beginPath(); c.moveTo(f.x0, f.y);
   for (let x = f.x0; x <= f.x1; x += 40) c.lineTo(x, f.y + 2 * Math.sin(x * 0.2));
   c.lineTo(f.x1, f.y); c.lineTo(f.x1 - 14, 730); c.lineTo(f.x0 + 14, 730); c.closePath(); c.fill();
+  // the rock's lit edges either side, so each gap reads as a drop
+  c.fillStyle = k.col('#8a6474'); c.fillRect(f.x0 + 2, f.y + 6, 5, 720 - f.y); c.fillRect(f.x1 - 7, f.y + 6, 5, 720 - f.y);
   // the delivered ledge rock, tiled along the top as its walkable edge
   if (k.img('cavern-ledge')) {
     const n = Math.max(1, Math.round((f.x1 - f.x0) / 150)), w = (f.x1 - f.x0) / n;
@@ -142,8 +156,8 @@ function dark(k, st, t) {
   const r = (st.stone ? LIGHT.lamp : LIGHT.own) * (1 + 0.03 * Math.sin(t * 5));
   const px = s.x - cx, py = s.y - 60;
   const out = cv.done ? clamp(cv.doneT / 1.2, 0, 1) : 0;
-  const g = c.createRadialGradient(px, py, r * 0.35, px, py, r);
-  g.addColorStop(0, 'rgba(8,4,10,0)'); g.addColorStop(1, `rgba(8,4,10,${0.9 * (1 - out)})`);
+  const g = c.createRadialGradient(px, py, r * 0.45, px, py, r);
+  g.addColorStop(0, 'rgba(8,4,10,0)'); g.addColorStop(1, `rgba(8,4,10,${0.72 * (1 - out)})`);
   c.save(); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
   // the mouth of the cave glows through the dark as he nears it
   const ex = EXIT_X + 60 - cx;
@@ -156,9 +170,10 @@ function dark(k, st, t) {
 }
 
 function caption(k, st, ct) {
-  const c = k.c, a = Math.min(1, ct / 0.5, (4 - ct) / 0.6);
-  c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
-  c.font = '700 18px "Josefin Sans", sans-serif';
-  c.fillText('Through the cavern to the tower · leap the black pools · beware the stalactites', 640, 150);
+  const c = k.c, a = Math.min(1, ct / 0.5, (6 - ct) / 0.6), msg = 'Through the cavern to the sea · leap the black pools · run from a shaking stalactite';
+  c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.font = '700 18px "Josefin Sans", sans-serif';
+  const w = c.measureText(msg).width + 48;
+  c.globalAlpha = 0.85 * a; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(640 - w / 2, 126, w, 34, 17); c.fill();
+  c.globalAlpha = a; c.fillStyle = k.col('#f3c6dc'); c.fillText(msg, 640, 150);
   c.restore();
 }
