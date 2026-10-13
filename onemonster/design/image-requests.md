@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-9 requested, 129 delivered, 138 in total.
+10 requested, 129 delivered, 139 in total.
 
 ## Brand
 
@@ -1887,4 +1887,17 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A single game sprite: the gable end wall of a small white clapboard country house seen straight on, with a steep shingled roof edge, a brick chimney, and in the middle of the wall one open sash window with gathered curtains and a window box of red geraniums. The window opening itself is EMPTY and transparent (the game draws a girl in it), and the bottom of the wall fades out into nothing (a hedge hides it in the game). Nothing else. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg .
+```
+
+### OM-Z05 · Board 7: a fallen palm propped up to slide under
+
+- **File:** `onemonster/game/assets/adventure/b07/palm-arch.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Board 7's slide-under obstacle: the Trollusk belly-slides through the gap beneath it.
+- **Stand-in until delivered:** The flat fallen palm (OM-Y07 item 8) with a drawn gap.
+- **Reference:** [`reference/yalapappus-bottle-on-head.jpg`](../reference/yalapappus-bottle-on-head.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A single side-on game sprite: a fallen palm trunk lying across a jungle path, its root end propped up on a mossy boulder at the left and its crown of fronds resting on a low stump at the right, so there is a clear empty gap beneath the trunk along its whole length, about a third of the trunk's height off the ground. Ringed palm bark, a splintered broken end, a few dry brown fronds. Nothing under the trunk. Wide landscape composition. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .
 ```

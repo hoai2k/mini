@@ -66,6 +66,7 @@ IMAGES += [(f"assets/monsters/{m['id']}/portrait.png", f"portraits/{m['id']}.web
 IMAGES += [(f"assets/scenes/{m['id']}.webp", f"scenes/{m['id']}.webp", 1920) for m in br.MONSTERS]
 IMAGES += [(f"assets/story/{s}.webp", f"story/{s}.webp", 1920) for s in ("prologue", "mailman", "lucyjane")]
 IMAGES.append(("assets/props/sallyann-house.png", "props/sallyann-house.webp", 1024))
+IMAGES.append(("assets/adventure/b07/palm-arch.png", "adv/b07/palm-arch.webp", 1400))
 # The minigames' how-to-play pictures.
 IMAGES += [(f"assets/howto/ch{n:02d}-{k}.webp", f"howto/ch{n:02d}-{k}.webp", 1024) for n in br.HOWTO for k in (1, 2, 3)]
 # The Adventure's backdrop panels (design/adventure.md).

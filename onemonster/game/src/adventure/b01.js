@@ -764,16 +764,16 @@ export default function create(env) {
     const pk = (G + 2 - top) / (PORCH.base - PORCH.top);
     // The posts and the roof, behind the step.
     g.save(); ink(g, 4);
-    for (const px of [N.x - 100, N.x + 80]) woodPost(g, px, top - 330, 22, 330);
+    woodPost(g, N.x - 300, G - 330, 22, 330); woodPost(g, N.x + 80, top - 330, 22, 330);
     g.fillStyle = '#9b4b3a';
-    g.beginPath(); g.moveTo(N.x - 150, top - 330); g.lineTo(N.x + 130, top - 330); g.lineTo(N.x + 110, top - 390); g.lineTo(N.x - 130, top - 390); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(N.x - 340, top - 330); g.lineTo(N.x + 130, top - 330); g.lineTo(N.x + 110, top - 390); g.lineTo(N.x - 320, top - 390); g.closePath(); g.fill(); g.stroke();
     g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
     for (let y = top - 378; y < top - 332; y += 12) {
-      g.beginPath(); g.moveTo(N.x - 130 + (top - 330 - y) * 0.33, y); g.lineTo(N.x + 110 - (top - 330 - y) * 0.33, y); g.stroke();
-      for (let x = N.x - 120 + ((y / 12) % 2 ? 0 : 16); x < N.x + 110; x += 32) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 12); g.stroke(); }
+      g.beginPath(); g.moveTo(N.x - 320 + (top - 330 - y) * 0.33, y); g.lineTo(N.x + 110 - (top - 330 - y) * 0.33, y); g.stroke();
+      for (let x = N.x - 310 + ((y / 12) % 2 ? 0 : 16); x < N.x + 110; x += 32) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 12); g.stroke(); }
     }
     ink(g, 4);
-    g.fillStyle = '#8a6a44'; g.fillRect(N.x - 150, top - 336, 280, 10); g.strokeRect(N.x - 150, top - 336, 280, 10);
+    g.fillStyle = '#8a6a44'; g.fillRect(N.x - 340, top - 336, 470, 10); g.strokeRect(N.x - 340, top - 336, 470, 10);
     g.restore();
     kit.sprite(g, TERRAIN, 5, N.x, G + 2 + (PORCH.h - PORCH.base) * pk, { height: PORCH.h * pk, ax: PORCH.platform, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
@@ -1071,7 +1071,7 @@ export default function create(env) {
       });
       if (drawn) {
         g.save(); g.fillStyle = INK; g.font = '800 20px Fraunces, Georgia, serif'; g.textAlign = 'center';
-        g.fillText('FADDLE ST', x + 8, G + 6 - (360 - 128) * (230 / 360));
+        g.fillText('FADDLE ST', x + 8, G + 6 - (360 - 112) * (230 / 360));
         g.restore();
       }
       if (cps.last >= x) {
