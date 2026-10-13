@@ -456,7 +456,7 @@ export const ASSETS = {
   },
   "howto.ch03.1": {
     "file": "assets/howto/ch03-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch03.2": {
     "file": "assets/howto/ch03-2.webp",
@@ -468,11 +468,11 @@ export const ASSETS = {
   },
   "howto.ch04.1": {
     "file": "assets/howto/ch04-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch04.2": {
     "file": "assets/howto/ch04-2.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch04.3": {
     "file": "assets/howto/ch04-3.webp",

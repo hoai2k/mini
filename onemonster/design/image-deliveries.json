@@ -702,6 +702,24 @@
       "file": "assets/howto/ch02-3.webp",
       "size": "1024 x 768, opaque",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat diving steeply onto the running Trollusk and snapping the envelope out of his snout with its long toothy jaws. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/bombanat-and-pony-express-boy.jpg ."
+    },
+    {
+      "id": "OM-H3a",
+      "file": "assets/howto/ch03-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg ."
+    },
+    {
+      "id": "OM-H4a",
+      "file": "assets/howto/ch04-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png ."
+    },
+    {
+      "id": "OM-H4b",
+      "file": "assets/howto/ch04-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png ."
     }
   ],
   "delivered": [
@@ -1289,6 +1307,21 @@
       "id": "OM-H2c",
       "file": "assets/howto/ch02-3.webp",
       "sha256": "c67e2d8d05576ae3685aa6cf7e76588f467bd62c7c67fa7d190f5ac65f0e4b21"
+    },
+    {
+      "id": "OM-H3a",
+      "file": "assets/howto/ch03-1.webp",
+      "sha256": "5a65b1ba94b29459142daca43f223c62f997cb140097b8c9eaf3fa62754a7187"
+    },
+    {
+      "id": "OM-H4a",
+      "file": "assets/howto/ch04-1.webp",
+      "sha256": "cfffada5166c0e435235a496285fac0049efa22c8753a94f9e813b0f2a2e16fd"
+    },
+    {
+      "id": "OM-H4b",
+      "file": "assets/howto/ch04-2.webp",
+      "sha256": "febc30b8ea11f4f94584acb9e20d9cd14c6a57204ee9d706618967825a1f529c"
     }
   ],
   "request_revision": "1add341",
@@ -2685,6 +2718,70 @@
       "references": [
         "onemonster/game/assets/monsters/bombanat/model-sheet.png",
         "onemonster/game/assets/monsters/trollusk/model-sheet.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H3a",
+      "file": "assets/howto/ch03-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Only the Grumley's crown of horns and round spectacles poking above the glossy blue goo, watching Bombanats flying overhead. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .\nUse case: stylized-concept. New how-to-play vignette, 1024 x 768, opaque cream background, drawing fading to cream edges. References supply exact character/prop identity ONLY; include only objects and characters described in this scene. Never copy envelope ownership from the model sheets: exactly one envelope if the scene calls for it, otherwise none. No labels or numbers. Plain Bombanats have no cap, tie or envelope; the special Bombanat has its cap, striped tie and the single envelope.",
+      "references": [
+        "onemonster/game/assets/monsters/grumley/model-sheet.png",
+        "onemonster/game/assets/monsters/bombanat/model-sheet.png",
+        "/Users/hoai/.codex/generated_images/01a135e6-d79a-7bf3-a07f-f8847b7a5273/exec-68501d10-bda6-4c45-b5e7-9a421d96b200.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H4a",
+      "file": "assets/howto/ch04-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Seen from above, the craggy Ice-Ferg with sea lions on its ledges drifting along a curving current drawn as foam arrows on the sea. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .\nUse case: stylized-concept. New how-to-play vignette, 1024 x 768, opaque cream background, drawing fading to cream edges. References supply exact character/prop identity ONLY; include only objects and characters described in this scene. Never copy envelope ownership from the model sheets: exactly one envelope if the scene calls for it, otherwise none. No labels or numbers. Plain Bombanats have no cap, tie or envelope; the special Bombanat has its cap, striped tie and the single envelope.",
+      "references": [
+        "onemonster/game/assets/monsters/iceferg/model-sheet.png",
+        "/Users/hoai/.codex/generated_images/01a135e6-d79a-7bf3-a07f-f8847b7a5273/exec-a6a7f67d-ebab-4435-b996-1b73dd98bbd6.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H4b",
+      "file": "assets/howto/ch04-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Ice-Ferg huffing itself up, swelling, freezing mist pouring off it, its one eye narrowing in fury. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .\nUse case: stylized-concept. New how-to-play vignette, 1024 x 768, opaque cream background, drawing fading to cream edges. References supply exact character/prop identity ONLY; include only objects and characters described in this scene. Never copy envelope ownership from the model sheets: exactly one envelope if the scene calls for it, otherwise none. No labels or numbers. Plain Bombanats have no cap, tie or envelope; the special Bombanat has its cap, striped tie and the single envelope.",
+      "references": [
+        "onemonster/game/assets/monsters/iceferg/model-sheet.png",
+        "/Users/hoai/.codex/generated_images/01a135e6-d79a-7bf3-a07f-f8847b7a5273/exec-a6a7f67d-ebab-4435-b996-1b73dd98bbd6.png"
       ],
       "generator": "built-in image_gen",
       "source_size": [
