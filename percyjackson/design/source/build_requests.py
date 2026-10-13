@@ -916,6 +916,48 @@ REQUESTS += [
         ),
     },
     {
+        "id": "vox-spartoi",
+        "group": "Round 4 · New monsters",
+        "title": "Spartoi, the sown skeleton warriors",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "vox-enemies"],
+        "use": "Reference for the spartoi model (entities/monsters.js, buildSkeleton with melee): steady sword-and-shield fodder in the desert, the Underworld and on the beach; not loaded by the game.",
+        "prompt": (
+            "A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, "
+            "isometric three-quarter views on a flat parchment-cream background, every part built "
+            "from chunky cubes with hand-painted pixel textures. Spartoi: skeleton warriors that "
+            "grew from dragon's teeth sown in the earth, the size of a grown man. Old ivory bones "
+            "with dark empty eye sockets, wearing tattered desert-tan military fatigues and boots "
+            "over the bones, a dented bronze Greek helmet with a short crest, a curved bronze "
+            "kopis sword in one hand and a round bronze hoplite shield in the other, painted with a "
+            "black dragon-tooth emblem. Show one spartoi front, side and back; then in a ready "
+            "stance behind the shield, mid-slash, and staggered back; then a squad of four "
+            "marching in step, and one clawing up out of cracked earth. Menacing but readable, "
+            "not gory. " + PALETTE + " " + NO_TEXT
+        ),
+    },
+    {
+        "id": "vox-telekhine",
+        "group": "Round 4 · New monsters",
+        "title": "Telekhines, the seal-dog smiths with Greek fire",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "vox-enemies"],
+        "use": "Reference for the telekhine model (entities/monsters.js): a lobber at Waterland that throws pots of Greek fire at a marked spot; not loaded by the game.",
+        "prompt": (
+            "A monster model sheet in the blocky voxel 3D style of a Minecraft-Dungeons-like game, "
+            "isometric three-quarter views on a flat parchment-cream background, every part built "
+            "from chunky cubes with hand-painted pixel textures. Telekhines: ancient sea-demon "
+            "smiths, half dog and half seal, about the size of a large dog. Sleek grey-blue hide "
+            "with darker speckles and a pale belly, a dog's head with a blunt seal snout, small "
+            "fangs and glowing orange eyes, flippers for front feet, a stubby seal tail, a leather "
+            "smith's apron and a brass harness carrying a clay pot of glowing green-orange Greek "
+            "fire on its back. Show one telekhine front, side and back; then rearing up to hurl a "
+            "fire pot in a high arc, the pot landing on a glowing ring marked on the ground, and "
+            "the splash of green-orange flame; then a pack of three waddling on their flippers. "
+            "Sly and mischievous rather than frightening. " + PALETTE + " " + NO_TEXT
+        ),
+    },
+    {
         "id": "scene-big-house",
         "group": "Round 3 · The opening (cutscene cards)",
         "title": "Waking on the porch of the Big House",
