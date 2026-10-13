@@ -13,7 +13,7 @@ const FIG = { w: 132, h: 252 };          // a standing figure (220 x 420 art)
 const GIFT_IN_HAND = {
   'fairy-ring': [27, 58, 30], 'fairy-ring-tinted': [28, 50, 30],
   'fairy-crown': [50, 116, 82], 'fairy-crown-tinted': [42, 130, 78],
-  'fairy-gold': [34, 105, 58], 'fairy-gold-tinted': [24, 114, 44],
+  'fairy-gold': [34, 105, 58], 'fairy-gold-tinted': [27, 118, 56],
 };
 const PRINCE = { w: 137, h: 225 };        // the prince (220 x 360 art)
 const camX = (st) => (sceneOf(st.phase) === 1 ? clamp(st.p.x - 420, 0, RAMPART.w - 1280) : 0);
