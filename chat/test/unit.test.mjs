@@ -1419,3 +1419,179 @@ test('Mob Whack: a late joiner is seated mid-round with 0 points and full hearts
   const full = { ...S, pl: Array.from({ length: W.MAX_PLAYERS }, (_, i) => W.newPlayer({ id: `p${i}` })) };
   assert.equal(W.seatJoiners(full, people, now), null);
 });
+
+test('Beach Bump: an elastic bounce off a still head keeps the speed', async () => {
+  const { _physics: P } = await import('../games/beachbump.js');
+  for (const [vx, vy, a] of [[0, -1.2, 0.3], [0.4, -1, -0.7], [-0.9, -0.5, 1.2], [0.2, -1.6, 0]]) {
+    const n = { x: Math.sin(a), y: Math.cos(a) };
+    const v = P.bounce({ x: vx, y: vy }, { x: 0, y: 0 }, n);
+    close(Math.hypot(v.x, v.y), Math.hypot(vx, vy), 1e-12);
+    // Reflected about the normal: the normal part flips, the tangent part stays.
+    close(v.x * n.x + v.y * n.y, -(vx * n.x + vy * n.y), 1e-12);
+    close(v.x * n.y - v.y * n.x, vx * n.y - vy * n.x, 1e-12);
+  }
+  // Already separating: no bounce.
+  assert.equal(P.bounce({ x: 0, y: 1 }, { x: 0, y: 0 }, { x: 0, y: 1 }), null);
+});
+
+// Runs a ball against one head for `secs`, frame by frame, as a seat does.
+async function bbRun(headAt, secs, ball) {
+  const { _physics: P } = await import('../games/beachbump.js');
+  let b = { g: 1, s: 0, n: 0, r: 0, W: 1.4, x: 0.35, y: P.SERVE_Y, vx: 0, vy: 0, t: 0, by: '', k: 'serve', ...ball };
+  const launches = [b];
+  let prev = { ...headAt(0), t: 0 };
+  for (let t = 16; t <= secs * 1000; t += 16.7) {
+    const hd = headAt(t);
+    const c = P.contact(b, prev, hd, prev.t, t);
+    if (c) {
+      b = { ...b, ...c, n: b.n + 1, r: b.r + 1, k: 'hit', by: 'a' };
+      assert.ok(P.readBall(b), 'every launch passes validation');
+      launches.push(b);
+    }
+    prev = { ...hd, t };
+    if (P.ballAt(b, t).y < 0) break;
+  }
+  return { P, launches, b };
+}
+
+test('Beach Bump: a ball dropped on top of a still head bounces back to the same height forever', async () => {
+  const { P, launches } = await bbRun(() => ({ x: 0.35, y: 0.24 }), 60);
+  assert.ok(launches.length > 35, `${launches.length - 1} bounces in a minute`);
+  for (const b of launches.slice(1)) {
+    const apex = b.y + (b.vy * b.vy) / (2 * P.G);
+    close(apex, P.SERVE_Y, 1e-6);
+    close(b.vx, 0, 1e-9);
+    close(b.x, 0.35, 1e-9);
+  }
+});
+
+test('Beach Bump: off-centre contact knocks the ball sideways, away from the head', async () => {
+  const { P, launches: right } = await bbRun(() => ({ x: 0.29, y: 0.24 }), 2);
+  assert.ok(right[1].vx > 0.3, `head left of the ball sends it right (vx ${right[1].vx})`);
+  const { launches: left } = await bbRun(() => ({ x: 0.41, y: 0.24 }), 2);
+  assert.ok(left[1].vx < -0.3, `head right of the ball sends it left (vx ${left[1].vx})`);
+  // Speed is still kept: the bounce is elastic.
+  const b0 = right[0], b1 = right[1];
+  const v0 = P.ballAt(b0, b1.t);
+  close(Math.hypot(b1.vx, b1.vy), Math.hypot(v0.vx, v0.vy), 1e-6);
+  // A good lean carries it into the next zone of a two-player court.
+  const land = P.ballAt(b1, P.timeAtHeight(b1, P.HEAD_Y + P.R)).x;
+  assert.equal(P.zoneIndex(b1.x, 2, 1.4), 0);
+  assert.equal(P.zoneIndex(land, 2, 1.4), 1, `lands at x ${land.toFixed(2)}`);
+});
+
+test('Beach Bump: a head moving into the ball adds its push, within the caps', async () => {
+  const { P, launches: still } = await bbRun(() => ({ x: 0.35, y: 0.24 }), 2);
+  // The head rises at 0.6 world units a second through the contact.
+  const { launches: nod } = await bbRun(t => ({ x: 0.35, y: Math.min(0.40, 0.14 + Math.max(0, t - 500) * 0.0006) }), 2);
+  const s0 = Math.hypot(still[1].vx, still[1].vy), s1 = Math.hypot(nod[1].vx, nod[1].vy);
+  assert.ok(nod[1].vy > still[1].vy + 0.1, `a nod sends it up faster (${still[1].vy.toFixed(2)} → ${nod[1].vy.toFixed(2)})`);
+  assert.ok(s1 > s0);
+  assert.ok(nod[1].y + (nod[1].vy ** 2) / (2 * P.G) <= P.APEX_MAX + 1e-9, 'but no higher than the top of the screen');
+  // A head swinging sideways into the ball's side pushes it along.
+  const n = { x: Math.sin(0.3), y: Math.cos(0.3) };
+  const lean = P.bounce({ x: 0, y: -1.2 }, { x: 0, y: 0 }, n);
+  const swipe = P.bounce({ x: 0, y: -1.2 }, { x: 0.5, y: 0 }, n);
+  assert.ok(swipe.x > lean.x + 0.05, `moving the head sideways adds to the knock (${lean.x.toFixed(2)} → ${swipe.x.toFixed(2)})`);
+  // A violent shove is capped: speed and apex stay in bounds.
+  const v = P.bounce({ x: 0, y: -2 }, { x: 0, y: 40 }, { x: 0, y: 1 });
+  assert.ok(Math.hypot(v.x, v.y) <= P.SPEED_MAX + 1e-9);
+  close(v.y, P.SPEED_MAX, 1e-9);
+  const c = P.capApex(0.4, { x: 0, y: v.y });
+  close(0.4 + (c.y * c.y) / (2 * P.G), P.APEX_MAX, 1e-9);
+  // Moving away from the ball faster than it falls: no contact.
+  assert.equal(P.bounce({ x: 0, y: -0.5 }, { x: 0, y: -1 }, { x: 0, y: 1 }), null);
+});
+
+test('Beach Bump: the side walls bounce elastically', async () => {
+  const { _physics: P } = await import('../games/beachbump.js');
+  const b = { g: 1, s: 0, n: 0, r: 0, W: 1.4, x: 1.2, y: 0.8, vx: 1, vy: 0, t: 0, by: '', k: 'hit' };
+  for (let t = 0; t < 3000; t += 7) {
+    const p = P.ballAt(b, t);
+    assert.ok(p.x >= P.BR - 1e-9 && p.x <= b.W - P.BR + 1e-9, `inside the court at ${t} ms`);
+    close(Math.abs(p.vx), 1, 1e-12);
+  }
+  // After the right wall it comes back left at the same speed, mirrored.
+  const right = b.W - P.BR;
+  const p = P.ballAt(b, 300);
+  close(p.x, right - (1.2 + 0.3 - right), 1e-9);
+  close(p.vx, -1, 1e-12);
+  const q = P.ballAt({ ...b, x: 0.1, vx: -1 }, 100);
+  close(q.x, P.BR + (P.BR - 0.0), 1e-9);
+  close(q.vx, 1, 1e-12);
+});
+
+test('Beach Bump: launches, hit reports, heads and shared state are validated', async () => {
+  const { _physics: P } = await import('../games/beachbump.js');
+  const now = 1e12;
+  const cur = { g: 2, s: 1, n: 3, r: 2, W: 1.4, x: 0.35, y: 0.8, vx: 0, vy: 0, t: now - 600, by: 'a', k: 'hit' };
+  assert.deepEqual(P.readBall(cur), cur);
+  for (const bad of [null, 5, [], { ...cur, g: 1.5 }, { ...cur, x: NaN }, { ...cur, vx: 3 }, { ...cur, W: 9 },
+    { ...cur, k: 'warp' }, { ...cur, by: 7 }, { ...cur, vy: 2.3, y: 0.5 }, { ...cur, t: 'soon' }, { ...cur, r: -1 }]) {
+    assert.equal(P.readBall(bad), null, JSON.stringify(bad));
+  }
+  // A real touch, built on the current launch, where the ball was.
+  const tc = now - 50;
+  const p = P.ballAt(cur, tc);
+  const hit = { ...cur, n: 4, r: 3, x: p.x, y: p.y, vx: 0.2, vy: -p.vy, t: tc, by: 'b', k: 'hit' };
+  assert.ok(P.checkHit(hit, 'b', cur, () => null, now));
+  assert.equal(P.checkHit(hit, 'c', cur, () => null, now), null, 'sent by someone else');
+  assert.equal(P.checkHit({ ...hit, x: p.x + 0.3 }, 'b', cur, () => null, now), null, 'not where the ball was');
+  assert.equal(P.checkHit({ ...hit, n: 6 }, 'b', cur, () => null, now), null, 'skips a launch');
+  assert.equal(P.checkHit({ ...hit, s: 0 }, 'b', cur, () => null, now), null, 'an old serve');
+  assert.equal(P.checkHit({ ...hit, r: 9 }, 'b', cur, () => null, now), null, 'touch count jumps');
+  assert.equal(P.checkHit({ ...hit, t: now - 9000 }, 'b', cur, () => null, now), null, 'stale');
+  // Two touches on the same launch: the earlier contact wins.
+  const mine = { ...hit, by: 'a', t: tc };
+  const pe = P.ballAt(cur, tc - 5);
+  const theirs = { ...hit, by: 'b', t: tc - 5, x: pe.x, y: pe.y };
+  assert.ok(P.newer(theirs, mine) && !P.newer(mine, theirs));
+  assert.ok(P.checkHit(theirs, 'b', mine, n => (n === 3 ? cur : null), now), 'an earlier rival touch replaces mine');
+  assert.equal(P.checkHit({ ...theirs, t: tc + 5 }, 'b', mine, n => (n === 3 ? cur : null), now), null);
+  // Order: game, then serve, then launch number.
+  assert.ok(P.newer({ ...cur, g: 3, s: 0, n: 0 }, cur) && P.newer({ ...cur, s: 2, n: 0 }, cur) && !P.newer(cur, cur));
+  // Heads.
+  assert.deepEqual(P.readHead({ u: 0.5, y: 0.2 }), { u: 0.5, y: 0.2 });
+  for (const bad of [null, { u: 2, y: 0.2 }, { u: 0.5, y: 5 }, { u: '0.5', y: 0.2 }]) assert.equal(P.readHead(bad), null);
+  // Shared state.
+  const sh = { g: 2, court: ['a', 'b'], lives: { a: 3, b: 1 }, ball: cur, res: { who: 'b', r: 4, x: 1, at: now }, over: false, winner: null };
+  assert.deepEqual(P.readShared(sh), sh);
+  for (const bad of [null, { ...sh, court: ['a', 'a'] }, { ...sh, lives: { a: 9 } }, { ...sh, ball: { ...cur, g: 1 } },
+    { ...sh, court: 'ab' }, { ...sh, res: { who: 'b' } }, { ...sh, ball: { x: 1 } }, { ...sh, winner: 4 }]) {
+    assert.equal(P.readShared(bad), null, JSON.stringify(bad));
+  }
+});
+
+test('Beach Bump: a drop costs the player whose zone it fell in; the last one standing wins', async () => {
+  const { _physics: P } = await import('../games/beachbump.js');
+  const now = 1e12;
+  const sh = { g: 1, court: ['a', 'b'], lives: { a: 3, b: 2 }, ball: null, res: null, over: false, winner: null };
+  const b = { g: 1, s: 4, n: 2, r: 7, W: 1.4, x: 1.05, y: 0.5, vx: 0, vy: 0, t: now - 2000, by: 'a', k: 'hit' };
+  const next = P.ruleDrop(sh, b, now);
+  assert.deepEqual(next.lives, { a: 3, b: 1 });
+  assert.equal(next.res.who, 'b');
+  assert.equal(next.res.r, 7);
+  assert.equal(next.over, false);
+  assert.equal(next.ball.k, 'serve');
+  assert.equal(next.ball.s, 5);
+  assert.equal(P.zoneIndex(next.ball.x, 2, next.ball.W), 1, 'the next serve drops over the one who missed');
+  assert.ok(next.ball.t > now);
+  const end = P.ruleDrop(next, b, now);
+  assert.deepEqual(end.court, ['a']);
+  assert.equal(end.over, true);
+  assert.equal(end.winner, 'a');
+  // Alone: the game ends when the last life goes, without a winner.
+  const solo = P.ruleDrop({ ...sh, court: ['a'], lives: { a: 1 } }, { ...b, W: 0.9, x: 0.4 }, now);
+  assert.equal(solo.over, true);
+  assert.equal(solo.winner, null);
+  // A newcomer widens the court: the ball keeps its place relative to it.
+  const moved = P.moveBall({ ...b, t: now }, P.courtWidth(3), now);
+  close(moved.x / moved.W, b.x / b.W, 1e-9);
+  assert.equal(moved.n, b.n + 1);
+  // A serve still hanging moves over the same player's zone in the new court.
+  const hang = P.serveBall(1, 0, ['a'], 0, now + 1000);
+  const over = P.moveBall(hang, P.courtWidth(2), now, ['a'], ['a', 'b']);
+  assert.equal(P.zoneIndex(over.x, 2, over.W), 0);
+  close(over.x, P.courtWidth(2) / 4, 1e-9);
+  assert.equal(over.t, hang.t);
+});

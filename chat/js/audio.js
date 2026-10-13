@@ -63,6 +63,7 @@ const SOUNDS = {
   score: () => { tone({ freq: 660, dur: 0.1, gain: 0.3, type: 'triangle' }); tone({ freq: 990, dur: 0.18, gain: 0.3, type: 'triangle', delay: 0.09 }); },
   miss: () => tone({ freq: 300, to: 160, dur: 0.25, gain: 0.25, type: 'sawtooth' }),
   bounce: () => tone({ freq: 220, to: 120, dur: 0.08, gain: 0.3 }),
+  boing: () => { tone({ freq: 170, to: 520, dur: 0.16, gain: 0.35 }); tone({ freq: 340, to: 900, dur: 0.1, gain: 0.12, type: 'triangle', delay: 0.02 }); },
   win: () => [523, 659, 784, 1046].forEach((f, i) => tone({ freq: f, dur: 0.18, gain: 0.3, type: 'triangle', delay: i * 0.1 })),
   lose: () => [392, 330, 262].forEach((f, i) => tone({ freq: f, dur: 0.25, gain: 0.25, type: 'triangle', delay: i * 0.14 })),
   tick: () => tone({ freq: 1200, dur: 0.03, gain: 0.15, type: 'square' }),
