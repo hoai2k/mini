@@ -1809,6 +1809,40 @@ REQUESTS.append({
 })
 
 
+# Board 3 needs fishing boats seen side-on on the goo (none were requested),
+# and the plain Bombanats perch on boat roofs, but OM-Z01's perched pose came
+# drawn on a leafy branch.
+REQUESTS.append({
+    "id": "OM-Z07", "section": "audit", "name": "Board 3: fishing boats on the goo, side-on",
+    "key": "adv.b03.boats", "file": "assets/adventure/b03/boats.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "pages-16-17-grumley-netted.jpg",
+    "used": "Board 3's fishing grounds: boats on the surface that drop anchors and nets on the Grumley.",
+    "standin": "Boats drawn in code.",
+    "prompt": STYLE + " Two separate game sprites side by side, both seen exactly side-on facing "
+    "right, at the same scale, floating, the waterline straight along their bottom with only a "
+    "little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse "
+    "and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red "
+    "fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. "
+    "The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. "
+    + ALPHA + " " + REF_SCENE.format("pages-16-17-grumley-netted.jpg"),
+})
+m = next(m for m in MONSTERS if m["id"] == "bombanat")
+REQUESTS.append({
+    "id": "OM-Z08", "section": "audit", "name": "Plain Bombanat perched, without a branch",
+    "key": "bombanat.plainPerch", "file": "assets/monsters/bombanat/plain-perched.png",
+    "size": "1024 x 1024, transparent", "status": "requested", "ref": m["refs"],
+    "used": "Plain Bombanats perched on boat roofs, rocks and the island (boards 3 and 9).",
+    "standin": "Plain Bombanat pose 7, which is drawn on a leafy branch.",
+    "prompt": STYLE + " " + MONSTER + " " + m["look"] + " (Use this description for the design only.) "
+    + FROM_SHEET.format("OM-C02", "onemonster/game/assets/monsters/bombanat/model-sheet.png")
+    + "Also attach the plain Bombanats sheet, request OM-Z01 (file onemonster/game/assets/monsters/bombanat/plain.png), "
+    "and match it: an ordinary Bombanat with NO necktie, NO cap or propeller and NO letter, duller "
+    "grey-brown fur. A single sprite: perched with the wings folded, gripping with its clawed feet, "
+    "side view facing right, standing on NOTHING (no branch, no ground), its feet level at the "
+    "bottom of the drawing, at the same scale as the plain Bombanats sheet. " + ALPHA,
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"

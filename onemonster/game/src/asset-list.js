@@ -561,5 +561,13 @@ export const ASSETS = {
   "adv.b05.windmill": {
     "file": "assets/adventure/b05/windmill.png",
     "delivered": false
+  },
+  "adv.b03.boats": {
+    "file": "assets/adventure/b03/boats.png",
+    "delivered": false
+  },
+  "bombanat.plainPerch": {
+    "file": "assets/monsters/bombanat/plain-perched.png",
+    "delivered": false
   }
 };
