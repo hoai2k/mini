@@ -65,6 +65,7 @@ IMAGES += [(f"assets/monsters/{m['id']}/portrait.png", f"portraits/{m['id']}.web
            for m in br.MONSTERS]
 IMAGES += [(f"assets/scenes/{m['id']}.webp", f"scenes/{m['id']}.webp", 1920) for m in br.MONSTERS]
 IMAGES += [(f"assets/story/{s}.webp", f"story/{s}.webp", 1920) for s in ("prologue", "mailman", "lucyjane")]
+IMAGES.append(("assets/props/sallyann-house.png", "props/sallyann-house.webp", 1024))
 # The minigames' how-to-play pictures.
 IMAGES += [(f"assets/howto/ch{n:02d}-{k}.webp", f"howto/ch{n:02d}-{k}.webp", 1024) for n in br.HOWTO for k in (1, 2, 3)]
 # The Adventure's backdrop panels (design/adventure.md).
@@ -89,6 +90,8 @@ def sheets() -> list[dict]:
              "items": b["props"]} for b in br.BOARDS]
     out += [{"key": f"terrain.{pid}", "kind": "terrain", "file": f"assets/adventure/terrain/{pid}.png", "items": items}
             for pid, _name, _ref, items in br.TERRAIN]
+    # The minigame audit's extra sheets (OM-Z01..03).
+    out += [{"key": sh["key"], "kind": "poses", "file": sh["file"], "items": sh["items"]} for sh in br.AUDIT_SHEETS]
     out.append({"key": "cast", "kind": "cast", "file": "assets/cast/sprites.png", "items": [
         "Sally Ann at her window, looking out", "Sally Ann at her window, turned away writing",
         "the neighbour peering over her spectacles", "the neighbour dozing",
