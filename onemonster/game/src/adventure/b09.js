@@ -44,7 +44,9 @@ const BRANCHES = [[2560, 3080], [9000, 9720]]; // one-way platforms up at GY - 2
 const BRANCH_Y = GY - 290;
 const FERNS = [7700, 8350, 10250, 10750]; // the Trollusk's hiding places, in order
 const DECOR_FERNS = [400, 1950, 3300, 4850, 6400, 7000, 9850, 11250];
-const TRUNKS = [300, 1850, 4450, 6700, 9800]; // tree bases with faces, behind the action
+// terrain.wood 6 turned out to be a tree's foot (roots, ivy, a face) cut off at
+// the top, not a tall trunk: the backdrops carry the trees, so none are placed.
+const TRUNKS = [];
 const STUMPS = [1200, 7100]; // the stump with a face
 const HOLLOWS = [5900, 10900]; // the hollow stump
 const ROCKS = [3150, 8000, 10600]; // piles of rocks
@@ -712,7 +714,7 @@ export default function create(env) {
     for (const s of solids) {
       if (!cam.sees(s.x, s.x + s.w)) continue;
       if (s.kind === 'ground') {
-        kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 240, lift: 100, fill: '#5a4630', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
+        kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 320, lift: 134, fill: '#5a4630', standin: { top: '#8a9a4e', body: '#6e5a3c', ink: INK } });
         if (!art.sprite('terrain.wood', 1)) groundTexture(g, s, Math.max(s.x, cam.x - 40), Math.min(s.x + s.w, cam.x + W + 40));
       }
       else if (s.kind === 'log') kit.sprite(g, 'adv.b09.props', 8, s.x + s.w / 2, s.y + s.h + 8, { height: s.h + 28 }, (g2, x, y) => inkLog(g2, x, y - 8, s.w + 24, s.h));

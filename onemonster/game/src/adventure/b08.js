@@ -303,7 +303,7 @@ export default function create(env) {
     if (b.mode === 'netted') { anim = 'netted'; rot = 0; }
     else if (b.mode === 'tumble') { anim = 'tumble'; rot = Math.sin(b.modeT * 14) * 0.5; }
     else if (b.mode === 'stall') { anim = 'stall'; rot = Math.sin(b.modeT * 20) * 0.2; }
-    else if (b.mode === 'ground') { anim = Math.abs(b.vx) > 20 ? 'walk' : (b.modeT > 1.5 ? 'roost' : 'land'); rot = 0; }
+    else if (b.mode === 'ground') { anim = Math.abs(b.vx) > 20 ? 'walk' : (b.modeT > 1.2 ? 'perched' : 'land'); rot = 0; }
     else if (b.mode === 'dive') { anim = 'dive'; rot = clamp(pitch - 0.75, -0.3, 0.85); }
     else if (b.mode === 'swoop') { anim = 'pullUp'; rot = clamp(pitch * 0.6, -0.6, 0.2); }
     else if (b.soaked > 0) { anim = b.flapT > 0 ? 'flap' : 'soaked'; }

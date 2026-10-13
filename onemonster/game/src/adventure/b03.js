@@ -29,7 +29,7 @@ const INK = '#1b2a3a';
 // stands M.height tall; the full-body poses used under the goo are about 2.5
 // times that, so this sizeK makes him about 250 px tall.
 const SIZE = 0.4;
-const STRIP_H = 170, STRIP_LIFT = 26; // the surface strip: height on screen, crests above the line
+const STRIP_H = 124, STRIP_LIFT = 34; // the surface strip: height on screen, crests above the line
 const HALF = 125; // half his height: his (x, y) is his middle
 
 export const SURF = 380; // the goo's surface (world y)
@@ -906,7 +906,7 @@ export default function create(env) {
     else if (G.munchT > 0) art.setAnim(c, 'lunch');
     else if (G.jetT > 0) art.setAnim(c, pose('jet', 'rise'));
     else if (G.bubble) art.setAnim(c, pose('swimB', 'triumph'));
-    else if (G.vy > 120) art.setAnim(c, pose('diveDown', 'rise'));
+    else if (G.vy > 260 && G.vy > Math.abs(G.vx)) art.setAnim(c, pose('diveDown', 'rise'));
     else if (Math.hypot(G.vx, G.vy) > 40) art.setAnim(c, pose(Math.floor(c.dist / 160) % 2 ? 'swimB' : 'swimA', 'rise'));
     else art.setAnim(c, pose('swimA', 'rise'));
     art.animate(c, dt, G.mode === 'won' ? 0 : G.vx, G.vy);
@@ -1372,7 +1372,11 @@ export default function create(env) {
     }
     const h = tc.h;
     if (h < 4) return;
-    kit.sprite(g, SHEET, 6, tc.x + 20, FLOOR + 6, { height: h + 20, ax: 0.42 }, () => {
+    // The delivered tentacle keeps its shape and rises out of the sand (clipped
+    // to its height so far); the stand-in is drawn to the height itself.
+    g.save();
+    g.beginPath(); g.rect(tc.x - 200, FLOOR - h, 400, h + 20); g.clip();
+    kit.sprite(g, SHEET, 6, tc.x, FLOOR + 8, { height: Math.max(h, 520), ax: 0.3 }, () => {
       g.save();
       g.lineCap = 'round';
       const curl = Math.min(1, h / T.tentacleH);
@@ -1393,6 +1397,7 @@ export default function create(env) {
       }
       g.restore();
     });
+    g.restore();
   }
 
   function drawFish(g, f) {

@@ -70,18 +70,18 @@ export default function create(env) {
   flat(4000);
   // Section 2, the goo curtains: flat with a dip.
   const S2 = cx;
-  flat(1300); slope(300, 60); flat(900); slope(300, -60); flat(900);
+  flat(1300); slope(600, 60); flat(700); slope(600, -60); flat(800);
   // Section 3, holes and slopes.
   const S3 = cx;
   flat(400); hole(240); flat(500); // a first hole, hoppable
-  slope(700, -170); flat(300); slope(600, 170); // a hill to roll down
+  slope(900, -170); flat(300); slope(800, 170); // a hill to roll down
   flat(300); hole(270); flat(300);
-  slope(500, 100); flat(200); slope(500, -100); // down into a dip and up the ramp
+  slope(600, 100); flat(200); slope(600, -100); // down into a dip and up the ramp
   const BIG = { x0: cx, x1: cx + 400 };
   hole(400); flat(500); // the big hole: fly it off the ramp
   // Section 4, the falling things: open ground with low bumps.
   const S4 = cx;
-  flat(700); slope(400, -70); flat(700); slope(400, 70); flat(2000);
+  flat(700); slope(600, -70); flat(600); slope(600, 70); flat(1900);
   // The open space.
   const OPEN_X = cx;
   flat(1900);
@@ -106,14 +106,14 @@ export default function create(env) {
   const blocks = [];
   const addRock = (x, item = 1) => blocks.push({ kind: 'rock', x, w: 96, h: item === 1 ? 84 : 96, item, top: profileY(x) - (item === 1 ? 84 : 96) });
   const addBoulder = (x, w = 300, h = 150) => blocks.push({ kind: 'boulder', x, w, h, top: profileY(x) - h });
-  const addBush = (x, paper = 2) => blocks.push({ kind: 'bush', x, w: 150, h: 180, top: profileY(x) - 135, paper, gone: false, shakeT: 0, seed: rng() });
+  const addBush = (x, paper = 2) => blocks.push({ kind: 'bush', x, w: 170, h: 180, top: profileY(x) - 135, paper, gone: false, shakeT: 0, seed: rng() });
   addRock(1500, 1); addRock(2500, 2);
   addBush(1000, 1); addBush(2100, 1); addBush(2900, 2);
-  addRock(S2 + 700, 1); addBush(S2 + 1500, 1);
+  addRock(S2 + 1880, 1); addBush(S2 + 1250, 1);
   addBush(S2 + 2500, 1);
-  addRock(S3 + 1400, 2); addBoulder(S3 + 1990, 260, 150); // on the hill top
+  addRock(S3 + 1400, 2); addBoulder(S3 + 2190, 300, 150); // on the hill top
   addRock(S4 + 300, 1);
-  addBoulder(S4 + 1500, 340, 160); addBush(S4 + 2200, 1);
+  addBoulder(S4 + 1500, 320, 160); addBush(S4 + 2200, 1);
   addBush(S4 + 2950, 1); addRock(OPEN_X - 350, 2);
 
   // The walking surface at x (with the blocks that can be stood on), or null over a hole.
@@ -128,8 +128,9 @@ export default function create(env) {
   const trees = [{ x: 700, paper: 2 }, { x: 1900, paper: 2 }, { x: S2 + 400, paper: 0 }, { x: S2 + 2000, paper: 2 }, { x: S3 - 300, paper: 0 },
     { x: S3 + 2600, paper: 2 }, { x: S4 + 1000, paper: 2 }, { x: OPEN_X - 500, paper: 0 }, { x: WORLD - 500, paper: 0 }]
     .map((t) => ({ ...t, shakeT: 0, seed: rng() }));
-  const curtains = [S2 + 300, S2 + 1000, S2 + 1750, S2 + 2250, S2 + 2750, S2 + 3300].map((x) => ({ x, w: 130, bottom: 690, dripT: rng() * 2 }));
-  const toads = [{ x0: S2 + 1100, x1: S2 + 1400 }, { x0: S2 + 1800, x1: S2 + 2100 }, { x0: S3 + 1000, x1: S3 + 1300 }, { x0: S4 + 1800, x1: S4 + 2100 }]
+  // Each curtain is a goo-dripping branch (terrain 7); its long drips are the sticky zones.
+  const curtains = [S2 + 500, S2 + 1500, S2 + 2500, S2 + 3400].map((x) => ({ x, w: 600, zones: [[-290, 90], [140, 300]], top: 320, bottom: 690, dripT: rng() * 2 }));
+  const toads = [{ x0: S2 + 850, x1: S2 + 1100 }, { x0: S2 + 1980, x1: S2 + 2130 }, { x0: S3 + 1000, x1: S3 + 1300 }, { x0: S4 + 1800, x1: S4 + 2100 }]
     .map((t, i) => ({ ...t, x: (t.x0 + t.x1) / 2, dir: i % 2 ? -1 : 1, hop: rng() * 2, stun: 0, grump: 0, bowled: false }));
   const cps = kit.makeCheckpoints([0, S2 + 100, S3, S4, OPEN_X]);
   const hints = kit.makeHints([
@@ -157,7 +158,7 @@ export default function create(env) {
   [600, 1250, 2400, 3000].forEach((d, i) => onGround(S2 + d, ['ticket', 'scrap', 'ball', 'news'][i]));
   [300, 1100, 1700, 2350, 3700, 5000].forEach((d, i) => onGround(S3 + d, ['bag', 'scrap', 'hat', 'menu', 'news', 'scrap'][i]));
   // On the hill-top boulder and the big boulder (a hop up).
-  addPaper(S3 + 1990, profileY(S3 + 1990) - 150 - 40, 'bag');
+  addPaper(S3 + 2190, profileY(S3 + 2190) - 150 - 40, 'bag');
   addPaper(S4 + 1500, profileY(S4 + 1500) - 160 - 40, 'menu');
   [200, 800, 2600, 3300].forEach((d, i) => onGround(S4 + d, ['ticket', 'scrap', 'ball', 'menu'][i]));
   onGround(OPEN_X + 900, 'news');
@@ -516,13 +517,13 @@ export default function create(env) {
     p.sticky = Math.max(0, p.sticky - dt);
     p.landT = Math.max(0, p.landT - dt);
     p.invuln = Math.max(0, p.invuln - dt);
-    const stickK = p.sticky > 0 ? 0.42 : 1;
+    const stickK = p.sticky > 0 ? 0.5 : 1;
     const ox = p.x;
     const sl = p.onGround ? slopeAt(p.x) : 0; // + is downhill to the right
 
     if (p.mode === 'walk') {
       const ev = kit.walkerControl(p, inp, dt, {
-        speed: 350 * stickK, accel: 2200, decel: 2600, airAccel: 1200, jump: 1250 * (p.sticky > 0 ? 0.7 : 1), jumpCut: 0.55, coyote: 0.1, buffer: 0.12,
+        speed: 350 * stickK, accel: 2200, decel: 2600, airAccel: 1200, jump: 1250 * (p.sticky > 0 ? 0.85 : 1), jumpCut: 0.55, coyote: 0.1, buffer: 0.12,
       });
       if (ev.jumped) { art.kick(yc, -0.5); env.sfx('jump'); dust(p.x, p.y, 4); }
       // Trundling uphill is slower, downhill a touch faster.
@@ -614,7 +615,7 @@ export default function create(env) {
     // Goo curtains stick.
     p.inGoo = Math.max(0, p.inGoo - dt);
     for (const c of curtains) {
-      if (Math.abs(c.x - p.x) < c.w / 2 + 40 && headY() < c.bottom) {
+      if (c.zones.some(([dx, w]) => Math.abs(c.x + dx - p.x) < w / 2 + 40) && headY() < c.bottom) {
         if (p.inGoo <= 0) { env.sfx('drip'); parts.burst(p.x, headY() + 20, { n: 5, colour: '#5fa8d3', speed: 160, size: 8, life: 0.5, gravity: 700 }); }
         p.inGoo = 0.15;
         if (p.mode !== 'ball') p.sticky = Math.max(p.sticky, gentle ? 0.8 : 1.3);
@@ -730,27 +731,38 @@ export default function create(env) {
 
   // The ground: flat stretches through the kit (the terrain strip when it
   // arrives), slopes as ink polygons with the slope pieces on top.
+  // The strip's walkable soil edge sits 52/125 down the piece (grass tufts above it).
+  const STRIP_H = 200, STRIP_LIFT = 52 / 125 * STRIP_H;
   function drawGround(g) {
-    if (art.sprite(TERRAIN, 1)) {
+    const delivered = !!art.sprite(TERRAIN, 1);
+    if (delivered) {
       for (const s of segs) {
         if (s.hole || !cam.sees(s.x0, s.x1)) continue;
-        if (s.kind === 'flat') kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, { sheet: TERRAIN, item: 1, height: 240, fill: GROUND_INK.body });
-        else drawSlope(g, s);
+        if (s.kind === 'flat') kit.drawGround(g, cam, { x: s.x0, y: s.y0, w: s.x1 - s.x0, h: H + 100 - s.y0 }, { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT, fill: GROUND_INK.body });
       }
+      for (const s of segs) if (!s.hole && s.kind !== 'flat' && cam.sees(s.x0, s.x1)) drawSlope(g, s, true);
     } else {
       drawProfileInk(g);
-      for (const s of segs) if (!s.hole && s.kind !== 'flat' && cam.sees(s.x0, s.x1)) kit.sprite(g, TERRAIN, s.kind === 'up' ? 2 : 3, (s.x0 + s.x1) / 2, Math.max(s.y0, s.y1) + 4, { height: Math.abs(s.y1 - s.y0) + 60, ay: 1 }, null);
     }
-    // The dark of the holes and their delivered edges.
+    // The holes: a pit falling away into the dark, walled by the delivered edge pieces.
     for (const s of segs) {
       if (!s.hole || !cam.sees(s.x0, s.x1)) continue;
       const yl = profileY(s.x0 - 1), yr = profileY(s.x1 + 1);
       g.save();
-      g.fillStyle = '#3a2a1c';
-      g.beginPath(); g.moveTo(s.x0, yl); g.lineTo(s.x1, yr); g.lineTo(s.x1, H + 100); g.lineTo(s.x0, H + 100); g.closePath(); g.fill();
+      const gr = g.createLinearGradient(0, Math.min(yl, yr), 0, H + 100);
+      gr.addColorStop(0, '#7a5330'); gr.addColorStop(0.35, '#3e2a18'); gr.addColorStop(1, '#120b06');
+      g.fillStyle = gr;
+      g.beginPath(); g.moveTo(s.x0 - 30, yl); g.lineTo(s.x1 + 30, yr); g.lineTo(s.x1 + 30, H + 100); g.lineTo(s.x0 - 30, H + 100); g.closePath(); g.fill();
+      // Roots in the walls.
+      g.strokeStyle = 'rgba(20,12,6,0.55)'; g.lineWidth = 3;
+      g.beginPath();
+      for (let i = 0; i < 5; i++) { const y = yl + 60 + i * 55; g.moveTo(s.x0 + 8, y); g.quadraticCurveTo(s.x0 + 40, y + 20, s.x0 + 30 + kit.hash(i + s.x0) * 40, y + 60); }
+      for (let i = 0; i < 5; i++) { const y = yr + 40 + i * 60; g.moveTo(s.x1 - 8, y); g.quadraticCurveTo(s.x1 - 40, y + 25, s.x1 - 30 - kit.hash(i + s.x1) * 40, y + 65); }
+      g.stroke();
       g.restore();
-      kit.sprite(g, TERRAIN, 4, s.x0 + 28, yl + 26, { height: 150, ax: 1, ay: 1 }, (gg, x, y, o) => art.drawSprite(gg, art.prop('yalapappus', 3), x, y, o));
-      kit.sprite(g, TERRAIN, 5, s.x1 - 28, yr + 26, { height: 150, ax: 0, ay: 1 }, (gg, x, y, o) => art.drawSprite(gg, art.prop('yalapappus', 4), x, y, o));
+      // The edge pieces: their walkable soil edge (45/186 down) on the ground line, the cut face at the hole.
+      kit.sprite(g, TERRAIN, 4, s.x0 + 6, yl, { height: 236, ax: 400 / 465, ay: 45 / 186 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 3), x + 22, y + 26, { height: 150, ax: 1, ay: 1 }));
+      kit.sprite(g, TERRAIN, 5, s.x1 - 6, yr, { height: 238, ax: 65 / 472, ay: 45 / 188 }, (gg, x, y) => art.drawSprite(gg, art.prop('yalapappus', 4), x - 22, y + 26, { height: 150, ax: 0, ay: 1 }));
     }
   }
 
@@ -812,11 +824,14 @@ export default function create(env) {
     g.restore();
   }
 
-  function drawSlope(g, s) {
+  // A slope piece (terrain 2 rising, 3 falling) stretched so its drawn soil edge
+  // runs from (x0, y0) to (x1, y1): in the pieces, that edge runs from sprite
+  // (140, 170) to (1240, 35) on item 2 and from (250, 30) to (1300, 165) on item 3.
+  function drawSlope(g, s, delivered = false) {
     const { top, body, ink } = GROUND_INK;
     g.save();
     g.fillStyle = body;
-    g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.lineTo(s.x1, H + 100); g.lineTo(s.x0, H + 100); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(s.x0, s.y0 + 4); g.lineTo(s.x1, s.y1 + 4); g.lineTo(s.x1, H + 100); g.lineTo(s.x0, H + 100); g.closePath(); g.fill();
     g.strokeStyle = 'rgba(43,29,20,0.22)'; g.lineWidth = 2;
     g.beginPath();
     for (let x = s.x0 + 20; x < s.x1; x += 38) {
@@ -824,31 +839,32 @@ export default function create(env) {
       for (let y = y0 + 50 + kit.hash(x) * 30; y < H + 60; y += 70) { g.moveTo(x, y); g.lineTo(x + 22, y + 16); }
     }
     g.stroke();
-    g.fillStyle = top;
-    g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.lineTo(s.x1, s.y1 + 26); g.lineTo(s.x0, s.y0 + 26); g.closePath(); g.fill();
-    g.strokeStyle = ink; g.lineWidth = 3.5;
-    g.beginPath();
-    for (let x = s.x0; x <= s.x1; x += 24) {
-      const xx = Math.min(x, s.x1);
-      const y = lerp(s.y0, s.y1, (xx - s.x0) / (s.x1 - s.x0)) + (kit.hash(Math.floor(xx / 24)) - 0.5) * 6;
-      if (x === s.x0) g.moveTo(xx, y); else g.lineTo(xx, y);
+    if (!delivered) {
+      g.fillStyle = top;
+      g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.lineTo(s.x1, s.y1 + 26); g.lineTo(s.x0, s.y0 + 26); g.closePath(); g.fill();
+      g.strokeStyle = ink; g.lineWidth = 3.5;
+      g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.stroke();
+      g.restore();
+      return;
     }
-    g.stroke();
-    g.lineWidth = 2;
-    g.beginPath();
-    for (let x = s.x0 + 10; x < s.x1; x += 31) {
-      if (kit.hash(x * 1.3) < 0.45) continue;
-      const y = lerp(s.y0, s.y1, (x - s.x0) / (s.x1 - s.x0));
-      g.moveTo(x, y); g.lineTo(x - 4, y - 12); g.moveTo(x + 5, y); g.lineTo(x + 7, y - 14);
-    }
-    g.stroke();
+    g.restore();
+    const up = s.kind === 'up';
+    const sp = art.sprite(TERRAIN, up ? 2 : 3);
+    if (!sp) return;
+    const [ax0, ay0, ax1, ay1] = up ? [140, 170, 1240, 35] : [250, 30, 1300, 165];
+    const sx = (s.x1 - s.x0) / (ax1 - ax0);
+    const sy = Math.abs(s.y1 - s.y0) / Math.abs(ay1 - ay0);
+    g.save();
+    g.translate(s.x0, s.y0);
+    g.scale(sx, sy);
+    g.drawImage(sp.img, -ax0, -ay0, sp.w, sp.h);
     g.restore();
   }
 
   function drawPalm(g, x, baseY, tr, tt) {
     const sway = (tr.shakeT > 0 ? Math.sin(tt * 40) * 0.05 * tr.shakeT : 0) + Math.sin(tt * 0.8 + tr.seed * 6) * 0.015;
     const h = 560;
-    kit.sprite(g, TERRAIN, 8, x, baseY, { height: h, ay: 1 }, (gg) => {
+    kit.sprite(g, TERRAIN, 8, x + 30, baseY + 10, { height: h, ay: 1 }, (gg) => {
       gg.save();
       gg.translate(x, baseY);
       gg.rotate(sway);
@@ -894,7 +910,7 @@ export default function create(env) {
   }
 
   function drawBoulder(g, b) {
-    kit.sprite(g, TERRAIN, 6, b.x, b.top + b.h + 4, { height: b.h + 20, ay: 1 }, (gg) => {
+    kit.sprite(g, TERRAIN, 6, b.x, b.top + b.h + 12, { height: b.h + 20, ay: 1 }, (gg) => {
       const L = b.x - b.w / 2, R = b.x + b.w / 2, T = b.top, B = b.top + b.h + 4;
       gg.save();
       gg.fillStyle = '#a89a86'; gg.strokeStyle = INK; gg.lineWidth = 4;
@@ -936,7 +952,8 @@ export default function create(env) {
     const base = b.top + 135;
     g.save();
     g.translate(b.x, base); g.rotate(wob); g.translate(-b.x, -base);
-    kit.sprite(g, PROPS, 11, b.x, base + 6, { height: b.h, ay: 1 }, (gg, x, y, o) => {
+    const full = b.paper && paper.some((pp) => pp.locked && pp.bush === b);
+    kit.sprite(g, full ? PROPS : 'props.trollusk', full ? 11 : 5, b.x, base + 6, { height: b.h, ay: 1 }, (gg, x, y, o) => {
       if (!art.drawSprite(gg, art.prop('trollusk', 5), x, y, o)) {
         gg.save();
         gg.fillStyle = '#6f9a3c'; gg.strokeStyle = INK; gg.lineWidth = 4;
@@ -959,7 +976,7 @@ export default function create(env) {
   }
 
   function drawCurtain(g, c, tt) {
-    kit.sprite(g, TERRAIN, 7, c.x, c.bottom, { height: c.bottom + 10, ay: 1 }, (gg) => {
+    kit.sprite(g, TERRAIN, 7, c.x, c.top, { height: 400, ay: 0 }, (gg) => {
       gg.save();
       gg.strokeStyle = '#2f6d93'; gg.lineWidth = 3.5;
       gg.fillStyle = '#5fa8d3';
@@ -1154,7 +1171,7 @@ export default function create(env) {
     }
     const sq = yc.sq;
     const top = p.y - (HEAD + 18) * (1 - sq) - (yc.z || 0);
-    drawOctopus(g, p.x + 6 * facing, top + 26 + Math.sin(tt * 3) * 2, { height: 80, flip: facing < 0 });
+    drawOctopus(g, p.x + 6 * facing, top + 22 + Math.sin(tt * 3) * 2, { height: 92, flip: facing < 0 });
   }
 
   // ---------- the board ----------
@@ -1417,7 +1434,7 @@ export function autopilot(board) {
   const holeAhead = nextHole ? nextHole.x0 - x : Infinity;
   const holeW = nextHole ? nextHole.x1 - nextHole.x0 : 0;
   const block = board.blocks.find((b) => !b.gone && b.x > x - 40 && b.x - b.w / 2 - x < 230);
-  const curtain = board.curtains.find((c) => c.x > x - 120 && c.x - x < 320);
+  const curtain = board.curtains.find((c) => c.x + 320 > x - 60 && c.x - 340 - x < 320);
   const toad = board.toads.find((td) => td.stun <= 0 && td.x > x - 60 && td.x - x < 420);
   const tree = board.trees.find((tr) => Math.abs(tr.x - x) < 120 && board.paper.some((pp) => pp.locked && pp.tree === tr));
   const bush = board.blocks.find((b) => b.kind === 'bush' && !b.gone && b.x > x && b.x - x < 420 && board.paper.some((pp) => pp.locked && pp.bush === b));
@@ -1439,7 +1456,7 @@ export function autopilot(board) {
   if (p.mode === 'ball') {
     // Keep rolling through goo, bushes and down hills; unroll before a hole too wide
     // to fly, a rock, or when the roll has gone on too long.
-    const keep = (curtain && curtain.x - x > -100) || (bush && bush.x - x > -60) || slope > 0.05 || holeAhead < 650 || (holeAhead < 1300 && holeW >= 380) || !p.onGround;
+    const keep = (curtain && curtain.x + 320 - x > -60) || (bush && bush.x - x > -60) || slope > 0.05 || holeAhead < 650 || (holeAhead < 1300 && holeW >= 380) || !p.onGround;
     inp.sprint = keep && p.rollT < 2.5;
     if (holeAhead < 90 && holeAhead > -20 && p.onGround && holeW < 380) inp.actionPressed = true; // a bounce over the small holes; the big one is flown off its ramp
     return inp;
@@ -1460,7 +1477,7 @@ export function autopilot(board) {
   // Sticky beside a bush: wait for the goo to dry rather than push into it.
   if (p.sticky > 0 && block && block.kind === 'bush' && block.x > x && block.x - block.w / 2 - x < 200) { inp.x = 0; return inp; }
   // A bush with paper, a goo curtain or a downhill: roll.
-  if ((bush && bush.x - x < 380 && bush.x - x > 0) || (curtain && curtain.x - x < 300 && curtain.x - x > -60) || slope > 0.1) {
+  if ((bush && bush.x - x < 380 && bush.x - x > 0) || (curtain && curtain.x - 340 - x < 300 && curtain.x + 320 - x > -60) || slope > 0.1) {
     if (p.onGround && p.sticky <= 0 && holeAhead > 150) { inp.sprint = true; return inp; }
   }
   // The big hole: roll from the hill before it.

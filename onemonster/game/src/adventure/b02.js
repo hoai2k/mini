@@ -52,10 +52,12 @@ const COVERS = [
 ];
 const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log: { w: 240, h: 150 } };
 
-// Trunks rise from the floor (top y); boughs hang from the canopy (bottom y);
+// Trunks rise from the floor up out of the frame, each with a hollow to fly
+// through (the hole's top y); boughs hang from the canopy (bottom y);
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
-const TRUNKS = [[1900, 470], [3200, 460], [6350, 470], [8700, 460, true], [9700, 450, true], [10650, 470], [12500, 460, true]];
+const TRUNKS = [[1900, 290], [3200, 300], [6350, 290], [8700, 300, true], [9700, 290, true], [10650, 300], [12500, 290, true]];
+const HOLE = 300; // the hollow's height
 const BOUGHS = [[2250, 400], [5800, 390], [9350, 400], [12900, 400]];
 const BRANCHES = [[200, 380, 420, 1], [1250, 420, 350, 1], [2900, 410, 380, -1],
   [4950, 430, 380, 1], [9050, 410, 380, -1], [10000, 430, 420, 1], [12300, 420, 300, 1]];
@@ -64,13 +66,13 @@ const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]]
 const BIRDS = [[8950, 410], [10300, 430]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
-  [1400, 330], [1550, 330], [1900, 320], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 330], [3400, 450],
+  [1400, 330], [1550, 330], [1900, 440], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 450], [3400, 450],
   [3800, 850], [4300, 880], [4150, 300],
-  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 330], [6700, 300], [6950, 400],
+  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 440], [6700, 300], [6950, 400],
   [7500, 870], [8000, 880], [7900, 300],
-  [8700, 330], [8950, 320], [9350, 560], [9700, 320], [10200, 340], [10400, 480], [10650, 320],
+  [8700, 440], [8950, 320], [9350, 560], [9700, 440], [10200, 340], [10400, 480], [10650, 440],
   [11200, 870], [11700, 880], [11300, 300],
-  [12400, 330], [12900, 560],
+  [12500, 440], [12900, 560],
   [13400, 850], [13900, 870], [14300, 600], [13800, 300]];
 // Floor decor in the open: terrain.wood 3 fallen log, 4 stump with a face,
 // 5 mound of roots, and the delivered ferns and roots (props.grithix 4, 5).
@@ -116,9 +118,11 @@ export default function create(env) {
   const solids = [{ x: -400, y: FLOOR, w: 14850, h: 400, kind: 'floor' }];
   for (const s of SECTIONS) if (!s.open) solids.push({ x: s.x0, y: LEAF_TOP, w: s.x1 - s.x0, h: FLOOR - LEAF_TOP, kind: 'leaves' });
   const trees = TRUNKS.map(([x, top, face]) => {
-    const hw = face ? 100 : 70;
-    const s = { x: x - hw, y: top, w: hw * 2, h: FLOOR - top, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw };
+    const hw = 100;
+    // The trunk below the hollow (its sill can be perched on) and above it.
+    const s = { x: x - hw, y: top + HOLE, w: hw * 2, h: FLOOR - top - HOLE, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw, hole: top };
     solids.push(s);
+    solids.push({ x: x - hw, y: -600, w: hw * 2, h: top + 600, kind: 'bough', trunk: s });
     return s;
   });
   for (const [x, bottom] of BOUGHS) solids.push({ x: x - 60, y: 0, w: 120, h: bottom, kind: 'bough' });
@@ -530,7 +534,7 @@ export default function create(env) {
       } else if (tr.state === 'puff') {
         if (tr.t > 0.75) { tr.state = 'blow'; tr.t = 0; env.sfx('gust'); }
       } else if (tr.state === 'blow') {
-        const zone = { x: tr.cx - 120, y: CEIL - 40, w: 760, h: tr.y + 200 - CEIL };
+        const zone = { x: tr.cx - 120, y: CEIL - 40, w: 760, h: tr.y + 120 - CEIL };
         if (flying && kit.overlaps(r, zone)) {
           const k = gentle ? 0.6 : 1;
           b.vx -= 900 * k * dt; b.vy -= 1100 * k * dt;
@@ -697,7 +701,7 @@ export default function create(env) {
     for (const [x, kind] of DECOR) if (cam.sees(x)) drawDecor(g, x, kind, tt);
     for (const x of SIGNPOSTS) if (x > 0 && cam.sees(x)) drawSignpost(g, x);
     for (const s of solids) if (s.kind === 'trunk' && cam.sees(s.x, s.x + s.w)) drawTrunk(g, s, tt);
-    for (const s of solids) if (s.kind === 'bough' && cam.sees(s.x, s.x + s.w)) drawBough(g, s);
+    for (const s of solids) if (s.kind === 'bough' && !s.trunk && cam.sees(s.x, s.x + s.w)) drawBough(g, s);
     for (const s of solids) if (s.kind === 'branch' && cam.sees(s.x, s.x + s.w)) drawBranch(g, s);
     // The Trollusk, behind his cover and behind the canopy.
     if (cam.sees(h.x)) drawHolder(g, tt);
@@ -828,8 +832,10 @@ export default function create(env) {
   function drawTrunk(g, s, tt) {
     const x = s.cx;
     inkTrunk(g, s);
+    // The delivered tree foot (terrain.wood 6, roots and a face) at the base.
+    kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 6, { height: 330 });
     if (s.face) {
-      const fy = s.y + 150;
+      const fy = s.y + 130;
       if (s.state === 'idle') inkKnotFace(g, x, fy, s, tt);
       else {
         // The knot face swells into the blowing face (adv.b02.props 12).
@@ -840,7 +846,7 @@ export default function create(env) {
   }
 
   function inkTrunk(g, s) {
-    const x = s.cx, top = s.y, hw = (s.hw || 70) - 8;
+    const x = s.cx, top = -200, hw = (s.hw || 70) - 8;
     g.save();
     g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
     const outline = () => {
@@ -877,14 +883,22 @@ export default function create(env) {
     }
     g.restore();
     outline(); g.stroke();
-    // Moss at the foot, the cut top with its rings.
-    g.fillStyle = '#8d9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
-    g.beginPath(); g.ellipse(x - 50, FLOOR - 30, 36, 22, -0.3, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.fillStyle = '#c9a97a'; g.lineWidth = 3.5;
-    g.beginPath(); g.ellipse(x, top + 4, hw - 12, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.5;
-    g.beginPath(); g.ellipse(x, top + 4, hw * 0.5, 8, 0, 0, Math.PI * 2); g.stroke();
-    g.beginPath(); g.ellipse(x, top + 4, 12, 3.5, 0, 0, Math.PI * 2); g.stroke();
+    // The hollow: a dark hole through the trunk with a knobbly rim, and a
+    // mossy sill to perch on.
+    const hy = s.hole, hb = s.hole + HOLE;
+    g.fillStyle = '#2b1d14'; g.strokeStyle = INK; g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(x - hw + 12, hy + 60);
+    g.quadraticCurveTo(x - hw + 20, hy + 10, x, hy + 14);
+    g.quadraticCurveTo(x + hw - 20, hy + 6, x + hw - 12, hy + 70);
+    g.quadraticCurveTo(x + hw - 4, hb - 60, x + hw - 24, hb - 8);
+    g.quadraticCurveTo(x, hb + 6, x - hw + 24, hb - 6);
+    g.quadraticCurveTo(x - hw - 2, hb - 70, x - hw + 12, hy + 60);
+    g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(248,241,224,0.25)'; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(x - hw + 30, hy + 50); g.quadraticCurveTo(x - hw + 36, hy + 24, x - 10, hy + 26); g.stroke();
+    g.fillStyle = '#8d9a4e'; g.strokeStyle = '#5e7a3a'; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(x, hb - 2, hw - 30, 9, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.restore();
   }
 
@@ -1025,12 +1039,12 @@ export default function create(env) {
     if (canopyCache.has(s)) return canopyCache.get(s);
     let cv = null;
     try {
-      const w = s.w + 240, hgt = 200;
+      const w = s.w + 240, hgt = 330;
       if (typeof document !== 'undefined') { cv = document.createElement('canvas'); cv.width = w; cv.height = hgt; }
       else if (typeof OffscreenCanvas === 'function') cv = new OffscreenCanvas(w, hgt);
       if (cv) {
         const cg = cv.getContext('2d');
-        cg.translate(120 - s.x, -(LEAF_TOP - 60));
+        cg.translate(120 - s.x, -(LEAF_TOP - 70));
         paintCanopy(cg, s, s.x - 120, s.x + s.w + 120);
       }
     } catch { cv = null; }
@@ -1038,48 +1052,48 @@ export default function create(env) {
     return cv;
   }
   function paintCanopy(g, s, x0, x1) {
-    // Hanging bunches with gaps between, not a hedge: the floor shows through.
-    const i0 = Math.floor((x0 - s.x) / 190);
-    for (let i = i0; s.x + i * 190 < x1 + 190; i++) {
-      const x = s.x + i * 190 + 95 + hash(i * 9 + s.x) * 50;
-      leafBlob(g, x, LEAF_TOP + 50 + hash(i * 5 + s.x) * 40, 72, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
+    // Hanging leaf clusters: the delivered bush upside down, in two rows with
+    // gaps between, so the floor shows through; ink leaves fill in behind.
+    const bush = art.prop('trollusk', 5);
+    const i0 = Math.floor((x0 - s.x) / 170);
+    for (let i = i0; s.x + i * 170 < x1 + 170; i++) {
+      const x = s.x + i * 170 + 85 + hash(i * 9 + s.x) * 60;
+      const dip = LEAF_TOP + 40 + hash(i * 5 + s.x) * 50;
+      if (bush) art.drawSprite(g, bush, x, dip - 150, { height: 150 + hash(i * 3) * 40, ay: 0, sy: -1, flip: hash(i) > 0.5, alpha: 0.85 });
+      else leafBlob(g, x, dip, 72, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
     }
     const j0 = Math.floor((x0 - s.x) / 150);
     for (let j = j0; s.x + j * 150 < x1 + 150; j++) {
-      if (hash(j * 4.3 + s.x) < 0.22) continue;
+      if (hash(j * 4.3 + s.x) < 0.3) continue;
       const x = s.x + j * 150 + 75;
-      leafBlob(g, x, LEAF_TOP + 8 + hash(j * 3 + s.x) * 24, 56, j * 0.61 + 3, '#6b8a44', '#9fb05a');
+      const dip = LEAF_TOP - 10 + hash(j * 3 + s.x) * 30;
+      if (bush) art.drawSprite(g, bush, x, dip - 120, { height: 120 + hash(j * 7) * 60, ay: 0, sy: -1, flip: hash(j * 2) > 0.5 });
+      else leafBlob(g, x, dip + 40, 56, j * 0.61 + 3, '#6b8a44', '#9fb05a');
     }
     // The ends drape down to the undergrowth where the clearing opens.
     for (const ex of [s.x + 30, s.x + s.w - 30]) {
       if (ex < x0 - 100 || ex > x1 + 100) continue;
-      leafBlob(g, ex, LEAF_TOP + 95, 70, ex * 0.01, '#5e7a3a', '#8aa352');
-      leafBlob(g, ex + (ex < s.x + 100 ? 20 : -20), LEAF_TOP + 135, 52, ex * 0.02, '#6b8a44', '#9fb05a');
+      if (bush) { art.drawSprite(g, bush, ex, LEAF_TOP - 40, { height: 200, ay: 0, sy: -1 }); art.drawSprite(g, bush, ex + (ex < s.x + 100 ? 30 : -30), LEAF_TOP + 90, { height: 150, ay: 0, sy: -1, flip: true }); }
+      else leafBlob(g, ex, LEAF_TOP + 95, 70, ex * 0.01, '#5e7a3a', '#8aa352');
     }
-    // The branches that hold it up, peeping through.
-    g.save();
-    g.strokeStyle = '#5a4030'; g.lineWidth = 7; g.lineCap = 'round';
-    g.beginPath();
-    for (let x = Math.floor(x0 / 70) * 70; x < x1; x += 70) { g.moveTo(x, LEAF_TOP - 24 + hash(x) * 20); g.lineTo(x + 70, LEAF_TOP - 24 + hash(x + 70) * 20); }
-    g.stroke();
-    g.restore();
   }
   function drawLeaves(g, s, tt) {
     const x0 = Math.max(s.x - 120, cam.x - 100), x1 = Math.min(s.x + s.w + 120, cam.x + W + 100);
     if (x1 <= x0) return;
     const sway = env.reduceMotion ? 0 : Math.sin(tt * 0.9) * 3;
     // Undergrowth: the delivered bushes along the floor, varied, he runs behind them.
-    const k0 = Math.floor((x0 - s.x) / 340);
-    for (let k = k0; s.x + k * 340 < x1; k++) {
-      const x = s.x + k * 340 + 160 + hash(k * 2.3 + s.x) * 60;
+    const k0 = Math.floor((x0 - s.x) / 300);
+    for (let k = k0; s.x + k * 300 < x1; k++) {
+      const x = s.x + k * 300 + 60 + hash(k * 2.3 + s.x) * 200;
       if (x < s.x + 60 || x > s.x + s.w - 60) continue;
-      const hgt = 160 + hash(k * 7 + s.x) * 60;
-      if (!art.drawSprite(g, art.prop('trollusk', 5), x, FLOOR + 8, { height: hgt, flip: hash(k) > 0.5 })) inkBush(g, x, FLOOR + 8, hgt * 1.2, hgt);
+      const kk = hash(k * 7 + s.x);
+      if (kk < 0.3) { if (!art.drawSprite(g, art.prop('grithix', 4), x, FLOOR + 6, { height: 150 + kk * 100, flip: hash(k) > 0.5 })) inkFern(g, x, FLOOR + 6, 170); }
+      else { const hgt = 130 + kk * 110; if (!art.drawSprite(g, art.prop('trollusk', 5), x, FLOOR + 8, { height: hgt, flip: hash(k) > 0.5 })) inkBush(g, x, FLOOR + 8, hgt * 1.2, hgt); }
     }
     const strip = canopyStrip(s);
     if (strip) {
       const sx = x0 - (s.x - 120);
-      g.drawImage(strip, sx, 0, x1 - x0, strip.height, x0 + sway, LEAF_TOP - 60, x1 - x0, strip.height);
+      g.drawImage(strip, sx, 0, x1 - x0, strip.height, x0 + sway, LEAF_TOP - 70, x1 - x0, strip.height);
     } else paintCanopy(g, s, x0, x1);
   }
 
