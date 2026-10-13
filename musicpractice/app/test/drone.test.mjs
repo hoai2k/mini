@@ -32,3 +32,10 @@ test('fifths and fourths go round all twelve notes', () => {
   assert.deepEqual(seq('fourths', 36, 5), [36, 41, 46, 51, 56]); // C2 F2 B♭2 E♭3 A♭3
   for (const m of [...f, ...seq('fourths', 59, 30)]) assert.ok(m >= DRONE_MIN && m <= DRONE_MAX);
 });
+
+test('the settings accept exactly the voices and sequences the drone has', async () => {
+  const { VOICES, SEQUENCES } = await import('../src/drone.js');
+  const { sanitize } = await import('../src/settings.js');
+  for (const v of VOICES) assert.equal(sanitize({ droneVoice: v.id }).droneVoice, v.id);
+  for (const q of SEQUENCES) assert.equal(sanitize({ droneThen: q.id }).droneThen, q.id);
+});

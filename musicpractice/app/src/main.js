@@ -9,6 +9,8 @@ import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
+import { Drone } from './drone.js';
+import { setupDrone } from './droneui.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -68,8 +70,8 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 
 // ---------------------------------------------------------------- screens
 
-const SCREENS = ['home', 'metronome', 'record', 'tuner'];
-const TITLES = { metronome: 'Metronome', record: 'Playback Recorder', tuner: 'Tuner' };
+const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone'];
+const TITLES = { metronome: 'Metronome', record: 'Playback Recorder', tuner: 'Tuner', drone: 'Drone' };
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
@@ -93,6 +95,7 @@ function leave(name) {
   if (name === 'metronome') { stopMetronome(); closeSync(); }
   if (name === 'record') stopRecorder();
   if (name === 'tuner') stopTuner();
+  if (name === 'drone') droneUI.stop();
   for (const d of document.querySelectorAll('dialog[open]')) d.close();
 }
 
@@ -106,6 +109,11 @@ function enter(name) {
   }
   if (name === 'record') startRecorder();
   if (name === 'tuner') startTuner();
+  if (name === 'drone') {
+    // Like the metronome, the drone doesn't use the mic.
+    if (!recorder?.holdsMic) setSession('playback');
+    droneUI.refresh();
+  }
   document.title = TITLES[name] ? `${TITLES[name]} · Music Practice` : 'Music Practice';
 }
 
@@ -1075,7 +1083,7 @@ $('tuner-retry').addEventListener('click', () => {
 });
 
 const tunerSettings = $('tuner-settings');
-$('tuner-settings-btn').addEventListener('click', () => tunerSettings.showModal());
+$('tuner-settings-btn').addEventListener('click', () => { tuner.refresh(); tunerSettings.showModal(); });
 
 let tunerHintShown = '';
 function animateTuner() {
@@ -1085,6 +1093,34 @@ function animateTuner() {
   const running = existingAudio()?.state === 'running';
   if (String(running) !== tunerHintShown) { tunerHintShown = String(running); showTunerState(); }
 }
+
+// ---------------------------------------------------------------- drone
+
+let drone = null;
+/** The drone's sound engine, on a fresh audio context when started from a tap (as the metronome does). */
+function droneEngine() {
+  // While it sounds, keep its context (so note changes crossfade); from
+  // silence, a fresh one if the output may have changed (a Bluetooth speaker).
+  const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : freshAudio();
+  if (!drone || drone.ctx !== ctx) {
+    drone = new Drone(ctx);
+    drone.setVolume(settings.droneVolume);
+    if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+  }
+  unlock();
+  return drone;
+}
+const droneUI = setupDrone({
+  settings,
+  persist,
+  engine: droneEngine,
+  onPlaying: (on) => {
+    if (on && !recorder?.holdsMic) setSession('playback');
+    keepAwake(on);
+  },
+});
+const droneSettings = $('drone-settings');
+$('drone-settings-btn').addEventListener('click', () => { droneUI.refresh(); droneSettings.showModal(); });
 
 // ---------------------------------------------------------------- keys
 
@@ -1103,6 +1139,11 @@ document.addEventListener('keydown', (e) => {
   if (screen === 'record' && e.key === ' ' && !(e.target instanceof HTMLButtonElement) && !typing) {
     e.preventDefault();
     $('rec-toggle').click();
+  }
+  if (screen === 'drone' && !typing && !(e.target instanceof HTMLSelectElement)) {
+    if (e.key === ' ' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); droneUI.toggle(); }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); droneUI.step(1); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); droneUI.step(-1); }
   }
   if (screen === 'tuner' && e.key === ' ' && !typing && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLSelectElement)) {
     e.preventDefault();
