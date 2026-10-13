@@ -97,10 +97,6 @@ const MAKERS = {
   },
 };
 
-const LABEL = {
-  contour: 'which way the line moves', octave: 'the right octave', chromatic: 'notes outside the key',
-  minor: 'minor keys', long: 'longer melodies', fast: 'fast notes',
-};
 let serial = 0;
 
 function toNotes(ms, beats) {
@@ -114,7 +110,7 @@ function toNotes(ms, beats) {
 }
 
 /** A drill for `skill` at `level` (1..4). */
-export function makeDrill(skill, level, rng = Math.random, names = {}) {
+export function makeDrill(skill, level, rng = Math.random) {
   const lv = Math.max(1, Math.min(4, Math.round(level)));
   const beats = skill === 'fast' ? 0.5 : skill === 'long' ? 0.5 : 1;
   const bpm = skill === 'fast' ? 132 + lv * 18 : skill === 'long' ? 120 : 92 + lv * 6;
@@ -129,10 +125,10 @@ export function makeDrill(skill, level, rng = Math.random, names = {}) {
   }
   if (!ms) ms = [60, 62, 64];
   const parsed = toNotes(ms, beats);
-  const what = names[skill] || LABEL[skill] || skill;
   return {
     id: `drill-${skill}-${lv}-${++serial}`, drill: true, skill, drillLevel: lv,
-    title: `Drill: ${what}`, by: `Focus drill · step ${lv} of 4`, cat: 'drill', bpm,
+    // The title never names the skill: that would give the notes away.
+    title: 'Drill', by: `Focus drill · step ${lv} of 4`, cat: 'drill', bpm,
     notes: parsed.map((n) => `${n.name}${n.beats === 1 ? '' : `:${n.beats}`}`).join(' '),
     parsed, ...range(parsed), level: difficulty(parsed),
   };

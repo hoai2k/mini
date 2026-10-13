@@ -117,6 +117,9 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   - Every third pick is something else (a melody without the skill, or a
     look back at one fixed earlier), so you learn the sound rather than the
     exercise.
+  - While you play, Focus never names the skill (drills are just "Drill",
+    and its messages don't say what was fixed), since that would give the
+    notes away. Your ears tells you, when you look.
   - `test/coach.test.mjs` checks this with simulated players:
     - with each of six weak skills, Focus works on the weakness (in 17 of 18
       runs, first), drills it up and down, turns it around on a different
