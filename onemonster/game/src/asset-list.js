@@ -553,5 +553,25 @@ export const ASSETS = {
   "ch01.house": {
     "file": "assets/props/sallyann-house.png",
     "delivered": true
+  },
+  "adv.b07.palmArch": {
+    "file": "assets/adventure/b07/palm-arch.png",
+    "delivered": false
+  },
+  "adv.b05.windmill": {
+    "file": "assets/adventure/b05/windmill.png",
+    "delivered": false
+  },
+  "adv.b03.boats": {
+    "file": "assets/adventure/b03/boats.png",
+    "delivered": false
+  },
+  "bombanat.plainPerch": {
+    "file": "assets/monsters/bombanat/plain-perched.png",
+    "delivered": false
+  },
+  "adv.trunks": {
+    "file": "assets/adventure/terrain/trunks.png",
+    "delivered": false
   }
 };

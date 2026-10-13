@@ -509,9 +509,14 @@ function judgeRun() {
   progress.rating = overallLevel(ears);
   if (S.pick && progress.level === 'focus') {
     const ev = afterFocus(ears.focus, ears, S.pick, m, scores);
-    // Said without naming the skill (Your ears has the details).
+    // A success is named once Focus is done with it; what it is still working
+    // on never is (that would give the notes away).
     if (ev?.type === 'turnaround') toast('Turned around! Clean on a new melody after the drills.');
-    else if (ev?.type === 'fixed') toast('Something you found hard is reliable now. On to the next thing.');
+    else if (ev?.type === 'fixed') {
+      const name = SKILL[ev.skill]?.name || 'That';
+      const turned = ears.turns.some((t) => t.skill === ev.skill && Date.now() - t.t < 6 * 3.6e6);
+      toast(`${name}: ${turned ? 'turned around, and ' : ''}reliable now. On to the next thing.`);
+    }
     else if (ev?.type === 'rest') toast("Enough of that for now. We'll come back to it.");
   }
   save();

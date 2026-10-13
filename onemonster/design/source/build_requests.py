@@ -1774,6 +1774,93 @@ REQUESTS.append({
 })
 
 
+# Asked for when the delivered art went in: the board 7 fallen palm (OM-Y07
+# item 8) lies flat on the ground, so the Trollusk has nothing to slide under.
+REQUESTS.append({
+    "id": "OM-Z05", "section": "audit", "name": "Board 7: a fallen palm propped up to slide under",
+    "key": "adv.b07.palmArch", "file": "assets/adventure/b07/palm-arch.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "yalapappus-bottle-on-head.jpg",
+    "used": "Board 7's slide-under obstacle: the Trollusk belly-slides through the gap beneath it.",
+    "standin": "The flat fallen palm (OM-Y07 item 8) with a drawn gap.",
+    "prompt": STYLE + " A single side-on game sprite: a fallen palm trunk lying across a jungle "
+    "path, its root end propped up on a mossy boulder at the left and its crown of fronds resting "
+    "on a low stump at the right, so there is a clear empty gap beneath the trunk along its whole "
+    "length, about a third of the trunk's height off the ground. Ringed palm bark, a splintered "
+    "broken end, a few dry brown fronds. Nothing under the trunk. Wide landscape composition. "
+    + ALPHA + " " + REF_SCENE.format("yalapappus-bottle-on-head.jpg"),
+})
+
+
+# Board 5's windmills (OM-Y05 item 7) came with their sails painted on, so the
+# turning sails that chop the cloud can't move: the tower and the sails apart.
+REQUESTS.append({
+    "id": "OM-Z06", "section": "audit", "name": "Board 5: windmill tower and sails, separate",
+    "key": "adv.b05.windmill", "file": "assets/adventure/b05/windmill.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "typhoonigator-spread.jpg",
+    "used": "Board 5's windmills: the sails turn on the tower and chop puffs off the Typhoonigator.",
+    "standin": "The delivered windmill with painted sails (OM-Y05 item 7); the chop zone is a disc round the hub.",
+    "prompt": STYLE + " Two separate game sprites side by side, side-on, at the same scale, with "
+    "plenty of clear space between them. On the left: an old stone windmill tower with a "
+    "shingled cap, standing on a small rocky island with waves at its foot, WITHOUT any sails: "
+    "only the round hub on the front of the cap. On the right: the four wooden lattice sails "
+    "alone, as one cross-shaped piece seen face-on, their hub exactly in the centre of the "
+    "image, so the game can spin them about that centre. " + ALPHA + " "
+    + REF_SCENE.format("typhoonigator-spread.jpg"),
+})
+
+
+# Board 3 needs fishing boats seen side-on on the goo (none were requested),
+# and the plain Bombanats perch on boat roofs, but OM-Z01's perched pose came
+# drawn on a leafy branch.
+REQUESTS.append({
+    "id": "OM-Z07", "section": "audit", "name": "Board 3: fishing boats on the goo, side-on",
+    "key": "adv.b03.boats", "file": "assets/adventure/b03/boats.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "pages-16-17-grumley-netted.jpg",
+    "used": "Board 3's fishing grounds: boats on the surface that drop anchors and nets on the Grumley.",
+    "standin": "Boats drawn in code.",
+    "prompt": STYLE + " Two separate game sprites side by side, both seen exactly side-on facing "
+    "right, at the same scale, floating, the waterline straight along their bottom with only a "
+    "little foam: 1. a stout teal fishing boat with planked hull, portholes, a wooden wheelhouse "
+    "and a crate of fish on deck, like the Peg in the book; 2. a slightly smaller brick-red "
+    "fishing boat with a tall crane and a net hanging from it, a bearded fisherman at the rail. "
+    "The roofs of the wheelhouses flat enough for a small bat-winged creature to perch on. "
+    + ALPHA + " " + REF_SCENE.format("pages-16-17-grumley-netted.jpg"),
+})
+m = next(m for m in MONSTERS if m["id"] == "bombanat")
+REQUESTS.append({
+    "id": "OM-Z08", "section": "audit", "name": "Plain Bombanat perched, without a branch",
+    "key": "bombanat.plainPerch", "file": "assets/monsters/bombanat/plain-perched.png",
+    "size": "1024 x 1024, transparent", "status": "requested", "ref": m["refs"],
+    "used": "Plain Bombanats perched on boat roofs, rocks and the island (boards 3 and 9).",
+    "standin": "Plain Bombanat pose 7, which is drawn on a leafy branch.",
+    "prompt": STYLE + " " + MONSTER + " " + m["look"] + " (Use this description for the design only.) "
+    + FROM_SHEET.format("OM-C02", "onemonster/game/assets/monsters/bombanat/model-sheet.png")
+    + "Also attach the plain Bombanats sheet, request OM-Z01 (file onemonster/game/assets/monsters/bombanat/plain.png), "
+    "and match it: an ordinary Bombanat with NO necktie, NO cap or propeller and NO letter, duller "
+    "grey-brown fur. A single sprite: perched with the wings folded, gripping with its clawed feet, "
+    "side view facing right, standing on NOTHING (no branch, no ground), its feet level at the "
+    "bottom of the drawing, at the same scale as the plain Bombanats sheet. " + ALPHA,
+})
+
+
+# Boards 2 and 9 need tree trunks that run from the floor up out of the frame;
+# OM-G02 item 6 came as a tree's rooted foot, cut flat, which cannot stand tall.
+REQUESTS.append({
+    "id": "OM-Z09", "section": "audit", "name": "Wood: a tall trunk column, with and without a hollow",
+    "key": "adv.trunks", "file": "assets/adventure/terrain/trunks.png",
+    "size": "2048 x 2048, transparent", "status": "requested", "ref": "endpapers.jpg",
+    "used": "Boards 2 and 9: tree trunks that rise from the floor out of the top of the frame (board 2's Bombanat flies through the hollow).",
+    "standin": "Trunks drawn in code.",
+    "prompt": STYLE + " Two separate game sprites side by side, each a straight-ish section of a "
+    "gnarled old tree trunk seen side-on, bark only (no branches, no leaves, no roots, no ground), "
+    "cut off flat at the top and the bottom so it tiles vertically, about four times as tall as "
+    "wide, with deep bark furrows, a knot or two and moss patches: 1. a plain trunk section; "
+    "2. the same trunk with a large dark oval hollow right through it in the middle, big enough "
+    "for a bat-winged creature to fly through, its lower lip flat enough to perch on. "
+    + ALPHA + " " + REF_SCENE.format("endpapers.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"

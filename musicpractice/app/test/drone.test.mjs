@@ -39,3 +39,20 @@ test('the settings accept exactly the voices and sequences the drone has', async
   for (const v of VOICES) assert.equal(sanitize({ droneVoice: v.id }).droneVoice, v.id);
   for (const q of SEQUENCES) assert.equal(sanitize({ droneThen: q.id }).droneThen, q.id);
 });
+
+test('recorded cello: every note is within three semitones of a recording, and the files are there', async () => {
+  const { SAMPLED, nearestLoop } = await import('../src/drone.js');
+  const { existsSync, statSync } = await import('node:fs');
+  for (let m = DRONE_MIN; m <= DRONE_MAX; m++) {
+    const hz = 440 * 2 ** ((m - 69) / 12);
+    for (const a4 of [415, 440, 466]) {
+      const l = nearestLoop(SAMPLED.cello.loops, hz * (a4 / 440));
+      assert.ok(Math.abs(12 * Math.log2((hz * a4) / 440 / l.hz)) <= 3.6, `note ${m} at A4=${a4} is ${l.file}`);
+    }
+  }
+  for (const l of SAMPLED.cello.loops) {
+    const f = new URL(`../assets/audio/drone/${l.file}`, import.meta.url);
+    assert.ok(existsSync(f) && statSync(f).size > 50000, l.file);
+    assert.ok(l.loop > 1.5 && l.margin >= 0.25, `${l.file}: a loop of ${l.loop} s with ${l.margin} s either side`);
+  }
+});
