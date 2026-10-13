@@ -1,8 +1,8 @@
 // Block Drop: a falling-block puzzle. Seven pieces of four squares fall into
 // a 10 x 20 well; slide and turn them so they fill whole rows, which clear.
 // Modern rules: a seeded 7-bag (every seven pieces hold one of each), SRS
-// rotation with wall kicks, hold, a three-piece next queue, a ghost showing
-// where the piece will land, soft and hard drops, half a second of lock
+// rotation with wall kicks, hold, a three-piece next queue (no ghost piece
+// showing where it lands), soft and hard drops, half a second of lock
 // delay (renewed by moving, up to 15 times), and a short flash as rows clear.
 // Every ten lines is a level and the pieces fall faster.
 //
@@ -1388,21 +1388,6 @@ export default {
       const cur = well.cur;
       if (cur && !well.over) {
         const color = COLORS[cur.t];
-        // Ghost.
-        const gy = ghostY(well);
-        ctx.save();
-        for (const [cx, cy] of cellsOf(cur.t, cur.r)) {
-          const sx = x0 + (cur.x + cx) * c, sy = y0 + (gy + cy - HIDDEN) * c;
-          roundRect(ctx, sx + 2, sy + 2, c - 4, c - 4, c * 0.15);
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.16;
-          ctx.fill();
-          ctx.globalAlpha = 0.75;
-          ctx.lineWidth = Math.max(1.5, c * 0.08);
-          ctx.strokeStyle = color;
-          ctx.stroke();
-        }
-        ctx.restore();
         // The piece (blinking slightly while its lock delay runs out).
         const lockK = grounded(well) ? well.lock / LOCK_DELAY : 0;
         const sp = tile(color, c);
