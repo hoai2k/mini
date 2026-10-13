@@ -6,6 +6,10 @@ agent. Newest first.
 
 ## Open
 
+- **All birds playable (agent running, 2026-10-13):** every card selectable
+  from the start as an unspotted silhouette; a first pass plays the sticker
+  celebration and turns over that bird's own card (no next-card unlock);
+  the Unlock all setting goes away.
 - **Difficulty rework: done 2026-10-12.** All 28 games use
   `src/games/difficulty.js` (`curve(env)`, `knob(d, easy, medium, hard)`);
   Easier / Normal / Harder in Settings; per-level bests. Pass marks changed:
