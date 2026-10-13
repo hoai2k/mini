@@ -18,7 +18,21 @@
   if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
     location.replace('https:' + location.href.slice(5));
   }
+  // Put the saved theme on the page before anything is drawn, and keep the page
+  // hidden until main.js has applied it with the player's colour (a second at
+  // most), so the first paint is never the default look.
+  (function () {
+    var root = document.documentElement, theme = 'kid';
+    try {
+      var s = JSON.parse(localStorage.getItem('chat.settings') || '{}');
+      if (s && s.themePicked && ['teen', 'kid', 'art', 'classic'].indexOf(s.theme) >= 0) theme = s.theme;
+    } catch (e) {}
+    root.dataset.theme = theme;
+    root.classList.add('booting');
+    setTimeout(function () { root.classList.remove('booting'); }, 1200);
+  })();
 </script>
+<style>html.booting body { visibility: hidden; }</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Jost:wght@400;600;700;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,600;1,600&display=swap">
@@ -132,6 +146,7 @@
         <span id="fx-votes"></span>
         <button id="fx-info" class="mini-btn" type="button" aria-label="How this effect works" title="How it works"><span class="ico" data-icon="info"></span></button>
         <button id="fx-share" class="mini-btn" type="button" aria-label="Share with everyone" title="Share with everyone"><span class="ico" data-icon="share"></span></button>
+        <button id="fx-snap" class="mini-btn" type="button" aria-label="Save a snapshot of the main video" title="Save a snapshot"><span class="ico" data-icon="snapshot"></span></button>
       </span>
     </div>
   </nav>
