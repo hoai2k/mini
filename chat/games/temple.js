@@ -35,6 +35,9 @@ const ROOT_W = P.HW * 2 + 0.6, ROOT_H = ROOT_W * 0.25;
 // The slide-under beam spans the whole walkway and more, drawn 2:1 so its
 // underside (62% down the picture) is about 1.25 m up.
 const ARCH_W = P.HW * 2 + 1.2, ARCH_H = ARCH_W * 0.5;
+// The delivered beam's underside is 53% down its picture, so it is drawn a
+// little flatter to keep that underside about 1.25 m up too.
+const ARCH_H_ART = 1.25 / (1 - 0.53);
 const FIRE_W = 1.55, FIRE_H = 1.6, COIN_W = 0.48;
 const CAUSE_TEXT = { edge: 'Off the edge!', gap: 'Fell in!', crash: 'Crashed!', caught: 'Caught by monkeys!' };
 const FONT = 'ui-rounded, system-ui, sans-serif';
@@ -697,7 +700,7 @@ export default {
           if (!p) continue;
           const fa = fogAlpha(p.depth);
           if (o.type === 'root') list.push({ depth: p.depth, draw: () => across(pic('temple-root', art.drawRoot), seg, o.s + o.len / 2, -ROOT_W / 2, ROOT_W / 2, ROOT_H, fa) });
-          else if (o.type === 'arch') list.push({ depth: p.depth, draw: () => across(pic('temple-beam', art.drawBeam), seg, o.s + o.len / 2, -ARCH_W / 2, ARCH_W / 2, ARCH_H, fa) });
+          else if (o.type === 'arch') list.push({ depth: p.depth, draw: () => across(pic('temple-beam', art.drawBeam), seg, o.s + o.len / 2, -ARCH_W / 2, ARCH_W / 2, api.img('temple-beam') ? ARCH_H_ART : ARCH_H, fa) });
           else if (o.type === 'fire') {
             for (let l = 0; l < 3; l++) {
               if (!(o.mask & (1 << l))) continue;
