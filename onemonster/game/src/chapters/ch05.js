@@ -412,9 +412,6 @@ export default function create(env) {
     ay += Math.max(0, 1 - (b.y - SEA.y0) / 140) * 1.4 - Math.max(0, 1 - (SEA.y1 - b.y) / 140) * 1.4;
     ax += Math.sin(t * 0.7 + brain.wobble) * 0.25;
     ay += Math.cos(t * 0.5 + brain.wobble) * 0.25;
-    // And a slight pull to open water, so the chase stays mid-sea, not in a corner.
-    ax += ((SEA.x0 + x1) / 2 - b.x) / 2000;
-    ay += ((SEA.y0 + SEA.y1) / 2 - b.y) / 1200;
     const k = 0.7 + 0.3 * sk;
     const l = Math.hypot(ax, ay);
     const out = { x: l > 1 ? (ax / l) * k : ax * k, y: l > 1 ? (ay / l) * k : ay * k, action: false, actionPressed: false };

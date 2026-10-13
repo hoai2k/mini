@@ -327,7 +327,7 @@ export const HOWTO = [
       { creature: 'trollusk', anim: 'duck', x: 330, y: 330, h: 170, shadow: false },
       { sprite: ['props.trollusk', 5], x: 330, y: 470, h: 200 },
       { draw: (g, t) => flushRing(g, 470, 300, 0.5 + Math.sin(t * 2) * 0.3, t) },
-      { creature: 'bombanat', anim: 'flap', x: 300, y: 80, h: 150, shadow: false },
+      { creature: 'bombanat', anim: 'flap', x: 300, y: 110, h: 150, shadow: false },
     ],
   },
   {
