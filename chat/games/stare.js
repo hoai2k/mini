@@ -504,6 +504,22 @@ export default {
       } else {
         outlined(ctx, 'Staring Contest', w / 2, 22, 24, '#fff');
       }
+      // Joined after the round began: you watch this one and play the next.
+      if (sh.phase === 'play' && !sh.ids.includes(api.me.id)) {
+        const text = seated().some(p => p.id === api.me.id) ? 'You’re in next round' : 'The contest is full: you’re watching';
+        const fs = clamp(w / 22, 13, 22);
+        ctx.font = `800 ${fs}px ${FONT}`;
+        const bw = Math.min(w - 16, ctx.measureText(text).width + fs * 1.6), bh = fs * 2;
+        const y = h - bh - 10;
+        ctx.fillStyle = 'rgba(20,10,40,0.78)';
+        ctx.strokeStyle = '#ff5fa2';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(w / 2 - bw / 2, y, bw, bh, bh / 2);
+        ctx.fill();
+        ctx.stroke();
+        outlined(ctx, text, w / 2, y + bh / 2, fs, '#fff', 800);
+      }
     }
 
     // --- loop ---------------------------------------------------------------------

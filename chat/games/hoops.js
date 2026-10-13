@@ -5,14 +5,20 @@
 // speed and direction of your toss and nothing nudging it in. It is
 // essentially 2D: every ball reaches the hoop's distance and never goes past
 // it; the swipe's speed sets how high it is when it gets there and its
-// direction on screen where it is sideways. Every five shots the
-// hoop moves somewhere else.
+// direction on screen where it is sideways.
+//
+// Everyone in the session shoots at one shared hoop. The owner keeps its spot
+// in shared state, { spot, n, at, prev, moveAt }, and moves it to another
+// spot after every SHOTS_PER_SPOT shots counted across everyone (or, with
+// friends in, after IDLE_MS without a shot). A move is announced ahead
+// (moveAt), so shots already in the air land first and nobody throws while
+// the hoop is changing places.
 //
 // Every basket adds to your all-time total, kept on this device, and baskets
 // in a row build a streak. Friends see each of your shots as a see-through
 // ghost ball in your colour, and you see theirs: shots carry where they
-// started, their velocity and where the thrower's hoop was, and replay with
-// the same deterministic physics, shifted so they fly at your hoop.
+// started, their velocity and the hoop they were thrown at, and replay with
+// the same deterministic physics at that same shared hoop.
 
 const G = 9.8;
 const BALL_R = 0.12;
@@ -29,6 +35,8 @@ const SPOTS = [
   { x: -0.15, y: 3.1, z: 2.5 },
 ];
 const SHOTS_PER_SPOT = 5;
+const IDLE_MS = 30000;     // with friends in, the hoop also moves after this long without a shot
+const MOVE_DELAY = 1800;   // after the last shot at a spot, how long until the hoop moves
 // The ball's resting spot, and the box it can be carried around in.
 const REST = { x: 0, y: 1.9, z: 0 };
 const HOLD = { x0: -0.6, x1: 0.6, y0: 1.45, y1: 2.7 };
@@ -157,6 +165,51 @@ function stepBall(b) {
   return event;
 }
 
+// --- the shared hoop spot (owner's state) ---------------------------------
+
+// The shared hoop state, checked: { spot, n, at, prev, moveAt } or null.
+//   spot: index into SPOTS where the hoop is (or is going)
+//   n: shots taken at this spot so far, at: when the last shot or move was
+//   prev, moveAt: while Date.now() < moveAt the hoop is still at SPOTS[prev]
+function parseHoopShared(v) {
+  if (!v || typeof v !== 'object') return null;
+  const idx = i => Number.isInteger(i) && i >= 0 && i < SPOTS.length;
+  const { spot, n, at } = v;
+  const prev = v.prev ?? null, moveAt = v.moveAt ?? 0;
+  if (!idx(spot) || !Number.isInteger(n) || n < 0 || n >= SHOTS_PER_SPOT || !Number.isFinite(at)) return null;
+  if ((prev !== null && !idx(prev)) || !Number.isFinite(moveAt)) return null;
+  return { spot, n, at, prev, moveAt };
+}
+
+function newHoopShared(now, spot = 0) {
+  return { spot, n: 0, at: now, prev: null, moveAt: 0 };
+}
+
+// Moves the hoop to a different spot, starting at `moveAt`.
+function moveHoop(sh, now, moveAt, rnd = Math.random) {
+  const k = Math.min(SPOTS.length - 2, Math.floor(rnd() * (SPOTS.length - 1)));
+  return { spot: (sh.spot + 1 + k) % SPOTS.length, n: 0, at: now, prev: sh.spot, moveAt };
+}
+
+// Somebody shot at the hoop. Shots while a move is pending don't count.
+function hoopShot(sh, now, rnd = Math.random) {
+  if (now < sh.moveAt) return sh;
+  const n = sh.n + 1;
+  if (n < SHOTS_PER_SPOT) return { ...sh, n, at: now };
+  return moveHoop(sh, now, now + MOVE_DELAY, rnd);
+}
+
+// Nobody has shot for a while: move the hoop anyway.
+function hoopIdle(sh, now, rnd = Math.random) {
+  if (now < sh.moveAt || now - sh.at < IDLE_MS) return sh;
+  return moveHoop(sh, now, now, rnd);
+}
+
+// Which spot the hoop is at, at time `now`.
+function hoopSpotAt(sh, now) {
+  return sh.prev !== null && now < sh.moveAt ? sh.prev : sh.spot;
+}
+
 // --- drawing helpers -----------------------------------------------------
 
 function project(cam, x, y, z) {
@@ -266,10 +319,11 @@ export default {
     let charge = null;         // keyboard / controller charging { power, dir }
     let aim = 0;
     let shotsTaken = api.store.get('shots', 0);
-    let sessionShots = 0;
     let lastToss = null;       // for tests
-    // The hoop: where it is drawn now, and a move in progress.
+    // The hoop: the spot it is at (from the shared state), where it is drawn
+    // now, and a move in progress.
     let spot = 0;
+    let synced = false;        // snap to the shared spot the first time we see it
     const hoop = { ...SPOTS[0] };
     let move = null;           // { from, to, t }
     let w = 0, h = 0, dpr = 1, cam = null, bgCache = null, inset = { top: 0, bottom: 0 };
@@ -320,7 +374,48 @@ export default {
       return c;
     }
 
-    const ready = () => !ball && !move && now >= resetAt;
+    // --- the shared hoop ---------------------------------------------------
+    const hoopShared = () => parseHoopShared(api.shared());
+    const movePending = () => {
+      const sh = hoopShared();
+      return !!sh && Date.now() < sh.moveAt;
+    };
+    // Owner: count a shot from anyone in the session.
+    function ownerCountShot() {
+      if (!api.isOwner()) return;
+      const t = Date.now();
+      const sh = hoopShared() || newHoopShared(t, spot);
+      const next = hoopShot(sh, t);
+      if (next !== sh) api.setShared(next);
+    }
+    function ownerTick() {
+      if (!api.isOwner()) return;
+      const t = Date.now();
+      const sh = hoopShared();
+      if (!sh) { api.setShared(newHoopShared(t, spot)); return; }
+      // Alone, the hoop only moves when you shoot (as it always has).
+      if (api.players().length < 2) return;
+      const next = hoopIdle(sh, t);
+      if (next !== sh) api.setShared(next);
+    }
+    // Everyone: follow the shared spot, gliding to a new one.
+    function followHoop() {
+      const sh = hoopShared();
+      if (!sh) return;
+      const target = hoopSpotAt(sh, Date.now());
+      if (!synced) {
+        synced = true;
+        spot = target;
+        Object.assign(hoop, SPOTS[target]);
+        move = null;
+      } else if (target !== spot && !ball) {
+        // (A ball of mine still in the air lands at the old spot first.)
+        spot = target;
+        move = { from: { ...hoop }, to: SPOTS[target], t: 0 };
+      }
+    }
+
+    const ready = () => !ball && !move && now >= resetAt && !movePending();
 
     // Throws from `from` with upward speed `up` (m/s at the ball) along a
     // screen direction `ratio` (sideways pixels per pixel up): where that line
@@ -333,9 +428,9 @@ export default {
       const v = throwVelocity(from, up, targetX, hoop);
       ball = newBall(from, v, hoop);
       shotsTaken++;
-      sessionShots++;
       api.store.set('shots', shotsTaken);
       api.send('shot', { p: [from.x, from.y, from.z], v, hoop: [hoop.x, hoop.y, hoop.z] });
+      ownerCountShot();
       api.sfx('whoosh');
       return true;
     }
@@ -356,12 +451,6 @@ export default {
       ball = null;
       resetAt = now + 0.35;
       Object.assign(held, REST);
-      if (sessionShots % SHOTS_PER_SPOT === 0) {
-        let next = spot;
-        while (next === spot) next = Math.floor(Math.random() * SPOTS.length);
-        spot = next;
-        move = { from: { ...hoop }, to: SPOTS[next], t: 0 };
-      }
     }
 
     // A test bot's move (js/rookie.js): a toss aimed near the hoop, about
@@ -385,7 +474,7 @@ export default {
       };
     }
     function onDown(e) {
-      if (grab || ball || move) return;
+      if (grab || ball || move || movePending()) return;
       canvas.setPointerCapture?.(e.pointerId);
       // Touching the ball holds it where you touched it; touching elsewhere
       // pulls it quickly over to your finger.
@@ -472,15 +561,22 @@ export default {
     api.on('shot', (data, from) => {
       if (!data || !vec3(data.v) || !vec3(data.p) || !vec3(data.hoop)) return;
       const p = api.players().find(m => m.id === from);
-      if (!p || ghosts.length > 20) return;
+      if (!p) return;
+      ownerCountShot();
+      if (ghosts.length > 20) return;
       const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
       const start = { x: clamp(data.p[0], -1, 1), y: clamp(data.p[1], 0.5, 3), z: clamp(data.p[2], -1, 1) };
-      const theirs = { x: clamp(data.hoop[0], -1, 1), y: clamp(data.hoop[1], 2, 4), z: clamp(data.hoop[2], 1, 4) };
-      ghosts.push({ ball: newBall(start, data.v, theirs), name: p.name, color: p.color });
+      // The hoop it was thrown at: the shared one (the thrower may have been
+      // a moment behind if it was moving, so it flies at whatever they saw).
+      const at = { x: clamp(data.hoop[0], -1, 1), y: clamp(data.hoop[1], 2, 4), z: clamp(data.hoop[2], 1, 4) };
+      const v = data.v.map(c => clamp(c, -30, 30));
+      ghosts.push({ ball: newBall(start, v, at), name: p.name, color: p.color });
     });
 
     // --- loop --------------------------------------------------------------
     function update(dt) {
+      ownerTick();
+      followHoop();
       if (charge) {
         charge.power += charge.dir * dt * 3;
         if (charge.power > CHARGE_MAX) { charge.power = CHARGE_MAX; charge.dir = -1; }
@@ -599,7 +695,7 @@ export default {
       }
     }
 
-    // Draws a ball at a world position (ghosts arrive already shifted to my hoop).
+    // Draws a ball at a world position.
     function drawBall(b, alpha, tint, lift = 1) {
       const p = project(cam, b.x, b.y, b.z);
       const r = BALL_R * p.s * lift;
@@ -631,11 +727,8 @@ export default {
       ctx.drawImage(background(), 0, 0, w, h);
       drawHoop(false);
 
-      // Friends' shots fly at my hoop: shift each by the gap between hoops.
-      const all = ghosts.map(g => {
-        const b = g.ball;
-        return { b: { x: b.x + hoop.x - b.hoop.x, y: b.y + hoop.y - b.hoop.y, z: b.z + hoop.z - b.hoop.z, vy: b.vy, spin: b.spin }, alpha: 0.42, tint: g.color, name: g.name };
-      });
+      // Friends' shots fly at the same shared hoop, right where they are.
+      const all = ghosts.map(g => ({ b: g.ball, alpha: 0.42, tint: g.color, name: g.name }));
       const waiting = !ball && now >= resetAt;
       const mine = ball || (waiting ? { ...held, vy: 0, spin: 0 } : null);
       if (mine) all.push({ b: mine, alpha: 1, tint: null, name: null, lift: grab ? 1.06 : 1 });
@@ -741,13 +834,17 @@ export default {
       // For tests: where the ball and hoop are, in page pixels of the canvas.
       _view() {
         const b = ball || held, p = project(cam, b.x, b.y, b.z), q = project(cam, hoop.x, hoop.y, hoop.z);
-        return { ball: { x: p.x, y: p.y, z: b.z }, hoop: { x: q.x, y: q.y, z: hoop.z }, spot, flying: !!ball, held: !!grab, ready: ready(), lastToss, total: record.total };
+        return { ball: { x: p.x, y: p.y, z: b.z }, hoop: { x: q.x, y: q.y, z: hoop.z }, spot, shared: hoopShared(), flying: !!ball, held: !!grab, ready: ready(), lastToss, total: record.total };
       },
       destroy() {
         cancelAnimationFrame(raf);
         ro.disconnect();
         window.removeEventListener('keydown', onKey);
         window.removeEventListener('keyup', onKey);
+      },
+      onChange() {
+        ownerTick();
+        followHoop();
       },
       onPad(pad) {
         aim = Math.max(-0.5, Math.min(0.5, pad.x * 0.5));
@@ -763,3 +860,4 @@ export default {
 
 // Exposed for tests.
 export const _physics = { throwVelocity, idealVy, newBall, stepBall, behindRim, SPOTS, REST, U0, FORWARD };
+export const _shared = { parseHoopShared, newHoopShared, hoopShot, hoopIdle, hoopSpotAt, moveHoop, SHOTS_PER_SPOT, IDLE_MS, MOVE_DELAY };

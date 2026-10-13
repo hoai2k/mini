@@ -1262,3 +1262,179 @@ test('Doodle puts a mid-game joiner in the drawing order without changing the cu
   assert.equal(d.drawerAt(l, 11).last, true);
   assert.equal(d.addLateDrawers(s, ['x', 'y'], 4).order.length, 4, 'up to the table size');
 });
+
+test('Hoops shared hoop: moves every five shots from anyone, or when idle, and checks its state', async () => {
+  const { _shared: H, _physics: P } = await import('../games/hoops.js');
+  let sh = H.newHoopShared(1000);
+  assert.deepEqual(H.parseHoopShared(sh), sh);
+  // Four shots (from anyone) keep the spot; the fifth announces a move.
+  for (let i = 1; i < H.SHOTS_PER_SPOT; i++) {
+    sh = H.hoopShot(sh, 1000 + i * 500, () => 0.5);
+    assert.equal(sh.spot, 0);
+    assert.equal(sh.n, i);
+  }
+  const t5 = 4000;
+  sh = H.hoopShot(sh, t5, () => 0.5);
+  assert.notEqual(sh.spot, 0);
+  assert.equal(sh.n, 0);
+  assert.equal(sh.prev, 0);
+  assert.equal(sh.moveAt, t5 + H.MOVE_DELAY);
+  // Until moveAt the hoop stays put (shots in the air land first); then it is at the new spot.
+  assert.equal(H.hoopSpotAt(sh, t5 + 10), 0);
+  assert.equal(H.hoopSpotAt(sh, t5 + H.MOVE_DELAY), sh.spot);
+  // Shots while the move is pending don't count towards the next spot.
+  assert.equal(H.hoopShot(sh, t5 + 100), sh);
+  // The next spot is always a different one, whatever the dice say.
+  for (const r of [0, 0.3, 0.999999, 1]) {
+    for (let s = 0; s < P.SPOTS.length; s++) {
+      const m = H.moveHoop({ spot: s, n: 3, at: 0, prev: null, moveAt: 0 }, 5, 5, () => r);
+      assert.ok(m.spot !== s && m.spot >= 0 && m.spot < P.SPOTS.length, `${s} ${r} -> ${m.spot}`);
+    }
+  }
+  // Idle: nothing until IDLE_MS after the last shot, then it moves at once.
+  const quiet = H.newHoopShared(0, 2);
+  assert.equal(H.hoopIdle(quiet, H.IDLE_MS - 1), quiet);
+  const moved = H.hoopIdle(quiet, H.IDLE_MS);
+  assert.ok(moved.spot !== 2 && H.hoopSpotAt(moved, H.IDLE_MS) === moved.spot);
+  // Untrusted shared state is refused.
+  for (const bad of [null, 5, 'x', {}, { spot: -1, n: 0, at: 0 }, { spot: P.SPOTS.length, n: 0, at: 0 }, { spot: 1.5, n: 0, at: 0 },
+    { spot: 0, n: H.SHOTS_PER_SPOT, at: 0 }, { spot: 0, n: -1, at: 0 }, { spot: 0, n: 0, at: NaN }, { spot: 0, n: 0, at: 0, prev: 99 },
+    { spot: 0, n: 0, at: 0, moveAt: Infinity }, { spot: '0', n: 0, at: 0 }]) {
+    assert.equal(H.parseHoopShared(bad), null, JSON.stringify(bad));
+  }
+  assert.deepEqual(H.parseHoopShared({ spot: 3, n: 2, at: 7, junk: 1 }), { spot: 3, n: 2, at: 7, prev: null, moveAt: 0 });
+});
+
+test('Quick Draw: gunslinger tiles fit in a row, and results become stamps', async () => {
+  const { _logic: Q } = await import('../games/quickdraw.js');
+  for (const [w, h] of [[390, 700], [800, 360], [460, 440], [320, 480]]) {
+    for (let n = 1; n <= 6; n++) {
+      const L = Q.tileLayout(n, w, h);
+      assert.equal(L.xs.length, n);
+      assert.ok(L.xs[0] >= 0 && L.xs[n - 1] + L.tw <= w + 0.01, `fits across ${w}x${h} n=${n}`);
+      for (let i = 1; i < n; i++) assert.ok(L.xs[i] >= L.xs[i - 1] + L.tw, 'no overlap');
+      assert.ok(L.bottom <= h * 0.32 + 10, `leaves room for the duel ${w}x${h} n=${n}`);
+    }
+  }
+  assert.deepEqual(Q.stampFor({ ms: 231 }), { line1: 'BANG', line2: '231 ms', color: '#b5480c' });
+  assert.equal(Q.stampFor({ early: true }).line1, 'TOO EARLY');
+  for (const none of [null, undefined, {}, { ms: NaN }, { ms: '5' }, 'x']) assert.equal(Q.stampFor(none), null);
+});
+
+test('Copy Cat: friends\' faces sit beside or under mine, never over it', async () => {
+  const { _logic: C } = await import('../games/copycat.js');
+  const inside = (r, b) => r.x >= b.x - 0.01 && r.y >= b.y - 0.01 && r.x + r.w <= b.x + b.w + 0.01 && r.y + r.h <= b.y + b.h + 0.01;
+  const apart = (a, b) => a.x + a.w <= b.x + 0.01 || b.x + b.w <= a.x + 0.01 || a.y + a.h <= b.y + 0.01 || b.y + b.h <= a.y + 0.01;
+  // Boxes for a phone upright, a phone on its side, the test harness and a desktop.
+  for (const box of [{ x: 10, y: 130, w: 370, h: 480 }, { x: 10, y: 90, w: 780, h: 200 }, { x: 10, y: 122, w: 440, h: 248 }, { x: 10, y: 150, w: 1200, h: 600 }]) {
+    for (let n = 0; n <= 7; n++) {
+      const L = C.faceLayout(n, box.x, box.y, box.w, box.h);
+      assert.equal(L.tiles.length, n);
+      assert.ok(inside(L.self, box), `self inside ${JSON.stringify(box)} n=${n}`);
+      // My face stays the biggest thing on screen.
+      assert.ok(L.self.w * L.self.h >= box.w * box.h * 0.3, `self big enough ${JSON.stringify(box)} n=${n}: ${L.self.w}x${L.self.h}`);
+      for (const t of L.tiles) {
+        assert.ok(inside(t, box), `tile inside ${JSON.stringify(box)} n=${n}`);
+        assert.ok(apart(t, L.self), `tile clear of my face ${JSON.stringify(box)} n=${n}`);
+        assert.ok(t.w >= 28, `tile visible ${JSON.stringify(box)} n=${n}: ${t.w}`);
+      }
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) assert.ok(apart(L.tiles[i], L.tiles[j]), 'tiles apart');
+    }
+  }
+});
+
+test('Two-seat games: the line of watchers, seat takeover and the winner-stays rotation', async () => {
+  const Q = await import('../js/seatqueue.js');
+  const empty = { seats: [null, null], q: [], sat: [0, 0] };
+  // The first two sit down, the rest wait in the order they joined.
+  let lu = Q.syncSeats(empty, ['a', 'b', 'c', 'd'], 10);
+  assert.deepEqual([lu.seats, lu.q, lu.sat, lu.changed], [['a', 'b'], ['c', 'd'], [10, 10], true]);
+  assert.equal(Q.syncSeats(lu, ['a', 'b', 'c', 'd'], 20).changed, false, 'nothing to do');
+  // A newcomer goes to the back; someone who left drops out of the line.
+  lu = Q.syncSeats(lu, ['a', 'b', 'd', 'e'], 20);
+  assert.deepEqual([lu.seats, lu.q], [['a', 'b'], ['d', 'e']]);
+  // A player leaves: the front of the line takes the seat, with a new sat time.
+  lu = Q.syncSeats(lu, ['b', 'd', 'e'], 30);
+  assert.deepEqual([lu.seats, lu.q, lu.sat], [['d', 'b'], ['e'], [30, 10]]);
+  // Nobody waiting: the seat stays open.
+  assert.deepEqual(Q.syncSeats({ seats: ['a', 'b'], q: [], sat: [1, 1] }, ['b'], 5).seats, [null, 'b']);
+
+  // After a game the winner stays, the loser goes to the back, the longest-waiting watcher sits down.
+  const base = { seats: ['a', 'b'], q: ['c', 'd'], sat: [1, 2] };
+  let r = Q.rotateSeats(base, 0, 50);
+  assert.deepEqual([r.seats, r.q, r.sat, r.swap], [['a', 'c'], ['d', 'b'], [1, 50], { seat: 1, out: 'b', in: 'c' }]);
+  r = Q.rotateSeats(base, 1, 50);
+  assert.deepEqual([r.seats, r.q, r.sat, r.swap], [['c', 'b'], ['d', 'a'], [50, 2], { seat: 0, out: 'a', in: 'c' }]);
+  assert.deepEqual(base, { seats: ['a', 'b'], q: ['c', 'd'], sat: [1, 2] }, 'the input is left alone');
+  // A draw: whoever has sat longest (the older sat time) makes way.
+  assert.deepEqual(Q.rotateSeats(base, -1, 50).swap, { seat: 0, out: 'a', in: 'c' });
+  assert.deepEqual(Q.rotateSeats({ ...base, sat: [9, 3] }, -1, 50).swap, { seat: 1, out: 'b', in: 'c' });
+  // Nobody waiting, or a seat empty: no change.
+  assert.deepEqual(Q.rotateSeats({ seats: ['a', 'b'], q: [], sat: [1, 2] }, 0, 50), { seats: ['a', 'b'], q: [], sat: [1, 2], swap: null });
+  assert.equal(Q.rotateSeats({ seats: ['a', null], q: ['c'], sat: [1, 2] }, 0, 50).swap, null);
+  // Everyone gets a turn: with the same seat winning, each watcher sits down in turn.
+  let cur = { seats: ['a', 'b'], q: ['c', 'd'], sat: [0, 0] };
+  const challengers = [];
+  for (let i = 0; i < 4; i++) { cur = Q.rotateSeats(cur, 0, i + 1); challengers.push(cur.seats[1]); }
+  assert.deepEqual(challengers, ['c', 'd', 'b', 'c']);
+
+  // Shared state is untrusted: bad ids, duplicates and seated ids leave the line.
+  assert.deepEqual(Q.readLineup({ seats: ['a', 'a'], q: ['a', 'c', 'c', 5, '', 'x'.repeat(65), 'd'], sat: [1, 'x'] }),
+    { seats: ['a', null], q: ['c', 'd'], sat: [0, 0] });
+  assert.deepEqual(Q.readLineup(null), { seats: [null, null], q: [], sat: [0, 0] });
+  assert.equal(Q.readLineup({ seats: ['a', 'b'], q: Array.from({ length: 99 }, (_, i) => `p${i}`) }).q.length, Q.MAX_QUEUE);
+
+  // What watchers are told.
+  assert.equal(Q.queueLabel(0), 'You’re up next');
+  assert.equal(Q.queueLabel(1), '2nd in line');
+  assert.equal(Q.queueLabel(2), '3rd in line');
+  assert.equal(Q.queueLabel(10), '11th in line');
+  assert.equal(Q.queueLabel(-1), '');
+  assert.equal(Q.ordinal(21), '21st');
+  const nm = id => ({ a: 'Ana', b: 'Bo', c: 'Cy' })[id];
+  const sw = { seat: 1, out: 'b', in: 'c' };
+  assert.match(Q.swapText(sw, 'c', nm), /You’re in! You take Bo’s seat/);
+  assert.match(Q.swapText(sw, 'b', nm), /Cy takes your seat/);
+  assert.equal(Q.swapText(sw, 'a', nm), 'Cy takes Bo’s seat.');
+});
+
+test('Don’t Smile: the round’s players are fixed at the 3-2-1, mid-round joiners wait', async () => {
+  const { _logic: D } = await import('../games/dontsmile.js');
+  const ps = ['a', 'b', 'c'].map(id => ({ id }));
+  const ids = list => list.map(p => p.id);
+  // In the lobby everyone present (up to the limit) plays.
+  assert.deepEqual(ids(D.roundContestants({ phase: 'lobby' }, ps)), ['a', 'b', 'c']);
+  assert.deepEqual(ids(D.roundContestants(null, ps)), ['a', 'b', 'c']);
+  const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}` }));
+  assert.equal(D.roundContestants({ phase: 'lobby' }, many).length, D.MAX_PLAYERS);
+  // During the count and the round: only the snapshot, minus anyone who left.
+  for (const phase of ['count', 'play']) {
+    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, ps)), ['a', 'b'], `${phase}: c joined mid-round`);
+    assert.deepEqual(ids(D.roundContestants({ phase, in: ['a', 'b'] }, [{ id: 'b' }, { id: 'c' }])), ['b'], `${phase}: a left`);
+  }
+  // Junk in the snapshot is ignored; an old state without one uses the members.
+  assert.deepEqual(ids(D.roundContestants({ phase: 'play', in: [5, null, 'c'] }, ps)), ['c']);
+  assert.deepEqual(ids(D.roundContestants({ phase: 'play' }, ps)), ['a', 'b', 'c']);
+});
+
+test('Mob Whack: a late joiner is seated mid-round with 0 points and full hearts', async () => {
+  const { _logic: W } = await import('../games/whack.js');
+  const now = Date.now();
+  const S = W.readShared({ round: 2, seed: 7, startAt: now - 20000, pl: [['a', 'Ana', '#ff0000', 120, 2, 3, 9, 4]], o: [] });
+  const people = [{ id: 'a', name: 'Ana', color: '#ff0000' }, { id: 'b', name: 'Bo', color: '#00ff00' }];
+  const next = W.seatJoiners(S, people, now);
+  assert.equal(next.pl.length, 2);
+  assert.deepEqual(next.pl[0], S.pl[0], 'the others keep their line');
+  assert.deepEqual(next.pl[1], { id: 'b', name: 'Bo', color: '#00ff00', score: 0, hearts: W.HEARTS, combo: 0, hits: 0, best: 0, j: 20000 });
+  assert.deepEqual(W.readShared(W.packShared(next)), next, 'the join time survives the wire');
+  assert.equal(W.seatJoiners(next, people, now), null, 'already seated');
+  // Before the start no join mark; after the end nobody is seated.
+  assert.equal(W.seatJoiners({ ...S, startAt: now + 2000 }, people, now).pl[1].j, undefined);
+  assert.equal(W.seatJoiners({ ...S, startAt: now - W.DURATION - 1 }, people, now), null);
+  // Someone who left and came back keeps their line; a full field seats nobody.
+  const back = W.readShared({ round: 2, seed: 7, startAt: now - 5000, pl: [['a', 'Ana', '#ff0000', 0, 3, 0, 0, 0], ['b', 'Bo', '#00ff00', 40, 1, 0, 4, 2, 3000]] });
+  assert.equal(back.pl[1].j, 3000);
+  assert.equal(W.seatJoiners(back, people, now), null);
+  const full = { ...S, pl: Array.from({ length: W.MAX_PLAYERS }, (_, i) => W.newPlayer({ id: `p${i}` })) };
+  assert.equal(W.seatJoiners(full, people, now), null);
+});

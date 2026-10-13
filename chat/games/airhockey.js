@@ -1,10 +1,18 @@
 // Air Hockey: two players, portrait table, first to 7. The table lives in
-// canonical coordinates (0..1 wide, 0..1.6 tall); the owner's goal is at the
-// bottom (y = 1.6) and the other player's at the top. Each player sees their
-// own goal at the bottom, so the non-owner's view is rotated 180 degrees and
-// spectators see the owner's view. The owner simulates the puck and publishes
-// it in shared state about 20 times a second; each player publishes their own
-// paddle in their state. Everyone else extrapolates and eases.
+// canonical coordinates (0..1 wide, 0..1.6 tall); seat 0's goal is at the
+// bottom (y = 1.6) and seat 1's at the top. Each player sees their own goal
+// at the bottom, so seat 1's view is rotated 180 degrees and spectators see
+// seat 0's view. The owner (the first member, seated or not) simulates the
+// puck and publishes it in shared state about 20 times a second; each player
+// publishes their own paddle in their state. Everyone else extrapolates and eases.
+//
+// Seats: shared ids = [bottom player, top player]. Anyone else waits in line
+// (js/seatqueue.js, shared q and sat): the front of the line takes a seat when
+// a player leaves, and on Rematch with someone waiting the winner stays on, the
+// loser goes to the back of the line and the next in line sits down. The
+// owner simulates the puck whether it plays or watches.
+
+import { readLineup, syncSeats, rotateSeats, queueLabel, swapText } from '../js/seatqueue.js';
 
 const TW = 1;               // table width
 const TH = 1.6;             // table height
@@ -28,7 +36,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = v => typeof v === 'number' && Number.isFinite(v);
 const r3 = v => Math.round(v * 1000) / 1000;
 
-// The y range a paddle of the given role may move in (0 = owner, bottom half).
+// The y range a paddle of the given role may move in (0 = bottom half).
 function halfRange(role) {
   return role === 1 ? [PR, TH / 2 - PR] : [TH / 2 + PR, TH - PR];
 }
@@ -38,13 +46,22 @@ function parseShared(sh) {
   if (!sh || !Array.isArray(sh.puck) || sh.puck.length !== 4 || !sh.puck.every(num)) return null;
   if (!Array.isArray(sh.score) || sh.score.length !== 2 || !sh.score.every(num)) return null;
   if (!Array.isArray(sh.ids) || sh.ids.length !== 2) return null;
+  const lu = readLineup({ seats: sh.ids, q: sh.q, sat: sh.sat });
+  if (!lu.seats[0] || !lu.seats[1]) return null;
+  const sw = sh.swap;
+  const swap = sw && typeof sw === 'object' && (sw.seat === 0 || sw.seat === 1) && typeof sw.in === 'string' && typeof sw.out === 'string' && num(sw.match)
+    ? { seat: sw.seat, in: sw.in.slice(0, 64), out: sw.out.slice(0, 64), match: sw.match } : null;
   return {
     puck: sh.puck,
     score: [clamp(sh.score[0] | 0, 0, 99), clamp(sh.score[1] | 0, 0, 99)],
     serveAt: num(sh.serveAt) ? sh.serveAt : 0,
     serveTo: sh.serveTo === 1 ? 1 : 0,
     winner: sh.winner === 0 || sh.winner === 1 ? sh.winner : null,
-    ids: [String(sh.ids[0]), String(sh.ids[1])],
+    ids: lu.seats,
+    q: lu.q,
+    sat: lu.sat,
+    match: num(sh.match) ? sh.match : 0,
+    swap,
   };
 }
 
@@ -186,7 +203,7 @@ export default {
   id: 'airhockey',
   name: 'Air Hockey',
   emoji: '🏒',
-  blurb: 'Two players, one puck. Drag your paddle; first to 7 wins.',
+  blurb: 'Two players, one puck, first to 7. The next in line plays the winner.',
   minPlayers: 2,
   maxPlayers: 2,
   needsFace: false,
@@ -225,7 +242,7 @@ export default {
     const puck = { x: TW / 2, y: TH / 2, vx: 0, vy: 0 };   // owner: real; others: displayed (eased)
     const remote = { p: [TW / 2, TH / 2, 0, 0], at: 0, sig: '' };
     const pads = [
-      { x: TW / 2, y: TH * 0.8, vx: 0, vy: 0 },    // role 0 (owner, bottom)
+      { x: TW / 2, y: TH * 0.8, vx: 0, vy: 0 },    // role 0 (bottom)
       { x: TW / 2, y: TH * 0.2, vx: 0, vy: 0 },    // role 1 (top)
     ];
     const target = { x: TW / 2, y: TH * 0.8 };     // where I want my paddle
@@ -244,15 +261,21 @@ export default {
     let raf = 0, last = performance.now(), now = 0;
 
     // --- roles -----------------------------------------------------------
+    // My seat in the shared ids (0 bottom, 1 top), or -1 watching.
     function roleOf() {
-      const i = api.players().findIndex(p => p.me);
-      return i === 0 || i === 1 ? i : -1;
+      const S = parseShared(api.shared());
+      return S ? S.ids.indexOf(api.me.id) : -1;
     }
     const flipped = () => roleOf() === 1;
     function playerAt(role) {
-      return api.players()[role] || null;
+      const S = parseShared(api.shared());
+      return (S && api.players().find(p => p.id === S.ids[role])) || null;
     }
-    const two = () => api.players().length >= 2;
+    // Both seated players are here.
+    const two = () => !!playerAt(0) && !!playerAt(1);
+    const placeOf = S => (S ? S.q.indexOf(api.me.id) : -1);
+    const nameOf = id => api.players().find(p => p.id === id)?.name || 'Someone';
+    let seenMatch = null;       // the match whose swap I already announced
 
     // --- layout ----------------------------------------------------------
     function resize() {
@@ -284,12 +307,14 @@ export default {
     }
 
     // --- shared state (owner only) ----------------------------------------
-    function startMatch(ids) {
+    function startMatch(lu, swap = null) {
       const to = Math.random() < 0.5 ? 0 : 1;
       puck.x = TW / 2;
       puck.y = TH / 2;
       puck.vx = puck.vy = 0;
-      api.setShared({ puck: [TW / 2, TH / 2, 0, 0], score: [0, 0], serveAt: Date.now() + 1500, serveTo: to, winner: null, ids });
+      const match = Date.now();
+      api.setShared({ puck: [TW / 2, TH / 2, 0, 0], score: [0, 0], serveAt: Date.now() + 1500, serveTo: to, winner: null,
+        ids: lu.seats, q: lu.q, sat: lu.sat, match, swap: swap && { ...swap, match } });
     }
 
     function publishShared(S, force) {
@@ -298,6 +323,7 @@ export default {
       const out = {
         puck: [r3(puck.x), r3(puck.y), r3(puck.vx), r3(puck.vy)],
         score: S.score, serveAt: S.serveAt, serveTo: S.serveTo, winner: S.winner, ids: S.ids,
+        q: S.q, sat: S.sat, match: S.match, swap: S.swap,
       };
       const sig = JSON.stringify(out);
       if (sig === sentS && !force) return;
@@ -306,37 +332,43 @@ export default {
       api.setShared(out);
     }
 
-    // Keeps shared state matching who is actually seated: start a match when
-    // two players are here, mirror it if the owner left and the other player
-    // inherited the table, restart if someone new took a seat.
+    // Keeps shared state matching who is here (js/seatqueue.js): start a
+    // match when two players are here, give a seat whose player left to the
+    // front of the line (a new match), and keep the line itself up to date.
+    // A seat left empty with nobody waiting keeps its old id until someone comes.
     function reconcile() {
       if (!api.isOwner()) return;
-      const ps = api.players();
-      if (ps.length < 2) return;
-      const ids = [ps[0].id, ps[1].id];
+      const ids = api.players().map(p => p.id);
       const S = parseShared(api.shared());
-      if (!S) return startMatch(ids);
-      if (S.ids[0] === ids[0] && S.ids[1] === ids[1]) return;
-      if (S.ids[0] === ids[1] && S.ids[1] === ids[0]) {
-        puck.x = TW - S.puck[0];
-        puck.y = TH - S.puck[1];
-        puck.vx = -S.puck[2];
-        puck.vy = -S.puck[3];
-        publishShared({ ...S, score: [S.score[1], S.score[0]], serveTo: 1 - S.serveTo, winner: S.winner == null ? null : 1 - S.winner, ids }, true);
-      } else startMatch(ids);
+      if (!S) {
+        const lu = syncSeats({ seats: [null, null], q: [], sat: [0, 0] }, ids);
+        if (lu.seats[0] && lu.seats[1]) startMatch(lu);
+        return;
+      }
+      const lu = syncSeats({ seats: S.ids, q: S.q, sat: S.sat }, ids);
+      if (!lu.changed) return;
+      if (lu.seats[0] === S.ids[0] && lu.seats[1] === S.ids[1]) publishShared({ ...S, q: lu.q, sat: lu.sat }, true);
+      else if (lu.seats[0] && lu.seats[1]) startMatch(lu);
+      else if (lu.q.join() !== S.q.join()) publishShared({ ...S, q: lu.q }, true);
     }
 
+    // Rematch, asked for by a player or the next in line once a match is
+    // won: with someone waiting, the winner stays on and the loser makes way.
+    function ownerRematch(from) {
+      const S = parseShared(api.shared());
+      if (!S || S.winner == null || (!S.ids.includes(from) && S.q[0] !== from)) return;
+      const r = rotateSeats({ seats: S.ids, q: S.q, sat: S.sat }, S.winner);
+      startMatch({ seats: r.seats, q: r.q, sat: r.sat }, r.swap);
+    }
     function rematch() {
-      if (!api.isOwner()) return api.send('rematch', {});
-      const ps = api.players();
-      if (ps.length >= 2) startMatch([ps[0].id, ps[1].id]);
+      if (api.isOwner()) ownerRematch(api.me.id);
+      else api.send('rematch', {});
     }
     rematchBtn.addEventListener('click', rematch);
     api.on('rematch', (_, from) => {
-      if (!api.isOwner()) return;
-      const i = api.players().findIndex(p => p.id === from);
-      if (i === 0 || i === 1) rematch();
+      if (api.isOwner()) ownerRematch(from);
     });
+    const canRematch = S => !!S && (roleOf() >= 0 || placeOf(S) === 0);
 
     // --- input -----------------------------------------------------------
     // The paddle keeps its distance from the finger for the whole drag, so
@@ -375,7 +407,7 @@ export default {
           keys.add(k);
           touched = true;
         } else keys.delete(k);
-      } else if (e.type === 'keydown' && (e.code === 'Space' || e.code === 'Enter') && !winCard.hidden && roleOf() >= 0) {
+      } else if (e.type === 'keydown' && (e.code === 'Space' || e.code === 'Enter') && !winCard.hidden && canRematch(parseShared(api.shared()))) {
         e.preventDefault();
         rematch();
       }
@@ -609,15 +641,32 @@ export default {
       else followPuck(dt, S);
       watchScore(S);
 
+      // A new match with a new player: say who came in and who made way.
+      if (S && S.match !== seenMatch) {
+        if (seenMatch !== null && S.swap && S.swap.match === S.match) {
+          api.toast(swapText(S.swap, api.me.id, nameOf));
+          flash = { text: S.swap.in === api.me.id ? 'You’re in!' : `${nameOf(S.swap.in)} is in!`, until: now + 2.5 };
+          if (S.swap.in === api.me.id) api.sfx('win');
+        }
+        seenMatch = S.match;
+      }
+
       // Overlays.
       waitCard.hidden = two();
       const won = S && S.winner != null && two();
       winCard.hidden = !won;
       if (won) {
         const pl = playerAt(S.winner);
+        const place = placeOf(S);
         winText.textContent = role === S.winner ? 'You win!' : `${pl ? pl.name : 'Someone'} wins!`;
-        winScore.textContent = `${S.score[S.winner]} – ${S.score[1 - S.winner]}${role >= 0 ? ` · Your record ${wins.me}–${wins.lost}` : ''}`;
-        rematchBtn.hidden = role < 0;
+        let line = `${S.score[S.winner]} – ${S.score[1 - S.winner]}${role >= 0 ? ` · Your record ${wins.me}–${wins.lost}` : ''}`;
+        if (place === 0) line += ` · ${queueLabel(0)}: you play the winner`;
+        else if (place > 0) line += ` · ${queueLabel(place)}`;
+        else if (S.q.length) line += ` · Next up: ${nameOf(S.q[0])}`;
+        if (winScore.textContent !== line) winScore.textContent = line;
+        rematchBtn.hidden = !canRematch(S);
+        const label = role >= 0 ? (S.q.length ? 'Next game' : 'Rematch') : 'Play next';
+        if (rematchBtn.textContent !== label) rematchBtn.textContent = label;
       }
     }
 
@@ -662,7 +711,7 @@ export default {
       const flip = role === 1;
       const p0 = playerAt(0), p1 = playerAt(1);
 
-      // Table, in canonical coordinates (rotated for the non-owner).
+      // Table, in canonical coordinates (rotated for seat 1).
       ctx.save();
       ctx.translate(tx + (flip ? tw : 0), ty + (flip ? tw * TH : 0));
       if (flip) ctx.rotate(Math.PI);
@@ -701,6 +750,10 @@ export default {
           text(S.score[0] + S.score[1] === 0 ? 'Get ready!' : 'Serve!', cx, cy - tw * 0.3, clamp(tw * 0.09, 14, 40), 'center', '#ffd43b');
         }
         if (flash && now < flash.until) text(flash.text, cx, cy + tw * 0.3, clamp(tw * 0.08, 13, 34), 'center', '#ffd43b');
+        if (role < 0 && S.winner == null && two()) {
+          const place = placeOf(S);
+          text(place >= 0 ? `Watching · ${queueLabel(place)}` : 'Watching', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.05, 11, 20), 'center', '#fff');
+        }
         if (role >= 0 && !touched && S.winner == null) {
           text('Drag anywhere to move your paddle', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.045, 10, 16), 'center', '#fff');
         }
@@ -749,7 +802,7 @@ export default {
         const dead = v => (Math.abs(v) < 0.15 ? 0 : v);
         padDir = { x: dead(pad.x || 0) * 1.6, y: dead(pad.y || 0) * 1.6 };
         const a = !!(pad.a || pad.pressed?.[0]);
-        if (a && !padWas && !winCard.hidden && roleOf() >= 0) rematch();
+        if (a && !padWas && !winCard.hidden && canRematch(parseShared(api.shared()))) rematch();
         padWas = a;
       },
     };
