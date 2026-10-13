@@ -528,7 +528,7 @@ export const ASSETS = {
   },
   "howto.ch09.1": {
     "file": "assets/howto/ch09-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch09.2": {
     "file": "assets/howto/ch09-2.webp",

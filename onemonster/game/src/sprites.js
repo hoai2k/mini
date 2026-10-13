@@ -1290,6 +1290,11 @@ export const SPRITES = {
    "src": "sprites/howto/ch08-2.webp",
    "w": 1024,
    "h": 768
+  },
+  "howto/ch09-1": {
+   "src": "sprites/howto/ch09-1.webp",
+   "w": 1024,
+   "h": 768
   }
  }
 };

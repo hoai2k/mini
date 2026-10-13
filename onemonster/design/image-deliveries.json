@@ -804,6 +804,12 @@
       "file": "assets/howto/ch08-2.webp",
       "size": "1024 x 768, opaque",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Bombanat swerving away from the Yalapappus's big swiping paw reaching up at it. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/trollusk-and-yalapappus-running.jpg ."
+    },
+    {
+      "id": "OM-H9a",
+      "file": "assets/howto/ch09-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg ."
     }
   ],
   "delivered": [
@@ -1476,6 +1482,11 @@
       "id": "OM-H8b",
       "file": "assets/howto/ch08-2.webp",
       "sha256": "02b6672bd3d796f6914bdb1508add6fc344772ae2cad9ae7c3ddb1cfb2c2b60d"
+    },
+    {
+      "id": "OM-H9a",
+      "file": "assets/howto/ch09-1.webp",
+      "sha256": "b75353050b6d95d1510fccb2a2aa4561bad3b160d887f37137af7d011cb0d77e"
     }
   ],
   "request_revision": "1add341",
@@ -3232,6 +3243,27 @@
       "references": [
         "onemonster/game/assets/monsters/bombanat/model-sheet.png",
         "onemonster/game/assets/monsters/yalapappus/model-sheet.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H9a",
+      "file": "assets/howto/ch09-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grithix swinging his butterfly net at the Bombanat fluttering past in a woodland clearing. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grithix-nets-bombanat-page.jpg .\nUse case: stylized-concept. NEW single how-to-play vignette, 1024 x 768, opaque warm cream background, drawing fading to cream at edges. Exactly one of each mentioned character, no extra characters or model-sheet layout. Match reference designs, but only ONE white envelope total, held by the character specified in the scene; do not copy held envelopes from references. No text, labels or numbers, except MY STAMPS on Trollusk's bag when shown.",
+      "references": [
+        "onemonster/game/assets/monsters/grithix/model-sheet.png",
+        "onemonster/game/assets/monsters/bombanat/model-sheet.png"
       ],
       "generator": "built-in image_gen",
       "source_size": [
