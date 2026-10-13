@@ -28,7 +28,7 @@ function edgeWalls(c, h = 4, gaps = true) {
   for (let x = x0 + 4; x < x1 - 2; x += 7) { k.torch(x, y + 2, z0, [0, 1]); k.torch(x, y + 2, z1, [0, -1]); }
   for (let z = z0 + 4; z < z1 - 2; z += 7) { k.torch(x0, y + 2, z, [1, 0]); k.torch(x1, y + 2, z, [-1, 0]); }
 }
-const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves, B.cracked_brick, B.slide_glass]);
+export const NO_SPAWN = new Set([B.barrier, B.leaves, B.pine_leaves, B.dead_leaves, B.roof, B.roof_slate, B.roof_terracotta, B.grass_roof, B.shingle_green, B.awning, B.glass, B.bus_panel, B.corrugated, B.poplar_leaves, B.cracked_brick, B.slide_glass]);
 function spawnGrid(c, n = 10, margin = 3) {
   const { x0, z0, x1, z1, y } = c;
   for (let i = 0; i < n * 3 && c.spawns.length < n; i++) {
@@ -2057,3 +2057,21 @@ BIOME_ROOMS.desert = ['dunes', 'canyon', 'desert_road', 'bed_showroom'];
 BIOME_ROOMS.underworld = ['styx_shore', 'styx_shore', 'asphodel', 'asphodel', 'cavern'];
 BIOME_ROOMS.beach = ['beach_surf', 'beach_surf', 'pier', 'boardwalk'];
 BIOME_ROOMS.olympus = ['palace_court', 'cloud_bridge', 'throne_hall', 'god_garden'];
+
+// The templates open enough for a group fight (world/encounters.js puts the
+// packs and the big battleground in these); the rest of BIOME_ROOMS serve as
+// guard rooms and traps.
+export const OPEN_ROOMS = {
+  museum: ['grand_hall', 'sculpture_court', 'gallery'],
+  storm_hill: ['farm_field', 'farm_road', 'hillside'],
+  camp_woods: ['clearing', 'woods', 'creek'],
+  highway: ['turnpike', 'bus_stop', 'rest_stop'],
+  statue_garden: ['statue_yard', 'snack_bar', 'gnome_garden'],
+  arch: ['observation', 'arch_lobby'],
+  waterland: ['lazy_river', 'dry_pool'],
+  casino: ['card_room', 'pool_party', 'arcade'],
+  desert: ['desert_road', 'dunes', 'canyon'],
+  underworld: ['asphodel', 'styx_shore'],
+  beach: ['beach_surf', 'pier'],
+  olympus: ['throne_hall', 'palace_court', 'cloud_bridge'],
+};

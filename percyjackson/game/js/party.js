@@ -50,10 +50,11 @@ export class Companion {
     let target = null, td = 1e9;
     for (const e of g.enemies) {
       if (e.dead || e.untargetable || e.disguised || e.isDummy) continue;
-      // the prologue is the player's training: companions leave loitering rats alone and help once one attacks
+      // the prologue is the player's training: companions leave loitering rats alone and help once one attacks;
+      // in a chapter they leave a group milling about to the player (who picks the fight), unless it is right by them
       const training = g.mode === 'prologue';
-      if (training && e.loiter && !e.aggro) continue;
       const d = e.pos.distanceTo(p.pos), da = e.pos.distanceTo(anchor);
+      if (e.loiter && !e.aggro && (training || (e.loiter.alertT == null && da > 5))) continue;
       if (da > (training ? 8 : 13)) continue;
       if (d < td) { td = d; target = e; }
     }

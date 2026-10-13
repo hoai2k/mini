@@ -31,6 +31,12 @@
 //              leash, face }: hangs around home (sniffs, eats, wanders) until a
 //              hero comes within `notice` or hits it, rears up for `alert`
 //              seconds, then chases; gives up past `leash`. dash(hero) sends it.
+//              A chapter's monster groups loiter too (mission.js sets
+//              loiter.kind = 'pack', with `pack` (the group), `scout` and
+//              `joinT`; rules in entities/packRules.js): one that notices a
+//              hero raises the alarm and the group joins one by one; a scout
+//              runs back to its group first; a hero fighting close by is
+//              heard through walls.
 // Players with `invisible === true` are never chosen or kept as targets.
 //
 // Crowd rules (Minecraft Dungeons feel):
@@ -52,6 +58,7 @@ import { poisonHero } from './holds.js';
 import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
 import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
+import { PACK, packNotices, scoutRuns } from './packRules.js';
 import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 import { monsterDamage } from '../resources.js';
@@ -190,8 +197,11 @@ export class Enemy {
     dmg *= 1 - this.armor;
     this.hp -= dmg;
     this.flashT = 0.1;
+    const wasIdle = !this.aggro;
     this.aggro = true;
-    if (this.loiter) { this.loiter.alertT = null; this.loiter.returning = false; this.loiter.calmT = 0; }
+    if (this.loiter) { this.loiter.alertT = null; this.loiter.joinT = null; this.loiter.returning = false; this.loiter.calmT = 0; }
+    // an idle group monster hit: a scout runs for its group, the rest wake the ones next to them
+    if (wasIdle && this.loiter?.pack) { if (this.loiter.scout) this.scoutCall(); else this.loiter.pack.alarm(this, { local: true }); }
     if (src && src.isPlayer && !this.target && !src.invisible) this.target = src;
     if (o.knock) {
       const k = o.knock.clone().multiplyScalar(1 - (this.def.knockResist ?? 0) * (o.blocked ? 1 : 0.8));
@@ -382,7 +392,17 @@ export class Enemy {
     }
     let move = tmp2.set(0, 0, 0);
     const ai = this.def.ai;
-    if (S.fear > 0 && this.state !== 'stagger') {
+    const flee = this.loiter?.fleeT > 0 && this.loiter.pack;
+    if (flee) {
+      // a scout running back to its group, calling out
+      const L = this.loiter;
+      L.fleeT -= dt;
+      const to = tmp.subVectors(L.pack.center, this.pos).setY(0);
+      if (to.length() < PACK.fleeReach || L.fleeT <= 0 || L.pack.alarmed) { L.fleeT = 0; L.pack.alarm(this); }
+      else if (this.state !== 'stagger') { if (this.state === 'windup') this.cancelAttack(); this.state = 'idle'; move.copy(this.steer(to, 1.1)); this.facing = dampAngle(this.facing, Math.atan2(to.x, to.z), 10, dt); }
+    }
+    if (flee && this.loiter.fleeT > 0) { /* (running) */ }
+    else if (S.fear > 0 && this.state !== 'stagger') {
       if (this.state === 'windup') this.cancelAttack();
       if (this.state !== 'idle') { this.state = 'idle'; this.action = null; }
       const from = this.fearFrom ?? t?.pos;
@@ -471,15 +491,38 @@ export class Enemy {
     let best = null, bd = Infinity;
     for (const t of g.hostileTargets()) { if (t.dead || t.downed || t.untargetable || t.invisible) continue; const d = t.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = t; } }
     if (this.spawnT > 0) return null;
+    // a group's alarm reached this one: a moment, then it rears up and comes
+    if (L.joinT != null && L.alertT == null) {
+      L.joinT -= dt;
+      if (L.joinT <= 0) { L.joinT = null; if (!best) return null; L.alertT = L.alert * 0.8; L.dashing = true; L.returning = false; if (Math.random() < 0.35) this.voice(); }
+      return null;
+    }
     if (L.alertT != null) {
       L.alertT -= dt;
-      const hold = L.dashing ? Infinity : L.notice * 1.8;
+      const hold = L.dashing || L.kind === 'pack' ? Infinity : L.notice * 1.8;
       if (!best || bd > hold) { L.alertT = null; L.dashing = false; return null; }   // the hero walked on
       this.faceTo(best.pos, dt, 8);
       if (L.alertT <= 0) {
         L.alertT = null; this.aggro = true; this.target = best; this.cd = Math.min(this.cd, 0.4);
-        if (L.dashing) { L.dashing = false; this.dashT = 3; }
+        if (L.dashing) { L.dashing = false; this.dashT = L.kind === 'pack' ? 0 : 3; }
+        if (L.scout && !L.pack?.alarmed) this.scoutCall();
         return best;
+      }
+      return null;
+    }
+    if (L.kind === 'pack') {
+      // a group monster: sees a hero in its room (not across the gap in the next one)
+      // within notice (scouts further), hears a fight close by
+      if (!best || bd > Math.max(L.notice, PACK.hear)) return null;
+      const A = L.area; if (A && !(best.pos.x >= A.x0 && best.pos.x <= A.x1 && best.pos.z >= A.z0 && best.pos.z <= A.z1)) return null;
+      this.losT -= dt;
+      if (this.losT > 0) return null;
+      this.losT = 0.2 + Math.random() * 0.1;
+      const fightNear = bd <= PACK.hear && g.enemies.some((o) => o !== this && !o.dead && o.aggro && !o.disguised && o.pos.distanceTo(this.pos) < PACK.hear + 2);
+      const los = fightNear || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2);
+      if (packNotices({ dist: bd, los, scout: L.scout, fightNear })) {
+        L.alertT = L.alert; L.returning = false; L.dashing = true; this.voice();
+        if (!L.scout) L.pack?.alarm(this);   // (a scout runs back to tell them first)
       }
       return null;
     }
@@ -491,6 +534,13 @@ export class Enemy {
       }
     }
     return null;
+  }
+  // A scout that has seen the party (or been shot) runs back to its group to
+  // raise the alarm; if the group is right there it just calls out.
+  scoutCall() {
+    const L = this.loiter, P = L?.pack; if (!P || P.alarmed) return;
+    if (scoutRuns({ packDist: this.pos.distanceTo(P.center) })) { L.fleeT = PACK.flee; this.voice(); }
+    else P.alarm(this);
   }
   // The director (world/roaming.js) sends this rat at a hero: a squeak, then a run.
   dash(hero) {
@@ -811,7 +861,9 @@ export class Enemy {
           g.audio?.tone({ freq: 500, to: 800, dur: 0.3, gain: 0.05, type: 'sine', rev: 0.6 });
           break;
         }
-        const flight = clamp(dist / 11, 0.45, 1.1);
+        const flight = clamp(dist / 11, this.def.lob ? 0.8 : 0.45, this.def.lob ? 1.3 : 1.1);
+        // a lobber's shot is marked where it will land: time to step out
+        if (this.def.lob) { const gy = g.world.groundBelow(lead.x, lead.z, lead.y + 2); g.markers.spawn({ pos: new THREE.Vector3(lead.x, isFinite(gy) ? gy : lead.y, lead.z), radius: 1.5, dur: flight }); }
         const grav = 14;
         const vel = new THREE.Vector3((lead.x - from.x) / flight, (lead.y + 0.8 - from.y) / flight + 0.5 * grav * flight, (lead.z - from.z) / flight);
         const col = this.def.projectile === 'fire' ? 0xff7a1a : 0x9aff3a;

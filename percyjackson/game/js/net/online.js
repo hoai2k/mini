@@ -276,7 +276,7 @@ export class Online {
     const out = { e, s: g.mist.active ? 1 : 0 };
     if (m) {
       const bits = (list, f) => list.map((x) => (f(x) ? 1 : 0)).join('');
-      out.m = { od: m.objDone ? 1 : 0, it: bits(m.obj.items, (x) => x.done), ch: bits(m.L.chests, (c) => c.opened), gt: bits(m.L.gates, (gt) => gt.open), rm: m.L.rooms.map((r) => (r.activated ? r.waveIdx ?? 0 : -1)), bs: m.bossSpawned ? 1 : 0, x: m.netState?.() ?? null, f: m.failed ? 1 : 0 };
+      out.m = { od: m.objDone ? 1 : 0, it: bits(m.obj.items, (x) => x.done), ch: bits(m.L.chests, (c) => c.opened), gt: bits(m.L.gates, (gt) => gt.open), rm: m.L.rooms.map((r) => (r.activated ? r.waveIdx ?? 0 : -1)), tg: bits(m.L.trapGates ?? [], (gt) => !gt.open), bs: m.bossSpawned ? 1 : 0, x: m.netState?.() ?? null, f: m.failed ? 1 : 0 };
     }
     return out;
   }
@@ -493,6 +493,10 @@ export class Online {
     if (!m || m.remote) return;
     m.remote = true;
     m.spawnWave = function (room) { room.waveT = 1e9; };
+    m.spawnPacks = function (room) { room.primed = true; };
+    m.spawnReserve = function (room) { room.reserve = []; };
+    m.springTrap = function (room) { room.trap.sprung = true; };   // (the doors come from the host's snapshot)
+    m.openTrap = function (room) { room.trap.done = true; };
     m.altarWave = function () {};
     m.startBoss = function (room) { this.bossSpawned = true; this.bossRoom = room; };
     m.revealDisguisedBoss = function () {};
@@ -508,7 +512,7 @@ export class Online {
   unpuppetizeMission() {
     const m = this.game.mission;
     if (!m || !m.remote) return;
-    for (const k of ['spawnWave', 'altarWave', 'startBoss', 'revealDisguisedBoss', 'completeItem', 'openChest']) delete m[k];
+    for (const k of ['spawnWave', 'spawnPacks', 'spawnReserve', 'springTrap', 'openTrap', 'altarWave', 'startBoss', 'revealDisguisedBoss', 'completeItem', 'openChest']) delete m[k];
     m.remote = false; m.def.remote = false;
     for (const r of m.L.rooms) { r.enemies = r.enemies ?? []; r.waveT = Math.min(r.waveT ?? 0, 2.5); }
   }
@@ -556,6 +560,14 @@ export class Online {
       const open = d === '1';
       if (open && !gate.open) m.openGate(gate);
       else if (!open && gate.open) { gate.open = false; for (const [x, y, z] of gate.blocks) g.world.set(x, y, z, B.blue_energy); }
+    });
+    // trap doors: shut and open with the host's
+    [...str01(s.tg)].forEach((d, i) => {
+      const gate = m.L.trapGates?.[i]; if (!gate) return;
+      const shut = d === '1';
+      if (shut === !gate.open) return;
+      const room = gate.room;
+      if (room?.trap) { m.setTrapGates(room, shut); if (shut && !room.trap.toasted) { room.trap.toasted = true; toast('It’s a trap!', 'big'); } }
     });
     if (Array.isArray(s.rm)) s.rm.forEach((v, i) => {
       const r = m.L.rooms[i]; if (!r || typeof v !== 'number') return;
