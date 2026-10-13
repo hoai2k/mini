@@ -56,8 +56,7 @@ export const sceneOf = (phase) => (['court', 'curse'].includes(phase) ? 0 : ['ra
 
 export default {
   id: 0, key: 'prologue', kicker: 'Prologue', title: 'The Betrothal', size: 120, page: 6, intro: true,
-  sub: 'Receive the fairies’ gifts for your bride.\n[A] to take or give · [B] skips a scene.',
-  touchSub: 'Receive the fairies’ gifts for your bride.\nTap to take or give · Skip skips a scene.',
+  sub: 'Receive the fairies’ gifts for your bride.',
   action: 'A: take, give, leap',
   scenes: SCENES,
   mood: (st) => (['curse', 'rampart', 'escape', 'bind'].includes(st.phase) ? 'storm' : ['free', 'armoury', 'knighted', 'iris'].includes(st.phase) ? 'tender' : 'revel'),
