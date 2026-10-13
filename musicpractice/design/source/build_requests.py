@@ -355,7 +355,7 @@ SIXTIES = next(t for t in MORE_THEMES if t["id"] == "sixties")
 for asset in ROUND3:
     if asset["theme"] == "sixties" and asset["id"] == "home-metronome":
         asset.update(
-            round=4, status="revise",
+            round=4, status="delivered",
             prompt=("The same metronome as the Vintage 60s metronome screen, drawn as an icon: a "
                     "smooth tapering pyramid case in glossy burnt-orange wood with softly rounded "
                     "corners, a mustard-yellow front face with two columns of short cream tick "
@@ -367,8 +367,8 @@ for asset in ROUND3:
                     "top of the rod. Seen from the front. " + SIXTIES["style"] + " A single centred "
                     "object on a fully transparent background, bold readable silhouette that still "
                     "reads at 64 pixels, generous even margin on every side, no cast shadow."),
-            note=("Revision: the delivered icon (starbursts and boomerangs on the face, gold feet) "
-                  "doesn't look like the metronome on the metronome screen "
+            note=("Round 4 delivered: the previous icon (starbursts and boomerangs on the face, gold feet) "
+                  "was replaced to match the metronome on the metronome screen "
                   "(assets/ui/sixties/metronome-body.webp and metronome-pendulum.webp). Match that "
                   "metronome's shape, colours, plain ticked face, chrome rod, boomerang weight and "
                   "chrome disc hub. Replaces the file at the same path."),
@@ -412,7 +412,7 @@ def round5_assets() -> list[dict]:
         folder = "assets/ui" if theme == "classic" else f"assets/ui/{theme}"
         out.append(dict(
             id="home-tuner", theme=theme, round=5, file=f"{folder}/home-tuner.webp",
-            size="768×768, transparent PNG (shipped as 384×384 WebP)", status="requested",
+            size="768×768, transparent PNG (shipped as 384×384 WebP)", status="delivered",
             group=f"{names[theme]} · Home screen buttons",
             prompt=(subject[0].upper() + subject[1:] + ". Seen from the front, the needle centred to "
                     "show a note in tune. " + style + " A single centred object on a fully "
@@ -443,7 +443,7 @@ def render() -> tuple[str, str]:
                        (4, "revisions"), (5, "Tuner home icons, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
-                     + (f"{len(wanted)} image{"s" if len(wanted) != 1 else ""} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
+                     + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
                         if wanted else "delivered and in use."))
         lines.append("")
     lines += [

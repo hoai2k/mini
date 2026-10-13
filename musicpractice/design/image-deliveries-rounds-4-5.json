@@ -1,0 +1,163 @@
+{
+  "date": "2026-10-12",
+  "assets": [
+    {
+      "id": "home-metronome",
+      "theme": "sixties",
+      "round": 4,
+      "file": "musicpractice/app/assets/ui/sixties/home-metronome.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Home screen buttons",
+      "prompt": "The same metronome as the Vintage 60s metronome screen, drawn as an icon: a smooth tapering pyramid case in glossy burnt-orange wood with softly rounded corners, a mustard-yellow front face with two columns of short cream tick marks and nothing else on it (no starbursts, boomerangs or other decorations), a teal band across the lower case and a flared teal plinth on three short turned orange-wood peg feet. A thin straight chrome rod tilted a little to the right, pivoting on a round brushed-chrome disc hub near the bottom of the face, with a small teal-and-orange boomerang-shaped sliding weight near the top of the rod. Seen from the front. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.\nImage 1 is the exact case reference, image 2 is the exact pendulum reference. Combine these unchanged designs into a square home-button illustration, with the rod leaning slightly right. Match the three orange peg feet, plain two-column ticked yellow face, teal band and flared plinth. No face decorations.",
+      "note": "Revision: the delivered icon (starbursts and boomerangs on the face, gold feet) doesn't look like the metronome on the metronome screen (assets/ui/sixties/metronome-body.webp and metronome-pendulum.webp). Match that metronome's shape, colours, plain ticked face, chrome rod, boomerang weight and chrome disc hub. Replaces the file at the same path.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-31c291a2-9951-43bd-8c3d-0e8ec7c8f1ad.png",
+      "export_size": [
+        384,
+        384
+      ],
+      "references": [
+        "musicpractice/app/assets/ui/sixties/metronome-body.webp",
+        "musicpractice/app/assets/ui/sixties/metronome-pendulum.webp"
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "classic",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Classic \u00b7 Home screen buttons",
+      "prompt": "A classic chromatic tuner: a small walnut-and-brass case with a cream dial and a thin brass needle pointing straight up at the centre mark, with a polished brass tuning fork leaning against its right side. Seen from the front, the needle centred to show a note in tune. Clean, warm practice-room illustration: polished walnut wood, brushed brass, cream and ivory, soft studio lighting with a gentle highlight from the upper left, crisp simple shapes with subtle painterly shading, like a premium modern app illustration. Friendly and calm. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Classic theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-70a3060e-0510-47d2-8cb0-db0b686bc037.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "deco",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/deco/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Art Deco \u00b7 Home screen buttons",
+      "prompt": "An Art Deco chromatic tuner: a black lacquer case edged in gold with a fan-shaped ivory dial and a gold needle pointing straight up at the centre, a gold sunburst behind it and a slim gold tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Art Deco illustration in the manner of a 1920s\u201330s poster and a Chrysler Building interior: black lacquer and polished onyx, gleaming gold leaf and champagne brass, accents of deep jade green and ivory, crisp geometric forms, stepped (ziggurat) silhouettes, sunburst rays, fan motifs, chevrons and fine parallel gold pinstripes, strict symmetry, flat lacquered surfaces with sharp metallic highlights. Elegant, glamorous, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Art Deco theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-d9821e4c-f9ba-4485-a0d6-db2ec52e5032.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "sixties",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/sixties/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Vintage 60s \u00b7 Home screen buttons",
+      "prompt": "A mid-century tuner: a rounded teak case with a mustard-yellow dial and a chrome needle pointing straight up at the centre, a chrome tuning fork beside it and a small orange starburst. Seen from the front, the needle centred to show a note in tune. Mid-century 1960s illustration like a vintage record sleeve or a space-age kitchen advert: warm cream, mustard yellow, burnt orange, teal and avocado green, simple rounded shapes, boomerang and starburst (atomic) motifs, flat colour with a soft screen-print grain and slightly offset printing. Cheerful, optimistic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Vintage 60s theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-445e2b29-d20e-42c6-a99a-9a77a050bf77.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "baroque",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/baroque/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "18th Century \u00b7 Home screen buttons",
+      "prompt": "An 18th-century style tuning device: a carved walnut case with gilt scrolls, an ivory dial with fine engraved marks and a gilt needle pointing straight up at the centre, and a gilt tuning fork beside it. Seen from the front, the needle centred to show a note in tune. 18th-century illustration in the manner of a Rococo engraving and a gilded harpsichord: warm ivory and parchment, carved walnut and fruitwood, burnished gilt, deep burgundy and a little powder blue, scrolling acanthus leaves, shell (rocaille) ornaments and fine engraved hatching. Elegant and refined. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the 18th Century theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-7313faab-a492-4d6b-bc28-10fbb1acdea6.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "scifi",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/scifi/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Robot Future \u00b7 Home screen buttons",
+      "prompt": "A futuristic tuner: a chamfered graphite-and-titanium panel with a glowing cyan arc gauge, the needle a cyan light line pointing straight up at the centre, a small magenta indicator light, and a sleek titanium tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Sleek science-fiction illustration of a far-future starship console: deep space navy and graphite, glowing cyan and magenta light lines, brushed titanium, glass panels, crisp chamfered geometric forms and fine HUD-style tick marks, a soft neon glow. Clean, futuristic, simple. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Robot Future theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-9000d034-24c7-462c-bd51-32e69cd80544.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "nouveau",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/nouveau/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "French Nouveau \u00b7 Home screen buttons",
+      "prompt": "An Art Nouveau tuner: a sage-green enamel case with curving whiplash sides and gold vines, a cream dial with a gold needle pointing straight up at the centre, and a gold tuning fork entwined with a lily stem beside it. Seen from the front, the needle centred to show a note in tune. French Art Nouveau illustration in the manner of Alphonse Mucha and a Paris M\u00e9tro entrance: soft sage and olive green, cream, muted gold, dusty rose and plum, flowing whiplash curves, lilies, irises and vines, elegant outlined forms with flat, gently graded colour. Graceful and organic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the French Nouveau theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-3b4ae6bb-1e75-4ba7-9fc2-92fc34965d75.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "anime",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/anime/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Candy \u00b7 Home screen buttons",
+      "prompt": "A cute candy-pink tuner with a bold outline, a white dial with a sky-blue needle pointing straight up at the centre, a happy sparkle above it and a little sky-blue tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Bright anime and manga illustration: clean bold outlines, flat cel shading with one soft highlight, candy pink, sky blue, lilac and sunny yellow on white, sparkles and little star glints, cute and energetic. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Candy theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-ef833786-9fdc-43e4-9ccd-ae09c6663045.png",
+      "export_size": [
+        384,
+        384
+      ]
+    },
+    {
+      "id": "home-tuner",
+      "theme": "steampunk",
+      "round": 5,
+      "file": "musicpractice/app/assets/ui/steampunk/home-tuner.webp",
+      "size": "768\u00d7768, transparent PNG (shipped as 384\u00d7384 WebP)",
+      "status": "delivered",
+      "group": "Steam Punk \u00b7 Home screen buttons",
+      "prompt": "A steampunk tuner: a riveted brass gauge with a cream enamel dial and a black needle pointing straight up at the centre, small cogs at its sides, and a copper tuning fork beside it. Seen from the front, the needle centred to show a note in tune. Steampunk illustration of Victorian brass machinery: polished brass, copper and dark leather, riveted plates, exposed cogs and gears, small pressure gauges and pipes, warm gaslight glow on dark mahogany. Intricate but readable. No text, no letters, no numbers, no logos, no watermark, no frame or border unless the prompt asks for one. A single centred object on a fully transparent background, bold readable silhouette that still reads at 64 pixels, generous even margin on every side, no cast shadow.\nSquare canvas, fully transparent background. Keep the complete silhouette within the canvas with even margins. Dial tick marks only, absolutely no numbers or lettering.",
+      "note": "The big Tuner button on the home screen in the Steam Punk theme; the label is written by the app. Dial marks only, no numbers or letters.",
+      "tool": "built-in image_gen",
+      "generated_source": "exec-4f394503-d621-421b-aea9-d68ca33a8e3b.png",
+      "export_size": [
+        384,
+        384
+      ]
+    }
+  ],
+  "exports": "Pillow LANCZOS resizing to 384x384 WebP at quality 92; alpha preserved. The replaced Vintage 60s home icon remains available in Git history."
+}
