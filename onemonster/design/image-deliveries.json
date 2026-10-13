@@ -756,6 +756,24 @@
       "file": "assets/howto/ch06-3.webp",
       "size": "1024 x 768, opaque",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: A glass bottle with a red-and-white label landing KER-PLOP on the Yalapappus's head and breaking, a rolled note falling out, which he munches gleefully. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg ."
+    },
+    {
+      "id": "OM-H5b",
+      "file": "assets/howto/ch05-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Fish, plain green and brown bottles and blobs of goo spiralling up the spout as the Typhoonigator sucks hard, cheeks hollow. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg ."
+    },
+    {
+      "id": "OM-H6a",
+      "file": "assets/howto/ch06-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg ."
+    },
+    {
+      "id": "OM-H6b",
+      "file": "assets/howto/ch06-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg ."
     }
   ],
   "delivered": [
@@ -1388,6 +1406,21 @@
       "id": "OM-H6c",
       "file": "assets/howto/ch06-3.webp",
       "sha256": "8f88a762e921ba826dc032d1bc1c234b14b52ad840549fc3b36c99c3855cafeb"
+    },
+    {
+      "id": "OM-H5b",
+      "file": "assets/howto/ch05-2.webp",
+      "sha256": "634312f6bcb0b529197f50e51cc3ba4b128982fe19c465e3954d95ada7273588"
+    },
+    {
+      "id": "OM-H6a",
+      "file": "assets/howto/ch06-1.webp",
+      "sha256": "fbfc3d0b9c37492e81e73c8fc43405ed61a1a75020abd32eee0fc7bff12f5644"
+    },
+    {
+      "id": "OM-H6b",
+      "file": "assets/howto/ch06-2.webp",
+      "sha256": "d91960392a23e2b30540d413344c83927aae280093afdc28f3123688bad0aed3"
     }
   ],
   "request_revision": "1add341",
@@ -2976,6 +3009,69 @@
       "references": [
         "onemonster/game/assets/monsters/yalapappus/model-sheet.png"
       ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H5b",
+      "file": "assets/howto/ch05-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Use case: stylized-concept. A new friendly game how-to-play spot illustration on opaque warm cream, 1024 x 768, 4:3. Show the attached expressive cloud character floating over a blue sea, cheeks drawn inward, drawing water upward through a swirling funnel. Small fish, empty plain green and brown glass bottles and glossy blue goo blobs spiral UP the funnel. Dense wiry black ink lines and crosshatching with muted watercolor washes. Only one cloud character, no other characters or people. No letters, notes, postage labels or red-striped bottles. Edges fade into cream; no text or frame. Match the reference design.",
+      "references": [
+        "onemonster/game/assets/monsters/typhoonigator/model-sheet.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H6a",
+      "file": "assets/howto/ch06-1.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus at the edge of Nowhere looking up at the swollen storm cloud overhead as fish, a little boat and blobs of goo fall, round shadows on the ground below each. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .\nUse case: stylized-concept. New how-to-play vignette, 1024 x 768, opaque warm cream background, drawing fading to cream edges. Reference is canonical character DESIGN only. Include only characters and props mentioned in this scene. Blue/teal sea and goo. No envelope or paper in any character's mouth unless this scene explicitly describes eating the note; do not copy the model's held props. No text, labels, numbers or written sound effects. Playful slapstick with no injury.",
+      "references": [
+        "onemonster/game/assets/monsters/yalapappus/model-sheet.png",
+        "onemonster/game/assets/monsters/typhoonigator/model-sheet.png"
+      ],
+      "revision_prompt": "Edit this how-to-play illustration. There must be exactly ONE Yalapappus: keep ONLY the leftmost standing yellow monster looking up, and remove the other three copies along the ground completely. Fill their areas with matching empty ochre ground. Keep the storm cloud, falling fish, falling little boat, blue goo, and their ground shadows, plus the remaining Yalapappus and cream edges. No new characters or objects.",
+      "generator": "built-in image_gen",
+      "source_size": [
+        1448,
+        1086
+      ],
+      "saved_size": [
+        1024,
+        768
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-H6b",
+      "file": "assets/howto/ch06-2.webp",
+      "size": "1024 x 768, opaque",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Yalapappus hopping aside, napkin flapping, as a small fishing boat crashes down where he was. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .\nUse case: stylized-concept. New how-to-play vignette, 1024 x 768, opaque warm cream background, drawing fading to cream edges. Reference is canonical character DESIGN only. Include only characters and props mentioned in this scene. Blue/teal sea and goo. No envelope or paper in any character's mouth unless this scene explicitly describes eating the note; do not copy the model's held props. No text, labels, numbers or written sound effects. Playful slapstick with no injury.",
+      "references": [
+        "onemonster/game/assets/monsters/yalapappus/model-sheet.png"
+      ],
+      "revision_prompt": "Edit this how-to-play illustration: remove ONLY the sailor/captain from the fishing boat's wheelhouse window and fill that window with plain dark glass. Preserve the boat, hopping Yalapappus, crash splash, rocks, sea, palette and cream vignette. No other changes, no new people or objects.",
       "generator": "built-in image_gen",
       "source_size": [
         1448,
