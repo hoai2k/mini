@@ -60,14 +60,25 @@ export const DEFAULTS = Object.freeze({
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
+  metMotion: true, // the pendulum swings
+  metPulse: true, // a glow pulses on each beat
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
-  homeOrder: ['metronome', 'tuner', 'record'], // the home screen's buttons, hold and drag to reorder
+  homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
+  droneMidi: 48, // C3
+  droneVoice: 'cello',
+  droneVolume: 0.8,
+  droneFifth: false, // add a pure fifth above
+  droneTimed: false, // stop or move on after droneMinutes
+  droneMinutes: 3,
+  droneThen: 'stop', // or a sequence from SEQUENCES in drone.js
   tuning: 'chromatic', // tuner: an id from TUNINGS in tuning.js
   a4: 440, // tuner reference pitch, 415-466 Hz
   flats: false, // tuner: spell notes with flats
   transpose: 'C', // tuner: written pitch for a transposing instrument
 });
 
+const DRONE_VOICES = ['cello', 'cello-soft', 'cello-section', 'tanpura', 'sitar', 'shruti', 'organ', 'bagpipes'];
+const DRONE_THEN = ['stop', 'chrom-up', 'chrom-down', 'major-up', 'major-down', 'fifths', 'fourths'];
 const TUNING_IDS = ['chromatic', 'guitar', 'guitar-dropd', 'guitar-dadgad', 'bass4', 'bass5', 'ukulele', 'violin', 'viola', 'cello', 'mandolin', 'banjo'];
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -101,7 +112,16 @@ export function sanitize(raw) {
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
+    metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
+    metPulse: typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
     homeOrder: homeOrder(s.homeOrder),
+    droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
+    droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),
+    droneVolume: clamp(num(s.droneVolume, DEFAULTS.droneVolume), 0, 1),
+    droneFifth: s.droneFifth === true,
+    droneTimed: s.droneTimed === true,
+    droneMinutes: clamp(Math.round(num(s.droneMinutes, DEFAULTS.droneMinutes) * 2) / 2, 0.5, 30),
+    droneThen: oneOf(s.droneThen, DRONE_THEN, DEFAULTS.droneThen),
     tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
     flats: s.flats === true,
@@ -109,11 +129,19 @@ export function sanitize(raw) {
   };
 }
 
-/** A saved home order, with unknown tools dropped and missing ones added at the end. */
-function homeOrder(v) {
+/**
+ * A saved home order, with unknown tools dropped and missing ones (a tool
+ * added since) put back after the one they follow by default.
+ */
+export function homeOrder(v) {
   const known = DEFAULTS.homeOrder;
-  const kept = Array.isArray(v) ? [...new Set(v.filter((id) => known.includes(id)))] : [];
-  return [...kept, ...known.filter((id) => !kept.includes(id))];
+  const out = Array.isArray(v) ? [...new Set(v.filter((id) => known.includes(id)))] : [];
+  known.forEach((id, i) => {
+    if (out.includes(id)) return;
+    const prev = known.slice(0, i).reverse().find((p) => out.includes(p));
+    out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, id);
+  });
+  return out;
 }
 
 export function load(storage = globalThis.localStorage) {

@@ -13,7 +13,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-metronome-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-metronome-192.png">
   <title>Music Practice</title>
-  <meta name="description" content="A metronome, a tuner and a practice recorder that hears when you start and stop playing, then plays your take back.">
+  <meta name="description" content="A metronome, a tuner, a drone and a practice recorder that hears when you start and stop playing, then plays your take back.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Each theme loads its own fonts (THEMES in src/settings.js); Classic's load here as the default. -->
@@ -70,6 +70,10 @@
           <span class="art" data-asset="home-tuner"></span>
           <span class="label">Tuner</span>
         </a>
+        <a class="choice" href="#drone" id="go-drone" data-tool="drone" draggable="false">
+          <span class="art" data-asset="home-drone"></span>
+          <span class="label">Drone</span>
+        </a>
         <a class="choice" href="#record" id="go-record" data-tool="record" draggable="false">
           <span class="art" data-asset="home-record"></span>
           <span class="label">Playback Recorder</span>
@@ -80,6 +84,15 @@
         try {
           var order = (JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {}).homeOrder;
           var box = document.getElementById('choices');
+          var known = ['metronome', 'tuner', 'drone', 'record'];
+          if (Array.isArray(order)) {
+            // A tool added since the order was saved goes after the one it follows (settings.js does the same).
+            known.forEach(function (id, i) {
+              if (order.indexOf(id) >= 0) return;
+              var prev = known.slice(0, i).reverse().filter(function (p) { return order.indexOf(p) >= 0; })[0];
+              order.splice(prev ? order.indexOf(prev) + 1 : 0, 0, id);
+            });
+          }
           if (Array.isArray(order)) order.forEach(function (id) {
             var el = box.querySelector('[data-tool="' + id + '"]');
             if (el) box.appendChild(el);
@@ -109,6 +122,7 @@
       <div class="met-body">
         <div class="met-visual">
           <div class="metronome" id="metronome-art" aria-hidden="true">
+            <div class="met-pulse" id="met-pulse"></div>
             <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
             <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
           </div>
@@ -133,6 +147,20 @@
           </button>
           <p class="meter-note" id="meter-note">4/4 · strong beat on 1</p>
         </div>
+        <!-- Line up the visuals with the sound (Bluetooth speakers play late). -->
+        <div class="sync-bar" id="sync-bar" hidden>
+          <h3 class="sync-title">Line up with the sound</h3>
+          <p class="help">Watch the pulse and listen. If the flash comes before the click, press +; if after, press −.</p>
+          <div class="tempo">
+            <button class="step" id="sync-down" type="button" aria-label="Show the beat 10 ms sooner">−</button>
+            <output class="sync-val" id="sync-val" aria-live="polite">0 ms</output>
+            <button class="step" id="sync-up" type="button" aria-label="Show the beat 10 ms later">+</button>
+          </div>
+          <p class="help">Or tap along: tap the button on every click you hear, and it works out the delay.</p>
+          <button class="big-btn sync-tap" id="sync-tap" type="button">Tap on each click</button>
+          <p class="help sync-status" id="sync-status" aria-live="polite"></p>
+          <button class="pill" id="sync-done" type="button">Done</button>
+        </div>
       </div>
 
       <dialog id="met-settings" class="sheet" aria-labelledby="met-settings-title">
@@ -145,6 +173,10 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span>Volume</span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
+          <label class="row toggle"><span>Swinging pendulum</span><input type="checkbox" id="met-motion" role="switch"></label>
+          <label class="row toggle"><span>Pulse on each beat</span><input type="checkbox" id="met-pulse-on" role="switch"></label>
+          <button type="button" class="pill" id="sync-open">Line up visuals with the sound…</button>
+          <p class="help">For Bluetooth speakers and headphones, which play late.</p>
           <button type="button" class="pill open-audio-check">Audio check…</button>
           <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>
@@ -248,6 +280,60 @@
           </fieldset>
           <label class="row"><span>Transposing instrument</span><select class="select" id="transpose"></select></label>
           <p class="help">Shows notes as written for your instrument: a concert B♭ reads as C on a B♭ clarinet or trumpet.</p>
+          <button type="button" class="pill open-audio-check">Audio check…</button>
+          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+        </form>
+      </dialog>
+    </section>
+
+    <!-- Drone -->
+    <section id="drone" class="screen" aria-labelledby="drone-title" hidden>
+      <header class="bar">
+        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="drone-title">Drone</h2>
+        <button class="icon-btn" id="drone-settings-btn" aria-label="Drone settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+      </header>
+      <div class="drone-body" id="drone-body">
+        <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" data-asset="home-drone"></span></div>
+        <div class="drone-readout">
+          <div class="tuner-note drone-note"><span id="dr-letter">C</span><span class="acc" id="dr-acc"></span><span class="oct" id="dr-oct">3</span></div>
+          <p class="drone-hz" id="dr-hz"></p>
+        </div>
+        <div class="tempo drone-pitch">
+          <button class="step" id="dr-down" type="button" aria-label="Down a semitone">−</button>
+          <label><span class="visually-hidden">Pitch</span><select class="select" id="dr-pitch"></select></label>
+          <button class="step" id="dr-up" type="button" aria-label="Up a semitone">+</button>
+        </div>
+        <label class="drone-voice"><span class="visually-hidden">Instrument</span><select class="select" id="dr-voice"></select></label>
+        <button class="big-btn" id="dr-toggle" type="button" aria-pressed="false">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          <span id="dr-toggle-label">Play</span>
+        </button>
+        <p class="drone-timer" id="dr-timer" aria-live="polite" hidden></p>
+      </div>
+
+      <dialog id="drone-settings" class="sheet" aria-labelledby="drone-settings-title">
+        <form method="dialog">
+          <header class="sheet-head"><h3 id="drone-settings-title">Drone settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row"><span>Volume</span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
+          <label class="row toggle"><span>Add a fifth above</span><input type="checkbox" id="dr-fifth" role="switch"></label>
+          <p class="help">A pure fifth over the drone note. The tanpura, sitar and shruti box have theirs already.</p>
+          <label class="row toggle"><span>Timed drone</span><input type="checkbox" id="dr-timed" role="switch"></label>
+          <div class="drone-timed" id="dr-timed-opts">
+            <label class="row"><span>Length: <b><span id="dr-minutes-val">3</span> min</b></span><input type="range" class="slider" id="dr-minutes" min="0.5" max="20" step="0.5"></label>
+            <label class="row"><span>When time's up</span><select class="select" id="dr-then"></select></label>
+            <p class="help">Notes move within the drone's two octaves (C2 to B3), wrapping round by octaves. Scales are the major scale of the note you started on.</p>
+          </div>
+          <div class="row">
+            <span>Reference pitch: A4 = <b><span class="a4-val">440</span> Hz</b></span>
+            <div class="a4-row">
+              <button type="button" class="step dr-a4-down" aria-label="Lower by 1 Hz">−</button>
+              <input type="range" class="slider dr-a4" min="415" max="466" step="1" aria-label="Reference pitch in hertz">
+              <button type="button" class="step dr-a4-up" aria-label="Higher by 1 Hz">+</button>
+            </div>
+            <p class="help">Shared with the tuner, so the drone and the tuner agree.</p>
+          </div>
           <button type="button" class="pill open-audio-check">Audio check…</button>
           <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
         </form>

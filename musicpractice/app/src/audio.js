@@ -101,9 +101,44 @@ export function reportedLatency() {
 }
 
 /** When the sound scheduled for `t` is heard, in context time (drives the pendulum). */
-export function heardNow() {
+/*
+ * What is reaching the ears now, in context time (drives the pendulum, the
+ * pulse and the beat dots). Two estimates, and the later-heard (smaller) one
+ * wins, so no delay is counted twice:
+ *
+ * - currentTime minus the output latency the browser reports. currentTime
+ *   moves in steps (10-20 ms in Safari), which makes the pendulum jitter.
+ * - getOutputTimestamp(): the context time being played by the output
+ *   device at a given moment, which already includes the device's delay
+ *   where the browser knows it (Bluetooth too on iPhone and Android), and
+ *   moves smoothly when carried forward with performance.now().
+ *
+ * `lead` is how far ahead to look: a frame drawn now reaches the screen a
+ * little later (about a frame), so it should show that moment.
+ */
+export function heardNow(lead = 0) {
   const c = audio();
-  return c.currentTime - reportedLatency() - extraDelay;
+  const latency = reportedLatency();
+  let t = c.currentTime - latency;
+  const ts = typeof c.getOutputTimestamp === 'function' ? c.getOutputTimestamp() : null;
+  if (ts && ts.performanceTime > 0 && ts.contextTime > 0) {
+    const smooth = ts.contextTime + (performance.now() - ts.performanceTime) / 1000;
+    const lag = c.currentTime - smooth; // how far the device trails the context
+    // Ignore a stale or nonsensical timestamp (some browsers right after a start).
+    if (lag > -0.05 && lag < 0.8) {
+      // If the timestamp already trails by most of the reported latency, it
+      // includes it; otherwise allow for the latency on top of it.
+      t = latency > 0 && lag < latency * 0.6 ? smooth - latency : smooth;
+    }
+  }
+  return t - extraDelay + lead;
+}
+
+/** The delay heardNow() allows for beyond the manual adjustment, in seconds (for Audio check). */
+export function measuredDelay() {
+  const c = existingAudio();
+  if (!c) return null;
+  return Math.max(0, c.currentTime - heardNow() - extraDelay);
 }
 
 /** Send Web Audio (the metronome) to a chosen speaker, where supported. */

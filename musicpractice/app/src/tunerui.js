@@ -253,6 +253,13 @@ export function setupTuner({ settings, persist, chips }) {
   render();
 
   return {
+    /** Bring the controls in line with the settings (A4 may have changed on the Drone screen). */
+    refresh() {
+      a4.value = settings.a4;
+      $('a4-val').textContent = settings.a4;
+      transpose.value = settings.transpose;
+      render();
+    },
     receive,
     animate,
     /** Leaving the screen or the mic closing: stop any tone and clear the reading. */
