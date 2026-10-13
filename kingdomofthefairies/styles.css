@@ -107,6 +107,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding: 28px 30px 24px; width: min(420px, 100%); max-height: calc(var(--app-h, 100dvh) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px;
 }
 .card.wide { width: min(760px, 100%); }
+/* A card never spills past the screen: its body scrolls inside it. */
+.card { overflow: hidden; }
+.card > .stack, .card > .scroll, .card > .scene-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.card > .stack { flex: 0 1 auto; padding: 2px; }
 .card h2 { font-family: "Yesteryear", cursive; font-weight: 400; font-size: 44px; margin: 0; text-align: center; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .row { display: flex; justify-content: center; }
@@ -195,6 +199,20 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   .stick-base { top: 66%; }
   .corner .icon { width: 46px; height: 46px; }
   .card { padding: 18px 20px 16px; gap: 10px; }
+  /* the pause menu: its buttons in two columns, so all of them fit */
+  #pause .card { width: min(640px, 100%); padding: 14px 18px 14px; gap: 8px; }
+  #pause .card h2 { font-size: 30px; line-height: 1; }
+  #pause .stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #pause .stack button { padding: 8px 10px; font-size: 15px; text-align: center; }
+  #pause .note:empty { display: none; }
+  /* settings: two columns of compact rows, the rest scrolls inside the card */
+  #settings .card { width: min(680px, 100%); padding: 14px 18px; gap: 8px; }
+  #settings .card h2 { font-size: 30px; line-height: 1; }
+  #settings .stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #settings .slider input { width: 50%; }
+  #settings .stack > * { padding: 7px 10px; font-size: 14px; }
+  #settings .row button { padding: 6px 12px; }
+  #pause .stack button:first-child { grid-column: 1 / -1; text-align: center; }
   .card h2 { font-size: 34px; }
   .card button, .slider { padding: 8px 12px; font-size: 16px; }
   .card .tabs button { padding: 4px 10px; font-size: 14px; }
