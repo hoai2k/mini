@@ -6,7 +6,7 @@ import { createStaff } from './staff.js';
 import { noteName } from './music.js';
 import { perform, secondsPerBeat, MAX_HOLD } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
-import { buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
+import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
@@ -38,14 +38,9 @@ const S = {
   solvedShown: false,
 };
 
-// Whole songs for the Full Songs mode load in the background.
-let SONGS = null;
-const songsReady = import('../data/songs/index.js').then((mod) => {
-  SONGS = buildSongs(mod.default);
-  if (S.mode === 'books') renderBooks();
-  return SONGS;
-}).catch(() => { SONGS = []; return SONGS; });
-const songsIn = (book) => (SONGS ? inBook(SONGS, book) : []);
+// Whole songs for the Full Songs mode (their phrases are in LIB too, each once).
+const SONGS = buildSongs(SONG_LISTS);
+const songsIn = (book) => inBook(SONGS, book);
 
 // ---------------------------------------------------------------- audio
 const audio = createAudio();
@@ -175,12 +170,10 @@ function renderBooks() {
     b.addEventListener('click', () => startBook(book.id));
     grid.append(b);
   }
-  if (songs && !SONGS) grid.innerHTML = '<p class="loading">Loading the songs…</p>';
-  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solvedAll}/${songs ? (SONGS?.length ?? 0) : LIB.length}`;
+  $('#books-total').textContent = `★ ${progress.score.toLocaleString()} · ${solvedAll}/${songs ? SONGS.length : LIB.length}`;
 }
 
-async function startBook(id) {
-  if (isSongs(progress.level) && !SONGS) await songsReady;
+function startBook(id) {
   progress.book = id; save();
   S.song = null;
   setFree(false);
@@ -454,7 +447,7 @@ function solved() {
   $('#song-title').textContent = m.title;
   const key = m.shift ? ` · transposed ${m.shift > 0 ? 'up' : 'down'} ${Math.abs(m.shift)} semitone${Math.abs(m.shift) === 1 ? '' : 's'}` : '';
   const tries = !S.replay && settings.retry && S.attempt > 1 ? ` · clean on try ${S.attempt}` : '';
-  let where = '';
+  let where = m.part > 1 ? ` · phrase ${m.part} of the song` : '';
   if (S.song) {
     const n = S.song.song.phrases.length, i = S.song.index + 1;
     where = i < n ? ` · phrase ${i} of ${n}` : ' · the whole song!';

@@ -259,3 +259,25 @@ test('full songs: unfinished songs come first, recent ones are avoided', () => {
   const recent = songs.slice(0, songs.length - 1).map((s) => s.id);
   assert.equal(pickSong(songs, { recent }).id, songs.at(-1).id);
 });
+
+test('one-phrase modes: phrases from the middle of songs, each different phrase once', () => {
+  const lib = buildLibrary();
+  const parts = lib.filter((m) => m.part);
+  assert.ok(parts.length > 800);
+  const shape = (m) => `,${m.parsed.slice(1).map((n, i) => n.midi - m.parsed[i].midi).join(',')},`;
+  const bySong = new Map();
+  for (const m of parts) {
+    const k = m.id.split('#')[0];
+    if (!bySong.has(k)) bySong.set(k, []);
+    bySong.get(k).push(shape(m));
+  }
+  for (const [k, shapes] of bySong) {
+    shapes.forEach((a, i) => shapes.forEach((b, j) => {
+      if (i !== j) assert.ok(!a.includes(b), `${k}: a phrase repeats (or sits inside) another`);
+    }));
+  }
+  // Twinkle's lines are already hand-written melodies; Camptown's opening is too.
+  assert.ok(!parts.some((m) => m.id.startsWith('song-twinkle#')));
+  assert.ok(!parts.some((m) => m.id.startsWith('song-gwine') && m.part === 1));
+  assert.ok(parts.some((m) => m.id.startsWith('song-auld-lang-syne') && m.part > 1));
+});
