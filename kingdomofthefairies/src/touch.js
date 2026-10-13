@@ -10,8 +10,10 @@
 // - 'stick' (free movement: Act II swimming, Act V climbing): a floating
 //   stick on the left half, analog in every direction. Its base is kept
 //   fully on screen, however far the thumb strays.
-// In both, the A button (labelled with its verb), B when a scene needs it,
-// and pause sit on the right. Outside play a tap anywhere is a tap.
+// In both, the A button (labelled with its verb) and B when a scene needs it
+// sit on the left by default, with the stick zone on the right; drag the A
+// button across the screen to swap sides (remembered on this device). Pause
+// stays at the top right. Outside play a tap anywhere is a tap.
 
 const DEAD = 0.22;            // stick dead zone (fraction of radius)
 const RADIUS = 56;            // px the stick knob may travel
@@ -37,6 +39,12 @@ export function createTouch(root) {
   const btnB = root.querySelector('[data-t=b]');
   const btnPause = root.querySelector('[data-t=pause]');
 
+  const SIDE_KEY = 'kingdomofthefairies.touchSide';
+  let side = 'left';
+  try { side = localStorage.getItem(SIDE_KEY) === 'right' ? 'right' : 'left'; } catch { /* storage unavailable */ }
+  const applySide = () => root.classList.toggle('a-left', side === 'left');
+  applySide();
+
   const st = { mode: 'stick', holdT: 0, lastFlick: 0, f: null, ax: 0, ay: 0, aHeld: false, bHeld: false, edges: [], used: false, flickUpIsA: false };
   const rep = { dir: null, t: 0 };
   let taps = [];
@@ -50,7 +58,10 @@ export function createTouch(root) {
 
   // ---- one finger on the control area
   zone.addEventListener('pointerdown', (e) => {
-    if (st.f) return;
+    // A finger already tracked whose lift was lost (a system gesture, a
+    // hidden layer) must not hold the controls: the new finger takes over.
+    if (st.f && st.f.id === e.pointerId) return;
+    st.ax = st.ay = 0;
     e.preventDefault();
     zone.setPointerCapture(e.pointerId);
     const now = performance.now();
@@ -62,7 +73,7 @@ export function createTouch(root) {
       base.classList.add('on');
       stickMove(e);
     } else {
-      st.f = { id: e.pointerId, ax: e.clientX, x0: e.clientX, y0: e.clientY, t0: now, vy: e.clientY, vt: now, moved: 0 };
+      st.f = { id: e.pointerId, ax: e.clientX, x0: e.clientX, y0: e.clientY, t0: now, vy: e.clientY, vt: now, moved: 0, peak: e.clientX, lastX: e.clientX };
     }
   });
   zone.addEventListener('pointermove', (e) => {
@@ -79,6 +90,11 @@ export function createTouch(root) {
   };
   zone.addEventListener('pointerup', end);
   zone.addEventListener('pointercancel', end);
+  // the capture lost without a lift: let go, and never as a tap
+  zone.addEventListener('lostpointercapture', (e) => { if (st.f && e.pointerId === st.f.id) { st.f.moved = 1e9; end(e); } });
+  const release = () => { st.f = null; st.ax = st.ay = 0; st.aHeld = false; st.bHeld = false; base.classList.remove('on'); knob.style.transform = ''; };
+  addEventListener('blur', release);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
 
   function stickMove(e) {
     const f = st.f;
@@ -105,6 +121,14 @@ export function createTouch(root) {
     f.moved = Math.max(f.moved, Math.hypot(e.clientX - f.x0, e.clientY - f.y0));
     // Forward / back: how far the finger has travelled from its anchor; the
     // anchor trails so reversing direction responds at once.
+    f.lastX = e.clientX;
+    // Reversing: once the finger comes back REVERSE px from the furthest it
+    // went, the anchor jumps to that point, so the walk turns at once.
+    const REVERSE = 12;
+    const sgn = Math.sign(e.clientX - f.ax);
+    if (sgn > 0) f.peak = Math.max(f.peak, e.clientX); else if (sgn < 0) f.peak = Math.min(f.peak, e.clientX);
+    if (f.peak > f.ax && e.clientX < f.peak - REVERSE) { f.ax = f.peak; f.peak = e.clientX; }
+    else if (f.peak < f.ax && e.clientX > f.peak + REVERSE) { f.ax = f.peak; f.peak = e.clientX; }
     let dx = e.clientX - f.ax;
     if (Math.abs(dx) > DRAG_FULL) { f.ax += dx - Math.sign(dx) * DRAG_FULL; dx = Math.sign(dx) * DRAG_FULL; }
     st.ax = Math.abs(dx) < 8 ? 0 : dx / DRAG_FULL;
@@ -130,7 +154,30 @@ export function createTouch(root) {
     const up = () => { el.classList.remove('on'); onUp?.(); };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   };
-  press(btnA, () => { st.aHeld = true; st.edges.push('a'); }, () => { st.aHeld = false; });
+  // A: a press; or dragged across the screen, it swaps the controls' sides.
+  let aDrag = null;
+  btnA.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation(); btnA.setPointerCapture(e.pointerId);
+    btnA.classList.add('on'); st.used = true; st.aHeld = true; st.edges.push('a');
+    aDrag = { id: e.pointerId, x0: e.clientX, dragging: false };
+  });
+  btnA.addEventListener('pointermove', (e) => {
+    if (!aDrag || e.pointerId !== aDrag.id) return;
+    const dx = e.clientX - aDrag.x0;
+    if (!aDrag.dragging && Math.abs(dx) > 48) { aDrag.dragging = true; st.aHeld = false; btnA.classList.add('dragging'); }
+    if (aDrag.dragging) btnA.style.transform = `translateX(${dx}px)`;
+  });
+  const aUp = (e) => {
+    if (!aDrag || e.pointerId !== aDrag.id) return;
+    btnA.classList.remove('on', 'dragging'); btnA.style.transform = ''; st.aHeld = false;
+    if (aDrag.dragging) {
+      side = e.clientX < innerWidth / 2 ? 'left' : 'right';
+      try { localStorage.setItem(SIDE_KEY, side); } catch { /* storage unavailable */ }
+      applySide();
+    }
+    aDrag = null;
+  };
+  btnA.addEventListener('pointerup', aUp); btnA.addEventListener('pointercancel', aUp);
   press(btnB, () => { st.bHeld = true; st.edges.push('b'); }, () => { st.bHeld = false; });
   press(btnPause, () => st.edges.push('pause'));
 
@@ -174,5 +221,8 @@ export function createTouch(root) {
       if (!playing) { st.f = null; st.ax = st.ay = 0; st.aHeld = false; base.classList.remove('on'); knob.style.transform = ''; }
     },
     hide() { root.hidden = true; root.classList.remove('playing'); },
+    // A new scene: a finger still down from the last one counts from where it
+    // rests now, so a held drag doesn't carry the prince on by itself.
+    settle() { if (st.f && st.mode === 'swipe') { st.f.ax = st.f.lastX; st.f.peak = st.f.lastX; } st.ax = 0; st.ay = 0; },
   };
 }

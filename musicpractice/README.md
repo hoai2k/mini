@@ -230,25 +230,23 @@ tones, scales over a tonic.
   reference pitch (A4 = 415 to 466 Hz) is shared with the tuner. Everything
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
-How it sounds (`app/src/drone.js`): the **Cello** plays recordings, generated
-with ElevenLabs sound effects, made perfectly steady (one bow stroke only, so
-no bow change is ever heard, its pitch held exactly and its level evened out,
-as if the bow never ended) and cut into seamless loops on five notes (D2, E2,
-G2, D3, A3), so every note is at most three semitones from a real take and is
-retuned to it exactly by playback rate (following the reference pitch).
-Each loop file carries 0.3 s of its own continuation either side, so the loop
-points stay inside seamless audio whatever the decoder does; the five load
-when the Drone starts, so changing notes is instant. If they can't load, the
-synthesized cello plays instead. Takes, prompts, how the loops are made and
-how they were checked: `design/drone-sounds.md` (every note: on pitch, wavering
-under 0.6 cents and 0.9 dB, loudness within 1 dB, no clicks, no audible joins).
-
-The other voices are still synthesized, to be replaced by recordings the same
-way. The bowed and blown ones play live in Web Audio: oscillators whose
-harmonics are shaped by the instrument's body resonances at the exact pitch,
-with slow random drift so the tone lives, and a warm 2.8 s hall. The tanpura
-and sitar are rendered once into a seamless loop of their plucking pattern,
-each pluck with the jawari bridge's buzz.
+How it sounds (`app/src/drone.js`): every voice plays recordings, generated
+with ElevenLabs sound effects and cut into seamless loops on three to four
+notes each, so every note is a few semitones at most from a real take and is
+retuned to it exactly by playback rate (following the reference pitch). The
+bowed and blown voices (cello, cello section, shruti box, organ, bagpipes) are
+made perfectly steady: no bow change is ever heard, the pitch is held exactly
+and the level and brightness are evened out, as if the bow or breath never
+ended. The plucked voices (tanpura, sitar) keep their natural ring and buzz.
+**Cello, soft** is the steady cello, darker (a 900 Hz low-pass, as if bowed over
+the fingerboard). An instrument whose natural range doesn't reach a note plays
+it an octave up or down. Each loop file carries 0.3 s of its own continuation
+either side, so the loop points stay inside seamless audio whatever the decoder
+does; all of a voice's loops load the first time it plays, so changing notes
+after that is instant, and if they can't load, a synthesized version of
+the voice plays instead. A light hall reverb is added in the app. Takes,
+prompts, how the loops are made and how they were checked:
+`design/drone-sounds.md`.
 
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.

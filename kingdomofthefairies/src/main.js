@@ -679,7 +679,7 @@ function touchScheme() {
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };
 }
-let lastPortrait = null;
+let lastPortrait = null, lastTouchScene = '';
 function updateTouch() {
   const portrait = innerHeight > innerWidth;
   if (portrait !== lastPortrait) {
@@ -688,6 +688,9 @@ function updateTouch() {
     if (portrait && S.mode === 'play') pause('Turn the device sideways to carry on.');
   }
   const playing = S.mode === 'play' && !S.paused && !portrait;
+  // A new scene (or act) doesn't inherit a drag held over from the last one.
+  const sceneKey = `${S.actIndex}:${S.state?.phase}:${S.state?.tf ? 'tf' : ''}`;
+  if (sceneKey !== lastTouchScene) { lastTouchScene = sceneKey; touch.settle?.(); }
   const sch = playing ? touchScheme() : { mode: 'stick', hint: '' };
   touch.show({ playing, mode: sch.mode, hintText: sch.hint, flickUpIsA: !!sch.flickUpIsA,
     verb: playing ? touchVerb() : '', needB: playing && (S.act?.needB ? S.act.needB(S.state) : S.act?.id === 2 && S.state?.phase === 'offer') });

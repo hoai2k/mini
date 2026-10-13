@@ -2,6 +2,7 @@
 // held exactly constant and its level evened out, looped a whole number of
 // cycles long.
 import { SR } from './loop.mjs';
+import { holdSpectrum } from './spectral.mjs';
 
 const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
 
@@ -91,19 +92,23 @@ export function holdLevel(y, P, amount = 0.92) {
  * The loop: L a whole number of periods; the last X samples blended into
  * the start (the waveforms line up, so a plain linear crossfade).
  */
-export function cycleLoop(y, P, xfadeSec = 0.8) {
+export function cycleLoop(y, P, xfadeSec = 0.8, periods = 1) {
   const X = Math.min(Math.round(xfadeSec * SR), Math.floor(y.length / 3));
-  const L = Math.floor((y.length - X) / P) * P;
+  // `periods`: the whole sound repeats only every few periods (a tonic and its fifth: two).
+  const L = Math.floor((y.length - X) / (P * periods)) * P * periods;
   const out = y.slice(0, L);
   for (let i = 0; i < X; i++) { const u = i / X; out[i] = y[i] * u + y[L + i] * (1 - u); }
   return out;
 }
 
 export function steadyLoop(x, a, b, f0, opts = {}) {
-  const [s, e] = longestStroke(x, a, b);
+  // An ensemble changes bow at staggered times (no single stroke): use the whole stretch.
+  const [s, e] = opts.wholeStretch ? [a + 0.2, b - 0.2] : longestStroke(x, a, b);
   const track = pitchTrack(x, Math.round(s * SR), Math.round(e * SR), f0);
   const Pm = median(track.map((t) => t.period));
   const P = Math.round(Pm); // an integer period: every cycle lines up exactly
-  const y = holdLevel(holdPitch(x, track, P), P, opts.levelAmount ?? 0.92);
-  return { loop: cycleLoop(y, P, opts.xfade ?? 0.8), stroke: [s, e], hz: SR / P, wobble: track.map((t) => 1200 * Math.log2(Pm / t.period)) };
+  let y = holdLevel(holdPitch(x, track, P), P, opts.levelAmount ?? 0.92);
+  // Steady brightness too (after the pitch is held, each harmonic stays in its bin).
+  if (opts.spectral) y = holdLevel(holdSpectrum(y, { amount: opts.spectral }), P, 0.92);
+  return { loop: cycleLoop(y, P, opts.xfade ?? 0.8, opts.periods ?? 1), stroke: [s, e], hz: SR / P, wobble: track.map((t) => 1200 * Math.log2(Pm / t.period)) };
 }
