@@ -1265,6 +1265,31 @@ export const SPRITES = {
    "src": "sprites/howto/ch06-3.webp",
    "w": 1024,
    "h": 768
+  },
+  "howto/ch07-1": {
+   "src": "sprites/howto/ch07-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch07-2": {
+   "src": "sprites/howto/ch07-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch07-3": {
+   "src": "sprites/howto/ch07-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch08-1": {
+   "src": "sprites/howto/ch08-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch08-2": {
+   "src": "sprites/howto/ch08-2.webp",
+   "w": 1024,
+   "h": 768
   }
  }
 };

@@ -504,23 +504,23 @@ export const ASSETS = {
   },
   "howto.ch07.1": {
     "file": "assets/howto/ch07-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch07.2": {
     "file": "assets/howto/ch07-2.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch07.3": {
     "file": "assets/howto/ch07-3.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch08.1": {
     "file": "assets/howto/ch08-1.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch08.2": {
     "file": "assets/howto/ch08-2.webp",
-    "delivered": false
+    "delivered": true
   },
   "howto.ch08.3": {
     "file": "assets/howto/ch08-3.webp",
