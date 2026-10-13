@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 237 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 243 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 237 of 237 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 237 of 243 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1852,6 +1852,55 @@ Requested 13 October 2026 after checking the F10–F13 deliveries side by side. 
 220 × 360 px, anchor bottom centre.
 
 > The sailor exactly as in sailor-stand.webp and sailor-pass-b.webp (attach both, and sailor-stride-a.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: RIGHT leg forward, heel down; left leg straight behind on its toes. The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow’s Bay editions. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F15. The gift fairies, empty-handed
+
+Requested 13 October 2026 after play-testing the prologue. The three gift fairies hold their gifts painted into their own sprites, so when the prince receives a gift it stays in her hands. These alternates are the same fairies with the gift left out and the hands in the same pose. The game draws the delivered gift prop (gift-ring, gift-crown, gift-gold) in her hands until he takes it, then shows her empty-handed. The court backdrop holds no gifts and needs no change.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `fairy-ring-empty-tinted` | 220 × 420 | bottom centre | `fairy-ring-tinted` | requested |
+| `fairy-ring-empty` | 220 × 420 | bottom centre | `fairy-ring` | requested |
+| `fairy-crown-empty-tinted` | 220 × 420 | bottom centre | `fairy-crown-tinted` | requested |
+| `fairy-crown-empty` | 220 × 420 | bottom centre | `fairy-crown` | requested |
+| `fairy-gold-empty-tinted` | 220 × 420 | bottom centre | `fairy-gold-tinted` | requested |
+| `fairy-gold-empty` | 220 × 420 | bottom centre | `fairy-gold` | requested |
+
+#### `fairy-ring-empty-tinted` — The fairy of the ring, empty-handed (tinted)
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-ring-tinted.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the ring: her right hand still raised high, fingers curled as if holding a small ring up to the light, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `fairy-ring-empty` — The fairy of the ring, empty-handed
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-ring.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the ring: her right hand still raised high, fingers curled as if holding a small ring up to the light, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `fairy-crown-empty-tinted` — The fairy of the crown, empty-handed (tinted)
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-crown-tinted.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the crown on its cushion: both hands still held out flat at chest height, palms up, as if bearing a cushion, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `fairy-crown-empty` — The fairy of the crown, empty-handed
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-crown.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the crown on its cushion: both hands still held out flat at chest height, palms up, as if bearing a cushion, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `fairy-gold-empty-tinted` — The fairy of gold, empty-handed (tinted)
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-gold-tinted.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the casket of gold: both hands still held out at chest height, cupped as if bearing a small casket, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `fairy-gold-empty` — The fairy of gold, empty-handed
+
+220 × 420 px, anchor bottom centre.
+
+> Redraw fairy-gold.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the casket of gold: both hands still held out at chest height, cupped as if bearing a small casket, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

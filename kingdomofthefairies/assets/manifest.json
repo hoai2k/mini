@@ -3479,6 +3479,66 @@
       ],
       "anchor": "bottom centre",
       "edition": "shared"
+    },
+    "fairy-ring-empty-tinted": {
+      "status": "requested",
+      "file": "fairy-ring-empty-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-ring-empty": {
+      "status": "requested",
+      "file": "fairy-ring-empty.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-crown-empty-tinted": {
+      "status": "requested",
+      "file": "fairy-crown-empty-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-crown-empty": {
+      "status": "requested",
+      "file": "fairy-crown-empty.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-gold-empty-tinted": {
+      "status": "requested",
+      "file": "fairy-gold-empty-tinted.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "fairy-gold-empty": {
+      "status": "requested",
+      "file": "fairy-gold-empty.webp",
+      "size": [
+        220,
+        420
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

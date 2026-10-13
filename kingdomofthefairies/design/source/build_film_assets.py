@@ -303,6 +303,22 @@ GROUPS.append(
 )
 
 
+# The prologue's gift fairies hold their gifts in their own art, so a gift
+# the prince has taken stayed in her hands. Requested 13 October 2026.
+GIFT_HANDS = {
+    'ring': ('the ring', 'her right hand still raised high, fingers curled as if holding a small ring up to the light'),
+    'crown': ('the crown on its cushion', 'both hands still held out flat at chest height, palms up, as if bearing a cushion'),
+    'gold': ('the casket of gold', 'both hands still held out at chest height, cupped as if bearing a small casket'),
+}
+GROUPS.append(
+    ('The gift fairies, empty-handed', 'Requested 13 October 2026 after play-testing the prologue. The three gift fairies hold their gifts painted into their own sprites, so when the prince receives a gift it stays in her hands. These alternates are the same fairies with the gift left out and the hands in the same pose. The game draws the delivered gift prop (gift-ring, gift-crown, gift-gold) in her hands until he takes it, then shows her empty-handed. The court backdrop holds no gifts and needs no change.', [
+        (f'fairy-{g}-empty{t}', f'The fairy of {"gold" if g == "gold" else "the " + g}, empty-handed{" (tinted)" if t else ""}', 220, 420, 'bottom centre', TINTED if t else SPRITE,
+         f'Redraw fairy-{g}{t}.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out {GIFT_HANDS[g][0]}: {GIFT_HANDS[g][1]}, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow.', f'fairy-{g}{t}')
+        for g in ('ring', 'crown', 'gold') for t in ('-tinted', '')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
