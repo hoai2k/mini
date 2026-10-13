@@ -1,5 +1,6 @@
 // Chapter data checks: every chapter can be started from camp and played
 // as a mission, has its story, and the book's prophecy is fulfilled.
+import './seed.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';

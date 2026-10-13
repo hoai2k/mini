@@ -357,6 +357,12 @@ python3 percyjackson/design/source/build_cards.py --check
 python3 percyjackson/design/source/build_hero_art.py --check
 ```
 
+The tests are repeatable: every test file imports `test/seed.mjs` first,
+which makes `Math.random` a seeded generator, and tests that roll items pass
+their own seeded `rng`. To look for a test that only passes by luck, run the
+suite under other seeds, for example
+`for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
+
 To try it locally, serve the repository root (for example
 `python3 -m http.server`) and open `/percyjackson/game/`.
 
