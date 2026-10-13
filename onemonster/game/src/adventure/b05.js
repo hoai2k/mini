@@ -76,6 +76,7 @@ const FOAM = '#eef5f6';
 
 export default function create(env) {
   const rng = env.rng;
+  art.preload(['adv.b05.windmill']); // not in boardArt's list: the board loads it itself
   const gentle = !!env.gentle?.[0];
   const total = kit.boardTime(env, ENTRY.time);
   const cam = kit.makeCamera(WORLD, { lead: 300, anchor: 0.38, rate: 3.4 });

@@ -44,9 +44,10 @@ const BRANCHES = [[2560, 3080], [9000, 9720]]; // one-way platforms up at GY - 2
 const BRANCH_Y = GY - 290;
 const FERNS = [7700, 8350, 10250, 10750]; // the Trollusk's hiding places, in order
 const DECOR_FERNS = [400, 1950, 3300, 4850, 6400, 7000, 9850, 11250];
-// terrain.wood 6 turned out to be a tree's foot (roots, ivy, a face) cut off at
-// the top, not a tall trunk: the backdrops carry the trees, so none are placed.
-const TRUNKS = [];
+// Tall background trunks: adv.trunks tiles (1 plain, 2 with a hollow) stacked
+// up out of the frame, on terrain.wood 6, the rooted foot with a face.
+const TRUNKS = [[300, 1], [1850, 2], [4450, 1], [6700, 2], [9800, 1]];
+const TRUNK_W = 220;
 const STUMPS = [1200, 7100]; // the stump with a face
 const HOLLOWS = [5900, 10900]; // the hollow stump
 const ROCKS = [3150, 8000, 10600]; // piles of rocks
@@ -153,6 +154,7 @@ export default function create(env) {
   // Roots, the toadstool, the branch and the logs.
   addB(1900, 300, 'bob', { amp: 22 }); addB(2050, 50, 'skim', { span: 60 }); addB(2300, 170, 'patrol', { span: 60, speed: 0.9 });
   addB(2700, 480, 'bob'); addB(2870, 470, 'circle', { amp: 30 }); addB(3030, 485); // over the branch at 290
+  addB(2600, 290 + 44, 'perch'); // sitting on the branch's root end
   addB(3150, 170, 'circle', { amp: 30 }); addB(3450, 310, 'bob', { amp: 20 }); addB(3850, 40, 'skim', { span: 90 });
   // The streams: skimming low at the banks, and high over the gaps.
   addB(4350, 310, 'bob', { amp: 20 }); addB(4500, 170, 'circle', { amp: 30 }); addB(4650, 45, 'skim', { span: 60 });
@@ -161,7 +163,7 @@ export default function create(env) {
   addB(6200, 170, 'patrol', { span: 240, speed: 0.8 }); addB(6600, 190, 'circle', { amp: 40 }); addB(7100, 470); addB(6950, 160);
   // The post road.
   addB(7560, 300, 'bob'); addB(7850, 170, 'patrol', { span: 100 }); addB(8250, 55, 'skim', { span: 60 }); addB(8500, 180, 'circle', { amp: 34 });
-  addB(9150, 470, 'bob'); addB(9400, 480, 'circle', { amp: 30 }); addB(9650, 475); addB(9900, 300, 'bob', { amp: 22 });
+  addB(9150, 470, 'bob'); addB(9400, 480, 'circle', { amp: 30 }); addB(9650, 475); addB(9680, 290 + 44, 'perch'); addB(9900, 300, 'bob', { amp: 22 });
   addB(10300, 60, 'skim', { span: 100 }); addB(10550, 180, 'circle', { amp: 36 }); addB(10800, 290, 'bob');
   const TOTAL = flock.length;
 
@@ -436,6 +438,7 @@ export default function create(env) {
       switch (b.pat) {
         case 'patrol': b.cx = Math.sin(k * 1.1) * b.span; b.cy = Math.sin(k * 3.1) * 14; break;
         case 'skim': b.cx = Math.sin(k * 1.4) * b.span; b.cy = Math.abs(Math.sin(k * 2.6)) * 18; break;
+        case 'perch': b.cx = 0; b.cy = 0; b.facing = -1; break;
         case 'circle': b.cx = Math.cos(k * 1.6) * b.amp * 1.4; b.cy = Math.sin(k * 1.6) * b.amp; break;
         default: b.cx = Math.sin(k * 0.9) * 18; b.cy = Math.sin(k * 2.4) * b.amp;
       }
@@ -693,11 +696,16 @@ export default function create(env) {
 
   function drawWorld(g, tt) {
     // Far: tall trunks and stumps with faces, behind everything.
-    for (const x of TRUNKS) {
-      if (!cam.sees(x - 500, x + 500)) continue;
-      // The delivered piece is a tree's foot (roots, ivy, a face), cut off at
-      // the top: a plain bark column behind it carries the trunk out of frame.
-      if (art.sprite('terrain.wood', 6)) { inkTrunkColumn(g, x, GY - 300, 300); art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 440, flip: kit.hash(x) > 0.5 }); }
+    for (const [x, item] of TRUNKS) {
+      if (!cam.sees(x - 400, x + 400)) continue;
+      const tile = art.sprite('adv.trunks', item) || art.sprite('adv.trunks', 1);
+      if (tile) {
+        // Tiles stacked from behind the foot up out of the frame, mirrored
+        // every other one so the bark joins.
+        const k = TRUNK_W / tile.w, th = tile.h * k;
+        for (let i = 0, y = GY - 160; y > -th; i++, y -= th) art.drawSprite(g, tile, x, y, { scale: k, flip: i % 2 === 1 });
+        if (art.sprite('terrain.wood', 6)) art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 300, flip: kit.hash(x) > 0.5 });
+      } else if (art.sprite('terrain.wood', 6)) { inkTrunkColumn(g, x, GY - 300, 300); art.drawSprite(g, art.sprite('terrain.wood', 6), x, GY + 14, { height: 300, flip: kit.hash(x) > 0.5 }); }
       else inkTrunk(g, x, GY + 20, { height: 1000 });
     }
     for (const x of MOUNDS) if (cam.sees(x - 300, x + 300)) kit.sprite(g, 'terrain.wood', 5, x, GY + 8, { height: 120 }, () => {});
@@ -762,7 +770,11 @@ export default function create(env) {
       c.facing = b.facing || 1;
       c.alpha = b.got ? 1 - b.t * 2 : 1;
       if (b.got) { art.setAnim(c, 'netted'); } else art.setAnim(c, b.pat === 'skim' ? 'glide' : 'flap');
-      art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
+      const perched = !b.got && b.pat === 'perch' ? art.image('bombanat/plain-perched') : null;
+      if (perched) {
+        // Sitting on the branch (the picture's feet at its bottom edge), facing left.
+        g.save(); g.translate(c.x, c.y + 44); g.scale(-1, 1); g.drawImage(perched, -60, -120, 120, 120); g.restore();
+      } else art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
     }
     // The letter Bombanat (in the net or free), and the player.
     const grithixFirst = bomb.mode === 'netted';

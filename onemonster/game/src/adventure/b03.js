@@ -29,7 +29,9 @@ const INK = '#1b2a3a';
 // stands M.height tall; the full-body poses used under the goo are about 2.5
 // times that, so this sizeK makes him about 250 px tall.
 const SIZE = 0.4;
-const STRIP_H = 124, STRIP_LIFT = 34; // the surface strip: height on screen, crests above the line
+const STRIP_H = 124, STRIP_LIFT = 34;
+// The delivered boats (adv.b03.boats): drawn 320 px tall, waterline at their bottom.
+const BOATS = { h: 320, teal: { w: 320 * 360 / 244, roofX: 0.12, roofY: 0.86 }, red: { w: 320 * 301 / 250, roofX: 0.17, roofY: 0.72, craneY: 0.96 } }; // the surface strip: height on screen, crests above the line
 const HALF = 125; // half his height: his (x, y) is his middle
 
 export const SURF = 380; // the goo's surface (world y)
@@ -115,8 +117,8 @@ function layout(rng) {
   high(4600, 180);
   // 3. The fishing grounds.
   for (const x of [5420, 5850, 6350, 6850, 7250, 7700]) skim(x, 140);
-  perched(sx(6100) - 35, SURF - 136, 1); // on a wheelhouse roof
-  perched(sx(7020) - 35, SURF - 136, -1);
+  perched(sx(6100) + BOATS.red.w * BOATS.red.roofX, SURF + 14 - BOATS.h * BOATS.red.roofY, 1); // on the red boats' wheelhouse roofs
+  perched(sx(7020) + BOATS.red.w * BOATS.red.roofX, SURF + 14 - BOATS.h * BOATS.red.roofY, -1);
   // 4. The whirlpools.
   high(8250, 180);
   high(8950, 188);
@@ -156,7 +158,9 @@ function layout(rng) {
     b.state = 'ready';
     b.T = 0;
     b.cool = 0;
-    b.hx = b.x + (b.kind === 'anchor' ? 150 : 170); // where the anchor or net hangs
+    // Where the anchor (the teal boat's bow, at the right) or the net (the red
+    // boat's crane tip, at the left) hangs; see BOATS.
+    b.hx = b.x + (b.kind === 'anchor' ? BOATS.teal.w * 0.42 : -BOATS.red.w * 0.4);
     b.y = b.kind === 'anchor' ? SURF + 30 : TUNE.netReady;
   }
   const whirlpools = [8500, 9300, 10100].map(sx).map((x) => ({ x, y: FLOOR - 30, R: TUNE.whirlR, ph: rng() * 6 }));
@@ -1494,7 +1498,7 @@ export default function create(env) {
       // The chain: links (the delivered anchor brings its own top links).
       const chainTo = art.sprite(SHEET, 7) ? ay - 110 : ay - 70;
       g.strokeStyle = INK; g.lineWidth = 2.5;
-      for (let yy = SURF - 10; yy < chainTo; yy += 16) { g.beginPath(); g.ellipse(ax, yy + 8, 5, 9, 0, 0, Math.PI * 2); g.stroke(); }
+      for (let yy = SURF + 14 - BOATS.h * 0.3; yy < chainTo; yy += 16) { g.beginPath(); g.ellipse(ax, yy + 8, 5, 9, 0, 0, Math.PI * 2); g.stroke(); }
       kit.sprite(g, SHEET, 7, ax, ay + 50, { height: 170, ax: 0.6 }, () => {
         g.save();
         g.translate(ax, ay);
@@ -1522,10 +1526,11 @@ export default function create(env) {
       const jig = b.state === 'creak' ? Math.sin(t * 35) * 8 : 0;
       const nx = b.hx + jig, ny = b.y;
       // The rope, twisted.
-      g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(nx, SURF - 90); g.lineTo(nx, ny - 150); g.stroke();
-      g.strokeStyle = '#c9a66b'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(nx, SURF - 90); g.lineTo(nx, ny - 150); g.stroke();
+      const ropeTop = SURF + 14 - BOATS.h * BOATS.red.craneY;
+      g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(nx, ropeTop); g.lineTo(nx, ny - 150); g.stroke();
+      g.strokeStyle = '#c9a66b'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(nx, ropeTop); g.lineTo(nx, ny - 150); g.stroke();
       g.strokeStyle = 'rgba(27,42,58,0.5)'; g.lineWidth = 1.5;
-      for (let yy = SURF - 86; yy < ny - 152; yy += 8) { g.beginPath(); g.moveTo(nx - 3, yy); g.lineTo(nx + 3, yy + 4); g.stroke(); }
+      for (let yy = ropeTop + 4; yy < ny - 152; yy += 8) { g.beginPath(); g.moveTo(nx - 3, yy); g.lineTo(nx + 3, yy + 4); g.stroke(); }
       kit.sprite(g, SHEET, 8, nx, ny + 150, { height: 310 }, () => {
         if (!art.drawSprite(g, art.prop('grumley', 7), nx, ny + 150, { height: 300 })) {
           g.strokeStyle = INK; g.lineWidth = 3;
@@ -1546,9 +1551,16 @@ export default function create(env) {
     g.restore();
   }
 
+  // A fishing boat on the surface: the teal Peg-like boat drops the anchor,
+  // the red one with the crane lets down the net. Until the sprites arrive,
+  // an inked boat stands in.
   function drawBoat(g, b) {
     const bob = env.reduceMotion ? 0 : Math.sin(t * 1.3 + b.x * 0.01) * 5;
     const y = SURF + 14 + bob;
+    kit.sprite(g, 'adv.b03.boats', b.kind === 'anchor' ? 1 : 2, b.x, y, { height: BOATS.h }, () => drawInkBoat(g, b, y));
+  }
+
+  function drawInkBoat(g, b, y) {
     const seed = b.x * 0.01;
     g.save();
     g.translate(b.x, y);
@@ -1786,6 +1798,19 @@ export default function create(env) {
     g.save(); g.globalAlpha = 0.2 * Math.max(0.2, 1 - (SURF - f.y) / 500); g.fillStyle = '#10304a';
     g.beginPath(); g.ellipse(f.x, SURF + 6, 44, 9, 0, 0, Math.PI * 2); g.fill(); g.restore();
     c.x = f.x; c.y = f.y;
+    if (f.kind === 'perched') {
+      // The perched image has no branch under it; its feet sit at the perch (52 px below the middle).
+      const img = art.image('bombanat/plain-perched');
+      if (img) {
+        const h = 150, w = h * img.width / img.height;
+        g.save();
+        g.translate(f.x, f.y + 52);
+        if (f.dir < 0) g.scale(-1, 1);
+        g.drawImage(img, -w / 2, -h, w, h);
+        g.restore();
+        return;
+      }
+    }
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
   }
 

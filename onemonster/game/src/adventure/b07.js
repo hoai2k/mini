@@ -37,6 +37,7 @@ const GY = 930; // the base ground line
 const YAL_X = 2480; // where the Yalapappus sits munching
 const START_X = 220;
 const PX_PER_M = 60; // for the "m behind" readout
+const PALM_K = 120 / 180;
 const GRAVITY = 2600; // the Trollusk's: a hop of 970 clears 250 px at a run, 350 at a scurry
 
 // The ground profile, left to right: flats, slopes (y -> y1), holes and the
@@ -111,7 +112,7 @@ const DECOR = [];
 }
 
 export default function create(env) {
-  art.preload(['props.trollusk', 'props.yalapappus', 'props.grithix', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses', 'trollusk.moves', 'yalapappus.moves', 'adv.b07.props', 'terrain.nowhere', 'ui/letter']);
+  art.preload(['props.trollusk', 'props.yalapappus', 'props.grithix', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses', 'trollusk.moves', 'yalapappus.moves', 'adv.b07.props', 'terrain.nowhere', 'adv/b07/palm-arch', 'ui/letter']);
   const gentle = !!env.gentle?.[0];
   const skill = env.skill ?? 0.5;
 
@@ -139,7 +140,11 @@ export default function create(env) {
   const rocks = ROCKS.map((x) => ({ x: x - 68, y: profileY(x) - 110, w: 136, h: 110, kind: 'rock', cx: x }));
   const stones = STONES.map((x) => ({ x: x - 65, y: GY, w: 130, h: 90, kind: 'stone', cx: x }));
   const branches = BRANCHES.map((x) => ({ x: x - 150, y: profileY(x) - 172, w: 300, h: 72, kind: 'branch', cx: x }));
-  const palms = PALMS.map((x) => ({ x: x - 170, y: profileY(x) - 160, w: 340, h: 60, kind: 'palm', cx: x }));
+  // The propped fallen palm (adv/b07/palm-arch, 1400 x 700: ground line at row
+  // 585, the trunk's underside 180 rows above it mid-span, 95 rows thick) is
+  // drawn at PALM_K, so the gap under the trunk is 120 px: a slide (85) passes,
+  // a runner (185) bumps. The solid is the trunk's mid-span.
+  const palms = PALMS.map((x) => ({ x: x - 170, y: profileY(x) - 180, w: 340, h: 60, kind: 'palm', cx: x }));
   const puddles = PUDDLES.map((x) => ({ x: x - 110, x1: x + 110, cx: x, y: profileY(x) }));
   solids.push(...rocks, ...stones, ...branches, ...palms);
   ySolids.push(...stones);
@@ -1322,11 +1327,17 @@ function inkLeaf(g, x0, y0, x1, y1, fill) {
   g.stroke();
 }
 
-// adv.b07.props 8 shows the palm lying flat on the ground, crown and all: it
-// can't be slid under, so the propped-up stand-in stays until a raised one
-// is delivered.
+// adv.b07.props 8 shows the palm lying flat on the ground, so the propped one
+// (adv/b07/palm-arch) is used instead; the inked stand-in remains as fallback.
 function drawFallenPalm(g, b) {
   const bottom = b.y + b.h, top = b.y;
+  const img = art.image('adv/b07/palm-arch');
+  if (img) {
+    const gy = profileY(b.cx) ?? bottom;
+    const w = img.width * PALM_K, h = img.height * PALM_K;
+    g.drawImage(img, b.cx - w / 2, gy + 115 * PALM_K - h, w, h);
+    return;
+  }
   (() => {
     g.save();
     g.lineJoin = 'round';

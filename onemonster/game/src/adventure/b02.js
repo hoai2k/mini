@@ -57,7 +57,11 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log:
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
 const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700, 230, true], [10650, 240], [12500, 230, true]];
-const HOLE = 300; // the hollow's height
+const HOLE = 253; // the hollow's height: the drawn hole of adv.trunks 2 at the column's width
+// The trunk column sprites (adv.trunks): item 1 plain bark, item 2 with a hole
+// through it. Drawn TRUNK_W wide; the hole in item 2 spans rows 127..213 of 360.
+const TRUNK_W = 300;
+const HOLE_TOP = 127 / 360, HOLE_BOTTOM = 213 / 360;
 const BOUGHS = [[2250, 400], [5800, 390], [9350, 360], [12900, 400]];
 const BRANCHES = [[200, 380, 420, 1], [1250, 520, 350, 1], [2900, 410, 380, -1],
   [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
@@ -118,7 +122,7 @@ export default function create(env) {
   const solids = [{ x: -400, y: FLOOR, w: 14850, h: 400, kind: 'floor' }];
   for (const s of SECTIONS) if (!s.open) solids.push({ x: s.x0, y: LEAF_TOP, w: s.x1 - s.x0, h: FLOOR - LEAF_TOP, kind: 'leaves' });
   const trees = TRUNKS.map(([x, top, face]) => {
-    const hw = 100;
+    const hw = 140;
     // The trunk below the hollow (its sill can be perched on) and above it.
     const s = { x: x - hw, y: top + HOLE, w: hw * 2, h: FLOOR - top - HOLE, kind: 'trunk', face: !!face, state: 'idle', t: 0, cool: 0, cx: x, hw, hole: top };
     solids.push(s);
@@ -844,7 +848,26 @@ export default function create(env) {
   // top, so it cannot stand as a tall column; it stays unused here.
   function drawTrunk(g, s, tt) {
     const x = s.cx;
-    inkTrunk(g, s);
+    const plain = art.sprite('adv.trunks', 1), holed = art.sprite('adv.trunks', 2);
+    if (!plain || !holed) inkTrunk(g, s);
+    else {
+      // The column: the holed section with its drawn hole on the gameplay
+      // hollow, plain bark tiled below it to the floor and above it out of
+      // the frame, every other tile mirrored so the joins vary.
+      const k2 = TRUNK_W / holed.w, k1 = TRUNK_W / plain.w;
+      const h2 = holed.h * k2, h1 = plain.h * k1;
+      const top2 = s.hole - HOLE_TOP * h2;
+      const bottom2 = top2 + h2;
+      let i = 0;
+      for (let y = bottom2; y < FLOOR + 6; y += h1, i++) {
+        const cut = Math.min(h1, FLOOR + 6 - y) / k1;
+        g.save(); g.beginPath(); g.rect(x - TRUNK_W, y, TRUNK_W * 2, cut * k1 + 1); g.clip();
+        art.drawSprite(g, plain, x, y, { scale: k1, ax: 0.5, ay: 0, flip: i % 2 === 1 });
+        g.restore();
+      }
+      for (let y = top2 - h1, j = 1; y + h1 > -60; y -= h1, j++) art.drawSprite(g, plain, x, y, { scale: k1, ax: 0.5, ay: 0, flip: j % 2 === 1 });
+      art.drawSprite(g, holed, x, top2, { scale: k2, ax: 0.5, ay: 0 });
+    }
     // The delivered tree foot (terrain.wood 6, roots and a face) at the base.
     kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 6, { height: 330 });
     if (s.face) {
