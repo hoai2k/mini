@@ -556,11 +556,11 @@ export const ASSETS = {
   },
   "adv.b07.palmArch": {
     "file": "assets/adventure/b07/palm-arch.png",
-    "delivered": false
+    "delivered": true
   },
   "adv.b05.windmill": {
     "file": "assets/adventure/b05/windmill.png",
-    "delivered": false
+    "delivered": true
   },
   "adv.b03.boats": {
     "file": "assets/adventure/b03/boats.png",
@@ -568,10 +568,10 @@ export const ASSETS = {
   },
   "bombanat.plainPerch": {
     "file": "assets/monsters/bombanat/plain-perched.png",
-    "delivered": false
+    "delivered": true
   },
   "adv.trunks": {
     "file": "assets/adventure/terrain/trunks.png",
-    "delivered": false
+    "delivered": true
   }
 };
