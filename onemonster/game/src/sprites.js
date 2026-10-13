@@ -20,6 +20,7 @@ export const SPRITES = {
     "frozen in disguise: a leafy twig held in front of his face, only the hat poking over it",
     "skidding round on a turn mid-scurry, dust flying"
    ],
+   "scale": 1.41732,
    "items": [
     {
      "src": "sprites/trollusk/poses/01.webp",
@@ -111,6 +112,7 @@ export const SPRITES = {
     "stalled in mid-air, fluttering frantically",
     "pulling up out of a dive into a swoop, wings wide"
    ],
+   "scale": 1.125,
    "items": [
     {
      "src": "sprites/bombanat/poses/01.webp",
@@ -203,6 +205,7 @@ export const SPRITES = {
     "gliding under the goo: only the horns and eyes showing, a V-shaped wake behind",
     "a full lunge: his whole head and body thrown up out of the goo, tentacles flying"
    ],
+   "scale": 0.92308,
    "items": [
     {
      "src": "sprites/grumley/poses/01.webp",
@@ -271,6 +274,7 @@ export const SPRITES = {
     "eyeing the prize: the beady eye just opening in its crevice, sly",
     "celebrating: the eye glaring in triumph, the sea lions clapping their flippers"
    ],
+   "scale": 1.05109,
    "items": [
     {
      "src": "sprites/iceferg/poses/01.webp",
@@ -319,6 +323,7 @@ export const SPRITES = {
     "celebrating: a great swirling burp, the cloud billowing out happily",
     "rolling along at speed, cloud puffs streaming behind, the spout swinging wide"
    ],
+   "scale": 0.84806,
    "items": [
     {
      "src": "sprites/typhoonigator/poses/01.webp",
@@ -372,6 +377,7 @@ export const SPRITES = {
     "celebrating: patting his tummy, napkin flapping, grinning",
     "unrolling, dizzy and wobbling"
    ],
+   "scale": 1.16694,
    "items": [
     {
      "src": "sprites/yalapappus/poses/01.webp",
@@ -452,6 +458,7 @@ export const SPRITES = {
     "pole-vaulting: at the top of the arc, robe billowing, tail streaming",
     "landing from the vault, knees bent"
    ],
+   "scale": 1.27434,
    "items": [
     {
      "src": "sprites/grithix/poses/01.webp",
@@ -537,6 +544,7 @@ export const SPRITES = {
     "the near paw clenched in a fist",
     "the whole Yalapappus tucked into a round furry ball, napkin and paws wrapped in, for rolling (the game spins it)"
    ],
+   "scale": 0.71429,
    "items": [
     {
      "src": "sprites/yalapappus/swaps/01.webp",
@@ -597,6 +605,7 @@ export const SPRITES = {
     "the same mailbox with the red flag up and the door open",
     "an eye-shaped warning bubble with a startled eye in it"
    ],
+   "scale": 0.56782,
    "items": [
     {
      "src": "sprites/props/trollusk/01.webp",
@@ -657,6 +666,7 @@ export const SPRITES = {
     "a folded paper hat",
     "a crumpled newspaper page"
    ],
+   "scale": 0.6338,
    "items": [
     {
      "src": "sprites/props/bombanat/01.webp",
@@ -715,6 +725,7 @@ export const SPRITES = {
     "a ring of goo splash, seen side-on",
     "the fishing boat's big net hanging from a crane hook, open, side-on"
    ],
+   "scale": 0.52632,
    "items": [
     {
      "src": "sprites/props/grumley/01.webp",
@@ -763,6 +774,7 @@ export const SPRITES = {
     "a white splash ring",
     "the Peg leaning into a turn, a puff of steam from its funnel"
    ],
+   "scale": 0.54711,
    "items": [
     {
      "src": "sprites/props/iceferg/01.webp",
@@ -813,6 +825,7 @@ export const SPRITES = {
     "a blob of blue goo",
     "the captain's bottle half under a wave, only its neck showing"
    ],
+   "scale": 0.59211,
    "items": [
     {
      "src": "sprites/props/typhoonigator/01.webp",
@@ -877,6 +890,7 @@ export const SPRITES = {
     "a fish falling, flapping",
     "a falling blob of blue goo"
    ],
+   "scale": 0.82192,
    "items": [
     {
      "src": "sprites/props/yalapappus/01.webp",
@@ -953,6 +967,7 @@ export const SPRITES = {
     "a clump of ferns for the foreground",
     "a gnarled root to trip over"
    ],
+   "scale": 0.37815,
    "items": [
     {
      "src": "sprites/props/grithix/01.webp",
@@ -981,6 +996,1458 @@ export const SPRITES = {
     }
    ]
   },
+  "trollusk.moves": {
+   "names": [
+    "crouched to jump, knees bent, hat squashed down",
+    "jumping up, arms flung up, bag swinging below",
+    "falling, legs dangling, hat lifting off his head",
+    "landing in a deep squash, dust puffing out",
+    "hanging from a ledge by both hands, feet kicking",
+    "pulling himself up over a ledge, one knee up",
+    "sliding along on his belly under something low, snout first",
+    "knocked back, tumbling, stars round his head, stamps flying from the bag",
+    "balancing on tiptoe on a narrow rail, arms out wide",
+    "sniffing a postage stamp held up in both hands, eyes shut in bliss",
+    "running flat out and looking back over his shoulder in alarm, a letter clamped in his snout",
+    "soaked and dripping, hat drooping, after a splash of water"
+   ],
+   "scale": 1.07143,
+   "items": [
+    {
+     "src": "sprites/trollusk/moves/01.webp",
+     "w": 483,
+     "h": 502
+    },
+    {
+     "src": "sprites/trollusk/moves/02.webp",
+     "w": 469,
+     "h": 636
+    },
+    {
+     "src": "sprites/trollusk/moves/03.webp",
+     "w": 440,
+     "h": 720
+    },
+    {
+     "src": "sprites/trollusk/moves/04.webp",
+     "w": 557,
+     "h": 420
+    },
+    {
+     "src": "sprites/trollusk/moves/05.webp",
+     "w": 459,
+     "h": 590
+    },
+    {
+     "src": "sprites/trollusk/moves/06.webp",
+     "w": 486,
+     "h": 581
+    },
+    {
+     "src": "sprites/trollusk/moves/07.webp",
+     "w": 587,
+     "h": 298
+    },
+    {
+     "src": "sprites/trollusk/moves/08.webp",
+     "w": 488,
+     "h": 550
+    },
+    {
+     "src": "sprites/trollusk/moves/09.webp",
+     "w": 489,
+     "h": 649
+    },
+    {
+     "src": "sprites/trollusk/moves/10.webp",
+     "w": 376,
+     "h": 603
+    },
+    {
+     "src": "sprites/trollusk/moves/11.webp",
+     "w": 534,
+     "h": 495
+    },
+    {
+     "src": "sprites/trollusk/moves/12.webp",
+     "w": 479,
+     "h": 518
+    }
+   ]
+  },
+  "bombanat.moves": {
+   "names": [
+    "flying flat out with a white envelope in his teeth, wings at mid-stroke",
+    "tumbling through the air after a bump, wings crumpled, propeller bent",
+    "hanging upside down from a branch by his feet, wings wrapped round him, asleep",
+    "banking hard into a turn, one wing high",
+    "straining at a hard climbing stroke, wings swept fully down",
+    "pulling up out of a dive into a swoop, wings spread, propeller whirring",
+    "munching a scrap of paper in flight, cheeks full",
+    "blown backwards by a gust, wings inside out like an umbrella",
+    "wings drooping and heavy, soaked and dripping"
+   ],
+   "scale": 0.99861,
+   "items": [
+    {
+     "src": "sprites/bombanat/moves/01.webp",
+     "w": 720,
+     "h": 496
+    },
+    {
+     "src": "sprites/bombanat/moves/02.webp",
+     "w": 601,
+     "h": 512
+    },
+    {
+     "src": "sprites/bombanat/moves/03.webp",
+     "w": 545,
+     "h": 593
+    },
+    {
+     "src": "sprites/bombanat/moves/04.webp",
+     "w": 629,
+     "h": 629
+    },
+    {
+     "src": "sprites/bombanat/moves/05.webp",
+     "w": 578,
+     "h": 445
+    },
+    {
+     "src": "sprites/bombanat/moves/06.webp",
+     "w": 597,
+     "h": 546
+    },
+    {
+     "src": "sprites/bombanat/moves/07.webp",
+     "w": 677,
+     "h": 498
+    },
+    {
+     "src": "sprites/bombanat/moves/08.webp",
+     "w": 596,
+     "h": 576
+    },
+    {
+     "src": "sprites/bombanat/moves/09.webp",
+     "w": 559,
+     "h": 471
+    }
+   ]
+  },
+  "grumley.moves": {
+   "names": [
+    "swimming underwater seen side-on facing right, body stretched out, tentacles streaming behind, crab arms reaching forward",
+    "swimming underwater, the tentacles pulled in for the next kick",
+    "diving steeply down, head first, tentacles trailing up behind",
+    "bursting up out of the goo in a leap, the whole body in the air, tentacles flung out",
+    "squirting a jet of goo from his mouth to shoot forward, cheeks puffed",
+    "both crab claws stretched straight up, snapping shut",
+    "tangled in a fishing net, struggling",
+    "spun and dizzy after a bump, spectacles askew",
+    "clinging to a rock with his tentacles, resting"
+   ],
+   "scale": 0.93628,
+   "items": [
+    {
+     "src": "sprites/grumley/moves/01.webp",
+     "w": 720,
+     "h": 315
+    },
+    {
+     "src": "sprites/grumley/moves/02.webp",
+     "w": 590,
+     "h": 318
+    },
+    {
+     "src": "sprites/grumley/moves/03.webp",
+     "w": 454,
+     "h": 646
+    },
+    {
+     "src": "sprites/grumley/moves/04.webp",
+     "w": 572,
+     "h": 675
+    },
+    {
+     "src": "sprites/grumley/moves/05.webp",
+     "w": 677,
+     "h": 460
+    },
+    {
+     "src": "sprites/grumley/moves/06.webp",
+     "w": 457,
+     "h": 610
+    },
+    {
+     "src": "sprites/grumley/moves/07.webp",
+     "w": 585,
+     "h": 529
+    },
+    {
+     "src": "sprites/grumley/moves/08.webp",
+     "w": 551,
+     "h": 551
+    },
+    {
+     "src": "sprites/grumley/moves/09.webp",
+     "w": 586,
+     "h": 498
+    }
+   ]
+  },
+  "iceferg.moves": {
+   "names": [
+    "seen exactly side-on facing right, floating, the waterline along its bottom edge",
+    "sunk low in the water, only its top ledges and the eye above the waterline",
+    "risen high, its great dark underwater part showing below a waterline near the bottom",
+    "charging forward side-on, leaning in, spray bursting off the front",
+    "cracked, a chunk broken off its front, glaring",
+    "small and melted down to half its size, dripping, still glaring"
+   ],
+   "scale": 0.80178,
+   "items": [
+    {
+     "src": "sprites/iceferg/moves/01.webp",
+     "w": 546,
+     "h": 583
+    },
+    {
+     "src": "sprites/iceferg/moves/02.webp",
+     "w": 530,
+     "h": 362
+    },
+    {
+     "src": "sprites/iceferg/moves/03.webp",
+     "w": 533,
+     "h": 720
+    },
+    {
+     "src": "sprites/iceferg/moves/04.webp",
+     "w": 564,
+     "h": 535
+    },
+    {
+     "src": "sprites/iceferg/moves/05.webp",
+     "w": 548,
+     "h": 559
+    },
+    {
+     "src": "sprites/iceferg/moves/06.webp",
+     "w": 419,
+     "h": 369
+    }
+   ]
+  },
+  "typhoonigator.moves": {
+   "names": [
+    "seen side-on facing right, rolling along the sky, the water spout trailing back below it",
+    "side-on, sucking hard, cheeks hollow, the spout pulled straight down",
+    "side-on, blowing a great gust forward, cheeks puffed out",
+    "side-on, swollen huge and heavy with everything it swallowed, sagging",
+    "side-on, shrunk to a thin wispy little cloud, worried",
+    "side-on, thundering in a temper, dark, a little lightning crackling"
+   ],
+   "scale": 0.97561,
+   "items": [
+    {
+     "src": "sprites/typhoonigator/moves/01.webp",
+     "w": 653,
+     "h": 534
+    },
+    {
+     "src": "sprites/typhoonigator/moves/02.webp",
+     "w": 556,
+     "h": 594
+    },
+    {
+     "src": "sprites/typhoonigator/moves/03.webp",
+     "w": 720,
+     "h": 519
+    },
+    {
+     "src": "sprites/typhoonigator/moves/04.webp",
+     "w": 645,
+     "h": 541
+    },
+    {
+     "src": "sprites/typhoonigator/moves/05.webp",
+     "w": 588,
+     "h": 291
+    },
+    {
+     "src": "sprites/typhoonigator/moves/06.webp",
+     "w": 669,
+     "h": 564
+    }
+   ]
+  },
+  "yalapappus.moves": {
+   "names": [
+    "crouching to hop, knees bent, fork up",
+    "in the air at the top of a big hop",
+    "dropping bottom-first in a ground-pound, ears flying up",
+    "hugging a tree trunk and shaking it",
+    "stuck in a blob of blue goo up to his knees, straining",
+    "looking straight up with arms raised and mouth open, waiting to catch something on his head",
+    "trundling after something in a temper, fork raised, shouting",
+    "rolling uphill in a ball, slowing"
+   ],
+   "scale": 1.02857,
+   "items": [
+    {
+     "src": "sprites/yalapappus/moves/01.webp",
+     "w": 598,
+     "h": 572
+    },
+    {
+     "src": "sprites/yalapappus/moves/02.webp",
+     "w": 590,
+     "h": 578
+    },
+    {
+     "src": "sprites/yalapappus/moves/03.webp",
+     "w": 654,
+     "h": 621
+    },
+    {
+     "src": "sprites/yalapappus/moves/04.webp",
+     "w": 693,
+     "h": 707
+    },
+    {
+     "src": "sprites/yalapappus/moves/05.webp",
+     "w": 653,
+     "h": 556
+    },
+    {
+     "src": "sprites/yalapappus/moves/06.webp",
+     "w": 561,
+     "h": 651
+    },
+    {
+     "src": "sprites/yalapappus/moves/07.webp",
+     "w": 720,
+     "h": 554
+    },
+    {
+     "src": "sprites/yalapappus/moves/08.webp",
+     "w": 638,
+     "h": 515
+    }
+   ]
+  },
+  "grithix.moves": {
+   "names": [
+    "swinging the net straight up overhead",
+    "scooping the net low along the ground",
+    "striding along holding a letter up high in one hand, the net over his shoulder",
+    "ducking under a low branch, robe gathered",
+    "balancing on a log, arms and net out",
+    "stepping high over a root, robe lifted"
+   ],
+   "scale": 0.69971,
+   "items": [
+    {
+     "src": "sprites/grithix/moves/01.webp",
+     "w": 353,
+     "h": 720
+    },
+    {
+     "src": "sprites/grithix/moves/02.webp",
+     "w": 593,
+     "h": 405
+    },
+    {
+     "src": "sprites/grithix/moves/03.webp",
+     "w": 377,
+     "h": 511
+    },
+    {
+     "src": "sprites/grithix/moves/04.webp",
+     "w": 498,
+     "h": 527
+    },
+    {
+     "src": "sprites/grithix/moves/05.webp",
+     "w": 502,
+     "h": 536
+    },
+    {
+     "src": "sprites/grithix/moves/06.webp",
+     "w": 395,
+     "h": 530
+    }
+   ]
+  },
+  "adv.b01.props": {
+   "names": [
+    "a red postage stamp with a scalloped edge, fluttering",
+    "a blue postage stamp with a scalloped edge, spinning",
+    "a garden sprinkler on a spike, side-on",
+    "a tin dustbin with its lid on, side-on",
+    "a dustbin lid lying flat, as a springboard",
+    "a scruffy little dog asleep in front of a wooden kennel",
+    "the same dog awake, barking, straining on a rope",
+    "the same dog running, ears flapping",
+    "a garden gnome with a fishing rod",
+    "a wheelbarrow full of flowerpots, side-on",
+    "a round leafy hedge bush to hide in",
+    "a wooden signpost with a blank board, side-on"
+   ],
+   "scale": 0.69767,
+   "items": [
+    {
+     "src": "sprites/adv/b01/props/01.webp",
+     "w": 246,
+     "h": 202
+    },
+    {
+     "src": "sprites/adv/b01/props/02.webp",
+     "w": 202,
+     "h": 223
+    },
+    {
+     "src": "sprites/adv/b01/props/03.webp",
+     "w": 337,
+     "h": 315
+    },
+    {
+     "src": "sprites/adv/b01/props/04.webp",
+     "w": 263,
+     "h": 301
+    },
+    {
+     "src": "sprites/adv/b01/props/05.webp",
+     "w": 308,
+     "h": 99
+    },
+    {
+     "src": "sprites/adv/b01/props/06.webp",
+     "w": 335,
+     "h": 312
+    },
+    {
+     "src": "sprites/adv/b01/props/07.webp",
+     "w": 347,
+     "h": 267
+    },
+    {
+     "src": "sprites/adv/b01/props/08.webp",
+     "w": 299,
+     "h": 236
+    },
+    {
+     "src": "sprites/adv/b01/props/09.webp",
+     "w": 292,
+     "h": 315
+    },
+    {
+     "src": "sprites/adv/b01/props/10.webp",
+     "w": 334,
+     "h": 257
+    },
+    {
+     "src": "sprites/adv/b01/props/11.webp",
+     "w": 339,
+     "h": 299
+    },
+    {
+     "src": "sprites/adv/b01/props/12.webp",
+     "w": 216,
+     "h": 360
+    }
+   ]
+  },
+  "adv.b02.props": {
+   "names": [
+    "a torn old ticket, fluttering",
+    "a folded paper hat, fluttering",
+    "a crumpled newspaper page, blowing",
+    "a paper menu, flapping",
+    "a red bird in flight, cross, beak open",
+    "the same red bird perched",
+    "a big cobweb strung between two twigs",
+    "a hanging vine with leaves",
+    "a gust of wind drawn as curling strokes and blown leaves",
+    "a hollow log with a dark opening, side-on",
+    "a low bush, round and leafy",
+    "a tree knot face blowing out its cheeks"
+   ],
+   "scale": 0.58537,
+   "items": [
+    {
+     "src": "sprites/adv/b02/props/01.webp",
+     "w": 246,
+     "h": 207
+    },
+    {
+     "src": "sprites/adv/b02/props/02.webp",
+     "w": 237,
+     "h": 198
+    },
+    {
+     "src": "sprites/adv/b02/props/03.webp",
+     "w": 259,
+     "h": 265
+    },
+    {
+     "src": "sprites/adv/b02/props/04.webp",
+     "w": 235,
+     "h": 287
+    },
+    {
+     "src": "sprites/adv/b02/props/05.webp",
+     "w": 277,
+     "h": 275
+    },
+    {
+     "src": "sprites/adv/b02/props/06.webp",
+     "w": 203,
+     "h": 262
+    },
+    {
+     "src": "sprites/adv/b02/props/07.webp",
+     "w": 321,
+     "h": 297
+    },
+    {
+     "src": "sprites/adv/b02/props/08.webp",
+     "w": 164,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/b02/props/09.webp",
+     "w": 270,
+     "h": 263
+    },
+    {
+     "src": "sprites/adv/b02/props/10.webp",
+     "w": 293,
+     "h": 185
+    },
+    {
+     "src": "sprites/adv/b02/props/11.webp",
+     "w": 291,
+     "h": 229
+    },
+    {
+     "src": "sprites/adv/b02/props/12.webp",
+     "w": 255,
+     "h": 305
+    }
+   ]
+  },
+  "adv.b03.props": {
+   "names": [
+    "a plain mauve bat-winged Bombanat in flight, with no necktie and no cap",
+    "the same plain Bombanat, wings up",
+    "a scowling fish, side-on",
+    "a giant eye in the goo, open, with a lid",
+    "the same giant eye shut",
+    "a long tentacle curling up from below",
+    "a heavy ship's anchor on a chain, falling",
+    "a fishing net hanging down on a rope, open",
+    "a whirlpool in the goo, seen side-on as a swirling funnel",
+    "a big wobbly goo bubble, glossy",
+    "a wicker picnic basket, lid open",
+    "a shark fin cutting through the surface"
+   ],
+   "scale": 0.56075,
+   "items": [
+    {
+     "src": "sprites/adv/b03/props/01.webp",
+     "w": 301,
+     "h": 251
+    },
+    {
+     "src": "sprites/adv/b03/props/02.webp",
+     "w": 247,
+     "h": 319
+    },
+    {
+     "src": "sprites/adv/b03/props/03.webp",
+     "w": 260,
+     "h": 195
+    },
+    {
+     "src": "sprites/adv/b03/props/04.webp",
+     "w": 269,
+     "h": 203
+    },
+    {
+     "src": "sprites/adv/b03/props/05.webp",
+     "w": 297,
+     "h": 198
+    },
+    {
+     "src": "sprites/adv/b03/props/06.webp",
+     "w": 284,
+     "h": 343
+    },
+    {
+     "src": "sprites/adv/b03/props/07.webp",
+     "w": 214,
+     "h": 350
+    },
+    {
+     "src": "sprites/adv/b03/props/08.webp",
+     "w": 223,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/b03/props/09.webp",
+     "w": 285,
+     "h": 270
+    },
+    {
+     "src": "sprites/adv/b03/props/10.webp",
+     "w": 267,
+     "h": 251
+    },
+    {
+     "src": "sprites/adv/b03/props/11.webp",
+     "w": 220,
+     "h": 243
+    },
+    {
+     "src": "sprites/adv/b03/props/12.webp",
+     "w": 284,
+     "h": 201
+    }
+   ]
+  },
+  "adv.b04.props": {
+   "names": [
+    "an olive-yellow whiskered sea lion lounging, side-on",
+    "the same sea lion sitting up, clapping its flippers",
+    "the same sea lion sliding off, flippers up",
+    "a wooden crate floating",
+    "a red-and-white buoy, bobbing",
+    "a barrel floating",
+    "a small tugboat with a funnel, side-on",
+    "the captain's fishing boat, the Peg, side-on, sailing right: a stout teal hull with portholes, a wooden wheelhouse and a crane with a net",
+    "a seagull, wings spread",
+    "a puff of freezing mist",
+    "a warm current drawn as wavy orange-pink streaks in the water",
+    "a burst of ice shards and spray"
+   ],
+   "scale": 0.80357,
+   "items": [
+    {
+     "src": "sprites/adv/b04/props/01.webp",
+     "w": 336,
+     "h": 235
+    },
+    {
+     "src": "sprites/adv/b04/props/02.webp",
+     "w": 256,
+     "h": 322
+    },
+    {
+     "src": "sprites/adv/b04/props/03.webp",
+     "w": 301,
+     "h": 262
+    },
+    {
+     "src": "sprites/adv/b04/props/04.webp",
+     "w": 312,
+     "h": 205
+    },
+    {
+     "src": "sprites/adv/b04/props/05.webp",
+     "w": 268,
+     "h": 276
+    },
+    {
+     "src": "sprites/adv/b04/props/06.webp",
+     "w": 294,
+     "h": 206
+    },
+    {
+     "src": "sprites/adv/b04/props/07.webp",
+     "w": 326,
+     "h": 346
+    },
+    {
+     "src": "sprites/adv/b04/props/08.webp",
+     "w": 359,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/b04/props/09.webp",
+     "w": 333,
+     "h": 266
+    },
+    {
+     "src": "sprites/adv/b04/props/10.webp",
+     "w": 293,
+     "h": 223
+    },
+    {
+     "src": "sprites/adv/b04/props/11.webp",
+     "w": 308,
+     "h": 185
+    },
+    {
+     "src": "sprites/adv/b04/props/12.webp",
+     "w": 309,
+     "h": 310
+    }
+   ]
+  },
+  "adv.b05.props": {
+   "names": [
+    "the captain's glass bottle, corked, with a red-and-white label and a rolled note inside, bobbing upright",
+    "a plain green bottle, bobbing",
+    "a plain brown bottle, bobbing",
+    "a silver fish leaping",
+    "a pink rubber raft with three hooded sailors paddling and an S.O.S. flag, side-on",
+    "the captain in the raft reaching out with a boat hook",
+    "a windmill, side-on, sails turning",
+    "a flock of gulls",
+    "a shaft of sunlight breaking through the cloud",
+    "a dark little rain cloud",
+    "a lighthouse on a rock",
+    "a blob of blue goo, flying"
+   ],
+   "scale": 0.31196,
+   "items": [
+    {
+     "src": "sprites/adv/b05/props/01.webp",
+     "w": 121,
+     "h": 150
+    },
+    {
+     "src": "sprites/adv/b05/props/02.webp",
+     "w": 123,
+     "h": 139
+    },
+    {
+     "src": "sprites/adv/b05/props/03.webp",
+     "w": 117,
+     "h": 138
+    },
+    {
+     "src": "sprites/adv/b05/props/04.webp",
+     "w": 118,
+     "h": 146
+    },
+    {
+     "src": "sprites/adv/b05/props/05.webp",
+     "w": 360,
+     "h": 171
+    },
+    {
+     "src": "sprites/adv/b05/props/06.webp",
+     "w": 170,
+     "h": 173
+    },
+    {
+     "src": "sprites/adv/b05/props/07.webp",
+     "w": 110,
+     "h": 117
+    },
+    {
+     "src": "sprites/adv/b05/props/08.webp",
+     "w": 60,
+     "h": 49
+    },
+    {
+     "src": "sprites/adv/b05/props/09.webp",
+     "w": 159,
+     "h": 163
+    },
+    {
+     "src": "sprites/adv/b05/props/10.webp",
+     "w": 134,
+     "h": 127
+    },
+    {
+     "src": "sprites/adv/b05/props/11.webp",
+     "w": 164,
+     "h": 174
+    },
+    {
+     "src": "sprites/adv/b05/props/12.webp",
+     "w": 129,
+     "h": 80
+    }
+   ]
+  },
+  "adv.b06.props": {
+   "names": [
+    "a torn scrap of paper",
+    "a paper menu",
+    "a crumpled newspaper",
+    "a paper bag",
+    "a small fishing boat falling, side-on, upside down",
+    "a fish falling, flapping",
+    "a falling blob of blue goo",
+    "the captain's bottle falling, red-and-white label",
+    "a little pink octopus, waving",
+    "a grumpy toad, side-on",
+    "a bush full of paper scraps caught in its leaves",
+    "a round shadow on the ground (a soft dark ellipse)"
+   ],
+   "scale": 0.67669,
+   "items": [
+    {
+     "src": "sprites/adv/b06/props/01.webp",
+     "w": 247,
+     "h": 201
+    },
+    {
+     "src": "sprites/adv/b06/props/02.webp",
+     "w": 266,
+     "h": 321
+    },
+    {
+     "src": "sprites/adv/b06/props/03.webp",
+     "w": 289,
+     "h": 332
+    },
+    {
+     "src": "sprites/adv/b06/props/04.webp",
+     "w": 246,
+     "h": 355
+    },
+    {
+     "src": "sprites/adv/b06/props/05.webp",
+     "w": 319,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/b06/props/06.webp",
+     "w": 273,
+     "h": 269
+    },
+    {
+     "src": "sprites/adv/b06/props/07.webp",
+     "w": 185,
+     "h": 316
+    },
+    {
+     "src": "sprites/adv/b06/props/08.webp",
+     "w": 223,
+     "h": 321
+    },
+    {
+     "src": "sprites/adv/b06/props/09.webp",
+     "w": 319,
+     "h": 310
+    },
+    {
+     "src": "sprites/adv/b06/props/10.webp",
+     "w": 287,
+     "h": 237
+    },
+    {
+     "src": "sprites/adv/b06/props/11.webp",
+     "w": 334,
+     "h": 307
+    },
+    {
+     "src": "sprites/adv/b06/props/12.webp",
+     "w": 233,
+     "h": 58
+    }
+   ]
+  },
+  "adv.b07.props": {
+   "names": [
+    "a red postage stamp with a scalloped edge, fluttering",
+    "a green postage stamp with a scalloped edge, spinning",
+    "a big fern clump to hide behind",
+    "a round grey rock",
+    "a low branch hanging across the path",
+    "a puddle of goo on the ground, side-on",
+    "a crooked signpost with two blank boards pointing opposite ways",
+    "a fallen palm trunk across the path",
+    "a pile of munched paper scraps",
+    "a stream with stepping stones, side-on",
+    "a scrubby bush",
+    "a cloud of dust kicked up"
+   ],
+   "scale": 0.61433,
+   "items": [
+    {
+     "src": "sprites/adv/b07/props/01.webp",
+     "w": 219,
+     "h": 174
+    },
+    {
+     "src": "sprites/adv/b07/props/02.webp",
+     "w": 182,
+     "h": 213
+    },
+    {
+     "src": "sprites/adv/b07/props/03.webp",
+     "w": 298,
+     "h": 295
+    },
+    {
+     "src": "sprites/adv/b07/props/04.webp",
+     "w": 272,
+     "h": 184
+    },
+    {
+     "src": "sprites/adv/b07/props/05.webp",
+     "w": 360,
+     "h": 212
+    },
+    {
+     "src": "sprites/adv/b07/props/06.webp",
+     "w": 246,
+     "h": 319
+    },
+    {
+     "src": "sprites/adv/b07/props/07.webp",
+     "w": 315,
+     "h": 269
+    },
+    {
+     "src": "sprites/adv/b07/props/08.webp",
+     "w": 311,
+     "h": 131
+    },
+    {
+     "src": "sprites/adv/b07/props/09.webp",
+     "w": 277,
+     "h": 184
+    },
+    {
+     "src": "sprites/adv/b07/props/10.webp",
+     "w": 300,
+     "h": 253
+    },
+    {
+     "src": "sprites/adv/b07/props/11.webp",
+     "w": 313,
+     "h": 249
+    },
+    {
+     "src": "sprites/adv/b07/props/12.webp",
+     "w": 265,
+     "h": 232
+    }
+   ]
+  },
+  "adv.b08.props": {
+   "names": [
+    "a torn scrap of paper fluttering",
+    "a rolled scrap of note, scribbled (no readable words)",
+    "a rising warm air current drawn as wavy upward strokes",
+    "a dark rain cloud, raining",
+    "a flying fork",
+    "a flying rock",
+    "a flying blob of goo",
+    "a crow in flight",
+    "a butterfly net on a yellow pole poking up out of a bush",
+    "a kite with a tail, side-on",
+    "a scrubby bush",
+    "a lone bent tree"
+   ],
+   "scale": 0.59701,
+   "items": [
+    {
+     "src": "sprites/adv/b08/props/01.webp",
+     "w": 226,
+     "h": 207
+    },
+    {
+     "src": "sprites/adv/b08/props/02.webp",
+     "w": 244,
+     "h": 159
+    },
+    {
+     "src": "sprites/adv/b08/props/03.webp",
+     "w": 223,
+     "h": 339
+    },
+    {
+     "src": "sprites/adv/b08/props/04.webp",
+     "w": 307,
+     "h": 311
+    },
+    {
+     "src": "sprites/adv/b08/props/05.webp",
+     "w": 257,
+     "h": 162
+    },
+    {
+     "src": "sprites/adv/b08/props/06.webp",
+     "w": 236,
+     "h": 109
+    },
+    {
+     "src": "sprites/adv/b08/props/07.webp",
+     "w": 248,
+     "h": 141
+    },
+    {
+     "src": "sprites/adv/b08/props/08.webp",
+     "w": 282,
+     "h": 294
+    },
+    {
+     "src": "sprites/adv/b08/props/09.webp",
+     "w": 262,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/b08/props/10.webp",
+     "w": 212,
+     "h": 351
+    },
+    {
+     "src": "sprites/adv/b08/props/11.webp",
+     "w": 281,
+     "h": 244
+    },
+    {
+     "src": "sprites/adv/b08/props/12.webp",
+     "w": 284,
+     "h": 327
+    }
+   ]
+  },
+  "adv.b09.props": {
+   "names": [
+    "a plain mauve bat-winged Bombanat fluttering, no necktie and no cap",
+    "a glass collecting jar with a cork, empty",
+    "the same jar with a small angry Bombanat inside",
+    "a gnarled root arching out of the ground, to trip over",
+    "a big toadstool, flat-topped, to bounce on",
+    "a gap in the ground with a little stream at the bottom, side-on",
+    "a clump of ferns to hide in",
+    "a fallen log",
+    "the official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot",
+    "a low branch",
+    "a pile of rocks",
+    "a hollow stump"
+   ],
+   "scale": 0.64748,
+   "items": [
+    {
+     "src": "sprites/adv/b09/props/01.webp",
+     "w": 360,
+     "h": 313
+    },
+    {
+     "src": "sprites/adv/b09/props/02.webp",
+     "w": 207,
+     "h": 324
+    },
+    {
+     "src": "sprites/adv/b09/props/03.webp",
+     "w": 243,
+     "h": 335
+    },
+    {
+     "src": "sprites/adv/b09/props/04.webp",
+     "w": 324,
+     "h": 227
+    },
+    {
+     "src": "sprites/adv/b09/props/05.webp",
+     "w": 311,
+     "h": 294
+    },
+    {
+     "src": "sprites/adv/b09/props/06.webp",
+     "w": 309,
+     "h": 269
+    },
+    {
+     "src": "sprites/adv/b09/props/07.webp",
+     "w": 319,
+     "h": 274
+    },
+    {
+     "src": "sprites/adv/b09/props/08.webp",
+     "w": 325,
+     "h": 240
+    },
+    {
+     "src": "sprites/adv/b09/props/09.webp",
+     "w": 311,
+     "h": 275
+    },
+    {
+     "src": "sprites/adv/b09/props/10.webp",
+     "w": 315,
+     "h": 218
+    },
+    {
+     "src": "sprites/adv/b09/props/11.webp",
+     "w": 327,
+     "h": 230
+    },
+    {
+     "src": "sprites/adv/b09/props/12.webp",
+     "w": 323,
+     "h": 273
+    }
+   ]
+  },
+  "terrain.lane": {
+   "names": [
+    "a long strip of packed dirt lane with a grassy verge and little flowers along its top edge, about four times as wide as tall, its top edge level",
+    "a short raised grassy bank with a rounded top, as a step up",
+    "a stretch of white picket fence, side-on, six pickets long, its top rail level so it can be walked along",
+    "a low brick garden wall with a flat top",
+    "a wooden porch step with three stairs",
+    "a dug flowerbed of dark soil with tulips and daisies, long and low"
+   ],
+   "scale": 0.70779,
+   "items": [
+    {
+     "src": "sprites/terrain/lane/01.webp",
+     "w": 1400,
+     "h": 175
+    },
+    {
+     "src": "sprites/terrain/lane/02.webp",
+     "w": 705,
+     "h": 194
+    },
+    {
+     "src": "sprites/terrain/lane/03.webp",
+     "w": 924,
+     "h": 231
+    },
+    {
+     "src": "sprites/terrain/lane/04.webp",
+     "w": 1149,
+     "h": 190
+    },
+    {
+     "src": "sprites/terrain/lane/05.webp",
+     "w": 669,
+     "h": 215
+    },
+    {
+     "src": "sprites/terrain/lane/06.webp",
+     "w": 1377,
+     "h": 181
+    }
+   ]
+  },
+  "terrain.wood": {
+   "names": [
+    "a long strip of mossy wood floor with roots and tiny ferns along its top edge, about four times as wide as tall, its top edge level",
+    "a thick gnarled branch reaching out sideways from the left, flat enough on top to stand on",
+    "a fallen mossy log lying side-on",
+    "a gnarled tree stump with a face in its knot, flat-topped",
+    "a mound of roots and earth, as a rise in the ground",
+    "a tall gnarled tree trunk with a face in its knots, cut off at the top and bottom of the cell"
+   ],
+   "scale": 0.89059,
+   "items": [
+    {
+     "src": "sprites/terrain/wood/01.webp",
+     "w": 1400,
+     "h": 215
+    },
+    {
+     "src": "sprites/terrain/wood/02.webp",
+     "w": 1375,
+     "h": 309
+    },
+    {
+     "src": "sprites/terrain/wood/03.webp",
+     "w": 1282,
+     "h": 228
+    },
+    {
+     "src": "sprites/terrain/wood/04.webp",
+     "w": 733,
+     "h": 247
+    },
+    {
+     "src": "sprites/terrain/wood/05.webp",
+     "w": 1228,
+     "h": 254
+    },
+    {
+     "src": "sprites/terrain/wood/06.webp",
+     "w": 639,
+     "h": 306
+    }
+   ]
+  },
+  "terrain.goo": {
+   "names": [
+    "a long strip of the goo's surface seen side-on: glossy blue and teal waves with bubbles, about four times as wide as tall, its top edge the wavy surface and the goo continuing to the bottom edge",
+    "a long strip of the goo's bottom: dark blue sand and pebbles with weed, about four times as wide as tall",
+    "a tall knobbly rock rising from the bottom, side-on",
+    "a rocky island sticking up out of the goo, with a few tufts of grass on top",
+    "a tall swaying clump of goo-weed",
+    "a sunken bathtub on its side, half buried"
+   ],
+   "scale": 0.70671,
+   "items": [
+    {
+     "src": "sprites/terrain/goo/01.webp",
+     "w": 1398,
+     "h": 206
+    },
+    {
+     "src": "sprites/terrain/goo/02.webp",
+     "w": 1400,
+     "h": 302
+    },
+    {
+     "src": "sprites/terrain/goo/03.webp",
+     "w": 335,
+     "h": 576
+    },
+    {
+     "src": "sprites/terrain/goo/04.webp",
+     "w": 460,
+     "h": 466
+    },
+    {
+     "src": "sprites/terrain/goo/05.webp",
+     "w": 221,
+     "h": 536
+    },
+    {
+     "src": "sprites/terrain/goo/06.webp",
+     "w": 372,
+     "h": 271
+    }
+   ]
+  },
+  "terrain.sea": {
+   "names": [
+    "a long strip of choppy slate-blue sea seen side-on, curling waves along its top edge, about four times as wide as tall, the water continuing to the bottom edge",
+    "a jagged sea rock sticking up out of the water, side-on",
+    "a long wooden pier on stilts, side-on",
+    "a stone harbour wall with a little lighthouse on its end, side-on",
+    "a flat drifting ice floe, side-on",
+    "a low stone bridge arch, side-on"
+   ],
+   "scale": 0.6993,
+   "items": [
+    {
+     "src": "sprites/terrain/sea/01.webp",
+     "w": 1399,
+     "h": 135
+    },
+    {
+     "src": "sprites/terrain/sea/02.webp",
+     "w": 541,
+     "h": 228
+    },
+    {
+     "src": "sprites/terrain/sea/03.webp",
+     "w": 1397,
+     "h": 297
+    },
+    {
+     "src": "sprites/terrain/sea/04.webp",
+     "w": 1399,
+     "h": 341
+    },
+    {
+     "src": "sprites/terrain/sea/05.webp",
+     "w": 1400,
+     "h": 101
+    },
+    {
+     "src": "sprites/terrain/sea/06.webp",
+     "w": 1399,
+     "h": 176
+    }
+   ]
+  },
+  "terrain.nowhere": {
+   "names": [
+    "a long strip of bumpy ochre ground with tufts of grass and pebbles along its top edge, about four times as wide as tall, its top edge level",
+    "a grassy slope rising from left to right, side-on",
+    "a grassy slope falling from left to right, side-on",
+    "a hole in the ground seen side-on: the left edge of it",
+    "the right edge of the same hole",
+    "a big flat-topped boulder, side-on",
+    "a curtain of blue goo dripping from a branch, long and hanging",
+    "a palm tree, side-on, its trunk curving"
+   ],
+   "scale": 0.71648,
+   "items": [
+    {
+     "src": "sprites/terrain/nowhere/01.webp",
+     "w": 1400,
+     "h": 125
+    },
+    {
+     "src": "sprites/terrain/nowhere/02.webp",
+     "w": 1399,
+     "h": 201
+    },
+    {
+     "src": "sprites/terrain/nowhere/03.webp",
+     "w": 1396,
+     "h": 202
+    },
+    {
+     "src": "sprites/terrain/nowhere/04.webp",
+     "w": 465,
+     "h": 186
+    },
+    {
+     "src": "sprites/terrain/nowhere/05.webp",
+     "w": 472,
+     "h": 188
+    },
+    {
+     "src": "sprites/terrain/nowhere/06.webp",
+     "w": 741,
+     "h": 250
+    },
+    {
+     "src": "sprites/terrain/nowhere/07.webp",
+     "w": 917,
+     "h": 353
+    },
+    {
+     "src": "sprites/terrain/nowhere/08.webp",
+     "w": 475,
+     "h": 492
+    }
+   ]
+  },
+  "bombanat.plain": {
+   "names": [
+    "gliding, wings spread level",
+    "flapping, wings at the top of the stroke",
+    "flapping, wings at the bottom of the stroke",
+    "swooping down in a steep dive, wings swept back",
+    "grabbed from below, wriggling and flapping wildly",
+    "tangled in a butterfly net, wings crumpled",
+    "perched with the wings folded",
+    "stalling in a frantic flutter"
+   ],
+   "scale": 0.93628,
+   "items": [
+    {
+     "src": "sprites/bombanat/plain/01.webp",
+     "w": 720,
+     "h": 315
+    },
+    {
+     "src": "sprites/bombanat/plain/02.webp",
+     "w": 573,
+     "h": 477
+    },
+    {
+     "src": "sprites/bombanat/plain/03.webp",
+     "w": 598,
+     "h": 341
+    },
+    {
+     "src": "sprites/bombanat/plain/04.webp",
+     "w": 566,
+     "h": 537
+    },
+    {
+     "src": "sprites/bombanat/plain/05.webp",
+     "w": 577,
+     "h": 535
+    },
+    {
+     "src": "sprites/bombanat/plain/06.webp",
+     "w": 592,
+     "h": 480
+    },
+    {
+     "src": "sprites/bombanat/plain/07.webp",
+     "w": 607,
+     "h": 464
+    },
+    {
+     "src": "sprites/bombanat/plain/08.webp",
+     "w": 576,
+     "h": 472
+    }
+   ]
+  },
+  "iceferg.bare": {
+   "names": [
+    "floating calmly, drifting",
+    "huffing itself up, swelling, freezing mist pouring off it, the eye narrowed",
+    "charging forward, spray bursting off the front",
+    "seen exactly side-on facing right, floating"
+   ],
+   "scale": 0.70244,
+   "items": [
+    {
+     "src": "sprites/iceferg/bare/01.webp",
+     "w": 678,
+     "h": 644
+    },
+    {
+     "src": "sprites/iceferg/bare/02.webp",
+     "w": 648,
+     "h": 661
+    },
+    {
+     "src": "sprites/iceferg/bare/03.webp",
+     "w": 720,
+     "h": 584
+    },
+    {
+     "src": "sprites/iceferg/bare/04.webp",
+     "w": 640,
+     "h": 601
+    }
+   ]
+  },
+  "iceferg.sealions": {
+   "names": [
+    "dozing, lying on its belly",
+    "sitting up in alarm, whiskers bristling",
+    "clinging on with its flippers, eyes shut tight",
+    "sliding off backwards, flippers up",
+    "clapping its flippers",
+    "falling with a splash"
+   ],
+   "scale": 1.04956,
+   "items": [
+    {
+     "src": "sprites/iceferg/sealions/01.webp",
+     "w": 720,
+     "h": 247
+    },
+    {
+     "src": "sprites/iceferg/sealions/02.webp",
+     "w": 587,
+     "h": 573
+    },
+    {
+     "src": "sprites/iceferg/sealions/03.webp",
+     "w": 621,
+     "h": 355
+    },
+    {
+     "src": "sprites/iceferg/sealions/04.webp",
+     "w": 517,
+     "h": 575
+    },
+    {
+     "src": "sprites/iceferg/sealions/05.webp",
+     "w": 627,
+     "h": 457
+    },
+    {
+     "src": "sprites/iceferg/sealions/06.webp",
+     "w": 635,
+     "h": 459
+    }
+   ]
+  },
   "cast": {
    "names": [
     "Sally Ann at her window, looking out",
@@ -996,6 +2463,7 @@ export const SPRITES = {
     "the sailors paddling, paddles back",
     "Lucy Jane walking, reading the letter"
    ],
+   "scale": 0.8,
    "items": [
     {
      "src": "sprites/cast/01.webp",
@@ -1126,11 +2594,6 @@ export const SPRITES = {
    "w": 1920,
    "h": 1080
   },
-  "scenes/trollusk-front": {
-   "src": "sprites/scenes/trollusk-front.webp",
-   "w": 1920,
-   "h": 1080
-  },
   "scenes/bombanat": {
    "src": "sprites/scenes/bombanat.webp",
    "w": 1920,
@@ -1173,6 +2636,196 @@ export const SPRITES = {
   },
   "story/lucyjane": {
    "src": "sprites/story/lucyjane.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "props/sallyann-house": {
+   "src": "sprites/props/sallyann-house.webp",
+   "w": 1024,
+   "h": 1024
+  },
+  "howto/ch01-1": {
+   "src": "sprites/howto/ch01-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch01-2": {
+   "src": "sprites/howto/ch01-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch01-3": {
+   "src": "sprites/howto/ch01-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-1": {
+   "src": "sprites/howto/ch02-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-2": {
+   "src": "sprites/howto/ch02-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch02-3": {
+   "src": "sprites/howto/ch02-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch03-1": {
+   "src": "sprites/howto/ch03-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-1": {
+   "src": "sprites/howto/ch04-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch04-2": {
+   "src": "sprites/howto/ch04-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "adv/b01/backdrop-1": {
+   "src": "sprites/adv/b01/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b01/backdrop-2": {
+   "src": "sprites/adv/b01/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b01/backdrop-3": {
+   "src": "sprites/adv/b01/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b02/backdrop-1": {
+   "src": "sprites/adv/b02/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b02/backdrop-2": {
+   "src": "sprites/adv/b02/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b02/backdrop-3": {
+   "src": "sprites/adv/b02/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b03/backdrop-1": {
+   "src": "sprites/adv/b03/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b03/backdrop-2": {
+   "src": "sprites/adv/b03/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b03/backdrop-3": {
+   "src": "sprites/adv/b03/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b04/backdrop-1": {
+   "src": "sprites/adv/b04/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b04/backdrop-2": {
+   "src": "sprites/adv/b04/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b04/backdrop-3": {
+   "src": "sprites/adv/b04/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b05/backdrop-1": {
+   "src": "sprites/adv/b05/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b05/backdrop-2": {
+   "src": "sprites/adv/b05/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b05/backdrop-3": {
+   "src": "sprites/adv/b05/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b06/backdrop-1": {
+   "src": "sprites/adv/b06/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b06/backdrop-2": {
+   "src": "sprites/adv/b06/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b06/backdrop-3": {
+   "src": "sprites/adv/b06/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b07/backdrop-1": {
+   "src": "sprites/adv/b07/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b07/backdrop-2": {
+   "src": "sprites/adv/b07/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b07/backdrop-3": {
+   "src": "sprites/adv/b07/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b08/backdrop-1": {
+   "src": "sprites/adv/b08/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b08/backdrop-2": {
+   "src": "sprites/adv/b08/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b08/backdrop-3": {
+   "src": "sprites/adv/b08/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b09/backdrop-1": {
+   "src": "sprites/adv/b09/backdrop-1.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b09/backdrop-2": {
+   "src": "sprites/adv/b09/backdrop-2.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "adv/b09/backdrop-3": {
+   "src": "sprites/adv/b09/backdrop-3.webp",
+   "w": 1920,
+   "h": 1080
+  },
+  "scenes/trollusk-front": {
+   "src": "sprites/scenes/trollusk-front.webp",
    "w": 1920,
    "h": 1080
   }
