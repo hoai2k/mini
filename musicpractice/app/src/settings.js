@@ -77,7 +77,7 @@ export const DEFAULTS = Object.freeze({
   transpose: 'C', // tuner: written pitch for a transposing instrument
 });
 
-const DRONE_VOICES = ['cello', 'cello-soft', 'cello-section', 'tanpura', 'sitar', 'shruti', 'organ', 'bagpipes'];
+const DRONE_VOICES = ['cello', 'cello-soft', 'organ', 'organ-synth']; // a saved voice since archived falls back to the cello
 const DRONE_THEN = ['stop', 'chrom-up', 'chrom-down', 'major-up', 'major-down', 'fifths', 'fourths'];
 const TUNING_IDS = ['chromatic', 'guitar', 'guitar-dropd', 'guitar-dadgad', 'bass4', 'bass5', 'ukulele', 'violin', 'viola', 'cello', 'mandolin', 'banjo'];
 

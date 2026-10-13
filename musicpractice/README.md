@@ -217,12 +217,11 @@ tones, scales over a tonic.
   octaves, from the cello's open C). Past either end, notes wrap round by an
   octave. **Play** fades in over about 2 s and **Pause** fades out over about
   1.5 s; changing the note or instrument while it plays crossfades.
-- Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker,
-  fewer overtones), **Cello section** (four cellos a few cents apart, spread
-  left to right), **Tanpura**, **Sitar**, **Shruti box**, **Organ** and
-  **Bagpipe drones**.
-- Settings: volume; **Add a fifth above** (a pure 3:2 fifth; the tanpura,
-  sitar and shruti box have theirs already); **Timed drone** (off by
+- Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
+  **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
+  pipes with a touch of wind, exactly in tune and perfectly steady). A voice
+  saved before others were archived falls back to the cello.
+- Settings: volume; **Add a fifth above** (a pure 3:2 fifth); **Timed drone** (off by
   default; 0.5 to 20 minutes, 3 by default), and **When time's up**: stop,
   or move on to the next note chromatically up or down, up or down the major
   scale of the starting note, or up a fifth or a fourth (round all twelve
@@ -230,23 +229,26 @@ tones, scales over a tonic.
   reference pitch (A4 = 415 to 466 Hz) is shared with the tuner. Everything
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
-How it sounds (`app/src/drone.js`): every voice plays recordings, generated
-with ElevenLabs sound effects and cut into seamless loops on three to four
-notes each, so every note is a few semitones at most from a real take and is
-retuned to it exactly by playback rate (following the reference pitch). The
-bowed and blown voices (cello, cello section, shruti box, organ, bagpipes) are
-made perfectly steady: no bow change is ever heard, the pitch is held exactly
-and the level and brightness are evened out, as if the bow or breath never
-ended. The plucked voices (tanpura, sitar) keep their natural ring and buzz.
+How it sounds (`app/src/drone.js`): apart from the Synth organ, every voice plays recordings, generated
+with ElevenLabs sound effects and cut into seamless loops on four notes each,
+so every note is a few semitones at most from a real take and is retuned to it
+exactly by playback rate (following the reference pitch). They are made
+perfectly steady: no bow change is ever heard, the pitch is held exactly and
+the level and brightness are evened out, as if the bow or breath never ended.
 **Cello, soft** is the steady cello, darker (a 900 Hz low-pass, as if bowed over
-the fingerboard). An instrument whose natural range doesn't reach a note plays
-it an octave up or down. Each loop file carries 0.3 s of its own continuation
+the fingerboard). The organ's lowest notes are stretched down from G2 (pipes
+stay natural that far). Each loop file carries 0.3 s of its own continuation
 either side, so the loop points stay inside seamless audio whatever the decoder
 does; all of a voice's loops load the first time it plays, so changing notes
 after that is instant, and if they can't load, a synthesized version of
 the voice plays instead. A light hall reverb is added in the app. Takes,
 prompts, how the loops are made and how they were checked:
 `design/drone-sounds.md`.
+
+Five more voices were recorded the same way (cello section, tanpura, sitar,
+shruti box, bagpipe drones) but don't sound right yet, so they are archived:
+their loops and settings are in `design/sounds/drone/archive/` (with a
+`manifest.json` saying how to bring one back), outside the published app.
 
 The home icons (a cello and bow per theme) are Round 6 of the image
 requests; their prompts are in `design/image-deliveries-drone.json`.
@@ -284,7 +286,8 @@ favour of the two-button home screen.
   Vintage 60s, 18th Century, Robot Future, French Nouveau, Candy and Steam
   Punk; prompts, paths and layer geometry are in `design/image-deliveries-round-3.json`.
 - `app/assets/audio/drone/`: the Drone's recorded loops; `design/drone-sounds.md`
-  explains them, `design/sounds/drone/` holds the source takes and
+  explains them, `design/sounds/drone/` holds the source takes (and, in
+  `archive/`, the loops of the voices not in use) and
   `design/source/drone/` the tools that make the loops.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
