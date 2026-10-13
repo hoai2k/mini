@@ -399,11 +399,12 @@ export function createAudio() {
       return (st - BEAT.offset) / BEAT.period;
     },
     sfxLoaded: () => Object.keys(sfxBuf).length,
-    play(name) {
+    // `gain` scales one playing (a quiet footfall from a louder effect).
+    play(name, gain = 1) {
       if (!ac) return;
       try {
         // Recorded effects get a little pitch variation so repeats don't grate.
-        if (sfxBuf[name]) return playBuffer(sfxBuf[name], MIX[name] ?? 1, TONAL.has(name) ? 1 : 0.94 + Math.random() * 0.12);
+        if (sfxBuf[name]) return playBuffer(sfxBuf[name], (MIX[name] ?? 1) * gain, TONAL.has(name) ? 1 : 0.94 + Math.random() * 0.12);
         SFX[name]?.();
       } catch { /* audio is optional */ }
     },
