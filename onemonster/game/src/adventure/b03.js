@@ -29,6 +29,7 @@ const INK = '#1b2a3a';
 // stands M.height tall; the full-body poses used under the goo are about 2.5
 // times that, so this sizeK makes him about 250 px tall.
 const SIZE = 0.4;
+const STRIP_H = 170, STRIP_LIFT = 26; // the surface strip: height on screen, crests above the line
 const HALF = 125; // half his height: his (x, y) is his middle
 
 export const SURF = 380; // the goo's surface (world y)
@@ -92,8 +93,8 @@ function hatch(g, x, y, w, h, { step = 9, angle = -0.7, colour = 'rgba(27,42,58,
 
 // ---------- the board's layout ----------
 
-const ISLAND = { x: sx(11150), y: 296, w: 600, h: H - 296 };
-const PERCH = { x: ISLAND.x + 95, y: ISLAND.y - 66 }; // where the letter Bombanat lands (his middle; feet on the rock)
+const ISLAND = { x: sx(11150), y: 92, w: 395, h: H - 92 }; // the delivered island, 400 tall, its waterline at SURF
+const PERCH = { x: ISLAND.x + 100, y: 250 - 66 }; // where the letter Bombanat lands, on the island's left slope (his middle; feet on the rock)
 const PILLAR = { x: sx(2150), top: 330 }; // a knobbly rock poking above the goo
 const CHECKPOINTS = [300, 2600, 5200, 8000, 10600].map(sx);
 
@@ -106,8 +107,8 @@ function layout(rng) {
   const perched = (x, y, dir = 1) => fliers.push({ kind: 'perched', x, y: y - 52, x0: x - 160, x1: x + 160, baseY: SURF - 130, amp: 16, speed: 150, dir });
   // 1. The shallows.
   for (const x of [900, 1250, 1600, 1950, 2350]) skim(x);
-  perched(PILLAR.x - 36, PILLAR.top - 6, -1);
-  perched(PILLAR.x + 44, PILLAR.top - 2, 1); // (perched takes world x)
+  perched(PILLAR.x + 4, PILLAR.top - 2, -1); // on the pillar's peak (perched takes world x)
+  skim(2000, 120);
   // 2. The weed forest.
   for (const x of [2900, 3250, 3600, 4000, 4350, 4700, 5000]) skim(x);
   high(3150, 185);
@@ -123,8 +124,8 @@ function layout(rng) {
   high(10400, 184);
   for (const x of [8700, 9500, 10200]) skim(x);
   // 5. The island.
-  perched(ISLAND.x + 330, ISLAND.y - 18, -1);
-  perched(ISLAND.x + 470, ISLAND.y - 14, 1);
+  perched(ISLAND.x + 215, ISLAND.y + 6, -1);
+  perched(ISLAND.x + 330, 190, 1);
   for (const f of fliers) {
     f.dir = f.dir ?? (rng() < 0.5 ? -1 : 1);
     f.ph = rng() * 6.28;
@@ -132,7 +133,7 @@ function layout(rng) {
     f.got = false;
     f.startle = 0;
     f.scatter = 0;
-    f.c = art.makeCreature('bombanat', f.x, f.y);
+    f.c = art.makeCreature('bombanatPlain', f.x, f.y);
     f.c.sizeK = 0.6;
     f.c.facing = f.dir;
   }
@@ -568,7 +569,7 @@ export default function create(env) {
     } else if (L.mode === 'landing') {
       // Circles down onto the island's near edge.
       L.T += dt;
-      const tx = PERCH.x + Math.cos(L.T * 1.4) * Math.max(0, 160 - L.T * 60);
+      const tx = PERCH.x - 40 + Math.cos(L.T * 1.4) * Math.max(0, 160 - L.T * 60);
       const ty = PERCH.y - 90 + Math.min(90, L.T * 33);
       L.vx = ease(L.vx, clamp((tx - L.x) * 3, -420, 420), 4, dt);
       L.vy = ease(L.vy, clamp((ty - L.y) * 3, -300, 300), 4, dt);
@@ -904,7 +905,7 @@ export default function create(env) {
     else if (G.lunge && G.lunge.dy < -0.5) art.setAnim(c, pose('clawsUp', 'lunge'));
     else if (G.munchT > 0) art.setAnim(c, 'lunch');
     else if (G.jetT > 0) art.setAnim(c, pose('jet', 'rise'));
-    else if (G.bubble) art.setAnim(c, pose('cling', 'triumph'));
+    else if (G.bubble) art.setAnim(c, pose('swimB', 'triumph'));
     else if (G.vy > 120) art.setAnim(c, pose('diveDown', 'rise'));
     else if (Math.hypot(G.vx, G.vy) > 40) art.setAnim(c, pose(Math.floor(c.dist / 160) % 2 ? 'swimB' : 'swimA', 'rise'));
     else art.setAnim(c, pose('swimA', 'rise'));
@@ -915,74 +916,41 @@ export default function create(env) {
 
   const V = () => ({ x0: cam.x - 60, x1: cam.x + W + 60 });
 
-  // The goo below the surface: the terrain strip when delivered, else an ink
-  // gradient with light shafts.
+  // The goo below the surface. The backdrop panels paint the deep; until they
+  // arrive an ink gradient stands in. The surface strip (terrain.goo 1) is
+  // drawn along SURF with its crests above the line, fading into the deep.
   function drawGooBody(g) {
     const { x0, x1 } = V();
-    const strip = art.sprite(TERRAIN, 1);
-    if (strip) {
-      kit.drawGround(g, cam, { x: 0, y: SURF, w: WORLD, h: H - SURF }, { sheet: TERRAIN, item: 1, height: 300, fill: '#163f63' });
-    } else {
+    if (!art.image('adv/b03/backdrop-1')) {
       const gr = g.createLinearGradient(0, SURF, 0, H);
       gr.addColorStop(0, '#3f9ec2'); gr.addColorStop(0.45, '#226a97'); gr.addColorStop(1, '#13365a');
       g.fillStyle = gr;
       g.fillRect(x0, SURF, x1 - x0, H - SURF);
-    }
-    // The painting's bubbley goo, as a slow parallax texture under the surface.
-    const scene = art.image('scenes/grumley');
-    if (scene) {
-      // (the goo to the right of the painting's shore, so the shore does not repeat)
-      const sx0 = 760, sw = scene.width - 760, sy = 730, sh = 350;
-      const k = (H - SURF) / sh;
-      const tw = sw * k;
-      const off = cam.x * 0.5;
+      // Shafts of light.
       g.save();
-      g.globalAlpha = 0.5;
-      const i0 = Math.floor((x0 + off) / tw);
-      for (let i = i0; i * tw - off < x1; i++) {
-        const x = i * tw - off;
-        if (i % 2) { g.save(); g.translate(x + tw, SURF); g.scale(-1, 1); g.drawImage(scene, sx0, sy, sw, sh, 0, 0, tw, H - SURF); g.restore(); }
-        else g.drawImage(scene, sx0, sy, sw, sh, x, SURF, tw, H - SURF);
+      g.fillStyle = 'rgba(220,245,255,0.07)';
+      for (let x = Math.floor(x0 / 640) * 640; x < x1; x += 640) {
+        const sway = Math.sin(t * 0.4 + x * 0.01) * 20;
+        g.beginPath();
+        g.moveTo(x + sway, SURF); g.lineTo(x + 120 + sway, SURF); g.lineTo(x + 330, FLOOR); g.lineTo(x + 100, FLOOR);
+        g.closePath(); g.fill();
       }
       g.restore();
-      // Soften each join between tiles with a band of goo.
-      for (let i = i0; i * tw - off < x1 + 200; i++) {
-        const x = i * tw - off;
-        const gr = g.createLinearGradient(x - 180, 0, x + 180, 0);
-        gr.addColorStop(0, 'rgba(24,80,130,0)'); gr.addColorStop(0.5, 'rgba(24,80,130,0.6)'); gr.addColorStop(1, 'rgba(24,80,130,0)');
-        g.fillStyle = gr;
-        g.fillRect(x - 180, SURF, 360, H - SURF);
-      }
-      const deep = g.createLinearGradient(0, SURF, 0, H);
-      deep.addColorStop(0, 'rgba(16,50,96,0.35)'); deep.addColorStop(1, 'rgba(10,30,60,0.6)');
-      g.fillStyle = deep;
-      g.fillRect(x0, SURF, x1 - x0, H - SURF);
     }
-    // Ink hatching, fading with depth.
-    g.save();
-    g.strokeStyle = 'rgba(15,35,60,0.16)';
-    g.lineWidth = 2;
-    g.beginPath();
-    for (let x = Math.floor(x0 / 46) * 46; x < x1; x += 46) {
-      for (let y = SURF + 60 + kit.hash(x) * 40; y < FLOOR; y += 86) { g.moveTo(x, y); g.lineTo(x + 26, y + 18); }
+    if (art.sprite(TERRAIN, 1)) {
+      kit.drawGround(g, cam, { x: 0, y: SURF, w: WORLD, h: STRIP_H }, { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT });
+      // Fade the strip's cut bottom edge into the deep.
+      const yb = SURF - STRIP_LIFT + STRIP_H;
+      const gr = g.createLinearGradient(0, yb - 50, 0, yb + 30);
+      gr.addColorStop(0, 'rgba(38,96,120,0)'); gr.addColorStop(0.6, 'rgba(38,96,120,0.75)'); gr.addColorStop(1, 'rgba(38,96,120,0)');
+      g.fillStyle = gr;
+      g.fillRect(x0, yb - 50, x1 - x0, 80);
     }
-    g.stroke();
-    g.restore();
-    // Shafts of light.
-    g.save();
-    g.fillStyle = 'rgba(220,245,255,0.07)';
-    for (let x = Math.floor(x0 / 640) * 640; x < x1; x += 640) {
-      const sway = Math.sin(t * 0.4 + x * 0.01) * 20;
-      g.beginPath();
-      g.moveTo(x + sway, SURF); g.lineTo(x + 120 + sway, SURF); g.lineTo(x + 330, FLOOR); g.lineTo(x + 100, FLOOR);
-      g.closePath(); g.fill();
-    }
-    g.restore();
   }
 
   function drawFloor(g) {
     kit.drawGround(g, cam, { x: 0, y: FLOOR, w: WORLD, h: H - FLOOR + 80 }, {
-      sheet: TERRAIN, item: 2, height: 160, lift: 10, fill: '#11283f',
+      sheet: TERRAIN, item: 2, height: 200, lift: 110, fill: '#11283f',
       standin: { top: '#3c6f8c', body: '#23486a', ink: INK, tufts: false },
     });
     if (art.sprite(TERRAIN, 2)) return;
@@ -1009,15 +977,19 @@ export default function create(env) {
   }
 
   function drawFarDecor(g) {
-    for (const r of world.rocks) if (cam.sees(r.x)) drawRock(g, r.x, FLOOR + 6, r.h, r.flip, 0.75);
-    for (const w of world.weeds) if (cam.sees(w.x)) drawWeed(g, w.x + 60, FLOOR + 6, w.h * 0.8, !w.flip, 0.7);
+    const painted = !!art.image('adv/b03/backdrop-1');
+    if (!painted) {
+      for (const r of world.rocks) if (cam.sees(r.x)) drawRock(g, r.x, FLOOR + 6, r.h, r.flip, 0.75);
+      for (const w of world.weeds) if (cam.sees(w.x)) drawWeed(g, w.x + 60, FLOOR + 6, w.h * 0.8, !w.flip, 0.7);
+    }
+    for (const r of world.rocks) if (cam.sees(r.x)) drawRock(g, r.x, FLOOR + 6, r.h, r.flip, 1);
     // The knobbly pillar in the shallows, from the floor to above the goo.
     if (cam.sees(PILLAR.x)) drawRock(g, PILLAR.x, FLOOR + 10, FLOOR - PILLAR.top + 10, false, 1);
     // Far-off shark fins cutting the surface.
     for (const f of [{ x0: sx(3300), v: 60 }, { x0: sx(6600), v: -45 }]) {
       const x = f.x0 + Math.sin(t * 0.25 + f.x0) * 500;
       if (!cam.sees(x)) continue;
-      kit.sprite(g, SHEET, 12, x, SURF + 4, { height: 60, flip: f.v < 0 }, () => {
+      kit.sprite(g, SHEET, 12, x, SURF + 16, { height: 96, flip: f.v < 0 }, () => {
         g.save(); g.fillStyle = '#4a5a66'; g.strokeStyle = INK; g.lineWidth = 3;
         g.beginPath(); g.moveTo(x - 36, SURF + 4); g.quadraticCurveTo(x - 10, SURF - 50, x + 22, SURF - 56); g.quadraticCurveTo(x + 24, SURF - 20, x + 40, SURF + 4); g.closePath(); g.fill(); g.stroke();
         g.restore();
@@ -1182,7 +1154,7 @@ export default function create(env) {
     g.save();
     // Below the surface it is drawn under the goo's tint; above, crisp.
     g.beginPath(); g.rect(I.x - 100, above ? -100 : SURF, I.w + 200, above ? SURF + 100 : H - SURF); g.clip();
-    kit.sprite(g, TERRAIN, 4, I.x + I.w / 2, SURF + 20, { height: SURF + 20 - I.y + 160 }, () => {
+    kit.sprite(g, TERRAIN, 4, I.x + I.w / 2, SURF + 112, { height: 400 }, () => {
       g.save();
       // Knobbly rocks piled up from the floor, then the island's rock above.
       drawRock(g, I.x + 130, FLOOR + 10, 600, false, 1);
@@ -1232,7 +1204,7 @@ export default function create(env) {
       g.restore();
     });
     // The picnic basket waits on the island (the book's picnic).
-    art.drawSprite(g, art.prop('grumley', 4), I.x + 200, I.y - 12, { height: 90 });
+    kit.sprite(g, SHEET, 11, I.x + 150, I.y + 14, { height: 86 }, () => art.drawSprite(g, art.prop('grumley', 4), I.x + 150, I.y + 14, { height: 86 }));
     g.restore();
   }
 
@@ -1277,7 +1249,7 @@ export default function create(env) {
 
   function drawWhirlpool(g, w) {
     const spin = env.reduceMotion ? 0 : t * 2.2;
-    kit.sprite(g, SHEET, 9, w.x, w.y + 30, { height: 300 }, () => {
+    kit.sprite(g, SHEET, 9, w.x, w.y + 20, { height: 320 }, () => {
       g.save();
       g.lineCap = 'round';
       // The funnel's wash.
@@ -1327,7 +1299,7 @@ export default function create(env) {
     drawRock(g, E.x, FLOOR + 6, 330, false, 1);
     const open = E.open;
     const item = open > 0.5 ? 4 : 5;
-    kit.sprite(g, SHEET, item, E.x, E.y + 60, { height: 140 }, () => {
+    kit.sprite(g, SHEET, item, E.x, E.y + 70, { height: 180 }, () => {
       g.save();
       g.translate(E.x, E.y);
       g.lineJoin = 'round'; g.lineCap = 'round';
@@ -1400,7 +1372,7 @@ export default function create(env) {
     }
     const h = tc.h;
     if (h < 4) return;
-    kit.sprite(g, SHEET, 6, tc.x, FLOOR + 6, { height: h }, () => {
+    kit.sprite(g, SHEET, 6, tc.x + 20, FLOOR + 6, { height: h + 20, ax: 0.42 }, () => {
       g.save();
       g.lineCap = 'round';
       const curl = Math.min(1, h / T.tentacleH);
@@ -1427,7 +1399,7 @@ export default function create(env) {
     const y = f.yy ?? f.y;
     const flip = f.dir < 0;
     const wag = env.reduceMotion ? 0 : Math.sin(t * 9 + f.ph) * 0.18;
-    kit.sprite(g, SHEET, 3, f.x, y, { height: 70, ay: 0.5, flip }, () => {
+    kit.sprite(g, SHEET, 3, f.x, y, { height: 96, ay: 0.5, flip }, () => {
       g.save();
       g.translate(f.x, y);
       if (flip) g.scale(-1, 1);
@@ -1504,10 +1476,11 @@ export default function create(env) {
     if (b.kind === 'anchor') {
       const rattle = b.state === 'rattle' ? Math.sin(t * 40) * 6 : 0;
       const ax = b.hx + rattle, ay = b.y;
-      // The chain: links.
+      // The chain: links (the delivered anchor brings its own top links).
+      const chainTo = art.sprite(SHEET, 7) ? ay - 110 : ay - 70;
       g.strokeStyle = INK; g.lineWidth = 2.5;
-      for (let yy = SURF - 10; yy < ay - 70; yy += 16) { g.beginPath(); g.ellipse(ax, yy + 8, 5, 9, 0, 0, Math.PI * 2); g.stroke(); }
-      kit.sprite(g, SHEET, 7, ax, ay + 40, { height: 150 }, () => {
+      for (let yy = SURF - 10; yy < chainTo; yy += 16) { g.beginPath(); g.ellipse(ax, yy + 8, 5, 9, 0, 0, Math.PI * 2); g.stroke(); }
+      kit.sprite(g, SHEET, 7, ax, ay + 50, { height: 170, ax: 0.6 }, () => {
         g.save();
         g.translate(ax, ay);
         g.strokeStyle = INK; g.lineWidth = 3;
@@ -1538,7 +1511,7 @@ export default function create(env) {
       g.strokeStyle = '#c9a66b'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(nx, SURF - 90); g.lineTo(nx, ny - 150); g.stroke();
       g.strokeStyle = 'rgba(27,42,58,0.5)'; g.lineWidth = 1.5;
       for (let yy = SURF - 86; yy < ny - 152; yy += 8) { g.beginPath(); g.moveTo(nx - 3, yy); g.lineTo(nx + 3, yy + 4); g.stroke(); }
-      kit.sprite(g, SHEET, 8, nx, ny + 150, { height: 300 }, () => {
+      kit.sprite(g, SHEET, 8, nx, ny + 150, { height: 310 }, () => {
         if (!art.drawSprite(g, art.prop('grumley', 7), nx, ny + 150, { height: 300 })) {
           g.strokeStyle = INK; g.lineWidth = 3;
           g.beginPath(); g.ellipse(nx, ny, 110, 130, 0, 0, Math.PI * 2); g.stroke();
@@ -1666,11 +1639,11 @@ export default function create(env) {
     const c = G.c;
     if (self.done && self.outcome === 'snatched') return; // drawn risen, above the tint
     c.x = G.x;
-    c.y = G.y + HALF;
     c.facing = G.facing;
     c.sizeK = SIZE;
     // Netted: inside the net.
     if (G.mode === 'netted') c.sizeK = SIZE * 0.8;
+    c.y = G.y + art.creatureSize(c).h / 2;
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
     // The V of his wake when he swims near the surface.
     const sp = Math.hypot(G.vx, G.vy);
@@ -1693,7 +1666,7 @@ export default function create(env) {
   // After the snatch: out of the goo, holding him up (then netted and hauled up).
   function drawGrumleyRisen(g) {
     const c = G.c;
-    c.x = G.x; c.y = G.y + HALF; c.facing = G.facing; c.sizeK = SIZE;
+    c.x = G.x; c.facing = G.facing; c.sizeK = SIZE; c.y = G.y + art.creatureSize(c).h / 2;
     g.save();
     if (c.z < 30) { g.beginPath(); g.rect(cam.x - 50, -200, W + 100, SURF + 110); g.clip(); }
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
@@ -1749,8 +1722,10 @@ export default function create(env) {
   function drawGooTint(g) {
     const { x0, x1 } = V();
     g.save();
-    g.fillStyle = 'rgba(40,120,180,0.22)';
+    const strip = !!art.sprite(TERRAIN, 1);
+    g.fillStyle = strip ? 'rgba(40,120,180,0.14)' : 'rgba(40,120,180,0.22)';
     g.fillRect(x0, SURF, x1 - x0, H - SURF);
+    if (strip) { g.restore(); return; }
     // The surface.
     const step = 36;
     const wave = (x) => SURF + Math.sin(x * 0.02 + t * 1.5) * 5 + Math.sin(x * 0.051 - t * 0.9) * 3;
@@ -1784,17 +1759,11 @@ export default function create(env) {
 
   function drawFlier(g, f) {
     const c = f.c;
-    const up = c.anim === 'flap';
     // Shadow on the goo.
     g.save(); g.globalAlpha = 0.2 * Math.max(0.2, 1 - (SURF - f.y) / 500); g.fillStyle = '#10304a';
     g.beginPath(); g.ellipse(f.x, SURF + 6, 44, 9, 0, 0, Math.PI * 2); g.fill(); g.restore();
-    kit.sprite(g, SHEET, up ? 2 : 1, f.x, f.y, { height: 112, ay: 0.5, flip: f.dir < 0 }, () => {
-      c.x = f.x; c.y = f.y;
-      g.save();
-      g.filter = 'saturate(0.45) brightness(1.08)';
-      art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
-      g.restore();
-    });
+    c.x = f.x; c.y = f.y;
+    art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
   }
 
   function drawHolder(g) {
@@ -1853,9 +1822,8 @@ export default function create(env) {
     const u = Math.min(1, l.t / 0.8);
     const x = l.sx + (150 - l.sx) * u;
     const y = l.sy + (H - 110 - l.sy) * u - Math.sin(u * Math.PI) * 220;
-    const sp = art.sprite('bombanat.poses', 7);
+    const sp = art.sprite('bombanat.plain', 5);
     g.save();
-    g.filter = 'saturate(0.45) brightness(1.08)';
     if (!art.drawSprite(g, sp, x, y, { height: 100 * (1 - u * 0.4), ay: 0.5, rot: u * 6 })) {
       g.fillStyle = '#9a7fa6'; g.beginPath(); g.arc(x, y, 30 * (1 - u * 0.4), 0, Math.PI * 2); g.fill();
     }
@@ -1872,8 +1840,8 @@ export const HOWTO = [
     text: 'Swim under the goo and lunge a claw up at the Bombanats skimming it.',
     scene: 'scenes/grumley', crop: [500, 500, 900, 506],
     items: [
-      { creature: 'grumley', anim: 'rise', x: 300, y: 430, h: 190 },
-      { creature: 'bombanat', anim: 'glide', x: 380, y: 110, h: 90 },
+      { creature: 'grumley', anim: 'clawsUp', x: 300, y: 430, h: 190 },
+      { creature: 'bombanatPlain', anim: 'glide', x: 380, y: 110, h: 90 },
       { path: [[300, 300], [370, 150]], arrow: true },
       { word: 'SNAP!', x: 470, y: 90, size: 40 },
     ],
@@ -1883,7 +1851,7 @@ export const HOWTO = [
     scene: 'scenes/grumley', crop: [500, 500, 900, 506],
     items: [
       { sprite: ['props.grumley', 7], x: 330, y: 300, h: 220 },
-      { creature: 'grumley', anim: 'rise', x: 180, y: 470, h: 150 },
+      { creature: 'grumley', anim: 'swimA', x: 180, y: 470, h: 150 },
       { path: [[90, 420], [280, 440], [520, 430]], arrow: true },
       { ring: [330, 200, 120] },
     ],
@@ -1893,7 +1861,7 @@ export const HOWTO = [
     scene: 'scenes/grumley', crop: [0, 380, 900, 506],
     items: [
       { creature: 'bombanat', anim: 'perched', x: 200, y: 250, h: 110 },
-      { creature: 'grumley', anim: 'lunge', x: 430, y: 470, h: 210 },
+      { creature: 'grumley', anim: 'leap', x: 430, y: 470, h: 210 },
       { path: [[430, 330], [250, 230]], arrow: true },
       { word: 'Grab!', x: 480, y: 120, size: 44 },
     ],

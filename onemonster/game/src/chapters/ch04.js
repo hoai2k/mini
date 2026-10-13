@@ -889,7 +889,9 @@ export default function create(env) {
     return first ? (fc.M.height / first.h) * fc.sizeK * (a / b) : (fc.M.height / sp.h) * fc.sizeK;
   }
   // Where the lions sit, in the frame: the three ledges of the bare berg.
-  const LEDGES = [[0.3, 0.3], [0.74, 0.42], [0.36, 0.62]]; // fractions of the sprite's width and height from its top-left
+  // Fractions of each bare sprite's width and height from its top-left: the
+  // left icicle shelf, the lower right block, the upper slope.
+  const LEDGES = { 1: [[0.24, 0.5], [0.8, 0.63], [0.52, 0.34]], 2: [[0.25, 0.55], [0.73, 0.62], [0.52, 0.36]], 3: [[0.3, 0.52], [0.78, 0.62], [0.56, 0.34]] };
   function bergFrame() {
     const item = BARE[ferg.mode];
     const sp = item ? art.sprite('iceferg.bare', item) : null;
@@ -901,7 +903,7 @@ export default function create(env) {
     const f = bergFrame();
     if (!f) return [];
     const flip = fc.facing < 0;
-    return LEDGES.map(([u, v]) => ({ x: fc.x + (flip ? 0.5 - u : u - 0.5) * f.w, y: fc.y - f.h + v * f.h }));
+    return LEDGES[f.item].map(([u, v]) => ({ x: fc.x + (flip ? 0.5 - u : u - 0.5) * f.w, y: fc.y - f.h + v * f.h }));
   }
   function drawBareBerg(g, tt) {
     const f = bergFrame();
