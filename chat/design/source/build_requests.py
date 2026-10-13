@@ -1117,6 +1117,28 @@ req("games", "CH-G84", "temple-beam", "Low beam (slide under)", "1024 x 512",
     "beam up. Vines stop well above the bottom third. No archway, no rounded opening, nothing in the middle "
     "below the beam.", "A drawn beam.")
 
+# --- Baseball, second version: a top-down tabletop baseball board -------------
+TABLETOP = ("Retro tabletop toy game art seen from directly above: glossy printed tin and moulded "
+            "plastic, bright primary colours, crisp clean shapes, soft even lighting. ")
+req("games", "CH-G85", "bb2-board", "Tabletop baseball board", "1080 x 1920",
+    "Baseball: the whole board, seen from above on an upright phone (the game draws the pockets, their labels, "
+    "the fielders and the ball on top).",
+    TABLETOP + "A top-down tabletop baseball game board filling the frame: a green outfield printed like turf "
+    "with mowing stripes, a tan dirt infield diamond with three white bases, home plate near the bottom centre, "
+    "the pitcher's mound in the middle of the diamond with a short white groove running from it down to home "
+    "plate, foul lines in white, and a raised blue plastic outfield wall curving round the top with a printed "
+    "crowd and flags behind it. Leave the outfield and infield grass plain: NO holes, NO pockets, NO numbers "
+    "and NO text anywhere.", "A drawn board.", alpha=False)
+req("games", "CH-G86", "bb2-bat", "Flipper bat", "512 x 128",
+    "Baseball: the spring-loaded bat that swings round at home plate, seen from above.",
+    TABLETOP + "A wooden toy baseball bat seen from directly above, lying flat, the knob and handle at the LEFT "
+    "end and the thick barrel at the RIGHT, glossy varnish, filling the width.", "A drawn bat.")
+req("games", "CH-G87", "bb2-fielder", "Fielder figure", "256 x 256",
+    "Baseball: the little fielders standing on the board (the game tints the cap and shirt).",
+    TABLETOP + "A small moulded plastic baseball fielder figurine seen from directly above: round WHITE cap "
+    "(so the game can tint it), shoulders, and a brown glove held out to one side, standing on a round base.",
+    "A drawn figure.")
+
 NEW_GAMES_3 = [
     ("blocks", "Block Drop", "colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears"),
     ("temple", "Temple Dash", "an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind"),
