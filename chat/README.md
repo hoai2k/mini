@@ -194,11 +194,18 @@ shots; the ball is drawn in front of the rim on the way up and behind the rim an
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it; after a goal the puck waits, still, on the side of
 the player who conceded until someone hits it), Connect Four, Quick Draw, Staring Contest,
-Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
+Copy Cat, Rock Paper Scissors, Doodle Guess (anyone who joins mid-game guesses
+at once and is added to the drawing order, drawing at the end of the current
+round and in every round after; the board reaches them from the drawer),
+Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls; pull back to aim and the
 arrow sits behind the ball, following your finger, pointing the way it will go),
 Bowling (pins finish falling and stay on the lane for 1.5 seconds before the
-rack resets or the turn changes), Beach Bump (bump
+rack resets or the turn changes; anyone can join at any frame: they bowl from
+the frame in progress, after everyone already in it, the frames they missed
+count 0 and show as "–" on their card, and the final scores include them as
+"joined late"; the owner seats them so every lane agrees; only a full lane of
+six makes newcomers wait for the next game), Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
 your head: patty, cheese, lettuce, tomato, bacon, ketchup, pickles, onion and
 a fried egg, packed snugly on the bun; dodge the boots and the poop; live
@@ -216,7 +223,12 @@ bounces in your hand; tap it and it flies to the asker, or press Go Fish if you
 have none. If they say Go Fish, press Go Fish and your angler, with your face, casts
 into the pond and reels up a card. Fish shadows swim there, one per card left
 once fewer than four remain. Two to five players gather in a lobby and anyone
-deals; alone you play Robo-Fisher), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner) and Baseball (a home run derby seen from
+deals; alone you play Robo-Fisher. Someone who joins mid-game is dealt in
+from the pond while it still holds four cards: they draw four ("Bo joins and
+draws 4"), any book among them goes straight to the table, and they sit right
+after the player whose turn it is, so they play next; with fewer than four
+cards left, or five already at the table, they watch and are dealt in at the
+next deal), Mob Whack (a blocky whack-a-mole: tap zombies, whack creepers before they explode, leave villagers alone and catch endermen once they stop teleporting; everyone plays the same seeded 60-second round on one shared field: each player's hammer shows in their colour, the first valid whack on a mob takes it and its points (the round owner referees the claims by time, so a later hit just gets "Too slow!"), a creeper nobody whacks costs everyone still in a heart and 10 points, a villager costs only whoever hit it, and the owner's tally gives every seat the same scores and winner) and Baseball (a home run derby seen from
 behind the plate in the style of Wii Sports Baseball's batting, with your face
 on the slugger: the pitch grows from a dot in the pitcher's hand to a big
 streaking ball at the plate, and you tap it as it gets there; the slugger
@@ -328,8 +340,9 @@ itself to HTTPS.
   every effect on a drawn test face (`beard` gives the face a beard, to check
   beard removal; `bearded` is the same face with no effect)
   through Chromium's fake camera, screenshots in `local/chat-shots/`
-- `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
-  players side by side (`test/game.html`)
+- `node chat/test/game-check.mjs [ids] [--n=3] [--late]`: each game with simulated
+  players side by side (`test/game.html`); `--late` holds the last seat back
+  and joins it mid-game, pictured in `local/chat-shots/game-<id>-late.png`
 - `chat/publish.sh local/pages/chat && node chat/test/chat-fixes.mjs`: group
   video dragging and primary selection, effect deselection and copying,
   effects disabled during games, live opponent burgers, and bowling's
@@ -350,8 +363,10 @@ itself to HTTPS.
   until someone hits it, and a bot goes and hits it
 - `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for
   every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
-  accounted for and every book gets made; screenshots of a cast, a low pond,
-  the Go Fish bubbles and the end in `local/chat-shots/`
+  accounted for and every book gets made; one more seat joins once the pond
+  is down to 30 and must be dealt four from the pond, be announced to the
+  others and get a turn; screenshots of a cast, a low pond, the late join
+  (`gofish-join.png`), the Go Fish bubbles and the end in `local/chat-shots/`
 - `node chat/test/whack-play.mjs`: two phone-sized Mob Whack seats share one field: mouse whacks show one seat's whack taking the mob off the other's field and scoring for the whacker, a second hit on the same mob getting nothing, the earlier whack winning even from the non-owner, the other player's hammer drawn where they aim, an unwhacked creeper costing both a heart, a villager costing only its whacker, an enderman teleporting, the same scores and winner on both seats, rookie bots scoring, and the second seat refereeing on when the owner leaves mid-round (screenshots in `local/chat-shots/whack-*.png`)
 - `node chat/test/baseball-play.mjs`: on two phone-sized seats, checks the
   swing (arms keep their length, both hands stay on the bat, the bat sweeps

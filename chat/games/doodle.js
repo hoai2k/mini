@@ -89,6 +89,29 @@ function parseShared(sh) {
   };
 }
 
+// Seats friends who join mid-game in the drawing order. Turn t draws
+// order[(t - base) % order.length], so the schedule is re-based to keep the
+// current drawer and round: newcomers draw at the end of this round and in
+// every later one. Returns the patch for the shared state, or null.
+function addLateDrawers(s, ids, max = MAX_PLAYERS) {
+  if (!s || s.phase === 'lobby' || !s.order.length) return null;
+  const fresh = ids.filter(id => !s.order.includes(id)).slice(0, Math.max(0, max - s.order.length));
+  if (!fresh.length) return null;
+  const k = s.turn - s.base, n = s.order.length;
+  if (k < 0 || k >= n * ROUNDS) return null;
+  const r = Math.floor(k / n), pos = k % n;
+  const order = [...s.order, ...fresh];
+  const scores = { ...s.scores };
+  fresh.forEach(id => { scores[id] = scores[id] || 0; });
+  return { order, scores, base: s.turn - (r * order.length + pos) };
+}
+
+// Who draws turn t, and in which round (pure, for the tests).
+function drawerAt(s, turn) {
+  const n = s.order.length, k = turn - s.base;
+  return { drawer: s.order[k % n], round: Math.floor(k / n) + 1, last: k >= n * ROUNDS };
+}
+
 // Validates a stroke from the network: palette index, size index, 0..1 points.
 function cleanStroke(d) {
   if (!d || !num(d.s) || !Number.isInteger(d.c) || d.c < 0 || d.c > ERASER || !Number.isInteger(d.w) || d.w < 0 || d.w > 2) return null;
@@ -275,6 +298,7 @@ export default {
     let lastRender = '';
     let lastChips = '';
     let lastCard = '';
+    let seatSeen = null;         // [phase, in the drawing order] at the last refresh
     let lastFeed = '';
     let lastFinal = -1;
     let sec = -1;
@@ -350,6 +374,9 @@ export default {
         setS({ phase: 'lobby', final: false, drawer: '', wordLen: 0, endsAt: 0, word: '', guessed: [] });
         return;
       }
+      // Friends who join mid-game guess at once and draw at the end of this round.
+      const late = addLateDrawers(s, eligible().map(p => p.id));
+      if (late) { setS(late); return; }
       if (s.phase === 'choose') {
         if (now > s.endsAt + CHOOSE_GRACE_MS || !present(s.drawer)) startTurn(s.turn + 1);
       } else if (s.phase === 'draw') {
@@ -709,6 +736,12 @@ export default {
         return;
       }
       boardFor(s.turn);
+      // Joined mid-game and just added to the drawing order: say when I draw.
+      const seated = s.order.includes(me.id);
+      if (seatSeen && seatSeen[0] !== 'lobby' && s.phase !== 'lobby' && !seatSeen[1] && seated) {
+        api.toast?.(`You're in! You draw at the end of round ${s.round}`);
+      }
+      seatSeen = [s.phase, seated];
 
       // Header.
       const drawing = s.phase === 'draw' && s.drawer === me.id;
@@ -792,3 +825,6 @@ export default {
     };
   },
 };
+
+// Exposed for tests.
+export const _doodle = { addLateDrawers, drawerAt, ROUNDS };

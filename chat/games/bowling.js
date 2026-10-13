@@ -5,7 +5,8 @@
 // everyone watches the same pins fall. The bowler then reports the pins that
 // are still up and the owner applies the roll to the shared scoreboard:
 //   shared = { round, order, turn, frame, scores: { id: [rolls] }, pinsUp,
-//              seq, phase: 'aim' | 'roll' | 'settle' | 'over', readyAt, throw, last }
+//              seq, phase: 'aim' | 'roll' | 'settle' | 'over', readyAt, throw, last,
+//              late: { id: frame they joined at } }
 
 const LANE_HALF = 20.75;        // lane half width (inches)
 const GUTTER_X = 25.5;          // where a ball in the gutter rolls
@@ -154,6 +155,22 @@ function applyRoll(sh, pinsAfter, present, now) {
   }
   // Keep the current bowler and fallen rack on screen during the pause.
   return { ...sh, scores, last, pinsUp: pinsAfter, phase: 'settle', readyAt: now + SETTLE_MS, next };
+}
+
+// Seats friends who arrive mid-game: they go to the end of the order, the
+// frames bowled before they came count as open frames of 0 (two gutter rolls
+// each, so progress() and nextTurn() slot them in from the current frame) and
+// `late` remembers the frame they joined at, for the scoreboard and standings.
+function joinLate(sh, ids, max = MAX_PLAYERS) {
+  const fresh = ids.filter(id => !sh.order.includes(id)).slice(0, Math.max(0, max - sh.order.length));
+  if (!fresh.length) return sh;
+  const scores = { ...sh.scores }, late = { ...(sh.late || {}) };
+  const missed = Math.max(0, Math.min(10, sh.frame) - 1);
+  for (const id of fresh) {
+    scores[id] = new Array(missed * 2).fill(0);
+    if (missed) late[id] = sh.frame;
+  }
+  return { ...sh, order: [...sh.order, ...fresh], scores, late };
 }
 
 function advanceRoll(sh, now) {
@@ -484,7 +501,8 @@ export default {
       if (s.phase === 'over' && !finalHandled) {
         finalHandled = true;
         const mine = scoreFrames(s.scores[meId] || []).total;
-        if (mine > high) { high = mine; api.store.set('high', high); }
+        // A late start (missed frames count 0) doesn't count toward the best game.
+        if (mine > high && !s.late?.[meId]) { high = mine; api.store.set('high', high); }
         const best = standings(s)[0];
         if (best && best.id === meId) api.sfx('win');
       }
@@ -515,15 +533,11 @@ export default {
         if (next !== s) api.setShared(next);
         return;
       }
-      // New friends can join while the first frame is being bowled.
-      if (s.frame === 1) {
-        const fresh = members().filter(m => !s.order.includes(m.id) && s.order.length < MAX_PLAYERS);
-        if (fresh.length && s.phase === 'aim') {
-          const scores = { ...s.scores };
-          fresh.forEach(m => { scores[m.id] = []; });
-          api.setShared({ ...s, order: [...s.order, ...fresh.map(m => m.id)], scores });
-          return;
-        }
+      // New friends join at any frame: they bowl from the current frame on,
+      // after everyone already in it, and the frames they missed score 0.
+      if (s.phase === 'aim') {
+        const next = joinLate(s, members().map(m => m.id));
+        if (next !== s) { api.setShared(next); return; }
       }
       if (s.phase === 'aim') {
         if (!present.has(s.turn)) {
@@ -982,7 +996,8 @@ export default {
         let msg = '';
         if (s.phase === 'over') msg = 'Game over';
         else if (s.phase === 'settle' || sim?.done) msg = `${nameOf(sim?.bowler ?? s.turn)} · Pins settling…`;
-        else if (!s.order.includes(meId)) msg = `Watching · ${nameOf(s.turn)} bowls (you join the next game)`;
+        else if (!s.order.includes(meId)) msg = s.order.length >= MAX_PLAYERS ? `Watching · ${nameOf(s.turn)} bowls (the lane is full: you join the next game)` : `Joining · ${nameOf(s.turn)} bowls, then you're in`;
+        else if (s.late?.[meId] && s.turn !== meId && progress(s.scores[meId] || []).frame + 1 === s.late[meId] && !(s.scores[meId] || []).slice(2 * (s.late[meId] - 1)).length) msg = `You join in frame ${s.late[meId]} · ${nameOf(s.turn)} is bowling`;
         else {
           const pr = progress(s.scores[s.turn] || []);
           const who = s.turn === meId ? 'Your turn' : `${nameOf(s.turn)} is bowling`;
@@ -1042,11 +1057,15 @@ export default {
         }
         const card = el('div', 'display:grid;grid-template-columns:repeat(9,1fr) 1.55fr;gap:2px;background:rgba(30,14,60,0.82);border-radius:10px;padding:3px;');
         const sf = scoreFrames(s.scores[vid] || []);
+        const lateAt = s.late?.[vid] || 0;
         sf.frames.forEach((fr, i) => {
+          // Frames bowled before a late joiner arrived count 0 and show a dash.
+          if (i + 1 < lateAt) fr = { marks: ['–'], score: null, missed: true };
           const cell = el('div', 'background:rgba(255,255,255,0.1);border-radius:6px;text-align:center;line-height:1.15;min-width:0;');
           const top = el('div', 'display:flex;justify-content:flex-end;gap:1px;font-size:11px;padding:1px 3px 0;min-height:14px;');
           fr.marks.forEach(m => top.append(el('span', `min-width:11px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:0 1px;${m === 'X' ? 'color:#ffd43b;' : m === '/' ? 'color:#3fe0d0;' : ''}`, m)));
           if (!fr.marks.length) top.append(el('span', '', ' '));
+          if (fr.missed) cell.style.opacity = '0.45';
           cell.append(el('div', 'font-size:9px;opacity:0.6;', String(i + 1)), top, el('div', 'font-size:13px;padding-bottom:1px;', fr.score != null ? String(fr.score) : ' '));
           card.append(cell);
         });
@@ -1064,7 +1083,8 @@ export default {
           const top = st[0] ? st[0].total : 0;
           st.forEach((r, i) => {
             const row = el('div', `display:flex;justify-content:space-between;gap:14px;padding:3px 4px;color:${colorOf(r.id)};${r.total === top && st.length > 1 ? 'font-size:1.1rem;' : ''}`);
-            row.append(el('span', '', `${i === 0 && st.length > 1 ? '🏆 ' : ''}${nameOf(r.id)}`), el('span', '', String(r.total)));
+            const lateAt = s.late?.[r.id];
+            row.append(el('span', '', `${i === 0 && st.length > 1 ? '🏆 ' : ''}${nameOf(r.id)}${lateAt ? ` (joined late, frame ${lateAt})` : ''}`), el('span', '', String(r.total)));
             panel.append(row);
           });
           panel.append(el('div', 'margin-top:6px;font-size:12px;opacity:0.85;', `Your best game: ${high || '–'}`));
@@ -1134,4 +1154,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _bowling = { progress, scoreFrames, applyRoll, advanceRoll, nextTurn, makeSim, stepSim, runSim, standing, popcount, swipeSpin, PIN_POS, FULL, HEAD, SETTLE_MS };
+export const _bowling = { progress, scoreFrames, applyRoll, advanceRoll, nextTurn, joinLate, makeSim, stepSim, runSim, standing, popcount, swipeSpin, PIN_POS, FULL, HEAD, SETTLE_MS };
