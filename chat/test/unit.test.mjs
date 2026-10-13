@@ -1183,3 +1183,82 @@ test('Temple Dash checks shared state, runners and messages strictly', () => {
   assert.deepEqual(temple.parseFell({ n: 2, d: 99.5, k: 1 }), { n: 2, d: 99.5, k: 1 });
   for (const bad of [null, {}, { n: 2, d: 99, k: 0 }, { n: 2, d: 99, k: 5 }, { n: -1, d: 1, k: 1 }, { n: 1, d: Infinity, k: 1 }]) assert.equal(temple.parseFell(bad), null);
 });
+
+test('Bowling seats a late joiner at any frame: missed frames score 0 and they bowl from the current frame', async () => {
+  const { _bowling: b } = await import('../games/bowling.js');
+  // a and b are in frame 4; a has bowled it, b is up.
+  const open = [3, 4, 3, 4, 3, 4];
+  const s = { round: 1, order: ['a', 'b'], turn: 'b', frame: 4, scores: { a: [...open, 3, 4], b: open }, pinsUp: b.FULL, seq: 7, phase: 'aim' };
+  const j = b.joinLate(s, ['a', 'b', 'c']);
+  assert.deepEqual(j.order, ['a', 'b', 'c']);
+  assert.deepEqual(j.scores.c, [0, 0, 0, 0, 0, 0], 'three missed frames of 0');
+  assert.deepEqual(j.late, { c: 4 });
+  assert.equal(b.progress(j.scores.c).frame, 3, 'c is due in frame 4');
+  assert.equal(b.scoreFrames(j.scores.c).total, 0);
+  const present = new Set(['a', 'b', 'c']);
+  // b finishes frame 4: c bowls next, still in frame 4, then a opens frame 5.
+  assert.deepEqual(b.nextTurn(j.order, { ...j.scores, b: [...open, 3, 4] }, 4, 'b', present), { turn: 'c', frame: 4 });
+  assert.deepEqual(b.nextTurn(j.order, { ...j.scores, b: [...open, 3, 4], c: [0, 0, 0, 0, 0, 0, 10] }, 4, 'c', present), { turn: 'a', frame: 5 });
+  // Already seated, or in frame 1: nothing missed, nothing marked.
+  assert.equal(b.joinLate(j, ['a', 'c']), j);
+  const f1 = b.joinLate({ ...s, frame: 1, scores: { a: [], b: [] } }, ['c']);
+  assert.deepEqual(f1.scores.c, []);
+  assert.deepEqual(f1.late, {});
+  // A full lane stays full; the tenth frame is the latest anyone can join.
+  assert.equal(b.joinLate(s, ['c', 'd'], 3).order.length, 3);
+  const ten = b.joinLate({ ...s, frame: 10 }, ['c']);
+  assert.equal(ten.scores.c.length, 18);
+  assert.equal(b.progress(ten.scores.c).frame, 9);
+});
+
+test('Go Fish deals a mid-game joiner in from the pond, after the current turn, while a hand is left', async () => {
+  const { dealIn, JOIN_HAND } = await import('../games/gofish.js');
+  assert.equal(JOIN_HAND, 4);
+  const s = { game: 1, phase: 'ask', order: ['a', 'b', 'c'], turn: 'b', names: {}, hands: { a: [1], b: [2], c: [3] }, pond: [5, 6, 7, 7, 7, 7], books: { a: [], b: [], c: [] }, evs: [], seq: 0 };
+  const j = dealIn(s, ['a', 'b', 'c', 'd'], { names: { d: 'Bo' } });
+  assert.deepEqual(j.dealt, ['d']);
+  assert.deepEqual(j.s.order, ['a', 'b', 'd', 'c'], 'plays right after the current turn');
+  assert.deepEqual(j.s.hands.d, [], 'four of a kind drawn goes straight to a book');
+  assert.deepEqual(j.s.books.d, [7]);
+  assert.deepEqual(j.s.pond, [5, 6]);
+  assert.equal(j.s.names.d, 'Bo');
+  assert.deepEqual(s.order, ['a', 'b', 'c'], 'the input is untouched');
+  // Two at once sit one after the other; with too few cards left they wait.
+  const two = dealIn({ ...s, pond: [0, 1, 2, 3, 4, 5, 6, 8, 9] }, ['d', 'e', 'f']);
+  assert.deepEqual(two.dealt, ['d', 'e']);
+  assert.deepEqual(two.waiting, ['f']);
+  assert.deepEqual(two.s.order, ['a', 'b', 'd', 'e', 'c']);
+  assert.deepEqual(two.s.hands.e, [1, 2, 3, 4]);
+  assert.equal(two.s.pond.length, 1);
+  const low = dealIn({ ...s, pond: [1, 2, 3] }, ['d']);
+  assert.deepEqual(low.dealt, []);
+  assert.deepEqual(low.waiting, ['d']);
+  assert.equal(low.s.order.length, 3);
+  assert.deepEqual(dealIn(s, ['d'], { max: 3 }).waiting, ['d'], 'a full table waits');
+  assert.equal(dealIn(s, ['a']).s, s);
+});
+
+test('Doodle puts a mid-game joiner in the drawing order without changing the current drawer or round', async () => {
+  const { _doodle: d } = await import('../games/doodle.js');
+  // Three players, base 1: turn 5 is round 2, second drawer (b).
+  const s = { phase: 'draw', order: ['a', 'b', 'c'], base: 1, turn: 5, scores: { a: 10, b: 0, c: 5 } };
+  assert.deepEqual(d.drawerAt(s, 5), { drawer: 'b', round: 2, last: false });
+  const p = d.addLateDrawers(s, ['a', 'b', 'c', 'x']);
+  const t = { ...s, ...p };
+  assert.deepEqual(t.order, ['a', 'b', 'c', 'x']);
+  assert.equal(t.scores.x, 0);
+  assert.deepEqual(d.drawerAt(t, 5), { drawer: 'b', round: 2, last: false }, 'same drawer, same round');
+  const seq = [];
+  for (let k = 5; !d.drawerAt(t, k).last; k++) seq.push(d.drawerAt(t, k).drawer + d.drawerAt(t, k).round);
+  assert.deepEqual(seq, ['b2', 'c2', 'x2', 'a3', 'b3', 'c3', 'x3'], 'x draws at the end of this round and the next');
+  assert.equal(d.addLateDrawers(t, ['a', 'x']), null, 'already seated');
+  assert.equal(d.addLateDrawers({ ...s, phase: 'lobby' }, ['x']), null, 'the lobby starts the next game with everyone');
+  assert.equal(d.addLateDrawers({ ...s, turn: 10 }, ['x']), null, 'no turns left');
+  // Joining during the last drawer's turn still gets a turn at the end.
+  const lastTurn = { ...s, turn: 9 };
+  const l = { ...lastTurn, ...d.addLateDrawers(lastTurn, ['x']) };
+  assert.deepEqual(d.drawerAt(l, 9), { drawer: 'c', round: 3, last: false });
+  assert.deepEqual(d.drawerAt(l, 10), { drawer: 'x', round: 3, last: false });
+  assert.equal(d.drawerAt(l, 11).last, true);
+  assert.equal(d.addLateDrawers(s, ['x', 'y'], 4).order.length, 4, 'up to the table size');
+});
