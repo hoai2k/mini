@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-527 delivered, 527 in total.
+526 delivered, 4 requested, 530 in total.
 
 ## Brand
 
@@ -1385,19 +1385,6 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 STRICT ISOLATED OBSTACLE: only ONE long thick brown gnarled root lying horizontally at ankle height. Slight shallow upward hump at its middle, not a doorway or tall arch. No ground, paving, plants, rocks, foliage, path or backdrop. Game obstacle the runner jumps OVER. Transparent background. Wide 512x256.
 ```
 
-### CH-G80 · Low arch
-
-- **File:** `chat/assets/games/temple-arch.png`
-- **Size:** 512 x 512, transparent
-- **Used for:** Temple Dash: low arch.
-- **Stand-in until delivered:** A drawn shape.
-- **Status:** delivered
-
-```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. a low broken stone archway with hanging vines spanning the path, high enough to slide under, seen from in front. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-Production canvas aspect ratio 512:512, intended export 512 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.
-```
-
 ### CH-G81 · Fire trap
 
 - **File:** `chat/assets/games/temple-fire.png`
@@ -1435,6 +1422,54 @@ Production canvas aspect ratio 128:128, intended export 128 x 128. Genuine trans
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 Production canvas aspect ratio 1024:512, intended export 1024 x 512. Genuine transparent alpha, clean edges, no exterior glow or shadow.
+```
+
+### CH-G84 · Low beam (slide under)
+
+- **File:** `chat/assets/games/temple-beam.png`
+- **Size:** 1024 x 512, transparent
+- **Used for:** Temple Dash: the obstacle you slide under. It spans the whole walkway, all three lanes, so the only way past is to slide (it replaces the open archway, which looked tall enough to run through).
+- **Stand-in until delivered:** A drawn beam.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright cartoon adventure-game art, chunky shapes, warm jungle colours, soft cel shading. Seen straight from the front: one massive horizontal carved stone beam lying across the FULL width of the image, thick and heavy, with carved glyphs and moss on top and a few short vines hanging from its underside. The beam's top edge is about 20% down from the top of the image and its flat underside about 62% down. Below the beam the image is EMPTY (transparent) right across, except two short broken stone blocks at the very left and right edges (each under 8% of the width) that hold the beam up. Vines stop well above the bottom third. No archway, no rounded opening, nothing in the middle below the beam. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G85 · Tabletop baseball board
+
+- **File:** `chat/assets/games/bb2-board.webp`
+- **Size:** 1080 x 1920, opaque
+- **Used for:** Baseball: the whole board, seen from above on an upright phone (the game draws the pockets, their labels, the fielders and the ball on top).
+- **Stand-in until delivered:** A drawn board.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Retro tabletop toy game art seen from directly above: glossy printed tin and moulded plastic, bright primary colours, crisp clean shapes, soft even lighting. A top-down tabletop baseball game board filling the frame: a green outfield printed like turf with mowing stripes, a tan dirt infield diamond with three white bases, home plate near the bottom centre, the pitcher's mound in the middle of the diamond with a short white groove running from it down to home plate, foul lines in white, and a raised blue plastic outfield wall curving round the top with a printed crowd and flags behind it. Leave the outfield and infield grass plain: NO holes, NO pockets, NO numbers and NO text anywhere.
+```
+
+### CH-G86 · Flipper bat
+
+- **File:** `chat/assets/games/bb2-bat.png`
+- **Size:** 512 x 128, transparent
+- **Used for:** Baseball: the spring-loaded bat that swings round at home plate, seen from above.
+- **Stand-in until delivered:** A drawn bat.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Retro tabletop toy game art seen from directly above: glossy printed tin and moulded plastic, bright primary colours, crisp clean shapes, soft even lighting. A wooden toy baseball bat seen from directly above, lying flat, the knob and handle at the LEFT end and the thick barrel at the RIGHT, glossy varnish, filling the width. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G87 · Fielder figure
+
+- **File:** `chat/assets/games/bb2-fielder.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Baseball: the little fielders standing on the board (the game tints the cap and shirt).
+- **Stand-in until delivered:** A drawn figure.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Retro tabletop toy game art seen from directly above: glossy printed tin and moulded plastic, bright primary colours, crisp clean shapes, soft even lighting. A small moulded plastic baseball fielder figurine seen from directly above: round WHITE cap (so the game can tint it), shoulders, and a brown glove held out to one side, standing on a round base. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ## 360° worlds

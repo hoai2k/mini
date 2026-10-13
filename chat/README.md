@@ -321,7 +321,8 @@ Dash is an endless run down a raised temple walkway over the jungle, seen from
 behind the runner (WebGL walkway, walls, jungle and a sunset sky that swings
 round at the corners), with your live face on the runner and the shirt in your
 colour. It speeds up as you go. Swipe left or right to change lanes, up to jump
-roots, fire vents and gaps, down to slide under low arches; at a corner (an
+roots, fire vents and gaps, down to slide under the low beams that block the whole walkway (a
+"⬇ Slide!" shows as one comes up); at a corner (an
 arrow lights up, and a swipe up to about a second early or a stride late
 counts) swipe the way it turns or run off the edge. Tripping on a root or fire
 brings the monkeys up behind you; a second trip within seven seconds, or any
@@ -435,7 +436,7 @@ itself to HTTPS.
 - `node chat/test/temple-play.mjs`: two runners on phone-sized Temple Dash
   seats: the same temple on both after one countdown, real touch swipes left
   and right changing lanes (and the stick), up jumping a root, down sliding
-  under an arch (upright is a crash), a swipe at a corner turning, a stumble
+  under a beam (upright is a crash), a swipe at a corner turning, a stumble
   bringing the monkeys and a second one getting caught, a missed corner going
   off the edge with the other seat seeing the puff and "Ana fell!", that seat
   drawing the other runner where they are, a tap running again from the start,

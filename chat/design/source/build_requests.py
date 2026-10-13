@@ -195,11 +195,13 @@ REQUESTS: list[dict] = []
 # Games taken out of Games Chat. Their entries stay in the lists above so the
 # request numbers of everything after them don't change; req() drops their art.
 RETIRED_GAMES = {"stare", "dontsmile"}
+# Single pictures no longer used (replaced by a later request).
+RETIRED_ASSETS = {"temple-arch"}   # by temple-beam (CH-G84): the archway looked tall enough to run through
 
 
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested", ext=None):
-    if any(asset in (f"game-{g}", f"game2-{g}", f"art-game-{g}", f"classic-game-{g}") for g in RETIRED_GAMES):
+    if asset in RETIRED_ASSETS or any(asset in (f"game-{g}", f"game2-{g}", f"art-game-{g}", f"classic-game-{g}") for g in RETIRED_GAMES):
         return
     ext = ext or ("png" if alpha else "webp")
     folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds",
@@ -1103,6 +1105,39 @@ for rid, (asset, title, desc, size) in zip(["CH-G79", "CH-G80", "CH-G81", "CH-G8
     ("temple-monkeys", "Chasing monkeys", "three mischievous cartoon temple monkeys with glowing eyes running towards the camera, side by side, filling the frame", "1024 x 512"),
 ]):
     req("games", rid, asset, title, size, f"Temple Dash: {title.lower()}.", TEMPLE + desc + ".", "A drawn shape.")
+
+req("games", "CH-G84", "temple-beam", "Low beam (slide under)", "1024 x 512",
+    "Temple Dash: the obstacle you slide under. It spans the whole walkway, all three lanes, so the "
+    "only way past is to slide (it replaces the open archway, which looked tall enough to run through).",
+    TEMPLE + "Seen straight from the front: one massive horizontal carved stone beam lying across the FULL "
+    "width of the image, thick and heavy, with carved glyphs and moss on top and a few short vines hanging "
+    "from its underside. The beam's top edge is about 20% down from the top of the image and its flat "
+    "underside about 62% down. Below the beam the image is EMPTY (transparent) right across, except two "
+    "short broken stone blocks at the very left and right edges (each under 8% of the width) that hold the "
+    "beam up. Vines stop well above the bottom third. No archway, no rounded opening, nothing in the middle "
+    "below the beam.", "A drawn beam.")
+
+# --- Baseball, second version: a top-down tabletop baseball board -------------
+TABLETOP = ("Retro tabletop toy game art seen from directly above: glossy printed tin and moulded "
+            "plastic, bright primary colours, crisp clean shapes, soft even lighting. ")
+req("games", "CH-G85", "bb2-board", "Tabletop baseball board", "1080 x 1920",
+    "Baseball: the whole board, seen from above on an upright phone (the game draws the pockets, their labels, "
+    "the fielders and the ball on top).",
+    TABLETOP + "A top-down tabletop baseball game board filling the frame: a green outfield printed like turf "
+    "with mowing stripes, a tan dirt infield diamond with three white bases, home plate near the bottom centre, "
+    "the pitcher's mound in the middle of the diamond with a short white groove running from it down to home "
+    "plate, foul lines in white, and a raised blue plastic outfield wall curving round the top with a printed "
+    "crowd and flags behind it. Leave the outfield and infield grass plain: NO holes, NO pockets, NO numbers "
+    "and NO text anywhere.", "A drawn board.", alpha=False)
+req("games", "CH-G86", "bb2-bat", "Flipper bat", "512 x 128",
+    "Baseball: the spring-loaded bat that swings round at home plate, seen from above.",
+    TABLETOP + "A wooden toy baseball bat seen from directly above, lying flat, the knob and handle at the LEFT "
+    "end and the thick barrel at the RIGHT, glossy varnish, filling the width.", "A drawn bat.")
+req("games", "CH-G87", "bb2-fielder", "Fielder figure", "256 x 256",
+    "Baseball: the little fielders standing on the board (the game tints the cap and shirt).",
+    TABLETOP + "A small moulded plastic baseball fielder figurine seen from directly above: round WHITE cap "
+    "(so the game can tint it), shoulders, and a brown glove held out to one side, standing on a round base.",
+    "A drawn figure.")
 
 NEW_GAMES_3 = [
     ("blocks", "Block Drop", "colourful falling square-block puzzle pieces stacking into neat rows, one row flashing as it clears"),

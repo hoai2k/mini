@@ -2235,10 +2235,6 @@ export const ASSET_LIST = {
     "file": "assets/games/temple-root.png",
     "status": "delivered"
   },
-  "temple-arch": {
-    "file": "assets/games/temple-arch.png",
-    "status": "delivered"
-  },
   "temple-fire": {
     "file": "assets/games/temple-fire.png",
     "status": "delivered"
@@ -2250,6 +2246,22 @@ export const ASSET_LIST = {
   "temple-monkeys": {
     "file": "assets/games/temple-monkeys.png",
     "status": "delivered"
+  },
+  "temple-beam": {
+    "file": "assets/games/temple-beam.png",
+    "status": "requested"
+  },
+  "bb2-board": {
+    "file": "assets/games/bb2-board.webp",
+    "status": "requested"
+  },
+  "bb2-bat": {
+    "file": "assets/games/bb2-bat.png",
+    "status": "requested"
+  },
+  "bb2-fielder": {
+    "file": "assets/games/bb2-fielder.png",
+    "status": "requested"
   },
   "game-blocks": {
     "file": "assets/icons/game-blocks.png",
