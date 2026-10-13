@@ -1791,6 +1791,24 @@ REQUESTS.append({
 })
 
 
+# Board 5's windmills (OM-Y05 item 7) came with their sails painted on, so the
+# turning sails that chop the cloud can't move: the tower and the sails apart.
+REQUESTS.append({
+    "id": "OM-Z06", "section": "audit", "name": "Board 5: windmill tower and sails, separate",
+    "key": "adv.b05.windmill", "file": "assets/adventure/b05/windmill.png",
+    "size": "2048 x 1024, transparent", "status": "requested", "ref": "typhoonigator-spread.jpg",
+    "used": "Board 5's windmills: the sails turn on the tower and chop puffs off the Typhoonigator.",
+    "standin": "The delivered windmill with painted sails (OM-Y05 item 7); the chop zone is a disc round the hub.",
+    "prompt": STYLE + " Two separate game sprites side by side, side-on, at the same scale, with "
+    "plenty of clear space between them. On the left: an old stone windmill tower with a "
+    "shingled cap, standing on a small rocky island with waves at its foot, WITHOUT any sails: "
+    "only the round hub on the front of the cap. On the right: the four wooden lattice sails "
+    "alone, as one cross-shaped piece seen face-on, their hub exactly in the centre of the "
+    "image, so the game can spin them about that centre. " + ALPHA + " "
+    + REF_SCENE.format("typhoonigator-spread.jpg"),
+})
+
+
 
 # Generated assets are recorded after visual review and file validation.
 DELIVERIES = ROOT / "design" / "image-deliveries.json"

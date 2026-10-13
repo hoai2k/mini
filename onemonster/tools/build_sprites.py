@@ -93,6 +93,8 @@ def sheets() -> list[dict]:
             for pid, _name, _ref, items in br.TERRAIN]
     # The minigame audit's extra sheets (OM-Z01..03).
     out += [{"key": sh["key"], "kind": "poses", "file": sh["file"], "items": sh["items"]} for sh in br.AUDIT_SHEETS]
+    out.append({"key": "adv.b05.windmill", "kind": "props", "file": "assets/adventure/b05/windmill.png",
+                "items": ["the windmill tower on its island, no sails", "the four sails alone, hub in the centre"]})
     out.append({"key": "cast", "kind": "cast", "file": "assets/cast/sprites.png", "items": [
         "Sally Ann at her window, looking out", "Sally Ann at her window, turned away writing",
         "the neighbour peering over her spectacles", "the neighbour dozing",

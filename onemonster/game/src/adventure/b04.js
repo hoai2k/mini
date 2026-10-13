@@ -79,7 +79,7 @@ const ZONES = [
   { x0: 8700, x1: 9400, dir: 1, speed: 150, warm: true },
 ];
 const NEED = { floe: 0.15, crate: 0.2, barrel: 0.2, buoy: 0.3, tug: 0.5 };
-const HALF = { floe: 200, crate: 60, barrel: 50, buoy: 50, tug: 120, reef: 90 };
+const HALF = { floe: 240, crate: 60, barrel: 50, buoy: 50, tug: 120, reef: 90 };
 const OVERHEAD = { pier: 75, bridge: 90 }; // clearance above the waterline (the delivered pier and bridge are low: sink right down)
 
 // How far a charge of this fury carries (the stand-in arrow shows it).
@@ -140,7 +140,7 @@ export default function create(env) {
   const lionList = [];
   for (const t of things) {
     if (t.kind !== 'floe') continue;
-    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 70 : -70) * (t.lions > 1 ? 1 : 0), y: WL - 40, floe: t, k });
+    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 90 : -90) * (t.lions > 1 ? 1 : 0), y: WL - 56, floe: t, k });
   }
   for (const x of SWIMMERS) lionList.push({ x, y: WL - 4, swim: true });
   const lions = kit.makePickups(lionList, { radius: 0 });
@@ -468,10 +468,10 @@ export default function create(env) {
     for (const l of lions.items) {
       if (l.got) { l.t += dt; continue; }
       if (l.floe) {
-        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 70 : -70) : 0);
+        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 90 : -90) : 0);
         else { l.y = WL - 4; l.floe = null; l.swim = true; } // its floe smashed from under it
       }
-      if (!sunk() && Math.abs(l.x - ferg.x) < hw + (l.floe ? 170 : 70)) { l.got = true; l.t = 0; lionAboard(l); } // from a floe pushed along at the bow, too
+      if (!sunk() && Math.abs(l.x - ferg.x) < hw + (l.floe ? HALF.floe + 90 : 70)) { l.got = true; l.t = 0; lionAboard(l); } // from a floe pushed along at the bow, too
     }
     for (let i = strays.length - 1; i >= 0; i--) {
       const s = strays[i];
@@ -962,9 +962,9 @@ export default function create(env) {
       // The delivered floe is a long shelf: its two ends make a short one.
       const fl = art.sprite('terrain.sea', 5);
       if (fl) {
-        const k = 0.8, end = 290;
+        const k = 1.3, end = 200;
         g.save();
-        g.translate(th.x, y + 60);
+        g.translate(th.x, y + 7 + 22 * k);
         g.rotate(rock);
         g.drawImage(fl.img, 0, 0, end, fl.h, -end * k, -fl.h * k, end * k + 1, fl.h * k);
         g.drawImage(fl.img, fl.w - end, 0, end, fl.h, 0, -fl.h * k, end * k, fl.h * k);
@@ -1047,6 +1047,14 @@ export default function create(env) {
 
   function drawPeg(g, tt) {
     if (!cam.sees(peg.x - 260, peg.x + 260)) return;
+    const bridge = things.find((o) => o.kind === 'bridge' && Math.abs(o.x - peg.x) < o.hw + 120);
+    g.save();
+    if (bridge && art.sprite('terrain.sea', 6)) { g.beginPath(); g.rect(bridge.x - bridge.hw - 200, WL - 150, bridge.hw * 2 + 400, 600); g.clip(); }
+    drawPegBody(g, tt);
+    g.restore();
+  }
+
+  function drawPegBody(g, tt) {
     const rock = Math.sin(tt * 2.2) * 0.035 + (peg.steamT > 0 ? Math.sin(tt * 12) * 0.02 : 0);
     const rot = peg.rot + rock;
     const y = WL + Math.sin(tt * 2.6) * 3 + peg.sink * 150;
@@ -1369,7 +1377,7 @@ export default function create(env) {
   }
 
   function drawHarbourWall(g, tt) {
-    const x0 = art.sprite('terrain.sea', 4) ? 13660 : HARBOUR_X + 60;
+    const x0 = art.sprite('terrain.sea', 4) ? HARBOUR_X - 150 : HARBOUR_X + 60;
     if (!cam.sees(x0 - 100, WORLD)) return;
     kit.sprite(g, 'terrain.sea', 4, x0, WL + 46, { height: 307, ax: 0 }, (gg) => {
       gg.save();
@@ -1399,8 +1407,8 @@ export default function create(env) {
     g.lineWidth = 7;
     g.strokeStyle = INK;
     g.fillStyle = '#f8f1e0';
-    g.strokeText('Harbour', x0 + 1100, WL - 180);
-    g.fillText('Harbour', x0 + 1100, WL - 180);
+    g.strokeText('Harbour', x0 + 420, WL - 180);
+    g.fillText('Harbour', x0 + 420, WL - 180);
     g.restore();
   }
 

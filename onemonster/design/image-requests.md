@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-10 requested, 129 delivered, 139 in total.
+11 requested, 129 delivered, 140 in total.
 
 ## Brand
 
@@ -1900,4 +1900,17 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A single side-on game sprite: a fallen palm trunk lying across a jungle path, its root end propped up on a mossy boulder at the left and its crown of fronds resting on a low stump at the right, so there is a clear empty gap beneath the trunk along its whole length, about a third of the trunk's height off the ground. Ringed palm bark, a splintered broken end, a few dry brown fronds. Nothing under the trunk. Wide landscape composition. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/yalapappus-bottle-on-head.jpg .
+```
+
+### OM-Z06 · Board 5: windmill tower and sails, separate
+
+- **File:** `onemonster/game/assets/adventure/b05/windmill.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Board 5's windmills: the sails turn on the tower and chop puffs off the Typhoonigator.
+- **Stand-in until delivered:** The delivered windmill with painted sails (OM-Y05 item 7); the chop zone is a disc round the hub.
+- **Reference:** [`reference/typhoonigator-spread.jpg`](../reference/typhoonigator-spread.jpg)
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. Two separate game sprites side by side, side-on, at the same scale, with plenty of clear space between them. On the left: an old stone windmill tower with a shingled cap, standing on a small rocky island with waves at its foot, WITHOUT any sails: only the round hub on the front of the cap. On the right: the four wooden lattice sails alone, as one cross-shaped piece seen face-on, their hub exactly in the centre of the image, so the game can spin them about that centre. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/typhoonigator-spread.jpg .
 ```

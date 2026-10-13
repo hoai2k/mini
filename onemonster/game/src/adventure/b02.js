@@ -58,9 +58,9 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log:
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
 const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700, 230, true], [10650, 240], [12500, 230, true]];
 const HOLE = 300; // the hollow's height
-const BOUGHS = [[2250, 400], [5800, 390], [9350, 400], [12900, 400]];
-const BRANCHES = [[200, 380, 420, 1], [1250, 420, 350, 1], [2900, 410, 380, -1],
-  [4950, 430, 380, 1], [9050, 410, 380, -1], [10000, 430, 420, 1], [12300, 420, 300, 1]];
+const BOUGHS = [[2250, 400], [5800, 390], [9350, 360], [12900, 400]];
+const BRANCHES = [[200, 380, 420, 1], [1250, 520, 350, 1], [2900, 410, 380, -1],
+  [4950, 430, 380, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
 const WEBS = [[5450, 540, 115], [6000, 300, 120], [6700, 500, 115], [6950, 590, 100]];
 const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
 const BIRDS = [[9000, 400], [10150, 400]];
@@ -1563,7 +1563,6 @@ export function autopilot(board) {
   const wall = solids.some((s) => s.kind !== 'floor' && s.kind !== 'leaves' && s.x > b.x + 40 && s.x < b.x + 300 && b.y + 60 > s.y - 10 && b.y - 60 < s.y + s.h + 10);
   // (A dive always drives forward, so near a wall he brakes and sinks instead.)
   if (wall && Math.abs(err) > 70 && !wait) out.x = b.vx > -60 ? -1 : 0;
-  ap.dbg = { target, wall, depth, pick: pick && pick.iv };
   if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
   else if (err < -130 && !wall && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.
