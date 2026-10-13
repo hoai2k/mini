@@ -580,8 +580,10 @@ export default function create(env) {
       cam.follow(ferg.x, ferg.vx, dt, t < 0.1);
     },
     draw(g, tt) {
-      kit.drawBackdrop(g, cam, { panels: ['adv/b04/backdrop-1', 'adv/b04/backdrop-2', 'adv/b04/backdrop-3'], standin: 'scenes/iceferg' });
-      kit.haze(g, 'rgba(236,228,214,0.16)');
+      const panels = ['adv/b04/backdrop-1', 'adv/b04/backdrop-2', 'adv/b04/backdrop-3'];
+      if (panels.every((k) => art.image(k))) kit.drawBackdrop(g, cam, { panels });
+      else drawSkyAndFarSea(g, tt);
+      kit.haze(g, 'rgba(236,228,214,0.12)');
       cam.begin(g);
       drawFar(g, tt);
       drawSeaBody(g, tt);
@@ -672,6 +674,56 @@ export default function create(env) {
   const INK = '#2b3340';
   const SEA = '#507d94', SEA_DEEP = '#3a6176';
 
+  // Until the backdrop panels arrive: the sky and the far sea composed from
+  // crops of the delivered sea painting (its open water and its skyline, not
+  // its harbour, which is the goal and must not repeat), in slow parallax.
+  function drawSkyAndFarSea(g, tt) {
+    const img = art.image('scenes/iceferg');
+    const gr = g.createLinearGradient(0, 0, 0, WL);
+    gr.addColorStop(0, '#d8c3d6'); gr.addColorStop(0.45, '#e9d6cf'); gr.addColorStop(1, '#c9d2cf');
+    g.fillStyle = gr;
+    g.fillRect(0, 0, W, H);
+    if (!img) return;
+    const kx = img.width / W, ky = img.height / H;
+    // The skyline: hills and clouds, tiled and mirrored, very slow.
+    const skyH = 150, skyW = 1100;
+    let off = cam.x * 0.08;
+    for (let i = Math.floor(off / skyW); i * skyW - off < W; i++) {
+      const x = i * skyW - off;
+      g.save();
+      if (i % 2) { g.translate(x + skyW, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, skyW * kx, skyH * ky, 0, 150, skyW, skyH); }
+      else g.drawImage(img, 0, 0, skyW * kx, skyH * ky, x, 150, skyW, skyH);
+      g.restore();
+    }
+    // The far sea: the painting's open water, from the horizon down to the waterline.
+    const seaW = 1150, sy0 = 250, sh = 400;
+    off = cam.x * 0.25;
+    for (let i = Math.floor(off / seaW); i * seaW - off < W; i++) {
+      const x = i * seaW - off;
+      g.save();
+      if (i % 2) { g.translate(x + seaW, 0); g.scale(-1, 1); g.drawImage(img, 350 * kx, sy0 * ky, seaW * kx, sh * ky, 0, 300, seaW, WL - 300 + 20); }
+      else g.drawImage(img, 350 * kx, sy0 * ky, seaW * kx, sh * ky, x, 300, seaW, WL - 300 + 20);
+      g.restore();
+    }
+    // A pale haze band along the horizon, so the far sea sits back.
+    const hz = g.createLinearGradient(0, 290, 0, 420);
+    hz.addColorStop(0, 'rgba(233,214,207,0.9)'); hz.addColorStop(1, 'rgba(233,214,207,0)');
+    g.fillStyle = hz;
+    g.fillRect(0, 290, W, 130);
+  }
+
+  // Pen hatching inside a box: the book shades everything with it.
+  function hatch(gg, x, y, w, h, { step = 9, alpha = 0.35, colour = '43,29,20', slant = 0.6 } = {}) {
+    gg.save();
+    gg.beginPath(); gg.rect(x, y, w, h); gg.clip();
+    gg.strokeStyle = `rgba(${colour},${alpha})`;
+    gg.lineWidth = 1.4;
+    gg.beginPath();
+    for (let xx = x - h * slant; xx < x + w; xx += step) { gg.moveTo(xx, y + h); gg.lineTo(xx + h * slant, y); }
+    gg.stroke();
+    gg.restore();
+  }
+
   function drawFar(g, tt) {
     // Distant islands and the harbour town, far off along the horizon.
     const far = [[1200, 150, 0.22], [3400, 120, 0.3], [6200, 180, 0.26], [9000, 140, 0.2]];
@@ -712,6 +764,27 @@ export default function create(env) {
     g.save();
     g.fillStyle = SEA;
     g.fillRect(x0, WL - 4, x1 - x0, H - WL + 60);
+    const img = art.image('scenes/iceferg');
+    if (img) {
+      // The painting's open water, as the body of the sea under the waterline.
+      const kx = img.width / W, ky = img.height / H;
+      const tw2 = 1150, th = 300;
+      g.globalAlpha = 0.9;
+      for (let i = Math.floor(x0 / tw2); i * tw2 < x1; i++) {
+        const x = i * tw2;
+        g.save();
+        if (i % 2) { g.translate(x + tw2, 0); g.scale(-1, 1); g.drawImage(img, 350 * kx, 420 * ky, tw2 * kx, 330 * ky, 0, WL - 4, tw2, th); }
+        else g.drawImage(img, 350 * kx, 420 * ky, tw2 * kx, 330 * ky, x, WL - 4, tw2, th);
+        g.restore();
+      }
+      g.globalAlpha = 1;
+      const deep = g.createLinearGradient(0, WL + 120, 0, WL + th);
+      deep.addColorStop(0, 'rgba(58,97,118,0)'); deep.addColorStop(1, SEA_DEEP);
+      g.fillStyle = deep;
+      g.fillRect(x0, WL + 120, x1 - x0, th - 120);
+      g.fillStyle = SEA_DEEP;
+      g.fillRect(x0, WL + th - 1, x1 - x0, H - WL);
+    }
     // The ground strip from the sea sheet, tiled, or ink hatching along the swell.
     const tw = 640;
     for (let i = Math.floor(x0 / tw); i * tw < x1; i++) {
@@ -720,8 +793,8 @@ export default function create(env) {
         gg.strokeStyle = 'rgba(43,51,64,0.28)';
         gg.lineWidth = 2;
         gg.beginPath();
-        for (let r = 0; r < 7; r++) {
-          const y = yy + 26 + r * 44 + hash(i * 7 + r) * 10;
+        for (let r = 0; r < 10; r++) {
+          const y = yy + 26 + r * 46 + hash(i * 7 + r) * 10;
           for (let s = 0; s < tw; s += 80) {
             const ph = Math.sin(tt * 1.3 + (xx + s) * 0.01 + r) * 4;
             gg.moveTo(xx + s + 6, y + ph); gg.quadraticCurveTo(xx + s + 30, y - 8 + ph, xx + s + 62, y + ph);
@@ -733,52 +806,90 @@ export default function create(env) {
     g.restore();
   }
 
-  // The book's curling waves along the waterline, behind (back) and in front.
+  // The book's curling waves along the waterline, behind (back) and in front:
+  // a wavy band with hooked crests, ink lines and foam, drifting along.
   function drawWaves(g, tt, back) {
-    const x0 = cam.x - 60, x1 = cam.x + W + 60;
-    const step = back ? 150 : 190;
+    const x0 = cam.x - 80, x1 = cam.x + W + 80;
+    const step = back ? 130 : 170;
+    const base = WL + (back ? -3 : 7);
+    const amp = back ? 9 : 14;
+    const drift = tt * (back ? 40 : 26);
+    const yAt = (x) => base - Math.abs(Math.sin((x + drift) / step * Math.PI)) * amp + Math.sin((x - drift * 0.6) * 0.021) * 3;
     g.save();
     g.lineCap = 'round';
     g.lineJoin = 'round';
-    for (let x = Math.floor(x0 / step) * step; x < x1; x += step) {
-      const seed = hash(x * 0.37 + (back ? 3 : 7));
-      const ph = tt * (back ? 1.6 : 1.2) + seed * 6.28;
-      const h = (back ? 14 : 22) + seed * 10;
-      const xx = x + Math.sin(ph) * 10 + (back ? 60 : 0);
-      const y = WL + (back ? -2 : 6) + Math.sin(ph * 1.3) * 3;
-      g.fillStyle = back ? '#5f8ba1' : '#4a7890';
-      g.strokeStyle = INK;
+    // The band of water, a little paler than the sea behind it.
+    g.fillStyle = back ? '#6d97aa' : '#5a89a0';
+    g.strokeStyle = INK;
+    g.lineWidth = back ? 2.5 : 3.5;
+    g.beginPath();
+    g.moveTo(x0, base + 40);
+    for (let x = x0; x <= x1; x += 12) g.lineTo(x, yAt(x));
+    g.lineTo(x1, base + 40);
+    g.closePath();
+    g.fill();
+    g.beginPath();
+    for (let x = x0; x <= x1; x += 12) { if (x === x0) g.moveTo(x, yAt(x)); else g.lineTo(x, yAt(x)); }
+    g.stroke();
+    // Hooked crests at each peak, with foam, and hatching down the face.
+    const first = Math.floor((x0 + drift) / step) * step - drift;
+    for (let x = first; x < x1; x += step) {
+      const seed = hash(Math.round((x + drift) / step) * 1.7 + (back ? 1 : 2));
+      const px = x + step * 0.5, py = yAt(px);
+      const r = (back ? 9 : 13) + seed * 5;
       g.lineWidth = back ? 2.5 : 3.5;
+      g.strokeStyle = INK;
       g.beginPath();
-      g.moveTo(xx - step * 0.55, y + 12);
-      g.quadraticCurveTo(xx - step * 0.3, y - h * 0.4, xx - 10, y - h);
-      g.bezierCurveTo(xx + 24, y - h - 8, xx + 30, y - h * 0.4, xx + 8, y - h * 0.5);
-      g.quadraticCurveTo(xx + step * 0.3, y - 4, xx + step * 0.55, y + 12);
-      g.closePath();
-      g.fill();
+      g.arc(px - r * 0.3, py + r * 0.2, r, Math.PI * 1.1, Math.PI * 2.35);
       g.stroke();
-      // Foam on the crest.
       g.fillStyle = '#f4fbfb';
       g.beginPath();
-      g.arc(xx - 4, y - h - 2, 6 + seed * 3, 0, Math.PI * 2);
-      g.arc(xx + 10, y - h + 4, 4 + seed * 3, 0, Math.PI * 2);
+      g.arc(px - r * 0.3, py - r * 0.5, r * 0.55, 0, Math.PI * 2);
+      g.arc(px + r * 0.5, py - r * 0.1, r * 0.35, 0, Math.PI * 2);
+      g.arc(px - r * 1.1, py + r * 0.1, r * 0.3, 0, Math.PI * 2);
       g.fill();
+      g.strokeStyle = 'rgba(43,51,64,0.45)';
+      g.lineWidth = 1.5;
+      g.beginPath();
+      for (let k = 1; k <= 3; k++) { const hx = px - step * 0.5 + k * step * 0.14; g.moveTo(hx, yAt(hx) + 4); g.lineTo(hx - 8, yAt(hx) + 18 + k * 2); }
+      g.stroke();
     }
     g.restore();
   }
 
   // The translucent water in front of everything that sits in it.
-  function drawWash(g) {
+  function drawWash(g, tt) {
     const x0 = cam.x - 40, x1 = cam.x + W + 40;
     g.save();
-    g.fillStyle = 'rgba(70,118,142,0.62)';
+    g.fillStyle = 'rgba(70,118,142,0.5)';
     g.fillRect(x0, WL + 8, x1 - x0, H - WL + 60);
-    const gr = g.createLinearGradient(0, WL + 8, 0, WL + 140);
-    gr.addColorStop(0, 'rgba(60,100,125,0)'); gr.addColorStop(1, 'rgba(50,85,110,0.55)');
+    const gr = g.createLinearGradient(0, WL + 8, 0, WL + 300);
+    gr.addColorStop(0, 'rgba(60,100,125,0)'); gr.addColorStop(1, 'rgba(46,78,100,0.85)');
     g.fillStyle = gr;
-    g.fillRect(x0, WL + 8, x1 - x0, 132);
-    g.fillStyle = SEA_DEEP;
-    g.fillRect(x0, WL + 140, x1 - x0, H - WL);
+    g.fillRect(x0, WL + 8, x1 - x0, 292);
+    g.fillStyle = '#2f5268';
+    g.fillRect(x0, WL + 300, x1 - x0, H - WL);
+    // Long ink swells in the deep, and a few drifting bubbles of light.
+    g.strokeStyle = 'rgba(20,35,50,0.35)';
+    g.lineWidth = 2.5;
+    g.lineCap = 'round';
+    g.beginPath();
+    for (let r = 0; r < 8; r++) {
+      const y = WL + 330 + r * 52;
+      for (let x = Math.floor(x0 / 140) * 140 + (r % 2) * 70; x < x1; x += 140) {
+        const ph = Math.sin(tt * 0.9 + x * 0.007 + r) * 5;
+        g.moveTo(x, y + ph); g.quadraticCurveTo(x + 40, y - 10 + ph, x + 96, y + ph);
+      }
+    }
+    g.stroke();
+    g.strokeStyle = 'rgba(200,225,235,0.18)';
+    g.lineWidth = 2;
+    g.beginPath();
+    for (let r = 0; r < 6; r++) {
+      const y = WL + 360 + r * 60;
+      for (let x = Math.floor(x0 / 220) * 220 + r * 37; x < x1; x += 220) { g.moveTo(x, y); g.quadraticCurveTo(x + 30, y - 8, x + 70, y); }
+    }
+    g.stroke();
     g.restore();
   }
 
@@ -857,6 +968,8 @@ export default function create(env) {
         gg.beginPath(); gg.moveTo(-130, -30); gg.lineTo(-100, -52); gg.lineTo(-30, -46); gg.lineTo(40, -58); gg.lineTo(120, -40); gg.lineTo(130, -26); gg.lineTo(110, 20); gg.lineTo(-110, 24); gg.closePath(); gg.fill(); gg.stroke();
         gg.fillStyle = '#c9d4ee'; gg.beginPath(); gg.moveTo(-110, 24); gg.lineTo(110, 20); gg.lineTo(100, 40); gg.lineTo(-95, 42); gg.closePath(); gg.fill(); gg.stroke();
         gg.strokeStyle = 'rgba(43,51,64,0.4)'; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-60, -46); gg.lineTo(-30, -20); gg.moveTo(50, -50); gg.lineTo(30, -24); gg.stroke();
+        hatch(gg, -110, 22, 215, 20, { step: 7, alpha: 0.3, colour: '60,70,110' });
+        hatch(gg, -40, -50, 170, 40, { step: 12, alpha: 0.12, colour: '60,70,110', slant: 1.5 });
         gg.restore();
       });
     } else if (th.kind === 'crate') {
@@ -866,6 +979,8 @@ export default function create(env) {
         gg.fillRect(-46, -92, 92, 92); gg.strokeRect(-46, -92, 92, 92);
         gg.beginPath(); gg.moveTo(-46, -92); gg.lineTo(46, 0); gg.moveTo(46, -92); gg.lineTo(-46, 0); gg.stroke();
         gg.strokeStyle = 'rgba(43,29,20,0.5)'; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-46, -62); gg.lineTo(46, -62); gg.moveTo(-46, -31); gg.lineTo(46, -31); gg.stroke();
+        hatch(gg, -46, -92, 92, 92, { step: 8, alpha: 0.22 });
+        hatch(gg, 10, -92, 36, 92, { step: 6, alpha: 0.25, slant: -0.6 });
         gg.restore();
       });
     } else if (th.kind === 'barrel') {
@@ -874,6 +989,8 @@ export default function create(env) {
         gg.fillStyle = '#8f5f36'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath(); gg.moveTo(-36, -96); gg.quadraticCurveTo(-50, -48, -36, 0); gg.lineTo(36, 0); gg.quadraticCurveTo(50, -48, 36, -96); gg.closePath(); gg.fill(); gg.stroke();
         gg.strokeStyle = '#4a3a2a'; gg.lineWidth = 6; gg.beginPath(); gg.moveTo(-42, -72); gg.lineTo(42, -72); gg.moveTo(-44, -26); gg.lineTo(44, -26); gg.stroke();
+        gg.strokeStyle = 'rgba(43,29,20,0.45)'; gg.lineWidth = 1.5; gg.beginPath(); for (let k = -24; k <= 24; k += 12) { gg.moveTo(k, -96); gg.quadraticCurveTo(k * 1.4, -48, k, 0); } gg.stroke();
+        hatch(gg, 12, -96, 32, 96, { step: 6, alpha: 0.3, slant: -0.3 });
         gg.restore();
       });
     } else if (th.kind === 'buoy') {
@@ -905,6 +1022,9 @@ export default function create(env) {
       gg.fillStyle = '#4a6f8a'; gg.fillRect(-30, -120, 24, 22); gg.strokeRect(-30, -120, 24, 22); gg.fillRect(6, -120, 24, 22); gg.strokeRect(6, -120, 24, 22);
       gg.fillStyle = '#b3402e'; gg.fillRect(50, -150, 26, 78); gg.strokeRect(50, -150, 26, 78);
       gg.fillStyle = INK; gg.fillRect(48, -152, 30, 8);
+      hatch(gg, -120, -60, 240, 60, { step: 8, alpha: 0.28, colour: '20,50,60' });
+      hatch(gg, -40, -130, 80, 58, { step: 7, alpha: 0.2 });
+      gg.strokeStyle = INK; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-118, -40); gg.lineTo(112, -40); gg.moveTo(-110, -20); gg.lineTo(106, -20); gg.stroke();
       gg.restore();
     });
     if (tg.alive && Math.random() < 0.4) parts.ps.push({ x: tg.x + 63, y: y - 150, vx: 30, vy: -60, t: 0, life: 0.8, gravity: -20, mist: true, size: 9, colour: '#555', ink: false });
@@ -942,6 +1062,9 @@ export default function create(env) {
       gg.strokeStyle = '#8a6a44'; gg.lineWidth = 7; gg.beginPath(); gg.moveTo(-120, -94); gg.lineTo(-120, -210); gg.lineTo(-190, -150); gg.stroke();
       gg.strokeStyle = INK; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-190, -150); gg.lineTo(-190, -110); gg.stroke();
       gg.fillStyle = 'rgba(43,51,64,0.6)'; gg.beginPath(); gg.moveTo(-205, -110); gg.lineTo(-175, -110); gg.lineTo(-190, -70); gg.closePath(); gg.fill();
+      hatch(gg, -150, -80, 300, 70, { step: 8, alpha: 0.25, colour: '20,50,60' });
+      hatch(gg, -30, -170, 110, 76, { step: 7, alpha: 0.2 });
+      gg.strokeStyle = INK; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-150, -30); gg.lineTo(150, -30); gg.moveTo(-140, -66); gg.lineTo(70, -66); gg.stroke();
       gg.restore();
     });
     // The steam-recharge ring: when it is full, the captain can burst ahead.
@@ -988,6 +1111,8 @@ export default function create(env) {
     g.lineTo(ferg.x + hw * 0.95, WL + off + 10);
     g.closePath();
     g.fill(); g.stroke();
+    g.clip();
+    hatch(g, ferg.x - hw, WL + off + 10, hw * 2, 300, { step: 11, alpha: 0.25, colour: '60,70,110' });
     g.restore();
     if (sp) {
       const k = iceH / (sp.h * (1 - frac));
@@ -1046,6 +1171,11 @@ export default function create(env) {
         gg.beginPath(); gg.ellipse(0, -16, 34, 16, 0.5, 0, Math.PI * 2); gg.fill(); gg.stroke();
         gg.beginPath(); gg.arc(26, -36, 13, 0, Math.PI * 2); gg.fill(); gg.stroke();
       }
+      gg.strokeStyle = 'rgba(43,29,20,0.4)'; gg.lineWidth = 1.2; gg.beginPath();
+      if (item === 1) for (let k = -34; k < 20; k += 7) { gg.moveTo(k, -4); gg.lineTo(k + 4, -16); }
+      else if (item === 2) for (let k = -20; k < 20; k += 7) { gg.moveTo(k, -6); gg.lineTo(k + 3, -22); }
+      else for (let k = -28; k < 28; k += 7) { gg.moveTo(k, -8); gg.lineTo(k + 5, -20); }
+      gg.stroke();
       gg.fillStyle = '#2b1d14';
       const ex = item === 1 ? 36 : item === 2 ? 8 : 30, ey = item === 1 ? -38 : item === 2 ? -68 : -40;
       gg.beginPath(); gg.arc(ex, ey, 2.5, 0, Math.PI * 2); gg.fill();
@@ -1093,8 +1223,10 @@ export default function create(env) {
           gg.beginPath(); gg.moveTo(x - 12, deckY + 60); gg.lineTo(x - 60, deckY + 120); gg.moveTo(x + 12, deckY + 60); gg.lineTo(x + 60, deckY + 120); gg.stroke();
         }
         // The deck planks and the rail.
+        for (let x = x0 + 40; x < x1; x += 160) hatch(gg, x - 12, deckY + 40, 24, WL - deckY + 40, { step: 6, alpha: 0.3, slant: 0.2 });
         gg.fillStyle = '#b98a52';
         gg.fillRect(x0 - 30, deckY, x1 - x0 + 60, 70); gg.strokeRect(x0 - 30, deckY, x1 - x0 + 60, 70);
+        hatch(gg, x0 - 30, deckY + 36, x1 - x0 + 60, 34, { step: 9, alpha: 0.28 });
         gg.strokeStyle = 'rgba(43,29,20,0.45)'; gg.lineWidth = 2; gg.beginPath();
         for (let x = x0 - 10; x < x1 + 30; x += 36) { gg.moveTo(x, deckY + 4); gg.lineTo(x, deckY + 66); }
         gg.stroke();
@@ -1128,6 +1260,8 @@ export default function create(env) {
         gg.strokeStyle = 'rgba(43,51,64,0.45)'; gg.lineWidth = 2; gg.beginPath();
         for (let r = 0; r < 4; r++) for (let x = x0 - 110 + (r % 2) * 30; x < x1 + 120; x += 60) { gg.rect(x, top - 100 + r * 26, 56, 24); }
         gg.stroke();
+        hatch(gg, x0 - 120, top - 110, x1 - x0 + 240, 60, { step: 10, alpha: 0.22, colour: '40,40,60' });
+        hatch(gg, x0 - 10, top - 70, 70, WL - top + 130, { step: 8, alpha: 0.3, colour: '40,40,60' });
         // The parapet.
         gg.fillStyle = '#b3b3bf'; gg.fillRect(x0 - 130, top - 140, x1 - x0 + 260, 32); gg.strokeStyle = INK; gg.lineWidth = 4; gg.strokeRect(x0 - 130, top - 140, x1 - x0 + 260, 32);
         gg.restore();
@@ -1147,6 +1281,7 @@ export default function create(env) {
       gg.strokeStyle = 'rgba(43,51,64,0.45)'; gg.lineWidth = 2; gg.beginPath();
       for (let r = 0; r < 3; r++) for (let x = x0 + (r % 2) * 30; x < WORLD + 100; x += 70) gg.rect(x, WL - 110 + r * 34, 66, 30);
       gg.stroke();
+      hatch(gg, x0, WL - 20, WORLD - x0 + 100, 220, { step: 10, alpha: 0.25, colour: '40,40,60' });
       gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.fillStyle = '#f8f1e0';
       gg.beginPath(); gg.moveTo(x0 + 60, WL - 120); gg.lineTo(x0 + 80, WL - 400); gg.lineTo(x0 + 160, WL - 400); gg.lineTo(x0 + 180, WL - 120); gg.closePath(); gg.fill(); gg.stroke();

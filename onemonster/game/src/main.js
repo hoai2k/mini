@@ -1015,7 +1015,7 @@ function frame(now) {
       S.overT = S.chapter.outroTime ?? 1.4;
       const b = $('#banner');
       b.hidden = false;
-      b.textContent = S.chapter.outcome === 'snatched' ? 'SNATCH!' : versus ? 'KEPT IT!' : 'TIME!';
+      b.textContent = S.chapter.outcome === 'snatched' ? S.chapter.banner || 'SNATCH!' : versus ? 'KEPT IT!' : 'TIME!';
       audio.sfx(S.chapter.outcome === 'snatched' ? 'snatch' : 'aww');
       vibrate(160);
     }

@@ -40,7 +40,7 @@ const SLOT = { x: 1762, y: 590 }; // the slot itself, for the marker
 const B = { x0: 230, x1: 1690, y0: 645, y1: 915 };
 const VAULT = { time: 0.8, dist: 420, cost: 0.3, height: 170 };
 const NET = { ahead: 150, rx: 190, ry: 70 }; // the net's reach: an ellipse on the ground in front of him
-const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.2;
+const WINDUP = 0.22, SWING = 0.2, SLAM = 0.65, SWING_COOL = 0.9, SWING_COST = 0.16;
 const PEEK = 0.5, SLIDE = 0.3, SPRAWL = 0.9;
 const JAR_TIME = 6;
 const POST_RANGE = 150;
@@ -75,7 +75,7 @@ export default function create(env) {
   ];
   const gx = makeMover({
     x: 300, y: 800, speed: 265, sprint: 265, accel: 1900, radius: 50, canHide: false, hopsLogs: false,
-    lungeRange: 0, grabRange: 70, regen: 0.12, regenStill: 0.15, windedTime: 2.0,
+    lungeRange: 0, grabRange: 70, regen: 0.09, regenStill: 0.13, windedTime: 2.0,
   });
   const bomb = makeMover({ x: 1250, y: 760, speed: 290, sprint: 490, accel: 1100, windedSpeed: 0.7, drain: 0.34, radius: 40, flies: true, canHide: true, dodgeCooldown: 1.2, dodgeCost: 0.2, regen: 0.2, regenStill: 0.5 });
   const ghost = makeMover({ x: B.x1, y: B.y0, canHide: false, flies: true });
@@ -136,6 +136,8 @@ export default function create(env) {
   function netBombanat() {
     bomb.hidden = false;
     chase.tug = makeTug(gx, bomb);
+    chase.tug.v = clamp(chase.tug.v + 0.04, 0.4, 0.66); // in the net already: the rope starts a little his way
+    gx.st = Math.min(1, gx.st + SWING_COST); // a swing that lands doesn't tire him; only wild ones do
     gx.mode = 'grabbing'; gx.modeT = 0;
     bomb.mode = 'grabbed'; bomb.modeT = 0;
     gx.vx = gx.vy = bomb.vx = bomb.vy = 0;
@@ -222,6 +224,8 @@ export default function create(env) {
           gx.mode = 'slam'; gx.cool = SLAM + SWING_COOL;
           env.sfx('thump'); shake = Math.max(shake, 0.2); art.kick(gc, 0.5);
           fx.say('Missed!', gx.x + gx.swingDir * NET.ahead, gx.y - 160);
+          // The Bombanat grows wary of a wild swinger and keeps out of reach for a while.
+          if (phase === 'net' && !env.versus) brain.wary = 1.6;
         }
       }
     }
@@ -410,14 +414,19 @@ export default function create(env) {
             bin = { ...bin, x: dx / d, y: dy / d, sprint: bomb.st > 0.15 };
           }
           if (brain.dodgeAt && t >= brain.dodgeAt) { brain.dodgeAt = 0; if (!chase.tug) bin = { ...bin, actionPressed: true }; }
+          // Wary after his miss: it flaps along just out of reach (no sprint: it saves its breath).
+          brain.wary = Math.max(0, (brain.wary || 0) - dt);
+          if (brain.wary > 0 && !chase.tug && !bomb.hidden && bomb.mode === 'move' && near(gx, bomb) < 430 && !bin.actionPressed) {
+            const dx = bomb.x - gx.x, dy = bomb.y - gx.y, d = Math.hypot(dx, dy) || 1;
+            const cx = (B.x0 + B.x1) / 2 - bomb.x, cy = (B.y0 + B.y1) / 2 - bomb.y;
+            bin = { ...bin, x: dx / d + cx / 900, y: dy / d + cy / 400, sprint: false };
+          }
         }
       } else {
         // The chase kit carries on with a stand-in holder far away.
         ghost.x = gx.x < 920 ? B.x1 : B.x0; ghost.y = gx.y < 785 ? B.y1 : B.y0;
         ghost.vx = ghost.vy = 0; ghost.mode = 'move';
       }
-      // A netted Bombanat is slippery: the rope drifts a little its way.
-      if (chase.tug && phase === 'net') chase.tug.v = Math.max(0.001, chase.tug.v - 0.08 * dt);
       tugTiebreak(chase, dt);
       const ev = stepChase(chase, gin, bin, dt);
       eventFx(env, ev, fx);

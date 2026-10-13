@@ -144,7 +144,7 @@ export default function create(env) {
   for (const x of [400, 700, 820, 1120, 1240, 1520, 1600, 1900, 2000, 2280]) addStamp(x);
   addStamp(960, GY - 170); addStamp(2120, GY - 170); // on the cover rocks
   // The getaway: along the path, over holes, on rock tops, under branches, on stones.
-  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 5700, 6250, 6700, 6950, 7250, 7330, 7760, 8050, 9025, 9460, 9750, 10170, 10550, 10900, 11250, 11660, 12300, 12580, 12880, 13805, 14060]) addStamp(x);
+  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 6250, 6700, 7250, 7330, 7760, 8050, 9025, 9750, 10170, 10550, 11250, 11660, 12580, 12880, 13805]) addStamp(x);
   for (const x of [3380, 4350, 6050, 10700, 14300]) addStamp(x, profileY(x) - 160); // on the rock tops
   addStamp(3820, GY - 110); addStamp(8050, 820 - 120); // higher: a hop for them
   const pickups = kit.makePickups(stampList, { radius: 72 });

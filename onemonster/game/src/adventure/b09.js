@@ -49,7 +49,7 @@ const STUMPS = [1200, 5900, 7100];
 const ROLL_AT = [7800, 8700, 9750]; // where the Yalapappus's rolls are set off
 
 // The Grithix.
-const SPEED = 310, ACCEL = 900, DECEL = 1500, HIGH_STEP = 0.5; // high-stepping speed factor
+const SPEED = 285, ACCEL = 900, DECEL = 1500, HIGH_STEP = 0.5; // high-stepping speed factor
 const VAULT = { time: 0.85, dist: 560, height: 215, minSpeed: 180 };
 const BOUNCE_V = 1400;
 const NET = { windup: 0.22, sweep: 0.2, slam: 0.3, rest: 0.14 };
@@ -605,7 +605,8 @@ export default function create(env) {
       }
     },
     draw(g, tt) {
-      kit.drawBackdrop(g, cam, { panels: ['adv/b09/backdrop-1', 'adv/b09/backdrop-2', 'adv/b09/backdrop-3'], standin: 'scenes/grithix' });
+      if (art.image('adv/b09/backdrop-1')) kit.drawBackdrop(g, cam, { panels: ['adv/b09/backdrop-1', 'adv/b09/backdrop-2', 'adv/b09/backdrop-3'] });
+      else drawSceneStrip(g);
       kit.haze(g, 'rgba(236,228,206,0.22)');
       cam.begin(g);
       drawWorld(g, tt);
@@ -625,15 +626,48 @@ export default function create(env) {
     },
     hud() {
       const jars = `Jars ${got}/${TOTAL}`;
-      if (self.done) return jars;
-      if (phase === 'collect') return `${jars} · net the Bombanat with the letter`;
-      return `${jars} · post it! · bag ${bag.size}/3`;
+      if (self.done || phase === 'collect') return jars;
+      return `Post it! · ${jars}`;
     },
     focus() { return [{ x: body.x - cam.x, y: body.y - 150 }]; },
   };
 
   // ---------- drawing the world ----------
   const INK = '#2b1d14';
+  // The stand-in far layer: the clearing painting without its mailbox (the
+  // left 1500 px of it), repeated and mirrored every other time, scrolling
+  // slowly; a plain wash when even that is missing.
+  function drawSceneStrip(g) {
+    const img = art.image('scenes/grithix');
+    if (!img) { const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#d9c8dc'); gr.addColorStop(0.6, '#e8dcc4'); gr.addColorStop(1, '#a8a070'); g.fillStyle = gr; g.fillRect(0, 0, W, H); return; }
+    const sw = 1500 * (img.width / W), tw = 1500;
+    const off = cam.x * 0.3;
+    const i0 = Math.floor(off / tw);
+    for (let i = i0; i <= i0 + 2; i++) {
+      const x = i * tw - off;
+      if (x > W) break;
+      g.save();
+      if (i % 2) { g.translate(x + tw, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, sw, img.height, 0, 0, tw + 1, H); }
+      else g.drawImage(img, 0, 0, sw, img.height, x, 0, tw + 1, H);
+      g.restore();
+    }
+  }
+
+  // Small ferns, roots and stones along the ground, from the delivered props,
+  // placed by hash so they stay put: the mossy floor is never a bare band.
+  function drawGroundDecor(g) {
+    const x0 = Math.floor((cam.x - 200) / 260) * 260;
+    for (let x = x0; x < cam.x + W + 200; x += 260) {
+      const h1 = kit.hash(x * 0.37), h2 = kit.hash(x * 0.91);
+      const xx = x + h1 * 200;
+      if (kit.groundAt(solids, xx, GY - 10) !== GY) continue;
+      if (h2 < 0.35) art.drawSprite(g, art.prop('grithix', 4), xx, GY + 8, { height: 70 + h1 * 40, flip: h2 < 0.17 });
+      else if (h2 < 0.55) art.drawSprite(g, art.prop('grithix', 5), xx, GY + 6, { height: 50 + h1 * 20, flip: h2 > 0.45, alpha: 0.9 });
+      // Stones and tufts in the ground body below the moss.
+      inkStones(g, xx + 60, GY + 70 + h2 * 120, h1);
+    }
+  }
+
   function drawWorld(g, tt) {
     // Far: tall trunks and stumps with faces, behind everything.
     for (const x of TRUNKS) if (cam.sees(x - 200, x + 200)) kit.sprite(g, 'terrain.wood', 6, x, GY + 20, { height: 1000 }, inkTrunk);
@@ -646,6 +680,7 @@ export default function create(env) {
       else if (s.kind === 'log') kit.sprite(g, 'terrain.wood', 3, s.x + s.w / 2, s.y + s.h, { height: s.h + 16 }, (g2, x, y) => inkLog(g2, x, y, s.w + 24, s.h));
       else if (s.kind === 'branch') kit.sprite(g, 'terrain.wood', 2, s.x, s.y, { height: 120, ax: 0, ay: 0.2 }, (g2, x, y) => inkBranch(g2, x, y, s.w));
     }
+    drawGroundDecor(g);
     for (const x of STUMPS) if (cam.sees(x)) kit.sprite(g, 'terrain.wood', 4, x, GY + 6, { height: 150 }, inkStump);
     for (const x of ROOTS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 4, x, GY + 10, { height: 110 }, (g2, xx, yy) => art.drawSprite(g2, art.prop('grithix', 5), xx, yy, { height: 110 }) || inkRoot(g2, xx, yy));
     for (const x of TOADSTOOLS) if (cam.sees(x)) kit.sprite(g, 'adv.b09.props', 5, x, GY + 4, { height: 124, sy: body.bounced && Math.abs(body.x - x) < 120 ? 0.85 : 1 }, (g2, xx, yy, o) => inkToadstool(g2, xx, yy, o));
@@ -717,35 +752,6 @@ export default function create(env) {
     art.drawCreature(g, gc, tt, { reduceMotion: env.reduceMotion, shadow: body.onGround });
     // What he carries: the letter over his head in part two; the bag's catch.
     if (phase === 'carry' && !self.done) letterTag(g, body.x + gc.facing * 10, body.y - gc.z - 350, { t: tt, r: letterFlash > 0 ? 46 + letterFlash * 30 : 46 });
-    if (bag.size && mode !== 'sweep' && mode !== 'slam') drawBag(g, tt);
-  }
-
-  // The catch, bulging in the mesh of the net over his shoulder.
-  function drawBag(g, tt) {
-    const shakeK = bagShake > 0 ? Math.sin(tt * 40) * 6 * bagShake : Math.sin(tt * 6) * 2;
-    const bx = body.x - gc.facing * 62, by = body.y - gc.z - 262 + shakeK * 0.3;
-    g.save();
-    g.translate(bx, by);
-    g.scale(gc.facing, 1);
-    const n = bag.size;
-    g.fillStyle = 'rgba(70,58,40,0.85)';
-    g.strokeStyle = INK;
-    g.lineWidth = 3;
-    g.beginPath(); g.ellipse(0, 10 + n * 6, 34 + n * 8, 30 + n * 9, 0.2, 0, Math.PI * 2); g.fill(); g.stroke();
-    // Mesh.
-    g.strokeStyle = 'rgba(230,220,190,0.35)'; g.lineWidth = 1.5;
-    g.beginPath();
-    for (let i = -3; i <= 3; i++) { g.moveTo(i * 12, -20); g.lineTo(i * 12 + 8, 50); g.moveTo(-40, i * 12 + 10); g.lineTo(40, i * 12 + 4); }
-    g.stroke();
-    // Whoever is inside, peeking.
-    let i = 0;
-    for (const id of bag) {
-      const c = id === 'bombanat' ? bomb.c : id === 'trollusk' ? tro.c : yal.c;
-      const s = { ...c, x: (i - (n - 1) / 2) * 26 + shakeK, y: 36 + n * 6, z: 0, sizeK: 0.24, facing: i % 2 ? -1 : 1, sq: 0, lean: 0, rot: 0, flash: 0, alpha: 1, anim: id === 'bombanat' ? 'netted' : id === 'trollusk' ? 'jolt' : 'bonked', animT: 0 };
-      art.drawCreature(g, s, tt, { reduceMotion: true, shadow: false });
-      i++;
-    }
-    g.restore();
   }
 
   function drawBomb(g, tt) {
@@ -903,10 +909,19 @@ function inkTrunk(g, x, y, { height }) {
   g.lineTo(x + 50, y - height); g.quadraticCurveTo(x + 62, y - height * 0.5, x + 90, y);
   g.closePath(); g.fill(); g.stroke();
   // Bark lines and a face in a knot.
-  g.lineWidth = 2; g.strokeStyle = 'rgba(43,29,20,0.4)';
+  g.lineWidth = 2.5; g.strokeStyle = 'rgba(43,29,20,0.6)';
   g.beginPath();
-  for (let i = 0; i < 7; i++) { g.moveTo(x - 40 + i * 14, y - height * 0.9); g.quadraticCurveTo(x - 30 + i * 14, y - height * 0.5, x - 45 + i * 15, y); }
+  for (let i = 0; i < 9; i++) { g.moveTo(x - 52 + i * 13, y - height); g.quadraticCurveTo(x - 36 + i * 13 + kit.hash(i) * 20, y - height * 0.5, x - 60 + i * 16, y); }
   g.stroke();
+  g.lineWidth = 1.5;
+  g.beginPath();
+  for (let yy = y - height + 20; yy < y; yy += 44) { const hx = x - 50 + kit.hash(yy) * 90; g.moveTo(hx, yy); g.lineTo(hx + 14, yy + 10); g.moveTo(hx + 20, yy + 4); g.lineTo(hx + 30, yy + 12); }
+  g.stroke();
+  for (let k = 0; k < 3; k++) {
+    const ky = y - height * (0.15 + k * 0.3) - 60, kx = x + (kit.hash(k + x) - 0.5) * 60;
+    g.beginPath(); g.ellipse(kx, ky, 12, 20, 0.2, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(kx, ky, 5, 9, 0.2, 0, Math.PI * 2); g.stroke();
+  }
   g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#6e5438';
   g.beginPath(); g.ellipse(x + 10, y - height * 0.55, 30, 42, 0, 0, Math.PI * 2); g.fill(); g.stroke();
   g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y - height * 0.58, 7, 0, Math.PI * 2); g.arc(x + 20, y - height * 0.58, 7, 0, Math.PI * 2); g.fill(); g.stroke();
@@ -947,12 +962,50 @@ function inkLog(g, x, y, w, h) {
 
 function inkBranch(g, x, y, w) {
   g.save();
-  g.fillStyle = '#8a6e52'; g.strokeStyle = INK; g.lineWidth = 4;
+  g.fillStyle = '#9a7a56'; g.strokeStyle = INK; g.lineWidth = 4;
   g.beginPath();
-  g.moveTo(x - 20, y - 6); g.lineTo(x + w, y); g.lineTo(x + w + 30, y + 14); g.lineTo(x + w, y + 38); g.lineTo(x - 20, y + 48);
+  g.moveTo(x - 30, y - 4);
+  for (let i = 0; i <= w; i += 40) g.lineTo(x + i, y - 2 - kit.hash(i + x) * 10);
+  g.lineTo(x + w + 34, y + 12); g.lineTo(x + w + 8, y + 30);
+  for (let i = w; i >= 0; i -= 40) g.lineTo(x + i, y + 40 + kit.hash(i * 3 + x) * 8);
+  g.lineTo(x - 30, y + 50);
   g.closePath(); g.fill(); g.stroke();
+  // Bark grain and hatching under the top.
+  g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 10; i < w; i += 26) { g.moveTo(x + i, y + 14); g.lineTo(x + i + 18, y + 20 + kit.hash(i) * 6); g.moveTo(x + i + 4, y + 30); g.lineTo(x + i + 16, y + 38); }
+  g.stroke();
+  // Moss along the top, and little leaf clusters hanging below.
+  g.fillStyle = '#8a9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
+  g.beginPath();
+  g.moveTo(x, y + 2);
+  for (let i = 0; i <= w; i += 24) g.lineTo(x + i, y - 2 - kit.hash(i * 0.7 + x) * 12);
+  g.lineTo(x + w, y + 8); g.lineTo(x, y + 8); g.closePath(); g.fill(); g.stroke();
   g.fillStyle = '#7d8a4a';
-  g.beginPath(); g.moveTo(x, y - 2); for (let i = 0; i <= w; i += 30) g.lineTo(x + i, y - 2 - kit.hash(i) * 14); g.lineTo(x + w, y + 10); g.lineTo(x, y + 10); g.closePath(); g.fill();
+  for (let i = 30; i < w; i += 110) {
+    const lx = x + i + kit.hash(i) * 40, ly = y + 48;
+    for (let k = 0; k < 5; k++) {
+      const a = -0.4 + k * 0.35;
+      g.beginPath(); g.ellipse(lx + Math.sin(a) * 22, ly + 10 + Math.cos(a) * 10, 11, 6, a, 0, Math.PI * 2); g.fill(); g.stroke();
+    }
+  }
+  g.restore();
+}
+
+// Stones and grass tufts in ink, scattered in the ground body.
+function inkStones(g, x, y, seed) {
+  g.save();
+  g.fillStyle = '#a89c84'; g.strokeStyle = 'rgba(43,29,20,0.8)'; g.lineWidth = 2;
+  const n = 1 + Math.floor(seed * 3);
+  for (let i = 0; i < n; i++) {
+    const sx = x + i * 26 + kit.hash(seed + i) * 20, sy = y + kit.hash(seed * 3 + i) * 30;
+    g.beginPath(); g.ellipse(sx, sy, 10 + kit.hash(i + seed) * 8, 6 + kit.hash(i * 2 + seed) * 4, seed, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(sx - 6, sy + 2); g.lineTo(sx + 2, sy + 5); g.stroke();
+  }
+  g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.5;
+  g.beginPath();
+  for (let i = 0; i < 6; i++) { const hx = x - 40 + i * 22, hy = y + 40 + kit.hash(i + seed * 7) * 20; g.moveTo(hx, hy); g.lineTo(hx + 12, hy + 9); }
+  g.stroke();
   g.restore();
 }
 
@@ -1010,13 +1063,24 @@ function drawStream(g, s, t) {
   // Water.
   g.fillStyle = '#7fa6b8';
   g.fillRect(s.x0, y0, s.x1 - s.x0, H + 60 - y0);
-  g.strokeStyle = '#dcebf0'; g.lineWidth = 3;
+  // Rows of curling strokes, as the book draws water, and hatching between.
+  g.strokeStyle = 'rgba(43,29,20,0.7)'; g.lineWidth = 2.2;
   g.beginPath();
-  for (let i = 0; i < 4; i++) {
-    const yy = y0 + 20 + i * 36;
-    g.moveTo(s.x0 + 10, yy);
-    for (let x = s.x0 + 10; x < s.x1 - 10; x += 24) g.lineTo(x + 24, yy + Math.sin(x * 0.08 + t * 3 + i) * 5);
+  for (let i = 0; i < 5; i++) {
+    const yy = y0 + 22 + i * 34;
+    for (let x = s.x0 + 14; x < s.x1 - 24; x += 34) {
+      const ph = Math.sin(t * 2.2 + i + x * 0.05) * 3;
+      g.moveTo(x, yy + ph); g.quadraticCurveTo(x + 10, yy - 8 + ph, x + 20, yy + ph); g.quadraticCurveTo(x + 24, yy + 4 + ph, x + 18, yy + 6 + ph);
+    }
   }
+  g.stroke();
+  g.strokeStyle = 'rgba(43,29,20,0.28)'; g.lineWidth = 1.5;
+  g.beginPath();
+  for (let x = s.x0 + 8; x < s.x1 - 8; x += 12) { g.moveTo(x, y0 + 10); g.lineTo(x + 6, H + 40); }
+  g.stroke();
+  g.strokeStyle = '#eef6f8'; g.lineWidth = 2;
+  g.beginPath();
+  for (let x = s.x0 + 20; x < s.x1 - 30; x += 58) { const yy = y0 + 12 + Math.sin(t * 3 + x) * 3; g.moveTo(x, yy); g.lineTo(x + 22, yy); }
   g.stroke();
   g.strokeStyle = INK; g.lineWidth = 3.5;
   g.beginPath(); g.moveTo(s.x0, GY); g.lineTo(s.x0, y0); g.lineTo(s.x1, y0); g.lineTo(s.x1, GY); g.stroke();
@@ -1179,7 +1243,14 @@ export function autopilot(board) {
     }
     if (out.x > 0 && ap.backTo === null && needVault) {
       if (moving && (ahead(logFaces, 100, 220) || streamAhead(0, 150))) { out.sprint = true; out.x = 1; out.y = 0; out.actionPressed = false; out.action = false; }
-      else if (!moving && (ahead(logFaces, 0, 100) || streamAhead(0, 60))) { ap.backTo = px - 240; out.x = -1; out.y = 0; }
+      else if (!moving && (ahead(logFaces, 0, 100) || streamAhead(0, 60))) {
+        // Not enough run-up: back off, but not into a log or a stream behind.
+        let floor = 0;
+        for (const x of board.LOGS) if (x + 95 < px) floor = Math.max(floor, x + 95 + 60);
+        for (const st of board.streams) if (st.x1 <= px) floor = Math.max(floor, st.x1 + 40);
+        ap.backTo = Math.max(px - 240, floor);
+        out.x = -1; out.y = 0;
+      }
     }
     // A root ahead the way he is going: step high over it (unless this is the
     // swing itself); once it is behind him, stride out again for a run-up.

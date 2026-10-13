@@ -29,11 +29,11 @@ export const START = { x: 150, y: 860 };
 // Cover: round bushes (prop 5) and low flowerbeds (prop 6). Standing in a bush
 // hides all but his hat; ducking (hold Action) hides him in either.
 export const COVER = [
-  { x: 150, y: 860, item: 5, h: 265, rx: 135, ry: 50 },
+  { x: 150, y: 860, item: 5, h: 235, rx: 135, ry: 50 },
   { x: 480, y: 955, item: 6, h: 165, rx: 140, ry: 44 },
-  { x: 800, y: 845, item: 5, h: 260, rx: 132, ry: 48 },
+  { x: 800, y: 845, item: 5, h: 230, rx: 132, ry: 48 },
   { x: 1110, y: 955, item: 6, h: 165, rx: 140, ry: 44 },
-  { x: 1420, y: 855, item: 5, h: 265, rx: 132, ry: 48 },
+  { x: 1420, y: 855, item: 5, h: 235, rx: 132, ry: 48 },
 ];
 // Sally Ann's house: the end wall of it rises behind the hedge and the picket
 // fence between the two trees, with her window in it.
@@ -49,9 +49,11 @@ export const LOOKOUTS = [
 const SNEAK = 175;
 const SPRINT = 400;
 const SPOT_PENALTY = 2; // seconds
-// The mailman's road runs just behind the picket fence and behind both trees:
-// the scene's foreground (scenes/trollusk-front) is drawn over him. He stops at the mailbox.
-const MAIL_ROAD = { x0: -160, x1: 1745, y: 615 };
+// The mailman's road runs just behind the picket fence: the scene's foreground
+// (scenes/trollusk-front) is drawn over him, so only his top shows over the
+// pickets. He comes out from behind the left tree and pulls up at the right one,
+// by the mailbox, when the time is up.
+const MAIL_ROAD = { x0: 60, x1: 1370, y: 615 };
 
 const INK = '#33241a';
 const CREAM = 'rgba(251,246,232,0.94)';
@@ -86,7 +88,7 @@ export default function create(env) {
   const total = 45 + (env.gentle[0] ? 10 : 0);
   const fx = makeFx();
   const tc = art.makeCreature('trollusk', START.x, START.y);
-  tc.sizeK = 1.1;
+  tc.sizeK = 1.15;
   const tr = {
     x: START.x, y: START.y, vx: 0, vy: 0, facing: 1,
     mode: 'free', // 'free' | 'scuttle' | 'grab'
@@ -448,9 +450,11 @@ export default function create(env) {
     if (self.outcome !== 'snatched') letterTag(g, MAILBOX.x + 55, 522, { t: tt });
     if (self.done) return;
     if (t < 7) marker(g, MAILBOX.x + 20, 420, { t: tt, label: 'The letter!' });
+    if (hurryT > 0) bang(g, mailX, MAIL_ROAD.y - 190, 'Hurry!', RED, Math.min(1, hurryT), 56 * (1 + 0.1 * Math.sin(tt * 16)));
     if (tr.mode !== 'free') return;
     const size = art.creatureSize(tc);
     const top = tr.y - size.h - 24;
+    if (t < 4) marker(g, tr.x, top - 40, { t: tt, label: 'You!' });
     if (atMailbox(tr.x, tr.y)) actionPrompt(g, tr.x, top, 'Grab!', { ...opts, pulse: 1, size: 40 });
     else if (tr.cover && !tr.ducking && threatOn(tr.x, tr.y)) actionPrompt(g, tr.x, top, 'Duck!', { ...opts, pulse: 1 });
     else if (tr.hideT > 0 && tr.hideT < 1.5) bang(g, tr.x, top - 10, 'Hide!', RED, 1, 60);
@@ -550,10 +554,6 @@ export default function create(env) {
     g.restore();
     if (!art.drawSprite(g, sp, x, y, { height: 170, flip: true })) {
       g.save(); g.fillStyle = '#b8443a'; g.fillRect(x - 60, y - 70, 120, 70); g.restore();
-    }
-    if (hurryT > 0 && !self.done) {
-      const k = 1 + 0.1 * Math.sin(tt * 16);
-      bang(g, x, y - 180, 'Hurry!', RED, Math.min(1, hurryT), 56 * k);
     }
   }
 
@@ -705,10 +705,10 @@ export const HOWTO = [
     text: 'Creep from bush to bush along the lane.',
     scene: 'scenes/trollusk', crop: [360, 400, 1120, 640],
     items: [
-      { sprite: ['props.trollusk', 5], x: 110, y: 420, h: 180 },
-      { path: [[150, 440], [230, 452], [330, 440], [420, 452], [530, 440]], arrow: true },
-      { creature: 'trollusk', anim: 'sneak', x: 300, y: 428, h: 200 },
-      { sprite: ['props.trollusk', 5], x: 560, y: 436, h: 190 },
+      { sprite: ['props.trollusk', 5], x: 100, y: 420, h: 170 },
+      { path: [[130, 446], [200, 458], [270, 446], [340, 458], [410, 446], [500, 450]], arrow: true },
+      { creature: 'trollusk', anim: 'sneak', x: 300, y: 420, h: 230 },
+      { sprite: ['props.trollusk', 5], x: 575, y: 436, h: 180 },
     ],
   },
   {
@@ -717,9 +717,9 @@ export const HOWTO = [
     items: [
       { cast: 3, x: 170, y: 340, h: 270 },
       { sprite: ['props.trollusk', 9], x: 225, y: 110, h: 110 },
-      { creature: 'trollusk', anim: 'duck', x: 455, y: 436, h: 140 },
-      { sprite: ['props.trollusk', 6], x: 455, y: 456, h: 150 },
-      { ring: [455, 400, 92] },
+      { creature: 'trollusk', anim: 'duck', x: 455, y: 410, h: 170 },
+      { sprite: ['props.trollusk', 6], x: 455, y: 462, h: 125 },
+      { ring: [455, 395, 100] },
     ],
   },
   {

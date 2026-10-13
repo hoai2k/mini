@@ -37,6 +37,8 @@
 //     focus?()                  [snatcher, holder?, ...] as { x, y } in the
 //                               1920 x 1080 frame: what the shell's camera
 //                               follows on a narrow screen (a phone upright)
+//     banner?                   the word shouted when the snatch lands (default
+//                               'SNATCH!'), e.g. 'SCRUNNCCCHHH!!'
 //     outroTime?                seconds of outro after done before the celebration
 //                               (default 1.4), for a longer story beat
 //   }
@@ -67,10 +69,10 @@ export const CHAPTERS = [
     n: 1, file: 'ch01', snatcher: 'trollusk', holder: 'lookouts', holderName: 'the lookouts',
     title: 'Before the Mailman Comes', scene: 'scenes/trollusk', props: 'trollusk', time: 45,
     eyeing: 'Sally Ann put her letter in the mailbox and skipped back indoors. Behind the old tree, something with a snerk was watching.',
-    goal: 'Creep from cover to cover to the mailbox and grab the letter before the mailman comes. Don’t get spotted moving in the open: an unseen snatch earns the third postmark.',
-    holderGoal: 'You are the lookouts. Choose who looks out, and when. Catch the Trollusk moving in the open!',
-    controlsS: ['Move: creep from cover to cover', 'Sprint: hurry, but you make a noise', 'Action: dash out of a ring (loud!); still in a bush: duck; at the mailbox: grab'],
-    controlsH: ['Move: choose a lookout (Sally Ann, the neighbour, the dog)', 'Action: make them look out (they need a rest after)'],
+    goal: 'Creep from bush to bush to the mailbox and grab the letter before the mailman comes. When an eye pops up, hide! A snatch nobody saw earns the third postmark.',
+    holderGoal: 'You are the lookouts. Pick one and make them look out. Catch the Trollusk moving in the open!',
+    controlsS: ['Move: creep from bush to bush (stand still in the open to be a twig)', 'Sprint: hurry, but you make a noise', 'Action: hold to duck in a bush; at the mailbox, grab!'],
+    controlsH: ['Move: pick a lookout (the neighbour, Sally Ann, the dog)', 'Action: make them look out (they need a rest after)'],
     win: 'He grabbed the letter and gabbled away with a smirk on his snerk!',
   },
   {

@@ -63,7 +63,7 @@ test('b04: a charge into a reef cracks the ice and a sea lion slides off; risen 
   assert.ok(ch2.ferg.level > TUNE.reefLevel);
   run(ch2, 6, inp({ x: 1, y: -1 }));
   assert.ok(ch2.ferg.x > reef.x + 100, 'floated over');
-  assert.equal(ch2.ferg.riders, 0);
+  assert.equal(ch2.ferg.cracked, 0);
 });
 
 test('b04: the pier blocks a floating berg; sunk, it slips under', () => {

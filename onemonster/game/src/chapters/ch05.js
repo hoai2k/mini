@@ -34,7 +34,7 @@ export const TUNE = {
   water: 0.018, sprintWater: 0.03, // fullness per second of sucking, just sea water
   capture: 55, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
   footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings wide
-  bottleSpeed: 140, bottleAccel: 480, duck: 1.0, duckCd: 1.9, duckDash: 1.6, tireCd: 0.6, tireRecover: 0.3, bottlePull: 0.35, suckSlow: 0.7,
+  bottleSpeed: 140, bottleAccel: 480, duck: 1.0, duckCd: 1.7, duckDash: 1.6, tireCd: 0.4, tireRecover: 0.4, bottlePull: 0.35, suckSlow: 0.7,
   junk: 11,
 };
 

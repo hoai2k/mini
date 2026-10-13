@@ -258,7 +258,8 @@ export default function create(env) {
     },
 
     draw(g, tt) {
-      kit.drawBackdrop(g, cam, { panels: ['adv/b05/backdrop-1', 'adv/b05/backdrop-2', 'adv/b05/backdrop-3'], standin: 'scenes/typhoonigator' });
+      if (art.image('adv/b05/backdrop-1')) kit.drawBackdrop(g, cam, { panels: ['adv/b05/backdrop-1', 'adv/b05/backdrop-2', 'adv/b05/backdrop-3'] });
+      else drawSceneBackdrop(g);
       kit.haze(g, 'rgba(226,214,230,0.16)');
       cam.begin(g);
       drawBanks(g, tt);
@@ -791,7 +792,25 @@ export default function create(env) {
     g.closePath();
     g.fill();
     const sp = art.sprite('terrain.sea', 1);
-    if (sp) {
+    const scene = sp ? null : art.image('scenes/typhoonigator');
+    if (scene) {
+      // The scene painting's near waves, tiled and mirrored, each slice dropped to the drained surface.
+      const sy0 = 560, sh = scene.height - sy0, slice = 48, tw = scene.width;
+      g.save();
+      g.clip();
+      for (let x = Math.floor(x0 / slice) * slice; x < x1 + slice; x += slice) {
+        const y = seaY(x + slice / 2) - 36;
+        const i = Math.floor(x / tw), ox = x - i * tw;
+        const srcX = i % 2 ? tw - ox - slice : ox;
+        g.drawImage(scene, Math.max(0, srcX), sy0, slice, sh, x, y, slice + 0.6, sh);
+      }
+      // A goo-blue wash over it, deepening downward, with the painting's line showing through.
+      const gr = g.createLinearGradient(0, SEA0 - 40, 0, H + 80);
+      gr.addColorStop(0, 'rgba(79,127,147,0.35)'); gr.addColorStop(1, 'rgba(47,83,102,0.75)');
+      g.fillStyle = gr;
+      g.fillRect(x0, SEA0 - 60, x1 - x0, H + 160 - SEA0);
+      g.restore();
+    } else if (sp) {
       // The delivered strip, in slices that follow the drained surface.
       const h = 300, k = h / sp.h, tw = sp.w * k, slice = 48;
       g.save();
@@ -845,30 +864,83 @@ export default function create(env) {
     }
   }
 
-  function inkRock(g, x, y, h, w) {
-    g.save();
-    g.fillStyle = '#6f6274';
-    g.strokeStyle = INK;
-    g.lineWidth = 4;
-    g.lineJoin = 'round';
-    g.beginPath();
-    g.moveTo(x - w / 2, y + 10);
-    const n = 7;
+  // A crag in ink and wash: a jagged slab with a lit top face, a shaded side,
+  // cracks, hatching and a few tufts, like the rocks of the book's headlands.
+  function inkCrag(g, x, y, w, h, seed = 0, { grass = true } = {}) {
+    const n = 9;
+    const pts = [];
     for (let i = 0; i <= n; i++) {
       const u = i / n;
-      const px = x - w / 2 + u * w;
-      const py = y - Math.sin(u * Math.PI) ** 0.7 * h + (hash(x + i * 3) - 0.5) * h * 0.25;
-      g.lineTo(px, Math.min(y + 10, py));
+      const px = x - w / 2 + u * w + (hash(seed + i * 1.7) - 0.5) * w * 0.08;
+      const py = y - Math.sin(u * Math.PI) ** 0.55 * h + (hash(seed + i * 3.1) - 0.5) * h * 0.22;
+      pts.push([px, Math.min(y + 12, py)]);
     }
-    g.lineTo(x + w / 2, y + 10);
-    g.closePath();
-    g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.35)';
-    g.lineWidth = 2;
+    g.save();
+    g.lineJoin = 'round';
+    g.strokeStyle = INK;
+    g.lineWidth = 4;
+    g.fillStyle = '#857b88';
     g.beginPath();
-    for (let i = 0; i < 6; i++) { const px = x - w * 0.35 + i * w * 0.14; g.moveTo(px, y - h * 0.15 - hash(i + x) * h * 0.4); g.lineTo(px + 14, y - h * 0.05); }
+    g.moveTo(x - w / 2, y + 14);
+    for (const [px, py] of pts) g.lineTo(px, py);
+    g.lineTo(x + w / 2, y + 14);
+    g.closePath();
+    g.fill();
+    g.stroke();
+    g.clip();
+    // The shaded right side and a darker foot.
+    g.fillStyle = 'rgba(70,58,80,0.42)';
+    g.beginPath(); g.moveTo(x + w * 0.1, y - h); g.lineTo(x + w, y - h * 0.9); g.lineTo(x + w, y + 20); g.lineTo(x + w * 0.2, y + 20); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(50,40,60,0.35)';
+    g.fillRect(x - w, y - h * 0.16, 2 * w, h);
+    // The lit top.
+    g.fillStyle = 'rgba(214,200,205,0.35)';
+    g.beginPath(); g.moveTo(x - w * 0.45, y - h * 0.5); g.lineTo(x - w * 0.1, y - h * 1.05); g.lineTo(x + w * 0.25, y - h * 0.95); g.lineTo(x + w * 0.05, y - h * 0.6); g.closePath(); g.fill();
+    // Cracks and hatching.
+    g.strokeStyle = 'rgba(43,29,20,0.75)';
+    g.lineWidth = 2.5;
+    g.beginPath();
+    const cracks = 3 + Math.floor(h / 120);
+    for (let i = 0; i < cracks; i++) {
+      let cx = x - w * 0.35 + hash(seed + 9 + i) * w * 0.7, cy = y - h * (0.2 + hash(seed + 20 + i) * 0.6);
+      g.moveTo(cx, cy);
+      for (let k = 0; k < 4; k++) { cx += (hash(seed + i * 5 + k) - 0.4) * 26; cy += 14 + hash(seed + i + k * 3) * 18; g.lineTo(cx, cy); }
+    }
+    g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.38)';
+    g.lineWidth = 1.8;
+    g.beginPath();
+    for (let yy = y - h + 20; yy < y + 10; yy += 13) {
+      const o = hash(seed + yy) * 18;
+      const x0 = x + w * 0.12 + o, x1 = x + w * 0.5 - (yy - y + h) * 0.02;
+      g.moveTo(x0, yy); g.lineTo(x1, yy + 9);
+      if (yy > y - h * 0.3) { g.moveTo(x - w * 0.45, yy); g.lineTo(x - w * 0.2 + o, yy + 6); }
+    }
     g.stroke();
     g.restore();
+    if (grass) {
+      // Tufts of sage grass on the top.
+      g.save();
+      g.strokeStyle = '#5f6e3c';
+      g.lineWidth = 3;
+      g.lineCap = 'round';
+      g.beginPath();
+      for (let i = 1; i < n; i++) {
+        if (hash(seed + i * 11) < 0.35) continue;
+        const [px, py] = pts[i];
+        g.moveTo(px, py); g.lineTo(px - 6, py - 16); g.moveTo(px + 4, py); g.lineTo(px + 9, py - 14); g.moveTo(px + 1, py); g.lineTo(px + 1, py - 20);
+      }
+      g.stroke();
+      g.restore();
+    }
+  }
+  function inkRock(g, x, y, h, w) { inkCrag(g, x, y, w, h, x * 0.01, { grass: h > 100 }); }
+
+  function inkStack(g, s, bottom) {
+    const cx = s.x + s.w / 2;
+    // A tall stack: a crag on a crag, with a grassy crown.
+    inkCrag(g, cx + 20, bottom, s.w + 150, (bottom - s.y) * 0.55, s.x * 0.013, { grass: false });
+    inkCrag(g, cx, bottom - (bottom - s.y) * 0.42, s.w + 90, (bottom - s.y) * 0.62, s.x * 0.017);
   }
 
   function drawStacks(g) {
@@ -935,30 +1007,53 @@ export default function create(env) {
     g.restore();
   }
 
+  // One puff of cloud in the book's way: an ink outline, a curl inside, hatching under.
+  function puff(g, x, y, r, fill, seed = 0) {
+    g.fillStyle = fill;
+    g.strokeStyle = INK;
+    g.lineWidth = 3.5;
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.45)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.arc(x - r * 0.15, y + r * 0.1, r * 0.55, Math.PI * 0.9, Math.PI * 1.9);
+    for (let i = 0; i < 5; i++) {
+      const a = Math.PI * 0.35 + i * 0.16 + hash(seed + i) * 0.1;
+      g.moveTo(x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.55);
+      g.lineTo(x + Math.cos(a) * r * 0.92, y + Math.sin(a) * r * 0.92);
+    }
+    g.stroke();
+  }
+
   function drawBanks(g, tt) {
     for (const s of solids) {
       if (s.kind !== 'bank' || !cam.sees(s.x - 300, s.x + s.w + 300)) continue;
       const bottom = s.y + s.h;
       g.save();
-      g.fillStyle = '#8f7f93';
-      g.strokeStyle = INK;
-      g.lineWidth = 4;
-      // A heavy cloud bank hanging down, puff by puff.
       const x0 = s.x - 160, x1 = s.x + s.w + 160;
-      for (let row = 0; row < 3; row++) {
+      // The mass of the bank above, washed and hatched.
+      g.fillStyle = '#8a7b90';
+      g.fillRect(x0 - 100, -200, x1 - x0 + 200, bottom - 90);
+      g.strokeStyle = 'rgba(43,29,20,0.3)';
+      g.lineWidth = 2;
+      g.beginPath();
+      for (let y = -180; y < bottom - 100; y += 16) { const o = hash(y + s.x) * 30; g.moveTo(x0 - 90 + o, y); g.lineTo(x0 + 60 + o, y + 10); g.moveTo(x1 - 60 - o, y + 5); g.lineTo(x1 + 90 - o, y + 15); }
+      g.stroke();
+      for (let row = 2; row >= 0; row--) {
         const r = 58 + row * 14;
         const y = bottom - r - row * 90;
-        g.fillStyle = row === 0 ? '#9a8aa0' : row === 1 ? '#8f7f93' : '#857488';
-        g.beginPath();
-        for (let x = x0 - row * 40; x <= x1 + row * 40; x += r * 1.3) {
+        const fill = row === 0 ? '#a394a6' : row === 1 ? '#948499' : '#8a7b90';
+        for (let x = x0 - row * 40, i = 0; x <= x1 + row * 40; x += r * 1.3, i++) {
           const bob = env.reduceMotion ? 0 : Math.sin(tt * 1.3 + x * 0.02) * 4;
-          g.moveTo(x + r, y + bob);
-          g.arc(x, y + bob, r, 0, Math.PI * 2);
+          puff(g, x, y + bob, r, fill, s.x + row * 7 + i);
         }
-        g.fill(); g.stroke();
       }
-      g.fillStyle = '#857488';
-      g.fillRect(x0 - 100, -200, x1 - x0 + 200, bottom - 230);
+      // Rain from the bank.
+      g.strokeStyle = 'rgba(200,205,225,0.5)';
+      g.lineWidth = 2;
+      g.beginPath();
+      for (let x = x0; x < x1; x += 34) { const o = (tt * 500 + hash(x) * 300) % 160; g.moveTo(x, bottom + 10 + o); g.lineTo(x - 5, bottom + 34 + o); }
+      g.stroke();
       g.restore();
     }
   }
@@ -966,31 +1061,42 @@ export default function create(env) {
   function drawShore(g) {
     if (!cam.sees(SHORE - 100, SHORE + 800)) return;
     const y = SEA0 + 10;
-    g.save();
-    g.fillStyle = '#8a7a4c';
-    g.strokeStyle = INK;
-    g.lineWidth = 4.5;
-    g.beginPath();
-    g.moveTo(SHORE, H + 60);
-    g.lineTo(SHORE, y);
-    g.lineTo(SHORE + 40, y - 60); g.lineTo(SHORE + 120, y - 90); g.lineTo(SHORE + 220, y - 180); g.lineTo(SHORE + 320, y - 230); g.lineTo(SHORE + 420, y - 260); g.lineTo(SHORE + 700, y - 300);
-    g.lineTo(SHORE + 700, H + 60);
-    g.closePath();
-    g.fill(); g.stroke();
-    g.fillStyle = '#7d8a4a';
-    g.beginPath(); g.moveTo(SHORE + 30, y - 60); g.lineTo(SHORE + 120, y - 90); g.lineTo(SHORE + 220, y - 180); g.lineTo(SHORE + 320, y - 230); g.lineTo(SHORE + 700, y - 300); g.lineTo(SHORE + 700, y - 270); g.lineTo(SHORE + 330, y - 200); g.lineTo(SHORE + 230, y - 150); g.lineTo(SHORE + 130, y - 60); g.closePath(); g.fill(); g.stroke();
+    inkCrag(g, SHORE + 520, y + 40, 1100, 330, 4.2);
+    inkCrag(g, SHORE + 160, y + 30, 420, 170, 5.1);
     // The signpost.
-    const sx = SHORE + 330, sy = y - 232;
+    const sx = SHORE + 390, sy = y - 250;
+    g.save();
+    g.strokeStyle = INK; g.lineWidth = 4;
     g.fillStyle = '#8a6a44';
     g.fillRect(sx - 7, sy - 190, 14, 190); g.strokeRect(sx - 7, sy - 190, 14, 190);
     g.fillStyle = '#e8dcc4';
     g.fillRect(sx - 95, sy - 250, 190, 70); g.strokeRect(sx - 95, sy - 250, 190, 70);
+    g.strokeStyle = 'rgba(43,29,20,0.3)'; g.lineWidth = 1.5;
+    g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(sx - 90, sy - 240 + i * 14); g.lineTo(sx + 90, sy - 238 + i * 14); } g.stroke();
     g.fillStyle = INK;
     g.font = '800 26px Fraunces, Georgia, serif';
     g.textAlign = 'center';
     g.fillText('EDGE OF', sx, sy - 222);
     g.fillText('NOWHERE', sx, sy - 193);
     g.restore();
+  }
+
+  // The scene painting, repeated as the far layer: cropped to leave out its
+  // headland and signpost, so the Edge of Nowhere does not keep going past.
+  function drawSceneBackdrop(g) {
+    const img = art.image('scenes/typhoonigator');
+    if (!img) { kit.drawBackdrop(g, cam, {}); return; }
+    const cw = 1380, k = H / img.height, tw = cw * k;
+    const off = cam.x * 0.3;
+    const i0 = Math.floor(off / tw);
+    for (let i = i0; i <= i0 + 2; i++) {
+      const x = i * tw - off;
+      if (x > W) break;
+      g.save();
+      if (i % 2) { g.translate(x + tw, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, cw / k, img.height, 0, 0, tw + 1, H); }
+      else g.drawImage(img, 0, 0, cw / k, img.height, x, 0, tw + 1, H);
+      g.restore();
+    }
   }
 
   const SIGN_TEXT = ['OPEN SEA', 'THE CLIFFS', 'THE WINDMILLS', 'SUNBREAK', 'THE EDDY'];
@@ -1030,10 +1136,19 @@ export default function create(env) {
       g.beginPath(); g.moveTo(wm.x - 54, top + 4); g.lineTo(wm.x, top - 50); g.lineTo(wm.x + 54, top + 4); g.closePath(); g.fill(); g.stroke();
       g.fillStyle = '#5a4630';
       g.fillRect(wm.x - 16, bot - 70, 32, 70); g.strokeRect(wm.x - 16, bot - 70, 32, 70);
-      g.strokeStyle = 'rgba(43,29,20,0.35)'; g.lineWidth = 2;
+      g.save();
+      g.beginPath(); g.moveTo(wm.x - 70, bot); g.lineTo(wm.x - 42, top); g.lineTo(wm.x + 42, top); g.lineTo(wm.x + 70, bot); g.closePath(); g.clip();
+      g.fillStyle = 'rgba(70,58,80,0.3)';
+      g.fillRect(wm.x + 8, top - 10, 80, bot - top + 20);
+      g.strokeStyle = 'rgba(43,29,20,0.45)'; g.lineWidth = 2;
       g.beginPath();
-      for (let y = top + 30; y < bot - 20; y += 34) { g.moveTo(wm.x - 40, y); g.lineTo(wm.x + 40, y); }
+      for (let y = top + 24, r = 0; y < bot - 10; y += 26, r++) {
+        g.moveTo(wm.x - 70, y); g.lineTo(wm.x + 70, y);
+        for (let bx = wm.x - 60 + (r % 2) * 22; bx < wm.x + 60; bx += 44) { g.moveTo(bx, y); g.lineTo(bx, y + 26); }
+      }
+      for (let y = top + 10; y < bot; y += 11) { g.moveTo(wm.x + 14, y); g.lineTo(wm.x + 56, y + 7); }
       g.stroke();
+      g.restore();
       g.restore();
     });
   }
@@ -1086,6 +1201,12 @@ export default function create(env) {
         g.strokeStyle = INK;
         g.lineWidth = 3.5;
         g.beginPath(); g.arc(xt, 20, 56, 0, Math.PI * 2); g.fill(); g.stroke();
+        g.lineWidth = 2.5;
+        g.beginPath();
+        for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6 + 0.2; g.moveTo(xt + Math.cos(a) * 64, 20 + Math.sin(a) * 64); g.lineTo(xt + Math.cos(a) * (84 + (i % 2) * 14), 20 + Math.sin(a) * (84 + (i % 2) * 14)); }
+        g.stroke();
+        g.strokeStyle = 'rgba(43,29,20,0.3)';
+        g.beginPath(); for (let i = -3; i <= 3; i++) { g.moveTo(xt - 30, 40 + i * 9); g.lineTo(xt + 46 - Math.abs(i) * 8, 36 + i * 9); } g.stroke();
       }
       g.restore();
     }
@@ -1094,22 +1215,20 @@ export default function create(env) {
   function drawRainCloud(g, rc, tt) {
     kit.sprite(g, 'adv.b05.props', 10, rc.x, rc.y, { height: 150, ay: 0.5 }, () => {
       g.save();
-      g.strokeStyle = INK;
-      g.lineWidth = 3.5;
-      g.fillStyle = '#5c5468';
-      g.beginPath();
-      g.arc(rc.x - 42, rc.y + 4, 34, 0, Math.PI * 2);
-      g.arc(rc.x, rc.y - 16, 44, 0, Math.PI * 2);
-      g.arc(rc.x + 44, rc.y + 6, 34, 0, Math.PI * 2);
-      g.fill(); g.stroke();
-      g.fillRect(rc.x - 60, rc.y + 10, 120, 24);
+      puff(g, rc.x - 44, rc.y + 8, 34, '#6a6076', 1);
+      puff(g, rc.x + 46, rc.y + 10, 32, '#6a6076', 2);
+      puff(g, rc.x, rc.y - 14, 46, '#746a80', 3);
+      g.fillStyle = '#6a6076';
+      g.fillRect(rc.x - 60, rc.y + 18, 120, 22);
+      g.strokeStyle = INK; g.lineWidth = 3.5;
+      g.beginPath(); g.moveTo(rc.x - 70, rc.y + 40); g.lineTo(rc.x + 72, rc.y + 40); g.stroke();
       g.strokeStyle = '#7fa6c0';
       g.lineWidth = 3;
       g.beginPath();
       for (let i = 0; i < 6; i++) {
         const o = ((tt * 160 + i * 23) % 60);
         const x = rc.x - 50 + i * 20;
-        g.moveTo(x, rc.y + 44 + o); g.lineTo(x - 4, rc.y + 60 + o);
+        g.moveTo(x, rc.y + 48 + o); g.lineTo(x - 4, rc.y + 64 + o);
       }
       g.stroke();
       g.restore();

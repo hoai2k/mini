@@ -461,10 +461,11 @@ export default function create(env) {
       h.vx = 0;
       if (h.modeT > 0.35) { h.mode = 'dash'; h.modeT = 0.5; }
     } else if (h.mode === 'dash') {
-      // A dive coming at him: now and then he skids to a stop so it misses.
+      // A dive coming at him: now and then he skids flat to the ground, and
+      // jaws that do not reach the floor snap over his hat.
       if (!h.dodged && b.diving && Math.abs(b.x - h.x) < 280 && b.y > 430 && b.y < 760) {
         h.dodged = true;
-        const _r = env.rng(); console.error('dodge check', _r.toFixed(2), pDodge().toFixed(2)); if (_r < pDodge()) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
+        if (env.rng() < pDodge()) { h.mode = 'skid'; h.modeT = 0; h.vx = 0; env.sfx('dodge'); art.kick(hc, 0.4); return; }
       }
       h.vx = h.dir * dashSpeed();
       h.x += h.vx * dt;
@@ -600,7 +601,8 @@ export default function create(env) {
     if (n) { env.sfx('pickup'); fx.pop(b.x, b.y - 130, pickups.count % 5 === 0 ? 'Yum!' : '+1', { colour: '#8e4f8a', size: 40 }); art.kick(bc, -0.25); }
     // The snap: his jaws reach the Trollusk while he is out in the open.
     const j = jaws();
-    if (!h.hidden && b.mode !== 'perched' && Math.abs(j.x - h.x) < 95 && j.y > h.y - 215 && j.y < h.y + 20) snatch();
+    const top = h.mode === 'skid' ? 95 : 215;
+    if (!h.hidden && b.mode !== 'perched' && Math.abs(j.x - h.x) < 95 && j.y > h.y - top && j.y < h.y + 20) snatch();
   }
 
   function snatch() {
@@ -670,7 +672,7 @@ export default function create(env) {
     if (m === 'jolt') art.setAnim(hc, 'jolt');
     else if (m === 'wail') art.setAnim(hc, 'wail');
     else if (m === 'celebrate') art.setAnim(hc, 'celebrate');
-    else if (m === 'skid') art.setAnim(hc, 'skid');
+    else if (m === 'skid') art.setAnim(hc, 'duck');
     else if (m === 'peek' || m === 'feint') art.setAnim(hc, 'eye');
     else if (m === 'hide' || m === 'wait') art.setAnim(hc, 'duck');
     else if (m === 'dash') art.setAnim(hc, 'run');
@@ -1227,7 +1229,7 @@ export function autopilot(board) {
 
   // Hunting: the Trollusk is in a clearing and we are near it.
   const cl = h.clearing;
-  const hunting = cl && b.x > cl.x0 - 400 && (h.mode === 'wait' || h.mode === 'hide' || h.mode === 'feint' || h.mode === 'peek' || h.mode === 'dash' || h.mode === 'skid');
+  const hunting = cl && b.x > cl.x0 + 20 && (h.mode === 'wait' || h.mode === 'hide' || h.mode === 'feint' || h.mode === 'peek' || h.mode === 'dash' || h.mode === 'skid');
   if (b.mode === 'perched') {
     if (b.st < 0.9 && !hunting && b.modeT < 2.5) return out; // a rest
     out.x = 1; press();

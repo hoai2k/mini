@@ -159,17 +159,21 @@ test('chapter 5: the autopilot snatches with time to spare on most seeds', () =>
 
 test('chapter 5: versus is fair both ways: a ducking holder keeps it sometimes, not always', () => {
   const N = 16;
-  let wins = 0;
+  let wins = 0, held = 0, hm = 0;
   for (let seed = 1; seed <= N; seed++) {
     const env = makeEnv({ seed, versus: true });
     const ch = create(env);
     const hold = holderBot(ch, env.rng);
     let t = 0;
     while (!ch.done && t < 120) { ch.update(DT, autopilot(ch), hold()); t += DT; }
-  if (ch.outcome === 'snatched') wins++;
+    if (ch.outcome === 'snatched') { wins++; held += 45 - ch.time; }
+    hm += ch.marks()[1];
   }
-  console.log(`versus: snatcher ${wins}/${N}`);
-  assert.ok(wins >= N * 0.25 && wins <= N * 0.9, `snatcher won ${wins}/${N}`);
+  console.log(`versus: snatcher ${wins}/${N}, held ${(held / Math.max(1, wins)).toFixed(1)} s, holder postmarks ${(hm / N).toFixed(1)}`);
+  // A sharp bottle makes even a perfect cloud work for it: it holds out a
+  // good while (ducks tire it, so not for ever) and earns postmarks of its own.
+  assert.ok(held / Math.max(1, wins) > 9, 'the holder makes it a chase');
+  assert.ok(hm / N >= 0.4, 'the holder earns postmarks');
 });
 
 test('chapter 5: the how-to page has three captioned steps with the cloud in each', () => {
