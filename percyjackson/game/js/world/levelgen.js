@@ -3,14 +3,23 @@
 // secret room hidden behind a cracked wall. Rooms are stamped from the
 // hand-designed templates in rooms.js and joined by corridors, bridges and
 // stairs across height changes, floating over the abyss.
+//
+// Battles follow Minecraft Dungeons (world/encounters.js): combat rooms fill
+// their cell, one on the main path grows across a second cell into a big
+// battleground, and monsters wait in the open in groups with scouts posted
+// toward the way in (room.packs, room.loose), placed here from the level's
+// seed so every browser has the same. Small-room wave fights are traps
+// (room.trap): a side room whose doors slam shut until its waves are beaten.
 import * as THREE from 'three/webgpu';
 import { World } from './voxel.js';
 import { B, BLOCKS } from './blocks.js';
 import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
-import { TEMPLATES, BIOME_ROOMS, DRESS } from './rooms.js';
+import { TEMPLATES, BIOME_ROOMS, OPEN_ROOMS, DRESS, NO_SPAWN, boulder, column } from './rooms.js';
 import { BIOMES } from './biomes.js';
+import { MONSTERS } from '../entities/monsters.js';
+import { ENC, NONE, planRoles, budget, roster, place, killNeed } from './encounters.js';
 import { mulberry32 } from '../util.js';
 
 const CELL = 26;
@@ -65,6 +74,18 @@ export function generateLevel(mission) {
   const rooms = [];
   path.forEach(([cx, cz], i) => rooms.push(addRoom(cx, cz, i === 0 ? 'start' : i === path.length - 1 ? 'boss' : 'combat', i ? rooms[i - 1] : null)));
   for (let i = 1; i < rooms.length; i++) link(rooms[i - 1], rooms[i], 'open');
+  // the battleground: one combat room on the main path (not the first or the
+  // last, if it can) grows across a free neighbouring cell
+  const mainCombat = rooms.filter((q) => q.type === 'combat');
+  const arenaOrder = mainCombat.map((q, i) => i).filter((i) => i < mainCombat.length - 1).sort((a, b) => Math.abs(a - (mainCombat.length - 1) / 2) - Math.abs(b - (mainCombat.length - 1) / 2) + (r() - 0.5) * 0.5);
+  let arenaAt = -1;
+  for (const i of arenaOrder) {
+    const q = mainCombat[i];
+    const free = DIRS.map(([dx, dz]) => [q.cx + dx, q.cz + dz]).filter(([x, z]) => x >= 0 && z >= 0 && x < GW && z < GH && !cells.has(x + ',' + z));
+    if (!free.length) continue;
+    const [ex, ez] = free[Math.floor(r() * free.length)];
+    q.ext = [ex, ez]; cells.set(ex + ',' + ez, q); arenaAt = i; break;
+  }
   // side rooms + a secret room
   const mids = rooms.slice(1, -1);
   let sideCount = 2 + Math.floor(r() * 2), secretDone = false;
@@ -78,6 +99,13 @@ export function generateLevel(mission) {
     link(host, room, secret ? 'secret' : 'open');
     rooms.push(room); sideCount--; if (secret) secretDone = true;
   }
+  // what part each room plays (world/encounters.js)
+  const sideRooms = rooms.filter((q) => q.type === 'side' || q.type === 'secret');
+  const roles = planRoles(mainCombat.length, sideRooms.map((q) => ({ secret: q.type === 'secret' })), mission.difficulty ?? 1, r, { arenaAt });
+  // straight-to-the-boss chapters: the one fight on the approach is a proper group
+  if (mission.objective === 'boss' && roles.main.length) roles.main[roles.main.length - 1] = 'pack';
+  mainCombat.forEach((q, i) => { q.role = roles.main[i]; q.breather = q.role === 'breather'; q.pathT = mainCombat.length > 1 ? i / (mainCombat.length - 1) : 0.5; });
+  sideRooms.forEach((q, i) => { q.role = roles.sides[i]; q.pathT = q.parent?.pathT ?? 0.5; });
   function link(a, b, kind) { const l = { a, b, kind }; a.links.push(l); b.links.push(l); }
 
   // ---------------------------------------------------------------- rects + heights
@@ -85,10 +113,20 @@ export function generateLevel(mission) {
   const world = new World(SX, SY, SZ);
   const deco = new Decorations(); const shafts = new LightShafts();
   const k = new Kit(world, deco, shafts, seed);
+  const span = ([lo, hi]) => lo + Math.floor(r() * (hi - lo + 1));
   for (const room of rooms) {
     const big = room.type === 'boss';
-    const w = big ? 22 : 14 + Math.floor(r() * 6), d = big ? 22 : 14 + Math.floor(r() * 6);
-    const ox = room.cx * CELL + 2 + Math.floor(r() * (CELL - 4 - w)), oz = room.cz * CELL + 2 + Math.floor(r() * (CELL - 4 - d));
+    const sz = room.type === 'start' ? [14, 19] : room.type === 'combat' ? ENC.size.combat : room.role === 'trap' ? ENC.size.trap : room.type === 'secret' ? ENC.size.secret : ENC.size.side;
+    let w = big ? 22 : span(sz), d = big ? 22 : span(sz);
+    let ox = room.cx * CELL + 2 + Math.floor(r() * (CELL - 4 - w + 1)), oz = room.cz * CELL + 2 + Math.floor(r() * (CELL - 4 - d + 1));
+    if (room.ext) {
+      // two cells: the long side runs across both, the short side fills the cell
+      const [ex, ez] = room.ext;
+      const cx0 = Math.min(room.cx, ex), cz0 = Math.min(room.cz, ez);
+      if (ex !== room.cx) { w = 2 * CELL - 4 - Math.floor(r() * 3); ox = cx0 * CELL + 2 + Math.floor(r() * (2 * CELL - 4 - w + 1)); }
+      else { d = 2 * CELL - 4 - Math.floor(r() * 3); oz = cz0 * CELL + 2 + Math.floor(r() * (2 * CELL - 4 - d + 1)); }
+      room.cells = 2;
+    }
     room.x0 = ox; room.z0 = oz; room.x1 = ox + w - 1; room.z1 = oz + d - 1;
     const parentY = room.parent ? room.parent.y : 12;
     room.y = room.type === 'start' ? 12 : Math.max(9, Math.min(18, parentY + [0, 0, 3, -3][Math.floor(r() * 4)]));
@@ -121,10 +159,16 @@ export function generateLevel(mission) {
     if (room.type === 'boss') bossArena(c);
     else if (room.type === 'start') startRoom(c);
     else {
-      let t = pool[Math.floor(r() * pool.length)];
+      // the open-field fights get the open templates; a trap the tighter ones
+      const open = OPEN_ROOMS[mission.biome] ?? pool;
+      const list = room.role === 'pack' || room.role === 'arena' || room.role === 'strays' ? open : room.role === 'trap' ? (pool.filter((x) => !open.includes(x)).length ? pool.filter((x) => !open.includes(x)) : pool) : pool;
+      let t = list[Math.floor(r() * list.length)];
       if (room.type === 'secret') t = 'hall';
       TEMPLATES[t](c);
       room.template = t;
+      // a big open battleground still needs something to fight round
+      if (room.role === 'arena') cover(c, 5 + Math.floor(r() * 3));
+      else if (room.role === 'pack') cover(c, 1 + Math.floor(r() * 2));
     }
     room.spawns = c.spawns; room.features = c.features; room.slots = c.slots;
     // make sure every door opening is clear and has floor under it
@@ -139,8 +183,21 @@ export function generateLevel(mission) {
     const bossSide = cor.aRoom.type === 'boss' ? 'a' : cor.bRoom.type === 'boss' ? 'b' : null;
     if (bossSide) gates.push(sealDoor(k, cor, B.blue_energy, false, bossSide));
   }
+  // trap doors: worked out now, slammed shut when the trap is sprung (mission.js)
+  const trapGates = [];
+  for (const room of rooms) {
+    if (room.role !== 'trap') continue;
+    room.trap = { gates: [], points: [], sprung: false, done: false };
+    for (const cor of corridors) {
+      const side = cor.aRoom === room ? 'a' : cor.bRoom === room ? 'b' : null;
+      if (!side) continue;
+      const gate = sealDoor(k, cor, B.metal_grate, false, side, true);
+      gate.trap = true; room.trap.gates.push(trapGates.length); trapGates.push(gate);
+    }
+  }
   // ---------------------------------------------------------------- objectives & props
-  const objRooms = rooms.filter((q) => q.type === 'combat' || q.type === 'side');
+  const objRooms0 = rooms.filter((q) => (q.type === 'combat' || q.type === 'side') && q.role !== 'trap' && q.role !== 'breather');
+  const objRooms = objRooms0.length ? objRooms0 : rooms.filter((q) => q.type === 'combat' || q.type === 'side');
   const objective = { type: mission.objective, items: [], need: 0, done: 0 };
   const pickSpot = (room) => { const s = room.spawns.splice(Math.floor(r() * room.spawns.length), 1)[0]; return s ? new THREE.Vector3(s[0], s[1], s[2]) : room.center.clone(); };
   if (mission.objective === 'rescue' || mission.objective === 'seal') {
@@ -154,34 +211,86 @@ export function generateLevel(mission) {
     // a side room is a detour, so it always pays: a chest (W3); the secret room a rare one
     if (room.type === 'secret' || room.type === 'side' || r() < 0.45) chests.push({ pos: pickSpot(room), room, rarity: room.type === 'secret' ? 'rare' : 'common', opened: false });
   }
-  // pacing: along the main path, fights alternate with breathers (a light room,
-  // one small wave), counting back from the boss so the room before it is a breather
-  const mainPath = []; for (let q = rooms.find((x) => x.type === 'boss'); q; q = q.parent) mainPath.unshift(q);
-  mainPath.forEach((q, i) => { if (q.type === 'combat') q.breather = (mainPath.length - 1 - i) % 2 === 1; });
-  // encounters
+  // encounters (world/encounters.js): groups, scouts and strays placed on the
+  // reachable floor of each room; a trap's waves and spawn points
   const table = ENEMY_TABLES[mission.biome];
-  const tw = table.reduce((a, b) => a + b[1], 0);
-  const pickEnemy = () => { let x = r() * tw; for (const [kind, w] of table) { x -= w; if (x <= 0) return kind; } return table[0][0]; };
+  const info = (kind) => MONSTERS[kind];
   const diff = mission.difficulty ?? 1;
   let totalEnemies = 0;
   for (const room of rooms) {
-    room.waves = [];
+    room.waves = []; room.packs = []; room.loose = [];
     if (room.type === 'start' || room.type === 'boss') continue;
-    const area = (room.x1 - room.x0) * (room.z1 - room.z0);
-    const budget = Math.round((4 + diff * 1.5 + area / 70) * (room.type === 'secret' ? 0.7 : room.breather ? 0.5 : 1));
-    const nWaves = room.type === 'combat' && diff > 1 && !room.breather ? 2 : 1;
-    for (let w = 0; w < nWaves; w++) {
-      const list = [];
-      for (let i = 0; i < Math.round(budget / nWaves); i++) list.push({ kind: pickEnemy(), elite: !room.breather && r() < 0.08 + diff * 0.03 ? ['swift', 'armored', 'vampiric', 'explosive', 'shadow'][Math.floor(r() * 5)] : null });
-      room.waves.push(list); totalEnemies += list.length;
-    }
+    const grid = roomGrid(k.w, room);
+    const area = grid.H.reduce((a, h) => a + (h !== NONE ? 1 : 0), 0);
+    const plan = roster(budget(room.role ?? 'strays', { diff, t: room.pathT ?? 0.5, area }, r), table, info, diff, r);
+    const spots = place(grid, plan, r);
+    const W = (p) => [room.x0 + p[0] + 0.5, p[2], room.z0 + p[1] + 0.5];
+    room.packs = spots.packs.map((p) => ({ at: W(p.at), members: p.members.map((m) => ({ ...m, at: W(m.at) })) }));
+    room.loose = spots.loose.map((m) => ({ ...m, at: W(m.at) }));
+    room.waves = plan.waves;
+    if (room.trap) room.trap.points = spots.points.map(W);
+    // what one player meets here (traps are a detour; the kill objective doesn't count on them)
+    if (room.role !== 'trap') totalEnemies += room.loose.length + room.packs.reduce((a, p) => a + p.members.filter((m) => m.humans <= 1).length, 0);
   }
-  if (mission.objective === 'exorcise') objective.need = Math.max(12, Math.round(totalEnemies * 0.75));
+  if (mission.objective === 'exorcise') objective.need = killNeed(totalEnemies, diff, !!mission.chapter);
+  objective.total = totalEnemies;
   world.collectBlockLights();
   const start = rooms[0], boss = rooms.find((q) => q.type === 'boss');
   const spawn = start.center.clone().add(new THREE.Vector3(0, 0, 2));
   const exit = boss.center.clone();
-  return { world, deco, shafts, rooms, spawn, bossRoom: boss, gates, objective, chests, exit, biome, seed, kit: k, grid: { GW, GH, CELL } };
+  return { world, deco, shafts, rooms, spawn, bossRoom: boss, gates, trapGates, objective, chests, exit, biome, seed, kit: k, grid: { GW, GH, CELL } };
+}
+
+// A room's floor for placing monsters: the standing height in each cell
+// nearest the room's floor (NONE where nobody can stand), where a monster may
+// stand (not in water or lava, not on a canopy or a prop's collider), the
+// door you come in by and every door, in room-local cells.
+function roomGrid(w, room) {
+  const W = room.x1 - room.x0 + 1, D = room.z1 - room.z0 + 1;
+  const H = new Int16Array(W * D).fill(NONE), ok = new Uint8Array(W * D), wet = new Uint8Array(W * D);
+  const solid = (x, y, z) => { const id = w.get(x, y, z); return !!(id && BLOCKS[id].solid); };
+  const liquid = (x, y, z) => { const id = w.get(x, y, z); return !!(id && BLOCKS[id].liquid); };
+  const hot = (x, y, z) => { const id = w.get(x, y, z); const l = id && BLOCKS[id].liquid; return l === 'lava' || l === 'cursed'; };
+  for (let z = 0; z < D; z++) for (let x = 0; x < W; x++) {
+    const X = room.x0 + x, Z = room.z0 + z;
+    let best = NONE;
+    for (let y = room.y - 3; y <= room.y + 3; y++) {
+      if (!solid(X, y - 1, Z) || solid(X, y, Z) || solid(X, y + 1, Z) || hot(X, y, Z) || hot(X, y - 1, Z)) continue;
+      if (best === NONE || Math.abs(y - room.y) < Math.abs(best - room.y)) best = y;
+    }
+    if (best === NONE) continue;
+    H[z * W + x] = best;
+    wet[z * W + x] = liquid(X, best, Z) ? 1 : 0;
+    ok[z * W + x] = !liquid(X, best, Z) && !liquid(X, best - 1, Z) && !NO_SPAWN.has(w.get(X, best - 1, Z)) && !solid(X, best + 2, Z) ? 1 : 0;
+  }
+  const local = (d) => d.side === 'n' ? [d.at - room.x0, 0] : d.side === 's' ? [d.at - room.x0, D - 1] : d.side === 'w' ? [0, d.at - room.z0] : [W - 1, d.at - room.z0];
+  const entryDoor = room.doors.find((d) => d.link.b === room) ?? room.doors[0];
+  return { W, D, H, ok, wet, entry: entryDoor ? local(entryDoor) : [W >> 1, D >> 1], doors: room.doors.map(local) };
+}
+
+// Cover in an open battleground: a few boulders, columns or stubs of wall
+// (by biome) on open floor, well apart and away from the doors, so there is
+// something to circle round and break line of sight with, never a wall across
+// the room.
+const ROCKY = { storm_hill: B.rock, camp_woods: B.rock, desert: B.red_rock, beach: B.rock, underworld: B.basalt, statue_garden: B.rock };
+function cover(c, n) {
+  const { k, x0, z0, x1, z1, y, b, r } = c;
+  const w = k.w, placed = [];
+  const flat = (x, z) => { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Z = z + dz; if (!w.get(X, y - 1, Z) || BLOCKS[w.get(X, y - 1, Z)].liquid || w.get(X, y, Z) || w.get(X, y + 1, Z)) return false; } return true; };
+  const nearDoor = (x, z) => c.doors.some((d) => {
+    const dx = d.side === 'n' || d.side === 's' ? d.at : d.side === 'w' ? x0 : x1, dz = d.side === 'w' || d.side === 'e' ? d.at : d.side === 'n' ? z0 : z1;
+    return Math.hypot(x - dx, z - dz) < 7;
+  });
+  for (let tries = 0; tries < n * 30 && placed.length < n; tries++) {
+    const x = x0 + 4 + Math.floor(r() * (x1 - x0 - 7)), z = z0 + 4 + Math.floor(r() * (z1 - z0 - 7));
+    if (nearDoor(x, z) || placed.some(([px, pz]) => Math.hypot(px - x, pz - z) < 7) || !flat(x, z)) continue;
+    const rock = ROCKY[b.id];
+    if (rock) boulder(k, x, z, y, 1 + r() * 0.5, rock);
+    else if (r() < 0.5) { if (b.pillar === B.column) column(k, x, z, y, 4); else k.pillar(x, z, y, 3, b.pillar, b.trim); }
+    else { const along = r() < 0.5; for (let t = -1; t <= 1; t++) for (let h = 0; h < (t === 0 ? 2 : 1 + Math.floor(r() * 2)); h++) k.w.set(along ? x + t : x, y + h, along ? z : z + t, h === 0 && b.wall2 ? b.wall2 : b.wall); }
+    placed.push([x, z]);
+  }
+  for (const [x, z] of placed) c.spawns = c.spawns.filter(([sx, , sz]) => Math.hypot(sx - x - 0.5, sz - z - 0.5) > 1.6);
 }
 
 // The doorway and the first cells inside it: always open (a prop or a wall a
@@ -228,7 +337,7 @@ function buildCorridor(k, cor, biome, r) {
   }
 }
 // Fill a door opening with blocks (secret cracked wall / boss gate).
-function sealDoor(k, cor, id, secretSide, side) {
+function sealDoor(k, cor, id, secretSide, side, dry = false) {
   const room = cor.aRoom.type === 'secret' ? cor.aRoom : cor.bRoom.type === 'secret' ? cor.bRoom : side === 'a' ? cor.aRoom : cor.bRoom;
   const edge = room === cor.aRoom ? cor.from : cor.to;
   const y = room.y;
@@ -243,10 +352,11 @@ function sealDoor(k, cor, id, secretSide, side) {
     const x = cor.axis === 'x' ? edge : cor.at + t, z = cor.axis === 'x' ? cor.at + t : edge;
     if (Math.abs(t) > 2 && k.w.get(x, yy, z)) continue;
     if (Math.abs(t) > 4 && !k.w.get(x, y - 1, z)) continue;
-    k.w.set(x, yy, z, id); blocks.push([x, yy, z]);
+    if (!dry) k.w.set(x, yy, z, id);
+    blocks.push([x, yy, z]);
   }
   const pos = new THREE.Vector3(cor.axis === 'x' ? edge + 0.5 : cor.at + 0.5, y, cor.axis === 'x' ? cor.at + 0.5 : edge + 0.5);
-  return { blocks, pos, room, open: false };
+  return { blocks, pos, room, open: dry };
 }
 function startRoom(c) {
   if (DRESS[c.b.id]) return DRESS[c.b.id].start(c);

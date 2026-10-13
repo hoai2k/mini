@@ -20,7 +20,7 @@ import { HEROES } from './heroes/index.js';
 
 const WRITE_DELAY = 800;
 const bits = (list, f) => list.map((x) => (f(x) ? 1 : 0)).join('');
-const roomCleared = (r) => r.activated && (r.waveIdx ?? 0) >= (r.waves?.length ?? 0) && !(r.enemies ?? []).some((e) => !e.dead);
+const roomCleared = (r) => r.activated && (r.waveIdx ?? 0) >= (r.waves?.length ?? 0) && !(r.enemies ?? []).some((e) => !e.dead) && !(r.reserve?.length) && (!r.trap || r.trap.done);
 
 export class Resume {
   constructor(game) {
@@ -127,12 +127,13 @@ export class Resume {
     const m = g.mission; if (!m) return false;
     const on = (str, i) => typeof str === 'string' && str[i] === '1';
     const s = r.m ?? {};
-    m.L.rooms.forEach((room, i) => { if (on(s.rc, i)) { room.activated = true; room.enemies = []; room.waveIdx = room.waves?.length ?? 0; room.waveT = 0; g.minimap.reveal(room); } });
+    m.L.rooms.forEach((room, i) => { if (on(s.rc, i)) { room.activated = true; room.primed = true; room.enemies = []; room.waveIdx = room.waves?.length ?? 0; room.waveT = 0; if (room.trap) room.trap.sprung = room.trap.done = true; g.minimap.reveal(room); } });
     // in a room left half done, the monsters already killed don't come back
     m.L.rooms.forEach((room, i) => {
       let n = Math.max(0, Math.min(99, Math.floor(Array.isArray(s.rk) ? s.rk[i] ?? 0 : 0)));
       if (!n || on(s.rc, i) || !room.waves) return;
-      room.killedBefore = n;
+      room.killedBefore = n;   // (a room's groups leave that many out: mission.js spawnPacks)
+      if (room.packs?.length || room.loose?.length) return;
       room.waves = room.waves.map((w) => { const k = Math.min(n, w.length); n -= k; return w.slice(k); }).filter((w) => w.length);
     });
     m.obj.items.forEach((it, i) => { if (on(s.it, i) && !it.done) m.completeItem(it); });
