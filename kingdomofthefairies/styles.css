@@ -84,7 +84,22 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #title { grid-template-rows: 1fr auto auto auto 1fr; }
 .hint { grid-row: 4; margin: 0; font-size: 14px; opacity: .7; letter-spacing: .05em; }
 
-.corner { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 10px; }
+#icons { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+.corner { position: absolute; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 10px; pointer-events: auto; transition: opacity .35s; }
+.corner-right { right: max(16px, env(safe-area-inset-right)); }
+.corner-left { left: max(16px, env(safe-area-inset-left)); }
+.corner-left .icon::after { right: auto; left: 0; }
+/* in play: only the right-hand options, smaller and quieter over the stage */
+#icons[data-show="play"] .corner-left, #icons[data-show="none"] .corner { display: none; }
+#icons[data-show="play"] .corner-right { opacity: .7; }
+#icons[data-show="play"] .corner-right:hover, #icons[data-show="play"] .corner-right:focus-within { opacity: 1; }
+#icons[data-show="play"] .icon { width: 42px; height: 42px; }
+#icons[data-show="play"] .icon svg { width: 20px; height: 20px; }
+/* in play on a phone they hide until a tap at the bottom right shows them */
+#icons[data-show="play"].autohide:not(.revealed) .corner-right { opacity: 0; pointer-events: none; }
+.corner-reveal { display: none; position: absolute; right: 0; bottom: 0; width: 140px; height: 70px; background: none; border: 0; padding: 0; pointer-events: auto; }
+#icons[data-show="play"].autohide:not(.revealed) .corner-reveal { display: block; }
+.dialog { z-index: 10; }
 .icon {
   width: 52px; height: 52px; border-radius: 50%;
   background: var(--plum); border: 2px solid #c79ab7; display: grid; place-items: center; position: relative;
@@ -198,6 +213,7 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   .tbtn-b { width: 58px; height: 58px; bottom: max(80px, calc(env(safe-area-inset-bottom) + 58px)); right: max(128px, calc(env(safe-area-inset-right) + 118px)); }
   .stick-base { top: 66%; }
   .corner .icon { width: 46px; height: 46px; }
+  #icons[data-show="play"] .icon { width: 40px; height: 40px; }
   .card { padding: 18px 20px 16px; gap: 10px; }
   /* the pause menu: its buttons in two columns, so all of them fit */
   #pause .card { width: min(640px, 100%); padding: 14px 18px 14px; gap: 8px; }
@@ -267,8 +283,10 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
    logo on the left, Press Start and the bar on the right. */
 @media (max-height: 460px) and (orientation: landscape) {
   #title { grid-template-columns: auto auto; grid-template-rows: 1fr auto auto auto 1fr; column-gap: clamp(16px, 4vw, 40px); align-items: center; }
+  /* above the guide buttons at the bottom left */
+  #title { padding-bottom: 76px; }
   .logo-card { grid-column: 1; grid-row: 1 / span 5; align-self: center;
-    width: min(calc(var(--app-w, 100vw) * 0.44), calc((var(--app-h, 100dvh) - 40px) * 4 / 3), 440px); }
+    width: min(calc(var(--app-w, 100vw) * 0.44), calc((var(--app-h, 100dvh) - 110px) * 4 / 3), 440px); }
   .press-start { grid-column: 2; grid-row: 2; }
   .loadbar { grid-column: 2; grid-row: 3; width: min(calc(var(--app-w, 100vw) * 0.32), 280px); }
   .hint { grid-column: 2; grid-row: 4; max-width: calc(var(--app-w, 100vw) * 0.36); text-align: center; font-size: 12px; }
