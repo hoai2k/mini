@@ -785,4 +785,4 @@ $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);
 
 // QA hook: ?qa exposes the shell state to browser smoke tests.
-if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = window.__kingdomOfTheFairies = { S, settings, audio };
+if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = window.__kingdomOfTheFairies = { S, settings, audio, get assets() { return assets; } };

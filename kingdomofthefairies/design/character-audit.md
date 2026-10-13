@@ -127,3 +127,13 @@ the tempest deck, the quay carry, the wedding street and the apotheosis).
   then requires it.
 
 F14 delivered: the two Original-look prince B repairs now match stride A’s painted head-top and ground bounds (y=4 and y=360). The sailor’s new sack-carrying strides match the passing-frame head top (y=0) and ground (y=360), restoring his four-phase walk in both older editions. All four were reviewed together and checked in the walking browser suite. Superseded prince artwork remains archived with its generation records.
+
+## Body size and head height (13 October 2026)
+
+Play-testing found the prince bobbing as he walked. Comparing stride with
+stride had missed it: in the tinted look the stride frames' heads sit 14 px
+(armed) and 23 px (court dress) of 360 below the passing frames, where a walk
+dips about 9 px. `design/source/audit_sprites.py` now measures every walking
+cycle (and every figure's canvas and ground line) and writes
+[sprite-audit.md](sprite-audit.md). Until the F16 redraws arrive, those four
+frames are scaled up from the feet to a natural dip (`src/sprite-fit.js`).

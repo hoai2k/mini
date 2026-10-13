@@ -144,6 +144,7 @@ KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs
 for g in build_act_requests build_film_requests build_film_assets; do python3 kingdomofthefairies/design/source/$g.py --check; done
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/walking-browser.mjs
+python3 kingdomofthefairies/design/source/audit_sprites.py --check   # after any art delivery; needs Pillow, numpy, OpenCV
 kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
 ```
 

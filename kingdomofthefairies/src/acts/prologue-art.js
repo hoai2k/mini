@@ -2,12 +2,19 @@ import { walkPose } from '../walking.js';
 // Prologue drawing: the delivered sets (betrothal-court, rampart-strip,
 // armoury) and the cast's cut-outs, staged as a toy theatre. Draw only from
 // state and t.
-import { FLOOR, FAIRIES, AZURINE_X, RAMPART, ARMS, T, GIFTS, sceneOf } from './prologue.js';
+import { FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, T, GIFTS, sceneOf } from './prologue.js';
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const FIG = { w: 132, h: 252 };          // a standing figure (220 x 420 art)
+// Where each fairy holds her gift in her 220 x 420 art (measured from the
+// fairy-*.webp art that paints it in): centre x, bottom y, width, art px.
+const GIFT_IN_HAND = {
+  'fairy-ring': [27, 58, 30], 'fairy-ring-tinted': [28, 50, 30],
+  'fairy-crown': [50, 133, 82], 'fairy-crown-tinted': [42, 141, 78],
+  'fairy-gold': [34, 105, 58], 'fairy-gold-tinted': [24, 114, 44],
+};
 const PRINCE = { w: 137, h: 225 };        // the prince (220 x 360 art)
 const camX = (st) => (sceneOf(st.phase) === 1 ? clamp(st.p.x - 420, 0, RAMPART.w - 1280) : 0);
 const CAPTIONS = {
@@ -40,11 +47,16 @@ export function drawOver(k, st) {
 
 export function onEvent(k, e, st) {
   const cx = st ? camX(st) : 0;
+  if (e.type === 'gift') {
+    // a fairy whose art holds the gift vanishes as she gives it (see court)
+    const f = FAIRIES.find((q) => q.gift === e.gift);
+    if (f && f.gift !== 'flower' && k.img(f.id) && !k.img(f.id + '-empty')) { k.flash(0.25); k.burst(e.x, FLOOR - 130, '#f4ead2', 28, 'smoke'); }
+  }
   if (e.type === 'gift') { k.burst(e.x, FLOOR - 180, '#fff2b0', 22, 'sparkle'); k.text(e.gift === 'gold' ? 'Gold!' : `The ${e.gift}!`, e.x, FLOOR - 270); }
   if (e.type === 'betrothed') { k.flash(0.4); k.burst(AZURINE_X - 40, FLOOR - 170, '#f3c6dc', 30, 'sparkle'); }
   if (e.type === 'scene' && e.phase === 'curse') { k.flash(0.6); k.shake(0.4); k.burst(220, FLOOR - 150, '#5f3a6a', 30, 'smoke'); }
-  if (e.type === 'fireLand') k.burst(e.x - cx, RAMPART.y - 10, '#e9a46a', 14, 'streak');
-  if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, RAMPART.y - 60, '#c8321e', 10, 'streak'); }
+  if (e.type === 'fireLand') k.burst(e.x - cx, rampartFloor(e.x) - 10, '#e9a46a', 14, 'streak');
+  if (e.type === 'scorched') { k.flash(0.2); k.burst(e.x - cx, rampartFloor(e.x) - 60, '#c8321e', 10, 'streak'); }
   if (e.type === 'scene' && e.phase === 'free') { k.flash(0.5); k.burst(st?.p.x ?? 420, FLOOR - 120, '#fff2b0', 34, 'sparkle'); }
   if (e.type === 'arm') { k.burst(e.x, FLOOR - 90, '#fff2b0', 20, 'sparkle'); }
   if (e.type === 'knighted') { k.flash(0.6); k.burst(st?.p.x ?? 900, FLOOR - 120, '#fff2b0', 40, 'sparkle'); }
@@ -60,10 +72,19 @@ function courtScene(k, st, t) {
   // the fairies in a line, each holding her gift until she gives it
   for (const f of FAIRIES) {
     const given = st.gifts.includes(f.gift);
-    figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, f.id === 'aurora-stand' ? -1 : 1);
-    // The gift fairies' own art holds their gifts (ring, crown, casket); only
-    // Aurora's flower is drawn in her hand, and any gift whose fairy is missing.
-    if (!given && (f.gift === 'flower' || !k.img(f.id))) gift(k, f.gift, f.x - 34, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x));
+    if (f.gift === 'flower' || !k.img(f.id)) {
+      // Aurora (her flower is drawn in her hand), or a fairy not yet delivered
+      figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, f.id === 'aurora-stand' ? -1 : 1);
+      if (!given) gift(k, f.gift, f.x - 34, FLOOR - 120, 0.8 + 0.1 * Math.sin(t * 3 + f.x));
+    } else if (k.img(f.id + '-empty')) {
+      // empty-handed art (F15): the game puts her gift in her hands until she gives it
+      figure(k, f.id + '-empty', f.x, FLOOR + 6, t + f.x, 1, 1, given ? null : (c, s, im) => {
+        const [hx, hb, hw] = GIFT_IN_HAND[f.id + (/-tinted\./.test(im.src) ? '-tinted' : '')];
+        gift(k, f.gift, (hx - (im.naturalWidth || im.width) / 2) * s, (hb - (im.naturalHeight || im.height)) * s, (hw * s) / 96);
+      });
+    } else if (!given) figure(k, f.id, f.x, FLOOR + 6, t + f.x, 1, 1);
+    // Until then her art holds the gift itself, so once she has given it she
+    // vanishes in a burst of sparkle, a stop trick, rather than keep it.
   }
   figure(k, 'azurine-stand', AZURINE_X, FLOOR + 4, t + 3, 1, 1);
   // the gifts laid at her feet; the witch's curse withers the flower
@@ -104,7 +125,7 @@ function rampartScene(k, st, t) {
     const x = f.x - cx;
     if (!f.lit) { c.fillStyle = k.col('#ffcf7a'); k.circle(x, f.y, 9); c.fillStyle = k.col('#e9693a'); k.circle(x, f.y - 8, 6); continue; }
     const a = 1 - clamp((f.burn - (RAMPART.burn - 0.4)) / 0.4, 0, 1);
-    flame(k, x, RAMPART.y + 4, 0.75 * a, t + f.x);
+    flame(k, x, rampartFloor(f.x) + 4, 0.75 * a, t + f.x);
   }
   // the chariot of fire, with her demons and Azurine asleep
   const up = st.phase === 'escape' ? easeOut(Math.min(1, ch.up / 2)) : 0;
@@ -163,10 +184,10 @@ function cords(k, st, t, a) {
 
 // ---------------------------------------------------------------- the cast
 // A standing cut-out with the film idle, feet at (x, by); `face` -1 mirrors.
-function figure(k, id, x, by, t, s = 1, face = 1) {
+function figure(k, id, x, by, t, s = 1, face = 1, over = null) {
   const c = k.c;
   c.save(); c.translate(x, by); c.scale(face, 1);
-  if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s)) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
+  if (!k.idle(id, t, 0, 0, FIG.w * s, FIG.h * s, undefined, over)) { c.fillStyle = k.col('#b88aa8'); c.fillRect(-18 * s, -FIG.h * s * 0.8, 36 * s, FIG.h * s * 0.8); }
   c.restore();
 }
 

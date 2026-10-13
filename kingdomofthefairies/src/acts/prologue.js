@@ -28,8 +28,11 @@ export const FAIRIES = [
 export const AZURINE_X = 1080;
 export const COURT_START = 205;   // just inside the left curtain
 // The rampart: a 2560-wide walk along the parapet; the chariot stays ahead.
-// y: the top of the painted parapet (rampart-strip's coping, measured at y 480)
-export const RAMPART = { w: 2560, y: 484, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, burn: 1.7, fireW: 30, knock: 330 };
+// y: where he walks on the painted parapet: the front of rampart-strip's coping
+// (its top face runs y 482-490), in line with the gargoyles' bases
+// The coping steps down in perspective over the strip's first 600 px.
+export const rampartFloor = (x) => (x <= 440 ? 508 : x >= 600 ? 494 : 508 - ((x - 440) / 160) * 14);
+export const RAMPART = { w: 2560, y: 494, end: 2260, lead: 340, speed: 210, catchUp: 320, dropEvery: 1.25, burn: 1.7, fireW: 30, knock: 330 };
 export const CHARIOT_Y = 165;
 // The armoury: the racks he takes his arms from.
 export const ARMS = [{ id: 'helmet', x: 820 }, { id: 'shield', x: 980 }, { id: 'sword', x: 1140 }];
@@ -76,7 +79,7 @@ export default {
     if (ph === 'court') court(st, dt, input);
     else if (ph === 'curse') { walk(st, dt, input.moveX || 0, input, { x1: AZURINE_X - 50 }); if (st.phaseT >= T.curse) next(st); }
     else if (ph === 'rampart') rampart(st, dt, input);
-    else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: RAMPART.y, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
+    else if (ph === 'escape') { walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: RAMPART.w - 100 }); st.chariot.up += dt; if (st.phaseT >= T.escape) next(st); }
     else if (ph === 'bind' && st.phaseT >= T.bind) next(st);
     else if (ph === 'free') { walk(st, dt, st.phaseT > 0.9 ? input.moveX || 0 : 0, input); if (st.phaseT >= T.free) next(st); }
     else if (ph === 'armoury') armoury(st, dt, input);
@@ -106,9 +109,10 @@ export default {
   draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
 };
 
-// Walking (and leaping, where `leap`): flat floor at the scene's height.
+// Walking (and leaping, where `leap`): the floor at the scene's height, or
+// a function of x where the painted floor is not level.
 function walk(st, dt, mx, input = {}, { leap = false, floor = FLOOR, x0 = 40, x1 = 1240 } = {}) {
-  const p = st.p;
+  const p = st.p, floorAt = typeof floor === 'function' ? floor : () => floor;
   if (p.knockT > 0) { p.knockT -= dt; mx = 0; }
   if (Math.abs(mx) > 0.15) p.face = Math.sign(mx);
   p.vx += clamp(mx * PHYS.walk - p.vx, -PHYS.acc * dt, PHYS.acc * dt);
@@ -117,10 +121,10 @@ function walk(st, dt, mx, input = {}, { leap = false, floor = FLOOR, x0 = 40, x1
   if (!p.on) {
     p.vy += (PHYS.g + (p.vy < 0 && !input.aHeld ? PHYS.cut : 0)) * dt;
     p.y += p.vy * dt;
-    if (p.y >= floor) { p.y = floor; p.vy = 0; p.on = true; st.events.push({ type: 'land' }); }
+    if (p.y >= floorAt(p.x)) { p.y = floorAt(p.x); p.vy = 0; p.on = true; st.events.push({ type: 'land' }); }
   }
   p.x = clamp(p.x + p.vx * dt, x0, x1);
-  if (p.on) p.walk += Math.abs(p.vx) * dt;
+  if (p.on) { p.y = floorAt(p.x); p.walk += Math.abs(p.vx) * dt; }
 }
 
 function court(st, dt, input) {
@@ -141,7 +145,7 @@ function court(st, dt, input) {
 
 function rampart(st, dt, input) {
   const R = RAMPART, p = st.p, ch = st.chariot;
-  walk(st, dt, input.moveX || 0, input, { leap: true, floor: R.y, x0: 60, x1: R.w - 100 });
+  walk(st, dt, input.moveX || 0, input, { leap: true, floor: rampartFloor, x0: 60, x1: R.w - 100 });
   // the chariot keeps its lead, faster when he gains on it
   const gap = ch.x - p.x;
   ch.x += (gap < R.lead ? R.catchUp : R.speed) * dt;
@@ -150,10 +154,10 @@ function rampart(st, dt, input) {
   st.dropT += dt;
   if (st.dropT >= R.dropEvery && ch.x < R.end + 200) { st.dropT = 0; st.fires.push({ x: ch.x - 40, y: ch.y + 40, vy: 0, burn: 0, lit: false }); st.events.push({ type: 'fireDrop' }); }
   for (const f of st.fires) {
-    if (!f.lit) { f.vy += 1400 * dt; f.y += f.vy * dt; if (f.y >= R.y) { f.y = R.y; f.lit = true; st.events.push({ type: 'fireLand', x: f.x }); } }
+    if (!f.lit) { f.vy += 1400 * dt; f.y += f.vy * dt; if (f.y >= rampartFloor(f.x)) { f.y = rampartFloor(f.x); f.lit = true; st.events.push({ type: 'fireLand', x: f.x }); } }
     else f.burn += dt;
     // fire on the parapet knocks him back (nothing is lost)
-    if (f.lit && f.burn < R.burn && p.knockT <= 0 && Math.abs(p.x - f.x) < R.fireW && p.y > R.y - 40) {
+    if (f.lit && f.burn < R.burn && p.knockT <= 0 && Math.abs(p.x - f.x) < R.fireW && p.y > rampartFloor(p.x) - 40) {
       p.knockT = 0.45; p.vx = -R.knock * Math.sign(f.x - p.x || 1); p.vy = -280; p.on = false; st.knocks++;
       st.events.push({ type: 'scorched', x: p.x });
     }
@@ -176,7 +180,7 @@ function armoury(st, dt, input) {
 function enter(st, phase) {
   st.phase = phase; st.phaseT = 0; st.near = null;
   const p = st.p;
-  if (phase === 'rampart') { Object.assign(p, { x: 140, y: RAMPART.y, vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; }
+  if (phase === 'rampart') { Object.assign(p, { x: 140, y: rampartFloor(140), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; }
   if (phase === 'bind') { Object.assign(p, { x: 420, y: FLOOR, vx: 0, vy: 0, on: true, face: 1 }); st.fade = 1; }
   if (phase === 'curse') p.vx = 0;
   st.events.push({ type: 'scene', phase });

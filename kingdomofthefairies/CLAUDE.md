@@ -17,3 +17,9 @@
   never commit secrets. Retain the existing tuning and processing.
 - New artwork uses theatrical painted sets, front-on cut-outs and hand-tinted
   film texture. Treat generated references as interpretations, not film stills.
+- Audit every character-sprite delivery with `design/source/audit_sprites.py`
+  before calling it integrated: canvas size, feet on the canvas bottom, and
+  each walking cycle's head dip and body size. It writes
+  `design/sprite-audit.md` and the walking compensation in
+  `src/sprite-fit.js`; request redraws for whatever it lists. Look at the
+  frames in play as well, side by side and animated.
