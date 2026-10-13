@@ -938,7 +938,17 @@ export default function create(env) {
       g.restore();
     }
     if (art.sprite(TERRAIN, 1)) {
-      kit.drawGround(g, cam, { x: 0, y: SURF, w: WORLD, h: STRIP_H }, { sheet: TERRAIN, item: 1, height: STRIP_H, lift: STRIP_LIFT });
+      // Tiled by hand (not kit.drawGround) so each copy overlaps the next by a
+      // few px: the strip's ends are feathered and would show as seams.
+      const sp = art.sprite(TERRAIN, 1);
+      const k = STRIP_H / sp.h;
+      const tw = sp.w * k - 8;
+      const i0 = Math.floor(x0 / tw);
+      for (let i = i0; i * tw < x1; i++) {
+        const x = i * tw;
+        if (i % 2) art.drawSprite(g, sp, x + tw + 8, SURF - STRIP_LIFT, { scale: k, ax: 0, ay: 0, flip: true });
+        else art.drawSprite(g, sp, x, SURF - STRIP_LIFT, { scale: k, ax: 0, ay: 0 });
+      }
       // Fade the strip's cut bottom edge into the deep.
       const yb = SURF - STRIP_LIFT + STRIP_H;
       const gr = g.createLinearGradient(0, yb - 50, 0, yb + 30);

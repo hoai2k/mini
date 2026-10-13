@@ -154,7 +154,7 @@ export default function create(env) {
   const hasWindmill = () => !!art.sprite('adv.b05.props', 7);
   const hubX = (wm) => wm.x + (hasWindmill() ? 47 : 0);
   // Sea rocks: [x, height] (decor).
-  const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10230, 100]];
+  const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10080, 100]];
 
   // ---------- the sunbeams and the rain clouds ----------
   const beams = [
@@ -852,7 +852,12 @@ export default function create(env) {
             const ti = Math.floor(x / tw), tx0 = ti * tw;
             const e = Math.min(bx, tx0 + tw);
             const ox = (x - tx0) / k, ow = (e - x) / k;
-            g.drawImage(sp.img, ti % 2 ? sp.w - ox - ow : ox, 0, ow, sp.h, x, 0, e - x + 0.8, h);
+            if (ti % 2) {
+              // Every other tile mirrored, so the joins match.
+              g.save(); g.translate(x + e, 0); g.scale(-1, 1);
+              g.drawImage(sp.img, sp.w - ox - ow, 0, ow, sp.h, x - 0.4, 0, e - x + 0.8, h);
+              g.restore();
+            } else g.drawImage(sp.img, ox, 0, ow, sp.h, x - 0.4, 0, e - x + 0.8, h);
             x = e;
           }
           g.restore();
@@ -1149,7 +1154,7 @@ export default function create(env) {
         g.clip();
         if (scene) g.drawImage(scene, 0, 0, scene.width, scene.height * 0.26, x0 - 140 + k * 60, -260, x1 - x0 + 280, bottom + 320);
         else { g.fillStyle = '#8a7b90'; g.fillRect(x0 - 100, -300, x1 - x0 + 200, bottom + 300); }
-        g.fillStyle = k ? 'rgba(70,58,86,0.3)' : 'rgba(55,45,70,0.5)';
+        g.fillStyle = k ? 'rgba(70,58,86,0.22)' : 'rgba(55,45,70,0.4)';
         g.fillRect(x0 - 100, -300, x1 - x0 + 200, bottom + 300);
         // Curling strokes and hatching under each scallop, the book's cloud line.
         g.strokeStyle = 'rgba(43,29,20,0.55)';

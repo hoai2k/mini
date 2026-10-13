@@ -1559,8 +1559,11 @@ export function autopilot(board) {
   else if (pocket && depth < 3) { out.x = -0.7; if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2; }
   else out.x = slow ? 0.45 : 1;
   const err = b.y - target;
-  if (err > 20 && b.vy > -170) press();
-  else if (err < -130 && b.vy < 240 && !b.swoopT) out.y = 1;
+  // Something right ahead at this height: hold back until the height is right.
+  const wall = solids.some((s) => s.kind !== 'floor' && s.kind !== 'leaves' && s.x > b.x + 40 && s.x < b.x + 300 && b.y + 60 > s.y - 10 && b.y - 60 < s.y + s.h + 10);
+  if (wall && Math.abs(err) > 90 && !wait) out.x = 0;
+  if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
+  else if ((err < -130 || (err < -70 && wall)) && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.
   const clearAhead = pick && pick.iv[1] - pick.iv[0] > 200 && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 90 > s.y - 40 && b.y - 90 < s.y + s.h + 40);
   // A cross bird coming: outrun it (he is faster on hard wingbeats than it is).

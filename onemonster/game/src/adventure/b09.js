@@ -130,7 +130,7 @@ export default function create(env) {
   const cam = kit.makeCamera(WORLD_W, { lead: 300, anchor: 0.34 });
   const cps = kit.makeCheckpoints(CHECKPOINTS);
   const fx = kit.makeParticles();
-  const hints = kit.makeHints([
+  const hints = makeBandedHints([
     { x: 150, text: 'Action: swing the net, FLIP-FLOP!' },
     { x: 450, text: 'Up: an overhead swing · Down: a low scoop' },
     { x: 740, text: 'Hold Up to step high over a root' },
@@ -885,6 +885,42 @@ function feetAnchor(sp) {
   return m === null ? 0.5 : 0.5 + (m - 0.5) * 0.85;
 }
 
+// The kit's hints (one at a time as the player reaches them, plus say()), drawn
+// on a cream band so they read over the busy backdrop.
+function makeBandedHints(list, { show = 4 } = {}) {
+  const items = list.map((h) => ({ ...h, t: -1 }));
+  let cur = null;
+  return {
+    update(dt, px) {
+      for (const h of items) if (h.t < 0 && px >= h.x) { h.t = 0; cur = h; }
+      if (cur) cur.t += dt;
+      if (cur && cur.t > (cur.show ?? show)) cur = null;
+    },
+    say(text, secs = 2.5) { cur = { text, t: 0, show: secs }; },
+    draw(g) {
+      if (!cur) return;
+      const s = cur.show ?? show;
+      const a = Math.min(1, cur.t * 4, (s - cur.t) * 2);
+      if (a <= 0) return;
+      g.save();
+      g.globalAlpha = a;
+      g.font = '700 40px Fraunces, Georgia, serif';
+      g.textAlign = 'center';
+      const tw = g.measureText(cur.text).width;
+      const y = 210, h = 64, w = tw + 56;
+      g.fillStyle = 'rgba(251,246,232,0.94)';
+      g.strokeStyle = '#33241a';
+      g.lineWidth = 3;
+      g.beginPath();
+      g.roundRect ? g.roundRect(W / 2 - w / 2, y - 46, w, h, 18) : g.rect(W / 2 - w / 2, y - 46, w, h);
+      g.fill(); g.stroke();
+      g.fillStyle = '#33241a';
+      g.fillText(cur.text, W / 2, y);
+      g.restore();
+    },
+  };
+}
+
 // ---------- stand-ins in ink ----------
 
 const INK = '#2b1d14';
@@ -1002,10 +1038,15 @@ function inkSignpost(g, x, y, n, t) {
   g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#a88a5a';
   g.fillRect(x - 8, y - 190, 16, 190); g.strokeRect(x - 8, y - 190, 16, 190);
   g.save(); g.translate(x, y - 170); g.rotate(-0.08);
+  const word = ['', 'ROOTS', 'STREAMS', 'CLEARING', 'THE POST', 'MAILBOX'][n] || '→';
+  g.font = '800 28px Fraunces, Georgia, serif'; g.textAlign = 'center';
+  // The board is sized to its word: the arrow's tip is 24 px past the text.
+  const tw = g.measureText(word).width;
+  const x0 = -tw / 2 - 22, x1 = tw / 2 + 22;
   g.fillStyle = '#d9c28a';
-  g.beginPath(); g.moveTo(-70, -26); g.lineTo(50, -26); g.lineTo(74, 0); g.lineTo(50, 26); g.lineTo(-70, 26); g.closePath(); g.fill(); g.stroke();
-  g.font = '800 28px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#33241a';
-  g.fillText(['', 'ROOTS', 'STREAMS', 'CLEARING', 'THE POST', 'MAILBOX'][n] || '→', -8, 10);
+  g.beginPath(); g.moveTo(x0, -26); g.lineTo(x1, -26); g.lineTo(x1 + 24, 0); g.lineTo(x1, 26); g.lineTo(x0, 26); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#33241a';
+  g.fillText(word, 0, 10);
   g.restore();
   g.restore();
 }

@@ -1182,7 +1182,10 @@ function drawBranch(g, b, tt) {
   const x = b.cx, bottom = b.y + b.h, top = b.y;
   const sp = art.sprite('adv.b07.props', 5);
   if (sp) {
-    inkBole(g, b, tt);
+    // The tree it grows from: a tall palm (terrain.nowhere 8) standing behind
+    // the path at the bough's cut end, its crown up near the goo.
+    const gy = profileY(b.x - 40) ?? bottom;
+    kit.sprite(g, 'terrain.nowhere', 8, b.x - 70, gy + 12, { height: 760, flip: true }, () => inkBole(g, b, tt));
     art.drawSprite(g, sp, x + 10, (top + bottom) / 2 + 26, { height: 240, ax: 0.5, ay: 0.5, rot: -0.2 });
     return;
   }
@@ -1399,10 +1402,10 @@ function drawSignpost(g, x, gy, tt) {
     g.translate(x - sp.w * k / 2, gy + 4 - sp.h * k);
     g.scale(k, k);
     g.fillStyle = INK; g.textAlign = 'center';
-    g.font = '800 23px Fraunces, Georgia, serif';
-    g.save(); g.translate(92, 76); g.rotate(-0.3); g.fillText('TO NOWHERE', 0, 0); g.restore();
-    g.font = '800 20px Fraunces, Georgia, serif';
-    g.save(); g.translate(152, 138); g.rotate(0.17); g.fillText('and BACKAGAIN', 0, 0); g.restore();
+    g.font = '800 17px Fraunces, Georgia, serif';
+    g.save(); g.translate(84, 74); g.rotate(-0.3); g.fillText('TO NOWHERE', 0, 0); g.restore();
+    g.font = '800 15px Fraunces, Georgia, serif';
+    g.save(); g.translate(150, 136); g.rotate(0.17); g.fillText('and BACKAGAIN', 0, 0); g.restore();
     g.restore();
     return;
   }
