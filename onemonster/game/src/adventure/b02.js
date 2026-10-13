@@ -56,7 +56,7 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 200, h: 160 }, log:
 // through (the hole's top y); boughs hang from the canopy (bottom y);
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
-const TRUNKS = [[1900, 290], [3200, 300], [6350, 290], [8700, 300, true], [9700, 290, true], [10650, 300], [12500, 290, true]];
+const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700, 230, true], [10650, 240], [12500, 230, true]];
 const HOLE = 300; // the hollow's height
 const BOUGHS = [[2250, 400], [5800, 390], [9350, 400], [12900, 400]];
 const BRANCHES = [[200, 380, 420, 1], [1250, 420, 350, 1], [2900, 410, 380, -1],
@@ -66,13 +66,13 @@ const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]]
 const BIRDS = [[8950, 410], [10300, 430]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
-  [1400, 330], [1550, 330], [1900, 440], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 450], [3400, 450],
+  [1400, 330], [1550, 330], [1900, 380], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 390], [3400, 450],
   [3800, 850], [4300, 880], [4150, 300],
-  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 440], [6700, 300], [6950, 400],
+  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 380], [6700, 300], [6950, 400],
   [7500, 870], [8000, 880], [7900, 300],
-  [8700, 440], [8950, 320], [9350, 560], [9700, 440], [10200, 340], [10400, 480], [10650, 440],
+  [8700, 380], [8950, 320], [9350, 560], [9700, 380], [10200, 340], [10400, 480], [10650, 380],
   [11200, 870], [11700, 880], [11300, 300],
-  [12500, 440], [12900, 560],
+  [12500, 380], [12900, 560],
   [13400, 850], [13900, 870], [14300, 600], [13800, 300]];
 // Floor decor in the open: terrain.wood 3 fallen log, 4 stump with a face,
 // 5 mound of roots, and the delivered ferns and roots (props.grithix 4, 5).
@@ -530,9 +530,9 @@ export default function create(env) {
       tr.t += dt;
       tr.cool = Math.max(0, tr.cool - dt);
       if (tr.state === 'idle') {
-        if (tr.cool <= 0 && b.x > tr.cx - 560 && b.x < tr.cx + 120 && b.mode === 'fly') { tr.state = 'puff'; tr.t = 0; env.sfx('pant'); }
+        if (tr.cool <= 0 && b.x > tr.cx - 480 && b.x < tr.cx + 120 && b.mode === 'fly') { tr.state = 'puff'; tr.t = 0; env.sfx('pant'); }
       } else if (tr.state === 'puff') {
-        if (tr.t > 0.75) { tr.state = 'blow'; tr.t = 0; env.sfx('gust'); }
+        if (tr.t > 0.9) { tr.state = 'blow'; tr.t = 0; env.sfx('gust'); }
       } else if (tr.state === 'blow') {
         const zone = { x: tr.cx - 120, y: CEIL - 40, w: 760, h: tr.y + 120 - CEIL };
         if (flying && kit.overlaps(r, zone)) {
@@ -835,11 +835,11 @@ export default function create(env) {
     // The delivered tree foot (terrain.wood 6, roots and a face) at the base.
     kit.sprite(g, 'terrain.wood', 6, x, FLOOR + 6, { height: 330 });
     if (s.face) {
-      const fy = s.y + 130;
+      const fy = s.y + 90;
       if (s.state === 'idle') inkKnotFace(g, x, fy, s, tt);
       else {
         // The knot face swells into the blowing face (adv.b02.props 12).
-        const k = s.state === 'puff' ? 0.8 + 0.2 * Math.min(1, s.t / 0.75) : 1;
+        const k = s.state === 'puff' ? 0.8 + 0.2 * Math.min(1, s.t / 0.9) : 1;
         kit.sprite(g, 'adv.b02.props', 12, x, fy + 10, { height: 260 * k, ay: 0.55 }, () => inkKnotFace(g, x, fy, s, tt));
       }
     }
@@ -910,7 +910,7 @@ export default function create(env) {
       g.beginPath(); g.ellipse(x + ex, y - 30, 16, 20, 0, 0, Math.PI * 2); g.fill(); g.stroke();
       g.fillStyle = '#f2e7cf'; g.beginPath(); g.arc(x + ex + 3, y - 34, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5c3f28';
     }
-    const puff = s.state === 'puff' ? Math.min(1, s.t / 0.75) : s.state === 'blow' ? 1 - s.t / 1.1 : 0;
+    const puff = s.state === 'puff' ? Math.min(1, s.t / 0.9) : s.state === 'blow' ? 1 - s.t / 1.1 : 0;
     // Cheeks swell as it draws breath.
     if (puff > 0) {
       g.fillStyle = '#9a7555';
@@ -1549,10 +1549,13 @@ export function autopilot(board) {
   // Ahead of the Trollusk in the wood: hang about the next clearing's start instead of leaving him behind.
   const nextClearing = clearings.find((c) => !c.passed);
   const wait = nextClearing && b.x > nextClearing.x0 + 100 && h.x < nextClearing.x0;
-  // A knot-faced tree ahead: wait out its gust, short of its reach.
-  const knot = trees.find((tr) => tr.face && tr.cx > b.x - 300 && tr.cx < b.x + 760 && (tr.state !== 'idle' || tr.cool > 0.2) && b.x < tr.cx - 150);
+  // A knot-faced tree ahead: when it draws breath, dash through its hollow
+  // before the gust; when it blows, hang back out of reach; while it rests,
+  // go through.
+  const knot = trees.find((tr) => tr.face && tr.cx > b.x - 150 && tr.cx < b.x + 760);
+  const dash = knot && b.x < knot.cx + 150 && (knot.state === 'puff' || (knot.state === 'idle' && knot.cool > 0.2));
   if (wait) { out.x = holdX(nextClearing.x0 + 250); if (!pocket) target = 420; }
-  else if (knot && knot.state !== 'idle') { out.x = holdX(knot.cx - 520); if (!pocket) target = 330; }
+  else if (knot && knot.state === 'blow' && b.x < knot.cx - 100) { out.x = holdX(knot.cx - 620); if (!pocket) target = 330; }
   else if (pocket && depth < 3) { out.x = -0.7; if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2; }
   else out.x = slow ? 0.45 : 1;
   const err = b.y - target;
@@ -1561,6 +1564,7 @@ export function autopilot(board) {
   // Sprint along the clear stretches.
   const clearAhead = pick && pick.iv[1] - pick.iv[0] > 200 && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 90 > s.y - 40 && b.y - 90 < s.y + s.h + 40);
   const birdNear = birds.some((bd) => bd.state !== 'perched' && Math.abs(bd.x - b.x) < 500);
-  out.sprint = !wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90;
+  out.sprint = (!wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90) || (dash && b.st > 0.2 && Math.abs(err) < 70);
+  if (dash && Math.abs(err) < 70) out.x = 1;
   return out;
 }

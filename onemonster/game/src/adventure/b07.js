@@ -86,11 +86,11 @@ const COVER = [
   { x: 2120, kind: 'rock', rx: 85 },
 ];
 // The getaway's hazards.
-const ROCKS = [3380, 4350, 5250, 6050, 10800, 15100];
+const ROCKS = [3380, 4350, 5250, 6050, 11150, 15100];
 const BRANCHES = [7480, 13000]; // low branches: slide under
 const PALMS = [7900, 11600]; // fallen palm trunks: slide under
-const PUDDLES = [4080, 9570, 11100, 13330]; // goo puddles: hop or wade slowly
-const SIGNS = [2900, 6300, 9100, 10600, 14450]; // crooked signposts (sections)
+const PUDDLES = [4080, 10600, 13330]; // goo puddles: hop or wade slowly
+const SIGNS = [2900, 6300, 9100, 10950, 14450]; // crooked signposts (sections)
 
 // Mid-layer decor from the delivered art, behind the play layer: flowerbeds and
 // small rocks on the sneak (nothing that looks like cover), ferns, bushes and
@@ -162,8 +162,8 @@ export default function create(env) {
   for (const x of [400, 700, 820, 1120, 1240, 1520, 1600, 1900, 2000, 2280]) addStamp(x);
   addStamp(960, GY - 170); addStamp(2120, GY - 170); // on the cover rocks
   // The getaway: along the path, over holes, on rock tops, under branches, on stones.
-  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 6250, 6700, 7000, 7480, 7900, 8300, 8700, 9350, 9900, 10320, 10600, 11100, 11600, 12300, 13000, 13330, 14000, 14700, 15000]) addStamp(x);
-  for (const x of [3380, 4350, 6050, 10800, 15100]) addStamp(x, profileY(x) - 160); // on the rock tops
+  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 6250, 6700, 7000, 7480, 7900, 8300, 8700, 9350, 9900, 10320, 10600, 10800, 11600, 12300, 13000, 13330, 14000, 14700, 15000]) addStamp(x);
+  for (const x of [3380, 4350, 6050, 11150, 15100]) addStamp(x, profileY(x) - 160); // on the rock tops
   addStamp(3820, GY - 110); addStamp(7700, 840 - 120); // higher: a hop for them
   const pickups = kit.makePickups(stampList, { radius: 72 });
   pickups.items.forEach((p, i) => { p.kind = 1 + (i % 4); p.fly = null; p.eaten = false; });
@@ -1189,6 +1189,8 @@ function drawBranch(g, b, tt) {
   kit.sprite(g, 'adv.b07.props', 5, x, bottom, { height: 150 }, () => {
     inkBole(g, b, tt);
     g.save();
+    const tx0 = b.x - 100, tw = 76;
+    g.lineJoin = 'round';
     // The bough: thick at the bole, knobbly, tapering to a forked tip.
     g.lineWidth = 4.5; g.fillStyle = '#a3804e'; g.strokeStyle = INK;
     g.beginPath();

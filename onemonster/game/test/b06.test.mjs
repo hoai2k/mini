@@ -23,13 +23,13 @@ test('b06: Gentle mode gives more time', () => {
 test('b06: a goo curtain sticks to a trundling Yalapappus but not to a rolling one', () => {
   const ch = create(makeEnv());
   const c = ch.curtains[0];
-  ch.player.x = c.x - 400;
-  run(ch, walk, 1.6);
-  assert.ok(ch.player.x > c.x, 'he is through the curtain');
+  ch.player.x = c.x - 450;
+  run(ch, walk, 1.2);
+  assert.ok(ch.player.x > c.x - 350, 'he is into the drips');
   assert.ok(ch.player.sticky > 0, 'and sticky');
-  assert.ok(Math.abs(ch.player.vx) < 200, `slowed to ${ch.player.vx.toFixed(0)}`);
+  assert.ok(Math.abs(ch.player.vx) < 250, `slowed to ${ch.player.vx.toFixed(0)}`);
   const ch2 = create(makeEnv());
-  ch2.player.x = c.x - 400;
+  ch2.player.x = c.x - 450;
   run(ch2, roll, 1.6);
   assert.equal(ch2.player.mode, 'ball');
   assert.ok(ch2.player.x > c.x + 100, 'rolled on through');

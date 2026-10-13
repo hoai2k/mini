@@ -32,7 +32,7 @@ export const TUNE = {
     furyTime: 1.4, furyTimeGentle: 1.05, minFury: 0.2,
     chargeMin: 330, chargeAdd: 420, chargeDur: 0.42, chargeDurAdd: 0.36,
     windup: 0.22, recover: 1.0, recoverAdd: 0.6, dazed: 1.6,
-    levelRate: 1.6, riseOff: -90, sinkOff: 100, ice: 400, minSize: 0.62,
+    levelRate: 1.6, riseOff: -90, sinkOff: 350, ice: 400, minSize: 0.62,
     melt: 0.065, meltGentle: 0.045, refreeze: 0.02,
   },
   // The captain opens the throttle when the eye opens (scare, fading over
@@ -62,16 +62,16 @@ const THINGS = [
   { kind: 'floe', x: 7900, lions: 2 }, { kind: 'crate', x: 8150 }, { kind: 'floe', x: 8600, lions: 1 }, { kind: 'buoy', x: 8800 },
   { kind: 'barrel', x: 9050 }, { kind: 'floe', x: 9250, lions: 2 },
   // 4. the pier and the bridge
-  { kind: 'floe', x: 9650, lions: 1 }, { kind: 'pier', x: 9850, w: 900 }, { kind: 'crate', x: 10250 }, { kind: 'floe', x: 11000, lions: 2 },
-  { kind: 'barrel', x: 11150 }, { kind: 'bridge', x: 11450, w: 300 }, { kind: 'floe', x: 12000, lions: 1 },
+  { kind: 'floe', x: 9650, lions: 1 }, { kind: 'pier', x: 8942, w: 1816 }, { kind: 'crate', x: 10250 }, { kind: 'barrel', x: 10880 },
+  { kind: 'bridge', x: 11050, w: 1300 }, { kind: 'floe', x: 12520, lions: 1 },
   // 5. the harbour
-  { kind: 'floe', x: 12600, lions: 2 }, { kind: 'buoy', x: 12850 }, { kind: 'floe', x: 13250, lions: 1 }, { kind: 'buoy', x: 13700 },
+  { kind: 'floe', x: 12850, lions: 2 }, { kind: 'buoy', x: 13050 }, { kind: 'floe', x: 13250, lions: 1 }, { kind: 'buoy', x: 13700 },
   { kind: 'floe', x: 13950, lions: 2 },
 ];
 // Sea lions swimming in the open water (they hop aboard too).
-const SWIMMERS = [2300, 4600, 5500, 7450, 8300, 11600, 13050, 14150];
+const SWIMMERS = [2300, 4600, 5500, 7450, 8300, 11700, 12700, 13150, 14150];
 // Tugboats: where each starts, steaming left for the Ice-Ferg.
-const TUGS = [10900, 12100, 13500];
+const TUGS = [10900, 12700, 13500];
 // Surface currents: warm ones flow right and melt the ice; the cold one flows left.
 const ZONES = [
   { x0: 6700, x1: 7600, dir: 1, speed: 150, warm: true },
@@ -79,8 +79,8 @@ const ZONES = [
   { x0: 8700, x1: 9400, dir: 1, speed: 150, warm: true },
 ];
 const NEED = { floe: 0.15, crate: 0.2, barrel: 0.2, buoy: 0.3, tug: 0.5 };
-const HALF = { floe: 130, crate: 48, barrel: 42, buoy: 44, tug: 120, reef: 90 };
-const OVERHEAD = { pier: 330, bridge: 320 }; // clearance above the waterline
+const HALF = { floe: 200, crate: 60, barrel: 50, buoy: 50, tug: 120, reef: 90 };
+const OVERHEAD = { pier: 85, bridge: 90 }; // clearance above the waterline (the delivered pier and bridge are low: sink right down)
 
 // How far a charge of this fury carries (the stand-in arrow shows it).
 export function chargeReach(fury) {
@@ -95,9 +95,15 @@ const levelOff = (level) => (level >= 0 ? level * TUNE.ferg.riseOff : -level * T
 // The sea strip at the bottom of each pose, as a fraction of its height.
 const SEA_FRAC = { drift: 0.17, huff: 0.17, charge: 0.3, crash: 0.2, dazed: 0.18, eye: 0.17, celebrate: 0.2 };
 const POSE_OF = { side: 'drift', sunk: 'drift', risen: 'drift', chargeSide: 'charge', cracked: 'crash', melted: 'dazed' };
+// The berg without its painted sea lions (iceferg.bare): which item each
+// animation uses, and the sea strip at the bottom of that item.
+const BARE = { huff: [2, 0.24], chargeSide: [3, 0.3], side: [4, 0.22], sunk: [4, 0.22], risen: [4, 0.22], melted: [4, 0.22] };
+const BARE_FRAC = { 1: 0.21, 2: 0.24, 3: 0.3, 4: 0.22 };
+// The sea lions alone (iceferg.sealions): item and height as a fraction of the ice.
+const LION = { doze: [1, 0.14], up: [2, 0.26], cling: [3, 0.17], slide: [4, 0.22], clap: [5, 0.26], fall: [6, 0.22] };
 
 // Where the extra sea lions sit, as fractions of the ice's width and height.
-const LEDGES = [[-0.08, -0.96], [-0.3, -0.84], [0.16, -0.8], [0.42, -0.56], [-0.56, -0.46], [0.5, -0.3], [0.1, -0.44], [-0.46, -0.16]];
+const LEDGES = [[-0.34, -0.55], [-0.1, -0.58], [-0.42, -0.2], [0.42, -0.22], [0.06, -0.95], [0.3, -0.6], [-0.2, -0.8], [0.5, -0.42]];
 
 export default function create(env) {
   const F = TUNE.ferg, P = TUNE.peg;
@@ -134,7 +140,7 @@ export default function create(env) {
   const lionList = [];
   for (const t of things) {
     if (t.kind !== 'floe') continue;
-    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 56 : -56) * (t.lions > 1 ? 1 : 0), y: WL - 54, floe: t, k });
+    for (let k = 0; k < t.lions; k++) lionList.push({ x: t.x + (k ? 70 : -70) * (t.lions > 1 ? 1 : 0), y: WL - 40, floe: t, k });
   }
   for (const x of SWIMMERS) lionList.push({ x, y: WL - 4, swim: true });
   const lions = kit.makePickups(lionList, { radius: 0 });
@@ -166,14 +172,16 @@ export default function create(env) {
   function splash(x, n = 10, speed = 320) {
     parts.burst(x, WL + 6, { n, colour: '#f4fbfb', speed, up: 0.85, size: 11, life: 0.6, gravity: 900 });
   }
+  const fx = []; // mist puffs and shard bursts drawn from the props sheet: { kind, x, y, vx, vy, t, life, size, flip }
   function shards(x, y, n = 16) {
-    parts.burst(x, y, { n, colour: '#dfe6f7', speed: 420, up: 0.7, size: 10, life: 0.8, gravity: 1100 });
-    parts.burst(x, y, { n: Math.round(n / 2), colour: '#b8c6e4', speed: 300, up: 0.7, size: 7, life: 0.7, gravity: 1000 });
+    parts.burst(x, y, { n: Math.round(n / 2), colour: '#dfe6f7', speed: 420, up: 0.7, size: 9, life: 0.8, gravity: 1100 });
+    fx.push({ kind: 'burst', x, y: Math.min(y + 60, WL + 10), vx: 0, vy: 0, t: 0, life: 0.55, size: 150 + n * 6, flip: Math.random() < 0.5 });
   }
   function splinters(x, kind) {
     const colour = kind === 'floe' ? '#e4ecf8' : kind === 'buoy' ? '#d9583f' : '#9c6f3e';
     parts.burst(x, WL - 30, { n: 14, colour, speed: 420, up: 0.75, size: 10, life: 0.9, gravity: 1100 });
     splash(x, 12, 380);
+    fx.push({ kind: 'burst', x, y: WL + 10, vx: 0, vy: 0, t: 0, life: 0.5, size: kind === 'floe' ? 220 : 160, flip: Math.random() < 0.5 });
   }
 
   function lionAboard(from) {
@@ -299,7 +307,7 @@ export default function create(env) {
       }
       if (Math.random() < dt * 26) {
         const side = Math.random() < 0.5 ? -1 : 1;
-        parts.ps.push({ x: ferg.x + side * drawnW() * (0.2 + Math.random() * 0.35), y: iceTop() + 40 + Math.random() * 200, vx: side * (40 + Math.random() * 60), vy: -30 - Math.random() * 40, t: 0, life: 1.1, gravity: -40, mist: true, size: 16 + Math.random() * 22, colour: '#eef6ff', ink: false });
+        fx.push({ kind: 'mist', x: ferg.x + side * drawnW() * (0.25 + Math.random() * 0.35), y: iceTop() + 60 + Math.random() * 220, vx: side * (50 + Math.random() * 60), vy: -30 - Math.random() * 40, t: 0, life: 1.2, size: 70 + Math.random() * 60, flip: side < 0 });
       }
       if (!inp.action) {
         if (ferg.fury < F.minFury) { setMode('drift'); ferg.fury = 0; env.sfx('steam'); }
@@ -460,7 +468,7 @@ export default function create(env) {
     for (const l of lions.items) {
       if (l.got) { l.t += dt; continue; }
       if (l.floe) {
-        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 56 : -56) : 0);
+        if (l.floe.alive) l.x = l.floe.x + (l.floe.lions > 1 ? (l.k ? 70 : -70) : 0);
         else { l.y = WL - 4; l.floe = null; l.swim = true; } // its floe smashed from under it
       }
       if (!sunk() && Math.abs(l.x - ferg.x) < hw + (l.floe ? 170 : 70)) { l.got = true; l.t = 0; lionAboard(l); } // from a floe pushed along at the bow, too
@@ -498,7 +506,7 @@ export default function create(env) {
         peg.steamT = 0.8;
         env.sfx('steam');
         if (rng() < 0.5) env.sfx('horn');
-        for (let i = 0; i < 7; i++) parts.ps.push({ x: peg.x - 34, y: WL - 225, vx: -60 - Math.random() * 80, vy: -70 - Math.random() * 60, t: 0, life: 1.3, gravity: -30, mist: true, size: 18 + Math.random() * 16, colour: '#f3eee8', ink: false });
+        for (let i = 0; i < 7; i++) parts.ps.push({ x: peg.x - 60, y: WL - 250, vx: -60 - Math.random() * 80, vy: -70 - Math.random() * 60, t: 0, life: 1.3, gravity: -30, mist: true, size: 18 + Math.random() * 16, colour: '#f3eee8', ink: false });
       }
     }
     // Ahead of the Peg and not sunk: it goes astern, wary, unless it can slip over a sunk berg.
@@ -514,7 +522,7 @@ export default function create(env) {
     peg.vx = peg.sp + peg.nv;
     peg.x += peg.vx * dt;
     peg.x = clamp(peg.x, 300, HARBOUR_X + 420);
-    if (peg.steamT > 0 || Math.random() < dt * 2.5) parts.ps.push({ x: peg.x - 32, y: WL - 228, vx: -40 - Math.random() * 30, vy: -50 - Math.random() * 30, t: 0, life: 1.1, gravity: -20, mist: true, size: 12 + Math.random() * 10, colour: '#f3eee8', ink: false });
+    if (peg.steamT > 0 || Math.random() < dt * 2.5) parts.ps.push({ x: peg.x - 60, y: WL - 252, vx: -40 - Math.random() * 30, vy: -50 - Math.random() * 30, t: 0, life: 1.1, gravity: -20, mist: true, size: 12 + Math.random() * 10, colour: '#f3eee8', ink: false });
     // Ice meets boat.
     const hw = hullHW();
     if (Math.abs(peg.x - ferg.x) < hw + 110 && !sunk()) {
@@ -554,6 +562,11 @@ export default function create(env) {
     update(dt, inS) {
       t += dt;
       parts.update(dt);
+      for (let i = fx.length - 1; i >= 0; i--) {
+        const f = fx[i];
+        f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt;
+        if (f.t >= f.life) fx.splice(i, 1);
+      }
       if (self.done) { outro(dt); animFerg(dt); cam.follow(ferg.x, 0, dt); return; }
       self.time = Math.max(0, self.time - dt);
       stepFerg(dt, inS || {});
@@ -587,7 +600,7 @@ export default function create(env) {
       cam.begin(g);
       drawFar(g, tt);
       drawSeaBody(g, tt);
-      drawWaves(g, tt, true);
+      if (!art.sprite('terrain.sea', 1)) drawWaves(g, tt, true);
       for (const th of things) if (th.kind === 'reef' && cam.sees(th.x - 200, th.x + 200)) drawReef(g, th, tt);
       for (const th of things) if (th.alive && th.kind !== 'reef' && th.kind !== 'pier' && th.kind !== 'bridge' && cam.sees(th.x - 200, th.x + 200)) drawThing(g, th, tt);
       drawLionsAtSea(g, tt);
@@ -602,6 +615,7 @@ export default function create(env) {
       for (const th of things) if ((th.kind === 'pier' || th.kind === 'bridge') && cam.sees(th.x - th.hw - 100, th.x + th.hw + 100)) drawOverhead(g, th, tt);
       drawHarbourWall(g, tt);
       parts.draw(g);
+      drawFx(g);
       drawLionParts(g);
       if (bottle) kit.sprite(g, 'props.typhoonigator', 1, bottle.x, bottle.y, { height: 70, ay: 0.7, rot: bottle.rot }, (gg, x, y) => { gg.fillStyle = '#5f8a4a'; gg.strokeStyle = '#2b1d14'; gg.lineWidth = 3; gg.beginPath(); gg.ellipse(x, y, 14, 30, bottle.rot, 0, Math.PI * 2); gg.fill(); gg.stroke(); });
       if (!self.done) { drawMeter(g); drawPrompts(g, tt); }
@@ -664,7 +678,7 @@ export default function create(env) {
       peg.sp = ease(peg.sp, 60, 2, dt);
       peg.x += peg.sp * dt;
       peg.rock += dt;
-      if (Math.random() < dt * 3) parts.ps.push({ x: peg.x - 32, y: WL - 228, vx: -40, vy: -60, t: 0, life: 1.2, gravity: -20, mist: true, size: 14, colour: '#f3eee8', ink: false });
+      if (Math.random() < dt * 3) parts.ps.push({ x: peg.x - 60, y: WL - 252, vx: -40, vy: -60, t: 0, life: 1.2, gravity: -20, mist: true, size: 14, colour: '#f3eee8', ink: false });
       setMode('dazed', 99);
       ferg.x += ferg.vx * dt;
       ferg.vx *= Math.exp(-2 * dt);
@@ -736,7 +750,7 @@ export default function create(env) {
     for (const s of seagulls) {
       const x = s.x + Math.sin(tt * 0.3 + s.seed) * 60, y = s.y + Math.sin(tt * 0.7 + s.seed * 2) * 14;
       if (!cam.sees(x)) continue;
-      kit.sprite(g, 'adv.b04.props', 9, x, y, { height: 40 }, (gg, xx, yy) => {
+      kit.sprite(g, 'adv.b04.props', 9, x, y, { height: 64, flip: Math.cos(tt * 0.3 + s.seed) < 0 }, (gg, xx, yy) => {
         const f = Math.sin(tt * 6 + s.seed) * 8;
         gg.beginPath(); gg.moveTo(xx - 22, yy + f); gg.quadraticCurveTo(xx - 10, yy - 8, xx, yy); gg.quadraticCurveTo(xx + 10, yy - 8, xx + 22, yy + f); gg.stroke();
       });
@@ -895,14 +909,14 @@ export default function create(env) {
         g.fillStyle = 'rgba(232,150,110,0.22)';
         g.fillRect(z.x0, WL - 6, z.x1 - z.x0, 150);
       }
-      const n = Math.floor((z.x1 - z.x0) / 110);
+      const n = Math.floor((z.x1 - z.x0) / (art.sprite('adv.b04.props', 11) ? 230 : 110));
       for (let i = 0; i < n; i++) {
         const ph = ((tt * z.speed * 0.9) / (z.x1 - z.x0) * z.dir + i / n + i * 0.037) % 1;
         const p = ph < 0 ? ph + 1 : ph;
         const x = z.x0 + (z.x1 - z.x0) * p;
         const y = WL + 20 + ((i * 37) % 5) * 16;
         const a = Math.sin(p * Math.PI);
-        kit.sprite(g, 'adv.b04.props', 11, x, y, { height: 30, ay: 0.5, alpha: a, flip: z.dir < 0 }, (gg, xx, yy) => {
+        kit.sprite(g, 'adv.b04.props', 11, x, y + 20, { height: 80, ay: 0.5, alpha: a * (z.warm ? 0.9 : 0.5), flip: z.dir < 0 }, (gg, xx, yy) => {
           gg.globalAlpha = a * (z.warm ? 0.8 : 0.6);
           gg.strokeStyle = z.warm ? '#e07a52' : '#f4fbfb';
           gg.lineWidth = z.warm ? 5 : 4;
@@ -932,21 +946,12 @@ export default function create(env) {
 
   function drawReef(g, th, tt) {
     const bob = 0;
-    kit.sprite(g, 'terrain.sea', 2, th.x, WL + 64 + bob, { height: 200 }, (gg, x, y) => {
+    kit.sprite(g, 'terrain.sea', 2, th.x, WL + 37 + bob, { height: 200 }, (gg, x, y) => {
       // The delivered jagged brown rock stands in until the sea rock arrives.
       if (art.drawSprite(gg, art.prop('yalapappus', 2), x, y, { height: 200 })) return;
       gg.fillStyle = '#6e6258'; gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.beginPath(); gg.moveTo(x - 90, y); gg.lineTo(x - 60, y - 80); gg.lineTo(x - 20, y - 50); gg.lineTo(x + 10, y - 115); gg.lineTo(x + 45, y - 60); gg.lineTo(x + 90, y); gg.closePath(); gg.fill(); gg.stroke();
     });
-    // Foam breaking round it.
-    g.save();
-    g.fillStyle = '#f4fbfb';
-    g.globalAlpha = 0.8;
-    for (let i = 0; i < 5; i++) {
-      const x = th.x - 90 + i * 45 + Math.sin(tt * 3 + i) * 6;
-      g.beginPath(); g.ellipse(x, WL + 2, 18, 6, 0, 0, Math.PI * 2); g.fill();
-    }
-    g.restore();
   }
 
   function drawThing(g, th, tt) {
@@ -954,6 +959,18 @@ export default function create(env) {
     const bob = Math.sin(tt * 2.2 + th.seed) * 4;
     const y = WL + bob;
     if (th.kind === 'floe') {
+      // The delivered floe is a long shelf: its two ends make a short one.
+      const fl = art.sprite('terrain.sea', 5);
+      if (fl) {
+        const k = 0.8, end = 290;
+        g.save();
+        g.translate(th.x, y + 60);
+        g.rotate(rock);
+        g.drawImage(fl.img, 0, 0, end, fl.h, -end * k, -fl.h * k, end * k + 1, fl.h * k);
+        g.drawImage(fl.img, fl.w - end, 0, end, fl.h, 0, -fl.h * k, end * k, fl.h * k);
+        g.restore();
+        return;
+      }
       kit.sprite(g, 'terrain.sea', 5, th.x, y + 34, { height: 104, rot: rock }, (gg, x, yy) => {
         gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#e8edf8'; gg.strokeStyle = INK; gg.lineWidth = 4;
@@ -965,8 +982,8 @@ export default function create(env) {
         gg.restore();
       });
     } else if (th.kind === 'crate') {
-      kit.sprite(g, 'adv.b04.props', 4, th.x, y + 26, { height: 110, rot: rock }, (gg, x, yy) => {
-        gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
+      kit.sprite(g, 'adv.b04.props', 4, th.x, y + 46, { height: 112, rot: rock }, (gg, x, yy) => {
+        gg.save(); gg.translate(x, yy - 20); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#b98a52'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.fillRect(-46, -92, 92, 92); gg.strokeRect(-46, -92, 92, 92);
         gg.beginPath(); gg.moveTo(-46, -92); gg.lineTo(46, 0); gg.moveTo(46, -92); gg.lineTo(-46, 0); gg.stroke();
@@ -976,8 +993,8 @@ export default function create(env) {
         gg.restore();
       });
     } else if (th.kind === 'barrel') {
-      kit.sprite(g, 'adv.b04.props', 6, th.x, y + 28, { height: 112, rot: rock }, (gg, x, yy) => {
-        gg.save(); gg.translate(x, yy); gg.rotate(rock); gg.scale(1.15, 1.15);
+      kit.sprite(g, 'adv.b04.props', 6, th.x, y + 42, { height: 104, rot: rock }, (gg, x, yy) => {
+        gg.save(); gg.translate(x, yy - 14); gg.rotate(rock); gg.scale(1.15, 1.15);
         gg.fillStyle = '#8f5f36'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath(); gg.moveTo(-36, -96); gg.quadraticCurveTo(-50, -48, -36, 0); gg.lineTo(36, 0); gg.quadraticCurveTo(50, -48, 36, -96); gg.closePath(); gg.fill(); gg.stroke();
         gg.strokeStyle = '#4a3a2a'; gg.lineWidth = 6; gg.beginPath(); gg.moveTo(-42, -72); gg.lineTo(42, -72); gg.moveTo(-44, -26); gg.lineTo(44, -26); gg.stroke();
@@ -986,7 +1003,7 @@ export default function create(env) {
         gg.restore();
       });
     } else if (th.kind === 'buoy') {
-      kit.sprite(g, 'adv.b04.props', 5, th.x, y + 20, { height: 120, rot: rock }, (gg, x, yy) => {
+      kit.sprite(g, 'adv.b04.props', 5, th.x, y + 22, { height: 134, rot: rock }, (gg, x, yy) => {
         // The delivered round buoy stands in until the side-on one arrives.
         if (art.drawSprite(gg, art.prop('typhoonigator', 6), x, yy + 12, { height: 136, rot: rock })) return;
         gg.save(); gg.translate(x, yy); gg.rotate(rock);
@@ -1003,8 +1020,8 @@ export default function create(env) {
     const rock = Math.sin(tt * 2 + tg.i) * 0.05 + (tg.pushing ? Math.sin(tt * 14) * 0.03 : 0);
     const y = WL + (tg.spin ? tg.y : Math.sin(tt * 2.4 + tg.i) * 4);
     const rot = tg.spin ? tg.spin : rock;
-    kit.sprite(g, 'adv.b04.props', 7, tg.x, y + 34, { height: 175, rot, flip: false }, (gg, x, yy) => {
-      gg.save(); gg.translate(x, yy); gg.rotate(rot); gg.scale(1.15, 1.15);
+    kit.sprite(g, 'adv.b04.props', 7, tg.x, y + 38, { height: 196, rot, flip: false }, (gg, x, yy) => {
+      gg.save(); gg.translate(x, yy - 4); gg.rotate(rot); gg.scale(1.15, 1.15);
       // The hull: stout, teal, bow to the left (it steams left).
       gg.fillStyle = '#3f7f84'; gg.strokeStyle = INK; gg.lineWidth = 4;
       gg.beginPath(); gg.moveTo(-120, -60); gg.lineTo(110, -60); gg.quadraticCurveTo(128, -30, 100, 0); gg.lineTo(-90, 0); gg.quadraticCurveTo(-130, -20, -120, -60); gg.closePath(); gg.fill(); gg.stroke();
@@ -1019,7 +1036,7 @@ export default function create(env) {
       gg.strokeStyle = INK; gg.lineWidth = 2; gg.beginPath(); gg.moveTo(-118, -40); gg.lineTo(112, -40); gg.moveTo(-110, -20); gg.lineTo(106, -20); gg.stroke();
       gg.restore();
     });
-    if (tg.alive && Math.random() < 0.4) parts.ps.push({ x: tg.x + 63, y: y - 150, vx: 30, vy: -60, t: 0, life: 0.8, gravity: -20, mist: true, size: 9, colour: '#555', ink: false });
+    if (tg.alive && !art.sprite('adv.b04.props', 7) && Math.random() < 0.4) parts.ps.push({ x: tg.x + 63, y: y - 150, vx: 30, vy: -60, t: 0, life: 0.8, gravity: -20, mist: true, size: 9, colour: '#555', ink: false });
     // Its wash, pushing.
     if (tg.pushing) {
       g.save(); g.fillStyle = '#f4fbfb'; g.globalAlpha = 0.8;
@@ -1034,8 +1051,8 @@ export default function create(env) {
     const rot = peg.rot + rock;
     const y = WL + Math.sin(tt * 2.6) * 3 + peg.sink * 150;
     const alpha = 1 - peg.sink * 0.3;
-    kit.sprite(g, 'adv.b04.props', 8, peg.x, y + 46, { height: 290, rot, alpha }, (gg, x, yy) => {
-      gg.save(); gg.translate(x, yy); gg.rotate(rot); gg.globalAlpha = alpha; gg.scale(1.15, 1.15);
+    kit.sprite(g, 'adv.b04.props', 8, peg.x, y + 58, { height: 310, rot, alpha }, (gg, x, yy) => {
+      gg.save(); gg.translate(x, yy - 12); gg.rotate(rot); gg.globalAlpha = alpha; gg.scale(1.15, 1.15);
       gg.strokeStyle = INK; gg.lineWidth = 4;
       // The hull, pale teal with a pink rail, bow to the right.
       gg.fillStyle = '#6fa3a4';
@@ -1086,21 +1103,24 @@ export default function create(env) {
     const size = ferg.size;
     const off = levelOff(ferg.level);
     const pose = POSE_OF[fc.anim] || fc.anim;
-    const frac = SEA_FRAC[pose] ?? 0.17;
-    const sp = art.sprite('iceferg.poses', fc.M.poses[pose]);
+    const bareItem = (BARE[fc.anim] || [1])[0];
+    let sp = art.sprite('iceferg.bare', bareItem);
+    let frac = BARE_FRAC[bareItem];
+    if (!sp) { sp = art.sprite('iceferg.poses', fc.M.poses[pose]); frac = SEA_FRAC[pose] ?? 0.17; }
     const iceH = F.ice * fc.sizeK; // sizeK carries the melt and the huff swell
     // The keel under the water, drawn before the wash dims it: the ice's own
     // pose mirrored down into the water, squashed, pale and hatched.
     const hw = hullHW();
-    const keelSp = art.sprite('iceferg.poses', fc.M.poses.drift);
+    const keelSp = art.sprite('iceferg.bare', 4) || art.sprite('iceferg.poses', fc.M.poses.drift);
+    const keelFrac = art.sprite('iceferg.bare', 4) ? BARE_FRAC[4] : SEA_FRAC.drift;
     g.save();
     g.beginPath();
     g.rect(ferg.x - hw * 1.2, WL + off + 6, hw * 2.4, 420);
     g.clip();
     if (keelSp) {
-      const kk = iceH / (keelSp.h * (1 - SEA_FRAC.drift));
+      const kk = iceH / (keelSp.h * (1 - keelFrac));
       g.globalAlpha = 0.72;
-      art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
+      art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - keelFrac * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
       g.globalAlpha = 1;
     } else {
       g.fillStyle = '#c9d2ee';
@@ -1140,36 +1160,48 @@ export default function create(env) {
 
   // The keel seen through the water: the mirrored ice again, faint, over the wash.
   function drawKeelGlimpse(g) {
-    const keelSp = art.sprite('iceferg.poses', fc.M.poses.drift);
+    const keelSp = art.sprite('iceferg.bare', 4) || art.sprite('iceferg.poses', fc.M.poses.drift);
     if (!keelSp) return;
+    const keelFrac = art.sprite('iceferg.bare', 4) ? BARE_FRAC[4] : SEA_FRAC.drift;
     const off = levelOff(ferg.level), iceH = F.ice * fc.sizeK, hw = hullHW();
-    const kk = iceH / (keelSp.h * (1 - SEA_FRAC.drift));
+    const kk = iceH / (keelSp.h * (1 - keelFrac));
     g.save();
     g.beginPath(); g.rect(ferg.x - hw * 1.2, WL + 10, hw * 2.4, 420); g.clip();
     g.globalAlpha = 0.38;
-    art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - SEA_FRAC.drift * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
+    art.drawSprite(g, keelSp, ferg.x, WL + off + 6 - keelFrac * keelSp.h * kk * 0.72, { scale: kk, ay: 0, flip: fc.facing < 0, sy: -0.72, sx: 0.94 });
     g.restore();
   }
 
-  // The sea lions aboard, on the ledges.
+  // The sea lions aboard, on the ledges, reacting to what the ice does.
   function drawRiders(g, tt, off, iceH) {
     const w = drawnW();
-    const n = Math.min(riders.length, LEDGES.length); // the ledges hold this many; the rest are round the back
+    const n = Math.min(riders.length, LEDGES.length); // the ledges hold eight; the rest are round the back (the HUD counts them)
+    const celebrating = self.done && self.outcome === 'snatched' && outT > 0.9;
     for (let i = 0; i < n; i++) {
       const r = riders[i];
       const [lx, ly] = LEDGES[i];
       let x = ferg.x + lx * w * 0.5 * fc.facing, y = WL + off + ly * iceH;
-      let item = r.state === 'doze' ? 1 : 2;
-      let scale = 1, rot = 0;
+      let pose = r.state === 'doze' ? 'doze' : r.state === 'cling' ? 'cling' : 'up';
+      if (celebrating) pose = 'clap';
+      let rot = 0;
       if (r.state === 'hop') { // an arc from where it was onto its ledge
         const p = clamp(r.t / 0.5, 0, 1);
-        x = r.fx + (x - r.fx) * p; y = r.fy + (y - r.fy) * p - Math.sin(p * Math.PI) * 140;
-        rot = (x > r.fx ? 1 : -1) * Math.sin(p * Math.PI) * 0.6; item = 2;
-      } else if (r.state === 'cling') { scale = 0.9; rot = fc.facing * 0.15; item = 2; }
-      else if (r.state === 'up') { y -= Math.abs(Math.sin(tt * 9 + i)) * 6; }
+        x = r.fx + (x - r.fx) * p; y = r.fy + (y - r.fy) * p - Math.sin(p * Math.PI) * 160;
+        rot = (x > r.fx ? 1 : -1) * Math.sin(p * Math.PI) * 0.6; pose = 'up';
+      } else if (r.state === 'cling') rot = fc.facing * 0.1;
+      else if (r.state === 'up') y -= Math.abs(Math.sin(tt * 9 + i)) * 6;
       const bob = r.state === 'doze' ? Math.sin(tt * 1.5 + i) * 2 : 0;
-      drawLion(g, item, x, y + bob, 62 * scale * ferg.size, rot, fc.facing, tt + i);
+      drawRider(g, pose, x, y + bob, iceH, rot, i % 2 ? -fc.facing : fc.facing, tt + i);
     }
+  }
+
+  // One sea lion from the iceferg.sealions sheet, h relative to the ice; the
+  // ink sea lion stands in until the sheet arrives.
+  function drawRider(g, pose, x, y, iceH, rot, facing, tt) {
+    const [item, hk] = LION[pose] || LION.doze;
+    const h = iceH * hk;
+    if (art.drawSprite(g, art.sprite('iceferg.sealions', item), x, y, { height: h, rot, flip: facing < 0 })) return;
+    drawLion(g, pose === 'doze' ? 1 : pose === 'slide' || pose === 'fall' ? 3 : 2, x, y, h * (pose === 'doze' ? 1.2 : 0.7), rot, facing, tt);
   }
 
   // A sea lion in the book's ink and wash: olive-yellow with brown shading,
@@ -1240,29 +1272,47 @@ export default function create(env) {
       if (p.swim) {
         // A head above the water, looking about.
         gg.save(); gg.globalAlpha = alpha;
-        drawLion(gg, 2, x, y + 40, 62, Math.sin(tt * 2 + p.seed) * 0.08, x > ferg.x ? -1 : 1, tt + p.seed);
+        drawLion(gg, 2, x, y + 48, 96, Math.sin(tt * 2 + p.seed) * 0.08, x > ferg.x ? -1 : 1, tt + p.seed);
         gg.restore();
       } else {
         gg.save(); gg.globalAlpha = alpha;
-        drawLion(gg, p.k ? 2 : 1, x, y + 12, 70, 0, p.k ? -1 : 1, tt + p.seed);
+        drawLion(gg, p.k ? 2 : 1, x, y + 4, p.k ? 104 : 84, 0, p.k ? -1 : 1, tt + p.seed);
         gg.restore();
       }
     }, { bob: 3 });
     for (const s of strays) {
       if (!cam.sees(s.x)) continue;
-      drawLion(g, 2, s.x, WL + 38 + Math.sin(tt * 2.5) * 3, 62, 0, s.x > ferg.x ? -1 : 1, tt);
+      drawLion(g, 2, s.x, WL + 48 + Math.sin(tt * 2.5) * 3, 96, 0, s.x > ferg.x ? -1 : 1, tt);
+    }
+  }
+
+  // Freezing mist (props 10) and bursts of ice shards and spray (props 12).
+  function drawFx(g) {
+    for (const f of fx) {
+      if (!cam.sees(f.x)) continue;
+      const p = f.t / f.life;
+      if (f.kind === 'mist') {
+        kit.sprite(g, 'adv.b04.props', 10, f.x, f.y, { height: f.size * (0.6 + p * 0.6), ay: 0.5, alpha: 0.85 * (1 - p), flip: f.flip }, (gg, x, y) => {
+          gg.save(); gg.globalAlpha = 0.7 * (1 - p); gg.fillStyle = '#eef6ff'; gg.beginPath(); gg.arc(x, y, f.size * 0.25 * (0.6 + p * 0.6), 0, Math.PI * 2); gg.fill(); gg.restore();
+        });
+      } else {
+        const grow = Math.min(1, p * 3);
+        kit.sprite(g, 'adv.b04.props', 12, f.x, f.y, { height: f.size * (0.5 + grow * 0.5), alpha: 1 - p * p, flip: f.flip }, () => {});
+      }
     }
   }
 
   function drawLionParts(g) {
-    for (const p of parts.ps) if (p.lion) drawLion(g, 3, p.x, p.y, 66, p.vx > 0 ? p.t * 4 : -p.t * 4, p.vx > 0 ? 1 : -1, p.t);
+    for (const p of parts.ps) if (p.lion) {
+      if (!art.drawSprite(g, art.sprite('iceferg.sealions', 4), p.x, p.y, { height: 90, rot: p.vx > 0 ? p.t * 3 : -p.t * 3, flip: p.vx < 0 })) drawLion(g, 3, p.x, p.y, 80, p.vx > 0 ? p.t * 4 : -p.t * 4, p.vx > 0 ? 1 : -1, p.t);
+    }
   }
 
   function drawOverhead(g, th, tt) {
     const x0 = th.x - th.hw, x1 = th.x + th.hw;
     if (th.kind === 'pier') {
       const deckY = WL - OVERHEAD.pier - 76; // the deck's top
-      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 40, { height: 500 }, (gg) => {
+      kit.sprite(g, 'terrain.sea', 3, th.x, WL + 42, { height: 334 }, (gg) => {
         gg.save();
         gg.strokeStyle = INK; gg.lineWidth = 4;
         // The stilts, pairs, down into the water.
@@ -1291,7 +1341,7 @@ export default function create(env) {
       });
     } else {
       const top = WL - OVERHEAD.bridge; // the arch's underside at the middle
-      kit.sprite(g, 'terrain.sea', 6, th.x, WL + 40, { height: 560 }, (gg) => {
+      kit.sprite(g, 'terrain.sea', 6, th.x, WL + 59, { height: 255 }, (gg) => {
         gg.save();
         gg.fillStyle = '#9a9aa6'; gg.strokeStyle = INK; gg.lineWidth = 4;
         gg.beginPath();
@@ -1319,9 +1369,9 @@ export default function create(env) {
   }
 
   function drawHarbourWall(g, tt) {
-    const x0 = HARBOUR_X + 60;
+    const x0 = art.sprite('terrain.sea', 4) ? 13660 : HARBOUR_X + 60;
     if (!cam.sees(x0 - 100, WORLD)) return;
-    kit.sprite(g, 'terrain.sea', 4, x0, WL + 60, { height: 640, ax: 0 }, (gg) => {
+    kit.sprite(g, 'terrain.sea', 4, x0, WL + 46, { height: 307, ax: 0 }, (gg) => {
       gg.save();
       gg.strokeStyle = INK; gg.lineWidth = 4;
       // The wall, stones, and the lighthouse on its end.
@@ -1349,8 +1399,8 @@ export default function create(env) {
     g.lineWidth = 7;
     g.strokeStyle = INK;
     g.fillStyle = '#f8f1e0';
-    g.strokeText('Harbour', x0 + 120, WL - 60);
-    g.fillText('Harbour', x0 + 120, WL - 60);
+    g.strokeText('Harbour', x0 + 1100, WL - 180);
+    g.fillText('Harbour', x0 + 1100, WL - 180);
     g.restore();
   }
 

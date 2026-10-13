@@ -127,9 +127,9 @@ export default function create(env) {
   // ---------- the cliffs: gaps between a cloud bank above and a stack below ----------
   const wider = gentle ? 50 : 0;
   const gaps = [
-    { x: 3300, w: 230, top: 250, open: 380 + wider, kind: 'stack' },
-    { x: 4200, w: 230, top: 250, open: 320 + wider, kind: 'stack' },
-    { x: 5000, w: 200, top: 230, open: 290 + wider, kind: 'lighthouse' },
+    { x: 3300, w: 270, top: 250, open: 380 + wider, kind: 'stack' },
+    { x: 4200, w: 330, top: 250, open: 320 + wider, kind: 'stack' },
+    { x: 5000, w: 280, top: 230, open: 290 + wider, kind: 'lighthouse' },
   ];
   const solids = [];
   for (const gp of gaps) {
@@ -144,10 +144,15 @@ export default function create(env) {
 
   // ---------- the windmills ----------
   const windmills = [
-    { x: 6000, hub: 540, len: 200, ang: 0, spin: 1.0 },
-    { x: 6900, hub: 540, len: 200, ang: 1.1, spin: -1.25 },
-    { x: 7700, hub: 540, len: 200, ang: 0.4, spin: 1.1 },
+    { x: 6000, hub: 560, len: 150, ang: 0, spin: 1.0 },
+    { x: 6900, hub: 560, len: 150, ang: 1.1, spin: -1.25 },
+    { x: 7700, hub: 560, len: 150, ang: 0.4, spin: 1.1 },
   ];
+  // The delivered windmill (adv.b05.props 7) stands on its own island, hub up
+  // and to the right of its middle; drawn WM_H tall with the island's waves at the waterline.
+  const WM_H = 430, WM_BASE = SEA0 + 30;
+  const hasWindmill = () => !!art.sprite('adv.b05.props', 7);
+  const hubX = (wm) => wm.x + (hasWindmill() ? 47 : 0);
   // Sea rocks: [x, height] (decor).
   const rocks = [[1400, 90], [2500, 120], [3300 + 115, 0], [5800, 70], [6000, 150], [6900, 150], [7700, 150], [9000, 80], [10230, 100]];
 
@@ -157,7 +162,9 @@ export default function create(env) {
     { cx: 9250, sweep: 300, period: 9, ph: 2.1, w: 260 },
     { cx: 9950, sweep: 240, period: 6.5, ph: 4, w: 230 },
   ];
-  const beamX = (b, y, tt) => b.cx + Math.sin((tt / b.period) * Math.PI * 2 + b.ph) * b.sweep - 260 * (1 - y / SEA0);
+  const hasBeam = () => !!art.sprite('adv.b05.props', 9);
+  const beamW = (b) => (hasBeam() ? 340 : b.w);
+  const beamX = (b, y, tt) => b.cx + Math.sin((tt / b.period) * Math.PI * 2 + b.ph) * b.sweep - (hasBeam() ? 0 : 260 * (1 - y / SEA0));
   const rainClouds = [
     { x: 8300, y: 300, vx: -55, alive: true, t: 0 },
     { x: 9000, y: 430, vx: -50, alive: true, t: 0 },
@@ -480,7 +487,14 @@ export default function create(env) {
     // Sails chop puffs off.
     if (chopCd <= 0) {
       for (const wm of windmills) {
-        if (Math.abs(wm.x - p.x) > wm.len + rx + 40) continue;
+        if (Math.abs(wm.x - p.x) > wm.len + rx + 60) continue;
+        if (hasWindmill()) {
+          // Painted sails: the disc they sweep.
+          const d = Math.hypot(p.x - hubX(wm), (p.y - wm.hub) * k);
+          if (d < wm.len * 0.95 + rx * 0.8) chop(wm, Math.atan2(p.y - wm.hub, p.x - hubX(wm)));
+          if (chopCd > 0) break;
+          continue;
+        }
         for (let i = 0; i < 4; i++) {
           const a = wm.ang + (i * Math.PI) / 2;
           const ax = wm.x, ay = wm.hub * k, bx = wm.x + Math.cos(a) * wm.len, by = (wm.hub + Math.sin(a) * wm.len) * k;
@@ -497,7 +511,7 @@ export default function create(env) {
     let inside = false;
     for (const b of beams) {
       if (Math.abs(b.cx - p.x) > 900) continue;
-      if (Math.abs(p.x - beamX(b, p.y, t)) < b.w / 2 + rx * 0.3) { inside = true; break; }
+      if (Math.abs(p.x - beamX(b, p.y, t)) < beamW(b) / 2 + rx * 0.3) { inside = true; break; }
     }
     if (inside && full > 0) {
       full = Math.max(0, full - TUNE.dry * dt * (gentle ? 0.7 : 1));
@@ -536,8 +550,8 @@ export default function create(env) {
     env.vibrate(70);
     cam.shake(7, env.reduceMotion);
     art.kick(cloud, 0.5);
-    fx.pop(p.x, p.y - bodyRy() - 30, 'Chop!', { size: 50 });
-    const ex = wm.x + Math.cos(a) * wm.len * 0.7, ey = wm.hub + Math.sin(a) * wm.len * 0.7;
+    fx.pop(p.x, p.y - bodyRy() - 30, 'Chop!', { size: 60, colour: '#8a2a2a', life: 1.4 });
+    const ex = hubX(wm) + Math.cos(a) * wm.len * 0.7, ey = wm.hub + Math.sin(a) * wm.len * 0.7;
     fx.burst(ex, ey, { n: 9, colour: '#b9a9b5', speed: 260, up: 0.5, size: 16, life: 0.8, gravity: 500 });
   }
 
@@ -593,14 +607,14 @@ export default function create(env) {
     full = Math.min(TUNE.cap, full + JUNK[it.kind][1]);
     art.kick(cloud, 0.35);
     if (t - lastSlurp > 0.25) { env.sfx('slurp'); lastSlurp = t; }
-    if (it.blob) { blobsGot++; env.sfx('pickup'); fx.pop(p.x + (rng() - 0.5) * 120, p.y - 180 * cloud.sizeK, 'Goo!', { size: 46, colour: '#2f5366' }); }
+    if (it.blob) { blobsGot++; env.sfx('pickup'); fx.pop(p.x + (rng() - 0.5) * 120, p.y - 180 * cloud.sizeK, 'Goo!', { size: 46, colour: '#1f3d4d' }); }
     else { env.sfx('bubble'); fx.pop(p.x + (rng() - 0.5) * 120, p.y - 180 * cloud.sizeK, ['Gulp!', 'Slurp!', 'Glug!'][(blown + items.length) % 3], { size: 46 }); }
   }
   function swallowBlob() {
     full = Math.min(TUNE.cap, full + 0.05);
     art.kick(cloud, 0.25);
     env.sfx('pickup');
-    fx.pop(p.x, p.y - 180 * cloud.sizeK, 'Goo!', { size: 46, colour: '#2f5366' });
+    fx.pop(p.x, p.y - 180 * cloud.sizeK, 'Goo!', { size: 46, colour: '#1f3d4d' });
   }
 
   // ---------- the bottle ----------
@@ -821,16 +835,35 @@ export default function create(env) {
       g.fillRect(x0, SEA0 - 60, x1 - x0, H + 160 - SEA0);
       g.restore();
     } else if (sp) {
-      // The delivered strip, in slices that follow the drained surface.
-      const h = 300, k = h / sp.h, tw = sp.w * k, slice = 48;
-      g.save();
-      g.clip();
-      for (let x = Math.floor(x0 / slice) * slice; x < x1 + slice; x += slice) {
-        const y = seaY(x + slice / 2) - 18;
-        const ox = x - Math.floor(x / tw) * tw;
-        g.drawImage(sp.img, ox / k, 0, Math.min(slice / k, sp.w - ox / k), sp.h, x, y, slice + 0.6, h);
-      }
+      // Two rows of the delivered strip, each column interval sheared to the
+      // slope of the drained surface, so the sea bends down smoothly where it was sucked.
+      const h = 210, k = h / sp.h, tw = sp.w * k, lift = 36;
+      const row = (yOff) => {
+        const j0 = Math.floor((x0 - COL / 2) / COL), j1 = Math.floor((x1 - COL / 2) / COL);
+        for (let j = j0; j <= j1; j++) {
+          const ax = Math.max(x0, COL / 2 + j * COL), bx = Math.min(x1, COL / 2 + (j + 1) * COL);
+          if (bx <= ax) continue;
+          const ya = seaY(ax) - lift + yOff, yb = seaY(bx) - lift + yOff;
+          const sl = (yb - ya) / (bx - ax);
+          g.save();
+          g.transform(1, sl, 0, 1, 0, ya - sl * ax);
+          let x = ax;
+          while (x < bx) {
+            const ti = Math.floor(x / tw), tx0 = ti * tw;
+            const e = Math.min(bx, tx0 + tw);
+            const ox = (x - tx0) / k, ow = (e - x) / k;
+            g.drawImage(sp.img, ti % 2 ? sp.w - ox - ow : ox, 0, ow, sp.h, x, 0, e - x + 0.8, h);
+            x = e;
+          }
+          g.restore();
+        }
+      };
+      row(165);
+      g.fillStyle = 'rgba(30,50,70,0.3)';
+      g.fillRect(x0, SEA0 + 60, x1 - x0, H + 200 - SEA0);
+      row(0);
       g.restore();
+      return;
     } else {
       // Rows of curling strokes, the book's way of drawing water.
       g.lineCap = 'round';
@@ -869,8 +902,8 @@ export default function create(env) {
   function drawRocks(g) {
     for (const [x, h] of rocks) {
       if (!h || !cam.sees(x - 150, x + 150)) continue;
-      const y = seaY(x) + 10;
-      kit.sprite(g, 'terrain.sea', 2, x, y, { height: h + 60 }, () => inkRock(g, x, y, h + 60, 120 + h * 0.6));
+      const y = SEA0 + 40;
+      kit.sprite(g, 'terrain.sea', 2, x, y, { height: h + 80 }, () => inkRock(g, x, y - 30, h + 60, 120 + h * 0.6));
     }
   }
 
@@ -1007,10 +1040,10 @@ export default function create(env) {
   function drawStacks(g) {
     for (const s of solids) {
       if (s.kind === 'bank' || s.kind === 'shore' || !cam.sees(s.x - 150, s.x + s.w + 150)) continue;
-      const cx = s.x + s.w / 2, bottom = seaY(cx) + 40;
+      const cx = s.x + s.w / 2, bottom = SEA0 + 40;
       if (s.kind === 'lighthouse') {
         const rockH = 150;
-        const rockY = bottom - 20;
+        const rockY = bottom;
         kit.sprite(g, 'adv.b05.props', 11, cx, rockY, { height: rockY - s.y }, () => {
           inkRock(g, cx, rockY, rockH, s.w + 140);
           inkLighthouse(g, cx, rockY - rockH + 10, rockY - rockH + 10 - s.y, s.w * 0.7);
@@ -1089,7 +1122,7 @@ export default function create(env) {
   }
 
   function drawBanks(g, tt) {
-    const scene = art.image('scenes/typhoonigator');
+    const scene = art.image('adv/b05/backdrop-1') || art.image('scenes/typhoonigator');
     for (const s of solids) {
       if (s.kind !== 'bank' || !cam.sees(s.x - 300, s.x + s.w + 300)) continue;
       const bottom = s.y + s.h;
@@ -1147,21 +1180,11 @@ export default function create(env) {
 
   function drawShore(g) {
     if (!cam.sees(SHORE - 100, SHORE + 800)) return;
-    const y = SEA0 + 10;
-    inkCrag(g, SHORE + 520, y + 40, 1100, 330, 4.2);
-    inkCrag(g, SHORE + 160, y + 30, 420, 170, 5.1);
-    // The signpost.
-    const sx = SHORE + 390, sy = y - 250;
-    g.save();
-    g.strokeStyle = INK; g.lineWidth = 4;
-    woodGrain(g, sx - 7, sy - 190, 14, 190, 7.1, '#8a6a44');
-    woodGrain(g, sx - 95, sy - 250, 190, 70, 8.3, '#d9c7a4');
-    g.fillStyle = INK;
-    g.font = '800 26px Fraunces, Georgia, serif';
-    g.textAlign = 'center';
-    g.fillText('EDGE OF', sx, sy - 222);
-    g.fillText('NOWHERE', sx, sy - 193);
-    g.restore();
+    const y = SEA0 + 40;
+    kit.sprite(g, 'terrain.sea', 2, SHORE + 330, y, { height: 520 }, () => {
+      inkCrag(g, SHORE + 520, y, 1100, 330, 4.2);
+      inkCrag(g, SHORE + 160, y - 10, 420, 170, 5.1);
+    });
   }
 
   // The scene painting, repeated as the far layer: cropped to leave out its
@@ -1211,8 +1234,8 @@ export default function create(env) {
   }
 
   function drawWindmillTower(g, wm) {
-    const base = seaY(wm.x) + 10;
-    kit.sprite(g, 'adv.b05.props', 7, wm.x, base, { height: base - (wm.hub - wm.len) + 20, ay: 1 }, () => {
+    const base = WM_BASE;
+    kit.sprite(g, 'adv.b05.props', 7, wm.x, base, { height: WM_H, ay: 1 }, () => {
       inkRock(g, wm.x, base, 150, 260);
       g.save();
       g.strokeStyle = INK;
@@ -1247,7 +1270,7 @@ export default function create(env) {
   function drawSails(g, wm) {
     if (art.sprite('adv.b05.props', 7)) return; // the delivered windmill has its own sails
     g.save();
-    g.translate(wm.x, wm.hub);
+    g.translate(hubX(wm), wm.hub);
     g.strokeStyle = INK;
     g.lineWidth = 4;
     for (let i = 0; i < 4; i++) {
@@ -1281,8 +1304,8 @@ export default function create(env) {
       g.save();
       const sp = art.sprite('adv.b05.props', 9);
       if (sp) {
-        g.globalAlpha = 0.8;
-        art.drawSprite(g, sp, xb, y1, { height: y1 + 60, ay: 1 });
+        g.globalAlpha = 0.85;
+        art.drawSprite(g, sp, xb, SEA0 + 60, { height: 760, ay: 1 });
       } else {
         const gr = g.createLinearGradient(0, 0, 0, y1);
         gr.addColorStop(0, 'rgba(255,240,180,0.55)'); gr.addColorStop(1, 'rgba(255,236,170,0.22)');
@@ -1350,7 +1373,7 @@ export default function create(env) {
   }
 
   function drawGull(g, gl, tt) {
-    kit.sprite(g, 'adv.b05.props', 8, gl.x, gl.y, { height: 44, ay: 0.5 }, () => {
+    kit.sprite(g, 'adv.b05.props', 8, gl.x, gl.y, { height: 72, ay: 0.5 }, () => {
       const f = Math.sin(tt * 9 + gl.ph);
       g.save();
       g.strokeStyle = INK;
