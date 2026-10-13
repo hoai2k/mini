@@ -687,10 +687,11 @@ export default function create(env) {
     kit.drawBackdrop(g, cam, { panels: ['adv/b02/backdrop-1', 'adv/b02/backdrop-2', 'adv/b02/backdrop-3'], standin: 'scenes/bombanat' });
     kit.haze(g, 'rgba(243,233,210,0.14)');
     cam.begin(g);
-    drawFarTrees(g);
+    drawMidLayer(g);
     for (const s of solids) if (s.kind === 'floor' && cam.sees(s.x, s.x + s.w)) {
       kit.drawGround(g, cam, s, { sheet: 'terrain.wood', item: 1, height: 260, lift: 14, fill: '#6e5236', standin: { top: '#8d9a4e', body: '#7b5b3b', ink: INK } });
     }
+    drawFloorBits(g);
     drawCliff(g);
     for (const [x, kind] of DECOR) if (cam.sees(x)) drawDecor(g, x, kind, tt);
     for (const x of SIGNPOSTS) if (x > 0 && cam.sees(x)) drawSignpost(g, x);
@@ -732,23 +733,51 @@ export default function create(env) {
     hints.draw(g);
   }
 
-  function drawFarTrees(g) {
-    // Big faded trunks far back, scrolling slower than the play layer.
+  // A mid layer behind the play layer: delivered bushes and ferns along the
+  // floor, scrolling a little slower, so the backdrop joins the ground.
+  function drawMidLayer(g) {
+    const par = 0.8;
+    const i0 = Math.floor((cam.x * par - 300) / 260);
+    for (let i = i0; i <= i0 + 9; i++) {
+      const wx = i * 260 + hash(i * 1.7) * 120;
+      const sx = cam.x + (wx - cam.x * par);
+      if (sx < cam.x - 300 || sx > cam.x + W + 300) continue;
+      const k = hash(i * 3.1);
+      const y = FLOOR + 2;
+      g.save();
+      g.globalAlpha = 0.85;
+      if (k < 0.45) { if (!art.drawSprite(g, art.prop('trollusk', 5), sx, y, { height: 120 + hash(i) * 60, flip: k < 0.2 })) inkBush(g, sx, y, 180, 140); }
+      else if (k < 0.75) { if (!art.drawSprite(g, art.prop('grithix', 4), sx, y, { height: 110 + hash(i * 5) * 50, flip: k > 0.6 })) inkFern(g, sx, y, 130); }
+      else if (!art.drawSprite(g, art.prop('grithix', 5), sx, y, { height: 70 + hash(i * 9) * 30 })) inkRoot(g, sx, y);
+      g.restore();
+    }
+  }
+
+  // Small things along the floor in ink: tufts, pebbles, toadstools.
+  function drawFloorBits(g) {
+    const x0 = Math.floor((cam.x - 100) / 90) * 90, x1 = cam.x + W + 100;
     g.save();
-    g.globalAlpha = 0.28;
-    g.fillStyle = '#6f5a6e';
-    g.strokeStyle = INK;
-    g.lineWidth = 3;
-    const par = 0.55;
-    const i0 = Math.floor((cam.x * par - 200) / 520);
-    for (let i = i0; i <= i0 + 5; i++) {
-      const wx = i * 520 + hash(i) * 200;
-      const sx = cam.x + (wx - cam.x * par) ;
-      const w = 90 + hash(i * 3) * 70;
-      const top = 0 - hash(i * 7) * 100;
-      g.beginPath();
-      g.moveTo(sx - w / 2, FLOOR + 20); g.lineTo(sx - w * 0.35, top); g.lineTo(sx + w * 0.35, top); g.lineTo(sx + w / 2, FLOOR + 20);
-      g.closePath(); g.fill(); g.stroke();
+    g.lineWidth = 2.5; g.strokeStyle = INK; g.lineCap = 'round';
+    for (let x = x0; x < x1; x += 90) {
+      const k = hash(x * 0.37);
+      const xx = x + hash(x) * 60;
+      if (k < 0.4) {
+        // A tuft of grass.
+        g.strokeStyle = k < 0.2 ? '#5e7a3a' : '#8aa352';
+        g.lineWidth = 3;
+        g.beginPath();
+        for (let i = -2; i <= 2; i++) { g.moveTo(xx + i * 5, FLOOR + 2); g.lineTo(xx + i * 9, FLOOR - 16 - Math.abs(i) * -4 - hash(x + i) * 10); }
+        g.stroke();
+      } else if (k < 0.6) {
+        g.fillStyle = '#b8ad96'; g.strokeStyle = INK; g.lineWidth = 2;
+        g.beginPath(); g.ellipse(xx, FLOOR - 4, 12 + hash(x * 2) * 8, 7, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+      } else if (k < 0.68) {
+        // A toadstool.
+        g.fillStyle = '#e8c9a0'; g.strokeStyle = INK; g.lineWidth = 2.5;
+        g.fillRect(xx - 4, FLOOR - 22, 8, 22); g.strokeRect(xx - 4, FLOOR - 22, 8, 22);
+        g.fillStyle = '#d9a066';
+        g.beginPath(); g.ellipse(xx, FLOOR - 22, 16, 8, 0, Math.PI, Math.PI * 2); g.closePath(); g.fill(); g.stroke();
+      }
     }
     g.restore();
   }
@@ -798,20 +827,49 @@ export default function create(env) {
   function inkTrunk(g, s) {
     const x = s.cx, top = s.y;
     g.save();
-    g.fillStyle = '#7b5b3b'; g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
+    const outline = () => {
+      g.beginPath();
+      g.moveTo(x - 120, FLOOR + 4); g.quadraticCurveTo(x - 80, FLOOR - 30, x - 66, FLOOR - 160);
+      for (let y = FLOOR - 160; y > top + 60; y -= 60) g.lineTo(x - 62 + Math.sin(y * 0.05) * 6, y);
+      g.quadraticCurveTo(x - 58, top + 10, x - 40, top + 4);
+      g.lineTo(x + 40, top + 4); g.quadraticCurveTo(x + 58, top + 10, x + 62, top + 60);
+      for (let y = top + 60; y < FLOOR - 160; y += 60) g.lineTo(x + 62 + Math.cos(y * 0.05) * 6, y);
+      g.quadraticCurveTo(x + 80, FLOOR - 30, x + 120, FLOOR + 4);
+      g.closePath();
+    };
+    outline(); g.fill();
+    // Bark: long wavy ink lines, a darker side, knots.
+    g.save(); outline(); g.clip();
+    g.fillStyle = 'rgba(43,29,20,0.18)'; g.fillRect(x + 20, top, 60, FLOOR - top);
+    g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
     g.beginPath();
-    g.moveTo(x - 110, FLOOR + 4); g.quadraticCurveTo(x - 70, FLOOR - 60, x - 64, FLOOR - 200);
-    g.lineTo(x - 58, top + 40); g.quadraticCurveTo(x - 50, top, x - 30, top);
-    g.lineTo(x + 30, top); g.quadraticCurveTo(x + 50, top, x + 58, top + 40);
-    g.lineTo(x + 64, FLOOR - 200); g.quadraticCurveTo(x + 70, FLOOR - 60, x + 110, FLOOR + 4);
-    g.closePath(); g.fill(); g.stroke();
-    // Bark lines and a cut top.
-    g.strokeStyle = 'rgba(43,29,20,0.4)'; g.lineWidth = 2.5;
-    g.beginPath();
-    for (let i = 0; i < 5; i++) { const bx = x - 44 + i * 22; g.moveTo(bx, top + 60 + hash(bx) * 40); g.lineTo(bx + 6, FLOOR - 120 - hash(bx * 2) * 200); }
+    for (let i = 0; i < 9; i++) {
+      const bx = x - 52 + i * 13 + hash(i + x) * 6;
+      g.moveTo(bx, top + 20 + hash(bx) * 60);
+      for (let y = top + 60; y < FLOOR; y += 40) g.lineTo(bx + Math.sin(y * 0.03 + i) * 5 + (y > FLOOR - 160 ? (bx - x) * (y - FLOOR + 160) / 300 : 0), y);
+    }
     g.stroke();
-    g.fillStyle = '#c9a97a'; g.strokeStyle = INK; g.lineWidth = 3.5;
-    g.beginPath(); g.ellipse(x, top + 2, 46, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.lineWidth = 1.5;
+    g.beginPath();
+    for (let y = top + 40; y < FLOOR; y += 26) { const w = 10 + hash(y + x) * 20; const bx = x - 50 + hash(y * 3 + x) * 90; g.moveTo(bx, y); g.lineTo(bx + w, y + 4); }
+    g.stroke();
+    for (let i = 0; i < 2; i++) {
+      const ky = top + 120 + i * 220 + hash(x + i) * 100;
+      if (ky > FLOOR - 120) continue;
+      g.fillStyle = '#5c3f28'; g.strokeStyle = INK; g.lineWidth = 2.5;
+      g.beginPath(); g.ellipse(x + (i ? 30 : -28), ky, 12, 18, 0.2, 0, Math.PI * 2); g.fill(); g.stroke();
+    }
+    g.restore();
+    outline(); g.stroke();
+    // Moss at the foot, the cut top with its rings.
+    g.fillStyle = '#8d9a4e'; g.strokeStyle = INK; g.lineWidth = 2.5;
+    g.beginPath(); g.ellipse(x - 50, FLOOR - 30, 36, 22, -0.3, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#c9a97a'; g.lineWidth = 3.5;
+    g.beginPath(); g.ellipse(x, top + 4, 50, 14, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.5;
+    g.beginPath(); g.ellipse(x, top + 4, 30, 8, 0, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(x, top + 4, 12, 3.5, 0, 0, Math.PI * 2); g.stroke();
     g.restore();
   }
 
@@ -840,16 +898,31 @@ export default function create(env) {
   function drawBough(g, s) {
     const x = s.x + s.w / 2, bottom = s.y + s.h;
     g.save();
-    g.fillStyle = '#7b5b3b'; g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
+    const outline = () => {
+      g.beginPath();
+      g.moveTo(x - 80, -20);
+      for (let y = 0; y < bottom - 100; y += 50) g.lineTo(x - 48 - (bottom - 100 - y) * 0.08 + Math.sin(y * 0.04) * 5, y);
+      g.quadraticCurveTo(x - 36, bottom - 30, x, bottom - 14);
+      g.quadraticCurveTo(x + 36, bottom - 30, x + 48, bottom - 100);
+      for (let y = bottom - 100; y > 0; y -= 50) g.lineTo(x + 48 + (bottom - 100 - y) * 0.08 + Math.cos(y * 0.04) * 5, y);
+      g.lineTo(x + 80, -20);
+      g.closePath();
+    };
+    outline(); g.fill();
+    g.save(); outline(); g.clip();
+    g.fillStyle = 'rgba(43,29,20,0.18)'; g.fillRect(x + 14, -20, 60, bottom);
+    g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
     g.beginPath();
-    g.moveTo(x - 70, -20); g.lineTo(x - 44, bottom - 90); g.quadraticCurveTo(x - 40, bottom - 20, x, bottom - 10);
-    g.quadraticCurveTo(x + 40, bottom - 20, x + 44, bottom - 90); g.lineTo(x + 70, -20); g.closePath();
-    g.fill(); g.stroke();
-    // A cluster of leaves at the end.
-    leafBlob(g, x, bottom - 30, 78, 0.6, '#6b8a44', '#8aa352');
-    leafBlob(g, x - 50, bottom - 70, 50, 0.3, '#6b8a44', '#9fb05a');
-    leafBlob(g, x + 52, bottom - 64, 48, 0.9, '#6b8a44', '#9fb05a');
+    for (let i = 0; i < 7; i++) { const bx = x - 40 + i * 13; g.moveTo(bx - 10, -20); for (let y = 0; y < bottom; y += 40) g.lineTo(bx + Math.sin(y * 0.03 + i) * 5, y); }
+    g.stroke();
     g.restore();
+    outline(); g.stroke();
+    // Leaf clusters at the end: the delivered bush, hanging.
+    g.restore();
+    for (const [dx, dy, h, flip] of [[-40, 40, 130, false], [50, 30, 110, true], [0, 70, 140, false]]) {
+      if (!art.drawSprite(g, art.prop('trollusk', 5), x + dx, bottom + dy, { height: h, flip })) leafBlob(g, x + dx, bottom + dy - h / 2, h * 0.45, dx, '#6b8a44', '#9fb05a');
+    }
   }
 
   function drawBranch(g, s) {
@@ -861,77 +934,125 @@ export default function create(env) {
     const dir = s.dir;
     const base = dir > 0 ? s.x : s.x + s.w;
     const tip = dir > 0 ? s.x + s.w : s.x;
+    const len = s.w;
     g.save();
-    g.fillStyle = '#7b5b3b'; g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#8a6a44'; g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
+    // A knobbly tapering branch from off screen, flat enough on top to stand on.
+    const outline = () => {
+      g.beginPath();
+      g.moveTo(base - dir * 80, s.y - 40);
+      g.quadraticCurveTo(base - dir * 20, s.y - 6, base, s.y);
+      for (let i = 1; i <= 6; i++) { const x = base + dir * (len * i / 6); g.lineTo(x, s.y + 2 + Math.sin(i * 2.1 + s.x) * 3); }
+      g.quadraticCurveTo(tip + dir * 26, s.y + 10, tip + dir * 14, s.y + 30);
+      g.quadraticCurveTo(tip - dir * 10, s.y + 46, tip - dir * 60, s.y + 44);
+      for (let i = 5; i >= 1; i--) { const x = base + dir * (len * i / 6); g.lineTo(x, s.y + 50 + (6 - i) * 2 + Math.cos(i * 1.7 + s.x) * 4); }
+      g.lineTo(base, s.y + 66);
+      g.quadraticCurveTo(base - dir * 30, s.y + 90, base - dir * 80, s.y + 130);
+      g.closePath();
+    };
+    outline(); g.fill();
+    g.save(); outline(); g.clip();
+    // The underside darker; bark lines along the length; a knot or two.
+    g.fillStyle = 'rgba(43,29,20,0.2)'; g.fillRect(Math.min(base, tip) - 100, s.y + 30, len + 200, 80);
+    g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
     g.beginPath();
-    g.moveTo(base - dir * 60, s.y - 50);
-    g.lineTo(base, s.y);
-    g.lineTo(tip - dir * 40, s.y + 2);
-    g.quadraticCurveTo(tip, s.y + 6, tip + dir * 10, s.y + 22);
-    g.quadraticCurveTo(tip - dir * 30, s.y + 50, tip - dir * 90, s.y + 48);
-    g.lineTo(base, s.y + 50);
-    g.lineTo(base - dir * 60, s.y + 110);
-    g.closePath();
-    g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.35)'; g.lineWidth = 2;
-    g.beginPath();
-    for (let x = Math.min(base, tip) + 30; x < Math.max(base, tip) - 40; x += 46) { g.moveTo(x, s.y + 14); g.lineTo(x + 24, s.y + 26); }
+    for (let j = 0; j < 4; j++) {
+      const y0 = s.y + 12 + j * 11;
+      g.moveTo(base - dir * 80, y0 - 10);
+      for (let x = Math.min(base, tip) - 60; x <= Math.max(base, tip) + 20; x += 36) g.lineTo(x, y0 + Math.sin(x * 0.05 + j) * 3);
+    }
     g.stroke();
-    // Moss on top, leaf tufts at the tip.
-    g.fillStyle = '#8d9a4e';
-    g.beginPath();
-    for (let x = Math.min(base, tip); x <= Math.max(base, tip); x += 20) g.lineTo(x, s.y - 2 - hash(x) * 10);
-    g.lineTo(Math.max(base, tip), s.y + 6); g.lineTo(Math.min(base, tip), s.y + 6); g.closePath(); g.fill();
-    leafBlob(g, tip + dir * 20, s.y - 10, 46, 0.2, '#6b8a44', '#9fb05a');
-    leafBlob(g, tip - dir * 30, s.y + 50, 40, 0.7, '#6b8a44', '#8aa352');
+    g.fillStyle = '#5c3f28'; g.strokeStyle = INK; g.lineWidth = 2.5;
+    g.beginPath(); g.ellipse(base + dir * len * 0.45, s.y + 34, 14, 9, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.restore();
+    outline(); g.stroke();
+    // Moss along the top, the standing surface.
+    g.fillStyle = '#8d9a4e'; g.strokeStyle = '#5e7a3a'; g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(base, s.y + 4);
+    for (let x = Math.min(base, tip); x <= Math.max(base, tip); x += 18) g.lineTo(x, s.y - 1 - hash(x) * 9);
+    g.lineTo(tip, s.y + 6); g.closePath(); g.fill(); g.stroke();
+    g.restore();
+    // Leaf clumps: the delivered bush at the tip and partway along.
+    if (!art.drawSprite(g, art.prop('trollusk', 5), tip - dir * 10, s.y + 36, { height: 120, flip: dir < 0 })) leafBlob(g, tip - dir * 10, s.y - 10, 46, 0.2, '#6b8a44', '#9fb05a');
+    if (!art.drawSprite(g, art.prop('trollusk', 5), base + dir * len * 0.4, s.y + 2, { height: 78, flip: dir > 0 })) leafBlob(g, base + dir * len * 0.4, s.y - 20, 34, 0.7, '#6b8a44', '#8aa352');
   }
 
+  // A clump of many small leaves, each in ink, in the book's greens. Used
+  // for the canopy (drawn once into a cached strip) and as a fallback clump.
   function leafBlob(g, x, y, r, seed, dark, light) {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 3;
-    g.fillStyle = dark;
-    g.beginPath();
-    const n = 9;
-    for (let i = 0; i <= n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const rr = r * (0.82 + hash(seed * 17 + i) * 0.3);
-      const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * 0.8;
-      if (i === 0) g.moveTo(px, py); else g.quadraticCurveTo(x + Math.cos(a - Math.PI / n) * rr * 1.18, y + Math.sin(a - Math.PI / n) * rr * 0.95, px, py);
+    g.strokeStyle = INK; g.lineWidth = 1.6;
+    const n = Math.max(10, Math.round(r * 0.55));
+    for (let i = 0; i < n; i++) {
+      const a = hash(seed * 13 + i) * Math.PI * 2;
+      const d = Math.sqrt(hash(seed * 7 + i * 3)) * r;
+      const lx = x + Math.cos(a) * d, ly = y + Math.sin(a) * d * 0.8;
+      const rot = hash(seed + i * 11) * Math.PI;
+      const k = hash(seed * 3 + i);
+      g.fillStyle = k < 0.3 ? dark : k < 0.75 ? light : '#5e7a3a';
+      g.beginPath(); g.ellipse(lx, ly, 15 + k * 6, 8 + k * 3, rot, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(lx - Math.cos(rot) * 12, ly - Math.sin(rot) * 12); g.lineTo(lx + Math.cos(rot) * 12, ly + Math.sin(rot) * 12); g.stroke();
     }
-    g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = light;
-    g.beginPath(); g.ellipse(x - r * 0.2, y - r * 0.25, r * 0.5, r * 0.3, -0.4, 0, Math.PI * 2); g.fill();
     g.restore();
   }
 
-  // The canopy over the floor in a wood section: hanging leaf clusters the
-  // Trollusk runs behind. Drawn only where the camera sees.
-  function drawLeaves(g, s, tt) {
-    const x0 = Math.max(s.x, cam.x - 200), x1 = Math.min(s.x + s.w, cam.x + W + 200);
-    const sway = env.reduceMotion ? 0 : Math.sin(tt * 0.9) * 4;
+  // The canopy over the floor in a wood section: a thick band of leaves the
+  // Trollusk runs behind, with the delivered bushes as undergrowth along the
+  // floor. The leaves are drawn once into a strip and blitted after that.
+  const canopyCache = new Map();
+  function canopyStrip(s) {
+    if (canopyCache.has(s)) return canopyCache.get(s);
+    let cv = null;
+    try {
+      const w = s.w + 240, hgt = 200;
+      if (typeof document !== 'undefined') { cv = document.createElement('canvas'); cv.width = w; cv.height = hgt; }
+      else if (typeof OffscreenCanvas === 'function') cv = new OffscreenCanvas(w, hgt);
+      if (cv) {
+        const cg = cv.getContext('2d');
+        cg.translate(120 - s.x, -(LEAF_TOP - 60));
+        paintCanopy(cg, s, s.x - 120, s.x + s.w + 120);
+      }
+    } catch { cv = null; }
+    canopyCache.set(s, cv);
+    return cv;
+  }
+  function paintCanopy(g, s, x0, x1) {
+    const i0 = Math.floor((x0 - s.x) / 130);
+    for (let i = i0; s.x + i * 130 < x1 + 130; i++) {
+      const x = s.x + i * 130 + 65;
+      leafBlob(g, x, LEAF_TOP + 40 + hash(i * 5 + s.x) * 40, 96, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
+    }
+    const j0 = Math.floor((x0 - s.x) / 100);
+    for (let j = j0; s.x + j * 100 < x1 + 100; j++) {
+      const x = s.x + j * 100 + 50;
+      leafBlob(g, x, LEAF_TOP + hash(j * 3 + s.x) * 30, 70, j * 0.61 + 3, '#6b8a44', '#9fb05a');
+    }
+    // The branches that hold it up, peeping through.
     g.save();
-    // The back row: a dark band of leaves with hanging bunches.
-    const i0 = Math.floor((x0 - s.x) / 150);
-    for (let i = i0; s.x + i * 150 < x1 + 150; i++) {
-      const x = s.x + i * 150 + 75;
-      const dip = 90 + hash(i * 5 + s.x) * 60;
-      leafBlob(g, x + sway, s.y + dip, 112, i * 0.37, '#5e7a3a', '#6f8a3e');
-    }
-    const j0 = Math.floor((x0 - s.x) / 120);
-    for (let j = j0; s.x + j * 120 < x1 + 120; j++) {
-      const x = s.x + j * 120 + 60;
-      const dip = 20 + hash(j * 3 + s.x) * 40;
-      leafBlob(g, x + sway * 1.3, s.y + dip, 82, j * 0.61 + 3, '#6b8a44', '#9fb05a');
-      // Now and then a bunch hangs low enough to brush his hat.
-      if (hash(j * 11 + s.x) > 0.7) leafBlob(g, x + 30 + sway, s.y + 150 + hash(j) * 40, 50, j * 0.13, '#5e7a3a', '#8aa352');
-    }
-    // The band's top edge, where the branches hold it up.
-    g.strokeStyle = '#5a4030'; g.lineWidth = 6;
+    g.strokeStyle = '#5a4030'; g.lineWidth = 7; g.lineCap = 'round';
     g.beginPath();
-    for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) { g.moveTo(x, s.y - 20 + hash(x) * 20); g.lineTo(x + 60, s.y - 20 + hash(x + 60) * 20); }
+    for (let x = Math.floor(x0 / 70) * 70; x < x1; x += 70) { g.moveTo(x, LEAF_TOP - 24 + hash(x) * 20); g.lineTo(x + 70, LEAF_TOP - 24 + hash(x + 70) * 20); }
     g.stroke();
     g.restore();
+  }
+  function drawLeaves(g, s, tt) {
+    const x0 = Math.max(s.x - 120, cam.x - 100), x1 = Math.min(s.x + s.w + 120, cam.x + W + 100);
+    if (x1 <= x0) return;
+    const sway = env.reduceMotion ? 0 : Math.sin(tt * 0.9) * 3;
+    // Undergrowth: the delivered bushes along the floor, varied, he runs behind them.
+    const k0 = Math.floor((x0 - s.x) / 210);
+    for (let k = k0; s.x + k * 210 < x1; k++) {
+      const x = s.x + k * 210 + 100 + hash(k * 2.3 + s.x) * 40;
+      if (x < s.x + 60 || x > s.x + s.w - 60) continue;
+      const hgt = 200 + hash(k * 7 + s.x) * 70;
+      if (!art.drawSprite(g, art.prop('trollusk', 5), x, FLOOR + 8, { height: hgt, flip: hash(k) > 0.5 })) inkBush(g, x, FLOOR + 8, hgt * 1.2, hgt);
+    }
+    const strip = canopyStrip(s);
+    if (strip) {
+      const sx = x0 - (s.x - 120);
+      g.drawImage(strip, sx, 0, x1 - x0, strip.height, x0 + sway, LEAF_TOP - 60, x1 - x0, strip.height);
+    } else paintCanopy(g, s, x0, x1);
   }
 
   function drawVine(g, v, tt) {
@@ -1132,19 +1253,43 @@ function inkBush(g, x, y, w, h) {
 
 function inkLog(g, x, y, w, h, hollow) {
   g.save();
-  g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#8a6a44';
+  g.strokeStyle = INK; g.lineWidth = 4; g.lineJoin = 'round';
+  g.fillStyle = '#8a6a44';
+  const outline = () => {
+    g.beginPath();
+    g.moveTo(x - w / 2 + h * 0.4, y - h);
+    for (let i = 1; i < 6; i++) g.lineTo(x - w / 2 + h * 0.4 + (w - h * 0.5) * i / 6, y - h + Math.sin(i * 1.9 + x) * 4);
+    g.lineTo(x + w / 2 - h * 0.1, y - h + 6);
+    g.quadraticCurveTo(x + w / 2 + 6, y - h / 2, x + w / 2 - h * 0.1, y - 4);
+    for (let i = 5; i >= 1; i--) g.lineTo(x - w / 2 + h * 0.4 + (w - h * 0.5) * i / 6, y - 2 + Math.cos(i * 1.3 + x) * 3);
+    g.lineTo(x - w / 2 + h * 0.4, y - 4);
+    g.closePath();
+  };
+  outline(); g.fill();
+  g.save(); outline(); g.clip();
+  g.fillStyle = 'rgba(43,29,20,0.2)'; g.fillRect(x - w / 2, y - h * 0.4, w, h * 0.4);
+  g.strokeStyle = 'rgba(43,29,20,0.55)'; g.lineWidth = 2;
   g.beginPath();
-  g.roundRect ? g.roundRect(x - w / 2, y - h, w, h, h / 2) : g.rect(x - w / 2, y - h, w, h);
-  g.fill(); g.stroke();
-  g.strokeStyle = 'rgba(43,29,20,0.35)'; g.lineWidth = 2.5;
-  g.beginPath();
-  for (let i = 1; i < 5; i++) { g.moveTo(x - w / 2 + 40 + i * (w - 80) / 5, y - h + 12); g.lineTo(x - w / 2 + 30 + i * (w - 80) / 5, y - 12); }
+  for (let j = 0; j < 5; j++) { const yy = y - h + 14 + j * (h - 28) / 4; g.moveTo(x - w / 2, yy); for (let xx = x - w / 2; xx <= x + w / 2; xx += 30) g.lineTo(xx, yy + Math.sin(xx * 0.06 + j) * 3); }
   g.stroke();
-  g.fillStyle = hollow ? '#2b1d14' : '#c9a97a'; g.strokeStyle = INK; g.lineWidth = 3.5;
-  g.beginPath(); g.ellipse(x - w / 2 + h * 0.45, y - h / 2, h * 0.3, h * 0.45, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-  if (hollow) { g.strokeStyle = '#8a6a44'; g.lineWidth = 6; g.beginPath(); g.ellipse(x - w / 2 + h * 0.45, y - h / 2, h * 0.3, h * 0.45, 0, 0, Math.PI * 2); g.stroke(); }
-  g.fillStyle = '#8d9a4e';
-  g.beginPath(); g.ellipse(x + w * 0.1, y - h + 6, w * 0.3, 12, 0, 0, Math.PI * 2); g.fill();
+  g.restore();
+  outline(); g.stroke();
+  // The open end: a hollow, or cut rings.
+  g.fillStyle = hollow ? '#2b1d14' : '#c9a97a'; g.lineWidth = 3.5;
+  g.beginPath(); g.ellipse(x - w / 2 + h * 0.4, y - h / 2, h * 0.32, h * 0.5, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  if (hollow) {
+    g.strokeStyle = '#8a6a44'; g.lineWidth = 7;
+    g.beginPath(); g.ellipse(x - w / 2 + h * 0.4, y - h / 2, h * 0.32, h * 0.5, 0, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 3;
+    g.beginPath(); g.ellipse(x - w / 2 + h * 0.4, y - h / 2, h * 0.42, h * 0.58, 0, 0, Math.PI * 2); g.stroke();
+  } else {
+    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 1.5;
+    g.beginPath(); g.ellipse(x - w / 2 + h * 0.4, y - h / 2, h * 0.2, h * 0.3, 0, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(x - w / 2 + h * 0.4, y - h / 2, h * 0.08, h * 0.12, 0, 0, Math.PI * 2); g.stroke();
+  }
+  // Moss on top.
+  g.fillStyle = '#8d9a4e'; g.strokeStyle = '#5e7a3a'; g.lineWidth = 2;
+  g.beginPath(); g.ellipse(x + w * 0.12, y - h + 4, w * 0.28, 11, 0, 0, Math.PI * 2); g.fill(); g.stroke();
   g.restore();
 }
 

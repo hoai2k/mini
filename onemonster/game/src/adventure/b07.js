@@ -90,7 +90,7 @@ const ROCKS = [3380, 4350, 5250, 6050, 10700, 14300];
 const BRANCHES = [7330, 12580]; // low branches: slide under
 const PALMS = [7760, 11660]; // fallen palm trunks: slide under
 const PUDDLES = [4080, 9320, 11050, 12880]; // goo puddles: hop or wade slowly
-const SIGNS = [2900, 6980, 9260, 10400, 13520]; // crooked signposts (sections)
+const SIGNS = [2900, 6840, 9260, 10400, 13520]; // crooked signposts (sections)
 
 // Mid-layer decor from the delivered art, behind the play layer: flowerbeds and
 // small rocks on the sneak (nothing that looks like cover), ferns, bushes and
@@ -603,7 +603,7 @@ export default function create(env) {
       const n = `Stamps ${pickups.count}/${pickups.total}`;
       if (phase !== 'getaway' || self.done) return n;
       const m = Math.max(0, Math.round((p.x - y.x) / PX_PER_M));
-      return `${n} · Yalapappus ${m} m behind`;
+      return `${n} · ${m} m clear`;
     },
     marks: () => kit.boardMarks({ snatched: self.outcome === 'snatched', got: pickups.count, total: pickups.total, feat: self.outcome === 'snatched' && !caught }),
     update(dt, inS) {

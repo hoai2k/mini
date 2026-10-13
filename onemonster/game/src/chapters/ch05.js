@@ -184,7 +184,7 @@ export default function create(env) {
       if (floating < TUNE.junk - 3 && rng() < dt * 0.8) spawnJunk(SEA.x0 - 30, lerp(SEA.y0 + 20, SEA.y1 - 10, rng()));
 
       // ---- full up: burp ----
-      if (self.full > TUNE.bloatedAt && !warned) { warned = true; say('Getting full!', cloudX() - side * 200 * cloud.sizeK, cloudY() - 90); env.sfx('creak'); }
+      if (self.full > TUNE.bloatedAt && !warned) { warned = true; say('Getting full!', p.x, cloudY() + 30); lastSlurp = t; env.sfx('creak'); }
       if (self.full >= 1 && burpT <= 0) burp();
       if (burpT > 0) {
         burpT -= dt;
@@ -284,6 +284,8 @@ export default function create(env) {
     steer(o, cx * k, cy * k, 120, dt);
   }
   function radius() { return (self.sprinting ? TUNE.sprintRadius : TUNE.radius) * (0.35 + 0.65 * power); }
+  // The reach shown on the water: what a suck started now would pull in.
+  function reachR() { return (self.sprinting ? TUNE.sprintRadius : TUNE.radius) * (0.35 + 0.65 * Math.max(power, 0.5)); }
 
   // The vortex pulls a floating thing in; true once it is ready to go up.
   function pull(o, R, dt, k) {
@@ -307,9 +309,11 @@ export default function create(env) {
     self.full += JUNK[it.kind][1];
     self.junk++;
     art.kick(cloud, 0.35);
-    if (t - lastSlurp > 0.25) { env.sfx('slurp'); lastSlurp = t; }
     env.sfx('bubble');
-    say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], cloudX() - side * 190 * cloud.sizeK, cloudY() - 40 + (rng() - 0.5) * 60);
+    if (t - lastSlurp > 0.7) {
+      env.sfx('slurp'); lastSlurp = t;
+      say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], p.x + (rng() - 0.5) * 80, cloudY() + 30);
+    }
   }
 
   function burp() {
@@ -319,7 +323,7 @@ export default function create(env) {
     env.sfx('burp');
     env.vibrate(120);
     art.kick(cloud, -0.6);
-    say('Too full! BURP!', cloudX() - side * 220 * cloud.sizeK, cloudY() - 60);
+    say('Too full! BURP!', p.x, cloudY() + 30); lastSlurp = t + 0.5;
     const M = mouth();
     const n = 3 + Math.floor(rng() * 3);
     for (let i = 0; i < n; i++) {
@@ -663,7 +667,7 @@ export default function create(env) {
   // Where the spout will suck: a dashed ring on the water round its foot, as
   // wide as its reach, brighter while it sucks.
   function drawReach(g, tt) {
-    const R = (self.sprinting ? TUNE.sprintRadius : TUNE.radius) * (0.35 + 0.65 * Math.max(power, 0.5));
+    const R = reachR();
     const pk = persp(foot.y);
     g.save();
     g.translate(foot.x, foot.y);
@@ -692,7 +696,7 @@ export default function create(env) {
       if (t < 4.5) marker(g, b.x, top - 120, { t: tt, label: 'The captain’s bottle!' });
     }
     const d = gdist(b.x, b.y, foot.x, foot.y);
-    const inReach = b.state === 'float' && d < radius() * 0.9;
+    const inReach = b.state === 'float' && d < reachR() * 0.9;
     if (inReach && b.duck <= 0 && power < 0.5 && burpT <= 0) {
       actionPrompt(g, foot.x, foot.y - 40 * persp(foot.y), 'Suck!', { kind: env.inputKind, t: tt, pulse: 1, side: 0 });
     }
