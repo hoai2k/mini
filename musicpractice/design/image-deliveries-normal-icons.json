@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-12",
+  "tool": "built-in image_gen",
+  "prompt": "Create the normal Music Practice app icon for iOS and Android, based on the reference illustration. A single conventional mechanical metronome: simple polished walnut tapering pyramid case, ivory tick-mark face, slender brass pendulum tilted slightly right, small brass sliding weight, conventional wooden base. Faithfully keep this ordinary metronome design; no Art Deco steps, jade panels, sunbursts, neon, microphone, record jewel or other objects. Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette. Keep the whole metronome within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Premium calm simple illustration.",
+  "reference": "musicpractice/app/assets/ui/home-metronome.webp",
+  "generated_source": "exec-541a3153-f13c-4a3b-9d2a-70978fa3e917.png",
+  "master": "musicpractice/app/icons/icon-1024.png",
+  "app_icons": [
+    "musicpractice/app/icons/icon-metronome-32.png",
+    "musicpractice/app/icons/icon-metronome-180.png",
+    "musicpractice/app/icons/icon-metronome-192.png",
+    "musicpractice/app/icons/icon-metronome-512.png"
+  ],
+  "transparent_icons": [
+    "musicpractice/app/icons/favicon-metronome-32.png",
+    "musicpractice/app/icons/favicon-metronome-192.png",
+    "musicpractice/app/icons/favicon-metronome-512.png"
+  ],
+  "transparent_source": "musicpractice/app/assets/ui/home-metronome.webp",
+  "preserved_art_deco_master": "musicpractice/app/icons/icon-art-deco-1024.png",
+  "exports": "Pillow LANCZOS resizing. Opaque RGB app icons; original alpha preserved for favicon and library art. Generic icon-size filenames also regenerated from the normal master."
+}

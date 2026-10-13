@@ -129,10 +129,10 @@ Just the pendulum of a mechanical metronome, isolated: a single thin, perfectly 
 
 - File: `musicpractice/app/icons/icon-1024.png`
 - Size: 1024×1024, PNG, full bleed, no transparency
-- Note: Art Deco favicon and app icon delivered. Resized to icons/icon-32.png, icon-180.png, icon-192.png and icon-512.png.
+- Note: Normal metronome identity: opaque ivory app icons for iOS and Android; transparent normal-metronome favicon and library image. The Art Deco master is preserved as icons/icon-art-deco-1024.png.
 
 ```text
-Create a square Music Practice favicon/app icon in Art Deco style, matching the reference's black lacquer, gold and jade geometric design. Use a simplified stepped ziggurat metronome with a cream face, a thick champagne-gold pendulum tilted slightly right, and a small bright ruby-red record jewel at its lower right. Strong simple silhouette readable at 32 pixels; remove fine ornamental details and tiny scale marks. Full-bleed dark jade/black background right to all square edges, no rounded square frame, no border, no light margins. Motif within central 80%. Crisp black lacquer surfaces, gold edging, small sunburst accent. No text, letters, numbers, watermark or other objects. Reference image is a style reference only.
+Create the normal Music Practice app icon for iOS and Android, based on the reference illustration. A single conventional mechanical metronome: simple polished walnut tapering pyramid case, ivory tick-mark face, slender brass pendulum tilted slightly right, small brass sliding weight, conventional wooden base. Faithfully keep this ordinary metronome design; no Art Deco steps, jade panels, sunbursts, neon, microphone, record jewel or other objects. Square full-bleed warm ivory background, soft upper-left studio light, crisp readable silhouette. Keep the whole metronome within the central 70% of the square, centred with generous even margin so maskable icon cropping preserves it. No rounded-square border, no outer frame, no text, no letters or numbers, no watermark. The background is opaque warm ivory all the way to all four corners. Premium calm simple illustration.
 ```
 
 ## Game library card

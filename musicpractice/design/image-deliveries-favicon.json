@@ -4,12 +4,12 @@
   "prompt": "Create a square Music Practice favicon/app icon in Art Deco style, matching the reference's black lacquer, gold and jade geometric design. Use a simplified stepped ziggurat metronome with a cream face, a thick champagne-gold pendulum tilted slightly right, and a small bright ruby-red record jewel at its lower right. Strong simple silhouette readable at 32 pixels; remove fine ornamental details and tiny scale marks. Full-bleed dark jade/black background right to all square edges, no rounded square frame, no border, no light margins. Motif within central 80%. Crisp black lacquer surfaces, gold edging, small sunburst accent. No text, letters, numbers, watermark or other objects. Reference image is a style reference only.",
   "reference": "musicpractice/app/assets/ui/deco/home-metronome.webp",
   "generated_source": "exec-ccac4aee-fad7-4505-9556-2a413c7a5130.png",
-  "file": "musicpractice/app/icons/icon-1024.png",
+  "file": "musicpractice/app/icons/icon-art-deco-1024.png",
   "derivatives": [
-    "musicpractice/app/icons/icon-32.png",
-    "musicpractice/app/icons/icon-180.png",
-    "musicpractice/app/icons/icon-192.png",
-    "musicpractice/app/icons/icon-512.png"
+    "musicpractice/app/icons/icon-art-deco-32.png",
+    "musicpractice/app/icons/icon-art-deco-180.png",
+    "musicpractice/app/icons/icon-art-deco-192.png",
+    "musicpractice/app/icons/icon-art-deco-512.png"
   ],
   "export": "Pillow LANCZOS resizing, RGB PNG.",
   "active_browser_favicon": {
