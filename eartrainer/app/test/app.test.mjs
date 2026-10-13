@@ -281,3 +281,16 @@ test('one-phrase modes: phrases from the middle of songs, each different phrase 
   assert.ok(!parts.some((m) => m.id.startsWith('song-gwine') && m.part === 1));
   assert.ok(parts.some((m) => m.id.startsWith('song-auld-lang-syne') && m.part > 1));
 });
+
+import { touchRelease, TOUCH } from '../src/perform.js';
+
+test('the player’s touch: taps are short but ring a little, held keys sustain', () => {
+  const base = 0.16;
+  const tap = touchRelease(0.04, base), mid = touchRelease(0.3, base), held = touchRelease(1.2, base);
+  assert.ok(Math.abs(0.04 + tap.delay - TOUCH.minSound) < 1e-9, 'a quick tap still sounds a moment');
+  assert.ok(tap.tau > base, 'and rings a little past the bare release');
+  assert.equal(mid.delay, 0);
+  assert.ok(tap.tau < mid.tau && mid.tau < held.tau, 'longer presses ring longer');
+  assert.ok(held.tau >= base * 3, 'a held key sustains');
+  assert.deepEqual(touchRelease(5, base), held, 'no more than full sustain');
+});

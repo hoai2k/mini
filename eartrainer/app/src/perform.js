@@ -71,3 +71,31 @@ export function perform(notes, spb, { maxHold = MAX_HOLD } = {}) {
     return { midi: x.midi, on, off, velocity: Math.max(0.35, Math.min(0.95, v)) };
   });
 }
+
+// ---------------------------------------------------------------- the player's touch
+// How long a key was held says how it was meant: a quick tap is short and
+// detached (staccato) but still rings a little, a slightly held press lets the
+// note bloom a bit, and a held key sustains, with a longer tail when let go,
+// as if the pedal were half down.
+export const TOUCH = {
+  minSound: 0.16, // even the quickest tap sounds at least this long (seconds)
+  tap: 0.1, // held this long or less: a tap
+  held: 0.6, // held this long or more: full sustain
+  tapTail: 1.25, // release time constant for a tap, as a multiple of the instrument's
+  heldTail: 3.2, // and for a held key
+};
+
+/**
+ * The release for a key let go after `held` seconds, for an instrument whose
+ * own release time constant is `base`: { delay, tau } — wait `delay` seconds,
+ * then fade with time constant `tau`.
+ */
+export function touchRelease(held, base) {
+  const h = Math.max(0, held);
+  const x = Math.min(1, Math.max(0, (h - TOUCH.tap) / (TOUCH.held - TOUCH.tap)));
+  const ease = x * x * (3 - 2 * x); // gentle at both ends
+  return {
+    delay: Math.max(0, TOUCH.minSound - h),
+    tau: base * (TOUCH.tapTail + (TOUCH.heldTail - TOUCH.tapTail) * ease),
+  };
+}

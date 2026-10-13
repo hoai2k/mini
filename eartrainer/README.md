@@ -39,8 +39,15 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   bar-long notes are only waiting in ear training. It plays on its own channel about 7 dB under the player's keys
   (Settings → Melody volume), and keeps playing when you press keys, so you
   can play along.
+- Your keys follow your touch (`touchRelease` in `perform.js`). How long
+  you hold a key sets how it rings:
+  - a quick tap is short and crisp, but still sounds for at least 0.16 s and
+    rings a little;
+  - a press held a moment rings on a bit longer;
+  - a key held 0.6 s or more sustains and fades with a tail about 3× the
+    piano's own when let go, as if with half pedal.
 - **Repeat** plays the melody again; **Redo** starts your answer over from a
-  clean slate (wrong notes before it no longer count);
+  clean slate (wrong notes before it no longer count) and plays the melody again;
   **Practice** lets you try notes without answering; **Tempo** − / + runs
   from 0.5× to 1.5×; **Skip** moves on (and tells you what it was) and
   becomes **Next** once the melody is solved.

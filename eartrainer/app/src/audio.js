@@ -137,7 +137,8 @@ export function createAudio({ base = 'assets/samples/', context } = {}) {
     return v;
   }
 
-  function noteOff(v, when = 0) { if (v) stopVoice(v, Math.max(ctx.currentTime, when || ctx.currentTime)); }
+  /** Let a note go at `when`, fading with time constant `tau` (default: the instrument's). */
+  function noteOff(v, when = 0, tau = inst.release) { if (v) stopVoice(v, Math.max(ctx.currentTime, when || ctx.currentTime), tau); }
 
   function stopAll() { for (const v of voices) stopVoice(v, ctx.currentTime, 0.06); }
 
