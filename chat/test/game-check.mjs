@@ -3,6 +3,9 @@
 //   node chat/test/game-check.mjs                every game
 //   node chat/test/game-check.mjs hoops rps      just these
 //   node chat/test/game-check.mjs --n=3 hoops    with three players
+//   node chat/test/game-check.mjs --n=3 --late bowling
+//                                                the last seat joins mid-game
+//                                                (also pictured as game-<id>-late.png)
 // Pictures land in local/chat-shots/game-<id>.png.
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +18,7 @@ await mkdir(outDir, { recursive: true });
 const args = process.argv.slice(2);
 const nArg = args.find(a => a.startsWith('--n='));
 const n = nArg ? parseInt(nArg.slice(4), 10) : 2;
+const late = args.includes('--late') && n > 1;
 const { GAME_IDS } = await import('../games/index.js');
 const ids = args.filter(a => !a.startsWith('--')).length ? args.filter(a => !a.startsWith('--')) : GAME_IDS;
 
@@ -28,11 +32,16 @@ for (const id of ids) {
   page.on('console', m => {
     if (m.type() === 'error' && !/Failed to load resource|mediapipe|vision_wasm|TensorFlow Lite/i.test(m.text())) errors.push(m.text());
   });
-  await page.goto(`${server.url}/test/game.html?game=${id}&n=${n}&expr=0`);
+  await page.goto(`${server.url}/test/game.html?game=${id}&n=${n}&expr=0${late ? '&hold=1' : ''}`);
   await page.waitForFunction(() => window.ready === true, null, { timeout: 20000 });
   const loaded = await page.evaluate(() => window.loadedGames);
   if (!loaded.includes(id)) errors.push(`game ${id} did not load`);
   await page.waitForTimeout(3500);
+  if (late) {
+    await page.screenshot({ path: `${outDir}game-${id}.png` });
+    await page.evaluate(i => window.joinSeat(i), n - 1);
+    await page.waitForTimeout(3500);
+  }
   const seats = await page.evaluate(() => window.seats.map(s => ({
     open: !!s.gh.current,
     players: s.gh.current ? s.gh.current.api.players().length : 0,
@@ -43,7 +52,7 @@ for (const id of ids) {
     else if (s.players !== n) errors.push(`seat ${i + 1} sees ${s.players} players, expected ${n}`);
     if (s.open && !s.content) errors.push(`seat ${i + 1} game root is empty`);
   });
-  await page.screenshot({ path: `${outDir}game-${id}.png` });
+  await page.screenshot({ path: `${outDir}game-${id}${late ? '-late' : ''}.png` });
   if (errors.length) {
     failed++;
     console.log(`FAIL ${id}: ${errors.join(' | ')}`);
