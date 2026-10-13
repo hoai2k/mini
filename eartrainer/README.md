@@ -19,7 +19,8 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   button with a chevron that opens a visual dropdown of the songbooks (their
   pictures, blurbs and progress, three across), and the **difficulty**
   (Adaptive, or 1 Beginner to 5 Expert) beside it as another dropdown. Below,
-  what to do, as five big buttons: **Melody Challenges** (the songbook at the
+  what to do, as five cards in a two-column grid (the fifth across both; one
+  column on a narrow window): **Melody Challenges** (the songbook at the
   difficulty), **Free Play**, **Your Ears**, **Focus Mode** and **Full Songs**
   (both in the songbook). The dropdowns are dialogs, so a controller's A and
   B, Escape and a tap outside work in them; the songbook and difficulty are
