@@ -433,3 +433,10 @@ library-card art (`favicon-metronome-*`), and opaque ivory iOS/Android icons
 Art Deco icons. `design/image-deliveries-normal-icons.json` records the art
 and references. The Art Deco master and derivatives remain under
 `icon-art-deco-*` and `favicon-art-deco-*` for a future switch.
+
+Artwork for a future **Drone** feature (cello tones to play along with) is
+prepared in all eight themes: `assets/ui/home-drone.webp` for Classic and
+`assets/ui/<theme>/home-drone.webp` for the other themes.
+`design/drone-image-requests.md` and `design/image-deliveries-drone.json`
+record the prompts and exports. This artwork is not wired into the runtime
+asset list or UI; the Drone feature is not implemented.
