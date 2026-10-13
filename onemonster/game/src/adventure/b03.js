@@ -1658,6 +1658,8 @@ export default function create(env) {
     c.sizeK = SIZE;
     // Netted: inside the net.
     if (G.mode === 'netted') c.sizeK = SIZE * 0.8;
+    // A lunge straight up stretches the claws-up pose with the reach.
+    if (G.lunge && G.lunge.dy < -0.5 && moves()) c.sq = -0.35 * G.lunge.k;
     c.y = G.y + art.creatureSize(c).h / 2;
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
     // The V of his wake when he swims near the surface.
@@ -1691,8 +1693,14 @@ export default function create(env) {
 
   function drawClaw(g) {
     const Lg = G.lunge;
-    const ax = G.x + Lg.dx * 30, ay = G.y - 20;
+    let ax = G.x + Lg.dx * 30, ay = G.y - 20;
     const tx = Lg.tipX, ty = Lg.tipY;
+    if (Lg.dy < -0.5 && moves()) {
+      // The delivered claws-up pose shows the arms: draw only what reaches beyond it.
+      const top = G.y - art.creatureSize(G.c).h * (0.5 + 0.35 * Lg.k) + 30;
+      if (ty > top) return;
+      ax = G.x + 28; ay = top;
+    }
     const ang = Math.atan2(ty - ay, tx - ax);
     g.save();
     g.lineCap = 'round';
