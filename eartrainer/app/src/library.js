@@ -28,6 +28,7 @@ export const LEVELS = [
   { id: 'l3', name: '3 · Medium', short: 'Medium', range: [3, 3], blurb: 'Longer phrases, wider leaps' },
   { id: 'l4', name: '4 · Hard', short: 'Hard', range: [4, 4], blurb: 'Big leaps, some chromatic notes' },
   { id: 'l5', name: '5 · Expert', short: 'Expert', range: [5, 5], blurb: 'Long, leaping, chromatic lines' },
+  { id: 'focus', name: 'Focus', short: 'Focus', range: null, blurb: 'Works on what you find hardest, with drills' },
   { id: 'songs', name: 'Full songs', short: 'Full songs', range: null, songs: true, blurb: 'A whole song, phrase by phrase' },
 ];
 export const isSongs = (level) => level === 'songs';

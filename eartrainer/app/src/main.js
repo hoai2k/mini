@@ -6,11 +6,13 @@ import { createStaff } from './staff.js';
 import { noteName } from './music.js';
 import { perform, secondsPerBeat, MAX_HOLD, touchRelease } from './perform.js';
 import { createRound, press, redo, stars, points, starsForTry, pointsForTry } from './round.js';
-import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, rate, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
+import { SONG_LISTS, buildLibrary, buildSongs, inBook, transpose, randomShift, pickNext, pickSong, isSongs, countAt, SONGBOOKS, LEVELS, LEVEL_ALIASES } from './library.js';
 import { createChrome, requestFullscreen, wantFullscreen, exitFullscreen, fullscreenElement, preventZoom, onFullscreenFail } from './chrome.js';
 import { createGamepads, BTN } from './gamepad.js';
 import { createFx } from './fx.js';
 import { loadState, saveState, DEFAULTS } from './store.js';
+import { SKILLS, SKILL, INTERVALS, judge, record, emptyEars, accuracy, weakSkills, levelOf, overallLevel, topConfusions, describeConfusion } from './skills.js';
+import { pickAdaptive, newFocus, nextFocus, afterFocus } from './coach.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -22,6 +24,11 @@ const { settings, progress } = state;
 const save = () => saveState(state);
 progress.level = LEVEL_ALIASES[progress.level] || progress.level;
 const LIB = buildLibrary();
+// The skill profile (skills.js): what each melody asks, and how the player's first presses went.
+if (!progress.ears) progress.ears = emptyEars(progress.rating || 1);
+const ears = progress.ears;
+const skillName = (id) => (SKILL[id] ? SKILL[id].name.toLowerCase() : id);
+const DRILL_NAMES = Object.fromEntries(SKILLS.map((s) => [s.id, s.id.startsWith('int') ? INTERVALS[s.semis] : skillName(s.id)]));
 
 const S = {
   mode: 'title',
@@ -139,7 +146,7 @@ function renderBooks() {
     const b = document.createElement('button');
     b.className = 'chip'; b.setAttribute('role', 'radio'); b.dataset.focus = '';
     b.setAttribute('aria-checked', String(progress.level === l.id));
-    b.textContent = l.id === 'adaptive' ? `Adaptive · ${progress.rating.toFixed(1)}` : l.name;
+    b.textContent = l.id === 'adaptive' ? `Adaptive · ${overallLevel(ears).toFixed(1)}` : l.name;
     if (l.blurb) b.title = l.blurb;
     b.addEventListener('click', () => { progress.level = l.id; save(); renderBooks(); focusEl($(`#levels [data-level="${l.id}"]`)); });
     b.dataset.level = l.id;
@@ -220,6 +227,7 @@ function toTitle() { closeAllDialogs(); stopPlayback(); kbd.releaseAll(); show('
 
 // ---------------------------------------------------------------- a round
 function nextMelody() {
+  judgeRun();
   cancelAuto();
   clearTimeout(retryT); retryT = 0;
   S.retry = false;
@@ -240,12 +248,26 @@ function nextMelody() {
     S.melody = transpose(S.song.song.phrases[S.song.index], S.song.shift);
   } else {
     S.song = null;
-    const pool = inBook(LIB, progress.book);
-    const m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
+    let pool = inBook(LIB, progress.book);
+    let m;
+    S.pick = null;
+    if (progress.level === 'focus') {
+      // Focus: the coach picks (coach.js). A songbook too small for the skill borrows from the whole library.
+      if (!ears.focus) ears.focus = newFocus();
+      if (pool.length < 60) pool = LIB;
+      S.pick = nextFocus(pool, ears, ears.focus, { best: progress.best, recent: S.recent, names: DRILL_NAMES });
+      m = S.pick.melody;
+    } else if (progress.level === 'adaptive') {
+      m = pickAdaptive(pool, ears, { best: progress.best, recent: S.recent }).melody;
+    } else {
+      m = pickNext(pool, { level: progress.level, rating: progress.rating, best: progress.best, recent: S.recent });
+    }
     if (!m) return;
     S.recent = [m.id, ...S.recent.filter((x) => x !== m.id)].slice(0, Math.min(25, Math.floor(pool.length / 2)));
-    S.melody = transpose(m, settings.key === 'random' ? randomShift() : 0);
+    S.melody = transpose(m, settings.key === 'random' && !m.drill ? randomShift() : 0);
   }
+  S.first = {};
+  S.judged = false;
   S.round = createRound(S.melody.notes);
   S.replay = false;
   S.solvedShown = false;
@@ -254,11 +276,11 @@ function nextMelody() {
   kbd.showRange(S.melody.lo, S.melody.hi, true);
   nav.setRange(S.melody.lo, S.melody.hi);
   if (kbd.cursor != null && !kbd.visible(kbd.cursor)) kbd.setCursor(null);
-  staff.set(S.melody.notes, S.melody.shift !== 0);
+  staff.set(S.melody.notes, S.melody.shift !== 0 || !!S.melody.drill);
   syncStaff();
   syncMarker();
   syncHud();
-  setPrompt(S.song ? (S.song.index ? `Phrase ${S.song.index + 1} of ${S.song.song.phrases.length}: listen…` : 'A new song. Listen…') : 'Listen…', true);
+  setPrompt(S.song ? (S.song.index ? `Phrase ${S.song.index + 1} of ${S.song.song.phrases.length}: listen…` : 'A new song. Listen…') : S.pick ? focusPrompt() : 'Listen…', true);
   setTimeout(() => { if (S.round && S.round.notes === S.melody.notes && !dialogs.length) playMelody(); }, 650);
 }
 
@@ -295,6 +317,11 @@ function syncHud() {
   const st = $('#hud-streak'); st.hidden = progress.streak < 2; st.querySelector('span').textContent = progress.streak;
   const lv = S.melody ? LEVELS.find((l) => l.range && l.range[0] === S.melody.level) : null;
   if (S.song) $('#hud-level').textContent = `Full song · phrase ${S.song.index + 1} of ${S.song.song.phrases.length}`;
+  else if (S.pick && progress.level === 'focus') {
+    const p = S.pick;
+    $('#hud-level').textContent = p.kind === 'drill' ? `Focus · ${DRILL_NAMES[p.skill]} · drill step ${S.melody.drillLevel} of 4`
+      : `Focus · ${p.skill && ['test', 'check', 'review'].includes(p.kind) ? `${skillName(p.skill)} · ` : ''}${FOCUS_KIND[p.kind]}`;
+  }
   else $('#hud-level').textContent = lv ? `Level ${lv.name}${progress.level === 'adaptive' ? ' · Adaptive' : ''}` : '';
 }
 function setPrompt(text, listening = false, wrong = false) {
@@ -372,6 +399,8 @@ function keyDown(midi, source) {
     if (r?.done && S.solvedShown && $('#btn-skip').classList.contains('counting')) scheduleAuto(); // still playing: wait a little longer
     return;
   }
+  // The first key pressed at each note is what the player heard (skills.js judges it).
+  if (S.attempt === 1 && !S.replay && r.pos > 0 && S.first && S.first[r.pos] === undefined) S.first[r.pos] = midi;
   const before = r.mistakes;
   const result = press(r, midi, { freeFirst: settings.first });
   if (result === 'wrong') {
@@ -415,6 +444,7 @@ function sparkOn(midi) {
 function solved() {
   const r = S.round, m = S.melody;
   const n = r.notes.length;
+  judgeRun();
   if (r.mistakes > 0 && settings.retry && !S.replay) {
     S.awaitingRetry = true;
     S.retry = true;
@@ -433,9 +463,8 @@ function solved() {
     progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
     progress.score += gain;
     if (S.song) S.song.stars.push(st);
-    else progress.best[m.id] = Math.max(progress.best[m.id] || 0, st);
+    else if (!m.drill) progress.best[m.id] = Math.max(progress.best[m.id] || 0, st);
     progress.solved++;
-    if (progress.level === 'adaptive') progress.rating = rate(progress.rating, st);
     save();
   }
   S.solvedShown = true;
@@ -466,6 +495,36 @@ function solved() {
   syncHud();
   S.retry = false;
   scheduleAuto();
+}
+
+// ---------------------------------------------------------------- the player's ears
+// Once per melody (its first try), the first presses go into the skill
+// profile; in Focus the coach hears how it went.
+function judgeRun() {
+  if (S.judged || !S.melody || S.free || !S.first) return;
+  S.judged = true;
+  const m = S.melody;
+  if (!Object.keys(S.first).length) return;
+  const judged = judge({ ...m, parsed: m.notes }, S.first, { speed: settings.speed });
+  const scores = record(ears, m, judged);
+  progress.rating = overallLevel(ears);
+  if (S.pick && progress.level === 'focus') {
+    const ev = afterFocus(ears.focus, ears, S.pick, m, scores);
+    const name = ev && skillName(ev.skill);
+    if (ev?.type === 'turnaround') toast(`Turned around: ${name}. Clean on a new melody after the drills.`);
+    else if (ev?.type === 'fixed') toast(`${name[0].toUpperCase()}${name.slice(1)}: reliable now. On to the next thing.`);
+    else if (ev?.type === 'rest') toast(`Enough ${name} for now. We'll come back to them.`);
+  }
+  save();
+}
+const FOCUS_KIND = { test: 'test', check: 'check', drill: 'drill', mix: 'something different', review: 'review', explore: 'looking for something to work on' };
+function focusPrompt() {
+  const p = S.pick;
+  if (!p) return 'Listen…';
+  if (p.kind === 'drill') return `Drill: ${DRILL_NAMES[p.skill]}. Listen…`;
+  if (p.kind === 'test' || p.kind === 'check') return `Focus on ${skillName(p.skill)}. Listen…`;
+  if (p.kind === 'review') return `A look back at ${skillName(p.skill)}. Listen…`;
+  return 'Listen…';
 }
 
 // The last phrase of a song: the song's stars are the average of its phrases'.
@@ -553,6 +612,7 @@ function syncPractice() {
 }
 function doNext() {
   if (!S.round) return;
+  judgeRun(); // a skip still tells us what was heard so far
   // Moving on before a clean run is a skip: no stars, and the streak ends.
   if (!S.solvedShown && !S.free) {
     progress.streak = 0;
@@ -562,9 +622,8 @@ function doNext() {
       progress.best[S.song.song.id] = Math.max(progress.best[S.song.song.id] || 0, 0);
       S.song = null;
     } else {
-      toast(`Skipped: ${S.melody.title}`);
-      progress.best[S.melody.id] = Math.max(progress.best[S.melody.id] || 0, 0);
-      if (progress.level === 'adaptive') progress.rating = rate(progress.rating, 1);
+      toast(S.melody.drill ? 'Skipped the drill' : `Skipped: ${S.melody.title}`);
+      if (!S.melody.drill) progress.best[S.melody.id] = Math.max(progress.best[S.melody.id] || 0, 0);
     }
     save();
   }
@@ -619,6 +678,49 @@ $('#btn-fullscreen').addEventListener('click', () => {
 });
 $('#books-back').addEventListener('click', toTitle);
 
+// ---------------------------------------------------------------- Your ears
+// What the profile has found: each skill's recent accuracy and level, the
+// mix-ups that keep coming up, and what Focus has turned around.
+function openEars() {
+  const now = Date.now();
+  const body = $('#ears-body');
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const weak = weakSkills(ears, now);
+  const weakIds = new Set(weak.slice(0, 3).map((w) => w.id));
+  const f = ears.focus;
+  let html = '';
+  const played = Object.values(ears.skills).some((x) => x.h.length);
+  if (!played) {
+    html += '<p class="ears-now">Play a few melodies and this fills in: which intervals you hear surely, which you mix up, and what to work on.</p>';
+  } else {
+    html += `<p class="ears-now">${weak.length ? `To work on: ${weak.slice(0, 3).map((w) => esc(skillName(w.id))).join(', ')}.` : 'Nothing stands out as hard right now. Nice ears.'}${f?.skill ? ` Focus is on ${esc(skillName(f.skill))}${f.stage === 'drill' ? ` (drill step ${f.drill} of 4)` : f.stage === 'check' ? ' (checking it)' : ''}.` : ''}</p>`;
+  }
+  let group = '';
+  for (const s of SKILLS) {
+    if (s.group !== group) { group = s.group; html += `<h3 class="ears-group">${esc(group)}</h3>`; }
+    const { acc, evidence } = accuracy(ears, s.id, now);
+    const cls = weakIds.has(s.id) ? 'weak' : evidence < 0.7 ? 'thin' : '';
+    const pct = Math.round(acc * 100);
+    html += `<div class="ears-row ${cls}" title="${evidence < 0.7 ? 'Not heard much lately' : `${pct}% right first time, lately`}"><span class="nm">${esc(s.name)}</span><span class="bar"><i style="width:${pct}%"></i></span><span class="lv">${evidence < 0.7 ? '—' : `${pct}% · L${levelOf(ears, s.id).toFixed(1)}`}</span></div>`;
+  }
+  const conf = topConfusions(ears, now).filter((c) => c.weight > 0.3);
+  if (conf.length) {
+    html += '<h3 class="ears-group">Mix-ups lately</h3><ul class="ears-list">';
+    for (const c of conf) html += `<li>${esc(describeConfusion(c))}</li>`;
+    html += '</ul>';
+  }
+  const turns = ears.turns.slice(-6).reverse();
+  if (turns.length) {
+    html += `<h3 class="ears-group">Turned around in Focus (${ears.turns.length})</h3><ul class="ears-list">`;
+    for (const t of turns) html += `<li>${esc(skillName(t.skill)[0].toUpperCase() + skillName(t.skill).slice(1))}: slipped, ${t.drills} drill${t.drills === 1 ? '' : 's'}, then clean on a different melody</li>`;
+    html += '</ul>';
+  }
+  html += '<p class="ears-note">Only your first press at each note counts, and recent play counts most: get something right today and yesterday\'s slips fade. The % is how often you hear it right first time lately; L is the level of melody you hear it reliably in. Adaptive and Focus both use this.</p>';
+  body.innerHTML = html;
+  openDialog($('#ears'));
+}
+$('#btn-ears').addEventListener('click', openEars);
+
 // ---------------------------------------------------------------- dialogs
 const dialogs = []; // { el, returnFocus }
 function openDialog(el) {
@@ -657,6 +759,7 @@ $$('#pause [data-act]').forEach((b) => b.addEventListener('click', () => {
   const a = b.dataset.act;
   if (a === 'resume') closeDialog();
   if (a === 'instructions') openDialog($('#instructions'));
+  if (a === 'ears') openEars();
   if (a === 'settings') openDialog($('#settings'));
   if (a === 'books') { closeAllDialogs(); openBooks(); }
   if (a === 'title') toTitle();
@@ -708,6 +811,9 @@ syncStaffSetting();
 $('#set-vibrate').addEventListener('change', (e) => { settings.vibrate = e.target.checked; save(); });
 $('#set-reset').addEventListener('click', () => confirmBox('Reset your score, stars and level? Settings stay.', () => {
   Object.assign(progress, structuredClone(DEFAULTS.progress), { book: progress.book, level: progress.level });
+  for (const k of Object.keys(ears)) delete ears[k];
+  Object.assign(ears, emptyEars(1));
+  progress.ears = ears;
   save(); syncHud(); toast('Progress reset');
 }));
 
@@ -889,4 +995,4 @@ function announce(text) {
 show('title');
 if (!TOUCH) focusEl($('#start'), false);
 // For the browser checks.
-window.__eartrainer = { S, LIB, progress, settings, audio, kbd };
+window.__eartrainer = { S, LIB, progress, settings, audio, kbd, press: (m) => { keyDown(m); keyUp(m); } };
