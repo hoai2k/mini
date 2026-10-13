@@ -52,15 +52,22 @@
     <section id="modes" class="screen" hidden aria-labelledby="modes-title">
       <div class="menu-col">
         <h2 id="modes-title">How shall we play?</h2>
-        <button class="menu-btn primary" data-nav data-action="journey-1">The Journey <small>every snatch in the book, one after another</small></button>
+        <button class="menu-btn primary" data-nav data-action="adventure-1">The Adventure <small>follow the letter across nine boards, a different monster on each</small></button>
         <div class="row-buttons players">
           <span class="muted">Taking turns:</span>
-          <button class="menu-btn" data-nav data-action="journey-2">2 players</button>
+          <button class="menu-btn" data-nav data-action="adventure-2" aria-label="2 players">2</button>
+          <button class="menu-btn" data-nav data-action="adventure-3">3</button>
+          <button class="menu-btn" data-nav data-action="adventure-4">4</button>
+        </div>
+        <button class="menu-btn" data-nav data-action="journey-1">The Minigame Journey <small>every snatch in the book as a quick minigame</small></button>
+        <div class="row-buttons players">
+          <span class="muted">Taking turns:</span>
+          <button class="menu-btn" data-nav data-action="journey-2" aria-label="2 players">2</button>
           <button class="menu-btn" data-nav data-action="journey-3">3</button>
           <button class="menu-btn" data-nav data-action="journey-4">4</button>
         </div>
         <button class="menu-btn" data-nav data-action="versus">Snatch &amp; Keep <small>two players head to head: one snatches, one keeps</small></button>
-        <button class="menu-btn" data-nav data-action="chapters">One Monster <small>play any chapter you have reached</small></button>
+        <button class="menu-btn" data-nav data-action="chapters">One Monster <small>play any board or minigame you have reached</small></button>
         <button class="text-btn" data-nav data-action="title">Back</button>
       </div>
     </section>
@@ -86,7 +93,7 @@
 
     <!-- One Monster: the chapters -->
     <section id="chapters" class="screen" hidden aria-labelledby="chapters-title">
-      <header class="screen-head"><h2 id="chapters-title">One Monster</h2><p class="muted" id="chapters-sub">Play any snatch you have reached.</p></header>
+      <header class="screen-head"><h2 id="chapters-title">One Monster</h2><p class="muted" id="chapters-sub">Play any board or minigame you have reached.</p></header>
       <div id="chapter-cards" class="cards"></div>
       <footer class="screen-foot">
         <button class="text-btn" data-nav data-action="modes">Back</button>
@@ -113,13 +120,32 @@
             <p class="card-wants" id="card-wants"></p>
             <p class="card-turn" id="card-turn"></p>
             <p id="card-goal"></p>
-            <ul id="card-controls" class="controls-list"></ul>
-            <div id="card-holder" hidden><p class="card-holder-goal" id="card-holder-goal"></p><ul id="card-holder-controls" class="controls-list"></ul></div>
           </div>
         </div>
         <div class="row-buttons">
-          <button class="menu-btn primary" data-nav data-action="begin" id="card-go">Snatch it!</button>
+          <button class="menu-btn primary" data-nav data-action="howto" id="card-go">How to play ▸</button>
           <button class="menu-btn" data-nav data-action="quit-ask">Leave the journey</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- How to play: three illustrated steps and the controls, as a page of the book -->
+    <section id="howto" class="screen" hidden aria-labelledby="howto-title">
+      <div class="howto-page">
+        <h2 id="howto-title">How to play</h2>
+        <div class="howto-steps" id="howto-steps">
+          <figure class="howto-step"><canvas width="640" height="480"></canvas><figcaption><span class="howto-n">1</span><span class="howto-text"></span></figcaption></figure>
+          <figure class="howto-step"><canvas width="640" height="480"></canvas><figcaption><span class="howto-n">2</span><span class="howto-text"></span></figcaption></figure>
+          <figure class="howto-step"><canvas width="640" height="480"></canvas><figcaption><span class="howto-n">3</span><span class="howto-text"></span></figcaption></figure>
+        </div>
+        <div class="howto-controls">
+          <div class="howto-side" id="howto-side-0"><h3 class="howto-who"></h3><p class="howto-goal"></p><ul class="howto-keys"></ul></div>
+          <div class="howto-side" id="howto-side-1" hidden><h3 class="howto-who"></h3><p class="howto-goal"></p><ul class="howto-keys"></ul></div>
+        </div>
+        <p class="howto-marks" id="howto-marks"></p>
+        <div class="row-buttons">
+          <button class="menu-btn primary" data-nav data-action="begin" id="howto-go">Snatch it!</button>
+          <button class="menu-btn" data-nav data-action="howto-back">Back</button>
         </div>
       </div>
     </section>

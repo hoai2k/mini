@@ -180,7 +180,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .menu-col h2 { text-align: center; font-size: clamp(1.6rem, 3.6vw, 2.4rem); margin-bottom: 8px; }
 .menu-btn small { display: block; font: 0.85rem var(--sans); opacity: 0.8; font-weight: 400; }
 .players { align-items: center; margin: 0 0 8px; }
-.players .menu-btn { flex: 0 1 auto; padding: 6px 14px; }
+.players .menu-btn { flex: 0 1 auto; padding: 6px 14px; min-width: 52px; }
+.players { flex-wrap: nowrap; }
+.players .muted { white-space: nowrap; }
 .join-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 .join-slot { border: 2px dashed var(--muted); border-radius: 14px; padding: 10px; text-align: center; }
 .join-slot.ready { border-style: solid; border-color: var(--accent); background: #f6ecf4; }
@@ -196,10 +198,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .screen-foot { display: flex; justify-content: center; gap: 12px; margin-top: auto; padding-top: 10px; }
 .cards {
   flex: 1 1 0; min-height: 0;
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr);
-  gap: 12px; max-width: 1300px; width: 100%; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: auto;
+  gap: 12px; max-width: 1300px; width: 100%; margin: 0 auto; overflow-y: auto; align-content: start;
 }
-@media (max-width: 760px), (max-aspect-ratio: 1/1) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; grid-auto-rows: 220px; } }
+.cards .cards-shelf { grid-column: 1 / -1; justify-self: start; margin: 6px 0 -2px; padding: 2px 14px; border-radius: 10px; background: rgba(251, 245, 230, 0.92); font: 800 clamp(1.1rem, 2.2vw, 1.5rem) var(--serif); }
+.cards .chapter-card { min-height: clamp(130px, 21vh, 230px); }
+@media (max-width: 760px), (max-aspect-ratio: 1/1) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; } .cards .chapter-card { min-height: 200px; } }
 .chapter-card {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
   padding: 6px; background: #fbf5e6 center 30% / contain no-repeat; box-shadow: 2px 3px 0 rgba(51, 36, 26, 0.25); min-height: 0;
@@ -373,8 +377,53 @@ html, body { overscroll-behavior: none; touch-action: manipulation; }
   .story-text { font-size: 0.98rem; }
   .story-text::first-letter { font-size: 2.6em; }
   .icon-btn { width: 48px; height: 48px; }
-  .cards { grid-auto-rows: minmax(110px, 1fr); overflow-y: auto; }
+  .cards { overflow-y: auto; }
+  .cards .chapter-card { min-height: 110px; }
 }
 @media (max-height: 520px) and (max-width: 900px), (max-height: 520px) and (max-aspect-ratio: 4/3) {
   .card-panel, .cel-panel { width: 100%; }
 }
+
+/* ---------- how to play: a page of the book ---------- */
+
+#howto { align-items: center; justify-content: center; }
+.howto-page {
+  width: min(1240px, 96%, 150vh); max-height: 100%; overflow: auto;
+  background: #fbf6e8; border: 2.5px solid var(--ink); border-radius: 6px;
+  padding: 14px 26px 16px; box-shadow: 4px 6px 0 rgba(51, 36, 26, 0.3);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.howto-page h2 { text-align: center; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.howto-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.howto-steps[hidden] { display: none; }
+.howto-step { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.howto-step canvas { width: 100%; height: auto; aspect-ratio: 4 / 3; display: block; border: 1.5px solid var(--ink); background: #f3e9d2; }
+.howto-step figcaption { display: flex; gap: 8px; align-items: baseline; font: 500 clamp(0.95rem, 1.5vw, 1.15rem)/1.3 var(--serif); }
+.howto-n { flex: 0 0 auto; font: 800 1.9em/0.9 var(--serif); color: var(--brick, #b3402e); }
+.howto-controls { display: flex; gap: 22px; border-top: 1.5px solid var(--ink); padding-top: 10px; }
+.howto-side { flex: 1 1 0; min-width: 0; }
+.howto-who { font-size: 1.15rem; margin-bottom: 2px; }
+.howto-goal { margin: 0 0 6px; font: italic 500 1rem/1.35 var(--serif); }
+.howto-keys { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 5px; }
+.howto-keys li { display: flex; gap: 10px; align-items: center; font-size: 0.98rem; }
+.howto-keys .glyph { flex: 0 0 auto; min-width: 150px; display: inline-flex; gap: 4px; justify-content: flex-end; align-items: center; font-weight: 700; }
+.howto-keys .glyph .chip { border: 1.5px solid var(--ink); border-radius: 999px; padding: 0 9px; font: 700 0.82em var(--sans); background: #f3e9d2; white-space: nowrap; }
+.howto-keys .glyph .xb { width: 1.7em; height: 1.7em; font-size: 0.9em; }
+.howto-marks { margin: 0; text-align: center; color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 760px), (max-aspect-ratio: 1/1) {
+  .howto-page { padding: 10px 14px; }
+  .howto-steps { grid-template-columns: 1fr; gap: 10px; }
+  .howto-step { flex-direction: row; align-items: center; }
+  .howto-step canvas { width: 46%; flex: 0 0 auto; }
+  .howto-controls { flex-direction: column; gap: 8px; }
+}
+@media (max-height: 520px) {
+  .howto-page { padding: 6px 14px; gap: 4px; }
+  .howto-page h2 { font-size: 1.2rem; }
+  .howto-steps { gap: 10px; }
+  .howto-step figcaption { font-size: 0.85rem; }
+  .howto-keys li { font-size: 0.85rem; }
+  .howto-goal { font-size: 0.9rem; margin-bottom: 2px; }
+}
+.howto-page > .row-buttons { position: sticky; bottom: -16px; margin: 0 -26px -16px; padding: 8px 26px 12px; background: #fbf6e8; border-top: 1.5px solid rgba(51, 36, 26, 0.25); }
+@media (max-height: 520px) { .howto-page > .row-buttons { bottom: -6px; margin: 0 -14px -6px; padding: 6px 14px 8px; } }

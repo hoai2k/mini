@@ -63,7 +63,7 @@ export function drawSprite(g, sp, x, y, { height, scale, ax = 0.5, ay = 1, flip 
 
 // ---------- creatures ----------
 
-const ANCHOR = { bombanat: 0.55, typhoonigator: 0.5 }; // flyers hang from their middle
+const ANCHOR = { bombanat: 0.55, bombanatPlain: 0.55, typhoonigator: 0.5 }; // flyers hang from their middle
 
 export function makeCreature(id, x = 0, y = 0) {
   const M = MONSTERS[id];
@@ -101,24 +101,81 @@ function poseFrame(c) {
   return { A, pose: A.frames[i] };
 }
 
-function poseSprite(c, pose) {
-  if (c.M.poses[pose]) return sprite(`${c.id}.poses`, c.M.poses[pose]);
+// A creature's key-poses sheet: '<id>.poses', or the monster's own `sheet`
+// (the plain Bombanats use 'bombanat.plain').
+const poseSheet = (c) => c.M.sheet || `${c.id}.poses`;
+
+// An extra pose (not from the key-poses sheet) is [sheet, item, height on
+// screen, fallback pose]; until its sheet is delivered the fallback is drawn.
+function extraSprite(c, pose) {
   const ex = c.M.extras?.[pose];
   return ex ? sprite(ex[0], ex[1]) : null;
+}
+
+function poseSprite(c, pose) {
+  if (c.M.poses[pose]) return sprite(poseSheet(c), c.M.poses[pose]);
+  const ex = c.M.extras?.[pose];
+  if (!ex) return null;
+  return extraSprite(c, pose) || (ex[3] && c.M.poses[ex[3]] ? sprite(poseSheet(c), c.M.poses[ex[3]]) : null);
 }
 
 // An extra piece (not from the pose sheet) has its own height on screen.
 function extraScale(c, pose, sp) {
   const ex = c.M.extras?.[pose];
-  return ex && sp ? (ex[2] / sp.h) * c.sizeK : null;
+  const own = ex && sp ? extraSprite(c, pose) : null;
+  if (!own || own.img !== sp.img) return null;
+  if (ex[2]) return (ex[2] / sp.h) * c.sizeK;
+  // Drawn at the scale of the key poses: undo the two sheets' web scales.
+  const a = SPRITES.sheets[poseSheet(c)]?.scale || 1;
+  const b = SPRITES.sheets[ex[0]]?.scale || 1;
+  return baseScale(c) * (b ? a / b : 1);
 }
 
 // Scale that makes this creature's idle pose stand c.M.height tall (times sizeK).
 function baseScale(c) {
   const first = Object.values(c.M.poses)[0];
-  const it = SPRITES.sheets[`${c.id}.poses`]?.items[first - 1];
+  const it = SPRITES.sheets[poseSheet(c)]?.items[first - 1];
   return it ? (c.M.height / it.h) * c.sizeK : c.sizeK;
 }
+
+// Where a pose stands. Each pose is trimmed to its own bounding box, so an arm
+// flung out moves the box's middle: anchoring every pose at its middle makes
+// the creature hop sideways when the pose changes. Instead each pose is
+// anchored at its body: the middle of its feet (the bottom rows of the
+// drawing) for walkers, the middle of the whole drawing for fliers, measured
+// once from the image's alpha.
+const bodyX = new WeakMap(); // img -> { feet, mass } as 0..1 of the width
+function anchorX(sp, feet) {
+  let m = bodyX.get(sp.img);
+  if (m === undefined) {
+    m = null;
+    try {
+      const w = 64, h = Math.max(8, Math.round((64 * sp.h) / sp.w));
+      const cv = typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+      const cg = cv.getContext('2d', { willReadFrequently: true });
+      cg.drawImage(sp.img, 0, 0, w, h);
+      const d = cg.getImageData(0, 0, w, h).data;
+      let fx = 0, fn = 0, mx = 0, mn = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const a = d[(y * w + x) * 4 + 3];
+        if (a < 60) continue;
+        mx += x; mn++;
+        if (y >= h * 0.72) { fx += x; fn++; }
+      }
+      if (mn) m = { feet: fn ? (fx / fn + 0.5) / w : (mx / mn + 0.5) / w, mass: (mx / mn + 0.5) / w };
+    } catch { m = null; }
+    bodyX.set(sp.img, m);
+  }
+  if (!m) return 0.5;
+  // Stay near the middle: a pose drawn mid-stride is anchored partway.
+  return 0.5 + ((feet ? m.feet : m.mass) - 0.5) * 0.85;
+}
+
+// A smooth tremble for shaking poses (struggling, huffing): a random jolt
+// every frame reads as flicker, so this sways a few times a second instead.
+const tremble = (t, seed) => Math.sin(t * 31 + seed) * 0.6 + Math.sin(t * 17.3 + seed * 2) * 0.4;
+
+const FADE = 0.08; // seconds a pose change blends over
 
 // Draw at (c.x, c.y - c.z): feet (or middle, for flyers) at that point.
 export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true } = {}) {
@@ -126,10 +183,11 @@ export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true 
   const sp = poseSprite(c, pose);
   const k = extraScale(c, pose, sp) ?? baseScale(c);
   const ay = A.spin && c.M.extras?.[pose] ? 0.5 : ANCHOR[c.id] ?? 1;
+  const ax = sp && !A.spin ? anchorX(sp, ay === 1) : 0.5;
   let x = c.x, y = c.y - c.z;
   const bob = A.bob && !reduceMotion ? Math.sin(t * 3.1 + c.x * 0.01) * A.bob : 0;
   const hop = A.hop && !reduceMotion ? -Math.abs(Math.sin(c.animT * 7)) * A.hop : 0;
-  const shake = A.shake && !reduceMotion ? (Math.random() - 0.5) * A.shake * 2 : 0;
+  const shake = A.shake && !reduceMotion ? tremble(t, c.x * 0.01) * A.shake : 0;
   const sq = reduceMotion ? c.sq * 0.4 : c.sq;
   const rot = c.lean + c.rot + (A.spin ? c.animT * 9 : 0);
   if (shadow && c.z >= 0) {
@@ -142,10 +200,24 @@ export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true 
     g.restore();
   }
   if (sp) {
-    drawSprite(g, sp, x + shake, y + hop, { scale: k, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob), alpha: c.alpha });
+    const o = { scale: k, ax, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob) };
+    // Blend from the last pose for a moment, so a change of pose doesn't pop.
+    if (c.drawnImg !== sp.img) {
+      if (c.drawnImg && !reduceMotion) c.fade = { sp: c.drawnSp, o: c.drawnO, t: FADE };
+      c.drawnImg = sp.img;
+    }
+    c.drawnSp = sp;
+    c.drawnO = o;
+    const f = c.fade;
+    if (f && f.t > 0) {
+      const a = f.t / FADE;
+      f.t -= 1 / 60;
+      drawSprite(g, f.sp, x + shake, y + hop, { ...f.o, alpha: c.alpha * a });
+      drawSprite(g, sp, x + shake, y + hop, { ...o, alpha: c.alpha * Math.min(1, 1.15 - a * 0.6) });
+    } else drawSprite(g, sp, x + shake, y + hop, { ...o, alpha: c.alpha });
     if (c.flash > 0) {
       g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = c.flash * 0.35;
-      drawSprite(g, sp, x + shake, y + hop, { scale: k, ay, flip: c.facing < 0, rot, sx: 1 + sq * 0.5, sy: (1 - sq) * (1 + bob) });
+      drawSprite(g, sp, x + shake, y + hop, o);
       g.restore();
     }
   } else {
@@ -157,11 +229,11 @@ export function drawCreature(g, c, t = 0, { reduceMotion = false, shadow = true 
 export function creatureSize(c) {
   const { pose } = poseFrame(c);
   const sp = poseSprite(c, pose);
-  const k = baseScale(c);
+  const k = extraScale(c, pose, sp) ?? baseScale(c);
   return sp ? { w: sp.w * k, h: sp.h * k } : { w: c.M.height * 0.8, h: c.M.height };
 }
 
-const STAND_IN = { trollusk: '#6b4a32', bombanat: '#9a7fa6', grumley: '#c4913a', iceferg: '#dfe2f0', typhoonigator: '#a69aa8', yalapappus: '#d0b24a', grithix: '#d59bb4' };
+const STAND_IN = { trollusk: '#6b4a32', bombanat: '#9a7fa6', bombanatPlain: '#8e8a92', grumley: '#c4913a', iceferg: '#dfe2f0', typhoonigator: '#a69aa8', yalapappus: '#d0b24a', grithix: '#d59bb4' };
 
 function standIn(g, c, x, y, k, ay) {
   const h = c.M.height * c.sizeK;

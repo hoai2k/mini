@@ -111,3 +111,27 @@ test('chapter 6 versus: Action drops the front of the queue', () => {
   assert.equal(ch.items[0].kind, first);
   assert.ok(ch.items[0].y < GY);
 });
+
+test('chapter 6: the autopilot snatches with time to spare on most seeds', async () => {
+  const { autopilot } = await import('../src/chapters/ch06.js');
+  let good = 0;
+  for (let seed = 1; seed <= 10; seed++) {
+    const ch = run(makeEnv({ seed, skill: 0.6 }), (c) => () => autopilot(c));
+    if (ch.outcome === 'snatched' && ch.time >= 15 && ch.marks()[0] >= 2) good++;
+  }
+  assert.ok(good >= 8, `good ${good}/10`);
+});
+
+test('chapter 6: the computer never tosses the bottle while he is dazed (unless forced)', () => {
+  for (let seed = 1; seed <= 8; seed++) {
+    const ch = create(makeEnv({ seed, skill: 0.9 }));
+    let t = 0;
+    while (!ch.done && t < 120) {
+      const before = ch.items.some((i) => i.kind === 'bottle');
+      ch.update(DT, idle, null);
+      const now = ch.items.some((i) => i.kind === 'bottle');
+      if (now && !before && ch.time > 9.05) assert.notEqual(ch.yal.mode, 'dazed', `seed ${seed} at ${ch.time}`);
+      t += DT;
+    }
+  }
+});

@@ -40,7 +40,7 @@ export const MONSTERS = {
       swoop: { frames: ['swoop'] },
       snap: { frames: ['snap'] },
       land: { frames: ['land'] },
-      stall: { frames: ['stall', 'flapUp'], fps: 14 },
+      stall: { frames: ['stall'], shake: 3 },
       walk: { frames: ['walkA', 'walkB'], stride: 50 },
       perched: { frames: ['perched'] },
       grabbed: { frames: ['grabbed'], shake: 4 },
@@ -147,6 +147,71 @@ export const MONSTERS = {
       eye: { frames: ['eye'] },
       celebrate: { frames: ['celebrate'], bob: 0.03 },
     },
+  },
+};
+
+// The Adventure's new poses (design/adventure.md; requests OM-A01..07), on each
+// monster's moves sheet, drawn at the same scale as its key poses. Each is
+// [name, fallback key pose drawn until the sheet arrives, animation options].
+// They become extras (see art.js) and single-pose animations of the same name;
+// boards may build their own cycles from them too.
+const MOVES = {
+  trollusk: [
+    ['crouch', 'duck'], ['jump', 'reach'], ['fall', 'runB'], ['landSquash', 'duck'], ['hang', 'reach', { shake: 1 }],
+    ['climb', 'reach'], ['slide', 'duck'], ['tumble', 'scuttle', { shake: 3 }], ['balance', 'sneakA', { bob: 0.03 }],
+    ['sniff', 'celebrate', { bob: 0.03 }], ['lookBack', 'runA'], ['soaked', 'wail', { bob: 0.03 }],
+  ],
+  bombanat: [
+    ['carry', 'glide'], ['tumble', 'stall', { shake: 3 }], ['roost', 'perched', { bob: 0.02 }], ['bank', 'glide'],
+    ['climb', 'flapDown'], ['pullUp', 'swoop'], ['munch', 'snap', { bob: 0.04 }], ['blownBack', 'stall', { shake: 2 }],
+    ['soaked', 'stall', { bob: 0.03 }],
+  ],
+  grumley: [
+    ['swimA', 'glide'], ['swimB', 'glide'], ['diveDown', 'glide'], ['leap', 'fullLunge'], ['jet', 'glide'],
+    ['clawsUp', 'lunge'], ['tangled', 'netted', { shake: 3 }], ['dizzy', 'splutter', { shake: 2 }], ['cling', 'lurk', { bob: 0.02 }],
+  ],
+  iceferg: [
+    ['side', 'drift', { bob: 0.02 }], ['sunk', 'drift', { bob: 0.02 }], ['risen', 'drift', { bob: 0.02 }],
+    ['chargeSide', 'charge'], ['cracked', 'crash', { shake: 3 }], ['melted', 'dazed', { bob: 0.03 }],
+  ],
+  typhoonigator: [
+    ['rollSide', 'roll', { bob: 0.02 }], ['suckSide', 'suck', { bob: 0.02 }], ['blow', 'letgo', { shake: 2 }],
+    ['swollen', 'bloated', { bob: 0.03 }], ['wispSide', 'wisp', { bob: 0.03 }], ['thunder', 'roll', { shake: 3 }],
+  ],
+  yalapappus: [
+    ['crouch', 'land'], ['hopTop', 'hop'], ['pound', 'hop'], ['shakeTree', 'shout', { shake: 3 }], ['gooStuck', 'bonked', { shake: 1 }],
+    ['lookUp', 'celebrate'], ['chase', 'shout'], ['rollUp', 'dizzy'],
+  ],
+  grithix: [
+    ['netUp', 'swing'], ['netLow', 'slam'], ['carry', 'stroll'], ['duck', 'windup'], ['balance', 'idle', { bob: 0.02 }],
+    ['stepHigh', 'strideA'],
+  ],
+};
+for (const [id, list] of Object.entries(MOVES)) {
+  const M = MONSTERS[id];
+  M.extras = M.extras || {};
+  list.forEach(([name, fallback, opts], i) => {
+    M.extras[name] = [`${id}.moves`, i + 1, null, fallback];
+    if (!M.anims[name]) M.anims[name] = { frames: [name], ...(opts || {}) };
+  });
+}
+
+// An ordinary Bombanat for the flocks (chapter 3, boards 3 and 9): no
+// necktie, no cap, no letter (request OM-Z01, sheet 'bombanat.plain'), at the
+// Bombanat's scale. Until the sheet is delivered its poses are missing and
+// the game draws its stand-in.
+MONSTERS.bombanatPlain = {
+  name: 'A plain Bombanat', short: 'Bombanat', wants: 'nothing much', height: 190, voice: 'flap',
+  sheet: 'bombanat.plain',
+  poses: { glide: 1, flapUp: 2, flapDown: 3, dive: 4, grabbed: 5, netted: 6, perched: 7, stall: 8 },
+  anims: {
+    glide: { frames: ['glide'], bob: 0.03 },
+    flap: { frames: ['flapUp', 'glide', 'flapDown', 'glide'], fps: 12 },
+    dive: { frames: ['dive'] },
+    grabbed: { frames: ['grabbed'], shake: 4 },
+    netted: { frames: ['netted'], shake: 3 },
+    perched: { frames: ['perched'] },
+    stall: { frames: ['stall'], shake: 3 },
   },
 };
 
