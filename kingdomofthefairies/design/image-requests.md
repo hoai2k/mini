@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 254 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 247 of 254 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 254 of 254 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1943,12 +1943,12 @@ Requested 13 October 2026 after play-testing Act II: the man-at-arms carries the
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `crew-manatarms-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-tinted` | requested |
-| `crew-manatarms-redo` | 220 × 420 | bottom centre | `crew-manatarms` | requested |
-| `crew-manatarms-idle-b-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-b-tinted` | requested |
-| `crew-manatarms-idle-b-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-b` | requested |
-| `crew-manatarms-idle-c-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-c-tinted` | requested |
-| `crew-manatarms-idle-c-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-c` | requested |
+| `crew-manatarms-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-tinted` | [delivered](../assets/crew-manatarms-tinted-redo.webp) |
+| `crew-manatarms-redo` | 220 × 420 | bottom centre | `crew-manatarms` | [delivered](../assets/crew-manatarms-redo.webp) |
+| `crew-manatarms-idle-b-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-b-tinted` | [delivered](../assets/crew-manatarms-idle-b-tinted-redo.webp) |
+| `crew-manatarms-idle-b-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-b` | [delivered](../assets/crew-manatarms-idle-b-redo.webp) |
+| `crew-manatarms-idle-c-tinted-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-c-tinted` | [delivered](../assets/crew-manatarms-idle-c-tinted-redo.webp) |
+| `crew-manatarms-idle-c-redo` | 220 × 420 | bottom centre | `crew-manatarms-idle-c` | [delivered](../assets/crew-manatarms-idle-c-redo.webp) |
 
 #### `crew-manatarms-tinted-redo` — The man-at-arms (tinted), redrawn unlike the prince
 
@@ -1992,7 +1992,7 @@ Requested 13 October 2026 after play-testing Act III: in the tinted look the gua
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `lobster-guard-closed-tinted-redo` | 500 × 340 | bottom centre | `lobster-guard-closed-tinted` | requested |
+| `lobster-guard-closed-tinted-redo` | 500 × 340 | bottom centre | `lobster-guard-closed-tinted` | [delivered](../assets/lobster-guard-closed-tinted-redo.webp) |
 
 #### `lobster-guard-closed-tinted-redo` — The lobster guard, claws shut (tinted), matched to the open pose
 
