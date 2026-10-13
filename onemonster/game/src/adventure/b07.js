@@ -1030,8 +1030,10 @@ function inkProfile(g, cam) {
     // Sides at the ends of a piece by a hole or the stream.
     g.lineWidth = 3.5;
     g.beginPath();
-    if (s.x0 >= x0 && s.x0 > 0) { g.moveTo(s.x0, yAt(s.x0)); g.lineTo(s.x0, bottom); }
-    if (s.x1 <= x1 && s.x1 < WORLD_W) { g.moveTo(s.x1, yAt(s.x1)); g.lineTo(s.x1, bottom); }
+    // (only where the piece meets a gap: pieces that abut share no side)
+    const abuts = (x) => PROFILE.some((o) => o !== s && !o.hole && !o.stream && (Math.abs(o.x1 - x) < 2 || Math.abs(o.x0 - x) < 2));
+    if (s.x0 >= x0 && s.x0 > 0 && !abuts(s.x0)) { g.moveTo(s.x0, yAt(s.x0)); g.lineTo(s.x0, bottom); }
+    if (s.x1 <= x1 && s.x1 < WORLD_W && !abuts(s.x1)) { g.moveTo(s.x1, yAt(s.x1)); g.lineTo(s.x1, bottom); }
     g.stroke();
   }
   g.restore();
