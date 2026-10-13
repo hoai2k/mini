@@ -157,7 +157,12 @@ for (;;) {
       await wait(330);
       await page.screenshot({ path: `${outDir}whack-tooslow.png` });
       await wait(300);
-      const after = await views();
+      // Bo's copy of the tally can trail the outcome a little: give it time.
+      let after = await views();
+      for (let k = 0; k < 10 && line(after[1], 0).score === line(before[1], 0).score; k++) {
+        await wait(150);
+        after = await views();
+      }
       seen.slow = {
         by: after.map(x => x.outcomes.find(o => o.id === zombie.id)?.by),
         ana: line(after[1], 0).score - line(before[1], 0).score,
