@@ -540,18 +540,18 @@ export const ASSETS = {
   },
   "bombanat.plain": {
     "file": "assets/monsters/bombanat/plain.png",
-    "delivered": false
+    "delivered": true
   },
   "iceferg.bare": {
     "file": "assets/monsters/iceferg/bare.png",
-    "delivered": false
+    "delivered": true
   },
   "iceferg.sealions": {
     "file": "assets/monsters/iceferg/sealions.png",
-    "delivered": false
+    "delivered": true
   },
   "ch01.house": {
     "file": "assets/props/sallyann-house.png",
-    "delivered": false
+    "delivered": true
   }
 };

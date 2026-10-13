@@ -642,6 +642,30 @@
       "file": "assets/adventure/b09/props.png",
       "size": "2048 x 2048, transparent",
       "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A sheet of separate small game sprites for a side-scrolling game, all seen side-on, each one complete on its own and drawn at the same scale as the others: 1. A plain mauve bat-winged Bombanat fluttering, no necktie and no cap. 2. A glass collecting jar with a cork, empty. 3. The same jar with a small angry Bombanat inside. 4. A gnarled root arching out of the ground, to trip over. 5. A big toadstool, flat-topped, to bounce on. 6. A gap in the ground with a little stream at the bottom, side-on. 7. A clump of ferns to hide in. 8. A fallen log. 9. The official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot. 10. A low branch. 11. A pile of rocks. 12. A hollow stump. Lay them out in a grid of 4 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/back-cover-grithix.jpg .\nUse case: stylized-concept. Generate a NEW game prop sprite sheet using attached photo as design/style reference only. Square 2048 x 2048, real alpha transparency. Exact listed item count, order and grid; each complete object inside its own cell with generous clear gaps and outer margins. No book page, labels, grid lines or extra objects."
+    },
+    {
+      "id": "OM-Z01",
+      "file": "assets/monsters/bombanat/plain.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A big, shaggy, expressive picture-book monster with a lot of character: greedy, sly or put-upon rather than frightening, with pink snout, paws and feet where it has them. The Letter-Eating Bombanat, as in the book: a small, dark, shaggy body with huge lilac-mauve bat wings with thin finger bones and little claws at the tips, a long pink crocodile-like snout full of small sharp teeth, a sly frowning eye, a red striped cap with a little yellow propeller on top, a red-and-white striped necktie, clawed pink feet and a thin curling pink tail. Flying with wings spread, a white envelope in his teeth. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C02 (file onemonster/game/assets/monsters/bombanat/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K02 (file onemonster/game/assets/monsters/bombanat/poses.png), and draw these at exactly the same scale. The same Bombanat design but an ordinary one of its kind: NO necktie, NO cap or propeller, NO letter, slightly duller grey-brown fur and greyer mauve wings, otherwise identical in shape and scale. The 8 drawings: 1. Gliding, wings spread level. 2. Flapping, wings at the top of the stroke. 3. Flapping, wings at the bottom of the stroke. 4. Swooping down in a steep dive, wings swept back. 5. Grabbed from below, wriggling and flapping wildly. 6. Tangled in a butterfly net, wings crumpled. 7. Perched with the wings folded. 8. Stalling in a frantic flutter. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration."
+    },
+    {
+      "id": "OM-Z02",
+      "file": "assets/monsters/iceferg/bare.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, beady eye glares out, the only sign that it is alive and in a terrible temper. A couple of olive-yellow whiskered sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling strokes laps round its base. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C04 (file onemonster/game/assets/monsters/iceferg/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K04 (file onemonster/game/assets/monsters/iceferg/poses.png), and draw these at exactly the same scale. Exactly the same iceberg as in its key poses, same view and scale, but with NO sea lions on it: its ledges empty and flat enough for sea lions to sit on. The 4 drawings: 1. Floating calmly, drifting. 2. Huffing itself up, swelling, freezing mist pouring off it, the eye narrowed. 3. Charging forward, spray bursting off the front. 4. Seen exactly side-on facing right, floating. Lay them out in a grid of 2 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration."
+    },
+    {
+      "id": "OM-Z03",
+      "file": "assets/monsters/iceferg/sealions.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, beady eye glares out, the only sign that it is alive and in a terrible temper. A couple of olive-yellow whiskered sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling strokes laps round its base. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C04 (file onemonster/game/assets/monsters/iceferg/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K04 (file onemonster/game/assets/monsters/iceferg/poses.png), and draw these at exactly the same scale. The olive-yellow whiskered sea lions that lounge on the Ice-Ferg's ledges, alone, at the same scale and view as in its key poses, each pose a single sea lion: The 6 drawings: 1. Dozing, lying on its belly. 2. Sitting up in alarm, whiskers bristling. 3. Clinging on with its flippers, eyes shut tight. 4. Sliding off backwards, flippers up. 5. Clapping its flippers. 6. Falling with a splash. Lay them out in a grid of 3 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration."
+    },
+    {
+      "id": "OM-Z04",
+      "file": "assets/props/sallyann-house.png",
+      "size": "1024 x 1024, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A single game sprite: the gable end wall of a small white clapboard country house seen straight on, with a steep shingled roof edge, a brick chimney, and in the middle of the wall one open sash window with gathered curtains and a window box of red geraniums. The window opening itself is EMPTY and transparent (the game draws a girl in it), and the bottom of the wall fades out into nothing (a hedge hides it in the game). Nothing else. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg ."
     }
   ],
   "delivered": [
@@ -1179,6 +1203,26 @@
       "id": "OM-Y09",
       "file": "assets/adventure/b09/props.png",
       "sha256": "43cd963fb055e41a7ed8139eb5cd2cc82d2ead0fcedea32689f96837cff9daec"
+    },
+    {
+      "id": "OM-Z01",
+      "file": "assets/monsters/bombanat/plain.png",
+      "sha256": "df947eefcf0d78968da4c933bc88e4c8a062df4183d097e127778c73706d1120"
+    },
+    {
+      "id": "OM-Z02",
+      "file": "assets/monsters/iceferg/bare.png",
+      "sha256": "5dabcfe8d1adcd8e8eb4e869197db393794ac4a97bd8600ba50deabf60e3d25d"
+    },
+    {
+      "id": "OM-Z03",
+      "file": "assets/monsters/iceferg/sealions.png",
+      "sha256": "8986eac6ee7a5c5987d09e59b56187011efc93a6aa9593e074d482f26e9dc7f7"
+    },
+    {
+      "id": "OM-Z04",
+      "file": "assets/props/sallyann-house.png",
+      "sha256": "bfc746c6d1035410ebfbc63c2afa76631f769ba266f48e29c5763c216a97a720"
     }
   ],
   "request_revision": "1add341",
@@ -2375,6 +2419,89 @@
         2048
       ],
       "normalization": "Lanczos resize to requested canvas; preserve alpha for PNG, RGB WebP quality 92 for backdrops"
+    },
+    {
+      "id": "OM-Z01",
+      "file": "assets/monsters/bombanat/plain.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A big, shaggy, expressive picture-book monster with a lot of character: greedy, sly or put-upon rather than frightening, with pink snout, paws and feet where it has them. The Letter-Eating Bombanat, as in the book: a small, dark, shaggy body with huge lilac-mauve bat wings with thin finger bones and little claws at the tips, a long pink crocodile-like snout full of small sharp teeth, a sly frowning eye, a red striped cap with a little yellow propeller on top, a red-and-white striped necktie, clawed pink feet and a thin curling pink tail. Flying with wings spread, a white envelope in his teeth. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C02 (file onemonster/game/assets/monsters/bombanat/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K02 (file onemonster/game/assets/monsters/bombanat/poses.png), and draw these at exactly the same scale. The same Bombanat design but an ordinary one of its kind: NO necktie, NO cap or propeller, NO letter, slightly duller grey-brown fur and greyer mauve wings, otherwise identical in shape and scale. The 8 drawings: 1. Gliding, wings spread level. 2. Flapping, wings at the top of the stroke. 3. Flapping, wings at the bottom of the stroke. 4. Swooping down in a steep dive, wings swept back. 5. Grabbed from below, wriggling and flapping wildly. 6. Tangled in a butterfly net, wings crumpled. 7. Perched with the wings folded. 8. Stalling in a frantic flutter. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nUse case: stylized-concept. New separate game asset, references provide identity and drawing scale only. True alpha transparency; preserve empty window alpha for house. Every listed item complete, exact count/order/grid, with generous clear gaps and margins. Requested canvas: 2048 x 2048, transparent.",
+      "references": [
+        "onemonster/game/assets/monsters/bombanat/model-sheet.png",
+        "onemonster/game/assets/monsters/bombanat/poses.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "saved_size": [
+        2048,
+        2048
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-Z02",
+      "file": "assets/monsters/iceferg/bare.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, beady eye glares out, the only sign that it is alive and in a terrible temper. A couple of olive-yellow whiskered sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling strokes laps round its base. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C04 (file onemonster/game/assets/monsters/iceferg/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K04 (file onemonster/game/assets/monsters/iceferg/poses.png), and draw these at exactly the same scale. Exactly the same iceberg as in its key poses, same view and scale, but with NO sea lions on it: its ledges empty and flat enough for sea lions to sit on. The 4 drawings: 1. Floating calmly, drifting. 2. Huffing itself up, swelling, freezing mist pouring off it, the eye narrowed. 3. Charging forward, spray bursting off the front. 4. Seen exactly side-on facing right, floating. Lay them out in a grid of 2 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nUse case: stylized-concept. New separate game asset, references provide identity and drawing scale only. True alpha transparency; preserve empty window alpha for house. Every listed item complete, exact count/order/grid, with generous clear gaps and margins. Requested canvas: 2048 x 2048, transparent.",
+      "references": [
+        "onemonster/game/assets/monsters/iceferg/model-sheet.png",
+        "onemonster/game/assets/monsters/iceferg/poses.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "saved_size": [
+        2048,
+        2048
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-Z03",
+      "file": "assets/monsters/iceferg/sealions.png",
+      "size": "2048 x 2048, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, beady eye glares out, the only sign that it is alive and in a terrible temper. A couple of olive-yellow whiskered sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling strokes laps round its base. (Use this description for the design only.) Draw it from this character's canonical model sheet, request OM-C04 (file onemonster/game/assets/monsters/iceferg/model-sheet.png): attach that image and match it exactly, with the same design, proportions, colours, line weight and clothing. Where the two disagree, the model sheet wins over this description. Also attach its key-poses sheet, request OM-K04 (file onemonster/game/assets/monsters/iceferg/poses.png), and draw these at exactly the same scale. The olive-yellow whiskered sea lions that lounge on the Ice-Ferg's ledges, alone, at the same scale and view as in its key poses, each pose a single sea lion: The 6 drawings: 1. Dozing, lying on its belly. 2. Sitting up in alarm, whiskers bristling. 3. Clinging on with its flippers, eyes shut tight. 4. Sliding off backwards, flippers up. 5. Clapping its flippers. 6. Falling with a splash. Lay them out in a grid of 3 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nUse case: stylized-concept. New separate game asset, references provide identity and drawing scale only. True alpha transparency; preserve empty window alpha for house. Every listed item complete, exact count/order/grid, with generous clear gaps and margins. Requested canvas: 2048 x 2048, transparent.",
+      "references": [
+        "onemonster/game/assets/monsters/iceferg/model-sheet.png",
+        "onemonster/game/assets/monsters/iceferg/poses.png"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "saved_size": [
+        2048,
+        2048
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
+    },
+    {
+      "id": "OM-Z04",
+      "file": "assets/props/sallyann-house.png",
+      "size": "1024 x 1024, transparent",
+      "prompt": "Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A single game sprite: the gable end wall of a small white clapboard country house seen straight on, with a steep shingled roof edge, a brick chimney, and in the middle of the wall one open sash window with gathered curtains and a window box of red geraniums. The window opening itself is EMPTY and transparent (the game draws a girl in it), and the bottom of the wall fades out into nothing (a hedge hides it in the game). Nothing else. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg .\nUse case: stylized-concept. New separate game asset, references provide identity and drawing scale only. True alpha transparency; preserve empty window alpha for house. Every listed item complete, exact count/order/grid, with generous clear gaps and margins. Requested canvas: 1024 x 1024, transparent.",
+      "references": [
+        "onemonster/reference/pages-06-07-sally-ann-and-mailbox.jpg"
+      ],
+      "generator": "built-in image_gen",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "saved_size": [
+        1024,
+        1024
+      ],
+      "normalization": "Lanczos resize to requested canvas; PNG alpha preserved; opaque RGB WebP quality 92",
+      "review": "Reviewed scene/identity, count/order, margins and background against request"
     }
   ],
   "adventure_delivery": {
