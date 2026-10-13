@@ -779,10 +779,16 @@ export default {
       return b;
     }
 
+    // A looping animation's place in its cycle, from one steady clock: a
+    // card or button rebuilt by a redraw carries on mid-bounce instead of
+    // restarting, which on a busy phone looked like a vibration.
+    const steadyBeat = ms => `-${Math.round(performance.now() % ms)}ms`;
+
     function button(text, cls, fn) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = `btn ${cls}`;
+      if (cls === 'fish') b.style.animationDelay = steadyBeat(1200);
       b.textContent = text;
       b.addEventListener('click', fn);
       return b;
@@ -905,6 +911,7 @@ export default {
         c.style.setProperty('--w', `${w}px`);
         c.classList.toggle('sel', choosing && picked === r);
         c.classList.toggle('want', s.phase === 'answer' && s.ask?.to === me && s.ask.rank === r);
+        if (c.classList.contains('want')) c.style.animationDelay = steadyBeat(1300);
         if (fresh.has(r)) c.classList.add('new');
         const wanted = s.phase === 'answer' && s.ask?.to === me && s.ask.rank === r;
         c.setAttribute('aria-disabled', choosing || wanted ? 'false' : 'true');
@@ -1279,7 +1286,15 @@ export default {
       const sig = RANKS.map((_, r) => (artOf(r) ? 1 : 0)).join('') + (anim ? Math.floor((performance.now() - anim.start) / 700) : '-');
       if (sig !== lastSig) { lastSig = sig; render(); }
     }, 200);
-    const ro = new ResizeObserver(() => render());
+    // Redraw only when the table really changes size: iPhone Safari reports
+    // resizes as its bars slide, and every redraw restarts the bounces.
+    let roSize = '';
+    const ro = new ResizeObserver(() => {
+      const sz = `${Math.round(root.clientWidth)}x${Math.round(root.clientHeight)}`;
+      if (sz === roSize) return;
+      roSize = sz;
+      render();
+    });
     ro.observe(root);
     ownerTick();
     render();
