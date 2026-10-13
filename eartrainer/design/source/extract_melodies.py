@@ -519,15 +519,30 @@ def xml_root(mxl: Path):
         return ET.fromstring(z.read(names[0]))
 
 
+def last_note(ev):
+    """Index of the last event if it is a note, looking back past bar markers."""
+    for i in range(len(ev) - 1, -1, -1):
+        if ev[i][0] == "n":
+            return i
+        if ev[i][0] != "|":
+            return None
+    return None
+
+
 def parse_musicxml(root):
-    """Return (events, tempo_bpm or None, lyric words) for the first part, one voice."""
+    """Return (events, tempo_bpm or None, lyric words, mid-word note indices) for
+    the first part, one voice. A note is mid-word when its lyric syllable runs on
+    into the next note's ("dream-" of "dreamer")."""
     part = root.find("part")
     if part is None:
-        return None, None, []
+        return None, None, [], set()
     divisions = 1
     ev, tempo, tie_open = [], None, False
     words: list = []  # (event index, lyric word) for verse 1
-    for meas in part.findall("measure"):
+    midword: set = set()
+    for mi, meas in enumerate(part.findall("measure")):
+        if mi:
+            ev.append(("|",))  # a bar line
         for el in meas:
             if el.tag == "attributes":
                 d = el.find("divisions")
@@ -574,54 +589,150 @@ def parse_musicxml(root):
                 step, octave = p.findtext("step"), int(p.findtext("octave"))
                 alter = int(round(float(p.findtext("alter") or 0)))
                 ties = {t.get("type") for t in el.findall("tie")}
-                if tie_open and "stop" in ties and ev and ev[-1][0] == "n" \
-                        and (ev[-1][1], ev[-1][2], ev[-1][3]) == (step, alter, octave):
-                    n0 = ev[-1]
-                    ev[-1] = (n0[0], n0[1], n0[2], n0[3], n0[4] + beats)
+                li = last_note(ev)
+                if tie_open and "stop" in ties and li is not None \
+                        and (ev[li][1], ev[li][2], ev[li][3]) == (step, alter, octave):
+                    n0 = ev[li]
+                    ev[li] = (n0[0], n0[1], n0[2], n0[3], n0[4] + beats)
                 else:
                     ev.append(("n", step, alter, octave, beats))
                     lyr = next((ly for ly in el.findall("lyric") if ly.get("number", "1") == "1"), None)
                     if lyr is not None and lyr.findtext("text"):
                         syl = lyr.findtext("syllabic") or "single"
                         txt = lyr.findtext("text")
+                        if syl in ("begin", "middle"):
+                            midword.add(len(ev) - 1)
                         if syl in ("middle", "end") and words:
                             words[-1] = (words[-1][0], words[-1][1] + txt)
                         else:
                             words.append((len(ev) - 1, txt))
                 tie_open = "start" in ties
-    return ev, tempo, words
+    return ev, tempo, words, midword
 
 
-def incipit(ev, max_notes: int):
-    """Opening phrase: from the first note to the first rest or long note
-    (>= 2 beats) after at least five notes, at most max_notes notes."""
-    out, n = [], 0
-    for e in ev:
-        if e[0] == "r":
-            if n == 0:
-                continue
-            if n >= 5:
-                break
-            if e[1] >= 2:  # a long rest before the phrase got going: a pickup, start over
-                out, n = [], 0
-                continue
-            out.append(e)
-            continue
-        out.append(e)
-        n += 1
-        if n >= 5 and e[4] >= 2:
-            return out
-        if n >= max_notes:
-            # end on the last reasonably long note if there is one late enough
-            idx = [i for i, x in enumerate(out) if x[0] == "n" and x[4] >= Fraction(3, 2)]
-            cnt = 0
-            for i, x in enumerate(out):
-                if x[0] == "n":
-                    cnt += 1
-                if idx and i == idx[-1] and cnt >= 5:
-                    return out[: i + 1]
-            return out
-    return out if n >= 5 else None
+# --------------------------------------------------------------------------
+# Phrases. A melody here is the opening phrase of its tune, ended where a
+# musician would hear it end, never cut off mid-line. The finder reads the bar
+# lines (and, for lead sheets, the lyrics) in the source and scores each
+# possible last note for the signs of a phrase ending: it lands on a downbeat
+# (or the middle of a long bar), in the second, fourth or eighth bar; the
+# rhythm stops there (the note is clearly longer than the tune's usual pace, or
+# a rest follows it); it is a settled note of the key (the home note above
+# all, else its third or fifth); it doesn't run straight on into the next
+# note; and no sung word is left half-sung. The first clear ending within the
+# note limit is the phrase, else the strongest fair one. If there is none, the
+# tune is left out rather than cut.
+
+PHRASE_MIN, PHRASE_SCORE, PHRASE_FAIR = 4, 5.5, 4.5
+
+
+# Krumhansl-Kessler key profiles: how strongly each degree belongs to a key.
+KK_MAJOR = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+KK_MINOR = (6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+
+def key_pc(notes):
+    """Pitch class of the major key (or the relative major of the minor key)
+    that best fits the notes, weighted by length (Krumhansl-Schmuckler)."""
+    w = [0.0] * 12
+    for n in notes:
+        w[midi(n) % 12] += min(float(n[4]), 2)
+    mw = sum(w) / 12
+
+    def corr(profile, t):
+        mp = sum(profile) / 12
+        a = [w[(t + i) % 12] - mw for i in range(12)]
+        b = [x - mp for x in profile]
+        den = (sum(x * x for x in a) * sum(x * x for x in b)) ** 0.5 or 1
+        return sum(x * y for x, y in zip(a, b)) / den
+
+    best = max([(corr(KK_MAJOR, t), t) for t in range(12)] + [(corr(KK_MINOR, t), (t + 3) % 12) for t in range(12)])
+    return best[1]
+
+
+def phrase_scores(ev, midword=frozenset()):
+    """(note index, event index, score) for each note of an event list with bar
+    markers. `midword` holds the event indices of notes sung mid-word."""
+    t, bars, notes = Fraction(0), [Fraction(0)], []
+    for i, e in enumerate(ev):
+        if e[0] == "|":
+            if t > bars[-1]:
+                bars.append(t)
+        elif e[0] == "r":
+            t += e[1]
+        else:
+            notes.append((i, t, e))
+            t += e[4]
+    if len(notes) < PHRASE_MIN:
+        return []
+    lens = [b - a for a, b in zip(bars, bars[1:])]
+    bar_len = max(set(lens), key=lens.count) if lens else Fraction(4)
+    start = notes[0][1]
+    # The first full bar: a pickup (a short first bar, or starting mid-bar) doesn't count.
+    full = [b for b in bars if b >= start]
+    first = full[0] if full else start
+    if len(bars) > 1 and bars[1] - bars[0] < bar_len and start < bars[1]:
+        first = bars[1]
+    tonic = key_pc([n[2] for n in notes[:32]])
+    # The tune's ordinary pace: the middle time from one note to the next.
+    gaps = sorted(b[1] - a[1] for a, b in zip(notes[:17], notes[1:17]))
+    pace = gaps[len(gaps) // 2] if gaps else Fraction(1)
+    out = []
+    for k, (i, on, e) in enumerate(notes):
+        nxt = notes[k + 1] if k + 1 < len(notes) else None
+        d = (nxt[1] - on) if nxt else e[4]  # sounding length plus any rest after it
+        rest = d - e[4]
+        last_bar = max(b for b in bars if b <= on)
+        pos = on - last_bar
+        b = sum(1 for x in bars if first < x <= on) if on >= first else -1
+        sc = 0.0
+        if pos == 0:
+            sc += 1.5
+        elif bar_len >= 4 and pos == bar_len / 2:
+            sc += 0.75
+        if b in (1, 3, 7):
+            sc += 1.5
+        elif b in (2, 5):
+            sc += 0.5
+        nb = [x for x in bars if x > on]
+        if nb and on + d >= nb[0]:
+            sc += 1.0  # it fills out its bar
+        if d >= pace * Fraction(3, 2):
+            sc += 1.5  # the rhythm stops here
+        elif d <= pace:
+            sc -= 1.0  # it moves on at the tune's pace
+        sc += 1.0 if d >= 2 else 0
+        if rest >= Fraction(1, 2):
+            sc += 1.5
+        rel = (midi(e) - tonic) % 12
+        sc += 1.5 if rel in (0, 9) else 0.75 if rel in (4, 7) else 0
+        if nxt and rest == 0 and nxt[1] - on < 1 and abs(midi(nxt[2]) - midi(e)) <= 2:
+            sc -= 1.5  # runs straight on
+        if d < Fraction(3, 4):
+            sc -= 1.5
+        if i in midword:
+            sc -= 5  # never end in the middle of a sung word
+        out.append((k, i, sc))
+    return out
+
+
+def place_phrase(ev, max_notes: int, midword=frozenset()):
+    """The opening phrase, as a notes string: the first clear ending within
+    max_notes notes that fits the keyboard, else the strongest fair ending,
+    else None (the tune is left out rather than cut)."""
+    cands = [(k, i, sc) for k, i, sc in phrase_scores(ev, midword) if PHRASE_MIN <= k + 1 <= max_notes]
+    for k, i, sc in cands:
+        if sc >= PHRASE_SCORE:
+            got = place([e for e in ev[: i + 1] if e[0] != "|"])
+            if got:
+                return got
+    for k, i, sc in sorted(cands, key=lambda c: (-c[2], c[0])):
+        if sc < PHRASE_FAIR:
+            break
+        got = place([e for e in ev[: i + 1] if e[0] != "|"])
+        if got:
+            return got
+    return None
 
 
 def lyric_word(w: str) -> str:
@@ -744,16 +855,13 @@ def leadsheets(lib: Library):
         else:
             cat = "popular"
         cat = CAT_FIX.get(title, cat)
-        ev, tempo, words = parse_musicxml(root)
+        ev, tempo, words, midword = parse_musicxml(root)
         if not ev:
             continue
         # Many lead sheets open with an introduction or verse; when the title's
         # opening words are sung later, start the phrase where they are sung.
         start = title_hook(title, words)
-        inc = incipit(ev[start:], 10 if public else 8)
-        if not inc:
-            continue
-        notes = place(inc)
+        notes = place_phrase(ev[start:], 12, {i - start for i in midword if i >= start})
         if not notes:
             continue
         bpm = int(round(tempo)) if tempo and 40 <= tempo <= 260 else (
@@ -762,10 +870,10 @@ def leadsheets(lib: Library):
                           "bpm": bpm, "notes": notes})
     header = [
         "Opening phrases of lead sheets from OpenEWLD, the public-domain subset of",
-        "the Enhanced Wikifonia Leadsheet Dataset: from the first note to the first",
-        "rest or long note after at least five notes, at most 10 notes (8 for any",
-        "song that may still be under copyright: only an incipit). Shifted by whole",
-        "octaves only. Songbook standards and jazz go in 'jazz'.",
+        "the Enhanced Wikifonia Leadsheet Dataset: the first phrase of each, ended",
+        "where a musician hears it end (see the Phrases section of extract_melodies.py),",
+        "at most 12 notes; a song with no complete phrase that short is left out rather",
+        "than cut. Shifted by whole octaves only. Songbook standards and jazz go in 'jazz'.",
         "",
         "GENERATED by eartrainer/design/source/extract_melodies.py; do not edit by hand.",
         f"Source: {SOURCES['openewld']}",
@@ -875,6 +983,7 @@ def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fra
             continue
         if m.group(9):
             if started and ev and fill > 0:
+                ev.append((("|",), bars))  # a bar line
                 if not (bars == 0 and fill < bar_len and not counted_pickup):
                     bars += 1
                 counted_pickup = True
@@ -946,25 +1055,6 @@ def abc_events(body: str, unit: Fraction, key: dict, max_bars: int, bar_len: Fra
     return ev
 
 
-def nott_phrase(ev, max_notes=12):
-    """Opening two bars (plus any pickup), ending early on the first long note
-    (>= 1.5 beats) after at least five notes; at most max_notes notes."""
-    out, n = [], 0
-    for e, bar in ev:
-        if e[0] == "r":
-            if n >= 5:
-                break
-            out.append(e)
-            continue
-        out.append(e)
-        n += 1
-        if n >= max_notes or (n >= 5 and e[4] >= Fraction(3, 2)):
-            break
-    return out
-
-
-# Tunes the hand-written files hold under another name (Nos Galan is Deck the
-# Halls; Lord of All Hopefulness is sung to Slane), and a joke title.
 NOTT_SKIP = {"Nos Galan", "Lord of All Hopefulness", "My Love is Like a Red Red Frog"}
 
 
@@ -1013,8 +1103,8 @@ def nottingham(lib: Library):
                 bar_len = Fraction(meter) * 4
             except (ValueError, ZeroDivisionError):
                 bar_len = Fraction(4)
-            ev = abc_events(body, unit, key_alters(h.get("K", "C")), 2, bar_len)
-            notes = place(nott_phrase(ev))
+            ev = abc_events(body, unit, key_alters(h.get("K", "C")), 8, bar_len)
+            notes = place_phrase([e for e, _ in ev], 14)
             if not notes:
                 continue
             bpm = 110
@@ -1030,8 +1120,9 @@ def nottingham(lib: Library):
         count += len(got)
     header = [
         "British and American dance tunes from the Nottingham Music Database:",
-        "the pickup and first two bars of each tune, ending early on the first long",
-        "note after five notes (at most 12 notes). Shifted by whole octaves only.",
+        "the first phrase of each tune, ended where a musician hears it end (see the",
+        "Phrases section of extract_melodies.py), at most 14 notes; a tune with no",
+        "complete phrase that short is left out. Shifted by whole octaves only.",
         "Tunes whose source line names a 20th-century date are left out.",
         "",
         "GENERATED by eartrainer/design/source/extract_melodies.py; do not edit by hand.",
@@ -1087,9 +1178,10 @@ def parse_lilypond_voice(body: str):
             return
         letter = LETTERS7[step % 7]
         octave = step // 7
-        if state["tie"] and ev and ev[-1][0] == "n" and (ev[-1][1], ev[-1][2], ev[-1][3]) == (letter, alter, octave):
-            n0 = ev[-1]
-            ev[-1] = (n0[0], n0[1], n0[2], n0[3], n0[4] + beats)
+        li = last_note(ev)
+        if state["tie"] and li is not None and (ev[li][1], ev[li][2], ev[li][3]) == (letter, alter, octave):
+            n0 = ev[li]
+            ev[li] = (n0[0], n0[1], n0[2], n0[3], n0[4] + beats)
         else:
             ev.append(("n", letter, alter, octave, beats))
         state["tie"] = False
@@ -1135,6 +1227,9 @@ def parse_lilypond_voice(body: str):
                     note_event(top[0], top[1], beats * scale, grace)
             elif t == "~":
                 state["tie"] = True
+            elif t == "|":
+                if not grace:
+                    ev.append(("|",))  # a bar check: a bar line
             elif t in ("\\tuplet", "\\times"):
                 frac = toks[i]
                 i += 1
@@ -1262,11 +1357,10 @@ def jazzheads(lib: Library):
             ev, tempo = parse_lilypond_voice(body)
         except (ValueError, IndexError, ZeroDivisionError):
             continue
-        phrase = incipit(ev, 8)
-        notes = place(phrase) if phrase else None
+        by = clean_person(composer) or "Unknown"
+        notes = place_phrase(ev, 16 if BEBOP.search(by) else 12)
         if not notes:
             continue
-        by = clean_person(composer) or "Unknown"
         for wrong, right in (("Thelonius", "Thelonious"), ("Errol Garner", "Erroll Garner")):
             by = by.replace(wrong, right)
         items.append({"id": lib.add(title), "title": title, "by": by, "cat": "bebop" if BEBOP.search(by) else "jazz",
@@ -1291,9 +1385,8 @@ def jazzheads(lib: Library):
         title = {"Billies's Bounce": "Billie's Bounce", "Au Private": "Au Privave"}.get(title, title)
         if title.lower() in seen or lib.is_dup(title):
             continue
-        ev, tempo, _ = parse_musicxml(root)
-        phrase = incipit(ev or [], 10)
-        notes = place(phrase) if phrase else None
+        ev, tempo, _, _ = parse_musicxml(root)
+        notes = place_phrase(ev or [], 16)  # bebop lines run long: the app's limit
         if not notes:
             continue
         seen.add(title.lower())
@@ -1302,9 +1395,11 @@ def jazzheads(lib: Library):
     sections.append(("Bebop heads from Charlie Parker's Omnibook (the head's opening line)", bop))
     count = sum(len(x) for _, x in sections)
     header = [
-        "Jazz standards and bebop heads: the opening phrase of each melody, from the first",
-        "note to the first rest or long note after five notes (at most 8 notes for the",
-        "standards and 10 for the bebop heads: only an incipit). Shifted by whole octaves only.",
+        "Jazz standards and bebop heads: the opening phrase of each melody, ended where a",
+        "musician hears it end (see the Phrases section of extract_melodies.py), at most",
+        "12 notes (16 for the long lines of bebop heads); a tune with no complete phrase",
+        "that short is left out rather than cut.",
+        "Shifted by whole octaves only.",
         "",
         "GENERATED by eartrainer/design/source/extract_melodies.py; do not edit by hand.",
         f"Sources: {SOURCES['openbook']} (Mark Veltzer's OpenBook, melodies",

@@ -1,6 +1,6 @@
 // Jazz standards, songbook tunes and Latin jazz: the opening phrase of each.
 // Only tunes whose notes could be checked note by note are listed; copyrighted
-// tunes are kept to a short incipit of at most 8 notes.
+// tunes are kept to their opening phrase.
 export default [
   // Em: pickup 1 2 b3 to 6 (3rd of Am7), then 7 1 2 to 5 (3rd of Gmaj7).
   { id: 'autumn-leaves', title: 'Autumn Leaves', by: 'Joseph Kosma', cat: 'jazz', bpm: 120,
@@ -14,9 +14,9 @@ export default [
   // C major (Am7 Dm7 G7 Cmaj7): stepwise descent C B A G F, then G A C.
   { id: 'fly-me-to-the-moon', title: 'Fly Me to the Moon', by: 'Bart Howard', cat: 'jazz', bpm: 120,
     notes: 'C5:1.5 B4:0.5 A4:0.5 G4:1.5 F4:2 G4:0.5 A4:0.5 C5:1' },
-  // Em: chromatic approaches D#-E, F#-G, then D# E F# G.
+  // Em: chromatic approaches D#-E, F#-G, then D# E F# G C B E G B, settling on Bb.
   { id: 'pink-panther', title: 'The Pink Panther Theme', by: 'Henry Mancini', cat: 'jazz', bpm: 110,
-    notes: 'D#4:0.5 E4:1.5 r:1 F#4:0.5 G4:1.5 r:1 D#4:0.5 E4:0.5 F#4:0.5 G4:0.5' },
+    notes: 'D#4:0.5 E4:1.5 r:1 F#4:0.5 G4:1.5 r:1 D#4:0.5 E4:0.5 F#4:0.5 G4:0.5 C5:0.5 B4:0.5 E4:0.5 G4:0.5 B4:0.5 Bb4:3' },
   // B major cycle: F# over Bmaj7, D over D7, B G over Gmaj7, Bb over Bb7, Eb over Ebmaj7.
   { id: 'giant-steps', title: 'Giant Steps', by: 'John Coltrane', cat: 'jazz', bpm: 160,
     notes: 'F#5:2 D5:2 B4:1 G4:1 Bb4:2 Eb5:4' },
