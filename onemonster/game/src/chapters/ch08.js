@@ -13,7 +13,7 @@
 // snapped up before the Yalapappus munches them.
 
 import * as art from '../art.js';
-import { aiHolder } from '../chase.js';
+import { aiHolder, aiSnatcher } from '../chase.js';
 import { chaseChapter, animBombanat, animTrollusk } from './ch02.js';
 import { tugTiebreak, near } from './ch07.js';
 
@@ -221,4 +221,9 @@ export default function create(env) {
     return o;
   }
   return ch;
+}
+
+export function autopilot(ch) {
+  ch._bot = ch._bot || {};
+  return aiSnatcher(ch.chase, ch._bot, 0.7, 1 / 20);
 }

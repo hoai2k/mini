@@ -17,6 +17,7 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, letterTag } from '../prompt.js';
 
 const ENTRY = BOARDS.find((b) => b.n === 4);
 const { W, H, clamp, ease, approach, hash } = kit;
@@ -180,7 +181,7 @@ export default function create(env) {
     riders.push({ slot: (riders.length * 5) % LEDGES.length, state: 'hop', t: 0, fx: from.x, fy: from.y });
     env.sfx('pickup');
     env.sfx('bark');
-    pop('+1 sea lion', ferg.x, iceTop() - 10);
+    parts.pop(ferg.x + (ferg.riders % 3 - 1) * 90, iceTop() - 10, '+1', { size: 40 });
   }
 
   function lionOff(reason) {
@@ -505,8 +506,8 @@ export default function create(env) {
     if (!behind && !sunk()) {
       const calm = ferg.mode === 'recover' || ferg.mode === 'dazed';
       if (calm) target = cruise * 1.6; // sneak past while it is dazed
-      else if (gap > -(hullHW() + 300)) target = -40;
-      else if (gap > -(hullHW() + 900)) target = 20;
+      else if (gap > -(hullHW() + 360)) target = 0; // holds off, wary
+      else if (gap > -(hullHW() + 900)) target = 25;
     }
     peg.sp = ease(peg.sp, target, 2.5, dt);
     peg.nv *= Math.exp(-P.steamDecay * dt);
@@ -520,7 +521,9 @@ export default function create(env) {
       const toward = Math.sign(peg.x - ferg.x) || 1;
       if (ferg.mode === 'charge' && Math.abs(ferg.vx) >= TUNE.hitSpeed && Math.sign(ferg.vx) === toward) strike();
       else {
-        peg.x = ferg.x + toward * (hw + 110);
+        // Nudge it clear, forward if the ice rose up right under it.
+        if (Math.abs(peg.x - ferg.x) < hw * 0.6) { peg.nv = Math.max(peg.nv, 220); ferg.level = Math.min(ferg.level, -0.5); }
+        else peg.x = ferg.x + toward * (hw + 110);
         if (peg.bumpCd <= 0) {
           peg.bumpCd = 0.8;
           peg.nv += toward * 140;
@@ -577,13 +580,12 @@ export default function create(env) {
       cam.follow(ferg.x, ferg.vx, dt, t < 0.1);
     },
     draw(g, tt) {
-      kit.drawBackdrop(g, cam, { panels: ['adv/b04/backdrop-1', 'adv/b04/backdrop-2', 'adv/b04/backdrop-3'], standin: 'scenes/typhoonigator' });
+      kit.drawBackdrop(g, cam, { panels: ['adv/b04/backdrop-1', 'adv/b04/backdrop-2', 'adv/b04/backdrop-3'], standin: 'scenes/iceferg' });
       kit.haze(g, 'rgba(236,228,214,0.16)');
       cam.begin(g);
       drawFar(g, tt);
       drawSeaBody(g, tt);
       drawWaves(g, tt, true);
-      drawZones(g, tt);
       for (const th of things) if (th.kind === 'reef' && cam.sees(th.x - 200, th.x + 200)) drawReef(g, th, tt);
       for (const th of things) if (th.alive && th.kind !== 'reef' && th.kind !== 'pier' && th.kind !== 'bridge' && cam.sees(th.x - 200, th.x + 200)) drawThing(g, th, tt);
       drawLionsAtSea(g, tt);
@@ -592,13 +594,14 @@ export default function create(env) {
       if (captain) drawCaptain(g, tt);
       drawFerg(g, tt);
       drawWash(g, tt);
+      drawZones(g, tt);
       drawWaves(g, tt, false);
       for (const th of things) if ((th.kind === 'pier' || th.kind === 'bridge') && cam.sees(th.x - th.hw - 100, th.x + th.hw + 100)) drawOverhead(g, th, tt);
       drawHarbourWall(g, tt);
       parts.draw(g);
       drawLionParts(g);
       if (bottle) kit.sprite(g, 'props.typhoonigator', 1, bottle.x, bottle.y, { height: 70, ay: 0.7, rot: bottle.rot }, (gg, x, y) => { gg.fillStyle = '#5f8a4a'; gg.strokeStyle = '#2b1d14'; gg.lineWidth = 3; gg.beginPath(); gg.ellipse(x, y, 14, 30, bottle.rot, 0, Math.PI * 2); gg.fill(); gg.stroke(); });
-      if (!self.done) drawMeter(g);
+      if (!self.done) { drawMeter(g); drawPrompts(g, tt); }
       cam.end(g);
       kit.route(g, { you: ferg.x / WORLD, letter: Math.min(1, peg.x / WORLD), signs: cps.fracs(WORLD) });
       hints.draw(g);
@@ -1010,14 +1013,11 @@ export default function create(env) {
   // The sea lions aboard, on the ledges.
   function drawRiders(g, tt, off, iceH) {
     const w = drawnW();
-    const n = Math.min(riders.length, LEDGES.length);
-    for (let i = 0; i < riders.length; i++) {
+    const n = Math.min(riders.length, LEDGES.length); // the ledges hold this many; the rest are round the back
+    for (let i = 0; i < n; i++) {
       const r = riders[i];
-      const [lx, ly] = LEDGES[i % LEDGES.length];
+      const [lx, ly] = LEDGES[i];
       let x = ferg.x + lx * w * 0.5 * fc.facing, y = WL + off + ly * iceH;
-      if (i >= n) { // more than the ledges hold: a crowd pile, tiny
-        x += (i - n) * 14 * fc.facing; y -= 10 * (i - n);
-      }
       let item = r.state === 'doze' ? 1 : 2;
       let scale = 1, rot = 0;
       if (r.state === 'hop') { // an arc from where it was onto its ledge
@@ -1027,7 +1027,7 @@ export default function create(env) {
       } else if (r.state === 'cling') { scale = 0.9; rot = fc.facing * 0.15; item = 2; }
       else if (r.state === 'up') { y -= Math.abs(Math.sin(tt * 9 + i)) * 6; }
       const bob = r.state === 'doze' ? Math.sin(tt * 1.5 + i) * 2 : 0;
-      drawLion(g, item, x, y + bob, 64 * scale, rot, fc.facing, tt + i);
+      drawLion(g, item, x, y + bob, 50 * scale * ferg.size, rot, fc.facing, tt + i);
     }
   }
 
@@ -1170,10 +1170,21 @@ export default function create(env) {
     g.restore();
   }
 
+  // The letter is on the Peg; and when it is in reach, which button to press.
+  function drawPrompts(g, tt) {
+    if (cam.sees(peg.x - 200, peg.x + 200)) letterTag(g, peg.x - 10, WL - 270, { t: tt });
+    const gap = Math.abs(peg.x - ferg.x);
+    const inReach = gap < chargeReach(1) + hullHW() + 160 && !sunk() && (ferg.mode === 'drift' || ferg.mode === 'huff');
+    if (!inReach) return;
+    const spent = peg.steamCd > 0.8;
+    const text = ferg.mode === 'drift' ? 'Hold: huff!' : ferg.fury >= 1 ? 'Let go: RAM!' : 'Keep huffing';
+    actionPrompt(g, ferg.x, Math.max(iceTop(), 330) - 70, text, { kind: env.inputKind, t: tt, pulse: ferg.mode === 'huff' && ferg.fury >= 1 && spent ? 1 : 0 });
+  }
+
   function drawMeter(g) {
     const m = ferg.mode;
     if (m !== 'huff' && m !== 'windup') return;
-    const x = ferg.x, y = Math.max(iceTop() - 40, 300);
+    const x = ferg.x, y = Math.max(iceTop(), 330) - 20;
     const w = 240;
     g.save();
     g.fillStyle = 'rgba(248,241,224,0.9)';
@@ -1200,6 +1211,16 @@ export default function create(env) {
   return self;
 }
 
+// The how-to-play page (chapters/index.js, THE HOW-TO-PLAY PAGE).
+export const HOWTO = [
+  { text: 'Push along, up to rise, down to sink under the pier.', scene: 'scenes/typhoonigator', crop: [300, 200, 1280, 720],
+    items: [{ creature: 'iceferg', anim: 'drift', x: 250, y: 400, h: 230 }, { path: [[330, 400], [560, 400]], arrow: true }, { path: [[250, 180], [250, 120]], arrow: true }, { path: [[250, 330], [250, 390]], arrow: true }] },
+  { text: 'Hold Action to huff up fury, let go to charge and smash.', scene: 'scenes/typhoonigator', crop: [300, 200, 1280, 720],
+    items: [{ creature: 'iceferg', anim: 'charge', x: 220, y: 400, h: 230 }, { sprite: ['props.typhoonigator', 6], x: 500, y: 390, h: 90 }, { path: [[330, 380], [470, 380]], arrow: true }, { word: 'SMASH!', x: 500, y: 250, size: 44 }] },
+  { text: 'Pick up sea lions from the floes, then ram the Peg before the harbour.', scene: 'scenes/iceferg', crop: [900, 0, 1020, 574],
+    items: [{ creature: 'iceferg', anim: 'drift', x: 200, y: 420, h: 220 }, { sprite: ['props.iceferg', 1], x: 480, y: 400, h: 150 }, { path: [[300, 360], [420, 360]], arrow: true }, { word: 'SCRUNNCCCHHH!!', x: 400, y: 150, size: 40 }] },
+];
+
 // ---------- the autopilot ----------
 //
 // Drifts right, sinks under the pier and the bridge and the cold current,
@@ -1222,7 +1243,7 @@ export function autopilot(board) {
   if (gap < 0) {
     // It slipped past the Peg. Under the pier or the bridge the boat is out of
     // reach: sit sunk and let it chug by, then turn and ram it.
-    const under = live.some((o) => (o.kind === 'pier' || o.kind === 'bridge') && (Math.abs(o.x - peg.x) < o.hw + 200 || between(o, Math.abs(gap))));
+    const under = Math.abs(gap) < hw + 220 || live.some((o) => (o.kind === 'pier' || o.kind === 'bridge') && (Math.abs(o.x - peg.x) < o.hw + 200 || between(o, Math.abs(gap))));
     if (under) { inp.x = 0; inp.y = 1; inp.action = ferg.mode === 'huff'; return inp; } // keep any fury for when it is past
     inp.y = -1;
   } else if (overheads.length || cold) inp.y = 1; // sink

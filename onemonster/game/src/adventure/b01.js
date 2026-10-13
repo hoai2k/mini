@@ -14,11 +14,12 @@
 import * as kit from './kit.js';
 import * as art from '../art.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, letterTag } from '../prompt.js';
 
 const ENTRY = BOARDS[0];
 const { W, H, clamp, lerp } = kit;
 
-export const WORLD = 13100;
+export const WORLD = 13700;
 export const G = 880; // the lane's surface
 const INK = '#2b1d14';
 const PROPS = 'adv.b01.props';
@@ -44,7 +45,7 @@ export const DOG = { x: 6100, rope: 520, speed: 640 };
 export const SPRINKLER = { x: 8450, reach: 330, rate: 1.4, height: 190 };
 export const LID = { x: 9050, w: 150, h: 34, boost: 1760 };
 export const MAILBOX = { x: 12700, grabR: 130 };
-const MAIL_ROAD = 5400; // how far up the road the mailman starts
+const MAIL_ROAD = 850; // how far up the road past the mailbox the mailman starts
 
 export const LOOKOUTS = [
   // cast sprites: 3 neighbour peering / 4 dozing; 1 Sally Ann looking / 2 writing.
@@ -142,7 +143,7 @@ export default function create(env) {
   let caught = 0;
   let t = 0;
   let outroT = 0;
-  let mailX = MAILBOX.x - 160 - MAIL_ROAD;
+  let mailX = MAILBOX.x + 170 + MAIL_ROAD;
   let motorT = 2;
   let jetTone = 0;
   let cpSeen = CHECKPOINTS[0];
@@ -506,7 +507,7 @@ export default function create(env) {
       for (const k of COVER) k.shake = Math.max(0, (k.shake || 0) - dt * 1.5);
       lidSquash = Math.max(0, lidSquash - dt * 4);
       // The mailman putters along the road toward the mailbox as the clock runs.
-      const target = MAILBOX.x - 160 - MAIL_ROAD * clamp(self.time / total, 0, 1);
+      const target = MAILBOX.x + 170 + MAIL_ROAD * clamp(self.time / total, 0, 1);
       mailX += (target - mailX) * (1 - Math.exp(-2 * dt));
       cam.follow(b.x, b.vx, dt, t <= dt);
       if (self.done) { outro(dt); stepSpills(dt); return; }
@@ -626,10 +627,10 @@ export default function create(env) {
       const k = (tt * 1.5 + i / 3) % 1;
       g.globalAlpha = 0.35 * (1 - k);
       g.fillStyle = '#d8d2c8';
-      g.beginPath(); g.arc(x - 80 - k * 70, yy - 20 - k * 24, 10 + k * 14, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(x + 80 + k * 70, yy - 20 - k * 24, 10 + k * 14, 0, Math.PI * 2); g.fill();
     }
     g.restore();
-    if (!art.drawSprite(g, art.cast(7 + bounce), x, yy, { height: 150, flip: true })) {
+    if (!art.drawSprite(g, art.cast(7 + bounce), x, yy, { height: 150 })) {
       g.save(); g.fillStyle = '#b8443a'; ink(g); g.beginPath(); g.roundRect(x - 60, yy - 60, 120, 60, 14); g.fill(); g.stroke(); g.restore();
     }
   }
@@ -1005,6 +1006,7 @@ export default function create(env) {
   }
 
   function drawMailbox(g) {
+    const tNow = t;
     if (!cam.sees(MAILBOX.x - 200, MAILBOX.x + 200)) return;
     const open = self.outcome === 'snatched';
     kit.sprite(g, 'props.trollusk', open ? 8 : 7, MAILBOX.x, G + 2, { height: open ? 290 : 262, ax: 0.5, ay: 1 }, (g) => {
@@ -1023,10 +1025,8 @@ export default function create(env) {
       g.fillStyle = '#b3402e'; g.fillRect(8, -10, 9, 9);
       g.restore();
     }
-    if (!self.done && self.atMailbox() && pl.mode === 'free') {
-      g.save(); g.font = '800 40px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.lineWidth = 8; g.strokeStyle = 'rgba(248,241,224,0.95)'; g.fillStyle = INK;
-      g.strokeText('Action!', MAILBOX.x, G - 320); g.fillText('Action!', MAILBOX.x, G - 320); g.restore();
-    }
+    if (!open) letterTag(g, MAILBOX.x - 60, G - 330, { t: tNow });
+    if (!self.done && self.atMailbox() && pl.mode === 'free') actionPrompt(g, MAILBOX.x - 40, G - 400, 'Grab!', { kind: env.inputKind, t: tNow, pulse: 1 });
   }
 
   // Stamps: the delivered stamps (props.trollusk 1–4) in turn, the wind ones spinning.
@@ -1070,7 +1070,7 @@ export default function create(env) {
     }
     if (pl.hidden) {
       g.save(); g.font = '800 30px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.lineWidth = 7; g.strokeStyle = 'rgba(248,241,224,0.95)'; g.fillStyle = INK;
-      g.strokeText('hidden', b.x, b.y - 250); g.fillText('hidden', b.x, b.y - 250); g.restore();
+      g.strokeText('hidden', b.x, G - 225); g.fillText('hidden', b.x, G - 225); g.restore();
     }
   }
 
@@ -1127,6 +1127,41 @@ export default function create(env) {
 
   return self;
 }
+
+// The how-to-play page (chapters/index.js, "THE HOW-TO-PLAY PAGE"): three steps.
+export const HOWTO = [
+  {
+    text: 'Tiptoe along the lane and hop up the ledges. Scurrying is faster, but noisy.',
+    scene: 'scenes/trollusk', crop: [0, 380, 1280, 720],
+    items: [
+      { creature: 'trollusk', anim: 'sneak', x: 150, y: 420, h: 150 },
+      { path: [[200, 400], [300, 300], [400, 330]], arrow: true },
+      { sprite: ['props.trollusk', 1], x: 420, y: 300, h: 40 },
+      { sprite: ['props.trollusk', 3], x: 520, y: 250, h: 40 },
+    ],
+  },
+  {
+    text: 'When the eye shows, duck into a bush, or freeze far off behind your twig.',
+    scene: 'scenes/trollusk', crop: [300, 380, 1280, 720],
+    items: [
+      { cast: 3, x: 500, y: 300, h: 180 },
+      { sprite: ['props.trollusk', 9], x: 500, y: 140, h: 80 },
+      { sprite: ['props.trollusk', 5], x: 200, y: 440, h: 130 },
+      { creature: 'trollusk', anim: 'duck', x: 200, y: 430, h: 110 },
+      { ring: [200, 390, 90] },
+    ],
+  },
+  {
+    text: 'Reach the mailbox before the mailman and pull the letter out.',
+    scene: 'scenes/trollusk', crop: [640, 380, 1280, 720],
+    items: [
+      { cast: 7, x: 140, y: 250, h: 90, flip: true },
+      { creature: 'trollusk', anim: 'grab', x: 360, y: 440, h: 160 },
+      { sprite: ['props.trollusk', 7], x: 500, y: 440, h: 180 },
+      { word: 'Got it!', x: 480, y: 150, size: 44 },
+    ],
+  },
+];
 
 // ---------- the autopilot ----------
 //

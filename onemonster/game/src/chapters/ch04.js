@@ -13,27 +13,29 @@
 import * as art from '../art.js';
 import { makeFx, roundRect } from '../chasedraw.js';
 import { marksFor } from './index.js';
+import { actionPrompt, marker, letterTag, buttonName } from '../prompt.js';
 
 // Tuning: the numbers that make the chapter fair (logical px and seconds).
 export const TUNE = {
   time: 45,
   ferg: {
-    radius: 105, accel: 130, drag: 0.55, maxSpeed: 130,
+    radius: 115, accel: 130, drag: 0.55, maxSpeed: 130,
     huffAccelK: 0.45, rideK: 2.6, rideAccelK: 0.3,
     furyTime: 1.5, furyTimeGentle: 1.15, minFury: 0.2,
-    chargeMin: 430, chargeAdd: 520, chargeDur: 0.5, chargeDurAdd: 0.35,
-    windup: 0.26, recover: 1.1, recoverAdd: 0.8, dazed: 2, lions: 3,
+    chargeMin: 470, chargeAdd: 560, chargeDur: 0.5, chargeDurAdd: 0.35,
+    windup: 0.4, recover: 1.1, recoverAdd: 0.8, dazed: 2, lions: 3,
   },
   peg: {
-    radius: 55, cruise: 42, cruiseGentleS: 36, cruiseGentleH: 48, turn: 1.5,
-    steamImpulse: 420, steamDecay: 2.6, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
+    radius: 70, cruise: 42, cruiseGentleS: 36, cruiseGentleH: 48, turn: 1.5,
+    steamImpulse: 500, steamDecay: 2.6, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
     currentK: 0.35,
   },
   hitSpeed: 240, // a charge must still be going this fast to strike
-  hitReach: 130, // centre to centre, for a strike
+  hitReach: 175, // centre to centre, for a strike
+  hitStop: 0.3, // the world freezes this long on the SCRUNNCCCHHH
 };
 
-const HARBOUR = { x: 1320, y: 305, r: 100, shallow: 250 }; // too shallow for an iceberg inside `shallow`
+const HARBOUR = { x: 1330, y: 320, r: 110, shallow: 260 }; // too shallow for an iceberg inside `shallow`
 const BOUNDS = { x0: 170, x1: 1765, y0: 265, y1: 1035 };
 // Rocks and shore from the scene, as circles (x, y, r).
 const ROCKS = [
@@ -97,6 +99,9 @@ export function chargeReach(fury) {
   return (F.chargeMin + F.chargeAdd * fury) * (F.chargeDur + F.chargeDurAdd * fury) * (5 / 6);
 }
 
+const SIZE = 1.05; // the iceberg about 315 px tall: big enough to read from above
+const PEG_H = 215; // the Peg's sprite height: plainly bigger than a rowing boat (100)
+
 export default function create(env) {
   const { W, H } = env;
   const F = TUNE.ferg, P = TUNE.peg;
@@ -105,12 +110,12 @@ export default function create(env) {
   const rng = env.rng;
 
   const ferg = {
-    x: 1560, y: 700, vx: 0, vy: 0, mode: 'drift', modeT: 0, fury: 0, launchFury: 0,
+    x: 1600, y: 700, vx: 0, vy: 0, mode: 'drift', modeT: 0, fury: 0, launchFury: 0,
     aimX: 1, aimY: 0, cdx: 0, cdy: 0, chargeT: 0, chargeDur: 0, chargeSp: 0, charges: 0,
     lions: F.lions, riding: false, bumpCd: 0, fullSaid: false, rideSaid: 0,
   };
   const fc = art.makeCreature('iceferg', ferg.x, ferg.y);
-  fc.sizeK = 0.85;
+  fc.sizeK = SIZE;
 
   const cruise = env.gentle[1] ? P.cruiseGentleH : env.gentle[0] ? P.cruiseGentleS : P.cruise;
   const steamCdMax = env.gentle[1] ? P.steamCdGentle : P.steamCd;
@@ -143,7 +148,10 @@ export default function create(env) {
   let wakeT = 0;
   let t = 0;
   let shake = 0;
+  let freeze = 0; // hit-stop left, s
+  let flash = 0; // the white flash of the impact, 1..0
   let bottle = null;
+  const kind = env.inputKind || 'keyboard';
 
   function say(s, x, y) { fx.say(s, x, y); }
   function setMode(m, d = 0) { ferg.mode = m; ferg.modeT = d; }
@@ -157,7 +165,7 @@ export default function create(env) {
     if (ferg.lions === 0) {
       setMode('dazed', F.dazed);
       ferg.fury = 0;
-      say('Dazed!', ferg.x, ferg.y - 280);
+      say('Dazed!', ferg.x, ferg.y - 170);
       env.sfx('bonk');
     }
   }
@@ -166,7 +174,7 @@ export default function create(env) {
     ferg.vx *= 0.25; ferg.vy *= 0.25;
     const fury = ferg.launchFury;
     if (missed) {
-      say('Missed!', ferg.x, ferg.y - 280);
+      say('Missed!', ferg.x, ferg.y - 170);
       env.sfx('splash');
       splashRing(ferg.x + ferg.cdx * 80, ferg.y + 10, 170);
       if (fury >= 0.95 && ferg.lions > 0) lionOff(); // charged too hard
@@ -180,18 +188,20 @@ export default function create(env) {
     ferg.vx = 0; ferg.vy = 0;
     self.done = true;
     self.outcome = 'snatched';
-    if (ferg.launchFury >= 0.95) { self.bonus = 1; say('Full fury!', ferg.x, ferg.y - 330); }
-    say('SCRUNNCCCHHH!!', (ferg.x + peg.x) / 2, Math.min(ferg.y, peg.y) - 200);
+    if (ferg.launchFury >= 0.95) { self.bonus = 1; say('Full fury!', ferg.x, ferg.y - 170); }
+    freeze = env.reduceMotion ? 0.12 : TUNE.hitStop;
+    flash = 1;
     env.sfx('crunch');
     env.sfx('splash');
     env.vibrate(220);
     art.kick(fc, 0.6);
-    shake = env.reduceMotion ? 6 : 26;
-    for (let i = 0; i < 18; i++) {
+    shake = env.reduceMotion ? 6 : 34;
+    for (let i = 0; i < 26; i++) {
       const a = rng() * Math.PI * 2, s = 150 + rng() * 350;
       parts.push({ k: 'chip', x: (ferg.x + peg.x) / 2, y: (ferg.y + peg.y) / 2 - 40, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 200, t: 0, life: 0.9 + rng() * 0.5, r: 6 + rng() * 10, spin: rng() * 6 });
     }
-    splashRing(peg.x, peg.y, 220);
+    splashRing(peg.x, peg.y, 260);
+    splashRing((ferg.x + peg.x) / 2, (ferg.y + peg.y) / 2, 340);
     // The blow shoves the boat clear of the ice, so it is seen going down.
     const bx = peg.x - ferg.x + ferg.cdx * 40, by = peg.y - ferg.y + ferg.cdy * 40, bd = Math.hypot(bx, by) || 1;
     peg.nvx = (bx / bd) * 420; peg.nvy = (by / bd) * 420;
@@ -210,7 +220,7 @@ export default function create(env) {
 
     if (ferg.mode === 'recover' || ferg.mode === 'dazed') {
       if (ferg.modeT <= 0) {
-        if (ferg.mode === 'dazed' && ferg.lions === 0) { ferg.lions = F.lions; say('Back on!', ferg.x, ferg.y - 280); }
+        if (ferg.mode === 'dazed' && ferg.lions === 0) { ferg.lions = F.lions; say('Back on!', ferg.x, ferg.y - 170); }
         setMode('drift');
       } else accel *= 0.15;
     }
@@ -225,7 +235,7 @@ export default function create(env) {
       accel *= F.huffAccelK;
       if (ferg.fury >= 1 && !ferg.fullSaid) {
         ferg.fullSaid = true;
-        say('Full fury!', ferg.x, ferg.y - 300);
+        say('Full fury!', ferg.x, ferg.y - 170);
         env.sfx('creak'); env.vibrate(40);
         art.kick(fc, 0.3);
       }
@@ -274,7 +284,7 @@ export default function create(env) {
       ferg.x += (ferg.vx + cur.x) * dt;
       ferg.y += (ferg.vy + cur.y) * dt;
       if (collide(ferg, F.radius, 0.2)) {
-        say('Bonk!', ferg.x, ferg.y - 280);
+        say('Bonk!', ferg.x, ferg.y - 170);
         env.sfx('bonk');
         art.kick(fc, 0.5);
         endCharge(false);
@@ -443,6 +453,9 @@ export default function create(env) {
       b.alpha = clamp(b.alpha + (atEnd ? -dt : dt) * 1.5, 0, 1);
       if (atEnd && b.alpha <= 0) { rowboats[i] = spawnRow(b.row, b.i, 1.5 + rng() * 3); continue; }
       if (b.alpha < 0.5) continue;
+      // They row round the iceberg when they can (a slow drift never costs a sea lion).
+      const ax = ferg.x - b.x, ay = ferg.y - b.y, ad = Math.hypot(ax, ay);
+      if (ad < 330 && Math.sign(ax) === Math.sign(b.vx)) b.pvy += (ay > 0 ? -1 : 1) * 140 * dt * (1 - ad / 330) * 4;
       // The Peg pushes them aside.
       const pd = Math.hypot(b.x - peg.x, b.y - peg.y);
       if (pd < P.radius + 50 && pd > 0.1) { b.pvx += ((b.x - peg.x) / pd) * 100; b.pvy += ((b.y - peg.y) / pd) * 100; b.rock = 0.5; }
@@ -450,7 +463,10 @@ export default function create(env) {
       const fd = Math.hypot(b.x - ferg.x, b.y - ferg.y);
       if (fd < F.radius + 45 && fd > 0.1 && b.bump <= 0 && ferg.mode !== 'crash') {
         const nx = (b.x - ferg.x) / fd, ny = (b.y - ferg.y) / fd;
+        const hard = ferg.mode === 'charge' || ferg.mode === 'windup' || Math.hypot(ferg.vx, ferg.vy) + (ferg.riding ? 200 : 0) > 90;
         b.pvx += nx * 240; b.pvy += ny * 240; b.rock = 1; b.bump = 1.2;
+        splashRing(b.x, b.y, 110);
+        if (!hard) { say('Bump!', b.x, b.y - 90); env.sfx('thump'); continue; } // nudged aside, no harm done
         ferg.vx = -nx * 60; ferg.vy = -ny * 60;
         if (ferg.mode === 'charge') endCharge(false);
         if (ferg.mode === 'huff') setMode('drift');
@@ -458,7 +474,6 @@ export default function create(env) {
         art.kick(fc, 0.35);
         env.sfx('bonk');
         say('Splash!', b.x, b.y - 120);
-        splashRing(b.x, b.y, 110);
         lionOff();
       }
     }
@@ -501,9 +516,12 @@ export default function create(env) {
     done: false,
     outcome: null,
     bonus: 0,
+    outroTime: 3.2, // the Peg goes down and the bottle bobs away before the celebration
     ferg, peg, rowboats, fc, TUNE, HARBOUR,
     update(dt, inS, inH) {
       t += dt;
+      flash = Math.max(0, flash - dt * 2.5);
+      if (freeze > 0) { freeze -= dt; return; } // the SCRUNNCCCHHH hangs for a moment
       fx.update(dt);
       shake = Math.max(0, shake - dt * 40);
       if (self.done) {
@@ -530,7 +548,7 @@ export default function create(env) {
             ferg.vx *= 0.4; ferg.vy *= 0.4;
             peg.bumpCd = 0.8;
             env.sfx('thump');
-            say('Bump!', peg.x, peg.y - 110);
+                  say('Bump!', peg.x, peg.y - 150);
             art.kick(fc, 0.2);
             if (ferg.mode === 'charge') endCharge(false);
           }
@@ -567,12 +585,14 @@ export default function create(env) {
       things.sort((a, b) => a.y - b.y);
       for (const th of things) th.draw();
       for (const p of parts) if (p.k !== 'ring') drawPart(g, p);
-      if (!self.done) drawMeters(g);
+      if (!self.done) { drawMeters(g); drawPrompts(g, tt); }
+      if (self.done && self.outcome === 'snatched') drawScrunch(g, tt);
       fx.draw(g);
       g.restore();
-      if (t < 3.5 && !self.done) hint(g, env.versus
-        ? 'Ice-Ferg: hold Action to huff, let go to CHARGE! · Peg: steer for the harbour, Action for steam!'
-        : 'Hold Action to huff up fury, let go to CHARGE the Peg before it reaches the harbour!', W);
+      if (flash > 0) { g.save(); g.globalAlpha = flash * 0.8; g.fillStyle = '#fbf6e8'; g.fillRect(0, 0, W, H); g.restore(); }
+      if (t < 5 && !self.done) hint(g, env.versus
+        ? `Ice-Ferg: hold ${buttonName(kind, 'action', 0)}, let go to CHARGE!  ·  Peg: steer home, ${buttonName(kind, 'action', 1)} for steam!`
+        : `Hold ${buttonName(kind)} to huff up fury, let go to CHARGE the Peg!`, W, t);
     },
     marks() {
       const elapsed = total - self.time;
@@ -591,7 +611,7 @@ export default function create(env) {
     else if (m === 'crash') art.setAnim(fc, 'crash');
     else if (m === 'recover' || m === 'dazed') art.setAnim(fc, 'dazed');
     else art.setAnim(fc, 'drift');
-    fc.sizeK = 0.85 * (1 + (m === 'huff' ? 0.07 * ferg.fury : 0));
+    fc.sizeK = SIZE * (1 + (m === 'huff' ? 0.1 * ferg.fury : m === 'windup' ? 0.1 * ferg.launchFury : 0));
     const f = fc.facing;
     art.animate(fc, dt, 0, 0);
     fc.facing = f;
@@ -637,54 +657,135 @@ export default function create(env) {
   // ---------- drawing ----------
   function drawLanes(g, tt) {
     for (const l of LANES) {
-      // Streaks of foam running along the lane.
+      // A pale band of foam along the lane, so it reads as a river in the sea.
       g.save();
-      g.strokeStyle = 'rgba(240,248,250,0.5)';
       g.lineCap = 'round';
-      g.lineWidth = 5;
-      for (let i = 0; i < 9; i++) {
-        const ph = ((tt * l.s) / l.len + i / 9 + i * 0.037) % 1;
+      g.strokeStyle = 'rgba(236,246,250,0.16)';
+      g.lineWidth = l.w * 1.5;
+      g.beginPath(); g.moveTo(l.x0, l.y0); g.lineTo(l.x1, l.y1); g.stroke();
+      g.strokeStyle = 'rgba(246,252,255,0.22)';
+      g.lineWidth = l.w * 0.7;
+      g.stroke();
+      // Streaks of foam running along it.
+      g.strokeStyle = 'rgba(248,252,255,0.9)';
+      g.lineWidth = 6;
+      for (let i = 0; i < 11; i++) {
+        const ph = ((tt * l.s) / l.len + i / 11 + i * 0.037) % 1;
         const off = (((i * 37) % 7) - 3) * (l.w / 5);
         const x = l.x0 + l.ux * l.len * ph - l.uy * off, y = l.y0 + l.uy * l.len * ph + l.ux * off;
         g.globalAlpha = Math.sin(ph * Math.PI) * 0.7;
         g.beginPath();
         g.moveTo(x, y);
-        g.lineTo(x - l.ux * 46, y - l.uy * 46);
+        g.lineTo(x - l.ux * 60, y - l.uy * 60);
         g.stroke();
       }
       g.restore();
-      for (let i = 0; i < 4; i++) {
-        const ph = ((tt * l.s * 0.6) / l.len + i / 4) % 1;
+      // Big foam arrows, the way it flows.
+      for (let i = 0; i < 3; i++) {
+        const ph = ((tt * l.s * 0.6) / l.len + i / 3) % 1;
         const x = l.x0 + l.ux * l.len * ph, y = l.y0 + l.uy * l.len * ph;
-        art.drawSprite(g, art.prop('iceferg', 5), x, y, { height: 74, ax: 0.5, ay: 0.5, rot: l.ang, alpha: Math.sin(ph * Math.PI) * 0.85 });
+        const a = Math.min(1, Math.sin(ph * Math.PI) * 1.6);
+        if (!art.drawSprite(g, art.prop('iceferg', 5), x, y, { height: 120, ax: 0.5, ay: 0.5, rot: l.ang, alpha: a })) {
+          g.save(); g.globalAlpha = a; g.translate(x, y); g.rotate(l.ang);
+          g.strokeStyle = '#f4fbfb'; g.lineWidth = 10; g.lineCap = 'round';
+          g.beginPath(); g.moveTo(-50, 0); g.lineTo(40, 0); g.moveTo(10, -28); g.lineTo(40, 0); g.lineTo(10, 28); g.stroke();
+          g.restore();
+        }
       }
     }
   }
 
+  // The harbour mouth under the quay: the Peg's finish line, ringed and
+  // flagged on the pier, so the player knows where to cut the boat off.
   function drawHarbour(g, tt) {
     g.save();
-    g.globalAlpha = 0.14;
+    g.globalAlpha = 0.16;
     g.fillStyle = '#bff0e6';
     g.beginPath(); g.ellipse(HARBOUR.x, HARBOUR.y, HARBOUR.shallow, HARBOUR.shallow * 0.55, 0, 0, Math.PI * 2); g.fill();
     g.restore();
-    const p = 1 + Math.sin(tt * 3) * 0.06;
+    const p = 1 + Math.sin(tt * 3) * 0.05;
     g.save();
     g.translate(HARBOUR.x, HARBOUR.y);
     g.scale(p, p * 0.55);
-    g.setLineDash([18, 14]);
+    g.setLineDash([22, 16]);
     g.lineDashOffset = -tt * 30;
-    g.lineWidth = 7;
-    g.strokeStyle = 'rgba(255,240,170,0.9)';
+    g.lineWidth = 9;
+    g.strokeStyle = 'rgba(51,36,26,0.55)';
+    g.beginPath(); g.arc(0, 0, HARBOUR.r + 3, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 6;
+    g.strokeStyle = 'rgba(255,240,170,0.95)';
     g.beginPath(); g.arc(0, 0, HARBOUR.r, 0, Math.PI * 2); g.stroke();
     g.restore();
+    marker(g, HARBOUR.x, HARBOUR.y - HARBOUR.r * 0.55 - 6, { t: tt, colour: '#f2c53d', size: 0.9 });
     g.save();
     g.font = '800 30px Fraunces, Georgia, serif';
     g.textAlign = 'center';
-    g.lineWidth = 7;
+    g.textBaseline = 'middle';
+    g.lineWidth = 8;
+    g.strokeStyle = 'rgba(251,246,232,0.95)';
+    g.fillStyle = '#33241a';
+    g.strokeText('The harbour', HARBOUR.x, HARBOUR.y + 6);
+    g.fillText('The harbour', HARBOUR.x, HARBOUR.y + 6);
+    g.restore();
+  }
+
+  // The things that must read at a glance: which boat is the Peg (the letter
+  // is aboard), and what to press right now.
+  function drawPrompts(g, tt) {
+    if (self.outcome !== 'snatched') {
+      const ly = peg.y - PEG_H * 0.62;
+      letterTag(g, peg.x, ly - 10, { t: tt, r: 40 });
+      g.save();
+      g.font = '800 28px Fraunces, Georgia, serif';
+      g.textAlign = 'center';
+      g.lineWidth = 7;
+      g.strokeStyle = 'rgba(251,246,232,0.95)';
+      g.fillStyle = '#33241a';
+      g.strokeText('The Peg', peg.x, ly + 50);
+      g.fillText('The Peg', peg.x, ly + 50);
+      g.restore();
+    }
+    const d = Math.hypot(peg.x - ferg.x, peg.y - ferg.y);
+    const px = ferg.x, py = ferg.y - 250;
+    if (ferg.mode === 'drift' && ferg.charges === 0 && d < 1100) {
+      // Never charged yet: say how.
+      actionPrompt(g, px, py, 'Hold: huff!', { kind, side: 0, t: tt, size: 34 });
+    } else if (ferg.mode === 'huff') {
+      if (aimed() && ferg.fury >= 0.5) actionPrompt(g, px, py, 'Let go: CHARGE!', { kind, side: 0, t: tt, pulse: 1, size: 38 });
+      else if (ferg.fury >= 1) actionPrompt(g, px, py, 'Aim at the Peg!', { kind, side: 0, t: tt, size: 32 });
+    }
+    // In versus, the captain is told when steam would save the boat.
+    if (env.versus && (ferg.mode === 'windup' || (ferg.mode === 'huff' && ferg.fury > 0.6)) && d < 700 && peg.steamCd <= 0) {
+      actionPrompt(g, peg.x, peg.y - PEG_H * 0.62 - 90, 'Steam!', { kind, side: 1, t: tt, pulse: 1, size: 32 });
+    }
+  }
+
+  // Is the Peg in the charge's path and within its reach?
+  function aimed() {
+    const reach = chargeReach(ferg.fury);
+    const dx = peg.x - ferg.x, dy = peg.y - ferg.y;
+    const along = dx * ferg.aimX + dy * ferg.aimY;
+    const across = Math.abs(dx * ferg.aimY - dy * ferg.aimX);
+    return along > 0 && along < reach + 60 && across < P.radius + 70;
+  }
+
+  // The SCRUNNCCCHHH itself, big across the sea.
+  function drawScrunch(g, tt) {
+    const k = clamp(outT / 0.35, 0, 1);
+    if (outT > 2.2) return;
+    g.save();
+    g.globalAlpha = outT > 1.7 ? 1 - (outT - 1.7) / 0.5 : 1;
+    g.translate((ferg.x + peg.x) / 2, Math.min(ferg.y, peg.y) - 230);
+    g.rotate(-0.1 + Math.sin(tt * 30) * 0.015 * (1 - k));
+    const s = 0.5 + 0.5 * (1 - (1 - k) * (1 - k)) + (freeze > 0 ? 0.25 : 0);
+    g.scale(s, s);
+    g.font = '900 110px Fraunces, Georgia, serif';
+    g.textAlign = 'center';
+    g.lineWidth = 16;
     g.strokeStyle = '#33241a';
-    g.fillStyle = '#f8f1e0';
-    g.strokeText('Harbour', HARBOUR.x, HARBOUR.y + 12);
-    g.fillText('Harbour', HARBOUR.x, HARBOUR.y + 12);
+    g.fillStyle = '#f2c53d';
+    g.strokeText('SCRUNNCCCHHH!!', 0, 0);
+    g.fillText('SCRUNNCCCHHH!!', 0, 0);
     g.restore();
   }
 
@@ -718,7 +819,7 @@ export default function create(env) {
   function boatSprite(g, sp, x, y, a, h, base, extra = {}) {
     const flip = Math.cos(a) < 0;
     const rot = flip ? wrap(a - (Math.PI - base)) : wrap(a - base);
-    art.drawSprite(g, sp, x, y, { height: h, ay: 0.5, flip, rot: rot * 0.75, ...extra });
+    return art.drawSprite(g, sp, x, y, { height: h, ay: 0.5, flip, rot: rot * 0.75, ...extra });
   }
 
   function drawRow(g, b, tt) {
@@ -729,34 +830,48 @@ export default function create(env) {
     g.fillStyle = '#f4fbfb';
     g.beginPath(); g.ellipse(b.x - Math.sign(b.vx) * 40, b.y + 6, 30 + Math.sin(tt * 6 + b.i) * 6, 8, 0, 0, Math.PI * 2); g.fill();
     g.restore();
-    boatSprite(g, art.prop('iceferg', b.item), b.x, b.y, a + rockA, 105, 0.55, { alpha: b.alpha });
+    if (!boatSprite(g, art.prop('iceferg', b.item), b.x, b.y, a + rockA, 100, 0.55, { alpha: b.alpha })) {
+      g.save(); g.globalAlpha = b.alpha; g.fillStyle = b.item === 3 ? '#b5463a' : '#5f8f5a'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+      g.beginPath(); g.ellipse(b.x, b.y, 48, 20, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
+    }
   }
 
   function drawPeg(g, tt) {
     const roll = Math.sin(tt * 2.2) * 0.04 + clamp(peg.turnRate, -1.5, 1.5) * 0.05;
     const leaning = !self.done && (peg.steamT > 0 || Math.abs(peg.turnRate) > 1.1);
     let item = leaning ? 7 : 1;
-    let alpha = 1, h = 150, y = peg.y + Math.sin(tt * 2.6) * 3;
-    if (self.outcome === 'snatched') { item = 2; alpha = 1 - peg.sink * 0.75; h = 160 * (1 - peg.sink * 0.4); y += peg.sink * 25; }
+    let alpha = 1, h = PEG_H, y = peg.y + Math.sin(tt * 2.6) * 3;
+    if (self.outcome === 'snatched') { item = 2; alpha = 1 - peg.sink * 0.75; h = PEG_H * 1.05 * (1 - peg.sink * 0.4); y += peg.sink * 25; }
     else if (self.outcome === 'kept' && peg.steamT > 0) item = 7;
-    // The steam-recharge ring under the boat.
+    // The steam-recharge ring under the boat (the captain's one trick).
     if (!self.done) {
       g.save();
-      g.translate(peg.x, peg.y + 40);
+      g.translate(peg.x, peg.y + 55);
       g.scale(1, 0.4);
-      g.lineWidth = 9;
-      g.strokeStyle = 'rgba(30,40,60,0.3)';
-      g.beginPath(); g.arc(0, 0, 70, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 11;
+      g.strokeStyle = 'rgba(30,40,60,0.35)';
+      g.beginPath(); g.arc(0, 0, 95, 0, Math.PI * 2); g.stroke();
       const f = peg.steamCd <= 0 ? 1 : 1 - peg.steamCd / steamCdMax;
       g.strokeStyle = peg.steamCd <= 0 ? '#f8f1e0' : '#9fb4c0';
-      g.beginPath(); g.arc(0, 0, 70, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
+      g.beginPath(); g.arc(0, 0, 95, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
       g.restore();
     }
-    boatSprite(g, art.prop('iceferg', item), peg.x, y, peg.hd + roll, h, 0.5, { alpha });
-    if (!art.prop('iceferg', item)) {
-      g.save(); g.fillStyle = '#2f7f7a'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+    // In the charge's path: the boat is ringed red, so the aim reads.
+    if (!self.done && ferg.mode === 'huff' && aimed()) {
+      g.save();
+      g.strokeStyle = '#ff6b4a';
+      g.lineWidth = 7;
+      g.setLineDash([16, 12]);
+      g.lineDashOffset = -tt * 60;
+      g.beginPath(); g.ellipse(peg.x, peg.y + 10, 125, 85, 0, 0, Math.PI * 2); g.stroke();
+      g.restore();
+    }
+    if (!boatSprite(g, art.prop('iceferg', item), peg.x, y, peg.hd + roll, h, 0.5, { alpha })) {
+      g.save(); g.globalAlpha = alpha; g.fillStyle = '#2f7f7a'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
       g.translate(peg.x, peg.y); g.rotate(peg.hd);
-      g.beginPath(); g.ellipse(0, 0, 70, 30, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
+      g.beginPath(); g.ellipse(0, 0, 100, 42, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.fillStyle = '#c9a36a'; g.fillRect(-30, -22, 44, 44); g.strokeRect(-30, -22, 44, 44);
+      g.restore();
     }
   }
 
@@ -765,69 +880,101 @@ export default function create(env) {
     g.save();
     g.globalAlpha = 0.25;
     g.fillStyle = '#1c3448';
-    g.beginPath(); g.ellipse(ferg.x, ferg.y + 35, 140, 34, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(ferg.x, ferg.y + 40, 170, 40, 0, 0, Math.PI * 2); g.fill();
     g.globalAlpha = 0.5 + ferg.fury * 0.4;
     g.strokeStyle = '#f4fbfb';
-    g.lineWidth = 4 + ferg.fury * 6;
+    g.lineWidth = 5 + ferg.fury * 7;
     const wob = Math.sin(tt * 5) * 6;
-    g.beginPath(); g.ellipse(ferg.x, ferg.y + 35, 140 + wob + ferg.fury * 20, 30 + wob * 0.3, 0, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.ellipse(ferg.x, ferg.y + 40, 170 + wob + ferg.fury * 25, 36 + wob * 0.3, 0, 0, Math.PI * 2); g.stroke();
     g.restore();
     if (ferg.mode === 'huff' || ferg.mode === 'windup') drawAim(g, tt);
+    if (ferg.mode === 'charge') drawChargeTrail(g, tt);
     art.drawCreature(g, fc, tt, { reduceMotion: env.reduceMotion, shadow: false });
   }
 
+  // The aim: a wide pale lane the charge will take, as far as it reaches, with
+  // a big arrowhead; red and throbbing once the fury is full or the charge is
+  // launched.
   function drawAim(g, tt) {
     const wind = ferg.mode === 'windup';
-    const reach = chargeReach(wind ? ferg.launchFury : ferg.fury);
+    const fury = wind ? ferg.launchFury : ferg.fury;
+    const reach = chargeReach(fury);
     const ax = wind ? ferg.cdx : ferg.aimX, ay = wind ? ferg.cdy : ferg.aimY;
-    const x0 = ferg.x + ax * 120, y0 = ferg.y + ay * 60;
-    const x1 = ferg.x + ax * reach, y1 = ferg.y + ay * reach;
+    const x0 = ferg.x + ax * 100, y0 = ferg.y + 20 + ay * 60;
+    const x1 = ferg.x + ax * reach, y1 = ferg.y + 20 + ay * reach;
+    const hot = wind || fury >= 1;
+    const col = hot ? '#ff6b4a' : '#fff6dc';
     g.save();
-    g.strokeStyle = wind || ferg.fury >= 1 ? '#ff6b4a' : 'rgba(255,250,235,0.85)';
-    g.lineWidth = 10;
     g.lineCap = 'round';
-    g.setLineDash([4, 22]);
-    g.lineDashOffset = -tt * 80;
+    g.globalAlpha = hot ? 0.3 + Math.sin(tt * 12) * 0.08 : 0.22;
+    g.strokeStyle = col;
+    g.lineWidth = (P.radius + 70) * 2 * 0.8;
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    g.globalAlpha = 1;
+    g.lineWidth = 12;
+    g.setLineDash([6, 26]);
+    g.lineDashOffset = -tt * 120;
+    g.strokeStyle = '#33241a';
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    g.strokeStyle = col;
+    g.lineWidth = 8;
+    g.stroke();
     g.setLineDash([]);
-    const a = Math.atan2(ay, ax);
     g.translate(x1, y1);
-    g.rotate(a);
-    g.fillStyle = g.strokeStyle;
-    g.beginPath(); g.moveTo(22, 0); g.lineTo(-16, -18); g.lineTo(-16, 18); g.closePath(); g.fill();
+    g.rotate(Math.atan2(ay, ax));
+    g.fillStyle = col;
+    g.strokeStyle = '#33241a';
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(44, 0); g.lineTo(-20, -36); g.lineTo(-8, 0); g.lineTo(-20, 36); g.closePath(); g.fill(); g.stroke();
+    g.restore();
+  }
+
+  // Speed lines behind a charging iceberg.
+  function drawChargeTrail(g, tt) {
+    g.save();
+    g.strokeStyle = 'rgba(248,252,255,0.7)';
+    g.lineWidth = 7;
+    g.lineCap = 'round';
+    for (let i = -2; i <= 2; i++) {
+      const ox = -ferg.cdy * i * 45, oy = ferg.cdx * i * 28;
+      const len = 120 + ((i + 2) * 53 + tt * 900) % 90;
+      g.beginPath();
+      g.moveTo(ferg.x + ox - ferg.cdx * 110, ferg.y + 30 + oy - ferg.cdy * 60);
+      g.lineTo(ferg.x + ox - ferg.cdx * (110 + len), ferg.y + 30 + oy - ferg.cdy * (60 + len * 0.6));
+      g.stroke();
+    }
     g.restore();
   }
 
   function drawMeters(g) {
-    // Fury bar and the sea lions above the iceberg.
-    const x = ferg.x, y = ferg.y - 290;
+    // The fury bar, above the iceberg, while it huffs and rears back. (The sea
+    // lions aboard are counted in the shell's HUD line and seen on the ledges.)
+    const x = ferg.x, y = ferg.y - 362;
     g.save();
-    if (ferg.mode === 'huff') {
-      const w = 170;
-      g.fillStyle = 'rgba(248,241,224,0.92)';
+    if (ferg.mode === 'huff' || ferg.mode === 'windup') {
+      const w = 300, hh = 44;
+      const f = ferg.mode === 'windup' ? ferg.launchFury : ferg.fury;
+      g.fillStyle = 'rgba(251,246,232,0.95)';
       g.strokeStyle = '#33241a';
-      g.lineWidth = 4;
-      roundRect(g, x - w / 2 - 6, y - 14, w + 12, 28, 12);
+      g.lineWidth = 5;
+      roundRect(g, x - w / 2 - 8, y - hh / 2 - 8, w + 16, hh + 16, 20);
       g.fill(); g.stroke();
-      const f = ferg.fury;
-      g.fillStyle = f >= 1 ? (Math.floor(t * 10) % 2 ? '#ff6b4a' : '#c8443a') : f > 0.6 ? '#e2873a' : '#7fb3d0';
-      roundRect(g, x - w / 2, y - 8, Math.max(8, w * f), 16, 8);
+      g.fillStyle = '#e9dfc8';
+      roundRect(g, x - w / 2, y - hh / 2, w, hh, 14);
       g.fill();
-      g.font = '800 22px Fraunces, Georgia, serif';
+      const hot = f >= 1 && Math.sin(t * 14) > 0;
+      g.fillStyle = f >= 1 ? (hot ? '#ff6b4a' : '#d9443d') : f > 0.6 ? '#e2873a' : '#7fb3d0';
+      roundRect(g, x - w / 2, y - hh / 2, Math.max(14, w * f), hh, 14);
+      g.fill();
+      g.font = '800 30px Fraunces, Georgia, serif';
       g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.lineWidth = 6;
+      g.strokeStyle = 'rgba(251,246,232,0.9)';
       g.fillStyle = '#33241a';
-      g.fillText('FURY', x, y - 22);
-    }
-    g.globalAlpha = 0.85;
-    g.fillStyle = 'rgba(248,241,224,0.85)';
-    g.strokeStyle = '#33241a';
-    g.lineWidth = 3;
-    roundRect(g, x - 66, y + 14, 132, 40, 18);
-    g.fill(); g.stroke();
-    for (let i = 0; i < F.lions; i++) {
-      const lx = x - 40 + i * 40, ly = y + 34;
-      g.globalAlpha = i < ferg.lions ? 1 : 0.3;
-      seaLion(g, lx, ly, 0.6, 0);
+      const label = f >= 1 ? 'FULL FURY!' : 'FURY';
+      g.strokeText(label, x, y + 1);
+      g.fillText(label, x, y + 1);
     }
     g.restore();
   }
@@ -877,14 +1024,111 @@ export default function create(env) {
   return self;
 }
 
-function hint(g, text, W) {
+// The opening hint: big ink type on a cream band across the top of the sea.
+function hint(g, text, W, t) {
+  const a = t > 4 ? 1 - (t - 4) : 1;
   g.save();
-  g.font = '700 36px Fraunces, Georgia, serif';
-  g.textAlign = 'center';
-  g.lineWidth = 8;
-  g.strokeStyle = 'rgba(248,241,224,0.95)';
+  g.globalAlpha = Math.max(0, a);
+  g.fillStyle = 'rgba(251,246,232,0.93)';
+  g.fillRect(0, 118, W, 70);
   g.fillStyle = '#33241a';
-  g.strokeText(text, W / 2, 150);
-  g.fillText(text, W / 2, 150);
+  g.fillRect(0, 118, W, 4); g.fillRect(0, 184, W, 4);
+  g.font = '800 38px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(text, W / 2, 154);
   g.restore();
 }
+
+// A competent player's input for the next frame (scripts/chapter-check.mjs):
+// gets in front of the Peg, huffs while closing in, leads the aim, and lets go
+// when the boat is within the charge's reach.
+export function autopilot(ch) {
+  const s = ch._ap || (ch._ap = { held: false });
+  const { ferg, peg } = ch;
+  const F = TUNE.ferg;
+  const dx = peg.x - ferg.x, dy = peg.y - ferg.y, d = Math.hypot(dx, dy);
+  const ahead = { x: peg.x + Math.cos(peg.hd) * 180, y: peg.y + Math.sin(peg.hd) * 180 };
+  let mx = ahead.x - ferg.x, my = ahead.y - ferg.y;
+  let action = false;
+  if (ferg.mode === 'drift' || ferg.mode === 'huff') {
+    if (d < 560) action = true;
+    if (ferg.mode === 'huff') {
+      const sp = F.chargeMin + F.chargeAdd * ferg.fury;
+      const lead = d / sp + F.windup;
+      mx = peg.x + peg.vx * lead - ferg.x;
+      my = peg.y + peg.vy * lead - ferg.y;
+      const reach = chargeReach(ferg.fury);
+      if ((ferg.fury >= 0.6 && d < reach * 0.7) || (ferg.fury >= 1 && d < reach * 0.85)) action = false;
+    }
+  }
+  const m = Math.hypot(mx, my) || 1;
+  const out = { x: mx / m, y: my / m, sprint: false, action, actionPressed: action && !s.held, actionReleased: !action && s.held };
+  s.held = action;
+  return out;
+}
+
+// The how-to-play page (chapters/index.js, "THE HOW-TO-PLAY PAGE"): three
+// steps composed from the art until the pictures OM-H4a/b/c arrive.
+const INK = '#33241a';
+function foamLane(cg, pts, w) {
+  cg.save();
+  cg.lineCap = 'round'; cg.lineJoin = 'round';
+  cg.strokeStyle = 'rgba(240,250,255,0.35)'; cg.lineWidth = w;
+  cg.beginPath(); pts.forEach(([x, y], j) => (j ? cg.lineTo(x, y) : cg.moveTo(x, y))); cg.stroke();
+  cg.restore();
+}
+function aimArrow(cg, x0, y0, x1, y1, col) {
+  cg.save();
+  cg.lineCap = 'round';
+  cg.globalAlpha = 0.3; cg.strokeStyle = col; cg.lineWidth = 70;
+  cg.beginPath(); cg.moveTo(x0, y0); cg.lineTo(x1, y1); cg.stroke();
+  cg.globalAlpha = 1; cg.lineWidth = 8; cg.setLineDash([5, 18]); cg.strokeStyle = INK;
+  cg.beginPath(); cg.moveTo(x0, y0); cg.lineTo(x1, y1); cg.stroke();
+  cg.setLineDash([]);
+  cg.translate(x1, y1); cg.rotate(Math.atan2(y1 - y0, x1 - x0));
+  cg.fillStyle = col; cg.strokeStyle = INK; cg.lineWidth = 4;
+  cg.beginPath(); cg.moveTo(34, 0); cg.lineTo(-14, -28); cg.lineTo(-6, 0); cg.lineTo(-14, 28); cg.closePath(); cg.fill(); cg.stroke();
+  cg.restore();
+}
+export const HOWTO = [
+  {
+    text: 'Drift with the currents: the foam arrows show which way they run.',
+    scene: 'scenes/iceferg', crop: [300, 480, 920, 690],
+    items: [
+      { draw: (cg) => foamLane(cg, [[40, 400], [200, 330], [400, 300], [620, 220]], 110) },
+      { sprite: ['props.iceferg', 5], x: 120, y: 380, h: 90, ay: 0.5, rot: -0.35 },
+      { sprite: ['props.iceferg', 5], x: 540, y: 250, h: 90, ay: 0.5, rot: -0.35 },
+      { creature: 'iceferg', anim: 'drift', x: 330, y: 440, h: 270, shadow: false },
+      { path: [[150, 470], [300, 470], [430, 420], [560, 330]], arrow: true },
+    ],
+  },
+  {
+    text: 'Hold the button to huff up your fury, aim at the Peg, and let go to charge!',
+    scene: 'scenes/iceferg', crop: [560, 420, 920, 690],
+    items: [
+      { draw: (cg, t) => {
+        cg.save(); cg.fillStyle = '#eef6fb';
+        for (let i = 0; i < 9; i++) {
+          const a = i * 0.7 + t * 0.4, r = 26 + (i % 3) * 10;
+          cg.globalAlpha = 0.45;
+          cg.beginPath(); cg.arc(300 + Math.cos(a) * 150, 250 + Math.sin(a) * 90 - 40, r, 0, Math.PI * 2); cg.fill();
+        }
+        cg.restore();
+      } },
+      { draw: (cg) => aimArrow(cg, 400, 330, 610, 250, '#ff6b4a') },
+      { creature: 'iceferg', anim: 'huff', x: 280, y: 450, h: 300, shadow: false },
+      { word: 'HUFF!', x: 150, y: 140, size: 52 },
+    ],
+  },
+  {
+    text: 'Charge into the Peg before it reaches the harbour. SCRUNNCCCHHH!!',
+    scene: 'scenes/iceferg', crop: [980, 40, 920, 690],
+    items: [
+      { sprite: ['props.iceferg', 6], x: 430, y: 390, h: 150, ay: 0.5 },
+      { sprite: ['props.iceferg', 1], x: 470, y: 330, h: 190, ay: 0.5, rot: -0.3 },
+      { creature: 'iceferg', anim: 'charge', x: 230, y: 470, h: 280, shadow: false },
+      { word: 'SCRUNCH!', x: 380, y: 110, size: 56 },
+    ],
+  },
+];

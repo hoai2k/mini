@@ -23,6 +23,7 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { staminaRing } from '../chasedraw.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const { W, H, clamp, ease, approach } = kit;
 
@@ -30,7 +31,7 @@ const WORLD_W = 11200;
 const GROUND = 960;        // the ground line (feet of the runners)
 const CEILING = 230;       // the Bombanat's middle can't go higher (under the HUD)
 const FLOOR = GROUND - 80; // his middle when he is on the ground
-const NOTICE = 520;        // from how far the Trollusk notices a dive aimed at him
+const NOTICE = 400;        // from how far the Trollusk notices a dive aimed at him
 const DODGE_AT = 0.2;      // he hops clear this many seconds before impact
 const THROW_G = 1300;      // gravity of thrown things
 
@@ -128,6 +129,7 @@ export default function create(env) {
 
   const self = {
     time: kit.boardTime(env, 90),
+    elapsed: 0,
     done: false,
     outcome: null,
     outroTime: 2.2,
@@ -136,13 +138,14 @@ export default function create(env) {
     get hits() { return b.hits; },
     focus: () => [{ x: b.x - cam.x, y: b.y }],
     hud: () => `Scraps ${pickups.count}/${pickups.total}`,
-    marks: () => kit.boardMarks({ snatched: self.outcome === 'snatched', got: pickups.count, total: pickups.total, feat: b.hits === 0 }),
+    marks: () => kit.boardMarks({ snatched: self.outcome === 'snatched', got: pickups.count, total: pickups.total, need: 0.55, feat: b.hits === 0 }),
     update(dt, inp) {
       t += dt;
       inp = inp || {};
       fx.update(dt);
       if (self.done) { outro(dt); return; }
       self.time = Math.max(0, self.time - dt);
+      self.elapsed += dt;
       stepBombanat(dt, inp);
       stepTrollusk(dt);
       stepYalapappus(dt);
@@ -238,7 +241,7 @@ export default function create(env) {
         b.vx = ease(b.vx, wantX, b.sprinting ? 2.4 : 1.3, dt);
         if (ix) b.facing = Math.sign(ix);
         // Glide: sink gently; nose up holds height but bleeds speed.
-        const sink = up ? -20 : 110 * sinkK;
+        const sink = b.inThermal ? -350 : up ? -20 : 110 * sinkK;
         b.vy = ease(b.vy, sink, b.mode === 'swoop' ? 0.8 : 2.6, dt);
         if (up) b.vx *= Math.exp(-0.9 * dt);
         if (b.sprinting) b.vy = Math.min(b.vy, 40);
@@ -322,8 +325,8 @@ export default function create(env) {
     const bodyY = GROUND - 95 - h.z;
     // A dive aimed at him, that he can see coming.
     let aimed = false, tti = 9;
-    if (b.mode === 'dive' && b.vy > 350) {
-      tti = (bodyY - b.y) / b.vy;
+    if (b.mode === 'dive') {
+      tti = (bodyY - b.y) / Math.max(300, b.vy);
       if (tti > 0 && tti < 1.2) {
         const xAt = b.x + b.vx * tti;
         aimed = Math.abs(xAt - (h.x + h.vx * tti)) < 170 && Math.hypot(b.x - h.x, b.y - bodyY) < NOTICE;
@@ -602,7 +605,9 @@ export default function create(env) {
     if (y.state === 'windup' && y.aim) drawAimArc(g, y.aim, y.T);
     staminaRing(g, h, h.x, GROUND + 4, 46, '#f2c53d');
     art.drawCreature(g, hc, tt, { reduceMotion: env.reduceMotion });
-    if (h.noticed && !self.done) inkAlert(g, h.x + h.facing * 20, GROUND - 95 - h.z - hc.M.height * 0.9 * hc.sizeK - 30, tt);
+    if (!(self.done && self.outcome === 'snatched')) letterTag(g, h.x - h.facing * 90, GROUND - 250 - h.z, { t: tt });
+    if (h.noticed && !self.done) inkAlert(g, h.x + h.facing * 60, GROUND - 95 - h.z - hc.M.height * 0.9 * hc.sizeK - 30, tt);
+    if (!self.done && b.mode === 'fly' && b.y < 430 && Math.abs(b.x - h.x) < 260) marker(g, h.x, GROUND - 290 - h.z, { t: tt, label: 'Dive!' });
     for (const bu of bushes) if (bu.net > 0 && cam.sees(bu.x)) drawNet(g, bu, tt);
     // Things in the air.
     for (const s of shots) if (cam.sees(s.x)) drawShot(g, s);
@@ -646,6 +651,8 @@ export default function create(env) {
       g.restore();
     }
     art.drawCreature(g, bc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+    if (b.mode === 'ground' && !self.done) actionPrompt(g, b.x, b.y - 110, 'Flap!', { kind: env.inputKind || 'keyboard', t: tt, pulse: 1 });
+    if (self.done && self.outcome === 'snatched') letterTag(g, b.x - b.facing * 60, b.y - 150, { t: tt });
     if (self.done && self.outcome === 'snatched') {
       // The letter in his teeth, for the outro.
       g.save(); g.translate(b.x + b.facing * 110, b.y + 10); g.rotate(bc.rot);
@@ -811,7 +818,9 @@ export default function create(env) {
 
   function inkRain(g, c, tt) {
     g.save();
-    g.strokeStyle = 'rgba(80,120,170,0.5)'; g.lineWidth = 3; g.lineCap = 'round';
+    g.fillStyle = 'rgba(70,100,160,0.16)';
+    g.fillRect(c.x - 185, c.y + 60, 370, GROUND - c.y - 60);
+    g.strokeStyle = 'rgba(40,70,140,0.75)'; g.lineWidth = 4; g.lineCap = 'round';
     g.beginPath();
     for (let i = 0; i < 14; i++) {
       const x = c.x - 170 + i * 26 + Math.sin(i * 3.1) * 6;
@@ -948,6 +957,44 @@ export default function create(env) {
   return self;
 }
 
+// ---------- the how-to-play page ----------
+
+export const HOWTO = [
+  {
+    text: 'Flap to climb, glide, and dive: let go of Down to swoop back up.',
+    scene: 'scenes/yalapappus', crop: [200, 240, 1040, 780],
+    items: [
+      { creature: 'bombanat', anim: 'flap', x: 150, y: 150, h: 110 },
+      { path: [[220, 150], [330, 190], [420, 330], [520, 230], [600, 120]], arrow: true },
+      { creature: 'bombanat', anim: 'dive', x: 420, y: 330, h: 110 },
+      { word: 'Swoop!', x: 520, y: 80, size: 44 },
+    ],
+  },
+  {
+    text: 'Ride the warm air up for height; keep out of the rain and what the Yalapappus throws.',
+    scene: 'scenes/yalapappus', crop: [1000, 300, 920, 690],
+    items: [
+      { draw: (g) => { g.save(); g.fillStyle = 'rgba(250,215,140,0.35)'; g.fillRect(120, 60, 120, 400); g.strokeStyle = 'rgba(190,120,40,0.7)'; g.lineWidth = 3; for (let i = 0; i < 3; i++) { g.beginPath(); for (let y = 460; y > 60; y -= 12) { const x = 150 + i * 30 + Math.sin(y * 0.03 + i) * 12; y === 460 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); } g.restore(); } },
+      { creature: 'bombanat', anim: 'glide', x: 180, y: 170, h: 100 },
+      { path: [[180, 420], [180, 200]], arrow: true },
+      { creature: 'yalapappus', anim: 'shout', x: 500, y: 470, h: 190 },
+      { path: [[540, 300], [470, 150], [330, 120]], arrow: true },
+      { sprite: ['props.yalapappus', 1], x: 470, y: 150, h: 44, ay: 0.5 },
+    ],
+  },
+  {
+    text: 'Dive on the running Trollusk, fast and from high up: SNIP!',
+    scene: 'scenes/yalapappus', crop: [400, 300, 1040, 780],
+    items: [
+      { creature: 'bombanat', anim: 'dive', x: 200, y: 90, h: 110 },
+      { path: [[240, 140], [380, 300], [470, 400]], arrow: true },
+      { creature: 'trollusk', anim: 'run', x: 500, y: 470, h: 170 },
+      { ring: [500, 390, 90] },
+      { word: 'SNIP!', x: 330, y: 200, size: 56 },
+    ],
+  },
+];
+
 // ---------- the autopilot ----------
 // Flies the opening sections collecting scraps and riding the warm air, keeps
 // out of the rain, the crows and the Yalapappus's throws, then hunts: climbs to
@@ -956,8 +1003,8 @@ export default function create(env) {
 export function autopilot(board) {
   const { b, h, clouds, crows, shots, pickups } = board;
   const ap = (board._ap ||= { t: 0, flapT: 0, hunting: false, dive: false, lastDive: 0, hunt0: 0 });
-  const dt = 1 / 30;
-  ap.t += dt;
+  const dt = Math.max(0, Math.min(0.05, board.elapsed - ap.t)) || 1 / 30;
+  ap.t = board.elapsed;
   ap.flapT -= dt;
   const out = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
   if (board.done) return out;
@@ -968,7 +1015,7 @@ export function autopilot(board) {
   if (b.mode === 'ground') { beat(true); return out; }
 
   // When to start hunting: after the sky has been seen, or when he is cornered.
-  if (!ap.hunting && ap.t > 50) { ap.hunting = true; ap.hunt0 = ap.t; }
+  if (!ap.hunting && ap.t > 56) { ap.hunting = true; ap.hunt0 = ap.t; }
 
   // Dangers at our height: rain columns, crows, and anything thrown.
   let wantY = null;
@@ -1025,7 +1072,7 @@ export function autopilot(board) {
 
   // Hunting. Climb to the top above and behind him, then dive on his lead.
   const dx = h.x - b.x;
-  const high = b.y < 400;
+  const high = b.y < 360;
   if (!ap.dive) {
     const lead = h.vx * 0.55;
     const wantX = h.x + lead - 60 * Math.sign(h.vx || 1);

@@ -2,25 +2,28 @@
 // Paper-Munching Yalapappus (design.md, chapter 7 and "Chases"), then gets away.
 //
 // Phase 1, the sneak: the Yalapappus sits munching by his seat. Every few
-// seconds he stops, his head turns (the warning), and he looks round. Anyone he
+// seconds he stops munching and an eye bubble swells over his head (the
+// warning, a good second long), then he turns round and looks. Anyone he
 // sees moving in the open is in trouble: he gets up and trundles after them,
-// hopping to grab. Let go of the stick to freeze; stand still in a bush or
-// behind a rock and he can't see you at all. Action next to him (while he isn't
-// looking) snatches the letter.
+// hopping to grab. Let go of the stick to freeze (the Trollusk holds up his
+// leafy twig); stand still in a bush and he can't see you at all. Action next
+// to him (while he isn't looking) snatches the letter.
 //
 // Phase 2, the getaway: the same chase kit with the roles turned round. The
 // Yalapappus chases (in kit terms he is the snatcher, wanting his letter back)
-// and the Trollusk runs for the way out on the right. Sprint makes the
-// Yalapappus roll into a ball: fast, but he can't grab while rolled, and he
-// unrolls with a wobble. If he grabs the Trollusk and wins the tug, he takes
-// the letter back to his seat and it's the sneak again, with less time.
+// and the Trollusk runs for the way out on the right. Walking, the little
+// Trollusk is the faster; Sprint makes the Yalapappus roll into a ball: fast,
+// but he can't grab while rolled, and he unrolls with a wobble. If he grabs
+// the Trollusk and wins the tug, he takes the letter back to his seat and it's
+// the sneak again, with less time.
 //
 // One Chase runs the whole chapter: chase.s is the Yalapappus, chase.h the
 // Trollusk. The human snatcher of the chapter steers the kit's holder.
 
-import { makeMover, makeChase, stepChase, aiSnatcher, clamp } from '../chase.js';
+import { makeMover, makeChase, stepChase, aiSnatcher, dodgeChance, clamp } from '../chase.js';
 import * as art from '../art.js';
 import { staminaRing, tugBar, drawCover, eventFx, makeFx, roundRect } from '../chasedraw.js';
+import { actionPrompt, letterTag, marker } from '../prompt.js';
 import { marksFor } from './index.js';
 import { animTrollusk } from './ch02.js';
 
@@ -37,6 +40,31 @@ export function hintLine(g, text, W, y = 150, alpha = 1) {
   g.fillStyle = '#33241a';
   g.strokeText(text, W / 2, y);
   g.fillText(text, W / 2, y);
+  g.restore();
+}
+
+// A hint on a cream band, big enough to read over busy art. Centred at x
+// (clamped so the whole band stays on the board), no wider than maxW: the
+// text shrinks to fit. colour: the ink.
+export function hintBand(g, text, x, y, { W = 1920, maxW = 960, alpha = 1, colour = '#33241a', size = 42 } = {}) {
+  if (!text) return;
+  g.save();
+  g.globalAlpha = alpha;
+  let fs = size;
+  g.font = `800 ${fs}px Fraunces, Georgia, serif`;
+  let tw = g.measureText(text).width;
+  if (tw > maxW - 70) { fs = Math.max(24, Math.floor(fs * (maxW - 70) / tw)); g.font = `800 ${fs}px Fraunces, Georgia, serif`; tw = g.measureText(text).width; }
+  const w = tw + 70, h = fs * 1.7;
+  const cx = clamp(x, w / 2 + 10, W - w / 2 - 10);
+  g.fillStyle = 'rgba(251,246,232,0.94)';
+  g.strokeStyle = '#33241a';
+  g.lineWidth = 4;
+  roundRect(g, cx - w / 2, y - h / 2, w, h, h / 2);
+  g.fill(); g.stroke();
+  g.fillStyle = colour;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(text, cx, y + 2);
   g.restore();
 }
 
@@ -58,14 +86,16 @@ export function letterMarker(g, x, y, t, size = 64) {
 }
 
 // A word bubble with an eye in it over a lookout: the warning before he looks.
+// k 0..1: how far through the warning (the bubble swells and shakes harder).
 export function eyeBubble(g, x, y, k, t) {
   const sp = art.prop('trollusk', 9);
-  const s = 0.6 + 0.4 * Math.min(1, k);
-  const wob = Math.sin(t * 18) * 0.06;
-  if (!art.drawSprite(g, sp, x, y, { height: 120 * s, rot: wob })) {
-    g.save(); g.translate(x, y - 60 * s); g.fillStyle = '#f8f1e0'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
-    g.beginPath(); g.ellipse(0, 0, 70 * s, 42 * s, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.fillStyle = '#33241a'; g.beginPath(); g.arc(0, 0, 16 * s, 0, Math.PI * 2); g.fill(); g.restore();
+  const kk = Math.min(1, k);
+  const s = 0.7 + 0.5 * kk;
+  const wob = Math.sin(t * (14 + 10 * kk)) * (0.05 + 0.06 * kk);
+  if (!art.drawSprite(g, sp, x, y, { height: 170 * s, rot: wob })) {
+    g.save(); g.translate(x, y - 85 * s); g.fillStyle = '#f8f1e0'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+    g.beginPath(); g.ellipse(0, 0, 90 * s, 55 * s, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#33241a'; g.beginPath(); g.arc(0, 0, 20 * s, 0, Math.PI * 2); g.fill(); g.restore();
   }
 }
 
@@ -107,55 +137,59 @@ export function tugTiebreak(chase, dt) {
 const SEAT0 = { x: 640, y: 905 };
 const START_DX = 1080; // where the Trollusk starts, right of the Yalapappus
 const START_Y = 965;
-const EXIT_X = 4300; // the way out, at the far end of the getaway
+const EXIT_X = 4100; // the way out, at the far end of the getaway
+const SNATCH_D = 175; // how close to him Action snatches
+const M = 100; // px per metre, for the distances in the HUD
 
 export default function create(env) {
   const { W, H } = env;
-  art.preload(['props.trollusk', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses']);
+  art.preload(['props.trollusk', 'props.yalapappus', 'yalapappus.swaps', 'yalapappus.poses', 'trollusk.poses']);
   const total = 45 + (env.gentle[0] ? 10 : 0);
   const Y0 = 820, Y1 = 1040;
   const bounds = { x0: 110, x1: 1830, y0: Y0, y1: Y1 };
   // The sneak happens on the first screen; the getaway runs on along the
   // bumpy ground to the right, past bushes, rocks and holes.
   const cover = [
-    { x: 1450, y: 870, sheet: 'trollusk', item: 5, h: 190 },
-    { x: 1140, y: 1000, sheet: 'trollusk', item: 5, h: 200 },
-    { x: 905, y: 855, sheet: 'yalapappus', item: 1, h: 125, rx: 80, ry: 34 },
-    { x: 380, y: 990, sheet: 'trollusk', item: 5, h: 200 },
-    { x: 1700, y: 1010, sheet: 'yalapappus', item: 2, h: 135, rx: 85, ry: 34 },
-    { x: 2150, y: 880, sheet: 'trollusk', item: 5, h: 200 },
-    { x: 2560, y: 1005, sheet: 'trollusk', item: 5, h: 190 },
-    { x: 2980, y: 860, sheet: 'yalapappus', item: 1, h: 125, rx: 80, ry: 34 },
-    { x: 3400, y: 990, sheet: 'trollusk', item: 5, h: 205 },
-    { x: 3820, y: 870, sheet: 'trollusk', item: 5, h: 195 },
-  ].map((k) => ({ rx: 95, ry: 40, shake: 0, ...k }));
+    { x: 1450, y: 870, sheet: 'trollusk', item: 5, h: 230 },
+    { x: 1140, y: 1000, sheet: 'trollusk', item: 5, h: 240 },
+    { x: 905, y: 855, sheet: 'yalapappus', item: 1, h: 150, rx: 85, ry: 36 },
+    { x: 380, y: 990, sheet: 'trollusk', item: 5, h: 240 },
+    { x: 1700, y: 1010, sheet: 'yalapappus', item: 2, h: 160, rx: 90, ry: 36 },
+    { x: 2150, y: 880, sheet: 'trollusk', item: 5, h: 240 },
+    { x: 2560, y: 1005, sheet: 'trollusk', item: 5, h: 230 },
+    { x: 2980, y: 860, sheet: 'yalapappus', item: 1, h: 150, rx: 85, ry: 36 },
+    { x: 3400, y: 990, sheet: 'trollusk', item: 5, h: 245 },
+    { x: 3820, y: 870, sheet: 'trollusk', item: 5, h: 235 },
+  ].map((k) => ({ rx: 105, ry: 44, shake: 0, ...k }));
   // Holes in the bumpy ground: the little Trollusk hops them, the Yalapappus
   // must go round (or bowl along as a ball and get stuck at the edge). Big
   // rocks block both.
-  const holes = [{ x: 1290, y: 935 }, { x: 2350, y: 960 }, { x: 2800, y: 900 }, { x: 3600, y: 950 }, { x: 4000, y: 905 }]
-    .map((o) => ({ ...o, rx: 85, ry: 26, hop: true, hole: true }));
-  const rocks = [{ x: 1950, y: 1000 }, { x: 3200, y: 880 }].map((o) => ({ ...o, rx: 60, ry: 26, hop: false, rock: true }));
+  const holes = [{ x: 1290, y: 935 }, { x: 2350, y: 960 }, { x: 2800, y: 900 }, { x: 3600, y: 950 }, { x: 3950, y: 905 }]
+    .map((o) => ({ ...o, rx: 95, ry: 30, hop: true, hole: true }));
+  const rocks = [{ x: 1950, y: 1000 }, { x: 3200, y: 880 }].map((o) => ({ ...o, rx: 70, ry: 30, hop: false, rock: true }));
   const obstacles = [...holes, ...rocks];
   let seat = { ...SEAT0 };
   // Kit roles: the Yalapappus is the kit's snatcher, the Trollusk its holder.
+  // Walking, the Trollusk is the quicker; the Yalapappus must roll or hop.
   const yal = makeMover({
-    x: seat.x, y: seat.y, speed: 240, sprint: 560, accel: 1500, radius: 56, canHide: false, hopsLogs: false,
-    lungeRange: 330, lungeSpeed: 920, lungeTime: 0.3, lungeCooldown: 1.5, stumbleTime: 1.0, grabRange: 66,
+    x: seat.x, y: seat.y, speed: 215, sprint: 560, accel: 1500, radius: 62, canHide: false, hopsLogs: false,
+    lungeRange: 330, lungeSpeed: 920, lungeTime: 0.3, lungeCooldown: 1.6, stumbleTime: 1.0, grabRange: 70,
     drain: 0.48, regen: 0.17,
   });
-  const tro = makeMover({ x: seat.x + START_DX, y: START_Y, speed: 225, sprint: 450, accel: 2600, radius: 40, drain: 0.42 });
+  const tro = makeMover({ x: seat.x + START_DX, y: START_Y, speed: 255, sprint: 450, accel: 2600, radius: 44, drain: 0.42 });
   yal.facing = -1;
   const chase = makeChase({ snatcher: yal, holder: tro, bounds, cover, obstacles, rng: env.rng, gentle: [env.gentle[1], env.gentle[0]] });
   const yc = art.makeCreature('yalapappus', yal.x, yal.y);
   const tc = art.makeCreature('trollusk', tro.x, tro.y);
-  yc.sizeK = 0.95;
-  tc.sizeK = 0.8;
+  yc.sizeK = 1.2; // 300 px tall
+  tc.sizeK = 1.05; // 240 px tall
   const fx = makeFx();
   const brain = {};
   let t = 0;
   let shake = 0;
   let camX = 0;
-  let hint = { text: env.versus ? 'Trollusk: creep up and snatch! · Yalapappus: Action to look round!' : 'Creep up while he munches. Let go of the stick to FREEZE when he looks!', t: 3.5 };
+  let hintX = W / 2; // where the hint band sits: over the Trollusk, smoothed
+  let hint = { text: env.versus ? 'Trollusk: creep up and snatch! Yalapappus: look round!' : 'Creep up behind him while he munches.', t: 3.5 };
   // Phase 1 state of the Yalapappus: 'munch' -> 'warn' -> 'look' -> 'munch';
   // spotted: 'alarm' (after you) -> 'return' (back to his seat).
   let phase = 'sneak';
@@ -167,7 +201,9 @@ export default function create(env) {
   let surprisedT = 0; // phase 2: the moment after the snatch
   let ballT = 0; // phase 2: unrolling after a roll
   let windT = 2;
-  nextLook = 2.2 + env.rng() * 1.2;
+  let frozen = false; // the Trollusk's pose: twig up, or creeping (with hysteresis)
+  let poseHold = 0; // seconds the current Trollusk pose has been held
+  nextLook = 2.6 + env.rng() * 1.2;
 
   function sneakBounds() {
     bounds.x0 = Math.max(110, seat.x - 560);
@@ -177,10 +213,12 @@ export default function create(env) {
   function munchTime() {
     const k = 1.25 - 0.55 * env.skill;
     // A crafty Yalapappus sometimes looks again almost at once.
-    if (env.rng() < 0.3 * env.skill) return 0.7 + env.rng() * 0.5;
-    return (1.7 + env.rng() * 2.6) * k;
+    if (env.rng() < 0.3 * env.skill) return 0.8 + env.rng() * 0.5;
+    return (1.8 + env.rng() * 2.6) * k;
   }
-  const warnTime = () => (env.gentle[0] ? 0.95 : 0.65);
+  // The warning is long enough to read and act on: he stops munching and the
+  // eye bubble swells for a good second before he turns.
+  const warnTime = () => (env.gentle[0] ? 1.4 : 1.0);
   const lookTime = () => 1.1 + env.rng() * 0.7 + env.skill * 0.4;
 
   function startLook() { look = 'warn'; lookT = 0; env.sfx('eye'); }
@@ -190,13 +228,14 @@ export default function create(env) {
     look = 'munch';
     bounds.x0 = Math.max(110, Math.min(seat.x, tro.x) - 500);
     bounds.x1 = EXIT_X + 80;
-    surprisedT = 0.6;
+    surprisedT = 0.7;
     yal.mode = 'move'; yal.vx = yal.vy = 0;
+    tro.facing = 1;
     env.sfx('snatch'); env.sfx('gabble'); env.vibrate(80);
-    fx.say('SNATCH!', tro.x, tro.y - 200);
+    fx.say('SNATCH!', tro.x, tro.y - 280);
     art.kick(tc, -0.5);
     art.kick(yc, 0.5);
-    hint = { text: 'Run for it! Get away to the right before he catches you!', t: 3 };
+    hint = { text: 'RUN! Get away to the right!', t: 3.2, colour: '#c8443a' };
   }
 
   function lostIt() {
@@ -214,7 +253,7 @@ export default function create(env) {
     tro.y = clamp(tro.y, Y0, Y1);
     yal.mode = 'move';
     env.sfx('munch'); env.sfx('aww');
-    fx.say('He grabbed it back!', yal.x, yal.y - 260);
+    fx.say('He grabbed it back!', yal.x, yal.y - 320);
     hint = { text: 'He has it back! Creep up again, quick!', t: 2.5 };
   }
 
@@ -226,7 +265,8 @@ export default function create(env) {
     yal.mode = 'move';
     look = 'return';
     env.sfx('thump');
-    fx.say('Shoo! Off you go!', yal.x, yal.y - 260);
+    fx.say('Shoo! Off you go!', yal.x, yal.y - 320);
+    hint = { text: 'Thrown out! Creep up again.', t: 2.5 };
   }
 
   // The Yalapappus's input for the kit, phase 1.
@@ -242,12 +282,14 @@ export default function create(env) {
     if (look === 'return') {
       const dx = seat.x - yal.x, dy = seat.y - yal.y, d = Math.hypot(dx, dy);
       if (d > 14 && yal.mode === 'move') { out.x = dx / d; out.y = dy / d; } else if (yal.mode === 'move') {
-        look = 'munch'; lookT = 0; nextLook = munchTime() + 0.6; rest = 1.0; yal.facing = tro.x > yal.x ? -1 : 1;
+        look = 'munch'; lookT = 0; nextLook = munchTime() + 0.8; rest = 1.0; yal.facing = tro.x > yal.x ? -1 : 1;
       }
       return out;
     }
     return out;
   }
+
+  const canLookVersus = () => look === 'munch' && rest <= 0 && lookT > 0.8;
 
   function updateLook(dt, inH) {
     lookT += dt;
@@ -257,28 +299,38 @@ export default function create(env) {
       // Facing away from where the Trollusk came from, munching.
       yal.facing = tro.x > yal.x ? -1 : 1;
       if (env.versus) {
-        if (inH?.actionPressed && rest <= 0 && lookT > 0.8) startLook();
+        if (inH?.actionPressed && canLookVersus()) startLook();
       } else {
         // A scurrying Trollusk makes a noise: he looks round sooner.
-        if (tro.sprinting && d < 750) { nextLook -= dt * 1.4; if (env.rng() < dt * 2) fx.say('?', yal.x, yal.y - 250); }
+        if (tro.sprinting && d < 750) { nextLook -= dt * 1.4; if (env.rng() < dt * 2) fx.say('?', yal.x, yal.y - 300); }
         if (lookT >= nextLook) startLook();
       }
     } else if (look === 'warn') {
-      if (lookT >= warnTime()) { look = 'look'; lookT = 0; yal.facing = Math.sign(tro.x - yal.x) || 1; brain.lookFor = lookTime(); }
+      if (lookT >= warnTime()) { look = 'look'; lookT = 0; yal.facing = Math.sign(tro.x - yal.x) || 1; brain.lookFor = lookTime(); env.sfx('eye'); }
     } else if (look === 'look') {
       yal.facing = Math.sign(tro.x - yal.x) || 1;
       const moving = Math.hypot(tro.vx, tro.vy) > 40 && tro.mode !== 'grabbed';
       if (moving && !tro.hidden && lookT > 0.12) {
         look = 'alarm'; alarmT = 2.4 + env.skill; lookT = 0;
         env.sfx('caught'); env.sfx('thump'); env.vibrate(90);
-        fx.say('OI! I SEE YOU!', yal.x, yal.y - 280);
+        fx.say('OI! I SEE YOU!', yal.x, yal.y - 340);
         art.kick(yc, -0.6);
         shake = 0.4;
+        hint = { text: 'He saw you! Run and hide in a bush!', t: 2.5, colour: '#c8443a' };
       } else if (lookT >= (env.versus ? 1.4 : brain.lookFor)) {
         look = 'munch'; lookT = 0; nextLook = munchTime(); rest = 1.2;
+        env.sfx('munch');
       }
     }
   }
+
+  // Can Action snatch right now? (Not while he's looking, nor while he's up
+  // and after you: then Action dodges.)
+  const snatchOpen = () => phase === 'sneak' && !chase.tug && tro.mode === 'move'
+    && (look === 'munch' || look === 'warn' || look === 'return' || (look === 'alarm' && yal.mode === 'stumble'))
+    && near(yal, tro) < SNATCH_D;
+  // Is a hop (lunge) coming at the Trollusk that a dodge would beat?
+  const hopComing = () => dodgeChance(chase);
 
   const self = {
     focus: () => [{ x: tro.x - camX, y: tro.y }, { x: yal.x - camX, y: yal.y }], // what the camera frames (on screen): the snatcher, then the holder
@@ -289,6 +341,7 @@ export default function create(env) {
     get phase() { return phase; },
     get look() { return look; },
     get seat() { return seat; },
+    get frozen() { return frozen; },
     exitX: EXIT_X,
     update(dt, inS, inH) {
       t += dt;
@@ -317,10 +370,7 @@ export default function create(env) {
       if (phase === 'sneak') {
         updateLook(dt, inH);
         // The snatch: Action right next to him while he isn't looking.
-        const d = near(yal, tro);
-        // (Not while he's looking, nor while he's up and after you: then Action dodges.)
-        const busy = look === 'munch' || look === 'warn' || look === 'return' || (look === 'alarm' && yal.mode === 'stumble');
-        if (inS.actionPressed && busy && !chase.tug && tro.mode === 'move' && d < 150) {
+        if (inS.actionPressed && snatchOpen()) {
           snatch();
           tin.actionPressed = false;
         }
@@ -349,8 +399,9 @@ export default function create(env) {
       const ev = stepChase(chase, yin, tin, dt);
       eventFx(env, ev, fx);
       if (ev.some((e) => e.type === 'grab')) { art.kick(tc, 0.4); shake = 0.25; }
-      if (ev.some((e) => e.type === 'free')) { art.kick(tc, -0.5); fx.say('Wriggled free!', tro.x, tro.y - 220); }
+      if (ev.some((e) => e.type === 'free')) art.kick(tc, -0.5);
       if (ev.some((e) => e.type === 'lunge')) env.sfx('thump');
+      if (ev.some((e) => e.type === 'dodge')) fx.say('Hop!', tro.x, tro.y - 250);
 
       if (chase.done) {
         if (phase === 'sneak') thrownBack(); else lostIt();
@@ -372,7 +423,7 @@ export default function create(env) {
       if (phase === 'getaway' && !chase.tug && tro.x >= EXIT_X) {
         self.done = true; self.outcome = 'snatched';
         self.bonus = near(yal, tro) > 450 ? 1 : 0;
-        fx.say(self.bonus ? 'Clean away!' : 'Away!', tro.x - 120, tro.y - 220);
+        fx.say(self.bonus ? 'Clean away!' : 'Away!', tro.x - 120, tro.y - 260);
         env.sfx('cheer');
       } else if (self.time <= 0) {
         self.done = true;
@@ -383,13 +434,14 @@ export default function create(env) {
 
       // The camera: on the sneak, both of them; on the getaway, ahead of the Trollusk.
       followCamera(dt);
+      hintX += (tro.x - camX - hintX) * (1 - Math.exp(-4 * dt));
 
       // Animation.
       yc.x = yal.x; yc.y = yal.y; tc.x = tro.x; tc.y = tro.y;
       art.animate(yc, dt, yal.vx, yal.vy);
       art.animate(tc, dt, tro.vx, tro.vy);
-      animYal(yc, yal);
-      animTro(tc, tro);
+      animYal(yc, yal, dt);
+      animTro(tc, tro, dt);
     },
     draw(g, tt) {
       g.save();
@@ -398,27 +450,41 @@ export default function create(env) {
       g.translate(-camX, 0);
       const vis = (x, r = 300) => x > camX - r && x < camX + W + r;
       // The holes' far edges first, then everything back to front.
-      for (const o of holes) if (vis(o.x)) art.drawSprite(g, art.prop('yalapappus', 4), o.x, o.y - 4, { height: 66 });
+      for (const o of holes) if (vis(o.x)) art.drawSprite(g, art.prop('yalapappus', 4), o.x, o.y - 6, { height: 90 });
       if (vis(EXIT_X)) exitPost(g, EXIT_X + 40, 860, tt);
       const things = [
         ...cover.filter((k) => vis(k.x)).map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
-        ...holes.filter((o) => vis(o.x)).map((o) => ({ y: o.y, draw: () => art.drawSprite(g, art.prop('yalapappus', 3), o.x, o.y + o.ry + 16, { height: 66 }) })),
-        ...rocks.filter((o) => vis(o.x)).map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('yalapappus', 2), o.x, o.y + o.ry, { height: 120 }) })),
+        ...holes.filter((o) => vis(o.x)).map((o) => ({ y: o.y, draw: () => art.drawSprite(g, art.prop('yalapappus', 3), o.x, o.y + o.ry + 20, { height: 90 }) })),
+        ...rocks.filter((o) => vis(o.x)).map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('yalapappus', 2), o.x, o.y + o.ry, { height: 140 }) })),
         { y: tro.y, draw: () => drawTro(g, tt) },
         { y: yal.y, draw: () => drawYal(g, tt) },
       ].sort((a, b) => a.y - b.y);
       for (const th of things) th.draw();
-      // Who has the letter.
+      // Who has the letter: a ringed envelope on the Yalapappus's fork, or in
+      // the Trollusk's snerk.
       if (!self.done || self.outcome === 'snatched') {
-        if (phase === 'getaway' || (self.done && self.outcome === 'snatched')) { if (!tro.hidden) letterMarker(g, tro.x, tro.y - 235, tt); } else letterMarker(g, yal.x + (yal.facing > 0 ? 40 : -40), yal.y - 285, tt, 58);
+        if (phase === 'getaway' || (self.done && self.outcome === 'snatched')) { if (!tro.hidden) letterTag(g, tro.x + tro.facing * 70, tro.y - 118, { t: tt }); } else letterTag(g, yal.x + yal.facing * 80, yal.y - 165, { t: tt });
       }
-      if (phase === 'sneak' && look === 'warn') eyeBubble(g, yal.x + yal.facing * 80, yal.y - 260, lookT / warnTime(), tt);
-      if (phase === 'sneak' && look === 'look') eyeOpen(g, yal.x + yal.facing * 80, yal.y - 260, tt);
-      if (chase.tug) tugBar(g, chase, (yal.x + tro.x) / 2, Math.min(yal.y, tro.y) - 340, ['Got you!', 'Break free!']);
+      if (phase === 'sneak' && look === 'warn') eyeBubble(g, yal.x + yal.facing * 60, yal.y - 290, lookT / warnTime(), tt);
+      if (phase === 'sneak' && look === 'look') eyeOpen(g, yal.x + yal.facing * 60, yal.y - 300, tt);
+      if (chase.tug) tugBar(g, chase, (yal.x + tro.x) / 2, Math.min(yal.y, tro.y) - 380, ['Got you!', 'Break free!']);
+      // In-world prompts: what to press, now.
+      const pk = { kind: env.inputKind, t: tt, side: 0 };
+      if (!self.done && !chase.tug) {
+        if (snatchOpen()) actionPrompt(g, tro.x, tro.y - 260, 'Snatch!', { ...pk, pulse: 1 });
+        else if (phase === 'sneak' && look === 'munch' && tro.mode === 'move' && near(yal, tro) < 520 && near(yal, tro) >= SNATCH_D) marker(g, yal.x + yal.facing * 80, yal.y - 240, { t: tt, label: 'Closer!' });
+        else if (hopComing()) actionPrompt(g, tro.x, tro.y - 260, 'Dodge!', { ...pk, pulse: 1 });
+        if (env.versus && phase === 'sneak' && canLookVersus()) actionPrompt(g, yal.x, yal.y - 330, 'Look round!', { ...pk, side: 1, size: 28 });
+      }
       fx.draw(g);
       g.restore();
       if (phase === 'getaway' && !self.done && EXIT_X - camX > W - 100) exitSign(g, W - 170, 740, 'Away!', tt);
-      if (hint.t > 0 && !self.done) hintLine(g, hint.text, W, 150, Math.min(1, hint.t * 2));
+      // The hint band: what the moment needs, else the timed hint.
+      if (!self.done) {
+        const txt = stateHint();
+        if (txt) hintBand(g, txt.text, hintX, 200, { W, colour: txt.colour });
+        else if (hint.t > 0) hintBand(g, hint.text, hintX, 200, { W, alpha: Math.min(1, hint.t * 2), colour: hint.colour });
+      }
     },
     marks() {
       const elapsed = total - self.time;
@@ -426,10 +492,21 @@ export default function create(env) {
     },
     hud() {
       if (self.done) return '';
-      if (phase === 'getaway') return `Away in ${Math.max(0, Math.ceil((EXIT_X - tro.x) / 100))} m →`;
+      if (phase === 'getaway') {
+        const behind = Math.max(0, Math.round((tro.x - yal.x) / M));
+        return `Away in ${Math.max(0, Math.ceil((EXIT_X - tro.x) / M))} m → · he is ${behind} m behind`;
+      }
       return look === 'look' || look === 'warn' ? 'FREEZE!' : look === 'alarm' ? 'Run and hide!' : 'Creep up and snatch';
     },
   };
+
+  // The hint the state demands (over any timed hint).
+  function stateHint() {
+    if (chase.tug) return null;
+    if (phase === 'sneak' && look === 'warn') return { text: "He's turning round: FREEZE! Let go of the stick!", colour: '#c8443a' };
+    if (phase === 'sneak' && look === 'look') return { text: frozen ? 'Keep still... he is looking!' : 'FREEZE! Let go of the stick!', colour: '#c8443a' };
+    return null;
+  }
 
   let munchT = 0;
   function followCamera(dt) {
@@ -438,12 +515,13 @@ export default function create(env) {
     camX += (want - camX) * (1 - Math.exp(-5 * dt));
   }
 
-  function animYal(c, m) {
+  function animYal(c, m, dt) {
     const sp = Math.hypot(m.vx, m.vy);
     c.facing = m.facing;
     if (phase === 'sneak' && (look === 'munch' || look === 'warn' || look === 'look') && m.mode === 'move' && sp < 30) {
-      art.setAnim(c, look === 'munch' ? 'munch' : look === 'warn' ? 'idle' : 'eye');
-      if (look === 'munch') { munchT -= 1 / 60; if (munchT <= 0) { munchT = 0.6 + Math.random() * 0.5; env.sfx('munch'); } }
+      // Munching; the warning: he stops, fork up; looking: up on his feet, turned round.
+      art.setAnim(c, look === 'munch' ? 'munch' : 'idle');
+      if (look === 'munch') { munchT -= dt; if (munchT <= 0) { munchT = 0.6 + Math.random() * 0.5; env.sfx('munch'); } }
       return;
     }
     if (m.mode === 'grabbing') art.setAnim(c, 'shout');
@@ -458,21 +536,28 @@ export default function create(env) {
     else art.setAnim(c, 'idle');
   }
 
-  function animTro(c, m) {
+  function animTro(c, m, dt) {
     const sp = Math.hypot(m.vx, m.vy);
+    poseHold += dt;
     if (phase === 'sneak' && m.mode === 'move' && !chase.tug) {
-      if (sp < 40) art.setAnim(c, 'freeze');
+      // Twig up when he stops, creeping when he moves, with hysteresis and a
+      // minimum hold so a pose never flickers back and forth.
+      if ((frozen && sp > 90) || (!frozen && sp < 25)) {
+        if (poseHold >= 0.15) { frozen = !frozen; poseHold = 0; }
+      }
+      if (frozen) art.setAnim(c, 'freeze');
       else if (m.sprinting) art.setAnim(c, 'run');
       else art.setAnim(c, 'sneak');
       return;
     }
+    frozen = false;
     animTrollusk(c, m);
   }
 
   function drawYal(g, tt) {
-    staminaRing(g, yal, yal.x, yal.y, 60, '#c9b8d4');
+    staminaRing(g, yal, yal.x, yal.y, 70, '#c9b8d4');
     const ball = yc.anim === 'ball';
-    if (ball) { yc.z = 85; art.drawCreature(g, yc, tt, { reduceMotion: env.reduceMotion }); yc.z = 0; } else art.drawCreature(g, yc, tt, { reduceMotion: env.reduceMotion });
+    if (ball) { yc.z = 100; art.drawCreature(g, yc, tt, { reduceMotion: env.reduceMotion }); yc.z = 0; } else art.drawCreature(g, yc, tt, { reduceMotion: env.reduceMotion });
   }
 
   function drawTro(g, tt) {
@@ -488,11 +573,82 @@ export default function create(env) {
       art.setAnim(tc, a);
       return;
     }
-    staminaRing(g, tro, tro.x, tro.y, 46, '#f2c53d');
+    staminaRing(g, tro, tro.x, tro.y, 52, '#f2c53d');
     art.drawCreature(g, tc, tt, { reduceMotion: env.reduceMotion });
   }
 
   return self;
+}
+
+// ---------- the how-to-play page ----------
+// Three pictures, composed from the delivered art until OM-H7a/b/c arrive.
+
+const SCENE = 'scenes/yalapappus';
+const CROP = [300, 560, 1300, 520]; // the bumpy ground at the edge of Nowhere
+const letterOnFork = (x, y) => ({ draw: (g, t) => letterTag(g, x, y, { t, r: 34 }) });
+
+export const HOWTO = [
+  {
+    text: 'Creep up behind the Yalapappus while he munches.',
+    scene: SCENE, crop: CROP,
+    items: [
+      { creature: 'yalapappus', anim: 'munch', x: 190, y: 420, h: 250, flip: true },
+      letterOnFork(130, 300),
+      { path: [[560, 410], [430, 400], [330, 405]], arrow: true },
+      { creature: 'trollusk', anim: 'sneak', x: 500, y: 430, h: 210, flip: true },
+    ],
+  },
+  {
+    text: 'When he turns to look: let go of the stick and FREEZE.',
+    scene: SCENE, crop: CROP,
+    items: [
+      { creature: 'yalapappus', anim: 'idle', x: 190, y: 430, h: 260 },
+      { sprite: ['props.trollusk', 9], x: 290, y: 190, h: 120 },
+      { creature: 'trollusk', anim: 'freeze', x: 470, y: 430, h: 210, flip: true },
+      { word: 'FREEZE!', x: 470, y: 160, size: 48 },
+    ],
+  },
+  {
+    text: 'Snatch the letter and run for the way out!',
+    scene: SCENE, crop: CROP,
+    items: [
+      { creature: 'yalapappus', anim: 'shout', x: 150, y: 440, h: 240 },
+      { creature: 'trollusk', anim: 'run', x: 440, y: 440, h: 220 },
+      { sprite: ['props.trollusk', 1], x: 330, y: 300, h: 44, rot: 0.4 },
+      { sprite: ['props.trollusk', 3], x: 370, y: 350, h: 40, rot: -0.5 },
+      { sprite: ['props.trollusk', 2], x: 300, y: 380, h: 42, rot: 0.9 },
+      { path: [[520, 300], [600, 300]], arrow: true },
+      { word: 'RUN!', x: 470, y: 150, size: 54 },
+    ],
+  },
+];
+
+// A competent player's input for the next frame (scripts/chapter-check.mjs):
+// creeps up, freezes at the warning, snatches when close, then paces the
+// getaway, sprinting to answer his roll and dodging his hops.
+export function autopilot(ch) {
+  const DT = 1 / 20;
+  const b = ch._ap || (ch._ap = { t: 0, last: -1, seen: 0, r: 7 });
+  b.t += DT;
+  const c = ch.chase, y = c.s, h = c.h;
+  const press = () => { const p = b.t - b.last > 0.14; if (p) b.last = b.t; return p; };
+  if (ch.done) return { x: 0, y: 0 };
+  if (c.tug) return { x: Math.sign(h.x - y.x) || 1, y: 0, actionPressed: press() };
+  const dx = y.x - h.x, dy = y.y - h.y, d = Math.hypot(dx, dy) || 1;
+  if (ch.phase === 'sneak') {
+    if (ch.look === 'warn' || ch.look === 'look') {
+      b.seen += DT;
+      if (b.seen > 0.2 || ch.look === 'look') return { x: 0, y: 0 };
+    } else b.seen = 0;
+    if (ch.look === 'alarm') return { x: -dx / d, y: -dy / d, sprint: d < 320 && h.st > 0.3, actionPressed: y.mode === 'lunge' && d < 260 && h.cool <= 0 };
+    if (d < SNATCH_D - 30) return { x: 0, y: 0, actionPressed: press() };
+    return { x: dx / d, y: dy / d };
+  }
+  const ex = ch.exitX + 100 - h.x, ey = 930 - h.y, ed = Math.hypot(ex, ey) || 1;
+  const out = { x: ex / ed, y: ey / ed, sprint: (y.sprinting || d < 260) && h.st > 0.55 };
+  b.r = (b.r * 9301 + 49297) % 233280;
+  if (y.mode === 'lunge' && d < 280 && h.cool <= 0 && b.r / 233280 < 0.55) { out.actionPressed = true; out.x = 0; out.y = -dy / d; }
+  return out;
 }
 
 // He's looking: a wide-open eye.
@@ -501,14 +657,16 @@ function eyeOpen(g, x, y, t) {
   g.translate(x, y - 50);
   const s = 1 + Math.sin(t * 10) * 0.05;
   g.scale(s, s);
-  g.fillStyle = '#f8f1e0'; g.strokeStyle = '#c8443a'; g.lineWidth = 6;
-  g.beginPath(); g.ellipse(0, 0, 62, 38, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.fillStyle = '#f8f1e0'; g.strokeStyle = '#c8443a'; g.lineWidth = 7;
+  g.beginPath(); g.ellipse(0, 0, 80, 48, 0, 0, Math.PI * 2); g.fill(); g.stroke();
   g.fillStyle = '#33241a';
-  g.beginPath(); g.arc(0, 0, 18, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(0, 0, 22, 0, Math.PI * 2); g.fill();
   g.fillStyle = '#c8443a';
-  g.font = '800 30px Fraunces, Georgia, serif';
+  g.font = '800 36px Fraunces, Georgia, serif';
   g.textAlign = 'center';
-  g.fillText('LOOKING!', 0, -50);
+  g.lineWidth = 8; g.strokeStyle = 'rgba(248,241,224,0.95)';
+  g.strokeText('LOOKING!', 0, -66);
+  g.fillText('LOOKING!', 0, -66);
   g.restore();
 }
 

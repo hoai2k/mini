@@ -534,3 +534,37 @@ function droppedLetter(g, l, t) {
   g.restore();
   letterMarker(g, l.x, l.y - 30 - hop, t, 60);
 }
+
+// ---------- a competent player, for the browser check and the tests ----------
+import { aiSnatcher } from '../chase.js';
+const bots = new WeakMap();
+export function autopilot(ch) {
+  const dt = 1 / 20;
+  let b = bots.get(ch);
+  if (!b) { b = {}; bots.set(ch, b); }
+  const len = Math.hypot;
+  const toward = (a, c) => { const dx = c.x - a.x, dy = c.y - a.y, d = len(dx, dy) || 1; return { x: dx / d, y: dy / d, d }; };
+  const c = ch.chase, g = c.s;
+  if (ch.phase === 'net') {
+    const out = aiSnatcher(c, b, 0.6, dt);
+    const d = len(c.h.x - g.x, c.h.y - g.y);
+    out.sprint = !c.tug && !c.h.hidden && d > 430 && d < 900 && g.st > 0.6 && !b.ps;
+    b.ps = out.sprint;
+    return out;
+  }
+  const tg = toward(g, ch.letter || ch.mail);
+  const out = { x: tg.x, y: tg.y };
+  if (!ch.letter && tg.d < 110) { out.actionPressed = !b.pp; b.pp = out.actionPressed; return out; }
+  let th = null, td = 1e9;
+  for (const o of ch.others) {
+    if (o.mode === 'jar' || o.cool > 1.2) continue;
+    const d = len(o.x - g.x, o.y - g.y);
+    if ((o.x - g.x) * tg.x + (o.y - g.y) * tg.y > -40 && d < td) { td = d; th = o; }
+  }
+  if (th && td < 240) {
+    if (g.st >= 0.35 && tg.d > 380 && g.mode === 'move' && b.pv !== true) { out.sprint = true; b.pv = true; return out; }
+    if (td < 200 && g.cool <= 0) { const a = toward(g, th); out.x = a.x; out.y = a.y; out.actionPressed = !b.pp; b.pp = out.actionPressed; }
+  }
+  b.pv = false;
+  return out;
+}

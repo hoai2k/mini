@@ -16,30 +16,88 @@
 
 import * as art from '../art.js';
 import { makeFx, roundRect } from '../chasedraw.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 import { marksFor } from './index.js';
 
 const GY = 960; // the ground line (the Yalapappus's feet)
 const X0 = 150, X1 = 1770; // where he can go
 const CX0 = 260, CX1 = 1660; // where the cloud can go
-const CLOUD_Y = 225; // the Typhoonigator's middle
-const MOUTH_Y = 330; // where things fall from
-const HEAD = 200; // head height above the feet
-const BALL_R = 84; // half the rolled ball's height
+const CLOUD_Y = 230; // the Typhoonigator's middle
+const MOUTH_DX = 120, MOUTH_Y = 262; // the spout, from the cloud's middle, on the side it faces
+const SIZE = 1.16; // the Yalapappus stands 290 px tall
+const HEAD = 232; // head height above the feet
+const BALL_R = 98; // half the rolled ball's height
 
 // The things in the Typhoonigator's belly: prop number, height on screen, hit
 // radius, gravity factor, spin.
 const KINDS = {
-  bottle: { item: 10, h: 92, r: 82, gk: 1, spin: 2.2 },
-  boat: { item: 11, h: 150, r: 110, gk: 1.05, spin: 1.4 },
-  fish: { item: 12, h: 110, r: 80, gk: 1, spin: 0 },
-  goo: { item: 13, h: 92, r: 80, gk: 1.1, spin: 0 },
-  scrap: { item: 5, h: 62, r: 95, gk: 0.42, spin: 0 },
+  bottle: { item: 10, h: 125, r: 100, gk: 1, spin: 2.2 },
+  boat: { item: 11, h: 185, r: 125, gk: 1.05, spin: 1.4 },
+  fish: { item: 12, h: 135, r: 90, gk: 1, spin: 0 },
+  goo: { item: 13, h: 115, r: 90, gk: 1.1, spin: 0 },
+  scrap: { item: 5, h: 90, r: 105, gk: 0.42, spin: 0 },
   // Plain bottles (no red-and-white label): catch one and it's a bonk.
-  green: { sheet: 'typhoonigator', item: 2, h: 100, r: 78, gk: 1, spin: 2.4 },
-  brown: { sheet: 'typhoonigator', item: 3, h: 100, r: 78, gk: 1, spin: 2.0 },
+  green: { sheet: 'typhoonigator', item: 2, h: 120, r: 85, gk: 1, spin: 2.4 },
+  brown: { sheet: 'typhoonigator', item: 3, h: 120, r: 85, gk: 1, spin: 2.0 },
 };
 const JUNK = [['boat', 0.2], ['fish', 0.26], ['goo', 0.17], ['scrap', 0.22], ['green', 0.08], ['brown', 0.07]];
 const ROCKS = [{ x: 640, w: 52, item: 1, h: 78 }, { x: 1310, w: 56, item: 2, h: 92 }];
+const INK = '#33241a';
+const CREAM = 'rgba(251,246,232,0.94)';
+
+// The how-to-play page (OM-H6a, b, c): looking up at the falling things and
+// their shadows; hopping aside from a crashing boat; KER-PLOP and the munch.
+const shadowRing = (x, w, red) => ({ draw: (g) => {
+  g.save();
+  g.globalAlpha = 0.6; g.fillStyle = '#2b1d14';
+  g.beginPath(); g.ellipse(x, 436, w, w * 0.28, 0, 0, Math.PI * 2); g.fill();
+  g.globalAlpha = 1; g.lineWidth = red ? 5 : 3; g.strokeStyle = red ? '#c8443a' : '#fbf6e8';
+  if (red) g.setLineDash([12, 9]);
+  g.beginPath(); g.ellipse(x, 436, w + 3, (w + 3) * 0.28, 0, 0, Math.PI * 2); g.stroke();
+  g.restore();
+} });
+const dust = (x, y) => ({ draw: (g) => {
+  g.save(); g.fillStyle = 'rgba(201,167,106,0.8)';
+  for (const [dx, dy, r] of [[-70, -10, 22], [-45, -30, 16], [60, -14, 20], [85, -32, 13], [20, -40, 12]]) {
+    g.beginPath(); g.arc(x + dx, y + dy, r, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+} });
+export const HOWTO = [
+  {
+    text: 'Look up! The shadows show where each thing will land.',
+    scene: 'scenes/yalapappus', crop: [460, 300, 1000, 750],
+    items: [
+      shadowRing(300, 34), shadowRing(455, 46), shadowRing(575, 30),
+      { creature: 'typhoonigator', anim: 'letgo', x: 440, y: 118, h: 190, flip: true, shadow: false },
+      { creature: 'yalapappus', anim: 'eye', x: 150, y: 436, h: 230 },
+      { sprite: ['props.yalapappus', 12], x: 300, y: 230, h: 96, ay: 0.5, rot: 0.6 },
+      { sprite: ['props.yalapappus', 11], x: 455, y: 300, h: 100, ay: 0.5, rot: 0.35 },
+      { sprite: ['props.yalapappus', 13], x: 575, y: 230, h: 64, ay: 0.5 },
+    ],
+  },
+  {
+    text: 'Hop or trundle aside: a boat on the head dazes you.',
+    scene: 'scenes/yalapappus', crop: [460, 300, 1000, 750],
+    items: [
+      shadowRing(430, 44),
+      dust(200, 436),
+      { sprite: ['props.yalapappus', 11], x: 200, y: 446, h: 160, ay: 0.85, rot: 0.3 },
+      { word: 'CRASH!', x: 200, y: 230, size: 50 },
+      { creature: 'yalapappus', anim: 'hop', x: 430, y: 350, h: 230, shadow: false },
+    ],
+  },
+  {
+    text: 'Catch the bottle on your head, then mash Action to munch the note.',
+    scene: 'scenes/yalapappus', crop: [460, 300, 1000, 750],
+    items: [
+      { creature: 'yalapappus', anim: 'munch', x: 300, y: 450, h: 250 },
+      { sprite: ['props.yalapappus', 9], x: 300, y: 190, h: 150, ay: 0.5 },
+      { sprite: ['props.yalapappus', 8], x: 410, y: 300, h: 80, ay: 0.5, rot: 0.6 },
+      { word: 'KER-PLOP!', x: 320, y: 80, size: 54 },
+    ],
+  },
+];
 
 export default function create(env) {
   const { W, H } = env;
@@ -53,16 +111,17 @@ export default function create(env) {
 
   // ---------- the Yalapappus ----------
   const y = {
-    x: 360, vx: 0, z: 0, vz: 0, facing: 1,
+    x: 960, vx: 0, z: 0, vz: 0, facing: 1,
     mode: 'walk', // walk | ball | dizzy | dazed | kerplop | munch
-    modeT: 0, dazeT: 0.95, pushT: 0, invuln: 0, sticky: 0, landT: 0, rollDust: 0, stepD: 0,
+    modeT: 0, dazeT: 0.95, pushT: 0, invuln: 0, sticky: 0, landT: 0, rollDust: 0, stepD: 0, moving: false,
   };
   const yc = art.makeCreature('yalapappus', y.x, GY);
-  yc.sizeK = 1;
+  yc.sizeK = SIZE;
   // ---------- the Typhoonigator ----------
-  const cl = { x: 1200, vx: 0, letgo: 0, suck: 0, lastDrop: 0, cool: 0 };
+  const cl = { x: 1200, vx: 0, letgo: 0, suck: 0, lastDrop: 0, cool: 0, face: -1 };
   const tc = art.makeCreature('typhoonigator', cl.x, CLOUD_Y);
-  tc.sizeK = 0.8;
+  tc.sizeK = 0.95;
+  tc.facing = -1;
   art.setAnim(tc, 'bloated');
 
   const fx = makeFx();
@@ -107,10 +166,14 @@ export default function create(env) {
     return Math.max(X0 - 40, Math.min(X1 + 40, it.x + it.vx * landT(it)));
   }
 
+  // The cloud turns to face the Yalapappus and blows the thing out of its
+  // spout, with a spray, so it plainly lets go: things come from the mouth.
   function drop(kind, vx) {
     const k = KINDS[kind];
+    cl.face = y.x < cl.x ? -1 : 1;
+    const mx = cl.x + cl.face * MOUTH_DX;
     const it = {
-      kind, k, x: cl.x + (rng() - 0.5) * 30, y: MOUTH_Y, vx, vy: -70, state: 'fall',
+      kind, k, x: mx + (rng() - 0.5) * 20, y: MOUTH_Y, vx, vy: 40, state: 'fall',
       rot: rng() * 6, spin: (rng() < 0.5 ? -1 : 1) * k.spin, t: 0, hit: false,
       item: kind === 'scrap' ? 5 + Math.floor(rng() * 3) : k.item, phase: rng() * 6,
     };
@@ -120,11 +183,15 @@ export default function create(env) {
     if (lx < X0 + 20) it.vx = (X0 + 20 - it.x) / T;
     if (lx > X1 - 20) it.vx = (X1 - 20 - it.x) / T;
     items.push(it);
-    cl.letgo = 0.45;
+    cl.letgo = 0.85;
     cl.lastDrop = 0;
     art.kick(tc, -0.35);
     env.sfx('swoosh');
-    if (kind === 'bottle') bottleHome = false;
+    for (let i = 0; i < 12; i++) {
+      const a = (cl.face > 0 ? 0 : Math.PI) + (rng() - 0.5) * 1.1 + 0.35;
+      parts.push({ x: mx, y: MOUTH_Y, vx: Math.cos(a) * (200 + rng() * 260), vy: Math.abs(Math.sin(a)) * 200 + rng() * 120, t: 0, life: 0.5 + rng() * 0.3, r: 6 + rng() * 8, col: '#5fa8d3', g: 900 });
+    }
+    if (kind === 'bottle') { bottleHome = false; fx.say('The bottle!', mx, MOUTH_Y + 120); env.sfx('tinkle'); }
     return it;
   }
 
@@ -438,7 +505,7 @@ export default function create(env) {
     y.modeT += dt;
     if (y.mode === 'kerplop') {
       if (y.modeT > 0.4 && y.modeT - dt <= 0.4) env.sfx('tinkle');
-      if (y.modeT > 0.9) { y.mode = 'munch'; y.modeT = 0; fx.say('Munch the note!', y.x, GY - 300); }
+      if (y.modeT > 0.9) { y.mode = 'munch'; y.modeT = 0; env.sfx('munch'); }
       return;
     }
     munch.t += dt;
@@ -502,7 +569,10 @@ export default function create(env) {
     cl.cool = Math.max(0, cl.cool - dt);
     cl.lastDrop += dt;
     tc.x = cl.x; tc.y = CLOUD_Y + Math.sin(t * 1.3) * 10;
-    art.animate(tc, dt, cl.vx * 0.5, 0);
+    art.animate(tc, dt, 0, 0);
+    // It faces him, turning only between drops so the spout doesn't flip about.
+    if (cl.letgo <= 0 && cl.suck <= 0 && Math.abs(y.x - cl.x) > 160) cl.face = y.x < cl.x ? -1 : 1;
+    tc.facing = cl.face;
     if (!self.done) art.setAnim(tc, cl.suck > 0 ? 'suck' : cl.letgo > 0 ? 'letgo' : 'bloated');
     // The Yalapappus's look.
     yc.x = y.x; yc.y = GY;
@@ -517,8 +587,12 @@ export default function create(env) {
       else if (y.mode === 'dizzy') art.setAnim(yc, 'dizzy');
       else if (y.z > 0) art.setAnim(yc, 'hop');
       else if (y.landT > 0) art.setAnim(yc, 'land');
-      else if (Math.abs(y.vx) > 40) art.setAnim(yc, 'trundle');
-      else art.setAnim(yc, 'idle');
+      else {
+        // Trundle or stand, with hysteresis so the two don't flicker at a crawl.
+        if (Math.abs(y.vx) > 70) y.moving = true;
+        else if (Math.abs(y.vx) < 25) y.moving = false;
+        art.setAnim(yc, y.moving ? 'trundle' : 'idle');
+      }
     }
   }
 
@@ -553,15 +627,56 @@ export default function create(env) {
     }
   }
 
-  function drawShadow(g, it) {
-    // Where it will land: a shadow that grows darker and sharper as it falls.
+  const it0h = (it) => it.k.h * 0.5;
+
+  function drawShadow(g, it, tt) {
+    // Where it will land: a ringed shadow that grows darker and sharper as it
+    // falls, red-and-white for the bottle, and red when junk is about to hit.
+    if (it.hit) return;
     const near = Math.max(0, Math.min(1, (it.y - MOUTH_Y) / (GY - MOUTH_Y)));
     const lx = landX(it);
-    const w = it.k.h * (0.3 + 0.35 * near) + 12;
+    const bottle = it.kind === 'bottle';
+    const soon = landT(it) < 0.6 && it.kind !== 'scrap' && !bottle;
+    const w = it.k.h * (0.42 + 0.3 * near) + 16;
     g.save();
-    g.globalAlpha = 0.12 + 0.3 * near;
+    g.globalAlpha = 0.35 + 0.45 * near;
     g.fillStyle = '#2b1d14';
-    g.beginPath(); g.ellipse(lx, GY + 4, w, w * 0.22, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(lx, GY + 6, w, w * 0.26, 0, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 0.55 + 0.45 * near;
+    g.lineWidth = bottle ? 7 : 4;
+    g.strokeStyle = soon ? '#c8443a' : '#fbf6e8';
+    g.beginPath(); g.ellipse(lx, GY + 6, w + 4, (w + 4) * 0.26, 0, 0, Math.PI * 2); g.stroke();
+    if (bottle) {
+      g.strokeStyle = '#c8443a';
+      g.setLineDash([16, 12]);
+      g.lineDashOffset = -tt * 60;
+      g.stroke();
+      g.setLineDash([]);
+    }
+    if (soon) {
+      const k = 1 + Math.sin(tt * 16) * 0.12;
+      g.globalAlpha = 1;
+      g.font = `800 ${Math.round(46 * k)}px Fraunces, Georgia, serif`;
+      g.textAlign = 'center';
+      g.lineWidth = 8; g.strokeStyle = '#fbf6e8'; g.strokeText('!', lx, GY - 18);
+      g.fillStyle = '#c8443a'; g.fillText('!', lx, GY - 18);
+    }
+    g.restore();
+  }
+
+  // The hint band: big words on cream across the frame, so they read over the
+  // busy jungle. Each line is centred on the frame, so the shell can refit it
+  // to a phone's narrow view.
+  function hintBand(g, lines) {
+    const y0 = 470, lh = 56;
+    g.save();
+    g.fillStyle = CREAM;
+    g.fillRect(0, y0 - 44, W, lh * lines.length + 30);
+    g.fillStyle = INK;
+    g.fillRect(0, y0 - 44, W, 5); g.fillRect(0, y0 - 14 + lh * lines.length, W, 5);
+    g.font = '800 44px Fraunces, Georgia, serif';
+    g.textAlign = 'center';
+    lines.forEach((s, i) => g.fillText(s, W / 2, y0 + i * lh));
     g.restore();
   }
 
@@ -620,7 +735,7 @@ export default function create(env) {
     g.strokeStyle = '#33241a';
     g.lineWidth = 4;
     const w = munch.need * 40 + 30;
-    roundRect(g, cx - w / 2, cy - 34, w, 96, 18);
+    roundRect(g, cx - w / 2, cy - 34, w, 70, 18);
     g.fill(); g.stroke();
     for (let i = 0; i < munch.need; i++) {
       g.fillStyle = i < munch.n ? '#f2c53d' : 'rgba(51,36,26,0.18)';
@@ -630,11 +745,8 @@ export default function create(env) {
     const k = Math.max(0, 1 - munch.t / munch.limit);
     g.fillStyle = '#8e4f8a';
     g.fillRect(cx - w / 2 + 18, cy + 18, (w - 36) * k, 8);
-    g.fillStyle = '#33241a';
-    g.font = '700 24px Questrial, sans-serif';
-    g.textAlign = 'center';
-    g.fillText('Mash Action to munch!', cx, cy + 50);
     g.restore();
+    actionPrompt(g, cx, cy - 50, 'Mash to munch!', { kind: env.inputKind, t: munch.t, pulse: 1, size: 40 });
   }
 
   // ---------- the chapter ----------
@@ -711,7 +823,7 @@ export default function create(env) {
           g.fillRect(-40, -25, 80, 50); g.strokeRect(-40, -25, 80, 50); g.restore();
         }
       }
-      for (const it of items) if (it.state === 'fall') drawShadow(g, it);
+      for (const it of items) if (it.state === 'fall') drawShadow(g, it, tt);
       for (const it of items) if (it.state === 'lying') drawItem(g, it, tt);
       art.drawCreature(g, tc, tt, { reduceMotion: env.reduceMotion, shadow: false });
       // The Yalapappus.
@@ -731,6 +843,16 @@ export default function create(env) {
         art.drawSprite(g, art.prop('yalapappus', 8), n.x + Math.sin(n.t * 7) * 30, n.y - 60 + n.t * 120, { height: 60, ay: 0.5, rot: Math.sin(n.t * 5) * 0.4 });
       }
       for (const it of items) if (it.state !== 'lying') drawItem(g, it, tt);
+      // The letter is in the bottle: ring it wherever the bottle is, and point
+      // at the bottle while it falls so it can't be mistaken for the junk.
+      if (!self.done) {
+        const b = items.find((i) => i.kind === 'bottle');
+        if (b) {
+          letterTag(g, b.x + 62, b.y - 50, { t: tt, r: 40 });
+          if (b.state === 'fall' && !b.hit) marker(g, b.x, b.y - it0h(b) - 10, { t: tt, label: 'The bottle!' });
+        } else if (bottleHome) letterTag(g, cl.x - cl.face * 215, CLOUD_Y + 70, { t: tt, r: 40 });
+        else if (self.letter?.landed) letterTag(g, self.letter.x, self.letter.y - 40, { t: tt, r: 50 });
+      }
       if (self.burst && self.burst.t < 0.6) {
         const b = self.burst;
         art.drawSprite(g, art.prop('yalapappus', 9), b.x, b.y - 10, { height: 120 + b.t * 160, ay: 0.6, alpha: 1 - b.t / 0.6 });
@@ -748,12 +870,15 @@ export default function create(env) {
         g.restore();
       }
       if (y.mode === 'munch' && !self.done) drawMunchMeter(g);
-      if (env.versus && !self.done && y.mode !== 'munch' && y.mode !== 'kerplop') drawQueue(g);
+      if (env.versus && !self.done && y.mode !== 'munch' && y.mode !== 'kerplop') {
+        drawQueue(g);
+        if (cl.cool <= 0 && (t < 8 || cl.lastDrop > 2.2)) actionPrompt(g, cl.x, CLOUD_Y - 175, 'Drop!', { kind: env.inputKind, side: 1, t: tt, pulse: cl.lastDrop > 2.8 ? 1 : 0 });
+      }
       fx.draw(g);
       g.restore();
-      if (t < 3.2 && !self.done) hint(g, env.versus
-        ? 'Yalapappus: catch the bottle on your head! · Typhoonigator: hide it among the junk!'
-        : 'Catch the bottle on your head! Watch the shadows, dodge the boats and fish.', W);
+      if (t < 4 && !self.done) hintBand(g, env.versus
+        ? ['Yalapappus: catch the bottle on your head!', 'Typhoonigator: hide it among the junk!']
+        : ['Catch the bottle on your head!', 'Watch the shadows: dodge the boats and fish.']);
     },
     marks() {
       const snatched = self.outcome === 'snatched';
@@ -762,7 +887,7 @@ export default function create(env) {
     },
     hud() {
       if (y.mode === 'munch' || y.mode === 'kerplop') return `Munch ${munch.n}/${munch.need}`;
-      return `Scraps ${scraps}`;
+      return `Scraps ${scraps}/3`;
     },
   };
 
@@ -784,15 +909,29 @@ export default function create(env) {
   return self;
 }
 
-function hint(g, text, W) {
-  if (!text) return;
-  g.save();
-  g.font = '700 36px Fraunces, Georgia, serif';
-  g.textAlign = 'center';
-  g.lineWidth = 8;
-  g.strokeStyle = 'rgba(248,241,224,0.95)';
-  g.fillStyle = '#33241a';
-  g.strokeText(text, W / 2, 540);
-  g.fillText(text, W / 2, 540);
-  g.restore();
+
+// A competent player for scripts/chapter-check.mjs: follows the bottle's
+// shadow, otherwise keeps out from under the junk, and munches when told.
+export function autopilot(ch) {
+  const s = ch._ap || (ch._ap = { n: 0 });
+  s.n++;
+  const y = ch.yal;
+  const r = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
+  if (y.mode === 'munch') { r.action = s.n % 2 === 0; r.actionPressed = r.action; return r; }
+  const falling = ch.items.filter((i) => i.state === 'fall' && !i.hit);
+  const bottle = falling.find((i) => i.kind === 'bottle');
+  let tx;
+  if (bottle) tx = ch.landX(bottle);
+  else {
+    tx = ch.cloud.x + (ch.cloud.x > 960 ? -320 : 320);
+    for (const it of falling) {
+      if (it.kind === 'scrap') continue;
+      const lx = ch.landX(it);
+      if (Math.abs(lx - y.x) < 190 && it.y > 380) tx = y.x + (y.x < lx ? -300 : 300);
+    }
+  }
+  const dx = tx - y.x;
+  r.x = Math.abs(dx) < 20 ? 0 : Math.max(-1, Math.min(1, dx / 80));
+  for (const rx of [640, 1310]) if (Math.abs(rx - y.x) < 120 && Math.sign(rx - y.x) === Math.sign(r.x) && y.z === 0 && s.n % 3 === 0) r.actionPressed = true;
+  return r;
 }

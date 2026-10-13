@@ -20,6 +20,7 @@
 
 import * as kit from './kit.js';
 import * as art from '../art.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const { W, H, clamp, ease, approach } = kit;
 
@@ -27,6 +28,7 @@ const GY = 880; // the ground line (feet)
 const WORLD_W = 11400;
 const MAIL_X = 11000;
 const CLEAR = { x0: 5800, x1: 7300 }; // the clearing
+const LOOP = { x: 6450, ax: 360 }; // the letter Bombanat's figure-eight in it
 const TIME = 150;
 
 // Sections and their signposts.
@@ -36,9 +38,9 @@ const CHECKPOINTS = [0, 1700, 3700, 5800, 7400, 10300];
 const GROUND = [[0, 4000], [4300, 4700], [5000, 5300], [5600, 9350], [9690, WORLD_W]];
 const LOGS = [2750, 3650, 8550]; // fallen logs (their middles): vault them
 const LOG_W = 190, LOG_H = 110;
-const ROOTS = [900, 1500, 2150, 3250, 7550, 8050, 10080]; // gnarled roots: step high or vault
-const TOADSTOOLS = [2330, 7230, 8900];
-const BRANCHES = [[2480, 3000], [9000, 9720]]; // one-way platforms up at GY - 290
+const ROOTS = [900, 1500, 2150, 3330, 7550, 8050, 10080]; // gnarled roots: step high or vault
+const TOADSTOOLS = [2420, 7100, 8900];
+const BRANCHES = [[2560, 3080], [9000, 9720]]; // one-way platforms up at GY - 290
 const BRANCH_Y = GY - 290;
 const FERNS = [7700, 8350, 10250, 10750]; // the Trollusk's hiding places, in order
 const DECOR_FERNS = [400, 1950, 3300, 4850, 6400, 7000, 9850, 11250];
@@ -47,7 +49,7 @@ const STUMPS = [1200, 5900, 7100];
 const ROLL_AT = [7800, 8700, 9750]; // where the Yalapappus's rolls are set off
 
 // The Grithix.
-const SPEED = 330, ACCEL = 900, DECEL = 1500, HIGH_STEP = 0.5; // high-stepping speed factor
+const SPEED = 310, ACCEL = 900, DECEL = 1500, HIGH_STEP = 0.5; // high-stepping speed factor
 const VAULT = { time: 0.85, dist: 560, height: 215, minSpeed: 180 };
 const BOUNCE_V = 1400;
 const NET = { windup: 0.22, sweep: 0.2, slam: 0.3, rest: 0.14 };
@@ -66,6 +68,39 @@ const HOOP = {
   slam: { fx: 0.78, fy: 0.88, r: 0.13 },
   netLow: { fx: 0.78, fy: 0.88, r: 0.13 },
 };
+
+// The how-to-play page (src/chapters/index.js, "THE HOW-TO-PLAY PAGE").
+export const HOWTO = [
+  {
+    text: 'Swing the net, FLIP-FLOP: up for overhead, down for a low scoop.',
+    scene: 'scenes/grithix', crop: [200, 300, 960, 720],
+    items: [
+      { creature: 'grithix', anim: 'swing', x: 250, y: 440, h: 300 },
+      { sprite: ['props.grithix', 3], x: 520, y: 450, h: 120 },
+      { path: [[300, 300], [380, 220], [470, 250]], arrow: true },
+      { word: 'FLIP-FLOP!', x: 440, y: 150, size: 54 },
+    ],
+  },
+  {
+    text: 'Sprint while striding to pole-vault a log, a stream or a monster.',
+    scene: 'scenes/grithix', crop: [600, 300, 960, 720],
+    items: [
+      { creature: 'grithix', anim: 'vault', x: 300, y: 300, h: 280 },
+      { sprite: ['props.grithix', 5], x: 330, y: 450, h: 110 },
+      { path: [[120, 440], [220, 250], [330, 200], [450, 250], [540, 440]], arrow: true },
+    ],
+  },
+  {
+    text: 'Net the Bombanat with the letter, then post it in the official mailbox.',
+    scene: 'scenes/grithix', crop: [900, 300, 960, 720],
+    items: [
+      { sprite: ['props.grithix', 1], x: 520, y: 450, h: 240 },
+      { creature: 'grithix', anim: 'post', x: 300, y: 450, h: 300, flip: false },
+      { ring: [520, 290, 60] },
+      { word: 'Posted!', x: 520, y: 150, size: 48 },
+    ],
+  },
+];
 
 export default function create(env) {
   const gentle = !!env.gentle?.[0];
@@ -87,11 +122,11 @@ export default function create(env) {
   const fx = kit.makeParticles();
   const hints = kit.makeHints([
     { x: 150, text: 'Action: swing the net, FLIP-FLOP!' },
-    { x: 600, text: 'Up: an overhead swing · Down: a low scoop' },
-    { x: 1250, text: 'Hold Up to step high over a root' },
-    { x: 2200, text: 'Sprint while striding: pole-vault the log' },
-    { x: 2560, text: 'Toadstools bounce you up to the branches' },
-    { x: 3750, text: 'Vault the streams at a run' },
+    { x: 450, text: 'Up: an overhead swing · Down: a low scoop' },
+    { x: 740, text: 'Hold Up to step high over a root' },
+    { x: 2200, text: 'Toadstools bounce you up to the branches' },
+    { x: 3250, text: 'Sprint while striding: pole-vault the log' },
+    { x: 3800, text: 'Vault the streams at a run' },
     { x: 5850, text: 'The clearing! Net the Bombanat with the letter!' },
   ]);
 
@@ -103,13 +138,13 @@ export default function create(env) {
   addB(620, 180); addB(1150, 160, 'patrol', { span: 100, speed: 0.7 }); addB(1340, 200, 'circle', { amp: 36 }); addB(1700, 175);
   // Roots, the toadstool, the branch and the logs.
   addB(1900, 300, 'bob', { amp: 22 }); addB(2050, 50, 'skim', { span: 60 }); addB(2300, 170, 'patrol', { span: 60, speed: 0.9 });
-  addB(2620, 480, 'bob'); addB(2790, 470, 'circle', { amp: 30 }); addB(2950, 485); // over the branch at 290
+  addB(2700, 480, 'bob'); addB(2870, 470, 'circle', { amp: 30 }); addB(3030, 485); // over the branch at 290
   addB(3150, 170, 'circle', { amp: 30 }); addB(3450, 310, 'bob', { amp: 20 }); addB(3850, 40, 'skim', { span: 90 });
   // The streams: skimming low at the banks, and high over the gaps.
   addB(4350, 310, 'bob', { amp: 20 }); addB(4500, 170, 'circle', { amp: 30 }); addB(4650, 45, 'skim', { span: 60 });
   addB(5180, 180, 'patrol', { span: 50 }); addB(5250, 45, 'skim', { span: 60 }); addB(5700, 290, 'bob'); addB(4560, 300, 'bob');
   // The clearing.
-  addB(6200, 170, 'patrol', { span: 240, speed: 0.8 }); addB(6600, 190, 'circle', { amp: 40 }); addB(7230, 470); addB(7000, 160);
+  addB(6200, 170, 'patrol', { span: 240, speed: 0.8 }); addB(6600, 190, 'circle', { amp: 40 }); addB(7100, 470); addB(6950, 160);
   // The post road.
   addB(7560, 300, 'bob'); addB(7850, 170, 'patrol', { span: 100 }); addB(8250, 55, 'skim', { span: 60 }); addB(8500, 180, 'circle', { amp: 34 });
   addB(9150, 470, 'bob'); addB(9400, 480, 'circle', { amp: 30 }); addB(9650, 475); addB(9900, 300, 'bob', { amp: 22 });
@@ -125,7 +160,6 @@ export default function create(env) {
   tro.c.sizeK = 0.75;
   const yal = { x: 0, y: GY, vx: 0, mode: 'away', t: 0, rolls: 0, netted: false, c: art.makeCreature('yalapappus', 0, GY) };
   yal.c.sizeK = 0.85;
-  const ROLL_AT = [7900, 8750, 10050];
 
   // ---------- state ----------
   let t = 0;
@@ -139,6 +173,7 @@ export default function create(env) {
   let highStep = false;
   let airT = 0;
   let prevSprint = false;
+  let prevX;
   let bagShake = 0;
   let outroT = 0;
   let letterFlash = 0;
@@ -159,7 +194,9 @@ export default function create(env) {
     // Sprite size on screen (the stand-in uses the key pose's sizes).
     const w = (sp?.w ?? (pose === 'swing' || pose === 'netUp' ? 720 : 596)) * poseScale();
     const h = (sp?.h ?? (pose === 'swing' || pose === 'netUp' ? 603 : 530)) * poseScale();
-    let dx = (hp.fx - 0.5) * w, dy = -(1 - hp.fy) * h;
+    // The sprite is anchored where art.js anchors it (the middle of its feet).
+    const ax = sp ? feetAnchor(sp) : 0.5;
+    let dx = (hp.fx - ax) * w, dy = -(1 - hp.fy) * h;
     if (hp.rot) { const c = Math.cos(hp.rot), s = Math.sin(hp.rot); [dx, dy] = [dx * c - dy * s, dx * s + dy * c]; }
     return { x: body.x + dx * gc.facing, y: body.y - (hp.hop || 0) + dy, r: hp.r * w };
   }
@@ -195,7 +232,7 @@ export default function create(env) {
       tro.netted = true; tro.mode = 'netted'; bag.add('trollusk');
       bigCatch(tro.x, tro.y - 120, 'Snerk!');
     }
-    if (!yal.netted && (yal.mode === 'roll' || yal.mode === 'dizzy') && kit.near(yal.x, yal.y - 85, hp.x, hp.y, hp.r + 60)) {
+    if (!yal.netted && (yal.mode === 'roll' || yal.mode === 'dizzy') && kit.near(yal.x, yal.y - yal.c.z - 85, hp.x, hp.y, hp.r + 60)) {
       yal.netted = true; yal.mode = 'netted'; bag.add('yalapappus');
       bigCatch(yal.x, yal.y - 120, 'Grimm!');
     }
@@ -264,8 +301,11 @@ export default function create(env) {
       const ev = kit.stepBody(body, solids, dt, { gravity: 0 });
       if (ev.bumped) body.vx = 0;
       if (modeT >= VAULT.time || (ev.landed && u > 0.5)) {
+        // Landing takes the speed out of him: he strides on from a standstill.
         mode = 'free'; modeT = 0;
         body.vy = Math.max(0, body.vy);
+        body.vx = vaultDir * SPEED * 0.5;
+        if (ev.landed) { art.kick(gc, 0.5); env.sfx('land'); fx.burst(body.x, body.y, { n: 8, colour: '#c9bca0', speed: 200, size: 10 }); shake(3); }
       }
     } else {
       // Striding.
@@ -307,14 +347,25 @@ export default function create(env) {
       }
       if (ev.bumped && mode === 'free' && onGround && Math.abs(inp.x || 0) > 0.2 && !body.bumpSaid) { body.bumpSaid = true; hints.say('Sprint while striding to vault the log', 2.5); }
     }
+    // Walking into a toadstool's stalk bounces him too (not only landing on it).
+    if (mode !== 'vault' && body.onGround && body.y >= GY - 1 && Math.abs(body.vx) > 40) {
+      for (const tx of TOADSTOOLS) if (Math.abs(body.x - tx) < 60) {
+        body.vy = -BOUNCE_V; body.onGround = false; body.ground = null; body.y -= 2;
+        env.sfx('boing'); art.kick(gc, -0.5);
+        fx.burst(body.x, body.y, { n: 8, colour: '#e8c9c9', speed: 220, size: 10 });
+        body.bounced = 0.3;
+        break;
+      }
+    }
     body.bounced = Math.max(0, (body.bounced || 0) - dt);
     airT = body.onGround ? 0 : airT + dt;
     body.x = clamp(body.x, 60, WORLD_W - 60);
 
-    // Roots trip a plain stride; a high step or a vault clears them.
-    if (body.onGround && body.y >= GY - 1 && mode !== 'vault' && !highStep && Math.abs(body.vx) > 60 && immune <= 0 && mode !== 'trip' && mode !== 'soak') {
-      for (const rx of ROOTS) if (Math.abs(body.x - rx) < ROOT_HALF) { trip('Oof! A root'); hints.say('Hold Up to step high over a root, or vault it', 2.5); break; }
+    // Striding over a root's middle trips him; a high step or a vault clears it.
+    if (body.onGround && body.y >= GY - 1 && mode !== 'vault' && !highStep && Math.abs(body.vx) > 60 && immune <= 0 && mode !== 'trip' && mode !== 'soak' && prevX !== undefined) {
+      for (const rx of ROOTS) if ((prevX - rx) * (body.x - rx) <= 0 && Math.abs(body.x - rx) < ROOT_HALF) { trip('Oof! A root'); hints.say('Hold Up to step high over a root, or vault it', 2.5); break; }
     }
+    prevX = body.x;
     // Into a stream.
     if (body.y > GY + 90 && mode !== 'soak') soak();
 
@@ -390,14 +441,14 @@ export default function create(env) {
       if (body.x > CLEAR.x0 - 300 || bomb.x > CLEAR.x0 + 200) { bomb.mode = 'loop'; bomb.loopT = 0; }
     } else {
       // A figure-eight round the clearing's middle, low enough to net.
-      bomb.loopT += dt * (bomb.dodgeT > 0 ? 1.7 : 1) * (gentle ? 0.85 : 1);
-      const k = bomb.loopT * (Math.PI * 2 / 5.2);
-      tx = 6450 + Math.sin(k) * 420;
+      bomb.loopT += dt * (bomb.dodgeT > 0 ? -1.6 : 1) * (gentle ? 0.85 : 1);
+      const k = bomb.loopT * (Math.PI * 2 / 7);
+      tx = LOOP.x + Math.sin(k) * LOOP.ax;
       ty = GY - 240 + Math.sin(k * 2) * 110;
       // It sees the net wound up close by and darts (its skill).
       if (mode === 'windup' && modeT < 0.03 && bomb.dodgeCool <= 0 && Math.abs(body.x - bomb.x) < 300) {
         bomb.dodgeCool = 2.2;
-        if (env.rng() < 0.2 + 0.4 * skill) { bomb.dodgeT = 0.5; env.sfx('dodge'); }
+        if (env.rng() < 0.2 + 0.4 * skill) { bomb.dodgeT = 0.45; env.sfx('dodge'); fx.pop(bomb.x, bomb.y - 150, 'Ha!', { colour: '#5a3a6a', size: 36, life: 0.7 }); }
       }
       bomb.dodgeT = Math.max(0, bomb.dodgeT - dt);
     }
@@ -425,7 +476,7 @@ export default function create(env) {
     switch (tro.mode) {
       case 'hide':
         tro.x = fern; tro.vx = 0;
-        if (fern !== undefined && body.x > fern - 620 && body.x < fern - 120 && body.vx > -20) { tro.mode = 'warn'; tro.t = 0; env.sfx('rustle'); env.sfx('eye'); }
+        if (fern !== undefined && body.x > fern - 620 && body.x < fern - 120 && body.vx > -20 && body.y >= GY - 1) { tro.mode = 'warn'; tro.t = 0; env.sfx('rustle'); env.sfx('eye'); }
         break;
       case 'warn':
         tro.x = fern;
@@ -467,13 +518,13 @@ export default function create(env) {
     switch (yal.mode) {
       case 'away':
         if (phase === 'carry' && yal.rolls < ROLL_AT.length && body.x > ROLL_AT[yal.rolls]) {
-          yal.mode = 'warn'; yal.t = 0; yal.x = cam.x + W + 150; yal.rolls++;
+          yal.mode = 'warn'; yal.t = 0; yal.x = Math.min(cam.x + W + 150, MAIL_X - 300); yal.rolls++;
           env.sfx('gust');
-          fx.pop(cam.x + W - 160, GY - 360, 'GRIMM!', { colour: '#8a6a1a', size: 50, life: 1.1 });
+          fx.pop(Math.min(cam.x + W - 160, MAIL_X - 400), GY - 360, 'GRIMM!', { colour: '#8a6a1a', size: 50, life: 1.1 });
         }
         break;
       case 'warn':
-        yal.x = cam.x + W + 150;
+        yal.x = Math.min(cam.x + W + 150, MAIL_X - 300);
         if (!env.reduceMotion && Math.floor(yal.t * 20) % 4 === 0) fx.burst(cam.x + W - 40, GY, { n: 2, colour: '#c9bca0', speed: 120, size: 10, life: 0.5 });
         if (yal.t >= (gentle ? 1.1 : 0.85)) { yal.mode = 'roll'; yal.t = 0; yal.vx = -rollSpeed; env.sfx('whoosh'); }
         break;
@@ -485,10 +536,18 @@ export default function create(env) {
         if (yal.t >= 1.3) { yal.mode = 'away'; yal.t = 0; }
         break;
     }
-    if (yal.mode === 'roll' && body.onGround && body.y >= GY - 1 && mode !== 'vault' && immune <= 0 && mode !== 'trip' && Math.abs(yal.x - body.x) < 110) {
+    // The ball bounces over logs and streams rather than through them.
+    let hop = 0;
+    if (yal.mode === 'roll') {
+      for (const [x0, x1] of [...LOGS.map((x) => [x - LOG_W / 2 - 90, x + LOG_W / 2 + 90]), ...streams.map((s) => [s.x0 - 90, s.x1 + 90])]) {
+        if (yal.x > x0 && yal.x < x1) hop = Math.max(hop, Math.sin(((yal.x - x0) / (x1 - x0)) * Math.PI) * 180);
+      }
+      hop += Math.abs(Math.sin(yal.t * 9)) * 14;
+    }
+    if (yal.mode === 'roll' && hop < 120 && body.onGround && body.y >= GY - 1 && mode !== 'vault' && immune <= 0 && mode !== 'trip' && Math.abs(yal.x - body.x) < 110) {
       trip('Bowled over!');
     }
-    c.x = yal.x; c.y = yal.y;
+    c.x = yal.x; c.y = yal.y; c.z = hop;
     art.animate(c, dt, yal.vx, 0);
     c.facing = -1;
     art.setAnim(c, yal.mode === 'roll' ? 'ball' : yal.mode === 'dizzy' ? 'dizzy' : 'shout');
@@ -510,6 +569,8 @@ export default function create(env) {
     get yal() { return yal; },
     get bag() { return bag; },
     get got() { return got; },
+    get facing() { return gc.facing; },
+    LOOP,
     get trips() { return trips; },
     get soaks() { return soaks; },
     cam, solids, streams, cps, GY, MAIL_X, CLEAR, ROOTS, LOGS, TOADSTOOLS, BRANCHES, VAULT, HOOP, hoopAt,
@@ -592,7 +653,11 @@ export default function create(env) {
     for (const x of cps.list) if (x > 0 && cam.sees(x)) inkSignpost(g, x + 40, GY + 4, cps.list.indexOf(x), tt);
     // The mailbox and the ferns behind the action.
     if (cam.sees(MAIL_X)) kit.sprite(g, 'adv.b09.props', 9, MAIL_X, GY + 8, { height: 260 }, (g2, x, y) => art.drawSprite(g2, art.prop('grithix', 1), x, y, { height: 260 }) || inkMailbox(g2, x, y));
-    if (phase === 'carry' && !self.done && cam.sees(MAIL_X)) mailboxPrompt(g, tt, Math.abs(body.x - MAIL_X) < 170 && body.onGround);
+    if (phase === 'carry' && !self.done && cam.sees(MAIL_X)) {
+      const ready = Math.abs(body.x - MAIL_X) < 170 && body.onGround;
+      if (ready) actionPrompt(g, MAIL_X, GY - 290, 'Mail it!', { kind: env.inputKind || 'keyboard', t: tt, pulse: 1 });
+      else marker(g, MAIL_X, GY - 300, { t: tt, label: 'The official mailbox' });
+    }
     for (const x of DECOR_FERNS) if (cam.sees(x)) drawFern(g, x, GY + 12, 150, 0);
     // The Trollusk's ferns, and his warning.
     FERNS.forEach((x, i) => {
@@ -651,7 +716,7 @@ export default function create(env) {
     gc.alpha = immune > 0 && Math.floor(tt * 14) % 2 ? 0.5 : 1;
     art.drawCreature(g, gc, tt, { reduceMotion: env.reduceMotion, shadow: body.onGround });
     // What he carries: the letter over his head in part two; the bag's catch.
-    if (phase === 'carry' && !self.done) letterMarker(g, body.x + gc.facing * 10, body.y - gc.z - 335, tt, letterFlash > 0 ? 74 + letterFlash * 40 : 62);
+    if (phase === 'carry' && !self.done) letterTag(g, body.x + gc.facing * 10, body.y - gc.z - 350, { t: tt, r: letterFlash > 0 ? 46 + letterFlash * 30 : 46 });
     if (bag.size && mode !== 'sweep' && mode !== 'slam') drawBag(g, tt);
   }
 
@@ -691,7 +756,10 @@ export default function create(env) {
     g.beginPath(); g.ellipse(bomb.x, gy, 50, 10, 0, 0, Math.PI * 2); g.fill(); g.restore();
     c.x = bomb.x; c.y = bomb.y;
     art.drawCreature(g, c, tt, { reduceMotion: env.reduceMotion, shadow: false });
-    if (phase === 'collect') letterMarker(g, bomb.x + bomb.facing * 30, bomb.y - 120, tt, 52);
+    if (phase === 'collect') {
+      letterTag(g, bomb.x, bomb.y - 125, { t: tt, r: 40 });
+      if (bomb.mode === 'loop') marker(g, bomb.x, bomb.y - 185, { t: tt, label: 'Net it!', size: 0.8 });
+    }
   }
 
   // The jar shelf at the bottom left: the bag's three, and the plain ones counted.
@@ -734,21 +802,36 @@ export default function create(env) {
     g.restore();
   }
 
-  function mailboxPrompt(g, tt, ready) {
-    const bob = Math.sin(tt * 5) * 10;
-    g.save();
-    g.translate(MAIL_X, GY - 310 + bob);
-    g.fillStyle = ready ? '#f2c53d' : '#f8f1e0'; g.strokeStyle = INK; g.lineWidth = 5;
-    g.beginPath(); g.moveTo(-28, -36); g.lineTo(28, -36); g.lineTo(28, 0); g.lineTo(50, 0); g.lineTo(0, 46); g.lineTo(-50, 0); g.lineTo(-28, 0); g.closePath();
-    g.fill(); g.stroke();
-    g.font = '800 30px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.lineWidth = 7;
-    g.strokeStyle = 'rgba(248,241,224,0.95)'; g.fillStyle = '#33241a';
-    const s = ready ? 'Action: mail it!' : 'The official mailbox';
-    g.strokeText(s, 0, -58); g.fillText(s, 0, -58);
-    g.restore();
-  }
-
   return self;
+}
+
+// Where art.js anchors a walker's pose: the middle of its feet (the bottom
+// rows of the drawing), measured from the image's alpha, pulled 85% of the
+// way from the middle. The same sums as art.js's anchorX, so the hoop sits
+// exactly where it is drawn. (Suggestion: export anchorX from art.js.)
+const feetCache = new WeakMap();
+function feetAnchor(sp) {
+  let m = feetCache.get(sp.img);
+  if (m === undefined) {
+    m = null;
+    try {
+      const w = 64, h = Math.max(8, Math.round((64 * sp.h) / sp.w));
+      const cv = typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+      const cg = cv.getContext('2d', { willReadFrequently: true });
+      cg.drawImage(sp.img, 0, 0, w, h);
+      const d = cg.getImageData(0, 0, w, h).data;
+      let fx = 0, fn = 0, mx = 0, mn = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const a = d[(y * w + x) * 4 + 3];
+        if (a < 60) continue;
+        mx += x; mn++;
+        if (y >= h * 0.72) { fx += x; fn++; }
+      }
+      if (mn) m = (fn ? (fx / fn + 0.5) / w : (mx / mn + 0.5) / w);
+    } catch { m = null; }
+    feetCache.set(sp.img, m);
+  }
+  return m === null ? 0.5 : 0.5 + (m - 0.5) * 0.85;
 }
 
 // ---------- stand-ins in ink ----------
@@ -954,22 +1037,6 @@ function eyeBubble(g, x, y, k, t) {
   }
 }
 
-function letterMarker(g, x, y, t, size = 64) {
-  const img = art.image('ui/letter');
-  const bob = Math.sin(t * 4) * 6;
-  g.save();
-  g.translate(x, y + bob);
-  g.rotate(Math.sin(t * 2.3) * 0.12);
-  if (img) g.drawImage(img, -size / 2, -size / 2, size, size);
-  else {
-    g.fillStyle = '#f8f1e0'; g.strokeStyle = INK; g.lineWidth = 3;
-    g.fillRect(-size / 2, -size * 0.32, size, size * 0.64); g.strokeRect(-size / 2, -size * 0.32, size, size * 0.64);
-    g.beginPath(); g.moveTo(-size / 2, -size * 0.32); g.lineTo(0, 0); g.lineTo(size / 2, -size * 0.32); g.stroke();
-    g.fillStyle = '#b3402e'; g.fillRect(size * 0.22, -size * 0.26, size * 0.16, size * 0.18);
-  }
-  g.restore();
-}
-
 // ---------- the autopilot ----------
 //
 // Walks right, netting every Bombanat it can reach on the way (choosing the
@@ -982,99 +1049,141 @@ export function autopilot(board) {
   const out = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
   if (board.done) return out;
   const mode = board.mode;
-  if (mode !== 'free' && mode !== 'vault') return out;
-  if (mode === 'vault') return out;
+  if (mode !== 'free') return out;
   const GYv = board.GY;
   const px = b.x, onGround = b.onGround;
+  if (!onGround) { out.x = b.vx >= 0 ? 1 : -1; return out; } // no steering in the air
   const moving = Math.abs(b.vx) >= board.VAULT.minSpeed;
+  const stopped = Math.abs(b.vx) < 80;
+  const ap = board._ap || (board._ap = { backTo: null });
   const hp = board.HOOP;
   const k = 300 / 628;
-  // The three swings' hoops, relative to the feet, facing right.
+  // The three swings' hoops, relative to the feet, facing right (the drawn
+  // poses' anchors sit a little left of their middles; close enough here).
   const reach = {
-    swing: { dx: (hp.swing.fx - 0.5) * 720 * k, dy: -(1 - hp.swing.fy) * 603 * k, r: hp.swing.r * 720 * k },
-    netLow: { dx: (hp.netLow.fx - 0.5) * 596 * k, dy: -(1 - hp.netLow.fy) * 530 * k, r: hp.netLow.r * 596 * k },
+    swing: { dx: (hp.swing.fx - 0.46) * 720 * k, dy: -(1 - hp.swing.fy) * 603 * k, r: hp.swing.r * 720 * k },
+    netLow: { dx: (hp.netLow.fx - 0.46) * 596 * k, dy: -(1 - hp.netLow.fy) * 530 * k, r: hp.netLow.r * 596 * k },
   };
   {
     const c = Math.cos(hp.netUp.rot), s = Math.sin(hp.netUp.rot);
     const dx = reach.swing.dx, dy = reach.swing.dy;
     reach.netUp = { dx: dx * c - dy * s, dy: dx * s + dy * c - hp.netUp.hop, r: reach.swing.r };
   }
-  // Which swing nets a thing at (tx, ty) from feet at (px, py)? Returns the
-  // kind and where to stand.
-  function planFor(tx, ty, py, slack) {
+  const groundOk = (x) => { const gy = kit.groundAt(board.solids, x, b.y - 4); return gy !== null && Math.abs(gy - b.y) < 2; };
+  // Which swing nets a thing at (tx, ty)? Returns the kind, where to stand
+  // and which way to face (the way he faces now when it can be either).
+  function planFor(tx, ty, slack) {
     let best = null;
     for (const kind of ['swing', 'netUp', 'netLow']) {
       const r = reach[kind];
-      const dy = ty - (py + r.dy);
+      const dy = ty - (b.y + r.dy);
       if (Math.abs(dy) > r.r + slack - 10) continue;
-      const stand = tx - r.dx;
-      const cost = Math.abs(dy) + Math.abs(stand - px) * 0.2;
-      if (!best || cost < best.cost) best = { kind, stand, cost };
+      for (const f of [1, -1]) {
+        const stand = tx - r.dx * f;
+        if (!groundOk(stand)) continue;
+        const cost = Math.abs(dy) + Math.abs(stand - px) * 0.2 + (f === board.facing ? 0 : 15);
+        if (!best || cost < best.cost) best = { kind, stand, cost, face: f };
+      }
     }
     return best;
   }
-  const press = (kind) => { out.actionPressed = true; out.action = true; out.y = kind === 'netUp' ? -1 : kind === 'netLow' ? 1 : 0; };
+  // Swing now, or turn round first if he faces the wrong way.
+  const press = (kind, face = 1) => {
+    if (face !== board.facing) { out.x = face * 0.3; return; }
+    out.actionPressed = true; out.action = true; out.y = kind === 'netUp' ? -1 : kind === 'netLow' ? 1 : 0; out.x = 0;
+  };
+  const walkTo = (x, tol = 10) => { const d = x - px; out.x = Math.abs(d) < tol ? 0 : Math.sign(d) * (Math.abs(d) < 60 ? 0.55 : 1); return Math.abs(d) < tol; };
 
   // ----- part two: the monsters coming at him -----
   if (board.phase === 'carry') {
     const tro = board.tro, yal = board.yal;
-    for (const [m, active, speed] of [[tro, tro.mode === 'pounce' && !tro.netted, tro.vx], [yal, yal.mode === 'roll' && !yal.netted, yal.vx]]) {
-      if (!active) continue;
-      const d = m.x - px;
-      if (d < -40) continue;
-      // Where it will be when the sweep comes (the wind-up later).
-      const at = m.x + speed * 0.26;
-      const plan = onGround && b.y >= GYv - 1 ? planFor(at, GYv - 85, b.y, 50) : null;
-      if (plan && Math.abs(plan.stand - px) < 45 && d > 60) { press(plan.kind); return out; }
-      if (d < 200 && moving && onGround) { out.sprint = true; out.x = 1; return out; }
-      if (d < 320) { out.x = 1; return out; } // keep striding so a vault is ready
+    const rolling = !yal.netted && (yal.mode === 'roll' || yal.mode === 'warn');
+    const pouncing = !tro.netted && (tro.mode === 'pounce' || tro.mode === 'gloat');
+    const warning = !tro.netted && tro.mode === 'warn';
+    if (rolling && yal.mode === 'roll') {
+      const d = yal.x - px;
+      if (d > -40 && d < 700) {
+        if (d >= 200 && d <= 320 && stopped && onGround) { press('netLow'); return out; }
+        if (d > 320) { out.x = 0; return out; }
+        if (d < 200 && moving && onGround) { out.sprint = true; out.x = 1; return out; }
+        out.x = 0; return out;
+      }
+    } else if (rolling) { out.x = 0; return out; }
+    if (pouncing) {
+      const d = tro.x - px;
+      if (tro.mode === 'pounce') {
+        if (d >= 180 && d <= 300 && stopped && onGround) { press('netLow'); return out; }
+        if (d > 300) { out.x = 0; return out; }
+        if (d > -40 && d < 180 && moving && onGround) { out.sprint = true; out.x = 1; return out; }
+        out.x = 0; return out;
+      }
+      if (d > -40 && d < 200 && onGround) { press('netLow'); return out; }
+      if (d >= 200 && d < 600) { walkTo(tro.x - 100); return out; }
+    }
+    if (warning) {
+      const fern = tro.x;
+      if (px < fern - 120) { walkTo(fern - 400, 16); return out; }
     }
     if (Math.abs(px - board.MAIL_X) < 150 && onGround) { press('swing'); out.y = 0; return out; }
-    if (px < board.MAIL_X - 150) out.x = 1; else out.x = px > board.MAIL_X ? -1 : 1;
-  } else {
-    // ----- part one: the nearest Bombanat worth netting -----
+    out.x = px < board.MAIL_X ? 1 : -1;
+  }
+  {
+    // ----- the nearest Bombanat worth netting (going back for one close behind) -----
     let target = null;
-    if (board.bomb.mode === 'loop') {
-      const bm = board.bomb;
-      target = { x: bm.x + bm.vx * 0.3, y: bm.y + bm.vy * 0.3, letter: true };
-    }
-    if (!target) {
+    const flockPlan = () => {
       let best = null;
       for (const f of board.flock) {
         if (f.got) continue;
         const tx = f.x + f.cx, ty = f.y + f.cy;
-        if (tx < px - 60 || tx > px + 520) continue;
-        const plan = planFor(tx, ty, b.y, 20);
+        if (tx < px - 450 || tx > px + 520) continue;
+        const plan = planFor(tx, ty, 20);
         if (!plan) continue;
         if (!best || plan.stand < best.plan.stand) best = { x: tx, y: ty, plan };
       }
-      if (best) target = best;
+      return best;
+    };
+    if (board.phase === 'collect' && board.bomb.mode === 'loop') {
+      // Wait at the right end of its figure-eight, facing it, and swing as it
+      // comes round (it slows and hovers there); a chance swing when it
+      // passes within reach on the way.
+      const bm = board.bomb;
+      const tx = bm.x + bm.vx * 0.3, ty = bm.y + bm.vy * 0.3;
+      const plan = planFor(tx, ty, 40);
+      if (plan && Math.abs(plan.stand - px) < 40 && onGround && stopped) { press(plan.kind, plan.face); return out; }
+      target = flockPlan();
+      if (!target) { walkTo(board.LOOP.x + board.LOOP.ax - reach.swing.dx, 12); return out; }
     }
+    if (!target) target = flockPlan();
     if (target) {
-      const plan = planFor(target.x, target.y, b.y, target.letter ? 36 : 20);
+      const plan = planFor(target.x, target.y, target.letter ? 36 : 20);
       if (plan) {
         const d = plan.stand - px;
-        if (Math.abs(d) < (target.letter ? 40 : 24) && onGround) { press(plan.kind); return out; }
-        if (target.letter && Math.abs(d) < 120 && Math.abs(target.y - (b.y + reach[plan.kind].dy)) < 40 && onGround) { press(plan.kind); return out; }
-        out.x = Math.abs(d) < 8 ? 0 : Math.sign(d) * (Math.abs(d) < 60 ? 0.55 : 1);
+        if (Math.abs(d) < (target.letter ? 44 : 26) && onGround && Math.abs(b.vx) < 200) { press(plan.kind, plan.face); return out; }
+        walkTo(plan.stand);
         if (target.letter) return out;
-      } else if (target.letter) { out.x = Math.sign(target.x - px); return out; }
+      } else if (target.letter) { walkTo(target.x - 60, 30); return out; }
     }
-    if (!target) out.x = 1;
-    if (board.bomb.mode === 'loop' && !target) out.x = Math.sign(6450 - px) || 1;
+    if (!target && board.phase === 'collect') out.x = 1;
   }
 
   // ----- obstacles ahead on the ground -----
-  if (onGround && out.x > 0) {
+  if (onGround && b.y >= GYv - 1) {
+    const logFaces = board.LOGS.map((x) => x - 95);
     const ahead = (xs, lo, hi) => xs.some((x) => x - px > lo && x - px < hi);
-    const inStream = (lo, hi) => board.streams.some((s) => s.x0 - px > lo && s.x0 - px < hi && b.y >= GYv - 1);
-    if (b.y >= GYv - 1) {
-      if (ahead(board.LOGS.map((x) => x - 95), 120, 210) && moving) { out.sprint = true; out.x = 1; out.actionPressed = false; }
-      else if (inStream(60, 150) && moving) { out.sprint = true; out.x = 1; out.actionPressed = false; }
-      else if (ahead(board.ROOTS, 20, 170)) { out.y = -1; out.x = 1; if (out.actionPressed) { out.actionPressed = false; out.action = false; } }
-      else if (ahead(board.LOGS.map((x) => x - 95), 0, 120) && !moving) out.x = -1; // back up for a run-up
-      else if (inStream(0, 60) && !moving) out.x = -1;
+    const streamAhead = (lo, hi) => board.streams.some((s) => s.x0 - px > lo && s.x0 - px < hi);
+    const needVault = ahead(logFaces, 0, 220) || streamAhead(0, 150);
+    if (ap.backTo !== null) {
+      // Backing up for a run-up.
+      if (px > ap.backTo) { out.x = -1; out.y = 0; out.actionPressed = false; out.action = false; out.sprint = false; }
+      else ap.backTo = null;
     }
+    if (out.x > 0 && ap.backTo === null && needVault) {
+      if (moving && (ahead(logFaces, 100, 220) || streamAhead(0, 150))) { out.sprint = true; out.x = 1; out.y = 0; out.actionPressed = false; out.action = false; }
+      else if (!moving && (ahead(logFaces, 0, 100) || streamAhead(0, 60))) { ap.backTo = px - 240; out.x = -1; out.y = 0; }
+    }
+    // A root ahead the way he is going: step high over it (unless this is the
+    // swing itself); once it is behind him, stride out again for a run-up.
+    if (!out.actionPressed && !out.sprint && out.x !== 0 && board.ROOTS.some((x) => (x - px) * Math.sign(out.x) > -70 && Math.abs(x - px) < 170)) out.y = -1;
   }
   return out;
 }

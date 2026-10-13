@@ -18,6 +18,7 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const { W, H, clamp, ease, near } = kit;
 const ENTRY = BOARDS.find((b) => b.n === 3);
@@ -468,7 +469,7 @@ export default function create(env) {
       }
       // High ones can see him at the surface and keep away; they do not notice
       // him deep down, so a leap or a goo bubble from the deep gets them.
-      const shy = f.kind === 'high' && G.y < SURF + 70 && G.mode === 'swim' && Math.abs(G.x - f.x) < 300;
+      const shy = f.kind === 'high' && G.y < SURF + 30 && G.mode === 'swim' && Math.abs(G.x - f.x) < 300;
       if (shy) f.dir = f.x >= G.x ? 1 : -1;
       const speed = f.speed * (f.scatter > 0 || shy ? 1.9 : 1);
       f.x += f.dir * speed * dt;
@@ -815,6 +816,7 @@ export default function create(env) {
       for (const f of fliers) if (!f.got && cam.sees(f.x)) drawFlier(g, f);
       drawHolder(g);
       if (G.lunge) drawClaw(g);
+      drawPrompt(g);
       if (self.done && self.outcome === 'snatched') drawGrumleyRisen(g);
       parts.draw(g);
       drawRings(g);
@@ -1388,17 +1390,18 @@ export default function create(env) {
       g.beginPath(); g.ellipse(L.x, SURF + 6, 60, 12, 0, 0, Math.PI * 2); g.fill(); g.restore();
     }
     art.drawCreature(g, c, t, { reduceMotion: env.reduceMotion, shadow: false });
-    // The letter he carries, shown over his head.
-    const img = art.image('ui/letter');
+    // The letter he carries, and when he is coming down to land, the target.
     const bob = env.reduceMotion ? 0 : Math.sin(t * 4) * 5;
-    const y = L.y - 125 + bob;
-    g.save();
-    g.fillStyle = 'rgba(248,241,224,0.9)'; g.strokeStyle = '#c8443a'; g.lineWidth = 4;
-    g.beginPath(); g.arc(L.x, y, 32, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.fillStyle = '#c8443a';
-    g.beginPath(); g.moveTo(L.x - 9, y + 30); g.lineTo(L.x + 9, y + 30); g.lineTo(L.x, y + 44); g.closePath(); g.fill();
-    if (img) g.drawImage(img, L.x - 25, y - 25, 50, 50);
-    g.restore();
+    letterTag(g, L.x, L.y - 118 + bob, { t, r: 40 });
+    if (!self.done && (L.mode === 'perched' || (L.mode === 'landing' && L.T > 1.2))) marker(g, L.x, L.y - 190, { t, label: L.mode === 'perched' ? 'Grab him!' : '' });
+  }
+
+  // "Grab!" over the Grumley when the letter Bombanat is in reach of a lunge.
+  function drawPrompt(g) {
+    if (self.done || G.mode !== 'swim' || G.lunge || L.mode === 'grabbed') return;
+    const d = Math.hypot(L.x - G.x, L.y - (G.y - 20));
+    if (d > reach + clawR * 0.8) return;
+    actionPrompt(g, G.x, G.y - 150, 'Grab!', { kind: env.inputKind, t, pulse: 1 });
   }
 
   function drawOutroNet(g) {
@@ -1439,6 +1442,41 @@ export default function create(env) {
   return self;
 }
 
+// ---------- the how-to-play page ----------
+
+export const HOWTO = [
+  {
+    text: 'Swim under the goo and lunge a claw up at the Bombanats skimming it.',
+    scene: 'scenes/grumley', crop: [500, 500, 900, 506],
+    items: [
+      { creature: 'grumley', anim: 'rise', x: 300, y: 430, h: 190 },
+      { creature: 'bombanat', anim: 'glide', x: 380, y: 110, h: 90 },
+      { path: [[300, 300], [370, 150]], arrow: true },
+      { word: 'SNAP!', x: 470, y: 90, size: 40 },
+    ],
+  },
+  {
+    text: 'Keep deep under the boats: nets can’t reach the bottom. Netted? Mash Action.',
+    scene: 'scenes/grumley', crop: [500, 500, 900, 506],
+    items: [
+      { sprite: ['props.grumley', 7], x: 330, y: 300, h: 220 },
+      { creature: 'grumley', anim: 'rise', x: 180, y: 470, h: 150 },
+      { path: [[90, 420], [280, 440], [520, 430]], arrow: true },
+      { ring: [330, 200, 120] },
+    ],
+  },
+  {
+    text: 'At the island, wait for the Bombanat to land, then grab him!',
+    scene: 'scenes/grumley', crop: [0, 380, 900, 506],
+    items: [
+      { creature: 'bombanat', anim: 'perched', x: 200, y: 250, h: 110 },
+      { creature: 'grumley', anim: 'lunge', x: 430, y: 470, h: 210 },
+      { path: [[430, 330], [250, 230]], arrow: true },
+      { word: 'Grab!', x: 480, y: 120, size: 44 },
+    ],
+  },
+];
+
 // ---------- the autopilot ----------
 //
 // Plays the board to the snatch: swims right, lunges at skimming and perched
@@ -1447,8 +1485,8 @@ export default function create(env) {
 // for the letter Bombanat to land, then lunges at him.
 
 export function autopilot(board) {
-  const { G, L, fliers, boats, eye, T } = board;
-  const ai = (board.ai ||= { mashOn: false, waitT: 0, target: null, pressT: 0 });
+  const { G, L, fliers, boats, eye, T, bigBubbles, world } = board;
+  const ai = (board.ai ||= { mashOn: false, waitT: 0, target: null, highWait: 0 });
   const inp = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
   const reach = board.reach;
   if (board.done) return inp;
@@ -1499,6 +1537,21 @@ export function autopilot(board) {
     return inp;
   }
 
+  // A high one over the whirlpools: ride a goo bubble up from a vent and lunge at the top.
+  const inWhirlNow = G.x > sx(8000) && G.x < sx(10700);
+  const highT = inWhirlNow ? fliers.find((f) => !f.got && f.kind === 'high' && f.x > G.x - 200 && f.x < G.x + 700) : null;
+  if (highT && ai.highWait < 9) {
+    ai.highWait += 1 / 30;
+    if (G.air) { lungeAt(highT.x, highT.y); return inp; }
+    if (G.bubble) { inp.x = clamp((highT.x - G.x) / 200, -0.5, 0.5); return inp; }
+    let vent = null, vd = 1e9;
+    for (const v of world.vents) { const d = Math.abs(v.x - highT.x); if (d < vd) { vd = d; vent = v; } }
+    const bub = bigBubbles.find((b) => !b.popped && Math.abs(b.x - vent.x) < 80 && b.y > SURF + 150);
+    if (bub) seek(bub.x, bub.y, 0.02); else seek(vent.x, SURF + 380, 0.015);
+    return inp;
+  }
+  if (!highT) ai.highWait = 0;
+
   // A Bombanat worth a lunge: skimming or perched, a little ahead or just behind.
   if (!ai.target || ai.target.got || ai.target.x < G.x - 260) ai.target = null;
   if (!ai.target) {
@@ -1523,7 +1576,6 @@ export function autopilot(board) {
     const px = f.x + (f.kind === 'perched' ? 0 : f.dir * 40);
     if (lungeAt(px, f.y)) return inp;
     seek(px, wantY, 0.015);
-    inp.sprint = Math.abs(px - G.x) > 420 && G.jetCd <= 0;
     return inp;
   }
 
@@ -1536,6 +1588,6 @@ export function autopilot(board) {
   seek(G.x + 400, cruiseY, 0.012);
   inp.x = 1;
   if (inFishing && Math.abs(G.y - cruiseY) > 80) inp.x = 0.4;
-  inp.sprint = G.jetCd <= 0 && (!!netBoat || inWhirl || G.x < sx(2400));
+  inp.sprint = G.jetCd <= 0 && (!!netBoat || inWhirl);
   return inp;
 }

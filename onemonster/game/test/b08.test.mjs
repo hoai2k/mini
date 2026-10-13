@@ -35,7 +35,7 @@ test('board 8: a fresh Trollusk dodges a dive from low down', () => {
 });
 
 test('board 8: a dive from the top of the sky is too fast to dodge', () => {
-  const ch = setUp(ch0 => 0, {});
+  const ch = setUp(0);
   ch.b.y = ch.CEILING;
   run(ch, DOWN, 1.5);
   assert.equal(ch.outcome, 'snatched');
@@ -81,7 +81,7 @@ test('board 8: rain soaks his wings and he sinks faster', () => {
   run(ch, idle, 1.0);
   assert.ok(ch.b.soaked > 0, 'soaked');
   assert.ok(ch.b.vy > 180, `sinks fast: ${ch.b.vy}`);
-  const dry = setUp(0); dry.b.x = 5000; dry.b.y = 600; dry.b.vy = 0;
+  const dry = setUp(0); dry.b.x = 4200; dry.b.y = 600; dry.b.vy = 0; dry.b.vx = 300;
   run(dry, idle, 1.0);
   assert.ok(dry.b.vy < 150, `dry sink: ${dry.b.vy}`);
 });

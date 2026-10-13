@@ -689,3 +689,23 @@ function hint(g, text, W) {
   g.fillText(text, W / 2, 150);
   g.restore();
 }
+
+// A competent player's input for the next frame (scripts/chapter-check.mjs):
+// creeps from cover to cover while the lookouts rest, ducks when one warns.
+export function autopilot(ch) {
+  const { tr, look } = ch;
+  const inp = (x, y, o = {}) => ({ x, y, action: false, actionPressed: false, actionReleased: false, sprint: false, ...o });
+  const atBox = Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR - 10;
+  if (atBox) return inp(0, 0, { actionPressed: true, action: true });
+  const next = COVER.find((k) => k.x > tr.x + 40) || { x: MAILBOX.grabX - 30, y: MAILBOX.grabY + 10 };
+  const covers = (L) => L.zone[1] >= Math.min(tr.x, next.x) && L.zone[0] <= Math.max(tr.x, next.x);
+  const threat = look.some((L) => covers(L) && (L.state === 'warn' || L.state === 'look'));
+  const soon = look.some((L) => covers(L) && L.state === 'ready');
+  if (tr.cover) {
+    if (threat || soon) return inp(0, 0, { action: true });
+  } else if (threat) {
+    return inp(0, 0);
+  }
+  const dx = next.x - tr.x, dy = next.y - tr.y, d = Math.hypot(dx, dy) || 1;
+  return inp(dx / d, dy / d);
+}

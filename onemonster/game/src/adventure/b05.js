@@ -23,6 +23,7 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const { W, H, clamp, lerp, hash } = kit;
 const ENTRY = BOARDS.find((b) => b.n === 5);
@@ -42,7 +43,7 @@ export const TUNE = {
   sizeAt: (full) => 0.85 + 0.42 * full,
   radius: 150, radiusK: 125, // vortex radius = radius + radiusK * sizeK
   spinUp: 2.2, spinDown: 4,
-  drain: 1.3, // sea drained per second under the vortex's middle at full power
+  drain: 1.4, // sea drained per second under the vortex's middle at full power
   seaWeight: 0.05, // fullness per column of sea swallowed
   capture: 55, liftAt: 0.7, liftAfter: 0.4, liftTime: 0.6,
   footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings
@@ -52,7 +53,7 @@ export const TUNE = {
   refill: 0.2, // a little rain cloud
   blow: 0.25, blowCd: 2.5, tap: 0.22, blowMin: 0.3,
   bottleCurrent: 185, bottleSpeed: 150, bottleAccel: 500, bottlePull: 0.55, duck: 0.8, duckCd: 2.6,
-  raftSpeed: 165, raftFlee: 280, raftPull: 0.6, raftLift: 1.4, hook: 190, hookTime: 1.1, throwDist: 850, flyTime: 1.2,
+  raftSpeed: 155, raftFlee: 280, raftPull: 0.6, raftLift: 1.4, hook: 190, hookTime: 1.1, throwDist: 850, flyTime: 1.2,
   feat: 0.9, // goo meter for the third postmark
 };
 
@@ -272,6 +273,7 @@ export default function create(env) {
       if (raft.state !== 'gone' && raft.state !== 'lift' && cam.sees(raft.x - 200, raft.x + 200)) drawRaft(g, tt);
       if (bottle.state === 'float' || bottle.state === 'held') drawBottle(g, tt);
       if (bottle.state === 'fly') drawFlyingBottle(g, tt);
+      drawPrompts(g, tt);
       drawVortex(g, tt);
       const M = mouth();
       drawSpout(g, M, tt);
@@ -371,6 +373,18 @@ export default function create(env) {
   // The cloud against the banks, the stacks and the shore: an ellipse pushed out of rectangles.
   function collide() {
     const rx = bodyRx(), ry = bodyRy(), k = rx / ry;
+    // A gap it cannot fit is a wall: it cannot squeeze between the bank and the stack.
+    for (const gp of gaps) {
+      if (2 * ry + 4 <= gp.open) continue;
+      const left = p.x < gp.x + gp.w / 2;
+      const wall = left ? gp.x - rx * 0.8 : gp.x + gp.w + rx * 0.8;
+      if (left ? p.x > wall : p.x < wall) {
+        const speed = Math.abs(p.vx);
+        p.x = wall;
+        p.vx = left ? Math.min(0, -p.vx * 0.3) : Math.max(0, -p.vx * 0.3);
+        if (speed > 140) bump({ gap: gp }, speed);
+      }
+    }
     for (const s of solids) {
       if (s.x > p.x + rx + 10 || s.x + s.w < p.x - rx - 10) continue;
       const cx = clamp(p.x, s.x, s.x + s.w), cy = clamp(p.y, s.y, s.y + s.h);
@@ -1191,6 +1205,19 @@ export default function create(env) {
     }
   }
 
+  // The letter's tag on the bottle, and at the eddy a marker and the button to press.
+  function drawPrompts(g, tt) {
+    const b = bottle;
+    if (b.state === 'gone' || b.state === 'lift' || !cam.sees(b.x)) return;
+    const y = b.state === 'fly' ? lerp(seaY(b.fly.x0) - 200, seaY(b.fly.x1), clamp(b.lt / TUNE.flyTime, 0, 1)) - Math.sin(clamp(b.lt / TUNE.flyTime, 0, 1) * Math.PI) * 320 : seaY(b.x) - 40;
+    letterTag(g, b.x + 70, y - 60, { t: tt, r: 34 });
+    if (b.x >= EDDY.x0 && p.x >= EDDY.x0 - 900 && b.state === 'float') {
+      marker(g, b.x, y - 120, { t: tt, label: 'The bottle!' });
+      const over = Math.abs(foot.x - b.x) < radius() && b.duck <= 0;
+      actionPrompt(g, b.x, y - 210, over ? 'Suck it up!' : 'Hold to suck', { kind: env.inputKind, t: tt, pulse: over ? 1 : 0 });
+    }
+  }
+
   function drawFlyingBottle(g) {
     const b = bottle;
     const u = clamp(b.lt / TUNE.flyTime, 0, 1);
@@ -1469,6 +1496,44 @@ function roundRect(g, x, y, w, h, r) {
   else g.rect(x, y, w, h);
 }
 
+// The how-to-play page (chapters/index.js, THE HOW-TO-PLAY PAGE).
+export const HOWTO = [
+  {
+    text: 'Hold Action to suck up the sea: the goo meter fills, and you swell up.',
+    scene: 'scenes/typhoonigator', crop: [0, 200, 960, 720],
+    items: [
+      { creature: 'typhoonigator', anim: 'suck', x: 300, y: 200, h: 180 },
+      { draw: (g) => { g.save(); g.strokeStyle = 'rgba(150,170,200,0.9)'; g.lineWidth = 16; g.lineCap = 'round'; g.beginPath(); g.moveTo(350, 260); g.quadraticCurveTo(330, 350, 400, 420); g.stroke(); g.restore(); } },
+      { sprite: ['props.typhoonigator', 4], x: 470, y: 430, h: 40 },
+      { sprite: ['props.typhoonigator', 8], x: 330, y: 436, h: 40 },
+      { ring: [400, 420, 90] },
+      { word: 'SLURP!', x: 500, y: 150, size: 44 },
+    ],
+  },
+  {
+    text: 'Too big for a gap? Sprint rains some out; a tap of Action blows a gust.',
+    scene: 'scenes/typhoonigator', crop: [600, 150, 960, 720],
+    items: [
+      { draw: (g) => { g.save(); g.fillStyle = '#857488'; g.strokeStyle = '#2b1d14'; g.lineWidth = 3; g.fillRect(380, 0, 110, 150); g.strokeRect(380, 0, 110, 150); g.fillStyle = '#6f6274'; g.fillRect(380, 330, 110, 150); g.strokeRect(380, 330, 110, 150); g.restore(); } },
+      { creature: 'typhoonigator', anim: 'bloated', x: 180, y: 240, h: 230 },
+      { path: [[300, 240], [430, 240], [560, 240]], arrow: true },
+      { word: 'WHOOSH', x: 560, y: 160, size: 36 },
+    ],
+  },
+  {
+    text: 'At the eddy, hold the spout over the captain’s bottle before the sailors hook it.',
+    scene: 'scenes/typhoonigator', crop: [300, 300, 960, 720],
+    items: [
+      { creature: 'typhoonigator', anim: 'suck', x: 400, y: 160, h: 170 },
+      { draw: (g) => { g.save(); g.strokeStyle = 'rgba(150,170,200,0.9)'; g.lineWidth = 16; g.lineCap = 'round'; g.beginPath(); g.moveTo(450, 220); g.quadraticCurveTo(470, 320, 440, 400); g.stroke(); g.restore(); } },
+      { sprite: ['props.typhoonigator', 1], x: 440, y: 430, h: 60 },
+      { cast: 10, x: 200, y: 450, h: 150 },
+      { ring: [440, 410, 60] },
+      { word: 'GOT IT!', x: 520, y: 120, size: 40 },
+    ],
+  },
+];
+
 // ---------- the autopilot ----------
 //
 // Sucks the sea as it goes (for the goo meter), steers through the gaps,
@@ -1527,6 +1592,8 @@ export function autopilot(b) {
         ty = blob ? blob.y : 400;
       }
     }
+    // Behind on the goo meter: take it slower and drain more.
+    if (!sprint && suck && S.goo < (p.x / 12000) * 0.9 && b.time > 60) out.x = 0.45;
     if (full >= TUNE.cap - 0.05) { sprint = true; if (S.blowCd <= 0 && ap.rest <= 0) { ap.tap = 3; ap.rest = 60; } }
     if (b.time < 40) { sprint = true; suck = b.time > 25; }
   }

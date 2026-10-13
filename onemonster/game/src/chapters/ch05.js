@@ -19,28 +19,31 @@
 import * as art from '../art.js';
 import { makeFx, roundRect } from '../chasedraw.js';
 import { marksFor } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const K = 0.6; // vertical squash of the slanted sea
-const SEA = { y0: 415, y1: 1035, x0: 70 };
+const SEA = { y0: 500, y1: 1035, x0: 90 };
 const seaX1 = (y) => (y < 585 ? 1630 : 1850); // the land at the far right
-const persp = (y) => 0.6 + 0.4 * Math.max(0, Math.min(1, (y - 400) / 640));
+const persp = (y) => 0.74 + 0.26 * Math.max(0, Math.min(1, (y - 440) / 600));
 
 // Tuning (ground units, seconds, fractions of a full tummy).
 export const TUNE = {
   speed: 250, sprint: 410, accel: 1100,
   bloatedAt: 0.72, bloatedSlow: 0.62, burpSlow: 0.35, burpTime: 1.6, burpTo: 0.55,
-  radius: 190, sprintRadius: 255, spinUp: 1.8, spinDown: 4,
+  radius: 200, sprintRadius: 260, spinUp: 1.8, spinDown: 4,
   water: 0.018, sprintWater: 0.03, // fullness per second of sucking, just sea water
-  capture: 40, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
+  capture: 55, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
   footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings wide
   bottleSpeed: 140, bottleAccel: 480, duck: 0.8, duckCd: 2.5, bottlePull: 0.5, suckSlow: 0.6,
-  junk: 22,
+  junk: 11,
 };
 
 // Flotsam: [prop item, height on screen at the front, weight in the tummy].
+// Few and big, so each reads on its own; the captain's bottle is bigger still.
 const JUNK = {
-  2: [92, 0.09], 3: [92, 0.09], 4: [74, 0.08], 5: [78, 0.08], 6: [84, 0.11], 7: [140, 0.16], 8: [72, 0.07],
+  2: [138, 0.13], 3: [138, 0.13], 4: [108, 0.11], 5: [116, 0.11], 6: [126, 0.15], 7: [196, 0.22], 8: [112, 0.1],
 };
+const BOTTLE_H = 176;
 const KINDS = [2, 3, 4, 5, 6, 7, 8, 4, 5, 2];
 
 // Where the spout leaves each pose (the tip of the spray drawn on the sprite,
@@ -62,7 +65,7 @@ export default function create(env) {
   let t = 0;
 
   // The point on the sea under the cloud (steered), and the spout's foot (lags).
-  const p = { x: 300, y: 560, vx: 0, vy: 0 };
+  const p = { x: 520, y: 640, vx: 0, vy: 0 };
   const foot = { x: p.x, y: p.y, vx: 0, vy: 0 };
   const mid = { x: p.x, y: p.y - 150, vx: 0, vy: 0 }; // the spout's bend
   const cloud = art.makeCreature('typhoonigator', p.x, p.y);
@@ -72,22 +75,25 @@ export default function create(env) {
   const rain = Array.from({ length: 130 }, () => ({ x: rng() * (W + 300), y: rng() * H, v: 900 + rng() * 500, l: 30 + rng() * 40 }));
   const brain = { react: -1, skip: 0, wobble: rng() * 10 };
 
+  // The first lot is dealt from a deck, so the sea holds a mix rather than a
+  // shoal of one thing; what the waves bring in later is random.
+  const deck = [...KINDS].sort(() => rng() - 0.5);
   function spawnJunk(x, y) {
-    const kind = KINDS[Math.floor(rng() * KINDS.length)];
+    const kind = deck.length ? deck.pop() : KINDS[Math.floor(rng() * KINDS.length)];
     items.push({ kind, x, y, vx: 0, vy: 0, rot: (rng() - 0.5) * 0.6, spinV: (rng() - 0.5) * 0.8, state: 'float', spin: 0, lt: 0, ph: rng() * 6 });
   }
   // A few bits drift along with the bottle, so it hides among them.
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + rng(), r = 110 + rng() * 120;
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + rng(), r = 170 + rng() * 90;
     spawnJunk(bottle.x + Math.cos(a) * r, clamp(bottle.y + Math.sin(a) * r * K, SEA.y0 + 10, SEA.y1 - 10));
   }
-  for (let i = 6; i < TUNE.junk; i++) {
+  for (let i = 4; i < TUNE.junk; i++) {
     let x, y, n = 0;
     do {
       y = lerp(SEA.y0 + 20, SEA.y1 - 10, rng());
       x = lerp(SEA.x0 + 30, seaX1(y) - 30, rng());
       n++;
-    } while (n < 20 && (gdist(x, y, bottle.x, bottle.y) < 120 || gdist(x, y, p.x, p.y) < 260));
+    } while (n < 30 && (gdist(x, y, bottle.x, bottle.y) < 170 || gdist(x, y, p.x, p.y) < 300 || items.some((o) => gdist(x, y, o.x, o.y) < 150)));
     spawnJunk(x, y);
   }
 
@@ -96,6 +102,9 @@ export default function create(env) {
   let burpT = 0;
   let warned = false;
   let lastSlurp = 0;
+  let animHold = 0;
+  let rolling = false;
+  let side = -1; // which side of its foot the cloud rides (behind the lips), eased
 
   const self = {
     focus: () => [p, bottle], // what the camera frames: the snatcher, then the holder
@@ -184,14 +193,17 @@ export default function create(env) {
 
       // ---- animation ----
       const big = self.full > TUNE.bloatedAt ? 1 + (self.full - TUNE.bloatedAt) * 0.7 : 1;
-      cloud.sizeK = 1.15 * persp(p.y) * big;
+      cloud.sizeK = cloudK() * big;
       cloud.x = cloudX(); cloud.y = cloudY();
       art.animate(cloud, dt, p.vx, p.vy);
-      if (burpT > 0) art.setAnim(cloud, 'letgo');
-      else if (self.full > TUNE.bloatedAt) art.setAnim(cloud, 'bloated');
-      else if (power > 0.2) art.setAnim(cloud, 'suck');
-      else if (Math.hypot(p.vx, p.vy) > 120) art.setAnim(cloud, 'roll');
-      else art.setAnim(cloud, 'eye');
+      side += (-cloud.facing - side) * (1 - Math.exp(-2.5 * dt));
+      // Pick the pose for what it is doing; a pose holds for a moment, and
+      // rolling has hysteresis, so it never flickers between two.
+      animHold = Math.max(0, animHold - dt);
+      const speed = Math.hypot(p.vx, p.vy);
+      rolling = rolling ? speed > 90 : speed > 160;
+      const want = burpT > 0 ? 'letgo' : self.full > TUNE.bloatedAt ? 'bloated' : power > 0.2 ? 'suck' : rolling ? 'roll' : 'eye';
+      if (want !== cloud.anim && (animHold <= 0 || want === 'letgo' || want === 'suck')) { art.setAnim(cloud, want); animHold = 0.3; }
 
       self.bonus = clamp(3 - self.junk / 2.5, 0, 3);
       if (bottle.state === 'gone') {
@@ -207,6 +219,7 @@ export default function create(env) {
 
     draw(g, tt) {
       art.drawScene(g, 'scenes/typhoonigator', W, H);
+      drawReach(g, tt);
       drawVortex(g, tt);
       for (const s of splashes) drawSplash(g, s);
       // The sea, back to front.
@@ -217,7 +230,7 @@ export default function create(env) {
       // The cloud's shadow on the water, the spout, what rides up it, the cloud.
       g.save(); g.globalAlpha = 0.16; g.fillStyle = '#1d2433';
       const pk = persp(p.y);
-      g.beginPath(); g.ellipse(p.x, p.y, 170 * pk * (cloud.sizeK / pk), 46 * pk, 0, 0, Math.PI * 2); g.fill(); g.restore();
+      g.beginPath(); g.ellipse(p.x, p.y, 150 * cloud.sizeK, 42 * pk, 0, 0, Math.PI * 2); g.fill(); g.restore();
       const M = mouth();
       drawSpout(g, M, tt);
       for (const it of items) if (it.state === 'lift') drawLifted(g, it, M, tt);
@@ -227,15 +240,16 @@ export default function create(env) {
       drawRain(g);
       fx.draw(g);
       drawMeter(g, tt);
-      if (t < 3.5 && !self.done) hint(g, env.versus
-        ? 'Typhoonigator: suck up the red-and-white bottle! · Bottle: drift away, duck under a wave!'
-        : 'Hold Action to suck! Get the bottle with the red-and-white label.', W);
+      if (!self.done) drawPrompts(g, tt);
+      if (t < 4 && !self.done) hint(g, env.versus
+        ? 'Cloud: suck up the red-and-white bottle!  Bottle: duck when the spout comes!'
+        : 'Suck up the red-and-white bottle. Nothing else!', W);
     },
 
     marks() {
       return marksFor({ snatched: self.outcome === 'snatched', spareFrac: self.time / total, heldFrac: (total - self.time) / total, bonus: self.bonus });
     },
-    hud: () => `Junk swallowed ${self.junk}`,
+    hud: () => (self.junk ? `Junk eaten ${self.junk} · fewer is better` : 'Only the red-and-white bottle!'),
   };
 
   // ---------- movement on the slanted sea ----------
@@ -403,8 +417,11 @@ export default function create(env) {
 
   // ---------- where things are on screen ----------
 
-  function lift(y) { return 380 * persp(y); }
-  function cloudX() { return p.x; }
+  // The cloud rides above and behind its foot, so the spout slants down from
+  // its lips to the water and the cloud never hides what it is sucking.
+  function lift(y) { return 300 * persp(y); }
+  function cloudK() { return 0.95 * lerp(0.86, 1.08, (persp(p.y) - 0.74) / 0.26); }
+  function cloudX() { return p.x + side * 170 * cloud.sizeK; }
   function cloudY() { return p.y - lift(p.y); }
   function mouth() {
     const [mx, my] = MOUTH[cloud.anim] || MOUTH.suck;
@@ -441,13 +458,13 @@ export default function create(env) {
       right.push({ x: pts[i].x - nx * w, y: pts[i].y - ny * w });
     }
     g.save();
-    g.globalAlpha = 0.55 + 0.35 * power;
+    g.globalAlpha = 0.8 + 0.2 * power;
     const gr = g.createLinearGradient(M.x, M.y, F.x, F.y);
-    gr.addColorStop(0, 'rgba(150,165,190,0.9)');
-    gr.addColorStop(1, 'rgba(105,130,160,0.85)');
+    gr.addColorStop(0, 'rgba(165,180,205,0.95)');
+    gr.addColorStop(1, 'rgba(120,150,185,0.9)');
     g.fillStyle = gr;
-    g.strokeStyle = 'rgba(40,40,60,0.55)';
-    g.lineWidth = 3;
+    g.strokeStyle = 'rgba(35,35,55,0.8)';
+    g.lineWidth = 4;
     g.beginPath();
     g.moveTo(left[0].x, left[0].y);
     for (const q of left) g.lineTo(q.x, q.y);
@@ -534,27 +551,20 @@ export default function create(env) {
     const b = bottle;
     const pk = persp(b.y);
     const y = b.y + bobY(b, tt);
-    // A glint so it can be found among the other bottles.
-    const glint = t < 4 ? 1 : Math.max(0, Math.sin(tt * 3)) * 0.6;
-    if (glint > 0.05 && b.duck <= 0) {
-      g.save(); g.globalAlpha = 0.5 * glint; g.strokeStyle = '#f2c53d'; g.lineWidth = 5;
-      g.beginPath(); g.ellipse(b.x, b.y, 78 * pk, 26 * pk, 0, 0, Math.PI * 2); g.stroke();
-      g.restore();
-    }
     if (b.duck > 0) {
-      if (!art.drawSprite(g, art.prop('typhoonigator', 9), b.x, y + 6, { height: 126 * pk, ay: 0.85 })) {
+      if (!art.drawSprite(g, art.prop('typhoonigator', 9), b.x, y + 6, { height: BOTTLE_H * 1.05 * pk, ay: 0.85 })) {
         g.save(); g.fillStyle = '#7fa6c0'; g.beginPath(); g.ellipse(b.x, y - 10, 40 * pk, 18 * pk, 0, 0, Math.PI * 2); g.fill(); g.restore();
       }
     } else {
-      ring(g, b.x, b.y + 4, 54 * pk);
-      if (!art.drawSprite(g, art.prop('typhoonigator', 1), b.x, y, { height: 112 * pk, ay: 0.8, rot: b.rot })) {
+      ring(g, b.x, b.y + 4, 70 * pk);
+      if (!art.drawSprite(g, art.prop('typhoonigator', 1), b.x, y, { height: BOTTLE_H * pk, ay: 0.8, rot: b.rot })) {
         g.save(); g.fillStyle = '#e8e2d0'; g.strokeStyle = '#c8443a'; g.lineWidth = 6;
         g.beginPath(); g.ellipse(b.x, y - 30 * pk, 22 * pk, 40 * pk, b.rot, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
       }
       if (b.cd > 0 && env.versus) {
         // The holder sees when it can duck again.
         g.save(); g.strokeStyle = 'rgba(40,25,20,0.5)'; g.lineWidth = 5;
-        g.beginPath(); g.arc(b.x, y - 110 * pk, 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - b.cd / duckCd)); g.stroke(); g.restore();
+        g.beginPath(); g.arc(b.x + 60 * pk, y - 150 * pk, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - b.cd / duckCd)); g.stroke(); g.restore();
       }
     }
   }
@@ -565,7 +575,7 @@ export default function create(env) {
     const u = it.lt / TUNE.liftTime;
     const q = bez(M, C, F, 1 - u);
     const wob = Math.sin(it.lt * 18) * 22 * (1 - u);
-    const h = (it.kind === 1 ? 112 : JUNK[it.kind][0]) * persp(foot.y) * (1 - 0.55 * u);
+    const h = (it.kind === 1 ? BOTTLE_H : JUNK[it.kind][0]) * persp(foot.y) * (1 - 0.55 * u);
     g.save(); g.globalAlpha = 1 - u * 0.4;
     art.drawSprite(g, art.prop('typhoonigator', it.kind), q.x + wob, q.y, { height: h, ay: 0.5, rot: it.rot });
     g.restore();
@@ -612,27 +622,73 @@ export default function create(env) {
     g.restore();
   }
 
+  // The tummy meter rides above the cloud, where the eye is: how full it is,
+  // and the line past which it slows and must burp.
   function drawMeter(g, tt) {
-    const x = 30, y = 232, w = 380, h = 34;
+    const sz = art.creatureSize(cloud);
+    const w = 260, h = 28;
+    const x = clamp(cloud.x - w / 2, 20, W - w - 20), y = Math.max(140, cloud.y - sz.h * 0.5 - 56);
     const f = Math.min(1, self.full);
     g.save();
-    g.font = '800 30px Fraunces, Georgia, serif';
-    g.textAlign = 'left';
-    g.lineWidth = 6;
-    g.strokeStyle = 'rgba(248,241,224,0.95)';
-    g.fillStyle = '#33241a';
-    g.strokeText('Tummy', x, y - 10); g.fillText('Tummy', x, y - 10);
     const shake = burpT > 0 && !env.reduceMotion ? Math.sin(tt * 50) * 4 : 0;
     g.translate(shake, 0);
-    g.fillStyle = 'rgba(248,241,224,0.9)';
+    g.font = '800 26px Fraunces, Georgia, serif';
+    g.textAlign = 'left';
+    g.lineWidth = 6;
+    g.strokeStyle = 'rgba(251,246,232,0.95)';
+    g.fillStyle = '#33241a';
+    const label = f >= 1 ? 'BURP!' : f > TUNE.bloatedAt ? 'Tummy: nearly full!' : 'Tummy';
+    g.strokeText(label, x, y - 8); g.fillText(label, x, y - 8);
+    g.fillStyle = 'rgba(251,246,232,0.92)';
     g.strokeStyle = '#33241a';
-    g.lineWidth = 4;
-    roundRect(g, x, y, w, h, 14); g.fill(); g.stroke();
+    g.lineWidth = 3;
+    roundRect(g, x, y, w, h, 12); g.fill(); g.stroke();
     g.fillStyle = f > 0.9 ? '#c8443a' : f > TUNE.bloatedAt ? '#e09a3a' : '#7fa6c0';
-    if (f > 0.01) { roundRect(g, x + 4, y + 4, (w - 8) * f, h - 8, 10); g.fill(); }
-    g.strokeStyle = 'rgba(51,36,26,0.5)'; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(x + w * TUNE.bloatedAt, y + 4); g.lineTo(x + w * TUNE.bloatedAt, y + h - 4); g.stroke();
+    if (f > 0.01) { roundRect(g, x + 3, y + 3, (w - 6) * f, h - 6, 9); g.fill(); }
+    g.strokeStyle = 'rgba(51,36,26,0.6)'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(x + w * TUNE.bloatedAt, y + 3); g.lineTo(x + w * TUNE.bloatedAt, y + h - 3); g.stroke();
     g.restore();
+  }
+
+  // Where the spout will suck: a dashed ring on the water round its foot, as
+  // wide as its reach, brighter while it sucks.
+  function drawReach(g, tt) {
+    const R = (self.sprinting ? TUNE.sprintRadius : TUNE.radius) * (0.35 + 0.65 * Math.max(power, 0.5));
+    const pk = persp(foot.y);
+    g.save();
+    g.translate(foot.x, foot.y);
+    g.globalAlpha = 0.7 + 0.3 * power;
+    g.setLineDash([18 * pk, 12 * pk]);
+    g.lineDashOffset = -tt * 60;
+    g.strokeStyle = '#33241a';
+    g.lineWidth = 9 * pk;
+    g.beginPath(); g.ellipse(0, 0, R * pk, R * pk * K, 0, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = '#fbf6e8';
+    g.lineWidth = 4.5 * pk;
+    g.stroke();
+    g.setLineDash([]);
+    g.restore();
+  }
+
+  // Marks and button prompts: the captain's bottle wears the letter tag (and,
+  // at the start, a labelled arrow); when it is in reach the cloud is told to
+  // suck, and in versus the bottle is told to duck.
+  function drawPrompts(g, tt) {
+    const b = bottle;
+    const pk = persp(b.y);
+    if (b.state === 'float') {
+      const top = b.y - (b.duck > 0 ? 60 : BOTTLE_H * 0.8) * pk;
+      letterTag(g, b.x, top - 50, { t: tt, r: 40 });
+      if (t < 6) marker(g, b.x, top - 120, { t: tt, label: 'The captain’s bottle!' });
+    }
+    const d = gdist(b.x, b.y, foot.x, foot.y);
+    const inReach = b.state === 'float' && d < radius() * 0.9;
+    if (inReach && b.duck <= 0 && power < 0.5 && burpT <= 0) {
+      actionPrompt(g, foot.x, foot.y - 40 * persp(foot.y), 'Suck!', { kind: env.inputKind, t: tt, pulse: 1, side: 0 });
+    }
+    if (env.versus && b.state === 'float' && b.duck <= 0 && b.cd <= 0 && d < radius() * 1.3 + 60 && power > 0.15) {
+      actionPrompt(g, b.x, b.y - BOTTLE_H * 0.95 * pk - (t < 6 ? 120 : 0), 'Duck!', { kind: env.inputKind, t: tt, pulse: 1, side: 1 });
+    }
   }
 
   function outro(dt) {
@@ -656,35 +712,106 @@ export default function create(env) {
   return self;
 }
 
+// The opening line, in big type on a cream band. The band is the text's own
+// thick stroke, so the shell can refit the line on a narrow screen.
 function hint(g, text, W) {
   g.save();
-  g.font = '700 36px Fraunces, Georgia, serif';
+  g.font = '800 44px Fraunces, Georgia, serif';
   g.textAlign = 'center';
-  g.lineWidth = 8;
-  g.strokeStyle = 'rgba(248,241,224,0.95)';
-  g.fillStyle = '#33241a';
+  g.textBaseline = 'middle';
+  g.lineJoin = 'round';
+  g.strokeStyle = '#33241a';
+  g.lineWidth = 30;
   g.strokeText(text, W / 2, 150);
+  g.strokeStyle = 'rgba(251,246,232,0.97)';
+  g.lineWidth = 24;
+  g.strokeText(text, W / 2, 150);
+  g.fillStyle = '#33241a';
   g.fillText(text, W / 2, 150);
   g.restore();
 }
 
+// The how-to-play page: three pictures composed from the art until the
+// requested ones (OM-H5a/b/c) arrive, which show the same three moments.
+const CROP = [120, 180, 1400, 1050];
+function spout(g, x0, y0, x1, y1, w, k = 0) {
+  // A wavy water spout from the lips (x0, y0) to the water (x1, y1).
+  g.save();
+  g.fillStyle = 'rgba(150,170,200,0.9)'; g.strokeStyle = '#33241a'; g.lineWidth = 3;
+  g.beginPath();
+  const n = 12;
+  for (let i = 0; i <= n; i++) { const u = i / n, s = Math.sin(u * 5 + k) * 10 * u; g.lineTo(lerp(x0, x1, u) + s - w * (0.3 + u), lerp(y0, y1, u)); }
+  for (let i = n; i >= 0; i--) { const u = i / n, s = Math.sin(u * 5 + k) * 10 * u; g.lineTo(lerp(x0, x1, u) + s + w * (0.3 + u), lerp(y0, y1, u)); }
+  g.closePath(); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(250,252,255,0.8)'; g.lineWidth = 3; g.setLineDash([10, 12]); g.lineDashOffset = -k * 40;
+  g.beginPath(); for (let i = 0; i <= n; i++) { const u = i / n; g.lineTo(lerp(x0, x1, u) + Math.sin(u * 5 + k) * 10 * u, lerp(y0, y1, u)); } g.stroke();
+  g.restore();
+}
+function splashRing(g, x, y, r) {
+  g.save(); g.strokeStyle = '#fbf6e8'; g.lineWidth = 4; g.setLineDash([12, 10]);
+  g.beginPath(); g.ellipse(x, y, r, r * 0.4, 0, 0, Math.PI * 2); g.stroke(); g.restore();
+}
+export const HOWTO = [
+  {
+    text: 'Roll across the sky. Your spout hangs down to the waves.',
+    scene: 'scenes/typhoonigator', crop: CROP,
+    items: [
+      { draw: (g, t) => spout(g, 262, 196, 330, 400, 22, t * 2) },
+      { draw: (g) => splashRing(g, 330, 404, 90) },
+      { creature: 'typhoonigator', anim: 'roll', x: 180, y: 140, h: 230, shadow: false },
+      { path: [[300, 60], [400, 50], [500, 70]], arrow: true },
+      { sprite: ['props.typhoonigator', 3], x: 500, y: 430, h: 70, rot: 0.2 },
+      { sprite: ['props.typhoonigator', 1], x: 120, y: 450, h: 90, rot: -0.3 },
+    ],
+  },
+  {
+    text: 'Hold Action to suck. Fish and bottles spiral up the spout!',
+    scene: 'scenes/typhoonigator', crop: CROP,
+    items: [
+      { draw: (g, t) => spout(g, 370, 180, 330, 420, 34, t * 3) },
+      { draw: (g) => splashRing(g, 330, 424, 120) },
+      { sprite: ['props.typhoonigator', 7], x: 350, y: 400, h: 70, rot: 0.9 },
+      { sprite: ['props.typhoonigator', 4], x: 300, y: 330, h: 70, rot: -0.7 },
+      { sprite: ['props.typhoonigator', 1], x: 375, y: 290, h: 80, rot: 1.1 },
+      { sprite: ['props.typhoonigator', 3], x: 330, y: 230, h: 60, rot: 2.4 },
+      { creature: 'typhoonigator', anim: 'suck', x: 300, y: 120, h: 230, shadow: false },
+      { word: 'SLURP!', x: 520, y: 160, size: 50 },
+    ],
+  },
+  {
+    text: 'Get the red-and-white bottle. Eat nothing else, or you burp!',
+    scene: 'scenes/typhoonigator', crop: CROP,
+    items: [
+      { draw: (g, t) => spout(g, 370, 180, 330, 420, 30, t * 3) },
+      { draw: (g) => splashRing(g, 330, 424, 110) },
+      { sprite: ['props.typhoonigator', 1], x: 130, y: 440, h: 90, rot: -0.2 },
+      { sprite: ['props.typhoonigator', 2], x: 540, y: 420, h: 90, rot: 0.3 },
+      { sprite: ['props.typhoonigator', 0], x: 340, y: 330, h: 150, rot: -0.5 },
+      { ring: [330, 270, 85] },
+      { creature: 'typhoonigator', anim: 'celebrate', x: 300, y: 120, h: 230, shadow: false },
+      { word: 'Got it!', x: 530, y: 150, size: 46 },
+    ],
+  },
+];
+
 // A competent player's input for the next frame (scripts/chapter-check.mjs):
-// steer the spout's foot onto the bottle, suck in bursts once over it, let go
-// while the bottle is ducked or the tummy is nearly full.
+// steer the spout's foot onto the bottle; once over it, suck until it goes up,
+// the bottle ducks, or the tummy is nearly full; then a short rest.
 export function autopilot(ch) {
-  const s = ch._ap || (ch._ap = { held: 0, rest: 0 });
-  const DT = 1 / 20;
+  const s = ch._ap || (ch._ap = { held: 0, rest: 0, last: ch.time });
+  const dt = Math.max(0, s.last - ch.time); s.last = ch.time;
   const { p, foot, bottle } = ch;
   const dx = bottle.x - p.x, dy = (bottle.y - p.y) / K;
   const d = Math.hypot(dx, dy) || 1;
   const m = Math.min(1, d / 90);
-  const over = Math.hypot(foot.x - bottle.x, (foot.y - bottle.y) / K) < 75;
-  s.rest -= DT;
+  const fd = Math.hypot(foot.x - bottle.x, (foot.y - bottle.y) / K);
+  s.rest -= dt;
+  const was = s.held > 0;
   let action = false;
-  if (over && bottle.duck <= 0 && s.rest <= 0 && ch.full < 0.85) {
-    s.held += DT;
-    action = s.held < 1.2;
-    if (!action) { s.held = 0; s.rest = 0.35; }
-  } else s.held = 0;
-  return { x: (dx / d) * m, y: (dy / d) * m, sprint: d > 450, action, actionPressed: action && s.held <= DT + 1e-9, actionReleased: false };
+  if (bottle.duck <= 0 && s.rest <= 0 && ch.full < 0.85 && (was ? fd < ch.TUNE.radius * 0.85 : fd < 70)) {
+    s.held += dt;
+    action = s.held < 1.6;
+    if (!action) { s.held = 0; s.rest = 0.3; }
+  } else { if (was) s.rest = Math.max(s.rest, 0.25); s.held = 0; }
+  return { x: (dx / d) * m, y: (dy / d) * m, sprint: d > 450, action, actionPressed: action && !was, actionReleased: was && !action };
 }

@@ -105,7 +105,7 @@ test('chapter 7: versus, the holder looks round with Action', () => {
   assert.equal(ch.look, 'munch');
   ch.update(DT, {}, { actionPressed: true });
   assert.equal(ch.look, 'warn', 'a warning first, so it can be read');
-  for (let t = 0; t < 1; t += DT) ch.update(DT, {}, {});
+  for (let t = 0; t < 1.2; t += DT) ch.update(DT, {}, {});
   assert.equal(ch.look, 'look');
 });
 

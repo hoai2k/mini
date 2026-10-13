@@ -16,13 +16,14 @@
 import * as art from '../art.js';
 import * as kit from './kit.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const ENTRY = BOARDS.find((b) => b.n === 2);
 const { W, H, clamp, ease, hash } = kit;
 
 export const FLOOR = 980; // the wood floor's top (the walking surface)
-const CEIL = 190; // the Bombanat flies no higher (the HUD and route strip sit above)
-const LEAF_TOP = 660; // the canopy over the floor in the wood sections
+const CEIL = 180; // the Bombanat flies no higher (the HUD and route strip sit above)
+const LEAF_TOP = 680; // the canopy over the floor in the wood sections
 export const WORLD_W = 14600;
 const INK = '#2b1d14';
 const PAPER = '#f8f1e0';
@@ -54,22 +55,22 @@ const COVER_SIZE = { bush: { w: 240, h: 200 }, lowbush: { w: 220, h: 150 }, log:
 // Trunks rise from the floor (top y); boughs hang from the canopy (bottom y);
 // branches reach in from a trunk off screen, flat on top to perch on
 // (dir 1: its base at the left end). face: a knot face that blows gusts.
-const TRUNKS = [[1700, 440], [2750, 450], [6200, 460], [8700, 450, true], [9700, 440, true], [10650, 460], [12500, 450, true]];
-const BOUGHS = [[2050, 410], [3050, 420], [5650, 400], [9350, 420], [10400, 400], [12800, 410]];
-const BRANCHES = [[200, 380, 420, 1], [1250, 400, 420, 1], [2400, 380, 460, -1], [3250, 400, 300, 1],
-  [4950, 420, 380, 1], [7000, 400, 300, -1], [9050, 380, 380, -1], [10000, 410, 420, 1], [12300, 400, 300, 1]];
-const WEBS = [[5450, 540, 115], [5900, 300, 120], [6450, 500, 115], [6800, 330, 110]];
-const VINES = [[5300, 300], [5750, 260], [6100, 330], [6650, 280], [12650, 300]];
-const BIRDS = [[8950, 380], [10300, 410]];
+const TRUNKS = [[1900, 470], [3200, 460], [6350, 470], [8700, 460, true], [9700, 450, true], [10650, 470], [12500, 460, true]];
+const BOUGHS = [[2250, 400], [5800, 390], [9350, 400], [12900, 400]];
+const BRANCHES = [[200, 380, 420, 1], [1250, 420, 350, 1], [2900, 410, 380, -1],
+  [4950, 430, 380, 1], [9050, 410, 380, -1], [10000, 430, 420, 1], [12300, 420, 300, 1]];
+const WEBS = [[5450, 540, 115], [6000, 300, 120], [6700, 500, 115], [6950, 590, 100]];
+const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
+const BIRDS = [[8950, 410], [10300, 430]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
-  [1400, 320], [1550, 320], [1700, 300], [2050, 560], [2300, 420], [2500, 310], [2750, 300], [3050, 560], [3300, 330],
+  [1400, 330], [1550, 330], [1900, 320], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 330], [3400, 450],
   [3800, 850], [4300, 880], [4100, 500],
-  [5100, 330], [5450, 330], [5700, 560], [6100, 560], [6450, 290], [6800, 560], [6950, 330],
+  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 330], [6700, 300], [6950, 400],
   [7500, 870], [8000, 880], [7750, 500],
-  [8700, 300], [9000, 300], [9350, 570], [9700, 300], [10200, 340], [10400, 570], [10650, 300],
+  [8700, 330], [8950, 320], [9350, 560], [9700, 320], [10200, 340], [10400, 480], [10650, 320],
   [11200, 870], [11700, 880],
-  [12300, 320], [12600, 560], [12850, 330],
+  [12400, 330], [12900, 560],
   [13400, 850], [13900, 870], [14300, 600]];
 // Floor decor in the open: terrain.wood 3 fallen log, 4 stump with a face,
 // 5 mound of roots, and the delivered ferns and roots (props.grithix 4, 5).
@@ -80,8 +81,8 @@ const FERNS_FRONT = [350, 2100, 4400, 6000, 7600, 9200, 11300, 12400, 13800];
 // The Bombanat's flight numbers.
 const P = {
   cruise: 400, accel: 2.4, drag: 0.5,
-  sink: 110, sinkRate: 1.5,
-  flapUp: 400, flapMax: -580, flapForward: 60,
+  sink: 90, sinkRate: 2.5,
+  flapUp: 270, flapMax: -520, flapForward: 50,
   diveG: 1700, diveMax: 1150, diveX: 620, diveXRate: 2,
   swoop: 0.72,
   sprintSpeed: 720, sprintDrain: 0.38, sprintBeat: 0.16,
@@ -194,8 +195,8 @@ export default function create(env) {
 
   function bodyRect() {
     const tall = b.diving || b.swoopT > 0;
-    const w = tall ? 150 : 170, hh = tall ? 240 : 130;
-    return { x: b.x - w / 2, y: b.y + (tall ? 20 : 10) - hh / 2, w, h: hh };
+    const w = tall ? 140 : 150, hh = tall ? 230 : 110;
+    return { x: b.x - w / 2, y: b.y + (tall ? 20 : 15) - hh / 2, w, h: hh };
   }
   // Where his jaws are: the snout's tip.
   function jaws() {
@@ -214,7 +215,7 @@ export default function create(env) {
 
   function takeOff() {
     b.mode = 'fly'; b.modeT = 0; b.perch = null;
-    b.vy = -400; b.vx = b.facing * 240;
+    b.vy = -340; b.vx = b.facing * 240;
     b.flapT = 0.3;
     art.kick(bc, -0.4);
     env.sfx('flap');
@@ -222,7 +223,7 @@ export default function create(env) {
 
   function tumble(kx, ky, why = 'Bump!') {
     if (b.hitT > 0) return;
-    b.mode = 'tumble'; b.modeT = 0; b.hitT = 1;
+    b.mode = 'tumble'; b.modeT = 0; b.hitT = 1.3;
     b.diving = false; b.swoopT = 0; b.sprinting = false; b.perch = null;
     b.vx = kx; b.vy = ky;
     art.kick(bc, 0.6);
@@ -264,7 +265,7 @@ export default function create(env) {
     if (b.mode === 'perched') {
       b.st = Math.min(1, b.st + P.regenPerch * dt);
       b.vx = 0; b.vy = 0;
-      if (inp.actionPressed) { takeOff(); flap(0.5); }
+      if (inp.actionPressed) takeOff();
       else if (iy > 0.5 && b.modeT > 0.2) { b.mode = 'fly'; b.modeT = 0; b.perch = null; b.vy = 150; b.vx = b.facing * 120; }
       else if (Math.abs(ix) > 0.3 && b.modeT > 0.2) takeOff();
       return;
@@ -274,7 +275,7 @@ export default function create(env) {
       b.vx = ease(b.vx, ix * P.walk, 8, dt);
       b.x += b.vx * dt;
       b.y = FLOOR - PERCH_DROP;
-      if (inp.actionPressed) { takeOff(); flap(0.5); }
+      if (inp.actionPressed) takeOff();
       b.x = clamp(b.x, 120, WORLD_W - 120);
       return;
     }
@@ -299,13 +300,13 @@ export default function create(env) {
     }
     if (b.mode === 'tumble') {
       b.vx = ease(b.vx, 0, 2.5, dt);
-      b.vy = ease(b.vy, 320, 3, dt);
-      if (b.modeT > 0.7) { b.mode = 'fly'; b.modeT = 0; b.stalled = true; }
+      b.vy = ease(b.vy, 220, 3, dt);
+      if (b.modeT > 0.55) { b.mode = 'fly'; b.modeT = 0; b.stalled = true; }
     } else {
       // Flying.
       const wasDiving = b.diving;
       b.diving = iy > 0.5 && b.blown <= 0;
-      if (wasDiving && !b.diving && b.vy > 250) {
+      if (wasDiving && !b.diving && b.vy > 420) {
         // The swoop: the dive's speed becomes height.
         b.vy = -b.vy * P.swoop;
         b.swoopT = 0.4;
@@ -365,7 +366,7 @@ export default function create(env) {
         else b.vx = 0;
       } else if (fromAbove) {
         b.y -= py + 1;
-        if (hit.kind === 'branch' && b.vy >= 0 && b.mode !== 'tumble') {
+        if ((hit.kind === 'branch' || hit.kind === 'trunk') && b.vy >= 0 && b.mode !== 'tumble') {
           const speed = Math.hypot(b.vx, b.vy);
           if (speed < P.hardLanding) land(hit);
           else { tumble(b.vx * 0.3, -300, 'Oof!'); }
@@ -431,10 +432,13 @@ export default function create(env) {
       const c = clearings.find((k) => !k.passed && h.x >= k.covers[0].x);
       if (c) { h.clearing = c; h.coverI = 0; h.cover = c.covers[0]; h.x = c.covers[0].x; h.mode = 'wait'; h.modeT = 0; h.vx = 0; c.covers[0].shake = 0.8; }
     } else if (h.mode === 'wait') {
-      if (h.modeT > 0.8 && Math.abs(b.x - h.x) < 1000) startPeek();
+      // He sits tight until the hawk has been over the clearing a moment, not diving.
+      const inView = b.x > h.clearing.x0 - 150 && Math.abs(b.x - h.x) < 1100 && !b.diving;
+      h.seen = inView ? (h.seen || 0) + dt : Math.max(0, (h.seen || 0) - dt);
+      if (h.modeT > 0.8 && h.seen > 1.1) startPeek();
     } else if (h.mode === 'hide') {
       // He waits a little longer while the hawk hangs right over his bush.
-      const hovering = Math.abs(b.x - h.x) < 150 && b.y < 720 && !b.diving && b.mode === 'fly';
+      const hovering = Math.abs(b.x - h.x) < 130 && b.y < 720 && !b.diving && b.mode === 'fly';
       if (h.modeT > h.hideT && !(hovering && h.modeT < h.hideT + 1.4)) startPeek();
     } else if (h.mode === 'peek') {
       if (h.modeT > PEEK) startDash();
@@ -1052,6 +1056,11 @@ export default function create(env) {
       return;
     }
     art.drawCreature(g, hc, tt, { reduceMotion: env.reduceMotion });
+    if (self.done) return;
+    if (!h.hidden) {
+      letterTag(g, h.x + h.dir * 70, h.y - 150, { t: tt });
+      if (h.mode === 'dash' || h.mode === 'skid') marker(g, h.x, h.y - 270, { t: tt, label: 'Dive!' });
+    } else if (h.mode === 'peek') marker(g, h.x, h.y - 300, { t: tt, label: 'Ready…', colour: '#f2c53d' });
   }
 
   function drawBombanat(g, tt) {
@@ -1064,11 +1073,8 @@ export default function create(env) {
     }
     if (b.st < 0.999 || b.sprinting || b.winded > 0) staminaRing(g, b.x, b.y + 128);
     art.drawCreature(g, bc, tt, { reduceMotion: env.reduceMotion, shadow: false });
-    if (b.mode === 'web') {
-      g.save(); g.font = '700 34px Fraunces, Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#33241a'; g.lineWidth = 6; g.strokeStyle = PAPER;
-      const s = 'Flap! '.repeat(Math.max(1, b.webHold)).trim();
-      g.strokeText(s, b.x, b.y - 150); g.fillText(s, b.x, b.y - 150); g.restore();
-    }
+    if (b.mode === 'web') actionPrompt(g, b.x, b.y - 140, `Flap free! ${'•'.repeat(Math.max(1, b.webHold))}`, { kind: env.inputKind, t: tt, pulse: 1 });
+    else if (b.mode === 'perched' && b.modeT > 1.2 && !self.done) actionPrompt(g, b.x, b.y - 150, 'Fly', { kind: env.inputKind, t: tt });
   }
 
   function staminaRing(g, x, y) {
@@ -1171,6 +1177,16 @@ function inkFern(g, x, y, h) {
   g.restore();
 }
 
+// The how-to-play page (src/chapters/index.js, "THE HOW-TO-PLAY PAGE").
+export const HOWTO = [
+  { text: 'Press Action to flap; glide between beats.', scene: 'scenes/bombanat', crop: [0, 0, 1280, 960],
+    items: [{ creature: 'bombanat', anim: 'flap', x: 300, y: 240, h: 150 }, { path: [[360, 300], [430, 230], [500, 290], [570, 210], [620, 260]], arrow: true }] },
+  { text: 'Hold Down to dive; let go to swoop up.', scene: 'scenes/bombanat', crop: [400, 100, 1280, 960],
+    items: [{ creature: 'bombanat', anim: 'dive', x: 250, y: 160, h: 170 }, { path: [[300, 220], [360, 330], [460, 400], [560, 330], [600, 240]], arrow: true }, { sprite: ['props.bombanat', 6], x: 450, y: 440, h: 50 }] },
+  { text: 'In a clearing, dive on the Trollusk when he runs.', scene: 'scenes/bombanat', crop: [600, 200, 1280, 960],
+    items: [{ sprite: ['props.trollusk', 5], x: 150, y: 440, h: 120 }, { creature: 'trollusk', anim: 'run', x: 330, y: 440, h: 130 }, { creature: 'bombanat', anim: 'dive', x: 240, y: 170, h: 150 }, { path: [[280, 220], [340, 330]], arrow: true }, { word: 'SNAP!', x: 480, y: 200, size: 60 }] },
+];
+
 // ---------- the autopilot ----------
 // Flies right through the wood, keeping to the free gap ahead and nosing
 // toward scraps; in a clearing it hangs back over the Trollusk's cover and
@@ -1178,12 +1194,18 @@ function inkFern(g, x, y, h) {
 
 export function autopilot(board) {
   const { b, h, solids, webs, clearings, pickups, birds, trees } = board.S;
-  const ap = board.S.ap || (board.S.ap = { frame: 0, lastFlap: -9, diveT: 0 });
+  const ap = board.S.ap || (board.S.ap = { frame: 0, lastFlap: -9 });
   ap.frame++;
   const out = { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, sprint: false };
   const press = () => { if (ap.frame - ap.lastFlap >= 2) { out.actionPressed = true; out.action = true; ap.lastFlap = ap.frame; } };
+  // Hold a world x with a little momentum.
+  const holdX = (wantX) => {
+    const dx = wantX - b.x;
+    if (Math.abs(dx) < 50) return 0;
+    const v = clamp(dx / 140, -1, 1);
+    return Math.abs(v) < 0.4 ? Math.sign(v) * 0.4 : v;
+  };
   if (board.done) return out;
-
   if (b.mode === 'web') { press(); return out; }
   if (b.mode === 'tumble') { out.x = 1; return out; }
   if (b.mode === 'walk') { out.x = 1; press(); return out; }
@@ -1203,89 +1225,118 @@ export function autopilot(board) {
     if (h.mode === 'dash' || h.mode === 'skid' || h.mode === 'peek') {
       // Where will he be when the jaws reach the floor? Simulate the dive.
       let sx = b.x, sy = b.y, svx = b.vx, svy = b.diving ? b.vy : 0, tt = 0;
-      if (!b.diving) svy = 0;
-      while (sy + 150 < FLOOR - 100 && tt < 1.5) {
+      while (sy + 150 < FLOOR - 130 && tt < 1.5) {
         const dt = 0.05;
         svy = Math.min(1150, svy + 1700 * dt);
         svx += (dir * 620 - svx) * (1 - Math.exp(-2 * dt));
         sx += svx * dt; sy += svy * dt; tt += dt;
       }
       const peekLeft = h.mode === 'peek' ? Math.max(0, PEEK - h.modeT) : 0;
-      const runT = Math.max(0, tt - peekLeft);
-      const hx = h.mode === 'skid' ? h.x + dir * 440 * Math.max(0, runT - 0.3) : h.x + dir * 440 * runT;
+      const skidLeft = h.mode === 'skid' ? Math.max(0, 0.35 - h.modeT) : 0;
+      const runT = Math.max(0, tt - peekLeft - skidLeft);
+      let hx = h.x + dir * 440 * runT;
+      // He stops at his next cover (or the canopy): no use diving past it.
+      if ((hx - h.target) * dir > 0) hx = h.target;
       const landX = sx + dir * 110;
       const miss = (hx - landX) * dir; // positive: he will be ahead of the jaws
       out.x = dir;
       if (b.diving) {
         out.y = 1;
-        if (b.y > FLOOR - 320) out.y = 0; // too low: swoop out
+        if (b.y > FLOOR - 300) out.y = 0; // too low: swoop out
         return out;
       }
-      const inWindow = Math.abs(miss) < 70 && peekLeft < tt;
+      const stopsShort = Math.abs(hx - h.target) < 30 && h.mode !== 'peek';
+      // A human's reaction: the dive starts only once he is seen running.
+      const seenRunning = h.mode === 'dash' ? h.modeT >= 0.22 : h.mode === 'skid';
+      const inWindow = Math.abs(miss) < 60 && seenRunning && !stopsShort;
       if (inWindow && b.y < 700) { out.y = 1; return out; }
-      // Set up: hang back over where he is, at hover height.
-      const wantX = h.x - dir * 200;
-      out.x = Math.abs(wantX - b.x) < 40 ? 0 : Math.sign(wantX - b.x);
+      // Not yet: close on where he will be (he runs under us), at hover height.
+      if (h.mode === 'peek') out.x = -dir * 0.7;
+      else out.x = miss > 0 ? dir : -dir * 0.7;
       if (b.y > hoverY + 20 && b.vy > -150) press();
       return out;
     }
-    // He is hiding: hover behind his cover, out of his eye.
+    // He is hiding: hover a little ahead of his cover (right over it, he sits tight).
     if (b.diving) { out.y = 0; out.x = dir; return out; }
-    const wantX = h.x - dir * 240;
-    const dx = wantX - b.x;
-    out.x = Math.abs(dx) < 50 ? 0 : clamp(dx / 120, -1, 1);
-    if (Math.abs(out.x) > 0 && Math.abs(out.x) < 0.4) out.x = Math.sign(out.x) * 0.4;
+    out.x = holdX(h.x + dir * 250);
     if (b.y > hoverY + 20 && b.vy > -150) press();
-    if (b.y < hoverY - 160 && b.vy < 400) out.y = 1;
+    if (b.y < hoverY - 200 && b.vy < 300) out.y = 1;
     return out;
   }
 
-  // Travelling: find the free gap ahead and fly through it.
-  const ahead0 = b.x + 100, ahead1 = b.x + 600;
-  const blocked = [];
-  for (const s of solids) {
-    if (s.kind === 'floor') continue;
-    if (s.x > ahead1 || s.x + s.w < ahead0) continue;
-    blocked.push([s.y - 90, s.y + s.h + 90]);
+  // Travelling: sweep columns ahead and keep the y-ranges a flier can reach
+  // (climbing or sinking about a pixel per pixel of travel); make for the
+  // farthest reachable gap, and back out of a pocket that closes ahead.
+  const M = 58;
+  const freeIn = (x0, x1) => {
+    const blocked = [];
+    for (const s of solids) {
+      if (s.kind === 'floor' || s.x > x1 || s.x + s.w < x0) continue;
+      blocked.push([s.y - M, s.y + s.h + M]);
+    }
+    for (const w of webs) if (!w.torn && w.x + w.r > x0 && w.x - w.r < x1) blocked.push([w.y - w.r - M - 20, w.y + w.r + M + 20]);
+    blocked.sort((p, q) => p[0] - q[0]);
+    const top = CEIL + 70, bottom = FLOOR - 160;
+    const free = [];
+    let y0 = top;
+    for (const [a, c] of blocked) { if (a > y0) free.push([y0, Math.min(a, bottom)]); y0 = Math.max(y0, c); }
+    if (y0 < bottom) free.push([y0, bottom]);
+    return free.filter(([a, c]) => c - a >= 36);
+  };
+  const STEP = 60, SLOPE = 70, COLS = 10;
+  let layer = freeIn(b.x - 30, b.x + 30).map((iv) => ({ iv, parent: null }));
+  layer.sort((p, q) => Math.abs((p.iv[0] + p.iv[1]) / 2 - b.y) - Math.abs((q.iv[0] + q.iv[1]) / 2 - b.y));
+  layer = layer.slice(0, 1);
+  const layers = [layer];
+  for (let k = 1; k <= COLS && layers[k - 1].length; k++) {
+    const x = b.x + STEP * k;
+    const prev = layers[k - 1];
+    const next = [];
+    for (const iv of freeIn(x - 30, x + 30)) {
+      const parent = prev.find((p) => iv[1] > p.iv[0] - SLOPE && iv[0] < p.iv[1] + SLOPE);
+      if (parent) next.push({ iv, parent });
+    }
+    layers.push(next);
   }
-  for (const w of webs) if (!w.torn && w.x + w.r > ahead0 - 100 && w.x - w.r < ahead1) blocked.push([w.y - w.r - 90, w.y + w.r + 90]);
-  const top = CEIL + 80, bottom = FLOOR - 160;
-  const free = [];
-  let y0 = top;
-  blocked.sort((p, q) => p[0] - q[0]);
-  for (const [a, c] of blocked) { if (a > y0) free.push([y0, Math.min(a, bottom)]); y0 = Math.max(y0, c); }
-  if (y0 < bottom) free.push([y0, bottom]);
-  const usable = free.filter(([a, c]) => c - a >= 120);
-  let target = 420;
-  if (usable.length) {
-    usable.sort((p, q) => Math.abs((p[0] + p[1]) / 2 - b.y) - Math.abs((q[0] + q[1]) / 2 - b.y));
-    const [a, c] = usable[0];
-    target = (a + c) / 2;
-    // A scrap in reach inside the gap: nose toward it.
+  const depth = layers.length - 1 - (layers[layers.length - 1].length ? 0 : 1);
+  const farLayer = layers[Math.max(0, depth)];
+  let pick = null;
+  if (farLayer.length) {
+    // The gap nearest our height, or one with a scrap in it.
+    farLayer.sort((p, q) => Math.abs((p.iv[0] + p.iv[1]) / 2 - b.y) - Math.abs((q.iv[0] + q.iv[1]) / 2 - b.y));
+    pick = farLayer[0];
     for (const p of pickups.items) {
-      if (p.got || p.x < b.x - 40 || p.x > b.x + 520) continue;
-      if (p.y > a + 40 && p.y < c - 40) { target = p.y - 20; break; }
+      if (p.got || p.x < b.x + 60 || p.x > b.x + STEP * depth + 60) continue;
+      const hit = farLayer.find((n) => p.y > n.iv[0] + 10 && p.y < n.iv[1] - 10);
+      if (hit) { pick = hit; break; }
     }
   }
+  let target = 400;
+  const pocket = depth < COLS;
+  if (pick) {
+    let want = (pick.iv[0] + pick.iv[1]) / 2;
+    for (const p of pickups.items) if (!p.got && p.x > b.x - 40 && p.x < b.x + 560 && p.y > pick.iv[0] + 10 && p.y < pick.iv[1] - 10) { want = p.y - 10; break; }
+    // Walk back to the second column: the height to make for now.
+    let n = pick;
+    while (n.parent && n.parent.parent) n = n.parent;
+    target = clamp(want, n.iv[0], n.iv[1]);
+  } else if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2;
+  const slow = Math.abs(target - b.y) > 70;
   // Ahead of the Trollusk in the wood: hang about the next clearing's start instead of leaving him behind.
   const nextClearing = clearings.find((c) => !c.passed);
   const wait = nextClearing && b.x > nextClearing.x0 + 100 && h.x < nextClearing.x0;
-  if (wait) {
-    const wantX = nextClearing.x0 + 250;
-    const dx = wantX - b.x;
-    out.x = Math.abs(dx) < 60 ? 0 : clamp(dx / 150, -1, 1);
-    if (out.x && Math.abs(out.x) < 0.4) out.x = Math.sign(out.x) * 0.4;
-    target = 420;
-  } else out.x = 1;
+  // A knot-faced tree ahead: wait out its gust, short of its reach.
+  const knot = trees.find((tr) => tr.face && tr.cx > b.x - 300 && tr.cx < b.x + 760 && (tr.state !== 'idle' || tr.cool > 0.2) && b.x < tr.cx - 150);
+  if (wait) { out.x = holdX(nextClearing.x0 + 250); if (!pocket) target = 420; }
+  else if (knot && knot.state !== 'idle') { out.x = holdX(knot.cx - 520); if (!pocket) target = 330; }
+  else if (pocket && depth < 3) { out.x = -0.7; if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2; }
+  else out.x = slow ? 0.45 : 1;
   const err = b.y - target;
-  if (err > 25 && b.vy > -170) press();
-  else if (err < -140 && b.vy < 500 && !b.swoopT) out.y = 1;
-  // A gust about to blow ahead: hold back a moment.
-  const puffing = trees.some((tr) => tr.face && (tr.state === 'puff' || tr.state === 'blow') && tr.cx > b.x - 200 && tr.cx < b.x + 700);
-  if (puffing && !wait) { out.x = -0.5; if (b.y > 330 && b.vy > -100) press(); }
+  if (err > 20 && b.vy > -170) press();
+  else if (err < -60 && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.
-  const clearAhead = !blocked.some(([a, c]) => b.y + 80 > a && b.y - 80 < c) && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 80 > s.y - 60 && b.y - 80 < s.y + s.h + 60);
+  const clearAhead = pick && pick.iv[1] - pick.iv[0] > 200 && !solids.some((s) => s.kind !== 'floor' && s.x > b.x && s.x < b.x + 900 && b.y + 90 > s.y - 40 && b.y - 90 < s.y + s.h + 40);
   const birdNear = birds.some((bd) => bd.state !== 'perched' && Math.abs(bd.x - b.x) < 500);
-  out.sprint = !wait && !puffing && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260;
+  out.sprint = !wait && !knot && !slow && b.st > 0.45 && clearAhead && !birdNear && b.y < 620 && b.y > 260 && Math.abs(err) < 90;
   return out;
 }

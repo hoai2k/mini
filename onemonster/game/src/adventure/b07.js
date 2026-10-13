@@ -24,6 +24,7 @@ import * as art from '../art.js';
 import * as kit from './kit.js';
 import { staminaRing, tugBar, roundRect } from '../chasedraw.js';
 import { BOARDS } from './index.js';
+import { actionPrompt, marker, letterTag } from '../prompt.js';
 
 const ENTRY = BOARDS.find((b) => b.n === 7);
 const { W, H, clamp } = kit;
@@ -36,34 +37,34 @@ const GY = 930; // the base ground line
 const YAL_X = 2480; // where the Yalapappus sits munching
 const START_X = 220;
 const PX_PER_M = 60; // for the "m behind" readout
-const GRAVITY = 2600; // the Trollusk's: a hop of 950 clears 256 px at a run, 360 at a scurry
+const GRAVITY = 2600; // the Trollusk's: a hop of 970 clears 250 px at a run, 350 at a scurry
 
 // The ground profile, left to right: flats, slopes (y -> y1), holes and the
 // stream (no ground at all).
 const PROFILE = [
   { x0: 0, x1: 3700, y: GY },
-  { hole: true, x0: 3700, x1: 3910 },
-  { x0: 3910, x1: 4720, y: GY },
-  { hole: true, x0: 4720, x1: 4930 },
-  { x0: 4930, x1: 5500, y: GY },
+  { hole: true, x0: 3700, x1: 3900 },
+  { x0: 3900, x1: 4720, y: GY },
+  { hole: true, x0: 4720, x1: 4920 },
+  { x0: 4920, x1: 5500, y: GY },
   { x0: 5500, x1: 6100, y: GY, y1: 820 },
   { x0: 6100, x1: 6900, y: 820 },
   { x0: 6900, x1: 7500, y: 820, y1: GY },
   { x0: 7500, x1: 7900, y: GY },
-  { hole: true, x0: 7900, x1: 8110 },
-  { x0: 8110, x1: 8600, y: GY },
+  { hole: true, x0: 7900, x1: 8100 },
+  { x0: 8100, x1: 8600, y: GY },
   { stream: true, x0: 8600, x1: 9300 },
   { x0: 9300, x1: 9800, y: GY },
   { x0: 9800, x1: 10300, y: GY, y1: 830 },
   { x0: 10300, x1: 10900, y: 830 },
   { x0: 10900, x1: 11400, y: 830, y1: GY },
-  { x0: 11400, x1: 11520, y: GY },
-  { hole: true, x0: 11520, x1: 11730 },
-  { x0: 11730, x1: WORLD_W, y: GY },
+  { x0: 11400, x1: 11600, y: GY },
+  { hole: true, x0: 11600, x1: 11800 },
+  { x0: 11800, x1: WORLD_W, y: GY },
 ];
 const HOLES = PROFILE.filter((s) => s.hole);
 const STREAM = PROFILE.find((s) => s.stream);
-const STONES = [8745, 8925, 9105]; // stepping stones across the stream
+const STONES = [8750, 8960, 9170]; // stepping stones across the stream
 
 // The ground line at world x from the profile (null over a hole or the stream).
 export function profileY(x) {
@@ -85,10 +86,10 @@ const COVER = [
   { x: 2120, kind: 'rock', rx: 85 },
 ];
 // The getaway's hazards.
-const ROCKS = [3380, 4350, 5250, 7700, 12200];
+const ROCKS = [3380, 4350, 5250, 12200];
 const BRANCHES = [6330, 10480]; // low branches: slide under
 const PALMS = [6760, 9560]; // fallen palm trunks: slide under
-const PUDDLES = [4080, 8320, 11880]; // goo puddles: hop or wade slowly
+const PUDDLES = [4080, 8320, 10780]; // goo puddles: hop or wade slowly
 const SIGNS = [2900, 6150, 8260, 11420]; // crooked signposts (sections)
 
 export default function create(env) {
@@ -106,17 +107,19 @@ export default function create(env) {
       const g = { x: s.x0, y: s.y, w: s.x1 - s.x0, h: 400, kind: 'ground' };
       solids.push(g); ySolids.push(g);
     } else {
-      const step = 30;
-      for (let x = s.x0; x < s.x1; x += step) {
-        const ya = s.y + (s.y1 - s.y) * ((x - s.x0) / (s.x1 - s.x0));
-        const yb = s.y + (s.y1 - s.y) * ((x + step - s.x0) / (s.x1 - s.x0));
+      const n = Math.round((s.x1 - s.x0) / 30);
+      const step = (s.x1 - s.x0) / n;
+      for (let i = 0; i < n; i++) {
+        const x = s.x0 + i * step;
+        const ya = s.y + (s.y1 - s.y) * (i / n);
+        const yb = s.y + (s.y1 - s.y) * ((i + 1) / n);
         const g = { x, y: Math.round(Math.min(ya, yb)), w: step, h: 400, kind: 'slope', slope: Math.sign(s.y1 - s.y) };
         solids.push(g); ySolids.push(g);
       }
     }
   }
   const rocks = ROCKS.map((x) => ({ x: x - 68, y: profileY(x) - 110, w: 136, h: 110, kind: 'rock', cx: x }));
-  const stones = STONES.map((x) => ({ x: x - 58, y: GY, w: 116, h: 90, kind: 'stone', cx: x }));
+  const stones = STONES.map((x) => ({ x: x - 65, y: GY, w: 130, h: 90, kind: 'stone', cx: x }));
   const branches = BRANCHES.map((x) => ({ x: x - 150, y: profileY(x) - 172, w: 300, h: 72, kind: 'branch', cx: x }));
   const palms = PALMS.map((x) => ({ x: x - 170, y: profileY(x) - 160, w: 340, h: 60, kind: 'palm', cx: x }));
   const puddles = PUDDLES.map((x) => ({ x: x - 110, x1: x + 110, cx: x, y: profileY(x) }));
@@ -141,8 +144,8 @@ export default function create(env) {
   for (const x of [400, 700, 820, 1120, 1240, 1520, 1600, 1900, 2000, 2280]) addStamp(x);
   addStamp(960, GY - 170); addStamp(2120, GY - 170); // on the cover rocks
   // The getaway: along the path, over holes, on rock tops, under branches, on stones.
-  for (const x of [3100, 3250, 3820, 4250, 4560, 5100, 5400, 5700, 5950, 6250, 6330, 6760, 7050, 7250, 8025, 8460, 8745, 9105, 9560, 9950, 10200, 10480, 11300, 11642, 11880]) addStamp(x);
-  for (const x of [3380, 4350, 7700, 12200]) addStamp(x, profileY(x) - 160); // on the rock tops
+  for (const x of [3100, 3250, 3820, 4250, 4560, 5400, 5700, 5950, 6250, 6330, 6760, 7050, 8025, 8460, 8750, 9170, 9560, 10200, 10480, 10780, 11705, 11960]) addStamp(x);
+  for (const x of [3380, 4350, 5250, 12200]) addStamp(x, profileY(x) - 160); // on the rock tops
   addStamp(3820, GY - 110); addStamp(7050, 820 - 120); // higher: a hop for them
   const pickups = kit.makePickups(stampList, { radius: 72 });
   pickups.items.forEach((p, i) => { p.kind = 1 + (i % 4); p.fly = null; p.eaten = false; });
@@ -196,7 +199,7 @@ export default function create(env) {
     return (2.0 + env.rng() * 2.4) * k;
   };
   const warnTime = () => (gentle ? 1.0 : 0.7);
-  const lookTime = () => (1.1 + env.rng() * 0.7 + skill * 0.4) * (gentle ? 0.85 : 1);
+  const lookTime = () => (0.9 + env.rng() * 0.6 + skill * 0.3) * (gentle ? 0.85 : 1);
 
   const coverAt = (x) => COVER.find((c) => Math.abs(x - c.x) < c.rx) || null;
   const speed = () => Math.abs(p.vx);
@@ -213,8 +216,9 @@ export default function create(env) {
     for (let i = got.length - 1; i >= 0 && k < n; i--, k++) {
       const s = got[i];
       s.got = false; s.t = 0;
-      s.x = p.x; s.y = p.y - 120;
-      s.fly = { vx: forward * (-80 + env.rng() * 420) * (env.rng() < 0.35 ? -0.6 : 1), vy: -(260 + env.rng() * 260), t: 0 };
+      // Out of reach until it lands (a flying stamp sits off the board).
+      s.x = -1e5;
+      s.fly = { x: p.x, y: p.y - 120, vx: forward * (-80 + env.rng() * 420) * (env.rng() < 0.35 ? -0.6 : 1), vy: -(260 + env.rng() * 260), t: 0 };
     }
     if (k) { env.sfx('pop'); parts.pop(p.x, p.y - 230, k === 1 ? 'A stamp!' : `${k} stamps!`, { colour: '#b3402e', size: 40 }); }
     return k;
@@ -324,7 +328,7 @@ export default function create(env) {
     } else if (yState === 'gloat') {
       if (yT > 1.4) { yState = 'chase'; yT = 0; }
     } else if (yState === 'chase') {
-      const base = 385 * (gentle ? 0.88 : 1);
+      const base = 365 * (gentle ? 0.88 : 1);
       const band = clamp(1 + (gap - 550) / 1200, 0.8, 1.35);
       const here = profileY(y.x + 20), ahead = profileY(y.x + 80);
       const downhill = here !== null && ahead !== null && ahead > here + 2;
@@ -341,10 +345,11 @@ export default function create(env) {
       if (gap < -60) { want = -base * 0.8; rolling = false; }
       else if (protect > 0 && gap < 140) want = 0;
       if (rolling && Math.random() < dt * 14) parts.burst(y.x - 40, y.y - 10, { n: 2, colour: '#e3cf9a', speed: 160, size: 16, life: 0.5, up: 0.4 });
-      // Hop a hole ahead, or hop out of the stream and up a lip.
-      const hole = HOLES.find((h) => h.x0 - (y.x + 55) > -10 && h.x0 - (y.x + 55) < 70);
-      if (y.onGround && hole && hopT <= 0) { y.vy = -1060; y.vx = Math.max(y.vx, 560); hopT = 0.8; env.sfx('jump'); art.kick(yc, -0.5); }
-      if (y.onGround && y.hitWall > 0 && hopT <= 0) { y.vy = -720; hopT = 0.6; }
+      // Hop a hole ahead (whichever way he is going), or hop up a lip.
+      const dir = want < 0 ? -1 : 1;
+      const hole = HOLES.find((h) => { const e = dir > 0 ? h.x0 - (y.x + 55) : (y.x - 55) - h.x1; return e > -10 && e < 70; });
+      if (y.onGround && hole && hopT <= 0) { y.vy = -1060; y.vx = dir * Math.max(Math.abs(y.vx), 560); hopT = 0.8; env.sfx('jump'); art.kick(yc, -0.5); }
+      if (y.onGround && y.hitWall && hopT <= 0) { y.vy = -720; hopT = 0.6; }
       // He munches any stamp lying in his way.
       for (const s of pickups.items) {
         if (s.got || s.eaten || s.fly || Math.abs(s.x - y.x) > 60 || Math.abs(s.y - (y.y - 60)) > 120) continue;
@@ -357,7 +362,7 @@ export default function create(env) {
     const ev = kit.stepBody(y, ySolids, dt, { gravity: 3000 });
     if (ev.landed > 500) { art.kick(yc, 0.6); env.sfx('land'); if (!env.reduceMotion) cam.shake(5); parts.burst(y.x, y.y, { n: 6, colour: '#e3cf9a', speed: 200, size: 14 }); }
     // Hole safety: if he ever lands in one he clambers out the far side.
-    if (y.ground?.kind === 'pit') { const h = HOLES.find((h) => y.x > h.x0 - 60 && y.x < h.x1 + 60); if (h) { y.x = h.x1 + 70; y.y = GY; y.vy = 0; } }
+    if (y.ground?.kind === 'pit') { const h = HOLES.find((h) => y.x > h.x0 - 60 && y.x < h.x1 + 60); if (h) { y.x = y.vx < 0 ? h.x0 - 70 : h.x1 + 70; y.y = GY; y.vy = 0; } }
     y.x = clamp(y.x, 0, WORLD_W - 100);
     // The catch.
     if (yState === 'chase' && !tug && protect <= 0 && p.onGround && Math.abs(p.x - y.x) < 105 && Math.abs(p.y - y.y) < 150) beginTug();
@@ -420,7 +425,7 @@ export default function create(env) {
         const wantUp = (inp.y || 0) <= 0.5 && slideT > 0.25;
         if (!under && (wantUp || slideDir * p.vx < 120)) { sliding = false; p.h = 185; art.kick(tc, 0.3); }
       } else {
-        const par = { speed: 350, sprint: 490, accel: 2600, decel: 2800, airAccel: 1400, jump: 950, jumpCut: 0.5, coyote: 0.1, buffer: 0.12 };
+        const par = { speed: 325, sprint: 455, accel: 2600, decel: 2800, airAccel: 1400, jump: 970, jumpCut: 0.5, coyote: 0.1, buffer: 0.12 };
         if (winded > 0) { par.speed *= 0.62; par.sprint = par.speed; }
         const pud = p.onGround && puddles.find((q) => p.x > q.x && p.x < q.x1);
         if (pud) { par.speed *= 0.42; par.sprint = par.speed; par.jump = 760; if (Math.random() < dt * 10) parts.burst(p.x, p.y, { n: 1, colour: '#4fb3c0', speed: 120, size: 10, life: 0.5 }); if (Math.random() < dt * 3) env.sfx('drip'); }
@@ -429,6 +434,7 @@ export default function create(env) {
       }
     }
     const wasAir = !p.onGround;
+    const vxBefore = p.vx;
     const ev = kit.stepBody(p, solids, dt, { gravity: GRAVITY });
     // Walking down a slope: stay on it rather than hopping off each step.
     if (p.wasOnGround && !p.onGround && p.vy >= 0 && !p.jumping) {
@@ -441,7 +447,7 @@ export default function create(env) {
     landT = Math.max(0, landT - dt);
     if (sprinting && p.onGround && Math.random() < dt * 9) parts.burst(p.x - 30 * Math.sign(p.vx || 1), p.y, { n: 1, colour: '#e3cf9a', speed: 100, size: 9, life: 0.4 });
     // A bump: ran into a rock, a branch or a palm trunk while up.
-    if (!sneak && ev.bumped && speed() < 50) {
+    if (!sneak && ev.bumped && Math.abs(vxBefore) > 200) {
       const what = solids.find((s) => s.kind !== 'ground' && s.kind !== 'slope' && Math.abs((s.x + s.w / 2) - p.x) < s.w / 2 + 70 && p.y > s.y && p.y - p.h < s.y + s.h);
       bump(what);
     }
@@ -485,13 +491,13 @@ export default function create(env) {
   function updateStamps(dt) {
     for (const s of pickups.items) {
       if (!s.fly) continue;
-      s.fly.vy += 1100 * dt;
-      s.x += s.fly.vx * dt; s.y += s.fly.vy * dt;
-      s.fly.t += dt;
-      const gy = profileY(s.x);
-      const floor = (gy ?? (STREAM.x0 <= s.x && s.x < STREAM.x1 ? 985 : 1010)) - 44;
-      if (s.fly.vy > 0 && s.y >= floor) { s.y = floor; s.fly = null; }
-      if (s.fly && s.fly.t > 3) s.fly = null;
+      const f = s.fly;
+      f.vy += 1100 * dt;
+      f.x += f.vx * dt; f.y += f.vy * dt;
+      f.t += dt;
+      const gy = profileY(f.x);
+      const floor = (gy ?? (STREAM.x0 <= f.x && f.x < STREAM.x1 ? 985 : 1010)) - 44;
+      if ((f.vy > 0 && f.y >= floor) || f.t > 3) { s.x = f.x; s.y = floor; s.fly = null; }
     }
     const got = pickups.update(dt, p.x, p.y - 90, dazed > 0 ? 50 : 72);
     if (got) { env.sfx('pickup'); art.kick(tc, -0.15); parts.pop(p.x, p.y - 230, got > 1 ? `+${got}` : '+1', { colour: '#2f6a2a', size: 36, life: 0.7 }); }
@@ -635,6 +641,10 @@ export default function create(env) {
         kit.sprite(gg, 'adv.b07.props', s.kind <= 2 ? s.kind : 1, x, yy + 22, { height: 46, rot: Math.sin(tt * 3 + s.seed) * 0.25 }, () => art.drawSprite(gg, art.prop('trollusk', s.kind), x, yy + 22, { height: 46, rot: Math.sin(tt * 3 + s.seed) * 0.25 }));
         gg.restore();
       });
+      for (const s of pickups.items) {
+        if (!s.fly) continue;
+        kit.sprite(g, 'adv.b07.props', s.kind <= 2 ? s.kind : 1, s.fly.x, s.fly.y + 22, { height: 46, rot: s.fly.t * 9 }, () => art.drawSprite(g, art.prop('trollusk', s.kind), s.fly.x, s.fly.y + 22, { height: 46, rot: s.fly.t * 9 }));
+      }
       // Creatures, and the cover that hides the Trollusk.
       const yFirst = y.x < p.x;
       if (!yFirst) drawPlayer(g, tt);
@@ -644,11 +654,17 @@ export default function create(env) {
       if (cam.sees(STREAM.x0, STREAM.x1)) drawWaterFront(g, tt);
       for (const b of branches) if (cam.sees(b.x, b.x + b.w)) drawBranch(g, b, tt);
       for (const b of palms) if (cam.sees(b.x, b.x + b.w)) drawFallenPalm(g, b);
-      // Who has the letter.
+      // Who has the letter, and what to press.
       if (!self.done || self.outcome === 'snatched') {
-        if (phase === 'getaway') letterMarker(g, p.x + tc.facing * 30, p.y - 250 - tc.z, tt);
-        else letterMarker(g, y.x + yc.facing * 70, y.y - 300, tt, 56);
+        if (phase === 'getaway') letterTag(g, p.x + tc.facing * 30, p.y - 262 - tc.z, { t: tt, r: 40 });
+        else letterTag(g, y.x + yc.facing * 70, y.y - 310, { t: tt });
       }
+      if (!self.done && phase === 'sneak') {
+        if (t < 6 && !hidden()) marker(g, y.x + 60, y.y - 360, { t: tt, label: 'The letter!' });
+        const near = Math.abs(y.x - p.x) < 175 && look !== 'look' && look !== 'alarm' && dazed <= 0;
+        if (near) actionPrompt(g, p.x, p.y - 265, 'Snatch!', { kind: env.inputKind, t: tt, pulse: 1 });
+      }
+      if (tug) actionPrompt(g, p.x, p.y - 265, 'Mash!', { kind: env.inputKind, t: tt, pulse: 1 });
       if (phase === 'sneak' && look === 'warn') eyeBubble(g, y.x - 90, y.y - 280, lookT / warnTime(), tt);
       if (phase === 'sneak' && look === 'look') eyeOpen(g, y.x - 90, y.y - 280, tt);
       if (tug) tugBar(g, { tug }, (p.x + y.x) / 2, Math.min(p.y, y.y) - 360, ['Grimm!', 'Break free!']);
@@ -1075,22 +1091,6 @@ function drawFinishSign(g, x, gy, tt) {
   g.restore();
 }
 
-// The letter, small, bobbing over whoever has it.
-function letterMarker(g, x, y, t, size = 64) {
-  const img = art.image('ui/letter');
-  const bob = Math.sin(t * 4) * 6;
-  g.save();
-  g.translate(x, y + bob);
-  g.rotate(Math.sin(t * 2.3) * 0.12);
-  if (img) g.drawImage(img, -size / 2, -size / 2, size, size);
-  else {
-    g.fillStyle = PAPER; g.strokeStyle = '#33241a'; g.lineWidth = 3;
-    g.fillRect(-size / 2, -size * 0.32, size, size * 0.64); g.strokeRect(-size / 2, -size * 0.32, size, size * 0.64);
-    g.beginPath(); g.moveTo(-size / 2, -size * 0.32); g.lineTo(0, 0); g.lineTo(size / 2, -size * 0.32); g.stroke();
-  }
-  g.restore();
-}
-
 // The warning before he looks: an eye bubble growing over his head.
 function eyeBubble(g, x, y, k, t) {
   const sp = art.prop('trollusk', 9);
@@ -1119,6 +1119,41 @@ function eyeOpen(g, x, y, t) {
   g.fillText('LOOKING!', 0, -50);
   g.restore();
 }
+
+// ---------- the how-to-play page ----------
+export const HOWTO = [
+  {
+    text: 'Tiptoe up behind him. When his ears prick up, FREEZE, or hide behind a fern.',
+    scene: 'scenes/yalapappus', crop: [0, 300, 1040, 780],
+    items: [
+      { sprite: ['props.grithix', 4], x: 150, y: 430, h: 150 },
+      { creature: 'trollusk', anim: 'freeze', x: 300, y: 430, h: 150 },
+      { creature: 'yalapappus', anim: 'eye', x: 520, y: 430, h: 170, flip: true },
+      { sprite: ['props.trollusk', 9], x: 450, y: 250, h: 80 },
+      { ring: [300, 350, 90] },
+    ],
+  },
+  {
+    text: 'Beside him, Action: snatch the letter in your snerk!',
+    scene: 'scenes/yalapappus', crop: [0, 300, 1040, 780],
+    items: [
+      { creature: 'yalapappus', anim: 'munch', x: 440, y: 430, h: 170 },
+      { creature: 'trollusk', anim: 'grab', x: 270, y: 430, h: 150 },
+      { word: 'SNATCH!', x: 330, y: 200, size: 60 },
+      { path: [[200, 300], [330, 270]], arrow: true },
+    ],
+  },
+  {
+    text: 'Run! Hop rocks and holes, slide under branches, and keep ahead of him.',
+    scene: 'scenes/yalapappus', crop: [800, 300, 1040, 780],
+    items: [
+      { creature: 'yalapappus', anim: 'shout', x: 120, y: 430, h: 170 },
+      { creature: 'trollusk', anim: 'run', x: 330, y: 430, h: 150 },
+      { sprite: ['props.yalapappus', 1], x: 500, y: 440, h: 90 },
+      { path: [[380, 330], [470, 250], [560, 330]], arrow: true },
+    ],
+  },
+];
 
 // ---------- the autopilot ----------
 // Plays competently: creeps when he munches, freezes or hides when he looks,
@@ -1164,21 +1199,29 @@ export function autopilot(board) {
   const gy0 = profileY(p.x), gy1 = profileY(p.x + 120);
   const downhill = gy0 !== null && gy1 !== null && gy1 > gy0 + 2;
   out.sprint = !s.sliding && s.stamina > 0.3 && (gap < 420 || downhill || (s.rolling && gap < 900));
+  // A run-up for a hole coming.
+  if (!s.sliding && s.stamina > 0.1 && s.hazards.some((h) => h.kind === 'hole' && h.x0 - front > 0 && h.x0 - front < 340)) out.sprint = true;
   // Jump at the end of the footing (holes, stones), at rocks and puddles.
   const g = p.ground;
   let jump = false;
+  let hold = true; // a full hop, or a short one (let go early) for a near stone
   if (p.onGround && g) {
     const end = g.x + g.w;
     const nextSolid = s.solids.find((q) => q !== g && (q.kind === 'ground' || q.kind === 'slope' || q.kind === 'stone') && q.x >= end - 2 && q.x <= end + 2);
     if (!nextSolid && end - front < 110) {
       // At a gap's edge too slowly to clear it: step back for a run-up.
-      if (Math.abs(p.vx) < 300) { out.x = -1; return out; }
-      if (end - front < 22 + Math.abs(p.vx) * 0.04) jump = true; // hop from the very edge
+      if (Math.abs(p.vx) < 300) { out.sprint = false; out.x = s.hazards.some((h) => h.kind === 'rock' && h.x1 > p.x - 200 && h.x1 <= p.x) ? 0 : -1; return out; }
+      if (end - front < 22 + Math.abs(p.vx) * 0.04) {
+        jump = true;
+        // The footing across the gap: a full hop must not overshoot it.
+        const far = s.solids.filter((q) => q.x > end && (q.kind === 'ground' || q.kind === 'slope' || q.kind === 'stone')).sort((a, b) => a.x - b.x)[0];
+        if (far && far.x + far.w + 30 - (p.x - 40) < Math.abs(p.vx) * 0.75) hold = false;
+      }
     }
   }
   if (s.hazards.some((h) => (h.kind === 'rock' || h.kind === 'puddle') && h.x0 - front < lead && h.x0 - front > -10)) jump = true;
-  if (jump && p.onGround) { out.actionPressed = true; out.action = true; }
-  else if (!p.onGround && p.vy < 0) out.action = true; // hold for the full hop
+  if (jump && p.onGround) { out.actionPressed = true; out.action = true; s.holdHop = hold; }
+  else if (!p.onGround && p.vy < 0 && s.holdHop !== false) out.action = true; // hold for the full hop
   // A stamp just above: a little hop for it (only on the flat, not over a hole).
   if (!jump && p.onGround && g && (g.kind === 'ground')) {
     const st = s.pickups.items.find((q) => !q.got && !q.eaten && !q.fly && q.x - p.x > 20 && q.x - p.x < 140 && (p.y - q.y) > 130);

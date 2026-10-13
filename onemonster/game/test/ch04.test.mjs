@@ -161,7 +161,16 @@ test('chapter 4: a straight-line captain in versus is not unbeatable, nor a sure
   assert.ok(wins / n > 0.2 && wins / n < 0.95, `rate ${wins / n}`);
 });
 
-test('chapter 4: bumping rowing boats costs sea lions, and losing them all dazes it', () => {
+test('chapter 4: a slow nudge of a rowing boat costs nothing', () => {
+  const ch = create(makeEnv());
+  const b = ch.rowboats[0];
+  b.wait = 0; b.alpha = 1; b.bump = 0;
+  ch.ferg.x = b.x; ch.ferg.y = b.y; ch.ferg.vx = 0; ch.ferg.vy = 0; ch.ferg.mode = 'drift';
+  ch.update(DT, idle, null);
+  assert.equal(ch.ferg.lions, 3);
+});
+
+test('chapter 4: ramming rowing boats costs sea lions, and losing them all dazes it', () => {
   const ch = create(makeEnv());
   const b = ch.rowboats[0];
   b.wait = 0; b.alpha = 1;
@@ -169,6 +178,7 @@ test('chapter 4: bumping rowing boats costs sea lions, and losing them all dazes
   for (let i = 0; i < 3; i++) {
     b.bump = 0;
     ch.ferg.x = b.x; ch.ferg.y = b.y; ch.ferg.mode = 'drift';
+    ch.ferg.vx = 200; ch.ferg.vy = 0; // ramming it, not nudging it
     ch.update(DT, idle, null);
     lost++;
   }

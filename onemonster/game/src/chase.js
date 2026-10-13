@@ -333,3 +333,41 @@ export function aiSnatcher(c, brain, skill, dt) {
   }
   return out;
 }
+
+// ---------- reading the state, for prompts ----------
+// What a press of Action would do for the snatcher right now: 'grab' (close
+// enough to take hold), 'lunge' (a lunge would reach), or null. `open` is true
+// when the holder can't answer with a dodge (winded, dodge spent, held, or
+// sprinting flat out): the moment to go.
+export function snatchChance(c) {
+  const { s, h } = c;
+  const d = len(h.x - s.x, h.y - s.y);
+  const open = h.mode !== 'move' || h.cool > 0 || h.winded > 0 || h.sprinting;
+  if (c.tug || s.mode !== 'move' || h.hidden) return { kind: null, open, d };
+  if (d < s.grabRange + s.radius) return { kind: 'grab', open, d };
+  if (s.cool <= 0 && s.winded <= 0 && d < s.lungeRange) return { kind: 'lunge', open, d };
+  return { kind: null, open, d };
+}
+
+// True while a lunge is coming at the holder and a dodge now would beat it.
+export function dodgeChance(c) {
+  const { s, h } = c;
+  if (c.tug || s.mode !== 'lunge' || h.mode !== 'move' || h.cool > 0 || h.winded > 0) return false;
+  const dx = h.x - s.x, dy = h.y - s.y;
+  return len(dx, dy) < 340 && (s.lx * dx + s.ly * dy) > 0;
+}
+
+// How far the snatcher has got with flushing the hidden holder out, 0..1.
+export function flushProgress(c) {
+  return c.h.hidden ? clamp(c.flushT / c.s.flushTime, 0, 1) : 0;
+}
+
+// A tug never stalls for ever: the side ahead gains ground, faster the longer
+// it has gone on, so a dead heat ends one way or the other.
+export function tugDrift(c, dt) {
+  const tg = c.tug;
+  if (!tg) return;
+  const lead = tg.v - 0.5;
+  const k = 0.12 + Math.max(0, tg.t - 2.5) * 0.12;
+  tg.v = clamp(tg.v + (Math.sign(lead) || 1) * k * dt, 0.001, 0.999);
+}
