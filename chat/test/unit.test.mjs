@@ -1262,3 +1262,83 @@ test('Doodle puts a mid-game joiner in the drawing order without changing the cu
   assert.equal(d.drawerAt(l, 11).last, true);
   assert.equal(d.addLateDrawers(s, ['x', 'y'], 4).order.length, 4, 'up to the table size');
 });
+
+test('Hoops shared hoop: moves every five shots from anyone, or when idle, and checks its state', async () => {
+  const { _shared: H, _physics: P } = await import('../games/hoops.js');
+  let sh = H.newHoopShared(1000);
+  assert.deepEqual(H.parseHoopShared(sh), sh);
+  // Four shots (from anyone) keep the spot; the fifth announces a move.
+  for (let i = 1; i < H.SHOTS_PER_SPOT; i++) {
+    sh = H.hoopShot(sh, 1000 + i * 500, () => 0.5);
+    assert.equal(sh.spot, 0);
+    assert.equal(sh.n, i);
+  }
+  const t5 = 4000;
+  sh = H.hoopShot(sh, t5, () => 0.5);
+  assert.notEqual(sh.spot, 0);
+  assert.equal(sh.n, 0);
+  assert.equal(sh.prev, 0);
+  assert.equal(sh.moveAt, t5 + H.MOVE_DELAY);
+  // Until moveAt the hoop stays put (shots in the air land first); then it is at the new spot.
+  assert.equal(H.hoopSpotAt(sh, t5 + 10), 0);
+  assert.equal(H.hoopSpotAt(sh, t5 + H.MOVE_DELAY), sh.spot);
+  // Shots while the move is pending don't count towards the next spot.
+  assert.equal(H.hoopShot(sh, t5 + 100), sh);
+  // The next spot is always a different one, whatever the dice say.
+  for (const r of [0, 0.3, 0.999999, 1]) {
+    for (let s = 0; s < P.SPOTS.length; s++) {
+      const m = H.moveHoop({ spot: s, n: 3, at: 0, prev: null, moveAt: 0 }, 5, 5, () => r);
+      assert.ok(m.spot !== s && m.spot >= 0 && m.spot < P.SPOTS.length, `${s} ${r} -> ${m.spot}`);
+    }
+  }
+  // Idle: nothing until IDLE_MS after the last shot, then it moves at once.
+  const quiet = H.newHoopShared(0, 2);
+  assert.equal(H.hoopIdle(quiet, H.IDLE_MS - 1), quiet);
+  const moved = H.hoopIdle(quiet, H.IDLE_MS);
+  assert.ok(moved.spot !== 2 && H.hoopSpotAt(moved, H.IDLE_MS) === moved.spot);
+  // Untrusted shared state is refused.
+  for (const bad of [null, 5, 'x', {}, { spot: -1, n: 0, at: 0 }, { spot: P.SPOTS.length, n: 0, at: 0 }, { spot: 1.5, n: 0, at: 0 },
+    { spot: 0, n: H.SHOTS_PER_SPOT, at: 0 }, { spot: 0, n: -1, at: 0 }, { spot: 0, n: 0, at: NaN }, { spot: 0, n: 0, at: 0, prev: 99 },
+    { spot: 0, n: 0, at: 0, moveAt: Infinity }, { spot: '0', n: 0, at: 0 }]) {
+    assert.equal(H.parseHoopShared(bad), null, JSON.stringify(bad));
+  }
+  assert.deepEqual(H.parseHoopShared({ spot: 3, n: 2, at: 7, junk: 1 }), { spot: 3, n: 2, at: 7, prev: null, moveAt: 0 });
+});
+
+test('Quick Draw: gunslinger tiles fit in a row, and results become stamps', async () => {
+  const { _logic: Q } = await import('../games/quickdraw.js');
+  for (const [w, h] of [[390, 700], [800, 360], [460, 440], [320, 480]]) {
+    for (let n = 1; n <= 6; n++) {
+      const L = Q.tileLayout(n, w, h);
+      assert.equal(L.xs.length, n);
+      assert.ok(L.xs[0] >= 0 && L.xs[n - 1] + L.tw <= w + 0.01, `fits across ${w}x${h} n=${n}`);
+      for (let i = 1; i < n; i++) assert.ok(L.xs[i] >= L.xs[i - 1] + L.tw, 'no overlap');
+      assert.ok(L.bottom <= h * 0.32 + 10, `leaves room for the duel ${w}x${h} n=${n}`);
+    }
+  }
+  assert.deepEqual(Q.stampFor({ ms: 231 }), { line1: 'BANG', line2: '231 ms', color: '#b5480c' });
+  assert.equal(Q.stampFor({ early: true }).line1, 'TOO EARLY');
+  for (const none of [null, undefined, {}, { ms: NaN }, { ms: '5' }, 'x']) assert.equal(Q.stampFor(none), null);
+});
+
+test('Copy Cat: friends\' faces sit beside or under mine, never over it', async () => {
+  const { _logic: C } = await import('../games/copycat.js');
+  const inside = (r, b) => r.x >= b.x - 0.01 && r.y >= b.y - 0.01 && r.x + r.w <= b.x + b.w + 0.01 && r.y + r.h <= b.y + b.h + 0.01;
+  const apart = (a, b) => a.x + a.w <= b.x + 0.01 || b.x + b.w <= a.x + 0.01 || a.y + a.h <= b.y + 0.01 || b.y + b.h <= a.y + 0.01;
+  // Boxes for a phone upright, a phone on its side, the test harness and a desktop.
+  for (const box of [{ x: 10, y: 130, w: 370, h: 480 }, { x: 10, y: 90, w: 780, h: 200 }, { x: 10, y: 122, w: 440, h: 248 }, { x: 10, y: 150, w: 1200, h: 600 }]) {
+    for (let n = 0; n <= 7; n++) {
+      const L = C.faceLayout(n, box.x, box.y, box.w, box.h);
+      assert.equal(L.tiles.length, n);
+      assert.ok(inside(L.self, box), `self inside ${JSON.stringify(box)} n=${n}`);
+      // My face stays the biggest thing on screen.
+      assert.ok(L.self.w * L.self.h >= box.w * box.h * 0.3, `self big enough ${JSON.stringify(box)} n=${n}: ${L.self.w}x${L.self.h}`);
+      for (const t of L.tiles) {
+        assert.ok(inside(t, box), `tile inside ${JSON.stringify(box)} n=${n}`);
+        assert.ok(apart(t, L.self), `tile clear of my face ${JSON.stringify(box)} n=${n}`);
+        assert.ok(t.w >= 28, `tile visible ${JSON.stringify(box)} n=${n}: ${t.w}`);
+      }
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) assert.ok(apart(L.tiles[i], L.tiles[j]), 'tiles apart');
+    }
+  }
+});

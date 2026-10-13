@@ -122,6 +122,41 @@ for (const aimAt of [-90, 70]) {
 }
 
 await page.screenshot({ path: `${outDir}hoops-play.png` });
+
+// 5. Two seats share one hoop, and it moves after five shots in total
+// across both of them (three from one seat, two from the other).
+{
+  const two = await browser.newPage({ viewport: { width: 860, height: 760 } });
+  await two.goto(`${server.url}/test/game.html?game=hoops&n=2&expr=0&h=640`);
+  await two.waitForFunction(() => window.ready === true, null, { timeout: 20000 });
+  await two.waitForTimeout(1500);
+  const views = () => two.evaluate(() => window.seats.map(s => s.gh.current.instance._view()));
+  const v0 = await views();
+  check(v0[0].spot === v0[1].spot && Math.abs(v0[0].hoop.x - v0[1].hoop.x) < 0.5 && Math.abs(v0[0].hoop.y - v0[1].hoop.y) < 0.5,
+    `both seats start at the same hoop (spots ${v0[0].spot}, ${v0[1].spot})`);
+  const start = v0[0].spot;
+  let moved = false;
+  for (let k = 0; k < 5; k++) {
+    const seat = k % 2;
+    await two.waitForFunction(i => window.seats[i].gh.current.instance._view().ready, seat, { timeout: 8000 });
+    const spotBefore = (await views())[seat].spot;
+    if (spotBefore !== start) moved = true;
+    await two.evaluate(i => window.seats[i].gh.current.instance.rookie(), seat);
+    await two.waitForFunction(i => window.seats[i].gh.current.instance._view().flying, seat, { timeout: 3000 });
+  }
+  check(!moved, 'the hoop stays put for the first four shots');
+  // After the fifth shot the hoop moves, to the same place on both seats.
+  await two.waitForFunction(s => window.seats.every(x => {
+    const v = x.gh.current.instance._view();
+    return v.spot !== s && v.ready;
+  }), start, { timeout: 10000 }).catch(() => {});
+  const v1 = await views();
+  check(v1[0].spot !== start && v1[0].spot === v1[1].spot && Math.abs(v1[0].hoop.x - v1[1].hoop.x) < 0.5 && Math.abs(v1[0].hoop.y - v1[1].hoop.y) < 0.5,
+    `after five shots across both seats the hoop moved for both (${start} -> ${v1[0].spot}, ${v1[1].spot})`);
+  await two.screenshot({ path: `${outDir}hoops-two.png` });
+  await two.close();
+}
+
 await browser.close();
 server.close();
 if (failed) process.exit(1);

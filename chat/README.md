@@ -189,15 +189,25 @@ moves with your finger and flies on from where you let go, with no help. It
 is essentially 2D: every ball reaches the hoop and never goes past it; the
 swipe's speed sets how high it is when it gets there (an S-curve centred on
 a good throw, so speeds near it change the height gently and far ones a lot)
-and its direction on screen where it is sideways; the hoop moves every five
-shots; the ball is drawn in front of the rim on the way up and behind the rim and net on the way down), Flappy Face (your face is the bird; tap to
+and its direction on screen where it is sideways; everyone in the session
+shoots at one shared hoop, which the owner moves after every five shots
+counted across everyone (or after 30 seconds without a shot when friends are
+in), announcing the move a moment ahead so balls in the air land first;
+friends' shots fly as see-through ghost balls at that same hoop; the ball is
+drawn in front of the rim on the way up and behind the rim and net on the way down), Flappy Face (your face is the bird; tap to
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it; after a goal the puck waits, still, on the side of
-the player who conceded until someone hits it), Connect Four, Quick Draw, Staring Contest,
-Copy Cat, Rock Paper Scissors, Doodle Guess (anyone who joins mid-game guesses
+the player who conceded until someone hits it), Connect Four, Quick Draw
+(during a duel every seated player stands as a gunslinger tile with their live
+face and win pips, and each tile is stamped "BANG 231 ms" or "TOO EARLY" the
+moment that player's shot reaches the referee, before the round's result;
+latecomers watch with a "You're in next round" note), Staring Contest
+(latecomers watch the round under way with a "You're in next round" note),
+Copy Cat (friends' live faces sit beside your own on wide screens and under it
+on tall ones, never over your face or the prompt, and each lights up green
+with a tick and a pop as their match for the prompt arrives), Rock Paper Scissors, Doodle Guess (anyone who joins mid-game guesses
 at once and is added to the drawing order, drawing at the end of the current
-round and in every round after; the board reaches them from the drawer),
-Memory Match, Mini Golf (nine
+round and in every round after; the board reaches them from the drawer), Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls; pull back to aim and the
 arrow sits behind the ball, following your finger, pointing the way it will go),
 Bowling (pins finish falling and stay on the lane for 1.5 seconds before the
@@ -413,7 +423,9 @@ itself to HTTPS.
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
-  straight flick of the right speed scores
+  straight flick of the right speed scores; then two seats share one hoop,
+  which stays put for four shots and moves for both after the fifth shot
+  across both seats (`local/chat-shots/hoops-two.png`)
 - `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
   working call turns the pill green with signal bars and a route in the
   Connection panel; calls that can't connect (`?rtcdrop=1&rtcfast=0.2`) go
