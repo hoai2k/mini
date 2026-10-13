@@ -25,10 +25,10 @@ Head top per frame, its dip below the passing frames (of the figure height; a wa
 
 | Frame | Head top | Dip | Body size | Match | In play |
 | --- | --- | --- | --- | --- | --- |
-| `prince-stride-a-tinted` | 14 | 3.9% | 1.000 | 1.00 | scaled 1.014 |
-| `prince-pass-a-tinted` | 0 | 0.0% | 0.985 | 0.91 | as drawn |
-| `prince-stride-b-tinted` | 14 | 3.9% | 0.948 | 0.90 | scaled 1.014 |
-| `prince-pass-b-tinted` | 1 | 0.3% | 0.948 | 0.84 | as drawn |
+| `prince-stride-a-tinted` | 8 | 2.2% | 1.000 | 1.00 | as drawn |
+| `prince-pass-a-tinted` | 0 | 0.0% | 1.005 | 0.87 | as drawn |
+| `prince-stride-b-tinted` | 8 | 2.2% | 1.010 | 0.99 | as drawn |
+| `prince-pass-b-tinted` | 1 | 0.3% | 0.971 | 0.78 | as drawn |
 
 ### Prince, court dress
 
@@ -43,10 +43,10 @@ Head top per frame, its dip below the passing frames (of the figure height; a wa
 
 | Frame | Head top | Dip | Body size | Match | In play |
 | --- | --- | --- | --- | --- | --- |
-| `prince-court-stride-a-tinted` | 23 | 6.4% | 1.000 | 1.00 | scaled 1.042 |
-| `prince-court-pass-a-tinted` | 0 | 0.0% | 0.990 | 0.79 | as drawn |
-| `prince-court-stride-b-tinted` | 22 | 6.1% | 0.952 | 0.92 | scaled 1.038 |
-| `prince-court-pass-b-tinted` | 0 | 0.0% | 0.976 | 0.64 | as drawn |
+| `prince-court-stride-a-tinted` | 9 | 2.5% | 1.000 | 1.00 | as drawn |
+| `prince-court-pass-a-tinted` | 0 | 0.0% | 0.976 | 0.79 | as drawn |
+| `prince-court-stride-b-tinted` | 8 | 2.2% | 0.966 | 0.82 | as drawn |
+| `prince-court-pass-b-tinted` | 0 | 0.0% | 0.966 | 0.63 | as drawn |
 
 ### Azurine
 
@@ -104,7 +104,4 @@ Head top per frame, its dip below the passing frames (of the figure height; a wa
 
 ## To redraw
 
-- prince-stride-a-tinted dips 3.9%
-- prince-stride-b-tinted dips 3.9%
-- prince-court-stride-a-tinted dips 6.4%
-- prince-court-stride-b-tinted dips 6.1%
+Nothing.

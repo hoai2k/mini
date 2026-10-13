@@ -27,7 +27,9 @@ for path in sorted(BATCH.glob('*.json')):
         continue
     record = json.loads(path.read_text())
     ident = record['id']
-    if record.get('align_to'):
+    if record.get('fit_bounds'):
+        record['alignment_bounds'] = record['fit_bounds']
+    elif record.get('align_to'):
         with Image.open(GAME / 'assets' / (record['align_to'] + '.webp')) as reference:
             record['alignment_bounds'] = list(reference.getchannel('A').point(lambda value: 255 if value >= 8 else 0).getbbox())
     original = BATCH / (ident + '-original.png')
@@ -91,7 +93,7 @@ for record in records:
     assert target not in installed, target + ': multiple active replacements'
     installed.add(target)
     assert manifest['slots'][target]['size'] == record['size'], target
-    previous_file = BATCH / 'progress/superseded-f14' / (target + '.webp')
+    previous_file = BATCH / record.get('archive_directory', 'progress/superseded-f14') / (target + '.webp')
     assert previous_file.exists(), target + ': archive the earlier prepared file before replacement'
     shutil.copy2(GAME / record['file'], GAME / 'assets' / (target + '.webp'))
     record['installed_file'] = 'assets/' + target + '.webp'

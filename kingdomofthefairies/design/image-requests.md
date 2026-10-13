@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 247 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 237 of 247 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 247 of 247 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1859,12 +1859,12 @@ Requested 13 October 2026 after play-testing the prologue. The three gift fairie
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `fairy-ring-empty-tinted` | 220 × 420 | bottom centre | `fairy-ring-tinted` | requested |
-| `fairy-ring-empty` | 220 × 420 | bottom centre | `fairy-ring` | requested |
-| `fairy-crown-empty-tinted` | 220 × 420 | bottom centre | `fairy-crown-tinted` | requested |
-| `fairy-crown-empty` | 220 × 420 | bottom centre | `fairy-crown` | requested |
-| `fairy-gold-empty-tinted` | 220 × 420 | bottom centre | `fairy-gold-tinted` | requested |
-| `fairy-gold-empty` | 220 × 420 | bottom centre | `fairy-gold` | requested |
+| `fairy-ring-empty-tinted` | 220 × 420 | bottom centre | `fairy-ring-tinted` | [delivered](../assets/fairy-ring-empty-tinted.webp) |
+| `fairy-ring-empty` | 220 × 420 | bottom centre | `fairy-ring` | [delivered](../assets/fairy-ring-empty.webp) |
+| `fairy-crown-empty-tinted` | 220 × 420 | bottom centre | `fairy-crown-tinted` | [delivered](../assets/fairy-crown-empty-tinted.webp) |
+| `fairy-crown-empty` | 220 × 420 | bottom centre | `fairy-crown` | [delivered](../assets/fairy-crown-empty.webp) |
+| `fairy-gold-empty-tinted` | 220 × 420 | bottom centre | `fairy-gold-tinted` | [delivered](../assets/fairy-gold-empty-tinted.webp) |
+| `fairy-gold-empty` | 220 × 420 | bottom centre | `fairy-gold` | [delivered](../assets/fairy-gold-empty.webp) |
 
 #### `fairy-ring-empty-tinted` — The fairy of the ring, empty-handed (tinted)
 
@@ -1908,10 +1908,10 @@ Requested 13 October 2026 after play-testing ?widowsbay=off: the prince bobbed a
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-a-tinted` | requested |
-| `prince-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-b-tinted` | requested |
-| `prince-court-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-a-tinted` | requested |
-| `prince-court-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-b-tinted` | requested |
+| `prince-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-a-tinted` | [delivered](../assets/prince-stride-a-tinted-redo.webp) |
+| `prince-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-b-tinted` | [delivered](../assets/prince-stride-b-tinted-redo.webp) |
+| `prince-court-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-a-tinted` | [delivered](../assets/prince-court-stride-a-tinted-redo.webp) |
+| `prince-court-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-b-tinted` | [delivered](../assets/prince-court-stride-b-tinted-redo.webp) |
 
 #### `prince-stride-a-tinted-redo` — Prince armed, stride A (tinted), redrawn to the passing height
 

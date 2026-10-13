@@ -2,8 +2,4 @@
 // dips too far below their passing frames, scaled up from the feet until
 // the dip is natural. Rerun the audit after every art delivery.
 export const WALK_FIT = {
-  'prince-court-stride-a-tinted': 1.042,
-  'prince-court-stride-b-tinted': 1.038,
-  'prince-stride-a-tinted': 1.014,
-  'prince-stride-b-tinted': 1.014,
 };
