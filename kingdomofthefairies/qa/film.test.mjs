@@ -7,8 +7,8 @@ import { readFile, access } from 'node:fs/promises';
 import { ACTS } from '../src/acts/index.js';
 import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
-import act2, { FAIRY_AT, FILM_DIVE } from '../src/acts/act2.js';
-import act3, { PASSAGE, guardOpen } from '../src/acts/act3.js';
+import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
+import act3, { PASSAGE } from '../src/acts/act3.js';
 import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH } from '../src/acts/act5film.js';
 import { pickHold } from '../src/acts/act5.js';
 import act4 from '../src/acts/act4.js';
@@ -148,6 +148,14 @@ test('Act II dive: X wakes a sleeper within reach and takes an open clam\'s pear
   assert.ok(st.guitar.y - gy >= 200, `sword sank ${st.guitar.y - gy}`);
 });
 
+test('Act II ride: pearls to leap for float only over the top row, and the whole carriage catches', () => {
+  const st = act2.create({ seed: 3, carry: {}, from: { scene: 5 } });
+  assert.equal(st.phase, 'ride');
+  assert.ok(st.ride.pearls.some((p) => p.high));
+  assert.ok(st.ride.pearls.filter((p) => p.high).every((p) => p.row === 0));
+  assert.ok(RIDE.catchX >= 120, 'the stern catches as well as the bow');
+});
+
 test('Act II: he swims to the Water Fairy for her blessing (no button, no refusal)', () => {
   const st = act2.create({ seed: 3, carry: {}, from: { scene: 4 } });
   run(act2, st, 4, () => ({ a: true, b: true }));   // pressing does nothing
@@ -157,20 +165,42 @@ test('Act II: he swims to the Water Fairy for her blessing (no button, no refusa
   assert.ok(act2.cast['witch-stand'] === 'water-fairy-stand');
 });
 
-test('Act III: he walks through the lobster palace, past the claws, the sea flora and the grotto into the court', () => {
+test('Act III: he bows past the lobster guards, leaps for the sea-flora pearls, and walks into the court', () => {
   const st = act3.create({ seed: 1, carry: {} });
   assert.ok(st.tf, 'the passage opens the act');
   let clock = 0;
   run(act3, st, 40, (s) => {
     if (!s.tf) return {};
-    const f = s.tf, g = f.set === 0 && PASSAGE.guards.find((q) => q.x > f.x && q.x - f.x < 130);
-    const wait = g && !guardOpen(g, f.t + 0.35);
-    return { moveX: wait ? 0 : 1, beat: (clock += DT) / BEAT };
+    const f = s.tf;
+    if (f.x < PASSAGE.guards[1].x + 60) return { moveX: 1, xHeld: true, beat: (clock += DT) / BEAT };   // bow past the guards
+    const p = PASSAGE.pearls.find(([px], i) => !f.got.includes(i) && px - f.x > 55 && px - f.x < 110);
+    return { moveX: 1, a: !!p && f.lift === 0, beat: (clock += DT) / BEAT };
   }, (s) => !s.tf);
   assert.equal(st.tf, null);
-  assert.equal(st.pearls, 3);
+  assert.equal(st.pearls, PASSAGE.pearls.length, 'every pearl, by leaping');
+  // upright before a guard, he is caught and thrown back; bowing, he passes
+  const s3 = act3.create({ seed: 1, carry: {} });
+  run(act3, s3, 3, () => ({ moveX: 1 }), (s) => s.tf.caught > 0);
+  assert.equal(s3.tf.caught, 1);
+  assert.ok(s3.tf.x < PASSAGE.guards[0].x);
+  // walking under the pearls without leaping takes none
+  const s4 = act3.create({ seed: 1, carry: {} });
+  s4.tf.x = PASSAGE.guards[1].x + 60;
+  run(act3, s4, 8, () => ({ moveX: 1 }), (s) => !s.tf || s.tf.fade > 0);
+  assert.equal(s4.pearls, 0);
   const s2 = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
   assert.ok(!s2.tf, 'not on a resume');
+});
+
+test('Act III court: the courtier he poses behind holds still while he hides', () => {
+  const st = act3.create({ seed: 1, carry: {}, from: { scene: 1 } });
+  const p = st.p, c = st.courtiers.find((q) => q.kind !== 'guard' && q.row === p.row) || st.courtiers.find((q) => q.kind !== 'guard');
+  p.row = p.from = c.row; p.x = c.x;
+  const x = c.x;
+  let beat = 0;
+  for (let i = 0; i < 60 * 8; i++) act3.step(st, 1 / 60, { aHeld: true, beat: (beat += 1 / 60 / 0.784) });
+  assert.ok(p.frozen);
+  assert.equal(c.x, x, 'his courtier did not step away');
 });
 
 test('Act V: the swim is won by diving under her swoops, then the tower wall begins', () => {

@@ -6,14 +6,13 @@ https://hoai2k.github.io/mini/kingdomofthefairies/.
 
 There are three editions, chosen by the address:
 
-- **The default** (no parameter, or `?widowsbay` with any value but `on` or
-  `off`) is the original five-act game under the new title: no band, no song,
-  and the sailor's guitar becomes a sword (its art and its words), with new art
-  filling the gaps (`PARTIAL_CAST` in `src/theme.js`). It shares the improved
-  climbing.
-- **[`?widowsbay=off`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=off)**
-  is the film edition: the prince's story after Méliès, with a prologue and six
-  acts and only the period accompaniment.
+- **The default** (no parameter, `?widowsbay=off`, or any value but `on` or
+  `partial`) is the film edition: the prince's story after Méliès, with a
+  prologue and six acts and only the period accompaniment.
+- **[`?widowsbay=partial`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=partial)**
+  is the original five-act game under the new title: no band, no song, and the
+  sailor's guitar becomes a sword (its art and its words), with new art filling
+  the gaps (`PARTIAL_CAST` in `src/theme.js`). It shares the improved climbing.
 - **[`?widowsbay=on`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=on)**
   restores the preserved Widow’s Bay title, Langan, Frost & Wane cast and song.
 
@@ -27,7 +26,7 @@ compatible with existing saves.
 
 ## The editions' acts
 
-The film edition (`?widowsbay=off`) follows the film's story
+The film edition (the default) follows the film's story
 ([the film adaptation plan](design/film-adaptation.md)): a prologue and six
 acts. The first four keep their stage machinery and rules, recast:
 
@@ -42,9 +41,9 @@ acts. The first four keep their stage machinery and rules, recast:
    and the ship breaks on the rocks.
 2. The Water Fairy: the sleepers' grotto; he swims to the Water Fairy for her
    blessing, and her dolphin carriage carries him on.
-3. Neptune's Court: a walk through the lobster palace (past the guards'
-   claws), the sea flora and the azure grotto, then the court's moving floors,
-   watched by the scrying eye.
+3. Neptune's Court: a walk through the lobster palace (bow, holding X, past
+   its guards; leap with A for the pearls beyond), then the court's moving
+   floors, watched by the scrying eye.
 4. The Whale's Passage: through the whale to shore, where Aurora points the
    way through the cavern (a run through the dark, by Aurora's lamp).
 5. The Enchanted Tower: the cliff, a dive from its edge, a swim across the sea gap diving under the

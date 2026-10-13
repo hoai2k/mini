@@ -109,7 +109,10 @@ function safeClock(x, y) {
 // The moon-boat ride plays like Act I's voyage: sail forward and back within
 // the stage, change row, leap. Some pearls float high and need a leap.
 export const RIDE = { boatX: 470, speed: 300, pearls: 16, minX: 210, maxX: 930, sail: 280,
-  leapTime: 0.78, leapHeight: 96, highAt: 44 };
+  leapTime: 0.78, leapHeight: 96, highAt: 44,
+  // how far from the carriage's centre a pearl is caught: the bow alone, or
+  // (film) anywhere along the dolphin carriage, drawn 234 px wide
+  catchX: FILM ? 130 : 55 };
 
 // ---------------------------------------------------------------- helpers
 export const clamOpen = (cl, beat) => Math.floor(beat) % cl.every === cl.off;
@@ -143,7 +146,9 @@ export function eelExt(e) {
 // Ride pearls: when each enters (s) and on which row.
 function ridePearls() {
   const rows = [1, 1, 0, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 0, 1];
-  const high = new Set([4, 9, 13]);
+  // pearls to leap for float only above the top row (film), where they read
+  // clearly against the open water
+  const high = new Set(FILM ? [3, 8, 13] : [4, 9, 13]);
   return rows.map((row, i) => ({ at: 1.6 + i * 1.05, row, high: high.has(i), got: false }));
 }
 const newRide = () => ({ x: RIDE.boatX, row: 1, from: 1, rowT: 1, leapT: 0, pearls: ridePearls() });
@@ -576,7 +581,7 @@ function stepRide(st, dt, input) {
   const row = rideEffRow(r), h = rideLeapH(r);
   for (const p of r.pearls) {
     if (p.got || rt < p.at) continue;
-    if (p.row === row && Math.abs(ridePearlX(p, rt) - r.x) < 55 && (!p.high || h >= RIDE.highAt)) {
+    if (p.row === row && Math.abs(ridePearlX(p, rt) - r.x) < RIDE.catchX && (!p.high || h >= RIDE.highAt)) {
       p.got = true; st.pearls++; st.score += 25;
       st.events.push({ type: 'ridePearl', row: p.row, high: p.high });
     }

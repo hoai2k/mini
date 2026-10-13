@@ -9,6 +9,7 @@ import {
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { FILM } from '../theme.js';
 import { card } from './tableau.js';
+import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const FLOOR_TOP = 404;
 const BC_H = 900;               // drawn height of the delivered backcloth
@@ -52,35 +53,53 @@ export function draw(k, st, t) {
 
 // The film's passage (tableaux 19-21): he walks through the lobster palace,
 // past its guards' claws, the sea flora and the azure grotto, each set
-// dissolving into the next and the last into Neptune's court.
-const TSETS = ['lobster-palace', 'sea-flora', 'azure-grotto'];
-const TNAMES = ['The Lobster Palace', 'The Sea Flora', 'The Azure Grotto'];
+// then the sea flora, dissolving into Neptune's court.
+const TSETS = ['lobster-palace'];
+const TNAMES = ['The Lobster Palace'];
+const TSUBS = ['Hold [X] to bow past the guards · leap with [A] for the pearls'];
+const BOW_H = 160 * 300 / 360;   // prince-crouch (240 x 300) at the standing pose's scale
 function transformation(k, st, t) {
   const c = k.c, f = st.tf, P = PASSAGE;
   if (!f) return;
-  if (!k.asset(TSETS[f.set], 640, 720, 1280, 720)) { c.fillStyle = k.col(['#5a3a4a', '#4a6a5a', '#2a5a7a'][f.set]); c.fillRect(0, 0, 1280, 720); }
-  if (f.set === 0) for (const g of P.guards) {
-    const open = guardOpen(g, f.t);
+  if (!k.asset(TSETS[f.set], 640, 720, 1280, 720)) { c.fillStyle = k.col('#5a3a4a'); c.fillRect(0, 0, 1280, 720); }
+  for (const g of P.guards) {
+    const open = guardOpen(g, f), near = Math.abs(f.x - g.x) < P.notice;
     c.save(); c.translate(g.x, P.y + 4);
     if (!k.asset(open ? 'lobster-guard-open' : 'lobster-guard-closed', 0, 0, 230, 156)) { c.fillStyle = k.col('#c8321e'); c.fillRect(-30, -140, 60, 140); }
     c.restore();
-    // a red bar across the way while the claws are shut
-    if (!open) { c.save(); c.globalAlpha = 0.35; c.fillStyle = k.col('#c8321e'); c.fillRect(g.x - P.guardW / 2, P.y - 170, P.guardW, 170); c.restore(); }
+    // coming up on a guard upright: he is about to snap
+    if (near && !open && f.x < g.x && f.knockT <= 0 && f.t > 1) prompt(k, 'Hold [X] to bow', g.x, P.y - 200, '#ffb0a0');
   }
-  if (f.set === 1) P.pearls.forEach(([px, py], i) => {
+  P.pearls.forEach(([px, py], i) => {
     if (f.got.includes(i)) return;
-    if (!k.asset('pearl', px, py + 14, 30, 30)) { c.fillStyle = k.col('#f7f2fa'); k.circle(px, py, 10); }
+    const bob = Math.sin(t * 2.4 + i) * 4;
+    c.save(); c.globalAlpha = 0.28 + 0.14 * Math.sin(t * 4 + i); c.fillStyle = k.col('#fff2b0'); k.circle(px, py + bob, 24); c.restore();
+    if (!k.asset('pearl', px, py + 14 + bob, 30, 30)) { c.fillStyle = k.col('#f7f2fa'); k.circle(px, py + bob, 10); }
   });
-  // the prince (the recast sailor sprites)
+  // the prince: bowing past the guards, leaping for pearls, else walking
   const moving = Math.abs(f.vx) > 20, step = walkFrame('sailor', f.walk, 34);
-  c.save(); c.translate(f.x, P.y); c.scale(f.face, 1);
-  if (!k.asset(f.knockT > 0 ? 'sailor-fall' : moving ? step : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
+  c.save(); c.translate(f.x, P.y - (f.lift || 0)); c.scale(f.face, 1);
+  if (f.knockT > 0) k.asset('sailor-fall', 0, 0, 98, 160);
+  else if (f.bow && k.img('sailor-crouch')) k.asset('sailor-crouch', 0, Math.sin(f.walk / 14) * 1.5, 98, BOW_H);
+  else if (f.lift > 0 && k.img('sailor-leap')) k.asset('sailor-leap', 0, 0, 98, 160);
+  else if (!k.asset(moving ? step : 'sailor-stand', 0, 0, 98, 160)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -120, 28, 120); }
   c.restore();
   // the way on glows at the right
   c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(P.exit + 40, P.y - 90, 40, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  const sub = f.set === 0 ? 'Walk on past the guards while their claws are open' : f.set === 1 ? 'Gather the pearls among the sea flowers' : 'On into Neptune\u2019s court';
-  if (f.fade === 0) card(k, TNAMES[f.set], sub, Math.min(1, clamp((f.t - 0.2) / 0.5, 0, 1)) * (f.set === 0 && f.t > 6 ? 0 : 1) * (f.set > 0 && f.x > 600 ? 0 : 1), { y: 92 });
+  if (f.x > P.guards[P.guards.length - 1].x) prompt(k, f.got.length ? `Pearls ${f.got.length} of ${P.pearls.length}` : 'Leap with [A] for the pearls', 900, 230, '#f3c6dc');
+  if (f.fade === 0) card(k, TNAMES[f.set], TSUBS[f.set].replace(/\[(\w)\]/g, '$1'), Math.min(1, clamp((f.t - 0.2) / 0.5, 0, 1)) * (f.t > 4.5 ? clamp((5.2 - f.t) / 0.7, 0, 1) : 1), { y: 92 });
+  if (f.fade === 0 && f.t > 4.5) prompt(k, TSUBS[f.set], 640, 150, '#f3c6dc');
   if (f.fade > 0) k.wash('#000000', Math.sin(Math.PI * f.fade / P.fade));
+}
+// A short instruction on a plum label (button glyphs from [A], [X]).
+function prompt(k, text, x, y, col = '#f3c6dc') {
+  const c = k.c;
+  c.save(); c.font = '700 18px "Josefin Sans", sans-serif'; c.textAlign = 'center';
+  const w = c.measureText(text.replace(/\[(\w+)\]/g, 'XX')).width + 48;
+  c.globalAlpha = 0.85; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(x - w / 2, y - 24, w, 34, 17); c.fill();
+  c.globalAlpha = 1; c.fillStyle = k.col(col);
+  richText(c, text, x, y, { px: 18, mode: k.inputMode || 'key', col: k.col });
+  c.restore();
 }
 
 export function drawOver(k, st) {
@@ -90,8 +109,9 @@ export function drawOver(k, st) {
 
 export function onEvent(k, e, st) {
   if (st.tf) {
-    if (e.type === 'pearl') k.burst(e.x, e.y, '#eef3ea', 8, 'sparkle');
-    if (e.type === 'clawSnap') { k.shake(0.35); k.burst(e.x, PASSAGE.y - 90, '#c8321e', 12, 'streak'); }
+    if (e.type === 'pearl') { k.burst(e.x, e.y, '#eef3ea', 12, 'sparkle'); k.text('+10', e.x, e.y - 40); }
+    if (e.type === 'clawSnap') { k.shake(0.35); k.burst(e.x, PASSAGE.y - 90, '#c8321e', 12, 'streak'); k.text('Bow to pass!', e.x, PASSAGE.y - 230); }
+    if (e.type === 'bow') k.burst(st.tf.x, PASSAGE.y - 120, '#fff2b0', 4, 'sparkle');
     return;
   }
   if (e.x != null) e = { ...e, x: e.x - st.cam };

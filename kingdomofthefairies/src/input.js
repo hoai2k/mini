@@ -48,6 +48,8 @@ export function createInput(target = window) {
       moveY: (k('ArrowDown', 'KeyS') ? 1 : 0) - (k('ArrowUp', 'KeyW') ? 1 : 0) + (tc?.moveY || 0),
       // The action button held (A, Space, Z, J or touch Leap).
       aHeld: k('Space', 'KeyZ', 'KeyJ') || !!tc?.aHeld,
+      // X held (the X key, pad X, or touch B held): bowing past the guards.
+      xHeld: k('KeyX') || !!tc?.bHeld,
       up: ke('ArrowUp', 'KeyW') || te('up'),
       down: ke('ArrowDown', 'KeyS') || te('down'),
       left: ke('ArrowLeft', 'KeyA') || te('left'),
@@ -92,6 +94,7 @@ export function createInput(target = window) {
       if (edges[BTN.A]) { s.leap = true; s.padA = true; }
       if (edges[BTN.B]) { s.back = true; s.padB = true; }
       if (edges[BTN.X]) s.padX = true;
+      if (now[BTN.X] && !h.has(BTN.X)) s.xHeld = true;
       if (edges[BTN.MENU]) { s.pause = true; s.padStart = true; }
       if (edges[BTN.UP]) s.up = true;
       if (edges[BTN.DOWN]) s.down = true;

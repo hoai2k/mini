@@ -1,15 +1,15 @@
 // Three editions, chosen by the query (headless tests: KOTF_EDITION, the same
 // names; unset means the default):
-// - the default (no ?widowsbay, or any value but on/off): the original five
-//   acts under the new title, with no band, song or guitar (new art fills
-//   their places, PARTIAL_CAST);
-// - ?widowsbay=off: the film edition, following Méliès's 1903 film
+// - the default (no ?widowsbay, ?widowsbay=off, or any value but on and
+//   partial): the film edition, following Méliès's 1903 film
 //   (design/film-adaptation.md), with a prologue and six acts;
+// - ?widowsbay=partial: the original five acts under the new title, with no
+//   band, song or guitar (new art fills their places, PARTIAL_CAST);
 // - ?widowsbay=on: the preserved music-video edition.
 const query = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('widowsbay') : null;
 const env = typeof process !== 'undefined' ? process.env?.KOTF_EDITION : undefined;
-export const editionOf = (q) => ({ off: 'film', film: 'film', on: 'widowsbay' }[String(q ?? '').toLowerCase()] || 'partial');
-export const EDITION = env ? (['widowsbay', 'partial', 'film'].includes(env) ? env : 'partial') : editionOf(query);
+export const editionOf = (q) => ({ on: 'widowsbay', partial: 'partial', classic: 'partial' }[String(q ?? '').toLowerCase()] || 'film');
+export const EDITION = env ? (['widowsbay', 'partial', 'film'].includes(env) ? env : 'film') : editionOf(query);
 // The film edition's cast look: the hand-tinted alternates (design/
 // character-audit.md, image requests F8) by default, or ?look=original for
 // the first, cleaner art. Settings › Cast look changes it too.

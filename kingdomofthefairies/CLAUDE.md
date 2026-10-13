@@ -1,12 +1,13 @@
 # Kingdom of the Fairies: development direction
 
-- The film edition (`?widowsbay=off`) follows Georges Méliès’s 1903 silent-film direction.
+- The film edition (the default, or `?widowsbay=off`) follows Georges Méliès’s 1903 silent-film direction.
   Read `design/film-story.md`, `design/acts.md` and `design/image-requests.md`.
   Aurora, the water fairy and the hostile witch are distinct characters.
 - Preserve gameplay unless a requested update explicitly changes it. Existing
   adaptation mechanics must not be described as canonical film events.
-- Three editions (README.md): the default (partial: the original five acts with
-  no band, song or guitar), `?widowsbay=off` (the film edition) and
+- Three editions (README.md): the default (the film edition, also
+  `?widowsbay=off`), `?widowsbay=partial` (the original five acts with no
+  band, song or guitar) and
   `?widowsbay=on` (the preserved original). Run the original acts' suites under
   `KOTF_EDITION=widowsbay` and `KOTF_EDITION=partial`, and the film suite under
   `KOTF_EDITION=film`. `?edit=local` sets each edition's unlocks in the browser.

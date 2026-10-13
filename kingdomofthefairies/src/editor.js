@@ -8,8 +8,8 @@
 import { STORAGE_PREFIXES, EDITION } from './theme.js';
 
 const EDITIONS = [
-  { id: 'partial', name: 'Kingdom of the Fairies (default)', query: '', acts: ['Act I · The Crossing', "Act II · The Sleepers' Grotto", "Act III · The Sea King's Court", "Act IV · The Whale's Road", 'Act V · The Enchanted Tower'] },
-  { id: 'film', name: 'The film edition', query: '?widowsbay=off', acts: ['Prologue · The Betrothal', 'Act I · The Royal Crossing', 'Act II · The Water Fairy', "Act III · Neptune's Court", "Act IV · The Whale's Passage", 'Act V · The Enchanted Tower', 'Act VI · The Burning Tower'] },
+  { id: 'film', name: 'The film edition (default)', query: '', acts: ['Prologue · The Betrothal', 'Act I · The Royal Crossing', 'Act II · The Water Fairy', "Act III · Neptune's Court", "Act IV · The Whale's Passage", 'Act V · The Enchanted Tower', 'Act VI · The Burning Tower'] },
+  { id: 'partial', name: 'Kingdom of the Fairies, classic', query: '?widowsbay=partial', acts: ['Act I · The Crossing', "Act II · The Sleepers' Grotto", "Act III · The Sea King's Court", "Act IV · The Whale's Road", 'Act V · The Enchanted Tower'] },
   { id: 'widowsbay', name: "Widow's Bay", query: '?widowsbay=on', acts: ['Act I · The Crossing', "Act II · The Sleepers' Grotto", "Act III · The Sea King's Court", "Act IV · The Whale's Road", "Act V · Widow's Bay"] },
 ];
 // The dropdown's levels for an edition: value = how many acts are open

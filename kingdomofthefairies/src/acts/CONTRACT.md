@@ -86,7 +86,8 @@ in Act II.
   cancelling. Escape is pause and never reaches the act.
 - `x`: a fresh press of pad X, or the X key (or touch B). Use it for taking
   or using something within reach (Act II's dive). The X key and touch B also
-  reach `b`, so an act reads one or the other in a given moment.
+  reach `b`, so an act reads one or the other in a given moment. `xHeld`:
+  X held (Act III's bow).
 - `beat`: the song's beat as a running number (`audio.beat()`). Its
   fraction is the phase within the beat. Use `beatHit(input.beat)` for
   on-beat presses, and `beatPhase` to make machinery move on the beat. Don't

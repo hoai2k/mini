@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 const manifest = JSON.parse(await readFile(new URL('../assets/manifest.json', import.meta.url)));
 const original = JSON.stringify(manifest);
 delete process.env.KOTF_EDITION;
-for (const [search, edition] of [['', 'partial'], ['?qa', 'partial'], ['?widowsbay', 'partial'], ['?qa&widowsbay=', 'partial'],
-  ['?widowsbay=1', 'partial'], ['?widowsbay=partial', 'partial'], ['?qa&widowsbay=Partial', 'partial'],
+for (const [search, edition] of [['', 'film'], ['?qa', 'film'], ['?widowsbay', 'film'], ['?qa&widowsbay=', 'film'],
+  ['?widowsbay=1', 'film'], ['?widowsbay=partial', 'partial'], ['?qa&widowsbay=Partial', 'partial'],
   ['?widowsbay=off', 'film'], ['?qa&widowsbay=OFF', 'film'], ['?widowsbay=on', 'widowsbay'], ['?qa&widowsbay=On', 'widowsbay']]) {
   const legacy = edition === 'widowsbay';
   globalThis.location = { search };

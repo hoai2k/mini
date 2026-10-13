@@ -22,13 +22,19 @@ export const START = { row: 2, x: 200 };
 export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR). The
 // throne stands on the backcloth's painted dais, which is centred on it.
-// The film edition's opening passage: three sets walked left to right (stage
-// px, feet at y). Each lobster guard's claws open and shut across the way.
+// The film edition's opening passage: one walk through the lobster palace,
+// left to right (stage px, feet at y). He bows (hold X, or down) to pass each
+// guard, who opens his claws for a bowing prince and catches one who
+// straightens up before him; beyond them he leaps (A) for the pearls hung
+// above his head among the sea flowers.
 export const PASSAGE = {
   y: 640, x0: 190, exit: 1190, walk: 250, acc: 2000, fade: 0.6, hw: 18, knock: 300,
-  guards: [{ x: 520, phase: 0 }, { x: 900, phase: 1.3 }], open: 1.7, shut: 1.3, guardW: 70,
-  pearls: [[420, 470], [640, 400], [860, 470]],
+  guards: [{ x: 430 }, { x: 650 }], guardW: 70, notice: 190, bowWalk: 0.45,
+  jump: 760, g: 2000, head: 150,
+  // beyond the guards; one leap at a walk carries him ~190 px
+  pearls: [[810, 380], [960, 362], [1090, 380]], grab: 44,
 };
+export const PASSAGE_SETS = 1;
 export const TRANSFORM = PASSAGE.fade;
 export const THRONE_BX = 800, WITCH_BX = 965, LANTERN_BX = 600;
 export const DAIS_Y = 372;                      // where the throne stands
@@ -169,6 +175,8 @@ export default {
     : "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
   action: 'A: hide',
   scenes: SCENES,
+  // touch: B held bows past the lobster guards (film passage)
+  needB: (st) => !!(FILM && st.tf),
 
   // `from`: null, { scene } (scene select) or a checkpoint this act made
   // ({ scene, x, row, got, score, pearls, stats }).
@@ -193,8 +201,8 @@ export default {
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
     // The film edition opens with the passage of tableaux 19-21: he walks
-    // through the lobster palace (past its guards' claws), the sea flora and
-    // the azure grotto into Neptune's court (stepPassage). Not on a resume.
+    // through the lobster palace, bowing past its guards and leaping for its
+    // pearls, into Neptune's court (stepPassage). Not on a resume.
     if (FILM && k <= 0 && !(from && from.x != null)) startPassage(st);
     if (k <= 0 && !(from && from.x != null)) return st;
     // Resume: stand in the scene's groove, lanterns full, hazards afresh but fair.
@@ -287,9 +295,13 @@ function beatMachinery(st, emit) {
 
 function onBeat(st, n, emit) {
   let stepped = false;
+  const p = st.p;
   for (const c of st.courtiers) {
     c.x0 = c.x1;
     if (c.pat[((n % c.pat.length) + c.pat.length) % c.pat.length] !== 'S') continue;
+    // (film) the courtier he poses behind holds still, so his cover holds
+    if (FILM && p.frozen && c.kind !== 'guard' && c.row === p.row && Math.abs(c.x - p.x) < TUNE.cover * ROWSCALE[p.row]) { c.held = true; continue; }
+    c.held = false;
     let nx = c.x1 + c.dir * c.step;
     if (nx < c.a || nx > c.b) { c.dir = -c.dir; nx = c.x1 + c.dir * c.step; }
     c.x1 = nx; stepped = true;
@@ -442,10 +454,11 @@ function hit(st, cause, emit) {
 // ---------------------------------------------------------------- the passage (film)
 function startPassage(st) {
   st.transform = 0;
-  st.tf = { set: 0, x: 215, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0 };
+  st.tf = { set: 0, x: 215, vx: 0, face: 1, walk: 0, knockT: 0, fade: 0, got: [], t: 0, bow: false, lift: 0, vy: 0, caught: 0 };
 }
-// A guard's claws: open (passable) or shut across the way.
-export const guardOpen = (g, t) => ((t + g.phase) % (PASSAGE.open + PASSAGE.shut)) < PASSAGE.open;
+// A guard opens his claws for a bowing prince near him; otherwise they are
+// shut across the way.
+export const guardOpen = (g, f) => f.bow && Math.abs(f.x - g.x) < PASSAGE.notice;
 function stepPassage(st, dt, input) {
   const P = PASSAGE, f = st.tf;
   st.transform += dt; f.t += dt;
@@ -453,28 +466,44 @@ function stepPassage(st, dt, input) {
     f.fade += dt;
     if (f.fade >= P.fade) {
       f.fade = 0;
-      if (f.set >= 2) { st.transform = null; st.tf = null; st.events.push({ type: 'courtOpens' }); return; }
-      f.set++; f.x = P.x0 + 40; f.vx = 0;
+      if (f.set >= PASSAGE_SETS - 1) { st.transform = null; st.tf = null; st.events.push({ type: 'courtOpens' }); return; }
+      f.set++; f.x = P.x0 + 40; f.vx = 0; f.bow = false;
       st.events.push({ type: 'passageSet', set: f.set });
     }
     return;
   }
   f.knockT = Math.max(0, f.knockT - dt);
+  // the palace: bow (X held, or down) to pass the guards, at a shuffle
+  const wasBow = f.bow;
+  f.bow = f.knockT <= 0 && f.lift === 0 && (!!input.xHeld || (input.moveY || 0) > 0.5);
+  if (f.bow && !wasBow) st.events.push({ type: 'bow' });
   const mx = f.knockT > 0 ? 0 : clamp(input.moveX || 0, -1, 1);
   if (Math.abs(mx) > 0.15) f.face = Math.sign(mx);
-  f.vx += clamp(mx * P.walk - f.vx, -P.acc * dt, P.acc * dt);
+  f.vx += clamp(mx * P.walk * (f.bow ? P.bowWalk : 1) - f.vx, -P.acc * dt, P.acc * dt);
   let nx = clamp(f.x + f.vx * dt, P.x0, P.exit + 20);
   if (f.set === 0) for (const g of P.guards) {
-    const shut = !guardOpen(g, f.t), inside = Math.abs(nx - g.x) < P.guardW / 2 + P.hw;
-    if (shut && inside) {
-      // caught in the claws as they shut: knocked back; shut ahead: blocked
-      if (Math.abs(f.x - g.x) < P.guardW / 2 + P.hw) { f.knockT = 0.5; f.vx = -P.knock; nx = g.x - P.guardW / 2 - P.hw - 30; st.events.push({ type: 'clawSnap', x: g.x }); }
-      else nx = f.x;
+    const inside = Math.abs(nx - g.x) < P.guardW / 2 + P.hw;
+    if (inside && !f.bow) {
+      // upright before a guard: his claws shut on him and throw him back
+      f.knockT = 0.6; f.vx = 0; f.caught++;
+      nx = g.x - P.guardW / 2 - P.hw - 50;
+      st.events.push({ type: 'clawSnap', x: g.x });
     }
   }
   f.x = nx; f.walk += Math.abs(f.vx) * dt;
-  if (f.set === 1) P.pearls.forEach(([px, py], i) => {
-    if (!f.got.includes(i) && Math.abs(px - f.x) < 50) { f.got.push(i); st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: px, y: py }); }
-  });
+  // A leaps (not while bowing) for the pearls above his head
+  {
+    if (f.lift === 0 && f.vy === 0 && input.a && !f.bow) { f.vy = P.jump; st.events.push({ type: 'leap' }); }
+    if (f.vy !== 0 || f.lift > 0) {
+      f.lift += f.vy * dt; f.vy -= P.g * dt;
+      if (f.lift <= 0) { f.lift = 0; f.vy = 0; }
+    }
+    const top = P.y - P.head - f.lift;   // the top of his head
+    P.pearls.forEach(([px, py], i) => {
+      if (!f.got.includes(i) && Math.abs(px - f.x) < P.grab && top < py + 16) {
+        f.got.push(i); st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: px, y: py, n: f.got.length });
+      }
+    });
+  }
   if (f.x >= P.exit) f.fade = 0.0001;
 }
