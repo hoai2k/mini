@@ -182,12 +182,19 @@ def slice_sheet(s: dict, hand: dict):
     return [cut(rgba, lab, centres, it) for it in items], how
 
 
+def ignore_missing_sidecar(_function, _path, exc_info):
+    # On macOS external drives, unlinking a file may also remove its ._ sidecar
+    # before rmtree reaches that directory entry. Other errors must still fail.
+    if not isinstance(exc_info[1], FileNotFoundError):
+        raise exc_info[1]
+
+
 def main() -> int:
     write = "--check" not in sys.argv
     hand = json.loads(SLICES.read_text()) if SLICES.exists() else {}
     manifest, problems = {"sheets": {}, "images": {}}, []
     if write and WEB.exists():
-        shutil.rmtree(WEB)
+        shutil.rmtree(WEB, onerror=ignore_missing_sidecar)
     for s in sheets():
         if not (GAME / s["file"]).exists():
             continue

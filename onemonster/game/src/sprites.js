@@ -2448,6 +2448,63 @@ export const SPRITES = {
     }
    ]
   },
+  "adv.b05.windmill": {
+   "names": [
+    "the windmill tower on its island, no sails",
+    "the four sails alone, hub in the centre"
+   ],
+   "scale": 0.33613,
+   "items": [
+    {
+     "src": "sprites/adv/b05/windmill/01.webp",
+     "w": 360,
+     "h": 313
+    },
+    {
+     "src": "sprites/adv/b05/windmill/02.webp",
+     "w": 291,
+     "h": 292
+    }
+   ]
+  },
+  "adv.b03.boats": {
+   "names": [
+    "a teal fishing boat like the Peg",
+    "a red fishing boat with a crane and net"
+   ],
+   "scale": 0.34286,
+   "items": [
+    {
+     "src": "sprites/adv/b03/boats/01.webp",
+     "w": 360,
+     "h": 244
+    },
+    {
+     "src": "sprites/adv/b03/boats/02.webp",
+     "w": 301,
+     "h": 250
+    }
+   ]
+  },
+  "adv.trunks": {
+   "names": [
+    "a plain trunk section",
+    "a trunk section with a hollow through it"
+   ],
+   "scale": 0.17604,
+   "items": [
+    {
+     "src": "sprites/adv/trunks/01.webp",
+     "w": 87,
+     "h": 360
+    },
+    {
+     "src": "sprites/adv/trunks/02.webp",
+     "w": 102,
+     "h": 360
+    }
+   ]
+  },
   "cast": {
    "names": [
     "Sally Ann at her window, looking out",
@@ -2644,6 +2701,16 @@ export const SPRITES = {
    "w": 1024,
    "h": 1024
   },
+  "bombanat/plain-perched": {
+   "src": "sprites/bombanat/plain-perched.webp",
+   "w": 720,
+   "h": 720
+  },
+  "adv/b07/palm-arch": {
+   "src": "sprites/adv/b07/palm-arch.webp",
+   "w": 1400,
+   "h": 700
+  },
   "howto/ch01-1": {
    "src": "sprites/howto/ch01-1.webp",
    "w": 1024,
@@ -2731,6 +2798,51 @@ export const SPRITES = {
   },
   "howto/ch06-3": {
    "src": "sprites/howto/ch06-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch07-1": {
+   "src": "sprites/howto/ch07-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch07-2": {
+   "src": "sprites/howto/ch07-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch07-3": {
+   "src": "sprites/howto/ch07-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch08-1": {
+   "src": "sprites/howto/ch08-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch08-2": {
+   "src": "sprites/howto/ch08-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch08-3": {
+   "src": "sprites/howto/ch08-3.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch09-1": {
+   "src": "sprites/howto/ch09-1.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch09-2": {
+   "src": "sprites/howto/ch09-2.webp",
+   "w": 1024,
+   "h": 768
+  },
+  "howto/ch09-3": {
+   "src": "sprites/howto/ch09-3.webp",
    "w": 1024,
    "h": 768
   },
@@ -2873,51 +2985,6 @@ export const SPRITES = {
    "src": "sprites/scenes/trollusk-front.webp",
    "w": 1920,
    "h": 1080
-  },
-  "howto/ch07-1": {
-   "src": "sprites/howto/ch07-1.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch07-2": {
-   "src": "sprites/howto/ch07-2.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch07-3": {
-   "src": "sprites/howto/ch07-3.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch08-1": {
-   "src": "sprites/howto/ch08-1.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch08-2": {
-   "src": "sprites/howto/ch08-2.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch09-1": {
-   "src": "sprites/howto/ch09-1.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch08-3": {
-   "src": "sprites/howto/ch08-3.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch09-2": {
-   "src": "sprites/howto/ch09-2.webp",
-   "w": 1024,
-   "h": 768
-  },
-  "howto/ch09-3": {
-   "src": "sprites/howto/ch09-3.webp",
-   "w": 1024,
-   "h": 768
   }
  }
 };

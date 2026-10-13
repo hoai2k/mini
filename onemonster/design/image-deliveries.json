@@ -3054,9 +3054,8 @@
       "size": "1024 x 768, opaque",
       "prompt": "Use case: stylized-concept. New friendly cartoon game instruction vignette on opaque warm cream paper, 1024 x 768, 4:3, edges fade to cream. A group of three little shaggy bat-winged creatures flies above glossy blue bubbley water. Two are plain brown-furred creatures with mauve wings, pink long toothy snouts and curling pink tails, without hats, ties or envelopes. Exactly one special creature wears the red propeller cap and red-and-white striped necktie and holds the ONLY white envelope in its teeth while dipping low near the surface. Match their design to the attached canonical character images. Dense wiry pen-and-ink crosshatching with muted watercolor washes, clearly readable small. No other creatures, people, letters, text, labels, numbers or frame.",
       "references": [
-        "onemonster/game/assets/monsters/grumley/model-sheet.png",
         "onemonster/game/assets/monsters/bombanat/model-sheet.png",
-        "/Users/hoai/.codex/generated_images/01a135e6-d79a-7bf3-a07f-f8847b7a5273/exec-68501d10-bda6-4c45-b5e7-9a421d96b200.png"
+        "onemonster/game/assets/monsters/bombanat/plain.png"
       ],
       "generator": "built-in image_gen",
       "source_size": [
@@ -3544,6 +3543,22 @@
       "59 existing game tests passed",
       "Browser walkthrough in installed Chrome: all nine chapters, pause/resume, celebrations and two-player mode; no errors"
     ],
-    "integration_note": "Adventure source artwork delivered at the requested game/assets paths. The Adventure is currently a design proposal; its renderer and sprite slicing are pending. Existing minigame web sprites are unchanged. Backdrops match neighboring palettes and need the edge blending specified in their requests."
+    "integration_note": "Adventure source artwork delivered at all requested paths. Exported by tools/build_sprites.py for the Adventure and minigames; the shared main now includes playable Adventure boards. Backdrop edges use the blending specified in their requests."
+  },
+  "additional_delivery": {
+    "date": "2026-10-13",
+    "howto_illustrations": 27,
+    "audit_assets": 9,
+    "verification": [
+      "Visual review and corrections of all new illustrations and sprites",
+      "All 143 delivered source assets decode and match SHA-256 records",
+      "New canvases match requested dimensions; transparent PNGs retain alpha",
+      "195 game tests passed after syncing Adventure and updated minigames",
+      "Minigame browser walkthrough: all nine chapters and two-player play, no errors",
+      "All 460 exported sprites decode and match manifest dimensions",
+      "Sprite build completed; existing exports with identical decoded pixels preserved",
+      "All nine Adventure boards played in wide and phone browser views with no errors; screenshots reviewed"
+    ],
+    "integration_note": "How-to illustrations exported under game/sprites/howto/. Remaining Adventure/audit art exported by tools/build_sprites.py using reviewed slices."
   }
 }

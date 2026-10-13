@@ -43,8 +43,9 @@ five terrain sheets in `game/assets/adventure/terrain/`, and three backdrop
 panels plus a prop sheet for each of the nine boards in `game/assets/adventure/bNN/`.
 The prompts, corrections, source dimensions and final checksums are recorded in
 `design/image-deliveries.json`. Generated images were resized to the requested
-canvases, preserving PNG alpha. Adventure gameplay and slicing these new sheets
-into web sprites are still pending; the existing minigames use their current sprites.
+canvases, preserving PNG alpha. The 27 how-to-play illustrations and nine audit
+requests are delivered too. `tools/build_sprites.py` exports the source artwork
+into the web sprites used by the Adventure and minigames.
 
 | File | What it is |
 | --- | --- |
