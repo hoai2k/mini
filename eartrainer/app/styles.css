@@ -349,3 +349,17 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { touch-ac
   .strip.sliding { transition-duration: .15s; }
   .rotate-icon { transform: rotate(-90deg); }
 }
+
+/* Your ears */
+.ears-now { margin: 4px 0 12px; font: 500 17px var(--display); }
+.ears-group { margin: 14px 0 6px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ears-row { display: grid; grid-template-columns: minmax(120px, 1.3fr) 2fr 64px; gap: 10px; align-items: center; padding: 4px 0; }
+.ears-row .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ears-row .bar { height: 10px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.ears-row .bar i { display: block; height: 100%; border-radius: 6px; background: var(--brass); }
+.ears-row.weak .nm { color: var(--brass); font-weight: 600; }
+.ears-row.weak .bar i { background: #e2735b; }
+.ears-row.thin { opacity: .5; }
+.ears-row .lv { font-size: 13px; color: var(--muted); text-align: right; }
+.ears-list { margin: 4px 0; padding-left: 18px; } .ears-list li { margin: 3px 0; }
+.ears-note { color: var(--muted); font-size: 14px; }

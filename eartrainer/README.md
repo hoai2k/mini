@@ -77,6 +77,51 @@ works on tablets and desktops too. Inspired by the Chet ear-training app.
   its key, and its range. The tests pin familiar anchors (Hot Cross Buns and
   Jaws are level 1, Ode to Joy 3, Für Elise 5) and check every level holds a
   fair share of the library (about 20%, 31%, 30%, 12% and 6%).
+- **Your ears** (`src/skills.js`): the app learns what you find hard.
+  - Every step from note to note exercises skills:
+    - its interval (half step to octave, either way);
+    - which way the line moves;
+    - notes outside the key, minor keys, long melodies (the 9th note on) and
+      fast notes;
+    - the right octave.
+  - Only your first press at each note counts, and only on a melody's first
+    try. A wrong first press is also named as a mix-up, e.g. "major 3rd up,
+    played as minor 3rd up".
+  - Recent play counts most. A result loses half its weight every 8 hours,
+    and every 4 newer results. So a skill you got right today isn't treated
+    as weak for yesterday's slips.
+  - Each skill also has its own level: the melody level you hear it reliably
+    at. A clean result at or above that level raises it a little; a slip
+    lowers it to below where you slipped.
+  - The **Your ears** page shows it all: on the songbook page and in the menu.
+- **Adaptive** uses those skill levels.
+  - Most picks give your weakest skill melodies at the lowest level you slip
+    at.
+  - The rest are fair melodies: none asks any skill for more than its level
+    allows.
+  - Each skill rises on its own.
+- **Focus** (`src/coach.js`, drills in `src/drills.js`) works on one weak
+  skill at a time:
+  1. **Test:** a real melody that uses the skill, at its level.
+  2. **Drills** if it slips: short made-up exercises in four steps. Step 1 is
+     the interval there and back; step 4 has it twice inside a little tune. A
+     clean drill moves a step harder, a slip a step easier.
+  3. **Check:** after clean drills up to step 3, a *different* real melody of
+     the same kind.
+  4. A clean check after a slip is a **turnaround**. That is the measure of
+     whether Focus works; they're listed on Your ears.
+  5. Three clean results in a row, from at least two melodies, with good
+     recent accuracy, make the skill reliable. Focus moves on to the next
+     weakness.
+  6. A skill that hasn't come round after 14 drills is rested for later.
+  - Every third pick is something else (a melody without the skill, or a
+    look back at one fixed earlier), so you learn the sound rather than the
+    exercise.
+  - `test/coach.test.mjs` checks this with simulated players:
+    - with each of six weak skills, Focus works on the weakness (in 17 of 18
+      runs, first), drills it up and down, turns it around on a different
+      melody, and makes it reliable;
+    - a player who never improves gets no turnarounds and isn't called fixed.
 - Full songs, a choice beside the levels, plays whole songs phrase by phrase.
   - Each phrase is answered like any melody. Once it's played cleanly, the
     song's next phrase follows; the top bar counts the phrases (3/7).
