@@ -596,6 +596,7 @@ function begin() {
     versus,
     gentle,
     skill: Math.max(0.1, skill),
+    inputKind: input.kind, // for in-world button prompts (prompt.js)
   });
   $('#hud-chapter').textContent = `${isAdv() ? 'Board ' : ''}${c.n} · ${c.title}`;
   show('play');

@@ -17,6 +17,8 @@
 //     gentle: [bool, bool]      Gentle mode for [snatcher, holder]
 //     skill: 0..1               the computer holder's skill (rises in the
 //                               journey; lower in Gentle mode)
+//     inputKind                 'controller' | 'keyboard' | 'touch': name the
+//                               right button in prompts (src/prompt.js)
 //   }
 //
 //   chapter = {
