@@ -617,7 +617,18 @@ export default function create(env) {
   // scenes/trollusk, without its mailbox and dustbin), mirrored every other tile.
   function drawBackdrop(g) {
     const panels = ['adv/b01/backdrop-1', 'adv/b01/backdrop-2', 'adv/b01/backdrop-3'];
-    if (panels.every((k) => art.image(k))) { kit.drawBackdrop(g, cam, { panels }); return; }
+    if (panels.every((k) => art.image(k))) {
+      kit.drawBackdrop(g, cam, { panels });
+      // backdrop-3 paints a mailbox on a post at (1210, 480–700): a hedge bush on the same layer hides it.
+      const step = W - 280, span = step * 2 + W;
+      const f = (span - W) / (WORLD - W);
+      const px = 2 * step - cam.x * f + 1212;
+      if (px > -200 && px < W + 200) {
+        const sp = art.sprite(PROPS, 11) || art.prop('trollusk', 5);
+        art.drawSprite(g, sp, px, 712, { height: 290 });
+      }
+      return;
+    }
     const lane = art.image('scenes/trollusk');
     const wood = art.image('scenes/bombanat');
     const off = cam.x * 0.3;
@@ -666,35 +677,8 @@ export default function create(env) {
 
   // Between the backdrop and the lane: the road where the mailman putters
   // along, and the grassy verge the kennel and the porch stand on.
-  const ROAD = { y0: 740, y1: 786 };
+  const ROAD = { y1: 786 };
   function drawRoad(g, tt) {
-    const x0 = cam.x - 50, x1 = cam.x + W + 50;
-    g.save();
-    // The road and the verge.
-    g.fillStyle = '#c9ab74'; g.fillRect(x0, ROAD.y0, x1 - x0, ROAD.y1 - ROAD.y0);
-    g.fillStyle = '#a4b35c'; g.fillRect(x0, ROAD.y1, x1 - x0, G - ROAD.y1 + 4);
-    g.strokeStyle = INK; g.lineWidth = 3.5;
-    g.beginPath(); g.moveTo(x0, ROAD.y0); g.lineTo(x1, ROAD.y0); g.moveTo(x0, ROAD.y1 + 2); g.lineTo(x1, ROAD.y1 + 2); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.28)'; g.lineWidth = 1.5;
-    g.beginPath();
-    for (let x = Math.floor(x0 / 46) * 46; x < x1; x += 46) { g.moveTo(x, ROAD.y0 + 8 + kit.hash(x) * 20); g.lineTo(x + 26, ROAD.y0 + 14 + kit.hash(x) * 20); }
-    g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
-    g.beginPath();
-    for (let x = Math.floor(x0 / 31) * 31; x < x1; x += 31) {
-      if (kit.hash(x * 1.9) < 0.5) continue;
-      const y = ROAD.y1 + 10 + kit.hash(x * 0.4) * 70;
-      g.moveTo(x, y + 10); g.lineTo(x - 3, y); g.moveTo(x + 5, y + 10); g.lineTo(x + 8, y - 2);
-    }
-    g.stroke();
-    g.fillStyle = '#f8f1e0'; g.strokeStyle = INK; g.lineWidth = 1.5;
-    for (let x = Math.floor(x0 / 90) * 90; x < x1; x += 90) {
-      if (kit.hash(x * 0.3) < 0.5) continue;
-      const y = ROAD.y1 + 20 + kit.hash(x) * 50;
-      for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; g.beginPath(); g.ellipse(x + Math.cos(a) * 6, y + Math.sin(a) * 6, 3.5, 2.5, a, 0, Math.PI * 2); g.fill(); g.stroke(); }
-      g.fillStyle = '#f2c53d'; g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill(); g.fillStyle = '#f8f1e0';
-    }
-    g.restore();
     if (!cam.sees(mailX - 120, mailX + 120)) return;
     const parked = self.done && self.outcome === 'kept';
     const bounce = parked ? 0 : Math.floor(tt * 7) % 2;
@@ -707,6 +691,8 @@ export default function create(env) {
       g.beginPath(); g.arc(x + 80 + k * 70, yy - 20 - k * 24, 10 + k * 14, 0, Math.PI * 2); g.fill();
     }
     g.restore();
+    g.save(); g.globalAlpha = 0.2; g.fillStyle = INK;
+    g.beginPath(); g.ellipse(x, ROAD.y1 + 4, 70, 9, 0, 0, Math.PI * 2); g.fill(); g.restore();
     if (!art.drawSprite(g, art.cast(7 + bounce), x, yy, { height: 150 })) {
       g.save(); g.fillStyle = '#b8443a'; ink(g); g.beginPath(); g.roundRect(x - 60, yy - 60, 120, 60, 14); g.fill(); g.stroke(); g.restore();
     }
@@ -762,19 +748,6 @@ export default function create(env) {
     const x0 = N.x - 200, x1 = N.x + 200, top = N.y;
     const PORCH = { w: 669, h: 215, top: 2, base: 211, platform: 0.72 }; // terrain.lane 5
     const pk = (G + 2 - top) / (PORCH.base - PORCH.top);
-    // The posts and the roof, behind the step.
-    g.save(); ink(g, 4);
-    woodPost(g, N.x - 300, G - 330, 22, 330); woodPost(g, N.x + 80, top - 330, 22, 330);
-    g.fillStyle = '#9b4b3a';
-    g.beginPath(); g.moveTo(N.x - 340, top - 330); g.lineTo(N.x + 130, top - 330); g.lineTo(N.x + 110, top - 390); g.lineTo(N.x - 320, top - 390); g.closePath(); g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(43,29,20,0.5)'; g.lineWidth = 2;
-    for (let y = top - 378; y < top - 332; y += 12) {
-      g.beginPath(); g.moveTo(N.x - 320 + (top - 330 - y) * 0.33, y); g.lineTo(N.x + 110 - (top - 330 - y) * 0.33, y); g.stroke();
-      for (let x = N.x - 310 + ((y / 12) % 2 ? 0 : 16); x < N.x + 110; x += 32) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 12); g.stroke(); }
-    }
-    ink(g, 4);
-    g.fillStyle = '#8a6a44'; g.fillRect(N.x - 340, top - 336, 470, 10); g.strokeRect(N.x - 340, top - 336, 470, 10);
-    g.restore();
     kit.sprite(g, TERRAIN, 5, N.x, G + 2 + (PORCH.h - PORCH.base) * pk, { height: PORCH.h * pk, ax: PORCH.platform, ay: 1 }, (g) => {
       g.save(); ink(g, 4);
       g.fillStyle = '#9b4b3a';
@@ -887,7 +860,22 @@ export default function create(env) {
   // ruts, pebbles and hatching until the strip arrives.
   function drawLane(g, s) {
     // The strip (1400 x 175): the grass meets the dirt at row 55, so the tufts stand that far above the surface.
-    if (art.sprite(TERRAIN, 1)) { kit.drawGround(g, cam, s, { sheet: TERRAIN, item: 1, height: 290, lift: 55 * (290 / 175), fill: '#a8865a' }); return; }
+    const strip = art.sprite(TERRAIN, 1);
+    if (strip) {
+      const k = 290 / 175, lift = 55 * k, tw = strip.w * k, ov = 150 * k, step = tw - ov;
+      const x0 = Math.max(s.x, cam.x - 40), x1 = Math.min(s.x + s.w, cam.x + W + 40);
+      g.save();
+      g.fillStyle = '#a8865a'; g.fillRect(x0, s.y + 290 - lift - 6, x1 - x0, H + 60 - (s.y + 290 - lift - 6));
+      g.beginPath(); g.rect(s.x, s.y - lift - 80, s.w, 290 + 160); g.clip();
+      const i0 = Math.floor((x0 - s.x) / step) - 1;
+      for (let i = i0; s.x + i * step < x1; i++) {
+        const x = s.x + i * step;
+        if (i % 2) art.drawSprite(g, strip, x + tw, s.y - lift, { scale: k, ax: 0, ay: 0, flip: true });
+        else art.drawSprite(g, strip, x, s.y - lift, { scale: k, ax: 0, ay: 0 });
+      }
+      g.restore();
+      return;
+    }
     const x0 = Math.max(s.x, cam.x - 40), x1 = Math.min(s.x + s.w, cam.x + W + 40);
     kit.inkGround(g, s, x0, x1, H + 60, { top: '#97a552', body: '#cfb17c', ink: INK });
     g.save();

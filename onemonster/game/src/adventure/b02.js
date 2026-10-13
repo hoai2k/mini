@@ -1563,7 +1563,7 @@ export function autopilot(board) {
   const wall = solids.some((s) => s.kind !== 'floor' && s.kind !== 'leaves' && s.x > b.x + 40 && s.x < b.x + 300 && b.y + 60 > s.y - 10 && b.y - 60 < s.y + s.h + 10);
   // (A dive always drives forward, so near a wall he brakes and sinks instead.)
   if (wall && !wait) {
-    if (err < -70) out.x = b.vx > 250 ? 0 : 0.3; // creep forward and sink
+    if (err < -70) out.x = b.vx > 30 ? -1 : 0; // brake and sink
     else if (err > 70) out.x = b.vx > -60 ? -1 : 0; // back off and climb
   }
   if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
