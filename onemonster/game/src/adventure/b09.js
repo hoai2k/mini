@@ -901,7 +901,7 @@ function groundTexture(g, s, x0, x1) {
   g.save();
   g.beginPath(); g.rect(s.x, s.y - 30, s.w, 400); g.clip();
   // A darker earth band under the moss, with a wobbly edge.
-  g.fillStyle = 'rgba(70,50,30,0.18)';
+  g.fillStyle = 'rgba(70,50,30,0.28)';
   g.beginPath(); g.moveTo(x0, s.y + 30);
   for (let x = x0; x <= x1 + 24; x += 24) g.lineTo(x, s.y + 30 + kit.hash(x * 0.3) * 14);
   g.lineTo(x1, s.y + 90); g.lineTo(x0, s.y + 90); g.closePath(); g.fill();
@@ -912,7 +912,7 @@ function groundTexture(g, s, x0, x1) {
     for (let k = 0; k < 3; k++) { const yy = s.y + 60 + k * 55 + kit.hash(x + k) * 20; g.moveTo(x, yy); g.quadraticCurveTo(x + 30, yy + 6, x + 56, yy - 2); }
   }
   g.stroke();
-  hatch(g, x0, s.y + 36, x1 - x0, 170, { step: 14, alpha: 0.22, slope: 1.2 });
+  hatch(g, x0, s.y + 36, x1 - x0, 170, { step: 12, alpha: 0.38, slope: 1.2 });
   // Moss tufts and root squiggles along the top edge.
   g.strokeStyle = INK; g.lineWidth = 2;
   g.beginPath();

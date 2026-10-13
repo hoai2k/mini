@@ -852,8 +852,14 @@ export default function create(env) {
     g.save();
     g.fillStyle = '#efe0bf'; ink(g, 5);
     g.fillRect(x0, y0, x1 - x0, y1 - y0);
-    g.strokeStyle = 'rgba(74,53,38,0.3)'; g.lineWidth = 2;
+    g.strokeStyle = 'rgba(74,53,38,0.45)'; g.lineWidth = 2;
     for (let y = y0 + 28; y < y1; y += 28) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
+    // A shadow hatch under each clapboard, and the odd knot.
+    g.strokeStyle = 'rgba(74,53,38,0.2)'; g.lineWidth = 1.4;
+    g.beginPath();
+    for (let y = y0 + 28; y < y1; y += 28) for (let x = x0 + 6 + kit.hash(y) * 12; x < x1 - 6; x += 15) { g.moveTo(x, y + 2); g.lineTo(x + 6, y + 8); }
+    g.stroke();
+    for (let y = y0 + 28; y < y1; y += 28) { if (kit.hash(y * 0.7) < 0.75) continue; const kx = x0 + 40 + kit.hash(y * 1.3) * (x1 - x0 - 80); g.beginPath(); g.ellipse(kx, y + 14, 7, 4, 0, 0, Math.PI * 2); g.stroke(); }
     ink(g, 5); g.strokeRect(x0, y0, x1 - x0, y1 - y0);
     g.fillStyle = '#9b4b3a';
     g.beginPath(); g.moveTo(x0 - 50, y0 + 10); g.lineTo(x1 + 50, y0 + 10); g.lineTo(x1 + 10, y0 - 70); g.lineTo(x0 - 10, y0 - 70); g.closePath(); g.fill(); g.stroke();

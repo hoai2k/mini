@@ -15,7 +15,7 @@ const run = (ch, n, f = () => idle) => { for (let i = 0; i < n; i++) ch.update(D
 // Fly the Bombanat straight down onto the Trollusk's head, jaws first.
 function diveOnto(ch, frames = 60) {
   const { b, h } = ch.S;
-  b.mode = 'fly'; b.x = h.x - 80; b.y = 430; b.vx = 0; b.vy = 0; b.facing = 1;
+  b.mode = 'fly'; b.x = h.x + (h.mode === 'dash' ? 60 : 0); b.y = h.mode === 'dash' ? 560 : 430; b.vx = 0; b.vy = 0; b.facing = 1; b.hitT = 0;
   run(ch, frames, () => inp({ x: 1, y: 1 }));
 }
 

@@ -31,7 +31,7 @@
 
 import { makeMover, makeChase, makeTug, stepChase, aiHolder, aiSnatcher, clamp } from '../chase.js';
 import * as art from '../art.js';
-import { staminaRing, tugBar, drawCover, eventFx, makeFx, roundRect } from '../chasedraw.js';
+import { staminaRing, tugBar, drawCover, eventFx, makeFx } from '../chasedraw.js';
 import { actionPrompt, marker, letterTag } from '../prompt.js';
 import { marksFor } from './index.js';
 
@@ -580,12 +580,16 @@ export default function create(env) {
     const swinging = gx.mode === 'windup' || gx.mode === 'swing';
     g.save();
     g.translate(r.x, r.y);
-    g.fillStyle = swinging ? 'rgba(242,197,61,0.38)' : hot ? 'rgba(242,197,61,0.26)' : 'rgba(251,246,232,0.14)';
-    g.strokeStyle = hot || swinging ? '#b5463a' : 'rgba(51,36,26,0.7)';
-    g.lineWidth = hot ? 5 : 3.5;
-    g.setLineDash(swinging ? [] : [14, 10]);
+    g.beginPath(); g.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2);
+    g.fillStyle = swinging ? 'rgba(242,197,61,0.45)' : hot ? 'rgba(242,197,61,0.3)' : 'rgba(251,246,232,0.22)';
+    g.fill();
+    // A cream under-stroke keeps the ring readable over the grass.
+    g.lineWidth = 10; g.strokeStyle = 'rgba(251,246,232,0.7)'; g.stroke();
+    g.strokeStyle = hot || swinging ? '#b5463a' : '#33241a';
+    g.lineWidth = hot || swinging ? 5 : 4;
+    g.setLineDash(swinging ? [] : [20, 12]);
     g.lineDashOffset = -tt * 40;
-    g.beginPath(); g.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.stroke();
     g.restore();
   }
 
@@ -622,11 +626,17 @@ export default function create(env) {
 
   function drawBombanat(g, tt) {
     if (bomb.hidden) {
-      // Settled in the ferns. Alone against the computer, a wingtip shows now and then.
-      if (env.versus || (tt % 3.2) > 0.9) return;
+      // Settled in the ferns. Alone against the computer, its ears and the
+      // letter poke up out of the fronds now and then (only the top shows).
+      if (env.versus || (tt % 3.2) > 1.1) return;
+      const k = bomb.inCover;
+      const top = k ? k.y - k.h * 0.6 : bomb.y - 80;
       const z0 = bc.z;
-      bc.z = (bomb.inCover?.h || 140) * 0.55;
+      bc.z = (k?.h || 140) * 0.45 + Math.sin(tt * 6) * 6;
+      g.save();
+      g.beginPath(); g.rect(bomb.x - 300, top - 400, 600, 400); g.clip();
       art.drawCreature(g, bc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+      g.restore();
       bc.z = z0;
       return;
     }
@@ -697,21 +707,20 @@ export default function create(env) {
   return self;
 }
 
-// A hint on a cream band across the top: big, and readable over the leaves.
+// A hint on a cream band right across the top: big, and readable over the
+// leaves. The band spans the whole frame (the shell refits the centred text
+// to a narrow screen, and the band is there whatever part is shown).
 function hintStrip(g, text, W, y, alpha = 1, colour = 'rgba(251,246,232,0.94)') {
   if (!text) return;
   g.save();
   g.globalAlpha = alpha;
+  g.fillStyle = colour;
+  g.fillRect(0, y - 38, W, 76);
+  g.fillStyle = '#33241a';
+  g.fillRect(0, y - 38, W, 4); g.fillRect(0, y + 34, W, 4);
   g.font = '800 40px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  const w = Math.min(W - 40, g.measureText(text).width + 70);
-  g.fillStyle = colour;
-  g.strokeStyle = '#33241a';
-  g.lineWidth = 4;
-  roundRect(g, W / 2 - w / 2, y - 36, w, 72, 22);
-  g.fill(); g.stroke();
-  g.fillStyle = '#33241a';
   g.fillText(text, W / 2, y + 2);
   g.restore();
 }
