@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 243 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 247 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 237 of 243 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 237 of 247 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -1901,6 +1901,41 @@ Requested 13 October 2026 after play-testing the prologue. The three gift fairie
 220 × 420 px, anchor bottom centre.
 
 > Redraw fairy-gold.webp (attach it) exactly: the same fairy, gown, veil, hennin or crown, colours, scale, pose, framing, foot position and 220 x 420 canvas, so it lays over the original pixel for pixel. Only leave out the casket of gold: both hands still held out at chest height, cupped as if bearing a small casket, with nothing in them. Paint what the gift covered (sleeve, gown, veil) in the same style. No floor or shadow. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F16. Tinted strides that bob
+
+Requested 13 October 2026 after play-testing ?widowsbay=off: the prince bobbed as he walked. design/source/audit_sprites.py shows why: in the tinted look the head of each stride frame sits far below the passing frames (23 px of 360 in court dress, 14 px armed), where a real walk dips it about 9 px. Until these arrive the game scales those frames up from the feet to a natural dip (src/sprite-fit.js), which makes the body pulse slightly larger. Each -redo frame replaces its stride file on delivery; rerun the audit then.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-a-tinted` | requested |
+| `prince-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-stride-b-tinted` | requested |
+| `prince-court-stride-a-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-a-tinted` | requested |
+| `prince-court-stride-b-tinted-redo` | 220 × 360 | bottom centre | `prince-court-stride-b-tinted` | requested |
+
+#### `prince-stride-a-tinted-redo` — Prince armed, stride A (tinted), redrawn to the passing height
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-stride-a-tinted.webp (attach it with prince-pass-a-tinted.webp and prince-pass-b-tinted.webp). Exactly the same figure, costume, colours, body size and stride, walking right with the LEFT leg forward; but the figure stands taller, so the top of the head is 6-10 px below the top of the canvas (the passing frames reach 0-1 px). Keep the stride shorter if needed rather than shrinking the figure: the head, shoulders and hands must be exactly the size they are in the passing frames. Feet on the bottom ground line; no floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-stride-b-tinted-redo` — Prince armed, stride B (tinted), redrawn to the passing height
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-stride-b-tinted.webp (attach it with prince-pass-a-tinted.webp and prince-pass-b-tinted.webp). Exactly the same figure, costume, colours, body size and stride, walking right with the RIGHT leg forward; but the figure stands taller, so the top of the head is 6-10 px below the top of the canvas (the passing frames reach 0-1 px). Keep the stride shorter if needed rather than shrinking the figure: the head, shoulders and hands must be exactly the size they are in the passing frames. Feet on the bottom ground line; no floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stride-a-tinted-redo` — Prince in court dress, stride A (tinted), redrawn to the passing height
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-court-stride-a-tinted.webp (attach it with prince-court-pass-a-tinted.webp and prince-court-pass-b-tinted.webp). Exactly the same figure, costume, colours, body size and stride, walking right with the LEFT leg forward; but the figure stands taller, so the top of the head is 6-10 px below the top of the canvas (the passing frames reach 0-1 px). Keep the stride shorter if needed rather than shrinking the figure: the head, shoulders and hands must be exactly the size they are in the passing frames. Feet on the bottom ground line; no floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stride-b-tinted-redo` — Prince in court dress, stride B (tinted), redrawn to the passing height
+
+220 × 360 px, anchor bottom centre.
+
+> Redraw prince-court-stride-b-tinted.webp (attach it with prince-court-pass-a-tinted.webp and prince-court-pass-b-tinted.webp). Exactly the same figure, costume, colours, body size and stride, walking right with the RIGHT leg forward; but the figure stands taller, so the top of the head is 6-10 px below the top of the canvas (the passing frames reach 0-1 px). Keep the stride shorter if needed rather than shrinking the figure: the head, shoulders and hands must be exactly the size they are in the passing frames. Feet on the bottom ground line; no floor or shadow. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

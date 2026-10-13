@@ -319,6 +319,16 @@ GROUPS.append(
 )
 
 
+# Found by design/source/audit_sprites.py on 13 October 2026.
+GROUPS.append(
+    ('Tinted strides that bob', 'Requested 13 October 2026 after play-testing ?widowsbay=off: the prince bobbed as he walked. design/source/audit_sprites.py shows why: in the tinted look the head of each stride frame sits far below the passing frames (23 px of 360 in court dress, 14 px armed), where a real walk dips it about 9 px. Until these arrive the game scales those frames up from the feet to a natural dip (src/sprite-fit.js), which makes the body pulse slightly larger. Each -redo frame replaces its stride file on delivery; rerun the audit then.', [
+        (f'{base}-stride-{ab}-tinted-redo', f'{label}, stride {ab.upper()} (tinted), redrawn to the passing height', 220, 360, 'bottom centre', TINTED,
+         f'Redraw {base}-stride-{ab}-tinted.webp (attach it with {base}-pass-a-tinted.webp and {base}-pass-b-tinted.webp). Exactly the same figure, costume, colours, body size and stride, walking right with the {"LEFT" if ab == "a" else "RIGHT"} leg forward; but the figure stands taller, so the top of the head is 6-10 px below the top of the canvas (the passing frames reach 0-1 px). Keep the stride shorter if needed rather than shrinking the figure: the head, shoulders and hands must be exactly the size they are in the passing frames. Feet on the bottom ground line; no floor or shadow.', f'{base}-stride-{ab}-tinted')
+        for base, label in (('prince', 'Prince armed'), ('prince-court', 'Prince in court dress')) for ab in ('a', 'b')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
