@@ -21,7 +21,7 @@ Artwork for the One Monster After Another game in `onemonster/`. Generated from 
 
 ## Status
 
-18 requested, 120 delivered, 138 in total.
+15 requested, 123 delivered, 138 in total.
 
 ## Brand
 
@@ -1580,7 +1580,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 2 of chapter 3's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/grumley-in-the-goo.jpg`](../reference/grumley-in-the-goo.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: Among several plain Bombanats, one with a red-and-white striped necktie and a white envelope in its teeth dipping low over the goo. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .
@@ -1593,7 +1593,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 3 of chapter 3's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/grumley-in-the-goo.jpg`](../reference/grumley-in-the-goo.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Grumley's long spiny crab arm shooting up out of the goo in a splash and grabbing the Bombanat in the striped necktie. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/grumley-in-the-goo.jpg .
@@ -1632,7 +1632,7 @@ Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden 
 - **Used for:** Step 3 of chapter 4's how-to-play page.
 - **Stand-in until delivered:** The step composed in code from the monster's poses and the chapter's props.
 - **Reference:** [`reference/pages-18-19-ice-ferg.png`](../reference/pages-18-19-ice-ferg.png)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Mercer Mayer's 1974 Golden Book One Monster After Another: dense, wiry black pen-and-ink line with heavy crosshatching, fur drawn hair by hair, foliage in clusters of tiny leaves, clouds and waves as rows of curling strokes, under thin, slightly faded early-1970s printed watercolour washes (dusty mauve, lilac and pink skies, olive, sage and teal greens, ochre and mustard, slate and blue-grey for sea and storm, brick red and red-and-white stripes as accents, pink for monster snouts, hands and feet). Busy, funny and a little grotesque, never scary. No text, no lettering, no watermark, no border, no UI. A small spot illustration for a children's game's how-to-play page, 4:3, on plain warm cream paper that the drawing fades into at the edges (no frame, no border), in the style of the book's own spot illustrations. One clear moment, the characters large and easy to read when shown small: The Ice-Ferg charging into the side of a stout teal fishing boat with a wheelhouse and a crane, SCRUNCH, spray and ice flying, a harbour with a lighthouse in the distance. Draw the characters from their canonical model sheets where you have them. For the drawing style, palette and mood, look at the reference photo of the book, https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/pages-18-19-ice-ferg.png .
