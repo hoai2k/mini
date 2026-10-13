@@ -610,7 +610,9 @@ export default {
       }
       const sheet = runnerSheet(o.color);
       const fw = sheet.width / 6, fh = sheet.height;
-      const x0 = p.x - sw / 2, y0 = p.y - sh * art.FEET;
+      const deliveredRunner = !!api.img('temple-runner');
+      const feet = deliveredRunner ? art.ART_FEET : art.FEET, heads = deliveredRunner ? art.ART_HEADS : art.HEADS;
+      const x0 = p.x - sw / 2, y0 = p.y - sh * feet;
       ctx.save();
       ctx.globalAlpha = alpha;
       if (rot) {
@@ -620,7 +622,7 @@ export default {
       }
       ctx.drawImage(sheet, frame * fw, 0, fw, fh, x0, y0, sw, sh);
       ctx.restore();
-      const hd = art.HEADS[frame];
+      const hd = heads[frame];
       let hx = x0 + sw * hd[0], hy = y0 + sh * hd[1];
       if (rot) {
         const cx = p.x, cy = p.y - sh * 0.45, dx = hx - cx, dy = hy - cy;

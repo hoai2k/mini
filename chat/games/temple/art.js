@@ -34,6 +34,18 @@ export const HEADS = [
   [0.5, 80 / FRAME_H, 0.17],
   [0.5, 292 / FRAME_H, 0.17],
 ];
+// The same for the delivered sheet (assets/games/temple-runner.png), measured
+// from its frames: a bigger round head, a little right of centre while
+// running, and the boots ending higher in the frame.
+export const ART_FEET = 474 / FRAME_H;
+export const ART_HEADS = [
+  [145 / FRAME_W, 128 / FRAME_H, 0.245],
+  [141 / FRAME_W, 128 / FRAME_H, 0.245],
+  [136 / FRAME_W, 128 / FRAME_H, 0.245],
+  [133 / FRAME_W, 128 / FRAME_H, 0.245],
+  [131 / FRAME_W, 85 / FRAME_H, 0.245],
+  [93 / FRAME_W, 230 / FRAME_H, 0.245],
+];
 
 const SKIN = '#e9b98a', SKIN_D = '#c98f62', SHIRT = '#f6f6f6', SHIRT_D = '#cfcfcf', SHORTS = '#c9a26a', SHORTS_D = '#9c7a48';
 const BOOT = '#6b4426', BOOT_D = '#3f2716', PACK = '#8a5a32', PACK_D = '#5e3b1f';
