@@ -569,5 +569,9 @@ export const ASSETS = {
   "bombanat.plainPerch": {
     "file": "assets/monsters/bombanat/plain-perched.png",
     "delivered": false
+  },
+  "adv.trunks": {
+    "file": "assets/adventure/terrain/trunks.png",
+    "delivered": false
   }
 };

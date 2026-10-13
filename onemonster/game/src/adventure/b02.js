@@ -60,15 +60,15 @@ const TRUNKS = [[1900, 230], [3200, 240], [6350, 230], [8700, 240, true], [9700,
 const HOLE = 300; // the hollow's height
 const BOUGHS = [[2250, 400], [5800, 390], [9350, 360], [12900, 400]];
 const BRANCHES = [[200, 380, 420, 1], [1250, 520, 350, 1], [2900, 410, 380, -1],
-  [4950, 430, 380, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
-const WEBS = [[5450, 540, 115], [6000, 300, 120], [6700, 500, 115], [6950, 590, 100]];
+  [4950, 430, 300, 1], [9100, 560, 380, -1], [10000, 430, 420, 1], [12150, 580, 300, 1]];
+const WEBS = [[5550, 300, 120], [5950, 290, 110], [6700, 560, 115]];
 const VINES = [[5300, 300], [5650, 260], [6150, 330], [6850, 280], [12700, 300]];
 const BIRDS = [[9000, 400], [10150, 400]];
 // Paper scraps: tickets, menus, paper hats, newspaper.
 const SCRAPS = [[500, 600], [700, 900], [850, 700],
   [1400, 330], [1550, 330], [1900, 380], [2250, 560], [2600, 330], [2800, 330], [2700, 600], [3200, 390], [3400, 450],
   [3800, 850], [4300, 880], [4150, 300],
-  [5100, 340], [5450, 300], [5800, 560], [6000, 560], [6350, 380], [6700, 300], [6950, 400],
+  [5100, 340], [5550, 560], [5800, 560], [6000, 580], [6350, 380], [6700, 330], [6950, 400],
   [7500, 870], [8000, 880], [7900, 300],
   [8700, 380], [8950, 320], [9350, 560], [9700, 380], [10200, 340], [10400, 480], [10650, 380],
   [11200, 870], [11700, 880], [11300, 300],
@@ -236,7 +236,7 @@ export default function create(env) {
     b.diving = false; b.swoopT = 0; b.sprinting = false; b.perch = null;
     b.vx = kx; b.vy = ky;
     art.kick(bc, 0.6);
-    fx.pop(b.x, b.y - 120, why);
+    fx.pop(b.x, Math.max(250, b.y - 120), why);
     fx.burst(b.x, b.y, { n: 7, colour: '#c9b8d4', speed: 200, size: 9, life: 0.5 });
     env.sfx('bonk');
     env.vibrate(70);
@@ -301,7 +301,7 @@ export default function create(env) {
           b.web.torn = true;
           b.mode = 'fly'; b.modeT = 0; b.hitT = 0.6;
           b.vy = -380; b.vx = b.facing * 220; b.flapT = 0.3;
-          fx.pop(b.x, b.y - 120, 'Free!');
+          fx.pop(b.x, Math.max(250, b.y - 120), 'Free!');
           fx.burst(b.x, b.y, { n: 10, colour: '#f4f2ff', speed: 220, size: 7, life: 0.5 });
           env.sfx('free');
           b.web = null;
@@ -337,7 +337,7 @@ export default function create(env) {
         b.vx = ease(b.vx, b.facing * P.sprintSpeed, 3, dt);
         b.st -= P.sprintDrain * (gentle ? 0.7 : 1) * dt;
         b.stalled = false;
-        if (b.st <= 0) { b.st = 0; b.winded = P.windedTime; b.sprinting = false; env.sfx('pant'); fx.pop(b.x, b.y - 130, 'Puffed!'); }
+        if (b.st <= 0) { b.st = 0; b.winded = P.windedTime; b.sprinting = false; env.sfx('pant'); fx.pop(b.x, Math.max(250, b.y - 130), 'Puffed!'); }
       } else {
         b.vy = ease(b.vy, b.stalled ? 260 : P.sink, P.sinkRate, dt);
         if (Math.abs(ix) > 0.3) b.vx = ease(b.vx, ix * P.cruise, P.accel, dt);
@@ -403,7 +403,7 @@ export default function create(env) {
     b.hitT = 0.4;
     env.sfx('rustle');
     fx.burst(b.x, b.y + 60, { n: 6, colour: '#8aa352', speed: 180, size: 9, life: 0.5 });
-    if (s.kind === 'leaves') fx.pop(b.x, b.y - 120, 'Rustle!');
+    if (s.kind === 'leaves') fx.pop(b.x, Math.max(250, b.y - 120), 'Rustle!');
   }
 
   function landOrFlop() {
@@ -513,7 +513,7 @@ export default function create(env) {
         b.diving = false; b.sprinting = false; b.swoopT = 0;
         b.x = w.x; b.y = w.y - 10;
         w.shake = 1;
-        fx.pop(b.x, b.y - 130, 'Stuck!');
+        fx.pop(b.x, Math.max(250, b.y - 130), 'Stuck!');
         env.sfx('rustle');
         env.vibrate(40);
       }
@@ -608,7 +608,7 @@ export default function create(env) {
 
   function pickupsAndSnap(dt) {
     const n = pickups.update(dt, b.x, b.y + 20);
-    if (n) { env.sfx('pickup'); fx.pop(b.x, b.y - 130, pickups.count % 5 === 0 ? 'Yum!' : '+1', { colour: '#8e4f8a', size: 40 }); art.kick(bc, -0.25); }
+    if (n) { env.sfx('pickup'); fx.pop(b.x, Math.max(250, b.y - 130), pickups.count % 5 === 0 ? 'Yum!' : '+1', { colour: '#8e4f8a', size: 40 }); art.kick(bc, -0.25); }
     // The snap: his jaws reach the Trollusk while he is out in the open.
     const j = jaws();
     const top = h.mode === 'skid' ? 95 : 215;
@@ -823,11 +823,19 @@ export default function create(env) {
 
   function drawSignpost(g, x) {
     g.save();
-    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#b08a5a';
-    g.fillRect(x - 10, FLOOR - 210, 20, 210); g.strokeRect(x - 10, FLOOR - 210, 20, 210);
-    g.fillStyle = '#d9b980';
-    g.beginPath(); g.moveTo(x - 70, FLOOR - 220); g.lineTo(x + 60, FLOOR - 220); g.lineTo(x + 86, FLOOR - 190); g.lineTo(x + 60, FLOOR - 160); g.lineTo(x - 70, FLOOR - 160); g.closePath();
-    g.fill(); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 3.5; g.lineJoin = 'round';
+    g.fillStyle = '#a8865a';
+    g.beginPath(); g.moveTo(x - 11, FLOOR + 2); g.lineTo(x - 9, FLOOR - 200); g.lineTo(x + 9, FLOOR - 204); g.lineTo(x + 12, FLOOR + 2); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#d2b07a';
+    g.beginPath(); g.moveTo(x - 72, FLOOR - 224); g.lineTo(x + 58, FLOOR - 220); g.lineTo(x + 86, FLOOR - 190); g.lineTo(x + 60, FLOOR - 158); g.lineTo(x - 70, FLOOR - 162); g.closePath(); g.fill(); g.stroke();
+    // Wood grain and a hatched shadow under the board.
+    g.strokeStyle = 'rgba(43,29,20,0.45)'; g.lineWidth = 1.5;
+    g.beginPath();
+    for (let i = 0; i < 4; i++) { const y = FLOOR - 214 + i * 13; g.moveTo(x - 62, y); g.quadraticCurveTo(x, y + 3, x + 50 + i * 4, y - 1); }
+    for (let y = FLOOR - 190; y < FLOOR; y += 14) { g.moveTo(x - 8, y); g.lineTo(x + 4, y + 6); }
+    g.stroke();
+    g.fillStyle = '#8d9a4e'; g.strokeStyle = '#5e7a3a'; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(x, FLOOR, 26, 8, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.restore();
   }
 
@@ -1057,28 +1065,27 @@ export default function create(env) {
     return cv;
   }
   function paintCanopy(g, s, x0, x1) {
-    // Hanging leaf clusters: the delivered bush upside down, in two rows with
-    // gaps between, so the floor shows through; ink leaves fill in behind.
+    // Hanging leaf clusters: the delivered bush upside down, staggered with
+    // open gaps between, so the backdrop shows through and nothing reads as
+    // a hedge; a few small ones hang lower.
     const bush = art.prop('trollusk', 5);
-    const i0 = Math.floor((x0 - s.x) / 170);
-    for (let i = i0; s.x + i * 170 < x1 + 170; i++) {
-      const x = s.x + i * 170 + 85 + hash(i * 9 + s.x) * 60;
-      const dip = LEAF_TOP + 40 + hash(i * 5 + s.x) * 50;
-      if (bush) art.drawSprite(g, bush, x, dip + 10, { height: 150 + hash(i * 3) * 40, ay: 0, sy: -1, flip: hash(i) > 0.5, alpha: 0.85 });
-      else leafBlob(g, x, dip, 72, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
-    }
-    const j0 = Math.floor((x0 - s.x) / 150);
-    for (let j = j0; s.x + j * 150 < x1 + 150; j++) {
-      if (hash(j * 4.3 + s.x) < 0.3) continue;
-      const x = s.x + j * 150 + 75;
-      const dip = LEAF_TOP - 10 + hash(j * 3 + s.x) * 30;
-      if (bush) art.drawSprite(g, bush, x, dip + 10, { height: 120 + hash(j * 7) * 60, ay: 0, sy: -1, flip: hash(j * 2) > 0.5 });
-      else leafBlob(g, x, dip + 40, 56, j * 0.61 + 3, '#6b8a44', '#9fb05a');
+    const i0 = Math.floor((x0 - s.x) / 260);
+    for (let i = i0; s.x + i * 260 < x1 + 260; i++) {
+      const x = s.x + i * 260 + 130 + (hash(i * 9 + s.x) - 0.5) * 120;
+      const dip = LEAF_TOP + 20 + hash(i * 5 + s.x) * 50;
+      const h = 130 + hash(i * 3) * 50;
+      if (bush) art.drawSprite(g, bush, x, dip, { height: h, ay: 0, sy: -1, flip: hash(i) > 0.5 });
+      else leafBlob(g, x, dip - 40, 60, i * 0.37 + s.x * 0.001, '#5e7a3a', '#6f8a3e');
+      if (hash(i * 7.7 + s.x) > 0.55) {
+        const h2 = 80 + hash(i * 2) * 40;
+        if (bush) art.drawSprite(g, bush, x + 110, dip + 50, { height: h2, ay: 0, sy: -1, flip: hash(i * 4) > 0.5, alpha: 0.9 });
+        else leafBlob(g, x + 110, dip + 10, 40, i * 0.61 + 3, '#6b8a44', '#9fb05a');
+      }
     }
     // The ends drape down to the undergrowth where the clearing opens.
     for (const ex of [s.x + 30, s.x + s.w - 30]) {
       if (ex < x0 - 100 || ex > x1 + 100) continue;
-      if (bush) { art.drawSprite(g, bush, ex, LEAF_TOP + 170, { height: 200, ay: 0, sy: -1 }); art.drawSprite(g, bush, ex + (ex < s.x + 100 ? 30 : -30), LEAF_TOP + 250, { height: 150, ay: 0, sy: -1, flip: true }); }
+      if (bush) { art.drawSprite(g, bush, ex, LEAF_TOP + 150, { height: 180, ay: 0, sy: -1 }); art.drawSprite(g, bush, ex + (ex < s.x + 100 ? 30 : -30), LEAF_TOP + 240, { height: 130, ay: 0, sy: -1, flip: true }); }
       else leafBlob(g, ex, LEAF_TOP + 95, 70, ex * 0.01, '#5e7a3a', '#8aa352');
     }
   }
@@ -1261,7 +1268,7 @@ export default function create(env) {
     }
     if (b.st < 0.999 || b.sprinting || b.winded > 0) staminaRing(g, b.x, b.y + (b.hang ? 190 : 128));
     art.drawCreature(g, bc, tt, { reduceMotion: env.reduceMotion, shadow: false });
-    if (b.mode === 'web') actionPrompt(g, b.x, b.y - 140, `Flap free! ${'•'.repeat(Math.max(1, b.webHold))}`, { kind: env.inputKind, t: tt, pulse: 1 });
+    if (b.mode === 'web') actionPrompt(g, b.x, Math.max(260, b.y - 140), `Flap free! ${'•'.repeat(Math.max(1, b.webHold))}`, { kind: env.inputKind, t: tt, pulse: 1 });
     else if (b.mode === 'perched' && b.modeT > 1.2 && !self.done) actionPrompt(g, b.x, b.y - 150, 'Fly', { kind: env.inputKind, t: tt });
   }
 
@@ -1512,7 +1519,7 @@ export function autopilot(board) {
     if (y0 < bottom) free.push([y0, bottom]);
     return free.filter(([a, c]) => c - a >= 36);
   };
-  const STEP = 60, SLOPE = 70, COLS = 10;
+  const STEP = 60, SLOPE = 80, COLS = 10;
   let layer = freeIn(b.x - 80, b.x + 80).map((iv) => ({ iv, parent: null })); // the column the body spans
   layer.sort((p, q) => Math.abs((p.iv[0] + p.iv[1]) / 2 - b.y) - Math.abs((q.iv[0] + q.iv[1]) / 2 - b.y));
   layer = layer.slice(0, 1);
@@ -1551,6 +1558,8 @@ export function autopilot(board) {
     target = clamp(want, n.iv[0], n.iv[1]);
   } else if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2;
   if (layers[0].length) target = clamp(target, layers[0][0].iv[0], layers[0][0].iv[1]);
+  else target = ap.lastTarget ?? target; // wedged between two things: keep the last height and back out
+  ap.lastTarget = target;
   const slow = Math.abs(target - b.y) > 70;
   // Ahead of the Trollusk in the wood: hang about the next clearing's start instead of leaving him behind.
   const nextClearing = clearings.find((c) => !c.passed);
@@ -1562,7 +1571,8 @@ export function autopilot(board) {
   const dash = knot && b.x < knot.cx + 150 && (knot.state === 'puff' || (knot.state === 'idle' && knot.cool > 0.2));
   if (wait) { out.x = holdX(nextClearing.x0 + 250); if (!pocket) target = 420; }
   else if (knot && knot.state === 'blow' && b.x < knot.cx - 100) { out.x = holdX(knot.cx - 620); if (!pocket) target = 330; }
-  else if (pocket && depth < 3) { out.x = -0.7; if (layers[0].length) target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2; }
+  else if (!layers[0].length) out.x = -1;
+  else if (pocket && depth < 3) { out.x = -0.7; target = (layers[0][0].iv[0] + layers[0][0].iv[1]) / 2; }
   else out.x = slow ? 0.45 : 1;
   const err = b.y - target;
   // Something right ahead at this height: hold back until the height is right.
@@ -1572,7 +1582,6 @@ export function autopilot(board) {
     if (err < -35) out.x = b.vx > 30 ? -1 : 0; // brake and sink
     else if (err > 35) out.x = b.vx > 40 ? -0.29 : 0; // ease off and climb (still facing on)
   }
-  ap.dbg = { target, wall, depth, pick: pick && pick.iv, here: layers[0][0] && layers[0][0].iv };
   if (err > 20 && b.vy > (Math.abs(err) > 120 ? -170 : -40)) press();
   else if (err < -130 && !wall && b.vy < 240 && !b.swoopT) out.y = 1;
   // Sprint along the clear stretches.

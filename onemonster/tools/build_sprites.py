@@ -98,6 +98,8 @@ def sheets() -> list[dict]:
                 "items": ["the windmill tower on its island, no sails", "the four sails alone, hub in the centre"]})
     out.append({"key": "adv.b03.boats", "kind": "props", "file": "assets/adventure/b03/boats.png",
                 "items": ["a teal fishing boat like the Peg", "a red fishing boat with a crane and net"]})
+    out.append({"key": "adv.trunks", "kind": "props", "file": "assets/adventure/terrain/trunks.png",
+                "items": ["a plain trunk section", "a trunk section with a hollow through it"]})
     out.append({"key": "cast", "kind": "cast", "file": "assets/cast/sprites.png", "items": [
         "Sally Ann at her window, looking out", "Sally Ann at her window, turned away writing",
         "the neighbour peering over her spectacles", "the neighbour dozing",
