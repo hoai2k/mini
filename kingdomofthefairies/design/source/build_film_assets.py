@@ -287,6 +287,21 @@ GROUPS.extend([
     ]),
 ])
 
+# Checked 13 October 2026 against the delivered cycles, frame beside frame.
+GROUPS.append(
+    ('Walking cycle repairs', 'Requested 13 October 2026 after checking the F10–F13 deliveries side by side. In the Original look, stride B of the armed prince and of the court-dress prince is a far longer lunge than stride A, so his head drops 24–26 px (of 360) on every other step and he limps; the tinted frames are even. The shared sailor carries his sack in the standing and new passing frames but not in the older walk-a/walk-b frames, so the sack blinked on and off with each step; until sailor-stride-a/b arrive the game holds each stride through its passing beat (a two-frame walk). The -redo frames replace prince-stride-b.webp and prince-court-stride-b.webp when delivered.', [
+        (f'{base}-stride-b-redo', f'{label}, stride B, redrawn to match stride A', 220, 360, 'bottom centre', SPRITE,
+         f'Redraw {base}-stride-b.webp (attach it with {base}-stride-a.webp, {base}-pass-a.webp and {standing}.webp). Exactly the same figure, costume and colours, walking right, with the RIGHT leg forward, heel down, and the left leg behind on its toes; but the stride exactly as long as in {base}-stride-a.webp (mirrored legs), so the top of the head sits within 6 px of where it is in stride A (about 5 px from the top of the canvas). Same arm swing as stride A mirrored. Feet on the bottom ground line; no floor or shadow.', f'{base}-stride-b')
+        for base, label, standing in [('prince', 'Prince armed', 'prince-stand'), ('prince-court', 'Prince in court dress', 'prince-court')]
+    ] + [
+        (f'sailor-stride-{ab}', f'The sailor, stride {ab.upper()}, with his sack', 220, 360, 'bottom centre', SPRITE,
+         f'The sailor exactly as in sailor-stand.webp and sailor-pass-{ab}.webp (attach both, and sailor-stride-{"b" if ab == "a" else "a"}.webp if drawn): the same face, cap, pea coat, red scarf, trousers, boots, cream cut-out outline, scale and head height, AND the same sack over his shoulder, held as in the passing frame. Walking right in a full stride: '
+         + ('LEFT leg forward, heel down; right leg straight behind on its toes. ' if ab == 'a' else 'RIGHT leg forward, heel down; left leg straight behind on its toes. ')
+         + 'The free arm swings opposite the legs; the sack hand stays on the sack. Head within 10 px of its height in the passing frames. Feet on the bottom ground line; no floor or shadow. Shared by the default (partial) and Widow’s Bay editions.', f'sailor-walk-{ab}')
+        for ab in ('a', 'b')
+    ]),
+)
+
 
 def ids():
     return [a for _, _, items in GROUPS for a in items]
@@ -337,7 +352,8 @@ def main():
             slots[aid] = s = {'status': 'requested', 'file': aid + '.webp'}
             changed = True
         if s.get('status') != 'delivered':
-            want = {'size': [a[2], a[3]], 'anchor': a[4], 'edition': 'film'}
+            # the shared sailor's frames load in every edition
+            want = {'size': [a[2], a[3]], 'anchor': a[4], 'edition': 'shared' if aid.startswith('sailor-') else 'film'}
             if any(s.get(k) != v for k, v in want.items()):
                 s.update(want)
                 changed = True
