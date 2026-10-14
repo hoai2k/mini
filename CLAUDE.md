@@ -128,6 +128,9 @@ checks it must satisfy so a cheaper model can finish the job without guessing.
 - Never use Fable (any version) unless I explicitly ask for Fable in that conversation. This applies to you and to every subagent, worker or helper agent you start.
 - When starting a subagent, either leave the model unset so it inherits your model, or pick Opus or Sonnet. Never pass model "fable".
 - If a task seems to need Fable, ask me first and say why. Don't switch on your own.
+- This is enforced in `.claude/settings.json`: sessions in this repository default to Opus, and a
+  PreToolUse hook (`.claude/hooks/block-fable.sh`) refuses any subagent or workflow call that asks for
+  Fable. When I ask for Fable, switch the main session with `/model`; don't edit the hook to get round it.
 
 ## Deployment reminder
 
