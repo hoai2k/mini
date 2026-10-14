@@ -20,10 +20,20 @@ in `../app` bundled into a native shell with [Capacitor](https://capacitorjs.com
 - `copy-web.sh`: copies the web app (through `../publish.sh`) into `www/`,
   which Capacitor bundles. `www/` is build output and isn't committed.
 - `ios/`: the Xcode project (Swift Package Manager, no CocoaPods).
-  `Info.plist` has the microphone reason.
+  `Info.plist` has the microphone reason and background audio. The app's own
+  code is in `ios/App/App/`: `PracticeMixer.swift`, `PracticeAudioPlugin.swift`
+  and `MainViewController.swift` (below).
 - `android/`: the Android Studio / Gradle project. The manifest asks for the
-  microphone; `app/build.gradle` signs release builds from
-  `android/keystore.properties` when it exists (never committed).
+  microphone and declares the playback service; `app/build.gradle` signs
+  release builds from `android/keystore.properties` when it exists (never
+  committed). The app's own code is in
+  `android/app/src/main/java/io/github/hoai2k/musicpractice/`.
+- `fonts/`: every theme's fonts, bundled so the apps work offline and never
+  load them from Google: `fetch_fonts.py` downloads them (Latin and Latin
+  Extended), `licenses/` holds their licences (SIL Open Font License; Special
+  Elite is Apache 2.0). `copy-web.sh` puts them in the apps and points the
+  page at them.
+- `test/`: tests for the native mixers (below).
 - `assets/`: the icon and splash sources; `npx capacitor-assets generate`
   (options below) makes every size for both platforms.
 
@@ -31,7 +41,8 @@ The plugins: `@revenuecat/purchases-capacitor` (purchases),
 `@capacitor/app` (Android back button), `@capacitor/filesystem` and
 `@capacitor/share` (saving takes through the share sheet),
 `@capacitor-community/keep-awake` (screen on while the metronome, drone or
-recorder runs). No custom native code.
+recorder runs), and the app's own `PracticeAudio` (the metronome and drone
+played natively, below).
 
 ### In the web app
 
@@ -46,6 +57,9 @@ recorder runs). No custom native code.
 - `../app/privacy.html`: the privacy policy and terms, published at
   https://hoai2k.github.io/mini/musicpractice/privacy.html (the paywall and
   both store listings link to it).
+- `../app/src/nativeaudio.js`: the metronome and drone through
+  `PracticeAudio`: `NativeMetronome` and `NativeDrone` stand in for
+  `Metronome` and `Drone` in the apps.
 - Also in the app: the microphone is the app's, granted once, so the recorder
   always closes it for playback (full volume, Bluetooth speakers) and the
   iPhone microphone tip never shows.
@@ -107,13 +121,74 @@ npx capacitor-assets generate --iconBackgroundColor '#fff8e8' --iconBackgroundCo
 ```
 
 **Checked here:** the Android debug build compiles, with the right package,
-permissions (microphone, billing) and icons. The web side was tested in
+permissions (microphone, billing, the playback service) and icons. The web side was tested in
 Chromium with a stand-in for Capacitor: the Drone, a second theme, renaming or
 saving a take, and the older takes each open the paywall; plans and the trial
 show from the store data on both platforms; a cancelled purchase says
 nothing; buying unlocks everything at once; Android's back button closes a
 sheet, then goes home. **Not yet checked:** the iOS build (needs a Mac) and
 the apps on real phones (no emulator here), including real purchases.
+
+## Playing with the screen locked
+
+In the apps the metronome and the drone play through native code, so they go
+on when the phone locks or another app is opened (the web view's JavaScript
+pauses then). The web app still makes the sounds and the native side plays
+them:
+
+- **The mixer**, `PracticeMixer` (Swift for iOS, Java for Android, the same
+  code line for line), is a port of `metronome.js` and the recorded-voice
+  path of `drone.js`. It plays the metronome's clicks, which `metronome.js`
+  renders once for the chosen sound, on the sample. It plays the drone's
+  loops (decoded by the web app; the Synth organ is rendered into loops at a
+  few pitches), retuned by playback rate, with the same fades, fifth,
+  lowpass, levels and starting points. A timed drone moves through its
+  sequence by itself: the web app hands over the time left and the next 64
+  notes. A Freeverb hall stands in for the web's convolution reverb.
+- **iOS** (`PracticeAudioPlugin.swift`): an `AVAudioEngine` source node, the
+  audio session in playback (or left in play-and-record while the recorder's
+  microphone is open), background audio (`UIBackgroundModes`), the lock
+  screen's Now Playing with a pause button, and recovery after calls, route
+  changes and the web view stopping the engine.
+- **Android** (`PracticeAudioPlugin.java`, `PracticeAudioEngine.java`,
+  `PracticeAudioService.java`): an `AudioTrack` fed by its own thread, audio
+  focus (a call silences it, another app's music stops it), and a foreground
+  service of type media playback, whose notification says what's playing and
+  has a Stop button. Android 13+ asks once for permission to show it.
+- **The web app** (`nativeaudio.js`) sends the clicks and loops once, polls
+  when the next beat will be heard to keep the pendulum and pulse in step
+  (the Bluetooth sync adjustment still applies), and catches up when the app
+  comes back: notes a timed drone moved through, the time left, or a stop
+  from the lock screen or notification.
+
+Each starts its output when something plays and stops it a couple of seconds
+after everything is quiet.
+
+**Tests** (`test/`): the web app exports its own clicks, loops and reference
+recordings of the web drone; the same tests then run on both mixers:
+
+```sh
+node musicpractice/mobile/test/fixtures.mjs        # needs Chromium (Playwright); writes local/musicpractice-mixer/
+sh musicpractice/mobile/test/run.sh java           # the Android mixer
+sh musicpractice/mobile/test/run.sh swift          # the iOS mixer (any Swift 5.9+ toolchain; SWIFTC=… to choose one)
+```
+
+They check that beats land within a sample of their time with the right
+clicks, that a new tempo counts from the next beat, that every voice's dry
+sound is within 1 dB of the web drone (it is within 0.1 dB) and its hall within
+1.5 dB on average over all 24 notes (a steady note through any reverb comes
+out louder or softer by note, the web's as much as this one), that loops wrap
+without clicks, that a timed sequence moves on and stops by itself, and that
+the Java and Swift mixers make exactly the same samples.
+
+**Checked:** both mixers pass. The iOS plugin was type-checked against
+stand-ins for Capacitor and Apple's frameworks (no Mac here), the Android app
+builds and passes lint, and the web side was run in Chromium against a
+stand-in plugin. **Not yet checked:** on real phones: that the sound goes on
+when locked, the lock screen and notification controls, calls and Bluetooth.
+Google Play asks apps with a media-playback foreground service to declare it
+(Play Console → App content → Foreground services: "media playback", with a
+short video of the drone playing with the screen off).
 
 ## Setting up purchases
 
@@ -218,10 +293,5 @@ store's.
 
 ## Known gaps
 
-- Fonts: themes load theirs from Google Fonts; offline, the system fonts show
-  instead. Bundling the font files would fix it.
-- The drone and metronome stop when the phone locks (the web view's
-  JavaScript pauses). Locked-screen playing needs native audio
-  (`../design/mobile-apps.md`, "The caveat").
 - No paywall on first launch or after a few days; it shows only when a Pro
   feature is tapped, or from Settings.

@@ -257,7 +257,7 @@ export function nearestLoop(loops, hz, maxShift = 4) {
 }
 
 const decodedLoops = new WeakMap(); // context -> Map(file -> Promise<AudioBuffer>)
-function loadLoop(ctx, file) {
+export function loadLoop(ctx, file) {
   if (!decodedLoops.has(ctx)) decodedLoops.set(ctx, new Map());
   const cache = decodedLoops.get(ctx);
   if (!cache.has(file)) {
@@ -274,6 +274,40 @@ function loadLoop(ctx, file) {
 /** Load (once) every loop of a recorded voice, so changing notes is instant. */
 export function preload(ctx, voice) {
   for (const l of SAMPLED[voice]?.loops || []) loadLoop(ctx, l.file).catch(() => {});
+}
+
+// ---------------------------------------------------------------- for the apps
+
+/*
+ * In the iOS and Android apps the drone plays through native code
+ * (nativeaudio.js), which only plays loops. A synthesized voice is handed
+ * over as loops too: a few notes of it rendered here, each a whole number of
+ * periods long with its end crossfaded into its start, retuned like the
+ * recordings.
+ */
+export const SYNTH_ANCHORS = [36, 42, 48, 54, 60, 66]; // C2 to F♯4 (B3's fifth), every 6 semitones
+export const SYNTH_MAX_SHIFT = 3;
+
+/** The synthesized voice's settings for native playback: { level, wet }. */
+export const synthSpec = (voice) => (LIVE[voice] ? { level: LIVE[voice].level, wet: LIVE[voice].wet ?? 0.32 } : null);
+
+/** One seamless mono loop of a synthesized voice at f0. */
+export async function renderSynthLoop(voice, f0, { sampleRate = 44100, seconds = 2.5, skip = 0.3, xfade = 0.5 } = {}) {
+  const spec = LIVE[voice];
+  const L = Math.round(Math.round(seconds * f0) * (sampleRate / f0)); // whole periods
+  const X = Math.round(xfade * sampleRate);
+  const S = Math.round(skip * sampleRate); // past the start's transients
+  const ctx = new OfflineAudioContext(1, S + L + X, sampleRate);
+  const lvl = ctx.createGain();
+  lvl.connect(ctx.destination);
+  spec.layers.forEach((layer, i) => sustained(ctx, lvl, f0, layer, 0, [], i + 1));
+  const a = (await ctx.startRendering()).getChannelData(0);
+  const out = new Float32Array(L);
+  for (let i = 0; i < L; i++) {
+    // The start blends from the loop's continuation, so the end runs into it seamlessly.
+    out[i] = i < X ? a[S + i] * (i / X) + a[S + L + i] * (1 - i / X) : a[S + i];
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- the engine

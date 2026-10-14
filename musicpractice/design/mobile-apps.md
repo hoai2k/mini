@@ -119,6 +119,10 @@ already, `design/drone-sounds.md`) and the metronome's clicks into an
 `AVAudioEngine` schedule. That is the one part of the app that is real native
 audio work; the rest is plumbing. It can come after the first release.
 
+**Done:** both apps now play the metronome and drone natively and keep going
+with the screen locked; see `../mobile/README.md`, "Playing with the screen
+locked".
+
 ## What to sell: free and Pro
 
 A suggested split (adjust after seeing what people use):

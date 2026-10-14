@@ -14,6 +14,11 @@ import { setupDrone } from './droneui.js';
 import { isApp, shareFile, onBackButton, exitApp } from './native.js';
 import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_TAKES, FREE_THEME } from './pro-config.js';
+import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
+
+// In the iOS and Android apps the metronome and the drone play through native
+// code, so they keep going with the screen locked (nativeaudio.js).
+const useNative = nativeAudio();
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -31,6 +36,9 @@ const persist = () => save(settings);
 
 // ---------------------------------------------------------------- theme
 
+/** A theme's fonts: from Google Fonts on the web, bundled in the apps (mobile/fonts/). */
+const fontsHref = (theme) => (isApp() ? `fonts/${theme.id}.css` : `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`);
+
 /** Switch the whole app's look: colours and type (styles.css) and art. */
 function applyTheme() {
   // Without Pro (in the apps), the free theme shows; the choice is kept for when Pro is on.
@@ -38,7 +46,7 @@ function applyTheme() {
   const theme = THEMES.find((t) => t.id === id) || THEMES[0];
   document.documentElement.dataset.theme = theme.id;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
-  const fonts = `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`;
+  const fonts = fontsHref(theme);
   const link = $('theme-fonts');
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
   applyArt(theme.id, () => alignPendulum($('metronome-case'), $('pendulum')));
@@ -176,7 +184,8 @@ for (const d of document.querySelectorAll('dialog.sheet')) {
 
 // ---------------------------------------------------------------- metronome
 
-let metronome = null;
+let metronome = null; // a Metronome, or a NativeMetronome in the apps
+let preview = null; // plays a click when a sound is chosen
 const pendulum = $('pendulum');
 const bpmInput = $('bpm-input');
 const bpmSlider = $('bpm-slider');
@@ -223,16 +232,22 @@ function metronomeConfigured() {
 }
 
 function startMetronome() {
-  // A fresh context if the old one may be stuck on another output (this is a
-  // tap, so the new one may start).
-  const ctx = freshAudio();
-  unlock();
-  if (!metronome || metronome.ctx !== ctx) {
-    metronome = new Metronome(ctx);
-    if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+  if (useNative) {
+    if (!metronome?.native) metronome = new NativeMetronome();
+    metronome.configure(settings);
+    metronome.start().catch(() => { note('Couldn\'t start the metronome. Try again.'); stopMetronome(); });
+  } else {
+    // A fresh context if the old one may be stuck on another output (this is a
+    // tap, so the new one may start).
+    const ctx = freshAudio();
+    unlock();
+    if (!metronome || metronome.ctx !== ctx) {
+      metronome = new Metronome(ctx);
+      if (settings.speaker !== 'default') setContextSpeaker(settings.speaker);
+    }
+    metronome.configure(settings);
+    metronome.start();
   }
-  metronome.configure(settings);
-  metronome.start();
   pendulum.classList.remove('resting');
   $('met-toggle').setAttribute('aria-pressed', 'true');
   $('met-toggle-label').textContent = 'Stop';
@@ -338,11 +353,14 @@ const appSettings = $('app-settings');
 $('app-settings-btn').addEventListener('click', () => {
   // Load every theme's fonts so the tiles show them (only when this opens).
   if (!$('all-theme-fonts')) {
-    const link = document.createElement('link');
-    link.id = 'all-theme-fonts';
-    link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?${THEMES.map((t) => t.fonts).join('&')}&display=swap`;
-    document.head.append(link);
+    const hrefs = isApp() ? THEMES.map(fontsHref) : [`https://fonts.googleapis.com/css2?${THEMES.map((t) => t.fonts).join('&')}&display=swap`];
+    hrefs.forEach((href, i) => {
+      const link = document.createElement('link');
+      if (i === 0) link.id = 'all-theme-fonts';
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.append(link);
+    });
   }
   appSettings.showModal();
 });
@@ -356,13 +374,13 @@ meterSelect.addEventListener('change', () => { settings.meter = meterSelect.valu
 chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
   settings.sound = v;
   metronomeConfigured();
-  // Let them hear it.
+  // Let them hear it (through Web Audio, also in the apps).
   if (!metronome?.running) {
     const ctx = audio();
     unlock();
-    if (!metronome || metronome.ctx !== ctx) metronome = new Metronome(ctx);
-    metronome.configure(settings);
-    metronome.voice(ctx.currentTime + 0.02, 2);
+    if (!preview || preview.ctx !== ctx) preview = new Metronome(ctx);
+    preview.configure(settings);
+    preview.voice(ctx.currentTime + 0.02, 2);
   }
 });
 $('accent').checked = settings.accent;
@@ -390,7 +408,7 @@ function animateMetronome() {
   const t = performance.now();
   if (lastFrame && t - lastFrame < 100) frameSec = frameSec * 0.9 + ((t - lastFrame) / 1000) * 0.1;
   lastFrame = t;
-  const now = heardNow(frameSec);
+  const now = metronome.native ? metronome.heardNow(frameSec) : heardNow(frameSec);
   const beat = metronome.beatAt(now);
   const angle = settings.metMotion ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
   pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
@@ -446,14 +464,17 @@ const TAPS_NEEDED = 8;
 $('sync-tap').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (!metronome?.running) { startMetronome(); return; }
+  const native = !!metronome.native;
   const c = metronome.ctx;
-  // When the finger came down, in the scheduling clock.
-  const at = c.currentTime - Math.max(0, performance.now() - e.timeStamp) / 1000;
+  // When the finger came down, in the scheduling clock (the system clock for the apps' native metronome).
+  const pressed = Math.max(0, performance.now() - e.timeStamp) / 1000;
+  const at = native ? Date.now() / 1000 - pressed : c.currentTime - pressed;
   // How long after a click was scheduled the tap came: that's the delay to
   // the ears (taps come a little late from the screen and a little early from
   // anticipation, which roughly cancel). Up to a beat, less a little.
   const p = metronome.period;
-  const recent = metronome.recent.filter((b) => b.time <= at + 0.1);
+  // The native metronome's beat times are when they're heard, so only the delay it can't know is left.
+  const recent = native ? metronome.beatsUntil(at + 0.1) : metronome.recent.filter((b) => b.time <= at + 0.1);
   const b = recent[recent.length - 1];
   if (!b) return;
   let off = at - b.time;
@@ -465,7 +486,7 @@ $('sync-tap').addEventListener('pointerdown', (e) => {
   const median = use[use.length >> 1];
   const spread = use[use.length - 1] - use[0];
   // Already allowed for: the output delay the browser reports.
-  const known = c.currentTime - heardNow() - settings.syncMs / 1000;
+  const known = native ? 0 : c.currentTime - heardNow() - settings.syncMs / 1000;
   if (spread > 0.15) {
     $('sync-status').textContent = 'Those taps were uneven. Try again, tapping right on each click.';
   } else {
@@ -1135,8 +1156,16 @@ function animateTuner() {
 // ---------------------------------------------------------------- drone
 
 let drone = null;
+let nativeDrone = null;
 /** The drone's sound engine, on a fresh audio context when started from a tap (as the metronome does). */
 function droneEngine() {
+  if (useNative) {
+    if (!nativeDrone) {
+      nativeDrone = new NativeDrone();
+      nativeDrone.setVolume(settings.droneVolume);
+    }
+    return nativeDrone;
+  }
   // While it sounds, keep its context (so note changes crossfade); from
   // silence, a fresh one if the output may have changed (a Bluetooth speaker).
   const ctx = drone?.playing && drone.ctx.state !== 'closed' ? drone.ctx : freshAudio();
@@ -1158,6 +1187,19 @@ const droneUI = setupDrone({
     keepAwake(on);
   },
 });
+// The apps: the native metronome and drone go on while the screen is locked
+// (and can be stopped from the lock screen or the notification). Coming back,
+// catch up with what they did.
+function syncNative() {
+  if (!useNative) return;
+  if (metronome?.native && metronome.running) metronome.poll().then((on) => { if (!on) stopMetronome(); });
+  droneUI.syncNative();
+}
+if (useNative) {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncNative(); });
+  onNativeStopped(syncNative);
+}
+
 const droneSettings = $('drone-settings');
 $('drone-settings-btn').addEventListener('click', () => { droneUI.refresh(); droneSettings.showModal(); });
 

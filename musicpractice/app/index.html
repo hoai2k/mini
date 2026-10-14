@@ -28,6 +28,8 @@
       // In the iOS and Android apps, themes are part of Pro (src/pro.js keeps this answer).
       var app = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
       if (app && localStorage.getItem('musicpractice.pro') !== '1') { t = 'classic'; document.documentElement.classList.add('locked'); }
+      // The apps bundle every theme's fonts (mobile/fonts/).
+      if (app) document.getElementById('theme-fonts').href = 'fonts/' + t + '.css';
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'classic'; }
   </script>

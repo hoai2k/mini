@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The notification icon while the metronome or drone plays: a metronome. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M9.6,2h4.8l4.6,18H5L9.6,2zM10.9,4L7.6,18h8.8L13.1,4H10.9zM11.2,15.5l4.1,-9.2l1.4,0.6l-3.9,8.6H11.2z"/>
+</vector>

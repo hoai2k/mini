@@ -267,7 +267,9 @@ favour of the two-button home screen.
   build them, set up purchases in the stores and RevenueCat, and give friends
   Pro: see `mobile/README.md`. In the apps the Drone, every take and all the
   themes are Music Practice Pro (`app/src/pro.js`, `pro-config.js`,
-  `native.js`); the website stays all free.
+  `native.js`); the website stays all free. In the apps the metronome and
+  drone play natively and keep going with the screen locked
+  (`app/src/nativeaudio.js`), and the themes' fonts are bundled.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
   store listings.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.

@@ -21,6 +21,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   let lastTick = 0;
   let timer = 0;
   let doneNote = '';
+  let changesSeen = 0; // changes the native drone made by itself that are counted here (the apps)
 
   const name = (midi) => {
     const n = noteName(midi, { flats: settings.flats });
@@ -71,8 +72,62 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     }
   }
 
+  /**
+   * For the apps' native drone, which keeps a timed drone going with the screen
+   * locked: when the time is up and the notes that follow (the web Drone ignores it).
+   */
+  function schedule() {
+    if (!settings.droneTimed) return null;
+    const first = Math.max(0, remaining);
+    const interval = settings.droneMinutes * 60;
+    if (settings.droneThen === 'stop') return { first, interval, notes: [], stopAtEnd: true };
+    const notes = Array.from({ length: 64 }, (_, k) => sequenceNote(settings.droneThen, seqStart, seqStep + 1 + k));
+    return { first, interval, notes, stopAtEnd: false };
+  }
+
   function sound() {
-    engine().play({ midi: settings.droneMidi, voice: settings.droneVoice, a4: settings.a4, fifth: settings.droneFifth });
+    changesSeen = 0;
+    const voiceLabel = VOICES.find((v) => v.id === settings.droneVoice)?.label || '';
+    engine().play({
+      midi: settings.droneMidi,
+      voice: settings.droneVoice,
+      a4: settings.a4,
+      fifth: settings.droneFifth,
+      schedule: schedule(),
+      label: `Drone · ${name(settings.droneMidi).text} · ${voiceLabel}`,
+    });
+  }
+
+  /**
+   * The apps: catch up with the native drone, which may have moved on through
+   * a sequence, or stopped (its timer, the lock screen, the notification),
+   * while this page was asleep.
+   */
+  async function syncNative() {
+    const e = engine();
+    if (!e.native || !playing) return;
+    let s;
+    try { s = await e.state(); } catch { return; }
+    if (!playing) return;
+    const fresh = s.changes - changesSeen;
+    if (fresh > 0) {
+      changesSeen = s.changes;
+      seqStep += fresh;
+      settings.droneMidi = s.midi;
+      persist();
+    }
+    if (s.remaining >= 0) remaining = s.remaining;
+    lastTick = performance.now();
+    if (!s.playing) {
+      playing = false;
+      clearInterval(timer);
+      onPlaying(false);
+      if (s.stoppedByTimer) {
+        remaining = settings.droneMinutes * 60;
+        doneNote = `Done: ${fmt(settings.droneMinutes * 60)} on ${name(settings.droneMidi).text}`;
+      }
+    }
+    show();
   }
 
   // ---- play, pause
@@ -218,6 +273,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     stop: pause,
     toggle: () => (playing ? pause() : play()),
     step: (d) => setNote(settings.droneMidi + d),
+    syncNative,
     get playing() { return playing; },
   };
 }

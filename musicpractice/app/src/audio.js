@@ -92,6 +92,8 @@ export function setSession(type) {
  * throw the pendulum off.
  */
 let extraDelay = 0;
+/** The manual adjustment from Audio check / the sync bar, in seconds. */
+export const extraDelaySec = () => extraDelay;
 export function setExtraDelay(sec) {
   extraDelay = Math.max(-0.2, Math.min(0.5, Number(sec) || 0));
 }
