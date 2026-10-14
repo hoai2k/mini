@@ -494,7 +494,6 @@ function tickUnlock(dt) {
 function revealCard(u, card) {
   u.revealed = true;
   fillCard(card);
-  card.classList.add('new');
   audio.sfx('bloom');
   $('#guide-live').textContent = `Spotted: ${BIRDS[u.i].name}.`;
 }

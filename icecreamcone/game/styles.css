@@ -434,16 +434,8 @@ body.reduce-motion .stamp-record .shine { display: none; }
 #celebrate { pointer-events: none; justify-content: flex-start; align-items: flex-end; }
 .celebrate-hint { background: rgba(250, 244, 228, 0.8); padding: 2px 12px; border-radius: 999px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
-/* A bird's card turning over after it is first spotted, with a New tab. */
+/* A bird's card turning over after it is first spotted. */
 .card.unlocking { z-index: 3; transition: none; box-shadow: 0 0 0 4px rgba(192, 64, 122, 0.55), 0 0 22px 6px rgba(239, 217, 106, 0.7); }
-.card.new::after {
-  content: 'New!';
-  position: absolute; top: 4px; left: 4px;
-  background: var(--accent); color: #fff8ef;
-  font: 700 0.75rem var(--serif);
-  padding: 1px 8px; border: 2px solid var(--ink); border-radius: 8px;
-  transform: rotate(-8deg);
-}
 
 .scroll { overflow-y: auto; text-align: left; flex: 1; min-height: 0; padding-right: 6px; }
 .settings-list { display: flex; flex-direction: column; gap: 8px; }

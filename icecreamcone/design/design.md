@@ -68,7 +68,7 @@ says "New World Record!" and nothing more specific.
    and melts in with a bloom of its colour: the grey lifts and the bird is
    there in full colour, snapped in (and saved so) for good. Then the guide comes
    back with that bird's own card chosen, still its silhouette; it turns
-   over to show its painting, with a New tab. Any press (A, Enter, Space, a
+   over to show its painting. Any press (A, Enter, Space, a
    click or tap) jumps to the next step; B, Esc or a long press skips to the
    end, where the card is already turned. With reduced motion the steps fade
    instead of flying and turning.
