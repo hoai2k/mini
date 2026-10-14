@@ -6,6 +6,11 @@ agent. Newest first.
 
 ## Open
 
+- **Agents running (2026-10-14):** (1) Bobolinks: controls text says LB/RB
+  (or X/B), not D-pad/stick; the left/right arrows move to a screen-space
+  overlay (`g.drawOverlay` hook in main.js) with LB/RB icons; adds generic
+  `xPressed`/`bPressed` to `input.state()`. (2) Button Up: B discards the
+  held button; a button under the taller bird's beak tip is picked up.
 - **All birds playable: done 2026-10-13 (not yet merged).** Every card is
   playable from the start. An unspotted bird shows its silhouette on its
   card and page (name, rhyme, game and tips all shown; the game draws it in
