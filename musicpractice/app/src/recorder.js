@@ -9,6 +9,7 @@
 
 import { analyzeFrame, PlayDetector, trimBounds, cut, FRAME } from './detect.js';
 import { listDevices, preferredMic, micPermission, noteFirstRequest, allowedInAdvance } from './devices.js';
+import { isApp } from './native.js';
 
 const PREROLL_SEC = 2;
 const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
@@ -32,8 +33,13 @@ const WORKLET_LOADED = new WeakSet(); // contexts with the capture worklet
 let promptSuspected = false;
 const PROMPT_SUSPECT_MS = 900;
 
-/** Is the mic freed while takes play (so a Bluetooth speaker can be used)? */
+/**
+ * Is the mic freed while takes play (so a Bluetooth speaker can be used)? In
+ * the iOS and Android apps the mic is the app's, granted once, so it can
+ * always be closed and reopened without a prompt.
+ */
 export function freesMicForPlayback() {
+  if (isApp()) return true;
   return (micPermission() === 'granted' || allowedInAdvance()) && !promptSuspected;
 }
 export const promptWasSuspected = () => promptSuspected;

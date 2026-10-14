@@ -1,6 +1,8 @@
 // One AudioContext for the whole app (metronome, recorder and playback).
 // Browsers only let it start from a tap, so `unlock()` is called from one.
 
+import { isApp, keepScreenOn } from './native.js';
+
 let ctx = null;
 
 export function audio() {
@@ -157,6 +159,7 @@ export async function setContextSpeaker(id) {
 let lock = null;
 let wanted = false;
 export async function keepAwake(on) {
+  if (isApp() && on !== wanted) keepScreenOn(on);
   wanted = on;
   try {
     if (on && !lock && navigator.wakeLock) {
