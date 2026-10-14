@@ -5,10 +5,11 @@ name: Deploy the mini-rooms relay
 # Workers" permission) and CLOUDFLARE_ACCOUNT_ID; without them the deploy
 # step is skipped and the relay must be deployed by hand (npx wrangler deploy).
 #
-# A push deploys without running the tests (CLAUDE.md, "Tests and deploys":
-# run `npm test` in multiplayer/server before committing a change to it). The
-# tests run only on demand: Actions -> Deploy the mini-rooms relay -> Run
-# workflow -> tests: full, and then a failing test stops the deploy.
+# The relay is the one deploy that still runs its tests on push: it is shared
+# live infrastructure every online game talks to, so a logic bug here breaks
+# them all at once, and the run only fires when the relay itself changes (a
+# minute or two). A failing test stops the deploy. A manual run can skip them
+# (tests: none) to redeploy in a hurry.
 
 on:
   push:
@@ -19,8 +20,8 @@ on:
       tests:
         description: Run the tests before deploying
         type: choice
-        options: [none, full]
-        default: none
+        options: [full, none]
+        default: full
 
 permissions:
   contents: read
@@ -41,7 +42,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - name: Tests
-        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        if: github.event_name != 'workflow_dispatch' || inputs.tests != 'none'
         run: npm test
         timeout-minutes: 5
       - if: env.CLOUDFLARE_API_TOKEN != ''

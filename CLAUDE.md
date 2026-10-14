@@ -140,9 +140,12 @@ before you commit:
   `index.html`, `multiplayer/`, the workflow), run every game's checks.
 - Say in the commit message what you ran and that it passed.
 - The full tests can also be run on demand: Actions → Deploy games to GitHub
-  Pages → Run workflow → tests: full (and for the relay, Deploy the mini-rooms
-  relay → Run workflow → tests: full). iOS builds (`chat-ios.yml`) run only
+  Pages → Run workflow → tests: full. iOS builds (`chat-ios.yml`) run only
   that way.
+- The one exception is the multiplayer relay: `relay.yml` runs
+  `multiplayer/server`'s `npm test` on every push that changes it and will not
+  deploy on a failure, because every online game shares that live server. Run
+  the tests before committing anyway.
 
 Every deploy is paid for in GitHub Actions minutes while the repository is
 private, so batch a task's work into one push to `main` at the end rather than
