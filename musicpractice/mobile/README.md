@@ -282,9 +282,15 @@ store's.
 2. Store listings: description, keywords, screenshots (iPhone 6.9" and 6.5";
    iPad if offered; Android phone), the privacy policy link above, support
    contact.
-3. iOS App Privacy: *Purchases* data, used for app functionality, not linked
-   to identity, no tracking. Google Play Data safety: purchase history,
-   collected for app functionality, not shared.
+3. iOS App Privacy: *Purchases* data, used for app functionality; and, from
+   Send feedback, *Contact Info › Email Address*, *User Content › Customer
+   Support* and *Diagnostics › Other Diagnostic Data*, used for app
+   functionality (support); none linked to identity beyond the email they
+   give, no tracking. Google Play Data safety: purchase history (app
+   functionality), and from feedback: email address, other user-generated
+   content and diagnostics, collected optionally for customer support, not
+   shared. Both forms ask whether data is collected only when the person
+   chooses to send it: say yes.
 4. Review notes for Apple: the app is a bundled, offline practice app
    (metronome, tuner, drone, recorder) with native microphone handling and
    sharing; where Pro is and how to test it with a sandbox account.

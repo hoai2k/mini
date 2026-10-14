@@ -114,6 +114,7 @@
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" aria-label="Theme"></div>
           </fieldset>
           <button type="button" class="pill open-audio-check">Audio check…</button>
+          <button type="button" class="pill open-feedback">Send feedback…</button>
           <!-- In the apps only (src/pro.js). -->
           <fieldset id="pro-row" hidden>
             <legend>Music Practice Pro</legend>
@@ -381,6 +382,25 @@
       <form method="dialog">
         <header class="sheet-head"><h3 id="audio-check-title">Audio check</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div id="audio-check-body" aria-live="polite"></div>
+        <button type="button" class="pill open-feedback" data-topic="Problem">Report a problem…</button>
+      </form>
+    </dialog>
+
+    <!-- Send feedback (src/feedback.js): to the shared feedback inbox. -->
+    <dialog id="feedback" class="sheet" aria-labelledby="fb-title">
+      <form method="dialog">
+        <header class="sheet-head"><h3 id="fb-title">Send feedback</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <p class="help">A problem, an idea, anything at all. It goes straight to the developer.</p>
+        <div class="chips" id="fb-topic" aria-label="What it's about"></div>
+        <label class="fb-field"><span>Your email, for a reply</span><input type="email" id="fb-email" class="fb-input" autocomplete="email" inputmode="email" maxlength="254" enterkeyhint="next"></label>
+        <label class="fb-field"><span>Message</span><textarea id="fb-message" class="fb-input" rows="5" maxlength="3000"></textarea></label>
+        <!-- A honeypot: hidden from people and screen readers; bots that fill every field fill it. -->
+        <div class="fb-hp" aria-hidden="true"><label>Leave this empty <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
+        <label class="row toggle"><span>Include device details</span><input type="checkbox" id="fb-details-on" role="switch" checked></label>
+        <details class="fb-details-box"><summary>What's included</summary><pre id="fb-details"></pre></details>
+        <button type="button" class="big-btn fb-send" id="fb-send" disabled>Send</button>
+        <p class="help fb-status" id="fb-status" role="status" aria-live="polite"></p>
+        <p class="help fb-note">Your email is used only to reply. <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#feedback" target="_blank" rel="noopener">Privacy</a></p>
       </form>
     </dialog>
   </main>

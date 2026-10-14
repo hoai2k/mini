@@ -11,7 +11,8 @@ import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
 import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
-import { isApp, shareFile, onBackButton, exitApp } from './native.js';
+import { isApp, platform, shareFile, onBackButton, exitApp } from './native.js';
+import { setupFeedback } from './feedback.js';
 import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
 import { FREE_TAKES, FREE_THEME } from './pro-config.js';
 import { nativeAudio, NativeMetronome, NativeDrone, onNativeStopped } from './nativeaudio.js';
@@ -1282,6 +1283,32 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
     });
   });
 }
+
+// ---------------------------------------------------------------- feedback
+
+/**
+ * What Send feedback can include (shown in the form, and left out if they
+ * untick it): where it's running, and the Audio check's readings, which are
+ * what make "the recording didn't work" fixable.
+ */
+function feedbackDetails() {
+  const ctx = existingAudio();
+  const p = diag.lastPlayback;
+  const lines = [
+    `Running: ${isApp() ? `${platform()} app, ${isPro() ? 'Pro' : 'free'}` : 'website'}; open on: ${screen}; theme: ${settings.theme}`,
+    `Microphone: permission ${micPermission()}, recorder ${recorder?.state ?? 'off'}, ${freesMicForPlayback() ? 'closed for playback' : 'kept open for playback'}`
+      + (diag.firstRequestMs != null ? `, first request ${diag.firstRequestMs} ms` : ''),
+    `Audio: ${ctx ? `${ctx.state}, ${ctx.sampleRate} Hz, output latency ${Math.round((ctx.outputLatency || 0) * 1000)} ms` : 'not started'}`
+      + `${navigator.audioSession ? `; session ${navigator.audioSession.type}/${navigator.audioSession.state ?? '?'}` : ''}${useNative ? '; native metronome and drone' : ''}`,
+    `Chosen: mic ${settings.mic === 'auto' ? 'automatic' : 'picked'}, speaker ${settings.speaker === 'default' ? 'default' : 'picked'}, sync ${settings.syncMs} ms`,
+    `Metronome: ${settings.bpm} BPM, ${settings.meter}, ${settings.sound}; drone: ${settings.droneVoice}; tuner: ${settings.tuning}, A4 ${settings.a4}`,
+  ];
+  if (p) {
+    lines.push(`Last playback: ${Math.round((Date.now() - p.at) / 1000)} s ago via ${p.via}, mic ${p.micFreed ? 'freed' : p.micHeld ? 'held' : 'off'}, waited ${p.waitedMs} ms, engine ${p.engine}`);
+  }
+  return lines.join('\n');
+}
+setupFeedback({ details: feedbackDetails });
 
 // Pro (the apps only): features unlock or lock as it turns on or off.
 function proChanged() {

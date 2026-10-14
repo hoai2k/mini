@@ -270,6 +270,17 @@ favour of the two-button home screen.
   `native.js`); the website stays all free. In the apps the metronome and
   drone play natively and keep going with the screen locked
   (`app/src/nativeaudio.js`), and the themes' fonts are bundled.
+- `app/src/feedback.js`: Send feedback (Settings, and Report a problem in
+  Audio check). It posts to the same feedback inbox as the cambrian games: the
+  shared Apps Script in the `hoai2k.github.io` repository
+  (`tools/feedback/Code.gs`, set up as in cambrian's `docs/FEEDBACK.md`), a
+  row per message in a private Google Sheet with `game` = `musicpractice`, and
+  an email to say it arrived. Email and message are required, as there; the
+  topic and the device details (with the Audio check's readings, shown before
+  sending and optional) travel at the end of the message. Same spam defences:
+  a hidden honeypot field, Send held for 3 s, the script's hourly caps. A
+  failed send says so and keeps what was written. Empty `ENDPOINT` and the
+  buttons disappear.
 - `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
   store listings.
 - `design/mobile-apps.md`: why the apps, what to sell and the store rules.
