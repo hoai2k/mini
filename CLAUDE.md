@@ -56,25 +56,31 @@ push `main`, and say so in the final message with the resulting commit. This
 applies to documents and asset requests as much as to code, because the user
 generates art from the request documents on `main`.
 
-1. Commit the work on the session's development branch and push it.
+1. Commit the work on the session's development branch as each piece is
+   finished, and push the branch (pushes to a working branch run nothing).
 2. Verify the change by running the checks of each game it touched. Each game's
    README lists them (for Hopper, `pnpm test`, `pnpm typecheck`, `pnpm lint`,
-   `pnpm build` in `hopper/game`). For changes that affect a published build,
-   confirm the deployed page still plays.
-3. Merge that branch into `main` and push `main`. The GitHub Pages workflow
-   (`.github/workflows/pages.yml`) then deploys every game and site.
+   `pnpm build` in `hopper/game`). This is the only place the tests run: a push
+   to `main` builds and deploys without them (see "Tests and deploys" below).
+   For changes that affect a published build, confirm the deployed page still
+   plays.
+3. Merge that branch into `main` and push `main`, once, at the end of the task.
+   The GitHub Pages workflow (`.github/workflows/pages.yml`) then builds and
+   deploys every game and site; a game whose build fails keeps its live copy
+   and the run says so in a warning.
 4. Report the merge and the resulting `main` commit.
 
 Open a pull request only when the user explicitly asks for one; otherwise merge
 directly. Never merge work that is unfinished, untested, or known to be broken —
 finish it or say plainly what is blocking, rather than merging a broken `main`.
 When a task produces several independently useful pieces (a document, a request
-list, a working feature), commit and push each to `main` as soon as it is
-finished and verified rather than holding everything for one final merge.
+list, a working feature), commit each as soon as it is finished and verified,
+and push them to `main` together at the end of the task.
 
-**Image and asset requests go first.** When a task needs new artwork, write the
-request entries (and regenerate the request documents) and push them to `main`
-before building the feature that uses them, so the user can start generating
+**Image and asset requests go first.** They are the one exception to a single
+push at the end: when a task needs new artwork, write the request entries (and
+regenerate the request documents) and push them to `main` before building the
+feature that uses them, so the user can start generating
 while the rest is written. The game keeps drawing its stand-ins until the art
 arrives.
 
@@ -122,6 +128,27 @@ well-specified implementation, tests and reviews with a clear contract; `opus`,
 or the model left unset so it inherits, for design, architecture, gameplay
 feel and anything open-ended. Give an agent the exact files, interfaces and
 checks it must satisfy so a cheaper model can finish the job without guessing.
+
+## Tests and deploys
+
+Pushes to `main` build and deploy only; they run no tests. Tests are your job
+before you commit:
+
+- Run the checks of each game your change touches (each game's README lists
+  them; for Hopper, `pnpm test`, `pnpm typecheck`, `pnpm lint`,
+  `pnpm build:pages` in `hopper/game`). For a change to shared files (root
+  `index.html`, `multiplayer/`, the workflow), run every game's checks.
+- Say in the commit message what you ran and that it passed.
+- The full tests can also be run on demand: Actions → Deploy games to GitHub
+  Pages → Run workflow → tests: full (and for the relay, Deploy the mini-rooms
+  relay → Run workflow → tests: full). iOS builds (`chat-ios.yml`) run only
+  that way.
+
+Every deploy is paid for in GitHub Actions minutes while the repository is
+private, so batch a task's work into one push to `main` at the end rather than
+pushing after every small step. Pushes to a working branch run nothing. A
+deploy that is already running always finishes, and pushes waiting behind it
+collapse into the newest one.
 
 ## Models
 

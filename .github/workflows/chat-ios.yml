@@ -1,4 +1,9 @@
-# Builds the Games Chat iOS app (chat/ios) on a Mac whenever it changes:
+# Run by hand only: Actions -> Games Chat iOS build -> Run workflow, when the
+# owner wants an iOS / TestFlight build checked. It runs on a macOS runner,
+# which bills ten times the Linux minutes while the repository is private, so
+# it no longer runs on every push to chat/ios/.
+#
+# Builds the Games Chat iOS app (chat/ios) on a Mac:
 # GamesChatCore's tests, the app for the iOS Simulator (no signing), then
 # launches it on an iPhone and an iPad simulator and keeps screenshots of the
 # first screen and of a call (as artifacts). Shipping to TestFlight is done
@@ -6,8 +11,6 @@
 name: Games Chat iOS build
 
 on:
-  push:
-    paths: ["chat/ios/**", ".github/workflows/chat-ios.yml"]
   workflow_dispatch:
 
 permissions:

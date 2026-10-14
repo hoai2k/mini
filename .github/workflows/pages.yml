@@ -1,20 +1,57 @@
 name: Deploy games to GitHub Pages
 
+# A push to main builds and deploys only. Each game's build is its own step
+# through .github/scripts/build-game.sh: a game that fails to build is
+# published from its live copy instead (rebuilt from the live commit, or
+# crawled off the site), with a warning and a line in the job summary, so one
+# broken game never holds back the others. The shared root files must build,
+# and the run fails if no game built at all.
+#
+# The tests (node --test, pnpm/npm test, the generators' --check runs, syntax
+# checks and the Kingdom of the Fairies qa scripts) run only on demand:
+# Actions -> Deploy games to GitHub Pages -> Run workflow -> tests: full.
+# They write nothing the site is made from, so the published site is the same
+# either way; a failing test stops that run's deploy. Run the checks of the
+# games a change touches before committing (CLAUDE.md, "Tests and deploys").
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      tests:
+        description: Run the tests before deploying
+        type: choice
+        options: [none, full]
+        default: none
 
 permissions:
   contents: read
 
+# Never cancel, deliberately. A deploy that is running always finishes, and
+# GitHub keeps one pending run behind it, which a newer push replaces for
+# free: during a burst of pushes the site publishes once per deploy length,
+# and queued pushes collapse into the newest. Cancelling the running deploy
+# on every push instead can starve the site: a steady stream
+# of pushes would cancel every deploy before it finished. Per-game groups
+# would not help either: there is one Pages site, and every run builds and
+# publishes ALL games from the latest main, so a newer run already contains
+# whatever a superseded one would have published. (Before October 2026 this
+# was group github-pages, also never-cancel.)
 concurrency:
-  group: github-pages
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # build-game.sh asks for the last successful run to rebuild a failed
+      # game from the commit that is live.
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,40 +62,109 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: hopper/game/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
+      # The shared root files must build, or the whole deploy fails: every
+      # game needs them.
+      - name: Shared root files
+        run: test -f multiplayer/client/mini-rooms.js && mkdir -p local/pages && cp index.html favicon.ico local/pages/
+      - name: Build Hopper
+        run: .github/scripts/build-game.sh hopper 'cd hopper/game && pnpm install --frozen-lockfile && pnpm build:pages'
+      - name: Hopper tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: pnpm typecheck && pnpm test
         working-directory: hopper/game
-      - run: pnpm typecheck && pnpm build:pages
-        working-directory: hopper/game
-      - run: pnpm install --frozen-lockfile && pnpm test
+      - name: Hopper 3D stand-in tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: pnpm install --frozen-lockfile && pnpm test
         working-directory: hopper/3d/standins
-      - run: sites/publish.sh local/pages/sites
-      - run: for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs || exit 1; done; done && for t in animation sailor-motion walking theme assets-loader; do node kingdomofthefairies/qa/$t.test.mjs || exit 1; done && KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs && python3 kingdomofthefairies/design/source/build_act_requests.py --check && python3 kingdomofthefairies/design/source/build_film_requests.py --check && python3 kingdomofthefairies/design/source/build_film_assets.py --check && kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
-      - run: node --test test/*.test.mjs && node scripts/check.mjs
+      - name: Build the sites
+        run: .github/scripts/build-game.sh sites 'sites/publish.sh local/pages/sites'
+      - name: Build Kingdom of the Fairies
+        run: .github/scripts/build-game.sh kingdomofthefairies 'kingdomofthefairies/publish.sh local/pages/kingdomofthefairies'
+      - name: Kingdom of the Fairies tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: for e in widowsbay partial; do for t in board act2 act3 act4 act5; do KOTF_EDITION=$e node kingdomofthefairies/qa/$t.test.mjs || exit 1; done; done && for t in animation sailor-motion walking theme assets-loader; do node kingdomofthefairies/qa/$t.test.mjs || exit 1; done && KOTF_EDITION=film node kingdomofthefairies/qa/film.test.mjs && python3 kingdomofthefairies/design/source/build_act_requests.py --check && python3 kingdomofthefairies/design/source/build_film_requests.py --check && python3 kingdomofthefairies/design/source/build_film_assets.py --check
+      - name: Build Bronze Drum
+        run: .github/scripts/build-game.sh bronzedrum 'bronzedrum/publish.sh local/pages/bronzedrum'
+      - name: Bronze Drum tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test test/*.test.mjs && node scripts/check.mjs
         working-directory: bronzedrum/game
-      - run: python3 bronzedrum/design/source/build_requests.py --check && python3 bronzedrum/design/source/build_audio.py --check && python3 bronzedrum/design/source/build_web_art.py --check && python3 bronzedrum/design/source/build_rigs.py --check
-      - run: bronzedrum/publish.sh local/pages/bronzedrum
-      - run: npm ci && npm test
+      - name: Bronze Drum generator checks
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 bronzedrum/design/source/build_requests.py --check && python3 bronzedrum/design/source/build_audio.py --check && python3 bronzedrum/design/source/build_web_art.py --check && python3 bronzedrum/design/source/build_rigs.py --check
+      - name: Multiplayer relay tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: npm ci && npm test
         working-directory: multiplayer/server
         timeout-minutes: 5
-      - run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js && tankwars/publish.sh local/pages/tankwars
-      - run: node --test chat/test/*.test.mjs && python3 chat/design/source/build_requests.py --check && chat/publish.sh local/pages/chat
-      - run: node --test test/*.test.mjs
+      - name: Build Tank Wars
+        run: .github/scripts/build-game.sh tankwars 'tankwars/publish.sh local/pages/tankwars'
+      - name: Tank Wars tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js
+      - name: Build Games Chat
+        run: .github/scripts/build-game.sh chat 'chat/publish.sh local/pages/chat'
+      - name: Games Chat tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test chat/test/*.test.mjs && python3 chat/design/source/build_requests.py --check
+      - name: Build Gliders
+        run: .github/scripts/build-game.sh gliders 'gliders/publish.sh local/pages/gliders'
+      - name: Gliders tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test test/*.test.mjs
         working-directory: gliders/game
-      - run: python3 gliders/design/source/build_requests.py --check && python3 gliders/design/source/build_audio.py --check && gliders/publish.sh local/pages/gliders
-      - run: node --test test/*.test.mjs
+      - name: Gliders generator checks
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 gliders/design/source/build_requests.py --check && python3 gliders/design/source/build_audio.py --check
+      - name: Build Ice-Cream Cone Coot
+        run: .github/scripts/build-game.sh icecreamcone 'icecreamcone/publish.sh local/pages/icecreamcone'
+      - name: Ice-Cream Cone Coot tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test test/*.test.mjs
         working-directory: icecreamcone/game
-      - run: python3 icecreamcone/design/source/build_requests.py --check && icecreamcone/publish.sh local/pages/icecreamcone
-      - run: python3 onemonster/design/source/build_requests.py --check && onemonster/publish.sh local/pages/onemonster
-      - run: node --test test/*.test.mjs
+      - name: Ice-Cream Cone Coot generator checks
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 icecreamcone/design/source/build_requests.py --check
+      - name: Build One Monster After Another
+        run: .github/scripts/build-game.sh onemonster 'onemonster/publish.sh local/pages/onemonster'
+      - name: One Monster After Another tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 onemonster/design/source/build_requests.py --check
+      - name: Build Fibre Art
+        run: .github/scripts/build-game.sh fibreart 'fibreart/publish.sh local/pages/fibreart'
+      - name: Fibre Art tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test test/*.test.mjs
         working-directory: fibreart/game
-      - run: python3 fibreart/design/source/build_requests.py --check && fibreart/publish.sh local/pages/fibreart
-      - run: node --test aiching/app/test/*.test.mjs && python3 aiching/design/source/build_requests.py --check && python3 aiching/tools/build_web.py --check && aiching/publish.sh local/pages/aiching
-      - run: node --test eartrainer/app/test/*.test.mjs && python3 eartrainer/design/source/build_requests.py --check && eartrainer/publish.sh local/pages/eartrainer
-      - run: node --test musicpractice/app/test/*.test.mjs && python3 musicpractice/design/source/build_requests.py --check && musicpractice/publish.sh local/pages/musicpractice
-      - run: node --test test/*.test.mjs
+      - name: Fibre Art generator checks
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 fibreart/design/source/build_requests.py --check
+      - name: Build Ai-Ching
+        run: .github/scripts/build-game.sh aiching 'aiching/publish.sh local/pages/aiching'
+      - name: Ai-Ching tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test aiching/app/test/*.test.mjs && python3 aiching/design/source/build_requests.py --check && python3 aiching/tools/build_web.py --check
+      - name: Build Ear Trainer
+        run: .github/scripts/build-game.sh eartrainer 'eartrainer/publish.sh local/pages/eartrainer'
+      - name: Ear Trainer tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test eartrainer/app/test/*.test.mjs && python3 eartrainer/design/source/build_requests.py --check
+      - name: Build Music Practice
+        run: .github/scripts/build-game.sh musicpractice 'musicpractice/publish.sh local/pages/musicpractice'
+      - name: Music Practice tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test musicpractice/app/test/*.test.mjs && python3 musicpractice/design/source/build_requests.py --check
+      - name: Build Half-Blood Quests
+        run: .github/scripts/build-game.sh percyjackson 'percyjackson/publish.sh local/pages/percyjackson'
+      - name: Half-Blood Quests tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test test/*.test.mjs
         working-directory: percyjackson/game
-      - run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && python3 percyjackson/design/source/build_concept_web.py --check && percyjackson/publish.sh local/pages/percyjackson
-      - run: cp index.html favicon.ico local/pages/
+      - name: Half-Blood Quests generator checks
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: python3 percyjackson/design/source/build_requests.py --check && python3 percyjackson/design/source/build_cards.py --check && python3 percyjackson/design/source/build_hero_art.py --check && python3 percyjackson/design/source/build_concept_web.py --check
+      - name: Fail only if no game built
+        run: .github/scripts/check-games.sh
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages

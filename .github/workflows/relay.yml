@@ -4,12 +4,23 @@ name: Deploy the mini-rooms relay
 # repository secrets CLOUDFLARE_API_TOKEN (a token with "Edit Cloudflare
 # Workers" permission) and CLOUDFLARE_ACCOUNT_ID; without them the deploy
 # step is skipped and the relay must be deployed by hand (npx wrangler deploy).
+#
+# A push deploys without running the tests (CLAUDE.md, "Tests and deploys":
+# run `npm test` in multiplayer/server before committing a change to it). The
+# tests run only on demand: Actions -> Deploy the mini-rooms relay -> Run
+# workflow -> tests: full, and then a failing test stops the deploy.
 
 on:
   push:
     branches: [main]
     paths: ['multiplayer/server/**', '.github/workflows/relay.yml']
   workflow_dispatch:
+    inputs:
+      tests:
+        description: Run the tests before deploying
+        type: choice
+        options: [none, full]
+        default: none
 
 permissions:
   contents: read
@@ -28,7 +39,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci && npm test
+      - run: npm ci
+      - name: Tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: npm test
         timeout-minutes: 5
       - if: env.CLOUDFLARE_API_TOKEN != ''
         run: npx wrangler deploy
