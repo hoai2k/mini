@@ -588,6 +588,7 @@ function tileGestures(rec) {
       placePip(rec);
       el.style.transform = '';
       el.classList.remove('dragging');
+      placeEffectChip();
     } else if (e.type === 'pointerup' && el.classList.contains('pip') && !games?.current && performance.now() - drag.t < 350) {
       promoteTile(rec.id);
     }
@@ -1200,13 +1201,6 @@ function initControls() {
     const h = $('#controls').offsetHeight;
     if (h) $('#call').style.setProperty('--controls-height', `${h}px`);
   }).observe($('#controls'));
-  // Keep the main-video prompt above whichever bottom sheet is visible.
-  const sheets = [...new Set(Object.values(trays))].map(selector => $(selector));
-  const promptSpace = new ResizeObserver(() => {
-    const height = Math.max(0, ...sheets.map(sheet => sheet.hidden ? 0 : sheet.offsetHeight));
-    $('#call').style.setProperty('--effect-prompt-clearance', `${height + 10}px`);
-  });
-  for (const sheet of sheets) promptSpace.observe(sheet);
   $('#status').addEventListener('click', () => {
     renderConnection();
     openDialog('connection');
@@ -1581,6 +1575,22 @@ function showEffectOffer(from, fx) {
 }
 
 // One quiet copy prompt for the main video; an explicit share replaces it.
+// The copy chip sits top-left on the main video, below any small video that
+// floats in that corner.
+function placeEffectChip() {
+  const el = $('#effect-prompt');
+  if (!el || el.hidden) return;
+  const base = $('#topbar').getBoundingClientRect().bottom + 34;
+  const w = el.offsetWidth || 120;
+  let top = base;
+  for (const rec of tiles.values()) {
+    if (!rec.el.classList.contains('pip')) continue;
+    const r = rec.el.getBoundingClientRect();
+    if (r.left < 10 + w + 8 && r.right > 2 && r.top < top + 40) top = Math.max(top, r.bottom + 8);
+  }
+  el.style.top = `${Math.round(top)}px`;
+}
+
 function updateGrabButton() {
   let el = $('#effect-prompt');
   if (!el) {
@@ -1609,7 +1619,8 @@ function updateGrabButton() {
     : `${nameOf(friend)} is using ${fx.emoji} ${fx.name}`;
   el.querySelector('.effect-prompt-dismiss').hidden = !offered;
   btn.className = offered ? 'btn aqua' : 'btn ghost';
-  btn.textContent = offered ? 'Try it' : 'Copy';
+  btn.textContent = `${fx.emoji} ${offered ? 'Try' : 'Copy'}`;
+  btn.title = el.querySelector('.effect-prompt-text').textContent;
   btn.dataset.fx = fx.id;
   btn.setAttribute('aria-label', `Use ${nameOf(friend)}'s ${fx.name} effect`);
   btn.onclick = () => {
@@ -1619,6 +1630,7 @@ function updateGrabButton() {
     toggleTray(fx.kind, true);
     selectEffect(fx);
   };
+  placeEffectChip();
 }
 
 // --- favourites --------------------------------------------------------------
