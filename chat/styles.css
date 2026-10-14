@@ -505,17 +505,18 @@ button { cursor: pointer; }
 .strip-wrap.favs .fx-item.is-game { border-radius: 20px; }
 .fav-empty { margin: 4px 16px 14px; text-align: center; font-weight: 800; color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); }
 
-/* Put a friend's effect on me too. */
+/* Put a friend's effect on me too: a small chip in the top-left corner of
+   the main video (under where its name shows), never over their face. */
 .effect-prompt {
-  position: fixed; bottom: max(var(--bottom-ui), var(--effect-prompt-clearance, 0px)); left: 50%; transform: translateX(-50%); z-index: 18;
-  max-width: min(460px, calc(100% - 24px)); width: max-content;
-  background: rgba(0,0,0,0.48); border-color: transparent; box-shadow: none; font-weight: 500;
+  position: fixed; top: calc(var(--top-ui) + 34px); left: 10px; z-index: 18;   /* top: set by placeEffectChip */
+  gap: 4px; padding: 3px; border-radius: 999px; width: max-content;
+  background: rgba(0,0,0,0.48); border: 1px solid transparent; box-shadow: none;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.effect-prompt.shared { background: rgba(28,19,52,0.92); border-color: var(--aqua); box-shadow: 0 10px 20px rgba(0,0,0,0.35); font-weight: 700; }
-.effect-prompt-text { min-width: 0; overflow-wrap: anywhere; }
-.effect-prompt .btn { flex: none; min-height: 44px; }
-#call[data-ui="0"] .effect-prompt { bottom: var(--bottom-ui); }
+.effect-prompt.shared { background: rgba(28,19,52,0.92); border-color: var(--aqua); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
+.effect-prompt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.effect-prompt .btn { flex: none; min-height: 30px; padding: 3px 11px; font-size: 0.82rem; font-weight: 800; border-radius: 999px; }
+.effect-prompt .effect-prompt-dismiss { min-height: 30px; width: 30px; padding: 0; }
 .burger-opponents { position: absolute; right: 8px; width: 98px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overscroll-behavior: contain; }
 .burger-opponents[hidden] { display: none; }
 .burger-opponent { flex: none; padding: 4px 0; border: 2px solid var(--c); border-radius: 10px; background: rgba(40,10,50,0.7); color: #fff; text-align: center; font: 700 11px ui-rounded, system-ui, sans-serif; }

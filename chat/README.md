@@ -80,9 +80,11 @@ so the picture stays clear:
   except in typing fields and chat messages. Tap a small
   video to make it primary (or focus it and press Enter/Space); drag each small video
   independently to position it. This also works with three or more people.
-  A quiet **Copy** prompt names the effect used by the person in the main video.
-  Small videos have no buttons. A shared effect replaces the quiet prompt with
-  a **Try it** notification in the same spot; dismissing or expiry returns to
+  A small **Copy** chip (the effect's emoji and "Copy") sits in the top-left
+  corner of the main video, below any small video there, so it never covers
+  the person's face; its tooltip names the effect. Small videos have no
+  buttons. A shared effect turns the chip into a highlighted **Try** with a
+  small ✕ in the same spot; dismissing or expiry returns to
   the main person's current effect. Copying and accepting use the same action.
 - **During a game** the bottom row and strips go away so the game gets the
   screen and your effect is removed. Effects cannot be put on during a game.

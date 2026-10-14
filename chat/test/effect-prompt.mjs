@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { serve, launch } from './lib.mjs';
+import { GAME_IDS } from '../games/index.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const server = await serve(root);
@@ -15,7 +16,7 @@ try {
   await page.goto(`${server.url}/local/pages/chat/`);
   await page.fill('#name-input', 'Tester');
   await page.click('#start-btn');
-  await page.waitForFunction(() => window.__chat.games?.games.size === 21);
+  await page.waitForFunction(n => window.__chat.games?.games.size === n, GAME_IDS.length);
   await page.evaluate(() => window.__chat.debugBots.setCount(2));
   await page.waitForFunction(() => window.__chat.tiles.size === 3 && [...window.__chat.debugBots.bots.values()].every(b => b.runtime));
   const ids = await page.evaluate(() => [...window.__chat.debugBots.bots.keys()]);
@@ -29,16 +30,16 @@ try {
   await page.waitForFunction(id => !document.querySelector(`.tile[data-id="${id}"]`).classList.contains('pip'), ids[1]);
   await page.evaluate(id => window.__chat.net.sendTo(id, 'fxshare', {fx:'swirl'}), ids[1]);
   await page.waitForFunction(() => document.querySelector('#grab-fx').dataset.fx === 'swirl');
-  assert.equal(await copy.textContent(), 'Copy');
+  assert.match(await copy.textContent(), /Copy$/);
   assert.equal(await prompt.evaluate(el => el.classList.contains('shared')), false);
   await page.evaluate(id => window.__chat.debugBots.bots.get(id).runtime.net.sendTo(window.__chat.me.id, 'fxshare', {fx:'crown'}), ids[0]);
   await page.waitForFunction(() => document.querySelector('#effect-prompt').classList.contains('shared'));
-  assert.equal(await copy.textContent(), 'Try it');
+  assert.match(await copy.textContent(), /Try$/);
   assert.equal(await copy.getAttribute('data-fx'), 'crown');
   assert.equal(await prompt.count(), 1, 'offers replace the passive prompt');
   await page.locator('.effect-prompt-dismiss').click();
   assert.equal(await copy.getAttribute('data-fx'), 'swirl');
-  assert.equal(await copy.textContent(), 'Copy');
+  assert.match(await copy.textContent(), /Copy$/);
   await page.evaluate(id => window.__chat.debugBots.bots.get(id).runtime.net.sendTo(window.__chat.me.id, 'fxshare', {fx:'crown'}), ids[0]);
   await page.waitForFunction(() => document.querySelector('#effect-prompt').classList.contains('shared'));
   await page.waitForFunction(() => !document.querySelector('#effect-prompt').classList.contains('shared'), null, {timeout:18000});
@@ -57,7 +58,8 @@ try {
     assert.ok(box.x >= 0 && box.x + box.width <= width, 'mobile prompt fits the viewport');
     for (const pip of await page.locator('.tile.pip').all()) {
       const small = await pip.boundingBox();
-      assert.ok(box.y >= small.y + small.height, 'prompt stays below the default small videos');
+      const apart = box.x + box.width <= small.x || small.x + small.width <= box.x || box.y + box.height <= small.y || small.y + small.height <= box.y;
+      assert.ok(apart, 'the copy chip never covers a small video');
     }
   }
   await page.screenshot({path: `${root}local/chat-shots/effect-prompt.png`});
