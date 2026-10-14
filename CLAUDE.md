@@ -116,12 +116,18 @@ spells out the processing steps in full.
 
 ## Agents
 
-Use subagents where they save effort, and pick the model by the work:
-`haiku` for mechanical edits, lookups and file-by-file chores; `sonnet` for
-well-specified implementation, tests and reviews with a clear contract; the
-default (Fable) for design, architecture, gameplay feel and anything
-open-ended. Give an agent the exact files, interfaces and checks it must
-satisfy so a cheaper model can finish the job without guessing.
+Use subagents where they save effort, and pick the model by the work (see
+"Models" below): `sonnet` for mechanical edits, lookups, file-by-file chores,
+well-specified implementation, tests and reviews with a clear contract; `opus`,
+or the model left unset so it inherits, for design, architecture, gameplay
+feel and anything open-ended. Give an agent the exact files, interfaces and
+checks it must satisfy so a cheaper model can finish the job without guessing.
+
+## Models
+
+- Never use Fable (any version) unless I explicitly ask for Fable in that conversation. This applies to you and to every subagent, worker or helper agent you start.
+- When starting a subagent, either leave the model unset so it inherits your model, or pick Opus or Sonnet. Never pass model "fable".
+- If a task seems to need Fable, ask me first and say why. Don't switch on your own.
 
 ## Deployment reminder
 
