@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.hoai2k.musicpractice",
+  "appName": "Music Practice",
+  "webDir": "www",
+  "backgroundColor": "#1d1510",
+  "ios": {
+    "contentInset": "never",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "disable"
+  }
+}

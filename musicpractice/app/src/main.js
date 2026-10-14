@@ -11,6 +11,9 @@ import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
 import { Drone, preload as preloadDrone } from './drone.js';
 import { setupDrone } from './droneui.js';
+import { isApp, shareFile, onBackButton, exitApp } from './native.js';
+import { initPro, isPro, onProChange, requirePro, openPaywall } from './pro.js';
+import { FREE_TAKES, FREE_THEME } from './pro-config.js';
 
 // "Record during playback" is parked: its setting is hidden and ignored, and
 // its code is kept to fix and re-enable later. Recording and playback are
@@ -30,7 +33,9 @@ const persist = () => save(settings);
 
 /** Switch the whole app's look: colours and type (styles.css) and art. */
 function applyTheme() {
-  const theme = THEMES.find((t) => t.id === settings.theme) || THEMES[0];
+  // Without Pro (in the apps), the free theme shows; the choice is kept for when Pro is on.
+  const id = isPro() ? settings.theme : FREE_THEME;
+  const theme = THEMES.find((t) => t.id === id) || THEMES[0];
   document.documentElement.dataset.theme = theme.id;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
   const fonts = `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`;
@@ -75,12 +80,20 @@ const TITLES = { metronome: 'Metronome', record: 'Playback Recorder', tuner: 'Tu
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
-  const next = SCREENS.includes(want) ? want : 'home';
-  if (next === screen && document.getElementById(next).hidden === false) return;
-  leave(screen);
-  for (const id of SCREENS) $(id).hidden = id !== next;
-  screen = next;
-  enter(next);
+  let next = SCREENS.includes(want) ? want : 'home';
+  // The Drone is part of Pro in the apps: without it, stay put and offer Pro.
+  const paywall = next === 'drone' && !isPro();
+  if (paywall) {
+    next = screen;
+    history.replaceState(null, '', next === 'home' ? location.pathname + location.search : `#${next}`);
+  }
+  if (next !== screen || document.getElementById(next).hidden !== false) {
+    leave(screen);
+    for (const id of SCREENS) $(id).hidden = id !== next;
+    screen = next;
+    enter(next);
+  }
+  if (paywall) openPaywall('drone');
 }
 
 const homeOrder = setupHomeOrder({
@@ -277,7 +290,7 @@ const themeTiles = THEMES.map((t) => {
   b.className = 'theme-tile';
   b.dataset.theme = t.id;
   b.setAttribute('role', 'radio');
-  b.innerHTML = `<span class="tile-name"></span><span class="tile-swatches" aria-hidden="true"><i></i><i></i><i></i></span>`;
+  b.innerHTML = `<span class="tile-name"></span><span class="tile-swatches" aria-hidden="true"><i></i><i></i><i></i></span><svg class="tile-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
   b.querySelector('.tile-name').textContent = t.label;
   b.addEventListener('click', () => setTheme(t.id));
   return b;
@@ -294,15 +307,20 @@ $('theme-tiles').addEventListener('keydown', (e) => {
 });
 
 function syncThemeControls() {
-  for (const sel of themeSelects) sel.value = settings.theme;
+  const id = isPro() ? settings.theme : FREE_THEME;
+  for (const sel of themeSelects) sel.value = id;
   for (const b of themeTiles) {
-    const on = b.dataset.theme === settings.theme;
+    const on = b.dataset.theme === id;
     b.setAttribute('aria-checked', String(on));
     b.tabIndex = on ? 0 : -1;
   }
 }
 
 function setTheme(id) {
+  if (id !== FREE_THEME && !requirePro('themes')) {
+    syncThemeControls();
+    return;
+  }
   settings.theme = id;
   settings.themeChosen = true;
   persist();
@@ -585,6 +603,7 @@ function showMicTip() {
 }
 
 function micError(err) {
+  if (err?.name === 'NotAllowedError' && isApp()) return 'Microphone access is off. Turn it on for Music Practice in your phone\'s Settings, then tap the button.';
   return err?.name === 'NotAllowedError'
     ? 'Microphone access was refused. Allow it in your browser\'s site settings, then tap the button.'
     : err?.message === 'unsupported'
@@ -881,6 +900,11 @@ async function saveTake(take, label, button) {
     }
   }
   const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
+  if (isApp()) {
+    // The app's own share sheet: no "tap again" step, and Android's web view has none.
+    try { await shareFile(file, base); } catch { note('Couldn\'t save the MP3. Try again.'); }
+    return;
+  }
   const phone = isIOS() || /Android/i.test(navigator.userAgent);
   if (phone && navigator.canShare?.({ files: [file] })) {
     try {
@@ -920,7 +944,9 @@ function renderTakes() {
   const list = $('takes');
   $('takes-empty').hidden = takes.length > 0;
   $('takes-count').textContent = takes.length ? `(${takes.length})` : '';
-  const rows = takes.map((take, i) => {
+  // Without Pro (in the apps) the newest few show; the rest are kept for when Pro is on.
+  const shown = isPro() ? takes : takes.slice(0, FREE_TAKES);
+  const rows = shown.map((take, i) => {
     let li = list.querySelector(`[data-key="${take.created}"]`);
     if (!li) {
       li = document.createElement('li');
@@ -934,8 +960,8 @@ function renderTakes() {
         <span class="bar-progress" aria-hidden="true"></span>`;
       li.querySelector('.play').addEventListener('click', () => (playing?.take === take ? stopPlayback() : play(take)));
       li.querySelector('.del').addEventListener('click', () => removeTake(take));
-      li.querySelector('.save').addEventListener('click', (e) => saveTake(take, li.dataset.label, e.currentTarget));
-      li.querySelector('.title').addEventListener('click', () => renameTake(take, li));
+      li.querySelector('.save').addEventListener('click', (e) => { if (requirePro('takes')) saveTake(take, li.dataset.label, e.currentTarget); });
+      li.querySelector('.title').addEventListener('click', () => { if (requirePro('takes')) renameTake(take, li); });
       const canvas = li.querySelector('canvas');
       canvas.redraw = () => drawThumb(canvas, take.samples);
       requestAnimationFrame(canvas.redraw);
@@ -959,6 +985,18 @@ function renderTakes() {
     if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
     return li;
   });
+  const hidden = takes.length - shown.length;
+  if (hidden > 0) {
+    let more = list.querySelector('.takes-more');
+    if (!more) {
+      more = document.createElement('li');
+      more.className = 'takes-more';
+      more.innerHTML = '<span></span> <button type="button" class="link-btn">Keep every take with Pro</button>';
+      more.querySelector('button').addEventListener('click', () => openPaywall('older'));
+    }
+    more.querySelector('span').textContent = `${hidden} older take${hidden === 1 ? ' is' : 's are'} kept.`;
+    rows.push(more);
+  }
   list.replaceChildren(...rows);
 }
 
@@ -1202,6 +1240,27 @@ for (const b of document.querySelectorAll('.open-audio-check')) {
     });
   });
 }
+
+// Pro (the apps only): features unlock or lock as it turns on or off.
+function proChanged() {
+  document.documentElement.classList.toggle('locked', !isPro());
+  applyTheme();
+  syncThemeControls();
+  renderTakes();
+  if (screen === 'drone' && !isPro()) location.hash = '';
+}
+onProChange(proChanged);
+document.documentElement.classList.toggle('locked', !isPro());
+initPro();
+
+// Android's back button: close a sheet, then go back to the home screen, then leave.
+onBackButton(() => {
+  const open = [...document.querySelectorAll('dialog[open]')].pop();
+  if (open) open.close();
+  else if (screen === 'home' && homeOrder.editing()) homeOrder.stop();
+  else if (screen !== 'home') location.hash = '';
+  else exitApp();
+});
 
 applyTheme();
 route();
