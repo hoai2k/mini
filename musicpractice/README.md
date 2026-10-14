@@ -263,6 +263,9 @@ favour of the two-button home screen.
 
 ## Files
 
+- `design/ios-app.md`: how Music Practice would become an iOS app with a free
+  trial and a Pro upgrade, and what I'd recommend (not started).
+
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
   modules, no build step). `main.js` the screens, `homeorder.js` hold and
   drag to reorder the home screen, `metronome.js` the
