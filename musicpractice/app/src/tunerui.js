@@ -3,6 +3,7 @@
 // asked for twice), shows the nearest note, or the nearest string of the
 // chosen instrument, and how far off it is, and plays reference tones.
 
+import { TEXT, setRich } from './text.js';
 import { detectPitch, describe, nearestString, noteName, midiToHz, TUNINGS, TRANSPOSE, A4_MIN, A4_MAX, PitchSmoother } from './tuning.js';
 import { playSamples } from './player.js';
 
@@ -100,7 +101,7 @@ export function setupTuner({ settings, persist, chips }) {
       b.innerHTML = `<span class="s-name"></span><span class="s-oct"></span>`;
       b.querySelector('.s-name').textContent = name;
       b.querySelector('.s-oct').textContent = octave;
-      b.setAttribute('aria-label', `${name}${octave} string: play its note`);
+      b.setAttribute('aria-label', TEXT.tuner.playString(`${name}${octave}`));
       b.addEventListener('click', () => toggleTone(midi, `s${i}`, b));
       return b;
     }));
@@ -135,8 +136,8 @@ export function setupTuner({ settings, persist, chips }) {
   function refLabel() {
     const midi = lastNote ?? 69;
     const { name, octave } = noteName(midi, { flats: settings.flats, transpose: settings.transpose });
-    refBtn.textContent = `Play ${name}${octave}`;
-    refBtn.setAttribute('aria-label', `Play a reference ${name}${octave}`);
+    refBtn.textContent = TEXT.tuner.playNote(`${name}${octave}`);
+    refBtn.setAttribute('aria-label', TEXT.tuner.playReference(`${name}${octave}`));
   }
 
   // ---- readings
@@ -192,11 +193,12 @@ export function setupTuner({ settings, persist, chips }) {
     $('tn-oct').textContent = r ? r.octave : '';
     const inTune = !!r && Math.abs(r.cents) <= IN_TUNE;
     const c = r ? Math.round(r.cents) : 0;
-    $('tn-cents').textContent = r ? `${c > 0 ? '+' : c < 0 ? '−' : '±'}${Math.abs(c)} cents` : ' ';
-    $('tn-hz').textContent = r ? `${r.hz.toFixed(1)} Hz` : '';
-    const hint = !r ? (tuning().strings ? 'Play a string' : 'Play a note')
-      : inTune ? 'In tune'
-        : r.cents < 0 ? 'Too low: tune up' : 'Too high: tune down';
+    $('tn-cents').textContent = r ? TEXT.tuner.cents(c > 0 ? '+' : c < 0 ? '−' : '±', Math.abs(c)) : ' ';
+    $('tn-hz').textContent = r ? TEXT.tuner.hz(r.hz.toFixed(1)) : '';
+    const H = TEXT.tuner.hint;
+    const hint = !r ? (tuning().strings ? H.playString : H.playNote)
+      : inTune ? H.inTune
+        : r.cents < 0 ? H.tooLow : H.tooHigh;
     if ($('tn-hint').textContent !== hint) $('tn-hint').textContent = hint;
     body.classList.toggle('live', !!r);
     body.classList.toggle('in-tune', inTune);
@@ -227,17 +229,17 @@ export function setupTuner({ settings, persist, chips }) {
   const setA4 = (v) => {
     settings.a4 = Math.max(A4_MIN, Math.min(A4_MAX, Math.round(Number(v) || 440)));
     a4.value = settings.a4;
-    $('a4-val').textContent = settings.a4;
+    setRich($('a4-label'), TEXT.common.referencePitch(settings.a4));
     persist();
     stringButtons();
     show();
   };
   a4.value = settings.a4;
-  $('a4-val').textContent = settings.a4;
+  setRich($('a4-label'), TEXT.common.referencePitch(settings.a4));
   a4.addEventListener('input', () => setA4(a4.value));
   $('a4-down').addEventListener('click', () => setA4(settings.a4 - 1));
   $('a4-up').addEventListener('click', () => setA4(settings.a4 + 1));
-  chips($('flats-chips'), [{ id: 'sharps', label: 'Sharps (C♯)' }, { id: 'flats', label: 'Flats (D♭)' }],
+  chips($('flats-chips'), [{ id: 'sharps', label: TEXT.tuner.settings.sharps }, { id: 'flats', label: TEXT.tuner.settings.flats }],
     () => (settings.flats ? 'flats' : 'sharps'),
     (v) => { settings.flats = v === 'flats'; persist(); render(); });
   const transpose = $('transpose');
@@ -256,7 +258,7 @@ export function setupTuner({ settings, persist, chips }) {
     /** Bring the controls in line with the settings (A4 may have changed on the Drone screen). */
     refresh() {
       a4.value = settings.a4;
-      $('a4-val').textContent = settings.a4;
+      setRich($('a4-label'), TEXT.common.referencePitch(settings.a4));
       transpose.value = settings.transpose;
       render();
     },

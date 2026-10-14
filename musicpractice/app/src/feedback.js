@@ -20,6 +20,7 @@
 // Send feedback button disappears.
 
 import { isApp, platform, call } from './native.js';
+import { TEXT } from './text-config.js';
 
 export const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyu8lINxYMmtqFhFarxqqIwHbGupWWoWjmeN_OW-kNSPW6Hgh6-KdkQuZAaWOcamTFF/exec';
 export const GAME = 'musicpractice';
@@ -105,6 +106,7 @@ export async function sendFeedback({ email, topic, message, details, elapsed, hp
 // ---------------------------------------------------------------- the dialog
 
 const EMAIL_KEY = 'musicpractice.feedbackEmail';
+// What's sent stays these English words (the inbox reads them); what's shown comes from TEXT.
 const TOPICS = ['Problem', 'Idea', 'Other'];
 
 /**
@@ -137,12 +139,12 @@ export function setupFeedback({ details }) {
     b.type = 'button';
     b.className = 'chip';
     b.setAttribute('role', 'radio');
-    b.textContent = t;
+    b.textContent = TEXT.feedback.topics[t];
     b.addEventListener('click', () => { topic = t; syncChips(); });
     chips.append(b);
     return b;
   });
-  const syncChips = () => buttons.forEach((b) => b.setAttribute('aria-checked', String(b.textContent === topic)));
+  const syncChips = () => buttons.forEach((b, i) => b.setAttribute('aria-checked', String(TOPICS[i] === topic)));
   syncChips();
 
   const valid = () => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim()) && text.value.trim().length > 0;
@@ -183,7 +185,7 @@ export function setupFeedback({ details }) {
     sending = true;
     update();
     status.classList.remove('error');
-    status.textContent = 'Sending…';
+    status.textContent = TEXT.feedback.sending;
     const ok = await sendFeedback({
       email: email.value,
       topic,
@@ -196,11 +198,11 @@ export function setupFeedback({ details }) {
     if (ok) {
       try { localStorage.setItem(EMAIL_KEY, email.value.trim()); } catch { /* not kept */ }
       text.value = '';
-      status.textContent = 'Sent. Thank you!';
+      status.textContent = TEXT.feedback.sent;
       setTimeout(() => { if (dialog.open && !text.value) dialog.close(); }, 1600);
     } else {
       // What they wrote stays, so trying again costs a tap.
-      status.textContent = 'It didn\'t send. Check the connection and try again.';
+      status.textContent = TEXT.feedback.failed;
       status.classList.add('error');
     }
     update();

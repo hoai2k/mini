@@ -1222,3 +1222,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .fb-status.error { color: var(--red-2); }
 .fb-note { margin: 0; font-size: 0.8rem; }
 .fb-note a { color: var(--ink-2); }
+
+/* The words arrive from src/text-config.js (src/text.js); hold the page until they have. */
+.text-pending body { visibility: hidden; }

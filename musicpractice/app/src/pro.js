@@ -7,6 +7,9 @@
 
 import { isApp, platform, call, listen } from './native.js';
 import { REVENUECAT_KEYS, ENTITLEMENT, PRIVACY_URL, TERMS_URL, MANAGE_URL, PLAY_REDEEM_URL } from './pro-config.js';
+import { TEXT } from './text-config.js';
+
+const P = TEXT.paywall;
 
 const CACHE = 'musicpractice.pro'; // the last known answer, so Pro shows at once on launch (also read in index.html)
 const INELIGIBLE = 1; // RevenueCat's INTRO_ELIGIBILITY_STATUS_INELIGIBLE
@@ -87,12 +90,7 @@ export function requirePro(why) {
 
 // ---------------------------------------------------------------- paywall
 
-const HEADLINES = {
-  drone: 'The Drone is part of Pro',
-  takes: 'Renaming and saving takes are part of Pro',
-  older: 'Keep every take with Pro',
-  themes: 'Themes are part of Pro',
-};
+const HEADLINES = P.headlines;
 
 export function openPaywall(why = '') {
   reason = why;
@@ -111,26 +109,26 @@ async function loadOffering() {
   try {
     const offerings = await call('Purchases', 'getOfferings');
     offering = offerings?.current || null;
-    if (!offering) offeringError = 'Pro isn\'t available right now. Try again later.';
+    if (!offering) offeringError = P.unavailable;
     const yearly = offering?.annual?.product;
     if (yearly && platform() === 'ios') {
       const r = await call('Purchases', 'checkTrialOrIntroductoryPriceEligibility', { productIdentifiers: [yearly.identifier] });
       trialUsed[yearly.identifier] = r?.[yearly.identifier]?.status === INELIGIBLE;
     }
   } catch {
-    offeringError = `Couldn't reach ${store()}. Check the connection and try again.`;
+    offeringError = P.unreachable(store());
   } finally {
     loading = false;
   }
   render();
 }
 
-const store = () => (platform() === 'android' ? 'Google Play' : 'the App Store');
+const store = () => (platform() === 'android' ? P.googlePlay : P.appStore);
 
 /** "7 days", "1 week", "1 month": a store period. */
 function period(n, unit) {
   const u = String(unit || '').toLowerCase().replace(/s$/, '');
-  return `${n} ${u}${n === 1 ? '' : 's'}`;
+  return (P.period[u] || P.period.day)(n);
 }
 
 /** The free trial on a subscription product, as "7 days", or '' if none (or already used). */
@@ -159,11 +157,11 @@ async function buy(pkg) {
     const r = await call('Purchases', 'purchasePackage', { aPackage: pkg });
     setCustomer(r?.customerInfo);
     if (pro) {
-      say('Thank you! Pro is on.');
+      say(P.thanks);
       setTimeout(() => $('paywall').close(), 1400);
     }
   } catch (err) {
-    if (!cancelled(err)) say(`The purchase didn't go through: ${err?.message || 'try again'}.`);
+    if (!cancelled(err)) say(P.purchaseFailed(err?.message || P.purchaseFailedWhy));
   } finally {
     busy = false;
     render();
@@ -173,14 +171,14 @@ async function buy(pkg) {
 async function restore() {
   if (busy) return;
   busy = true;
-  say('Looking for your purchases…');
+  say(P.restoring);
   render();
   try {
     const { customerInfo } = await call('Purchases', 'restorePurchases');
     setCustomer(customerInfo);
-    say(pro ? 'Pro is on again.' : `No Pro purchase found for this ${platform() === 'android' ? 'Google account' : 'Apple Account'}.`);
+    say(pro ? P.restored : P.notFound(platform() === 'android' ? P.googleAccount : P.appleAccount));
   } catch (err) {
-    say(`Couldn't restore: ${err?.message || 'try again'}.`);
+    say(P.restoreFailed(err?.message || P.purchaseFailedWhy));
   } finally {
     busy = false;
     render();
@@ -191,13 +189,13 @@ async function redeem() {
   if (platform() === 'ios') {
     try {
       await call('Purchases', 'presentCodeRedemptionSheet');
-      say('Once the code is redeemed, Pro turns on by itself.');
+      say(P.redeemIos);
     } catch {
-      say('Redeem the code in the App Store app (your account picture › Redeem Gift Card or Code), then tap Restore purchases.');
+      say(P.redeemIosFallback);
     }
   } else {
     window.open(PLAY_REDEEM_URL, '_blank');
-    say('Redeem the code in Google Play, then come back and tap Restore purchases.');
+    say(P.redeemAndroid);
   }
 }
 
@@ -217,13 +215,13 @@ function plan(pkg, kind) {
   b.className = `plan plan-${kind}`;
   b.disabled = busy;
   const trial = kind === 'yearly' ? trialOf(p) : '';
-  const name = kind === 'yearly' ? 'Yearly' : 'Lifetime';
+  const name = kind === 'yearly' ? P.yearly : P.lifetime;
   const main = kind === 'yearly'
-    ? (trial ? `Try ${trial} free` : `${p.priceString} a year`)
-    : `${p.priceString} once`;
+    ? (trial ? P.tryFree(trial) : P.perYear(p.priceString))
+    : P.once(p.priceString);
   const sub = kind === 'yearly'
-    ? (trial ? `Then ${p.priceString} a year. Cancel anytime.` : 'Renews each year. Cancel anytime.')
-    : 'Pay once, Pro for good.';
+    ? (trial ? P.thenPerYear(p.priceString) : P.renews)
+    : P.payOnce;
   b.innerHTML = '<span class="plan-name"></span><span class="plan-main"></span><span class="plan-sub"></span>';
   b.querySelector('.plan-name').textContent = name;
   b.querySelector('.plan-main').textContent = main;
@@ -238,7 +236,7 @@ function render() {
   const d = $('paywall');
   if (!d) return;
   const ios = platform() === 'ios';
-  $('pw-title').textContent = pro ? 'Music Practice Pro' : (HEADLINES[reason] || 'Music Practice Pro');
+  $('pw-title').textContent = pro ? P.title : (HEADLINES[reason] || P.title);
   $('pw-have').hidden = !pro;
   const plans = $('pw-plans');
   plans.replaceChildren();
@@ -246,20 +244,20 @@ function render() {
   if (pro) {
     const ent = customer?.entitlements?.active?.[ENTITLEMENT];
     const lifetime = ent && !ent.expirationDate;
-    $('pw-have').textContent = lifetime ? 'You have Pro for good. Thank you!'
-      : ent?.willRenew === false ? `You have Pro until ${new Date(ent.expirationDate).toLocaleDateString()}.`
-        : 'You have Pro. Thank you!';
-    if (ent && !lifetime) plans.append(link(customer?.managementURL || MANAGE_URL[platform()], 'Manage your subscription'));
+    $('pw-have').textContent = lifetime ? P.haveForGood
+      : ent?.willRenew === false ? P.haveUntil(new Date(ent.expirationDate).toLocaleDateString())
+        : P.have;
+    if (ent && !lifetime) plans.append(link(customer?.managementURL || MANAGE_URL[platform()], P.manage));
   } else if (!configured) {
-    note = REVENUECAT_KEYS[platform()] ? `Couldn't reach ${store()}. Check the connection and try again.` : 'Purchases aren\'t set up in this build yet.';
+    note = REVENUECAT_KEYS[platform()] ? P.unreachable(store()) : P.notSetUp;
   } else if (loading) {
-    note = 'Loading…';
+    note = P.loading;
   } else if (offeringError) {
     note = offeringError;
     const again = document.createElement('button');
     again.type = 'button';
     again.className = 'pill';
-    again.textContent = 'Try again';
+    again.textContent = TEXT.common.tryAgain;
     again.addEventListener('click', loadOffering);
     plans.append(again);
   } else if (offering) {
@@ -268,17 +266,16 @@ function render() {
   }
   $('pw-note').textContent = note;
   $('pw-note').hidden = !note;
-  $('pw-fine').textContent = pro ? '' : ios
-    ? 'Payment is charged to your Apple Account. Yearly renews automatically each year, and the free trial turns into it, unless you cancel at least 24 hours before the trial or year ends. Manage or cancel any time in Settings › your name › Subscriptions.'
-    : 'Payment is charged to your Google Play account. Yearly renews automatically each year, and the free trial turns into it, unless you cancel before the trial or year ends. Manage or cancel any time in Google Play › Payments & subscriptions.';
+  $('pw-fine').textContent = pro ? '' : ios ? P.fineIos : P.fineAndroid;
   $('pw-restore').disabled = busy || !configured;
   $('pw-redeem').disabled = busy;
   $('pw-terms').href = TERMS_URL[platform()] || TERMS_URL.ios;
   $('pw-privacy').href = PRIVACY_URL;
   // The Pro row in Settings.
   $('pro-row').hidden = false;
-  $('pro-status').textContent = pro ? 'Pro is on' : 'Drone, every take, all themes';
-  $('pro-open').textContent = pro ? 'Pro…' : 'Get Pro…';
+  const A = TEXT.appSettings.pro;
+  $('pro-status').textContent = pro ? A.on : A.off;
+  $('pro-open').textContent = pro ? A.openWhenOn : A.openWhenOff;
   $('pro-id').textContent = appUserID;
   $('pro-id-row').hidden = !appUserID;
 }

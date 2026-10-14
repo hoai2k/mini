@@ -1,6 +1,8 @@
 // Settings, kept in localStorage so they last between visits. Every value is
 // checked on the way in, so a damaged or old save falls back to defaults.
 
+import { TEXT } from './text-config.js';
+
 const KEY = 'musicpractice.settings.v1';
 
 export const METERS = [
@@ -16,13 +18,13 @@ export const METERS = [
   { id: '7/8', beats: 7, unit: 8 },
   { id: '9/8', beats: 9, unit: 8 },
   { id: '12/8', beats: 12, unit: 8 },
-  { id: '1', beats: 1, unit: 4, label: 'No bars (every beat the same)' },
+  { id: '1', beats: 1, unit: 4, label: TEXT.metronome.noBarsLong },
 ];
 
 export const SOUNDS = [
-  { id: 'wood', label: 'Woodblock' },
-  { id: 'click', label: 'Click' },
-  { id: 'beep', label: 'Beep' },
+  { id: 'wood', label: TEXT.metronome.sounds.wood },
+  { id: 'click', label: TEXT.metronome.sounds.click },
+  { id: 'beep', label: TEXT.metronome.sounds.beep },
 ];
 
 /**
@@ -31,14 +33,14 @@ export const SOUNDS = [
  * the early script in index.html. `fonts` is its Google Fonts families.
  */
 export const THEMES = [
-  { id: 'classic', label: 'Classic', color: '#1d1510', fonts: 'family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800' },
-  { id: 'deco', label: 'Art Deco', color: '#0b0c0f', fonts: 'family=Poiret+One&family=Josefin+Sans:wght@400;600;700' },
-  { id: 'sixties', label: 'Vintage 60s', color: '#f3e6c8', fonts: 'family=Righteous&family=Nunito:wght@500;700;800' },
-  { id: 'baroque', label: '18th Century', color: '#f4ecd9', fonts: 'family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@500;600;700' },
-  { id: 'scifi', label: 'Robot Future', color: '#060a14', fonts: 'family=Orbitron:wght@500;700&family=Exo+2:wght@400;600;700' },
-  { id: 'nouveau', label: 'French Nouveau', color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
-  { id: 'anime', label: 'Candy', color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
-  { id: 'steampunk', label: 'Steam Punk', color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
+  { id: 'classic', label: TEXT.themes.classic, color: '#1d1510', fonts: 'family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800' },
+  { id: 'deco', label: TEXT.themes.deco, color: '#0b0c0f', fonts: 'family=Poiret+One&family=Josefin+Sans:wght@400;600;700' },
+  { id: 'sixties', label: TEXT.themes.sixties, color: '#f3e6c8', fonts: 'family=Righteous&family=Nunito:wght@500;700;800' },
+  { id: 'baroque', label: TEXT.themes.baroque, color: '#f4ecd9', fonts: 'family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@500;600;700' },
+  { id: 'scifi', label: TEXT.themes.scifi, color: '#060a14', fonts: 'family=Orbitron:wght@500;700&family=Exo+2:wght@400;600;700' },
+  { id: 'nouveau', label: TEXT.themes.nouveau, color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
+  { id: 'anime', label: TEXT.themes.anime, color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
+  { id: 'steampunk', label: TEXT.themes.steampunk, color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
 ];
 
 export const BPM_MIN = 40;

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="classic">
+<html lang="en" data-theme="classic" class="text-pending">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -63,26 +63,26 @@
 
     <!-- Home: a big button for each tool -->
     <section id="home" class="screen" aria-labelledby="home-title">
-      <button class="icon-btn home-gear" id="app-settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
-      <h1 id="home-title" class="brand">Music <em>Practice</em></h1>
-      <button class="pill home-done" id="home-done" type="button" hidden>Done</button>
+      <button class="icon-btn home-gear" id="app-settings-btn" data-text-aria-label="home.settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+      <h1 id="home-title" class="brand" data-text-rich="home.title"></h1>
+      <button class="pill home-done" id="home-done" type="button" data-text="common.done" hidden></button>
       <div class="choices" id="choices">
         <a class="choice" href="#metronome" id="go-metronome" data-tool="metronome" draggable="false">
           <span class="art" data-asset="home-metronome"></span>
-          <span class="label">Metronome</span>
+          <span class="label" data-text="home.tools.metronome"></span>
         </a>
         <a class="choice" href="#tuner" id="go-tuner" data-tool="tuner" draggable="false">
           <span class="art" data-asset="home-tuner"></span>
-          <span class="label">Tuner</span>
+          <span class="label" data-text="home.tools.tuner"></span>
         </a>
         <!-- Add data-in-progress to a tool that isn't ready yet: its card fades and says so. -->
         <a class="choice" href="#drone" id="go-drone" data-tool="drone" draggable="false">
           <span class="art" data-asset="home-drone"></span>
-          <span class="label">Drone <small class="in-progress-label">In progress</small><small class="pro-badge">Pro</small></span>
+          <span class="label"><span data-text="home.tools.drone"></span> <small class="in-progress-label" data-text="home.inProgress"></small><small class="pro-badge" data-text="home.proBadge"></small></span>
         </a>
         <a class="choice" href="#record" id="go-record" data-tool="record" draggable="false">
           <span class="art" data-asset="home-record"></span>
-          <span class="label">Playback Recorder</span>
+          <span class="label" data-text="home.tools.record"></span>
         </a>
       </div>
       <script>
@@ -108,18 +108,18 @@
 
       <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="app-settings-title">Settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <header class="sheet-head"><h3 id="app-settings-title" data-text="appSettings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
           <fieldset>
-            <legend>Theme</legend>
-            <div class="theme-tiles" id="theme-tiles" role="radiogroup" aria-label="Theme"></div>
+            <legend data-text="appSettings.theme"></legend>
+            <div class="theme-tiles" id="theme-tiles" role="radiogroup" data-text-aria-label="appSettings.theme"></div>
           </fieldset>
-          <button type="button" class="pill open-audio-check">Audio check…</button>
-          <button type="button" class="pill open-feedback">Send feedback…</button>
+          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <button type="button" class="pill open-feedback" data-text="appSettings.sendFeedback"></button>
           <!-- In the apps only (src/pro.js). -->
           <fieldset id="pro-row" hidden>
-            <legend>Music Practice Pro</legend>
-            <div class="row toggle"><span id="pro-status"></span><button type="button" class="pill" id="pro-open">Get Pro…</button></div>
-            <p class="help" id="pro-id-row" hidden>Your app ID (tap to copy): <button type="button" class="link-btn" id="pro-id"></button> <span id="pro-id-copied" hidden>Copied.</span></p>
+            <legend data-text="appSettings.pro.title"></legend>
+            <div class="row toggle"><span id="pro-status"></span><button type="button" class="pill" id="pro-open" data-text="appSettings.pro.openWhenOff"></button></div>
+            <p class="help" id="pro-id-row" hidden><span data-text="appSettings.pro.appId"></span> <button type="button" class="link-btn" id="pro-id"></button> <span id="pro-id-copied" data-text="appSettings.pro.copied" hidden></span></p>
           </fieldset>
         </form>
       </dialog>
@@ -128,9 +128,9 @@
     <!-- Metronome -->
     <section id="metronome" class="screen" aria-labelledby="met-title" hidden>
       <header class="bar">
-        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-        <h2 id="met-title">Metronome</h2>
-        <button class="icon-btn" id="met-settings-btn" aria-label="Metronome settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        <a class="icon-btn" href="#" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="met-title" data-text="metronome.title"></h2>
+        <button class="icon-btn" id="met-settings-btn" data-text-aria-label="metronome.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="met-body">
         <div class="met-visual">
@@ -143,55 +143,55 @@
         </div>
         <div class="met-controls">
           <div class="tempo">
-            <button class="step" id="bpm-down" aria-label="Slower by one">−</button>
+            <button class="step" id="bpm-down" data-text-aria-label="metronome.slower">−</button>
             <label class="bpm-box">
-              <input id="bpm-input" type="number" inputmode="numeric" min="40" max="500" step="1" value="120" aria-label="Tempo in beats per minute" enterkeyhint="done">
-              <span>BPM</span>
+              <input id="bpm-input" type="number" inputmode="numeric" min="40" max="500" step="1" value="120" data-text-aria-label="metronome.tempoInput" enterkeyhint="done">
+              <span data-text="metronome.bpm"></span>
             </label>
-            <button class="step" id="bpm-up" aria-label="Faster by one">+</button>
+            <button class="step" id="bpm-up" data-text-aria-label="metronome.faster">+</button>
           </div>
-          <p class="marking" id="marking">Allegro</p>
-          <input id="bpm-slider" class="slider" type="range" min="40" max="500" step="1" value="120" aria-label="Tempo">
+          <p class="marking" id="marking"></p>
+          <input id="bpm-slider" class="slider" type="range" min="40" max="500" step="1" value="120" data-text-aria-label="metronome.tempoSlider">
           <div class="slider-scale" aria-hidden="true"><span>40</span><span>500</span></div>
           <button class="big-btn" id="met-toggle" aria-pressed="false">
             <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
             <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-            <span id="met-toggle-label">Start</span>
+            <span id="met-toggle-label" data-text="metronome.start"></span>
           </button>
-          <p class="meter-note" id="meter-note">4/4 · strong beat on 1</p>
+          <p class="meter-note" id="meter-note"></p>
         </div>
         <!-- Line up the visuals with the sound (Bluetooth speakers play late). -->
         <div class="sync-bar" id="sync-bar" hidden>
-          <h3 class="sync-title">Line up with the sound</h3>
-          <p class="help">Watch the pulse and listen. If the flash comes before the click, press +; if after, press −.</p>
+          <h3 class="sync-title" data-text="metronome.sync.title"></h3>
+          <p class="help" data-text="metronome.sync.help"></p>
           <div class="tempo">
-            <button class="step" id="sync-down" type="button" aria-label="Show the beat 10 ms sooner">−</button>
-            <output class="sync-val" id="sync-val" aria-live="polite">0 ms</output>
-            <button class="step" id="sync-up" type="button" aria-label="Show the beat 10 ms later">+</button>
+            <button class="step" id="sync-down" type="button" data-text-aria-label="metronome.sync.sooner">−</button>
+            <output class="sync-val" id="sync-val" aria-live="polite"></output>
+            <button class="step" id="sync-up" type="button" data-text-aria-label="metronome.sync.later">+</button>
           </div>
-          <p class="help">Or tap along: tap the button on every click you hear, and it works out the delay.</p>
-          <button class="big-btn sync-tap" id="sync-tap" type="button">Tap on each click</button>
+          <p class="help" data-text="metronome.sync.tapHelp"></p>
+          <button class="big-btn sync-tap" id="sync-tap" type="button" data-text="metronome.sync.tap"></button>
           <p class="help sync-status" id="sync-status" aria-live="polite"></p>
-          <button class="pill" id="sync-done" type="button">Done</button>
+          <button class="pill" id="sync-done" type="button" data-text="common.done"></button>
         </div>
       </div>
 
       <dialog id="met-settings" class="sheet" aria-labelledby="met-settings-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="met-settings-title">Metronome settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row toggle"><span>Time signature</span><select class="select" id="meter"></select></label>
-          <label class="row toggle"><span>Strong beat on 1</span><input type="checkbox" id="accent" role="switch"></label>
+          <header class="sheet-head"><h3 id="met-settings-title" data-text="metronome.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row toggle"><span data-text="metronome.settings.timeSignature"></span><select class="select" id="meter"></select></label>
+          <label class="row toggle"><span data-text="metronome.settings.accent"></span><input type="checkbox" id="accent" role="switch"></label>
           <fieldset>
-            <legend>Sound</legend>
+            <legend data-text="metronome.settings.sound"></legend>
             <div class="chips" id="sound-chips"></div>
           </fieldset>
-          <label class="row"><span>Volume</span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
-          <label class="row toggle"><span>Swinging pendulum</span><input type="checkbox" id="met-motion" role="switch"></label>
-          <label class="row toggle"><span>Pulse on each beat</span><input type="checkbox" id="met-pulse-on" role="switch"></label>
-          <button type="button" class="pill" id="sync-open">Line up visuals with the sound…</button>
-          <p class="help">For Bluetooth speakers and headphones, which play late.</p>
-          <button type="button" class="pill open-audio-check">Audio check…</button>
-          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+          <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
+          <label class="row toggle"><span data-text="metronome.settings.motion"></span><input type="checkbox" id="met-motion" role="switch"></label>
+          <label class="row toggle"><span data-text="metronome.settings.pulse"></span><input type="checkbox" id="met-pulse-on" role="switch"></label>
+          <button type="button" class="pill" id="sync-open" data-text="metronome.settings.openSync"></button>
+          <p class="help" data-text="metronome.settings.syncHelp"></p>
+          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle"><span data-text="common.theme"></span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>
@@ -199,51 +199,51 @@
     <!-- Record / Playback -->
     <section id="record" class="screen" aria-labelledby="rec-title" hidden>
       <header class="bar">
-        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-        <h2 id="rec-title">Playback Recorder</h2>
-        <button class="icon-btn" id="rec-settings-btn" aria-label="Playback Recorder settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        <a class="icon-btn" href="#" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="rec-title" data-text="recorder.title"></h2>
+        <button class="icon-btn" id="rec-settings-btn" data-text-aria-label="recorder.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="rec-top">
         <button class="rec-btn" id="rec-toggle" aria-pressed="false" data-state="off">
           <span class="rec-dot" aria-hidden="true"></span>
-          <span class="visually-hidden" id="rec-toggle-label">Turn recording on</span>
+          <span class="visually-hidden" id="rec-toggle-label"></span>
         </button>
         <div class="rec-status" aria-live="polite">
-          <p class="rec-state" id="rec-state">Off</p>
-          <p class="rec-hint" id="rec-hint">Tap the button to start listening.</p>
+          <p class="rec-state" id="rec-state"></p>
+          <p class="rec-hint" id="rec-hint"></p>
         </div>
-        <button class="pill" id="rec-skip" hidden>Stop playback</button>
+        <button class="pill" id="rec-skip" data-text="recorder.stopPlayback" hidden></button>
       </div>
       <aside class="mic-tip" id="mic-tip" aria-live="polite" hidden></aside>
-      <canvas class="wave" id="wave" aria-label="Microphone waveform" role="img"></canvas>
-      <h3 class="takes-title">Your takes <span id="takes-count"></span></h3>
+      <canvas class="wave" id="wave" data-text-aria-label="recorder.waveform" role="img"></canvas>
+      <h3 class="takes-title"><span data-text="recorder.takesTitle"></span> <span id="takes-count"></span></h3>
       <ul class="takes" id="takes"></ul>
-      <p class="takes-empty" id="takes-empty">Your takes will appear here. Play something and pause for <span class="silence-sec">3</span> seconds when you're done.</p>
+      <p class="takes-empty" id="takes-empty"></p>
       <p class="toast note" id="note" role="status" hidden></p>
-      <div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button class="pill" id="toast-undo">Undo</button></div>
+      <div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button class="pill" id="toast-undo" data-text="common.undo"></button></div>
 
       <dialog id="rec-settings" class="sheet" aria-labelledby="rec-settings-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="rec-settings-title">Playback Recorder settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row"><span>Finish after silence of <b><span class="silence-sec">3</span> s</b></span><input type="range" class="slider" id="silence" min="1" max="10" step="0.5"></label>
+          <header class="sheet-head"><h3 id="rec-settings-title" data-text="recorder.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row"><span id="silence-label"></span><input type="range" class="slider" id="silence" min="1" max="10" step="0.5"></label>
           <fieldset>
-            <legend>Start recording on</legend>
+            <legend data-text="recorder.settings.startOn"></legend>
             <div class="chips" id="starton-chips"></div>
-            <p class="help">Musical notes ignores noises like moving a chair. Choose any sound for drums and percussion.</p>
+            <p class="help" data-text="recorder.settings.startOnHelp"></p>
           </fieldset>
           <fieldset>
-            <legend>Sensitivity</legend>
+            <legend data-text="recorder.settings.sensitivity"></legend>
             <div class="chips" id="sens-chips"></div>
-            <p class="help">Lower it in a noisy room; raise it for quiet instruments or a distant phone.</p>
+            <p class="help" data-text="recorder.settings.sensitivityHelp"></p>
           </fieldset>
-          <label class="row toggle"><span>Play each take back automatically</span><input type="checkbox" id="autoplay" role="switch"></label>
+          <label class="row toggle"><span data-text="recorder.settings.autoplay"></span><input type="checkbox" id="autoplay" role="switch"></label>
           <!-- Parked: "Record during playback" is hidden for now (see RECORD_DURING_PLAYBACK in src/main.js). -->
           <div hidden>
-            <label class="row toggle"><span>Record during playback</span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
-            <p class="help" id="rec-during-help">Off: the microphone turns off while a take plays and back on afterwards, so playback is full volume. On: it keeps listening, and playing over a take starts the next one (echo cancellation is used; headphones work best, and on iPhone playback is quieter).</p>
+            <label class="row toggle"><span data-text="recorder.settings.during"></span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
+            <p class="help" id="rec-during-help" data-text="recorder.settings.duringHelp"></p>
           </div>
-          <button type="button" class="pill open-audio-check">Audio check…</button>
-          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle"><span data-text="common.theme"></span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>
@@ -251,12 +251,12 @@
     <!-- Tuner -->
     <section id="tuner" class="screen" aria-labelledby="tuner-title" hidden>
       <header class="bar">
-        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-        <h2 id="tuner-title">Tuner</h2>
-        <button class="icon-btn" id="tuner-settings-btn" aria-label="Tuner settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        <a class="icon-btn" href="#" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="tuner-title" data-text="tuner.title"></h2>
+        <button class="icon-btn" id="tuner-settings-btn" data-text-aria-label="tuner.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="tuner-body" id="tuner-body" data-state="idle">
-        <label class="tuner-instrument"><span class="visually-hidden">Instrument</span><select class="select" id="tuning-select"></select></label>
+        <label class="tuner-instrument"><span class="visually-hidden" data-text="common.instrument"></span><select class="select" id="tuning-select"></select></label>
         <div class="gauge-wrap">
           <svg class="gauge" id="gauge" viewBox="0 0 320 196" aria-hidden="true">
             <path class="gauge-zone" id="gauge-zone"/>
@@ -268,33 +268,33 @@
           <div class="tuner-note" aria-live="off"><span id="tn-letter">–</span><span class="acc" id="tn-acc"></span><span class="oct" id="tn-oct"></span></div>
         </div>
         <p class="tuner-readout"><span id="tn-cents">&nbsp;</span><span id="tn-hz"></span></p>
-        <p class="tuner-hint" id="tn-hint" aria-live="polite">Play a note</p>
-        <div class="strings" id="strings" role="group" aria-label="Strings: tap one to hear it"></div>
-        <button class="pill" id="ref-tone" type="button">Play A4</button>
+        <p class="tuner-hint" id="tn-hint" aria-live="polite"></p>
+        <div class="strings" id="strings" role="group" data-text-aria-label="tuner.strings"></div>
+        <button class="pill" id="ref-tone" type="button"></button>
         <p class="tuner-status" id="tuner-status" hidden></p>
-        <button class="pill" id="tuner-retry" type="button" hidden>Try again</button>
+        <button class="pill" id="tuner-retry" type="button" data-text="common.tryAgain" hidden></button>
       </div>
 
       <dialog id="tuner-settings" class="sheet" aria-labelledby="tuner-settings-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="tuner-settings-title">Tuner settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <header class="sheet-head"><h3 id="tuner-settings-title" data-text="tuner.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
           <div class="row">
-            <span>Reference pitch: A4 = <b><span id="a4-val">440</span> Hz</b></span>
+            <span id="a4-label"></span>
             <div class="a4-row">
-              <button type="button" class="step" id="a4-down" aria-label="Lower by 1 Hz">−</button>
-              <input type="range" class="slider" id="a4" min="415" max="466" step="1" aria-label="Reference pitch in hertz">
-              <button type="button" class="step" id="a4-up" aria-label="Higher by 1 Hz">+</button>
+              <button type="button" class="step" id="a4-down" data-text-aria-label="common.lowerByOneHz">−</button>
+              <input type="range" class="slider" id="a4" min="415" max="466" step="1" data-text-aria-label="common.referencePitchSlider">
+              <button type="button" class="step" id="a4-up" data-text-aria-label="common.higherByOneHz">+</button>
             </div>
-            <p class="help">440 Hz is standard. Some orchestras tune to 442; baroque groups to 415.</p>
+            <p class="help" data-text="tuner.settings.a4Help"></p>
           </div>
           <fieldset>
-            <legend>Note names</legend>
+            <legend data-text="tuner.settings.noteNames"></legend>
             <div class="chips" id="flats-chips"></div>
           </fieldset>
-          <label class="row"><span>Transposing instrument</span><select class="select" id="transpose"></select></label>
-          <p class="help">Shows notes as written for your instrument: a concert B♭ reads as C on a B♭ clarinet or trumpet.</p>
-          <button type="button" class="pill open-audio-check">Audio check…</button>
-          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+          <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
+          <p class="help" data-text="tuner.settings.transposeHelp"></p>
+          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle"><span data-text="common.theme"></span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>
@@ -302,77 +302,77 @@
     <!-- Drone -->
     <section id="drone" class="screen" aria-labelledby="drone-title" hidden>
       <header class="bar">
-        <a class="icon-btn" href="#" aria-label="Back to start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-        <h2 id="drone-title">Drone</h2>
-        <button class="icon-btn" id="drone-settings-btn" aria-label="Drone settings"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
+        <a class="icon-btn" href="#" data-text-aria-label="common.backToStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+        <h2 id="drone-title" data-text="drone.title"></h2>
+        <button class="icon-btn" id="drone-settings-btn" data-text-aria-label="drone.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="drone-body" id="drone-body">
         <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" data-asset="home-drone"></span></div>
         <div class="drone-readout">
-          <div class="tuner-note drone-note"><span id="dr-letter">C</span><span class="acc" id="dr-acc"></span><span class="oct" id="dr-oct">3</span></div>
+          <div class="tuner-note drone-note"><span id="dr-letter"></span><span class="acc" id="dr-acc"></span><span class="oct" id="dr-oct"></span></div>
           <p class="drone-hz" id="dr-hz"></p>
         </div>
         <div class="tempo drone-pitch">
-          <button class="step" id="dr-down" type="button" aria-label="Down a semitone">−</button>
-          <label><span class="visually-hidden">Pitch</span><select class="select" id="dr-pitch"></select></label>
-          <button class="step" id="dr-up" type="button" aria-label="Up a semitone">+</button>
+          <button class="step" id="dr-down" type="button" data-text-aria-label="drone.down">−</button>
+          <label><span class="visually-hidden" data-text="drone.pitch"></span><select class="select" id="dr-pitch"></select></label>
+          <button class="step" id="dr-up" type="button" data-text-aria-label="drone.up">+</button>
         </div>
-        <label class="drone-voice"><span class="visually-hidden">Instrument</span><select class="select" id="dr-voice"></select></label>
+        <label class="drone-voice"><span class="visually-hidden" data-text="common.instrument"></span><select class="select" id="dr-voice"></select></label>
         <button class="big-btn" id="dr-toggle" type="button" aria-pressed="false">
           <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-          <span id="dr-toggle-label">Play</span>
+          <span id="dr-toggle-label" data-text="drone.play"></span>
         </button>
         <p class="drone-timer" id="dr-timer" aria-live="polite" hidden></p>
       </div>
 
       <dialog id="drone-settings" class="sheet" aria-labelledby="drone-settings-title">
         <form method="dialog">
-          <header class="sheet-head"><h3 id="drone-settings-title">Drone settings</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <label class="row"><span>Volume</span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
-          <label class="row toggle"><span>Add a fifth above</span><input type="checkbox" id="dr-fifth" role="switch"></label>
-          <p class="help">A pure fifth over the drone note.</p>
-          <label class="row toggle"><span>Timed drone</span><input type="checkbox" id="dr-timed" role="switch"></label>
+          <header class="sheet-head"><h3 id="drone-settings-title" data-text="drone.settings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+          <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
+          <label class="row toggle"><span data-text="drone.settings.fifth"></span><input type="checkbox" id="dr-fifth" role="switch"></label>
+          <p class="help" data-text="drone.settings.fifthHelp"></p>
+          <label class="row toggle"><span data-text="drone.settings.timed"></span><input type="checkbox" id="dr-timed" role="switch"></label>
           <div class="drone-timed" id="dr-timed-opts">
-            <label class="row"><span>Length: <b><span id="dr-minutes-val">3</span> min</b></span><input type="range" class="slider" id="dr-minutes" min="0.5" max="20" step="0.5"></label>
-            <label class="row"><span>When time's up</span><select class="select" id="dr-then"></select></label>
-            <p class="help">Notes move within the drone's two octaves (C2 to B3), wrapping round by octaves. Scales are the major scale of the note you started on.</p>
+            <label class="row"><span id="dr-minutes-label"></span><input type="range" class="slider" id="dr-minutes" min="0.5" max="20" step="0.5"></label>
+            <label class="row"><span data-text="drone.settings.then"></span><select class="select" id="dr-then"></select></label>
+            <p class="help" data-text="drone.settings.timedHelp"></p>
           </div>
           <div class="row">
-            <span>Reference pitch: A4 = <b><span class="a4-val">440</span> Hz</b></span>
+            <span class="dr-a4-label"></span>
             <div class="a4-row">
-              <button type="button" class="step dr-a4-down" aria-label="Lower by 1 Hz">−</button>
-              <input type="range" class="slider dr-a4" min="415" max="466" step="1" aria-label="Reference pitch in hertz">
-              <button type="button" class="step dr-a4-up" aria-label="Higher by 1 Hz">+</button>
+              <button type="button" class="step dr-a4-down" data-text-aria-label="common.lowerByOneHz">−</button>
+              <input type="range" class="slider dr-a4" min="415" max="466" step="1" data-text-aria-label="common.referencePitchSlider">
+              <button type="button" class="step dr-a4-up" data-text-aria-label="common.higherByOneHz">+</button>
             </div>
-            <p class="help">Shared with the tuner, so the drone and the tuner agree.</p>
+            <p class="help" data-text="drone.settings.a4Help"></p>
           </div>
-          <button type="button" class="pill open-audio-check">Audio check…</button>
-          <label class="row toggle"><span>Theme</span><select class="select theme-select"></select></label>
+          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <label class="row toggle"><span data-text="common.theme"></span><select class="select theme-select"></select></label>
         </form>
       </dialog>
     </section>
     <!-- The paywall, in the iOS and Android apps (src/pro.js). -->
     <dialog id="paywall" class="sheet paywall" aria-labelledby="pw-title">
       <form method="dialog">
-        <header class="sheet-head"><h3 id="pw-title">Music Practice Pro</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <header class="sheet-head"><h3 id="pw-title" data-text="paywall.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <p class="pw-have" id="pw-have" hidden></p>
         <ul class="pw-features">
-          <li><b>Drone</b> cello and organ drones on any note, with a fifth, timed drones and sequences</li>
-          <li><b>Every take</b> kept, renamed and saved as an MP3 (free shows the newest 3)</li>
-          <li><b>All eight themes</b> from Art Deco to Steampunk</li>
-          <li>The metronome, the tuner and the recorder stay free</li>
+          <li data-text-rich="paywall.features.drone"></li>
+          <li data-text-rich="paywall.features.takes"></li>
+          <li data-text-rich="paywall.features.themes"></li>
+          <li data-text="paywall.features.free"></li>
         </ul>
-        <p class="pw-support">Pro also supports an independent app developer, so Music Practice can keep growing with no ads and no tracking. Thank you!</p>
+        <p class="pw-support" data-text="paywall.support"></p>
         <div class="pw-plans" id="pw-plans"></div>
         <p class="help pw-note" id="pw-note" hidden></p>
         <p class="pw-message" id="pw-message" role="status" aria-live="polite"></p>
         <div class="pw-links">
-          <button type="button" class="link-btn" id="pw-restore">Restore purchases</button>
-          <button type="button" class="link-btn" id="pw-redeem">Redeem a code</button>
+          <button type="button" class="link-btn" id="pw-restore" data-text="paywall.restore"></button>
+          <button type="button" class="link-btn" id="pw-redeem" data-text="paywall.redeem"></button>
         </div>
         <p class="help pw-fine" id="pw-fine"></p>
-        <p class="help pw-legal"><a id="pw-terms" href="#" target="_blank" rel="noopener">Terms of Use</a> · <a id="pw-privacy" href="#" target="_blank" rel="noopener">Privacy Policy</a></p>
+        <p class="help pw-legal"><a id="pw-terms" href="#" target="_blank" rel="noopener" data-text="paywall.terms"></a> · <a id="pw-privacy" href="#" target="_blank" rel="noopener" data-text="paywall.privacy"></a></p>
       </form>
     </dialog>
 
@@ -380,27 +380,27 @@
          permission, and the choices it allows (src/audiocheck.js). -->
     <dialog id="audio-check" class="sheet" aria-labelledby="audio-check-title">
       <form method="dialog">
-        <header class="sheet-head"><h3 id="audio-check-title">Audio check</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <header class="sheet-head"><h3 id="audio-check-title" data-text="audioCheck.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div id="audio-check-body" aria-live="polite"></div>
-        <button type="button" class="pill open-feedback" data-topic="Problem">Report a problem…</button>
+        <button type="button" class="pill open-feedback" data-topic="Problem" data-text="audioCheck.reportProblem"></button>
       </form>
     </dialog>
 
     <!-- Send feedback (src/feedback.js): to the shared feedback inbox. -->
     <dialog id="feedback" class="sheet" aria-labelledby="fb-title">
       <form method="dialog">
-        <header class="sheet-head"><h3 id="fb-title">Send feedback</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-        <p class="help">A problem, an idea, anything at all. It goes straight to the developer.</p>
-        <div class="chips" id="fb-topic" aria-label="What it's about"></div>
-        <label class="fb-field"><span>Your email, for a reply</span><input type="email" id="fb-email" class="fb-input" autocomplete="email" inputmode="email" maxlength="254" enterkeyhint="next"></label>
-        <label class="fb-field"><span>Message</span><textarea id="fb-message" class="fb-input" rows="5" maxlength="3000"></textarea></label>
+        <header class="sheet-head"><h3 id="fb-title" data-text="feedback.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <p class="help" data-text="feedback.intro"></p>
+        <div class="chips" id="fb-topic" data-text-aria-label="feedback.topicLabel"></div>
+        <label class="fb-field"><span data-text="feedback.email"></span><input type="email" id="fb-email" class="fb-input" autocomplete="email" inputmode="email" maxlength="254" enterkeyhint="next"></label>
+        <label class="fb-field"><span data-text="feedback.message"></span><textarea id="fb-message" class="fb-input" rows="5" maxlength="3000"></textarea></label>
         <!-- A honeypot: hidden from people and screen readers; bots that fill every field fill it. -->
-        <div class="fb-hp" aria-hidden="true"><label>Leave this empty <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
-        <label class="row toggle"><span>Include device details</span><input type="checkbox" id="fb-details-on" role="switch" checked></label>
-        <details class="fb-details-box"><summary>What's included</summary><pre id="fb-details"></pre></details>
-        <button type="button" class="big-btn fb-send" id="fb-send" disabled>Send</button>
+        <div class="fb-hp" aria-hidden="true"><label><span data-text="feedback.honeypot"></span> <input type="text" id="fb-hp" tabindex="-1" autocomplete="off"></label></div>
+        <label class="row toggle"><span data-text="feedback.includeDetails"></span><input type="checkbox" id="fb-details-on" role="switch" checked></label>
+        <details class="fb-details-box"><summary data-text="feedback.whatsIncluded"></summary><pre id="fb-details"></pre></details>
+        <button type="button" class="big-btn fb-send" id="fb-send" data-text="feedback.send" disabled></button>
         <p class="help fb-status" id="fb-status" role="status" aria-live="polite"></p>
-        <p class="help fb-note">Your email is used only to reply. <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#feedback" target="_blank" rel="noopener">Privacy</a></p>
+        <p class="help fb-note"><span data-text="feedback.privacyNote"></span> <a href="https://hoai2k.github.io/mini/musicpractice/privacy.html#feedback" target="_blank" rel="noopener" data-text="feedback.privacyLink"></a></p>
       </form>
     </dialog>
   </main>

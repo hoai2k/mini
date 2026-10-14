@@ -3,6 +3,7 @@
 // of a sequence, after a set time. The note, instrument and timing are kept
 // in the settings.
 
+import { TEXT, setRich } from './text.js';
 import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap } from './drone.js';
 import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
 
@@ -54,7 +55,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     $('dr-up').disabled = false;
     const btn = $('dr-toggle');
     btn.setAttribute('aria-pressed', String(playing));
-    $('dr-toggle-label').textContent = playing ? 'Pause' : 'Play';
+    $('dr-toggle-label').textContent = playing ? TEXT.drone.pause : TEXT.drone.play;
     $('drone-body').classList.toggle('playing', playing);
     showTimer();
   }
@@ -65,10 +66,10 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     if (!settings.droneTimed) { el.textContent = doneNote; return; }
     const left = fmt(Math.max(0, remaining));
     if (settings.droneThen === 'stop') {
-      el.textContent = doneNote || (playing ? `Stops in ${left}` : `Plays for ${left}`);
+      el.textContent = doneNote || (playing ? TEXT.drone.stopsIn(left) : TEXT.drone.playsFor(left));
     } else {
       const next = name(sequenceNote(settings.droneThen, seqStart, seqStep + 1)).text;
-      el.textContent = `Next: ${next} in ${left}`;
+      el.textContent = TEXT.drone.nextIn(next, left);
     }
   }
 
@@ -94,7 +95,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
       a4: settings.a4,
       fifth: settings.droneFifth,
       schedule: schedule(),
-      label: `Drone · ${name(settings.droneMidi).text} · ${voiceLabel}`,
+      label: TEXT.drone.nowPlaying(name(settings.droneMidi).text, voiceLabel),
     });
   }
 
@@ -124,7 +125,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
       onPlaying(false);
       if (s.stoppedByTimer) {
         remaining = settings.droneMinutes * 60;
-        doneNote = `Done: ${fmt(settings.droneMinutes * 60)} on ${name(settings.droneMidi).text}`;
+        doneNote = TEXT.drone.done(fmt(settings.droneMinutes * 60), name(settings.droneMidi).text);
       }
     }
     show();
@@ -164,7 +165,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     remaining = settings.droneMinutes * 60;
     if (settings.droneThen === 'stop') {
       pause();
-      doneNote = `Done: ${fmt(settings.droneMinutes * 60)} on ${name(settings.droneMidi).text}`;
+      doneNote = TEXT.drone.done(fmt(settings.droneMinutes * 60), name(settings.droneMidi).text);
       showTimer();
       return;
     }
@@ -216,7 +217,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   const minutes = $('dr-minutes');
   function showTimedOpts() {
     $('dr-timed-opts').hidden = !settings.droneTimed;
-    $('dr-minutes-val').textContent = settings.droneMinutes % 1 ? settings.droneMinutes.toFixed(1) : settings.droneMinutes;
+    setRich($('dr-minutes-label'), TEXT.drone.settings.length(settings.droneMinutes % 1 ? settings.droneMinutes.toFixed(1) : settings.droneMinutes));
   }
   timed.checked = settings.droneTimed;
   timed.addEventListener('change', () => {
@@ -261,7 +262,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   /** Bring the controls in line with the settings (also after the tuner changed A4 or spelling). */
   function refresh() {
     a4.value = settings.a4;
-    for (const el of document.querySelectorAll('#drone .a4-val')) el.textContent = settings.a4;
+    setRich(document.querySelector('.dr-a4-label'), TEXT.common.referencePitch(settings.a4));
     fillPitches();
     showTimedOpts();
     show();

@@ -6,6 +6,7 @@
 // by itself). NativeMetronome and NativeDrone stand in for Metronome and
 // Drone in main.js. On the website none of this is used.
 
+import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
 import { Metronome } from './metronome.js';
 import { beatStrengths } from './settings.js';
@@ -118,7 +119,7 @@ export class NativeMetronome {
   }
 
   label() {
-    return `Metronome · ${this.bpm} BPM`;
+    return TEXT.nowPlaying.metronome(this.bpm);
   }
 
   async clicks() {
@@ -237,7 +238,7 @@ export class NativeDrone {
   }
 
   /** { midi, voice, a4, fifth, schedule, label }: start, or move to a new note or voice. */
-  async play({ midi, voice, a4 = 440, fifth = false, schedule = null, label = 'Drone' }) {
+  async play({ midi, voice, a4 = 440, fifth = false, schedule = null, label = TEXT.nowPlaying.drone }) {
     const ticket = ++this.ticket;
     this.playing = true;
     await this.ensureVoice(voice);

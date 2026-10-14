@@ -1,5 +1,7 @@
 // Music Practice: the home screen, the metronome, the practice recorder and the tuner.
 
+import { TEXT, setRich } from './text.js';
+
 import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
 import { encodeMp3 } from './mp3.js';
@@ -85,7 +87,7 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 // ---------------------------------------------------------------- screens
 
 const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone'];
-const TITLES = { metronome: 'Metronome', record: 'Playback Recorder', tuner: 'Tuner', drone: 'Drone' };
+const TITLES = TEXT.home.tools;
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
@@ -136,7 +138,7 @@ function enter(name) {
     if (!recorder?.holdsMic) setSession('playback');
     droneUI.refresh();
   }
-  document.title = TITLES[name] ? `${TITLES[name]} · Music Practice` : 'Music Practice';
+  document.title = TITLES[name] ? TEXT.app.pageTitle(TITLES[name]) : TEXT.app.name;
 }
 
 window.addEventListener('hashchange', route);
@@ -192,15 +194,16 @@ const bpmInput = $('bpm-input');
 const bpmSlider = $('bpm-slider');
 
 function marking(bpm) {
-  if (bpm < 60) return 'Largo';
-  if (bpm < 66) return 'Larghetto';
-  if (bpm < 76) return 'Adagio';
-  if (bpm < 108) return 'Andante';
-  if (bpm < 120) return 'Moderato';
-  if (bpm < 156) return 'Allegro';
-  if (bpm < 176) return 'Vivace';
-  if (bpm < 200) return 'Presto';
-  return 'Prestissimo';
+  const m = TEXT.metronome.markings;
+  if (bpm < 60) return m.largo;
+  if (bpm < 66) return m.larghetto;
+  if (bpm < 76) return m.adagio;
+  if (bpm < 108) return m.andante;
+  if (bpm < 120) return m.moderato;
+  if (bpm < 156) return m.allegro;
+  if (bpm < 176) return m.vivace;
+  if (bpm < 200) return m.presto;
+  return m.prestissimo;
 }
 
 function setBpm(v, { fromInput = false } = {}) {
@@ -222,8 +225,7 @@ function renderBeats() {
     return li;
   }));
   const m = meterOf(settings.meter);
-  const name = m.beats === 1 ? 'No bars' : m.id;
-  $('meter-note').textContent = m.beats === 1 ? name : `${name} · ${settings.accent ? 'strong beat on 1' : 'all beats even'}`;
+  $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, settings.accent);
 }
 
 function metronomeConfigured() {
@@ -236,7 +238,7 @@ function startMetronome() {
   if (useNative) {
     if (!metronome?.native) metronome = new NativeMetronome();
     metronome.configure(settings);
-    metronome.start().catch(() => { note('Couldn\'t start the metronome. Try again.'); stopMetronome(); });
+    metronome.start().catch(() => { note(TEXT.metronome.couldntStart); stopMetronome(); });
   } else {
     // A fresh context if the old one may be stuck on another output (this is a
     // tap, so the new one may start).
@@ -251,7 +253,7 @@ function startMetronome() {
   }
   pendulum.classList.remove('resting');
   $('met-toggle').setAttribute('aria-pressed', 'true');
-  $('met-toggle-label').textContent = 'Stop';
+  $('met-toggle-label').textContent = TEXT.metronome.stop;
   keepAwake(true);
 }
 
@@ -262,7 +264,7 @@ function stopMetronome() {
   for (const li of $('beats').children) li.classList.remove('on');
   $('met-pulse').style.opacity = '0';
   $('met-toggle').setAttribute('aria-pressed', 'false');
-  $('met-toggle-label').textContent = 'Start';
+  $('met-toggle-label').textContent = TEXT.metronome.start;
   keepAwake(false);
 }
 
@@ -369,7 +371,7 @@ $('app-settings-btn').addEventListener('click', () => {
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
 const meterSelect = $('meter');
-meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? 'No bars' : m.id, m.id)));
+meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? TEXT.metronome.noBars : m.id, m.id)));
 meterSelect.value = settings.meter;
 meterSelect.addEventListener('change', () => { settings.meter = meterSelect.value; metronomeConfigured(); });
 chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
@@ -436,7 +438,7 @@ function animateMetronome() {
 const syncBar = $('sync-bar');
 let taps = [];
 function showSync() {
-  $('sync-val').textContent = `${settings.syncMs > 0 ? '+' : ''}${settings.syncMs} ms`;
+  $('sync-val').textContent = TEXT.metronome.sync.value(settings.syncMs);
 }
 function setSync(ms) {
   settings.syncMs = Math.max(-200, Math.min(500, Math.round(ms / 10) * 10));
@@ -481,18 +483,18 @@ $('sync-tap').addEventListener('pointerdown', (e) => {
   let off = at - b.time;
   if (off > p - 0.1) off -= p;
   taps.push(off);
-  if (taps.length <= 2) { $('sync-status').textContent = `Keep tapping… (${taps.length} of ${TAPS_NEEDED})`; return; }
+  if (taps.length <= 2) { $('sync-status').textContent = TEXT.metronome.sync.keepTapping(taps.length, TAPS_NEEDED); return; }
   const use = taps.slice(2).sort((x, y) => x - y);
-  if (taps.length < TAPS_NEEDED) { $('sync-status').textContent = `Keep tapping… (${taps.length} of ${TAPS_NEEDED})`; return; }
+  if (taps.length < TAPS_NEEDED) { $('sync-status').textContent = TEXT.metronome.sync.keepTapping(taps.length, TAPS_NEEDED); return; }
   const median = use[use.length >> 1];
   const spread = use[use.length - 1] - use[0];
   // Already allowed for: the output delay the browser reports.
   const known = native ? 0 : c.currentTime - heardNow() - settings.syncMs / 1000;
   if (spread > 0.15) {
-    $('sync-status').textContent = 'Those taps were uneven. Try again, tapping right on each click.';
+    $('sync-status').textContent = TEXT.metronome.sync.uneven;
   } else {
     setSync((median - known) * 1000);
-    $('sync-status').textContent = `Set to ${settings.syncMs} ms from your taps (the sound takes about ${Math.round(median * 1000)} ms to reach you). Fine-tune with − and + if needed.`;
+    $('sync-status').textContent = TEXT.metronome.sync.set(settings.syncMs, Math.round(median * 1000));
   }
   taps = [];
 });
@@ -505,13 +507,14 @@ let takes = []; // newest first
 let playing = null; // { take, auto, handle: { ended, progress(), stop() } once sound starts }
 let recError = '';
 
+const ST = TEXT.recorder.state;
 const STATUS = {
-  off: ['Off', () => recError || 'Tap the button to start listening.'],
-  waiting: ['Listening…', () => 'Start playing whenever you\'re ready.'],
-  recording: ['Recording', () => `Stop playing for ${fmtSec(settings.silenceSec)} s to finish.`],
-  playing: ['Playing back', () => 'Listening starts again when it ends.'],
-  paused: ['Paused', () => 'Listening starts again when you\'re done here.'],
-  tuning: ['Off', () => ''], // the tuner has the mic (never shown: the screens are separate)
+  off: [ST.off, () => recError || ST.offHint],
+  waiting: [ST.waiting, () => ST.waitingHint],
+  recording: [ST.recording('0:00'), () => ST.recordingHint(fmtSec(settings.silenceSec))],
+  playing: [ST.playing, () => ST.playingHint],
+  paused: [ST.paused, () => ST.pausedHint],
+  tuning: [ST.off, () => ''], // the tuner has the mic (never shown: the screens are separate)
 };
 
 const fmtSec = (s) => (Number.isInteger(s) ? String(s) : s.toFixed(1));
@@ -530,18 +533,18 @@ function showState() {
   const btn = $('rec-toggle');
   btn.dataset.state = state;
   btn.setAttribute('aria-pressed', String(state !== 'off'));
-  $('rec-toggle-label').textContent = state === 'off' ? 'Turn recording on' : 'Turn recording off';
+  $('rec-toggle-label').textContent = state === 'off' ? TEXT.recorder.turnOn : TEXT.recorder.turnOff;
   const [title, hint] = STATUS[state];
-  $('rec-state').textContent = state === 'recording' ? `${title} ${fmtDur(recorder.recordingSec)}` : title;
+  $('rec-state').textContent = state === 'recording' ? ST.recording(fmtDur(recorder.recordingSec)) : title;
   let h = hint();
-  if (state === 'waiting' && needsTap) h = 'Tap anywhere to start listening again.';
-  else if (state === 'waiting' && audio().state !== 'running') h = 'Tap anywhere to let the app hear you.';
+  if (state === 'waiting' && needsTap) h = ST.tapToRestart;
+  else if (state === 'waiting' && audio().state !== 'running') h = ST.tapToHear;
   $('rec-hint').textContent = h;
   $('rec-hint').classList.toggle('error', state === 'off' && !!recError);
   // Recording during playback: the take plays while the mic keeps listening.
   if (playing?.auto && state === 'waiting') {
-    $('rec-state').textContent = 'Playing back';
-    $('rec-hint').textContent = 'Start playing any time to begin a new take.';
+    $('rec-state').textContent = ST.playing;
+    $('rec-hint').textContent = ST.playingDuringHint;
   }
   $('rec-skip').hidden = !(playing && playing.auto);
 }
@@ -551,7 +554,8 @@ function configureRecorder() {
     recorder.configure(settings);
     recorder.echoCancel = recordDuringPlayback();
   }
-  for (const el of document.querySelectorAll('.silence-sec')) el.textContent = fmtSec(settings.silenceSec);
+  setRich($('silence-label'), TEXT.recorder.settings.silence(fmtSec(settings.silenceSec)));
+  $('takes-empty').textContent = TEXT.recorder.takesEmpty(fmtSec(settings.silenceSec));
   persist();
   showState();
 }
@@ -624,13 +628,12 @@ function showMicTip() {
   tip.hidden = !show;
 }
 
-function micError(err) {
-  if (err?.name === 'NotAllowedError' && isApp()) return 'Microphone access is off. Turn it on for Music Practice in your phone\'s Settings, then tap the button.';
-  return err?.name === 'NotAllowedError'
-    ? 'Microphone access was refused. Allow it in your browser\'s site settings, then tap the button.'
-    : err?.message === 'unsupported'
-      ? 'This browser can\'t use the microphone here. Try Safari or Chrome over https.'
-      : 'Couldn\'t open the microphone. Check that no other app is using it, then tap the button.';
+/** Why the mic couldn't open, for the recorder or (`tuner`) the tuner, whose button is Try again. */
+function micError(err, tuner = false) {
+  const t = TEXT.micErrors;
+  if (err?.name === 'NotAllowedError') return isApp() ? (tuner ? t.tunerOffInApp : t.offInApp) : (tuner ? t.tunerRefused : t.refused);
+  if (err?.message === 'unsupported') return t.unsupported;
+  return tuner ? t.tunerFailed : t.failed;
 }
 
 /** Listen again after playback or a pause, reopening the mic if it was closed. */
@@ -667,7 +670,7 @@ function recoverMic(force = false) {
   }
   reopening = true;
   recorder.reopen({ fresh: recoverTries > 1 })
-    .catch((err) => { recError = micError(err); tunerError = recError.replace('tap the button', 'tap Try again'); recorder.off(); })
+    .catch((err) => { recError = micError(err); tunerError = micError(err, true); recorder.off(); })
     .finally(() => { reopening = false; showState(); showTunerState(); });
 }
 
@@ -869,7 +872,7 @@ function renameTake(take, li) {
   input.maxLength = 60;
   input.value = take.name || '';
   input.placeholder = li.dataset.label;
-  input.setAttribute('aria-label', 'Take name');
+  input.setAttribute('aria-label', TEXT.recorder.takeNameField);
   input.enterKeyHint = 'done';
   const pausedHere = recorder && (recorder.state === 'waiting' || recorder.state === 'recording');
   if (pausedHere) recorder.pause();
@@ -907,14 +910,14 @@ function renameTake(take, li) {
 async function saveTake(take, label, button) {
   if (button.classList.contains('busy')) return;
   button.classList.remove('ready');
-  const base = (label || 'Take').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Take';
+  const base = (label || TEXT.recorder.takeFile).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) || TEXT.recorder.takeFile;
   if (!take.mp3) {
     button.classList.add('busy');
-    button.setAttribute('aria-label', 'Making the MP3…');
+    button.setAttribute('aria-label', TEXT.recorder.makingMp3);
     try {
       take.mp3 = await encodeMp3(take.samples, take.sampleRate);
     } catch {
-      note('Couldn\'t make the MP3. Try again.');
+      note(TEXT.recorder.mp3Failed);
       return;
     } finally {
       button.classList.remove('busy');
@@ -924,7 +927,7 @@ async function saveTake(take, label, button) {
   const file = new File([take.mp3], `${base}.mp3`, { type: 'audio/mpeg' });
   if (isApp()) {
     // The app's own share sheet: no "tap again" step, and Android's web view has none.
-    try { await shareFile(file, base); } catch { note('Couldn\'t save the MP3. Try again.'); }
+    try { await shareFile(file, base); } catch { note(TEXT.recorder.saveFailed); }
     return;
   }
   const phone = isIOS() || /Android/i.test(navigator.userAgent);
@@ -936,8 +939,8 @@ async function saveTake(take, label, button) {
       if (err?.name === 'AbortError') return; // closed the share sheet
       if (err?.name === 'NotAllowedError') {
         button.classList.add('ready');
-        button.setAttribute('aria-label', 'MP3 ready: tap to save');
-        note('MP3 ready: tap save again.');
+        button.setAttribute('aria-label', TEXT.recorder.mp3Ready);
+        note(TEXT.recorder.mp3ReadyNote);
         return;
       }
     }
@@ -965,7 +968,7 @@ function note(text) {
 function renderTakes() {
   const list = $('takes');
   $('takes-empty').hidden = takes.length > 0;
-  $('takes-count').textContent = takes.length ? `(${takes.length})` : '';
+  $('takes-count').textContent = takes.length ? TEXT.recorder.takesCount(takes.length) : '';
   // Without Pro (in the apps) the newest few show; the rest are kept for when Pro is on.
   const shown = isPro() ? takes : takes.slice(0, FREE_TAKES);
   const rows = shown.map((take, i) => {
@@ -992,17 +995,17 @@ function renderTakes() {
     const dur = take.samples.length / take.sampleRate;
     const title = li.querySelector('.title');
     const len = li.querySelector('.name > span');
-    const label = take.name || `Take ${n} · ${fmtWhen(take.created)}`;
+    const label = take.name || TEXT.recorder.takeName(n, fmtWhen(take.created));
     li.dataset.label = label;
     if (title) {
       title.textContent = label;
-      title.setAttribute('aria-label', `${label}. Tap to rename`);
+      title.setAttribute('aria-label', TEXT.recorder.renameTake(label));
     }
     len.textContent = fmtDur(Math.max(1, Math.round(dur)));
-    li.querySelector('.play').setAttribute('aria-label', `${playing?.take === take ? 'Stop' : 'Play'} take ${n}`);
-    li.querySelector('.del').setAttribute('aria-label', `Delete take ${n}`);
+    li.querySelector('.play').setAttribute('aria-label', playing?.take === take ? TEXT.recorder.stopTake(n) : TEXT.recorder.playTake(n));
+    li.querySelector('.del').setAttribute('aria-label', TEXT.recorder.deleteTake(n));
     const save = li.querySelector('.save');
-    if (!save.classList.contains('busy') && !save.classList.contains('ready')) save.setAttribute('aria-label', `Save take ${n} as an MP3`);
+    if (!save.classList.contains('busy') && !save.classList.contains('ready')) save.setAttribute('aria-label', TEXT.recorder.saveTake(n));
     li.classList.toggle('playing', playing?.take === take);
     if (playing?.take !== take) li.querySelector('.bar-progress').style.width = '0';
     return li;
@@ -1013,10 +1016,11 @@ function renderTakes() {
     if (!more) {
       more = document.createElement('li');
       more.className = 'takes-more';
-      more.innerHTML = '<span></span> <button type="button" class="link-btn">Keep every take with Pro</button>';
+      more.innerHTML = '<span></span> <button type="button" class="link-btn"></button>';
+      more.querySelector('button').textContent = TEXT.recorder.keepEvery;
       more.querySelector('button').addEventListener('click', () => openPaywall('older'));
     }
-    more.querySelector('span').textContent = `${hidden} older take${hidden === 1 ? ' is' : 's are'} kept.`;
+    more.querySelector('span').textContent = TEXT.recorder.olderKept(hidden);
     rows.push(more);
   }
   list.replaceChildren(...rows);
@@ -1035,7 +1039,7 @@ function removeTake(take) {
   if (lastDeleted) store.remove(lastDeleted.take.id);
   lastDeleted = { take, index };
   renderTakes();
-  $('toast-text').textContent = 'Take deleted';
+  $('toast-text').textContent = TEXT.recorder.takeDeleted;
   $('toast').hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => hideToast(), 4000);
@@ -1064,8 +1068,9 @@ const recSettings = $('rec-settings');
 $('rec-settings-btn').addEventListener('click', () => recSettings.showModal());
 $('silence').value = settings.silenceSec;
 $('silence').addEventListener('input', () => { settings.silenceSec = Number($('silence').value); configureRecorder(); });
-chips($('starton-chips'), [{ id: 'music', label: 'Musical notes' }, { id: 'any', label: 'Any sound' }], () => settings.startOn, (v) => { settings.startOn = v; configureRecorder(); });
-chips($('sens-chips'), [{ id: 'low', label: 'Low' }, { id: 'medium', label: 'Medium' }, { id: 'high', label: 'High' }], () => settings.sensitivity, (v) => { settings.sensitivity = v; configureRecorder(); });
+const RS = TEXT.recorder.settings;
+chips($('starton-chips'), [{ id: 'music', label: RS.startOnMusic }, { id: 'any', label: RS.startOnAny }], () => settings.startOn, (v) => { settings.startOn = v; configureRecorder(); });
+chips($('sens-chips'), [{ id: 'low', label: RS.low }, { id: 'medium', label: RS.medium }, { id: 'high', label: RS.high }], () => settings.sensitivity, (v) => { settings.sensitivity = v; configureRecorder(); });
 $('autoplay').checked = settings.autoPlay;
 $('autoplay').addEventListener('change', () => { settings.autoPlay = $('autoplay').checked; configureRecorder(); });
 $('rec-during').checked = recordDuringPlayback();
@@ -1087,7 +1092,7 @@ function animateRecorder() {
     const row = $('takes').querySelector(`[data-key="${playing.take.created}"] .bar-progress`);
     if (row) row.style.width = `${(p * 100).toFixed(1)}%`;
   }
-  if (recorder?.state === 'recording') $('rec-state').textContent = `Recording ${fmtDur(recorder.recordingSec)}`;
+  if (recorder?.state === 'recording') $('rec-state').textContent = ST.recording(fmtDur(recorder.recordingSec));
   // A mic that has gone quiet while the sound is running was cut off: reopen it.
   if (recorder?.micOpen && (recorder.state === 'waiting' || recorder.state === 'recording')
       && audio().state === 'running' && recorder.silentFor > 2.5) recoverMic(true);
@@ -1110,7 +1115,7 @@ async function startTuner() {
   try {
     await recorder.tune();
   } catch (err) {
-    tunerError = micError(err).replace('tap the button', 'tap Try again');
+    tunerError = micError(err, true);
   }
   if (recorder.micOpen) markStale();
   showTunerState();
@@ -1127,9 +1132,9 @@ function showTunerState() {
   const state = recorder?.state || 'off';
   const status = $('tuner-status');
   let text = '';
-  if (state === 'off') text = tunerError || 'The microphone is off.';
-  else if (needsTap) text = 'Tap anywhere to start listening again.';
-  else if (audio().state !== 'running') text = 'Tap anywhere to let the tuner hear you.';
+  if (state === 'off') text = tunerError || TEXT.tuner.micOff;
+  else if (needsTap) text = TEXT.tuner.tapToRestart;
+  else if (audio().state !== 'running') text = TEXT.tuner.tapToHear;
   status.textContent = text;
   status.hidden = !text;
   status.classList.toggle('error', state === 'off');

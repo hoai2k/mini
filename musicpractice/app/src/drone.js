@@ -13,6 +13,8 @@
 // recorded but aren't good enough yet; their loops are archived in
 // design/sounds/drone/archive/ (not published), with their settings.
 
+import { TEXT } from './text-config.js';
+
 export const DRONE_MIN = 36; // C2, the cello's open C string
 export const DRONE_MAX = 59; // B3: two octaves, every note twice
 
@@ -24,23 +26,11 @@ export function wrap(midi) {
   return m;
 }
 
-export const VOICES = [
-  { id: 'cello', label: 'Cello' },
-  { id: 'cello-soft', label: 'Cello, soft (sul tasto)' },
-  { id: 'organ', label: 'Organ' },
-  { id: 'organ-synth', label: 'Synth organ' },
-];
+export const VOICES = ['cello', 'cello-soft', 'organ', 'organ-synth'].map((id) => ({ id, label: TEXT.drone.voices[id] }));
 
 /** What happens when a timed drone's time is up. */
-export const SEQUENCES = [
-  { id: 'stop', label: 'Stop' },
-  { id: 'chrom-up', label: 'Next note up (chromatic)' },
-  { id: 'chrom-down', label: 'Next note down (chromatic)' },
-  { id: 'major-up', label: 'Up the major scale' },
-  { id: 'major-down', label: 'Down the major scale' },
-  { id: 'fifths', label: 'Up a fifth (circle of fifths)' },
-  { id: 'fourths', label: 'Up a fourth (circle of fourths)' },
-];
+export const SEQUENCES = ['stop', 'chrom-up', 'chrom-down', 'major-up', 'major-down', 'fifths', 'fourths']
+  .map((id) => ({ id, label: TEXT.drone.sequences[id] }));
 
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 

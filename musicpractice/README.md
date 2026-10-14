@@ -261,6 +261,29 @@ turns listening on/off, or plays the tuner's reference tone, arrow keys change t
 the game title screen and controller support from `GAME_GUIDELINES.md` in
 favour of the two-button home screen.
 
+## Words and translations
+
+Every word the app shows is in one file, `app/src/text-config.js`, under keys
+named for where the words appear (`metronome.settings.sound`,
+`recorder.state.waiting`, `paywall.headlines.drone`). Edit the words there,
+never in the code that draws them. A line with a number or a name in it is a
+small function of that value, so a translation can put the value wherever its
+sentence needs it, and a few lines mark **bold** or _emphasis_ (shown by
+`rich()` in `app/src/text.js`; nothing else is read as markup).
+
+`index.html` holds no words of its own: each element names its key
+(`data-text`, `data-text-rich`, `data-text-aria-label`), and `app/src/text.js`
+fills them in before the page shows. `app/test/text.test.mjs` keeps it so:
+every key the page names exists, `index.html` has no words, every line is
+non-empty, the label tables (themes, sounds, tunings, voices, sequences) come
+from the file, and no module spells out a sentence.
+
+For another language: copy the `EN` object, translate its values, and point
+`TEXT` at it (a language setting can choose between tables later). Not in the
+file, on purpose: the privacy page, the device details Send feedback attaches
+(written for the developer), note names, and the native apps' own strings
+(iOS's microphone reason in `Info.plist`, Android's notification).
+
 ## Files
 
 - `mobile/`: the iOS and Android apps (Capacitor around `app/`), with how to
@@ -270,6 +293,8 @@ favour of the two-button home screen.
   `native.js`); the website stays all free. In the apps the metronome and
   drone play natively and keep going with the screen locked
   (`app/src/nativeaudio.js`), and the themes' fonts are bundled.
+- `app/src/text-config.js`: every word the app shows (see "Words and
+  translations"); `app/src/text.js` puts them on the page.
 - `app/src/feedback.js`: Send feedback (Settings, and Report a problem in
   Audio check). It posts to the same feedback inbox as the cambrian games: the
   shared Apps Script in the `hoai2k.github.io` repository

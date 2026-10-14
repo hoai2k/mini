@@ -6,6 +6,10 @@ import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, di
 import { freesMicForPlayback, promptWasSuspected } from './recorder.js';
 import { reportedLatency, unlock } from './audio.js';
 import { playSamples } from './player.js';
+import { TEXT, rich } from './text.js';
+
+const A = TEXT.audioCheck;
+const R = A.report;
 
 const $ = (id) => document.getElementById(id);
 let ctl = null;
@@ -37,7 +41,7 @@ function el(tag, attrs = {}, ...children) {
   return e;
 }
 
-const tag = (label) => (isBluetooth(label) ? `${label} (Bluetooth)` : label);
+const tag = (label) => (isBluetooth(label) ? A.bluetoothName(label) : label);
 
 async function render() {
   const body = $('audio-check-body');
@@ -53,105 +57,99 @@ async function render() {
   let summary;
   let steps = null;
   if (permission === 'denied') {
-    summary = el('p', { class: 'ac-status bad' }, 'The microphone is blocked for this site, so the Playback Recorder can\'t listen. Allow it in your browser\'s site settings, then reload.');
+    summary = el('p', { class: 'ac-status bad' }, A.blocked);
   } else if (frees) {
-    summary = el('p', { class: 'ac-status good' }, '✓ Takes can play on a Bluetooth speaker: the mic is freed while each take plays and taken back without asking.');
+    summary = el('p', { class: 'ac-status good' }, A.bluetoothOk);
   } else {
     summary = el('p', { class: 'ac-status warn' },
-      promptWasSuspected()
-        ? 'Your browser asked for the microphone again, so the app keeps it for this visit. '
-        : '',
-      'Once the Playback Recorder has been opened, sound plays on the phone\'s own speaker rather than a Bluetooth speaker: the mic is kept open so your browser doesn\'t ask for permission after every take. ',
-      'To play on Bluetooth, allow the microphone for this site permanently, then reload:');
+      promptWasSuspected() ? A.askedAgain : '',
+      A.keptOpen,
+      A.toUseBluetooth);
     steps = allowSteps({ pictures: true });
   }
 
   // Microphone choice
   const micSelect = el('select', { class: 'select', id: 'ac-mic', disabled: !labelled || null },
-    el('option', { value: 'auto' }, 'Automatic (built-in preferred)'),
+    el('option', { value: 'auto' }, A.micAuto),
     inputs.filter((d) => d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications')
-      .map((d) => el('option', { value: d.deviceId }, tag(d.label || 'Microphone'))));
+      .map((d) => el('option', { value: d.deviceId }, tag(d.label || A.micDefaultName))));
   micSelect.value = [...micSelect.options].some((o) => o.value === ctl.settings.mic) ? ctl.settings.mic : 'auto';
   micSelect.addEventListener('change', async () => { await ctl.onMic(micSelect.value); render(); });
   const micHelp = el('p', { class: 'help' },
-    !labelled ? 'Names appear once the microphone is allowed (open the Playback Recorder once).'
-      : `In use: ${rec?.micLabel ? tag(rec.micLabel) : 'none yet'}. `,
-    labelled && inputs.some((d) => isBluetooth(d.label))
-      ? 'Recording through a Bluetooth mic switches that device to call-quality sound, so the built-in mic is used unless you choose otherwise.' : '');
+    !labelled ? A.namesHidden : A.inUse(rec?.micLabel ? tag(rec.micLabel) : A.noneYet),
+    labelled && inputs.some((d) => isBluetooth(d.label)) ? A.bluetoothMicNote : '');
 
   // Speaker choice, where the browser allows it
   const realOutputs = outputs.filter((d) => d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications');
   let speaker;
   if (canChooseSpeaker() && realOutputs.length) {
     const sel = el('select', { class: 'select', id: 'ac-speaker' },
-      el('option', { value: 'default' }, 'System default (recommended)'),
-      realOutputs.map((d) => el('option', { value: d.deviceId }, tag(d.label || 'Speaker'))));
+      el('option', { value: 'default' }, A.speakerDefault),
+      realOutputs.map((d) => el('option', { value: d.deviceId }, tag(d.label || A.speakerDefaultName))));
     sel.value = [...sel.options].some((o) => o.value === ctl.settings.speaker) ? ctl.settings.speaker : 'default';
     sel.addEventListener('change', async () => {
       const ok = await ctl.onSpeaker(sel.value);
       if (!ok) sel.value = 'default';
     });
-    speaker = [el('label', { class: 'row toggle' }, el('span', {}, 'Speaker'), sel),
-      el('p', { class: 'help' }, 'System default follows whatever your computer switches to, which is best most of the time.')];
+    speaker = [el('label', { class: 'row toggle' }, el('span', {}, A.speaker), sel),
+      el('p', { class: 'help' }, A.speakerHelp)];
   } else {
-    speaker = [el('p', { class: 'help' }, el('b', {}, 'Speaker: '),
-      'this browser doesn\'t let pages choose the speaker, so sound goes to the device\'s current output. Connect or pick the speaker in the system (on iPhone: Control Center).')];
+    speaker = [el('p', { class: 'help' }, rich(A.speakerUnavailable))];
   }
 
   // Pendulum sync
   const sync = el('input', { type: 'range', class: 'slider', id: 'ac-sync', min: -200, max: 500, step: 10, value: ctl.settings.syncMs });
-  const syncOut = el('b', {}, `${ctl.settings.syncMs} ms`);
-  sync.addEventListener('input', () => { ctl.onSync(Number(sync.value)); syncOut.textContent = `${sync.value} ms`; });
+  const syncOut = el('b', {}, TEXT.common.ms(ctl.settings.syncMs));
+  sync.addEventListener('input', () => { ctl.onSync(Number(sync.value)); syncOut.textContent = TEXT.common.ms(sync.value); });
 
   // Test sound, played the way takes are
-  const testBtn = el('button', { type: 'button', class: 'pill', id: 'ac-test' }, 'Play test sound');
+  const testBtn = el('button', { type: 'button', class: 'pill', id: 'ac-test' }, A.testSound);
   testBtn.addEventListener('click', async () => {
     unlock();
     const { samples, sampleRate } = chime();
-    try { await playSamples(samples, sampleRate); } catch { testBtn.textContent = 'Couldn\'t play (tap again)'; }
+    try { await playSamples(samples, sampleRate); } catch { testBtn.textContent = A.testFailed; }
   });
 
   const rows = [
-    ['Browser engine', isWebKit() ? 'Safari / WebKit (all iPhone browsers)' : 'Not WebKit'],
-    ['Mic permission (reported)', { granted: 'Allowed for this site', prompt: 'Asked each visit (not saved)', denied: 'Blocked', unknown: 'Not reported' }[permission] || permission],
-    ['First mic request', diag.firstRequestMs == null ? 'Not made yet (open the Playback Recorder)'
-      : `${diag.firstRequestMs} ms: ${allowedInAdvance() ? 'granted at once, so allowed in advance' : `slower than ${QUICK_GRANT_MS} ms, so the browser asked`}`],
-    ['Mic during playback', frees ? 'Freed (Bluetooth can be used)' : 'Kept (avoids permission prompts)'],
-    ['Mic now', rec?.holdsMic ? (rec.micOpen ? 'In use' : 'Held, switched off') : 'Not held'],
-    ['Microphones', labelled ? inputs.map((d) => tag(d.label)).filter(Boolean).join(', ') || 'None' : `${inputs.length} (names hidden)`],
-    ['Speakers', outputs.length ? (labelled ? outputs.map((d) => tag(d.label)).filter(Boolean).join(', ') : `${outputs.length} (names hidden)`) : 'Not shown by this browser'],
-    ['Bluetooth seen', btNames.length ? btNames.join(', ') : 'None by name (a speaker without a mic can\'t be seen on iPhone)'],
-    ['Output delay', latencyMs == null ? 'Start the metronome or recorder to measure' : `${latencyMs} ms${latencyMs > 100 ? ' (likely Bluetooth)' : ''}`],
-    ['Safari audio mode', navigator.audioSession ? `${navigator.audioSession.type}${navigator.audioSession.state ? ` (${navigator.audioSession.state})` : ''}` : 'Not available'],
-    ['Last take played', lastPlaybackText()],
+    [R.engine, isWebKit() ? R.engineWebKit : R.engineOther],
+    [R.permission, R.permissions[permission] || permission],
+    [R.firstRequest, diag.firstRequestMs == null ? R.firstRequestNone
+      : allowedInAdvance() ? R.firstRequestQuick(diag.firstRequestMs) : R.firstRequestSlow(diag.firstRequestMs, QUICK_GRANT_MS)],
+    [R.duringPlayback, frees ? R.freed : R.kept],
+    [R.micNow, rec?.holdsMic ? (rec.micOpen ? R.inUse : R.heldOff) : R.notHeld],
+    [R.microphones, labelled ? inputs.map((d) => tag(d.label)).filter(Boolean).join(', ') || R.none : R.hiddenCount(inputs.length)],
+    [R.speakers, outputs.length ? (labelled ? outputs.map((d) => tag(d.label)).filter(Boolean).join(', ') : R.hiddenCount(outputs.length)) : R.speakersNotShown],
+    [R.bluetooth, btNames.length ? btNames.join(', ') : R.bluetoothNone],
+    [R.delay, latencyMs == null ? R.delayUnknown : R.delayMs(latencyMs)],
+    [R.safariMode, navigator.audioSession ? `${navigator.audioSession.type}${navigator.audioSession.state ? ` (${navigator.audioSession.state})` : ''}` : R.notAvailable],
+    [R.lastTake, lastPlaybackText()],
   ];
 
   body.replaceChildren(...[
     summary,
     steps,
-    steps ? el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload') : null,
-    el('div', { class: 'ac-test' }, testBtn, el('span', { class: 'help' }, 'Plays the way takes do, so you can hear where sound goes.')),
-    el('label', { class: 'row toggle' }, el('span', {}, 'Microphone'), micSelect),
+    steps ? el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload) : null,
+    el('div', { class: 'ac-test' }, testBtn, el('span', { class: 'help' }, A.testHelp)),
+    el('label', { class: 'row toggle' }, el('span', {}, A.microphone), micSelect),
     micHelp,
     ...speaker,
-    el('label', { class: 'row' }, el('span', {}, 'Pendulum sync ', syncOut), sync),
-    el('p', { class: 'help' }, 'Bluetooth speakers play late. If the pendulum looks early compared with the click, move this right.',
-      latencyMs != null ? ` The browser reports ${latencyMs} ms, which is already allowed for.` : ''),
-    el('details', { class: 'ac-details' }, el('summary', {}, 'What the browser reports'),
+    el('label', { class: 'row' }, el('span', {}, `${A.sync} `, syncOut), sync),
+    el('p', { class: 'help' }, A.syncHelp, latencyMs != null ? A.syncReported(latencyMs) : ''),
+    el('details', { class: 'ac-details' }, el('summary', {}, A.reportTitle),
       el('dl', {}, rows.map(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))),
   ].filter(Boolean));
 }
 
 function lastPlaybackText() {
   const p = diag.lastPlayback;
-  if (!p) return 'None yet';
+  if (!p) return R.lastTakeNone;
   const ago = Math.round((Date.now() - p.at) / 1000);
   return [
-    `${ago} s ago`,
-    p.micFreed ? `mic freed, waited ${p.waitedMs} ms` : (p.micHeld ? 'mic held (call mode)' : 'no mic open'),
-    `Safari mode ${p.session ?? 'n/a'}${p.sessionState ? ` (${p.sessionState})` : ''}`,
-    `audio engine ${p.engine ?? 'n/a'}`,
-    `via ${p.via}`,
+    R.lastTakeAgo(ago),
+    p.micFreed ? R.lastTakeFreed(p.waitedMs) : (p.micHeld ? R.lastTakeHeld : R.lastTakeNoMic),
+    R.lastTakeSafari(`${p.session ?? 'n/a'}${p.sessionState ? ` (${p.sessionState})` : ''}`),
+    R.lastTakeEngine(p.engine ?? 'n/a'),
+    R.lastTakeVia(p.via),
   ].join('; ');
 }
 
@@ -163,7 +161,8 @@ function lastPlaybackText() {
  * don't change (Website Settings, Microphone, Allow) are written in.
  */
 const RED = '#ff3b30';
-const host = () => (location.host || 'this site').replace(/^www\./, '');
+const host = () => (location.host || A.pictures.thisSite).replace(/^www\./, '');
+const PT = A.pictures;
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function figure(svg, caption = '') {
@@ -193,33 +192,33 @@ const PICS = {
   pageMenu: () => figure(phone(`
     <circle cx="38" cy="141" r="17" fill="none" stroke="${RED}" stroke-width="3"/>
     <path d="M62 112 L50 128" stroke="${RED}" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="64" y="110" font-size="12" font-weight="700" fill="${RED}" font-family="-apple-system,system-ui,sans-serif">Tap here</text>`),
-    'The address bar may be at the top or bottom of the screen.'),
+    <text x="64" y="110" font-size="12" font-weight="700" fill="${RED}" font-family="-apple-system,system-ui,sans-serif">${esc(PT.tapHere)}</text>`),
+    PT.addressBar),
   // 2. Website Settings in the menu that opens (More first, if shown)
   menu: () => figure(phone(`
     <rect x="21" y="84" width="150" height="26" rx="8" fill="none" stroke="${RED}" stroke-width="3"/>`, { menu: `
     <rect x="16" y="6" width="160" height="112" rx="14" fill="#fff" stroke="#d1d1d6"/>
     <g fill="#e5e5ea"><rect x="28" y="16" width="96" height="8" rx="4"/><rect x="28" y="34" width="110" height="8" rx="4"/><rect x="28" y="52" width="84" height="8" rx="4"/></g>
     <g font-family="-apple-system,system-ui,sans-serif" font-size="11.5" fill="#000">
-      <text x="44" y="78" fill="#3c3c43">More</text><g fill="#007aff"><circle cx="31" cy="74" r="1.5"/><circle cx="35" cy="74" r="1.5"/><circle cx="39" cy="74" r="1.5"/></g>
-      <rect x="27" y="90" width="12" height="12" rx="3" fill="#8e8e93"/><text x="44" y="100">Website Settings</text>
+      <text x="44" y="78" fill="#3c3c43">${esc(PT.more)}</text><g fill="#007aff"><circle cx="31" cy="74" r="1.5"/><circle cx="35" cy="74" r="1.5"/><circle cx="39" cy="74" r="1.5"/></g>
+      <rect x="27" y="90" width="12" height="12" rx="3" fill="#8e8e93"/><text x="44" y="100">${esc(PT.websiteSettings)}</text>
     </g>` })),
   // 3. Microphone, set to Allow
-  settings: (title = 'Website Settings') => figure(`<svg viewBox="0 0 240 170" role="img" aria-hidden="true" class="ios-svg">
+  settings: (title = PT.websiteSettings) => figure(`<svg viewBox="0 0 240 170" role="img" aria-hidden="true" class="ios-svg">
     <rect x="6" y="2" width="228" height="200" rx="26" fill="#f2f2f7" stroke="#c7c7cc" stroke-width="2"/>
     <g font-family="-apple-system,system-ui,sans-serif" font-size="12">
       <text x="120" y="24" text-anchor="middle" font-weight="600" fill="#000">${esc(title)}</text>
       <rect x="18" y="34" width="204" height="90" rx="10" fill="#fff"/>
-      <text x="30" y="54" fill="#000">Camera</text><text x="196" y="54" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="54" fill="#c7c7cc">›</text>
+      <text x="30" y="54" fill="#000">${esc(PT.camera)}</text><text x="196" y="54" text-anchor="end" fill="#8e8e93">${esc(PT.ask)}</text><text x="206" y="54" fill="#c7c7cc">›</text>
       <path d="M30 64H222" stroke="#e5e5ea"/>
-      <text x="30" y="84" fill="#000">Microphone</text><text x="196" y="84" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="84" fill="#c7c7cc">›</text>
+      <text x="30" y="84" fill="#000">${esc(PT.microphone)}</text><text x="196" y="84" text-anchor="end" fill="#8e8e93">${esc(PT.ask)}</text><text x="206" y="84" fill="#c7c7cc">›</text>
       <path d="M30 94H222" stroke="#e5e5ea"/>
-      <text x="30" y="114" fill="#000">Location</text><text x="196" y="114" text-anchor="end" fill="#8e8e93">Ask</text><text x="206" y="114" fill="#c7c7cc">›</text>
+      <text x="30" y="114" fill="#000">${esc(PT.location)}</text><text x="196" y="114" text-anchor="end" fill="#8e8e93">${esc(PT.ask)}</text><text x="206" y="114" fill="#c7c7cc">›</text>
       <rect x="20" y="68" width="200" height="24" rx="7" fill="none" stroke="${RED}" stroke-width="3"/>
       <rect x="40" y="132" width="160" height="28" rx="9" fill="#e5e5ea"/>
       <rect x="146" y="134" width="52" height="24" rx="7" fill="#fff"/>
-      <text x="66" y="150" text-anchor="middle" fill="#3c3c43">Ask</text><text x="120" y="150" text-anchor="middle" fill="#3c3c43">Deny</text>
-      <text x="172" y="150" text-anchor="middle" fill="#007aff" font-weight="600">Allow</text>
+      <text x="66" y="150" text-anchor="middle" fill="#3c3c43">${esc(PT.ask)}</text><text x="120" y="150" text-anchor="middle" fill="#3c3c43">${esc(PT.deny)}</text>
+      <text x="172" y="150" text-anchor="middle" fill="#007aff" font-weight="600">${esc(PT.allow)}</text>
       <rect x="143" y="131" width="58" height="30" rx="9" fill="none" stroke="${RED}" stroke-width="3"/>
     </g>
   </svg>`),
@@ -228,25 +227,27 @@ const PICS = {
 /** How to set this site's microphone to Allow, for this browser. */
 export function allowSteps({ pictures = false } = {}) {
   const pic = (f) => (pictures ? f() : null);
+  const S = A.steps;
+  const step = (line, ...extra) => el('li', {}, rich(line), ...extra);
   if (isWebKit()) {
     const standalone = globalThis.navigator?.standalone || matchMedia('(display-mode: standalone)').matches;
     if (standalone) {
       return el('ol', { class: 'ac-steps' },
-        el('li', {}, 'Open the ', el('b', {}, 'Settings'), ' app, then ', el('b', {}, 'Apps → Safari → Microphone'), '.'),
-        el('li', {}, 'Choose ', el('b', {}, 'Allow'), '.', pic(() => PICS.settings('Microphone'))),
-        el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'));
+        step(S.appOpenSettings),
+        step(S.appChooseAllow, pic(() => PICS.settings(PT.microphoneTitle))),
+        step(S.comeBackReload));
     }
     return el('ol', { class: 'ac-steps' },
-      el('li', {}, 'Tap the button at the left end of Safari\'s address bar (', el('b', {}, 'aA'), ' or a page icon).', pic(PICS.pageMenu)),
-      el('li', {}, 'Tap ', el('b', {}, 'Website Settings'), ' (tap ', el('b', {}, 'More'), ' first if you don\'t see it).', pic(PICS.menu)),
-      el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), '.', pic(() => PICS.settings())),
-      el('li', {}, 'Come back and tap ', el('b', {}, 'Reload'), '.'),
-      pictures ? el('li', { class: 'ac-alt' }, 'Or, for every site: ', el('b', {}, 'Settings'), ' app → ', el('b', {}, 'Apps → Safari → Microphone'), ' → ', el('b', {}, 'Allow'), '.') : null);
+      step(S.safariPageMenu, pic(PICS.pageMenu)),
+      step(S.safariWebsiteSettings, pic(PICS.menu)),
+      step(S.setMicAllow, pic(() => PICS.settings())),
+      step(S.comeBackReload),
+      pictures ? el('li', { class: 'ac-alt' }, rich(S.everySite)) : null);
   }
   return el('ol', { class: 'ac-steps' },
-    el('li', {}, 'Tap the icon at the left of the address bar (site information).'),
-    el('li', {}, 'Set ', el('b', {}, 'Microphone'), ' to ', el('b', {}, 'Allow'), ' (always, not just this time).'),
-    el('li', {}, 'Tap ', el('b', {}, 'Reload'), '.'));
+    step(S.otherSiteInfo),
+    step(S.otherSetMicAllow),
+    step(S.otherReload));
 }
 
 /**
@@ -257,12 +258,12 @@ export function allowSteps({ pictures = false } = {}) {
  */
 export function renderMicTip(container, { collapsed, onToggle }) {
   const body = el('div', { class: 'mic-tip-body', id: 'mic-tip-body' },
-    el('p', {}, 'The microphone isn\'t set to Allow for this site yet, so Bluetooth playback won\'t work. To fix it:'),
+    el('p', {}, A.micTip.body),
     allowSteps({ pictures: true }),
     el('div', { class: 'mic-tip-actions' },
-      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, 'Reload')));
+      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload)));
   const head = el('button', { type: 'button', class: 'mic-tip-title', 'aria-expanded': String(!collapsed), 'aria-controls': 'mic-tip-body' },
-    el('span', {}, 'Allow the microphone for Bluetooth playback'),
+    el('span', {}, A.micTip.title),
     el('svg', { class: 'mic-tip-chev', viewBox: '0 0 24 24', 'aria-hidden': 'true' }, el('path', { d: 'M6 9l6 6 6-6' })));
   const set = (c) => {
     head.setAttribute('aria-expanded', String(!c));

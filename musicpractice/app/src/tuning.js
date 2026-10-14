@@ -2,31 +2,33 @@
 // that pitch is as a note (name, octave, cents) for a chosen reference A,
 // note spelling and transposing instrument. No browser dependencies.
 
+import { TEXT } from './text-config.js';
+
 export const SHARPS = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 export const FLATS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
 
 /** Transposing instruments: written pitch = concert pitch + semitones. */
 export const TRANSPOSE = [
-  { id: 'C', label: 'C (concert)', semis: 0 },
-  { id: 'Bb', label: 'B♭ (clarinet, trumpet, tenor sax)', semis: 2 },
-  { id: 'Eb', label: 'E♭ (alto & baritone sax)', semis: 9 },
-  { id: 'F', label: 'F (horn)', semis: 7 },
+  { id: 'C', label: TEXT.tuner.transposes.C, semis: 0 },
+  { id: 'Bb', label: TEXT.tuner.transposes.Bb, semis: 2 },
+  { id: 'Eb', label: TEXT.tuner.transposes.Eb, semis: 9 },
+  { id: 'F', label: TEXT.tuner.transposes.F, semis: 7 },
 ];
 
 /** Strings as MIDI notes, lowest first. */
 export const TUNINGS = [
-  { id: 'chromatic', label: 'Chromatic (any note)' },
-  { id: 'guitar', label: 'Guitar: E A D G B E', strings: [40, 45, 50, 55, 59, 64] },
-  { id: 'guitar-dropd', label: 'Guitar, drop D: D A D G B E', strings: [38, 45, 50, 55, 59, 64] },
-  { id: 'guitar-dadgad', label: 'Guitar, DADGAD', strings: [38, 45, 50, 55, 57, 62] },
-  { id: 'bass4', label: 'Bass: E A D G', strings: [28, 33, 38, 43] },
-  { id: 'bass5', label: 'Bass, 5-string: B E A D G', strings: [23, 28, 33, 38, 43] },
-  { id: 'ukulele', label: 'Ukulele: G C E A', strings: [67, 60, 64, 69] },
-  { id: 'violin', label: 'Violin: G D A E', strings: [55, 62, 69, 76] },
-  { id: 'viola', label: 'Viola: C G D A', strings: [48, 55, 62, 69] },
-  { id: 'cello', label: 'Cello: C G D A', strings: [36, 43, 50, 57] },
-  { id: 'mandolin', label: 'Mandolin: G D A E', strings: [55, 62, 69, 76] },
-  { id: 'banjo', label: 'Banjo: G D G B D', strings: [67, 50, 55, 59, 62] },
+  { id: 'chromatic', label: TEXT.tuner.tunings['chromatic'] },
+  { id: 'guitar', label: TEXT.tuner.tunings['guitar'], strings: [40, 45, 50, 55, 59, 64] },
+  { id: 'guitar-dropd', label: TEXT.tuner.tunings['guitar-dropd'], strings: [38, 45, 50, 55, 59, 64] },
+  { id: 'guitar-dadgad', label: TEXT.tuner.tunings['guitar-dadgad'], strings: [38, 45, 50, 55, 57, 62] },
+  { id: 'bass4', label: TEXT.tuner.tunings['bass4'], strings: [28, 33, 38, 43] },
+  { id: 'bass5', label: TEXT.tuner.tunings['bass5'], strings: [23, 28, 33, 38, 43] },
+  { id: 'ukulele', label: TEXT.tuner.tunings['ukulele'], strings: [67, 60, 64, 69] },
+  { id: 'violin', label: TEXT.tuner.tunings['violin'], strings: [55, 62, 69, 76] },
+  { id: 'viola', label: TEXT.tuner.tunings['viola'], strings: [48, 55, 62, 69] },
+  { id: 'cello', label: TEXT.tuner.tunings['cello'], strings: [36, 43, 50, 57] },
+  { id: 'mandolin', label: TEXT.tuner.tunings['mandolin'], strings: [55, 62, 69, 76] },
+  { id: 'banjo', label: TEXT.tuner.tunings['banjo'], strings: [67, 50, 55, 59, 62] },
 ];
 
 export const A4_MIN = 415;
