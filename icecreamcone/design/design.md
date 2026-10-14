@@ -188,7 +188,7 @@ Every minigame uses the same small set of inputs, so kids learn them once.
 | --- | --- | --- | --- |
 | Move | Left stick or D-pad | Arrow keys or WASD | Point (the game follows the pointer) |
 | Action (press or hold) | A | Space or Enter | Click or tap (hold to hold) |
-| Left / right step (Bobolinks only) | LB / RB, or ◀ ▶ | ← / → or A / D | Tap the left or right half |
+| Left / right step (Bobolinks only) | LB / RB, or X / B (both together for a double) | ← / → or A / D | Tap the left or right half |
 | Pause | Menu or View | Esc or P | The pause button, top right |
 | Menus | Left stick / D-pad, A, B | Arrows, Enter, Esc | Click |
 
@@ -357,6 +357,18 @@ The boots cross a moonlit stream on stepping stones. Each stone is on the
 left or the right; press the matching side to step. A wrong step splashes
 and costs a moment. Score is the stones crossed. The stones come faster, and
 some are doubles (both at once).
+
+**Controls and foot pads.** On a controller the game says LB (or X) for the
+left foot, RB (or B) for the right, and both together for a double. The
+D-pad, LT and a sideways flick of the left stick still step, but aren't
+listed: they can't press both feet at once. (X and B come from input.js's
+generic `xPressed` / `bPressed`; B held is still `slow` for other games.) The
+Left and Right pads are drawn by `drawOverlay`, fixed at the bottom corners
+of the visible play area rather than in the scene, so the narrow-screen
+camera can't push them off the screen; on a phone they keep at least about
+72 CSS px across. Above each pad: the LB / RB bumper and the X / B button
+with a controller, the ← / A and → / D keys on the keyboard, nothing extra on
+touch. A pad and its buttons flash when that foot is pressed.
 
 **Difficulty over the round.** The shared curve (`g.d()`, see
 `difficulty.md`) sets it. Each knob, easy / medium / hard: the stone

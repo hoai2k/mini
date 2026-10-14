@@ -26,6 +26,14 @@
 //                             follows (default the middle)
 //     span?: number           and how much of the width it must keep in view
 //                             (default 760)
+//     drawOverlay?(g, view)   draw fixed on the screen, after draw(), not
+//                             moved by the narrow-screen camera. The context
+//                             is scaled like the scene (logical units) with
+//                             (0, 0) at the top left of the visible play
+//                             area; view = { w, h, s, kind }: that area's
+//                             size in logical units, CSS px per unit, and
+//                             the input in use ('keyboard' | 'controller' |
+//                             'pointer')
 //   }
 //
 //   input = {                 from input.js `state()`, every frame
@@ -35,6 +43,8 @@
 //     actionReleased          went up this frame
 //     left, right             a fresh left / right step (Bobolinks): LB/RB,
 //                             D-pad, arrow keys, A/D, or a tap on that half
+//     xPressed, bPressed      a fresh press of the controller's X / B
+//                             (Bobolinks steps with them too)
 //     pointer { active, x, y, down, pressed }   logical coordinates; active
 //                             when the mouse or touch is the device in use
 //     spin                    radians the left stick turned this frame

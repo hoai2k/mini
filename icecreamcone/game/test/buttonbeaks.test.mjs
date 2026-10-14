@@ -1,13 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import create from '../src/games/buttonbeaks.js';
+import { readFileSync } from 'node:fs';
+import { inflateSync } from 'node:zlib';
+import create, { BEAK_PX, TALL_BEAK, BOWL_HALF } from '../src/games/buttonbeaks.js';
 import entry from '../src/more/buttonbeaks.js';
 import { run, env, blank } from './harness.mjs';
 
 const pass = entry.pass;
 
 // A tailor: takes the coat furthest along the line that still has an open
-// hole it can reach, fetches that button and tosses it up under the coat.
+// hole it can reach, fetches that button (the tall bird's beak over its
+// bowl) and tosses it up under the coat; a button nobody wants it lets go
+// with B.
 // `skill` 0..1 sets its speed, how long it looks, and how often it picks up
 // a look-alike by mistake (below 0, slower and sloppier still).
 function tailor(skill = 1, seed = 1) {
@@ -37,7 +41,7 @@ function tailor(skill = 1, seed = 1) {
         thinkUntil = t + (1 - skill) * 0.9 + 0.25;
         return {};
       }
-      const d = game.bowlX(plan.bowl) - game.x;
+      const d = game.pickX(plan.bowl) - game.x;
       if (Math.abs(d) < 30) {
         pressed = true;
         return { action: true };
@@ -48,13 +52,9 @@ function tailor(skill = 1, seed = 1) {
     const coats = game.coats.filter((c) => c.x > 160 && c.x < 1520 && c.holes.some((h) => !h.sewn && h.kind === game.holding)).sort((a, b) => a.x - b.x);
     const coat = coats[0];
     if (!coat) {
-      // nobody wants it: toss it away where no coat is overhead
+      // nobody wants it: let go of it with B
       plan = null;
-      if (!game.coatAbove()) {
-        pressed = true;
-        return { action: true };
-      }
-      return { x: 1 };
+      return { bPressed: true };
     }
     const d = coat.x - 40 - game.x;
     if (Math.abs(d) < 40) {
@@ -159,7 +159,7 @@ test('buttonbeaks: the matching button sews into its hole', () => {
   const game = create(env(1));
   const coat = game.coats[0];
   const hole = coat.holes[0];
-  game.x = game.bowlX(hole.kind);
+  game.x = game.pickX(hole.kind);
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.holding, hole.kind);
   game.x = coat.x;
@@ -174,7 +174,7 @@ test('buttonbeaks: a button that matches nothing bounces off and dazes them', ()
   const game = create(env(1));
   const coat = game.coats[0];
   const kind = [0, 1, 2, 3].find((k) => !coat.holes.some((h) => h.kind === k));
-  game.x = game.bowlX(kind);
+  game.x = game.pickX(kind);
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   game.x = coat.x;
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
@@ -223,6 +223,135 @@ test('buttonbeaks: every painted pose shows the pair the same size', async () =>
     console.log('buttonbeaks pose sizes', table);
     assert.equal(Object.keys(table).length, 7, 'each pose drew one picture');
     assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});
+
+// ---------- B, and the tall bird's beak ----------
+
+test('buttonbeaks: B lets go of the held button, with no daze and nothing counted', () => {
+  const game = create(env(1));
+  game.x = game.pickX(2);
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.equal(game.holding, 2);
+  game.update(1 / 60, blank({ bPressed: true }));
+  assert.equal(game.holding, null);
+  assert.equal(game.dropped, 1);
+  assert.equal(game.wrong, 0);
+  assert.equal(game.daze, 0);
+  assert.equal(game.flying.length, 1, 'it falls');
+  for (let i = 0; i < 90; i++) game.update(1 / 60, blank());
+  assert.equal(game.flying.length, 0, 'and is gone');
+  assert.equal(game.score, 0);
+  assert.ok(game.coats.every((c) => c.holes.every((h) => !h.sewn)), 'nothing sewn');
+  // B with empty beaks does nothing; A still picks up after
+  game.update(1 / 60, blank({ bPressed: true }));
+  assert.equal(game.dropped, 1);
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.equal(game.holding, 2);
+});
+
+// An 8-bit RGBA PNG's alpha (non-interlaced), as the browser has it.
+function pngAlpha(file) {
+  const b = readFileSync(new URL(file, new URL('..', import.meta.url)));
+  const [w, h] = [b.readUInt32BE(16), b.readUInt32BE(20)];
+  assert.ok(b[24] === 8 && b[25] === 6 && b[28] === 0, `${file} is 8-bit RGBA`);
+  const idat = [];
+  for (let o = 8; o < b.length; o += 12 + b.readUInt32BE(o)) if (b.toString('ascii', o + 4, o + 8) === 'IDAT') idat.push(b.subarray(o + 8, o + 8 + b.readUInt32BE(o)));
+  const raw = inflateSync(Buffer.concat(idat));
+  const stride = w * 4;
+  let prev = Buffer.alloc(stride);
+  const alpha = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const cur = Buffer.alloc(stride);
+    for (let i = 0; i < stride; i++) {
+      const a = i >= 4 ? cur[i - 4] : 0;
+      const up = prev[i];
+      const c = i >= 4 ? prev[i - 4] : 0;
+      let v = line[i];
+      if (f === 1) v += a;
+      else if (f === 2) v += up;
+      else if (f === 3) v += (a + up) >> 1;
+      else if (f === 4) {
+        const p = a + up - c;
+        const [pa, pb, pc] = [Math.abs(p - a), Math.abs(p - up), Math.abs(p - c)];
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? up : c;
+      }
+      cur[i] = v & 255;
+    }
+    for (let x = 0; x < w; x++) alpha[y * w + x] = cur[x * 4 + 3];
+    prev = cur;
+  }
+  return { w, h, alpha };
+}
+// The leftmost opaque pixel in a box of the picture (x0..x1, y0..y1), the
+// topmost of those.
+function leftmost({ w, alpha }, x0, y0, x1, y1) {
+  for (let x = x0; x < x1; x++) for (let y = y0; y < y1; y++) if (alpha[y * w + x] > 128) return [x - (x0 - (x0 % 1024)), y];
+  return null;
+}
+
+test('buttonbeaks: the tall bird\'s beak tip is where the pictures paint it', async () => {
+  // measured again from the PNGs: the yellow beak points left, so its tip is
+  // the leftmost opaque pixel around his head
+  const portrait = pngAlpha('assets/subjects/buttonbeaks.png');
+  const poses = pngAlpha('assets/sprites/buttonbeaks-poses.png');
+  assert.deepEqual(leftmost(portrait, 0, 100, 400, 320), BEAK_PX.portrait);
+  assert.deepEqual(leftmost(poses, 0, 150, 400, 420), BEAK_PX.stride);
+  assert.deepEqual(leftmost(poses, 3072, 100, 3072 + 500, 330), BEAK_PX.cheer);
+  // on screen, from the feet point: standing, striding and cheering put the
+  // tip within 3 px of the same x, 130-odd px left of the pair's middle
+  const near = (a, b, d = 0.1) => Math.abs(a - b) < d;
+  assert.ok(near(TALL_BEAK.portrait[0], -132.6) && near(TALL_BEAK.portrait[1], -221.8), `portrait ${TALL_BEAK.portrait}`);
+  for (const k of ['stride', 'cheer']) assert.ok(Math.abs(TALL_BEAK[k][0] - TALL_BEAK.portrait[0]) < 3.5, `${k} ${TALL_BEAK[k]}`);
+  // and the game uses it once the painting has loaded
+  const { withArt } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const b = game.beak();
+    assert.ok(near(b.x, game.x + TALL_BEAK.portrait[0], 1e-9) && near(b.y, 748 + TALL_BEAK.portrait[1], 1e-9), `beak ${b.x}, ${b.y}`);
+  } finally {
+    undo();
+  }
+});
+
+test('buttonbeaks: a bowl under the tall bird\'s beak tip is picked from first; just outside it is not', async () => {
+  const { withArt } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    // put the tip at x, and press A
+    const pressAt = (bx) => {
+      const game = create(env(1));
+      assert.equal(game.bowls, 4);
+      game.x = bx - TALL_BEAK.portrait[0];
+      assert.ok(Math.abs(game.beak().x - bx) < 1e-9, 'tip placed');
+      game.update(1 / 60, blank({ action: true, actionPressed: true }));
+      return { game, held: game.holding };
+    };
+    const bx = (i) => create(env(1)).bowlX(i);
+    // the right bowl (the pair clear of every other one): just inside its
+    // rim on either side, picked; just outside, nothing
+    assert.equal(pressAt(bx(3) + BOWL_HALF - 1).held, 3);
+    assert.equal(pressAt(bx(3) - BOWL_HALF + 1).held, 3);
+    const out = pressAt(bx(3) + BOWL_HALF + 1);
+    assert.equal(out.held, null, 'just past the rim');
+    assert.equal(out.game.overBowl(), -1);
+    // the first bowl's right rim under his beak while the pink one's beak
+    // is over the second bowl: his comes first
+    const both = pressAt(bx(0) + BOWL_HALF - 1);
+    assert.ok(Math.abs(both.game.x - bx(1)) < 80, 'the pink beak is over bowl 1 too');
+    assert.equal(both.held, 0);
+    // nothing under his beak: the pair's middle (the pink one's beak) picks
+    const pink = create(env(1));
+    pink.x = bx(0) + 20; // his beak is out past the first bowl's left rim
+    assert.equal(pink.overBowl(), 0);
+    assert.ok(pink.beak().x < bx(0) - BOWL_HALF);
   } finally {
     undo();
   }

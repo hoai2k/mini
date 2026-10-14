@@ -11,9 +11,9 @@ hole of its kind on that coat. The mechanic is fetch and deliver: read what
 is wanted, fetch it, and get under a moving target with it.
 
 **Scoring.** One per button sewn on. A button that matches nothing on the
-coat it hits bounces off and the Buttonbeaks are dizzy for a second. A
-toss with no coat above flies away harmlessly (the way to get rid of a
-wrong pick). A coat that leaves with open holes simply goes; the results
+coat it hits bounces off and the Buttonbeaks are dizzy for a second. B lets go of a held button: it drops into the grass, with no daze and
+nothing counted. A toss with no coat above also flies away harmlessly (the
+way to get rid of a wrong pick on the keyboard, or by touch). A coat that leaves with open holes simply goes; the results
 count the coats buttoned all the way.
 
 **Difficulty over the round.** The shared curve (`g.d()`, see
@@ -36,8 +36,10 @@ two holes beside the pink round with four, a blue flower beside the blue
 round) join at d 0.36: about 19 s in at Normal, from the start at Harder,
 never at Easier.
 
-**Controls.** Controller: left stick or D-pad walks, A picks up or tosses.
-Keyboard: arrows or A/D walk, Space picks up or tosses. Mouse or touch:
+**Controls.** Controller: left stick or D-pad walks, A picks up or tosses,
+B discards the held button (`input.bPressed`, the controller's fresh B
+press; no keyboard key stands in for it). Keyboard: arrows or A/D walk,
+Space picks up or tosses. Mouse or touch:
 they follow the pointer; tap a bowl to pick from it, tap up by the coats
 to toss from there. On a narrow screen the view follows them, 1000 wide.
 
@@ -49,9 +51,14 @@ pressing all the time.
 
 | Level | Idle | Mash | Clumsy | Medium | Good |
 | --- | --- | --- | --- | --- | --- |
-| Easier | 0 | 3 [0–7] | 10 [8–12] 83% | 12 [10–13] 100% | 12 [11–14] |
-| Normal | 0 | 4 [1–7] | 9 [8–10] 33% | 13 [11–15] 100% | 16 [15–18] |
-| Harder | 0 | 6 [2–10] 8% | 7 [4–11] 8% | 13 [11–17] 100% | 28 [26–31] |
+| Easier | 0 | 3 [0–6] | 10 [8–12] 83% | 12 [11–13] 100% | 12 [11–14] |
+| Normal | 0 | 4 [3–6] | 9 [7–12] 42% | 13 [12–16] 100% | 16 [15–18] |
+| Harder | 0 | 6 [3–10] 8% | 7 [4–10] 8% | 12 [11–15] 100% | 29 [27–31] |
+
+(Since 2026-10-14 the tailors stand the tall bird's beak over the bowl and
+let go of an unwanted button with B; see below. Before that: Easier 3 /
+10 83% / 12 / 12, Normal 4 / 9 33% / 13 / 16, Harder 6 8% / 7 8% / 13 /
+28, the same within a point.)
 
 At Harder (six bowls from the start and three-hole coats at the end) a
 lucky masher reaches the mark now and then (2 of 40 seeds); it never does
@@ -119,3 +126,37 @@ the quick peck the button isn't shown until it's picked up.
 ## Third audit: pose sizes (2026-10-09)
 
 Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
+
+## B discards; the tall bird's beak picks (2026-10-14)
+
+The user asked for B to discard the held button, and for a button under
+the taller bird's beak to be picked up: he is the dominant one.
+
+- **B discards.** Before, the only way to get rid of a button was to toss
+  it where no coat was overhead. Now B (a fresh press, `input.bPressed`)
+  drops it into the grass with a soft sound and a grey "Dropped": no daze,
+  not counted as wrong (`g.dropped` counts them). It works while dazed
+  too. The keyboard and touch keep the old toss-it-clear way; input.js
+  gives B no keyboard key.
+- **The tall beak picks first.** Before, they picked from the bowl within
+  80 px of the pair's middle, which is under the pink one's beak (its tip
+  is about 7 px left of the middle in the portrait). The tall
+  yellow-headed bird's beak tip is about 133 px left of the middle, so
+  with it right over a bowl the pink one's beak was often over the next
+  one, and that next bowl was picked. Now the bowl under the tall beak's
+  tip (within the bowl's drawn half-width, 75 px) is picked; only if
+  there is none does the old reach round the middle count. The dashed
+  ring on the bowl shows which one a press takes. Tapping a bowl still
+  picks the bowl tapped.
+- **Measured, not guessed.** The tip is the leftmost opaque pixel of the
+  yellow beak (the top one of a tie) on the delivered pictures: (50, 192)
+  in the portrait, (112, 287) striding, (174, 186) cheering. On screen
+  that is (-133, -222), (-136, -213) and (-134, -257) from the pair's feet
+  point, so whichever pose shows, the tip is within 3 px of the same x;
+  the pick uses the standing one. A test re-reads the PNGs' alpha and
+  checks these, and checks a tip 1 px inside a bowl's rim picks it and
+  1 px outside doesn't.
+- **Balance.** The bots now aim the tall beak (`g.pickX(i)`) and discard
+  with B. Scores moved by a point at most (table above); the pass stays
+  10.
+

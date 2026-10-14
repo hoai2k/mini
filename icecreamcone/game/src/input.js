@@ -5,7 +5,10 @@
 // Minigames read `state()`, the same small set of actions on every device:
 // a move direction, one action button, left/right steps, the pointer and the
 // stick's spin (for winding the Gullfinch), the right stick (rx, ry; Q and E
-// stand in for its up and down) and the mouse wheel's notches. See design/design.md, Controls.
+// stand in for its up and down) and the mouse wheel's notches. `xPressed` and
+// `bPressed` are fresh presses of the controller's X and B (controller only:
+// no keyboard keys stand in, since the arrows already step and Shift slows;
+// B held is also `slow`). See design/design.md, Controls.
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
@@ -252,6 +255,10 @@ export function createInput(target) {
       let actionReleased = any(KEYS.action, released);
       let left = pressed.has('ArrowLeft') || pressed.has('KeyA');
       let right = pressed.has('ArrowRight') || pressed.has('KeyD');
+      // Fresh presses of X and B, for a game that wants them as a second
+      // left / right pair (Bobolinks); B held is also `slow` below.
+      let xPressed = false;
+      let bPressed = false;
       // Held for a careful pace: B (or Shift); a trigger's depth, 0 to 1; and
       // the action button itself, A or Space, without RT.
       let slow = keys.has('ShiftLeft') || keys.has('ShiftRight');
@@ -270,6 +277,8 @@ export function createInput(target) {
         if (padReleased(p, BTN.A) || padReleased(p, BTN.RT)) actionReleased = true;
         if (padPressed(p, BTN.LB) || padPressed(p, BTN.LEFT) || padPressed(p, BTN.LT)) left = true;
         if (padPressed(p, BTN.RB) || padPressed(p, BTN.RIGHT)) right = true;
+        if (padPressed(p, BTN.X)) xPressed = true;
+        if (padPressed(p, BTN.B)) bPressed = true;
       }
       const kx = (k('right') ? 1 : 0) - (k('left') ? 1 : 0);
       const ky = (k('down') ? 1 : 0) - (k('up') ? 1 : 0);
@@ -294,6 +303,8 @@ export function createInput(target) {
         actionReleased: actionReleased || pointer.released,
         left,
         right,
+        xPressed,
+        bPressed,
         slow,
         trigger,
         actionA: actionA || pointer.down,

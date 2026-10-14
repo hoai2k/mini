@@ -75,6 +75,32 @@ function drawPose(c, key, i, x, y, rot = 0) {
   return true;
 }
 const TALL = () => (painted() ? 362 : 230) * K;
+// The taller (yellow-headed) bird's beak tip, measured on the delivered
+// pictures' alpha: the farthest opaque pixel of its beak towards the left,
+// where it points (the top one of a tie). In the portrait (standing) at (50, 192) of 1024 x 1024
+// (feet at PAINTED.feet 0.942 of its height, drawn 420 units wide, centred);
+// striding (poses cell 0) at (112, 287); cheering (poses cell 3) at
+// (174, 186), its lower beak's corner. As screen offsets from the pair's
+// feet point (g.x, GROUND): about (-133, -222), (-136, -213), (-134, -257),
+// so whichever is showing, the tip stands within 3 px over the same spot.
+// The stand-in: the left bird's button head, its left edge (-137, -150) units.
+// (The pink one's beak tip is about (487, 352) in the portrait, 7 px left of
+// g.x: the old reach round the pair's middle is the reach under its beak.)
+export const BEAK_PX = { portrait: [50, 192], stride: [112, 287], cheer: [174, 186] };
+const PORTRAIT_FEET = 0.942;
+export const TALL_BEAK = {
+  portrait: [(BEAK_PX.portrait[0] - 512) * KP, (BEAK_PX.portrait[1] - PORTRAIT_FEET * 1024) * KP],
+  stride: poseBeak('sprites.buttonbeaksPoses', 0, BEAK_PX.stride),
+  cheer: poseBeak('sprites.buttonbeaksPoses', 3, BEAK_PX.cheer),
+  standin: [-137 * K, -150 * K],
+};
+function poseBeak(key, i, [px, py]) {
+  const m = POSES[key].cells[i];
+  return [33 * KP + (px - m.fx) * poseK(key, i), (py - m.feet) * poseK(key, i)];
+}
+// How far from a bowl's middle the tall beak tip is still over it: the bowl
+// is drawn 150 wide (its painted rim, trimmed).
+export const BOWL_HALF = 75;
 const BOWL_Y = 756; // the bowls' rims, set into the tin
 // Measured on the delivered coats (IC-M05c), in each cell's pixels: the
 // centre strip's x and the shoulders' y (drawn at the line), and the scale.
@@ -120,6 +146,7 @@ export default function create(env) {
     nextCoat: 0,
     sewn: 0,
     wrong: 0,
+    dropped: 0, // buttons let go with B
     open: 0, // holes that went by unfilled
     full: 0, // coats buttoned all the way
     pops: [],
@@ -170,10 +197,25 @@ export default function create(env) {
 
   g.coatTop = (coat) => lineY(coat.x) + 8;
   g.bowlX = (i) => bowlX(i, g.bowls);
-  // The bowl in front of the Buttonbeaks, if any.
-  g.overBowl = (x = g.x) => {
-    for (let i = 0; i < g.bowls; i++) if (Math.abs(bowlX(i, g.bowls) - x) < REACH) return i;
+  // The tall bird's beak tip on screen, standing (the portrait), or the
+  // stand-in's until the painting loads.
+  g.beak = (x = g.x) => {
+    const [dx, dy] = painted() ? TALL_BEAK.portrait : TALL_BEAK.standin;
+    return { x: x + dx, y: GROUND + dy };
+  };
+  // Where the pair stand to hold the tall beak over bowl i.
+  g.pickX = (i) => clamp(bowlX(i, g.bowls) - (g.beak(0).x), 140, W - 140);
+  // The bowl under a point, within dx of its middle, if any.
+  const bowlAt = (x, dx) => {
+    for (let i = 0; i < g.bowls; i++) if (Math.abs(bowlX(i, g.bowls) - x) < dx) return i;
     return -1;
+  };
+  // The bowl they pick from, if any: the one under the tall bird's beak tip
+  // (he's the dominant one, so his comes first), else the one in front of
+  // the pair's middle, under the pink one's beak.
+  g.overBowl = (x = g.x) => {
+    const tall = bowlAt(g.beak(x).x, BOWL_HALF + 0.5);
+    return tall >= 0 ? tall : bowlAt(x, REACH);
   };
   // The coat a toss from x would reach.
   g.coatAbove = (x = g.x) => g.coats.find((c) => Math.abs(c.x - x) < COAT_W / 2 - 10) || null;
@@ -183,6 +225,16 @@ export default function create(env) {
     g.pickT = 0.25;
     sfx('catch', { pitch: i });
     pop('Got it', bowlX(i, g.bowls), BOWL_Y - 70, INK, 30);
+  }
+
+  // B: let go of the button they hold. It drops into the grass, lost but
+  // harmless: no daze, nothing counted against them.
+  function discard() {
+    g.flying.push({ kind: g.holding, x: g.x + holdDX(), y: holdY(), vy: -350, vx: (rng() - 0.5) * 240, state: 'off', spin: 0 });
+    g.holding = null;
+    g.dropped++;
+    sfx('pour', { pitch: -4 });
+    pop('Dropped', g.x + holdDX(), holdY() - 50, PAL.grey, 30);
   }
 
   function toss() {
@@ -257,12 +309,14 @@ export default function create(env) {
     g.x = clamp(g.x, 140, W - 140);
     g.moving = Math.abs(g.x - was) > 40 * dt;
 
-    if (input.actionPressed && g.daze <= 0) {
+    // B lets go of a held button (dazed or not).
+    if (input.bPressed && g.holding !== null) discard();
+    else if (input.actionPressed && g.daze <= 0) {
       if (input.pointer.active) {
         // touch: tap a bowl to pick from it, tap up by the coats to toss
         g.x = clamp(input.pointer.x, 140, W - 140);
         if (input.pointer.y > 712) {
-          const i = g.overBowl();
+          const i = bowlAt(input.pointer.x, REACH);
           if (i >= 0) pick(i);
         } else if (g.holding !== null) toss();
       } else if (g.holding !== null) toss();

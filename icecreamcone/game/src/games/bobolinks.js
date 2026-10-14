@@ -29,10 +29,11 @@ const NEAR = 868; // the stone under the boots
 const BOOTS = 250; // the boots' drawn size
 const LANE = 160; // half the distance between the lanes, up close
 const STRIP = { x: 1500, y: 170, h: 470 };
-const PADS = [
-  { side: -1, x: 100, y: 790 },
-  { side: 1, x: 1500, y: 790 },
-];
+// The foot pads sit fixed on the screen (drawOverlay), at the bottom corners
+// of whatever part of the scene is in view.
+const PAD_R = 74; // a pad's radius at full size
+const PAD_IN = 100; // its centre from the side, at full size
+const PAD_UP = 110; // and from the bottom
 
 const COL = { [-1]: '#e8d27a', 1: '#9cc4c8', 0: '#d4a8c8' };
 
@@ -164,9 +165,11 @@ export default function create(env) {
     }
     g.pointer = input.kind === 'pointer';
 
-    let L = !!input.left;
-    let R = !!input.right;
-    // A sideways flick of the controller's stick steps too.
+    // LB / RB (and D-pad, LT, arrows, A / D, a tap on that half), or X / B
+    let L = !!input.left || !!input.xPressed;
+    let R = !!input.right || !!input.bPressed;
+    // A sideways flick of the controller's stick steps too (not advertised:
+    // it can't press both feet at once).
     const sx = input.kind === 'controller' ? input.x || 0 : 0;
     if (!L && !R) {
       if (sx < -0.6 && g.stickX >= -0.6) L = true;
@@ -482,24 +485,81 @@ export default function create(env) {
     }
   }
 
-  function drawPads(c) {
-    // the left and right foot buttons, at the paper's corners
-    for (const p of PADS) {
+  // Where the pads go in a view `w` x `h` (logical units, the visible play
+  // area, drawn at `s` CSS px per unit) and how big: full size on a wide
+  // screen, and never smaller than about 72 CSS px across on a phone.
+  function padLayout(w, h, s = 1) {
+    const k = clamp(Math.max(w / 1600, 36 / (PAD_R * s)), 0.6, 1.2);
+    const y = h - PAD_UP * k;
+    return [
+      { side: -1, x: PAD_IN * k, y, k },
+      { side: 1, x: w - PAD_IN * k, y, k },
+    ];
+  }
+  g.padLayout = padLayout;
+
+  // A controller button or key, drawn small in ink: 'shoulder' a rounded
+  // bumper, 'face' a round button, 'key' a keycap.
+  function buttonIcon(c, shape, text, x, y, k, f, color = '#f4ecd8') {
+    c.save();
+    c.translate(x, y);
+    c.scale(k, k);
+    c.beginPath();
+    if (shape === 'face') c.arc(0, 0, 21, 0, Math.PI * 2);
+    else if (shape === 'key') {
+      c.moveTo(-14, -22);
+      c.arcTo(22, -22, 22, 22, 8);
+      c.arcTo(22, 22, -22, 22, 8);
+      c.arcTo(-22, 22, -22, -22, 8);
+      c.arcTo(-22, -22, 22, -22, 8);
+      c.closePath();
+    }
+    else {
+      // a bumper: flat below, rounded on top
+      c.moveTo(-40, 16);
+      c.lineTo(-40, -2);
+      c.quadraticCurveTo(-38, -18, -20, -18);
+      c.lineTo(20, -18);
+      c.quadraticCurveTo(38, -18, 40, -2);
+      c.lineTo(40, 16);
+      c.closePath();
+    }
+    wash(c, f > 0 ? '#f0d890' : color, 0.95);
+    ink(c, 2.6);
+    label(c, text, 0, shape === 'shoulder' ? 0 : 1, { size: shape === 'shoulder' ? 25 : 24, weight: 800, color: '#2a2a36' });
+    c.restore();
+  }
+
+  // The left and right foot pads, fixed at the screen's bottom corners, with
+  // the controller buttons (or keys) that step that foot above each.
+  g.drawOverlay = (c, view) => {
+    const { w, h, kind, s } = view;
+    for (const p of padLayout(w, h, s)) {
       const f = g.padFlash[p.side];
-      const r = 74 + f * 8;
+      const r = (PAD_R + f * 8) * p.k;
       blob(c, p.x, p.y, r, r, p.side + 3, 0.04, 18);
       wash(c, f > 0 ? '#f0d890' : COL[p.side], 0.85);
       ink(c, 2.6);
       c.save();
-      c.translate(p.x, p.y - 12);
-      c.scale(1.2, 0.95);
+      c.translate(p.x, p.y - 12 * p.k);
+      c.scale(1.2 * p.k, 0.95 * p.k);
       poly(c, [[p.side * 46, 0], [p.side * 6, -30], [p.side * 6, -13], [-p.side * 34, -13], [-p.side * 34, 13], [p.side * 6, 13], [p.side * 6, 30]], 3, 0.8);
       c.fillStyle = '#2a2a36';
       c.fill();
       c.restore();
-      label(c, p.side < 0 ? 'Left' : 'Right', p.x, p.y + 40, { size: 26, weight: 800 });
+      label(c, p.side < 0 ? 'Left' : 'Right', p.x, p.y + 40 * p.k, { size: 26 * p.k, weight: 800 });
+      // above the pad: the bumper, and the face button beside it (inwards)
+      const iy = p.y - (PAD_R + 40) * p.k;
+      const inward = -p.side * 66 * p.k;
+      if (kind === 'controller') {
+        buttonIcon(c, 'shoulder', p.side < 0 ? 'LB' : 'RB', p.x, iy, p.k, f);
+        buttonIcon(c, 'face', p.side < 0 ? 'X' : 'B', p.x + inward, iy, p.k * 0.9, f, p.side < 0 ? '#a8c0e0' : '#e0aaa0');
+      } else if (kind === 'keyboard') {
+        buttonIcon(c, 'key', p.side < 0 ? '←' : '→', p.x, iy, p.k, f);
+        buttonIcon(c, 'key', p.side < 0 ? 'A' : 'D', p.x + inward * 0.85, iy, p.k * 0.9, f);
+      }
     }
-  }
+  };
 
   function drawStrip(c) {
     // progress across the stream, with a mark at the score that opens the
@@ -574,7 +634,6 @@ export default function create(env) {
     drawBird(c, 'bobolinks', { x: g.bootX, y: Math.min(under.y, NEAR) - 4 + hopY, size: BOOTS, t, rot: wobble, pose: { lift, sing: g.sing } });
     c.restore();
 
-    drawPads(c);
     drawStrip(c);
 
     for (const q of g.pops) {
