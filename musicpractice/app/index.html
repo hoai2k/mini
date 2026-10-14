@@ -25,6 +25,9 @@
       var s = JSON.parse(localStorage.getItem('musicpractice.settings.v1') || '{}') || {};
       var ids = ['classic', 'deco', 'sixties', 'baroque', 'scifi', 'nouveau', 'anime', 'steampunk'];
       var t = s.themeChosen === true && ids.indexOf(s.theme) > 0 ? s.theme : 'classic';
+      // In the iOS and Android apps, themes are part of Pro (src/pro.js keeps this answer).
+      var app = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+      if (app && localStorage.getItem('musicpractice.pro') !== '1') { t = 'classic'; document.documentElement.classList.add('locked'); }
       document.documentElement.dataset.theme = t;
     } catch (e) { document.documentElement.dataset.theme = 'classic'; }
   </script>
@@ -73,7 +76,7 @@
         <!-- Add data-in-progress to a tool that isn't ready yet: its card fades and says so. -->
         <a class="choice" href="#drone" id="go-drone" data-tool="drone" draggable="false">
           <span class="art" data-asset="home-drone"></span>
-          <span class="label">Drone <small class="in-progress-label">In progress</small></span>
+          <span class="label">Drone <small class="in-progress-label">In progress</small><small class="pro-badge">Pro</small></span>
         </a>
         <a class="choice" href="#record" id="go-record" data-tool="record" draggable="false">
           <span class="art" data-asset="home-record"></span>
@@ -109,6 +112,12 @@
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" aria-label="Theme"></div>
           </fieldset>
           <button type="button" class="pill open-audio-check">Audio check…</button>
+          <!-- In the apps only (src/pro.js). -->
+          <fieldset id="pro-row" hidden>
+            <legend>Music Practice Pro</legend>
+            <div class="row toggle"><span id="pro-status"></span><button type="button" class="pill" id="pro-open">Get Pro…</button></div>
+            <p class="help" id="pro-id-row" hidden>Your app ID (tap to copy): <button type="button" class="link-btn" id="pro-id"></button> <span id="pro-id-copied" hidden>Copied.</span></p>
+          </fieldset>
         </form>
       </dialog>
     </section>
@@ -340,6 +349,30 @@
         </form>
       </dialog>
     </section>
+    <!-- The paywall, in the iOS and Android apps (src/pro.js). -->
+    <dialog id="paywall" class="sheet paywall" aria-labelledby="pw-title">
+      <form method="dialog">
+        <header class="sheet-head"><h3 id="pw-title">Music Practice Pro</h3><button class="icon-btn" value="close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <p class="pw-have" id="pw-have" hidden></p>
+        <ul class="pw-features">
+          <li><b>Drone</b> cello and organ drones on any note, with a fifth, timed drones and sequences</li>
+          <li><b>Every take</b> kept, renamed and saved as an MP3 (free shows the newest 3)</li>
+          <li><b>All eight themes</b> from Art Deco to Steampunk</li>
+          <li>The metronome, the tuner and the recorder stay free</li>
+        </ul>
+        <p class="pw-support">Pro also supports an independent app developer, so Music Practice can keep growing with no ads and no tracking. Thank you!</p>
+        <div class="pw-plans" id="pw-plans"></div>
+        <p class="help pw-note" id="pw-note" hidden></p>
+        <p class="pw-message" id="pw-message" role="status" aria-live="polite"></p>
+        <div class="pw-links">
+          <button type="button" class="link-btn" id="pw-restore">Restore purchases</button>
+          <button type="button" class="link-btn" id="pw-redeem">Redeem a code</button>
+        </div>
+        <p class="help pw-fine" id="pw-fine"></p>
+        <p class="help pw-legal"><a id="pw-terms" href="#" target="_blank" rel="noopener">Terms of Use</a> · <a id="pw-privacy" href="#" target="_blank" rel="noopener">Privacy Policy</a></p>
+      </form>
+    </dialog>
+
     <!-- Audio check: what the browser reports about mics, speakers and
          permission, and the choices it allows (src/audiocheck.js). -->
     <dialog id="audio-check" class="sheet" aria-labelledby="audio-check-title">

@@ -263,9 +263,14 @@ favour of the two-button home screen.
 
 ## Files
 
-- `design/mobile-apps.md`: how Music Practice would become an iOS and an
-  Android app with a free trial and a Pro upgrade, and what I'd recommend (not
-  started).
+- `mobile/`: the iOS and Android apps (Capacitor around `app/`), with how to
+  build them, set up purchases in the stores and RevenueCat, and give friends
+  Pro: see `mobile/README.md`. In the apps the Drone, every take and all the
+  themes are Music Practice Pro (`app/src/pro.js`, `pro-config.js`,
+  `native.js`); the website stays all free.
+- `app/privacy.html`: the privacy policy and terms, for the apps' paywall and
+  store listings.
+- `design/mobile-apps.md`: why the apps, what to sell and the store rules.
 
 - `app/index.html`, `app/styles.css`, `app/src/`: the app (static ES
   modules, no build step). `main.js` the screens, `homeorder.js` hold and
@@ -304,6 +309,10 @@ node --test musicpractice/app/test/*.test.mjs
 python3 musicpractice/design/source/build_requests.py --check
 musicpractice/publish.sh local/pages/musicpractice
 ```
+
+The iOS and Android apps (`mobile/`) aren't rebuilt or tested for ordinary
+changes to the web app; they pick the changes up at their next `npm run sync`.
+Build and test them when working on the apps themselves (`mobile/README.md`).
 
 The detector tests synthesize notes, chords, vibrato, hiss, chair scrapes and
 thumps and check which start a take, when it ends and how it is trimmed. The

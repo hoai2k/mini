@@ -7,6 +7,10 @@ fees and store rules change: check the specifics in App Store Connect, Apple's
 App Review Guidelines, the Play Console and Google Play's policies when you
 get there.
 
+**Status:** built along these lines in `../mobile/` with Capacitor for both
+platforms; how to build, set up the stores and give friends Pro is in
+`../mobile/README.md`.
+
 ## The recommendation in short
 
 1. **Wrap the web app, bundled so it works offline, with a little native code
