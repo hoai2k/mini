@@ -1394,7 +1394,17 @@ export default {
         const th = 100 * s;
         const tw = th * art.width / art.height;
         const left = sx(-XW);
-        for (let x = left - tw * Math.ceil(left / tw + 1); x < w; x += tw) c.drawImage(art, x, sy(0), tw, th);
+        // The delivered picture's two ends don't match, so every other copy
+        // is mirrored: neighbouring edges are then the same column and meet cleanly.
+        const n0 = -Math.ceil(left / tw + 1);
+        for (let n = n0, x = left + n0 * tw; x < w; n++, x += tw) {
+          if (n % 2 === 0) { c.drawImage(art, x, sy(0), tw, th); continue; }
+          c.save();
+          c.translate(x + tw, 0);
+          c.scale(-1, 1);
+          c.drawImage(art, 0, sy(0), tw, th);
+          c.restore();
+        }
       } else {
         const g = c.createLinearGradient(0, sy(0), 0, sy(100));
         g.addColorStop(0, '#5fe3f0');
@@ -1470,24 +1480,35 @@ export default {
     }
 
     function drawPlants(front) {
+      // With the painted tank, its own plants stand behind the fish; only the
+      // front clumps (that shy fish hide in) are drawn, shaded to match it.
+      const painted = !!api.img('aq-tank');
+      if (painted && !front) return;
       for (let i = 0; i < PLANTS.length; i++) {
         const p = PLANTS[i];
         if ((i % 2 === 0) !== front) continue;
         if (Math.abs(p.x) > halfW + 15) continue;
         for (let k = 0; k < p.n; k++) {
-          const bx = p.x + (k - p.n / 2) * 1.6;
+          const bx = p.x + (k - p.n / 2) * (painted ? 2 : 1.6);
           const hgt = p.h * (0.65 + ((k * 37) % 10) / 28);
           const sway = Math.sin(clock * 1.3 + k + i) * 2.2;
+          const hw = painted ? 1.5 : 0.9;
           ctx.beginPath();
-          ctx.moveTo(sx(bx - 0.9), sy(SAND));
-          ctx.quadraticCurveTo(sx(bx + sway * 0.5 - 1), sy(SAND - hgt * 0.5), sx(bx + sway), sy(SAND - hgt));
-          ctx.quadraticCurveTo(sx(bx + sway * 0.5 + 1.2), sy(SAND - hgt * 0.5), sx(bx + 0.9), sy(SAND));
+          ctx.moveTo(sx(bx - hw), sy(SAND));
+          ctx.bezierCurveTo(sx(bx - hw * 1.3), sy(SAND - hgt * 0.4), sx(bx + sway * 0.6 - hw), sy(SAND - hgt * 0.75), sx(bx + sway), sy(SAND - hgt));
+          ctx.bezierCurveTo(sx(bx + sway * 0.6 + hw * 1.2), sy(SAND - hgt * 0.7), sx(bx + hw * 1.4), sy(SAND - hgt * 0.4), sx(bx + hw), sy(SAND));
           ctx.closePath();
-          ctx.fillStyle = k % 2 ? '#2fbf71' : '#51cf66';
-          ctx.globalAlpha = front ? 0.85 : 1;
+          if (painted) {
+            const g = ctx.createLinearGradient(0, sy(SAND), 0, sy(SAND - hgt));
+            g.addColorStop(0, '#1d6b2e');
+            g.addColorStop(0.55, k % 2 ? '#3fae3a' : '#52c041');
+            g.addColorStop(1, '#a6e05a');
+            ctx.fillStyle = g;
+          } else ctx.fillStyle = k % 2 ? '#2fbf71' : '#51cf66';
+          ctx.globalAlpha = front ? 0.9 : 1;
           ctx.fill();
-          ctx.strokeStyle = '#1b7a45';
-          ctx.lineWidth = Math.max(1, s * 0.25);
+          ctx.strokeStyle = painted ? '#174f22' : '#1b7a45';
+          ctx.lineWidth = Math.max(1, s * (painted ? 0.18 : 0.25));
           ctx.stroke();
           ctx.globalAlpha = 1;
         }
