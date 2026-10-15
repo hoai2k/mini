@@ -120,8 +120,8 @@ test('every listed effect and game has a file', () => {
   const games = readdirSync(new URL('../games/', import.meta.url));
   for (const id of EFFECT_IDS) assert.ok(fx.includes(`${id}.js`), `effects/${id}.js`);
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
-  assert.equal(EFFECT_IDS.length, 75);
-  assert.equal(new Set(EFFECT_IDS).size, 75);
+  assert.equal(EFFECT_IDS.length, 77);
+  assert.equal(new Set(EFFECT_IDS).size, 77);
   assert.equal(GAME_IDS.length, 24);
 });
 
