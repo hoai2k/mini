@@ -82,3 +82,5 @@ Verification: all seven files passed requested dimensions, transparency, ground 
 Batch 1 delivers `prince-wall-up-a`, `prince-wall-up-b` and their tinted variants. Native originals, full prompts, references, generation IDs and accepted reviews are retained per image. The rejected first A raised the wrong knee and is retained in `progress/rejected/f19-wrong-knee/`; the accepted rear view raises the right hand and left knee. `progress/f19-f20-requests.json` records all 100 active requests and `progress/f19-f20-state.json` checkpoints delivery between small batches.
 
 Batch 2: `prince-wall-up-c`, `prince-wall-up-c-tinted`, `prince-wall-up-d`, `prince-wall-up-d-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
+
+Batch 3: `prince-wall-side-a`, `prince-wall-side-a-tinted`, `prince-wall-side-b`, `prince-wall-side-b-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.

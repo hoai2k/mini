@@ -3731,7 +3731,7 @@
       "edition": "film"
     },
     "prince-wall-side-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-side-a.webp",
       "size": [
         360,
@@ -3741,7 +3741,7 @@
       "edition": "film"
     },
     "prince-wall-side-a-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-side-a-tinted.webp",
       "size": [
         360,
@@ -3751,7 +3751,7 @@
       "edition": "film"
     },
     "prince-wall-side-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-side-b.webp",
       "size": [
         360,
@@ -3761,7 +3761,7 @@
       "edition": "film"
     },
     "prince-wall-side-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-side-b-tinted.webp",
       "size": [
         360,
