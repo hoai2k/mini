@@ -7156,5 +7156,125 @@
     "exportOperation": "resample to requested canvas",
     "accepted": true,
     "review": "Reviewed subject and composition; verified dimensions, decoding and alpha where required."
+  },
+  {
+    "id": "CH-I103",
+    "file": "assets/icons/fx-moutheyes.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a face where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Exactly three identical smiling mouths: two horizontal mouths replace the eyes; third is the normal mouth. Zero eyeballs, zero normal eyes.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-d6e3be09-32b4-4271-9d1e-724ff5662627.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-I104",
+    "file": "assets/icons/fx-hugefeatures.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-2aea40eb-566c-467f-ad4d-ec7556c1f3a7.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-N102",
+    "file": "assets/icons-art/art-fx-moutheyes.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Exactly three identical smiling mouths: two horizontal mouths replace the eyes; third is the normal mouth. Zero eyeballs, zero normal eyes.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-3669ee10-c01b-4455-96ff-7d8fcb39eaa5.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-N103",
+    "file": "assets/icons-art/art-fx-hugefeatures.png",
+    "size": "256 x 256",
+    "prompt": "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-ce052c19-966d-4dcf-a29d-5d7d687eee12.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-R102",
+    "file": "assets/icons-classic/classic-fx-moutheyes.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Exactly three identical smiling mouths: two horizontal mouths replace the eyes; third is the normal mouth. Zero eyeballs, zero normal eyes.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-ef9bbece-e23f-47db-bf8e-d26aaa491aae.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-R103",
+    "file": "assets/icons-classic/classic-fx-hugefeatures.png",
+    "size": "256 x 256",
+    "prompt": "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.\nSingle 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-980bcd1b-2866-4c39-9ea6-8538828cf127.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-K103",
+    "file": "assets/icons2/fx2-moutheyes.png",
+    "size": "256 x 256",
+    "prompt": "RENDERING REQUIREMENT: Drawn 2D vector-style editorial illustration, large clean flat colour planes, crisp geometric shapes, simplified clumped hair, smooth stylised skin, subtle neon edge accents. Absolutely no photographic textures, skin pores, individual hair strands, realistic teeth or 3D render. Natural older-teen head proportions except requested distortion.\nSleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle dark charcoal-to-indigo rounded-square tile, transparent alpha strictly outside. Exactly THREE identical open smiling mouths, two replacing the eyes, one in normal mouth position. No eyes.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-9ef175e3-14d3-47d9-9e9b-da739140a8d1.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-K104",
+    "file": "assets/icons2/fx2-hugefeatures.png",
+    "size": "256 x 256",
+    "prompt": "RENDERING REQUIREMENT: Drawn 2D vector-style editorial illustration, large clean flat colour planes, crisp geometric shapes, simplified clumped hair, smooth stylised skin, subtle neon edge accents. Absolutely no photographic textures, skin pores, individual hair strands, realistic teeth or 3D render. Natural older-teen head proportions except requested distortion.\nSleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.\nSingle dark charcoal-to-indigo rounded-square tile, transparent alpha strictly outside. Two huge pasted-on drawn eyes and a huge smiling mouth extending past both sides of a normal-sized illustrated head. Exaggerated cutout effect.",
+    "tool": "built-in image_gen",
+    "source": "/Users/hoai/.codex/generated_images/01a13036-9bc8-7781-a7d1-5658199c11fe/exec-feda7b84-5150-459d-8833-7d26bd62f547.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "exportOperation": "resample to requested canvas",
+    "accepted": true,
+    "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
   }
 ]

@@ -2281,34 +2281,34 @@ export const ASSET_LIST = {
   },
   "fx-moutheyes": {
     "file": "assets/icons/fx-moutheyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-moutheyes": {
     "file": "assets/icons2/fx2-moutheyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-moutheyes": {
     "file": "assets/icons-art/art-fx-moutheyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-moutheyes": {
     "file": "assets/icons-classic/classic-fx-moutheyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-hugefeatures": {
     "file": "assets/icons/fx-hugefeatures.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-hugefeatures": {
     "file": "assets/icons2/fx2-hugefeatures.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-fx-hugefeatures": {
     "file": "assets/icons-art/art-fx-hugefeatures.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-fx-hugefeatures": {
     "file": "assets/icons-classic/classic-fx-hugefeatures.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
