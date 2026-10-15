@@ -6,7 +6,8 @@ const nav = document.querySelector('.sections');
 const masthead = nav?.closest('.masthead');
 const toggle = nav?.querySelector('.sections-toggle');
 const label = nav?.querySelector('.sections-current');
-const links = nav ? [...nav.querySelectorAll('.sections-links a')] : [];
+const home = nav?.querySelector('.sections-home');
+const links = nav ? [...nav.querySelectorAll('.sections-links a:not(.sections-home)')] : [];
 const targets = links.map((a) => document.querySelector(a.hash));
 const TOP_LABEL = label?.textContent ?? '';
 // Room to spare before the list counts as fitting, so it never sits cramped
@@ -50,15 +51,16 @@ if (nav && masthead && toggle && label && targets.every(Boolean)) {
     });
     const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
     if (atEnd) current = targets.length - 1;
-    links.forEach((a, i) => {
-      if (i === current) a.setAttribute('aria-current', 'location');
+    [home, ...links].forEach((a, i) => {
+      if (!a) return;
+      if (i - 1 === current) a.setAttribute('aria-current', 'location');
       else a.removeAttribute('aria-current');
     });
     label.textContent = current < 0 ? TOP_LABEL : links[current].textContent;
   };
 
   toggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
-  links.forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  [home, ...links].forEach((a) => a?.addEventListener('click', () => setOpen(false)));
   document.addEventListener('click', (e) => {
     if (!nav.contains(e.target)) setOpen(false);
   });
