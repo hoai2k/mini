@@ -17,6 +17,9 @@
 //   flag      capture the flag (objectives/flag.js).
 //   escape    get out before time runs out; no boss (objectives/escape.js).
 //   boss      a short approach, then straight into the boss (objectives/boss.js).
+//   museum    chapter 1: a calm walk to Mrs. Dodds, the Mist lifts, everyone
+//             in disguise comes for you, and she flies off three times
+//             (objectives/museum.js; rules in story/museumRules.js).
 // Online the host runs all of it; guests send `act` topics for what they do
 // (see objectives/common.js) and get the state in the host's snapshot.
 import * as THREE from 'three/webgpu';
@@ -369,6 +372,8 @@ export class Mission {
     const humans = Math.max(1, g.players.filter((p) => !p.ai).length);
     const rnd = mulberry32((L.seed ?? 1) ^ Math.imul(L.rooms.indexOf(room) + 1, 0x9e3779b1));
     const mist = this.def.mist ?? 0, kinds = this.def.disguise ?? [];
+    // chapter 1 (objectives/museum.js): everyone is in disguise, and only this share of a group are monsters at all
+    const share = kinds.length ? this.handler?.mistShare : null, keep = mulberry32((L.seed ?? 1) ^ Math.imul(L.rooms.indexOf(room) + 7, 0x85ebca6b));
     let skip = room.killedBefore ?? 0;   // (Continue: those already killed stay dead)
     const packs = (room.packs ?? []).map((p) => new Pack(new THREE.Vector3(...p.at)));
     room.packObjs = packs;
@@ -383,8 +388,9 @@ export class Mission {
     for (const { m, pack } of list) {
       const r = rnd();
       if (m.humans > humans) continue;
+      if (share != null && keep() >= share) continue;
       if (skip > 0) { skip--; continue; }
-      const disguise = m.role !== 'scout' && !m.big && kinds.length && r < mist * 0.4 ? kinds[Math.floor(rnd() * kinds.length)] : null;
+      const disguise = share != null ? kinds[Math.floor(rnd() * kinds.length)] : m.role !== 'scout' && !m.big && kinds.length && r < mist * 0.4 ? kinds[Math.floor(rnd() * kinds.length)] : null;
       room.reserve.push({ m, pack, disguise });
     }
     this.spawnReserve(room, true);
@@ -526,6 +532,7 @@ export class Mission {
     // shut in a trap: back on your feet inside it, to finish the fight
     const trap = L.rooms.find((q) => q.trap?.sprung && !q.trap.done);
     if (trap) for (const sp of [[trap.center.x, trap.y, trap.center.z], ...(trap.spawns ?? [])]) { const at = this.standAt(sp[0], sp[1], sp[2]); if (at) return at; }
+    if (this.handler?.retrySpot) return this.handler.retrySpot();   // (chapter 1: where Mrs. Dodds last fought)
     if (!room || !this.bossSpawned || this.complete || this.boss?.dead || this.handler?.autoBoss === false) return null;
     if (this.bossRoom && this.bossRoom !== room) return null;
     for (const gate of L.gates) {
@@ -583,7 +590,8 @@ export class Mission {
     this.disguisedBoss = null;
     this.spawnBoss(this.bossRoom, pos);
   }
-  spawnBoss(room, pos) {
+  // holdTitle: the title banner waits (the museum shows it after Mrs. Dodds has spoken)
+  spawnBoss(room, pos, { holdTitle = false } = {}) {
     const g = this.game;
     this.bossRoom = room;
     const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.difficulty);
@@ -591,7 +599,7 @@ export class Mission {
     this.boss = boss;
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
-    toast(boss.B.title, 'title boss');
+    if (!holdTitle) toast(boss.B.title, 'title boss');
     g.audio?.boss(); g.audio?.setMusic('boss');
     g.hud.setBoss(boss);
     g.shake(0.4);

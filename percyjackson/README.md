@@ -28,7 +28,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
       They sniff, eat and wander, and notice you only up close (about 4–5 m)
       or when hit: they rear up and squeak, then come at you. Every five to
       nine seconds one a fair way off dashes at you, never more than three
-      rats at once. Your companions leave idle rats to you;
+      rats at once;
     - further on, rats where shooting first is the obvious move (ranged):
       behind the chain-link fence of a construction lot (shots go through it,
       rats have to run round to the gate), on a dumpster lid and on sidewalk
@@ -69,8 +69,24 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **All twelve chapters of Book 1, *The Lightning Thief*,** each started from
   its own place in camp (the early ones near the cabins, the later ones along
   the Road West out past Half-Blood Hill), each unlocked by the one before:
-  1. *The Pre-Algebra Teacher*: the museum in thick Mist; Mrs. Dodds waits in
-     disguise, then fights as the Fury Alecto.
+  1. *The Pre-Algebra Teacher*: the museum in thick Mist. You walk the
+     galleries with no fighting (the gold arrow leads to Mrs. Dodds) until you
+     see her: the Mist lifts on its own, she turns into the Fury Alecto and
+     tells you, in her own snarky voice, which button sees through the Mist
+     (V, the right stick or 👁, for the device you play with). From then on
+     every monster in disguise in the museum comes for you, two or three at a
+     time (at most three hunting you at once at Mortal alone): under the Mist
+     they look like ordinary people, can't be hurt and still hurt you with no
+     swing to see (a one-time hint says to use True Sight); under True Sight
+     they are serpents, spiders and ghosts you can fight. Turn True Sight on
+     before she shows herself and you can fight them early (they fight back
+     once hit), and those stay gone. She fights you in her gallery; at 75%,
+     50% and 25% of her health she draws a breath (a violet ring and a rising
+     wail for 1.3 s), shrieks, paralyzing every hero within 13 m for 1.8 s
+     (never twice within three seconds), and flies off over the walls to
+     another room (her bar reads "Mrs. Dodds — fled", the arrow and the
+     footprints lead to her); come close and she fights on, until the last
+     stretch ends with her down and her pets crumbling back into the Mist.
   2. *Half-Blood Hill*: a storm, then the Minotaur; make him charge into a
      tree or a wall and he is stuck and takes double damage.
   3. *Capture the Flag*: carry the Ares cabin's banner back across the creek,
@@ -91,17 +107,29 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **Five playable heroes:** Percy, Annabeth, Grover, Tyson and Clarisse, each
   with a melee combo, a ranged move, three abilities and a godly power. Thalia
   and Nico are shown as coming later.
-  - The party is always three heroes (four with four players), and the AI
-    plays whoever is missing. Alone, you lead two AI companions; two players
-    share one, the third hero, and either can swap into it. D-pad ↓ or F
-    switches (one swap at a time, so two players pressing together never
-    fight over a hero). With three or four players there are no companions
-    and switching is off. Online, the same rule counts everyone in the room.
+  - The opening follows the story, with no AI companions: alone you are
+    Percy; a second player is Grover, a third Annabeth, a fourth Clarisse.
+    The hero select offers no other heroes then, and switching does nothing.
+    Someone joining or leaving mid-opening adds or removes the matching hero.
+  - From Camp Half-Blood on, each player picks any hero they have unlocked,
+    and the party is three heroes (four with four players): the AI plays
+    whoever is missing, from the unlocked heroes. Arriving in camp at the end
+    of the opening, Annabeth and Grover are summoned at Percy's side. Alone,
+    you lead two AI companions; two players share one, the third hero, and
+    either can swap into it. D-pad ↓ or F switches (one swap at a time, so two
+    players pressing together never fight over a hero). With three or four
+    players there are no companions and switching is off. Online, the same
+    rules count everyone in the room (the host hands out the story heroes).
   - Join and leave any time, mid-chapter, at no cost: a player who joins
     (Start on a controller, or online) takes over a companion's hero where it
     stands, with its health; a player who leaves, or whose controller is
     unplugged for two seconds, hands their hero to the AI, and gets it back
     if they return.
+  - Companions follow you and never start a fight: they go only for monsters
+    already in the battle (fighting, hit by a player, or in a group whose
+    alarm is up), and come back to you when it's over. Monsters notice
+    players, not companions, so a companion walking behind you never wakes a
+    group or a scout; you pick every fight.
   - Companions don't walk off ledges (they slide along the edge, and dodge
     only where there's floor to land on).
   - A boss's health grows with the party: 60% more for each extra player,
@@ -110,7 +138,8 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     player nearer to it.
 - **Falling in a boss fight:** if the whole party is down, it comes back
   just inside the arena door after a moment, with two seconds of safety, to
-  try again; the boss keeps the wounds it has taken.
+  try again; the boss keeps the wounds it has taken. (In chapter 1, in the
+  room where Mrs. Dodds last fought, as far from her as it can.)
 - **The Mist and True Sight:** clicking the right stick (or V) repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
@@ -122,7 +151,10 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     online) and go back to their business.
   - True Sight turns the disguised ones, with a puff of Mist, into creatures
     nothing like people: Mist serpents, spiders and ghosts (by chapter). Then
-    they can be fought, and they stay revealed. Real mortals stay people,
+    they can be fought, and they stay revealed (in chapter 1 they follow the
+    view instead: the Mist back up makes them people again, still hitting
+    you). Once the fight is on there, True Sight lasts about 12 s and refills
+    in about 7. Real mortals stay people,
     with a soft calm outline. A monster you killed is gone: that "person"
     isn't there when you come back, and Continue keeps it so.
 - **Battles, as in Minecraft Dungeons:** the monsters are already there when
@@ -131,7 +163,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   and more as the alarm runs through the group (the nearest join first); pick
   the scouts off at range before they run back and you can take a group a few
   at a time, or charge in and take it all at once. Companions leave a group
-  milling about to you unless it's right by them.
+  milling about to you.
   - The rooms you fight in are large and open: combat rooms fill their part of
     the map, one on the way to the boss is a battleground two rooms long, with
     boulders, columns or stubs of wall to fight round. Each chapter goes: a
@@ -288,8 +320,8 @@ across every screen.
 | `R`: join order and room generation (for host migration) | host presence | host |
 | `ev`: effects, telegraphs, projectiles and hazards of what that screen runs | topic, batched every 50 ms | anyone |
 | `hit`: a guest's hero hit monsters | topic, guest → host | host applies it |
-| `hurt`: a monster hit someone's hero | topic, host → owner | that screen applies it |
-| `act`: freed a captive, opened a chest, revealed a disguise, objective actions, took the way out, reached the school bus, asked to skip a cutscene | topic, guest → host | host |
+| `hurt`: a monster hit someone's hero (or Mrs. Dodds's shriek paralyzed it) | topic, host → owner | that screen applies it |
+| `act`: freed a captive, opened a chest, revealed a disguise, objective actions (in chapter 1, True Sight on or off: the view is shared), took the way out, reached the school bus, asked to skip a cutscene | topic, guest → host | host |
 | `load`: the host is building a level | topic, host → all | guests wait |
 | `done`: the chapter is complete | topic, host → all | everyone |
 | `swap`, `swapok`, `swapno`: swapping into the AI companion | topic, guest ↔ host | host grants one at a time |
@@ -332,6 +364,7 @@ across every screen.
 | `game/js/ui/tracker.js` | Where to go: the goal line, the edge arrow, the beam and the footprints |
 | `game/js/entities/ratRules.js`, `story/prologueHints.js` | The prologue's rats (loiter, notice, dash, leash) and its how-to-play hints |
 | `game/js/entities/mistPeople.js` | People in the Mist: what the disguised really are, and the lines they scold you with |
+| `game/js/objectives/museum.js`, `game/js/story/museumRules.js` | Chapter 1: the calm walk to Mrs. Dodds, the reveal and her lines, the hunt by the people in the Mist (hidden blows), her shriek and three flights; the rules, pure and tested |
 | `game/js/ui/greekTiming.js`, `ui/greekText.js`, `world/liveSign.js` | Greek letters settling into English: the timings, on the page, on painted signs and the bus |
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
@@ -342,7 +375,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

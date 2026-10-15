@@ -1,12 +1,20 @@
-// The party. Heroes are played by humans or by AI companions, and the party
-// is always three heroes (four with four humans): the AI plays whoever is
-// missing.
-//   1 human    leads two companions (chosen on the hero select)
-//   2 humans   one companion, the third hero: either human can swap into it
-//   3–4        no companions, and switching does nothing
+// The party. Heroes are played by humans or by AI companions; the rules are
+// in partyRules.js (pure, tested):
+//   the opening   one hero per person in story order (Percy, then Grover,
+//                 Annabeth, Clarisse) and no AI companions: alone you are
+//                 Percy, and switching does nothing
+//   from camp on  the party is three heroes (four with four humans), and the
+//                 AI plays whoever is missing, from the unlocked heroes:
+//     1 human    leads two companions (chosen on the hero select)
+//     2 humans   one companion, the third hero: either human can swap into it
+//     3–4        no companions, and switching does nothing
+// Arriving in camp at the end of the opening, the companions are summoned
+// next to the party. Companions follow their leader and never start a fight:
+// they only go for monsters already in the battle (companionShouldEngage).
 // Joining and leaving never costs anything: a player who joins takes over a
 // companion's hero (with its health and place), and a player who leaves (or
-// whose controller disconnects) hands their hero to the AI.
+// whose controller disconnects) hands their hero to the AI (in the opening
+// the hero goes, with them).
 // The same rule counts every human in an online room (the host runs the
 // companions). Companions drive their hero through a virtual input device, so
 // they use exactly the same kits, combos, jumps and dodges as a player.
@@ -16,12 +24,12 @@
 // over one hero (the first press wins, the second is refused).
 import * as THREE from 'three/webgpu';
 import { HEROES, HERO_IDS } from './heroes/index.js';
+import { companionsWanted, companionShouldEngage, storyAssign, storyHeroes } from './partyRules.js';
+export { companionsWanted };
 
 const tmp = new THREE.Vector3();
 export const SWAP_LOCK = 0.5;   // seconds
 
-// How many AI companions a party of `humans` people has.
-export function companionsWanted(humans) { return Math.max(0, 3 - humans); }
 const PAD_GONE = 2;   // seconds a controller can be unplugged before the AI plays on for its player
 
 export class Companion {
@@ -47,15 +55,14 @@ export class Companion {
     this.think -= dt; this.abilityT -= dt; this.rangedT -= dt; this.dodgeT -= dt; this.jumpT -= dt;
     const downed = g.players.find((q) => q !== p && q.downed && q.pos.distanceTo(p.pos) < 22);
     const anchor = lead ? lead.pos : p.pos;
+    // only a monster already in the battle (a person started it), not too far from the leader:
+    // companions never wake a group milling about or a scout at its post
     let target = null, td = 1e9;
+    const leash = g.mode === 'prologue' ? 8 : 13;
     for (const e of g.enemies) {
-      if (e.dead || e.untargetable || e.disguised || e.isDummy) continue;
-      // the prologue is the player's training: companions leave loitering rats alone and help once one attacks;
-      // in a chapter they leave a group milling about to the player (who picks the fight), unless it is right by them
-      const training = g.mode === 'prologue';
+      if (!companionShouldEngage(e)) continue;
       const d = e.pos.distanceTo(p.pos), da = e.pos.distanceTo(anchor);
-      if (e.loiter && !e.aggro && (training || (e.loiter.alertT == null && da > 5))) continue;
-      if (da > (training ? 8 : 13)) continue;
+      if (da > leash) continue;
       if (d < td) { td = d; target = e; }
     }
     if (lead && p.pos.distanceTo(lead.pos) > 26) this.regroup(lead);
@@ -191,8 +198,32 @@ export class Companion {
 }
 
 export class Party {
-  constructor(game) { this.game = game; this.companions = new Map(); this.lockUntil = 0; this.chosen = null; }
-  clear() { this.companions.clear(); }
+  constructor(game) { this.game = game; this.companions = new Map(); this.lockUntil = 0; this.chosen = null; this.forceOpening = false; this.wasOpening = null; }
+  clear() { this.companions.clear(); this.wasOpening = null; }
+  // Is the game in the opening (the prologue, the cutscenes, chapters 1 and 2
+  // played as the story)? Then the party follows the story and has no AI.
+  // (forceOpening: a session about to start the opening, or Continue into it.)
+  get opening() {
+    const g = this.game, o = g.opening;
+    if (!o || o.done) return false;
+    if (this.forceOpening) return true;
+    return g.mode === 'prologue' || g.mode === 'loading-prologue' || g.mode === 'cutscene' || !!g.openingChapter;
+  }
+  // The hero a person joining now plays: in the opening the next story hero,
+  // else the first unlocked hero nobody has.
+  joinHero() {
+    const g = this.game;
+    const humans = g.players.filter((q) => !q.ai && !q.remote);
+    if (this.opening) { const used = new Set(humans.map((q) => q.hero)); return storyHeroes(humans.length + 1).find((h) => !used.has(h)) ?? 'percy'; }
+    const used = new Set(g.players.map((q) => q.hero));
+    return HERO_IDS.find((h) => !used.has(h) && (g.heroUnlocked?.(h) ?? true)) ?? HERO_IDS.find((h) => !used.has(h)) ?? 'percy';
+  }
+  // In the opening, does someone play a hero the story doesn't give them (or is there a companion)?
+  storyOff() {
+    const g = this.game, humans = g.players.filter((q) => !q.ai && !q.remote);
+    const want = storyAssign(humans.map((q) => q.hero));
+    return humans.some((q, i) => q.hero !== want[i]) || g.players.some((q) => q.ai && !q.remote);
+  }
   add(player) {
     player.ai = true;
     player.device = 'ai' + player.index;
@@ -201,6 +232,10 @@ export class Party {
     return c;
   }
   update(dt) {
+    // into or out of the opening (arriving in camp: the companions are summoned), or a story hero to put right
+    const op = this.opening;
+    if (!this.game.online?.live && !this.noFill && (op !== this.wasOpening || (op && this.storyOff()))) this.fill();
+    this.forceOpening = false;
     for (const c of this.companions.values()) c.update(dt);
     this.watchPads(dt);
   }
@@ -273,24 +308,51 @@ export class Party {
     return next;
   }
   // Offline: bring the party to the rule above (companions added near the
-  // first human, extra ones removed), and set game.party.
+  // first human, extra ones removed; in the opening the story heroes and no
+  // companions), and set game.party.
   fill() {
     const g = this.game;
     if (g.online?.live) return;
     if (this.noFill) { this.setParty(); return; }
+    const opening = this.opening, arriving = this.wasOpening === true && !opening;
+    this.wasOpening = opening;
+    const gone = (q) => { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); };
+    if (opening) {
+      // no companions, and each person plays their story hero
+      for (const q of g.players.filter((x) => x.ai && !x.remote)) gone(q);
+      const humans = g.players.filter((q) => !q.ai && !q.remote);
+      const want = storyAssign(humans.map((q) => q.hero));
+      humans.forEach((q, i) => { if (q.hero !== want[i]) g.changeHero?.(q, want[i], { quiet: true }); });
+      this.setParty();
+      return;
+    }
     const humans = g.players.filter((q) => !q.ai && !q.remote);
     // a companion playing a hero a person now plays goes first
-    for (const q of g.players.filter((x) => x.ai && !x.remote && humans.some((h) => h.hero === x.hero))) { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); }
+    for (const q of g.players.filter((x) => x.ai && !x.remote && humans.some((h) => h.hero === x.hero))) gone(q);
     const ais = g.players.filter((q) => q.ai && !q.remote);
-    const want = companionsWanted(humans.length);
-    for (const q of ais.slice(want)) { g.removePlayer(q); g.players.splice(g.players.indexOf(q), 1); }
+    const unlocked = (h) => HEROES[h] && !HEROES[h].soon && (g.heroUnlocked?.(h) ?? true);
+    const want = companionsWanted(humans.length, { available: HERO_IDS.filter(unlocked).length });
+    for (const q of ais.slice(want)) gone(q);
+    const added = [];
     for (let n = ais.length; n < want && humans.length; n++) {
       const used = new Set(g.players.map((q) => q.hero));
-      const id = [...(this.chosen ?? []), ...HERO_IDS].find((h) => !used.has(h) && HEROES[h] && !HEROES[h].soon && (g.heroUnlocked?.(h) ?? true));
+      const id = [...(this.chosen ?? []), ...HERO_IDS].find((h) => !used.has(h) && unlocked(h));
       if (!id) break;
       const p = g.addPlayer('ai' + g.players.length, id);
       this.add(p);
+      if (arriving && humans[0]) {
+        // summoned at the leader's side, a little behind
+        const lead = humans[0], k = added.length ? 1 : -1, f = lead.facing ?? 0;
+        p.spawn(lead.pos.clone().add(new THREE.Vector3(Math.cos(f) * 1.6 * k - Math.sin(f) * 1.4, 0.2, -Math.sin(f) * 1.6 * k - Math.cos(f) * 1.4)));
+        p.facing = f;
+      }
       g.fx?.summonCircle?.(p.pos, 0xffd84a);
+      added.push(p);
+    }
+    if (arriving && added.length) {
+      const names = added.map((q) => HEROES[q.hero]?.name ?? q.hero);
+      g.toast?.(`${names.join(' and ')} join${names.length > 1 ? '' : 's'} your party`, 'big');
+      g.audio?.ui?.('buy');
     }
     this.setParty();
   }

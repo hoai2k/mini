@@ -5,6 +5,10 @@
 // disguised monsters inside the ring show their true form, and walls made of
 // Mist (B.mist_wall) dissolve to reveal hidden places. True Sight drains a
 // meter, faster where the Mist is thick; it refills while the Mist is back.
+// A chapter's objective may take part (chapter 1, objectives/museum.js):
+// handler.sightChanged(on, hero) hears every toggle, handler.ownLook keeps
+// the scan from unmasking anyone (the objective decides who looks like what),
+// and drainMul / refillMul ease the meter once the fight is on.
 import * as THREE from 'three/webgpu';
 import { U } from './gfx/materials.js';
 import { B } from './world/blocks.js';
@@ -24,11 +28,12 @@ export class Mist {
     this.scanT = 0;
     this.walls = [];         // remaining Mist-wall blocks in the level
     this.revealedWalls = 0;
+    this.drainMul = 1; this.refillMul = 1;
   }
   // Called when a level loads.
   setup(thickness, world) {
     this.thickness = thickness;
-    this.meter = 1; this.active = false; this.radius = 0; this.source = null;
+    this.meter = 1; this.active = false; this.radius = 0; this.source = null; this.drainMul = 1; this.refillMul = 1;
     U.sightRadius.value = 0;
     this.walls = [];
     this.revealedWalls = 0;
@@ -36,17 +41,18 @@ export class Mist {
   }
   get available() { return this.thickness > 0; }
   // Drain per second while seeing, refill per second while not.
-  get drain() { return 0.07 + 0.16 * this.thickness; }
-  get refill() { return 0.16 - 0.06 * this.thickness; }
+  get drain() { return (0.07 + 0.16 * this.thickness) * this.drainMul; }
+  get refill() { return (0.16 - 0.06 * this.thickness) * this.refillMul; }
   toggle(player) {
     if (!this.available) return;
-    if (this.active) { this.close(); return; }
+    if (this.active) { this.close(); this.game.mission?.handler?.sightChanged?.(false, player); return; }
     if (this.meter < 0.15) { this.game.toast?.('The Mist is too thick — wait a moment'); this.game.audio?.ui?.('deny'); return; }
     this.active = true; this.source = player;
     this.center.copy(player.pos);
     if (!this.game.audio?.sample?.('sight', { gain: 0.8 })) this.game.audio?.energy?.('summon');
     this.game.fx?.screenWave?.(player.pos.clone().setY(player.pos.y + 1), 0.8, 0.5);
     this.scan();
+    this.game.mission?.handler?.sightChanged?.(true, player);
   }
   close(reason) {
     if (!this.active) return;
@@ -58,7 +64,7 @@ export class Mist {
     if (!this.available) { if (this.radius > 0) { this.radius = 0; U.sightRadius.value = 0; } return; }
     if (this.active) {
       this.meter -= this.drain * dt;
-      if (this.meter <= 0) { this.meter = 0; this.close('The Mist closes in again'); }
+      if (this.meter <= 0) { this.meter = 0; this.close('The Mist closes in again'); g.mission?.handler?.sightChanged?.(false, this.source); }
       const src = this.source && !this.source.dead ? this.source : g.players.find((p) => !p.dead);
       if (src) this.center.lerp(src.pos, Math.min(1, dt * 4));
       this.radius = Math.min(FULL_RADIUS, this.radius + GROW * dt);
@@ -75,7 +81,7 @@ export class Mist {
   // Reveal what the ring has reached.
   scan() {
     const g = this.game;
-    for (const e of g.enemies) if (e.disguised && this.inside(e.pos)) e.reveal?.();
+    if (!g.mission?.handler?.ownLook) for (const e of g.enemies) if (e.disguised && this.inside(e.pos)) e.reveal?.();
     if (g.mission?.revealDisguisedBoss && g.mission.disguisedBoss && this.inside(g.mission.disguisedBoss.pos)) g.mission.revealDisguisedBoss();
     if (!this.walls.length) return;
     const keep = [];

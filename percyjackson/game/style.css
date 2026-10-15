@@ -480,4 +480,6 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 .say { position: absolute; transform: translate(-50%, -100%); max-width: 220px; padding: 5px 10px; background: #fffaf0; color: #17130f; font: 700 15px var(--font); line-height: 1.2; text-align: center; border: 2px solid #17130f; border-radius: 10px; box-shadow: 0 3px 0 rgba(0, 0, 0, .35); pointer-events: none; z-index: 6; animation: say-in .18s ease-out; transition: opacity .25s; white-space: normal; }
 .say::after { content: ''; position: absolute; left: 50%; bottom: -9px; margin-left: -7px; border: 7px solid transparent; border-top-color: #17130f; border-bottom: 0; }
 .say.out { opacity: 0; }
+.say.boss { max-width: 330px; font-size: 16px; background: #2a1418; color: #ffe8cc; border-color: #ff7a1a; box-shadow: 0 0 0 2px #17130f, 0 4px 14px rgba(0, 0, 0, .5); z-index: 7; }
+.say.boss::after { border-top-color: #ff7a1a; }
 @keyframes say-in { from { opacity: 0; transform: translate(-50%, -80%) scale(.85); } }
