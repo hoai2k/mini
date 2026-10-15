@@ -2313,15 +2313,15 @@ export const ASSET_LIST = {
   },
   "aq-guppy": {
     "file": "assets/games/aq-guppy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-tetra": {
     "file": "assets/games/aq-tetra.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-clown": {
     "file": "assets/games/aq-clown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-betta": {
     "file": "assets/games/aq-betta.png",

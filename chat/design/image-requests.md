@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-534 delivered, 15 requested, 549 in total.
+537 delivered, 12 requested, 549 in total.
 
 ## Brand
 
@@ -1434,7 +1434,7 @@ Production canvas: 256 x 256, aspect ratio 256:256. Genuine transparent alpha, n
 - **Size:** 256 x 256, transparent
 - **Used for:** Aquarium: the guppy swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny playful guppy with a slim orange-and-cream body and a big flowing fan tail in bright rainbow blue, purple and pink speckles. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1446,7 +1446,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Aquarium: the neon tetra swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny shy neon tetra: slim silver body with a glowing electric-blue stripe along the top half and a vivid red stripe along the lower back half. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1458,7 +1458,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Aquarium: the clownfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a small bold clownfish: rounded bright orange body with three white bands edged in black, black-rimmed orange fins, a determined little face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.

@@ -7276,5 +7276,41 @@
     "exportOperation": "resample to requested canvas",
     "accepted": true,
     "review": "Reviewed face effect, theme style and composition; verified dimensions, decoding and transparent alpha."
+  },
+  {
+    "id": "CH-G88",
+    "file": "assets/games/aq-guppy.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny playful guppy with a slim orange-and-cream body and a big flowing fan tail in bright rainbow blue, purple and pink speckles. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true
+  },
+  {
+    "id": "CH-G89",
+    "file": "assets/games/aq-tetra.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny shy neon tetra: slim silver body with a glowing electric-blue stripe along the top half and a vivid red stripe along the lower back half. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true
+  },
+  {
+    "id": "CH-G90",
+    "file": "assets/games/aq-clown.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a small bold clownfish: rounded bright orange body with three white bands edged in black, black-rimmed orange fins, a determined little face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true
   }
 ]
