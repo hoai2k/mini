@@ -2337,15 +2337,15 @@ export const ASSET_LIST = {
   },
   "aq-catfish": {
     "file": "assets/games/aq-catfish.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-piranha": {
     "file": "assets/games/aq-piranha.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-lionfish": {
     "file": "assets/games/aq-lionfish.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-shark": {
     "file": "assets/games/aq-shark.png",

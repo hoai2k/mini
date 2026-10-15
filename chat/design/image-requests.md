@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-540 delivered, 9 requested, 549 in total.
+543 delivered, 6 requested, 549 in total.
 
 ## Brand
 
@@ -1506,7 +1506,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 256, transparent
 - **Used for:** Aquarium: the catfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a lazy armoured bottom-dwelling catfish: a long low body, flat belly, brown and olive with darker spots, long whiskers (barbels) at the mouth, sleepy half-closed eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1518,7 +1518,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 256 x 256, transparent
 - **Used for:** Aquarium: the piranha swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a feisty cartoon piranha: a deep silver-grey body with a bright red belly, an underbite with a neat row of small white triangular teeth, frowning eyebrows, funny rather than scary. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1530,7 +1530,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 512, transparent
 - **Used for:** Aquarium: the lionfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a dramatic lionfish: red, cream and maroon zebra stripes, a fan of long striped spiky fins and feathery pectoral fins spread wide like a lion's mane, a sly patient face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
