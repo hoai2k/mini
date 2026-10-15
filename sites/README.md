@@ -45,10 +45,10 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   imaginary bands). Published at https://hoai2k.github.io/mini/sites/railway/.
   Its `media/` folder holds the original photo and video drops and is not
   deployed; the page serves the web copies in `assets/`.
-- [`langanfrontandwane/`](langanfrontandwane/) — Langan, Frost & Wane, a
+- [`langanfrostandwane/`](langanfrostandwane/) — Langan, Frost & Wane, a
   real fantasy-folk trio from West Philadelphia (not part of the Ygent
   catalogue), styled as a lost late-sixties record sleeve. Published at
-  https://hoai2k.github.io/mini/sites/langanfrontandwane/. Uses the band's
+  https://hoai2k.github.io/mini/sites/langanfrostandwane/. Uses the band's
   own photographs and covers, copied into `assets/`; its README records
   where each came from, and `image-requests.md` lists hand-drawn art it
   could take.

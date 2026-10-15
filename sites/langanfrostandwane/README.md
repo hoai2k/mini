@@ -2,7 +2,7 @@
 
 Website for Langan, Frost & Wane, a real fantasy-folk / acid-folk trio from
 West Philadelphia: Brian Langan, Robert James Frost (RJ Gilligan) and Nam
-Wayne. Published at https://hoai2k.github.io/mini/sites/langanfrontandwane/.
+Wayne. Published at https://hoai2k.github.io/mini/sites/langanfrostandwane/.
 Like `railway/`, this is a real band and not part of the Ygent catalogue.
 
 The look is a lost late-sixties record sleeve: cream paper and brown ink,
