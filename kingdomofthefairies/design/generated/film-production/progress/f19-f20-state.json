@@ -1,0 +1,10 @@
+{
+  "completed": [
+    "prince-wall-up-a",
+    "prince-wall-up-a-tinted",
+    "prince-wall-up-b",
+    "prince-wall-up-b-tinted"
+  ],
+  "remaining": 96,
+  "notes": "100 requested F19/F20 assets extracted. Legacy reveller-lady-idle-b is a separate manifest request without an active production prompt. Work in batches of four, save native originals immediately, use small previews only, review before delivery. Rejected first A preserved under progress/rejected/f19-wrong-knee."
+}

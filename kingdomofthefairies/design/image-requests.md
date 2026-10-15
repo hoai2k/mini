@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 354 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 254 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 258 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2006,10 +2006,10 @@ Requested 14 October 2026 for the redesigned climbs of Act V (the cliff and the 
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-wall-up-a` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | requested |
-| `prince-wall-up-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | requested |
-| `prince-wall-up-b` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-up-b-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
+| `prince-wall-up-a` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | [delivered](../assets/prince-wall-up-a.webp) |
+| `prince-wall-up-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-a` | [delivered](../assets/prince-wall-up-a-tinted.webp) |
+| `prince-wall-up-b` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-up-b.webp) |
+| `prince-wall-up-b-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-up-b-tinted.webp) |
 | `prince-wall-up-c` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-b` | requested |
 | `prince-wall-up-c-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-climb-b` | requested |
 | `prince-wall-up-d` | 360 × 440 | bottom centre (lowest boot) | new | requested |
