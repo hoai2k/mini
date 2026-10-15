@@ -2349,11 +2349,11 @@ export const ASSET_LIST = {
   },
   "aq-shark": {
     "file": "assets/games/aq-shark.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-tank": {
     "file": "assets/games/aq-tank.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-aquarium": {
     "file": "assets/icons/game-aquarium.png",

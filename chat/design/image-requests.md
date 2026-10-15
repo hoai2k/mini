@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-543 delivered, 6 requested, 549 in total.
+545 delivered, 4 requested, 549 in total.
 
 ## Brand
 
@@ -1542,7 +1542,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 512 x 256, transparent
 - **Used for:** Aquarium: the reef shark swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
 - **Stand-in until delivered:** A drawn fish.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a small cartoon reef shark, the tank's top predator: a sleek grey-blue body with a white belly, black-tipped fins, a tall dorsal fin, a cheeky toothy grin, friendly rather than scary. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -1554,7 +1554,7 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 - **Size:** 2048 x 1024, opaque
 - **Used for:** Aquarium: the water behind the fish. The tank is wider than the screen, so it tiles sideways; an upright phone shows a slice of it, a computer a wider one.
 - **Stand-in until delivered:** A drawn tank.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. A wide side view inside a bright freshwater aquarium: clear turquoise water fading to deeper blue at the bottom, soft light rays slanting down from the surface at the top, a sandy pebble floor across the bottom 12% with a few smooth rocks, and a few tall green swaying plants rooted in the sand. Leave the middle of the water open (the fish swim there). No fish, no text. Tiles seamlessly left to right.
