@@ -590,7 +590,8 @@ export class Mission {
     this.disguisedBoss = null;
     this.spawnBoss(this.bossRoom, pos);
   }
-  spawnBoss(room, pos) {
+  // holdTitle: the title banner waits (the museum shows it after Mrs. Dodds has spoken)
+  spawnBoss(room, pos, { holdTitle = false } = {}) {
     const g = this.game;
     this.bossRoom = room;
     const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.difficulty);
@@ -598,7 +599,7 @@ export class Mission {
     this.boss = boss;
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
-    toast(boss.B.title, 'title boss');
+    if (!holdTitle) toast(boss.B.title, 'title boss');
     g.audio?.boss(); g.audio?.setMusic('boss');
     g.hud.setBoss(boss);
     g.shake(0.4);

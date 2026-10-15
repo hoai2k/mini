@@ -129,7 +129,7 @@ export class MuseumObjective {
     g.mist.meter = 1; g.mist.drainMul = 0;   // (it stays lifted while she talks)
     if (!g.mist.active && lead) g.mist.toggle(lead);
     m.bossSpawned = true;
-    m.spawnBoss(this.room, pos);
+    m.spawnBoss(this.room, pos, { holdTitle: true });   // (her title would cover what she says)
     const b = m.boss;
     b.standBy = true; b.untargetable = true;
     b.skipPatterns = new Set(['summon_pups']); b.dmg *= DODDS_DMG;   // (her pets are the museum crowd)
@@ -167,7 +167,8 @@ export class MuseumObjective {
     this.huntT = HUNT_FIRST;
     this.easeMist();
     g.mist.meter = Math.max(g.mist.meter, 0.85);
-    toast('The museum crowd turns toward you…', 'big');
+    if (b && !b.dead) toast(b.B.title, 'title boss');
+    setTimeout(() => toast('The museum crowd turns toward you…', 'big'), 2600);
     this.goal();
   }
   easeMist() { this.g.mist.drainMul = DRAIN; this.g.mist.refillMul = REFILL; }
