@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-534 delivered, 534 in total.
+534 delivered, 15 requested, 549 in total.
 
 ## Brand
 
@@ -1428,6 +1428,138 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Production canvas: 256 x 256, aspect ratio 256:256. Genuine transparent alpha, no background glow or cast shadow.
 ```
 
+### CH-G88 · Guppy sprite
+
+- **File:** `chat/assets/games/aq-guppy.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the guppy swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny playful guppy with a slim orange-and-cream body and a big flowing fan tail in bright rainbow blue, purple and pink speckles. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G89 · Neon tetra sprite
+
+- **File:** `chat/assets/games/aq-tetra.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the neon tetra swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a tiny shy neon tetra: slim silver body with a glowing electric-blue stripe along the top half and a vivid red stripe along the lower back half. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G90 · Clownfish sprite
+
+- **File:** `chat/assets/games/aq-clown.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the clownfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a small bold clownfish: rounded bright orange body with three white bands edged in black, black-rimmed orange fins, a determined little face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G91 · Betta sprite
+
+- **File:** `chat/assets/games/aq-betta.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the betta swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a show-off betta fighting fish: a small deep royal-blue and crimson body with huge flowing veil fins and tail flaring out dramatically, a proud cocky face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G92 · Angelfish sprite
+
+- **File:** `chat/assets/games/aq-angel.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the angelfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a curious freshwater angelfish: a tall flat triangular silver body with bold black vertical stripes, a touch of gold on the head, very long trailing top and bottom fins, big wondering eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G93 · Pufferfish sprite
+
+- **File:** `chat/assets/games/aq-puffer.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the pufferfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a cute round pufferfish, NOT puffed up: a plump yellow-and-cream body with brown spots, tiny fins, small soft spines lying flat, a little pouting mouth and huge eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G94 · Catfish sprite
+
+- **File:** `chat/assets/games/aq-catfish.png`
+- **Size:** 512 x 256, transparent
+- **Used for:** Aquarium: the catfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a lazy armoured bottom-dwelling catfish: a long low body, flat belly, brown and olive with darker spots, long whiskers (barbels) at the mouth, sleepy half-closed eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G95 · Piranha sprite
+
+- **File:** `chat/assets/games/aq-piranha.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** Aquarium: the piranha swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a feisty cartoon piranha: a deep silver-grey body with a bright red belly, an underbite with a neat row of small white triangular teeth, frowning eyebrows, funny rather than scary. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G96 · Lionfish sprite
+
+- **File:** `chat/assets/games/aq-lionfish.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Aquarium: the lionfish swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a dramatic lionfish: red, cream and maroon zebra stripes, a fan of long striped spiky fins and feathery pectoral fins spread wide like a lion's mane, a sly patient face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G97 · Reef shark sprite
+
+- **File:** `chat/assets/games/aq-shark.png`
+- **Size:** 512 x 256, transparent
+- **Used for:** Aquarium: the reef shark swimming in the shared tank and on its card in the fish picker (the game flips it to swim left and squashes it for the chomp and puff animations).
+- **Stand-in until delivered:** A drawn fish.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a small cartoon reef shark, the tank's top predator: a sleek grey-blue body with a white belly, black-tipped fins, a tall dorsal fin, a cheeky toothy grin, friendly rather than scary. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G98 · Aquarium tank
+
+- **File:** `chat/assets/games/aq-tank.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** Aquarium: the water behind the fish. The tank is wider than the screen, so it tiles sideways; an upright phone shows a slice of it, a computer a wider one.
+- **Stand-in until delivered:** A drawn tank.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. A wide side view inside a bright freshwater aquarium: clear turquoise water fading to deeper blue at the bottom, soft light rays slanting down from the surface at the top, a sandy pebble floor across the bottom 12% with a few smooth rocks, and a few tall green swaying plants rooted in the sand. Leave the middle of the water open (the fish swim there). No fish, no text. Tiles seamlessly left to right.
+```
+
 ## 360° worlds
 
 Panoramas for the 360° background effects: the room behind you is replaced by the world, and tilting your phone (or turning your head on a laptop) looks around it. Each is a full equirectangular panorama: 2:1, the horizon exactly at half height, the left and right edges joining seamlessly, straight up at the top edge and straight down at the bottom. Keep the band around the horizon interesting all the way round, since that is what people see most. No people, no text.
@@ -2763,6 +2895,18 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Single 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.
 ```
 
+### CH-I105 · Aquarium icon
+
+- **File:** `chat/assets/icons/game-aquarium.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Aquarium card in the game picker.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ## Theme title screens
 
 A title background and logo for each theme you can pick in Settings > Theme: Teen (the default), Art (mid-century French New Wave cinema posters) and Classical (18th-century French Rococo). The Kid theme keeps the original title art.
@@ -4062,6 +4206,18 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 Single 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.
 ```
 
+### CH-N104 · Aquarium icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-aquarium.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Aquarium card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
 ## Effect and game icons, Classical theme
 
 The Classical theme's icon for every effect and game: 18th-century French Rococo painting in a gilt frame, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
@@ -5283,6 +5439,18 @@ Single 256x256 square app icon. Keep scene contained within its rounded-square t
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 Single 256x256 square app icon. Keep scene contained within its rounded-square theme badge; actual transparent alpha outside badge, no outer glow. The specific face distortion is the whole subject, no extra characters or interface. Normal-sized head with two visibly oversized pasted-on eyes and one hugely enlarged smiling mouth extending laterally beyond the face outline; humorous clean collage distortion.
+```
+
+### CH-R104 · Aquarium icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-aquarium.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Aquarium card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -6520,4 +6688,16 @@ Single dark charcoal-to-indigo rounded-square tile, transparent alpha strictly o
 RENDERING REQUIREMENT: Drawn 2D vector-style editorial illustration, large clean flat colour planes, crisp geometric shapes, simplified clumped hair, smooth stylised skin, subtle neon edge accents. Absolutely no photographic textures, skin pores, individual hair strands, realistic teeth or 3D render. Natural older-teen head proportions except requested distortion.
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a giant mouth so wide they stick out past both sides of the head, on a normal-sized face. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 Single dark charcoal-to-indigo rounded-square tile, transparent alpha strictly outside. Two huge pasted-on drawn eyes and a huge smiling mouth extending past both sides of a normal-sized illustrated head. Exaggerated cutout effect.
+```
+
+### CH-K105 · Aquarium icon (second set)
+
+- **File:** `chat/assets/icons2/game2-aquarium.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Aquarium card in the game picker, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's hand dropping a fish into bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 ```
