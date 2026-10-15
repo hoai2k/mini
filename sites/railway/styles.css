@@ -248,12 +248,25 @@ a {
     transform: translateX(-50%);
   }
 }
+/* No marquee when motion is reduced: keep one line and let it swipe instead. */
 @media (prefers-reduced-motion: reduce) {
+  .ribbon {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .ribbon::-webkit-scrollbar {
+    display: none;
+  }
   .ribbon-track {
     animation: none;
-    width: auto;
-    flex-wrap: wrap;
-    justify-content: center;
+  }
+  .ribbon span {
+    scroll-snap-align: start;
+  }
+  .ribbon span:nth-child(10)::after {
+    content: none;
   }
   .ribbon span:nth-child(n + 11) {
     display: none;
