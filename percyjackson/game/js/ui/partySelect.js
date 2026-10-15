@@ -6,16 +6,21 @@
 // companions to choose, with two players one (the third hero, which either
 // can swap into in play); three or four play without companions.
 // "Play online" (Y) begins and opens the Iris-message lobby straight away.
+// A save that hasn't finished the opening plays it as the story goes
+// (partyRules.js): player 1 is Percy, player 2 Grover, then Annabeth and
+// Clarisse, with no companions and no other heroes to pick. After it, each
+// player picks any hero they have unlocked.
 //   confirm -> game.beginSession([{ device, hero, profile }], { companions: [heroId] })
 import { h, padSnap, toast } from './ui.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { PLAYER_COLORS } from '../entities/player.js';
 import { isMobile } from '../util.js';
 import { openStart } from './saves.js';
+import { selectOptions, STORY_HEROES } from '../partyRules.js';
 
 const ALL = Object.keys(HEROES);
 const devName = (d) => (d === 'kbm' ? 'Keyboard' : d === 'touch' ? 'Touch' : 'Controller ' + (+d.slice(3) + 1));
-const lockText = (id) => 'Coming in ' + (HEROES[id].unlock === 'book3' ? 'book 3' : HEROES[id].unlock === 'book2' ? 'book 2' : 'a later book');
+const lockText = (id) => { const u = HEROES[id].unlock, ch = /^ch(\d+)$/.exec(u ?? ''); return ch ? `Joins in chapter ${ch[1]}` : 'Coming in ' + (u === 'book3' ? 'book 3' : u === 'book2' ? 'book 2' : 'a later book'); };
 
 export function openSelect(game, { skipStart = false } = {}) {
   const ui = game.ui;
@@ -25,21 +30,30 @@ export function openSelect(game, { skipStart = false } = {}) {
   if (!skipStart && game.resume?.load()) {
     openStart(game, { onPlay: ({ resume }) => {
       if (!resume) { openSelect(game, { skipStart: true }); return; }
+      // (Continue into the opening: Percy alone, the story party; partyRules.js)
+      const opening = !game.opening.done && (resume.kind === 'opening' || !!resume.def?.opening);
       const { hero, companions } = game.resume.partyOf(resume);
-      game.beginSession([{ device: dev0, hero, profile: game.save.id }], { companions });
+      game.beginSession([{ device: dev0, hero: opening ? STORY_HEROES[0] : hero, profile: game.save.id }], { companions: opening ? [] : companions, opening });
       game.resume.apply(resume);
     } });
     return;
   }
   const P = game.profiles;
-  const last = ids.indexOf(game.save.data.lastHero);
+  // the opening: each slot plays its story hero; after it, the unlocked heroes
+  const opening = !game.opening?.done;
+  const unlocked = (id) => game.heroUnlocked?.(id) ?? true;
+  const allowed = (i) => selectOptions(i, { opening, ids, unlocked });
+  const firstFree = (i, used) => allowed(i).find((x) => !used.has(x)) ?? allowed(i)[0] ?? ids[0];
+  const last = allowed(0).includes(game.save.data.lastHero) ? ids.indexOf(game.save.data.lastHero) : ids.indexOf(firstFree(0, new Set()));
   const slots = game.selectSlots = [{ device: dev0, char: last < 0 ? 0 : last, ready: false, row: 0, prof: P.main.id }];
   let comps = [null, null], compsAuto = true;
 
   const heroOf = (s) => ids[s.char];
-  const compRows = () => (slots.length === 1 ? 2 : slots.length === 2 ? 1 : 0);
+  // (in the opening: player i is the story's hero i, whoever leaves)
+  const storyFix = () => { if (opening) slots.forEach((s, i) => { s.char = ids.indexOf(allowed(i)[0]); }); };
+  const compRows = () => (opening ? 0 : slots.length === 1 ? 2 : slots.length === 2 ? 1 : 0);
   const taken = () => new Set(slots.map(heroOf));
-  const defaults = () => { const used = taken(); const i = ids.indexOf(heroOf(slots[0])); return [1, 2, 3, 4, 5].map((k) => ids[(i + k) % ids.length]).filter((x) => !used.has(x)); };
+  const defaults = () => { const used = taken(); const i = ids.indexOf(heroOf(slots[0])); return [1, 2, 3, 4, 5].map((k) => ids[(i + k) % ids.length]).filter((x) => !used.has(x) && unlocked(x)); };
   // keep the companions valid: never a hero a player has, never twice
   const fixComps = () => {
     const used = taken();
@@ -52,9 +66,13 @@ export function openSelect(game, { skipStart = false } = {}) {
 
   const view = () => game.enterSelectView?.(slots);
   const redraw = () => ui.refresh('select');
-  const changeHero = (s, dir) => { s.char = (s.char + dir + ids.length) % ids.length; s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw(); };
-  const setHero = (s, i) => { s.char = i; s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw(); };
-  const compOptions = (j) => ids.filter((x) => !taken().has(x) && x !== comps[1 - j]);   // (the AI always plays whoever is missing)
+  const changeHero = (s, dir) => {
+    const opts = allowed(slots.indexOf(s)); if (opts.length < 2) return;
+    const k = opts.indexOf(heroOf(s));
+    s.char = ids.indexOf(opts[(k + dir + opts.length) % opts.length]); s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw();
+  };
+  const setHero = (s, i) => { if (!allowed(slots.indexOf(s)).includes(ids[i]) || s.char === i) return; s.char = i; s.ready = false; fixComps(); game.audio?.ui('move'); view(); redraw(); };
+  const compOptions = (j) => ids.filter((x) => unlocked(x) && !taken().has(x) && x !== comps[1 - j]);   // (the AI always plays whoever is missing)
   const changeComp = (j, dir) => {
     const opts = compOptions(j); const i = opts.indexOf(comps[j]);
     comps[j] = opts[(i + dir + opts.length) % opts.length]; compsAuto = false; game.audio?.ui('move'); redraw();
@@ -74,6 +92,7 @@ export function openSelect(game, { skipStart = false } = {}) {
     ui.close('select');
     game.save.data.lastHero = heroOf(slots[0]); game.save.write();
     game.exitSelectView?.();
+    storyFix();
     const companions = comps.slice(0, compRows()).filter(Boolean);
     // a save that hasn't finished the opening starts it (or carries on with it); online starts in camp
     game.beginSession(slots.map((s) => ({ device: s.device, hero: heroOf(s), profile: s.prof === 'new' ? P.create().id : s.prof })), { companions, start: online ? 'hub' : 'auto' });
@@ -82,14 +101,14 @@ export function openSelect(game, { skipStart = false } = {}) {
   const join = (device) => {
     if (slots.length >= 4 || slots.some((s) => s.device === device)) return;
     const used = taken();
-    const c = ids.findIndex((x) => !used.has(x));
+    const c = ids.indexOf(firstFree(slots.length, used));
     const usedProf = new Set(slots.map((s) => s.prof));
     let prof = P.slotDefault(slots.length);
     slots.push({ device, char: c < 0 ? slots.length % ids.length : c, ready: false, row: 0, prof: usedProf.has(prof.id) ? 'new' : prof.id });
-    fixComps(); slots[0].row = Math.min(slots[0].row, compRows());
+    storyFix(); fixComps(); slots[0].row = Math.min(slots[0].row, compRows());
     game.audio?.ui('buy'); view(); redraw();
   };
-  const leave = (s) => { slots.splice(slots.indexOf(s), 1); slots[0].row = 0; fixComps(); view(); redraw(); };
+  const leave = (s) => { slots.splice(slots.indexOf(s), 1); slots[0].row = 0; storyFix(); fixComps(); view(); redraw(); };
   // one event from one player's device
   const act = (s, ev) => {
     const i = slots.indexOf(s);
@@ -104,7 +123,8 @@ export function openSelect(game, { skipStart = false } = {}) {
 
   const chip = (id, s) => {
     const info = HEROES[id], idx = ids.indexOf(id);
-    if (idx < 0) return h('span', { class: 'chip locked', title: lockText(id), 'aria-label': `${info.name}: ${lockText(id)}` }, h('i', { style: '--c:#555' }, '🔒'));
+    if (opening && !allowed(slots.indexOf(s)).includes(id)) return null;   // (the story gives each player one hero)
+    if (idx < 0 || !unlocked(id)) return h('span', { class: 'chip locked', title: lockText(id), 'aria-label': `${info.name}: ${lockText(id)}` }, h('i', { style: '--c:#555' }, '🔒'));
     return h('button', { class: 'chip' + (s.char === idx ? ' on' : ''), title: info.name, 'aria-label': info.name, 'aria-pressed': String(s.char === idx), style: `--c:${info.color}`, onclick: () => setHero(s, idx) }, h('i', {}, info.name[0]));
   };
   const compRow = (j, s) => {
@@ -134,20 +154,20 @@ export function openSelect(game, { skipStart = false } = {}) {
         h('div', { class: 'cp' }, `Parent: ${info.parent}`),
         h('div', { class: 'cd' }, info.desc),
         h('div', { class: 'cg' }, h('b', {}, 'Godly power '), info.power),
-        h('div', { class: 'chips', role: 'group', 'aria-label': 'Choose a hero' }, ...ALL.map((x) => chip(x, s))),
+        opening ? null : h('div', { class: 'chips', role: 'group', 'aria-label': 'Choose a hero' }, ...ALL.map((x) => chip(x, s))),
         h('div', { class: 'arrows' },
-          h('button', { class: 'btn small', 'aria-label': 'Previous hero', onclick: () => changeHero(s, -1) }, '◀'),
+          opening ? null : h('button', { class: 'btn small', 'aria-label': 'Previous hero', onclick: () => changeHero(s, -1) }, '◀'),
           h('button', { class: 'btn small' + (s.ready ? ' primary' : ''), onclick: () => (s.ready && i === 0 ? begin() : act(s, 'a')) }, s.ready ? (i === 0 ? 'Ready: begin' : 'Ready ✓') : 'Ready'),
-          h('button', { class: 'btn small', 'aria-label': 'Next hero', onclick: () => changeHero(s, 1) }, '▶')),
+          opening ? null : h('button', { class: 'btn small', 'aria-label': 'Next hero', onclick: () => changeHero(s, 1) }, '▶')),
         i > 0 ? h('button', { class: 'linkbtn', onclick: () => leave(s) }, 'Leave') : null));
     }
-    const soon = ALL.filter((x) => ids.indexOf(x) < 0);
+    const soon = opening ? [] : ALL.filter((x) => ids.indexOf(x) < 0);
     const n = compRows();
     const party = n ? h('div', { class: 'party' }, h('h3', {}, n === 2 ? 'Your party' : 'The third hero'),
       h('div', { class: 'hint', style: 'margin:0 0 6px' }, n === 2 ? 'Companions follow you as allies. Switch to one in play with D-pad ↓ or F.' : 'An AI companion fights alongside you both. Either of you can swap into it with D-pad ↓ or F.'),
       h('div', { class: 'comps' }, ...[0, 1].slice(0, n).map((j) => compRow(j, slots[0])))) : null;
     el.appendChild(h('div', { class: 'select-wrap' },
-      h('div', { class: 'select-top' }, h('span', {}, 'Choose Your Hero')),
+      h('div', { class: 'select-top' }, h('span', {}, opening ? 'The Story Begins' : 'Choose Your Hero')),
       h('div', { class: 'select-mid', 'aria-hidden': 'true' }),
       h('div', { class: 'select-low' }, cards, party,
         h('div', { class: 'select-foot' },
@@ -155,7 +175,8 @@ export function openSelect(game, { skipStart = false } = {}) {
           h('button', { class: 'btn', onclick: () => openProfiles(game, redraw) }, 'Profiles'),
           h('div', { class: 'hint', style: 'margin:0;text-align:center' },
             soon.length ? h('div', {}, '🔒 ' + soon.map((x) => HEROES[x].name).join(' · ') + ': ' + lockText(soon[0])) : null,
-            h('div', {}, '◀ ▶ hero' + (n ? ' · ▲ ▼ companions' : '') + ' · X profile · A ready · Y online · Start begin')),
+            opening ? h('div', {}, 'The story begins with Percy. More players join as Grover, then Annabeth and Clarisse. At Camp Half-Blood you can choose any hero you have met.') : null,
+            h('div', {}, (opening ? '' : '◀ ▶ hero' + (n ? ' · ▲ ▼ companions' : '') + ' · ') + 'X profile · A ready · Y online · Start begin')),
           h('button', { class: 'btn', onclick: () => begin(true) }, 'Play online'),
           h('button', { class: 'btn primary', onclick: () => begin() }, 'Begin the Quest ▶')))));
   };

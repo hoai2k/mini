@@ -65,7 +65,7 @@ test('the walk to the bus: a very short quiet start, then a fight the rest of th
   for (const k of ['trench', 'nests', 'beats', 'movers']) assert.match(m, new RegExp(`\\b${k}\\b`), k);
   assert.match(read('entities/monsters.js'), /rat: \{[^}]*idle: 'loiter'/, 'only the rat loiters');
   assert.match(read('story/openingFlow.js'), /feet: false/, 'no footprints in the prologue');
-  assert.match(read('party.js'), /e\.loiter && !e\.aggro && \(training \|\|/, 'companions leave idle rats to the player (and a chapter group milling about, unless it is right by them)');
+  assert.match(read('party.js'), /if \(!companionShouldEngage\(e\)\) continue;/, 'companions leave idle rats and groups milling about to the player (partyRules.js; tested in party.test.mjs)');
 });
 test('every hint names the controls of the device being played', () => {
   for (const id of HINTS) for (const dev of ['kbm', 'pad0', 'touch']) assert.ok(prologueHint(id, dev).length > 8, `${id} ${dev}`);
