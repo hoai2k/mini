@@ -2,6 +2,7 @@
 // WebGPURenderer (WebGPU backend, falling back to WebGL2), and the
 // per-tier post-processing chain built from three.js TSL nodes.
 import * as THREE from 'three/webgpu';
+import { classifyGPU } from './gpuTier.js';
 import {
   pass, mrt, output, normalView, metalness, roughness, diffuseColor, velocity, emissive,
   vec2, vec3, vec4, float, uniform, sample, packNormalToRGB, unpackRGBToNormal, renderOutput,
@@ -19,6 +20,7 @@ import { motionBlur } from 'three/addons/tsl/display/MotionBlur.js';
 import { isMobile } from '../util.js';
 
 export const QUALITY_ORDER = ['low', 'medium', 'high', 'ultra'];
+export const TIER_BELOW = { ultra: 'high', high: 'medium', medium: 'low', low: null };
 export const QUALITY_LABEL = { low: 'Low / Mobile', medium: 'Medium', high: 'High', ultra: 'Ultra · Ray Traced' };
 
 // Tier presets. Everything the rest of the game needs to know lives here.
@@ -67,20 +69,8 @@ export async function detectGPU() {
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
   } catch (e) { /* ignore */ }
-  const s = (info.renderer + ' ' + info.vendor + ' ' + info.arch + ' ' + (info.gpuDesc || '')).toLowerCase();
-  if (/swiftshader|llvmpipe|softpipe|basic render|microsoft basic|software/.test(s)) info.software = true;
-  info.discrete = /nvidia|geforce|rtx|gtx|quadro|radeon rx|radeon pro|rx \d{3,4}|arc a\d|amd radeon\(tm\) rx|apple m\d (pro|max|ultra)/.test(s);
-  const integrated = /intel|uhd|iris|radeon\(tm\) graphics|vega \d+ graphics|apple m1\b|mali|adreno|powervr|apple gpu/.test(s);
-  if (info.software) info.tier = 'low';
-  else if (info.mobile) info.tier = (info.webgpu && /apple/.test(s) && !/iphone/i.test(navigator.userAgent)) ? 'medium' : 'low';
-  else if (info.discrete && info.webgpu) info.tier = 'ultra';
-  else if (info.discrete) info.tier = 'high';
-  else if (/apple/.test(s)) info.tier = info.webgpu ? 'high' : 'medium';
-  else if (integrated) info.tier = 'medium';
-  else info.tier = info.webgpu ? 'high' : 'medium';
-  const cores = navigator.hardwareConcurrency || 4;
-  if (cores <= 2 && info.tier !== 'low') info.tier = 'low';
-  info.name = (info.gpuDesc || info.renderer || info.vendor || 'Unknown GPU').replace(/^ANGLE \(|\)$/g, '').slice(0, 64);
+  Object.assign(info, classifyGPU(info, { cores: navigator.hardwareConcurrency || 4, ua: navigator.userAgent }));
+  info.name = (info.gpuDesc || (info.judgedBy === 'webgpu-adapter' ? `${info.vendor} ${info.arch}`.trim() : '') || info.renderer || info.vendor || 'Unknown GPU').replace(/^ANGLE \(|\)$/g, '').slice(0, 64);
   return info;
 }
 
@@ -246,17 +236,31 @@ export class GameRenderer {
   }
   render() { this.pipeline.render(); }
 
-  // Dynamic resolution: drop render scale before cutting effects.
-  trackFps(dt, now) {
-    this.fpsSamples.push(dt);
+  // Dynamic resolution: drop render scale a little first; if that isn't
+  // enough and quality is on Auto (onStepDown is set), drop a quality tier
+  // (which turns effects off) and go back to full scale, rather than
+  // rendering ever blurrier with every effect still on. Only measured in
+  // play (live), and a single long frame (a loading hitch) is left out.
+  trackFps(dt, now, live = true) {
+    const raw = this.lastNow != null ? now - this.lastNow : dt; this.lastNow = now;
+    if (!live || raw > 0.25) { this.fpsSamples.length = 0; this.lastScaleChange = Math.max(this.lastScaleChange, now - 0.5); return; }
+    this.fpsSamples.push(raw);
     if (this.fpsSamples.length > 60) this.fpsSamples.shift();
     const avg = this.fpsSamples.reduce((a, b) => a + b, 0) / this.fpsSamples.length;
     this.fps = 1 / Math.max(1e-4, avg);
     if (!this.dynRes || now - this.lastScaleChange < 1.5 || this.fpsSamples.length < 50) return;
-    const target = this.targetFps;
+    const target = this.targetFps, next = TIER_BELOW[this.quality];
+    const floor = this.onStepDown && next ? 0.7 : 0.5;
     let s = this.scale;
-    if (this.fps < target * 0.9 && s > 0.5) s = Math.max(0.5, s - 0.1);
-    else if (this.fps > target * 1.12 && s < 1) s = Math.min(1, s + 0.05);
+    if (this.fps < target * 0.85 && s <= floor + 1e-6 && this.onStepDown && next) {
+      this.slowChecks = (this.slowChecks ?? 0) + 1;
+      if (this.slowChecks >= 2) { this.slowChecks = 0; this.lastScaleChange = now + 2; this.fpsSamples.length = 0; this.onStepDown(next); return; }
+    } else this.slowChecks = 0;
+    if (this.fps < target * 0.9 && s > floor) s = Math.max(floor, s - 0.1);
+    // at a 60 Hz refresh the frame rate never climbs above 60, so "healthy"
+    // is near the target, not well over it
+    else if (this.fps > target * 0.97 && s < 1 && now - (this.lastDrop ?? -99) > 8) s = Math.min(1, s + 0.05);
+    if (s < this.scale) this.lastDrop = now;
     if (s !== this.scale) { this.scale = s; this.applyPixelRatio(); this.lastScaleChange = now; this.fpsSamples.length = 0; }
   }
 }

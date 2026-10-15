@@ -113,6 +113,7 @@ class Game {
     this.startedWebGL = settings.forceWebGL;
     await this.gr.init(document.getElementById('app'), { forceWebGL: settings.forceWebGL, quality: settings.quality });
     this.gr.dynRes = settings.dynRes; this.gr.motionBlur = settings.motionBlur;
+    this.autoTierStepDown();
     progress(0.2, `${this.gr.info.name} · ${this.gr.backend} · ${QUALITY_LABEL[this.gr.quality]}`);
     await nextFrame();
     this.scene = new THREE.Scene();
@@ -329,6 +330,23 @@ class Game {
   battleSense(dur) { if (!settings.slowmo) return; this.battleSenseT = Math.max(this.battleSenseT, dur); }
   openPhotoMode() { return openPhotoMode(this); }
   removePlayer(p) { this.scene.remove(p.object); p.kit.dispose?.(); this.lights.remove(p.heroLight); this.partyMgr?.companions.delete(p); }
+  // Auto quality: start at the tier this GPU last settled on, and drop a
+  // tier (remembered for next time) when even a lower render scale can't
+  // keep the frame rate up. Choosing a quality in Settings turns this off.
+  autoTierStepDown() {
+    const gr = this.gr, KEY = 'pj-auto-tier';
+    gr.onStepDown = null;
+    if (settings.quality !== 'auto') return;
+    try {
+      const m = JSON.parse(localStorage.getItem(KEY) || 'null');
+      const order = ['low', 'medium', 'high', 'ultra'];
+      if (m?.gpu === gr.info.name && order.indexOf(m.tier) >= 0 && order.indexOf(m.tier) < order.indexOf(gr.info.tier)) { gr.info.tier = m.tier; if (this.lights) this.applyQuality('auto'); else gr.setQualityPreset(m.tier, false); }
+    } catch (e) { /* storage blocked: start from the detected tier */ }
+    gr.onStepDown = (tier) => {
+      gr.info.tier = tier; this.applyQuality('auto');
+      try { localStorage.setItem(KEY, JSON.stringify({ gpu: gr.info.name, tier })); } catch (e) { /* not remembered */ }
+    };
+  }
   applyQuality(q) {
     this.gr.setQualityPreset(q === 'auto' ? this.gr.info.tier : q, false);
     this.lights.configure(this.gr.preset);
@@ -753,7 +771,7 @@ class Game {
     this.online.frameStart?.(realDt);
     this.resume?.update(realDt);   // net: checkpoints for Continue (written from a timer, never here)   // net: online menus don't stop the game; this screen's heroes stand still
     const gr = this.gr;
-    gr.trackFps(realDt, now / 1000);
+    gr.trackFps(realDt, now / 1000, this.state === 'playing' && !this.paused && !this.cutscene && !this.ui.stack.length);
     const playing = this.state === 'playing';
     const cs = this.cutscene;
     const pausePlayer = playing && !cs && this.players.find((p) => this.input.get(p.device).pressed.pause);
