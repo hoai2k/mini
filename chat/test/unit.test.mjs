@@ -122,7 +122,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 77);
   assert.equal(new Set(EFFECT_IDS).size, 77);
-  assert.equal(GAME_IDS.length, 24);
+  assert.equal(GAME_IDS.length, 25);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -1820,4 +1820,61 @@ test('Baseball: human-like timing spreads hits over the whole field', async () =
   assert.ok(f('hits') > 0.35 && f('hits') < 0.8, `hits ${f('hits')}`);
   assert.ok(f('deep') > 0.15 && f('shallow') > 0.1, `deep ${f('deep')}, shallow ${f('shallow')}`);
   assert.ok(f('wide') > 0.08, `hits towards the corners ${f('wide')}`);
+});
+
+test('aquarium: a clear food chain, hunting, feeding, grabbing and the shared state', async () => {
+  const { _logic: A } = await import('../games/aquarium.js');
+  assert.equal(A.SPECIES.length, 10);
+  // Every species is eaten by someone or can't be (and says so); nobody eats itself.
+  for (const s of A.SPECIES) assert.ok(!s.eats.includes(s.id) && s.eats.every(id => A.SP[id]), s.id);
+  assert.ok(A.canEat('shark', 'piranha') && A.canEat('piranha', 'guppy') && !A.canEat('guppy', 'piranha'));
+  assert.deepEqual(A.eatersOf('puffer'), []);
+  assert.deepEqual(A.eatersOf('lionfish'), []);
+  // A hungry piranha catches a guppy beside it.
+  const t = new A.Tank();
+  const g = t.make('guppy', 6, 50); g.safe = 0;
+  const p = t.make('piranha', -6, 50); p.hunger = 1; p.safe = 0;
+  for (let i = 0; i < 300 && t.byId(g.id); i++) t.step(1 / 30, () => 1);
+  assert.equal(t.byId(g.id), null, 'the guppy was eaten');
+  assert.ok(p.hunger < 0.5 && t.events.some(e => e.k === A.EV.eat && e.a === p.id && e.b === g.id));
+  // A fed one leaves a tetra alone.
+  const t2 = new A.Tank();
+  const q = t2.make('tetra', 4, 50); q.safe = 0;
+  const p2 = t2.make('piranha', -4, 50); p2.hunger = 0; p2.safe = 0;
+  for (let i = 0; i < 90; i++) t2.step(1 / 30, () => 1);
+  assert.ok(t2.byId(q.id));
+  // Flakes sink and get eaten.
+  const t3 = new A.Tank();
+  const c = t3.make('guppy', 0, 40); c.hunger = 0.9;
+  t3.feed(0, 30);
+  for (let i = 0; i < 240; i++) t3.step(1 / 30, () => 1);
+  assert.ok(c.hunger < 0.8 && t3.flakes.length < 5);
+  // Grab, drag, drop and bin: only by whoever holds the fish.
+  const t4 = new A.Tank();
+  const f = t4.add('clown');
+  assert.ok(t4.grab(f.id, 'ana') && !t4.grab(f.id, 'bo'));
+  t4.drag(f.id, 30, 40, 'bo');
+  assert.notEqual(f.x, 30);
+  t4.drag(f.id, 30, 40, 'ana');
+  assert.equal(f.x, 30);
+  assert.ok(!t4.bin(f.id, 'bo'));
+  t4.drop(f.id, 31, 41, 'ana');
+  assert.ok(!f.held && f.x === 31);
+  t4.grab(f.id, 'bo');
+  t4.release(new Set(['ana']));
+  assert.equal(f.held, null, 'a fish held by someone who left is let go');
+  assert.ok(t4.bin(f.id, 'ana') && !t4.byId(f.id));
+  // The tank fills up to its limit; the shared state round-trips and is checked.
+  const t5 = new A.Tank();
+  while (t5.add('tetra')) {}
+  assert.equal(t5.fish.length, A.MAX_FISH);
+  assert.ok(t5.crowd() > 0.9);
+  t5.grab(t5.fish[0].id, 'ana');
+  const back = A.readShared(JSON.parse(JSON.stringify(t5.pack())));
+  assert.equal(back.fish.length, A.MAX_FISH);
+  assert.equal(back.holds.get(t5.fish[0].id), 'ana');
+  assert.equal(A.readShared({ v: 1, f: [[1, 99, 0, 0], [2, 0, 1e9, -1e9, 0, 0, 500, 3, 1], 'x'], h: [[2, { bad: 1 }]] }).fish.length, 1);
+  const odd = A.readShared({ v: 1, f: [[2, 0, 1e9, -1e9, 0, 0, 500, 3, 1]] }).fish[0];
+  assert.ok(odd.x === A.XW && odd.y === 0 && odd.hunger === 1);
+  assert.equal(A.readShared({ v: 2 }), null);
 });
