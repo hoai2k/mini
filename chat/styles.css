@@ -565,3 +565,18 @@ body:not(.in-call) .field.in-call { display: none; }
 /* On screen but invisible and click-through: browsers (Safari especially) pause
    animation in frames outside the viewport, which would freeze the bots. */
 .debug-bot-frame { position: fixed; left: 0; top: 0; width: 640px; height: 480px; border: 0; pointer-events: none; opacity: 0; z-index: -1; }
+
+/* Behind an open grid or Games sheet: a tap here closes it like a pull down. */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 19; background: rgba(0, 0, 0, 0.18); }
+.sheet-backdrop[hidden], #call.has-game .sheet-backdrop { display: none; }
+/* The strip's wrap-round copies only belong to the strip, never the grid. */
+.strip-wrap.grid .fx-clone { display: none; }
+.fx-lead { order: -1; }
+/* Phones: the bottom row is icons only, a little bigger (names stay as labels for screen readers). */
+@media (pointer: coarse), (max-width: 600px) {
+  .controls .ctrl .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .controls .ctrl { width: 58px; padding: 12px 4px; }
+  .controls .ctrl .ico { height: 30px; }
+  .controls .ctrl .ico svg { width: 30px; height: 30px; }
+}
+@media (max-width: 370px) { .controls .ctrl { width: 54px; } }

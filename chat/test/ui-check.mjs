@@ -51,12 +51,12 @@ for (const touch of [false, true]) {
     await openIt(btn); await p.waitForTimeout(400);
     const small = await drag(sel, 0.2);
     const big = await drag(sel, 0.6);
-    // Strips step the UI down a level (the row tucks away); sheets close.
+    // Strips open on their own and step down to just the grip; sheets close.
     const strip = sel === '#tray-effects';
     const level = await p.evaluate(() => window.__chat.uiLevel);
-    const ok = small.mid.includes('translateY') && !small.hidden && (strip ? !big.hidden && level === 1 : big.hidden);
+    const ok = small.mid.includes('translateY') && !small.hidden && (strip ? !big.hidden && level === 0 : big.hidden);
     if (!ok) fails++;
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'} ${sel}: peek ${small.mid} snaps back=${!small.hidden}, long pull ${strip ? `tucks the row away (level ${level})` : `closes=${big.hidden}`}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'} ${sel}: peek ${small.mid} snaps back=${!small.hidden}, long pull ${strip ? `tucks the strip away (level ${level})` : `closes=${big.hidden}`}`);
     await p.evaluate(() => { window.__chat.toggleTray(null); window.__chat.setUiLevel(2); });
     await p.waitForTimeout(350);
   }
@@ -76,9 +76,9 @@ for (const touch of [false, true]) {
     await p.evaluate(() => window.__chat.toggleTray(null)); await p.waitForTimeout(300);
   }
   {
-    // The levels: drag the strip down (row tucks away), down again (strip
-    // goes, grip shows), the grip up, the strip up (row back), up again (grid),
-    // down (grid closes), and the row itself down.
+    // The levels: a strip opens on its own (row tucked away); drag it down
+    // (strip goes, grip shows), the grip up, the strip up (row back), up
+    // again (grid), down (grid closes), and the row itself down.
     await p.click('#btn-effects');
     await p.waitForTimeout(400);
     const pull = async (sel, dy) => {
@@ -98,7 +98,7 @@ for (const touch of [false, true]) {
       return p.evaluate(() => `${window.__chat.uiLevel}${document.querySelector('#tray-effects').classList.contains('grid') ? 'g' : ''}`);
     };
     const steps = [
-      await pull('#tray-effects .sheet-grip', 120),
+      await p.evaluate(() => String(window.__chat.uiLevel)),
       await pull('#tray-effects .sheet-grip', 120),
       await pull('#ui-grip', -120),
       await pull('#tray-effects .sheet-grip', -120),
@@ -114,12 +114,12 @@ for (const touch of [false, true]) {
     await p.waitForTimeout(350);
   }
   {
-    // Drag the effects strip up into the grid, scroll it, pick an effect,
-    // then pull it down: back to the strip, still open.
+    // Drag the effects strip up (row back) and up again into the grid,
+    // scroll it, pick an effect, then pull it down: back to the strip, still open.
     await p.click('#btn-effects');
     await p.waitForTimeout(400);
-    const g = await p.locator('#tray-effects .sheet-grip').boundingBox();
-    const x = g.x + g.width / 2, y = g.y + 3;
+    let g = await p.locator('#tray-effects .sheet-grip').boundingBox();
+    const x = g.x + g.width / 2;
     const vdrag = async (from, dy) => {
       if (!touch) {
         await p.mouse.move(x, from); await p.mouse.down();
@@ -133,7 +133,9 @@ for (const touch of [false, true]) {
       }
       await p.waitForTimeout(500);
     };
-    await vdrag(y, -160);
+    await vdrag(g.y + 3, -160);
+    g = await p.locator('#tray-effects .sheet-grip').boundingBox();
+    await vdrag(g.y + 3, -160);
     const grid = await p.evaluate(() => {
       const list = document.querySelector('#effect-list');
       return { on: document.querySelector('#tray-effects').classList.contains('grid'), tall: list.scrollHeight > list.clientHeight + 50 };
@@ -175,6 +177,45 @@ for (const touch of [false, true]) {
     const ok = !!fx && stripOpen;
     if (!ok) fails++;
     console.log(`${ok ? 'ok  ' : 'FAIL'} swiping the strip puts on an effect (${fx}, scrolled ${Math.round(scrolled)}px) and leaves the strip open`);
+
+    // The strip wraps round: the last effect sits just left of "none".
+    await p.evaluate(() => {
+      window.__chat.selectEffect(null);
+      const list = document.querySelector('#effect-list'), none = list.querySelector('[data-fx=""]:not(.fx-clone)');
+      list.scrollLeft = none.offsetLeft - (list.clientWidth - none.offsetWidth) / 2;
+    });
+    await p.waitForTimeout(800);
+    const left = await p.evaluate(() => {
+      const list = document.querySelector('#effect-list');
+      const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
+      const shown = [...list.children].filter(b => !b.hidden).map(b => ({ fx: b.dataset.fx, x: b.getBoundingClientRect().left + b.offsetWidth / 2 }));
+      const none = shown.reduce((a, b) => (Math.abs(b.x - mid) < Math.abs(a.x - mid) && b.fx === '' ? b : a), shown.find(b => b.fx === ''));
+      const before = shown.filter(b => b.x < none.x).sort((a, b) => b.x - a.x)[0];
+      const real = [...list.children].filter(b => !b.hidden && !b.classList.contains('fx-clone'));
+      return { leftOfNone: before?.fx, last: real.at(-1).dataset.fx };
+    });
+    await p.mouse.wheel(-90, 0); await p.waitForTimeout(1200);
+    const wrapped = await p.evaluate(() => window.__chat.studio.effect?.id ?? null);
+    const okWrap = left.leftOfNone === left.last && wrapped === left.last;
+    if (!okWrap) fails++;
+    console.log(`${okWrap ? 'ok  ' : 'FAIL'} the strip wraps: ${left.leftOfNone} sits left of none (last is ${left.last}), scrolling left from none puts on ${wrapped}`);
+
+    // Tapping the effect that's on closes the strip and brings the row back.
+    const ring = await p.locator('#tray-effects .strip-ring').boundingBox();
+    await p.touchscreen.tap(ring.x + ring.width / 2, ring.y + ring.height / 2); await p.waitForTimeout(600);
+    const closed = await p.evaluate(() => ({ open: !document.querySelector('#tray-effects').hidden, level: window.__chat.uiLevel }));
+    const okClose = !closed.open && closed.level === 2;
+    if (!okClose) fails++;
+    console.log(`${okClose ? 'ok  ' : 'FAIL'} tapping the effect in the ring closes the strip (${JSON.stringify(closed)}) and shows the row`);
+
+    // Games tucks the row away; tapping above the sheet closes it and brings the row back.
+    await p.click('#btn-games'); await p.waitForTimeout(500);
+    const gOpen = await p.evaluate(() => ({ level: window.__chat.uiLevel, backdrop: !document.querySelector('#sheet-backdrop').hidden }));
+    await p.touchscreen.tap(195, 120); await p.waitForTimeout(600);
+    const gShut = await p.evaluate(() => ({ open: !document.querySelector('#tray-games').hidden, level: window.__chat.uiLevel }));
+    const okGames = gOpen.level === 1 && gOpen.backdrop && !gShut.open && gShut.level === 2;
+    if (!okGames) fails++;
+    console.log(`${okGames ? 'ok  ' : 'FAIL'} Games tucks the row away (${JSON.stringify(gOpen)}); a tap above it closes it (${JSON.stringify(gShut)})`);
   }
   await ctx.close();
 }

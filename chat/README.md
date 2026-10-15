@@ -89,8 +89,11 @@ so the picture stays clear:
 - **During a game** the bottom row and strips go away so the game gets the
   screen and your effect is removed. Effects cannot be put on during a game.
   Close the game with the ✕ beside its name to get the controls back.
-- **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games.
-  Picking one lights it up and opens its strip; once something from it is
+- **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games
+  (icons only on phones). Picking one opens its strip (or the Games sheet)
+  on its own: the row tucks away so only the strip shows. Tapping the effect
+  that's on (the one in the ring, or a lit favourite) closes the strip and
+  brings the row back. Drag the strip up to see the row with it; once something from it is
   on, the button slides to the left (the others fold away; tap it again,
   or pick "no effect", for the whole row) and the space to its right shows
   what's on: its full name above the thumbs, ⓘ (how it works) and share
@@ -100,13 +103,17 @@ so the picture stays clear:
   clears that choice. Games keep effects off until you reopen a category.
   Bottom gradients and sheet backgrounds reach the screen's bottom edge,
   including behind the row and the phone's home-bar area.
-  Effects, Accessories and Backgrounds are strips of lenses:
+  Effects, Accessories and Backgrounds are strips of lenses that wrap
+  round (the last ones sit left of "no effect"):
   swipe one and whichever stops in the ring is put on. Favorites is a strip
   of everything you gave a thumbs up (effects and games); tap one to use it.
   Drag a strip up (or tap its grip) for a grid that scrolls up and down;
   pull the grid down to go back to the strip. Games and Messages are bottom
   sheets that can be pulled down to peek at the video and closed by pulling
-  further or flicking.
+  further or flicking. Tapping the screen above an open grid or the Games
+  sheet does the same as pulling it down.
+- Your own mute shows only on the mic button; friends' videos carry a muted
+  badge.
 - **Making room:** drag the bottom UI down to step it out of the way: first
   the row tucks away (an open strip drops to the bottom edge), then the
   strip goes too, leaving a small grip. Drag up (or tap the grip) to bring
