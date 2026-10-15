@@ -1177,6 +1177,22 @@ for prefix, section, rid, theme in (("art", "icons-art", "CH-N102", "Art"),
         "The Teen icon, then the Kid icon, then the emoji.")
 
 
+# Huge Features: the eyes and mouth cut out and blown up past the edges of the face.
+HUGE = ("a face whose own eyes and mouth have been cut out and pasted back enormous: two giant eyes and a "
+        "giant mouth so wide they stick out past both sides of the head, on a normal-sized face")
+req("icons", "CH-I104", "fx-hugefeatures", "Huge Features icon", "256 x 256",
+    "The Huge Features button on the effect strip.", f"Icon of {HUGE}.", "An emoji.")
+req("icons2", "CH-K104", "fx2-hugefeatures", "Huge Features icon (second set)", "256 x 256",
+    "The Huge Features button on the effect strips, replacing the first-set icon.",
+    f"Icon: a teen's face {HUGE.split('a face ', 1)[1]}.", "The first-set icon, or the emoji.")
+for prefix, section, rid, theme in (("art", "icons-art", "CH-N103", "Art"),
+                                    ("classic", "icons-classic", "CH-R103", "Classical")):
+    req(section, rid, f"{prefix}-fx-hugefeatures", f"Huge Features icon ({theme} theme)", "256 x 256",
+        f"The Huge Features button on the effect strips in the {theme} theme.",
+        f"Icon: a person's face {HUGE.split('a face ', 1)[1]}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",

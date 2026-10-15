@@ -2294,5 +2294,21 @@ export const ASSET_LIST = {
   "classic-fx-moutheyes": {
     "file": "assets/icons-classic/classic-fx-moutheyes.png",
     "status": "requested"
+  },
+  "fx-hugefeatures": {
+    "file": "assets/icons/fx-hugefeatures.png",
+    "status": "requested"
+  },
+  "fx2-hugefeatures": {
+    "file": "assets/icons2/fx2-hugefeatures.png",
+    "status": "requested"
+  },
+  "art-fx-hugefeatures": {
+    "file": "assets/icons-art/art-fx-hugefeatures.png",
+    "status": "requested"
+  },
+  "classic-fx-hugefeatures": {
+    "file": "assets/icons-classic/classic-fx-hugefeatures.png",
+    "status": "requested"
   }
 };
