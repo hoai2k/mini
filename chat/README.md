@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 77 face effects and backgrounds and 24
+A video chat in the browser with 77 face effects and backgrounds and 25
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet
@@ -361,6 +361,30 @@ someone goes down; a fallen runner taps to run again from the start (or
 watches the leader) while the others carry on, and the best distance this
 session is crowned in the chips at the top. Keys: arrows or WASD, Space jumps;
 a controller's stick or D-pad, A jumps and X slides.
+Aquarium is one shared fish tank that everyone in the session watches and
+plays with together. Add fish from the picker (+ Add fish, or keys 1 to 0):
+ten species, each card showing its personality, what it eats and what eats
+it. Guppies and neon tetras school (tetras hide in the plants when a hunter
+comes), the clownfish guards its anemone, the betta picks fights, the
+angelfish and pufferfish come to see where you tap, the pufferfish puffs up
+when scared or picked up, the catfish lazes on the floor eating what sinks,
+piranhas hunt as a pack, the lionfish lurks and lunges and the reef shark
+patrols. The food chain: angelfish, piranhas and lionfish eat guppies and
+tetras; piranhas, lionfish and the shark eat clownfish and bettas; piranhas
+and the shark eat angelfish; only the shark eats catfish and piranhas; nobody
+eats the pufferfish, the lionfish or the shark. Fish get hungry (a bar over a
+hungry fish, and a thought bubble of what it wants), and hungry hunters chase
+and eat fish with a chomp, bubbles and stars. Tap the water to sprinkle flakes:
+everyone eats them, and fed hunters leave the little ones alone. Drag any fish
+to move it, or onto the bin in the bottom right to take it out. The tank is
+wider than the screen: fish swim off the sides (arrows count them) and come
+back, and the more fish there are, the more time each spends off screen. From
+18 fish the tank is crowded: everyone gets hungrier and grumpier, with more
+nips, scuffles and eating. One player runs the tank and shares it about nine
+times a second; anyone joining sees the same tank, and the next player runs it
+if they leave. Keys: arrows move a cursor, Space or Enter picks up, drops or
+feeds, F feeds, P opens the picker; a controller's stick moves the cursor, A
+picks up, drops or feeds, X opens the picker and Y feeds.
 
 ## Snapshots, sharing and the first paint
 
@@ -396,7 +420,8 @@ itself to HTTPS.
 
 - `node --test chat/test/*.test.mjs`: face geometry, Hoops physics, Baseball's spring bat (pull-back to swing speed, contact reflection, early pulls and late goes the other way), its deterministic rolls, pockets and label deals, bases, outs, innings and message checks,
   Temple Dash's seeded temples (the same for a seed, laid out fairly and run
-  for 3 km by perfect play), its collisions, turns and state checks, and the
+  for 3 km by perfect play), its collisions, turns and state checks,
+  Aquarium's food chain, hunting, feeding, holding and shared state, and the
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
@@ -416,7 +441,7 @@ itself to HTTPS.
   mobile fit, game suppression and peer departures.
 - `chat/publish.sh local/pages/chat && node chat/test/debug-bots.mjs`: Settings
   count and deferred joins/removals, simulated cameras, effect copying and
-  offers, all 24 games with rookie controls, real turns, live Burger Stack
+  offers, all 25 games with rookie controls, real turns, live Burger Stack
   state, isolated records and cleanup. Uses an in-memory relay.
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
@@ -470,6 +495,16 @@ itself to HTTPS.
   locks a piece; a top-out ends the round with the same winner on both seats;
   the next round starts by itself and rookie bots place pieces and clear rows
   (screenshots in `local/chat-shots/blocks-*.png`)
+- `node chat/test/aquarium-play.mjs`: phone-sized Aquarium seats share one
+  tank: the picker on the second seat adds a shark for both, its cards show
+  who eats whom, a tap drops flakes the fish swim to and eat, a hungry piranha
+  eats a guppy (gone on both seats, with the chomp) while a fed one leaves a
+  tetra alone, a mouse drag on the second seat moves a catfish (which sinks
+  back down) and a drag onto the bin takes a fish out; with 40 fish far more
+  of them are off screen than with a few, and the crowded tank scuffles; a
+  third seat joining mid-game sees the same tank; the next seat runs it when
+  the owner leaves; rookie bots add fish (screenshots in
+  `local/chat-shots/aquarium-*.png`)
 - `node chat/test/temple-play.mjs`: two runners on phone-sized Temple Dash
   seats: the same temple on both after one countdown, real touch swipes left
   and right changing lanes (and the stick), up jumping a root, down sliding
@@ -608,6 +643,10 @@ with its state (see `js/gamehost.js`).
   icons are delivered and checked in the effects strip, grid and games sheet
   (`theme-shots.mjs`); Art's Tiny Face was redone once (CH-N56) because its
   first features vanished at icon size.
+- Artwork (Aquarium): the ten fish sprites (CH-G88 to CH-G97), the tank
+  (CH-G98) and the Aquarium icon in each set (CH-I105, CH-K105, CH-N104,
+  CH-R104) are requested; until they arrive the game draws every fish, the
+  water, sand, plants, anemone and treasure chest itself.
 - Artwork (Block Drop): the block tile (CH-G73, a white glossy cell the game
   tints per piece) and the backdrop (CH-G74) are requested; until they arrive
   the game draws bevelled jelly blocks and a night sky with drifting block

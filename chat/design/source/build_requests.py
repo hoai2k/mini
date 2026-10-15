@@ -1193,6 +1193,62 @@ for prefix, section, rid, theme in (("art", "icons-art", "CH-N103", "Art"),
         "The Teen icon, then the Kid icon, then the emoji.")
 
 
+# --- Aquarium (a shared fish tank) ---------------------------------------------
+AQUA = ("Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, "
+        "saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft "
+        "highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. ")
+AQUA_FISH = "Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. "
+AQUARIUM_FISH = [
+    ("guppy", "Guppy", "a tiny playful guppy with a slim orange-and-cream body and a big flowing fan tail in bright "
+     "rainbow blue, purple and pink speckles", "256 x 256"),
+    ("tetra", "Neon tetra", "a tiny shy neon tetra: slim silver body with a glowing electric-blue stripe along the "
+     "top half and a vivid red stripe along the lower back half", "256 x 256"),
+    ("clown", "Clownfish", "a small bold clownfish: rounded bright orange body with three white bands edged in black, "
+     "black-rimmed orange fins, a determined little face", "256 x 256"),
+    ("betta", "Betta", "a show-off betta fighting fish: a small deep royal-blue and crimson body with huge flowing "
+     "veil fins and tail flaring out dramatically, a proud cocky face", "256 x 256"),
+    ("angel", "Angelfish", "a curious freshwater angelfish: a tall flat triangular silver body with bold black "
+     "vertical stripes, a touch of gold on the head, very long trailing top and bottom fins, big wondering eyes",
+     "256 x 256"),
+    ("puffer", "Pufferfish", "a cute round pufferfish, NOT puffed up: a plump yellow-and-cream body with brown "
+     "spots, tiny fins, small soft spines lying flat, a little pouting mouth and huge eyes", "256 x 256"),
+    ("catfish", "Catfish", "a lazy armoured bottom-dwelling catfish: a long low body, flat belly, brown and olive "
+     "with darker spots, long whiskers (barbels) at the mouth, sleepy half-closed eyes", "512 x 256"),
+    ("piranha", "Piranha", "a feisty cartoon piranha: a deep silver-grey body with a bright red belly, an underbite "
+     "with a neat row of small white triangular teeth, frowning eyebrows, funny rather than scary", "256 x 256"),
+    ("lionfish", "Lionfish", "a dramatic lionfish: red, cream and maroon zebra stripes, a fan of long striped spiky "
+     "fins and feathery pectoral fins spread wide like a lion's mane, a sly patient face", "512 x 512"),
+    ("shark", "Reef shark", "a small cartoon reef shark, the tank's top predator: a sleek grey-blue body with a white "
+     "belly, black-tipped fins, a tall dorsal fin, a cheeky toothy grin, friendly rather than scary", "512 x 256"),
+]
+for n, (fid, title, desc, size) in enumerate(AQUARIUM_FISH):
+    req("games", f"CH-G{88 + n}", f"aq-{fid}", f"{title} sprite", size,
+        f"Aquarium: the {title.lower()} swimming in the shared tank and on its card in the fish picker "
+        "(the game flips it to swim left and squashes it for the chomp and puff animations).",
+        AQUA + AQUA_FISH + desc + ".", "A drawn fish.")
+req("games", "CH-G98", "aq-tank", "Aquarium tank", "2048 x 1024",
+    "Aquarium: the water behind the fish. The tank is wider than the screen, so it tiles sideways; an "
+    "upright phone shows a slice of it, a computer a wider one.",
+    AQUA + "A wide side view inside a bright freshwater aquarium: clear turquoise water fading to deeper "
+    "blue at the bottom, soft light rays slanting down from the surface at the top, a sandy pebble floor "
+    "across the bottom 12% with a few smooth rocks, and a few tall green swaying plants rooted in the sand. "
+    "Leave the middle of the water open (the fish swim there). No fish, no text. Tiles seamlessly left to "
+    "right.", "A drawn tank.", alpha=False)
+
+AQUARIUM_ICON = ("a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, "
+                 "food flakes sprinkling down from the top")
+req("icons", "CH-I105", "game-aquarium", "Aquarium icon", "256 x 256",
+    "The Aquarium card in the game picker.", f"Icon of {AQUARIUM_ICON}.", "An emoji.")
+req("icons2", "CH-K105", "game2-aquarium", "Aquarium icon (second set)", "256 x 256",
+    "The Aquarium card in the game picker, replacing the first-set icon.",
+    f"Icon: a teen's hand dropping a fish into {AQUARIUM_ICON.split('a ', 1)[1]}.", "The first-set icon, or the emoji.")
+for prefix, section, rid, theme in (("art", "icons-art", "CH-N104", "Art"),
+                                    ("classic", "icons-classic", "CH-R104", "Classical")):
+    req(section, rid, f"{prefix}-game-aquarium", f"Aquarium icon ({theme} theme)", "256 x 256",
+        f"The Aquarium card in the game picker in the {theme} theme.", f"Icon: {AQUARIUM_ICON}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",

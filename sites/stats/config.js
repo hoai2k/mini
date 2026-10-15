@@ -74,6 +74,7 @@ export const SITES = [
   { name: 'Canagentsis', dir: 'canagentsis', rel: 'canagentsis/' },
   { name: 'Mech Mayhem', dir: 'mechmayhem', rel: 'mechmayhem/' },
   { name: 'The Railway Trio', dir: 'railway', rel: 'railway/' },
+  { name: 'Langan, Frost & Wane', dir: 'langanfrontandwane', rel: 'langanfrontandwane/' },
   { name: 'Stratford Tennis Club', dir: 'stratfordtennisclub', rel: 'stratfordtennisclub/' },
 ];
 

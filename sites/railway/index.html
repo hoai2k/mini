@@ -20,9 +20,9 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
     />
-    <link rel="stylesheet" href="styles.css?v=4" />
+    <link rel="stylesheet" href="styles.css?v=5" />
   </head>
-  <body>
+  <body id="top">
     <a class="skip" href="#live">Skip to the music</a>
 
     <header class="masthead">
@@ -43,6 +43,7 @@
           </svg>
         </button>
         <div class="sections-links" id="section-links">
+          <a class="sections-home" href="#top">Home</a>
           <a href="#story">Story</a>
           <a href="#trio">The trio</a>
           <a href="#live">Live</a>
@@ -51,7 +52,7 @@
       </nav>
     </header>
 
-    <main id="top">
+    <main>
       <section class="hero" aria-labelledby="hero-title">
         <picture class="hero-art">
           <source media="(max-width: 700px)" srcset="assets/trio-main-900.webp" />
@@ -71,7 +72,7 @@
           </p>
           <div class="cta-row">
             <a class="button primary" href="#live">Watch us play</a>
-            <a class="button" href="#find">Where to find us</a>
+            <a class="button" href="#find"><span class="wide-only">Where to find us</span><span class="narrow-only">Find us</span></a>
           </div>
         </div>
       </section>
@@ -254,7 +255,7 @@
       <p>© The Railway Trio, Stratford, Ontario. Live music, played by people.</p>
     </footer>
     <script type="module" src="ribbon.js"></script>
-    <script type="module" src="sections.js"></script>
+    <script type="module" src="sections.js?v=2"></script>
     <script type="module" src="../stats/counter.js"></script>
   </body>
 </html>

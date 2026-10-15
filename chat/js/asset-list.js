@@ -2310,5 +2310,65 @@ export const ASSET_LIST = {
   "classic-fx-hugefeatures": {
     "file": "assets/icons-classic/classic-fx-hugefeatures.png",
     "status": "delivered"
+  },
+  "aq-guppy": {
+    "file": "assets/games/aq-guppy.png",
+    "status": "requested"
+  },
+  "aq-tetra": {
+    "file": "assets/games/aq-tetra.png",
+    "status": "requested"
+  },
+  "aq-clown": {
+    "file": "assets/games/aq-clown.png",
+    "status": "requested"
+  },
+  "aq-betta": {
+    "file": "assets/games/aq-betta.png",
+    "status": "requested"
+  },
+  "aq-angel": {
+    "file": "assets/games/aq-angel.png",
+    "status": "requested"
+  },
+  "aq-puffer": {
+    "file": "assets/games/aq-puffer.png",
+    "status": "requested"
+  },
+  "aq-catfish": {
+    "file": "assets/games/aq-catfish.png",
+    "status": "requested"
+  },
+  "aq-piranha": {
+    "file": "assets/games/aq-piranha.png",
+    "status": "requested"
+  },
+  "aq-lionfish": {
+    "file": "assets/games/aq-lionfish.png",
+    "status": "requested"
+  },
+  "aq-shark": {
+    "file": "assets/games/aq-shark.png",
+    "status": "requested"
+  },
+  "aq-tank": {
+    "file": "assets/games/aq-tank.webp",
+    "status": "requested"
+  },
+  "game-aquarium": {
+    "file": "assets/icons/game-aquarium.png",
+    "status": "requested"
+  },
+  "game2-aquarium": {
+    "file": "assets/icons2/game2-aquarium.png",
+    "status": "requested"
+  },
+  "art-game-aquarium": {
+    "file": "assets/icons-art/art-game-aquarium.png",
+    "status": "requested"
+  },
+  "classic-game-aquarium": {
+    "file": "assets/icons-classic/classic-game-aquarium.png",
+    "status": "requested"
   }
 };
