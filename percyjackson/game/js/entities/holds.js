@@ -1,6 +1,8 @@
 // Holds that monsters and bosses put on heroes:
 //   stone  Medusa's gaze: the hero turns grey and can't move or act.
 //   root   a spider net: the hero can't move but can still fight.
+//   stun   Alecto's shriek (chapter 1): paralyzed for a moment, can't move
+//          or act; tinted violet, with sparks circling the head.
 //   grab   Procrustes straps a hero to a bed: can't move or act; mashing
 //          attack / dodge / jump breaks free, and so does a teammate's hit
 //          on the captor (the captor calls releaseHero).
@@ -10,7 +12,11 @@
 // their own browser runs them.
 import * as THREE from 'three/webgpu';
 
-let stoneMat = null, netMat = null;
+let stoneMat = null, netMat = null, stunMat = null;
+function stunned() {
+  stunMat ??= new THREE.MeshStandardNodeMaterial({ color: 0xc8b0e8, roughness: 0.7, metalness: 0, emissive: 0x7a3ad8, emissiveIntensity: 0.55 });
+  return stunMat;
+}
 function stone() {
   stoneMat ??= new THREE.MeshStandardNodeMaterial({ color: 0x9a968e, roughness: 0.95, metalness: 0 });
   return stoneMat;
@@ -25,6 +31,7 @@ export const isHeld = (p) => !!p?.hold;
 
 // Hold a hero. o: { kind: 'stone'|'root'|'grab', dur, by (source), anchor
 // (Vector3 or () => Vector3), mash (presses to break free), dps, onRelease(p, why) }
+// (kind 'stun': o.dur seconds, nothing to break free from)
 export function holdHero(g, p, o = {}) {
   if (!p || p.dead || p.downed || p.remote || p.hold) return false;
   const kind = o.kind ?? 'root';
@@ -42,6 +49,7 @@ export function holdHero(g, p, o = {}) {
     g.scene.add(m); h.prop = m;
   }
   if (kind === 'grab') p.action = { type: 'down', t: 1, dur: 1e6, elapsed: 0, held: true };
+  if (kind === 'stun') { p.rig?.swap(stunned()); p.action = null; g.particles?.burst(p.pos.clone().setY(p.pos.y + 1.2), { count: 22, color: 0xc88aff, speed: 3, life: 0.6, size: 0.18, drag: 3 }); }
   const safety = setTimeout(() => { if (p.hold === h) releaseHero(g, p, 'timeout'); }, (h.dur + 4) * 1000);
   g.addUpdater((dt) => {
     if (p.hold !== h) { clearTimeout(safety); return false; }
@@ -52,6 +60,10 @@ export function holdHero(g, p, o = {}) {
     p.vel?.set(0, kind === 'grab' ? 0 : p.vel.y, 0);
     // a locked hero skips its own update, so clear the hit flash here
     if (kind === 'grab' && p.hurtT > 0) { p.hurtT -= dt; if (p.hurtT <= 0) p.rig?.swap(null); }
+    if (kind === 'stun') {
+      p.rig?.swap(stunned());
+      if (Math.random() < dt * 14) { const a = h.t * 7 + Math.random() * 0.5; g.particles?.glow?.emit(p.pos.x + Math.cos(a) * 0.55, p.pos.y + 2.25, p.pos.z + Math.sin(a) * 0.55, 0, 0.2, 0, 0.45, 2.2, 1.4, 2.8, 0.14, 0, 0, 0.05, 1); }
+    }
     if (kind === 'stone') { p.rig?.swap(stone()); if (Math.random() < dt * 6) g.particles?.burst(p.pos.clone().setY(p.pos.y + 0.4 + Math.random() * 1.4), { count: 1, color: 0x8a867e, additive: false, speed: 0.4, life: 0.6, size: 0.12, gravity: 4 }); }
     if (kind === 'root' && h.prop) { h.prop.position.set(p.pos.x, p.pos.y + 0.5, p.pos.z); h.prop.rotation.y += dt * 0.5; }
     if (kind === 'grab') {
@@ -76,10 +88,11 @@ export function releaseHero(g, p, why = 'freed') {
   p.hold = null;
   if (h.kind !== 'root') p.minigameLock = h.lockWas ?? false;
   if (h.kind === 'grab' && p.action?.held) p.action = null;
-  if (h.kind === 'grab' || h.kind === 'stone') p.iframes = Math.max(p.iframes ?? 0, 0.6);
+  if (h.kind === 'grab' || h.kind === 'stone' || h.kind === 'stun') p.iframes = Math.max(p.iframes ?? 0, 0.6);
   p.rig?.swap(null);
   if (h.prop) { g.scene.remove(h.prop); h.prop = null; }
   if (h.kind === 'stone') g.particles?.burst(p.pos.clone().setY(p.pos.y + 1), { count: 30, color: 0x9a968e, additive: false, speed: 4, life: 0.6, size: 0.2, gravity: 10 });
+  if (h.kind === 'stun') g.particles?.burst(p.pos.clone().setY(p.pos.y + 1.2), { count: 14, color: 0xd8b0ff, speed: 2.5, life: 0.45, size: 0.14, drag: 3 });
   if (h.kind === 'root') g.particles?.burst(p.pos.clone().setY(p.pos.y + 0.6), { count: 16, color: 0xf4f0e8, additive: false, speed: 3, life: 0.5, size: 0.15, gravity: 6 });
   h.onRelease?.(p, why);
 }

@@ -26,6 +26,12 @@
 //   scold(hero)  a mortal-looking person (disguised, or a real mortal: def.mortal)
 //              was swung at: recoil, a line in a speech bubble, then back to
 //              their business (entities/mistPeople.js). Real mortals never reveal.
+//   foe          chapter 1's people in the Mist (objectives/museum.js; rules in
+//              story/museumRules.js): { hunt, provoked, wake, route(e, want) }.
+//              Revealed but not hunting: wanders and leaves the heroes alone
+//              until hit (hunt). Disguised and hunting: walks up to a hero
+//              like an ordinary person and hurts them with no swing at all.
+//              redisguise() puts the mortal disguise back on (the Mist again).
 //   loiter       (monsters whose def has idle: 'loiter', the prologue's rats;
 //              rules in entities/ratRules.js) { home, r, notice, alert, perch,
 //              leash, face }: hangs around home (sniffs, eats, wanders) until a
@@ -64,6 +70,7 @@ import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
 import { wakesMonsters } from '../partyRules.js';
 import { PACK, packNotices, scoutRuns } from './packRules.js';
 import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
+import { hiddenHitAllowed, HIDDEN_DMG } from '../story/museumRules.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 import { monsterDamage } from '../resources.js';
 
@@ -157,8 +164,10 @@ export class Enemy {
     this.object.position.copy(old.position); this.object.rotation.y = this.facing;
     g.scene.add(this.object);
     mistPuff(g, this.pos, this.height);
-    g.audio?.tone({ freq: 660, to: 1320, dur: 0.35, gain: 0.08, type: 'triangle', rev: 0.5 });
-    g.audio?.noise({ dur: 0.45, gain: 0.16, type: 'bandpass', freq: 2200, sweep: 400, q: 1.2, rev: 0.3 });
+    if (!g.audio?.throttle?.('reveal', 150)) {   // (a whole crowd seen at once is one sound, not twenty)
+      g.audio?.tone({ freq: 660, to: 1320, dur: 0.35, gain: 0.08, type: 'triangle', rev: 0.5 });
+      g.audio?.noise({ dur: 0.45, gain: 0.16, type: 'bandpass', freq: 2200, sweep: 400, q: 1.2, rev: 0.3 });
+    }
     this.voice();
     this.spawnT = 0; this.state = 'idle'; this.stateT = 0; this.cd = 0.5 + Math.random() * 0.4;
     this.aggro = true;
@@ -166,7 +175,25 @@ export class Enemy {
     for (const t of g.hostileTargets()) { if (t.dead || t.downed || t.untargetable || t.invisible) continue; const d = t.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = t; } }
     this.target = best;
     if (best) this.facing = Math.atan2(best.pos.x - this.pos.x, best.pos.z - this.pos.z);
+    if (this.foe && !this.foe.hunt) { this.aggro = false; this.target = null; }   // (the museum: seen, but not after you yet)
     g.onEnemyRevealed?.(this);
+    return true;
+  }
+  // The Mist again (chapter 1): back into the mortal disguise, with a puff.
+  redisguise() {
+    if (this.disguised || this.dead || !this.disguise || this.bones || this.def.mortal) return false;
+    const g = this.game;
+    this.cancelAttack(); this.state = 'idle'; this.stateT = 0;
+    this.disguised = true; this.untargetable = true;
+    this.trueRadius = this.radius; this.trueHeight = this.height;
+    const old = this.object;
+    old.parent?.remove(old);
+    this.rig = buildMortal(this.disguise);
+    this.radius = 0.38; this.height = 1.9;
+    this.object = this.rig.root;
+    this.object.position.copy(old.position); this.object.rotation.y = this.facing;
+    g.scene.add(this.object);
+    mistPuff(g, this.pos, this.height);
     return true;
   }
   // A short cry for the kind of monster (wind-ups and reveals).
@@ -190,6 +217,7 @@ export class Enemy {
   // ---------------------------------------------------------------- damage
   takeDamage(amount, src, o = {}) {
     if (this.dead || this.disguised || this.spawnT > 0.2) return 0;
+    if (this.foe && !this.foe.hunt) { this.foe.hunt = true; this.foe.provoked = true; }   // (the museum: hit one, and it fights back)
     if (this.bones) { this.hp = 0; this.die({ ...o, scattered: true }); return amount; }   // scatter the bones
     if (this.def.ai === 'statue' && !this.awake) this.wake();
     let dmg = amount * (this.mark > 0 ? 1.5 : 1);
@@ -268,7 +296,7 @@ export class Enemy {
   // ---------------------------------------------------------------- AI
   pickTarget() {
     const g = this.game;
-    let best = null, bd = this.aggro ? 30 : 15;
+    let best = null, bd = this.foe?.hunt ? 120 : this.aggro ? 30 : 15;
     for (const t of g.hostileTargets()) {
       if (t.dead || t.downed || t.untargetable || t.invisible) continue;
       if (!this.aggro && t.isPlayer && !wakesMonsters(t)) continue;   // (an AI companion walking by wakes nothing)
@@ -309,6 +337,7 @@ export class Enemy {
   steer(dir, speedMul = 1) {
     const g = this.game;
     const want = tmp.copy(dir).setY(0);
+    if (this.foe?.hunt) this.foe.route?.(this, want);   // (the museum: far from the heroes, follow the way through the rooms)
     if (want.lengthSq() > 0) want.normalize();
     const slow = (this.slowT > 0 ? 0.4 : 1) * (this.status.slow > 0 ? 0.5 : 1);
     want.multiplyScalar(this.speed * speedMul * slow * (this.dashT > 0 ? 1.12 : 1));
@@ -384,12 +413,17 @@ export class Enemy {
     this.stateT += dt; this.cd -= dt; this.flashT -= dt; this.slowT = (this.slowT ?? 0) - dt;
     this.blinkCd -= dt;
     if (this.dashT > 0) this.dashT -= dt;
-    if (this.disguised) return this.updateDisguised(dt);
+    if (this.disguised) return this.foe?.hunt && !this.def.mortal ? this.updateHidden(dt) : this.updateDisguised(dt);
     if (this.bones) return this.updateBones(dt);
     if (this.def.ai === 'statue' && !this.awake) return this.updateDormant(dt);
     const S = this.status;
     S.fear = Math.max(0, S.fear - dt); S.root = Math.max(0, S.root - dt); S.slow = Math.max(0, S.slow - dt); this.mark = Math.max(0, this.mark - dt);
-    let t = this.loiter && !this.aggro ? this.watch(dt) : this.pickTarget();
+    let t;
+    if (this.foe && !this.foe.hunt) {
+      // the museum: seen through the Mist but not after you (yet): it goes about its business
+      t = null; this.target = null; this.aggro = false;
+      if (this.foe.wake) for (const p of g.hostileTargets()) if (!p.dead && !p.downed && !p.invisible && p.pos.distanceTo(this.pos) < 6) { this.foe.hunt = true; break; }
+    } else t = this.loiter && !this.aggro ? this.watch(dt) : this.pickTarget();
     if (this.loiter && this.aggro && t && this.state !== 'windup' && this.state !== 'recover' && givesUp({ homeDist: Math.hypot(this.pos.x - this.loiter.home.x, this.pos.z - this.loiter.home.z), targetDist: t.pos.distanceTo(this.pos), leash: this.loiter.leash })) {
       // chased too far from home: back to loitering (no trains of rats down the street)
       this.aggro = false; this.target = t = null; this.dashT = 0;
@@ -663,6 +697,39 @@ export class Enemy {
       const f = this.facing, y = this.pos.y + this.height * 0.86;
       for (const s of [-1, 1]) g.particles.glow.emit(this.pos.x + Math.sin(f) * 0.3 + Math.cos(f) * 0.09 * s, y, this.pos.z + Math.cos(f) * 0.3 - Math.sin(f) * 0.09 * s, 0, 0, 0, 0.35, 2.6, 0.5, 0.2, 0.09, 0, 0, 0.02, 1);
     }
+    return true;
+  }
+  // Chapter 1 (objectives/museum.js): a monster hunting the heroes while the
+  // Mist still shows a person. It walks up like anyone else in the museum
+  // and its blows land with no swing, no wind-up, nothing to see: a hit on
+  // the hero and a wisp of Mist (story/museumRules.js: at most one such hit
+  // on a hero every HIDDEN_GAP s). It can't be hurt until True Sight shows it.
+  updateHidden(dt) {
+    const g = this.game;
+    if (this.vel.y > 0) this.vel.y = 0;
+    this.knock.set(0, 0, 0); if (this.state !== 'idle') { this.state = 'idle'; this.action = null; }
+    this.recoilT = Math.max(0, (this.recoilT ?? 0) - dt); this.glareT = 0;
+    let t = null, bd = Infinity;
+    for (const p of g.hostileTargets()) { if (p.dead || p.downed || p.invisible || p.untargetable) continue; const d = p.pos.distanceTo(this.pos); if (d < bd) { bd = d; t = p; } }
+    this.target = t;
+    const move = tmp2.set(0, 0, 0);
+    if (t) {
+      const reach = Math.min(this.def.range ?? 1.5, 1.8) + (t.radius ?? 0.35) + 0.25;
+      const toT = TO.subVectors(t.pos, this.pos).setY(0);
+      // a brisk walk when far, a stroll close by (the eerie part: nobody here is running)
+      if (bd > reach * 0.8 && !(this.recoilT > 0)) move.copy(this.steer(toT, Math.min(1, (bd > 8 ? 3.4 : 2.2) / Math.max(0.5, this.speed))));
+      this.faceTo(t.pos, dt, 5);
+      if (bd <= reach && this.cd <= 0 && this.spawnT <= 0 && hiddenHitAllowed(t.hiddenHitT, g.time)) {
+        t.hiddenHitT = g.time;
+        this.cd = (this.def.cd || 1.2) * (0.9 + Math.random() * 0.4) + 0.4;
+        const dir = toT.lengthSq() > 1e-4 ? toT.clone().normalize() : new THREE.Vector3(0, 0, 1);
+        this.hitPlayer(t, this.dmg * HIDDEN_DMG, dir.multiplyScalar(2.5));
+        g.particles?.burst?.(t.pos.clone().setY(t.pos.y + 1.1).addScaledVector(dir, -0.4), { count: 6, color: 0xc8d8e0, additive: false, speed: 1.2, life: 0.5, size: 0.3, sizeEnd: 0.9, drag: 3 });
+      }
+    }
+    this.moveBody(dt, move);
+    this.rig.swap(null);
+    this.animate(dt);
     return true;
   }
   // A living statue: frozen in its pose until a hero comes close or hits it.

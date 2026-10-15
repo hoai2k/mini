@@ -10,6 +10,7 @@ import { animateExtras } from './monsters.js';
 import { holdHero, releaseHero, poisonHero, isHeld } from './holds.js';
 import { damp, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
+import { STUN, STUN_IMMUNE, STUN_WINDUP, SHRIEK_R, stunnable } from '../story/museumRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), ZERO = new THREE.Vector3();
 const heroName = (g, p) => g.heroName?.(p) ?? 'A hero';
@@ -34,6 +35,66 @@ function openSpot(b, c, a, r) {
 const alive = (b, kind) => b.game.enemies.filter((e) => !e.dead && e.bossSummon === b && (!kind || e.kind === kind)).length;
 
 export const BOOK1_PATTERNS = {
+  // ================================================================ Mrs. Dodds (chapter 1)
+  // The shriek and the flight (objectives/museum.js starts it when her health
+  // reaches a threshold): a wind-up you can see coming (a violet ring the size
+  // of the shriek, a rising wail, her rising), a shriek that paralyzes every
+  // hero inside it for STUN s (never one already held, nor one stunned in the
+  // last few seconds), then she flies up over the walls to `dest` and waits
+  // there (standBy) to be found. cb: { lift(), land() }.
+  *dodds_flee(dest, cb = {}) {
+    const g = this.game;
+    this.cleanupPattern?.(); this.cleanupPattern = null;
+    this.moving = false; this.untargetable = true; this.swooping = false; this.knock.set(0, 0, 0);
+    this.anim = { type: 'raise', t: 0 }; this.hoverY = (this.B.hover ?? 0) + 0.9;
+    g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), radius: SHRIEK_R, dur: STUN_WINDUP, color: 0xb05aff, follow: this });
+    g.audio?.tone({ freq: 420, to: 1500, dur: STUN_WINDUP, gain: 0.08, type: 'sawtooth', filter: 3500 });
+    toast('Mrs. Dodds draws a breath… get clear!', '');
+    for (let k = 0; k < 6; k++) {
+      const c = this.pos.clone().setY(this.pos.y + 2.2);
+      for (let i = 0; i < 6; i++) { const a = Math.random() * Math.PI * 2, r = 2.5 + Math.random() * 2; g.particles.glow.emit(c.x + Math.cos(a) * r, c.y + (Math.random() - 0.5), c.z + Math.sin(a) * r, -Math.cos(a) * r * 1.6, 0, -Math.sin(a) * r * 1.6, 0.45, 1.8, 0.9, 2.6, 0.16, 0, 1, 0.05, 1); }
+      yield STUN_WINDUP / 6;
+    }
+    // the shriek
+    const c = this.pos.clone();
+    g.fx.shockwave(c, 0xd8a0ff, SHRIEK_R); g.fx.screenWave?.(c.clone().setY(c.y + 1.5), 1, 0.6); g.fx.chroma?.(0.8); g.fx.flash(0xb05aff, 0.3, 0.3); g.shake(0.6);
+    g.audio?.tone({ freq: 1400, to: 2300, dur: 0.7, gain: 0.1, type: 'sawtooth', filter: 5000 }); g.audio?.tone({ freq: 1600, to: 800, dur: 0.7, gain: 0.07, type: 'square', filter: 4000, at: 0.05 });
+    g.audio?.voiceSample?.('screech', 0.85);
+    const now = g.time;
+    for (const p of g.hostileTargets()) {
+      if (p.dead || p.downed || p.pos.distanceTo(c) > SHRIEK_R + (p.radius ?? 0.3)) continue;
+      if (!stunnable({ held: !!p.hold, immuneUntil: p.stunImmune ?? 0, now })) continue;
+      p.stunImmune = now + STUN + STUN_IMMUNE;
+      if (p.remote) g.online?.stunRemote?.(p, STUN);
+      else holdHero(g, p, { kind: 'stun', dur: STUN, by: this });
+      g.fx.damageNumber?.(p.pos, 0, { color: '#d8a0ff', text: 'Paralyzed!' });
+    }
+    this.anim = { type: 'cast', t: 1 };
+    yield 0.7;
+    // up and away, over the walls
+    cb.lift?.();
+    g.audio?.whoosh?.(1.4);
+    const from = this.pos.clone(), top = Math.max(from.y, dest.y) + 10;
+    const dist = Math.hypot(dest.x - from.x, dest.z - from.z), cruise = Math.max(1.2, Math.min(4, dist / 15));
+    this.flying = true; this.hoverY = 0; this.anim = { type: 'attack', t: 0.6, style: 'slam', windup: 0.3, strike: 0.5 };
+    const t0 = g.time, up = 0.8, down = 0.9, T = up + cruise + down;
+    for (;;) {
+      const t = Math.min(T, g.time - t0);
+      if (t < up) { const k = t / up; this.pos.set(from.x, from.y + (top - from.y) * k * k * (3 - 2 * k), from.z); }
+      else if (t < up + cruise) { const k = (t - up) / cruise, e = k * k * (3 - 2 * k); this.pos.set(from.x + (dest.x - from.x) * e, top, from.z + (dest.z - from.z) * e); }
+      else { const k = (t - up - cruise) / down; this.pos.set(dest.x, top + (dest.y - top) * k * k * (3 - 2 * k), dest.z); }
+      this.facing = Math.atan2(dest.x - from.x, dest.z - from.z);
+      if (Math.random() < 0.5) g.particles.smoke.emit(this.pos.x, this.pos.y + 1.5, this.pos.z, 0, -0.3, 0, 0.9, 0.12, 0.08, 0.1, 0.5, -0.2, 1, 2, 0);
+      if (t >= T) break;
+      yield 0;
+    }
+    this.flying = false;
+    this.pos.copy(dest); this.vel.set(0, 0, 0); this.home = dest.clone(); this.visY = dest.y;
+    this.hoverY = this.B.hover ?? 0; this.anim = null;
+    this.standBy = true; this.untargetable = true;
+    g.fx.shockwave(dest, 0xff7a1a, 4); g.audio?.impact?.(1.2);
+    cb.land?.();
+  },
   // ================================================================ hellhound
   *maul() {
     const g = this.game, t = this.target(); if (!t) return;

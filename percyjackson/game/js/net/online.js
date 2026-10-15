@@ -29,6 +29,7 @@ import * as THREE from 'three/webgpu';
 import { Player, PLAYER_COLORS } from '../entities/player.js';
 import { Enemy } from '../entities/enemy.js';
 import { Boss } from '../entities/bosses.js';
+import { holdHero } from '../entities/holds.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { B } from '../world/blocks.js';
 import { toast } from '../ui/ui.js';
@@ -393,6 +394,12 @@ export class Online {
     };
     p.heal = function () {}; p.gainCE = function () {}; p.refreshLoadout = function () {};
   }
+  // Chapter 1: Mrs. Dodds's shriek paralyzes a hero someone else plays (host → its screen).
+  stunRemote(p, dur) {
+    if (!this.isHost) return;
+    const R = [...this.remote.values()].find((q) => q.p === p);
+    if (R && !R.ai) this.session.send('hurt', { to: R.uid, k: R.key, a: 0, st: Math.round(dur * 10) / 10 });
+  }
   dropRemote(R, quiet = false) {
     this.remote.delete(R.key);
     if (!quiet) this.game.fx?.poof?.(R.p.pos);
@@ -540,6 +547,7 @@ export class Online {
         e.hostHp = num(hp, -1e7, 1e7, e.maxHp);
         e.hp = Math.max(e.hostHp > 0 ? 1 : 0, e.hostHp - pend);
         if (e.disguised && !(flags & 2)) e.reveal?.();
+        else if (!e.disguised && flags & 2 && typeof disguise === 'string' && !e.isBoss) { e.disguise ??= disguise; e.redisguise?.(); }   // (chapter 1: the Mist covers them again)
         e.untargetable = !!(flags & 16);
         e.bossStandIn = !!(flags & 4);
         if (flags & 1 && !e.dead) this.killPuppet(e);
@@ -974,6 +982,7 @@ export class Online {
     if (d.to !== this.uid) return;
     const p = this.game.players.find((q) => !q.remote && !q.ai && this.keyOf(q) === d.k);
     if (!p) return;
+    if (d.st > 0) { holdHero(this.game, p, { kind: 'stun', dur: num(d.st, 0, 4) }); if (!(d.a > 0)) return; }
     p.takeDamage(num(d.a, 0, 500), null, { knock: d.nk ? null : V3(num(d.kx, -40, 40), 0, num(d.kz, -40, 40)), pure: !!d.p, dot: !!d.dot, noKnock: !!d.nk });
   }
   onAct(d, peer) {
