@@ -38,7 +38,7 @@ like phone calls, by username or phone number. Getting it onto devices:
 | `js/asset-list.js` | Generated: which artwork has been delivered |
 | `effects/` | One file per face effect; see [`effects/README.md`](effects/README.md) |
 | `games/` | One file per minigame; see [`games/README.md`](games/README.md) |
-| `design/` | Image requests (`image-requests.md`), the face template, and `source/build_requests.py` that generates them |
+| `design/` | Image requests still to make (`image-requests.md`), delivered ones with their prompts (`image-requests-history.md`), the face template, and `source/build_requests.py` that generates them |
 | `test/` | Unit tests, previews and browser checks (below) |
 | `publish.sh` | Copies the app plus `multiplayer/client/mini-rooms.js` into the Pages output |
 | `intake/` | Drop box for delivered art |
@@ -638,7 +638,7 @@ with its state (see `js/gamehost.js`).
   256 × 256 transparent PNGs in `assets/icons2/`, selected through `iconUrl`
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
-  Additional theme artwork is tracked in `design/image-requests.md`.
+  Additional theme artwork is tracked in `design/image-requests.md` (and, once delivered, `design/image-requests-history.md`).
 - Artwork (themes): all six title assets and all 95 Art and 95 Classical
   icons are delivered and checked in the effects strip, grid and games sheet
   (`theme-shots.mjs`); Art's Tiny Face was redone once (CH-N56) because its

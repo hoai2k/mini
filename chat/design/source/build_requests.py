@@ -7,7 +7,9 @@ Edit the data in this file, then run:
     python3 chat/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    chat/design/image-requests.md   the request document
+    chat/design/image-requests.md   the request document: images still to make
+    chat/design/image-requests-history.md   every delivered request, with the
+                                    prompt it was made from
     chat/design/face-template.png   the face guide that face stickers are drawn on
     chat/js/asset-list.js           what the app loads
 
@@ -27,6 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "design" / "image-requests.md"
+HISTORY = ROOT / "design" / "image-requests-history.md"
 TEMPLATE = ROOT / "design" / "face-template.png"
 ASSET_LIST = ROOT / "js" / "asset-list.js"
 
@@ -1285,16 +1288,45 @@ def render_doc() -> str:
     for name, (x, y) in FACE.items():
         lines.append(f"| {name} | {x}, {y} |")
     lines.append("")
-    counts = {}
-    for r in REQUESTS:
-        counts[r["status"]] = counts.get(r["status"], 0) + 1
-    lines.append("## Status")
-    lines.append("")
-    lines.append(", ".join(f"{n} {s}" for s, n in sorted(counts.items())) +
-                 f", {len(REQUESTS)} in total.")
-    lines.append("")
+    waiting = [r for r in REQUESTS if r["status"] != "delivered"]
+    done = len(REQUESTS) - len(waiting)
+    lines += [
+        "## Status",
+        "",
+        f"{len(waiting)} waiting to be made, {done} delivered ({len(REQUESTS)} in total). "
+        "Delivered requests move to [`image-requests-history.md`](image-requests-history.md), "
+        "with the prompt each was made from.",
+        "",
+    ]
+    if not waiting:
+        lines += ["Nothing is waiting: every requested image has been delivered.", ""]
+    lines += render_requests(waiting)
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_history() -> str:
+    delivered = [r for r in REQUESTS if r["status"] == "delivered"]
+    lines = [
+        "# Games Chat: delivered image requests",
+        "",
+        "The archive of every Games Chat image that has been made and integrated, with the "
+        "prompt it was made from, so a picture can be remade or matched later. Generated from "
+        "`source/build_requests.py` alongside [`image-requests.md`](image-requests.md), which "
+        "lists only the images still to make.",
+        "",
+        f"{len(delivered)} delivered.",
+        "",
+    ]
+    lines += render_requests(delivered)
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_requests(requests) -> list:
+    lines = []
     for key, (title, blurb) in SECTIONS.items():
-        rows = [r for r in REQUESTS if r["section"] == key]
+        rows = [r for r in requests if r["section"] == key]
+        if not rows:
+            continue
         lines += [f"## {title}", "", blurb, ""]
         for r in rows:
             tags = [r["size"], "transparent" if r["alpha"] and r["file"].endswith(".png") else "opaque"]
@@ -1314,7 +1346,7 @@ def render_doc() -> str:
                 "```",
                 "",
             ]
-    return "\n".join(lines).rstrip() + "\n"
+    return lines
 
 
 def render_asset_list() -> str:
@@ -1369,7 +1401,8 @@ def render_template() -> bytes:
 
 def main() -> int:
     check = "--check" in sys.argv[1:]
-    outputs = {DOC: render_doc().encode(), ASSET_LIST: render_asset_list().encode()}
+    outputs = {DOC: render_doc().encode(), HISTORY: render_history().encode(),
+               ASSET_LIST: render_asset_list().encode()}
     stale = [p for p, data in outputs.items() if not p.exists() or p.read_bytes() != data]
     if check:
         if not TEMPLATE.exists():
