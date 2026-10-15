@@ -7312,5 +7312,41 @@
       1254
     ],
     "accepted": true
+  },
+  {
+    "id": "CH-G91",
+    "file": "assets/games/aq-betta.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a show-off betta fighting fish: a small deep royal-blue and crimson body with huge flowing veil fins and tail flaring out dramatically, a proud cocky face. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1374,
+      1145
+    ],
+    "accepted": true
+  },
+  {
+    "id": "CH-G92",
+    "file": "assets/games/aq-angel.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a curious freshwater angelfish: a tall flat triangular silver body with bold black vertical stripes, a touch of gold on the head, very long trailing top and bottom fins, big wondering eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1312,
+      1199
+    ],
+    "accepted": true
+  },
+  {
+    "id": "CH-G93",
+    "file": "assets/games/aq-puffer.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Bright glossy cartoon aquarium-game art for kids: chunky friendly shapes, big expressive eyes, saturated tropical colours, thick soft outlines in a darker shade of each fill, a single soft highlight, gentle cel shading. Every fish in the set shares this style and the same lighting. Seen from the side, facing RIGHT, the whole fish filling about 90% of the frame, mouth at the right edge. a cute round pufferfish, NOT puffed up: a plump yellow-and-cream body with brown spots, tiny fins, small soft spines lying flat, a little pouting mouth and huge eyes. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1388,
+      1133
+    ],
+    "accepted": true
   }
 ]

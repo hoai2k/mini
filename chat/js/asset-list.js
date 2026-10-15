@@ -2325,15 +2325,15 @@ export const ASSET_LIST = {
   },
   "aq-betta": {
     "file": "assets/games/aq-betta.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-angel": {
     "file": "assets/games/aq-angel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-puffer": {
     "file": "assets/games/aq-puffer.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "aq-catfish": {
     "file": "assets/games/aq-catfish.png",
