@@ -248,28 +248,20 @@ a {
     transform: translateX(-50%);
   }
 }
-/* No marquee when motion is reduced: keep one line and let it swipe instead. */
-@media (prefers-reduced-motion: reduce) {
+/* On touch screens, and wherever motion is reduced, the ribbon stands still
+   and swipes instead; ribbon.js makes the swipe loop endlessly. Keep this
+   query in step with SWIPE in ribbon.js. */
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
   .ribbon {
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
-    scroll-snap-type: x proximity;
   }
   .ribbon::-webkit-scrollbar {
     display: none;
   }
   .ribbon-track {
     animation: none;
-  }
-  .ribbon span {
-    scroll-snap-align: start;
-  }
-  .ribbon span:nth-child(10)::after {
-    content: none;
-  }
-  .ribbon span:nth-child(n + 11) {
-    display: none;
   }
 }
 
