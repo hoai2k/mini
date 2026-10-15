@@ -344,6 +344,7 @@ function directionOf(input) {
 // ---------------------------------------------------------------- part 1
 // The climber's current world position (interpolated during a move).
 export function climberPos(st) {
+  if (st.wall) return { x: st.wall.x, y: st.wall.y, moving: st.wall.mode !== 'wall' && st.wall.mode !== 'ledge' };
   const cl = st.cl, b = st.holds[cl.at], by = holdY(b, st.beat);
   if (cl.moveDur <= 0 || cl.moveT >= cl.moveDur) return { x: b.x, y: by, moving: false };
   const a = st.holds[cl.from], k = cl.moveT / cl.moveDur, ay = cl.fromY ?? holdY(a, st.beat);
@@ -437,7 +438,7 @@ export function stepCliff(st, dt, input) {
   stepRocks(st, dt, pos);
 }
 
-function stepRocks(st, dt, pos) {
+export function stepRocks(st, dt, pos) {
   st.nextRock -= dt;
   if (st.nextRock <= 0 && pos.y < climbCfg(st).top - 120) {
     const [lo, hi] = CLIFF.stoneEvery;
@@ -445,8 +446,8 @@ function stepRocks(st, dt, pos) {
     const lead = CLIFF.stoneWarn + (st.omen ? BEAT_S : 0);
     st.rocks.push({ x: clamp(pos.x + (st.rand() - 0.5) * 30, 280, 960), wait: lead, warn: CLIFF.stoneWarn, omen: st.omen, y: null, vy: 0, spin: st.rand() * 6, warned: false, done: false });
   }
-  const h = st.holds[st.cl.at];
-  const sheltered = h.kind === 'gap' && !pos.moving;
+  const h = st.wall ? null : st.holds[st.cl.at];
+  const sheltered = !!h && h.kind === 'gap' && !pos.moving;
   for (const r of st.rocks) {
     r.wait -= dt;
     if (r.y == null) {
@@ -701,7 +702,7 @@ function stepPageant(st) {
 
 // The film edition's climbs (act5film.js): the cliff's top leads to the dive,
 // the tower wall's to the window.
-function reachTop(st, h) {
+export function reachTop(st, h) {
   st.score += 200; st.walkFromX = h.x;
   st.events.push({ type: 'clifftop' });
   setPhase(st, st.phase === 'cliff' ? 'dive' : 'window');

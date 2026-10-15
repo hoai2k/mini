@@ -60,8 +60,16 @@ requested is drawn by an interim cut-out from the planning sheets (`assets/inter
 [`?widowsbay=on`](https://hoai2k.github.io/mini/kingdomofthefairies/?widowsbay=on)
 keeps the original five acts unchanged (and the default plays them without the band or guitar): The Crossing, The Sleepers' Grotto,
 The Sea King's Court, The Whale's Road and The Enchanted Tower (cliff, burning
-house, beloved, endings and pageant). Climbing in both editions shows the
+house, beloved, endings and pageant). Climbing there and in the partial edition shows the
 reachable holds, an arrow for each direction and the leap arc.
+
+The film edition's climbs (Act V's cliff and tower wall) are continuous: he
+climbs anywhere on the painted cloth, fastest up ivy and the cracks between
+blocks, steady over bare rock, slow over the cliff's wet cleft and under a
+ledge's lip; pushing up into a ledge he hauls himself onto it, walks along
+it, and lowers himself off; A springs a short way. The surfaces are read from
+the cloths by `design/source/build_climb_map.py` into `src/acts/climb-map.js`
+(rerun it if a cloth changes), and `src/acts/climb.js` is the climbing.
 
 The retained sailor, guitar, rose bargain and alternate endings are adaptation
 mechanics, not events in the film. For the complete original storyline and
@@ -145,6 +153,7 @@ for g in build_act_requests build_film_requests build_film_assets; do python3 ki
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/theme-browser.mjs
 CHROMIUM_PATH=/usr/bin/chromium node kingdomofthefairies/qa/walking-browser.mjs
 python3 kingdomofthefairies/design/source/audit_sprites.py --check   # after any art delivery; needs Pillow, numpy, OpenCV
+python3 kingdomofthefairies/design/source/build_climb_map.py --check  # after a climbing cloth changes; needs Pillow
 kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
 ```
 

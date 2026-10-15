@@ -3649,6 +3649,1006 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-wall-up-a": {
+      "status": "requested",
+      "file": "prince-wall-up-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-a-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-b": {
+      "status": "requested",
+      "file": "prince-wall-up-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-c": {
+      "status": "requested",
+      "file": "prince-wall-up-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-c-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-d": {
+      "status": "requested",
+      "file": "prince-wall-up-d.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-d-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-d-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-a": {
+      "status": "requested",
+      "file": "prince-wall-side-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-a-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-b": {
+      "status": "requested",
+      "file": "prince-wall-side-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-c": {
+      "status": "requested",
+      "file": "prince-wall-side-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-c-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-d": {
+      "status": "requested",
+      "file": "prince-wall-side-d.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-d-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-d-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle": {
+      "status": "requested",
+      "file": "prince-wall-idle.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-tinted": {
+      "status": "requested",
+      "file": "prince-wall-idle-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-b": {
+      "status": "requested",
+      "file": "prince-wall-idle-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-idle-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-leap": {
+      "status": "requested",
+      "file": "prince-wall-leap.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-leap-tinted": {
+      "status": "requested",
+      "file": "prince-wall-leap-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-catch": {
+      "status": "requested",
+      "file": "prince-wall-catch.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-catch-tinted": {
+      "status": "requested",
+      "file": "prince-wall-catch-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-hit": {
+      "status": "requested",
+      "file": "prince-wall-hit.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-hit-tinted": {
+      "status": "requested",
+      "file": "prince-wall-hit-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-a": {
+      "status": "requested",
+      "file": "prince-mantle-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-a-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-b": {
+      "status": "requested",
+      "file": "prince-mantle-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-b-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-c": {
+      "status": "requested",
+      "file": "prince-mantle-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-c-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-step": {
+      "status": "requested",
+      "file": "prince-wall-step.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-step-tinted": {
+      "status": "requested",
+      "file": "prince-wall-step-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-crawl-a": {
+      "status": "requested",
+      "file": "prince-crawl-a.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-crawl-a-tinted": {
+      "status": "requested",
+      "file": "prince-crawl-a-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-crawl-b": {
+      "status": "requested",
+      "file": "prince-crawl-b.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-crawl-b-tinted": {
+      "status": "requested",
+      "file": "prince-crawl-b-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-kneel-rise": {
+      "status": "requested",
+      "file": "prince-kneel-rise.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-kneel-rise-tinted": {
+      "status": "requested",
+      "file": "prince-kneel-rise-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lying-back": {
+      "status": "requested",
+      "file": "prince-lying-back.webp",
+      "size": [
+        400,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lying-back-tinted": {
+      "status": "requested",
+      "file": "prince-lying-back-tinted.webp",
+      "size": [
+        400,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lying-front": {
+      "status": "requested",
+      "file": "prince-lying-front.webp",
+      "size": [
+        400,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lying-front-tinted": {
+      "status": "requested",
+      "file": "prince-lying-front-tinted.webp",
+      "size": [
+        400,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-tumble-a": {
+      "status": "requested",
+      "file": "prince-tumble-a.webp",
+      "size": [
+        360,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-tumble-a-tinted": {
+      "status": "requested",
+      "file": "prince-tumble-a-tinted.webp",
+      "size": [
+        360,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-tumble-b": {
+      "status": "requested",
+      "file": "prince-tumble-b.webp",
+      "size": [
+        360,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-tumble-b-tinted": {
+      "status": "requested",
+      "file": "prince-tumble-b-tinted.webp",
+      "size": [
+        360,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-dive": {
+      "status": "requested",
+      "file": "prince-dive.webp",
+      "size": [
+        440,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-dive-tinted": {
+      "status": "requested",
+      "file": "prince-dive-tinted.webp",
+      "size": [
+        440,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-under-a": {
+      "status": "requested",
+      "file": "prince-swim-under-a.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-under-a-tinted": {
+      "status": "requested",
+      "file": "prince-swim-under-a-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-under-b": {
+      "status": "requested",
+      "file": "prince-swim-under-b.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-swim-under-b-tinted": {
+      "status": "requested",
+      "file": "prince-swim-under-b-tinted.webp",
+      "size": [
+        360,
+        240
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-collared": {
+      "status": "requested",
+      "file": "prince-collared.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-collared-tinted": {
+      "status": "requested",
+      "file": "prince-collared-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-kneel": {
+      "status": "requested",
+      "file": "prince-kneel.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-kneel-tinted": {
+      "status": "requested",
+      "file": "prince-kneel-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lift": {
+      "status": "requested",
+      "file": "prince-lift.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-lift-tinted": {
+      "status": "requested",
+      "file": "prince-lift-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-climb-a": {
+      "status": "requested",
+      "file": "prince-carry-climb-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-climb-a-tinted": {
+      "status": "requested",
+      "file": "prince-carry-climb-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-climb-b": {
+      "status": "requested",
+      "file": "prince-carry-climb-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-carry-climb-b-tinted": {
+      "status": "requested",
+      "file": "prince-carry-climb-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-leap": {
+      "status": "requested",
+      "file": "prince-court-leap.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-leap-tinted": {
+      "status": "requested",
+      "file": "prince-court-leap-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-fall": {
+      "status": "requested",
+      "file": "prince-court-fall.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-fall-tinted": {
+      "status": "requested",
+      "file": "prince-court-fall-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-reach": {
+      "status": "requested",
+      "file": "prince-court-reach.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-reach-tinted": {
+      "status": "requested",
+      "file": "prince-court-reach-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-crawl": {
+      "status": "requested",
+      "file": "crew-squire-crawl.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-crawl-tinted": {
+      "status": "requested",
+      "file": "crew-squire-crawl-tinted.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-tumble": {
+      "status": "requested",
+      "file": "crew-squire-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-tumble-tinted": {
+      "status": "requested",
+      "file": "crew-squire-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-sit-up": {
+      "status": "requested",
+      "file": "crew-squire-sit-up.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-squire-sit-up-tinted": {
+      "status": "requested",
+      "file": "crew-squire-sit-up-tinted.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-crawl": {
+      "status": "requested",
+      "file": "crew-helmsman-crawl.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-crawl-tinted": {
+      "status": "requested",
+      "file": "crew-helmsman-crawl-tinted.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-tumble": {
+      "status": "requested",
+      "file": "crew-helmsman-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-tumble-tinted": {
+      "status": "requested",
+      "file": "crew-helmsman-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-sit-up": {
+      "status": "requested",
+      "file": "crew-helmsman-sit-up.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-helmsman-sit-up-tinted": {
+      "status": "requested",
+      "file": "crew-helmsman-sit-up-tinted.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-crawl": {
+      "status": "requested",
+      "file": "crew-manatarms-crawl.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-crawl-tinted": {
+      "status": "requested",
+      "file": "crew-manatarms-crawl-tinted.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-tumble": {
+      "status": "requested",
+      "file": "crew-manatarms-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-tumble-tinted": {
+      "status": "requested",
+      "file": "crew-manatarms-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-sit-up": {
+      "status": "requested",
+      "file": "crew-manatarms-sit-up.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-manatarms-sit-up-tinted": {
+      "status": "requested",
+      "file": "crew-manatarms-sit-up-tinted.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-crawl": {
+      "status": "requested",
+      "file": "crew-bosun-crawl.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-crawl-tinted": {
+      "status": "requested",
+      "file": "crew-bosun-crawl-tinted.webp",
+      "size": [
+        300,
+        200
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-tumble": {
+      "status": "requested",
+      "file": "crew-bosun-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-tumble-tinted": {
+      "status": "requested",
+      "file": "crew-bosun-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-sit-up": {
+      "status": "requested",
+      "file": "crew-bosun-sit-up.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "crew-bosun-sit-up-tinted": {
+      "status": "requested",
+      "file": "crew-bosun-sit-up-tinted.webp",
+      "size": [
+        260,
+        220
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-blue-tumble": {
+      "status": "requested",
+      "file": "attendant-blue-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-blue-tumble-tinted": {
+      "status": "requested",
+      "file": "attendant-blue-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-green-tumble": {
+      "status": "requested",
+      "file": "attendant-green-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-green-tumble-tinted": {
+      "status": "requested",
+      "file": "attendant-green-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-pink-tumble": {
+      "status": "requested",
+      "file": "attendant-pink-tumble.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "attendant-pink-tumble-tinted": {
+      "status": "requested",
+      "file": "attendant-pink-tumble-tinted.webp",
+      "size": [
+        300,
+        300
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

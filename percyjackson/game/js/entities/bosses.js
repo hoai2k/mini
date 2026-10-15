@@ -29,6 +29,13 @@
 //
 // Per-boss hooks in BOSSES[id]: init(boss), tick(boss, dt) after the rig
 // animates, damageMul(boss, src, o) → factor, onDie(boss), ambient(boss, dt).
+// Fields a chapter may set on a Boss (chapter 1, objectives/museum.js):
+//   standBy     true: no attack patterns and no walking (she talks; she waits
+//               somewhere else after flying off). Set untargetable with it.
+//   flying      true: a pattern moves her through the air itself (no physics).
+//   hpFloor     health she can't be taken below; reaching it calls onFloor(boss)
+//               (the flights at 75 / 50 / 25%).
+//   skipPatterns  a Set of pattern names she doesn't use here.
 import * as THREE from 'three/webgpu';
 import { FLASH_MATERIAL } from './character.js';
 import { goldDust, animateExtras, MONSTERS, MONSTER_IDS, buildMonsterModel } from './monsters.js';
@@ -163,6 +170,7 @@ export class Boss {
     if (mul <= 0) return 0;
     const dmg = amount * mul * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
     this.hp -= dmg; this.flashT = 0.08;
+    if (this.hpFloor != null && this.hp <= this.hpFloor) { this.hp = this.hpFloor; const fn = this.onFloor; this.hpFloor = null; fn?.(this); return dmg; }
     if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, 0.08);
     const f = this.hp / this.maxHp;
     const want = f < 0.33 ? 2 : f < 0.66 ? 1 : 0;
@@ -542,7 +550,8 @@ export class Boss {
     yield 0.4;
   }
   pickPattern() {
-    const list = this.B.phases[Math.max(0, Math.min(2, this.phase | 0))];
+    let list = this.B.phases[Math.max(0, Math.min(2, this.phase | 0))];
+    if (this.skipPatterns) list = list.filter((p) => !this.skipPatterns.has(p)).length ? list.filter((p) => !this.skipPatterns.has(p)) : list;
     let p;
     for (let i = 0; i < 4; i++) { p = list[Math.floor(Math.random() * list.length)]; if (p !== this.lastPattern) break; }
     if (typeof this[p] !== 'function') { console.warn('boss pattern missing', p, this.phase); p = list[0]; }
@@ -570,7 +579,7 @@ export class Boss {
     // taking double damage, its attack patterns paused until it comes to
     if (this.dazeT > 0) { this.dazeT -= dt; this.stunT = this.dazeT > 0 ? Math.max(this.stunT, this.dazeT) : 0; }
     // coroutine
-    if (this.intro <= 0 && !(this.dazeT > 0)) {
+    if (this.intro <= 0 && !(this.dazeT > 0) && !this.standBy) {
       if (this.coWait > 0) this.coWait -= dt;
       else {
         if (!this.co) this.co = this.pickPattern();
@@ -581,7 +590,7 @@ export class Boss {
     }
     // movement toward the nearest player
     let move = tmp2.set(0, 0, 0);
-    if (t && this.moving && this.intro <= 0 && this.stunT <= 0) {
+    if (t && this.moving && this.intro <= 0 && this.stunT <= 0 && !this.standBy && !this.flying) {
       tmp.subVectors(t.pos, this.pos).setY(0); const d = tmp.length();
       const slow = (this.status.slow > 0 ? 0.6 : 1) * (this.slowT > 0 ? 0.7 : 1);
       if (d > (this.B.keep ?? 3.5)) move.copy(tmp.normalize().multiplyScalar(this.B.speed * (1 + this.phase * 0.2) * slow * (this.speedMul ?? 1)));
@@ -590,7 +599,8 @@ export class Boss {
     this.slowT = (this.slowT ?? 0) - dt;
     this.vel.x = damp(this.vel.x, move.x + this.knock.x, 8, dt); this.vel.z = damp(this.vel.z, move.z + this.knock.z, 8, dt);
     if (!this.swooping) this.knock.multiplyScalar(Math.exp(-dt * 5));
-    moveEntity(this, g.world, dt);
+    if (this.flying) this.vel.set(0, 0, 0);
+    else moveEntity(this, g.world, dt);
     if (this.pos.y < -4) { this.pos.copy(this.home); this.vel.set(0, 0, 0); }
     // visuals
     this.visY = this.stepped ? damp(this.visY, this.pos.y, 12, dt) : this.pos.y; if (Math.abs(this.visY - this.pos.y) < 0.01) this.stepped = 0;

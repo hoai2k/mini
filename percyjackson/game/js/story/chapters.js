@@ -9,7 +9,8 @@
 //   card      chapter card image under assets/ (preloaded with the title, ui/art.js).
 //   ready     false = shown on the map but not playable yet.
 //   pending   true = written and wired up, waiting on its boss or biome.
-//   objective exorcise | rescue | seal | flag | escape | boss (see mission.js).
+//   objective exorcise | rescue | seal | flag | escape | boss | museum (see mission.js;
+//             museum is chapter 1's walk to Mrs. Dodds, objectives/museum.js).
 //   objText   the objective title shown in the HUD.
 //   captive   rescue: 'cage' (default) or 'statue' (stone captives).
 //   seal      seal: 'altar' (default), 'trap' or 'rift'.
@@ -34,7 +35,7 @@ export const BOOKS = [
 export const CHAPTERS = [
   {
     id: 'lt1', book: 'book1', num: 1, title: 'The Pre-Algebra Teacher', place: 'The museum, on a field trip',
-    biome: 'museum', objective: 'exorcise', objText: 'Follow Mrs. Dodds through the galleries', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist', 'guard'], mistForms: ['serpent', 'spider', 'ghost'],
+    biome: 'museum', objective: 'museum', objText: 'Follow Mrs. Dodds through the galleries', boss: 'alecto', mist: 1, disguise: ['teacher', 'student', 'tourist', 'guard'], mistForms: ['serpent', 'spider', 'ghost'],
     card: 'assets/cards/scene-museum.jpg', ready: true,
     start: { at: 'spawn', dx: 7, dz: 6, prop: 'bus', place: 'the field-trip bus by the camp road' },
     intro: [

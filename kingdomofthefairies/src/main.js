@@ -469,16 +469,23 @@ input.on('connect', () => announce('Controller connected.'));
 function announce(msg) { live.textContent = msg; }
 
 // ---------------------------------------------------------------- loop
-let last = performance.now();
+let last = performance.now(), heldLook = null;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  S.t += dt;
+  // Paused, the stage stands still: lanterns, hooks and water are drawn from
+  // this clock, so it stops with the play beneath the pause menu.
+  if (!(S.paused && S.mode === 'play')) S.t += dt;
   const i = input.poll(dt);
   update(dt, i);
   const view = currentView();
   renderer.tick(S.paused ? 0 : dt, view);
-  renderer.render(view);
+  // Paused in play, the last frame holds still under the menu (the film
+  // grain and flicker included), drawn again only if a setting changes it.
+  const still = S.paused && S.mode === 'play';
+  const look = `${view.film}|${view.tinted}|${view.extraAnimations}`;
+  if (!still || look !== heldLook) renderer.render(view);
+  heldLook = still ? look : null;
   requestAnimationFrame(frame);
 }
 

@@ -349,6 +349,104 @@ GROUPS.append(
 )
 
 
+
+# The film's climbs become continuous (14 October 2026): he climbs anywhere on
+# the painted cliff and tower, faster up ivy and along cracks, slower over
+# bare rock, walks the ledges, and hauls himself onto them. Seen from behind
+# on the wall face; on a ledge top he turns to profile and walks as usual.
+WALL = ('Seen from directly BEHIND, his back to us, flat against a vertical wall that is not drawn: we see the back of '
+        'his plumed helmet, the crimson cloak hanging down his back (gathered so it does not hide his legs), the star '
+        'shield slung across his back and the sword at his hip. The same scale and proportions as every other prince- '
+        'sprite (prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Hands and boot-toes press on '
+        'the unseen wall; nothing but the figure: no wall, rock, ivy or shadow.')
+WALL_FRAMES = [
+    ('wall-up-a', 'Climbing up, right hand high', 'Climbing straight up: RIGHT hand reaching high above his head, left hand at shoulder height, LEFT knee raised with the left foot high, right leg straight below. The first of four frames of a smooth climbing cycle.'),
+    ('wall-up-b', 'Climbing up, pulling through', 'Climbing straight up, the beat between reaches: both hands at about head height, body pulled up close to them, both knees slightly bent and feet level below. Hips and shoulders level and square. Second of the four-frame cycle.'),
+    ('wall-up-c', 'Climbing up, left hand high', 'Climbing straight up: LEFT hand reaching high above his head, right hand at shoulder height, RIGHT knee raised with the right foot high, left leg straight below. The mirror of prince-wall-up-a (third frame of the cycle).'),
+    ('wall-up-d', 'Climbing up, pulling through (other side)', 'Climbing straight up, the beat between reaches, weight a little on the other side from prince-wall-up-b: both hands near head height, the left a touch higher, knees slightly bent. Fourth frame of the cycle, leading back into prince-wall-up-a.'),
+    ('wall-side-a', 'Traversing right, reaching', 'Moving sideways to the RIGHT across the wall: right arm stretched out to the right at shoulder height, right leg stepping out to the right, left hand and foot still where they were, so he is spread wide. First of four traversing frames (the game mirrors them for moving left).'),
+    ('wall-side-b', 'Traversing right, gathering', 'Moving sideways to the RIGHT: the left hand and left foot have come across to meet the right ones, limbs gathered close, body compact and upright. Second traversing frame.'),
+    ('wall-side-c', 'Traversing right, reaching (other step)', 'Moving sideways to the RIGHT, a second reach unlike prince-wall-side-a: the right foot steps out first and low, the right hand reaching a little higher, head turned to look right along the wall. Third traversing frame.'),
+    ('wall-side-d', 'Traversing right, gathering (other step)', 'Moving sideways to the RIGHT, gathering again: left hand closing on the right, left knee bent bringing the left foot across. Fourth traversing frame, leading back into prince-wall-side-a.'),
+    ('wall-idle', 'Clinging still', 'Clinging still to the wall at rest: both hands at head height a shoulder-width apart, both feet planted a hip-width apart, knees softly bent, head tilted slightly up as if looking for the next hold.'),
+    ('wall-idle-b', 'Clinging still, breathing', 'Exactly prince-wall-idle (attach it) with the smallest change of a breath: shoulders a touch higher and the head turned a little to the left, as if glancing along the wall. Laid over prince-wall-idle the hands and feet stay in place.'),
+    ('wall-leap', 'Springing up off the wall', 'Springing up the wall: arms stretched straight up overhead reaching for a hold, legs together and extended below as he pushes off with his toes, body long and taut.'),
+    ('wall-catch', 'Catching the wall', 'The moment he catches the wall after a spring: arms and legs splayed wide in an X, fingers spread and gripping, knees bent, cloak flung out a little to one side.'),
+    ('wall-hit', 'Struck by a falling stone', 'Struck by a falling stone while clinging: head ducked down between his shoulders, one hand torn off the wall and flung out, the other still gripping, one foot slipping loose below. A jolt, not a fall.'),
+]
+MANTLE_FRAMES = [
+    ('mantle-a', 'Hauling onto a ledge: hands on the lip', 'Hanging from the lip of a ledge by both hands, seen from behind: both hands gripping a level edge at the top of the frame, arms bent, chin at the level of his hands, legs hanging and feet scrabbling below. The ledge top is NOT drawn; his hands rest on an invisible level line 40 px below the top of the canvas.'),
+    ('mantle-b', 'Hauling onto a ledge: elbows over', 'Seen from behind and a little to the side: he has pressed himself up so his chest is over the invisible ledge, both elbows locked straight with hands on the ledge top, hips at the lip and his right knee swinging up onto the ledge. The ledge top line is level at the height of his waist.'),
+    ('mantle-c', 'Hauling onto a ledge: rising', 'Three-quarter view from behind, turning to profile facing right: kneeling on his right knee on the ledge top with the left foot planted, one hand on the knee, pushing up to stand. The ledge top is the bottom of the canvas (bottom centre anchor at the kneeling knee and planted foot).'),
+    ('wall-step', 'Turning from the ledge to the wall', 'Standing on a ledge top and turning to the wall above it: a three-quarter view from behind, between profile (facing right) and back view, both hands raised against the unseen rock at head height, one boot lifting onto it. Bridges prince-stand and the back-view climbing frames.'),
+]
+GROUPS.append(
+    ('The continuous climb', 'Requested 14 October 2026 for the redesigned climbs of Act V (the cliff and the tower wall): he climbs anywhere on the painted face, faster up ivy and the cracks between blocks, slower over bare rock and under overhangs, walks the ledge tops, and hauls himself onto them. These back-view frames play at his climbing speed in any direction (the up cycle runs backwards to climb down; the traverse is mirrored to go left); the mantle frames carry him from the face onto a ledge (and, reversed, down off one). On the ledge tops he turns to profile and uses his walking and standing frames. Until they arrive the game draws prince-climb-a/b, prince-hang and prince-pullup.', [
+        (f'prince-{fid}{t}', f'{name}{" (tinted)" if t else ""}', 360, 440, 'bottom centre (lowest boot)', TINTED if t else SPRITE,
+         f'{PRINCE}. {desc} {WALL if not fid.startswith(("mantle-c", "wall-step")) else POSE.replace("Seen in profile facing right, the", "The")} Match the other climbing frames of this set (attach prince-climb-a{t}.webp and prince-stand{t}.webp) in costume, colours and scale.',
+         {'wall-up-a': 'prince-climb-a', 'wall-up-c': 'prince-climb-b', 'mantle-a': 'prince-hang', 'mantle-b': 'prince-pullup'}.get(fid))
+        for fid, name, desc in WALL_FRAMES + MANTLE_FRAMES for t in ('', '-tinted')
+    ]),
+)
+
+
+
+# Audited 14 October 2026: every pose a board or scene shows that its sprite
+# doesn't (the scene rotated, flipped or tipped an upright cut-out instead).
+SCALE = ('The same scale and proportions as every other prince- sprite (match prince-stand: cap-of-helmet to chin is '
+         'one ninth of his standing height, which is 360 px at this size). Nothing but the figure: no ground, water, '
+         'rock or shadow.')
+COURT = ('Prince Bel-Azor in his court dress exactly as in prince-court.webp (attach it, and '
+         'references/film-planning/originals/char-bel-azor.png): no armour, the same doublet, cloak, hat and colours')
+POSES = [
+    ('crawl-a', 'Crawling out, reach A', 360, 240, 'Crawling forward on hands and knees, low to the ground, facing RIGHT in profile: right hand reaching forward flat on the ground, left knee drawn up under him, head raised looking ahead, cloak dragging behind. Exhausted, wet, hair and plume bedraggled. First of two crawling frames.', 'Act IV: crawling out of the whale onto the rocks (drawn now as his walking frames turned on their side).'),
+    ('crawl-b', 'Crawling out, reach B', 360, 240, 'The other phase of prince-crawl-a (attach it): left hand forward, right knee drawn up, the same height and scale, so the two alternate as a crawl.', 'Act IV beach crawl.'),
+    ('kneel-rise', 'Rising from his knees', 360, 440, 'Pushing himself up from the ground, facing RIGHT in profile: kneeling on his left knee, right foot planted, right hand on the right knee, left hand still on the ground, head up. The pose between crawling and standing.', 'Act IV: getting up after the crawl; also after a fall.'),
+    ('lying-back', 'Lying on his back, senseless', 400, 200, 'Lying flat on his back, senseless, head to the LEFT and feet to the RIGHT, eyes closed, one arm across his chest and the other fallen out to the side, shield beneath him, cloak spread. Limp, as if asleep or drowned.', 'Act II: lying on the sea floor and drowning (drawn now as his swimming frame turned upside down).'),
+    ('lying-front', 'Lying face down, senseless', 400, 200, 'Lying face down, senseless, head to the LEFT and feet to the RIGHT, face turned toward us on its cheek, arms limp at his sides, cloak over his legs. The pose before he is turned over onto his back (prince-lying-back, attach it, same length and scale).', 'Act II: before the witch turns him over.'),
+    ('tumble-a', 'Tumbling, limp', 360, 360, 'Limp and tumbling head over heels, senseless, curled loosely: knees bent, arms trailing above him, head dropped back, cloak and plume streaming. Seen from the side. Turned by the game as he sinks or is swallowed.', 'Act I: sinking with the wreck; Act III: swallowed by the whale (drawn now as the standing or bowing frame spun round).'),
+    ('tumble-b', 'Tumbling, limp (other)', 360, 360, 'A second limp tumbling pose unlike prince-tumble-a (attach it): stretched out more, one arm flung wide and one leg trailing, as if turning slowly in deep water.', 'The same scenes, alternating with tumble-a.'),
+    ('dive', 'Diving head first', 440, 360, 'Diving head first, facing RIGHT and down: body straight and long at a 45-degree slant with the head lowest, arms together stretched beyond the head, legs together and toes pointed, cloak streaming back, shield on his back.', 'Act V: the dive from the clifftop (drawn now as his upright leap turned).'),
+    ('swim-under-a', 'Swimming under the water, stroke A', 360, 240, 'Swimming UNDER the water, facing RIGHT, horizontal: a breaststroke with arms swept forward together, legs kicking, cheeks puffed holding his breath, cloak and plume drifting upward. Match prince-swim-a (attach it) in scale.', 'Act V: ducking under the witch’s swoop (drawn now as his surface stroke dimmed).'),
+    ('swim-under-b', 'Swimming under the water, stroke B', 360, 240, 'The other phase of prince-swim-under-a (attach it): arms swept back to his sides, legs together after the kick.', 'Act V swim, alternating with stroke A.'),
+    ('collared', 'Seized by the collar', 360, 440, 'Hauled up by the collar from behind by someone not drawn: lifted onto the tips of his boots, shoulders hunched up to his ears, arms flailing out, legs kicking, head craned back in alarm. The grip point is the back of his collar near the top centre of the canvas.', 'Act III: caught by the seahorse guard (drawn now as his standing frame tipped).'),
+    ('kneel', 'Kneeling to be knighted', 360, 440, 'Kneeling on his right knee, facing RIGHT in profile, head bowed, left hand on his sword hilt, right hand on his heart.', 'Prologue: knighted by Aurora in the armoury.'),
+    ('lift', 'Stooping to lift Azurine', 360, 440, 'Stooping forward, knees bent and back bowed, both arms reaching down and forward to gather up someone lying at his feet (not drawn), facing RIGHT in profile.', 'Act VI: picking Azurine up before he carries her (now an instant change to the carry).'),
+    ('carry-climb-a', 'Carrying Azurine on a ladder, A', 360, 440, 'Exactly the two figures in prince-carry.webp (attach it), but climbing down a ladder that is not drawn, facing RIGHT: Azurine held against his chest in his left arm as in the carry, his right hand gripping a rung at shoulder height, right foot lower. Keep her pose, gown and face as in the carry.', 'Act VI: carrying her down ladders and ivy (drawn now as the static carry).'),
+    ('carry-climb-b', 'Carrying Azurine on a ladder, B', 360, 440, 'The other phase of prince-carry-climb-a (attach it): his right hand lower on the rail, left foot lower, the same hold on Azurine.', 'Act VI ladders, alternating with A.'),
+]
+COURT_POSES = [
+    ('court-leap', 'In court dress, leaping', 360, 440, 'Leaping RIGHT over a low fire: front knee tucked high, back leg trailing, arms swept up, cloak flying. Match prince-leap.webp (attach it) in pose and scale.', 'Prologue: leaping the fires on the rampart (drawn now as the standing frame tipped).'),
+    ('court-fall', 'In court dress, knocked back', 360, 440, 'Knocked back off his feet by a burst of fire, facing RIGHT: arms thrown up, body arched backward, one leg kicked up, hat tumbling. Match prince-fall.webp (attach it) in scale.', 'Prologue: scorched on the rampart, and losing the chase.'),
+    ('court-reach', 'In court dress, reaching to take', 360, 440, 'Standing facing RIGHT and reaching forward with his right hand at chest height, palm up, as if taking a gift from someone; a slight bow from the waist.', 'Prologue: taking each fairy’s gift and Azurine’s hand.'),
+]
+CREW_IDS = {'squire': 'the squire', 'helmsman': 'the helmsman', 'manatarms': 'the man-at-arms', 'bosun': 'the bosun'}
+CREW_POSES = [
+    ('crawl', 'crawling out', 300, 200, 'crawling forward on hands and knees, low to the ground, facing RIGHT in profile, head raised, exhausted and wet', 'Act IV: crawling out of the whale after the prince.'),
+    ('tumble', 'tumbling, limp', 300, 300, 'limp and tumbling head over heels, senseless, loosely curled, arms trailing and cap streaming', 'Act I: sinking with the wreck.'),
+    ('sit-up', 'sitting up, waking', 260, 220, 'sitting up from lying on the ground, waking: legs out in front, propped on one hand, the other hand rubbing his eyes', 'Act II: waking from the spell (drawn now as his standing frame swung up from the floor).'),
+]
+GROUPS.append(
+    ('Poses the scenes need', 'Requested 14 October 2026 after auditing every board and scene of the film edition for poses its sprites don’t show. Until now the game turned, flipped or tipped an upright cut-out: the prince and crew crawl out of the whale as walking figures laid on their sides, the prince lies on the sea floor as his swimming frame upside down, the sinking crew and the swallowed prince are standing figures spun round, the cliff dive is his leap turned, the court-dress prince leaps the rampart fires as a tipped standing figure, and the crew wake by swinging up from the floor. Each entry notes where it plays. The game keeps its stand-ins until they arrive.', [
+        (f'prince-{fid}{t}', f'{name}{" (tinted)" if t else ""}', w, h, 'bottom centre', TINTED if t else SPRITE,
+         f'{PRINCE}. {desc} {SCALE} Used for: {use}', None)
+        for fid, name, w, h, desc, use in POSES for t in ('', '-tinted')
+    ] + [
+        (f'prince-{fid}{t}', f'{name}{" (tinted)" if t else ""}', w, h, 'bottom centre', TINTED if t else SPRITE,
+         f'{COURT}. {desc} {SCALE} Used for: {use}', None)
+        for fid, name, w, h, desc, use in COURT_POSES for t in ('', '-tinted')
+    ] + [
+        (f'crew-{cid}-{fid}{t}', f'{CREW_IDS[cid][0].upper() + CREW_IDS[cid][1:]}, {name}{" (tinted)" if t else ""}', w, h, 'bottom centre', TINTED if t else SPRITE,
+         f'{CREW_IDS[cid][0].upper() + CREW_IDS[cid][1:]} of the prince\'s crew exactly as in crew-{cid}{t}{"-redo" if cid == "manatarms" else ""}.webp (attach it): the same face, livery, cap and colours, at the same scale (his standing figure fills a 420 px canvas), {desc}. Nothing but the figure: no ground, water or shadow. Used for: {use}', None)
+        for cid in CREW_IDS for fid, name, w, h, desc, use in CREW_POSES for t in ('', '-tinted')
+    ] + [
+        (f'attendant-{a}-tumble{t}', f'The {a} attendant, tumbling{" (tinted)" if t else ""}', 300, 300, 'bottom centre', TINTED if t else SPRITE,
+         f'The courtier exactly as in attendant-{a}{t}.webp (attach it): the same face, gown, colours and scale (her standing figure fills a 420 px canvas), tumbling head over heels as she is swept into the whale\'s throat, gown and veil streaming, arms flung out. Nothing but the figure: no water or shadow. Used for: Act III, swept into the whale beside the prince (drawn now as her standing figure spun round).', None)
+        for a in ('blue', 'green', 'pink') for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
