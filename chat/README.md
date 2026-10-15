@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 75 face effects and backgrounds and 24
+A video chat in the browser with 77 face effects and backgrounds and 24
 minigames. Everyone
 who opens the page joins the same chat, unless a link names its own room
 (`?room=call-abc123`: calls from the iOS app and their invite links meet

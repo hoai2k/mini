@@ -65,6 +65,8 @@ export const EFFECT_IDS = [
   'symmetry',
   'cyclops',
   'bigmouth',
+  'moutheyes',
+  'hugefeatures',
   'fisheye',
   'noir',
   'vhs',
