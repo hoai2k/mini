@@ -144,6 +144,10 @@ a {
 .sections.is-list .sections-links {
   flex-wrap: nowrap;
 }
+/* Home only appears in the dropdown; in the list the band's name does that job. */
+.sections:not(.is-compact) .sections-home {
+  display: none;
+}
 .sections-toggle {
   display: flex;
   align-items: center;
@@ -270,6 +274,22 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+.narrow-only {
+  display: none;
+}
+@media (max-width: 560px) {
+  .wide-only {
+    display: none;
+  }
+  .narrow-only {
+    display: inline;
+  }
+  /* Room for both buttons on one line down to a 320px phone. */
+  .cta-row .button {
+    padding-inline: 1.1rem;
+    letter-spacing: 0.1em;
+  }
 }
 .button {
   display: inline-block;
