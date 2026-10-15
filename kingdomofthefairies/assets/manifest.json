@@ -3649,6 +3649,346 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-wall-up-a": {
+      "status": "requested",
+      "file": "prince-wall-up-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-a-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-b": {
+      "status": "requested",
+      "file": "prince-wall-up-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-c": {
+      "status": "requested",
+      "file": "prince-wall-up-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-c-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-d": {
+      "status": "requested",
+      "file": "prince-wall-up-d.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-up-d-tinted": {
+      "status": "requested",
+      "file": "prince-wall-up-d-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-a": {
+      "status": "requested",
+      "file": "prince-wall-side-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-a-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-b": {
+      "status": "requested",
+      "file": "prince-wall-side-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-c": {
+      "status": "requested",
+      "file": "prince-wall-side-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-c-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-d": {
+      "status": "requested",
+      "file": "prince-wall-side-d.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-side-d-tinted": {
+      "status": "requested",
+      "file": "prince-wall-side-d-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle": {
+      "status": "requested",
+      "file": "prince-wall-idle.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-tinted": {
+      "status": "requested",
+      "file": "prince-wall-idle-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-b": {
+      "status": "requested",
+      "file": "prince-wall-idle-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-idle-b-tinted": {
+      "status": "requested",
+      "file": "prince-wall-idle-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-leap": {
+      "status": "requested",
+      "file": "prince-wall-leap.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-leap-tinted": {
+      "status": "requested",
+      "file": "prince-wall-leap-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-catch": {
+      "status": "requested",
+      "file": "prince-wall-catch.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-catch-tinted": {
+      "status": "requested",
+      "file": "prince-wall-catch-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-hit": {
+      "status": "requested",
+      "file": "prince-wall-hit.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-hit-tinted": {
+      "status": "requested",
+      "file": "prince-wall-hit-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-a": {
+      "status": "requested",
+      "file": "prince-mantle-a.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-a-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-a-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-b": {
+      "status": "requested",
+      "file": "prince-mantle-b.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-b-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-b-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-c": {
+      "status": "requested",
+      "file": "prince-mantle-c.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-mantle-c-tinted": {
+      "status": "requested",
+      "file": "prince-mantle-c-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-step": {
+      "status": "requested",
+      "file": "prince-wall-step.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
+    },
+    "prince-wall-step-tinted": {
+      "status": "requested",
+      "file": "prince-wall-step-tinted.webp",
+      "size": [
+        360,
+        440
+      ],
+      "anchor": "bottom centre (lowest boot)",
+      "edition": "film"
     }
   },
   "audio": {

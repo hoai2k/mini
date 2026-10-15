@@ -349,6 +349,47 @@ GROUPS.append(
 )
 
 
+
+# The film's climbs become continuous (14 October 2026): he climbs anywhere on
+# the painted cliff and tower, faster up ivy and along cracks, slower over
+# bare rock, walks the ledges, and hauls himself onto them. Seen from behind
+# on the wall face; on a ledge top he turns to profile and walks as usual.
+WALL = ('Seen from directly BEHIND, his back to us, flat against a vertical wall that is not drawn: we see the back of '
+        'his plumed helmet, the crimson cloak hanging down his back (gathered so it does not hide his legs), the star '
+        'shield slung across his back and the sword at his hip. The same scale and proportions as every other prince- '
+        'sprite (prince-stand: cap-of-helmet to chin is one ninth of a standing figure). Hands and boot-toes press on '
+        'the unseen wall; nothing but the figure: no wall, rock, ivy or shadow.')
+WALL_FRAMES = [
+    ('wall-up-a', 'Climbing up, right hand high', 'Climbing straight up: RIGHT hand reaching high above his head, left hand at shoulder height, LEFT knee raised with the left foot high, right leg straight below. The first of four frames of a smooth climbing cycle.'),
+    ('wall-up-b', 'Climbing up, pulling through', 'Climbing straight up, the beat between reaches: both hands at about head height, body pulled up close to them, both knees slightly bent and feet level below. Hips and shoulders level and square. Second of the four-frame cycle.'),
+    ('wall-up-c', 'Climbing up, left hand high', 'Climbing straight up: LEFT hand reaching high above his head, right hand at shoulder height, RIGHT knee raised with the right foot high, left leg straight below. The mirror of prince-wall-up-a (third frame of the cycle).'),
+    ('wall-up-d', 'Climbing up, pulling through (other side)', 'Climbing straight up, the beat between reaches, weight a little on the other side from prince-wall-up-b: both hands near head height, the left a touch higher, knees slightly bent. Fourth frame of the cycle, leading back into prince-wall-up-a.'),
+    ('wall-side-a', 'Traversing right, reaching', 'Moving sideways to the RIGHT across the wall: right arm stretched out to the right at shoulder height, right leg stepping out to the right, left hand and foot still where they were, so he is spread wide. First of four traversing frames (the game mirrors them for moving left).'),
+    ('wall-side-b', 'Traversing right, gathering', 'Moving sideways to the RIGHT: the left hand and left foot have come across to meet the right ones, limbs gathered close, body compact and upright. Second traversing frame.'),
+    ('wall-side-c', 'Traversing right, reaching (other step)', 'Moving sideways to the RIGHT, a second reach unlike prince-wall-side-a: the right foot steps out first and low, the right hand reaching a little higher, head turned to look right along the wall. Third traversing frame.'),
+    ('wall-side-d', 'Traversing right, gathering (other step)', 'Moving sideways to the RIGHT, gathering again: left hand closing on the right, left knee bent bringing the left foot across. Fourth traversing frame, leading back into prince-wall-side-a.'),
+    ('wall-idle', 'Clinging still', 'Clinging still to the wall at rest: both hands at head height a shoulder-width apart, both feet planted a hip-width apart, knees softly bent, head tilted slightly up as if looking for the next hold.'),
+    ('wall-idle-b', 'Clinging still, breathing', 'Exactly prince-wall-idle (attach it) with the smallest change of a breath: shoulders a touch higher and the head turned a little to the left, as if glancing along the wall. Laid over prince-wall-idle the hands and feet stay in place.'),
+    ('wall-leap', 'Springing up off the wall', 'Springing up the wall: arms stretched straight up overhead reaching for a hold, legs together and extended below as he pushes off with his toes, body long and taut.'),
+    ('wall-catch', 'Catching the wall', 'The moment he catches the wall after a spring: arms and legs splayed wide in an X, fingers spread and gripping, knees bent, cloak flung out a little to one side.'),
+    ('wall-hit', 'Struck by a falling stone', 'Struck by a falling stone while clinging: head ducked down between his shoulders, one hand torn off the wall and flung out, the other still gripping, one foot slipping loose below. A jolt, not a fall.'),
+]
+MANTLE_FRAMES = [
+    ('mantle-a', 'Hauling onto a ledge: hands on the lip', 'Hanging from the lip of a ledge by both hands, seen from behind: both hands gripping a level edge at the top of the frame, arms bent, chin at the level of his hands, legs hanging and feet scrabbling below. The ledge top is NOT drawn; his hands rest on an invisible level line 40 px below the top of the canvas.'),
+    ('mantle-b', 'Hauling onto a ledge: elbows over', 'Seen from behind and a little to the side: he has pressed himself up so his chest is over the invisible ledge, both elbows locked straight with hands on the ledge top, hips at the lip and his right knee swinging up onto the ledge. The ledge top line is level at the height of his waist.'),
+    ('mantle-c', 'Hauling onto a ledge: rising', 'Three-quarter view from behind, turning to profile facing right: kneeling on his right knee on the ledge top with the left foot planted, one hand on the knee, pushing up to stand. The ledge top is the bottom of the canvas (bottom centre anchor at the kneeling knee and planted foot).'),
+    ('wall-step', 'Turning from the ledge to the wall', 'Standing on a ledge top and turning to the wall above it: a three-quarter view from behind, between profile (facing right) and back view, both hands raised against the unseen rock at head height, one boot lifting onto it. Bridges prince-stand and the back-view climbing frames.'),
+]
+GROUPS.append(
+    ('The continuous climb', 'Requested 14 October 2026 for the redesigned climbs of Act V (the cliff and the tower wall): he climbs anywhere on the painted face, faster up ivy and the cracks between blocks, slower over bare rock and under overhangs, walks the ledge tops, and hauls himself onto them. These back-view frames play at his climbing speed in any direction (the up cycle runs backwards to climb down; the traverse is mirrored to go left); the mantle frames carry him from the face onto a ledge (and, reversed, down off one). On the ledge tops he turns to profile and uses his walking and standing frames. Until they arrive the game draws prince-climb-a/b, prince-hang and prince-pullup.', [
+        (f'prince-{fid}{t}', f'{name}{" (tinted)" if t else ""}', 360, 440, 'bottom centre (lowest boot)', TINTED if t else SPRITE,
+         f'{PRINCE}. {desc} {WALL if not fid.startswith(("mantle-c", "wall-step")) else POSE.replace("Seen in profile facing right, the", "The")} Match the other climbing frames of this set (attach prince-climb-a{t}.webp and prince-stand{t}.webp) in costume, colours and scale.',
+         {'wall-up-a': 'prince-climb-a', 'wall-up-c': 'prince-climb-b', 'mantle-a': 'prince-hang', 'mantle-b': 'prince-pullup'}.get(fid))
+        for fid, name, desc in WALL_FRAMES + MANTLE_FRAMES for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
