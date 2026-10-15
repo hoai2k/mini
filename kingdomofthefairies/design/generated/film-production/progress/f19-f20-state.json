@@ -11,9 +11,13 @@
     "prince-wall-side-a",
     "prince-wall-side-a-tinted",
     "prince-wall-side-b",
-    "prince-wall-side-b-tinted"
+    "prince-wall-side-b-tinted",
+    "prince-wall-side-c",
+    "prince-wall-side-c-tinted",
+    "prince-wall-side-d",
+    "prince-wall-side-d-tinted"
   ],
-  "remaining": 88,
-  "next": "prince-wall-side-c",
+  "remaining": 84,
+  "next": "prince-wall-idle",
   "notes": "Native originals and full generation records saved immediately. Small previews reviewed before delivery. Legacy reveller-lady-idle-b has no active production prompt. Continue requests in order in batches of four."
 }

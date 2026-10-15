@@ -84,3 +84,5 @@ Batch 1 delivers `prince-wall-up-a`, `prince-wall-up-b` and their tinted variant
 Batch 2: `prince-wall-up-c`, `prince-wall-up-c-tinted`, `prince-wall-up-d`, `prince-wall-up-d-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
 
 Batch 3: `prince-wall-side-a`, `prince-wall-side-a-tinted`, `prince-wall-side-b`, `prince-wall-side-b-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
+
+Batch 4: `prince-wall-side-c`, `prince-wall-side-c-tinted`, `prince-wall-side-d`, `prince-wall-side-d-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
