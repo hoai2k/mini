@@ -1161,6 +1161,22 @@ for n, (gid, name, subj) in enumerate(NEW_GAMES_3):
         "The Teen icon, then the Kid icon, then the emoji.")
 
 
+# Mouth Eyes: the wearer's own mouth copied over both eyes, three mouths on one face.
+MOUTH_EYES = ("a face where both eyes have been replaced by copies of its own mouth, so it has "
+              "three identical open smiling mouths, two where the eyes should be and one in the usual place")
+req("icons", "CH-I103", "fx-moutheyes", "Mouth Eyes icon", "256 x 256",
+    "The Mouth Eyes button on the effect strip.", f"Icon of {MOUTH_EYES}.", "An emoji.")
+req("icons2", "CH-K103", "fx2-moutheyes", "Mouth Eyes icon (second set)", "256 x 256",
+    "The Mouth Eyes button on the effect strips, replacing the first-set icon.",
+    f"Icon: a teen's face, {MOUTH_EYES.split('a face ', 1)[1]}.", "The first-set icon, or the emoji.")
+for prefix, section, rid, theme in (("art", "icons-art", "CH-N102", "Art"),
+                                    ("classic", "icons-classic", "CH-R102", "Classical")):
+    req(section, rid, f"{prefix}-fx-moutheyes", f"Mouth Eyes icon ({theme} theme)", "256 x 256",
+        f"The Mouth Eyes button on the effect strips in the {theme} theme.",
+        f"Icon: a person's face, {MOUTH_EYES.split('a face ', 1)[1]}.",
+        "The Teen icon, then the Kid icon, then the emoji.")
+
+
 def render_doc() -> str:
     lines = [
         "# Games Chat: image requests",

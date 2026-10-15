@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-526 delivered, 526 in total.
+526 delivered, 4 requested, 530 in total.
 
 ## Brand
 
@@ -2737,6 +2737,18 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Single square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.
 ```
 
+### CH-I103 · Mouth Eyes icon
+
+- **File:** `chat/assets/icons/fx-moutheyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mouth Eyes button on the effect strip.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a face where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ## Theme title screens
 
 A title background and logo for each theme you can pick in Settings > Theme: Teen (the default), Art (mid-century French New Wave cinema posters) and Classical (18th-century French Rococo). The Kid theme keeps the original title art.
@@ -4010,6 +4022,18 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 Single square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.
 ```
 
+### CH-N102 · Mouth Eyes icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-fx-moutheyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mouth Eyes button on the effect strips in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
 ## Effect and game icons, Classical theme
 
 The Classical theme's icon for every effect and game: 18th-century French Rococo painting in a gilt frame, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
@@ -5205,6 +5229,18 @@ Single square app icon. Keep the requested game scene contained inside its round
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 Single square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.
+```
+
+### CH-R102 · Mouth Eyes icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-fx-moutheyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mouth Eyes button on the effect strips in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -6414,4 +6450,16 @@ Single square app icon. Keep the requested game scene contained inside its round
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen playing it: an explorer running away down a jungle temple path past a carved stone arch, gold coins ahead and monkeys chasing behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 Single square app icon. Keep the requested game scene contained inside its rounded-square theme tile. Genuine transparent alpha outside tile, no exterior glow. No text or additional interface.
+```
+
+### CH-K103 · Mouth Eyes icon (second set)
+
+- **File:** `chat/assets/icons2/fx2-moutheyes.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Mouth Eyes button on the effect strips, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face, where both eyes have been replaced by copies of its own mouth, so it has three identical open smiling mouths, two where the eyes should be and one in the usual place. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 ```

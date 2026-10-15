@@ -2278,5 +2278,21 @@ export const ASSET_LIST = {
   "classic-game-temple": {
     "file": "assets/icons-classic/classic-game-temple.png",
     "status": "delivered"
+  },
+  "fx-moutheyes": {
+    "file": "assets/icons/fx-moutheyes.png",
+    "status": "requested"
+  },
+  "fx2-moutheyes": {
+    "file": "assets/icons2/fx2-moutheyes.png",
+    "status": "requested"
+  },
+  "art-fx-moutheyes": {
+    "file": "assets/icons-art/art-fx-moutheyes.png",
+    "status": "requested"
+  },
+  "classic-fx-moutheyes": {
+    "file": "assets/icons-classic/classic-fx-moutheyes.png",
+    "status": "requested"
   }
 };
