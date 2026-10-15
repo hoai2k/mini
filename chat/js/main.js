@@ -666,7 +666,7 @@ function addSelfTile() {
   rec.el.classList.add('self');
   rec.el.title = 'Hold to blow a bubble (Bubble Blow)';
   $('#stage').append(rec.el);
-  updateTileLabel(rec, { name: `${me.name} (you)`, color: me.color, mic: true, cam: true });
+  updateTileLabel(rec, { name: `${me.name} (you)`, color: me.color, mic: true, cam: true, self: true });
 }
 
 // Names show on the videos only for a moment (when someone arrives, renames
@@ -699,7 +699,8 @@ function updateTileLabel(rec, p) {
     rec.flags.append(f);
   };
   if (p.away) flag('Away', 'away');
-  else if (p.mic === false) flag('', 'muted');
+  // Your own mute shows on the mic button; only friends' videos carry the badge.
+  else if (p.mic === false && !p.self) flag('', 'muted');
   if (rec.quality) {
     const q = document.createElement('span');
     q.className = `flag bars q${rec.quality}`;
@@ -1072,7 +1073,7 @@ function updateDeviceButtons() {
   // Without a device the button stays live: tapping it tries to start it.
   mic.classList.toggle('missing', !studio.hasMic);
   cam.classList.toggle('missing', !studio.hasCamera);
-  updateTileLabel(tiles.get(me.id), { name: `${me.name} (you)`, color: me.color, mic: studio.micOn, cam: studio.camOn });
+  updateTileLabel(tiles.get(me.id), { name: `${me.name} (you)`, color: me.color, mic: studio.micOn, cam: studio.camOn, self: true });
   net?.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away });
 }
 
@@ -1111,23 +1112,26 @@ function toggleTray(which, force) {
   } else if (next === 'games') {
     $('#tray-games').querySelector('button')?.focus({ preventScroll: true });
   }
-  // Picking from the row means the row is showing; closing a strip while the
-  // row is away leaves nothing at level 1.
-  if (next && TABS.includes(next) && next !== prev) setUiLevel(2);
+  // A strip or Games takes over the bottom on its own (the row tucks away);
+  // closing it brings the row back.
+  if (next && TABS.includes(next) && next !== prev) setUiLevel(1);
+  else if (!next && prev) setUiLevel(2);
   else setUiLevel(uiLevel);
+  updateBackdrop();
   renderInfo();
 }
 
 // How much of the bottom UI shows, stepped by dragging it down and up:
 //   2  the bottom row (and the open strip above it)
-//   1  just the strip, sitting at the bottom (only while a strip is open)
+//   1  just the strip (or Games), sitting at the bottom: where opening one starts
 //   0  nothing but a small grip to pull it all back up
 // Dragging an open strip up past level 2 turns it into a grid.
 let uiLevel = 2;
 const stripOpen = () => openTab === 'favs' || KINDS.includes(openTab);
+const soloOpen = () => stripOpen() || openTab === 'games';
 const stripKey = () => (openTab === 'favs' ? 'favs' : 'effects');
 function setUiLevel(n) {
-  uiLevel = n === 1 && !stripOpen() ? 0 : Math.max(0, Math.min(2, n));
+  uiLevel = n === 1 && !soloOpen() ? 0 : Math.max(0, Math.min(2, n));
   $('#call').dataset.ui = String(uiLevel);
   $('#ui-grip').hidden = uiLevel !== 0;
 }
@@ -1136,7 +1140,7 @@ function lowerUi() {
   else setUiLevel(0);
 }
 function raiseUi() {
-  if (uiLevel === 0) setUiLevel(stripOpen() ? 1 : 2);
+  if (uiLevel === 0) setUiLevel(soloOpen() ? 1 : 2);
   else if (uiLevel === 1) setUiLevel(2);
   else if (stripOpen()) setGrid(stripKey(), true);
 }
@@ -1150,13 +1154,26 @@ function setGrid(key, on) {
   const list = $(g.list);
   if (on) {
     list.scrollLeft = 0;
-    const sel = list.querySelector('[aria-selected="true"]:not([hidden])');
+    const sel = list.querySelector('[aria-selected="true"]:not([hidden]):not(.fx-clone)');
     list.scrollTop = 0;
     if (sel) list.scrollTop = Math.max(0, sel.offsetTop - list.clientHeight / 2 + sel.offsetHeight / 2);
   } else {
     list.scrollTop = 0;
     if (key === 'effects') centerEffect(studio?.effect?.id ?? '', false, false);
   }
+  updateBackdrop();
+}
+
+// An open grid or Games sheet is a little modal: the screen behind it is a
+// big target that does what pulling it down does.
+function updateBackdrop() {
+  const on = openTab === 'games' || (grids.effects.on && KINDS.includes(openTab)) || (grids.favs.on && openTab === 'favs');
+  $('#sheet-backdrop').hidden = !on;
+}
+function backdropTap() {
+  if (openTab === 'games') toggleTray(null);
+  else if (grids.effects.on) setGrid('effects', false);
+  else if (grids.favs.on) setGrid('favs', false);
 }
 const effectGrid = () => grids.effects.on;
 
@@ -1183,6 +1200,7 @@ function initSheets() {
   makeSheet($('#controls'), { collapsible: () => true, onCollapse: lowerUi, onExpand: raiseUi });
   makeSheet($('#ui-grip'), { onExpand: raiseUi });
   $('#ui-grip').addEventListener('click', raiseUi);
+  $('#sheet-backdrop').addEventListener('click', backdropTap);
   makeSheet($('#tray-games'), { onDismiss: () => toggleTray(null), scroller: '.sheet-body' });
   makeSheet($('#chat-box'), { onDismiss: () => toggleTray(null), scroller: '.chat-log' });
 }
@@ -1371,22 +1389,39 @@ async function initEffects() {
   effects = await loadEffects();
   const list = $('#effect-list');
   const none = { id: null, name: 'No effect', emoji: '🚫' };
-  for (const fx of [none, ...effects]) {
+  // The strip wraps round: a copy of every lens sits before and after the
+  // real ones (so the last effects show left of "none"), and scrolling past
+  // either copy jumps back by one whole set, which looks the same.
+  const lens = (fx, clone, lead) => {
     const b = effectButton({ ...fx, icon: fx.id && iconUrl('fx', fx.id) }, () => {
       if (effectGrid()) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
+      // Tapping the one that's on is the way out: close the strip, bring the row back.
+      else if (b.dataset.fx === (studio.effect?.id ?? '')) toggleTray(null);
       else centerEffect(b.dataset.fx, true);
     });
     b.dataset.fx = fx.id ?? '';
-    b.setAttribute('role', 'option');
     b.setAttribute('aria-selected', String(fx.id === null));
-    b.addEventListener('focus', () => { if (!effectGrid()) centerEffect(b.dataset.fx, true); });
-    list.append(b);
-  }
+    if (clone) {
+      b.classList.add('fx-clone');
+      // The real lenses come first in the page (so lookups find them); the
+      // leading copies are drawn before them with flex order.
+      if (lead) b.classList.add('fx-lead');
+      b.tabIndex = -1;
+      b.setAttribute('aria-hidden', 'true');
+    } else {
+      b.setAttribute('role', 'option');
+      b.addEventListener('focus', () => { if (!effectGrid()) centerEffect(b.dataset.fx, true); });
+    }
+    return b;
+  };
+  const all = [none, ...effects];
+  list.append(...all.map(fx => lens(fx, false)), ...all.map(fx => lens(fx, true, true)), ...all.map(fx => lens(fx, true)));
   let settle = 0;
-  const resumeStripInput = () => { quietUntil = 0; clearTimeout(centerEffect.t); };
+  const resumeStripInput = () => { quietUntil = 0; centerEffect.until = 0; clearTimeout(centerEffect.t); };
   list.addEventListener('pointerdown', resumeStripInput);
   list.addEventListener('wheel', resumeStripInput, { passive: true });
   list.addEventListener('scroll', () => {
+    wrapStrip();
     if (effectGrid() || performance.now() < quietUntil) return;
     clearTimeout(settle);
     settle = setTimeout(pickCenteredEffect, 110);
@@ -1395,9 +1430,11 @@ async function initEffects() {
     if ($('#tray-effects').hidden || /INPUT|TEXTAREA/.test(e.target?.tagName)) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const items = [...list.children].filter(b => !b.hidden);
+    const items = [...list.children].filter(b => !b.hidden && !b.classList.contains('fx-clone'));
     const i = items.findIndex(b => b.getAttribute('aria-selected') === 'true');
-    const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)))];
+    const step = e.key === 'ArrowLeft' ? -1 : 1;
+    // The strip wraps round; the grid stops at its ends.
+    const next = items[effectGrid() ? Math.max(0, Math.min(items.length - 1, i + step)) : (i + step + items.length) % items.length];
     if (effectGrid()) {
       selectEffect(effects.find(fx => fx.id === next.dataset.fx) || null);
       next.scrollIntoView({ block: 'nearest' });
@@ -1414,13 +1451,42 @@ async function initEffects() {
   updateFaceStatus();
 }
 
-// Scrolls a lens into the ring; with select, it's put on once the scroll settles.
-function centerEffect(id, smooth, select = true) {
-  const b = $(`#effect-list [data-fx="${id}"]`);
-  if (!b) return;
+// How far apart the copies of the strip are: the width of one whole set of
+// the lenses showing (0 while there aren't enough of them to wrap).
+function stripPeriod() {
   const list = $('#effect-list');
+  const first = sel => list.querySelector(`${sel}:not([hidden])`);
+  const a = first('.fx-lead'), b = first('.fx-item:not(.fx-clone)');
+  return a && b ? b.offsetLeft - a.offsetLeft : 0;
+}
+
+// Keeps the middle of the strip within the real set of lenses, jumping a
+// whole set back or forward (which looks identical) as it scrolls past.
+function wrapStrip() {
+  const list = $('#effect-list');
+  // A jump would cut short a smooth scroll the app started (it settles first).
+  if (effectGrid() || $('#tray-effects').hidden || performance.now() < centerEffect.until) return;
+  const w = stripPeriod();
+  if (!w || w < list.clientWidth / 2) return;
+  const start = list.querySelector('.fx-item:not(.fx-clone):not([hidden])').offsetLeft;
+  const c = list.scrollLeft + list.clientWidth / 2;
+  if (c < start) list.scrollLeft += w;
+  else if (c >= start + w) list.scrollLeft -= w;
+}
+
+// Scrolls a lens into the ring; with select, it's put on once the scroll settles.
+// Of its copies, the one nearest the ring is used, so wrapping round is a short scroll.
+function centerEffect(id, smooth, select = true) {
+  const list = $('#effect-list');
+  const target = b => b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2;
+  const copies = [...list.querySelectorAll(`[data-fx="${id}"]`)].filter(b => !b.hidden);
+  const b = copies.sort((x, y) => Math.abs(target(x) - list.scrollLeft) - Math.abs(target(y) - list.scrollLeft))[0];
+  if (!b) return;
   quietUntil = select ? 0 : performance.now() + (smooth ? 600 : 250);
-  list.scrollTo({ left: b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
+  // From rest (opening the strip), centre the real one rather than a copy.
+  const real = list.querySelector(`.fx-item:not(.fx-clone)[data-fx="${id}"]`);
+  list.scrollTo({ left: target(smooth ? b : real), behavior: smooth ? 'smooth' : 'auto' });
+  centerEffect.until = smooth ? performance.now() + 700 : 0;
   clearTimeout(centerEffect.t);
   if (select) centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
 }
@@ -1484,7 +1550,8 @@ function selectEffect(fx, { remember = true } = {}) {
   document.querySelectorAll('#fav-list .fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.item === `fx-${fx?.id}`)));
   // Put on from elsewhere (favourites, a share, a friend's): bring the strip along.
   const list = $('#effect-list');
-  if (!$('#tray-effects').hidden && !effectGrid() && fx?.kind === list.dataset.kind) centerEffect(fx.id, true, false);
+  // Taking it off moves the strip to "none", so a late scroll can't put it back on.
+  if (!$('#tray-effects').hidden && !effectGrid() && (fx ? fx.kind === list.dataset.kind : true)) centerEffect(fx?.id ?? '', true, false);
   sfx('click');
   renderInfo();
   updateGrabButton();
@@ -1654,7 +1721,8 @@ function renderFavorites() {
     for (const it of items) {
       const src = it.fx || it.game;
       const b = effectButton({ name: src.name, emoji: src.emoji, icon: iconUrl(it.fx ? 'fx' : 'game', src.id) }, () => {
-        if (it.fx) selectEffect(studio.effect?.id === it.fx.id ? null : it.fx);
+        // Tapping the one that's on is the way out: close the strip, bring the row back.
+        if (it.fx) studio.effect?.id === it.fx.id ? toggleTray(null) : selectEffect(it.fx);
         else {
           sfx('click');
           games.open(it.game.id);
