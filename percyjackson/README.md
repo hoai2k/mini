@@ -28,7 +28,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
       They sniff, eat and wander, and notice you only up close (about 4–5 m)
       or when hit: they rear up and squeak, then come at you. Every five to
       nine seconds one a fair way off dashes at you, never more than three
-      rats at once. Your companions leave idle rats to you;
+      rats at once;
     - further on, rats where shooting first is the obvious move (ranged):
       behind the chain-link fence of a construction lot (shots go through it,
       rats have to run round to the gate), on a dumpster lid and on sidewalk
@@ -91,17 +91,29 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **Five playable heroes:** Percy, Annabeth, Grover, Tyson and Clarisse, each
   with a melee combo, a ranged move, three abilities and a godly power. Thalia
   and Nico are shown as coming later.
-  - The party is always three heroes (four with four players), and the AI
-    plays whoever is missing. Alone, you lead two AI companions; two players
-    share one, the third hero, and either can swap into it. D-pad ↓ or F
-    switches (one swap at a time, so two players pressing together never
-    fight over a hero). With three or four players there are no companions
-    and switching is off. Online, the same rule counts everyone in the room.
+  - The opening follows the story, with no AI companions: alone you are
+    Percy; a second player is Grover, a third Annabeth, a fourth Clarisse.
+    The hero select offers no other heroes then, and switching does nothing.
+    Someone joining or leaving mid-opening adds or removes the matching hero.
+  - From Camp Half-Blood on, each player picks any hero they have unlocked,
+    and the party is three heroes (four with four players): the AI plays
+    whoever is missing, from the unlocked heroes. Arriving in camp at the end
+    of the opening, Annabeth and Grover are summoned at Percy's side. Alone,
+    you lead two AI companions; two players share one, the third hero, and
+    either can swap into it. D-pad ↓ or F switches (one swap at a time, so two
+    players pressing together never fight over a hero). With three or four
+    players there are no companions and switching is off. Online, the same
+    rules count everyone in the room (the host hands out the story heroes).
   - Join and leave any time, mid-chapter, at no cost: a player who joins
     (Start on a controller, or online) takes over a companion's hero where it
     stands, with its health; a player who leaves, or whose controller is
     unplugged for two seconds, hands their hero to the AI, and gets it back
     if they return.
+  - Companions follow you and never start a fight: they go only for monsters
+    already in the battle (fighting, hit by a player, or in a group whose
+    alarm is up), and come back to you when it's over. Monsters notice
+    players, not companions, so a companion walking behind you never wakes a
+    group or a scout; you pick every fight.
   - Companions don't walk off ledges (they slide along the edge, and dodge
     only where there's floor to land on).
   - A boss's health grows with the party: 60% more for each extra player,
@@ -131,7 +143,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   and more as the alarm runs through the group (the nearest join first); pick
   the scouts off at range before they run back and you can take a group a few
   at a time, or charge in and take it all at once. Companions leave a group
-  milling about to you unless it's right by them.
+  milling about to you.
   - The rooms you fight in are large and open: combat rooms fill their part of
     the map, one on the way to the boss is a battleground two rooms long, with
     boulders, columns or stubs of wall to fight round. Each chapter goes: a

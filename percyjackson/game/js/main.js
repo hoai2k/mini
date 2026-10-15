@@ -234,7 +234,9 @@ class Game {
   // { fill: false } leaves out the AI companions (tests, minigames)
   // { start: 'auto' } runs the opening when this save hasn't finished it
   // (a new game: the Manhattan prologue); otherwise the session starts in camp.
-  beginSession(list, { companions = [], fill = true, start = 'hub' } = {}) {
+  // { opening: true }: Continue into the opening (resume.apply runs it next).
+  // In the opening the heroes follow the story and there are no companions (partyRules.js).
+  beginSession(list, { companions = [], fill = true, start = 'hub', opening = false } = {}) {
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
     this.partyMgr.clear(); this.party = null;
@@ -249,6 +251,7 @@ class Game {
     // fewer than three humans: the other heroes come along as AI companions (party.js)
     this.partyMgr.chosen = companions.filter((id) => HEROES[id] && !HEROES[id].soon && !list.some((l) => l.hero === id));
     this.partyMgr.noFill = !fill;
+    this.partyMgr.forceOpening = !this.opening.done && !this.online?.isGuest && (opening || start === 'auto');
     this.partyMgr.fill();
     this.save.data.lastHero = list[0]?.hero ?? this.save.data.lastHero;
     this.rig.cine = null;
@@ -286,7 +289,7 @@ class Game {
   }
   // Swap a human's hero for another (at a cabin). A companion playing that
   // hero trades places.
-  changeHero(p, id) {
+  changeHero(p, id, { quiet = false } = {}) {
     if (!p || p.hero === id) return;
     const mate = this.players.find((q) => q.hero === id);
     if (mate && mate.ai) { this.partyMgr.swap(p, mate); return; }
@@ -296,7 +299,7 @@ class Game {
     this.players[i] = np;
     if (this.party) this.party[this.party.indexOf(p)] = np;
     this.fx.summonCircle(np.pos, 0xffd84a);
-    toast(`You are ${HEROES[id].full}`, 'big');
+    if (!quiet) toast(`You are ${HEROES[id].full}`, 'big');
     this.hud.rebuildCards?.();
   }
   heroName(p) { return HEROES[p.hero]?.name ?? 'A hero'; }
@@ -724,9 +727,8 @@ class Game {
         const taken = this.party && this.partyMgr.takeOver(id);
         if (taken) { this.fx.summonCircle(taken.pos, 0x6ad8ff); toast(`Player ${this.players.filter((q) => !q.ai).length} joined as ${this.heroName(taken)}`); this.audio.ui('buy'); if (!this.players.some((q) => q.ai)) this.party = null; continue; }
         // the keyboard player keeps P1; if P1 is idle on keyboard and this is the only pad, still add
-        const used = new Set(this.players.map((p) => p.hero));
-        const pick = HERO_IDS.find((s) => !used.has(s)) ?? 'percy';
-        const p = this.addPlayer(id, pick);
+        // (in the opening the next story hero: Grover for player 2, then Annabeth, Clarisse; party.js)
+        const p = this.addPlayer(id, this.partyMgr.joinHero());
         this.fx.summonCircle(p.pos, 0x6ad8ff);
         toast(`Player ${p.index + 1} joined`);
         this.partyMgr.fill();   // net: two humans keep one companion, three or more none

@@ -32,7 +32,7 @@ import { Boss } from '../entities/bosses.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { B } from '../world/blocks.js';
 import { toast } from '../ui/ui.js';
-import { companionsWanted } from '../party.js';
+import { companionsWanted, storyAssign } from '../partyRules.js';
 import { Session, loadClient } from './session.js';
 import { PROTO, HZ, PEOPLE, num, int, str, r2, r3, readHero, cleanName, newCode, roomIdFor, KEY_RE } from './proto.js';
 import { Lag, Track, pose, angleDiff, wrapAngle } from './interp.js';
@@ -818,12 +818,16 @@ export class Online {
     for (const p of this.game.players) if (p.heldFor && !p.remote) n++;
     return n;
   }
-  // the party rule (party.js) over everyone in the room
+  // the party rule (party.js, partyRules.js) over everyone in the room; in the
+  // host's opening there are no companions and everyone plays their story hero
   enforceParty() {
     const g = this.game;
     const humans = this.humanCount();
-    const want = companionsWanted(humans);
-    this.offerTakeovers();
+    const opening = !!g.partyMgr.opening;
+    const unlocked = HERO_IDS.filter((h) => !HEROES[h].soon && (g.heroUnlocked?.(h) ?? true));
+    const want = companionsWanted(humans, { opening, available: unlocked.length });
+    if (opening) this.storyHeroes();
+    else this.offerTakeovers();
     const ais = g.players.filter((p) => p.ai && !p.remote && !p.heldFor);
     const humanHeroes = new Set(g.players.filter((p) => !p.ai || p.heldFor).map((p) => p.hero));
     if (ais.length > want) {
@@ -833,7 +837,7 @@ export class Online {
     } else if (ais.length < want) {
       const lead = this.localHumans()[0];
       const used = new Set(g.players.map((p) => p.hero));
-      const id = [...(g.partyMgr.chosen ?? []), ...HERO_IDS].find((h) => !used.has(h) && HEROES[h] && !HEROES[h].soon);
+      const id = [...(g.partyMgr.chosen ?? []), ...HERO_IDS].find((h) => !used.has(h) && unlocked.includes(h));
       if (id && lead) {
         const p = new Player(g, this.freeIndex(), 'ai', id);
         p.spawn(lead.pos.clone().add(V3(1.2, 0.2, 1.2))); g.scene.add(p.object); g.players.push(p);
@@ -842,6 +846,32 @@ export class Online {
       }
     }
     this.setParty();
+  }
+  // Host, in the opening: the room's people play the story's heroes in the
+  // order they came (this screen's players first, then each guest's by join
+  // order): Percy, Grover, Annabeth, Clarisse. A guest playing another hero
+  // is told to change (a swapok to the story hero, where theirs stands).
+  storyHeroes() {
+    const g = this.game, s = this.session, now = performance.now();
+    const order = s?.order ?? [];
+    const rank = (uid) => { const i = order.indexOf(uid); return i < 0 ? 99 : i; };
+    const people = [
+      ...this.localHumans().map((p) => ({ p, local: true, r: -1, i: p.index })),
+      ...[...this.remote.values()].filter((R) => !R.ai).map((R) => ({ p: R.p, R, r: rank(R.uid), i: R.entry?.i ?? 0 })),
+      ...g.players.filter((p) => p.heldFor && !p.remote).map((p) => ({ p, held: true, r: rank(p.heldFor), i: p.index })),
+    ].sort((a, b) => a.r - b.r || a.i - b.i);
+    const want = storyAssign(people.map((x) => x.p.hero));
+    this.storySent ??= new Map();
+    people.forEach((x, k) => {
+      const h = want[k];
+      if (x.p.hero === h || x.held) return;
+      if (x.local) { g.changeHero(x.p, h, { quiet: true }); return; }
+      const sent = this.storySent.get(x.R.key);
+      if (sent && sent.h === h && now - sent.t < 3000) return;
+      this.storySent.set(x.R.key, { h, t: now });
+      const p = x.p;
+      this.session.send('swapok', { to: x.R.uid, k: x.R.key, i: x.i, h, x: r2(p.pos.x), y: r2(p.pos.y), z: r2(p.pos.z), f: r2(p.facing ?? 0), hp: Math.round(p.hp), mh: Math.round(p.maxHp), ce: Math.round(p.ce ?? 0) });
+    });
   }
   freeIndex() { const used = new Set(this.game.players.filter((p) => !p.remote).map((p) => p.index)); for (let i = 0; i < 4; i++) if (!used.has(i)) return i; return 3; }
   guestParty() { this.setParty(); }

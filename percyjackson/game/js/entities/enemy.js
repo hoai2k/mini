@@ -38,6 +38,9 @@
 //              runs back to its group first; a hero fighting close by is
 //              heard through walls.
 // Players with `invisible === true` are never chosen or kept as targets.
+// A monster not yet in a fight only notices a hero a person plays: AI
+// companions follow their leader and never wake anything (partyRules.js
+// wakesMonsters); once it is fighting it goes for whoever is nearest.
 //
 // Crowd rules (Minecraft Dungeons feel):
 //   • attack tokens: at most TOKENS monsters wind up or recover against one
@@ -58,6 +61,7 @@ import { poisonHero } from './holds.js';
 import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
 import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
+import { wakesMonsters } from '../partyRules.js';
 import { PACK, packNotices, scoutRuns } from './packRules.js';
 import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
@@ -267,6 +271,7 @@ export class Enemy {
     let best = null, bd = this.aggro ? 30 : 15;
     for (const t of g.hostileTargets()) {
       if (t.dead || t.downed || t.untargetable || t.invisible) continue;
+      if (!this.aggro && t.isPlayer && !wakesMonsters(t)) continue;   // (an AI companion walking by wakes nothing)
       const d = t.pos.distanceTo(this.pos);
       if (d < bd) { bd = d; best = t; }
     }
@@ -488,8 +493,14 @@ export class Enemy {
   watch(dt) {
     const g = this.game, L = this.loiter;
     L.calmT = Math.max(0, L.calmT - dt);
-    let best = null, bd = Infinity;
-    for (const t of g.hostileTargets()) { if (t.dead || t.downed || t.untargetable || t.invisible) continue; const d = t.pos.distanceTo(this.pos); if (d < bd) { bd = d; best = t; } }
+    // best: the nearest hero (to go for once alarmed); seen, sd: the nearest one a person plays (who can wake it)
+    let best = null, bd = Infinity, seen = null, sd = Infinity;
+    for (const t of g.hostileTargets()) {
+      if (t.dead || t.downed || t.untargetable || t.invisible) continue;
+      const d = t.pos.distanceTo(this.pos);
+      if (d < bd) { bd = d; best = t; }
+      if (d < sd && (!t.isPlayer || wakesMonsters(t))) { sd = d; seen = t; }
+    }
     if (this.spawnT > 0) return null;
     // a group's alarm reached this one: a moment, then it rears up and comes
     if (L.joinT != null && L.alertT == null) {
@@ -513,24 +524,24 @@ export class Enemy {
     if (L.kind === 'pack') {
       // a group monster: sees a hero in its room (not across the gap in the next one)
       // within notice (scouts further), hears a fight close by
-      if (!best || bd > Math.max(L.notice, PACK.hear)) return null;
-      const A = L.area; if (A && !(best.pos.x >= A.x0 && best.pos.x <= A.x1 && best.pos.z >= A.z0 && best.pos.z <= A.z1)) return null;
+      if (!seen || sd > Math.max(L.notice, PACK.hear)) return null;
+      const A = L.area; if (A && !(seen.pos.x >= A.x0 && seen.pos.x <= A.x1 && seen.pos.z >= A.z0 && seen.pos.z <= A.z1)) return null;
       this.losT -= dt;
       if (this.losT > 0) return null;
       this.losT = 0.2 + Math.random() * 0.1;
-      const fightNear = bd <= PACK.hear && g.enemies.some((o) => o !== this && !o.dead && o.aggro && !o.disguised && o.pos.distanceTo(this.pos) < PACK.hear + 2);
-      const los = fightNear || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2);
-      if (packNotices({ dist: bd, los, scout: L.scout, fightNear })) {
+      const fightNear = sd <= PACK.hear && g.enemies.some((o) => o !== this && !o.dead && o.aggro && !o.disguised && o.pos.distanceTo(this.pos) < PACK.hear + 2);
+      const los = fightNear || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), seen.pos, 1.2);
+      if (packNotices({ dist: sd, los, scout: L.scout, fightNear })) {
         L.alertT = L.alert; L.returning = false; L.dashing = true; this.voice();
         if (!L.scout) L.pack?.alarm(this);   // (a scout runs back to tell them first)
       }
       return null;
     }
-    if (best && L.calmT <= 0 && bd <= L.notice) {
+    if (seen && L.calmT <= 0 && sd <= L.notice) {
       this.losT -= dt;
       if (this.losT <= 0) {
         this.losT = 0.2;
-        if (notices({ dist: bd, los: (L.perch && bd < 6) || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), best.pos, 1.2), notice: L.notice, calm: L.calmT })) { L.alertT = L.alert; L.returning = false; this.voice(); }   // (a perched rat hears a hero walk underneath)
+        if (notices({ dist: sd, los: (L.perch && sd < 6) || lineOfSight(g.world, this.pos, Math.min(1.4, this.height * 0.8), seen.pos, 1.2), notice: L.notice, calm: L.calmT })) { L.alertT = L.alert; L.returning = false; this.voice(); }   // (a perched rat hears a hero walk underneath)
       }
     }
     return null;
@@ -657,7 +668,7 @@ export class Enemy {
   // A living statue: frozen in its pose until a hero comes close or hits it.
   updateDormant(dt) {
     const g = this.game;
-    if (this.spawnT <= 0) for (const p of g.hostileTargets()) if (!p.dead && !p.invisible && p.pos.distanceTo(this.pos) < (this.def.wake ?? 5)) { this.wake(); break; }
+    if (this.spawnT <= 0) for (const p of g.hostileTargets()) if (!p.dead && !p.invisible && (!p.isPlayer || wakesMonsters(p)) && p.pos.distanceTo(this.pos) < (this.def.wake ?? 5)) { this.wake(); break; }
     this.moveBody(dt, tmp2.set(0, 0, 0));
     this.rig.swap(this.flashT > 0 ? FLASH_MATERIAL : null);
     const rise = this.spawnT > 0 ? -this.spawnT * 3 : 0;
