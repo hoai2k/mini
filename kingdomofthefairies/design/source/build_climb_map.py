@@ -38,7 +38,7 @@ CELL = 12                     # world px per grid cell
 # How each cloth is hung (src/acts/act5-art.js TALL2, act5film-art.js):
 # left x, drawn width, foot at world y -30, world y upward.
 WALLS = {
-    'cliff': {'file': 'cliff-face-tall-2.webp', 'x0': 230, 'w': 820, 'top': 1990, 'list': 'FILM_CLIFF', 'reach': 95, 'shore': 24, 'openTop': True},
+    'cliff': {'file': 'cliff-face-tall-2.webp', 'x0': 230, 'w': 820, 'h': 3600 * (1990 + 30) / (3600 - 12), 'top': 1990, 'list': 'FILM_CLIFF', 'reach': 95, 'shore': 24, 'openTop': True},
     'tower': {'file': 'tower-wall-tall.webp', 'x0': 260, 'w': 760, 'top': 1700, 'list': 'TOWER_HOLDS', 'reach': 48, 'shore': 60, 'stones': True},
 }
 FOOT = -30
@@ -66,14 +66,15 @@ def lum(p):
 def classify(cfg):
     im = Image.open(os.path.join(ROOT, 'assets', cfg['file'])).convert('RGBA')
     W, H = im.size
-    s = cfg['w'] / W                                   # image px -> world px
-    height = H * s
+    s = cfg['w'] / W                                   # image px -> world px, across
+    height = cfg.get('h', H * s)                       # drawn height (the cliff is hung to the climb's height)
+    t = height / H                                     # image px -> world px, up
     cols = int(cfg['w'] // CELL)
     rows = int(min(height, cfg['top'] - FOOT + 40) // CELL)
     px = im.load()
 
     def img_xy(wx, wy):                                # world -> image px
-        return (wx - cfg['x0']) / s, H - (wy - FOOT) / s
+        return (wx - cfg['x0']) / s, H - (wy - FOOT) / t
 
     stats = []
     for r in range(rows):
@@ -222,7 +223,7 @@ def classify(cfg):
         else:
             merged.append(dict(l))
     return {'x0': cfg['x0'], 'y0': FOOT, 'cell': CELL, 'cols': cols, 'rows': rows, 'top': cfg['top'], 'openTop': cfg.get('openTop', False),
-            'grid': grid, 'ledges': merged}, im, s
+            'grid': grid, 'ledges': merged}, im, (s, t)
 
 
 def render(maps):
@@ -251,7 +252,7 @@ COLS = {'v': (60, 200, 80, 120), 'k': (240, 200, 40, 110), 'r': (0, 0, 0, 0), 's
 
 
 def overlay(name, m, im, s, outdir):
-    base = im.convert('RGBA').resize((int(im.width * s), int(im.height * s)))
+    base = im.convert('RGBA').resize((int(im.width * s[0]), int(im.height * s[1])))
     lay = Image.new('RGBA', base.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
     H = base.height

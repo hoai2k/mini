@@ -193,6 +193,7 @@ function startSwim(st) {
 function startWall(st, name, holds, at, half, opts = {}) {
   st.holds = holds.map((h) => ({ kind: 'hold', ...h, gone: false }));
   st.wall = createWall(name, holds, at, opts);
+  st.shelter = null;   // no tiny guitarist's gap on the film's cliff
   st.climb = { ...st.climb, halfY: holds[half].y };
   st.camY = clamp(st.wall.y - 250, 0, st.climb.camMax);
 }
