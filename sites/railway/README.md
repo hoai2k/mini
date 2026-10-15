@@ -7,6 +7,10 @@ https://hoai2k.github.io/mini/sites/railway/.
 
 - `index.html`, `styles.css` — the page. Story, the three players with their
   social links, three live clips, where to find them, and bookings.
+- `sections.js` — the section links in the sticky header. While they fit on
+  one line beside the band's name they are a plain list; when they don't
+  (phones), they fold into a dropdown whose button names the part of the page
+  in view. The current part is highlighted either way.
 - `ribbon.js` — the genre ribbon under the hero. On desktop it scrolls by
   itself; on touch screens, and wherever reduced motion is set, it stands still
   and swipes endlessly in both directions (`styles.css` holds the matching
