@@ -8,6 +8,7 @@ import { richText } from '../art.js';   // headless-safe: art.js touches no DOM 
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
 import { walkFrame, walkStep, walkFrameFromSwing } from '../walking.js';
+import { CLIMB, wallPose } from './climb.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
 const LEGS = [450, 564]; // the giant's boots on their shelf under the lip
@@ -413,6 +414,7 @@ export function cliffScene(k, st, t) {
 }
 
 export function holds(k, st, t) {
+  if (st.wall) return wallThings(k, st, t);
   const c = k.c, cam = st.camY;
   st.holds.forEach((h, i) => {
     const y = -holdY(h, st.beat || 0);
@@ -494,7 +496,7 @@ function ivyGrip(k, x, y, dry, t) {
 // press that finds nothing flashes a cross on that side.
 const ARROW = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 export function climbGuide(k, st, t) {
-  if (st.phase !== 'cliff' || st.defeatT != null) return;
+  if (st.wall || st.phase !== 'cliff' || st.defeatT != null) return;
   const c = k.c, cl = st.cl, pos = climberPos(st);
   const bump = cl.bump;
   if (bump) {
@@ -559,6 +561,7 @@ export function climber(k, st, t) {
     sailor(k, x, -CLIFF.top - (k.img('stone-house') ? 640 - HOUSE.floors[0] : 0), S, walking ? 'walk' : 'stand', -1, walking ? walkStep(st.phaseT * 150) : 0, walking ? st.phaseT * 150 : null);
     return;
   }
+  if (st.wall) return wallClimber(k, st, t);
   const p = climberPos(st), cl = st.cl, h = st.holds[cl.at];
   let y = -p.y;
   let tilt = 0;
@@ -569,6 +572,67 @@ export function climber(k, st, t) {
   if (tilt) { c.translate(p.x, y - 50); c.rotate(tilt); c.translate(-p.x, -(y - 50)); }
   const pose = cliffPose(st, p, h);
   sailor(k, p.x, y, S, pose, face);
+  c.restore();
+}
+
+// ---------------------------------------------------------------- the continuous climb
+// On the face: the dry ivy that tears if he lingers in it (shivering as it
+// goes), and the pearls. The painted cloth is the rest: he climbs it all.
+function wallThings(k, st, t) {
+  const c = k.c, cam = st.camY, w = st.wall;
+  w.crumbles.forEach((cr, i) => {
+    if (cr.gone || cr.y < cam - 140 || cr.y > cam + 760) return;
+    const shake = cr.t > 0 ? Math.sin(t * 60) * 2.5 * Math.min(1, cr.t / CLIMB.crumble * 2) : 0;
+    for (const [dx, dy] of [[-18, 10], [14, -6], [0, -26], [-10, -44]]) ivyGrip(k, cr.x + dx + shake, -cr.y + dy, true, t + i + dx);
+  });
+  w.pearls.forEach((p, i) => {
+    if (p.taken || p.y < cam - 140 || p.y > cam + 760) return;
+    const by = -p.y - 8 + Math.sin(t * 3 + i) * 3;
+    c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 4 + i); c.fillStyle = k.col('#fff2b0'); k.circle(p.x, by - 11, 18); c.restore();
+    if (!k.asset('pearl', p.x, by, 22, 22)) { c.fillStyle = k.col('#efe9f2'); k.circle(p.x, by - 10, 9); }
+  });
+}
+
+// The climbing frames (F19), drawn at the movement frames' scale; until
+// they arrive, the earlier climbing, hanging and landing frames stand in.
+const WALL_STANDIN = {
+  'wall-up-a': 'climb-a', 'wall-up-b': 'climb-b', 'wall-up-c': 'climb-b', 'wall-up-d': 'climb-a',
+  'wall-side-a': 'climb-a', 'wall-side-b': 'climb-b', 'wall-side-c': 'climb-a', 'wall-side-d': 'climb-b',
+  'wall-idle': 'climb-a', 'wall-idle-b': 'climb-a', 'wall-leap': 'apex', 'wall-catch': 'climb-b', 'wall-hit': 'climb-a',
+  'wall-step': 'climb-a', 'mantle-a': 'hang', 'mantle-b': 'pullup', 'mantle-c': 'land',
+};
+function wallClimber(k, st, t) {
+  const c = k.c, w = st.wall, pose = wallPose(w);
+  let x = w.x, y = -w.y, tilt = 0;
+  if (st.defeatT != null) { y += st.defeatT * st.defeatT * 500; tilt = st.defeatT * 2; }
+  c.save();
+  if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
+  if (tilt) { c.translate(x, y - 50); c.rotate(tilt); c.translate(-x, -(y - 50)); }
+  const face = w.face || 1, H = 180 * S, sc = H / 360;
+  if (st.defeatT != null) { sailor(k, x, y, S, 'fall', face); c.restore(); return; }
+  if (pose.kind === 'walk' || pose.kind === 'stand' || pose.kind === 'land' || pose.kind === 'fall') {
+    sailor(k, x, y, S, pose.kind === 'walk' ? 'walk' : pose.kind, face, 0, pose.kind === 'walk' ? w.dist : null);
+    c.restore(); return;
+  }
+  // the back-view frames face the wall, so only the traverse turns to go left
+  const flip = pose.kind.startsWith('wall-side') || pose.kind === 'mantle-c' || pose.kind === 'wall-step' ? face : 1;
+  const shake = pose.kind === 'wall-hit' ? Math.sin(t * 70) * 3 : 0;
+  const id = 'prince-' + pose.kind;
+  if (k.img(id)) {
+    c.save(); c.translate(x + shake, y); c.scale(flip, 1);
+    k.asset(id, 0, 0, 360 * sc, 440 * sc);
+    c.restore();
+  } else {
+    const alt = WALL_STANDIN[pose.kind];
+    if (alt === 'hang' || alt === 'pullup') {
+      // the profile hang and pull-up frames, his hands at the ledge's lip
+      const hid = 'sailor-' + alt, hw = alt === 'hang' ? 67 : 79, hh = alt === 'hang' ? 134 : 91;
+      const s2 = H / 110;
+      c.save(); c.translate(x, y + (alt === 'hang' ? -CLIMB.hands - 6 : 0)); c.scale(face, 1);
+      if (!k.asset(hid, 0, alt === 'hang' ? hh * s2 : 0, hw * s2, hh * s2)) sailor(k, 0, 0, S, 'climb-a', 1);
+      c.restore();
+    } else sailor(k, x + shake, y, S, alt, face);
+  }
   c.restore();
 }
 

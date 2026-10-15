@@ -9,8 +9,9 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, FILM_CLIFF_HALF } from '../src/acts/act5film.js';
-import { pickHold } from '../src/acts/act5.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW } from '../src/acts/act5film.js';
+import { CLIMB, terrainAt } from '../src/acts/climb.js';
+import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
 import { HOOKS } from '../src/acts/act4.js';
@@ -239,53 +240,81 @@ test('Act V: a swimmer who never dives is caught', () => {
   assert.ok(st.lanterns < 3);
 });
 
-test('Act V: the film cliff climbs its painted ledges from the shore to the clifftop, and on into the dive', () => {
+// A simple climber: up, steering for a target x once it is set.
+const climbBot = (target = () => null) => (s) => {
+  const w = s.wall; if (!w) return {};
+  const tx = target(s);
+  return { moveY: -1, moveX: tx == null ? 0 : Math.sign(tx - w.x) * (Math.abs(tx - w.x) > 8 ? 0.8 : 0) };
+};
+
+test('Act V: the film cliff is climbed anywhere on its painted face, faster up ivy and cracks than bare rock', () => {
   for (const scene of [0, 1]) {
     const st = actTower.create({ seed: 1, carry: {}, from: scene ? { scene } : null });
-    assert.equal(st.holds.length, FILM_CLIFF.length);
-    assert.equal(st.cl.at, scene ? FILM_CLIFF_HALF : FILM_CLIFF.findIndex((h) => h.start));
+    assert.ok(st.wall && st.wall.name === 'cliff');
+    assert.equal(st.wall.mode, 'ledge', `scene ${scene} starts standing on a ledge`);
     assert.ok(!st.holds.some((h) => h.kind === 'boot' || h.kind === 'gap'), 'no giant and no guitarist');
   }
+  const map = CLIMB_MAPS.cliff;
+  const count = (ch) => map.grid.reduce((n, row) => n + row.split(ch).length - 1, 0);
+  for (const ch of 'vkrs') assert.ok(count(ch) > 300, `the cliff has ${ch} terrain`);
+  assert.ok(CLIMB.speed.v > CLIMB.speed.k && CLIMB.speed.k > CLIMB.speed.r && CLIMB.speed.r > CLIMB.speed.s, 'ivy > crack > rock > slick');
+  assert.ok(CLIMB.walk > CLIMB.speed.v, 'he walks a ledge faster than he climbs');
+  // every pearl hangs where he can reach it
   const st = actTower.create({ seed: 1, carry: {} });
-  const seen = new Set([st.cl.at]), q = [st.cl.at];
-  const dirs = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0.6, y: 0.8 }, { x: -0.6, y: 0.8 }];
-  while (q.length) {
-    const i = q.shift(); st.cl.at = i;
-    for (const d of dirs) for (const leap of [false, true]) { const j = pickHold(st, i, d, leap); if (j >= 0 && !seen.has(j)) { seen.add(j); q.push(j); } }
-  }
-  assert.ok(st.holds.some((h, i) => h.kind === 'top' && seen.has(i)), 'the clifftop is reachable');
-  assert.ok(st.holds.every((h, i) => !h.pearl || seen.has(i)), 'every pearl is reachable');
-  // over the grass edge: the dive follows
-  const s2 = actTower.create({ seed: 1, carry: {} });
-  const top = s2.holds.findIndex((h) => h.kind === 'top');
-  const below = s2.holds.findIndex((h) => h.x === 580 && h.y === 1874);
-  s2.cl.at = s2.cl.from = below; s2.inv = 99;
-  run(actTower, s2, 2, () => ({ up: true }), (s) => s.phase !== 'cliff');
-  assert.equal(s2.phase, 'dive', `phase ${s2.phase}, at ${s2.cl.at} (top ${top})`);
+  for (const p of st.wall.pearls) assert.notEqual(terrainAt(map, p.x, p.y + 20), '.', `pearl at ${p.x},${p.y}`);
 });
 
-test('Act V: the tower wall has a route from its foot to the window', () => {
+test('Act V: up into a ledge he hauls himself onto it, walks it, and lowers himself off', () => {
+  const st = actTower.create({ seed: 1, carry: {} });
+  const w = st.wall, map = w.map;
+  // under a ledge with face below it: climb up into it
+  const l = map.ledges.find((o) => o.y > 300 && terrainAt(map, (o.x0 + o.x1) / 2, o.y - 120) !== '.' && terrainAt(map, (o.x0 + o.x1) / 2, o.y - 30) !== '.');
+  Object.assign(w, { mode: 'wall', x: (l.x0 + l.x1) / 2, y: l.y - 150, t: 0 });
+  st.inv = 99; st.camY = Math.max(0, l.y - 250);
+  const modes = new Set();
+  run(actTower, st, 4, () => ({ moveY: -1 }), (s) => { modes.add(s.wall.mode); return s.wall.mode === 'ledge'; });
+  assert.ok(modes.has('mantle'), 'he hauls himself up');
+  assert.equal(w.mode, 'ledge'); assert.equal(w.y, l.y);
+  // walk along it
+  const x0 = w.x, toward = x0 - l.x0 < l.x1 - x0 ? 1 : -1;
+  run(actTower, st, 0.1, () => ({ moveX: toward }));
+  assert.ok(Math.abs(w.x - x0) > 15 && w.mode === 'ledge', 'he walks the ledge');
+  // and down off it
+  run(actTower, st, 1, () => ({ moveY: 1 }), (s) => s.wall.mode === 'wall');
+  assert.equal(w.mode, 'wall'); assert.ok(w.y < l.y);
+});
+
+test('Act V: the painted edge stops him, and dry ivy tears if he lingers', () => {
+  const st = actTower.create({ seed: 1, carry: {} });
+  const w = st.wall; st.inv = 99;
+  Object.assign(w, { mode: 'wall', x: 300, y: 600 });
+  run(actTower, st, 3, () => ({ moveX: -1 }));
+  assert.ok(w.x >= CLIMB_MAPS.cliff.x0, `held at the cloth's edge (x ${w.x})`);
+  const cr = w.crumbles[0];
+  Object.assign(w, { mode: 'wall', x: cr.x, y: cr.y - CLIMB.hands * 0.6 });
+  st.inv = 0; const before = st.lanterns;
+  run(actTower, st, 1.2, () => ({}), (s) => s.wall.mode === 'fall');
+  assert.ok(cr.gone, 'the dry ivy tears'); assert.equal(st.lanterns, before - 1);
+});
+
+test('Act V: climbing on up the cliff reaches the clifftop and the dive', () => {
+  const st = actTower.create({ seed: 1, carry: {} });
+  run(actTower, st, 90, (s) => { s.inv = 99; return climbBot()(s); }, (s) => s.phase !== 'cliff');
+  assert.equal(st.phase, 'dive', `phase ${st.phase} at ${Math.round(st.wall.x)},${Math.round(st.wall.y)}`);
+});
+
+test('Act V: the tower wall is climbed to her window', () => {
   const st = actTower.create({ seed: 1, carry: {}, from: { scene: 3 } });
-  const seen = new Set([st.cl.at]), q = [st.cl.at];
-  const dirs = [{ x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0.6, y: 0.8 }, { x: -0.6, y: 0.8 }];
-  while (q.length) {
-    const i = q.shift();
-    st.cl.at = i;
-    for (const d of dirs) for (const leap of [false, true]) {
-      const j = pickHold(st, i, d, leap);
-      if (j >= 0 && !seen.has(j)) { seen.add(j); q.push(j); }
-    }
-  }
-  const top = TOWER_HOLDS.findIndex((h) => h.kind === 'top');
-  assert.ok(seen.has(top), 'the window is reachable');
+  assert.equal(st.wall.name, 'tower');
   assert.ok(TOWER_TOP > 1000);
+  run(actTower, st, 90, (s) => { s.inv = 99; return climbBot((q) => (q.wall.y > 1250 ? TOWER_WINDOW.x : null))(s); }, (s) => s.phase !== 'tower');
+  assert.ok(['window', 'iris'].includes(st.phase), `phase ${st.phase} at ${Math.round(st.wall.x)},${Math.round(st.wall.y)}`);
 });
 
 test('Act V: reaching the window plays the window shot and wins', () => {
   const st = actTower.create({ seed: 1, carry: {}, from: { scene: 4 } });
-  const top = st.holds.findIndex((h) => h.kind === 'top');
-  st.cl.at = top - 1; st.cl.from = top - 1;
-  run(actTower, st, 2, () => ({ up: true }));
+  assert.equal(st.wall.mode, 'ledge', 'the halfway checkpoint stands him on its ledge');
+  run(actTower, st, 60, (s) => { s.inv = 99; return climbBot((q) => (q.wall.y > 1250 ? TOWER_WINDOW.x : null))(s); }, (s) => s.phase !== 'tower');
   assert.ok(['window', 'iris'].includes(st.phase) || st.status === 'won', st.phase);
   run(actTower, st, FILM_T.window + FILM_T.iris + 1);
   assert.equal(st.status, 'won');

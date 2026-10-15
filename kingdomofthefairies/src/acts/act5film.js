@@ -13,8 +13,9 @@
 // Headless: drawing is in act5film-art.js.
 import act5, {
   BEAT_S, GRACE, LANTERNS, CLIFF, HOLDS, QUAY,
-  stepCliff, stepHouse, stepQuay, hit, checkpoint, setPhase, climberPos,
+  stepCliff, stepHouse, stepQuay, hit, checkpoint, setPhase, climberPos, stepRocks, reachTop,
 } from './act5.js';
+import { createWall, stepWall, jolt } from './climb.js';
 import { clamp, lerp } from './shared.js';
 import * as art from './act5film-art.js';
 
@@ -186,21 +187,56 @@ function startSwim(st) {
   st.events.push({ type: 'swimStart' });
 }
 
-function startTower(st, hold = null) {
+// The climbs are continuous (climb.js): anywhere on the painted face, from
+// the start ledge or a checkpoint's place; the hold lists give the start,
+// the halfway mark, the pearls and the dry ivy.
+function startWall(st, name, holds, at, half, opts = {}) {
+  st.holds = holds.map((h) => ({ kind: 'hold', ...h, gone: false }));
+  st.wall = createWall(name, holds, at, opts);
+  st.climb = { ...st.climb, halfY: holds[half].y };
+  st.camY = clamp(st.wall.y - 250, 0, st.climb.camMax);
+}
+const wallAt = (holds, from, half) => (from?.wy != null ? { x: from.wx, y: from.wy }
+  : from?.hold != null && holds[from.hold] ? holds[from.hold] : half != null ? holds[half] : holds.find((h) => h.start));
+function takenAgain(st, from, half) {
+  // pearls taken before the checkpoint stay taken
+  const taken = from?.taken ?? st.wall.pearls.map((p, i) => (p.y <= st.wall.y + 4 ? i : -1)).filter((i) => i >= 0);
+  for (const i of taken) if (st.wall.pearls[i]) st.wall.pearls[i].taken = true;
+}
+
+function startTower(st, from = null) {
   setPhase(st, 'tower');
-  st.holds = TOWER_HOLDS.map((h) => ({ kind: 'hold', ...h, gone: false }));
-  const start = hold ?? st.holds.findIndex((h) => h.start);
-  st.cl = { at: start, from: start, moveT: 0, moveDur: 0, kind: null, crumbleT: 0 };
   st.climb = { top: TOWER_TOP, camMax: TOWER_TOP - 330, half: TOWER_HALF, halfScene: 4, openTop: true };
-  st.camY = clamp(st.holds[start].y - 250, 0, st.climb.camMax);
+  startWall(st, 'tower', TOWER_HOLDS, wallAt(TOWER_HOLDS, from, from ? TOWER_HALF : null), TOWER_HALF,
+    { goal: { x: TOWER_WINDOW.x, y: TOWER_WINDOW.y, r: 60 }, floor: 110 });
+  if (from) takenAgain(st, from);
   st.rocks = []; st.nextRock = 3.4;
-  if (hold == null) checkpoint(st, 3);
+  if (!from) checkpoint(st, 3);
+}
+
+function stepClimb(st, dt, input) {
+  const w = st.wall, cfg = st.climb;
+  const r = stepWall(w, dt, input, {
+    events: st.events,
+    hit: (cause) => hit(st, { cause }),
+    pearl: (p) => { st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: p.x, y: p.y }); },
+  });
+  if (r === 'top') { reachTop(st, { x: w.x }); return; }
+  if ((st.checkpoint?.scene | 0) < cfg.halfScene && w.mode === 'ledge' && w.y >= cfg.halfY - 6) {
+    checkpoint(st, cfg.halfScene, { wx: w.x, wy: w.y, taken: w.pearls.map((p, i) => (p.taken ? i : -1)).filter((i) => i >= 0) });
+  }
+  // The camera follows, like a cliff flat winched down through the floor.
+  const want = clamp(w.y - 250, 0, cfg.camMax);
+  st.camY += (want - st.camY) * Math.min(1, dt * 3);
+  const before = st.lanterns;
+  stepRocks(st, dt, climberPos(st));
+  if (st.lanterns < before) jolt(w);
 }
 
 export const actTower = {
   id: 5, key: 'tower', kicker: 'Act V', title: 'The Enchanted Tower', size: 116, page: 5,
   sub: 'Climb the cliff and dive for the witch’s tower.\nSwim the sea gap, then climb the tower to her window.',
-  intertitle: act5.intertitle,
+  intertitle: 'Climb anywhere on the rock:\nfastest up the ivy and the cracks,\nslowest over the wet cleft.\n\nPush up into a ledge to haul yourself onto it.\nDust above means a stone is about to fall.',
   action: 'A: leap',
   scenes: TOWER_SCENES,
   mood: (st) => (st.phase === 'swim' ? 'storm' : st.phase === 'dive' || st.phase === 'window' ? 'tender' : 'storm'),
@@ -215,23 +251,17 @@ export const actTower = {
     const st = act5.create({ seed, carry, from: k === 1 ? { ...from, scene: 1 } : null });
     st.part = 'tower';
     // the film's own cliff route, on the cliff's painted ledges and ivy
-    st.holds = FILM_CLIFF.map((h) => ({ kind: 'hold', ...h, gone: false }));
     st.climb = { top: CLIFF.top, camMax: CLIFF.camMax, half: FILM_CLIFF_HALF, halfScene: 1, openTop: true };
-    {
-      const i = k === 1 ? (from.hold ?? FILM_CLIFF_HALF) : st.holds.findIndex((h) => h.start);
-      st.cl = { at: i, from: i, moveT: 0, moveDur: 0, kind: null, crumbleT: 0 };
-      st.camY = k === 1 ? clamp(st.holds[i].y - 250, 0, CLIFF.camMax) : 0;
-      if (k === 1) for (const j of from.taken ?? st.holds.map((h, j) => (h.pearl && j <= i ? j : -1)).filter((j) => j >= 0)) if (st.holds[j]) st.holds[j].taken = true;
-    }
+    startWall(st, 'cliff', FILM_CLIFF, wallAt(FILM_CLIFF, k === 1 ? from : null, k === 1 ? FILM_CLIFF_HALF : null), FILM_CLIFF_HALF, { floor: 40 });
+    st.cl = null;
+    if (k === 1) takenAgain(st, from);
+    else st.camY = 0;
     st.carry = { ...CARRY_DEFAULT, ...carry };
     st.events.length = 0;
     if (k >= 2) { st.score = from.score ?? 0; st.pearls = from.pearls ?? 0; }
     if (k === 2) startSwim(st);
     else if (k === 3) startTower(st);
-    else if (k === 4) {
-      startTower(st, from.hold ?? TOWER_HALF);
-      for (const j of from.taken ?? st.holds.map((h, j) => (h.pearl && j <= TOWER_HALF ? j : -1)).filter((j) => j >= 0)) if (st.holds[j]) st.holds[j].taken = true;
-    }
+    else if (k === 4) startTower(st, from || {});
     st.events.length = 0;
     st.checkpoint = k > 0 ? { ...from, scene: k } : null;
     return st;
@@ -239,7 +269,8 @@ export const actTower = {
 
   step(st, dt, input = {}) {
     if (!base(st, dt, input)) return;
-    if (st.phase === 'cliff' || st.phase === 'tower') stepCliff(st, dt, input);
+    if ((st.phase === 'cliff' || st.phase === 'tower') && st.wall) stepClimb(st, dt, input);
+    else if (st.phase === 'cliff' || st.phase === 'tower') stepCliff(st, dt, input);
     else if (st.phase === 'dive') { if (!st.w) startDive(st); stepDive(st, dt, input); }
     else if (st.phase === 'swim') stepSwim(st, dt, input);
     else if (st.phase === 'window') { if (st.phaseT >= FILM_T.window) setPhase(st, 'iris'); }
@@ -264,7 +295,7 @@ export const actTower = {
     if (e.type === 'auroraLight') return "Aurora's light drives the witch away.";
     if (e.type === 'towerFoot') return 'The tower. Climb to her window.';
     if (e.type === 'stoneWarn') return 'Dust above: a stone is about to fall.';
-    if (e.type === 'holdCrumble') return 'The hold crumbles away.';
+    if (e.type === 'holdCrumble') return 'The dry ivy tears away.';
     return null;
   },
 
