@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-545 delivered, 4 requested, 549 in total.
+547 delivered, 2 requested, 549 in total.
 
 ## Brand
 
@@ -2901,7 +2901,7 @@ Single 256x256 square app icon. Keep scene contained within its rounded-square t
 - **Size:** 256 x 256, transparent
 - **Used for:** The Aquarium card in the game picker.
 - **Stand-in until delivered:** An emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -4212,7 +4212,7 @@ Single 256x256 square app icon. Keep scene contained within its rounded-square t
 - **Size:** 256 x 256, transparent
 - **Used for:** The Aquarium card in the game picker in the Art theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
