@@ -21,7 +21,8 @@ assert.equal(walkFrameFromSwing('sailor', 0), 'sailor-pass-a');
 assert.equal(walkFrameFromSwing('sailor', 1), 'sailor-walk-a');
 assert.equal(walkFrameFromSwing('sailor', -1), 'sailor-walk-b');
 assert.equal(whalePose({ on: 'bank', vx: 0, walk: 19 }, 'play'), 'stand');
-assert.equal(whalePose({ on: null, vy: 150, walk: 19 }, 'play'), 'fall');
+assert.equal(whalePose({ on: null, vy: 150, walk: 19 }, 'play'), 'apex');   // a jump coming down
+assert.equal(whalePose({ on: null, vy: 1100, walk: 19 }, 'play'), 'fall');  // a long drop
 const stair = { p: { conn: { c: { kind: 'stairs', a: { x: 0, f: 0 }, b: { x: 104, f: 0 } }, u: 0 } } };
 for (let phase = 0; phase < 4; phase++) {
   stair.p.conn.u = (phase * 13 + 1) / 104;

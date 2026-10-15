@@ -55,7 +55,7 @@ try {
         act = B.act4; st = act.create();
         if (name === 'whale-land') st.s.landT = 0.1;
         else Object.assign(st.s, { on: null, x: 400, y: 270,
-          vy: name === 'whale-rise' ? -400 : name === 'whale-fall' ? 400 : 0 });
+          vy: name === 'whale-rise' ? -400 : name === 'whale-fall' ? 1100 : 0 });
       } else if (name.startsWith('cliff-')) {
         act = B.act5; st = act.create();
         const target = st.holds.findIndex((h) => h.y > 180 && h.y < 350 && h.kind !== 'ledge');
@@ -73,7 +73,7 @@ try {
           st.p.x = c.a.x + (c.b.x-c.a.x)*u;
           st.p.y = B.HOUSE.floors[c.a.f] + (B.HOUSE.floors[c.b.f]-B.HOUSE.floors[c.a.f])*u;
           st.p.face = c.b.x < c.a.x ? -1 : 1;
-        } else if (name === 'house-fall') Object.assign(st.p, { f: -1, vy: 400, y: 470 });
+        } else if (name === 'house-fall') Object.assign(st.p, { f: -1, vy: 1100, y: 470 });
         else if (name === 'house-land') st.p.landT = 0.1;
         else if (name === 'house-throw') { st.throwT = 0.2; st.p.x = 700; st.p.f = 1; st.p.y = B.HOUSE.floors[1]; }
         else if (name === 'house-carry') st.p.carry = true;
@@ -92,12 +92,12 @@ try {
   // Missing delivered pose: the act still draws its previous sailor art.
   const fallback = await page.evaluate(() => {
     const B = window.__movement; delete B.a.images['sailor-fall'];
-    const st = B.act4.create(); Object.assign(st.s, { on: null, vy: 400 });
+    const st = B.act4.create(); Object.assign(st.s, { on: null, vy: 1100 });
     B.draws.length = 0;
     B.renderer.render({ act: B.act4, state: st, t: 1, film: 'off', curtain: 1 });
     return B.draws.map((d) => d.id);
   });
-  assert.ok(fallback.includes('sailor-leap'));
+  assert.ok(fallback.includes('sailor-leap'), JSON.stringify(fallback));
   assert.deepEqual(errors, []);
   await writeFile(new URL('validation.json', out), JSON.stringify({ assets, records, fallback, errors }, null, 2));
   console.log('Browser passed: eight alpha assets loaded, sixteen movement scenes in both passes, missing-art fallback.');
