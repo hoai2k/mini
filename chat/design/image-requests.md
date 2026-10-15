@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-547 delivered, 2 requested, 549 in total.
+549 delivered, 549 in total.
 
 ## Brand
 
@@ -5447,7 +5447,7 @@ Single 256x256 square app icon. Keep scene contained within its rounded-square t
 - **Size:** 256 x 256, transparent
 - **Used for:** The Aquarium card in the game picker in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -6696,7 +6696,7 @@ Single dark charcoal-to-indigo rounded-square tile, transparent alpha strictly o
 - **Size:** 256 x 256, transparent
 - **Used for:** The Aquarium card in the game picker, replacing the first-set icon.
 - **Stand-in until delivered:** The first-set icon, or the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's hand dropping a fish into bright fish tank with a clownfish, a pufferfish, a school of neon tetras and a little shark, food flakes sprinkling down from the top. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.

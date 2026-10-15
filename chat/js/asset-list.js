@@ -2361,7 +2361,7 @@ export const ASSET_LIST = {
   },
   "game2-aquarium": {
     "file": "assets/icons2/game2-aquarium.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-aquarium": {
     "file": "assets/icons-art/art-game-aquarium.png",
@@ -2369,6 +2369,6 @@ export const ASSET_LIST = {
   },
   "classic-game-aquarium": {
     "file": "assets/icons-classic/classic-game-aquarium.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
