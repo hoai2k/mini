@@ -6,8 +6,10 @@ import cliff, { HOUSE } from '../src/acts/act5.js';
 
 assert.equal(airbornePose(-200), 'leap');
 assert.equal(airbornePose(0), 'apex');
-assert.equal(airbornePose(200), 'fall');
-assert.equal(whalePose({ on: null, vy: 400 }, 'climb'), 'fall');
+assert.equal(airbornePose(200), 'apex');   // a jump coming down reaches for the landing
+assert.equal(airbornePose(1100), 'fall');  // only a long drop flails
+assert.equal(whalePose({ on: null, vy: 400 }, 'climb'), 'apex');
+assert.equal(whalePose({ on: null, vy: 1100 }, 'climb'), 'fall');
 assert.equal(whalePose({ on: 'bank', vx: 0, landT: 0.1 }, 'climb'), 'land');
 assert.equal(whalePose({ on: 'bank', vx: 0 }, 'down'), 'fall');
 const st = { cl: { kind: 'climb', moveT: 0.2, moveDur: 0.34 } };
@@ -16,7 +18,7 @@ assert.equal(cliffPose(st, { moving: true, k: 0.8 }, {}), 'climb-b');
 st.cl.kind = 'fall';
 assert.equal(cliffPose(st, { moving: true, k: 0.2 }, {}), 'fall');
 st.cl.kind = 'leap';
-for (const [k, pose] of [[0.2, 'leap'], [0.5, 'apex'], [0.8, 'fall']]) {
+for (const [k, pose] of [[0.2, 'leap'], [0.5, 'apex'], [0.8, 'apex']]) {
   assert.equal(cliffPose(st, { moving: true, k }, {}), pose);
 }
 st.cl.moveT = st.cl.moveDur + 0.1;

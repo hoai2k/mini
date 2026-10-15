@@ -17,8 +17,12 @@ export function drawMovement(k, pose, x, by, standingHeight, face = 1) {
   return drawn;
 }
 
+// Rising, he leaps; coming down from a jump he reaches for his landing (the
+// apex frame). The flailing fall frame is only for a long drop, once he is
+// falling faster than any jump of his comes down.
+export const FALL_VY = 1000;
 export function airbornePose(vy) {
-  return vy < -95 ? 'leap' : vy > 95 ? 'fall' : 'apex';
+  return vy < -95 ? 'leap' : vy > FALL_VY ? 'fall' : 'apex';
 }
 
 export function whalePose(s, phase) {
@@ -32,7 +36,7 @@ export function cliffPose(st, pos, hold) {
   if (st.defeatT != null) return 'fall';
   if (pos.moving) {
     if (st.cl.kind === 'fall') return 'fall';
-    if (st.cl.kind === 'leap') return pos.k < 0.38 ? 'leap' : pos.k < 0.62 ? 'apex' : 'fall';
+    if (st.cl.kind === 'leap') return pos.k < 0.38 ? 'leap' : 'apex';
     return pos.k < 0.5 ? 'climb-a' : 'climb-b';
   }
   if (hold.kind === 'ledge' || hold.kind === 'top') {
