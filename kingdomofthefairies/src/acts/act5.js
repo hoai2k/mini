@@ -6,6 +6,7 @@ import { LEGACY, BAY_TITLE } from '../theme.js';
 // way and across the quay as the house falls. Then the ending chosen by what
 // he carried, and the pageant. Headless: drawing is in act5-art.js.
 import { beatPhase, clamp, lerp, rng } from './shared.js';
+import { createWall, stepWall, jolt, mantleTo, CLIMB } from './climb.js';
 import * as art from './act5-art.js';
 
 export const BEAT_S = 60 / 76.5;          // one beat of the song, seconds
@@ -152,7 +153,7 @@ export default {
   id: 5, kicker: 'Act V', title: BAY_TITLE, size: 120,
   sub: 'Climb the cliff to the stone house.\nCarry her out of the fire.',
   // Shown as a silent-film intertitle after the act card.
-  intertitle: 'Climb toward a glowing hold:\nits arrow shows which way.\n\nLeap to a far hold along the dotted arc.\nDust above means a stone is about to fall.',
+  intertitle: 'Climb anywhere on the rock:\nfastest up the ivy and the cracks.\nPush up into a ledge to haul yourself onto it.\n\nOnly the giant\'s boot lifts you over the lip:\nride it up on the beat.\nDust above means a stone is about to fall.',
   action: 'A: leap',
   scenes: SCENES,
 
@@ -185,15 +186,11 @@ export default {
       quayT: 0, joined: 0, sleepersShown: Math.min(12, Math.max(0, carry.sleepers || 0)),
     };
     const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
+    if (k <= 1) startCliffWall(st, k === 1 ? from : null);
     if (k <= 0) return st;
     st.score = from.score ?? 0;
     st.pearls = from.pearls ?? 0;
     if (k === 1) {
-      const i = from.hold ?? HALF;
-      st.cl = { at: i, from: i, moveT: 0, moveDur: 0, kind: null, crumbleT: 0 };
-      const taken = from.taken ?? holds.map((h, j) => (h.pearl && j <= i ? j : -1)).filter((j) => j >= 0);
-      for (const j of taken) holds[j].taken = true;
-      st.camY = clamp(holds[i].y - 250, 0, CLIFF.camMax);
       st.nextRock = 3.2;
     } else {
       // The house, burning and open, with the stage camera at the clifftop.
@@ -231,7 +228,8 @@ export default {
     }
     const busy = st.phase === 'cliff' || st.phase === 'house' || st.phase === 'quay';
     const inp = busy ? input : {};
-    if (st.phase === 'cliff') stepCliff(st, dt, inp);
+    if (st.phase === 'cliff' && st.wall) stepCliffWall(st, dt, inp);
+    else if (st.phase === 'cliff') stepCliff(st, dt, inp);
     else if (st.phase === 'storm') stepStorm(st, dt);
     else if (st.phase === 'house') stepHouse(st, dt, inp);
     else if (st.phase === 'quay') stepQuay(st, dt, inp);
@@ -438,6 +436,67 @@ export function stepCliff(st, dt, input) {
   stepRocks(st, dt, pos);
 }
 
+// ---------------------------------------------------------------- the continuous climb
+// The cliff is climbed anywhere on its painted face (climb.js, on the map
+// read from the cloth). This edition keeps its own cliff: the giant's boot,
+// lifting on the beat, is the only way over the overhanging lip; the tiny
+// guitarist's gap in the cleft shelters from stones; its loose holds are
+// patches that give way if he lingers on them.
+const BOOT = { x0: 412, x1: 492 };                  // the giant's left boot (LEGS[0] 450 in the art)
+const BOOT_Y = HOLDS.find((h) => h.kind === 'boot').y;
+const TOP_AT = { x: 570, y: TOP };                  // where he comes up over the lip
+function startCliffWall(st, from) {
+  const extra = [{ x0: BOOT.x0, x1: BOOT.x1, y: BOOT_Y, boot: true }];
+  const opts = { floor: 40, capY: TOP - 60 - CLIMB.hands, closedTop: true, extraLedges: extra };   // his hands reach the planted boot, not the lip
+  const probe = createWall('cliff', [], { x: 0, y: 0 }, opts);
+  // start on the lowest painted ledge, or the one nearest a checkpoint's place
+  const near = (x, y) => probe.ledges.filter((l) => !l.boot).reduce((a, l) => (Math.hypot((l.x0 + l.x1) / 2 - x, l.y - y) < Math.hypot((a.x0 + a.x1) / 2 - x, a.y - y) ? l : a));
+  const half = HOLDS[HALF];
+  const at = from?.wy != null ? { x: from.wx, y: from.wy }
+    : from ? (({ x0, x1, y }) => ({ x: (x0 + x1) / 2, y }))(near(half.x, half.y))
+      : (({ x0, x1, y }) => ({ x: (x0 + x1) / 2, y }))(probe.ledges.filter((l) => !l.boot).reduce((a, l) => (l.y < a.y ? l : a)));
+  st.wall = createWall('cliff', HOLDS, at, opts);
+  st.shelter = HOLDS.find((h) => h.kind === 'gap');
+  st.climb = { top: CLIFF.top, camMax: CLIFF.camMax, half: HALF, halfScene: 1, halfY: near(half.x, half.y).y };
+  if (from) {
+    const taken = from.taken ?? st.wall.pearls.map((p, i) => (p.y <= at.y + 4 ? i : -1)).filter((i) => i >= 0);
+    for (const i of taken) if (st.wall.pearls[i]) st.wall.pearls[i].taken = true;
+  }
+  st.camY = clamp(st.wall.y - 250, 0, CLIFF.camMax);
+}
+
+function stepCliffWall(st, dt, input) {
+  const w = st.wall, cfg = st.climb, boot = w.ledges.find((l) => l.boot);
+  boot.y = BOOT_Y + bootLift(st.beat) * CLIFF.bootLift;
+  const ctx = {
+    events: st.events,
+    hit: (cause) => hit(st, { cause }),
+    pearl: (p) => { st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: p.x, y: p.y }); },
+  };
+  const onBoot = w.mode === 'ledge' && w.ledges[w.ledge] === boot;
+  const up = input.up || (input.moveY || 0) < -0.5;
+  let r = null;
+  // from the boot: up while it is raised, or a spring at any time, over the lip
+  if (onBoot && ((up && bootLift(st.beat) > 0.6) || input.a)) mantleTo(w, TOP_AT.x, TOP_AT.y, 'top', ctx);
+  else r = stepWall(w, dt, input, ctx);
+  if (r === 'top') {
+    st.score += 200; st.walkFromX = w.x;
+    st.events.push({ type: 'clifftop' });
+    setPhase(st, 'storm');
+    return;
+  }
+  if ((st.checkpoint?.scene | 0) < cfg.halfScene && w.mode === 'ledge' && !onBoot && w.y >= cfg.halfY - 6) {
+    checkpoint(st, cfg.halfScene, { wx: w.x, wy: w.y, taken: w.pearls.map((p, i) => (p.taken ? i : -1)).filter((i) => i >= 0) });
+  }
+  // The giant shifts his weight on every beat.
+  if (Math.floor(st.beat) !== Math.floor(st.lastBeat) && w.y > CLIFF.top - 450) st.events.push({ type: 'giantStep', foot: ((Math.floor(st.beat) % 2) + 2) % 2 });
+  const want = clamp(w.y - 250, 0, cfg.camMax);
+  st.camY += (want - st.camY) * Math.min(1, dt * 3);
+  const before = st.lanterns;
+  stepRocks(st, dt, climberPos(st));
+  if (st.lanterns < before) jolt(w);
+}
+
 export function stepRocks(st, dt, pos) {
   st.nextRock -= dt;
   if (st.nextRock <= 0 && pos.y < climbCfg(st).top - 120) {
@@ -447,7 +506,9 @@ export function stepRocks(st, dt, pos) {
     st.rocks.push({ x: clamp(pos.x + (st.rand() - 0.5) * 30, 280, 960), wait: lead, warn: CLIFF.stoneWarn, omen: st.omen, y: null, vy: 0, spin: st.rand() * 6, warned: false, done: false });
   }
   const h = st.wall ? null : st.holds[st.cl.at];
-  const sheltered = !!h && h.kind === 'gap' && !pos.moving;
+  const sheltered = st.wall
+    ? !!st.shelter && st.wall.mode === 'wall' && Math.abs(pos.x - st.shelter.x) < 40 && Math.abs(pos.y - st.shelter.y) < 60
+    : !!h && h.kind === 'gap' && !pos.moving;
   for (const r of st.rocks) {
     r.wait -= dt;
     if (r.y == null) {

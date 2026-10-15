@@ -1,6 +1,7 @@
 // Headless checks for Act V — Widow's Bay. Run: node kingdomofthefairies/qa/act5.test.mjs
 import assert from 'node:assert/strict';
-import act, { SCENES, BEAT_S, CLIFF, HOUSE, QUAY, T, pickHold, climberPos, holdY, endingFor, climbOptions, CLIMB_BUFFER } from '../src/acts/act5.js';
+import act, { SCENES, BEAT_S, CLIFF, HOUSE, QUAY, T, climberPos, endingFor, bootLift } from '../src/acts/act5.js';
+import { CLIMB, terrainAt } from '../src/acts/climb.js';
 
 const DT = 1 / 60;
 let n = 0;
@@ -25,53 +26,25 @@ function sim(carry = {}, seed = 7) {
 }
 
 // ---------------------------------------------------------------- bots
-const DIRV = { up: { x: 0, y: 1 }, down: { x: 0, y: -1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
-const TRIES = [...Object.entries(DIRV).flatMap(([d, v]) => [[d, v, false], [d, v, true]])];
-
-// Shortest route of moves from the current hold to the clifftop, avoiding
-// loose holds. Each move is [dir, leap, target].
-function route(st) {
-  const from = st.cl.at, prev = new Map([[from, null]]), q = [from];
-  while (q.length) {
-    const i = q.shift();
-    if (st.holds[i].kind === 'top') {
-      const out = []; let k = i;
-      while (prev.get(k)) { out.unshift(prev.get(k).slice(1)); k = prev.get(k)[0]; }
-      return out;
-    }
-    for (const [d, v, leap] of TRIES) {
-      // The boot's lift changes reach: plan as if planted, and wait for it.
-      const j = pickHold({ ...st, beat: 0.99 }, i, v, leap);
-      if (j < 0 || prev.has(j) || st.holds[j].kind === 'crumble') continue;
-      prev.set(j, [i, d, leap, j]); q.push(j);
-    }
-  }
-  return null;
-}
-
-// Climb the route; side-step when dust gathers over the next hold or us.
+// The climber: up, stepping aside from a falling stone, and near the top
+// under the giant's boot, riding it up and over the lip on the beat.
 function cliffBot(st) {
-  const cl = st.cl;
-  if (cl.moveT < cl.moveDur) return {};
-  const pos = climberPos(st);
-  const threats = st.rocks.filter((r) => r.y == null ? r.wait < r.warn : r.y > pos.y);
-  const danger = (x) => threats.some((r) => Math.abs(r.x - x) < 56);
-  const here = st.holds[cl.at];
-  const r = route(st);
-  if (!r || !r.length) return {};
-  const [dir, leap, target] = r[0];
-  const sheltered = here.kind === 'gap';
-  if (!danger(st.holds[target].x) && pickHold(st, cl.at, DIRV[dir], leap) === target) return leap ? { a: true, moveY: dir === 'up' ? -1 : 0, moveX: dir === 'left' ? -1 : dir === 'right' ? 1 : 0, ...(dir === 'down' ? { moveY: 1 } : {}) } : { [dir]: true };
-  if (danger(pos.x) && !sheltered) {
-    for (const d of ['left', 'right', 'up', 'down']) {
-      const j = pickHold(st, cl.at, DIRV[d], false);
-      if (j >= 0 && st.holds[j].kind !== 'crumble' && !danger(st.holds[j].x)) return { [d]: true };
-    }
+  const w = st.wall; if (!w) return {};
+  const threats = st.rocks.filter((r) => (r.y == null ? r.wait < r.warn + 0.4 : r.y > w.y - 10));
+  const danger = (x) => threats.some((r) => Math.abs(r.x - x) < 70);
+  const boot = w.ledges.find((l) => l.boot);
+  if (w.mode === 'ledge' && w.ledges[w.ledge] === boot) return bootLift(st.beat) > 0.7 ? { moveY: -1 } : {};
+  if (danger(w.x)) {
+    // aside, away from the stone, but never into the cloth's edge
+    let d = threats.some((r) => r.x > w.x) ? -1 : 1;
+    if (w.x < w.map.x0 + 140) d = 1; else if (w.x > w.map.x0 + w.map.cols * w.map.cell - 140) d = -1;
+    return { moveX: d };
   }
-  return {}; // wait it out (or wait for the boot to lift)
+  const tx = w.y > 1450 ? (boot.x0 + boot.x1) / 2 : null;
+  return { moveY: -1, moveX: tx == null ? 0 : Math.sign(tx - w.x) * (Math.abs(tx - w.x) > 8 ? 0.8 : 0) };
 }
+const bootOf = (st) => st.wall.ledges.findIndex((l) => l.boot);
 
-// The house: a list of waypoints, walked with dodging.
 function houseBot(st, plan) {
   const p = st.p;
   const threat = st.haz.find((h) => !h.landed && h.wait < h.warn + 0.05 && (st.phase === 'quay' || h.f === p.f));
@@ -154,25 +127,23 @@ test('endings are chosen from carry, in order', () => {
 });
 
 test('the clifftop is only reachable from the giant\'s boot', () => {
-  const st = act.create({ seed: 1 });
-  const ledge = st.holds.findIndex((h) => h.x === 420 && h.y === 1830);
-  const boot = st.holds.findIndex((h) => h.kind === 'boot');
-  for (const [, v, leap] of TRIES) {
-    const j = pickHold(st, ledge, v, leap);
-    assert.ok(j < 0 || st.holds[j].kind !== 'top', 'no leap over the lip');
-  }
-  st.beat = 0.5; // the boot is raised mid-beat
-  assert.ok(holdY(st.holds[boot], st.beat) > st.holds[boot].y + 90);
-  assert.equal(st.holds[pickHold(st, boot, DIRV.right, false)].kind, "top", "a raised boot reaches the grass");
-  st.beat = 1.5; // planted: too far to climb, a leap still makes it
-  assert.notEqual(st.holds[pickHold(st, boot, DIRV.right, false)]?.kind, "top");
-  assert.equal(st.holds[pickHold(st, boot, DIRV.right, true)].kind, "top");
+  const h = sim(); h.st.nextRock = 1e9; h.st.inv = 1e9;
+  const w = h.st.wall;
+  // high on the face away from the boot: the overhanging lip stops him
+  Object.assign(w, { mode: 'wall', x: 760, y: 1780 });
+  h.run(4, () => ({ moveY: -1 }));
+  assert.equal(h.st.phase, 'cliff');
+  assert.ok(w.y + CLIMB.hands < CLIFF.top - 40, `held under the lip (feet ${Math.round(w.y)})`);
+  // on the boot, up while it is raised hauls him over
+  Object.assign(w, { mode: 'ledge', ledge: bootOf(h.st), x: 452 });
+  h.until((s) => s.phase !== 'cliff', 4, (s) => (bootLift(s.beat) > 0.7 ? { moveY: -1 } : {}));
+  assert.equal(h.st.phase, 'storm');
+  assert.equal(h.count('clifftop'), 1);
 });
 
 test('the boot carries a climber standing on it', () => {
-  const h = sim();
-  const boot = h.st.holds.findIndex((x) => x.kind === 'boot');
-  h.st.cl.at = boot; h.st.nextRock = 1e9;
+  const h = sim(); h.st.nextRock = 1e9;
+  Object.assign(h.st.wall, { mode: 'ledge', ledge: bootOf(h.st), x: 452 });
   const ys = [];
   for (let i = 0; i < 120; i++) { h.step(); ys.push(climberPos(h.st).y); }
   assert.ok(Math.max(...ys) - Math.min(...ys) > 90, 'rises and falls with the beat');
@@ -180,22 +151,21 @@ test('the boot carries a climber standing on it', () => {
 });
 
 test('a loose hold gives way and costs a lantern; the gap shelters', () => {
-  const h = sim();
-  h.st.nextRock = 1e9;
-  const loose = h.st.holds.findIndex((x) => x.kind === 'crumble');
-  h.st.cl.at = loose;
-  h.st.cl.crumbleT = CLIFF.crumbleT;
+  const h = sim(); h.st.nextRock = 1e9;
+  const w = h.st.wall, cr = w.crumbles[0];
+  Object.assign(w, { mode: 'wall', x: cr.x, y: cr.y - CLIMB.hands * 0.6 });
+  const y0 = w.y;
   h.run(1.5);
-  assert.equal(h.st.holds[loose].gone, true);
+  assert.equal(cr.gone, true);
   assert.equal(h.st.lanterns, 2);
   assert.equal(h.count('holdCrumble'), 1);
-  assert.ok(h.st.holds[h.st.cl.at].y < h.st.holds[loose].y, 'fell to a hold below');
+  assert.ok(w.y < y0, 'fell');
 
-  const g = sim();
-  const gap = g.st.holds.findIndex((x) => x.kind === 'gap');
-  g.st.cl.at = gap; g.st.nextRock = 1e9;
-  g.st.camY = g.st.holds[gap].y - 595;
-  g.st.rocks.push({ x: g.st.holds[gap].x, wait: 0.01, warn: 1, y: null, vy: 0, spin: 0, warned: true, done: false });
+  const g = sim(); g.st.nextRock = 1e9;
+  const gap = g.st.shelter;
+  Object.assign(g.st.wall, { mode: 'wall', x: gap.x, y: gap.y });
+  g.st.camY = gap.y - 595;
+  g.st.rocks.push({ x: gap.x, wait: 0.01, warn: 1, y: null, vy: 0, spin: 0, warned: true, done: false });
   g.run(2);
   assert.equal(g.st.lanterns, 3, 'sheltered in the gap');
   assert.equal(g.count('stoneGlance'), 1);
@@ -434,7 +404,7 @@ test('events get onEvent and announce without throwing', () => {
   const plan = housePlan(true);
   h.until((s) => s.status !== 'play', 200, (s) => (s.phase === 'cliff' ? cliffBot(s) : houseBot(s, plan)));
   for (const e of h.events) { types.add(e.type); act.onEvent(mockKit(), e, h.st); act.announce(e); }
-  for (const t of ['rockScrape', 'leap', 'stoneWarn', 'stoneFall', 'clifftop', 'strike', 'fireRoar', 'houseOpen', 'fireCrackle', 'stoneThrow', 'shutterSmash', 'liftHer', 'floorBreak', 'carryStep', 'houseFall', 'ending', 'lampLit', 'pageant', 'pageantJoin', 'pageantApplause']) assert.ok(types.has(t), t);
+  for (const t of ['climbMantle', 'stoneWarn', 'stoneFall', 'clifftop', 'strike', 'fireRoar', 'houseOpen', 'fireCrackle', 'stoneThrow', 'shutterSmash', 'liftHer', 'floorBreak', 'carryStep', 'houseFall', 'ending', 'lampLit', 'pageant', 'pageantJoin', 'pageantApplause']) assert.ok(types.has(t), t);
   console.log('     events:', [...types].sort().join(' '));
 });
 
@@ -455,7 +425,7 @@ test('scenes start in the right place', () => {
   const mk = (k, carry = {}) => act.create({ seed: 1, carry, from: { scene: k } });
   assert.equal(mk(0).phase, 'cliff');
   assert.equal(mk(1).phase, 'cliff');
-  assert.ok(mk(1).holds[mk(1).cl.at].y > 900 && mk(1).camY > 500);
+  assert.ok(mk(1).wall.y > 900 && mk(1).wall.mode === 'ledge' && mk(1).camY > 500);
   const h = mk(2);
   assert.equal(h.phase, 'house'); assert.equal(h.p.carry, false); assert.equal(h.open, 1); assert.equal(h.fire, 1);
   assert.equal(h.p.f, 0); assert.equal(h.broke, false);
@@ -474,7 +444,7 @@ test('reaching halfway sets a checkpoint, and it restores', () => {
   assert.equal(cp.scene, 1);
   JSON.parse(JSON.stringify(cp));
   const st = act.create({ seed: 2, from: JSON.parse(JSON.stringify({ ...cp, score: 123, pearls: 2 })) });
-  assert.equal(st.cl.at, cp.hold); assert.equal(st.score, 123); assert.equal(st.pearls, 2);
+  assert.equal(st.wall.y, cp.wy); assert.equal(st.wall.x, cp.wx); assert.equal(st.score, 123); assert.equal(st.pearls, 2);
   assert.equal(st.checkpoint.scene, 1); assert.equal(st.lanterns, 3);
 });
 
@@ -486,7 +456,7 @@ test('checkpoints are set entering the house, lifting her, the quay, the ending 
     if (s.checkpoint && seen[seen.length - 1] !== s.checkpoint.scene) seen.push(s.checkpoint.scene);
     return s.phase === 'cliff' ? cliffBot(s) : houseBot(s, plan);
   });
-  assert.deepEqual(seen, [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(seen, [1, 2, 3, 4, 5, 6], `${h.st.status} in ${h.st.phase}, lanterns ${h.st.lanterns}, causes ${h.events.filter((e) => e.type === 'hit').map((e) => e.cause).join(',')}`);
 });
 
 test('a create from the carry checkpoint holds her', () => {
@@ -513,35 +483,15 @@ test('ending and pageant scenes reach won, with the right tableau', () => {
   }
 });
 
-test('climbing shows its way: options match the moves, a mid-move press is kept, a blank press bumps', () => {
-  const st = act.create({ seed: 3, carry: {} });
-  const DT = 1 / 60;
-  const step = (inp = {}) => act.step(st, DT, { beat: st.clock / BEAT_S, ...inp });
-  step();
-  const o = climbOptions(st);
-  for (const d of ['up', 'down', 'left', 'right']) assert.ok(Number.isInteger(o[d]), d);
-  assert.ok(o.up >= 0, 'something to climb to from the start');
-  // a move goes where the option said
-  const target = o.up;
-  step({ up: true });
-  assert.equal(st.cl.at, target, 'up goes to the shown hold');
-  // a press made mid-move happens on arrival
-  const next = climbOptions(st);
-  for (let i = 0; i < 10; i++) step(); // into the last part of the move
-  step({ up: true });
-  assert.ok(st.cl.queued, 'kept while moving');
-  for (let i = 0; i < 40; i++) step();
-  assert.notEqual(st.cl.at, target, 'the buffered press moved him on');
-  assert.ok(CLIMB_BUFFER > 0.2);
-  // a press with no hold that way bumps instead of doing nothing
-  for (let i = 0; i < 40; i++) step();
-  const blank = ['down', 'left', 'right', 'up'].find((d) => climbOptions(st)[d] < 0);
-  if (blank) {
-    step({ [blank]: true });
-    assert.ok(st.cl.bump, 'bump shown');
-    assert.ok(st.events.some((e) => e.type === 'noHold'));
-  }
-  void next;
+test('climbing is continuous: up the face, faster in ivy than on bare rock, stopped at the painted edge', () => {
+  const h = sim(); h.st.nextRock = 1e9; h.st.inv = 1e9;
+  const w = h.st.wall, y0 = w.y;
+  h.run(1, () => ({ moveY: -1 }));
+  assert.ok(w.y > y0 + 40, 'he climbs where he is pressed');
+  assert.ok(CLIMB.speed.v > CLIMB.speed.r && CLIMB.speed.r > CLIMB.speed.s);
+  Object.assign(w, { mode: 'wall', x: 300, y: 600 });
+  h.run(3, () => ({ moveX: -1 }));
+  assert.ok(w.x >= w.map.x0 && terrainAt(w.map, w.x, w.y) !== '.', 'held at the cloth\'s edge');
 });
 
 console.log(`\n${n} tests passed`);

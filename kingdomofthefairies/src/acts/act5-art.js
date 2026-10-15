@@ -581,10 +581,23 @@ export function climber(k, st, t) {
 function wallThings(k, st, t) {
   const c = k.c, cam = st.camY, w = st.wall;
   w.crumbles.forEach((cr, i) => {
-    if (cr.gone || cr.y < cam - 140 || cr.y > cam + 760) return;
+    if (cr.y < cam - 140 || cr.y > cam + 760) return;
     const shake = cr.t > 0 ? Math.sin(t * 60) * 2.5 * Math.min(1, cr.t / CLIMB.crumble * 2) : 0;
+    if (!st.part) {
+      // this edition's loose rock: a cracked hold that gives way, then its scar
+      if (cr.gone) { if (!k.asset('cliff-hold-gone', cr.x, -cr.y + 12, 40, 12)) { c.fillStyle = k.col('#7d7262'); c.fillRect(cr.x - 16, -cr.y + 2, 32, 5); } return; }
+      for (const [dx, dy] of [[-14, 6], [16, -10]]) if (!k.asset('cliff-hold-crumble', cr.x + dx + shake, -cr.y + dy + 20, 50, 20)) { c.fillStyle = k.col('#c4b394'); c.fillRect(cr.x + dx - 22 + shake, -cr.y + dy, 44, 12); }
+      return;
+    }
+    if (cr.gone) return;
     for (const [dx, dy] of [[-18, 10], [14, -6], [0, -26], [-10, -44]]) ivyGrip(k, cr.x + dx + shake, -cr.y + dy, true, t + i + dx);
   });
+  // the tiny guitarist plays on a knob in the cleft: under him, stones glance off
+  if (st.shelter && st.shelter.y > cam - 140 && st.shelter.y < cam + 760) {
+    const g = st.shelter, y = -g.y;
+    if (!k.asset('cliff-hold', g.x, y - 124 + 20, 50, 20)) { c.fillStyle = k.col('#8d8170'); c.fillRect(g.x - 22, y - 124, 44, 8); }
+    tinyGuitarist(k, g.x, y - 124, t, st.beat || 0);
+  }
   w.pearls.forEach((p, i) => {
     if (p.taken || p.y < cam - 140 || p.y > cam + 760) return;
     const by = -p.y - 8 + Math.sin(t * 3 + i) * 3;
