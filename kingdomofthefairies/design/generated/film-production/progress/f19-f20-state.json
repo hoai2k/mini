@@ -3,8 +3,13 @@
     "prince-wall-up-a",
     "prince-wall-up-a-tinted",
     "prince-wall-up-b",
-    "prince-wall-up-b-tinted"
+    "prince-wall-up-b-tinted",
+    "prince-wall-up-c",
+    "prince-wall-up-c-tinted",
+    "prince-wall-up-d",
+    "prince-wall-up-d-tinted"
   ],
-  "remaining": 96,
-  "notes": "100 requested F19/F20 assets extracted. Legacy reveller-lady-idle-b is a separate manifest request without an active production prompt. Work in batches of four, save native originals immediately, use small previews only, review before delivery. Rejected first A preserved under progress/rejected/f19-wrong-knee."
+  "remaining": 92,
+  "next": "prince-wall-side-a",
+  "notes": "Native originals and full generation records saved immediately. Small previews reviewed before delivery. Legacy reveller-lady-idle-b has no active production prompt. Continue requests in order in batches of four."
 }
