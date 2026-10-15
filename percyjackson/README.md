@@ -69,8 +69,24 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 - **All twelve chapters of Book 1, *The Lightning Thief*,** each started from
   its own place in camp (the early ones near the cabins, the later ones along
   the Road West out past Half-Blood Hill), each unlocked by the one before:
-  1. *The Pre-Algebra Teacher*: the museum in thick Mist; Mrs. Dodds waits in
-     disguise, then fights as the Fury Alecto.
+  1. *The Pre-Algebra Teacher*: the museum in thick Mist. You walk the
+     galleries with no fighting (the gold arrow leads to Mrs. Dodds) until you
+     see her: the Mist lifts on its own, she turns into the Fury Alecto and
+     tells you, in her own snarky voice, which button sees through the Mist
+     (V, the right stick or 👁, for the device you play with). From then on
+     every monster in disguise in the museum comes for you, two or three at a
+     time (at most three hunting you at once at Mortal alone): under the Mist
+     they look like ordinary people, can't be hurt and still hurt you with no
+     swing to see (a one-time hint says to use True Sight); under True Sight
+     they are serpents, spiders and ghosts you can fight. Turn True Sight on
+     before she shows herself and you can fight them early (they fight back
+     once hit), and those stay gone. She fights you in her gallery; at 75%,
+     50% and 25% of her health she draws a breath (a violet ring and a rising
+     wail for 1.3 s), shrieks, paralyzing every hero within 13 m for 1.8 s
+     (never twice within three seconds), and flies off over the walls to
+     another room (her bar reads "Mrs. Dodds — fled", the arrow and the
+     footprints lead to her); come close and she fights on, until the last
+     stretch ends with her down and her pets crumbling back into the Mist.
   2. *Half-Blood Hill*: a storm, then the Minotaur; make him charge into a
      tree or a wall and he is stuck and takes double damage.
   3. *Capture the Flag*: carry the Ares cabin's banner back across the creek,
@@ -110,7 +126,8 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     player nearer to it.
 - **Falling in a boss fight:** if the whole party is down, it comes back
   just inside the arena door after a moment, with two seconds of safety, to
-  try again; the boss keeps the wounds it has taken.
+  try again; the boss keeps the wounds it has taken. (In chapter 1, in the
+  room where Mrs. Dodds last fought, as far from her as it can.)
 - **The Mist and True Sight:** clicking the right stick (or V) repaints the world in teal and gold,
   reveals monsters disguised as mortals, and dissolves walls made of Mist. It
   drains faster where the Mist is thick.
@@ -122,7 +139,10 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     online) and go back to their business.
   - True Sight turns the disguised ones, with a puff of Mist, into creatures
     nothing like people: Mist serpents, spiders and ghosts (by chapter). Then
-    they can be fought, and they stay revealed. Real mortals stay people,
+    they can be fought, and they stay revealed (in chapter 1 they follow the
+    view instead: the Mist back up makes them people again, still hitting
+    you). Once the fight is on there, True Sight lasts about 12 s and refills
+    in about 7. Real mortals stay people,
     with a soft calm outline. A monster you killed is gone: that "person"
     isn't there when you come back, and Continue keeps it so.
 - **Battles, as in Minecraft Dungeons:** the monsters are already there when
@@ -288,8 +308,8 @@ across every screen.
 | `R`: join order and room generation (for host migration) | host presence | host |
 | `ev`: effects, telegraphs, projectiles and hazards of what that screen runs | topic, batched every 50 ms | anyone |
 | `hit`: a guest's hero hit monsters | topic, guest → host | host applies it |
-| `hurt`: a monster hit someone's hero | topic, host → owner | that screen applies it |
-| `act`: freed a captive, opened a chest, revealed a disguise, objective actions, took the way out, reached the school bus, asked to skip a cutscene | topic, guest → host | host |
+| `hurt`: a monster hit someone's hero (or Mrs. Dodds's shriek paralyzed it) | topic, host → owner | that screen applies it |
+| `act`: freed a captive, opened a chest, revealed a disguise, objective actions (in chapter 1, True Sight on or off: the view is shared), took the way out, reached the school bus, asked to skip a cutscene | topic, guest → host | host |
 | `load`: the host is building a level | topic, host → all | guests wait |
 | `done`: the chapter is complete | topic, host → all | everyone |
 | `swap`, `swapok`, `swapno`: swapping into the AI companion | topic, guest ↔ host | host grants one at a time |
@@ -332,6 +352,7 @@ across every screen.
 | `game/js/ui/tracker.js` | Where to go: the goal line, the edge arrow, the beam and the footprints |
 | `game/js/entities/ratRules.js`, `story/prologueHints.js` | The prologue's rats (loiter, notice, dash, leash) and its how-to-play hints |
 | `game/js/entities/mistPeople.js` | People in the Mist: what the disguised really are, and the lines they scold you with |
+| `game/js/objectives/museum.js`, `game/js/story/museumRules.js` | Chapter 1: the calm walk to Mrs. Dodds, the reveal and her lines, the hunt by the people in the Mist (hidden blows), her shriek and three flights; the rules, pure and tested |
 | `game/js/ui/greekTiming.js`, `ui/greekText.js`, `world/liveSign.js` | Greek letters settling into English: the timings, on the page, on painted signs and the bus |
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
@@ -342,7 +363,7 @@ across every screen.
 | `game/workbench/models.html` | A turntable of every character model, to compare with the 3D sheets |
 | `game/workbench/` | The model workbench ([published](https://hoai2k.github.io/mini/percyjackson/workbench/)): a thumbnail grid of every character model, an orbit viewer and an inspector |
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
-| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
+| `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |

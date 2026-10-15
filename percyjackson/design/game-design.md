@@ -111,7 +111,16 @@ its own rewards.
   shared.
 
 Book 1's chapters lean on the Mist the most. The first chapter is almost all
-Mist: a field trip in which only Percy notices Mrs. Dodds is wrong.
+Mist: a field trip in which only Percy notices Mrs. Dodds is wrong. It
+teaches True Sight by making it matter: the walk to her is calm; when you see
+her, she lifts the Mist herself and tells you the button; then everyone in
+disguise comes for you. With the Mist up they look like ordinary people going
+about their business, can't be hurt, and their blows still land with no
+attacker to be seen; under True Sight they are monsters you can fight. Players
+who already know the trick can see through them before she shows herself and
+thin the crowd early. She fights in her gallery, and at three thresholds of her
+health she shrieks (a telegraphed paralysis of a second or two) and flies off
+to another room of the museum to be found again.
 
 ## Prophecies
 
@@ -176,7 +185,7 @@ can be replayed at any difficulty, from **Mortal** to **Olympian**.
 
 | # | Chapter | Place | Mist | Goal and twist | Boss |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **The Pre-Algebra Teacher** | The museum on a field trip | Very thick | Tutorial. Follow Mrs. Dodds into the empty Greek gallery. True Sight reveals the Fury; Mr. Brunner throws a pen. | Mrs. Dodds (Alecto) |
+| 1 | **The Pre-Algebra Teacher** | The museum on a field trip | Very thick | Tutorial. A calm walk after Mrs. Dodds into the empty Greek gallery; when you see her the Mist lifts and she explains True Sight. Then the disguised crowd hunts you (unseen blows under the Mist), and she shrieks and flies off three times to rooms you must find her in. Mr. Brunner throws a pen. | Mrs. Dodds (Alecto) |
 | 2 | **Half-Blood Hill** | Long Island in a storm | Thick | Get Mom and Grover up the hill to the pine tree. Lightning shows the way. | The Minotaur: make it charge into the tree and grab a horn |
 | 3 | **Capture the Flag** | Camp woods and creek | Light | Team game with Annabeth invisible. The creek heals Percy and the trident sign appears. | A hellhound from the Underworld |
 | 4 | **The Kindly Ones** | A Greyhound bus in New Jersey | Thick | Three old ladies on a bus. Escape before it crashes. | The three Furies |

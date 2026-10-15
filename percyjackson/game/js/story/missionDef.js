@@ -7,7 +7,7 @@ import { BIOME_ROOMS } from '../world/rooms.js';
 import { ENEMY_TABLES } from '../world/levelgen.js';
 import { BOSS_DEFS } from '../entities/bosses.js';
 
-export const OBJECTIVE_TYPES = ['exorcise', 'rescue', 'seal', 'flag', 'escape', 'boss'];
+export const OBJECTIVE_TYPES = ['exorcise', 'rescue', 'seal', 'flag', 'escape', 'boss', 'museum'];
 
 // Nearest built biome for each planned one.
 const BIOME_FALLBACK = {

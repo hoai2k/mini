@@ -504,7 +504,7 @@ class Game {
     this.mode = 'mission';
     this.online.sceneChanged();
     toast(this.chapter ? (carded && this.chapter.place ? this.chapter.place : this.chapter.title) : `${L.biome.name} · ${L.biome.sub}`, 'title');
-    if (this.mist.available) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Click the right stick (V) to see through it.' : 'Click the right stick (V) to see through the Mist.'), 2600);
+    if (this.mist.available && !this.mission?.handler?.quietMist) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Click the right stick (V) to see through it.' : 'Click the right stick (V) to see through the Mist.'), 2600);
   }
   completeMission() {
     const m = this.mission; if (!m || m.complete) return;

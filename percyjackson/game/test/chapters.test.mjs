@@ -10,13 +10,13 @@ import { BOOKS, CHAPTERS } from '../js/story/chapters.js';
 
 const JS = join(resolve(dirname(fileURLToPath(import.meta.url)), '..'), 'js');
 const read = (p) => readFileSync(join(JS, p), 'utf8');
-const SUPPORTED = new Set(['exorcise', 'rescue', 'seal', 'flag', 'escape', 'boss']);
+const SUPPORTED = new Set(['exorcise', 'rescue', 'seal', 'flag', 'escape', 'boss', 'museum']);
 
 test('the supported objectives are the ones the mission runtime knows', () => {
   const types = read('story/missionDef.js').match(/OBJECTIVE_TYPES = \[([^\]]*)\]/)[1].match(/'(\w+)'/g).map((s) => s.slice(1, -1));
   assert.deepEqual(new Set(types), SUPPORTED);
   const index = read('objectives/index.js');
-  for (const t of ['flag', 'escape', 'boss']) assert.match(index, new RegExp(`\\b${t}: \\w+Objective`), `objective ${t} is registered`);
+  for (const t of ['flag', 'escape', 'boss', 'museum']) assert.match(index, new RegExp(`\\b${t}: \\w+Objective`), `objective ${t} is registered`);
 });
 
 test('every chapter of book 1 has a start, story and a supported objective', () => {

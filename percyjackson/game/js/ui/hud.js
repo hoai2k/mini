@@ -137,20 +137,23 @@ export class HUD {
     if (!boss) this.bossShown = null;
   }
   // A speech bubble over someone (a person in the Mist telling a hero off), for `secs`.
-  say(ent, text, secs = 2.4) {
+  // o.boss: a boss speaking (chapter 1's Mrs. Dodds): a wider, darker bubble that stays up
+  // while she isn't in disguise.
+  say(ent, text, secs = 2.4, o = {}) {
     const old = this.says.find((s) => s.ent === ent); if (old) { old.el.remove(); this.says.splice(this.says.indexOf(old), 1); }
-    const el = h('div', { class: 'say', role: 'status' }, text);
+    const el = h('div', { class: o.boss ? 'say boss' : 'say', role: 'status' }, text);
     this.root.appendChild(el);
-    this.says.push({ ent, el, t: secs });
+    this.says.push({ ent, el, t: secs, any: !!o.boss });
     this.placeSays(0);
   }
   placeSays(dt) {
     for (let i = this.says.length - 1; i >= 0; i--) {
       const s = this.says[i]; s.t -= dt;
-      if (s.t <= 0 || s.ent.dead || !s.ent.disguised) { s.el.remove(); this.says.splice(i, 1); continue; }
-      const v = tmp.set(s.ent.pos.x, s.ent.pos.y + (s.ent.height ?? 1.9) + 0.5, s.ent.pos.z).project(this.game.rig.camera);
+      if (s.t <= 0 || s.ent.dead || (!s.any && !s.ent.disguised)) { s.el.remove(); this.says.splice(i, 1); continue; }
+      const v = tmp.set(s.ent.pos.x, s.ent.pos.y + (s.any ? (s.ent.hover ?? 0) + (s.ent.height ?? 3) * 0.85 : (s.ent.height ?? 1.9) + 0.5), s.ent.pos.z).project(this.game.rig.camera);
       s.el.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth).toFixed(0) + 'px';
-      s.el.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight).toFixed(0) + 'px';
+      // (a boss's line never tucks under the objective ribbon and the boss bar)
+      s.el.style.top = Math.max(s.any ? s.el.offsetHeight + 120 : 0, (-v.y * 0.5 + 0.5) * window.innerHeight).toFixed(0) + 'px';
       s.el.classList.toggle('out', s.t < 0.3 || v.z > 1);
     }
   }
