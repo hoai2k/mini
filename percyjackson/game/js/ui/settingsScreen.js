@@ -52,7 +52,7 @@ export function openSettings(game, onClose) {
       const info = gr.info;
       body.append(
         h('div', { class: 'hint', style: 'margin:0 0 8px' }, `GPU: ${info.name} · Backend: ${gr.backend} · Detected tier: ${QUALITY_LABEL[info.tier]}`),
-        row('Quality', select('quality', [['auto', `Auto (${QUALITY_LABEL[info.tier]})`], ['low', QUALITY_LABEL.low], ['medium', QUALITY_LABEL.medium], ['high', QUALITY_LABEL.high], ['ultra', QUALITY_LABEL.ultra + (gr.backend === 'WebGPU' ? '' : ' (WebGL2)')]], (v) => game.applyQuality(v))),
+        row('Quality', select('quality', [['auto', `Auto (${QUALITY_LABEL[info.tier]})`], ['low', QUALITY_LABEL.low], ['medium', QUALITY_LABEL.medium], ['high', QUALITY_LABEL.high], ['ultra', QUALITY_LABEL.ultra + (gr.backend === 'WebGPU' ? '' : ' (WebGL2)')]], (v) => { game.applyQuality(v); game.autoTierStepDown(); })),
         row('Dynamic resolution', check('dynRes', (v) => { gr.dynRes = v; if (!v) { gr.scale = 1; gr.applyPixelRatio(); } })),
         row('Motion blur (Ultra)', check('motionBlur', (v) => { gr.motionBlur = v; gr.buildPipeline(); })),
         row('Show FPS / mode', check('showFps', (v) => game.setReadout?.(v))),
