@@ -1,4 +1,4 @@
-import { LEGACY, BAY_TITLE } from '../theme.js';
+import { LEGACY, BAY_TITLE, FILM } from '../theme.js';
 // Act V drawing: the cliff, the burning house, the quay, the three endings
 // and the pageant. Every piece of new art has a procedural stand-in until its
 // file is delivered (ids are in design/image-requests.md, Parts C1 and C6,
@@ -614,6 +614,30 @@ const WALL_STANDIN = {
   'wall-idle': 'climb-a', 'wall-idle-b': 'climb-a', 'wall-leap': 'apex', 'wall-catch': 'climb-b', 'wall-hit': 'climb-a',
   'wall-step': 'climb-a', 'mantle-a': 'hang', 'mantle-b': 'pullup', 'mantle-c': 'land',
 };
+// A frame of the set, or while the set is still arriving the nearest one
+// delivered: up-c and up-d are up-a and up-b mirrored (as requested), and
+// the traverse, the idles, the spring, the catch and the jolt borrow the
+// climbing cycle, so the back view never flips to a profile mid-climb.
+const WALL_MIRROR = { 'wall-up-c': 'wall-up-a', 'wall-up-d': 'wall-up-b' };
+const WALL_BORROW = {
+  'wall-side-a': ['wall-up-a', false], 'wall-side-b': ['wall-up-b', false], 'wall-side-c': ['wall-up-a', true], 'wall-side-d': ['wall-up-b', true],
+  'wall-idle': ['wall-up-b', false], 'wall-idle-b': ['wall-up-b', true], 'wall-leap': ['wall-up-a', false],
+  'wall-catch': ['wall-up-b', false], 'wall-hit': ['wall-up-b', false], 'wall-step': ['wall-up-b', false],
+};
+function wallFrame(k, kind) {
+  if (!FILM) return [null, false];   // the other editions climb as the sailor, on his frames
+  if (k.img('prince-' + kind)) return ['prince-' + kind, false];
+  const m = WALL_MIRROR[kind];
+  if (m && k.img('prince-' + m)) return ['prince-' + m, true];
+  const b = WALL_BORROW[kind];
+  if (b) {
+    const [bk, bm] = b;
+    if (k.img('prince-' + bk)) return ['prince-' + bk, bm];
+    if (WALL_MIRROR[bk] && k.img('prince-' + WALL_MIRROR[bk])) return ['prince-' + WALL_MIRROR[bk], !bm];
+  }
+  return [null, false];
+}
+
 function wallClimber(k, st, t) {
   const c = k.c, w = st.wall, pose = wallPose(w);
   let x = w.x, y = -w.y, tilt = 0;
@@ -628,10 +652,11 @@ function wallClimber(k, st, t) {
     c.restore(); return;
   }
   // the back-view frames face the wall, so only the traverse turns to go left
-  const flip = pose.kind.startsWith('wall-side') || pose.kind === 'mantle-c' || pose.kind === 'wall-step' ? face : 1;
+  const own = pose.kind.startsWith('wall-side') || pose.kind === 'mantle-c' || pose.kind === 'wall-step' ? face : 1;
   const shake = pose.kind === 'wall-hit' ? Math.sin(t * 70) * 3 : 0;
-  const id = 'prince-' + pose.kind;
-  if (k.img(id)) {
+  const [id, mirror] = wallFrame(k, pose.kind);
+  if (id) {
+    const flip = (mirror ? -1 : 1) * (id === 'prince-' + pose.kind ? own : 1);
     c.save(); c.translate(x + shake, y); c.scale(flip, 1);
     k.asset(id, 0, 0, 360 * sc, 440 * sc);
     c.restore();
