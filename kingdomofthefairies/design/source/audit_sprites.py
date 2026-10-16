@@ -27,6 +27,21 @@ ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / 'assets'
 REPORT = ROOT / 'design' / 'sprite-audit.md'
 FIT = ROOT / 'src' / 'sprite-fit.js'
+# Poses checked for character size against a reference sprite of the same
+# look, by its head: (pose, reference, rotation searched, sprites that share
+# the pose's correction). The model paints a pose to fill its canvas, so a
+# kneeling or stooping figure can come out far larger than his standing self.
+POSES = [
+    *[(p, 'prince-stand', 45, ()) for p in ('prince-kneel-rise', 'prince-kneel', 'prince-collared', 'prince-lift', 'prince-crawl-a', 'prince-crawl-b')],
+    ('prince-dive', 'prince-stand', 90, ()),
+    # the back-view climbing set shows no face; the turn to the wall does, and
+    # is drawn at the set's scale, so its correction is the set's
+    ('prince-wall-step', 'prince-stand', 45, tuple(f'prince-wall-{f}' for f in ('up-a', 'up-b', 'up-c', 'up-d', 'side-a', 'side-b', 'side-c', 'side-d', 'idle', 'idle-b', 'leap', 'catch', 'hit')) + ('prince-mantle-a', 'prince-mantle-b', 'prince-mantle-c')),
+    *[(p, 'prince-carry', 45, ()) for p in ('prince-carry-climb-a', 'prince-carry-climb-b')],
+    *[(p, 'prince-court', 45, ()) for p in ('prince-court-leap', 'prince-court-fall', 'prince-court-reach')],
+]
+POSE_TOL = 0.06      # a head within 6% of the reference's is drawn as painted
+POSE_MATCH = 0.55    # below this match score the measure is not trusted
 DIP = 0.025          # the head's natural dip at a contact, of figure height
 FEET_TOL = 3         # px of transparent margin under the feet allowed
 
@@ -73,6 +88,30 @@ def body_scale(ref, aid, frac=0.24):
         if v > best[0]:
             best = (v, float(s))
     return 1 / best[1], best[0]
+
+
+def head_scale(ref, aid, rot):
+    """How large `aid`'s figure is against `ref`'s, by the head (the top 17%
+    of the reference figure), searched over size and a little rotation."""
+    g, a = load(ref)
+    t, b, l, r = bounds(a)
+    band = a[t:t + int((b - t) * 0.17)]
+    cols = np.where(band.max(0) > 40)[0]
+    tpl = g[t:t + int((b - t) * 0.17), cols.min():cols.max() + 1]
+    G, _ = load(aid)
+    best = (-1.0, 1.0)
+    for ang in range(-rot, rot + 1, 15):
+        for s in np.arange(0.7, 1.7, 0.02):
+            T = cv2.resize(tpl, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
+            if ang:
+                M = cv2.getRotationMatrix2D((T.shape[1] / 2, T.shape[0] / 2), ang, 1)
+                T = cv2.warpAffine(T, M, (T.shape[1], T.shape[0]), borderValue=128)
+            if T.shape[0] >= G.shape[0] or T.shape[1] >= G.shape[1]:
+                continue
+            v = float(cv2.matchTemplate(G, T, cv2.TM_CCOEFF_NORMED).max())
+            if v > best[0]:
+                best = (v, float(s))
+    return best[1], best[0]
 
 
 def audit():
@@ -167,6 +206,28 @@ def audit():
                 problems.append(f'{aid}: canvas {im.size[0]} x {im.size[1]}, {gap} px under the feet')
             lines.append(f'| `{aid}` | {im.size[0]} × {im.size[1]} | {top} | {areas[aid] / areas[first]:.2f} | {"on the ground" if gap <= FEET_TOL else f"{gap} px above"} |')
         lines.append('')
+    # 4. character size of poses against their reference
+    pose_fit = {}
+    lines += ['## Character size of poses', '',
+              f'Head size of each pose against its reference sprite (same look). Beyond {POSE_TOL:.0%} the game draws the '
+              f'pose scaled to the reference (`POSE_FIT` in `src/sprite-fit.js`), with the sprites that share it; a match '
+              f'under {POSE_MATCH} is not trusted and left as painted.', '',
+              '| Pose | Reference | Size | Match | In play |', '| --- | --- | --- | --- | --- |']
+    for pose, ref, rot, shared in POSES:
+        for t in ('', '-tinted'):
+            pid, rid = pose + t, ref + t
+            if not all(slots.get(i, {}).get('status') == 'delivered' and (ASSETS / f'{i}.webp').exists() for i in (pid, rid)):
+                continue
+            size, q = head_scale(rid, pid, rot)
+            note = 'as painted'
+            if q >= POSE_MATCH and abs(size - 1) > POSE_TOL:
+                f = round(1 / size, 3)
+                for i in (pose, *shared):
+                    if slots.get(i + t, {}).get('status') == 'delivered':
+                        pose_fit[i + t] = f
+                note = f'drawn × {f:.3f}' + (f' (and its {len(shared)} set)' if shared else '')
+            lines.append(f'| `{pid}` | `{rid}` | {size:.2f} | {q:.2f} | {note} |')
+    lines.append('')
     lines += ['## To redraw', '']
     lines += [f'- {p}' for p in problems] or ['Nothing.']
     lines.append('')
@@ -175,6 +236,11 @@ def audit():
           '// the dip is natural. Rerun the audit after every art delivery.',
           'export const WALK_FIT = {']
     js += [f"  '{k}': {v}," for k, v in sorted(fit.items())]
+    js += ['};', '',
+           '// Poses painted larger or smaller than their character (by the head',
+           '// against a reference sprite); the game draws each at this scale.',
+           'export const POSE_FIT = {']
+    js += [f"  '{k}': {v}," for k, v in sorted(pose_fit.items())]
     js += ['};', '']
     return '\n'.join(lines), '\n'.join(js)
 

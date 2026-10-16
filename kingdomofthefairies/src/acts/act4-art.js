@@ -7,6 +7,7 @@ import {
 } from './act4.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { FILM } from '../theme.js';
+import { drawPose, CREW_OF } from '../pose.js';
 import { drawMovement, whalePose } from './sailor-motion.js';
 import { walkPose } from '../walking.js';
 import { cavernScene, cavernOver, cavernEvent } from './act4cavern-art.js';
@@ -604,12 +605,15 @@ function shoreScene(k, st, t) {
   // the sailor crawls out of the mouth onto the rocks
   const mouth = { x: 902, y: 455 };   // 50 lower with the whale
   const sp = clamp((pt - T.crawl) / 2, 0, 1);
-  crawler(k, mouth, { x: 950, y: rockTop(950) + 6 }, sp, (fr) => drawSailor(k, fr), t);
+  crawler(k, mouth, { x: 950, y: rockTop(950) + 6 }, sp, (fr) => drawSailor(k, fr), t,
+    { crawl: ['prince-crawl-a', 'prince-crawl-b'], rise: 'prince-kneel-rise', stand: (x, y) => { k.c.save(); k.c.translate(x, y); drawSailor(k, 'stand'); k.c.restore(); }, std: 360, H: 110 });
   for (let i = 0; i < n; i++) {
     const p = clamp((pt - T.out - i * T.gap) / 1.6, 0, 1);
     if (p <= 0) continue;
     const r = REV[i % REV.length], tx = 900 - i * 44, to = { x: tx, y: rockTop(tx) + 6 + (i % 2) * 8 };
-    crawler(k, mouth, to, p, () => { if (!k.asset(r.id, 0, 0, 60, 115)) figure(k, r.col, Math.sin(t * 6 + i) * 0.5 + 0.5); }, t);
+    const crew = CREW_OF[r.id];
+    crawler(k, mouth, to, p, () => { if (!k.asset(r.id, 0, 0, 60, 115)) figure(k, r.col, Math.sin(t * 6 + i) * 0.5 + 0.5); }, t + i,
+      crew && { crawl: [crew + '-crawl'], rise: null, stand: (x, y) => k.asset(r.id, x, y, 60, 115), std: 420, H: 115 });
   }
   // The film edition: Aurora appears on the rocks at the right and points the
   // way on toward the cave (tableau 23), once the party is out.
@@ -635,11 +639,25 @@ function rockTop(x) {
   return T[T.length - 1][1];
 }
 
-// Crawl from `a` to `b` head-first, low to the ground, then stand up.
-function crawler(k, a, b, p, drawFig, t) {
+// Crawl from `a` to `b` head-first, low to the ground, then stand up: on the
+// crawling and rising sprites where they have been delivered (`poses`), else
+// a walking figure laid on its side.
+function crawler(k, a, b, p, drawFig, t, poses = null) {
   if (p <= 0) return;
   const c = k.c, m = easeInOut(p);
   const x = a.x + (b.x - a.x) * m, y = a.y + (b.y - a.y) * m - Math.sin(Math.PI * m) * 10;
+  if (FILM && poses && k.img(poses.crawl[0])) {
+    const face = b.x >= a.x ? 1 : -1;
+    // down the slope of the rocks, tipped a little with it
+    const tilt = p < 0.72 ? Math.atan2(b.y - a.y, Math.abs(b.x - a.x)) * 0.35 * face : 0;
+    if (p < 0.72) {
+      const fr = poses.crawl[Math.floor(t * 4) % poses.crawl.length];
+      drawPose(k, fr, x, y + Math.sin(t * 8) * 1.2, poses.H, { std: poses.std, face, rot: tilt, pivot: 20 });
+    } else if (p < 0.9 && poses.rise && k.img(poses.rise)) drawPose(k, poses.rise, x, y, poses.H, { std: poses.std, face });
+    else if (p < 0.82 && !poses.rise) drawPose(k, poses.crawl[0], x, y, poses.H, { std: poses.std, face });
+    else poses.stand(x, y);
+    return;
+  }
   const rot = 1.25 * (1 - easeInOut((p - 0.72) / 0.28));
   c.save(); c.translate(x, y); c.rotate(rot + (rot > 0.3 ? Math.sin(t * 10) * 0.04 : 0));
   drawFig(p < 1 ? walkPose(t * 120) : 'stand');

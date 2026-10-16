@@ -13,6 +13,7 @@ import {
 import { tableau, card, cardAlpha } from './tableau.js';
 import { clamp, lerp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
+import { drawPose } from '../pose.js';
 
 // ================================================================= Act V
 export function drawTower(k, st, t) {
@@ -108,8 +109,10 @@ function swimScene(k, st, t) {
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
   if (sw.dive > 0) c.globalAlpha *= 0.65;
-  const stroke = Math.floor(sw.stroke * 4) % 2 ? 'sailor-swim-a' : 'sailor-swim-b';
-  if (!k.asset(stroke, 420, y + 40, 150, 100)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
+  const ab = Math.floor(sw.stroke * 4) % 2 ? 'a' : 'b', under = 'prince-swim-under-' + ab;
+  // under the water, his own underwater stroke (F20); at the surface, his swim
+  if (!(sw.dive > 0 && drawPose(k, under, 420, y + 40, 150))
+      && !k.asset('sailor-swim-' + ab, 420, y + 40, 150, 100)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
   c.restore();
   // a water line over him while he is under
   if (sw.dive > 0) { c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#1d3b44'); c.fillRect(330, SURFACE + 8, 190, y - SURFACE + 30); c.restore(); }
@@ -367,7 +370,11 @@ function diveScene(k, st, t) {
   const c = k.c, w = st.w, d = st.dv;
   if (!k.asset('coast-gap', 640, 720, 1280, 720)) { c.fillStyle = k.col('#1c1630'); c.fillRect(0, 0, 1280, 720); c.fillStyle = k.col('#4a3a40'); c.fillRect(0, DIVE.y, DIVE.edge, 400); }
   if (!w) return;
-  if (d && !d.splash) {
+  if (d && !d.splash && k.img('prince-dive')) {
+    // head first (F20), centred on his flight and tipping steeper as he falls
+    const ph = 124 * (k.img('prince-dive').naturalHeight || 360) / 360;
+    drawPose(k, 'prince-dive', w.x, w.y - 55 + ph / 2, 124, { rot: clamp(d.rot * 0.18, 0, 0.6), pivot: ph / 2 });
+  } else if (d && !d.splash) {
     c.save(); c.translate(w.x, w.y); c.rotate(d.rot * 0.5);
     if (!k.asset('prince-leap', 0, 0, 110, 152)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -100, 28, 100); }
     c.restore();

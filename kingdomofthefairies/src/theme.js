@@ -25,7 +25,7 @@ export const BAY_TITLE = LEGACY ? "Widow's Bay" : 'The Enchanted Tower';
 // Each edition's saves and settings (src/editor.js lists them for ?edit=local).
 export const STORAGE_PREFIXES = { widowsbay: 'widowsbay', partial: 'kingdomofthefairies.partial', film: 'kingdomofthefairies' };
 export const STORAGE_PREFIX = LEGACY ? 'widowsbay' : PARTIAL ? 'kingdomofthefairies.partial' : 'kingdomofthefairies';
-import { WALK_FIT } from './sprite-fit.js';
+import { WALK_FIT, POSE_FIT } from './sprite-fit.js';
 
 export function themeManifest(manifest, edition = EDITION) {
   // The new slots (production requests, interim cut-outs, tableaux) never
@@ -108,10 +108,11 @@ export const FILM_BODY_SCALE_TINTED = {
   'prince-land': 0.76, 'prince-stairs-a': 0.79, 'prince-stairs-b': 0.81, 'prince-push': 0.85,
 };
 // A walking frame drawn with its head too low (design/sprite-audit.md) is
-// scaled up from its feet by the audit's factor (WALK_FIT).
+// scaled up from its feet by the audit's factor (WALK_FIT), and a pose painted
+// larger or smaller than its character is drawn at its size (POSE_FIT).
 export const bodyScaleOf = (id) => {
   const tinted = id.endsWith('-tinted');
   const base = (tinted ? id.slice(0, -7) : id).replace(/-carry-(?:walk|pass)-[ab]$/, '-carry');
-  return ((tinted ? FILM_BODY_SCALE_TINTED[base] : FILM_BODY_SCALE[base]) || 1) * (WALK_FIT[id] || 1);
+  return ((tinted ? FILM_BODY_SCALE_TINTED[base] : FILM_BODY_SCALE[base]) || 1) * (WALK_FIT[id] || 1) * (POSE_FIT[id] || 1);
 };
 

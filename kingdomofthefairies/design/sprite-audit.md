@@ -150,6 +150,39 @@ Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows a
 | `prince-wall-up-c-tinted` | 360 × 440 | 0 | 1.02 | on the ground |
 | `prince-wall-up-d-tinted` | 360 × 440 | 0 | 1.25 | on the ground |
 
+## Character size of poses
+
+Head size of each pose against its reference sprite (same look). Beyond 6% the game draws the pose scaled to the reference (`POSE_FIT` in `src/sprite-fit.js`), with the sprites that share it; a match under 0.55 is not trusted and left as painted.
+
+| Pose | Reference | Size | Match | In play |
+| --- | --- | --- | --- | --- |
+| `prince-kneel-rise` | `prince-stand` | 1.54 | 0.65 | drawn × 0.649 |
+| `prince-kneel-rise-tinted` | `prince-stand-tinted` | 1.14 | 0.83 | drawn × 0.877 |
+| `prince-kneel` | `prince-stand` | 1.58 | 0.56 | drawn × 0.633 |
+| `prince-kneel-tinted` | `prince-stand-tinted` | 1.44 | 0.71 | drawn × 0.694 |
+| `prince-collared` | `prince-stand` | 1.28 | 0.58 | drawn × 0.781 |
+| `prince-collared-tinted` | `prince-stand-tinted` | 1.22 | 0.71 | drawn × 0.820 |
+| `prince-lift` | `prince-stand` | 1.44 | 0.59 | drawn × 0.694 |
+| `prince-lift-tinted` | `prince-stand-tinted` | 1.58 | 0.81 | drawn × 0.633 |
+| `prince-crawl-a` | `prince-stand` | 0.98 | 0.54 | as painted |
+| `prince-crawl-a-tinted` | `prince-stand-tinted` | 1.02 | 0.73 | as painted |
+| `prince-crawl-b` | `prince-stand` | 0.86 | 0.50 | as painted |
+| `prince-crawl-b-tinted` | `prince-stand-tinted` | 1.02 | 0.77 | as painted |
+| `prince-dive` | `prince-stand` | 1.16 | 0.67 | drawn × 0.862 |
+| `prince-dive-tinted` | `prince-stand-tinted` | 1.12 | 0.71 | drawn × 0.893 |
+| `prince-wall-step` | `prince-stand` | 1.28 | 0.56 | drawn × 0.781 (and its 16 set) |
+| `prince-wall-step-tinted` | `prince-stand-tinted` | 1.24 | 0.68 | drawn × 0.806 (and its 16 set) |
+| `prince-carry-climb-a` | `prince-carry` | 1.04 | 0.70 | as painted |
+| `prince-carry-climb-a-tinted` | `prince-carry-tinted` | 1.08 | 0.86 | drawn × 0.926 |
+| `prince-carry-climb-b` | `prince-carry` | 1.02 | 0.69 | as painted |
+| `prince-carry-climb-b-tinted` | `prince-carry-tinted` | 1.10 | 0.81 | drawn × 0.909 |
+| `prince-court-leap` | `prince-court` | 1.16 | 0.64 | drawn × 0.862 |
+| `prince-court-leap-tinted` | `prince-court-tinted` | 1.22 | 0.78 | drawn × 0.820 |
+| `prince-court-fall` | `prince-court` | 1.14 | 0.63 | drawn × 0.877 |
+| `prince-court-fall-tinted` | `prince-court-tinted` | 1.24 | 0.68 | drawn × 0.806 |
+| `prince-court-reach` | `prince-court` | 1.32 | 0.73 | drawn × 0.758 |
+| `prince-court-reach-tinted` | `prince-court-tinted` | 1.34 | 0.81 | drawn × 0.746 |
+
 ## To redraw
 
 Nothing.

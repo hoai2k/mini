@@ -6,6 +6,7 @@ import { FLOOR, ARM_FLOOR, FAIRIES, AZURINE_X, RAMPART, rampartFloor, ARMS, T, G
 import { card } from './tableau.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
+import { drawPose } from '../pose.js';
 
 const FIG = { w: 132, h: 252 };          // a standing figure (220 x 420 art)
 // Where each fairy holds her gift in her 220 x 420 art (measured from the
@@ -227,6 +228,12 @@ function prince(k, st, t, cx = 0) {
   const c = k.c, p = st.p, armed = st.arms.length === ARMS.length && sceneOf(st.phase) === 2;
   const moving = Math.abs(p.vx) > 20, step = walkPose(p.walk, 34);
   if ((p.knockT > 0 || st.grace > 0) && Math.floor(t * 16) % 2) c.globalAlpha = 0.5;
+  // his poses (F20): in court dress he leaps the fires, is knocked back by
+  // them, and reaches out as he takes a gift; armed, he kneels to be knighted
+  const justTook = shown.some((o) => o.st === st && o.kind === 'gift' && st.t - o.t0 >= 0 && st.t - o.t0 < 0.55);
+  const pose = armed ? (st.phase === 'knighted' && st.phaseT < 1.4 && !moving ? 'prince-kneel' : null)
+    : st.defeatT != null || p.knockT > 0 ? 'prince-court-fall' : !p.on ? 'prince-court-leap' : justTook && !moving ? 'prince-court-reach' : null;
+  if (pose && st.phase !== 'bind' && drawPose(k, pose, p.x - cx, p.y, PRINCE.h, { face: p.face })) { c.globalAlpha = 1; return; }
   c.save(); c.translate(p.x - cx, p.y); c.scale(p.face, 1);
   let id;
   if (st.phase === 'bind' && k.img('prince-bound')) id = 'prince-bound';

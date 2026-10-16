@@ -9,6 +9,7 @@ import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
 import { walkFrame, walkStep, walkFrameFromSwing } from '../walking.js';
 import { CLIMB, wallPose } from './climb.js';
+import { drawPose } from '../pose.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
 const LEGS = [450, 564]; // the giant's boots on their shelf under the lip
@@ -1045,7 +1046,15 @@ export function player(k, st, t) {
   const step = travel == null ? 0 : walkStep(travel);
   const s = st.phase === 'quay' ? 0.8 : S;
   const pose = housePose(st, HOUSE.floors);
-  sailor(k, p.x, p.y, s, pose, pose === 'throw' ? 1 : p.face, step, travel);
+  // the film's prince stoops to lift her (F20), and carries her down a ladder
+  // or the ivy on his own climbing-with-her frames
+  const H = 180 * s;
+  const lifting = FILM && p.liftT > T.lift / 2 && drawPose(k, 'prince-lift', p.x, p.y, H, { face: p.face });
+  const onRungs = FILM && pose === 'carry' && p.conn && !['stairs', 'slope'].includes(p.conn.c.kind);
+  const rung = onRungs && Math.floor(p.conn.u * Math.hypot(p.conn.c.b.x - p.conn.c.a.x, HOUSE.floors[p.conn.c.b.f] - HOUSE.floors[p.conn.c.a.f]) / 26) % 2;
+  if (!lifting && !(onRungs && drawPose(k, rung ? 'prince-carry-climb-b' : 'prince-carry-climb-a', p.x, p.y, H, { face: p.face }))) {
+    sailor(k, p.x, p.y, s, pose, pose === 'throw' ? 1 : p.face, step, travel);
+  }
   c.restore();
 }
 

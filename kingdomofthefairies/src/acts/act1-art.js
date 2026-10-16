@@ -1,4 +1,5 @@
 import { LEGACY, FILM } from '../theme.js';
+import { drawPose, CREW_OF } from '../pose.js';
 // Act I drawing: the voyage (kit.voyage) and the ending scenes. Every piece
 // of new art has a procedural stand-in until its file is delivered (ids are
 // in design/image-requests.md, Part C2).
@@ -376,9 +377,17 @@ function sinkingFigures(k, st, pt, t) {
     const k2 = (pt - f.at) / 2.6;
     if (k2 <= 0 || k2 >= 1) continue;
     const fy = -160 + k2 * 1000, fx = f.x + Math.sin(t * 0.9 + f.at * 3) * 26;
-    c.save(); c.translate(fx, fy); c.rotate(f.spin * k2 * 2.4 + f.tilt);
-    if (!k.asset(f.id, 0, f.h / 2, f.h * f.w, f.h)) figure(k, 0, f.h / 2, f.col, 0, f.h / 160);
-    c.restore();
+    // the film's cast fall in their own limp tumbling poses, turning slowly
+    const tumble = !FILM ? null : f.id === 'sailor-stand' ? (k2 < 0.5 ? 'prince-tumble-a' : 'prince-tumble-b') : CREW_OF[f.id] && CREW_OF[f.id] + '-tumble';
+    const tim = tumble && k.img(tumble);
+    if (tim) {
+      const std = f.id === 'sailor-stand' ? 360 : 420, ph = (tim.naturalHeight || tim.height) * f.h / std;
+      drawPose(k, tumble, fx, fy + ph / 2, f.h, { std, rot: f.spin * k2 * 1.1 + f.tilt * 0.4, pivot: ph / 2 });
+    } else {
+      c.save(); c.translate(fx, fy); c.rotate(f.spin * k2 * 2.4 + f.tilt);
+      if (!k.asset(f.id, 0, f.h / 2, f.h * f.w, f.h)) figure(k, 0, f.h / 2, f.col, 0, f.h / 160);
+      c.restore();
+    }
     c.fillStyle = k.col('#eef3ea');
     for (let i = 0; i < 5; i++) { const by = fy - 70 - ((t * 70 + i * 40) % 200); c.globalAlpha = 0.45; k.circle(fx + Math.sin(t * 3 + i) * 10, by, 2 + (i % 3)); }
     c.globalAlpha = 1;

@@ -9,6 +9,7 @@ import {
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
 import { FILM, words } from '../theme.js';
+import { drawPose, CREW_OF } from '../pose.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const TAU = Math.PI * 2;
@@ -422,10 +423,17 @@ function conch(k, st, cn, t) {
 function sleeper(k, st, sl, t) {
   if (sl.state === 'rising' && sl.t > 5) return;
   const rise = sl.state === 'rising' ? sl.t : 0;
-  const wy = sl.y - (rise > 0.6 ? (rise - 0.6) ** 1.4 * 120 : 0);
+  // the man-at-arms carries the prince's shield and plume until his redraw
+  // (F17) arrives, so another crewman wakes in his place
+  const id = FILM && sl.id === 'reveller-lady' && !k.img('crew-manatarms-redo') ? 'reveller-yellow' : sl.id;
+  // the film's crew sit up in their own sprites before they stand (F20)
+  const sit = FILM && CREW_OF[id] && k.img(CREW_OF[id] + '-sit-up') ? CREW_OF[id] + '-sit-up' : null;
+  const lift0 = sit ? 1.6 : 0.6;   // the float up starts once he stands
+  const wy = sl.y - (rise > lift0 ? (rise - lift0) ** 1.4 * 120 : 0);
   if (!onScreen(st, wy, 200)) return;
   const c = k.c, x = sl.x, y = sy(st, wy);
   if (sl.y > SHELF_Y + 50 && !sl.floor) ledge(k, st, x, sl.y + 4, 170);
+  if (sit && rise > 0) return wakeSitting(k, st, sl, id, sit, x, y, rise, t);
   const up = easeInOut(rise / 0.8);       // 0 lying .. 1 upright
   // The film edition's crew lie asleep in their own lying-down cut-outs
   // (two of them, alternately mirrored), and stand as they wake.
@@ -440,13 +448,29 @@ function sleeper(k, st, sl, t) {
   c.translate(x + 62 * (1 - up), y - 14 * (1 - up) + Math.sin(t * 1.5 + x) * 3 * up);
   c.rotate(-Math.PI / 2 * (1 - up) + Math.sin(t * 2 + x) * 0.08 * up);
   if (rise > 3.5) c.globalAlpha = clamp(1 - (rise - 3.5) / 1.5, 0, 1);
-  // the man-at-arms carries the prince's shield and plume until his redraw
-  // (F17) arrives, so another crewman wakes in his place
-  const id = FILM && sl.id === 'reveller-lady' && !k.img('crew-manatarms-redo') ? 'reveller-yellow' : sl.id;
   if (!k.asset(id, 0, 0, 70, 135)) figure(k, 0, 0, REV_COLS[sl.kind], 0.62);
   c.restore();
   c.globalAlpha = 1;
   asleepBubbles(k, sl, x, y, t);
+}
+
+// Waking in the film: from his lying-down cut-out he sits up (his own
+// sprite), holds a moment, then stands and floats up (the standing figure is
+// 135 tall; the crew's sprites are 420 px to a standing figure).
+function wakeSitting(k, st, sl, id, sit, x, y, rise, t) {
+  const c = k.c, n = st.sleepers.indexOf(sl), face = n % 2 ? -1 : 1;
+  const a = clamp(rise / 0.4, 0, 1), b = clamp((rise - 1.1) / 0.4, 0, 1);
+  if (a < 1) {
+    const lie = n % 4 >= 2 && k.img('crew-asleep-b') ? 'crew-asleep-b' : 'crew-asleep';
+    c.save(); c.translate(x - 5, y + 2); if (n % 2) c.scale(-1, 1); c.globalAlpha = 1 - a; k.asset(lie, 0, 0, 140, 65); c.restore();
+  }
+  if (b < 1) drawPose(k, sit, x, y + 2, 135, { std: 420, face, alpha: a * (1 - b) });
+  if (b > 0) {
+    c.save(); c.globalAlpha = b * (rise > 3.5 ? clamp(1 - (rise - 3.5) / 1.5, 0, 1) : 1);
+    c.translate(x, y + Math.sin(t * 1.5 + x) * 3 * b); c.rotate(Math.sin(t * 2 + x) * 0.08 * b); if (face < 0) c.scale(-1, 1);
+    if (!k.asset(id, 0, 0, 70, 135)) figure(k, 0, 0, REV_COLS[sl.kind], 0.62);
+    c.restore();
+  }
 }
 
 function asleepBubbles(k, sl, x, y, t) {
@@ -590,7 +614,10 @@ function swimmer(k, st, t) {
   if (ph === 'open') {
     // lying on his back until the witch's breath turns him over, like a card
     const w = easeInOut(s.wake);
-    sailorFigure(k, x, y - w * 10, 1, 0, lerp(-1, 1, w), t);
+    // the film's prince lies on his back (his own sprite) for the first half
+    // of the turn, then rolls face down into his swim
+    if (FILM && w < 0.5 && k.img('prince-lying-back')) lyingBack(k, x, y - w * 10, 1, 0, Math.abs(lerp(-1, 1, w)));
+    else sailorFigure(k, x, y - w * 10, 1, 0, lerp(-1, 1, w), t);
     if (w > 0) harness(k, x, y - w * 10, 0, t, 1 - w, 1, 0, lerp(-1, 1, w));
     return;
   }
@@ -603,7 +630,8 @@ function swimmer(k, st, t) {
   if (drown) c.rotate(Math.min(1.2, st.phaseT) * s.face * 0.8);
   else c.rotate(clamp(s.vy / 900, -0.25, 0.25) * s.face);
   c.translate(-x, -y);
-  sailorFigure(k, x, y, s.face, s.stroke, drown ? -1 : 1, t);
+  if (drown && FILM && k.img('prince-lying-back')) { c.restore(); lyingBack(k, x, y, s.face, Math.min(1.2, st.phaseT) * s.face * 0.35, 1); c.save(); }
+  else sailorFigure(k, x, y, s.face, s.stroke, drown ? -1 : 1, t);
   if (st.guitar.held) {
     c.save(); c.translate(x + s.face * 30, y + 18); c.rotate(s.face * 1.2);
     if (!k.asset('keepsake-guitar', 0, 32, 64, 64)) guitarStandin(k, 0.42);
@@ -647,6 +675,16 @@ function harness(k, x, y, vy, t, fade, face = 1, rot = 0, flipY = 1) {
     c.fillStyle = k.col('#d9b34a'); c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2;
     c.beginPath(); c.arc(rx, ry, 5, 0, TAU); c.stroke();
   }
+  c.restore();
+}
+
+// The prince lying senseless on his back, centred on (x, y) where his swimming
+// figure would be (the swim art is drawn 180 tall for a standing figure), his
+// head the way he faces; `squash` flattens it like a turning card.
+function lyingBack(k, x, y, face, rot, squash) {
+  const c = k.c;
+  c.save(); c.translate(x, y); c.rotate(rot); c.scale(1, squash || 0.001);
+  drawPose(k, 'prince-lying-back', 0, 50, 180, { face: -face });
   c.restore();
 }
 

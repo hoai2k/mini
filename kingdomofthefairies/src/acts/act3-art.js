@@ -8,6 +8,7 @@ import {
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { FILM } from '../theme.js';
+import { drawPose } from '../pose.js';
 import { card } from './tableau.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
@@ -512,6 +513,14 @@ function player(k, st, t) {
   if (flicker) c.globalAlpha = 0.45;
   else if (hiddenNow) c.globalAlpha = 0.8;
   c.translate(p.x, y);
+  // seized by the collar: the film's prince in his own pose, hauled up a little
+  const collared = st.phase === 'caught' && FILM && k.img('prince-collared');
+  if (collared) {
+    c.scale(s, s);
+    drawPose(k, 'prince-collared', 0, -10 * clamp(st.phaseT / 0.4, 0, 1), 180, { face: p.face });
+    c.restore();
+    return;
+  }
   if (st.phase === 'caught') c.rotate(-0.25 * clamp(st.phaseT / 0.5, 0, 1));
   c.scale(s * (p.frozen ? 1 : p.face), s);
   if (p.frozen) { if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); }
@@ -816,10 +825,13 @@ function outro(k, st, t) {
     const f = easeInOut(st.phaseT / OUTRO.lunge), p = st.p;
     const mx = cx, my = by - H * throat;
     const sx = lerp(p.x - st.cam, mx, f), sy = lerp(rowY(p), my, f) - Math.sin(f * Math.PI) * 120, s = rowScale(p) * (1 - f * 0.8);
-    c.save(); c.translate(sx, sy); c.rotate(f * 3); c.scale(s, s); if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); c.restore();
+    // the film's prince and courtier tumble in their own limp poses (F20)
+    if (FILM && k.img('prince-tumble-a')) { c.save(); c.translate(sx, sy); c.scale(s, s); drawPose(k, f < 0.5 ? 'prince-tumble-a' : 'prince-tumble-b', 0, 90 - 40, 180, { rot: f * 1.6, pivot: 90 }); c.restore(); }
+    else { c.save(); c.translate(sx, sy); c.rotate(f * 3); c.scale(s, s); if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); c.restore(); }
     const d = diver(st), g = clamp((st.phaseT - 0.15) / 0.7, 0, 1);
     const dx = lerp(d.x - st.cam, mx + 40, g), dy = lerp(ROWY[d.row], my, g) - Math.sin(g * Math.PI) * 220, ds = ROWSCALE[d.row] * (1 - g * 0.8);
-    c.save(); c.translate(dx, dy); c.rotate(-g * 2.6); c.scale(ds, ds); if (!k.asset('attendant-' + d.kind, 0, 0, 110, 210)) attendantStandin(k, d.kind); c.restore();
+    if (FILM && k.img('attendant-' + d.kind + '-tumble')) { c.save(); c.translate(dx, dy); c.scale(ds, ds); drawPose(k, 'attendant-' + d.kind + '-tumble', 0, 75 - 60, 210, { std: 420, rot: -g * 1.4, pivot: 75 }); c.restore(); }
+    else { c.save(); c.translate(dx, dy); c.rotate(-g * 2.6); c.scale(ds, ds); if (!k.asset('attendant-' + d.kind, 0, 0, 110, 210)) attendantStandin(k, d.kind); c.restore(); }
   }
 }
 
