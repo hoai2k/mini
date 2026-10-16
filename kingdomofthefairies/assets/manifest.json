@@ -3831,7 +3831,7 @@
       "edition": "film"
     },
     "prince-wall-idle-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-idle-b.webp",
       "size": [
         360,
@@ -3841,7 +3841,7 @@
       "edition": "film"
     },
     "prince-wall-idle-b-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-idle-b-tinted.webp",
       "size": [
         360,

@@ -88,3 +88,5 @@ Batch 3: `prince-wall-side-a`, `prince-wall-side-a-tinted`, `prince-wall-side-b`
 Batch 4: `prince-wall-side-c`, `prince-wall-side-c-tinted`, `prince-wall-side-d`, `prince-wall-side-d-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
 
 Batch 5: `prince-wall-idle`, `prince-wall-idle-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
+
+Batch 5: `prince-wall-idle-b`, `prince-wall-idle-b-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
