@@ -19,9 +19,13 @@
     "prince-wall-idle",
     "prince-wall-idle-tinted",
     "prince-wall-idle-b",
-    "prince-wall-idle-b-tinted"
+    "prince-wall-idle-b-tinted",
+    "prince-wall-leap",
+    "prince-wall-leap-tinted",
+    "prince-wall-catch",
+    "prince-wall-catch-tinted"
   ],
-  "remaining": 80,
-  "next": "prince-wall-leap",
+  "remaining": 76,
+  "next": "prince-wall-hit",
   "notes": "Native originals and full generation records saved immediately. Small previews reviewed before delivery. Legacy reveller-lady-idle-b has no active production prompt. Continue requests in order in batches of four."
 }

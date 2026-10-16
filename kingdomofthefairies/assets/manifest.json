@@ -3851,7 +3851,7 @@
       "edition": "film"
     },
     "prince-wall-leap": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-leap.webp",
       "size": [
         360,
@@ -3861,7 +3861,7 @@
       "edition": "film"
     },
     "prince-wall-leap-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-leap-tinted.webp",
       "size": [
         360,
@@ -3871,7 +3871,7 @@
       "edition": "film"
     },
     "prince-wall-catch": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-catch.webp",
       "size": [
         360,
@@ -3881,7 +3881,7 @@
       "edition": "film"
     },
     "prince-wall-catch-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "prince-wall-catch-tinted.webp",
       "size": [
         360,

@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 354 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 274 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 278 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2026,10 +2026,10 @@ Requested 14 October 2026 for the redesigned climbs of Act V (the cliff and the 
 | `prince-wall-idle-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-idle-tinted.webp) |
 | `prince-wall-idle-b` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-idle-b.webp) |
 | `prince-wall-idle-b-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-idle-b-tinted.webp) |
-| `prince-wall-leap` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-leap-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-catch` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-catch-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
+| `prince-wall-leap` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-leap.webp) |
+| `prince-wall-leap-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-leap-tinted.webp) |
+| `prince-wall-catch` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-catch.webp) |
+| `prince-wall-catch-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-catch-tinted.webp) |
 | `prince-wall-hit` | 360 × 440 | bottom centre (lowest boot) | new | requested |
 | `prince-wall-hit-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
 | `prince-mantle-a` | 360 × 440 | bottom centre (lowest boot) | `prince-hang` | requested |
