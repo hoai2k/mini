@@ -372,15 +372,15 @@ piranhas hunt as a pack, the lionfish lurks and lunges and the reef shark
 patrols. The food chain: angelfish, piranhas and lionfish eat guppies and
 tetras; piranhas, lionfish and the shark eat clownfish and bettas; piranhas
 and the shark eat angelfish; only the shark eats catfish and piranhas; nobody
-eats the pufferfish, the lionfish or the shark. Fish get hungry (a bar over a
-hungry fish, and a thought bubble of what it wants), and hungry hunters chase
-and eat fish with a chomp, bubbles and stars. Tap the water to sprinkle flakes:
+eats the pufferfish, the lionfish or the shark. Fish get hungry and hungry hunters
+chase and eat fish with a chomp and a puff of bubbles; there are no bars,
+bubbles or labels over the fish, so it plays like a real tank to watch, with
+quiet underwater sounds. Tap the water to sprinkle flakes:
 everyone eats them, and fed hunters leave the little ones alone. Drag any fish
 to move it, or onto the bin in the bottom right to take it out. The tank is
-wider than the screen: fish swim off the sides (arrows count them) and come
-back, and the more fish there are, the more time each spends off screen. From
+wider than the screen: fish swim off the sides and come back, and the more fish there are, the more time each spends off screen. From
 18 fish the tank is crowded: everyone gets hungrier and grumpier, with more
-nips, scuffles and eating. One player runs the tank and shares it about nine
+nips, scuffles and eating, shown only in how they swim. One player runs the tank and shares it about nine
 times a second; anyone joining sees the same tank, and the next player runs it
 if they leave. Keys: arrows move a cursor, Space or Enter picks up, drops or
 feeds, F feeds, P opens the picker; a controller's stick moves the cursor, A

@@ -1146,7 +1146,6 @@ export default {
     let lastPub = 0, pubDirty = true;
     // Effects (world coordinates).
     const parts = [];
-    const pops = [];
     const ghosts = [];
     const chomps = new Map();       // fish id -> s left of the chomp
     const pokes = new Map();        // fish id -> s left of a fight wiggle
@@ -1329,13 +1328,12 @@ export default {
     function addFish(sp) {
       if (view.size >= MAX_FISH) { api.toast('The tank is full! Bin a fish to make room.'); return; }
       act('add', { sp, x: clamp(rnd(-halfW * 0.7, halfW * 0.7), -STAGE, STAGE) });
-      api.sfx('pop');
     }
     function feedAt(x, y) {
       act('feed', { x, y });
       // Show my flakes at once; the owner's arrive a moment later.
       if (!api.isOwner()) for (let i = 0; i < 5; i++) parts.push({ k: 'flake', x: x + rnd(-2.5, 2.5), y: y + rnd(-1.5, 1.5), vx: 0, vy: 2.6, life: 0.35, max: 0.35, c: pick(FLAKE_COLORS) });
-      api.sfx('click');
+      softSfx('drip', 0.15);
     }
 
     // --- drawing helpers ---------------------------------------------------
@@ -1365,16 +1363,6 @@ export default {
         dh = lenPx * 1.2;
       }
       c.drawImage(img, -dw / 2, -dh / 2, dw, dh);
-      if (art && opts.open) {
-        // A chomp on delivered art: a dark open mouth at the nose.
-        c.beginPath();
-        c.moveTo(dw * 0.5, -dh * 0.1);
-        c.lineTo(dw * 0.32, dh * 0.04);
-        c.lineTo(dw * 0.5, dh * 0.16);
-        c.closePath();
-        c.fillStyle = '#5a1030';
-        c.fill();
-      }
       c.restore();
     }
 
@@ -1582,54 +1570,21 @@ export default {
       return hg > 0.8 ? '#ff4d5e' : hg > 0.6 ? '#ff9f1c' : '#ffd43b';
     }
 
-    function drawHunger(v, px, py, lenPx) {
-      if (v.hunger < 0.5 || v.mode === M.held) return;
-      const bw = clamp(lenPx * 0.5, 18, 36), bh = 4;
-      const x = px - bw / 2, y = py - lenPx * 0.5 - 8;
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.beginPath(); ctx.roundRect(x - 1, y - 1, bw + 2, bh + 2, 3); ctx.fill();
-      ctx.fillStyle = hungerColor(v.hunger);
-      ctx.beginPath(); ctx.roundRect(x, y, bw * v.hunger, bh, 2); ctx.fill();
-      if (v.hunger > 0.72) {
-        // a thought bubble showing what it wants
-        const bob = Math.sin(clock * 4 + v.wob) * 2;
-        const r = clamp(lenPx * 0.16, 9, 13);
-        const cx = px + bw * 0.5 + r * 0.6, cy = y - r - 3 + bob;
-        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-        ell(ctx, px + bw * 0.45, y - 2 + bob * 0.5, 2.2, 2.2);
-        ctx.fill();
-        ell(ctx, cx, cy, r * 1.25, r);
-        ctx.fill();
-        const sp = SP[v.sp];
-        if (sp.eats.length && v.hunger > 0.75) {
-          const target = sp.eats[Math.floor(clock / 1.2 + v.wob) % sp.eats.length];
-          drawFish(ctx, target, cx, cy, r * 1.6, 1);
-        } else {
-          for (let i = 0; i < 3; i++) {
-            ctx.fillStyle = FLAKE_COLORS[i];
-            ctx.fillRect(cx - r * 0.6 + i * r * 0.45, cy - 2 + (i % 2) * 3, r * 0.35, r * 0.35);
-          }
-        }
-      }
-    }
-
     // --- events (sounds and effects) --------------------------------------------
     function bubbles(x, y, n, spread = 3) {
       if (reduced) n = Math.ceil(n / 3);
       for (let i = 0; i < n; i++) parts.push({ k: 'bub', x: x + rnd(-spread, spread), y: y + rnd(-spread, spread) * 0.6, vx: rnd(-2, 2), vy: rnd(-12, -5), r: rnd(0.4, 1.3), life: rnd(0.8, 1.6), max: 1.6 });
     }
-    function stars(x, y, n, colors) {
-      for (let i = 0; i < n; i++) {
-        const a = rnd(0, Math.PI * 2), sp = rnd(6, 16);
-        parts.push({ k: 'star', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rnd(0.8, 1.5), life: rnd(0.5, 0.8), max: 0.8, c: pick(colors) });
-      }
-    }
-    function pop(x, y, text, color) {
-      pops.push({ x, y, text, color, life: 1.1, max: 1.1 });
-      if (pops.length > 6) pops.shift();
-    }
     const lastDrawn = new Map();
-    let lastToast = 0;
+    // Quiet underwater sounds, and never a burst of them: each kind plays at
+    // most every so often, so a crowded tank murmurs rather than clatters.
+    const soundAt = {};
+    function softSfx(name, gap = 0.35) {
+      const now = performance.now() / 1000;
+      if (now - (soundAt[name] ?? -9) < gap) return;
+      soundAt[name] = now;
+      api.sfx(name);
+    }
     const evCount = { 1: 0, 2: 0, 3: 0, 4: 0 };
     function playEvent(e) {
       evCount[e.k]++;
@@ -1643,30 +1598,21 @@ export default {
         setTimeout(() => {
           const ex = eater ? eater.dx + (eater.face || 1) * SP[eater.sp].len * 0.45 : e.x;
           const ey = eater ? eater.dy : e.y;
-          bubbles(ex, ey, 14, 2.5);
-          stars(ex, ey, 8, ['#ffd43b', '#ffffff', '#ff8fab']);
-          pop(ex, ey - 4, 'CHOMP!', '#ffd43b');
+          bubbles(ex, ey, 10, 2);
         }, 300);
-        if (onScreen) api.sfx('pop');
-        if (onScreen && eater && performance.now() - lastToast > 2500) {
-          lastToast = performance.now();
-          const preyName = SPECIES[e.s].name.toLowerCase();
-          api.toast(`The ${SP[eater.sp].name.toLowerCase()} ate ${/^[aeiou]/.test(preyName) ? 'an' : 'a'} ${preyName}!`);
-        }
+        if (onScreen) softSfx('gulp');
       } else if (e.k === EV.fight) {
         pokes.set(e.a, 1.1);
         pokes.set(e.b, 1.1);
-        bubbles(e.x, e.y, 6, 2);
-        stars(e.x, e.y, 6, ['#ffffff', '#ffa8a8']);
-        pop(e.x, e.y - 3, pick(['nip!', 'hey!', 'scuffle!', 'grr!']), '#ffffff');
-        if (onScreen) api.sfx('bounce');
+        bubbles(e.x, e.y, 4, 1.5);
+        if (onScreen) softSfx('nudge');
       } else if (e.k === EV.add) {
         bubbles(e.x, 4, 12, 4);
         parts.push({ k: 'ring', x: e.x, y: 0.5, r: 1, life: 0.6, max: 0.6 });
-        if (onScreen) api.sfx('blow');
+        if (onScreen) softSfx('bubble');
       } else if (e.k === EV.bin) {
         binWobble = 0.6;
-        api.sfx('whoosh');
+        softSfx('swish');
       }
     }
 
@@ -1714,8 +1660,6 @@ export default {
         if (p.k === 'ring') p.r += dt * 18;
       }
       for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0 || parts[i].y < -2) parts.splice(i, 1);
-      for (const p of pops) { p.life -= dt; p.y -= dt * 4; }
-      for (let i = pops.length - 1; i >= 0; i--) if (pops[i].life <= 0) pops.splice(i, 1);
       for (const g of ghosts) g.life -= dt;
       for (let i = ghosts.length - 1; i >= 0; i--) if (ghosts[i].life <= 0) ghosts.splice(i, 1);
       for (const m of [chomps, pokes]) for (const [id, t] of m) { if (t - dt <= 0) m.delete(id); else m.set(id, t - dt); }
@@ -1752,14 +1696,12 @@ export default {
       // fish, biggest first so the little ones show on top
       const list = [...view.values()].filter(v => !pendingBin.has(v.id)).sort((a, b) => SP[b.sp].len - SP[a.sp].len || a.id - b.id);
       lastDrawn.clear();
-      let offL = 0, offR = 0;
       const heldIds = new Set();
       for (const v of list) {
         const sp = SP[v.sp];
         lastDrawn.set(v.id, { x: v.dx, y: v.dy, face: v.face });
         const lenPx = sp.len * s;
-        if (v.dx < -halfW - sp.len * 0.6) { offL++; continue; }
-        if (v.dx > halfW + sp.len * 0.6) { offR++; continue; }
+        if (Math.abs(v.dx) > halfW + sp.len * 0.6) continue;
         if (v.held || hold?.id === v.id) { heldIds.add(v.id); continue; }
         drawOne(v, lenPx);
       }
@@ -1802,26 +1744,6 @@ export default {
           ctx.stroke();
         }
       }
-      for (const p of pops) {
-        const a = clamp(p.life / p.max * 2, 0, 1);
-        const sc = 1 + (1 - p.life / p.max) * 0.3;
-        ctx.save();
-        ctx.translate(sx(p.x), sy(p.y));
-        ctx.scale(sc, sc);
-        ctx.globalAlpha = a;
-        ctx.font = `900 ${Math.round(clamp(s * 3.2, 14, 26))}px ${FONT}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#1d1d35';
-        ctx.strokeText(p.text, 0, 0);
-        ctx.fillStyle = p.color;
-        ctx.fillText(p.text, 0, 0);
-        ctx.restore();
-      }
-      // fish off to the sides
-      drawOffscreen(offL, -1);
-      drawOffscreen(offR, 1);
       // the bin (its lid opens while a fish is over it)
       const overNow = hold && overBin(sx(hold.x), sy(hold.y));
       drawBin(!!overNow);
@@ -1837,19 +1759,10 @@ export default {
         ctx.moveTo(cx - 6, cy); ctx.lineTo(cx + 6, cy); ctx.moveTo(cx, cy - 6); ctx.lineTo(cx, cy + 6);
         ctx.stroke();
       }
-      // HUD: the crowding warning and a first-time hint
-      const crowded = view.size >= CROWD_FROM;
+      // Only a first-time hint; crowding shows in the fish themselves.
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      if (crowded) {
-        ctx.font = `900 ${Math.round(clamp(w * 0.035, 12, 16))}px ${FONT}`;
-        const t = view.size >= CROWD_FROM + CROWD_SPAN * 0.6 ? 'Way too crowded! Fish are fighting!' : 'Crowded tank: fish are getting grumpy';
-        const tw = ctx.measureText(t).width + 20;
-        ctx.fillStyle = 'rgba(255,90,60,0.85)';
-        ctx.beginPath(); ctx.roundRect(w / 2 - tw / 2, 8, tw, 24, 12); ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.fillText(t, w / 2, 12);
-      } else if (performance.now() < hintUntil) {
+      if (performance.now() < hintUntil) {
         ctx.font = `800 ${Math.round(clamp(w * 0.034, 12, 15))}px ${FONT}`;
         const t = 'Tap the water to feed · drag a fish to move it';
         const tw = ctx.measureText(t).width + 20;
@@ -1890,18 +1803,8 @@ export default {
       drawFish(ctx, v.sp, px + jx, py, lenPx, v.face || 1, {
         open, puffed: sp.puffs && (v.mode === M.puff || held), squash: chomp > 0 ? Math.sin(chomp * 16) * 0.6 : 0, wag, tilt,
       });
-      if (v.mode === M.flee && !held) {
-        // a little "!" when fleeing
-        ctx.font = `900 ${Math.round(clamp(lenPx * 0.5, 12, 22))}px ${FONT}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#1d1d35';
-        ctx.strokeText('!', px, py - lenPx * 0.4);
-        ctx.fillStyle = '#fff';
-        ctx.fillText('!', px, py - lenPx * 0.4);
-      }
-      if (!held) drawHunger(v, px, py, lenPx);
+      // No bars, bubbles or marks over the fish: the tank is to watch, and
+      // hunger and fear show in how they swim.
     }
 
     function starPath(c, r) {
@@ -1912,29 +1815,6 @@ export default {
         c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
       }
       c.closePath();
-    }
-
-    function drawOffscreen(n, side) {
-      if (!n) return;
-      const y = h * 0.42;
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = 'rgba(8,30,60,0.55)';
-      ctx.beginPath();
-      ctx.roundRect(side < 0 ? 4 : w - 40, y - 26, 36, 52, 12);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.moveTo(side < 0 ? 12 : w - 12, y - 12);
-      ctx.lineTo(side < 0 ? 22 : w - 22, y - 20);
-      ctx.lineTo(side < 0 ? 22 : w - 22, y - 4);
-      ctx.closePath();
-      ctx.fill();
-      ctx.font = `900 14px ${FONT}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(String(n), side < 0 ? 22 : w - 22, y + 10);
-      ctx.restore();
     }
 
     function frame(now) {
@@ -1976,7 +1856,7 @@ export default {
       hold.x = v.dx;
       hold.y = v.dy;
       act('grab', { id: v.id });
-      api.sfx('click');
+      softSfx('bubble', 0.1);
     }
     function moveHold(x, y) {
       if (!hold) return;
