@@ -110,7 +110,11 @@ Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows a
 
 | Frame | Canvas | Clear above | Area vs up-a | Feet |
 | --- | --- | --- | --- | --- |
+| `prince-mantle-a` | 360 × 440 | 0 | 1.18 | on the ground |
+| `prince-mantle-b` | 360 × 440 | 2 | 1.02 | on the ground |
+| `prince-mantle-c` | 360 × 440 | 39 | 1.67 | on the ground |
 | `prince-wall-catch` | 360 × 440 | 11 | 1.65 | on the ground |
+| `prince-wall-hit` | 360 × 440 | 0 | 1.25 | on the ground |
 | `prince-wall-idle` | 360 × 440 | 0 | 1.44 | on the ground |
 | `prince-wall-idle-b` | 360 × 440 | 0 | 1.45 | on the ground |
 | `prince-wall-leap` | 360 × 440 | 0 | 0.87 | on the ground |
@@ -118,6 +122,7 @@ Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows a
 | `prince-wall-side-b` | 360 × 440 | 0 | 1.34 | on the ground |
 | `prince-wall-side-c` | 360 × 440 | 0 | 1.42 | on the ground |
 | `prince-wall-side-d` | 360 × 440 | 0 | 1.42 | on the ground |
+| `prince-wall-step` | 360 × 440 | 0 | 1.41 | on the ground |
 | `prince-wall-up-a` | 360 × 440 | 0 | 1.00 | on the ground |
 | `prince-wall-up-b` | 360 × 440 | 0 | 1.36 | on the ground |
 | `prince-wall-up-c` | 360 × 440 | 0 | 1.01 | on the ground |
@@ -127,7 +132,11 @@ Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows a
 
 | Frame | Canvas | Clear above | Area vs up-a | Feet |
 | --- | --- | --- | --- | --- |
+| `prince-mantle-a-tinted` | 360 × 440 | 1 | 1.20 | on the ground |
+| `prince-mantle-b-tinted` | 360 × 440 | 0 | 1.04 | on the ground |
+| `prince-mantle-c-tinted` | 360 × 440 | 0 | 1.66 | on the ground |
 | `prince-wall-catch-tinted` | 360 × 440 | 1 | 1.55 | on the ground |
+| `prince-wall-hit-tinted` | 360 × 440 | 0 | 1.34 | on the ground |
 | `prince-wall-idle-b-tinted` | 360 × 440 | 0 | 1.30 | on the ground |
 | `prince-wall-idle-tinted` | 360 × 440 | 1 | 1.28 | on the ground |
 | `prince-wall-leap-tinted` | 360 × 440 | 0 | 0.91 | on the ground |
@@ -135,6 +144,7 @@ Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows a
 | `prince-wall-side-b-tinted` | 360 × 440 | 1 | 1.24 | on the ground |
 | `prince-wall-side-c-tinted` | 360 × 440 | 18 | 1.56 | on the ground |
 | `prince-wall-side-d-tinted` | 360 × 440 | 1 | 1.44 | on the ground |
+| `prince-wall-step-tinted` | 360 × 440 | 0 | 1.42 | on the ground |
 | `prince-wall-up-a-tinted` | 360 × 440 | 1 | 1.00 | on the ground |
 | `prince-wall-up-b-tinted` | 360 × 440 | 0 | 1.28 | on the ground |
 | `prince-wall-up-c-tinted` | 360 × 440 | 0 | 1.02 | on the ground |

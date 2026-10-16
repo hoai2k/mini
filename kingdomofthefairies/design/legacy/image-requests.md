@@ -433,8 +433,7 @@ still's. 17 of 18 hold the same figure and costume with only the asked-for
 movement, and flick cleanly in the game (workbench, *Extra Animations ·
 everything*). `reveller-lady-idle-b` lost the lace veil behind her hat, so
 the veil blinked; it is withdrawn to `generated/round-4/rejected/` and
-re-requested with the veil called out. Until it returns the lady flicks
-A, C, A, C. [Review A/B/C and the A/B/A/C sequence](../generated/round-4/index.html);
+re-requested with the veil called out. Frame B was regenerated on 16 October 2026 with the complete grey lace veil retained; the lady now uses A, B, A, C. [Review A/B/C and the A/B/A/C sequence](../generated/round-4/index.html);
 full-size originals and exact prompts are preserved there.
 
 **Also delivered, 8 October 2026:** two Act IV frames for the new ledge

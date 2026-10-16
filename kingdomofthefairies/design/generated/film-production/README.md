@@ -92,3 +92,15 @@ Batch 5: `prince-wall-idle`, `prince-wall-idle-tinted`. Reviewed poses, costumes
 Batch 5: `prince-wall-idle-b`, `prince-wall-idle-b-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
 
 Batch 6: `prince-wall-leap`, `prince-wall-leap-tinted`, `prince-wall-catch`, `prince-wall-catch-tinted`. Reviewed poses, costumes and transparency; prepared dimensions and bottom anchors passed.
+
+## F19–F20 completion, 16 October 2026
+
+Delivered the remaining 76 film sprites with built-in imagegen: ten climbing transitions plus 66 scene poses, in both Original and Tinted looks. The prior 24 climbing frames remain intact. Every native PNG, submitted prompt, reference set, generation ID and accepted review is retained; progress/f19-f20-requests.json contains the complete 100-image prompt set, and f19-f20-remaining-requests.json records this 76-image completion. Both progress states now show no remaining requests.
+
+The poses cover wall impact and ledge mantling, crawling and rising, lying face up/down, tumbling, diving and underwater swimming, collar lifting, kneeling and lifting, ladder carrying, court-dress actions, crew crawling/tumbling/waking, and attendant tumbles. Existing cast sprites supplied identity and style references; phase B used accepted phase A references where a paired action required it. The existing wall-frame resolver can select all delivered F19 transitions. F20 images are prepared under their requested scene-pose IDs in the asset manifest.
+
+User-marked anatomy errors were corrected with imagegen: the near right hand of prince-lying-front-tinted and the oversized head/long neck of prince-kneel-rise-tinted. The hand was reviewed in an enlarged crop and the head proportions checked against the standing prince. Pull-up arms, alternate crawl placement and a hidden ladder-carry grip were also corrected during review. Prior takes are preserved under progress/rejected/ in the named correction folders. Native originals are unchanged during ordinary proportional sizing to the requested transparent game canvases.
+
+The older pending reveller-lady-idle-b veil repair is also delivered, with its original and full records in design/generated/round-4/. Its grey lace veil, skirt grips, costume, framing and opposite pointed toe were reviewed; the 220 × 420 WebP is installed for the legacy idle cycle.
+
+Verification: all 76 new film originals and prepared sprites passed reference, accepted-review, dimensions and transparency checks. The manifest has no pending requests, including the repaired legacy idle. Gallery targets verified for all 354 film production images; generated-document checks and sprite audit passed. Animation, walking, sailor motion, asset-loader, theme and all 30 film tests passed. Headless Chrome rendered every scene in both film looks and both older editions without page errors; a separate browser check loaded the repaired lady and verified the A/B/A/C selection.

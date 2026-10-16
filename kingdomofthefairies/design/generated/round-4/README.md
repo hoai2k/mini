@@ -27,3 +27,7 @@ animation test suites pass.
 
 Local animation edits present before synchronization were preserved in the
 stash named `Preserve local animation edits before main sync 2026-10-07`.
+
+## Lady reveller veil repair, 16 October 2026
+
+The pending frame B was regenerated with built-in imagegen from the exact delivered frame A. The complete grey lace veil behind her hat is retained; the skirt and pointed toe change slightly for the idle cycle. Coherent hands, veil continuity, costume and proportions were reviewed. The native original, final submitted prompt and reference, generation ID and review are saved in originals/, records/ and prompts.json. The 220 × 420 alpha WebP is installed and marked delivered; the game can use all A/B/A/C phases again in editions that use this character. Prior takes remain in rejected/.

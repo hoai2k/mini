@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 354 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 278 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 354 of 354 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -2030,16 +2030,16 @@ Requested 14 October 2026 for the redesigned climbs of Act V (the cliff and the 
 | `prince-wall-leap-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-leap-tinted.webp) |
 | `prince-wall-catch` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-catch.webp) |
 | `prince-wall-catch-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-catch-tinted.webp) |
-| `prince-wall-hit` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-hit-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-mantle-a` | 360 × 440 | bottom centre (lowest boot) | `prince-hang` | requested |
-| `prince-mantle-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-hang` | requested |
-| `prince-mantle-b` | 360 × 440 | bottom centre (lowest boot) | `prince-pullup` | requested |
-| `prince-mantle-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-pullup` | requested |
-| `prince-mantle-c` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-mantle-c-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-step` | 360 × 440 | bottom centre (lowest boot) | new | requested |
-| `prince-wall-step-tinted` | 360 × 440 | bottom centre (lowest boot) | new | requested |
+| `prince-wall-hit` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-hit.webp) |
+| `prince-wall-hit-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-hit-tinted.webp) |
+| `prince-mantle-a` | 360 × 440 | bottom centre (lowest boot) | `prince-hang` | [delivered](../assets/prince-mantle-a.webp) |
+| `prince-mantle-a-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-hang` | [delivered](../assets/prince-mantle-a-tinted.webp) |
+| `prince-mantle-b` | 360 × 440 | bottom centre (lowest boot) | `prince-pullup` | [delivered](../assets/prince-mantle-b.webp) |
+| `prince-mantle-b-tinted` | 360 × 440 | bottom centre (lowest boot) | `prince-pullup` | [delivered](../assets/prince-mantle-b-tinted.webp) |
+| `prince-mantle-c` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-mantle-c.webp) |
+| `prince-mantle-c-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-mantle-c-tinted.webp) |
+| `prince-wall-step` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-step.webp) |
+| `prince-wall-step-tinted` | 360 × 440 | bottom centre (lowest boot) | new | [delivered](../assets/prince-wall-step-tinted.webp) |
 
 #### `prince-wall-up-a` — Climbing up, right hand high
 
@@ -2251,72 +2251,72 @@ Requested 14 October 2026 after auditing every board and scene of the film editi
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `prince-crawl-a` | 360 × 240 | bottom centre | new | requested |
-| `prince-crawl-a-tinted` | 360 × 240 | bottom centre | new | requested |
-| `prince-crawl-b` | 360 × 240 | bottom centre | new | requested |
-| `prince-crawl-b-tinted` | 360 × 240 | bottom centre | new | requested |
-| `prince-kneel-rise` | 360 × 440 | bottom centre | new | requested |
-| `prince-kneel-rise-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-lying-back` | 400 × 200 | bottom centre | new | requested |
-| `prince-lying-back-tinted` | 400 × 200 | bottom centre | new | requested |
-| `prince-lying-front` | 400 × 200 | bottom centre | new | requested |
-| `prince-lying-front-tinted` | 400 × 200 | bottom centre | new | requested |
-| `prince-tumble-a` | 360 × 360 | bottom centre | new | requested |
-| `prince-tumble-a-tinted` | 360 × 360 | bottom centre | new | requested |
-| `prince-tumble-b` | 360 × 360 | bottom centre | new | requested |
-| `prince-tumble-b-tinted` | 360 × 360 | bottom centre | new | requested |
-| `prince-dive` | 440 × 360 | bottom centre | new | requested |
-| `prince-dive-tinted` | 440 × 360 | bottom centre | new | requested |
-| `prince-swim-under-a` | 360 × 240 | bottom centre | new | requested |
-| `prince-swim-under-a-tinted` | 360 × 240 | bottom centre | new | requested |
-| `prince-swim-under-b` | 360 × 240 | bottom centre | new | requested |
-| `prince-swim-under-b-tinted` | 360 × 240 | bottom centre | new | requested |
-| `prince-collared` | 360 × 440 | bottom centre | new | requested |
-| `prince-collared-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-kneel` | 360 × 440 | bottom centre | new | requested |
-| `prince-kneel-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-lift` | 360 × 440 | bottom centre | new | requested |
-| `prince-lift-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-carry-climb-a` | 360 × 440 | bottom centre | new | requested |
-| `prince-carry-climb-a-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-carry-climb-b` | 360 × 440 | bottom centre | new | requested |
-| `prince-carry-climb-b-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-leap` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-leap-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-fall` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-fall-tinted` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-reach` | 360 × 440 | bottom centre | new | requested |
-| `prince-court-reach-tinted` | 360 × 440 | bottom centre | new | requested |
-| `crew-squire-crawl` | 300 × 200 | bottom centre | new | requested |
-| `crew-squire-crawl-tinted` | 300 × 200 | bottom centre | new | requested |
-| `crew-squire-tumble` | 300 × 300 | bottom centre | new | requested |
-| `crew-squire-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `crew-squire-sit-up` | 260 × 220 | bottom centre | new | requested |
-| `crew-squire-sit-up-tinted` | 260 × 220 | bottom centre | new | requested |
-| `crew-helmsman-crawl` | 300 × 200 | bottom centre | new | requested |
-| `crew-helmsman-crawl-tinted` | 300 × 200 | bottom centre | new | requested |
-| `crew-helmsman-tumble` | 300 × 300 | bottom centre | new | requested |
-| `crew-helmsman-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `crew-helmsman-sit-up` | 260 × 220 | bottom centre | new | requested |
-| `crew-helmsman-sit-up-tinted` | 260 × 220 | bottom centre | new | requested |
-| `crew-manatarms-crawl` | 300 × 200 | bottom centre | new | requested |
-| `crew-manatarms-crawl-tinted` | 300 × 200 | bottom centre | new | requested |
-| `crew-manatarms-tumble` | 300 × 300 | bottom centre | new | requested |
-| `crew-manatarms-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `crew-manatarms-sit-up` | 260 × 220 | bottom centre | new | requested |
-| `crew-manatarms-sit-up-tinted` | 260 × 220 | bottom centre | new | requested |
-| `crew-bosun-crawl` | 300 × 200 | bottom centre | new | requested |
-| `crew-bosun-crawl-tinted` | 300 × 200 | bottom centre | new | requested |
-| `crew-bosun-tumble` | 300 × 300 | bottom centre | new | requested |
-| `crew-bosun-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `crew-bosun-sit-up` | 260 × 220 | bottom centre | new | requested |
-| `crew-bosun-sit-up-tinted` | 260 × 220 | bottom centre | new | requested |
-| `attendant-blue-tumble` | 300 × 300 | bottom centre | new | requested |
-| `attendant-blue-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `attendant-green-tumble` | 300 × 300 | bottom centre | new | requested |
-| `attendant-green-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
-| `attendant-pink-tumble` | 300 × 300 | bottom centre | new | requested |
-| `attendant-pink-tumble-tinted` | 300 × 300 | bottom centre | new | requested |
+| `prince-crawl-a` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-crawl-a.webp) |
+| `prince-crawl-a-tinted` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-crawl-a-tinted.webp) |
+| `prince-crawl-b` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-crawl-b.webp) |
+| `prince-crawl-b-tinted` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-crawl-b-tinted.webp) |
+| `prince-kneel-rise` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-kneel-rise.webp) |
+| `prince-kneel-rise-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-kneel-rise-tinted.webp) |
+| `prince-lying-back` | 400 × 200 | bottom centre | new | [delivered](../assets/prince-lying-back.webp) |
+| `prince-lying-back-tinted` | 400 × 200 | bottom centre | new | [delivered](../assets/prince-lying-back-tinted.webp) |
+| `prince-lying-front` | 400 × 200 | bottom centre | new | [delivered](../assets/prince-lying-front.webp) |
+| `prince-lying-front-tinted` | 400 × 200 | bottom centre | new | [delivered](../assets/prince-lying-front-tinted.webp) |
+| `prince-tumble-a` | 360 × 360 | bottom centre | new | [delivered](../assets/prince-tumble-a.webp) |
+| `prince-tumble-a-tinted` | 360 × 360 | bottom centre | new | [delivered](../assets/prince-tumble-a-tinted.webp) |
+| `prince-tumble-b` | 360 × 360 | bottom centre | new | [delivered](../assets/prince-tumble-b.webp) |
+| `prince-tumble-b-tinted` | 360 × 360 | bottom centre | new | [delivered](../assets/prince-tumble-b-tinted.webp) |
+| `prince-dive` | 440 × 360 | bottom centre | new | [delivered](../assets/prince-dive.webp) |
+| `prince-dive-tinted` | 440 × 360 | bottom centre | new | [delivered](../assets/prince-dive-tinted.webp) |
+| `prince-swim-under-a` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-swim-under-a.webp) |
+| `prince-swim-under-a-tinted` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-swim-under-a-tinted.webp) |
+| `prince-swim-under-b` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-swim-under-b.webp) |
+| `prince-swim-under-b-tinted` | 360 × 240 | bottom centre | new | [delivered](../assets/prince-swim-under-b-tinted.webp) |
+| `prince-collared` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-collared.webp) |
+| `prince-collared-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-collared-tinted.webp) |
+| `prince-kneel` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-kneel.webp) |
+| `prince-kneel-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-kneel-tinted.webp) |
+| `prince-lift` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-lift.webp) |
+| `prince-lift-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-lift-tinted.webp) |
+| `prince-carry-climb-a` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-carry-climb-a.webp) |
+| `prince-carry-climb-a-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-carry-climb-a-tinted.webp) |
+| `prince-carry-climb-b` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-carry-climb-b.webp) |
+| `prince-carry-climb-b-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-carry-climb-b-tinted.webp) |
+| `prince-court-leap` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-leap.webp) |
+| `prince-court-leap-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-leap-tinted.webp) |
+| `prince-court-fall` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-fall.webp) |
+| `prince-court-fall-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-fall-tinted.webp) |
+| `prince-court-reach` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-reach.webp) |
+| `prince-court-reach-tinted` | 360 × 440 | bottom centre | new | [delivered](../assets/prince-court-reach-tinted.webp) |
+| `crew-squire-crawl` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-squire-crawl.webp) |
+| `crew-squire-crawl-tinted` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-squire-crawl-tinted.webp) |
+| `crew-squire-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-squire-tumble.webp) |
+| `crew-squire-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-squire-tumble-tinted.webp) |
+| `crew-squire-sit-up` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-squire-sit-up.webp) |
+| `crew-squire-sit-up-tinted` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-squire-sit-up-tinted.webp) |
+| `crew-helmsman-crawl` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-helmsman-crawl.webp) |
+| `crew-helmsman-crawl-tinted` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-helmsman-crawl-tinted.webp) |
+| `crew-helmsman-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-helmsman-tumble.webp) |
+| `crew-helmsman-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-helmsman-tumble-tinted.webp) |
+| `crew-helmsman-sit-up` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-helmsman-sit-up.webp) |
+| `crew-helmsman-sit-up-tinted` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-helmsman-sit-up-tinted.webp) |
+| `crew-manatarms-crawl` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-manatarms-crawl.webp) |
+| `crew-manatarms-crawl-tinted` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-manatarms-crawl-tinted.webp) |
+| `crew-manatarms-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-manatarms-tumble.webp) |
+| `crew-manatarms-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-manatarms-tumble-tinted.webp) |
+| `crew-manatarms-sit-up` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-manatarms-sit-up.webp) |
+| `crew-manatarms-sit-up-tinted` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-manatarms-sit-up-tinted.webp) |
+| `crew-bosun-crawl` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-bosun-crawl.webp) |
+| `crew-bosun-crawl-tinted` | 300 × 200 | bottom centre | new | [delivered](../assets/crew-bosun-crawl-tinted.webp) |
+| `crew-bosun-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-bosun-tumble.webp) |
+| `crew-bosun-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/crew-bosun-tumble-tinted.webp) |
+| `crew-bosun-sit-up` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-bosun-sit-up.webp) |
+| `crew-bosun-sit-up-tinted` | 260 × 220 | bottom centre | new | [delivered](../assets/crew-bosun-sit-up-tinted.webp) |
+| `attendant-blue-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-blue-tumble.webp) |
+| `attendant-blue-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-blue-tumble-tinted.webp) |
+| `attendant-green-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-green-tumble.webp) |
+| `attendant-green-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-green-tumble-tinted.webp) |
+| `attendant-pink-tumble` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-pink-tumble.webp) |
+| `attendant-pink-tumble-tinted` | 300 × 300 | bottom centre | new | [delivered](../assets/attendant-pink-tumble-tinted.webp) |
 
 #### `prince-crawl-a` — Crawling out, reach A
 
