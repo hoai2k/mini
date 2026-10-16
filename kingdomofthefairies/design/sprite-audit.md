@@ -102,6 +102,44 @@ Head top per frame, its dip below the passing frames (of the figure height; a wa
 | `sailor-carry-walk-b` | 0 | -0.3% | 1.005 | 0.93 | as drawn |
 | `sailor-carry-pass-b` | 1 | 0.0% | 0.980 | 0.92 | as drawn |
 
+## Climbing frames
+
+Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows above the figure, the painted area against the set's first frame, and whether the feet touch the bottom. Check them side by side as well; only a frame off its canvas or ground is listed for redrawing.
+
+### Prince climbing
+
+| Frame | Canvas | Clear above | Area vs up-a | Feet |
+| --- | --- | --- | --- | --- |
+| `prince-wall-catch` | 360 × 440 | 11 | 1.65 | on the ground |
+| `prince-wall-idle` | 360 × 440 | 0 | 1.44 | on the ground |
+| `prince-wall-idle-b` | 360 × 440 | 0 | 1.45 | on the ground |
+| `prince-wall-leap` | 360 × 440 | 0 | 0.87 | on the ground |
+| `prince-wall-side-a` | 360 × 440 | 2 | 1.55 | on the ground |
+| `prince-wall-side-b` | 360 × 440 | 0 | 1.34 | on the ground |
+| `prince-wall-side-c` | 360 × 440 | 0 | 1.42 | on the ground |
+| `prince-wall-side-d` | 360 × 440 | 0 | 1.42 | on the ground |
+| `prince-wall-up-a` | 360 × 440 | 0 | 1.00 | on the ground |
+| `prince-wall-up-b` | 360 × 440 | 0 | 1.36 | on the ground |
+| `prince-wall-up-c` | 360 × 440 | 0 | 1.01 | on the ground |
+| `prince-wall-up-d` | 360 × 440 | 0 | 1.30 | on the ground |
+
+### Prince climbing (tinted)
+
+| Frame | Canvas | Clear above | Area vs up-a | Feet |
+| --- | --- | --- | --- | --- |
+| `prince-wall-catch-tinted` | 360 × 440 | 1 | 1.55 | on the ground |
+| `prince-wall-idle-b-tinted` | 360 × 440 | 0 | 1.30 | on the ground |
+| `prince-wall-idle-tinted` | 360 × 440 | 1 | 1.28 | on the ground |
+| `prince-wall-leap-tinted` | 360 × 440 | 0 | 0.91 | on the ground |
+| `prince-wall-side-a-tinted` | 360 × 440 | 17 | 1.49 | on the ground |
+| `prince-wall-side-b-tinted` | 360 × 440 | 1 | 1.24 | on the ground |
+| `prince-wall-side-c-tinted` | 360 × 440 | 18 | 1.56 | on the ground |
+| `prince-wall-side-d-tinted` | 360 × 440 | 1 | 1.44 | on the ground |
+| `prince-wall-up-a-tinted` | 360 × 440 | 1 | 1.00 | on the ground |
+| `prince-wall-up-b-tinted` | 360 × 440 | 0 | 1.28 | on the ground |
+| `prince-wall-up-c-tinted` | 360 × 440 | 0 | 1.02 | on the ground |
+| `prince-wall-up-d-tinted` | 360 × 440 | 0 | 1.25 | on the ground |
+
 ## To redraw
 
 Nothing.

@@ -84,7 +84,7 @@ def audit():
     # 1. canvases and feet
     rows = []
     for aid, s in sorted(slots.items()):
-        if s.get('status') != 'delivered' or s.get('anchor') != 'bottom centre' or not s['file'].endswith('.webp'):
+        if s.get('status') != 'delivered' or not str(s.get('anchor', '')).startswith('bottom centre') or not s['file'].endswith('.webp'):
             continue
         if aid.startswith(('gift-', 'keepsake-', 'armour-', 'sword', 'pearl')):
             continue
@@ -137,6 +137,36 @@ def audit():
                 note = f'scaled {scale:.3f}' if scale != 1 else 'as drawn'
                 lines.append(f'| `{i}` | {tops[i]} | {dip:.1%} | {size:.3f} | {q:.2f} | {note} |')
             lines.append('')
+    # 3. climbing frames (F19): seen from behind and anchored at the lowest
+    # boot; each set is compared with its first frame. The head ducks and
+    # lifts between climbing frames as a climber's does, so these numbers are
+    # for reading against the contact sheet, not a fit.
+    lines += ['## Climbing frames', '',
+              'Back-view climbing frames, anchored at the lowest boot: canvas, the clear rows above the figure, the '
+              'painted area against the set\'s first frame, and whether the feet touch the bottom. Check them side '
+              'by side as well; only a frame off its canvas or ground is listed for redrawing.', '']
+    for t in ('', '-tinted'):
+        ids = [aid for aid in sorted(slots) if aid.startswith('prince-wall-') or aid.startswith('prince-mantle-')]
+        ids = [aid for aid in ids if aid.endswith('-tinted') == bool(t) and slots[aid].get('status') == 'delivered' and (ASSETS / slots[aid]['file']).exists()]
+        if not ids:
+            continue
+        lines += [f'### Prince climbing{" (tinted)" if t else ""}', '', '| Frame | Canvas | Clear above | Area vs up-a | Feet |', '| --- | --- | --- | --- | --- |']
+        areas = {}
+        for aid in ids:
+            im = Image.open(ASSETS / slots[aid]['file'])
+            a = np.asarray(im.convert('RGBA'))[:, :, 3] > 40
+            areas[aid] = int(a.sum())
+        for aid in ids:
+            im = Image.open(ASSETS / slots[aid]['file'])
+            _, a = load(aid)
+            top = bounds(a)[0]
+            first = f'prince-wall-up-a{t}' if f'prince-wall-up-a{t}' in areas else ids[0]
+            gap = feet_gap(im)
+            ok = list(im.size) == [360, 440] and gap <= FEET_TOL
+            if not ok:
+                problems.append(f'{aid}: canvas {im.size[0]} x {im.size[1]}, {gap} px under the feet')
+            lines.append(f'| `{aid}` | {im.size[0]} × {im.size[1]} | {top} | {areas[aid] / areas[first]:.2f} | {"on the ground" if gap <= FEET_TOL else f"{gap} px above"} |')
+        lines.append('')
     lines += ['## To redraw', '']
     lines += [f'- {p}' for p in problems] or ['Nothing.']
     lines.append('')
