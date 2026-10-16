@@ -74,6 +74,12 @@ const SOUNDS = {
   bang: () => { noise({ dur: 0.25, gain: 0.6, freq: 500 }); tone({ freq: 120, to: 40, dur: 0.25, gain: 0.5 }); },
   flap: () => noise({ dur: 0.08, gain: 0.2, freq: 1500 }),
   honk: () => tone({ freq: 330, to: 300, dur: 0.25, gain: 0.3, type: 'square' }),
+  // Soft underwater sounds (Aquarium): low, short and quiet.
+  gulp: () => { tone({ freq: 240, to: 110, dur: 0.14, gain: 0.1 }); noise({ dur: 0.12, gain: 0.04, freq: 350 }); },
+  nudge: () => tone({ freq: 150, to: 115, dur: 0.07, gain: 0.06 }),
+  bubble: () => tone({ freq: 380, to: 820, dur: 0.07, gain: 0.05 }),
+  drip: () => { tone({ freq: 900, to: 600, dur: 0.05, gain: 0.04 }); tone({ freq: 700, to: 480, dur: 0.05, gain: 0.03, delay: 0.06 }); },
+  swish: () => noise({ dur: 0.3, gain: 0.06, freq: 500 }),
 };
 
 // While the page isn't in front, the app's own sounds stay quiet (friends'

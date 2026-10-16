@@ -58,7 +58,7 @@ leave the game, so stop every `requestAnimationFrame`, timer and listener.
 | `mediaOf(id)` | another player's `<video>` (or my canvas for my id), for drawing faces into the game |
 | `insets()` | `{ top, bottom }`: pixels the app's floating bars cover; only matters with `fullBleed`, where scores and key objects should stay clear of them |
 | `img(name)` | delivered artwork by asset name, or `null` until it arrives |
-| `sfx(name)` | `pop blow whoosh click score miss bounce win lose tick join leave zap fire bang flap honk` |
+| `sfx(name)` | `pop blow whoosh click score miss bounce win lose tick join leave zap fire bang flap honk`, and the quiet `gulp nudge bubble drip swish` |
 | `toast(text)` | a short message at the bottom of the screen |
 | `exit()` | leave the game |
 
