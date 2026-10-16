@@ -243,7 +243,9 @@ export class Enemy {
     const st = (o.stagger ?? 0.2) * (this.def.knockResist ? 0.5 : 1) * (this.elite ? 0.6 : 1);
     if (st > 0.15 && !o.blocked && (this.state !== 'windup' || st > 0.4 || !this.def.superArmor)) {
       if (this.state === 'windup') this.cancelAttack();
-      this.state = 'stagger'; this.stateT = 0; this.stagger = st;
+      // (a light hit never cuts a longer stun short: Shield Bash's 1.4 s used to end at the next 0.25 s flinch)
+      const left = this.state === 'stagger' ? Math.max(0, this.stagger - this.stateT) : 0;
+      this.state = 'stagger'; this.stateT = 0; this.stagger = Math.max(left, st);
     }
     this.game.audio?.enemyHurt(this.def.pitch ?? 1);
     if (this.hp <= 0) this.die(o);
@@ -253,7 +255,7 @@ export class Enemy {
   // Drop an attack in progress. Whoever calls this owns the next state; an
   // enemy left in 'windup' or 'recover' without an action falls back to idle.
   cancelAttack() {
-    if (this.marker) { this.game.markers.cancel(this.marker); this.marker = null; }
+    if (this.marker) { this.game.markers.cancel(this.marker, this.markerGen); this.marker = null; }
     this.action = null;
     if (this.state === 'windup' || this.state === 'recover') { this.state = 'idle'; this.stateT = 0; }
   }
@@ -863,6 +865,7 @@ export class Enemy {
     } else if (A.marker === 'cone' || (kind === 'bite' && this.big)) {
       this.marker = g.markers.spawn({ pos: this.pos, radius: A.range, dur: A.windup, shape: 'cone', arc: kind === 'bite' ? 0.3 : 0.35, facing: this.facing, follow: this });
     }
+    this.markerGen = this.marker?.gen;
     if (kind === 'inflate') g.audio?.charge(A.windup, 0.8);
     if (kind === 'summon') g.audio?.energy('summon');
     this.voice();
@@ -968,7 +971,9 @@ export class Enemy {
     }
   }
   hitPlayer(p, dmg, knock) {
-    if (p.iframes > 0 || p.dead) return;
+    if (p.dead) return;
+    // (a dodge's i-frames: the hero's takeDamage still sees the blow, for Battle Sense)
+    if (p.iframes > 0) { if (p.dodgeT > 0) p.takeDamage?.(dmg, this, { knock }); return; }
     const dealt = p.takeDamage(dmg, this, { knock });
     if (dealt > 0 && this.def.poison) poisonHero(this.game, p, this.def.poison.dps * (this.dmg / monsterDamage(this.def.dmg, this.def.tier)), this.def.poison.dur, this);   // (poison grows with the difficulty, not the tier's hit scale)
     if (dealt > 0 && this.elite === 'vampiric') { this.hp = Math.min(this.maxHp, this.hp + dealt * 1.5); }

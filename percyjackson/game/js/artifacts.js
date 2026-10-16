@@ -187,7 +187,8 @@ export function useArtifact(game, p, art) {
       break;
     }
     case 'charm': { // Nectar Flask
-      for (const q of g.players) if (!q.dead && q.pos.distanceTo(p.pos) < 6) { q.healOverTime = { left: q.maxHp * 0.3 * power, t: 4 }; g.fx.heal(q.pos, 0xffc84a); }
+      // (added to a heal already running, an Ambrosia sip, rather than replacing it)
+      for (const q of g.players) if (!q.dead && q.pos.distanceTo(p.pos) < 6) { const r = q.healOverTime; q.healOverTime = { left: (r?.left ?? 0) + q.maxHp * 0.3 * power, t: Math.max(4, r?.t ?? 0) }; g.fx.heal(q.pos, 0xffc84a); }
       g.audio?.energy('heal');
       break;
     }

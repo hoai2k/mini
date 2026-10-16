@@ -31,7 +31,7 @@ import { toast } from './ui/ui.js';
 import { ENEMY_TABLES } from './world/levelgen.js';
 import { OBJECTIVES } from './objectives/index.js';
 import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
-import { isGuest, sendAct } from './objectives/common.js';
+import { isGuest, sendAct, mainPath, doorBetween } from './objectives/common.js';
 import { chapter as chapterDef, chapterPlayable } from './story/chapters.js';
 import { chapterMissionDef, resolveBoss, resolveBiome } from './story/missionDef.js';
 import { bundlesFrom } from './resources.js';
@@ -351,6 +351,44 @@ export class Mission {
     if (this.failed || this.complete) return;
     this.handler?.update?.(dt);
     if (this.disguisedBoss && !this.disguisedBoss.disguised && !this.revealedBoss) this.revealDisguisedBoss();
+    this.guideT = (this.guideT ?? 0) - dt;
+    if (this.guideT <= 0) { this.guideT = 0.5; this.updateGuide(); }
+  }
+  // Where to go next, for the tracker's arrow and beam (and the footprints
+  // when the left stick is clicked): an objective's own `guide()` if it has
+  // one, else the nearest thing left to free or seal, the next room on the
+  // way while monsters are still to be beaten, the arena once the way is
+  // open, and the way out after the boss. Chapter 1 points its own way.
+  guideTarget() {
+    const g = this.game, L = this.L;
+    if (this.complete || this.failed) return null;
+    const own = this.handler?.guide?.();
+    if (own !== undefined) return own;
+    if (this.bossSpawned) return this.boss?.dead && g.exitPortal ? g.exitPortal.pos : null;
+    if (this.objDone) return this.def.boss && L.bossRoom ? L.bossRoom.center : null;
+    const lead = g.tracker?.leader?.()?.pos ?? L.spawn;
+    if (this.obj.items.length) {
+      let best = null, bd = Infinity;
+      for (const it of this.obj.items) { if (it.done) continue; const d = Math.hypot(it.pos.x - lead.x, it.pos.z - lead.z); if (d < bd) { bd = d; best = it.pos; } }
+      return best;
+    }
+    // monsters still to beat: the next room on the way not yet entered, then the nearest other one
+    const next = mainPath(L).find((r) => !r.activated && r.type !== 'boss');
+    if (next) return next.center;
+    let best = null, bd = Infinity;
+    for (const r of L.rooms) { if (r.activated || r.type === 'boss' || r.type === 'secret') continue; const d = Math.hypot(r.center.x - lead.x, r.center.z - lead.z); if (d < bd) { bd = d; best = r.center; } }
+    return best;
+  }
+  updateGuide() {
+    const g = this.game;
+    if (!g.tracker || this.obj.type === 'museum') return;
+    const pos = this.guideTarget();
+    const key = pos ? `${Math.round(pos.x / 2)},${Math.round(pos.z / 2)}` : '';
+    if (key === this.guideKey) return;
+    this.guideKey = key;
+    if (!pos) { g.tracker.setGoal(null); return; }
+    const at = pos.clone(); const gy = g.world.groundBelow(at.x, at.z, at.y + 2); if (isFinite(gy)) at.y = gy;
+    g.tracker.setGoal({ title: '', pos: at, radius: 2, feet: false, mission: true, quiet: true });
   }
   activate(room) {
     const g = this.game;
@@ -550,6 +588,20 @@ export class Mission {
     for (const sp of list) { const at = this.standAt(sp[0], sp[1], sp[2]); if (at) return at; }
     return null;
   }
+  // After a wipe outside a trap or boss fight: back in the furthest room
+  // of the main path the party reached, by the door they came in through
+  // (the level start was a long walk back through cleared rooms).
+  checkpointSpot() {
+    const L = this.L, path = mainPath(L);
+    for (let i = path.length - 1; i > 0; i--) {
+      const room = path[i];
+      if (!room.activated) continue;
+      const door = doorBetween(room, room.parent) ?? room.center;
+      const list = (room.spawns?.length ? room.spawns : [[room.center.x, room.y, room.center.z]]).slice().sort((a, b) => Math.hypot(a[0] - door.x, a[2] - door.z) - Math.hypot(b[0] - door.x, b[2] - door.z));
+      for (const sp of list) { const at = this.standAt(sp[0], sp[1], sp[2]); if (at && !this.game.world.liquidAt(at.x, at.y + 0.5, at.z)) return at; }
+    }
+    return null;
+  }
   startBoss(room, at = null) {
     const g = this.game;
     if (this.bossSpawned) return;
@@ -661,5 +713,5 @@ export class Mission {
     if (d.a === 'wave') { const it = this.obj.items[d.i | 0]; if (it) this.guardWave(it, d.s === 2 ? 2 : 1); return; }
     this.handler?.onNetAct?.(d);
   }
-  dispose() { for (const gate of this.L.gates) this.clearGateTimers(gate); this.handler?.dispose?.(); for (const p of this.props) this.game.scene.remove(p); }
+  dispose() { for (const gate of this.L.gates) this.clearGateTimers(gate); this.handler?.dispose?.(); for (const p of this.props) { this.game.scene.remove(p); this.game.releaseLater?.(p); } }
 }

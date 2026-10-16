@@ -166,7 +166,8 @@ cutscene. Settings can skip the opening.
 gold arrow at the screen edge points to it when it is off screen, a beam marks
 it, and in camp footprints on the ground lead along the walkable way (the
 prologue has only the arrow and the beam). In camp the goal is the next
-chapter's quest marker.
+chapter's quest marker; in a chapter, the next thing to do (footprints on a
+left-stick click).
 
 **Roaming monsters:** as in Minecraft Dungeons, low-level monsters turn up as
 you walk around: rats in the prologue; pups, bronze spiders, Stymphalian birds

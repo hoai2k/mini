@@ -413,7 +413,7 @@ export class Boss {
     const g = this.game, t = this.target(); if (!t) return;
     this.moving = false;
     this.faceTarget(t);
-    g.markers.spawn({ pos: this.pos, radius: 5.2, dur: 0.7, shape: 'cone', arc: 0.95, facing: this.facing, color: 0xff2a1a, follow: this });
+    g.markers.spawn({ pos: this.pos, radius: 5.5, dur: 0.7, shape: 'cone', arc: 0.35, facing: this.facing, color: 0xff2a1a, follow: this });   // (the sweep hits within 1.1 rad either side, 5.5 m out)
     this.anim = { type: 'attack', t: 0.2, style: 'swingR', windup: 0.3, strike: 0.5 };
     yield 0.7;
     this.anim = { type: 'attack', t: 0.6, style: 'swingR', windup: 0.3, strike: 0.5 };

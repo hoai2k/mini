@@ -69,6 +69,8 @@ export class EscapeObjective {
     this.el = h('div', { class: 'lotus-days', style: 'position:absolute;top:196px;right:12px;padding:4px 14px;border-radius:14px;background:rgba(20,10,30,.72);border:1px solid #c9963a;color:#ffd8f0;font:600 15px/1.3 system-ui,sans-serif;pointer-events:none;z-index:5;text-shadow:0 1px 2px #000' });
     (g.hud.root ?? document.body).appendChild(this.el);
   }
+  // the tracker: nothing until True Sight finds the way out (the gold trail is the guide), then the door
+  guide() { return this.found && !this.failed ? this.exitPos : null; }
   update(dt) {
     const m = this.m, g = this.g, host = !isGuest(m);
     if (m.complete) return;

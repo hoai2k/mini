@@ -250,11 +250,15 @@ export class Environment {
     const p = geo.attributes.position;
     for (let i = 0; i < p.count; i++) { const y = p.getY(i) / 10; const c = hor.clone().lerp(top, Math.pow(Math.max(0, y), 0.6)); if (y < 0) c.multiplyScalar(0.4); cols.push(c.r * 2, c.g * 2, c.b * 2); }
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-    env.add(new THREE.Mesh(geo, new THREE.MeshBasicNodeMaterial({ vertexColors: true, side: THREE.BackSide })));
+    const sky = new THREE.Mesh(geo, new THREE.MeshBasicNodeMaterial({ vertexColors: true, side: THREE.BackSide }));
+    env.add(sky);
     const pm = new THREE.PMREMGenerator(renderer);
     const rt = pm.fromScene(env, 0.02);
+    this.probeRT?.dispose();   // (the last level's probe: it used to stay for good, one a load)
+    this.probeRT = rt;
     this.scene.environment = rt.texture;
     this.scene.environmentIntensity = 0.35;
     pm.dispose();
+    geo.dispose(); sky.material.dispose(); sky.dispatchEvent({ type: 'dispose' });
   }
 }

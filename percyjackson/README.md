@@ -50,7 +50,12 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   at the edge of the screen points to it (with the distance), a beam marks
   it, and in camp glowing footprints lead the way (not in the prologue: the
   arrow is enough there). In camp the goal is the next chapter's quest
-  marker.
+  marker. In a chapter the arrow and beam point to the next thing to do: the
+  nearest captive, trap or rift left, the banner (then home with it), the next
+  room while there are monsters to beat, the arena once the way is open, and
+  the way out after the boss (in the Lotus Casino only once True Sight has
+  found the door); clicking the left stick (middle click) shows footprints
+  there for a few seconds. Chapter 1 points the way to Mrs. Dodds.
 - **Monsters while you walk around:** small packs of low-level monsters turn
   up out of sight in the camp woods and along the Road West (pups, bronze
   spiders, Stymphalian birds, scorpions on the far road), never inside the
@@ -124,7 +129,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     (Start on a controller, or online) takes over a companion's hero where it
     stands, with its health; a player who leaves, or whose controller is
     unplugged for two seconds, hands their hero to the AI, and gets it back
-    if they return.
+    if they return. Playing alone, an unplugged controller pauses the game.
+  - A party wipe brings everyone back at the furthest room they reached
+    (inside a sealed trap, or at the arena door in a boss fight).
   - Companions follow you and never start a fight: they go only for monsters
     already in the battle (fighting, hit by a player, or in a group whose
     alarm is up), and come back to you when it's over. Monsters notice
@@ -188,7 +195,7 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     smiths that lob Greek fire at a marked spot) fill the melee and artillery
     parts of the boards that lacked them.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
-  but not the heroes.
+  but not the heroes. The jump slam has a 1.2 s cooldown.
 - **Healing and ammo, as in Minecraft Dungeons:**
   - Ambrosia (LT or E) is one square on a cooldown: a bite restores 65%
     of your health over 1.2 s, then it refills over 22 s (shown as a radial
@@ -377,6 +384,8 @@ across every screen.
 | `game/assets/` | Web copies of the art: chapter cards, hero cards and portraits, title background, logo |
 | `game/test/` | Checks: modules parse, imports resolve, ids agree, loot rules, profiles and save slots (migration, merging, new games), physics, spawn and prop placement off canopies, the battle cadence (rooms by role, groups and scouts placed from the seed, traps per chapter, room sizes, kill objectives a level can meet), boss health for the party, the prologue's rats and hints, the Greek-letter timings, the preloaded pictures, people in the Mist, chapter 1's museum (the calm walk, the reveal, hidden blows under the Mist, her three flights to rooms you can walk to, her lines in your device's words), the Ambrosia flask, the quiver and monster hit sizes, the controller layout |
 | `design/` | The design, image requests, concept art and the scripts that make the web copies |
+| `design/audit.md` | The October 2026 audit of gameplay, level design and performance: what was fixed and what is still to do |
+| `perf/` | The performance harness (headless Chromium): load times, frame CPU, draw calls, leaks, a smoke check of every chapter; not published |
 | `reference/` | Private style references (not published) |
 | `intake/` | Drop box for new art |
 | `publish.sh` | Copies the game into the Pages output |
@@ -395,6 +404,11 @@ which makes `Math.random` a seeded generator, and tests that roll items pass
 their own seeded `rng`. To look for a test that only passes by luck, run the
 suite under other seeds, for example
 `for s in $(seq 1 50); do TEST_SEED=$s node --test test/*.test.mjs | grep '^not ok'; done`.
+
+Performance and a browser smoke check of every chapter (not needed for every
+change; see [perf/README.md](perf/README.md)):
+`bash percyjackson/perf/run-all.sh` and
+`NODE_PATH=/opt/node22/lib/node_modules node percyjackson/perf/smoke.cjs`.
 
 To try it locally, serve the repository root (for example
 `python3 -m http.server`) and open `/percyjackson/game/`.
