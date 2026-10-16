@@ -36,7 +36,11 @@ export function terrainAt(map, x, y) {
 const holdable = (map, x, y) => terrainAt(map, x, y) !== '.'
   && (terrainAt(map, x, y + CLIMB.hands) !== '.' || (map.openTop && y + CLIMB.hands >= map.top - 4 && terrainAt(map, x, map.top - 8) !== '.'));
 // No higher than his hands can reach on a wall with a closed top (the tower's battlements).
-const cap = (w, y) => (w.map.openTop || w.goal == null ? y : Math.min(y, w.map.top - CLIMB.hands - 2));
+// (or, on the classic cliff, than the overhanging lip lets him: only the boot gets him over)
+const cap = (w, y) => {
+  if (w.capY != null) return Math.min(y, Math.max(w.y, w.capY));
+  return w.map.openTop || w.goal == null ? y : Math.min(y, w.map.top - CLIMB.hands - 2);
+};
 const onLedge = (l, x, pad = 0) => x >= l.x0 - pad && x <= l.x1 + pad;
 
 // `holds` is the act's hold list: its ledge holds are already ledges in the
@@ -47,24 +51,29 @@ export function createWall(name, holds, at, opts = {}) {
     name, map, x: at.x, y: at.y, mode: 'wall', t: 0, face: 1, dir: { x: 0, y: 0 }, dist: 0, still: 0,
     ledge: -1, from: null, to: null, vy: 0, cd: 0, after: null,
     goal: opts.goal || null, floor: opts.floor ?? 0,
+    // the wall's ledges, and any the act moves itself (the classic giant's boot)
+    ledges: [...map.ledges.map((l) => ({ ...l })), ...(opts.extraLedges || [])],
+    capY: opts.capY ?? null, closedTop: !!opts.closedTop,
     pearls: holds.filter((h) => h.pearl).map((h) => ({ x: h.x, y: h.y, taken: false })),
     crumbles: holds.filter((h) => h.kind === 'crumble').map((h) => ({ x: h.x, y: h.y, t: 0, gone: false })),
   };
-  const near = map.ledges.findIndex((o) => onLedge(o, at.x, 4) && Math.abs(o.y - at.y) <= 40);
-  if (near >= 0) { w.mode = 'ledge'; w.ledge = near; w.y = map.ledges[near].y; }
+  const near = w.ledges.findIndex((o) => onLedge(o, at.x, 4) && Math.abs(o.y - at.y) <= 40);
+  if (near >= 0) { w.mode = 'ledge'; w.ledge = near; w.y = w.ledges[near].y; }
   return w;
 }
 
 // The highest ledge whose top is at or just below y under x.
 function ledgeUnder(w, x, y) {
   let best = -1;
-  w.map.ledges.forEach((l, i) => { if (onLedge(l, x, 4) && l.y <= y && l.y > y - 60 && (best < 0 || l.y > w.map.ledges[best].y)) best = i; });
+  w.ledges.forEach((l, i) => { if (onLedge(l, x, 4) && l.y <= y && l.y > y - 60 && (best < 0 || l.y > w.ledges[best].y)) best = i; });
   return best;
 }
 
 export function wallSpeed(w, x, y) {
-  let v = CLIMB.speed[terrainAt(w.map, x, y + CLIMB.hands)] ?? 0;
-  if (w.map.ledges.some((l) => onLedge(l, x) && l.y > y + CLIMB.hands - CLIMB.lipBand && l.y < y + CLIMB.hands + 12)) v *= CLIMB.lip;
+  // (reaching over the cliff's grass edge, the top of the rock under his hands)
+  const t = terrainAt(w.map, x, y + CLIMB.hands);
+  let v = CLIMB.speed[t] ?? (w.map.openTop && y + CLIMB.hands >= w.map.top - 12 ? CLIMB.speed.r : 0);
+  if (w.ledges.some((l) => onLedge(l, x) && l.y > y + CLIMB.hands - CLIMB.lipBand && l.y < y + CLIMB.hands + 12)) v *= CLIMB.lip;
   return v;
 }
 
@@ -101,17 +110,23 @@ export function stepWall(w, dt, input, ctx) {
   } else if (w.mode === 'fall') {
     w.vy = Math.min(900, w.vy + CLIMB.g * dt);
     const ny = Math.max(w.floor, w.y - w.vy * dt);
-    const l = w.map.ledges.findIndex((o) => onLedge(o, w.x) && o.y <= w.y && o.y >= ny);
-    if (l >= 0) { w.y = map.ledges[l].y; w.mode = 'ledge'; w.ledge = l; w.t = 0; ctx.events.push({ type: 'climbLand', sound: 'thud', gain: 0.3 }); }
+    const l = w.ledges.findIndex((o) => onLedge(o, w.x) && o.y <= w.y && o.y >= ny);
+    if (l >= 0) { w.y = w.ledges[l].y; w.mode = 'ledge'; w.ledge = l; w.t = 0; ctx.events.push({ type: 'climbLand', sound: 'thud', gain: 0.3 }); }
     else { w.y = ny; if (w.t >= CLIMB.fallCatch && holdable(map, w.x, w.y)) { begin(w, 'catch', null); ctx.events.push({ type: 'climbCatch', sound: 'rockScrape', gain: 0.5 }); } }
   } else if (w.mode === 'ledge') {
-    const l = map.ledges[w.ledge];
+    const l = w.ledges[w.ledge];
+    w.y = l.y;   // a ledge the act moves carries him with it
     if (input.a && w.cd <= 0 && holdable(map, w.x, w.y + 40)) {
       const d = dir && dir.y > -0.3 ? dir : { x: dir ? dir.x * 0.5 : 0, y: 1 };
       return leap(w, d, ctx);
     }
     const canUp = holdable(map, w.x, w.y + 24), canDown = holdable(map, w.x, w.y - CLIMB.hands);
-    if (dir && dir.y > 0.6 && Math.abs(dir.x) < 0.8 && canUp) {
+    // a ledge within his reach above (the classic giant's boot over its shelf): straight up onto it
+    const above = dir && dir.y > 0.6 ? w.ledges.findIndex((o, i) => i !== w.ledge && onLedge(o, w.x, 4) && o.y > w.y + 8 && o.y <= w.y + CLIMB.hands + 8) : -1;
+    if (above >= 0) {
+      w.ledge = above; begin(w, 'mantle', { x: clamp(w.x, w.ledges[above].x0 + 6, w.ledges[above].x1 - 6), y: w.ledges[above].y });
+      ctx.events.push({ type: 'climbMantle', sound: 'rockScrape', gain: 0.6 });
+    } else if (dir && dir.y > 0.6 && Math.abs(dir.x) < 0.8 && canUp) {
       begin(w, 'step', { x: w.x, y: w.y + 8 }); w.face = dir.x < -0.2 ? -1 : dir.x > 0.2 ? 1 : w.face;
       ctx.events.push({ type: 'climbStep' });
     } else if (dir && dir.y < -0.6 && Math.abs(dir.x) < 0.8 && canDown) {
@@ -123,8 +138,8 @@ export function stepWall(w, dt, input, ctx) {
       if (onLedge(l, nx, 6)) { w.x = nx; w.dist += Math.abs(vx * dt); w.still = 0; }
       else {
         // off its end: onto the face beside it, or along to a ledge level with it
-        const next = map.ledges.findIndex((o, i) => i !== w.ledge && onLedge(o, nx, 6) && Math.abs(o.y - l.y) < 20);
-        if (next >= 0) { w.ledge = next; w.x = nx; w.y = map.ledges[next].y; w.dist += Math.abs(vx * dt); }
+        const next = w.ledges.findIndex((o, i) => i !== w.ledge && onLedge(o, nx, 6) && Math.abs(o.y - l.y) < 20);
+        if (next >= 0) { w.ledge = next; w.x = nx; w.y = w.ledges[next].y; w.dist += Math.abs(vx * dt); }
         else if (holdable(map, nx, w.y)) { w.x = nx; w.mode = 'wall'; w.t = 0; ctx.events.push({ type: 'climbStep' }); }
       }
     } else w.still += dt;
@@ -134,12 +149,14 @@ export function stepWall(w, dt, input, ctx) {
     if (input.a && w.cd <= 0) return leap(w, dir || { x: 0, y: 1 }, ctx);
     if (dir) {
       const v = wallSpeed(w, w.x, w.y) * (dir.y < 0 ? CLIMB.down : 1) * (Math.abs(dir.x) > Math.abs(dir.y) ? CLIMB.side : 1);
-      let nx = w.x + dir.x * v * dt, ny = cap(w, w.y + dir.y * v * dt);
+      const wantY = w.y + dir.y * v * dt;
+      let nx = w.x + dir.x * v * dt, ny = cap(w, wantY);
       if (!holdable(map, nx, ny)) {
         if (holdable(map, nx, w.y)) ny = w.y; else if (holdable(map, w.x, ny)) nx = w.x; else { nx = w.x; ny = w.y; }
       }
       ny = Math.max(ny, w.floor);
-      if (!arrive(w, w.x, w.y, nx, ny, ctx, false)) {
+      // (a ledge within reach above is reached even where the lip caps his climb)
+      if (!arrive(w, w.x, w.y, nx, Math.max(ny, Math.min(wantY, w.y + 40)), ctx, false)) {
         w.dist += Math.hypot(nx - w.x, ny - w.y); w.x = nx; w.y = ny;
       }
       w.dir = dir; w.still = 0;
@@ -177,22 +194,22 @@ function arrive(w, px, py, nx, ny, ctx, leaping) {
     begin(w, 'mantle', { x: g.x, y: g.y }, 'top'); ctx.events.push({ type: 'climbMantle', sound: 'rockScrape', gain: 0.6 });
     return true;
   }
-  if (!g && ny + H >= map.top) {
+  if (!g && !w.closedTop && ny + H >= map.top) {
     begin(w, 'mantle', { x: nx, y: map.top }, 'top'); ctx.events.push({ type: 'climbMantle', sound: 'rockScrape', gain: 0.6 });
     return true;
   }
   if (ny > py) {
-    const i = map.ledges.findIndex((l) => onLedge(l, nx, 4) && py + H < l.y + 2 && ny + H >= l.y);
+    const i = w.ledges.findIndex((l) => onLedge(l, nx, 4) && py < l.y - 2 && ny + H >= l.y);
     if (i >= 0) {
-      const l = map.ledges[i];
+      const l = w.ledges[i];
       w.ledge = i;
       begin(w, 'mantle', { x: clamp(nx, l.x0 + 6, l.x1 - 6), y: l.y }); ctx.events.push({ type: 'climbMantle', sound: 'rockScrape', gain: 0.6 });
       return true;
     }
   } else if (ny < py) {
-    const i = map.ledges.findIndex((l) => onLedge(l, nx, 4) && py >= l.y - 1 && ny <= l.y);
+    const i = w.ledges.findIndex((l) => onLedge(l, nx, 4) && py >= l.y - 1 && ny <= l.y);
     if (i >= 0) {
-      w.ledge = i; w.x = nx; w.y = map.ledges[i].y; w.mode = 'ledge'; w.t = 0;
+      w.ledge = i; w.x = nx; w.y = w.ledges[i].y; w.mode = 'ledge'; w.t = 0;
       ctx.events.push({ type: leaping ? 'climbLand' : 'climbStepDown' });
       return true;
     }
@@ -209,6 +226,9 @@ function leap(w, d, ctx) {
   ctx.events.push({ type: 'leap' });
   return null;
 }
+
+// Hauls him up to (x, y): onto the top when `after` is 'top'.
+export function mantleTo(w, x, y, after, ctx) { begin(w, 'mantle', { x, y }, after); ctx.events.push({ type: 'climbMantle', sound: 'rockScrape', gain: 0.6 }); }
 
 // Struck by a stone: a jolt on the wall (no fall).
 export function jolt(w) { if (w.mode === 'wall' || w.mode === 'ledge') { const m = w.mode; begin(w, 'hit', null); w.after = null; w.wasLedge = m === 'ledge'; } }
