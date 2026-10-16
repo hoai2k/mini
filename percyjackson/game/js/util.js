@@ -1,4 +1,14 @@
 // Small shared helpers: seeded RNG, math, easing.
+
+// Lets the renderer forget an object tree taken out of the scene for good.
+// three's WebGPU renderer keeps what it built to draw a mesh until the mesh
+// itself (or its material) is disposed; materials here are shared and
+// geometry.dispose() alone doesn't do it, so every level used to stay in
+// memory (about 37 MB a trip from camp to a chapter and back). geometry:
+// true also frees the geometry (only when nothing else uses it).
+export function releaseObject(root, { geometry = false } = {}) {
+  root?.traverse?.((o) => { if (geometry) o.geometry?.dispose?.(); o.dispatchEvent?.({ type: 'dispose' }); });
+}
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {

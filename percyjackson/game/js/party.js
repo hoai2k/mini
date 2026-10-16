@@ -246,9 +246,14 @@ export class Party {
     for (const p of [...g.players]) {
       if (p.ai || p.remote || !p.device?.startsWith('pad')) { if (p) p.padGoneT = 0; continue; }
       const pad = g.input.padById?.(+p.device.slice(3));
-      if (pad && pad.connected) { p.padGoneT = 0; continue; }
+      if (pad && pad.connected) { p.padGoneT = 0; p.padPaused = false; continue; }
       p.padGoneT = (p.padGoneT ?? 0) + dt;
-      if (p.padGoneT < PAD_GONE || g.players.filter((q) => !q.ai && !q.remote).length < 2) continue;
+      // the only player here lost their controller: pause, once, until it comes back
+      if (g.players.filter((q) => !q.ai && !q.remote).length < 2) {
+        if (!p.padPaused && p.padGoneT > 0.25 && g.state === 'playing' && !g.cutscene && !g.minigame) { p.padPaused = true; g.toast?.('Controller disconnected: reconnect it to carry on'); g.pause?.(p); }
+        continue;
+      }
+      if (p.padGoneT < PAD_GONE) continue;
       p.padGoneT = 0;
       g.toast?.(`${g.profileName?.(p) ?? 'A player'} left: the AI plays ${HEROES[p.hero]?.name ?? p.hero} for now`);
       if (g.online?.isGuest) { g.online.dropLocalHuman(p); continue; }

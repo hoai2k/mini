@@ -13,8 +13,10 @@ import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
 import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
 
-// the jump slam: damage before gear, radius in metres, knock-back
-export const SLAM = { dmg: 20, radius: 2.6, knock: 8 };
+// the jump slam: damage before gear, radius in metres, knock-back, seconds
+// before the next (with no cooldown, jump-slamming over and over out-damaged
+// every combo and kept the hero untouchable most of the time)
+export const SLAM = { dmg: 20, radius: 2.6, knock: 8, cd: 1.2 };
 
 export const PLAYER_COLORS = ['#4fc8ff', '#ff5a6a', '#7aff7a', '#ffc94a'];
 
@@ -61,14 +63,26 @@ export class Player {
     this.heroLight = game.lights.attach(this.object, 0xffe8d0, 1.6, 7, { offsetY: 2.2, priority: 6 });
   }
   // Re-apply gear/skills (after inventory or skill-tree changes).
+  // The hero's health share and ability cooldowns carry over: a new kit
+  // starts with every slot ready and some kits add health (Tyson, Clarisse),
+  // so a hero switch or a gear change used to refill both.
   refreshLoadout() {
     const g = this.game;
     const sv = g.saveFor?.(this) ?? g.save;   // net: the profile of whoever plays this hero
+    const frac = this.maxHp > 0 ? this.hp / this.maxHp : 1;
+    const old = this.kit?.slots ?? {};
     this.skills = sv ? sv.hero(this.hero).skills : {};
     applyGear(this, sv ? sv.gearFor(this.hero) : []);
     resizeQuiver(this.quiver, this.stats);
     this.kit.dispose?.();
     this.kit = createKit(this);
+    if (!this.dead && !this.downed) this.hp = Math.min(this.maxHp, Math.max(1, frac * this.maxHp));
+    for (const k in this.kit.slots) {
+      const s = this.kit.slots[k], o = old[k];
+      if (!o) continue;
+      s.cdLeft = o.cdLeft ?? 0;
+      if (s.maxCharges && o.maxCharges) { s.chargesLeft = Math.min(s.maxCharges, o.chargesLeft ?? s.maxCharges); s.recharge = o.recharge ?? 0; s.gate = o.gate ?? 0; }
+    }
   }
   // ---------------------------------------------------------------- vitals
   gainCE(a) { if (this.domainActive) return; this.ce = Math.min(this.maxCe, this.ce + a * this.stats.ceGain); }
@@ -80,7 +94,7 @@ export class Player {
   takeDamage(amount, src, o = {}) {
     const g = this.game;
     if (this.dead || this.downed) return 0;
-    if (!o.pure && this.dodgeT > 0 && this.dodgeDur - this.dodgeT < 0.24) this.perfectDodge(src);
+    if (!o.pure && !o.dot && this.dodgeT > 0 && this.dodgeDur - this.dodgeT < 0.24) this.perfectDodge(src);
     if (!o.pure && (this.iframes > 0 || this.invulnerable)) return 0;
     // armour that lets you slip a blow
     if (!o.pure && !o.dot && this.stats.evade && Math.random() < this.stats.evade) { g.fx.damageNumber(this.pos, 0, { color: '#c8e8ff', text: 'Dodged' }); this.iframes = 0.2; return 0; }
@@ -134,7 +148,8 @@ export class Player {
   refill() { this.flask.left = 0; this.quiver.ammo = this.quiver.max; this.quiver.regen = 0; }
   useHeal() {
     if (!canDrink(this.flask, this.hp, this.maxHp)) return;
-    this.healOverTime = { left: drink(this.flask, this.maxHp, this.stats), t: FLASK.dur };
+    const r = this.healOverTime;   // (on top of a heal still running: the Nectar Flask)
+    this.healOverTime = { left: (r?.left ?? 0) + drink(this.flask, this.maxHp, this.stats), t: Math.max(FLASK.dur, r?.t ?? 0) };
     this.game.fx.heal(this.pos, 0x9affd8);
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
@@ -144,6 +159,7 @@ export class Player {
   updateCombat(dt, inp) {
     const g = this.game;
     this.comboT -= dt; tickFlask(this.flask, dt); tickQuiver(this.quiver, dt);
+    if (this.slamCd > 0) this.slamCd = Math.max(0, this.slamCd - dt);
     if (this.healOverTime) { const r = this.healOverTime; const k = Math.min(r.left, (r.left / Math.max(0.05, r.t)) * dt); this.hp = Math.min(this.maxHp, this.hp + k); r.left -= k; r.t -= dt; if (r.t <= 0 || r.left <= 0) this.healOverTime = null; }
     // X in the air after a jump: a jump slam (Minecraft Dungeons II's heavy jump attack)
     if ((inp.pressed.attack || (inp.pressed.slam && !this.slamQueued)) && this.canSlam()) this.startSlam();
@@ -192,7 +208,7 @@ export class Player {
   // ---------------------------------------------------------------- jump slam
   // In the air from a jump, a melee press dives the hero down and the landing
   // knocks back and hurts everything round about.
-  canSlam() { return !this.slam && !this.grounded && !this.inLiquid && this.coyote <= 0 && this.jumpedT > 0.12 && this.dodgeT <= 0 && !this.downed && !this.minigameLock && !(this.action && this.action.lock); }
+  canSlam() { return !this.slam && !(this.slamCd > 0) && !this.grounded && !this.inLiquid && this.coyote <= 0 && this.jumpedT > 0.12 && this.dodgeT <= 0 && !this.downed && !this.minigameLock && !(this.action && this.action.lock); }
   startSlam() {
     this.slam = { t: 0 };
     this.vel.y = Math.min(this.vel.y, -16);
@@ -201,6 +217,7 @@ export class Player {
   }
   landSlam() {
     const g = this.game; this.slam = null; this.action = null;
+    this.slamCd = SLAM.cd * (1 - (this.stats.cdr ?? 0) * 0.5);
     if (this.inLiquid) return;
     const at = this.pos.clone(); at.y += 0.3;
     const dmg = SLAM.dmg * (this.stats.meleeMult ?? 1) * (this.stats.damage ?? 1);
@@ -210,7 +227,7 @@ export class Player {
     g.particles?.burst?.(at, { count: 16, color: 0xd8c8a8, speed: 5, up: 1.2, life: 0.5, size: 0.16 });
     g.shake(0.35); g.hitStop?.(0.05);
     if (!g.audio?.sample?.('hit', { gain: 0.8, rate: 0.7 })) g.audio?.thud?.();
-    this.iframes = Math.max(this.iframes, 0.2);
+    this.iframes = Math.max(this.iframes, 0.1);
   }
   startAttack(step, idx) {
     // A swing goes where the hero faces: the cursor, the right stick, or the

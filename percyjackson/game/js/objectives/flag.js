@@ -130,6 +130,8 @@ export class FlagObjective {
     this.cloth.rotation.y = Math.sin(this.t * 3) * 0.25;
     if ((this.textT -= dt) <= 0) { this.textT = 0.3; m.updateText(); }
   }
+  // the tracker: the banner, or home with it (the hellhound comes after that)
+  guide() { return this.captured ? null : this.carrier ? this.home.center : this.bannerPos; }
   text() {
     if (this.captured) return null;
     const t = this.m.def.objText ?? 'Capture the Flag';

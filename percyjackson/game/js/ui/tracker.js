@@ -7,7 +7,8 @@
 //     distance field worked out once per goal over the voxel world (not in
 //     the prologue, goal.feet === false: there the arrow is enough).
 // The prologue sets the school bus as the goal; in camp it is the next
-// chapter's quest marker (main.js); in chapter 1, Mrs. Dodds (objectives/museum.js). Reduced motion: nothing bobs or pulses.
+// chapter's quest marker (main.js); in chapter 1, Mrs. Dodds (objectives/museum.js);
+// in the other chapters the next thing to do (Mission.updateGuide). Reduced motion: nothing bobs or pulses.
 import * as THREE from 'three/webgpu';
 import { h } from './ui.js';
 import { prefersReducedMotion } from '../settings.js';
@@ -99,13 +100,14 @@ export class Tracker {
     this.m4 = new THREE.Matrix4(); this.q = new THREE.Quaternion(); this.e = new THREE.Euler(); this.s = new THREE.Vector3(1, 1, 1);
   }
   // goal: { title, desc, pos (Vector3, standing height), radius, feet? (false: no footprints),
-  // mission? (true: shown in a chapter too: chapter 1 points the way to Mrs. Dodds) }; null clears it
+  // mission? (true: shown in a chapter too: chapter 1 points the way to Mrs. Dodds),
+  // quiet? (true: leaves the objective ribbon alone: a chapter writes its own) }; null clears it
   setGoal(goal) {
     const g = this.game;
     this.goal = goal;
     this.field = null; this.path = []; this.pathT = 0;
     if (!goal) { this.hide(); return; }
-    g.hud?.setObjective(goal.title, goal.desc ?? '');
+    if (!goal.quiet) g.hud?.setObjective(goal.title, goal.desc ?? '');
     if (!this.group.parent) g.scene.add(this.group);
     if (!this.feet.parent) g.scene.add(this.feet);
     this.group.position.copy(goal.pos);

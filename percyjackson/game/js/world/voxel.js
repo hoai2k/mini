@@ -169,7 +169,7 @@ export class World {
     }
     const g = this.group;
     const swap = (old, mb, mat) => {
-      if (old) { g.remove(old); old.geometry.dispose(); }
+      if (old) { g.remove(old); old.geometry.dispose(); old.dispatchEvent({ type: 'dispose' }); }   // (the renderer lets go of a mesh only on its own dispose)
       if (!mb.count) return null;
       const mesh = new THREE.Mesh(mb.build(), mat);
       mesh.castShadow = mat === this.materials.block; mesh.receiveShadow = true;

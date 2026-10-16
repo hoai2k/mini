@@ -1015,8 +1015,14 @@ DRESS.highway = {
     k.floor(x0, z0, x1, z1, y, B.grass, 8); patches(k, x0, z0, x1, z1, y, B.mud, 0.15);
     const { cx, cz, R } = roundArena(c, 0.6);
     roadBand(c, true, Math.round(cz) + 3, 3);
-    const bus = busBlocks(c, x0 + 3, z0 + 3, 15, true, { burning: true });
-    for (let x = x0; x <= x1; x++) if (Math.abs(x + 0.5 - cx) > 3 && k.w.get(x, y - 1, Math.round(cz) + 8)) k.w.set(x, y, Math.round(cz) + 8, B.guardrail);
+    // the bus along a wall with no door, its side door toward the arena
+    // (parked on the north wall, it shut the arena off when the way in was there)
+    const side = ['n', 's', 'w', 'e'].find((sd) => !c.doors.some((d) => d.side === sd)) ?? 'n';
+    const bus = side === 'n' ? busBlocks(c, x0 + 3, z0 + 3, 15, true, { burning: true })
+      : side === 's' ? busBlocks(c, x0 + 3, z1 - 9, 15, true, { burning: true, flip: true })
+      : side === 'w' ? busBlocks(c, x0 + 3, z0 + 3, 15, false, { burning: true })
+      : busBlocks(c, x1 - 9, z0 + 3, 15, false, { burning: true, flip: true });
+    for (let x = x0; x <= x1; x++) if (Math.abs(x + 0.5 - cx) > 3 && k.w.get(x, y - 1, Math.round(cz) + 8) && !c.reserved?.has(x + ',' + (Math.round(cz) + 8)) && !doorAisle(c, x, Math.round(cz) + 8, 3)) k.w.set(x, y, Math.round(cz) + 8, B.guardrail);
     for (const [a, rr] of [[0.2, 0.9], [2.6, 0.85], [3.4, 0.9], [5.6, 0.85]]) { const px = Math.round(cx + Math.cos(a) * R * rr), pz = Math.round(cz + Math.sin(a) * R * rr); if (free(c, px, pz)) pine(k, px, pz, y, { h: 9 }); }
     for (let i = 0; i < 4; i++) { const px = Math.round(cx - 6 + i * 4), pz = Math.round(cz) + 2 + (i % 2) * 2; place(c, px, pz, 'cone', { rot: i }, 0); }
     k.d.prop('car_flipped', cx + 6.5, y, cz + 6, { rot: 0.4, color: 0x7a1a1a }); k.w.fill(Math.round(cx) + 5, y, Math.round(cz) + 5, Math.round(cx) + 8, y + 1, Math.round(cz) + 6, B.barrier);

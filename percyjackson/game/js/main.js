@@ -52,7 +52,7 @@ import { Archery } from './minigames/archery.js';
 import { Online } from './net/online.js';
 import { LootDrops } from './lootdrops.js';
 import { openOnline } from './net/lobby.js';
-import { mulberry32 } from './util.js';
+import { mulberry32, releaseObject } from './util.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
 import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
@@ -332,7 +332,7 @@ class Game {
   }
   battleSense(dur) { if (!settings.slowmo) return; this.battleSenseT = Math.max(this.battleSenseT, dur); }
   openPhotoMode() { return openPhotoMode(this); }
-  removePlayer(p) { this.scene.remove(p.object); p.kit.dispose?.(); this.lights.remove(p.heroLight); this.partyMgr?.companions.delete(p); }
+  removePlayer(p) { this.scene.remove(p.object); this.releaseLater(p.object); p.kit.dispose?.(); this.lights.remove(p.heroLight); this.partyMgr?.companions.delete(p); }
   // Auto quality: start at the tier this GPU last settled on, and drop a
   // tier (remembered for next time) when even a lower render scale can't
   // keep the frame rate up. Choosing a quality in Settings turns this off.
@@ -359,14 +359,27 @@ class Game {
     this.gr.buildPipeline();
     this.setReadout(settings.showFps);
   }
+  // Objects gone for good are released (util.js releaseObject) some frames
+  // after the next level has drawn: releasing what the renderer built for them
+  // also lets go of shader pipelines nothing else uses yet, and the new level
+  // shares most of them (released first, they'd all be compiled again).
+  releaseLater(obj, opts) { if (obj) (this.toRelease ??= []).push({ obj, opts, frames: 30 }); }
+  tickRelease() {
+    const list = this.toRelease; if (!list?.length) return;
+    for (let i = list.length - 1; i >= 0; i--) if (--list[i].frames <= 0) { releaseObject(list[i].obj, list[i].opts); list.splice(i, 1); }
+  }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
     this.wipeLeft = 0;
     this.domainSys?.end();
-    if (this.world) { this.scene.remove(this.world.group); this.world.group.traverse((o) => o.geometry?.dispose()); }
+    if (this.world) { this.scene.remove(this.world.group); this.releaseLater(this.world.group, { geometry: true }); }
     if (this.shafts) this.scene.remove(this.shafts.group);
-    for (const e of this.enemies) this.scene.remove(e.object);
-    for (const a of this.allies) { a.dispose?.(); this.scene.remove(a.object); }
+    for (const e of this.enemies) { this.scene.remove(e.object); this.releaseLater(e.object); }
+    for (const a of this.allies) { a.dispose?.(); this.scene.remove(a.object); this.releaseLater(a.object); }
+    // monsters that died in this level, and the shader warm-up's models (kept
+    // till now so a kind's pipeline outlives its last monster)
+    for (const o of this.fallen ?? []) this.releaseLater(o); this.fallen = [];
+    this.releaseLater(this.warmGroup); this.warmGroup = null;
     this.enemies = []; this.allies = [];
     this.projectiles.clear(); this.hazards.clear(); this.pickups.clear(); this.loot?.clear();
     for (const m of this.markers.items) this.markers.cancel(m);
@@ -377,7 +390,7 @@ class Game {
     this.lights.dynamic = this.lights.dynamic.filter((d) => this.players.some((p) => p.heroLight === d));
     Trench.glow.value = 0; this.trenchFade = 0;
     this.hud.setBoss(null); this.hud.setObjective(null);
-    for (const o of this.hubProps ?? []) this.scene.remove(o); this.hubProps = [];
+    for (const o of this.hubProps ?? []) { this.scene.remove(o); this.releaseLater(o); } this.hubProps = [];
     this.hitstop = 0; this.slowmo = 0; this.frozen = false;
   }
   loadWorld(level, biome) {
@@ -477,6 +490,7 @@ class Game {
     let grp;
     try { grp = warmupGroup(undefined, boss ? [boss] : []); } catch (e) { console.warn('warm-up skipped', e); return; }
     this.scene.add(grp);
+    this.warmGroup = grp;   // (released with the level: see clearLevel)
     const done = () => this.scene.remove(grp);   // geometries and materials are shared with live monsters: keep them
     const c = this.gr.renderer?.compileAsync?.(this.scene, this.rig.camera);
     if (c?.then) c.catch(() => { /* fine: compiled on first use instead */ }).finally(done); else done();
@@ -682,8 +696,9 @@ class Game {
     if (this.wipeLeft > 0) return;
     // in a boss fight the party comes back inside the arena door (the gates are sealed behind them)
     const retry = this.mode === 'mission' ? this.mission?.retrySpot?.() : null;
-    this.placePlayers(retry ?? this.level.spawn);
-    if (retry) for (const p of this.players) p.iframes = 2.5;
+    const check = !retry && this.mode === 'mission' ? this.mission?.checkpointSpot?.() : null;
+    this.placePlayers(retry ?? check ?? this.level.spawn);
+    if (retry || check) for (const p of this.players) p.iframes = 2.5;
     toast(retry ? 'Revived: try the fight again' : 'Revived', 'big');
   }
 
@@ -824,7 +839,7 @@ class Game {
       for (const r of this.selectRigs ?? []) { r.root.rotation.y += realDt * 0.8; r.animate({ dt: realDt, speed: 0, vel: new THREE.Vector3() }); }
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const e = this.enemies[i];
-        if (!e.update(edt)) { this.scene.remove(e.object); this.enemies.splice(i, 1); }
+        if (!e.update(edt)) { this.scene.remove(e.object); (this.fallen ??= []).push(e.object); this.enemies.splice(i, 1); }
       }
       for (let i = this.updaters.length - 1; i >= 0; i--) if (this.updaters[i](dt, realDt) === false) this.updaters.splice(i, 1);
       this.projectiles.update(edt);
@@ -866,6 +881,7 @@ class Game {
     this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
     gr.render();
+    this.tickRelease();
     if (this.readoutOn) this.updateReadout();
   }
   updateReadout() {
