@@ -481,8 +481,8 @@ export const EN = {
     },
     /** The card on iPhone when the microphone isn't set to Allow. */
     micTip: {
-      title: 'Allow the microphone for Bluetooth playback',
-      body: 'The microphone isn\'t set to Allow for this site yet, so Bluetooth playback won\'t work. To fix it:',
+      title: 'Allow the microphone for this app',
+      body: 'The microphone isn\'t set to Allow for this site yet, so some features won\'t work. To fix it:',
     },
   },
 
