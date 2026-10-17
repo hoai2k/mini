@@ -444,6 +444,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-readout { display: flex; flex-direction: column; align-items: center; }
 .drone-note { margin-top: 0; font-size: clamp(3.4rem, 15vw, 5rem); }
 .drone-hz { margin: 0; color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
+.drone-fifth-tag { font-size: 0.85em; opacity: 0.85; }
 .drone-pitch .select { min-width: 112px; }
 .drone-voice .select { min-width: 240px; max-width: 100%; }
 #dr-toggle { min-width: 200px; }
@@ -1127,16 +1128,24 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 
 /* Classic by day: cream paper, walnut ink, darker brass. */
 [data-theme="classic"][data-mode="light"] {
-  --bg: #f2e9d8; --bg-2: #faf4e8; --panel: #fffaf0; --panel-2: #ece0c8; --line: #c4a77c;
+  --bg: #f6efe2; --bg-2: #fcf8f0; --panel: #fffcf6; --panel-2: #f1e7d5; --line: #c9ae86;
   --ink: #2a1c11; --ink-2: #5a4430; --ink-3: #6e5842;
   --brass: #94600f; --brass-2: #c8963c; --red: #c4363c; --red-2: #d9474d; --focus: #8a5a0e;
-  --value: #85570c; --on-accent: #fffaf0; --glow: #fbf3e2;
+  --value: #85570c; --on-accent: #fffaf0; --glow: #fffbf3;
   --wave-bg: linear-gradient(180deg, #fffaf0, #f6eddb); --wave-axis: rgba(42, 28, 17, 0.14); --wave-idle: rgba(90, 68, 48, 0.25);
   --wave-wait: #6e5842; --wave-rec: #d9474d; --wave-take: #d9c6a2; --wave-play: #a8721a; --wave-head: #2a1c11; --wave-thumb: #b3976c;
-  --pressed: linear-gradient(180deg, #4a3624, #2a1c11); --shadow: rgba(60, 40, 20, 0.18); --backdrop: rgba(42, 28, 17, 0.4);
+  --pressed: linear-gradient(180deg, #4a3624, #2a1c11); --shadow: rgba(90, 62, 28, 0.1); --backdrop: rgba(42, 28, 17, 0.4);
   --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23a8721a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
+/* Clean rather than muddy by day: near-white cards with a short, crisp lift
+   instead of a wide brown blur, and a brighter gold on the big button. */
+[data-theme="classic"][data-mode="light"] .choice {
+  background: linear-gradient(180deg, #ffffff, #fcf7ee);
+  border-color: #e0cba8;
+  box-shadow: 0 1px 2px rgba(90, 62, 28, 0.08), 0 6px 16px rgba(90, 62, 28, 0.07);
+}
+[data-theme="classic"][data-mode="light"] .big-btn { background: linear-gradient(180deg, #dcae55, #b37d1f); box-shadow: 0 3px 10px rgba(179, 125, 31, 0.22); }
 
 /* Art Deco by day: ivory and black lacquer trim, darker gold. */
 [data-theme="deco"][data-mode="light"] {

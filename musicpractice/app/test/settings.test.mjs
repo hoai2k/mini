@@ -96,10 +96,11 @@ test('drone settings: defaults, kept, and bad values fall back', () => {
   assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'stop']);
 });
 
-test('light and dark: as designed by default; light, dark or the system when chosen', () => {
-  assert.equal(DEFAULTS.appearance, 'default');
-  assert.equal(sanitize({ appearance: 'system' }).appearance, 'system');
-  assert.equal(sanitize({ appearance: 'sepia' }).appearance, 'default');
+test('Dark Mode: the system\'s by default; a choice made at the setting is kept', () => {
+  assert.equal(DEFAULTS.appearance, 'system');
+  assert.equal(sanitize({ appearance: 'default' }).appearance, 'system'); // an earlier save's default
+  assert.equal(sanitize({ appearance: 'default', appearanceChosen: true }).appearance, 'default');
+  assert.equal(sanitize({ appearance: 'sepia', appearanceChosen: true }).appearance, 'system');
   assert.equal(resolveMode('classic', 'default', false), 'dark');
   assert.equal(resolveMode('sixties', 'default', true), 'light');
   assert.equal(resolveMode('sixties', 'dark', false), 'dark');
@@ -114,7 +115,7 @@ test('every theme has its other mode in styles.css, and the early script knows w
   const here = new URL('..', import.meta.url).pathname;
   const css = fs.readFileSync(`${here}styles.css`, 'utf8');
   const html = fs.readFileSync(`${here}index.html`, 'utf8');
-  const darkList = JSON.parse(html.match(/var a = s\.appearance, dark = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
+  const darkList = JSON.parse(html.match(/: 'system', dark = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
   for (const t of THEMES) {
     const other = t.mode === 'dark' ? 'light' : 'dark';
     assert.ok(css.includes(`[data-theme="${t.id}"][data-mode="${other}"] {`), `${t.id} has no ${other} block`);

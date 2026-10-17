@@ -45,7 +45,7 @@ export const THEMES = [
   { id: 'steampunk', label: TEXT.themes.steampunk, mode: 'dark', color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
 ];
 
-/** Light and dark: as each theme was designed, one or the other, or following the system. */
+/** Dark Mode: each theme as designed ('default'), light, dark, or following the system (the default). */
 export const APPEARANCES = ['default', 'light', 'dark', 'system'];
 
 /** The mode a theme shows in: 'light' or 'dark'. */
@@ -61,7 +61,8 @@ export const BPM_MAX = 500;
 export const DEFAULTS = Object.freeze({
   theme: 'classic',
   themeChosen: false,
-  appearance: 'default', // APPEARANCES
+  appearance: 'system', // APPEARANCES: 'default' is each theme as designed
+  appearanceChosen: false,
   bpm: 120,
   meter: '4/4',
   accent: true,
@@ -84,6 +85,7 @@ export const DEFAULTS = Object.freeze({
   droneVolume: 0.8,
   droneFifth: true, // add a pure fifth above (on unless switched off)
   droneFifthChosen: false,
+  droneSmooth: false, // play the Smoothed loops (recorded voices)
   droneTimed: false, // stop or move on after droneMinutes
   droneMinutes: 3,
   droneThen: 'stop', // or a sequence from SEQUENCES in drone.js
@@ -114,7 +116,9 @@ export function sanitize(raw) {
     // whatever the default was then. 'straight' is Classic's old name.
     theme: s.themeChosen === true ? oneOf(s.theme === 'straight' ? 'classic' : s.theme, THEMES.map((t) => t.id), DEFAULTS.theme) : DEFAULTS.theme,
     themeChosen: s.themeChosen === true,
-    appearance: oneOf(s.appearance, APPEARANCES, DEFAULTS.appearance),
+    // Saves from before System was the default stored 'default' without anyone choosing it.
+    appearance: s.appearanceChosen === true ? oneOf(s.appearance, APPEARANCES, DEFAULTS.appearance) : DEFAULTS.appearance,
+    appearanceChosen: s.appearanceChosen === true,
     bpm: clampBpm(num(s.bpm, DEFAULTS.bpm)),
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
@@ -138,6 +142,7 @@ export function sanitize(raw) {
     // Saves from before the fifth was on by default stored off without anyone choosing it.
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
     droneFifthChosen: s.droneFifthChosen === true,
+    droneSmooth: s.droneSmooth === true,
     droneTimed: s.droneTimed === true,
     droneMinutes: clamp(Math.round(num(s.droneMinutes, DEFAULTS.droneMinutes) * 2) / 2, 0.5, 30),
     droneThen: oneOf(s.droneThen, DRONE_THEN, DEFAULTS.droneThen),

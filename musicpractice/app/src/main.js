@@ -340,9 +340,10 @@ function syncThemeControls() {
   }
 }
 
-// Light and dark: free in the apps too, since it is about being able to read the screen.
+// Dark Mode: free in the apps too, since it is about being able to read the screen.
 chips($('appearance-chips'), APPEARANCES.map((id) => ({ id, label: TEXT.appSettings.appearances[id] })), () => settings.appearance, (id) => {
   settings.appearance = id;
+  settings.appearanceChosen = true;
   persist();
   applyTheme();
 });

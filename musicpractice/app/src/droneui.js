@@ -4,7 +4,7 @@
 // in the settings.
 
 import { TEXT, setRich } from './text.js';
-import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap } from './drone.js';
+import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap, playedVoice, SAMPLED } from './drone.js';
 import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
 
 const $ = (id) => document.getElementById(id);
@@ -49,7 +49,8 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     $('dr-letter').textContent = n.name[0];
     $('dr-acc').textContent = n.name.slice(1);
     $('dr-oct').textContent = n.octave;
-    $('dr-hz').textContent = `${midiToHz(settings.droneMidi, settings.a4).toFixed(1)} Hz`;
+    $('dr-hz-val').textContent = `${midiToHz(settings.droneMidi, settings.a4).toFixed(1)} Hz`;
+    $('dr-fifth-tag').hidden = !settings.droneFifth;
     pitch.value = String(settings.droneMidi);
     $('dr-down').disabled = false;
     $('dr-up').disabled = false;
@@ -91,7 +92,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     const voiceLabel = VOICES.find((v) => v.id === settings.droneVoice)?.label || '';
     engine().play({
       midi: settings.droneMidi,
-      voice: settings.droneVoice,
+      voice: playedVoice(settings.droneVoice, settings.droneSmooth),
       a4: settings.a4,
       fifth: settings.droneFifth,
       schedule: schedule(),
@@ -194,6 +195,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   voice.addEventListener('change', () => {
     settings.droneVoice = voice.value;
     persist();
+    showSmooth();
     if (playing) sound();
   });
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
@@ -211,6 +213,21 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   fifth.addEventListener('change', () => {
     settings.droneFifth = fifth.checked;
     settings.droneFifthChosen = true;
+    persist();
+    show();
+    if (playing) sound();
+  });
+  // Smoothed: only the recorded voices have it (the synthesized organ is steady already).
+  const smooth = $('dr-smooth');
+  smooth.checked = settings.droneSmooth;
+  function showSmooth() {
+    const has = !!SAMPLED[`${settings.droneVoice}-smooth`];
+    smooth.disabled = !has;
+    smooth.closest('.row').classList.toggle('disabled', !has);
+  }
+  showSmooth();
+  smooth.addEventListener('change', () => {
+    settings.droneSmooth = smooth.checked;
     persist();
     if (playing) sound();
   });

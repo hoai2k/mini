@@ -31,8 +31,8 @@
       // The apps bundle every theme's fonts (mobile/fonts/).
       if (app) document.getElementById('theme-fonts').href = 'fonts/' + t + '.css';
       document.documentElement.dataset.theme = t;
-      // Light or dark (resolveMode in settings.js): as designed, chosen, or the system's.
-      var a = s.appearance, dark = ['classic', 'deco', 'scifi', 'steampunk'].indexOf(t) >= 0;
+      // Light or dark (resolveMode in settings.js): the system's unless chosen.
+      var a = s.appearanceChosen === true ? s.appearance : 'system', dark = ['classic', 'deco', 'scifi', 'steampunk'].indexOf(t) >= 0;
       if (a === 'light' || a === 'dark') dark = a === 'dark';
       else if (a === 'system') dark = matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.mode = dark ? 'dark' : 'light';
@@ -314,7 +314,7 @@
         <div class="drone-art" aria-hidden="true"><div class="drone-glow"></div><span class="art" data-asset="home-drone"></span></div>
         <div class="drone-readout">
           <div class="tuner-note drone-note"><span id="dr-letter"></span><span class="acc" id="dr-acc"></span><span class="oct" id="dr-oct"></span></div>
-          <p class="drone-hz" id="dr-hz"></p>
+          <p class="drone-hz" id="dr-hz"><span id="dr-hz-val"></span> <span class="drone-fifth-tag" id="dr-fifth-tag" data-text="drone.withFifth" hidden></span></p>
         </div>
         <div class="tempo drone-pitch">
           <button class="step" id="dr-down" type="button" data-text-aria-label="drone.down">−</button>
@@ -336,6 +336,8 @@
           <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
           <label class="row toggle"><span data-text="drone.settings.fifth"></span><input type="checkbox" id="dr-fifth" role="switch"></label>
           <p class="help" data-text="drone.settings.fifthHelp"></p>
+          <label class="row toggle"><span data-text="drone.settings.smooth"></span><input type="checkbox" id="dr-smooth" role="switch"></label>
+          <p class="help" data-text="drone.settings.smoothHelp"></p>
           <label class="row toggle"><span data-text="drone.settings.timed"></span><input type="checkbox" id="dr-timed" role="switch"></label>
           <div class="drone-timed" id="dr-timed-opts">
             <label class="row"><span id="dr-minutes-label"></span><input type="range" class="slider" id="dr-minutes" min="0.5" max="20" step="0.5"></label>

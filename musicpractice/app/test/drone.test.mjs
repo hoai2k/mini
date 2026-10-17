@@ -64,3 +64,20 @@ test('recorded voices: every note is close to a recording (or its octave), and t
     }
   }
 });
+
+test('Smoothed: each recorded voice has a copy on the -smooth files, the same loops otherwise', async () => {
+  const { SAMPLED, playedVoice } = await import('../src/drone.js');
+  const fs = await import('node:fs');
+  for (const id of ['cello', 'cello-soft', 'organ']) {
+    const s = SAMPLED[`${id}-smooth`];
+    assert.ok(s, id);
+    s.loops.forEach((l, i) => {
+      assert.equal(l.file, SAMPLED[id].loops[i].file.replace('.mp3', '-smooth.mp3'));
+      assert.deepEqual([l.hz, l.loop, l.margin], [SAMPLED[id].loops[i].hz, SAMPLED[id].loops[i].loop, SAMPLED[id].loops[i].margin]);
+      assert.ok(fs.existsSync(new URL(`../assets/audio/drone/${l.file}`, import.meta.url)), l.file);
+    });
+  }
+  assert.equal(playedVoice('cello', true), 'cello-smooth');
+  assert.equal(playedVoice('cello', false), 'cello');
+  assert.equal(playedVoice('organ-synth', true), 'organ-synth'); // synthesized: nothing to smooth
+});
