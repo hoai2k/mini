@@ -668,12 +668,15 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
    middle of the stick, from the frog up to the volume, so it shows only
    through the gap between the hair and the stick and as a soft glow round
    them: subtle, but there. A small gold marker sits on the hair at the level. */
+/* The bow and its small Volume label under it, together as tall as the picture. */
+.bow-col { --bow-label: 18px; flex: none; display: flex; flex-direction: column; align-items: center; height: var(--art, clamp(130px, 28dvh, 240px)); }
+.bow-col[hidden] { display: none; }
+.bow-label { height: var(--bow-label); line-height: var(--bow-label); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-3); white-space: nowrap; }
 .bow-slider {
-  position: relative; flex: none; height: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 256 / 1024;
+  position: relative; flex: none; height: calc(100% - var(--bow-label)); aspect-ratio: 256 / 1024;
   touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; border-radius: 8px;
   isolation: isolate;
 }
-.bow-slider[hidden] { display: none; }
 .bow-slider:focus:not(:focus-visible) { outline: none; }
 .bow-slider.held { cursor: grabbing; }
 .bow-slider .art { position: absolute; inset: 0; display: block; z-index: 1; }
@@ -706,7 +709,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
   .drone-stage { grid-row: 1 / span 5; padding-left: 0; }
   .drone-art { width: min(60dvh, 220px); }
-  .bow-slider { height: min(60dvh, 220px); }
+  .bow-col { height: min(60dvh, 220px); }
   .drone-body.bowed .drone-stage { padding-left: 0; }
   .drone-note { font-size: 3rem; }
 }
