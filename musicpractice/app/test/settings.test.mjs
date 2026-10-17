@@ -51,6 +51,9 @@ test('the pendulum reaches alternate ends on each beat', () => {
   assert.ok(Math.abs(pendulumAngle({ time: 1, count: 0 }, 1.25, p, 24)) < 1e-9);
   assert.equal(pendulumAngle({ time: 1, count: 0 }, 1.5, p, 24), -24);
   assert.equal(pendulumAngle({ time: 1.5, count: 1 }, 1.5, p, 24), -24);
+  // It strikes the ends: fastest arriving at an end, slower through the middle.
+  const speed = (t) => Math.abs(pendulumAngle({ time: 1, count: 0 }, t + 0.001, p, 24) - pendulumAngle({ time: 1, count: 0 }, t, p, 24));
+  assert.ok(speed(1.498) > 2.5 * speed(1.249), 'faster at the end of the swing than in the middle');
 });
 
 test('Classic is the default theme; a picked theme is kept', () => {

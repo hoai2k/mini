@@ -186,20 +186,26 @@ button { cursor: pointer; }
 .met-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .metronome {
   position: relative;
-  height: clamp(200px, 40dvh, 460px);
+  height: clamp(200px, calc(40dvh - var(--dot) - 8px), 460px); /* room above for the lamp */
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
-/* The pulse: a glow behind the metronome on each beat (set from main.js). */
+/* The pulse: a red lamp just above the metronome's tip (every theme's tip is
+   at the top centre of its picture). Dim between beats, it lights on each
+   beat (--lit, 0 to 1, set from main.js), brightest on the downbeat. */
+.metronome { --dot: clamp(12px, 2.4dvh, 18px); margin-top: calc(var(--dot) + 8px); }
 .met-pulse {
-  position: absolute; inset: -12% -45%;
+  position: absolute; left: 50%; top: calc(-1 * var(--dot) - 6px); z-index: 2;
+  width: var(--dot); height: var(--dot); margin-left: calc(var(--dot) / -2);
   border-radius: 50%;
-  background: radial-gradient(closest-side, var(--brass-2), transparent 75%); /* without color-mix */
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--brass-2) 70%, transparent), color-mix(in srgb, var(--brass) 25%, transparent) 55%, transparent 100%);
-  opacity: 0; pointer-events: none; will-change: opacity, transform;
+  background: radial-gradient(circle at 35% 32%, #ffb3a8, #f0352a 45%, #9c120c 100%);
+  box-shadow: 0 0 0 1.5px rgba(40, 8, 6, 0.55),
+    0 0 calc(var(--dot) * 1.6 * var(--lit, 0)) calc(var(--dot) * 0.45 * var(--lit, 0)) rgba(255, 52, 36, 0.8);
+  opacity: calc(0.28 + 0.72 * var(--lit, 0));
+  transform: scale(calc(0.92 + 0.16 * var(--lit, 0)));
+  pointer-events: none; will-change: opacity, transform, box-shadow;
 }
-.met-pulse.strong { background: radial-gradient(closest-side, var(--red-2), transparent 75%); }
-.met-pulse.strong { background: radial-gradient(closest-side, color-mix(in srgb, var(--red-2) 70%, transparent), color-mix(in srgb, var(--red) 25%, transparent) 55%, transparent 100%); }
+.met-pulse.strong { background: radial-gradient(circle at 35% 32%, #ffd0c8, #ff4a3c 45%, #b3160e 100%); }
 .sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
 .sync-title { margin: 0; font: 700 1.15rem var(--display); }
 .sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }

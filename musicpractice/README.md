@@ -89,7 +89,10 @@ shapes in `app/styles.css` (`[data-theme="…"]`, with a
 `[data-theme="…"][data-mode="…"]` block for its other mode), and its images.
 A theme's own rules take their colours from its tokens (`--teal`, `--lacquer`,
 `--arrow` for the dropdown arrow and so on) rather than writing them in, so
-the other mode's block only has to change the tokens.
+the other mode's block only has to change the tokens. Every image
+belongs to a theme in `design/source/build_requests.py`. The app shows the
+theme's delivered image or, until it arrives, that theme's drawn stand-in
+(`app/src/standins.js`).
 
 **Readability:** every theme in both modes was checked for contrast in all
 the settings sheets (Settings, the four tools', Audio check, Send feedback):
@@ -97,10 +100,7 @@ text at least 4.5:1 against what is behind it (3:1 for large or bold large
 text), nothing under 12.5px. That check moved the light themes' highlighted
 values ("440 Hz", "3 s") to a darker accent (`--value`), darkened the
 selected chips in Vintage 60s, French Nouveau and Candy and the help text in
-those three, and raised Send feedback's details to 13px. Every image
-belongs to a theme in `design/source/build_requests.py`. The app shows the
-theme's delivered image or, until it arrives, that theme's drawn stand-in
-(`app/src/standins.js`).
+those three, and raised Send feedback's details to 13px.
 
 **Anchors:** the metronome is two layers. The body records its canvas size
 and `pivot`; the pendulum records its canvas, `hub` and `swing` (degrees
@@ -115,8 +115,14 @@ when the Art Deco art arrives, measure and record its own.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
-  Dots under it show the beat of the bar, and a glow behind it pulses on
-  each beat (red on the downbeat, gold otherwise), dying away quickly.
+  It is fastest arriving at each end and turns there sharply, so the click
+  reads as the pendulum striking the end; a real pendulum's ease, slowest at
+  the ends and fastest through the middle, made the middle look like the
+  beat (`SWING_SHAPE`: x mixed with x³, speed 1.8 at the ends against 0.6
+  in the middle). Dots under it show the beat of the bar, and a red lamp
+  just above the metronome's tip lights on each beat, on the same frame
+  as the pendulum strikes an end, and dies away quickly (brightest on the
+  downbeat; dim between beats).
   **Swinging pendulum** and **Visual pulse** in the settings turn
   either off.
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
@@ -126,7 +132,7 @@ when the Art Deco art arrives, measure and record its own.
   Android) and its current time less the reported output latency, without
   counting a delay twice, then the manual adjustment, and looks one frame
   ahead because a frame drawn now appears about a frame later. Checked in
-  Chromium: at 120 BPM the pulse peaks every 500 ms on the same frame as the
+  Chromium: at 120 BPM the lamp peaks every 500 ms on the same frame as the
   pendulum reaching the end of its swing and the beat dot moving on.
 - **Sound and visuals sync** (metronome settings) is a slider for how much
   later the visuals show each beat, beyond the delay the browser reports. It
