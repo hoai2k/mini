@@ -121,6 +121,9 @@ export async function fetchHistory(symbol, { years = 10.5, fetchImpl } = {}) {
   if (!result) throw Object.assign(new Error(`No data for ${sym}`), { status: 404 });
   const h = normalizeChart(result);
   if (!h.d.length) throw Object.assign(new Error(`No price history for ${sym}`), { status: 404 });
+  // For a long range Yahoo's "previous close" is the close before the range;
+  // the day before the last bar is what a reader means by it.
+  if (h.c.length > 1) h.quote.previousClose = h.c[h.c.length - 2];
   h.fetched = new Date().toISOString();
   return h;
 }
