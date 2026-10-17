@@ -142,7 +142,7 @@
         <button class="icon-btn" id="met-settings-btn" data-text-aria-label="metronome.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="met-body">
-        <div class="met-visual">
+        <div class="met-visual" id="met-visual" role="button" tabindex="0">
           <div class="metronome" id="metronome-art" aria-hidden="true">
             <div class="met-pulse" id="met-pulse"></div>
             <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
@@ -198,15 +198,18 @@
             <div class="chips" id="sound-chips"></div>
           </fieldset>
           <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="met-volume" min="0" max="1" step="0.05"></label>
-          <label class="row toggle"><span data-text="metronome.settings.visualizer"></span><input type="checkbox" id="met-viz" role="switch"></label>
-          <div class="met-viz-opts" id="met-viz-opts">
-            <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
-            <label class="row toggle"><span data-text="metronome.settings.vizTrail"></span><input type="checkbox" id="viz-trail" role="switch"></label>
-          </div>
-          <div class="met-art-opts" id="met-art-opts">
-          <label class="row toggle"><span data-text="metronome.settings.motion"></span><input type="checkbox" id="met-motion" role="switch"></label>
-          <label class="row toggle"><span data-text="metronome.settings.pulse"></span><input type="checkbox" id="met-pulse-on" role="switch"></label>
-          </div>
+          <fieldset class="met-display">
+            <legend data-text="metronome.settings.display"></legend>
+            <div class="chips" id="met-view-chips"></div>
+            <div class="met-art-opts" id="met-art-opts">
+              <label class="row toggle"><span data-text="metronome.settings.motion"></span><input type="checkbox" id="met-motion" role="switch"></label>
+              <label class="row toggle"><span data-text="metronome.settings.pulse"></span><input type="checkbox" id="met-pulse-on" role="switch"></label>
+            </div>
+            <div class="met-viz-opts" id="met-viz-opts">
+              <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
+              <label class="row toggle"><span data-text="metronome.settings.vizTrail"></span><input type="checkbox" id="viz-trail" role="switch"></label>
+            </div>
+          </fieldset>
           <label class="row"><span><span data-text="metronome.settings.sync"></span> <b id="met-sync-val"></b></span><input type="range" class="slider" id="met-sync" min="-200" max="500" step="10"></label>
           <button type="button" class="pill" id="sync-open" data-text="metronome.settings.openSync"></button>
           <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>

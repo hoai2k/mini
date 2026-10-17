@@ -190,10 +190,9 @@ button { cursor: pointer; }
 .met-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .metronome {
   position: relative;
-  /* 40% of the screen, but no more than what the controls leave on a short
-     phone (about 460px of them): the picture shrinks rather than the page
-     scrolling. Room above for the lamp's top half. */
-  height: clamp(120px, min(40dvh - var(--dot) / 2 - 4px, 100dvh - 460px - var(--dot) / 2), 460px);
+  /* main.js measures the height the controls leave (--pic-h); until it has,
+     40% of the screen. Room above for the lamp's top half. */
+  height: var(--pic-h, clamp(120px, calc(40dvh - var(--dot) / 2 - 4px), 460px));
   aspect-ratio: 800 / 1200;
   /* The visual pulse: the whole metronome brightens, swells a little and
      glows round its own outline on each beat (--lit, 0 to 1, from main.js),
@@ -319,14 +318,18 @@ button { cursor: pointer; }
 .met-bars {
   --red-bar: #ff3b30; --blue-bar: #2f8cff;
   /* As tall as the metronome with its lamp and beat dots, which it stands in for. */
-  --h: clamp(120px, min(40dvh, 100dvh - 420px), 460px);
+  --h: var(--pic-h, clamp(120px, 40dvh, 460px));
   height: var(--h);
   width: min(calc(100vw - 2 * var(--gutter)), 440px); /* its parent sizes to its contents, so not a % */
   display: grid; align-content: center; gap: clamp(8px, 2.2dvh, 18px);
 }
 .met-bars[hidden] { display: none; }
 /* Metronome settings: the Visualizer's options, or the pendulum's and lamp's. */
+.met-display { display: flex; flex-direction: column; gap: 14px; }
+.met-display > legend { float: left; width: 100%; margin-bottom: 0; } /* a legend can't join the flex gap otherwise */
 .met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
+.met-visual { cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 12px; }
+.met-visual:focus:not(:focus-visible) { outline: none; }
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
 .met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: clamp(12px, calc(var(--h) / var(--rows, 4) * 0.42), 30px); }
 .met-bar {

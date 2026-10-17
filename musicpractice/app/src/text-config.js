@@ -102,6 +102,8 @@ export const EN = {
   },
 
   metronome: {
+    visualizerTitle: 'Visualizer',
+    switchTo: { metronome: 'Show the pendulum', bars: 'Show the Visualizer' },
     title: 'Metronome',
     settingsButton: 'Metronome settings',
     slower: 'Slower by one',
@@ -146,7 +148,11 @@ export const EN = {
         4: 'Sixteenth notes',
       },
       sound: 'Sound',
-      visualizer: 'Visualizer',
+      display: 'Display',
+      views: {
+        metronome: 'Pendulum',
+        bars: 'Visualizer',
+      },
       vizBars: 'Bars shown',
       vizTrail: 'Keep played beats lit',
       motion: 'Swinging pendulum',

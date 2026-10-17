@@ -138,6 +138,7 @@ function enter(name) {
     // alone while it is held, since switching could cut it off.
     if (!recorder?.holdsMic) setSession('playback');
     $('met-toggle').focus({ preventScroll: true });
+    queueFit();
   }
   if (name === 'record') startRecorder();
   if (name === 'tuner') startTuner();
@@ -251,6 +252,7 @@ function renderBeats() {
 
 function metronomeConfigured() {
   renderBeats();
+  queueFit();
   metronome?.configure(settings);
   persist();
 }
@@ -498,17 +500,55 @@ function showMetView() {
   $('metronome-art').hidden = bars;
   $('beats').hidden = bars;
   $('met-bars').hidden = !bars;
-  $('met-viz').checked = bars;
   $('met-viz-opts').hidden = !bars;
   $('met-art-opts').hidden = bars;
+  syncViewChips();
+  $('met-title').textContent = bars ? TEXT.metronome.visualizerTitle : TEXT.metronome.title;
+  $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   syncControlsLive();
+  fitPicture();
 }
-$('met-viz').addEventListener('change', () => {
-  settings.metView = $('met-viz').checked ? 'bars' : 'metronome';
+function setMetView(view) {
+  settings.metView = view;
   persist();
   showMetView();
+}
+// Display (metronome settings): Pendulum or Visualizer, each with its own options below.
+const syncViewChips = chips($('met-view-chips'), ['metronome', 'bars'].map((id) => ({ id, label: TEXT.metronome.settings.views[id] })), () => settings.metView, setMetView);
+// Tapping the picture switches between the two.
+$('met-visual').addEventListener('click', () => setMetView(settings.metView === 'bars' ? 'metronome' : 'bars'));
+$('met-visual').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  setMetView(settings.metView === 'bars' ? 'metronome' : 'bars');
 });
+
+/*
+ * On a phone (one column), the picture, pendulum or Visualizer, takes all
+ * the height the controls leave, so the page fills the screen without
+ * scrolling or a gap below: measured, since the controls' height varies by
+ * theme, font and window. Side by side, the stylesheet sizes it.
+ */
+function fitPicture() {
+  const scr = $('metronome');
+  if (scr.hidden) return;
+  const body = scr.querySelector('.met-body');
+  if (getComputedStyle(body).flexDirection !== 'column') { scr.style.removeProperty('--pic-h'); return; }
+  const pic = settings.metView === 'bars' ? $('met-bars') : $('metronome-art');
+  const cur = pic.getBoundingClientRect().height;
+  if (!cur) return;
+  const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
+    .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
+  const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+  const slack = innerHeight - pad - last;
+  scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, cur + slack - 1)))}px`);
+}
+let fitQueued = 0;
+const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
+addEventListener('resize', queueFit);
+visualViewport?.addEventListener('resize', queueFit);
+document.fonts?.ready.then(queueFit);
 const vizBars = $('viz-bars');
 vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
 vizBars.value = String(settings.vizBars);
@@ -542,12 +582,14 @@ function openSync() {
   $('sync-status').textContent = '';
   syncBar.hidden = false;
   document.querySelector('.met-controls').hidden = true;
+  queueFit();
   showSync();
   if (!metronome?.running) startMetronome();
 }
 function closeSync() {
   syncBar.hidden = true;
   document.querySelector('.met-controls').hidden = false;
+  queueFit();
 }
 $('sync-open').addEventListener('click', openSync);
 $('met-sync').addEventListener('input', () => setSync(Number($('met-sync').value)));
