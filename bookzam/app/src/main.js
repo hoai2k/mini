@@ -4,6 +4,7 @@
 import { mergeScan, removePhoto, moveItem, filterItems, sortItems, exportData, emptyCatalogue, newId } from './catalogue.js';
 import { readPhoto, scanLines, findInLines, warmUp } from './reader.js';
 import { lookupBook } from './lookup.js';
+import { lookupGame } from './games.js';
 import { loadCatalogue, saveCatalogue, persist } from './store.js';
 import { decode, thumbnail, render } from './photo.js';
 import { ringFor } from './geometry.js';
@@ -67,7 +68,7 @@ function coverHtml(item, big = false) {
 }
 
 function byline(item) {
-  if (item.kind === 'game') return [item.publisher, item.designer, item.year].filter(Boolean).join(' · ');
+  if (item.kind === 'game') return [item.designer || item.lookup?.designers?.[0] || item.publisher, item.lookup?.year || item.year, players(item.lookup)].filter(Boolean).join(' · ');
   return [item.author || item.lookup?.authors?.[0], item.lookup?.year || item.year].filter(Boolean).join(' · ');
 }
 
@@ -76,20 +77,21 @@ function renderList() {
   $('count-books').textContent = cat.books.length;
   $('count-games').textContent = cat.games.length;
   const shown = sortItems(filterItems(items, ui.query), ui.sort);
-  const any = cat.books.length + cat.games.length > 0;
+  const games = ui.kind === 'games';
   $('toolbar').hidden = !items.length;
-  $('fab').hidden = !any;
+  $('fab').hidden = !items.length;
+  $('fab').setAttribute('aria-label', games ? 'Add a photo of board games' : 'Add a photo of books');
   $('empty').hidden = items.length > 0;
   if (!items.length) {
-    $('empty-title').textContent = any ? (ui.kind === 'books' ? 'No books yet' : 'No board games yet') : 'Snap a shelf';
-    $('empty-text').textContent = any
-      ? `Photos you add put ${ui.kind === 'books' ? 'books' : 'board games'} here as Bookzam finds them.`
-      : 'Take a photo of your books or board games, spines facing you. Bookzam reads every title it can and adds them here. Add as many photos as you like.';
+    $('empty-title').textContent = games ? 'Snap your games' : 'Snap a shelf';
+    $('empty-text').textContent = games
+      ? 'Take a photo of your board games, with their names showing. Everything Bookzam reads in it is added here as a game. Add as many photos as you like.'
+      : 'Take a photo of your books, spines facing you. Everything Bookzam reads in it is added here as a book. Add as many photos as you like.';
   }
   $('none-match').hidden = !(items.length && !shown.length);
   $('items').innerHTML = shown.map((item) => {
     const unsure = item.confidence != null && item.confidence < 0.6;
-    const status = item.kind === 'book' && item.lookupStatus === 'pending' ? '<span class="looking" title="Looking it up"></span>' : '';
+    const status = item.lookupStatus === 'pending' ? '<span class="looking" title="Looking it up"></span>' : '';
     return `<li><button type="button" class="item${ui.fresh.has(item.id) ? ' fresh' : ''}" data-id="${item.id}">
       <span class="cover">${coverHtml(item)}</span>
       <span class="text"><span class="title">${esc(item.title)}${unsure ? ' <span class="unsure" title="Bookzam wasn\'t sure of this title">?</span>' : ''}</span>
@@ -110,7 +112,8 @@ let working = false;
 function addFiles(files) {
   for (const file of files) {
     if (!file.type.startsWith('image/') && !/\.(jpe?g|png|heic|heif|webp)$/i.test(file.name)) continue;
-    const job = { id: newId('j'), file, state: 'waiting', el: null };
+    // The list open when the photo was added says what's in it.
+    const job = { id: newId('j'), file, mode: ui.kind, state: 'waiting', el: null };
     jobs.push(job);
     renderJob(job);
   }
@@ -125,14 +128,15 @@ function renderJob(job) {
     $('jobs').prepend(job.el);
   }
   const thumb = job.thumb ? `<img src="${job.thumb}" alt="">` : '<span class="ph"></span>';
+  const label = job.mode === 'games' ? 'Board games' : 'Books';
   const text = {
-    waiting: 'Waiting…',
+    waiting: `${label}: waiting…`,
     reading: job.progress || 'Reading the titles…',
     done: job.summary,
     failed: job.error,
   }[job.state];
   job.el.dataset.state = job.state;
-  job.el.innerHTML = `${thumb}<span class="job-text">${esc(text)}</span>${job.state === 'reading' || job.state === 'waiting' ? '<span class="spinner" aria-hidden="true"></span>' : '<button type="button" class="x" aria-label="Dismiss">×</button>'}`;
+  job.el.innerHTML = `${thumb}<span class="job-text">${esc(job.state === 'reading' ? `${label}: ${text}` : text)}</span>${job.state === 'reading' || job.state === 'waiting' ? '<span class="spinner" aria-hidden="true"></span>' : '<button type="button" class="x" aria-label="Dismiss">×</button>'}`;
   job.el.querySelector('.x')?.addEventListener('click', () => job.el.remove());
 }
 
@@ -144,7 +148,7 @@ function summarize(added, existing, unreadable) {
   if (games) parts.push(`${games} board game${games === 1 ? '' : 's'}`);
   let s = parts.length ? `Added ${parts.join(' and ')}` : 'Nothing new';
   if (existing.length) s += `, ${existing.length} already here`;
-  if (!added.length && !existing.length) s = unreadable ? "Couldn't make out any titles. Try closer, straighter on, with more light." : 'No books or games found in that photo.';
+  if (!added.length && !existing.length) s = unreadable ? "Couldn't make out any titles. Try closer, straighter on, with more light." : 'No titles found in that photo.';
   return `${s}.`;
 }
 
@@ -162,15 +166,13 @@ async function runJobs() {
       const progress = (text) => { job.progress = text; renderJob(job); };
       const read = await readPhoto(img, (p) => progress(progressText(p)));
       img.close?.();
-      const scan = await scanLines(read.lines, { onProgress: (p) => progress(progressText(p)) });
+      const scan = await scanLines(read.lines, { mode: job.mode, onProgress: (p) => progress(progressText(p)) });
       const photoId = newId('p');
       const { added, existing } = mergeScan(cat, scan, photoId);
       cat.photos.unshift({ id: photoId, thumb: job.thumb, added: new Date().toISOString(), books: scan.books.length, games: scan.games.length });
       await save(true);
       for (const item of added) ui.fresh.add(item.id);
-      // Show whichever list just grew if the current one didn't.
-      const grew = { books: added.some((i) => i.kind === 'book'), games: added.some((i) => i.kind === 'game') };
-      if (!grew[ui.kind] && grew[ui.kind === 'books' ? 'games' : 'books']) showKind(ui.kind === 'books' ? 'games' : 'books');
+      if (added.length && ui.kind !== job.mode) showKind(job.mode);
       else renderList();
       job.state = 'done';
       job.summary = summarize(added, existing, scan.unreadable);
@@ -204,17 +206,26 @@ function readError(e) {
   return "That photo couldn't be read. Try another.";
 }
 
-// ---------- Open Library lookups ----------
+function players(l) {
+  if (!l?.minPlayers) return '';
+  return l.maxPlayers && l.maxPlayers !== l.minPlayers ? `${l.minPlayers}–${l.maxPlayers} players` : `${l.minPlayers} players`;
+}
+
+// ---------- lookups after an edit or a move (Open Library for books, Wikidata for games) ----------
 
 let lookupsRunning = 0;
 function queueLookups() {
   while (lookupsRunning < 2) {
-    const item = cat.books.find((i) => i.lookupStatus === 'pending' && !i.lookingUp);
+    const item = [...cat.books, ...cat.games].find((i) => i.lookupStatus === 'pending' && !i.lookingUp);
     if (!item) return;
     item.lookingUp = true;
     lookupsRunning++;
-    lookupBook(item)
+    (item.kind === 'game' ? lookupGame(item) : lookupBook(item))
       .then((found) => {
+        if (found && item.kind === 'game') {
+          item.designer ||= found.designers[0] || null;
+          item.year ||= found.year;
+        }
         item.lookup = found;
         item.lookupStatus = found ? 'matched' : 'none';
       })
@@ -242,11 +253,18 @@ function fillItemSheet(item) {
   const game = item.kind === 'game';
   $('item-cover').innerHTML = coverHtml(item, true);
   $('item-title').value = item.title;
-  $('item-by-name').textContent = game ? 'Publisher' : 'Author';
-  $('item-by').value = (game ? item.publisher : item.author) || '';
+  $('item-by-name').textContent = game ? 'Designer' : 'Author';
+  $('item-by').value = (game ? item.designer : item.author) || '';
   const l = item.lookup || {};
+  const status = (where) => (item.lookupStatus === 'pending' ? 'Looking it up…' : item.lookupStatus === 'none' ? `Not found on ${where}` : item.lookupStatus === 'error' ? "Couldn't reach it" : null);
   const facts = game
-    ? [['Designer', item.designer], ['Year', item.year]]
+    ? [
+      ['Found as', l.title && l.title.toLowerCase() !== item.title.toLowerCase() ? l.title : null],
+      ['Designers', l.designers?.length ? l.designers.join(', ') : null],
+      ['Published', l.year || item.year],
+      ['Players', players(l)],
+      ['Wikidata', status('Wikidata')],
+    ]
     : [
       ['Found as', l.title && l.title.toLowerCase() !== item.title.toLowerCase() ? l.title : null],
       ['Authors', l.authors?.length ? l.authors.join(', ') : null],
@@ -255,12 +273,15 @@ function fillItemSheet(item) {
       ['ISBN', l.isbn],
       ['Publisher', l.publisher],
       ['Subjects', l.subjects?.length ? l.subjects.join(', ') : null],
-      ['Open Library', item.lookupStatus === 'pending' ? 'Looking it up…' : item.lookupStatus === 'none' ? 'No match found' : item.lookupStatus === 'error' ? "Couldn't reach it" : null],
+      ['Open Library', status('Open Library')],
     ];
   $('item-facts').innerHTML = facts.filter(([, v]) => v != null && v !== '').map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
   const q = encodeURIComponent([item.title, game ? '' : item.author].filter(Boolean).join(' '));
   const links = game
-    ? [['BoardGameGeek', `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(item.title)}`]]
+    ? [
+      ['BoardGameGeek', l.bgg ? `https://boardgamegeek.com/boardgame/${l.bgg}` : `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(item.title)}`],
+      ...(l.wikidata ? [['Wikidata', `https://www.wikidata.org/wiki/${l.wikidata}`]] : []),
+    ]
     : [
       l.key ? ['Open Library', `https://openlibrary.org${l.key}`] : ['Open Library', `https://openlibrary.org/search?q=${q}`],
       ['Goodreads', `https://www.goodreads.com/search?q=${l.isbn || q}`],
@@ -270,7 +291,7 @@ function fillItemSheet(item) {
   const photos = item.photos.map((id) => cat.photos.find((p) => p.id === id)).filter(Boolean);
   $('item-photos').innerHTML = photos.map((p) => `<img src="${p.thumb}" alt="A photo it was found in">`).join('');
   $('item-move').textContent = game ? 'Move to books' : 'Move to board games';
-  $('item-relookup').hidden = game;
+
 }
 
 function openItem(id) {
@@ -287,12 +308,14 @@ function commitItemEdits() {
   if (!item) return null;
   const title = $('item-title').value.trim();
   const by = $('item-by').value.trim() || null;
-  const field = item.kind === 'game' ? 'publisher' : 'author';
+  const field = item.kind === 'game' ? 'designer' : 'author';
   if ((title && title !== item.title) || by !== item[field]) {
     if (title) item.title = title;
     item[field] = by;
     item.edited = true;
-    if (item.kind === 'book') { item.lookup = null; item.lookupStatus = 'pending'; queueLookups(); }
+    item.lookup = null;
+    item.lookupStatus = 'pending';
+    queueLookups();
     save();
     renderList();
   }
@@ -341,7 +364,7 @@ function renderPhotos() {
 const find = { img: null, query: '', run: 0, box: null, zoomed: false, read: null };
 
 function refreshSuggestions() {
-  const titles = [...new Set(cat.books.map((b) => b.title))].sort().slice(0, 500);
+  const titles = [...new Set([...cat.books, ...cat.games].map((b) => b.title))].sort().slice(0, 500);
   $('find-suggest').innerHTML = titles.map((t) => `<option value="${esc(t)}">`).join('');
 }
 

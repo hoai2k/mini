@@ -22,7 +22,7 @@ test('a scan merges into the catalogue without duplicates', () => {
   const first = mergeScan(cat, { books: [{ title: 'Dune', author: 'Frank Herbert', confidence: 0.9 }, { title: 'Emma', author: null }], games: [{ title: 'Catan', publisher: 'Kosmos' }] }, 'p1', '2026-10-01T00:00:00Z');
   assert.equal(first.added.length, 3);
   assert.equal(cat.books.length, 2);
-  assert.equal(cat.games[0].lookupStatus, 'none', 'games are not looked up on Open Library');
+  assert.equal(cat.games[0].lookupStatus, 'pending', 'games typed in are looked up on Wikidata');
   assert.equal(cat.books[0].lookupStatus, 'pending');
   const second = mergeScan(cat, { books: [{ title: 'dune', author: 'Herbert' }, { title: 'Emma', author: 'Jane Austen' }, { title: 'Persuasion', author: 'Jane Austen' }], games: [] }, 'p2', '2026-10-02T00:00:00Z');
   assert.equal(second.added.length, 1);

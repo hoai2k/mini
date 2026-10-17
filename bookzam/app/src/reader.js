@@ -3,7 +3,7 @@
 // title (Find Book). Nothing is sent anywhere but Open Library's search.
 
 import { groupLines, matchScore, strongWords, inLine, mergeGroups } from './ocr/spines.js';
-import { identify, titleCase, GAME_WORDS } from './ocr/identify.js';
+import { identify, titleCase, SMALL_PRINT } from './ocr/identify.js';
 
 export const READ_EDGE = 2560; // the detector reads photos at this size; small spine text needs it
 let worker = null;
@@ -70,8 +70,12 @@ export async function readPhoto(img, onProgress) {
   return { lines: msg.lines, width: data.width, height: data.height };
 }
 
-/** The catalogue entries in a read photo: {books, games, unreadable}. */
-export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis.fetch?.bind(globalThis), concurrency = 3 } = {}) {
+/**
+ * The catalogue entries in a read photo: {books, games, unreadable}. `mode`
+ * ('books' or 'games', the list the photo was added to) says what everything
+ * in it is, and so where it's looked up.
+ */
+export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis.fetch?.bind(globalThis), concurrency = 3, mode = 'books' } = {}) {
   let groups = groupLines(lines);
   // Prominent text: letters well above the photo's typical size (a title, not a publisher).
   const heights = lines.map((l) => l.box.th || l.box.h / 2.5).sort((a, b) => a - b);
@@ -82,19 +86,19 @@ export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis
   await Promise.all(Array.from({ length: concurrency }, async () => {
     while (next < groups.length) {
       const i = next++;
-      try { found[i] = await identify(groups[i], { fetch: fetchFn, prominent: prominent(groups[i]) }); } catch { found[i] = null; }
+      try { found[i] = await identify(groups[i], { fetch: fetchFn, prominent: prominent(groups[i]), mode }); } catch { found[i] = null; }
       onProgress?.({ stage: 'lookup', done: ++done, total: groups.length });
     }
   }));
   // Text in line across a shelf may be one lying spine ("OVID   METAMORPHOSES") or
-  // labels on two: try unidentified neighbours together, kept only if Open Library knows it.
+  // labels on two: try unidentified neighbours together, kept only if the lookup knows it.
   for (let i = 0; i < groups.length; i++) {
     if (!groups[i] || found[i]?.lookup || !strongWords(groups[i].text).length) continue;
     for (let j = i + 1; j < groups.length; j++) {
       if (found[j]?.lookup || !groups[j] || !strongWords(groups[j].text).length || !inLine(groups[i], groups[j])) continue;
       const merged = mergeGroups(groups[i], groups[j]);
       let item = null;
-      try { item = await identify(merged, { fetch: fetchFn }); } catch { item = null; }
+      try { item = await identify(merged, { fetch: fetchFn, mode }); } catch { item = null; }
       if (item?.lookup) {
         groups[i] = merged;
         found[i] = item;
@@ -107,34 +111,20 @@ export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis
   const kept = groups.map((g, i) => [g, found[i]]).filter(([g]) => g);
   groups = kept.map(([g]) => g);
   found.splice(0, found.length, ...kept.map(([, f]) => f));
-  // A box's small print ("2-5 players, ages 10+") marks the title near it as a game,
-  // and isn't an item itself.
-  const letters = (g) => Math.max(...g.lines.map((l) => l.box.th || l.box.h / 2.5));
-  const near = (g, h) => {
-    const a = g.bounds, b = h.bounds, pad = 3 * Math.max(letters(g), letters(h));
-    return b.x0 < a.x1 + pad && b.x1 > a.x0 - pad && b.y0 < a.y1 + pad && b.y1 > a.y0 - pad;
-  };
-  const boilerplate = groups.map((g, i) => GAME_WORDS.test(g.text) && !found[i]?.lookup && strongWords(g.text).length <= 4);
+  // A game box's small print ("2-5 players, ages 10+") is never an item itself.
   groups.forEach((g, i) => {
-    const item = found[i];
-    if (!item || item.lookup || boilerplate[i]) return;
-    if (groups.some((h, j) => j !== i && boilerplate[j] && near(g, h))) item.kind = 'game';
-    else if (item.single) found[i] = null;
+    if (found[i] && !found[i].lookup && SMALL_PRINT.test(g.text) && strongWords(g.text).length <= 4) found[i] = null;
   });
-  boilerplate.forEach((b, i) => { if (b) found[i] = null; });
-  const books = [], games = [];
+  const items = [];
   // Reading order: top to bottom by shelf, then left to right.
   const order = groups.map((g, i) => i).sort((a, b) => {
     const ga = groups[a].bounds, gb = groups[b].bounds;
     const rowA = Math.round((ga.y0 + ga.y1) / 2 / 200), rowB = Math.round((gb.y0 + gb.y1) / 2 / 200);
     return rowA - rowB || ga.x0 - gb.x0;
   });
-  for (const i of order) {
-    const item = found[i];
-    if (item) (item.kind === 'game' ? games : books).push(item);
-  }
+  for (const i of order) if (found[i]) items.push(found[i]);
   const unreadable = groups.filter((g, i) => !found[i] && strongWords(g.text).length > 0).length;
-  return { books, games, unreadable };
+  return mode === 'games' ? { books: [], games: items, unreadable } : { books: items, games: [], unreadable };
 }
 
 /** A short sentence saying where a box (fractions of the photo) is. */
