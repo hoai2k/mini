@@ -14,6 +14,7 @@ import * as THREE from 'three/webgpu';
 import { Skin, Rig, makeCharMaterial, PX } from './character.js';
 import { cellMesh, footwear, beads } from './herovox.js';
 import { mulberry32 } from '../util.js';
+import { t as txt } from '../text_config.js';
 
 const shadeOf = (c, k) => { const x = new THREE.Color(c); x.r = Math.min(1, x.r * k); x.g = Math.min(1, x.g * k); x.b = Math.min(1, x.b * k); return x.getHex(); };
 const mixC = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t).getHex();
@@ -407,7 +408,7 @@ function strawHat({ brim = 14, crown = 8.6, crownH = 3.2, y = 8.4, straw, band: 
 
 export const MORTALS = {
   teacher: {
-    name: 'Mrs. Dodds', blurb: 'A pre-algebra teacher who looks at you like you owe her homework.',
+    name: txt('mortals.teacher.name'), blurb: txt('mortals.teacher.blurb'),
     paint: { skin: 0xe4c0a2, hair: 0x84848e, fringe: 2, hairSide: 3, hairBack: 7, eyeRow: 3, brow: 0x46464e, eye: 0x3a5038, scowl: true, squint: true, frown: true, wrinkles: 0xc49a80, lipstick: 0x84202e, top: 0x6a1226, knit: true, jacket: 0x1a181e, lapel: 0x2e2c36, zip: 0xa8a8b4, pants: 0x1c1a20, skirt: 0x1c1a20, skirtLen: 8, tights: 0x2a1e24, shoes: 0x0e0e10, saturate: 1.15 },
     hair: { c: [0, 7.6, -0.6], r: [4.9, 3.4, 5.1], bump: 0.3, shell: 1.05, shellBump: 0.7, fringe: 6.6, jag: 0, side: 4.4, back: 2.4, tuft: 0.07, part: -1, blobs: [{ c: [0, 9.8, -4.4], r: [3.1, 2.9, 2.7], bump: 0.35 }], tones: [0x5e5e66, 0x8e8e98, 0xbcbcc6] },
     parts() {
@@ -429,7 +430,7 @@ export const MORTALS = {
     },
   },
   student: {
-    name: 'Student', blurb: 'Just a kid on the field trip. Probably.',
+    name: txt('mortals.student.name'), blurb: txt('mortals.student.blurb'),
     scale: 1.14,   // (Percy's classmates: the heroes are drawn at 1.18; at 0.92 they stood a head under him on the museum steps)
     paint: { skin: 0xeebc96, hair: 0x5a3418, fringe: 3, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a2a, brow: 0x4a2a14, smile: true, blush: 0xe89480, top: 0x203470, knit: true, vneck: 0xf2eee4, tie: 0xb0202a, pocket: 0xd0a040, straps: 0x6a1414, pants: 0x34507e, shoes: 0xc8282e, saturate: 1.2 },
     hair: { c: [0, 7.3, -0.5], r: [6, 5.2, 6.2], bump: 0.34, shell: 1.4, fringe: 6.2, jag: 1.2, side: 3, back: 0.8, tuft: 0.16, spike: 0.04, tones: [0x3a200e, 0x5e3618, 0x86542a] },
@@ -448,7 +449,7 @@ export const MORTALS = {
     },
   },
   guard: {
-    name: 'Museum Guard', blurb: 'Navy uniform, a peaked cap and a radio. Has seen everything. Not this.',
+    name: txt('mortals.guard.name'), blurb: txt('mortals.guard.blurb'),
     paint: { skin: 0xc89a78, hair: 0x2a2018, fringe: 1, hairSide: 2, eye: 0x2a1a0a, brow: 0x2a2018, top: 0xd8dce8, jacket: 0x1e2a4a, lapel: 0x16203a, pants: 0x1a2238, shoes: 0x0e0e0e },
     build(rig) {
       const navy = solidMat(0x1a2440);
@@ -460,7 +461,7 @@ export const MORTALS = {
     },
   },
   tourist: {
-    name: 'Tourist', blurb: 'Sun hat, camera, and a smile that is slightly too wide.',
+    name: txt('mortals.tourist.name'), blurb: txt('mortals.tourist.blurb'),
     paint: { skin: 0xf2b490, hair: 0xd8a448, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x2a6ab0, brow: 0xb08030, browUp: true, grin: true, nose: 0xfaf6f0, blush: 0xf08068, top: 0xe85a14, floral: [0xfff4c8, 0xffc020, 0x1e8a50], shortSleeve: true, vneck: 0xf2b490, pants: 0xb89c64, shorts: true, socks: 0xf6f6f2, sockLen: 3, shoes: 0xf6f6f2, saturate: 1.2 },
     hair: { c: [0, 6.6, -0.6], r: [5, 4, 5.2], bump: 0.2, shell: 1.2, fringe: 6.6, jag: 1, side: 3, back: 1.6, top: 8.3, tuft: 0.1, tones: [0xa87420, 0xd8a448, 0xf4cc70] },
     parts() {
@@ -482,7 +483,7 @@ export const MORTALS = {
     },
   },
   farmer: {
-    name: 'Farmer', blurb: 'Out checking the fences in a thunderstorm. Odd.',
+    name: txt('mortals.farmer.name'), blurb: txt('mortals.farmer.blurb'),
     paint: { skin: 0xd8946a, hair: 0x6e5e4c, fringe: 1, hairSide: 3, hairBack: 5, eyeRow: 3, eye: 0x3a5a7a, brow: 0x5a4a3a, smile: true, nose: 0xd27a5c, beard: 0x7e6e5a, wrinkles: 0xb47c5a, top: 0xb4281e, plaid: 0x4a100a, overalls: 0x2c5694, pants: 0x2c5694, shoes: 0x5a3820, saturate: 1.15 },
     hair: { c: [0, 6.4, -0.6], r: [4.8, 3.6, 5], bump: 0.2, shell: 1.2, fringe: 6.6, jag: 0, side: 2.6, back: 1.4, top: 8.3, tuft: 0.08, tones: [0x4e4234, 0x6e5e4c, 0x968672] },
     beard: [0x5e5040, 0x7e6e5a, 0xa09078],
@@ -504,7 +505,7 @@ export const MORTALS = {
     },
   },
   old_lady: {
-    name: 'Old Lady', blurb: 'Knitting socks. Very large socks. With very sharp scissors.',
+    name: txt('mortals.old_lady.name'), blurb: txt('mortals.old_lady.blurb'),
     paint: { skin: 0xeac6ae, hair: 0xd4d0dc, fringe: 2, hairSide: 3, hairBack: 7, eyeRow: 3, eye: 0x5a4a8a, brow: 0xa8a4b0, wrinkles: 0xc49886, lipstick: 0xc04a78, blush: 0xf09aa4, smile: true, top: 0x5c2478, knit: true, collar: 0xf6eedc, buttons: 0xe0b040, pants: 0x46205a, skirt: 0x46205a, skirtLen: 10, tights: 0xd8b4a2, shoes: 0x3a1a26, saturate: 1.15 },
     hair: { c: [0, 7.4, -0.5], r: [5.8, 4.6, 5.9], bump: 0.42, shell: 1.4, fringe: 6.4, jag: 0.6, side: 3.4, back: 2, tuft: 0.3, tones: [0xa8a2b6, 0xd4d0de, 0xf4f2f8] },
     parts() {
@@ -535,7 +536,7 @@ export const MORTALS = {
     },
   },
   bellhop: {
-    name: 'Bellhop', blurb: 'Welcome to the Lotus! Your stay is on the house. For ever.',
+    name: txt('mortals.bellhop.name'), blurb: txt('mortals.bellhop.blurb'),
     paint: { skin: 0xe0b08a, hair: 0x22140e, fringe: 1, hairSide: 2, hairBack: 5, eyeRow: 3, eye: 0x2a5a2a, brow: 0x22140e, grin: true, browUp: true, top: 0xb01a28, trim: 0x84101c, buttons: 0xf0c850, collar: 0xf0c850, sleeve: 0xb01a28, hand: 0xf6f6f2, pants: 0x18161e, legStripe: 0xb01a28, shoes: 0x0e0e10, saturate: 1.15,
       body: (s) => { s.rect(16, 30, 24, 1, 0xe8c060, 0); s.rect(40, 26, 16, 1, 0xe8c060, 0); s.rect(32, 58, 16, 1, 0xe8c060, 0); } },
     parts() {
@@ -557,7 +558,7 @@ export const MORTALS = {
     pose(rig) { rig.armL.rotation.x = -0.9; },
   },
   salesman: {
-    name: 'Salesman', blurb: 'A big smile, a bigger handshake, and a deal you can’t refuse.',
+    name: txt('mortals.salesman.name'), blurb: txt('mortals.salesman.blurb'),
     paint: { skin: 0xdaa078, hair: 0x18100e, fringe: 1, hairSide: 2, hairBack: 5, eyeRow: 3, eye: 0x3a2410, brow: 0x18100e, grin: true, goldTooth: 0xf0c030, browUp: true, moustache: 0x24160e, top: 0xf4f0e4, jacket: 0xc8962e, lapel: 0x946a1a, check: 0xb4802a, collar: 0xffffff, trim: 0xb8202c, sleeve: 0xc8962e, pants: 0xb88a2a, shoes: 0x5a2e14, saturate: 1.15 },
     hair: { c: [0, 7.2, 0], r: [4.8, 3.6, 5], bump: 0.1, shell: 1.1, shellBump: 0.9, fringe: 7, jag: 0, side: 4.2, back: 2.4, tuft: 0.06, part: 2, blobs: [{ c: [-0.6, 9.4, 2.6], r: [3.8, 1.8, 2.6], bump: 0.2 }], tones: [0x0c0808, 0x1e1412, 0x4a3a36] },
     parts() {

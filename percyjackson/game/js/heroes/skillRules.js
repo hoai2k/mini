@@ -19,6 +19,7 @@
 // points for a tree of about 30.
 //
 // Pure module (no DOM, no Three.js), so the node tests can load it.
+import { t, tn } from '../text_config.js';
 
 export const TREE_VERSION = 2;           // hero data with an older (or no) `tree` is migrated
 export const POWER_COST = 2;             // learning a new power
@@ -36,126 +37,126 @@ const pct = (n) => `+${Math.round(n)}%`;
 export const TREES = {
   percy: {
     starters: [
-      { id: 'surge', name: 'Wave Surge', icon: '🌊', desc: 'A cone of seawater that knocks monsters flat.' },
-      { id: 'tide', name: 'Healing Tide', icon: '💦', desc: 'A pool of seawater that heals heroes in it and slows monsters.' },
-      { id: 'throw', name: 'Riptide Throw', icon: '🗡️', desc: 'Riptide spins out in a line and comes back to his hand.' },
+      { id: 'surge', name: t('skills.percy.surge.name'), icon: '🌊', desc: t('skills.percy.surge.desc') },
+      { id: 'tide', name: t('skills.percy.tide.name'), icon: '💦', desc: t('skills.percy.tide.desc') },
+      { id: 'throw', name: t('skills.percy.throw.name'), icon: '🗡️', desc: t('skills.percy.throw.desc') },
     ],
     branches: [
-      { id: 'blade', name: 'Riptide', desc: 'Swordsmanship, as Luke taught it' },
-      { id: 'tides', name: 'Tides', desc: 'Water as a weapon' },
-      { id: 'sea', name: 'Son of the Sea', desc: 'The sea heals and shields' },
+      { id: 'blade', name: t('skills.percy.branch.blade.name'), desc: t('skills.percy.branch.blade.desc') },
+      { id: 'tides', name: t('skills.percy.branch.tides.name'), desc: t('skills.percy.branch.tides.desc') },
+      { id: 'sea', name: t('skills.percy.branch.sea.name'), desc: t('skills.percy.branch.sea.desc') },
     ],
     nodes: [
-      S('riptide', 'Celestial Bronze', 'blade', 1, 3, 'Melee damage.', (r) => `${pct(8 * r)} melee damage`),
-      U('throw_up', 'Returning Blade', 'blade', 1, 3, 'Riptide Throw flies further and hits harder.', (r) => `${10 + 1.5 * r} m, ${22 + 8 * r} damage`, { power: 'throw', old: 'throw' }),
-      P('disarm', 'Disarming Strike', '⚔️', 'blade', 2, 3, 'A lunging thrust. The monster it hits is stunned; a boss is left open (marked) instead.', (r) => `${30 + 12 * (r - 1)} damage, ${(2 + 0.5 * (r - 1)).toFixed(1)} s stun`),
-      U('jet', 'Pressure Jet', 'tides', 1, 3, 'Water Jet hits harder.', (r) => `${10 + 3 * r} damage a jet`, { power: 'ranged' }),
+      S('riptide', t('skills.percy.riptide.name'), 'blade', 1, 3, t('skills.percy.riptide.desc'), (r) => t('skills.percy.riptide.at', { pct: pct(8 * r) })),
+      U('throw_up', t('skills.percy.throw_up.name'), 'blade', 1, 3, t('skills.percy.throw_up.desc'), (r) => t('skills.percy.throw_up.at', { metres: 10 + 1.5 * r, damage: 22 + 8 * r }), { power: 'throw', old: 'throw' }),
+      P('disarm', t('skills.percy.disarm.name'), '⚔️', 'blade', 2, 3, t('skills.percy.disarm.desc'), (r) => t('skills.percy.disarm.at', { damage: 30 + 12 * (r - 1), seconds: (2 + 0.5 * (r - 1)).toFixed(1) })),
+      U('jet', t('skills.percy.jet.name'), 'tides', 1, 3, t('skills.percy.jet.desc'), (r) => t('skills.percy.jet.at', { damage: 10 + 3 * r }), { power: 'ranged' }),
       U('jet_charges', 'Fire Hose', 'tides', 1, 1, 'Water Jet holds two charges.', () => '2 charges', { power: 'ranged', req: 'jet' }),
-      U('surge_up', 'Tidal Force', 'tides', 1, 3, 'Wave Surge reaches further and hits harder.', (r) => `${(7 + 1.2 * r).toFixed(1)} m, ${24 + 8 * r} damage`, { power: 'surge', old: 'surge' }),
-      P('geyser', 'Geyser', '⛲', 'tides', 2, 3, 'Water bursts out of the ground where you aim and throws monsters into the air.', (r) => `${28 + 10 * (r - 1)} damage, ${(2.6 + 0.4 * (r - 1)).toFixed(1)} m across`),
-      S('sea', 'Son of the Sea', 'sea', 1, 2, 'In water Percy heals faster and hits harder.', (r) => `heals ${2 + 1.5 * r}/s in water, ${pct(25 + 10 * r)} damage in water`),
-      U('tide_up', 'Deep Tide', 'sea', 1, 2, 'Healing Tide is wider, lasts longer and heals more.', (r) => `${(3.6 + 0.6 * r).toFixed(1)} m, ${6 + 1.5 * r} s`, { power: 'tide', old: 'tide' }),
-      P('bubble', 'Air Bubble', '🫧', 'sea', 2, 3, 'A bubble of sea air round Percy and the heroes near him: half damage from every hit.', (r) => `${4 + (r - 1)} s, heroes within ${5 + (r - 1)} m`),
-      U('hurricane', 'Eye of the Storm', 'sea', 3, 2, 'Hurricane lasts longer.', (r) => `${6 + 2 * r} s`, { power: 'domain' }),
+      U('surge_up', t('skills.percy.surge_up.name'), 'tides', 1, 3, t('skills.percy.surge_up.desc'), (r) => t('skills.percy.surge_up.at', { metres: (7 + 1.2 * r).toFixed(1), damage: 24 + 8 * r }), { power: 'surge', old: 'surge' }),
+      P('geyser', t('skills.percy.geyser.name'), '⛲', 'tides', 2, 3, t('skills.percy.geyser.desc'), (r) => t('skills.percy.geyser.at', { damage: 28 + 10 * (r - 1), metres: (2.6 + 0.4 * (r - 1)).toFixed(1) })),
+      S('sea', t('skills.percy.sea.name'), 'sea', 1, 2, t('skills.percy.sea.desc'), (r) => t('skills.percy.sea.at', { n: 2 + 1.5 * r, pct: pct(25 + 10 * r) })),
+      U('tide_up', t('skills.percy.tide_up.name'), 'sea', 1, 2, t('skills.percy.tide_up.desc'), (r) => t('skills.percy.tide_up.at', { metres: (3.6 + 0.6 * r).toFixed(1), seconds: 6 + 1.5 * r }), { power: 'tide', old: 'tide' }),
+      P('bubble', t('skills.percy.bubble.name'), '🫧', 'sea', 2, 3, t('skills.percy.bubble.desc'), (r) => t('skills.percy.bubble.at', { seconds: 4 + (r - 1), metres: 5 + (r - 1) })),
+      U('hurricane', t('skills.percy.hurricane.name'), 'sea', 3, 2, t('skills.percy.hurricane.desc'), (r) => t('skills.percy.hurricane.at', { seconds: 6 + 2 * r }), { power: 'domain' }),
     ],
   },
   annabeth: {
     starters: [
-      { id: 'cap', name: 'Yankees Cap', icon: '🧢', desc: 'Invisible for a few seconds; the first hit out of hiding is critical.' },
-      { id: 'plan', name: 'Battle Plan', icon: '🦉', desc: "Marks a monster's weak point: it takes +50% damage from the team." },
-      { id: 'trap', name: 'Daedalus Trap', icon: '⚙️', desc: 'A bronze snare that roots the monsters that step on it.' },
+      { id: 'cap', name: t('skills.annabeth.cap.name'), icon: '🧢', desc: t('skills.annabeth.cap.desc') },
+      { id: 'plan', name: t('skills.annabeth.plan.name'), icon: '🦉', desc: t('skills.annabeth.plan.desc') },
+      { id: 'trap', name: t('skills.annabeth.trap.name'), icon: '⚙️', desc: t('skills.annabeth.trap.desc') },
     ],
     branches: [
-      { id: 'stealth', name: 'Stealth', desc: 'The cap and the dagger' },
-      { id: 'strategy', name: 'Strategy', desc: 'Plans that win battles' },
-      { id: 'workshop', name: 'Workshop', desc: "Daedalus's inventions" },
+      { id: 'stealth', name: t('skills.annabeth.branch.stealth.name'), desc: t('skills.annabeth.branch.stealth.desc') },
+      { id: 'strategy', name: t('skills.annabeth.branch.strategy.name'), desc: t('skills.annabeth.branch.strategy.desc') },
+      { id: 'workshop', name: t('skills.annabeth.branch.workshop.name'), desc: t('skills.annabeth.branch.workshop.desc') },
     ],
     nodes: [
-      S('blade', 'Bronze Edge', 'stealth', 1, 3, 'Melee damage.', (r) => `${pct(8 * r)} melee damage`),
-      S('backstab', 'Weak Spot', 'stealth', 1, 2, 'Hits from behind deal more.', (r) => `${pct(25 * r)} damage from behind`),
-      U('cap_up', 'Yankees Cap', 'stealth', 1, 2, 'Invisibility lasts longer.', (r) => `${5 + 1.5 * r} s invisible`, { power: 'cap', old: 'cap' }),
-      P('flank', 'Flank', '🌀', 'stealth', 2, 3, 'She darts round behind the monster you aim at and strikes: the hit is critical.', (r) => `${24 + 10 * (r - 1)} damage, x2 critical`),
-      S('owl', 'Grey Eyes', 'strategy', 1, 3, 'Critical chance.', (r) => `${pct(4 * r)} critical chance`),
-      U('plan_up', 'Strategist', 'strategy', 1, 2, 'Battle Plan lasts longer and the mark bites harder.', (r) => `${8 + 2 * r} s, mark +${50 + 10 * r}%`, { power: 'plan', old: 'plan' }),
-      P('orders', 'Battle Orders', '📜', 'strategy', 2, 3, 'Every hero near her runs faster and gains Power.', (r) => `+30% speed for ${6 + (r - 1)} s, +${10 + 5 * (r - 1)} Power`),
-      U('gambit', 'Wisdom', 'strategy', 3, 2, "Wisdom's Gambit lasts longer.", (r) => `${6 + 1.5 * r} s`, { power: 'domain' }),
+      S('blade', t('skills.annabeth.blade.name'), 'stealth', 1, 3, t('skills.annabeth.blade.desc'), (r) => t('skills.annabeth.blade.at', { pct: pct(8 * r) })),
+      S('backstab', t('skills.annabeth.backstab.name'), 'stealth', 1, 2, t('skills.annabeth.backstab.desc'), (r) => t('skills.annabeth.backstab.at', { pct: pct(25 * r) })),
+      U('cap_up', t('skills.annabeth.cap_up.name'), 'stealth', 1, 2, t('skills.annabeth.cap_up.desc'), (r) => t('skills.annabeth.cap_up.at', { seconds: 5 + 1.5 * r }), { power: 'cap', old: 'cap' }),
+      P('flank', t('skills.annabeth.flank.name'), '🌀', 'stealth', 2, 3, t('skills.annabeth.flank.desc'), (r) => t('skills.annabeth.flank.at', { damage: 24 + 10 * (r - 1) })),
+      S('owl', t('skills.annabeth.owl.name'), 'strategy', 1, 3, t('skills.annabeth.owl.desc'), (r) => t('skills.annabeth.owl.at', { pct: pct(4 * r) })),
+      U('plan_up', t('skills.annabeth.plan_up.name'), 'strategy', 1, 2, t('skills.annabeth.plan_up.desc'), (r) => t('skills.annabeth.plan_up.at', { seconds: 8 + 2 * r, percent: 50 + 10 * r }), { power: 'plan', old: 'plan' }),
+      P('orders', t('skills.annabeth.orders.name'), '📜', 'strategy', 2, 3, t('skills.annabeth.orders.desc'), (r) => t('skills.annabeth.orders.at', { seconds: 6 + (r - 1), power: 10 + 5 * (r - 1) })),
+      U('gambit', t('skills.annabeth.gambit.name'), 'strategy', 3, 2, t('skills.annabeth.gambit.desc'), (r) => t('skills.annabeth.gambit.at', { seconds: 6 + 1.5 * r }), { power: 'domain' }),
       U('knives', 'Twin Knives', 'workshop', 1, 1, 'Thrown Knife throws two blades.', () => '2 knives', { power: 'ranged' }),
-      U('trap_up', 'Daedalus Workshop', 'workshop', 1, 2, 'Traps root longer and hit harder.', (r) => `${(2.8 + 0.8 * r).toFixed(1)} s root, ${18 + 8 * r} damage`, { power: 'trap', old: 'trap' }),
-      P('automaton', 'Bronze Automaton', '🤖', 'workshop', 2, 3, 'A little bronze sentry that throws knives at the monsters near it.', (r) => `${8 + 2 * (r - 1)} s, ${9 + 3 * (r - 1)} damage a knife`),
+      U('trap_up', t('skills.annabeth.trap_up.name'), 'workshop', 1, 2, t('skills.annabeth.trap_up.desc'), (r) => t('skills.annabeth.trap_up.at', { seconds: (2.8 + 0.8 * r).toFixed(1), damage: 18 + 8 * r }), { power: 'trap', old: 'trap' }),
+      P('automaton', t('skills.annabeth.automaton.name'), '🤖', 'workshop', 2, 3, t('skills.annabeth.automaton.desc'), (r) => t('skills.annabeth.automaton.at', { seconds: 8 + 2 * (r - 1), damage: 9 + 3 * (r - 1) })),
     ],
   },
   grover: {
     starters: [
-      { id: 'vines', name: 'Tangle Vines', icon: '🌿', desc: 'Blocky vines burst from the ground and root monsters.' },
-      { id: 'calm', name: 'Calming Song', icon: '🎶', desc: 'Heals every hero near him over a few seconds and slows monsters.' },
-      { id: 'maia', name: 'Maia!', icon: '🪽', desc: 'Winged sneakers carry him over gaps and monsters.' },
+      { id: 'vines', name: t('skills.grover.vines.name'), icon: '🌿', desc: t('skills.grover.vines.desc') },
+      { id: 'calm', name: t('skills.grover.calm.name'), icon: '🎶', desc: t('skills.grover.calm.desc') },
+      { id: 'maia', name: t('skills.grover.maia.name'), icon: '🪽', desc: t('skills.grover.maia.desc') },
     ],
     branches: [
-      { id: 'wild', name: 'Wild', desc: 'The forest fights for him' },
-      { id: 'pipes', name: 'Reed Pipes', desc: 'Songs of Pan' },
-      { id: 'satyr', name: 'Satyr', desc: 'Hooves, sneakers and snacks' },
+      { id: 'wild', name: t('skills.grover.branch.wild.name'), desc: t('skills.grover.branch.wild.desc') },
+      { id: 'pipes', name: t('skills.grover.branch.pipes.name'), desc: t('skills.grover.branch.pipes.desc') },
+      { id: 'satyr', name: t('skills.grover.branch.satyr.name'), desc: t('skills.grover.branch.satyr.desc') },
     ],
     nodes: [
-      U('vines_up', 'Wild Growth', 'wild', 1, 3, 'Tangle Vines cover more ground and hold longer.', (r) => `${(3.2 + 0.5 * r).toFixed(1)} m, ${(2.6 + 0.6 * r).toFixed(1)} s`, { power: 'vines', old: 'vines' }),
-      P('briar', 'Briar Burst', '🌵', 'wild', 2, 3, 'Thorns burst up all round Grover, hurting, slowing and pushing back the monsters close by.', (r) => `${22 + 9 * (r - 1)} damage, ${4.5 + 0.5 * (r - 1)} m`),
-      U('pipes', 'Reed Pipes', 'pipes', 1, 3, 'Pipe Song bolts hit harder.', (r) => `${9 + 3 * r} damage a bolt`, { power: 'ranged' }),
-      U('song', 'Calming Song', 'pipes', 1, 3, 'Calming Song heals more.', (r) => `${3 + r}% health every half second`, { power: 'calm' }),
+      U('vines_up', t('skills.grover.vines_up.name'), 'wild', 1, 3, t('skills.grover.vines_up.desc'), (r) => t('skills.grover.vines_up.at', { metres: (3.2 + 0.5 * r).toFixed(1), seconds: (2.6 + 0.6 * r).toFixed(1) }), { power: 'vines', old: 'vines' }),
+      P('briar', t('skills.grover.briar.name'), '🌵', 'wild', 2, 3, t('skills.grover.briar.desc'), (r) => t('skills.grover.briar.at', { damage: 22 + 9 * (r - 1), metres: 4.5 + 0.5 * (r - 1) })),
+      U('pipes', t('skills.grover.pipes.name'), 'pipes', 1, 3, t('skills.grover.pipes.desc'), (r) => t('skills.grover.pipes.at', { damage: 9 + 3 * r }), { power: 'ranged' }),
+      U('song', t('skills.grover.song.name'), 'pipes', 1, 3, t('skills.grover.song.desc'), (r) => t('skills.grover.song.at', { percent: 3 + r }), { power: 'calm' }),
       U('empathy', 'Empathy Link', 'pipes', 1, 1, 'Calming Song also restores Power to the team.', () => '+2 Power every half second', { power: 'calm', req: 'song' }),
-      P('lullaby', 'Lullaby', '💤', 'pipes', 2, 3, 'A sleepy tune: monsters near him nod off (bosses only slow down).', (r) => `${(2.5 + 0.5 * (r - 1)).toFixed(1)} s asleep, ${6 + (r - 1)} m`),
-      U('panic', 'Voice of Pan', 'pipes', 3, 2, 'Panic lasts longer.', (r) => `${5 + r} s`, { power: 'domain' }),
-      S('hooves', 'Hoof Kick', 'satyr', 1, 3, 'Melee damage.', (r) => `${pct(8 * r)} melee damage`),
-      U('maia_up', 'Maia!', 'satyr', 1, 2, 'Flies further and lands with a stomp that hits harder.', (r) => `${9 + 2 * r} m, ${14 + 8 * r} damage stomp`, { power: 'maia', old: 'maia' }),
-      P('snack', 'Tin-Can Snack', '🥫', 'satyr', 2, 3, 'Grover munches a tin can: health and Power back.', (r) => `${25 + 8 * (r - 1)}% health, +${15 + 5 * (r - 1)} Power`),
+      P('lullaby', t('skills.grover.lullaby.name'), '💤', 'pipes', 2, 3, t('skills.grover.lullaby.desc'), (r) => t('skills.grover.lullaby.at', { seconds: (2.5 + 0.5 * (r - 1)).toFixed(1), metres: 6 + (r - 1) })),
+      U('panic', t('skills.grover.panic.name'), 'pipes', 3, 2, t('skills.grover.panic.desc'), (r) => t('skills.grover.panic.at', { seconds: 5 + r }), { power: 'domain' }),
+      S('hooves', t('skills.grover.hooves.name'), 'satyr', 1, 3, t('skills.grover.hooves.desc'), (r) => t('skills.grover.hooves.at', { pct: pct(8 * r) })),
+      U('maia_up', t('skills.grover.maia_up.name'), 'satyr', 1, 2, t('skills.grover.maia_up.desc'), (r) => t('skills.grover.maia_up.at', { metres: 9 + 2 * r, damage: 14 + 8 * r }), { power: 'maia', old: 'maia' }),
+      P('snack', t('skills.grover.snack.name'), '🥫', 'satyr', 2, 3, t('skills.grover.snack.desc'), (r) => t('skills.grover.snack.at', { percent: 25 + 8 * (r - 1), power: 15 + 5 * (r - 1) })),
     ],
   },
   tyson: {
     starters: [
-      { id: 'pound', name: 'Ground Pound', icon: '👊', desc: 'Leaps and slams the ground, launching everything near.' },
-      { id: 'shield', name: 'Watch Shield', icon: '🛡️', desc: 'A bronze shield that blocks every hit from the front and bats arrows back.' },
-      { id: 'forge', name: 'Forge Fire', icon: '🔥', desc: "Immune to fire; the team's melee hits deal +30% for a while." },
+      { id: 'pound', name: t('skills.tyson.pound.name'), icon: '👊', desc: t('skills.tyson.pound.desc') },
+      { id: 'shield', name: t('skills.tyson.shield.name'), icon: '🛡️', desc: t('skills.tyson.shield.desc') },
+      { id: 'forge', name: t('skills.tyson.forge.name'), icon: '🔥', desc: t('skills.tyson.forge.desc') },
     ],
     branches: [
-      { id: 'fists', name: 'Fists', desc: 'Huge and heavy' },
-      { id: 'hide', name: 'Cyclops Hide', desc: 'Nothing gets past him' },
-      { id: 'forge', name: 'Forge and Sea', desc: 'Fire, bronze and a hippocampus friend' },
+      { id: 'fists', name: t('skills.tyson.branch.fists.name'), desc: t('skills.tyson.branch.fists.desc') },
+      { id: 'hide', name: t('skills.tyson.branch.hide.name'), desc: t('skills.tyson.branch.hide.desc') },
+      { id: 'forge', name: t('skills.tyson.branch.forge.name'), desc: t('skills.tyson.branch.forge.desc') },
     ],
     nodes: [
-      S('fists', 'Heavy Hands', 'fists', 1, 3, 'Melee damage.', (r) => `${pct(8 * r)} melee damage`),
-      S('mighty', 'Mighty Blow', 'fists', 1, 3, 'A wider timing window for Mighty Blows.', (r) => `${Math.round((0.14 + 0.035 * r) * 1000)} ms window`),
-      S('mighty_ce', "Smith's Rhythm", 'fists', 1, 2, 'Mighty Blows restore Power.', (r) => `+${4 * r} Power a Mighty Blow`, { req: 'mighty' }),
-      U('pound_up', 'Earthshaker', 'fists', 1, 2, 'Ground Pound covers more ground and hits harder.', (r) => `${(4 + 0.8 * r).toFixed(1)} m, ${30 + 12 * r} damage`, { power: 'pound', old: 'pound' }),
-      P('clap', 'Thunder Clap', '👏', 'fists', 2, 3, 'He claps his hands: a shock wave in front of him that stuns.', (r) => `${26 + 10 * (r - 1)} damage, ${(1.2 + 0.3 * (r - 1)).toFixed(1)} s stun`),
-      S('vitality', 'Cyclops Hide', 'hide', 1, 3, 'Max health.', (r) => `+${15 * r} max health`),
-      U('shield_up', 'Hephaestus Steel', 'hide', 1, 2, 'Watch Shield lasts longer.', (r) => `${3 + r} s`, { power: 'shield', old: 'shield' }),
-      P('ironskin', 'Iron Skin', '🗿', 'hide', 2, 3, 'Half damage and no knock-back for a while; every hit he takes gives Power.', (r) => `${5 + (r - 1)} s, +${3 + (r - 1)} Power a hit`),
+      S('fists', t('skills.tyson.fists.name'), 'fists', 1, 3, t('skills.tyson.fists.desc'), (r) => t('skills.tyson.fists.at', { pct: pct(8 * r) })),
+      S('mighty', t('skills.tyson.mighty.name'), 'fists', 1, 3, t('skills.tyson.mighty.desc'), (r) => t('skills.tyson.mighty.at', { ms: Math.round((0.14 + 0.035 * r) * 1000) })),
+      S('mighty_ce', t('skills.tyson.mighty_ce.name'), 'fists', 1, 2, t('skills.tyson.mighty_ce.desc'), (r) => t('skills.tyson.mighty_ce.at', { power: 4 * r }), { req: 'mighty' }),
+      U('pound_up', t('skills.tyson.pound_up.name'), 'fists', 1, 2, t('skills.tyson.pound_up.desc'), (r) => t('skills.tyson.pound_up.at', { metres: (4 + 0.8 * r).toFixed(1), damage: 30 + 12 * r }), { power: 'pound', old: 'pound' }),
+      P('clap', t('skills.tyson.clap.name'), '👏', 'fists', 2, 3, t('skills.tyson.clap.desc'), (r) => t('skills.tyson.clap.at', { damage: 26 + 10 * (r - 1), seconds: (1.2 + 0.3 * (r - 1)).toFixed(1) })),
+      S('vitality', t('skills.tyson.vitality.name'), 'hide', 1, 3, t('skills.tyson.vitality.desc'), (r) => t('skills.tyson.vitality.at', { health: 15 * r })),
+      U('shield_up', t('skills.tyson.shield_up.name'), 'hide', 1, 2, t('skills.tyson.shield_up.desc'), (r) => t('skills.tyson.shield_up.at', { seconds: 3 + r }), { power: 'shield', old: 'shield' }),
+      P('ironskin', t('skills.tyson.ironskin.name'), '🗿', 'hide', 2, 3, t('skills.tyson.ironskin.desc'), (r) => t('skills.tyson.ironskin.at', { seconds: 5 + (r - 1), power: 3 + (r - 1) })),
       U('brother', 'Big Brother', 'hide', 3, 1, 'Big Brother lasts longer.', () => '10 s', { power: 'domain' }),
-      U('boulder', 'Bigger Boulders', 'forge', 1, 2, 'Boulders are bigger and burst wider on landing.', (r) => `${24 + 8 * r} damage, ${(2.2 + 0.8 * r).toFixed(1)} m burst`, { power: 'ranged' }),
-      U('forge_up', 'Hot Forge', 'forge', 1, 2, 'Forge Fire burns longer.', (r) => `${8 + 2 * r} s`, { power: 'forge' }),
-      P('rainbow', 'Call Rainbow', '🐴', 'forge', 2, 3, 'Rainbow the hippocampus surges through in a line of seawater, trampling monsters.', (r) => `${30 + 12 * (r - 1)} damage, ${12 + 2 * (r - 1)} m`),
+      U('boulder', t('skills.tyson.boulder.name'), 'forge', 1, 2, t('skills.tyson.boulder.desc'), (r) => t('skills.tyson.boulder.at', { damage: 24 + 8 * r, metres: (2.2 + 0.8 * r).toFixed(1) }), { power: 'ranged' }),
+      U('forge_up', t('skills.tyson.forge_up.name'), 'forge', 1, 2, t('skills.tyson.forge_up.desc'), (r) => t('skills.tyson.forge_up.at', { seconds: 8 + 2 * r }), { power: 'forge' }),
+      P('rainbow', t('skills.tyson.rainbow.name'), '🐴', 'forge', 2, 3, t('skills.tyson.rainbow.desc'), (r) => t('skills.tyson.rainbow.at', { damage: 30 + 12 * (r - 1), metres: 12 + 2 * (r - 1) })),
     ],
   },
   clarisse: {
     starters: [
-      { id: 'charge', name: 'Charge', icon: '🐗', desc: 'A shield-first dash that carries monsters along and slams them down.' },
-      { id: 'cry', name: 'War Cry', icon: '📣', desc: 'The whole team deals +25% damage for a while.' },
-      { id: 'bash', name: 'Shield Bash', icon: '🛡️', desc: 'A cone of shield bash that stuns.' },
+      { id: 'charge', name: t('skills.clarisse.charge.name'), icon: '🐗', desc: t('skills.clarisse.charge.desc') },
+      { id: 'cry', name: t('skills.clarisse.cry.name'), icon: '📣', desc: t('skills.clarisse.cry.desc') },
+      { id: 'bash', name: t('skills.clarisse.bash.name'), icon: '🛡️', desc: t('skills.clarisse.bash.desc') },
     ],
     branches: [
-      { id: 'spear', name: 'Spear', desc: 'Lightning down the spear' },
-      { id: 'ares', name: 'Ares', desc: 'War, and loving it' },
-      { id: 'cabin', name: 'Cabin Five', desc: 'Tough as the Ares cabin' },
+      { id: 'spear', name: t('skills.clarisse.branch.spear.name'), desc: t('skills.clarisse.branch.spear.desc') },
+      { id: 'ares', name: t('skills.clarisse.branch.ares.name'), desc: t('skills.clarisse.branch.ares.desc') },
+      { id: 'cabin', name: t('skills.clarisse.branch.cabin.name'), desc: t('skills.clarisse.branch.cabin.desc') },
     ],
     nodes: [
-      S('spear', 'Maimer', 'spear', 1, 3, 'Melee damage.', (r) => `${pct(8 * r)} melee damage`),
-      U('volt', 'Live Current', 'spear', 1, 3, 'Spear Lightning reaches further and stuns longer.', (r) => `${(6.5 + 1.2 * r).toFixed(1)} m, ${(0.7 + 0.25 * r).toFixed(2)} s stun`, { power: 'ranged' }),
-      P('chain', 'Chain Lightning', '🌩️', 'spear', 2, 3, 'A bolt from the spear that leaps from monster to monster.', (r) => `${22 + 6 * (r - 1)} damage, ${4 + (r - 1)} monsters`),
-      U('cry_up', 'Battle Cry', 'ares', 1, 2, 'War Cry lasts longer and heals the team a little.', (r) => `${8 + 2 * r} s, heals ${6 * r}`, { power: 'cry', old: 'cry' }),
-      U('charge_up', 'Battering Ram', 'ares', 1, 2, 'Charge goes further and slams harder.', (r) => `${22 + 10 * r} damage slam`, { power: 'charge', old: 'charge' }),
-      P('frenzy', 'Battle Frenzy', '😤', 'ares', 2, 3, 'Her melee hits deal more and heal her for a while.', (r) => `${6 + (r - 1)} s, +30% melee, ${2 + (r - 1)} health a hit`),
-      U('fury', 'Blood of Ares', 'ares', 3, 2, "Ares's Fury lasts longer and burns hotter.", (r) => `${8 + 1.5 * r} s, ${10 + 4 * r} burn a second`, { power: 'domain' }),
-      S('tough', 'Cabin Five', 'cabin', 1, 3, 'Max health and armour.', (r) => `+${10 * r} max health, +${3 * r}% armour`),
-      U('bash_up', 'Boar Shield', 'cabin', 1, 2, 'Shield Bash is wider and stuns longer.', (r) => `${(1.4 + 0.4 * r).toFixed(1)} s stun`, { power: 'bash', old: 'bash' }),
-      P('hold', 'Hold the Line', '🔱', 'cabin', 2, 3, 'She plants her spear: half damage, and lightning crackles into the monsters round her.', (r) => `${4 + (r - 1)} s, ${8 + 3 * (r - 1)} damage a zap`),
+      S('spear', t('skills.clarisse.spear.name'), 'spear', 1, 3, t('skills.clarisse.spear.desc'), (r) => t('skills.clarisse.spear.at', { pct: pct(8 * r) })),
+      U('volt', t('skills.clarisse.volt.name'), 'spear', 1, 3, t('skills.clarisse.volt.desc'), (r) => t('skills.clarisse.volt.at', { metres: (6.5 + 1.2 * r).toFixed(1), seconds: (0.7 + 0.25 * r).toFixed(2) }), { power: 'ranged' }),
+      P('chain', t('skills.clarisse.chain.name'), '🌩️', 'spear', 2, 3, t('skills.clarisse.chain.desc'), (r) => t('skills.clarisse.chain.at', { damage: 22 + 6 * (r - 1), n: 4 + (r - 1) })),
+      U('cry_up', t('skills.clarisse.cry_up.name'), 'ares', 1, 2, t('skills.clarisse.cry_up.desc'), (r) => t('skills.clarisse.cry_up.at', { seconds: 8 + 2 * r, n: 6 * r }), { power: 'cry', old: 'cry' }),
+      U('charge_up', t('skills.clarisse.charge_up.name'), 'ares', 1, 2, t('skills.clarisse.charge_up.desc'), (r) => t('skills.clarisse.charge_up.at', { damage: 22 + 10 * r }), { power: 'charge', old: 'charge' }),
+      P('frenzy', t('skills.clarisse.frenzy.name'), '😤', 'ares', 2, 3, t('skills.clarisse.frenzy.desc'), (r) => t('skills.clarisse.frenzy.at', { seconds: 6 + (r - 1), n: 2 + (r - 1) })),
+      U('fury', t('skills.clarisse.fury.name'), 'ares', 3, 2, t('skills.clarisse.fury.desc'), (r) => t('skills.clarisse.fury.at', { seconds: 8 + 1.5 * r, n: 10 + 4 * r }), { power: 'domain' }),
+      S('tough', t('skills.clarisse.tough.name'), 'cabin', 1, 3, t('skills.clarisse.tough.desc'), (r) => t('skills.clarisse.tough.at', { health: 10 * r, percent: 3 * r })),
+      U('bash_up', t('skills.clarisse.bash_up.name'), 'cabin', 1, 2, t('skills.clarisse.bash_up.desc'), (r) => t('skills.clarisse.bash_up.at', { seconds: (1.4 + 0.4 * r).toFixed(1) }), { power: 'bash', old: 'bash' }),
+      P('hold', t('skills.clarisse.hold.name'), '🔱', 'cabin', 2, 3, t('skills.clarisse.hold.desc'), (r) => t('skills.clarisse.hold.at', { seconds: 4 + (r - 1), damage: 8 + 3 * (r - 1) })),
     ],
   },
 };
@@ -207,13 +208,13 @@ export function validLoadout(hero, skills, equip) {
 // ---------------------------------------------------------------- rules
 // Can the hero buy the next rank of a node? { ok, why, cost }.
 export function canRank(hero, h, level, id) {
-  const n = nodeOf(hero, id); if (!n) return { ok: false, why: 'Unknown skill', cost: Infinity };
+  const n = nodeOf(hero, id); if (!n) return { ok: false, why: t('skills.reasons.unknown'), cost: Infinity };
   const skills = h?.skills ?? {}, r = rankOf(skills, id), cost = nextCost(n, r);
-  if (r >= n.max) return { ok: false, why: 'Fully trained', cost };
-  if (n.req && rankOf(skills, n.req) <= 0) return { ok: false, why: `Needs ${nodeOf(hero, n.req)?.name ?? n.req}`, cost };
+  if (r >= n.max) return { ok: false, why: t('skills.reasons.fullyTrained'), cost };
+  if (n.req && rankOf(skills, n.req) <= 0) return { ok: false, why: t('skills.reasons.needsSkill', { name: nodeOf(hero, n.req)?.name ?? n.req }), cost };
   const gate = GATES[n.tier - 1] ?? 0, have = branchPoints(hero, skills, n.branch, n.tier);
-  if (have < gate) { const b = treeOf(hero).branches.find((x) => x.id === n.branch); return { ok: false, why: `Needs ${gate} points in ${b?.name ?? n.branch} (${have} so far)`, cost, gated: true }; }
-  if (pointsLeft(hero, h, level) < cost) return { ok: false, why: `Needs ${cost} point${cost === 1 ? '' : 's'}`, cost, poor: true };
+  if (have < gate) { const b = treeOf(hero).branches.find((x) => x.id === n.branch); return { ok: false, why: t('skills.reasons.needsBranchPoints', { gate, branch: b?.name ?? n.branch, have }), cost, gated: true }; }
+  if (pointsLeft(hero, h, level) < cost) return { ok: false, why: tn('skills.reasons.needsPoints', cost), cost, poor: true };
   return { ok: true, why: '', cost };
 }
 // Buy the next rank (mutates h); false if it can't be bought. A power

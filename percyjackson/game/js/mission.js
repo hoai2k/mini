@@ -28,6 +28,7 @@ import { Boss } from './entities/bosses.js';
 import { buildHeroModel } from './entities/models.js';
 import { B } from './world/blocks.js';
 import { toast } from './ui/ui.js';
+import { t } from './text_config.js';
 import { ENEMY_TABLES } from './world/levelgen.js';
 import { OBJECTIVES } from './objectives/index.js';
 import { makeStatue, makeTrap, makeRift } from './objectives/props.js';
@@ -44,17 +45,17 @@ const TRAP_IN = 3;       // a trap springs once a hero is this far inside the ro
 const TRAP_GIVE_UP = 150; // seconds: a trap nobody can finish opens anyway
 
 const OBJ_TEXT = {
-  exorcise: (o) => ['Defeat the Monsters', `${o.done} / ${o.need} monsters defeated`],
-  rescue: (o) => ['Free the Captives', `${o.done} / ${o.need} freed`],
-  seal: (o) => ['Destroy the Cursed Objects', `${o.done} / ${o.need} destroyed`],
+  exorcise: (o) => [t('objectives.exorcise.title'), t('mission.progress.monsters', { done: o.done, need: o.need })],
+  rescue: (o) => [t('objectives.rescue.title'), t('mission.progress.freed', { done: o.done, need: o.need })],
+  seal: (o) => [t('objectives.seal.title'), t('mission.progress.destroyed', { done: o.done, need: o.need })],
 };
 // what an objective item is called, by style
 const ITEM_TEXT = {
-  statue: { verb: 'freed', label: 'Break the stone spell', done: 'Freed from the stone!', hold: 2 },
-  cage: { verb: 'freed', label: 'Free them', done: 'Freed!', hold: 1.2 },
-  altar: { verb: 'destroyed', label: 'Destroy cursed object', done: 'Destroyed!', hold: 2.5 },
-  trap: { verb: 'shut', label: 'Shut the trap (hold)', done: 'The trap snaps shut!', hold: 3.5 },
-  rift: { verb: 'closed', label: 'Close the rift (hold)', done: 'The rift closes!', hold: 3.5 },
+  statue: { verb: 'freed', label: t('mission.items.statue.label'), done: t('mission.items.statue.done'), hold: 2 },
+  cage: { verb: 'freed', label: t('mission.items.cage.label'), done: t('mission.items.cage.done'), hold: 1.2 },
+  altar: { verb: 'destroyed', label: t('mission.items.altar.label'), done: t('mission.items.altar.done'), hold: 2.5 },
+  trap: { verb: 'shut', label: t('mission.items.trap.label'), done: t('mission.items.trap.done'), hold: 3.5 },
+  rift: { verb: 'closed', label: t('mission.items.rift.label'), done: t('mission.items.rift.done'), hold: 3.5 },
 };
 
 export class Mission {
@@ -123,15 +124,15 @@ export class Mission {
   }
   get exitOpen() { return !!this.handler?.exitOpen; }
   updateText() {
-    let [t, d] = (OBJ_TEXT[this.obj.type] ?? OBJ_TEXT.exorcise)(this.obj);
+    let [title, d] = (OBJ_TEXT[this.obj.type] ?? OBJ_TEXT.exorcise)(this.obj);
     const it = ITEM_TEXT[this.itemStyle];
-    if (this.obj.items.length && it) d = `${this.obj.done} / ${this.obj.need} ${it.verb}`;
-    if (this.def.objText) t = this.def.objText;
+    if (this.obj.items.length && it) d = t('mission.progress.' + it.verb, { done: this.obj.done, need: this.obj.need });
+    if (this.def.objText) title = this.def.objText;
     const own = this.handler?.text?.();
     if (own) { this.game.hud.setObjective(own[0], own[1]); return; }
-    if (this.handler?.approach && this.objDone && !this.bossSpawned) { this.game.hud.setObjective(t, 'The way ahead is open: face the boss'); return; }
-    const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? 'Something is wrong here. See through the Mist (right stick click / V)' : this.boss && this.boss.dead ? 'Reach the way out' : 'The way ahead is open';
-    this.game.hud.setObjective(this.objDone ? (this.boss?.dead ? 'Victory' : 'Face the Monster') : t, this.objDone ? bossText : d);
+    if (this.handler?.approach && this.objDone && !this.bossSpawned) { this.game.hud.setObjective(title, t('mission.wayOpenFaceBoss')); return; }
+    const bossText = this.disguisedBoss && this.disguisedBoss.disguised ? t('mission.somethingWrong') : this.boss && this.boss.dead ? t('mission.reachExit') : t('mission.wayOpen');
+    this.game.hud.setObjective(this.objDone ? (this.boss?.dead ? t('mission.victory') : t('mission.faceMonster')) : title, this.objDone ? bossText : d);
   }
   // ---------------------------------------------------------------- props
   addProp(obj) { this.game.scene.add(obj); this.props.push(obj); return obj; }
@@ -147,7 +148,7 @@ export class Mission {
     this.addProp(grp);
     it.object = grp; it.rig = student;
     g.lights.attach(grp, 0xffc860, 3, 6, { offsetY: 2 });
-    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Free them', hold: 1.2, action: () => this.completeItem(it), enabled: () => !it.done });
+    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: ITEM_TEXT.cage.label, hold: 1.2, action: () => this.completeItem(it), enabled: () => !it.done });
   }
   // A captive turned to stone (Aunty Em's garden): monsters come when you
   // start breaking the spell.
@@ -190,12 +191,12 @@ export class Mission {
     this.addProp(grp);
     it.object = grp; it.finger = finger;
     it.light = g.lights.attach(finger, 0xff2a4a, 4, 7, { offsetY: 0 });
-    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: 'Destroy cursed object', hold: 2.5, onHoldStart: () => this.guardWave(it, 1), action: () => this.completeItem(it), enabled: () => !it.done });
+    g.interactables.push({ id: 'obj' + this.obj.items.indexOf(it), pos: it.pos, radius: 2.4, label: ITEM_TEXT.altar.label, hold: 2.5, onHoldStart: () => this.guardWave(it, 1), action: () => this.completeItem(it), enabled: () => !it.done });
   }
   altarWave(it) {
     if (it.waved) return; it.waved = true;
     const g = this.game;
-    toast(this.itemStyle === 'statue' ? 'Aunty Em’s servants come running!' : this.itemStyle === 'rift' ? 'The dead pour out of the rift!' : this.itemStyle === 'trap' ? 'The spiders swarm out to defend it!' : 'Monsters come to guard it!');
+    toast(t('mission.guards.' + (['statue', 'rift', 'trap'].includes(this.itemStyle) ? this.itemStyle : 'default')));
     const kinds = this.L.enemyKinds?.length ? this.L.enemyKinds : ['pup'];
     // they come from across the room (defending a spot in the open), not out of the floor at your feet
     const n = 4 + ((this.def.difficulty ?? 1) >= 3 ? 1 : 0), a0 = Math.random() * Math.PI * 2;
@@ -218,19 +219,19 @@ export class Mission {
     grp.add(body, lid, lock); grp.rotation.y = Math.random() * Math.PI * 2;
     this.addProp(grp);
     c.object = grp; c.lid = lid;
-    g.interactables.push({ id: 'chest' + this.L.chests.indexOf(c), pos: c.pos, radius: 2, label: 'Open chest', action: (p) => this.openChest(c, p), enabled: () => !c.opened });
+    g.interactables.push({ id: 'chest' + this.L.chests.indexOf(c), pos: c.pos, radius: 2, label: t('mission.openChest'), action: (p) => this.openChest(c, p), enabled: () => !c.opened });
   }
   openChest(c, p) {
     if (c.opened) return; c.opened = true;
     const g = this.game;
     g.audio?.loot(c.rarity);
-    let t = 0; g.addUpdater((dt) => { t += dt; c.lid.rotation.x = -Math.min(1.9, t * 6); return t < 0.4; });
+    let k = 0; g.addUpdater((dt) => { k += dt; c.lid.rotation.x = -Math.min(1.9, k * 6); return k < 0.4; });
     g.particles.burst(c.pos.clone().setY(c.pos.y + 0.8), { count: 24, color: c.rarity === 'rare' ? 0x4ad0ff : 0xffd23a, speed: 4, up: 2, life: 0.8, size: 0.14, shape: 1 });
     g.pickups.drop('coin', c.pos, 6 + Math.floor(Math.random() * 6) + (c.rarity === 'rare' ? 10 : 0), 1);
     if (Math.random() < 0.5) g.pickups.drop('heal', c.pos, 1);
     const nb = bundlesFrom(c.rarity === 'rare' ? 'rareChest' : 'chest'); if (nb) g.pickups.drop('arrows', c.pos, nb);
     g.onChestOpened?.(c, p);
-    if (c.room.type === 'secret') { this.stats.secrets++; toast('Secret found!'); }
+    if (c.room.type === 'secret') { this.stats.secrets++; toast(t('mission.secretFound')); }
   }
   completeItem(it) {
     if (it.done) return;
@@ -253,12 +254,12 @@ export class Mission {
     } else if (this.obj.type === 'rescue') {
       g.fx.heal(it.pos, 0xffd23a);
       let t = 0; g.addUpdater((dt) => { t += dt; it.object.position.y += dt * 3; it.object.scale.setScalar(Math.max(0.01, 1 - t)); return t < 1; });
-      toast('Freed!');
+      toast(ITEM_TEXT.cage.done);
     } else {
       g.fx.heal(it.pos, 0xff5a7a);
       it.finger.material = new THREE.MeshStandardNodeMaterial({ color: 0xe8dcb0 });
       g.lights.remove(it.light);
-      toast('Destroyed!');
+      toast(ITEM_TEXT.altar.done);
     }
     this.checkObjective();
   }
@@ -272,7 +273,7 @@ export class Mission {
     this.objDone = true; this.game.objectiveDone = true;
     const g = this.game;
     if (this.handler?.keepGates) { this.updateText(); return; }
-    toast('The way ahead opens', 'big');
+    toast(t('mission.wayAheadOpens'), 'big');
     g.audio?.gong();
     for (const gate of this.L.gates) this.openGate(gate);
     this.updateText();
@@ -297,7 +298,7 @@ export class Mission {
   }
   // Heroes on this screen left outside the boss arena when it seals are
   // brought in (they'd be shut out of the fight otherwise).
-  pullIntoArena(room) { this.pullInto(room, 'The arena seals: your friends are pulled inside', this.boss?.pos); }
+  pullIntoArena(room) { this.pullInto(room, t('mission.arenaSeals'), this.boss?.pos); }
   pullInto(room, msg, away = null) {
     const g = this.game, inside = (p) => p.pos.x >= room.x0 && p.pos.x <= room.x1 + 1 && p.pos.z >= room.z0 && p.pos.z <= room.z1 + 1;
     const list = room.spawns?.length ? room.spawns : [[room.center.x, room.y, room.center.z]];
@@ -396,7 +397,7 @@ export class Mission {
     room.activated = true; room.enemies = []; room.waveIdx = 0; room.waveT = 0;
     g.minimap.reveal(room);
     this.spawnMortals(room);
-    if (room.type === 'secret') toast('A hidden chamber…');
+    if (room.type === 'secret') toast(t('mission.hiddenChamber'));
     if (room.waves.length && !room.trap) this.spawnWave(room);
   }
   // ---------------------------------------------------------------- groups
@@ -474,8 +475,8 @@ export class Mission {
     if (T.sprung) return;
     T.sprung = true; T.t = 0;
     this.setTrapGates(room, true);
-    this.pullInto(room, 'The doors slam shut: your friends are pulled inside');
-    toast('It’s a trap!', 'big');
+    this.pullInto(room, t('mission.doorsSlam'));
+    toast(t('mission.itsATrap'), 'big');
     g.audio?.sample?.('gate'); g.audio?.gong?.();
     g.shake?.(0.35);
     for (const p of T.points) g.fx.summonCircle(new THREE.Vector3(p[0], p[1], p[2]), 0xff3a2a);
@@ -489,7 +490,7 @@ export class Mission {
     if (gaveUp) for (const e of room.enemies) if (!e.dead) { e.dead = true; e.deathT = 99; g.fx?.poof?.(e.pos); g.scene.remove(e.object); }
     room.waveIdx = room.waves.length;
     this.setTrapGates(room, false);
-    toast('The trap is beaten: the doors open', 'big');
+    toast(t('mission.trapBeaten'), 'big');
     g.audio?.energy?.('heal');
   }
   setTrapGates(room, shut) {
@@ -622,7 +623,7 @@ export class Mission {
       if (stand?.disguised) {
         stand.bossStandIn = true; this.disguisedBoss = stand; this.bossRoom = room;
         g.rig.cinematic({ center: pos.clone().setY(pos.y + 1.5), dur: 2.4, dist: 10, pitch: 28 * Math.PI / 180, orbit: 0.08 });
-        toast('“Ah, there you are, honey.”', 'big');
+        toast(t('mission.dodds.thereYouAre'), 'big');
         this.updateText();
         return;
       }
@@ -670,7 +671,7 @@ export class Mission {
       // exit torii + reward chest
       const exit = boss.home.clone();
       g.exitPortal = { pos: exit };
-      this.makeExit(exit, 'Return to camp', () => g.completeMission());
+      this.makeExit(exit, t('mission.returnToCamp'), () => g.completeMission());
       const chest = { pos: exit.clone().add(new THREE.Vector3(3, 0, 0)), room: this.L.bossRoom, rarity: 'rare', opened: false, boss: true };
       chest.pos.y = g.world.groundBelow(chest.pos.x, chest.pos.z, chest.pos.y + 3); if (!isFinite(chest.pos.y)) chest.pos.y = exit.y;
       this.L.chests.push(chest); this.makeChest(chest);
@@ -700,9 +701,9 @@ export class Mission {
     if (this.failed || this.complete) return;
     this.failed = true;
     const g = this.game;
-    toast(reason ?? 'The quest has failed', 'big');
+    toast(reason ?? t('mission.questFailed'), 'big');
     g.audio?.setMusic?.(null);
-    if (isGuest(this)) { setTimeout(() => g.mission === this && toast('Waiting for the host to try again…'), 2500); return; }
+    if (isGuest(this)) { setTimeout(() => g.mission === this && toast(t('mission.waitingHost')), 2500); return; }
     setTimeout(() => { if (g.mission === this && !this.complete) g.showResults(false); }, 1800);
   }
   // ---------------------------------------------------------------- online

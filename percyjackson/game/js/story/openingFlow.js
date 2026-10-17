@@ -9,6 +9,7 @@
 // host, and guests skip a cutscene together (or when the host does).
 import * as THREE from 'three/webgpu';
 import { toast } from '../ui/ui.js';
+import { t } from '../text_config.js';
 import { BIOMES } from '../world/biomes.js';
 import { buildManhattan } from '../world/manhattan.js';
 import { schoolBus, taxi, car, spin } from '../world/vehicles.js';
@@ -44,7 +45,7 @@ export class OpeningFlow {
     if (info.kind === 'chapter') { g.openingChapter = info.chapter; return g.startChapter(info.chapter, 1, { opening: true }); }
     this.running = null;
     g.endCutscene?.();
-    g.loadHub(); toast('Camp Half-Blood', 'title');
+    g.loadHub(); toast(t('opening.campTitle'), 'title');
     return null;
   }
   // ---------------------------------------------------------------- the prologue
@@ -93,7 +94,7 @@ export class OpeningFlow {
       return true;
     });
     // get on the bus: walk up and press A / click, or just walk into the door
-    g.interactables.push({ id: 'bus', pos: L.door.clone(), radius: 2.8, label: 'Get on the bus', action: (p) => this.reachBus(p) });
+    g.interactables.push({ id: 'bus', pos: L.door.clone(), radius: 2.8, label: t('prologue.getOnBus'), action: (p) => this.reachBus(p) });
     g.addUpdater(() => {
       if (g.world !== world || g.mode !== 'prologue') return g.world === world;
       if (g.players.some((p) => !p.ai && !p.remote && !p.dead && Math.hypot(p.pos.x - L.door.x, p.pos.z - L.door.z) < 2.0)) this.reachBus();
@@ -101,10 +102,10 @@ export class OpeningFlow {
     });
     g.mode = 'prologue';
     // the goal line, the edge arrow and the beam (no footprints here: the arrow is enough)
-    g.tracker?.setGoal({ title: STEP_INFO.prologue.goal, desc: 'Yancy Academy’s field trip leaves from the curb, up the avenue', pos: L.goal, radius: 1.5, feet: false });
+    g.tracker?.setGoal({ title: STEP_INFO.prologue.goal, desc: t('prologue.goalDesc'), pos: L.goal, radius: 1.5, feet: false });
     g.roaming?.configureCity(L);
     g.online?.sceneChanged?.();
-    toast('Manhattan · The Morning of the Field Trip', 'title');
+    toast(t('prologue.title'), 'title');
     this.startHints(L, world);
     return L;
   }
@@ -180,7 +181,7 @@ export class OpeningFlow {
     if (g.mode !== 'prologue' || this.leaving) return;
     this.leaving = true;
     g.audio?.ui?.('buy');
-    toast('All aboard!', 'big');
+    toast(t('prologue.allAboard'), 'big');
     this.setStep('cut-bus');
     setTimeout(() => { this.leaving = false; if (g.mode === 'prologue') this.run('cut-bus'); }, 700);
   }
@@ -225,7 +226,7 @@ export class OpeningFlow {
     g.online?.sceneChanged?.();
     g.resume?.flush?.();
     // (no 'Camp Half-Blood' title here: the cutscene has just said it)
-    setTimeout(() => g.mode === 'hub' && g.state === 'playing' && toast('The gold arrow points to your next quest. The Big House porch has the chapter map.'), 2400);
+    setTimeout(() => g.mode === 'hub' && g.state === 'playing' && toast(t('opening.arriveInCamp')), 2400);
   }
   // a chapter of the opening is finished: the story goes on from the results screen
   chapterDone(id) { const next = stepAfterChapter(id); if (next) this.setStep(next); return next; }
@@ -236,6 +237,6 @@ export class OpeningFlow {
     g.save.data.opening = 'done'; g.save.write();
     const inIt = g.state === 'playing' && (g.mode === 'prologue' || g.mode === 'cutscene' || g.openingChapter);
     this.running = null;
-    if (inIt && !g.online?.isGuest) { g.openingChapter = null; g.endCutscene?.(); g.resume?.clear?.(); g.ui.closeAll(); g.paused = false; g.loadHub(); toast('Camp Half-Blood', 'title'); }
+    if (inIt && !g.online?.isGuest) { g.openingChapter = null; g.endCutscene?.(); g.resume?.clear?.(); g.ui.closeAll(); g.paused = false; g.loadHub(); toast(t('opening.campTitle'), 'title'); }
   }
 }

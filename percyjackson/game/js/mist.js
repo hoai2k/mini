@@ -12,6 +12,7 @@
 import * as THREE from 'three/webgpu';
 import { U } from './gfx/materials.js';
 import { B } from './world/blocks.js';
+import { t as txt } from './text_config.js';
 
 const FULL_RADIUS = 34;      // the ring grows to cover the screen
 const GROW = 70;             // ring speed, units per second
@@ -46,7 +47,7 @@ export class Mist {
   toggle(player) {
     if (!this.available) return;
     if (this.active) { this.close(); this.game.mission?.handler?.sightChanged?.(false, player); return; }
-    if (this.meter < 0.15) { this.game.toast?.('The Mist is too thick — wait a moment'); this.game.audio?.ui?.('deny'); return; }
+    if (this.meter < 0.15) { this.game.toast?.(txt('mist.tooThick')); this.game.audio?.ui?.('deny'); return; }
     this.active = true; this.source = player;
     this.center.copy(player.pos);
     if (!this.game.audio?.sample?.('sight', { gain: 0.8 })) this.game.audio?.energy?.('summon');
@@ -64,7 +65,7 @@ export class Mist {
     if (!this.available) { if (this.radius > 0) { this.radius = 0; U.sightRadius.value = 0; } return; }
     if (this.active) {
       this.meter -= this.drain * dt;
-      if (this.meter <= 0) { this.meter = 0; this.close('The Mist closes in again'); g.mission?.handler?.sightChanged?.(false, this.source); }
+      if (this.meter <= 0) { this.meter = 0; this.close(txt('mist.closes')); g.mission?.handler?.sightChanged?.(false, this.source); }
       const src = this.source && !this.source.dead ? this.source : g.players.find((p) => !p.dead);
       if (src) this.center.lerp(src.pos, Math.min(1, dt * 4));
       this.radius = Math.min(FULL_RADIUS, this.radius + GROW * dt);
@@ -97,7 +98,7 @@ export class Mist {
     }
     if (opened) {
       this.revealedWalls++;
-      g.toast?.('The Mist parts — a hidden way!');
+      g.toast?.(txt('mist.parts'));
       g.audio?.energy?.('heal');
       if (g.mission) g.mission.stats.secrets = (g.mission.stats.secrets ?? 0) + 1;
     }

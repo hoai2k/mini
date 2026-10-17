@@ -2,6 +2,7 @@
 // effect; items in loot.js choose one. Power scales effects with item power.
 import * as THREE from 'three/webgpu';
 import { Ally } from './entities/ally.js';
+import { tn, t as tr } from './text_config.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 const near = (g, pos, r, fn) => { let n = 0; for (const e of g.enemies) if (!e.dead && !e.isDummy && !e.untargetable && e.pos.distanceTo(pos) < r) { fn(e); n++; } return n; };
@@ -175,7 +176,7 @@ export function useArtifact(game, p, art) {
     }
     case 'owl': { // Athena's Owl: mark every monster in sight
       const n = near(g, p.pos, 15, (e) => { e.mark = Math.max(e.mark ?? 0, 8); g.fx.summonCircle(e.pos, 0xc9963a); });
-      g.toast?.(n ? `The owl marks ${n} monster${n > 1 ? 's' : ''}` : 'The owl sees no monsters');
+      g.toast?.(n ? tn('artifacts.owlMarks', n) : tr('artifacts.owlSeesNone'));
       g.audio?.tone({ freq: 520, to: 420, dur: 0.35, gain: 0.08, type: 'sine' });
       break;
     }
@@ -209,7 +210,7 @@ export function useArtifact(game, p, art) {
     case 'thread': { // Ariadne's Thread: the way to the next goal
       p.speedBuffT = 8; p.speedBuff = 0.2;
       const goal = threadGoal(g, p);
-      if (!goal) { g.toast?.('The thread lies still: nothing left to find here'); break; }
+      if (!goal) { g.toast?.(tr('artifacts.threadStill')); break; }
       let t = 0;
       g.addUpdater((dt) => {
         t += dt;

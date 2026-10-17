@@ -17,6 +17,7 @@
 import * as THREE from 'three/webgpu';
 import { RESUME_KEY } from './slots.js';
 import { HEROES } from './heroes/index.js';
+import { t } from './text_config.js';
 
 const WRITE_DELAY = 800;
 const bits = (list, f) => list.map((x) => (f(x) ? 1 : 0)).join('');
@@ -120,7 +121,7 @@ export class Resume {
       // the prologue from the last checkpoint, or the cutscene from its start
       this.sig = ''; this.had = true;
       g.opening.run(r.step, { cp: r.step === 'prologue' && Array.isArray(r.cp) ? r.cp : null });
-      g.toast?.('Continuing the story', 'big');
+      g.toast?.(t('resume.story'), 'big');
       return true;
     }
     g.startMission({ ...r.def });
@@ -159,7 +160,7 @@ export class Resume {
     const party = r.party ?? [];
     for (const p of g.players) { const saved = party.find((x) => x.hero === p.hero); if (saved) p.hp = Math.max(1, p.maxHp * saved.hp); }
     this.sig = ''; this.had = true;
-    g.toast?.('Continuing from the last checkpoint', 'big');
+    g.toast?.(t('resume.checkpoint'), 'big');
     return true;
   }
   // the heroes to begin a Continue with: the first human hero, the rest as companions

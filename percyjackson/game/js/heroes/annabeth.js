@@ -12,6 +12,7 @@
 //        Bronze Automaton: a little sentry that throws knives at monsters.
 //   F    Wisdom's Gambit: time slows, every monster in sight is marked and all
 //        of the team's hits are critical.
+import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, mark, root, teamBuff, clearBuff, makeDisc } from './kit.js';
 import { registerKit } from './index.js';
@@ -53,18 +54,18 @@ class AnnabethKit extends Kit {
     this.p.stats.meleeMult += r('blade') * 0.08;
     this.p.stats.crit += r('owl') * 0.04;
     this.slots = {
-      ranged: this.ability({ name: 'Thrown Knife', icon: '🔪', cd: 0.6, ce: 0, use: () => this.knife() }),
+      ranged: this.ability({ name: t('powers.annabeth.ranged'), icon: '🔪', cd: 0.6, ce: 0, use: () => this.knife() }),
       ...this.equipSlots({
-        cap: this.ability({ name: 'Yankees Cap', icon: '🧢', cd: 14, ce: 14, use: () => this.vanish() }),
-        plan: this.ability({ name: 'Battle Plan', icon: '🦉', cd: 9, ce: 12, use: () => this.plan() }),
-        trap: this.ability({ name: 'Daedalus Trap', icon: '⚙️', cd: 9, ce: 10, use: () => this.trap() }),
-        flank: this.ability({ name: 'Flank', icon: '🌀', cd: 7, ce: 10, use: () => this.flank() }),
-        orders: this.ability({ name: 'Battle Orders', icon: '📜', cd: 16, ce: 12, use: () => this.orders() }),
-        automaton: this.ability({ name: 'Bronze Automaton', icon: '🤖', cd: 16, ce: 16, use: () => this.automaton() }),
+        cap: this.ability({ name: t('skills.annabeth.cap.name'), icon: '🧢', cd: 14, ce: 14, use: () => this.vanish() }),
+        plan: this.ability({ name: t('skills.annabeth.plan.name'), icon: '🦉', cd: 9, ce: 12, use: () => this.plan() }),
+        trap: this.ability({ name: t('skills.annabeth.trap.name'), icon: '⚙️', cd: 9, ce: 10, use: () => this.trap() }),
+        flank: this.ability({ name: t('skills.annabeth.flank.name'), icon: '🌀', cd: 7, ce: 10, use: () => this.flank() }),
+        orders: this.ability({ name: t('skills.annabeth.orders.name'), icon: '📜', cd: 16, ce: 12, use: () => this.orders() }),
+        automaton: this.ability({ name: t('skills.annabeth.automaton.name'), icon: '🤖', cd: 16, ce: 16, use: () => this.automaton() }),
       }),
     };
     this.domain = {
-      name: "Wisdom's Gambit", icon: '🦉', key: 'wisdom', world: false, sureHit: false, type: 0, color: GOLD, sound: 'resonance', flash: 0xeaf4ff,
+      name: t('heroes.annabeth.power'), icon: '🦉', key: 'wisdom', world: false, sureHit: false, type: 0, color: GOLD, sound: 'resonance', flash: 0xeaf4ff,
       duration: 6 + r('gambit') * 1.5, radius: 22,
       onStart: (g, d) => this.gambitStart(g, d),
       onTick: (g, d, dt) => this.gambitTick(g, d, dt),
@@ -169,7 +170,7 @@ class AnnabethKit extends Kit {
     g.fx.rings.spawn(tmp.set(e.pos.x, e.pos.y + 0.08, e.pos.z), { color: GOLD, r0: 2.4, r1: 0.6, dur: 0.4, thick: 0.15 });
     g.audio?.tone({ freq: 660, dur: 0.1, gain: 0.08, type: 'triangle' });
     g.audio?.tone({ freq: 990, dur: 0.18, gain: 0.08, type: 'triangle', at: 0.08 });
-    g.toast?.('Weak point marked');
+    g.toast?.(t('kit.annabeth.weakPoint'));
   }
   // ---------------------------------------------------------------- Daedalus Trap
   trap() {
@@ -246,7 +247,7 @@ class AnnabethKit extends Kit {
     g.audio?.tone({ freq: 523, dur: 0.12, gain: 0.08, type: 'triangle' });
     g.audio?.tone({ freq: 659, dur: 0.12, gain: 0.08, type: 'triangle', at: 0.1 });
     g.audio?.tone({ freq: 784, dur: 0.25, gain: 0.08, type: 'triangle', at: 0.2 });
-    g.toast?.('Battle Orders: move!');
+    g.toast?.(t('kit.annabeth.orders'));
   }
   // ---------------------------------------------------------------- Bronze Automaton
   // One sentry at a time: a bronze drum with a turning head that throws

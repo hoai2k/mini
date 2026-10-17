@@ -4,6 +4,7 @@
 // can use them.
 import * as THREE from 'three/webgpu';
 import { addBundle, wantsBundle, QUIVER } from './resources.js';
+import { t } from './text_config.js';
 
 const KINDS = {
   coin: { color: 0xffc83a, emissive: 1.5, size: 0.22, geo: 'oct' },
@@ -89,7 +90,7 @@ export class Pickups {
     else if (p.kind === 'ce') { pl.gainCE(8); g.audio?.tone({ freq: 1200, to: 1800, dur: 0.1, gain: 0.05, type: 'sine' }); }
     else if (p.kind === 'arrows') {
       const n = addBundle(pl.quiver, p.value > 1 ? p.value : QUIVER.bundle);
-      g.fx.damageNumber(pl.pos, n, { color: '#ffe0a0', text: '+' + n });
+      g.fx.damageNumber(pl.pos, n, { color: '#ffe0a0', text: t('pickups.ammoGain', { n }) });
       g.audio?.tone({ freq: 660, to: 990, dur: 0.07, gain: 0.06, type: 'triangle' }); g.audio?.tone({ freq: 990, to: 1320, dur: 0.08, gain: 0.05, type: 'triangle', at: 0.06 });
     }
     g.particles.burst(p.pos, { count: 6, color: KINDS[p.kind].color, speed: 2, life: 0.3, size: 0.12, shape: 1 });

@@ -3,6 +3,7 @@
 import * as THREE from 'three/webgpu';
 import { buildDummy } from './models.js';
 import { FLASH_MATERIAL } from './character.js';
+import { t as txt } from '../text_config.js';
 
 export class TrainingDummy {
   constructor(game, pos) {
@@ -10,7 +11,7 @@ export class TrainingDummy {
     this.radius = 0.45; this.height = 1.9; this.hp = 1e9; this.maxHp = 1e9;
     this.rig = buildDummy(); this.object = this.rig.root; this.object.position.copy(pos);
     this.facing = Math.PI * 0.15; this.object.rotation.y = this.facing;
-    this.wob = 0; this.wobV = 0; this.flashT = 0; this.isDummy = true; this.def = { name: 'Training Dummy' };
+    this.wob = 0; this.wobV = 0; this.flashT = 0; this.isDummy = true; this.def = { name: txt('enemies.trainingDummy') };
     this.log = [];
   }
   takeDamage(amount, src, o = {}) {

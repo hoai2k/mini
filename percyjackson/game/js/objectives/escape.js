@@ -8,6 +8,7 @@
 // little but slows you and costs days.
 import * as THREE from 'three/webgpu';
 import { toast, h } from '../ui/ui.js';
+import { t, tn } from '../text_config.js';
 import { isGuest, sendAct, seeded, ground, settle, mainPath, doorBetween, roomSpot } from './common.js';
 import { makeLotus } from './props.js';
 
@@ -31,7 +32,7 @@ export class EscapeObjective {
     this.exitPos = ground(g, L.bossRoom.center.clone());
     this.gateSpots = L.gates.map((gt) => { const v = new THREE.Vector3(); for (const [x, y, z] of gt.blocks) v.add(new THREE.Vector3(x + 0.5, y + 0.5, z + 0.5)); return v.divideScalar(Math.max(1, gt.blocks.length)); });
     // the way out, hidden until True Sight finds it
-    this.exit = m.makeExit(this.exitPos, 'Leave the Lotus Casino', () => { if (this.exitOpen) g.completeMission(); }, () => this.exitOpen);
+    this.exit = m.makeExit(this.exitPos, t('objectives.escape.exit'), () => { if (this.exitOpen) g.completeMission(); }, () => this.exitOpen);
     this.exit.visible = false;
     // lotus flowers on the floor of the casino rooms
     const r = seeded(m, 8);
@@ -91,13 +92,13 @@ export class EscapeObjective {
     }
     for (const l of this.lotus) if (!l.taken) l.obj.rotation.y += dt;
     if (host && !this.failed && this.days >= this.limit) this.fail();
-    this.el.textContent = `☾ ${this.daysText()} have passed (the Lotus has you at ${this.limit})`;
+    this.el.textContent = t('objectives.escape.clock', { time: this.daysText(), limit: this.limit });
     this.el.style.color = this.days > this.limit * 0.75 ? '#ff8a9a' : '#ffd8f0';
     if ((this.textT -= dt) <= 0) { this.textT = 0.5; m.updateText(); }
   }
   daysText() {
     const d = Math.min(this.days, this.limit), whole = Math.floor(d), hrs = Math.floor((d - whole) * 24);
-    return `${whole} day${whole === 1 ? '' : 's'}, ${hrs} hour${hrs === 1 ? '' : 's'}`;
+    return t('objectives.escape.daysAndHours', { days: tn('objectives.escape.days', whole), hours: tn('objectives.escape.hours', hrs) });
   }
   // A hero eats a lotus flower (i ≥ 0) or takes one from a bellhop (i = -1).
   eat(p, i) {
@@ -105,7 +106,7 @@ export class EscapeObjective {
     if (i >= 0) { const l = this.lotus[i]; if (l.taken) return; this.takeLotus(i); }
     p.slowT = Math.max(p.slowT ?? 0, i >= 0 ? 4 : 2);
     if (i >= 0) p.heal?.(p.maxHp * 0.15, true);
-    toast(i >= 0 ? 'You eat a lotus flower. Mmm… what were you doing?' : '“Lotus flower, sir?” You lose an afternoon.');
+    toast(t(i >= 0 ? 'objectives.escape.eat' : 'objectives.escape.offered'));
     g.fx.heal(p.pos, 0xffb8e8);
     if (isGuest(m)) sendAct(g, { a: 'lotus', i });
     else this.days += i >= 0 ? LOTUS_DAYS : OFFER_DAYS;
@@ -119,7 +120,7 @@ export class EscapeObjective {
     const m = this.m, g = this.g;
     this.found = true; m.obj.done = 1;
     this.exit.visible = true;
-    toast('There! The way out the Mist was hiding. Run!', 'big');
+    toast(t('objectives.escape.found'), 'big');
     g.audio?.gong?.();
     m.checkObjective();
     for (const gate of m.L.gates) if (!gate.open) m.openGate(gate);
@@ -129,14 +130,14 @@ export class EscapeObjective {
     if (this.failed) return;
     this.failed = true;
     this.trail.visible = false;
-    this.m.fail('The Lotus has you. Years go by…');
+    this.m.fail(t('objectives.escape.failed'));
     this.m.updateText();
   }
   text() {
-    const t = this.m.def.objText ?? 'Escape';
-    if (this.failed) return ['The Lotus has you', 'Too many days have passed'];
-    if (this.found) return [t, 'The way out is open: get everyone through the door'];
-    return [t, 'Find the hidden way out. True Sight (right stick click / V) shows the trail'];
+    const title = this.m.def.objText ?? t('objectives.escape.title');
+    if (this.failed) return [t('objectives.escape.lostTitle'), t('objectives.escape.lostDesc')];
+    if (this.found) return [title, t('objectives.escape.openDesc')];
+    return [title, t('objectives.escape.findDesc')];
   }
   netState() { return { d: Math.round(this.days * 100) / 100, f: this.found ? 1 : 0, l: this.lotus.map((l) => (l.taken ? 1 : 0)), x: this.failed ? 1 : 0 }; }
   applyNet(s) {

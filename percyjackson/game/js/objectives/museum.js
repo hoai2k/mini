@@ -13,6 +13,7 @@
 // looks like a person and who like a monster).
 import * as THREE from 'three/webgpu';
 import { toast } from '../ui/ui.js';
+import { t } from '../text_config.js';
 import { isGuest, sendAct, heroKey, heroByKey, inRoom } from './common.js';
 import { lineOfSight } from '../entities/enemy.js';
 import { distanceField } from '../ui/tracker.js';
@@ -23,7 +24,7 @@ import {
 
 const DEG = Math.PI / 180;
 const DRAIN = 0.35, REFILL = 1.4;     // True Sight lasts ~12 s and refills in ~7 s once the fight is on
-const NAME = 'Mrs. Dodds', FLED = 'Mrs. Dodds — fled';
+const NAME = t('objectives.museum.name'), FLED = t('objectives.museum.fled');
 
 export class MuseumObjective {
   constructor(m) {
@@ -72,18 +73,18 @@ export class MuseumObjective {
   // ---------------------------------------------------------------- where to go
   goal() {
     const g = this.g, b = this.m.boss;
-    if (this.phase === 'calm') g.tracker?.setGoal({ title: this.m.def.objText ?? 'Follow Mrs. Dodds through the galleries', desc: 'She’s waiting in the Greek and Roman gallery', pos: this.home, radius: 2, mission: true });
-    else if (this.fled && this.dest && !(b?.dead)) g.tracker?.setGoal({ title: 'Find Mrs. Dodds', desc: GONE, pos: this.dest, radius: 2.5, mission: true });
+    if (this.phase === 'calm') g.tracker?.setGoal({ title: this.m.def.objText ?? t('objectives.museum.title'), desc: t('objectives.museum.waiting'), pos: this.home, radius: 2, mission: true });
+    else if (this.fled && this.dest && !(b?.dead)) g.tracker?.setGoal({ title: t('objectives.museum.find'), desc: GONE, pos: this.dest, radius: 2.5, mission: true });
     else g.tracker?.setGoal(null);
     this.m.updateText();
   }
   text() {
     const b = this.m.boss;
-    if (this.phase === 'calm') return [this.m.def.objText ?? 'Follow Mrs. Dodds through the galleries', 'She’s waiting in the Greek and Roman gallery'];
+    if (this.phase === 'calm') return [this.m.def.objText ?? t('objectives.museum.title'), t('objectives.museum.waiting')];
     if (b?.dead || this.killed) return null;
-    if (this.phase === 'reveal') return ['Mrs. Dodds', 'The Mist lifts…'];
-    if (this.fled) return ['Find Mrs. Dodds', GONE];
-    return ['Defeat Mrs. Dodds', 'True Sight shows what the Mist hides: only then can you fight it'];
+    if (this.phase === 'reveal') return [t('objectives.museum.name'), t('objectives.museum.mistLifts')];
+    if (this.fled) return [t('objectives.museum.find'), GONE];
+    return [t('objectives.museum.defeat'), t('objectives.museum.defeatDesc')];
   }
   // ---------------------------------------------------------------- per frame
   update(dt) {
@@ -168,7 +169,7 @@ export class MuseumObjective {
     this.easeMist();
     g.mist.meter = Math.max(g.mist.meter, 0.85);
     if (b && !b.dead) toast(b.B.title, 'title boss');
-    setTimeout(() => toast('The museum crowd turns toward you…', 'big'), 2600);
+    setTimeout(() => toast(t('objectives.museum.crowdTurns'), 'big'), 2600);
     this.goal();
   }
   easeMist() { this.g.mist.drainMul = DRAIN; this.g.mist.refillMul = REFILL; }
@@ -268,7 +269,7 @@ export class MuseumObjective {
     this.onFound();
   }
   onFound() {
-    toast('There she is!', 'big');
+    toast(t('objectives.museum.thereSheIs'), 'big');
     this.say(doddsLine('found' + Math.max(1, Math.min(3, this.flights)), this.dev()), 2.4);
     this.goal();
   }
@@ -282,7 +283,7 @@ export class MuseumObjective {
       if (!e.foe || e.dead) continue;
       e.dead = true; e.deathT = 99; e.hp = 0; g.fx?.poof?.(e.pos); g.scene.remove(e.object); n++;
     }
-    if (n) setTimeout(() => this.g.mission === this.m && toast('Her pets crumble back into the Mist.'), 2600);
+    if (n) setTimeout(() => this.g.mission === this.m && toast(t('objectives.museum.petsCrumble')), 2600);
     g.mist.drainMul = 1; g.mist.refillMul = 1;
     this.goal();
   }

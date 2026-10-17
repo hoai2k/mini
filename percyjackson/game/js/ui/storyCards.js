@@ -5,6 +5,7 @@
 import { h } from './ui.js';
 import { demigodText, GREEK } from './greekText.js';
 import { artReady } from './art.js';
+import { t as tx } from '../text_config.js';
 
 export function openStoryCards(game, { title = '', image = '', lines = [] } = {}, onDone) {
   const ui = game.ui;
@@ -27,7 +28,7 @@ export function openStoryCards(game, { title = '', image = '', lines = [] } = {}
     if (i >= lines.length) { done(); return; }
     lineEl.replaceChildren(); lineEl.classList.remove('in'); void lineEl.offsetWidth; lineEl.classList.add('in');
     lineEl.textContent = lines[i];
-    hintEl.textContent = (i + 1) + ' / ' + lines.length;
+    hintEl.textContent = tx('storyCards.count', { n: i + 1, total: lines.length });
     game.audio?.ui('move');
   };
   if (!lines.length && !title) { game.paused = wasPaused; onDone?.(); return; }
@@ -40,9 +41,9 @@ export function openStoryCards(game, { title = '', image = '', lines = [] } = {}
     el.classList.add('story');
     el.append(img, h('div', { class: 'story-shade' }), titleEl,
       h('div', { class: 'story-box' }, lineEl,
-        h('div', { class: 'story-foot' }, hintEl, h('span', { class: 'story-keys' }, 'A / Enter / click: next · B / Esc: skip'),
-          h('button', { class: 'btn small', onclick: (e) => { e.stopPropagation(); done(); } }, 'Skip'))),
-      h('button', { class: 'story-adv', 'data-autofocus': true, 'aria-label': 'Next', onclick: advance }));
+        h('div', { class: 'story-foot' }, hintEl, h('span', { class: 'story-keys' }, tx('storyCards.keys')),
+          h('button', { class: 'btn small', onclick: (e) => { e.stopPropagation(); done(); } }, tx('storyCards.skip')))),
+      h('button', { class: 'story-adv', 'data-autofocus': true, 'aria-label': tx('storyCards.next'), onclick: advance }));
     demigodText(titleEl, title, { timing: GREEK.title });
   }, { onBack: done, onClose: () => { if (!finished) { finished = true; window.removeEventListener('keydown', onKey); game.paused = wasPaused; } } });
   window.addEventListener('keydown', onKey);

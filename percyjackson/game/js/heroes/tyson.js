@@ -14,6 +14,7 @@
 //        Iron Skin: half damage, no knock-back, and Power from every hit taken.
 //        Call Rainbow: his hippocampus friend tramples a line of monsters.
 //   F    Big Brother: grows huge and unstoppable; every punch launches.
+import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, teamBuff, buffOn, stun } from './kit.js';
 import { registerKit } from './index.js';
@@ -39,18 +40,18 @@ class TysonKit extends Kit {
     this.p.radius = 0.42;
     this.speedMul = 0.92;
     this.slots = {
-      ranged: this.ability({ name: 'Boulder', icon: '🪨', cd: 2.2, ce: 0, use: () => this.boulder() }),
+      ranged: this.ability({ name: t('powers.tyson.ranged'), icon: '🪨', cd: 2.2, ce: 0, use: () => this.boulder() }),
       ...this.equipSlots({
-        pound: this.ability({ name: 'Ground Pound', icon: '👊', cd: 6, ce: 12, use: () => this.pound() }),
-        shield: this.ability({ name: 'Watch Shield', icon: '🛡️', cd: 10, ce: 12, use: () => this.shield() }),
-        forge: this.ability({ name: 'Forge Fire', icon: '🔥', cd: 18, ce: 20, use: () => this.forge() }),
-        clap: this.ability({ name: 'Thunder Clap', icon: '👏', cd: 8, ce: 12, use: () => this.clap() }),
-        ironskin: this.ability({ name: 'Iron Skin', icon: '🗿', cd: 16, ce: 12, use: () => this.ironSkin() }),
-        rainbow: this.ability({ name: 'Call Rainbow', icon: '🐴', cd: 14, ce: 16, use: () => this.rainbow() }),
+        pound: this.ability({ name: t('skills.tyson.pound.name'), icon: '👊', cd: 6, ce: 12, use: () => this.pound() }),
+        shield: this.ability({ name: t('skills.tyson.shield.name'), icon: '🛡️', cd: 10, ce: 12, use: () => this.shield() }),
+        forge: this.ability({ name: t('skills.tyson.forge.name'), icon: '🔥', cd: 18, ce: 20, use: () => this.forge() }),
+        clap: this.ability({ name: t('skills.tyson.clap.name'), icon: '👏', cd: 8, ce: 12, use: () => this.clap() }),
+        ironskin: this.ability({ name: t('skills.tyson.ironskin.name'), icon: '🗿', cd: 16, ce: 12, use: () => this.ironSkin() }),
+        rainbow: this.ability({ name: t('skills.tyson.rainbow.name'), icon: '🐴', cd: 14, ce: 16, use: () => this.rainbow() }),
       }),
     };
     this.domain = {
-      name: 'Big Brother', icon: '💪', key: 'big_brother', world: false, sureHit: false, type: 0, color: FIRE, sound: 'fire', flash: 0xffc070,
+      name: t('heroes.tyson.power'), icon: '💪', key: 'big_brother', world: false, sureHit: false, type: 0, color: FIRE, sound: 'fire', flash: 0xffc070,
       duration: 8 + r('brother') * 2, radius: 10,
       onStart: (g, d) => this.growStart(g, d),
       onTick: (g, d, dt) => this.growTick(g, d, dt),
@@ -209,7 +210,7 @@ class TysonKit extends Kit {
     g.audio?.energy('fire');
     g.audio?.tone({ freq: 1800, dur: 0.15, gain: 0.06, type: 'square', filter: 4000 });
     g.audio?.tone({ freq: 1800, dur: 0.15, gain: 0.05, type: 'square', filter: 4000, at: 0.2 });
-    g.toast?.('Forge Fire: the team hits harder');
+    g.toast?.(t('kit.tyson.forge'));
   }
   // ---------------------------------------------------------------- Thunder Clap
   clap() {

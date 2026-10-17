@@ -2,6 +2,7 @@
 // that arrives from other players. Every presence and topic carries
 // v: PROTO; anything else, or a malformed field, is ignored (never thrown on),
 // so a bad packet can't put NaN into the physics or HTML into the page.
+import { t } from '../text_config.js';
 export const PROTO = 2;
 export const GAME = 'halfbloodquests';
 export const PEOPLE = 4;            // humans per room, across every browser
@@ -18,7 +19,7 @@ export const KEY_RE = /^(ai:[a-z_]{1,16}|[a-z0-9]{6,16})$/;
 export const ROOM_RE = /^[A-Za-z0-9_-]{1,64}$/;
 export const r2 = (v) => Math.round(v * 100) / 100;
 export const r3 = (v) => Math.round(v * 1000) / 1000;
-export function cleanName(s, def = 'Demigod') {
+export function cleanName(s, def = t('profiles.demigod')) {
   const n = String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 16);
   return n || def;
 }

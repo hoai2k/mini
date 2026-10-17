@@ -22,6 +22,8 @@ export const PADMAP = {
 export const CHORD = 0.12;     // seconds Y / LB wait for the other before firing alone
 export const FLICK = 0.7;      // right stick past this: a dodge that way
 export const REARM = 0.3;      // ... and back under this before the next one
+import { t } from './text_config.js';
+
 const DEAD = 0.2;
 
 const isDown = (b) => !!b && (b.pressed || b.value > 0.5);
@@ -69,7 +71,7 @@ export function chord(st, held, y, b, now) {
 // What each action is on the controller (HUD glyphs, hints, prompts).
 export const PAD_LABEL = {
   attack: 'X', jump: 'A', interact: 'A', ranged: 'RT', dodge: 'B', t1: 'Y', t2: 'LB', t3: 'RB', domain: 'Y+LB', heal: 'LT',
-  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: 'View', pause: 'Menu', slam: 'X (air)', root: '—', quest: 'View',
+  sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: t('controls.view'), pause: t('controls.menu'), slam: t('controls.xAir'), root: '—', quest: t('controls.view'),
 };
 
 // ---------------------------------------------------------------- keyboard and mouse
@@ -110,6 +112,6 @@ export function keyFrame(keys, mouse, st, now, o = {}) {
 
 // What each action is on the keyboard and mouse (HUD, hints, prompts).
 export const KEY_LABEL = {
-  attack: 'LMB', interact: 'Click', ranged: 'RMB', trail: 'MMB', jump: 'Space', slam: 'Q', dodge: 'R', root: 'Shift',
-  t1: '1', t2: '2', t3: '3', domain: '4', heal: 'E', inv: 'I', map: 'M', quest: 'J', swap: 'F', sight: 'V', art1: 'Z', art2: 'X', pause: 'Esc',
+  attack: 'LMB', interact: t('controls.click'), ranged: 'RMB', trail: 'MMB', jump: t('controls.space'), slam: 'Q', dodge: 'R', root: t('controls.shift'),
+  t1: '1', t2: '2', t3: '3', domain: '4', heal: 'E', inv: 'I', map: 'M', quest: 'J', swap: 'F', sight: 'V', art1: 'Z', art2: 'X', pause: t('controls.esc'),
 };

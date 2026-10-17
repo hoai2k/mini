@@ -13,6 +13,7 @@
 //        Air Bubble: Percy and the heroes near him take half damage for a while.
 //   F    Hurricane: a whirlpool storm around Percy pulls monsters in and
 //        batters them.
+import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, sin, smoothstep, mix } from 'three/tsl';
 import { Kit, makeDisc, zap, stun, mark } from './kit.js';
@@ -52,18 +53,18 @@ class PercyKit extends Kit {
     this.p.stats.meleeMult += r('riptide') * 0.08;
     const jc = 1 + r('jet_charges');
     this.slots = {
-      ranged: this.ability({ name: 'Water Jet', icon: '💧', cd: 0.55, ce: 0, use: () => this.jet(), maxCharges: jc, chargesLeft: jc, gateTime: 0.3 }),
+      ranged: this.ability({ name: t('powers.percy.ranged'), icon: '💧', cd: 0.55, ce: 0, use: () => this.jet(), maxCharges: jc, chargesLeft: jc, gateTime: 0.3 }),
       ...this.equipSlots({
-        surge: this.ability({ name: 'Wave Surge', icon: '🌊', cd: 6, ce: 12, use: () => this.surge() }),
-        tide: this.ability({ name: 'Healing Tide', icon: '💦', cd: 15, ce: 16, use: () => this.tide() }),
-        throw: this.ability({ name: 'Riptide Throw', icon: '🗡️', cd: 7, ce: 14, use: () => this.throwSword() }),
-        disarm: this.ability({ name: 'Disarming Strike', icon: '⚔️', cd: 8, ce: 12, use: () => this.disarm() }),
-        geyser: this.ability({ name: 'Geyser', icon: '⛲', cd: 9, ce: 14, use: () => this.geyser() }),
-        bubble: this.ability({ name: 'Air Bubble', icon: '🫧', cd: 18, ce: 16, use: () => this.bubble() }),
+        surge: this.ability({ name: t('skills.percy.surge.name'), icon: '🌊', cd: 6, ce: 12, use: () => this.surge() }),
+        tide: this.ability({ name: t('skills.percy.tide.name'), icon: '💦', cd: 15, ce: 16, use: () => this.tide() }),
+        throw: this.ability({ name: t('skills.percy.throw.name'), icon: '🗡️', cd: 7, ce: 14, use: () => this.throwSword() }),
+        disarm: this.ability({ name: t('skills.percy.disarm.name'), icon: '⚔️', cd: 8, ce: 12, use: () => this.disarm() }),
+        geyser: this.ability({ name: t('skills.percy.geyser.name'), icon: '⛲', cd: 9, ce: 14, use: () => this.geyser() }),
+        bubble: this.ability({ name: t('skills.percy.bubble.name'), icon: '🫧', cd: 18, ce: 16, use: () => this.bubble() }),
       }),
     };
     this.domain = {
-      name: 'Hurricane', icon: '🌀', key: 'hurricane', world: false, sureHit: false, type: 0, color: SEA, sound: 'garden', flash: 0x9af4ff,
+      name: t('heroes.percy.power'), icon: '🌀', key: 'hurricane', world: false, sureHit: false, type: 0, color: SEA, sound: 'garden', flash: 0x9af4ff,
       duration: 6 + r('hurricane') * 2, radius: 9,
       onStart: (g, d) => this.hurricaneStart(g, d),
       onTick: (g, d, dt) => this.hurricaneTick(g, d, dt),

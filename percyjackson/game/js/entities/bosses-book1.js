@@ -10,10 +10,11 @@ import { animateExtras } from './monsters.js';
 import { holdHero, releaseHero, poisonHero, isHeld } from './holds.js';
 import { damp, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
+import { t as txt } from '../text_config.js';
 import { STUN, STUN_IMMUNE, STUN_WINDUP, SHRIEK_R, stunnable } from '../story/museumRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), ZERO = new THREE.Vector3();
-const heroName = (g, p) => g.heroName?.(p) ?? 'A hero';
+const heroName = (g, p) => g.heroName?.(p) ?? txt('bosses.aHero');
 const once = (b, key, fn) => { b._once ??= {}; if (!b._once[key]) { b._once[key] = true; fn(); } };
 
 // Is a hero standing in (or right by) sea water? The world's liquid map if it
@@ -49,7 +50,7 @@ export const BOOK1_PATTERNS = {
     this.anim = { type: 'raise', t: 0 }; this.hoverY = (this.B.hover ?? 0) + 0.9;
     g.markers.spawn({ pos: this.pos.clone().setY(this.ground(this.pos)), radius: SHRIEK_R, dur: STUN_WINDUP, color: 0xb05aff, follow: this });
     g.audio?.tone({ freq: 420, to: 1500, dur: STUN_WINDUP, gain: 0.08, type: 'sawtooth', filter: 3500 });
-    toast('Mrs. Dodds draws a breath… get clear!', '');
+    toast(txt('bosses.alecto.shriek'), '');
     for (let k = 0; k < 6; k++) {
       const c = this.pos.clone().setY(this.pos.y + 2.2);
       for (let i = 0; i < 6; i++) { const a = Math.random() * Math.PI * 2, r = 2.5 + Math.random() * 2; g.particles.glow.emit(c.x + Math.cos(a) * r, c.y + (Math.random() - 0.5), c.z + Math.sin(a) * r, -Math.cos(a) * r * 1.6, 0, -Math.sin(a) * r * 1.6, 0.45, 1.8, 0.9, 2.6, 0.16, 0, 1, 0.05, 1); }
@@ -67,7 +68,7 @@ export const BOOK1_PATTERNS = {
       p.stunImmune = now + STUN + STUN_IMMUNE;
       if (p.remote) g.online?.stunRemote?.(p, STUN);
       else holdHero(g, p, { kind: 'stun', dur: STUN, by: this });
-      g.fx.damageNumber?.(p.pos, 0, { color: '#d8a0ff', text: 'Paralyzed!' });
+      g.fx.damageNumber?.(p.pos, 0, { color: '#d8a0ff', text: txt('bosses.alecto.paralyzed') });
     }
     this.anim = { type: 'cast', t: 1 };
     yield 0.7;
@@ -176,7 +177,7 @@ export const BOOK1_PATTERNS = {
     g.audio?.tone({ freq: 440, to: 180, dur: 1.2, gain: 0.14, type: 'sawtooth', filter: 1800 });
     for (const p of g.hostileTargets()) if (!p.dead && p.pos.distanceTo(this.pos) < R) { p.slowT = Math.max(p.slowT ?? 0, 2); p.takeDamage(this.dmg * 0.25, this, { knock: tmp.subVectors(p.pos, this.pos).setY(0).normalize().multiplyScalar(6) }); }
     if (alive(this) < 6) this.summon(Array(2 + this.phase).fill('pup'), this.pos, 4, 0xff4a1a);
-    toast('The hellhound howls for its pack!');
+    toast(txt('bosses.hellhound_alpha.howl'));
     yield 0.8;
     this.anim = null; this.moving = true;
     yield 0.3;
@@ -196,7 +197,7 @@ export const BOOK1_PATTERNS = {
     let land = this.pos.clone();
     if (t) { const s = openSpot(this, t.pos, Math.random() * Math.PI * 2, 2.5); if (s) land = s; }
     g.markers.spawn({ pos: land, radius: 3.6, dur: 1.0, color: 0xff3a1a });
-    toast(`${F.names[next]} swoops in!`);
+    toast(txt('bosses.furies.swoop', { name: F.names[next] }));
     g.audio?.tone({ freq: 900, to: 400, dur: 0.8, gain: 0.08, type: 'sawtooth', filter: 3000 });
     // hand over: the old body rises to circle, the new one drops into place
     F.lp[F.active].set(0, 0, 0);
@@ -248,8 +249,8 @@ export const BOOK1_PATTERNS = {
     const g = this.game;
     this.moving = false; this.anim = { type: 'raise', t: 0 };
     const tele = 1.6 - this.phase * 0.2, R = 22;
-    once(this, 'gaze', () => toast('Medusa lifts her veil — TURN AWAY!', 'big'));
-    if (this._once.gaze && this.gazeCount) toast('Look away!');
+    once(this, 'gaze', () => toast(txt('bosses.medusa.liftsVeil'), 'big'));
+    if (this._once.gaze && this.gazeCount) toast(txt('bosses.medusa.lookAway'));
     this.gazeCount = (this.gazeCount ?? 0) + 1;
     g.audio?.noise({ dur: tele, gain: 0.16, type: 'highpass', freq: 4000 });
     g.audio?.tone({ freq: 300, to: 900, dur: tele, gain: 0.06, type: 'triangle', filter: 2400 });
@@ -275,9 +276,9 @@ export const BOOK1_PATTERNS = {
       const toHer = Math.atan2(-tmp.x, -tmp.z);
       if (Math.abs(angleDiff(p.facing ?? 0, toHer)) > 1.1) continue;
       p.takeDamage(this.dmg * 0.4, this, { noKnock: true });
-      if (holdHero(g, p, { kind: 'stone', dur: 2.6 + this.phase * 0.4, by: this })) { stoned++; g.fx.damageNumber?.(p.pos, 0, { color: '#c8c4b8', text: 'Petrified!' }); }
+      if (holdHero(g, p, { kind: 'stone', dur: 2.6 + this.phase * 0.4, by: this })) { stoned++; g.fx.damageNumber?.(p.pos, 0, { color: '#c8c4b8', text: txt('bosses.medusa.petrified') }); }
     }
-    if (stoned && this.gazeCount <= 2) toast('Turned to stone! Face away from her when her eyes glow.');
+    if (stoned && this.gazeCount <= 2) toast(txt('bosses.medusa.turnedToStone'));
     yield 0.5;
     this.anim = null; this.moving = true;
     yield 0.5;
@@ -323,7 +324,7 @@ export const BOOK1_PATTERNS = {
     yield 0.8;
     const out = this.summon(Array(2 + this.phase).fill('gorgon_statue'), this.pos, 5, 0x9aff6a);
     for (const e of out) { e.awake = true; e.spawnT = 0.5; }
-    toast('Her statues stir!');
+    toast(txt('bosses.medusa.statuesStir'));
     yield 0.6;
     this.anim = null; this.moving = true;
   },
@@ -438,7 +439,7 @@ export const BOOK1_PATTERNS = {
     const from = this.pos.clone().setY(this.ground(this.pos));
     g.markers.spawn({ pos: from, shape: 'rect', width: 2.6, length: 6, facing: this.facing, dur: 0.75, color: 0xff2a1a });
     this.anim = { type: 'cast', t: 1, both: true };
-    once(this, 'pitch', () => toast('“Try the magic fingers! One size fits all!”'));
+    once(this, 'pitch', () => toast(txt('bosses.procrustes.pitch')));
     yield 0.75;
     // the first hero in reach is caught
     let caught = null, bd = Infinity;
@@ -459,10 +460,10 @@ export const BOOK1_PATTERNS = {
         onRelease: (p, why) => {
           g.scene.remove(bed); g.fx.poof?.(bedPos);
           if (self.grabbed === p) { self.grabbed = null; self.bed = null; }
-          if (why === 'mash' && !self.dead) { toast('You tip Crusty onto his own bed!', 'big'); self.dazeT = 2.5; }
-          else if (why === 'freed' && !self.dead) toast('Freed!');
+          if (why === 'mash' && !self.dead) { toast(txt('bosses.procrustes.tipped'), 'big'); self.dazeT = 2.5; }
+          else if (why === 'freed' && !self.dead) toast(txt('bosses.procrustes.freed'));
         } });
-      toast(`Crusty straps ${heroName(g, caught)} to a water bed! Hit him, or mash to break free!`, 'big');
+      toast(txt('bosses.procrustes.straps', { name: heroName(g, caught) }), 'big');
       g.audio?.impact(1.4);
       // stand guard over the bed while the stretching starts
       this.anim = { type: 'raise', t: 0 };
@@ -477,7 +478,7 @@ export const BOOK1_PATTERNS = {
   *sales_pitch() {
     const g = this.game;
     this.moving = false; this.anim = { type: 'cast', t: 1, both: true };
-    const lines = ['“Special offer, today only!”', '“Lie down, you look tired!”', '“Perfect fit, guaranteed!”', '“Everyone fits in the end!”'];
+    const lines = txt('bosses.procrustes.salesLines');
     toast(lines[Math.floor(Math.random() * lines.length)]);
     const PULL = 6.5;
     g.markers.spawn({ pos: this.pos, radius: PULL, dur: 0.8, color: 0xffd84a, follow: this });
@@ -550,8 +551,8 @@ export const BOOK1_PATTERNS = {
   *sleepy() {
     const g = this.game;
     this.moving = false; this.anim = null;
-    toast('Cerberus’s heads droop… he’s sleepy! Strike now — double damage!', 'big');
-    once(this, 'ball', () => setTimeout(() => toast('If only someone had a red rubber ball…'), 1800));
+    toast(txt('bosses.cerberus.sleepy'), 'big');
+    once(this, 'ball', () => setTimeout(() => toast(txt('bosses.cerberus.ball')), 1800));
     this.sleepyT = 4 - this.phase * 0.5;
     g.audio?.tone({ freq: 180, to: 90, dur: 1.2, gain: 0.12, type: 'sine', filter: 800 });
     this.cleanupPattern = () => { this.sleepyT = 0; };
@@ -631,7 +632,7 @@ export const BOOK1_PATTERNS = {
     this.moving = false; this.anim = { type: 'raise', t: 0 };
     g.markers.spawn({ pos: this.pos, radius: 5, dur: 0.8, color: 0xff2a1a, follow: this });
     yield 0.8;
-    toast('Ares roars for battle!');
+    toast(txt('bosses.ares.roar'));
     g.fx.shockwave(this.pos, 0xff3a14, 5.5); g.shake(0.6); g.audio?.impact(2);
     this.hurtPlayers(this.pos, 5, this.dmg * 0.6, 14);
     this.rageT = 6;
@@ -670,7 +671,7 @@ export const BOOK1_PATTERNS = {
     this.moving = false; this.anim = { type: 'sign', t: 0 };
     this.parryT = 1.5 - this.phase * 0.15; this.riposte = null;
     this.cleanupPattern = () => { this.parryT = 0; };
-    once(this, 'parry', () => toast('Luke is on guard — don’t swing into his parry!'));
+    once(this, 'parry', () => toast(txt('bosses.luke.onGuard')));
     g.fx.rings.spawn(this.pos.clone().setY(this.ground(this.pos) + 0.06), { color: 0x7ac8ff, r0: 2.2, r1: 1.4, dur: this.parryT, thick: 0.15 });
     g.audio?.tone({ freq: 1800, dur: 0.12, gain: 0.06, type: 'triangle' });
     while (this.parryT > 0 && !this.riposte) { this.parryT -= 0.1; yield 0.1; }
@@ -682,7 +683,7 @@ export const BOOK1_PATTERNS = {
       this.anim = { type: 'attack', t: 0.55, style: 'swingR', windup: 0.3, strike: 0.5 };
       g.fx.slashArc(this.pos, this.facing, 0xe0a040, 4, 0.4, 0.2); g.audio?.impact(1.8); g.fx.hitSpark?.(r.pos.clone().setY(r.pos.y + 1), null, { color: 0xe0a040, big: true });
       r.takeDamage(this.dmg * 1.5, this, { knock: tmp.subVectors(r.pos, this.pos).setY(0).normalize().multiplyScalar(12) });
-      toast('Riposte!');
+      toast(txt('bosses.luke.riposte'));
       yield 0.4;
     }
     this.anim = null; this.moving = true;
@@ -708,7 +709,7 @@ export const BOOK1_PATTERNS = {
     this.moving = false; this.anim = { type: 'raise', t: 0 };
     yield 0.6;
     this.summon(['scorpion'], this.pos, 3.5, 0x9aff3a);
-    toast('Luke summons a pit scorpion!');
+    toast(txt('bosses.luke.summons'));
     yield 0.5;
     this.anim = null; this.moving = true;
   },
@@ -729,7 +730,7 @@ export const BOOK1_HOOKS = {
   // ---- the Furies: three bodies, one health bar
   furiesInit(b) {
     const rigs = [b.rig, BOSS_MODELS.megaera(), BOSS_MODELS.tisiphone()];
-    b.furies = { rigs, names: ['Alecto', 'Megaera', 'Tisiphone'], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
+    b.furies = { rigs, names: [...t('bosses.furies.sisters')], active: 0, lp: rigs.map(() => new THREE.Vector3()), crack: [0, 0, 0], orbit: Math.random() * 6 };
     for (let i = 1; i < 3; i++) { const r = rigs[i]; r.tick = (dt, e) => animateExtras(r, dt, e); b.object.add(r.root); b.furies.lp[i].set(i === 1 ? 7 : -7, 5, 0); rigs[i].root.position.copy(b.furies.lp[i]); }
   },
   furiesTick(b, dt) {
@@ -752,7 +753,7 @@ export const BOOK1_HOOKS = {
       animateExtras(r, dt, { swooping: true, whipCrack: F.crack[i] });
     }
   },
-  furiesDie(b) { toast('The Kindly Ones shriek and flee to the Underworld!', 'big'); },
+  furiesDie(b) { toast(txt('bosses.furies.die'), 'big'); },
   // ---- Medusa
   medusaTick(b, dt) {
     const eyes = b.rig.extras.eyes;
@@ -761,7 +762,7 @@ export const BOOK1_HOOKS = {
     const veil = b.rig.extras.veil;
     if (veil) veil.rotation.x = damp(veil.rotation.x, b.gazeT > 0 ? -0.9 : 0, 6, dt);
   },
-  medusaDie(b) { toast('Medusa is defeated. Whatever you do, don’t look at the head!', 'big'); },
+  medusaDie(b) { toast(txt('bosses.medusa.die'), 'big'); },
   // ---- the spider queen
   spidersInit(b) { b.swarmT = 0; },
   spidersTick(b, dt) {
@@ -773,7 +774,7 @@ export const BOOK1_HOOKS = {
   spidersDie(b) {
     let n = 0;
     for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b) { e.hp = 0; e.die?.({ quiet: true }); n++; }   // the whole swarm winds down with her
-    toast(n ? 'The queen falls — her swarm winds down!' : 'The bronze queen falls!', 'big');
+    toast(n ? txt('bosses.spiders.dieSwarm') : txt('bosses.spiders.die'), 'big');
   },
   // ---- Procrustes
   procrustesHit(b, src) {
@@ -783,7 +784,7 @@ export const BOOK1_HOOKS = {
     }
     return 1;
   },
-  procrustesDie(b) { toast('Crusty is cut down to size!', 'big'); },
+  procrustesDie(b) { toast(txt('bosses.procrustes.die'), 'big'); },
   // ---- Cerberus
   cerberusTick(b, dt) {
     const H = b.rig.extras.heads; if (!H) return;
@@ -810,7 +811,7 @@ export const BOOK1_HOOKS = {
       for (const p of g.hostileTargets()) if (!p.dead && !p.downed && inWater(g, p)) {
         p.heal?.(p.maxHp * 0.02, true);
         g.particles.burst(p.pos.clone().setY(p.pos.y + 0.6), { count: 4, color: 0x7ad8ff, speed: 1.2, up: 1.5, life: 0.6, size: 0.12 });
-        once(b, 'sea', () => toast('The sea heals you — and your blows land harder!'));
+        once(b, 'sea', () => toast(txt('bosses.ares.seaHeals')));
       }
     }
     if (b.rageT > 0) { b.rageT -= dt; b.speedMul = 1.35; } else b.speedMul = 1;
@@ -828,8 +829,8 @@ export const BOOK1_HOOKS = {
     return 1;
   },
   aresDie(b) {
-    toast('Ares is wounded in the heel', 'domain');
-    setTimeout(() => toast('“You’ve made an enemy, kid.”'), 2200);
+    toast(txt('bosses.ares.dieWounded'), 'domain');
+    setTimeout(() => toast(txt('bosses.ares.dieEnemy')), 2200);
   },
   // ---- Luke
   lukeHit(b, src) {
@@ -837,14 +838,14 @@ export const BOOK1_HOOKS = {
       const g = b.game;
       if (!b.riposte) b.riposte = src;
       g.fx.hitSpark?.(b.pos.clone().setY(b.pos.y + 1.6), null, { color: 0x9ad8ff, big: true });
-      g.fx.damageNumber?.(b.pos, 0, { color: '#9ad8ff', text: 'Parried' });
+      g.fx.damageNumber?.(b.pos, 0, { color: '#9ad8ff', text: txt('bosses.luke.parried') });
       g.audio?.tone({ freq: 1400, to: 900, dur: 0.15, gain: 0.12, type: 'square', filter: 4000 });
       return 0;
     }
     return 1;
   },
   lukeDie(b) {
-    toast('Luke falls back, wounded — “Kronos will rise!”', 'big');
+    toast(txt('bosses.luke.die'), 'big');
     for (const e of b.game.enemies) if (!e.dead && e.bossSummon === b) { e.hp = 0; e.die?.({}); }
   },
 };

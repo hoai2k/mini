@@ -9,6 +9,7 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GREEK, greekPlan, greekAt, settledBy, toGreek, LATINISH, LOOK } from '../js/ui/greekTiming.js';
 import { CHAPTERS } from '../js/story/chapters.js';
+import { t } from '../js/text_config.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(GAME, 'js', p), 'utf8');
@@ -26,7 +27,7 @@ function shots() {
     const body = CS.slice(m.index, end);
     const cut = [...ids].reverse().find((c) => c.at < m.index)?.id;
     const dur = Number.isFinite(+m[1]) ? +m[1] : consts[m[1]];
-    const lines = [...body.matchAll(/\{ at: ([\d.]+), text: '((?:[^'\\]|\\.)*)' \}/g)].map((l) => ({ at: +l[1], text: l[2] }));
+    const lines = [...body.matchAll(/\{ at: ([\d.]+), text: t\('([\w.]+)'\) \}/g)].map((l) => ({ at: +l[1], text: t(l[2]) }));   // (the subtitles are text-config keys)
     out.push({ cut, dur, lines, body });
   });
   return out;

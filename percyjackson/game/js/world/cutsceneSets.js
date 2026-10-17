@@ -12,6 +12,7 @@ import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
 import { oak, pine, column, gable, boulder } from './rooms.js';
+import { t as txt } from '../text_config.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
@@ -54,9 +55,9 @@ export function buildAvenueSet() {
   W.fill(10, top + 16, MC - 18, 16, top + 19, MC + 18, B.marble_white);
   for (let zz = MC - 18; zz <= MC + 18; zz++) W.set(16, top + 17, zz, B.key_frieze);
   W.fill(10, top + 20, MC - 12, 15, top + 21, MC + 12, B.marble_white);
-  deco.prop('text_sign', 16.6, top + 18.1, MC + 0.5, { text: 'AMERICAN MUSEUM OF NATURAL HISTORY', w: 26, h: 1.2, rot: Math.PI / 2, bg: '#e8e0d0', fg: '#3a2a1a', border: null, oneSided: true, greek: true, near: 80, look: 0.8 });
+  deco.prop('text_sign', 16.6, top + 18.1, MC + 0.5, { text: txt('signs.museum'), w: 26, h: 1.2, rot: Math.PI / 2, bg: '#e8e0d0', fg: '#3a2a1a', border: null, oneSided: true, greek: true, near: 80, look: 0.8 });
   // banners between the columns
-  for (const [zz, text, col] of [[MC - 10, 'GREEK\n&\nROMAN', '#b8321e'], [MC + 10, 'MYTHS\n&\nHEROES', '#1e3a7a']]) deco.prop('text_sign', 12.6, top + 6, zz + 0.5, { text, w: 2.2, h: 6, rot: Math.PI / 2, bg: col, fg: '#ffd84a', border: '#ffd84a', oneSided: true, greek: true, near: 40, look: 1.2 });
+  for (const [zz, text, col] of [[MC - 10, txt('signs.greekRoman'), '#b8321e'], [MC + 10, txt('signs.mythsHeroes'), '#1e3a7a']]) deco.prop('text_sign', 12.6, top + 6, zz + 0.5, { text, w: 2.2, h: 6, rot: Math.PI / 2, bg: col, fg: '#ffd84a', border: '#ffd84a', oneSided: true, greek: true, near: 40, look: 1.2 });
   for (const zz of [MC - 21, MC + 21]) { deco.prop('brazier', 15.5, top, zz + 0.5); W.addLight(15.5, top + 1.6, zz + 0.5, 0xffc070, 3, 9); }
   // west sidewalk in front of the museum, a hot-dog cart and a newsstand
   deco.prop('hotdog_cart', 25.5, FY, MC - 26.5, { rot: Math.PI / 2 }); deco.prop('newsstand', 24.5, FY, MC + 30.5, { rot: Math.PI / 2 });
@@ -99,7 +100,7 @@ export function buildMontaukSet() {
   W.addLight(CX0 - 1.5, FY + 2.5, 55.5, 0xffb060, 3, 8);
   // the road inland: from the cabin east, then north to the hill
   const lay = (pts) => { for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1]; const n = Math.ceil(Math.hypot(bx - ax, bz - az) * 2); for (let s = 0; s <= n; s++) { const px = ax + (bx - ax) * s / n, pz = az + (bz - az) * s / n; for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if (Math.hypot(dx, dz) <= 2.2) W.set(Math.floor(px + dx), FY - 1, Math.floor(pz + dz), B.dirt_road); } } };
-  const road = [[46, 62], [60, 64], [74, 60], [82, 48], [84, 32], [82, 18]];
+  const road = [[46, 62], [60, 64], [74, 60], [82, 48], [84, 32], [83, 25]];   // (ends a few metres short of the hill's foot, z ≈ 21: the car parks there)
   lay(road);
   for (let i = 0; i < 30; i++) { const x = 46 + Math.floor(k.r() * 48), zz = Math.floor(k.r() * SZ); if (W.get(x, FY - 1, zz) === B.grass) deco.add('tall_grass', x + 0.5, FY, zz + 0.5, { scale: 1.2 }); }
   for (let zz = 66; zz < 100; zz += 3) for (let x = 50; x < 92; x++) if (W.get(x, FY - 1, zz) === B.grass) W.set(x, FY - 1, zz, B.farm_soil);

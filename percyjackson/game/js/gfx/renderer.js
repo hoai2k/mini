@@ -3,6 +3,7 @@
 // per-tier post-processing chain built from three.js TSL nodes.
 import * as THREE from 'three/webgpu';
 import { classifyGPU } from './gpuTier.js';
+import { t } from '../text_config.js';
 import {
   pass, mrt, output, normalView, metalness, roughness, diffuseColor, velocity, emissive,
   vec2, vec3, vec4, float, uniform, sample, packNormalToRGB, unpackRGBToNormal, renderOutput,
@@ -21,7 +22,7 @@ import { isMobile } from '../util.js';
 
 export const QUALITY_ORDER = ['low', 'medium', 'high', 'ultra'];
 export const TIER_BELOW = { ultra: 'high', high: 'medium', medium: 'low', low: null };
-export const QUALITY_LABEL = { low: 'Low', medium: 'Medium', high: 'High', ultra: 'Ultra · Ray Traced' };
+export const QUALITY_LABEL = { low: t('game.quality.low'), medium: t('game.quality.medium'), high: t('game.quality.high'), ultra: t('game.quality.ultra') };
 
 // Tier presets: how the game looks. (How many monsters can be up at once is a
 // gameplay rule, the same on every machine: world/encounters.js ENEMY_CAP.)
@@ -71,7 +72,7 @@ export async function detectGPU() {
     }
   } catch (e) { /* ignore */ }
   Object.assign(info, classifyGPU(info, { cores: navigator.hardwareConcurrency || 4, ua: navigator.userAgent }));
-  info.name = (info.gpuDesc || (info.judgedBy === 'webgpu-adapter' ? `${info.vendor} ${info.arch}`.trim() : '') || info.renderer || info.vendor || 'Unknown GPU').replace(/^ANGLE \(|\)$/g, '').slice(0, 64);
+  info.name = (info.gpuDesc || (info.judgedBy === 'webgpu-adapter' ? `${info.vendor} ${info.arch}`.trim() : '') || info.renderer || info.vendor || t('game.quality.unknownGpu')).replace(/^ANGLE \(|\)$/g, '').slice(0, 64);
   return info;
 }
 

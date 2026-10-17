@@ -17,6 +17,7 @@
 // health crosses a threshold, she lets out a paralyzing shriek and flies off
 // to another room, where the heroes must find her.
 import { PAD_LABEL, KEY_LABEL } from '../padmap.js';
+import { t } from '../text_config.js';
 
 export const PHASES = ['calm', 'reveal', 'hostile'];
 export const phaseAfter = (ph) => PHASES[Math.min(PHASES.length - 1, PHASES.indexOf(ph) + 1)];
@@ -132,9 +133,9 @@ export function flowDir(field, x, z) {
 // Plain English, in her voice; the button named for the device being
 // played ('kbm', 'touch', 'pad0'...), from padmap.js.
 const SIGHT = {
-  pad: `click the right stick (${PAD_LABEL.sight})`,
-  kbm: `press ${KEY_LABEL.sight}`,
-  touch: 'tap the 👁 button',
+  pad: t('museum.sight.pad', { button: PAD_LABEL.sight }),
+  kbm: t('museum.sight.kbm', { key: KEY_LABEL.sight }),
+  touch: t('museum.sight.touch'),
 };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 export const deviceKind = (device = 'kbm') => (String(device).startsWith('pad') ? 'pad' : device === 'touch' ? 'touch' : 'kbm');
@@ -142,20 +143,14 @@ export const sightWords = (device) => SIGHT[deviceKind(device)];
 export function doddsLine(id, device = 'kbm') {
   const s = sightWords(device);
   switch (id) {
-    case 'reveal1': return 'Enough pretending, honey. You’ve been a very bad student.';
-    case 'reveal2': return `Your eyes believe the Mist. ${cap(s)} to see what’s really here… and what’s coming for you.`;
-    case 'reveal3': return 'With the Mist up my pets look like nice people. They still bite, and you can’t touch them. Now, class is in session!';
-    case 'flee1': return 'You’ll have to catch me first, honey!';
-    case 'flee2': return 'Hide and seek? I always win.';
-    case 'flee3': return 'One more lesson, and it’s your last!';
-    case 'found1': return 'Pop quiz!';
-    case 'found2': return 'Found me? Lucky guess.';
-    case 'found3': return 'No more running. For you.';
+    case 'reveal1': case 'reveal2': case 'reveal3':
+    case 'flee1': case 'flee2': case 'flee3':
+    case 'found1': case 'found2': case 'found3': return t('museum.dodds.' + id, { sight: cap(s) });
     default: return '';
   }
 }
 // The one-time hint when something you can't see is hurting you.
 export function mistHurtHint(device = 'kbm') {
-  return `Something you can’t see is hurting you! ${cap(sightWords(device))} for True Sight, then fight back.`;
+  return t('museum.mistHurtHint', { sight: cap(sightWords(device)) });
 }
-export const GONE = 'She’s gone… find her!';
+export const GONE = t('museum.gone');

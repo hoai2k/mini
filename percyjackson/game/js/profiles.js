@@ -30,6 +30,7 @@
 import { Save, freshData, normalizeData, newId, cleanName, LEGACY_KEY, ID_RE } from './save.js';
 import { spentPoints } from './loot.js';
 import { mergeHero } from './heroes/skillRules.js';
+import { t } from './text_config.js';
 
 // (a save slot other than the first keeps its keys under its own prefix: see slots.js)
 export const INDEX_KEY = 'hbq-profiles-v2';
@@ -154,7 +155,7 @@ export class Profiles {
   loadMain() {
     const ix = this.index;
     let main = ix.main && this.readProfile(ix.main);
-    if (!main) { main = freshData('Player 1'); ix.main = main.id; }
+    if (!main) { main = freshData(t('profiles.player1')); ix.main = main.id; }
     if (!ix.ids.includes(main.id)) ix.ids.unshift(main.id);
     const s = this.adopt(main);
     if (!ix.migratedV1) {
@@ -200,7 +201,7 @@ export class Profiles {
     this.index.ids.push(d.id); this.writeIndex(); this.writeNow(s);
     return s;
   }
-  freeName(n = 2) { const names = new Set(this.list().map((p) => p.name)); while (names.has(`Player ${n}`)) n++; return `Player ${n}`; }
+  freeName(n = 2) { const names = new Set(this.list().map((p) => p.name)); while (names.has(t('profiles.playerN', { n }))) n++; return t('profiles.playerN', { n }); }
   // The profile named "Player <n>" (made if missing): the default for player slot n-1.
   byName(name) { const hit = this.list().find((p) => p.name === name); return hit ? this.profile(hit.id) : this.create(name); }
   rename(id, name) { const s = this.profile(id); if (!s) return; s.data.name = cleanName(name, s.data.name); s.write(); }
@@ -239,7 +240,7 @@ export class Profiles {
   slotDefault(slot) {
     if (slot === 0) return this.main;
     const id = this.index.slots[slot];
-    return (id && id !== this.mainId && this.profile(id)) || this.byName(`Player ${slot + 1}`);
+    return (id && id !== this.mainId && this.profile(id)) || this.byName(t('profiles.playerN', { n: slot + 1 }));
   }
 
   // ---- import / export

@@ -14,6 +14,7 @@ import { OPENING_STEPS, STEP_INFO } from '../story/opening.js';
 import { CHAPTERS, chapterPlayable } from '../story/chapters.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { DIFFICULTIES } from './chapterMap.js';
+import { t } from '../text_config.js';
 
 const pick = { hero: 'percy', difficulty: 2, cards: false, boss: false };
 
@@ -40,9 +41,9 @@ export function enterSandbox(g) {
 function showBadge(g) {
   if (document.getElementById('debug-badge')) return;
   const b = h('div', { id: 'debug-badge', role: 'status', style: 'position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:60;display:flex;gap:8px;align-items:center;padding:3px 10px;border-radius:12px;background:rgba(120,20,20,.85);border:1px solid #ff8a6a;color:#fff;font:600 12px/1.4 system-ui,sans-serif;pointer-events:auto' },
-    h('span', {}, 'DEBUG · nothing is saved'),
-    h('button', { class: 'btn small', style: 'padding:1px 8px;font-size:11px', onclick: () => openDebugMenu(g) }, 'Scenes'),
-    h('button', { class: 'btn small', style: 'padding:1px 8px;font-size:11px', onclick: () => location.reload() }, 'Leave'));
+    h('span', {}, t('debug.badge')),
+    h('button', { class: 'btn small', style: 'padding:1px 8px;font-size:11px', onclick: () => openDebugMenu(g) }, t('debug.scenes')),
+    h('button', { class: 'btn small', style: 'padding:1px 8px;font-size:11px', onclick: () => location.reload() }, t('debug.leave')));
   document.body.appendChild(b);
 }
 
@@ -84,7 +85,7 @@ function jumpChapter(g, ch) {
 // the museum, the banner and the casino, start at the beginning instead).
 export const bossJumpable = (ch) => !!ch.boss && !['museum', 'flag', 'escape'].includes(ch.objective);
 function toBossWhenReady(g, ch) {
-  if (!bossJumpable(ch)) { toast('This chapter’s boss has its own way in: starting at the beginning'); return; }
+  if (!bossJumpable(ch)) { toast(t('debug.noBossJump')); return; }
   let tries = 0;
   const iv = setInterval(() => {
     const m = g.mission;
@@ -104,26 +105,26 @@ function toBossWhenReady(g, ch) {
 
 export function openDebugMenu(g) {
   const ui = g.ui;
-  if (g.online?.live) { toast('Debug jumps are for playing alone (leave the online room first)'); return; }
+  if (g.online?.live) { toast(t('debug.aloneOnly')); return; }
   ui.open('debug', (el) => {
     const btn = (label, fn, extra = {}) => h('button', { class: 'btn small', style: 'margin:3px', onclick: fn, ...extra }, label);
-    const tog = (key, label) => { const b = btn(`${label}: ${pick[key] ? 'on' : 'off'}`, () => { pick[key] = !pick[key]; ui.refresh('debug'); }); b.setAttribute('aria-pressed', String(!!pick[key])); return b; };
-    const sect = (t, ...kids) => h('div', { style: 'margin:10px 0 2px' }, h('div', { style: 'font-weight:700;opacity:.85;margin-bottom:2px' }, t), h('div', { style: 'display:flex;flex-wrap:wrap' }, ...kids));
+    const tog = (key, label) => { const b = btn(t('debug.toggle', { label, state: pick[key] ? t('debug.on') : t('debug.off') }), () => { pick[key] = !pick[key]; ui.refresh('debug'); }); b.setAttribute('aria-pressed', String(!!pick[key])); return b; };
+    const sect = (heading, ...kids) => h('div', { style: 'margin:10px 0 2px' }, h('div', { style: 'font-weight:700;opacity:.85;margin-bottom:2px' }, heading), h('div', { style: 'display:flex;flex-wrap:wrap' }, ...kids));
     const heroes = HERO_IDS.map((id) => btn((pick.hero === id ? '● ' : '') + HEROES[id].name, () => { pick.hero = id; ui.refresh('debug'); }));
     const diffs = DIFFICULTIES.map(([name], i) => btn((pick.difficulty === i + 1 ? '● ' : '') + name, () => { pick.difficulty = i + 1; ui.refresh('debug'); }));
-    const chapters = CHAPTERS.filter(chapterPlayable).map((ch) => btn(`${ch.num}. ${ch.title}${pick.boss && !bossJumpable(ch) ? ' (no boss jump)' : ''}`, () => jumpChapter(g, ch)));
+    const chapters = CHAPTERS.filter(chapterPlayable).map((ch) => btn(`${ch.num}. ${ch.title}${pick.boss && !bossJumpable(ch) ? t('debug.noBossJumpSuffix') : ''}`, () => jumpChapter(g, ch)));
     const opening = OPENING_STEPS.filter((s) => s !== 'done').map((s) => btn(`${STEP_INFO[s].kind === 'cutscene' ? '🎬 ' : ''}${STEP_INFO[s].title}`, () => jumpOpening(g, s)));
-    el.appendChild(h('div', { class: 'panel', role: 'dialog', 'aria-label': 'Debug', 'aria-modal': 'true', style: 'width:min(760px,96vw);max-height:90vh;overflow:auto' },
-      h('h2', {}, 'Debug: jump to a scene'),
-      h('div', { class: 'hint' }, g.sandbox ? 'Debugging: nothing is being saved. Leave debug to get your save back as it was.' : 'Jumping starts a test session that saves nothing (your save is left as it is). Leave debug, or reload, to get back to it.'),
-      sect('The opening (the story heroes; cutscenes marked 🎬)', ...opening),
-      sect('Camp', btn('Camp Half-Blood', () => jumpCamp(g))),
-      sect('Hero', ...heroes),
-      sect('Difficulty', ...diffs),
-      sect('Options', tog('cards', 'Story cards first'), tog('boss', 'Start at the boss')),
-      sect('Chapters', ...chapters),
+    el.appendChild(h('div', { class: 'panel', role: 'dialog', 'aria-label': t('debug.ariaLabel'), 'aria-modal': 'true', style: 'width:min(760px,96vw);max-height:90vh;overflow:auto' },
+      h('h2', {}, t('debug.title')),
+      h('div', { class: 'hint' }, g.sandbox ? t('debug.hintSandbox') : t('debug.hint')),
+      sect(t('debug.opening'), ...opening),
+      sect(t('debug.camp'), btn(t('debug.campButton'), () => jumpCamp(g))),
+      sect(t('debug.hero'), ...heroes),
+      sect(t('debug.difficulty'), ...diffs),
+      sect(t('debug.options'), tog('cards', t('debug.cardsFirst')), tog('boss', t('debug.startAtBoss'))),
+      sect(t('debug.chapters'), ...chapters),
       h('div', { class: 'row', style: 'margin-top:12px;justify-content:flex-end;gap:8px' },
-        g.sandbox ? h('button', { class: 'btn danger', onclick: () => location.reload() }, 'Leave debug') : null,
-        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => ui.close('debug') }, 'Close'))));
+        g.sandbox ? h('button', { class: 'btn danger', onclick: () => location.reload() }, t('debug.leaveDebug')) : null,
+        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => ui.close('debug') }, t('debug.close')))));
   }, { dim: true, onBack: () => ui.close('debug') });
 }

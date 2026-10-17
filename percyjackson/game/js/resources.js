@@ -5,6 +5,8 @@
 // chests drop. Also the damage monsters deal to heroes, per tier.
 // Pure functions and data (no Three.js), so the checks in test/ can run them.
 
+import { t } from './text_config.js';
+
 // ---------------------------------------------------------------- Ambrosia
 // heal: share of max health restored over `dur` seconds · cooldown: seconds
 // to refill after a drink (shortened by Hebe's Cup and, at half strength, by
@@ -74,13 +76,13 @@ export function bundlesFrom(source, rng = Math.random) {
 
 // What each hero's quiver holds (the HUD icon and the out-of-ammo hint).
 export const AMMO = {
-  percy: { icon: '💧', name: 'water', out: 'Out of water — it comes back over time' },
-  annabeth: { icon: '🔪', name: 'knives', out: 'Out of knives — they come back over time' },
-  grover: { icon: '🎵', name: 'notes', out: 'Out of breath for the pipes — it comes back over time' },
-  tyson: { icon: '🪨', name: 'boulders', out: 'Out of boulders — they come back over time' },
-  clarisse: { icon: '⚡', name: 'sparks', out: 'Out of sparks — they come back over time' },
+  percy: { icon: '💧', name: t('resources.ammo.percy.name'), out: t('resources.ammo.percy.out') },
+  annabeth: { icon: '🔪', name: t('resources.ammo.annabeth.name'), out: t('resources.ammo.annabeth.out') },
+  grover: { icon: '🎵', name: t('resources.ammo.grover.name'), out: t('resources.ammo.grover.out') },
+  tyson: { icon: '🪨', name: t('resources.ammo.tyson.name'), out: t('resources.ammo.tyson.out') },
+  clarisse: { icon: '⚡', name: t('resources.ammo.clarisse.name'), out: t('resources.ammo.clarisse.out') },
 };
-export const ammoInfo = (hero) => AMMO[hero] ?? { icon: '➶', name: 'arrows', out: 'Out of arrows — they come back over time' };
+export const ammoInfo = (hero) => AMMO[hero] ?? { icon: '➶', name: t('resources.ammo.default.name'), out: t('resources.ammo.default.out') };
 
 // ---------------------------------------------------------------- monster hits
 // Multiplier on every monster's listed damage against heroes, by tier, so a

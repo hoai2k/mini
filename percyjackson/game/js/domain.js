@@ -9,6 +9,7 @@ import { U } from './gfx/materials.js';
 import { Grade } from './gfx/renderer.js';
 import { DOMAINS } from './world/biomes.js';
 import { toast } from './ui/ui.js';
+import { t } from './text_config.js';
 
 // Sky dome shader per domain type.
 function domeMaterial() {
@@ -62,7 +63,7 @@ export class DomainSystem {
     g.rig.cinematic({ center: caster.pos.clone().setY(caster.pos.y + 0.5), dur: def.duration + 1.8, dist: 15, pitch: 30 * Math.PI / 180, orbit: 0.22 });
     Grade.dofFocus.value = 15; g.targetDof = 0.3;
     g.audio?.domain(def.sound);
-    toast('GODLY POWER', 'domain');
+    toast(t('domain.godlyPower'), 'domain');
     setTimeout(() => toast(def.name.toUpperCase(), 'domain'), 700);
     // hand-sign energy gathering
     const col = new THREE.Color(def.color ?? 0x6ad8ff);
