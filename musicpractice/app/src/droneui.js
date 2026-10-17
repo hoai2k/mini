@@ -210,6 +210,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   fifth.checked = settings.droneFifth;
   fifth.addEventListener('change', () => {
     settings.droneFifth = fifth.checked;
+    settings.droneFifthChosen = true;
     persist();
     if (playing) sound();
   });

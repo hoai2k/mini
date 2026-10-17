@@ -89,8 +89,8 @@ test('home order: metronome, tuner, drone, recorder by default; a saved order is
 
 test('drone settings: defaults, kept, and bad values fall back', () => {
   const d = load(memoryStorage());
-  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneTimed, d.droneMinutes, d.droneThen, d.droneFifth], [48, 'cello', false, 3, 'stop', false]);
-  const s = sanitize({ droneMidi: 41, droneVoice: 'organ', droneTimed: true, droneMinutes: 7.5, droneThen: 'fifths', droneFifth: true });
+  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneTimed, d.droneMinutes, d.droneThen, d.droneFifth], [48, 'cello', false, 3, 'stop', true]);
+  const s = sanitize({ droneMidi: 41, droneVoice: 'organ', droneTimed: true, droneMinutes: 7.5, droneThen: 'fifths', droneFifth: true, droneFifthChosen: true });
   assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen, s.droneFifth], [41, 'organ', true, 7.5, 'fifths', true]);
   const bad = sanitize({ droneMidi: 90, droneVoice: 'tanpura', droneMinutes: -2, droneThen: 'random' });
   assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'stop']);
@@ -120,4 +120,10 @@ test('every theme has its other mode in styles.css, and the early script knows w
     assert.ok(css.includes(`[data-theme="${t.id}"][data-mode="${other}"] {`), `${t.id} has no ${other} block`);
     assert.equal(darkList.includes(t.id), t.mode === 'dark', `early script: ${t.id}`);
   }
+});
+
+test('the drone fifth is on by default; switching it off is kept, an old save\'s off is not', () => {
+  assert.equal(sanitize({}).droneFifth, true);
+  assert.equal(sanitize({ droneFifth: false }).droneFifth, true); // an earlier save's default
+  assert.equal(sanitize({ droneFifth: false, droneFifthChosen: true }).droneFifth, false);
 });
