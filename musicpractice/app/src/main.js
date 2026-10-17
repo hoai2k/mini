@@ -30,7 +30,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, swingOf } from './art.js';
 
 const $ = (id) => document.getElementById(id);
@@ -232,13 +232,19 @@ function renderBeats() {
     if (s === 1) li.className = 'mid';
     return li;
   }));
-  // The Visualizer's bars: one per beat, the strong beat red.
-  $('met-bars').replaceChildren(...strengths.map((s) => {
-    const bar = document.createElement('i');
-    bar.className = `met-bar${s === 2 ? ' strong' : s === 1 ? ' mid' : ''}`;
-    return bar;
+  // The Visualizer: a row per bar of music, a shape per beat, the strong beat red.
+  $('met-bars').replaceChildren(...Array.from({ length: settings.vizBars }, () => {
+    const row = document.createElement('div');
+    row.className = 'met-measure';
+    row.append(...strengths.map((s) => {
+      const bar = document.createElement('i');
+      bar.className = `met-bar${s === 2 ? ' strong' : s === 1 ? ' mid' : ''}`;
+      return bar;
+    }));
+    return row;
   }));
   $('met-bars').style.setProperty('--n', strengths.length);
+  $('met-bars').style.setProperty('--rows', settings.vizBars);
   const m = meterOf(settings.meter);
   $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, settings.accent);
 }
@@ -277,7 +283,7 @@ function stopMetronome() {
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
-  for (const b of $('met-bars').children) b.style.setProperty('--lit', '0');
+  for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   $('met-pulse').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
@@ -456,29 +462,47 @@ function animateMetronome() {
   pulse.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
-  // The Visualizer: the beat's bar lights on the beat and fades through it.
+  // The Visualizer: read like music, left to right and down a row a bar. The
+  // beat's shape lights and fades; with the trail, the beats played so far in
+  // this pass stay faintly lit until it starts again at the top.
   if (settings.metView === 'bars') {
-    const bars = $('met-bars').children;
+    const cells = $('met-bars').querySelectorAll('.met-bar');
+    const n = dots.length || 1;
+    const at = beat ? (Math.floor((beat.count - beat.beat) / n) % settings.vizBars) * n + beat.beat : -1;
     const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, metronome.period * 0.55)) : 0;
-    for (let i = 0; i < bars.length; i++) bars[i].style.setProperty('--lit', beat && beat.beat === i ? lit.toFixed(3) : '0');
+    const trail = settings.vizTrail ? VIZ_TRAIL : 0;
+    for (let i = 0; i < cells.length; i++) {
+      const v = i === at ? Math.max(lit, trail) : i < at ? trail : 0;
+      cells[i].style.setProperty('--lit', v.toFixed(3));
+    }
   }
 }
 
-/** Metronome or Visualizer: the pendulum and lamp, or a bar per beat. */
+const VIZ_TRAIL = 0.28; // how lit a beat already played in this pass stays
+
+/** Metronome or Visualizer: the pendulum and lamp, or rows of bars; and their own settings. */
 function showMetView() {
   const bars = settings.metView === 'bars';
   $('metronome-art').hidden = bars;
   $('beats').hidden = bars;
   $('met-bars').hidden = !bars;
-  $('met-view').setAttribute('aria-pressed', String(bars));
-  for (const b of $('met-bars').children) b.style.setProperty('--lit', '0');
+  $('met-viz').checked = bars;
+  $('met-viz-opts').hidden = !bars;
+  $('met-art-opts').hidden = bars;
+  for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   syncControlsLive();
 }
-$('met-view').addEventListener('click', () => {
-  settings.metView = settings.metView === 'bars' ? 'metronome' : 'bars';
+$('met-viz').addEventListener('change', () => {
+  settings.metView = $('met-viz').checked ? 'bars' : 'metronome';
   persist();
   showMetView();
 });
+const vizBars = $('viz-bars');
+vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
+vizBars.value = String(settings.vizBars);
+vizBars.addEventListener('change', () => { settings.vizBars = Number(vizBars.value); renderBeats(); persist(); });
+$('viz-trail').checked = settings.vizTrail;
+$('viz-trail').addEventListener('change', () => { settings.vizTrail = $('viz-trail').checked; persist(); });
 
 // ---------------------------------------------------------------- visual sync
 

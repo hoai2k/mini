@@ -37,6 +37,10 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
+/* No double-tap zoom (iPhone zoomed in on quick taps of the drone's − and +);
+   scrolling and pinch-zoom still work. A touch gets only what every element
+   above it allows, so this one rule covers the page. */
+html { touch-action: manipulation; }
 body {
   background: radial-gradient(120% 80% at 50% 0%, var(--glow) 0%, var(--bg) 60%) fixed, var(--bg);
   color: var(--ink);
@@ -297,35 +301,37 @@ button { cursor: pointer; }
 .big-btn[aria-pressed="true"] .i-stop { display: block; }
 .big-btn[aria-pressed="true"] .i-play { display: none; }
 .meter-note { margin: 2px 0 0; text-align: center; color: var(--ink-3); font-size: 0.9rem; }
-.met-foot { display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 0; }
-.met-foot .meter-note { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.met-view { flex: none; min-height: 32px; padding: 3px 14px; font-size: 0.88rem; }
-/* On: filled, over every theme's own pill style. */
-.met-foot .met-view[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
 
-/* The Visualizer: a bar per beat of the bar, the same height as the metronome
-   it stands in for. Each lights on its beat (--lit, from main.js) and fades:
+/* The Visualizer: a few bars of music at a time, one row per bar and one
+   horizontal shape per beat, read left to right and down, standing in for
+   the metronome. A beat's shape lights on its beat (--lit, from main.js) and
+   fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
 .met-bars {
   --red-bar: #ff3b30; --blue-bar: #2f8cff;
   /* As tall as the metronome with its lamp and beat dots, which it stands in for. */
-  height: clamp(120px, min(40dvh, 100dvh - 420px), 460px);
-  width: min(calc(100vw - 2 * var(--gutter)), calc(var(--n, 4) * 76px)); /* its parent sizes to its contents, so not a % */
-  display: flex; align-items: stretch; justify-content: center; gap: clamp(8px, 2.4vw, 16px);
+  --h: clamp(120px, min(40dvh, 100dvh - 420px), 460px);
+  height: var(--h);
+  width: min(calc(100vw - 2 * var(--gutter)), 440px); /* its parent sizes to its contents, so not a % */
+  display: grid; align-content: center; gap: clamp(8px, 2.2dvh, 18px);
 }
 .met-bars[hidden] { display: none; }
+/* Metronome settings: the Visualizer's options, or the pendulum's and lamp's. */
+.met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
+.met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
+.met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: clamp(12px, calc(var(--h) / var(--rows, 4) * 0.42), 30px); }
 .met-bar {
   --c: var(--blue-bar);
-  flex: 1 1 0; max-width: 64px; border-radius: 14px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--c) 14%, var(--panel));
   border: 2px solid color-mix(in srgb, var(--c) 45%, var(--line));
-  position: relative; overflow: visible;
+  position: relative;
 }
 .met-bar.strong { --c: var(--red-bar); }
 .met-bar::after {
-  content: ""; position: absolute; inset: -2px; border-radius: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 45%, color-mix(in srgb, var(--c) 80%, #000));
-  box-shadow: 0 0 22px 4px color-mix(in srgb, var(--c) 60%, transparent);
+  content: ""; position: absolute; inset: -2px; border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 50%, color-mix(in srgb, var(--c) 80%, #000));
+  box-shadow: 0 0 16px 3px color-mix(in srgb, var(--c) 60%, transparent);
   opacity: var(--lit, 0);
   will-change: opacity;
 }
@@ -334,12 +340,12 @@ button { cursor: pointer; }
 @media (min-width: 720px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) {
   .met-body { flex-direction: row; justify-content: center; gap: clamp(24px, 6vw, 80px); }
   .metronome { height: clamp(200px, 62dvh, 520px); }
-  .met-bars { height: clamp(200px, 62dvh, 520px); }
+  .met-bars { --h: clamp(200px, 62dvh, 520px); }
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .bar { margin-bottom: 0; }
   .metronome { height: 64dvh; }
-  .met-bars { height: 64dvh; }
+  .met-bars { --h: 64dvh; }
   .met-controls { gap: 4px; }
   .big-btn { min-height: 50px; }
 }
