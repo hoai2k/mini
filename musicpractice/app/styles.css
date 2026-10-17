@@ -232,12 +232,18 @@ button { cursor: pointer; }
   cursor: pointer; border-radius: 12px;
 }
 .metronome:focus:not(:focus-visible), .met-foot:focus:not(:focus-visible) { outline: none; }
-.beats {
-  position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto;
-  height: var(--foot); align-items: center; align-content: center;
-  transition: opacity 0.3s 0.25s, height var(--morph);
+.met-foot .beats {
+  /* Centred under the metronome (margin-inline, which the plain .beats rule
+     below would otherwise reset to 0 and leave the row at the left). */
+  position: absolute; left: 0; right: 0; bottom: 0; margin-inline: auto;
+  height: var(--dots); align-items: center; align-content: center;
+  transition: height var(--morph);
 }
-.met-visual.bars .beats { opacity: 0; pointer-events: none; transition: opacity 0.2s, height var(--morph); }
+.met-visual.pulse .beats { height: var(--big); }
+/* Dots and Visualizer swap by a cross-zoom (main.js crossZoom): each fades
+   while it is drawn growing or shrinking into the other's box. These are
+   where each ends up. */
+.met-visual.bars .beats { opacity: 0; pointer-events: none; }
 /* Pulse: the dots grow big, as wide as the row allows, and the one whose
    beat it is swells and glows into it and eases away after (--g, 0 to 1,
    from main.js), red on a strong beat. */
@@ -380,23 +386,14 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
    fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
 .met-viz {
-  /* As tall as its rows (--V, from main.js), at the bottom of the picture.
-     Closed, all but the dots' row of it is clipped away and it is faded out;
-     it opens by revealing upward out of the dots, its rows never squashed. */
+  /* As tall as its rows (--V, from main.js), at the bottom of the picture;
+     hidden (faded out) until the dots open into it. */
   position: absolute; left: 0; right: 0; bottom: 0;
   height: var(--V, 50%);
   display: flex; flex-direction: column; justify-content: flex-end;
-  clip-path: inset(calc(100% - var(--dots)) -24px -24px -24px);
   opacity: 0; pointer-events: none;
-  transition: clip-path var(--morph), opacity 0.25s 0.35s;
 }
-.met-visual.bars .met-viz {
-  /* Open to the gap above it (room for a lit bar's glow), no further, so its
-     top edge keeps pace with the metronome's foot all the way. */
-  clip-path: inset(calc(-1 * var(--gap)) -24px -24px -24px);
-  opacity: 1; pointer-events: auto;
-  transition: clip-path var(--morph), opacity 0.15s;
-}
+.met-visual.bars .met-viz { opacity: 1; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) {
   .met-visual, .met-visual * { --morph: 0s; }
 }

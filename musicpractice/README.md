@@ -138,10 +138,13 @@ when the Art Deco art arrives, measure and record its own.
   dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
   The metronome scales down toward its top by just enough to make room (a
   transform, so it is never squashed or laid out again) while the
-  Visualizer is revealed upward out of the dots into the space it frees,
-  its top edge keeping pace with the metronome's foot; each change takes
-  0.6 s, eased (none with reduced motion, and none when the window is
-  resized).
+  dots and the Visualizer swap by a **cross-zoom** (`crossZoom`): the
+  outgoing one fades out while it is drawn growing or shrinking into the
+  incoming one's box, and the incoming one fades in (overlapping, so the
+  place never goes blank) while it grows or shrinks from the outgoing one's
+  box to its own, both about their bottom centres. Each change takes 0.6 s,
+  eased (none with reduced motion, and none when the window is resized).
+  The dots are centred under the metronome at every size.
 - **Volume**, tucked away as a faint speaker at the picture's top right:
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
@@ -325,7 +328,9 @@ Play a note and the tuner shows the nearest note (letter, accidental and
 octave), a needle on a ±50-cent gauge, the cents and hertz, and a hint: *Too
 low: tune up*, *Too high: tune down*, or *In tune* (within ±5 cents, when the
 needle, note and band turn green). The last note stays up, dimmed, for 1.5 s
-after the sound stops.
+after the sound stops. While the microphone is being opened nothing is said about
+it (no "microphone is off", no Try again), so opening the Tuner doesn't flash
+a message that then disappears; a refusal is shown once it is known.
 
 - **Instrument** (the dropdown on the screen): Chromatic (any note), or a
   set of strings: guitar (standard, drop D, DADGAD), bass (4 and 5 string),
