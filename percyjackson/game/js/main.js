@@ -370,6 +370,7 @@ class Game {
   }
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
+    if (this.rig) this.rig.subject = null;
     this.wipeLeft = 0;
     this.domainSys?.end();
     if (this.world) { this.scene.remove(this.world.group); this.releaseLater(this.world.group, { geometry: true }); }
@@ -395,6 +396,7 @@ class Game {
   }
   loadWorld(level, biome) {
     this.level = level; this.world = level.world; this.biome = biome;
+    level.deco.solidify?.(this.world);   // (props a hero can't walk through: world/deco.js SOLID_PROPS)
     this.world.init(this.materials);
     this.scene.add(this.world.group);
     level.deco.build(this.world, this.materials, this.gr.preset.decoDensity);

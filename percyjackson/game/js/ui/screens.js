@@ -1,6 +1,6 @@
 // Menu screens: re-exports of the title, hero select, chapter map, prophecy,
-// story cards, instructions and settings, plus inventory with enchanting, skill
-// tree, camp store and the pause menu.
+// story cards, instructions, settings, inventory and skill tree, plus the camp
+// store and the pause menu.
 import { h, toast, confirmDialog } from './ui.js';
 import { openSettings } from './settingsScreen.js';
 import { openDebugMenu } from './debugMenu.js';
@@ -11,38 +11,20 @@ import { openProphecy } from './prophecy.js';
 import { openStoryCards } from './storyCards.js';
 import { openTitle } from './title.js';
 import { openSelect } from './partySelect.js';
-import { HEROES, SKILL_TREES } from '../heroes/index.js';
 import { ENCHANTS, itemInfo, itemRarity, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
 
 export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
 
 // ------------------------------------------------------------------ inventory
 // The inventory and the forge live in inventory.js.
-export { openInventory, openForge } from './inventory.js';
+// (imported too: the pause menu opens the inventory)
+import { openInventory, openForge } from './inventory.js';
+export { openInventory, openForge };
 
 // ------------------------------------------------------------------ skill tree
-export function openSkills(game, player) {
-  const ui = game.ui, save = game.saveFor?.(player) ?? game.save;   // net: this player's profile
-  const sid = player.hero, tree = SKILL_TREES[sid] ?? [];
-  game.paused = true;
-  const close = () => { ui.close('skills'); game.paused = false; };
-  ui.open('skills', (el) => {
-    const S = save.hero(sid);
-    const cards = tree.map((sk) => {
-      const r = S.skills[sk.id] ?? 0;
-      const locked = sk.req && !(S.skills[sk.req] > 0);
-      return h('button', { class: 'skill' + (locked ? ' locked' : ''), style: 'text-align:left', onclick: () => {
-        if (locked || r >= sk.max || S.skillPoints <= 0) { game.audio?.ui('back'); return; }
-        S.skills[sk.id] = r + 1; S.skillPoints--; save.write(); player.refreshLoadout(); game.audio?.levelUp(); ui.refresh('skills');
-      } }, h('div', { class: 'sn' }, sk.name), h('div', { class: 'sd' }, sk.desc + (locked ? ` (requires ${tree.find((t) => t.id === sk.req)?.name})` : '')), h('div', { class: 'pips' }, '◆'.repeat(r) + '◇'.repeat(sk.max - r)));
-    });
-    el.appendChild(h('div', { class: 'panel', style: 'width:min(820px,97vw)' },
-      h('h2', {}, `Skill Tree · ${HEROES[sid].name}`),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Skill points: ${S.skillPoints} · earn one per level (all heroes)`),
-      h('div', { class: 'tree' }, ...cards),
-      h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
-  }, { dim: true, onBack: close });
-}
+// The skill tree (equip, spend, reset) lives in skills.js.
+import { openSkills } from './skills.js';
+export { openSkills };
 
 // ------------------------------------------------------------------ shop
 export function openShop(game, player) {

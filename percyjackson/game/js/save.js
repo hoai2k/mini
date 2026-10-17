@@ -7,6 +7,7 @@
 //
 // Pure module (no DOM, no Three.js), so the node tests can load it.
 import { rollItem, normalizeItem } from './loot.js';
+import { migrateHero, defaultLoadout, pointsFor, TREE_VERSION } from './heroes/skillRules.js';
 
 export const LEGACY_KEY = 'half-blood-quests-save-v1';   // the single save of version 1
 export const VERSION = 2;
@@ -30,7 +31,7 @@ export function freshData(name = 'Player 1', id = newId()) {
     rev: 0, updated: 0,          // rev counts writes; updated is ms since 1970 of the last change
     coins: 0,
     level: 1, xp: 0, enchantPoints: 1,
-    heroes: {},                  // id -> { skills: {id: rank}, skillPoints, gear: [weaponUid, armorUid, art1Uid, art2Uid] }
+    heroes: {},                  // id -> { skills: {id: rank}, skillPoints, equip: [t1, t2, t3 power ids], tree, gear: [weaponUid, armorUid, art1Uid, art2Uid] }
     inventory: starterItems(),
     completed: {},               // chapterId -> best difficulty cleared
     unlockedHeroes: [],
@@ -54,9 +55,7 @@ export function normalizeData(d, fallbackName = 'Player 1') {
   out.heroes = d.heroes && typeof d.heroes === 'object' ? d.heroes : {};
   for (const [k, h] of Object.entries(out.heroes)) {
     if (!h || typeof h !== 'object') { delete out.heroes[k]; continue; }
-    h.skills = h.skills && typeof h.skills === 'object' ? h.skills : {};
     h.gear = Array.isArray(h.gear) ? [0, 1, 2, 3].map((i) => (typeof h.gear[i] === 'string' ? h.gear[i] : null)) : [null, null, null, null];
-    h.skillPoints = Number.isFinite(h.skillPoints) ? h.skillPoints : 0;
   }
   out.completed = d.completed && typeof d.completed === 'object' ? d.completed : {};
   out.unlockedHeroes = Array.isArray(d.unlockedHeroes) ? d.unlockedHeroes.filter((x) => typeof x === 'string') : [];
@@ -65,6 +64,8 @@ export function normalizeData(d, fallbackName = 'Player 1') {
   out.minigames = d.minigames && typeof d.minigames === 'object' ? d.minigames : {};
   for (const k of ['coins', 'level', 'xp', 'enchantPoints', 'rev', 'updated']) out[k] = Number.isFinite(d[k]) ? d[k] : base[k];
   out.level = Math.max(1, Math.floor(out.level));
+  // skill trees: old ids moved, the rules applied, points = level - spent (heroes/skillRules.js)
+  for (const [k, h] of Object.entries(out.heroes)) migrateHero(k, h, out.level);
   return out;
 }
 
@@ -89,7 +90,7 @@ export class Save {
     if (!s[id]) {
       const inv = this.data.inventory;
       const w = inv.find((i) => i.id === 'training_sword') ?? inv[0], a = inv.find((i) => i.id === 'camp_shirt'), t = inv.find((i) => i.id === 'nectar_flask');
-      s[id] = { skills: {}, skillPoints: this.data.level, gear: [w?.uid ?? null, a?.uid ?? null, t?.uid ?? null, null] };
+      s[id] = { skills: {}, skillPoints: pointsFor(this.data.level), equip: defaultLoadout(id), tree: TREE_VERSION, gear: [w?.uid ?? null, a?.uid ?? null, t?.uid ?? null, null] };
     }
     return s[id];
   }

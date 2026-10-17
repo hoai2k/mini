@@ -9,13 +9,13 @@ const L = (key, val, fx, fy, ty, sub) => ({ side: 'l', key, val, fx, fy, ty, sub
 const R = (key, val, fx, fy, ty, sub) => ({ side: 'r', key, val, fx, fy, ty, sub });
 const CALLOUTS = [
   L('LT', 'Ambrosia (heal)', 162, 20, 20),
-  L('LB', 'Dodge forward', 150, 45, 62),
+  L('LB', 'Ability 2', 150, 45, 62, ['Y + LB together: godly power']),
   L('Left stick', 'Move', 168, 125, 126, ['click: show the way']),
   L('D-pad', '↑ Inventory', 246, 182, 200, ['↓ Switch hero', '← → Magic items']),
   R('RT', 'Ranged attack', 480, 20, 20),
   R('RB', 'Ability 3', 490, 45, 62),
-  R('Y', 'Ability 1', 466, 100, 102, ['Y + B together: godly power']),
-  R('B', 'Ability 2', 496, 128, 140),
+  R('Y', 'Ability 1', 466, 100, 102),
+  R('B', 'Dodge forward', 496, 128, 140),
   R('A', 'Jump', 466, 158, 188, ['Interact when a prompt shows']),
 ];
 function callout(c) {
@@ -27,7 +27,7 @@ function callout(c) {
     `<text x="${tx}" y="${c.ty}" text-anchor="${anchor}"><tspan class="k">${c.key}</tspan><tspan class="v"> · ${c.val}</tspan>${subs}</text>`;
 }
 function padSvg() {
-  return `<svg viewBox="0 0 1010 450" role="img" aria-label="Xbox controller diagram. Left stick moves, click it to show the way. Right stick flicks a dodge, click it for True Sight. A jump, and interact when a prompt shows. X melee attack, in the air a jump slam. Y, B and RB abilities 1, 2 and 3; Y plus B together godly power. LB dodge forward. LT Ambrosia, RT ranged. D-pad up inventory, down switch hero, left and right magic items. View map, Menu pause.">
+  return `<svg viewBox="0 0 1010 450" role="img" aria-label="Xbox controller diagram. Left stick moves, click it to show the way. Right stick flicks a dodge, click it for True Sight. A jump, and interact when a prompt shows. X melee attack, in the air a jump slam. Y, LB and RB abilities 1, 2 and 3; Y plus LB together godly power. B dodge forward. LT Ambrosia, RT ranged. D-pad up inventory, down switch hero, left and right magic items. View map, Menu pause.">
   <style>
     .ld{stroke:${GOLD};stroke-width:1.3;opacity:.7} .dot{fill:${GOLD}} text{font:600 15px 'Alegreya Sans',system-ui,sans-serif;fill:#f4ead5}
     .k{font-weight:800;fill:#f0c867} .s{fill:#d9cdb2;font-weight:500;font-size:14px} .body{fill:#17130f;stroke:${GOLD};stroke-width:3} .part{fill:#241d14;stroke:${GOLD};stroke-width:1.8}
@@ -69,9 +69,9 @@ const TABLE = [
   ['Jump slam', 'X in the air after a jump', 'Q'],
   ['Jump', 'A', 'Space'],
   ['Ranged attack', 'RT', 'Right click'],
-  ['Dodge (perfect dodge triggers Battle Sense)', 'LB (forward), or flick the right stick (that way)', 'R or Mouse 4 (toward the cursor), Mouse 5 (forward)'],
-  ['Abilities 1 · 2 · 3', 'Y · B · RB', '1 · 2 · 3'],
-  ['Godly power (when the Power bar is full)', 'Y + B together', '4, or 1 + 2 together'],
+  ['Dodge (perfect dodge triggers Battle Sense)', 'B (forward), or flick the right stick (that way)', 'R or Mouse 4 (toward the cursor), Mouse 5 (forward)'],
+  ['Abilities 1 · 2 · 3', 'Y · LB · RB', '1 · 2 · 3'],
+  ['Godly power (when the Power bar is full)', 'Y + LB together', '4, or 1 + 2 together'],
   ['True Sight (see through the Mist)', 'Click the right stick', 'V'],
   ['Show the way to the goal', 'Click the left stick', 'Middle click'],
   ['Interact (talk, open, use)', 'A when a prompt shows', 'Left click when a prompt shows'],
@@ -101,7 +101,7 @@ export function openInstructions(game, onClose) {
         h('li', {}, h('b', {}, 'Battle Sense. '), 'Dodge the instant before a hit lands and time slows for the whole team. A meter stops it being spammed; you can switch it off in Settings.'),
         h('li', {}, h('b', {}, 'Switching heroes. '), 'Playing alone, press D-pad ↓ (or F) to take over a companion. Held, it opens a radial menu.'),
         h('li', {}, h('b', {}, 'Reviving. '), 'A downed teammate can be revived: stand next to them until the ring fills.'),
-        h('li', {}, h('b', {}, 'Godly power. '), 'Fighting fills the Power bar. When it is full, press Y + B together (or 4) to unleash your hero\'s godly power.'),
+        h('li', {}, h('b', {}, 'Godly power. '), 'Fighting fills the Power bar. When it is full, press Y + LB together (or 4) to unleash your hero\'s godly power.'),
         h('li', {}, h('b', {}, 'Ambrosia'), ' (LT, or E) heals about two thirds of your health. You carry one square: after a bite it refills over about 20 seconds, shown round its icon, and the icon glows when it\'s ready and you\'re hurt. Gear with Hebe\'s Cup refills it faster. Collect drachmas to spend at the camp store.'),
         h('li', {}, h('b', {}, 'Ammo. '), 'The ranged attack (RT, or right click) shoots from a quiver of 20 (knives, water, notes… the count is next to its icon). A second after you stop shooting it refills, one shot every couple of seconds, and ammo bundles dropped by monsters, crates and chests top it up. Abilities don\'t use ammo.'),
         h('li', {}, h('b', {}, 'Gear. '), 'Press D-pad ↑ (or I) to open the inventory: equip what you find, spend enchantment points and salvage the rest. The forge in camp tempers and re-rolls items.'))),

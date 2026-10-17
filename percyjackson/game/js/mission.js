@@ -38,7 +38,7 @@ import { bundlesFrom } from './resources.js';
 import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
 
-const PRIME = 12;        // a room's monsters are there once a hero is this close to it (metres)
+const PRIME = 16;        // a room's monsters are there once a hero is this close to it (metres; past the edge of the view at the default zoom, 26)
 const TRAP_IN = 3;       // a trap springs once a hero is this far inside the room
 const TRAP_GIVE_UP = 150; // seconds: a trap nobody can finish opens anyway
 
@@ -648,7 +648,7 @@ export class Mission {
     this.bossRoom = room;
     const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.difficulty);
     g.scene.add(boss.object); g.enemies.push(boss);
-    this.boss = boss;
+    this.boss = boss; g.rig.subject = boss;   // (the camera keeps it in frame: camera.js)
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
     if (!holdTitle) toast(boss.B.title, 'title boss');

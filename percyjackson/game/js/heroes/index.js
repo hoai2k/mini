@@ -1,6 +1,7 @@
 // Hero registry: display info and ability kits. Heroes marked `soon` are
 // listed (locked) but not yet playable.
 import { Kit } from './kit.js';
+import { TREES } from './skillRules.js';
 
 export const HEROES = {
   percy: { name: 'Percy', full: 'Percy Jackson', title: 'Son of Poseidon', parent: 'Poseidon', desc: 'Riptide and the sea: water jets, Wave Surge, a healing tide, and Riptide thrown and recalled.', power: 'Hurricane', color: '#2fb6c8', unlock: 'start' },
@@ -15,8 +16,9 @@ export const HEROES = {
 export const HERO_IDS = Object.keys(HEROES).filter((id) => !HEROES[id].soon);
 
 const KITS = {};
-export const SKILL_TREES = {};
-export function registerKit(id, cls, skills = []) { KITS[id] = cls; SKILL_TREES[id] = skills; }
+// Each hero's skill-tree nodes (the trees and their rules: skillRules.js).
+export const SKILL_TREES = Object.fromEntries(Object.entries(TREES).map(([id, t]) => [id, t.nodes]));
+export function registerKit(id, cls) { KITS[id] = cls; }
 export function createKit(player) {
   const K = KITS[player.hero] || Kit;
   return new K(player);

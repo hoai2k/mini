@@ -18,7 +18,7 @@ test('each button does what Minecraft Dungeons II puts there', () => {
   assert.deepEqual(one(BTN.A), ['jump']);
   assert.deepEqual(one(BTN.X), ['attack']);
   assert.deepEqual(one(BTN.RB), ['t3']);
-  assert.deepEqual(one(BTN.LB), ['dodge']);
+  assert.deepEqual(one(BTN.B), ['dodge']);
   assert.deepEqual(one(BTN.LT), ['heal']);
   assert.deepEqual(one(BTN.RT), ['ranged']);
   assert.deepEqual(one(BTN.RS), ['sight']);
@@ -36,19 +36,19 @@ test('A interacts instead of jumping while a prompt is up for that controller', 
   assert.deepEqual(on(padFrame(pad([BTN.X]), {}, 0, { interact: true }).held), ['attack'], 'X still swings');
 });
 
-test('Y and B: alone after a short wait they are abilities 1 and 2; together the godly power', () => {
+test('Y and LB: alone after a short wait they are abilities 1 and 2; together the godly power', () => {
   let st = {};
   assert.deepEqual(on(padFrame(pad([BTN.Y]), st, 0).held), [], 'waits for a possible chord');
   assert.deepEqual(on(padFrame(pad([BTN.Y]), st, CHORD + 0.01).held), ['t1']);
   padFrame(pad([]), st, 1);
   st = {};
-  padFrame(pad([BTN.B]), st, 0);
-  assert.deepEqual(on(padFrame(pad([BTN.B]), st, CHORD + 0.01).held), ['t2']);
+  padFrame(pad([BTN.LB]), st, 0);
+  assert.deepEqual(on(padFrame(pad([BTN.LB]), st, CHORD + 0.01).held), ['t2']);
   st = {};
   padFrame(pad([BTN.Y]), st, 0);
-  assert.deepEqual(on(padFrame(pad([BTN.Y, BTN.B]), st, 0.05).held), ['domain']);
+  assert.deepEqual(on(padFrame(pad([BTN.Y, BTN.LB]), st, 0.05).held), ['domain']);
   // still the godly power while held, never an ability on release of one
-  assert.deepEqual(on(padFrame(pad([BTN.B]), st, 0.3).held), ['domain']);
+  assert.deepEqual(on(padFrame(pad([BTN.LB]), st, 0.3).held), ['domain']);
 });
 
 test('a right stick flick rolls that way once, and re-arms back at the centre', () => {
@@ -80,7 +80,7 @@ test('the left stick moves (with a dead zone)', () => {
 test('every action the game reads from a controller has a glyph, and the texts name the new buttons', () => {
   for (const a of ['attack', 'jump', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'heal', 'sight', 'inv', 'swap', 'art1', 'art2', 'map', 'pause', 'trail']) assert.ok(PAD_LABEL[a], a);
   const read = (f) => readFileSync(new URL('../js/' + f, import.meta.url), 'utf8');
-  assert.match(read('ui/instructions.js'), /\['Abilities 1 · 2 · 3', 'Y · B · RB'/);
+  assert.match(read('ui/instructions.js'), /\['Abilities 1 · 2 · 3', 'Y · LB · RB'/);
   assert.match(read('ui/instructions.js'), /\['Ambrosia \(heal\)', 'LT'/);
   assert.doesNotMatch(read('main.js'), /: 'X';/, 'pad prompts say A');
   assert.doesNotMatch(read('story/chapters.js') + read('mission.js') + read('objectives/escape.js'), /\(LT \/ V\)|Hold LT/);

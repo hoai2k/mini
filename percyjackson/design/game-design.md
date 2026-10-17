@@ -62,6 +62,38 @@ chapter.
 | **Thalia** | Zeus | Spear | Lightning bolt | Aegis (the shield's face terrifies enemies) · Chain Lightning · Thunder Leap | **Storm of Zeus**: lightning strikes all around | Book 3 |
 | **Nico** | Hades | Stygian iron sword | Shadow bolt | Shadow Travel (teleport) · Raise the Dead (skeleton allies) · Earth Rend (ground spikes) | **King of the Dead**: an army rises | Book 3 |
 
+**Skill trees.** Each hero levels up a tree of three branches, each a
+side of the hero from the books. The ranged move and the godly power are
+fixed; the three ability slots are the player's choice from six powers: the
+three the hero starts with and one new power learned in each branch.
+
+| Hero | Branches | New powers (one per branch) |
+| --- | --- | --- |
+| **Percy** | Riptide · Tides · Son of the Sea | Disarming Strike (Luke's lunge: stuns, or opens a boss's guard) · Geyser (water bursts from the ground and throws monsters up) · Air Bubble (heroes near him take half damage) |
+| **Annabeth** | Stealth · Strategy · Workshop | Flank (round the back of a monster: a critical stab) · Battle Orders (the team runs faster and gains Power) · Bronze Automaton (a Daedalus sentry that throws knives) |
+| **Grover** | Wild · Reed Pipes · Satyr | Briar Burst (thorns all round push monsters off) · Lullaby (monsters near him fall asleep) · Tin-Can Snack (health and Power back) |
+| **Tyson** | Fists · Cyclops Hide · Forge and Sea | Thunder Clap (a stunning shock wave) · Iron Skin (half damage, no knock-back, Power from hits) · Call Rainbow (the hippocampus tramples a line of monsters) |
+| **Clarisse** | Spear · Ares · Cabin Five | Chain Lightning (leaps from monster to monster) · Battle Frenzy (harder melee that heals her) · Hold the Line (half damage, lightning zaps round her) |
+
+- **Nodes:** a new power (rank 1 learns it for 2 points; later ranks improve
+  it for 1), an upgrade (ranks that improve a power, the ranged move or the
+  godly power) or a passive (melee damage, crits, health). Tier 2 needs 2
+  points in its branch's tier 1, tier 3 (the godly power's upgrade) 5 in the
+  tiers above; some nodes need another first (Fire Hose needs Pressure Jet).
+- **Scarce points:** one a level, every hero alike, and a tree costs about 30,
+  so a hero at the end of Book 1 has under half of it: you choose a side of
+  the hero to grow, and which three powers to take.
+- **Equip** on the same screen: three slot buttons, then the known powers.
+  A power keeps its cooldown wherever it goes, and a power new to a slot
+  takes over the slot's remaining cooldown.
+- **Reset** is free but only in camp (Chiron), so building is never
+  punished, yet the build you take into a chapter is the one you fight with.
+- AI companions use their hero's loadout; online each screen owns its own
+  players' trees, and nothing new travels.
+- The rules are one pure module (`game/js/heroes/skillRules.js`) with tests;
+  saves from the first tree (one flat list of ranks per hero) migrate with
+  their ranks kept and today's three abilities equipped.
+
 **Battle Sense.** Dodging the instant before a hit lands slows time for about
 two seconds for the whole team, with a gold-edged screen and a heartbeat.
 Demigods' reflexes are wired for battle. A meter stops it from being spammed,
@@ -346,14 +378,14 @@ follows Minecraft Dungeons II's defaults.
 | Move | Left stick | WASD (or the arrow keys) |
 | Show the way to the goal | Click the left stick | Middle click |
 | Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
-| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
+| Dodge (Battle Sense on a perfect dodge) | B (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
 | Attack in place (stand still, face the cursor) | — | Hold Shift |
 | Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
 | Interact | A (when a prompt shows) | Left click (when a prompt shows) |
-| Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
-| Godly power | Y + B together | 4, or 1 + 2 together |
+| Abilities 1 · 2 · 3 | Y · LB · RB | 1 · 2 · 3 |
+| Godly power | Y + LB together | 4, or 1 + 2 together |
 | Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
 | Inventory | D-pad ↑ | I or Tab |

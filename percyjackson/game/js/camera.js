@@ -12,7 +12,7 @@ export class CameraRig {
     this.yawBase = 45 * DEG; this.yawSteps = 0; this.yaw = 45 * DEG;
     this.pitch = 50 * DEG;
     this.minDist = 12; this.maxDist = 42;
-    this.zoomTarget = 22; this.dist = 22;
+    this.zoomTarget = 26; this.dist = 26;
     this.focus = new THREE.Vector3(); this.dead = new THREE.Vector3();
     this.look = new THREE.Vector3(); this.lookTarget = new THREE.Vector3();
     this.trauma = 0; this.shakeScale = 1; this.t = 0;
@@ -50,6 +50,16 @@ export class CameraRig {
     if (list.length) { c.divideScalar(list.length); la.divideScalar(list.length); }
     for (const p of list) spread = Math.max(spread, Math.hypot(p.pos.x - c.x, p.pos.z - c.z));
     la.y = 0; if (la.length() > 3) la.setLength(3);
+    // a boss fight keeps the boss in frame too (this.subject, set by
+    // mission.js): the view leans a third of the way toward it and pulls back
+    // to fit it (in the bigger arenas a bull charge left the Minotaur off
+    // screen 43% of a fight)
+    let subjectFit = 0;
+    const s = this.subject;
+    if (s && !s.dead && !s.standBy && s.pos && list.length) {
+      const dx = s.pos.x - c.x, dz = s.pos.z - c.z, d = Math.hypot(dx, dz);
+      if (d < 30) { c.x += dx * 0.35; c.z += dz * 0.35; subjectFit = Math.max(0, d * 0.78 - 6); }
+    } else if (s?.dead) this.subject = null;
     if (!this.initialized) this.snap(c);
     // dead zone: ignore tiny moves so the frame doesn't jitter
     const dz = 0.35;
@@ -64,7 +74,7 @@ export class CameraRig {
     this.focus.z = damp(this.focus.z, goal.z, 5.5, realDt);
     this.focus.y = damp(this.focus.y, goal.y, 4, realDt);
     // ---- zoom (co-op pulls the camera back to fit everyone)
-    const fit = Math.max(0, spread * 1.5 - 4);
+    const fit = Math.max(0, spread * 1.5 - 4, subjectFit);
     const want = clamp(this.zoomTarget + fit + this.extraDist, this.minDist, this.maxDist + 14);
     this.dist = damp(this.dist, want, 4, realDt);
     // ---- rotation

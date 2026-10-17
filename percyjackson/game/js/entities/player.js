@@ -53,6 +53,7 @@ export class Player {
     this.procs = {}; this.artifacts = [];
     const sv = game.saveFor?.(this) ?? game.save;   // net: the profile of whoever plays this hero
     this.skills = sv ? sv.hero(hero).skills : {};
+    this.loadout = sv ? sv.hero(hero).equip : null;   // the powers in slots 1 · 2 · 3 (heroes/skillRules.js)
     applyGear(this, sv ? sv.gearFor(hero) : []);
     this.hp = this.maxHp;
     // Ambrosia: one flask that refills over a cooldown; the quiver for the
@@ -72,15 +73,20 @@ export class Player {
     const frac = this.maxHp > 0 ? this.hp / this.maxHp : 1;
     const old = this.kit?.slots ?? {};
     this.skills = sv ? sv.hero(this.hero).skills : {};
+    this.loadout = sv ? sv.hero(this.hero).equip : null;
     applyGear(this, sv ? sv.gearFor(this.hero) : []);
     resizeQuiver(this.quiver, this.stats);
     this.kit.dispose?.();
     this.kit = createKit(this);
     if (!this.dead && !this.downed) this.hp = Math.min(this.maxHp, Math.max(1, frac * this.maxHp));
+    // a power keeps its own cooldown wherever it moves; a power new to a slot
+    // takes over what was left on the slot's last one, so a swap mid-fight
+    // never hands out a fresh ability
+    const byPower = {}; for (const k in old) if (old[k].power) byPower[old[k].power] = old[k];
     for (const k in this.kit.slots) {
-      const s = this.kit.slots[k], o = old[k];
+      const s = this.kit.slots[k], o = (s.power && byPower[s.power]) || old[k];
       if (!o) continue;
-      s.cdLeft = o.cdLeft ?? 0;
+      s.cdLeft = o === old[k] && o.power !== s.power ? Math.min(s.cd, o.cdLeft ?? 0) : o.cdLeft ?? 0;
       if (s.maxCharges && o.maxCharges) { s.chargesLeft = Math.min(s.maxCharges, o.chargesLeft ?? s.maxCharges); s.recharge = o.recharge ?? 0; s.gate = o.gate ?? 0; }
     }
   }
@@ -331,7 +337,7 @@ export class Player {
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll: on the ground (or just off a ledge); a press in the air or
     // a moment early is remembered briefly, so the roll always comes out
-    // (a right-stick flick rolls the way it was flicked, a screen direction; LB and Shift roll the way you move or face)
+    // (a right-stick flick rolls the way it was flicked, a screen direction; B and Shift roll the way you move or face)
     if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : inp.dodgeToAim ? this.aimDir.clone().setY(0) : null; }
     else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
     if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(this.dodgeAim?.lengthSq() > 0.01 ? this.dodgeAim : mv); this.dodgeAim = null; }
