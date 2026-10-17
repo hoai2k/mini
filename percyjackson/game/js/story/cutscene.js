@@ -9,7 +9,9 @@
 // ctx) } where build loads the set and returns { shots, update?(t, dt),
 // dispose?() }. A shot is { dur, cam(k, t) -> { pos, look, fov? } (k: 0..1
 // through the shot), lines: [{ at, text }], card?: { src, at, dur, side? ('left') }, fadeIn?,
-// fadeOut? ('black' | 'white'), act?(k, dt, t) }.
+// fadeOut? ('black' | 'white'), act?(k, dt, t), noFrame? (true: framed by hand, so
+// story/framing.js leaves it alone) }. Before a shot plays, a camera that the
+// set would hide is turned clear (frame below).
 //
 // Online the host drives (net/online.js shares the cutscene in its scene
 // setup): guests see the same cutscene; a guest holding skip asks the host,
@@ -18,6 +20,7 @@ import * as THREE from 'three/webgpu';
 import { h } from '../ui/ui.js';
 import { prefersReducedMotion } from '../settings.js';
 import { artReady } from '../ui/art.js';
+import { clearTurn, turnAbout, seenAt } from './framing.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
 const ease = (k) => k * k * (3 - 2 * k);
@@ -69,6 +72,33 @@ export class Cutscene {
     this.subEl.replaceChildren(); this.subEl.classList.remove('show');
     if (s.fadeIn) this.fade(s.fadeIn, 1, 0, 0.6);
     s.enter?.(this.game, this);
+    this.frame(s);
+  }
+  // Before a shot plays: if the set hides its look point or the figures in
+  // frame, turn the whole shot round its look point (story/framing.js).
+  frame(s) {
+    const g = this.game, w = g.world;
+    if (!s.cam || !w || s.framed || s.noFrame) return;
+    s.framed = true;
+    const poses = [];
+    for (let i = 0; i <= 5; i++) { const c = s.cam(i / 5, (i / 5) * s.dur); if (c) poses.push({ pos: c.pos.clone(), look: c.look.clone() }); }
+    if (!poses.length) return;
+    // the figures in frame at the middle of the shot, within 25 m: their heads
+    const mid = poses[Math.floor(poses.length / 2)], cam = g.rig.camera, keep = cam.position.clone(), q = cam.quaternion.clone();
+    cam.position.copy(mid.pos); cam.lookAt(mid.look); cam.updateMatrixWorld();
+    const heads = [];
+    for (const a of this.set.actors ?? []) {
+      if (!a.rig.root.visible) continue;
+      const hd = a.rig.root.position.clone(); hd.y += 1.5 * (a.rig.root.scale.y || 1);
+      const v = hd.clone().project(cam);
+      if (v.z < 1 && Math.abs(v.x) < 0.95 && Math.abs(v.y) < 0.95 && hd.distanceTo(mid.pos) < 25) heads.push(hd);
+    }
+    cam.position.copy(keep); cam.quaternion.copy(q); cam.updateMatrixWorld();
+    const t = clearTurn(w, poses, heads);
+    s.fix = t;
+    if (!t.dyaw && !t.dpitch) return;
+    const cam0 = s.cam;
+    s.cam = (k, tt) => { const c = cam0(k, tt); if (c) turnAbout(c.pos, c.look, t.dyaw, t.dpitch, c.pos); return c; };
   }
   fade(color, from, to, dur) {
     const f = this.fadeEl;
@@ -117,6 +147,8 @@ export class Cutscene {
   applyCamera() {
     const g = this.game, cam = g.rig.camera;
     cam.position.copy(this.cam.pos);
+    // never inside a block: slide toward the look point until out of it
+    for (let i = 0; i < 24 && seenAt(g.world, cam.position.x, cam.position.y, cam.position.z); i++) cam.position.lerp(this.cam.look, 0.08);
     if (Math.abs(cam.fov - this.cam.fov) > 0.01) { cam.fov = this.cam.fov; cam.updateProjectionMatrix(); }
     cam.lookAt(this.cam.look);
     cam.updateMatrixWorld();

@@ -36,6 +36,11 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
       longer, and single rats out of the storm drains.
     - Students, passers-by, hot-dog vendors and two taxis that drive along
       the street (and stop, and honk, for anyone in front).
+  - Before each cutscene shot (and each boss-intro or godly-power camera) plays, a
+    camera the set would hide (a roof, a wall, a tree between it and what it
+    looks at or the people in frame) is turned or raised clear
+    (`game/js/story/framing.js`). Mortals are drawn to the heroes' size:
+    classmates at 1.14 (the heroes 1.18), grown-ups at 1.24.
   - Cutscenes are in the engine (letterbox, subtitles in the story voice in
     plain English with time to read each, story-card pictures; people climb
     steps one at a time); hold A, Esc or the screen to skip. Each story beat

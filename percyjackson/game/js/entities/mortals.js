@@ -430,7 +430,7 @@ export const MORTALS = {
   },
   student: {
     name: 'Student', blurb: 'Just a kid on the field trip. Probably.',
-    scale: 0.92,
+    scale: 1.14,   // (Percy's classmates: the heroes are drawn at 1.18; at 0.92 they stood a head under him on the museum steps)
     paint: { skin: 0xeebc96, hair: 0x5a3418, fringe: 3, hairSide: 3, hairBack: 6, eyeRow: 3, eye: 0x3a7a2a, brow: 0x4a2a14, smile: true, blush: 0xe89480, top: 0x203470, knit: true, vneck: 0xf2eee4, tie: 0xb0202a, pocket: 0xd0a040, straps: 0x6a1414, pants: 0x34507e, shoes: 0xc8282e, saturate: 1.2 },
     hair: { c: [0, 7.3, -0.5], r: [6, 5.2, 6.2], bump: 0.34, shell: 1.4, fringe: 6.2, jag: 1.2, side: 3, back: 0.8, tuft: 0.16, spike: 0.04, tones: [0x3a200e, 0x5e3618, 0x86542a] },
     parts() {
@@ -606,12 +606,15 @@ function kitFor(id, def) {
   return kit;
 }
 
+// Grown-ups stand a little over the heroes (12-year-olds drawn at 1.18); at
+// 1.0 every teacher, guard and tourist was shorter than Percy.
+export const ADULT_SCALE = 1.24;
 // Build a mortal rig. Returns a Rig whose spec carries the mortal's id.
 export function buildMortal(id) {
   id = mortalId(id);
   const def = MORTALS[id];
   let seed = 11; for (const ch of id) seed = (seed * 97 + ch.charCodeAt(0)) >>> 0;
-  const rig = new Rig({ material: skinMaterial(id, def.paint, seed), mortal: id, scale: def.scale ?? 1 });
+  const rig = new Rig({ material: skinMaterial(id, def.paint, seed), mortal: id, scale: def.scale ?? ADULT_SCALE });
   partM ??= new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.78, metalness: 0 });
   const kit = kitFor(id, def);
   for (const slot of SLOTS) {

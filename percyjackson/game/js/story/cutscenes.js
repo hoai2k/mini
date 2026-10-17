@@ -173,8 +173,9 @@ export const CUTSCENES = {
       setLevel(game, L, BIOMES.storm_hill);
       const actors = [];
       const grover = actor(game, buildHeroModel('grover'), V(46, L.FY, 56), -Math.PI / 2); grover.rig.root.visible = false; actors.push(grover);
-      const percy = actor(game, buildHeroModel('percy'), V(L.door.x + 1.4, L.FY, L.door.z), -Math.PI / 2); actors.push(percy);
-      const mom = actor(game, buildMortal('tourist'), V(L.door.x + 2.4, L.FY, L.door.z - 1.2), -Math.PI / 2); actors.push(mom);
+      // Percy in the doorway, Mom just behind him: both seen through the door from outside (they stood inside, behind the wall)
+      const percy = actor(game, buildHeroModel('percy'), V(L.door.x + 0.7, L.FY, L.door.z), -Math.PI / 2); actors.push(percy);
+      const mom = actor(game, buildMortal('tourist'), V(L.door.x + 1.8, L.FY, L.door.z - 0.3), -Math.PI / 2); actors.push(mom);
       const cm = camaro(); cm.position.set(46, L.FY, 60.5); cm.rotation.y = 0; game.scene.add(cm);
       // the drive: along the road, then up toward the hill
       const pts = L.road; const segs = []; let total = 0;
@@ -201,7 +202,7 @@ export const CUTSCENES = {
           lines: [{ at: 0.3, text: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she met your father.' }] },
         { dur: 6.8,
           enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 4.6); flash(); },
-          cam: move({ pos: [L.door.x - 6, L.FY + 4.6, L.door.z - 8], look: [L.door.x - 1.2, L.FY + 1.4, L.door.z] }, { pos: [L.door.x - 5, L.FY + 4, L.door.z - 6.5], look: [L.door.x - 1, L.FY + 1.5, L.door.z] }, { fov: 40 }),
+          cam: move({ pos: [L.door.x - 6.5, L.FY + 3.2, L.door.z + 3.5], look: [L.door.x + 0.2, L.FY + 1.3, L.door.z] }, { pos: [L.door.x - 5.5, L.FY + 2.8, L.door.z + 3], look: [L.door.x + 0.3, L.FY + 1.4, L.door.z] }, { fov: 40 }), noFrame: true,   // (through the door, a metre clear of Grover: framed by hand)
           lines: [{ at: 0.6, text: 'In the middle of the night, in a storm, someone bangs on the door. Grover. He has no trousers on. He has hooves.' }],
           card: { src: 'assets/cards/scene-montauk.jpg', at: 1.2, dur: 5 } },
         { dur: 5.8,
