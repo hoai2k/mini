@@ -1,0 +1,109 @@
+name: Stocks data and API
+
+# Two jobs for the Stocks app (stocks/):
+#
+# api      Deploys stocks/server, the mini-stocks Worker the page reads live
+#          prices, dividends and search suggestions from, then checks it
+#          answers. Runs when stocks/server changes on main. Needs the same
+#          CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets as relay.yml.
+#          It is a separate Worker from mini-rooms, so the relay is untouched.
+#
+# snapshot Refreshes the built-in history in stocks/app/data/ (the page's
+#          fallback when the Worker can't be reached) and commits it, then
+#          starts a Pages deploy. Manual only: Actions -> Stocks data and API
+#          -> Run workflow -> snapshot (optionally with extra symbols).
+#
+# A push to the working branch claude/stocks-data runs both, committing the
+# snapshot back to that branch; that is how a session without network access
+# to Yahoo gets the data.
+
+on:
+  push:
+    branches: [main, claude/stocks-data]
+    paths: ['stocks/server/**', 'stocks/tools/**', '.github/workflows/stocks.yml']
+  workflow_dispatch:
+    inputs:
+      job:
+        description: What to run
+        type: choice
+        options: [snapshot, api, both]
+        default: snapshot
+      symbols:
+        description: Extra symbols to add to the built-in list (space-separated, optional)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stocks-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  api:
+    if: >-
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && inputs.job != 'snapshot')
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    defaults:
+      run:
+        working-directory: stocks/server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx wrangler deploy
+      - if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "::warning::CLOUDFLARE_API_TOKEN is not set, so mini-stocks was not deployed. Deploy it with 'npx wrangler deploy' in stocks/server."
+      - name: Check the live Worker
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          base=https://mini-stocks.hoai2k.workers.dev
+          sleep 5
+          for p in "/" "/quote?symbol=VOO" "/search?q=vanguard"; do
+            echo "== $p"; curl -sS -H 'Origin: https://hoai2k.github.io' -D - "$base$p" | head -c 900; echo
+          done
+          echo "== /history?symbol=XDTE"
+          curl -sS -H 'Origin: https://hoai2k.github.io' "$base/history?symbol=XDTE" \
+            | jq -c '{symbol, name, days: (.d|length), first: .d[0], last: .d[-1], dividends: (.dividends|length), lastDiv: .dividends[-1], quote}'
+
+  snapshot:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/claude/stocks-data') ||
+      (github.event_name == 'workflow_dispatch' && inputs.job != 'api')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch history
+        run: node stocks/tools/snapshot.mjs ${{ github.event_name == 'workflow_dispatch' && inputs.symbols || '' }}
+      - name: Commit
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add stocks/app/data
+          if git diff --cached --quiet; then echo "No changes."; exit 0; fi
+          git commit -m "Stocks: refresh built-in price and dividend history [skip ci]"
+          git push
+          echo "pushed=1" >> "$GITHUB_OUTPUT"
+      # A commit made with GITHUB_TOKEN starts no workflows, so ask for the
+      # Pages deploy explicitly when the data on main changed.
+      - name: Deploy Pages
+        if: steps.commit.outputs.pushed == '1' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main

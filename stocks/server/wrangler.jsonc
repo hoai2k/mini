@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mini-stocks",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // Sites whose pages may read from it (localhost is always allowed). Comma-separated, no trailing slash.
+  "vars": { "ALLOWED_ORIGINS": "http://games.hoai.net,https://games.hoai.net,https://hoai2k.github.io,https://hoai.net,https://www.hoai.net" }
+}
