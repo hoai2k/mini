@@ -7,4 +7,7 @@ void openGate({
   title: 'One Monster After Another',
   game: 'onemonster',
   blurb: 'This game is for friends of Hoai Nguyen. Use your invite link, or enter your code below.',
+  // Still a prototype: the public-access switch for the finished games does
+  // not open it. Only an invite pass does.
+  ignorePublicAccess: true,
 }).then(() => import('./main.js'));

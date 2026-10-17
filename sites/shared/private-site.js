@@ -1,6 +1,6 @@
 // The door in front of a private site: the shared invite gate (gate.js, a
 // byte-identical copy of the one the games carry), opened with
-// `privateSite: true`. The owner's public-access switch opens the games to
+// `ignorePublicAccess: true`. The owner's public-access switch opens the games to
 // everyone for a while; it never opens these pages. A visitor holding a real
 // invite pass gets in as anywhere else; nobody else does.
 //
@@ -18,5 +18,5 @@ openGate({
   title: root.dataset.privateTitle || document.title,
   game: `site:${root.dataset.privateSite || location.pathname}`,
   blurb: 'This page is a private preview for friends of Hoai Nguyen. Use your invite link, or enter your code below.',
-  privateSite: true,
+  ignorePublicAccess: true,
 }).then(() => root.classList.remove('site-locked'));
