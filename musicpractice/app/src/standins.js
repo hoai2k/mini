@@ -35,7 +35,7 @@ function tunerIcon({ body, line, dial, needle, fork, accent, lineW = 2 }) {
     <circle cx="43" cy="74" r="3" fill="${accent}"/>`);
 }
 
-/** The Drone button: a cello (hourglass body, f-holes, neck and scroll) with its bow. */
+/** The Drone button: a cello (hourglass body, f-holes, neck and scroll) with its bow (or without: bow null). */
 function droneIcon({ body, line, neck, bow, accent, lineW = 2 }) {
   return svg(100, 100, `
     <path d="M44 50c-9 0-13 5-11 11 2 5-6 7-6 15 0 9 9 14 19 14h8c10 0 19-5 19-14 0-8-8-10-6-15 2-6-2-11-11-11z" fill="${body}" stroke="${line}" stroke-width="${lineW}"/>
@@ -44,12 +44,37 @@ function droneIcon({ body, line, neck, bow, accent, lineW = 2 }) {
     <path d="M40 64c-2 4 2 6 0 10M60 64c2 4-2 6 0 10" fill="none" stroke="${line}" stroke-width="1.6" stroke-linecap="round"/>
     <path d="M43 77h14" stroke="${accent}" stroke-width="2.6" stroke-linecap="round"/>
     <path d="M50 90v6" stroke="${line}" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M70 18L82 88" stroke="${bow}" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M73 19L84 84" stroke="${line}" stroke-width="1" opacity=".6"/>`);
+    ${bow ? `<path d="M70 18L82 88" stroke="${bow}" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M73 19L84 84" stroke="${line}" stroke-width="1" opacity=".6"/>` : ''}`);
+}
+
+/**
+ * The Drone screen's bow, upright (the volume control): the tip at the top,
+ * the frog at the bottom and the hair down the stick's left side, from the
+ * frog (88, 990) to the tip (88, 34) in a 256×1024 canvas, the anchors the
+ * volume marker follows (the same points a delivered bow records).
+ */
+const BOW_ANCHORS = { frog: [88, 990], tip: [88, 34] };
+function bowArt({ stick, hair = '#efe6cf', frog, metal, line }) {
+  return {
+    canvas: [256, 1024], anchors: BOW_ANCHORS,
+    html: svg(256, 1024, `
+      <path d="M128 70V900" stroke="${stick}" stroke-width="16" stroke-linecap="round"/>
+      <path d="M82 22h46c10 0 14 8 10 18l-8 30h-48z" fill="${stick}" stroke="${line}" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M88 34V990" stroke="${hair}" stroke-width="7" stroke-linecap="round"/>
+      <path d="M88 34V990" stroke="${line}" stroke-width="1.5" opacity=".25"/>
+      <path d="M116 760h24v90h-24z" fill="${metal}" stroke="${line}" stroke-width="3"/>
+      <path d="M116 772h24M116 786h24M116 800h24M116 814h24M116 828h24" stroke="${line}" stroke-width="2" opacity=".5"/>
+      <path d="M80 870h62v110h-62z" fill="${frog}" stroke="${line}" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="111" cy="925" r="11" fill="${metal}" stroke="${line}" stroke-width="3"/>
+      <path d="M128 900v74" stroke="${metal}" stroke-width="10" stroke-linecap="round"/>`),
+  };
 }
 
 const CLASSIC = {
   'home-drone': { html: droneIcon({ body: 'url(#walnut)', line: '#3e2414', neck: '#2a1a10', bow: '#7a4a26', accent: 'url(#brass)' }) },
+  'drone-cello': { html: droneIcon({ body: 'url(#walnut)', line: '#3e2414', neck: '#2a1a10', bow: null, accent: 'url(#brass)' }) },
+  'drone-bow': bowArt({ stick: '#7a4a26', frog: '#2a1a10', metal: 'url(#brass)', line: '#3e2414' }),
   'home-tuner': { html: tunerIcon({ body: 'url(#walnut)', line: '#3e2414', dial: 'url(#cream)', needle: '#9b6c25', fork: 'url(#brass)', accent: '#e5484d' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M43 8h14l22 78H21z" fill="url(#walnut)"/>
@@ -100,6 +125,8 @@ const TOWER = stepped([[428, 28], [428, 72], [450, 72], [520, 468], [542, 468], 
 
 const DECO = {
   'home-drone': { html: droneIcon({ body: 'url(#lacquer)', line: 'url(#gold)', neck: '#050506', bow: 'url(#gold)', accent: '#2f7d5b' }) },
+  'drone-cello': { html: droneIcon({ body: 'url(#lacquer)', line: 'url(#gold)', neck: '#050506', bow: null, accent: '#2f7d5b' }) },
+  'drone-bow': bowArt({ stick: '#14141a', hair: '#f3ead2', frog: '#050506', metal: 'url(#gold)', line: '#c9a24a' }),
   'home-tuner': { html: tunerIcon({ body: 'url(#lacquer)', line: 'url(#gold)', dial: 'url(#ivory)', needle: '#b8902a', fork: 'url(#gold)', accent: '#c0303a' }) },
   'home-metronome': { html: svg(100, 100, `
     <path d="M45 6h10v6h3l9 30h3l9 32h3l3 10H15l3-10h3l9-32h3l9-30h3z" fill="url(#lacquer)" ${GOLD} stroke-width="1.6" stroke-linejoin="miter"/>
@@ -254,6 +281,8 @@ function themed(t) {
     'home-metronome': { html: homeMetronome },
     'home-record': { html: homeRecord },
     'home-drone': { html: droneIcon({ body: t.caseFill, line: t.caseLine, neck: t.caseLine, bow: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
+    'drone-cello': { html: droneIcon({ body: t.caseFill, line: t.caseLine, neck: t.caseLine, bow: null, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
+    'drone-bow': bowArt({ stick: t.caseFill, frog: t.caseLine, metal: t.metal, line: t.metalLine }),
     'home-tuner': { html: tunerIcon({ body: t.caseFill, line: t.caseLine, dial: t.face, needle: t.metalLine, fork: t.metal, accent: t.record, lineW: Math.max(2, Math.min(3, (t.lineW ?? 8) / 3)) }) },
     'metronome-body': { canvas: [800, 1200], anchors: { pivot: [400, 1000] }, html: svg(800, 1200, bodyInner) },
     'metronome-pendulum': {

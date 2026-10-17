@@ -447,6 +447,59 @@ def round6_assets() -> list[dict]:
 
 ASSETS += round6_assets()
 
+def round7_assets() -> list[dict]:
+    """The Drone screen, tried with the bow as its volume control: per theme,
+    that theme's home-drone cello with the bow taken out, and the bow alone,
+    upright, for the app to stand beside it as a slider."""
+    record = json.loads((ROOT / "design" / "image-deliveries-drone.json").read_text())
+    names = {t["id"]: t["name"] for t in THEMES}
+    out = []
+    for a in record["assets"]:
+        theme, name = a["theme"], names[a["theme"]]
+        src = a["file"].removeprefix("musicpractice/app/")
+        folder = src.rsplit("/", 1)[0]
+        out.append(dict(
+            id="drone-cello", theme=theme, round=7, file=f"{folder}/drone-cello.webp",
+            size="1024×1024, transparent PNG (shipped as 512×512 WebP)", status="requested",
+            group=f"{name} · Drone screen with the bow as volume",
+            prompt=(f"Edit the attached image, musicpractice/app/{src} (this theme's Drone home "
+                    "image, a cello with its bow): remove the bow entirely and change nothing else. "
+                    "The cello, its colours, its position and size on the canvas, its strings and "
+                    "the sound ribbons stay exactly as they are; where the bow crossed the cello or "
+                    "a ribbon, restore what lies behind it, and where it crossed empty space leave "
+                    "the background fully transparent. Same square canvas, same framing, so the two "
+                    "images line up exactly when swapped. No bow, no new objects, no text."),
+            note=(f"The Drone screen's picture in the {name} theme when the bow is the volume "
+                  f"control (Drone settings → Bow as volume). Made from app/{src}, so the cello "
+                  "matches the home button exactly. Until it arrives the app draws a stand-in."),
+        ))
+        out.append(dict(
+            id="drone-bow", theme=theme, round=7, file=f"{folder}/drone-bow.webp",
+            size="256×1024, transparent PNG (shipped as 128×512 WebP)", status="requested",
+            group=f"{name} · Drone screen with the bow as volume",
+            prompt=(f"Using the bow in the attached image, musicpractice/app/{src} (this theme's "
+                    "Drone home image), as the reference for its materials, colours and rendering "
+                    "style, draw that cello bow alone, standing straight upright: the tip at the "
+                    "top, the frog (with its small eye and silver-wound grip) at the bottom, the "
+                    "stick perfectly vertical and straight, and the bow hair a clean, light, "
+                    "evenly taut straight line running down the stick's left side from the tip to "
+                    "the frog, clearly visible along its whole length. Seen side-on, so the stick "
+                    "and the hair read as two parallel lines. The bow fills the canvas from top to "
+                    "bottom with a small margin (about 3%), centred left to right. A tall narrow "
+                    "canvas with a fully transparent background, no cast shadow, no sound ribbons, "
+                    "no cello, no hands, no text."),
+            note=(f"The {name} Drone screen's volume control, stood to the right of the cello: the "
+                  "app slides a marker along the hair and lights the hair from the frog up to the "
+                  "volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a "
+                  "256×1024 canvas, then measure where it really runs in the delivered file and "
+                  "record that here (anchors frog and tip)."),
+            canvas=[256, 1024], anchors={"frog": [88, 990], "tip": [88, 34]},
+        ))
+    return out
+
+
+ASSETS += round7_assets()
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [
@@ -462,7 +515,8 @@ def render() -> tuple[str, str]:
     for rnd, title in ((1, "Classic theme, app icon and library card"), (2, "Art Deco theme"),
                        (3, ", ".join(t["name"] for t in MORE_THEMES) + " themes"),
                        (4, "revisions"), (5, "Tuner home icons, every theme"),
-                       (6, "Drone home icons, every theme")):
+                       (6, "Drone home icons, every theme"),
+                       (7, "Drone screen with the bow as volume, every theme")):
         wanted = [a for a in ASSETS if a["round"] == rnd and a["status"] in ("requested", "revise")]
         lines.append(f"**Round {rnd} ({title}):** "
                      + (f"{len(wanted)} image{'s' if len(wanted) != 1 else ''} wanted: " + ", ".join(f"`{a['file']}`" for a in wanted) + "."
@@ -477,7 +531,8 @@ def render() -> tuple[str, str]:
         "",
         "**Anchors:** the metronome body and pendulum are separate layers. Each image records its",
         "canvas size and the point the app pins it by (the body's pivot, the pendulum's hub), so",
-        "each theme's art can put them where it likes. Ask for the requested points, then record",
+        "each theme's art can put them where it likes. The Drone bow records where its hair runs",
+        "(frog and tip), which the volume marker follows. Ask for the requested points, then record",
         "the measured ones for the delivered file in `build_requests.py`.",
         "",
         "| Round | Theme | Status | Id | File | Size |",
