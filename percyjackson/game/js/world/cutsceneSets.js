@@ -99,7 +99,7 @@ export function buildMontaukSet() {
   W.addLight(CX0 - 1.5, FY + 2.5, 55.5, 0xffb060, 3, 8);
   // the road inland: from the cabin east, then north to the hill
   const lay = (pts) => { for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1]; const n = Math.ceil(Math.hypot(bx - ax, bz - az) * 2); for (let s = 0; s <= n; s++) { const px = ax + (bx - ax) * s / n, pz = az + (bz - az) * s / n; for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if (Math.hypot(dx, dz) <= 2.2) W.set(Math.floor(px + dx), FY - 1, Math.floor(pz + dz), B.dirt_road); } } };
-  const road = [[46, 62], [60, 64], [74, 60], [82, 48], [84, 32], [82, 18]];
+  const road = [[46, 62], [60, 64], [74, 60], [82, 48], [84, 32], [83, 25]];   // (ends a few metres short of the hill's foot, z ≈ 21: the car parks there)
   lay(road);
   for (let i = 0; i < 30; i++) { const x = 46 + Math.floor(k.r() * 48), zz = Math.floor(k.r() * SZ); if (W.get(x, FY - 1, zz) === B.grass) deco.add('tall_grass', x + 0.5, FY, zz + 0.5, { scale: 1.2 }); }
   for (let zz = 66; zz < 100; zz += 3) for (let x = 50; x < 92; x++) if (W.get(x, FY - 1, zz) === B.grass) W.set(x, FY - 1, zz, B.farm_soil);

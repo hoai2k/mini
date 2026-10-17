@@ -436,7 +436,8 @@ export function buildCamp() {
   // The camp is moved NZ blocks south to make room for a strip of Long Island
   // beyond Half-Blood Hill, with the road west winding through it.
   const L = {
-    spawn: V(54.5, FY, 29), stage: V(58.5, FY, 66.5), mapTable, chiron, oracle, store, forge, dummy,
+    // spawn: the open green between the cabin rows, north of the campfire (the view the wake-up cutscene ends on)
+    spawn: V(54.5, FY, 48.5), stage: V(58.5, FY, 66.5), mapTable, chiron, oracle, store, forge, dummy,
     cabins: { percy: cabinSpots.poseidon, tyson: cabinSpots.poseidon, annabeth: cabinSpots.athena, clarisse: cabinSpots.ares, grover: grover.clone(), thalia: cabinSpots.zeus },
     godCabins: cabinSpots, archery, climbingWall, campfire, canoe, thaliaPine, woodsEdge,
   };

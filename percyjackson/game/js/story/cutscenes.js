@@ -215,7 +215,9 @@ export const CUTSCENES = {
           cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
           card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
           lines: [{ at: 0.2, text: 'Toward a hill on Long Island, and a great pine tree at the top. Then the lightning hits.' }],
-          act: (k, dt, t) => { const v = Math.max(0, 9 * (1 - t / 5)); s = Math.min(total - 2, s + v * dt); place(s); spin(cm, v * dt); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); } } },
+          // the car slows and parks at the end of the road, at the foot of the hill, then the lightning hits
+          enter: () => { cm.userData.s0 = s; },
+          act: (k, dt, t) => { const f = Math.min(1, t / 3.8), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); } } },
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)
