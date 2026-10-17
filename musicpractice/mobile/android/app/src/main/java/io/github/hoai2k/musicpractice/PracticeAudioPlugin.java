@@ -1,7 +1,10 @@
 package io.github.hoai2k.musicpractice;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.provider.Settings;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Base64;
@@ -43,6 +46,34 @@ public class PracticeAudioPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("sampleRate", engine.sampleRate);
         call.resolve(r);
+    }
+
+    // ------------------------------------------------------------ microphone
+
+    /**
+     * The microphone permission without asking for it: granted, denied (refused
+     * once, so Android would ask again but it is off for now), or prompt.
+     * Android can't tell a permanent refusal from never having asked, so the
+     * page remembers a refusal it saw (app/src/devices.js).
+     */
+    @PluginMethod
+    public void micPermission(PluginCall call) {
+        String state;
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) state = "granted";
+        else if (getActivity() != null && ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.RECORD_AUDIO)) state = "denied";
+        else state = "prompt";
+        JSObject r = new JSObject();
+        r.put("state", state);
+        call.resolve(r);
+    }
+
+    /** The app's own page in Settings, where the microphone can be turned back on. */
+    @PluginMethod
+    public void openSettings(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getContext().getPackageName(), null));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+        call.resolve();
     }
 
     // ------------------------------------------------------------ metronome

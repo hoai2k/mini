@@ -89,7 +89,7 @@ would mean writing the bridge twice.
 
 | Piece | What it does |
 | --- | --- |
-| Microphone | `NSMicrophoneUsageDescription` in `Info.plist`; the web view's capture requests granted by the app (iOS 15+). |
+| Microphone | `NSMicrophoneUsageDescription` in `Info.plist` ("Music Practice needs the microphone for the Tuner and Playback Recorder features. Recordings stay on this device."); the web view's capture requests granted by the app (iOS 15+). The page asks the phone for the permission without prompting (`micPermission` in the PracticeAudio plugin, `AVAudioApplication.recordPermission`), again on coming back to the app; while it is off, the Tuner, the Playback Recorder and Audio check say so with an **Open Settings** button (`openSettings`, the app's own page in Settings). |
 | Audio session | `AVAudioSession` set by the app: `.playback` for the metronome and drone, `.playAndRecord` + `.allowBluetoothA2DP` + `.defaultToSpeaker` while the recorder or tuner listens. The web code's `navigator.audioSession` calls become messages to native code. |
 | Background audio | `UIBackgroundModes: audio`. |
 | Saving takes | The share sheet (`UIActivityViewController`) with the file passed from the web view. |
@@ -289,7 +289,7 @@ Three ways, in order of preference:
 
 | Piece | What it does |
 | --- | --- |
-| Microphone | `RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS` in the manifest; ask at runtime the first time the recorder or tuner opens; the WebView's `onPermissionRequest` (`WebChromeClient`) grants `RESOURCE_AUDIO_CAPTURE` once the app has the permission. Asked once, like iOS. |
+| Microphone | `RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS` in the manifest; ask at runtime the first time the recorder or tuner opens; the WebView's `onPermissionRequest` (`WebChromeClient`) grants `RESOURCE_AUDIO_CAPTURE` once the app has the permission. Asked once, like iOS. The same `micPermission` and `openSettings` (the app's details page) as iOS; Android can't tell a permanent refusal from never having asked, so the page remembers a refusal it saw until the mic is granted. |
 | Bluetooth | Normally plays through the speaker while the phone's microphone records. Check that the WebView's `getUserMedia` (with echo cancellation off, as the recorder asks) doesn't switch the phone into call mode, which would move Bluetooth to the low-quality headset profile. |
 | Background audio | A foreground service of type `mediaPlayback` with a media notification (Play / Pause) while the drone or metronome plays. As on iOS, the WebView's JavaScript is throttled in the background, so locked-screen drone and metronome mean native audio (`AudioTrack` or Oboe for the clicks, `ExoPlayer`/`MediaPlayer` looping for the drone). Later, as on iOS. |
 | Saving takes | The share sheet (`Intent.ACTION_SEND` through a `FileProvider`), or straight to the Music folder with `MediaStore`. |

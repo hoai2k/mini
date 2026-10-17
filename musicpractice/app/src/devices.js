@@ -3,6 +3,8 @@
 // granted; iPhone browsers list no speakers at all, and a Bluetooth speaker
 // without its own mic never shows up there as an input either.
 
+import { isApp, call } from './native.js';
+
 const BT = /bluetooth|airpods|beats|buds|headset|hands-?free|\bbt\b|bose|jbl|soundcore|ue boom|marshall|sony wh|sony wf/i;
 const BUILT_IN = /built-?in|internal|iphone|ipad|macbook|imac|microphone array|front|bottom|back|phone/i;
 
@@ -36,18 +38,53 @@ export async function listDevices() {
   }
 }
 
-/** Mic permission as the browser reports it: granted, prompt, denied or unknown. */
+/**
+ * Mic permission: granted, prompt, denied or unknown. On the web, as the
+ * browser reports it. In the apps, the phone's own answer, asked without
+ * prompting, and asked again on coming back to the app (from Settings, say).
+ * Android can't tell a permanent refusal from never having asked, so a
+ * refusal seen here is remembered until the mic is granted.
+ */
 let permission = 'unknown';
 const listeners = new Set();
-(async () => {
+const setPermission = (p) => {
+  if (p === permission) return;
+  permission = p;
+  listeners.forEach((f) => f());
+};
+const REFUSED = 'musicpractice.micRefused';
+const refused = () => { try { return localStorage.getItem(REFUSED) === '1'; } catch { return false; } };
+async function askNative() {
   try {
-    const status = await navigator.permissions.query({ name: 'microphone' });
-    permission = status.state;
-    status.onchange = () => { permission = status.state; listeners.forEach((f) => f()); };
-  } catch { /* not supported */ }
-})();
+    const { state } = await call('PracticeAudio', 'micPermission');
+    if (state === 'granted') { try { localStorage.removeItem(REFUSED); } catch { /* fine */ } }
+    setPermission(state === 'prompt' && refused() ? 'denied' : state);
+  } catch { /* an older app: the web answer stands */ }
+}
+if (isApp()) {
+  askNative();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) askNative(); });
+} else {
+  (async () => {
+    try {
+      const status = await navigator.permissions.query({ name: 'microphone' });
+      setPermission(status.state);
+      status.onchange = () => setPermission(status.state);
+    } catch { /* not supported */ }
+  })();
+}
 export const micPermission = () => permission;
 export const onPermissionChange = (f) => listeners.add(f);
+
+/** The app was refused the mic (a NotAllowedError): remember it, and ask the phone again. */
+export function noteMicRefused() {
+  if (!isApp()) return;
+  try { localStorage.setItem(REFUSED, '1'); } catch { /* fine */ }
+  askNative();
+}
+
+/** In the apps: the app's own page in Settings, where the mic can be turned back on. */
+export const openAppSettings = () => call('PracticeAudio', 'openSettings').catch(() => {});
 
 /** Can this browser send a page's sound to a chosen speaker? */
 export const canChooseSpeaker = () => typeof HTMLMediaElement !== 'undefined' && 'setSinkId' in HTMLMediaElement.prototype;

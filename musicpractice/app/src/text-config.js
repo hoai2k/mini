@@ -280,13 +280,17 @@ export const EN = {
   },
 
   /** Why the microphone couldn't be opened (recorder and tuner). */
+  /** In the apps, on the Tuner and Playback Recorder (and Audio check) while the phone has the mic off. */
+  micOff: {
+    title: 'Microphone is off for Music Practice',
+    body: 'The Tuner and Playback Recorder need it. Turn on Microphone in Settings, then come back.',
+    open: 'Open Settings',
+  },
   micErrors: {
-    offInApp: 'Microphone access is off. Turn it on for Music Practice in your phone\'s Settings, then tap the button.',
     refused: 'Microphone access was refused. Allow it in your browser\'s site settings, then tap the button.',
     unsupported: 'This browser can\'t use the microphone here. Try Safari or Chrome over https.',
     failed: 'Couldn\'t open the microphone. Check that no other app is using it, then tap the button.',
     /** The same messages on the tuner, whose button is Try again. */
-    tunerOffInApp: 'Microphone access is off. Turn it on for Music Practice in your phone\'s Settings, then tap Try again.',
     tunerRefused: 'Microphone access was refused. Allow it in your browser\'s site settings, then tap Try again.',
     tunerFailed: 'Couldn\'t open the microphone. Check that no other app is using it, then tap Try again.',
   },

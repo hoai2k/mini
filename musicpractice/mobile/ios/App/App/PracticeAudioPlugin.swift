@@ -2,6 +2,7 @@ import AVFoundation
 import Capacitor
 import Foundation
 import MediaPlayer
+import UIKit
 
 /// PracticeAudio: the metronome and the drone, played natively so they keep
 /// going with the screen locked. Called from app/src/nativeaudio.js; the
@@ -13,6 +14,8 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "PracticeAudio"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "info", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "micPermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeStart", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeUpdate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "metronomeStop", returnType: CAPPluginReturnPromise),
@@ -35,6 +38,36 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func info(_ call: CAPPluginCall) {
         call.resolve(["sampleRate": engine.outputSampleRate()])
+    }
+
+    // MARK: microphone
+
+    /// The microphone permission without asking for it: granted, denied
+    /// (refused, or switched off in Settings), or prompt (not asked yet).
+    @objc func micPermission(_ call: CAPPluginCall) {
+        let state: String
+        if #available(iOS 17.0, *) {
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: state = "granted"
+            case .denied: state = "denied"
+            default: state = "prompt"
+            }
+        } else {
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .granted: state = "granted"
+            case .denied: state = "denied"
+            default: state = "prompt"
+            }
+        }
+        call.resolve(["state": state])
+    }
+
+    /// The app's own page in Settings, where the microphone can be turned back on.
+    @objc func openSettings(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            call.resolve()
+        }
     }
 
     // MARK: metronome

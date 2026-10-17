@@ -6,7 +6,7 @@ import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale
 import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
-import { diag, isWebKit, isIOS, micPermission } from './devices.js';
+import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
 import { Metronome, pendulumAngle } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
@@ -920,10 +920,37 @@ function showMicTip() {
   tip.hidden = !show;
 }
 
+/**
+ * In the apps, while the phone has the mic off: a note on the Tuner and the
+ * Playback Recorder (the screens that use the mic, and nowhere else) with a
+ * button to the app's page in Settings. It goes once the mic is on again
+ * (checked on coming back to the app).
+ */
+function micOffNote(el) {
+  const M = TEXT.micOff;
+  el.replaceChildren(
+    Object.assign(document.createElement('b'), { textContent: M.title }),
+    Object.assign(document.createElement('p'), { textContent: M.body }),
+    Object.assign(document.createElement('button'), { type: 'button', className: 'pill', textContent: M.open, onclick: openAppSettings }),
+  );
+}
+function showMicOff() {
+  const off = isApp() && micPermission() === 'denied';
+  for (const id of ['rec-mic-off', 'tn-mic-off']) {
+    const el = $(id);
+    if (off && !el.firstChild) micOffNote(el);
+    el.hidden = !off;
+  }
+}
+onPermissionChange(showMicOff);
+showMicOff();
+
 /** Why the mic couldn't open, for the recorder or (`tuner`) the tuner, whose button is Try again. */
 function micError(err, tuner = false) {
   const t = TEXT.micErrors;
-  if (err?.name === 'NotAllowedError') return isApp() ? (tuner ? t.tunerOffInApp : t.offInApp) : (tuner ? t.tunerRefused : t.refused);
+  if (err?.name === 'NotAllowedError') noteMicRefused();
+  // In the apps the Microphone is off note (with its Settings button) says it.
+  if (err?.name === 'NotAllowedError') return isApp() ? '' : (tuner ? t.tunerRefused : t.refused);
   if (err?.message === 'unsupported') return t.unsupported;
   return tuner ? t.tunerFailed : t.failed;
 }
