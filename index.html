@@ -314,11 +314,33 @@
     </a>
   </section>
 
-  <h2 class="shelf-title">Prototype archive</h2>
-  <ul class="archive">
-    <li><a href="onemonster/">One Monster After Another</a></li>
-    <li><a href="gliders/">Gliders</a></li>
-  </ul>
+  <!-- The prototype archive is shown only to visitors holding an invite pass
+       (the shared gate's `gate.pass`, written by any game's invite door). The
+       owner's public-access switch does not reveal it, and every game listed
+       here opens its gate with `ignorePublicAccess: true`, so a prototype
+       stays code-locked while the finished games are public. It lives in a
+       <template> so nothing in it renders or is followed until a pass is
+       found; on localhost it always shows, as the gate is off there. -->
+  <template id="prototype-archive">
+    <h2 class="shelf-title">Prototype archive</h2>
+    <ul class="archive">
+      <li><a href="onemonster/">One Monster After Another</a></li>
+      <li><a href="gliders/">Gliders</a></li>
+    </ul>
+  </template>
+  <script>
+    (function () {
+      var h = location.hostname;
+      var local = h === '' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '0.0.0.0'
+        || /\.local$/.test(h) || /^192\.168\./.test(h) || /^10\./.test(h);
+      var pass = null;
+      try { pass = JSON.parse(localStorage.getItem('gate.pass') || 'null'); } catch (e) { /* private mode */ }
+      var hasPass = !!pass && typeof pass.id === 'string' && pass.id !== '';
+      if (!hasPass && !(local && !/[?&]gatetest/.test(location.search))) return;
+      var t = document.getElementById('prototype-archive');
+      t.replaceWith(t.content.cloneNode(true));
+    })();
+  </script>
 
   <footer>
     Source on <a href="https://github.com/hoai2k/mini">GitHub</a>.
