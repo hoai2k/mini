@@ -1,6 +1,6 @@
 {
   "name": "Music Practice",
-  "short_name": "Practice",
+  "short_name": "Music Practice",
   "description": "A metronome and a practice recorder that plays your takes back.",
   "start_url": "./",
   "scope": "./",
