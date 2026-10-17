@@ -1175,6 +1175,111 @@ REQUESTS += [
     },
 ]
 
+# Round 5 (continued): the Road West, a long highway road trip from Long Island
+# to Los Angeles (game/js/world/roadtrip.js), with the Book 1 quest chapters at
+# its towns and roadblocks that open as each chapter is done.
+RT_SCENE = (
+    "An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, "
+    "everything built from chunky blocks with hand-painted pixel textures, a long American "
+    "highway running from right to left across the picture, small blocky heroes (Percy, "
+    "Annabeth and Grover) walking along the shoulder for scale. "
+)
+REQUESTS += [
+    {
+        "id": "vox-rt-map",
+        "group": OW_GROUP,
+        "title": "The Road West: the whole road trip, Long Island to Los Angeles",
+        "size": "3200 × 1200",
+        "references": ["vox-key", "vox-ow-map", "map-quest"],
+        "use": "Layout of the road-trip map (world/roadtrip.js): its towns in order and a roadblock between each.",
+        "prompt": (
+            "A long panoramic strip map of a blocky voxel highway running from the right edge "
+            "(Long Island, a green on-ramp from Camp Half-Blood) to the left edge (the Pacific), "
+            "in the style of a Minecraft Dungeons world map, the land changing from right to "
+            "left: the New Jersey Turnpike with a Greyhound bus station and a truck-stop diner; "
+            "back roads to a garden-gnome emporium full of stone statues; St. Louis with the "
+            "silver Gateway Arch over the Mississippi bridge; the Rockies and Denver with a "
+            "rusting water park; the neon Las Vegas strip with a lotus-shaped casino; the "
+            "Nevada desert with a gas station and a waterbed store; Los Angeles with palm "
+            "trees, hills and a recording studio; Santa Monica's pier and beach. Between each "
+            "town a roadblock across the road (a burning wrecked bus, a wall of stone statues, "
+            "a raised bridge, a mudslide, a neon lotus gate, a barricade of waterbeds, a wall of "
+            "black shadow, a storm on the beach), and truck stops, motels, billboards and "
+            f"overpasses along the way. {VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-rt-roadside",
+        "group": OW_GROUP,
+        "title": "Road-trip kit: truck stops, diners, motels and highway pieces",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-manhattan"],
+        "use": "Models for the roadside pieces along the Road West (world/roadtrip.js).",
+        "prompt": (
+            "A prop and building model sheet of blocky voxel roadside America on a flat "
+            "parchment-cream background, from the high three-quarter game angle: a truck stop "
+            "with gas pumps under a canopy and a big parked semi-truck; a chrome diner with a "
+            "neon sign and booths; a one-storey motel with a row of doors, a pool and a tall "
+            "sign; a rest area with picnic tables and a vending machine; billboards on posts; an "
+            "overpass with concrete pillars; green highway signs; mile markers, traffic cones, "
+            "jersey barriers and a highway patrol car; a water tower; a roadside fruit stand; an "
+            "old pickup truck and a camper van. Warm, sunny, a little worn. " + PALETTE + " " + NO_TEXT
+        ),
+    },
+    {
+        "id": "vox-rt-towns-1",
+        "group": OW_GROUP,
+        "title": "Road-trip towns 1: New Jersey to Denver",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "vox-rt-map", "scene-bus", "scene-medusa", "scene-arch", "scene-waterland"],
+        "use": "Layout of the first road-trip towns where chapters 4 to 7 start (world/roadtrip.js).",
+        "prompt": (
+            RT_SCENE + "Four town scenes in a two-by-two grid: the New Jersey Turnpike with a "
+            "Greyhound bus station, a truck stop and a burning wrecked bus blocking the road; "
+            "Aunty Em's Garden Gnome Emporium on a back road, a warehouse surrounded by stone "
+            "statues of frightened people and rows of gnomes; St. Louis with the silver Gateway "
+            "Arch on the riverfront and a lift bridge over the brown Mississippi; Denver with "
+            "snowy mountains behind a rusting abandoned water park full of slides. "
+            f"{VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-rt-towns-2",
+        "group": OW_GROUP,
+        "title": "Road-trip towns 2: Las Vegas to Santa Monica",
+        "size": "2560 × 1440",
+        "references": ["vox-key", "vox-rt-map", "scene-lotus", "scene-procrustes", "scene-underworld", "scene-ares-beach"],
+        "use": "Layout of the last road-trip towns where chapters 8 to 12 start (world/roadtrip.js).",
+        "prompt": (
+            RT_SCENE + "Four town scenes in a two-by-two grid: the Las Vegas strip at dusk, neon "
+            "everywhere and the Lotus Hotel and Casino with a glowing lotus sign; the Nevada "
+            "desert with a lonely gas station and Crusty's Water Bed Palace, a warehouse with "
+            "waterbeds in the yard; Los Angeles with palm trees, hills with big white letters "
+            "(no readable word) and the black glass front of DOA Recording Studios; Santa "
+            "Monica's pier with a Ferris wheel and the beach at sunset, a wild storm out at sea. "
+            f"{VOXEL_STYLE} {NO_TEXT}"
+        ),
+    },
+    {
+        "id": "vox-rt-roadblocks",
+        "group": OW_GROUP,
+        "title": "Road-trip roadblocks, closed and opening",
+        "size": "2400 × 1600",
+        "references": ["vox-key", "vox-rt-map"],
+        "use": "How each roadblock on the Road West looks while closed and as it opens once its chapter is done (world/roadtrip.js).",
+        "prompt": (
+            "A sheet of eight blocky voxel roadblocks across a highway, each shown twice side by "
+            "side, closed and in the middle of opening: a burning wrecked Greyhound bus (the fire "
+            "dies and it is towed aside); a wall of grey stone statues (they crumble to rubble); a "
+            "raised lift bridge (it lowers); a mudslide of rock and mud (it slides away); a gate "
+            "of glowing neon lotus vines (they wither); a barricade of stacked waterbeds (they "
+            "deflate); a wall of swirling black shadow (it parts like curtains); a sea storm "
+            "breaking over the road (the sky clears). Clear and readable from above. "
+            f"{VOXEL_STYLE} Flat light-grey background. {NO_TEXT}"
+        ),
+    },
+]
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
@@ -1230,7 +1335,9 @@ def build() -> str:
         "Camp Half-Blood now sits in a big open world of eight regions. Generate",
         "`vox-ow-map` first (the layout), then the region scenes, the shared kit",
         "(`vox-ow-props`), the people who give side quests and the champions. The",
-        "game draws blocky stand-ins for all of them until the sheets arrive.",
+        "Road West road trip has its own strip map (`vox-rt-map`), towns, roadside",
+        "kit and roadblocks. The game draws blocky stand-ins for all of them until",
+        "the sheets arrive.",
         "",
         "Concept sheets land in `design/concept/`; files marked as game art land in",
         "`game/assets/`. Drop either kind in the intake folder.",

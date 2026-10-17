@@ -41,7 +41,9 @@ hero and monster models are built from, so generate them in this order:
 Camp Half-Blood now sits in a big open world of eight regions. Generate
 `vox-ow-map` first (the layout), then the region scenes, the shared kit
 (`vox-ow-props`), the people who give side quests and the champions. The
-game draws blocky stand-ins for all of them until the sheets arrive.
+Road West road trip has its own strip map (`vox-rt-map`), towns, roadside
+kit and roadblocks. The game draws blocky stand-ins for all of them until
+the sheets arrive.
 
 Concept sheets land in `design/concept/`; files marked as game art land in
 `game/assets/`. Drop either kind in the intake folder.
@@ -79,6 +81,11 @@ are in [image-request-history.md](image-request-history.md).
 | `vox-ow-people-1` | Open-world people 1: campers and nature spirits | 2400 × 1600 | requested |
 | `vox-ow-people-2` | Open-world people 2: wanderers, hunters and the dead | 2400 × 1600 | requested |
 | `vox-ow-champions` | Open-world champions: one named monster per region | 2400 × 1600 | requested |
+| `vox-rt-map` | The Road West: the whole road trip, Long Island to Los Angeles | 3200 × 1200 | requested |
+| `vox-rt-roadside` | Road-trip kit: truck stops, diners, motels and highway pieces | 2400 × 1600 | requested |
+| `vox-rt-towns-1` | Road-trip towns 1: New Jersey to Denver | 2560 × 1440 | requested |
+| `vox-rt-towns-2` | Road-trip towns 2: Las Vegas to Santa Monica | 2560 × 1440 | requested |
+| `vox-rt-roadblocks` | Road-trip roadblocks, closed and opening | 2400 × 1600 | requested |
 
 ### Round 4 · New monsters
 
@@ -209,3 +216,48 @@ are in [image-request-history.md](image-request-history.md).
 - **Status:** requested
 
 > A sheet of seven blocky voxel champion monsters, each bigger and more decorated than the ordinary kind and shown beside a small Percy outline for scale, from the high three-quarter game angle: Bronzebeak, a huge Stymphalian bird with razor bronze feathers and a red crest; Shadowfang, a scarred black hellhound with a broken iron collar and smoking eyes; Queen Gale, a storm-grey harpy queen with a crown of feathers and lightning in her talons; the Red King, a crimson giant scorpion with a golden stinger and a crown of spines; the Bronze Warden, a hulking bronze automaton with a single glowing blue eye and a shield; Gorgos, a Cyclops chieftain in bear pelts with a tree-trunk club; and the Pale King, a skeleton king in tarnished armour with a crown and a black sword, green fire in his eyes. Dramatic and fun for ages 8 to 14, never gory. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
+
+#### `vox-rt-map` — The Road West: the whole road trip, Long Island to Los Angeles
+
+- **File:** `vox-rt-map.png`, 3200 × 1200 px, delivered to `design/concept/vox-rt-map.png`
+- **References:** `vox-key`, `vox-ow-map`, `map-quest`
+- **Use:** Layout of the road-trip map (world/roadtrip.js): its towns in order and a roadblock between each.
+- **Status:** requested
+
+> A long panoramic strip map of a blocky voxel highway running from the right edge (Long Island, a green on-ramp from Camp Half-Blood) to the left edge (the Pacific), in the style of a Minecraft Dungeons world map, the land changing from right to left: the New Jersey Turnpike with a Greyhound bus station and a truck-stop diner; back roads to a garden-gnome emporium full of stone statues; St. Louis with the silver Gateway Arch over the Mississippi bridge; the Rockies and Denver with a rusting water park; the neon Las Vegas strip with a lotus-shaped casino; the Nevada desert with a gas station and a waterbed store; Los Angeles with palm trees, hills and a recording studio; Santa Monica's pier and beach. Between each town a roadblock across the road (a burning wrecked bus, a wall of stone statues, a raised bridge, a mudslide, a neon lotus gate, a barricade of waterbeds, a wall of black shadow, a storm on the beach), and truck stops, motels, billboards and overpasses along the way. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-roadside` — Road-trip kit: truck stops, diners, motels and highway pieces
+
+- **File:** `vox-rt-roadside.png`, 2400 × 1600 px, delivered to `design/concept/vox-rt-roadside.png`
+- **References:** `vox-key`, `vox-manhattan`
+- **Use:** Models for the roadside pieces along the Road West (world/roadtrip.js).
+- **Status:** requested
+
+> A prop and building model sheet of blocky voxel roadside America on a flat parchment-cream background, from the high three-quarter game angle: a truck stop with gas pumps under a canopy and a big parked semi-truck; a chrome diner with a neon sign and booths; a one-storey motel with a row of doors, a pool and a tall sign; a rest area with picnic tables and a vending machine; billboards on posts; an overpass with concrete pillars; green highway signs; mile markers, traffic cones, jersey barriers and a highway patrol car; a water tower; a roadside fruit stand; an old pickup truck and a camper van. Warm, sunny, a little worn. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-towns-1` — Road-trip towns 1: New Jersey to Denver
+
+- **File:** `vox-rt-towns-1.png`, 2560 × 1440 px, delivered to `design/concept/vox-rt-towns-1.png`
+- **References:** `vox-key`, `vox-rt-map`, `scene-bus`, `scene-medusa`, `scene-arch`, `scene-waterland`
+- **Use:** Layout of the first road-trip towns where chapters 4 to 7 start (world/roadtrip.js).
+- **Status:** requested
+
+> An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the New Jersey Turnpike with a Greyhound bus station, a truck stop and a burning wrecked bus blocking the road; Aunty Em's Garden Gnome Emporium on a back road, a warehouse surrounded by stone statues of frightened people and rows of gnomes; St. Louis with the silver Gateway Arch on the riverfront and a lift bridge over the brown Mississippi; Denver with snowy mountains behind a rusting abandoned water park full of slides. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-towns-2` — Road-trip towns 2: Las Vegas to Santa Monica
+
+- **File:** `vox-rt-towns-2.png`, 2560 × 1440 px, delivered to `design/concept/vox-rt-towns-2.png`
+- **References:** `vox-key`, `vox-rt-map`, `scene-lotus`, `scene-procrustes`, `scene-underworld`, `scene-ares-beach`
+- **Use:** Layout of the last road-trip towns where chapters 8 to 12 start (world/roadtrip.js).
+- **Status:** requested
+
+> An isometric view from the high three-quarter camera of a Minecraft-Dungeons-like game, everything built from chunky blocks with hand-painted pixel textures, a long American highway running from right to left across the picture, small blocky heroes (Percy, Annabeth and Grover) walking along the shoulder for scale. Four town scenes in a two-by-two grid: the Las Vegas strip at dusk, neon everywhere and the Lotus Hotel and Casino with a glowing lotus sign; the Nevada desert with a lonely gas station and Crusty's Water Bed Palace, a warehouse with waterbeds in the yard; Los Angeles with palm trees, hills with big white letters (no readable word) and the black glass front of DOA Recording Studios; Santa Monica's pier with a Ferris wheel and the beach at sunset, a wild storm out at sea. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.
+
+#### `vox-rt-roadblocks` — Road-trip roadblocks, closed and opening
+
+- **File:** `vox-rt-roadblocks.png`, 2400 × 1600 px, delivered to `design/concept/vox-rt-roadblocks.png`
+- **References:** `vox-key`, `vox-rt-map`
+- **Use:** How each roadblock on the Road West looks while closed and as it opens once its chapter is done (world/roadtrip.js).
+- **Status:** requested
+
+> A sheet of eight blocky voxel roadblocks across a highway, each shown twice side by side, closed and in the middle of opening: a burning wrecked Greyhound bus (the fire dies and it is towed aside); a wall of grey stone statues (they crumble to rubble); a raised lift bridge (it lowers); a mudslide of rock and mud (it slides away); a gate of glowing neon lotus vines (they wither); a barricade of stacked waterbeds (they deflate); a wall of swirling black shadow (it parts like curtains); a sea storm breaking over the road (the sky clears). Clear and readable from above. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 × 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background. No lettering, logos, captions or watermark.
