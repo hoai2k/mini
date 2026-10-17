@@ -377,7 +377,11 @@ tones, scales over a tonic.
   along it. The hair is placed from the bow's own `frog` and `tip` anchors
   (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
   anywhere in its canvas. Round 7 delivers `drone-cello`, each theme's Drone
-  image with the bow taken out, and `drone-bow`, the bow alone, upright. The
+  image with the bow taken out, and `drone-bow`, the bow alone, upright, all
+  eight themes delivered. Checked in the app: each `drone-cello` lies exactly
+  on its `home-drone` (same extent, 99-100% overlap), so switching the tryout
+  on does not move the cello, and each bow's anchors sit where its hair meets
+  the head and the frog, which the marker and the lit hair follow. The
   plain slider stays the default while this is tried out.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
   beside it is lit while the fifth plays and faint while it doesn't.
