@@ -64,7 +64,9 @@ chosen). Every
 theme has its other mode: Classic by day (cream and walnut), Art Deco in
 ivory, 18th Century by candlelight, Robot Future in a white lab, French
 Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
-Vintage 60s after dark. Classic by day has its own touches: near-white cards
+Vintage 60s after dark (the same print on a dark page: near-black offset
+shadows rather than teal ones, which read as glowing edges on dark, soft tan
+outlines, and the badges on the stripes cream with dark ink, as by day). Classic by day has its own touches: near-white cards
 with a short, crisp shadow rather than a wide brown blur, and a brighter
 gold on the big button. Only the colours change; the type, shapes, ornament
 and art are the theme's own (the art is cut out on transparency, so it sits

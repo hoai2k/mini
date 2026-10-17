@@ -810,6 +810,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%232b2340' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   --teal: #1f716d; --teal-ink: #fff8ea; --mustard: #e8a13a; --mustard-ink: #3b2a1e; --cream: #fff8ea;
   --value: #a8461a; --dots: rgba(201, 164, 106, 0.35);
+  --outline: var(--ink); --btn-line: var(--ink); --print: var(--ink); --print-2: var(--teal); --card: var(--panel);
+  --badge: var(--cream); --badge-ink: var(--ink);
   color-scheme: light;
 }
 /* Three bold stripes across the top (the first also fills a phone's status-bar
@@ -834,23 +836,24 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="sixties"] .bar { margin-bottom: 14px; }
 [data-theme="sixties"] .bar .icon-btn,
 [data-theme="sixties"] .home-gear {
-  background: var(--cream);
-  border: 3px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
-  color: var(--ink);
+  background: var(--badge);
+  border: 3px solid var(--badge-ink);
+  box-shadow: 3px 3px 0 var(--badge-ink);
+  color: var(--badge-ink);
 }
 [data-theme="sixties"] .bar .icon-btn:hover,
-[data-theme="sixties"] .home-gear:hover { background: var(--cream); color: var(--brass); }
+[data-theme="sixties"] .home-gear:hover { background: var(--badge); color: var(--brass); }
 [data-theme="sixties"] .bar .icon-btn:active,
-[data-theme="sixties"] .home-gear:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+[data-theme="sixties"] .home-gear:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--badge-ink); }
 [data-theme="sixties"] .bar h2 {
   justify-self: center;
   max-width: 100%;
   padding: 7px 18px 6px;
-  background: var(--cream);
-  border: 3px solid var(--ink);
+  background: var(--badge);
+  color: var(--badge-ink);
+  border: 3px solid var(--badge-ink);
   border-radius: 999px;
-  box-shadow: 3px 3px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--badge-ink);
   font-size: clamp(0.95rem, 4.6vw, 1.2rem);
   line-height: 1.2;
   white-space: nowrap;
@@ -860,22 +863,22 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 [data-theme="sixties"] .brand { font-weight: 400; color: var(--teal); }
 [data-theme="sixties"] .brand em { color: var(--brass); }
 [data-theme="sixties"] .bar h2, [data-theme="sixties"] .sheet-head h3, [data-theme="sixties"] .rec-state, [data-theme="sixties"] .takes-title { font-weight: 400; }
-[data-theme="sixties"] .choice { border: 3px solid var(--ink); border-radius: 32px; background: var(--panel); box-shadow: 7px 7px 0 var(--teal); }
-[data-theme="sixties"] .choice:hover { border-color: var(--ink); box-shadow: 9px 9px 0 var(--brass); }
+[data-theme="sixties"] .choice { border: 3px solid var(--outline); border-radius: 32px; background: var(--card); box-shadow: 7px 7px 0 var(--print-2); }
+[data-theme="sixties"] .choice:hover { border-color: var(--outline); box-shadow: 9px 9px 0 var(--brass); }
 [data-theme="sixties"] .choice .label { color: var(--ink); font-weight: 800; }
-[data-theme="sixties"] .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+[data-theme="sixties"] .big-btn { background: var(--brass); color: var(--on-accent); border: 3px solid var(--btn-line); box-shadow: 5px 5px 0 var(--print); }
 [data-theme="sixties"] .big-btn[aria-pressed="true"] { background: var(--teal); color: var(--teal-ink); }
-[data-theme="sixties"] .step { border: 3px solid var(--ink); background: var(--mustard); color: var(--mustard-ink); }
-[data-theme="sixties"] .chip, [data-theme="sixties"] .select, [data-theme="sixties"] .pill { border: 2px solid var(--ink); background-color: var(--panel); }
-[data-theme="sixties"] .chip[aria-checked="true"] { background: var(--teal); border-color: var(--ink); color: var(--teal-ink); }
-[data-theme="sixties"] .beats li { border-color: var(--ink); }
-[data-theme="sixties"] .beats li.on { background: var(--mustard); border-color: var(--ink); }
+[data-theme="sixties"] .step { border: 3px solid var(--btn-line); background: var(--mustard); color: var(--mustard-ink); }
+[data-theme="sixties"] .chip, [data-theme="sixties"] .select, [data-theme="sixties"] .pill { border: 2px solid var(--outline); background-color: var(--panel); }
+[data-theme="sixties"] .chip[aria-checked="true"] { background: var(--teal); border-color: var(--btn-line); color: var(--teal-ink); }
+[data-theme="sixties"] .beats li { border-color: var(--outline); }
+[data-theme="sixties"] .beats li.on { background: var(--mustard); border-color: var(--btn-line); }
 [data-theme="sixties"] .beats li.strong.on { background: var(--brass); }
-[data-theme="sixties"] .sheet { border: 3px solid var(--ink); border-radius: 28px; box-shadow: 8px 8px 0 var(--teal); }
-[data-theme="sixties"] .wave { border: 3px solid var(--ink); border-radius: 22px; }
-[data-theme="sixties"] .take { border: 2px solid var(--ink); border-radius: 22px; background: var(--panel); }
-[data-theme="sixties"] .rec-btn { border-color: var(--ink); background: var(--panel); }
-[data-theme="sixties"] .slider::-webkit-slider-thumb { border-color: var(--ink); background: var(--mustard); }
+[data-theme="sixties"] .sheet { border: 3px solid var(--outline); border-radius: 28px; box-shadow: 8px 8px 0 var(--print-2); }
+[data-theme="sixties"] .wave { border: 3px solid var(--outline); border-radius: 22px; }
+[data-theme="sixties"] .take { border: 2px solid var(--outline); border-radius: 22px; background: var(--panel); }
+[data-theme="sixties"] .rec-btn { border-color: var(--outline); background: var(--panel); }
+[data-theme="sixties"] .slider::-webkit-slider-thumb { border-color: var(--btn-line); background: var(--mustard); }
 
 /* ================================================================ 18th Century
    Parchment, sepia ink, gilt and burgundy; engraved type, small capitals,
@@ -1180,7 +1183,14 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   --brass: #f07a43; --brass-2: #f2b54f; --red: #f0694f; --red-2: #ff7b5c; --focus: #57c9c3;
   --value: #f2b54f; --on-accent: #22170f; --glow: #352820;
   --teal: #45b4ae; --teal-ink: #14100c; --mustard: #f2b54f; --mustard-ink: #22170f; --cream: #3e2f25;
-  --dots: rgba(242, 181, 79, 0.12);
+  --dots: rgba(242, 181, 79, 0.1);
+  /* The same print at night: shadows are real shadows (near black, not teal
+     slabs that read as glowing edges), outlines a soft tan rather than
+     bright cream, buttons keep their dark printed outline, and the badges on
+     the stripes stay cream with dark ink, as by day. */
+  --outline: #c9a87a; --btn-line: #160f0a; --print: #0f0a06; --print-2: #0f0a06;
+  --card: linear-gradient(180deg, #4a382c, #3e2f25);
+  --badge: #fbefd8; --badge-ink: #2a201a;
   --wave-bg: #3e2f25; --wave-axis: rgba(248, 236, 212, 0.14); --wave-idle: rgba(227, 207, 172, 0.25);
   --wave-wait: #45b4ae; --wave-rec: #f07a43; --wave-take: #7a6046; --wave-play: #45b4ae; --wave-head: #f8ecd4; --wave-thumb: #c9a06a;
   --pressed: #45b4ae; --shadow: rgba(0, 0, 0, 0.45); --backdrop: rgba(10, 6, 3, 0.6);
