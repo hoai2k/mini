@@ -1,0 +1,23 @@
+{
+  "id": "vox-ow-props",
+  "title": "Open-world kit: waystones, shrines, chests and monster camps",
+  "prompt": "A prop model sheet of blocky voxel objects on a flat light-grey background, each from the front and the high three-quarter game angle: a waystone (a marble pillar with a gold cap, glowing runes and a little marble platform; also shown lit up gold when found and swirling with light as a hero teleports); a small stone shrine with an altar and a gold flame, in seven versions for Demeter (wheat), Artemis (silver bow), Poseidon (trident), Apollo (sun disc), Athena (owl), Zeus (lightning bolt) and Hades (dark helm); treasure chests in three grades (plain wood, blue with silver, purple with gold) closed and open with a spill of drachmas; a monster camp (ragged hide tents, a bone totem, a campfire, crude banners); a gold \"!\" marker floating over a quest-giver; a glowing gold shard for quest items. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.",
+  "width": 2400,
+  "height": 1600,
+  "refs": [
+    "vox-key",
+    "vox-camp"
+  ],
+  "destination": "design/concept/vox-ow-props.png",
+  "generation_prompt": "Use case: stylized-concept. Generate a new 3D voxel game concept image. Attached images are style, layout and subject reference images in this order: vox-key, vox-camp. Use the attached voxel key or voxel map for 3D rendering style; any cartoon scenes supply landmarks only.\nA prop model sheet of blocky voxel objects on a flat light-grey background, each from the front and the high three-quarter game angle: a waystone (a marble pillar with a gold cap, glowing runes and a little marble platform; also shown lit up gold when found and swirling with light as a hero teleports); a small stone shrine with an altar and a gold flame, in seven versions for Demeter (wheat), Artemis (silver bow), Poseidon (trident), Apollo (sun disc), Athena (owl), Zeus (lightning bolt) and Hades (dark helm); treasure chests in three grades (plain wood, blue with silver, purple with gold) closed and open with a spill of drachmas; a monster camp (ragged hide tents, a bone totem, a campfire, crude banners); a gold \"!\" marker floating over a quest-giver; a glowing gold shard for quest items. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. No lettering, logos, captions or watermark.\nOutput PNG at 2400 \u00d7 1600 pixels.",
+  "attached_references": [
+    "vox-key",
+    "vox-camp"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1536,
+    1024
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}

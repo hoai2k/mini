@@ -1,0 +1,25 @@
+{
+  "id": "vox-ow-people-2",
+  "title": "Open-world people 2: wanderers, hunters and the dead",
+  "prompt": "A line-up of blocky voxel characters at the same scale, each front-on and from the high three-quarter game angle: Coach Gleeson Hedge, a short, loud satyr in a red tracksuit and a baseball cap with a whistle and a wooden club; Zo\u00eb Nightshade, lieutenant of the Hunters of Artemis, dark braided hair, silver circlet and parka, a silver bow; Rachel Elizabeth Dare, a mortal girl with frizzy red hair in paint-splattered jeans with a sketchbook; Quintus, a grizzled swordsman with grey hair and a fencing sword (secretly the inventor Daedalus, with a faint bronze glint at the neck); Phoebe and Bianca di Angelo, Hunters of Artemis in silver parkas; Charon, the ferryman of the dead, in a sharp Italian suit and sunglasses with a boat pole; and Sisyphus, a weary old Greek in a ragged tunic leaning on his boulder. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.",
+  "width": 2400,
+  "height": 1600,
+  "refs": [
+    "vox-key",
+    "vox-npcs",
+    "char-gods"
+  ],
+  "destination": "design/concept/vox-ow-people-2.png",
+  "generation_prompt": "Use case: stylized-concept. Generate a new 3D voxel game concept image. Attached images are style, layout and subject reference images in this order: vox-key, vox-npcs, char-gods. Use the attached voxel key or voxel map for 3D rendering style; any cartoon scenes supply landmarks only.\nA line-up of blocky voxel characters at the same scale, each front-on and from the high three-quarter game angle: Coach Gleeson Hedge, a short, loud satyr in a red tracksuit and a baseball cap with a whistle and a wooden club; Zo\u00eb Nightshade, lieutenant of the Hunters of Artemis, dark braided hair, silver circlet and parka, a silver bow; Rachel Elizabeth Dare, a mortal girl with frizzy red hair in paint-splattered jeans with a sketchbook; Quintus, a grizzled swordsman with grey hair and a fencing sword (secretly the inventor Daedalus, with a faint bronze glint at the neck); Phoebe and Bianca di Angelo, Hunters of Artemis in silver parkas; Charon, the ferryman of the dead, in a sharp Italian suit and sunglasses with a boat pole; and Sisyphus, a weary old Greek in a ragged tunic leaning on his boulder. 3D game art in the blocky voxel style of Minecraft Dungeons: characters built from cubes, with a large cube head whose face is simple pixel art (about 8 \u00d7 8 pixels: pixel eyes, a pixel mouth, hair drawn as pixels and as a few blocky tufts), a boxy torso, square arms and legs, crisp pixel-art textures (about 16 pixels per block) with simple shading, chunky readable silhouettes; warm cinematic lighting, soft ambient occlusion and glowing magic effects. Costume colours and details follow the Camp Half-Blood cartoon concept art. Palette: camp orange #f28c28, sea teal #0f6f73, deep navy #10233d, jade #2e8b6e, coral #e8664a, bronze gold #c9963a, lightning yellow #ffd84a, parchment cream #f4ead5, vase black #17130f and owl grey #8c96a3. Flat light-grey background, no cast shadow. No lettering, logos, captions or watermark.\nOutput PNG at 2400 \u00d7 1600 pixels.",
+  "attached_references": [
+    "vox-key",
+    "vox-npcs",
+    "char-gods"
+  ],
+  "tool": "built-in image_gen",
+  "native_dimensions": [
+    1536,
+    1024
+  ],
+  "sizing": "Lanczos resize to requested dimensions, no crop; original retained outside repository."
+}
