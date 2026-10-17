@@ -53,6 +53,7 @@ import { Online } from './net/online.js';
 import { LootDrops } from './lootdrops.js';
 import { openOnline } from './net/lobby.js';
 import { mulberry32, releaseObject } from './util.js';
+import { ENEMY_CAP } from './world/encounters.js';
 import { ClimbingWall } from './minigames/climbingWall.js';
 import { HEROES } from './heroes/index.js';
 import { chapter as chapterDef, CHAPTERS } from './story/chapters.js';
@@ -599,8 +600,9 @@ class Game {
     this.hud?.rebuildCards();
     return p;
   }
+  get enemyCap() { return ENEMY_CAP; }
   spawnEnemy(kind, pos, opts = {}) {
-    const cap = this.gr.preset.enemyCap;
+    const cap = ENEMY_CAP;
     if (this.enemies.filter((e) => !e.dead && !e.isDummy).length >= cap && opts.summoned) return null;
     const e = new Enemy(this, kind, pos, opts);
     this.scene.add(e.object);

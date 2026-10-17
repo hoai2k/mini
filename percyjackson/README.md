@@ -8,6 +8,17 @@ belong to their author and publishers.
 
 Play: <https://hoai2k.github.io/mini/percyjackson/>
 
+## Made for desktop
+
+The game is made for a desktop or laptop screen, played with a controller
+or keyboard and mouse. Phones and tablets are best effort: the touch
+controls and the small-screen layouts keep working, but no decision about
+the desktop game (character and world sizes, camera distance, how many
+monsters fight at once, effects, UI density, controls) is made smaller,
+simpler or safer for them. Weigh a choice on a desktop screen; where a
+phone needs something different, branch for it (`isMobile`, `body.is-touch`,
+CSS for small screens) rather than changing the desktop game.
+
 ## What's in it now
 
 - **The opening of a new game** tells the start of the book before camp
@@ -243,8 +254,12 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   the top of the body that collides, in a world of 1 m blocks (it was 2.26 m,
   hair to 3 m, and heroes filled the doorways). People, monsters and bosses
   shrink with them; hitboxes, reach and ranges are unchanged.
-- **The camera** starts a little further out than it did (zoom 24, was 22;
-  Settings → Gameplay → Default zoom). In a boss fight it also leans toward the boss and
+- **The camera** starts further out than it did (zoom 26, was 22; Settings →
+  Gameplay → Default zoom): on a desktop screen a hero is still about 120 px
+  tall at 1080p.
+- **Monsters at once:** at most 36 are up at a time (the rest of a room waits
+  in reserve), on every machine (`game/js/world/encounters.js` `ENEMY_CAP`;
+  it used to follow the graphics tier, 14 to 36). In a boss fight it also leans toward the boss and
   pulls back to keep it in frame.
 - **Boss attacks are aimed or local:** lines, cones and target circles go
   where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's

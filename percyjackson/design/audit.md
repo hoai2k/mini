@@ -193,7 +193,7 @@ All 122 unit tests pass; `perf/smoke.cjs` loads every chapter with no page error
     screen.
   - Mesh the voxel chunks over a few frames.
 
-### 11. Stream music instead of decoding it (performance, high on phones)
+### 11. Stream music instead of decoding it (performance, medium)
 
 - **Evidence:** tracks are fully decoded and four are cached
   (`audio.js:263-272`). A 55–214 s track is 34–82 MB of PCM, so the cache
@@ -349,8 +349,34 @@ All 122 unit tests pass; `perf/smoke.cjs` loads every chapter with no page error
   - `lights.js:65-77` builds a candidate array every frame.
   - `main.js` allocates vectors every frame.
 - **Particle pools** always draw their full capacity (`gfx/particles.js:45`).
-- **On mobile GPUs,** the world material's see-through `discard`
-  (`gfx/materials.js:148`) defeats early-Z.
+- **On tile-based GPUs** (phones, Apple silicon), the world material's
+  see-through `discard` (`gfx/materials.js:148`) defeats early-Z; on a
+  desktop GPU it costs little. (The game is made for desktop: see the
+  README.)
+
+## Desktop first (a later pass)
+
+The owner made the game desktop-first (README, "Made for desktop"). A pass
+over every place phones and small screens touch the code found:
+
+- **Phone-only branches** (`isMobile`, `body.is-touch`, the 30 fps target,
+  the touch controls, the CSS for narrow or short screens, the portrait
+  hint, the join prompts): these switch on only on a phone or a small
+  window, so they leave the desktop game alone. Kept.
+- **The enemy cap followed the graphics tier** (14 Low, 24 Medium, 36 High,
+  48 Ultra), so Auto on an integrated desktop GPU fought smaller battles.
+  Now one gameplay rule, 36, on every machine (`world/encounters.js`
+  `ENEMY_CAP`). The tiers only change how the game looks.
+- **Default zoom** had been pulled in to 24 with small screens in mind; back
+  to 26 for the desktop screen (a hero about 120 px tall at 1080p).
+- **`autoAim: 'touch'`** was a setting nothing read: removed.
+- **"Low / Mobile"**: the Low tier is just Low (it is what Auto picks for a
+  software renderer, or a very weak machine).
+- **Audit priorities** that leaned on phones (the decoded-music memory, the
+  early-Z note) are re-ranked for desktop.
+- The graphics tiers' resolution caps (High 1.5x, Medium 1.25x the screen's
+  pixels) are a performance choice for every machine, not a phone one;
+  dynamic resolution steps down only when the frame rate drops. Left as is.
 
 ## Learnings
 

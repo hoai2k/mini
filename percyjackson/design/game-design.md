@@ -26,6 +26,17 @@ adds the story, the Mist, hero switching, the camp minigames and online play.
 5. **True to the books, fit for ages 8 to 14.** The books' humour, scared and
    brave by turns. Monsters burst into golden dust, never gore.
 
+## Platform: made for desktop
+
+The game is made for a desktop or laptop screen, played with a controller
+or keyboard and mouse. Phones and tablets are best effort: the touch
+controls and the small-screen layouts keep working, but no decision about
+the desktop game (character and world sizes, camera distance, how many
+monsters fight at once, effects, UI density, controls) is made smaller,
+simpler or safer for them. Weigh a choice on a desktop screen; where a
+phone needs something different, branch for it (`isMobile`, `body.is-touch`,
+CSS for small screens) rather than changing the desktop game.
+
 ## Look
 
 - **World and characters:** blocky voxel models and 16-pixel textures, seen
