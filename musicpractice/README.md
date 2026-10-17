@@ -52,14 +52,18 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
-**Light and dark**, under the theme tiles, is **As designed** (each theme as
-listed above: Classic, Art Deco, Robot Future and Steam Punk dark, the other
-four light), **Light**, **Dark** or **System** (follows the device, and
-switches while the app is open when the device does, at dusk for one). Every
+**Dark Mode**, under the theme tiles, is **Default** (each theme as designed:
+Classic, Art Deco, Robot Future and Steam Punk dark, the other four light),
+**Light**, **Dark** or **System**, the default (follows the device, and
+switches while the app is open when the device does, at dusk for one; saves
+from before it was the default are moved onto it unless Dark Mode was
+chosen). Every
 theme has its other mode: Classic by day (cream and walnut), Art Deco in
 ivory, 18th Century by candlelight, Robot Future in a white lab, French
 Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
-Vintage 60s after dark. Only the colours change; the type, shapes, ornament
+Vintage 60s after dark. Classic by day has its own touches: near-white cards
+with a short, crisp shadow rather than a wide brown blur, and a brighter
+gold on the big button. Only the colours change; the type, shapes, ornament
 and art are the theme's own (the art is cut out on transparency, so it sits
 on either ground). The theme tiles preview in the chosen mode. It is free in
 the apps too. `resolveMode` in `app/src/settings.js` decides the mode and sets
@@ -249,7 +253,14 @@ tones, scales over a tonic.
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
-- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, on by default); **Timed drone** (off by
+- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, on by default;
+  the readout shows "(+5th)" beside the pitch while it is on); **Smoothed**
+  (off by default: the recorded voices play copies of their loops with the
+  slow swells of level divided out, `design/source/drone/smooth.mjs`, which
+  writes `<voice>-<note>-smooth.mp3` beside each loop: the level's swing in
+  50 ms windows goes from 3-11% to 0.5-2.2%, the seams stay as clean; the
+  synthesized organ has nothing to smooth, so the switch is off for it);
+  **Timed drone** (off by
   default; 0.5 to 20 minutes, 3 by default), and **When time's up**: stop,
   or move on to the next note chromatically up or down, up or down the major
   scale of the starting note, or up a fifth or a fourth (round all twelve

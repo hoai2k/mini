@@ -71,9 +71,9 @@ export const EN = {
   appSettings: {
     title: 'Settings',
     theme: 'Theme',
-    appearance: 'Light and dark',
+    appearance: 'Dark Mode',
     appearances: {
-      default: 'As designed',
+      default: 'Default',
       light: 'Light',
       dark: 'Dark',
       system: 'System',
@@ -289,6 +289,7 @@ export const EN = {
     down: 'Down a semitone',
     up: 'Up a semitone',
     pitch: 'Pitch',
+    withFifth: '(+5th)',
     play: 'Play',
     pause: 'Pause',
     stopsIn: (time) => `Stops in ${time}`,
@@ -314,6 +315,8 @@ export const EN = {
       title: 'Drone settings',
       fifth: 'Add a fifth above',
       fifthHelp: 'A pure fifth over the drone note.',
+      smooth: 'Smoothed',
+      smoothHelp: 'Evens out the slow swells in the recording\'s level.',
       timed: 'Timed drone',
       length: (min) => `Length: **${min} min**`,
       then: 'When time\'s up',

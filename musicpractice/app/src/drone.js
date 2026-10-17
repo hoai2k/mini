@@ -226,6 +226,18 @@ export const SAMPLED = {
 // fingerboard, sul tasto), with a little more room.
 SAMPLED['cello-soft'] = { ...SAMPLED.cello, level: 1.2, wet: 0.2, lowpass: 900 };
 
+// Smoothed: each recorded voice again, from loops whose slow swells of level
+// (the bow, the bellows) are divided out (design/source/drone/smooth.mjs).
+// Same pitches, lengths and loop points; only the files differ.
+for (const id of Object.keys(SAMPLED)) {
+  SAMPLED[`${id}-smooth`] = { ...SAMPLED[id], loops: SAMPLED[id].loops.map((l) => ({ ...l, file: l.file.replace(/\.mp3$/, '-smooth.mp3') })) };
+}
+
+/** The voice to play: its Smoothed copy when asked for and there is one (recorded voices only). */
+export function playedVoice(voice, smoothed) {
+  return smoothed && SAMPLED[`${voice}-smooth`] ? `${voice}-smooth` : voice;
+}
+
 /**
  * The loop for a pitch: the nearest (in semitones), with `target`, the pitch
  * to retune it to. An instrument with a narrower natural range than the drone
