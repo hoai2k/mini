@@ -68,12 +68,13 @@ jobs:
         run: |
           base=https://mini-stocks.hoai2k.workers.dev
           sleep 5
-          for p in "/" "/quote?symbol=VOO" "/search?q=vanguard"; do
-            echo "== $p"; curl -sS -H 'Origin: https://hoai2k.github.io' -D - "$base$p" | head -c 900; echo
+          for p in "/" "/quote?symbol=VOO" "/search?q=vanguard" "/history?symbol=XDTE"; do
+            code=$(curl -sS -o body.json -w '%{http_code}' -H 'Origin: https://hoai2k.github.io' "$base$p")
+            summary=$(jq -c 'if type=="object" and has("d") then {symbol, days: (.d|length), first: .d[0], last: .d[-1], dividends: (.dividends|length), lastDiv: .dividends[-1], quote} else . end' body.json | head -c 600)
+            echo "::notice title=$p ($code)::$summary"
+            [ "$code" = 200 ] || fail=1
           done
-          echo "== /history?symbol=XDTE"
-          curl -sS -H 'Origin: https://hoai2k.github.io' "$base/history?symbol=XDTE" \
-            | jq -c '{symbol, name, days: (.d|length), first: .d[0], last: .d[-1], dividends: (.dividends|length), lastDiv: .dividends[-1], quote}'
+          [ -z "$fail" ]
 
   snapshot:
     if: >-

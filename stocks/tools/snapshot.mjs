@@ -13,6 +13,24 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fetchHistory } from "../server/src/yahoo.js";
 
+// Yahoo often refuses GitHub's runners, so fall back to the live Worker
+// (which reaches Yahoo from Cloudflare) when a direct read fails.
+const WORKER = process.env.STOCKS_API || "https://mini-stocks.hoai2k.workers.dev";
+const note = (level, msg) =>
+  console.log(process.env.GITHUB_ACTIONS ? `::${level}::${msg}` : msg);
+async function history(sym) {
+  try {
+    return { h: await fetchHistory(sym), via: "yahoo" };
+  } catch (direct) {
+    const res = await fetch(`${WORKER}/history?symbol=${encodeURIComponent(sym)}`, {
+      headers: { Origin: "https://hoai2k.github.io" },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || !body.d) throw new Error(`direct: ${direct.message}; worker: ${body.error || res.status}`);
+    return { h: body, via: "worker" };
+  }
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const out = join(here, "../app/data");
 export const STARTERS = ["QQQI", "XDTE", "VOO", "JNJ", "GOOG"];
@@ -28,14 +46,14 @@ const symbols = asked.length ? asked : index.symbols;
 let failed = 0;
 for (const sym of symbols) {
   try {
-    const h = await fetchHistory(sym);
+    const { h, via } = await history(sym);
     await writeFile(join(out, `${sym}.json`), JSON.stringify(h) + "\n");
     const div = h.dividends.length;
-    console.log(`${sym}: ${h.d.length} days ${h.d[0]}..${h.d.at(-1)}, ${div} dividends` +
+    note("notice", `${sym} via ${via}: ${h.d.length} days ${h.d[0]}..${h.d.at(-1)}, ${div} dividends` +
       (div ? ` (last ${h.dividends.at(-1).join(" ")})` : "") + `, price ${h.quote.price}`);
   } catch (e) {
     failed++;
-    console.error(`${sym}: FAILED ${e.message}`);
+    note("error", `${sym}: FAILED ${e.message}`);
   }
   await new Promise((r) => setTimeout(r, 400));
 }
