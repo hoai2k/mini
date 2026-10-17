@@ -30,6 +30,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
+import { GENRES, GENRE_IDS, mainTempo } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, swingOf } from './art.js';
 
@@ -513,33 +514,58 @@ $('accent-done').addEventListener('click', () => {
 
 // ---------------------------------------------------------------- common tempos
 
-/** The metronome's traditional marks (Maelzel's), grouped by marking. */
-const COMMON_TEMPOS = [40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 126, 132, 138, 144, 152, 160, 168, 176, 184, 192, 200, 208];
-$('marking').addEventListener('click', () => {
-  const groups = new Map();
-  for (const bpm of COMMON_TEMPOS) {
-    const name = marking(bpm);
-    if (!groups.has(name)) groups.set(name, []);
-    groups.get(name).push(bpm);
-  }
-  $('tempo-list').replaceChildren(...[...groups].map(([name, list]) => {
-    const set = document.createElement('fieldset');
-    const legend = document.createElement('legend');
-    legend.textContent = name;
+/*
+ * The marking under the number opens common tempos by style (tempos.js): a
+ * button per named tempo, and beside it a chevron with that name's other
+ * common tempos. Choosing one there plays it and makes it the name's button
+ * from then on. The style and those choices are remembered.
+ */
+const tempoGenre = $('tempo-genre');
+tempoGenre.replaceChildren(...GENRE_IDS.map((g) => new Option(TEXT.metronome.tempos.genres[g], g)));
+tempoGenre.addEventListener('change', () => { settings.tempoGenre = tempoGenre.value; persist(); renderTempos(); });
+
+const tempoName = (genre, id) => (genre === 'classical' ? TEXT.metronome.markings[id] : TEXT.metronome.tempos.names[genre][id]);
+
+function renderTempos() {
+  const T = TEXT.metronome.tempos;
+  const genre = settings.tempoGenre;
+  tempoGenre.value = genre;
+  $('tempo-list').replaceChildren(...GENRES[genre].map((t) => {
+    const name = tempoName(genre, t.id);
+    const bpm = mainTempo(genre, t.id, settings.tempoDefaults);
     const row = document.createElement('div');
-    row.className = 'chips';
-    for (const bpm of list) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.textContent = String(bpm);
-      b.setAttribute('aria-pressed', String(bpm === settings.bpm));
-      b.addEventListener('click', () => { setBpm(bpm); $('tempo-picker').close(); });
-      row.append(b);
-    }
-    set.append(legend, row);
-    return set;
+    row.className = 'tempo-row';
+    const label = document.createElement('span');
+    label.className = 'tempo-name';
+    label.textContent = name;
+    const pick = document.createElement('div');
+    pick.className = 'tempo-pick';
+    const main = document.createElement('button');
+    main.type = 'button';
+    main.className = 'chip tempo-main';
+    main.textContent = String(bpm);
+    main.setAttribute('aria-label', T.play(name, bpm));
+    main.setAttribute('aria-pressed', String(settings.bpm === bpm));
+    main.addEventListener('click', () => { setBpm(bpm); $('tempo-picker').close(); });
+    const more = document.createElement('select');
+    more.className = 'select tempo-more';
+    more.setAttribute('aria-label', T.more(name));
+    more.replaceChildren(...t.list.map((v) => new Option(T.bpm(v), String(v))));
+    more.value = String(bpm);
+    more.addEventListener('change', () => {
+      const v = Number(more.value);
+      settings.tempoDefaults = { ...settings.tempoDefaults, [`${genre}:${t.id}`]: v };
+      setBpm(v);
+      $('tempo-picker').close();
+    });
+    pick.append(main, more);
+    row.append(label, pick);
+    return row;
   }));
+}
+
+$('marking').addEventListener('click', () => {
+  renderTempos();
   $('tempo-picker').showModal();
   $('tempo-list').querySelector('[aria-pressed="true"]')?.focus();
 });

@@ -1,6 +1,7 @@
 // Settings, kept in localStorage so they last between visits. Every value is
 // checked on the way in, so a damaged or old save falls back to defaults.
 
+import { GENRE_IDS, cleanTempoDefaults } from './tempos.js';
 import { TEXT } from './text-config.js';
 
 const KEY = 'musicpractice.settings.v1';
@@ -80,7 +81,9 @@ export const DEFAULTS = Object.freeze({
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
   subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths
-  accentPattern: null, // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
+  accentPattern: null,
+  tempoGenre: 'classical', // the tempo picker's style
+  tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   metView: 'metronome', // or 'bars' (the Visualizer)
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
   vizTrail: true, // the beats already played in this pass stay faintly lit
@@ -143,6 +146,8 @@ export function sanitize(raw) {
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
     subdivision: oneOf(s.subdivision, [1, 2, 3, 4], DEFAULTS.subdivision),
+    tempoGenre: oneOf(s.tempoGenre, GENRE_IDS, DEFAULTS.tempoGenre),
+    tempoDefaults: cleanTempoDefaults(s.tempoDefaults),
     accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),

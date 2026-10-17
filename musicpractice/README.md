@@ -195,7 +195,14 @@ when the Art Deco art arrives, measure and record its own.
   controls leave (measured in `fitPicture`, `--pic-h`), so the page fills the
   screen without a gap below or scrolling; side by side, 62% of the height.
 - **Common tempos:** tapping the marking under the number (Allegro, and so
-  on) opens the metronome's traditional marks, 40 to 208, grouped by marking.
+  on) opens common tempos by **Style**: Classical (the Italian markings over
+  the metronome's traditional marks), Jazz (ballad to burner), Ballroom
+  dance (the competition tempos), Electronic & hip hop, and Marching. Each
+  named tempo has one button, its usual tempo, and a chevron beside it
+  with that name's other common tempos; choosing one there plays it and
+  makes it the name's button from then on. The style and those choices are
+  remembered (`tempoGenre`, `tempoDefaults`; the tables are
+  `app/src/tempos.js`).
 - No double-tap zoom: `touch-action: manipulation` on the page (iPhone
   zoomed in on quick taps such as the drone's − and +); scrolling and
   pinch-zoom still work.

@@ -142,6 +142,30 @@ export const EN = {
     tempos: {
       title: 'Common tempos',
       open: (marking) => `${marking}: common tempos`,
+      genre: 'Style',
+      genres: {
+        classical: 'Classical',
+        jazz: 'Jazz',
+        ballroom: 'Ballroom dance',
+        electronic: 'Electronic & hip hop',
+        marching: 'Marching',
+      },
+      /** The named tempos in each style (Classical's are the markings). */
+      names: {
+        jazz: { ballad: 'Ballad', mediumSlow: 'Medium slow', mediumSwing: 'Medium swing', upTempo: 'Up-tempo', burner: 'Burner' },
+        ballroom: {
+          waltz: 'Waltz', tango: 'Tango', viennese: 'Viennese waltz', foxtrot: 'Foxtrot', quickstep: 'Quickstep',
+          samba: 'Samba', chaCha: 'Cha-cha', rumba: 'Rumba', pasoDoble: 'Paso doble', jive: 'Jive',
+        },
+        electronic: {
+          downtempo: 'Downtempo', hipHop: 'Hip hop', house: 'House', techno: 'Techno', trance: 'Trance',
+          dubstep: 'Dubstep', trap: 'Trap', drumAndBass: 'Drum and bass',
+        },
+        marching: { funeral: 'Funeral march', slowMarch: 'Slow march', quickMarch: 'Quick march', doubleTime: 'Double time' },
+      },
+      play: (name, bpm) => `${name}, ${bpm} BPM`,
+      more: (name) => `Other ${name} tempos`,
+      bpm: (bpm) => `${bpm} BPM`,
     },
     noBars: 'No bars',
     /** In the time signature list. */
