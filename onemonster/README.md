@@ -22,7 +22,9 @@ Play it at https://hoai2k.github.io/mini/onemonster/. It sits behind the
 shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one in
 the `hoai2k.github.io` repository), which is off on localhost. It opens the
 gate with `ignorePublicAccess: true`: while it is a prototype, the owner's
-public-access switch does not open it, only an invite pass does.
+public-access switch does not open it, only an invite pass does. To let it
+follow the switch like the finished games, set `game/public-access.json` to
+`{ "followPublicAccess": true }`; no code change is needed.
 
 - [`design/design.md`](design/design.md): the flow, the controls, the
   two-player mode, the nine snatches, the chase rules, how each creature moves,

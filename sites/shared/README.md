@@ -117,6 +117,10 @@ their own HTML:
 - **The public-access switch does not open these pages.** `private-site.js`
   opens the gate with `ignorePublicAccess: true`, which skips the switch entirely,
   so turning it on for the games never exposes a private site.
+- **Each site's own `public-access.json`** (beside its pages, holding
+  `{ "followPublicAccess": false }`) is the way to change that by hand: set
+  it to `true` and that site follows the switch like the finished games.
+  A missing or broken file keeps the site locked.
 - As with the games, the door is off on localhost; add `?gatetest=1` to see
   it locally. It is a doorman, not a lock: the HTML is still public to anyone
   who reads the source.

@@ -59,7 +59,9 @@ Gliders is in the library's prototype archive, so it sits behind the shared
 invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one in the
 `hoai2k.github.io` repository): `src/boot.js` opens the door, then imports
 `main.js`. It passes `ignorePublicAccess: true`, so the owner's public-access
-switch for the finished games does not open it; only an invite pass does. The
+switch for the finished games does not open it; only an invite pass does. To
+let it follow the switch like the finished games, set `game/public-access.json`
+to `{ "followPublicAccess": true }`; no code change is needed. The
 door is off on localhost (add `?gatetest=1` to see it).
 
 ## Run and check

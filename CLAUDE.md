@@ -89,8 +89,13 @@ from `sites/`, `multiplayer/` and `local/`:
   that gate (copy `onemonster/game/src/gate/gate.js` byte for byte, open it
   from a `boot.js` the way One Monster and Gliders do); moving one out to a
   shelf means dropping `ignorePublicAccess` (or the gate) as the owner wants.
-  The private test sites in `sites/` (see `sites/shared/README.md`) follow
-  the same rule.
+  Each locked game or site also carries its own `public-access.json` beside
+  its `index.html`, holding `{ "followPublicAccess": false }` and named in
+  its gate call as `accessFile: 'public-access.json'` (publish it with the
+  game). Setting it to `true` makes that one game or site follow the
+  public-access switch like the finished games, with no code change; a
+  missing or broken file keeps it locked. The private test sites in `sites/`
+  (see `sites/shared/README.md`) follow the same rule.
   `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
   builds and publishes everything.
 

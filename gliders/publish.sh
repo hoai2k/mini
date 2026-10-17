@@ -8,7 +8,7 @@ out="${1:?output directory}"
 here="$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$out"
 mkdir -p "$out"
-cp "$here/game/index.html" "$here/game/styles.css" "$here/game/manifest.webmanifest" "$out/"
+cp "$here/game/index.html" "$here/game/styles.css" "$here/game/manifest.webmanifest" "$here/game/public-access.json" "$out/"
 cp -R "$here/game/src" "$here/game/vendor" "$here/game/icons" "$out/"
 if [ -d "$here/game/assets" ] && [ -n "$(ls -A "$here/game/assets" 2>/dev/null)" ]; then
   cp -R "$here/game/assets" "$out/"

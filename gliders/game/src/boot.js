@@ -10,4 +10,7 @@ void openGate({
   // In the prototype archive: the public-access switch for the finished games
   // does not open it. Only an invite pass does.
   ignorePublicAccess: true,
+  // ...unless public-access.json beside index.html says
+  // { "followPublicAccess": true }: then it follows the switch like the others.
+  accessFile: 'public-access.json',
 }).then(() => import('./main.js'));
