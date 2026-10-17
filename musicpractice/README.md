@@ -52,6 +52,20 @@ don't offer it. It switches the whole app's look:
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
   Elite, riveted plates and a gear.
 
+**Light and dark**, under the theme tiles, is **As designed** (each theme as
+listed above: Classic, Art Deco, Robot Future and Steam Punk dark, the other
+four light), **Light**, **Dark** or **System** (follows the device, and
+switches while the app is open when the device does, at dusk for one). Every
+theme has its other mode: Classic by day (cream and walnut), Art Deco in
+ivory, 18th Century by candlelight, Robot Future in a white lab, French
+Nouveau in the evening, Candy at night, Steam Punk in the drawing office,
+Vintage 60s after dark. Only the colours change; the type, shapes, ornament
+and art are the theme's own (the art is cut out on transparency, so it sits
+on either ground). The theme tiles preview in the chosen mode. It is free in
+the apps too. `resolveMode` in `app/src/settings.js` decides the mode and sets
+`data-mode` on the page; the early script in `index.html` does the same
+before the first paint.
+
 Theme ids stay fixed when a theme is renamed (Robot Future is `scifi`,
 Candy is `anime`), so saved choices and image paths keep working.
 Each theme loads only its own fonts. All eight themes have delivered images.
@@ -60,9 +74,21 @@ the newer themes share one drawing (`themed`), varied by case shape, palette
 and pendulum weight.
 
 A theme is three things: a `THEMES` entry in `app/src/settings.js` with its
-fonts (the early script in `index.html` lists the ids too; a test checks they
-match), its colours, type and
-shapes in `app/styles.css` (`[data-theme="…"]`), and its images. Every image
+fonts and the mode it was designed in (the early script in `index.html` lists
+the ids and the dark ones too; a test checks they match), its colours, type and
+shapes in `app/styles.css` (`[data-theme="…"]`, with a
+`[data-theme="…"][data-mode="…"]` block for its other mode), and its images.
+A theme's own rules take their colours from its tokens (`--teal`, `--lacquer`,
+`--arrow` for the dropdown arrow and so on) rather than writing them in, so
+the other mode's block only has to change the tokens.
+
+**Readability:** every theme in both modes was checked for contrast in all
+the settings sheets (Settings, the four tools', Audio check, Send feedback):
+text at least 4.5:1 against what is behind it (3:1 for large or bold large
+text), nothing under 12.5px. That check moved the light themes' highlighted
+values ("440 Hz", "3 s") to a darker accent (`--value`), darkened the
+selected chips in Vintage 60s, French Nouveau and Candy and the help text in
+those three, and raised Send feedback's details to 13px. Every image
 belongs to a theme in `design/source/build_requests.py`. The app shows the
 theme's delivered image or, until it arrives, that theme's drawn stand-in
 (`app/src/standins.js`).

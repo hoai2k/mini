@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, save, sanitize, clampBpm, beatStrengths, DEFAULTS } from '../src/settings.js';
+import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS } from '../src/settings.js';
 import { pendulumAngle } from '../src/metronome.js';
 
 function memoryStorage() {
@@ -94,4 +94,30 @@ test('drone settings: defaults, kept, and bad values fall back', () => {
   assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen, s.droneFifth], [41, 'organ', true, 7.5, 'fifths', true]);
   const bad = sanitize({ droneMidi: 90, droneVoice: 'tanpura', droneMinutes: -2, droneThen: 'random' });
   assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'stop']);
+});
+
+test('light and dark: as designed by default; light, dark or the system when chosen', () => {
+  assert.equal(DEFAULTS.appearance, 'default');
+  assert.equal(sanitize({ appearance: 'system' }).appearance, 'system');
+  assert.equal(sanitize({ appearance: 'sepia' }).appearance, 'default');
+  assert.equal(resolveMode('classic', 'default', false), 'dark');
+  assert.equal(resolveMode('sixties', 'default', true), 'light');
+  assert.equal(resolveMode('sixties', 'dark', false), 'dark');
+  assert.equal(resolveMode('classic', 'light', true), 'light');
+  assert.equal(resolveMode('baroque', 'system', true), 'dark');
+  assert.equal(resolveMode('steampunk', 'system', false), 'light');
+  for (const t of THEMES) assert.ok(t.mode === 'light' || t.mode === 'dark', t.id);
+});
+
+test('every theme has its other mode in styles.css, and the early script knows which are dark', async () => {
+  const fs = await import('node:fs');
+  const here = new URL('..', import.meta.url).pathname;
+  const css = fs.readFileSync(`${here}styles.css`, 'utf8');
+  const html = fs.readFileSync(`${here}index.html`, 'utf8');
+  const darkList = JSON.parse(html.match(/var a = s\.appearance, dark = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
+  for (const t of THEMES) {
+    const other = t.mode === 'dark' ? 'light' : 'dark';
+    assert.ok(css.includes(`[data-theme="${t.id}"][data-mode="${other}"] {`), `${t.id} has no ${other} block`);
+    assert.equal(darkList.includes(t.id), t.mode === 'dark', `early script: ${t.id}`);
+  }
 });
