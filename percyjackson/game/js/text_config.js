@@ -332,7 +332,7 @@ export const TEXT = {
     // Cutscene: the bus to the museum
     bus: {
       title: 'The field trip',
-      fieldTrip: 'Yancy Academy’s field trip: twenty-eight kids, one yellow school bus, and New York in the morning.',
+      fieldTrip: 'Yancy Academy’s field trip: twenty-eight kids in one yellow school bus, and New York City in the morning.',
       groverOnBus: 'Grover sits next to you, chewing on an apple core. Nancy Bobofit throws bits of sandwich at his head.',
       museum: 'The American Museum of Natural History. Mr. Brunner promised Greek and Roman treasures.',
       steps: 'Everybody off. Up the steps, past the columns, toward the old marble and bronze.',
@@ -341,17 +341,17 @@ export const TEXT = {
     // Cutscene: summer at Montauk
     summer: {
       title: 'Summer, and a storm',
-      cabin: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she met your father.',
-      knock: 'In the middle of the night, in a storm, someone bangs on the door. Grover. He has no trousers on. He has hooves.',
+      cabin: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she first met your father.',
+      knock: 'In the middle of the night, during a particularly bad storm, someone bangs on the door. It’s Grover. He has no trousers on, and he has hooves instead of feet.',
       drive: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.',
       lightning: 'Toward a hill on Long Island, and a great pine tree at the top. Then the lightning hits.',
     },
     // Cutscene: waking at the Big House
     wake: {
       title: 'Camp Half-Blood',
-      porch: 'You wake up on a porch, in the sun. Somebody is spooning something into your mouth. It tastes like your mom’s cookies.',
-      annabeth: '“You drool when you sleep,” says a girl with curly blond hair and storm-grey eyes. Her name is Annabeth.',
-      chiron: 'And Mr. Brunner, your Latin teacher, trots over on four white legs. He is half horse. “Call me Chiron,” he says.',
+      porch: 'You wake up on a porch, in the sun. Somebody is feeding you medicine with a spoon. It tastes like your mom’s cookies.',
+      annabeth: '“You know, you drool in your sleep,” says a girl with curly blond hair and storm-grey eyes. Her name is Annabeth.',
+      chiron: 'Mr. Brunner, your Latin teacher, trots over on four white legs; he is half horse. “Call me Chiron,” he says.',
       welcome: 'Welcome to Camp Half-Blood: the one place in the world where kids like you are safe.',
     },
   },
