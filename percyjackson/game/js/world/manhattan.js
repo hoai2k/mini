@@ -34,6 +34,7 @@ import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
 import { oak } from './rooms.js';
+import { t as txt } from '../text_config.js';
 
 export const CITY = { SX: 192, SY: 34, SZ: 104, FY: 4 };
 // the avenue (north-south) and the cross street (east-west)
@@ -153,7 +154,7 @@ export function buildManhattan(seed = 1717) {
   for (let y = FY; y < FY + 3; y++) for (const z of [19, 20, 21]) W.set(YX1, y, z, y < FY + 2 ? B.dark_planks : B.window_day);
   for (const z of [17, 23]) for (let y = FY; y < FY + 6; y++) W.set(YX1 + 1, y, z, B.column);
   for (let z = 17; z <= 23; z++) W.set(YX1 + 1, FY + 6, z, B.white_trim);
-  deco.prop('text_sign', YX1 + 1.56, FY + 7.4, 20.5, { text: 'YANCY ACADEMY', w: 7, h: 1.2, rot: Math.PI / 2, bg: '#7a1a1a', fg: '#f6e7c0', border: '#e8e0d0', oneSided: true });
+  deco.prop('text_sign', YX1 + 1.56, FY + 7.4, 20.5, { text: txt('signs.yancyAcademy'), w: 7, h: 1.2, rot: Math.PI / 2, bg: '#7a1a1a', fg: '#f6e7c0', border: '#e8e0d0', oneSided: true });
   deco.prop('flagpole', YX1 + 2.5, FY, 15.5, { h: 7, color: 0x2a4a9a }); W.set(YX1 + 2, FY, 15, B.barrier);
   for (const z of [16.5, 24.5]) { deco.prop('planter', YX1 + 1.5, FY, z); W.set(YX1 + 1, FY, Math.floor(z), B.barrier); }
   // north of Yancy and the block behind: brownstones
@@ -188,7 +189,7 @@ export function buildManhattan(seed = 1717) {
   rats.push({ at: V(SWE.x1 + 15.5, FY, 29.5), out: V(SWE.x0 + 1.5, FY, 29.5), kind: 'alley', beat: 'ranged' });
   W.fill(SWE.x1 + 17, FY, 0, SX - 1, FY + 8, 41, B.brownstone);   // behind the east row
   // a deli sign on the corner shop
-  deco.prop('text_sign', SWE.x1 + 0.4, FY + 4.4, 49.5, { text: 'DELI · BAGELS', w: 5, h: 0.9, rot: -Math.PI / 2, bg: '#1a5a2a', fg: '#ffe8a0', oneSided: true });
+  deco.prop('text_sign', SWE.x1 + 0.4, FY + 4.4, 49.5, { text: txt('signs.deli'), w: 5, h: 0.9, rot: -Math.PI / 2, bg: '#1a5a2a', fg: '#ffe8a0', oneSided: true });
 
   // south of the cross street: low brownstones and shops facing it
   row(SWE.x1 + 1, SX - 6, SWS.z1 + 1, 'n', 14, { hmin: 4, hmax: 5, shopAt: [58, 74, 92, 108, 140, 174], gaps: [[EA.w0, EA.e1]] });
@@ -213,7 +214,7 @@ export function buildManhattan(seed = 1717) {
     for (let x = x0 + 3; x <= x1; x++) { W.set(x, FY, z1, B.fence_barrier); W.set(x, FY + 1, z1, B.fence_barrier); }
     for (let x = x0 + 3; x < x1; x += 4) deco.prop('chain_fence', x + 2, FY, z1 + 0.5, { len: 4 });
     deco.prop('sawhorse', x0 + 1.5, FY, z1 + 1.4, { rot: 0.2 }); deco.prop('cone', x0 + 0.5, FY, z1 + 0.5); deco.prop('cone', x0 + 2.6, FY, z1 + 0.6);
-    deco.prop('text_sign', x0 + 9, FY + 2.3, z1 + 0.58, { text: 'DANGER · HARD HAT AREA', w: 3.4, h: 0.6, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a', greek: true, near: 12 });
+    deco.prop('text_sign', x0 + 9, FY + 2.3, z1 + 0.58, { text: txt('signs.hardHat'), w: 3.4, h: 0.6, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a', greek: true, near: 12 });
     // inside: a dumpster (a rat sits on the lid), pallets, a sand pile, bin bags
     deco.prop('dumpster', 72, FY, 50.5, { scale: 0.8 }); W.set(71, FY, 50, B.barrier); W.set(72, FY, 50, B.barrier);
     for (const [x, z] of [[78, 52], [79, 52], [78, 53]]) W.set(x, FY, z, B.crate);
@@ -241,7 +242,7 @@ export function buildManhattan(seed = 1717) {
     for (const x of [x0 - 1, x1 + 1]) deco.prop('stoop_rail', x + 0.5, FY, (z0 + z1) / 2 + 0.5, { len: z1 - z0 + 1 });
     deco.prop('subway_globe', x0 - 0.5, FY, z0 - 0.5); deco.prop('subway_globe', x1 + 1.5, FY, z0 - 0.5);
     for (const [x, z] of [[x0 - 1, z0 - 1], [x1 + 1, z0 - 1]]) W.set(x, FY, z, B.barrier);
-    deco.prop('text_sign', (x0 + x1) / 2 + 1, FY + 1.6, z0 - 0.7, { text: '86 St  ·  SUBWAY', w: 4, h: 0.7, post: 0, bg: '#1a1a1e', fg: '#ffffff', border: '#3e7a4e', oneSided: true, rot: Math.PI });
+    deco.prop('text_sign', (x0 + x1) / 2 + 1, FY + 1.6, z0 - 0.7, { text: txt('signs.subway86'), w: 4, h: 0.7, post: 0, bg: '#1a1a1e', fg: '#ffffff', border: '#3e7a4e', oneSided: true, rot: Math.PI });
     W.addLight((x0 + x1) / 2 + 0.5, FY - 2, z1 - 1, 0x9adfff, 2.5, 7);
     rats.push({ at: V((x0 + x1) / 2 + 0.5, FY - 4, z1 - 0.5), out: V((x0 + x1) / 2 + 0.5, FY, z0 - 2), kind: 'subway' });
   }

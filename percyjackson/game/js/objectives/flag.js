@@ -8,6 +8,7 @@
 // hellhound comes out of the dark at the creek: the chapter's boss.
 import * as THREE from 'three/webgpu';
 import { toast } from '../ui/ui.js';
+import { t } from '../text_config.js';
 import { makeDisc } from '../heroes/kit.js';
 import { heroKey, heroByKey, isGuest, sendAct, seeded, inRoom, roomSpot, ground, ambush, mat, box } from './common.js';
 
@@ -43,7 +44,7 @@ export class FlagObjective {
     disc.scale.setScalar(r); disc.position.copy(ground(g, this.home.center)).setY(this.home.y + 0.06);
     disc.userData.alpha.value = 0.55;
     m.addProp(disc);
-    g.interactables.push({ id: 'flag', pos: this.bannerPos, radius: 2.4, label: 'Take the red banner', hold: 0.6,
+    g.interactables.push({ id: 'flag', pos: this.bannerPos, radius: 2.4, label: t('objectives.flag.take'), hold: 0.6,
       action: (p) => this.take(p), enabled: () => !this.carrier && !this.captured });
   }
   take(p) {
@@ -55,9 +56,9 @@ export class FlagObjective {
     const g = this.g, first = !this.taken;
     this.carrier = p; this.carrierKey = heroKey(g, p); this.taken = true;
     g.audio?.ui?.('buy');
-    toast(`${g.heroName?.(p) ?? 'A hero'} has the banner! Carry it back across the creek`, 'big');
+    toast(t('objectives.flag.carry', { name: g.heroName?.(p) ?? t('objectives.flag.aHero') }), 'big');
     if (!isGuest(this.m)) {
-      if (first) { toast('Clarisse’s cabin is coming for their banner!'); ambush(this.m, this.bannerPos, this.defenders(3)); }
+      if (first) { toast(t('objectives.flag.ambush')); ambush(this.m, this.bannerPos, this.defenders(3)); }
       this.chaseT = 12;
     }
     this.m.updateText();
@@ -71,7 +72,7 @@ export class FlagObjective {
     const at = [ground(this.g, c.pos, 1.5), c.safePos && ground(this.g, c.safePos, 1.5)].find(open) ?? this.stand;
     this.bannerPos.copy(at);
     this.carrier = null; this.carrierKey = null;
-    toast('The banner is down! Pick it up');
+    toast(t('objectives.flag.down'));
     this.m.updateText();
   }
   capture() {
@@ -81,13 +82,13 @@ export class FlagObjective {
     this.bannerPos.copy(ground(g, this.home.center.clone().add(new THREE.Vector3(1.5, 0, 0))));
     this.banner.position.copy(this.bannerPos); this.banner.rotation.set(0, 0, 0);
     m.obj.done = 1;
-    toast('Blue team wins! You carried the banner across the creek', 'big');
+    toast(t('objectives.flag.win'), 'big');
     g.fx.heal(this.bannerPos, 0x3ab8ff);
     m.checkObjective();
     if (!isGuest(m)) {
       // then something comes out of the dark at the creek
       const at = this.bossSpot();
-      setTimeout(() => { if (g.mission === m && !m.bossSpawned) { toast('A howl in the woods…'); m.startBoss(this.home, at); } }, 1800);
+      setTimeout(() => { if (g.mission === m && !m.bossSpawned) { toast(t('objectives.flag.howl')); m.startBoss(this.home, at); } }, 1800);
     }
   }
   bossSpot() {
@@ -134,10 +135,10 @@ export class FlagObjective {
   guide() { return this.captured ? null : this.carrier ? this.home.center : this.bannerPos; }
   text() {
     if (this.captured) return null;
-    const t = this.m.def.objText ?? 'Capture the Flag';
-    if (this.carrier) return [t, this.carrier.remote ? 'Cover the banner carrier back across the creek' : 'Carry the banner back across the creek to the blue side'];
-    if (this.taken) return [t, 'The banner is down! Pick it up'];
-    return [t, 'Find Clarisse’s red banner deep in the woods'];
+    const title = this.m.def.objText ?? t('objectives.flag.title');
+    if (this.carrier) return [title, t(this.carrier.remote ? 'objectives.flag.coverDesc' : 'objectives.flag.carryDesc')];
+    if (this.taken) return [title, t('objectives.flag.down')];
+    return [title, t('objectives.flag.findDesc')];
   }
   netState() {
     const b = this.bannerPos;
@@ -150,7 +151,7 @@ export class FlagObjective {
     const key = typeof s.c === 'string' ? s.c : null;
     if (key !== this.carrierKey) {
       this.carrierKey = key; this.carrier = heroByKey(this.g, key);
-      if (key) toast(`${this.g.heroName?.(this.carrier ?? {}) ?? 'A hero'} has the banner!`);
+      if (key) toast(t('objectives.flag.has', { name: this.g.heroName?.(this.carrier ?? {}) ?? t('objectives.flag.aHero') }));
     }
     if (!key && Array.isArray(s.p)) this.bannerPos.set(+s.p[0] || 0, +s.p[1] || 0, +s.p[2] || 0);
   }

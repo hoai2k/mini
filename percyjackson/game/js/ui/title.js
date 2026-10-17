@@ -11,6 +11,7 @@ import { openSelect } from './partySelect.js';
 import { isMobile } from '../util.js';
 import { saveSettings, settings } from '../settings.js';
 import { logoCanvas } from './art.js';
+import { t as tx } from '../text_config.js';
 
 const ICONS = {
   instructions: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 11h8M8 15h8M8 7h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -26,11 +27,11 @@ const ICONS = {
 // picture is genuinely missing does the title show the game's name in type.
 let entered = false;   // the logo eases in once, as the loading screen fades (never again on a refresh)
 function makeLogo() {
-  const wrap = h('h1', { class: 'logo-wrap' + (entered ? '' : ' enter'), 'aria-label': 'Half-Blood Quests' });
+  const wrap = h('h1', { class: 'logo-wrap' + (entered ? '' : ' enter'), 'aria-label': tx('page.gameName') });
   entered = true;
   const c = logoCanvas();
   if (c) { c.className = 'logo-img'; c.setAttribute('aria-hidden', 'true'); wrap.append(c); }
-  else wrap.append(h('div', { class: 'title-type', 'aria-hidden': 'true' }, h('span', { class: 'l1' }, 'HALF-BLOOD'), h('span', { class: 'key' }), h('span', { class: 'l2' }, 'QUESTS')));
+  else wrap.append(h('div', { class: 'title-type', 'aria-hidden': 'true' }, h('span', { class: 'l1' }, tx('page.nameLine1')), h('span', { class: 'key' }), h('span', { class: 'l2' }, tx('page.nameLine2'))));
   return wrap;
 }
 
@@ -43,7 +44,7 @@ export function openTitle(game) {
   let root = null;
 
   const setMode = (m) => { mode = m; root?.classList.toggle('nav', m === 'nav'); const hint = root?.querySelector('.title-hint'); if (hint) hint.textContent = hintText(); };
-  const hintText = () => (mode === 'nav' ? 'A select · B back · Menu start' : (isMobile ? 'Tap Press Start' : 'Move left stick for options'));
+  const hintText = () => (mode === 'nav' ? tx('title.hintNav') : (isMobile ? tx('title.hintTap') : tx('title.hintIdle')));
   const start = (device) => {
     if (starting) return; starting = true;
     if (device) game.input.lastDevice = device;
@@ -69,11 +70,11 @@ export function openTitle(game) {
     const b = root?.querySelector('[data-act=fullscreen]'); if (!b) return;
     const on = !!document.fullscreenElement;
     b.setAttribute('aria-pressed', String(on)); b.querySelector('.ic').innerHTML = on ? ICONS.exitfs : ICONS.fullscreen;
-    b.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen'); b.querySelector('.lbl').textContent = on ? 'Exit fullscreen' : 'Fullscreen';
+    b.setAttribute('aria-label', on ? tx('title.exitFullscreen') : tx('title.fullscreen')); b.querySelector('.lbl').textContent = on ? tx('title.exitFullscreen') : tx('title.fullscreen');
   };
   const syncSound = () => {
     const b = root?.querySelector('[data-act=sound]'); if (!b) return;
-    const on = !game.audio?.muted, label = on ? 'Sound on' : 'Sound off';
+    const on = !game.audio?.muted, label = on ? tx('title.soundOn') : tx('title.soundOff');
     b.setAttribute('aria-pressed', String(on)); b.classList.toggle('off', !on);
     b.querySelector('.ic').innerHTML = on ? ICONS.soundOn : ICONS.soundOff;
     b.setAttribute('aria-label', label); b.title = label; b.querySelector('.lbl').textContent = label;
@@ -92,15 +93,15 @@ export function openTitle(game) {
       h('div', { class: 'title-vignette', 'aria-hidden': 'true' }),
       h('div', { class: 'title-center' },
         makeLogo(),
-        h('button', { class: 'press-start', 'data-autofocus': true, onclick: () => start() }, h('span', {}, 'Press Start')),
+        h('button', { class: 'press-start', 'data-autofocus': true, onclick: () => start() }, h('span', {}, tx('title.pressStart'))),
         h('div', { class: 'title-hint', 'aria-live': 'polite' }, hintText())),
-      h('div', { class: 'title-foot' }, `Level ${save.level} · ${save.coins} drachmas`),
-      h('div', { class: 'title-utils', role: 'group', 'aria-label': 'Options' },
-        util('instructions', 'Instructions', ICONS.instructions, () => open(openInstructions)),
-        util('settings', 'Settings', ICONS.settings, () => open(openSettings)),
-        settings.debug ? util('debug', 'Debug: scenes', ICONS.settings, () => openDebugMenu(game)) : null,
-        util('sound', 'Sound on', ICONS.soundOn, toggleSound),
-        util('fullscreen', 'Fullscreen', ICONS.fullscreen, toggleFs)));
+      h('div', { class: 'title-foot' }, tx('title.footer', { level: save.level, coins: save.coins })),
+      h('div', { class: 'title-utils', role: 'group', 'aria-label': tx('title.options') },
+        util('instructions', tx('title.instructions'), ICONS.instructions, () => open(openInstructions)),
+        util('settings', tx('title.settings'), ICONS.settings, () => open(openSettings)),
+        settings.debug ? util('debug', tx('title.debug'), ICONS.settings, () => openDebugMenu(game)) : null,
+        util('sound', tx('title.soundOn'), ICONS.soundOn, toggleSound),
+        util('fullscreen', tx('title.fullscreen'), ICONS.fullscreen, toggleFs)));
     window.addEventListener('keydown', onKey);
     document.addEventListener('fullscreenchange', onFs);
     onFs(); syncSound();

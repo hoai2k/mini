@@ -20,6 +20,7 @@ import * as THREE from 'three/webgpu';
 import { h } from '../ui/ui.js';
 import { prefersReducedMotion } from '../settings.js';
 import { artReady } from '../ui/art.js';
+import { t } from '../text_config.js';
 import { clearTurn, turnAbout, seenAt } from './framing.js';
 
 const HOLD = 0.85;   // seconds of holding to skip
@@ -49,7 +50,7 @@ export class Cutscene {
     this.update(0);
   }
   buildOverlay() {
-    const el = this.el = h('section', { class: 'cutscene', role: 'dialog', 'aria-label': this.def.title ?? 'Cutscene' },
+    const el = this.el = h('section', { class: 'cutscene', role: 'dialog', 'aria-label': this.def.title ?? t('cutscenes.ariaLabel') },
       h('div', { class: 'cs-bar top' }), h('div', { class: 'cs-bar bottom' }),
       this.cardEl = h('div', { class: 'cs-card hidden' }, this.cardImg = h('img', { alt: '', draggable: 'false' })),
       this.subEl = h('p', { class: 'cs-sub', 'aria-live': 'polite' }),
@@ -62,7 +63,7 @@ export class Cutscene {
   }
   skipText() {
     const pad = this.game.input?.lastDevice?.startsWith?.('pad'), touch = this.game.input?.lastDevice === 'touch';
-    return `Hold ${pad ? 'A' : touch ? 'the screen' : 'Esc'} to skip`;
+    return t(pad ? 'cutscenes.skip.pad' : touch ? 'cutscenes.skip.touch' : 'cutscenes.skip.kbm');
   }
   nextShot() {
     this.shotIdx++; this.shotT = 0;
@@ -158,7 +159,7 @@ export class Cutscene {
     const g = this.game;
     if (this.remote) {
       g.online?.cutsceneSkip?.(this.id);
-      this.skipEl.querySelector('.txt').textContent = 'Waiting for the others…';
+      this.skipEl.querySelector('.txt').textContent = t('cutscenes.waitingOthers');
       return;
     }
     // the host (or someone alone) skips for everyone
@@ -171,7 +172,7 @@ export class Cutscene {
     if (this.remote) {
       // guests hold on the last picture until the host moves on
       this.waiting = true; this.fade('black', 0, 0.85, 0.5);
-      this.skipEl.querySelector('.txt').textContent = 'Waiting for the host…';
+      this.skipEl.querySelector('.txt').textContent = t('cutscenes.waitingHost');
       this.done = true;
       return;
     }

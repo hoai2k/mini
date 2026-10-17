@@ -17,10 +17,11 @@ import { PLAYER_COLORS } from '../entities/player.js';
 import { isMobile } from '../util.js';
 import { openStart } from './saves.js';
 import { selectOptions, STORY_HEROES } from '../partyRules.js';
+import { t as tx, tn } from '../text_config.js';
 
 const ALL = Object.keys(HEROES);
-const devName = (d) => (d === 'kbm' ? 'Keyboard' : d === 'touch' ? 'Touch' : 'Controller ' + (+d.slice(3) + 1));
-const lockText = (id) => { const u = HEROES[id].unlock, ch = /^ch(\d+)$/.exec(u ?? ''); return ch ? `Joins in chapter ${ch[1]}` : 'Coming in ' + (u === 'book3' ? 'book 3' : u === 'book2' ? 'book 2' : 'a later book'); };
+const devName = (d) => (d === 'kbm' ? tx('heroSelect.device.keyboard') : d === 'touch' ? tx('heroSelect.device.touch') : tx('heroSelect.device.controller', { n: +d.slice(3) + 1 }));
+const lockText = (id) => { const u = HEROES[id].unlock, ch = /^ch(\d+)$/.exec(u ?? ''); return ch ? tx('heroSelect.lock.chapter', { n: ch[1] }) : u === 'book3' ? tx('heroSelect.lock.book3') : u === 'book2' ? tx('heroSelect.lock.book2') : tx('heroSelect.lock.later'); };
 
 export function openSelect(game, { skipStart = false } = {}) {
   const ui = game.ui;
@@ -78,7 +79,7 @@ export function openSelect(game, { skipStart = false } = {}) {
     comps[j] = opts[(i + dir + opts.length) % opts.length]; compsAuto = false; game.audio?.ui('move'); redraw();
   };
   // profiles: the ones nobody else on this screen is using, then "a new one"
-  const profName = (s) => (s.prof === 'new' ? 'New profile' : P.profile(s.prof)?.name ?? 'Player');
+  const profName = (s) => (s.prof === 'new' ? tx('heroSelect.newProfile') : P.profile(s.prof)?.name ?? tx('heroSelect.defaultProfile'));
   const cycleProfile = (s) => {
     const used = new Set(slots.filter((x) => x !== s).map((x) => x.prof));
     const opts = [...P.list().map((p) => p.id).filter((id) => !used.has(id)), 'new'];
@@ -124,13 +125,13 @@ export function openSelect(game, { skipStart = false } = {}) {
   const chip = (id, s) => {
     const info = HEROES[id], idx = ids.indexOf(id);
     if (opening && !allowed(slots.indexOf(s)).includes(id)) return null;   // (the story gives each player one hero)
-    if (idx < 0 || !unlocked(id)) return h('span', { class: 'chip locked', title: lockText(id), 'aria-label': `${info.name}: ${lockText(id)}` }, h('i', { style: '--c:#555' }, '🔒'));
+    if (idx < 0 || !unlocked(id)) return h('span', { class: 'chip locked', title: lockText(id), 'aria-label': tx('heroSelect.lockedAria', { name: info.name, lock: lockText(id) }) }, h('i', { style: '--c:#555' }, '🔒'));
     return h('button', { class: 'chip' + (s.char === idx ? ' on' : ''), title: info.name, 'aria-label': info.name, 'aria-pressed': String(s.char === idx), style: `--c:${info.color}`, onclick: () => setHero(s, idx) }, h('i', {}, info.name[0]));
   };
   const compRow = (j, s) => {
     const id = comps[j], info = id ? HEROES[id] : null;
-    return h('button', { class: 'comp' + (s.row === j + 1 ? ' cur' : ''), 'aria-label': `Companion ${j + 1}: ${info?.name ?? 'none'}`, onclick: () => changeComp(j, 1) },
-      h('i', { class: 'pt', style: `--c:${info?.color ?? '#555'}` }, info ? info.name[0] : '–'), h('span', { class: 'cn2' }, info ? info.name : 'No one'), h('span', { class: 'sub' }, info ? info.title : 'Go it alone'), h('em', {}, '⟳'));
+    return h('button', { class: 'comp' + (s.row === j + 1 ? ' cur' : ''), 'aria-label': tx('heroSelect.companionAria', { n: j + 1, name: info?.name ?? tx('heroSelect.none') }), onclick: () => changeComp(j, 1) },
+      h('i', { class: 'pt', style: `--c:${info?.color ?? '#555'}` }, info ? info.name[0] : '–'), h('span', { class: 'cn2' }, info ? info.name : tx('heroSelect.noOne')), h('span', { class: 'sub' }, info ? info.title : tx('heroSelect.goAlone')), h('em', {}, '⟳'));
   };
 
   const render = (el) => {
@@ -138,47 +139,47 @@ export function openSelect(game, { skipStart = false } = {}) {
     for (let i = 0; i < 4; i++) {
       const s = slots[i], pc = PLAYER_COLORS[i];
       if (!s) {
-        cards.appendChild(h('div', { class: 'slot empty-slot', style: `--pc:${pc}` }, h('div', { class: 'pn' }, `Player ${i + 1}`),
-          h('div', { class: 'empty' }, isMobile ? '—' : 'Press A or Start on a controller to join'),
-          !slots.some((x) => x.device === 'kbm') && !isMobile ? h('button', { class: 'btn small', onclick: () => join('kbm') }, 'Join with keyboard') : null));
+        cards.appendChild(h('div', { class: 'slot empty-slot', style: `--pc:${pc}` }, h('div', { class: 'pn' }, tx('heroSelect.player', { n: i + 1 })),
+          h('div', { class: 'empty' }, isMobile ? '—' : tx('heroSelect.joinHint')),
+          !slots.some((x) => x.device === 'kbm') && !isMobile ? h('button', { class: 'btn small', onclick: () => join('kbm') }, tx('heroSelect.joinKeyboard')) : null));
         continue;
       }
       const id = heroOf(s), info = HEROES[id];
       const prof = s.prof === 'new' ? null : P.profile(s.prof);
       cards.appendChild(h('div', { class: 'slot joined' + (s.ready ? ' ready' : ''), style: `--pc:${pc};--hc:${info.color}` },
-        h('div', { class: 'pn' }, `Player ${i + 1} · ${devName(s.device)}`),
-        h('button', { class: 'linkbtn prof', title: 'Profile: saved progress (X on a controller to change)', 'aria-label': `Profile ${profName(s)}, change`, onclick: () => cycleProfile(s) }, `👤 ${profName(s)} · Lv ${prof?.data.level ?? 1} ⟳`),
+        h('div', { class: 'pn' }, tx('heroSelect.playerDevice', { n: i + 1, device: devName(s.device) })),
+        h('button', { class: 'linkbtn prof', title: tx('heroSelect.profileTitle'), 'aria-label': tx('heroSelect.profileAria', { name: profName(s) }), onclick: () => cycleProfile(s) }, tx('heroSelect.profileLabel', { name: profName(s), level: prof?.data.level ?? 1 })),
         h('img', { class: 'hero-art', src: `assets/heroes/${id}-card.jpg`, alt: '', onerror: (e) => e.target.remove() }),
         h('div', { class: 'cn', style: `color:${info.color}` }, info.full ?? info.name),
         h('div', { class: 'ct' }, info.title),
-        h('div', { class: 'cp' }, `Parent: ${info.parent}`),
+        h('div', { class: 'cp' }, tx('heroSelect.parent', { parent: info.parent })),
         h('div', { class: 'cd' }, info.desc),
-        h('div', { class: 'cg' }, h('b', {}, 'Godly power '), info.power),
-        opening ? null : h('div', { class: 'chips', role: 'group', 'aria-label': 'Choose a hero' }, ...ALL.map((x) => chip(x, s))),
+        h('div', { class: 'cg' }, h('b', {}, tx('heroSelect.godlyPower')), info.power),
+        opening ? null : h('div', { class: 'chips', role: 'group', 'aria-label': tx('heroSelect.chooseHeroGroup') }, ...ALL.map((x) => chip(x, s))),
         h('div', { class: 'arrows' },
-          opening ? null : h('button', { class: 'btn small', 'aria-label': 'Previous hero', onclick: () => changeHero(s, -1) }, '◀'),
-          h('button', { class: 'btn small' + (s.ready ? ' primary' : ''), onclick: () => (s.ready && i === 0 ? begin() : act(s, 'a')) }, s.ready ? (i === 0 ? 'Ready: begin' : 'Ready ✓') : 'Ready'),
-          opening ? null : h('button', { class: 'btn small', 'aria-label': 'Next hero', onclick: () => changeHero(s, 1) }, '▶')),
-        i > 0 ? h('button', { class: 'linkbtn', onclick: () => leave(s) }, 'Leave') : null));
+          opening ? null : h('button', { class: 'btn small', 'aria-label': tx('heroSelect.prevHero'), onclick: () => changeHero(s, -1) }, '◀'),
+          h('button', { class: 'btn small' + (s.ready ? ' primary' : ''), onclick: () => (s.ready && i === 0 ? begin() : act(s, 'a')) }, s.ready ? (i === 0 ? tx('heroSelect.readyBegin') : tx('heroSelect.readyDone')) : tx('heroSelect.ready')),
+          opening ? null : h('button', { class: 'btn small', 'aria-label': tx('heroSelect.nextHero'), onclick: () => changeHero(s, 1) }, '▶')),
+        i > 0 ? h('button', { class: 'linkbtn', onclick: () => leave(s) }, tx('heroSelect.leave')) : null));
     }
     const soon = opening ? [] : ALL.filter((x) => ids.indexOf(x) < 0);
     const n = compRows();
-    const party = n ? h('div', { class: 'party' }, h('h3', {}, n === 2 ? 'Your party' : 'The third hero'),
-      h('div', { class: 'hint', style: 'margin:0 0 6px' }, n === 2 ? 'Companions follow you as allies. Switch to one in play with D-pad ↓ or F.' : 'An AI companion fights alongside you both. Either of you can swap into it with D-pad ↓ or F.'),
+    const party = n ? h('div', { class: 'party' }, h('h3', {}, n === 2 ? tx('heroSelect.yourParty') : tx('heroSelect.thirdHero')),
+      h('div', { class: 'hint', style: 'margin:0 0 6px' }, n === 2 ? tx('heroSelect.partyHint') : tx('heroSelect.thirdHint')),
       h('div', { class: 'comps' }, ...[0, 1].slice(0, n).map((j) => compRow(j, slots[0])))) : null;
     el.appendChild(h('div', { class: 'select-wrap' },
-      h('div', { class: 'select-top' }, h('span', {}, opening ? 'The Story Begins' : 'Choose Your Hero')),
+      h('div', { class: 'select-top' }, h('span', {}, opening ? tx('heroSelect.storyBegins') : tx('heroSelect.chooseHero'))),
       h('div', { class: 'select-mid', 'aria-hidden': 'true' }),
       h('div', { class: 'select-low' }, cards, party,
         h('div', { class: 'select-foot' },
-          h('button', { class: 'btn', onclick: back }, 'Back'),
-          h('button', { class: 'btn', onclick: () => openProfiles(game, redraw) }, 'Profiles'),
+          h('button', { class: 'btn', onclick: back }, tx('common.back')),
+          h('button', { class: 'btn', onclick: () => openProfiles(game, redraw) }, tx('heroSelect.profiles')),
           h('div', { class: 'hint', style: 'margin:0;text-align:center' },
-            soon.length ? h('div', {}, '🔒 ' + soon.map((x) => HEROES[x].name).join(' · ') + ': ' + lockText(soon[0])) : null,
-            opening ? h('div', {}, 'The story begins with Percy. More players join as Grover, then Annabeth and Clarisse. At Camp Half-Blood you can choose any hero you have met.') : null,
-            h('div', {}, (opening ? '' : '◀ ▶ hero' + (n ? ' · ▲ ▼ companions' : '') + ' · ') + 'X profile · A ready · Y online · Start begin')),
-          h('button', { class: 'btn', onclick: () => begin(true) }, 'Play online'),
-          h('button', { class: 'btn primary', onclick: () => begin() }, 'Begin the Quest ▶')))));
+            soon.length ? h('div', {}, tx('heroSelect.soon', { names: soon.map((x) => HEROES[x].name).join(' · '), lock: lockText(soon[0]) })) : null,
+            opening ? h('div', {}, tx('heroSelect.storyNote')) : null,
+            h('div', {}, opening ? tx('heroSelect.controlsOpening') : n ? tx('heroSelect.controlsCompanions') : tx('heroSelect.controls'))),
+          h('button', { class: 'btn', onclick: () => begin(true) }, tx('heroSelect.playOnline')),
+          h('button', { class: 'btn primary', onclick: () => begin() }, tx('heroSelect.begin'))))));
   };
 
   let prev = padSnap(game);
@@ -218,36 +219,36 @@ export function openProfiles(game, onDone) {
   let shown = null, msg = '';
   const close = () => { ui.close('profiles'); onDone?.(); };
   ui.open('profiles', (el) => {
-    const panel = h('div', { class: 'panel', style: 'width:min(620px,95vw);max-height:92vh;overflow:auto' }, h('h2', {}, 'Profiles'),
-      h('p', { class: 'hint' }, 'Each player’s progress is kept in their profile: level, drachmas, gear for every hero, chapters and the prophecy. To play the same profile on another device, copy its code there and paste it under “Bring a profile here”: progress from both is combined, and nothing is counted twice.'));
+    const panel = h('div', { class: 'panel', style: 'width:min(620px,95vw);max-height:92vh;overflow:auto' }, h('h2', {}, tx('heroSelect.profilesScreen.title')),
+      h('p', { class: 'hint' }, tx('heroSelect.profilesScreen.intro')));
     for (const p of P.list()) {
-      const name = h('input', { type: 'text', maxlength: '16', value: p.name, 'aria-label': `Name of ${p.name}`, style: 'width:10em' });
+      const name = h('input', { type: 'text', maxlength: '16', value: p.name, 'aria-label': tx('heroSelect.profilesScreen.nameOf', { name: p.name }), style: 'width:10em' });
       name.addEventListener('keydown', (e) => e.stopPropagation());
       name.addEventListener('change', () => { P.rename(p.id, name.value); });
       panel.appendChild(h('div', { class: 'stat-line', style: 'gap:8px;flex-wrap:wrap;align-items:center' },
-        name, h('span', { class: 'hint' }, `Level ${p.level} · ${p.chapters} chapter${p.chapters === 1 ? '' : 's'}${p.main ? ' · this device’s main profile' : ''}`),
-        h('button', { class: 'btn small', onclick: () => { shown = p.id; ui.refresh('profiles'); } }, 'Code'),
-        !p.main ? h('button', { class: 'btn small danger', onclick: () => { P.remove(p.id); ui.refresh('profiles'); } }, 'Remove') : null));
+        name, h('span', { class: 'hint' }, tx('heroSelect.profilesScreen.line', { level: p.level, chapters: tn('heroSelect.profilesScreen.chapters', p.chapters), main: p.main ? tx('heroSelect.profilesScreen.mainSuffix') : '' })),
+        h('button', { class: 'btn small', onclick: () => { shown = p.id; ui.refresh('profiles'); } }, tx('heroSelect.profilesScreen.code')),
+        !p.main ? h('button', { class: 'btn small danger', onclick: () => { P.remove(p.id); ui.refresh('profiles'); } }, tx('heroSelect.profilesScreen.remove')) : null));
       if (shown === p.id) {
         const code = P.exportCode(p.id);
-        const ta = h('textarea', { readonly: true, rows: 3, style: 'width:100%;font-size:11px', 'aria-label': 'Profile code' }); ta.value = code;
+        const ta = h('textarea', { readonly: true, rows: 3, style: 'width:100%;font-size:11px', 'aria-label': tx('heroSelect.profilesScreen.codeAria') }); ta.value = code;
         panel.appendChild(ta);
-        panel.appendChild(h('button', { class: 'btn small', onclick: () => { navigator.clipboard?.writeText(code).then(() => toast('Copied'), () => { ta.select(); }); } }, 'Copy'));
+        panel.appendChild(h('button', { class: 'btn small', onclick: () => { navigator.clipboard?.writeText(code).then(() => toast(tx('heroSelect.profilesScreen.copied')), () => { ta.select(); }); } }, tx('heroSelect.profilesScreen.copy')));
       }
     }
-    panel.appendChild(h('h3', {}, 'Bring a profile here'));
-    const paste = h('textarea', { rows: 3, placeholder: 'HBQ2.…', style: 'width:100%;font-size:11px', 'aria-label': 'Paste a profile code' });
+    panel.appendChild(h('h3', {}, tx('heroSelect.profilesScreen.bringHeader')));
+    const paste = h('textarea', { rows: 3, placeholder: tx('heroSelect.profilesScreen.pastePlaceholder'), style: 'width:100%;font-size:11px', 'aria-label': tx('heroSelect.profilesScreen.pasteAria') });
     paste.addEventListener('keydown', (e) => e.stopPropagation());
     panel.appendChild(paste);
     panel.appendChild(h('div', { class: 'row', style: 'gap:8px;justify-content:space-between;margin-top:8px' },
       h('button', { class: 'btn small', onclick: () => {
         const r = P.importCode(paste.value);
-        msg = !r ? 'That isn’t a profile code.' : r.merged ? `Combined with ${r.save.name}.` : `Added ${r.save.name}.`;
+        msg = !r ? tx('heroSelect.profilesScreen.notCode') : r.merged ? tx('heroSelect.profilesScreen.combined', { name: r.save.name }) : tx('heroSelect.profilesScreen.added', { name: r.save.name });
         if (r) for (const q of game.players) if (!q.remote) q.refreshLoadout?.();
         ui.refresh('profiles');
-      } }, 'Bring it here'),
+      } }, tx('heroSelect.profilesScreen.bringIt')),
       h('span', { class: 'hint', 'aria-live': 'polite' }, msg),
-      h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Done')));
+      h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, tx('common.done'))));
     el.appendChild(panel);
   }, { dim: true, onBack: close });
 }

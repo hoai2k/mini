@@ -5,6 +5,7 @@
 // out of the column. Drawn on a canvas overlay in blocky pixel art; the game
 // is paused underneath while it runs.
 import { HEROES } from '../heroes/index.js';
+import { t as txt } from '../text_config.js';
 
 const HEIGHT = 60;           // metres to the top
 // Tuned with a replica simulation (comfort audit): a first-timer reacting in
@@ -30,7 +31,7 @@ export class ClimbingWall {
     this.el = document.createElement('div');
     this.el.className = 'minigame-overlay';
     this.el.setAttribute('role', 'dialog');
-    this.el.setAttribute('aria-label', 'Climbing wall minigame');
+    this.el.setAttribute('aria-label', txt('minigames.climb.ariaLabel'));
     Object.assign(this.el.style, { position: 'fixed', inset: '0', zIndex: 60, background: 'rgba(8,10,20,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' });
     this.cv = document.createElement('canvas');
     this.cv.width = 480; this.cv.height = 640;
@@ -59,7 +60,7 @@ export class ClimbingWall {
     if (this.shakeT <= 0 && !this.shaking) { this.shaking = 1.6; this.shakeT = 5 + Math.random() * 4; this.game.audio?.impact?.(0.5); }
     if (this.shaking > 0) {
       this.shaking -= dt;
-      if (!k.grip && this.shaking < 1.2) { this.slipT += dt; if (this.slipT > 0.25) { this.fall(4, 'You slipped! Hold on when the wall shakes.'); this.slipT = 0; } }
+      if (!k.grip && this.shaking < 1.2) { this.slipT += dt; if (this.slipT > 0.25) { this.fall(4, txt('minigames.climb.slipped')); this.slipT = 0; } }
       if (this.shaking <= 0) this.shaking = 0;
     } else this.slipT = 0;
     // climbing (not while gripping through a shake)
@@ -77,7 +78,7 @@ export class ClimbingWall {
     }
     for (const l of this.lava) {
       if (l.warn > 0) l.warn -= dt; else l.pour -= dt;
-      if (l.warn <= 0 && l.pour > 0 && l.lane === this.lane && this.stun <= 0) this.fall(4, 'Lava! Move to another handhold.');
+      if (l.warn <= 0 && l.pour > 0 && l.lane === this.lane && this.stun <= 0) this.fall(4, txt('minigames.climb.lava'));
     }
     this.lava = this.lava.filter((l) => l.pour > 0);
     this.draw();
@@ -104,7 +105,7 @@ export class ClimbingWall {
     }
     // the top ledge
     const topY = H * 0.62 - (HEIGHT - this.y) * 40;
-    if (topY > -40) { c.fillStyle = '#2e8b6e'; c.fillRect(0, topY - 40, W, 40); c.fillStyle = '#f4ead5'; c.font = 'bold 20px Cinzel, serif'; c.textAlign = 'center'; c.fillText('THE TOP', W / 2, topY - 14); }
+    if (topY > -40) { c.fillStyle = '#2e8b6e'; c.fillRect(0, topY - 40, W, 40); c.fillStyle = '#f4ead5'; c.font = 'bold 20px Cinzel, serif'; c.textAlign = 'center'; c.fillText(txt('minigames.climb.top'), W / 2, topY - 14); }
     // lava
     for (const l of this.lava) {
       const x = l.lane * LW;
@@ -126,15 +127,15 @@ export class ClimbingWall {
     // HUD
     c.fillStyle = 'rgba(16,35,61,.85)'; c.fillRect(0, 0, W, 44);
     c.fillStyle = '#f4ead5'; c.font = 'bold 18px Cinzel, serif'; c.textAlign = 'left';
-    c.fillText(`${Math.floor(this.y)} / ${HEIGHT} m`, 12, 28);
-    c.textAlign = 'right'; c.fillText(`${Math.max(0, Math.ceil(this.t))} s`, W - 12, 28);
+    c.fillText(txt('minigames.climb.height', { n: Math.floor(this.y), max: HEIGHT }), 12, 28);
+    c.textAlign = 'right'; c.fillText(txt('minigames.climb.seconds', { n: Math.max(0, Math.ceil(this.t)) }), W - 12, 28);
     c.textAlign = 'center';
-    if (this.shaking > 0) { c.fillStyle = '#ffd84a'; c.font = 'bold 26px Cinzel, serif'; c.fillText('HOLD ON! (A / Space)', W / 2, 90); }
+    if (this.shaking > 0) { c.fillStyle = '#ffd84a'; c.font = 'bold 26px Cinzel, serif'; c.fillText(txt('minigames.climb.holdOn'), W / 2, 90); }
     if (this.msgT > 0) { this.msgT -= 1 / 60; c.fillStyle = '#ff9a6a'; c.font = 'bold 18px Cinzel, serif'; c.fillText(this.msg, W / 2, 124); }
     c.fillStyle = 'rgba(16,35,61,.85)'; c.fillRect(0, H - 46, W, 46);
     c.fillStyle = 'rgba(244,234,213,.9)'; c.font = '14px sans-serif';
-    c.fillText('Stick / WASD: climb and change handholds', W / 2, H - 27);
-    c.fillText('A / Space: hold on · Menu / Esc: give up', W / 2, H - 9);
+    c.fillText(txt('minigames.climb.controlsClimb'), W / 2, H - 27);
+    c.fillText(txt('minigames.climb.controlsHold'), W / 2, H - 9);
   }
   finish(won, quit = false) {
     if (this.done) return;
@@ -143,7 +144,7 @@ export class ClimbingWall {
     this.el.remove();
     const g = this.game, d = g.save.data;
     g.paused = false; g.minigame = null; g.audio?.setOverride?.(null); g.last = performance.now();
-    if (quit) { g.toast?.('You let go of the wall.'); return; }
+    if (quit) { g.toast?.(txt('minigames.climb.quit')); return; }
     const time = TIME - this.t;
     if (won) {
       const best = (d.minigames ??= {}).climb;
@@ -151,10 +152,10 @@ export class ClimbingWall {
       if (record) d.minigames.climb = Math.round(time * 10) / 10;
       const drachmas = Math.max(5, Math.round(40 - time / 2));
       g.addCoins(drachmas); g.save.write();
-      g.toast?.(`You reached the top in ${time.toFixed(1)} s${record ? ' — camp record!' : ''} · +${drachmas} drachmas`, 'big');
+      g.toast?.(txt('minigames.climb.won', { time: time.toFixed(1), record: record ? txt('minigames.climb.campRecord') : '', drachmas }), 'big');
       g.audio?.levelUp?.();
     } else {
-      g.toast?.(`Out of time at ${Math.floor(this.y)} m. The lava wins this round.`, 'big');
+      g.toast?.(txt('minigames.climb.lost', { n: Math.floor(this.y) }), 'big');
     }
   }
 }

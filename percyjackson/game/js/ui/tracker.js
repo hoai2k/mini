@@ -12,6 +12,7 @@
 import * as THREE from 'three/webgpu';
 import { h } from './ui.js';
 import { prefersReducedMotion } from '../settings.js';
+import { t as tx } from '../text_config.js';
 
 const STEPS = 30;          // footprints shown ahead of the leader
 const GAP = 1.5;           // metres between footprints
@@ -149,7 +150,7 @@ export class Tracker {
     let sx = (tmp.x * 0.5 + 0.5) * sw, sy = (-tmp.y * 0.5 + 0.5) * sh;
     if (behind) { sx = sw - sx; sy = sh - sy; }
     const m = 56, mt = 96, mb = 140;   // (margins clear the objective ribbon and the hero cards)
-    const label = dist < 3 ? '' : `${Math.round(dist)} m`;
+    const label = dist < 3 ? '' : tx('tracker.distance', { n: Math.round(dist) });
     if (!behind && sx > m && sx < sw - m && sy > mt && sy < sh - mb) {
       this.arrow.classList.add('hidden'); this.pin.classList.remove('hidden');
       this.pin.style.transform = `translate(${sx.toFixed(0)}px, ${sy.toFixed(0)}px)`;

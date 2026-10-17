@@ -4,10 +4,11 @@ import * as THREE from 'three/webgpu';
 import { screenUV, color, mix, smoothstep, vec3, uniform, positionWorldDirection, normalize, pow, max, float } from 'three/tsl';
 import { B } from './blocks.js';
 import { Grade } from '../gfx/renderer.js';
+import { t as txt } from '../text_config.js';
 
 export const BIOMES = {
   jujutsu_high: {
-    name: 'Jujutsu High', sub: 'School Grounds · Night',
+    name: txt('biomes.jujutsu_high.name'), sub: txt('biomes.jujutsu_high.sub'),
     skyTop: 0x0a1030, skyHorizon: 0x2a2a52, fog: 0x1c2040, fogDensity: 0.018,
     hemiSky: 0x6a78b8, hemiGround: 0x2a2018, hemiI: 0.5, sun: 0xa8b8ff, sunI: 1.0,
     grade: { tint: [1.0, 0.98, 1.04], lift: [0.0, 0.0, 0.015], sat: 1.08, contrast: 1.06, vignette: 0.32 },
@@ -15,7 +16,7 @@ export const BIOMES = {
     ambience: 'night', music: 'shrine', particles: 'fireflies', wind: 1,
   },
   tokyo_night: {
-    name: 'Ruined Tokyo', sub: 'Streets at Night',
+    name: txt('biomes.tokyo_night.name'), sub: txt('biomes.tokyo_night.sub'),
     skyTop: 0x05060e, skyHorizon: 0x2e1a2c, fog: 0x20141e, fogDensity: 0.022,
     hemiSky: 0x6070a0, hemiGround: 0x201418, hemiI: 0.7, sun: 0x8898d8, sunI: 0.8,
     grade: { tint: [1.02, 0.96, 1.06], lift: [0.01, 0.0, 0.02], sat: 1.15, contrast: 1.1, vignette: 0.38 },
@@ -23,7 +24,7 @@ export const BIOMES = {
     ambience: 'city', music: 'city', particles: 'embers', wind: 0.6,
   },
   cursed_forest: {
-    name: 'Cursed Forest', sub: 'Where the Curses Nest',
+    name: txt('biomes.cursed_forest.name'), sub: txt('biomes.cursed_forest.sub'),
     skyTop: 0x06080a, skyHorizon: 0x14201a, fog: 0x14201c, fogDensity: 0.03,
     hemiSky: 0x6a8a7a, hemiGround: 0x1a1420, hemiI: 0.75, sun: 0x9ab8a8, sunI: 0.7,
     grade: { tint: [0.96, 1.02, 0.98], lift: [0.0, 0.01, 0.005], sat: 0.95, contrast: 1.12, vignette: 0.45 },
@@ -31,7 +32,7 @@ export const BIOMES = {
     ambience: 'forest', music: 'forest', particles: 'spores', wind: 1.4,
   },
   flooded_subway: {
-    name: 'Flooded Subway', sub: 'Toei Line · Abandoned',
+    name: txt('biomes.flooded_subway.name'), sub: txt('biomes.flooded_subway.sub'),
     skyTop: 0x040608, skyHorizon: 0x0a1418, fog: 0x0c1a1e, fogDensity: 0.028,
     hemiSky: 0x5a7a88, hemiGround: 0x101418, hemiI: 0.55, sun: 0x6a8a9a, sunI: 0.35,
     grade: { tint: [0.94, 1.02, 1.06], lift: [0.0, 0.01, 0.02], sat: 0.9, contrast: 1.1, vignette: 0.45 },
@@ -39,7 +40,7 @@ export const BIOMES = {
     ambience: 'drips', music: 'subway', particles: 'drips', wind: 0.2, flooded: true,
   },
   shibuya: {
-    name: 'Shibuya Station', sub: 'Halloween · The Incident',
+    name: txt('biomes.shibuya.name'), sub: txt('biomes.shibuya.sub'),
     skyTop: 0x0c0408, skyHorizon: 0x3a1214, fog: 0x2a1014, fogDensity: 0.02,
     hemiSky: 0xa06a6a, hemiGround: 0x201010, hemiI: 0.75, sun: 0xff8a6a, sunI: 0.9,
     grade: { tint: [1.06, 0.96, 0.94], lift: [0.02, 0.0, 0.0], sat: 1.12, contrast: 1.12, vignette: 0.4 },
@@ -49,7 +50,7 @@ export const BIOMES = {
   // ---------------------------------------------------------------- Half-Blood Quests
   // The hub: a sunny Long Island valley.
   camp: {
-    id: 'camp', name: 'Camp Half-Blood', sub: 'Long Island Sound · Summer',
+    id: 'camp', name: txt('biomes.camp.name'), sub: txt('biomes.camp.sub'),
     skyTop: 0x3f86d8, skyHorizon: 0xc4e4f4, fog: 0xc8e2ee, fogDensity: 0.0055,
     hemiSky: 0xd8ecff, hemiGround: 0x7a6a44, hemiI: 1.15, sun: 0xfff0d2, sunI: 2.6,
     grade: { tint: [1.04, 1.01, 0.96], lift: [0.012, 0.01, 0.0], sat: 1.12, contrast: 1.04, vignette: 0.18 },
@@ -58,7 +59,7 @@ export const BIOMES = {
   },
   // The prologue: a Manhattan street on a bright spring morning (the field trip).
   manhattan: {
-    id: 'manhattan', name: 'Manhattan', sub: 'The Morning of the Field Trip',
+    id: 'manhattan', name: txt('biomes.manhattan.name'), sub: txt('biomes.manhattan.sub'),
     skyTop: 0x4a8ad8, skyHorizon: 0xf0dcc0, fog: 0xd8d4cc, fogDensity: 0.0045,
     hemiSky: 0xdceaff, hemiGround: 0x6a5a4a, hemiI: 1.1, sun: 0xffe6c0, sunI: 2.4,
     grade: { tint: [1.04, 1.0, 0.95], lift: [0.012, 0.008, 0.0], sat: 1.1, contrast: 1.05, vignette: 0.2 },
@@ -67,7 +68,7 @@ export const BIOMES = {
   },
   // Chapter 1: the Greek and Roman galleries of a big city museum.
   museum: {
-    id: 'museum', name: 'The Museum', sub: 'Greek and Roman Galleries',
+    id: 'museum', name: txt('biomes.museum.name'), sub: txt('biomes.museum.sub'),
     skyTop: 0x2a1e14, skyHorizon: 0x7a5a3c, fog: 0x3e2e22, fogDensity: 0.016,
     hemiSky: 0xffe4bc, hemiGround: 0x4a3622, hemiI: 1.0, sun: 0xffdcaa, sunI: 1.1,
     grade: { tint: [1.05, 1.0, 0.92], lift: [0.015, 0.008, 0.0], sat: 1.04, contrast: 1.06, vignette: 0.3 },
@@ -77,7 +78,7 @@ export const BIOMES = {
   },
   // Chapter 2: Long Island farmland at night in a violent storm.
   storm_hill: {
-    id: 'storm_hill', name: 'Half-Blood Hill', sub: 'Long Island · Storm',
+    id: 'storm_hill', name: txt('biomes.storm_hill.name'), sub: txt('biomes.storm_hill.sub'),
     skyTop: 0x05070c, skyHorizon: 0x222c3a, fog: 0x18202a, fogDensity: 0.028,
     hemiSky: 0x6a7c9c, hemiGround: 0x1c1a14, hemiI: 0.85, sun: 0x9ab0d8, sunI: 0.85,
     grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.006, 0.02], sat: 0.85, contrast: 1.12, vignette: 0.42 },
@@ -86,7 +87,7 @@ export const BIOMES = {
   },
   // Chapter 3: the camp woods at night, capture the flag.
   camp_woods: {
-    id: 'camp_woods', name: 'The Camp Woods', sub: 'Capture the Flag · Night',
+    id: 'camp_woods', name: txt('biomes.camp_woods.name'), sub: txt('biomes.camp_woods.sub'),
     skyTop: 0x060c1c, skyHorizon: 0x1e3048, fog: 0x12222e, fogDensity: 0.024,
     hemiSky: 0x8aaae0, hemiGround: 0x1a1e14, hemiI: 0.95, sun: 0xbcd0ff, sunI: 1.2,
     grade: { tint: [0.95, 1.0, 1.06], lift: [0.0, 0.008, 0.022], sat: 0.95, contrast: 1.08, vignette: 0.38 },
@@ -95,7 +96,7 @@ export const BIOMES = {
   },
   // Chapter 4: a Greyhound bus on a rainy New Jersey highway, crashed and burning.
   highway: {
-    id: 'highway', name: 'The New Jersey Turnpike', sub: 'The Kindly Ones · Rain',
+    id: 'highway', name: txt('biomes.highway.name'), sub: txt('biomes.highway.sub'),
     skyTop: 0x0a0e16, skyHorizon: 0x3a3a44, fog: 0x262a32, fogDensity: 0.026,
     hemiSky: 0x8a98b8, hemiGround: 0x2a241e, hemiI: 1.1, sun: 0xb8c8e8, sunI: 1.0,
     grade: { tint: [0.97, 0.99, 1.05], lift: [0.008, 0.006, 0.016], sat: 0.88, contrast: 1.12, vignette: 0.4 },
@@ -104,7 +105,7 @@ export const BIOMES = {
   },
   // Chapter 5: Aunty Em's Garden Gnome Emporium at dusk.
   statue_garden: {
-    id: 'statue_garden', name: 'Aunty Em’s Garden Gnome Emporium', sub: 'New Jersey · Dusk',
+    id: 'statue_garden', name: txt('biomes.statue_garden.name'), sub: txt('biomes.statue_garden.sub'),
     skyTop: 0x1a2048, skyHorizon: 0xc87a5a, fog: 0x3e3a4a, fogDensity: 0.02,
     hemiSky: 0xb8b8d8, hemiGround: 0x2a2a1e, hemiI: 0.95, sun: 0xffc090, sunI: 1.3,
     grade: { tint: [1.02, 0.99, 0.98], lift: [0.006, 0.004, 0.014], sat: 0.95, contrast: 1.08, vignette: 0.36 },
@@ -113,7 +114,7 @@ export const BIOMES = {
   },
   // Chapter 6: the Gateway Arch in St. Louis: the steel tram and deck, then the Mississippi.
   arch: {
-    id: 'arch', name: 'The Gateway Arch', sub: 'St. Louis · 630 Feet Up',
+    id: 'arch', name: txt('biomes.arch.name'), sub: txt('biomes.arch.sub'),
     skyTop: 0x3a7ad0, skyHorizon: 0xf2d0a8, fog: 0xd8c8b8, fogDensity: 0.011,
     hemiSky: 0xd8e6ff, hemiGround: 0x4a4440, hemiI: 0.8, sun: 0xfff0d8, sunI: 1.8,
     grade: { tint: [1.0, 1.0, 1.02], lift: [0.004, 0.004, 0.01], sat: 1.06, contrast: 1.1, vignette: 0.26 },
@@ -122,7 +123,7 @@ export const BIOMES = {
   },
   // Chapter 7: Waterland, an abandoned water park in Denver, at night.
   waterland: {
-    id: 'waterland', name: 'Waterland', sub: 'Denver · Closed for the Season',
+    id: 'waterland', name: txt('biomes.waterland.name'), sub: txt('biomes.waterland.sub'),
     skyTop: 0x060a1a, skyHorizon: 0x2a3a5a, fog: 0x1a2436, fogDensity: 0.022,
     hemiSky: 0x9aaad8, hemiGround: 0x2a2018, hemiI: 1.0, sun: 0xb8c8ff, sunI: 1.15,
     grade: { tint: [0.96, 1.0, 1.06], lift: [0.0, 0.008, 0.02], sat: 0.98, contrast: 1.1, vignette: 0.38 },
@@ -131,7 +132,7 @@ export const BIOMES = {
   },
   // Chapter 8: the Lotus Hotel and Casino: neon, carpet and a party that never ends.
   casino: {
-    id: 'casino', name: 'The Lotus Hotel and Casino', sub: 'Las Vegas · Every Game Is Free',
+    id: 'casino', name: txt('biomes.casino.name'), sub: txt('biomes.casino.sub'),
     skyTop: 0x12051e, skyHorizon: 0x6a1a5a, fog: 0x3a1440, fogDensity: 0.016,
     hemiSky: 0xffc0e8, hemiGround: 0x2a0a20, hemiI: 1.1, sun: 0xffe0b0, sunI: 1.1,
     grade: { tint: [1.05, 0.97, 1.03], lift: [0.016, 0.006, 0.02], sat: 1.22, contrast: 1.04, vignette: 0.3 },
@@ -140,7 +141,7 @@ export const BIOMES = {
   },
   // Chapter 9: the Nevada desert and Crusty's Water Bed Palace.
   desert: {
-    id: 'desert', name: 'The Nevada Desert', sub: 'Crusty’s Water Bed Palace',
+    id: 'desert', name: txt('biomes.desert.name'), sub: txt('biomes.desert.sub'),
     skyTop: 0x2a5ab0, skyHorizon: 0xf2b07a, fog: 0xe0a878, fogDensity: 0.012,
     hemiSky: 0xd8e0f0, hemiGround: 0x7a4a2a, hemiI: 0.95, sun: 0xffd8a0, sunI: 2.1,
     grade: { tint: [1.05, 1.0, 0.92], lift: [0.01, 0.004, 0.0], sat: 1.1, contrast: 1.1, vignette: 0.26 },
@@ -149,7 +150,7 @@ export const BIOMES = {
   },
   // Chapter 10: DOA Recording Studios, the River Styx, the Fields of Asphodel and the gates of Erebus.
   underworld: {
-    id: 'underworld', name: 'The Underworld', sub: 'DOA Recording Studios · The River Styx',
+    id: 'underworld', name: txt('biomes.underworld.name'), sub: txt('biomes.underworld.sub'),
     skyTop: 0x05040c, skyHorizon: 0x2a2240, fog: 0x1e1a30, fogDensity: 0.024,
     hemiSky: 0x9a9ad8, hemiGround: 0x1a1420, hemiI: 1.25, sun: 0xb0b0f0, sunI: 1.1,
     grade: { tint: [0.96, 1.0, 1.06], lift: [0.014, 0.012, 0.03], sat: 0.8, contrast: 1.1, vignette: 0.46 },
@@ -158,7 +159,7 @@ export const BIOMES = {
   },
   // Chapter 11: Santa Monica beach at dusk; the surf is real water.
   beach: {
-    id: 'beach', name: 'Santa Monica Beach', sub: 'Los Angeles · Dusk',
+    id: 'beach', name: txt('biomes.beach.name'), sub: txt('biomes.beach.sub'),
     skyTop: 0x2a3a7a, skyHorizon: 0xff9a5a, fog: 0xd88a6a, fogDensity: 0.012,
     hemiSky: 0xc8c0e0, hemiGround: 0x4a3a2a, hemiI: 1.0, sun: 0xffb080, sunI: 1.9,
     grade: { tint: [1.04, 0.99, 0.97], lift: [0.012, 0.006, 0.012], sat: 1.12, contrast: 1.08, vignette: 0.28 },
@@ -167,7 +168,7 @@ export const BIOMES = {
   },
   // Chapter 12: Mount Olympus above the Empire State Building, then the duel on a camp hill.
   olympus: {
-    id: 'olympus', name: 'Mount Olympus', sub: 'The Six-Hundredth Floor',
+    id: 'olympus', name: txt('biomes.olympus.name'), sub: txt('biomes.olympus.sub'),
     skyTop: 0x2a7ae0, skyHorizon: 0xbcdcff, fog: 0xc8dcf4, fogDensity: 0.007,
     hemiSky: 0xe8f0ff, hemiGround: 0x8a8070, hemiI: 0.95, sun: 0xfff0d0, sunI: 2.1,
     grade: { tint: [1.03, 1.01, 0.98], lift: [0.004, 0.004, 0.008], sat: 1.1, contrast: 1.1, vignette: 0.22 },

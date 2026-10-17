@@ -66,6 +66,7 @@ import { FLASH_MATERIAL } from './character.js';
 import { poisonHero } from './holds.js';
 import { rigOffsets } from './parts.js';
 import { toast } from '../ui/ui.js';
+import { t as txt } from '../text_config.js';
 import { RAT, notices, givesUp, nextIdle } from './ratRules.js';
 import { wakesMonsters } from '../partyRules.js';
 import { PACK, packNotices, scoutRuns } from './packRules.js';
@@ -90,11 +91,11 @@ export function lineOfSight(world, a, ah, b, bh) {
   return true;
 }
 const ELITE_AFFIX = {
-  swift: { color: 0x4affd8, label: 'Swift' },
-  armored: { color: 0xffc24a, label: 'Armored' },
-  vampiric: { color: 0xff3a5a, label: 'Vampiric' },
-  explosive: { color: 0xff8a2a, label: 'Explosive' },
-  shadow: { color: 0xb05aff, label: 'Blinking' },
+  swift: { color: 0x4affd8, label: txt('enemies.affix.swift') },
+  armored: { color: 0xffc24a, label: txt('enemies.affix.armored') },
+  vampiric: { color: 0xff3a5a, label: txt('enemies.affix.vampiric') },
+  explosive: { color: 0xff8a2a, label: txt('enemies.affix.explosive') },
+  shadow: { color: 0xb05aff, label: txt('enemies.affix.shadow') },
 };
 
 export class Enemy {
@@ -267,7 +268,7 @@ export class Enemy {
       this.cancelAttack(); this.state = 'bones'; this.stateT = 0;
       this.game.particles.burst(this.pos.clone().setY(this.pos.y + 1), { count: 18, color: 0xe8e0c8, additive: false, speed: 3, life: 0.6, size: 0.18, gravity: 12 });
       this.game.audio?.tone({ freq: 700, to: 300, dur: 0.25, gain: 0.08, type: 'square', filter: 2500 });
-      if (!bonesHint) { bonesHint = true; toast('The bones are pulling back together. Hit them before it gets up!'); }
+      if (!bonesHint) { bonesHint = true; toast(txt('enemies.bonesHint')); }
       return;
     }
     this.bones = false;

@@ -12,16 +12,18 @@
 // worked out from the chapters it finished, so a save that finished chapters
 // 1 and 2 starts in camp as it always did. Pure module (no DOM, no Three.js),
 // so the node tests can load it.
+import { t } from '../text_config.js';
+
 export const OPENING_STEPS = ['prologue', 'cut-bus', 'lt1', 'cut-summer', 'lt2', 'cut-wake', 'done'];
 
 export const STEP_INFO = {
-  prologue: { title: 'The morning of the field trip', goal: 'Get to the school bus', kind: 'level' },
-  'cut-bus': { title: 'The field trip', kind: 'cutscene', cutscene: 'bus' },
-  lt1: { title: 'The Pre-Algebra Teacher', kind: 'chapter', chapter: 'lt1' },
-  'cut-summer': { title: 'Summer, and a storm', kind: 'cutscene', cutscene: 'summer' },
-  lt2: { title: 'Half-Blood Hill', kind: 'chapter', chapter: 'lt2' },
-  'cut-wake': { title: 'Camp Half-Blood', kind: 'cutscene', cutscene: 'wake' },
-  done: { title: 'Camp Half-Blood', kind: 'hub' },
+  prologue: { title: t('opening.steps.prologue.title'), goal: t('opening.steps.prologue.goal'), kind: 'level' },
+  'cut-bus': { title: t('cutscenes.bus.title'), kind: 'cutscene', cutscene: 'bus' },
+  lt1: { title: t('chapters.lt1.title'), kind: 'chapter', chapter: 'lt1' },
+  'cut-summer': { title: t('cutscenes.summer.title'), kind: 'cutscene', cutscene: 'summer' },
+  lt2: { title: t('chapters.lt2.title'), kind: 'chapter', chapter: 'lt2' },
+  'cut-wake': { title: t('cutscenes.wake.title'), kind: 'cutscene', cutscene: 'wake' },
+  done: { title: t('opening.steps.done.title'), kind: 'hub' },
 };
 
 const rank = (s) => OPENING_STEPS.indexOf(s);

@@ -33,6 +33,7 @@ import { holdHero } from '../entities/holds.js';
 import { HEROES, HERO_IDS } from '../heroes/index.js';
 import { B } from '../world/blocks.js';
 import { toast } from '../ui/ui.js';
+import { t } from '../text_config.js';
 import { companionsWanted, storyAssign } from '../partyRules.js';
 import { Session, loadClient } from './session.js';
 import { PROTO, HZ, PEOPLE, num, int, str, r2, r3, readHero, cleanName, newCode, roomIdFor, KEY_RE } from './proto.js';
@@ -104,19 +105,19 @@ export class Online {
     s.on('peers', (changed) => this.onPeers(changed));
     s.on('left', (peer) => this.onLeft(peer));
     s.on('missing', (peer) => this.onMissing(peer));
-    s.on('arrived', (peer) => toast(`${peer.name} joined`));
+    s.on('arrived', (peer) => toast(t('online.joined', { name: peer.name })));
     s.on('topic', (t, d, peer) => this.onTopic(t, d, peer));
     s.on('migrating', (info) => this.onMigrating(info));
     s.on('migrated', (info) => this.onMigrated(info));
-    s.on('reconnected', () => { this.startResync(); toast('Reconnected'); });
+    s.on('reconnected', () => { this.startResync(); toast(t('online.reconnected')); });
     this.fx.install();
     this.unload = () => s.leave();
     window.addEventListener('pagehide', this.unload);
     if (mode === 'host') {
       this.setupNonce++;
       const c = code ?? newCode();
-      s.host(roomIdFor(c), `${g.save.name}'s camp`);
-      this.rememberRoom(roomIdFor(c), `${g.save.name}'s camp`);
+      s.host(roomIdFor(c), t('online.roomTitle', { name: g.save.name }));
+      this.rememberRoom(roomIdFor(c), t('online.roomTitle', { name: g.save.name }));
     } else {
       // a guest's companions are the host's to run
       this.dropLocalAI();
@@ -143,7 +144,7 @@ export class Online {
     s.leave();
     this.session = null;
     this.afterOffline(wasGuest);
-    if (!quiet) toast('You are offline', 'big');
+    if (!quiet) toast(t('online.offline'), 'big');
   }
   afterOffline(wasGuest) {
     const g = this.game;
@@ -158,13 +159,13 @@ export class Online {
     const wasGuest = !this.session?.isHost;
     window.removeEventListener('pagehide', this.unload);
     this.session = null;
-    const why = { full: 'That camp is full.', not_found: 'That camp has closed.', taken: 'That code is in use.', unreachable: 'Could not reach the Iris network.', host_lost: 'Lost the host.' }[reason] ?? `Disconnected (${reason}).`;
-    toast(`${why} Playing on here offline.`, 'big');
+    const why = t(`online.fatal.${reason}`) !== `online.fatal.${reason}` ? t(`online.fatal.${reason}`) : t('online.fatal.other', { reason });
+    toast(t('online.fatalToast', { why }), 'big');
     this.afterOffline(wasGuest);
   }
   onStatus(st, info) {
-    if (st === 'reconnecting') toast('Connection lost: reconnecting…');
-    if (st === 'migrating') toast(info?.wasHost ? 'Reconnecting…' : `The host left. ${info?.next ? info.next + ' is taking over…' : 'Finding a new host…'}`);
+    if (st === 'reconnecting') toast(t('online.connectionLost'));
+    if (st === 'migrating') toast(info?.wasHost ? t('online.reconnecting') : info?.next ? t('online.hostLeftNext', { name: info.next }) : t('online.hostLeftFinding'));
     if (this.game.ui.isOpen('online')) this.game.ui.refresh('online');
   }
   onVisibility() {
@@ -205,7 +206,7 @@ export class Online {
     if (!s.ready) return;
     if (this.isGuest) {
       if (this.hits.length) { s.send('hit', { h: this.hits.splice(0, 24) }); this.stats.hitsSent++; }
-      if (s.hostUid && performance.now() - Math.max(s.hostSeenAt, this.hostLoading ?? 0) > HOST_SILENT * 1000 && s.status === 'open') { toast('The host stopped answering: moving on…'); s.abandonHost(); }
+      if (s.hostUid && performance.now() - Math.max(s.hostSeenAt, this.hostLoading ?? 0) > HOST_SILENT * 1000 && s.status === 'open') { toast(t('online.hostSilent')); s.abandonHost(); }
     }
     this.partyT -= dt;
     if (this.partyT <= 0) { this.partyT = 0.4; if (this.isHost) { this.hostChecks(); this.enforceParty(); } else this.guestParty(); }
@@ -340,7 +341,7 @@ export class Online {
     for (const R of [...this.remote.values()]) {
       if (R.uid !== peer.uid || seen.has(R.key)) continue;
       // a player who stopped playing on a screen that's still here: the AI plays their hero on
-      if (this.isHost && !R.ai && g.state === 'playing') { this.realizeAI(R).netKey = R.key; toast(`${R.name || 'A player'} left: the AI plays ${HEROES[R.p.hero]?.name ?? R.p.hero} on`); }
+      if (this.isHost && !R.ai && g.state === 'playing') { this.realizeAI(R).netKey = R.key; toast(t('online.playerLeftAi', { name: R.name || t('online.aPlayer'), hero: HEROES[R.p.hero]?.name ?? R.p.hero })); }
       else this.dropRemote(R);
     }
   }
@@ -473,7 +474,7 @@ export class Online {
     } else if (sc.mode === 'hub') {
       this.applied = id;
       this.clearPuppets();
-      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast('Camp Half-Blood', 'title'); this.joinNear(); }
+      if (g.mode !== 'hub') { g.ui.closeAll(); g.paused = false; g.endCutscene?.(); g.loadHub(); toast(t('game.camp.name'), 'title'); this.joinNear(); }
     }
   }
   showStory(chId) {
@@ -481,7 +482,7 @@ export class Online {
     import('../story/chapters.js').then(({ chapter }) => {
       const ch = chapter(chId);
       if (!ch?.intro?.length || g.mode !== 'hub' || !g.ui.stack) return;
-      import('../ui/screens.js').then((S) => S.openStoryCards?.(g, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines: ch.intro }, () => {}));
+      import('../ui/screens.js').then((S) => S.openStoryCards?.(g, { title: ch.title, sub: t('game.chapterSub', { num: ch.num, place: ch.place }), image: ch.card, lines: ch.intro }, () => {}));
     }).catch(() => {});
   }
   // a guest arriving in a scene already under way starts next to the party
@@ -575,7 +576,7 @@ export class Online {
       const shut = d === '1';
       if (shut === !gate.open) return;
       const room = gate.room;
-      if (room?.trap) { m.setTrapGates(room, shut); if (shut && !room.trap.toasted) { room.trap.toasted = true; toast('It’s a trap!', 'big'); } }
+      if (room?.trap) { m.setTrapGates(room, shut); if (shut && !room.trap.toasted) { room.trap.toasted = true; toast(t('online.trap'), 'big'); } }
     });
     if (Array.isArray(s.rm)) s.rm.forEach((v, i) => {
       const r = m.L.rooms[i]; if (!r || typeof v !== 'number') return;
@@ -760,10 +761,10 @@ export class Online {
   onMigrating({ wasHost, nextUid }) {
     this.migratingFrom = wasHost ? this.uid : this.session.hostUid;
     // the successor starts running the world at once (it connects within a moment)
-    if (!wasHost && nextUid === this.uid) { this.promoteWorld(); this.promotedEarly = true; toast('You are now the host', 'big'); }
+    if (!wasHost && nextUid === this.uid) { this.promoteWorld(); this.promotedEarly = true; toast(t('online.nowHost'), 'big'); }
   }
   onMigrated({ asHost, wasHost }) {
-    if (asHost && !this.promotedEarly) { this.promoteWorld(); toast('You are now the host', 'big'); }
+    if (asHost && !this.promotedEarly) { this.promoteWorld(); toast(t('online.nowHost'), 'big'); }
     if (!asHost && this.promotedEarly) this.demoteWorld(this.session.hostUid);
     else if (!asHost && wasHost) { this.demoteWorld(this.session.hostUid); this.startResync(); }
     this.promotedEarly = false;
@@ -777,7 +778,7 @@ export class Online {
   }
   onLeft(peer) {
     const g = this.game;
-    toast(`${peer.name} left`);
+    toast(t('online.left', { name: peer.name }));
     if (this.isHost) {
       for (const R of [...this.remote.values()]) if (R.uid === peer.uid && !R.ai) this.takeOverHero(R);
       // their heroes stay as companions if the party wants them; enforceParty decides
@@ -935,7 +936,7 @@ export class Online {
     const p = this.localHumans().find((q) => q.index === d.i && this.keyOf(q) === d.k);
     this.swapWait = 0;
     if (!p || !HEROES[d.h]) return;
-    if (d.take) toast(`You take over ${HEROES[d.h].name}`, 'big');
+    if (d.take) toast(t('online.takeOver', { hero: HEROES[d.h].name }), 'big');
     const np = new Player(g, p.index, p.device, d.h);
     np.spawn(V3(num(d.x, -1e5, 1e5), num(d.y, -1e4, 1e4), num(d.z, -1e5, 1e5))); np.facing = num(d.f, -10, 10);
     np.hp = Math.min(np.maxHp, Math.max(1, num(d.hp, 1, 1e5, np.maxHp))); np.ce = num(d.ce, 0, 1e4, 30);
@@ -949,18 +950,18 @@ export class Online {
   }
 
   // ---------------------------------------------------------------- topics
-  onTopic(t, d, peer) {
+  onTopic(topic, d, peer) {
     const g = this.game;
-    if (t === 'ev') { if (peer) this.fx.receive(d, peer.uid); return; }
-    if (t === 'hit' && this.isHost) { this.onHits(d, peer); return; }
-    if (t === 'hurt') { this.onHurt(d); return; }
-    if (t === 'act' && this.isHost) { this.onAct(d, peer); return; }
-    if (t === 'load' && this.isGuest) { this.hostLoading = performance.now() + 45000; return; }
-    if (t === 'done' && this.isGuest) { if (g.mission && !g.mission.complete) g.completeMission(); return; }
-    if (t === 'swap' && this.isHost && peer) { this.onSwap(d, peer); return; }
-    if (t === 'swapok' && d.to === this.uid) { this.onSwapOk(d); return; }
-    if (t === 'swapno' && d.to === this.uid) { this.swapWait = 0; toast('Someone else got there first'); return; }
-    if (t === 'full' && d.to === this.uid) { this.leave({ quiet: true }); toast('That camp already has four heroes.', 'big'); }
+    if (topic === 'ev') { if (peer) this.fx.receive(d, peer.uid); return; }
+    if (topic === 'hit' && this.isHost) { this.onHits(d, peer); return; }
+    if (topic === 'hurt') { this.onHurt(d); return; }
+    if (topic === 'act' && this.isHost) { this.onAct(d, peer); return; }
+    if (topic === 'load' && this.isGuest) { this.hostLoading = performance.now() + 45000; return; }
+    if (topic === 'done' && this.isGuest) { if (g.mission && !g.mission.complete) g.completeMission(); return; }
+    if (topic === 'swap' && this.isHost && peer) { this.onSwap(d, peer); return; }
+    if (topic === 'swapok' && d.to === this.uid) { this.onSwapOk(d); return; }
+    if (topic === 'swapno' && d.to === this.uid) { this.swapWait = 0; toast(t('online.gotThereFirst')); return; }
+    if (topic === 'full' && d.to === this.uid) { this.leave({ quiet: true }); toast(t('online.campFull'), 'big'); }
   }
   onHits(d, peer) {
     const g = this.game;
@@ -990,7 +991,7 @@ export class Online {
     if (d.k === 'reveal') { const e = g.enemies.find((q) => q.netId === d.id); if (e?.disguised) e.reveal?.(); return; }
     // the opening: a guest reached the school bus; a guest asks to skip the cutscene (all guests must)
     if (d.k === 'bus' && g.mode === 'prologue') { g.opening?.prologueDone(); return; }
-    if (d.k === 'skip' && g.cutscene && !g.cutscene.remote && d.id === g.cutscene.id) { g.cutscene.vote(peer?.uid ?? '?', Math.max(1, this.session?.byUid.size ?? 1)); toast(`${peer?.name ?? 'Someone'} wants to skip`); return; }
+    if (d.k === 'skip' && g.cutscene && !g.cutscene.remote && d.id === g.cutscene.id) { g.cutscene.vote(peer?.uid ?? '?', Math.max(1, this.session?.byUid.size ?? 1)); toast(t('online.wantsToSkip', { name: peer?.name ?? t('online.someone') })); return; }
     if (!m) return;
     if (d.k === 'item') { const it = m.obj.items[d.i]; if (it && !it.done) m.completeItem(it); }
     if (d.k === 'chest') { const c = m.L.chests[d.i]; if (c && !c.opened) m.openChest(c, this.localHumans()[0] ?? g.players[0]); }

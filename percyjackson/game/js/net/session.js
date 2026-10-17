@@ -20,6 +20,7 @@
 //
 // It never throws into the game: failures end in 'status' / 'fatal' events.
 import { PROTO, GAME, SOCKETS, HEARTBEAT, ID_RE, ROOM_RE, str, num, cleanName, baseOf } from './proto.js';
+import { t } from '../text_config.js';
 
 const CLOCK = ['ping', 'pong'];
 const LEAVE_GRACE = 3000;
@@ -90,7 +91,7 @@ export class Session {
 
   // ---- hosting and joining
   host(id, title) {
-    this.title = str(title, 40) || 'Camp Half-Blood';
+    this.title = str(title, 40) || t('game.camp.name');
     this.base = id; this.gen = 0; this.order = [this.me.uid];
     this.offset = 0; this.synced = true; this.hostUid = this.me.uid;
     this.setStatus('connecting');

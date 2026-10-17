@@ -3,6 +3,7 @@
 // prop slots and features. Rooms float over the abyss like Minecraft
 // Dungeons islands, so open edges are real drops.
 import { B } from './blocks.js';
+import { t as txt } from '../text_config.js';
 
 // Room context: { k: Kit, x0, z0, x1, z1, y (floor surface), b: biome, r: rng, spawns: [], slots: [] }
 function base(c, opts = {}) {
@@ -941,7 +942,7 @@ Object.assign(TEMPLATES, {
     else k.d.prop('greyhound', (x0 + x1) / 2 + 0.5, y, (z0 + z1) / 2 + 0.5, { rot: alongX ? 0 : Math.PI / 2 });
     // a bus-stop shelter and a sign
     { const [x, z] = alongX ? [x1 - 3, mid - 4] : [mid - 4, z1 - 3]; if (free(c, x, z) && !doorAisle(c, x, z, 3)) { k.w.fill(x - 1, y, z, x + 1, y + 2, z, B.glass); k.w.fill(x - 1, y + 3, z - 1, x + 1, y + 3, z + 1, B.iron_plate); k.d.prop('bench', x + 0.5, y, z + 1.5); } }
-    sign(c, (alongX ? x0 + 3 : mid - 4) + 0.5, (alongX ? mid - 4 : z0 + 3) + 0.5, 'GREYHOUND', { w: 2.6, h: 0.8, post: 2.2, bg: '#1d3a8a', fg: '#ffffff', border: '#c8ccd2', rot: alongX ? 0 : Math.PI / 2 });
+    sign(c, (alongX ? x0 + 3 : mid - 4) + 0.5, (alongX ? mid - 4 : z0 + 3) + 0.5, txt('signs.greyhound'), { w: 2.6, h: 0.8, post: 2.2, bg: '#1d3a8a', fg: '#ffffff', border: '#c8ccd2', rot: alongX ? 0 : Math.PI / 2 });
     highwayDecorate(c);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
   },
@@ -967,7 +968,7 @@ Object.assign(TEMPLATES, {
       k.floor(dx0 + 1, dz0 + 1, dx1 - 1, dz1 - 1, y, B.marble_floor, 1);
       k.w.fill(dx0 + 1, y, dz0 + 1, dx1 - 1, y, dz0 + 1, B.red_plank);
       lightAt(c, (dx0 + dx1) / 2 + 0.5, y + 2.5, dz1 + 1, 0xffd8a0, 4, 9);
-      sign(c, (dx0 + dx1) / 2 + 0.5, dz1 + 0.6, 'DINER', { y: y + 4.1, w: 3, h: 0.8, bg: '#2a0a10', fg: '#ff5a7a', glow: true, oneSided: true });
+      sign(c, (dx0 + dx1) / 2 + 0.5, dz1 + 0.6, txt('signs.diner'), { y: y + 4.1, w: 3, h: 0.8, bg: '#2a0a10', fg: '#ff5a7a', glow: true, oneSided: true });
     }
     for (let i = 0; i < 2; i++) { const [x, z] = cellIn(c, 3); if (free(c, x, z) && free(c, x + 1, z) && free(c, x - 1, z) && Math.abs(z - cz) > 3) { k.d.prop('car', x + 0.5, y, z + 0.5, { rot: c.r() * 0.4, color: [0x1a3a6a, 0x7a1a1a][i] }); for (let a = -1; a <= 1; a++) collider(c, x + a, z, 1); } }
     for (let i = 0; i < 3; i++) { const [x, z] = cellIn(c, 2); if (free(c, x, z) && !doorAisle(c, x, z)) { k.w.set(x, y, z, B.barrel); if (c.r() < 0.4) { k.d.prop('fire', x + 0.5, y + 1, z + 0.5, { scale: 0.5 }); lightAt(c, x + 0.5, y + 1.8, z + 0.5, 0xff8a3a, 3, 7); } } }
@@ -983,7 +984,7 @@ Object.assign(TEMPLATES, {
     woodsEdge(c, 12);
     for (let i = 0; i < 5; i++) { const [x, z] = cellIn(c, 4); if (free(c, x, z) && !doorAisle(c, x, z, 3)) (c.r() < 0.7 ? pine : oak)(k, x, z, y); }
     { const [x, z] = cellIn(c, 4); let ok = true; for (let i = 0; i < 6; i++) ok = ok && free(c, x + i, z) && !doorAisle(c, x + i, z, 3); if (ok) for (let i = 0; i < 6; i++) k.w.set(x + i, y, z, B.log); }
-    sign(c, (alongX ? (x0 + x1) / 2 : mid + 5) + 0.5, (alongX ? mid + 5 : (z0 + z1) / 2) + 0.5, 'EXIT 13\nTRENTON', { w: 2.6, h: 1.2, post: 2.4, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff', rot: alongX ? 0 : Math.PI / 2 });
+    sign(c, (alongX ? (x0 + x1) / 2 : mid + 5) + 0.5, (alongX ? mid + 5 : (z0 + z1) / 2) + 0.5, txt('signs.exitTrenton'), { w: 2.6, h: 1.2, post: 2.4, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff', rot: alongX ? 0 : Math.PI / 2 });
     scatterOn(k, x0, z0, x1, z1, [B.forest_floor, B.grass], ['fern', 'leaf_litter', 'tall_grass', 'mushroom'], 0.25);
     highwayDecorate(c, 0.6);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
@@ -1003,7 +1004,7 @@ DRESS.highway = {
     { const [bx, bz] = at(um, 3); k.d.prop('greyhound', bx + 0.5, y, bz + 0.5, { rot }); }
     for (let u = um - 5; u <= um + 5; u++) for (let v = 2; v <= 4; v++) { const [x, z] = at(u, v); k.w.fill(x, y, z, x, y + 2, z, B.barrier); }
     for (let u = F.len[0] + 1; u < F.len[1]; u++) { const [x, z] = at(u, 10); if (u % 7 !== 3 && !doorAisle(c, x, z, 3) && free(c, x, z)) k.w.set(x, y, z, B.guardrail); }
-    { const [x, z] = at(F.len[0] + 3, 12); sign(c, x + 0.5, z + 0.5, 'NEW JERSEY\nTURNPIKE', { w: 2.4, h: 1.2, post: 2.2, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff', rot }); }
+    { const [x, z] = at(F.len[0] + 3, 12); sign(c, x + 0.5, z + 0.5, txt('signs.turnpike'), { w: 2.4, h: 1.2, post: 2.2, bg: '#1e6a3a', fg: '#ffffff', border: '#ffffff', rot }); }
     { const [x, z] = at(F.len[1] - 3, 11); if (place(c, x, z, 'streetlight', { rot: rot + Math.PI }, 1)) lightAt(c, x + 0.5, y + 4.8, z + 0.5, 0xffd8a0, 5, 11); }
     for (const [u, v] of [[F.len[0] + 2, 13], [F.len[1] - 2, 13]]) { const [x, z] = at(u, v); if (free(c, x, z) && !doorAisle(c, x, z, 3)) pine(k, x, z, y); }
     highwayDecorate(c);
@@ -1099,7 +1100,7 @@ Object.assign(TEMPLATES, {
     for (let u = um - 4; u <= um + 4; u++) { const [x, z] = hut(u, 5); k.w.set(x, y + 3, z, B.awning); const [x2, z2] = hut(u, 6); k.w.set(x2, y + 2, z2, B.awning); }
     { const [ax, az] = hut(um - 5, 0), [bx, bz] = hut(um + 5, 6); k.w.addRoof([Math.min(ax, bx), y + 2, Math.min(az, bz)], [Math.max(ax, bx), y + 4, Math.max(az, bz)], [[Math.min(ax, bx), y, Math.min(az, bz)], [Math.max(ax, bx), y + 1, Math.max(az, bz)]]); }
     { const [gx, gz] = hut(um - 2, 2); k.w.set(gx, y, gz, B.iron_plate); k.d.prop('fire', gx + 0.5, y + 1, gz + 0.5, { scale: 0.35 }); lightAt(c, gx + 0.5, y + 1.6, gz + 0.5, 0xff9a40, 3, 6); }
-    { const [lx, lz] = hut(um, 6); lightAt(c, lx + 0.5, y + 2.4, lz + 0.5, 0xffd8a0, 4, 9); const [sx, sz] = hut(um, 1); sign(c, sx + 0.5 + F.facing[0] * 0.55, sz + 0.5 + F.facing[1] * 0.55, 'SNACK BAR', { y: y + 4.2, w: 3.4, h: 0.8, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', rot: Math.atan2(F.facing[0], F.facing[1]) }); }
+    { const [lx, lz] = hut(um, 6); lightAt(c, lx + 0.5, y + 2.4, lz + 0.5, 0xffd8a0, 4, 9); const [sx, sz] = hut(um, 1); sign(c, sx + 0.5 + F.facing[0] * 0.55, sz + 0.5 + F.facing[1] * 0.55, txt('signs.snackBar'), { y: y + 4.2, w: 3.4, h: 0.8, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', rot: Math.atan2(F.facing[0], F.facing[1]) }); }
     const hz1 = -1;
     for (let i = 0; i < 5; i++) { const [x, z] = cellIn(c, 3); if (z > hz1 && free(c, x - 1, z) && free(c, x + 1, z)) { place(c, x, z, 'table', { len: 3, rot: 0 }, 1) && (collider(c, x - 1, z, 1), collider(c, x + 1, z, 1)); if (c.r() < 0.6) k.d.prop('umbrella', x + 0.5, y, z + 0.5, { color: 0x3f8a34 }); } }
     for (let i = 0; i < 2; i++) { const [x, z] = cellIn(c, 2); petrified(c, x, z); }
@@ -1131,7 +1132,7 @@ DRESS.statue_garden = {
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     for (let z = z0; z <= z1; z++) for (let x = cx - 2; x <= cx + 2; x++) k.w.set(x, y - 1, z, B.gravel_path);
     for (let x = x0; x <= x1; x++) for (let zz = cz - 1; zz <= cz + 1; zz++) k.w.set(x, y - 1, zz, B.gravel_path);
-    sign(c, cx + 0.5, z0 + 3.5, 'AUNTY EM’S\nGARDEN GNOME EMPORIUM', { w: 7, h: 2, post: 2.4, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
+    sign(c, cx + 0.5, z0 + 3.5, txt('signs.gnomeEmporium'), { w: 7, h: 2, post: 2.4, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
     k.w.fill(cx - 3, y, z0 + 3, cx + 3, y, z0 + 3, B.barrier);
     for (let x = x0 + 2; x <= x1 - 2; x += 2) if (Math.abs(x - cx) > 2) { k.d.prop('gnome', x + 0.5, y, cz + 0.5, { rot: Math.PI, color: [0xd8322a, 0x2a6ad8, 0xffd84a][(x >> 1) % 3] }); }
     for (const [x, z, pose] of [[x0 + 3, z1 - 3, 0], [x1 - 3, z1 - 4, 2], [x1 - 4, cz - 3, 4]]) { k.d.prop('stone_person', x + 0.5, y, z + 0.5, { pose, rot: 2.4, scale: 1.15 }); collider(c, x, z, 2); }
@@ -1149,7 +1150,7 @@ DRESS.statue_garden = {
     const { cx, cz, R } = roundArena(c);
     // the warehouse front on the far side, its doors open
     for (let x = Math.round(cx) - 6; x <= Math.round(cx) + 6; x++) for (let yy = y; yy < y + 6; yy++) for (const z of [z0 + 1, z0 + 2]) if (k.w.get(x, y - 1, z)) k.w.set(x, yy, z, (Math.abs(x - cx + 0.5) < 2 && yy < y + 3 && z === z0 + 2) ? 0 : z === z0 + 1 ? B.corrugated : (yy === y + 5 ? B.iron_plate : B.corrugated));
-    sign(c, cx, z0 + 3.1, 'AUNTY EM’S', { y: y + 3.8, w: 4, h: 0.9, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', oneSided: true });
+    sign(c, cx, z0 + 3.1, txt('signs.auntyEm'), { y: y + 3.8, w: 4, h: 0.9, bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34', oneSided: true });
     // statues in a broken ring, ivy-covered pillars
     for (let a = 0; a < 14; a++) { const ang = a / 14 * Math.PI * 2 + 0.2; const px = Math.round(cx + Math.cos(ang) * R * 0.72), pz = Math.round(cz + Math.sin(ang) * R * 0.72); if (pz < z0 + 5) continue; petrified(c, px, pz, { rot: -ang + Math.PI / 2 + (c.r() - 0.5) }); }
     for (let a = 0; a < 6; a++) { const ang = a / 6 * Math.PI * 2 + 0.5; const px = Math.round(cx + Math.cos(ang) * R * 0.9), pz = Math.round(cz + Math.sin(ang) * R * 0.9); if (pz < z0 + 5 || !free(c, px, pz)) continue; k.pillar(px, pz, y, 4, B.stone_brick, B.mossy_brick); for (const [fx, fz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) k.d.add('ivy', px + 0.5 + fx * 0.52, y + 2, pz + 0.5 + fz * 0.52, { mode: 'wall', facing: [fx, fz], scale: 2, sway: 0.1 }); }
@@ -1232,7 +1233,7 @@ Object.assign(TEMPLATES, {
     archShell(c, 6);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     for (let x = cx - 3; x <= cx + 3; x++) if (free(c, x, z0 + 3) && !doorAisle(c, x, z0 + 3)) k.w.set(x, y, z0 + 3, B.steel_panel);
-    sign(c, cx + 0.5, z0 + 1.2, 'GATEWAY ARCH\nTRAM TO THE TOP', { y: y + 2.4, w: 5, h: 1.3, bg: '#1a2a4a', fg: '#e8eef8', border: '#b8bec6', oneSided: true });
+    sign(c, cx + 0.5, z0 + 1.2, txt('signs.archTram'), { y: y + 2.4, w: 5, h: 1.3, bg: '#1a2a4a', fg: '#e8eef8', border: '#b8bec6', oneSided: true });
     for (let x = x0 + 3; x <= x1 - 3; x += 3) for (const z of [cz - 1, cz + 2]) if (c.r() < 0.6) place(c, x, z, 'fence', { len: 2, white: true, scale: 0.7 }, 0);
     for (let i = 0; i < 2; i++) { const [x, z] = cellIn(c, 3); place(c, x, z, 'tram_pod', { rot: c.r() * 0.3 }, 2); }
     for (const [x, z] of [[x0 + 2, z1 - 2], [x1 - 2, z1 - 2]]) place(c, x, z, 'bench', { rot: 0 }, 0);
@@ -1290,7 +1291,7 @@ DRESS.arch = {
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (Math.abs(x - cx) > 4 && (z < cz - 2 || z > cz + 4)) k.w.set(x, y - 1, z, B.grass);
     k.d.prop('arch_model', cx + 0.5, y, z0 + 2.5, { span: 14, h: 18 });
     k.w.set(cx - 7, y, z0 + 2, B.barrier); k.w.set(cx + 7, y, z0 + 2, B.barrier);
-    sign(c, cx + 0.5, cz - 2.5, 'ST. LOUIS', { w: 3.4, h: 0.9, post: 1.6, bg: '#1a2a4a', fg: '#e8eef8', border: '#b8bec6' });
+    sign(c, cx + 0.5, cz - 2.5, txt('signs.stLouis'), { w: 3.4, h: 0.9, post: 1.6, bg: '#1a2a4a', fg: '#e8eef8', border: '#b8bec6' });
     for (const x of [x0 + 2, x1 - 2]) { k.d.prop('streetlight', x + 0.5, y, cz + 0.5, { rot: x < cx ? 0 : Math.PI }); lightAt(c, x + (x < cx ? 1.5 : -0.5), y + 4.8, cz + 0.5, 0xfff0d0, 4, 10); }
     for (const [x, z] of [[x0 + 3, z1 - 3], [x1 - 3, z1 - 3], [x0 + 3, z0 + 4], [x1 - 3, z0 + 4]]) oak(k, x, z, y, { h: 4 });
     scatterOn(k, x0, z0, x1, z1, [B.grass], ['grass', 'flower_yellow'], 0.2);
@@ -1433,8 +1434,8 @@ DRESS.waterland = {
     const { k, x0, z0, x1, z1, y } = c;
     k.floor(x0, z0, x1, z1, y, B.concrete, 6, B.pool_tile, 0.04);
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
-    sign(c, cx + 0.5, z0 + 2.5, 'WATERLAND', { w: 6, h: 1.4, post: 3, bg: '#2aa8a0', fg: '#fff2a0', border: '#f28c28' });
-    sign(c, cx + 3.5, cz + 1.5, 'CLOSED\nFOR THE SEASON', { w: 1.8, h: 0.9, post: 1.0, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a', rot: -0.3 });
+    sign(c, cx + 0.5, z0 + 2.5, txt('signs.waterland'), { w: 6, h: 1.4, post: 3, bg: '#2aa8a0', fg: '#fff2a0', border: '#f28c28' });
+    sign(c, cx + 3.5, cz + 1.5, txt('signs.closed'), { w: 1.8, h: 0.9, post: 1.0, bg: '#f2efe6', fg: '#c4302a', border: '#c4302a', rot: -0.3 });
     for (let x = x0 + 1; x < x1; x++) if (Math.abs(x - cx) > 3) { k.d.add('chain_link', x + 0.5, y + 0.5, z0 + 4.5, { mode: 'wall', facing: [0, 1], scale: 1 }); k.d.add('chain_link', x + 0.5, y + 1.5, z0 + 4.5, { mode: 'wall', facing: [0, 1], scale: 1 }); k.w.fill(x, y, z0 + 4, x, y + 1, z0 + 4, B.barrier); }
     k.room(cx - 7, cz - 1, cx - 4, cz + 2, y, 3, B.teal_panel, { trim: B.white_trim }); k.w.set(cx - 4, y + 1, cz, B.window); k.w.fill(cx - 7, y + 3, cz - 1, cx - 4, y + 3, cz + 2, B.roof_terracotta);
     k.d.prop('water_tower', x1 - 3.5, y, z1 - 3.5, { color: 0x6ac0e0 }); k.w.fill(x1 - 5, y, z1 - 5, x1 - 2, y + 4, z1 - 2, B.barrier);
@@ -1462,7 +1463,7 @@ DRESS.waterland = {
     k.w.addRoof([Math.round(cx) - 4, y + 4, tz0], [Math.round(cx) + 4, y + 4, tz1], [[Math.round(cx) - 3, y, tz0], [Math.round(cx) + 3, y + 3, tz1]]);
     k.d.add('heart', cx + 0.5, y + 5, tz1 + 1.05, { mode: 'wall', facing: [0, 1], scale: 3, emit: 2.2, sway: 0 });
     lightAt(c, cx + 0.5, y + 4, tz1 + 1.5, 0xff4a8a, 5, 10);
-    sign(c, cx + 0.5, tz1 + 1.06, 'TUNNEL OF LOVE', { y: y + 6.4, w: 4.4, h: 0.8, bg: '#3a0a1a', fg: '#ff7ab0', glow: true, oneSided: true });
+    sign(c, cx + 0.5, tz1 + 1.06, txt('signs.tunnelOfLove'), { y: y + 6.4, w: 4.4, h: 0.8, bg: '#3a0a1a', fg: '#ff7ab0', glow: true, oneSided: true });
     // swan boats on the water, one with the shield
     const boats = [[cx - 3, cz], [cx + 3.5, cz + 1.5], [cx, cz + 3]];
     boats.forEach(([bx, bz], i) => k.d.prop('swan_boat', bx + 0.5, y - 0.75, bz + 0.5, { rot: i * 1.3 + 0.3, rust: true }));
@@ -1551,7 +1552,7 @@ DRESS.casino = {
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     for (let z = z0 + 1; z < z1; z++) for (let x = cx - 1; x <= cx + 1; x++) k.w.set(x, y - 1, z, B.carpet_red);
     k.w.fill(cx - 4, y, z0 + 2, cx + 4, y, z0 + 2, B.gold_plate);
-    sign(c, cx + 0.5, z0 + 1.1, 'LOTUS\nHOTEL & CASINO', { y: y + 2.2, w: 6, h: 1.8, bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true, oneSided: true });
+    sign(c, cx + 0.5, z0 + 1.1, txt('signs.lotus'), { y: y + 2.2, w: 6, h: 1.8, bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true, oneSided: true });
     k.pond(cx - 2, cz - 2, cx + 2, cz + 1, y, B.water, 1, B.gold_plate);
     for (let i = 0; i < 5; i++) k.d.add('lotus', cx - 1.5 + c.r() * 4, y - 1, cz - 1.5 + c.r() * 3, { mode: 'flat', scale: 0.9 });
     k.d.add('lotus', cx + 0.5, y, cz - 0.5, { scale: 1.6, emit: 0.8 });
@@ -1567,7 +1568,7 @@ DRESS.casino = {
     // the clock on the far wall and the exit doors beneath it
     k.d.prop('clock', cx, y + 5, z0 + 1.6, { scale: 1.2 });
     for (let x = Math.round(cx) - 2; x <= Math.round(cx) + 1; x++) for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0 + 1, B.elevator_door);
-    sign(c, cx, z0 + 2.06, 'EXIT', { y: y + 3.1, w: 1.6, h: 0.5, bg: '#2a0a0a', fg: '#ff4a4a', glow: true, oneSided: true });
+    sign(c, cx, z0 + 2.06, txt('signs.exit'), { y: y + 3.1, w: 1.6, h: 0.5, bg: '#2a0a0a', fg: '#ff4a4a', glow: true, oneSided: true });
     for (let a = 0; a < 8; a++) { const ang = a / 8 * Math.PI * 2; const px = Math.round(cx + Math.cos(ang) * R * 0.6), pz = Math.round(cz + Math.sin(ang) * R * 0.6); if (a % 2) place(c, px, pz, 'slot', { rot: -ang - Math.PI / 2, color: 0xff4a8a }, 2); else if (free(c, px, pz)) k.pillar(px, pz, y, 6, B.gold_plate, B.neon_pink); }
     for (let a = 0; a < 4; a++) { const ang = a / 4 * Math.PI * 2 + 0.4; k.d.prop('chandelier', cx + Math.cos(ang) * 5, y + 6, cz + Math.sin(ang) * 5, { scale: 1.4 }); lightAt(c, cx + Math.cos(ang) * 5, y + 5, cz + Math.sin(ang) * 5, 0xffe0b0, 4, 11); }
     k.d.add('lotus', cx, y, cz, { scale: 2.4, emit: 1 });
@@ -1630,7 +1631,7 @@ Object.assign(TEMPLATES, {
     roadBand(c, alongX, mid, 2, { shoulder: B.sand });
     for (let t = (alongX ? x0 : z0) + 2; t < (alongX ? x1 : z1); t += 7) { const x = alongX ? t : mid - 5, z = alongX ? mid - 5 : t; if (free(c, x, z)) { k.pillar(x, z, y, 6, B.pine_log); k.w.set(x + (alongX ? 0 : 0), y + 5, z, B.dark_planks); } }
     { const t = (alongX ? x0 + x1 : z0 + z1) / 2, x = alongX ? t : mid + 2, z = alongX ? mid + 2 : t; k.d.prop('car', x + 0.5, y, z + 0.5, { rot: alongX ? 0.1 : Math.PI / 2 + 0.1, color: 0xb8862a }); for (let a = -1; a <= 1; a++) collider(c, Math.floor(x) + (alongX ? a : 0), Math.floor(z) + (alongX ? 0 : a), 1); k.d.prop('fire', x + 0.5 + (alongX ? 1.6 : 0), y + 0.6, z + 0.5 + (alongX ? 0 : 1.6), { scale: 0.3, smoke: true }); }
-    sign(c, (alongX ? (x0 + x1) / 2 - 3 : mid + 6) + 0.5, (alongX ? mid + 6 : (z0 + z1) / 2 - 3) + 0.5, 'CRUSTY’S\nWATER BED PALACE\nNEXT EXIT', { w: 4.2, h: 2, post: 2.6, bg: '#f2efe6', fg: '#c4302a', border: '#2ab0c8', rot: alongX ? 0 : Math.PI / 2 });
+    sign(c, (alongX ? (x0 + x1) / 2 - 3 : mid + 6) + 0.5, (alongX ? mid + 6 : (z0 + z1) / 2 - 3) + 0.5, txt('signs.crustysNextExit'), { w: 4.2, h: 2, post: 2.6, bg: '#f2efe6', fg: '#c4302a', border: '#2ab0c8', rot: alongX ? 0 : Math.PI / 2 });
     for (let i = 0; i < 4; i++) { const [x, z] = cellIn(c, 2); if (Math.abs((alongX ? z : x) - mid) > 4) place(c, x, z, 'cactus', { h: 1.6 + c.r() * 1.2, rot: c.r() * 6 }, 1); }
     desertDecorate(c);
     spawnGrid(c, 12, 2); dropReservedSpawns(c);
@@ -1656,7 +1657,7 @@ DRESS.desert = {
     for (const dx of [-4, 4]) k.pillar(cx + dx, z0 + 3, y, 5, B.iron_plate);
     for (let x = cx - 4; x <= cx + 4; x++) for (const yy of [y + 5, y + 8]) k.w.set(x, yy, z0 + 3, B.neon_bulbs);
     for (const dx of [-4, 4]) for (let yy = y + 5; yy <= y + 8; yy++) k.w.set(cx + dx, yy, z0 + 3, B.neon_bulbs);
-    sign(c, cx + 0.5, z0 + 3.6, 'CRUSTY’S\nWATER BED PALACE', { y: y + 5.6, w: 7.2, h: 2.2, bg: '#1a0a2a', fg: '#ff7ab0', glow: true, border: '#2ab0c8', oneSided: true });
+    sign(c, cx + 0.5, z0 + 3.6, txt('signs.crustysPalace'), { y: y + 5.6, w: 7.2, h: 2.2, bg: '#1a0a2a', fg: '#ff7ab0', glow: true, border: '#2ab0c8', oneSided: true });
     for (const [x, z] of [[x0 + 3, z1 - 3], [x1 - 3, z1 - 2], [x0 + 2, cz - 2], [x1 - 2, cz - 3]]) { k.d.prop('cactus', x + 0.5, y, z + 0.5, { h: 2.2, rot: x }); k.w.set(x, y, z, B.barrier); }
     k.d.prop('car', cx - 4.5, y, cz - 1.5, { rot: 0.2, color: 0x2a4a7a }); k.w.fill(cx - 6, y, cz - 2, cx - 3, y, cz - 1, B.barrier);
     desertDecorate(c);
@@ -1675,7 +1676,7 @@ DRESS.desert = {
     for (const [dx, dz, swan, blue] of [[-6, -3, false, true], [5, -3, true, false], [-6, 3, false, false], [5, 3, false, true]]) { const bx = Math.round(cx + dx), bz = Math.round(cz + dz); if (placeWide(c, bx, bz - 1, bx + 1, bz + 1, 'waterbed', { swan, blue, straps: true }, 1)) beds.push([bx + 1, y, bz + 0.5]); }
     const mx = Math.round(cx) - 1, mz = Math.round(cz) - 7;
     if (placeWide(c, mx, mz, mx + 1, mz + 2, 'waterbed', { swan: true, straps: true, scale: 1.25 }, 1)) c.slots.push({ type: 'main_bed', pos: [mx + 1, y, mz + 1.5] });
-    sign(c, cx, z0 + 1.1, 'CRUSTY’S', { y: y + 4.2, w: 4, h: 1, bg: '#1a0a2a', fg: '#ff7ab0', glow: true, border: '#2ab0c8', oneSided: true });
+    sign(c, cx, z0 + 1.1, txt('signs.crustys'), { y: y + 4.2, w: 4, h: 1, bg: '#1a0a2a', fg: '#ff7ab0', glow: true, border: '#2ab0c8', oneSided: true });
     lightAt(c, cx, y + 4, z0 + 2, 0xff7ab0, 4, 10);
     for (const b of beds) c.slots.push({ type: 'bed', pos: b });
     c.spawns.push([cx, y, cz - 2]);
@@ -1743,7 +1744,7 @@ DRESS.underworld = {
     for (let x = cx - 3; x <= cx + 3; x++) k.w.set(x, y, z0 + 3, B.black_marble);
     k.w.set(cx - 3, y, z0 + 2, B.black_marble); k.w.set(cx + 3, y, z0 + 2, B.black_marble);
     for (let x = cx - 1; x <= cx + 1; x++) for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0, B.elevator_door);
-    sign(c, cx + 0.5, z0 + 1.1, 'DOA\nRECORDING STUDIOS', { y: y + 3.2, w: 5, h: 1.4, bg: '#0a0a0e', fg: '#e8c870', border: '#c9963a', oneSided: true });
+    sign(c, cx + 0.5, z0 + 1.1, txt('signs.doaStudios'), { y: y + 3.2, w: 5, h: 1.4, bg: '#0a0a0e', fg: '#e8c870', border: '#c9963a', oneSided: true });
     for (const [x, z, r] of [[x0 + 3, cz, Math.PI / 2], [x1 - 3, cz, -Math.PI / 2], [x0 + 3, cz + 4, Math.PI / 2], [x1 - 3, cz + 4, -Math.PI / 2]]) { k.d.prop('couch', x + 0.5, y, z + 0.5, { rot: r, color: 0x2a2a30 }); k.w.fill(x, y, z - 1, x, y, z + 1, B.barrier); k.d.prop('ghost', x + 0.5, y + 0.4, z + 0.5, { rot: r, scale: 0.8 }); }
     for (let x = x0 + 3; x < x1 - 2; x += 5) { k.d.prop('chandelier', x + 0.5, y + 6, cz + 0.5); lightAt(c, x + 0.5, y + 4.4, cz + 0.5, 0xe8d8b0, 3.5, 9); }
     for (const x of [x0 + 2, x1 - 2]) { k.d.prop('palm', x + 0.5, y, z0 + 2.5, { h: 3, scale: 0.8 }); k.w.set(x, y, z0 + 2, B.barrier); }
@@ -1853,7 +1854,7 @@ DRESS.beach = {
     const cx = (x0 + x1) >> 1, cz = (z0 + z1) >> 1;
     for (let z = z0; z <= z1; z++) for (let x = cx - 2; x <= cx + 2; x++) k.w.set(x, y - 1, z, B.planks);
     k.pillar(cx - 3, z0 + 3, y, 5, B.white_trim); k.pillar(cx + 3, z0 + 3, y, 5, B.white_trim);
-    sign(c, cx + 0.5, z0 + 3.5, 'SANTA MONICA\nPIER', { y: y + 4.3, w: 6.6, h: 1.6, bg: '#1a3a6a', fg: '#fff2a0', border: '#ff9a5a', glow: true });
+    sign(c, cx + 0.5, z0 + 3.5, txt('signs.santaMonicaPier'), { y: y + 4.3, w: 6.6, h: 1.6, bg: '#1a3a6a', fg: '#fff2a0', border: '#ff9a5a', glow: true });
     for (const x of [x0 + 2, x1 - 2]) for (const z of [cz - 3, cz + 3]) { k.d.prop('palm', x + 0.5, y, z + 0.5, { h: 6 }); collider(c, x, z, 2); }
     k.d.prop('ferris_wheel', x1 - 3.5, y, z0 + 2.5, { r: 4.2 });
     beachDecorate(c);
@@ -1982,7 +1983,7 @@ DRESS.olympus = {
     for (let x = x0; x <= x1; x++) for (let yy = y; yy < y + 6; yy++) k.w.set(x, yy, z0, yy === y + 5 ? B.key_frieze : B.gold_marble);
     for (let x = cx - 1; x <= cx + 1; x++) for (let yy = y; yy < y + 3; yy++) k.w.set(x, yy, z0, B.elevator_door);
     for (const dx of [-5, 5]) for (let x = cx + dx - 1; x <= cx + dx + 1; x++) for (let yy = y; yy < y + 3; yy++) if (x > x0 && x < x1) k.w.set(x, yy, z0, B.elevator_door);
-    sign(c, cx + 0.5, z0 + 1.08, '600', { y: y + 3.3, w: 1.6, h: 0.7, bg: '#2a1a0a', fg: '#ffd84a', glow: true, border: '#c9963a', oneSided: true });
+    sign(c, cx + 0.5, z0 + 1.08, txt('signs.floor600'), { y: y + 3.3, w: 1.6, h: 0.7, bg: '#2a1a0a', fg: '#ffd84a', glow: true, border: '#c9963a', oneSided: true });
     for (let x = x0 + 2; x <= x1 - 2; x += 4) column(k, x, z0 + 2, y, 6);
     k.d.prop('empire_state', x1 - 3.5, y - 9, z1 + 3.5, { h: 12, glow: true });
     for (const [dx, dz] of [[-3, 2], [3, 2]]) goldLamp(c, cx + dx, cz + dz);

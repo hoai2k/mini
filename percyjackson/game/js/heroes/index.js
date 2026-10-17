@@ -1,16 +1,17 @@
 // Hero registry: display info and ability kits. Heroes marked `soon` are
 // listed (locked) but not yet playable.
 import { Kit } from './kit.js';
+import { t } from '../text_config.js';
 import { TREES } from './skillRules.js';
 
 export const HEROES = {
-  percy: { name: 'Percy', full: 'Percy Jackson', title: 'Son of Poseidon', parent: 'Poseidon', desc: 'Riptide and the sea: water jets, Wave Surge, a healing tide, and Riptide thrown and recalled.', power: 'Hurricane', color: '#2fb6c8', unlock: 'start' },
-  annabeth: { name: 'Annabeth', full: 'Annabeth Chase', title: 'Daughter of Athena', parent: 'Athena', desc: 'A quick bronze dagger, the invisibility cap, traps and battle plans that mark a weak point for the team.', power: "Wisdom's Gambit", color: '#c9963a', unlock: 'start' },
-  grover: { name: 'Grover', full: 'Grover Underwood', title: 'Satyr Protector', parent: 'Pan (satyr)', desc: 'Reed-pipe songs that tangle, heal and calm; winged sneakers that fly over danger.', power: 'Panic', color: '#5fae4a', unlock: 'start' },
-  tyson: { name: 'Tyson', full: 'Tyson', title: 'Cyclops, Son of Poseidon', parent: 'Poseidon', desc: 'Huge fists, thrown boulders, a watch that becomes a shield, and fire that cannot hurt him.', power: 'Big Brother', color: '#8a5a3a', unlock: 'book2' },
-  clarisse: { name: 'Clarisse', full: 'Clarisse La Rue', title: 'Daughter of Ares', parent: 'Ares', desc: 'An electric spear, charges, war cries and a boar shield.', power: "Ares's Fury", color: '#d0402a', unlock: 'ch3' },
-  thalia: { name: 'Thalia', full: 'Thalia Grace', title: 'Daughter of Zeus', parent: 'Zeus', desc: 'Spear and the terrifying Aegis; lightning that chains between foes.', power: 'Storm of Zeus', color: '#4a8aff', unlock: 'book3', soon: true },
-  nico: { name: 'Nico', full: 'Nico di Angelo', title: 'Son of Hades', parent: 'Hades', desc: 'Stygian iron, shadow travel and an army of the dead.', power: 'King of the Dead', color: '#6a4a8a', unlock: 'book3', soon: true },
+  percy: { name: t('heroes.percy.name'), full: t('heroes.percy.full'), title: t('heroes.percy.title'), parent: t('heroes.percy.parent'), desc: t('heroes.percy.desc'), power: t('heroes.percy.power'), color: '#2fb6c8', unlock: 'start' },
+  annabeth: { name: t('heroes.annabeth.name'), full: t('heroes.annabeth.full'), title: t('heroes.annabeth.title'), parent: t('heroes.annabeth.parent'), desc: t('heroes.annabeth.desc'), power: t('heroes.annabeth.power'), color: '#c9963a', unlock: 'start' },
+  grover: { name: t('heroes.grover.name'), full: t('heroes.grover.full'), title: t('heroes.grover.title'), parent: t('heroes.grover.parent'), desc: t('heroes.grover.desc'), power: t('heroes.grover.power'), color: '#5fae4a', unlock: 'start' },
+  tyson: { name: t('heroes.tyson.name'), full: t('heroes.tyson.full'), title: t('heroes.tyson.title'), parent: t('heroes.tyson.parent'), desc: t('heroes.tyson.desc'), power: t('heroes.tyson.power'), color: '#8a5a3a', unlock: 'book2' },
+  clarisse: { name: t('heroes.clarisse.name'), full: t('heroes.clarisse.full'), title: t('heroes.clarisse.title'), parent: t('heroes.clarisse.parent'), desc: t('heroes.clarisse.desc'), power: t('heroes.clarisse.power'), color: '#d0402a', unlock: 'ch3' },
+  thalia: { name: t('heroes.thalia.name'), full: t('heroes.thalia.full'), title: t('heroes.thalia.title'), parent: t('heroes.thalia.parent'), desc: t('heroes.thalia.desc'), power: t('heroes.thalia.power'), color: '#4a8aff', unlock: 'book3', soon: true },
+  nico: { name: t('heroes.nico.name'), full: t('heroes.nico.full'), title: t('heroes.nico.title'), parent: t('heroes.nico.parent'), desc: t('heroes.nico.desc'), power: t('heroes.nico.power'), color: '#6a4a8a', unlock: 'book3', soon: true },
 };
 // Playable now, in select order.
 export const HERO_IDS = Object.keys(HEROES).filter((id) => !HEROES[id].soon);

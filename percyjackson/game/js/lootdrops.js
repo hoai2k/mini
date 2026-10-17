@@ -8,6 +8,7 @@ import * as THREE from 'three/webgpu';
 import { itemInfo, itemRarity, KIND_LABEL, gearStats, normalizeItem } from './loot.js';
 import { HEROES } from './heroes/index.js';
 import { h } from './ui/ui.js';
+import { t } from './text_config.js';
 
 const SLOT = { weapon: [0], armor: [1], artifact: [2, 3] };
 
@@ -77,26 +78,27 @@ export class LootDrops {
     const gear = gearUids.map((u) => (u ? sv.item(u) : null));
     const slots = SLOT[b.kind];
     const current = slots.map((i) => gear[i]).find(Boolean) ?? null;
-    let cmp = 'New slot!';
+    let cmp = t('loot.card.newSlot');
     if (current) {
       const dp = it.power - current.power;
       const before = gearStats(gear, p.hero).s;
       const swapped = [...gear]; swapped[slots.find((i) => gear[i] === current)] = it;
       const after = gearStats(swapped, p.hero).s;
-      const parts = [`Power ${dp >= 0 ? '▲' : '▼'}${Math.abs(dp)}`];
-      const diff = (label, a, c, pct = true) => { const v = c - a; if (Math.abs(v) < 0.005) return; parts.push(`${label} ${v > 0 ? '▲' : '▼'}${pct ? Math.round(Math.abs(v) * 100) + '%' : Math.round(Math.abs(v))}`); };
-      if (b.kind === 'weapon') { diff('Damage', before.meleeMult, after.meleeMult); diff('Speed', before.attackSpeed, after.attackSpeed); }
-      if (b.kind === 'armor') { diff('Health', before.maxHp, after.maxHp, false); diff('Armour', before.armor, after.armor); diff('Speed', before.speed, after.speed); }
+      const parts = [t('loot.card.power', { arrow: dp >= 0 ? '▲' : '▼', n: Math.abs(dp) })];
+      const diff = (label, a, c, pct = true) => { const v = c - a; if (Math.abs(v) < 0.005) return; parts.push(t('loot.card.change', { label, arrow: v > 0 ? '▲' : '▼', value: pct ? Math.round(Math.abs(v) * 100) + '%' : Math.round(Math.abs(v)) })); };
+      if (b.kind === 'weapon') { diff(t('loot.card.damage'), before.meleeMult, after.meleeMult); diff(t('loot.card.speed'), before.attackSpeed, after.attackSpeed); }
+      if (b.kind === 'armor') { diff(t('loot.card.health'), before.maxHp, after.maxHp, false); diff(t('loot.card.armour'), before.armor, after.armor); diff(t('loot.card.speed'), before.speed, after.speed); }
       cmp = parts.join(' · ');
     }
-    const who = g.players.filter((q) => !q.ai && !q.remote).length > 1 ? `P${p.index + 1} · ` : '';
+    const multi = g.players.filter((q) => !q.ai && !q.remote).length > 1;
+    const itemName = it.blessed ? t('loot.blessedName', { name: b.name }) : b.name;
     const el = h('div', { class: 'loot-card', style: `--rc:${R.color}` },
       h('div', { class: 'lc-icon' }, b.icon),
       h('div', { class: 'lc-body' },
-        h('div', { class: 'lc-name' }, `${who}${it.blessed ? 'Blessed ' : ''}${b.name}`),
-        h('div', { class: 'lc-sub' }, `${R.label} ${KIND_LABEL[b.kind]} · Power ${it.power}${b.hero && HEROES[b.hero] ? ` · ${HEROES[b.hero].name}’s favourite` : ''}`),
+        h('div', { class: 'lc-name' }, multi ? t('loot.card.nameFor', { n: p.index + 1, name: itemName }) : itemName),
+        h('div', { class: 'lc-sub' }, b.hero && HEROES[b.hero] ? t('loot.card.subFavourite', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power, hero: HEROES[b.hero].name }) : t('loot.card.sub', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power })),
         h('div', { class: 'lc-cmp' }, cmp),
-        h('div', { class: 'lc-hint' }, 'Equip it from the inventory (pause menu, or I)')));
+        h('div', { class: 'lc-hint' }, t('loot.card.hint'))));
     this.cards.appendChild(el);
     while (this.cards.children.length > 3) this.cards.firstChild.remove();
     setTimeout(() => el.classList.add('out'), 4200);

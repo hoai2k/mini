@@ -4,6 +4,7 @@
 // players, so they are set as text, never as HTML.
 import * as THREE from 'three/webgpu';
 import { HEROES } from '../heroes/index.js';
+import { t } from '../text_config.js';
 
 const v = new THREE.Vector3();
 
@@ -19,9 +20,9 @@ export class NameTags {
   }
   label(p) {
     const g = this.game, on = g.online;
-    if (p.remote) return p.remote.ai ? `${HEROES[p.hero]?.name ?? p.hero} · AI` : (p.remote.missing ? `${p.remote.name} (reconnecting…)` : p.remote.name);
+    if (p.remote) return p.remote.ai ? t('online.tag.ai', { hero: HEROES[p.hero]?.name ?? p.hero }) : (p.remote.missing ? t('online.tag.reconnecting', { name: p.remote.name }) : p.remote.name);
     const humans = g.players.filter((q) => !q.ai && !q.remote).length;
-    if (p.ai) return on?.live ? `${HEROES[p.hero]?.name ?? p.hero} · AI${p.heldFor ? ' (holding)' : ''}` : null;
+    if (p.ai) return on?.live ? t('online.tag.ai', { hero: HEROES[p.hero]?.name ?? p.hero }) + (p.heldFor ? t('online.tag.holding') : '') : null;
     if (!on?.live && humans < 2) return null;
     return g.profileName?.(p) ?? null;
   }

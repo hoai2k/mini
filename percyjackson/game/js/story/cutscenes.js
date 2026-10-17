@@ -17,6 +17,7 @@ import { buildHeroModel, buildNpc } from '../entities/models.js';
 import { buildMortal } from '../entities/mortals.js';
 import { CHAR_SCALE } from '../entities/character.js';
 import { move, follow } from './cutscene.js';
+import { t } from '../text_config.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const smooth = (k) => k * k * (3 - 2 * k);
@@ -94,7 +95,7 @@ export const BUS_LAST = 7, BUS_READ = BUS_LAST - 2 - 1.1;
 export const CUTSCENES = {
   // ------------------------------------------------------------------ the bus to the museum
   bus: {
-    id: 'bus', music: 'cutscene-journey', title: 'The field trip',
+    id: 'bus', music: 'cutscene-journey', title: t('cutscenes.bus.title'),
     build(game) {
       const L = buildAvenueSet();
       setLevel(game, L, BIOMES.manhattan);
@@ -134,27 +135,27 @@ export const CUTSCENES = {
       const shots = [
         { dur: 5.8, fadeIn: 'black',
           cam: move({ pos: [66, 30, -6], look: [34, 4, 30] }, { pos: [54, 16, 26], look: [32, 5, 52] }, { fov: 40, fov2: 36 }),
-          lines: [{ at: 0.3, text: 'Yancy Academy’s field trip: twenty-eight kids, one yellow school bus, and New York in the morning.' }],
+          lines: [{ at: 0.3, text: t('cutscenes.bus.fieldTrip') }],
           card: { src: 'assets/cards/scene-field-trip.jpg', at: 0.6, dur: 4.8 },
           act: (k, dt) => drive(L.busFrom.z + 80, dt) },
         { dur: 6,
           cam: follow(bus, [15, 5, -10], [-2, 1.6, 2], { offset2: [13, 4.2, 7], fov: 42 }),
-          lines: [{ at: 0.2, text: 'Grover sits next to you, chewing on an apple core. Nancy Bobofit throws bits of sandwich at his head.' }],
+          lines: [{ at: 0.2, text: t('cutscenes.bus.groverOnBus') }],
           card: { src: 'assets/cards/scene-bus-ride.jpg', at: 0.4, dur: 5.2, side: 'left' },   // (left: clear of the lettering on the bus)
           act: (k, dt) => drive(L.MC - 40, dt) },
         { dur: 5.4,
           cam: move({ pos: [52, 8, L.MC + 42], look: [16, 9, L.MC + 2] }, { pos: [50, 14, L.MC + 30], look: [14, 12, L.MC] }, { fov: 46 }),
-          lines: [{ at: 0.4, text: 'The American Museum of Natural History. Mr. Brunner promised Greek and Roman treasures.' }],
+          lines: [{ at: 0.4, text: t('cutscenes.bus.museum') }],
           act: (k, dt) => drive(L.busStop.z, dt, 9) },
         { dur: BUS_LAST,
           cam: move({ pos: [17.5, L.top + 3.2, L.MC - 6], look: [27, L.FY + 1.2, L.MC + 5] }, { pos: [16.5, L.top + 3.8, L.MC - 9], look: [22, L.FY + 1.6, L.MC + 4] }, { fov: 42 }),
-          lines: [{ at: 0.8, text: 'Everybody off. Up the steps, past the columns, toward the old marble and bronze.' }],
+          lines: [{ at: 0.8, text: t('cutscenes.bus.steps') }],
           card: { src: 'assets/cards/scene-museum-steps.jpg', at: 2.2, dur: 4 },
           act: (k, dt, t) => { drive(L.busStop.z, dt, 4); unload(t); if (t >= BUS_READ) readBus(); } },
         { dur: 6, fadeOut: 'black',
           cam: move({ pos: [21, L.top + 2.2, L.MC + 2], look: [L.dodds.x, L.top + 1.6, L.dodds.z] }, { pos: [18.6, L.top + 1.9, L.MC + 0.6], look: [L.dodds.x, L.top + 1.7, L.dodds.z] }, { fov: 34, fov2: 28 }),
           enter: () => dodds.face(Math.atan2(20 - L.dodds.x, L.MC + 2 - L.dodds.z)),
-          lines: [{ at: 0.2, text: 'And Mrs. Dodds, your pre-algebra teacher, is watching you, as if you have done something terrible.' }] },   // (the one time her stare is told)
+          lines: [{ at: 0.2, text: t('cutscenes.bus.dodds') }] },   // (the one time her stare is told)
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)
@@ -168,7 +169,7 @@ export const CUTSCENES = {
   },
   // ------------------------------------------------------------------ summer, the storm, the drive
   summer: {
-    id: 'summer', music: 'cutscene-storm', title: 'Summer, and a storm',
+    id: 'summer', music: 'cutscene-storm', title: t('cutscenes.summer.title'),
     build(game) {
       const L = buildMontaukSet();
       setLevel(game, L, BIOMES.storm_hill);
@@ -200,21 +201,21 @@ export const CUTSCENES = {
       const shots = [
         { dur: 5.4, fadeIn: 'black',
           cam: move({ pos: [10, 12, 82], look: [38, 4, 55] }, { pos: [16, 9, 72], look: [38, 4, 56] }, { fov: 42 }),
-          lines: [{ at: 0.3, text: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she met your father.' }] },
+          lines: [{ at: 0.3, text: t('cutscenes.summer.cabin') }] },
         { dur: 6.8,
           enter: () => { grover.rig.root.visible = true; grover.pos.set(L.door.x - 7, L.FY, L.door.z + 2); grover.walk(V(L.door.x - 1.6, L.FY, L.door.z), 4.6); flash(); },
           cam: move({ pos: [L.door.x - 6.5, L.FY + 3.2, L.door.z + 3.5], look: [L.door.x + 0.2, L.FY + 1.3, L.door.z] }, { pos: [L.door.x - 5.5, L.FY + 2.8, L.door.z + 3], look: [L.door.x + 0.3, L.FY + 1.4, L.door.z] }, { fov: 40 }), noFrame: true,   // (through the door, a metre clear of Grover: framed by hand)
-          lines: [{ at: 0.6, text: 'In the middle of the night, in a storm, someone bangs on the door. Grover. He has no trousers on. He has hooves.' }],
+          lines: [{ at: 0.6, text: t('cutscenes.summer.knock') }],
           card: { src: 'assets/cards/scene-montauk.jpg', at: 1.2, dur: 5 } },
         { dur: 5.8,
           enter: () => { grover.rig.root.visible = false; percy.rig.root.visible = false; mom.rig.root.visible = false; s = 0; },
           cam: follow(cm, [-11, 6.5, 9], [4, 0.8, -3], { offset2: [-9, 5.5, -9], fov: 44 }),
-          lines: [{ at: 0.2, text: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.' }],
+          lines: [{ at: 0.2, text: t('cutscenes.summer.drive') }],
           act: (k, dt) => { const v = 9; s = Math.min(total, s + v * dt); place(s); spin(cm, v * dt); } },   // (9 m/s: the road lasts both shots)
         { dur: 5.6, fadeOut: 'white',
           cam: move({ pos: [68, 9, 44], look: [82, 5, 26] }, { pos: [72, 8, 36], look: [80, 7, 14] }, { fov: 42, fov2: 36 }),
           card: { src: 'assets/cards/scene-storm-drive.jpg', at: 0.4, dur: 3 },
-          lines: [{ at: 0.2, text: 'Toward a hill on Long Island, and a great pine tree at the top. Then the lightning hits.' }],
+          lines: [{ at: 0.2, text: t('cutscenes.summer.lightning') }],
           // the car slows and parks at the end of the road, at the foot of the hill, then the lightning hits
           enter: () => { cm.userData.s0 = s; },
           act: (k, dt, t) => { const f = Math.min(1, t / 3.8), ns = cm.userData.s0 + (total - cm.userData.s0) * (1 - (1 - f) ** 2); spin(cm, ns - s); s = ns; place(s); if (t > 4.3 && !cm.userData.hit) { cm.userData.hit = true; flash(true); } } },
@@ -228,7 +229,7 @@ export const CUTSCENES = {
   },
   // ------------------------------------------------------------------ waking at the Big House
   wake: {
-    id: 'wake', music: 'cutscene-camp', title: 'Camp Half-Blood',
+    id: 'wake', music: 'cutscene-camp', title: t('cutscenes.wake.title'),
     build(game) {
       game.loadHub();
       game.mode = 'cutscene';
@@ -249,19 +250,19 @@ export const CUTSCENES = {
       const shots = [
         { dur: 7, fadeIn: 'white',
           cam: move({ pos: [84, 34, 132], look: [54, 9, 90] }, { pos: [66, 20, 110], look: [52, 9, 88] }, { fov: 42 }),
-          lines: [{ at: 0.4, text: 'You wake up on a porch, in the sun. Somebody is spooning something into your mouth. It tastes like your mom’s cookies.' }] },
+          lines: [{ at: 0.4, text: t('cutscenes.wake.porch') }] },
         { dur: 6.3,
           cam: move({ pos: [54.9, gy + 2.3, 98.9], look: [58.2, gy + 1.05, 92.6] }, { pos: [55.4, gy + 2.1, 98], look: [58.3, gy + 1.1, 92.6] }, { fov: 40 }),   // (low enough to keep Annabeth's head in frame)
-          lines: [{ at: 0.3, text: '“You drool when you sleep,” says a girl with curly blond hair and storm-grey eyes. Her name is Annabeth.' }],
+          lines: [{ at: 0.3, text: t('cutscenes.wake.annabeth') }],
           card: { src: 'assets/cards/scene-big-house.jpg', at: 0.5, dur: 5 } },
         { dur: 6.6,
           enter: () => { chi.walk(V(60.6, gy, 92.6), 2.4); },
           act: (k) => { me.lie = Math.max(0, 1 - Math.max(0, k - 0.12) * 6); if (me.lie === 0 && !me.stood) { me.stood = true; me.pos.set(57.9, gy, 93.1); me.yaw = Math.atan2(60.6 - 57.9, 92.6 - 93.1); } },   // (gets up beside the chair, facing Chiron: no jump across the lawn)
           cam: move({ pos: [55.2, gy + 3.3, 97.8], look: [59, gy + 1.7, 92.4] }, { pos: [55.7, gy + 3.1, 97], look: [59.2, gy + 1.8, 92.4] }, { fov: 44 }),   // (Chiron's head in frame; the cabin wall at x 60 kept to the edge)
-          lines: [{ at: 0.3, text: 'And Mr. Brunner, your Latin teacher, trots over on four white legs. He is half horse. “Call me Chiron,” he says.' }] },
+          lines: [{ at: 0.3, text: t('cutscenes.wake.chiron') }] },
         { dur: 5.6, fadeOut: 'black',
           cam: move({ pos: [54, porchY + 3, pz + 6], look: [54, 8, pz + 30] }, { pos: [54, 34, pz - 6], look: [54, 6, pz + 36] }, { fov: 40, fov2: 48 }),
-          lines: [{ at: 0.3, text: 'Welcome to Camp Half-Blood: the one place in the world where kids like you are safe.' }] },
+          lines: [{ at: 0.3, text: t('cutscenes.wake.welcome') }] },
       ];
       return {
         shots, actors,   // (actors: the figures, for the checks)

@@ -11,6 +11,7 @@
 //        Hold the Line: half damage, and lightning zaps the monsters round her.
 //   F    Ares's Fury: a burning rampage — every hit sets monsters on fire,
 //        she strikes faster and steals life.
+import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, zap, stun, burn, teamBuff } from './kit.js';
 import { registerKit } from './index.js';
@@ -34,18 +35,18 @@ class ClarisseKit extends Kit {
     this.p.maxHp += r('tough') * 10; this.p.hp = Math.min(this.p.hp + r('tough') * 10, this.p.maxHp);
     this.p.stats.armor = Math.min(0.7, this.p.stats.armor + r('tough') * 0.03);
     this.slots = {
-      ranged: this.ability({ name: 'Spear Lightning', icon: '⚡', cd: 1.1, ce: 0, use: () => this.lightning() }),
+      ranged: this.ability({ name: t('powers.clarisse.ranged'), icon: '⚡', cd: 1.1, ce: 0, use: () => this.lightning() }),
       ...this.equipSlots({
-        charge: this.ability({ name: 'Charge', icon: '🐗', cd: 6, ce: 10, use: () => this.charge() }),
-        cry: this.ability({ name: 'War Cry', icon: '📣', cd: 15, ce: 14, use: () => this.warCry() }),
-        bash: this.ability({ name: 'Shield Bash', icon: '🛡️', cd: 8, ce: 12, use: () => this.bash() }),
-        chain: this.ability({ name: 'Chain Lightning', icon: '🌩️', cd: 7, ce: 12, use: () => this.chain() }),
-        frenzy: this.ability({ name: 'Battle Frenzy', icon: '😤', cd: 16, ce: 14, use: () => this.frenzy() }),
-        hold: this.ability({ name: 'Hold the Line', icon: '🔱', cd: 15, ce: 14, use: () => this.holdLine() }),
+        charge: this.ability({ name: t('skills.clarisse.charge.name'), icon: '🐗', cd: 6, ce: 10, use: () => this.charge() }),
+        cry: this.ability({ name: t('skills.clarisse.cry.name'), icon: '📣', cd: 15, ce: 14, use: () => this.warCry() }),
+        bash: this.ability({ name: t('skills.clarisse.bash.name'), icon: '🛡️', cd: 8, ce: 12, use: () => this.bash() }),
+        chain: this.ability({ name: t('skills.clarisse.chain.name'), icon: '🌩️', cd: 7, ce: 12, use: () => this.chain() }),
+        frenzy: this.ability({ name: t('skills.clarisse.frenzy.name'), icon: '😤', cd: 16, ce: 14, use: () => this.frenzy() }),
+        hold: this.ability({ name: t('skills.clarisse.hold.name'), icon: '🔱', cd: 15, ce: 14, use: () => this.holdLine() }),
       }),
     };
     this.domain = {
-      name: "Ares's Fury", icon: '🔥', key: 'ares_fury', world: false, sureHit: false, type: 0, color: RED, sound: 'fire', flash: 0xff5a2a,
+      name: t('heroes.clarisse.power'), icon: '🔥', key: 'ares_fury', world: false, sureHit: false, type: 0, color: RED, sound: 'fire', flash: 0xff5a2a,
       duration: 8 + r('fury') * 1.5, radius: 12,
       onStart: (g, d) => this.furyStart(g, d),
       onTick: (g, d, dt) => this.furyTick(g, d, dt),
@@ -144,7 +145,7 @@ class ClarisseKit extends Kit {
     g.shake(0.35);
     g.audio?.noise({ dur: 0.8, gain: 0.45, type: 'bandpass', freq: 500, sweep: 900, q: 0.8, rev: 0.3 });
     g.audio?.tone({ freq: 196, to: 260, dur: 0.6, gain: 0.2, type: 'sawtooth', filter: 1200, rev: 0.3 });
-    g.toast?.('War Cry: the team hits harder');
+    g.toast?.(t('kit.clarisse.warCry'));
   }
   tick(dt) {
     const g = this.game, p = this.p;

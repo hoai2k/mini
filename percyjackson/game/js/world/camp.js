@@ -14,6 +14,7 @@ import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
 import { pine, oak, column, gable, scatterOn, boulder } from './rooms.js';
+import { t as txt } from '../text_config.js';
 
 export const FY = 8;            // ground surface height
 const SX = 116, SY = 40, SZ = 120;
@@ -573,7 +574,7 @@ function buildRoadWest(k, shoreOf) {
 
   // ---- signs: the border sign and a waystone at every stop
   const sign = (x, z, text, o = {}) => deco.prop('text_sign', x, o.y ?? top(Math.floor(x), Math.floor(z)), z, { text, greek: true, ...o });   // (Greek letters until a hero reads them)
-  sign(30.5, NZ - 3.5, 'CAMP HALF-BLOOD\nTHE ROAD WEST', { w: 3.6, h: 1.2, post: 2.2, bg: '#f28c28', fg: '#17130f', border: '#17130f', rot: 0.25 });
+  sign(30.5, NZ - 3.5, txt('signs.campBorder'), { w: 3.6, h: 1.2, post: 2.2, bg: '#f28c28', fg: '#17130f', border: '#17130f', rot: 0.25 });
   W.set(29, top(29, NZ - 4), NZ - 4, B.barrier); W.set(31, top(31, NZ - 4), NZ - 4, B.barrier);
   // a waystone: a marble pillar with a gold cap, and a signpost with the place's name
   const waystone = (x, z, name, rot = 0, extra = {}) => {
@@ -589,46 +590,46 @@ function buildRoadWest(k, shoreOf) {
 
   // road1: the bus stop past the border, with Argus's van (chapter 4, the Greyhound)
   stop('road1', 37, 56);
-  waystone(33, 51, 'NEW JERSEY');
+  waystone(33, 51, txt('signs.newJersey'));
   deco.prop('van', 42.5, top(42, 59), 60.5, { rot: 0.35 }); for (let dx = -2; dx <= 2; dx++) solid(42 + dx, 60, 2);
-  sign(46.5, 57.5, 'GREYHOUND', { w: 2.2, h: 0.6, post: 2.2, bg: '#1d3a8a', fg: '#ffffff', border: '#c8ccd2', rot: 0.4 }); solid(46, 57, 1);
+  sign(46.5, 57.5, txt('signs.greyhound'), { w: 2.2, h: 0.6, post: 2.2, bg: '#1d3a8a', fg: '#ffffff', border: '#c8ccd2', rot: 0.4 }); solid(46, 57, 1);
   deco.prop('bench', 44.5, top(44, 56), 56.0, { rot: 0.4 });
   // road2: Aunty Em's: gnomes and two stone figures by the verge (chapter 5)
   stop('road2', 52, 51);
-  waystone(51, 46, 'AUNTY EM’S', 0, { bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
+  waystone(51, 46, txt('signs.auntyEm'), 0, { bg: '#f2efe6', fg: '#c4302a', border: '#3f8a34' });
   for (let i = 0; i < 7; i++) deco.prop('gnome', 47.5 + i * 1.3, top(47 + i, 47), 47.6 + (i % 2) * 0.5, { rot: 0.2 * i, color: [0xd8322a, 0x2a6ad8, 0xffd84a][i % 3] });
   for (const [x, z, pose] of [[56, 46, 0], [58, 47, 4]]) { deco.prop('stone_person', x + 0.5, top(x, z), z + 0.5, { pose, rot: 2.6, scale: 1.1 }); solid(x, z); }
   // road3: a model of the Gateway Arch over a little river (chapter 6)
   stop('road3', 70, 54);
-  waystone(66, 49, 'ST. LOUIS');
+  waystone(66, 49, txt('signs.stLouis'));
   deco.prop('arch_model', 72.5, top(72, 46), 46.5, { span: 8, h: 9 }); solid(68, 46); solid(76, 46);
   for (let x = 62; x <= 84; x++) for (let dz = 0; dz < 2; dz++) { const z = 42 + dz + Math.round(Math.sin(x * 0.4)); W.set(x, FY - 1, z, B.water); W.set(x, FY - 2, z, B.sand); }
   // road4: Denver: a water tower and a swan boat on a pond (chapter 7)
   stop('road4', 88, 49);
-  waystone(92, 52, 'DENVER', Math.PI);
+  waystone(92, 52, txt('signs.denver'), Math.PI);
   deco.prop('water_tower', 96.5, top(96, 55), 56.5, { color: 0x6ac0e0 }); for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) solid(96 + dx, 56 + dz, 5);
   k.pond(86, 57, 91, 60, FY, B.water, 1, B.white_trim); deco.prop('swan_boat', 88.5, FY - 0.75, 58.5, { rot: 0.4, scale: 0.8 });
   // road5: Las Vegas: a neon sign, palms and a slot machine (chapter 8)
   stop('road5', 100, 37);
-  waystone(104, 40, 'LAS VEGAS', Math.PI, { bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true });
-  sign(107.5, 34.5, 'LOTUS\nHOTEL & CASINO', { w: 3.6, h: 1.6, post: 2.6, bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true, rot: Math.PI / 2 + 0.3 }); solid(107, 34, 1);
+  waystone(104, 40, txt('signs.lasVegas'), Math.PI, { bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true });
+  sign(107.5, 34.5, txt('signs.lotus'), { w: 3.6, h: 1.6, post: 2.6, bg: '#0a3a2a', fg: '#4affa0', border: '#d6aa4a', glow: true, rot: Math.PI / 2 + 0.3 }); solid(107, 34, 1);
   for (const [x, z] of [[105, 31], [108, 38]]) { deco.prop('palm', x + 0.5, top(x, z), z + 0.5, { h: 5 }); solid(x, z); }
   deco.prop('slot', 104.5, top(104, 34), 34.5, { rot: -Math.PI / 2 }); solid(104, 34, 2);
   W.addLight(106, FY + 3, 35, 0x4affa0, 4, 9);
   // road6: the Nevada desert and Crusty's (chapter 9)
   stop('road6', 90, 23);
-  waystone(93, 19, 'NEVADA', 0, { bg: '#f2efe6', fg: '#c4302a', border: '#2ab0c8' });
+  waystone(93, 19, txt('signs.nevada'), 0, { bg: '#f2efe6', fg: '#c4302a', border: '#2ab0c8' });
   for (const [x, z, h] of [[86, 18, 2.2], [98, 24, 1.8], [95, 14, 2.6], [101, 20, 2]]) { deco.prop('cactus', x + 0.5, top(x, z), z + 0.5, { h, rot: x }); solid(x, z, 2); }
   deco.prop('waterbed', 98.5, top(98, 17), 16.5, { swan: true, rot: -0.3 }); for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) solid(98 + dx, 16 + dz, 1);
   // road7: Los Angeles: palms and the black door of DOA Recording Studios (chapter 10)
   stop('road7', 70, 12);
-  waystone(73, 7, 'LOS ANGELES');
+  waystone(73, 7, txt('signs.losAngeles'));
   { const x0 = 64, z0 = 4, y = top(65, 5); for (let x = x0; x <= x0 + 4; x++) for (let yy = y; yy < y + 4; yy++) W.set(x, yy, z0, (x === x0 || x === x0 + 4 || yy === y + 3) ? B.black_marble : B.elevator_door);
-    sign(x0 + 2.5, z0 + 1.08, 'DOA', { y: y + 3.1, w: 1.6, h: 0.6, bg: '#0a0a0e', fg: '#e8c870', border: '#c9963a', oneSided: true }); }
+    sign(x0 + 2.5, z0 + 1.08, txt('signs.doa'), { y: y + 3.1, w: 1.6, h: 0.6, bg: '#0a0a0e', fg: '#e8c870', border: '#c9963a', oneSided: true }); }
   for (const [x, z] of [[60, 6], [77, 14], [80, 9]]) { deco.prop('palm', x + 0.5, top(x, z), z + 0.5, { h: 6 }); solid(x, z); }
   // road8: Santa Monica: the boardwalk, a little Ferris wheel, umbrellas (chapter 11)
   stop('road8', 38, 12);
-  waystone(41, 15, 'SANTA MONICA', Math.PI);
+  waystone(41, 15, txt('signs.santaMonica'), Math.PI);
   deco.prop('ferris_wheel', 41.5, top(41, 5), 5.5, { r: 3.4 }); for (const dx of [-1, 0, 1]) solid(41 + dx, 5, 3);
   for (const [x, z, col] of [[30, 6, 0xd8322a], [26, 10, 0x2a6ad8], [33, 4, 0xffd84a]]) deco.prop('umbrella', x + 0.5, top(x, z), z + 0.5, { color: col });
   deco.prop('lifeguard_tower', 22.5, top(22, 8), 8.5, { rot: Math.PI / 2 }); for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) solid(22 + dx, 8 + dz, 1);
@@ -640,6 +641,6 @@ function buildRoadWest(k, shoreOf) {
     for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; const x = Math.round(cx + Math.cos(a) * 3.2), z = Math.round(cz + Math.sin(a) * 3.2); if (Math.abs(x - 22) + Math.abs(z - 34) < 3) continue; W.set(x, y, z, B.cloud); if (i % 2) W.set(x, y + 1, z, B.cloud); }
     column(k, 22, 31, y, 5); column(k, 22, 37, y, 5); for (let z = 31; z <= 37; z++) W.set(22, y + 5, z, B.key_frieze);
     W.addLight(cx + 0.5, y + 8, cz + 0.5, 0xffe8a0, 5, 14);
-    waystone(27, 37, 'OLYMPUS', Math.PI / 2 + 0.3, { bg: '#f2efe6', fg: '#a8862a', border: '#c9963a' }); }
+    waystone(27, 37, txt('signs.olympus'), Math.PI / 2 + 0.3, { bg: '#f2efe6', fg: '#a8862a', border: '#c9963a' }); }
   return { anchors };
 }

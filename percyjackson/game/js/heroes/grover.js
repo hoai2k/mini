@@ -12,6 +12,7 @@
 //        Tin-Can Snack: health and Power back.
 //   F    Panic: the voice of Pan — every monster flees from Grover in terror
 //        and takes damage as it runs.
+import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, root, slow, fear, stun, makeDisc } from './kit.js';
 import { registerKit } from './index.js';
@@ -38,18 +39,18 @@ class GroverKit extends Kit {
     ];
     this.p.stats.meleeMult += r('hooves') * 0.08;
     this.slots = {
-      ranged: this.ability({ name: 'Pipe Song', icon: '🎵', cd: 0.5, ce: 0, use: () => this.songBolt() }),
+      ranged: this.ability({ name: t('powers.grover.ranged'), icon: '🎵', cd: 0.5, ce: 0, use: () => this.songBolt() }),
       ...this.equipSlots({
-        vines: this.ability({ name: 'Tangle Vines', icon: '🌿', cd: 10, ce: 14, use: () => this.vines() }),
-        calm: this.ability({ name: 'Calming Song', icon: '🎶', cd: 16, ce: 18, use: () => this.calm() }),
-        maia: this.ability({ name: 'Maia!', icon: '🪽', cd: 6, ce: 8, use: () => this.maia() }),
-        briar: this.ability({ name: 'Briar Burst', icon: '🌵', cd: 8, ce: 12, use: () => this.briar() }),
-        lullaby: this.ability({ name: 'Lullaby', icon: '💤', cd: 14, ce: 16, use: () => this.lullaby() }),
-        snack: this.ability({ name: 'Tin-Can Snack', icon: '🥫', cd: 20, ce: 0, use: () => this.snack() }),
+        vines: this.ability({ name: t('skills.grover.vines.name'), icon: '🌿', cd: 10, ce: 14, use: () => this.vines() }),
+        calm: this.ability({ name: t('skills.grover.calm.name'), icon: '🎶', cd: 16, ce: 18, use: () => this.calm() }),
+        maia: this.ability({ name: t('skills.grover.maia.name'), icon: '🪽', cd: 6, ce: 8, use: () => this.maia() }),
+        briar: this.ability({ name: t('skills.grover.briar.name'), icon: '🌵', cd: 8, ce: 12, use: () => this.briar() }),
+        lullaby: this.ability({ name: t('skills.grover.lullaby.name'), icon: '💤', cd: 14, ce: 16, use: () => this.lullaby() }),
+        snack: this.ability({ name: t('skills.grover.snack.name'), icon: '🥫', cd: 20, ce: 0, use: () => this.snack() }),
       }),
     };
     this.domain = {
-      name: 'Panic', icon: '🐐', key: 'panic', world: false, sureHit: false, type: 0, color: PAN, sound: 'garden', flash: 0x9aff7a,
+      name: t('heroes.grover.power'), icon: '🐐', key: 'panic', world: false, sureHit: false, type: 0, color: PAN, sound: 'garden', flash: 0x9aff7a,
       duration: 5 + r('panic'), radius: 26,
       onStart: (g, d) => this.panicStart(g, d),
       onTick: (g, d, dt) => this.panicTick(g, d, dt),
@@ -261,7 +262,7 @@ class GroverKit extends Kit {
     g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: 0xcfe0ff, r0: 0.6, r1: R, dur: 1.2, thick: 0.05 });
     g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: NOTE, r0: 0.6, r1: R * 0.8, dur: 1.5, thick: 0.04 });
     for (let i = 0; i < 4; i++) this.note(0.05, 0.6, i * 0.28);
-    if (n) g.toast?.('Lullaby: the monsters doze off');
+    if (n) g.toast?.(t('kit.grover.lullaby'));
   }
   // ---------------------------------------------------------------- Tin-Can Snack
   // Satyrs eat tin cans. Grover crunches one and feels much better.

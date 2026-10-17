@@ -7,6 +7,7 @@
 // into creatures that look nothing like people: serpents, spiders, ghosts.
 // Real mortals stay people (with a soft, calm outline under True Sight).
 // Pure data and rules (the node tests load it); entities/enemy.js runs them.
+import { t as txt } from '../text_config.js';
 
 // What disguised monsters really are, by chapter (chapters.js mistForms;
 // this when a chapter names none).
@@ -23,14 +24,14 @@ export const RECOIL = 0.55;      // seconds they step back, arms up
 export const SETTLE = 1.6;       // seconds they glare at the hero before going back to their business
 
 export const SCOLD = {
-  teacher: ['Young man! Detention!', 'I beg your pardon?!', 'I’m telling Mr. Brunner!', 'That is quite enough!'],
-  student: ['Hey! Watch it!', 'Dude, what?!', 'I’m telling Mr. Brunner!', 'Ow! Weirdo!'],
-  tourist: ['Excuse me?!', 'Hey, I’m taking a picture here!', 'How rude!', 'Is this some kind of show?'],
-  guard: ['No horseplay in the museum!', 'Hands to yourself, kid.', 'Do I need to call your teacher?', 'Walk, don’t swing!'],
-  old_lady: ['Well, I never!', 'Mind your manners, dear!', 'Young people these days!', 'I’ll knit you some manners!'],
-  bellhop: ['Sir! Please!', 'Easy there, valued guest!', 'Have a lotus and calm down.', 'No roughhousing in the lobby!'],
-  farmer: ['Hey now!', 'Watch where you swing that thing!', 'Get off my land!'],
-  salesman: ['Whoa there, friend!', 'No touching the merchandise!', 'Is that how you haggle?'],
+  teacher: txt('enemies.scold.teacher'),
+  student: txt('enemies.scold.student'),
+  tourist: txt('enemies.scold.tourist'),
+  guard: txt('enemies.scold.guard'),
+  old_lady: txt('enemies.scold.old_lady'),
+  bellhop: txt('enemies.scold.bellhop'),
+  farmer: txt('enemies.scold.farmer'),
+  salesman: txt('enemies.scold.salesman'),
 };
 // A line for a mortal of this kind (r in [0, 1)); `last` is avoided if it can be.
 export function scoldLine(id, r, last = null) {

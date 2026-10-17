@@ -15,6 +15,7 @@
 // Pure apart from the storage object, so node can test it.
 import { INDEX_KEY, PROFILE_KEY } from './profiles.js';
 import { freshData, ID_RE } from './save.js';
+import { t } from './text_config.js';
 
 export const SLOTS_KEY = 'hbq-slots-v1';
 export const RESUME_KEY = 'hbq-resume-v1';
@@ -30,8 +31,8 @@ export class Slots {
     this.index = this.read();
     if (!this.index) {
       // first run with slots: everything saved so far is Save 1
-      const t = this.now();
-      this.index = { version: 1, active: 's1', list: [{ id: 's1', name: 'Save 1', created: t, played: t, playTime: 0, chapters: 0, heroes: [] }] };
+      const now = this.now();
+      this.index = { version: 1, active: 's1', list: [{ id: 's1', name: t('saves.defaultFirst'), created: now, played: now, playTime: 0, chapters: 0, heroes: [] }] };
       this.write();
     }
   }
@@ -39,7 +40,7 @@ export class Slots {
     try {
       const d = JSON.parse(this.store?.getItem(SLOTS_KEY) || 'null');
       if (!isObj(d) || !Array.isArray(d.list)) return null;
-      const list = d.list.filter((x) => isObj(x) && SLOT_RE.test(x.id)).map((x) => ({ id: x.id, name: String(x.name ?? 'Save').slice(0, 24), created: +x.created || 0, played: +x.played || 0, playTime: +x.playTime || 0, chapters: +x.chapters || 0, heroes: Array.isArray(x.heroes) ? x.heroes.filter((h) => typeof h === 'string').slice(0, 4) : [] }));
+      const list = d.list.filter((x) => isObj(x) && SLOT_RE.test(x.id)).map((x) => ({ id: x.id, name: String(x.name ?? t('saves.defaultName')).slice(0, 24), created: +x.created || 0, played: +x.played || 0, playTime: +x.playTime || 0, chapters: +x.chapters || 0, heroes: Array.isArray(x.heroes) ? x.heroes.filter((h) => typeof h === 'string').slice(0, 4) : [] }));
       if (!list.length) return null;
       return { version: 1, active: list.some((x) => x.id === d.active) ? d.active : list[0].id, list };
     } catch (e) { return null; }
@@ -63,17 +64,17 @@ export class Slots {
   // [{ id, name }] keeps each player's identity; the first is the main profile.
   create({ name = null, people = [] } = {}) {
     let n = 1; while (this.meta('s' + n)) n++;
-    const id = 's' + n, prefix = slotPrefix(id), t = this.now();
-    let k = 1; const names = new Set(this.index.list.map((x) => x.name)); while (names.has(`Save ${k}`)) k++;
+    const id = 's' + n, prefix = slotPrefix(id), now = this.now();
+    let k = 1; const names = new Set(this.index.list.map((x) => x.name)); while (names.has(t('saves.defaultNumbered', { n: k }))) k++;
     const ids = [];
-    for (const p of people.length ? people : [{ name: 'Player 1' }]) {
-      const d = freshData(p.name ?? 'Player 1', ID_RE.test(p.id ?? '') ? p.id : undefined);
-      d.updated = t;
+    for (const p of people.length ? people : [{ name: t('profiles.player1') }]) {
+      const d = freshData(p.name ?? t('profiles.player1'), ID_RE.test(p.id ?? '') ? p.id : undefined);
+      d.updated = now;
       ids.push(d.id);
       try { this.store?.setItem(prefix + PROFILE_KEY(d.id), JSON.stringify(d)); } catch (e) { /* full */ }
     }
     try { this.store?.setItem(prefix + INDEX_KEY, JSON.stringify({ version: 2, main: ids[0], ids, slots: {}, migratedV1: true })); } catch (e) { /* full */ }
-    this.index.list.push({ id, name: name ?? `Save ${k}`, created: t, played: t, playTime: 0, chapters: 0, heroes: [] });
+    this.index.list.push({ id, name: name ?? t('saves.defaultNumbered', { n: k }), created: now, played: now, playTime: 0, chapters: 0, heroes: [] });
     this.index.active = id;
     this.write();
     return id;

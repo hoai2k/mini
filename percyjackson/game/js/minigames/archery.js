@@ -6,6 +6,7 @@
 // 45 seconds; bullseyes score more and keep a streak. Apollo's cabin holds
 // the record to beat. Best scores are saved per hero.
 import * as THREE from 'three/webgpu';
+import { t as txt } from '../text_config.js';
 
 const DURATION = 45;
 const RECORD = 900;          // Apollo cabin's best: the camp medal
@@ -38,12 +39,12 @@ export class Archery {
     g.minigame = this;
     this.p.minigameLock = true;
     this.p.spawn(this.origin.clone()); this.p.facing = this.facing;   // on the shooting line
-    g.hud.setObjective('Archery Range', `Shoot the targets! RT / right click · wind ${this.windText()}`);
-    g.toast?.('Archery: 45 seconds — go!', 'big');
+    g.hud.setObjective(txt('minigames.archery.name'), txt('minigames.archery.intro', { wind: this.windText() }));
+    g.toast?.(txt('minigames.archery.go'), 'big');
     g.rig.cinematic({ center: this.origin.clone().addScaledVector(this.fwd, 9).setY(this.origin.y + 1.5), dur: 1e9, dist: 18, pitch: 0.75, orbit: 0 });
     g.addUpdater((dt) => this.update(dt));
   }
-  windText() { const a = Math.abs(this.wind); return a < 0.4 ? 'calm' : `${a.toFixed(1)} ${this.wind > 0 ? '→' : '←'}`; }
+  windText() { const a = Math.abs(this.wind); return a < 0.4 ? txt('minigames.archery.windCalm') : txt('minigames.archery.windStrength', { n: a.toFixed(1), arrow: this.wind > 0 ? '→' : '←' }); }
   spawnTarget() {
     const kind = Math.random();
     const dist = 8 + Math.random() * 10;
@@ -92,14 +93,14 @@ export class Archery {
           this.streak++; this.hits++;
           const pts = Math.round(tg.value * (bull ? 3 : inner ? 1.8 : 1) * (1 + Math.min(this.streak, 10) * 0.1));
           this.score += pts;
-          g.fx.damageNumber(tg.mesh.position, pts, { color: bull ? '#ffd84a' : '#f4ead5', text: bull ? `BULLSEYE +${pts}` : `+${pts}` });
+          g.fx.damageNumber(tg.mesh.position, pts, { color: bull ? '#ffd84a' : '#f4ead5', text: bull ? txt('minigames.archery.bullseye', { pts }) : `+${pts}` });
           g.particles.burst(tg.mesh.position.clone(), { count: bull ? 30 : 14, color: bull ? 0xffd84a : 0xc9963a, speed: 4, up: 2, life: 0.6, size: 0.14, shape: 1 });
           g.audio?.impact?.(bull ? 1.2 : 0.8);
         }
       }
     }
     this.arrows = this.arrows.filter((a) => { if (a.life <= 0 || a.mesh.position.y < this.origin.y - 2) { if (a.life > 0) this.streak = 0; this.group.remove(a.mesh); return false; } return true; });
-    g.hud.setObjective(`Archery · ${Math.max(0, Math.ceil(this.t))} s`, `Score ${this.score} · streak ${this.streak} · wind ${this.windText()} · camp record ${this.record()}`);
+    g.hud.setObjective(txt('minigames.archery.hudTitle', { n: Math.max(0, Math.ceil(this.t)) }), txt('minigames.archery.hudStatus', { score: this.score, streak: this.streak, wind: this.windText(), record: this.record() }));
     if (this.t <= 0 && !this.arrows.length) this.finish();
     return !this.done;
   }
@@ -133,9 +134,9 @@ export class Archery {
     this.p.minigameLock = false;
     g.minigame = null; g.audio?.setOverride?.(null);
     g.rig.cine = null;
-    g.toast?.(`${medal ? medal[0].toUpperCase() + medal.slice(1) + ' medal! ' : ''}Score ${this.score}${this.score > best ? ' — new best!' : ''} · +${drachmas} drachmas`, 'big');
+    g.toast?.(txt('minigames.archery.result', { medal: medal ? txt(`minigames.archery.medal.${medal}`) : '', score: this.score, newBest: this.score > best ? txt('minigames.archery.newBest') : '', drachmas }), 'big');
     g.audio?.levelUp?.();
-    g.hud.setObjective('Camp Half-Blood', 'Archery best: ' + Math.max(best, this.score));
+    g.hud.setObjective(txt('minigames.archery.campTitle'), txt('minigames.archery.best', { n: Math.max(best, this.score) }));
   }
   abort() { this.t = 0; this.arrows = []; this.finish(); }
 }

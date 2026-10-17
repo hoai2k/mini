@@ -46,6 +46,7 @@ import { rigOffsets } from './parts.js';
 import { moveEntity } from '../physics.js';
 import { damp, dampAngle, angleDiff } from '../util.js';
 import { toast } from '../ui/ui.js';
+import { t as txt } from '../text_config.js';
 import { monsterDamage } from '../resources.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
@@ -53,67 +54,67 @@ const H = BOOK1_HOOKS;
 
 const BOSSES = {
   alecto: {
-    name: 'Alecto', title: 'ALECTO · THE KINDLY ONE', hp: 1400, speed: 3.4, dmg: 20, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    name: txt('bosses.alecto.name'), title: txt('bosses.alecto.title'), hp: 1400, speed: 3.4, dmg: 20, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
     build: BOSS_MODELS.alecto,
     phases: [['whip_lash', 'swoop', 'whip_lash', 'screech'], ['whip_lash', 'swoop', 'whip_ring', 'summon_pups', 'screech'], ['swoop', 'whip_ring', 'whip_lash', 'summon_pups', 'swoop', 'screech']],
     ambient: (b) => H.whipGlow(b),
   },
   minotaur: {
-    name: 'The Minotaur', title: 'THE MINOTAUR', hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
+    name: txt('bosses.minotaur.name'), title: txt('bosses.minotaur.title'), hp: 2200, speed: 2.6, dmg: 22, color: 0xffa040, radius: 1.2, height: 3.4,
     build: BOSS_MODELS.minotaur,
     phases: [['bull_charge', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'horn_sweep', 'rock_throw', 'bull_charge'], ['bull_charge', 'stomp', 'rock_throw', 'horn_sweep']],
     ambient: (b, dt) => { const g = b.game; if (Math.random() < dt * 1.5) { const c = b.rig.extras.muzzle.getWorldPosition(tmp); g.particles.smoke.emit(c.x, c.y, c.z, Math.sin(b.facing) * 1.5, -0.2, Math.cos(b.facing) * 1.5, 0.7, 0.5, 0.5, 0.5, 0.25, -0.5, 2, 1.2, 0); } },
   },
   hellhound_alpha: {
-    name: 'The Hellhound', title: 'THE HELLHOUND · SUMMONED INTO CAMP', hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.5, height: 3.4,
+    name: txt('bosses.hellhound_alpha.name'), title: txt('bosses.hellhound_alpha.title'), hp: 1800, speed: 4.2, dmg: 20, color: 0xff4a1a, radius: 1.5, height: 3.4,
     build: BOSS_MODELS.hellhound_alpha,
     phases: [['maul', 'lunge', 'shadow_travel', 'maul'], ['maul', 'shadow_travel', 'howl', 'lunge'], ['shadow_travel', 'lunge', 'howl', 'maul', 'shadow_travel']],
     ambient: (b, dt) => H.hellhoundSmoke(b, dt),
   },
   furies: {
-    name: 'The Furies', title: 'THE KINDLY ONES · ALECTO, MEGAERA, TISIPHONE', hp: 2600, speed: 3.6, dmg: 15, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
+    name: txt('bosses.furies.name'), title: txt('bosses.furies.title'), hp: 2600, speed: 3.6, dmg: 15, color: 0xff7a1a, radius: 0.9, height: 3, hover: 1.4,
     build: BOSS_MODELS.alecto,
     phases: [['fury_whip', 'fury_swoop', 'sister_swap', 'fury_whip'], ['fury_whip', 'fury_swoop', 'sister_swap', 'triple_whip', 'screech'], ['triple_whip', 'fury_swoop', 'sister_swap', 'whip_ring', 'fury_swoop', 'screech']],
     init: (b) => H.furiesInit(b), tick: (b, dt) => H.furiesTick(b, dt), onDie: (b) => H.furiesDie(b), ambient: (b) => H.whipGlow(b),
   },
   medusa: {
-    name: 'Medusa', title: 'MEDUSA · AUNTY EM', hp: 2400, speed: 2.4, dmg: 18, color: 0x8aff6a, radius: 1.0, height: 4,
+    name: txt('bosses.medusa.name'), title: txt('bosses.medusa.title'), hp: 2400, speed: 2.4, dmg: 18, color: 0x8aff6a, radius: 1.0, height: 4,
     build: BOSS_MODELS.medusa,
     phases: [['gaze', 'snake_bite', 'veil_sweep', 'snake_bite'], ['gaze', 'snake_bite', 'wake_statues', 'veil_sweep'], ['gaze', 'snake_bite', 'gaze', 'wake_statues', 'veil_sweep']],
     tick: (b, dt) => H.medusaTick(b, dt), onDie: (b) => H.medusaDie(b),
   },
   chimera: {
-    name: 'The Chimera', title: 'THE CHIMERA · ECHIDNA’S “CHIHUAHUA”', hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
+    name: txt('bosses.chimera.name'), title: txt('bosses.chimera.title'), hp: 2400, speed: 3, dmg: 20, color: 0xff6a1a, radius: 1.3, height: 3,
     build: BOSS_MODELS.chimera,
     phases: [['fire_breath', 'fireballs', 'tail_strike'], ['fire_breath', 'pounce', 'fireballs', 'tail_strike'], ['fire_breath', 'fireballs', 'pounce', 'tail_strike', 'fire_breath']],
     ambient: (b) => { const g = b.game; if (Math.random() < 0.4) { const c = b.mouth(); g.particles.glow.emit(c.x, c.y, c.z, (Math.random() - 0.5) * 0.5, 0.8 + Math.random(), (Math.random() - 0.5) * 0.5, 0.4, 2.6, 1, 0.2, 0.2, -1, 1, 0.05, 0); } },
   },
   spiders: {
-    name: 'The Spider Queen', title: 'HEPHAESTUS’S SPIDERS · THE BRONZE QUEEN', hp: 2000, speed: 3.2, dmg: 16, color: 0xffb02a, radius: 1.6, height: 2.6,
+    name: txt('bosses.spiders.name'), title: txt('bosses.spiders.title'), hp: 2000, speed: 3.2, dmg: 16, color: 0xffb02a, radius: 1.6, height: 2.6,
     build: BOSS_MODELS.spiders,
     phases: [['net_spit', 'leg_stab', 'spawn_swarm', 'net_spit'], ['net_spit', 'leg_stab', 'skitter', 'spawn_swarm'], ['net_spit', 'skitter', 'spawn_swarm', 'leg_stab', 'net_spit']],
     init: (b) => H.spidersInit(b), tick: (b, dt) => H.spidersTick(b, dt), onDie: (b) => H.spidersDie(b),
   },
   procrustes: {
-    name: 'Procrustes', title: 'PROCRUSTES · CRUSTY’S WATER BED PALACE', hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 4.4,
+    name: txt('bosses.procrustes.name'), title: txt('bosses.procrustes.title'), hp: 2600, speed: 2.8, dmg: 22, color: 0xd8302a, radius: 1.2, height: 4.4,
     build: BOSS_MODELS.procrustes,
     phases: [['axe_sweep', 'grab_bed', 'axe_chop', 'axe_sweep'], ['axe_sweep', 'grab_bed', 'axe_chop', 'sales_pitch'], ['grab_bed', 'axe_sweep', 'axe_chop', 'sales_pitch', 'grab_bed']],
     damageMul: (b, src) => H.procrustesHit(b, src), onDie: (b) => H.procrustesDie(b),
   },
   cerberus: {
-    name: 'Cerberus', title: 'CERBERUS · GUARDIAN OF THE UNDERWORLD', hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 2.0, height: 4.4,
+    name: txt('bosses.cerberus.name'), title: txt('bosses.cerberus.title'), hp: 3200, speed: 2.8, dmg: 22, color: 0xff8a1a, radius: 2.0, height: 4.4,
     build: BOSS_MODELS.cerberus,
     phases: [['triple_attack', 'head_bite', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'sleepy', 'cerberus_stomp'], ['triple_attack', 'head_fire', 'head_lunge', 'triple_attack', 'sleepy', 'cerberus_stomp']],
     tick: (b, dt) => H.cerberusTick(b, dt), damageMul: (b) => (b.sleepyT > 0 ? 2 : 1),
   },
   ares: {
-    name: 'Ares', title: 'ARES · GOD OF WAR', hp: 3000, speed: 3.2, dmg: 21, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
+    name: txt('bosses.ares.name'), title: txt('bosses.ares.title'), hp: 3000, speed: 3.2, dmg: 21, color: 0xff3a14, radius: 1.1, height: 4.2, waterBonus: true,
     build: BOSS_MODELS.ares,
     phases: [['sword_combo', 'spear_thrust', 'bike_charge', 'sword_combo'], ['sword_combo', 'bike_charge', 'spear_thrust', 'war_cry'], ['bike_charge', 'sword_combo', 'spear_thrust', 'war_cry', 'bike_charge']],
     tick: (b, dt) => H.aresTick(b, dt), damageMul: (b, src, o) => H.aresHit(b, src, o), onDie: (b) => H.aresDie(b),
   },
   luke: {
-    name: 'Luke Castellan', title: 'LUKE CASTELLAN · BACKBITER', hp: 2200, speed: 4.4, dmg: 17, color: 0xe0a040, radius: 0.7, height: 2.6,
+    name: txt('bosses.luke.name'), title: txt('bosses.luke.title'), hp: 2200, speed: 4.4, dmg: 17, color: 0xe0a040, radius: 0.7, height: 2.6,
     build: BOSS_MODELS.luke,
     phases: [['duel_combo', 'parry', 'lunge_strike', 'duel_combo'], ['duel_combo', 'parry', 'summon_scorpion', 'lunge_strike'], ['duel_combo', 'parry', 'lunge_strike', 'summon_scorpion', 'duel_combo', 'parry']],
     damageMul: (b, src, o) => H.lukeHit(b, src, o), onDie: (b) => H.lukeDie(b),
@@ -184,7 +185,7 @@ export class Boss {
     this.swooping = false; this.knock.set(0, 0, 0);
     this.cleanupPattern?.(); this.cleanupPattern = null;
     this.co = this.roar(); this.coWait = 0;
-    toast(`PHASE ${n + 1}`, 'big');
+    toast(txt('bosses.phase', { n: n + 1 }), 'big');
     g.audio?.boss();
     // a recorded roar for the beasts (the voice recordings in assets/sfx)
     const v = BOSS_VOICE[this.id];
@@ -414,7 +415,7 @@ export class Boss {
     const c = this.pos.clone().addScaledVector(dir, this.radius + 0.4).setY(this.pos.y + 2.2);
     g.shake(0.9); g.fx.explosion(c, 0xc9a070, 1.6); g.audio?.impact(2.2); g.audio?.breakBlock('wood');
     for (let i = 0; i < 10; i++) g.debris.spawn(c.clone(), new THREE.Vector3((Math.random() - 0.5) * 6, 4 + Math.random() * 4, (Math.random() - 0.5) * 6), 0.35, new THREE.Color(0.4, 0.3, 0.2), 1.2);
-    toast('His horns are stuck! Strike now!', 'big');
+    toast(txt('bosses.minotaur.hornsStuck'), 'big');
     this.stunT = 3; this.anim = { type: 'stagger', t: 0 }; this.moving = false;
     yield 3;
     this.stunT = 0;

@@ -24,6 +24,7 @@
 // over one hero (the first press wins, the second is refused).
 import * as THREE from 'three/webgpu';
 import { HEROES, HERO_IDS } from './heroes/index.js';
+import { t, tn } from './text_config.js';
 import { companionsWanted, companionShouldEngage, storyAssign, storyHeroes } from './partyRules.js';
 export { companionsWanted };
 
@@ -250,12 +251,12 @@ export class Party {
       p.padGoneT = (p.padGoneT ?? 0) + dt;
       // the only player here lost their controller: pause, once, until it comes back
       if (g.players.filter((q) => !q.ai && !q.remote).length < 2) {
-        if (!p.padPaused && p.padGoneT > 0.25 && g.state === 'playing' && !g.cutscene && !g.minigame) { p.padPaused = true; g.toast?.('Controller disconnected: reconnect it to carry on'); g.pause?.(p); }
+        if (!p.padPaused && p.padGoneT > 0.25 && g.state === 'playing' && !g.cutscene && !g.minigame) { p.padPaused = true; g.toast?.(t('party.padDisconnected')); g.pause?.(p); }
         continue;
       }
       if (p.padGoneT < PAD_GONE) continue;
       p.padGoneT = 0;
-      g.toast?.(`${g.profileName?.(p) ?? 'A player'} left: the AI plays ${HEROES[p.hero]?.name ?? p.hero} for now`);
+      g.toast?.(t('party.playerLeft', { name: g.profileName?.(p) ?? t('party.aPlayer'), hero: HEROES[p.hero]?.name ?? p.hero }));
       if (g.online?.isGuest) { g.online.dropLocalHuman(p); continue; }
       p.gearOwner = p.device;
       this.add(p);
@@ -356,7 +357,7 @@ export class Party {
     }
     if (arriving && added.length) {
       const names = added.map((q) => HEROES[q.hero]?.name ?? q.hero);
-      g.toast?.(`${names.join(' and ')} join${names.length > 1 ? '' : 's'} your party`, 'big');
+      g.toast?.(tn('party.join', names.length, { names: names.join(t('party.and')) }), 'big');
       g.audio?.ui?.('buy');
     }
     this.setParty();

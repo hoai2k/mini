@@ -11,8 +11,9 @@ import { h } from '../ui/ui.js';
 import { openingDone } from './opening.js';
 import { B } from '../world/blocks.js';
 import { whenArt, artReady } from '../ui/art.js';
+import { t } from '../text_config.js';
 
-const DIFFS = [[1, 'Mortal'], [2, 'Demigod'], [3, 'Hero'], [4, 'Olympian']];
+const DIFFS = [[1, t('quest.difficulty.mortal')], [2, t('quest.difficulty.demigod')], [3, t('quest.difficulty.hero')], [4, t('quest.difficulty.olympian')]];
 // the chapter cards as textures, made once from the pictures preloaded with the title (ui/art.js)
 const cardTex = new Map();
 function cardTexture(src, fn) {
@@ -131,13 +132,13 @@ export function placeQuestMarkers(game, L) {
     if (isBus) { const b = bus(); b.position.set(BUS_AT[0], 0, BUS_AT[1]); grp.add(b); busColliders(game.world, pos); }
     game.scene.add(grp); game.hubProps.push(grp);
     if (open) game.lights.attach(grp, col.getHex(), 3, 7, { offsetY: 2 });
-    let t = Math.random() * 6;
-    game.addUpdater((dt) => { t += dt; card.position.y = 3.1 + Math.sin(t * 1.6) * 0.15; card.rotation.y = game.rig.yaw ?? 0; ring.scale.setScalar(1 + Math.sin(t * 3) * 0.05); return grp.parent != null; });
+    let clock = Math.random() * 6;
+    game.addUpdater((dt) => { clock += dt; card.position.y = 3.1 + Math.sin(clock * 1.6) * 0.15; card.rotation.y = game.rig.yaw ?? 0; ring.scale.setScalar(1 + Math.sin(clock * 3) * 0.05); return grp.parent != null; });
     const list = CHAPTERS.filter(chapterPlayable), prev = list[list.indexOf(ch) - 1];
     game.interactables.push({
       id: 'quest-' + ch.id, pos, radius: 2.6,
-      label: open ? `Chapter ${ch.num}: ${ch.title}${done ? ' ✓' : ''}` : `Locked: finish “${prev?.title}” first`,
-      action: () => { if (open) openQuestStart(game, ch.id); else game.toast?.(`Finish “${prev?.title}” first`); },
+      label: open ? t('quest.chapterTitle', { num: ch.num, title: ch.title }) + (done ? ' ✓' : '') : t('quest.locked', { title: prev?.title }),
+      action: () => { if (open) openQuestStart(game, ch.id); else game.toast?.(t('quest.finishFirst', { title: prev?.title })); },
     });
     out.push({ ch, pos, open });
   }
@@ -147,7 +148,7 @@ export function placeQuestMarkers(game, L) {
 // The start dialog: card, place, Mist, difficulty, Start.
 export function openQuestStart(game, id) {
   const ch = chapterDef(id), d = game.save.data;
-  if (game.online?.isGuest) { game.toast?.('The host chooses the chapter'); return; }
+  if (game.online?.isGuest) { game.toast?.(t('quest.hostChooses')); return; }
   let diff = d.lastDifficulty ?? 1;
   game.paused = true;
   const close = () => { game.ui.close('quest'); game.paused = false; game.last = performance.now(); };
@@ -156,11 +157,11 @@ export function openQuestStart(game, id) {
     const mist = '☁'.repeat(Math.round(ch.mist * 5)) + '·'.repeat(5 - Math.round(ch.mist * 5));
     el.appendChild(h('div', { class: 'panel quest-start', style: 'width:min(620px,94vw);text-align:center' },
       artReady(ch.card) ? h('img', { src: ch.card, alt: '', style: 'width:100%;border-radius:8px;border:2px solid #c9963a' }) : null,
-      h('h2', {}, `Chapter ${ch.num}: ${ch.title}`),
-      h('p', { class: 'hint' }, `${ch.place} · Mist ${mist}${best ? ` · Finished on ${DIFFS[best - 1][1]}` : ''}`),
+      h('h2', {}, t('quest.chapterTitle', { num: ch.num, title: ch.title })),
+      h('p', { class: 'hint' }, best ? t('quest.hintFinished', { place: ch.place, mist, difficulty: DIFFS[best - 1][1] }) : t('quest.hint', { place: ch.place, mist })),
       h('div', { class: 'row', style: 'justify-content:center;gap:6px;flex-wrap:wrap' }, ...DIFFS.map(([v, label]) => h('button', { class: 'btn small' + (v === diff ? ' primary' : ''), 'aria-pressed': String(v === diff), onclick: () => { diff = v; game.ui.refresh('quest'); } }, label))),
       h('div', { class: 'row', style: 'justify-content:center;margin-top:12px' },
-        h('button', { class: 'btn', onclick: close }, 'Not yet'),
-        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { d.lastDifficulty = diff; game.save.write(); close(); game.startChapter(ch.id, diff); } }, 'Begin the quest'))));
+        h('button', { class: 'btn', onclick: close }, t('quest.notYet')),
+        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { d.lastDifficulty = diff; game.save.write(); close(); game.startChapter(ch.id, diff); } }, t('quest.begin')))));
   }, { dim: true, onBack: close });
 }

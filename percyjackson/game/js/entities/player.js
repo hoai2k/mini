@@ -11,6 +11,7 @@ import { createKit } from '../heroes/index.js';
 import { applyGear } from '../loot.js';
 import { useArtifact } from '../artifacts.js';
 import { settings } from '../settings.js';
+import { t as txt } from '../text_config.js';
 import { FLASK, canDrink, drink, tickFlask, newQuiver, resizeQuiver, tickQuiver } from '../resources.js';
 
 // the jump slam: damage before gear, radius in metres, knock-back, seconds
@@ -103,7 +104,7 @@ export class Player {
     if (!o.pure && !o.dot && this.dodgeT > 0 && this.dodgeDur - this.dodgeT < 0.24) this.perfectDodge(src);
     if (!o.pure && (this.iframes > 0 || this.invulnerable)) return 0;
     // armour that lets you slip a blow
-    if (!o.pure && !o.dot && this.stats.evade && Math.random() < this.stats.evade) { g.fx.damageNumber(this.pos, 0, { color: '#c8e8ff', text: 'Dodged' }); this.iframes = 0.2; return 0; }
+    if (!o.pure && !o.dot && this.stats.evade && Math.random() < this.stats.evade) { g.fx.damageNumber(this.pos, 0, { color: '#c8e8ff', text: txt('enemies.player.dodged') }); this.iframes = 0.2; return 0; }
     if (this.kit.onIncoming) { const r = this.kit.onIncoming(amount, src, o); if (r === 0) return 0; if (typeof r === 'number') amount = r; }
     const dmg = amount * (o.pure ? 1 : (1 - this.stats.armor)) * (g.difficultyDamageDealt ?? 1) * (this.barrierT > 0 ? 0.5 : 1);
     this.hp -= dmg;
@@ -132,7 +133,7 @@ export class Player {
     g.fx.flash?.(0xffd84a, 0.22, 0.25);
     g.fx.screenWave?.(this.pos.clone().setY(this.pos.y + 1), 0.6, 0.4);
     g.audio?.tone?.({ freq: 110, to: 70, dur: 0.35, gain: 0.25, type: 'sine', filter: 900 });
-    g.toast?.('Battle Sense!', 'big');
+    g.toast?.(txt('enemies.player.battleSense'), 'big');
     this.gainCE(12);
     void src;
   }
@@ -140,7 +141,7 @@ export class Player {
     const g = this.game;
     this.hp = 0;
     const others = g.players.filter((p) => p !== this && !p.dead && !p.downed);
-    if (others.length) { this.downed = true; this.downT = 25; this.reviveProgress = 0; this.action = null; g.toast?.(`${g.heroName?.(this) ?? 'Player ' + (this.index + 1)} is down! Stand close to revive`); g.onHeroDown?.(this); }
+    if (others.length) { this.downed = true; this.downT = 25; this.reviveProgress = 0; this.action = null; g.toast?.(txt('enemies.player.down', { name: g.heroName?.(this) ?? txt('enemies.player.defaultName', { n: this.index + 1 }) })); g.onHeroDown?.(this); }
     else { this.dead = true; this.deadT = 0; g.onPlayerDied?.(this); }
     this.domainActive = false;
     g.audio?.enemyDie(true);
@@ -159,7 +160,7 @@ export class Player {
     this.game.fx.heal(this.pos, 0x9affd8);
     this.game.audio?.energy('heal');
     this.action = { type: 'sign', dur: 0.6, elapsed: 0, t: 0, moveScale: 0.6, cancelable: true };
-    this.game.toast?.('Ambrosia');
+    this.game.toast?.(txt('enemies.player.ambrosia'));
   }
   // ---------------------------------------------------------------- combat
   updateCombat(dt, inp) {

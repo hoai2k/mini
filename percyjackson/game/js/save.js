@@ -8,6 +8,7 @@
 // Pure module (no DOM, no Three.js), so the node tests can load it.
 import { rollItem, normalizeItem } from './loot.js';
 import { migrateHero, defaultLoadout, pointsFor, TREE_VERSION } from './heroes/skillRules.js';
+import { t } from './text_config.js';
 
 export const LEGACY_KEY = 'half-blood-quests-save-v1';   // the single save of version 1
 export const VERSION = 2;
@@ -15,7 +16,7 @@ export const VERSION = 2;
 const ID_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789';
 export function newId(rnd = Math.random) { let s = ''; for (let i = 0; i < 10; i++) s += ID_CHARS[Math.floor(rnd() * 36)]; return s; }
 export const ID_RE = /^[a-z0-9]{6,16}$/;
-export function cleanName(s, def = 'Player') {
+export function cleanName(s, def = t('profiles.playerBase')) {
   const n = String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 16);
   return n || def;
 }
@@ -24,7 +25,7 @@ function starterItems() {
   return ['training_sword', 'camp_shirt', 'nectar_flask'].map((id) => { const it = rollItem(8, { id, blessed: false }); delete it.isNew; return it; });
 }
 
-export function freshData(name = 'Player 1', id = newId()) {
+export function freshData(name = t('profiles.player1'), id = newId()) {
   return {
     version: VERSION,
     id, name: cleanName(name),
@@ -44,7 +45,7 @@ export function freshData(name = 'Player 1', id = newId()) {
 }
 
 // Fill in anything missing (older saves, imports) and clean the inventory.
-export function normalizeData(d, fallbackName = 'Player 1') {
+export function normalizeData(d, fallbackName = t('profiles.player1')) {
   const base = freshData(fallbackName, ID_RE.test(d?.id) ? d.id : newId());
   if (!d || typeof d !== 'object') return base;
   const out = { ...base, ...d };

@@ -2,6 +2,8 @@
 // path tracer (three-gpu-pathtracer on a WebGL2 canvas), converging sample by
 // sample. The scene is rebuilt from the live one with standard materials so
 // the voxel world, characters, props and lights all bounce light.
+import { t } from './text_config.js';
+
 export async function openPhotoMode(game) {
   if (game.photo) return;
   game.paused = true;
@@ -11,9 +13,9 @@ export async function openPhotoMode(game) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:90;background:#000;display:flex;flex-direction:column';
   const bar = document.createElement('div');
   bar.style.cssText = 'position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:10px calc(12px + env(safe-area-inset-right,0px)) 10px calc(12px + env(safe-area-inset-left,0px));background:linear-gradient(#000c,#0000);z-index:2;font:15px var(--font);color:#fff';
-  const label = document.createElement('div'); label.style.flex = '1'; label.id = 'photo-label'; label.textContent = 'Photo Mode · preparing path tracer…';
-  const save = document.createElement('button'); save.className = 'btn small primary'; save.textContent = '💾 Save PNG';
-  const close = document.createElement('button'); close.className = 'btn small'; close.textContent = 'Close';
+  const label = document.createElement('div'); label.style.flex = '1'; label.id = 'photo-label'; label.textContent = t('photo.preparing');
+  const save = document.createElement('button'); save.className = 'btn small primary'; save.textContent = t('photo.save');
+  const close = document.createElement('button'); close.className = 'btn small'; close.textContent = t('photo.close');
   bar.append(label, save, close);
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'width:100%;height:100%;display:block';
@@ -95,7 +97,7 @@ export async function openPhotoMode(game) {
     pt = new WebGLPathTracer(renderer);
     pt.bounces = 5; pt.filterGlossyFactor = 0.5; pt.minSamples = 1; pt.renderDelay = 0; pt.fadeDuration = 0;
     pt.renderScale = 1; pt.tiles.set(2, 2);
-    label.textContent = `Photo Mode · building BVH for ${Math.round(tris / 1000)}k triangles…`;
+    label.textContent = t('photo.building', { k: Math.round(tris / 1000) });
     await new Promise((r) => setTimeout(r, 30));
     await new Promise((r) => requestAnimationFrame(() => r()));
     pt.setScene(scene, cam);
@@ -103,7 +105,7 @@ export async function openPhotoMode(game) {
     const loop = () => {
       if (!running) return;
       if (pt.samples < MAX) pt.renderSample();
-      label.textContent = `Photo Mode · path tracing · ${Math.floor(pt.samples)} / ${MAX} samples${pt.samples >= MAX ? ' · done' : ''}`;
+      label.textContent = t('photo.tracing', { n: Math.floor(pt.samples), max: MAX }) + (pt.samples >= MAX ? t('photo.done') : '');
       requestAnimationFrame(loop);
     };
     loop();
@@ -115,6 +117,6 @@ export async function openPhotoMode(game) {
     };
   } catch (e) {
     console.error(e);
-    label.textContent = 'Photo Mode unavailable on this device: ' + (e.message || e);
+    label.textContent = t('photo.unavailable', { error: e.message || e });
   }
 }

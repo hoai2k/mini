@@ -15,6 +15,7 @@ import { Combat } from './combat.js';
 import { Projectiles } from './projectiles.js';
 import { Hazards } from './hazards.js';
 import { UI, h, toast } from './ui/ui.js';
+import { t } from './text_config.js';
 import { HUD } from './ui/hud.js';
 import { openSettings } from './ui/settingsScreen.js';
 import { TouchControls } from './ui/touch.js';
@@ -109,7 +110,7 @@ class Game {
   async boot() {
     // the pictures the screens show load alongside everything else (ui/art.js)
     const art = preloadArt(ALL_ART, (n, total) => { loadBar.art = n / total; progress(null); });
-    progress(0.02, 'Detecting GPU…');
+    progress(0.02, t('game.loading.gpu'));
     this.gr = new GameRenderer();
     this.startedWebGL = settings.forceWebGL;
     await this.gr.init(document.getElementById('app'), { forceWebGL: settings.forceWebGL, quality: settings.quality });
@@ -126,7 +127,7 @@ class Game {
     const startAudio = () => { this.audio.start(); if (this.audio.pendingAmb) { this.audio.setAmbience(this.audio.pendingAmb); this.audio.pendingAmb = null; } if (this.audio.pendingMusic) { this.audio.setMusic(this.audio.pendingMusic); this.audio.pendingMusic = null; } };
     for (const ev of ['pointerdown', 'keydown', 'touchstart']) window.addEventListener(ev, startAudio, { passive: true });
     window.addEventListener('gamepadconnected', startAudio);
-    progress(0.3, 'Painting textures…');
+    progress(0.3, t('game.loading.textures'));
     await nextFrame();
     const atlas = buildBlockAtlas();
     const sprites = buildSpriteAtlas();
@@ -168,18 +169,18 @@ class Game {
     this.updaters = [];
     this.targetDof = 0;
     try { this.save = await this.profiles.claimMain(); } catch (e) { /* net: no locks: keep the main profile */ }
-    progress(0.45, 'Building Camp Half-Blood…');
+    progress(0.45, t('game.loading.camp'));
     await nextFrame();
     this.loadHub();
-    progress(0.75, 'Compiling shaders…');
+    progress(0.75, t('game.loading.shaders'));
     await nextFrame();
     this.gr.setScene(this.scene, this.rig.camera);
     try { await this.gr.renderer.compileAsync(this.scene, this.rig.camera); } catch (e) { console.warn(e); }
-    progress(0.92, 'Unrolling the scrolls…');
+    progress(0.92, t('game.loading.scrolls'));
     await art;
     prepareLogo();
     try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* fonts: carry on */ }
-    progress(1, 'Ready');
+    progress(1, t('game.loading.ready'));
     window.addEventListener('resize', () => this.gr.resize());
     const persist = () => this.profiles.flush();
     window.addEventListener('beforeunload', persist);
@@ -261,7 +262,7 @@ class Game {
     this.hud.rebuildCards?.();
     if (start === 'auto' && !this.opening.done && !this.online?.isGuest) { this.opening.run(); return; }
     this.loadHub();
-    toast('Camp Half-Blood', 'title');
+    toast(t('game.camp.name'), 'title');
   }
   // A cutscene is showing (story/cutscene.js): stop it (the scene changed under it).
   endCutscene() {
@@ -276,7 +277,7 @@ class Game {
     const next = (this.questMarkers ?? []).find((m) => m.open && !d.completed[m.ch.id]);
     if (!next) { this.tracker?.setGoal(null); return; }
     const place = next.ch.start?.place ?? next.ch.place;
-    this.tracker?.setGoal({ title: `Next quest: ${next.ch.title}`, desc: place[0].toUpperCase() + place.slice(1), pos: next.pos, radius: 2 });
+    this.tracker?.setGoal({ title: t('game.nextQuest', { title: next.ch.title }), desc: place[0].toUpperCase() + place.slice(1), pos: next.pos, radius: 2 });
   }
   startMinigame(m) {
     if (this.minigame) return;
@@ -300,10 +301,10 @@ class Game {
     this.players[i] = np;
     if (this.party) this.party[this.party.indexOf(p)] = np;
     this.fx.summonCircle(np.pos, 0xffd84a);
-    if (!quiet) toast(`You are ${HEROES[id].full}`, 'big');
+    if (!quiet) toast(t('game.youAre', { name: HEROES[id].full }), 'big');
     this.hud.rebuildCards?.();
   }
-  heroName(p) { return HEROES[p.hero]?.name ?? 'A hero'; }
+  heroName(p) { return HEROES[p.hero]?.name ?? t('game.aHero'); }
   // net: play another save slot (from the title / hero select / settings)
   async useSlot(id) {
     if (!this.slots.setActive(id)) return;
@@ -329,7 +330,7 @@ class Game {
   // The hero a human controlled went down: hand control to a living companion.
   onHeroDown(p) {
     if (p.ai || !this.party) return;
-    if (this.partyMgr.switchFrom(p)) toast(`${this.heroName(p)} is down — revive them!`);
+    if (this.partyMgr.switchFrom(p)) toast(t('game.isDown', { name: this.heroName(p) }));
   }
   battleSense(dur) { if (!settings.slowmo) return; this.battleSenseT = Math.max(this.battleSenseT, dur); }
   openPhotoMode() { return openPhotoMode(this); }
@@ -435,17 +436,17 @@ class Game {
     const dummy = new TrainingDummy(this, L.dummy);
     this.scene.add(dummy.object); this.enemies.push(dummy);
     const who = (p) => p ?? this.players[0];
-    this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: 'Training: call up monsters', action: () => this.spawnWave(), enabled: () => !this.online.isGuest });
-    this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: 'Chapter map', action: () => openMapTable(this) });
-    this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: 'Camp store', action: (p) => openShop(this, who(p)) });
-    this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.4, label: L.forge ? 'The Forge: temper and enchant gear' : 'Forge and inventory', action: (p) => openForge(this, who(p)) });
-    this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: 'Train with Chiron', action: (p) => openSkills(this, who(p)) });
-    if (L.archery) this.interactables.push({ id: 'archery', pos: L.archery, radius: 2.4, label: 'Archery range', action: (p) => this.startMinigame(new Archery(this, who(p), L.archery, L.archeryFacing ?? 0)), enabled: () => !this.minigame });
-    if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: 'Climbing wall', action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame && !this.online.live });   // net: the climbing wall pauses the game, so not online
-    if (L.oracle && Screens.openProphecy) this.interactables.push({ id: 'oracle', pos: L.oracle, radius: 2.4, label: 'The Oracle', action: () => Screens.openProphecy(this, 'book1') });
+    this.interactables.push({ id: 'summon', pos: L.dummy.clone().add(new THREE.Vector3(1.6, 0, 0)), radius: 2.2, label: t('game.camp.training'), action: () => this.spawnWave(), enabled: () => !this.online.isGuest });
+    this.interactables.push({ id: 'map', pos: L.mapTable, radius: 2.6, label: t('game.camp.chapterMap'), action: () => openMapTable(this) });
+    this.interactables.push({ id: 'shop', pos: L.shop, radius: 2.8, label: t('game.camp.store'), action: (p) => openShop(this, who(p)) });
+    this.interactables.push({ id: 'stash', pos: L.stash, radius: 2.4, label: L.forge ? t('game.camp.forge') : t('game.camp.forgeInventory'), action: (p) => openForge(this, who(p)) });
+    this.interactables.push({ id: 'skills', pos: L.skills, radius: 2.6, label: t('game.camp.chiron'), action: (p) => openSkills(this, who(p)) });
+    if (L.archery) this.interactables.push({ id: 'archery', pos: L.archery, radius: 2.4, label: t('game.camp.archery'), action: (p) => this.startMinigame(new Archery(this, who(p), L.archery, L.archeryFacing ?? 0)), enabled: () => !this.minigame });
+    if (L.climbingWall) this.interactables.push({ id: 'climb', pos: L.climbingWall, radius: 2.6, label: t('game.camp.climbing'), action: (p) => this.startMinigame(new ClimbingWall(this, who(p))), enabled: () => !this.minigame && !this.online.live });   // net: the climbing wall pauses the game, so not online
+    if (L.oracle && Screens.openProphecy) this.interactables.push({ id: 'oracle', pos: L.oracle, radius: 2.4, label: t('game.camp.oracle'), action: () => Screens.openProphecy(this, 'book1') });
     if (L.cabins) for (const [hid, pos] of Object.entries(L.cabins)) {
       if (!HEROES[hid] || HEROES[hid].soon) continue;
-      this.interactables.push({ id: 'cabin-' + hid, pos, radius: 2.2, label: `${HEROES[hid].parent}'s cabin: play as ${HEROES[hid].name}`, action: (p) => this.changeHero(who(p), hid), enabled: () => this.heroUnlocked(hid) && !this.players.some((q) => q.hero === hid && !q.ai) });
+      this.interactables.push({ id: 'cabin-' + hid, pos, radius: 2.2, label: t('game.camp.cabin', { parent: HEROES[hid].parent, name: HEROES[hid].name }), action: (p) => this.changeHero(who(p), hid), enabled: () => this.heroUnlocked(hid) && !this.players.some((q) => q.hero === hid && !q.ai) });
     }
     // Chiron on the porch and Mr. D at his pinochle table
     this.hubProps = [];
@@ -461,31 +462,31 @@ class Game {
     }
     if (!this.save.data.seenGearHint) {   // the inventory and jump are easy to miss
       this.save.data.seenGearHint = true; this.save.write();
-      setTimeout(() => toast(this.input.lastDevice?.startsWith('pad') ? 'View: inventory · A: jump' : 'I: inventory · Space: jump'), 4000);
+      setTimeout(() => toast(this.input.lastDevice?.startsWith('pad') ? t('game.gearHintPad') : t('game.gearHintKeys')), 4000);
     }
     this.wave = 0;
     this.minimap.level = null;
     this.hud.mini.classList.add('hidden');
-    this.hud.setObjective('Camp Half-Blood', 'Big House porch: the chapter map · Camp store · Forge: gear · Chiron: training');
+    this.hud.setObjective(t('game.camp.name'), t('game.camp.objective'));
     this.mode = 'hub'; this.chapter = null;
     this.online?.sceneChanged();
-    this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? 'Iris message: online play' : 'Iris message: play online', action: () => openOnline(this) });
+    this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? t('game.camp.irisActive') : t('game.camp.iris'), action: () => openOnline(this) });
     // where to go next, and monsters in the woods and along the Road West (not while a cutscene is building camp as its set)
     if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
   }
   // Play a chapter of a book: story cards, then its level.
   // { opening: true }: chapter 1 or 2 played as part of the opening (the story carries on after it)
   startChapter(id, difficulty = 1, { opening = false } = {}) {
-    if (this.online.isGuest) { toast('The host chooses the chapter'); return; }
+    if (this.online.isGuest) { toast(t('game.hostChooses')); return; }
     const ch = chapterDef(id);
-    if (!ch || !Mission.playable(ch)) { toast('That chapter is still being written'); return; }
+    if (!ch || !Mission.playable(ch)) { toast(t('game.stillBeingWritten')); return; }
     this.ui.closeAll();
     let carded = false;
     const go = () => { this.online.story?.(null); const def = Mission.defForChapter(ch, difficulty); if (opening) def.opening = id; this.startMission(def, { carded }); };
     this.online.story?.(ch);   // net: guests see the story cards too
     // (in the opening the cutscene before chapter 2 already told its first line)
     const lines = opening && id === 'lt2' ? ch.intro.slice(1) : ch.intro;
-    if (Screens.openStoryCards && lines?.length) { carded = true; Screens.openStoryCards(this, { title: ch.title, sub: `Chapter ${ch.num} · ${ch.place}`, image: ch.card, lines }, go); }
+    if (Screens.openStoryCards && lines?.length) { carded = true; Screens.openStoryCards(this, { title: ch.title, sub: t('game.chapterSub', { num: ch.num, place: ch.place }), image: ch.card, lines }, go); }
     else go();
   }
   // Compile every monster's (and this chapter's boss's) materials while the
@@ -525,7 +526,7 @@ class Game {
     this.mode = 'mission';
     this.online.sceneChanged();
     toast(this.chapter ? (carded && this.chapter.place ? this.chapter.place : this.chapter.title) : `${L.biome.name} · ${L.biome.sub}`, 'title');
-    if (this.mist.available && !this.mission?.handler?.quietMist) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? 'The Mist is thick here. Click the right stick (V) to see through it.' : 'Click the right stick (V) to see through the Mist.'), 2600);
+    if (this.mist.available && !this.mission?.handler?.quietMist) setTimeout(() => this.state === 'playing' && this.mode === 'mission' && toast(this.mist.thickness >= 0.9 ? t('game.mistThick') : t('game.mistSee')), 2600);
   }
   completeMission() {
     const m = this.mission; if (!m || m.complete) return;
@@ -539,7 +540,7 @@ class Game {
       d.completed[cid] = Math.max(d.completed[cid] ?? 0, m.def.difficulty);
       if (ch) {
         if (ch.prophecyLine != null) { const pr = (d.prophecy ??= {}); const lines = (pr[ch.book] ??= []); if (!lines.includes(ch.prophecyLine)) { lines.push(ch.prophecyLine); this.newProphecy = ch.book; } }
-        for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(`${info.full} joins your quest!`, 'big'), 1200); }
+        for (const [hid, info] of Object.entries(HEROES)) if ((info.unlock === ch.id || (ch.book === 'book1' && info.unlock === 'ch' + ch.num)) && !(d.unlockedHeroes ??= []).includes(hid)) { d.unlockedHeroes.push(hid); if (sv === this.save) setTimeout(() => toast(t('game.joinsQuest', { name: info.full }), 'big'), 1200); }
       }
       d.stats.missions++; d.stats.kills += m.stats.kills;
       if (sv.addXp(80 * m.def.difficulty)) levelled.push(sv);
@@ -560,25 +561,25 @@ class Game {
     this.ui.open('results', (el) => {
       const mins = Math.floor((st.time ?? 0) / 60), secs = Math.floor((st.time ?? 0) % 60);
       el.appendChild(h('div', { class: 'panel', style: 'min-width:min(460px,94vw);text-align:center' },
-        h('h2', { style: `font-size:34px;color:${victory ? '#ffd23a' : '#ff5a6a'}` }, victory ? (this.chapter ? 'CHAPTER COMPLETE' : 'QUEST COMPLETE') : 'DEFEATED'),
+        h('h2', { style: `font-size:34px;color:${victory ? '#ffd23a' : '#ff5a6a'}` }, victory ? (this.chapter ? t('game.results.chapterComplete') : t('game.results.questComplete')) : t('game.results.defeated')),
         this.chapter && victory && this.chapter.outro ? h('p', { class: 'outro' }, this.chapter.outro) : null,
-        h('div', { class: 'stat-line' }, 'Monsters defeated', h('b', {}, String(st.kills ?? 0))),
-        h('div', { class: 'stat-line' }, 'Time', h('b', {}, `${mins}:${String(secs).padStart(2, '0')}`)),
-        h('div', { class: 'stat-line' }, 'Drachmas collected', h('b', {}, String(st.coins ?? 0))),
-        h('div', { class: 'stat-line' }, 'Secrets found', h('b', {}, String(st.secrets ?? 0))),
+        h('div', { class: 'stat-line' }, t('game.results.kills'), h('b', {}, String(st.kills ?? 0))),
+        h('div', { class: 'stat-line' }, t('game.results.time'), h('b', {}, `${mins}:${String(secs).padStart(2, '0')}`)),
+        h('div', { class: 'stat-line' }, t('game.results.coins'), h('b', {}, String(st.coins ?? 0))),
+        h('div', { class: 'stat-line' }, t('game.results.secrets'), h('b', {}, String(st.secrets ?? 0))),
         h('div', { class: 'loot-list', id: 'results-loot' }),
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
-          !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, 'Retry') : null,
-          victory && this.openingNext ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { this.ui.close('results'); this.paused = false; const n = this.openingNext; this.openingNext = null; this.opening.run(n); } }, 'Continue the story ▶') : h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, 'Return to Camp Half-Blood'))));
+          !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, t('game.results.retry')) : null,
+          victory && this.openingNext ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { this.ui.close('results'); this.paused = false; const n = this.openingNext; this.openingNext = null; this.opening.run(n); } }, t('game.results.continueStory')) : h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, t('game.results.returnToCamp')))));
       const lootEl = el.querySelector('#results-loot');
       for (const it of st.loot ?? []) { const b = itemInfo(it); lootEl.appendChild(h('div', { class: `item ${b.rarity}`, title: b.name }, b.icon, h('span', { class: 'pw' }, String(it.power)))); }
-      if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, 'No loot this time.'));
+      if (!(st.loot ?? []).length) lootEl.appendChild(h('div', { class: 'hint' }, t('game.results.noLoot')));
     }, { dim: true });
   }
   returnToHub() {
     // net: online, a guest goes where the host goes
-    if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast('Waiting for the host to return to camp'); return; }
-    this.loadHub(); toast('Camp Half-Blood', 'title');
+    if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast(t('game.waitingForHost')); return; }
+    this.loadHub(); toast(t('game.camp.name'), 'title');
   }
   openMap() {
     if (!this.minimap.level) return;
@@ -623,7 +624,7 @@ class Game {
       this.fx.summonCircle(pos, 0xb05aff);
     });
     this.audio.energy('summon');
-    toast(`Wave ${this.wave}`);
+    toast(t('game.wave', { n: this.wave }));
   }
   // per-frame callbacks for technique effects; return false to finish
   addUpdater(fn) { this.updaters.push(fn); }
@@ -661,7 +662,7 @@ class Game {
   levelUp(sv = this.save) {
     const d = sv.data;
     const many = this.localSaves().length > 1;
-    toast(`${many ? sv.name + ': ' : ''}LEVEL ${d.level}! +1 enchantment point, +1 skill point`, 'big');
+    toast(t(many ? 'game.levelUpNamed' : 'game.levelUp', { name: sv.name, level: d.level }), 'big');
     this.audio.levelUp();
     for (const p of this.players) if (!p.remote && (this.saveFor(p) === sv || p.ai)) { this.fx.heal(p.pos, 0xffd23a); p.hp = p.maxHp; }
     sv.write();
@@ -693,7 +694,7 @@ class Game {
     if (this.wipeLeft > 0 || !this.players.length || !this.players.every((q) => q.dead || q.downed)) return;
     for (const q of this.players) if (q.downed) { q.downed = false; q.dead = true; q.deadT = 0; }
     this.wipeLeft = 2.5;
-    toast('Party defeated — respawning', 'big');
+    toast(t('game.partyDefeated'), 'big');
   }
   updateWipe(dt) {
     if (this.wipeLeft <= 0 || (this.paused && !this.online.keepsRunning) || this.state !== 'playing') return;   // net: (online the game runs on)
@@ -704,7 +705,7 @@ class Game {
     const check = !retry && this.mode === 'mission' ? this.mission?.checkpointSpot?.() : null;
     this.placePlayers(retry ?? check ?? this.level.spawn);
     if (retry || check) for (const p of this.players) p.iframes = 2.5;
-    toast(retry ? 'Revived: try the fight again' : 'Revived', 'big');
+    toast(retry ? t('game.revivedRetry') : t('game.revived'), 'big');
   }
 
   // Storm biomes: lightning flashes and thunder now and then.
@@ -740,17 +741,17 @@ class Game {
         // a lone keyboard P1 who has been idle hands control to the controller instead
         const p0 = this.players[0];
         if (this.players.filter((q) => !q.ai).length === 1 && p0.device === 'kbm' && performance.now() - (this.input.kbmActivity ?? 0) > 8000) {
-          p0.device = id; toast('Controller connected to Player 1'); continue;
+          p0.device = id; toast(t('game.controllerConnected')); continue;
         }
         // a companion is waiting: the new player takes it over
         if (!this.profiles.devices.has(id)) this.profiles.assign(id, this.profiles.slotDefault(this.players.filter((q) => !q.ai && !q.remote).length).id);   // net: their profile
         const taken = this.party && this.partyMgr.takeOver(id);
-        if (taken) { this.fx.summonCircle(taken.pos, 0x6ad8ff); toast(`Player ${this.players.filter((q) => !q.ai).length} joined as ${this.heroName(taken)}`); this.audio.ui('buy'); if (!this.players.some((q) => q.ai)) this.party = null; continue; }
+        if (taken) { this.fx.summonCircle(taken.pos, 0x6ad8ff); toast(t('game.playerJoinedAs', { n: this.players.filter((q) => !q.ai).length, name: this.heroName(taken) })); this.audio.ui('buy'); if (!this.players.some((q) => q.ai)) this.party = null; continue; }
         // the keyboard player keeps P1; if P1 is idle on keyboard and this is the only pad, still add
         // (in the opening the next story hero: Grover for player 2, then Annabeth, Clarisse; party.js)
         const p = this.addPlayer(id, this.partyMgr.joinHero());
         this.fx.summonCircle(p.pos, 0x6ad8ff);
-        toast(`Player ${p.index + 1} joined`);
+        toast(t('game.playerJoined', { n: p.index + 1 }));
         this.partyMgr.fill();   // net: two humans keep one companion, three or more none
         this.audio.ui('buy');
       }
@@ -768,13 +769,13 @@ class Game {
       const nearest = inRange.reduce((a, b) => (b.pos.distanceTo(it.pos) < a.pos.distanceTo(it.pos) ? b : a));
       const using = it.hold ? inRange.find((p) => this.input.get(p.device).held.interact) : inRange.find((p) => this.input.get(p.device).pressed.interact);
       const near = using ?? nearest;
-      const key = near.device === 'kbm' ? 'Click' : near.device === 'touch' ? '👆' : 'A';
+      const key = near.device === 'kbm' ? t('controls.click') : near.device === 'touch' ? '👆' : 'A';
       if (it.hold) {
         const holding = !!using || it.touchHold;
         if (holding && !it.progress) it.onHoldStart?.();
         it.progress = holding ? (it.progress ?? 0) + dt / it.hold : Math.max(0, (it.progress ?? 0) - dt);
         const bar = '▮'.repeat(Math.round((it.progress ?? 0) * 8)).padEnd(8, '▯');
-        this.hud.prompt(it.id, it.pos.clone().setY(it.pos.y + 2.4), `${key}  ${it.label}  ${it.progress > 0 ? bar : '(hold)'}`, () => { it.touchHold = true; });
+        this.hud.prompt(it.id, it.pos.clone().setY(it.pos.y + 2.4), `${key}  ${it.label}  ${it.progress > 0 ? bar : t('game.hold')}`, () => { it.touchHold = true; });
         if (it.progress >= 1) { it.progress = 0; it.touchHold = false; it.action(near); }
       } else {
         this.hud.prompt(it.id, it.pos.clone().setY(it.pos.y + 2.2), `${key}  ${it.label}`, () => it.action(near));
@@ -896,8 +897,7 @@ class Game {
     const info = gr.renderer.info;
     const dummy = this.enemies.find((e) => e.isDummy);
     document.getElementById('readout').textContent =
-      `${QUALITY_LABEL[gr.quality]} · ${gr.backend}\n${gr.fps.toFixed(0)} FPS · ${(gr.pixelRatio).toFixed(2)}x res` +
-      `\n${info.render.drawCalls ?? info.render.calls ?? 0} draws · ${this.lights.pool.length} lights` + (dummy && dummy.dps > 0 ? `\nDummy DPS ${dummy.dps.toFixed(0)}` : '');
+      t('game.readout', { quality: QUALITY_LABEL[gr.quality], backend: gr.backend, fps: gr.fps.toFixed(0), res: (gr.pixelRatio).toFixed(2), draws: info.render.drawCalls ?? info.render.calls ?? 0, lights: this.lights.pool.length }) + (dummy && dummy.dps > 0 ? t('game.readoutDps', { dps: dummy.dps.toFixed(0) }) : '');
   }
 }
 
@@ -905,5 +905,5 @@ const game = new Game();
 window.__game = game;
 game.boot().catch((e) => {
   console.error(e);
-  loadText.textContent = 'Failed to start: ' + (e.message || e) + ' — your browser needs WebGPU or WebGL2.';
+  loadText.textContent = t('game.failedToStart', { error: e.message || e });
 });

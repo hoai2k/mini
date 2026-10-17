@@ -11,6 +11,7 @@ import { openProphecy } from './prophecy.js';
 import { openStoryCards } from './storyCards.js';
 import { openTitle } from './title.js';
 import { openSelect } from './partySelect.js';
+import { t as tx } from '../text_config.js';
 import { ENCHANTS, itemInfo, itemRarity, itemPrice, rollItem, powerFor, KIND_LABEL } from '../loot.js';
 
 export { openTitle, openSelect, openChapterMap, openProphecy, openStoryCards, openInstructions, openSettings };
@@ -36,15 +37,15 @@ export function openShop(game, player) {
     const rows = d.shop.items.map((it, i) => {
       const b = itemInfo(it), R = itemRarity(it), price = itemPrice(it);
       return h('button', { class: 'mission', style: 'width:100%;text-align:left;color:inherit', onclick: () => {
-        if (d.coins < price) { toast('Not enough drachmas'); game.audio?.ui('back'); return; }
-        d.coins -= price; d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(`Bought ${b.name}`); ui.refresh('shop');
-      } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, `${R.label} ${KIND_LABEL[b.kind]} · Power ${it.power} · ${b.desc} Enchantments: ${it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ')}`)), h('div', { class: 'diff' }, `◆ ${price}`));
+        if (d.coins < price) { toast(tx('screens.shop.notEnough')); game.audio?.ui('back'); return; }
+        d.coins -= price; d.inventory.push(it); d.shop.items.splice(i, 1); save.write(); game.audio?.ui('buy'); toast(tx('screens.shop.bought', { name: b.name })); ui.refresh('shop');
+      } }, h('div', { class: `mi item ${b.rarity}` }, b.icon), h('div', {}, h('div', { class: 'mt', style: `color:${R.color}` }, b.name), h('div', { class: 'md' }, tx('screens.shop.itemLine', { rarity: R.label, kind: KIND_LABEL[b.kind], power: it.power, desc: b.desc, enchants: it.ench.map((e) => e.options.map((o) => ENCHANTS[o].name).join(' / ')).join('; ') }))), h('div', { class: 'diff' }, tx('screens.shop.price', { n: price })));
     });
-    el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, 'Camp Store'),
-      h('div', { class: 'hint', style: 'margin:0 0 8px' }, `Your drachmas: ◆ ${d.coins}`), ...rows,
+    el.appendChild(h('div', { class: 'panel', style: 'width:min(620px,96vw)' }, h('h2', {}, tx('screens.shop.title')),
+      h('div', { class: 'hint', style: 'margin:0 0 8px' }, tx('screens.shop.yourDrachmas', { n: d.coins })), ...rows,
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' },
-        h('button', { class: 'btn small', onclick: () => { if (d.coins < 25) { toast('Need ◆25'); return; } d.coins -= 25; d.shop = null; save.write(); close(); openShop(game, player); } }, 'Restock (◆25)'),
-        h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, 'Close'))));
+        h('button', { class: 'btn small', onclick: () => { if (d.coins < 25) { toast(tx('screens.shop.needRestock')); return; } d.coins -= 25; d.shop = null; save.write(); close(); openShop(game, player); } }, tx('screens.shop.restock')),
+        h('button', { class: 'btn', 'data-autofocus': true, onclick: close }, tx('common.close')))));
   }, { dim: true, onBack: close });
 }
 
@@ -61,24 +62,24 @@ export function openPauseMenu(game, player = game.players?.[0]) {
   const resume = () => game.unpause();
   const bookId = game.chapter?.book ?? game.mission?.chapter?.book ?? 'book1';
   ui.open('pause', (el) => {
-    el.appendChild(h('div', { class: 'panel menu-col pause-menu', role: 'dialog', 'aria-label': 'Paused', style: 'min-width:min(320px,92vw);text-align:center' },
-      h('h2', {}, 'Paused'),
-      h('button', { class: 'btn primary', 'data-autofocus': true, onclick: resume }, 'Resume'),
-      h('button', { class: 'btn', onclick: () => openInstructions(game) }, 'Instructions'),
-      h('button', { class: 'btn', onclick: () => openSettings(game) }, 'Settings'),
-      settings.debug ? h('button', { class: 'btn', onclick: () => openDebugMenu(game) }, 'Debug: scenes') : null,
-      h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, 'Prophecy'),
-      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, 'Inventory'),
-      game.minimap?.level ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.paused = false; game.openMap(); } }, 'Map') : null,
-      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openSkills(game, player); } }, 'Skill tree'),
-      game.openPhotoMode ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.openPhotoMode(); } }, 'Photo mode') : null,
+    el.appendChild(h('div', { class: 'panel menu-col pause-menu', role: 'dialog', 'aria-label': tx('screens.pause.title'), style: 'min-width:min(320px,92vw);text-align:center' },
+      h('h2', {}, tx('screens.pause.title')),
+      h('button', { class: 'btn primary', 'data-autofocus': true, onclick: resume }, tx('screens.pause.resume')),
+      h('button', { class: 'btn', onclick: () => openInstructions(game) }, tx('screens.pause.instructions')),
+      h('button', { class: 'btn', onclick: () => openSettings(game) }, tx('screens.pause.settings')),
+      settings.debug ? h('button', { class: 'btn', onclick: () => openDebugMenu(game) }, tx('screens.pause.debug')) : null,
+      h('button', { class: 'btn', onclick: () => openProphecy(game, bookId) }, tx('screens.pause.prophecy')),
+      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openInventory(game, player); } }, tx('screens.pause.inventory')),
+      game.minimap?.level ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.paused = false; game.openMap(); } }, tx('screens.pause.map')) : null,
+      h('button', { class: 'btn', onclick: () => { ui.close('pause'); openSkills(game, player); } }, tx('screens.pause.skillTree')),
+      game.openPhotoMode ? h('button', { class: 'btn', onclick: () => { ui.close('pause'); game.openPhotoMode(); } }, tx('screens.pause.photoMode')) : null,
       inChapter ? h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
-        title: 'Return to camp?', text: 'You will leave this chapter and lose its progress.', yes: 'Return to camp', no: 'Keep playing', danger: true,
+        title: tx('screens.pause.returnTitle'), text: tx('screens.pause.returnText'), yes: tx('screens.pause.returnYes'), no: tx('screens.pause.keepPlaying'), danger: true,
         onYes: () => { ui.closeAll(); game.paused = false; game.last = performance.now(); game.returnToHub(); },
-      }) }, 'Return to camp') : null,
+      }) }, tx('screens.pause.returnButton')) : null,
       h('button', { class: 'btn danger', onclick: () => confirmDialog(game, {
-        title: 'Quit to title?', text: 'Your progress is saved, but the current chapter will be lost.', yes: 'Quit to title', no: 'Keep playing', danger: true,
+        title: tx('screens.pause.quitTitle'), text: tx('screens.pause.quitText'), yes: tx('screens.pause.quitYes'), no: tx('screens.pause.keepPlaying'), danger: true,
         onYes: () => { ui.closeAll(); game.paused = false; game.save.write(); game.toTitle(); },
-      }) }, 'Quit to title')));
+      }) }, tx('screens.pause.quitButton'))));
   }, { dim: true, onBack: resume });
 }

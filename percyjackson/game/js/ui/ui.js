@@ -2,11 +2,22 @@
 // mouse, touch, keyboard (arrows/Enter/Esc) or gamepad (d-pad/stick/A/B).
 import { demigodText, greekOn, GREEK } from './greekText.js';
 import { showFor } from './greekTiming.js';
+import { t as tx, applyText } from '../text_config.js';
+
+// The page's own text (index.html): fills the data-t elements, the tab title and the description.
+export function applyPageText() {
+  try {
+    applyText(document);
+    document.title = tx('page.title');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', tx('page.description'));
+  } catch (e) { console.warn('page text', e); }
+}
 
 const DIRS = ['up', 'down', 'left', 'right'];
 export class UI {
   constructor(game) {
     this.game = game;
+    applyPageText();
     this.root = document.getElementById('screens');
     this.stack = [];        // open screens (top = active)
     this.focusEl = null;
@@ -175,7 +186,7 @@ export function toast(text, cls = '') {
 }
 
 // A yes/no confirmation. Focus starts on "No" so a stray press never destroys progress.
-export function confirmDialog(game, { title = 'Are you sure?', text = '', yes = 'Yes', no = 'No', danger = false, onYes, onNo } = {}) {
+export function confirmDialog(game, { title = tx('common.areYouSure'), text = '', yes = tx('common.yes'), no = tx('common.no'), danger = false, onYes, onNo } = {}) {
   const ui = game.ui;
   const close = () => ui.close('confirm');
   ui.open('confirm', (el) => {

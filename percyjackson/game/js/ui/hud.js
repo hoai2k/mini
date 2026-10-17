@@ -10,6 +10,7 @@ import { settings } from '../settings.js';
 import { isMobile } from '../util.js';
 import { ammoInfo } from '../resources.js';
 import { PAD_LABEL, KEY_LABEL } from '../padmap.js';
+import { t as tx, tn } from '../text_config.js';
 
 const KEYS = KEY_LABEL;   // the keyboard layout (padmap.js)
 const PADKEYS = PAD_LABEL;   // the Xbox layout (padmap.js)
@@ -17,7 +18,7 @@ const tmp = new THREE.Vector3();
 const EYE = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="currentColor"/><circle cx="16" cy="16" r="2" fill="#17130f"/></svg>';
 const COIN = '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="cg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffe9a0"/><stop offset=".6" stop-color="#e0a93a"/><stop offset="1" stop-color="#8a5a14"/></radialGradient></defs><circle cx="16" cy="16" r="14" fill="url(#cg)" stroke="#6a4410" stroke-width="2"/><circle cx="16" cy="16" r="10" fill="none" stroke="#8a5a14" stroke-width="1.5"/><path d="M11 21V11h5a3.5 3.5 0 0 1 0 7h-5" fill="none" stroke="#6a4410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(1 1) scale(.9)"/></svg>';
 const heroName = (p) => HEROES[p.hero]?.name ?? p.hero;
-const switchKey = (p) => (p?.device?.startsWith('pad') ? 'D-pad ↓' : p?.device === 'touch' ? '' : 'F');
+const switchKey = (p) => (p?.device?.startsWith('pad') ? tx('hud.dpadDown') : p?.device === 'touch' ? '' : 'F');
 const sightKey = (p) => (p?.device?.startsWith('pad') ? 'RS' : p?.device === 'touch' ? '' : 'V');
 
 export class HUD {
@@ -30,17 +31,17 @@ export class HUD {
   build() {
     const r = this.root; r.innerHTML = '';
     this.cards = h('div', { class: 'pcards' }); r.appendChild(this.cards);
-    this.sight = h('div', { class: 'sight hidden', role: 'img', 'aria-label': 'True Sight meter' }, h('div', { class: 'ring' }, h('span', { class: 'eye', html: EYE })), h('span', { class: 'skey' }), h('span', { class: 'slabel' }, 'True Sight'));
+    this.sight = h('div', { class: 'sight hidden', role: 'img', 'aria-label': tx('hud.trueSight.meter') }, h('div', { class: 'ring' }, h('span', { class: 'eye', html: EYE })), h('span', { class: 'skey' }), h('span', { class: 'slabel' }, tx('hud.trueSight.label')));
     r.appendChild(this.sight);
     this.top = h('div', { class: 'topc' });
     this.obj = h('div', { class: 'ribbon hidden' }, h('div', { class: 't' }), h('div', { class: 'd' }));
     this.boss = h('div', { class: 'bossbar hidden' }, h('div', { class: 'n' }), h('div', { class: 'bbar' }, h('b'), h('i')));
     this.top.append(this.obj, this.boss); r.appendChild(this.top);
-    this.mini = h('canvas', { class: 'minimap hidden', width: 128, height: 128, 'aria-label': 'Minimap' });
+    this.mini = h('canvas', { class: 'minimap hidden', width: 128, height: 128, 'aria-label': tx('minimap.label') });
     r.appendChild(h('div', { class: 'mini-frame' }, this.mini));
-    this.coins = h('div', { class: 'coins', 'aria-label': 'Drachmas' }, h('span', { class: 'coin', html: COIN }), h('span', { class: 'n' }, '0'));
+    this.coins = h('div', { class: 'coins', 'aria-label': tx('hud.drachmas') }, h('span', { class: 'coin', html: COIN }), h('span', { class: 'n' }, '0'));
     r.appendChild(this.coins);
-    this.join = h('div', { class: 'join-hint' }, isMobile ? '' : 'Controller: press Start to join'); r.appendChild(this.join);
+    this.join = h('div', { class: 'join-hint' }, isMobile ? '' : tx('hud.joinHint')); r.appendChild(this.join);
     this.prompts = new Map();
     this.says = [];   // speech bubbles over people (say())
     this.cardEls = []; this.partyEls = [];
@@ -69,14 +70,14 @@ export class HUD {
     const hpI = h('i'), hpB = h('b'), pwI = h('i');
     const hpTxt = h('span', { class: 'bt' });
     const extra = h('span', { class: 'ex' });
-    const bs = h('span', { class: 'bs', title: 'Battle Sense', 'aria-label': 'Battle Sense' });
+    const bs = h('span', { class: 'bs', title: tx('hud.battleSense'), 'aria-label': tx('hud.battleSense') });
     // the hero's face (preloaded with the title, ui/art.js); a missing picture leaves the hero's colour
     const port = h('div', { class: 'port has-face', style: `--hc:${color};background-image:url(assets/heroes/${p.hero}-face.jpg)` }, bs);
     const hp = h('div', { class: 'hbar hp' }, hpB, hpI, hpTxt);
-    const pw = h('div', { class: 'hbar pw', title: 'Power' }, pwI);
+    const pw = h('div', { class: 'hbar pw', title: tx('hud.power') }, pwI);
     const abs = h('div', { class: 'hc-abs' });
     const card = h('div', { class: 'hcard', style: `--pc:${p.color};--hc:${color}` }, port,
-      h('div', { class: 'hc-main' }, h('div', { class: 'hc-name' }, h('span', {}, this.humans().length > 1 ? `P${p.index + 1} · ${info.name}` : info.name), extra), hp, pw, abs));
+      h('div', { class: 'hc-main' }, h('div', { class: 'hc-name' }, h('span', {}, this.humans().length > 1 ? tx('hud.playerName', { n: p.index + 1, name: info.name }) : info.name), extra), hp, pw, abs));
     const els = this.buildAbilities(p, abs);
     const c = { p, hpI, hpB, hpTxt, pwI, pw, extra, bs, port, card, els, last: {} };
     this.cardEls.push(c);
@@ -97,13 +98,13 @@ export class HUD {
       // the quiver: shots left for the basic ranged attack, next to its slot
       if (slot === 'ranged') {
         const n = h('b', {}, String(p.ammo ?? ''));
-        const el = h('div', { class: 'ammo', title: 'Quiver: ' + ammoInfo(p.hero).name + ' (refills over time)', role: 'img', 'aria-label': 'Ammo' }, h('span', { class: 'ai' }, ammoInfo(p.hero).icon), n);
+        const el = h('div', { class: 'ammo', title: tx('hud.quiver', { name: ammoInfo(p.hero).name }), role: 'img', 'aria-label': tx('hud.ammo') }, h('span', { class: 'ai' }, ammoInfo(p.hero).icon), n);
         row.appendChild(el); els.ammo = { el, n, ammo: true };
       }
     }
-    mk('heal', { name: 'Ambrosia', icon: '🟨' });
+    mk('heal', { name: tx('hud.ambrosia'), icon: '🟨' });
     p.artifacts.forEach((a, i) => mk('art' + (i + 1), { name: a.base.name, icon: a.base.icon }));
-    if (k?.domain) mk('domain', { name: 'Godly power: ' + k.domain.name, icon: k.domain.icon ?? '⚡' }, true);
+    if (k?.domain) mk('domain', { name: tx('hud.godlyPower', { name: k.domain.name }), icon: k.domain.icon ?? '⚡' }, true);
     return els;
   }
   buildParty(human, party) {
@@ -112,11 +113,11 @@ export class HUD {
     for (const q of party) {
       if (q === human || (!q.ai && this.humans().length > 1)) continue;   // net: with several humans, only the companions
       const info = HEROES[q.hero] ?? { name: q.hero, color: '#999' };
-      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': `${info.name} (companion)`, style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` });
+      const el = h('div', { class: 'pm has-face', title: info.name, role: 'img', 'aria-label': tx('hud.companion', { name: info.name }), style: `--hc:${info.color};--face:url(assets/heroes/${q.hero}-face.jpg)` });
       row.appendChild(el); this.partyEls.push({ q, el, last: -1 });
     }
     const k = switchKey(human);
-    wrap.append(row, k ? h('div', { class: 'switch' }, h('b', {}, k), ' switch') : null);
+    wrap.append(row, k ? h('div', { class: 'switch' }, h('b', {}, k), tx('hud.switch')) : null);
     return wrap;
   }
   setObjective(title, desc) {
@@ -179,7 +180,7 @@ export class HUD {
       const hp = Math.max(0, p.hp / p.maxHp), pw = Math.min(1, (p.ce ?? p.power ?? 0) / (p.maxCe ?? p.maxPower ?? 100));
       if (c.last.hp !== hp) { c.hpI.style.width = (hp * 100).toFixed(1) + '%'; c.hpB.style.width = (hp * 100).toFixed(1) + '%'; c.last.hp = hp; c.hpTxt.textContent = `${Math.ceil(Math.min(p.hp, p.maxHp))} / ${Math.ceil(p.maxHp)}`; c.card.classList.toggle('low', hp < 0.3 && hp > 0); }
       if (c.last.pw !== pw) { c.pwI.style.width = (pw * 100).toFixed(1) + '%'; c.pw.classList.toggle('full', pw >= 1); c.last.pw = pw; }
-      const ex = p.dead ? 'DOWN' : p.downed ? `Revive ${Math.ceil(p.downT)}s` : '';
+      const ex = p.dead ? tx('hud.down') : p.downed ? tx('hud.revive', { n: Math.ceil(p.downT) }) : '';
       if (c.last.ex !== ex) { c.extra.textContent = ex; c.last.ex = ex; }
       const bs = bsOn && p.battleSense !== undefined ? Math.max(0, Math.min(1, p.battleSense)) : -1;
       if (c.last.bs !== bs) { c.last.bs = bs; c.bs.classList.toggle('hidden', bs < 0); c.bs.style.setProperty('--m', (bs * 360).toFixed(0) + 'deg'); c.bs.classList.toggle('ready', bs >= 1); }

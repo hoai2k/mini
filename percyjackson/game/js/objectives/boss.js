@@ -5,6 +5,7 @@
 // pile into the boss fight behind you); it opens anyway after a while.
 import { roomSpot, seeded, isGuest } from './common.js';
 import { toast } from '../ui/ui.js';
+import { t } from '../text_config.js';
 
 const GIVE_UP = 75;   // seconds: the gate opens even if a monster is out of reach
 
@@ -31,9 +32,9 @@ export class BossObjective {
     const left = (room.enemies ?? []).filter((e) => !e.dead && !e.disguised).length + (room.reserve?.length ?? 0) + Math.max(0, (room.waves?.length ?? 0) - (room.waveIdx ?? 0));
     if ((room.primed || !(room.packs?.length || room.loose?.length)) && left <= 1 || this.t > GIVE_UP) {
       for (const gate of m.L.gates) m.openGate(gate);
-      toast('The way to the arena opens', 'big'); this.g.audio?.gong?.();
+      toast(t('objectives.boss.arenaOpens'), 'big'); this.g.audio?.gong?.();
       m.updateText();
     }
   }
-  text() { return this.open ? null : [this.m.def.objText ?? 'Face the Monster', 'Clear the way to the arena']; }
+  text() { return this.open ? null : [this.m.def.objText ?? t('objectives.boss.title'), t('objectives.boss.clearWay')]; }
 }

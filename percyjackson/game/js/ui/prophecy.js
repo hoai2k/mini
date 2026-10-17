@@ -5,6 +5,7 @@
 import { h } from './ui.js';
 import { demigodText, toGreek, GREEK } from './greekText.js';
 import { BOOKS, CHAPTERS } from '../story/chapters.js';
+import { t as tx } from '../text_config.js';
 
 export function openProphecy(game, bookId = 'book1', onClose) {
   const ui = game.ui, d = game.save.data;
@@ -20,26 +21,26 @@ export function openProphecy(game, bookId = 'book1', onClose) {
     const body = h('div', { class: 'scroll-lines' });
     lines.forEach((line, i) => {
       const known = got.has(i);
-      const p = h('p', { class: 'pl' + (known ? ' known' : ' hidden-line'), 'aria-label': known ? line : 'A line of the prophecy that is not yet fulfilled' });
+      const p = h('p', { class: 'pl' + (known ? ' known' : ' hidden-line'), 'aria-label': known ? line : tx('prophecy.unfulfilledAria') });
       if (known) {
         if (!seen.has(i)) { demigodText(p, line, { timing: GREEK.prophecy, delay: 0.5 + i * 0.1 }); (d.prophecySeen ??= {})[bookId] = [...seen.add(i)]; }
         else p.textContent = line;
       } else {
         p.textContent = toGreek(line, i * 97 + 5);
         const ch = CHAPTERS.find((c) => c.book === bookId && c.prophecyLine === i);
-        if (ch) p.append(h('small', {}, `Fulfilled in: ${ch.title}`));
+        if (ch) p.append(h('small', {}, tx('prophecy.fulfilledIn', { title: ch.title })));
       }
       body.append(p);
     });
     if (d.prophecySeen) game.save.write();
-    if (!lines.length) body.append(h('p', { class: 'pl hidden-line' }, 'The Oracle has not spoken yet.'));
+    if (!lines.length) body.append(h('p', { class: 'pl hidden-line' }, tx('prophecy.silent')));
     const tabs = books.length > 1 ? h('div', { class: 'tabs' }, ...books.map((b) => h('button', { class: 'tab' + (b.id === bookId ? ' on' : ''), onclick: () => { bookId = b.id; ui.refresh('prophecy'); } }, b.title))) : null;
-    el.appendChild(h('div', { class: 'prophecy', role: 'dialog', 'aria-label': 'The prophecy' },
+    el.appendChild(h('div', { class: 'prophecy', role: 'dialog', 'aria-label': tx('prophecy.title') },
       h('div', { class: 'roll top' }),
       h('div', { class: 'parch' },
-        h('div', { class: 'ptitle' }, 'The Prophecy'), h('div', { class: 'psub' }, book?.title ?? ''), tabs, body,
-        h('div', { class: 'pcount' }, lines.length ? `${got.size} of ${lines.length} lines fulfilled` : ''),
-        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: close }, 'Close')),
+        h('div', { class: 'ptitle' }, tx('prophecy.title')), h('div', { class: 'psub' }, book?.title ?? ''), tabs, body,
+        h('div', { class: 'pcount' }, lines.length ? tx('prophecy.count', { got: got.size, total: lines.length }) : ''),
+        h('button', { class: 'btn primary', 'data-autofocus': true, onclick: close }, tx('common.close'))),
       h('div', { class: 'roll bottom' })));
   }, { dim: true, onBack: close });
 }

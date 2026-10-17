@@ -6,6 +6,7 @@
 // damage heroes deal (`kit.outgoing(e, o)` → multiplier) and take.
 import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, sin, length, smoothstep, atan, mix } from 'three/tsl';
+import { t } from '../text_config.js';
 import { BASE_COMBO } from '../combat.js';
 import { U } from '../gfx/materials.js';
 import { shoot, ammoInfo } from '../resources.js';
@@ -157,7 +158,7 @@ export class Kit {
     this.p = player; this.game = player.game;
     this.combo = BASE_COMBO;
     this.slots = {
-      ranged: this.ability({ name: 'Power Bolt', icon: '✦', cd: 0.55, ce: 0, use: () => this.powerBolt() }),
+      ranged: this.ability({ name: t('powers.base.ranged'), icon: '✦', cd: 0.55, ce: 0, use: () => this.powerBolt() }),
     };
     this.domain = null;
     this.skills = {};   // skill-tree ranks, filled from save
