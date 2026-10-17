@@ -663,27 +663,35 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-fifth-tag { font-size: 0.85em; opacity: 0.4; transition: opacity 0.2s, color 0.2s; }
 .drone-fifth-tag.on { opacity: 0.95; color: var(--ink-2); }
 /* Bow as volume (tryout): the bow stands beside the cello as tall as it; its
-   hair (laid along it from the bow's frog and tip anchors, art.js alignBow)
-   is lit from the frog up to the volume, where a small rosin-gold marker sits. */
+   hair is laid along it from the bow's frog and tip anchors (art.js alignBow).
+   The level is a band of colour drawn behind the bow, from the hair to the
+   middle of the stick, from the frog up to the volume, so it shows only
+   through the gap between the hair and the stick and as a soft glow round
+   them: subtle, but there. A small gold marker sits on the hair at the level. */
 .bow-slider {
   position: relative; flex: none; height: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 256 / 1024;
   touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; border-radius: 8px;
+  isolation: isolate;
 }
 .bow-slider[hidden] { display: none; }
 .bow-slider:focus:not(:focus-visible) { outline: none; }
 .bow-slider.held { cursor: grabbing; }
-.bow-slider .art { position: absolute; inset: 0; display: block; }
+.bow-slider .art { position: absolute; inset: 0; display: block; z-index: 1; }
 .bow-slider .art > * { width: 100%; height: 100%; display: block; object-fit: contain; }
-.bow-hair { position: absolute; left: var(--hair-x, 34%); top: var(--hair-top, 3%); bottom: var(--hair-bottom, 3%); width: 0; }
+/* From the hair to about the middle of the stick: 9% of the bow's width (the stick sits 22-24 of 256 px from the hair in every delivered bow). */
+.bow-hair { position: absolute; left: var(--hair-x, 34%); top: var(--hair-top, 3%); bottom: var(--hair-bottom, 3%); width: 9%; }
 /* A wider invisible grip around the hair, so a finger finds it. */
-.bow-hair::before { content: ''; position: absolute; top: -12px; bottom: -12px; left: -22px; width: 44px; }
+.bow-hair::before { content: ''; position: absolute; top: -12px; bottom: -12px; left: -22px; width: 44px; z-index: 3; }
 .bow-lit {
-  position: absolute; left: -3px; width: 6px; bottom: 0; height: calc(var(--v, 0.8) * 100%); border-radius: 3px;
-  background: linear-gradient(to top, color-mix(in srgb, var(--brass-2) 70%, transparent), var(--brass-2));
-  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--brass-2) 55%, transparent);
+  position: absolute; left: -1px; right: 0; bottom: 0; height: calc(var(--v, 0.8) * 100%); z-index: 0;
+  border-radius: 3px;
+  --lit: var(--brass); /* on a light page the deeper accent, or it fades into the pale hair */
+  background: linear-gradient(to top, color-mix(in srgb, var(--lit) 80%, transparent), var(--lit));
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--lit) 55%, transparent);
 }
+[data-mode="dark"] .bow-lit { --lit: var(--brass-2); }
 .bow-mark {
-  position: absolute; left: 0; bottom: calc(var(--v, 0.8) * 100%); width: 22px; height: 22px; translate: -50% 50%;
+  position: absolute; left: 0; bottom: calc(var(--v, 0.8) * 100%); width: 22px; height: 22px; translate: -50% 50%; z-index: 2;
   border-radius: 50%; background: var(--brass-2); border: 3px solid var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,.45);
   transition: scale 0.15s;
 }

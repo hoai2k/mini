@@ -372,9 +372,12 @@ tones, scales over a tonic.
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
 - **Bow as volume** (Drone settings, a tryout, off by default): the cello is
-  drawn without its bow and the bow stands beside it as the volume, its
-  hair lit from the frog up to the level with a small gold marker; drag
-  along it. The hair is placed from the bow's own `frog` and `tip` anchors
+  drawn without its bow and the bow stands beside it as the volume: a band
+  of colour behind the bow, from the hair to the middle of the stick and
+  from the frog up to the level, shows through the gap between them and as
+  a soft glow round them (the theme's deeper accent on a light page, its
+  bright one on a dark page), with a small gold marker on the hair at the
+  level; drag along it. The hair is placed from the bow's own `frog` and `tip` anchors
   (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
   anywhere in its canvas. Round 7 delivers `drone-cello`, each theme's Drone
   image with the bow taken out, and `drone-bow`, the bow alone, upright, all
