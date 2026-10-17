@@ -3,7 +3,7 @@
 import { TEXT, setRich } from './text.js';
 
 import { audio, existingAudio, freshAudio, replaceAudio, audioWasAway, markStale, unlock, setSession, heardNow, keepAwake, setExtraDelay, setContextSpeaker } from './audio.js';
-import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.js';
+import { playSamples, primeFromTap, outputSettled, setSpeaker, setPlaybackVolume } from './player.js';
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission, onPermissionChange, noteMicRefused, openAppSettings } from './devices.js';
@@ -33,6 +33,7 @@ import * as store from './takes.js';
 import { GENRES, GENRE_IDS, mainTempo } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, alignBow, swingOf } from './art.js';
+import { tuckedVolume } from './tuckedvolume.js';
 
 const $ = (id) => document.getElementById(id);
 const settings = load();
@@ -142,7 +143,7 @@ function enter(name) {
     queueFit();
   }
   if (name === 'drone') droneUI.fit();
-  if (name === 'record') startRecorder();
+  if (name === 'record') checkRecorderMic(); // it starts off: the record button begins the cycle
   if (name === 'tuner') startTuner();
   if (name === 'drone') {
     // Like the metronome, the drone doesn't use the mic.
@@ -744,11 +745,11 @@ const syncViewChips = chips($('met-view-chips'), ['metronome', 'bars'].map((id) 
 const switchView = () => setMetView(settings.metView === 'bars' ? 'metronome' : 'bars');
 foot.addEventListener('click', () => {
   if (held) { held = false; return; } // that was a press and hold
-  if (foldTap) { foldTap = false; return; } // that tap folded the volume away
+  if (metVolume.swallowedTap(foot)) return; // that tap folded the volume away
   switchView();
 });
 art.addEventListener('click', () => {
-  if (foldTap) { foldTap = false; return; }
+  if (metVolume.swallowedTap(art)) return;
   toggleEffect();
 });
 for (const [el, act] of [[foot, switchView], [art, toggleEffect]]) {
@@ -762,99 +763,21 @@ for (const [el, act] of [[foot, switchView], [art, toggleEffect]]) {
 
 // ---------------------------------------------------------------- volume
 
-/*
- * The metronome's volume, tucked away at the picture's top right as a faint
- * speaker. Grab it and drag up or down: the volume follows at once, the
- * slider showing while it does and folding away a moment after. Tap it: the
- * slider opens and stays until a tap elsewhere (or Escape).
- */
-const vol = $('met-vol');
-const volKnob = $('met-vol-knob');
-const volSlider = $('met-vol-slider');
-const volTrack = volSlider.querySelector('.vslider-track');
+// The metronome's volume, tucked away at the picture's top right (tuckedvolume.js).
 let volSent = 0;
 let volLater = 0;
-function showVolume() {
-  const v = settings.volume;
-  volSlider.style.setProperty('--v', v);
-  volSlider.setAttribute('aria-valuenow', String(Math.round(v * 100)));
-  volSlider.setAttribute('aria-valuetext', `${Math.round(v * 100)}%`);
-  vol.dataset.level = v === 0 ? '0' : v < 0.5 ? '1' : '2';
-}
-function setVolume(v) {
-  settings.volume = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100;
-  settings.volumeChosen = true;
-  showVolume();
-  // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
-  clearTimeout(volLater);
-  const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
-  if (performance.now() - volSent > 60) send();
-  else volLater = setTimeout(send, 60);
-}
-let volFold = 0;
-function openVolume(open, { linger = 0 } = {}) {
-  clearTimeout(volFold);
-  if (!open && linger) { volFold = setTimeout(() => openVolume(false), linger); return; }
-  vol.classList.toggle('open', open);
-  volKnob.setAttribute('aria-expanded', String(open));
-  volSlider.tabIndex = open ? 0 : -1;
-}
-// The speaker: a drag sets the volume by how far it moves (the slider's
-// height for all of it); a tap opens the slider.
-let grab = null; // { y, from, moved, wasOpen }
-volKnob.addEventListener('pointerdown', (e) => {
-  if (e.button) return;
-  e.preventDefault();
-  volKnob.setPointerCapture(e.pointerId);
-  grab = { y: e.clientY, from: settings.volume, moved: false, wasOpen: vol.classList.contains('open') };
+const metVolume = tuckedVolume($('met-vol'), {
+  get: () => settings.volume,
+  set: (v) => {
+    settings.volume = v;
+    settings.volumeChosen = true;
+    // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
+    clearTimeout(volLater);
+    const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
+    if (performance.now() - volSent > 60) send();
+    else volLater = setTimeout(send, 60);
+  },
 });
-volKnob.addEventListener('pointermove', (e) => {
-  if (!grab || !volKnob.hasPointerCapture(e.pointerId)) return;
-  const dy = grab.y - e.clientY;
-  if (!grab.moved && Math.abs(dy) < 6) return;
-  if (!grab.moved) { grab.moved = true; openVolume(true); }
-  setVolume(grab.from + dy / (volTrack.offsetHeight || 150)); // its unscaled height: it may still be opening
-});
-volKnob.addEventListener('pointerup', () => {
-  if (!grab) return;
-  if (grab.moved) { if (!grab.wasOpen) openVolume(false, { linger: 1200 }); }
-  else openVolume(!grab.wasOpen);
-  grab = null;
-});
-volKnob.addEventListener('pointercancel', () => { grab = null; });
-volKnob.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolume(!vol.classList.contains('open')); if (vol.classList.contains('open')) volSlider.focus(); }
-});
-// The slider itself: drag the knob or the track.
-volSlider.addEventListener('pointerdown', (e) => {
-  if (e.button) return;
-  e.preventDefault();
-  clearTimeout(volFold);
-  volSlider.setPointerCapture(e.pointerId);
-  const at = (ev) => { const r = volTrack.getBoundingClientRect(); return (r.bottom - ev.clientY) / r.height; };
-  setVolume(at(e));
-  const move = (ev) => setVolume(at(ev));
-  volSlider.addEventListener('pointermove', move);
-  volSlider.addEventListener('pointerup', () => volSlider.removeEventListener('pointermove', move), { once: true });
-});
-vol.addEventListener('keydown', (e) => {
-  const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.2, PageDown: -0.2 }[e.key];
-  if (e.key === 'Escape') { openVolume(false); volKnob.focus(); }
-  else if (e.target === volSlider && (e.key === 'Home' || e.key === 'End')) setVolume(e.key === 'End' ? 1 : 0);
-  else if (e.target === volSlider && step) setVolume(settings.volume + step);
-  else return;
-  e.preventDefault();
-  e.stopPropagation(); // not the page's arrow keys (which change the tempo)
-});
-// A tap anywhere else folds it away (on the picture, that is all it does, as when closing a menu).
-let foldTap = false;
-document.addEventListener('pointerdown', (e) => {
-  if (!vol.classList.contains('open') || vol.contains(e.target)) return;
-  openVolume(false);
-  foldTap = $('met-visual').contains(e.target);
-  setTimeout(() => { foldTap = false; }, 800); // a press that was not a tap leaves nothing behind
-}, true);
-showVolume();
 
 /*
  * On a phone (one column), the picture, pendulum or Visualizer, takes all
@@ -1110,6 +1033,29 @@ async function startRecorder() {
 }
 
 /**
+ * Opening the Playback Recorder leaves it off until the record button is
+ * pressed, but asks for the microphone straight away where it hasn't been
+ * allowed yet (and lets it go again), so the permission question, or the
+ * news that it is blocked, comes now rather than when you start to play.
+ */
+let micChecked = false;
+async function checkRecorderMic() {
+  showState();
+  if (micChecked || recorder?.micOpen || micPermission() === 'granted') return;
+  micChecked = true;
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    for (const t of stream.getTracks()) t.stop();
+    recError = '';
+  } catch (err) {
+    recError = micError(err);
+  }
+  showMicOff();
+  showState();
+}
+
+/**
  * iPhone only: once the recorder has the mic, if it isn't set to Allow (so the
  * app has to keep it open and takes stay off Bluetooth), say so and how to
  * fix it. Its title folds it to one line (remembered); it only goes away for
@@ -1313,6 +1259,8 @@ async function play(take, { auto = false } = {}) {
   if (!recorder?.holdsMic) setSession('playback');
   playing = { take, auto, handle: null };
   wave?.showTake(take.samples);
+  $('wave').classList.add('scrub');
+  $('wave').setAttribute('aria-label', TEXT.recorder.waveformTake);
   renderTakes();
   showState();
   // With the mic freed, also suspend the audio engine: it ran the mic, and a
@@ -1357,20 +1305,37 @@ function playWithWebAudio(take) {
   unlock();
   const buf = ctx.createBuffer(1, take.samples.length, take.sampleRate);
   buf.copyToChannel(take.samples, 0);
-  const source = ctx.createBufferSource();
-  source.buffer = buf;
-  source.connect(ctx.destination);
-  const startedAt = ctx.currentTime + 0.03;
+  const gain = ctx.createGain();
+  gain.gain.value = settings.playVolume;
+  gain.connect(ctx.destination);
   let finish;
   const ended = new Promise((resolve) => { finish = resolve; });
-  source.onended = () => finish();
-  source.start(startedAt);
+  let source = null;
+  let startedAt = 0; // context time at which the take's start would have played
+  let heldAt = null; // the position held while scrubbing, or null
+  const at = () => (heldAt !== null ? heldAt : Math.min(1, Math.max(0, (ctx.currentTime - startedAt) / buf.duration)));
+  const start = (f) => {
+    if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } }
+    source = ctx.createBufferSource();
+    source.buffer = buf;
+    source.connect(gain);
+    source.onended = () => finish();
+    const when = ctx.currentTime + 0.03;
+    source.start(when, f * buf.duration);
+    startedAt = when - f * buf.duration;
+  };
+  start(0);
+  webAudioGain = gain;
   return {
     ended,
-    progress: () => Math.min(1, Math.max(0, (ctx.currentTime - startedAt) / buf.duration)),
-    stop: () => { source.onended = null; try { source.stop(); } catch { /* ended */ } finish(); },
+    progress: at,
+    stop: () => { if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } } webAudioGain = null; finish(); },
+    hold: () => { heldAt = at(); if (source) { source.onended = null; try { source.stop(); } catch { /* ended */ } source = null; } },
+    seek: (f) => { const c = Math.max(0, Math.min(1, f)); if (heldAt !== null) heldAt = c; else start(c); },
+    go: async () => { const f = heldAt ?? at(); heldAt = null; start(f); },
   };
 }
+let webAudioGain = null;
 
 function stopPlayback({ resume = true } = {}) {
   if (!playing) return;
@@ -1378,11 +1343,60 @@ function stopPlayback({ resume = true } = {}) {
   playing = null;
   playToken++;
   handle?.stop();
+  scrub = null;
   wave?.showLive();
+  $('wave').classList.remove('scrub');
+  $('wave').setAttribute('aria-label', TEXT.recorder.waveform);
   if (resume && recorder && (recorder.state === 'playing' || recorder.state === 'paused') && toastTimer === null) resumeListening();
   renderTakes();
   showState();
 }
+
+// Playback volume: the faint speaker beside the record button (tuckedvolume.js).
+setPlaybackVolume(settings.playVolume);
+const recVolume = tuckedVolume($('rec-vol'), {
+  get: () => settings.playVolume,
+  set: (v) => {
+    settings.playVolume = v;
+    setPlaybackVolume(v);
+    if (webAudioGain) webAudioGain.gain.setTargetAtTime(v, webAudioGain.context.currentTime, 0.02);
+    persist();
+  },
+});
+
+/*
+ * Scrubbing: while a take plays, press the waveform to move the playhead
+ * there (it holds still while dragged) and let go to play on from that
+ * point, to hear a passage again and again.
+ */
+let scrub = null; // { id, f } while the playhead is held
+const waveEl = $('wave');
+const waveAt = (e) => {
+  const r = waveEl.getBoundingClientRect();
+  return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+};
+waveEl.addEventListener('pointerdown', (e) => {
+  const handle = playing?.handle;
+  if (e.button || !handle?.hold || recVolume.swallowedTap(waveEl)) return;
+  e.preventDefault();
+  waveEl.setPointerCapture(e.pointerId);
+  handle.hold();
+  scrub = { id: e.pointerId, f: waveAt(e) };
+  handle.seek(scrub.f);
+});
+waveEl.addEventListener('pointermove', (e) => {
+  if (!scrub || e.pointerId !== scrub.id) return;
+  scrub.f = waveAt(e);
+  playing?.handle?.seek(scrub.f);
+});
+function endScrub(e) {
+  if (!scrub || e.pointerId !== scrub.id) return;
+  const handle = playing?.handle;
+  scrub = null;
+  handle?.go().catch(() => stopPlayback());
+}
+waveEl.addEventListener('pointerup', endScrub);
+waveEl.addEventListener('pointercancel', endScrub);
 
 /**
  * Rename a take: its title turns into a text field. Enter or leaving the
@@ -1613,7 +1627,7 @@ $('rec-during').addEventListener('change', () => {
 function animateRecorder() {
   if (!wave) return;
   if (playing) {
-    const p = playing.handle ? playing.handle.progress() : 0;
+    const p = scrub ? scrub.f : playing.handle ? playing.handle.progress() : 0;
     wave.setProgress(p);
     const row = $('takes').querySelector(`[data-key="${playing.take.created}"] .bar-progress`);
     if (row) row.style.width = `${(p * 100).toFixed(1)}%`;

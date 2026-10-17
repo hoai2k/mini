@@ -160,11 +160,11 @@
             </div>
           </div>
           <!-- Volume, tucked away: drag the speaker up or down, or tap it to open the slider. -->
-          <div class="met-vol" id="met-vol">
-            <button type="button" class="met-vol-knob" id="met-vol-knob" aria-expanded="false" aria-controls="met-vol-panel" data-text-aria-label="common.volume">
+          <div class="tuck-vol" id="met-vol">
+            <button type="button" class="tuck-vol-knob" id="met-vol-knob" aria-expanded="false" aria-controls="met-vol-panel" data-text-aria-label="common.volume">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M4 9h4l5-4v14l-5-4H4z"/><path class="w1" d="M16 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>
             </button>
-            <div class="met-vol-panel" id="met-vol-panel">
+            <div class="tuck-vol-panel" id="met-vol-panel">
               <div class="vslider" id="met-vol-slider" role="slider" tabindex="-1" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume">
                 <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
               </div>
@@ -281,6 +281,17 @@
           <p class="rec-hint" id="rec-hint"></p>
         </div>
         <button class="pill" id="rec-skip" data-text="recorder.stopPlayback" hidden></button>
+        <!-- How loud takes play back, tucked away (tuckedvolume.js). -->
+        <div class="tuck-vol" id="rec-vol">
+          <button type="button" class="tuck-vol-knob" aria-expanded="false" data-text-aria-label="recorder.playbackVolume">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M4 9h4l5-4v14l-5-4H4z"/><path class="w1" d="M16 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>
+          </button>
+          <div class="tuck-vol-panel">
+            <div class="vslider" role="slider" tabindex="-1" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="recorder.playbackVolume">
+              <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
+            </div>
+          </div>
+        </div>
       </div>
       <aside class="mic-tip" id="mic-tip" aria-live="polite" hidden></aside>
       <aside class="mic-tip mic-off" id="rec-mic-off" aria-live="polite" hidden></aside>

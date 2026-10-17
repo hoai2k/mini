@@ -49,7 +49,12 @@ don't offer it. It switches the whole app's look:
 - **Robot Future**: deep navy with cyan and magenta light, Orbitron and
   Exo 2, a HUD grid, chamfered panels and neon glow.
 - **French Nouveau**: sage, cream, gold and rose, Italiana and Cormorant
-  Garamond, asymmetric organic curves and a whiplash ornament.
+  Garamond, asymmetric organic curves and a whiplash ornament. Its art is
+  the palest and least saturated of the themes (mean saturation 0.38-0.43
+  against 0.55-0.83 for most, almost no darks) and mostly the sage the
+  page is tinted with, so it sank into its cards: the theme draws every
+  picture a little richer (saturation and contrast) with a fine dark
+  contour, after the outlined forms of a Mucha poster (`--art-pop`).
 - **Candy**: candy pink and sky blue on white in M PLUS Rounded, bold
   outlines, hard manga-panel shadows, halftone dots and sparkles.
 - **Steam Punk**: dark leather with brass and copper, Cinzel and Special
@@ -247,7 +252,10 @@ when the Art Deco art arrives, measure and record its own.
 
 ## Playback Recorder
 
-Opening it turns on the microphone and starts listening.
+Opening it leaves it **off**: the record button starts the cycle. Where
+the microphone hasn't been allowed yet, it is asked for (and let go again)
+as the screen opens, so the permission question, or the news that it is
+blocked, comes then rather than when you start to play.
 
 1. **Listening:** waits for you to play. A take starts on a held, clearly
    pitched note (about 130 ms of one steady pitch, louder than the room).
@@ -259,7 +267,17 @@ Opening it turns on the microphone and starts listening.
    (Settings: 1–10 s). Soft, decaying notes still count as playing.
 3. The take is **trimmed** (from just before the first note's attack to
    when the last note has rung down) and **played back**, with its waveform
-   and a playhead. Then it listens again.
+   and a playhead. Then it listens again. **Scrub** while it plays: press
+   the waveform and the playhead jumps there and holds while you drag; let
+   go and it plays on from that point, to hear a passage again and again.
+   **Playback volume** is the faint speaker at the right of the record
+   button's row (the metronome's tucked-away control, `tuckedvolume.js`):
+   drag it, or tap it for the slider. iPhone and iPad ignore an audio
+   element's volume, so there the level goes into the samples and a take
+   playing is re-made at the new level from where it was (`player.js`).
+   The phone's own volume buttons set how loud playback is, not how loud
+   takes are recorded: the microphone is opened with automatic gain off,
+   so a take's level is what the mic hears.
 
 Recording and playback are separate: the recorder never listens while a
 take plays (from the list too). How the mic is handled meanwhile is under

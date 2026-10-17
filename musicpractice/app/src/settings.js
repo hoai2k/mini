@@ -73,6 +73,7 @@ export const DEFAULTS = Object.freeze({
   sound: 'wood',
   volume: 1,
   volumeChosen: false,
+  playVolume: 1, // the Playback Recorder's takes, played back (its tucked-away speaker)
   silenceSec: 3,
   sensitivity: 'medium',
   startOn: 'music',
@@ -193,6 +194,7 @@ export function sanitize(raw) {
     // it is moved there, since earlier saves' volume was a removed control's.
     volume: s.volumeChosen === true ? clamp(num(s.volume, 1), 0, 1) : 1,
     volumeChosen: s.volumeChosen === true,
+    playVolume: clamp(num(s.playVolume, 1), 0, 1),
     silenceSec: clamp(Math.round(num(s.silenceSec, DEFAULTS.silenceSec) * 2) / 2, 1, 10),
     sensitivity: oneOf(s.sensitivity, ['low', 'medium', 'high'], DEFAULTS.sensitivity),
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),
