@@ -123,16 +123,23 @@ when the Art Deco art arrives, measure and record its own.
   It moves as a real pendulum does (simple harmonic motion, a cosine):
   easing to a stop at each end, where the click falls, and fastest through
   the middle. Dots under it show the beat of the bar. **On each beat** (in
-  the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**
-  (`pendulumMode`; saves from the two switches it replaced carry over, a
-  pulse someone turned on winning). **Tapping the metronome** turns it off
-  and back to the last of Swing or Pulse (`pendulumLast`); the swing eases
+  the Pendulum tab) is a switch (on by default) and the effect it turns on,
+  **Swing** (the default) or **Pulse** (`pendulumMode` is the one showing or
+  Off, `pendulumLast` the effect chosen, kept while it is off; saves from
+  the two switches it replaced carry over, a pulse someone turned on
+  winning). Choosing an effect while it is off only chooses it. **Tapping
+  the metronome** flips the same switch, so it always turns the chosen
+  effect off or on; the swing eases
   in and out over about half a second rather than jumping. **Pulse** grows
   the dots big, as wide as the row allows (the metronome shrinking above to
   make room), so they can be seen from across a room: the beat's dot swells
   and glows into its beat, peaks on it and eases away (a bell, its tail half
   again as long as its lead-in), red on a strong beat, while the next starts
   to swell into its own.
+- The Visualizer's bars are a faint neutral outline until played (the
+  strong beat's a touch of its colour, so the bar still reads); the beat
+  being played flashes in its colour and the beats played so far in that
+  pass stay faintly lit.
 - The picture (the metronome over the dots) is always the same height, so
   the controls under it never move: its foot is the row of dots, Pulse's big
   dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
@@ -144,7 +151,8 @@ when the Art Deco art arrives, measure and record its own.
   place never goes blank) while it grows or shrinks from the outgoing one's
   box to its own, both about their bottom centres. Each change takes 0.6 s,
   eased (none with reduced motion, and none when the window is resized).
-  The dots are centred under the metronome at every size.
+  The dots are centred under the metronome at every size, and stay on one
+  line (never wrapping part way while they grow or shrink for Pulse).
 - **Volume**, tucked away as a faint speaker at the picture's top right:
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
@@ -219,7 +227,7 @@ when the Art Deco art arrives, measure and record its own.
   mixers take the click for every position (`slots`).
 - **Display** (metronome settings): two tabs, **Pendulum** (the default)
   and **Visualizer**; the chosen one opens, like a folder tab, into a
-  rounded box round its own options: **On each beat** (Swing, Pulse or Off),
+  rounded box round its own options: **On each beat** (a switch, then Swing or Pulse),
   or **Bars shown** (1, 2, 4 or 8). **Tapping the dots** opens them into the
   Visualizer, the metronome shrinking (and still swinging) above it, and
   tapping the Visualizer folds it back into the dots. **Pressing and
@@ -527,7 +535,14 @@ file, on purpose: the privacy page, the device details Send feedback attaches
   `design/source/drone/` the tools that make the loops.
 - `design/source/make_icons.py`: makes `app/icons/icon-180/192/512.png`
   from the delivered `icon-1024.png`, or a drawn stand-in until then.
-- `publish.sh`: copies the app to `local/pages/musicpractice/`.
+- `publish.sh`: copies the app to `local/pages/musicpractice/`, then
+  `stamp.mjs` gives the copy addresses that change with each file's
+  contents: `src/main.js?v=<hash>` and `styles.css?v=<hash>`, and an import
+  map sending every module import to its own `?v=<hash>`. GitHub Pages lets
+  each file be cached for 10 minutes on its own, so without this a phone
+  could load a new `index.html` with an old cached `text-config.js` and show
+  a key (`common.themeButton`) in place of its text. The source is
+  untouched; the apps' copy (`mobile/copy-web.sh`) is stamped too.
 
 ## Checks
 
@@ -659,6 +674,12 @@ check, and nowhere else, say **Microphone is off for Music Practice** with
 an **Open Settings** button to the app's own page there; the note goes once
 it is back on. The page asks the phone without prompting (`micPermission`,
 `openAppSettings` in `app/src/devices.js`).
+
+**Theme…** sits at the right end of the line Audio check starts, at the foot
+of each mini app's settings (two separate global features): it opens
+the theme tiles and Dark Mode in a sheet of their own (the main settings'
+own controls, moved in while it is open), so the theme can be changed from
+anywhere.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when
