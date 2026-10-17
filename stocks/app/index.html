@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stocks</title>
+<meta name="description" content="Stock and ETF price history with total return: price only, with dividends, or with dividends reinvested.">
+<meta name="theme-color" content="#0e1116">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../" title="Back to mini">
+    <img src="icon.svg" alt="" width="28" height="28">
+    <span>Stocks</span>
+  </a>
+  <div class="search" role="combobox" aria-haspopup="listbox" aria-owns="suggest" aria-expanded="false" id="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+    <input id="q" type="search" placeholder="Search a symbol or company" autocomplete="off" spellcheck="false"
+           aria-autocomplete="list" aria-controls="suggest" aria-label="Search symbols">
+    <ul id="suggest" role="listbox" hidden></ul>
+  </div>
+</header>
+
+<nav class="watch" id="watch" aria-label="Watchlist"></nav>
+
+<main id="main">
+  <section class="card" id="card" aria-live="polite">
+    <div class="head">
+      <div class="title">
+        <h1 id="name">&nbsp;</h1>
+        <p id="sub" class="muted">&nbsp;</p>
+      </div>
+      <div class="quote">
+        <div class="price" id="price">&nbsp;</div>
+        <div class="change" id="change">&nbsp;</div>
+        <div class="asof muted" id="asof">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="seg" id="ranges" role="group" aria-label="Chart range"></div>
+      <div class="seg" id="modes" role="group" aria-label="Return"></div>
+      <label class="amount" id="amountWrap" hidden>
+        <span>Invest</span>
+        <span class="amt-box">$<input id="amount" type="text" inputmode="decimal" value="10,000" aria-label="Amount invested at the start"></span>
+      </label>
+    </div>
+
+    <div class="period" id="period">&nbsp;</div>
+    <div class="chart" id="chart"></div>
+    <div class="legend muted" id="legend"></div>
+
+    <div class="error" id="error" hidden></div>
+  </section>
+
+  <section class="card stats-card">
+    <h2>Key stats</h2>
+    <dl class="stats" id="stats"></dl>
+  </section>
+
+  <section class="card divs-card">
+    <div class="divs-head">
+      <h2>Dividend history</h2>
+      <button type="button" class="link" id="divToggle" hidden>Show all</button>
+    </div>
+    <p class="muted small" id="divNote"></p>
+    <table class="divtable" id="divtable"><thead><tr><th>Ex-date</th><th>Amount / share</th><th>Change</th><th>Yield then</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="card notes">
+    <h2>How total return is worked out</h2>
+    <ul class="small">
+      <li><b>Price only</b> charts the share price. Prices are adjusted for splits, never for dividends.</li>
+      <li><b>With dividends</b> buys at the close on the first day of the chart and keeps every dividend as cash (no interest), so the line is shares × price + cash collected.</li>
+      <li><b>Dividends reinvested</b> uses each dividend to buy more shares at the close on its ex-date, so payments compound in their own rhythm: weekly, monthly or quarterly.</li>
+      <li>A dividend counts when its ex-date falls after the purchase day. Taxes, fees and the delay between ex-date and pay date are ignored.</li>
+      <li>The chart plots daily points for up to a year, weekly up to five years and monthly beyond; the maths always runs on daily closes. A symbol younger than the range charts from its first close, at the detail that span calls for.</li>
+    </ul>
+    <p class="small muted" id="source"></p>
+  </section>
+</main>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

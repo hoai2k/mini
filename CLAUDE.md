@@ -56,6 +56,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
 | `musicpractice/` | Music Practice (a metronome, a tuner, a drone, and a Playback Recorder that hears when you start and stop playing and plays each take back); its iOS and Android apps (Capacitor, with Music Practice Pro) are in `musicpractice/mobile/` | https://hoai2k.github.io/mini/musicpractice/ |
 | `bookzam/` | Bookzam (Shazam for books: photos of shelves become book and board game catalogues, and Find Book circles a named book in a photo; photos are read on the device with PaddleOCR models and books identified on Open Library) | https://hoai2k.github.io/mini/bookzam/ |
+| `stocks/` | Stocks (stock and ETF charts with total return: price only, with dividends, or dividends reinvested; live data through its own `mini-stocks` Cloudflare Worker in `stocks/server/`, separate from the relay) | https://hoai2k.github.io/mini/stocks/ |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
@@ -77,7 +78,7 @@ from `sites/`, `multiplayer/` and `local/`:
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
-  Ai-Ching, Music Practice and Bookzam) go on its mini apps shelf below the games; Games Chat stays
+  Ai-Ching, Music Practice, Bookzam and Stocks) go on its mini apps shelf below the games; Games Chat stays
   with the games. Games that haven't turned out as hoped yet are listed as
   plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
   `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
@@ -140,7 +141,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.

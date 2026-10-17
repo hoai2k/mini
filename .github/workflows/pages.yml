@@ -168,6 +168,11 @@ jobs:
       - name: Bookzam tests
         if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
         run: node --test bookzam/app/test/*.test.mjs
+      - name: Build Stocks
+        run: .github/scripts/build-game.sh stocks 'stocks/publish.sh local/pages/stocks'
+      - name: Stocks tests
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        run: node --test stocks/app/test/*.test.mjs
       - name: Fail only if no game built
         run: .github/scripts/check-games.sh
       - uses: actions/upload-pages-artifact@v3
