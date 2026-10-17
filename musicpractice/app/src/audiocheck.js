@@ -3,7 +3,7 @@
 // (microphone, speaker). Opened from any settings sheet.
 
 import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, diag, allowedInAdvance, QUICK_GRANT_MS } from './devices.js';
-import { freesMicForPlayback, promptWasSuspected } from './recorder.js';
+import { freesMicForPlayback } from './recorder.js';
 import { reportedLatency, unlock } from './audio.js';
 import { playSamples } from './player.js';
 import { TEXT, rich } from './text.js';
@@ -56,13 +56,15 @@ async function render() {
   // How takes will play, in plain words
   let summary;
   let steps = null;
+  // Only when something is wrong: the same short message the Playback
+  // Recorder shows, with pictures of where to tap.
   if (permission === 'denied') {
     summary = el('p', { class: 'ac-status bad' }, A.blocked);
+    steps = allowSteps({ pictures: true });
   } else if (!frees) {
-    summary = el('p', { class: 'ac-status warn' },
-      promptWasSuspected() ? A.askedAgain : '',
-      A.keptOpen,
-      A.toUseBluetooth);
+    summary = el('div', { class: 'ac-status warn' },
+      el('b', {}, A.micTip.title),
+      el('p', {}, A.micTip.body));
     steps = allowSteps({ pictures: true });
   }
 
