@@ -166,7 +166,7 @@ export function build(ctx) {
   k.room(x0, z0, x1, z1, FY, hP, B.lotus_panel, { trim: B.gold_trim, doors: [{ side: 's', at: 372, width: 5, height: 4 }] });
   fill(x0 + 1, FY - 1, z0 + 1, x1 - 1, FY - 1, z1 - 1, B.casino_carpet);
   fill(x0, FY + hP, z0, x1, FY + hP, z1, B.roof);
-  W.addRoof([x0, FY + 4, z0], [x1, FY + hP, z1], [[x0 + 1, FY, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);
+  W.addRoof([x0, FY + 4, z0], [x1, FY + hP, z1], [[x0 + 1, FY - 2, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);
   for (let x = x0 + 1; x < x1; x++) { W.set(x, FY + 4, z1, B.neon_bulbs); W.set(x, FY + 7, z1, x % 2 ? B.neon_green : B.neon_pink); }
   for (let x = x0 + 2; x < x1 - 1; x += 3) if (Math.abs(x - 372) > 3) for (let y = FY + 1; y < FY + 4; y++) W.set(x, y, z1, B.gold_marble);
   // the hotel tower over it, and the neon lotus on its face
@@ -183,7 +183,7 @@ export function build(ctx) {
     W.set(366 + c, top - 2 - r * 2, tz1, ch === 'P' ? B.neon_pink : ch === 'G' ? B.neon_green : B.neon_bulbs);
     W.set(366 + c, top - 3 - r * 2, tz1, ch === 'P' ? B.neon_pink : ch === 'G' ? B.neon_green : B.neon_bulbs);
   }
-  W.addRoof([tx0, FY + hP + 1, tz0], [tx1, top, tz1], [[x0 + 1, FY, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);   // (the tower fades too, so you can see the casino floor)
+  W.addRoof([tx0, FY + hP + 1, tz0], [tx1, top, tz1], [[x0 + 1, FY - 2, z0 + 1], [x1 - 1, FY + 3, z1 - 1]]);   // (the tower fades too, so you can see the casino floor)
   W.addLight(372.5, top - 10, tz1 + 4, 0xff6ad0, 6, 22);
   W.addLight(372.5, top + 2, 22.5, 0x4affa0, 4, 16);
   // the porte-cochère over the doors (gold pillars, a canopy of bulbs)

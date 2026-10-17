@@ -7,18 +7,6 @@
 // loads (names in data tables) take a pack only if it is set before the game
 // starts, so call setText before importing main.js.
 
-// (while the open world is being written, its regions' text lives in js/text/ow_*.js)
-import ow_camp from './text/ow_camp.js';
-import ow_fields from './text/ow_fields.js';
-import ow_woods from './text/ow_woods.js';
-import ow_shore from './text/ow_shore.js';
-import ow_canyon from './text/ow_canyon.js';
-import ow_labyrinth from './text/ow_labyrinth.js';
-import ow_othrys from './text/ow_othrys.js';
-import ow_asphodel from './text/ow_asphodel.js';
-import rt from './text/rt.js';
-import rt_east from './text/rt_east.js';
-import rt_west from './text/rt_west.js';
 
 export const TEXT = {
   // ======================================================================
@@ -2034,7 +2022,1262 @@ export const TEXT = {
   },
 };
 
-for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel, rt, rt_east, rt_west]) deepMerge(TEXT, part);
+// ---- the open world: Camp Half-Blood's people and side quests
+const OW_CAMP = {
+  people: {
+    camp_clarisse: 'Clarisse La Rue',
+    camp_argus: 'Argus',
+    camp_silena: 'Silena Beauregard',
+  },
+  sq: {
+    camp_clarisse_warmup: {
+      title: 'Warm-Up Laps',
+      offer: [
+        'You. Yeah, you. You look soft. Camp makes everybody soft.',
+        'There are monsters wandering round the Strawberry Fields like they own the place. Go and knock down ten of them.',
+        'Call it a warm-up. If you can’t manage ten, don’t bother coming back.',
+      ],
+      steps: ['Beat monsters in the Strawberry Fields ({n}/{count})', 'Report to Clarisse at the arena'],
+      thanks: [
+        'Ten? Huh. Not bad. For a beginner.',
+        'Don’t let it go to your head. Your head’s big enough already.',
+      ],
+    },
+    camp_clarisse_scorpions: {
+      title: 'Stingers for the Trophy Wall',
+      offer: [
+        'Cabin Five has a trophy wall. There’s a gap on it. I hate gaps.',
+        'Out east there’s a whole red desert crawling with giant scorpions. Go past the fields, into the canyon, and bring me six stingers’ worth of victories.',
+        'And don’t get stung. If you get stung, it doesn’t count.',
+      ],
+      steps: ['Head east into the Red Canyon', 'Beat giant scorpions ({n}/{count})', 'Bring the stingers to Clarisse'],
+      thanks: [
+        'Six. Okay. Fine. That’s actually… fine.',
+        'If anyone asks, I let you help me. Got it?',
+      ],
+    },
+    camp_clarisse_hounds: {
+      title: 'Hounds of the Underworld',
+      offer: [
+        'Okay, real talk. Way down south-east the ground goes grey and the Underworld leaks out. There’s a den of hellhounds there, living inside the bones of something huge.',
+        'My dad says a real warrior clears that den. My dad says a lot of things.',
+        'Go clear it. Then come back and tell me what it was like, so I can say I knew all along.',
+      ],
+      steps: ['Clear the hellhound den in the Fields of Asphodel', 'Beat hellhounds ({n}/{count})', 'Tell Clarisse you made it back'],
+      thanks: [
+        'You did it. You actually did it.',
+        '…That’s great. That’s really great. Take this before I change my mind about liking you.',
+      ],
+    },
+    camp_argus_shore: {
+      title: 'A Hundred Eyes on the Shore',
+      offer: [
+        'Argus doesn’t speak. He points north, at the road over the hill, then at the eyes on his arm. Several of them blink, worried.',
+        'He mimes something flapping and screeching. Harpies, on the North Shore, too close to the camp’s border.',
+        'He holds up five fingers. Then he gives you a firm, hopeful thumbs up.',
+      ],
+      steps: ['Follow the road north to the North Shore', 'Chase off the harpies ({n}/{count})', 'Report back to Argus'],
+      thanks: [
+        'Argus nods slowly. All hundred of his eyes look pleased, which is a lot of pleased.',
+        'He presses a reward into your hand and goes back to watching everything at once.',
+      ],
+    },
+    camp_argus_othrys: {
+      title: 'Something Watching from the Mountain',
+      offer: [
+        'Argus is staring north-east, hard, with every single eye. Even the one on the back of his neck.',
+        'He points at the dark mountain on the horizon: Mount Othrys. He mimes a fortress, a crown, and then shivers.',
+        'Someone up there is watching camp. He wants you to go up the cobbled road and make them think twice.',
+      ],
+      steps: ['Take the cobbled road up towards Mount Othrys', 'Beat the monsters on Othrys ({n}/{count})', 'Report back to Argus'],
+      thanks: [
+        'Argus checks the mountain. He checks it again. Then, for the first time today, some of his eyes close for a little rest.',
+        'He hands you a reward and a very small, very serious salute.',
+      ],
+    },
+    camp_silena_letters: {
+      title: 'Lost Letters',
+      offer: [
+        'Oh gods, this is so embarrassing. I was writing letters, and the wind took them. All over camp.',
+        'They’re… private. If the Hermes cabin finds them first, they’ll read them out at dinner. In voices.',
+        'Could you find all four? Please? I’ll owe you forever. Well, a really long time.',
+      ],
+      steps: ['Find Silena’s letters around camp ({n}/{count})', 'Bring the letters back to Silena'],
+      thanks: [
+        'You found them all! And you didn’t read them. You didn’t, right? Right.',
+        'You’re a hero. An actual one. Here, take this.',
+      ],
+    },
+    camp_silena_mirror: {
+      title: 'Bird Brained',
+      offer: [
+        'A Stymphalian bird swooped down and stole my mirror. My good one! They love shiny things.',
+        'They nest out over the Strawberry Fields. If you knock a few out of the sky, one of them is bound to drop it.',
+        'Watch out, their feathers are basically knives. Very rude birds.',
+      ],
+      steps: ['Bring down Stymphalian birds over the fields ({n}/{count})', 'Give Silena back her mirror'],
+      thanks: [
+        'My mirror! Not a scratch on it. Okay, one scratch. It’s fine. I love it anyway.',
+        'You have bronze feathers in your hair, by the way. It’s a look.',
+      ],
+    },
+    camp_silena_lethe: {
+      title: 'A Drop of Forgetting',
+      offer: [
+        'Okay, so. Drew from my cabin read my diary. Out loud. To everyone.',
+        'In the Fields of Asphodel there’s a pool of water from the River Lethe. One sip and you forget things. Just a drop in her hot chocolate and she’ll forget every word.',
+        'Some empousai are having a picnic right next to it, though. Don’t eat anything they offer you. And do NOT drink the water yourself!',
+      ],
+      steps: ['Break up the empousai’s picnic by the Pool of Lethe', 'Fill a vial at the Pool of Lethe', 'Bring the vial to Silena (don’t drink it)'],
+      thanks: [
+        'You got it! And you remember who I am? Good. Very good.',
+        'Actually… I think I’ll just talk to Drew instead. But I’ll keep this. Just in case. Thank you, really.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: Strawberry Fields
+const OW_FIELDS = {
+  waystones: {
+    fields_crossroads: 'Farm Crossroads',
+    fields_orchard: 'The Orchard',
+    fields_millpond: 'Mill Pond',
+  },
+  places: {
+    fields_berry_beds: 'The Strawberry Beds',
+    fields_windmill: 'The Old Windmill',
+    fields_red_barn: 'The Big Red Barn',
+    fields_ruined_barn: 'The Burnt Barn',
+    fields_mill_pond: 'Mill Pond Farm',
+    fields_pumpkins: 'The Pumpkin Patch',
+    fields_roost: 'Bronzebeak’s Roost',
+  },
+  people: {
+    fields_katie: 'Katie Gardner',
+    fields_travis: 'Travis Stoll',
+  },
+  champions: {
+    fields_bronzebeak: { name: 'Bronzebeak' },
+  },
+  shrines: {
+    fields_demeter: 'Shrine of Demeter',
+  },
+  sq: {
+    fields_berry_thieves: {
+      title: 'Berry Thieves',
+      offer: [
+        'Oh, good, a hero. Something is eating our strawberries. Something with very small teeth and very big appetites.',
+        'Rats. Monster rats, from the pumpkin patch. Chase six of them off the farm and I’ll owe you one.',
+      ],
+      steps: ['Beat rats in the fields: {n}/{count}', 'Tell Katie the berries are safe'],
+      thanks: [
+        'Six rats! The beds can breathe again.',
+        'Take this, and a strawberry. Don’t tell Mr. D. He thinks they’re all for the business.',
+      ],
+    },
+    fields_seed_packets: {
+      title: 'Gone With the Wind',
+      offer: [
+        'A wind came through last night. Not a normal wind. It smelled like bird. It blew my seed packets all over the farm.',
+        'There are five. Look in the pumpkin patch, by the burnt barn, up the windmill hill, round the mill pond and in the orchard. They glow a bit. Demeter seeds do that.',
+      ],
+      steps: ['Find Katie’s seed packets: {n}/{count}', 'Bring the seeds back to Katie'],
+      thanks: [
+        'All five! Not even a nibble on them.',
+        'My mom would be proud. Well. She’d say “more cereal”, but that’s how she shows it.',
+      ],
+    },
+    fields_demeter_blessing: {
+      title: 'A Blessing for the Harvest',
+      offer: [
+        'Hellhound pups have moved into the old burnt barn. They keep trampling the wheat on their way to the shrine.',
+        'Clear them out, then go to Demeter’s shrine in the wheat field and win its trial. If she sees the field defended, she’ll bless the harvest.',
+      ],
+      steps: ['Clear the monsters out of the Burnt Barn', 'Win the trial at the Shrine of Demeter', 'Go back to Katie'],
+      thanks: [
+        'Can you smell that? Fresh bread. That means she’s happy.',
+        'You’re welcome at the farm any time. Bring your own basket.',
+      ],
+    },
+    fields_stoll_stash: {
+      title: 'Totally Not Stolen',
+      offer: [
+        'Hey! Hey, you. Psst. You look trustworthy. Ish.',
+        'My brother Connor and I hid a few… totally legal snacks round the farm. Four bags. Then we forgot where. One’s probably in a scarecrow.',
+        'Oh, and our big stash is in a chest on the roof of the red barn. You can climb the hay. Don’t ask why we put it there.',
+      ],
+      steps: ['Find the Stolls’ hidden bags: {n}/{count}', 'Open the chest on the barn roof', 'Bring it all back to Travis'],
+      thanks: [
+        'You found them! And you only ate… none? Wow. Okay. You’re a better person than me.',
+        'Here, have a cut. Hermes cabin rules: finders get paid.',
+      ],
+    },
+    fields_bird_trouble: {
+      title: 'Bird Brains',
+      offer: [
+        'So, funny story. While we were up on the barn roof, we saw birds. Big ones. Bronze ones.',
+        'They’re wrecking Katie’s beehives in the orchard. If she finds out we saw and didn’t say anything, she’ll grow vines in our bunks. Again.',
+        'Clear the hives and knock four of those birds out of the sky? Please?',
+      ],
+      steps: ['Clear the monsters at the hives', 'Beat Stymphalian birds in the fields: {n}/{count}', 'Report back to Travis'],
+      thanks: [
+        'Feathers everywhere! Katie will never know. Well, she’ll know. But she’ll know it was you.',
+      ],
+    },
+    fields_bronzebeak: {
+      title: 'The Big One',
+      offer: [
+        'Okay, the bad news. Those birds have a boss. Bronzebeak. Huge. Razor feathers. Nests on the rock east of Mill Pond Farm.',
+        'The good news is it’s not my problem. It’s your problem! Kidding. Mostly. Go find the roost.',
+      ],
+      steps: ['Find Bronzebeak’s Roost', 'Beat Bronzebeak', 'Tell Travis you did it'],
+      thanks: [
+        'No way. NO WAY. Connor is going to be so jealous.',
+        'I was going to sell you this, but… take it. For free. Don’t tell anybody I said “free”.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: the Camp Woods
+const OW_WOODS = {
+  waystones: {
+    woods_creek: 'The Creek',
+    woods_fist: 'Zeus’s Fist',
+    woods_bunker: 'Bunker 9',
+    woods_south: 'The Old Border Post',
+  },
+  places: {
+    woods_bunker9: 'Bunker 9',
+    woods_fist: 'Zeus’s Fist',
+    woods_juniper: 'Juniper’s Tree',
+    woods_mushrooms: 'The Mushroom Ring',
+    woods_logs: 'The Hollow Logs',
+    woods_hollow: 'Shadowfang’s Hollow',
+    woods_border_post: 'The Old Border Post',
+  },
+  people: {
+    woods_juniper: 'Juniper',
+    woods_beckendorf: 'Charles Beckendorf',
+  },
+  champions: {
+    woods_shadowfang: { name: 'Shadowfang' },
+  },
+  shrines: {
+    woods_artemis: 'Shrine of Artemis',
+  },
+  sq: {
+    woods_web_trouble: {
+      title: 'Bad Neighbours',
+      offer: [
+        'Oh! You made me jump. Sorry. I’m Juniper. This is my tree. Isn’t she lovely?',
+        'Spiders keep spinning webs in my branches, and it tickles, and not the good kind. Could you chase off eight of them?',
+      ],
+      steps: ['Beat spiders in the woods: {n}/{count}', 'Tell Juniper her branches are clear'],
+      thanks: [
+        'My needles feel so much lighter! Thank you, thank you.',
+        'If you see a satyr with a reed pipe and a tin can habit, tell him Juniper says hi. Actually, tell him twice.',
+      ],
+    },
+    woods_silver_acorns: {
+      title: 'Silver Acorns',
+      offer: [
+        'The dryads of the woods keep silver acorns for the spring planting. A storm scattered them.',
+        'Five of them. One by the mushroom ring, one near the rope bridge, one by the hollow logs, one up on the Hunters’ lookout and one in the marsh.',
+        'Please be gentle. Acorns are babies, basically.',
+      ],
+      steps: ['Find the silver acorns: {n}/{count}', 'Bring the acorns back to Juniper'],
+      thanks: [
+        'Every single one! The other dryads will be so jealous of me. In a nice way.',
+      ],
+    },
+    woods_shadowfang: {
+      title: 'The Hound in the Hollow',
+      offer: [
+        'There’s something I haven’t told anyone. A hellhound lives in the burnt hollow to the east. A big one, with a broken collar.',
+        'The trees near it are all dead. It burned them. The others call it Shadowfang. Please, please stop it before it reaches my tree.',
+      ],
+      steps: ['Find Shadowfang’s Hollow', 'Beat Shadowfang', 'Go back to Juniper'],
+      thanks: [
+        'You did it. The woods feel quieter already. Listen. You can hear birds again.',
+        'Take this. A gift from all of us who live in trees. We don’t give many.',
+      ],
+    },
+    woods_bronze_scrap: {
+      title: 'Bronze Scrap',
+      offer: [
+        'Hey. Beckendorf, Hephaestus cabin. Welcome to Bunker 9. Don’t touch the dragon.',
+        'I’m short on celestial bronze. There are scraps lying round the woods: by the waterfall, by Zeus’s Fist, in the spider thicket and down at the old border post.',
+        'Four pieces. They glow. You can’t miss them. Well, you can. People do.',
+      ],
+      steps: ['Collect bronze scraps: {n}/{count}', 'Bring the scraps to Beckendorf'],
+      thanks: [
+        'Good bronze. Really good. This’ll make a whole leg.',
+        'Of what? You’ll see. Maybe. Here, for your trouble.',
+      ],
+    },
+    woods_fist_door: {
+      title: 'The Door in the Fist',
+      offer: [
+        'Weird thing. Zeus’s Fist, that big pile of rocks to the south-east. There’s a gap at its base, behind a boulder.',
+        'I think there’s a door in there with a Greek Delta on it. That’s Daedalus’s mark. Go take a look, and grab whatever’s inside before something else does.',
+      ],
+      steps: ['Find the hidden way into Zeus’s Fist', 'Open the chest inside the Fist', 'Tell Beckendorf what you saw'],
+      thanks: [
+        'A Delta. Glowing. I knew it.',
+        'Don’t go through that door. Not yet. Some doors you only open when you’re ready. Keep the loot, though.',
+      ],
+    },
+    woods_border_patrol: {
+      title: 'Border Patrol',
+      offer: [
+        'Monsters are getting bold. There’s a dracaena camp at the old border post by the Labyrinth road, and pups nesting in the hollow logs.',
+        'Clear them both. Then go to Artemis’s shrine in the moonlit glade and win her trial. The Hunters say it keeps the woods in balance.',
+      ],
+      steps: ['Clear the camp at the Old Border Post', 'Clear the den in the Hollow Logs', 'Win the trial at the Shrine of Artemis', 'Report to Beckendorf'],
+      thanks: [
+        'That’s the whole woods safe. For a week, anyway. This is camp.',
+        'I made this for you. It’s not a dragon. It’s better. Okay, it’s not better than a dragon.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: the North Shore
+const OW_SHORE = {
+  waystones: {
+    shore_dunes: 'The Dunes',
+    shore_lighthouse: 'Lighthouse Point',
+    shore_cliffs: 'Gull Cliffs',
+  },
+  places: {
+    shore_lighthouse: 'Lighthouse Point',
+    shore_wreck: 'The Wreck of the Thalassa',
+    shore_pools: 'Starfish Pools',
+    shore_pier: 'The Old Pier',
+    shore_caves: 'The Echo Caves',
+    shore_roost: 'The Harpy Roost',
+    shore_tower: 'The Old Watchtower',
+  },
+  people: {
+    shore_nereid: 'Galene the Nereid',
+    shore_lee: 'Lee Fletcher',
+  },
+  champions: {
+    shore_queen_gale: { name: 'Queen Gale' },
+  },
+  shrines: {
+    shore_poseidon: 'Shrine of Poseidon',
+  },
+  sq: {
+    shore_pearls: {
+      title: 'Pearls on the Sand',
+      offer: [
+        'Oh! A demigod! You smell like seaweed and bad decisions. I like you already.',
+        'A storm broke my pearl necklace and scattered the pearls all over the beach. Five of them. Fish keep trying to eat them.',
+        'Would you find them for me? Try the pools and along the sand.',
+      ],
+      steps: ['Find Galene’s pearls ({n}/{count})', 'Bring the pearls back to Galene'],
+      thanks: ['All five! You are much more useful than a dolphin, and dolphins are VERY useful.', 'Here, a little something from the sea floor.'],
+    },
+    shore_wreck: {
+      title: 'The Dead Crew',
+      offer: [
+        'See that old ship on the sand? The Thalassa. She sank three thousand years ago and washed up last Tuesday.',
+        'Her crew of skeletons still think they are sailing her. They keep shouting at the seagulls.',
+        'Send them to their rest, then look in the hold. The captain kept his treasure down there.',
+      ],
+      steps: ['Clear the skeleton crew from the wreck', 'Open the chest in the ship’s hold', 'Tell Galene the crew is gone'],
+      thanks: ['The poor things. Now they can finally sleep.', 'Keep what you found. The captain won’t miss it. He is mostly bones.'],
+    },
+    shore_trident: {
+      title: 'Poseidon’s Shrine',
+      offer: [
+        'The shrine of Poseidon in the dunes has gone quiet. Monsters keep coming to it, and the sea is grumpy about it.',
+        'Thin out the bony ones first, then stand at the shrine and win its trial.',
+        'Your father will notice. Probably. He is busy. But probably!',
+      ],
+      steps: ['Beat skeletons on the shore ({n}/{count})', 'Win the trial at the Shrine of Poseidon', 'Go back to Galene'],
+      thanks: ['Do you hear that? The waves are laughing again.', 'The Lord of the Sea is pleased. Take this, with the ocean’s thanks.'],
+    },
+    shore_harpies: {
+      title: 'Harpy Trouble',
+      offer: [
+        'Hey! Lee Fletcher, Apollo cabin. I came up here to practise archery and the harpies stole my sandwiches.',
+        'All of them. Even the one with pickles, which nobody should want.',
+        'Help me knock eight of them out of the sky?',
+      ],
+      steps: ['Beat harpies on the shore ({n}/{count})', 'Tell Lee at the lighthouse'],
+      thanks: ['Nice shooting! Well, nice whacking. Same thing.', 'Here, you earned this. I’ll make more sandwiches.'],
+    },
+    shore_light: {
+      title: 'Light the Lighthouse',
+      offer: [
+        'The lighthouse lamp has gone dark, and ships keep running onto the rocks. That’s how the Thalassa got there. Well, that and three thousand years.',
+        'The lamp’s glass prisms got scattered. Harpies love shiny things. Find four of them.',
+        'Then climb the stairs to the lamp room at the top and put them back.',
+      ],
+      steps: ['Find the lamp’s prisms ({n}/{count})', 'Climb to the lamp room at the top of the lighthouse', 'Tell Lee the light is back'],
+      thanks: ['Look at it shine! My dad would call that “a pretty decent beam”. That’s high praise from the sun god.', 'Here. Every hero needs something shiny.'],
+    },
+    shore_queen: {
+      title: 'The Queen of the Cliffs',
+      offer: [
+        'Now we know why the harpies are so bold. They have a queen: Queen Gale, up on the cliffs.',
+        'She wears a crown of feathers and throws lightning. She also screams a lot. Like, a LOT.',
+        'Break up her roost, then go and knock that crown off. I’ll cover you. From very far away.',
+      ],
+      steps: ['Clear the Harpy Roost on the cliffs', 'Defeat Queen Gale at her eyrie', 'Go back to Lee'],
+      thanks: ['You beat Queen Gale! The whole cabin is going to hear about this.', 'Take this. The shore is safe again, mostly. Watch your sandwiches.'],
+    },
+  },
+};
+
+// ---- the open world: the Red Canyon
+const OW_CANYON = {
+  waystones: {
+    canyon_wash: 'Dry Wash',
+    canyon_mesa: 'High Mesa',
+    canyon_town: 'Tumbleweed Gulch',
+  },
+  places: {
+    canyon_den: 'The Red King’s Den',
+    canyon_hunters: 'Hunters’ Mesa',
+    canyon_town: 'Tumbleweed Gulch',
+    canyon_slot: 'The Snake Slot',
+    canyon_garden: 'Aunty Em’s Garden of Stone',
+    canyon_spires: 'The Hoodoos',
+    canyon_arch: 'The Sun Arch',
+  },
+  people: {
+    canyon_hedge: 'Coach Hedge',
+    canyon_phoebe: 'Phoebe the Hunter',
+  },
+  champions: {
+    canyon_red_king: { name: 'The Red King' },
+  },
+  shrines: {
+    canyon_apollo: 'Shrine of Apollo',
+  },
+  sq: {
+    canyon_cardio: {
+      title: 'Desert Cardio',
+      offer: [
+        'HEY! You! Cupcake! Yeah, you with the sword!',
+        'This canyon is CRAWLING with scorpions and you look like you skipped leg day.',
+        'Ten scorpions. Go! Hustle! I’ll time you!',
+      ],
+      steps: ['Beat scorpions in the canyon ({n}/{count})', 'Report back to Coach Hedge'],
+      thanks: ['Not bad, cupcake! Not great! But not bad!', 'Here. Champions need gear. And protein.'],
+    },
+    canyon_cans: {
+      title: 'Snack Run',
+      offer: [
+        'Okay, confession. I came out here for the snacks.',
+        'This old town is full of tin cans. Delicious, crunchy tin cans. But a bunch of creepy monsters moved into the street.',
+        'Clear them out, then bring me five cans. The rusty ones are the tastiest!',
+      ],
+      steps: ['Clear the monsters out of Tumbleweed Gulch', 'Find tin cans for the coach ({n}/{count})', 'Bring the cans to Coach Hedge'],
+      thanks: ['*CRUNCH* Ohhh, that’s the stuff. Vintage!', 'You’ve earned this. Don’t tell the other satyrs about my can stash.'],
+    },
+    canyon_king: {
+      title: 'The Red King',
+      offer: [
+        'Now for the main event! There’s a scorpion out here the size of a pickup truck. Red as a fire hydrant. Gold stinger.',
+        'Calls himself the Red King. In his den under the north-west mesa. Kids, I hate royalty.',
+        'Clear his guards outside, then go in there and show him who’s boss. I’d come, but... my hooves are tired.',
+      ],
+      steps: ['Clear the scorpions outside the den', 'Defeat the Red King in his den', 'Tell Coach Hedge'],
+      thanks: ['YEAH! THAT’S WHAT I’M TALKING ABOUT! *blows whistle very loudly*', 'Best student I ever had. Don’t let it go to your head. Okay, let it go a little bit.'],
+    },
+    canyon_arrows: {
+      title: 'Silver Arrows',
+      offer: [
+        'Hold. You’re a half-blood? Then you may stay. Briefly.',
+        'We Hunters chased a flock of monster birds through this canyon, and some of our silver arrows fell where they fell.',
+        'Gather five of them. They shine in the sun. Try the rocks and the dry river.',
+      ],
+      steps: ['Find the Hunters’ silver arrows ({n}/{count})', 'Bring the arrows to Phoebe'],
+      thanks: ['All five, and not a single one bent. Well done.', 'You are useful, for a camper. Take this.'],
+    },
+    canyon_garden: {
+      title: 'The Garden of Stone',
+      offer: [
+        'South of Split Rock there is a garden full of statues. The statues are people. Medusa’s work, from long ago.',
+        'Now some of the statues have started to walk. That should not happen. Even here.',
+        'Break the walking statues, then open the chest by the fountain. One of our sisters hid something there.',
+      ],
+      steps: ['Clear the walking statues in the Garden of Stone', 'Open the chest by the fountain', 'Go back to Phoebe'],
+      thanks: ['The garden is quiet again. Good.', 'Keep what you found. Our sister would want it used, not hidden.'],
+    },
+    canyon_sun: {
+      title: 'The Sun on the Butte',
+      offer: [
+        'Lady Artemis asks a favour of her brother’s shrine. I cannot believe I am saying that out loud.',
+        'Win the trial at Apollo’s shrine on the butte. Then go through the Snake Slot in Split Rock. Something waits in the middle.',
+        'And do NOT tell Apollo we asked. He will write a poem about it.',
+      ],
+      steps: ['Win the trial at the Shrine of Apollo', 'Find the chest in the Snake Slot', 'Go back to Phoebe'],
+      thanks: ['The sun shines on you, it seems. Do not let him know I said so.', 'You have the heart of a Hunter. Take this, and our thanks.'],
+    },
+  },
+};
+
+// ---- the open world: the Labyrinth
+const OW_LABYRINTH = {
+  waystones: {
+    labyrinth_gate: 'The Maze Gate',
+    labyrinth_court: 'The Sunken Courtyard',
+    labyrinth_workshop: 'Daedalus’s Workshop',
+  },
+  places: {
+    lab_gate: 'The Maze Gate',
+    lab_heart: 'The Heart of the Maze',
+    lab_court: 'The Sunken Courtyard',
+    lab_halls: 'The Webbed Halls',
+    lab_colonnade: 'The Fallen Colonnade',
+    lab_pit: 'The Bottomless Pit',
+    lab_workshop: 'Daedalus’s Workshop',
+  },
+  people: {
+    rachel: 'Rachel Elizabeth Dare',
+    quintus: 'Quintus',
+  },
+  champions: {
+    lab_bronze_warden: { name: 'The Bronze Warden' },
+  },
+  shrines: {
+    lab_athena_shrine: 'Shrine of Athena',
+  },
+  sq: {
+    labyrinth_rachel_pages: {
+      title: 'Lost in the Margins',
+      offer: [
+        'Oh good, a demigod. I’m Rachel. I can see through the Mist, which mostly means I see things I’d rather not.',
+        'I was drawing the maze when a bronze thing with too many legs chased me. My sketchbook exploded. Pages everywhere.',
+        'Four of them blew into the maze. Could you get them back? Some of those drawings are of the way through.',
+      ],
+      steps: ['Find Rachel’s sketch pages in the maze ({n}/{count})', 'Bring the pages back to Rachel'],
+      thanks: [
+        'You found them! And you only look a little bit lost.',
+        'See this one? I drew it before I’d even been in there. That’s… not normal, is it. Don’t answer that.',
+      ],
+    },
+    labyrinth_rachel_owl: {
+      title: 'The Owl in the Courtyard',
+      offer: [
+        'In one of my pages there’s an owl, sitting over an old fountain. West of here, sunk into the ground.',
+        'An owl means Athena. Athena means a test. A test means monsters. I hate this job and I don’t even have it.',
+        'Go and win the shrine’s trial. If Athena’s watching, maybe the maze will stop moving its walls on us.',
+      ],
+      steps: ['Go to the Sunken Courtyard', 'Win the trial at the Shrine of Athena', 'Tell Rachel how it went'],
+      thanks: [
+        'The walls did stop shifting! Well, mostly. One of them winked at me.',
+        'Thank you. Take this. I found it in a hedge, which is a weird place for armour to be.',
+      ],
+    },
+    labyrinth_rachel_webs: {
+      title: 'Something in the Webs',
+      offer: [
+        'Last page. It’s a hall full of webs, south-west, up on the hill. I drew a lot of legs. Like, a LOT of legs.',
+        'Whatever lives there keeps dragging people’s stuff inside. Campers have stopped coming this way.',
+        'Clear it out? I’ll be right here. Drawing. Bravely.',
+      ],
+      steps: ['Beat spiders in the Labyrinth ({n}/{count})', 'Clear the nest in the Webbed Halls', 'Go back to Rachel'],
+      thanks: [
+        'You did it! You also have web in your hair. Hold still. No, the other side.',
+        'Here. For the hero who walked into the leg hall so I didn’t have to.',
+      ],
+    },
+    labyrinth_quintus_gears: {
+      title: 'Spare Parts',
+      offer: [
+        'Ah. A visitor who doesn’t clank. Refreshing.',
+        'I am Quintus. I… repair things. The bronze guards that wander this maze have gone wrong, and they keep the best gears to themselves.',
+        'Break a few of them, and bring me three gears they dropped. Mind the edges. They are sharper than they look.',
+      ],
+      steps: ['Beat automatons in the Labyrinth ({n}/{count})', 'Pick up loose bronze gears ({n}/{count})', 'Bring the gears to Quintus'],
+      thanks: [
+        'Fine work. Perfectly fine. Whoever made these knew what he was doing. Mostly.',
+        'Take this for your trouble. And do not ask me how I know where every gear goes.',
+      ],
+    },
+    labyrinth_quintus_warden: {
+      title: 'The Warden Won’t Stop',
+      offer: [
+        'In the heart of the maze stands the Bronze Warden. It was built to keep monsters out.',
+        'Now it keeps everyone out. Its eye still burns blue. It has forgotten what it was for.',
+        'Put it to rest, please. Be quick: it hits like a falling column, because it was built from one.',
+      ],
+      steps: ['Find your way to the heart of the maze', 'Defeat the Bronze Warden', 'Tell Quintus the Warden is still'],
+      thanks: [
+        'So it is done. Good. It was a fine machine. It deserved better than to rust in a circle.',
+        '…What? No, I did not build it. I simply admire the work. Very much. Here, take this.',
+      ],
+    },
+    labyrinth_quintus_vault: {
+      title: 'Wings of Bronze',
+      offer: [
+        'You have earned a secret. Below this floor there is a vault. I sealed it. Er, someone sealed it.',
+        'The only way down is through the pit east of the maze, and something has made a camp on its lip.',
+        'Clear them, get into the vault, and take what is in the chest. I have no use for it now. I have had enough of flying.',
+      ],
+      steps: ['Clear the camp by the Bottomless Pit', 'Open the chest in the vault under the workshop', 'Return to Quintus'],
+      thanks: [
+        'You found the vault. Then you saw the Delta on its wall.',
+        'Some names are heavy, young hero. Let us both keep this one to ourselves. Go well.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: Mount Othrys
+const OW_OTHRYS = {
+  waystones: {
+    othrys_pass: 'Titan’s Pass',
+    othrys_hollow: 'The Hunters’ Hollow',
+    othrys_summit: 'The Black Summit',
+    othrys_forge: 'The Cyclops Forge',
+  },
+  places: {
+    oth_pass: 'Titan’s Pass',
+    oth_bridge: 'The Chasm Bridge',
+    oth_hollow: 'The Hunters’ Hollow',
+    oth_crag: 'Zeus’s Crag',
+    oth_forge: 'The Cyclops Forge',
+    oth_face: 'Kronos’s Fallen Face',
+    oth_fortress: 'The Palace of the Titans',
+  },
+  people: {
+    bianca: 'Bianca di Angelo',
+    zoe: 'Zoë Nightshade',
+  },
+  champions: {
+    oth_gorgos: { name: 'Gorgos the Cyclops Chief' },
+  },
+  shrines: {
+    oth_zeus_shrine: 'Shrine of Zeus',
+  },
+  sq: {
+    othrys_bianca_harpies: {
+      title: 'Feathers on the Road',
+      offer: [
+        'Hi. I’m Bianca. I only joined the Hunters a little while ago, so they gave me the job of watching the road. Lucky me.',
+        'Harpies keep diving at anyone who walks up to the pass. And they’ve made a camp up there, with a smelly totem and everything.',
+        'Could you chase them off? I’d help, but my aim is still… let’s say “creative”.',
+      ],
+      steps: ['Beat harpies on Mount Othrys ({n}/{count})', 'Clear the camp at Titan’s Pass', 'Tell Bianca the road is safe'],
+      thanks: [
+        'You did it! The road’s quiet. It’s almost peaceful. Almost.',
+        'Here. Lady Artemis says a good hunter shares the catch.',
+      ],
+    },
+    othrys_bianca_figures: {
+      title: 'Figures for Nico',
+      offer: [
+        'Can I tell you a secret? My little brother Nico is obsessed with Mythomagic. Cards, figures, all of it.',
+        'The Cyclopes down at their forge have a pile of junk, and I’m sure I saw some little figures in it.',
+        'I know, I know. Never take things from a monster’s junk heap. But it’s for Nico. Could you grab three?',
+      ],
+      steps: ['Find Mythomagic figures in the forge’s junk ({n}/{count})', 'Bring the figures to Bianca'],
+      thanks: [
+        'A Hades figure! He doesn’t have this one! He’s going to go completely nuts.',
+        'Thank you. Really. Here, I don’t need this half as much as you do.',
+      ],
+    },
+    othrys_bianca_gorgos: {
+      title: 'The Chief on the Junk Throne',
+      offer: [
+        'Uh-oh. The Cyclopes noticed their figures were missing. Their chief, Gorgos, is furious.',
+        'He sits on a throne made of old cars past the forge, waving a whole tree around and shouting.',
+        'If he comes up here, the Hunters will have to fight him anyway. Better you get there first?',
+      ],
+      steps: ['Find Gorgos’s junk throne', 'Defeat Gorgos the Cyclops Chief', 'Go back to Bianca'],
+      thanks: [
+        'You beat Gorgos?! With a tree swinging at your head and everything?',
+        'Okay. When Zoë asks who the bravest camper is, I’m saying you. Take this.',
+      ],
+    },
+    othrys_zoe_hounds: {
+      title: 'Hounds of the Mountain',
+      offer: [
+        'Thou art one of Chiron’s campers. I am Zoë Nightshade, lieutenant of Artemis. Do not touch the tents.',
+        'Hellhounds prowl these slopes at night. They have been sniffing at our hollow.',
+        'Hunt them. Six will teach the rest some manners.',
+      ],
+      steps: ['Hunt hellhounds on Mount Othrys ({n}/{count})', 'Report back to Zoë'],
+      thanks: [
+        'Hmm. Thou didst well. For a boy. Or a girl who has not yet joined the Hunt.',
+        'Take this. And wash. Thou smellest of hound.',
+      ],
+    },
+    othrys_zoe_arrows: {
+      title: 'Silver Arrows',
+      offer: [
+        'In the storm last night, a quiver of our silver arrows was torn from a Hunter’s back.',
+        'Four arrows lie scattered on the slopes. The quiver itself fell into the great chasm by the bridge.',
+        'Bring the arrows, and open whatever lies at the bottom. A silver arrow does not belong in the dirt.',
+      ],
+      steps: ['Find the silver arrows on the slopes ({n}/{count})', 'Climb down into the chasm and open the chest there', 'Bring the arrows to Zoë'],
+      thanks: [
+        'All four, and straight still. Thou hast sharp eyes.',
+        'Perhaps thou art not so useless as most heroes. Perhaps.',
+      ],
+    },
+    othrys_zoe_palace: {
+      title: 'The Black Summit',
+      offer: [
+        'Atop this mountain lie the ruins of the Titans’ palace. My father’s kind once ruled the world from there.',
+        'Something stirs among the broken thrones. Before thou goest, ask Zeus for his blessing at the crag.',
+        'Then climb, and clear the palace. I will not have monsters gathering above my Hunters’ heads.',
+      ],
+      steps: ['Win the trial at the Shrine of Zeus', 'Clear the monsters in the Titans’ palace', 'Return to Zoë in the hollow'],
+      thanks: [
+        'So the palace is quiet again. Good. Let it stay broken.',
+        'Thou hast done the Hunt a service. Take this, with the thanks of Artemis. And mine.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: the Fields of Asphodel
+const OW_ASPHODEL = {
+  waystones: {
+    asphodel_ferry: 'Charon’s Landing',
+    asphodel_gate: 'The Gates of Erebus',
+    asphodel_hill: 'Sisyphus’s Hill',
+    asphodel_barrow: 'The Barrow Road',
+  },
+  places: {
+    asphodel_landing: 'Charon’s Landing',
+    asphodel_judgment: 'The Judgment Pavilion',
+    asphodel_barrow: 'The Pale King’s Barrow',
+    asphodel_erebus: 'The Gates of Erebus',
+    asphodel_sisyphus: 'Sisyphus’s Hill',
+    asphodel_mausoleum: 'The Poplar Mausoleum',
+    asphodel_lethe: 'The Pool of Lethe',
+  },
+  people: {
+    asphodel_charon: 'Charon',
+    asphodel_sisyphus: 'Sisyphus',
+  },
+  champions: {
+    asphodel_pale_king: { name: 'The Pale King' },
+  },
+  shrines: {
+    asphodel_hades: 'Shrine of Hades',
+  },
+  sq: {
+    asphodel_charon_fares: {
+      title: 'Fares, Please',
+      offer: [
+        'Ah. Living ones. You smell of sunscreen and hope. Disgusting.',
+        'The dead are supposed to pay me one golden drachma for the crossing. Five of them dropped theirs in the ash on the way here. FIVE.',
+        'Find my fares. Do not spend them. I will know.',
+      ],
+      steps: ['Pick up the lost drachmas ({n}/{count})', 'Bring the fares back to Charon'],
+      thanks: [
+        'One, two, three, four, five. Lovely. Gold never goes out of style.',
+        'Here. A tip. Don’t tell anyone I tipped. I have a reputation.',
+      ],
+    },
+    asphodel_charon_shades: {
+      title: 'Crowd Control',
+      offer: [
+        'The shades are getting rowdy. Pushing in the line. One of them tried to swim the Styx. Nobody swims the Styx.',
+        'And a gang of them has moved into the old mausoleum in the poplars, scaring the nice, quiet dead.',
+        'Thin them out. Politely, if possible. Impolitely is also fine.',
+      ],
+      steps: ['Settle the restless shades ({n}/{count})', 'Clear out the Poplar Mausoleum', 'Tell Charon the line is quiet'],
+      thanks: [
+        'Silence. Beautiful, beautiful silence.',
+        'You know, I have not had a quiet shift in four thousand years. I may actually put my feet up.',
+      ],
+    },
+    asphodel_charon_raise: {
+      title: 'A Modest Raise',
+      offer: [
+        'I have been rowing this boat since before your gods had gods. Do you know what Lord Hades pays me? The same as in the Bronze Age.',
+        'Win his favour at his shrine, then take my request to the Gates of Erebus. Somebody important always reads the post there.',
+        'Do this, and I will look kindly on you. Professionally speaking.',
+      ],
+      steps: ['Win the trial at the Shrine of Hades', 'Deliver Charon’s request to the Gates of Erebus', 'Go back to Charon'],
+      thanks: [
+        'Delivered? Excellent. I shall buy a new suit. Italian silk. Maybe two.',
+        'Take this. And if you ever do die, come to my line. I’ll let you skip.',
+      ],
+    },
+    asphodel_sisyphus_wedges: {
+      title: 'Just a Little Wedge',
+      offer: [
+        'Oh! Hello! Sorry, can’t stop. Well, I can stop. The rock just rolls back down when I do.',
+        'Here’s my idea. Three good flat stones, wedged under it at the top, and it stays. Simple! Nobody has ever thought of this!',
+        'Find me three wedge stones, then check the top of the hill is clear. I’ll be right here. Always. Forever.',
+      ],
+      steps: ['Find wedge stones ({n}/{count})', 'Climb to the top of the hill and set the wedges', 'Tell Sisyphus the wedges are in place'],
+      thanks: [
+        'They’re in? They’re IN! This is the best day of my aft—',
+        '…and there it goes. Rolling. Past me. Ha. Well. It was a very good wedge. Thank you, truly.',
+      ],
+    },
+    asphodel_sisyphus_furies: {
+      title: 'Somebody Keeps Kicking It',
+      offer: [
+        'Between you and me, the rock doesn’t always roll down by itself.',
+        'The Furies nest on the old columns over the river. They swoop down and give it a little nudge. Then they laugh. Cackle, really.',
+        'Would you go and have a word? With your swords?',
+      ],
+      steps: ['Clear the Furies’ roost across the Styx', 'Drive off the Furies ({n}/{count})', 'Go back to Sisyphus'],
+      thanks: [
+        'No cackling! I pushed all morning and heard no cackling at all!',
+        'It still rolled down, of course. But it rolled down peacefully.',
+      ],
+    },
+    asphodel_sisyphus_king: {
+      title: 'The King Under the Hill',
+      offer: [
+        'I was a king once, you know. Very clever. Too clever. I tricked Death himself. That’s how I got this job.',
+        'There’s another king out here: the Pale King, in the barrow by the river. He waves his black sword at anyone who passes, and he keeps the treasure of his whole kingdom down in his tomb.',
+        'Beat him, open his hoard, and come and tell me about it. I could do with a story that ends well.',
+      ],
+      steps: ['Defeat the Pale King on his barrow', 'Open the Pale King’s hoard in the chamber below', 'Tell Sisyphus the story'],
+      thanks: [
+        'You beat him? And the gold was real? Ha! Sit down, sit down, tell me all of it.',
+        'You know, that was the first story I’ve heard in a thousand years that didn’t end with a rock. Take this. You earned it.',
+      ],
+    },
+  },
+};
+
+// ---- the open world: the Road West: its stretches, waystones, rides, the taxi and the roadblocks
+const RT = {
+  regions: {
+    rt_turnpike: { name: 'The New Jersey Turnpike', sub: 'Truck stops and a bus that never made it' },
+    rt_auntyem: { name: "Aunty Em's", sub: 'Garden gnomes. Lots and lots of garden gnomes' },
+    rt_river: { name: 'The River Crossing', sub: 'Bridge out: take the train' },
+    rt_stlouis: { name: 'St. Louis', sub: 'Gateway to the West' },
+    rt_plains: { name: 'The Great Plains', sub: 'Bridge out: take the train' },
+    rt_denver: { name: 'Denver', sub: 'The Mile High City' },
+    rt_rockies: { name: 'The Rockies Tunnel', sub: 'Trucks only' },
+    rt_vegas: { name: 'Las Vegas', sub: 'What happens in the Lotus stays in the Lotus' },
+    rt_desert: { name: 'The Nevada Desert', sub: 'Too hot to walk. Grab a taxi' },
+    rt_la: { name: 'Los Angeles', sub: 'The City of Angels (and the way down)' },
+    rt_santamonica: { name: 'Santa Monica', sub: 'The end of the road' },
+  },
+  waystones: {
+    rt_busstop: 'Turnpike Bus Stop', rt_truckstop: 'Jersey Pike Plaza', rt_auntyem: "Aunty Em's", rt_amtrak_east: 'Amtrak Station (East)',
+    rt_stlouis: 'St. Louis Station', rt_arch: 'The Gateway Arch', rt_stl_west: 'St. Louis West Station',
+    rt_denver: 'Denver', rt_truckstop_west: 'Mountain Pass Truck Stop', rt_vegas: 'The Strip', rt_taxirank: 'Lotus Taxi Rank',
+    rt_crustys: "Crusty's", rt_la: 'Los Angeles', rt_santamonica: 'Santa Monica Beach',
+  },
+  places: {
+    rt_pikeplaza: 'Jersey Pike Plaza', rt_emporium: "Aunty Em's Garden Gnome Emporium", rt_gatewayarch: 'The Gateway Arch',
+    rt_waterland: 'Waterland', rt_diner: 'The Roadside Diner', rt_lotus: 'The Lotus Hotel and Casino', rt_desert: 'The Nevada Desert',
+    rt_crustys: "Crusty's Water Bed Palace", rt_doa: 'DOA Recording Studios', rt_pier: 'Santa Monica Pier', rt_olympus: 'The Way Home',
+  },
+  rt: {
+    area: 'The Road West',
+    signs: {
+      amtrak: 'AMTRAK', pikePlaza: 'JERSEY PIKE PLAZA', auntyEm: "AUNTY EM'S GARDEN GNOME EMPORIUM", arch: 'GATEWAY ARCH',
+      waterland: 'WATERLAND', truckStop: 'TRUCK STOP', lotus: 'LOTUS HOTEL & CASINO', crustys: "CRUSTY'S WATER BED PALACE",
+      doa: 'DOA RECORDING STUDIOS', santaMonica: 'SANTA MONICA', busStop: 'BUS STOP', bridgeOut: 'BRIDGE OUT', trucksOnly: 'TRUCKS ONLY',
+      greyhound: 'GREYHOUND',
+    },
+    bus: {
+      board: 'Take the Greyhound west',
+      boardHome: 'Take the bus back to camp',
+      leaving: 'All aboard! Next stop: New Jersey.',
+      leavingHome: 'Back to Camp Half-Blood.',
+      arrive: 'The Road West',
+    },
+    ride: {
+      train: 'Board the train', truck: 'Hop in the back of the zoo truck',
+      trainTo: 'Board the train to {name}', truckTo: 'Hop in the zoo truck to {name}',
+      riding: 'Riding to {name}… (press A or click to look around)',
+      arrived: '{name}',
+      calling: 'Here it comes…',
+    },
+    drive: {
+      get: 'Drive the taxi', out: 'Park and get out', hint: 'Steer with the stick or WASD. Drive west to Los Angeles!',
+      noExit: 'Not out here: it\'s 115 degrees. Keep driving!', bump: 'Bump!',
+    },
+    block: {
+      wreck: 'The burning Greyhound blocks the road. (Chapter 4 clears it)',
+      statues: 'A wall of stone statues blocks the road. (Chapter 5 clears it)',
+      bridge: 'The lift bridge is up. (Chapter 6 lowers it)',
+      rocks: 'A rockslide blocks the pass. (Chapter 7 clears it)',
+      gate: 'The Lotus gates are shut. (Chapter 8 opens them)',
+      beds: 'A heap of waterbeds blocks the road. (Chapter 9 clears it)',
+      shadow: 'A wall of shadow blocks the road. (Chapter 10 lifts it)',
+      opens: 'The road is open!',
+    },
+    gate: { foot: 'You can\'t cross this on foot.', train: 'Bridge out. Take the train from the station.', truck: 'The tunnel is trucks only. The zoo truck at the truck stop is heading west…', drive: 'Too hot and too far to walk. Grab a taxi at the rank.' },
+    map: { startsOnRoad: 'On the Road West: {place}', roadWest: 'The Road West', camp: 'Camp Half-Blood and around', otherArea: 'Travelling there takes the bus.' },
+  },
+};
+
+// ---- the open world: the Road West's eastern stops (the Turnpike, Aunty Em's, St. Louis, Denver)
+const RT_EAST = {
+  places: {
+    rt_tollplaza: 'Turnpike Toll Plaza', rt_drachmainn: 'The Drachma Inn',
+    rt_petesgas: 'Pete’s Last Gas', rt_pruittfarm: 'The Pruitt Farm',
+    rt_grandhotel: 'The Gateway Grand Hotel', rt_ravioli: 'Tony’s Toasted Ravioli', rt_ballpark: 'River City Ballpark',
+    rt_railyard: 'The Rail Yard', rt_gatewaymotel: 'The Gateway Motel',
+    rt_tunneloflove: 'The Tunnel of Love', rt_milehigh: 'The Mile High Motor Lodge', rt_mountainpass: 'Mountain Pass Truck Stop',
+  },
+  people: {
+    rt_turnpike_earl: 'Big Earl, Trucker',
+    rt_auntyem_pruitt: 'Mrs. Pruitt',
+    rt_stlouis_mae: 'Ranger Mae',
+    rt_denver_chad: 'Chad, Ex-Lifeguard',
+  },
+  champions: {
+    rt_turnpike_diesel: { name: 'Diesel, the Turnpike Hound' },
+    rt_auntyem_hissy: { name: 'Hissy Lou, Queen of the Corn' },
+    rt_stlouis_widow: { name: 'Old Silk, the Rail Yard Widow' },
+    rt_denver_rigor: { name: 'Captain Rigor, Skeleton Lifeguard' },
+  },
+  sq: {
+    // ---------------- the Turnpike: Big Earl
+    rt_turnpike_chickens: {
+      title: 'Lost Load',
+      offer: [
+        'Kid, you would not believe my morning. Bird-ladies. Big ugly ones. They tore the back off my trailer like it was a bag of chips.',
+        'I was hauling rubber chickens. Five crates. Don’t ask who orders that many rubber chickens. A guy in a cave, apparently.',
+        'They dropped them all over the Turnpike. Find five for me? They squeak, so you’ll hear them.',
+      ],
+      steps: ['Find Earl’s rubber chickens: {n}/{count}', 'Bring the chickens back to Big Earl'],
+      thanks: [
+        'Squeak! Ha! That’s the sound of me getting paid.',
+        'Here. Buy yourself a milkshake. Buy two. You look like you’re walking to California.',
+      ],
+    },
+    rt_turnpike_nest: {
+      title: 'Bird Ladies',
+      offer: [
+        'Those bird-ladies built a nest in the woods north of the road. Right behind a billboard. Who builds a nest behind a billboard?',
+        'And there are little red-eyed dogs chewing the tyres off every rig in the lot. Every. Single. Rig.',
+        'Clear out that nest, and chase off a few of those puppies while you’re at it.',
+      ],
+      steps: ['Clear out the harpy nest behind the billboard', 'Chase off hellhound pups on the Turnpike: {n}/{count}', 'Tell Big Earl the lot is safe'],
+      thanks: [
+        'Quiet. Real quiet. I almost miss the squawking. Almost.',
+        'You’re all right, kid. Take this. It’s the good kind of souvenir: the kind that’s sharp.',
+      ],
+    },
+    rt_turnpike_diesel: {
+      title: 'Diesel',
+      offer: [
+        'One more thing, and then I’ll let you go. There’s a dog. A big one. Bigger than my cab.',
+        'Truckers call him Diesel. He sleeps in the woods behind the toll plaza and he eats exhaust pipes for breakfast.',
+        'Go past the toll plaza, find his clearing, and… do whatever it is you kids do. With the swords.',
+      ],
+      steps: ['Go to the toll plaza', 'Beat Diesel, the Turnpike Hound', 'Tell Big Earl the road is clear'],
+      thanks: [
+        'You beat Diesel? With that little sword? Remind me never to cut you off in traffic.',
+        'Take this. I found it in his clearing years ago. It hums. I don’t like things that hum.',
+      ],
+    },
+    // ---------------- Aunty Em's: Mrs. Pruitt
+    rt_auntyem_gnomes: {
+      title: 'Gnome Sweet Gnome',
+      offer: [
+        'Oh, dearie, you look like you have good young eyes. My garden gnomes have gone walking again.',
+        'Every night they wander off towards that Emporium down the road. I don’t like that place. Everyone who goes in comes out… heavier.',
+        'Five gnomes. Red hats, blue hats, one with a fishing rod. Fetch them home before they get any ideas?',
+      ],
+      steps: ['Find Mrs. Pruitt’s gnomes: {n}/{count}', 'Bring the gnomes home to Mrs. Pruitt'],
+      thanks: [
+        'There they are, my little rascals. Look at their faces. They look relieved.',
+        'Take this for your trouble. And don’t eat the burgers at Aunty Em’s. Nobody ever finishes one.',
+      ],
+    },
+    rt_auntyem_barn: {
+      title: 'Something in the Barn',
+      offer: [
+        'Now there’s something in my barn. Lots of legs. Too many legs. My cow has gone to live with the neighbours.',
+        'Clear the barn out for me, and squash a few of those leggy things while you’re about it.',
+      ],
+      steps: ['Clear the monsters out of the red barn', 'Beat spiders round Aunty Em’s: {n}/{count}', 'Tell Mrs. Pruitt the barn is safe'],
+      thanks: [
+        'Oh, well done! Daisy can come home. She’ll be so pleased. She doesn’t show it. She’s a cow.',
+        'Here: I found this in the hayloft years ago. I always knew it was waiting for somebody.',
+      ],
+    },
+    rt_auntyem_corn: {
+      title: 'Hissy Lou',
+      offer: [
+        'Last thing, dearie, and it’s a big one. Something hisses in my corn.',
+        'It has a woman’s face and two snakes where legs ought to be, and it calls itself the Queen of the Corn. My corn!',
+        'Go into the field and send her packing. Mind the stalks. They’re very nearly ready.',
+      ],
+      steps: ['Go into the corn field', 'Beat Hissy Lou, Queen of the Corn', 'Go back to Mrs. Pruitt'],
+      thanks: [
+        'Queen of the Corn, my foot. You showed her.',
+        'Take this, and a bag of corn for the road. It’s a long way to anywhere from here.',
+      ],
+    },
+    // ---------------- St. Louis: Ranger Mae
+    rt_stlouis_birds: {
+      title: 'Bird Brains',
+      offer: [
+        'Welcome to the Gateway Arch! Six hundred and thirty feet of stainless steel. Please don’t climb it. People keep trying.',
+        'We have a bird problem. Bronze birds. They peck the Arch and it goes “bonnnng”. All. Day. Long.',
+        'Chase six of them out of St. Louis and I’ll find you something nicer than a souvenir keychain.',
+      ],
+      steps: ['Beat Stymphalian birds in St. Louis: {n}/{count}', 'Tell Ranger Mae the birds are gone'],
+      thanks: [
+        'Listen. No bonnnng. Beautiful.',
+        'Here you go. It isn’t a keychain. I promise. Okay, there’s a keychain too.',
+      ],
+    },
+    rt_stlouis_tickets: {
+      title: 'Ticket to Ride',
+      offer: [
+        'Next problem: the wind blew away a stack of tram tickets. The trams are the little egg-shaped cars that go up the legs.',
+        'Four tickets. I saw them fly towards the rail yard, the ballpark, the alleys downtown and the ponds in the park.',
+      ],
+      steps: ['Find the tram tickets: {n}/{count}', 'Bring the tickets back to Ranger Mae'],
+      thanks: [
+        'All four! Not even creased. You should be a ranger.',
+        'Take this. And keep one ticket. You never know when you’ll need to get somewhere high up in a hurry.',
+      ],
+    },
+    rt_stlouis_widow: {
+      title: 'The Rail Yard Widow',
+      offer: [
+        'The night guard at the rail yard quit. He says there’s a spider down there the size of a boxcar. He says she knits.',
+        'I don’t believe him. But I also don’t want to go and look.',
+        'Clear the rail yard for me, and if there really is a big one, deal with her.',
+      ],
+      steps: ['Clear the monsters out of the rail yard', 'Beat Old Silk, the Rail Yard Widow', 'Go back to Ranger Mae'],
+      thanks: [
+        'She was real? And she knitted? I owe that guard an apology. And a sweater, probably.',
+        'Here: the best thing in the lost-and-found. It has been waiting for a hero for a very long time.',
+      ],
+    },
+    // ---------------- Denver: Chad
+    rt_denver_floaties: {
+      title: 'Floatie Patrol',
+      offer: [
+        'Hey. Hey, dude. I’m Chad. I was a lifeguard here. Then Waterland closed. I didn’t really… leave.',
+        'Nobody ever picked up the floaties. Five of them, all over the park. It’s been bugging me for, like, three years.',
+        'Could you grab them? The gate’s chained, but the chain is mostly decorative.',
+      ],
+      steps: ['Collect the lost floaties in Waterland: {n}/{count}', 'Bring the floaties back to Chad'],
+      thanks: [
+        'Duuude. That’s all of them. Safety first.',
+        'Take this. Employee of the Month, three years running. Because nobody else works here.',
+      ],
+    },
+    rt_denver_hounds: {
+      title: 'No Dogs in the Pool',
+      offer: [
+        'Big black dogs keep coming down off the mountain and drinking out of the wave pool. With bony guys. Walking guys made of bones.',
+        'There’s a whole pack up the slope north of the motel. Rule one of Waterland: no dogs in the pool.',
+      ],
+      steps: ['Clear the camp on the mountainside', 'Beat hellhounds round Denver: {n}/{count}', 'Tell Chad the pool is dog-free'],
+      thanks: [
+        'You did it! The pool is officially dog-free. Still closed. But dog-free.',
+        'Here, dude. I found it in the lost-and-found. It was next to a single flip-flop.',
+      ],
+    },
+    rt_denver_rigor: {
+      title: 'Captain Rigor',
+      offer: [
+        'Okay. Don’t freak out. There’s a skeleton in a lifeguard whistle patrolling the wave pool. He keeps blowing it at me.',
+        'He says I’m “running on the deck”. I am not running. I am walking briskly.',
+        'Go to the wave pool and tell him his shift is over. Forever.',
+      ],
+      steps: ['Go to the wave pool', 'Beat Captain Rigor, Skeleton Lifeguard', 'Go back to Chad'],
+      thanks: [
+        'No more whistle. Dude. You are the best lifeguard this park ever had, and you never even got a chair.',
+        'Take this. It’s the last thing in Waterland worth having. Except the slide. The slide is still awesome.',
+      ],
+    },
+  },
+  rt: {
+    signs: {
+      // the Turnpike
+      tpGantryL: 'WEST\nI-78 · ALL POINTS WEST', tpGantryR: 'ST. LOUIS 950\nLOS ANGELES 2,790',
+      tpToll: 'TOLL · EXACT CHANGE\nNO DRACHMAS', tpOffice: 'OFFICE', tpDrachmaInn: 'DRACHMA INN\nVACANCY · COLOR TV',
+      tpDiner: 'DINER · OPEN 24 HRS', tpGas: 'GAS · SNACKS · ICE',
+      tpDelphi: 'DELPHI STRAWBERRY SERVICE', tpHermesExpress: 'HERMES EXPRESS\nWE DELIVER. EVENTUALLY.', tpMonsterDonut: 'MONSTER DONUT\nNOW WITH MORE MONSTERS',
+      tpBbStrawberries: 'DELPHI STRAWBERRIES\nPICKED BY SATYRS · 2 MI', tpBbAuntyEm: 'AUNTY EM’S GARDEN GNOMES\nSTATUES! BURGERS! · 40 MI',
+      tpBbHermes: 'LOST SOMETHING?\nHERMES EXPRESS FINDS IT', tpBbCrustys: 'CRUSTY’S WATER BED PALACE\nONE SIZE FITS ALL · 2,600 MI',
+      tpSpeed: 'SPEED\nLIMIT\n65', tpAccidentAhead: 'ACCIDENT\nAHEAD',
+      // Aunty Em's
+      aeBurgers: 'BURGERS', aeSmile: 'SMILE!', aeAuntyEmRoad: 'AUNTY EM’S\nGNOMES · STATUES · BURGERS',
+      aePetesGas: 'PETE’S\nLAST GAS FOR 40 MI', aeCorn: 'FRESH CORN · NOT A TRAP',
+      aeGantryL: 'AUNTY EM’S\nNEXT RIGHT', aeGantryR: 'ST. LOUIS 870\nAMTRAK STATION 2',
+      aeBbPhoto: 'AUNTY EM’S\nFREE PHOTO WITH EVERY BURGER', aeBbHungry: 'YOU ARE GETTING\nVERY HUNGRY…', aeBbTrain: 'BRIDGE OUT AHEAD\nTAKE THE TRAIN',
+      // St. Louis
+      stlArchMuseum: 'MUSEUM · TRAM TO THE TOP', stlNoSwimming: 'MISSISSIPPI RIVER\nNO SWIMMING', stlHotel: 'GATEWAY GRAND HOTEL',
+      stlRavioli: 'TONY’S TOASTED RAVIOLI', stlBallpark: 'RIVER CITY BALLPARK', stlScoreboard: 'HOME 0 · MONSTERS 3\nNEXT GAME: NEVER',
+      stlGatewayMotel: 'GATEWAY MOTEL\nLAST BEDS BEFORE\nTHE PLAINS', stlLastGasPlains: 'LAST GAS BEFORE THE PLAINS',
+      stlGantryL: 'WEST · GATEWAY ARCH\nRIVER CROSSING 1', stlGantryR: 'DENVER 850\nLOS ANGELES 1,840',
+      stlBbArch: 'SEE THE ARCH!\n630 FEET OF AWESOME', stlBbPlains: 'THE GREAT PLAINS\nBRIDGE OUT · TAKE THE TRAIN',
+      // Denver
+      dnClosedSeason: 'CLOSED FOR THE SEASON', dnSlide: 'THE PLUNGE', dnTunnelOfLove: 'TUNNEL OF LOVE',
+      dnRoadsideDiner: 'ROADSIDE DINER · EAT', dnReservedAres: 'RESERVED\nGOD OF WAR', dnMileHigh: 'MILE HIGH\nMOTOR LODGE\nVACANCY',
+      dnKindness: 'KINDNESS INTERNATIONAL\nZOO TRANSPORT', dnLotusTruck: 'LOTUS HOTEL & CASINO\nSTAY A WHILE',
+      dnGantryL: 'ROCKIES TUNNEL 1\nTRUCKS ONLY', dnGantryR: 'LAS VEGAS 750\nLOS ANGELES 1,020',
+      dnCityLimits: 'DENVER\nELEV. 5,280 FT',
+      dnBbLotus: 'LOTUS HOTEL & CASINO\nLAS VEGAS · STAY FOREVER!', dnBbWaterland: 'WATERLAND\nFUN FOR THE WHOLE FAMILY! (CLOSED)',
+      dnBbKindness: 'KINDNESS INTERNATIONAL\nWE LOVE ANIMALS!',
+    },
+  },
+};
+
+// ---- the open world: the Road West's western stops (Las Vegas, the desert, Los Angeles, Santa Monica)
+const RT_WEST = {
+  places: {
+    rt_lucky7: 'Lucky 7 Gas', rt_desertrose: 'The Desert Rose Motel', rt_olympuspalace: 'The Olympus Palace', rt_pyramid: 'The Pyramid',
+    rt_lastgas: 'Last Gas', rt_drygulch: 'Dry Gulch', rt_drakon: 'See the Drakon!',
+    rt_truckstop_la: "Mom's Diner", rt_la_letters: 'The Big Letters', rt_overpass: 'The Freeway Overpass',
+    rt_sm_wreck: 'The Wreck of the Sea Biscuit',
+  },
+  people: {
+    rt_vegas_valet: 'Sal the Valet',
+    rt_la_guide: 'Trudy the Tour Guide',
+    rt_sm_fisher: 'Grandma Mae',
+  },
+  champions: {
+    rt_vegas_pitboss: { name: 'The Pit Boss' },
+    rt_la_nighthound: { name: 'The Night Hound' },
+    rt_sm_captain: { name: 'Captain Barnacle' },
+  },
+  rt: {
+    signs: {
+      // the roadside, everywhere
+      gasPrice: 'GAS 4.99', vacancy: 'VACANCY',
+      // Las Vegas
+      lotusTag: 'NO CLOCKS · NO WINDOWS · NO WORRIES', bbLotus: 'THE LOTUS CASINO: NOBODY EVER WANTS TO LEAVE!',
+      lucky7: 'LUCKY 7 GAS', gasPriceVegas: 'GAS 7.77 · ICE · JERKY', taxi: 'TAXI',
+      chapel: 'LITTLE WHITE CHAPEL · OPEN 24 HRS', desertRose: 'DESERT ROSE MOTEL',
+      olympusPalace: 'OLYMPUS PALACE · ZEUS-SIZED JACKPOTS', pyramid: 'THE PYRAMID', vegasExit: 'LOS ANGELES 270 →',
+      // the desert drive
+      laMiles: 'LOS ANGELES 268', leavingVegas: 'LEAVING LAS VEGAS · COME BACK SOON!',
+      bbCrustys1: "CRUSTY'S WATER BED PALACE: ONE SIZE FITS ALL! (WE MAKE SURE)",
+      bbHermes: 'HERMES EXPRESS: WE DELIVER ANYWHERE. EVEN THERE.',
+      lastGas: 'LAST GAS', gasPriceDesert: 'LAST GAS FOR 100 MILES',
+      wash: 'DIP · FLOODS', saloon: 'SALOON', store: 'GENERAL STORE', sheriff: 'SHERIFF', hotel: 'HOTEL', bank: 'BANK',
+      dryGulch: 'DRY GULCH · POP. 0', drakonGate: 'DRAKON VIEWING $2 · DO NOT FEED',
+      bbDrakon: 'SEE THE DRAKON! 100% FAKE. PROBABLY. NEXT EXIT',
+      bbHercules: "HERCULES' TIRES: TWELVE LABOURS, ONE LOW PRICE",
+      bbCrustys2: "CRUSTY'S WATER BEDS · 5 MILES · STAY THE NIGHT!",
+      bbSoda: 'ICE COLD SODA · 40 MILES (WARM SODA · 39 MILES)',
+      // Los Angeles
+      momsDiner: "MOM'S DINER · PIE", truckersWelcome: 'TRUCKERS WELCOME', laMilesNear: 'LOS ANGELES 12',
+      freeway: 'SANTA MONICA · BEACHES →',
+      shopBurgers: 'UNDERWORLD BURGERS', shopPets: 'CERBERUS PET SUPPLY · BIG CHEW TOYS',
+      shopMaps: "STAR MAPS · SEE WHERE THE STARS LIVE", shopSurf: 'STYX & STONES SURF',
+      sunsetPalms: 'SUNSET PALMS MOTEL', starTours: 'STAR TOURS · HOMES OF THE STARS', driveIn: 'DRIVE-IN · SHAKES',
+      // Santa Monica
+      coaster: 'THE SEA SERPENT', arcade: 'PLAYLAND ARCADE', route66: 'ROUTE 66 · END OF THE TRAIL',
+      yachtHarbor: 'SANTA MONICA · YACHT HARBOR · SPORT FISHING · BOATING · CAFES',
+      surfShack: 'SURF SHACK', sodaFountain: 'SEASHELL SODA FOUNTAIN', oceanHotel: 'OCEAN VIEW HOTEL',
+      endOfRoad: 'END OF THE ROAD · PACIFIC OCEAN',
+    },
+  },
+  sq: {
+    // ---------------------------------------------------------------- Las Vegas: Sal the valet
+    rt_vegas_valet_keys: {
+      title: 'Lost Key Tags',
+      offer: [
+        'Psst. Hey. You look like you can keep a secret. And find stuff.',
+        'I park cars for the Lotus. Last night a big gust of wind (with wings) blew my key tags all over the Strip.',
+        'Four of them. If the bosses find out, I’m parking golf carts in Reno. Help a guy out?',
+      ],
+      steps: ['Find Sal’s key tags on the Strip ({n}/{count})', 'Bring the key tags back to Sal'],
+      thanks: ['All four! You’re a lifesaver, kid.', 'Here, a little something. Don’t spend it in there. Seriously. Don’t go in there.'],
+    },
+    rt_vegas_valet_lot: {
+      title: 'Trouble in the Parking Lot',
+      offer: [
+        'So, uh, about that wind. It wasn’t wind.',
+        'There are ladies in the parking lot with one bronze leg and one donkey leg. They keep asking people for "a little bite".',
+        'Clear out the lot by the zoo truck, and get rid of five of those empousai. I’ll wash your chariot for free. Forever.',
+      ],
+      steps: ['Clear the monsters from the parking lot', 'Defeat empousai in Las Vegas ({n}/{count})', 'Tell Sal the lot is safe'],
+      thanks: ['They’re gone? You’re telling me they’re actually gone?', 'Kid, you’re the best tip I ever got.'],
+    },
+    rt_vegas_valet_boss: {
+      title: 'The Pit Boss',
+      offer: [
+        'One more thing. The lady who runs those empousai calls herself the Pit Boss. She hangs out behind the Pyramid.',
+        'She says the house always wins. I say the house never met you.',
+        'Beat her, then check inside the Pyramid. Rumour says she hid her winnings in there.',
+      ],
+      steps: ['Defeat the Pit Boss behind the Pyramid', 'Find the chest inside the Pyramid', 'Go back to Sal'],
+      thanks: ['The house LOST! Ha! Wait till the guys hear about this.', 'Take this. And kid? When you leave Vegas, don’t look back. Just drive.'],
+    },
+    // ---------------------------------------------------------------- Los Angeles: Trudy the tour guide
+    rt_la_guide_maps: {
+      title: 'Star Maps',
+      offer: [
+        'Welcome to Los Angeles! Home of the stars! Would you like a tour? No? Nobody wants a tour.',
+        'Well, I can’t give one anyway. Something with big teeth knocked over my rack and my star maps blew all over town.',
+        'Find four of them for me? One went up the hill by the big letters. Of course it did.',
+      ],
+      steps: ['Find Trudy’s star maps ({n}/{count})', 'Bring the maps back to Trudy'],
+      thanks: ['My maps! Now I can show people where the stars live!', 'Between you and me, half of them live in the same three houses.'],
+    },
+    rt_la_guide_hills: {
+      title: 'Up by the Letters',
+      offer: [
+        'Okay, weird question. Do you believe in ghosts?',
+        'Because my tour bus goes up by the big letters on the hill, and lately there are things up there. See-through things. Moaning things.',
+        'Go take a look and chase them off? I’ll give you the VIP tour. It’s the same tour, but you get a hat.',
+      ],
+      steps: ['Climb up to the big letters', 'Clear the ghosts on the hill', 'Tell Trudy the hill is safe'],
+      thanks: ['You actually went up there? With the ghosts? Brave kid.', 'Here, VIP hat not included. We ran out of hats.'],
+    },
+    rt_la_guide_hound: {
+      title: 'The Night Hound',
+      offer: [
+        'Last thing, I promise. Remember the thing with big teeth that wrecked my rack?',
+        'It lives in the alley behind the shops. Big as a car. Black as a car. Growls like a car with a bad engine.',
+        'The shop owners say it guards a chest back there. Beat the hound and the chest is yours!',
+      ],
+      steps: ['Defeat the Night Hound in the alley', 'Open the chest in the alley', 'Go back to Trudy'],
+      thanks: ['You beat it! The whole street is cheering. Well, the burger guy is cheering.', 'Here. And if you ever need a tour of the Underworld... no, never mind. Nobody needs that.'],
+    },
+    // ---------------------------------------------------------------- Santa Monica: Grandma Mae
+    rt_sm_fisher_lures: {
+      title: 'Lucky Lures',
+      offer: [
+        'Hello, dear. Sixty years I’ve fished off this pier, and I’ve never lost a single lure.',
+        'Then this morning a bird with a lady’s face snatched my tackle box and dropped it all over the beach.',
+        'Four lucky lures. They’re shiny. You can’t miss them. Well, I did, but my eyes aren’t what they were.',
+      ],
+      steps: ['Find Grandma Mae’s lures on the beach ({n}/{count})', 'Bring the lures back to Grandma Mae'],
+      thanks: ['Oh, my lucky lures! You’re a treasure.', 'Here, take this. And take a cookie. You’re too skinny for a hero.'],
+    },
+    rt_sm_fisher_harpies: {
+      title: 'Bird Trouble',
+      offer: [
+        'Those birds are back. Harpies, my late husband called them. He was a funny man. Also very good with a harpoon.',
+        'They’ve made a nest by the old wreck on the north beach and they steal every fish I catch.',
+        'Shoo off six of them and clear out their nest, would you, dear?',
+      ],
+      steps: ['Defeat harpies at Santa Monica ({n}/{count})', 'Clear the nest by the wreck', 'Tell Grandma Mae'],
+      thanks: ['Listen to that. Quiet. Just the waves.', 'A fish just bit. A fish just BIT! Here, dear, for your trouble.'],
+    },
+    rt_sm_fisher_captain: {
+      title: 'Captain Barnacle',
+      offer: [
+        'One more story, dear. That wreck is the Sea Biscuit. She sank in a storm when I was a little girl.',
+        'Her captain never left her. He’s all bones now, and grumpy about it, and he guards the old ship’s chest.',
+        'Lay him to rest and open his chest. He always said he’d share his treasure with somebody brave.',
+      ],
+      steps: ['Defeat Captain Barnacle by the wreck', 'Open the chest inside the wreck', 'Go back to Grandma Mae'],
+      thanks: ['So he’s finally at peace. Good. He owed me a dollar.', 'You’ve gone a long way, haven’t you? All the way from the other ocean. Go on home now, dear.'],
+    },
+  },
+};
+for (const part of [OW_CAMP, OW_FIELDS, OW_WOODS, OW_SHORE, OW_CANYON, OW_LABYRINTH, OW_OTHRYS, OW_ASPHODEL, RT, RT_EAST, RT_WEST]) deepMerge(TEXT, part);
 
 function deepMerge(into, from) {
   for (const [k, v] of Object.entries(from)) {
