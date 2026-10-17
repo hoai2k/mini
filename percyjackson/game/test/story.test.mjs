@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { GREEK, greekPlan, greekAt, settledBy, toGreek, LATINISH, LOOK } from '../js/ui/greekTiming.js';
 import { CHAPTERS } from '../js/story/chapters.js';
 import { t } from '../js/text_config.js';
+import { shotDuration } from '../js/story/subtitles.js';
 
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(GAME, 'js', p), 'utf8');
@@ -70,7 +71,8 @@ test('Greek letters are Greek all the way through: no stand-in looks like a Lati
 
 test('every cutscene subtitle stays up long enough to read', () => {
   for (const s of shots()) for (const [i, L] of s.lines.entries()) {
-    const until = s.lines[i + 1]?.at ?? s.dur - (/fadeOut/.test(s.body) ? 0.4 : 0);
+    const fadeOut = /fadeOut/.test(s.body);
+    const until = s.lines[i + 1]?.at ?? shotDuration({ dur: s.dur, lines: s.lines, fadeOut }) - (fadeOut ? 0.4 : 0);   // (the player holds a shot until its last subtitle is read: story/subtitles.js)
     const need = Math.max(2, L.text.length * 0.055);
     assert.ok(until - L.at >= need, `${s.cut}: “${L.text.slice(0, 40)}…” has ${(until - L.at).toFixed(1)} s, needs ${need.toFixed(1)} s`);
   }

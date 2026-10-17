@@ -400,7 +400,7 @@ class Game {
     this.level = level; this.world = level.world; this.biome = biome;
     this.rig.world = this.world;   // (cinematics keep clear of walls: camera.js)
     level.deco.solidify?.(this.world);   // (props a hero can't walk through: world/deco.js SOLID_PROPS)
-    this.world.init(this.materials);
+    this.world.init(this.materials, level.spawn);
     this.scene.add(this.world.group);
     level.deco.build(this.world, this.materials, this.gr.preset.decoDensity);
     for (const s of level.deco.liveSigns ?? []) this.signs.add(s);
@@ -877,6 +877,7 @@ class Game {
     }
     this.lights.update(dt, this.rig.focus);
     this.world.updateRoofs(this.players, realDt);
+    this.world.streamTo?.(this.rig.focus);   // (the open world meshes the chunks near the action as it moves)
     this.world.flush(2);
     this.env.update(realDt);
     if (!this.paused) this.fx.ambient(dt, this.biome.particles, this.rig.focus);
