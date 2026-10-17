@@ -31,17 +31,29 @@ export const SOUNDS = [
  * Looks for the whole app. A theme also needs its block in styles.css, its
  * stand-ins in standins.js, its images in the image requests, and its id in
  * the early script in index.html. `fonts` is its Google Fonts families.
+ * `mode` is the way it was designed, light or dark; each also has the
+ * other (its `[data-mode]` block in styles.css), for the appearance setting.
  */
 export const THEMES = [
-  { id: 'classic', label: TEXT.themes.classic, color: '#1d1510', fonts: 'family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800' },
-  { id: 'deco', label: TEXT.themes.deco, color: '#0b0c0f', fonts: 'family=Poiret+One&family=Josefin+Sans:wght@400;600;700' },
-  { id: 'sixties', label: TEXT.themes.sixties, color: '#f3e6c8', fonts: 'family=Righteous&family=Nunito:wght@500;700;800' },
-  { id: 'baroque', label: TEXT.themes.baroque, color: '#f4ecd9', fonts: 'family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@500;600;700' },
-  { id: 'scifi', label: TEXT.themes.scifi, color: '#060a14', fonts: 'family=Orbitron:wght@500;700&family=Exo+2:wght@400;600;700' },
-  { id: 'nouveau', label: TEXT.themes.nouveau, color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
-  { id: 'anime', label: TEXT.themes.anime, color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
-  { id: 'steampunk', label: TEXT.themes.steampunk, color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
+  { id: 'classic', label: TEXT.themes.classic, mode: 'dark', color: '#1d1510', fonts: 'family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800' },
+  { id: 'deco', label: TEXT.themes.deco, mode: 'dark', color: '#0b0c0f', fonts: 'family=Poiret+One&family=Josefin+Sans:wght@400;600;700' },
+  { id: 'sixties', label: TEXT.themes.sixties, mode: 'light', color: '#f3e6c8', fonts: 'family=Righteous&family=Nunito:wght@500;700;800' },
+  { id: 'baroque', label: TEXT.themes.baroque, mode: 'light', color: '#f4ecd9', fonts: 'family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@500;600;700' },
+  { id: 'scifi', label: TEXT.themes.scifi, mode: 'dark', color: '#060a14', fonts: 'family=Orbitron:wght@500;700&family=Exo+2:wght@400;600;700' },
+  { id: 'nouveau', label: TEXT.themes.nouveau, mode: 'light', color: '#eef0e4', fonts: 'family=Italiana&family=Cormorant+Garamond:wght@500;600;700' },
+  { id: 'anime', label: TEXT.themes.anime, mode: 'light', color: '#fff4fa', fonts: 'family=M+PLUS+Rounded+1c:wght@500;700;800' },
+  { id: 'steampunk', label: TEXT.themes.steampunk, mode: 'dark', color: '#1c130c', fonts: 'family=Cinzel:wght@600;700&family=Special+Elite' },
 ];
+
+/** Light and dark: as each theme was designed, one or the other, or following the system. */
+export const APPEARANCES = ['default', 'light', 'dark', 'system'];
+
+/** The mode a theme shows in: 'light' or 'dark'. */
+export function resolveMode(theme, appearance, systemDark) {
+  if (appearance === 'light' || appearance === 'dark') return appearance;
+  if (appearance === 'system') return systemDark ? 'dark' : 'light';
+  return (THEMES.find((t) => t.id === theme) || THEMES[0]).mode;
+}
 
 export const BPM_MIN = 40;
 export const BPM_MAX = 500;
@@ -49,6 +61,7 @@ export const BPM_MAX = 500;
 export const DEFAULTS = Object.freeze({
   theme: 'classic',
   themeChosen: false,
+  appearance: 'default', // APPEARANCES
   bpm: 120,
   meter: '4/4',
   accent: true,
@@ -100,6 +113,7 @@ export function sanitize(raw) {
     // whatever the default was then. 'straight' is Classic's old name.
     theme: s.themeChosen === true ? oneOf(s.theme === 'straight' ? 'classic' : s.theme, THEMES.map((t) => t.id), DEFAULTS.theme) : DEFAULTS.theme,
     themeChosen: s.themeChosen === true,
+    appearance: oneOf(s.appearance, APPEARANCES, DEFAULTS.appearance),
     bpm: clampBpm(num(s.bpm, DEFAULTS.bpm)),
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,

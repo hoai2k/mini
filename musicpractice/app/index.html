@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="classic" class="text-pending">
+<html lang="en" data-theme="classic" data-mode="dark" class="text-pending">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -31,7 +31,12 @@
       // The apps bundle every theme's fonts (mobile/fonts/).
       if (app) document.getElementById('theme-fonts').href = 'fonts/' + t + '.css';
       document.documentElement.dataset.theme = t;
-    } catch (e) { document.documentElement.dataset.theme = 'classic'; }
+      // Light or dark (resolveMode in settings.js): as designed, chosen, or the system's.
+      var a = s.appearance, dark = ['classic', 'deco', 'scifi', 'steampunk'].indexOf(t) >= 0;
+      if (a === 'light' || a === 'dark') dark = a === 'dark';
+      else if (a === 'system') dark = matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.mode = dark ? 'dark' : 'light';
+    } catch (e) { document.documentElement.dataset.theme = 'classic'; document.documentElement.dataset.mode = 'dark'; }
   </script>
 </head>
 <body>
@@ -112,6 +117,10 @@
           <fieldset>
             <legend data-text="appSettings.theme"></legend>
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" data-text-aria-label="appSettings.theme"></div>
+          </fieldset>
+          <fieldset>
+            <legend data-text="appSettings.appearance"></legend>
+            <div class="chips" id="appearance-chips" data-text-aria-label="appSettings.appearance"></div>
           </fieldset>
           <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
           <button type="button" class="pill open-feedback" data-text="appSettings.sendFeedback"></button>

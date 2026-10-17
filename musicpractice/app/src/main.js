@@ -30,7 +30,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { load, save, clampBpm, METERS, SOUNDS, THEMES, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, swingOf } from './art.js';
 
 const $ = (id) => document.getElementById(id);
@@ -42,13 +42,20 @@ const persist = () => save(settings);
 /** A theme's fonts: from Google Fonts on the web, bundled in the apps (mobile/fonts/). */
 const fontsHref = (theme) => (isApp() ? `fonts/${theme.id}.css` : `https://fonts.googleapis.com/css2?${theme.fonts}&display=swap`);
 
+const systemDark = matchMedia('(prefers-color-scheme: dark)');
+// 'System' follows the device as it switches between light and dark (at dusk, say).
+systemDark.addEventListener?.('change', () => { if (settings.appearance === 'system') applyTheme(); });
+
 /** Switch the whole app's look: colours and type (styles.css) and art. */
 function applyTheme() {
   // Without Pro (in the apps), the free theme shows; the choice is kept for when Pro is on.
   const id = isPro() ? settings.theme : FREE_THEME;
   const theme = THEMES.find((t) => t.id === id) || THEMES[0];
+  const mode = resolveMode(theme.id, settings.appearance, systemDark.matches);
   document.documentElement.dataset.theme = theme.id;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.color);
+  document.documentElement.dataset.mode = mode;
+  for (const tile of document.querySelectorAll('.theme-tile')) tile.dataset.mode = mode;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || theme.color);
   const fonts = fontsHref(theme);
   const link = $('theme-fonts');
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
@@ -332,6 +339,13 @@ function syncThemeControls() {
     b.tabIndex = on ? 0 : -1;
   }
 }
+
+// Light and dark: free in the apps too, since it is about being able to read the screen.
+chips($('appearance-chips'), APPEARANCES.map((id) => ({ id, label: TEXT.appSettings.appearances[id] })), () => settings.appearance, (id) => {
+  settings.appearance = id;
+  persist();
+  applyTheme();
+});
 
 function setTheme(id) {
   if (id !== FREE_THEME && !requirePro('themes')) {

@@ -71,6 +71,13 @@ export const EN = {
   appSettings: {
     title: 'Settings',
     theme: 'Theme',
+    appearance: 'Light and dark',
+    appearances: {
+      default: 'As designed',
+      light: 'Light',
+      dark: 'Dark',
+      system: 'System',
+    },
     sendFeedback: 'Send feedback…',
     pro: {
       title: 'Music Practice Pro',
