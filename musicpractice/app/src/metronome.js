@@ -19,12 +19,35 @@ function makeTimer(fn) {
   }
 }
 
+const DRIVE = 2.4; // into the clipper: how hard the clicks are pushed
+const KNEE = 1.6; // the tanh curve's steepness
+
+/** tanh, scaled so full drive reaches 0.9: loud, with room for the oversampling's overshoot. */
+function softClip(n = 2048) {
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = (0.9 * Math.tanh(KNEE * x)) / Math.tanh(KNEE);
+  }
+  return curve;
+}
+
 export class Metronome {
   /** @param {AudioContext} ctx */
   constructor(ctx) {
     this.ctx = ctx;
+    // Clicks are driven into a soft clipper (tanh), so the whole click sits
+    // near full scale rather than only its first instant: about 8 dB louder
+    // at the same peak. The volume comes after it, so turning down keeps the
+    // tone. The apps' clicks are rendered through this same chain.
     this.out = ctx.createGain();
     this.out.connect(ctx.destination);
+    this.drive = ctx.createGain();
+    this.drive.gain.value = DRIVE;
+    const shaper = ctx.createWaveShaper();
+    shaper.curve = softClip();
+    shaper.oversample = 'none'; // oversampling's filters ring past full scale on the noise; a click this short doesn't need it
+    this.drive.connect(shaper).connect(this.out);
     this.running = false;
     this.bpm = 120;
     this.strengths = [2, 0, 0, 0];
@@ -108,15 +131,16 @@ export class Metronome {
   voice(t, strength) {
     const c = this.ctx;
     const g = c.createGain();
-    g.connect(this.out);
-    const level = [0.55, 0.75, 1][strength];
+    g.connect(this.drive);
+    // Ordinary beats a little under the downbeat, not far under it.
+    const level = [0.7, 0.85, 1][strength];
     if (this.sound === 'beep') {
       const o = c.createOscillator();
       o.type = 'sine';
       o.frequency.value = [880, 1100, 1320][strength];
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(level * 0.6, t + 0.003);
-      g.gain.setValueAtTime(level * 0.6, t + 0.045);
+      g.gain.linearRampToValueAtTime(level * 0.3, t + 0.003);
+      g.gain.setValueAtTime(level * 0.3, t + 0.045);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
       o.connect(g);
       o.start(t);
@@ -130,11 +154,11 @@ export class Metronome {
       f.type = 'bandpass';
       f.frequency.value = [3200, 4200, 5200][strength];
       f.Q.value = 1.2;
-      g.gain.setValueAtTime(level * 2.2, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+      g.gain.setValueAtTime(level * 3, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
       s.connect(f).connect(g);
       s.start(t);
-      s.stop(t + 0.03);
+      s.stop(t + 0.05);
       return;
     }
     // Woodblock: a hollow tone that drops slightly in pitch, with a knock on top.

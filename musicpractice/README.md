@@ -119,10 +119,18 @@ when the Art Deco art arrives, measure and record its own.
   reads as the pendulum striking the end; a real pendulum's ease, slowest at
   the ends and fastest through the middle, made the middle look like the
   beat (`SWING_SHAPE`: x mixed with x³, speed 1.8 at the ends against 0.6
-  in the middle). Dots under it show the beat of the bar, and a red lamp
-  just above the metronome's tip lights on each beat, on the same frame
-  as the pendulum strikes an end, and dies away quickly (brightest on the
-  downbeat; dim between beats).
+  in the middle). Dots under it show the beat of the bar, and a red glass
+  lamp mounted on the metronome's tip lights on each beat, on the same
+  frame as the pendulum strikes an end, throwing its glow over the top of
+  the case, and dies away quickly (brightest on the downbeat; dark glass
+  between beats).
+- The clicks are loud: each is driven into a soft clipper (tanh) after
+  the voice and before the volume, so the whole click sits near full scale
+  rather than only its first instant, and ordinary beats sit just under the
+  downbeat. Measured over a click's first 50 ms: woodblock about -9 to
+  -10 dB (was -15 to -20), Click -11 to -13 (was -23 to -27), Beep -5 to
+  -7 (was -8 to -13), every peak at -0.9 dBFS. The apps' clicks are
+  rendered through the same chain.
   **Swinging pendulum** and **Visual pulse** in the settings turn
   either off.
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
