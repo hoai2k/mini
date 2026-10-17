@@ -7,9 +7,11 @@ too. Add it to the home screen for a full-screen app.
 
 ## What it does
 
-- **Catalogue.** Tap **+** and take or choose photos of shelves, piles or
-  tables. Each photo is read for every book and board game whose title shows,
-  and they go into two separate lists, **Books** and **Board games**. Add as
+- **Catalogue.** Two lists, **Books** and **Board games**. Tap **+** on one
+  and take or choose photos of shelves, piles or tables: everything read in a
+  photo is taken as that list's kind (books are looked up on Open Library,
+  games on Wikidata), so photograph books from Books and games from Board
+  games. Add as
   many photos as you like; a title already in the list isn't added twice (the
   match ignores case, accents, punctuation, a leading "The" and subtitles, and
   checks the author's surname when both have one), and a later photo fills in
@@ -17,11 +19,18 @@ too. Add it to the home screen for a full-screen app.
   read one after another, each with a card saying what it added.
   - Each book is identified on [Open Library](https://openlibrary.org) (free,
     no key), which also gives its cover, first-published year, ISBN, pages,
-    publisher and subjects. Board games link to a BoardGameGeek search instead
-    (its API needs a registered key and doesn't allow browser requests).
+    publisher and subjects.
+  - Each board game is identified on [Wikidata](https://www.wikidata.org)
+    (free, no key) among the games that have a BoardGameGeek ID, which gives
+    its year, player count, designers, a picture and a direct BoardGameGeek
+    link. (BoardGameGeek's own API needs a registered key and doesn't allow
+    requests from web pages.) A game's name may be one word (Azul, Catan) if
+    it was read exactly; a box's small print ("2-5 players, ages 10+") is
+    never an item.
   - Text that was read clearly but isn't a book Open Library knows is kept as
     printed with a yellow **?**, to correct or delete.
-  - Tap an item to correct its title or author (a book is looked up again),
+  - Tap an item to correct its title and author or designer (it's looked up
+    again),
     move it between books and board games, delete it, see the photos it was
     found in, open it on Open Library, Goodreads, Google Books or
     BoardGameGeek, or **Find on shelf**.
@@ -67,9 +76,9 @@ Everything runs on the phone; photos are never uploaded.
    must match exactly (five/fire, java/lava). The same title by two authors
    with nothing naming either keeps the title only. Repeated searches on a
    shelf (a series) are asked once.
-4. **Board games**: there's no free game database a page can search, so a
-   reading goes to Board games when a box's small print ("2-5 players, ages
-   10+") sits beside it. Anything else can be moved by hand.
+4. **Board games** (`app/src/games.js`): in the Board games list the same
+   readings are searched on Wikidata instead (`haswbstatement:P2339`, games
+   with a BoardGameGeek ID), every word then any word, with the same checks.
 
 Measured on five real photos (a dim bookcase photographed at an angle with a
 shallow depth of field, a children's shelf, a bookshop shelf, a mixed
@@ -97,7 +106,8 @@ steep angles lose books. Straight on, close and well lit works best.
     `worker.js` the web worker, `spines.js` grouping and fuzzy matching,
     `identify.js` the Open Library step (all but the worker tested).
   - `geometry.js`: photo sizes and the Find ring. `photo.js`: decoding
-    (upright whatever the EXIF says), resizing, thumbnails. `lookup.js`: Open
+    (upright whatever the EXIF says), resizing, thumbnails. `games.js`:
+    Wikidata board game search (tested). `lookup.js`: Open
     Library lookups after a title is edited. `store.js`: IndexedDB.
 - `app/models/`: the PaddleOCR models and their sources.
   `app/vendor/ort/`: ONNX Runtime Web 1.23.2 (MIT), the WebAssembly build.
@@ -105,8 +115,9 @@ steep angles lose books. Straight on, close and well lit works best.
   until the requested art arrives.
 - `design/image-requests.md`: the art to generate.
 - `tools/browser-check.mjs`: a walk-through on a phone-sized Chromium with
-  the real reader on a shelf it draws (spines both ways up, a book lying flat,
-  a game box), Open Library mocked.
+  the real reader on photos it draws (a bookshelf with spines both ways up and
+  a book lying flat, added to Books; a stack of game boxes, added to Board
+  games), Open Library and Wikidata mocked.
 - `publish.sh`: copies the app to `local/pages/bookzam/`.
 
 ## Export format
@@ -125,8 +136,10 @@ steep angles lose books. Straight on, close and well lit works best.
 }
 ```
 
-Board games carry `publisher`, `designer`, `year` and a `boardGameGeek`
-search link instead of the Open Library fields.
+Board games carry `designer`, `designers`, `publisher`, `year`, `players`
+("1-5"), `image`, `wikidata` and `boardGameGeek` (the game's page when
+Wikidata knows its BoardGameGeek ID, else a search) instead of the Open
+Library fields.
 
 ## Checks
 

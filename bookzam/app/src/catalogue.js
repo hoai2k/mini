@@ -72,7 +72,7 @@ export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
         added: now,
         lookup: entry.lookup || null,
         // Found on Open Library while reading: done. Read but not found there: a manual edit looks it up again.
-        lookupStatus: entry.lookup ? 'matched' : kind === 'book' && !('lookup' in entry) ? 'pending' : 'none',
+        lookupStatus: entry.lookup ? 'matched' : 'lookup' in entry ? 'none' : 'pending',
         read: entry.read || null, // the spine's text as read, which Find Book matches against
       };
       list.unshift(item);
@@ -103,7 +103,7 @@ export function moveItem(cat, id) {
     const [item] = cat[from].splice(i, 1);
     item.kind = kind;
     item.lookup = null;
-    item.lookupStatus = kind === 'book' ? 'pending' : 'none';
+    item.lookupStatus = 'pending'; // look it up again as the other kind
     cat[to].unshift(item);
     return item;
   }
@@ -140,8 +140,12 @@ export function exportData(cat, kind, now = new Date().toISOString()) {
       if (kind === 'games') {
         return {
           ...common,
-          publisher: item.publisher, designer: item.designer, year: item.year,
-          boardGameGeek: `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(item.title)}`,
+          designer: item.designer, designers: l.designers ?? (item.designer ? [item.designer] : []), publisher: item.publisher,
+          year: l.year ?? item.year ?? null,
+          players: l.minPlayers ? (l.maxPlayers && l.maxPlayers !== l.minPlayers ? `${l.minPlayers}-${l.maxPlayers}` : `${l.minPlayers}`) : null,
+          boardGameGeek: l.bgg ? `https://boardgamegeek.com/boardgame/${l.bgg}` : `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(item.title)}`,
+          wikidata: l.wikidata ? `https://www.wikidata.org/wiki/${l.wikidata}` : null,
+          image: l.cover ?? null,
         };
       }
       return {

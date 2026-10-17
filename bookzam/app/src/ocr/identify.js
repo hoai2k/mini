@@ -4,6 +4,7 @@
 
 import { searchWords, matchScore, words, strongWords } from './spines.js';
 import { toLookup } from '../lookup.js';
+import { searchGames, pickGame, toGameLookup, nameDesigners } from '../games.js';
 
 const STOP = new Set(['the', 'a', 'an', 'of', 'and', 'in', 'on', 'to', 'for', 'by', 'with', 'de', 'la', 'le', 'el', 'der', 'die', 'das', 'und']);
 const FIELDS = 'key,title,author_name,first_publish_year,isbn,cover_i,number_of_pages_median,publisher,subject,edition_count';
@@ -14,7 +15,8 @@ export function clearSearches() {
   searches.clear();
 }
 
-export const GAME_WORDS = /\b(players?|ages?\s*\d+|game|games|minutes|min\.)\b/i;
+/** A game box's small print: player counts, ages, playing time. */
+export const SMALL_PRINT = /\b(players?|spieler|joueurs|ages?\s*\d+|\d+\s*\+|\d+\s*(?:-|–)\s*\d+\s*min|\d+\s*min(?:utes)?)(?![a-z])/i;
 
 /** The words to search Open Library for: the group's meaningful words, at most eight. */
 export function queryWords(group) {
@@ -70,14 +72,16 @@ export function titleCase(s) {
 }
 
 /**
- * An item for one group of lines: {kind, title, author, confidence, lookup} when
- * Open Library knows it, an unconfirmed item when the text is clear enough to
- * keep, or null.
+ * An item for one group of lines, as a book (Open Library) or a board game
+ * (Wikidata) as `mode` says: {kind, title, author | designer, confidence,
+ * lookup} when it's known, an unconfirmed item when the text is clear enough
+ * to keep, or null.
  */
-export async function identify(group, { fetch: fetchFn = fetch, signal, prominent = false } = {}) {
+export async function identify(group, { fetch: fetchFn = fetch, signal, prominent = false, mode = 'books' } = {}) {
   const terms = queryWords(group);
   const letters = words(group.text).join('').length;
   if (!terms.length || letters < 4) return null;
+  if (mode === 'games') return identifyGame(group, terms, { fetch: fetchFn, signal, prominent });
   const search = (q) => {
     // The same words come up again and again on one shelf (a series, a run of volumes).
     const key = q.toLowerCase();
@@ -101,27 +105,49 @@ export async function identify(group, { fetch: fetchFn = fetch, signal, prominen
   if (best?.ambiguous) {
     return { kind: 'book', title: best.doc.title, author: null, confidence: 0.5, lookup: null, read: group.text };
   }
-  if (best) {
-    const lookup = toLookup(best.doc);
-    return {
-      kind: 'book',
-      title: best.doc.title,
-      author: lookup.authors[0] || null,
-      confidence: Math.round(Math.min(1, best.match.score * (best.match.author ? 1 : 0.85)) * 100) / 100,
-      lookup,
-      read: group.text,
-    };
-  }
-  // Not a book Open Library knows: keep it if the reading is clean, so it can be fixed by hand.
+  return best ? bookItem(best, group) : unconfirmed(group, 'book', prominent);
+}
+
+function bookItem(best, group) {
+  const lookup = toLookup(best.doc);
+  return {
+    kind: 'book',
+    title: best.doc.title,
+    author: lookup.authors[0] || null,
+    confidence: Math.round(Math.min(1, best.match.score * (best.match.author ? 1 : 0.85)) * 100) / 100,
+    lookup,
+    read: group.text,
+  };
+}
+
+async function identifyGame(group, terms, options) {
+  let best = pickGame(group.text, await searchGames(terms, options));
+  if (!best && terms.length > 1) best = pickGame(group.text, await searchGames(terms, { ...options, any: true }));
+  if (!best) return unconfirmed(group, 'game', options.prominent);
+  const lookup = await nameDesigners(toGameLookup(best.game), options);
+  return {
+    kind: 'game',
+    title: lookup.title,
+    author: null,
+    designer: lookup.designers[0] || null,
+    year: lookup.year,
+    confidence: Math.round(best.match.score * 100) / 100,
+    lookup,
+    read: group.text,
+  };
+}
+
+/** Not something the catalogue knows: keep it if the reading is clean, so it can be fixed by hand. */
+function unconfirmed(group, kind, prominent) {
   const clean = group.lines.filter((l) => l.score >= 0.88).map((l) => l.text).join(' ').trim();
   const real = strongWords(clean);
-  // One word is kept only when it's big, prominent text, and then only as a game's
-  // name beside a box's small print (scanLines decides); a spine's lone word is noise.
-  const single = real.length === 1 && prominent && real[0].length >= 5;
+  // One word is kept only when it's big, prominent text, and only for games (Azul,
+  // Catan); on a bookshelf a lone word is a publisher or a fragment.
+  const single = kind === 'game' && real.length === 1 && prominent && real[0].length >= 4;
   if ((real.length >= 2 && real.join('').length >= 8) || single) {
     return {
       single,
-      kind: GAME_WORDS.test(clean) ? 'game' : 'book',
+      kind,
       title: titleCase(clean).slice(0, 120),
       author: null,
       confidence: 0.4,
