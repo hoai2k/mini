@@ -114,11 +114,11 @@
       <dialog id="app-settings" class="sheet" aria-labelledby="app-settings-title">
         <form method="dialog">
           <header class="sheet-head"><h3 id="app-settings-title" data-text="appSettings.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-          <fieldset>
+          <fieldset id="theme-field">
             <legend data-text="appSettings.theme"></legend>
             <div class="theme-tiles" id="theme-tiles" role="radiogroup" data-text-aria-label="appSettings.theme"></div>
           </fieldset>
-          <fieldset>
+          <fieldset id="appearance-field">
             <legend data-text="appSettings.appearance"></legend>
             <div class="chips" id="appearance-chips" data-text-aria-label="appSettings.appearance"></div>
           </fieldset>
@@ -223,14 +223,19 @@
             <div class="met-tabs" id="met-view-chips" data-text-aria-label="metronome.settings.display"></div>
             <div class="met-tab-panel">
             <div class="met-art-opts" id="met-art-opts">
-              <div class="row"><span data-text="metronome.settings.pendulumMode"></span><div class="chips" id="pend-mode"></div></div>
+              <!-- On each beat: a switch, and which effect it turns on (a tap on the metronome flips the same switch). -->
+              <label class="row toggle"><span data-text="metronome.settings.pendulumMode"></span><input type="checkbox" id="pend-on" role="switch"></label>
+              <div class="chips" id="pend-mode" data-text-aria-label="metronome.settings.pendulumEffect"></div>
             </div>
             <div class="met-viz-opts" id="met-viz-opts">
               <label class="row toggle"><span data-text="metronome.settings.vizBars"></span><select class="select" id="viz-bars"></select></label>
             </div>
             </div>
           </div>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
         </form>
       </dialog>
 
@@ -322,7 +327,10 @@
             <label class="row toggle"><span data-text="recorder.settings.during"></span><input type="checkbox" id="rec-during" role="switch" aria-describedby="rec-during-help"></label>
             <p class="help" id="rec-during-help" data-text="recorder.settings.duringHelp"></p>
           </div>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
         </form>
       </dialog>
     </section>
@@ -371,7 +379,10 @@
             <div class="chips" id="flats-chips"></div>
           </fieldset>
           <label class="row"><span data-text="tuner.settings.transpose"></span><select class="select" id="transpose"></select></label>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
         </form>
       </dialog>
     </section>
@@ -449,7 +460,10 @@
             </div>
             <p class="help" data-text="drone.settings.a4Help"></p>
           </div>
-          <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+          <div class="sheet-links">
+            <button type="button" class="pill open-audio-check" data-text="common.audioCheck"></button>
+            <button type="button" class="pill open-theme" data-text="common.themeButton"></button>
+          </div>
         </form>
       </dialog>
     </section>
@@ -479,6 +493,15 @@
 
     <!-- Audio check: what the browser reports about mics, speakers and
          permission, and the choices it allows (src/audiocheck.js). -->
+    <!-- Theme, from any mini app's settings: the main settings' theme tiles
+         and Dark Mode, moved in while this is open (main.js openThemeSheet). -->
+    <dialog id="theme-sheet" class="sheet" aria-labelledby="theme-sheet-title">
+      <form method="dialog">
+        <header class="sheet-head"><h3 id="theme-sheet-title" data-text="appSettings.theme"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <div id="theme-sheet-body"></div>
+      </form>
+    </dialog>
+
     <dialog id="audio-check" class="sheet" aria-labelledby="audio-check-title">
       <form method="dialog">
         <header class="sheet-head"><h3 id="audio-check-title" data-text="audioCheck.title"></h3><button class="icon-btn" value="close" data-text-aria-label="common.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>

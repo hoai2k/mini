@@ -391,7 +391,11 @@ syncThemeControls();
 
 const appSettings = $('app-settings');
 $('app-settings-btn').addEventListener('click', () => {
-  // Load every theme's fonts so the tiles show them (only when this opens).
+  loadThemeFonts();
+  appSettings.showModal();
+});
+/** Every theme's fonts, so the tiles show them (only once a theme choice opens). */
+function loadThemeFonts() {
   if (!$('all-theme-fonts')) {
     const hrefs = isApp() ? THEMES.map(fontsHref) : [`https://fonts.googleapis.com/css2?${THEMES.map((t) => t.fonts).join('&')}&display=swap`];
     hrefs.forEach((href, i) => {
@@ -402,8 +406,29 @@ $('app-settings-btn').addEventListener('click', () => {
       document.head.append(link);
     });
   }
-  appSettings.showModal();
+}
+
+/*
+ * Theme, from any mini app's settings (the button beside Audio check): the
+ * main settings' own theme tiles and Dark Mode, moved into a sheet of their
+ * own while it is open and back when it closes, so there is one of each.
+ */
+const themeSheet = $('theme-sheet');
+function openThemeSheet(from) {
+  from?.close();
+  loadThemeFonts();
+  $('theme-sheet-body').append($('theme-field'), $('appearance-field'));
+  syncThemeControls();
+  themeSheet.showModal();
+  themeSheet.querySelector('.theme-tile[aria-checked="true"]')?.focus();
+}
+themeSheet.addEventListener('close', () => {
+  $('app-settings').querySelector('form').insertBefore($('appearance-field'), $('app-settings').querySelector('.open-audio-check'));
+  $('app-settings').querySelector('form').insertBefore($('theme-field'), $('appearance-field'));
 });
+for (const b of document.querySelectorAll('.open-theme')) {
+  b.addEventListener('click', () => openThemeSheet(b.closest('dialog')));
+}
 
 const metSettings = $('met-settings');
 $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
@@ -624,8 +649,15 @@ $('marking').addEventListener('click', () => {
 // With the pendulum and the pulse both off (and no Visualizer) there are no
 // visuals to sync: Audio check's sync controls are then off.
 const visualsShown = () => settings.pendulumMode !== 'off' || settings.metView === 'bars';
-// Pendulum, On each beat: Swing, Pulse or Off (never swinging and pulsing together).
-const syncPendChips = chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, setEffect);
+// Pendulum: On each beat, a switch, and the effect it turns on, Swing or
+// Pulse (never both). The effect is kept while the switch is off
+// (pendulumLast), so a tap on the metronome knows which one to turn on.
+const syncPendChips = chips($('pend-mode'), ['swing', 'pulse'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumLast, (id) => {
+  if (settings.pendulumMode === 'off') { settings.pendulumLast = id; persist(); showMetView(); }
+  else setEffect(id);
+});
+$('pend-on').checked = settings.pendulumMode !== 'off';
+$('pend-on').addEventListener('change', () => setEffect($('pend-on').checked ? settings.pendulumLast : 'off'));
 /** On each beat: Swing, Pulse or Off. The swing eases in and out (animateMetronome); Pulse grows the dots (styles.css). */
 function setEffect(id) {
   morph();
@@ -633,6 +665,7 @@ function setEffect(id) {
   if (id !== 'off') settings.pendulumLast = id;
   persist();
   syncPendChips?.();
+  $('pend-on').checked = id !== 'off';
   showMetView();
   if (!metronome?.running) pendulum.style.transform = 'rotate(0deg)';
 }

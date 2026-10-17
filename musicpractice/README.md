@@ -123,16 +123,23 @@ when the Art Deco art arrives, measure and record its own.
   It moves as a real pendulum does (simple harmonic motion, a cosine):
   easing to a stop at each end, where the click falls, and fastest through
   the middle. Dots under it show the beat of the bar. **On each beat** (in
-  the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**
-  (`pendulumMode`; saves from the two switches it replaced carry over, a
-  pulse someone turned on winning). **Tapping the metronome** turns it off
-  and back to the last of Swing or Pulse (`pendulumLast`); the swing eases
+  the Pendulum tab) is a switch (on by default) and the effect it turns on,
+  **Swing** (the default) or **Pulse** (`pendulumMode` is the one showing or
+  Off, `pendulumLast` the effect chosen, kept while it is off; saves from
+  the two switches it replaced carry over, a pulse someone turned on
+  winning). Choosing an effect while it is off only chooses it. **Tapping
+  the metronome** flips the same switch, so it always turns the chosen
+  effect off or on; the swing eases
   in and out over about half a second rather than jumping. **Pulse** grows
   the dots big, as wide as the row allows (the metronome shrinking above to
   make room), so they can be seen from across a room: the beat's dot swells
   and glows into its beat, peaks on it and eases away (a bell, its tail half
   again as long as its lead-in), red on a strong beat, while the next starts
   to swell into its own.
+- The Visualizer's bars are a faint neutral outline until played (the
+  strong beat's a touch of its colour, so the bar still reads); the beat
+  being played flashes in its colour and the beats played so far in that
+  pass stay faintly lit.
 - The picture (the metronome over the dots) is always the same height, so
   the controls under it never move: its foot is the row of dots, Pulse's big
   dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
@@ -219,7 +226,7 @@ when the Art Deco art arrives, measure and record its own.
   mixers take the click for every position (`slots`).
 - **Display** (metronome settings): two tabs, **Pendulum** (the default)
   and **Visualizer**; the chosen one opens, like a folder tab, into a
-  rounded box round its own options: **On each beat** (Swing, Pulse or Off),
+  rounded box round its own options: **On each beat** (a switch, then Swing or Pulse),
   or **Bars shown** (1, 2, 4 or 8). **Tapping the dots** opens them into the
   Visualizer, the metronome shrinking (and still swinging) above it, and
   tapping the Visualizer folds it back into the dots. **Pressing and
@@ -659,6 +666,11 @@ check, and nowhere else, say **Microphone is off for Music Practice** with
 an **Open Settings** button to the app's own page there; the note goes once
 it is back on. The page asks the phone without prompting (`micPermission`,
 `openAppSettings` in `app/src/devices.js`).
+
+**Theme…** sits beside Audio check in each mini app's settings: it opens
+the theme tiles and Dark Mode in a sheet of their own (the main settings'
+own controls, moved in while it is open), so the theme can be changed from
+anywhere.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when
