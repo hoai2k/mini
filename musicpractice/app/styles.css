@@ -1184,6 +1184,15 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 }
 .link-btn:disabled { opacity: 0.5; }
 .row.disabled, #sync-open:disabled { opacity: 0.45; }
+/* Spacing in the settings sheets: 14px between controls (the form's gap),
+   Audio check's body included; a help line sits close under the control it
+   explains; a slider's own thumb room stands in for most of the label gap. */
+#audio-check-body { display: flex; flex-direction: column; gap: 14px; }
+#audio-check-body:empty { display: none; }
+#audio-check-body > .pill { align-self: flex-start; }
+.sheet form > .help { margin-top: -8px; }
+.row > .slider { margin-top: -4px; }
+.ac-test:has(> :only-child) { display: block; }
 #sync-open:disabled { cursor: default; }
 .takes-more { list-style: none; padding: 10px 4px; color: var(--ink-2); }
 .paywall .pw-have { margin: 0; font-weight: 700; color: var(--brass-2); }
