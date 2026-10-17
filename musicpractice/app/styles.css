@@ -188,36 +188,67 @@ button { cursor: pointer; }
 
 /* Metronome */
 .met-body { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.met-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.met-visual {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  /* The picture is the metronome over the beat dots, always the same height,
+     so the controls under it never move: --P, the height the controls leave
+     (main.js measures it, --pic-h; until it has, 40% of the screen), plus the
+     dots' row (--dots). Under the metronome, the foot is one of three: the
+     row of dots, the big dots of Pulse (--big) or the Visualizer (--vh); the
+     metronome takes what is left, so the one shrinks as the other grows. */
+  --P: var(--pic-h, clamp(120px, 40dvh, 460px));
+  --dots: 26px;
+  --big: calc(var(--P) * 0.34);
+  --vh: calc(var(--P) * 0.55 + var(--dots));
+  --foot: var(--dots);
+  --foot-w: min(calc(100vw - 2 * var(--gutter)), 440px);
+  --morph: 0.55s cubic-bezier(0.45, 0, 0.2, 1);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; /* a long press opens the strong beats, not a text menu */
+  -webkit-tap-highlight-color: transparent;
+}
+.met-visual.pulse { --foot: var(--big); }
+.met-visual.bars { --foot: var(--vh); }
 .metronome {
   position: relative;
-  /* main.js measures the height the controls leave (--pic-h); until it has,
-     40% of the screen. */
-  height: var(--pic-h, clamp(120px, 40dvh, 460px));
+  height: calc(var(--P) + var(--dots) - var(--foot));
   aspect-ratio: 800 / 1200;
+  transition: height var(--morph);
+  cursor: pointer; border-radius: 12px;
 }
+.met-stage { position: relative; display: flex; justify-content: center; }
+/* The dots and the Visualizer share one place, under the metronome. */
+.met-foot {
+  display: grid; justify-items: center; align-items: start;
+  grid-template-rows: 100%; /* the foot's own height (the folded Visualizer may overflow it) */
+  width: var(--foot-w); /* its parent sizes to its contents, so not a % */
+  height: var(--foot);
+  transition: height var(--morph);
+  cursor: pointer; border-radius: 12px;
+}
+.metronome:focus:not(:focus-visible), .met-foot:focus:not(:focus-visible) { outline: none; }
+.met-foot > * { grid-area: 1 / 1; }
+.beats { transition: opacity 0.3s, transform var(--morph); transform-origin: 50% 0; }
+.met-visual.bars .beats { opacity: 0; transform: scale(1.5, 2.5); pointer-events: none; }
+/* Pulse: the dots grow big, as wide as the row allows, and the one whose
+   beat it is swells and glows into it and eases away after (--g, 0 to 1,
+   from main.js), red on a strong beat. */
+.met-visual.pulse .beats {
+  --gap: 14px;
+  --dot: min(calc(var(--big) * 0.62), calc((var(--foot-w) - (var(--n, 4) - 1) * var(--gap)) / var(--n, 4)), 110px);
+  align-self: center; flex-wrap: nowrap; max-width: none; gap: var(--gap); align-items: center;
+}
+.met-visual.pulse .beats li { width: calc(var(--dot) * 0.8); height: calc(var(--dot) * 0.8); }
+.met-visual.pulse .beats li.strong { width: var(--dot); height: var(--dot); }
+.met-visual.pulse .beats li {
+  --hot: var(--brass-2);
+  scale: calc(1 + 0.14 * var(--g, 0));
+  background: color-mix(in srgb, var(--hot) calc(var(--g, 0) * 100%), var(--panel-2));
+  border-color: color-mix(in srgb, var(--hot) calc(40% + var(--g, 0) * 60%), var(--line));
+  box-shadow: 0 0 calc(var(--g, 0) * var(--dot) * 0.45) calc(var(--g, 0) * var(--dot) * 0.08) color-mix(in srgb, var(--hot) 70%, transparent);
+}
+.met-visual.pulse .beats li.strong { --hot: var(--red-2); }
 .met-layer { position: absolute; }
-/* The pulse (Pendulum, On each beat: Pulse): a red sun shining from behind
-   the metronome, swelling into each beat and easing away after it (--lit, 0
-   to 1, from main.js), larger and brighter on strong beats, its rays turning
-   slowly (--spin). The metronome and the page stay as they are. */
-.met-sun {
-  position: absolute; left: 50%; top: 46%; z-index: 0; width: 185%; aspect-ratio: 1;
-  border-radius: 50%; pointer-events: none;
-  transform: translate(-50%, -50%) scale(calc(0.72 + 0.34 * var(--lit, 0)));
-  opacity: var(--lit, 0);
-  background: radial-gradient(circle, rgba(255, 248, 228, 1) 0, #ffb04a 8%, #ff4a24 18%, rgba(255, 34, 18, 0.9) 29%, rgba(255, 34, 18, 0.5) 41%, rgba(255, 34, 18, 0.16) 52%, rgba(255, 34, 18, 0) 62%);
-  will-change: transform, opacity;
-}
-.met-sun::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: repeating-conic-gradient(from var(--spin, 0deg), rgba(255, 70, 30, 0.95) 0 5deg, rgba(255, 70, 30, 0) 7deg 15deg);
-  -webkit-mask: radial-gradient(circle, transparent 16%, #000 22%, #000 38%, transparent 64%);
-  mask: radial-gradient(circle, transparent 16%, #000 22%, #000 38%, transparent 64%);
-}
-.met-sun.strong { transform: translate(-50%, -50%) scale(calc(0.78 + 0.42 * var(--lit, 0))); }
 .metronome .met-layer { z-index: 1; }
-/* The sun stays behind the controls and the top bar it spreads under. */
 #metronome .bar { position: relative; z-index: 2; }
 .met-visual { position: relative; z-index: 0; }
 .met-controls, .sync-bar { position: relative; z-index: 1; }
@@ -245,10 +276,8 @@ button { cursor: pointer; }
   width: 16px; height: 16px; border-radius: 50%;
   background: var(--panel-2);
   border: 2px solid var(--line);
-  transition: background 0.08s, transform 0.08s;
-  position: relative; cursor: pointer; /* a tap turns the beat's accent on or off */
+  transition: background 0.08s, transform 0.08s, width var(--morph), height var(--morph);
 }
-.beats li::before { content: ''; position: absolute; inset: -14px -6px; } /* a fingertip's worth to tap */
 .beats li.strong { width: 22px; height: 22px; border-color: var(--brass); }
 .beats li.mid { border-color: var(--ink-3); }
 .beats li.on { background: var(--brass-2); border-color: var(--brass-2); transform: scale(1.15); }
@@ -308,7 +337,6 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .accent-cell[aria-pressed="true"] { background: #e5342a; border-color: #b01e16; color: #fff; }
 .accent-actions { display: flex; justify-content: space-between; gap: 12px; }
 .accent-actions .accent-done { background: var(--brass); border-color: var(--brass); color: var(--on-accent); min-width: 96px; }
-.met-bars-title { margin: 0; text-align: center; font: 700 1.05rem var(--display); color: var(--ink-2); }
 
 .slider { width: 100%; height: 36px; accent-color: var(--brass); background: transparent; -webkit-appearance: none; appearance: none; }
 .slider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--panel-2); }
@@ -343,14 +371,43 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
    fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
 .met-viz {
-  /* As tall as the metronome with its lamp and beat dots, which it stands in
-     for: the heading and the rows together, centred in that height. */
-  --h: var(--pic-h, clamp(120px, 40dvh, 460px));
+  /* Its full height, the rows centred in it. Closed, it is folded up into the
+     dots' row, and opens out of it. */
+  --h: var(--vh);
   height: var(--h);
-  width: min(calc(100vw - 2 * var(--gutter)), 440px); /* its parent sizes to its contents, so not a % */
+  width: 100%;
   display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  opacity: 0; transform: scaleY(0.08); transform-origin: 50% 0; pointer-events: none;
+  transition: opacity 0.3s, transform var(--morph);
 }
-.met-viz[hidden] { display: none; }
+.met-visual.bars .met-viz { opacity: 1; transform: none; pointer-events: auto; transition: opacity 0.3s 0.12s, transform var(--morph); }
+@media (prefers-reduced-motion: reduce) {
+  .met-visual, .met-visual * { --morph: 0s; }
+}
+.met-visual:not(.morph) { --morph: 0s; } /* only a change of view or effect animates, not sizing to the window */
+/* Volume, tucked away at the picture's top right: a faint speaker. Dragged
+   up or down it sets the volume straight away (the slider showing while it
+   does); tapped, the slider opens under it until a tap elsewhere. */
+.met-vol { position: absolute; top: 0; right: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; }
+.met-vol-knob {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px;
+  background: transparent; border: 0; color: var(--ink-3); opacity: 0.6; touch-action: none; cursor: grab;
+  transition: opacity 0.2s, background 0.2s;
+}
+.met-vol-knob svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.met-vol-knob .body { fill: currentColor; }
+.met-vol-knob .mute { display: none; }
+.met-vol[data-level="0"] .w1, .met-vol[data-level="0"] .w2, .met-vol[data-level="1"] .w2 { display: none; }
+.met-vol[data-level="0"] .mute { display: inline; }
+.met-vol.open .met-vol-knob, .met-vol-knob:hover, .met-vol-knob:focus-visible { opacity: 1; color: var(--ink); }
+.met-vol-panel {
+  margin-top: 4px; padding: 12px 8px; border-radius: 22px;
+  background: var(--bg-2); border: 2px solid var(--line); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  opacity: 0; transform: scaleY(0.2); transform-origin: 50% 0; pointer-events: none;
+  transition: opacity 0.18s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.met-vol.open .met-vol-panel { opacity: 1; transform: none; pointer-events: auto; }
+.met-vol-panel .vslider { height: min(170px, calc(var(--pic-h, 300px) * 0.6)); min-height: 110px; width: 32px; }
 .met-bars { display: grid; gap: clamp(8px, 2.2dvh, 18px); }
 /* Metronome settings: the Visualizer's options, or the pendulum's and lamp's. */
 /* Display: Pendulum or Visualizer as two tabs, the chosen one opening into
@@ -370,8 +427,6 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .met-tabs[data-on="first"] + .met-tab-panel { border-top-left-radius: 0; }
 .met-tabs[data-on="last"] + .met-tab-panel { border-top-right-radius: 0; }
 .met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
-.met-visual { cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 12px; }
-.met-visual:focus:not(:focus-visible) { outline: none; }
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
 .met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: clamp(12px, calc(var(--h) / var(--rows, 4) * 0.42), 30px); }
 .met-bar {
@@ -393,13 +448,11 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 /* Landscape phones and desktops: metronome left, controls right */
 @media (min-width: 720px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) {
   .met-body { flex-direction: row; justify-content: center; gap: clamp(24px, 6vw, 80px); }
-  .metronome { height: clamp(200px, 62dvh, 520px); }
-  .met-bars { --h: clamp(200px, 62dvh, 520px); }
+  .met-visual { --P: clamp(200px, 62dvh, 520px); }
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .bar { margin-bottom: 0; }
-  .metronome { height: 64dvh; }
-  .met-bars { --h: 64dvh; }
+  .met-visual { --P: 64dvh; }
   .met-controls { gap: 4px; }
   .big-btn { min-height: 50px; }
 }

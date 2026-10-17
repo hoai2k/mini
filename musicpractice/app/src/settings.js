@@ -72,6 +72,7 @@ export const DEFAULTS = Object.freeze({
   accent: true,
   sound: 'wood',
   volume: 1,
+  volumeChosen: false,
   silenceSec: 3,
   sensitivity: 'medium',
   startOn: 'music',
@@ -88,9 +89,11 @@ export const DEFAULTS = Object.freeze({
   tempoDefaults: {}, // a named tempo's button, where one was chosen from its list: { 'jazz:ballad': 66 } // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   metView: 'metronome', // or 'bars' (the Visualizer)
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
-  // The pendulum on each beat: 'swing', 'pulse' (the background flashes, to be
-  // seen from across a room) or 'off'; never both swing and pulse.
+  // On each beat: 'swing' (the pendulum), 'pulse' (the beat dots grow big and
+  // glow on each beat, to be seen from across a room) or 'off'. Tapping the
+  // metronome turns it off and back to the last of the two (pendulumLast).
   pendulumMode: 'swing',
+  pendulumLast: 'swing',
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
@@ -185,7 +188,10 @@ export function sanitize(raw) {
     meter: oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter),
     accent: typeof s.accent === 'boolean' ? s.accent : DEFAULTS.accent,
     sound: oneOf(s.sound, SOUNDS.map((m) => m.id), DEFAULTS.sound),
-    volume: 1, // the metronome at full level: the device's own volume controls it
+    // The metronome's volume (the slider tucked beside the picture); full until
+    // it is moved there, since earlier saves' volume was a removed control's.
+    volume: s.volumeChosen === true ? clamp(num(s.volume, 1), 0, 1) : 1,
+    volumeChosen: s.volumeChosen === true,
     silenceSec: clamp(Math.round(num(s.silenceSec, DEFAULTS.silenceSec) * 2) / 2, 1, 10),
     sensitivity: oneOf(s.sensitivity, ['low', 'medium', 'high'], DEFAULTS.sensitivity),
     startOn: oneOf(s.startOn, ['music', 'any'], DEFAULTS.startOn),
@@ -204,6 +210,7 @@ export function sanitize(raw) {
     metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
     pendulumMode: oneOf(s.pendulumMode, ['swing', 'pulse', 'off'], fromSwitches(s)),
+    pendulumLast: oneOf(s.pendulumLast, ['swing', 'pulse'], s.pendulumMode === 'pulse' ? 'pulse' : DEFAULTS.pendulumLast),
     homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),

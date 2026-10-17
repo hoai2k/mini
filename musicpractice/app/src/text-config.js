@@ -101,8 +101,9 @@ export const EN = {
   },
 
   metronome: {
-    visualizerTitle: 'Visualizer',
-    switchTo: { metronome: 'Show the pendulum', bars: 'Show the Visualizer' },
+    switchTo: { metronome: 'Show the beat dots (press and hold for strong beats)', bars: 'Show the Visualizer (press and hold for strong beats)' },
+    // The metronome as a button: its beat effect off, or back on.
+    effectButton: (effect, on) => `${on ? 'Turn off' : 'Turn on'} the ${effect === 'pulse' ? 'pulse' : 'swing'} on each beat`,
     title: 'Metronome',
     settingsButton: 'Metronome settings',
     slower: 'Slower by one',
@@ -202,7 +203,7 @@ export const EN = {
     },
     sync: {
       title: 'Line up with the sound',
-      help: 'Watch the pulse and listen. If the flash comes before the click, press +; if after, press −.',
+      help: 'Watch and listen. If the beat shows before the click, press +; if after, press −.',
       sooner: 'Show the beat 10 ms sooner',
       later: 'Show the beat 10 ms later',
       value: (ms) => `${ms > 0 ? '+' : ''}${ms} ms`,

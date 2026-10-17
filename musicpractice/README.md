@@ -115,19 +115,29 @@ when the Art Deco art arrives, measure and record its own.
 - A metronome with a swinging pendulum: it reaches one end of its swing on
   each click and the other end on the next, synced to what you hear
   (`pendulumAngle` in `app/src/metronome.js`, corrected for output latency).
-  It is fastest arriving at each end and turns there sharply, so the click
-  reads as the pendulum striking the end; a real pendulum's ease, slowest at
-  the ends and fastest through the middle, made the middle look like the
-  beat (`SWING_SHAPE`: x mixed with x³, speed 1.8 at the ends against 0.6
-  in the middle). Dots under it show the beat of the bar. **On each beat**
-  (in the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**,
-  never swinging and pulsing together (`pendulumMode`; saves from the two
-  switches it replaced carry over, a pulse someone turned on winning).
-  Pulse is a red sun shining from behind the metronome, rays and all, so it
-  can be seen from across a room: it swells into each beat, peaks on it and
-  eases away (a bell, its tail half again as long as its lead-in, not a
-  flash), larger and brighter on strong beats, its rays turning slowly. The
-  metronome and the page stay as they are, and the controls stay above it.
+  It moves as a real pendulum does (simple harmonic motion, a cosine):
+  easing to a stop at each end, where the click falls, and fastest through
+  the middle. Dots under it show the beat of the bar. **On each beat** (in
+  the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**
+  (`pendulumMode`; saves from the two switches it replaced carry over, a
+  pulse someone turned on winning). **Tapping the metronome** turns it off
+  and back to the last of Swing or Pulse (`pendulumLast`); the swing eases
+  in and out over about half a second rather than jumping. **Pulse** grows
+  the dots big, as wide as the row allows (the metronome shrinking above to
+  make room), so they can be seen from across a room: the beat's dot swells
+  and glows into its beat, peaks on it and eases away (a bell, its tail half
+  again as long as its lead-in), red on a strong beat, while the next starts
+  to swell into its own.
+- The picture (the metronome over the dots) is always the same height, so
+  the controls under it never move: its foot is the row of dots, Pulse's big
+  dots or the Visualizer, and the metronome takes what is left, each change
+  animated (about half a second, eased; none with reduced motion).
+- **Volume**, tucked away as a faint speaker at the picture's top right:
+  grab it and drag up or down and the volume follows at once, the slider
+  showing while it does and folding away a moment after; tap it and the
+  slider opens until a tap elsewhere (which does nothing else) or Escape.
+  Arrow keys work on the slider. Full until it is first moved
+  (`volume`, `volumeChosen`); the apps' mixer takes it too.
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the
@@ -191,20 +201,22 @@ when the Art Deco art arrives, measure and record its own.
 - **Display** (metronome settings): two tabs, **Pendulum** (the default)
   and **Visualizer**; the chosen one opens, like a folder tab, into a
   rounded box round its own options: **On each beat** (Swing, Pulse or Off),
-  or **Bars shown** (1, 2, 4 or 8). Tapping the
-  picture also switches between them, except the beat dots under the
-  pendulum: tapping one makes that beat strong or not (the same custom
-  strong beats as the pencil; the last one off turns the accent off). The Visualizer, its heading
-  **Visualizer** right above it, shows a few bars of music at a time: a row
-  per bar and a horizontal shape per beat, read left to right and down.
+  or **Bars shown** (1, 2, 4 or 8). **Tapping the dots** opens them into the
+  Visualizer, the metronome shrinking (and still swinging) above it, and
+  tapping the Visualizer folds it back into the dots. **Pressing and
+  holding** the dots or the Visualizer opens the strong beats (as the
+  pencil does). With no bars the dots and the Visualizer show four even
+  beats, none strong. The Visualizer shows a few bars of music at a time: a
+  row per bar and a horizontal shape per beat, read left to right and down.
   Each beat's shape lights on its beat and fades, to a faint glow while
   that pass is being played. The colours are the
   theme's own, a pair per theme and mode (`--viz-strong`, `--viz-beat`):
   ember and brass for Classic, orange and teal for the 60s, magenta and
   cyan for Robot Future and so on, each faintly tinted when unlit.
-- On a phone the picture, pendulum or Visualizer, takes all the height the
-  controls leave (measured in `fitPicture`, `--pic-h`), so the page fills the
-  screen without a gap below or scrolling; side by side, 62% of the height.
+- On a phone the picture takes all the height the controls leave (measured
+  in `fitPicture`, `--pic-h`, from what is above and below it, so not
+  thrown by a change of view in progress), so the page fills the screen
+  without a gap below or scrolling; side by side, 62% of the height.
 - **Common tempos:** tapping the marking under the number (Allegro, and so
   on) opens common tempos by **Style**: Classical (the Italian markings over
   the metronome's traditional marks), Jazz (ballad to burner), Ballroom

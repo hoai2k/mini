@@ -206,19 +206,13 @@ export class Metronome {
 
 /**
  * Pendulum angle in degrees at context time `now`: it reaches one end of
- * its swing on each beat and the other end on the next. It is fastest
- * arriving at each end and turns there sharply, so the beat reads as the
- * pendulum striking the end. (A real pendulum's ease, slowest at the ends
- * and fastest through the middle, made the middle look like the beat.)
- * The shape is x mixed with x³ over the swing (x from 1 to -1): speed 1.8
- * at the ends against 0.6 in the middle.
+ * its swing on each beat and the other end on the next, moving as a real
+ * pendulum does (simple harmonic motion): easing to a stop at each end, where
+ * the beat falls, and fastest through the middle.
  */
-export const SWING_SHAPE = 0.4; // how much of x³ is in the swing: 0 is an even sweep
-
 export function pendulumAngle(beat, now, period, amplitude = 28) {
   if (!beat) return 0;
   const side = beat.count % 2 === 0 ? 1 : -1;
   const since = Math.min(1, Math.max(0, (now - beat.time) / period));
-  const x = 1 - 2 * since;
-  return amplitude * side * ((1 - SWING_SHAPE) * x + SWING_SHAPE * x ** 3);
+  return amplitude * side * Math.cos(Math.PI * since);
 }

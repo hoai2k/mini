@@ -142,18 +142,34 @@
         <button class="icon-btn" id="met-settings-btn" data-text-aria-label="metronome.settingsButton"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gear"/></svg></button>
       </header>
       <div class="met-body">
-        <div class="met-visual" id="met-visual" role="button" tabindex="0">
-          <div class="metronome" id="metronome-art" aria-hidden="true">
-            <div class="met-sun" id="met-sun"></div>
-            <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
-            <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
+        <div class="met-stage">
+          <div class="met-visual" id="met-visual">
+            <!-- Tap the metronome: its beat effect (Swing or Pulse) off and on. -->
+            <div class="metronome" id="metronome-art" role="button" tabindex="0">
+              <div class="met-layer met-case" id="metronome-case" data-asset="metronome-body"></div>
+              <div class="met-layer met-pendulum" id="pendulum" data-asset="metronome-pendulum"></div>
+            </div>
+            <!-- Under it: the beat dots (big in Pulse), which open into the
+                 Visualizer, rows of bars of music, as the metronome shrinks
+                 above. Tap: dots or Visualizer; press and hold: strong beats. -->
+            <div class="met-foot" id="met-foot" role="button" tabindex="0">
+              <ol class="beats" id="beats" aria-hidden="true"></ol>
+              <div class="met-viz" id="met-viz">
+                <div class="met-bars" id="met-bars" aria-hidden="true"></div>
+              </div>
+            </div>
           </div>
-          <!-- The Visualizer: rows of bars of music, in place of the metronome (main.js). -->
-          <div class="met-viz" id="met-viz" hidden>
-            <h3 class="met-bars-title" data-text="metronome.visualizerTitle"></h3>
-            <div class="met-bars" id="met-bars" aria-hidden="true"></div>
+          <!-- Volume, tucked away: drag the speaker up or down, or tap it to open the slider. -->
+          <div class="met-vol" id="met-vol">
+            <button type="button" class="met-vol-knob" id="met-vol-knob" aria-expanded="false" aria-controls="met-vol-panel" data-text-aria-label="common.volume">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path class="body" d="M4 9h4l5-4v14l-5-4H4z"/><path class="w1" d="M16 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>
+            </button>
+            <div class="met-vol-panel" id="met-vol-panel">
+              <div class="vslider" id="met-vol-slider" role="slider" tabindex="-1" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume">
+                <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
+              </div>
+            </div>
           </div>
-          <ol class="beats" id="beats" aria-hidden="true"></ol>
         </div>
         <div class="met-controls">
           <div class="tempo">

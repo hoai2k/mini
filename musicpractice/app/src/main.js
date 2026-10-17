@@ -227,9 +227,12 @@ function setBpm(v, { fromInput = false } = {}) {
   persist();
 }
 
+/** No bars: shown as four even beats (dots and Visualizer rows), none strong. */
+const shownBeats = () => (meterOf(settings.meter).beats === 1 ? [0, 0, 0, 0] : barPlan(settings).strengths);
+
 function renderBeats() {
   const list = $('beats');
-  const { strengths } = barPlan(settings);
+  const strengths = shownBeats();
   list.replaceChildren(...strengths.map((s) => {
     const li = document.createElement('li');
     if (s === 2) li.className = 'strong';
@@ -248,6 +251,7 @@ function renderBeats() {
     return row;
   }));
   $('met-bars').style.setProperty('--n', strengths.length);
+  list.style.setProperty('--n', strengths.length);
   $('met-bars').style.setProperty('--rows', settings.vizBars);
   const m = meterOf(settings.meter);
   const accent = !settings.accent ? 'off' : settings.accentPattern ? 'custom' : 'on';
@@ -290,9 +294,8 @@ function stopMetronome() {
   if (metronome?.running) metronome.stop();
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
-  for (const li of $('beats').children) li.classList.remove('on');
+  for (const li of $('beats').children) { li.classList.remove('on'); li.style.removeProperty('--g'); }
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  $('met-sun').style.setProperty('--lit', '0');
   $('metronome-art').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
@@ -538,16 +541,27 @@ $('accent-done').addEventListener('click', () => {
   setStrong([...editing.on, ...editing.hidden]);
   accentEditor.close();
 });
-// Tapping a beat dot under the pendulum makes that beat strong, or not.
-// (The rest of the picture switches to the Visualizer.)
-$('beats').addEventListener('click', (e) => {
-  const dot = e.target.closest('li');
-  if (!dot) return;
-  e.stopPropagation();
-  const at = [...$('beats').children].indexOf(dot) * TICKS;
-  const pos = strongPositions();
-  setStrong(pos.includes(at) ? pos.filter((p) => p !== at) : [...pos, at]);
+// Pressing and holding the beat dots, or the Visualizer, opens the strong
+// beats (a tap switches between the two). Not with no bars: there is no bar
+// to set beats in.
+const HOLD_MS = 500;
+let hold = null; // { timer, x, y }
+let held = false; // the press just opened the strong beats: not a tap too
+const foot = $('met-foot');
+foot.addEventListener('pointerdown', (e) => {
+  held = false;
+  if (e.button) return;
+  if (meterOf(settings.meter).beats === 1) return;
+  clearTimeout(hold?.timer);
+  hold = { x: e.clientX, y: e.clientY, timer: setTimeout(() => { hold = null; held = true; openAccents(); }, HOLD_MS) };
 });
+foot.addEventListener('pointermove', (e) => {
+  if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) { clearTimeout(hold.timer); hold = null; }
+});
+for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
+  foot.addEventListener(type, () => { clearTimeout(hold?.timer); hold = null; });
+}
+$('met-visual').addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------------------------------------------------------------- common tempos
 
@@ -610,12 +624,20 @@ $('marking').addEventListener('click', () => {
 // visuals to sync: Audio check's sync controls are then off.
 const visualsShown = () => settings.pendulumMode !== 'off' || settings.metView === 'bars';
 // Pendulum, On each beat: Swing, Pulse or Off (never swinging and pulsing together).
-chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, (id) => {
+const syncPendChips = chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, setEffect);
+/** On each beat: Swing, Pulse or Off. The swing eases in and out (animateMetronome); Pulse grows the dots (styles.css). */
+function setEffect(id) {
+  morph();
   settings.pendulumMode = id;
-  $('met-sun').style.setProperty('--lit', '0');
-  pendulum.style.transform = 'rotate(0deg)';
+  if (id !== 'off') settings.pendulumLast = id;
   persist();
-});
+  syncPendChips?.();
+  showMetView();
+  if (!metronome?.running) pendulum.style.transform = 'rotate(0deg)';
+}
+// Tapping the metronome turns its effect off, and back on.
+const art = $('metronome-art');
+const toggleEffect = () => setEffect(settings.pendulumMode === 'off' ? settings.pendulumLast : 'off');
 
 /*
  * Everything you see follows heardNow(): the time of the sound reaching your
@@ -624,9 +646,9 @@ chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.m
  * screen about a frame later. So the pendulum reaches the end of its swing,
  * the pulse flashes and the beat dot lights as each click is heard.
  */
-const sun = $('met-sun');
 let lastFrame = 0;
 let frameSec = 1 / 60;
+let swingAmt = 0; // how much of the swing shows: eased to 1 when swinging, 0 when not
 function animateMetronome() {
   if (!metronome?.running) return;
   const t = performance.now();
@@ -634,39 +656,45 @@ function animateMetronome() {
   lastFrame = t;
   const now = metronome.native ? metronome.heardNow(frameSec) : heardNow(frameSec);
   const beat = metronome.beatAt(now);
-  const pendulumShown = settings.metView !== 'bars';
-  const angle = pendulumShown && settings.pendulumMode === 'swing' ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
+  // The pendulum swings in either view (small above the Visualizer). Turned
+  // on or off it eases in or out over about half a second, never jumping.
+  const swingTo = settings.pendulumMode === 'swing' ? 1 : 0;
+  swingAmt += (swingTo - swingAmt) * Math.min(1, frameSec / 0.16);
+  if (Math.abs(swingTo - swingAmt) < 0.002) swingAmt = swingTo;
+  const angle = swingAmt ? swingAmt * pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
+  pendulum.classList.remove('resting');
   pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  // The pulse: a sun behind the metronome that swells into each beat, peaks
-  // on it and eases away (a bell, not a flash), brightest on strong beats.
-  let k = 0;
-  let strong = false;
-  if (pendulumShown && settings.pendulumMode === 'pulse' && beat) {
+  const dots = $('beats').children;
+  // With no bars the dots count four even beats.
+  const idx = !beat ? -1 : meterOf(settings.meter).beats === 1 ? beat.count % dots.length : beat.beat;
+  const pulse = settings.pendulumMode === 'pulse' && settings.metView !== 'bars';
+  if (pulse && beat) {
+    // Pulse: the dot swells into its beat, peaks on it and eases away (a
+    // bell, not a flash), while the next one starts to swell into its own.
     const p = metronome.period;
     const w = Math.min(0.18, p * 0.24); // the lead-in; the tail is half again as long
-    const level = (strength) => [0.72, 0.86, 1][strength] ?? 0.72;
-    // The next beat, from the bar itself (it may not be scheduled yet): one period on.
-    const bar = metronome.strengths;
-    const nextStrength = bar[(beat.beat + 1) % bar.length] ?? 0;
     const after = now - beat.time;
-    const before = p - after;
-    const out = Math.exp(-((after / (w * 1.5)) ** 2)) * level(beat.strength);
-    const into = before > 0 ? Math.exp(-((before / w) ** 2)) * level(nextStrength) : 0;
-    k = Math.max(out, into);
-    strong = (into > out ? nextStrength : beat.strength) === 2;
-    sun.style.setProperty('--spin', `${((now * 14) % 360).toFixed(1)}deg`);
+    const out = Math.exp(-((after / (w * 1.5)) ** 2));
+    const into = p - after > 0 ? Math.exp(-(((p - after) / w) ** 2)) : 0;
+    const next = (idx + 1) % dots.length;
+    for (let i = 0; i < dots.length; i++) {
+      const g = i === idx ? Math.max(out, i === next ? into : 0) : i === next ? into : 0;
+      dots[i].style.setProperty('--g', g.toFixed(3));
+      dots[i].classList.remove('on');
+    }
+  } else {
+    for (let i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('on', idx === i);
+      dots[i].style.removeProperty('--g');
+    }
   }
-  sun.style.setProperty('--lit', k.toFixed(3));
-  sun.classList.toggle('strong', strong);
-  const dots = $('beats').children;
-  for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
   // The Visualizer: read like music, left to right and down a row a bar. The
   // beat's shape lights and fades; with the trail, the beats played so far in
   // this pass stay faintly lit until it starts again at the top.
   if (settings.metView === 'bars') {
     const cells = $('met-bars').querySelectorAll('.met-bar');
     const n = dots.length || 1;
-    const at = beat ? (Math.floor((beat.count - beat.beat) / n) % settings.vizBars) * n + beat.beat : -1;
+    const at = beat ? (Math.floor((beat.count - idx) / n) % settings.vizBars) * n + idx : -1;
     const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, metronome.period * 0.55)) : 0;
     const trail = VIZ_TRAIL; // the beats played in this pass stay faintly lit
     for (let i = 0; i < cells.length; i++) {
@@ -681,31 +709,152 @@ const VIZ_TRAIL = 0.28; // how lit a beat already played in this pass stays
 /** Metronome or Visualizer: the pendulum and lamp, or rows of bars; and their own settings. */
 function showMetView() {
   const bars = settings.metView === 'bars';
-  $('metronome-art').hidden = bars;
-  $('beats').hidden = bars;
-  $('met-viz').hidden = !bars;
+  // The metronome shrinks as the dots open into the Visualizer under it,
+  // or grow big for Pulse (styles.css), and back.
+  $('met-visual').classList.toggle('bars', bars);
+  $('met-visual').classList.toggle('pulse', !bars && settings.pendulumMode === 'pulse');
+  $('met-viz').inert = !bars;
+  const effect = settings.pendulumMode === 'off' ? settings.pendulumLast : settings.pendulumMode;
+  art.setAttribute('aria-label', TEXT.metronome.effectButton(effect, settings.pendulumMode !== 'off'));
   $('met-viz-opts').hidden = !bars;
   $('met-art-opts').hidden = bars;
   syncViewChips();
   $('met-view-chips').dataset.on = bars ? 'last' : 'first';
-  $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
+  foot.setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   fitPicture();
 }
+/** Changes made here (view, effect) animate; sizing to the window doesn't. */
+let morphEnd = 0;
+function morph() {
+  $('met-visual').classList.add('morph');
+  clearTimeout(morphEnd);
+  morphEnd = setTimeout(() => $('met-visual').classList.remove('morph'), 800);
+}
 function setMetView(view) {
+  morph();
   settings.metView = view;
   persist();
   showMetView();
 }
 // Display (metronome settings): Pendulum or Visualizer, each with its own options below.
 const syncViewChips = chips($('met-view-chips'), ['metronome', 'bars'].map((id) => ({ id, label: TEXT.metronome.settings.views[id] })), () => settings.metView, setMetView);
-// Tapping the picture switches between the two.
-$('met-visual').addEventListener('click', () => setMetView(settings.metView === 'bars' ? 'metronome' : 'bars'));
-$('met-visual').addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  e.preventDefault();
-  setMetView(settings.metView === 'bars' ? 'metronome' : 'bars');
+// Tapping the dots switches between them and the Visualizer; tapping the
+// metronome turns its effect off and on.
+const switchView = () => setMetView(settings.metView === 'bars' ? 'metronome' : 'bars');
+foot.addEventListener('click', () => {
+  if (held) { held = false; return; } // that was a press and hold
+  if (foldTap) { foldTap = false; return; } // that tap folded the volume away
+  switchView();
 });
+art.addEventListener('click', () => {
+  if (foldTap) { foldTap = false; return; }
+  toggleEffect();
+});
+for (const [el, act] of [[foot, switchView], [art, toggleEffect]]) {
+  el.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation(); // not the page's Space (start and stop)
+    act();
+  });
+}
+
+// ---------------------------------------------------------------- volume
+
+/*
+ * The metronome's volume, tucked away at the picture's top right as a faint
+ * speaker. Grab it and drag up or down: the volume follows at once, the
+ * slider showing while it does and folding away a moment after. Tap it: the
+ * slider opens and stays until a tap elsewhere (or Escape).
+ */
+const vol = $('met-vol');
+const volKnob = $('met-vol-knob');
+const volSlider = $('met-vol-slider');
+const volTrack = volSlider.querySelector('.vslider-track');
+let volSent = 0;
+let volLater = 0;
+function showVolume() {
+  const v = settings.volume;
+  volSlider.style.setProperty('--v', v);
+  volSlider.setAttribute('aria-valuenow', String(Math.round(v * 100)));
+  volSlider.setAttribute('aria-valuetext', `${Math.round(v * 100)}%`);
+  vol.dataset.level = v === 0 ? '0' : v < 0.5 ? '1' : '2';
+}
+function setVolume(v) {
+  settings.volume = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100;
+  settings.volumeChosen = true;
+  showVolume();
+  // To the sound at most every 60 ms (the apps' mixer is told over the bridge).
+  clearTimeout(volLater);
+  const send = () => { volSent = performance.now(); metronome?.configure(settings); persist(); };
+  if (performance.now() - volSent > 60) send();
+  else volLater = setTimeout(send, 60);
+}
+let volFold = 0;
+function openVolume(open, { linger = 0 } = {}) {
+  clearTimeout(volFold);
+  if (!open && linger) { volFold = setTimeout(() => openVolume(false), linger); return; }
+  vol.classList.toggle('open', open);
+  volKnob.setAttribute('aria-expanded', String(open));
+  volSlider.tabIndex = open ? 0 : -1;
+}
+// The speaker: a drag sets the volume by how far it moves (the slider's
+// height for all of it); a tap opens the slider.
+let grab = null; // { y, from, moved, wasOpen }
+volKnob.addEventListener('pointerdown', (e) => {
+  if (e.button) return;
+  e.preventDefault();
+  volKnob.setPointerCapture(e.pointerId);
+  grab = { y: e.clientY, from: settings.volume, moved: false, wasOpen: vol.classList.contains('open') };
+});
+volKnob.addEventListener('pointermove', (e) => {
+  if (!grab || !volKnob.hasPointerCapture(e.pointerId)) return;
+  const dy = grab.y - e.clientY;
+  if (!grab.moved && Math.abs(dy) < 6) return;
+  if (!grab.moved) { grab.moved = true; openVolume(true); }
+  setVolume(grab.from + dy / (volTrack.offsetHeight || 150)); // its unscaled height: it may still be opening
+});
+volKnob.addEventListener('pointerup', () => {
+  if (!grab) return;
+  if (grab.moved) { if (!grab.wasOpen) openVolume(false, { linger: 1200 }); }
+  else openVolume(!grab.wasOpen);
+  grab = null;
+});
+volKnob.addEventListener('pointercancel', () => { grab = null; });
+volKnob.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolume(!vol.classList.contains('open')); if (vol.classList.contains('open')) volSlider.focus(); }
+});
+// The slider itself: drag the knob or the track.
+volSlider.addEventListener('pointerdown', (e) => {
+  if (e.button) return;
+  e.preventDefault();
+  clearTimeout(volFold);
+  volSlider.setPointerCapture(e.pointerId);
+  const at = (ev) => { const r = volTrack.getBoundingClientRect(); return (r.bottom - ev.clientY) / r.height; };
+  setVolume(at(e));
+  const move = (ev) => setVolume(at(ev));
+  volSlider.addEventListener('pointermove', move);
+  volSlider.addEventListener('pointerup', () => volSlider.removeEventListener('pointermove', move), { once: true });
+});
+vol.addEventListener('keydown', (e) => {
+  const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.2, PageDown: -0.2 }[e.key];
+  if (e.key === 'Escape') { openVolume(false); volKnob.focus(); }
+  else if (e.target === volSlider && (e.key === 'Home' || e.key === 'End')) setVolume(e.key === 'End' ? 1 : 0);
+  else if (e.target === volSlider && step) setVolume(settings.volume + step);
+  else return;
+  e.preventDefault();
+  e.stopPropagation(); // not the page's arrow keys (which change the tempo)
+});
+// A tap anywhere else folds it away (on the picture, that is all it does, as when closing a menu).
+let foldTap = false;
+document.addEventListener('pointerdown', (e) => {
+  if (!vol.classList.contains('open') || vol.contains(e.target)) return;
+  openVolume(false);
+  foldTap = $('met-visual').contains(e.target);
+  setTimeout(() => { foldTap = false; }, 800); // a press that was not a tap leaves nothing behind
+}, true);
+showVolume();
 
 /*
  * On a phone (one column), the picture, pendulum or Visualizer, takes all
@@ -717,15 +866,23 @@ function fitPicture() {
   const scr = $('metronome');
   if (scr.hidden) return;
   const body = scr.querySelector('.met-body');
-  if (getComputedStyle(body).flexDirection !== 'column') { scr.style.removeProperty('--pic-h'); return; }
-  const pic = settings.metView === 'bars' ? $('met-viz') : $('metronome-art');
-  const cur = pic.getBoundingClientRect().height;
-  if (!cur) return;
+  if (getComputedStyle(body).flexDirection !== 'column') {
+    scr.style.removeProperty('--pic-h');
+    return;
+  }
+  // The picture (metronome and dots, or the small metronome and the
+  // Visualizer) is --P plus the dots' row and the gap, in either view; so
+  // measure what is above and below it rather than the picture itself, which
+  // may be in the middle of changing view.
+  const stage = scr.querySelector('.met-stage').getBoundingClientRect();
   const last = Math.max(...[...scr.querySelectorAll('.met-controls > *, .sync-bar > *')]
     .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
+  const below = last - stage.bottom;
+  const vis = getComputedStyle($('met-visual'));
+  const extra = (parseFloat(vis.rowGap) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
   const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
-  const slack = innerHeight - pad - last;
-  scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, cur + slack - 1)))}px`);
+  const room = innerHeight - pad - stage.top - below - extra - 1;
+  scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
 }
 let fitQueued = 0;
 const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
