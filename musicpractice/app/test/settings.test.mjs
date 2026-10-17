@@ -140,4 +140,7 @@ test('metronome clicks and view: quarter notes and the metronome by default, kep
   assert.equal(sanitize({ subdivision: 5 }).subdivision, 1);
   assert.equal(sanitize({ subdivision: '2' }).subdivision, 1);
   assert.equal(sanitize({ metView: 'disco' }).metView, 'metronome');
+  assert.deepEqual([DEFAULTS.vizBars, DEFAULTS.vizTrail], [4, true]);
+  assert.deepEqual([sanitize({ vizBars: 8, vizTrail: false }).vizBars, sanitize({ vizBars: 8, vizTrail: false }).vizTrail], [8, false]);
+  assert.equal(sanitize({ vizBars: 3 }).vizBars, 4);
 });

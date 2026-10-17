@@ -55,6 +55,9 @@ export function resolveMode(theme, appearance, systemDark) {
   return (THEMES.find((t) => t.id === theme) || THEMES[0]).mode;
 }
 
+/** The Visualizer's choice of how many bars to show at a time. */
+export const VIZ_BARS = [1, 2, 4, 8];
+
 export const BPM_MIN = 40;
 export const BPM_MAX = 500;
 
@@ -78,6 +81,8 @@ export const DEFAULTS = Object.freeze({
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
   subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths
   metView: 'metronome', // or 'bars' (the Visualizer)
+  vizBars: 4, // the Visualizer's rows: bars of music shown at a time
+  vizTrail: true, // the beats already played in this pass stay faintly lit
   metMotion: true, // the pendulum swings
   metPulse: true, // a glow pulses on each beat
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
@@ -137,6 +142,8 @@ export function sanitize(raw) {
     micTipCollapsed: s.micTipCollapsed === true,
     subdivision: oneOf(s.subdivision, [1, 2, 3, 4], DEFAULTS.subdivision),
     metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
+    vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
+    vizTrail: typeof s.vizTrail === 'boolean' ? s.vizTrail : DEFAULTS.vizTrail,
     metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
     metPulse: typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
     homeOrder: homeOrder(s.homeOrder),

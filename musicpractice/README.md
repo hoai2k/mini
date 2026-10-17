@@ -168,12 +168,19 @@ when the Art Deco art arrives, measure and record its own.
   pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
   mixers play them the same way, `subdivision` and a fourth rendered
   click), sound (Woodblock, Click, Beep) and volume.
-- **Visualizer**, a button beside the time signature under Start, swaps the
-  metronome and its lamp for a bar per beat of the bar: each lights on its
-  beat and fades, the strong beat red and the others blue, each faintly
-  tinted when unlit (remembered, `metView`). The picture, metronome or bars,
-  takes 40% of the screen's height but no more than the controls leave, so
-  a short phone shrinks it rather than scrolling.
+- **Visualizer** (metronome settings, above the pendulum's and lamp's
+  switches, which it replaces with its own: **Bars shown**, 1, 2, 4 or 8,
+  and **Keep played beats lit**) swaps the metronome and its lamp for a few
+  bars of music at a time: a row per bar and a horizontal shape per beat,
+  read left to right and down. Each beat's shape lights on its beat and
+  fades, to a faint glow while that pass is being played if beats are kept
+  lit; the strong beat red, the others blue, each faintly tinted when unlit.
+  The picture, metronome or bars, takes 40% of the screen's height but no
+  more than the controls leave, so a short phone shrinks it rather than
+  scrolling.
+- No double-tap zoom: `touch-action: manipulation` on the page (iPhone
+  zoomed in on quick taps such as the drone's − and +); scrolling and
+  pinch-zoom still work.
 - Sounds are synthesized with Web Audio and scheduled 120 ms ahead from a
   worker, so the beat stays steady when the page is busy, and keeps going if
   you switch to another tab (it's a practice tool; a hidden-tab mute would
