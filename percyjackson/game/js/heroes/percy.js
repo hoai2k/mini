@@ -7,11 +7,15 @@
 //        Percy hits harder while he stands in water (pool or real water) and
 //        heals slowly in real water.
 //   3    Riptide Throw: the sword spins out in a line and returns to his hand.
+//   Learned in the skill tree (any power can go in any of 1 · 2 · 3):
+//        Disarming Strike: a lunging thrust that stuns (a boss is marked).
+//        Geyser: water bursts from the ground at the aim point, launching monsters.
+//        Air Bubble: Percy and the heroes near him take half damage for a while.
 //   F    Hurricane: a whirlpool storm around Percy pulls monsters in and
 //        batters them.
 import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, sin, smoothstep, mix } from 'three/tsl';
-import { Kit, makeDisc, zap } from './kit.js';
+import { Kit, makeDisc, zap, stun, mark } from './kit.js';
 import { registerKit } from './index.js';
 import { buildRiptide } from '../entities/models.js';
 import { U } from '../gfx/materials.js';
@@ -19,16 +23,7 @@ import { U } from '../gfx/materials.js';
 const SEA = 0x2fd0d8, DEEP = 0x0f6f73, FOAM = 0xc8f6ff, BRONZE = 0xe8b850;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
-export const PERCY_SKILLS = [
-  { id: 'riptide', name: 'Celestial Bronze', desc: '+8% melee damage per rank.', max: 3 },
-  { id: 'sea', name: 'Son of the Sea', desc: 'Water heals faster and Percy hits +10% harder in it per rank.', max: 2 },
-  { id: 'jet', name: 'Pressure Jet', desc: 'Water Jet hits harder.', max: 3 },
-  { id: 'jet_charges', name: 'Fire Hose', desc: 'Water Jet holds two charges.', max: 1, req: 'jet' },
-  { id: 'surge', name: 'Tidal Force', desc: 'Wave Surge reaches further and hits harder.', max: 3 },
-  { id: 'tide', name: 'Deep Tide', desc: 'Healing Tide is wider, lasts longer and heals more.', max: 2 },
-  { id: 'throw', name: 'Returning Blade', desc: 'Riptide Throw flies further and hits harder.', max: 3 },
-  { id: 'hurricane', name: 'Eye of the Storm', desc: 'Hurricane lasts 2s longer per rank.', max: 2 },
-];
+// The skill tree (and the new powers' numbers) is in skillRules.js.
 
 // Swirling water funnel for Hurricane: an open cone with spiralling bands.
 function funnelMesh() {
@@ -58,9 +53,14 @@ class PercyKit extends Kit {
     const jc = 1 + r('jet_charges');
     this.slots = {
       ranged: this.ability({ name: 'Water Jet', icon: '💧', cd: 0.55, ce: 0, use: () => this.jet(), maxCharges: jc, chargesLeft: jc, gateTime: 0.3 }),
-      t1: this.ability({ name: 'Wave Surge', icon: '🌊', cd: 6, ce: 12, use: () => this.surge() }),
-      t2: this.ability({ name: 'Healing Tide', icon: '💦', cd: 15, ce: 16, use: () => this.tide() }),
-      t3: this.ability({ name: 'Riptide Throw', icon: '🗡️', cd: 7, ce: 14, use: () => this.throwSword() }),
+      ...this.equipSlots({
+        surge: this.ability({ name: 'Wave Surge', icon: '🌊', cd: 6, ce: 12, use: () => this.surge() }),
+        tide: this.ability({ name: 'Healing Tide', icon: '💦', cd: 15, ce: 16, use: () => this.tide() }),
+        throw: this.ability({ name: 'Riptide Throw', icon: '🗡️', cd: 7, ce: 14, use: () => this.throwSword() }),
+        disarm: this.ability({ name: 'Disarming Strike', icon: '⚔️', cd: 8, ce: 12, use: () => this.disarm() }),
+        geyser: this.ability({ name: 'Geyser', icon: '⛲', cd: 9, ce: 14, use: () => this.geyser() }),
+        bubble: this.ability({ name: 'Air Bubble', icon: '🫧', cd: 18, ce: 16, use: () => this.bubble() }),
+      }),
     };
     this.domain = {
       name: 'Hurricane', icon: '🌀', key: 'hurricane', world: false, sureHit: false, type: 0, color: SEA, sound: 'garden', flash: 0x9af4ff,
@@ -122,7 +122,7 @@ class PercyKit extends Kit {
   }
   // ---------------------------------------------------------------- Wave Surge
   surge() {
-    const g = this.game, p = this.p, rk = this.rank('surge');
+    const g = this.game, p = this.p, rk = this.rank('surge_up');
     this.cast(0.45, true);
     const L = 7 + rk * 1.2, arc = 0.75, dmg = 24 + rk * 8;
     const face = Math.atan2(p.aimDir.x, p.aimDir.z);
@@ -161,7 +161,7 @@ class PercyKit extends Kit {
   }
   // ---------------------------------------------------------------- Healing Tide
   tide() {
-    const g = this.game, p = this.p, rk = this.rank('tide');
+    const g = this.game, p = this.p, rk = this.rank('tide_up');
     this.cast(0.5, true, { type: 'raise' });
     const R = 3.6 + rk * 0.6, dur = 6 + rk * 1.5, heal = 3 + rk * 1.5;
     const gy = this.groundAt(p.pos.x, p.pos.z, p.pos.y + 0.5) ?? p.pos.y;
@@ -198,7 +198,7 @@ class PercyKit extends Kit {
   }
   // ---------------------------------------------------------------- Riptide Throw
   throwSword() {
-    const g = this.game, p = this.p, rk = this.rank('throw');
+    const g = this.game, p = this.p, rk = this.rank('throw_up');
     if (this.thrown) return false;
     p.action = { type: 'attack', step: { style: 'throw', strike: 0.45, windup: 0.3 }, style: 'throw', dur: 0.4, elapsed: 0, t: 0, windup: 0.3, strike: 0.45, struck: true, moveScale: 0.35 };
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
@@ -255,6 +255,82 @@ class PercyKit extends Kit {
       }
       return true;
     });
+  }
+  // ---------------------------------------------------------------- Disarming Strike
+  // Luke's disarming move: a long thrust; the first monster it reaches is
+  // stunned (a boss can't be, so its guard is opened: marked).
+  disarm() {
+    const g = this.game, p = this.p, rk = this.up('disarm');
+    p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
+    p.action = { type: 'attack', step: { style: 'punch', strike: 0.45, windup: 0.25, lunge: 16 }, style: 'punch', dur: 0.42, elapsed: 0, t: 0, windup: 0.25, strike: 0.45, struck: true, moveScale: 0.15 };
+    const dmg = 30 + rk * 12, hold = 2 + rk * 0.5;
+    g.audio?.whoosh(1.1);
+    let t = 0, done = false;
+    g.addUpdater((dt) => {
+      t += dt;
+      if (p.dead || p.downed || t > 0.4) return false;
+      if (t < 0.18 || done) return true;
+      const dir = tmp.set(Math.sin(p.facing), 0, Math.cos(p.facing));
+      const e = g.combat.query(p.pos, dir, 3.4, 0.55).sort((a, b) => a.pos.distanceToSquared(p.pos) - b.pos.distanceToSquared(p.pos))[0];
+      if (!e) return true;
+      done = true;
+      g.combat.damageEnemy(e, dmg, p, { melee: true, knock: dir.clone().multiplyScalar(4), stagger: 0.6 });
+      if (!stun(e, hold)) mark(e, hold + 2, g);
+      const at = tmp2.copy(e.pos).setY(e.pos.y + (e.height ?? 1.5) * 0.6);
+      g.fx.slashX(at, 1.4, BRONZE); g.fx.hitSpark(at, dir, { color: BRONZE, crit: true });
+      g.hitStop(0.06); g.shake(0.2);
+      g.audio?.impact(1.4, 'crit');
+      g.audio?.tone({ freq: 1500, to: 2200, dur: 0.12, gain: 0.07, type: 'triangle' });
+      return false;
+    });
+  }
+  // ---------------------------------------------------------------- Geyser
+  // A ring of foam marks the spot, then the ground bursts: monsters fly.
+  geyser() {
+    const g = this.game, p = this.p, rk = this.up('geyser');
+    const to = p.aimPoint.clone(); tmp.subVectors(to, p.pos).setY(0);
+    if (tmp.length() > 10) to.copy(p.pos).addScaledVector(tmp.normalize(), 10);
+    const gy = this.groundAt(to.x, to.z, p.pos.y + 3);
+    if (gy == null || Math.abs(gy - p.pos.y) > 4) { g.audio?.ui('back'); return false; }
+    to.y = gy;
+    this.cast(0.4, true, { type: 'raise' });
+    const R = 2.6 + rk * 0.4, dmg = 28 + rk * 10;
+    g.fx.rings.spawn(tmp.set(to.x, to.y + 0.08, to.z), { color: FOAM, r0: R, r1: R * 0.3, dur: 0.4, thick: 0.15 });
+    g.audio?.noise({ dur: 0.4, gain: 0.2, type: 'lowpass', freq: 300, sweep: 900, attack: 0.2 });
+    let t = 0, burst = false;
+    g.addUpdater((dt) => {
+      t += dt;
+      if (!burst && t >= 0.4) {
+        burst = true;
+        for (const e of g.enemies) {
+          if (e.dead || Math.hypot(e.pos.x - to.x, e.pos.z - to.z) > R + e.radius || Math.abs(e.pos.y - to.y) > 2.5) continue;
+          g.combat.damageEnemy(e, dmg, p, { stagger: 0.8, knock: tmp2.set(e.pos.x - to.x, 0, e.pos.z - to.z).setLength(3) });
+          if (!e.isBoss && !e.isDummy) e.vel.y = Math.max(e.vel.y, 13);
+        }
+        g.fx.splash(to, 4); g.fx.shockwave(to, SEA, R + 0.6);
+        g.shake(0.3);
+        if (!g.audio?.sample?.('splash')) g.audio?.noise({ dur: 0.7, gain: 0.45, type: 'lowpass', freq: 700, sweep: 2600, attack: 0.02, rev: 0.3 });
+      }
+      // the column of water
+      if (burst) for (let i = 0; i < 10; i++) { const a = Math.random() * Math.PI * 2, r = Math.random() * R * 0.5; g.particles.glow.emit(to.x + Math.cos(a) * r, to.y + 0.2, to.z + Math.sin(a) * r, Math.cos(a) * 1.5, 9 + Math.random() * 6, Math.sin(a) * 1.5, 0.7, 0.5, 1.6, 2, 0.2 + Math.random() * 0.15, 14, 1.2, 0.08, Math.random() < 0.5 ? 1 : 0); }
+      return t < 1.1;
+    });
+  }
+  // ---------------------------------------------------------------- Air Bubble
+  // The air bubble he makes under the sea: heroes in it take half damage.
+  bubble() {
+    const g = this.game, p = this.p, rk = this.up('bubble');
+    const dur = 4 + rk, R = 5 + rk;
+    this.cast(0.4, true, { type: 'raise' });
+    for (const h of g.players) {
+      if (h.dead || h.downed || h.pos.distanceTo(p.pos) > R) continue;
+      h.barrierT = Math.max(h.barrierT ?? 0, dur);   // (player.js: half damage while it lasts)
+      g.particles.burst(tmp.copy(h.pos).setY(h.pos.y + 1), { count: 14, color: FOAM, speed: 2, up: 1, life: 0.6, size: 0.22, shape: 1 });
+      g.fx.rings.spawn(tmp.set(h.pos.x, h.pos.y + 1, h.pos.z), { color: FOAM, r0: 0.4, r1: 1.4, dur: 0.4, thick: 0.15 });
+    }
+    g.fx.rings.spawn(tmp.set(p.pos.x, p.pos.y + 0.08, p.pos.z), { color: SEA, r0: 0.5, r1: R, dur: 0.5, thick: 0.08 });
+    g.audio?.tone({ freq: 500, to: 900, dur: 0.25, gain: 0.07, type: 'sine', rev: 0.5 });
+    g.audio?.noise({ dur: 0.5, gain: 0.2, type: 'bandpass', freq: 900, sweep: 300, q: 1 });
   }
   // ---------------------------------------------------------------- Hurricane
   hurricaneStart(g, d) {
@@ -331,4 +407,4 @@ class PercyKit extends Kit {
   }
   dispose() { super.dispose(); if (this.storm) this.hurricaneEnd(this.game); }
 }
-registerKit('percy', PercyKit, PERCY_SKILLS);
+registerKit('percy', PercyKit);

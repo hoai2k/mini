@@ -31,7 +31,8 @@ function legacySave() {
   const row = sword.ench.find((e) => !e.fixed && e.options.length);
   if (row) { row.pick = row.options[0]; row.level = 1; d.enchantPoints -= enchCost(row.pick, 1); }
   d.inventory.push(sword, rollItem(15));
-  s.hero('percy').skills = { tidal: 2 }; s.hero('percy').skillPoints -= 2; s.hero('percy').gear[0] = sword.uid;
+  // (version 1 hero data: the first skill tree's ids, no tree version, no loadout)
+  const ph = s.hero('percy'); delete ph.tree; delete ph.equip; ph.skills = { surge: 2 }; ph.skillPoints -= 2; ph.gear[0] = sword.uid;
   s.hero('annabeth');
   d.completed = { lt1: 2, lt2: 1 };
   d.unlockedHeroes = ['tyson'];
@@ -57,8 +58,10 @@ test('the version 1 save migrates into the main profile with nothing lost', () =
   assert.equal(d.minigames.archery, 37);
   // every old item is there (the main profile's own starter items join them)
   for (const it of legacy.inventory) assert.ok(d.inventory.some((x) => x.uid === it.uid && x.id === it.id && x.power === it.power), it.id);
-  assert.deepEqual(d.heroes.percy.skills, { tidal: 2 });
+  // the skill tree is migrated: Wave Surge's upgrade moved to its new id, points kept, today's abilities equipped
+  assert.deepEqual(d.heroes.percy.skills, { surge_up: 2 });
   assert.equal(d.heroes.percy.skillPoints, legacy.heroes.percy.skillPoints);
+  assert.deepEqual(d.heroes.percy.equip, ['surge', 'tide', 'throw']);
   assert.equal(d.heroes.percy.gear[0], legacy.heroes.percy.gear[0]);
   assert.equal(d.heroes.annabeth.skillPoints, legacy.heroes.annabeth.skillPoints);
   // written, indexed, and the old save is left as it was
@@ -89,11 +92,11 @@ test('merging: union of chapters and unlocks, the higher level, union of items, 
   const shared = rollItem(20); base.inventory.push(shared);
   const onA = played(base, (s, d) => {
     s.addXp(500); d.coins = 50; d.completed = { lt1: 1, lt2: 3 }; d.unlockedHeroes = ['tyson']; d.prophecy = { book1: [0] };
-    d.inventory.push(rollItem(18)); s.hero('percy').skills = { a: 1 }; s.hero('percy').skillPoints -= 1; d.updated = 100; d.rev = 4;
+    d.inventory.push(rollItem(18)); s.hero('percy').skills = { riptide: 1 }; s.hero('percy').skillPoints -= 1; d.updated = 100; d.rev = 4;
   });
   const onB = played(base, (s, d) => {
     s.addXp(200); d.coins = 80; d.completed = { lt1: 2 }; d.unlockedHeroes = ['clarisse']; d.prophecy = { book1: [1] };
-    d.inventory.push(rollItem(19)); s.hero('percy').skills = { b: 2 }; s.hero('percy').skillPoints -= 2; d.updated = 200; d.rev = 2;
+    d.inventory.push(rollItem(19)); s.hero('percy').skills = { jet: 2 }; s.hero('percy').skillPoints -= 2; d.updated = 200; d.rev = 2;
   });
   const m = mergeProfiles(onA, onB);
   assert.equal(m.id, 'anaanaana1');
@@ -107,7 +110,7 @@ test('merging: union of chapters and unlocks, the higher level, union of items, 
   assert.equal(new Set(uids).size, uids.length, 'no item twice');
   assert.equal(m.inventory.length, base.inventory.length + 2);
   assert.ok(uids.includes(shared.uid));
-  assert.deepEqual(m.heroes.percy.skills, { a: 1, b: 2 });
+  assert.deepEqual(m.heroes.percy.skills, { riptide: 1, jet: 2 });   // (real tree ids: merged ranks now follow the tree's rules)
   assert.equal(m.heroes.percy.skillPoints, m.level - 3, 'skill points: level minus ranks spent');
   assert.equal(m.enchantPoints, m.level - m.inventory.reduce((s, it) => s + spentPoints(it), 0));
   assert.equal(m.rev, 5);

@@ -51,7 +51,7 @@ export class HUD {
   humans() { const g = this.game; const hs = g.players.filter((p) => !p.ai); return hs.length ? hs : g.players; }
   signature() {
     const g = this.game;
-    return this.humans().map((p) => `${p.index}:${p.hero}:${p.device}:${p.kit?.constructor?.name}:${p.artifacts.map((a) => a.it.uid).join('.')}`).join('|') +
+    return this.humans().map((p) => `${p.index}:${p.hero}:${p.device}:${p.kit?.constructor?.name}:${['t1', 't2', 't3'].map((k) => p.kit?.slots?.[k]?.power).join('.')}:${p.artifacts.map((a) => a.it.uid).join('.')}`).join('|') +
       '#' + (g.party ?? []).map((q) => q.hero + (q.ai ? 'a' : 'h')).join(',');
   }
   rebuildCards() {

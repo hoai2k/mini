@@ -5,6 +5,10 @@
 //        slams them down at the end.
 //   2    War Cry: the whole team deals +25% damage for 8 s.
 //   3    Boar Shield Bash: a cone of shield bash that stuns.
+//   Learned in the skill tree (any power can go in any of 1 · 2 · 3):
+//        Chain Lightning: a bolt that leaps from monster to monster.
+//        Battle Frenzy: harder melee hits that heal her, for a while.
+//        Hold the Line: half damage, and lightning zaps the monsters round her.
 //   F    Ares's Fury: a burning rampage — every hit sets monsters on fire,
 //        she strikes faster and steals life.
 import * as THREE from 'three/webgpu';
@@ -14,15 +18,7 @@ import { registerKit } from './index.js';
 const RED = 0xd0402a, VOLT = 0xffd84a, FIRE = 0xff6a1a;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
-export const CLARISSE_SKILLS = [
-  { id: 'spear', name: 'Maimer', desc: '+8% melee damage per rank.', max: 3 },
-  { id: 'volt', name: 'Live Current', desc: 'Spear Lightning reaches further and stuns longer.', max: 3 },
-  { id: 'charge', name: 'Battering Ram', desc: 'Charge goes further and slams harder.', max: 2 },
-  { id: 'cry', name: 'Battle Cry', desc: 'War Cry lasts 2s longer and heals the team a little.', max: 2 },
-  { id: 'bash', name: 'Boar Shield', desc: 'Shield Bash is wider and stuns longer.', max: 2 },
-  { id: 'tough', name: 'Cabin Five', desc: '+10 max HP and +3% armour per rank.', max: 3 },
-  { id: 'fury', name: 'Blood of Ares', desc: "Ares's Fury lasts 1.5s longer and burns hotter.", max: 2 },
-];
+// The skill tree (and the new powers' numbers) is in skillRules.js.
 
 class ClarisseKit extends Kit {
   constructor(p) {
@@ -39,9 +35,14 @@ class ClarisseKit extends Kit {
     this.p.stats.armor = Math.min(0.7, this.p.stats.armor + r('tough') * 0.03);
     this.slots = {
       ranged: this.ability({ name: 'Spear Lightning', icon: '⚡', cd: 1.1, ce: 0, use: () => this.lightning() }),
-      t1: this.ability({ name: 'Charge', icon: '🐗', cd: 6, ce: 10, use: () => this.charge() }),
-      t2: this.ability({ name: 'War Cry', icon: '📣', cd: 15, ce: 14, use: () => this.warCry() }),
-      t3: this.ability({ name: 'Shield Bash', icon: '🛡️', cd: 8, ce: 12, use: () => this.bash() }),
+      ...this.equipSlots({
+        charge: this.ability({ name: 'Charge', icon: '🐗', cd: 6, ce: 10, use: () => this.charge() }),
+        cry: this.ability({ name: 'War Cry', icon: '📣', cd: 15, ce: 14, use: () => this.warCry() }),
+        bash: this.ability({ name: 'Shield Bash', icon: '🛡️', cd: 8, ce: 12, use: () => this.bash() }),
+        chain: this.ability({ name: 'Chain Lightning', icon: '🌩️', cd: 7, ce: 12, use: () => this.chain() }),
+        frenzy: this.ability({ name: 'Battle Frenzy', icon: '😤', cd: 16, ce: 14, use: () => this.frenzy() }),
+        hold: this.ability({ name: 'Hold the Line', icon: '🔱', cd: 15, ce: 14, use: () => this.holdLine() }),
+      }),
     };
     this.domain = {
       name: "Ares's Fury", icon: '🔥', key: 'ares_fury', world: false, sureHit: false, type: 0, color: RED, sound: 'fire', flash: 0xff5a2a,
@@ -54,11 +55,12 @@ class ClarisseKit extends Kit {
   tip(out = new THREE.Vector3()) { const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 1.8, p.pos.y + 1.3, p.pos.z + Math.cos(p.facing) * 1.8); }
   onMeleeHit(e, step) {
     const g = this.game;
+    if (this.frenzyT > 0) this.p.heal(2 + this.up('frenzy'), true);
     if (step.zap) { const at = e.pos.clone().setY(e.pos.y + (e.height ?? 1.5) * 0.6); zap(g, this.tip(), at, VOLT, 0.1, 0.12, 3); }
   }
   outgoing(e, o) {
     if (this.fury && !o.burn) burn(e, 3, 10 + this.rank('fury') * 4, this.p, this.game);
-    return this.fury ? 1.2 : 1;
+    return (this.fury ? 1.2 : 1) * (this.frenzyT > 0 && o.melee ? 1.3 : 1);
   }
   // ---------------------------------------------------------------- Spear Lightning
   lightning() {
@@ -90,7 +92,7 @@ class ClarisseKit extends Kit {
   }
   // ---------------------------------------------------------------- Charge
   charge() {
-    const g = this.game, p = this.p, rk = this.rank('charge');
+    const g = this.game, p = this.p, rk = this.rank('charge_up');
     const dir = p.aimDir.clone().setY(0).normalize();
     const dur = 0.4 + rk * 0.06, speed = 20;
     p.facing = Math.atan2(dir.x, dir.z);
@@ -126,7 +128,7 @@ class ClarisseKit extends Kit {
   }
   // ---------------------------------------------------------------- War Cry
   warCry() {
-    const g = this.game, p = this.p, rk = this.rank('cry');
+    const g = this.game, p = this.p, rk = this.rank('cry_up');
     const dur = 8 + rk * 2;
     teamBuff(g, 'warCry', dur);
     this.cryT = dur;
@@ -150,12 +152,67 @@ class ClarisseKit extends Kit {
       this.cryT -= dt;
       for (const pl of g.players) if (!pl.dead && Math.random() < dt * 5) g.particles.glow.emit(pl.pos.x + (Math.random() - 0.5) * 0.6, pl.pos.y + 0.2, pl.pos.z + (Math.random() - 0.5) * 0.6, 0, 2, 0, 0.6, 2.4, 0.5, 0.3, 0.12, 0, 1, 0.05, 3);
     }
+    if (this.frenzyT > 0) { this.frenzyT -= dt; if (Math.random() < dt * 12) g.particles.glow.emit(p.pos.x + (Math.random() - 0.5) * 0.8, p.pos.y + Math.random() * 2, p.pos.z + (Math.random() - 0.5) * 0.8, 0, 1.5, 0, 0.4, 2.6, 0.4, 0.2, 0.14, 0, 1, 0.1, 0); }
+    if (this.holdT > 0) {
+      this.holdT -= dt; this.zapT -= dt;
+      if (this.zapT <= 0) {
+        this.zapT = 0.5;
+        const near = g.enemies.filter((e) => !e.dead && !e.untargetable && e.pos.distanceTo(p.pos) < 5.5).sort((a, b) => a.pos.distanceToSquared(p.pos) - b.pos.distanceToSquared(p.pos)).slice(0, 3);
+        const from = p.pos.clone().setY(p.pos.y + 2.2);
+        for (const e of near) { zap(g, from, e.pos.clone().setY(e.pos.y + (e.height ?? 1.5) * 0.6), VOLT, 0.12, 0.14, 4); g.combat.damageEnemy(e, 8 + this.up('hold') * 3, p, { stagger: 0.2, color: '#ffe24a', ceGain: 0.5 }); }
+        if (near.length) g.audio?.noise({ dur: 0.12, gain: 0.15, type: 'highpass', freq: 3000, sweep: 6000, q: 0.7 });
+      }
+    }
     // the spear tip crackles
     if (Math.random() < dt * 3) { const t = this.tip(); zap(g, t, t.clone().add(tmp.set((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8)), VOLT, 0.05, 0.08, 2); }
   }
+  // ---------------------------------------------------------------- Chain Lightning
+  // A bolt from the spear to the aimed monster, then on to the next nearest
+  // one it hasn't hit, and so on.
+  chain() {
+    const g = this.game, p = this.p, rk = this.up('chain');
+    const first = this.targetInAim(11, 0.6);
+    if (!first) { g.audio?.ui('back'); return false; }
+    p.facing = Math.atan2(first.pos.x - p.pos.x, first.pos.z - p.pos.z);
+    p.action = { type: 'attack', step: { style: 'punch', strike: 0.4, windup: 0.25 }, style: 'punch', dur: 0.32, elapsed: 0, t: 0, windup: 0.25, strike: 0.4, struck: true, moveScale: 0.3 };
+    const n = 4 + rk, dmg = 22 + rk * 6, hit = new Set();
+    let from = this.tip(), e = first;
+    for (let i = 0; i < n && e; i++) {
+      const at = e.pos.clone().setY(e.pos.y + (e.height ?? 1.5) * 0.6);
+      zap(g, from, at, VOLT, 0.18, 0.2, 6); zap(g, from, at, 0xffffff, 0.06, 0.14, 4);
+      g.combat.damageEnemy(e, dmg * (1 - i * 0.1), p, { stagger: 0.4, color: '#ffe24a' });
+      stun(e, 0.4);
+      hit.add(e); from = at;
+      let next = null, bd = 6;
+      for (const q of g.enemies) { if (q.dead || q.untargetable || hit.has(q)) continue; const d = q.pos.distanceTo(e.pos); if (d < bd) { bd = d; next = q; } }
+      e = next;
+    }
+    g.lights.flash(from, VOLT, 8, 8, 0.15, { priority: 4 });
+    g.audio?.noise({ dur: 0.35, gain: 0.35, type: 'highpass', freq: 2500, sweep: 6000, q: 0.7 });
+  }
+  // ---------------------------------------------------------------- Battle Frenzy
+  frenzy() {
+    const g = this.game, p = this.p;
+    this.frenzyT = 6 + this.up('frenzy');
+    this.cast(0.4, true, { type: 'raise' });
+    g.fx.shockwave(p.pos, RED, 3);
+    g.particles.burst(tmp.copy(p.pos).setY(p.pos.y + 1), { count: 20, color: RED, speed: 4, up: 1.5, life: 0.5, size: 0.14, shape: 3 });
+    g.audio?.tone({ freq: 140, to: 220, dur: 0.4, gain: 0.18, type: 'sawtooth', filter: 1000, rev: 0.3 });
+  }
+  // ---------------------------------------------------------------- Hold the Line
+  holdLine() {
+    const g = this.game, p = this.p;
+    const dur = 4 + this.up('hold');
+    this.holdT = dur; this.zapT = 0.2;
+    p.barrierT = Math.max(p.barrierT ?? 0, dur);   // (player.js: half damage while it lasts)
+    this.cast(0.5, true, { type: 'raise' });
+    g.fx.shockwave(p.pos, VOLT, 5.5);
+    zap(g, p.pos.clone().setY(p.pos.y + 9), p.pos.clone().setY(p.pos.y + 2.2), VOLT, 0.2, 0.2, 6);
+    g.audio?.noise({ dur: 0.5, gain: 0.4, type: 'lowpass', freq: 3000, sweep: 100, rev: 0.4 });
+  }
   // ---------------------------------------------------------------- Shield Bash
   bash() {
-    const g = this.game, p = this.p, rk = this.rank('bash');
+    const g = this.game, p = this.p, rk = this.rank('bash_up');
     p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
     p.action = { type: 'attack', step: { style: 'swingL', strike: 0.45, windup: 0.25, lunge: 8 }, style: 'swingL', dur: 0.4, elapsed: 0, t: 0, windup: 0.25, strike: 0.45, struck: true, moveScale: 0.2 };
     const arc = 0.9 + rk * 0.2, R = 3.6;
@@ -215,4 +272,4 @@ class ClarisseKit extends Kit {
   }
   dispose() { super.dispose(); if (this.fury) this.furyEnd(this.game); }
 }
-registerKit('clarisse', ClarisseKit, CLARISSE_SKILLS);
+registerKit('clarisse', ClarisseKit);

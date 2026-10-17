@@ -138,6 +138,34 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     alarm is up), and come back to you when it's over. Monsters notice
     players, not companions, so a companion walking behind you never wakes a
     group or a scout; you pick every fight.
+- **Skill trees:** each hero has a tree of three branches (Percy: Riptide,
+  Tides, Son of the Sea; Annabeth: Stealth, Strategy, Workshop; Grover: Wild,
+  Reed Pipes, Satyr; Tyson: Fists, Cyclops Hide, Forge and Sea; Clarisse:
+  Spear, Ares, Cabin Five), opened from the pause menu or Chiron in camp.
+  - A node is a **new power** (an ability for the 1 · 2 · 3 slots), an
+    **upgrade** (ranks that improve a power, the ranged move or the godly
+    power) or a **passive**. Every hero starts with three powers (the ones it
+    always had, equipped) and can learn three more, one in each branch:
+    Percy Disarming Strike, Geyser and Air Bubble; Annabeth Flank, Battle
+    Orders and the Bronze Automaton; Grover Briar Burst, Lullaby and the
+    Tin-Can Snack; Tyson Thunder Clap, Iron Skin and Call Rainbow; Clarisse
+    Chain Lightning, Battle Frenzy and Hold the Line.
+  - One point a level, for every hero alike. A rank costs 1; learning a power
+    costs 2 and each later rank of it 1. A tree costs about 30 points, so at
+    the end of Book 1 (around level 14) a hero has under half of it. A node
+    can need another first, and a tier-2 node needs 2 points spent in the
+    branch's tier-1 nodes (a tier-3 node, the godly power's upgrade, needs 5).
+  - **Equip:** the three slots are at the top of the screen; pick a slot, then
+    any power the hero knows (one already slotted swaps over). A power keeps
+    its own cooldown when it moves; one new to a slot takes over what was
+    left on the slot's last one, so a swap never hands out a fresh ability.
+  - **Reset:** free, but only in camp, so a build can be tried out at leisure
+    while what you take into a chapter is what you fight with there.
+  - AI companions use whatever their hero has equipped. Online, each screen
+    keeps its own players' trees and nothing more is sent.
+  - Older saves keep what they had bought (the starter abilities' upgrades
+    moved to new ids, and the three abilities stay equipped); a rank whose new
+    tier gate isn't met is refunded.
   - Companions don't walk off ledges (they slide along the edge, and dodge
     only where there's floor to land on).
   - A boss's health grows with the party: 60% more for each extra player,
@@ -397,7 +425,7 @@ across every screen.
 | Path | What |
 | --- | --- |
 | `game/index.html`, `game/style.css`, `game/js/` | The game: plain ES modules and Three.js r186 from a CDN, with no build step. It started from Cursed Dungeons (`hoai2k/francis`). |
-| `game/js/heroes/` | The hero kits |
+| `game/js/heroes/` | The hero kits; `skillRules.js` the skill trees and their rules (costs, requirements, gates, loadouts, reset, save migration), pure and tested; the screen is `game/js/ui/skills.js` |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
 | `game/js/world/encounters.js`, `game/js/entities/packRules.js` | The battle cadence: each room's part (group, battleground, strays, breather, guard, trap), group sizes and role mix, where groups and scouts stand; how a group notices you and joins in |

@@ -9,6 +9,10 @@
 //        him) and bats arrows back.
 //   3    Forge Fire: immune to fire and burning, and for 8 s the whole team's
 //        melee hits deal +30% with fiery sparks.
+//   Learned in the skill tree (any power can go in any of 1 · 2 · 3):
+//        Thunder Clap: a stunning shock wave in front of him.
+//        Iron Skin: half damage, no knock-back, and Power from every hit taken.
+//        Call Rainbow: his hippocampus friend tramples a line of monsters.
 //   F    Big Brother: grows huge and unstoppable; every punch launches.
 import * as THREE from 'three/webgpu';
 import { Kit, teamBuff, buffOn, stun } from './kit.js';
@@ -18,16 +22,7 @@ import { BLOCKS } from '../world/blocks.js';
 const BRONZE = 0xc9963a, FIRE = 0xff7a2a, EMBER = 0xffb04a;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
-export const TYSON_SKILLS = [
-  { id: 'fists', name: 'Heavy Hands', desc: '+8% melee damage per rank.', max: 3 },
-  { id: 'mighty', name: 'Mighty Blow', desc: 'Wider timing window for Mighty Blows.', max: 3 },
-  { id: 'mighty_ce', name: 'Smith\'s Rhythm', desc: 'Mighty Blows restore Power.', max: 2, req: 'mighty' },
-  { id: 'vitality', name: 'Cyclops Hide', desc: '+15 max HP per rank.', max: 3 },
-  { id: 'boulder', name: 'Bigger Boulders', desc: 'Boulders are bigger and burst on landing.', max: 2 },
-  { id: 'pound', name: 'Earthshaker', desc: 'Ground Pound covers more ground and hits harder.', max: 2 },
-  { id: 'shield', name: 'Hephaestus Steel', desc: 'Watch Shield lasts 1s longer per rank.', max: 2 },
-  { id: 'brother', name: 'Big Brother', desc: 'Big Brother lasts 2s longer.', max: 1 },
-];
+// The skill tree (and the new powers' numbers) is in skillRules.js.
 
 class TysonKit extends Kit {
   constructor(p) {
@@ -45,9 +40,14 @@ class TysonKit extends Kit {
     this.speedMul = 0.92;
     this.slots = {
       ranged: this.ability({ name: 'Boulder', icon: '🪨', cd: 2.2, ce: 0, use: () => this.boulder() }),
-      t1: this.ability({ name: 'Ground Pound', icon: '👊', cd: 6, ce: 12, use: () => this.pound() }),
-      t2: this.ability({ name: 'Watch Shield', icon: '🛡️', cd: 10, ce: 12, use: () => this.shield() }),
-      t3: this.ability({ name: 'Forge Fire', icon: '🔥', cd: 18, ce: 20, use: () => this.forge() }),
+      ...this.equipSlots({
+        pound: this.ability({ name: 'Ground Pound', icon: '👊', cd: 6, ce: 12, use: () => this.pound() }),
+        shield: this.ability({ name: 'Watch Shield', icon: '🛡️', cd: 10, ce: 12, use: () => this.shield() }),
+        forge: this.ability({ name: 'Forge Fire', icon: '🔥', cd: 18, ce: 20, use: () => this.forge() }),
+        clap: this.ability({ name: 'Thunder Clap', icon: '👏', cd: 8, ce: 12, use: () => this.clap() }),
+        ironskin: this.ability({ name: 'Iron Skin', icon: '🗿', cd: 16, ce: 12, use: () => this.ironSkin() }),
+        rainbow: this.ability({ name: 'Call Rainbow', icon: '🐴', cd: 14, ce: 16, use: () => this.rainbow() }),
+      }),
     };
     this.domain = {
       name: 'Big Brother', icon: '💪', key: 'big_brother', world: false, sureHit: false, type: 0, color: FIRE, sound: 'fire', flash: 0xffc070,
@@ -96,6 +96,7 @@ class TysonKit extends Kit {
       if (sh) sh.scale.setScalar(Math.min(1, (this.shieldMax - this.shieldT) * 8, this.shieldT * 6 + 0.05));
       if (this.shieldT <= 0) { if (sh) sh.visible = false; if (g.pjShield?.owner === p) g.pjShield = null; }
     }
+    if (this.ironT > 0) { this.ironT -= dt; if (Math.random() < dt * 10) g.particles.glow.emit(p.pos.x + (Math.random() - 0.5) * 1.1, p.pos.y + Math.random() * 2.4, p.pos.z + (Math.random() - 0.5) * 1.1, 0, 0.4, 0, 0.5, 1.6, 1.2, 0.7, 0.14, 0, 1, 0.1, 3); }
     // Forge Fire glow
     if (this.forgeT > 0) {
       this.forgeT -= dt;
@@ -141,6 +142,7 @@ class TysonKit extends Kit {
         return 0;
       }
     }
+    if (this.ironT > 0) { o.noKnock = true; if (!o.dot) p.gainCE(3 + this.up('ironskin')); }
     if (this.growing) { o.noKnock = true; o.dot = true; return amount * 0.5; }
     return amount;
   }
@@ -165,7 +167,7 @@ class TysonKit extends Kit {
   }
   // ---------------------------------------------------------------- Ground Pound
   pound() {
-    const g = this.game, p = this.p, rk = this.rank('pound');
+    const g = this.game, p = this.p, rk = this.rank('pound_up');
     const R = 4 + rk * 0.8 + (this.growing ? 1.5 : 0);
     p.action = { type: 'attack', step: { style: 'slam', strike: 0.6, windup: 0.42 }, style: 'slam', dur: 0.6, elapsed: 0, t: 0, windup: 0.42, strike: 0.6, struck: true, moveScale: 0.1 };
     p.vel.y = 7;
@@ -186,7 +188,7 @@ class TysonKit extends Kit {
   // ---------------------------------------------------------------- Watch Shield
   shield() {
     const g = this.game, p = this.p;
-    this.shieldMax = this.shieldT = 3 + this.rank('shield');
+    this.shieldMax = this.shieldT = 3 + this.rank('shield_up');
     g.pjShield = { owner: p, until: g.time + this.shieldT };
     const sh = p.rig.extras.shield; if (sh) { sh.visible = true; sh.scale.setScalar(0.05); }
     this.cast(0.3, false, { moveScale: 0.6 });
@@ -197,8 +199,9 @@ class TysonKit extends Kit {
   // ---------------------------------------------------------------- Forge Fire
   forge() {
     const g = this.game, p = this.p;
-    this.forgeT = 8;
-    teamBuff(g, 'forge', 8);
+    const dur = 8 + this.rank('forge_up') * 2;
+    this.forgeT = dur;
+    teamBuff(g, 'forge', dur);
     this.cast(0.6, true, { type: 'raise' });
     for (const e of [p, ...g.players.filter((x) => x !== p)]) g.particles.burst(tmp.copy(e.pos).setY(e.pos.y + 1), { count: 24, color: FIRE, speed: 4, up: 2, life: 0.6, size: 0.14, shape: 3 });
     g.fx.shockwave(p.pos, FIRE, 4);
@@ -207,6 +210,74 @@ class TysonKit extends Kit {
     g.audio?.tone({ freq: 1800, dur: 0.15, gain: 0.06, type: 'square', filter: 4000 });
     g.audio?.tone({ freq: 1800, dur: 0.15, gain: 0.05, type: 'square', filter: 4000, at: 0.2 });
     g.toast?.('Forge Fire: the team hits harder');
+  }
+  // ---------------------------------------------------------------- Thunder Clap
+  clap() {
+    const g = this.game, p = this.p, rk = this.up('clap');
+    p.facing = Math.atan2(p.aimDir.x, p.aimDir.z);
+    this.cast(0.45, true);
+    const R = 5 + (this.growing ? 1.5 : 0), arc = 0.8, hold = 1.2 + rk * 0.3, dmg = 26 + rk * 10;
+    setTimeout(() => {
+      if (p.dead) return;
+      const dir = new THREE.Vector3(Math.sin(p.facing), 0, Math.cos(p.facing));
+      let n = 0;
+      for (const e of g.combat.query(p.pos, dir, R, arc)) {
+        g.combat.damageEnemy(e, dmg, p, { knock: tmp.subVectors(e.pos, p.pos).setY(0).normalize().multiplyScalar(8), stagger: 0.6 });
+        stun(e, hold); n++;
+      }
+      const c = p.pos.clone().addScaledVector(dir, 1.2);
+      g.fx.slashArc(p.pos, p.facing, EMBER, R, arc / Math.PI, 0.3);
+      g.fx.shockwave(c, BRONZE, 3);
+      g.fx.screenWave(c.clone().setY(c.y + 1.3), 0.5, 0.3);
+      g.combat.hitBlocks(p.pos, dir, R, arc, 20, p);
+      if (n) g.hitStop(0.05);
+      g.shake(0.35);
+      g.audio?.impact(1.6, 'crit');
+      g.audio?.noise({ dur: 0.3, gain: 0.45, type: 'highpass', freq: 900, sweep: 300, q: 0.7 });
+    }, 180);
+  }
+  // ---------------------------------------------------------------- Iron Skin
+  ironSkin() {
+    const g = this.game, p = this.p, rk = this.up('ironskin');
+    const dur = 5 + rk;
+    this.ironT = dur; p.barrierT = Math.max(p.barrierT ?? 0, dur);   // (player.js: half damage while it lasts)
+    this.cast(0.5, true, { type: 'raise' });
+    g.fx.shockwave(p.pos, 0x8a8f99, 3);
+    g.particles.burst(tmp.copy(p.pos).setY(p.pos.y + 1.2), { count: 20, color: 0xc0c8d0, speed: 3, life: 0.5, size: 0.12, shape: 3 });
+    g.audio?.tone({ freq: 220, to: 110, dur: 0.4, gain: 0.15, type: 'square', filter: 900 });
+    g.audio?.impact(1.2);
+  }
+  // ---------------------------------------------------------------- Call Rainbow
+  // Rainbow the hippocampus answers his whistle: a surge of seawater races
+  // along the aim line and tramples what's in it.
+  rainbow() {
+    const g = this.game, p = this.p, rk = this.up('rainbow');
+    const L = 12 + rk * 2, dmg = 30 + rk * 12, sp = 22;
+    const dir = p.aimDir.clone().setY(0).normalize(), start = p.pos.clone().addScaledVector(dir, -1.5);
+    this.cast(0.4);
+    g.audio?.tone({ freq: 1800, to: 2600, dur: 0.18, gain: 0.07, type: 'sine' });
+    g.audio?.tone({ freq: 2200, to: 1600, dur: 0.2, gain: 0.06, type: 'sine', at: 0.2 });
+    const hit = new Set();
+    let t = 0;
+    g.addUpdater((dt) => {
+      t += dt;
+      const d = Math.min(L, t * sp), at = tmp.copy(start).addScaledVector(dir, d);
+      // the rushing water, with a glint of rainbow scales at its head
+      for (let i = 0; i < 12; i++) {
+        const s = (Math.random() - 0.5) * 2.4, back = Math.random() * 1.5;
+        g.particles.glow.emit(at.x - dir.z * s - dir.x * back, at.y + Math.random() * 1.6, at.z + dir.x * s - dir.z * back, dir.x * 8, 2 + Math.random() * 3, dir.z * 8, 0.5, 0.4, 1.4, 1.8, 0.2, 10, 1.2, 0.08, 1);
+      }
+      if (Math.random() < 0.6) g.particles.glow.emit(at.x, at.y + 1.2, at.z, dir.x * 6, 1, dir.z * 6, 0.35, Math.random() * 2, Math.random() * 2, Math.random() * 2, 0.18, 0, 1, 0.05, 3);
+      for (const e of g.enemies) {
+        if (e.dead || hit.has(e) || e.pos.distanceTo(at) > 1.8 + e.radius) continue;
+        hit.add(e);
+        g.combat.damageEnemy(e, dmg, p, { knock: dir.clone().multiplyScalar(12).setY(4), stagger: 0.8 });
+        g.fx.splash(e.pos, 1.5);
+      }
+      if (d >= L) { g.fx.splash(at, 3); return false; }
+      return true;
+    });
+    g.shake(0.2);
   }
   // ---------------------------------------------------------------- Big Brother
   growStart(g) {
@@ -243,4 +314,4 @@ class TysonKit extends Kit {
     if (this.game.pjShield?.owner === this.p) this.game.pjShield = null;
   }
 }
-registerKit('tyson', TysonKit, TYSON_SKILLS);
+registerKit('tyson', TysonKit);
