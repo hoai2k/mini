@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Stand-in icon until the requested art arrives (design/image-requests.md). -->
+  <defs>
+    <radialGradient id="g" cx="35%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#00b8ff"/>
+      <stop offset="0.75" stop-color="#1652f0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="256" fill="url(#g)"/>
+  <g fill="#fff">
+    <path d="M256 168c-34-22-78-30-124-26v204c46-4 90 4 124 26z"/>
+    <path d="M256 168c34-22 78-30 124-26v204c-46-4-90 4-124 26z" opacity="0.82"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity="0.9">
+    <path d="M96 196a190 190 0 0 0 0 120"/>
+    <path d="M416 196a190 190 0 0 1 0 120"/>
+  </g>
+</svg>

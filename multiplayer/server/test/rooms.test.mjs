@@ -199,3 +199,20 @@ test("transcribe checks the audio before calling Whisper", async () => {
   assert.ok([502, 503].includes(ok.status), `status ${ok.status}`);
   assert.equal((await fetch(`${BASE}/transcribe`)).status, 405);
 });
+
+// Bookzam: without Workers AI or an Anthropic key (local dev has neither) the
+// routes check the photo and answer 502 or 503.
+test("bookzam checks the photo before calling a model", async () => {
+  const post = (mode, body) => fetch(`${BASE}/bookzam/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const image = Buffer.alloc(3000, 7).toString("base64");
+  assert.equal((await post("scan", {})).status, 400);
+  assert.equal((await post("scan", { image: "not base64!", width: 800, height: 600 })).status, 400);
+  assert.equal((await post("scan", { image, width: 4000, height: 600 })).status, 400);
+  assert.equal((await post("find", { image, width: 800, height: 600 })).status, 400, "find needs a query");
+  assert.ok([502, 503].includes((await post("scan", { image, width: 800, height: 600 })).status));
+  assert.ok([502, 503].includes((await post("find", { image: `data:image/jpeg;base64,${image}`, width: 800, height: 600, query: "Dune" })).status));
+  assert.equal((await post("other", { image, width: 800, height: 600 })).status, 404);
+  assert.equal((await fetch(`${BASE}/bookzam/scan`)).status, 405);
+  const blocked = await fetch(`${BASE}/bookzam/scan`, { method: "POST", headers: { Origin: "https://evil.example" }, body: "{}" });
+  assert.equal(blocked.status, 403);
+});

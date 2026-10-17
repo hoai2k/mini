@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Bookzam](https://hoai2k.github.io/mini/bookzam/)** · [`bookzam/`](bookzam/README.md): snap a shelf to catalogue its books and board games, or find the one you want
 - **[Music Practice](https://hoai2k.github.io/mini/musicpractice/)** · [`musicpractice/`](musicpractice/README.md): a metronome, a tuner, a drone and a recorder that plays your takes back
 - **[Half-Blood Quests](https://hoai2k.github.io/mini/percyjackson/)** · [`percyjackson/`](percyjackson/README.md): a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons
 - **[Ear Trainer](https://hoai2k.github.io/mini/eartrainer/)** · [`eartrainer/`](eartrainer/README.md): hear a melody, play it back on the piano

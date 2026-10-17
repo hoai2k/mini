@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bookzam</title>
+<meta name="description" content="Snap your shelves: Bookzam reads every book and board game in a photo into a catalogue, and circles the one you're looking for.">
+<meta name="theme-color" content="#1652f0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bookzam">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="Bookzam">
+<meta property="og:description" content="Shazam for books: snap a shelf, get a catalogue, find the book you want.">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img class="mark" src="icons/icon.svg" alt="" width="34" height="34">
+    <span class="wordmark">Book<b>zam</b></span>
+  </div>
+  <button type="button" class="icon-btn" id="menu-btn" aria-label="Menu" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+  </button>
+</header>
+
+<main>
+  <!-- Catalogue -->
+  <section class="view" id="view-catalogue" aria-labelledby="tab-catalogue">
+    <div class="segmented" role="tablist" aria-label="Catalogue">
+      <button type="button" role="tab" id="seg-books" aria-selected="true" data-kind="books">Books <span class="count" id="count-books">0</span></button>
+      <button type="button" role="tab" id="seg-games" aria-selected="false" data-kind="games">Board games <span class="count" id="count-games">0</span></button>
+    </div>
+
+    <div class="toolbar" id="toolbar" hidden>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        <input type="search" id="search" placeholder="Search" autocomplete="off" enterkeyhint="search" aria-label="Search the catalogue">
+      </label>
+      <select id="sort" aria-label="Sort">
+        <option value="added">Newest</option>
+        <option value="title">Title</option>
+        <option value="author">Author</option>
+      </select>
+    </div>
+
+    <div id="jobs" class="jobs" aria-live="polite"></div>
+
+    <ul class="items" id="items"></ul>
+
+    <div class="empty" id="empty">
+      <button type="button" class="big-round" data-add aria-label="Add a photo">
+        <span class="pulse" aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <h2 id="empty-title">Snap a shelf</h2>
+      <p id="empty-text">Take a photo of your books or board games, spines facing you. Bookzam reads every title it can and adds them here. Add as many photos as you like.</p>
+    </div>
+    <p class="none-match" id="none-match" hidden>Nothing matches that search.</p>
+
+    <button type="button" class="fab" id="fab" data-add aria-label="Add a photo" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <input type="file" id="add-input" accept="image/*" multiple hidden>
+  </section>
+
+  <!-- Find Book -->
+  <section class="view" id="view-find" aria-labelledby="tab-find" hidden>
+    <form class="find-form" id="find-form" autocomplete="off">
+      <label for="find-query">Which book are you looking for?</label>
+      <div class="find-row">
+        <input id="find-query" name="q" list="find-suggest" placeholder="Title or author" maxlength="200" enterkeyhint="go" required>
+        <datalist id="find-suggest"></datalist>
+      </div>
+    </form>
+
+    <div class="find-start" id="find-start">
+      <button type="button" class="big-round" id="find-shoot" aria-label="Take a photo of the shelf">
+        <span class="pulse" aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>
+      </button>
+      <p class="hint" id="find-hint">Type a title, then tap to photograph the shelf.</p>
+    </div>
+
+    <div class="stage" id="stage" hidden>
+      <div class="frame" id="frame">
+        <div class="zoomer" id="zoomer">
+          <canvas id="stage-canvas"></canvas>
+          <svg class="overlay" id="overlay" aria-hidden="true"></svg>
+        </div>
+        <div class="sweep" id="sweep" aria-hidden="true"></div>
+      </div>
+      <div class="verdict" id="verdict" aria-live="polite"></div>
+      <div class="chips" id="similar"></div>
+      <div class="stage-actions">
+        <button type="button" class="btn" id="find-again">Search this photo again</button>
+        <button type="button" class="btn primary" id="find-new">New photo</button>
+      </div>
+    </div>
+    <input type="file" id="find-input" accept="image/*" hidden>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Bookzam">
+  <button type="button" role="tab" id="tab-catalogue" aria-selected="true" data-view="catalogue">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3v16H5zM10 4h3v16h-3zM15.2 4.6l2.9-.8 3.9 15.5-2.9.8z"/></svg>
+    Catalogue
+  </button>
+  <button type="button" role="tab" id="tab-find" aria-selected="false" data-view="find">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+    Find Book
+  </button>
+</nav>
+
+<!-- One item -->
+<dialog class="sheet" id="item-sheet" aria-labelledby="item-title-label">
+  <form method="dialog" class="sheet-body" id="item-form">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="item-head">
+      <div class="cover big" id="item-cover"></div>
+      <div class="item-fields">
+        <label id="item-title-label">Title<input id="item-title" name="title" required></label>
+        <label id="item-by-label"><span id="item-by-name">Author</span><input id="item-by" name="by"></label>
+      </div>
+    </div>
+    <dl class="facts" id="item-facts"></dl>
+    <div class="links" id="item-links"></div>
+    <div class="photo-strip" id="item-photos"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn primary" id="item-find">Find on shelf</button>
+      <button type="button" class="btn" id="item-move">Move to board games</button>
+      <button type="button" class="btn" id="item-relookup">Look up again</button>
+      <button type="button" class="btn danger" id="item-delete">Delete</button>
+    </div>
+    <button type="submit" class="btn close">Done</button>
+  </form>
+</dialog>
+
+<!-- Menu -->
+<dialog class="sheet" id="menu-sheet" aria-label="Menu">
+  <form method="dialog" class="sheet-body">
+    <div class="grab" aria-hidden="true"></div>
+    <h2>Your catalogue</h2>
+    <p class="muted" id="menu-summary"></p>
+    <div class="menu-list">
+      <button type="button" class="menu-item" id="export-books">Export books as JSON</button>
+      <button type="button" class="menu-item" id="export-games">Export board games as JSON</button>
+      <button type="button" class="menu-item" id="show-photos">Photos</button>
+      <button type="button" class="menu-item danger" id="clear-all">Clear the catalogue</button>
+    </div>
+    <h3>About</h3>
+    <p class="muted small">Your catalogue stays on this device. Photos are sent to Bookzam's server only to be read, and aren't kept there. Book details and covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>.</p>
+    <p class="muted small" id="menu-reader"></p>
+    <button type="submit" class="btn close">Close</button>
+  </form>
+</dialog>
+
+<!-- Photos -->
+<dialog class="sheet" id="photos-sheet" aria-label="Photos">
+  <form method="dialog" class="sheet-body">
+    <div class="grab" aria-hidden="true"></div>
+    <h2>Photos</h2>
+    <p class="muted small">Deleting a photo also removes the items only it found.</p>
+    <ul class="photo-list" id="photo-list"></ul>
+    <button type="submit" class="btn close">Close</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
