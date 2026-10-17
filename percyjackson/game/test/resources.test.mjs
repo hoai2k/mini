@@ -11,7 +11,7 @@ import { mulberry32 } from '../js/util.js';
 
 // monsters.js builds models with Three.js: read just its stat table
 const src = readFileSync(new URL('../js/entities/monsters.js', import.meta.url), 'utf8');
-const MONSTERS = new Function('return ' + src.slice(src.indexOf('export const MONSTERS = {') + 'export const MONSTERS = '.length, src.indexOf('\n};', src.indexOf('export const MONSTERS = {')) + 2))();
+const MONSTERS = new Function('txt', 'return ' + src.slice(src.indexOf('export const MONSTERS = {') + 'export const MONSTERS = '.length, src.indexOf('\n};', src.indexOf('export const MONSTERS = {')) + 2))((key) => key);   // (txt stub: names stay as their keys)
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 const run = (f, secs, step = 0.1, fn = tickFlask) => { for (let t = 0; t < secs - 1e-9; t += step) fn(f, step); return f; };

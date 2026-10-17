@@ -130,7 +130,7 @@ test('roaming packs are small and follow the save lightly', () => {
 
 test('rats exist: the prologue monster', () => {
   const m = read('entities/monsters.js');
-  assert.match(m, /\n  rat: \{ name: 'Sewer Rat', tier: 'minor'/);
+  assert.match(m, /\n  rat: \{ name: txt\('monsters\.rat\.name'\), tier: 'minor'/);
   assert.match(m, /\n  rat: \(\) => \{/);
 });
 
