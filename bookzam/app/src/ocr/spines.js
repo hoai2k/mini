@@ -17,8 +17,9 @@ export function relate(a, b) {
   const dx = b.box.cx - a.box.cx, dy = b.box.cy - a.box.cy;
   const across = Math.abs(dx * nx + dy * ny);
   const along = Math.abs(dx * ax + dy * ay);
-  // Text lengths along the line, without the detector's margin at each end.
-  const ends = (l) => Math.max(0, l.box.w - (l.box.h - textHeight(l)));
+  // Text lengths along the line, without the detector's margin at each end. The
+  // letters are about halfway between the core height and the grown box's height.
+  const ends = (l) => Math.max(0, l.box.w - (l.box.h - textHeight(l)) / 2);
   const gap = Math.max(0, along - ends(a) / 2 - ends(b) / 2);
   return { across, gap };
 }

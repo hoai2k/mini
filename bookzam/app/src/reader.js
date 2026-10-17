@@ -81,6 +81,10 @@ export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis
   const heights = lines.map((l) => l.box.th || l.box.h / 2.5).sort((a, b) => a - b);
   const median = heights[Math.floor(heights.length / 2)] || 0;
   const prominent = (g) => Math.max(...g.lines.map((l) => l.box.th || l.box.h / 2.5)) >= 1.3 * median;
+  // A game box's small print ("2-5 players, ages 10+") is never an item, and
+  // looking it up only finds games with "Ages" in the name.
+  const smallPrint = (g) => SMALL_PRINT.test(g.text) && strongWords(g.text).length <= 4;
+  groups = groups.filter((g) => !smallPrint(g));
   const found = new Array(groups.length).fill(null);
   let next = 0, done = 0;
   await Promise.all(Array.from({ length: concurrency }, async () => {
@@ -111,10 +115,6 @@ export async function scanLines(lines, { onProgress, fetch: fetchFn = globalThis
   const kept = groups.map((g, i) => [g, found[i]]).filter(([g]) => g);
   groups = kept.map(([g]) => g);
   found.splice(0, found.length, ...kept.map(([, f]) => f));
-  // A game box's small print ("2-5 players, ages 10+") is never an item itself.
-  groups.forEach((g, i) => {
-    if (found[i] && !found[i].lookup && SMALL_PRINT.test(g.text) && strongWords(g.text).length <= 4) found[i] = null;
-  });
   const items = [];
   // Reading order: top to bottom by shelf, then left to right.
   const order = groups.map((g, i) => i).sort((a, b) => {

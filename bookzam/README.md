@@ -20,10 +20,12 @@ too. Add it to the home screen for a full-screen app.
   - Each book is identified on [Open Library](https://openlibrary.org) (free,
     no key), which also gives its cover, first-published year, ISBN, pages,
     publisher and subjects.
-  - Each board game is identified on [Wikidata](https://www.wikidata.org)
-    (free, no key) among the games that have a BoardGameGeek ID, which gives
-    its year, player count, designers, a picture and a direct BoardGameGeek
-    link. (BoardGameGeek's own API needs a registered key and doesn't allow
+  - Each board game is identified from about 5,200 games bundled with the app
+    (`app/data/games.json`, from [Wikidata](https://www.wikidata.org), CC0):
+    matched on the phone with no network, and tolerant of a misread letter in
+    a long name. A game it doesn't have is searched on Wikidata online, among
+    games with a BoardGameGeek ID. Either way it gets its year, player count,
+    designers, a picture and a direct BoardGameGeek link. (BoardGameGeek's own API needs a registered key and doesn't allow
     requests from web pages.) A game's name may be one word (Azul, Catan) if
     it was read exactly; a box's small print ("2-5 players, ages 10+") is
     never an item.
@@ -77,8 +79,11 @@ Everything runs on the phone; photos are never uploaded.
    with nothing naming either keeps the title only. Repeated searches on a
    shelf (a series) are asked once.
 4. **Board games** (`app/src/games.js`): in the Board games list the same
-   readings are searched on Wikidata instead (`haswbstatement:P2339`, games
-   with a BoardGameGeek ID), every word then any word, with the same checks.
+   readings are matched against the bundled games first (an index of their
+   names and aliases; long words may be a letter off), then searched on
+   Wikidata (`haswbstatement:P2339`, games with a BoardGameGeek ID), every
+   word then any word, with the same checks. Small print (player counts, ages,
+   playing time) is dropped before anything is looked up.
 
 Measured on five real photos (a dim bookcase photographed at an angle with a
 shallow depth of field, a children's shelf, a bookshop shelf, a mixed
@@ -110,6 +115,11 @@ steep angles lose books. Straight on, close and well lit works best.
     Wikidata board game search (tested). `lookup.js`: Open
     Library lookups after a title is edited. `store.js`: IndexedDB.
 - `app/models/`: the PaddleOCR models and their sources.
+- `app/data/games.json`: the bundled board games (Wikidata, CC0), rebuilt by
+  `node bookzam/tools/build-games.mjs` (5,230 games, 390 KB, about 140 KB
+  compressed; loaded only when a game is looked up). Each row is
+  `[wikidata id, name, aliases, BGG id, year, min players, max players,
+  designers, picture file, Wikipedia articles]`, best known first.
   `app/vendor/ort/`: ONNX Runtime Web 1.23.2 (MIT), the WebAssembly build.
 - `app/icons/`: a stand-in icon (`icon.svg`, rendered to 180/192/512 PNGs)
   until the requested art arrives.
@@ -146,5 +156,6 @@ Library fields.
 ```sh
 node --test bookzam/app/test/*.test.mjs
 bookzam/publish.sh local/pages/bookzam
+node bookzam/tools/build-games.mjs --check
 node bookzam/tools/browser-check.mjs   # needs playwright-core in local/tools
 ```
