@@ -143,11 +143,13 @@ when the Art Deco art arrives, measure and record its own.
   ahead because a frame drawn now appears about a frame later. Checked in
   Chromium: at 120 BPM the lamp peaks every 500 ms on the same frame as the
   pendulum reaching the end of its swing and the beat dot moving on.
-- **Sound and visuals sync** (metronome settings) is a slider for how much
-  later the visuals show each beat, beyond the delay the browser reports. It
-  and the manual sync button are greyed out while the pendulum and the
-  visual pulse are both off.
-- **Manually sync sound and visuals…** (metronome settings) is for Bluetooth
+- **Sound and visuals sync** is in Audio check's **Metronome** section
+  (open when Audio check is opened from the metronome, closed otherwise): a
+  slider for how much later the visuals show each beat, beyond the delay the
+  browser reports. It and the manual sync button are greyed out while
+  nothing visual is on (no pendulum, pulse or Visualizer).
+- **Manually sync sound and visuals…** (in that section; from another page
+  it goes to the metronome first) is for Bluetooth
   speakers and headphones, which play late and don't always say by how much:
   the controls give way to a sync bar while the metronome plays, with − / +
   (10 ms steps) to move the visuals until the flash meets the click, or
@@ -162,13 +164,16 @@ when the Art Deco art arrives, measure and record its own.
   Italian marking (Largo … Prestissimo) shows under the number. Default 120.
 - Settings (gear): time signature (4/4, 3/4, 2/4, 5/4, 6/4, 7/4, 3/8, 5/8,
   6/8, 7/8, 9/8, 12/8, or no bars), a strong beat on 1 (on by default;
-  compound meters also lean lightly on each group of three), **Clicks**
-  (Quarter notes, the default; Eighth notes, Triplets or Sixteenth notes:
+  compound meters also lean lightly on each group of three), **Add eighth
+  notes** (off by default; its pencil changes it to Add triplets or Add
+  sixteenth notes, a choice kept while it is off, `subOn` and `subKind`:
   the extra clicks fall evenly between the beats, about 7.5 dB quieter than
   an ordinary beat, 10 dB for Beep, and are not beats themselves: the
   pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
   mixers play them the same way, `subdivision` and a fourth rendered
-  click), sound (Woodblock, Click, Beep) and volume.
+  click), and **Sound** (Woodblock, Click, Beep, a dropdown). There is no
+  volume control: the metronome plays at full level and the device's own
+  volume sets it.
 - **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
   click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
   and any of them can be made strong, between the beats included (those

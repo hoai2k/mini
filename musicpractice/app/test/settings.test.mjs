@@ -171,3 +171,12 @@ test('the bar plan: the plain rules, or every click from a custom pattern', () =
   // Off: no strong beats whatever the pattern says.
   assert.deepEqual(barPlan({ meter: '4/4', accent: false, accentPattern: { meter: '4/4', pos: [12] } }).strengths, [0, 0, 0, 0]);
 });
+
+test('extra notes: off by default, a kind kept while off, saves from the Clicks list carried over; full volume', () => {
+  assert.deepEqual([DEFAULTS.subOn, DEFAULTS.subKind, sanitize({}).subdivision], [false, 2, 1]);
+  assert.equal(sanitize({ subOn: false, subKind: 4 }).subdivision, 1);
+  assert.equal(sanitize({ subOn: true, subKind: 3 }).subdivision, 3);
+  const old = sanitize({ subdivision: 4 }); // the old Clicks list
+  assert.deepEqual([old.subOn, old.subKind, old.subdivision], [true, 4, 4]);
+  assert.equal(sanitize({ volume: 0.3 }).volume, 1);
+});
