@@ -1,6 +1,6 @@
 // Audio check: what the browser reports about the mic, speakers and
 // permission, how takes will play as a result, and the choices it allows
-// (microphone, speaker, pendulum sync). Opened from any settings sheet.
+// (microphone, speaker). Opened from any settings sheet.
 
 import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, diag, allowedInAdvance, QUICK_GRANT_MS } from './devices.js';
 import { freesMicForPlayback, promptWasSuspected } from './recorder.js';
@@ -73,13 +73,10 @@ async function render() {
       .map((d) => el('option', { value: d.deviceId }, tag(d.label || A.micDefaultName))));
   micSelect.value = [...micSelect.options].some((o) => o.value === ctl.settings.mic) ? ctl.settings.mic : 'auto';
   micSelect.addEventListener('change', async () => { await ctl.onMic(micSelect.value); render(); });
-  const micHelp = el('p', { class: 'help' },
-    !labelled ? A.namesHidden : A.inUse(rec?.micLabel ? tag(rec.micLabel) : A.noneYet),
-    labelled && inputs.some((d) => isBluetooth(d.label)) ? A.bluetoothMicNote : '');
 
   // Speaker choice, where the browser allows it
   const realOutputs = outputs.filter((d) => d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications');
-  let speaker;
+  let speaker = null;
   if (canChooseSpeaker() && realOutputs.length) {
     const sel = el('select', { class: 'select', id: 'ac-speaker' },
       el('option', { value: 'default' }, A.speakerDefault),
@@ -89,16 +86,8 @@ async function render() {
       const ok = await ctl.onSpeaker(sel.value);
       if (!ok) sel.value = 'default';
     });
-    speaker = [el('label', { class: 'row' }, el('span', {}, A.speaker), sel),
-      el('p', { class: 'help' }, A.speakerHelp)];
-  } else {
-    speaker = [el('p', { class: 'help' }, rich(A.speakerUnavailable))];
+    speaker = el('label', { class: 'row' }, el('span', {}, A.speaker), sel);
   }
-
-  // Pendulum sync
-  const sync = el('input', { type: 'range', class: 'slider', id: 'ac-sync', min: -200, max: 500, step: 10, value: ctl.settings.syncMs });
-  const syncOut = el('b', {}, TEXT.common.ms(ctl.settings.syncMs));
-  sync.addEventListener('input', () => { ctl.onSync(Number(sync.value)); syncOut.textContent = TEXT.common.ms(sync.value); });
 
   // Test sound, played the way takes are
   const testBtn = el('button', { type: 'button', class: 'pill', id: 'ac-test' }, A.testSound);
@@ -127,12 +116,9 @@ async function render() {
     summary,
     steps,
     steps ? el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload) : null,
-    el('div', { class: 'ac-test' }, testBtn, el('span', { class: 'help' }, A.testHelp)),
+    el('div', { class: 'ac-test' }, testBtn),
     el('label', { class: 'row' }, el('span', {}, A.microphone), micSelect),
-    micHelp,
-    ...speaker,
-    el('label', { class: 'row' }, el('span', {}, `${A.sync} `, syncOut), sync),
-    el('p', { class: 'help' }, A.syncHelp, latencyMs != null ? A.syncReported(latencyMs) : ''),
+    speaker,
     el('details', { class: 'ac-details' }, el('summary', {}, A.reportTitle),
       el('dl', {}, rows.map(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))),
   ].filter(Boolean));

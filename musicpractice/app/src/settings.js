@@ -61,7 +61,7 @@ export const DEFAULTS = Object.freeze({
   recordDuringPlayback: false,
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
-  syncMs: 0, // extra pendulum delay for Bluetooth speakers (Audio check)
+  syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
   metMotion: true, // the pendulum swings
   metPulse: true, // a glow pulses on each beat
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
