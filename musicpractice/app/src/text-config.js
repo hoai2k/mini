@@ -216,6 +216,8 @@ export const EN = {
   },
 
   recorder: {
+    playbackVolume: 'Playback volume',
+    waveformTake: 'The take playing: tap or drag along it to move through it',
     title: 'Playback Recorder',
     settingsButton: 'Playback Recorder settings',
     turnOn: 'Turn recording on',
@@ -225,7 +227,7 @@ export const EN = {
     /** The big status line and the hint under it. */
     state: {
       off: 'Off',
-      offHint: 'Tap the button to start listening.',
+      offHint: 'Tap the record button to start listening.',
       waiting: 'Listening…',
       waitingHint: 'Start playing whenever you\'re ready.',
       recording: (time) => `Recording ${time}`,
