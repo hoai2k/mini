@@ -1,5 +1,5 @@
-// Turns a chosen photo into what the server reads (a JPEG at most 1568 px on
-// its long edge, as base64) and what the catalogue keeps (a small thumbnail).
+// Opens a chosen photo upright, draws it at a given size, and makes the small
+// thumbnail the catalogue keeps.
 
 import { fitSize } from './geometry.js';
 
@@ -34,13 +34,6 @@ export function render(img, maxEdge, crop = { x0: 0, y0: 0, x1: 1, y1: 1 }) {
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
   return canvas;
-}
-
-/** {image, width, height} for the server. */
-export function forServer(img, crop) {
-  const canvas = render(img, 1568, crop);
-  const image = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-  return { image, width: canvas.width, height: canvas.height };
 }
 
 export function thumbnail(img, edge = 360) {

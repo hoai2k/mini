@@ -2,11 +2,11 @@
 // Find Book circles one book in a photo of a shelf.
 
 import { mergeScan, removePhoto, moveItem, filterItems, sortItems, exportData, emptyCatalogue, newId } from './catalogue.js';
-import { scanPhoto, findInPhoto, errorMessage } from './api.js';
+import { readPhoto, scanLines, findInLines, warmUp } from './reader.js';
 import { lookupBook } from './lookup.js';
 import { loadCatalogue, saveCatalogue, persist } from './store.js';
-import { decode, forServer, thumbnail, render } from './photo.js';
-import { cropAround, fromCrop, overlap, ringFor } from './geometry.js';
+import { decode, thumbnail, render } from './photo.js';
+import { ringFor } from './geometry.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -127,7 +127,7 @@ function renderJob(job) {
   const thumb = job.thumb ? `<img src="${job.thumb}" alt="">` : '<span class="ph"></span>';
   const text = {
     waiting: 'Waiting…',
-    reading: 'Reading the titles…',
+    reading: job.progress || 'Reading the titles…',
     done: job.summary,
     failed: job.error,
   }[job.state];
@@ -144,8 +144,7 @@ function summarize(added, existing, unreadable) {
   if (games) parts.push(`${games} board game${games === 1 ? '' : 's'}`);
   let s = parts.length ? `Added ${parts.join(' and ')}` : 'Nothing new';
   if (existing.length) s += `, ${existing.length} already here`;
-  if (unreadable) s += `. ${unreadable} couldn't be read`;
-  if (!added.length && !existing.length) s = unreadable ? `Couldn't read any titles (${unreadable} unreadable). Try closer, with more light.` : 'No books or games found in that photo.';
+  if (!added.length && !existing.length) s = unreadable ? "Couldn't make out any titles. Try closer, straighter on, with more light." : 'No books or games found in that photo.';
   return `${s}.`;
 }
 
@@ -160,12 +159,13 @@ async function runJobs() {
       const img = await decode(job.file);
       job.thumb = thumbnail(img);
       renderJob(job);
-      const scan = await scanPhoto(forServer(img));
+      const progress = (text) => { job.progress = text; renderJob(job); };
+      const read = await readPhoto(img, (p) => progress(progressText(p)));
       img.close?.();
+      const scan = await scanLines(read.lines, { onProgress: (p) => progress(progressText(p)) });
       const photoId = newId('p');
       const { added, existing } = mergeScan(cat, scan, photoId);
-      cat.photos.unshift({ id: photoId, thumb: job.thumb, added: new Date().toISOString(), books: (scan.books || []).length, games: (scan.games || []).length, source: scan.source });
-      cat.reader = scan.source;
+      cat.photos.unshift({ id: photoId, thumb: job.thumb, added: new Date().toISOString(), books: scan.books.length, games: scan.games.length });
       await save(true);
       for (const item of added) ui.fresh.add(item.id);
       // Show whichever list just grew if the current one didn't.
@@ -180,11 +180,28 @@ async function runJobs() {
     } catch (e) {
       console.error(e);
       job.state = 'failed';
-      job.error = e?.code ? errorMessage(e) : "That photo couldn't be opened. Try another.";
+      job.error = readError(e);
       renderJob(job);
     }
   }
   working = false;
+}
+
+/** What the reader is doing, for a job card or the Find verdict. */
+function progressText(p) {
+  const mb = (n) => (n / 1e6).toFixed(0);
+  if (p.stage === 'download') return `Getting the reader ready: ${mb(p.done)} of ${mb(p.total)} MB (first time only)…`;
+  if (p.stage === 'detect') return 'Finding the text…';
+  if (p.stage === 'recognise') return `Reading the titles: ${p.done} of ${p.total}…`;
+  if (p.stage === 'lookup') return `Looking them up: ${p.done} of ${p.total}…`;
+  return 'Reading the titles…';
+}
+
+function readError(e) {
+  const message = String(e?.message || '');
+  if (/fetch|network|load|404|Failed/i.test(message)) return "Couldn't download the reader. Check your connection and try again.";
+  if (/memory|allocation/i.test(message)) return 'That photo was too big to read on this phone. Try a smaller one.';
+  return "That photo couldn't be read. Try another.";
 }
 
 // ---------- Open Library lookups ----------
@@ -311,7 +328,6 @@ function download(blob, name) {
 function fillMenu() {
   const b = cat.books.length, g = cat.games.length, p = cat.photos.length;
   $('menu-summary').textContent = `${b} book${b === 1 ? '' : 's'} and ${g} board game${g === 1 ? '' : 's'} from ${p} photo${p === 1 ? '' : 's'}.`;
-  $('menu-reader').textContent = cat.reader === 'claude' ? 'Photos are read by Claude.' : cat.reader === 'workers-ai' ? 'Photos are read by a Llama vision model on Cloudflare Workers AI.' : '';
 }
 
 function renderPhotos() {
@@ -322,7 +338,7 @@ function renderPhotos() {
 
 // ---------- Find Book ----------
 
-const find = { img: null, query: '', run: 0, box: null, zoomed: false, controller: null };
+const find = { img: null, query: '', run: 0, box: null, zoomed: false, read: null };
 
 function refreshSuggestions() {
   const titles = [...new Set(cat.books.map((b) => b.title))].sort().slice(0, 500);
@@ -345,7 +361,7 @@ function drawStage() {
   setZoom(false);
 }
 
-function drawRing(box, refined) {
+function drawRing(box) {
   const { width: w, height: h } = $('stage-canvas');
   const r = ringFor(box, w, h);
   const stroke = Math.max(4, Math.min(w, h) / 120);
@@ -354,7 +370,7 @@ function drawRing(box, refined) {
   $('overlay').innerHTML = `
     <defs><mask id="${id}"><rect width="${w}" height="${h}" fill="#fff"/><ellipse cx="${r.cx}" cy="${r.cy}" rx="${r.rx}" ry="${r.ry}" fill="#000"/></mask></defs>
     <rect class="dim" width="${w}" height="${h}" mask="url(#${id})"/>
-    <ellipse class="ring${refined ? ' refined' : ''}" cx="${r.cx}" cy="${r.cy}" rx="${r.rx}" ry="${r.ry}" stroke-width="${stroke}" pathLength="100"/>`;
+    <ellipse class="ring" cx="${r.cx}" cy="${r.cy}" rx="${r.rx}" ry="${r.ry}" stroke-width="${stroke}" pathLength="100"/>`;
 }
 
 function setZoom(on) {
@@ -377,61 +393,63 @@ async function runFind() {
   if (!find.img) { $('find-input').click(); return; }
   find.query = query;
   find.box = null;
-  find.controller?.abort();
-  const controller = find.controller = new AbortController();
   const run = ++find.run;
   $('overlay').innerHTML = '';
   $('similar').innerHTML = '';
   setZoom(false);
-  $('frame').classList.add('scanning');
   setVerdict(`Looking for <b>${esc(query)}</b>…`, 'busy');
   try {
-    const first = await findInPhoto(forServer(find.img), query, controller.signal);
+    // Read the photo once; searching it again for another title is instant.
+    if (!find.read) {
+      $('frame').classList.add('scanning');
+      const reading = find.reading ||= readPhoto(find.img, (p) => {
+        if (run === find.run) setVerdict(`Looking for <b>${esc(query)}</b>… <span class="where">${esc(progressText(p))}</span>`, 'busy');
+      });
+      const read = await reading;
+      if (find.reading === reading) { find.read = read; find.reading = null; }
+    }
     if (run !== find.run) return;
-    if (!first.found) {
-      $('frame').classList.remove('scanning');
-      setVerdict(`Couldn't find <b>${esc(query)}</b> in this photo.${first.where ? ` <span class="where">${esc(first.where)}</span>` : ''}`, 'missing');
-      $('similar').innerHTML = first.similar?.length
-        ? `<span class="chips-label">Did you mean</span>${first.similar.map((s) => `<button type="button" class="chip" data-q="${esc(s)}">${esc(s)}</button>`).join('')}`
+    $('frame').classList.remove('scanning');
+    const { lines, width, height } = find.read;
+    const hint = catalogueHint(query);
+    const result = findInLines(lines, width, height, query, hint);
+    if (!result.found) {
+      setVerdict(`Couldn't find <b>${esc(query)}</b> in this photo. <span class="where">Bookzam reads printed titles, so try closer, straighter on, or with more light.</span>`, 'missing');
+      $('similar').innerHTML = result.similar.length
+        ? `<span class="chips-label">Titles it could read here</span>${result.similar.map((t) => `<button type="button" class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join('')}`
         : '';
       return;
     }
-    find.box = first.box;
-    drawRing(first.box, false);
-    setVerdict(`Found <b>${esc(first.title || query)}</b>. <span class="where">${esc(first.where)}</span><span class="refining">Sharpening the circle…</span>`, 'found');
-    // Look again at a close-up from the full-resolution photo, which shows the spines in far more detail.
-    const crop = cropAround(first.box);
-    if ((crop.x1 - crop.x0) * (crop.y1 - crop.y0) < 0.8) {
-      try {
-        const second = await findInPhoto(forServer(find.img, crop), first.title || query, controller.signal);
-        if (run !== find.run) return;
-        if (second.found) {
-          const box = fromCrop(second.box, crop);
-          if (overlap(box, first.box) > 0.3) {
-            find.box = box;
-            drawRing(box, true);
-          }
-        }
-      } catch (e) {
-        if (e?.name === 'AbortError') return;
-        console.warn('Refining the find failed; keeping the first circle', e);
-      }
-    }
-    $('frame').classList.remove('scanning');
-    setVerdict(`Found <b>${esc(first.title || query)}</b>. <span class="where">${esc(first.where)}</span><span class="tap-hint">Tap the photo to zoom in.</span>`, 'found');
+    find.box = result.box;
+    drawRing(result.box);
+    // A thin spine on a big shelf is easy to miss: zoom in on it after a moment.
+    const size = (result.box.x1 - result.box.x0) * (result.box.y1 - result.box.y0);
+    if (size < 0.02) setTimeout(() => { if (run === find.run) setZoom(true); }, 700);
+    setVerdict(`Found <b>${esc(result.title)}</b>. <span class="where">${esc(result.where)}</span><span class="tap-hint">Tap the photo to zoom in.</span>`, 'found');
     navigator.vibrate?.(30);
   } catch (e) {
-    if (e?.name === 'AbortError' || run !== find.run) return;
+    if (run !== find.run) return;
     console.error(e);
+    find.reading = null;
     $('frame').classList.remove('scanning');
-    setVerdict(esc(errorMessage(e)), 'error');
+    setVerdict(esc(readError(e)), 'error');
   }
+}
+
+/** The catalogue item a Find query names, if any: its title, author and how its spine read. */
+function catalogueHint(query) {
+  const q = query.toLowerCase().trim();
+  const all = [...cat.books, ...cat.games];
+  const item = all.find((i) => i.title.toLowerCase() === q) || all.find((i) => i.title.toLowerCase().startsWith(q) && q.length >= 4);
+  return item ? { title: item.title, author: item.author || item.lookup?.authors?.[0] || '', read: item.read || '' } : null;
 }
 
 async function loadFindPhoto(file) {
   try {
     find.img?.close?.();
     find.img = await decode(file);
+    find.read = null;
+    find.reading = null;
   } catch (e) {
     console.error(e);
     toast("That photo couldn't be opened. Try another.");
@@ -449,7 +467,8 @@ function wire() {
   for (const tab of document.querySelectorAll('.tabs [role=tab]')) tab.addEventListener('click', () => showView(tab.dataset.view));
   for (const seg of document.querySelectorAll('.segmented [role=tab]')) seg.addEventListener('click', () => showKind(seg.dataset.kind));
 
-  for (const btn of document.querySelectorAll('[data-add]')) btn.addEventListener('click', () => $('add-input').click());
+  // Start fetching the reader while the photo picker is open.
+  for (const btn of document.querySelectorAll('[data-add]')) btn.addEventListener('click', () => { warmUp(); $('add-input').click(); });
   $('add-input').addEventListener('change', (e) => {
     addFiles([...e.target.files]);
     e.target.value = '';
@@ -535,6 +554,7 @@ function wire() {
     if (find.img) runFind(); else $('find-input').click();
   });
   $('find-shoot').addEventListener('click', () => {
+    warmUp();
     if (!$('find-query').value.trim()) { $('find-query').focus(); toast('Type the title you are looking for first.'); return; }
     $('find-input').click();
   });

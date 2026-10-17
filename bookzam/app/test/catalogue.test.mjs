@@ -3,9 +3,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize, sameItem, emptyCatalogue, mergeScan, removePhoto, moveItem, filterItems, sortItems, exportData } from '../src/catalogue.js';
-import { fitSize, cropAround, fromCrop, overlap, ringFor } from '../src/geometry.js';
+import { fitSize, ringFor } from '../src/geometry.js';
 import { pickDoc, toLookup } from '../src/lookup.js';
-import { apiBase } from '../src/api.js';
 
 test('titles are matched loosely but not too loosely', () => {
   assert.equal(normalize('The Hobbit, or There & Back Again'), 'hobbit or there and back again');
@@ -80,27 +79,10 @@ test('Open Library results are matched to the book', () => {
 });
 
 test('Find Book geometry', () => {
-  assert.deepEqual(fitSize(4032, 3024), { width: 1568, height: 1176 });
-  assert.deepEqual(fitSize(800, 600), { width: 800, height: 600 });
-  const box = { x0: 0.45, y0: 0.2, x1: 0.5, y1: 0.6 };
-  const crop = cropAround(box);
-  assert.ok(crop.x0 <= box.x0 && crop.x1 >= box.x1 && crop.y0 <= box.y0 && crop.y1 >= box.y1, 'the crop holds the box');
-  assert.ok(crop.x0 >= 0 && crop.y0 >= 0 && crop.x1 <= 1 && crop.y1 <= 1, 'the crop stays inside the photo');
-  assert.ok(Math.abs((crop.x1 - crop.x0) - 0.3) < 1e-9, 'a thin spine still gets at least 30% of the width');
-  const edge = cropAround({ x0: 0.95, y0: 0.9, x1: 1, y1: 1 });
-  assert.ok(edge.x1 <= 1 && edge.y1 <= 1 && edge.x0 >= 0);
-  const back = fromCrop({ x0: 0.5, y0: 0.5, x1: 1, y1: 1 }, { x0: 0.2, y0: 0.4, x1: 0.6, y1: 0.8 });
-  for (const [k, v] of Object.entries({ x0: 0.4, y0: 0.6, x1: 0.6, y1: 0.8 })) assert.ok(Math.abs(back[k] - v) < 1e-9, k);
-  assert.equal(overlap(box, box), 1);
-  assert.equal(overlap(box, { x0: 0.6, y0: 0.2, x1: 0.7, y1: 0.6 }), 0);
+  assert.deepEqual(fitSize(4032, 3024, 1568), { width: 1568, height: 1176 });
+  assert.deepEqual(fitSize(800, 600, 1568), { width: 800, height: 600 });
   const ring = ringFor({ x0: 0.25, y0: 0.25, x1: 0.75, y1: 0.75 }, 1000, 800, 0);
   assert.equal(ring.cx, 500);
   assert.equal(ring.cy, 400);
   assert.ok(ring.rx > 250 * Math.SQRT2 && ring.ry > 200 * Math.SQRT2, 'the ring goes round the corners');
-});
-
-test('the API can be pointed at a local worker', () => {
-  assert.equal(apiBase(''), 'https://mini-rooms.hoai2k.workers.dev');
-  assert.equal(apiBase('?api=http://localhost:8787'), 'http://localhost:8787');
-  assert.equal(apiBase('?api=javascript:alert(1)'), 'https://mini-rooms.hoai2k.workers.dev');
 });
