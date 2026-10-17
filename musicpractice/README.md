@@ -4,8 +4,11 @@ A metronome, a tuner, a drone and a practice recorder. Open it at
 https://hoai2k.github.io/mini/musicpractice/.
 
 Made for phones (portrait or landscape) and desktops. The home screen has
-four buttons, **Metronome**, **Tuner**, **Drone** and **Playback Recorder**
-(two by two on phones, in a row on wider screens), and a settings gear. A
+four buttons, **Metronome**, **Tuner**, **Drone** and **Playback**
+(two rows of two on phones and tablets either way up, one row of four once
+the window is clearly wider than tall, 3:2 or more, as a desktop browser or
+a phone on its side; never three and one, and the art follows the window's
+height so the four fit without scrolling), and a settings gear. A
 tool added later goes in after the one it follows by default, even in an
 order someone saved before it existed.
 
@@ -247,8 +250,10 @@ tones, scales over a tonic.
 - The note, big (letter, accidental, octave) with its frequency; − / + move a
   semitone and the list picks any note from C2 to B3 (the drone's two
   octaves, from the cello's open C). Past either end, notes wrap round by an
-  octave. **Play** fades in over about 2 s and **Pause** fades out over about
-  1.5 s; changing the note or instrument while it plays crossfades.
+  octave. **Play** fades in over about 2 s, and changing the note or
+  instrument while it plays crossfades (about 1.5 s out); **Pause** stops at
+  once, the sound and the hall's ring gone in about 50 ms (no click), the
+  same on the web and in the apps' native mixers (`mobile/test` checks it).
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice

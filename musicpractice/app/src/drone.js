@@ -335,8 +335,9 @@ function hall(ctx, sec = 2.8) {
   return ir;
 }
 
-const FADE_IN = 0.65; // time constants: about 2 s in, 1.5 s out
+const FADE_IN = 0.65; // time constants: about 2 s in, 1.5 s out when moving to a new note
 const FADE_OUT = 0.45;
+const STOP = 0.012; // pausing: gone in about 50 ms, quick enough to feel instant, without a click
 
 export class Drone {
   /** @param {BaseAudioContext} ctx */
@@ -444,21 +445,24 @@ export class Drone {
     this.current = v;
   }
 
-  /** Fade out and stop. */
+  /** Stop, at once: the sound and the hall's ring go in about 50 ms. */
   stop() {
     this.ticket = (this.ticket || 0) + 1;
-    this.fadeOut(this.ctx.currentTime);
+    const t = this.ctx.currentTime;
+    this.fadeOut(t, STOP);
+    this.wet.gain.cancelScheduledValues(t);
+    this.wet.gain.setTargetAtTime(0, t, STOP);
   }
 
-  fadeOut(t) {
+  fadeOut(t, tc = FADE_OUT) {
     const v = this.current;
     this.current = null;
     if (!v) return;
     const g = v.gain.gain;
     if (typeof g.cancelAndHoldAtTime === 'function') g.cancelAndHoldAtTime(t);
     else { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); }
-    g.setTargetAtTime(0, t, FADE_OUT);
-    const end = t + FADE_OUT * 8;
+    g.setTargetAtTime(0, t, tc);
+    const end = t + tc * 8;
     for (const n of v.nodes) { try { n.stop(end); } catch { /* already stopped */ } }
     setTimeout(() => { try { v.gain.disconnect(); } catch { /* gone */ } }, (end - this.ctx.currentTime + 0.5) * 1000);
   }

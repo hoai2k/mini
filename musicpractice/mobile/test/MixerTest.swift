@@ -227,6 +227,20 @@ func droneSchedule() {
     check(m.droneState().playing, "stopping cleared the schedule: playing again runs untimed")
 }
 
+func droneStopQuick() {
+    print("drone: pausing stops at once (the long fades are for starting and changing note)")
+    let m = mixer()
+    m.dronePlay(voice: "cello", midi: 48, a4: 440, fifth: true)
+    let on = render(m, 3)
+    let playing = rms(on.0, Int(2 * SR), Int(3 * SR))
+    m.droneStop()
+    let off = render(m, 0.5)
+    let after = rms(off.0, Int(0.1 * SR), Int(0.5 * SR))
+    check(after < playing * 0.01, "100 ms after Stop, sound and hall are down \(Int(20 * log10(after / playing))) dB (more than 40)")
+    _ = render(m, 0.5)
+    check(m.idle, "and the mixer is idle within a second")
+}
+
 func droneSameNote() {
     print("drone: the same note again doesn't restart it; a new one crossfades")
     let m = mixer()
@@ -272,6 +286,7 @@ metronomeTempoChange()
 droneLevels()
 droneSeamless()
 droneSchedule()
+droneStopQuick()
 droneSameNote()
 speed()
 sameAsJava()

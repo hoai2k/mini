@@ -148,12 +148,16 @@ button { cursor: pointer; }
 }
 .home-done { position: absolute; top: max(16px, env(safe-area-inset-top)); left: var(--gutter); min-width: 76px; z-index: 3; }
 .choices > .choice:nth-child(3):last-child { grid-column: 1 / -1; justify-self: center; width: calc((100% - var(--choice-gap)) / 2); }
-@media (min-width: 760px), (orientation: landscape) and (max-height: 560px) {
-  .choices { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 900px); }
+/* Four tools: two rows of two (phones and tablets, either way up), or one
+   row of four once the window is clearly wider than tall (a desktop browser,
+   a phone on its side), never three and then one. The art also follows the
+   window's height so the tiles fit without scrolling. */
+.choice .art { width: min(100%, 200px, 20dvh); }
+@media (min-aspect-ratio: 3/2) {
+  .choices { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1100px); }
+  .choices:has(> .choice:nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 860px); }
   .choices > .choice:nth-child(3):last-child { grid-column: auto; width: auto; }
-}
-@media (orientation: landscape) and (max-height: 560px) {
-  .choice .art { width: min(100%, 34dvh); }
+  .choice .art { width: min(100%, 200px, 28dvh); }
 }
 
 /* Top bar */
@@ -618,6 +622,10 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   border: 1px solid var(--brass);
   border-bottom: 0;
   opacity: 0.85;
+}
+/* A phone on its side has no height to spare for the full fan. */
+@media (max-height: 480px) {
+  [data-theme="deco"] .brand::before { width: 88px; height: 44px; margin-bottom: 8px; }
 }
 [data-theme="deco"] .brand::after {
   content: "◆";

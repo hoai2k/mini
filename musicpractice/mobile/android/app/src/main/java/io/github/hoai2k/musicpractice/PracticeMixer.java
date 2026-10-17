@@ -20,7 +20,8 @@ import java.util.HashMap;
  */
 public final class PracticeMixer {
     public static final double FADE_IN = 0.65; // time constants, as drone.js: about 2 s in
-    public static final double FADE_OUT = 0.45; // and 1.5 s out
+    public static final double FADE_OUT = 0.45; // and 1.5 s out when moving to a new note
+    public static final double PAUSE_FADE = 0.012; // pausing: gone in about 50 ms, sound and hall
     // Measured against the web drone over all 24 notes (mobile/test/): the hall's level
     // and the web compressor's makeup gain.
     static final double VERB_GAIN = 0.51;
@@ -98,6 +99,7 @@ public final class PracticeMixer {
     private long tail; // frames of reverb tail still to render
 
     private boolean dronePlaying;
+    private double hall = 1, hallTarget = 1; // the hall's ring, cut short by a stop
     private String droneVoice = "";
     private int droneMidi;
     private double droneA4 = 440;
@@ -223,6 +225,7 @@ public final class PracticeMixer {
         boolean same = dronePlaying && voiceId.equals(droneVoice) && midi == droneMidi && a4 == droneA4 && fifth == droneFifth;
         dronePlaying = true;
         stoppedByTimer = false;
+        hallTarget = 1;
         droneVoice = voiceId;
         droneA4 = a4;
         droneFifth = fifth;
@@ -250,7 +253,11 @@ public final class PracticeMixer {
     public synchronized void droneStop() {
         dronePlaying = false;
         timed = false;
-        fadeOutAll();
+        for (Layer l : layers) {
+            l.target = 0;
+            l.coef = coef(PAUSE_FADE);
+        }
+        hallTarget = 0;
     }
 
     public synchronized void droneVolume(double v) {
@@ -369,7 +376,7 @@ public final class PracticeMixer {
         advanceSchedule(frames);
         double metCoef = coef(0.02);
         double volCoef = coef(0.05);
-        double mixCoef = coef(0.5);
+        double mixCoef = coef(0.5), hallCoef = coef(PAUSE_FADE);
         double clickStep = clickSr / sr;
         boolean droneOn = !layers.isEmpty() || tail > 0;
         for (int f = 0; f < frames; f++) {
@@ -435,8 +442,9 @@ public final class PracticeMixer {
                 }
                 wet += (wetTarget - wet) * mixCoef;
                 dry += (dryTarget - dry) * mixCoef;
+                hall += (hallTarget - hall) * hallCoef;
                 double[] v = verb.process(bl, br);
-                double dg = testNoDry ? 0 : dry, wg = testNoWet ? 0 : wet * VERB_GAIN;
+                double dg = testNoDry ? 0 : dry, wg = testNoWet ? 0 : wet * VERB_GAIN * hall;
                 double dl = bl * dg + v[0] * wg;
                 double dr = br * dg + v[1] * wg;
                 droneGain += (droneVolume - droneGain) * volCoef;
@@ -454,7 +462,7 @@ public final class PracticeMixer {
             Layer layer = layers.get(k);
             if (layer.target == 0 && layer.env < 1e-4) layers.remove(k);
         }
-        if (!layers.isEmpty()) tail = (long) (TAIL_SEC * sr);
+        if (!layers.isEmpty()) tail = (long) ((hallTarget > 0 ? TAIL_SEC : 0.1) * sr);
         else if (tail > 0) tail -= frames;
     }
 
