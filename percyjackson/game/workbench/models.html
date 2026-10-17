@@ -10,6 +10,7 @@
   button { font: inherit; padding: 6px 10px; border: 1px solid #6a5530; border-radius: 6px; background: #fff8e8; cursor: pointer; }
   button[aria-pressed=true] { background: #c9963a; color: #fff; }
   canvas { display: block; }
+  @media (pointer: coarse) { button { min-height: 40px; padding: 6px 12px; } }
 </style>
 <script type="importmap">
 {
@@ -47,6 +48,7 @@ import { buildMonsterModel, MONSTERS, MONSTER_IDS } from '../js/entities/monster
 import { buildMortal, MORTAL_IDS } from '../js/entities/mortals.js';
 import { BOSS_DEFS, BOSS_IDS } from '../js/entities/bosses.js';
 import { rigOffsets } from '../js/entities/parts.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const q = new URLSearchParams(location.search);
 const renderer = new THREE.WebGPURenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
@@ -82,18 +84,30 @@ function show(list) {
   });
   const total = widths.reduce((a, b) => a + b, 0);
   for (const r of rigs) { r.root.position.set(x + r.w / 2 - total / 2, 0, 0); x += r.w; }
-  const h = Math.max(2, ...rigs.map((r) => r.h));
-  const dist = Math.max(4, total * 1.05, h * 2.4) * (+q.get('zoom') || 1);
-  const high = q.get('cam') === 'high';
-  camera.position.set(0, h * 0.6 + dist * (high ? 0.7 : 0.12), dist); camera.lookAt(0, h * 0.42, 0);
+  frame.total = total; frame.h = Math.max(2, ...rigs.map((r) => r.h));
+  frame();
 }
+// The camera fits the row in both directions, so a tall phone screen shows
+// every model too (it used to fit the height and the row's length only).
+function frame() {
+  const { total = 4, h = 2 } = frame;
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * camera.aspect;
+  const dist = Math.max(4, (total / 2) / tanH * 1.08, h * 2.4) * (+q.get('zoom') || 1);
+  const high = q.get('cam') === 'high';
+  camera.position.set(0, h * 0.6 + dist * (high ? 0.7 : 0.12), dist);
+  controls.target.set(0, h * 0.42, 0); camera.lookAt(controls.target); controls.update();
+}
+// drag to turn round the row, pinch or scroll to zoom (mouse and touch)
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.12; controls.screenSpacePanning = true;
+renderer.domElement.style.touchAction = 'none';
 const bar = document.getElementById('bar');
 if (q.get('ui') === '0') bar.style.display = 'none';
 function buttons() {
   bar.textContent = '';
   for (const s of Object.keys(SETS)) { const b = document.createElement('button'); b.textContent = s.toUpperCase(); b.setAttribute('aria-pressed', String(s === set)); b.onclick = () => { set = s; shown = SETS[s].ids; buttons(); show(shown); }; bar.appendChild(b); }
   for (const id of ['all', ...SETS[set].ids]) {
-    const b = document.createElement('button'); b.textContent = id; b.setAttribute('aria-pressed', String(id === 'all' ? shown.length > 1 : shown[0] === id));
+    const b = document.createElement('button'); b.textContent = id; b.setAttribute('aria-pressed', String(id === 'all' ? shown.length > 1 : shown.length === 1 && shown[0] === id));
     b.onclick = () => { shown = id === 'all' ? SETS[set].ids : [id]; buttons(); show(shown); };
     bar.appendChild(b);
   }
@@ -101,7 +115,7 @@ function buttons() {
 buttons();
 show(shown);
 window.__rigs = () => rigs;
-addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); frame(); });
 let last = performance.now(), T = 0;
 const fake = { state: 'idle', swooping: false };
 renderer.setAnimationLoop(() => {
@@ -109,6 +123,7 @@ renderer.setAnimationLoop(() => {
   const k = (T % 1.6) / 1.6;
   const action = pose === 'attack' ? { type: 'attack', t: k, style: 'swingR', windup: 0.3, strike: 0.5 } : pose === 'raise' ? { type: 'raise', t: 0 } : pose === 'cast' ? { type: 'cast', t: 1 } : null;
   for (const r of rigs) { if (turn) r.root.rotation.y += dt * 0.5; rigOffsets(r, -1); r.animate({ dt, speed: pose === 'walk' ? 1 : 0, vel: new THREE.Vector3(), action }); rigOffsets(r, 1); r.tick?.(dt, fake); }
+  controls.update();
   renderer.render(scene, camera);
 });
 </script>

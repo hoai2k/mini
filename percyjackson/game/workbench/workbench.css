@@ -77,11 +77,20 @@ textarea { width: 100%; min-height: 90px; resize: vertical; background: #0f0c09;
 @media (max-width: 760px) {
   html, body { height: auto; }
   #wb { display: flex; flex-direction: column; height: auto; }
-  #mid { order: 1; height: 56vh; min-height: 300px; }
-  #left { order: 2; border-right: 0; border-top: 2px solid var(--gold-lo); max-height: 60vh; }
+  /* the viewer stays at the top while the list and the inspector scroll under it, so a tapped model is in view */
+  #mid { order: 1; position: sticky; top: 0; z-index: 3; height: 46vh; height: 46dvh; min-height: 260px; border-bottom: 2px solid var(--gold-lo); }
+  #left { order: 2; border-right: 0; }
   #right { order: 3; border-left: 0; border-top: 2px solid var(--gold-lo); }
   #insp { overflow: visible; }
   .hint { display: none; }
+}
+/* touch screens: finger-sized targets */
+@media (pointer: coarse) {
+  #tabs button { min-height: 40px; padding: 6px 12px; font-size: 15px; }
+  #vbar button, .btn, #insp button { min-height: 44px; }
+  #search { min-height: 44px; }
+  label.chk { min-height: 40px; }
+  input[type=range] { min-height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .001s !important; } }
 

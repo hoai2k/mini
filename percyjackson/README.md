@@ -10,14 +10,21 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
 
 ## Made for desktop
 
-The game is made for a desktop or laptop screen, played with a controller
-or keyboard and mouse. Phones and tablets are best effort: the touch
-controls and the small-screen layouts keep working, but no decision about
-the desktop game (character and world sizes, camera distance, how many
-monsters fight at once, effects, UI density, controls) is made smaller,
-simpler or safer for them. Weigh a choice on a desktop screen; where a
-phone needs something different, branch for it (`isMobile`, `body.is-touch`,
-CSS for small screens) rather than changing the desktop game.
+The game is optimized for a desktop or laptop screen, played with a
+controller or keyboard and mouse. Phones and tablets are supported but not
+prioritized: the touch controls and the small-screen layouts keep working,
+but no decision about the desktop game (character and world sizes, camera
+distance, how many monsters fight at once, effects, UI density, controls) is
+made smaller, simpler or safer for them. Weigh a choice on a desktop screen;
+where a phone needs something different, branch for it (`isMobile`,
+`body.is-touch`, CSS for small screens) rather than changing the desktop
+game.
+
+The workbenches (`game/workbench/`: the model workbench and the turntable)
+are the exception: they support phones natively, as well as desktop. On a
+phone the workbench's viewer stays at the top while the list and the
+inspector scroll under it, every control is finger-sized, and both pages
+turn and zoom by touch (drag, pinch).
 
 ## What's in it now
 
