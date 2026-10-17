@@ -320,7 +320,7 @@ class Game {
     if (p.ai) return p.gearOwner ? this.profiles.forDevice(p.gearOwner) : this.save;
     return this.profiles.forDevice(p.device);
   }
-  profileName(p) { return this.saveFor(p)?.name ?? 'Player'; }
+  profileName(p) { return this.saveFor(p)?.name ?? t('profiles.playerBase'); }
   // net: the profiles of this screen's human players (each is credited for what the party does)
   localSaves() {
     const out = new Set(this.players.filter((p) => !p.ai && !p.remote).map((p) => this.saveFor(p)));

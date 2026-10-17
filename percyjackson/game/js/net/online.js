@@ -73,7 +73,7 @@ export class Online {
   get isHost() { return this.live && this.session.isHost; }
   get isGuest() { return this.live && !this.session.isHost; }
   get uid() { return this.session?.me.uid ?? this.game.save?.id ?? 'local'; }
-  get name() { return this.session?.me.name ?? this.game.save?.name ?? 'Demigod'; }
+  get name() { return this.session?.me.name ?? this.game.save?.name ?? t('profiles.demigod'); }
   get code() { return /^hbq-([A-Z0-9]{5})/.exec(this.session?.base ?? '')?.[1] ?? null; }
   // (objectives/common.js sends its `act` topics through this)
   get room() { return this.ready ? { publishTopic: (t, d) => this.session.send(t, d) } : null; }
