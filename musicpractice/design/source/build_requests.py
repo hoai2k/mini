@@ -500,6 +500,19 @@ def round7_assets() -> list[dict]:
 
 ASSETS += round7_assets()
 
+# Round 7 delivery records the normalized bow hair geometry and the exports.
+_round7 = json.loads((ROOT / "design" / "image-deliveries-round-7.json").read_text())
+_round7_delivered = {(a["theme"], a["id"]): a for a in _round7["assets"]}
+for asset in ASSETS:
+    if asset["round"] != 7:
+        continue
+    delivery = _round7_delivered[(asset["theme"], asset["id"])]
+    asset["status"] = delivery["status"]
+    if asset["id"] == "drone-bow":
+        asset["canvas"] = delivery["canvas"]
+        asset["anchors"] = delivery["anchors"]
+    asset["note"] += " Delivered artwork and export details: design/image-deliveries-round-7.json."
+
 def render() -> tuple[str, str]:
     theme_name = {t["id"]: t["name"] for t in THEMES}
     lines = [

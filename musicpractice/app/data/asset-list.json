@@ -475,25 +475,25 @@
     "id": "drone-cello",
     "theme": "classic",
     "file": "assets/ui/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "classic",
     "file": "assets/ui/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        113,
+        870
       ],
       "tip": [
-        88,
-        34
+        112,
+        50
       ]
     }
   },
@@ -501,25 +501,25 @@
     "id": "drone-cello",
     "theme": "deco",
     "file": "assets/ui/deco/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "deco",
     "file": "assets/ui/deco/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        111,
+        865
       ],
       "tip": [
-        88,
-        34
+        111,
+        75
       ]
     }
   },
@@ -527,25 +527,25 @@
     "id": "drone-cello",
     "theme": "sixties",
     "file": "assets/ui/sixties/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "sixties",
     "file": "assets/ui/sixties/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        111,
+        871
       ],
       "tip": [
-        88,
-        34
+        111,
+        57
       ]
     }
   },
@@ -553,25 +553,25 @@
     "id": "drone-cello",
     "theme": "baroque",
     "file": "assets/ui/baroque/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "baroque",
     "file": "assets/ui/baroque/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        110,
+        859
       ],
       "tip": [
-        88,
-        34
+        110,
+        65
       ]
     }
   },
@@ -579,25 +579,25 @@
     "id": "drone-cello",
     "theme": "scifi",
     "file": "assets/ui/scifi/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "scifi",
     "file": "assets/ui/scifi/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        111,
+        867
       ],
       "tip": [
-        88,
-        34
+        111,
+        80
       ]
     }
   },
@@ -605,25 +605,25 @@
     "id": "drone-cello",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "nouveau",
     "file": "assets/ui/nouveau/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        119,
+        862
       ],
       "tip": [
-        88,
-        34
+        119,
+        67
       ]
     }
   },
@@ -631,25 +631,25 @@
     "id": "drone-cello",
     "theme": "anime",
     "file": "assets/ui/anime/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "anime",
     "file": "assets/ui/anime/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        114,
+        874
       ],
       "tip": [
-        88,
-        34
+        114,
+        66
       ]
     }
   },
@@ -657,25 +657,25 @@
     "id": "drone-cello",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/drone-cello.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   {
     "id": "drone-bow",
     "theme": "steampunk",
     "file": "assets/ui/steampunk/drone-bow.webp",
-    "status": "requested",
+    "status": "delivered",
     "canvas": [
       256,
       1024
     ],
     "anchors": {
       "frog": [
-        88,
-        990
+        108,
+        843
       ],
       "tip": [
-        88,
-        34
+        108,
+        74
       ]
     }
   }

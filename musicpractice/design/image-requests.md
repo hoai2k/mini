@@ -18,7 +18,7 @@ Images belong to a theme (Settings → Theme); each theme has its own set.
 
 **Round 6 (Drone home icons, every theme):** delivered and in use.
 
-**Round 7 (Drone screen with the bow as volume, every theme):** 16 images wanted: `assets/ui/drone-cello.webp`, `assets/ui/drone-bow.webp`, `assets/ui/deco/drone-cello.webp`, `assets/ui/deco/drone-bow.webp`, `assets/ui/sixties/drone-cello.webp`, `assets/ui/sixties/drone-bow.webp`, `assets/ui/baroque/drone-cello.webp`, `assets/ui/baroque/drone-bow.webp`, `assets/ui/scifi/drone-cello.webp`, `assets/ui/scifi/drone-bow.webp`, `assets/ui/nouveau/drone-cello.webp`, `assets/ui/nouveau/drone-bow.webp`, `assets/ui/anime/drone-cello.webp`, `assets/ui/anime/drone-bow.webp`, `assets/ui/steampunk/drone-cello.webp`, `assets/ui/steampunk/drone-bow.webp`.
+**Round 7 (Drone screen with the bow as volume, every theme):** delivered and in use.
 
 **House styles** (already included in every prompt):
 
@@ -89,22 +89,22 @@ the measured ones for the delivered file in `build_requests.py`.
 | 6 | French Nouveau | delivered | `home-drone` | `app/assets/ui/nouveau/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 6 | Candy | delivered | `home-drone` | `app/assets/ui/anime/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
 | 6 | Steam Punk | delivered | `home-drone` | `app/assets/ui/steampunk/home-drone.webp` | 1024×1024, transparent PNG (shipped as 384×384 WebP) |
-| 7 | Classic | requested | `drone-cello` | `app/assets/ui/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Classic | requested | `drone-bow` | `app/assets/ui/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | Art Deco | requested | `drone-cello` | `app/assets/ui/deco/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Art Deco | requested | `drone-bow` | `app/assets/ui/deco/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | Vintage 60s | requested | `drone-cello` | `app/assets/ui/sixties/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Vintage 60s | requested | `drone-bow` | `app/assets/ui/sixties/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | 18th Century | requested | `drone-cello` | `app/assets/ui/baroque/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | 18th Century | requested | `drone-bow` | `app/assets/ui/baroque/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | Robot Future | requested | `drone-cello` | `app/assets/ui/scifi/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Robot Future | requested | `drone-bow` | `app/assets/ui/scifi/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | French Nouveau | requested | `drone-cello` | `app/assets/ui/nouveau/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | French Nouveau | requested | `drone-bow` | `app/assets/ui/nouveau/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | Candy | requested | `drone-cello` | `app/assets/ui/anime/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Candy | requested | `drone-bow` | `app/assets/ui/anime/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
-| 7 | Steam Punk | requested | `drone-cello` | `app/assets/ui/steampunk/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
-| 7 | Steam Punk | requested | `drone-bow` | `app/assets/ui/steampunk/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Classic | delivered | `drone-cello` | `app/assets/ui/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Classic | delivered | `drone-bow` | `app/assets/ui/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Art Deco | delivered | `drone-cello` | `app/assets/ui/deco/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Art Deco | delivered | `drone-bow` | `app/assets/ui/deco/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Vintage 60s | delivered | `drone-cello` | `app/assets/ui/sixties/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Vintage 60s | delivered | `drone-bow` | `app/assets/ui/sixties/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | 18th Century | delivered | `drone-cello` | `app/assets/ui/baroque/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | 18th Century | delivered | `drone-bow` | `app/assets/ui/baroque/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Robot Future | delivered | `drone-cello` | `app/assets/ui/scifi/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Robot Future | delivered | `drone-bow` | `app/assets/ui/scifi/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | French Nouveau | delivered | `drone-cello` | `app/assets/ui/nouveau/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | French Nouveau | delivered | `drone-bow` | `app/assets/ui/nouveau/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Candy | delivered | `drone-cello` | `app/assets/ui/anime/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Candy | delivered | `drone-bow` | `app/assets/ui/anime/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
+| 7 | Steam Punk | delivered | `drone-cello` | `app/assets/ui/steampunk/drone-cello.webp` | 1024×1024, transparent PNG (shipped as 512×512 WebP) |
+| 7 | Steam Punk | delivered | `drone-bow` | `app/assets/ui/steampunk/drone-bow.webp` | 256×1024, transparent PNG (shipped as 128×512 WebP) |
 
 ## Home screen buttons
 
@@ -692,22 +692,22 @@ Asset: Music Practice home-button emblem for a future 'Drone' feature (sustained
 
 ## Classic · Drone screen with the bow as volume
 
-### `drone-cello` · Classic · requested
+### `drone-cello` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Classic theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Classic theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Classic · requested
+### `drone-bow` · Classic · delivered
 
 - File: `musicpractice/app/assets/ui/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Classic Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (113, 870), tip (112, 50) in a 256×1024 canvas
+- Note: The Classic Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -715,22 +715,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/home-drone.webp
 
 ## Art Deco · Drone screen with the bow as volume
 
-### `drone-cello` · Art Deco · requested
+### `drone-cello` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Art Deco theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/deco/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Art Deco theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/deco/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Art Deco · requested
+### `drone-bow` · Art Deco · delivered
 
 - File: `musicpractice/app/assets/ui/deco/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Art Deco Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (111, 865), tip (111, 75) in a 256×1024 canvas
+- Note: The Art Deco Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -738,22 +738,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/deco/home-drone
 
 ## Vintage 60s · Drone screen with the bow as volume
 
-### `drone-cello` · Vintage 60s · requested
+### `drone-cello` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Vintage 60s theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/sixties/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Vintage 60s theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/sixties/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Vintage 60s · requested
+### `drone-bow` · Vintage 60s · delivered
 
 - File: `musicpractice/app/assets/ui/sixties/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Vintage 60s Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (111, 871), tip (111, 57) in a 256×1024 canvas
+- Note: The Vintage 60s Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -761,22 +761,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/sixties/home-dr
 
 ## 18th Century · Drone screen with the bow as volume
 
-### `drone-cello` · 18th Century · requested
+### `drone-cello` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the 18th Century theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/baroque/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the 18th Century theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/baroque/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · 18th Century · requested
+### `drone-bow` · 18th Century · delivered
 
 - File: `musicpractice/app/assets/ui/baroque/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The 18th Century Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (110, 859), tip (110, 65) in a 256×1024 canvas
+- Note: The 18th Century Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -784,22 +784,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/baroque/home-dr
 
 ## Robot Future · Drone screen with the bow as volume
 
-### `drone-cello` · Robot Future · requested
+### `drone-cello` · Robot Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Robot Future theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/scifi/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Robot Future theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/scifi/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Robot Future · requested
+### `drone-bow` · Robot Future · delivered
 
 - File: `musicpractice/app/assets/ui/scifi/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Robot Future Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (111, 867), tip (111, 80) in a 256×1024 canvas
+- Note: The Robot Future Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -807,22 +807,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/scifi/home-dron
 
 ## French Nouveau · Drone screen with the bow as volume
 
-### `drone-cello` · French Nouveau · requested
+### `drone-cello` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the French Nouveau theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/nouveau/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the French Nouveau theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/nouveau/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · French Nouveau · requested
+### `drone-bow` · French Nouveau · delivered
 
 - File: `musicpractice/app/assets/ui/nouveau/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The French Nouveau Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (119, 862), tip (119, 67) in a 256×1024 canvas
+- Note: The French Nouveau Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -830,22 +830,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/nouveau/home-dr
 
 ## Candy · Drone screen with the bow as volume
 
-### `drone-cello` · Candy · requested
+### `drone-cello` · Candy · delivered
 
 - File: `musicpractice/app/assets/ui/anime/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Candy theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/anime/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Candy theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/anime/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Candy · requested
+### `drone-bow` · Candy · delivered
 
 - File: `musicpractice/app/assets/ui/anime/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Candy Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (114, 874), tip (114, 66) in a 256×1024 canvas
+- Note: The Candy Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.
@@ -853,22 +853,22 @@ Using the bow in the attached image, musicpractice/app/assets/ui/anime/home-dron
 
 ## Steam Punk · Drone screen with the bow as volume
 
-### `drone-cello` · Steam Punk · requested
+### `drone-cello` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/drone-cello.webp`
 - Size: 1024×1024, transparent PNG (shipped as 512×512 WebP)
-- Note: The Drone screen's picture in the Steam Punk theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/steampunk/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in.
+- Note: The Drone screen's picture in the Steam Punk theme when the bow is the volume control (Drone settings → Bow as volume). Made from app/assets/ui/steampunk/home-drone.webp, so the cello matches the home button exactly. Until it arrives the app draws a stand-in. Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Edit the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.
 ```
 
-### `drone-bow` · Steam Punk · requested
+### `drone-bow` · Steam Punk · delivered
 
 - File: `musicpractice/app/assets/ui/steampunk/drone-bow.webp`
 - Size: 256×1024, transparent PNG (shipped as 128×512 WebP)
-- Anchors (requested): frog (88, 990), tip (88, 34) in a 256×1024 canvas
-- Note: The Steam Punk Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip).
+- Anchors (measured): frog (108, 843), tip (108, 74) in a 256×1024 canvas
+- Note: The Steam Punk Drone screen's volume control, stood to the right of the cello: the app slides a marker along the hair and lights the hair from the frog up to the volume. Ask for the hair from (88, 990) at the frog to (88, 34) at the tip in a 256×1024 canvas, then measure where it really runs in the delivered file and record that here (anchors frog and tip). Delivered artwork and export details: design/image-deliveries-round-7.json.
 
 ```text
 Using the bow in the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.

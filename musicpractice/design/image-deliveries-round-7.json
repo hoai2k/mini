@@ -1,0 +1,409 @@
+{
+  "date": "2026-10-17",
+  "round": 7,
+  "scope": "Sixteen requested Drone-screen assets across eight themes, registered for the existing Bow as volume option. Artwork delivery; UI behavior comes from the existing implementation.",
+  "tool": "built-in image_gen, followed by user-authorized deterministic compositing and export",
+  "mist_preservation": "The original 384x384 home art remains unchanged. Bow-free cellos retain its framing, solid instrument pixels and subtle mist outside localized repairs. PNG masters are upscaled from that original-resolution composite; the app receives 512x512 lossless WebP.",
+  "assets": [
+    {
+      "theme": "classic",
+      "id": "drone-cello",
+      "generated_source": "exec-d804541b-e9c7-49bd-9496-4a214a6de8f9.png",
+      "file": "musicpractice/app/assets/ui/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/classic-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "classic",
+      "id": "drone-bow",
+      "generated_source": "exec-a9d038f1-cc95-4410-9bd7-964223d6b857.png",
+      "file": "musicpractice/app/assets/ui/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          113,
+          870
+        ],
+        "tip": [
+          112,
+          50
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/classic-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "deco",
+      "id": "drone-cello",
+      "generated_source": "exec-acb12bdc-9308-4c29-9d41-c6d6ff778714.png",
+      "file": "musicpractice/app/assets/ui/deco/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/deco-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "deco",
+      "id": "drone-bow",
+      "generated_source": "exec-aff3ffc3-f27c-4f58-a085-a5e77629f2f4.png",
+      "file": "musicpractice/app/assets/ui/deco/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/deco/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          111,
+          865
+        ],
+        "tip": [
+          111,
+          75
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/deco-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "sixties",
+      "id": "drone-cello",
+      "generated_source": "exec-47eb7fef-f061-4138-9bd1-f8fca978517c.png",
+      "file": "musicpractice/app/assets/ui/sixties/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/sixties-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "sixties",
+      "id": "drone-bow",
+      "generated_source": "exec-422cf99b-933e-4319-8f9d-8d030bc77e06.png",
+      "file": "musicpractice/app/assets/ui/sixties/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/sixties/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          111,
+          871
+        ],
+        "tip": [
+          111,
+          57
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/sixties-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "baroque",
+      "id": "drone-cello",
+      "generated_source": "exec-34ad775f-a15d-407b-8515-30daf1e4876b.png",
+      "file": "musicpractice/app/assets/ui/baroque/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/baroque-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "baroque",
+      "id": "drone-bow",
+      "generated_source": "exec-d1069fa6-2095-4052-ae66-c1165ae74d36.png",
+      "file": "musicpractice/app/assets/ui/baroque/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/baroque/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          110,
+          859
+        ],
+        "tip": [
+          110,
+          65
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/baroque-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "scifi",
+      "id": "drone-cello",
+      "generated_source": "exec-42d38763-5df2-4b5f-ae1f-ed55470299b0.png",
+      "file": "musicpractice/app/assets/ui/scifi/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/scifi-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "scifi",
+      "id": "drone-bow",
+      "generated_source": "exec-7b176596-6039-46bd-a23b-6f0428854251.png",
+      "file": "musicpractice/app/assets/ui/scifi/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/scifi/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          111,
+          867
+        ],
+        "tip": [
+          111,
+          80
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/scifi-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "nouveau",
+      "id": "drone-cello",
+      "generated_source": "exec-041ada9b-2d42-4a8d-919c-64f0f0c31c3b.png",
+      "file": "musicpractice/app/assets/ui/nouveau/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/nouveau-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "nouveau",
+      "id": "drone-bow",
+      "generated_source": "exec-1d4c421a-e746-436a-b89e-d76a14a04527.png",
+      "file": "musicpractice/app/assets/ui/nouveau/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/nouveau/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          119,
+          862
+        ],
+        "tip": [
+          119,
+          67
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/nouveau-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "anime",
+      "id": "drone-cello",
+      "generated_source": "exec-75969647-41a2-4392-bc09-d6c44e6b2d23.png",
+      "file": "musicpractice/app/assets/ui/anime/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/anime-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "anime",
+      "id": "drone-bow",
+      "generated_source": "exec-226d4ce8-2de6-4c29-84b1-252148bfffab.png",
+      "file": "musicpractice/app/assets/ui/anime/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/anime/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          114,
+          874
+        ],
+        "tip": [
+          114,
+          66
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/anime-drone-bow.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "steampunk",
+      "id": "drone-cello",
+      "generated_source": "exec-25f3ff90-d125-4911-bd80-809a2c1d8142.png",
+      "file": "musicpractice/app/assets/ui/steampunk/drone-cello.webp",
+      "prompt": "Edit the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home image, a cello with its bow): remove the bow entirely and change nothing else. The cello, its colours, its position and size on the canvas, its strings and the sound ribbons stay exactly as they are; where the bow crossed the cello or a ribbon, restore what lies behind it, and where it crossed empty space leave the background fully transparent. Same square canvas, same framing, so the two images line up exactly when swapped. No bow, no new objects, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        512,
+        512
+      ],
+      "native_canvas": [
+        384,
+        384
+      ],
+      "processing": "User-authorized compositing: preserve the original home-drone pixels outside the bow repair; use generated bow-free detail locally, restore original mist alpha, and reuse aligned opposite-side mist where suitable. No global changes to mist opacity, colour, glow or treatment.",
+      "source": "musicpractice/design/generated/round-7/steampunk-drone-cello.png",
+      "mode": "RGBA"
+    },
+    {
+      "theme": "steampunk",
+      "id": "drone-bow",
+      "generated_source": "exec-4f28cdc4-9acb-463f-8a61-21f2c380a3f5.png",
+      "file": "musicpractice/app/assets/ui/steampunk/drone-bow.webp",
+      "prompt": "Using the bow in the attached image, musicpractice/app/assets/ui/steampunk/home-drone.webp (this theme's Drone home image), as the reference for its materials, colours and rendering style, draw that cello bow alone, standing straight upright: the tip at the top, the frog (with its small eye and silver-wound grip) at the bottom, the stick perfectly vertical and straight, and the bow hair a clean, light, evenly taut straight line running down the stick's left side from the tip to the frog, clearly visible along its whole length. Seen side-on, so the stick and the hair read as two parallel lines. The bow fills the canvas from top to bottom with a small margin (about 3%), centred left to right. A tall narrow canvas with a fully transparent background, no cast shadow, no sound ribbons, no cello, no hands, no text.",
+      "tool": "built-in image_gen",
+      "status": "delivered",
+      "size": [
+        128,
+        512
+      ],
+      "canvas": [
+        256,
+        1024
+      ],
+      "anchors": {
+        "frog": [
+          108,
+          843
+        ],
+        "tip": [
+          108,
+          74
+        ]
+      },
+      "processing": "Crop transparent padding, preserve aspect ratio, fit the full bow to 960px height in a 256x1024 transparent canvas with 32px top/bottom margins. Export at 128x512. Hair anchors measured in the normalized 256x1024 canvas.",
+      "source": "musicpractice/design/generated/round-7/steampunk-drone-bow.png",
+      "mode": "RGBA"
+    }
+  ]
+}

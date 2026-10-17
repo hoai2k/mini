@@ -358,9 +358,8 @@ tones, scales over a tonic.
   hair lit from the frog up to the level with a small gold marker; drag
   along it. The hair is placed from the bow's own `frog` and `tip` anchors
   (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
-  anywhere in its canvas. Until its art arrives (image requests round 7:
-  `drone-cello`, each theme's Drone image with the bow taken out, and
-  `drone-bow`, the bow alone, upright) each theme draws a stand-in. The
+  anywhere in its canvas. Round 7 delivers `drone-cello`, each theme's Drone
+  image with the bow taken out, and `drone-bow`, the bow alone, upright. The
   plain slider stays the default while this is tried out.
 - **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
   beside it is lit while the fifth plays and faint while it doesn't.
@@ -738,3 +737,12 @@ for the others) are Round 6 of the image requests and in use;
 were checked at full size: complete four-string cellos with bow, endpin and
 scroll, nothing cropped (the scrolls come close to the top edge), each in its
 theme's style.
+
+Round 7 delivers a bow-free cello and a separate upright bow for each theme,
+used by the Bow as volume option. The original home icons are unchanged;
+the cello edits preserve their subtle mist with local repairs where the bow
+crossed it. `design/image-deliveries-round-7.json` records the prompts, source
+PNGs, exports and measured bow-hair anchors. PNG masters live in
+`design/generated/round-7/`; the app assets are `drone-cello.webp` (512×512)
+and `drone-bow.webp` (128×512), alongside each theme's home icon. Turn on
+Drone settings → Bow as volume to see them; the plain slider stays the default.
