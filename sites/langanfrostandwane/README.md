@@ -5,6 +5,10 @@ West Philadelphia: Brian Langan, Robert James Frost (RJ Gilligan) and Nam
 Wayne. Published at https://hoai2k.github.io/mini/sites/langanfrostandwane/.
 Like `railway/`, this is a real band and not part of the Ygent catalogue.
 
+The site is private: every page is marked noindex and sits behind the
+invite gate, which the public-access switch does not open. See
+[`../shared/README.md`](../shared/README.md#private-sites).
+
 The look is a lost late-sixties record sleeve: cream paper and brown ink,
 marigold and rust type with a stacked seventies shadow (Fraunces with its
 soft, wonky axes), IM Fell small caps and EB Garamond for the text, and
