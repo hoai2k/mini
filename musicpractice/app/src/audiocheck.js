@@ -89,7 +89,7 @@ async function render() {
       const ok = await ctl.onSpeaker(sel.value);
       if (!ok) sel.value = 'default';
     });
-    speaker = [el('label', { class: 'row toggle' }, el('span', {}, A.speaker), sel),
+    speaker = [el('label', { class: 'row' }, el('span', {}, A.speaker), sel),
       el('p', { class: 'help' }, A.speakerHelp)];
   } else {
     speaker = [el('p', { class: 'help' }, rich(A.speakerUnavailable))];
@@ -128,7 +128,7 @@ async function render() {
     steps,
     steps ? el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload) : null,
     el('div', { class: 'ac-test' }, testBtn, el('span', { class: 'help' }, A.testHelp)),
-    el('label', { class: 'row toggle' }, el('span', {}, A.microphone), micSelect),
+    el('label', { class: 'row' }, el('span', {}, A.microphone), micSelect),
     micHelp,
     ...speaker,
     el('label', { class: 'row' }, el('span', {}, `${A.sync} `, syncOut), sync),
