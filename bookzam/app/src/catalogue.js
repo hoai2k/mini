@@ -54,6 +54,8 @@ export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
       if (known) {
         if (!known.photos.includes(photoId)) known.photos.push(photoId);
         if (!known.author && entry.author) known.author = entry.author;
+        if (!known.lookup && entry.lookup) { known.lookup = entry.lookup; known.lookupStatus = 'matched'; }
+        if (!known.read && entry.read) known.read = entry.read;
         existing.push(known);
         continue;
       }
@@ -68,8 +70,10 @@ export function mergeScan(cat, scan, photoId, now = new Date().toISOString()) {
         confidence: entry.confidence ?? null,
         photos: [photoId],
         added: now,
-        lookup: null,
-        lookupStatus: kind === 'book' ? 'pending' : 'none',
+        lookup: entry.lookup || null,
+        // Found on Open Library while reading: done. Read but not found there: a manual edit looks it up again.
+        lookupStatus: entry.lookup ? 'matched' : kind === 'book' && !('lookup' in entry) ? 'pending' : 'none',
+        read: entry.read || null, // the spine's text as read, which Find Book matches against
       };
       list.unshift(item);
       added.push(item);

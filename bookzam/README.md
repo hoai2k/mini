@@ -15,11 +15,12 @@ too. Add it to the home screen for a full-screen app.
   checks the author's surname when both have one), and a later photo fills in
   an author the first one missed. Several photos can be picked at once; they're
   read one after another, each with a card saying what it added.
-  - Each book is then looked up on [Open Library](https://openlibrary.org)
-    (free, no key) for its cover, first-published year, ISBN, pages, publisher
-    and subjects. Board games link to a BoardGameGeek search instead (its API
-    needs a registered key and doesn't allow browser requests).
-  - Titles the reader wasn't sure of get a yellow **?**.
+  - Each book is identified on [Open Library](https://openlibrary.org) (free,
+    no key), which also gives its cover, first-published year, ISBN, pages,
+    publisher and subjects. Board games link to a BoardGameGeek search instead
+    (its API needs a registered key and doesn't allow browser requests).
+  - Text that was read clearly but isn't a book Open Library knows is kept as
+    printed with a yellow **?**, to correct or delete.
   - Tap an item to correct its title or author (a book is looked up again),
     move it between books and board games, delete it, see the photos it was
     found in, open it on Open Library, Goodreads, Google Books or
@@ -33,36 +34,54 @@ too. Add it to the home screen for a full-screen app.
     thumbnails. The full photos are never stored.
 - **Find Book.** Type a title (the field suggests titles from your catalogue)
   and photograph the shelf. Bookzam circles the book in yellow, dims the rest,
-  and says where to look ("second shelf from the top, a third of the way in").
-  Tap the photo to zoom in on it. If it isn't there, it says so and offers the
-  closest titles it could see as buttons to search for instead. **Search this
-  photo again** retries the same photo with a new title.
-  - It looks twice: once at the whole photo, then at a close-up cut from the
-    full-resolution original around what it found, which shows the spines in
-    far more detail and tightens the circle. If the close-up disagrees, the
-    first circle stays.
+  says roughly where it is ("Near the top, on the left."), and zooms in on a
+  thin spine by itself; tap the photo to zoom in or out. If it isn't there, it
+  says so and offers the titles it could read as buttons to search for
+  instead. **Search this photo again** with another title is instant: the
+  photo is read once.
+  - The circle goes round the text it read, so it sits on the right spine.
+    A title from the catalogue also matches by its author and by how its
+    spine read when it was catalogued.
 
 ## How photos are read
 
-The page shrinks each photo to at most 1568 px on its long edge (JPEG, about
-300 KB) and posts it to the shared mini-rooms worker
-(`multiplayer/server/src/bookzam.js`): `POST /bookzam/scan` for the catalogue
-and `POST /bookzam/find` with the title for Find Book. The worker builds the
-prompts itself, so the routes can only read shelves, and allows 40 photos per
-person per 10 minutes and only this site's origins.
+Everything runs on the phone; photos are never uploaded.
 
-- **With Claude** (set the worker secret once: `cd multiplayer/server && npx
-  wrangler secret put ANTHROPIC_API_KEY`): Claude Opus 5.5 reads the photo
-  with structured JSON output. It reads small and sideways spine text well
-  and places the find box closely. Roughly 5–10 US cents a photo (more for a
-  crowded shelf), and a Find is two calls.
-- **Without the key**, Workers AI's Llama 4 Scout vision model reads it, free
-  within Cloudflare's daily allowance. It reads fewer spines, especially thin
-  or stylised ones, and its boxes are looser. If a Claude call fails, the
-  worker falls back to it too.
+1. **Text detection and recognition** in a web worker
+   (`app/src/ocr/worker.js`) with ONNX Runtime Web (WebAssembly) and
+   PaddleOCR's PP-OCRv5 mobile models (`app/models/`, Apache 2.0, details in
+   its README). The photo is read at up to 2560 px on its long side, since
+   spine lettering is small; spines are read both ways up and the more
+   confident reading kept. The first photo downloads the reader, about 25 MB
+   (detector 4.8 MB, recogniser 7.8 MB, runtime 12 MB); the browser keeps it
+   after that.
+2. **Spines** (`app/src/ocr/spines.js`): lines that continue each other or
+   sit side by side on one spine are grouped; neighbouring spines are kept
+   apart (a line joins a group only if it fits every member), and labels in
+   line across a shelf only join if Open Library confirms the joined title.
+3. **Which book** (`app/src/ocr/identify.js`): one Open Library search with
+   every word read, then, if that finds nothing, one with any of them ORed,
+   so a misread word doesn't sink it. A result is accepted only if most of its
+   title was read, in order, and its title and author explain most of what was
+   read; a one-word title also needs its author, and words under five letters
+   must match exactly (five/fire, java/lava). The same title by two authors
+   with nothing naming either keeps the title only. Repeated searches on a
+   shelf (a series) are asked once.
+4. **Board games**: there's no free game database a page can search, so a
+   reading goes to Board games when a box's small print ("2-5 players, ages
+   10+") sits beside it. Anything else can be moved by hand.
 
-The menu says which one read your last photo. `?api=http://localhost:8787`
-points the page at a local `wrangler dev`.
+Measured on five real photos (a dim bookcase photographed at an angle with a
+shallow depth of field, a children's shelf, a bookshop shelf, a mixed
+German/English shelf, picture books with tilted spines) against Cloudflare
+Workers AI's Llama 4 Scout reading the same photos: on-device found and
+identified more books on four of the five (all but the German shelf), and
+placed Find Book's circle on the right spine, where Llama's boxes were a
+bookcase off. A photo takes about 10 s to read on a laptop and 20–60 s in all
+with the Open Library lookups; phones are slower.
+
+It reads printed titles: thin spines, decorative lettering, glare, blur and
+steep angles lose books. Straight on, close and well lit works best.
 
 ## Files
 
@@ -71,16 +90,23 @@ points the page at a local `wrangler dev`.
   - `main.js`: the page: tabs, list, item sheet, menu, photo jobs, Find Book.
   - `catalogue.js`: title matching, merging scans, moving, filtering,
     sorting and the export format (pure, tested).
-  - `geometry.js`: photo sizes, the Find close-up crop and the ring (pure,
-    tested).
-  - `photo.js`: decoding (upright whatever the EXIF says), resizing,
-    thumbnails. `api.js`: the worker calls. `lookup.js`: Open Library.
-    `store.js`: IndexedDB.
+  - `reader.js`: drives the reading worker, turns lines into catalogue
+    entries, and finds a title in a read photo (tested).
+  - `ocr/`: `core.js` the image maths around the models (detector input, box
+    finding, rotated crops, CTC decoding), `engine.js` runs the models,
+    `worker.js` the web worker, `spines.js` grouping and fuzzy matching,
+    `identify.js` the Open Library step (all but the worker tested).
+  - `geometry.js`: photo sizes and the Find ring. `photo.js`: decoding
+    (upright whatever the EXIF says), resizing, thumbnails. `lookup.js`: Open
+    Library lookups after a title is edited. `store.js`: IndexedDB.
+- `app/models/`: the PaddleOCR models and their sources.
+  `app/vendor/ort/`: ONNX Runtime Web 1.23.2 (MIT), the WebAssembly build.
 - `app/icons/`: a stand-in icon (`icon.svg`, rendered to 180/192/512 PNGs)
   until the requested art arrives.
 - `design/image-requests.md`: the art to generate.
 - `tools/browser-check.mjs`: a walk-through on a phone-sized Chromium with
-  the photo server and Open Library mocked.
+  the real reader on a shelf it draws (spines both ways up, a book lying flat,
+  a game box), Open Library mocked.
 - `publish.sh`: copies the app to `local/pages/bookzam/`.
 
 ## Export format
@@ -108,5 +134,4 @@ search link instead of the Open Library fields.
 node --test bookzam/app/test/*.test.mjs
 bookzam/publish.sh local/pages/bookzam
 node bookzam/tools/browser-check.mjs   # needs playwright-core in local/tools
-cd multiplayer/server && npm test      # the worker routes
 ```
