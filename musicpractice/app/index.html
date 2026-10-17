@@ -382,13 +382,19 @@
           <label class="row"><span data-text="common.volume"></span><input type="range" class="slider" id="dr-volume" min="0" max="1" step="0.05"></label>
           <label class="row toggle"><span data-text="drone.settings.fifth"></span><input type="checkbox" id="dr-fifth" role="switch"></label>
           <p class="help" data-text="drone.settings.fifthHelp"></p>
-          <label class="row toggle"><span data-text="drone.settings.smooth"></span><input type="checkbox" id="dr-smooth" role="switch"></label>
-          <p class="help" data-text="drone.settings.smoothHelp"></p>
-          <label class="row toggle"><span data-text="drone.settings.timed"></span><input type="checkbox" id="dr-timed" role="switch"></label>
-          <div class="drone-timed" id="dr-timed-opts">
-            <label class="row"><span id="dr-minutes-label"></span><input type="range" class="slider" id="dr-minutes" min="0.5" max="20" step="0.5"></label>
-            <label class="row"><span data-text="drone.settings.then"></span><select class="select" id="dr-then"></select></label>
-            <p class="help" data-text="drone.settings.timedHelp"></p>
+          <div class="met-display">
+            <div class="met-tabs" id="dr-mode-tabs" role="radiogroup" data-text-aria-label="drone.settings.timing"></div>
+            <div class="met-tab-panel">
+              <div class="met-art-opts" id="dr-continuous-opts">
+                <label class="row toggle"><span data-text="drone.settings.loop"></span><input type="checkbox" id="dr-loop" role="switch"></label>
+                <label class="row" id="dr-length-row"><span id="dr-length-label"></span><input type="range" class="slider" id="dr-length" min="1" max="60" step="1"></label>
+              </div>
+              <div class="met-viz-opts" id="dr-change-opts">
+                <label class="row"><span id="dr-step-label"></span><input type="range" class="slider" id="dr-step" min="0.5" max="20" step="0.5"></label>
+                <label class="row"><span data-text="drone.settings.then"></span><select class="select" id="dr-then"></select></label>
+                <p class="help" data-text="drone.settings.timedHelp"></p>
+              </div>
+            </div>
           </div>
           <div class="row">
             <span class="dr-a4-label"></span>

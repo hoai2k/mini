@@ -207,6 +207,9 @@ LIVE['organ-synth'] = { ...LIVE.organ, level: 0.3 };
  * the loop points stay inside seamless material even if a decoder shifts the
  * audio a little. `hz` is each loop's measured pitch.
  */
+// The loops' slow swells of level (the bow, the bellows) were divided out
+// once more after cutting (design/source/drone/smooth.mjs), so each holds
+// steady: its level swings 0.5-2.2% where the cut loops swung 3-11%.
 export const SAMPLED = {
   cello: { level: 1.25, wet: 0.14, loops: [
     { file: 'cello-D2.mp3', hz: 74.246, margin: 0.3, loop: 4.943265 },
@@ -226,17 +229,6 @@ export const SAMPLED = {
 // fingerboard, sul tasto), with a little more room.
 SAMPLED['cello-soft'] = { ...SAMPLED.cello, level: 1.2, wet: 0.2, lowpass: 900 };
 
-// Smoothed: each recorded voice again, from loops whose slow swells of level
-// (the bow, the bellows) are divided out (design/source/drone/smooth.mjs).
-// Same pitches, lengths and loop points; only the files differ.
-for (const id of Object.keys(SAMPLED)) {
-  SAMPLED[`${id}-smooth`] = { ...SAMPLED[id], loops: SAMPLED[id].loops.map((l) => ({ ...l, file: l.file.replace(/\.mp3$/, '-smooth.mp3') })) };
-}
-
-/** The voice to play: its Smoothed copy when asked for and there is one (recorded voices only). */
-export function playedVoice(voice, smoothed) {
-  return smoothed && SAMPLED[`${voice}-smooth`] ? `${voice}-smooth` : voice;
-}
 
 /**
  * The loop for a pitch: the nearest (in semitones), with `target`, the pitch

@@ -98,10 +98,18 @@ export const DEFAULTS = Object.freeze({
   droneVolume: 0.8,
   droneFifth: true, // add a pure fifth above (on unless switched off)
   droneFifthChosen: false,
-  droneSmooth: false, // play the Smoothed loops (recorded voices)
-  droneTimed: false, // stop or move on after droneMinutes
-  droneMinutes: 3,
-  droneThen: 'stop', // or a sequence from SEQUENCES in drone.js
+  // Timing: Continuous pitch (looping forever, or stopping after droneLength
+  // minutes) or Change periodically (droneStep minutes on each pitch, then
+  // droneSeq). droneTimed, droneMinutes and droneThen are what the drone
+  // plays by, derived from these (droneTiming).
+  droneMode: 'continuous', // or 'change'
+  droneLoop: true,
+  droneLength: 10,
+  droneStep: 2,
+  droneSeq: 'chrom-up', // a sequence from SEQUENCES in drone.js (not 'stop')
+  droneTimed: false,
+  droneMinutes: 10,
+  droneThen: 'stop',
   tuning: 'chromatic', // tuner: an id from TUNINGS in tuning.js
   a4: 440, // tuner reference pitch, 415-466 Hz
   flats: false, // tuner: spell notes with flats
@@ -110,6 +118,16 @@ export const DEFAULTS = Object.freeze({
 
 const DRONE_VOICES = ['cello', 'cello-soft', 'organ', 'organ-synth']; // a saved voice since archived falls back to the cello
 const DRONE_THEN = ['stop', 'chrom-up', 'chrom-down', 'major-up', 'major-down', 'fifths', 'fourths'];
+export const DRONE_SEQS = DRONE_THEN.filter((q) => q !== 'stop');
+
+/** What the drone plays by (timed, minutes, then), from the timing chosen. Sets them on `s`. */
+export function droneTiming(s) {
+  const change = s.droneMode === 'change';
+  s.droneTimed = change || !s.droneLoop;
+  s.droneMinutes = change ? s.droneStep : s.droneLength;
+  s.droneThen = change ? s.droneSeq : 'stop';
+  return s;
+}
 const TUNING_IDS = ['chromatic', 'guitar', 'guitar-dropd', 'guitar-dadgad', 'bass4', 'bass5', 'ukulele', 'violin', 'viola', 'cello', 'mandolin', 'banjo'];
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -120,6 +138,30 @@ const oneOf = (v, list, d) => (list.includes(v) ? v : d);
 export function clampBpm(v) {
   const n = Math.round(Number(v));
   return Number.isFinite(n) ? clamp(n, BPM_MIN, BPM_MAX) : DEFAULTS.bpm;
+}
+
+/** The drone's timing, or from an earlier save's Timed drone switch, minutes and When time's up. */
+function droneTimingFrom(s) {
+  const minutes = (v, d, max) => clamp(Math.round(num(v, d) * 2) / 2, 0.5, max);
+  if (s.droneMode === 'continuous' || s.droneMode === 'change') {
+    return {
+      droneMode: s.droneMode,
+      droneLoop: typeof s.droneLoop === 'boolean' ? s.droneLoop : DEFAULTS.droneLoop,
+      droneLength: minutes(s.droneLength, DEFAULTS.droneLength, 60),
+      droneStep: minutes(s.droneStep, DEFAULTS.droneStep, 20),
+      droneSeq: oneOf(s.droneSeq, DRONE_SEQS, DEFAULTS.droneSeq),
+    };
+  }
+  const timed = s.droneTimed === true;
+  const then = oneOf(s.droneThen, DRONE_THEN, 'stop');
+  const old = minutes(s.droneMinutes, 3, 30);
+  return {
+    droneMode: timed && then !== 'stop' ? 'change' : 'continuous',
+    droneLoop: !(timed && then === 'stop'),
+    droneLength: timed && then === 'stop' ? old : DEFAULTS.droneLength,
+    droneStep: timed && then !== 'stop' ? Math.min(old, 20) : DEFAULTS.droneStep,
+    droneSeq: then !== 'stop' ? then : DEFAULTS.droneSeq,
+  };
 }
 
 /** Saves from before the one choice had two switches: a pulse someone turned on wins, as swinging and pulsing are never together now. */
@@ -169,16 +211,14 @@ export function sanitize(raw) {
     // Saves from before the fifth was on by default stored off without anyone choosing it.
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
     droneFifthChosen: s.droneFifthChosen === true,
-    droneSmooth: s.droneSmooth === true,
-    droneTimed: s.droneTimed === true,
-    droneMinutes: clamp(Math.round(num(s.droneMinutes, DEFAULTS.droneMinutes) * 2) / 2, 0.5, 30),
-    droneThen: oneOf(s.droneThen, DRONE_THEN, DEFAULTS.droneThen),
+    ...droneTimingFrom(s),
     tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),
     flats: s.flats === true,
     transpose: oneOf(s.transpose, ['C', 'Bb', 'Eb', 'F'], DEFAULTS.transpose),
   };
   out.subdivision = out.subOn ? out.subKind : 1;
+  droneTiming(out);
   return out;
 }
 

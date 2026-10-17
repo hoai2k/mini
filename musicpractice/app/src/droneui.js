@@ -4,7 +4,8 @@
 // in the settings.
 
 import { TEXT, setRich } from './text.js';
-import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap, playedVoice, SAMPLED } from './drone.js';
+import { droneTiming } from './settings.js';
+import { DRONE_MIN, DRONE_MAX, VOICES, SEQUENCES, sequenceNote, wrap } from './drone.js';
 import { noteName, midiToHz, A4_MIN, A4_MAX } from './tuning.js';
 
 const $ = (id) => document.getElementById(id);
@@ -42,7 +43,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   voice.replaceChildren(...VOICES.map((v) => new Option(v.label, v.id)));
   voice.value = settings.droneVoice;
   const then = $('dr-then');
-  then.replaceChildren(...SEQUENCES.map((q) => new Option(q.label, q.id)));
+  then.replaceChildren(...SEQUENCES.filter((q) => q.id !== 'stop').map((q) => new Option(q.label, q.id)));
 
   function show() {
     const n = name(settings.droneMidi);
@@ -92,7 +93,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     const voiceLabel = VOICES.find((v) => v.id === settings.droneVoice)?.label || '';
     engine().play({
       midi: settings.droneMidi,
-      voice: playedVoice(settings.droneVoice, settings.droneSmooth),
+      voice: settings.droneVoice,
       a4: settings.a4,
       fifth: settings.droneFifth,
       schedule: schedule(),
@@ -195,7 +196,6 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   voice.addEventListener('change', () => {
     settings.droneVoice = voice.value;
     persist();
-    showSmooth();
     if (playing) sound();
   });
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
@@ -217,53 +217,63 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     show();
     if (playing) sound();
   });
-  // Smoothed: only the recorded voices have it (the synthesized organ is steady already).
-  const smooth = $('dr-smooth');
-  smooth.checked = settings.droneSmooth;
-  function showSmooth() {
-    const has = !!SAMPLED[`${settings.droneVoice}-smooth`];
-    smooth.disabled = !has;
-    smooth.closest('.row').classList.toggle('disabled', !has);
-  }
-  showSmooth();
-  smooth.addEventListener('change', () => {
-    settings.droneSmooth = smooth.checked;
-    persist();
-    if (playing) sound();
+  // Timing: Continuous pitch (Loop forever, or a Length after which it stops)
+  // or Change periodically (Time on each pitch, then When time's up). The
+  // drone plays by droneTimed, droneMinutes and droneThen (droneTiming).
+  const fmtMin = (m) => (m % 1 ? m.toFixed(1) : m);
+  const tabs = ['continuous', 'change'].map((id) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.setAttribute('role', 'radio');
+    b.textContent = TEXT.drone.settings.modes[id];
+    b.addEventListener('click', () => { settings.droneMode = id; timingChanged(); });
+    return b;
   });
-  const timed = $('dr-timed');
-  const minutes = $('dr-minutes');
-  function showTimedOpts() {
-    $('dr-timed-opts').hidden = !settings.droneTimed;
-    setRich($('dr-minutes-label'), TEXT.drone.settings.length(settings.droneMinutes % 1 ? settings.droneMinutes.toFixed(1) : settings.droneMinutes));
+  $('dr-mode-tabs').replaceChildren(...tabs);
+  function showTimingOpts() {
+    const change = settings.droneMode === 'change';
+    tabs.forEach((b, i) => { b.setAttribute('aria-checked', String(change === (i === 1))); b.tabIndex = change === (i === 1) ? 0 : -1; });
+    $('dr-mode-tabs').dataset.on = change ? 'last' : 'first';
+    $('dr-continuous-opts').hidden = change;
+    $('dr-change-opts').hidden = !change;
+    $('dr-loop').checked = settings.droneLoop;
+    $('dr-length-row').hidden = settings.droneLoop;
+    $('dr-length').value = settings.droneLength;
+    $('dr-step').value = settings.droneStep;
+    then.value = settings.droneSeq;
+    setRich($('dr-length-label'), TEXT.drone.settings.length(fmtMin(settings.droneLength)));
+    setRich($('dr-step-label'), TEXT.drone.settings.step(fmtMin(settings.droneStep)));
   }
-  timed.checked = settings.droneTimed;
-  timed.addEventListener('change', () => {
-    settings.droneTimed = timed.checked;
+  /** A change of timing starts it again from now, and from the note playing. */
+  function timingChanged() {
+    droneTiming(settings);
     persist();
     remaining = settings.droneMinutes * 60;
     seqStart = settings.droneMidi;
     seqStep = 0;
     doneNote = '';
-    showTimedOpts();
+    showTimingOpts();
     show();
-  });
-  minutes.value = settings.droneMinutes;
-  minutes.addEventListener('input', () => {
-    settings.droneMinutes = Number(minutes.value);
-    persist();
-    remaining = settings.droneMinutes * 60;
-    showTimedOpts();
-    showTimer();
-  });
-  then.value = settings.droneThen;
+    if (playing) sound(); // the apps' native drone takes the new schedule with the note
+  }
+  $('dr-loop').addEventListener('change', () => { settings.droneLoop = $('dr-loop').checked; timingChanged(); });
+  for (const [id, key] of [['dr-length', 'droneLength'], ['dr-step', 'droneStep']]) {
+    $(id).addEventListener('input', () => {
+      settings[key] = Number($(id).value);
+      droneTiming(settings);
+      persist();
+      remaining = settings.droneMinutes * 60;
+      showTimingOpts();
+      showTimer();
+    });
+    $(id).addEventListener('change', () => { if (playing) sound(); });
+  }
   then.addEventListener('change', () => {
-    settings.droneThen = then.value;
-    persist();
-    seqStart = settings.droneMidi;
-    seqStep = 0;
-    showTimer();
+    settings.droneSeq = then.value;
+    timingChanged();
   });
+  showTimingOpts();
 
   // Reference pitch, shared with the tuner.
   const a4 = document.querySelector('.dr-a4');
@@ -282,7 +292,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     a4.value = settings.a4;
     setRich(document.querySelector('.dr-a4-label'), TEXT.common.referencePitch(settings.a4));
     fillPitches();
-    showTimedOpts();
+    showTimingOpts();
     show();
   }
   refresh();

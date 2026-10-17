@@ -365,8 +365,8 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
   margin-bottom: -2px; padding-bottom: 2px; /* over the box's top edge, so the tab opens into it */
 }
 .met-tab-panel { border: 2px solid var(--line); border-radius: 14px; padding: 6px 14px 10px; display: flex; flex-direction: column; }
-.met-tabs[data-on="metronome"] + .met-tab-panel { border-top-left-radius: 0; }
-.met-tabs[data-on="bars"] + .met-tab-panel { border-top-right-radius: 0; }
+.met-tabs[data-on="first"] + .met-tab-panel { border-top-left-radius: 0; }
+.met-tabs[data-on="last"] + .met-tab-panel { border-top-right-radius: 0; }
 .met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
 .met-visual { cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 12px; }
 .met-visual:focus:not(:focus-visible) { outline: none; }
@@ -1418,7 +1418,8 @@ div.ac-status.bad { border-color: var(--red); justify-items: start; }
 .ac-status p { margin: 0; }
 .ac-status.bad { border-color: var(--red); }
 .ac-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
-.ac-test { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ac-test { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ac-test > .pill { flex: 1 1 auto; padding-inline: 10px; } /* Play test sound and Reload page side by side on a phone */
 .ac-details summary { cursor: pointer; font-weight: 700; }
 .ac-section { border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; }
 .ac-section summary { cursor: pointer; font-weight: 700; }

@@ -91,12 +91,29 @@ test('home order: metronome, tuner, drone, recorder by default; a saved order is
 });
 
 test('drone settings: defaults, kept, and bad values fall back', () => {
-  const d = load(memoryStorage());
-  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneTimed, d.droneMinutes, d.droneThen, d.droneFifth], [48, 'cello', false, 3, 'stop', true]);
-  const s = sanitize({ droneMidi: 41, droneVoice: 'organ', droneTimed: true, droneMinutes: 7.5, droneThen: 'fifths', droneFifth: true, droneFifthChosen: true });
-  assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen, s.droneFifth], [41, 'organ', true, 7.5, 'fifths', true]);
-  const bad = sanitize({ droneMidi: 90, droneVoice: 'tanpura', droneMinutes: -2, droneThen: 'random' });
-  assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'stop']);
+  const d = sanitize({});
+  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneFifth], [48, 'cello', true]);
+  // Continuous pitch, looping forever: no timer.
+  assert.deepEqual([d.droneMode, d.droneLoop, d.droneLength, d.droneStep, d.droneSeq], ['continuous', true, 10, 2, 'chrom-up']);
+  assert.deepEqual([d.droneTimed, d.droneMinutes, d.droneThen], [false, 10, 'stop']);
+  // Continuous, not looping: stops after its length.
+  const once = sanitize({ droneMode: 'continuous', droneLoop: false, droneLength: 7.5 });
+  assert.deepEqual([once.droneTimed, once.droneMinutes, once.droneThen], [true, 7.5, 'stop']);
+  // Changing periodically: moves on after each step.
+  const s = sanitize({ droneMidi: 41, droneVoice: 'organ', droneMode: 'change', droneStep: 1.5, droneSeq: 'fifths', droneFifth: true, droneFifthChosen: true });
+  assert.deepEqual([s.droneMidi, s.droneVoice, s.droneTimed, s.droneMinutes, s.droneThen], [41, 'organ', true, 1.5, 'fifths']);
+  const bad = sanitize({ droneMidi: 90, droneVoice: 'tanpura', droneMode: 'change', droneStep: -2, droneSeq: 'random' });
+  assert.deepEqual([bad.droneMidi, bad.droneVoice, bad.droneMinutes, bad.droneThen], [59, 'cello', 0.5, 'chrom-up']);
+  assert.equal(sanitize({ droneMode: 'sometimes' }).droneMode, 'continuous');
+});
+
+test('an old timed drone becomes the matching timing', () => {
+  const stop = sanitize({ droneTimed: true, droneMinutes: 5, droneThen: 'stop' });
+  assert.deepEqual([stop.droneMode, stop.droneLoop, stop.droneLength], ['continuous', false, 5]);
+  const moving = sanitize({ droneTimed: true, droneMinutes: 1.5, droneThen: 'fifths' });
+  assert.deepEqual([moving.droneMode, moving.droneStep, moving.droneSeq], ['change', 1.5, 'fifths']);
+  const untimed = sanitize({ droneTimed: false, droneMinutes: 3, droneThen: 'fifths' });
+  assert.deepEqual([untimed.droneMode, untimed.droneLoop], ['continuous', true]);
 });
 
 test('Dark Mode: the system\'s by default; a choice made at the setting is kept', () => {

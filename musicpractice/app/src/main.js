@@ -669,7 +669,7 @@ function showMetView() {
   $('met-viz-opts').hidden = !bars;
   $('met-art-opts').hidden = bars;
   syncViewChips();
-  $('met-view-chips').dataset.on = settings.metView;
+  $('met-view-chips').dataset.on = bars ? 'last' : 'first';
   $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   fitPicture();

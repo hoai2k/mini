@@ -1,12 +1,14 @@
-// node smooth.mjs : write the Smoothed drone loops (<voice>-<note>-smooth.mp3)
-// beside the shipped ones and print a level report.
+// node smooth.mjs : even out the slow swells in the drone loops' level, in
+// place, and print a level report. Already done to the shipped loops (they
+// were the Smoothed option, then became the only loops); run it on a newly
+// cut loop, not again on these.
 //
-// The shipped loops already have their level evened out period by period
-// (steady.mjs); what is left is a slow swell of a few per second (the bow).
-// This divides it out: the loop's level, smoothed over a quarter of a second
-// and wrapped round the loop so the seam stays seamless, becomes a gain that
-// holds it steady. Pitch, length and loop points are the shipped loop's, so
-// drone.js plays a Smoothed file with the same entry under another name.
+// The cut loops have their level evened out period by period (steady.mjs);
+// what is left is a slow swell of a few per second (the bow). This divides
+// it out: the loop's level, smoothed over a quarter of a second and wrapped
+// round the loop so the seam stays seamless, becomes a gain that holds it
+// steady. Pitch, length and loop points stay as they were, so drone.js needs
+// no change.
 import { decode } from './analyze.mjs';
 import { writeLoopMp3, SR } from './loop.mjs';
 import { SAMPLED } from '../../../app/src/drone.js';
@@ -58,7 +60,7 @@ if (process.argv[1].endsWith('smooth.mjs')) {
       const m = Math.round(l.margin * SR), L = Math.round(l.loop * SR);
       const loop = x.slice(m, m + L);
       const smooth = smoothLoop(loop);
-      const file = l.file.replace(/\.mp3$/, '-smooth.mp3');
+      const file = l.file;
       writeLoopMp3(smooth, dir + file, { margin: l.margin, kbps: 160 });
       const back = decode(dir + file).slice(m, m + L);
       console.log(`${file}: level swing ${swing(loop).toFixed(1)}% -> ${swing(back).toFixed(1)}%`);

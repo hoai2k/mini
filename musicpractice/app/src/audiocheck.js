@@ -141,8 +141,9 @@ async function render() {
   body.replaceChildren(...[
     summary,
     steps,
-    steps ? el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload) : null,
-    el('div', { class: 'ac-test' }, testBtn),
+    // Reload page: after allowing the microphone (the steps above say to), or to start the sound afresh.
+    el('div', { class: 'ac-test' }, testBtn,
+      el('button', { type: 'button', class: 'pill', id: 'ac-reload', onclick: () => location.reload() }, A.reloadPage)),
     el('label', { class: 'row' }, el('span', {}, A.microphone), micSelect),
     speaker,
     metronome,
@@ -272,7 +273,7 @@ export function renderMicTip(container, { collapsed, onToggle }) {
     el('p', {}, A.micTip.body),
     allowSteps({ pictures: true }),
     el('div', { class: 'mic-tip-actions' },
-      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, TEXT.common.reload)));
+      el('button', { type: 'button', class: 'pill', onclick: () => location.reload() }, A.reloadPage)));
   const head = el('button', { type: 'button', class: 'mic-tip-title', 'aria-expanded': String(!collapsed), 'aria-controls': 'mic-tip-body' },
     el('span', {}, A.micTip.title),
     el('svg', { class: 'mic-tip-chev', viewBox: '0 0 24 24', 'aria-hidden': 'true' }, el('path', { d: 'M6 9l6 6 6-6' })));

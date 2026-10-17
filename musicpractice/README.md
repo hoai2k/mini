@@ -327,17 +327,17 @@ tones, scales over a tonic.
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
 - Settings: volume; **Add a fifth above** (a pure 3:2 fifth, on by default;
-  the readout shows "(+5th)" beside the pitch while it is on); **Smoothed**
-  (off by default: the recorded voices play copies of their loops with the
-  slow swells of level divided out, `design/source/drone/smooth.mjs`, which
-  writes `<voice>-<note>-smooth.mp3` beside each loop: the level's swing in
-  50 ms windows goes from 3-11% to 0.5-2.2%, the seams stay as clean; the
-  synthesized organ has nothing to smooth, so the switch is off for it);
-  **Timed drone** (off by
-  default; 0.5 to 20 minutes, 3 by default), and **When time's up**: stop,
-  or move on to the next note chromatically up or down, up or down the major
-  scale of the starting note, or up a fifth or a fourth (round all twelve
-  notes). Choosing a note by hand starts the sequence again from it. The
+  the readout shows "(+5th)" beside the pitch while it is on); and
+  **Timing**, two tabs: **Continuous pitch** (the default) with **Loop
+  forever** (on by default; off shows **Length**, 1 to 60 minutes, 10 by
+  default, after which it stops), or **Change periodically** with **Time on
+  each pitch** (0.5 to 20 minutes, 2 by default) and **When time's up**:
+  the next note chromatically up (the default) or down, up or down the
+  major scale of the starting note, or up a fifth or a fourth (round all
+  twelve
+  notes). Choosing a note by hand starts the sequence again from it. A
+  timed drone saved before the tabs becomes the matching tab (one that
+  stopped becomes Continuous pitch with Loop forever off). The
   reference pitch (A4 = 415 to 466 Hz) is shared with the tuner. Everything
   is kept between visits. Space plays and pauses; arrow keys move the note.
 
@@ -347,6 +347,10 @@ so every note is a few semitones at most from a real take and is retuned to it
 exactly by playback rate (following the reference pitch). They are made
 perfectly steady: no bow change is ever heard, the pitch is held exactly and
 the level and brightness are evened out, as if the bow or breath never ended.
+The shipped loops were then smoothed once more (`design/source/drone/smooth.mjs`,
+which rewrites a loop in place: the slow swells of level divided out, so the
+level's swing in 50 ms windows went from 3-11% to 0.5-2.2%, with the seams as
+clean); run it on any newly cut loop.
 **Cello, soft** is the steady cello, darker (a 900 Hz low-pass, as if bowed over
 the fingerboard). The organ's lowest notes are stretched down from G2 (pipes
 stay natural that far). Each loop file carries 0.3 s of its own continuation
@@ -557,7 +561,7 @@ asks again unless the site's microphone is set to Allow. So
   look like, since Safari restyles its buttons between iOS versions (aA
   became a page icon in iOS 26) while their places stay put. Also the
   all-sites alternative (Settings app → Apps → Safari → Microphone) and a
-  Reload button. Its title (with a chevron) folds it to one line,
+  Reload page button. Its title (with a chevron) folds it to one line,
   remembered between visits; it only goes away for good once the mic is
   allowed. It doesn't block recording. Audio check shows the same steps.
 - **Safeguard**: if taking the mic back ever takes over 0.9 s (a prompt
@@ -588,7 +592,8 @@ says nothing about how takes will play while all is well, and only when
 something is wrong explains it: the microphone not yet set to Allow (so it
 is kept open and Bluetooth can't be used) gets the same short message the
 Playback Recorder shows, and a blocked microphone a line saying so, each
-with the pictured steps to allow it and a Reload button; a test sound played the way takes are;
+with the pictured steps to allow it; a test sound played the way takes are,
+with a **Reload page** button beside it (what the steps end with);
 the microphone choice (Automatic, built-in preferred, or any listed mic,
 Bluetooth marked); the speaker choice where the browser allows one
 (desktop Chrome and Edge); and what the browser reports (engine, permission, mic state, devices, Bluetooth names, output
