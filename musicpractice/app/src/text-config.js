@@ -61,7 +61,7 @@ export const EN = {
       metronome: 'Metronome',
       tuner: 'Tuner',
       drone: 'Drone',
-      record: 'Playback Recorder',
+      record: 'Playback',
     },
     /** Under a tool that isn't ready yet. */
     inProgress: 'In progress',

@@ -87,7 +87,8 @@ for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) {
 // ---------------------------------------------------------------- screens
 
 const SCREENS = ['home', 'metronome', 'record', 'tuner', 'drone'];
-const TITLES = TEXT.home.tools;
+// The browser tab names the screen by its own title (the home tiles may be shorter).
+const TITLES = { metronome: TEXT.metronome.title, record: TEXT.recorder.title, tuner: TEXT.tuner.title, drone: TEXT.drone.title };
 let screen = 'home';
 function route() {
   const want = location.hash.replace('#', '') || 'home';
