@@ -102,6 +102,8 @@ export const EN = {
   },
 
   metronome: {
+    visualizerTitle: 'Visualizer',
+    switchTo: { metronome: 'Show the pendulum', bars: 'Show the Visualizer' },
     title: 'Metronome',
     settingsButton: 'Metronome settings',
     slower: 'Slower by one',
@@ -125,7 +127,22 @@ export const EN = {
       prestissimo: 'Prestissimo',
     },
     /** Under the Start button: the time signature and the accent. */
-    meterNote: (meter, accented) => `${meter} · ${accented ? 'strong beat on 1' : 'all beats even'}`,
+    meterNote: (meter, accent) => `${meter} · ${{ on: 'strong beat on 1', custom: 'custom strong beats', off: 'all beats even' }[accent]}`,
+    /** Custom strong beats (the pencil beside Strong beat on 1). */
+    accents: {
+      edit: 'Choose the strong beats',
+      title: 'Strong beats',
+      clear: 'Clear',
+      custom: 'Strong beat (custom)',
+      /** How each click is counted: the beat's number, then these. */
+      counts: { 2: ['&'], 3: ['trip', 'let'], 4: ['e', '&', 'a'] },
+      cell: (count, on) => `${count}, ${on ? 'strong' : 'not strong'}`,
+    },
+    /** Common tempos, from the marking. */
+    tempos: {
+      title: 'Common tempos',
+      open: (marking) => `${marking}: common tempos`,
+    },
     noBars: 'No bars',
     /** In the time signature list. */
     noBarsLong: 'No bars (every beat the same)',
@@ -146,7 +163,11 @@ export const EN = {
         4: 'Sixteenth notes',
       },
       sound: 'Sound',
-      visualizer: 'Visualizer',
+      display: 'Display',
+      views: {
+        metronome: 'Pendulum',
+        bars: 'Visualizer',
+      },
       vizBars: 'Bars shown',
       vizTrail: 'Keep played beats lit',
       motion: 'Swinging pendulum',

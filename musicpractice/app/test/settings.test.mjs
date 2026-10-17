@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS } from '../src/settings.js';
+import { load, save, sanitize, clampBpm, beatStrengths, resolveMode, THEMES, DEFAULTS, barPlan, cleanPattern, TICKS } from '../src/settings.js';
 import { pendulumAngle } from '../src/metronome.js';
 
 function memoryStorage() {
@@ -149,4 +149,25 @@ test('metronome clicks and view: quarter notes and the metronome by default, kep
   assert.deepEqual([DEFAULTS.vizBars, DEFAULTS.vizTrail], [4, true]);
   assert.deepEqual([sanitize({ vizBars: 8, vizTrail: false }).vizBars, sanitize({ vizBars: 8, vizTrail: false }).vizTrail], [8, false]);
   assert.equal(sanitize({ vizBars: 3 }).vizBars, 4);
+});
+
+test('custom strong beats: kept for their own time signature; beat 1 alone is not custom', () => {
+  assert.deepEqual(cleanPattern({ meter: '4/4', pos: [24, 0, 24, 6] }, '4/4'), { meter: '4/4', pos: [0, 6, 24] });
+  assert.equal(cleanPattern({ meter: '4/4', pos: [0] }, '4/4'), null);
+  assert.equal(cleanPattern({ meter: '3/4', pos: [12] }, '4/4'), null); // another time signature's
+  assert.deepEqual(cleanPattern({ meter: '3/4', pos: [12, 99, -1, 1.5] }, '3/4'), { meter: '3/4', pos: [12] });
+  assert.equal(sanitize({ meter: '4/4', accentPattern: { meter: '3/4', pos: [12] } }).accentPattern, null);
+  assert.deepEqual(sanitize({ meter: '3/4', accentPattern: { meter: '3/4', pos: [12] } }).accentPattern, { meter: '3/4', pos: [12] });
+});
+
+test('the bar plan: the plain rules, or every click from a custom pattern', () => {
+  assert.deepEqual(barPlan({ meter: '4/4', accent: true, subdivision: 2 }), { strengths: [2, 0, 0, 0], slots: null });
+  // Strong on 2 and on the '&' of 3, in eighths: beats [0,2,0,0]; clicks per position.
+  const p = barPlan({ meter: '4/4', accent: true, subdivision: 2, accentPattern: { meter: '4/4', pos: [TICKS, 2 * TICKS + 6] } });
+  assert.deepEqual(p.strengths, [0, 2, 0, 0]);
+  assert.deepEqual(p.slots, [0, 3, 2, 3, 0, 2, 0, 3]);
+  // The same pattern in triplets: the '&' isn't a triplet, so it isn't played (but is kept).
+  assert.deepEqual(barPlan({ meter: '4/4', accent: true, subdivision: 3, accentPattern: { meter: '4/4', pos: [TICKS, 30] } }).slots, [0, 3, 3, 2, 3, 3, 0, 3, 3, 0, 3, 3]);
+  // Off: no strong beats whatever the pattern says.
+  assert.deepEqual(barPlan({ meter: '4/4', accent: false, accentPattern: { meter: '4/4', pos: [12] } }).strengths, [0, 0, 0, 0]);
 });

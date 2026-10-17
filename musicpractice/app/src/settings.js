@@ -80,6 +80,7 @@ export const DEFAULTS = Object.freeze({
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
   subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths
+  accentPattern: null, // custom strong beats for the current time signature: { meter, pos } (cleanPattern)
   metView: 'metronome', // or 'bars' (the Visualizer)
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
   vizTrail: true, // the beats already played in this pass stay faintly lit
@@ -142,6 +143,7 @@ export function sanitize(raw) {
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
     subdivision: oneOf(s.subdivision, [1, 2, 3, 4], DEFAULTS.subdivision),
+    accentPattern: cleanPattern(s.accentPattern, oneOf(s.meter, METERS.map((m) => m.id), DEFAULTS.meter)),
     metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
     vizTrail: typeof s.vizTrail === 'boolean' ? s.vizTrail : DEFAULTS.vizTrail,
@@ -215,4 +217,45 @@ export function beatStrengths(meterId, accent) {
     for (let i = 3; i < m.beats; i += 3) out[i] = 1;
   }
   return out;
+}
+
+/*
+ * Custom strong beats: positions in a bar, counted in twelfths of a beat
+ * (beat 2's '&' is 18), so they mean the same whatever the clicks are
+ * (quarters, eighths, triplets, sixteenths: 12 is the smallest count that
+ * divides into all of them). A position the current clicks don't fall on is
+ * kept, just not played.
+ */
+export const TICKS = 12;
+
+/** A custom pattern for this time signature, or null: { meter, pos: [twelfths] }. */
+export function cleanPattern(p, meterId) {
+  if (!p || typeof p !== 'object' || p.meter !== meterId || !Array.isArray(p.pos)) return null;
+  const max = meterOf(meterId).beats * TICKS;
+  const pos = [...new Set(p.pos.filter((v) => Number.isInteger(v) && v >= 0 && v < max))].sort((a, b) => a - b);
+  // Only beat 1 is not custom: that is the ordinary strong beat.
+  return pos.length && !(pos.length === 1 && pos[0] === 0) ? { meter: meterId, pos } : null;
+}
+
+/**
+ * Everything the metronome plays in a bar: `strengths`, one per beat (what
+ * the pendulum, lamp, dots and Visualizer show: 2 strong, 1 secondary, 0
+ * not), and `slots`, the click for every position the clicks fall on (beat
+ * by beat, `subdivision` each: 0-2 as strengths, 3 the quieter click between
+ * beats), or null where the plain rules give it (no custom pattern).
+ */
+export function barPlan({ meter, accent, subdivision = 1, accentPattern = null }) {
+  const m = meterOf(meter);
+  const pattern = accent ? cleanPattern(accentPattern, meter) : null;
+  if (!pattern) return { strengths: beatStrengths(meter, accent), slots: null };
+  const on = new Set(pattern.pos);
+  const strengths = Array.from({ length: m.beats }, (_, b) => (on.has(b * TICKS) ? 2 : 0));
+  const slots = [];
+  for (let b = 0; b < m.beats; b++) {
+    for (let k = 0; k < subdivision; k++) {
+      const at = b * TICKS + (k * TICKS) / subdivision;
+      slots.push(k === 0 ? strengths[b] : on.has(at) ? 2 : 3);
+    }
+  }
+  return { strengths, slots };
 }

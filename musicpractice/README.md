@@ -164,21 +164,38 @@ when the Art Deco art arrives, measure and record its own.
   6/8, 7/8, 9/8, 12/8, or no bars), a strong beat on 1 (on by default;
   compound meters also lean lightly on each group of three), **Clicks**
   (Quarter notes, the default; Eighth notes, Triplets or Sixteenth notes:
-  the extra clicks fall evenly between the beats, about 4.5 dB quieter than
-  an ordinary beat, 6 dB for Beep, and are not beats themselves: the
+  the extra clicks fall evenly between the beats, about 7.5 dB quieter than
+  an ordinary beat, 10 dB for Beep, and are not beats themselves: the
   pendulum, lamp, dots and Visualizer keep to the beat; the apps' native
   mixers play them the same way, `subdivision` and a fourth rendered
   click), sound (Woodblock, Click, Beep) and volume.
-- **Visualizer** (metronome settings, above the pendulum's and lamp's
-  switches, which it replaces with its own: **Bars shown**, 1, 2, 4 or 8,
-  and **Keep played beats lit**) swaps the metronome and its lamp for a few
-  bars of music at a time: a row per bar and a horizontal shape per beat,
-  read left to right and down. Each beat's shape lights on its beat and
-  fades, to a faint glow while that pass is being played if beats are kept
-  lit; the strong beat red, the others blue, each faintly tinted when unlit.
-  The picture, metronome or bars, takes 40% of the screen's height but no
-  more than the controls leave, so a short phone shrinks it rather than
-  scrolling.
+- **Strong beats:** the pencil beside **Strong beat on 1** opens every place a
+  click falls in the bar, counted as played (1 & 2 &, 1 trip let, 1 e & a),
+  and any of them can be made strong, between the beats included (those
+  play the strong click). Confirming with none chosen turns the switch off;
+  beat 1 alone is the ordinary setting; anything else reads **Strong beat
+  (custom)**, and the lamp, flash, dots and Visualizer mark the beats chosen.
+  Positions are kept in twelfths of a beat (`TICKS`, `barPlan` and
+  `cleanPattern` in `app/src/settings.js`), so a pattern set in eighths
+  means the same in sixteenths (one the clicks don't fall on is kept, not
+  played). A pattern belongs to its time signature: changing it starts from
+  Strong beat on 1, and going back during the same visit brings the pattern
+  back; only the one in use is saved (`accentPattern`). The apps' native
+  mixers take the click for every position (`slots`).
+- **Display** (metronome settings): **Pendulum** (the default) or
+  **Visualizer**, each with its own options beneath: Swinging pendulum and
+  Visual pulse, or **Bars shown** (1, 2, 4 or 8) and **Keep played beats
+  lit**. Tapping the picture also switches between them. The Visualizer,
+  headed **Visualizer**, shows a few bars of music at a time: a row per bar
+  and a horizontal shape per beat, read left to right and down. Each beat's
+  shape lights on its beat and fades, to a faint glow while that pass is
+  being played if beats are kept lit; strong beats red, the others blue,
+  each faintly tinted when unlit.
+- On a phone the picture, pendulum or Visualizer, takes all the height the
+  controls leave (measured in `fitPicture`, `--pic-h`), so the page fills the
+  screen without a gap below or scrolling; side by side, 62% of the height.
+- **Common tempos:** tapping the marking under the number (Allegro, and so
+  on) opens the metronome's traditional marks, 40 to 208, grouped by marking.
 - No double-tap zoom: `touch-action: manipulation` on the page (iPhone
   zoomed in on quick taps such as the drone's − and +); scrolling and
   pinch-zoom still work.

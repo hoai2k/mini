@@ -41,7 +41,7 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func metronomeStart(_ call: CAPPluginCall) {
         setClicks(call)
-        engine.mixer.metronomeStart(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), volume: call.getDouble("volume", 0.8))
+        engine.mixer.metronomeStart(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), slots: ints(call.getArray("slots")), volume: call.getDouble("volume", 0.8))
         engine.setLabels(metronome: call.getString("label"), drone: nil)
         engine.ensureRunning()
         call.resolve()
@@ -49,7 +49,7 @@ public class PracticeAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func metronomeUpdate(_ call: CAPPluginCall) {
         setClicks(call)
-        engine.mixer.metronomeUpdate(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), volume: call.getDouble("volume", 0.8))
+        engine.mixer.metronomeUpdate(bpm: call.getDouble("bpm", 120), strengths: ints(call.getArray("strengths")), subdivision: call.getInt("subdivision", 1), slots: ints(call.getArray("slots")), volume: call.getDouble("volume", 0.8))
         engine.setLabels(metronome: call.getString("label"), drone: nil)
         call.resolve()
     }

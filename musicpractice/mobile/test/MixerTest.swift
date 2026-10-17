@@ -247,6 +247,22 @@ func metronomeSubdivision() {
     check(on.count == 2, "back to quarter notes: one click a beat (\(on.count) in a second)")
 }
 
+func metronomeCustomAccents() {
+    print("metronome: custom strong beats can fall between the beats")
+    let m = mixer()
+    m.metronomeStart(bpm: 120, strengths: [2, 0], subdivision: 2, slots: [2, 2, 0, 3], volume: 0.8)
+    let l = render(m, 1.05).0
+    let strong = clickSets["wood"]![2], weak = clickSets["wood"]![0], sub = clickSets["wood"]![3]
+    var e1 = 0.0, e2 = 0.0, e3 = 0.0
+    for i in 0..<1500 {
+        e1 = max(e1, abs(Double(l[2400 + 12000 + i]) - 0.8 * Double(strong[i])))
+        e2 = max(e2, abs(Double(l[2400 + 24000 + i]) - 0.8 * Double(weak[i])))
+        e3 = max(e3, abs(Double(l[2400 + 36000 + i]) - 0.8 * Double(sub[i])))
+    }
+    check(e1 < 1e-3, "the '&' of 1 is the strong click")
+    check(e2 < 1e-3 && e3 < 1e-3, "beat 2 is weak and its '&' the quieter click")
+}
+
 func droneStopQuick() {
     print("drone: pausing stops at once (the long fades are for starting and changing note)")
     let m = mixer()
@@ -304,6 +320,7 @@ load()
 metronomeTiming()
 metronomeTempoChange()
 metronomeSubdivision()
+metronomeCustomAccents()
 droneLevels()
 droneSeamless()
 droneSchedule()

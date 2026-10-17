@@ -29,6 +29,7 @@ public final class MixerTest {
         metronomeTiming();
         metronomeTempoChange();
         metronomeSubdivision();
+        metronomeCustomAccents();
         droneLevels();
         droneSeamless();
         droneSchedule();
@@ -297,6 +298,23 @@ public final class MixerTest {
         m.metronomeUpdate(120, new int[] {2, 0, 0, 0}, 1, 0.8);
         on = onsets(render(m, 1.0)[0]);
         check(on.size() == 2, "back to quarter notes: one click a beat (" + on.size() + " in a second)");
+    }
+
+    static void metronomeCustomAccents() {
+        System.out.println("metronome: custom strong beats can fall between the beats");
+        PracticeMixer m = mixer();
+        // 2/4 in eighths, strong on 1 and on the '&' of 1: strong, strong, weak, between.
+        m.metronomeStart(120, new int[] {2, 0}, 2, new int[] {2, 2, 0, 3}, 0.8);
+        float[] l = render(m, 1.05)[0];
+        float[] strong = clicks.get("wood")[2], weak = clicks.get("wood")[0], sub = clicks.get("wood")[3];
+        double e1 = 0, e2 = 0, e3 = 0;
+        for (int i = 0; i < 1500; i++) {
+            e1 = Math.max(e1, Math.abs(l[2400 + 12000 + i] - 0.8 * strong[i]));
+            e2 = Math.max(e2, Math.abs(l[2400 + 24000 + i] - 0.8 * weak[i]));
+            e3 = Math.max(e3, Math.abs(l[2400 + 36000 + i] - 0.8 * sub[i]));
+        }
+        check(e1 < 1e-3, "the '&' of 1 is the strong click (" + String.format("%.1e", e1) + ")");
+        check(e2 < 1e-3 && e3 < 1e-3, "beat 2 is weak and its '&' the quieter click");
     }
 
     static void droneStopQuick() {
