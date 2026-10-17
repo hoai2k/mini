@@ -8,7 +8,7 @@
 
 import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
-import { Metronome } from './metronome.js';
+import { Metronome, SUB } from './metronome.js';
 import { beatStrengths } from './settings.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT } from './drone.js';
 import { extraDelaySec } from './audio.js';
@@ -37,10 +37,10 @@ export function encode(samples) {
   return btoa(s);
 }
 
-/** The metronome's three clicks (weak, mid, strong) for `sound`, rendered by metronome.js. */
+/** The metronome's four clicks (weak, mid, strong, between the beats) for `sound`, rendered by metronome.js. */
 export async function renderClicks(sound, sampleRate) {
   const out = [];
-  for (const strength of [0, 1, 2]) {
+  for (const strength of [0, 1, 2, SUB]) {
     const ctx = new OfflineAudioContext(1, Math.ceil(0.1 * sampleRate), sampleRate);
     const m = new Metronome(ctx);
     m.configure({ bpm: 120, meter: '4/4', accent: true, sound, volume: 1 });
@@ -113,6 +113,7 @@ export class NativeMetronome {
   configure(s) {
     this.bpm = s.bpm;
     this.strengths = beatStrengths(s.meter, s.accent);
+    this.subdivision = s.subdivision || 1;
     this.volume = s.volume;
     this.sound = s.sound;
     if (this.running) this.update();
@@ -136,7 +137,7 @@ export class NativeMetronome {
     this.clock = null;
     const clicks = await this.clicks();
     if (!this.running) return;
-    await run('metronomeStart', { bpm: this.bpm, strengths: this.strengths, volume: this.volume, label: this.label(), ...clicks });
+    await run('metronomeStart', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, volume: this.volume, label: this.label(), ...clicks });
     this.poll();
     clearInterval(this.pollTimer);
     this.pollTimer = setInterval(() => this.poll(), 1000);
@@ -152,7 +153,7 @@ export class NativeMetronome {
     const token = (this.updating = (this.updating || 0) + 1);
     const clicks = await this.clicks();
     if (token !== this.updating || !this.running) return;
-    await run('metronomeUpdate', { bpm: this.bpm, strengths: this.strengths, volume: this.volume, label: this.label(), ...clicks });
+    await run('metronomeUpdate', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, volume: this.volume, label: this.label(), ...clicks });
     this.poll();
   }
 

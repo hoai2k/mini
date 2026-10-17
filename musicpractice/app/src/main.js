@@ -7,7 +7,7 @@ import { playSamples, primeFromTap, outputSettled, setSpeaker } from './player.j
 import { encodeMp3 } from './mp3.js';
 import { openAudioCheck, renderMicTip } from './audiocheck.js';
 import { diag, isWebKit, isIOS, micPermission } from './devices.js';
-import { Metronome, pendulumAngle } from './metronome.js';
+import { Metronome, pendulumAngle, SUBDIVISIONS } from './metronome.js';
 import { Recorder, freesMicForPlayback } from './recorder.js';
 import { setupTuner } from './tunerui.js';
 import { setupHomeOrder } from './homeorder.js';
@@ -232,6 +232,13 @@ function renderBeats() {
     if (s === 1) li.className = 'mid';
     return li;
   }));
+  // The Visualizer's bars: one per beat, the strong beat red.
+  $('met-bars').replaceChildren(...strengths.map((s) => {
+    const bar = document.createElement('i');
+    bar.className = `met-bar${s === 2 ? ' strong' : s === 1 ? ' mid' : ''}`;
+    return bar;
+  }));
+  $('met-bars').style.setProperty('--n', strengths.length);
   const m = meterOf(settings.meter);
   $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, settings.accent);
 }
@@ -270,6 +277,7 @@ function stopMetronome() {
   pendulum.classList.add('resting');
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
+  for (const b of $('met-bars').children) b.style.setProperty('--lit', '0');
   $('met-pulse').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
@@ -396,14 +404,18 @@ chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
     preview.voice(ctx.currentTime + 0.02, 2);
   }
 });
+const subSelect = $('subdivision');
+subSelect.replaceChildren(...SUBDIVISIONS.map((n) => new Option(TEXT.metronome.settings.subdivisions[n], String(n))));
+subSelect.value = String(settings.subdivision);
+subSelect.addEventListener('change', () => { settings.subdivision = Number(subSelect.value); metronomeConfigured(); });
 $('accent').checked = settings.accent;
 $('accent').addEventListener('change', () => { settings.accent = $('accent').checked; metronomeConfigured(); });
 $('met-volume').value = settings.volume;
 $('met-volume').addEventListener('input', () => { settings.volume = Number($('met-volume').value); metronomeConfigured(); });
 
-// With the pendulum and the pulse both off there are no visuals to sync.
+// With the pendulum and the pulse both off (and no Visualizer) there are no visuals to sync.
 function syncControlsLive() {
-  const off = !settings.metMotion && !settings.metPulse;
+  const off = !settings.metMotion && !settings.metPulse && settings.metView !== 'bars';
   $('met-sync').disabled = off;
   $('sync-open').disabled = off;
   $('met-sync').closest('.row').classList.toggle('disabled', off);
@@ -444,7 +456,29 @@ function animateMetronome() {
   pulse.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
+  // The Visualizer: the beat's bar lights on the beat and fades through it.
+  if (settings.metView === 'bars') {
+    const bars = $('met-bars').children;
+    const lit = beat ? Math.exp(-(now - beat.time) / Math.min(0.35, metronome.period * 0.55)) : 0;
+    for (let i = 0; i < bars.length; i++) bars[i].style.setProperty('--lit', beat && beat.beat === i ? lit.toFixed(3) : '0');
+  }
 }
+
+/** Metronome or Visualizer: the pendulum and lamp, or a bar per beat. */
+function showMetView() {
+  const bars = settings.metView === 'bars';
+  $('metronome-art').hidden = bars;
+  $('beats').hidden = bars;
+  $('met-bars').hidden = !bars;
+  $('met-view').setAttribute('aria-pressed', String(bars));
+  for (const b of $('met-bars').children) b.style.setProperty('--lit', '0');
+  syncControlsLive();
+}
+$('met-view').addEventListener('click', () => {
+  settings.metView = settings.metView === 'bars' ? 'metronome' : 'bars';
+  persist();
+  showMetView();
+});
 
 // ---------------------------------------------------------------- visual sync
 
@@ -482,7 +516,7 @@ function closeSync() {
 $('sync-open').addEventListener('click', openSync);
 $('met-sync').addEventListener('input', () => setSync(Number($('met-sync').value)));
 showSync();
-syncControlsLive();
+showMetView();
 $('sync-done').addEventListener('click', closeSync);
 $('sync-down').addEventListener('click', () => setSync(settings.syncMs - 10));
 $('sync-up').addEventListener('click', () => setSync(settings.syncMs + 10));

@@ -32,7 +32,7 @@ func load() {
     for line in text.split(separator: "\n") {
         let p = line.split(separator: " ").map(String.init)
         switch p[0] {
-        case "click": clickSets[p[1]] = [f32(p[2]), f32(p[3]), f32(p[4])]
+        case "click": clickSets[p[1]] = [f32(p[2]), f32(p[3]), f32(p[4]), p.count > 5 ? f32(p[5]) : f32(p[2])]
         case "voice":
             finish()
             voiceId = p[1]
@@ -49,7 +49,7 @@ func load() {
 func mixer() -> PracticeMixer {
     let m = PracticeMixer(sampleRate: SR)
     let c = clickSets["wood"]!
-    m.setClicks(weak: c[0], mid: c[1], strong: c[2], sampleRate: SR)
+    m.setClicks(weak: c[0], mid: c[1], strong: c[2], sub: c[3], sampleRate: SR)
     for (id, v) in voices { m.loadVoice(id, v) }
     return m
 }
@@ -227,6 +227,26 @@ func droneSchedule() {
     check(m.droneState().playing, "stopping cleared the schedule: playing again runs untimed")
 }
 
+func metronomeSubdivision() {
+    print("metronome: subdivisions click between the beats, quieter, and the beats stay the beats")
+    let m = mixer()
+    m.metronomeStart(bpm: 120, strengths: [2, 0, 0, 0], subdivision: 3, volume: 0.8)
+    let l = render(m, 1.05).0
+    var on = onsets(l)
+    let lead = firstSound(clickSets["wood"]![2])
+    let exact = on.count == 6 && on.enumerated().allSatisfy { abs($0.element - (2400 + $0.offset * 8000 + lead)) <= 1 }
+    check(exact, "triplets: 6 clicks in two beats, a third of a beat apart (\(on.count) found)")
+    let sub = clickSets["wood"]![3]
+    var e = 0.0
+    for i in 0..<1500 { e = max(e, abs(Double(l[2400 + 8000 + i]) - 0.8 * Double(sub[i]))) }
+    check(e < 1e-3, "the click after the beat is the quieter one between the beats")
+    let c = m.metronomeClock()
+    check(c.period == 0.5 && c.count == 2, "the clock still counts beats, not clicks")
+    m.metronomeUpdate(bpm: 120, strengths: [2, 0, 0, 0], subdivision: 1, volume: 0.8)
+    on = onsets(render(m, 1.0).0)
+    check(on.count == 2, "back to quarter notes: one click a beat (\(on.count) in a second)")
+}
+
 func droneStopQuick() {
     print("drone: pausing stops at once (the long fades are for starting and changing note)")
     let m = mixer()
@@ -283,6 +303,7 @@ func sameAsJava() {
 load()
 metronomeTiming()
 metronomeTempoChange()
+metronomeSubdivision()
 droneLevels()
 droneSeamless()
 droneSchedule()

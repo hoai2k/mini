@@ -28,6 +28,7 @@ public final class MixerTest {
         load();
         metronomeTiming();
         metronomeTempoChange();
+        metronomeSubdivision();
         droneLevels();
         droneSeamless();
         droneSchedule();
@@ -58,7 +59,7 @@ public final class MixerTest {
         for (String line : Files.readAllLines(dir.resolve("index.txt"))) {
             String[] p = line.trim().split(" ");
             switch (p[0]) {
-                case "click" -> clicks.put(p[1], new float[][] {f32(p[2]), f32(p[3]), f32(p[4])});
+                case "click" -> clicks.put(p[1], new float[][] {f32(p[2]), f32(p[3]), f32(p[4]), p.length > 5 ? f32(p[5]) : f32(p[2])});
                 case "voice" -> {
                     if (voiceId != null) voices.put(voiceId, new PracticeMixer.Voice(spec[0], spec[1], spec[2], spec[3], loops.toArray(new PracticeMixer.Loop[0])));
                     voiceId = p[1];
@@ -76,7 +77,7 @@ public final class MixerTest {
     static PracticeMixer mixer() {
         PracticeMixer m = new PracticeMixer(SR);
         float[][] c = clicks.get("wood");
-        m.setClicks(c[0], c[1], c[2], SR);
+        m.setClicks(c[0], c[1], c[2], c[3], SR);
         for (Map.Entry<String, PracticeMixer.Voice> e : voices.entrySet()) m.loadVoice(e.getKey(), e.getValue());
         return m;
     }
@@ -274,6 +275,28 @@ public final class MixerTest {
         m.dronePlay("cello", 48, 440, false);
         render(m, 2);
         check(m.droneState()[0] == 1, "stopping cleared the schedule: playing again runs untimed");
+    }
+
+    static void metronomeSubdivision() {
+        System.out.println("metronome: subdivisions click between the beats, quieter, and the beats stay the beats");
+        PracticeMixer m = mixer();
+        m.metronomeStart(120, new int[] {2, 0, 0, 0}, 3, 0.8);
+        float[] l = render(m, 1.05)[0];
+        List<Integer> on = onsets(l);
+        int lead = firstSound(clicks.get("wood")[2]);
+        // Triplets at 120: a click every 8000 frames from the first beat at 2400.
+        boolean exact = on.size() == 6;
+        for (int k = 0; k < on.size() && exact; k++) exact = Math.abs(on.get(k) - (2400 + k * 8000 + lead)) <= 1;
+        check(exact, "triplets: 6 clicks in two beats, a third of a beat apart (" + on.size() + " found)");
+        float[] sub = clicks.get("wood")[3];
+        double e = 0;
+        for (int i = 0; i < 1500; i++) e = Math.max(e, Math.abs(l[2400 + 8000 + i] - 0.8 * sub[i]));
+        check(e < 1e-3, "the click after the beat is the quieter one between the beats (" + String.format("%.1e", e) + ")");
+        double[] c = m.metronomeClock();
+        check(c[3] == 0.5 && c[1] == 2, "the clock still counts beats, not clicks");
+        m.metronomeUpdate(120, new int[] {2, 0, 0, 0}, 1, 0.8);
+        on = onsets(render(m, 1.0)[0]);
+        check(on.size() == 2, "back to quarter notes: one click a beat (" + on.size() + " in a second)");
     }
 
     static void droneStopQuick() {

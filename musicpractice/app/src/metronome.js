@@ -19,6 +19,12 @@ function makeTimer(fn) {
   }
 }
 
+/** The strength of a subdivision click (between the beats), after weak (0), mid (1) and strong (2). */
+export const SUB = 3;
+/** Clicks per beat: quarter notes, eighths, triplets, sixteenths. */
+export const SUBDIVISIONS = [1, 2, 3, 4];
+
+const SUB_LEVEL = 0.3; // the clicks between the beats: under the clipper's knee, so audibly quieter
 const DRIVE = 2.4; // into the clipper: how hard the clicks are pushed
 const KNEE = 1.6; // the tanh curve's steepness
 
@@ -61,10 +67,11 @@ export class Metronome {
     for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
   }
 
-  /** @param {{ bpm: number, meter: string, accent: boolean, sound: string, volume: number }} s */
+  /** @param {{ bpm: number, meter: string, accent: boolean, sound: string, volume: number, subdivision?: number }} s */
   configure(s) {
     this.bpm = s.bpm;
     this.strengths = beatStrengths(s.meter, s.accent);
+    this.subdivision = s.subdivision || 1;
     this.sound = s.sound;
     this.out.gain.setTargetAtTime(s.volume, this.ctx.currentTime, 0.02);
     if (this.beat >= this.strengths.length) this.beat %= this.strengths.length;
@@ -111,6 +118,9 @@ export class Metronome {
     while (this.next < until) {
       const strength = this.strengths[this.beat] ?? 0;
       this.voice(this.next, strength);
+      // Subdivisions: the quieter clicks between the beats (not beats themselves:
+      // the pendulum, lamp and dots keep to the beat).
+      for (let k = 1; k < this.subdivision; k++) this.voice(this.next + (k * this.period) / this.subdivision, SUB);
       this.recent.push({ time: this.next, beat: this.beat, count: this.count, strength });
       if (this.recent.length > 16) this.recent.shift();
       this.next += this.period;
@@ -127,17 +137,17 @@ export class Metronome {
     return null;
   }
 
-  /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats. */
+  /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats, 3 (SUB) between the beats. */
   voice(t, strength) {
     const c = this.ctx;
     const g = c.createGain();
     g.connect(this.drive);
     // Ordinary beats a little under the downbeat, not far under it.
-    const level = [0.7, 0.85, 1][strength];
+    const level = [0.7, 0.85, 1, SUB_LEVEL][strength];
     if (this.sound === 'beep') {
       const o = c.createOscillator();
       o.type = 'sine';
-      o.frequency.value = [880, 1100, 1320][strength];
+      o.frequency.value = [880, 1100, 1320, 880][strength];
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(level * 0.3, t + 0.003);
       g.gain.setValueAtTime(level * 0.3, t + 0.045);
@@ -152,7 +162,7 @@ export class Metronome {
       s.buffer = this.noise;
       const f = c.createBiquadFilter();
       f.type = 'bandpass';
-      f.frequency.value = [3200, 4200, 5200][strength];
+      f.frequency.value = [3200, 4200, 5200, 3200][strength];
       f.Q.value = 1.2;
       g.gain.setValueAtTime(level * 3, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
@@ -162,7 +172,7 @@ export class Metronome {
       return;
     }
     // Woodblock: a hollow tone that drops slightly in pitch, with a knock on top.
-    const base = [1000, 1250, 1600][strength];
+    const base = [1000, 1250, 1600, 1000][strength];
     const o = c.createOscillator();
     o.type = 'triangle';
     o.frequency.setValueAtTime(base, t);

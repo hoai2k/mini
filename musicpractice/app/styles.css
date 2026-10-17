@@ -186,7 +186,10 @@ button { cursor: pointer; }
 .met-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .metronome {
   position: relative;
-  height: clamp(200px, calc(40dvh - var(--dot) / 2 - 4px), 460px); /* room above for the lamp's top half */
+  /* 40% of the screen, but no more than what the controls leave on a short
+     phone (about 460px of them): the picture shrinks rather than the page
+     scrolling. Room above for the lamp's top half. */
+  height: clamp(120px, min(40dvh - var(--dot) / 2 - 4px, 100dvh - 460px - var(--dot) / 2), 460px);
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
@@ -294,15 +297,49 @@ button { cursor: pointer; }
 .big-btn[aria-pressed="true"] .i-stop { display: block; }
 .big-btn[aria-pressed="true"] .i-play { display: none; }
 .meter-note { margin: 2px 0 0; text-align: center; color: var(--ink-3); font-size: 0.9rem; }
+.met-foot { display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 0; }
+.met-foot .meter-note { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.met-view { flex: none; min-height: 32px; padding: 3px 14px; font-size: 0.88rem; }
+/* On: filled, over every theme's own pill style. */
+.met-foot .met-view[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: var(--on-accent); }
+
+/* The Visualizer: a bar per beat of the bar, the same height as the metronome
+   it stands in for. Each lights on its beat (--lit, from main.js) and fades:
+   the strong beat red, the others blue, each faintly tinted when unlit. */
+.met-bars {
+  --red-bar: #ff3b30; --blue-bar: #2f8cff;
+  /* As tall as the metronome with its lamp and beat dots, which it stands in for. */
+  height: clamp(120px, min(40dvh, 100dvh - 420px), 460px);
+  width: min(calc(100vw - 2 * var(--gutter)), calc(var(--n, 4) * 76px)); /* its parent sizes to its contents, so not a % */
+  display: flex; align-items: stretch; justify-content: center; gap: clamp(8px, 2.4vw, 16px);
+}
+.met-bars[hidden] { display: none; }
+.met-bar {
+  --c: var(--blue-bar);
+  flex: 1 1 0; max-width: 64px; border-radius: 14px;
+  background: color-mix(in srgb, var(--c) 14%, var(--panel));
+  border: 2px solid color-mix(in srgb, var(--c) 45%, var(--line));
+  position: relative; overflow: visible;
+}
+.met-bar.strong { --c: var(--red-bar); }
+.met-bar::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 45%, color-mix(in srgb, var(--c) 80%, #000));
+  box-shadow: 0 0 22px 4px color-mix(in srgb, var(--c) 60%, transparent);
+  opacity: var(--lit, 0);
+  will-change: opacity;
+}
 
 /* Landscape phones and desktops: metronome left, controls right */
 @media (min-width: 720px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) {
   .met-body { flex-direction: row; justify-content: center; gap: clamp(24px, 6vw, 80px); }
   .metronome { height: clamp(200px, 62dvh, 520px); }
+  .met-bars { height: clamp(200px, 62dvh, 520px); }
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .bar { margin-bottom: 0; }
   .metronome { height: 64dvh; }
+  .met-bars { height: 64dvh; }
   .met-controls { gap: 4px; }
   .big-btn { min-height: 50px; }
 }

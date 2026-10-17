@@ -102,6 +102,7 @@ export const EN = {
   },
 
   metronome: {
+    visualizer: 'Visualizer',
     title: 'Metronome',
     settingsButton: 'Metronome settings',
     slower: 'Slower by one',
@@ -138,6 +139,13 @@ export const EN = {
       title: 'Metronome settings',
       timeSignature: 'Time signature',
       accent: 'Strong beat on 1',
+      subdivision: 'Clicks',
+      subdivisions: {
+        1: 'Quarter notes',
+        2: 'Eighth notes',
+        3: 'Triplets',
+        4: 'Sixteenth notes',
+      },
       sound: 'Sound',
       motion: 'Swinging pendulum',
       pulse: 'Visual pulse',

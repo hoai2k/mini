@@ -76,6 +76,8 @@ export const DEFAULTS = Object.freeze({
   mic: 'auto', // or a deviceId (Audio check)
   speaker: 'default', // or a deviceId (Audio check, where the browser allows)
   syncMs: 0, // extra pendulum delay for Bluetooth speakers (Metronome settings)
+  subdivision: 1, // clicks per beat: 1 quarter notes, 2 eighths, 3 triplets, 4 sixteenths
+  metView: 'metronome', // or 'bars' (the Visualizer)
   metMotion: true, // the pendulum swings
   metPulse: true, // a glow pulses on each beat
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
@@ -133,6 +135,8 @@ export function sanitize(raw) {
     speaker: typeof s.speaker === 'string' && s.speaker.length < 200 ? s.speaker : DEFAULTS.speaker,
     syncMs: clamp(Math.round(num(s.syncMs, DEFAULTS.syncMs) / 10) * 10, -200, 500),
     micTipCollapsed: s.micTipCollapsed === true,
+    subdivision: oneOf(s.subdivision, [1, 2, 3, 4], DEFAULTS.subdivision),
+    metView: oneOf(s.metView, ['metronome', 'bars'], DEFAULTS.metView),
     metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
     metPulse: typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
     homeOrder: homeOrder(s.homeOrder),
