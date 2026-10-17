@@ -25,7 +25,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Music Practice listens for the tuner and to record your takes. Recordings stay on this device.</string>
+	<string>Music Practice needs the microphone for the Tuner and Playback Recorder features. Recordings stay on this device.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIBackgroundModes</key>

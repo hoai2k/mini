@@ -1419,7 +1419,9 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 /* Audio check */
 .open-audio-check { align-self: flex-start; }
 .ac-status { margin: 0; padding: 12px 14px; border-radius: min(var(--radius), 12px); border: 1px solid var(--line); background: var(--panel); line-height: 1.45; }
-.ac-status.warn { border-color: var(--brass); display: grid; gap: 6px; }
+.ac-status.warn, div.ac-status.bad { border-color: var(--brass); display: grid; gap: 6px; }
+div.ac-status.bad { border-color: var(--red); justify-items: start; }
+.mic-off { border-color: var(--red); justify-items: start; }
 .ac-status p { margin: 0; }
 .ac-status.bad { border-color: var(--red); }
 .ac-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }

@@ -574,6 +574,14 @@ Takes play through an `<audio>` element (primed by the first tap; Web Audio
 if refused), which follows the current output more reliably. Safari's
 session is set to `playback` only while no mic is held.
 
+**In the apps**, the microphone is asked for once, the first time the Tuner
+or Playback Recorder listens, and kept. If it is off (refused, or switched
+off in the phone's Settings), the Tuner, the Playback Recorder and Audio
+check, and nowhere else, say **Microphone is off for Music Practice** with
+an **Open Settings** button to the app's own page there; the note goes once
+it is back on. The page asks the phone without prompting (`micPermission`,
+`openAppSettings` in `app/src/devices.js`).
+
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
 says nothing about how takes will play while all is well, and only when
 something is wrong explains it: the microphone not yet set to Allow (so it

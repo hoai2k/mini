@@ -2,7 +2,8 @@
 // permission, how takes will play as a result, and the choices it allows
 // (microphone, speaker). Opened from any settings sheet.
 
-import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, diag, allowedInAdvance, QUICK_GRANT_MS } from './devices.js';
+import { listDevices, isBluetooth, micPermission, canChooseSpeaker, isWebKit, diag, allowedInAdvance, QUICK_GRANT_MS, openAppSettings } from './devices.js';
+import { isApp } from './native.js';
 import { freesMicForPlayback } from './recorder.js';
 import { reportedLatency, unlock } from './audio.js';
 import { playSamples } from './player.js';
@@ -58,7 +59,13 @@ async function render() {
   let steps = null;
   // Only when something is wrong: the same short message the Playback
   // Recorder shows, with pictures of where to tap.
-  if (permission === 'denied') {
+  if (permission === 'denied' && isApp()) {
+    // The app's mic is off in the phone's Settings: say so, with the way there.
+    summary = el('div', { class: 'ac-status bad' },
+      el('b', {}, TEXT.micOff.title),
+      el('p', {}, TEXT.micOff.body),
+      el('button', { type: 'button', class: 'pill', onclick: openAppSettings }, TEXT.micOff.open));
+  } else if (permission === 'denied') {
     summary = el('p', { class: 'ac-status bad' }, A.blocked);
     steps = allowSteps({ pictures: true });
   } else if (!frees) {
