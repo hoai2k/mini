@@ -15,7 +15,7 @@
 import * as THREE from 'three/webgpu';
 import { standY } from '../ui/tracker.js';
 import { CAMP_CORE, CAMP_ROAM, ROAM_RULES, inAny, inRect, rectCenter, pickKind, packFor, spawnAllowed, rect } from './roamZones.js';
-import { CAMP_AT, regionAt, levelAt } from './owLayout.js';
+import { CAMP_AT, OW_LAYOUT } from './owLayout.js';
 import { RAT, pickDasher, beatAt } from '../entities/ratRules.js';
 import { lineOfSight } from '../entities/enemy.js';
 import { Pack, packLoiter } from '../entities/packRules.js';
@@ -37,9 +37,12 @@ export class Roaming {
   // and every region outside it has monsters of its own kinds and level.
   configureCamp() {
     this.kind = 'camp'; this.list = []; this.t = 6;
-    const ow = !!this.game.level?.openWorld, ox = ow ? CAMP_AT.x : 0, oz = ow ? CAMP_AT.z : 0;
+    const L = this.game.level, ow = !!L?.openWorld, ox = ow ? CAMP_AT.x : 0, oz = ow ? CAMP_AT.z : 0;
     const mv = (r) => rect(r.x0 + ox, r.z0 + oz, r.x1 + ox, r.z1 + oz);
-    this.ow = ow; this.core = CAMP_CORE.map(mv); this.roam = CAMP_ROAM.map((a) => ({ ...a, area: mv(a.area) }));
+    this.ow = ow; this.lay = L?.layout ?? OW_LAYOUT;
+    // (the road trip has no camp in it: its safe spots are its own safe regions)
+    if (L?.roadTrip) { this.core = []; this.roam = []; return; }
+    this.core = CAMP_CORE.map(mv); this.roam = CAMP_ROAM.map((a) => ({ ...a, area: mv(a.area) }));
   }
   get cap() { return this.kind === 'city' ? ROAM_RULES.capCity : this.ow ? ROAM_RULES.capOpen : ROAM_RULES.capCamp; }
   // the roam area at a spot: a camp zone, or (open world) the region outside camp
@@ -47,7 +50,7 @@ export class Roaming {
     if (inAny(this.core, x, z)) return null;
     const a = this.roam.find((q) => inRect(q.area, x, z)); if (a) return a;
     if (!this.ow) return null;
-    const r = regionAt(x, z);
+    const r = this.lay.regionAt(x, z);
     return r && !r.safe && r.kinds ? { name: r.id, kinds: r.kinds, region: r } : null;
   }
   live() { this.list = this.list.filter((e) => !e.dead && this.game.enemies.includes(e)); return this.list; }
@@ -147,7 +150,7 @@ export class Roaming {
       const area = this.areaAt(x, z);
       const kind = pickKind(area.kinds, Math.random());
       let { count, level } = packFor(chapters, kind, Math.random());
-      if (area.region) { level = levelAt(area.region, x, z, Math.random()); if (level >= 6 && count < 4 && kind !== 'cyclops') count++; }
+      if (area.region) { level = this.lay.levelAt(area.region, x, z, Math.random()); if (level >= 6 && count < 4 && kind !== 'cyclops') count++; }
       // a little group milling about, with one posted a few metres toward the
       // hero as a scout (entities/packRules.js): it sees you first and runs back
       let made = 0;

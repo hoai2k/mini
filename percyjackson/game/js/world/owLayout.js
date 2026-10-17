@@ -87,3 +87,7 @@ export function levelAt(region, x, z, r = 0.5) {
 }
 // The loot difficulty (1-4) that goes with a monster level (chests, champions' drops).
 export const owDifficulty = (level = 1) => Math.max(1, Math.min(4, Math.ceil(level / 3)));
+
+// The layout a world's systems read (openworld/runtime.js, quests, the map,
+// roaming): this one for the open world, world/rtLayout.js's for the road trip.
+export const OW_LAYOUT = { id: 'ow', area: 'camp', WORLD, REGIONS, REGION, regionAt, levelAt };

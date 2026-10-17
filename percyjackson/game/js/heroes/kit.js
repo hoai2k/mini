@@ -11,8 +11,10 @@ import { BASE_COMBO } from '../combat.js';
 import { U } from '../gfx/materials.js';
 import { shoot, ammoInfo } from '../resources.js';
 import { validLoadout, SLOTS } from './skillRules.js';
+import { RANGED, AIM, lifeOf, pitchTo, dirOf, bodyCentre, lineTarget, cursorTarget, groundPitch } from '../combatRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 
 // ---------------------------------------------------------------- team buffs
 export function teamBuff(g, key, dur) { (g.pjBuffs || (g.pjBuffs = {}))[key] = g.time + dur; }
@@ -232,6 +234,69 @@ export class Kit {
     const p = this.p; return out.set(p.pos.x + Math.sin(p.facing) * 0.6, p.pos.y + 1.1, p.pos.z + Math.cos(p.facing) * 0.6);
   }
   aimTarget() { return this.p.autoTarget || this.game.nearestEnemy(this.p.aimPoint, 3.5); }
+  // ---------------------------------------------------------------- 3D aim
+  // What a ranged shot from `from` aims at, in 3D, so it climbs to a monster
+  // on a ledge or dips to one down a stair or a slope instead of flying flat
+  // into the hill or over its head (tuning: combatRules.js AIM):
+  //   1. a monster picked for the shot: the aim assist or a companion's
+  //      target (autoTarget), or the one under the mouse cursor: its body
+  //   2. a monster standing on the aim line: the shot keeps its heading and
+  //      pitches to its body
+  //   3. nothing to shoot at: the ground under the cursor (mouse), or the
+  //      ground just ahead (pads): the shot runs parallel to it
+  // Returns { target, point } (point: where to aim, or null to fly level
+  // along the ground ahead).
+  shotAim(from) {
+    const g = this.game, p = this.p, inp = p.remote ? null : p.input?.();
+    const picked = p.autoTarget && !p.autoTarget.dead ? p.autoTarget : inp?.mouse ? this.cursorPick() : null;
+    if (picked) return { target: picked, point: bodyCentre(picked, new THREE.Vector3()) };
+    const flat = tmp2.set(p.aimDir.x, 0, p.aimDir.z); if (flat.lengthSq() < 1e-6) flat.set(Math.sin(p.facing), 0, Math.cos(p.facing)); flat.normalize();
+    const onLine = lineTarget(from, flat, g.enemies);
+    if (onLine) return { target: onLine, point: bodyCentre(onLine, new THREE.Vector3()), keepYaw: true };
+    if (inp?.mouse) {
+      const gp = this.cursorGround();
+      if (gp && Math.hypot(gp.x - p.pos.x, gp.z - p.pos.z) > 1.5) return { target: null, point: gp.setY(gp.y + (from.y - p.pos.y)) };
+    }
+    return { target: null, point: null };
+  }
+  // A unit direction for a shot from `from`: toward shotAim's point (the
+  // pitch held within AIM.maxPitch), or level along the ground ahead.
+  shotDir(from, out = new THREE.Vector3(), aim = this.shotAim(from)) {
+    const p = this.p;
+    let yaw = Math.atan2(p.aimDir.x, p.aimDir.z), pitch;
+    if (aim.point) {
+      if (!aim.keepYaw && Math.hypot(aim.point.x - from.x, aim.point.z - from.z) > 0.5) yaw = Math.atan2(aim.point.x - from.x, aim.point.z - from.z);
+      pitch = pitchTo(from, aim.point);
+    } else {
+      const P = AIM.groundProbe, here = p.grounded ? p.pos.y : this.groundAt(p.pos.x, p.pos.z, p.pos.y + 0.5);
+      const ahead = here == null ? null : this.groundAt(p.pos.x + Math.sin(yaw) * P, p.pos.z + Math.cos(yaw) * P, here + P * Math.tan(AIM.maxPitch) + 0.5);
+      pitch = here == null ? 0 : groundPitch(here, ahead);
+    }
+    return dirOf(yaw, pitch, out);
+  }
+  // The cursor's ray from the camera (mouse players only).
+  cursorRay() {
+    const g = this.game, m = g.input?.mouse; if (!m || !g.rig?.camera) return null;
+    ray.setFromCamera(ndc.set(m.ndcX, m.ndcY), g.rig.camera);
+    return ray.ray;
+  }
+  // The monster under the mouse cursor, if any (combatRules.js cursorTarget).
+  cursorPick() {
+    const r = this.cursorRay(); if (!r) return null;
+    return cursorTarget(r.origin, r.direction, this.game.enemies, this.p.pos);
+  }
+  // The first solid block the cursor's ray meets: the ground (or the top
+  // of a ledge) under the cursor. Null over the sky or a pit.
+  cursorGround() {
+    const r = this.cursorRay(), w = this.game.world; if (!r || !w) return null;
+    const o = r.origin, d = r.direction;
+    for (let t = 0; t < 160; t += 0.2) {
+      const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t;
+      if (y < -8) return null;
+      if (w.solidAt(x, y, z)) { t = Math.max(0, t - 0.2); return new THREE.Vector3(o.x + d.x * t, Math.floor(y) + 1, o.z + d.z * t); }
+    }
+    return null;
+  }
   // Nearest living enemy roughly in the aim direction (falls back to the nearest close one).
   targetInAim(range = 12, cone = 0.45) {
     const g = this.game, p = this.p;
@@ -256,13 +321,13 @@ export class Kit {
     return n;
   }
   powerBolt() {
-    const g = this.game, p = this.p;
+    const g = this.game, p = this.p, R = RANGED.bolt;
     this.cast(0.3);
     const from = this.handPos();
-    const dir = p.aimDir.clone(); const col = p.rig.look?.accent ?? 0x6ad8ff;
-    g.projectiles.fire({ pos: from, vel: dir.multiplyScalar(22), team: 'player', dmg: 9, shape: 'orb', color: col, life: 0.9, light: 3, scale: 0.8,
+    const dir = this.shotDir(from); const col = p.rig.look?.accent ?? 0x6ad8ff;
+    g.projectiles.fire({ pos: from, vel: dir.multiplyScalar(R.speed), team: 'player', dmg: 9, shape: 'orb', color: col, life: lifeOf(R), light: 3, scale: 0.8,
       trail: (pr) => g.particles.burst(pr.pos, { count: 1, color: col, speed: 0.3, life: 0.25, size: 0.25, sizeEnd: 0.1 }),
-      onHit: (e, pr) => { g.combat.damageEnemy(e, 9, p, { knock: pr.vel.clone().setLength(3), stagger: 0.2 }); g.fx.hitSpark(pr.pos, null, { color: col }); } });
+      onHit: (e, pr) => { g.combat.damageEnemy(e, 9, p, { knock: pr.vel.clone().setY(0).setLength(R.knock), stagger: 0.2 }); g.fx.hitSpark(pr.pos, null, { color: col }); } });
     g.audio?.whoosh(0.7);
   }
   cursedBlast() { return this.powerBolt(); }

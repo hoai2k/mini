@@ -16,6 +16,7 @@ import ow_canyon from './text/ow_canyon.js';
 import ow_labyrinth from './text/ow_labyrinth.js';
 import ow_othrys from './text/ow_othrys.js';
 import ow_asphodel from './text/ow_asphodel.js';
+import rt from './text/rt.js';
 
 export const TEXT = {
   // ======================================================================
@@ -342,11 +343,12 @@ export const TEXT = {
     // Cutscene: the bus to the museum
     bus: {
       title: 'The field trip',
-      fieldTrip: 'Yancy Academy’s field trip: twenty-eight kids in one yellow school bus, and New York City in the morning.',
+      fieldTrip: 'Twenty-eight Yancy Academy kids in one yellow school bus, rolling uptown through New York City in the morning.',
       groverOnBus: 'Grover sits next to you, chewing on an apple core. Nancy Bobofit throws bits of sandwich at his head.',
       museum: 'The American Museum of Natural History. Mr. Brunner promised Greek and Roman treasures.',
       steps: 'Everybody off. Up the steps, past the columns, toward the old marble and bronze.',
       dodds: 'And Mrs. Dodds, your pre-algebra teacher, is watching you, as if you have done something terrible.',
+      doddsWord: 'She leans in close. “Later, honey, in the galleries, you and I need a word. Alone.”',
     },
     // Cutscene: summer at Montauk
     summer: {
@@ -354,7 +356,8 @@ export const TEXT = {
       cabin: 'Summer. Mom takes you to the cabin at Montauk, on the beach where she first met your father.',
       knock: 'In the middle of the night, during a particularly bad storm, someone bangs on the door. It’s Grover. He has no trousers on, and he has hooves instead of feet.',
       drive: '“Something is following us!” Mom drives the old Camaro into the storm, as fast as it will go.',
-      lightning: 'Toward a hill on Long Island, and a great pine tree at the top. Then the lightning hits.',
+      lightning: 'Toward a hill on Long Island, and a great pine tree at the top.',
+      crash: 'BOOM. The lightning hits, the world goes white, and the Camaro flips into a ditch.',
     },
     // Cutscene: waking at the Big House
     wake: {
@@ -391,8 +394,7 @@ export const TEXT = {
       startPlace: 'the field-trip bus by the camp road',
       intro: [
         'Look, I didn’t want to be a half-blood.',
-        'In the Greek and Roman galleries, Mrs. Dodds wants a word with you. Alone.',
-        'Something about her is wrong, and the Mist hides what she really is.',
+        'If you think you might be one too, my advice is: stop playing right now. Still here? Okay. You were warned.',
       ],
       outro: 'Mrs. Dodds bursts into yellow dust. Nobody else remembers her. “Mrs. Dodds? There is no Mrs. Dodds.”',
     },
@@ -403,11 +405,10 @@ export const TEXT = {
       objective: 'Climb Half-Blood Hill',
       startPlace: 'Thalia’s pine on Half-Blood Hill',
       intro: [
-        'Summer at Montauk: in a storm, Grover is on your doorstep with no trousers on (he has goat legs), and Mom drives you all toward Long Island.',
-        'The Camaro lies on its side in a ditch. The camp border is at the top of the hill, in the rain.',
-        'The thing that was following you comes out of the dark: a man with the head of a bull. Lure its charges into the trees.',
+        'Summer at Montauk: in a storm, Grover is on your doorstep with no trousers on (he has goat legs). Mom drives you all toward Long Island, until lightning flips the Camaro into a ditch.',
+        'Crawl out and climb. The thing that was following you comes out of the dark: a man with the head of a bull. Lure its charges into the trees.',
       ],
-      outro: 'The Minotaur crumbles to dust and you are left holding a horn. Camp Half-Blood lies below.',
+      outro: 'The Minotaur crumbles to dust, and you are left holding its horn. But Mom is gone, in a flash of golden light. You stagger toward the pine, and everything goes dark.',
     },
     // Chapter 3: Capture the Flag
     lt3: {
@@ -434,7 +435,7 @@ export const TEXT = {
         'Three old ladies get on at the back. One of them is knitting. Another has a leather whip in her handbag.',
         'The Furies want to drag you back to their master. See through the Mist, clear the road, then face all three.',
       ],
-      outro: 'The bus burns behind you in the woods of New Jersey. You are on foot now, a long way from camp, and going west.',
+      outro: 'The bus burns behind you in the woods of New Jersey. You are on foot now, a long way from camp, and Los Angeles is a whole country away.',
     },
     // Chapter 5: Aunty Em’s Garden Gnome Emporium
     lt5: {
@@ -512,7 +513,7 @@ export const TEXT = {
         'Past the river Styx the Fields of Asphodel go on forever, and something deep in Tartarus is calling your name.',
         'Close the rifts (hold X / E) before the dead pour through. At the gates, Cerberus wants to play: throw him the red ball.',
       ],
-      outro: 'Hades says you stole his helm. You didn’t, but the master bolt is in your backpack. Three pearls, four of you, and Mom stays behind. You failed to save what mattered most.',
+      outro: 'Hades says you stole his helm. You didn’t, but the master bolt is in your backpack. Three pearls, four of you, and Mom stays behind.',
     },
     // Chapter 11: The God of War
     lt11: {
@@ -525,7 +526,7 @@ export const TEXT = {
         'The god of war wants a fight. The Furies circle overhead, waiting to see who wins.',
         'Stand in the water for the strength of the sea, and strike for his heel.',
       ],
-      outro: 'Riptide cuts Ares’s heel and ichor runs gold. The Furies carry Hades’s helm home. What was stolen is found, and safely returned.',
+      outro: 'Riptide cuts Ares’s heel and ichor runs gold. The Furies carry Hades’s helm home to the Underworld, and Ares stomps off, sulking.',
     },
     // Chapter 12: The Six-Hundredth Floor
     lt12: {
@@ -538,7 +539,7 @@ export const TEXT = {
         'Back at camp, Luke asks you to walk with him in the woods. He says he has something to tell you.',
         'Luke has served Kronos all along. Dodge his sword, Backbiter, and watch for the pit scorpion he brought.',
       ],
-      outro: 'Luke vanishes into the dark. The poison burns, and the one who called you a friend is your enemy now. Summer is over, but the quest is done.',
+      outro: 'Luke vanishes into the dark, and the scorpion’s poison burns. Your friends find you just in time. Summer is over, but the quest is done.',
     },
   },
 
@@ -2031,7 +2032,7 @@ export const TEXT = {
   },
 };
 
-for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel]) deepMerge(TEXT, part);
+for (const part of [ow_camp, ow_fields, ow_woods, ow_shore, ow_canyon, ow_labyrinth, ow_othrys, ow_asphodel, rt]) deepMerge(TEXT, part);
 
 function deepMerge(into, from) {
   for (const [k, v] of Object.entries(from)) {

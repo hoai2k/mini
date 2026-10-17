@@ -15,7 +15,7 @@ import { Kit } from './kit.js';
 import { Decorations } from './deco.js';
 import { LightShafts } from './shafts.js';
 import { buildCamp, FY } from './camp.js';
-import { WORLD, CAMP_AT, REGIONS, REGION, regionGrid, borderDistance, coastAt, regionAt } from './owLayout.js';
+import { WORLD, CAMP_AT, REGIONS, REGION, regionGrid, borderDistance, coastAt, regionAt, OW_LAYOUT } from './owLayout.js';
 import { makeNoise, rng } from './noise.js';
 import { pine, oak, boulder, scatterOn } from './rooms.js';
 import { t } from '../text_config.js';
@@ -129,9 +129,13 @@ export function buildOpenWorld({ seed = 7 } = {}) {
   plane(0, sz, sx, sz + 500, FY - 0.02, 0x2c2a30);
 
   const spawn = C.spawn.clone();
+  // the Road West's chapters start on the road trip itself (world/roadtrip.js);
+  // here its first stop is the bus stop where the Greyhound leaves for it
+  const busStop = C.road1;
+  const roadAnchors = Object.fromEntries(Object.keys(C).filter((key) => /^road\d$/.test(key)).map((key) => [key, undefined]));
   return {
-    ...C, world: W, deco, shafts, kit: k, spawn, stage: C.stage, boats: C.boats,
-    ow: reg, openWorld: true, heights: H, regionGrid: grid,
+    ...C, ...roadAnchors, world: W, deco, shafts, kit: k, spawn, stage: C.stage, boats: C.boats, busStop,
+    ow: reg, openWorld: true, layout: OW_LAYOUT, area: 'camp', heights: H, regionGrid: grid,
   };
 }
 
@@ -179,7 +183,7 @@ export function layRoad(W, pts, id, w = 3) {
 
 // A waystone: a marble pillar with a gold cap and a soft light; walk up to it
 // to remember it, then teleport between the ones you have found (the map).
-function placeWaystone(W, deco, reg, region, id, x, z) {
+export function placeWaystone(W, deco, reg, region, id, x, z) {
   const y = W.groundBelow(x + 0.5, z + 0.5, W.sy - 1);
   if (!isFinite(y)) return null;
   for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { W.set(x + dx, y - 1, z + dz, B.marble_floor); for (let k = 0; k < 3; k++) if (W.get(x + dx, y + k, z + dz) && !(dx === 0 && dz === 0)) W.set(x + dx, y + k, z + dz, 0); }
@@ -192,9 +196,10 @@ function placeWaystone(W, deco, reg, region, id, x, z) {
 
 // What a region's build(ctx) gets: the world, the kit, its noise, a seeded
 // random, ground lookups, and add.* to register the places the runtime runs.
-function regionContext({ W, k, deco, shafts, n, r, reg, top, seed }) {
-  const rand = rng(seed * 131 + REGIONS.indexOf(r) * 977);
-  const inRegion = (x, z) => regionAt(x, z) === r;
+// (layout: the map the region is in: world/owLayout.js's, or the road trip's)
+export function regionContext({ W, k, deco, shafts, n, r, reg, top, seed, layout = OW_LAYOUT }) {
+  const rand = rng(seed * 131 + layout.REGIONS.indexOf(r) * 977);
+  const inRegion = (x, z) => layout.regionAt(x, z) === r;
   const [bx0, bz0, bx1, bz1] = r.rects.reduce((a, [x0, z0, x1, z1]) => [Math.min(a[0], x0), Math.min(a[1], z0), Math.max(a[2], x1), Math.max(a[3], z1)], [1e9, 1e9, -1e9, -1e9]);
   const at = (x, z) => V(x + 0.5, top(x, z), z + 0.5);
   // is a w × d footprint at (x, z) on fairly level, dry, empty ground in this region?
@@ -210,6 +215,8 @@ function regionContext({ W, k, deco, shafts, n, r, reg, top, seed }) {
     return hi - lo <= tol;
   };
   const tag = (o) => ({ region: r.id, ...o });
+  // where a place stands: on the top of the ground at (x, z), or, given o.y, at that height (inside a building, a cave)
+  const P = (o) => (o.y != null ? V(o.x + 0.5, o.y, o.z + 0.5) : at(o.x, o.z));
   return {
     W, k, deco, shafts, n, rand, region: r, FY, B,
     bounds: { x0: bx0, z0: bz0, x1: bx1, z1: bz1 },
@@ -229,19 +236,19 @@ function regionContext({ W, k, deco, shafts, n, r, reg, top, seed }) {
       // id: unique; name text at waystones.<id>
       waystone: (id, x, z) => placeWaystone(W, deco, reg, r.id, id, x, z),
       // a monster camp: { id, x, z, kinds: [kind...], count, level?, radius?, chest?: 'common' | 'rare' }
-      camp: (o) => { reg.camps.push(tag({ radius: 9, count: 5, chest: 'common', ...o, pos: at(o.x, o.z) })); },
+      camp: (o) => { reg.camps.push(tag({ radius: 9, count: 5, chest: 'common', ...o, pos: P(o) })); },
       // a named champion: { id, x, z, kind, level?, elite? } (name text at champions.<id>)
-      champion: (o) => { reg.champions.push(tag({ ...o, pos: at(o.x, o.z), name: t(`champions.${o.id}.name`) })); },
-      // a treasure chest: { id, x, z, rarity: 'common' | 'rare' | 'epic', hidden? }
-      chest: (o) => { reg.chests.push(tag({ rarity: 'common', ...o, pos: at(o.x, o.z) })); },
+      champion: (o) => { reg.champions.push(tag({ ...o, pos: P(o), name: t(`champions.${o.id}.name`) })); },
+      // a treasure chest: { id, x, z, y?, rarity: 'common' | 'rare' | 'epic', hidden? } (y?: any of these can take a height, for a spot under a roof)
+      chest: (o) => { reg.chests.push(tag({ rarity: 'common', ...o, pos: P(o) })); },
       // a shrine trial: { id, x, z, waves?: [[kind...], ...] } (name text at shrines.<id>)
-      shrine: (o) => { const p = at(o.x, o.z); W.addLight(p.x, p.y + 2, p.z, 0xffc860, 3, 8); reg.shrines.push(tag({ ...o, pos: p, name: t(`shrines.${o.id}`) })); },
+      shrine: (o) => { const p = P(o); W.addLight(p.x, p.y + 2, p.z, 0xffc860, 3, 8); reg.shrines.push(tag({ ...o, pos: p, name: t(`shrines.${o.id}`) })); },
       // a person: { id, x, z, model: 'npc:<id>' | 'mortal:<id>' | 'hero:<id>', yaw?, quest? } (name text at people.<id>)
-      npc: (o) => { reg.npcs.push(tag({ yaw: 0, ...o, pos: at(o.x, o.z), name: t(`people.${o.id}`) })); },
+      npc: (o) => { reg.npcs.push(tag({ yaw: 0, ...o, pos: P(o), name: t(`people.${o.id}`) })); },
       // a quest item to pick up: { id, quest, x, z, look?: 'sparkle' | <deco prop kind> }
-      item: (o) => { reg.items.push(tag({ look: 'sparkle', ...o, pos: at(o.x, o.z) })); },
+      item: (o) => { reg.items.push(tag({ look: 'sparkle', ...o, pos: P(o) })); },
       // a named place shown on the map: { id, x, z } (name text at places.<id>)
-      landmark: (o) => { reg.landmarks.push(tag({ ...o, pos: at(o.x, o.z), name: t(`places.${o.id}`) })); },
+      landmark: (o) => { reg.landmarks.push(tag({ ...o, pos: P(o), name: t(`places.${o.id}`) })); },
     },
   };
 }

@@ -16,6 +16,7 @@ import { t } from '../text_config.js';
 import * as THREE from 'three/webgpu';
 import { Kit, root, slow, fear, stun, makeDisc } from './kit.js';
 import { registerKit } from './index.js';
+import { RANGED, lifeOf } from '../combatRules.js';
 
 const GREEN = 0x5fae4a, LEAF = 0x9ad85a, NOTE = 0x8aff9a, PAN = 0x2e8b6e;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
@@ -71,16 +72,20 @@ class GroverKit extends Kit {
   songBolt() {
     const g = this.game, p = this.p;
     this.cast(0.28);
-    const dmg = 9 + this.rank('pipes') * 3;
-    const target = this.targetInAim(14, 0.75);
-    let wob = Math.random() * 6;
-    const pr = g.projectiles.fire({ pos: this.handPos(), vel: p.aimDir.clone().multiplyScalar(19), team: 'player', dmg, shape: 'orb', color: NOTE, life: 1, light: 3, scale: 0.9, homing: target ? 3 : 0, target,
+    const dmg = 9 + this.rank('pipes') * 3, R = RANGED.note;
+    const target = this.targetInAim(R.seek, 0.75);
+    let wob = Math.random() * 6, lastWob = 0;
+    const from = this.handPos();
+    // aimed in 3D at the note's target (or as kit.js shotDir sees it)
+    const dir = target ? this.shotDir(from, undefined, { target, point: tmp.set(target.pos.x, target.pos.y + (target.height ?? 1.5) * 0.5, target.pos.z) }) : this.shotDir(from);
+    const pr = g.projectiles.fire({ pos: from, vel: dir.multiplyScalar(R.speed), team: 'player', dmg, shape: 'orb', color: NOTE, life: lifeOf(R), light: 3, scale: 0.9, homing: target ? 3 : 0, target,
       trail: (q, dt) => {
+        // the note bobs on its way (on top of its climb or dip and its homing)
         wob += (dt ?? 0.016) * 14;
-        q.vel.y = Math.sin(wob) * 2.4;
+        const w = Math.sin(wob) * 2.4; q.vel.y += w - lastWob; lastWob = w;
         if (Math.random() < 0.7) g.particles.glow.emit(q.pos.x, q.pos.y, q.pos.z, (Math.random() - 0.5), 0.8 + Math.random(), (Math.random() - 0.5), 0.6, 0.8, 2.6, 1.0, 0.16, -0.5, 1, 0.12, Math.random() < 0.5 ? 2 : 3);
       },
-      onHit: (e, q) => { g.combat.damageEnemy(e, dmg, p, { knock: q.vel.clone().setY(0).setLength(2.5), stagger: 0.25 }); g.fx.hitSpark(q.pos, null, { color: NOTE }); } });
+      onHit: (e, q) => { g.combat.damageEnemy(e, dmg, p, { knock: q.vel.clone().setY(0).setLength(R.knock), stagger: 0.25 }); g.fx.hitSpark(q.pos, null, { color: NOTE }); } });
     if (!pr) return false;
     this.note();
   }

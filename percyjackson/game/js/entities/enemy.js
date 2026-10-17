@@ -74,6 +74,7 @@ import { scoldLine, mayScold, RECOIL, SETTLE } from './mistPeople.js';
 import { hiddenHitAllowed, HIDDEN_DMG } from '../story/museumRules.js';
 import { damp, dampAngle, clamp, angleDiff } from '../util.js';
 import { monsterDamage } from '../resources.js';
+import { KNOCK, knockKeep, staggerScale, walkKeep } from '../combatRules.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), TO = new THREE.Vector3(), SEP = new THREE.Vector3();
 let bonesHint = false;
@@ -236,12 +237,16 @@ export class Enemy {
     // an idle group monster hit: a scout runs for its group, the rest wake the ones next to them
     if (wasIdle && this.loiter?.pack) { if (this.loiter.scout) this.scoutCall(); else this.loiter.pack.alarm(this, { local: true }); }
     if (src && src.isPlayer && !this.target && !src.invisible) this.target = src;
+    // knock-back (tuning: combatRules.js KNOCK): heavy monsters keep less of it
     if (o.knock) {
-      const k = o.knock.clone().multiplyScalar(1 - (this.def.knockResist ?? 0) * (o.blocked ? 1 : 0.8));
-      this.knock.add(k);
-      if (k.length() > 6) this.vel.y = Math.max(this.vel.y, 4 + k.length() * 0.25);
+      const k = o.knock.clone().multiplyScalar(knockKeep(this.def.knockResist ?? 0, o.blocked));
+      this.knock.addScaledVector(k, KNOCK.scale);
+      // the blow moves it at once (a velocity that only eased toward the
+      // knock lagged so far behind it that most of the shove never showed)
+      this.vel.x += k.x * KNOCK.scale; this.vel.z += k.z * KNOCK.scale;
+      if (k.length() > KNOCK.hopAt) this.vel.y = Math.max(this.vel.y, 4 + k.length() * 0.25);
     }
-    const st = (o.stagger ?? 0.2) * (this.def.knockResist ? 0.5 : 1) * (this.elite ? 0.6 : 1);
+    const st = (o.stagger ?? 0.2) * staggerScale(this.def.knockResist ?? 0) * (this.elite ? 0.6 : 1);
     if (st > 0.15 && !o.blocked && (this.state !== 'windup' || st > 0.4 || !this.def.superArmor)) {
       if (this.state === 'windup') this.cancelAttack();
       // (a light hit never cuts a longer stun short: Shield Bash's 1.4 s used to end at the next 0.25 s flinch)
@@ -787,10 +792,15 @@ export class Enemy {
   }
   moveBody(dt, move) {
     const g = this.game;
-    const accel = this.grounded ? 12 : 3;
+    // a knock-back carries the monster: its own walking fades while it
+    // slides, and it keeps sliding in the air when a big hit pops it up
+    // (with the air's slow steering it used to stop dead on leaving the ground)
+    const kl = Math.hypot(this.knock.x, this.knock.z);
+    if (kl > 0.3) move.multiplyScalar(walkKeep(kl));
+    const accel = this.grounded || kl > 1 ? 12 : 3;
     this.vel.x = damp(this.vel.x, move.x + this.knock.x, accel, dt);
     this.vel.z = damp(this.vel.z, move.z + this.knock.z, accel, dt);
-    this.knock.multiplyScalar(Math.exp(-dt * 6));
+    this.knock.multiplyScalar(Math.exp(-dt * KNOCK.decay));
     this.stepUp = this.knock.lengthSq() < 4;
     if (this.rig.float) { this.noGravity = true; this.pos.y = damp(this.pos.y, (this.floorY ?? this.pos.y), 8, dt); }
     moveEntity(this, g.world, dt);

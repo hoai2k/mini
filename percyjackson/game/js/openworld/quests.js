@@ -18,7 +18,6 @@
 import * as THREE from 'three/webgpu';
 import { h, toast } from '../ui/ui.js';
 import { t } from '../text_config.js';
-import { REGION } from '../world/owLayout.js';
 import { buildHeroModel, buildNpc } from '../entities/models.js';
 import { buildMortal } from '../entities/mortals.js';
 import { rollItem, powerFor } from '../loot.js';
@@ -116,7 +115,7 @@ export class Quests {
     const g = this.game, st = this.data[q.id];
     st.done = true; st.step = q.steps.length;
     if (this.ow.data.track === q.id) this.ow.data.track = this.active()[0]?.id ?? null;
-    const R = q.reward ?? {}, lvl = REGION[q.region]?.level?.[1] ?? 1;
+    const R = q.reward ?? {}, lvl = this.ow.lay.REGION[q.region]?.level?.[1] ?? 1;
     const xp = R.xp ?? 60 * lvl;
     for (const sv of g.localSaves()) if (sv.addXp(xp)) g.levelUp(sv);
     const giver = this.people.get(q.giver)?.n.pos ?? g.players[0].pos;
@@ -202,6 +201,7 @@ export class Quests {
   // The tracker: the tracked side quest's next place, else the next chapter (main.js updateCampGoal).
   trackGoal() {
     const g = this.game, id = this.ow.data.track, q = id && this.def(id);
+    if (id && !q && this.data[id] && !this.data[id].done) { g.updateCampGoal?.(true); return; }   // (a quest of the other area: kept, the next chapter shows here)
     if (!q || !this.step(q)) { this.ow.data.track = this.active()[0]?.id ?? null; if (!this.ow.data.track) { g.updateCampGoal?.(true); return; } return this.trackGoal(); }
     const pos = this.stepPos(q);
     g.tracker?.setGoal({ title: t(`sq.${q.id}.title`), desc: this.stepText(q), pos, radius: 3 });

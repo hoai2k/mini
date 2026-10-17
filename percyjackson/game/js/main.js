@@ -25,6 +25,8 @@ import { makePropMaterials } from './world/deco.js';
 import { BLOCKS } from './world/blocks.js';
 import { buildOpenWorld } from './world/openworld.js';
 import { OpenWorld } from './openworld/runtime.js';
+import { buildRoadTrip } from './world/roadtrip.js';
+import { RoadTrip, CampBusStop } from './openworld/roadtrip.js';
 import { openWorldMap } from './ui/worldMap.js';
 import { owDifficulty } from './world/owLayout.js';
 import { Boats } from './world/boats.js';
@@ -210,7 +212,7 @@ class Game {
     this.hud.show(false); this.touch?.show(false);
     for (const p of this.players) this.removePlayer(p);
     this.players = [];
-    if (this.mode !== 'hub') this.loadHub();
+    if (this.mode !== 'hub' || this.area !== 'camp') this.loadHub({ area: 'camp' });
     this.rig.cinematic({ center: new THREE.Vector3(56, 8, 40), dur: 1e9, dist: 42, pitch: 34 * Math.PI / 180, orbit: 0.05 });
     this.audio.setMusic('title');
     openTitle(this);
@@ -377,6 +379,7 @@ class Game {
   // ---------------------------------------------------------------- level lifecycle
   clearLevel() {
     this.ow?.dispose(); this.ow = null;
+    this.road?.dispose(); this.road = null;
     if (this.rig) this.rig.subject = null;
     this.wipeLeft = 0;
     this.domainSys?.end();
@@ -430,10 +433,18 @@ class Game {
     });
     this.rig.snap(at);
   }
-  loadHub() {
+  // opts.area: 'camp' (the open world round Camp Half-Blood) or 'road' (the
+  // Road West road trip); left out, the area this save was last in.
+  // opts.arrive: 'bus' (the Greyhound brings the heroes); opts.way: a waystone
+  // to arrive at; opts.fromChapter: back from a chapter (on the road, at its marker).
+  loadHub(opts = {}) {
     this.online?.loading?.();   // net: guests wait while the host builds camp
     if (!this.csBuilding) { this.endCutscene(); this.openingChapter = null; }
     this.clearLevel();
+    const area = opts.area ?? (this.csBuilding || this.state !== 'playing' ? 'camp' : this.save?.data.area) ?? 'camp';
+    this.area = area === 'road' && !this.csBuilding ? 'road' : 'camp';
+    if (this.state === 'playing' && !this.csBuilding && this.save?.data) this.save.data.area = this.area;
+    if (this.area === 'road') { this.loadRoad(opts); return; }
     const L = buildOpenWorld();   // (Camp Half-Blood in the middle of the open world: world/openworld.js)
     this.loadWorld(L, BIOMES.camp);
     if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
@@ -478,8 +489,45 @@ class Game {
     this.interactables.push({ id: 'iris', pos: (L.iris ?? L.mapTable.clone().add(new THREE.Vector3(3, 0, 0))), radius: 2.4, label: this.online?.active ? t('game.camp.irisActive') : t('game.camp.iris'), action: () => openOnline(this) });
     // the open world: regions, waystones, camps, champions, shrines, chests, people and side quests
     this.ow = new OpenWorld(this, L); this.ow.setup();
+    // the Greyhound to the Road West, at the bus stop past Half-Blood Hill
+    this.road = new CampBusStop(this, L); this.road.setup(opts);
+    if (opts.way) { const w = L.ow.waystones.find((q) => q.id === opts.way); if (w) this.ow.travel(w); }
     // where to go next, and monsters in the woods and along the Road West (not while a cutscene is building camp as its set)
     if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
+  }
+  // The Road West (world/roadtrip.js): the same open-world systems (regions,
+  // waystones, camps, chests, people) on the road trip's map, with its
+  // roadblocks, rides and the taxi (openworld/roadtrip.js).
+  loadRoad(opts = {}) {
+    const L = buildRoadTrip();
+    this.loadWorld(L, BIOMES.rt_turnpike);
+    if (this.state === 'playing') this.audio.overrideMusic = null; this.audio.setMusic('hub');
+    const d = this.save.data;
+    let at = L.spawn;
+    const way = opts.way ?? (!opts.arrive && !opts.fromChapter ? d.rt?.way : null);
+    const w = way && L.ow.waystones.find((q) => q.id === way);
+    if (w) at = w.pos;
+    this.placePlayers(at);
+    this.hubProps = [];
+    this.questMarkers = placeQuestMarkers(this, L);
+    const back = opts.fromChapter && this.questMarkers.find((m) => m.ch.id === opts.fromChapter);
+    if (back) this.placePlayers(back.pos.clone().add(new THREE.Vector3(2.5, 0, 2.5)));
+    this.wave = 0;
+    this.minimap.level = null;
+    this.hud.mini.classList.add('hidden');
+    this.hud.setObjective(t('rt.area'), t('regions.rt_turnpike.sub'));
+    this.mode = 'hub'; this.chapter = null;
+    this.online?.sceneChanged();
+    this.ow = new OpenWorld(this, L); this.ow.setup();
+    this.road = new RoadTrip(this, L); this.road.setup(opts);
+    if (!this.csBuilding && this.state === 'playing') { this.updateCampGoal(); this.roaming.configureCamp(); }
+  }
+  // Go to the other area (by the Greyhound, or a waystone there).
+  goArea(area, opts = {}) {
+    if (this.online?.isGuest) { toast(t('ow.hostTravels')); return; }
+    this.ui.closeAll(); this.paused = false;
+    this.loadHub({ ...opts, area });
+    if (!opts.arrive) toast(area === 'road' ? t('rt.area') : t('game.camp.name'), 'title');
   }
   // Play a chapter of a book: story cards, then its level.
   // { opening: true }: chapter 1 or 2 played as part of the opening (the story carries on after it)
@@ -516,6 +564,7 @@ class Game {
     this.ui.closeAll(); this.paused = false;
     this.clearLevel();
     this.chapter = def.chapter ? chapterDef(def.chapter) : null;
+    this.lastChapter = def.chapter ?? null;
     // build the level from its seed alone, so online guests get the same one
     const rnd = Math.random; Math.random = mulberry32((def.seed ?? 1) ^ 0x5bd1e995);
     let L;
@@ -586,7 +635,7 @@ class Game {
   returnToHub() {
     // net: online, a guest goes where the host goes
     if (this.online?.isGuest && this.mode !== 'hub') { this.ui.closeAll(); this.paused = false; toast(t('game.waitingForHost')); return; }
-    this.loadHub(); toast(t('game.camp.name'), 'title');
+    this.loadHub({ fromChapter: this.lastChapter ?? null }); toast(this.area === 'road' ? t('rt.area') : t('game.camp.name'), 'title');
   }
   openMap() {
     if (!this.minimap.level) return;
@@ -866,6 +915,7 @@ class Game {
       this.mission?.update(dt);
       this.roaming.update(dt);
       this.ow?.update(dt);
+      this.road?.update?.(dt);
       this.online.update(realDt);
     }
     this.domainSys.update(dt, this.paused ? 0 : realDt);

@@ -112,3 +112,27 @@ test('a chapter’s outro does not repeat what its boss-down message said', () =
     assert.deepEqual([...a].filter((x) => b.has(x)), [], ch.id);
   }
 });
+
+test('the cutscenes tell the opening; the story cards after them carry only what is new', () => {
+  const S = shots();
+  const cut = (id) => S.filter((s) => s.cut === id).flatMap((s) => s.lines.map((l) => l.text)).join(' ');
+  const ch = (id) => CHAPTERS.find((c) => c.id === id);
+  // the bus cutscene: Mrs. Dodds's stare and her word in the galleries; chapter 1's card leaves her to it
+  assert.match(cut('bus'), /a word\. Alone/);
+  for (const l of ch('lt1').intro) assert.doesNotMatch(l, /Dodds|galler|Mist/, l);
+  // the summer cutscene ends with the crash; chapter 2's cards in the opening (all but the first) start after it
+  assert.match(cut('summer'), /ditch/);
+  for (const l of ch('lt2').intro.slice(1)) assert.doesNotMatch(l, /Montauk|Grover|ditch|lightning/i, l);
+  // played again from camp (no cutscene), chapter 2's first card still tells the way there
+  assert.match(ch('lt2').intro[0], /Montauk/);
+  assert.match(ch('lt2').intro[0], /ditch/);
+});
+
+test('an outro leaves the prophecy line it fulfils to the prophecy scroll', () => {
+  const lines = t('books.book1.prophecy');
+  for (const c of CHAPTERS) {
+    if (c.prophecyLine == null) continue;
+    const same = [...shingles(lines[c.prophecyLine], 2)].filter((x) => shingles(c.outro, 2).has(x));
+    assert.deepEqual(same, [], `${c.id}: ${c.outro}`);
+  }
+});

@@ -242,6 +242,22 @@ export const BIOMES = {
   },
 };
 
+// The Road West (world/rtLayout.js): each stop's look, from the chapter it
+// belongs to (or a region round camp), in daylight with a light haze.
+for (const [id, base, o] of [
+  ['rt_turnpike', 'ow_woods', { skyHorizon: 0xd8d8c8, fog: 0xc8ccc0, fogDensity: 0.006, ambience: 'forest', music: 'highway' }],
+  ['rt_auntyem', 'ow_fields', { fogDensity: 0.005, music: 'garden' }],
+  ['rt_river', 'ow_shore', { fogDensity: 0.006, ambience: 'wind', music: 'highway' }],
+  ['rt_stlouis', 'arch', { fogDensity: 0.006 }],
+  ['rt_plains', 'ow_canyon', { fogDensity: 0.006, music: 'arch' }],
+  ['rt_denver', 'ow_woods', { skyTop: 0x2a6ac8, skyHorizon: 0xe0e8f4, fog: 0xd0dce8, fogDensity: 0.005, music: 'waterland' }],
+  ['rt_rockies', 'ow_canyon', { fogDensity: 0.007, music: 'desert' }],
+  ['rt_vegas', 'casino', { skyTop: 0x1a1040, skyHorizon: 0xd86a5a, fog: 0x6a3a5a, fogDensity: 0.006, hemiI: 1.2, sunI: 1.6, indoor: false, dreamy: false, ambience: 'casino' }],
+  ['rt_desert', 'desert', { fogDensity: 0.005 }],
+  ['rt_la', 'desert', { skyHorizon: 0xf2c8a8, fog: 0xe0b8a0, fogDensity: 0.006, ambience: 'highway', music: 'underworld' }],
+  ['rt_santamonica', 'beach', { skyTop: 0x2a6ac8, skyHorizon: 0xf2c8a0, fog: 0xe8c8b0, fogDensity: 0.005 }],
+]) BIOMES[id] = { ...BIOMES[base], ...o, id, name: txt(`regions.${id}.name`), sub: txt(`regions.${id}.sub`), storm: false };
+
 // Domain Expansion overrides use the same structure.
 export const DOMAINS = {
   unlimited_void: { skyTop: 0x000000, skyHorizon: 0x1a2a6a, fog: 0x050818, fogDensity: 0.008, hemiSky: 0x9ab0ff, hemiGround: 0x101020, hemiI: 1.4, sun: 0xc0d8ff, sunI: 0.6, grade: { tint: [0.95, 1.0, 1.12], lift: [0.0, 0.01, 0.04], sat: 1.2, contrast: 1.15, vignette: 0.5 }, floor: B.void_floor },
