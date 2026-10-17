@@ -80,8 +80,8 @@ test('the left stick moves (with a dead zone)', () => {
 test('every action the game reads from a controller has a glyph, and the texts name the new buttons', () => {
   for (const a of ['attack', 'jump', 'ranged', 'dodge', 't1', 't2', 't3', 'domain', 'heal', 'sight', 'inv', 'swap', 'art1', 'art2', 'map', 'pause', 'trail']) assert.ok(PAD_LABEL[a], a);
   const read = (f) => readFileSync(new URL('../js/' + f, import.meta.url), 'utf8');
-  assert.match(read('ui/instructions.js'), /\['Abilities 1 · 2 · 3', 'Y · LB · RB'/);
-  assert.match(read('ui/instructions.js'), /\['Ambrosia \(heal\)', 'LT'/);
+  assert.match(read('text/menus.js'), /\['Abilities 1 · 2 · 3', 'Y · LB · RB'/);
+  assert.match(read('text/menus.js'), /\['Ambrosia \(heal\)', 'LT'/);
   assert.doesNotMatch(read('main.js'), /: 'X';/, 'pad prompts say A');
   assert.doesNotMatch(read('story/chapters.js') + read('mission.js') + read('objectives/escape.js'), /\(LT \/ V\)|Hold LT/);
 });
