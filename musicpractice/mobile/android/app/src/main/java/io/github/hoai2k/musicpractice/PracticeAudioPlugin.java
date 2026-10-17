@@ -50,7 +50,7 @@ public class PracticeAudioPlugin extends Plugin {
     @PluginMethod
     public void metronomeStart(PluginCall call) {
         setClicks(call);
-        engine.mixer.metronomeStart(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), call.getDouble("volume", 0.8));
+        engine.mixer.metronomeStart(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), ints(call.getArray("slots")), call.getDouble("volume", 0.8));
         engine.setLabels(call.getString("label"), null);
         askForNotifications();
         engine.ensureRunning();
@@ -60,7 +60,7 @@ public class PracticeAudioPlugin extends Plugin {
     @PluginMethod
     public void metronomeUpdate(PluginCall call) {
         setClicks(call);
-        engine.mixer.metronomeUpdate(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), call.getDouble("volume", 0.8));
+        engine.mixer.metronomeUpdate(call.getDouble("bpm", 120.0), ints(call.getArray("strengths")), call.getInt("subdivision", 1), ints(call.getArray("slots")), call.getDouble("volume", 0.8));
         engine.setLabels(call.getString("label"), null);
         call.resolve();
     }

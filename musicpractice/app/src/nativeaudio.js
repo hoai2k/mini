@@ -9,7 +9,7 @@
 import { TEXT } from './text-config.js';
 import { call, hasPlugin, listen } from './native.js';
 import { Metronome, SUB } from './metronome.js';
-import { beatStrengths } from './settings.js';
+import { barPlan } from './settings.js';
 import { SAMPLED, loadLoop, renderSynthLoop, synthSpec, SYNTH_ANCHORS, SYNTH_MAX_SHIFT } from './drone.js';
 import { extraDelaySec } from './audio.js';
 
@@ -112,8 +112,10 @@ export class NativeMetronome {
 
   configure(s) {
     this.bpm = s.bpm;
-    this.strengths = beatStrengths(s.meter, s.accent);
     this.subdivision = s.subdivision || 1;
+    const plan = barPlan(s);
+    this.strengths = plan.strengths;
+    this.slots = plan.slots || []; // custom strong beats: the click for every position (empty: the plain rules)
     this.volume = s.volume;
     this.sound = s.sound;
     if (this.running) this.update();
@@ -137,7 +139,7 @@ export class NativeMetronome {
     this.clock = null;
     const clicks = await this.clicks();
     if (!this.running) return;
-    await run('metronomeStart', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, volume: this.volume, label: this.label(), ...clicks });
+    await run('metronomeStart', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, slots: this.slots, volume: this.volume, label: this.label(), ...clicks });
     this.poll();
     clearInterval(this.pollTimer);
     this.pollTimer = setInterval(() => this.poll(), 1000);
@@ -153,7 +155,7 @@ export class NativeMetronome {
     const token = (this.updating = (this.updating || 0) + 1);
     const clicks = await this.clicks();
     if (token !== this.updating || !this.running) return;
-    await run('metronomeUpdate', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, volume: this.volume, label: this.label(), ...clicks });
+    await run('metronomeUpdate', { bpm: this.bpm, strengths: this.strengths, subdivision: this.subdivision, slots: this.slots, volume: this.volume, label: this.label(), ...clicks });
     this.poll();
   }
 

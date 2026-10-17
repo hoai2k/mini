@@ -45,6 +45,8 @@ public final class PracticeMixer {
     private int subdivision = 1; // clicks per beat (quarters, eighths, triplets, sixteenths)
     private double lastBeat; // the frame of the last beat, which the subdivisions count from
     private int subIndex = 1; // the next subdivision of that beat
+    private int lastBeatIndex; // that beat's place in the bar
+    private int[] slots = new int[0]; // custom strong beats: the click for every position in the bar (empty: the plain rules)
     private final int[] clickKind = new int[16];
     private final double[] clickPos = new double[16]; // in click samples
     private int clicksActive;
@@ -185,7 +187,11 @@ public final class PracticeMixer {
     }
 
     public synchronized void metronomeStart(double bpm, int[] strengths, int subdivision, double volume) {
-        metronomeUpdate(bpm, strengths, subdivision, volume);
+        metronomeStart(bpm, strengths, subdivision, new int[0], volume);
+    }
+
+    public synchronized void metronomeStart(double bpm, int[] strengths, int subdivision, int[] slots, double volume) {
+        metronomeUpdate(bpm, strengths, subdivision, slots, volume);
         metGain = volume;
         metRunning = true;
         beat = 0;
@@ -199,10 +205,16 @@ public final class PracticeMixer {
         metronomeUpdate(bpm, strengths, subdivision, volume);
     }
 
-    /** Tempo, bar, subdivision and volume while running: a new tempo counts from the next beat. */
     public synchronized void metronomeUpdate(double bpm, int[] strengths, int subdivision, double volume) {
+        metronomeUpdate(bpm, strengths, subdivision, new int[0], volume);
+    }
+
+    /** Tempo, bar, subdivision, custom strong beats and volume while running: a new tempo counts from the next beat. */
+    public synchronized void metronomeUpdate(double bpm, int[] strengths, int subdivision, int[] slots, double volume) {
         this.bpm = Math.max(1, bpm);
         this.subdivision = Math.max(1, Math.min(4, subdivision));
+        this.slots = new int[slots.length];
+        for (int i = 0; i < slots.length; i++) this.slots[i] = Math.max(0, Math.min(3, slots[i]));
         this.strengths = strengths.length > 0 ? strengths : new int[] {0};
         metVolume = volume;
         if (beat >= this.strengths.length) beat %= this.strengths.length;
@@ -406,6 +418,7 @@ public final class PracticeMixer {
                 int strength = strengths[beat % strengths.length];
                 startClick(Math.max(0, Math.min(2, strength)), (now - nextBeat) * clickStep);
                 lastBeat = nextBeat;
+                lastBeatIndex = beat;
                 subIndex = 1;
                 nextBeat += 60 / bpm * sr;
                 beat = (beat + 1) % strengths.length;
@@ -415,7 +428,8 @@ public final class PracticeMixer {
             if (metRunning && subIndex < subdivision) {
                 double at = lastBeat + subIndex * (60 / bpm * sr) / subdivision;
                 if (now >= at) {
-                    startClick(3, (now - at) * clickStep);
+                    int k = lastBeatIndex * subdivision + subIndex;
+                    startClick(slots.length == 0 ? 3 : slots[k % slots.length], (now - at) * clickStep);
                     subIndex++;
                 }
             }

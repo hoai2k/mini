@@ -30,7 +30,7 @@ const RECORD_DURING_PLAYBACK = false;
 const recordDuringPlayback = () => RECORD_DURING_PLAYBACK && settings.recordDuringPlayback;
 import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
-import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
+import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
 import { applyArt, alignPendulum, swingOf } from './art.js';
 
 const $ = (id) => document.getElementById(id);
@@ -220,13 +220,14 @@ function setBpm(v, { fromInput = false } = {}) {
   if (!fromInput || document.activeElement !== bpmInput) bpmInput.value = settings.bpm;
   bpmSlider.value = settings.bpm;
   $('marking').textContent = marking(settings.bpm);
+  $('marking').setAttribute('aria-label', TEXT.metronome.tempos.open(marking(settings.bpm)));
   metronome?.configure(settings);
   persist();
 }
 
 function renderBeats() {
   const list = $('beats');
-  const strengths = beatStrengths(settings.meter, settings.accent);
+  const { strengths } = barPlan(settings);
   list.replaceChildren(...strengths.map((s) => {
     const li = document.createElement('li');
     if (s === 2) li.className = 'strong';
@@ -247,7 +248,10 @@ function renderBeats() {
   $('met-bars').style.setProperty('--n', strengths.length);
   $('met-bars').style.setProperty('--rows', settings.vizBars);
   const m = meterOf(settings.meter);
-  $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, settings.accent);
+  const accent = !settings.accent ? 'off' : settings.accentPattern ? 'custom' : 'on';
+  $('meter-note').textContent = m.beats === 1 ? TEXT.metronome.noBars : TEXT.metronome.meterNote(m.id, accent);
+  $('accent-label').textContent = accent === 'custom' ? TEXT.metronome.accents.custom : TEXT.metronome.settings.accent;
+  $('accent').checked = settings.accent;
 }
 
 function metronomeConfigured() {
@@ -400,7 +404,16 @@ $('met-settings-btn').addEventListener('click', () => metSettings.showModal());
 const meterSelect = $('meter');
 meterSelect.replaceChildren(...METERS.map((m) => new Option(m.beats === 1 ? TEXT.metronome.noBars : m.id, m.id)));
 meterSelect.value = settings.meter;
-meterSelect.addEventListener('change', () => { settings.meter = meterSelect.value; metronomeConfigured(); });
+meterSelect.addEventListener('change', () => {
+  // Custom strong beats belong to their time signature: a new one starts
+  // from Strong beat on 1, unless this visit already set it its own.
+  const had = settings.accentPattern;
+  if (had) customAccents.set(settings.meter, had);
+  settings.meter = meterSelect.value;
+  settings.accentPattern = customAccents.get(settings.meter) || null;
+  if (had || settings.accentPattern) settings.accent = true;
+  metronomeConfigured();
+});
 chips($('sound-chips'), SOUNDS, () => settings.sound, (v) => {
   settings.sound = v;
   metronomeConfigured();
@@ -418,7 +431,118 @@ subSelect.replaceChildren(...SUBDIVISIONS.map((n) => new Option(TEXT.metronome.s
 subSelect.value = String(settings.subdivision);
 subSelect.addEventListener('change', () => { settings.subdivision = Number(subSelect.value); metronomeConfigured(); });
 $('accent').checked = settings.accent;
-$('accent').addEventListener('change', () => { settings.accent = $('accent').checked; metronomeConfigured(); });
+$('accent').addEventListener('change', () => {
+  settings.accent = $('accent').checked;
+  // Off forgets a custom pattern for the time being; on brings back this visit's.
+  if (!settings.accent && settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
+  settings.accentPattern = settings.accent ? customAccents.get(settings.meter) || null : null;
+  metronomeConfigured();
+});
+
+// ---------------------------------------------------------------- strong beats
+
+/*
+ * Custom strong beats: the pencil beside Strong beat on 1 opens every place a
+ * click falls in the bar (beats, and the eighths, triplets or sixteenths when
+ * those are on). Positions are kept in twelfths of a beat (TICKS in
+ * settings.js), so a pattern set with eighths still means the same with
+ * sixteenths; one the current clicks don't fall on is kept, just not shown.
+ * Each time signature keeps its own pattern for this visit; only the one in
+ * use is saved.
+ */
+const customAccents = new Map(); // meter -> pattern, this visit only
+if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
+const accentEditor = $('accent-editor');
+let editing = null; // { on: Set of positions, hidden: positions not on this grid }
+
+function openAccents() {
+  const m = meterOf(settings.meter);
+  const sub = settings.subdivision;
+  const pattern = settings.accentPattern;
+  const shown = new Set();
+  for (let b = 0; b < m.beats; b++) for (let k = 0; k < sub; k++) shown.add(b * TICKS + (k * TICKS) / sub);
+  const current = !settings.accent ? [] : pattern ? pattern.pos
+    : beatStrengths(settings.meter, true).flatMap((s, b) => (s === 2 ? [b * TICKS] : []));
+  editing = { on: new Set(current.filter((p) => shown.has(p))), hidden: current.filter((p) => !shown.has(p)) };
+  const counts = TEXT.metronome.accents.counts[sub] || [];
+  $('accent-grid').replaceChildren(...Array.from({ length: m.beats }, (_, b) => {
+    const group = document.createElement('div');
+    group.className = 'accent-beat';
+    for (let k = 0; k < sub; k++) {
+      const at = b * TICKS + (k * TICKS) / sub;
+      const label = k === 0 ? String(b + 1) : counts[k - 1];
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = `accent-cell${k === 0 ? ' on-beat' : ''}`;
+      cell.textContent = label;
+      const show = () => {
+        const on = editing.on.has(at);
+        cell.setAttribute('aria-pressed', String(on));
+        cell.setAttribute('aria-label', TEXT.metronome.accents.cell(label, on));
+      };
+      cell.addEventListener('click', () => { editing.on.has(at) ? editing.on.delete(at) : editing.on.add(at); show(); });
+      cell.show = show;
+      show();
+      group.append(cell);
+    }
+    return group;
+  }));
+  accentEditor.showModal();
+}
+$('accent-edit').addEventListener('click', openAccents);
+$('accent-clear').addEventListener('click', () => {
+  editing.on.clear();
+  for (const c of $('accent-grid').querySelectorAll('.accent-cell')) c.show();
+});
+$('accent-done').addEventListener('click', () => {
+  const pos = [...editing.on, ...editing.hidden];
+  if (!pos.length) {
+    // Nothing strong: the switch goes off.
+    settings.accent = false;
+    settings.accentPattern = null;
+    customAccents.delete(settings.meter);
+  } else {
+    settings.accent = true;
+    settings.accentPattern = cleanPattern({ meter: settings.meter, pos }, settings.meter); // null for beat 1 alone
+    if (settings.accentPattern) customAccents.set(settings.meter, settings.accentPattern);
+    else customAccents.delete(settings.meter);
+  }
+  accentEditor.close();
+  metronomeConfigured();
+});
+
+// ---------------------------------------------------------------- common tempos
+
+/** The metronome's traditional marks (Maelzel's), grouped by marking. */
+const COMMON_TEMPOS = [40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 126, 132, 138, 144, 152, 160, 168, 176, 184, 192, 200, 208];
+$('marking').addEventListener('click', () => {
+  const groups = new Map();
+  for (const bpm of COMMON_TEMPOS) {
+    const name = marking(bpm);
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(bpm);
+  }
+  $('tempo-list').replaceChildren(...[...groups].map(([name, list]) => {
+    const set = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.textContent = name;
+    const row = document.createElement('div');
+    row.className = 'chips';
+    for (const bpm of list) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = String(bpm);
+      b.setAttribute('aria-pressed', String(bpm === settings.bpm));
+      b.addEventListener('click', () => { setBpm(bpm); $('tempo-picker').close(); });
+      row.append(b);
+    }
+    set.append(legend, row);
+    return set;
+  }));
+  $('tempo-picker').showModal();
+  $('tempo-list').querySelector('[aria-pressed="true"]')?.focus();
+});
 $('met-volume').value = settings.volume;
 $('met-volume').addEventListener('input', () => { settings.volume = Number($('met-volume').value); metronomeConfigured(); });
 
@@ -503,7 +627,7 @@ function showMetView() {
   $('met-viz-opts').hidden = !bars;
   $('met-art-opts').hidden = bars;
   syncViewChips();
-  $('met-title').textContent = bars ? TEXT.metronome.visualizerTitle : TEXT.metronome.title;
+  $('met-bars-title').hidden = !bars;
   $('met-visual').setAttribute('aria-label', TEXT.metronome.switchTo[bars ? 'metronome' : 'bars']);
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   syncControlsLive();

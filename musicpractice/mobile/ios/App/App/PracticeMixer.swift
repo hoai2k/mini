@@ -45,6 +45,8 @@ final class PracticeMixer {
     private var subdivision = 1 // clicks per beat (quarters, eighths, triplets, sixteenths)
     private var lastBeat = 0.0 // the frame of the last beat, which the subdivisions count from
     private var subIndex = 1 // the next subdivision of that beat
+    private var lastBeatIndex = 0 // that beat's place in the bar
+    private var slots: [Int] = [] // custom strong beats: the click for every position in the bar (empty: the plain rules)
     private var clickKind = [Int](repeating: 0, count: 16)
     private var clickPos = [Double](repeating: 0, count: 16) // in click samples
     private var clicksActive = 0
@@ -179,9 +181,9 @@ final class PracticeMixer {
         }
     }
 
-    func metronomeStart(bpm: Double, strengths: [Int], subdivision: Int = 1, volume: Double) {
+    func metronomeStart(bpm: Double, strengths: [Int], subdivision: Int = 1, slots: [Int] = [], volume: Double) {
         locked {
-            update(bpm: bpm, strengths: strengths, subdivision: subdivision, volume: volume)
+            update(bpm: bpm, strengths: strengths, subdivision: subdivision, slots: slots, volume: volume)
             metGain = volume
             metRunning = true
             beat = 0
@@ -193,13 +195,14 @@ final class PracticeMixer {
     }
 
     /// Tempo, bar and volume while running: a new tempo counts from the next beat.
-    func metronomeUpdate(bpm: Double, strengths: [Int], subdivision: Int = 1, volume: Double) {
-        locked { update(bpm: bpm, strengths: strengths, subdivision: subdivision, volume: volume) }
+    func metronomeUpdate(bpm: Double, strengths: [Int], subdivision: Int = 1, slots: [Int] = [], volume: Double) {
+        locked { update(bpm: bpm, strengths: strengths, subdivision: subdivision, slots: slots, volume: volume) }
     }
 
-    private func update(bpm: Double, strengths: [Int], subdivision: Int, volume: Double) {
+    private func update(bpm: Double, strengths: [Int], subdivision: Int, slots: [Int], volume: Double) {
         self.bpm = max(1, bpm)
         self.subdivision = max(1, min(4, subdivision))
+        self.slots = slots.map { max(0, min(3, $0)) }
         self.strengths = strengths.isEmpty ? [0] : strengths
         metVolume = volume
         if beat >= self.strengths.count { beat %= self.strengths.count }
@@ -394,6 +397,7 @@ final class PracticeMixer {
                 let strength = strengths[beat % strengths.count]
                 startClick(max(0, min(2, strength)), (now - nextBeat) * clickStep)
                 lastBeat = nextBeat
+                lastBeatIndex = beat
                 subIndex = 1
                 nextBeat += 60 / bpm * sr
                 beat = (beat + 1) % strengths.count
@@ -403,7 +407,8 @@ final class PracticeMixer {
             if metRunning && subIndex < subdivision {
                 let at = lastBeat + Double(subIndex) * (60 / bpm * sr) / Double(subdivision)
                 if now >= at {
-                    startClick(3, (now - at) * clickStep)
+                    let k = lastBeatIndex * subdivision + subIndex
+                    startClick(slots.isEmpty ? 3 : slots[k % slots.count], (now - at) * clickStep)
                     subIndex += 1
                 }
             }

@@ -2,7 +2,7 @@
 // beat stays steady even when the page is busy. A worker drives the
 // scheduler, because timers on the page slow down in background tabs.
 
-import { beatStrengths } from './settings.js';
+import { barPlan } from './settings.js';
 
 const LOOKAHEAD = 0.12; // seconds of clicks scheduled in advance
 const TICK_MS = 25;
@@ -24,7 +24,7 @@ export const SUB = 3;
 /** Clicks per beat: quarter notes, eighths, triplets, sixteenths. */
 export const SUBDIVISIONS = [1, 2, 3, 4];
 
-const SUB_LEVEL = 0.3; // the clicks between the beats: under the clipper's knee, so audibly quieter
+const SUB_LEVEL = 0.2; // the clicks between the beats: well under the clipper's knee, so clearly quieter
 const DRIVE = 2.4; // into the clipper: how hard the clicks are pushed
 const KNEE = 1.6; // the tanh curve's steepness
 
@@ -70,8 +70,10 @@ export class Metronome {
   /** @param {{ bpm: number, meter: string, accent: boolean, sound: string, volume: number, subdivision?: number }} s */
   configure(s) {
     this.bpm = s.bpm;
-    this.strengths = beatStrengths(s.meter, s.accent);
     this.subdivision = s.subdivision || 1;
+    const plan = barPlan(s);
+    this.strengths = plan.strengths;
+    this.slots = plan.slots; // custom strong beats: the click for every position, or null
     this.sound = s.sound;
     this.out.gain.setTargetAtTime(s.volume, this.ctx.currentTime, 0.02);
     if (this.beat >= this.strengths.length) this.beat %= this.strengths.length;
@@ -120,7 +122,10 @@ export class Metronome {
       this.voice(this.next, strength);
       // Subdivisions: the quieter clicks between the beats (not beats themselves:
       // the pendulum, lamp and dots keep to the beat).
-      for (let k = 1; k < this.subdivision; k++) this.voice(this.next + (k * this.period) / this.subdivision, SUB);
+      for (let k = 1; k < this.subdivision; k++) {
+        const kind = this.slots ? this.slots[this.beat * this.subdivision + k] ?? SUB : SUB;
+        this.voice(this.next + (k * this.period) / this.subdivision, kind);
+      }
       this.recent.push({ time: this.next, beat: this.beat, count: this.count, strength });
       if (this.recent.length > 16) this.recent.shift();
       this.next += this.period;
