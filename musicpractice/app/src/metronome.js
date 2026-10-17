@@ -59,6 +59,13 @@ export class Metronome {
     this.strengths = [2, 0, 0, 0];
     this.sound = 'wood';
     this.timer = makeTimer(() => this.tick());
+    // Each sound's four clicks, rendered once (below) and played back as they
+    // are, so every beat is the very same click. Built live, the woodblock's
+    // tone and knock fell into a slightly different phase on every beat
+    // (their start times land between samples), and through the clipper that
+    // changed its attack from beat to beat.
+    this.rendered = {}; // sound -> [weak, mid, strong, between] AudioBuffers
+    this.rendering = {};
     this.recent = []; // beats scheduled, newest last: { time, beat, count, strength }
     // Short noise for the woodblock knock and the click.
     const n = Math.round(ctx.sampleRate * 0.05);
@@ -75,6 +82,7 @@ export class Metronome {
     this.strengths = plan.strengths;
     this.slots = plan.slots; // custom strong beats: the click for every position, or null
     this.sound = s.sound;
+    this.prepare(s.sound);
     this.out.gain.setTargetAtTime(s.volume, this.ctx.currentTime, 0.02);
     if (this.beat >= this.strengths.length) this.beat %= this.strengths.length;
   }
@@ -142,8 +150,35 @@ export class Metronome {
     return null;
   }
 
+  /** Render `sound`'s clicks once, through this same chain (an offline copy of it). */
+  prepare(sound) {
+    if (this.rendered[sound] || this.rendering[sound] || typeof OfflineAudioContext === 'undefined' || this.ctx instanceof OfflineAudioContext) return;
+    const rate = this.ctx.sampleRate;
+    this.rendering[sound] = Promise.all([0, 1, 2, SUB].map((strength) => {
+      const off = new OfflineAudioContext(1, Math.ceil(0.1 * rate), rate);
+      const m = new Metronome(off);
+      m.sound = sound;
+      m.out.gain.value = 1;
+      m.synth(0, strength);
+      return off.startRendering();
+    })).then((bufs) => { this.rendered[sound] = bufs; }).catch(() => {}).finally(() => { delete this.rendering[sound]; });
+  }
+
   /** One click. strength: 2 downbeat, 1 secondary accent, 0 other beats, 3 (SUB) between the beats. */
   voice(t, strength) {
+    const buf = this.rendered[this.sound]?.[strength];
+    if (!buf) { this.synth(t, strength); return; }
+    const s = this.ctx.createBufferSource();
+    s.buffer = buf;
+    s.connect(this.out); // already through the clipper
+    // On a whole sample: played from between two, a click is interpolated,
+    // which dulls its brightest part by a different amount each beat.
+    const rate = this.ctx.sampleRate;
+    s.start(Math.max(this.ctx.currentTime, Math.round(t * rate) / rate));
+  }
+
+  /** Build one click live (rendered once by prepare(); also until that is ready). */
+  synth(t, strength) {
     const c = this.ctx;
     const g = c.createGain();
     g.connect(this.drive);

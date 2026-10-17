@@ -189,53 +189,62 @@ button { cursor: pointer; }
 /* Metronome */
 .met-body { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .met-visual {
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  /* The picture is the metronome over the beat dots, always the same height,
-     so the controls under it never move: --P, the height the controls leave
-     (main.js measures it, --pic-h; until it has, 40% of the screen), plus the
-     dots' row (--dots). Under the metronome, the foot is one of three: the
-     row of dots, the big dots of Pulse (--big) or the Visualizer (--vh); the
-     metronome takes what is left, so the one shrinks as the other grows. */
+  /* The picture: the metronome over the beat dots, always the same height
+     (--P, the height the controls leave: main.js measures it, --pic-h; until
+     it has, 40% of the screen; then a gap and the dots' row), so the
+     controls under it never move. Under the metronome, the foot is the row
+     of dots, Pulse's big dots (--big) or the Visualizer (--V, as tall as its
+     rows); the metronome scales down toward its top (--sc, from main.js) by
+     just enough to make room, never squashed and never laid out again, and
+     the Visualizer is revealed upward out of the dots into the space it
+     frees. */
   --P: var(--pic-h, clamp(120px, 40dvh, 460px));
   --dots: 26px;
+  --gap: 14px;
   --big: calc(var(--P) * 0.34);
-  --vh: calc(var(--P) * 0.55 + var(--dots));
-  --foot: var(--dots);
   --foot-w: min(calc(100vw - 2 * var(--gutter)), 440px);
-  --morph: 0.55s cubic-bezier(0.45, 0, 0.2, 1);
+  --foot: var(--dots);
+  --sc: 1;
+  --morph: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  width: var(--foot-w);
+  height: calc(var(--P) + var(--gap) + var(--dots));
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; /* a long press opens the strong beats, not a text menu */
   -webkit-tap-highlight-color: transparent;
 }
-.met-visual.pulse { --foot: var(--big); }
-.met-visual.bars { --foot: var(--vh); }
+.met-visual.pulse { --foot: var(--big); --sc: var(--s-pulse, 0.7); }
+.met-visual.bars { --foot: var(--V, 50%); --sc: var(--s-bars, 0.5); }
 .metronome {
-  position: relative;
-  height: calc(var(--P) + var(--dots) - var(--foot));
+  position: absolute; top: 0; left: 50%;
+  height: var(--P);
   aspect-ratio: 800 / 1200;
-  transition: height var(--morph);
+  transform: translateX(-50%) scale(var(--sc));
+  transform-origin: 50% 0;
+  transition: transform var(--morph);
   cursor: pointer; border-radius: 12px;
 }
 .met-stage { position: relative; display: flex; justify-content: center; }
-/* The dots and the Visualizer share one place, under the metronome. */
+/* The dots and the Visualizer share one place, at the bottom of the picture. */
 .met-foot {
-  display: grid; justify-items: center; align-items: start;
-  grid-template-rows: 100%; /* the foot's own height (the folded Visualizer may overflow it) */
-  width: var(--foot-w); /* its parent sizes to its contents, so not a % */
+  position: absolute; left: 0; right: 0; bottom: 0;
   height: var(--foot);
   transition: height var(--morph);
   cursor: pointer; border-radius: 12px;
 }
 .metronome:focus:not(:focus-visible), .met-foot:focus:not(:focus-visible) { outline: none; }
-.met-foot > * { grid-area: 1 / 1; }
-.beats { transition: opacity 0.3s, transform var(--morph); transform-origin: 50% 0; }
-.met-visual.bars .beats { opacity: 0; transform: scale(1.5, 2.5); pointer-events: none; }
+.beats {
+  position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto;
+  height: var(--foot); align-items: center; align-content: center;
+  transition: opacity 0.3s 0.25s, height var(--morph);
+}
+.met-visual.bars .beats { opacity: 0; pointer-events: none; transition: opacity 0.2s, height var(--morph); }
 /* Pulse: the dots grow big, as wide as the row allows, and the one whose
    beat it is swells and glows into it and eases away after (--g, 0 to 1,
    from main.js), red on a strong beat. */
 .met-visual.pulse .beats {
-  --gap: 14px;
-  --dot: min(calc(var(--big) * 0.62), calc((var(--foot-w) - (var(--n, 4) - 1) * var(--gap)) / var(--n, 4)), 110px);
-  align-self: center; flex-wrap: nowrap; max-width: none; gap: var(--gap); align-items: center;
+  --dgap: 14px;
+  --dot: min(calc(var(--big) * 0.62), calc((var(--foot-w) - (var(--n, 4) - 1) * var(--dgap)) / var(--n, 4)), 110px);
+  flex-wrap: nowrap; max-width: none; gap: var(--dgap);
 }
 .met-visual.pulse .beats li { width: calc(var(--dot) * 0.8); height: calc(var(--dot) * 0.8); }
 .met-visual.pulse .beats li.strong { width: var(--dot); height: var(--dot); }
@@ -371,16 +380,23 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
    fades, to a faint glow while that pass is still being played (the trail);
    the strong beat red, the others blue, each faintly tinted when unlit. */
 .met-viz {
-  /* Its full height, the rows centred in it. Closed, it is folded up into the
-     dots' row, and opens out of it. */
-  --h: var(--vh);
-  height: var(--h);
-  width: 100%;
-  display: flex; flex-direction: column; justify-content: center; gap: 10px;
-  opacity: 0; transform: scaleY(0.08); transform-origin: 50% 0; pointer-events: none;
-  transition: opacity 0.3s, transform var(--morph);
+  /* As tall as its rows (--V, from main.js), at the bottom of the picture.
+     Closed, all but the dots' row of it is clipped away and it is faded out;
+     it opens by revealing upward out of the dots, its rows never squashed. */
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: var(--V, 50%);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  clip-path: inset(calc(100% - var(--dots)) -24px -24px -24px);
+  opacity: 0; pointer-events: none;
+  transition: clip-path var(--morph), opacity 0.25s 0.35s;
 }
-.met-visual.bars .met-viz { opacity: 1; transform: none; pointer-events: auto; transition: opacity 0.3s 0.12s, transform var(--morph); }
+.met-visual.bars .met-viz {
+  /* Open to the gap above it (room for a lit bar's glow), no further, so its
+     top edge keeps pace with the metronome's foot all the way. */
+  clip-path: inset(calc(-1 * var(--gap)) -24px -24px -24px);
+  opacity: 1; pointer-events: auto;
+  transition: clip-path var(--morph), opacity 0.15s;
+}
 @media (prefers-reduced-motion: reduce) {
   .met-visual, .met-visual * { --morph: 0s; }
 }
@@ -408,7 +424,7 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 }
 .met-vol.open .met-vol-panel { opacity: 1; transform: none; pointer-events: auto; }
 .met-vol-panel .vslider { height: min(170px, calc(var(--pic-h, 300px) * 0.6)); min-height: 110px; width: 32px; }
-.met-bars { display: grid; gap: clamp(8px, 2.2dvh, 18px); }
+.met-bars { display: grid; gap: var(--rg, 14px); }
 /* Metronome settings: the Visualizer's options, or the pendulum's and lamp's. */
 /* Display: Pendulum or Visualizer as two tabs, the chosen one opening into
    a rounded box round its own options, like a folder tab. */
@@ -428,7 +444,7 @@ button.marking { align-self: center; border: 0; background: none; padding: 2px 1
 .met-tabs[data-on="last"] + .met-tab-panel { border-top-right-radius: 0; }
 .met-viz-opts, .met-art-opts { display: flex; flex-direction: column; gap: 14px; }
 .met-viz-opts[hidden], .met-art-opts[hidden] { display: none; }
-.met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: clamp(12px, calc(var(--h) / var(--rows, 4) * 0.42), 30px); }
+.met-measure { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: clamp(5px, 1.6vw, 10px); height: var(--row, 26px); }
 .met-bar {
   --c: var(--viz-beat, #2f8cff);
   border-radius: 999px;
@@ -618,7 +634,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-art .art { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
 .drone-art .art > * { width: 100%; height: 100%; object-fit: contain; }
 .drone-glow {
-  position: absolute; inset: -18%; border-radius: 50%;
+  position: absolute; inset: -18%; border-radius: 50%; pointer-events: none; /* it spreads past the picture, over the frequency */
   background: radial-gradient(closest-side, var(--brass-2), transparent 75%);
   opacity: 0; transition: opacity 1.2s ease;
 }
@@ -633,7 +649,39 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .drone-readout { display: flex; flex-direction: column; align-items: center; }
 .drone-note { margin-top: 0; font-size: clamp(3.4rem, 15vw, 5rem); }
 .drone-hz { margin: 0; color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
-.drone-fifth-tag { font-size: 0.85em; opacity: 0.85; }
+/* The frequency is a button: tapping it adds or removes the fifth. "(+5th)" is lit while it plays, faint while it doesn't. */
+.drone-hz { background: none; border: 0; padding: 4px 10px; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.drone-hz:focus:not(:focus-visible) { outline: none; }
+.drone-fifth-tag { font-size: 0.85em; opacity: 0.4; transition: opacity 0.2s, color 0.2s; }
+.drone-fifth-tag.on { opacity: 0.95; color: var(--ink-2); }
+/* Bow as volume (tryout): the bow stands beside the cello as tall as it; its
+   hair (laid along it from the bow's frog and tip anchors, art.js alignBow)
+   is lit from the frog up to the volume, where a small rosin-gold marker sits. */
+.bow-slider {
+  position: relative; flex: none; height: var(--art, clamp(130px, 28dvh, 240px)); aspect-ratio: 256 / 1024;
+  touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; border-radius: 8px;
+}
+.bow-slider[hidden] { display: none; }
+.bow-slider:focus:not(:focus-visible) { outline: none; }
+.bow-slider.held { cursor: grabbing; }
+.bow-slider .art { position: absolute; inset: 0; display: block; }
+.bow-slider .art > * { width: 100%; height: 100%; display: block; object-fit: contain; }
+.bow-hair { position: absolute; left: var(--hair-x, 34%); top: var(--hair-top, 3%); bottom: var(--hair-bottom, 3%); width: 0; }
+/* A wider invisible grip around the hair, so a finger finds it. */
+.bow-hair::before { content: ''; position: absolute; top: -12px; bottom: -12px; left: -22px; width: 44px; }
+.bow-lit {
+  position: absolute; left: -3px; width: 6px; bottom: 0; height: calc(var(--v, 0.8) * 100%); border-radius: 3px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--brass-2) 70%, transparent), var(--brass-2));
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--brass-2) 55%, transparent);
+}
+.bow-mark {
+  position: absolute; left: 0; bottom: calc(var(--v, 0.8) * 100%); width: 22px; height: 22px; translate: -50% 50%;
+  border-radius: 50%; background: var(--brass-2); border: 3px solid var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,.45);
+  transition: scale 0.15s;
+}
+.bow-slider.held .bow-mark, .bow-slider:focus-visible .bow-mark { scale: 1.2; }
+/* The bow's own picture is narrower than the slider was, so the stage's balancing margin follows it. */
+.drone-body.bowed .drone-stage { padding-left: calc(var(--art, 200px) * 0.25 + 8px); }
 .drone-pitch .select { min-width: 112px; }
 .drone-voice .select { min-width: 240px; max-width: 100%; }
 #dr-toggle { min-width: 200px; }
@@ -642,6 +690,8 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
   .drone-body { width: min(100%, 760px); display: grid; grid-template-columns: auto 1fr; align-items: center; justify-items: center; gap: 6px 28px; }
   .drone-stage { grid-row: 1 / span 5; padding-left: 0; }
   .drone-art { width: min(60dvh, 220px); }
+  .bow-slider { height: min(60dvh, 220px); }
+  .drone-body.bowed .drone-stage { padding-left: 0; }
   .drone-note { font-size: 3rem; }
 }
 

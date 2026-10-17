@@ -44,7 +44,7 @@ export async function renderClicks(sound, sampleRate) {
     const ctx = new OfflineAudioContext(1, Math.ceil(0.1 * sampleRate), sampleRate);
     const m = new Metronome(ctx);
     m.configure({ bpm: 120, meter: '4/4', accent: true, sound, volume: 1 });
-    m.voice(0, strength);
+    m.synth(0, strength);
     out.push((await ctx.startRendering()).getChannelData(0));
   }
   return out;

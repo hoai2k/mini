@@ -93,7 +93,7 @@ test('home order: metronome, tuner, drone, recorder by default; a saved order is
 
 test('drone settings: defaults, kept, and bad values fall back', () => {
   const d = sanitize({});
-  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneFifth], [48, 'cello', true]);
+  assert.deepEqual([d.droneMidi, d.droneVoice, d.droneFifth, d.droneBow], [48, 'cello', false, false]);
   // Continuous pitch, looping forever: no timer.
   assert.deepEqual([d.droneMode, d.droneLoop, d.droneLength, d.droneStep, d.droneSeq], ['continuous', true, 10, 2, 'chrom-up']);
   assert.deepEqual([d.droneTimed, d.droneMinutes, d.droneThen], [false, 10, 'stop']);
@@ -144,9 +144,10 @@ test('every theme has its other mode in styles.css, and the early script knows w
   }
 });
 
-test('the drone fifth is on by default; switching it off is kept, an old save\'s off is not', () => {
-  assert.equal(sanitize({}).droneFifth, true);
-  assert.equal(sanitize({ droneFifth: false }).droneFifth, true); // an earlier save's default
+test('the drone fifth is off by default; a choice is kept, an old save\'s default is not', () => {
+  assert.equal(sanitize({}).droneFifth, false);
+  assert.equal(sanitize({ droneFifth: true }).droneFifth, false); // an earlier save's default (it was on)
+  assert.equal(sanitize({ droneFifth: true, droneFifthChosen: true }).droneFifth, true);
   assert.equal(sanitize({ droneFifth: false, droneFifthChosen: true }).droneFifth, false);
 });
 

@@ -99,8 +99,9 @@ export const DEFAULTS = Object.freeze({
   droneMidi: 48, // C3
   droneVoice: 'cello',
   droneVolume: 0.8,
-  droneFifth: true, // add a pure fifth above (on unless switched off)
+  droneFifth: false, // add a pure fifth above (off unless switched on; tapping the Hz toggles it)
   droneFifthChosen: false,
+  droneBow: false, // tryout: the cello without its bow, and the bow beside it as the volume
   // Timing: Continuous pitch (looping forever, or stopping after droneLength
   // minutes) or Change periodically (droneStep minutes on each pitch, then
   // droneSeq). droneTimed, droneMinutes and droneThen are what the drone
@@ -218,6 +219,7 @@ export function sanitize(raw) {
     // Saves from before the fifth was on by default stored off without anyone choosing it.
     droneFifth: s.droneFifthChosen === true && typeof s.droneFifth === 'boolean' ? s.droneFifth : DEFAULTS.droneFifth,
     droneFifthChosen: s.droneFifthChosen === true,
+    droneBow: s.droneBow === true,
     ...droneTimingFrom(s),
     tuning: oneOf(s.tuning, TUNING_IDS, DEFAULTS.tuning),
     a4: clamp(Math.round(num(s.a4, DEFAULTS.a4)), 415, 466),

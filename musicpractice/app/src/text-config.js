@@ -351,6 +351,7 @@ export const EN = {
     up: 'Up a semitone',
     pitch: 'Pitch',
     withFifth: '(+5th)',
+    fifthButton: (on) => `${on ? 'Remove' : 'Add'} the fifth above`,
     play: 'Play',
     pause: 'Pause',
     stopsIn: (time) => `Stops in ${time}`,
@@ -375,7 +376,9 @@ export const EN = {
     settings: {
       title: 'Drone settings',
       fifth: 'Add a fifth above',
-      fifthHelp: 'A pure fifth over the drone note.',
+      fifthHelp: 'A pure fifth over the drone note. Tapping the frequency under the note turns it on and off too.',
+      bow: 'Bow as volume (tryout)',
+      bowHelp: 'The cello without its bow, and the bow beside it: slide along the bow to set the volume.',
       timing: 'Timing',
       modes: { continuous: 'Continuous pitch', change: 'Change periodically' },
       loop: 'Loop forever',

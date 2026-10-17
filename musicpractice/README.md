@@ -130,8 +130,13 @@ when the Art Deco art arrives, measure and record its own.
   to swell into its own.
 - The picture (the metronome over the dots) is always the same height, so
   the controls under it never move: its foot is the row of dots, Pulse's big
-  dots or the Visualizer, and the metronome takes what is left, each change
-  animated (about half a second, eased; none with reduced motion).
+  dots or the Visualizer, which is exactly as tall as its rows (`sizeFoot`).
+  The metronome scales down toward its top by just enough to make room (a
+  transform, so it is never squashed or laid out again) while the
+  Visualizer is revealed upward out of the dots into the space it frees,
+  its top edge keeping pace with the metronome's foot; each change takes
+  0.6 s, eased (none with reduced motion, and none when the window is
+  resized).
 - **Volume**, tucked away as a faint speaker at the picture's top right:
   grab it and drag up or down and the volume follows at once, the slider
   showing while it does and folding away a moment after; tap it and the
@@ -143,8 +148,14 @@ when the Art Deco art arrives, measure and record its own.
   rather than only its first instant, and ordinary beats sit just under the
   downbeat. Measured over a click's first 50 ms: woodblock about -9 to
   -10 dB (was -15 to -20), Click -11 to -13 (was -23 to -27), Beep -5 to
-  -7 (was -8 to -13), every peak at -0.9 dBFS. The apps' clicks are
-  rendered through the same chain.
+  -7 (was -8 to -13), every peak at -0.9 dBFS. Each sound's clicks are
+  rendered once through that chain (`prepare` in `metronome.js`) and every
+  beat plays the very same rendering, started on a whole sample. Built
+  live, the woodblock's tone and knock fell into a different phase on each
+  beat (start times land between samples), which the clipper turned into
+  a different attack: two weak beats correlated at -0.01; now 1.000 for
+  every sound, and Click's level no longer wanders by 10%. The apps play
+  the same renderings.
 - Everything you see follows one clock, `heardNow()` in `app/src/audio.js`:
   the time of the sound reaching your ears. It takes the smoother of the
   context's output timestamp (`getOutputTimestamp`, which includes the
@@ -342,12 +353,24 @@ tones, scales over a tonic.
   side keeps it beside the controls. To its right, an upright **volume**
   slider: drag the knob or the track up or down, or use the arrow keys (it
   is the same volume as the one in the settings).
+- **Bow as volume** (Drone settings, a tryout, off by default): the cello is
+  drawn without its bow and the bow stands beside it as the volume, its
+  hair lit from the frog up to the level with a small gold marker; drag
+  along it. The hair is placed from the bow's own `frog` and `tip` anchors
+  (`alignBow` in `app/src/art.js`), so delivered art can draw the bow
+  anywhere in its canvas. Until its art arrives (image requests round 7:
+  `drone-cello`, each theme's Drone image with the bow taken out, and
+  `drone-bow`, the bow alone, upright) each theme draws a stand-in. The
+  plain slider stays the default while this is tried out.
+- **Tapping the frequency** under the note adds or removes the fifth; "(+5th)"
+  beside it is lit while the fifth plays and faint while it doesn't.
 - Instruments: **Cello** (the default), **Cello, soft** (sul tasto: darker),
   **Organ** and **Synth organ** (a synthesized pipe organ: 8', 4' and 16'
   pipes with a touch of wind, exactly in tune and perfectly steady). A voice
   saved before others were archived falls back to the cello.
-- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, on by default;
-  the readout shows "(+5th)" beside the pitch while it is on); and
+- Settings: volume; **Add a fifth above** (a pure 3:2 fifth, off by default,
+  saves that had it on by default included; also toggled by tapping the
+  frequency); **Bow as volume** (above); and
   **Timing**, two tabs: **Continuous pitch** (the default) with **Loop
   forever** (on by default; off shows **Length**, 1 to 60 minutes, 10 by
   default, after which it stops), or **Change periodically** with **Time on

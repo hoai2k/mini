@@ -90,5 +90,21 @@ export function alignPendulum(bodyEl, pendulumEl) {
   bodyEl.parentElement.style.aspectRatio = `${body.canvas[0]} / ${body.canvas[1]}`;
 }
 
+/**
+ * Lay the Drone bow's volume track along its hair: the frog and tip anchors
+ * of whatever bow is showing, as percentages of the slider (which takes the
+ * bow's proportions).
+ */
+export function alignBow(bowArtEl) {
+  const bow = bowArtEl?.art;
+  if (!bow?.anchors?.frog || !bow?.anchors?.tip) return;
+  const [w, h] = bow.canvas;
+  const slider = bowArtEl.parentElement;
+  slider.style.aspectRatio = `${w} / ${h}`;
+  slider.style.setProperty('--hair-x', `${(100 * bow.anchors.frog[0]) / w}%`);
+  slider.style.setProperty('--hair-bottom', `${100 - (100 * bow.anchors.frog[1]) / h}%`);
+  slider.style.setProperty('--hair-top', `${(100 * bow.anchors.tip[1]) / h}%`);
+}
+
 /** How far the current pendulum swings each way, in degrees. */
 export const swingOf = (pendulumEl) => pendulumEl.art?.swing ?? 24;

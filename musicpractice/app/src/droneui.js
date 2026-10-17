@@ -51,7 +51,10 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     $('dr-acc').textContent = n.name.slice(1);
     $('dr-oct').textContent = n.octave;
     $('dr-hz-val').textContent = `${midiToHz(settings.droneMidi, settings.a4).toFixed(1)} Hz`;
-    $('dr-fifth-tag').hidden = !settings.droneFifth;
+    // "(+5th)" lit beside the frequency while the fifth plays, faint while it doesn't.
+    $('dr-fifth-tag').classList.toggle('on', settings.droneFifth);
+    $('dr-hz').setAttribute('aria-pressed', String(settings.droneFifth));
+    $('dr-hz').setAttribute('aria-label', `${$('dr-hz-val').textContent}. ${TEXT.drone.fifthButton(settings.droneFifth)}`);
     pitch.value = String(settings.droneMidi);
     $('dr-down').disabled = false;
     $('dr-up').disabled = false;
@@ -200,16 +203,22 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   });
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
 
-  // ---- volume: the upright slider beside the picture (drag the knob, or the
-  // track, up or down; arrow keys too), and the one in the settings.
+  // ---- volume: the upright slider beside the picture, or (the Bow as
+  // volume tryout) the bow standing beside the cello, its hair lit from the
+  // frog up to the level; either is dragged up or down, or set with the
+  // arrow keys. The settings sheet has a slider too.
   const vol = $('dr-volume');
-  const vs = $('dr-vol');
-  const track = vs.querySelector('.vslider-track');
+  const sliders = [
+    { el: $('dr-vol'), track: $('dr-vol').querySelector('.vslider-track') },
+    { el: $('dr-bow'), track: $('dr-bow').querySelector('.bow-hair') },
+  ];
   function showVolume() {
     vol.value = settings.droneVolume;
-    vs.style.setProperty('--v', settings.droneVolume);
-    vs.setAttribute('aria-valuenow', String(Math.round(settings.droneVolume * 100)));
-    vs.setAttribute('aria-valuetext', `${Math.round(settings.droneVolume * 100)}%`);
+    for (const { el } of sliders) {
+      el.style.setProperty('--v', settings.droneVolume);
+      el.setAttribute('aria-valuenow', String(Math.round(settings.droneVolume * 100)));
+      el.setAttribute('aria-valuetext', `${Math.round(settings.droneVolume * 100)}%`);
+    }
   }
   function setVolume(v) {
     settings.droneVolume = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100;
@@ -218,38 +227,63 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     engine().setVolume(settings.droneVolume);
   }
   vol.addEventListener('input', () => setVolume(Number(vol.value)));
-  const fromPointer = (e) => {
-    const r = track.getBoundingClientRect();
-    return (r.bottom - e.clientY) / r.height;
-  };
-  vs.addEventListener('pointerdown', (e) => {
-    if (e.button) return;
-    e.preventDefault();
-    vs.focus({ preventScroll: true });
-    vs.setPointerCapture(e.pointerId);
-    setVolume(fromPointer(e));
-  });
-  vs.addEventListener('pointermove', (e) => { if (vs.hasPointerCapture(e.pointerId)) setVolume(fromPointer(e)); });
-  vs.addEventListener('keydown', (e) => {
-    const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.2, PageDown: -0.2 }[e.key];
-    if (e.key === 'Home' || e.key === 'End') setVolume(e.key === 'End' ? 1 : 0);
-    else if (step) setVolume(settings.droneVolume + step);
-    else return;
-    e.preventDefault();
-    e.stopPropagation(); // not the page's arrow keys (which move the note)
+  for (const { el, track } of sliders) {
+    const fromPointer = (e) => {
+      const r = track.getBoundingClientRect();
+      return (r.bottom - e.clientY) / r.height;
+    };
+    el.addEventListener('pointerdown', (e) => {
+      if (e.button) return;
+      e.preventDefault();
+      el.focus({ preventScroll: true });
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('held');
+      setVolume(fromPointer(e));
+    });
+    el.addEventListener('pointermove', (e) => { if (el.hasPointerCapture(e.pointerId)) setVolume(fromPointer(e)); });
+    for (const type of ['pointerup', 'pointercancel']) el.addEventListener(type, () => el.classList.remove('held'));
+    el.addEventListener('keydown', (e) => {
+      const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.2, PageDown: -0.2 }[e.key];
+      if (e.key === 'Home' || e.key === 'End') setVolume(e.key === 'End' ? 1 : 0);
+      else if (step) setVolume(settings.droneVolume + step);
+      else return;
+      e.preventDefault();
+      e.stopPropagation(); // not the page's arrow keys (which move the note)
+    });
+  }
+  // Bow as volume (a tryout, kept beside the slider for now): the cello
+  // drawn without its bow, and the bow beside it is the volume.
+  function showBow() {
+    const bow = settings.droneBow;
+    $('dr-art').hidden = bow;
+    $('dr-art-nobow').hidden = !bow;
+    $('dr-vol').hidden = bow;
+    $('dr-bow').hidden = !bow;
+    $('drone-body').classList.toggle('bowed', bow);
+    $('dr-bow-on').checked = bow;
+    queueFit();
+  }
+  $('dr-bow-on').addEventListener('change', () => {
+    settings.droneBow = $('dr-bow-on').checked;
+    persist();
+    showBow();
   });
   showVolume();
 
   // ---- settings
+  // The fifth: the switch here, or a tap on the frequency under the note.
   const fifth = $('dr-fifth');
   fifth.checked = settings.droneFifth;
-  fifth.addEventListener('change', () => {
-    settings.droneFifth = fifth.checked;
+  function setFifth(on) {
+    settings.droneFifth = on;
     settings.droneFifthChosen = true;
+    fifth.checked = on;
     persist();
     show();
     if (playing) sound();
-  });
+  }
+  fifth.addEventListener('change', () => setFifth(fifth.checked));
+  $('dr-hz').addEventListener('click', () => setFifth(!settings.droneFifth));
   // Timing: Continuous pitch (Loop forever, or a Length after which it stops)
   // or Change periodically (Time on each pitch, then When time's up). The
   // drone plays by droneTimed, droneMinutes and droneThen (droneTiming).
@@ -345,9 +379,10 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
     const room = innerHeight - pad - body.getBoundingClientRect().top;
     const tall = cur + room - used - timerRoom - 1;
-    const stage = body.querySelector('.drone-stage');
-    const extra = stage.getBoundingClientRect().width - cur; // the slider beside it, and its matching margin
-    const wide = body.getBoundingClientRect().width - extra;
+    // Across: the slider beside it and a matching margin on the other side;
+    // the bow (Bow as volume) is a quarter of the picture's height wide.
+    const bodyW = body.getBoundingClientRect().width;
+    const wide = settings.droneBow ? (bodyW - 16) / 1.5 : bodyW - 2 * (40 + 8);
     scr.style.setProperty('--art', `${Math.round(Math.max(110, Math.min(820, tall, wide)))}px`);
   }
   let fitQueued = 0;
@@ -363,6 +398,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
     setRich(document.querySelector('.dr-a4-label'), TEXT.common.referencePitch(settings.a4));
     fillPitches();
     showTimingOpts();
+    showBow();
     show();
   }
   refresh();

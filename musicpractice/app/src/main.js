@@ -32,7 +32,7 @@ import { Waveform, drawThumb } from './waveform.js';
 import * as store from './takes.js';
 import { GENRES, GENRE_IDS, mainTempo } from './tempos.js';
 import { load, save, clampBpm, METERS, SOUNDS, THEMES, APPEARANCES, VIZ_BARS, TICKS, barPlan, cleanPattern, resolveMode, meterOf, beatStrengths, BPM_MIN, BPM_MAX } from './settings.js';
-import { applyArt, alignPendulum, swingOf } from './art.js';
+import { applyArt, alignPendulum, alignBow, swingOf } from './art.js';
 
 const $ = (id) => document.getElementById(id);
 const settings = load();
@@ -60,7 +60,7 @@ function applyTheme() {
   const fonts = fontsHref(theme);
   const link = $('theme-fonts');
   if (link && link.getAttribute('href') !== fonts) link.setAttribute('href', fonts);
-  applyArt(theme.id, () => alignPendulum($('metronome-case'), $('pendulum')));
+  applyArt(theme.id, () => { alignPendulum($('metronome-case'), $('pendulum')); alignBow(document.querySelector('#dr-bow .art')); });
   // Waveform colours come from the theme.
   if (wave) wave.dirty = true;
   for (const c of document.querySelectorAll('.take canvas')) c.redraw?.();
@@ -868,6 +868,7 @@ function fitPicture() {
   const body = scr.querySelector('.met-body');
   if (getComputedStyle(body).flexDirection !== 'column') {
     scr.style.removeProperty('--pic-h');
+    sizeFoot();
     return;
   }
   // The picture (metronome and dots, or the small metronome and the
@@ -879,10 +880,37 @@ function fitPicture() {
     .filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().bottom));
   const below = last - stage.bottom;
   const vis = getComputedStyle($('met-visual'));
-  const extra = (parseFloat(vis.rowGap) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
+  const extra = (parseFloat(vis.getPropertyValue('--gap')) || 0) + (parseFloat(vis.getPropertyValue('--dots')) || 0);
   const pad = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
   const room = innerHeight - pad - stage.top - below - extra - 1;
   scr.style.setProperty('--pic-h', `${Math.round(Math.max(120, Math.min(560, room)))}px`);
+  sizeFoot();
+}
+
+/*
+ * What goes under the metronome, in pixels: the Visualizer as tall as its
+ * rows need (and no taller), and how far the metronome scales down toward
+ * its top to make room for it, or for Pulse's big dots, so the picture's
+ * height never changes (styles.css: --V, --row, --rg, --s-bars, --s-pulse).
+ */
+function sizeFoot() {
+  const vis = $('met-visual');
+  const P = $('metronome-art').offsetHeight; // its own height: the scale is a transform
+  if (!P) return;
+  const css = getComputedStyle(vis);
+  const dots = parseFloat(css.getPropertyValue('--dots')) || 26;
+  const rows = settings.vizBars;
+  const rg = Math.max(8, Math.min(16, P * 0.03));
+  let row = Math.max(12, Math.min(30, P * 0.075));
+  const most = (P + dots) * 0.64; // the metronome keeps at least about a third of its height
+  if (rows * row + (rows - 1) * rg > most) row = Math.max(8, (most - (rows - 1) * rg) / rows);
+  const V = rows * row + (rows - 1) * rg;
+  const big = P * 0.34;
+  vis.style.setProperty('--row', `${row.toFixed(1)}px`);
+  vis.style.setProperty('--rg', `${rg.toFixed(1)}px`);
+  vis.style.setProperty('--V', `${V.toFixed(1)}px`);
+  vis.style.setProperty('--s-bars', ((P + dots - V) / P).toFixed(4));
+  vis.style.setProperty('--s-pulse', ((P + dots - big) / P).toFixed(4));
 }
 let fitQueued = 0;
 const queueFit = () => { cancelAnimationFrame(fitQueued); fitQueued = requestAnimationFrame(fitPicture); };
@@ -893,7 +921,7 @@ document.fonts?.addEventListener?.('loadingdone', queueFit); // a theme's fonts 
 const vizBars = $('viz-bars');
 vizBars.replaceChildren(...VIZ_BARS.map((n) => new Option(String(n), String(n))));
 vizBars.value = String(settings.vizBars);
-vizBars.addEventListener('change', () => { settings.vizBars = Number(vizBars.value); renderBeats(); persist(); });
+vizBars.addEventListener('change', () => { settings.vizBars = Number(vizBars.value); renderBeats(); sizeFoot(); persist(); });
 
 
 // ---------------------------------------------------------------- visual sync
