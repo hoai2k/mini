@@ -95,15 +95,22 @@ export function codeForms(code) {
   return [...forms];
 }
 
-const FIELDS = 'key,title,author_name,first_publish_year,isbn,cover_i,number_of_pages_median,publisher,subject,edition_count';
+const FIELDS = 'key,title,author_name,first_publish_year,isbn,cover_i,number_of_pages_median,publisher,subject,edition_count,editions,editions.title,editions.key';
 
-/** The book with this ISBN on Open Library: {title, author, lookup} or null. */
+/**
+ * The book with this ISBN on Open Library: {title, author, lookup} or null.
+ * The title is that edition's (a Penguin "Crime and Punishment", not the
+ * work's Russian original), without a series in brackets after it.
+ */
 export async function bookByIsbn(isbn, { fetch: fetchFn = fetch } = {}) {
   const res = await fetchFn(`https://openlibrary.org/search.json?${new URLSearchParams({ isbn, fields: FIELDS, limit: '1' })}`);
   if (!res.ok) throw new Error(`Open Library ${res.status}`);
   const doc = ((await res.json()).docs || [])[0];
   if (!doc?.title) return null;
+  const edition = doc.editions?.docs?.[0];
+  const title = (edition?.title || doc.title).replace(/\s*\([^)]*\)\s*$/, '').trim() || doc.title;
   const lookup = toLookup(doc);
   lookup.isbn = isbn; // the copy in hand, not just any edition's
-  return { title: doc.title, author: lookup.authors[0] || null, lookup };
+  if (edition?.key) lookup.edition = edition.key;
+  return { title, author: lookup.authors[0] || null, lookup };
 }
