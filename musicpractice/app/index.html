@@ -391,10 +391,13 @@
             <svg class="vslider-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
             <div class="vslider-track"><div class="vslider-fill"></div><div class="vslider-thumb"></div></div>
           </div>
-          <!-- Tryout (Drone settings → Bow as volume): the bow is the volume, its hair lit from the frog up to the level. -->
-          <div class="bow-slider" id="dr-bow" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume" hidden>
-            <span class="art" data-asset="drone-bow"></span>
-            <div class="bow-hair"><div class="bow-lit"></div><div class="bow-mark"></div></div>
+          <!-- Bow as volume (Drone settings, on by default): the bow is the volume, lit behind from the frog up to the level, with its label under it. -->
+          <div class="bow-col" id="dr-bow-col" hidden>
+            <div class="bow-slider" id="dr-bow" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" data-text-aria-label="common.volume">
+              <span class="art" data-asset="drone-bow"></span>
+              <div class="bow-hair"><div class="bow-lit"></div><div class="bow-mark"></div></div>
+            </div>
+            <span class="bow-label" aria-hidden="true" data-text="common.volume"></span>
           </div>
         </div>
         <div class="drone-readout">

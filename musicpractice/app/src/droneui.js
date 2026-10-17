@@ -204,7 +204,7 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
   $('dr-toggle').addEventListener('click', () => (playing ? pause() : play()));
 
   // ---- volume: the upright slider beside the picture, or (the Bow as
-  // volume tryout) the bow standing beside the cello, its hair lit from the
+  // volume, the default) the bow standing beside the cello, its hair lit from the
   // frog up to the level; either is dragged up or down, or set with the
   // arrow keys. The settings sheet has a slider too.
   const vol = $('dr-volume');
@@ -251,20 +251,21 @@ export function setupDrone({ settings, persist, engine, onPlaying }) {
       e.stopPropagation(); // not the page's arrow keys (which move the note)
     });
   }
-  // Bow as volume (a tryout, kept beside the slider for now): the cello
+  // Bow as volume (on by default; off gives the plain slider): the cello
   // drawn without its bow, and the bow beside it is the volume.
   function showBow() {
     const bow = settings.droneBow;
     $('dr-art').hidden = bow;
     $('dr-art-nobow').hidden = !bow;
     $('dr-vol').hidden = bow;
-    $('dr-bow').hidden = !bow;
+    $('dr-bow-col').hidden = !bow;
     $('drone-body').classList.toggle('bowed', bow);
     $('dr-bow-on').checked = bow;
     queueFit();
   }
   $('dr-bow-on').addEventListener('change', () => {
     settings.droneBow = $('dr-bow-on').checked;
+    settings.droneBowChosen = true;
     persist();
     showBow();
   });
