@@ -7,9 +7,47 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { spriteUV, SPRITE_INDEX as SI } from '../gfx/textures.js';
 import { ditherMask, occlusionAmount } from '../gfx/materials.js';
 import { LiveSign, boardPainter } from './liveSign.js';
+import { B } from './blocks.js';
+
+// Props a hero can't walk through: [height in blocks, 'core' for the trunk or
+// post only (else the prop's footprint)]. One block high can be stepped or
+// hopped over; two need a jump from something lower or can't be crossed.
+// (An audit of camp, Manhattan and 36 chapter levels found every palm, fence
+// and campfire, half the statues and most tram pods walk-through.) Ghosts,
+// flames, signs, low rails and the like stay passable.
+export const SOLID_PROPS = {
+  palm: [2, 'core'], statue: [2], tram_pod: [2], campfire: [1, 'core'], fence: [1], vase: [1], bust: [1], brazier: [1, 'core'],
+  archery_target: [2, 'core'], signpost: [1, 'core'], clock: [2], weathervane: [2, 'core'], streetlight: [2, 'core'],
+};
+let solidMat = null;
 
 export class Decorations {
   constructor() { this.items = []; this.props = []; this.mesh = null; this.propMesh = null; }
+  // Invisible wall (B.barrier) under the solid props (SOLID_PROPS), in air
+  // cells only; run once on the built world, before it is meshed (main.js
+  // loadWorld). A footprint is the cells whose middle lies in the prop's
+  // built boxes, seen from above.
+  solidify(world) {
+    if (this.solidified) return; this.solidified = true;
+    solidMat ??= new THREE.MeshBasicNodeMaterial();
+    const fake = { group: new THREE.Group() }, mats = { props: new Proxy({}, { get: () => solidMat }) }, box = new THREE.Box3(), b = new THREE.Box3();
+    for (const p of this.props) {
+      const spec = SOLID_PROPS[p.kind]; if (!spec) continue;
+      const [h, core] = spec, y0 = Math.floor(p.y + 0.01), cells = [];
+      if (core) cells.push([Math.floor(p.x), Math.floor(p.z)]);
+      else {
+        const one = new Decorations(); one.props = [p];
+        try { one.buildProps(fake, mats); } catch (e) { continue; }
+        box.makeEmpty();
+        one.propMesh?.traverse((o) => { if (o.isMesh) { o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); if (b.min.y < p.y + 1.6) box.union(b); o.geometry.dispose(); } });
+        fake.group.clear();
+        if (box.isEmpty()) continue;
+        for (let x = Math.floor(box.min.x); x <= Math.floor(box.max.x); x++) for (let z = Math.floor(box.min.z); z <= Math.floor(box.max.z); z++) if (x + 0.5 >= box.min.x && x + 0.5 <= box.max.x && z + 0.5 >= box.min.z && z + 0.5 <= box.max.z) cells.push([x, z]);
+        if (!cells.length) cells.push([Math.floor(p.x), Math.floor(p.z)]);
+      }
+      for (const [x, z] of cells) for (let k = 0; k < h; k++) if (!world.get(x, y0 + k, z)) world.set(x, y0 + k, z, B.barrier);
+    }
+  }
   add(type, x, y, z, o = {}) { this.items.push({ type, x, y, z, ...o }); }
   // 3D prop: { kind, x, y, z, rot }
   prop(kind, x, y, z, o = {}) { this.props.push({ kind, x, y, z, ...o }); }

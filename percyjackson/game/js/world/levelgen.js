@@ -22,7 +22,7 @@ import { MONSTERS } from '../entities/monsters.js';
 import { ENC, NONE, planRoles, budget, roster, place, killNeed, walkDist } from './encounters.js';
 import { mulberry32 } from '../util.js';
 
-const CELL = 26;
+const CELL = 34;   // (26 until the boards were opened up; rooms grew with it, the arena to 30 x 30)
 const DIRS = [[1, 0, 'e', 'w'], [-1, 0, 'w', 'e'], [0, 1, 's', 'n'], [0, -1, 'n', 's']];
 
 export const ENEMY_TABLES = {
@@ -120,8 +120,8 @@ export function generateLevel(mission) {
   const span = ([lo, hi]) => lo + Math.floor(r() * (hi - lo + 1));
   for (const room of rooms) {
     const big = room.type === 'boss';
-    const sz = room.type === 'start' ? [14, 19] : room.type === 'combat' ? ENC.size.combat : room.role === 'trap' ? ENC.size.trap : room.type === 'secret' ? ENC.size.secret : ENC.size.side;
-    let w = big ? 22 : span(sz), d = big ? 22 : span(sz);
+    const sz = room.type === 'start' ? [18, 23] : room.type === 'combat' ? ENC.size.combat : room.role === 'trap' ? ENC.size.trap : room.type === 'secret' ? ENC.size.secret : ENC.size.side;
+    let w = big ? 30 : span(sz), d = big ? 30 : span(sz);
     let ox = room.cx * CELL + 2 + Math.floor(r() * (CELL - 4 - w + 1)), oz = room.cz * CELL + 2 + Math.floor(r() * (CELL - 4 - d + 1));
     if (room.ext) {
       // two cells: the long side runs across both, the short side fills the cell

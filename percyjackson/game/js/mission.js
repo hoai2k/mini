@@ -38,7 +38,7 @@ import { bundlesFrom } from './resources.js';
 import { Pack, packLoiter } from './entities/packRules.js';
 import { mulberry32 } from './util.js';
 
-const PRIME = 12;        // a room's monsters are there once a hero is this close to it (metres)
+const PRIME = 16;        // a room's monsters are there once a hero is this close to it (metres; past the edge of the view at the default zoom, 26)
 const TRAP_IN = 3;       // a trap springs once a hero is this far inside the room
 const TRAP_GIVE_UP = 150; // seconds: a trap nobody can finish opens anyway
 

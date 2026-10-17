@@ -173,7 +173,9 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
   at a time, or charge in and take it all at once. Companions leave a group
   milling about to you.
   - The rooms you fight in are large and open: combat rooms fill their part of
-    the map, one on the way to the boss is a battleground two rooms long, with
+    the map (26-29 blocks a side, the boss arena 30 x 30; a room holds about as
+    many monsters as when they were 20-22), one on the way to the boss is a
+    battleground two rooms long (about 62 x 27), with
     boulders, columns or stubs of wall to fight round. Each chapter goes: a
     group, the big battleground (more groups further on, on harder settings),
     and a quieter room with a few strays before the boss, with groups growing
@@ -197,6 +199,13 @@ Play: <https://hoai2k.github.io/mini/percyjackson/>
     parts of the boards that lacked them.
 - **Battle Sense:** dodging the instant before a hit lands slows the monsters,
   but not the heroes. The jump slam has a 1.2 s cooldown.
+- **Solid things are solid:** trees, statues, fences, campfires, braziers,
+  lamp posts, tram pods and the like stand on invisible blocks
+  (`world/deco.js` `SOLID_PROPS`): one block high can be stepped or hopped
+  over, two need a jump from something lower. The field-trip bus in camp
+  parks in open ground: its bonnet is a step and its roof a jump from there.
+- **The camera** starts a little further out (zoom 26, was 22; Settings →
+  Gameplay → Default zoom).
 - **Boss attacks are aimed or local:** lines, cones and target circles go
   where a hero is; rings round a boss are about 5 m (6 m for Mrs. Dodds's
   shriek), small enough to run out of in the wind-up. No boss charge or dash
@@ -313,14 +322,14 @@ stays on screen; **Leave** reloads the page with the real save as it was.
 | Move | Left stick | WASD (or the arrow keys) |
 | Show the way to the goal | Click the left stick | Middle click |
 | Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
-| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
+| Dodge (Battle Sense on a perfect dodge) | B (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
 | Attack in place (stand still, face the cursor) | — | Hold Shift |
 | Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
 | Interact | A (when a prompt shows) | Left click (when a prompt shows) |
-| Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
-| Godly power | Y + B together | 4, or 1 + 2 together |
+| Abilities 1 · 2 · 3 | Y · LB · RB | 1 · 2 · 3 |
+| Godly power | Y + LB together | 4, or 1 + 2 together |
 | Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
 | Inventory | D-pad ↑ | I or Tab |
@@ -331,7 +340,7 @@ stays on screen; **Leave** reloads the page with the real save as it was.
 | Turn the camera (if on in Settings) | — | [ · ] |
 | Hero select: change profile · play online | X · Y | Click the profile · Play online |
 
-The controller and keyboard layouts follow Minecraft Dungeons II's defaults (`game/js/padmap.js`; WASD still moves);
+The controller and keyboard layouts follow Minecraft Dungeons II's defaults (`game/js/padmap.js`; WASD still moves), except that B rolls and LB is ability 2 (swapped at the owner's request);
 the in-game Instructions screen has the controller diagram.
 
 ## Online
@@ -400,7 +409,7 @@ across every screen.
 | `game/js/ui/greekTiming.js`, `ui/greekText.js`, `world/liveSign.js` | Greek letters settling into English: the timings, on the page, on painted signs and the bus |
 | `game/js/ui/art.js` | The pictures preloaded behind the loading screen (and the logo, keyed out of its magenta) |
 | `game/js/mist.js`, `party.js`, `loot.js`, `lootdrops.js`, `artifacts.js`, `minigames/`, `net/` | True Sight, companions and switching, gear, loot beams, magic items, minigames, online play |
-| `game/js/padmap.js` | The Xbox controller layout (after Minecraft Dungeons II): buttons, the Y + B chord, the right-stick flick dodge |
+| `game/js/padmap.js` | The Xbox controller layout (after Minecraft Dungeons II): buttons, the Y + LB chord, the right-stick flick dodge |
 | `game/js/resources.js` | The Ambrosia flask's cooldown, the quiver (refill, size, bundle drops) and monster hit scaling by tier |
 | `game/js/save.js`, `profiles.js`, `slots.js`, `resume.js`, `ui/saves.js` | A profile's data, player profiles (merging, export codes), save slots, the resume point for Continue, the Saves screens |
 | `game/js/net/` | Online: `session.js` (rooms, identity, reconnects, host migration, clock), `online.js` (what is shared and who owns it), `interp.js` (smooth remote motion), `netfx.js` (effects seen by everyone), `lobby.js`, `nametags.js` |

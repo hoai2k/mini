@@ -28,7 +28,7 @@
 export const NONE = -999;
 
 export const ENC = {
-  size: { combat: [20, 22], side: [16, 19], trap: [14, 16], secret: [14, 16] },
+  size: { combat: [26, 29], side: [19, 23], trap: [14, 16], secret: [14, 16] },   // (combat and side rooms grew with the layout cell, 26 -> 34: the boards felt cramped)
   doorClear: 5,          // no pack member this close (blocks) to a door
   scoutDoor: 6,          // scouts stand at least this far from the door you come in by
   traps: { max: 2 },
@@ -70,11 +70,11 @@ export function budget(role, { diff = 1, t = 0.5, area = 400 } = {}, r = Math.ra
   const pack = (mul) => { const minors = packSize(mul); return { minors, elites: elites(minors) }; };
   switch (role) {
     case 'pack': {
-      const n = area > 650 ? 2 : 1;
+      const n = area > 1100 ? 2 : 1;   // (thresholds scaled with the bigger rooms, so a room holds about what it did)
       return { packs: Array.from({ length: n }, () => pack(n > 1 ? 0.8 : 1)), scouts: d >= 3 ? 2 : 1, strays: 0, waves: [] };
     }
     case 'arena': {
-      const n = d >= 3 || area > 1000 ? 3 : 2;
+      const n = d >= 3 || area > 1750 ? 3 : 2;
       return { packs: Array.from({ length: n }, () => pack(n > 2 ? 0.85 : 1)), scouts: d >= 3 ? 3 : 2, strays: 0, waves: [] };
     }
     case 'guard': return { packs: [{ minors: Math.max(5, Math.round(packSize(0.75) - 1)), elites: 1 }], scouts: 1, strays: 0, waves: [] };

@@ -331,7 +331,7 @@ export class Player {
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     // dodge roll: on the ground (or just off a ledge); a press in the air or
     // a moment early is remembered briefly, so the roll always comes out
-    // (a right-stick flick rolls the way it was flicked, a screen direction; LB and Shift roll the way you move or face)
+    // (a right-stick flick rolls the way it was flicked, a screen direction; B and Shift roll the way you move or face)
     if (inp.pressed.dodge) { this.dodgeBuffer = this.grounded ? 0.2 : 0.75; this.dodgeAim = inp.dodgeDir ? g.rig.screenToWorldDir(inp.dodgeDir.x, inp.dodgeDir.y, new THREE.Vector3()).setY(0) : inp.dodgeToAim ? this.aimDir.clone().setY(0) : null; }
     else this.dodgeBuffer = Math.max(0, (this.dodgeBuffer ?? 0) - dt);
     if (this.dodgeBuffer > 0 && this.dodgeCd <= 0 && (this.grounded || this.coyote > 0 || this.inLiquid) && !this.downed && (!this.action || this.action.cancelable !== false) && !this.kit.blocksDodge?.()) { this.dodgeBuffer = 0; this.startDodge(this.dodgeAim?.lengthSq() > 0.01 ? this.dodgeAim : mv); this.dodgeAim = null; }

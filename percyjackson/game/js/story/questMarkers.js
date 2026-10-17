@@ -29,17 +29,31 @@ export function chapterUnlocked(game, ch) {
   return i <= 0 || !!d.completed[list[i - 1].id];
 }
 
-// A little yellow school bus for the field trip.
+// A little yellow school bus for the field trip, sized to the block world:
+// its roof two blocks up and its bonnet one, so a hero can't walk through it
+// but can step onto the bonnet and jump onto the roof (a jump rises about
+// 1.7 m). Body x -3..3 and bonnet x 3..4.3, 2.4 wide (see busColliders).
 function bus() {
   const g = new THREE.Group();
   const m = (c, o = {}) => new THREE.MeshStandardNodeMaterial({ color: c, roughness: o.r ?? 0.6, metalness: o.m ?? 0 });
   const box = (w, hh, d, x, y, z, mat) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), mat); b.position.set(x, y, z); b.castShadow = true; b.receiveShadow = true; g.add(b); return b; };
   const yellow = m(0xf2b81a), black = m(0x1a1a1e), glass = m(0x9ac8e8, { r: 0.1, m: 0.2 });
-  box(7, 2.4, 2.6, 0, 1.6, 0, yellow); box(1.6, 1.6, 2.5, 4.2, 1.2, 0, yellow);
-  box(6.4, 0.7, 2.62, -0.2, 2.1, 0, glass); box(0.08, 0.8, 2.64, -3.5, 2.1, 0, black);
-  box(7.1, 0.18, 2.64, 0, 1.25, 0, black);
-  for (const [x, z] of [[-2.4, 1.2], [2.6, 1.2], [-2.4, -1.2], [2.6, -1.2]]) box(1, 1, 0.5, x, 0.5, z, black);
+  box(6, 1.65, 2.4, 0, 1.175, 0, yellow); box(1.3, 0.65, 2.3, 3.65, 0.675, 0, yellow);
+  box(5.5, 0.55, 2.42, -0.2, 1.55, 0, glass); box(0.08, 0.6, 2.44, -2.8, 1.55, 0, black);
+  box(6.05, 0.14, 2.44, 0, 1.05, 0, black);
+  for (const [x, z] of [[-1.9, 1.05], [2.1, 1.05], [-1.9, -1.05], [2.1, -1.05]]) box(0.8, 0.8, 0.45, x, 0.4, z, black);
   return g;
+}
+const BUS_AT = [-4.6, 0.5];   // the bus's middle from its quest marker
+// Invisible solid blocks under the bus: two high under the body, one under
+// the bonnet (cells whose middle lies inside its outline).
+function busColliders(world, pos) {
+  const bx = pos.x + BUS_AT[0], bz = pos.z + BUS_AT[1], y = Math.round(pos.y);
+  for (let x = Math.floor(bx - 3); x <= Math.floor(bx + 4.3); x++) for (let z = Math.floor(bz - 1.2); z <= Math.floor(bz + 1.2); z++) {
+    const u = x + 0.5 - bx, v = z + 0.5 - bz;
+    if (u < -3 || u > 4.3 || Math.abs(v) > 1.2) continue;
+    for (let k = 0; k < (u <= 3 ? 2 : 1); k++) if (!world.get(x, y + k, z)) world.set(x, y + k, z, B.barrier);
+  }
 }
 
 // The ground under (x, z) near height `y` (no more than two blocks above it):
@@ -55,8 +69,10 @@ function terrainNear(world, x, z, y) {
 // Nearest open ground to `want`, at about the height of the ground under it
 // (`y` is the anchor's height: `want` can be down a slope from it), with the
 // footprint [x0, x1, z0, z1] (relative) clear for three blocks up (six for
-// the bus) and flat (a small footprint may be on a gentle slope).
-function findSpot(world, want, y, fp) {
+// the bus) and flat (a small footprint may be on a gentle slope). margin:
+// that many cells round it must be open ground too (the bus once stood
+// across a passage, which a solid bus would block).
+function findSpot(world, want, y, fp, margin = 0) {
   const ty = terrainNear(world, want.x, want.z, y);
   const base = isFinite(ty) ? ty : y;
   const big = fp[1] - fp[0] > 2, tol = big ? 0.6 : 1, clear = big ? 6 : 3;   // (the bus: flat, and nothing low overhead)
@@ -68,15 +84,21 @@ function findSpot(world, want, y, fp) {
       if (!isFinite(g) || Math.abs(g - cy) > tol) return null;
       for (let k = 0; k < clear; k++) if (world.solidAt(x + dx + 0.5, g + 0.5 + k, z + dz + 0.5)) return null;
     }
+    for (let dx = fp[0] - margin; dx <= fp[1] + margin; dx++) for (let dz = fp[2] - margin; dz <= fp[3] + margin; dz++) {
+      if (dx >= fp[0] && dx <= fp[1] && dz >= fp[2] && dz <= fp[3]) continue;
+      const g = world.groundBelow(x + dx + 0.5, z + dz + 0.5, cy + 1.5);
+      if (!isFinite(g) || Math.abs(g - cy) > 1.5) return null;
+      for (let k = 0; k < 3; k++) if (world.solidAt(x + dx + 0.5, g + 0.5 + k, z + dz + 0.5)) return null;
+    }
     return cy;
   };
   const bx = Math.floor(want.x), bz = Math.floor(want.z);
-  for (let r = 0; r <= 16; r++) for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
+  for (let r = 0; r <= 24; r++) for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
     if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
     const cy = spot(bx + dx, bz + dz);
     if (cy != null) return new THREE.Vector3(bx + dx + 0.5, cy, bz + dz + 0.5);
   }
-  return want.clone().setY(base);
+  return margin ? null : want.clone().setY(base);   // (with a margin: null, and the caller tries without)
 }
 
 export function placeQuestMarkers(game, L) {
@@ -91,7 +113,8 @@ export function placeQuestMarkers(game, L) {
     const anchor = L[ch.start.at] ?? L.anchors?.[ch.start.at];
     if (!anchor?.isVector3) continue;
     const want = anchor.clone().add(new THREE.Vector3(ch.start.dx ?? 0, 0, ch.start.dz ?? 0));
-    const pos = findSpot(game.world, want, anchor.y, ch.start.prop === 'bus' ? [-8, 2, -2, 2] : [-1, 1, -1, 1]);
+    const isBus = ch.start.prop === 'bus';
+    const pos = (isBus && findSpot(game.world, want, anchor.y, [-8, 2, -2, 2], 2)) || findSpot(game.world, want, anchor.y, isBus ? [-8, 2, -2, 2] : [-1, 1, -1, 1]);
     const open = chapterUnlocked(game, ch), done = !!game.save.data.completed[ch.id];
     const grp = new THREE.Group(); grp.position.copy(pos);
     const col = new THREE.Color(open ? (done ? 0x7ad8ff : 0xffd84a) : 0x8c96a3);
@@ -105,7 +128,7 @@ export function placeQuestMarkers(game, L) {
     cardTexture(ch.card, (t) => { card.material.map = t; card.material.needsUpdate = true; card.visible = true; });
     card.position.y = 3.1;
     grp.add(beam, ring, card);
-    if (ch.start.prop === 'bus') { const b = bus(); b.position.set(-4.5, 0, 0.5); grp.add(b); }
+    if (isBus) { const b = bus(); b.position.set(BUS_AT[0], 0, BUS_AT[1]); grp.add(b); busColliders(game.world, pos); }
     game.scene.add(grp); game.hubProps.push(grp);
     if (open) game.lights.attach(grp, col.getHex(), 3, 7, { offsetY: 2 });
     let t = Math.random() * 6;

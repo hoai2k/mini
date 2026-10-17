@@ -346,14 +346,14 @@ follows Minecraft Dungeons II's defaults.
 | Move | Left stick | WASD (or the arrow keys) |
 | Show the way to the goal | Click the left stick | Middle click |
 | Aim | Auto-aim (Settings → Controller right stick → Aim to aim with it) | Mouse |
-| Dodge (Battle Sense on a perfect dodge) | LB (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
+| Dodge (Battle Sense on a perfect dodge) | B (forward), or flick the right stick (that way) | R or Mouse 4 (toward the cursor), Mouse 5 (forward) |
 | Melee · ranged | X · RT | Left click · right click |
 | Attack in place (stand still, face the cursor) | — | Hold Shift |
 | Jump slam | X in the air after a jump | Q |
 | Jump | A | Space |
 | Interact | A (when a prompt shows) | Left click (when a prompt shows) |
-| Abilities 1 · 2 · 3 | Y · B · RB | 1 · 2 · 3 |
-| Godly power | Y + B together | 4, or 1 + 2 together |
+| Abilities 1 · 2 · 3 | Y · LB · RB | 1 · 2 · 3 |
+| Godly power | Y + LB together | 4, or 1 + 2 together |
 | Ambrosia (heal) | LT | E |
 | True Sight | Click the right stick | V |
 | Inventory | D-pad ↑ | I or Tab |

@@ -2,7 +2,7 @@
 const KEY = 'half-blood-quests-settings-v1';
 const DEFAULTS = {
   quality: 'auto', forceWebGL: false, showFps: false, dynRes: true, motionBlur: false,
-  shake: 1, hitstop: true, slowmo: true, cameraRotate: false, cameraZoom: 22,
+  shake: 1, hitstop: true, slowmo: true, cameraRotate: false, cameraZoom: 26,
   master: 0.8, music: 0.5, sfx: 0.9, muted: false, damageNumbers: true, autoAim: 'touch',
   battleSense: true,   // a perfect dodge slows time for the team
   greekText: true,     // titles and signs first appear as Greek letters, then settle into English (narration is always plain English)
@@ -13,6 +13,9 @@ const DEFAULTS = {
 };
 export const settings = { ...DEFAULTS };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* ignore */ }
+// The default zoom went from 22 to 26 (the camera was a little close): a
+// setting still at the old default moves with it; one chosen stays.
+if (!settings.zoomV) { if (settings.cameraZoom === 22) settings.cameraZoom = DEFAULTS.cameraZoom; settings.zoomV = 2; }
 export function saveSettings() { try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ } }
 export function resetSettings() { Object.assign(settings, DEFAULTS); saveSettings(); }
 export function prefersReducedMotion() {

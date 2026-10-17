@@ -395,6 +395,7 @@ class Game {
   }
   loadWorld(level, biome) {
     this.level = level; this.world = level.world; this.biome = biome;
+    level.deco.solidify?.(this.world);   // (props a hero can't walk through: world/deco.js SOLID_PROPS)
     this.world.init(this.materials);
     this.scene.add(this.world.group);
     level.deco.build(this.world, this.materials, this.gr.preset.decoDensity);

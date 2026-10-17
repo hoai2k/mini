@@ -72,7 +72,7 @@ test('every hint names the controls of the device being played', () => {
   assert.match(prologueHint('move', 'kbm'), /WASD/); assert.match(prologueHint('move', 'pad1'), /left stick/);
   assert.match(prologueHint('melee', 'kbm'), /left click/); assert.match(prologueHint('melee', 'pad0'), /\bX\b/);
   assert.match(prologueHint('ranged', 'kbm'), /right click/); assert.match(prologueHint('ranged', 'pad0'), /\bRT\b/);
-  assert.match(prologueHint('dodge', 'kbm'), /\bR\b/); assert.match(prologueHint('dodge', 'pad0'), /\bLB\b/);
+  assert.match(prologueHint('dodge', 'kbm'), /\bR\b/); assert.match(prologueHint('dodge', 'pad0'), /\bB\b/);
   assert.match(prologueHint('ranged', 'kbm'), /before they reach you/);
 });
 

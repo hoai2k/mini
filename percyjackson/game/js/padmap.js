@@ -2,8 +2,9 @@
 //   Left stick move · click: flash the trail to the goal
 //   Right stick: flick to dodge that way (or aim, in Settings) · click: True Sight
 //   A jump, and interact while a prompt shows · X melee (in the air: jump slam)
-//   Y · B · RB abilities 1 · 2 · 3 · Y + B together: godly power
-//   LB dodge forward · LT Ambrosia · RT ranged
+//   Y · LB · RB abilities 1 · 2 · 3 · Y + LB together: godly power
+//   B dodge forward · LT Ambrosia · RT ranged
+// (B and LB swapped at the owner's request: B rolls, LB is ability 2)
 //   D-pad ↑ inventory · ↓ switch hero · ← → magic items 1 · 2
 //   View map (in camp: the chapter map) · Menu pause
 // The keyboard and mouse layout (keyFrame below) follows Minecraft Dungeons
@@ -12,13 +13,13 @@
 
 // Standard Gamepad API button indices
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
-// buttons that map straight to an action (Y and B go through the chord below)
+// buttons that map straight to an action (Y and LB go through the chord below)
 export const PADMAP = {
-  [BTN.A]: 'jump', [BTN.X]: 'attack', [BTN.RB]: 't3', [BTN.LB]: 'dodge', [BTN.LT]: 'heal', [BTN.RT]: 'ranged',
+  [BTN.A]: 'jump', [BTN.X]: 'attack', [BTN.RB]: 't3', [BTN.B]: 'dodge', [BTN.LT]: 'heal', [BTN.RT]: 'ranged',
   [BTN.VIEW]: 'map', [BTN.MENU]: 'pause', [BTN.LS]: 'trail', [BTN.RS]: 'sight',
   [BTN.UP]: 'inv', [BTN.DOWN]: 'swap', [BTN.LEFT]: 'art1', [BTN.RIGHT]: 'art2',
 };
-export const CHORD = 0.12;     // seconds Y / B wait for the other before firing alone
+export const CHORD = 0.12;     // seconds Y / LB wait for the other before firing alone
 export const FLICK = 0.7;      // right stick past this: a dodge that way
 export const REARM = 0.3;      // ... and back under this before the next one
 const DEAD = 0.2;
@@ -35,7 +36,7 @@ export function deadzone(x, y) { const l = Math.hypot(x, y); if (l < DEAD) retur
 export function padFrame(pad, st, now, o = {}) {
   const held = {};
   pad.buttons.forEach((b, i) => { const a = PADMAP[i]; if (a && isDown(b)) held[a] = true; });
-  chord(st, held, isDown(pad.buttons[BTN.Y]), isDown(pad.buttons[BTN.B]), now);
+  chord(st, held, isDown(pad.buttons[BTN.Y]), isDown(pad.buttons[BTN.LB]), now);
   if (o.interact && held.jump) { held.interact = true; held.jump = false; }
   const ax = pad.axes ?? [];
   const move = deadzone(ax[0] || 0, -(ax[1] || 0));
@@ -50,8 +51,8 @@ export function padFrame(pad, st, now, o = {}) {
   return { held, move, aimStick, dodgeDir };
 }
 
-// Y / B: one pressed alone becomes its ability after a short wait; both
-// together within the wait become the godly power.
+// Y / LB: one pressed alone becomes its ability after a short wait; both
+// together within the wait become the godly power. (`b` is LB, ability 2.)
 export function chord(st, held, y, b, now) {
   const c = st.chord ??= { t: 0, mode: null };
   if (!y && !b) { c.mode = null; c.t = 0; return; }
@@ -67,7 +68,7 @@ export function chord(st, held, y, b, now) {
 
 // What each action is on the controller (HUD glyphs, hints, prompts).
 export const PAD_LABEL = {
-  attack: 'X', jump: 'A', interact: 'A', ranged: 'RT', dodge: 'LB', t1: 'Y', t2: 'B', t3: 'RB', domain: 'Y+B', heal: 'LT',
+  attack: 'X', jump: 'A', interact: 'A', ranged: 'RT', dodge: 'B', t1: 'Y', t2: 'LB', t3: 'RB', domain: 'Y+LB', heal: 'LT',
   sight: 'RS', trail: 'LS', inv: '↑', swap: '↓', art1: '←', art2: '→', map: 'View', pause: 'Menu', slam: 'X (air)', root: '—', quest: 'View',
 };
 
