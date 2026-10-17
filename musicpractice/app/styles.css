@@ -197,17 +197,30 @@ button { cursor: pointer; }
   aspect-ratio: 800 / 1200;
 }
 .met-layer { position: absolute; }
-/* The pulse (Pendulum, On each beat: Pulse): the page behind the metronome
-   flashes on each beat in the theme's colours (--lit, 0 to 1, from main.js),
-   the strong beat's colour on strong beats, so it reads from across a room.
-   The metronome itself stays as it is. */
-#metronome::before {
-  content: ""; position: fixed; inset: 0; pointer-events: none;
-  background: var(--viz-beat, #2f8cff);
-  opacity: calc(0.42 * var(--lit, 0));
+/* The pulse (Pendulum, On each beat: Pulse): a red sun shining from behind
+   the metronome, swelling into each beat and easing away after it (--lit, 0
+   to 1, from main.js), larger and brighter on strong beats, its rays turning
+   slowly (--spin). The metronome and the page stay as they are. */
+.met-sun {
+  position: absolute; left: 50%; top: 46%; z-index: 0; width: 185%; aspect-ratio: 1;
+  border-radius: 50%; pointer-events: none;
+  transform: translate(-50%, -50%) scale(calc(0.72 + 0.34 * var(--lit, 0)));
+  opacity: var(--lit, 0);
+  background: radial-gradient(circle, rgba(255, 248, 228, 1) 0, #ffb04a 8%, #ff4a24 18%, rgba(255, 34, 18, 0.9) 29%, rgba(255, 34, 18, 0.5) 41%, rgba(255, 34, 18, 0.16) 52%, rgba(255, 34, 18, 0) 62%);
+  will-change: transform, opacity;
 }
-#metronome.strong::before { background: var(--viz-strong, #ff3b30); }
-#metronome > :not(dialog) { position: relative; z-index: 1; }
+.met-sun::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from var(--spin, 0deg), rgba(255, 70, 30, 0.95) 0 5deg, rgba(255, 70, 30, 0) 7deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 16%, #000 22%, #000 38%, transparent 64%);
+  mask: radial-gradient(circle, transparent 16%, #000 22%, #000 38%, transparent 64%);
+}
+.met-sun.strong { transform: translate(-50%, -50%) scale(calc(0.78 + 0.42 * var(--lit, 0))); }
+.metronome .met-layer { z-index: 1; }
+/* The sun stays behind the controls and the top bar it spreads under. */
+#metronome .bar { position: relative; z-index: 2; }
+.met-visual { position: relative; z-index: 0; }
+.met-controls, .sync-bar { position: relative; z-index: 1; }
 .sync-bar { width: min(100%, 440px); display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
 .sync-title { margin: 0; font: 700 1.15rem var(--display); }
 .sync-val { min-width: 5.5ch; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }

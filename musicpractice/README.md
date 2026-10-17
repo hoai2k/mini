@@ -123,9 +123,11 @@ when the Art Deco art arrives, measure and record its own.
   (in the Pendulum tab) is **Swing** (the default), **Pulse** or **Off**,
   never swinging and pulsing together (`pendulumMode`; saves from the two
   switches it replaced carry over, a pulse someone turned on winning).
-  Pulse leaves the metronome as it is and flashes the page behind it on
-  each beat, in the theme's colours (the strong beat's on strong beats), so
-  it can be seen from across a room.
+  Pulse is a red sun shining from behind the metronome, rays and all, so it
+  can be seen from across a room: it swells into each beat, peaks on it and
+  eases away (a bell, its tail half again as long as its lead-in, not a
+  flash), larger and brighter on strong beats, its rays turning slowly. The
+  metronome and the page stay as they are, and the controls stay above it.
 - The clicks are loud: each is driven into a soft clipper (tanh) after
   the voice and before the volume, so the whole click sits near full scale
   rather than only its first instant, and ordinary beats sit just under the

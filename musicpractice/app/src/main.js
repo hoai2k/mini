@@ -291,7 +291,7 @@ function stopMetronome() {
   pendulum.style.transform = 'rotate(0deg)';
   for (const li of $('beats').children) li.classList.remove('on');
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
-  $('metronome').style.setProperty('--lit', '0');
+  $('met-sun').style.setProperty('--lit', '0');
   $('metronome-art').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
@@ -594,7 +594,7 @@ const visualsShown = () => settings.pendulumMode !== 'off' || settings.metView =
 // Pendulum, On each beat: Swing, Pulse or Off (never swinging and pulsing together).
 chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.metronome.settings.pendulumModes[id] })), () => settings.pendulumMode, (id) => {
   settings.pendulumMode = id;
-  $('metronome').style.setProperty('--lit', '0');
+  $('met-sun').style.setProperty('--lit', '0');
   pendulum.style.transform = 'rotate(0deg)';
   persist();
 });
@@ -606,7 +606,7 @@ chips($('pend-mode'), ['swing', 'pulse', 'off'].map((id) => ({ id, label: TEXT.m
  * screen about a frame later. So the pendulum reaches the end of its swing,
  * the pulse flashes and the beat dot lights as each click is heard.
  */
-const metScreen = $('metronome');
+const sun = $('met-sun');
 let lastFrame = 0;
 let frameSec = 1 / 60;
 function animateMetronome() {
@@ -619,15 +619,27 @@ function animateMetronome() {
   const pendulumShown = settings.metView !== 'bars';
   const angle = pendulumShown && settings.pendulumMode === 'swing' ? pendulumAngle(beat, now, metronome.period, swingOf(pendulum)) : 0;
   pendulum.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  // The pulse: the background flashes on the beat and dies away quickly,
-  // brightest on the downbeat.
+  // The pulse: a sun behind the metronome that swells into each beat, peaks
+  // on it and eases away (a bell, not a flash), brightest on strong beats.
   let k = 0;
+  let strong = false;
   if (pendulumShown && settings.pendulumMode === 'pulse' && beat) {
-    const since = now - beat.time;
-    k = Math.exp(-since / Math.min(0.14, metronome.period * 0.3)) * [0.75, 0.85, 1][beat.strength];
+    const p = metronome.period;
+    const w = Math.min(0.18, p * 0.24); // the lead-in; the tail is half again as long
+    const level = (strength) => [0.72, 0.86, 1][strength] ?? 0.72;
+    // The next beat, from the bar itself (it may not be scheduled yet): one period on.
+    const bar = metronome.strengths;
+    const nextStrength = bar[(beat.beat + 1) % bar.length] ?? 0;
+    const after = now - beat.time;
+    const before = p - after;
+    const out = Math.exp(-((after / (w * 1.5)) ** 2)) * level(beat.strength);
+    const into = before > 0 ? Math.exp(-((before / w) ** 2)) * level(nextStrength) : 0;
+    k = Math.max(out, into);
+    strong = (into > out ? nextStrength : beat.strength) === 2;
+    sun.style.setProperty('--spin', `${((now * 14) % 360).toFixed(1)}deg`);
   }
-  metScreen.style.setProperty('--lit', k.toFixed(3));
-  metScreen.classList.toggle('strong', !!beat && beat.strength === 2);
+  sun.style.setProperty('--lit', k.toFixed(3));
+  sun.classList.toggle('strong', strong);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
   // The Visualizer: read like music, left to right and down a row a bar. The
