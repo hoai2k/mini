@@ -458,6 +458,7 @@ across every screen.
 | Path | What |
 | --- | --- |
 | `game/index.html`, `game/style.css`, `game/js/` | The game: plain ES modules and Three.js r186 from a CDN, with no build step. It started from Cursed Dungeons (`hoai2k/francis`). |
+| `game/js/text_config.js` | Every piece of text the game shows, under readable keys (screens, story, heroes, gear, the world, menus, online), with `{placeholders}` and plural forms: edit the wording here. Code reads it with `t('key', vars)`; `setText(pack)` lays a translation over it |
 | `game/js/heroes/` | The hero kits; `skillRules.js` the skill trees and their rules (costs, requirements, gates, loadouts, reset, save migration), pure and tested; the screen is `game/js/ui/skills.js` |
 | `game/js/entities/` | Hero models and voxel hair, monsters, the four-legged rig, mortals, bosses |
 | `game/js/world/` | Camp Half-Blood, the biomes, room templates, the level generator |
