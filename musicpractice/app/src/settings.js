@@ -84,7 +84,8 @@ export const DEFAULTS = Object.freeze({
   vizBars: 4, // the Visualizer's rows: bars of music shown at a time
   vizTrail: true, // the beats already played in this pass stay faintly lit
   metMotion: true, // the pendulum swings
-  metPulse: true, // a glow pulses on each beat
+  metPulse: false, // the whole metronome flashes on each beat (seen from across a room)
+  metPulseChosen: false,
   micTipCollapsed: false, // the iPhone microphone tip folded to its title
   homeOrder: ['metronome', 'tuner', 'drone', 'record'], // the home screen's buttons, hold and drag to reorder
   droneMidi: 48, // C3
@@ -145,7 +146,9 @@ export function sanitize(raw) {
     vizBars: oneOf(s.vizBars, VIZ_BARS, DEFAULTS.vizBars),
     vizTrail: typeof s.vizTrail === 'boolean' ? s.vizTrail : DEFAULTS.vizTrail,
     metMotion: typeof s.metMotion === 'boolean' ? s.metMotion : DEFAULTS.metMotion,
-    metPulse: typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
+    // Saves from before the pulse was off by default stored it on without anyone choosing it.
+    metPulse: s.metPulseChosen === true && typeof s.metPulse === 'boolean' ? s.metPulse : DEFAULTS.metPulse,
+    metPulseChosen: s.metPulseChosen === true,
     homeOrder: homeOrder(s.homeOrder),
     droneMidi: clamp(Math.round(num(s.droneMidi, DEFAULTS.droneMidi)), 36, 59),
     droneVoice: oneOf(s.droneVoice, DRONE_VOICES, DEFAULTS.droneVoice),

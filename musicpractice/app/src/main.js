@@ -285,6 +285,7 @@ function stopMetronome() {
   for (const li of $('beats').children) li.classList.remove('on');
   for (const b of $('met-bars').querySelectorAll('.met-bar')) b.style.setProperty('--lit', '0');
   $('met-pulse').style.setProperty('--lit', '0');
+  $('metronome-art').style.setProperty('--lit', '0');
   $('met-toggle').setAttribute('aria-pressed', 'false');
   $('met-toggle-label').textContent = TEXT.metronome.start;
   keepAwake(false);
@@ -430,7 +431,14 @@ $('met-motion').checked = settings.metMotion;
 $('met-motion').addEventListener('change', () => { settings.metMotion = $('met-motion').checked; persist(); syncControlsLive(); });
 $('met-pulse-on').checked = settings.metPulse;
 $('met-pulse').hidden = !settings.metPulse;
-$('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-pulse-on').checked; $('met-pulse').hidden = !settings.metPulse; persist(); syncControlsLive(); });
+$('met-pulse-on').addEventListener('change', () => {
+  settings.metPulse = $('met-pulse-on').checked;
+  settings.metPulseChosen = true;
+  $('met-pulse').hidden = !settings.metPulse;
+  art.style.setProperty('--lit', '0');
+  persist();
+  syncControlsLive();
+});
 
 /*
  * Everything you see follows heardNow(): the time of the sound reaching your
@@ -440,6 +448,7 @@ $('met-pulse-on').addEventListener('change', () => { settings.metPulse = $('met-
  * the pulse flashes and the beat dot lights as each click is heard.
  */
 const pulse = $('met-pulse');
+const art = $('metronome-art');
 let lastFrame = 0;
 let frameSec = 1 / 60;
 function animateMetronome() {
@@ -460,6 +469,9 @@ function animateMetronome() {
   }
   pulse.style.setProperty('--lit', k.toFixed(3));
   pulse.classList.toggle('strong', !!beat && beat.strength === 2);
+  // And the whole metronome flashes with it, to be seen from across the room.
+  art.style.setProperty('--lit', k.toFixed(3));
+  art.classList.toggle('strong', !!beat && beat.strength === 2);
   const dots = $('beats').children;
   for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', !!beat && beat.beat === i);
   // The Visualizer: read like music, left to right and down a row a bar. The
