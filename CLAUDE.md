@@ -70,16 +70,16 @@ from `sites/`, `multiplayer/` and `local/`:
 - **A new game gets a new top-level folder** with a `README.md`, an `intake/`
   folder (holding only its README), and a `publish.sh` that copies the
   playable build into `local/pages/<folder>/`. Add a step for it to
-  `.github/workflows/pages.yml`, a link in the root `README.md`, a card near the
-  front of the game library page (`index.html`): Games Chat is pinned first,
-  then newest game first by when it was made, so Tank Wars comes last; Fibre
-  Art sits after Kingdom of the Fairies at the owner's request, and a row in the table above.
+  `.github/workflows/pages.yml`, a link in the root `README.md`, a card at the
+  front of the game library page (`index.html`): newest game first by when it
+  was made, so Tank Wars comes last; Fibre Art sits after Kingdom of the
+  Fairies at the owner's request, and a row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
-  Ai-Ching, Music Practice, Bookzam and Stocks) go on its mini apps shelf below the games; Games Chat stays
-  with the games. Games that haven't turned out as hoped yet are listed as
+  Ai-Ching, Music Practice, Bookzam and Stocks) go on its mini apps shelf below the games, with Music
+  Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
   plain links in its Prototype archive, at the bottom. `GAME_GUIDELINES.md` applies to every game.
 - **The Prototype archive is code-locked.** The library shows it only to
   visitors holding an invite pass, and every game or app listed there sits
