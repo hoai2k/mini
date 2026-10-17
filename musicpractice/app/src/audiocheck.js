@@ -58,9 +58,7 @@ async function render() {
   let steps = null;
   if (permission === 'denied') {
     summary = el('p', { class: 'ac-status bad' }, A.blocked);
-  } else if (frees) {
-    summary = el('p', { class: 'ac-status good' }, A.bluetoothOk);
-  } else {
+  } else if (!frees) {
     summary = el('p', { class: 'ac-status warn' },
       promptWasSuspected() ? A.askedAgain : '',
       A.keptOpen,

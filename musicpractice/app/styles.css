@@ -302,6 +302,13 @@ button { cursor: pointer; }
   box-shadow: 0 20px 60px var(--shadow);
 }
 .sheet::backdrop { background: var(--backdrop); }
+/* A sheet scrolls up and down only. Safari sizes a dropdown to its longest
+   option (a Bluetooth headset's full name, say), which pushed rows wider than
+   the sheet and let it pan sideways; the rows below now give way instead. */
+.sheet { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.sheet form > *, .row > *, .ac-steps > li { min-width: 0; }
+.row.toggle > .select { flex: 0 1 auto; min-width: 0; max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row.toggle > span { min-width: 0; overflow-wrap: anywhere; }
 .sheet form { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-2); z-index: 1; padding-top: 8px; }
 .sheet-head h3 { margin: 0; font: 700 1.2rem var(--display); }
@@ -1111,7 +1118,6 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 /* Audio check */
 .open-audio-check { align-self: flex-start; }
 .ac-status { margin: 0; padding: 12px 14px; border-radius: min(var(--radius), 12px); border: 1px solid var(--line); background: var(--panel); line-height: 1.45; }
-.ac-status.good { border-color: #3f9a5c; }
 .ac-status.warn { border-color: var(--brass); }
 .ac-status.bad { border-color: var(--red); }
 .ac-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
@@ -1138,7 +1144,7 @@ input[role="switch"]:checked::after { transform: translateX(22px); background: v
 .ac-alt { list-style: none; margin-left: -1.4em; color: var(--ink-2); font-size: 0.92em; }
 
 /* Pictures of iPhone screens for the steps (light, whatever the theme) */
-.ios-fig { margin: 8px 0 4px; max-width: 280px; }
+.ios-fig { margin: 8px 0 4px; max-width: min(280px, 100%); }
 .ios-svg { display: block; width: 100%; height: auto; border-radius: 18px; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18); }
 .ios-fig figcaption { margin-top: 6px; font-size: 0.85em; color: var(--ink-2); }
 .mic-tip-actions { display: flex; flex-wrap: wrap; gap: 8px; }

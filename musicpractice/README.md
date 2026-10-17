@@ -28,11 +28,10 @@ page draws, so there's no flash of the default order.
 
 ## Themes
 
-The gear on the home screen opens the app's own settings, which for now hold
-only **Theme**: a tile per theme, each drawn in its own colours and fonts (all
-themes' fonts load only when this opens). Theme is also a dropdown at the
-bottom of the metronome's and the Playback Recorder's settings. It switches
-the whole app's look:
+The gear on the home screen opens the app's own settings, the one place the
+**Theme** is chosen: a tile per theme, each drawn in its own colours and fonts
+(all themes' fonts load only when this opens). The tools' own settings sheets
+don't offer it. It switches the whole app's look:
 
 - **Classic** (the default): warm walnut and brass with Fraunces and Manrope.
 - **Art Deco**: black lacquer, gold and ivory, Poiret One and
@@ -464,8 +463,10 @@ if refused), which follows the current output more reliably. Safari's
 session is set to `playback` only while no mic is held.
 
 **Audio check** (a button in every settings sheet, `app/src/audiocheck.js`)
-says how takes will play and why, with the steps to allow the microphone
-where needed and a Reload button; a test sound played the way takes are;
+says nothing about how takes will play while all is well, and only when
+something is wrong (the microphone blocked, or kept open so Bluetooth can't
+be used) explains it, with the steps to allow the microphone and a Reload
+button; a test sound played the way takes are;
 the microphone choice (Automatic, built-in preferred, or any listed mic,
 Bluetooth marked); the speaker choice where the browser allows one
 (desktop Chrome and Edge: System default is recommended, as it follows the

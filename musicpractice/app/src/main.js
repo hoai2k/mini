@@ -300,9 +300,8 @@ for (const [id, d] of [['bpm-down', -1], ['bpm-up', 1]]) {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-// Theme: a dropdown in each settings sheet, and preview tiles in the app
-// settings on the home screen. Each tile is drawn in its own theme.
-const themeSelects = [...document.querySelectorAll('.theme-select')];
+// Theme: preview tiles in the app settings on the home screen (the only place
+// it is chosen). Each tile is drawn in its own theme.
 const themeTiles = THEMES.map((t) => {
   const b = document.createElement('button');
   b.type = 'button';
@@ -327,7 +326,6 @@ $('theme-tiles').addEventListener('keydown', (e) => {
 
 function syncThemeControls() {
   const id = isPro() ? settings.theme : FREE_THEME;
-  for (const sel of themeSelects) sel.value = id;
   for (const b of themeTiles) {
     const on = b.dataset.theme === id;
     b.setAttribute('aria-checked', String(on));
@@ -347,10 +345,6 @@ function setTheme(id) {
   syncThemeControls();
 }
 
-for (const sel of themeSelects) {
-  sel.replaceChildren(...THEMES.map((t) => new Option(t.label, t.id)));
-  sel.addEventListener('change', () => setTheme(sel.value));
-}
 syncThemeControls();
 
 const appSettings = $('app-settings');
